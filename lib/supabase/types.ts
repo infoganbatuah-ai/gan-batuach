@@ -75,10 +75,7 @@ export interface Database {
           next_inspection_at?: string | null;
         }
       >;
-      children: Table<
-        { id: string; garden_id: string; full_name: string; status: string; parent_completed: boolean },
-        { id?: string; garden_id: string; full_name: string; status?: string; parent_completed?: boolean }
-      >;
+      children: Table<LooseRow, LooseInsert, LooseInsert>;
       tasks: Table<LooseRow, LooseInsert, LooseInsert>;
       inspections: Table<LooseRow, LooseInsert, LooseInsert>;
       inspection_forms: Table<LooseRow, LooseInsert, LooseInsert>;

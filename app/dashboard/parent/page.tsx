@@ -6,11 +6,11 @@ import { requireRole } from "@/lib/auth";
 
 const parentActions = [
   { href: "/parent-onboarding", label: "עדכון כרטיס ילד", icon: Baby, text: "בריאות, פרטים, אנשי קשר והסכמות." },
-  { href: "/api/parent/messages", label: "פנייה לגן", icon: MessageCircle, text: "שאלה או הודעה מתועדת לגננת." },
-  { href: "/api/parent/complaints", label: "הגשת תלונה", icon: Siren, text: "פנייה לגורם מוסמך לפי חומרה." },
-  { href: "/api/parent/cameras", label: "צפייה במצלמות", icon: Camera, text: "רק מצלמות מורשות ובחלון צפייה מוגדר." },
-  { href: "/api/parent/schedule", label: "לו״ז ותפריט", icon: CalendarDays, text: "סדר יום, אוכל, פעילויות והודעות." },
-  { href: "/api/parent/gallery", label: "גלריה", icon: Image, text: "תמונות לפי הרשאות צילום." }
+  { href: "/dashboard/parent/messages", label: "פנייה לגן", icon: MessageCircle, text: "שאלה או הודעה מתועדת לגננת." },
+  { href: "/dashboard/parent/complaints", label: "הגשת תלונה", icon: Siren, text: "פנייה לגורם מוסמך לפי חומרה." },
+  { href: "/dashboard/parent/cameras", label: "צפייה במצלמות", icon: Camera, text: "רק מצלמות מורשות ובחלון צפייה מוגדר." },
+  { href: "/dashboard/parent/schedule", label: "לו״ז ותפריט", icon: CalendarDays, text: "סדר יום, אוכל, פעילויות והודעות." },
+  { href: "/dashboard/parent/gallery", label: "גלריה", icon: Image, text: "תמונות לפי הרשאות צילום." }
 ];
 
 export default async function ParentDashboard() {

@@ -1,8 +1,8 @@
 import { z } from "zod";
-import { createAdminClient } from "@/lib/supabase/admin";
 import { requireRole } from "@/lib/auth";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import type { Database } from "@/lib/supabase/types";
+import { provisionAuthUser, provisionedUserSchema, writeUserCreationAudit } from "@/lib/onboarding/user-provisioning";
 
 const schema = z.object({
   garden: z.object({
@@ -15,45 +15,31 @@ const schema = z.object({
     phone: z.string().optional(),
     email: z.string().email()
   }),
-  manager: z.object({
-    full_name: z.string().min(2),
-    email: z.string().email(),
-    phone: z.string().optional(),
-    temporary_password: z.string().min(8)
-  })
+  manager: provisionedUserSchema
 });
 
 export async function POST(request: Request) {
   try {
-    await requireRole(["admin"]);
+    const { profile } = await requireRole(["admin"]);
     const payload = schema.parse(await request.json());
-    const supabase = createAdminClient();
-
-    const { data: userResult, error: userError } = await supabase.auth.admin.createUser({
+    const { supabase, user, oneTimeCredentials } = await provisionAuthUser({
+      role: "manager",
+      fullName: payload.manager.full_name,
       email: payload.manager.email,
-      password: payload.manager.temporary_password,
-      email_confirm: true,
-      app_metadata: { role: "manager" },
-      user_metadata: { full_name: payload.manager.full_name, phone: payload.manager.phone }
+      phone: payload.manager.phone,
+      temporaryPassword: payload.manager.temporary_password
     });
-
-    if (userError || !userResult.user) return fail(userError?.message ?? "Could not create manager user", 400);
 
     const gardenInsert: Database["public"]["Tables"]["gardens"]["Insert"] = {
       ...payload.garden,
       email: payload.garden.email,
-      manager_id: userResult.user.id,
+      manager_id: user.id,
       status: "active",
       safe_status: "pending_review",
       public_profile_enabled: true
     };
 
-    const { data: garden, error: gardenError } = await supabase
-      .from("gardens")
-      .insert(gardenInsert)
-      .select("*")
-      .single();
-
+    const { data: garden, error: gardenError } = await supabase.from("gardens").insert(gardenInsert).select("*").single();
     if (gardenError) return fail(gardenError.message, 400);
 
     const profileUpdate: Database["public"]["Tables"]["profiles"]["Update"] = {
@@ -64,24 +50,20 @@ export async function POST(request: Request) {
       must_change_password: true
     };
 
-    const { error: profileError } = await supabase
-      .from("profiles")
-      .update(profileUpdate)
-      .eq("id", userResult.user.id);
-
+    const { error: profileError } = await supabase.from("profiles").update(profileUpdate).eq("id", user.id);
     if (profileError) return fail(profileError.message, 400);
 
-    await supabase.from("audit_logs").insert({
-      actor_id: null,
-      actor_role: "admin",
-      garden_id: garden.id,
-      entity_type: "gardens",
-      entity_id: garden.id,
+    await writeUserCreationAudit({
+      actorId: profile.id,
+      actorRole: "admin",
+      gardenId: garden.id,
+      entityType: "gardens",
+      entityId: garden.id,
       action: "create_garden_and_manager",
-      after_data: { garden, manager_user_id: userResult.user.id }
+      afterData: { garden_id: garden.id, manager_user_id: user.id }
     });
 
-    return ok({ garden, manager_user_id: userResult.user.id }, 201);
+    return ok({ garden, manager_user_id: user.id, credentials: oneTimeCredentials }, 201);
   } catch (error) {
     return handleRouteError(error);
   }

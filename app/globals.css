@@ -899,3 +899,140 @@ textarea {
     width: 100%;
   }
 }
+
+
+.onboarding-console {
+  display: grid;
+  gap: 18px;
+}
+
+.success-screen,
+.error-banner {
+  border-radius: 8px;
+  padding: 18px 20px;
+  border: 1px solid var(--line);
+  background: #eefaf5;
+  color: #075c43;
+  box-shadow: 0 12px 28px rgb(15 23 42 / 6%);
+}
+
+.error-banner {
+  background: #fff1f1;
+  color: var(--danger);
+  border-color: #f2c7c7;
+}
+
+.success-screen strong {
+  display: block;
+  font-size: 20px;
+  margin-bottom: 6px;
+}
+
+.success-screen small {
+  display: block;
+  margin-top: 10px;
+  color: var(--muted);
+}
+
+.credential-box {
+  display: grid;
+  gap: 6px;
+  margin: 12px 0;
+  padding: 14px;
+  border-radius: 8px;
+  border: 1px dashed #9db6ee;
+  background: white;
+  color: var(--blue-dark);
+  font-weight: 800;
+}
+
+.form .button.large,
+.wizard-form .button.large {
+  width: 100%;
+  margin-top: 10px;
+}
+
+.list-item .button {
+  min-width: 110px;
+}
+
+
+.empty-state {
+  display: grid;
+  gap: 6px;
+  min-height: 150px;
+  place-items: center;
+  text-align: center;
+  padding: 26px;
+  border: 1px dashed var(--line);
+  border-radius: 8px;
+  background: #fff;
+  color: var(--muted);
+}
+
+.empty-state strong {
+  color: var(--ink);
+  font-size: 20px;
+}
+
+.procedure-manager,
+.procedure-list {
+  display: grid;
+  gap: 16px;
+}
+
+.procedure-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(180px, 260px);
+  gap: 18px;
+  align-items: start;
+}
+
+.procedure-card p {
+  color: var(--muted);
+}
+
+.procedure-meta {
+  display: grid;
+  gap: 8px;
+  color: var(--muted);
+}
+
+.check-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+}
+
+.mini-divider {
+  height: 1px;
+  background: var(--line);
+  margin: 16px 0;
+}
+
+.stepper.expanded {
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+}
+
+.detection-grid label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 10px 12px;
+  background: white;
+}
+
+.health-card.bad {
+  border-color: #f0b9b9;
+  color: var(--danger);
+}
+
+@media (max-width: 760px) {
+  .procedure-card {
+    grid-template-columns: 1fr;
+  }
+}

@@ -6,29 +6,32 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
   admin: [
     { href: "/dashboard/admin", label: "מרכז שליטה", hint: "סיכונים, ערים, לידים" },
     { href: "/dashboard/admin/inspection-forms", label: "טפסי פיקוח", hint: "בונה דינמי" },
+    { href: "/dashboard/admin/onboarding", label: "משתמשים", hint: "גנים ופקחים" },
     { href: "/dashboard/admin/ai-observer", label: "תצפיתן AI", hint: "אירועים והתראות" },
-    { href: "/api/admin/procedures", label: "נהלים", hint: "חובה ותאימות" }
+    { href: "/dashboard/admin/camera-ai", label: "מצלמות", hint: "Gateway והרשאות" },
+    { href: "/dashboard/admin/procedures", label: "נהלים", hint: "חובה ותאימות" }
   ],
   inspector: [
     { href: "/dashboard/inspector", label: "ביקורות", hint: "חודשי, GPS, ליקויים" },
-    { href: "/api/inspections", label: "API ביקורות", hint: "נתוני פיקוח" },
-    { href: "/api/violations", label: "ליקויים", hint: "אישור תיקונים" }
+    { href: "/dashboard/inspector/inspections", label: "ביקורות", hint: "נתוני פיקוח" },
+    { href: "/dashboard/inspector/violations", label: "ליקויים", hint: "אישור תיקונים" }
   ],
   manager: [
     { href: "/dashboard/garden", label: "ניהול גן", hint: "יום עבודה" },
     { href: "/dashboard/garden/cameras", label: "מצלמות", hint: "אשף חיבור" },
-    { href: "/api/children", label: "ילדים", hint: "רישום ואישור" },
-    { href: "/api/attendance", label: "נוכחות", hint: "ילדים וצוות" }
+    { href: "/dashboard/garden/onboarding", label: "קליטה", hint: "הורים, ילדים וצוות" },
+    { href: "/dashboard/garden/children", label: "ילדים", hint: "רישום ואישור" },
+    { href: "/dashboard/garden/attendance", label: "נוכחות", hint: "ילדים וצוות" }
   ],
   staff: [
     { href: "/dashboard/staff", label: "צוות", hint: "GPS ומשימות" },
-    { href: "/api/staff/shifts", label: "שעות", hint: "דוחות חודשיים" },
-    { href: "/api/messages", label: "הודעות", hint: "תקשורת" }
+    { href: "/dashboard/staff/shifts", label: "שעות", hint: "דוחות חודשיים" },
+    { href: "/dashboard/staff/messages", label: "הודעות", hint: "תקשורת" }
   ],
   parent: [
     { href: "/dashboard/parent", label: "אזור הורים", hint: "ילד וגן" },
     { href: "/parent-onboarding", label: "כרטיס ילד", hint: "פרטים והסכמות" },
-    { href: "/api/parent/complaints", label: "תלונות", hint: "פנייה מסודרת" }
+    { href: "/dashboard/parent/complaints", label: "תלונות", hint: "פנייה מסודרת" }
   ]
 };
 

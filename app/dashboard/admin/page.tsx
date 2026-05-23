@@ -1,24 +1,27 @@
 import Link from "next/link";
-import { AlertTriangle, Bot, Building2, Camera, ClipboardCheck, Download, FileWarning, MapPinned, Megaphone, ShieldAlert, UsersRound } from "lucide-react";
+import { AlertTriangle, Bot, Camera, ClipboardCheck, Download, FileWarning, MapPinned, Megaphone, ShieldAlert, UserPlus } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { StatCard } from "@/components/stat-card";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
 const adminActions = [
-  { href: "/api/tasks", label: "יצירת משימה", icon: ClipboardCheck },
+  { href: "/dashboard/admin/onboarding", label: "פתיחת גנים ופקחים", icon: UserPlus },
+  { href: "/dashboard/admin/tasks", label: "יצירת משימה", icon: ClipboardCheck },
   { href: "/dashboard/admin/inspection-forms", label: "טפסי פיקוח", icon: FileWarning },
-  { href: "/api/admin/procedures", label: "נהלים מחייבים", icon: ShieldAlert },
-  { href: "/api/admin/push-notices", label: "הודעה ארצית", icon: Megaphone },
-  { href: "/api/admin/reports", label: "ייצוא דוחות", icon: Download },
-  { href: "/dashboard/admin/ai-observer", label: "תצפיתן AI", icon: Bot }
+  { href: "/dashboard/admin/procedures", label: "נהלים מחייבים", icon: ShieldAlert },
+  { href: "/dashboard/admin/notices", label: "הודעה ארצית", icon: Megaphone },
+  { href: "/dashboard/admin/reports", label: "ייצוא דוחות", icon: Download },
+  { href: "/dashboard/admin/ai-observer", label: "תצפיתן AI", icon: Bot },
+  { href: "/dashboard/admin/camera-ai", label: "מצלמות ו-AI", icon: Camera }
 ];
 
 export default async function AdminDashboard() {
   await requireRole(["admin"]);
   const supabase = await createClient();
-  const [gardens, leads, complaints, violations, inspectors, unsafe, cameras, aiAlerts, docs] = await Promise.all([
+  const [gardens, gardenList, leads, complaints, violations, inspectors, unsafe, cameras, aiAlerts, docs] = await Promise.all([
     supabase.from("gardens").select("*", { count: "exact", head: true }),
+    supabase.from("gardens").select("id, name, city, safe_status, last_inspection_score, next_inspection_at").order("created_at", { ascending: false }).limit(8),
     supabase.from("leads").select("*", { count: "exact", head: true }),
     supabase.from("complaints").select("*", { count: "exact", head: true }).neq("status", "closed"),
     supabase.from("violations").select("*", { count: "exact", head: true }).neq("status", "done"),
@@ -55,6 +58,8 @@ export default async function AdminDashboard() {
         <article className="card action-panel"><div className="section-heading"><h2>גנים בסיכון</h2><p>רשימת Drill-down לפי עיר, ציון וליקויים פתוחים.</p></div>{(((unsafe.data as any[]) ?? []).length === 0) ? <div className="empty-mini">אין גנים בסיכון כרגע.</div> : ((unsafe.data as any[]) ?? []).map((garden) => <div className="list-item" key={garden.name}><div><strong>{garden.name}</strong><span>{garden.city} · ציון {garden.last_inspection_score ?? "-"}</span></div><span className="pill bad">{garden.open_violations_count} ליקויים</span></div>)}</article>
         <article className="card action-panel"><div className="section-heading"><h2>התראות AI ומצלמות</h2><p>אירועים שדורשים טיפול, אישור או סימון false positive.</p></div>{(aiAlerts.data ?? []).length === 0 ? <div className="empty-mini">אין התראות AI חדשות.</div> : (aiAlerts.data ?? []).map((alert: any) => <div className="list-item" key={`${alert.title}-${alert.created_at}`}><div><strong>{alert.title}</strong><span>{alert.ai_events?.event_type ?? alert.body}</span></div><span className="pill bad">{alert.ai_events?.severity ?? alert.recipient_role}</span></div>)}</article>
       </section>
+
+      <section className="dashboard-section"><div className="section-heading"><h2>גנים במערכת</h2><p>כניסה לפרופיל גן מלא מתוך הדשבורד.</p></div><div className="procedure-list">{(gardenList.data ?? []).length === 0 ? <div className="empty-mini">אין גנים להצגה.</div> : (gardenList.data ?? []).map((garden: any) => <Link className="card procedure-card" href={`/dashboard/admin/gardens/${garden.id}`} key={garden.id}><div><span className="pill">{garden.city}</span><h3>{garden.name}</h3><p>ציון אחרון: {garden.last_inspection_score ?? "-"} · ביקורת הבאה: {garden.next_inspection_at ? new Date(garden.next_inspection_at).toLocaleDateString("he-IL") : "לא נקבע"}</p></div><div className="procedure-meta"><span className={garden.safe_status === "safe" ? "pill good" : "pill warn"}>{garden.safe_status}</span><span>צפייה בפרופיל גן</span></div></Link>)}</div></section>
 
       <section className="dashboard-section"><div className="section-heading"><h2>מסמכים ותאימות</h2><p>מעקב אחרי תוקף מסמכים, בדיקות רקע, תעודות יושר ונהלי חובה.</p></div><div className="document-strip">{(docs.data ?? []).length === 0 ? <div className="empty-mini">אין מסמכים להצגה.</div> : (docs.data ?? []).map((doc: any) => <div className="document-chip" key={`${doc.name}-${doc.expires_at}`}><strong>{doc.name}</strong><span>{doc.gardens?.name ?? "גן"} · {doc.status ?? doc.document_type}</span></div>)}</div></section>
     </DashboardShell>

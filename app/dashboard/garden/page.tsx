@@ -6,11 +6,11 @@ import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
 const quickActions = [
-  { href: "/api/children", label: "הוספת ילד", icon: Plus, help: "פתיחת תלמיד ראשוני והזמנת הורה להשלים פרטים." },
-  { href: "/api/parents", label: "הוספת הורה", icon: UserPlus, help: "יצירת קשר הורה וחיבור לילד/גן." },
-  { href: "/api/staff", label: "הוספת צוות", icon: UsersRound, help: "עובד לא יופעל בלי מסמכי חובה." },
-  { href: "/api/attendance", label: "סימון נוכחות", icon: CalendarCheck, help: "נוכחות ילדים וצוות עם לוג שינוי." },
-  { href: "/api/messages", label: "שליחת הודעה", icon: MessageSquare, help: "תקשורת מתועדת מול הורים/פקח." },
+  { href: "/dashboard/garden/onboarding", label: "קליטת הורה/ילד", icon: Plus, help: "יצירת הורה, אשף ילד ואישור תלמיד." },
+  { href: "/dashboard/garden/onboarding", label: "הוספת הורה", icon: UserPlus, help: "יוצר Auth, פרופיל ולוג ביקורת." },
+  { href: "/dashboard/garden/onboarding", label: "הוספת צוות", icon: UsersRound, help: "עובד לא יופעל בלי מסמכי חובה." },
+  { href: "/dashboard/garden/attendance", label: "סימון נוכחות", icon: CalendarCheck, help: "נוכחות ילדים וצוות עם לוג שינוי." },
+  { href: "/dashboard/garden/messages", label: "שליחת הודעה", icon: MessageSquare, help: "תקשורת מתועדת מול הורים/פקח." },
   { href: "/dashboard/garden/cameras", label: "ניהול מצלמות", icon: Camera, help: "חיבור DVR/RTSP והרשאות הורים." }
 ];
 
