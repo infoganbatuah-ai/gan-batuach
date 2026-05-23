@@ -12,8 +12,11 @@
     "seed:test-users": "node scripts/seed-test-users.mjs"
   },
   "dependencies": {
+    "@simplewebauthn/browser": "^13.3.0",
+    "@simplewebauthn/server": "^13.3.0",
     "@supabase/ssr": "latest",
     "@supabase/supabase-js": "latest",
+    "framer-motion": "^12.40.0",
     "lucide-react": "latest",
     "next": "latest",
     "react": "latest",

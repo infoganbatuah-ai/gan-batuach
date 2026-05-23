@@ -40,6 +40,7 @@ export function dashboardPathForRole(role: UserRole) {
     admin: "/dashboard/admin",
     inspector: "/dashboard/inspector",
     manager: "/dashboard/garden",
+    owner: "/dashboard/garden",
     staff: "/dashboard/staff",
     parent: "/dashboard/parent"
   }[role];

@@ -23,9 +23,10 @@ export function ProceduresManager({ procedures, gardens, acknowledgements, audit
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const form = event.currentTarget;
     setMessage(null);
     setError(null);
-    const data = Object.fromEntries(new FormData(event.currentTarget).entries());
+    const data = Object.fromEntries(new FormData(form).entries());
     const payload = { title: String(data.title), procedure_type: String(data.procedure_type || "תפעול"), body: String(data.body), required_for_framework: String(data.required_for_framework || "all"), active: String(data.status || "active") === "active", requires_acknowledgement: Boolean(data.requires_acknowledgement) };
     try {
       if (editing) {
@@ -37,7 +38,7 @@ export function ProceduresManager({ procedures, gardens, acknowledgements, audit
         const created = await postJson("POST", payload);
         setItems((current) => [created, ...current]);
         setMessage("נוהל חדש נוצר ונכנס לרשימת הנהלים.");
-        event.currentTarget.reset();
+        form.reset();
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "הפעולה נכשלה");

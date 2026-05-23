@@ -19,7 +19,6 @@ export async function signIn(formData: FormData) {
 
   const { data: profile } = await supabase.from("profiles").select("role").eq("id", user?.id ?? "").single();
   const role = profile?.role;
-  if (role === "parent") redirect("/parent-onboarding");
   redirect(isRole(role) ? dashboardPathForRole(role) : "/dashboard");
 }
 

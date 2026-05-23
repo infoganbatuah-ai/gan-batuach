@@ -4,16 +4,15 @@ import { createGardenLead } from "@/app/actions";
 
 const steps = [
   { icon: Building2, title: "פרטי הגן", text: "שם, עיר, כתובת וסוג מסגרת." },
-  { icon: UsersRound, title: "בעלים ומנהל", text: "מי אחראי לקבלת משתמש מנהל." },
-  { icon: ClipboardList, title: "ילדים וצוות", text: "קיבולת, גילאים ומספר אנשי צוות." },
-  { icon: Camera, title: "מצלמות", text: "האם קיימות מצלמות ומה נדרש לחיבור מאובטח." },
+  { icon: UsersRound, title: "בעלים ומנהל", text: "פרטי בעלים, מנהלת/גננת ודרכי קשר." },
+  { icon: ClipboardList, title: "גילאים וקיבולת", text: "תינוקות, פעוטות, 3-4, 4-5 או קבוצה מעורבת." },
+  { icon: Camera, title: "מצלמות ותפעול", text: "DVR/NVR/IP, מטבח, אוכל ומוכנות לחיבור." },
   { icon: FileCheck2, title: "מסמכים", text: "רישוי, ביטוח, בטיחות, תברואה, פרטיות ואישורי מצלמות." },
   { icon: Send, title: "שליחה לאדמין", text: "האדמין מאשר, מבקש השלמה או יוצר משתמש מנהל." }
 ];
 
-export default async function JoinKindergartenPage({ searchParams }: { searchParams: Promise<{ lead?: string }> }) {
+export default async function JoinKindergartenPage({ searchParams }: { searchParams: Promise<{ lead?: string; error?: string }> }) {
   const params = await searchParams;
-
   return (
     <>
       <BrandHeader />
@@ -21,28 +20,20 @@ export default async function JoinKindergartenPage({ searchParams }: { searchPar
         <section className="page-hero slim-hero">
           <p className="eyebrow">הצטרפות גן</p>
           <h1>תהליך הצטרפות ברור שמכין את הגן לניהול, שקיפות ופיקוח.</h1>
-          <p>הטופס בנוי כאשף כדי לאסוף את הנתונים שהאדמין צריך לפני פתיחת משתמש גננת / מנהלת גן.</p>
+          <p>הטופס שומר בקשת הצטרפות בסופאבייס ומציג אותה לאדמין בלידים ובבקשות הצטרפות.</p>
           {params.lead === "sent" ? <div className="success-banner">בקשת ההצטרפות נשלחה לאדמין.</div> : null}
+          {params.error ? <div className="error-banner">{params.error}</div> : null}
         </section>
-
         <section className="section wizard-layout">
-          <aside className="wizard-steps">
-            {steps.map((step, index) => (
-              <div className="wizard-step" key={step.title}>
-                <span>{index + 1}</span>
-                <step.icon size={20} />
-                <div><strong>{step.title}</strong><small>{step.text}</small></div>
-              </div>
-            ))}
-          </aside>
-
+          <aside className="wizard-steps">{steps.map((step, index) => <div className="wizard-step" key={step.title}><span>{index + 1}</span><step.icon size={20} /><div><strong>{step.title}</strong><small>{step.text}</small></div></div>)}</aside>
           <form action={createGardenLead} className="card form wizard-form">
-            <h2>בקשת הצטרפות גן לגן בטוח</h2>
-            <p>המידע יוצג לאדמין בלבד לצורך בדיקה, יצירת קשר והחלטה האם לפתוח סביבת גן פעילה.</p>
-            <div className="form-section"><h3>1. פרטי הגן</h3><div className="form-grid"><label>שם הגן<input name="garden_name" required /></label><label>עיר<input name="city" required /></label><label>כתובת<input name="address" /></label><label>גילאים<input name="age_groups" placeholder="לידה-3, 3-6, מעורב" /></label><label>מספר ילדים<input name="children_count" type="number" min="0" /></label><label>מספר אנשי צוות<input name="staff_count" type="number" min="0" /></label></div></div>
-            <div className="form-section"><h3>2. בעלים / מנהל</h3><div className="form-grid"><label>שם בעלים / מנהל<input name="owner_name" required /></label><label>טלפון<input name="phone" required /></label><label>מייל<input name="email" type="email" /></label></div></div>
-            <div className="form-section"><h3>3. מצלמות ומסמכים</h3><div className="form-grid"><label>סטטוס מצלמות<select name="camera_status"><option>אין מצלמות</option><option>יש DVR/NVR</option><option>יש מצלמות IP</option><option>צריך בדיקת חיבור</option></select></label><label>סטטוס מסמכים<select name="documents_status"><option>לא הועלו עדיין</option><option>קיימים חלקית</option><option>קיימים ומוכנים לבדיקה</option></select></label><label className="wide">הערות<textarea name="notes" rows={4} placeholder="ספרו על הגן, הצרכים, מועדי פעילות וכל פרט חשוב" /></label></div></div>
-            <div className="declaration-box"><strong>הצהרה</strong><span>המערכת אינה גוף ממשלתי ואינה מחליפה ייעוץ משפטי. היא מספקת תשתית ניהול, שקיפות ובקרה מקצועית לגנים פרטיים.</span></div>
+            <div className="progress-bar"><span style={{ width: "82%" }} /></div>
+            <h2>בקשת הצטרפות גן לגן בטוח</h2><p>שדות חובה מסומנים. המסמכים עצמם יועלו בהמשך מתוך ממשק הגן לאחר אישור אדמין.</p>
+            <div className="form-section"><h3>1. פרטי הגן</h3><div className="form-grid"><label>שם הגן *<input name="garden_name" required /></label><label>עיר *<input name="city" required /></label><label className="wide">כתובת מלאה<input name="address" required /></label></div></div>
+            <div className="form-section"><h3>2. בעלים ומנהל/גננת</h3><div className="form-grid"><label>שם בעלים *<input name="owner_name" required /></label><label>שם מנהל/גננת<input name="manager_name" /></label><label>טלפון *<input name="phone" required /></label><label>מייל<input name="email" type="email" /></label></div></div>
+            <div className="form-section"><h3>3. גילאים, קיבולת וצוות</h3><div className="choice-grid detection-grid"><label><input type="checkbox" name="age_groups" value="babies" /> תינוקות</label><label><input type="checkbox" name="age_groups" value="toddlers" /> פעוטות</label><label><input type="checkbox" name="age_groups" value="3-4" /> 3-4</label><label><input type="checkbox" name="age_groups" value="4-5" /> 4-5</label><label><input type="checkbox" name="age_groups" value="mixed" /> קבוצה מעורבת</label></div><div className="form-grid"><label>טווח גיל מותאם<input name="custom_age_range" placeholder="לדוגמה: שנה וחצי עד ארבע" /></label><label>מספר ילדים<input name="children_count" type="number" min="0" /></label><label>קיבולת<input name="capacity" type="number" min="0" /></label><label>מספר אנשי צוות<input name="staff_count" type="number" min="0" /></label></div></div>
+            <div className="form-section"><h3>4. מצלמות, מטבח ומסמכים</h3><div className="form-grid"><label>האם קיימות מצלמות?<select name="camera_status"><option value="no">לא</option><option value="dvr_nvr">כן, DVR/NVR</option><option value="ip">כן, מצלמות IP</option><option value="unknown">צריך בדיקת חיבור</option></select></label><label>מטבח / אוכל<select name="food_kitchen"><option>יש מטבח</option><option>ספק אוכל חיצוני</option><option>אין מטבח</option></select></label><label>סטטוס מסמכים<select name="documents_status"><option>לא הועלו עדיין</option><option>קיימים חלקית</option><option>קיימים ומוכנים לבדיקה</option></select></label><label className="wide">מסמכים רלוונטיים<input name="document_note" placeholder="שם מסמך/קישור אם קיים" /></label><label className="wide">הערות<textarea name="notes" rows={4} placeholder="מועדי פעילות, צרכים, מצב פיקוח וכל פרט חשוב" /></label></div></div>
+            <label className="declaration-box"><input name="declaration" type="checkbox" required /><span><strong>הצהרה</strong> המערכת אינה גוף ממשלתי ואינה מחליפה ייעוץ משפטי. הפרטים נשלחים לבדיקה והמשך תהליך מול אדמין.</span></label>
             <button className="button primary large" type="submit">שליחת בקשה לאדמין</button>
           </form>
         </section>

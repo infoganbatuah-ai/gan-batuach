@@ -10,7 +10,12 @@ type PublicGarden = {
   id: string;
   name: string;
   city: string;
+  address?: string | null;
+  owner_name?: string | null;
   framework_type?: string | null;
+  children_capacity?: number | null;
+  current_children_count?: number | null;
+  manager?: { full_name?: string | null } | null;
   safe_status?: string | null;
   last_inspection_score?: number | null;
   last_inspection_at?: string | null;
@@ -23,10 +28,10 @@ async function getPublicGardens() {
     const supabase = createAdminClient();
     const { data } = await supabase
       .from("gardens")
-      .select("id, name, city, framework_type, safe_status, last_inspection_score, last_inspection_at, next_inspection_at, public_profile_enabled")
+      .select("id, name, city, address, owner_name, framework_type, children_capacity, current_children_count, safe_status, last_inspection_score, last_inspection_at, next_inspection_at, public_profile_enabled, manager:profiles!gardens_manager_id_fkey(full_name)")
       .eq("public_profile_enabled", true)
       .limit(24);
-    return (data ?? []) as PublicGarden[];
+    return (data ?? []) as unknown as PublicGarden[];
   } catch {
     return [] as PublicGarden[];
   }
@@ -62,8 +67,7 @@ export default async function GardensPage({ searchParams }: { searchParams: Prom
           <div className="filter-bar">
             <label>שם גן<input placeholder="לדוגמה: גן הפרחים" /></label>
             <label>עיר<input placeholder="תל אביב, ראשון לציון..." /></label>
-            <label>סטטוס<select defaultValue=""><option value="">כל הסטטוסים</option><option>גן בטוח</option><option>דורש תיקון</option></select></label>
-            <button className="button primary" type="button">סינון</button>
+            <label>שם מנהלת<input placeholder="שם מנהלת/גננת" /></label><label>גילאים<select defaultValue=""><option value="">כל הגילאים</option><option>babies</option><option>toddlers</option><option>3-4</option><option>4-5</option><option>mixed</option></select></label><label>סטטוס<select defaultValue=""><option value="">כל הסטטוסים</option><option>גן בטוח</option><option>דורש תיקון</option></select></label><label>ציון ביקורת<input type="number" min="1" max="10" placeholder="8+" /></label><button className="button primary" type="button">סינון</button>
           </div>
 
           {gardens.length === 0 ? (
@@ -84,15 +88,16 @@ export default async function GardensPage({ searchParams }: { searchParams: Prom
                       <span className={`pill ${status.className}`}><StatusIcon size={15} /> {status.label}</span>
                       <span><MapPin size={16} /> {garden.city}</span>
                     </div>
-                    <h2>{garden.name}</h2>
-                    <p>גן פרטי המנוהל במערכת גן בטוח עם תיעוד, שקיפות, פיקוח ומשימות תיקון לפי הרשאות.</p>
+                    <div className="garden-image-placeholder">{garden.name}</div><h2>{garden.name}</h2>
+                    <p>{garden.address ?? "כתובת תוצג לפי הרשאת הגן"} · מנהלת: {garden.manager?.full_name ?? garden.owner_name ?? "לא צוין"}</p>
                     <div className="garden-facts">
                       <span><UsersRound size={16} /> גילאים: {garden.framework_type || "לא צוין"}</span>
+                      <span><UsersRound size={16} /> ילדים: {garden.current_children_count ?? 0}/{garden.children_capacity ?? 0}</span>
                       <span><ShieldCheck size={16} /> ציון אחרון: {garden.last_inspection_score ?? "טרם בוצעה ביקורת"}</span>
                       <span><CalendarDays size={16} /> ביקורת אחרונה: {formatDate(garden.last_inspection_at)}</span>
                       <span><CalendarDays size={16} /> ביקורת הבאה: {formatDate(garden.next_inspection_at)}</span>
                     </div>
-                    <details className="lead-details">
+                    <div className="actions"><Link className="button primary" href={`/gardens/${garden.id}`}>צפייה בפרטי הגן</Link><Link className="button" href="/login">כניסת הורים</Link><Link className="button" href="/login">כניסת צוות/גננת</Link></div><details className="lead-details">
                       <summary className="button secondary">הורים - בדיקת זמינות / הצטרפות</summary>
                       <form action={createParentLead} className="form guided-form">
                         <input type="hidden" name="garden_id" value={garden.id} />

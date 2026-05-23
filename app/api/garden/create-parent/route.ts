@@ -11,7 +11,7 @@ const schema = provisionedUserSchema.extend({
 
 export async function POST(request: Request) {
   try {
-    const { profile } = await requireRole(["manager"]);
+    const { profile } = await requireRole(["manager", "owner"]);
     if (!profile.garden_id) return fail("Manager is not assigned to a garden", 422);
     const payload = schema.parse(await request.json());
     const { supabase, user, oneTimeCredentials } = await provisionAuthUser({

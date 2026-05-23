@@ -47,20 +47,22 @@ export function AdminProvisioningPanel() {
 
   async function submitGardenManager(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const form = event.currentTarget;
     setBusy(true);
     setError(null);
     try {
-      const data = jsonFromForm(event.currentTarget);
+      const data = jsonFromForm(form);
       const response = await postJson("/api/admin/create-garden-manager", {
         garden: {
           name: String(data.garden_name), city: String(data.city), address: String(data.address || ""),
           framework_type: String(data.framework_type || "mixed"), children_capacity: Number(data.children_capacity || 0),
           owner_name: String(data.owner_name), phone: String(data.garden_phone || ""), email: String(data.garden_email)
         },
-        manager: { full_name: String(data.manager_full_name), email: String(data.manager_email), phone: String(data.manager_phone || "") }
+        manager: { full_name: String(data.manager_full_name), email: String(data.manager_email), phone: String(data.manager_phone || "") },
+        owner: data.owner_email ? { full_name: String(data.owner_full_name || data.owner_name || data.manager_full_name), email: String(data.owner_email), phone: String(data.owner_phone || "") } : undefined
       });
-      setResult({ title: "הגן ומנהלת הגן נוצרו", message: "נוצרו משתמש Supabase Auth, פרופיל מנהלת ורשומת גן פעילה.", credentials: response.credentials });
-      event.currentTarget.reset();
+      setResult({ title: "הגן ומנהלת הגן נוצרו", message: response.credentials?.owner ? "נוצרו משתמשי מנהלת ובעלים, פרופילים ורשומת גן פעילה." : "נוצרו משתמש Supabase Auth, פרופיל מנהלת ורשומת גן פעילה.", credentials: response.credentials?.manager ?? response.credentials });
+      form.reset();
     } catch (err) {
       setError(err instanceof Error ? err.message : "הפעולה נכשלה");
     } finally { setBusy(false); }
@@ -68,17 +70,18 @@ export function AdminProvisioningPanel() {
 
   async function submitInspector(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    const form = event.currentTarget;
     setBusy(true);
     setError(null);
     try {
-      const data = jsonFromForm(event.currentTarget);
+      const data = jsonFromForm(form);
       const response = await postJson("/api/admin/create-inspector", {
         full_name: String(data.full_name), email: String(data.email), phone: String(data.phone || ""),
         service_cities: String(data.service_cities).split(",").map((city) => city.trim()).filter(Boolean),
         certification_notes: String(data.certification_notes || "")
       });
       setResult({ title: "הפקח נוצר בהצלחה", message: "נוצרו משתמש Supabase Auth, פרופיל פקח ושיוך ערים.", credentials: response.credentials });
-      event.currentTarget.reset();
+      form.reset();
     } catch (err) {
       setError(err instanceof Error ? err.message : "הפעולה נכשלה");
     } finally { setBusy(false); }
@@ -91,7 +94,7 @@ export function AdminProvisioningPanel() {
       <section className="grid cols-2 dashboard-panels">
         <form className="card form wizard-form" onSubmit={submitGardenManager}>
           <h2>פתיחת גן ומנהלת</h2><p>המערכת יוצרת גן פעיל, משתמש Auth למנהלת, פרופיל עם הרשאת מנהלת ולוג ביקורת.</p>
-          <div className="form-grid"><label>שם הגן<input name="garden_name" required /></label><label>עיר<input name="city" required /></label><label>כתובת<input name="address" /></label><label>סוג מסגרת<select name="framework_type"><option value="mixed">מעורב</option><option value="birth_to_3">לידה עד 3</option><option value="3_to_6">3 עד 6</option></select></label><label>קיבולת ילדים<input name="children_capacity" type="number" min="0" /></label><label>שם בעלים<input name="owner_name" required /></label><label>טלפון גן<input name="garden_phone" /></label><label>מייל גן<input name="garden_email" type="email" required /></label><label>שם מנהלת<input name="manager_full_name" required /></label><label>טלפון מנהלת<input name="manager_phone" /></label><label className="wide">מייל מנהלת<input name="manager_email" type="email" required /></label></div>
+          <div className="form-grid"><label>שם הגן<input name="garden_name" required /></label><label>עיר<input name="city" required /></label><label>כתובת<input name="address" /></label><label>סוג מסגרת<select name="framework_type"><option value="mixed">מעורב</option><option value="birth_to_3">לידה עד 3</option><option value="3_to_6">3 עד 6</option></select></label><label>קיבולת ילדים<input name="children_capacity" type="number" min="0" /></label><label>שם בעלים<input name="owner_name" required /></label><label>טלפון גן<input name="garden_phone" /></label><label>מייל גן<input name="garden_email" type="email" required /></label><label>שם מנהלת<input name="manager_full_name" required /></label><label>טלפון מנהלת<input name="manager_phone" /></label><label>מייל מנהלת<input name="manager_email" type="email" required /></label><label>שם בעלים משתמש<input name="owner_full_name" /></label><label>טלפון בעלים<input name="owner_phone" /></label><label className="wide">מייל בעלים אופציונלי<input name="owner_email" type="email" /></label></div>
           <button className="button primary large" disabled={busy}>יצירת גן ומשתמש מנהלת</button>
         </form>
         <form className="card form wizard-form" onSubmit={submitInspector}>
@@ -110,22 +113,22 @@ export function GardenProvisioningPanel({ pendingChildren, parentLeads, pendingS
   const [busy, setBusy] = useState(false);
 
   async function submitParent(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault(); setBusy(true); setError(null);
+    event.preventDefault(); const form = event.currentTarget; setBusy(true); setError(null);
     try {
-      const data = jsonFromForm(event.currentTarget);
+      const data = jsonFromForm(form);
       const response = await postJson("/api/garden/create-parent", { full_name: String(data.full_name), email: String(data.email), phone: String(data.phone || ""), identity_number: String(data.identity_number || ""), address: String(data.address || ""), lead_id: String(data.lead_id || "") || undefined });
       setResult({ title: "הורה נוצר בהצלחה", message: "ההורה יכול להתחבר ומיד למלא את אשף רישום הילד.", credentials: response.credentials });
-      event.currentTarget.reset();
+      form.reset();
     } catch (err) { setError(err instanceof Error ? err.message : "הפעולה נכשלה"); } finally { setBusy(false); }
   }
 
   async function submitStaff(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault(); setBusy(true); setError(null);
+    event.preventDefault(); const form = event.currentTarget; setBusy(true); setError(null);
     try {
-      const data = jsonFromForm(event.currentTarget);
+      const data = jsonFromForm(form);
       const response = await postJson("/api/garden/create-staff", { full_name: String(data.full_name), email: String(data.email), phone: String(data.phone || ""), role_title: String(data.role_title), identity_number: String(data.identity_number || ""), address: String(data.address || ""), class_group: String(data.class_group || ""), start_date: String(data.start_date || ""), notes: String(data.notes || "") });
       setResult({ title: "איש צוות נוצר", message: "המשתמש נוצר, אך לא יאושר לעבודה עד שמסמכי החובה יהיו תקפים.", credentials: response.credentials });
-      event.currentTarget.reset();
+      form.reset();
     } catch (err) { setError(err instanceof Error ? err.message : "הפעולה נכשלה"); } finally { setBusy(false); }
   }
 
@@ -170,12 +173,12 @@ export function ParentChildRegistrationWizard() {
   const [busy, setBusy] = useState(false);
 
   async function submit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault(); setBusy(true); setError(null);
+    event.preventDefault(); const form = event.currentTarget; setBusy(true); setError(null);
     try {
-      const data = jsonFromForm(event.currentTarget);
+      const data = jsonFromForm(form);
       await postJson("/api/parent/child-registration", { full_name: String(data.full_name), birth_date: String(data.birth_date || ""), identity_number: String(data.identity_number || ""), hmo: String(data.hmo || ""), allergies: String(data.allergies || ""), sensitivities: String(data.sensitivities || ""), regular_medications: String(data.regular_medications || ""), medical_notes: String(data.medical_notes || ""), address: String(data.address || ""), mother_name: String(data.mother_name || ""), mother_identity_number: String(data.mother_identity_number || ""), mother_phone: String(data.mother_phone || ""), father_name: String(data.father_name || ""), father_identity_number: String(data.father_identity_number || ""), father_phone: String(data.father_phone || ""), emergency_phone: String(data.emergency_phone || ""), pickup_authorized: String(data.pickup_authorized || "").split("\n").map((line) => line.trim()).filter(Boolean).map((name) => ({ name })), photo_consent: Boolean(data.photo_consent), system_consent: Boolean(data.system_consent), camera_consent: Boolean(data.camera_consent), privacy_consent: Boolean(data.privacy_consent), health_declaration: Boolean(data.health_declaration) });
       setResult({ title: "הרישום נשלח למנהלת", message: "הילד ממתין לאישור מנהלת הגן. לאחר האישור ייפתח כרטיס תלמיד פעיל." });
-      event.currentTarget.reset();
+      form.reset();
     } catch (err) { setError(err instanceof Error ? err.message : "שליחת הרישום נכשלה"); } finally { setBusy(false); }
   }
 

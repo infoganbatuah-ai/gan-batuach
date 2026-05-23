@@ -5,7 +5,7 @@ import { writeUserCreationAudit } from "@/lib/onboarding/user-provisioning";
 
 export async function POST(_request: Request, context: { params: Promise<{ id: string }> }) {
   try {
-    const { profile } = await requireRole(["manager"]);
+    const { profile } = await requireRole(["manager", "owner"]);
     if (!profile.garden_id) return fail("Manager is not assigned to a garden", 422);
     const { id } = await context.params;
     const supabase = createAdminClient();

@@ -5,7 +5,7 @@ import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function GardenOnboardingPage() {
-  const { profile } = await requireRole(["manager"]);
+  const { profile } = await requireRole(["manager", "owner"]);
   const supabase = await createClient();
   const gardenId = profile.garden_id ?? "";
   const [children, leads, staff] = await Promise.all([

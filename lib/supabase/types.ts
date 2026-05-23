@@ -45,6 +45,8 @@ export interface Database {
           safe_status: string;
           inspector_id: string | null;
           manager_id: string | null;
+          owner_profile_id?: string | null;
+          current_children_count?: number | null;
           email: string | null;
           owner_name: string | null;
           phone: string | null;
@@ -64,6 +66,8 @@ export interface Database {
           safe_status?: string;
           inspector_id?: string | null;
           manager_id?: string | null;
+          owner_profile_id?: string | null;
+          current_children_count?: number | null;
           email?: string | null;
           owner_name?: string | null;
           phone?: string | null;
@@ -116,6 +120,8 @@ export interface Database {
       stream_health_checks: Table<LooseRow, LooseInsert, LooseInsert>;
       ai_events: Table<LooseRow, LooseInsert, LooseInsert>;
       audit_logs: Table<LooseRow, LooseInsert, LooseInsert>;
+      passkey_credentials: Table<LooseRow, LooseInsert, LooseInsert>;
+      passkey_challenges: Table<LooseRow, LooseInsert, LooseInsert>;
     };
     Views: {
       unsafe_gardens: Table<LooseRow, never, never>;

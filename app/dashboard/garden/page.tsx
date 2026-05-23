@@ -15,7 +15,7 @@ const quickActions = [
 ];
 
 export default async function GardenDashboard() {
-  const { profile } = await requireRole(["manager"]);
+  const { profile } = await requireRole(["manager", "owner"]);
   const supabase = await createClient();
   const gardenId = profile.garden_id;
   const [childrenRes, staffRes, tasksRes, leadsRes, complaintsRes, violationsRes, camerasRes, aiRes, documentsRes] = await Promise.all([

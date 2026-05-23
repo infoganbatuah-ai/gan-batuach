@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { BrainCircuit, Building2, Camera, CheckCircle2, ClipboardCheck, HeartHandshake, MapPin, ShieldCheck, Sparkles, UsersRound } from "lucide-react";
 import { BrandHeader } from "@/components/brand-header";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 const audiences = [
   { icon: HeartHandshake, title: "להורים", text: "שקיפות על סטטוס הגן, ביקורות, נוכחות, הודעות, מסמכים, מצלמות מורשות וערוץ פנייה ברור." },
@@ -24,7 +25,16 @@ const trustPillars = [
   { icon: ClipboardCheck, title: "ציות תפעולי", text: "מבנה עבודה סביב בטיחות, כוח אדם, תברואה, מטבח, פרטיות, אישורים, תלונות, מסמכים ונוהלי חירום." }
 ];
 
-export default function HomePage() {
+async function getHomeGardens() {
+  try {
+    const supabase = createAdminClient();
+    const { data } = await supabase.from("gardens").select("id, name, city, address, owner_name, framework_type, children_capacity, current_children_count, safe_status, last_inspection_score, last_inspection_at, next_inspection_at, manager:profiles!gardens_manager_id_fkey(full_name)").eq("public_profile_enabled", true).limit(6);
+    return data ?? [];
+  } catch { return []; }
+}
+
+export default async function HomePage() {
+  const homeGardens = await getHomeGardens();
   return (
     <>
       <BrandHeader />
@@ -119,6 +129,12 @@ export default function HomePage() {
               </article>
             ))}
           </div>
+        </section>
+
+        <section className="section compact-section">
+          <p className="eyebrow">גנים במערכת</p>
+          <h2>גנים פרטיים שמנהלים שקיפות ופיקוח דרך גן בטוח</h2>
+          {homeGardens.length === 0 ? <div className="empty-state"><strong>אין עדיין גנים ציבוריים להצגה</strong><span>כאשר אדמין יפעיל פרופיל ציבורי לגן, הוא יוצג כאן.</span></div> : <div className="garden-card-grid">{homeGardens.map((garden: any) => <article className="public-garden-card" key={garden.id}><div className="garden-image-placeholder">{garden.name}</div><div className="garden-card-top"><span className={garden.safe_status === "safe" ? "pill good" : "pill warn"}>{garden.safe_status ?? "pending_review"}</span><span><MapPin size={16} /> {garden.city}</span></div><h3>{garden.name}</h3><p>{garden.address ?? "כתובת תוצג לפי הרשאת הגן"} · מנהלת: {garden.manager?.full_name ?? garden.owner_name ?? "לא צוין"}</p><div className="garden-facts"><span>גילאים: {garden.framework_type ?? "מעורב"}</span><span>ילדים: {garden.current_children_count ?? 0}/{garden.children_capacity ?? 0}</span><span>ציון ביקורת: {garden.last_inspection_score ?? "טרם"}</span><span>ביקורת הבאה: {garden.next_inspection_at ? new Date(garden.next_inspection_at).toLocaleDateString("he-IL") : "טרם נקבע"}</span></div><div className="actions"><Link className="button primary" href={`/gardens/${garden.id}`}>צפייה בגן</Link><Link className="button secondary" href="/login">כניסת הורים</Link><Link className="button" href="/login">כניסת צוות</Link></div></article>)}</div>}
         </section>
 
         <section className="section cta-section">
