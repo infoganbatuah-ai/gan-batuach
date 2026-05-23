@@ -2,6 +2,7 @@ import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { requireRole } from "@/lib/auth";
 import { fail, handleRouteError, ok } from "@/lib/api";
+import type { Database } from "@/lib/supabase/types";
 
 const schema = z.object({
   garden: z.object({
@@ -38,30 +39,34 @@ export async function POST(request: Request) {
 
     if (userError || !userResult.user) return fail(userError?.message ?? "Could not create manager user", 400);
 
+    const gardenInsert: Database["public"]["Tables"]["gardens"]["Insert"] = {
+      ...payload.garden,
+      email: payload.garden.email,
+      manager_id: userResult.user.id,
+      status: "active",
+      safe_status: "pending_review",
+      public_profile_enabled: true
+    };
+
     const { data: garden, error: gardenError } = await supabase
       .from("gardens")
-      .insert({
-        ...payload.garden,
-        email: payload.garden.email,
-        manager_id: userResult.user.id,
-        status: "active",
-        safe_status: "pending_review",
-        public_profile_enabled: true
-      } as any)
+      .insert(gardenInsert)
       .select("*")
       .single();
 
     if (gardenError) return fail(gardenError.message, 400);
 
+    const profileUpdate: Database["public"]["Tables"]["profiles"]["Update"] = {
+      role: "manager",
+      garden_id: garden.id,
+      full_name: payload.manager.full_name,
+      phone: payload.manager.phone,
+      must_change_password: true
+    };
+
     const { error: profileError } = await supabase
       .from("profiles")
-      .update({
-        role: "manager",
-        garden_id: garden.id,
-        full_name: payload.manager.full_name,
-        phone: payload.manager.phone,
-        must_change_password: true
-      } as any)
+      .update(profileUpdate)
       .eq("id", userResult.user.id);
 
     if (profileError) return fail(profileError.message, 400);
@@ -74,7 +79,7 @@ export async function POST(request: Request) {
       entity_id: garden.id,
       action: "create_garden_and_manager",
       after_data: { garden, manager_user_id: userResult.user.id }
-    } as any);
+    });
 
     return ok({ garden, manager_user_id: userResult.user.id }, 201);
   } catch (error) {

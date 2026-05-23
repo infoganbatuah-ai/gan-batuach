@@ -20,7 +20,7 @@ export default async function InspectorDashboard() {
       <div className="grid cols-3">
         <StatCard label="ביקורות פתוחות" value={(inspections ?? []).filter((item) => item.status !== "done").length} />
         <StatCard label="ביקורות שבוצעו" value={(inspections ?? []).filter((item) => item.status === "done").length} tone="good" />
-        <StatCard label="ממוצע אחרון" value={(inspections ?? [])[0]?.weighted_score ?? "-"} />
+        <StatCard label="ממוצע אחרון" value={String((inspections ?? [])[0]?.weighted_score ?? "-")} />
       </div>
       <DataTable
         headers={["גן", "עיר", "סטטוס", "ציון"]}

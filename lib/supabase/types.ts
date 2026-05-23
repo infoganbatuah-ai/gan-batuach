@@ -2,66 +2,121 @@ import type { UserRole } from "@/lib/roles";
 
 export type Json = string | number | boolean | null | { [key: string]: Json | undefined } | Json[];
 
+type Table<Row, Insert = Row, Update = Partial<Insert>> = {
+  Row: Row;
+  Insert: Insert;
+  Update: Update;
+  Relationships: [];
+};
+
+type LooseRow = Record<string, Json>;
+type LooseInsert = Record<string, Json | undefined>;
+
 export interface Database {
   public: {
     Tables: {
-      profiles: {
-        Row: { id: string; role: UserRole; garden_id: string | null; full_name: string; phone: string | null; active: boolean };
-        Insert: { id: string; role: UserRole; garden_id?: string | null; full_name: string; phone?: string | null; active?: boolean };
-        Update: Partial<Database["public"]["Tables"]["profiles"]["Insert"]>;
-      };
-      gardens: {
-        Row: { id: string; name: string; city: string; address: string | null; status: string; safe_status: string; inspector_id: string | null; manager_id: string | null };
-        Insert: { id?: string; name: string; city: string; address?: string | null; status?: string; safe_status?: string; inspector_id?: string | null; manager_id?: string | null };
-        Update: Partial<Database["public"]["Tables"]["gardens"]["Insert"]>;
-      };
-      children: {
-        Row: { id: string; garden_id: string; full_name: string; status: string; parent_completed: boolean };
-        Insert: { id?: string; garden_id: string; full_name: string; status?: string; parent_completed?: boolean };
-        Update: Partial<Database["public"]["Tables"]["children"]["Insert"]>;
-      };
-      tasks: { Row: Record<string, Json>; Insert: Record<string, Json>; Update: Record<string, Json> };
-      inspections: { Row: Record<string, Json>; Insert: Record<string, Json>; Update: Record<string, Json> };
-      inspection_forms: { Row: Record<string, Json>; Insert: Record<string, Json>; Update: Record<string, Json> };
-      inspection_form_questions: { Row: Record<string, Json>; Insert: Record<string, Json>; Update: Record<string, Json> };
-      violations: { Row: Record<string, Json>; Insert: Record<string, Json>; Update: Record<string, Json> };
-      leads: { Row: Record<string, Json>; Insert: Record<string, Json>; Update: Record<string, Json> };
-      parents: { Row: Record<string, Json>; Insert: Record<string, Json>; Update: Record<string, Json> };
-      teachers: { Row: Record<string, Json>; Insert: Record<string, Json>; Update: Record<string, Json> };
-      staff: { Row: Record<string, Json>; Insert: Record<string, Json>; Update: Record<string, Json> };
-      inspectors: { Row: Record<string, Json>; Insert: Record<string, Json>; Update: Record<string, Json> };
-      messages: { Row: Record<string, Json>; Insert: Record<string, Json>; Update: Record<string, Json> };
-      complaints: { Row: Record<string, Json>; Insert: Record<string, Json>; Update: Record<string, Json> };
-      documents: { Row: Record<string, Json>; Insert: Record<string, Json>; Update: Record<string, Json> };
-      attendance: { Row: Record<string, Json>; Insert: Record<string, Json>; Update: Record<string, Json> };
-      camera_streams: { Row: Record<string, Json>; Insert: Record<string, Json>; Update: Record<string, Json> };
-      camera_view_logs: { Row: Record<string, Json>; Insert: Record<string, Json>; Update: Record<string, Json> };
-      parent_camera_permissions: { Row: Record<string, Json>; Insert: Record<string, Json>; Update: Record<string, Json> };
-      video_stream_sessions: { Row: Record<string, Json>; Insert: Record<string, Json>; Update: Record<string, Json> };
-      camera_snapshots: { Row: Record<string, Json>; Insert: Record<string, Json>; Update: Record<string, Json> };
-      restricted_areas: { Row: Record<string, Json>; Insert: Record<string, Json>; Update: Record<string, Json> };
-      ai_observer_rules: { Row: Record<string, Json>; Insert: Record<string, Json>; Update: Record<string, Json> };
-      ai_alerts: { Row: Record<string, Json>; Insert: Record<string, Json>; Update: Record<string, Json> };
-      incident_timeline: { Row: Record<string, Json>; Insert: Record<string, Json>; Update: Record<string, Json> };
-      notifications: { Row: Record<string, Json>; Insert: Record<string, Json>; Update: Record<string, Json> };
-      task_view_logs: { Row: Record<string, Json>; Insert: Record<string, Json>; Update: Record<string, Json> };
-      mandatory_procedures: { Row: Record<string, Json>; Insert: Record<string, Json>; Update: Record<string, Json> };
-      procedure_acknowledgements: { Row: Record<string, Json>; Insert: Record<string, Json>; Update: Record<string, Json> };
-      campaigns: { Row: Record<string, Json>; Insert: Record<string, Json>; Update: Record<string, Json> };
-      report_exports: { Row: Record<string, Json>; Insert: Record<string, Json>; Update: Record<string, Json> };
-      rate_limit_events: { Row: Record<string, Json>; Insert: Record<string, Json>; Update: Record<string, Json> };
-      staff_certificates: { Row: Record<string, Json>; Insert: Record<string, Json>; Update: Record<string, Json> };
-      staff_shifts: { Row: Record<string, Json>; Insert: Record<string, Json>; Update: Record<string, Json> };
-      gallery_items: { Row: Record<string, Json>; Insert: Record<string, Json>; Update: Record<string, Json> };
-      schedule_items: { Row: Record<string, Json>; Insert: Record<string, Json>; Update: Record<string, Json> };
-      medical_events: { Row: Record<string, Json>; Insert: Record<string, Json>; Update: Record<string, Json> };
-      pickup_confirmations: { Row: Record<string, Json>; Insert: Record<string, Json>; Update: Record<string, Json> };
-      video_gateway_connections: { Row: Record<string, Json>; Insert: Record<string, Json>; Update: Record<string, Json> };
-      stream_health_checks: { Row: Record<string, Json>; Insert: Record<string, Json>; Update: Record<string, Json> };
-      ai_events: { Row: Record<string, Json>; Insert: Record<string, Json>; Update: Record<string, Json> };
-      audit_logs: { Row: Record<string, Json>; Insert: Record<string, Json>; Update: Record<string, Json> };
+      profiles: Table<
+        {
+          id: string;
+          role: UserRole;
+          garden_id: string | null;
+          full_name: string;
+          phone: string | null;
+          active: boolean;
+          must_change_password: boolean;
+        },
+        {
+          id: string;
+          role: UserRole;
+          garden_id?: string | null;
+          full_name: string;
+          phone?: string | null;
+          active?: boolean;
+          must_change_password?: boolean;
+        }
+      >;
+      gardens: Table<
+        {
+          id: string;
+          name: string;
+          city: string;
+          address: string | null;
+          status: string;
+          safe_status: string;
+          inspector_id: string | null;
+          manager_id: string | null;
+          email: string | null;
+          owner_name: string | null;
+          phone: string | null;
+          framework_type: string;
+          children_capacity: number;
+          public_profile_enabled: boolean;
+        },
+        {
+          id?: string;
+          name: string;
+          city: string;
+          address?: string | null;
+          status?: string;
+          safe_status?: string;
+          inspector_id?: string | null;
+          manager_id?: string | null;
+          email?: string | null;
+          owner_name?: string | null;
+          phone?: string | null;
+          framework_type?: string;
+          children_capacity?: number;
+          public_profile_enabled?: boolean;
+        }
+      >;
+      children: Table<
+        { id: string; garden_id: string; full_name: string; status: string; parent_completed: boolean },
+        { id?: string; garden_id: string; full_name: string; status?: string; parent_completed?: boolean }
+      >;
+      tasks: Table<LooseRow, LooseInsert, LooseInsert>;
+      inspections: Table<LooseRow, LooseInsert, LooseInsert>;
+      inspection_forms: Table<LooseRow, LooseInsert, LooseInsert>;
+      inspection_form_questions: Table<LooseRow, LooseInsert, LooseInsert>;
+      violations: Table<LooseRow, LooseInsert, LooseInsert>;
+      leads: Table<LooseRow, LooseInsert, LooseInsert>;
+      parents: Table<LooseRow, LooseInsert, LooseInsert>;
+      teachers: Table<LooseRow, LooseInsert, LooseInsert>;
+      staff: Table<LooseRow, LooseInsert, LooseInsert>;
+      inspectors: Table<LooseRow, LooseInsert, LooseInsert>;
+      messages: Table<LooseRow, LooseInsert, LooseInsert>;
+      complaints: Table<LooseRow, LooseInsert, LooseInsert>;
+      documents: Table<LooseRow, LooseInsert, LooseInsert>;
+      attendance: Table<LooseRow, LooseInsert, LooseInsert>;
+      camera_streams: Table<LooseRow, LooseInsert, LooseInsert>;
+      camera_view_logs: Table<LooseRow, LooseInsert, LooseInsert>;
+      parent_camera_permissions: Table<LooseRow, LooseInsert, LooseInsert>;
+      video_stream_sessions: Table<LooseRow, LooseInsert, LooseInsert>;
+      camera_snapshots: Table<LooseRow, LooseInsert, LooseInsert>;
+      restricted_areas: Table<LooseRow, LooseInsert, LooseInsert>;
+      ai_observer_rules: Table<LooseRow, LooseInsert, LooseInsert>;
+      ai_alerts: Table<LooseRow, LooseInsert, LooseInsert>;
+      incident_timeline: Table<LooseRow, LooseInsert, LooseInsert>;
+      notifications: Table<LooseRow, LooseInsert, LooseInsert>;
+      task_view_logs: Table<LooseRow, LooseInsert, LooseInsert>;
+      mandatory_procedures: Table<LooseRow, LooseInsert, LooseInsert>;
+      procedure_acknowledgements: Table<LooseRow, LooseInsert, LooseInsert>;
+      campaigns: Table<LooseRow, LooseInsert, LooseInsert>;
+      report_exports: Table<LooseRow, LooseInsert, LooseInsert>;
+      rate_limit_events: Table<LooseRow, LooseInsert, LooseInsert>;
+      staff_certificates: Table<LooseRow, LooseInsert, LooseInsert>;
+      staff_shifts: Table<LooseRow, LooseInsert, LooseInsert>;
+      gallery_items: Table<LooseRow, LooseInsert, LooseInsert>;
+      schedule_items: Table<LooseRow, LooseInsert, LooseInsert>;
+      medical_events: Table<LooseRow, LooseInsert, LooseInsert>;
+      pickup_confirmations: Table<LooseRow, LooseInsert, LooseInsert>;
+      video_gateway_connections: Table<LooseRow, LooseInsert, LooseInsert>;
+      stream_health_checks: Table<LooseRow, LooseInsert, LooseInsert>;
+      ai_events: Table<LooseRow, LooseInsert, LooseInsert>;
+      audit_logs: Table<LooseRow, LooseInsert, LooseInsert>;
     };
-    Views: Record<string, never>;
+    Views: {
+      unsafe_gardens: Table<LooseRow, never, never>;
+    };
     Functions: {
       create_monthly_inspection_tasks: { Args: { p_month?: string }; Returns: Json };
       submit_inspection_with_answers: {
@@ -75,5 +130,6 @@ export interface Database {
     Enums: {
       app_role: UserRole;
     };
+    CompositeTypes: Record<string, never>;
   };
 }

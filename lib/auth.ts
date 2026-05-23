@@ -17,7 +17,7 @@ export async function getSessionProfile() {
 export async function requireUser() {
   const session = await getSessionProfile();
   if (!session.user || !session.profile) redirect("/login");
-  return session as NonNullable<typeof session>;
+  return { user: session.user, profile: session.profile };
 }
 
 export async function requireRole(allowed: UserRole[]) {
