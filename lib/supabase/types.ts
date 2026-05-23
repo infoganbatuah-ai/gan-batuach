@@ -51,6 +51,9 @@ export interface Database {
           framework_type: string;
           children_capacity: number;
           public_profile_enabled: boolean;
+          last_inspection_score: number | null;
+          last_inspection_at: string | null;
+          next_inspection_at: string | null;
         },
         {
           id?: string;
@@ -67,6 +70,9 @@ export interface Database {
           framework_type?: string;
           children_capacity?: number;
           public_profile_enabled?: boolean;
+          last_inspection_score?: number | null;
+          last_inspection_at?: string | null;
+          next_inspection_at?: string | null;
         }
       >;
       children: Table<

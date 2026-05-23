@@ -1,15 +1,27 @@
-import Image from "next/image";
 import Link from "next/link";
+import { BrainCircuit, Building2, Camera, CheckCircle2, ClipboardCheck, HeartHandshake, MapPin, ShieldCheck, Sparkles, UsersRound } from "lucide-react";
 import { BrandHeader } from "@/components/brand-header";
-import { StatCard } from "@/components/stat-card";
 
-const modules = [
-  ["ניהול גנים", "פתיחת גן, שיוך פקח, משתמש גננת, סטטוס ציבורי וסטטוס גן בטוח."],
-  ["תלמידים והורים", "רישום הורה, השלמת כרטיס ילד, אישורים, מורשי איסוף ואישור גננת."],
-  ["פיקוח", "טפסי פיקוח דינמיים, שאלות חובה, GPS, ניקוד, ליקויים ומשימות תיקון."],
-  ["מצלמות ו-AI", "CameraStreams, Tokens, לוג צפייה, תקלות מצלמה ואירועי תצפיתן AI."],
-  ["מסמכים ורגולציה", "תוקף מסמכים, בדיקות רקע, ביטוח, בטיחות, פרטיות והסכמות."],
-  ["דוחות ואבטחה", "AuditLogs, RBAC, RLS, הפרדה בין גנים וייצוא ל-PDF/Excel."]
+const audiences = [
+  { icon: HeartHandshake, title: "להורים", text: "שקיפות על סטטוס הגן, ביקורות, נוכחות, הודעות, מסמכים, מצלמות מורשות וערוץ פנייה ברור." },
+  { icon: Building2, title: "לגנים פרטיים", text: "מערכת אחת לניהול ילדים, הורים, צוות, מסמכים, נוכחות, משימות, פיקוח, לידים ותפעול יומי." },
+  { icon: ClipboardCheck, title: "לפקחים", text: "ביקורות חודשיות עם GPS, טפסים דינמיים, ניקוד משוקלל, ליקויים, הוכחות תיקון וציר זמן." },
+  { icon: ShieldCheck, title: "לאדמין", text: "מרכז שליטה שמציג גנים בסיכון, תלונות, חריגים, תקלות מצלמה, אירועי AI ומשימות ארציות." }
+];
+
+const supervisionSteps = [
+  "הגן מצטרף ומעלה פרטים, מסמכים ותהליכי עבודה.",
+  "האדמין מאשר ומקצה פקח לפי עיר ואזור אחריות.",
+  "המערכת מייצרת משימת ביקורת חודשית אוטומטית.",
+  "הפקח ממלא טופס דינמי במקום, עם GPS, תמונות ומסמכים.",
+  "ציון נמוך או שאלה קריטית יוצרים ליקוי, משימת תיקון והסלמה.",
+  "הורים ומנהלים רואים תמונת מצב ברורה לפי הרשאות."
+];
+
+const trustPillars = [
+  { icon: Camera, title: "מצלמות בלי חשיפת DVR", text: "הורים מקבלים Token זמני בלבד. כתובות RTSP וסיסמאות נשארות מאחורי שכבת שרת מאובטחת." },
+  { icon: BrainCircuit, title: "תצפיתן AI", text: "עוזר בטיחות דיגיטלי שמתריע על אירועים כמו ילד לבד, אזור אסור, נפילה, בכי, צפיפות או מצלמה מכוסה." },
+  { icon: ClipboardCheck, title: "ציות תפעולי", text: "מבנה עבודה סביב בטיחות, כוח אדם, תברואה, מטבח, פרטיות, אישורים, תלונות, מסמכים ונוהלי חירום." }
 ];
 
 export default function HomePage() {
@@ -17,50 +29,106 @@ export default function HomePage() {
     <>
       <BrandHeader />
       <main>
-        <section className="hero">
-          <div className="hero-content">
-            <Image className="hero-logo" src="/assets/company-symbol.png" alt="" width={88} height={88} priority />
-            <p className="eyebrow">Production architecture | Next.js + Supabase</p>
-            <h1>גן בטוח – מערכת אמיתית לניהול ופיקוח גני ילדים פרטיים</h1>
+        <section className="hero product-hero">
+          <div className="hero-content stack-xl">
+            <div className="hero-badge"><Sparkles size={18} /> פלטפורמת ניהול ופיקוח לגנים פרטיים בישראל</div>
+            <h1>גנים פרטיים ראויים למסגרת ניהול ופיקוח מקצועית.</h1>
             <p>
-              מערכת Production מלאה עם Authentication, RBAC, PostgreSQL,
-              Supabase RLS, API routes, דשבורדים מוגנים והפרדה מלאה בין תפקידי משתמשים.
+              גן בטוח מחברת בין הורים, גננות, צוות, פקחים ואדמין מרכזי כדי ליצור סטנדרט חדש של שקיפות,
+              תפעול, בקרה ובטיחות בגני ילדים פרטיים. המערכת אינה מחליפה ייעוץ משפטי או רישוי ממשלתי,
+              אלא מסדרת את העבודה היומיומית סביב דרישות תפעול ורגולציה מקובלות.
             </p>
-            <div className="actions">
-              <Link className="button primary" href="/login">
-                כניסה למערכת
-              </Link>
-              <Link className="button secondary" href="/dashboard/admin">
-                דשבורד אדמין
-              </Link>
-              <a className="button" href="/api/gardens">
-                API גנים
-              </a>
+            <div className="actions hero-actions">
+              <Link className="button primary large" href="/gardens">חיפוש גנים</Link>
+              <Link className="button secondary large" href="/join-kindergarten">הצטרפות גן</Link>
+              <Link className="button large" href="/login">כניסת הורים</Link>
+              <Link className="button large" href="/dashboard/admin">כניסת אדמין</Link>
             </div>
           </div>
+          <aside className="hero-control-card" aria-label="תמונת מצב מערכתית">
+            <div className="control-card-header">
+              <span className="pulse" />
+              <strong>מרכז שליטה חי</strong>
+            </div>
+            <div className="control-metrics">
+              <span><b>פיקוח</b> חודשי</span>
+              <span><b>RLS</b> פעיל</span>
+              <span><b>AI</b> תצפיתן</span>
+              <span><b>DVR</b> מוגן</span>
+            </div>
+            <div className="risk-strip">
+              <span className="risk good">תקין</span>
+              <span className="risk warn">דורש תיקון</span>
+              <span className="risk bad">חריג קריטי</span>
+            </div>
+          </aside>
         </section>
 
-        <section id="architecture" className="section">
-          <p className="eyebrow">שכבות המוצר</p>
-          <h2>מערכת עם מסד נתונים, הרשאות ו-API</h2>
-          <div className="grid cols-4">
-            <StatCard label="תפקידי משתמש" value="5" tone="good" />
-            <StatCard label="ישויות DB" value="40+" tone="good" />
-            <StatCard label="API Routes" value="50+" tone="good" />
-            <StatCard label="RLS Policies" value="מופעל" tone="good" />
+        <section className="section compact-section">
+          <p className="eyebrow">למי זה מיועד</p>
+          <h2>מערכת אחת שמדברת בשפה של כל הצדדים</h2>
+          <div className="grid cols-4 feature-grid">
+            {audiences.map((item) => (
+              <article className="card feature-card" key={item.title}>
+                <item.icon className="feature-icon" />
+                <h3>{item.title}</h3>
+                <p>{item.text}</p>
+              </article>
+            ))}
           </div>
         </section>
 
-        <section id="public" className="section">
-          <p className="eyebrow">מודולים</p>
-          <h2>כל רכיב עסקי מחובר לישות במסד הנתונים</h2>
-          <div className="grid cols-3">
-            {modules.map(([title, body]) => (
-              <article className="card" key={title}>
-                <h3>{title}</h3>
-                <p>{body}</p>
+        <section className="section split-section">
+          <div>
+            <p className="eyebrow">סטטוס גן בטוח</p>
+            <h2>מה המשמעות של גן בטוח?</h2>
+            <p>
+              סטטוס גן בטוח ניתן רק לאחר הצטרפות, השלמת פרטים, מסמכי בסיס, ביקורת פקח, ציון 8 ומעלה
+              וללא ליקויים קריטיים פתוחים. אם הציון יורד או ליקוי קריטי נשאר פתוח, הסטטוס משתנה אוטומטית.
+            </p>
+          </div>
+          <div className="status-ladder">
+            <div><CheckCircle2 /> pending_review <span>ממתין לבדיקה</span></div>
+            <div><ShieldCheck /> safe <span>עומד בסטנדרט</span></div>
+            <div><ClipboardCheck /> requires_fix <span>דורש תיקון</span></div>
+          </div>
+        </section>
+
+        <section className="section supervision-band">
+          <p className="eyebrow">איך הפיקוח עובד</p>
+          <h2>ביקורת חודשית שמייצרת פעולה, לא רק דוח</h2>
+          <div className="timeline-grid">
+            {supervisionSteps.map((step, index) => (
+              <article className="timeline-card" key={step}>
+                <span>{index + 1}</span>
+                <p>{step}</p>
               </article>
             ))}
+          </div>
+        </section>
+
+        <section className="section compact-section">
+          <p className="eyebrow">שקיפות עם פרטיות</p>
+          <h2>מצלמות, AI ותיעוד מלא בלי לחשוף מידע רגיש</h2>
+          <div className="grid cols-3 feature-grid">
+            {trustPillars.map((item) => (
+              <article className="card feature-card" key={item.title}>
+                <item.icon className="feature-icon" />
+                <h3>{item.title}</h3>
+                <p>{item.text}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        <section className="section cta-section">
+          <div>
+            <p className="eyebrow">אמון שנבנה מתפעול נכון</p>
+            <h2>המערכת עוזרת לגן פרטי לעבוד כמו מסגרת מפוקחת, מתועדת ושקופה.</h2>
+          </div>
+          <div className="actions">
+            <Link className="button primary large" href="/gardens">התחילו מחיפוש גן</Link>
+            <Link className="button secondary large" href="/join-kindergarten">גן רוצה להצטרף</Link>
           </div>
         </section>
       </main>

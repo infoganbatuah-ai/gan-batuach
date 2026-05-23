@@ -14,8 +14,9 @@ export function BrandHeader() {
         </span>
       </Link>
       <nav className="nav" aria-label="ניווט ראשי">
-        <Link href="/#public">אתר ציבורי</Link>
-        <Link href="/#architecture">ארכיטקטורה</Link>
+        <Link href="/gardens">חיפוש גנים</Link>
+        <Link href="/join-kindergarten">הצטרפות גן</Link>
+        <Link href="/parent-onboarding">רישום הורה</Link>
         <Link href="/login">כניסה</Link>
         <Link href="/dashboard/admin">אדמין</Link>
       </nav>
