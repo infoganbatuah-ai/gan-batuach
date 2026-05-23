@@ -21,7 +21,7 @@
    - `manager` -> `/dashboard/garden`
    - `staff` -> `/dashboard/staff`
    - `parent` -> `/dashboard/parent`
-5. `middleware.ts` refreshes Supabase auth cookies.
+5. `proxy.ts` refreshes Supabase auth cookies.
 
 ## RBAC
 
