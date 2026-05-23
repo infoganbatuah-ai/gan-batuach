@@ -84,6 +84,7 @@ export interface Database {
       inspections: Table<LooseRow, LooseInsert, LooseInsert>;
       inspection_forms: Table<LooseRow, LooseInsert, LooseInsert>;
       inspection_form_questions: Table<LooseRow, LooseInsert, LooseInsert>;
+      inspection_form_assignments: Table<LooseRow, LooseInsert, LooseInsert>;
       violations: Table<LooseRow, LooseInsert, LooseInsert>;
       leads: Table<LooseRow, LooseInsert, LooseInsert>;
       parents: Table<LooseRow, LooseInsert, LooseInsert>;

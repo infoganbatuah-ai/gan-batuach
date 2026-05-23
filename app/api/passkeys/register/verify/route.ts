@@ -75,7 +75,7 @@ export async function POST(request: Request) {
     actor_id: user.id,
     action: "passkey_registered",
     target_table: "passkey_credentials",
-    metadata: { credential_id: info.credential.id, device_type: info.credentialDeviceType }
+    after_data: { credential_id: info.credential.id, device_type: info.credentialDeviceType }
   });
 
   return NextResponse.json({ ok: true });

@@ -21,6 +21,7 @@ async function postJson(url: string, payload: unknown) {
 
 function CredentialSuccess({ result }: { result: ResultState | null }) {
   if (!result) return null;
+  const copyText = result.credentials ? "Username: " + result.credentials.username + "\nPassword: " + result.credentials.temporary_password : "";
   return (
     <div className="success-screen">
       <strong>{result.title}</strong>
@@ -29,6 +30,7 @@ function CredentialSuccess({ result }: { result: ResultState | null }) {
         <div className="credential-box" dir="ltr">
           <span>Username: {result.credentials.username}</span>
           <span>Password: {result.credentials.temporary_password}</span>
+          <button className="button secondary" type="button" onClick={() => navigator.clipboard?.writeText(copyText)}>העתקת פרטי כניסה</button>
         </div>
       ) : null}
       <small>פרטי הכניסה מוצגים כאן פעם אחת בלבד. הסיסמה אינה נשמרת בטבלאות המערכת.</small>
@@ -56,10 +58,10 @@ export function AdminProvisioningPanel() {
         garden: {
           name: String(data.garden_name), city: String(data.city), address: String(data.address || ""),
           framework_type: String(data.framework_type || "mixed"), children_capacity: Number(data.children_capacity || 0),
-          owner_name: String(data.owner_name), phone: String(data.garden_phone || ""), email: String(data.garden_email)
+          owner_name: String(data.owner_name), phone: String(data.garden_phone || ""), email: String(data.garden_email || "") || undefined
         },
-        manager: { full_name: String(data.manager_full_name), email: String(data.manager_email), phone: String(data.manager_phone || "") },
-        owner: data.owner_email ? { full_name: String(data.owner_full_name || data.owner_name || data.manager_full_name), email: String(data.owner_email), phone: String(data.owner_phone || "") } : undefined
+        manager: { full_name: String(data.manager_full_name), email: String(data.manager_email || "") || undefined, phone: String(data.manager_phone || "") },
+        owner: data.owner_email ? { full_name: String(data.owner_full_name || data.owner_name || data.manager_full_name), email: String(data.owner_email || "") || undefined, phone: String(data.owner_phone || "") } : undefined
       });
       setResult({ title: "הגן ומנהלת הגן נוצרו", message: response.credentials?.owner ? "נוצרו משתמשי מנהלת ובעלים, פרופילים ורשומת גן פעילה." : "נוצרו משתמש Supabase Auth, פרופיל מנהלת ורשומת גן פעילה.", credentials: response.credentials?.manager ?? response.credentials });
       form.reset();
@@ -76,7 +78,7 @@ export function AdminProvisioningPanel() {
     try {
       const data = jsonFromForm(form);
       const response = await postJson("/api/admin/create-inspector", {
-        full_name: String(data.full_name), email: String(data.email), phone: String(data.phone || ""),
+        full_name: String(data.full_name), email: String(data.email || "") || undefined, phone: String(data.phone || ""),
         service_cities: String(data.service_cities).split(",").map((city) => city.trim()).filter(Boolean),
         certification_notes: String(data.certification_notes || "")
       });
@@ -94,12 +96,12 @@ export function AdminProvisioningPanel() {
       <section className="grid cols-2 dashboard-panels">
         <form className="card form wizard-form" onSubmit={submitGardenManager}>
           <h2>פתיחת גן ומנהלת</h2><p>המערכת יוצרת גן פעיל, משתמש Auth למנהלת, פרופיל עם הרשאת מנהלת ולוג ביקורת.</p>
-          <div className="form-grid"><label>שם הגן<input name="garden_name" required /></label><label>עיר<input name="city" required /></label><label>כתובת<input name="address" /></label><label>סוג מסגרת<select name="framework_type"><option value="mixed">מעורב</option><option value="birth_to_3">לידה עד 3</option><option value="3_to_6">3 עד 6</option></select></label><label>קיבולת ילדים<input name="children_capacity" type="number" min="0" /></label><label>שם בעלים<input name="owner_name" required /></label><label>טלפון גן<input name="garden_phone" /></label><label>מייל גן<input name="garden_email" type="email" required /></label><label>שם מנהלת<input name="manager_full_name" required /></label><label>טלפון מנהלת<input name="manager_phone" /></label><label>מייל מנהלת<input name="manager_email" type="email" required /></label><label>שם בעלים משתמש<input name="owner_full_name" /></label><label>טלפון בעלים<input name="owner_phone" /></label><label className="wide">מייל בעלים אופציונלי<input name="owner_email" type="email" /></label></div>
+          <div className="form-grid"><label>שם הגן<input name="garden_name" required /></label><label>עיר<input name="city" required /></label><label>כתובת<input name="address" /></label><label>סוג מסגרת<select name="framework_type"><option value="mixed">מעורב</option><option value="birth_to_3">לידה עד 3</option><option value="3_to_6">3 עד 6</option></select></label><label>קיבולת ילדים<input name="children_capacity" type="number" min="0" /></label><label>שם בעלים<input name="owner_name" required /></label><label>טלפון גן<input name="garden_phone" /></label><label>מייל גן<input name="garden_email" type="email" placeholder="אם ריק, המערכת תשתמש במייל המנהלת" /></label><label>שם מנהלת<input name="manager_full_name" required /></label><label>טלפון מנהלת<input name="manager_phone" /></label><label>מייל מנהלת<input name="manager_email" type="email" placeholder="ריק = שם משתמש זמני אוטומטי" /></label><label>שם בעלים משתמש<input name="owner_full_name" /></label><label>טלפון בעלים<input name="owner_phone" /></label><label className="wide">מייל בעלים אופציונלי<input name="owner_email" type="email" /></label></div>
           <button className="button primary large" disabled={busy}>יצירת גן ומשתמש מנהלת</button>
         </form>
         <form className="card form wizard-form" onSubmit={submitInspector}>
           <h2>יצירת פקח</h2><p>הפקח נוצר ב־Auth וב־profiles, ומקבל רשימת ערים לפיקוח.</p>
-          <div className="form-grid"><label>שם מלא<input name="full_name" required /></label><label>מייל<input name="email" type="email" required /></label><label>טלפון<input name="phone" /></label><label className="wide">ערים באחריות<input name="service_cities" required placeholder="תל אביב, רמת גן, חולון" /></label><label className="wide">הערות הסמכה<textarea name="certification_notes" rows={3} /></label></div>
+          <div className="form-grid"><label>שם מלא<input name="full_name" required /></label><label>מייל<input name="email" type="email" placeholder="ריק = שם משתמש זמני אוטומטי" /></label><label>טלפון<input name="phone" /></label><label className="wide">ערים באחריות<input name="service_cities" required placeholder="תל אביב, רמת גן, חולון" /></label><label className="wide">הערות הסמכה<textarea name="certification_notes" rows={3} /></label></div>
           <button className="button primary large" disabled={busy}>יצירת משתמש פקח</button>
         </form>
       </section>

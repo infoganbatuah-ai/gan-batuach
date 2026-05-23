@@ -15,8 +15,8 @@ export default async function LoginPage({ searchParams }: { searchParams?: Promi
       <main className="section">
         <div className="grid cols-2">
           <section>
-            <p className="eyebrow">כניסה מרכזית</p><h1>כניסה אחת לכל המשתמשים.</h1>
-            <p>אדמין, פקח, מנהלת גן, בעלים, צוות והורים נכנסים מאותו טופס. לאחר ההתחברות המערכת מנתבת לפי התפקיד ב־profiles.</p>
+            <p className="eyebrow">כניסה מרכזית</p><h1>כניסה לכלל המשתמשים</h1>
+            <p>כניסה לכלל המשתמשים - הורים, גננת, מנהלת גן, בעלי גן, צוות גן, פקחים ואדמין. לאחר ההתחברות המערכת מזהה את התפקיד ומעבירה לדשבורד המתאים.</p>
             <div className="notice">המערכת שומרת session מאובטח. אם כבר התחברת, תועבר אוטומטית לדשבורד שלך.</div>
           </section>
           <div className="login-stack">

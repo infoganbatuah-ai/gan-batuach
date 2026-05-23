@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { BrainCircuit, Building2, Camera, CheckCircle2, ClipboardCheck, HeartHandshake, MapPin, ShieldCheck, Sparkles, UsersRound } from "lucide-react";
+import { BrainCircuit, Building2, Camera, CheckCircle2, ClipboardCheck, HeartHandshake, MapPin, ShieldCheck, Sparkles, UserCheck, UsersRound } from "lucide-react";
 import { BrandHeader } from "@/components/brand-header";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -41,18 +41,16 @@ export default async function HomePage() {
       <main>
         <section className="hero product-hero">
           <div className="hero-content stack-xl">
-            <div className="hero-badge"><Sparkles size={18} /> פלטפורמת ניהול ופיקוח לגנים פרטיים בישראל</div>
+            <div className="hero-badge"><Sparkles size={18} /> סטנדרט פיקוח פרטי וטכנולוגי לגני ילדים פרטיים בישראל</div>
             <h1>גנים פרטיים ראויים למסגרת ניהול ופיקוח מקצועית.</h1>
             <p>
-              גן בטוח מחברת בין הורים, גננות, צוות, פקחים ואדמין מרכזי כדי ליצור סטנדרט חדש של שקיפות,
-              תפעול, בקרה ובטיחות בגני ילדים פרטיים. המערכת אינה מחליפה ייעוץ משפטי או רישוי ממשלתי,
-              אלא מסדרת את העבודה היומיומית סביב דרישות תפעול ורגולציה מקובלות.
+              גן בטוח מחברת בין הורים, גננות, צוות, פקחים ואדמין מרכזי כדי ליצור סטנדרט פיקוח פרטי וטכנולוגי לגני ילדים פרטיים בישראל. המערכת אינה גוף ממשלתי ואינה מחליפה ייעוץ משפטי או רישוי רשמי, אלא מסדרת את העבודה היומיומית סביב בטיחות, שקיפות, תיעוד וניהול מקצועי.
             </p>
             <div className="actions hero-actions">
               <Link className="button primary large" href="/gardens">חיפוש גנים</Link>
               <Link className="button secondary large" href="/join-kindergarten">הצטרפות גן</Link>
-              <Link className="button large" href="/login">כניסת הורים</Link>
-              <Link className="button large" href="/dashboard/admin">כניסת אדמין</Link>
+              <Link className="button large" href="/join-inspector">בואו להיות מפקחים</Link>
+              <Link className="button large" href="/login">כניסה למערכת</Link>
             </div>
           </div>
           <aside className="hero-control-card" aria-label="תמונת מצב מערכתית">
@@ -72,6 +70,17 @@ export default async function HomePage() {
               <span className="risk bad">חריג קריטי</span>
             </div>
           </aside>
+        </section>
+
+
+        <section className="section compact-section conversion-section">
+          <p className="eyebrow">למה מצטרפים</p>
+          <h2>גן בטוח היא מערכת ניהול, שקיפות ופיקוח פרטי במקום אחד.</h2>
+          <div className="grid cols-3 feature-grid">
+            <article className="card feature-card"><Building2 className="feature-icon" /><h3>לגני ילדים</h3><p>הצטרפו לרשימת גני הילדים של גן בטוח וקבלו מערכת ניהול מקצה לקצה, ממשק הורים, ניהול צוות, מסמכים, נוכחות, טפסי פיקוח ותצפיתן דיגיטלי.</p><Link className="button secondary" href="/join-kindergarten">הצטרפות גן</Link></article>
+            <article className="card feature-card"><UserCheck className="feature-icon" /><h3>למפקחים</h3><p>בואו להיות מפקחים של גן בטוח. אנו מכשירים מפקחים לעבודה לפי סטנדרט הפיקוח של גן בטוח, כולל טפסי ביקורת, בדיקות בטיחות, תיעוד, דוחות ומשימות תיקון.</p><Link className="button secondary" href="/join-inspector">בואו להיות מפקחים</Link></article>
+            <article className="card feature-card"><HeartHandshake className="feature-icon" /><h3>להורים</h3><p>מצאו גנים ברשימת גן בטוח, שלחו בקשת רישום וצפו במידע המאושר עבור הורי הגן.</p><Link className="button secondary" href="/gardens">חיפוש גנים</Link></article>
+          </div>
         </section>
 
         <section className="section compact-section">
@@ -144,7 +153,7 @@ export default async function HomePage() {
           </div>
           <div className="actions">
             <Link className="button primary large" href="/gardens">התחילו מחיפוש גן</Link>
-            <Link className="button secondary large" href="/join-kindergarten">גן רוצה להצטרף</Link>
+            <Link className="button secondary large" href="/join-kindergarten">הצטרפות גן</Link>
           </div>
         </section>
       </main>

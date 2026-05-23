@@ -1,12 +1,28 @@
-import Link from "next/link";
 import { DashboardShell } from "@/components/dashboard-shell";
+import { AdminLeadsManager } from "@/components/admin-leads-manager";
 import { requireRole } from "@/lib/auth";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
-export default async function Page() {
+export default async function AdminJoinRequestsPage() {
   await requireRole(["admin"]);
-  const supabase = await createClient();
-  const { data } = await supabase.from("leads" as any).select("id, garden_name, owner_name, city, phone, email, status").limit(30);
-  const rows = (data ?? []) as any[];
-  return <DashboardShell role="admin" title="בקשות הצטרפות"><div className="dashboard-hero-card admin-hero-card"><div><p className="eyebrow">Admin UI</p><h1>בקשות הצטרפות</h1><p>לידים מגנים שמבקשים להצטרף. המסך מציג UI ברור ולא JSON גולמי.</p></div><span className="pill good">UI page</span></div><section className="dashboard-section">{rows.length === 0 ? <div className="empty-state"><strong>אין נתונים להצגה כרגע</strong><span>כאשר ייווצרו רשומות הן יופיעו כאן עם פילטרים ופעולות.</span></div> : <div className="procedure-list">{rows.map((row) => <article className="card procedure-card" key={row.id ?? row.name ?? JSON.stringify(row)}><div><h3>{row.name ?? row.title ?? row.subject ?? row.parent_name ?? row.garden_name ?? row.full_name ?? 'רשומה'}</h3><p>{row.city ?? row.status ?? row.document_type ?? row.severity ?? ''}</p></div><div className="procedure-meta"><span className="pill">{row.status ?? row.safe_status ?? row.role ?? 'פעיל'}</span>{row.id && false ? <Link className="button secondary" href={`/dashboard/admin/gardens/${row.id}`}>פרופיל גן</Link> : null}</div></article>)}</div>}</section></DashboardShell>;
+  const supabase = createAdminClient();
+  const { data } = await supabase
+    .from("leads")
+    .select("id, lead_type, parent_name, garden_name, owner_name, manager_name, city, address, phone, email, age_groups, capacity, children_count, staff_count, experience, certifications, notes, status")
+    .order("created_at", { ascending: false })
+    .limit(100);
+
+  return (
+    <DashboardShell role="admin" title="בקשות הצטרפות">
+      <div className="dashboard-hero-card admin-hero-card">
+        <div>
+          <p className="eyebrow">מאגר לקוחות</p>
+          <h1>לידים מגנים, מפקחים והורים עם המרה למשתמש פעיל.</h1>
+          <p>גן או מפקח שאושרו יכולים להפוך מכאן לרשומת מערכת פעילה עם משתמש Supabase Auth, פרופיל והרשאות.</p>
+        </div>
+        <span className="pill good">new / contacted / approved / rejected</span>
+      </div>
+      <AdminLeadsManager leads={(data ?? []) as any[]} />
+    </DashboardShell>
+  );
 }

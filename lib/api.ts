@@ -11,8 +11,9 @@ export function fail(message: string, status = 400, details?: unknown) {
 
 export function handleRouteError(error: unknown) {
   if (error instanceof ZodError) {
-    return fail("Validation failed", 422, error.flatten());
+    return fail("חסרים פרטים או שיש שדה לא תקין בטופס.", 422, error.flatten());
   }
-  console.error(error);
-  return fail("Unexpected server error", 500);
+  const message = error instanceof Error ? error.message : "Unexpected server error";
+  console.error("Route error", error);
+  return fail("הפעולה נכשלה בשרת. " + message, 500);
 }

@@ -100,7 +100,7 @@ export async function POST(request: Request) {
     actor_id: credential.user_id,
     action: "passkey_login",
     target_table: "passkey_credentials",
-    metadata: { credential_id: credential.credential_id }
+    after_data: { credential_id: credential.credential_id }
   });
 
   return NextResponse.json({ ok: true, redirectTo });

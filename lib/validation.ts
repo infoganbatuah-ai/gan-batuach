@@ -62,13 +62,20 @@ export const inspectorSchema = z.object({
 
 export const leadSchema = z.object({
   garden_id: z.string().uuid().optional(),
-  lead_type: z.enum(["parent", "garden"]),
+  lead_type: z.enum(["parent", "garden", "inspector"]),
   parent_name: z.string().optional(),
   child_name: z.string().optional(),
   child_age: z.string().optional(),
   garden_name: z.string().optional(),
   owner_name: z.string().optional(),
   city: z.string().optional(),
+  address: z.string().optional(),
+  manager_name: z.string().optional(),
+  age_groups: z.array(z.string()).optional(),
+  capacity: z.number().int().min(0).optional(),
+  experience: z.string().optional(),
+  certifications: z.string().optional(),
+  status: z.string().optional(),
   phone: z.string().min(7),
   email: z.string().email().optional(),
   notes: z.string().optional()
@@ -118,7 +125,7 @@ export const inspectionFormSchema = z.object({
 
 export const inspectionFormQuestionSchema = z.object({
   form_id: z.string().uuid(),
-  category: z.enum(["Safety", "Staff", "Kitchen", "Health", "Infrastructure", "Emergency", "Training", "Parents", "Cameras", "Documentation"]),
+  category: z.string().min(2),
   question_text: z.string().min(2),
   question_type: z.enum(["score_1_10", "boolean", "photo_upload", "document_upload", "text_note"]).default("score_1_10"),
   required: z.boolean().default(true),
