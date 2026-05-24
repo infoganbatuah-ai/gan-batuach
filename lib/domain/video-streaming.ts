@@ -43,7 +43,7 @@ export async function createCameraPlaybackSession(cameraStreamId: string, payloa
     if (!allowed) throw new Error("Parent is not allowed to view this camera");
   }
 
-  if (role !== "admin" && role !== "inspector" && role !== "manager" && role !== "parent") {
+  if (role !== "admin" && role !== "inspector" && role !== "manager" && role !== "owner" && role !== "parent") {
     throw new Error("Role is not allowed to view cameras");
   }
 

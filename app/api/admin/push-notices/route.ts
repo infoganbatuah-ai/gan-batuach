@@ -5,7 +5,7 @@ import { handleRouteError, ok } from "@/lib/api";
 
 const schema = z.object({
   garden_id: z.string().uuid().optional(),
-  recipient_role: z.enum(["admin", "inspector", "manager", "staff", "parent"]),
+  recipient_role: z.enum(["admin", "inspector", "manager", "owner", "staff", "parent"]),
   title: z.string().min(2),
   body: z.string().min(2)
 });

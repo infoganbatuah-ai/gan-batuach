@@ -47,7 +47,7 @@ export async function POST(request: Request) {
 
     await writeUserCreationAudit({
       actorId: profile.id,
-      actorRole: "manager",
+      actorRole: profile.role,
       gardenId: profile.garden_id,
       entityType: "parents",
       entityId: parent.id as string,

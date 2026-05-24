@@ -27,7 +27,7 @@ export async function POST(_request: Request, context: { params: Promise<{ id: s
 
     await writeUserCreationAudit({
       actorId: profile.id,
-      actorRole: "manager",
+      actorRole: profile.role,
       gardenId: profile.garden_id,
       entityType: "staff",
       entityId: id,
