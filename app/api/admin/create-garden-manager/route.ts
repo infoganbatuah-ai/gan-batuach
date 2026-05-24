@@ -5,6 +5,8 @@ import type { Database } from "@/lib/supabase/types";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { DuplicateContactError, checkEmailConflict, normalizeOptionalEmail, provisionAuthUser, provisionedUserSchema, writeUserCreationAudit } from "@/lib/onboarding/user-provisioning";
 
+const ownershipTypes = ["teacher_is_owner", "separate_owner", "teacher_only", "owner_only"] as const;
+
 const schema = z.object({
   source_lead_id: z.string().uuid().optional(),
   garden: z.object({
@@ -22,6 +24,8 @@ const schema = z.object({
     phone: z.string().optional(),
     email: z.string().email().optional(),
     inspector_id: z.string().uuid().optional(),
+    ownership_type: z.enum(ownershipTypes).optional(),
+    owner_role_label: z.string().optional(),
     public_profile_enabled: z.boolean().default(true),
     notes: z.string().optional()
   }),
@@ -62,6 +66,7 @@ export async function POST(request: Request) {
       : null;
     if (owner) createdAuthUserIds.push(owner.user.id);
 
+    const ownershipType = payload.garden.ownership_type ?? (owner ? "separate_owner" : "teacher_only");
     const gardenInsert: Database["public"]["Tables"]["gardens"]["Insert"] = {
       name: payload.garden.name,
       city: payload.garden.city,
@@ -78,6 +83,8 @@ export async function POST(request: Request) {
       email: payload.garden.email || manager.oneTimeCredentials.email,
       manager_id: manager.user.id,
       owner_profile_id: owner?.user.id ?? null,
+      ownership_type: ownershipType,
+      owner_role_label: payload.garden.owner_role_label || (owner ? "בעלים נפרד" : "מנהלת/גננת"),
       inspector_id: payload.garden.inspector_id ?? null,
       status: "active",
       safe_status: "pending_review",
@@ -91,6 +98,10 @@ export async function POST(request: Request) {
     const { data: garden, error: gardenError } = await admin.from("gardens").insert(gardenInsert).select("*").single();
     if (gardenError || !garden) {
       for (const userId of createdAuthUserIds) await admin.auth.admin.deleteUser(userId);
+      if (gardenError?.message?.includes("owner_profile_id") || gardenError?.message?.includes("ownership_type") || gardenError?.message?.includes("schema cache")) {
+        console.error("[create-garden-schema-mismatch]", { message: gardenError.message, details: gardenError.details, hint: gardenError.hint });
+        return fail("סכמת מסד הנתונים לא מעודכנת. יש להריץ את מיגרציית ownership בגני הילדים ואז לרענן את Supabase schema cache.", 500, { field: "gardens_schema", source: "schema_cache", migration: "20260523007000_garden_ownership_schema_alignment.sql" });
+      }
       return fail("לא ניתן ליצור את הגן: " + (gardenError?.message ?? "שגיאה לא ידועה"), 400);
     }
 

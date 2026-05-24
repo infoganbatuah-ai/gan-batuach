@@ -46,6 +46,8 @@ export interface Database {
           inspector_id: string | null;
           manager_id: string | null;
           owner_profile_id?: string | null;
+          ownership_type?: string | null;
+          owner_role_label?: string | null;
           current_children_count?: number | null;
           email: string | null;
           owner_name: string | null;
@@ -67,6 +69,8 @@ export interface Database {
           inspector_id?: string | null;
           manager_id?: string | null;
           owner_profile_id?: string | null;
+          ownership_type?: string | null;
+          owner_role_label?: string | null;
           current_children_count?: number | null;
           email?: string | null;
           owner_name?: string | null;

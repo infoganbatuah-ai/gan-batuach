@@ -49,7 +49,7 @@ export function KindergartenCreationWizard({ lead, inspectors }: { lead?: Lead; 
           name: formValue(form, "name"), city: formValue(form, "city"), address: formValue(form, "address"), framework_type: formValue(form, "mixed_age") === "yes" ? "mixed" : "custom",
           ages: formValues(form, "age_groups"), children_capacity: Number(formValue(form, "capacity") || 0), current_children_count: Number(formValue(form, "current_children_count") || 0), staff_count: Number(formValue(form, "staff_count") || 0),
           owner_name: formValue(form, "owner_name"), phone: formValue(form, "owner_phone"), email: formValue(form, "manager_email") || formValue(form, "owner_email") || undefined,
-          inspector_id: formValue(form, "assigned_inspector") || undefined, public_profile_enabled: formValue(form, "public_profile_enabled") === "yes", notes: formValue(form, "notes")
+          inspector_id: formValue(form, "assigned_inspector") || undefined, ownership_type: formValue(form, "owner_email") ? "separate_owner" : "teacher_only", owner_role_label: formValue(form, "owner_email") ? "בעלים נפרד" : "מנהלת/גננת", public_profile_enabled: formValue(form, "public_profile_enabled") === "yes", notes: formValue(form, "notes")
         },
         manager: { full_name: formValue(form, "manager_name"), email: formValue(form, "manager_email") || undefined, phone: formValue(form, "manager_phone") },
         owner: formValue(form, "owner_email") ? { full_name: formValue(form, "owner_name"), email: formValue(form, "owner_email"), phone: formValue(form, "owner_phone") } : undefined
