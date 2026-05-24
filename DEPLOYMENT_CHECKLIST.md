@@ -79,3 +79,16 @@ Production requirements:
 - No duplicate API routing exists.
 - No production table is missing from migrations.
 - No build is shipped before dependency audit, typecheck and production build pass.
+
+## Required For Admin Provisioning
+
+- `SUPABASE_SERVICE_ROLE_KEY` must be configured in Vercel Environment Variables for server-only admin provisioning.
+- Required for: creating Auth users, converting leads, creating managers, owners and inspectors.
+- Do not expose this key to client code. Do not use `NEXT_PUBLIC_`.
+- If missing, admin user-creation pages will show a setup warning and final creation will fail gracefully.
+
+## Camera And AI Gateway
+
+- `VIDEO_GATEWAY_URL` is required for real live camera playback and RTSP/ONVIF conversion to HLS/WebRTC.
+- `VIDEO_GATEWAY_SIGNING_SECRET` should be configured when the gateway signs playback sessions.
+- `AI_GATEWAY_URL` is required for live AI observer analysis. Without it, AI configuration can be saved but live AI is shown as pending.

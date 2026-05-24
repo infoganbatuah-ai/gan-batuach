@@ -86,7 +86,12 @@ export const taskSchema = z.object({
   title: z.string().min(2),
   description: z.string().optional(),
   assigned_to: z.string().uuid().optional(),
-  due_at: z.string().optional()
+  assigned_role: z.string().optional(),
+  assigned_group: z.string().optional(),
+  due_at: z.string().optional(),
+  priority: z.string().optional(),
+  repeat_rule: z.string().optional(),
+  task_type: z.string().optional()
 });
 
 export const complaintSchema = z.object({
@@ -166,7 +171,21 @@ export const cameraStreamSchema = z.object({
   area: z.string().min(2),
   camera_type: z.string().optional(),
   protocol: z.string().default("RTSP"),
-  active: z.boolean().default(true)
+  active: z.boolean().default(true),
+  status: z.string().optional(),
+  parent_view_allowed: z.boolean().optional(),
+  class_group: z.string().optional(),
+  age_group: z.string().optional(),
+  host: z.string().optional(),
+  port: z.coerce.number().int().optional(),
+  username: z.string().optional(),
+  password: z.string().optional(),
+  channel: z.string().optional(),
+  rtsp_path: z.string().optional(),
+  onvif_path: z.string().optional(),
+  ai_enabled: z.boolean().optional(),
+  dvr_port: z.number().int().optional(),
+  viewing_hours: z.record(z.string(), z.unknown()).optional()
 });
 
 export const parentCameraPermissionSchema = z.object({

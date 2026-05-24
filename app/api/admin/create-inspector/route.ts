@@ -21,7 +21,8 @@ export async function POST(request: Request) {
       fullName: payload.full_name,
       email: payload.email,
       phone: payload.phone,
-      temporaryPassword: payload.temporary_password
+      temporaryPassword: payload.temporary_password,
+      createdBy: profile.id
     });
     createdUserId = user.id;
 

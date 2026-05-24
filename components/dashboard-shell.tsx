@@ -7,6 +7,7 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
   admin: [
     { href: "/dashboard/admin", label: "מרכז שליטה", hint: "סיכונים, ערים, לידים" },
     { href: "/dashboard/admin/leads", label: "לידים", hint: "המרות גנים ומפקחים" },
+    { href: "/dashboard/admin/users", label: "הוספת משתמשים", hint: "גנים ופקחים" },
     { href: "/dashboard/admin/kindergartens", label: "גנים", hint: "פרופילים וסטטוס" },
     { href: "/dashboard/admin/inspectors", label: "מפקחים", hint: "ערים ושיוך" },
     { href: "/dashboard/admin/inspection-forms", label: "טפסי פיקוח", hint: "בונה דינמי" },
@@ -21,10 +22,13 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
   ],  inspector: [
     { href: "/dashboard/inspector", label: "ביקורות", hint: "חודשי, GPS, ליקויים" },
     { href: "/dashboard/inspector/inspections", label: "ביקורות", hint: "נתוני פיקוח" },
+    { href: "/dashboard/inspector/cameras", label: "מצלמות", hint: "גנים משויכים" },
+    { href: "/dashboard/inspector/ai-events", label: "AI", hint: "התראות גנים" },
     { href: "/dashboard/inspector/violations", label: "ליקויים", hint: "אישור תיקונים" }
   ],
   manager: [
     { href: "/dashboard/garden", label: "ניהול גן", hint: "יום עבודה" },
+    { href: "/dashboard/garden/daily-journal", label: "יומן תפעול", hint: "צ׳קליסט יומי" },
     { href: "/dashboard/garden/cameras", label: "מצלמות", hint: "אשף חיבור" },
     { href: "/dashboard/garden/onboarding", label: "קליטה", hint: "הורים, ילדים וצוות" },
     { href: "/dashboard/garden/children", label: "ילדים", hint: "רישום ואישור" },
@@ -32,6 +36,7 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
   ],
   owner: [
     { href: "/dashboard/garden", label: "ניהול גן", hint: "יום עבודה" },
+    { href: "/dashboard/garden/daily-journal", label: "יומן תפעול", hint: "צ׳קליסט יומי" },
     { href: "/dashboard/garden/cameras", label: "מצלמות", hint: "אשף חיבור" },
     { href: "/dashboard/garden/onboarding", label: "קליטה", hint: "הורים, ילדים וצוות" },
     { href: "/dashboard/garden/children", label: "ילדים", hint: "רישום ואישור" },
@@ -39,6 +44,7 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
   ],
   staff: [
     { href: "/dashboard/staff", label: "צוות", hint: "GPS ומשימות" },
+    { href: "/dashboard/staff/daily-journal", label: "יומן תפעול", hint: "צ׳קליסט" },
     { href: "/dashboard/staff/shifts", label: "שעות", hint: "דוחות חודשיים" },
     { href: "/dashboard/staff/messages", label: "הודעות", hint: "תקשורת" }
   ],

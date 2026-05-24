@@ -322,3 +322,25 @@ curl -X POST "$NEXT_PUBLIC_APP_URL/api/ai/observe" \
 - משימת טיפול במקרה קריטי
 
 ה-migration יוצר גם bucket פרטי בשם `camera-snapshots` לאחסון תמונות אירוע.
+
+## Admin Provisioning Environment Variables
+
+`SUPABASE_SERVICE_ROLE_KEY` is required on the server for production admin provisioning flows on Vercel:
+
+- creating Supabase Auth users
+- converting kindergarten leads into active kindergartens
+- creating kindergarten managers and optional owners
+- converting inspector leads into active inspectors
+- creating inspector users
+
+Add it in Vercel Project Settings -> Environment Variables. Never expose it to the browser and never prefix it with `NEXT_PUBLIC_`.
+
+If this key is missing, the UI shows a clear setup warning and the server logs the technical error. Lead conversion opens a completion wizard first and does not create partial users or kindergartens until the admin confirms the final form.
+
+## Video Gateway / AI Gateway Limitation
+
+The platform supports DVR/NVR/IP Camera/RTSP/ONVIF camera registration and secure browser playback through a Video Gateway:
+
+RTSP/ONVIF -> HLS/WebRTC -> secure browser playback.
+
+A real `VIDEO_GATEWAY_URL` server is required for live streaming and AI analysis. Until the gateway is connected, cameras can be saved as pending and configured, but live stream playback and live AI analysis remain pending. `AI_GATEWAY_URL` can be added when the AI backend is available.

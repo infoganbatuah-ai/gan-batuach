@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
-import type { Database, Json } from "@/lib/supabase/types";
+import type { Json } from "@/lib/supabase/types";
 import type { UserRole } from "@/lib/roles";
 
 const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
@@ -31,6 +31,7 @@ type ProvisionUserInput = {
   email?: string | null;
   phone?: string | null;
   temporaryPassword?: string;
+  createdBy?: string | null;
 };
 
 export async function provisionAuthUser(input: ProvisionUserInput) {
@@ -51,14 +52,17 @@ export async function provisionAuthUser(input: ProvisionUserInput) {
     throw new Error(message);
   }
 
-  const profile: Database["public"]["Tables"]["profiles"]["Insert"] = {
+  const profile: Record<string, unknown> = {
     id: data.user.id,
     role: input.role,
     garden_id: input.gardenId ?? null,
     full_name: input.fullName,
     phone: input.phone ?? null,
     active: true,
-    must_change_password: true
+    must_change_password: true,
+    username: email,
+    email,
+    created_by: input.createdBy ?? null
   };
 
   const { error: profileError } = await supabase.from("profiles").upsert(profile, { onConflict: "id" });
@@ -66,6 +70,17 @@ export async function provisionAuthUser(input: ProvisionUserInput) {
   if (profileError) {
     await supabase.auth.admin.deleteUser(data.user.id);
     throw new Error("המשתמש נוצר ב-Auth אך יצירת הפרופיל נכשלה: " + profileError.message);
+  }
+
+  const { error: credentialsError } = await supabase.from("generated_credentials").insert({
+    user_id: data.user.id,
+    username: email,
+    temporary_password: temporaryPassword,
+    created_by: input.createdBy ?? null
+  });
+  if (credentialsError) {
+    await supabase.auth.admin.deleteUser(data.user.id);
+    throw new Error("המשתמש נוצר אך שמירת פרטי ההתחברות לאדמין נכשלה: " + credentialsError.message);
   }
 
   return {
@@ -100,6 +115,8 @@ export async function writeUserCreationAudit({
   const { error } = await supabase.from("audit_logs").insert({
     actor_id: actorId,
     actor_role: actorRole,
+    performed_by_user: actorId,
+    performed_by_role: actorRole,
     garden_id: gardenId ?? null,
     entity_type: entityType,
     entity_id: entityId ?? null,

@@ -1,5 +1,6 @@
 import { ClipboardCheck, FileBadge, MapPin, Send, UserCheck } from "lucide-react";
 import { BrandHeader } from "@/components/brand-header";
+import { ContactAvailabilityGuard } from "@/components/contact-availability-guard";
 import { createInspectorLead } from "@/app/actions";
 
 const steps = [
@@ -38,6 +39,7 @@ export default async function JoinInspectorPage({ searchParams }: { searchParams
               <label className="wide">הסמכות / תעודות<textarea name="certifications" rows={3} placeholder="עזרה ראשונה, בטיחות, הדרכה, תארים או קורסים" /></label>
               <label className="wide">הערות<textarea name="notes" rows={3} /></label>
             </div>
+            <ContactAvailabilityGuard />
             <button className="button primary large" type="submit">שליחת בקשה לאדמין</button>
           </form>
         </section>

@@ -16,6 +16,7 @@ export const inspectionSubmitSchema = z.object({
   gps_lat: z.number(),
   gps_lng: z.number(),
   gps_radius_meters: z.number().positive().default(120),
+  signature_image: z.string().min(20),
   answers: z.array(inspectionAnswerSchema).min(1)
 });
 

@@ -1,5 +1,6 @@
 import { DashboardShell } from "@/components/dashboard-shell";
-import { AdminDataError, AdminEmptyState } from "@/components/admin-data-state";
+import { AdminDataError } from "@/components/admin-data-state";
+import { AdminTaskEngine } from "@/components/admin-task-engine";
 import { requireRole } from "@/lib/auth";
 import { safeAdminData, logSupabaseError } from "@/lib/admin-safe";
 import { createClient } from "@/lib/supabase/server";
@@ -8,10 +9,13 @@ export default async function AdminListPage() {
   await requireRole(["admin"]);
   const result = await safeAdminData("משימות", async () => {
     const supabase = await createClient();
-    const { data, error } = await supabase.from("tasks" as any).select("id, title, status, due_at").limit(50);
-    logSupabaseError("משימות", error);
-    return { rows: (data ?? []) as any[], queryError: error ? "לא ניתן לטעון את הנתונים כרגע" : null };
-  }, { rows: [] as any[], queryError: null as string | null });
-  const rows = result.data.rows;
-  return <DashboardShell role="admin" title="משימות"><div className="dashboard-hero-card admin-hero-card"><div><p className="eyebrow">Admin</p><h1>משימות אדמין ומעקב ביצוע</h1><p>משימות פתוחות, סטטוס, תאריך יעד והסלמות.</p></div><span className="pill good">UI route</span></div><AdminDataError message={result.error ?? result.data.queryError} /><section className="dashboard-section">{rows.length === 0 ? <AdminEmptyState /> : <div className="procedure-list">{rows.map((row) => <article className="card procedure-card" key={row.id ?? JSON.stringify(row)}><div><h3>{row.title ?? "משימה"}</h3><p>{row.due_at ? new Date(row.due_at).toLocaleDateString("he-IL") : "ללא תאריך יעד"}</p></div><div className="procedure-meta"><span className="pill">{row.status ?? row.safe_status ?? row.role ?? row.severity ?? "פעיל"}</span></div></article>)}</div>}</section></DashboardShell>;
+    const [tasksRes, usersRes, gardensRes] = await Promise.all([
+      supabase.from("tasks" as any).select("*").order("created_at", { ascending: false }).limit(100),
+      supabase.from("profiles" as any).select("id, full_name, role, garden_id, active").eq("active", true).limit(300),
+      supabase.from("gardens" as any).select("id, name, city").order("name")
+    ]);
+    logSupabaseError("משימות", tasksRes.error ?? usersRes.error ?? gardensRes.error);
+    return { tasks: (tasksRes.data ?? []) as any[], users: (usersRes.data ?? []) as any[], gardens: (gardensRes.data ?? []) as any[], queryError: tasksRes.error || usersRes.error || gardensRes.error ? "לא ניתן לטעון את הנתונים כרגע" : null };
+  }, { tasks: [] as any[], users: [] as any[], gardens: [] as any[], queryError: null as string | null });
+  return <DashboardShell role="admin" title="משימות"><div className="dashboard-hero-card admin-hero-card"><div><p className="eyebrow">Task Engine</p><h1>יצירת משימות ומעקב ביצוע.</h1><p>משימות חד פעמיות או חוזרות, לפי משתמש, גן, תפקיד או קבוצה, עם עדיפות ודדליין.</p></div><span className="pill good">Production UI</span></div><AdminDataError message={result.error ?? result.data.queryError} /><AdminTaskEngine tasks={result.data.tasks} users={result.data.users} gardens={result.data.gardens} /></DashboardShell>;
 }

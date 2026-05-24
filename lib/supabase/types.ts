@@ -121,6 +121,14 @@ export interface Database {
       stream_health_checks: Table<LooseRow, LooseInsert, LooseInsert>;
       ai_events: Table<LooseRow, LooseInsert, LooseInsert>;
       audit_logs: Table<LooseRow, LooseInsert, LooseInsert>;
+      generated_credentials: Table<LooseRow, LooseInsert, LooseInsert>;
+      gps_verification_logs: Table<LooseRow, LooseInsert, LooseInsert>;
+      daily_operational_tasks: Table<LooseRow, LooseInsert, LooseInsert>;
+      daily_task_completions: Table<LooseRow, LooseInsert, LooseInsert>;
+      required_inspections: Table<LooseRow, LooseInsert, LooseInsert>;
+      late_inspections: Table<LooseRow, LooseInsert, LooseInsert>;
+      inspection_signatures: Table<LooseRow, LooseInsert, LooseInsert>;
+      inspection_overrides: Table<LooseRow, LooseInsert, LooseInsert>;
       passkey_credentials: Table<LooseRow, LooseInsert, LooseInsert>;
       passkey_challenges: Table<LooseRow, LooseInsert, LooseInsert>;
     };

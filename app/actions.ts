@@ -12,6 +12,19 @@ function values(formData: FormData, key: string) {
   return formData.getAll(key).map((item) => String(item).trim()).filter(Boolean);
 }
 
+async function contactExists(supabase: Awaited<ReturnType<typeof createClient>>, email: string, phone: string) {
+  const [emailProfiles, emailLeads, phoneProfiles, phoneLeads] = await Promise.all([
+    email ? supabase.from("profiles" as any).select("id", { count: "exact", head: true }).or(`email.eq.${email},username.eq.${email}`) : Promise.resolve({ count: 0 }),
+    email ? supabase.from("leads" as any).select("id", { count: "exact", head: true }).eq("email", email) : Promise.resolve({ count: 0 }),
+    phone ? supabase.from("profiles" as any).select("id", { count: "exact", head: true }).eq("phone", phone) : Promise.resolve({ count: 0 }),
+    phone ? supabase.from("leads" as any).select("id", { count: "exact", head: true }).eq("phone", phone) : Promise.resolve({ count: 0 })
+  ]);
+  return {
+    email: Boolean((emailProfiles.count ?? 0) + (emailLeads.count ?? 0)),
+    phone: Boolean((phoneProfiles.count ?? 0) + (phoneLeads.count ?? 0))
+  };
+}
+
 export async function createParentLead(formData: FormData) {
   const supabase = await createClient();
   const gardenId = value(formData, "garden_id") || null;
@@ -43,6 +56,9 @@ export async function createParentLead(formData: FormData) {
 
 export async function createGardenLead(formData: FormData) {
   const supabase = await createClient();
+  const duplicate = await contactExists(supabase, value(formData, "email"), value(formData, "phone"));
+  if (duplicate.email) redirect("/join-kindergarten?error=" + encodeURIComponent("המייל כבר קיים במערכת"));
+  if (duplicate.phone) redirect("/join-kindergarten?error=" + encodeURIComponent("הטלפון כבר קיים במערכת"));
   const notes = [
     value(formData, "notes"),
     values(formData, "age_groups").length ? `קבוצות גיל: ${values(formData, "age_groups").join(", ")}` : "",
@@ -82,6 +98,9 @@ export async function createGardenLead(formData: FormData) {
 
 export async function createInspectorLead(formData: FormData) {
   const supabase = await createClient();
+  const duplicate = await contactExists(supabase, value(formData, "email"), value(formData, "phone"));
+  if (duplicate.email) redirect("/join-inspector?error=" + encodeURIComponent("המייל כבר קיים במערכת"));
+  if (duplicate.phone) redirect("/join-inspector?error=" + encodeURIComponent("הטלפון כבר קיים במערכת"));
   const { error } = await supabase.from("leads").insert({
     lead_type: "inspector",
     parent_name: value(formData, "full_name"),

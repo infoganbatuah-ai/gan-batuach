@@ -11,12 +11,19 @@ const schema = z.object({
     name: z.string().min(2),
     city: z.string().min(2),
     address: z.string().optional(),
+    gps_lat: z.coerce.number().optional(),
+    gps_lng: z.coerce.number().optional(),
     framework_type: z.string().default("mixed"),
+    ages: z.array(z.string()).optional(),
     children_capacity: z.number().int().min(0).default(0),
+    current_children_count: z.number().int().min(0).default(0),
     staff_count: z.number().int().min(0).default(0),
     owner_name: z.string().min(2),
     phone: z.string().optional(),
-    email: z.string().email().optional()
+    email: z.string().email().optional(),
+    inspector_id: z.string().uuid().optional(),
+    public_profile_enabled: z.boolean().default(true),
+    notes: z.string().optional()
   }),
   manager: provisionedUserSchema,
   owner: provisionedUserSchema.optional()
@@ -29,11 +36,11 @@ export async function POST(request: Request) {
     const payload = schema.parse(await request.json());
     const admin = createAdminClient();
 
-    const manager = await provisionAuthUser({ role: "manager", fullName: payload.manager.full_name, email: payload.manager.email, phone: payload.manager.phone, temporaryPassword: payload.manager.temporary_password });
+    const manager = await provisionAuthUser({ role: "manager", fullName: payload.manager.full_name, email: payload.manager.email, phone: payload.manager.phone, temporaryPassword: payload.manager.temporary_password, createdBy: profile.id });
     createdAuthUserIds.push(manager.user.id);
 
     const owner = payload.owner?.full_name
-      ? await provisionAuthUser({ role: "owner", fullName: payload.owner.full_name, email: payload.owner.email, phone: payload.owner.phone, temporaryPassword: payload.owner.temporary_password })
+      ? await provisionAuthUser({ role: "owner", fullName: payload.owner.full_name, email: payload.owner.email, phone: payload.owner.phone, temporaryPassword: payload.owner.temporary_password, createdBy: profile.id })
       : null;
     if (owner) createdAuthUserIds.push(owner.user.id);
 
@@ -41,17 +48,25 @@ export async function POST(request: Request) {
       name: payload.garden.name,
       city: payload.garden.city,
       address: payload.garden.address || null,
+      gps_lat: payload.garden.gps_lat ?? null,
+      gps_lng: payload.garden.gps_lng ?? null,
       framework_type: payload.garden.framework_type,
+      ages: payload.garden.ages ?? [],
       children_capacity: payload.garden.children_capacity,
+      current_children_count: payload.garden.current_children_count,
       staff_count: payload.garden.staff_count,
       owner_name: payload.garden.owner_name,
       phone: payload.garden.phone || null,
       email: payload.garden.email || manager.oneTimeCredentials.email,
       manager_id: manager.user.id,
       owner_profile_id: owner?.user.id ?? null,
+      inspector_id: payload.garden.inspector_id ?? null,
       status: "active",
       safe_status: "pending_review",
-      public_profile_enabled: true,
+      first_inspection_due_at: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
+      first_inspection_grace_until: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
+      inspection_required_status: "pending_first_inspection",
+      public_profile_enabled: payload.garden.public_profile_enabled,
       eligible_for_safe_status: false
     } as Database["public"]["Tables"]["gardens"]["Insert"];
 
