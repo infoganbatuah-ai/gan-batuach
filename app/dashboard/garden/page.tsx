@@ -18,7 +18,7 @@ export default async function GardenDashboard() {
   const { profile } = await requireRole(["manager", "owner"]);
   const supabase = await createClient();
   const gardenId = profile.garden_id;
-  const [childrenRes, staffRes, tasksRes, leadsRes, complaintsRes, violationsRes, camerasRes, aiRes, documentsRes] = await Promise.all([
+  const [childrenRes, staffRes, tasksRes, leadsRes, complaintsRes, violationsRes, camerasRes, aiRes, documentsRes, messagesRes] = await Promise.all([
     supabase.from("children").select("*", { count: "exact", head: true }).eq("garden_id", gardenId ?? ""),
     supabase.from("staff").select("*", { count: "exact", head: true }).eq("garden_id", gardenId ?? ""),
     supabase.from("tasks").select("*", { count: "exact", head: true }).eq("garden_id", gardenId ?? "").neq("status", "done"),
@@ -27,7 +27,8 @@ export default async function GardenDashboard() {
     supabase.from("violations").select("*", { count: "exact", head: true }).eq("garden_id", gardenId ?? "").neq("status", "done"),
     supabase.from("camera_streams").select("*", { count: "exact", head: true }).eq("garden_id", gardenId ?? "").neq("status", "online"),
     supabase.from("ai_events").select("*", { count: "exact", head: true }).eq("garden_id", gardenId ?? "").neq("status", "closed"),
-    supabase.from("documents").select("name, document_type, expires_at, status").eq("garden_id", gardenId ?? "").limit(4)
+    supabase.from("documents").select("name, document_type, expires_at, status").eq("garden_id", gardenId ?? "").limit(4),
+    supabase.from("messages").select("id, subject, content, body, created_at, status").eq("garden_id", gardenId ?? "").eq("recipient_id", profile.id).order("created_at", { ascending: false }).limit(4)
   ]);
 
   return (
@@ -62,6 +63,7 @@ export default async function GardenDashboard() {
       </section>
 
       <section className="grid cols-2 dashboard-panels">
+        <article className="card action-panel"><div className="section-heading"><h2>הודעות אדמין</h2><p>הודעות שנשלחו מהאדמין למנהלת או לבעלים.</p></div>{(messagesRes.data ?? []).length === 0 ? <div className="empty-mini">אין הודעות חדשות.</div> : (messagesRes.data ?? []).map((message: any) => <div className="list-item" key={message.id}><div><strong>{message.subject}</strong><span>{message.content ?? message.body}</span></div><span className="pill">{message.status ?? "unread"}</span></div>)}</article>
         <article className="card action-panel"><div className="section-heading"><h2>לידים חדשים מהורים</h2><p>אשרו, דחו, צרו קשר או בקשו פרטים נוספים.</p></div>{(leadsRes.data ?? []).length === 0 ? <div className="empty-mini">אין לידים חדשים כרגע.</div> : (leadsRes.data ?? []).map((lead: any) => <div className="list-item" key={lead.id}><div><strong>{lead.parent_name}</strong><span>{lead.phone} · {lead.child_name ?? "ילד/ה"} · {lead.child_age ?? "גיל לא צוין"}</span></div><span className="pill warn">{lead.status}</span></div>)}</article>
         <article className="card action-panel"><div className="section-heading"><h2>ציות ותפעול</h2><p>פריטים שדורשים טיפול לפני ביקורת או במהלך החודש.</p></div><div className="risk-list"><div><Bell /> תלונות פתוחות <b>{complaintsRes.count ?? 0}</b></div><div><ClipboardCheck /> ליקויי ביקורת <b>{violationsRes.count ?? 0}</b></div><div><Camera /> תקלות מצלמה <b>{camerasRes.count ?? 0}</b></div><div><FileClock /> מסמכים למעקב <b>{documentsRes.data?.length ?? 0}</b></div></div></article>
       </section>

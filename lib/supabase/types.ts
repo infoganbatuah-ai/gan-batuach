@@ -133,6 +133,8 @@ export interface Database {
       late_inspections: Table<LooseRow, LooseInsert, LooseInsert>;
       inspection_signatures: Table<LooseRow, LooseInsert, LooseInsert>;
       inspection_overrides: Table<LooseRow, LooseInsert, LooseInsert>;
+      policies: Table<LooseRow, LooseInsert, LooseInsert>;
+      policy_acceptances: Table<LooseRow, LooseInsert, LooseInsert>;
       passkey_credentials: Table<LooseRow, LooseInsert, LooseInsert>;
       passkey_challenges: Table<LooseRow, LooseInsert, LooseInsert>;
     };

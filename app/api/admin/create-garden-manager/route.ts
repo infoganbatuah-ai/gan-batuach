@@ -20,7 +20,7 @@ const schema = z.object({
     children_capacity: z.number().int().min(0).default(0),
     current_children_count: z.number().int().min(0).default(0),
     staff_count: z.number().int().min(0).default(0),
-    owner_name: z.string().min(2),
+    owner_name: z.string().optional(),
     phone: z.string().optional(),
     email: z.string().email().optional(),
     inspector_id: z.string().uuid().optional(),
@@ -29,8 +29,18 @@ const schema = z.object({
     public_profile_enabled: z.boolean().default(true),
     notes: z.string().optional()
   }),
-  manager: provisionedUserSchema,
+  manager: provisionedUserSchema.optional(),
   owner: provisionedUserSchema.optional()
+}).superRefine((payload, ctx) => {
+  const ownership = payload.garden.ownership_type ?? "teacher_only";
+  if (ownership !== "owner_only") {
+    if (!payload.manager?.full_name) ctx.addIssue({ code: "custom", path: ["manager", "full_name"], message: "שם מנהלת/גננת חובה" });
+    if (!payload.manager?.email) ctx.addIssue({ code: "custom", path: ["manager", "email"], message: "מייל מנהלת/גננת חובה" });
+  }
+  if (ownership === "separate_owner" || ownership === "owner_only") {
+    if (!payload.owner?.full_name && !payload.garden.owner_name) ctx.addIssue({ code: "custom", path: ["owner", "full_name"], message: "שם בעלים חובה" });
+    if (!payload.owner?.email) ctx.addIssue({ code: "custom", path: ["owner", "email"], message: "מייל בעלים חובה" });
+  }
 });
 
 export async function POST(request: Request) {
@@ -39,34 +49,38 @@ export async function POST(request: Request) {
     const { profile } = await requireRole(["admin"]);
     const payload = schema.parse(await request.json());
     const admin = createAdminClient();
-    const managerEmail = normalizeOptionalEmail(payload.manager.email);
+    const ownershipType = payload.garden.ownership_type ?? "teacher_only";
+    const managerEmail = ownershipType !== "owner_only" ? normalizeOptionalEmail(payload.manager?.email) : undefined;
     const ownerEmail = normalizeOptionalEmail(payload.owner?.email);
 
     console.info("[create-garden-manager-email-check]", {
-      attemptedManagerEmail: payload.manager.email ?? null,
+      attemptedManagerEmail: payload.manager?.email ?? null,
       normalizedManagerEmail: managerEmail ?? null,
       attemptedOwnerEmail: payload.owner?.email ?? null,
       normalizedOwnerEmail: ownerEmail ?? null
     });
 
-    const managerConflict = await checkEmailConflict({ supabase: admin, email: managerEmail, field: "manager_email" });
+    const managerConflict = ownershipType !== "owner_only" ? await checkEmailConflict({ supabase: admin, email: managerEmail, field: "manager_email" }) : null;
     if (managerConflict) return fail(managerConflict.message, 409, { field: managerConflict.field, source: managerConflict.source });
     if (ownerEmail && ownerEmail === managerEmail) {
       console.warn("[email-duplicate-check-conflict]", { field: "owner_email", normalizedEmail: ownerEmail, source: "same_as_manager_email" });
       return fail("המייל כבר קיים במערכת", 409, { field: "owner_email", source: "same_as_manager_email" });
     }
-    const ownerConflict = await checkEmailConflict({ supabase: admin, email: ownerEmail, field: "owner_email" });
+    const ownerConflict = (ownershipType === "separate_owner" || ownershipType === "owner_only") ? await checkEmailConflict({ supabase: admin, email: ownerEmail, field: "owner_email" }) : null;
     if (ownerConflict) return fail(ownerConflict.message, 409, { field: ownerConflict.field, source: ownerConflict.source });
 
-    const manager = await provisionAuthUser({ role: "manager", fullName: payload.manager.full_name, email: managerEmail, phone: payload.manager.phone, temporaryPassword: payload.manager.temporary_password, createdBy: profile.id, conflictField: "manager_email" });
-    createdAuthUserIds.push(manager.user.id);
+    const manager = ownershipType !== "owner_only" && payload.manager
+      ? await provisionAuthUser({ role: "manager", fullName: payload.manager.full_name, email: managerEmail, phone: payload.manager.phone, temporaryPassword: payload.manager.temporary_password, createdBy: profile.id, conflictField: "manager_email" })
+      : null;
+    if (manager) createdAuthUserIds.push(manager.user.id);
 
-    const owner = payload.owner?.full_name && ownerEmail
+    const owner = (ownershipType === "separate_owner" || ownershipType === "owner_only") && payload.owner?.full_name && ownerEmail
       ? await provisionAuthUser({ role: "owner", fullName: payload.owner.full_name, email: ownerEmail, phone: payload.owner.phone, temporaryPassword: payload.owner.temporary_password, createdBy: profile.id, conflictField: "owner_email" })
       : null;
     if (owner) createdAuthUserIds.push(owner.user.id);
 
-    const ownershipType = payload.garden.ownership_type ?? (owner ? "separate_owner" : "teacher_only");
+    const primaryUser = manager ?? owner;
+    if (!primaryUser) return fail("חסר משתמש מנהלת או בעלים ליצירת הגן.", 422);
     const gardenInsert: Database["public"]["Tables"]["gardens"]["Insert"] = {
       name: payload.garden.name,
       city: payload.garden.city,
@@ -78,13 +92,13 @@ export async function POST(request: Request) {
       children_capacity: payload.garden.children_capacity,
       current_children_count: payload.garden.current_children_count,
       staff_count: payload.garden.staff_count,
-      owner_name: payload.garden.owner_name,
+      owner_name: payload.garden.owner_name || owner?.oneTimeCredentials.email || manager?.oneTimeCredentials.email,
       phone: payload.garden.phone || null,
-      email: payload.garden.email || manager.oneTimeCredentials.email,
-      manager_id: manager.user.id,
+      email: payload.garden.email || primaryUser.oneTimeCredentials.email,
+      manager_id: manager?.user.id ?? null,
       owner_profile_id: owner?.user.id ?? null,
       ownership_type: ownershipType,
-      owner_role_label: payload.garden.owner_role_label || (owner ? "בעלים נפרד" : "מנהלת/גננת"),
+      owner_role_label: payload.garden.owner_role_label || (ownershipType === "teacher_is_owner" ? "גננת ובעלים" : ownershipType === "separate_owner" ? "בעלים נפרד" : ownershipType === "owner_only" ? "בעלים בלבד" : "מנהלת/גננת"),
       inspector_id: payload.garden.inspector_id ?? null,
       status: "active",
       safe_status: "pending_review",
@@ -105,8 +119,10 @@ export async function POST(request: Request) {
       return fail("לא ניתן ליצור את הגן: " + (gardenError?.message ?? "שגיאה לא ידועה"), 400);
     }
 
-    const { error: managerProfileError } = await admin.from("profiles").update({ garden_id: garden.id }).eq("id", manager.user.id);
-    if (managerProfileError) return fail("הגן נוצר אך שיוך המנהלת נכשל: " + managerProfileError.message, 400);
+    if (manager) {
+      const { error: managerProfileError } = await admin.from("profiles").update({ garden_id: garden.id }).eq("id", manager.user.id);
+      if (managerProfileError) return fail("הגן נוצר אך שיוך המנהלת נכשל: " + managerProfileError.message, 400);
+    }
 
     if (owner) {
       const { error: ownerProfileError } = await admin.from("profiles").update({ garden_id: garden.id }).eq("id", owner.user.id);
@@ -124,10 +140,10 @@ export async function POST(request: Request) {
       entityType: "gardens",
       entityId: garden.id,
       action: payload.source_lead_id ? "convert_garden_lead_to_active_garden" : "create_garden_manager_owner",
-      afterData: { garden_id: garden.id, manager_user_id: manager.user.id, owner_user_id: owner?.user.id ?? null, source_lead_id: payload.source_lead_id ?? null }
+      afterData: { garden_id: garden.id, manager_user_id: manager?.user.id ?? null, owner_user_id: owner?.user.id ?? null, ownership_type: ownershipType, source_lead_id: payload.source_lead_id ?? null }
     });
 
-    return ok({ garden, manager_user_id: manager.user.id, owner_user_id: owner?.user.id ?? null, credentials: { manager: manager.oneTimeCredentials, owner: owner?.oneTimeCredentials ?? null } }, 201);
+    return ok({ garden, manager_user_id: manager?.user.id ?? null, owner_user_id: owner?.user.id ?? null, credentials: { manager: manager?.oneTimeCredentials ?? null, owner: owner?.oneTimeCredentials ?? null } }, 201);
   } catch (error) {
     if (error instanceof DuplicateContactError) {
       return fail(error.message, 409, { field: error.field, source: error.source });

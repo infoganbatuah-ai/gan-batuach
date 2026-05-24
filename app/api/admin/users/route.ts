@@ -5,7 +5,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { generateTemporaryPassword, writeUserCreationAudit } from "@/lib/onboarding/user-provisioning";
 
 const schema = z.object({
-  action: z.enum(["regenerate_credentials", "reset_password", "deactivate"]),
+  action: z.enum(["regenerate_credentials", "reset_password", "send_password_reset", "deactivate", "reactivate"]),
   user_id: z.string().uuid(),
   reason: z.string().optional()
 });
@@ -19,11 +19,21 @@ export async function POST(request: Request) {
     const { data: target, error: targetError } = await supabase.from("profiles").select("id, username, email, role, full_name").eq("id", payload.user_id).single();
     if (targetError || !target) return fail("המשתמש לא נמצא.", 404);
 
-    if (payload.action === "deactivate") {
-      const { error } = await supabase.from("profiles").update({ active: false, deactivated_at: new Date().toISOString() }).eq("id", payload.user_id);
+    if (payload.action === "deactivate" || payload.action === "reactivate") {
+      const { error } = await supabase.from("profiles").update({ active: payload.action === "reactivate", deactivated_at: payload.action === "deactivate" ? new Date().toISOString() : null }).eq("id", payload.user_id);
       if (error) return fail("לא ניתן להשבית משתמש.", 400);
-      await writeUserCreationAudit({ actorId: profile.id, actorRole: "admin", entityType: "profiles", entityId: payload.user_id, action: "deactivate_user", afterData: { reason: payload.reason ?? null, role: target.role } });
-      return ok({ status: "deactivated" });
+      await writeUserCreationAudit({ actorId: profile.id, actorRole: "admin", entityType: "profiles", entityId: payload.user_id, action: payload.action === "deactivate" ? "deactivate_user" : "reactivate_user", afterData: { reason: payload.reason ?? null, role: target.role } });
+      return ok({ status: payload.action === "deactivate" ? "deactivated" : "active" });
+    }
+
+    if (payload.action === "send_password_reset") {
+      const username = String(target.email || target.username || "").trim();
+      if (!username) return fail("אין מייל לשליחת איפוס סיסמה.", 422);
+      const { error } = await supabase.auth.admin.generateLink({ type: "recovery", email: username });
+      if (error) return fail("לא ניתן לשלוח איפוס סיסמה: " + error.message, 400);
+      await supabase.from("generated_credentials").update({ reset_sent_at: new Date().toISOString() }).eq("user_id", payload.user_id);
+      await writeUserCreationAudit({ actorId: profile.id, actorRole: "admin", entityType: "profiles", entityId: payload.user_id, action: "send_password_reset", afterData: { username } });
+      return ok({ status: "reset_sent" });
     }
 
     const temporaryPassword = generateTemporaryPassword();

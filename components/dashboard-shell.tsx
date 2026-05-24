@@ -2,6 +2,8 @@ import Link from "next/link";
 import { BrandHeader } from "@/components/brand-header";
 import type { UserRole } from "@/lib/roles";
 import { PasskeyEnrollmentPrompt } from "@/components/passkey-enrollment-prompt";
+import { LogoutButton } from "@/components/logout-button";
+import { PolicyAcceptanceGate } from "@/components/policy-acceptance-gate";
 
 const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: string }>> = {
   admin: [
@@ -12,6 +14,7 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/admin/inspectors", label: "מפקחים", hint: "ערים ושיוך" },
     { href: "/dashboard/admin/inspection-forms", label: "טפסי פיקוח", hint: "בונה דינמי" },
     { href: "/dashboard/admin/procedures", label: "נהלים", hint: "חובה ותאימות" },
+    { href: "/dashboard/admin/policies", label: "תקנונים", hint: "אישורי משתמשים" },
     { href: "/dashboard/admin/cameras", label: "מצלמות", hint: "Gateway והרשאות" },
     { href: "/dashboard/admin/ai-events", label: "אירועי AI", hint: "אירועים והתראות" },
     { href: "/dashboard/admin/tasks", label: "משימות", hint: "מעקב והסלמה" },
@@ -62,6 +65,7 @@ export function DashboardShell({ role, title, children }: { role: UserRole; titl
       <div className="dashboard-layout">
         <aside className="sidebar">
           <h2>{title}</h2>
+          <LogoutButton />
           <p>ממשק עבודה לפי הרשאה, גן ושיוך.</p>
           <nav>
             {navByRole[role].map((item) => (
@@ -73,7 +77,7 @@ export function DashboardShell({ role, title, children }: { role: UserRole; titl
           </nav>
           <PasskeyEnrollmentPrompt />
         </aside>
-        <main className="dashboard-main">{children}</main>
+        <main className="dashboard-main"><PolicyAcceptanceGate />{children}</main>
         <nav className="mobile-tabbar" aria-label="ניווט דשבורד">{navByRole[role].slice(0, 5).map((item) => <Link href={item.href} key={item.href}><strong>{item.label}</strong><span>{item.hint}</span></Link>)}</nav>
         <Link className="mobile-fab" href={navByRole[role][1]?.href ?? navByRole[role][0].href}>+</Link>
       </div>

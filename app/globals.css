@@ -1703,3 +1703,20 @@ body::before {
   object-fit: cover;
   border-radius: var(--radius-md);
 }
+
+.policy-gate {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgb(15 23 42 / 52%);
+  backdrop-filter: blur(10px);
+}
+
+.policy-modal {
+  max-width: 720px;
+  max-height: min(760px, 90vh);
+  overflow: auto;
+}

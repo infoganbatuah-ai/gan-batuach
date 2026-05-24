@@ -6,12 +6,12 @@ import { useMemo, useState } from "react";
 type Row = Record<string, any>;
 
 const tabs = [
-  ["kindergartens", "Kindergartens"],
-  ["inspectors", "Inspectors"],
-  ["staff", "Staff"],
-  ["parents", "Parents"],
-  ["managers", "Managers / Owners"],
-  ["all", "All Users"]
+  ["kindergartens", "גני ילדים / מנהלות"],
+  ["owners", "בעלי גן"],
+  ["inspectors", "מפקחים"],
+  ["staff", "צוות"],
+  ["parents", "הורים"],
+  ["all", "כל המשתמשים"]
 ] as const;
 
 async function postAction(userId: string, action: string) {
@@ -27,8 +27,8 @@ async function postAction(userId: string, action: string) {
 
 function filterRows(rows: Row[], tab: string) {
   if (tab === "all") return rows;
-  if (tab === "kindergartens") return rows.filter((row) => ["manager", "owner"].includes(row.role));
-  if (tab === "managers") return rows.filter((row) => ["manager", "owner"].includes(row.role));
+  if (tab === "kindergartens") return rows.filter((row) => row.role === "manager");
+  if (tab === "owners") return rows.filter((row) => row.role === "owner");
   if (tab === "inspectors") return rows.filter((row) => row.role === "inspector");
   if (tab === "staff") return rows.filter((row) => row.role === "staff");
   if (tab === "parents") return rows.filter((row) => row.role === "parent");
@@ -45,7 +45,9 @@ export function AdminUsersManagement({ users, auditLogs }: { users: Row[]; audit
     setMessage(null); setError(null);
     try {
       const result = await postAction(userId, actionName);
-      if (result?.temporary_password) {
+      if (actionName === "send_password_reset") {
+        setMessage("נשלח איפוס סיסמה למייל המשתמש.");
+      } else if (result?.temporary_password) {
         setMessage(`נוצרה סיסמה חדשה: ${result.username} / ${result.temporary_password}`);
       } else {
         setMessage("הפעולה בוצעה ונרשמה בלוג.");
@@ -71,6 +73,8 @@ export function AdminUsersManagement({ users, auditLogs }: { users: Row[]; audit
           const credential = Array.isArray(user.generated_credentials) ? user.generated_credentials[0] : null;
           const garden = user.gardens ?? user.related_garden ?? null;
           const createdBy = user.created_by_profile?.full_name ?? user.created_by ?? "-";
+          const passwordChanged = user.must_change_password === false || credential?.password_changed_at;
+          const showPassword = user.role !== "parent" && credential && !passwordChanged;
           return <article className="card procedure-card" key={user.id}>
             <div>
               <span className={user.active === false ? "pill bad" : "pill good"}>{user.active === false ? "לא פעיל" : "פעיל"} · {user.role}</span>
@@ -78,13 +82,13 @@ export function AdminUsersManagement({ users, auditLogs }: { users: Row[]; audit
               <p>{user.email ?? credential?.username ?? user.username ?? "-"} · {user.phone ?? "-"}</p>
               <small>גן: {garden?.name ?? user.garden_id ?? "-"} · נוצר: {user.created_at ? new Date(user.created_at).toLocaleDateString("he-IL") : "-"} · כניסה אחרונה: {user.last_login_at ? new Date(user.last_login_at).toLocaleString("he-IL") : "-"}</small>
               <small>נוצר על ידי: {createdBy} · שם משתמש: {credential?.username ?? user.username ?? "-"}</small>
-              <div className="credential-box"><b>סיסמה זמנית שמורה:</b> <code>{credential?.temporary_password ?? "לא נמצאה רשומת credentials"}</code></div>
+              <div className="credential-box"><b>פרטי כניסה ראשונים:</b> <span>{credential?.username ?? user.email ?? user.username ?? "-"}</span>{showPassword ? <code>{credential.temporary_password}</code> : <strong>{user.role === "parent" ? "סיסמת הורה מוסתרת" : "הסיסמה הוחלפה"}</strong>}</div>
             </div>
             <div className="procedure-meta">
-              <button className="button secondary" onClick={() => navigator.clipboard?.writeText(`${credential?.username ?? user.username ?? ""}\n${credential?.temporary_password ?? ""}`)}>העתקת פרטים</button>
-              <button className="button secondary" onClick={() => action(user.id, "regenerate_credentials")}>יצירת סיסמה חדשה</button>
-              <button className="button secondary" onClick={() => action(user.id, "reset_password")}>איפוס סיסמה</button>
-              <button className="button" onClick={() => action(user.id, "deactivate")}>השבתה</button>
+              {showPassword ? <button className="button secondary" onClick={() => navigator.clipboard?.writeText(`${credential?.username ?? user.username ?? ""}\n${credential?.temporary_password ?? ""}`)}>העתקת פרטים</button> : null}
+              <button className="button secondary" onClick={() => action(user.id, "send_password_reset")}>שלח איפוס סיסמה</button>
+              <button className="button secondary" onClick={() => action(user.id, "reset_password")}>איפוס ידני</button>
+              <button className="button" onClick={() => action(user.id, user.active === false ? "reactivate" : "deactivate")}>{user.active === false ? "הפעלה" : "השבתה"}</button>
             </div>
           </article>;
         })}</div>}

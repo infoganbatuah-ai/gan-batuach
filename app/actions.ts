@@ -6,7 +6,11 @@ import { createClient } from "@/lib/supabase/server";
 import { normalizeOptionalEmail, normalizeOptionalPhone } from "@/lib/onboarding/user-provisioning";
 
 function value(formData: FormData, key: string) {
-  return String(formData.get(key) ?? "").trim();
+  const rawValue = formData.get(key);
+  if (rawValue && typeof rawValue === "object" && "name" in rawValue) {
+    return String(rawValue.name ?? "").trim();
+  }
+  return String(rawValue ?? "").trim();
 }
 
 function values(formData: FormData, key: string) {
@@ -71,7 +75,12 @@ export async function createGardenLead(formData: FormData) {
     value(formData, "food_kitchen") ? `מטבח/אוכל: ${value(formData, "food_kitchen")}` : "",
     value(formData, "address") ? `כתובת: ${value(formData, "address")}` : "",
     value(formData, "camera_status") ? `מצלמות: ${value(formData, "camera_status")}` : "",
-    value(formData, "documents_status") ? `מסמכים: ${value(formData, "documents_status")}` : ""
+    value(formData, "documents_status") ? `מסמכים: ${value(formData, "documents_status")}` : "",
+    value(formData, "business_document_name") ? `מסמך עסק: ${value(formData, "business_document_name")}` : "",
+    value(formData, "license_document_name") ? `רישיון גן: ${value(formData, "license_document_name")}` : "",
+    value(formData, "teacher_certificate_name") ? `אישור לימודים/הוראה: ${value(formData, "teacher_certificate_name")}` : "",
+    value(formData, "additional_documents_note") ? `מסמכים נוספים: ${value(formData, "additional_documents_note")}` : "",
+    value(formData, "kindergarten_terms_commitment") ? "התחייבות לתקנון גני ילדים: אושרה" : ""
   ]
     .filter(Boolean)
     .join("\n");
