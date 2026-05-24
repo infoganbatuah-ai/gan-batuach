@@ -2,6 +2,8 @@ import Link from "next/link";
 import { Bell, CalendarCheck, Camera, ClipboardCheck, FileClock, MessageSquare, Plus, ShieldCheck, UserPlus, UsersRound } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { StatCard } from "@/components/stat-card";
+import { Avatar } from "@/components/avatar";
+import { ReadyStatusCard } from "@/components/ready-status-card";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
@@ -18,9 +20,11 @@ export default async function GardenDashboard() {
   const { profile } = await requireRole(["manager", "owner"]);
   const supabase = await createClient();
   const gardenId = profile.garden_id;
-  const [childrenRes, staffRes, tasksRes, leadsRes, complaintsRes, violationsRes, camerasRes, aiRes, documentsRes, messagesRes] = await Promise.all([
+  const [gardenRes, childrenRes, staffRes, parentsRes, tasksRes, leadsRes, complaintsRes, violationsRes, camerasRes, aiRes, documentsRes, messagesRes, inspectionRes] = await Promise.all([
+    supabase.from("gardens" as any).select("id, name, city, logo_url, image_url, safe_status, first_inspection_due_at, last_inspection_score").eq("id", gardenId ?? "").maybeSingle(),
     supabase.from("children").select("*", { count: "exact", head: true }).eq("garden_id", gardenId ?? ""),
     supabase.from("staff").select("*", { count: "exact", head: true }).eq("garden_id", gardenId ?? ""),
+    supabase.from("parents").select("*", { count: "exact", head: true }).eq("garden_id", gardenId ?? ""),
     supabase.from("tasks").select("*", { count: "exact", head: true }).eq("garden_id", gardenId ?? "").neq("status", "done"),
     supabase.from("leads").select("id, parent_name, phone, child_name, child_age, status, created_at", { count: "exact" }).eq("garden_id", gardenId ?? "").eq("lead_type", "parent").limit(5),
     supabase.from("complaints").select("*", { count: "exact", head: true }).eq("garden_id", gardenId ?? "").neq("status", "closed"),
@@ -28,17 +32,29 @@ export default async function GardenDashboard() {
     supabase.from("camera_streams").select("*", { count: "exact", head: true }).eq("garden_id", gardenId ?? "").neq("status", "online"),
     supabase.from("ai_events").select("*", { count: "exact", head: true }).eq("garden_id", gardenId ?? "").neq("status", "closed"),
     supabase.from("documents").select("name, document_type, expires_at, status").eq("garden_id", gardenId ?? "").limit(4),
-    supabase.from("messages").select("id, subject, content, body, created_at, status").eq("garden_id", gardenId ?? "").eq("recipient_id", profile.id).order("created_at", { ascending: false }).limit(4)
+    supabase.from("messages").select("id, subject, content, body, created_at, status").eq("garden_id", gardenId ?? "").eq("recipient_id", profile.id).order("created_at", { ascending: false }).limit(4),
+    supabase.from("inspections" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId ?? "").eq("status", "done")
   ]);
+  const garden = gardenRes.data as any;
+  const readyItems = [
+    { label: "מסמכי גן", ok: (documentsRes.data ?? []).length > 0, help: "לפחות מסמך אחד הועלה ונמצא במעקב." },
+    { label: "צוות מאושר", ok: (staffRes.count ?? 0) > 0, help: "יש אנשי צוות פעילים/בתהליך אישור." },
+    { label: "ביקורת ראשונה", ok: (inspectionRes.count ?? 0) > 0, help: "בוצעה לפחות ביקורת אחת." },
+    { label: "ילדים פעילים", ok: (childrenRes.count ?? 0) > 0, help: "יש כרטיסי ילדים פעילים." },
+    { label: "הורים משויכים", ok: (parentsRes.count ?? 0) > 0, help: "יש הורים מחוברים למערכת." },
+    { label: "מצלמות מוגדרות", ok: (camerasRes.count ?? 0) === 0, help: "אין תקלות מצלמה פתוחות." },
+    { label: "מדיניות ותקנונים", ok: true, help: "שער אישור תקנון פעיל בכניסה." }
+  ];
 
   return (
     <DashboardShell role="manager" title="ממשק גן">
-      <div className="dashboard-hero-card garden-hero-card">
+      <div className="dashboard-hero-card garden-hero-card premium-identity-hero">
         <div>
           <p className="eyebrow">ניהול יומי</p>
-          <h1>בוקר טוב, הנה מה שדורש תשומת לב בגן.</h1>
-          <p>לידים, אישורי ילדים, משימות תיקון, מצלמות, מסמכים ואירועי בטיחות במקום אחד.</p>
+          <h1>בוקר טוב, {garden?.name ?? "הגן שלך"}.</h1>
+          <p>{garden?.city ? `${garden.city} · ` : ""}לידים, ילדים, צוות, בריאות, איסוף, משימות, מצלמות ומסמכים במקום אחד.</p>
         </div>
+        <Avatar name={garden?.name} src={garden?.logo_url ?? garden?.image_url} size="lg" />
         <span className="pill good"><ShieldCheck size={15} /> סטטוס ניהול פעיל</span>
       </div>
 
@@ -60,6 +76,11 @@ export default async function GardenDashboard() {
             </Link>
           ))}
         </div>
+      </section>
+
+      <section className="grid cols-2 dashboard-panels">
+        <ReadyStatusCard items={readyItems} />
+        <article className="card action-panel"><div className="section-heading"><h2>יום עבודה בקליק</h2><p>מסלולים מהירים לניהול היומי שהכי חשוב לגן.</p></div><div className="quick-actions-grid compact"><Link className="quick-action" href="/dashboard/garden/child-journal">יומן ילד<span>עדכון יומי להורים</span></Link><Link className="quick-action" href="/dashboard/garden/health">בריאות ותרופות<span>אלרגיות ואישורים</span></Link><Link className="quick-action" href="/dashboard/garden/pickup">איסוף והחזרה<span>מורשים ו-GPS</span></Link><Link className="quick-action" href="/dashboard/garden/incidents">דיווח אירוע<span>ציר טיפול ותיעוד</span></Link></div></article>
       </section>
 
       <section className="grid cols-2 dashboard-panels">

@@ -42,8 +42,11 @@ export function createCrudHandlers(config: CrudConfig) {
 
         const payload = await request.json();
         const parsed = config.schema ? config.schema.parse(payload) : payload;
+        const insertPayload = config.table === "messages" && "session" in permission
+          ? { ...parsed, sender_id: permission.session.profile.id, content: parsed.content ?? parsed.body }
+          : parsed;
         const supabase = await createClient();
-        const { data, error } = await (supabase as any).from(config.table).insert(parsed).select("*").single();
+        const { data, error } = await (supabase as any).from(config.table).insert(insertPayload).select("*").single();
         if (error) return fail(error.message, 400);
         return ok(data, 201);
       } catch (error) {

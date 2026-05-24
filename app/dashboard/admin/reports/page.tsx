@@ -1,8 +1,9 @@
 import { DashboardShell } from "@/components/dashboard-shell";
-import { AdminDataError, AdminEmptyState } from "@/components/admin-data-state";
+import { AdminDataError } from "@/components/admin-data-state";
 import { requireRole } from "@/lib/auth";
 import { safeAdminData, logSupabaseError } from "@/lib/admin-safe";
 import { createClient } from "@/lib/supabase/server";
+import { ReportsCenter } from "@/components/reports-center";
 
 export default async function AdminListPage() {
   await requireRole(["admin"]);
@@ -13,5 +14,5 @@ export default async function AdminListPage() {
     return { rows: (data ?? []) as any[], queryError: error ? "לא ניתן לטעון את הנתונים כרגע" : null };
   }, { rows: [] as any[], queryError: null as string | null });
   const rows = result.data.rows;
-  return <DashboardShell role="admin" title="דוחות"><div className="dashboard-hero-card admin-hero-card"><div><p className="eyebrow">Admin</p><h1>דוחות וייצוא</h1><p>ייצואי דוחות, פורמטים וסטטוס הכנה.</p></div><span className="pill good">UI route</span></div><AdminDataError message={result.error ?? result.data.queryError} /><section className="dashboard-section">{rows.length === 0 ? <AdminEmptyState /> : <div className="procedure-list">{rows.map((row) => <article className="card procedure-card" key={row.id ?? JSON.stringify(row)}><div><h3>{row.report_type ?? "דוח"}</h3><p>{row.format ?? ""}</p></div><div className="procedure-meta"><span className="pill">{row.status ?? row.safe_status ?? row.role ?? row.severity ?? "פעיל"}</span></div></article>)}</div>}</section></DashboardShell>;
+  return <DashboardShell role="admin" title="דוחות"><div className="dashboard-hero-card admin-hero-card"><div><p className="eyebrow">Reports Center</p><h1>מרכז דוחות וייצוא מתקדם.</h1><p>נוכחות ילדים, שעות צוות, ביקורות, אירועים, תלונות, מצלמות, משימות וסיכום חודשי.</p></div><span className="pill good">Export ready</span></div><AdminDataError message={result.error ?? result.data.queryError} />{rows.length === 0 ? null : null}<ReportsCenter exports={rows} /></DashboardShell>;
 }

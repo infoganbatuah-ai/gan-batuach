@@ -106,8 +106,13 @@ export const complaintSchema = z.object({
 export const messageSchema = z.object({
   garden_id: z.string().uuid().optional(),
   recipient_id: z.string().uuid().optional(),
+  linked_child_id: z.string().uuid().optional(),
+  reply_to_message_id: z.string().uuid().optional(),
   subject: z.string().min(2),
-  body: z.string().min(1)
+  body: z.string().min(1),
+  content: z.string().optional(),
+  status: z.string().optional(),
+  treatment_status: z.string().optional()
 });
 
 export const inspectionSchema = z.object({

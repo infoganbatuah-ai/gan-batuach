@@ -16,6 +16,7 @@ export function BrandHeader() {
       <nav className="nav" aria-label="ניווט ראשי">
         <Link href="/gardens">חיפוש גנים</Link>
         <Link href="/join-kindergarten">הצטרפות גן</Link>
+        <Link href="/trust">Trust Center</Link>
         <Link href="/parent-onboarding">רישום הורה</Link>
         <Link href="/login">כניסה</Link>
         <Link href="/dashboard/admin">אדמין</Link>

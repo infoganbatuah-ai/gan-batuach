@@ -17,6 +17,7 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/admin/policies", label: "תקנונים", hint: "אישורי משתמשים" },
     { href: "/dashboard/admin/cameras", label: "מצלמות", hint: "Gateway והרשאות" },
     { href: "/dashboard/admin/ai-events", label: "אירועי AI", hint: "אירועים והתראות" },
+    { href: "/dashboard/admin/notifications", label: "התראות", hint: "מרכז פעולות" },
     { href: "/dashboard/admin/tasks", label: "משימות", hint: "מעקב והסלמה" },
     { href: "/dashboard/admin/complaints", label: "תלונות", hint: "SLA וחומרה" },
     { href: "/dashboard/admin/documents", label: "מסמכים", hint: "תוקף וציות" },
@@ -31,6 +32,10 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
   ],
   manager: [
     { href: "/dashboard/garden", label: "ניהול גן", hint: "יום עבודה" },
+    { href: "/dashboard/garden/child-journal", label: "יומן ילד", hint: "עדכוני הורים" },
+    { href: "/dashboard/garden/health", label: "בריאות", hint: "אלרגיות ותרופות" },
+    { href: "/dashboard/garden/pickup", label: "איסוף", hint: "GPS ומורשים" },
+    { href: "/dashboard/garden/incidents", label: "אירועים", hint: "דיווח וטיפול" },
     { href: "/dashboard/garden/daily-journal", label: "יומן תפעול", hint: "צ׳קליסט יומי" },
     { href: "/dashboard/garden/cameras", label: "מצלמות", hint: "אשף חיבור" },
     { href: "/dashboard/garden/onboarding", label: "קליטה", hint: "הורים, ילדים וצוות" },
@@ -39,6 +44,10 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
   ],
   owner: [
     { href: "/dashboard/garden", label: "ניהול גן", hint: "יום עבודה" },
+    { href: "/dashboard/garden/child-journal", label: "יומן ילד", hint: "עדכוני הורים" },
+    { href: "/dashboard/garden/health", label: "בריאות", hint: "אלרגיות ותרופות" },
+    { href: "/dashboard/garden/pickup", label: "איסוף", hint: "GPS ומורשים" },
+    { href: "/dashboard/garden/incidents", label: "אירועים", hint: "דיווח וטיפול" },
     { href: "/dashboard/garden/daily-journal", label: "יומן תפעול", hint: "צ׳קליסט יומי" },
     { href: "/dashboard/garden/cameras", label: "מצלמות", hint: "אשף חיבור" },
     { href: "/dashboard/garden/onboarding", label: "קליטה", hint: "הורים, ילדים וצוות" },
@@ -47,12 +56,15 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
   ],
   staff: [
     { href: "/dashboard/staff", label: "צוות", hint: "GPS ומשימות" },
+    { href: "/dashboard/staff/child-journal", label: "יומן ילד", hint: "עדכוני הורים" },
     { href: "/dashboard/staff/daily-journal", label: "יומן תפעול", hint: "צ׳קליסט" },
     { href: "/dashboard/staff/shifts", label: "שעות", hint: "דוחות חודשיים" },
     { href: "/dashboard/staff/messages", label: "הודעות", hint: "תקשורת" }
   ],
   parent: [
     { href: "/dashboard/parent", label: "אזור הורים", hint: "ילד וגן" },
+    { href: "/dashboard/parent/daily-journal", label: "יומן יומי", hint: "עדכוני הילד" },
+    { href: "/dashboard/parent/notifications", label: "התראות", hint: "עדכונים חשובים" },
     { href: "/parent-onboarding", label: "כרטיס ילד", hint: "פרטים והסכמות" },
     { href: "/dashboard/parent/complaints", label: "תלונות", hint: "פנייה מסודרת" }
   ]

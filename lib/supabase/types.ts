@@ -121,6 +121,10 @@ export interface Database {
       schedule_items: Table<LooseRow, LooseInsert, LooseInsert>;
       medical_events: Table<LooseRow, LooseInsert, LooseInsert>;
       pickup_confirmations: Table<LooseRow, LooseInsert, LooseInsert>;
+      child_daily_journals: Table<LooseRow, LooseInsert, LooseInsert>;
+      child_health_records: Table<LooseRow, LooseInsert, LooseInsert>;
+      medicine_given_logs: Table<LooseRow, LooseInsert, LooseInsert>;
+      incident_reports: Table<LooseRow, LooseInsert, LooseInsert>;
       video_gateway_connections: Table<LooseRow, LooseInsert, LooseInsert>;
       stream_health_checks: Table<LooseRow, LooseInsert, LooseInsert>;
       ai_events: Table<LooseRow, LooseInsert, LooseInsert>;

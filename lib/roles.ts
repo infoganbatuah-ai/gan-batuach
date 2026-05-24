@@ -16,7 +16,14 @@ export type Permission =
   | "tasks:write"
   | "messages:write"
   | "complaints:write"
+  | "child_journal:read"
+  | "child_journal:write"
+  | "medical_data:read"
+  | "medical_data:write"
+  | "documents:read"
   | "documents:write"
+  | "documents:approve"
+  | "documents:download"
   | "attendance:write"
   | "cameras:read"
   | "cameras:write"
@@ -40,7 +47,14 @@ export const rolePermissions: Record<UserRole, Permission[]> = {
     "tasks:write",
     "messages:write",
     "complaints:write",
+    "child_journal:read",
+    "child_journal:write",
+    "medical_data:read",
+    "medical_data:write",
+    "documents:read",
     "documents:write",
+    "documents:approve",
+    "documents:download",
     "attendance:write",
     "cameras:read",
     "cameras:write",
@@ -59,7 +73,12 @@ export const rolePermissions: Record<UserRole, Permission[]> = {
     "tasks:write",
     "messages:write",
     "complaints:write",
+    "child_journal:read",
+    "medical_data:read",
+    "documents:read",
     "documents:write",
+    "documents:approve",
+    "documents:download",
     "cameras:read",
     "video:stream",
     "ai_events:read"
@@ -75,7 +94,14 @@ export const rolePermissions: Record<UserRole, Permission[]> = {
     "tasks:write",
     "messages:write",
     "complaints:write",
+    "child_journal:read",
+    "child_journal:write",
+    "medical_data:read",
+    "medical_data:write",
+    "documents:read",
     "documents:write",
+    "documents:approve",
+    "documents:download",
     "attendance:write",
     "cameras:read",
     "cameras:write",
@@ -93,15 +119,22 @@ export const rolePermissions: Record<UserRole, Permission[]> = {
     "tasks:write",
     "messages:write",
     "complaints:write",
+    "child_journal:read",
+    "child_journal:write",
+    "medical_data:read",
+    "medical_data:write",
+    "documents:read",
     "documents:write",
+    "documents:approve",
+    "documents:download",
     "attendance:write",
     "cameras:read",
     "cameras:write",
     "video:stream",
     "ai_events:read"
   ],
-  staff: ["gardens:read", "children:read", "messages:write", "attendance:write", "tasks:write"],
-  parent: ["children:read", "children:write", "messages:write", "complaints:write", "attendance:write", "cameras:read", "video:stream", "ai_events:read"]
+  staff: ["gardens:read", "children:read", "messages:write", "attendance:write", "tasks:write", "child_journal:read", "child_journal:write", "medical_data:read", "documents:read", "documents:write"],
+  parent: ["children:read", "children:write", "messages:write", "complaints:write", "attendance:write", "cameras:read", "video:stream", "ai_events:read", "child_journal:read", "medical_data:read", "documents:read", "documents:download"]
 };
 
 export function hasPermission(role: UserRole | null | undefined, permission: Permission) {
