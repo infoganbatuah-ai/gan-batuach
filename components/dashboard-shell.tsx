@@ -6,21 +6,19 @@ import { PasskeyEnrollmentPrompt } from "@/components/passkey-enrollment-prompt"
 const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: string }>> = {
   admin: [
     { href: "/dashboard/admin", label: "מרכז שליטה", hint: "סיכונים, ערים, לידים" },
-    { href: "/dashboard/admin/inspection-forms", label: "טפסי פיקוח", hint: "בונה דינמי" },
-    { href: "/dashboard/admin/onboarding", label: "משתמשים", hint: "גנים ופקחים" },
-    { href: "/dashboard/admin/ai-observer", label: "תצפיתן AI", hint: "אירועים והתראות" },
-    { href: "/dashboard/admin/camera-ai", label: "מצלמות", hint: "Gateway והרשאות" },
-    { href: "/dashboard/admin/procedures", label: "נהלים", hint: "חובה ותאימות" },
-    { href: "/dashboard/admin/gardens", label: "גנים", hint: "פרופילים וסטטוס" },
+    { href: "/dashboard/admin/leads", label: "לידים", hint: "המרות גנים ומפקחים" },
+    { href: "/dashboard/admin/kindergartens", label: "גנים", hint: "פרופילים וסטטוס" },
     { href: "/dashboard/admin/inspectors", label: "מפקחים", hint: "ערים ושיוך" },
-    { href: "/dashboard/admin/join-requests", label: "בקשות הצטרפות", hint: "גנים חדשים" },
-    { href: "/dashboard/admin/leads", label: "לידים", hint: "הורים וגנים" },
+    { href: "/dashboard/admin/inspection-forms", label: "טפסי פיקוח", hint: "בונה דינמי" },
+    { href: "/dashboard/admin/procedures", label: "נהלים", hint: "חובה ותאימות" },
+    { href: "/dashboard/admin/cameras", label: "מצלמות", hint: "Gateway והרשאות" },
+    { href: "/dashboard/admin/ai-events", label: "אירועי AI", hint: "אירועים והתראות" },
     { href: "/dashboard/admin/tasks", label: "משימות", hint: "מעקב והסלמה" },
     { href: "/dashboard/admin/complaints", label: "תלונות", hint: "SLA וחומרה" },
     { href: "/dashboard/admin/documents", label: "מסמכים", hint: "תוקף וציות" },
-    { href: "/dashboard/admin/reports", label: "דוחות", hint: "ייצוא וניתוח" }
-  ],
-  inspector: [
+    { href: "/dashboard/admin/reports", label: "דוחות", hint: "ייצוא וניתוח" },
+    { href: "/dashboard/admin/settings", label: "הגדרות", hint: "מערכת והרשאות" }
+  ],  inspector: [
     { href: "/dashboard/inspector", label: "ביקורות", hint: "חודשי, GPS, ליקויים" },
     { href: "/dashboard/inspector/inspections", label: "ביקורות", hint: "נתוני פיקוח" },
     { href: "/dashboard/inspector/violations", label: "ליקויים", hint: "אישור תיקונים" }

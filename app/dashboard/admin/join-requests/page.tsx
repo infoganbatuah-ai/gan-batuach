@@ -1,16 +1,22 @@
 import { DashboardShell } from "@/components/dashboard-shell";
 import { AdminLeadsManager } from "@/components/admin-leads-manager";
 import { requireRole } from "@/lib/auth";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
+import { safeAdminData, logSupabaseError } from "@/lib/admin-safe";
+import { AdminDataError } from "@/components/admin-data-state";
 
 export default async function AdminJoinRequestsPage() {
   await requireRole(["admin"]);
-  const supabase = createAdminClient();
-  const { data } = await supabase
-    .from("leads")
-    .select("id, lead_type, parent_name, garden_name, owner_name, manager_name, city, address, phone, email, age_groups, capacity, children_count, staff_count, experience, certifications, notes, status")
-    .order("created_at", { ascending: false })
-    .limit(100);
+  const result = await safeAdminData("admin leads", async () => {
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from("leads" as any)
+      .select("id, lead_type, parent_name, garden_name, owner_name, manager_name, city, address, phone, email, age_groups, capacity, children_count, staff_count, experience, certifications, notes, status")
+      .order("created_at", { ascending: false })
+      .limit(100);
+    logSupabaseError("admin leads", error);
+    return { rows: (data ?? []) as any[], queryError: error ? "לא ניתן לטעון את הנתונים כרגע" : null };
+  }, { rows: [] as any[], queryError: null as string | null });
 
   return (
     <DashboardShell role="admin" title="בקשות הצטרפות">
@@ -22,7 +28,7 @@ export default async function AdminJoinRequestsPage() {
         </div>
         <span className="pill good">new / contacted / approved / rejected</span>
       </div>
-      <AdminLeadsManager leads={(data ?? []) as any[]} />
+      <AdminDataError message={result.error ?? result.data.queryError} /><AdminLeadsManager leads={result.data.rows} />
     </DashboardShell>
   );
 }
