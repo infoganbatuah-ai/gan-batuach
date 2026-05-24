@@ -48,6 +48,19 @@ export function createCrudHandlers(config: CrudConfig) {
         const supabase = await createClient();
         const { data, error } = await (supabase as any).from(config.table).insert(insertPayload).select("*").single();
         if (error) return fail(error.message, 400);
+        if (config.table === "tasks" && data) {
+          const recipients = parsed.assigned_to ? [parsed.assigned_to] : [];
+          await Promise.all(recipients.map((recipientId: string) => (supabase as any).from("notifications").insert({
+            garden_id: parsed.garden_id ?? null,
+            recipient_id: recipientId,
+            recipient_role: parsed.assigned_role ?? null,
+            title: "משימה חדשה",
+            body: parsed.title,
+            entity_type: "task",
+            entity_id: data.id,
+            severity: parsed.priority ?? "medium"
+          })));
+        }
         return ok(data, 201);
       } catch (error) {
         return handleRouteError(error);

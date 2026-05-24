@@ -1,4 +1,4 @@
-import { Download, FileBarChart2 } from "lucide-react";
+import { FileBarChart2 } from "lucide-react";
 
 const reportDefinitions = [
   ["child_attendance", "דוח נוכחות ילדים", "היעדרויות, איחורים ויציאות מוקדמות"],
@@ -16,7 +16,7 @@ export function ReportsCenter({ exports }: { exports: any[] }) {
     <section className="grid cols-2 dashboard-panels">
       <article className="card action-panel">
         <div className="section-heading"><h2><FileBarChart2 size={20} /> דוחות זמינים</h2><p>מרכז ייצוא לדוחות ניהול ופיקוח. חלק מהייצואים מוכנים כשלד עד חיבור מחולל PDF מלא.</p></div>
-        <div className="report-card-grid">{reportDefinitions.map(([type, title, text]) => <div className="report-card" key={type}><strong>{title}</strong><span>{text}</span><div className="actions"><a className="button secondary tiny" href={`/dashboard/admin/reports?type=${type}`}>תצוגה</a><button className="button tiny" type="button"><Download size={14} /> הורדה</button></div></div>)}</div>
+        <div className="report-card-grid">{reportDefinitions.map(([type, title, text]) => <div className="report-card" key={type}><strong>{title}</strong><span>{text}</span><div className="actions"><a className="button secondary tiny" href={`/dashboard/admin/reports?type=${type}`}>תצוגה</a><a className="button tiny" href={`/dashboard/admin/reports?download=${type}`}>הכנת הורדה</a></div></div>)}</div>
       </article>
       <article className="card action-panel">
         <div className="section-heading"><h2>ייצואים אחרונים</h2><p>קבצים שנוצרו או הוכנו לייצוא.</p></div>

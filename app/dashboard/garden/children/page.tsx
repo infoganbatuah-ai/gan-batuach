@@ -1,8 +1,12 @@
 import { DashboardShell } from "@/components/dashboard-shell";
+import { ModuleListPage } from "@/components/module-list-page";
 import { requireRole } from "@/lib/auth";
+import { createClient } from "@/lib/supabase/server";
 
-export default async function Page() {
-  await requireRole(["manager", "owner"]);
-  const cards = [{"title":"תלמידים פעילים","body":"רשימת תלמידים מאושרים.","status":"פעיל"},{"title":"ממתינים לאישור","body":"רישומי הורים שנשלחו.","status":"בדיקה"},{"title":"כרטיס ילד","body":"בריאות, הסכמות ומורשי איסוף.","status":"רגיש"}];
-  return <DashboardShell role="manager" title="ילדים"><div className="dashboard-hero-card"><div><p className="eyebrow">רישום תלמידים</p><h1>ילדים, בקשות רישום ואישורי מנהלת.</h1><p>ניהול ילדים בלי לפתוח JSON.</p></div><span className="pill warn">UI page</span></div><section className="grid cols-3 dashboard-panels">{cards.map((card) => <article className="card action-panel" key={card.title}><h2>{card.title}</h2><p>{card.body}</p><span className="pill">{card.status}</span></article>)}</section><section className="dashboard-section"><div className="empty-state"><strong>אין נתונים להצגה כרגע</strong><span>כאשר ייווצרו רשומות במערכת הן יוצגו כאן במקום לפתוח JSON גולמי.</span></div></section></DashboardShell>;
+export default async function GardenChildrenPage() {
+  const { profile } = await requireRole(["manager", "owner"]);
+  const supabase = await createClient();
+  const { data } = await supabase.from("children" as any).select("id, full_name, birth_date, status, allergies, hmo, created_at").eq("garden_id", profile.garden_id ?? "").order("created_at", { ascending: false });
+  const rows = (data ?? []).map((child: any) => ({ ...child, title: child.full_name, description: `${child.status} · ${child.hmo ?? "קופה חסרה"} · ${child.allergies ? "אלרגיות: " + child.allergies : "אין אלרגיות מתועדות"}` }));
+  return <DashboardShell role="manager" title="ילדים"><ModuleListPage title="ילדים, כרטיסים ואישורי רישום" eyebrow="Children" description="רשימת תלמידים, סטטוס אישור, בריאות, אלרגיות וכרטיס ילד." rows={rows} emptyTitle="אין ילדים להצגה" emptyText="לאחר שהורה ישלים כרטיס ילד והמנהלת תאשר, הילדים יופיעו כאן." primaryAction={{ href: "/dashboard/garden/onboarding", label: "קליטת ילד/הורה" }} /></DashboardShell>;
 }

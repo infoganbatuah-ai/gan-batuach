@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useMemo, useState } from "react";
+import { Avatar } from "@/components/avatar";
 
 type Row = Record<string, any>;
 
@@ -60,7 +61,7 @@ export function AdminUsersManagement({ users, auditLogs }: { users: Row[]; audit
   return (
     <>
       <section className="admin-tabs">
-        {tabs.map(([id, label]) => <button className={activeTab === id ? "tab active" : "tab"} key={id} onClick={() => setActiveTab(id)}>{label}</button>)}
+        {tabs.map(([id, label]) => <button className={activeTab === id ? "tab active" : "tab"} key={id} onClick={() => setActiveTab(id)}>{label} <small>{filterRows(users, id).length}</small></button>)}
       </section>
       <section className="quick-actions-grid">
         <Link className="quick-action" href="/dashboard/admin/users/new-kindergarten"><strong>הוספת גן ילדים</strong><span>גן + מנהלת + בעלים</span></Link>
@@ -78,13 +79,16 @@ export function AdminUsersManagement({ users, auditLogs }: { users: Row[]; audit
           return <article className="card procedure-card" key={user.id}>
             <div>
               <span className={user.active === false ? "pill bad" : "pill good"}>{user.active === false ? "לא פעיל" : "פעיל"} · {user.role}</span>
-              <h3>{user.full_name}</h3>
+              <div className="selected-child-strip mini"><Avatar name={user.full_name} src={user.profile_image_url} /><h3>{user.full_name ?? user.email ?? user.username ?? "משתמש"}</h3></div>
               <p>{user.email ?? credential?.username ?? user.username ?? "-"} · {user.phone ?? "-"}</p>
               <small>גן: {garden?.name ?? user.garden_id ?? "-"} · נוצר: {user.created_at ? new Date(user.created_at).toLocaleDateString("he-IL") : "-"} · כניסה אחרונה: {user.last_login_at ? new Date(user.last_login_at).toLocaleString("he-IL") : "-"}</small>
               <small>נוצר על ידי: {createdBy} · שם משתמש: {credential?.username ?? user.username ?? "-"}</small>
               <div className="credential-box"><b>פרטי כניסה ראשונים:</b> <span>{credential?.username ?? user.email ?? user.username ?? "-"}</span>{showPassword ? <code>{credential.temporary_password}</code> : <strong>{user.role === "parent" ? "סיסמת הורה מוסתרת" : "הסיסמה הוחלפה"}</strong>}</div>
+              <details className="audit-details"><summary>היסטוריית ביקורת למשתמש</summary>{auditLogs.filter((log) => log.entity_id === user.id || log.actor_id === user.id).length === 0 ? <small>אין פעולות ישירות.</small> : auditLogs.filter((log) => log.entity_id === user.id || log.actor_id === user.id).map((log) => <small key={log.id}>{log.action} · {log.created_at ? new Date(log.created_at).toLocaleString("he-IL") : ""}</small>)}</details>
             </div>
             <div className="procedure-meta">
+              <button className="button secondary" type="button" onClick={() => setMessage(`פרופיל: ${user.full_name ?? user.email} · ${user.role} · ${user.gardens?.name ?? "ללא גן"}`)}>צפייה</button>
+              <button className="button secondary" type="button" onClick={() => setMessage("עריכת פרופיל מלאה תתבצע במסך פרופיל משתמש ייעודי. כרגע ניתן להשבית, להפעיל ולאפס סיסמה.")}>עריכה</button>
               {showPassword ? <button className="button secondary" onClick={() => navigator.clipboard?.writeText(`${credential?.username ?? user.username ?? ""}\n${credential?.temporary_password ?? ""}`)}>העתקת פרטים</button> : null}
               <button className="button secondary" onClick={() => action(user.id, "send_password_reset")}>שלח איפוס סיסמה</button>
               <button className="button secondary" onClick={() => action(user.id, "reset_password")}>איפוס ידני</button>

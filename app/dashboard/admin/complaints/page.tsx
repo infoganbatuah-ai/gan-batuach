@@ -1,17 +1,21 @@
 import { DashboardShell } from "@/components/dashboard-shell";
-import { AdminDataError, AdminEmptyState } from "@/components/admin-data-state";
+import { AdminDataError } from "@/components/admin-data-state";
+import { AdminReportsCenter } from "@/components/admin-reports-center";
 import { requireRole } from "@/lib/auth";
 import { safeAdminData, logSupabaseError } from "@/lib/admin-safe";
 import { createClient } from "@/lib/supabase/server";
 
-export default async function AdminListPage() {
+export default async function AdminReportsAndComplaintsPage() {
   await requireRole(["admin"]);
-  const result = await safeAdminData("תלונות", async () => {
+  const result = await safeAdminData("דיווחים ופניות", async () => {
     const supabase = await createClient();
-    const { data, error } = await supabase.from("complaints" as any).select("id, subject, severity, status, created_at").limit(50);
-    logSupabaseError("תלונות", error);
-    return { rows: (data ?? []) as any[], queryError: error ? "לא ניתן לטעון את הנתונים כרגע" : null };
-  }, { rows: [] as any[], queryError: null as string | null });
-  const rows = result.data.rows;
-  return <DashboardShell role="admin" title="תלונות"><div className="dashboard-hero-card admin-hero-card"><div><p className="eyebrow">Admin</p><h1>תלונות ומעקב SLA</h1><p>תלונות פתוחות וסגורות לפי חומרה וסטטוס.</p></div><span className="pill good">UI route</span></div><AdminDataError message={result.error ?? result.data.queryError} /><section className="dashboard-section">{rows.length === 0 ? <AdminEmptyState /> : <div className="procedure-list">{rows.map((row) => <article className="card procedure-card" key={row.id ?? JSON.stringify(row)}><div><h3>{row.subject ?? "תלונה"}</h3><p>"חומרה: " + (row.severity ?? "-")</p></div><div className="procedure-meta"><span className="pill">{row.status ?? row.safe_status ?? row.role ?? row.severity ?? "פעיל"}</span></div></article>)}</div>}</section></DashboardShell>;
+    const [complaintsRes, incidentsRes] = await Promise.all([
+      supabase.from("complaints" as any).select("*, gardens(name, city), parents(full_name), children(full_name), assignee:assigned_to(full_name)").order("created_at", { ascending: false }).limit(150),
+      supabase.from("incident_reports" as any).select("*, gardens(name, city), children(full_name), assignee:assigned_to(full_name), reporter:reported_by(full_name, role)").order("created_at", { ascending: false }).limit(150)
+    ]);
+    logSupabaseError("דיווחים ופניות", complaintsRes.error ?? incidentsRes.error);
+    return { complaints: (complaintsRes.data ?? []) as any[], incidents: (incidentsRes.data ?? []) as any[], queryError: complaintsRes.error || incidentsRes.error ? "לא ניתן לטעון את הנתונים כרגע" : null };
+  }, { complaints: [] as any[], incidents: [] as any[], queryError: null as string | null });
+
+  return <DashboardShell role="admin" title="דיווחים ופניות"><div className="dashboard-hero-card admin-hero-card"><div><p className="eyebrow">Reports & Complaints</p><h1>דיווחים, תלונות ופניות מכל המערכת.</h1><p>הורים, מנהלות, בעלים, צוות, פקחים, אתר ציבורי ואירועים פנימיים במקום אחד עם SLA, חומרה ופעולות טיפול.</p></div><span className="pill good">מרכז טיפול</span></div><AdminDataError message={result.error ?? result.data.queryError} /><AdminReportsCenter complaints={result.data.complaints} incidents={result.data.incidents} /></DashboardShell>;
 }

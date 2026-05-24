@@ -4,6 +4,7 @@ import type { UserRole } from "@/lib/roles";
 import { PasskeyEnrollmentPrompt } from "@/components/passkey-enrollment-prompt";
 import { LogoutButton } from "@/components/logout-button";
 import { PolicyAcceptanceGate } from "@/components/policy-acceptance-gate";
+import { AdminGlobalSearch } from "@/components/admin-global-search";
 
 const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: string }>> = {
   admin: [
@@ -19,8 +20,10 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/admin/ai-events", label: "אירועי AI", hint: "אירועים והתראות" },
     { href: "/dashboard/admin/notifications", label: "התראות", hint: "מרכז פעולות" },
     { href: "/dashboard/admin/tasks", label: "משימות", hint: "מעקב והסלמה" },
-    { href: "/dashboard/admin/complaints", label: "תלונות", hint: "SLA וחומרה" },
+    { href: "/dashboard/admin/complaints", label: "דיווחים ופניות", hint: "SLA וחומרה" },
     { href: "/dashboard/admin/documents", label: "מסמכים", hint: "תוקף וציות" },
+    { href: "/dashboard/admin/system-health", label: "בריאות מערכת", hint: "מה חסר" },
+    { href: "/dashboard/admin/audit-logs", label: "Audit Logs", hint: "פעולות מערכת" },
     { href: "/dashboard/admin/reports", label: "דוחות", hint: "ייצוא וניתוח" },
     { href: "/dashboard/admin/settings", label: "הגדרות", hint: "מערכת והרשאות" }
   ],  inspector: [
@@ -28,6 +31,8 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/inspector/inspections", label: "ביקורות", hint: "נתוני פיקוח" },
     { href: "/dashboard/inspector/cameras", label: "מצלמות", hint: "גנים משויכים" },
     { href: "/dashboard/inspector/ai-events", label: "AI", hint: "התראות גנים" },
+    { href: "/dashboard/inspector/reports", label: "דיווחים", hint: "פניות ואירועים" },
+    { href: "/dashboard/inspector/tasks", label: "משימות", hint: "לביצוע" },
     { href: "/dashboard/inspector/violations", label: "ליקויים", hint: "אישור תיקונים" }
   ],
   manager: [
@@ -40,6 +45,11 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/garden/cameras", label: "מצלמות", hint: "אשף חיבור" },
     { href: "/dashboard/garden/onboarding", label: "קליטה", hint: "הורים, ילדים וצוות" },
     { href: "/dashboard/garden/children", label: "ילדים", hint: "רישום ואישור" },
+    { href: "/dashboard/garden/parents", label: "הורים", hint: "אנשי קשר" },
+    { href: "/dashboard/garden/staff", label: "צוות", hint: "אישורים ותעודות" },
+    { href: "/dashboard/garden/tasks", label: "משימות", hint: "לביצוע ואישור" },
+    { href: "/dashboard/garden/documents", label: "מסמכים", hint: "תוקף ואישור" },
+    { href: "/dashboard/garden/inspections", label: "פיקוח", hint: "דוחות ותיקונים" },
     { href: "/dashboard/garden/attendance", label: "נוכחות", hint: "ילדים וצוות" }
   ],
   owner: [
@@ -52,12 +62,19 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/garden/cameras", label: "מצלמות", hint: "אשף חיבור" },
     { href: "/dashboard/garden/onboarding", label: "קליטה", hint: "הורים, ילדים וצוות" },
     { href: "/dashboard/garden/children", label: "ילדים", hint: "רישום ואישור" },
+    { href: "/dashboard/garden/parents", label: "הורים", hint: "אנשי קשר" },
+    { href: "/dashboard/garden/staff", label: "צוות", hint: "אישורים ותעודות" },
+    { href: "/dashboard/garden/tasks", label: "משימות", hint: "לביצוע ואישור" },
+    { href: "/dashboard/garden/documents", label: "מסמכים", hint: "תוקף ואישור" },
+    { href: "/dashboard/garden/inspections", label: "פיקוח", hint: "דוחות ותיקונים" },
     { href: "/dashboard/garden/attendance", label: "נוכחות", hint: "ילדים וצוות" }
   ],
   staff: [
     { href: "/dashboard/staff", label: "צוות", hint: "GPS ומשימות" },
     { href: "/dashboard/staff/child-journal", label: "יומן ילד", hint: "עדכוני הורים" },
     { href: "/dashboard/staff/daily-journal", label: "יומן תפעול", hint: "צ׳קליסט" },
+    { href: "/dashboard/staff/tasks", label: "משימות", hint: "לביצוע" },
+    { href: "/dashboard/staff/documents", label: "מסמכים", hint: "תעודות ואישורים" },
     { href: "/dashboard/staff/shifts", label: "שעות", hint: "דוחות חודשיים" },
     { href: "/dashboard/staff/messages", label: "הודעות", hint: "תקשורת" }
   ],
@@ -66,6 +83,8 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/parent/daily-journal", label: "יומן יומי", hint: "עדכוני הילד" },
     { href: "/dashboard/parent/notifications", label: "התראות", hint: "עדכונים חשובים" },
     { href: "/parent-onboarding", label: "כרטיס ילד", hint: "פרטים והסכמות" },
+    { href: "/dashboard/parent/documents", label: "מסמכים", hint: "אישורים וקבצים" },
+    { href: "/dashboard/parent/inspections", label: "פיקוח", hint: "סיכום מאושר" },
     { href: "/dashboard/parent/complaints", label: "תלונות", hint: "פנייה מסודרת" }
   ]
 };
@@ -89,7 +108,7 @@ export function DashboardShell({ role, title, children }: { role: UserRole; titl
           </nav>
           <PasskeyEnrollmentPrompt />
         </aside>
-        <main className="dashboard-main"><PolicyAcceptanceGate />{children}</main>
+        <main className="dashboard-main"><PolicyAcceptanceGate />{role === "admin" ? <AdminGlobalSearch /> : null}{children}</main>
         <nav className="mobile-tabbar" aria-label="ניווט דשבורד">{navByRole[role].slice(0, 5).map((item) => <Link href={item.href} key={item.href}><strong>{item.label}</strong><span>{item.hint}</span></Link>)}</nav>
         <Link className="mobile-fab" href={navByRole[role][1]?.href ?? navByRole[role][0].href}>+</Link>
       </div>

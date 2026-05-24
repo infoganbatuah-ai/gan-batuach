@@ -1,8 +1,13 @@
 import { DashboardShell } from "@/components/dashboard-shell";
+import { ParentComplaintCenter } from "@/components/parent-complaint-center";
 import { requireRole } from "@/lib/auth";
+import { createClient } from "@/lib/supabase/server";
 
-export default async function Page() {
-  await requireRole(["parent"]);
-  const cards = [{"title":"תלונה רגילה","body":"עד 48 שעות.","status":"SLA"},{"title":"תלונה חמורה","body":"התראה לפקח ולאדמין.","status":"דחוף"},{"title":"קבצים","body":"תמונה או מסמך מצורף.","status":"אפשרי"}];
-  return <DashboardShell role="parent" title="תלונות"><div className="dashboard-hero-card"><div><p className="eyebrow">פנייה לפיקוח</p><h1>הגשת תלונה מסודרת לפי חומרה.</h1><p>מסך UI לתלונות הורים.</p></div><span className="pill warn">UI page</span></div><section className="grid cols-3 dashboard-panels">{cards.map((card) => <article className="card action-panel" key={card.title}><h2>{card.title}</h2><p>{card.body}</p><span className="pill">{card.status}</span></article>)}</section><section className="dashboard-section"><div className="empty-state"><strong>אין נתונים להצגה כרגע</strong><span>כאשר ייווצרו רשומות במערכת הן יוצגו כאן במקום לפתוח JSON גולמי.</span></div></section></DashboardShell>;
+export default async function ParentComplaintsPage() {
+  const { profile } = await requireRole(["parent"]);
+  const supabase = await createClient();
+  const parentRes = await supabase.from("parents" as any).select("id").eq("profile_id", profile.id).maybeSingle();
+  const parentId = (parentRes.data as any)?.id;
+  const { data } = parentId ? await supabase.from("complaints" as any).select("*").eq("parent_id", parentId).order("created_at", { ascending: false }) : { data: [] };
+  return <DashboardShell role="parent" title="תלונות ופניות"><div className="dashboard-hero-card parent-hero-card"><div><p className="eyebrow">Reports</p><h1>פנייה מסודרת לגן, לפקח או לאדמין.</h1><p>בחרו קטגוריה וחומרה. פניות חמורות מוצגות גם במרכז האדמין.</p></div><span className="pill warn">SLA</span></div><ParentComplaintCenter gardenId={profile.garden_id ?? ""} parentId={parentId} rows={(data ?? []) as any[]} /></DashboardShell>;
 }

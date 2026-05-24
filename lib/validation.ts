@@ -97,10 +97,13 @@ export const taskSchema = z.object({
 export const complaintSchema = z.object({
   garden_id: z.string().uuid(),
   parent_id: z.string().uuid().optional(),
+  child_id: z.string().uuid().optional(),
   subject: z.string().min(2),
   description: z.string().min(5),
+  category: z.string().optional(),
   severity: z.enum(["low", "medium", "high", "critical"]).default("medium"),
-  urgent: z.boolean().default(false)
+  urgent: z.boolean().default(false),
+  attachment_urls: z.array(z.string()).optional()
 });
 
 export const messageSchema = z.object({

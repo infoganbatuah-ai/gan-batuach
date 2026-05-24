@@ -1,8 +1,12 @@
 import { DashboardShell } from "@/components/dashboard-shell";
+import { ModuleListPage } from "@/components/module-list-page";
 import { requireRole } from "@/lib/auth";
+import { createClient } from "@/lib/supabase/server";
 
-export default async function Page() {
-  await requireRole(["parent"]);
-  const cards = [{"title":"לו״ז היום","body":"פעילויות וארוחות.","status":"יומי"},{"title":"תפריט","body":"אלרגיות ורגישויות.","status":"מידע"},{"title":"אירועים","body":"ימי הולדת והודעות.","status":"קרוב"}];
-  return <DashboardShell role="parent" title="לו״ז ותפריט"><div className="dashboard-hero-card"><div><p className="eyebrow">סדר יום</p><h1>לו״ז, תפריט ופעילויות הגן.</h1><p>מסך הורים ידידותי במקום JSON.</p></div><span className="pill warn">UI page</span></div><section className="grid cols-3 dashboard-panels">{cards.map((card) => <article className="card action-panel" key={card.title}><h2>{card.title}</h2><p>{card.body}</p><span className="pill">{card.status}</span></article>)}</section><section className="dashboard-section"><div className="empty-state"><strong>אין נתונים להצגה כרגע</strong><span>כאשר ייווצרו רשומות במערכת הן יוצגו כאן במקום לפתוח JSON גולמי.</span></div></section></DashboardShell>;
+export default async function ParentSchedulePage() {
+  const { profile } = await requireRole(["parent"]);
+  const supabase = await createClient();
+  const { data } = await supabase.from("schedule_items" as any).select("id, title, description, starts_at, ends_at, visible_to_parents, created_at").eq("garden_id", profile.garden_id ?? "").eq("visible_to_parents", true).order("starts_at", { ascending: true }).limit(80);
+  const rows = (data ?? []).map((item: any) => ({ ...item, status: item.starts_at ? new Date(item.starts_at).toLocaleDateString("he-IL") : "לו״ז", description: item.description ?? "פעילות / תפריט / אירוע" }));
+  return <DashboardShell role="parent" title="לו״ז ותפריט"><ModuleListPage title="לו״ז, תפריט ופעילויות" eyebrow="Schedule" description="סדר יום, אוכל, פעילויות, חגים, ימי הולדת ותוכנית חינוכית שהגן פרסם להורים." rows={rows} emptyTitle="אין לו״ז מפורסם כרגע" emptyText="כאשר הגן יפרסם פעילות, תפריט או אירוע להורים, הם יופיעו כאן." /></DashboardShell>;
 }

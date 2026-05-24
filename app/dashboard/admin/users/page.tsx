@@ -12,12 +12,20 @@ export default async function AdminUsersPage() {
   const configured = isAdminClientConfigured();
   const result = await safeAdminData("ניהול משתמשים", async () => {
     const supabase = await createClient();
-    const [usersRes, logsRes] = await Promise.all([
-      supabase.from("profiles" as any).select("id, role, garden_id, full_name, phone, active, must_change_password, last_login_at, created_at, created_by, username, email, gardens:garden_id(id,name,city,inspector_id), generated_credentials(id,username,temporary_password,created_at,password_changed_at,reset_sent_at)").order("created_at", { ascending: false }).limit(300),
+    const [usersRes, credentialsRes, logsRes] = await Promise.all([
+      supabase.from("profiles" as any).select("id, role, garden_id, full_name, phone, active, must_change_password, last_login_at, created_at, created_by, username, email, profile_image_url, gardens:garden_id(id,name,city,inspector_id)").order("created_at", { ascending: false }).limit(500),
+      supabase.from("generated_credentials" as any).select("id,user_id,username,temporary_password,created_at,password_changed_at,reset_sent_at").order("created_at", { ascending: false }).limit(1000),
       supabase.from("audit_logs" as any).select("id, actor_id, actor_role, entity_type, entity_id, action, created_at").order("created_at", { ascending: false }).limit(30)
     ]);
-    logSupabaseError("ניהול משתמשים", usersRes.error ?? logsRes.error);
-    return { users: (usersRes.data ?? []) as any[], auditLogs: (logsRes.data ?? []) as any[], queryError: usersRes.error || logsRes.error ? "לא ניתן לטעון את הנתונים כרגע" : null };
+    logSupabaseError("ניהול משתמשים", usersRes.error ?? credentialsRes.error ?? logsRes.error);
+    const credentialsByUser = new Map<string, any[]>();
+    for (const credential of (credentialsRes.data ?? []) as any[]) {
+      const list = credentialsByUser.get(credential.user_id) ?? [];
+      list.push(credential);
+      credentialsByUser.set(credential.user_id, list);
+    }
+    const users = ((usersRes.data ?? []) as any[]).map((user) => ({ ...user, generated_credentials: credentialsByUser.get(user.id) ?? [] }));
+    return { users, auditLogs: (logsRes.data ?? []) as any[], queryError: usersRes.error || credentialsRes.error || logsRes.error ? "לא ניתן לטעון את הנתונים כרגע" : null };
   }, { users: [] as any[], auditLogs: [] as any[], queryError: null as string | null });
 
   return <DashboardShell role="admin" title="ניהול משתמשים">
