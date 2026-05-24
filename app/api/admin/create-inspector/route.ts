@@ -2,7 +2,7 @@ import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { requireRole } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { provisionAuthUser, provisionedUserSchema, writeUserCreationAudit } from "@/lib/onboarding/user-provisioning";
+import { DuplicateContactError, checkEmailConflict, normalizeOptionalEmail, provisionAuthUser, provisionedUserSchema, writeUserCreationAudit } from "@/lib/onboarding/user-provisioning";
 
 const schema = provisionedUserSchema.extend({
   source_lead_id: z.string().uuid().optional(),
@@ -16,13 +16,19 @@ export async function POST(request: Request) {
   try {
     const { profile } = await requireRole(["admin"]);
     const payload = schema.parse(await request.json());
+    const admin = createAdminClient();
+    const inspectorEmail = normalizeOptionalEmail(payload.email);
+    console.info("[create-inspector-email-check]", { attemptedEmail: payload.email ?? null, normalizedEmail: inspectorEmail ?? null });
+    const conflict = await checkEmailConflict({ supabase: admin, email: inspectorEmail, field: "inspector_email" });
+    if (conflict) return fail(conflict.message, 409, { field: conflict.field, source: conflict.source });
     const { supabase, user, oneTimeCredentials } = await provisionAuthUser({
       role: "inspector",
       fullName: payload.full_name,
-      email: payload.email,
+      email: inspectorEmail,
       phone: payload.phone,
       temporaryPassword: payload.temporary_password,
-      createdBy: profile.id
+      createdBy: profile.id,
+      conflictField: "inspector_email"
     });
     createdUserId = user.id;
 
@@ -58,6 +64,9 @@ export async function POST(request: Request) {
   } catch (error) {
     if (createdUserId) {
       try { await createAdminClient().auth.admin.deleteUser(createdUserId); } catch {}
+    }
+    if (error instanceof DuplicateContactError) {
+      return fail(error.message, 409, { field: error.field, source: error.source });
     }
     return handleRouteError(error);
   }

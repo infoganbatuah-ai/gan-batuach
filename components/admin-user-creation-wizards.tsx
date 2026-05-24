@@ -14,7 +14,17 @@ function formValues(form: HTMLFormElement, key: string) { return new FormData(fo
 async function postJson(url: string, payload: unknown) {
   const response = await fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
   const body = await response.json();
-  if (!response.ok) throw new Error(body.error || "הפעולה נכשלה");
+  if (!response.ok) {
+    const field = body.details?.field;
+    const friendly =
+      field === "manager_email" ? "המייל של מנהלת הגן כבר קיים" :
+      field === "owner_email" ? "המייל של בעל הגן כבר קיים" :
+      field === "inspector_email" ? "המייל של המפקח כבר קיים" :
+      body.error || "הפעולה נכשלה";
+    const error = new Error(friendly) as Error & { field?: string };
+    error.field = field;
+    throw error;
+  }
   return body.data;
 }
 function Copy({ credentials }: { credentials: Credentials }) {
@@ -42,7 +52,7 @@ export function KindergartenCreationWizard({ lead, inspectors }: { lead?: Lead; 
           inspector_id: formValue(form, "assigned_inspector") || undefined, public_profile_enabled: formValue(form, "public_profile_enabled") === "yes", notes: formValue(form, "notes")
         },
         manager: { full_name: formValue(form, "manager_name"), email: formValue(form, "manager_email") || undefined, phone: formValue(form, "manager_phone") },
-        owner: formValue(form, "owner_email") || formValue(form, "owner_name") ? { full_name: formValue(form, "owner_name"), email: formValue(form, "owner_email") || undefined, phone: formValue(form, "owner_phone") } : undefined
+        owner: formValue(form, "owner_email") ? { full_name: formValue(form, "owner_name"), email: formValue(form, "owner_email"), phone: formValue(form, "owner_phone") } : undefined
       });
       setResult({ title: "הגן נוצר בהצלחה", credentials: data.credentials.manager, owner: data.credentials.owner });
     } catch (err) { setError(err instanceof Error ? err.message : "יצירת גן נכשלה"); }

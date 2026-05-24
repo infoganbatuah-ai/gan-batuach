@@ -5,6 +5,28 @@ import type { UserRole } from "@/lib/roles";
 
 const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
 
+export class DuplicateContactError extends Error {
+  field: string;
+  source: string;
+
+  constructor(field: string, source: string, message = "המייל כבר קיים במערכת") {
+    super(message);
+    this.name = "DuplicateContactError";
+    this.field = field;
+    this.source = source;
+  }
+}
+
+export function normalizeOptionalEmail(email?: string | null) {
+  const normalized = String(email ?? "").trim().toLowerCase();
+  return normalized || undefined;
+}
+
+export function normalizeOptionalPhone(phone?: string | null) {
+  const normalized = String(phone ?? "").trim();
+  return normalized || undefined;
+}
+
 export function generateTemporaryPassword() {
   const values = crypto.getRandomValues(new Uint32Array(14));
   const body = Array.from(values, (value) => alphabet[value % alphabet.length]).join("");
@@ -19,8 +41,8 @@ export function generateSystemEmail(prefix: string) {
 
 export const provisionedUserSchema = z.object({
   full_name: z.string().min(2),
-  email: z.string().email().optional(),
-  phone: z.string().optional(),
+  email: z.preprocess((value) => normalizeOptionalEmail(value as string | null), z.string().email().optional()),
+  phone: z.preprocess((value) => normalizeOptionalPhone(value as string | null), z.string().optional()),
   temporary_password: z.string().min(8).optional()
 });
 
@@ -32,12 +54,50 @@ type ProvisionUserInput = {
   phone?: string | null;
   temporaryPassword?: string;
   createdBy?: string | null;
+  conflictField?: string;
 };
+
+export async function checkEmailConflict({
+  supabase,
+  email,
+  field
+}: {
+  supabase: ReturnType<typeof createAdminClient>;
+  email?: string | null;
+  field: string;
+}) {
+  const normalized = normalizeOptionalEmail(email);
+  console.info("[email-duplicate-check]", { field, attemptedEmail: email ?? null, normalizedEmail: normalized ?? null });
+  if (!normalized) return null;
+
+  const [profileEmail, profileUsername, generatedCredential] = await Promise.all([
+    supabase.from("profiles").select("id", { count: "exact", head: true }).eq("email", normalized),
+    supabase.from("profiles").select("id", { count: "exact", head: true }).eq("username", normalized),
+    supabase.from("generated_credentials").select("id", { count: "exact", head: true }).eq("username", normalized)
+  ]);
+
+  if ((profileEmail.count ?? 0) > 0) {
+    console.warn("[email-duplicate-check-conflict]", { field, normalizedEmail: normalized, source: "profiles.email" });
+    return new DuplicateContactError(field, "profiles.email");
+  }
+  if ((profileUsername.count ?? 0) > 0) {
+    console.warn("[email-duplicate-check-conflict]", { field, normalizedEmail: normalized, source: "profiles.username" });
+    return new DuplicateContactError(field, "profiles.username");
+  }
+  if ((generatedCredential.count ?? 0) > 0) {
+    console.warn("[email-duplicate-check-conflict]", { field, normalizedEmail: normalized, source: "generated_credentials.username" });
+    return new DuplicateContactError(field, "generated_credentials.username");
+  }
+  return null;
+}
 
 export async function provisionAuthUser(input: ProvisionUserInput) {
   const supabase = createAdminClient();
-  const email = String(input.email || generateSystemEmail(input.role)).trim().toLowerCase();
+  const requestedEmail = normalizeOptionalEmail(input.email);
+  const email = requestedEmail || generateSystemEmail(input.role);
   const temporaryPassword = input.temporaryPassword ?? generateTemporaryPassword();
+  const conflict = await checkEmailConflict({ supabase, email: requestedEmail, field: input.conflictField ?? `${input.role}_email` });
+  if (conflict) throw conflict;
 
   const { data, error } = await supabase.auth.admin.createUser({
     email,
@@ -48,8 +108,12 @@ export async function provisionAuthUser(input: ProvisionUserInput) {
   });
 
   if (error || !data.user) {
-    const message = error?.message?.toLowerCase().includes("already") ? "כבר קיים משתמש עם האימייל הזה במערכת." : error?.message ?? "Could not create Supabase Auth user";
-    throw new Error(message);
+    const authMessage = error?.message ?? "";
+    console.warn("[email-duplicate-check-conflict]", { field: input.conflictField ?? `${input.role}_email`, normalizedEmail: email, source: "supabase_auth", authMessage });
+    if (authMessage.toLowerCase().includes("already") || authMessage.toLowerCase().includes("registered")) {
+      throw new DuplicateContactError(input.conflictField ?? `${input.role}_email`, "supabase_auth");
+    }
+    throw new Error(authMessage || "Could not create Supabase Auth user");
   }
 
   const profile: Record<string, unknown> = {

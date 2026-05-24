@@ -3,7 +3,7 @@ import { requireRole } from "@/lib/auth";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import type { Database } from "@/lib/supabase/types";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { provisionAuthUser, provisionedUserSchema, writeUserCreationAudit } from "@/lib/onboarding/user-provisioning";
+import { DuplicateContactError, checkEmailConflict, normalizeOptionalEmail, provisionAuthUser, provisionedUserSchema, writeUserCreationAudit } from "@/lib/onboarding/user-provisioning";
 
 const schema = z.object({
   source_lead_id: z.string().uuid().optional(),
@@ -35,12 +35,30 @@ export async function POST(request: Request) {
     const { profile } = await requireRole(["admin"]);
     const payload = schema.parse(await request.json());
     const admin = createAdminClient();
+    const managerEmail = normalizeOptionalEmail(payload.manager.email);
+    const ownerEmail = normalizeOptionalEmail(payload.owner?.email);
 
-    const manager = await provisionAuthUser({ role: "manager", fullName: payload.manager.full_name, email: payload.manager.email, phone: payload.manager.phone, temporaryPassword: payload.manager.temporary_password, createdBy: profile.id });
+    console.info("[create-garden-manager-email-check]", {
+      attemptedManagerEmail: payload.manager.email ?? null,
+      normalizedManagerEmail: managerEmail ?? null,
+      attemptedOwnerEmail: payload.owner?.email ?? null,
+      normalizedOwnerEmail: ownerEmail ?? null
+    });
+
+    const managerConflict = await checkEmailConflict({ supabase: admin, email: managerEmail, field: "manager_email" });
+    if (managerConflict) return fail(managerConflict.message, 409, { field: managerConflict.field, source: managerConflict.source });
+    if (ownerEmail && ownerEmail === managerEmail) {
+      console.warn("[email-duplicate-check-conflict]", { field: "owner_email", normalizedEmail: ownerEmail, source: "same_as_manager_email" });
+      return fail("המייל כבר קיים במערכת", 409, { field: "owner_email", source: "same_as_manager_email" });
+    }
+    const ownerConflict = await checkEmailConflict({ supabase: admin, email: ownerEmail, field: "owner_email" });
+    if (ownerConflict) return fail(ownerConflict.message, 409, { field: ownerConflict.field, source: ownerConflict.source });
+
+    const manager = await provisionAuthUser({ role: "manager", fullName: payload.manager.full_name, email: managerEmail, phone: payload.manager.phone, temporaryPassword: payload.manager.temporary_password, createdBy: profile.id, conflictField: "manager_email" });
     createdAuthUserIds.push(manager.user.id);
 
-    const owner = payload.owner?.full_name
-      ? await provisionAuthUser({ role: "owner", fullName: payload.owner.full_name, email: payload.owner.email, phone: payload.owner.phone, temporaryPassword: payload.owner.temporary_password, createdBy: profile.id })
+    const owner = payload.owner?.full_name && ownerEmail
+      ? await provisionAuthUser({ role: "owner", fullName: payload.owner.full_name, email: ownerEmail, phone: payload.owner.phone, temporaryPassword: payload.owner.temporary_password, createdBy: profile.id, conflictField: "owner_email" })
       : null;
     if (owner) createdAuthUserIds.push(owner.user.id);
 
@@ -100,6 +118,9 @@ export async function POST(request: Request) {
 
     return ok({ garden, manager_user_id: manager.user.id, owner_user_id: owner?.user.id ?? null, credentials: { manager: manager.oneTimeCredentials, owner: owner?.oneTimeCredentials ?? null } }, 201);
   } catch (error) {
+    if (error instanceof DuplicateContactError) {
+      return fail(error.message, 409, { field: error.field, source: error.source });
+    }
     return handleRouteError(error);
   }
 }

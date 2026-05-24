@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { normalizeOptionalEmail, normalizeOptionalPhone } from "@/lib/onboarding/user-provisioning";
 
 function value(formData: FormData, key: string) {
   return String(formData.get(key) ?? "").trim();
@@ -13,11 +14,13 @@ function values(formData: FormData, key: string) {
 }
 
 async function contactExists(supabase: Awaited<ReturnType<typeof createClient>>, email: string, phone: string) {
+  const normalizedEmail = normalizeOptionalEmail(email);
+  const normalizedPhone = normalizeOptionalPhone(phone);
   const [emailProfiles, emailLeads, phoneProfiles, phoneLeads] = await Promise.all([
-    email ? supabase.from("profiles" as any).select("id", { count: "exact", head: true }).or(`email.eq.${email},username.eq.${email}`) : Promise.resolve({ count: 0 }),
-    email ? supabase.from("leads" as any).select("id", { count: "exact", head: true }).eq("email", email) : Promise.resolve({ count: 0 }),
-    phone ? supabase.from("profiles" as any).select("id", { count: "exact", head: true }).eq("phone", phone) : Promise.resolve({ count: 0 }),
-    phone ? supabase.from("leads" as any).select("id", { count: "exact", head: true }).eq("phone", phone) : Promise.resolve({ count: 0 })
+    normalizedEmail ? supabase.from("profiles" as any).select("id", { count: "exact", head: true }).or(`email.eq.${normalizedEmail},username.eq.${normalizedEmail}`) : Promise.resolve({ count: 0 }),
+    normalizedEmail ? supabase.from("leads" as any).select("id", { count: "exact", head: true }).eq("email", normalizedEmail) : Promise.resolve({ count: 0 }),
+    normalizedPhone ? supabase.from("profiles" as any).select("id", { count: "exact", head: true }).eq("phone", normalizedPhone) : Promise.resolve({ count: 0 }),
+    normalizedPhone ? supabase.from("leads" as any).select("id", { count: "exact", head: true }).eq("phone", normalizedPhone) : Promise.resolve({ count: 0 })
   ]);
   return {
     email: Boolean((emailProfiles.count ?? 0) + (emailLeads.count ?? 0)),
