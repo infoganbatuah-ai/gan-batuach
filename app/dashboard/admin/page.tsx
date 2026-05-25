@@ -18,6 +18,8 @@ const adminActions = [
   { href: "/dashboard/admin/ai-events", label: "אירועי AI", icon: Bot },
   { href: "/dashboard/admin/notifications", label: "התראות", icon: BellRing },
   { href: "/dashboard/admin/cameras", label: "מצלמות", icon: Camera },
+  { href: "/dashboard/admin/demo-control", label: "Demo Control", icon: Sparkles },
+  { href: "/dashboard/admin/qa-checklist", label: "QA Checklist", icon: ClipboardCheck },
   { href: "/dashboard/admin/reports", label: "דוחות", icon: Download },
   { href: "/dashboard/admin/settings", label: "הגדרות", icon: Settings }
 ];

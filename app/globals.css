@@ -926,6 +926,16 @@ textarea {
   border-color: #f2c7c7;
 }
 
+.warning-banner {
+  border: 1px solid rgb(154 102 18 / 24%);
+  border-radius: 8px;
+  padding: 16px 18px;
+  margin-bottom: 16px;
+  background: linear-gradient(135deg, #fffbeb, #fff);
+  color: var(--warning);
+  font-weight: 800;
+}
+
 .success-screen strong {
   display: block;
   font-size: 20px;
@@ -2364,6 +2374,17 @@ body::before {
 
 .quick-actions-grid.compact {
   grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+}
+
+.quick-action.danger-action {
+  border-color: rgb(168 50 50 / 22%);
+  color: var(--danger);
+  background: linear-gradient(135deg, #fff1f2, #fff);
+}
+
+.quick-action:disabled {
+  cursor: wait;
+  opacity: .68;
 }
 
 .notification-card,
