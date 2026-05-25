@@ -881,7 +881,9 @@ textarea {
   .filter-bar,
   .choice-grid,
   .small-actions,
-  .role-guide-steps {
+  .role-guide-steps,
+  .observer-status-grid,
+  .observer-pipeline {
     grid-template-columns: 1fr;
   }
 
@@ -891,7 +893,8 @@ textarea {
   .garden-card-top,
   .list-item,
   .section-heading,
-  .event-card-preview {
+  .event-card-preview,
+  .system-status-banner {
     align-items: flex-start;
     flex-direction: column;
   }
@@ -1178,6 +1181,11 @@ textarea {
   box-shadow: 0 12px 30px rgb(18 59 143 / 10%);
 }
 
+.role-guide-steps a.complete {
+  border-color: rgb(10 122 85 / 28%);
+  background: linear-gradient(135deg, #ffffff, #effdf7);
+}
+
 .role-guide-steps b {
   display: grid;
   place-items: center;
@@ -1202,6 +1210,236 @@ textarea {
 .role-guide-footer {
   margin-top: 12px;
   font-weight: 700;
+}
+
+.onboarding-progress,
+.mega-progress span {
+  position: relative;
+  overflow: hidden;
+  display: block;
+  min-height: 12px;
+  border-radius: 999px;
+  background: rgb(18 59 143 / 9%);
+}
+
+.onboarding-progress {
+  margin: 0 0 12px;
+  padding: 18px 12px 8px;
+}
+
+.onboarding-progress span {
+  position: absolute;
+  inset-inline-start: 12px;
+  top: 3px;
+  color: var(--blue-dark);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.onboarding-progress i,
+.mega-progress i {
+  display: block;
+  height: 100%;
+  min-height: 12px;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--blue), var(--success));
+}
+
+.premium-control-hero {
+  background:
+    radial-gradient(circle at 14% 18%, rgb(34 197 94 / 22%), transparent 28%),
+    linear-gradient(135deg, #ffffff, #eef6ff 48%, #effdf7);
+}
+
+.system-status-banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+  padding: 16px 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+}
+
+.system-status-banner > div {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.system-status-banner span {
+  display: block;
+  color: var(--muted);
+}
+
+.system-status-banner.status-good {
+  border-color: rgb(10 122 85 / 24%);
+  background: linear-gradient(135deg, #f0fdf4, #ffffff);
+}
+
+.system-status-banner.status-warn {
+  border-color: rgb(154 102 18 / 24%);
+  background: linear-gradient(135deg, #fffbeb, #ffffff);
+}
+
+.system-status-banner.status-bad {
+  border-color: rgb(168 50 50 / 24%);
+  background: linear-gradient(135deg, #fff1f2, #ffffff);
+}
+
+.premium-kpis .stat {
+  position: relative;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 0 0, rgb(18 59 143 / 12%), transparent 38%),
+    linear-gradient(145deg, #ffffff, #f8fbff);
+}
+
+.premium-kpis .stat::after {
+  content: "";
+  position: absolute;
+  inset-inline-start: 0;
+  inset-block-start: 0;
+  width: 5px;
+  height: 100%;
+  background: linear-gradient(180deg, var(--blue), var(--success));
+}
+
+.control-progress-card,
+.activity-center-card,
+.digital-observer-architecture {
+  background:
+    linear-gradient(135deg, rgb(255 255 255 / 96%), rgb(248 251 255 / 94%)),
+    radial-gradient(circle at 86% 0%, rgb(34 197 94 / 14%), transparent 28%);
+}
+
+.mega-progress {
+  display: grid;
+  gap: 10px;
+  margin: 18px 0;
+}
+
+.mega-progress strong {
+  font-size: clamp(38px, 5vw, 64px);
+  color: var(--blue-dark);
+  line-height: 1;
+}
+
+.activity-timeline {
+  display: grid;
+  gap: 10px;
+}
+
+.activity-item {
+  display: grid;
+  grid-template-columns: 72px minmax(0, 1fr);
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: white;
+}
+
+.activity-item > span {
+  display: grid;
+  place-items: center;
+  min-height: 42px;
+  border-radius: var(--radius-sm);
+  color: var(--blue-dark);
+  background: var(--blue-soft);
+  font-weight: 900;
+}
+
+.activity-item.good > span { color: var(--success); background: #ecfdf5; }
+.activity-item.warn > span { color: var(--warning); background: #fffbeb; }
+.activity-item.bad > span { color: var(--danger); background: #fff1f2; }
+
+.activity-item small {
+  display: block;
+  color: var(--muted);
+}
+
+.digital-observer-architecture {
+  display: grid;
+  gap: 18px;
+  margin-bottom: 24px;
+  padding: 22px;
+  border: 1px solid rgb(18 59 143 / 12%);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-soft);
+}
+
+.observer-status-grid,
+.observer-pipeline {
+  display: grid;
+  gap: 12px;
+}
+
+.observer-status-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.observer-pipeline {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.observer-status,
+.observer-step {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+}
+
+.observer-status {
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  padding: 12px;
+  border-radius: var(--radius-md);
+  font-weight: 900;
+}
+
+.observer-status.good { color: var(--success); background: #ecfdf5; }
+.observer-status.warn { color: var(--warning); background: #fffbeb; }
+
+.observer-step {
+  position: relative;
+  min-height: 190px;
+}
+
+.observer-step b {
+  position: absolute;
+  inset-block-start: 12px;
+  inset-inline-end: 12px;
+  display: grid;
+  place-items: center;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  color: white;
+  background: linear-gradient(135deg, var(--blue), var(--success));
+}
+
+.observer-detection {
+  align-content: start;
+}
+
+.observer-detection .pill {
+  margin: 4px 4px 0 0;
+}
+
+.ai-assistant-concept {
+  display: grid;
+  gap: 8px;
+  border-color: rgb(18 59 143 / 20%);
+  background: linear-gradient(135deg, #eef6ff, #ffffff);
+}
+
+.ai-assistant-concept > div {
+  display: flex;
+  gap: 10px;
+  align-items: center;
 }
 
 

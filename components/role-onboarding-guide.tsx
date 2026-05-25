@@ -40,16 +40,26 @@ const stepsByRole: Record<UserRole, Array<{ title: string; body: string; href: s
 
 export function RoleOnboardingGuide({ role }: { role: UserRole }) {
   const storageKey = `gan-batuach-guide-${role}`;
+  const progressKey = `gan-batuach-guide-progress-${role}`;
   const [visible, setVisible] = useState(false);
+  const [completed, setCompleted] = useState<string[]>([]);
   const steps = useMemo(() => stepsByRole[role], [role]);
+  const completedPercent = Math.round((completed.length / steps.length) * 100);
 
   useEffect(() => {
     setVisible(window.localStorage.getItem(storageKey) !== "dismissed");
-  }, [storageKey]);
+    setCompleted(JSON.parse(window.localStorage.getItem(progressKey) || "[]"));
+  }, [storageKey, progressKey]);
 
   function dismiss() {
     window.localStorage.setItem(storageKey, "dismissed");
     setVisible(false);
+  }
+
+  function markStep(href: string) {
+    const next = Array.from(new Set([...completed, href]));
+    window.localStorage.setItem(progressKey, JSON.stringify(next));
+    setCompleted(next);
   }
 
   if (!visible) return null;
@@ -60,9 +70,13 @@ export function RoleOnboardingGuide({ role }: { role: UserRole }) {
         <span><Sparkles size={18} /> מדריך התחלה מהיר</span>
         <button type="button" onClick={dismiss} aria-label="סגירת מדריך"><X size={16} /></button>
       </div>
+      <div className="onboarding-progress">
+        <span>התקדמות התחלה: {completedPercent}%</span>
+        <i style={{ width: `${completedPercent}%` }} />
+      </div>
       <div className="role-guide-steps">
         {steps.map((step, index) => (
-          <a href={step.href} key={step.href}>
+          <a href={step.href} key={step.href} onClick={() => markStep(step.href)} className={completed.includes(step.href) ? "complete" : ""}>
             <b>{index + 1}</b>
             <span><strong>{step.title}</strong><small>{step.body}</small></span>
             <CheckCircle2 size={18} />
