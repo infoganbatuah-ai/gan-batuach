@@ -1,8 +1,10 @@
 import Link from "next/link";
-import { Activity, AlertTriangle, BellRing, Bot, Camera, ClipboardCheck, Download, FileWarning, FileX2, HeartPulse, MapPinned, MessageSquareWarning, Settings, ShieldAlert, ShieldCheck, UserCheck, UsersRound } from "lucide-react";
+import { BellRing, Bot, Camera, ClipboardCheck, Download, FileWarning, FileX2, HeartPulse, MapPinned, MessageSquareWarning, Settings, ShieldAlert, ShieldCheck, UserCheck, UsersRound } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { StatCard } from "@/components/stat-card";
 import { AdminDataError } from "@/components/admin-data-state";
+import { AdminActivityCenter, type AdminActivityItem } from "@/components/admin-activity-center";
+import { GlobalAlertsCenter } from "@/components/global-alerts-center";
 import { requireRole } from "@/lib/auth";
 import { safeAdminData, logSupabaseError } from "@/lib/admin-safe";
 import { createClient } from "@/lib/supabase/server";
@@ -48,7 +50,7 @@ export default async function AdminDashboard() {
   const result = await safeAdminData("admin dashboard", async () => {
     const supabase = await createClient();
     const now = new Date().toISOString();
-    const [gardens, activeGardens, children, leads, inspectors, violations, complaints, cameras, cameraIssues, aiAlerts, notifications, incidents, lateInspections, missingDocuments, staffTotal, staffApproved, gardenList, recentComplaints, recentInspections, recentDocuments, recentAiEvents, recentMessages] = await Promise.all([
+    const [gardens, activeGardens, children, leads, inspectors, violations, complaints, cameras, cameraIssues, aiAlerts, notifications, incidents, activeIncidents, lateInspections, dueSoonInspections, missingDocuments, staffTotal, staffApproved, gardenList, recentComplaints, recentInspections, recentDocuments, recentAiEvents, recentMessages] = await Promise.all([
       countRows(supabase, "gardens"),
       countFiltered(supabase, "gardens", (query) => query.eq("status", "active")),
       countRows(supabase, "children"),
@@ -61,7 +63,9 @@ export default async function AdminDashboard() {
       countFiltered(supabase, "ai_events", (query) => query.in("status", ["open", "in_progress"]).in("severity", ["high", "critical"])),
       countRows(supabase, "notifications"),
       countRows(supabase, "incident_reports"),
+      countFiltered(supabase, "incident_reports", (query) => query.in("status", ["open", "in_progress", "new"])),
       countFiltered(supabase, "required_inspections", (query) => query.lt("due_at", now).neq("status", "completed")),
+      countFiltered(supabase, "required_inspections", (query) => query.gte("due_at", now).lte("due_at", new Date(Date.now() + 5 * 86400000).toISOString()).neq("status", "completed")),
       countFiltered(supabase, "documents", (query) => query.in("status", ["missing", "expired", "rejected"])),
       countRows(supabase, "staff"),
       countFiltered(supabase, "staff", (query) => query.eq("approved_to_work", true)),
@@ -74,8 +78,8 @@ export default async function AdminDashboard() {
     ]);
     logSupabaseError("admin garden list", gardenList.error);
     [recentComplaints, recentInspections, recentDocuments, recentAiEvents, recentMessages].forEach((query, index) => logSupabaseError("admin activity " + index, query.error));
-    return { gardens, activeGardens, children, leads, inspectors, violations, complaints, cameras, cameraIssues, aiAlerts, notifications, incidents, lateInspections, missingDocuments, staffTotal, staffApproved, gardenList: (gardenList.data ?? []) as any[], recentComplaints: recentComplaints.data ?? [], recentInspections: recentInspections.data ?? [], recentDocuments: recentDocuments.data ?? [], recentAiEvents: recentAiEvents.data ?? [], recentMessages: recentMessages.data ?? [], queryError: gardenList.error ? "לא ניתן לטעון את הנתונים כרגע" : null };
-  }, { gardens: 0, activeGardens: 0, children: 0, leads: 0, inspectors: 0, violations: 0, complaints: 0, cameras: 0, cameraIssues: 0, aiAlerts: 0, notifications: 0, incidents: 0, lateInspections: 0, missingDocuments: 0, staffTotal: 0, staffApproved: 0, gardenList: [] as any[], recentComplaints: [] as any[], recentInspections: [] as any[], recentDocuments: [] as any[], recentAiEvents: [] as any[], recentMessages: [] as any[], queryError: null as string | null });
+    return { gardens, activeGardens, children, leads, inspectors, violations, complaints, cameras, cameraIssues, aiAlerts, notifications, incidents, activeIncidents, lateInspections, dueSoonInspections, missingDocuments, staffTotal, staffApproved, gardenList: (gardenList.data ?? []) as any[], recentComplaints: recentComplaints.data ?? [], recentInspections: recentInspections.data ?? [], recentDocuments: recentDocuments.data ?? [], recentAiEvents: recentAiEvents.data ?? [], recentMessages: recentMessages.data ?? [], queryError: gardenList.error ? "לא ניתן לטעון את הנתונים כרגע" : null };
+  }, { gardens: 0, activeGardens: 0, children: 0, leads: 0, inspectors: 0, violations: 0, complaints: 0, cameras: 0, cameraIssues: 0, aiAlerts: 0, notifications: 0, incidents: 0, activeIncidents: 0, lateInspections: 0, dueSoonInspections: 0, missingDocuments: 0, staffTotal: 0, staffApproved: 0, gardenList: [] as any[], recentComplaints: [] as any[], recentInspections: [] as any[], recentDocuments: [] as any[], recentAiEvents: [] as any[], recentMessages: [] as any[], queryError: null as string | null });
   const data = result.data;
   const staffCompliance = data.staffTotal > 0 ? Math.round((data.staffApproved / data.staffTotal) * 100) : 100;
   const issueLoad = data.lateInspections + data.aiAlerts + data.cameraIssues + data.missingDocuments + data.violations;
@@ -83,13 +87,27 @@ export default async function AdminDashboard() {
   const tone = statusTone(healthScore);
   const onboardingCompleted = [data.activeGardens > 0, data.inspectors > 0, data.gardens === 0 || data.lateInspections === 0, data.cameraIssues === 0, data.missingDocuments === 0, staffCompliance >= 80].filter(Boolean).length;
   const onboardingPercent = Math.round((onboardingCompleted / 6) * 100);
-  const activityItems = [
-    ...data.recentComplaints.map((item: any) => ({ type: "פנייה", title: item.subject, meta: `${item.gardens?.name ?? "ללא גן"} · ${item.severity} · ${item.status}`, date: item.created_at, tone: item.severity === "critical" || item.severity === "high" ? "bad" : "warn" })),
-    ...data.recentInspections.map((item: any) => ({ type: "פיקוח", title: item.gardens?.name ?? "ביקורת", meta: `סטטוס ${item.status} · ציון ${item.weighted_score ?? "-"}`, date: item.completed_at ?? item.created_at, tone: Number(item.weighted_score ?? 10) < 8 ? "bad" : "good" })),
-    ...data.recentDocuments.map((item: any) => ({ type: "מסמך", title: item.name, meta: `${item.gardens?.name ?? "כללי"} · ${item.status}`, date: item.created_at, tone: item.status === "valid" ? "good" : "warn" })),
-    ...data.recentAiEvents.map((item: any) => ({ type: "AI", title: item.event_type, meta: `${item.gardens?.name ?? "גן"} · ${item.severity} · ${item.status}`, date: item.detected_at, tone: item.severity === "critical" || item.severity === "high" ? "bad" : "warn" })),
-    ...data.recentMessages.map((item: any) => ({ type: "הודעה", title: item.subject, meta: `${item.gardens?.name ?? "מערכת"} · ${item.treatment_status}`, date: item.created_at, tone: "default" }))
+  const activityItems: AdminActivityItem[] = [
+    ...data.recentComplaints.map((item: any) => ({ type: "פנייה", title: item.subject, meta: `${item.gardens?.name ?? "ללא גן"} · ${item.severity} · ${item.status}`, date: item.created_at, severity: item.severity, tone: item.severity === "critical" || item.severity === "high" ? "bad" : "warn" })),
+    ...data.recentInspections.map((item: any) => ({ type: "פיקוח", title: item.gardens?.name ?? "ביקורת", meta: `סטטוס ${item.status} · ציון ${item.weighted_score ?? "-"}`, date: item.completed_at ?? item.created_at, severity: Number(item.weighted_score ?? 10) < 8 ? "high" : "low", tone: Number(item.weighted_score ?? 10) < 8 ? "bad" : "good" })),
+    ...data.recentDocuments.map((item: any) => ({ type: "מסמך", title: item.name, meta: `${item.gardens?.name ?? "כללי"} · ${item.status}`, date: item.created_at, severity: item.status === "valid" ? "low" : "medium", tone: item.status === "valid" ? "good" : "warn" })),
+    ...data.recentAiEvents.map((item: any) => ({ type: "AI", title: item.event_type, meta: `${item.gardens?.name ?? "גן"} · ${item.severity} · ${item.status}`, date: item.detected_at, severity: item.severity, tone: item.severity === "critical" || item.severity === "high" ? "bad" : "warn" })),
+    ...data.recentMessages.map((item: any) => ({ type: "הודעה", title: item.subject, meta: `${item.gardens?.name ?? "מערכת"} · ${item.treatment_status}`, date: item.created_at, severity: "low", tone: "default" }))
   ].sort((a, b) => new Date(b.date ?? 0).getTime() - new Date(a.date ?? 0).getTime()).slice(0, 10);
+  const riskCards = [
+    { title: "סיכון פיקוח", value: Math.min(100, data.lateInspections * 25 + data.dueSoonInspections * 10), href: "/dashboard/admin/inspections/late" },
+    { title: "סיכון צוות", value: Math.max(0, 100 - staffCompliance), href: "/dashboard/admin/users" },
+    { title: "סיכון מצלמות", value: Math.min(100, data.cameraIssues * 20), href: "/dashboard/admin/cameras" },
+    { title: "סיכון מסמכים", value: Math.min(100, data.missingDocuments * 8), href: "/dashboard/admin/documents" }
+  ];
+  const urgentAlerts = [
+    ...(data.lateInspections > 0 ? [{ title: "פיקוחים באיחור", body: `${data.lateInspections} גנים עברו את מועד הפיקוח`, severity: "bad" as const, href: "/dashboard/admin/inspections/late", icon: "inspection" as const }] : []),
+    ...(data.activeIncidents > 0 ? [{ title: "אירועים פתוחים", body: `${data.activeIncidents} אירועים דורשים טיפול`, severity: "bad" as const, href: "/dashboard/admin/complaints", icon: "incidents" as const }] : []),
+    ...(data.aiAlerts > 0 ? [{ title: "AI חמור", body: `${data.aiAlerts} אירועי AI חמורים פתוחים`, severity: "bad" as const, href: "/dashboard/admin/ai-events", icon: "ai" as const }] : []),
+    ...(data.cameraIssues > 0 ? [{ title: "תקלות מצלמה", body: `${data.cameraIssues} מצלמות דורשות בדיקה`, severity: "warn" as const, href: "/dashboard/admin/cameras", icon: "camera" as const }] : []),
+    ...(data.missingDocuments > 0 ? [{ title: "מסמכים חסרים", body: `${data.missingDocuments} מסמכים חסרים/פגי תוקף`, severity: "warn" as const, href: "/dashboard/admin/documents", icon: "documents" as const }] : []),
+    ...(staffCompliance < 80 ? [{ title: "ציות צוות נמוך", body: `ציות צוות ${staffCompliance}%`, severity: "warn" as const, href: "/dashboard/admin/users", icon: "staff" as const }] : [])
+  ];
 
   return (
     <DashboardShell role="admin" title="מרכז שליטה ארצי">
@@ -106,9 +124,12 @@ export default async function AdminDashboard() {
         <StatCard label="ציות צוות" value={`${staffCompliance}%`} tone={staffCompliance >= 80 ? "good" : "warn"} />
         <StatCard label="סטטוס מערכת" value={`${Math.round(healthScore)}%`} tone={tone} />
       </div>
+      <GlobalAlertsCenter alerts={urgentAlerts} />
+      <section className="grid cols-4 risk-score-grid">{riskCards.map((risk) => <Link className={risk.value > 65 ? "card risk-score-card bad" : risk.value > 30 ? "card risk-score-card warn" : "card risk-score-card good"} href={risk.href} key={risk.title}><strong>{risk.value}</strong><span>{risk.title}</span><i><b style={{ width: `${risk.value}%` }} /></i></Link>)}</section>
+      <section className="card admin-chart-panel"><div className="section-heading"><h2>גרף סיכונים מהיר</h2><p>מדד יחסי לפי פיקוח, צוות, מצלמות ומסמכים.</p></div><div className="kpi-bar-chart">{riskCards.map((risk) => <div key={risk.title}><span>{risk.title}</span><i><b style={{ width: `${risk.value}%` }} /></i><strong>{risk.value}</strong></div>)}</div></section>
       <section className="grid cols-2 dashboard-panels">
         <article className="card control-progress-card"><div className="section-heading"><h2><HeartPulse size={20} /> התקדמות הפעלה</h2><p>מדד חי לפי גנים פעילים, פקחים, מצלמות, מסמכים, צוות ופיקוח.</p></div><div className="mega-progress"><strong>{onboardingPercent}%</strong><span><i style={{ width: `${onboardingPercent}%` }} /></span></div><div className="checklist-row"><label><input type="checkbox" checked={data.activeGardens > 0} readOnly /> יש גנים פעילים<span>לפחות גן אחד פעיל במערכת.</span></label></div><div className="checklist-row"><label><input type="checkbox" checked={data.inspectors > 0} readOnly /> יש פקחים<span>שיוך פקחים מאפשר פיקוח חודשי.</span></label></div><div className="checklist-row"><label><input type="checkbox" checked={data.missingDocuments === 0} readOnly /> אין מסמכים חסרים<span>מסמכים חסרים מורידים מוכנות.</span></label></div></article>
-        <article className="card activity-center-card"><div className="section-heading"><h2><Activity size={20} /> מרכז פעילות</h2><p>פניות הורים, אירועי פיקוח, העלאות צוות, AI והודעות אחרונות.</p></div>{activityItems.length === 0 ? <div className="empty-state"><strong>אין פעילות אחרונה</strong><span>כאשר ייכנסו פניות, מסמכים, הודעות או אירועי AI, הם יופיעו כאן לפי זמן.</span></div> : <div className="activity-timeline">{activityItems.map((item, index) => <div className={`activity-item ${item.tone}`} key={`${item.type}-${item.title}-${index}`}><span>{item.type}</span><div><strong>{item.title}</strong><small>{item.meta} · {item.date ? new Date(item.date).toLocaleString("he-IL") : ""}</small></div></div>)}</div>}</article>
+        <AdminActivityCenter items={activityItems} />
       </section>
       <section className="dashboard-section"><div className="section-heading"><h2>פעולות אדמין</h2><p>קישורים מתוקנים לכל דפי האדמין המרכזיים.</p></div><div className="quick-actions-grid">{adminActions.map((action) => <Link className="quick-action" href={action.href} key={action.href}><action.icon /><strong>{action.label}</strong><span>פתיחת דף ניהול</span></Link>)}</div></section>
       <section className="grid cols-3 risk-board"><article className="card risk-card"><ShieldAlert /><strong>גנים</strong><b>{data.gardens}</b><span>ניהול וסטטוס בטיחות</span></article><article className="card risk-card"><Camera /><strong>מצלמות</strong><b>{data.cameras}</b><span>חיבור, בריאות והרשאות</span></article><article className="card risk-card"><BellRing /><strong>התראות</strong><b>{data.notifications}</b><span>מסמכים, פיקוח, AI ומשימות</span></article></section>

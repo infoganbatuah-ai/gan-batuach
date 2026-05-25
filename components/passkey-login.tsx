@@ -2,7 +2,7 @@
 
 import { startAuthentication } from "@simplewebauthn/browser";
 import { Fingerprint, KeyRound } from "lucide-react";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 type ApiResponse<T> = T & { error?: string };
 
@@ -18,7 +18,12 @@ type AuthenticationVerifyResponse = {
 export function PasskeyLogin() {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<string | null>(null);
+  const [supported, setSupported] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+
+  useEffect(() => {
+    setSupported(Boolean(window.PublicKeyCredential));
+  }, []);
 
   async function loginWithPasskey() {
     setIsLoading(true);
@@ -57,9 +62,10 @@ export function PasskeyLogin() {
         <span className="passkey-icon"><Fingerprint size={22} /></span>
         <div>
           <h2>כניסה מהירה עם Face ID / טביעת אצבע</h2>
-          <p>הזיהוי מתבצע במכשיר שלך. גן בטוח שומרת רק מפתח ציבורי מאובטח, לא נתונים ביומטריים.</p>
+          <p>מוכן ל-Apple Face ID, Touch ID, Android Biometrics ו-Passkeys בדסקטופ דרך WebAuthn. הזיהוי מתבצע במכשיר שלך; גן בטוח שומרת רק מפתח ציבורי, לא נתונים ביומטריים.</p>
         </div>
       </div>
+      <div className="passkey-readiness-grid"><span className="pill good">WebAuthn</span><span className="pill good">iOS Safari</span><span className="pill good">Android Chrome</span><span className={supported === false ? "pill warn" : "pill good"}>{supported === false ? "המכשיר לא דיווח תמיכה" : "המכשיר מוכן"}</span></div>
       <label>אימייל לחשבון<input value={email} onChange={(event) => setEmail(event.target.value)} type="email" autoComplete="username webauthn" placeholder="name@example.com" /></label>
       <button className="button soft" type="button" onClick={loginWithPasskey} disabled={isLoading || !email}>
         <KeyRound size={18} /> {isLoading ? "ממתין לאישור במכשיר" : "כניסה עם Passkey"}

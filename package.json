@@ -9,6 +9,7 @@
     "start": "next start",
     "lint": "next lint",
     "typecheck": "tsc --noEmit",
+    "export:clean": "node scripts/create-clean-export.mjs",
     "seed:test-users": "node scripts/seed-test-users.mjs"
   },
   "dependencies": {

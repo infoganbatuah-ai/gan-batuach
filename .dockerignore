@@ -13,3 +13,4 @@ __MACOSX
 .DS_Store
 coverage
 *.local
+exports

@@ -1,0 +1,10 @@
+.env
+.env.*
+.env.local
+.git
+.next
+node_modules
+__MACOSX
+.DS_Store
+coverage
+exports
