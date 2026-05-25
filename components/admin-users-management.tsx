@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { useMemo, useState } from "react";
+import { type FormEvent, useMemo, useState } from "react";
 import { Avatar } from "@/components/avatar";
 
 type Row = Record<string, any>;
@@ -15,11 +15,11 @@ const tabs = [
   ["all", "כל המשתמשים"]
 ] as const;
 
-async function postAction(userId: string, action: string) {
+async function postAction(userId: string, action: string, extra: Record<string, unknown> = {}) {
   const response = await fetch("/api/admin/users", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ user_id: userId, action })
+    body: JSON.stringify({ user_id: userId, action, ...extra })
   });
   const body = await response.json();
   if (!response.ok) throw new Error(body.error || "הפעולה נכשלה");
@@ -40,6 +40,7 @@ export function AdminUsersManagement({ users, auditLogs }: { users: Row[]; audit
   const [activeTab, setActiveTab] = useState<(typeof tabs)[number][0]>("kindergartens");
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [editing, setEditing] = useState<Row | null>(null);
   const rows = useMemo(() => filterRows(users, activeTab), [users, activeTab]);
 
   async function action(userId: string, actionName: string) {
@@ -58,6 +59,29 @@ export function AdminUsersManagement({ users, auditLogs }: { users: Row[]; audit
     }
   }
 
+  async function saveEdit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!editing) return;
+    setMessage(null); setError(null);
+    const form = event.currentTarget;
+    const data = Object.fromEntries(new FormData(form).entries());
+    try {
+      await postAction(editing.id, "update_profile", {
+        full_name: String(data.full_name || ""),
+        phone: String(data.phone || ""),
+        role: String(data.role || editing.role),
+        garden_id: String(data.garden_id || "") || null,
+        active: String(data.active) === "true",
+        notes: String(data.notes || ""),
+        profile_image_url: String(data.profile_image_url || "")
+      });
+      setMessage("פרטי המשתמש נשמרו ונרשמו בלוג.");
+      setEditing(null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "שמירת המשתמש נכשלה");
+    }
+  }
+
   return (
     <>
       <section className="admin-tabs">
@@ -69,6 +93,7 @@ export function AdminUsersManagement({ users, auditLogs }: { users: Row[]; audit
       </section>
       {message ? <div className="success-banner">{message}</div> : null}
       {error ? <div className="error-banner">{error}</div> : null}
+      {editing ? <section className="modal-card"><form className="card form wizard-form" onSubmit={saveEdit}><div className="section-heading"><h2>עריכת משתמש</h2><p>עדכון פרופיל נשמר ב-Supabase ונרשם בלוג ביקורת.</p></div><div className="form-grid"><label>שם מלא<input name="full_name" defaultValue={editing.full_name ?? ""} /></label><label>טלפון<input name="phone" defaultValue={editing.phone ?? ""} /></label><label>תפקיד<select name="role" defaultValue={editing.role}><option value="admin">admin</option><option value="inspector">inspector</option><option value="manager">manager</option><option value="owner">owner</option><option value="staff">staff</option><option value="parent">parent</option></select></label><label>גן משויך<input name="garden_id" defaultValue={editing.garden_id ?? ""} /></label><label>סטטוס<select name="active" defaultValue={editing.active === false ? "false" : "true"}><option value="true">פעיל</option><option value="false">לא פעיל</option></select></label><label className="wide">תמונת פרופיל URL<input name="profile_image_url" defaultValue={editing.profile_image_url ?? ""} /></label><label className="wide">הערות<textarea name="notes" rows={3} defaultValue={editing.notes ?? ""} /></label></div><div className="actions"><button className="button primary">שמירת שינויים</button><button className="button secondary" type="button" onClick={() => setEditing(null)}>ביטול</button></div></form></section> : null}
       <section className="dashboard-section">
         {rows.length === 0 ? <div className="empty-state"><strong>אין משתמשים להצגה</strong><span>כאשר משתמשים ייווצרו הם יופיעו כאן לפי הרשאה ותפקיד.</span></div> : <div className="procedure-list">{rows.map((user) => {
           const credential = Array.isArray(user.generated_credentials) ? user.generated_credentials[0] : null;
@@ -87,8 +112,7 @@ export function AdminUsersManagement({ users, auditLogs }: { users: Row[]; audit
               <details className="audit-details"><summary>היסטוריית ביקורת למשתמש</summary>{auditLogs.filter((log) => log.entity_id === user.id || log.actor_id === user.id).length === 0 ? <small>אין פעולות ישירות.</small> : auditLogs.filter((log) => log.entity_id === user.id || log.actor_id === user.id).map((log) => <small key={log.id}>{log.action} · {log.created_at ? new Date(log.created_at).toLocaleString("he-IL") : ""}</small>)}</details>
             </div>
             <div className="procedure-meta">
-              <button className="button secondary" type="button" onClick={() => setMessage(`פרופיל: ${user.full_name ?? user.email} · ${user.role} · ${user.gardens?.name ?? "ללא גן"}`)}>צפייה</button>
-              <button className="button secondary" type="button" onClick={() => setMessage("עריכת פרופיל מלאה תתבצע במסך פרופיל משתמש ייעודי. כרגע ניתן להשבית, להפעיל ולאפס סיסמה.")}>עריכה</button>
+              <button className="button secondary" type="button" onClick={() => setEditing(user)}>צפייה / עריכה</button>
               {showPassword ? <button className="button secondary" onClick={() => navigator.clipboard?.writeText(`${credential?.username ?? user.username ?? ""}\n${credential?.temporary_password ?? ""}`)}>העתקת פרטים</button> : null}
               <button className="button secondary" onClick={() => action(user.id, "send_password_reset")}>שלח איפוס סיסמה</button>
               <button className="button secondary" onClick={() => action(user.id, "reset_password")}>איפוס ידני</button>

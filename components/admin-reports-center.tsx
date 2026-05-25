@@ -11,6 +11,7 @@ export function AdminReportsCenter({ complaints, incidents }: { complaints: any[
   const [status, setStatus] = useState("all");
   const [category, setCategory] = useState("all");
   const [message, setMessage] = useState("");
+  const [busyId, setBusyId] = useState<string | null>(null);
   const rows = useMemo(() => [
     ...complaints.map((row) => ({ ...row, source: "complaint", category: row.category ?? "general", title: row.subject })),
     ...incidents.map((row) => ({ ...row, source: "incident", category: row.incident_type ?? "general" }))
@@ -18,12 +19,23 @@ export function AdminReportsCenter({ complaints, incidents }: { complaints: any[
   const urgent = rows.filter((row) => row.urgent || row.severity === "critical" || row.severity === "high").length;
   const resolvedThisMonth = rows.filter((row) => ["resolved", "closed"].includes(row.status) && row.updated_at && new Date(row.updated_at).getMonth() === new Date().getMonth()).length;
 
+  async function persist(row: any, action: string) {
+    setBusyId(`${row.source}-${row.id}`);
+    setMessage("");
+    const text = ["reply", "close", "create_task"].includes(action) ? window.prompt(action === "close" ? "סיכום סגירה" : "הערה / תגובה") ?? "" : undefined;
+    if (["reply", "close"].includes(action) && !text) { setBusyId(null); return; }
+    const response = await fetch("/api/admin/report-actions", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ source: row.source, id: row.id, action, message: text, resolution: action === "close" ? text : undefined, status: action === "change_status" ? "in_progress" : undefined }) });
+    const body = await response.json();
+    setBusyId(null);
+    setMessage(response.ok ? "הפעולה נשמרה במסד הנתונים ונרשמה בלוג." : body.error || "הפעולה נכשלה");
+  }
+
   return (
     <>
       <div className="grid cols-4 dashboard-kpis"><div className="card stat-card"><MessageSquareReply /> חדשים <b>{rows.filter((r) => r.status === "new").length}</b></div><div className="card stat-card"><AlertCircle /> דחופים <b>{urgent}</b></div><div className="card stat-card"><Clock /> באיחור <b>{rows.filter((r) => r.response_due_at && new Date(r.response_due_at) < new Date()).length}</b></div><div className="card stat-card"><CheckCircle2 /> נפתרו החודש <b>{resolvedThisMonth}</b></div></div>
       <section className="filter-bar"><select value={status} onChange={(event) => setStatus(event.target.value)}>{statuses.map((item) => <option key={item} value={item}>{item === "all" ? "כל הסטטוסים" : item}</option>)}</select><select value={category} onChange={(event) => setCategory(event.target.value)}>{categories.map((item) => <option key={item} value={item}>{item === "all" ? "כל הקטגוריות" : item}</option>)}</select></section>
       {message ? <div className="success-banner">{message}</div> : null}
-      <section className="dashboard-section">{rows.length === 0 ? <div className="empty-state"><strong>אין דיווחים ופניות להצגה</strong><span>פניות מהורים, צוות, מנהלות, פקחים והאתר הציבורי יופיעו כאן עם פעולות טיפול.</span></div> : <div className="procedure-list">{rows.map((row) => <article className="card procedure-card" key={`${row.source}-${row.id}`}><div><span className={row.severity === "critical" || row.severity === "high" ? "pill bad" : "pill warn"}>{row.severity ?? "medium"} · {row.category}</span><h3>{row.title}</h3><p>{row.description ?? row.body ?? ""}</p><small>{row.gardens?.name ?? row.garden_id ?? "ללא גן"} · {row.children?.full_name ?? "ללא ילד"} · {row.created_at ? new Date(row.created_at).toLocaleString("he-IL") : ""}</small></div><div className="procedure-meta"><span className="pill">{row.status ?? "new"}</span><button className="button secondary" type="button" onClick={() => setMessage("תגובה תירשם בציר הטיפול לאחר בחירת מטפל.")}>תגובה</button><button className="button secondary" type="button" onClick={() => setMessage("שיוך מטפל יישמר אחרי בחירת משתמש מהרשימה.")}>שיוך מטפל</button><Link className="button secondary" href={`/dashboard/admin/tasks?source=${row.source}&id=${row.id}`}><PlusCircle size={15} /> משימה</Link>{row.garden_id ? <Link className="button" href={`/dashboard/admin/gardens/${row.garden_id}`}>פרופיל גן</Link> : null}</div></article>)}</div>}</section>
+      <section className="dashboard-section">{rows.length === 0 ? <div className="empty-state"><strong>אין דיווחים ופניות להצגה</strong><span>פניות מהורים, צוות, מנהלות, פקחים והאתר הציבורי יופיעו כאן עם פעולות טיפול.</span></div> : <div className="procedure-list">{rows.map((row) => { const busy = busyId === `${row.source}-${row.id}`; return <article className="card procedure-card" key={`${row.source}-${row.id}`}><div><span className={row.severity === "critical" || row.severity === "high" ? "pill bad" : "pill warn"}>{row.severity ?? "medium"} · {row.category}</span><h3>{row.title}</h3><p>{row.description ?? row.body ?? ""}</p><small>{row.gardens?.name ?? row.garden_id ?? "ללא גן"} · {row.children?.full_name ?? "ללא ילד"} · {row.created_at ? new Date(row.created_at).toLocaleString("he-IL") : ""}</small><details className="audit-details"><summary>ציר טיפול</summary><small>סטטוס: {row.status ?? "new"}</small><small>תגובה אחרונה: {row.last_response_at ? new Date(row.last_response_at).toLocaleString("he-IL") : "אין"}</small><small>הערות פנימיות: {row.internal_notes ?? "אין"}</small></details></div><div className="procedure-meta"><span className="pill">{row.status ?? "new"}</span><button className="button secondary" type="button" disabled={busy} onClick={() => persist(row, "reply")}>תגובה</button><button className="button secondary" type="button" disabled={busy} onClick={() => persist(row, "assign")}>שיוך אלי</button><button className="button secondary" type="button" disabled={busy} onClick={() => persist(row, "mark_urgent")}>דחוף</button><button className="button secondary" type="button" disabled={busy} onClick={() => persist(row, "change_status")}>בטיפול</button><button className="button secondary" type="button" disabled={busy} onClick={() => persist(row, "close")}>סגירה</button><button className="button secondary" type="button" disabled={busy} onClick={() => persist(row, "create_task")}><PlusCircle size={15} /> משימה</button>{row.garden_id ? <Link className="button" href={`/dashboard/admin/gardens/${row.garden_id}`}>פרופיל גן</Link> : null}</div></article>; })}</div>}</section>
     </>
   );
 }

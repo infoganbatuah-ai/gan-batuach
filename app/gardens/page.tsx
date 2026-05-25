@@ -21,17 +21,41 @@ type PublicGarden = {
   last_inspection_at?: string | null;
   next_inspection_at?: string | null;
   public_profile_enabled?: boolean | null;
+  gps_lat?: number | null;
+  gps_lng?: number | null;
 };
 
-async function getPublicGardens() {
+type GardenSearchParams = { lead?: string; name?: string; city?: string; manager?: string; age?: string; status?: string; min_score?: string; lat?: string; lng?: string };
+
+function distanceKm(lat1: number, lng1: number, lat2?: number | null, lng2?: number | null) {
+  if (lat2 == null || lng2 == null) return Number.POSITIVE_INFINITY;
+  const toRad = (value: number) => value * Math.PI / 180;
+  const dLat = toRad(lat2 - lat1);
+  const dLng = toRad(lng2 - lng1);
+  const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
+  return 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+async function getPublicGardens(filters: GardenSearchParams) {
   try {
     const supabase = createAdminClient();
-    const { data } = await supabase
+    let query = supabase
       .from("gardens")
-      .select("id, name, city, address, owner_name, framework_type, children_capacity, current_children_count, safe_status, last_inspection_score, last_inspection_at, next_inspection_at, public_profile_enabled, manager:profiles!gardens_manager_id_fkey(full_name)")
+      .select("id, name, city, address, owner_name, framework_type, children_capacity, current_children_count, safe_status, last_inspection_score, last_inspection_at, next_inspection_at, public_profile_enabled, gps_lat, gps_lng, manager:profiles!gardens_manager_id_fkey(full_name)")
       .eq("public_profile_enabled", true)
       .limit(24);
-    return (data ?? []) as unknown as PublicGarden[];
+    if (filters.name) query = query.ilike("name", `%${filters.name}%`);
+    if (filters.city) query = query.ilike("city", `%${filters.city}%`);
+    if (filters.age) query = query.ilike("framework_type", `%${filters.age}%`);
+    if (filters.status) query = query.eq("safe_status", filters.status);
+    if (filters.min_score) query = query.gte("last_inspection_score", Number(filters.min_score));
+    const { data } = await query;
+    let rows = (data ?? []) as unknown as PublicGarden[];
+    if (filters.manager) rows = rows.filter((garden) => (garden.manager?.full_name ?? garden.owner_name ?? "").includes(filters.manager ?? ""));
+    const lat = Number(filters.lat);
+    const lng = Number(filters.lng);
+    if (Number.isFinite(lat) && Number.isFinite(lng)) rows = rows.sort((a, b) => distanceKm(lat, lng, a.gps_lat, a.gps_lng) - distanceKm(lat, lng, b.gps_lat, b.gps_lng));
+    return rows;
   } catch {
     return [] as PublicGarden[];
   }
@@ -48,9 +72,9 @@ function safeStatus(status?: string | null) {
   return { label: "ממתין לבדיקה", className: "", icon: CheckCircle2 };
 }
 
-export default async function GardensPage({ searchParams }: { searchParams: Promise<{ lead?: string }> }) {
-  const gardens = await getPublicGardens();
+export default async function GardensPage({ searchParams }: { searchParams: Promise<GardenSearchParams> }) {
   const params = await searchParams;
+  const gardens = await getPublicGardens(params);
 
   return (
     <>
@@ -64,11 +88,11 @@ export default async function GardensPage({ searchParams }: { searchParams: Prom
         </section>
 
         <section className="section compact-section">
-          <div className="filter-bar">
-            <label>שם גן<input placeholder="לדוגמה: גן הפרחים" /></label>
-            <label>עיר<input placeholder="תל אביב, ראשון לציון..." /></label>
-            <label>שם מנהלת<input placeholder="שם מנהלת/גננת" /></label><label>גילאים<select defaultValue=""><option value="">כל הגילאים</option><option>babies</option><option>toddlers</option><option>3-4</option><option>4-5</option><option>mixed</option></select></label><label>סטטוס<select defaultValue=""><option value="">כל הסטטוסים</option><option>גן בטוח</option><option>דורש תיקון</option></select></label><label>ציון ביקורת<input type="number" min="1" max="10" placeholder="8+" /></label><button className="button primary" type="button">סינון</button>
-          </div>
+          <form className="filter-bar" method="get">
+            <label>שם גן<input name="name" defaultValue={params.name ?? ""} placeholder="לדוגמה: גן הפרחים" /></label>
+            <label>עיר<input name="city" defaultValue={params.city ?? ""} placeholder="תל אביב, ראשון לציון..." /></label>
+            <label>שם מנהלת<input name="manager" defaultValue={params.manager ?? ""} placeholder="שם מנהלת/גננת" /></label><label>גילאים<select name="age" defaultValue={params.age ?? ""}><option value="">כל הגילאים</option><option value="birth">תינוקות</option><option value="toddlers">פעוטות</option><option value="3">3-4</option><option value="4">4-5</option><option value="mixed">מעורב</option></select></label><label>סטטוס<select name="status" defaultValue={params.status ?? ""}><option value="">כל הסטטוסים</option><option value="safe">גן בטוח</option><option value="requires_fix">דורש תיקון</option><option value="not_compliant">לא עומד בסטנדרט</option></select></label><label>ציון ביקורת<input name="min_score" type="number" min="1" max="10" defaultValue={params.min_score ?? ""} placeholder="8+" /></label><label>קו רוחב<input name="lat" defaultValue={params.lat ?? ""} placeholder="למיון לפי מרחק" /></label><label>קו אורך<input name="lng" defaultValue={params.lng ?? ""} placeholder="אופציונלי" /></label><button className="button primary">סינון</button><Link className="button secondary" href="/gardens">ניקוי</Link>
+          </form>
 
           {gardens.length === 0 ? (
             <div className="empty-state">

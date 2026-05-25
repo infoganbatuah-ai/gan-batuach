@@ -61,6 +61,17 @@ export function createCrudHandlers(config: CrudConfig) {
             severity: parsed.priority ?? "medium"
           })));
         }
+        if (config.table === "camera_streams" && data && "session" in permission) {
+          await (supabase as any).from("audit_logs").insert({
+            actor_id: permission.session.profile.id,
+            actor_role: permission.session.profile.role,
+            garden_id: data.garden_id ?? parsed.garden_id ?? null,
+            entity_type: "camera_streams",
+            entity_id: data.id,
+            action: "create_camera_source",
+            after_data: { name: data.name, status: data.status, camera_type: data.camera_type, parent_view_allowed: data.parent_view_allowed, ai_enabled: data.ai_enabled }
+          });
+        }
         return ok(data, 201);
       } catch (error) {
         return handleRouteError(error);

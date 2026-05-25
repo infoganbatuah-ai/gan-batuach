@@ -5,8 +5,15 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { generateTemporaryPassword, writeUserCreationAudit } from "@/lib/onboarding/user-provisioning";
 
 const schema = z.object({
-  action: z.enum(["regenerate_credentials", "reset_password", "send_password_reset", "deactivate", "reactivate"]),
+  action: z.enum(["regenerate_credentials", "reset_password", "send_password_reset", "deactivate", "reactivate", "update_profile"]),
   user_id: z.string().uuid(),
+  full_name: z.string().optional(),
+  phone: z.string().optional(),
+  role: z.enum(["admin", "inspector", "manager", "owner", "staff", "parent"]).optional(),
+  garden_id: z.string().uuid().nullable().optional(),
+  active: z.boolean().optional(),
+  notes: z.string().optional(),
+  profile_image_url: z.string().optional(),
   reason: z.string().optional()
 });
 
@@ -18,6 +25,23 @@ export async function POST(request: Request) {
 
     const { data: target, error: targetError } = await supabase.from("profiles").select("id, username, email, role, full_name").eq("id", payload.user_id).single();
     if (targetError || !target) return fail("המשתמש לא נמצא.", 404);
+
+    if (payload.action === "update_profile") {
+      const patch = {
+        full_name: payload.full_name ?? null,
+        phone: payload.phone ?? null,
+        role: payload.role,
+        garden_id: payload.garden_id ?? null,
+        active: payload.active,
+        notes: payload.notes ?? null,
+        profile_image_url: payload.profile_image_url ?? null
+      };
+      const cleanPatch = Object.fromEntries(Object.entries(patch).filter(([, value]) => value !== undefined));
+      const { data, error } = await supabase.from("profiles").update(cleanPatch).eq("id", payload.user_id).select("*").single();
+      if (error) return fail("שמירת פרטי המשתמש נכשלה: " + error.message, 400);
+      await writeUserCreationAudit({ actorId: profile.id, actorRole: "admin", entityType: "profiles", entityId: payload.user_id, action: "update_user_profile", afterData: cleanPatch });
+      return ok(data);
+    }
 
     if (payload.action === "deactivate" || payload.action === "reactivate") {
       const { error } = await supabase.from("profiles").update({ active: payload.action === "reactivate", deactivated_at: payload.action === "deactivate" ? new Date().toISOString() : null }).eq("id", payload.user_id);
