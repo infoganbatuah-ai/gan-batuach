@@ -19,10 +19,27 @@ export function PasskeyLogin() {
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<string | null>(null);
   const [supported, setSupported] = useState<boolean | null>(null);
+  const [platformAuthenticator, setPlatformAuthenticator] = useState<boolean | null>(null);
+  const [conditionalMediation, setConditionalMediation] = useState<boolean | null>(null);
   const [isLoading, setIsLoading] = useState(false);
 
   useEffect(() => {
-    setSupported(Boolean(window.PublicKeyCredential));
+    const credentialApi = window.PublicKeyCredential as (typeof PublicKeyCredential & {
+      isConditionalMediationAvailable?: () => Promise<boolean>;
+      isUserVerifyingPlatformAuthenticatorAvailable?: () => Promise<boolean>;
+    }) | undefined;
+    setSupported(Boolean(credentialApi));
+    if (!credentialApi) {
+      setPlatformAuthenticator(false);
+      setConditionalMediation(false);
+      return;
+    }
+    credentialApi.isUserVerifyingPlatformAuthenticatorAvailable?.()
+      .then(setPlatformAuthenticator)
+      .catch(() => setPlatformAuthenticator(false));
+    credentialApi.isConditionalMediationAvailable?.()
+      .then(setConditionalMediation)
+      .catch(() => setConditionalMediation(false));
   }, []);
 
   async function loginWithPasskey() {
@@ -65,9 +82,18 @@ export function PasskeyLogin() {
           <p>מוכן ל-Apple Face ID, Touch ID, Android Biometrics ו-Passkeys בדסקטופ דרך WebAuthn. הזיהוי מתבצע במכשיר שלך; גן בטוח שומרת רק מפתח ציבורי, לא נתונים ביומטריים.</p>
         </div>
       </div>
-      <div className="passkey-readiness-grid"><span className="pill good">WebAuthn</span><span className="pill good">iOS Safari</span><span className="pill good">Android Chrome</span><span className={supported === false ? "pill warn" : "pill good"}>{supported === false ? "המכשיר לא דיווח תמיכה" : "המכשיר מוכן"}</span></div>
+      <div className="passkey-readiness-grid">
+        <span className={supported ? "pill good" : "pill warn"}>WebAuthn {supported ? "פעיל" : "לא זמין"}</span>
+        <span className={platformAuthenticator ? "pill good" : platformAuthenticator === false ? "pill warn" : "pill"}>Face ID / Touch ID {platformAuthenticator ? "מוכן" : platformAuthenticator === false ? "דורש מכשיר תומך" : "בודק"}</span>
+        <span className={conditionalMediation ? "pill good" : "pill"}>Autofill Passkeys {conditionalMediation ? "מוכן" : "אופציונלי"}</span>
+        <span className="pill good">Android Biometrics מוכן בארכיטקטורה</span>
+      </div>
+      <div className="passkey-architecture-note">
+        <strong>בדיקת מוכנות</strong>
+        <span>כניסה ביומטרית תעבוד אחרי שהמשתמש הפעיל Passkey מהדשבורד. המערכת לא שומרת פנים, טביעת אצבע או מידע ביומטרי.</span>
+      </div>
       <label>אימייל לחשבון<input value={email} onChange={(event) => setEmail(event.target.value)} type="email" autoComplete="username webauthn" placeholder="name@example.com" /></label>
-      <button className="button soft" type="button" onClick={loginWithPasskey} disabled={isLoading || !email}>
+      <button className="button soft" type="button" onClick={loginWithPasskey} disabled={isLoading || !email || supported === false}>
         <KeyRound size={18} /> {isLoading ? "ממתין לאישור במכשיר" : "כניסה עם Passkey"}
       </button>
       {status ? <p className="notice compact">{status}</p> : <p className="muted-small">תמיד אפשר להמשיך להיכנס בסיסמה אם המכשיר לא זמין.</p>}
