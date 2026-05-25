@@ -1,0 +1,15 @@
+# Keep local artifacts and secrets out of future Docker build contexts.
+.env
+.env.*
+!.env.example
+.git
+.next
+node_modules
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+__MACOSX
+.DS_Store
+coverage
+*.local

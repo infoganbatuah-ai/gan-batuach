@@ -1,0 +1,65 @@
+# Future architecture example only.
+# Current production remains Vercel + Supabase; this compose file is not used
+# by the live app unless explicitly run in a future infrastructure phase.
+
+name: gan-batuach-future
+
+services:
+  web-app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env.local
+    environment:
+      VIDEO_GATEWAY_URL: http://video-gateway:8080
+      AI_GATEWAY_URL: http://ai-gateway:8090
+      PDF_SERVICE_URL: http://pdf-service:8070
+    depends_on:
+      - video-gateway
+      - ai-gateway
+      - pdf-service
+
+  video-gateway:
+    image: gan-batuach/video-gateway:future-placeholder
+    profiles: ["future"]
+    ports:
+      - "8080:8080"
+    command: ["sh", "-c", "echo 'Future RTSP/ONVIF to HLS/WebRTC service placeholder' && sleep infinity"]
+
+  ai-gateway:
+    image: gan-batuach/ai-gateway:future-placeholder
+    profiles: ["future"]
+    ports:
+      - "8090:8090"
+    depends_on:
+      - face-recognition-service
+      - speech-analysis-service
+    command: ["sh", "-c", "echo 'Future AI orchestration service placeholder' && sleep infinity"]
+
+  face-recognition-service:
+    image: gan-batuach/face-recognition:future-placeholder
+    profiles: ["future"]
+    command: ["sh", "-c", "echo 'Future child/staff face recognition service placeholder' && sleep infinity"]
+
+  speech-analysis-service:
+    image: gan-batuach/speech-analysis:future-placeholder
+    profiles: ["future"]
+    command: ["sh", "-c", "echo 'Future Hebrew speech/distress analysis service placeholder' && sleep infinity"]
+
+  pdf-service:
+    image: gan-batuach/pdf-service:future-placeholder
+    profiles: ["future"]
+    ports:
+      - "8070:8070"
+    command: ["sh", "-c", "echo 'Future server-side PDF rendering service placeholder' && sleep infinity"]
+
+  workers-service:
+    image: gan-batuach/workers:future-placeholder
+    profiles: ["future"]
+    depends_on:
+      - video-gateway
+      - ai-gateway
+    command: ["sh", "-c", "echo 'Future cron/reminder/background worker placeholder' && sleep infinity"]

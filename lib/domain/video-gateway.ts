@@ -43,6 +43,11 @@ export const streamHealthSchema = z.object({
 });
 
 async function gatewayRequest(path: string, payload: unknown) {
+  // Future architecture integration point:
+  // VIDEO_GATEWAY_URL will point to the dedicated video-gateway service
+  // responsible for RTSP/ONVIF ingestion, HLS/WebRTC conversion, stream health
+  // checks and secure playback sessions. Until configured, callers receive a
+  // pending gateway response and the current Vercel/Supabase runtime is unchanged.
   if (!process.env.VIDEO_GATEWAY_URL) {
     return { gateway_unconfigured: true, path, payload };
   }

@@ -55,6 +55,11 @@ function pickRule(rules: any[], gardenId: string, cameraStreamId?: string) {
 }
 
 export async function registerAiObservation(payload: z.infer<typeof aiObservationSchema>) {
+  // Future architecture integration point:
+  // AI_GATEWAY_URL will orchestrate face-recognition-service,
+  // speech-analysis-service and motion analysis. This function is the current
+  // signed event ingestion contract for structured AI events after gateway-side
+  // analysis, without claiming live AI is active before the gateway exists.
   const parsed = aiObservationSchema.parse(payload);
   const supabase = createAdminClient();
   const { data: rules, error: rulesError } = await supabase
