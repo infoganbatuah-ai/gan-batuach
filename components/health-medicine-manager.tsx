@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { AlertTriangle, HeartPulse, Pill } from "lucide-react";
 import { Avatar } from "@/components/avatar";
+import { uploadFiles } from "@/lib/client-upload";
 
 export function HealthMedicineManager({ gardenId, children, records }: { gardenId: string; children: any[]; records: any[] }) {
   const [selectedChildId, setSelectedChildId] = useState(children[0]?.id ?? "");
@@ -13,6 +14,14 @@ export function HealthMedicineManager({ gardenId, children, records }: { gardenI
 
   async function save(formData: FormData) {
     setMessage("");
+    let approvals: string[] = [];
+    try {
+      approvals = await uploadFiles(formData.getAll("medication_approval_file").filter((item): item is File => item instanceof File && item.size > 0), "documents", "medical-approvals");
+    } catch (error) {
+      console.error("Medical approval upload failed", error);
+      setMessage("לא ניתן להעלות אישור תרופה כרגע. כרטיס הבריאות לא נשמר כדי למנוע מידע חלקי.");
+      return;
+    }
     const emergency_contacts = String(formData.get("emergency_contacts") ?? "").split("\n").map((line) => line.trim()).filter(Boolean).map((line) => {
       const [name, phone, relation] = line.split(",").map((part) => part?.trim());
       return { name, phone, relation };
@@ -25,7 +34,7 @@ export function HealthMedicineManager({ gardenId, children, records }: { gardenI
       sensitivities: String(formData.get("sensitivities") ?? ""),
       medications: String(formData.get("medications") ?? ""),
       emergency_contacts,
-      medication_approval_url: String(formData.get("medication_approval_url") ?? ""),
+      medication_approval_url: approvals[0] ?? String(formData.get("medication_approval_url") ?? ""),
       medication_approval_expires_at: String(formData.get("medication_approval_expires_at") ?? ""),
       medical_notes: String(formData.get("medical_notes") ?? ""),
       medication_due_at: String(formData.get("medication_due_at") ?? "") || undefined
@@ -72,7 +81,7 @@ export function HealthMedicineManager({ gardenId, children, records }: { gardenI
             <label className="wide">רגישויות<textarea name="sensitivities" rows={2} defaultValue={selectedRecord?.sensitivities ?? selectedChild?.sensitivities ?? ""} /></label>
             <label className="wide">תרופות קבועות<textarea name="medications" rows={2} defaultValue={selectedRecord?.medications ?? selectedChild?.regular_medications ?? ""} /></label>
             <label className="wide">אנשי קשר חירום<textarea name="emergency_contacts" rows={3} placeholder="שם, טלפון, קשר משפחתי - כל איש קשר בשורה" /></label>
-            <label>קישור אישור תרופה<input name="medication_approval_url" defaultValue={selectedRecord?.medication_approval_url ?? ""} /></label>
+            <label>אישור תרופה חתום<input name="medication_approval_file" type="file" accept="image/*,application/pdf" /></label>
             <label>מועד תרופה הבא<input name="medication_due_at" type="datetime-local" /></label>
             <label className="wide">הערות רפואיות<textarea name="medical_notes" rows={3} defaultValue={selectedRecord?.medical_notes ?? selectedChild?.medical_notes ?? ""} /></label>
           </div>

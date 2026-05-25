@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { Siren } from "lucide-react";
 import { Avatar } from "@/components/avatar";
+import { uploadFiles } from "@/lib/client-upload";
 
 const incidentTypes = [
   ["injury", "פציעה"],
@@ -23,6 +24,14 @@ export function IncidentManager({ gardenId, children, incidents }: { gardenId: s
 
   async function submit(formData: FormData) {
     setMessage("");
+    let uploadedPhotos: string[] = [];
+    try {
+      uploadedPhotos = await uploadFiles(formData.getAll("photos").filter((item): item is File => item instanceof File && item.size > 0), "incident-photos", "incidents");
+    } catch (error) {
+      console.error("Incident photo upload failed", error);
+      setMessage("לא ניתן להעלות תמונות כרגע. האירוע לא נשמר כדי למנוע תיעוד חלקי.");
+      return;
+    }
     const payload = {
       garden_id: gardenId,
       child_id: String(formData.get("child_id") ?? "") || undefined,
@@ -32,7 +41,7 @@ export function IncidentManager({ gardenId, children, incidents }: { gardenId: s
       severity: String(formData.get("severity")),
       parent_notified: Boolean(formData.get("parent_notified")),
       inspector_notified: Boolean(formData.get("inspector_notified")),
-      photo_urls: String(formData.get("photo_urls") ?? "").split("\n").map((url) => url.trim()).filter(Boolean)
+      photo_urls: uploadedPhotos
     };
     startTransition(async () => {
       const response = await fetch("/api/incident-reports", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
@@ -51,7 +60,7 @@ export function IncidentManager({ gardenId, children, incidents }: { gardenId: s
           <label>חומרה<select name="severity"><option value="low">נמוכה</option><option value="medium">בינונית</option><option value="high">גבוהה</option><option value="critical">קריטית</option></select></label>
           <label>כותרת<input name="title" required placeholder="לדוגמה: נפילה בחצר" /></label>
           <label className="wide">תיאור<textarea name="description" rows={5} required placeholder="מה קרה, מתי, מי היה נוכח ומה נעשה מיד" /></label>
-          <label className="wide">קישורי תמונות<textarea name="photo_urls" rows={3} placeholder="קישור אחד בכל שורה עד חיבור Storage מלא" /></label>
+          <label className="wide">תמונות אירוע<input name="photos" type="file" accept="image/*" multiple /></label>
           <label><input type="checkbox" name="parent_notified" /> הורה עודכן</label>
           <label><input type="checkbox" name="inspector_notified" /> פקח עודכן</label>
         </div>

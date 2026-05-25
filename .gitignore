@@ -1,3 +1,6 @@
 node_modules/
 .next/
 .env.local
+__MACOSX/
+.DS_Store
+.git/

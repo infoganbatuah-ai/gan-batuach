@@ -28,7 +28,7 @@ if (!supabaseUrl || !serviceRoleKey) {
   throw new Error("NEXT_PUBLIC_SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required");
 }
 
-if (supabaseUrl.includes("demo.supabase.co") || supabaseUrl.includes("your-project")) {
+if (supabaseUrl.includes("sample.supabase.co") || supabaseUrl.includes("your-project")) {
   throw new Error("Set NEXT_PUBLIC_SUPABASE_URL to your real Supabase project URL before seeding users");
 }
 

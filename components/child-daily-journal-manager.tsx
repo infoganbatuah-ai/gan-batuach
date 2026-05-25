@@ -3,6 +3,7 @@
 import { useMemo, useState, useTransition } from "react";
 import { Camera, CheckCircle2, Moon, Smile, Utensils } from "lucide-react";
 import { Avatar } from "@/components/avatar";
+import { uploadFiles } from "@/lib/client-upload";
 
 type Child = { id: string; full_name: string; photo_url?: string | null; allergies?: string | null; regular_medications?: string | null };
 type Journal = Record<string, any>;
@@ -16,6 +17,14 @@ export function ChildDailyJournalManager({ gardenId, children, journals }: { gar
 
   async function submit(formData: FormData) {
     setMessage("");
+    let uploadedPhotos: string[] = [];
+    try {
+      uploadedPhotos = await uploadFiles(formData.getAll("photos").filter((item): item is File => item instanceof File && item.size > 0), "child-photos", "daily-journal");
+    } catch (error) {
+      console.error("Daily journal photo upload failed", error);
+      setMessage("לא ניתן להעלות תמונות כרגע. היומן לא נשמר כדי למנוע שליחה חלקית להורים.");
+      return;
+    }
     const payload = {
       garden_id: gardenId,
       child_id: String(formData.get("child_id")),
@@ -30,7 +39,7 @@ export function ChildDailyJournalManager({ gardenId, children, journals }: { gar
       medicine: String(formData.get("medicine") ?? ""),
       incidents: String(formData.get("incidents") ?? ""),
       notes_to_parents: String(formData.get("notes_to_parents") ?? ""),
-      photo_urls: String(formData.get("photo_urls") ?? "").split("\n").map((url) => url.trim()).filter(Boolean),
+      photo_urls: uploadedPhotos,
       staff_signature: String(formData.get("staff_signature") ?? "")
     };
     startTransition(async () => {
@@ -68,7 +77,7 @@ export function ChildDailyJournalManager({ gardenId, children, journals }: { gar
           <label>תרופה שניתנה<input name="medicine" placeholder="רק אם יש אישור הורה" /></label>
           <label>אירועים חריגים<input name="incidents" placeholder="ללא / פירוט קצר" /></label>
           <label className="wide">הערה להורים<textarea name="notes_to_parents" rows={4} placeholder="משהו טוב מהיום, בקשה למחר או עדכון חשוב" /></label>
-          <label className="wide"><Camera size={16} /> קישורי תמונות יומיות<textarea name="photo_urls" rows={3} placeholder="קישור אחד בכל שורה עד לחיבור Storage מלא" /></label>
+          <label className="wide"><Camera size={16} /> תמונות יומיות<input name="photos" type="file" accept="image/*" multiple /></label>
           <label className="wide">חתימת איש צוות<input name="staff_signature" placeholder="שם מלא של איש/ת הצוות" required /></label>
         </div>
         <button className="button primary large" disabled={isPending || !selectedChildId}>{isPending ? "שומר..." : <><CheckCircle2 size={18} /> שמירת עדכון יומי</>}</button>

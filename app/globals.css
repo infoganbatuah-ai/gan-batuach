@@ -880,7 +880,8 @@ textarea {
   .quick-actions-grid,
   .filter-bar,
   .choice-grid,
-  .small-actions {
+  .small-actions,
+  .role-guide-steps {
     grid-template-columns: 1fr;
   }
 
@@ -1095,6 +1096,112 @@ textarea {
 
 .audit-details small {
   display: block;
+}
+
+.sandbox-mode-banner,
+.role-guide-card {
+  margin-bottom: 18px;
+  border: 1px solid rgb(18 59 143 / 16%);
+  border-radius: var(--radius-md, 14px);
+  background:
+    linear-gradient(135deg, rgb(255 255 255 / 96%), rgb(235 247 255 / 92%)),
+    radial-gradient(circle at 10% 20%, rgb(45 212 191 / 18%), transparent 32%);
+  box-shadow: 0 16px 44px rgb(18 59 143 / 9%);
+}
+
+.sandbox-mode-banner {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 14px 16px;
+  color: var(--blue-dark);
+}
+
+.sandbox-mode-banner span {
+  display: block;
+  color: var(--muted);
+  margin-top: 2px;
+}
+
+.role-guide-card {
+  padding: 16px;
+}
+
+.role-guide-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.role-guide-heading span,
+.role-guide-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 900;
+  color: var(--blue-dark);
+}
+
+.role-guide-heading button {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: white;
+  cursor: pointer;
+}
+
+.role-guide-steps {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.role-guide-steps a {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 10px;
+  align-items: start;
+  padding: 12px;
+  border: 1px solid rgb(18 59 143 / 12%);
+  border-radius: var(--radius-md, 14px);
+  background: white;
+  transition: transform .16s ease, box-shadow .16s ease;
+}
+
+.role-guide-steps a:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgb(18 59 143 / 10%);
+}
+
+.role-guide-steps b {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  color: white;
+  background: linear-gradient(135deg, var(--blue), var(--success));
+}
+
+.role-guide-steps strong,
+.role-guide-steps small {
+  display: block;
+}
+
+.role-guide-steps small,
+.role-guide-footer {
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.role-guide-footer {
+  margin-top: 12px;
+  font-weight: 700;
 }
 
 

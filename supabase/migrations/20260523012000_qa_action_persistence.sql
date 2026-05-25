@@ -21,4 +21,13 @@ alter table public.incident_reports
   add column if not exists internal_notes text,
   add column if not exists status_history jsonb not null default '[]'::jsonb;
 
+insert into storage.buckets (id, name, public)
+values
+  ('documents', 'documents', false),
+  ('child-photos', 'child-photos', false),
+  ('incident-photos', 'incident-photos', false),
+  ('inspection-reports', 'inspection-reports', false),
+  ('gallery', 'gallery', false)
+on conflict (id) do nothing;
+
 notify pgrst, 'reload schema';
