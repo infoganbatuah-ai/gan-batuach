@@ -94,24 +94,33 @@ export function AdminUsersManagement({ users, auditLogs }: { users: Row[]; audit
       {message ? <div className="success-banner">{message}</div> : null}
       {error ? <div className="error-banner">{error}</div> : null}
       {editing ? <section className="modal-card"><form className="card form wizard-form" onSubmit={saveEdit}><div className="section-heading"><h2>עריכת משתמש</h2><p>עדכון פרופיל נשמר ב-Supabase ונרשם בלוג ביקורת.</p></div><div className="form-grid"><label>שם מלא<input name="full_name" defaultValue={editing.full_name ?? ""} /></label><label>טלפון<input name="phone" defaultValue={editing.phone ?? ""} /></label><label>תפקיד<select name="role" defaultValue={editing.role}><option value="admin">admin</option><option value="inspector">inspector</option><option value="manager">manager</option><option value="owner">owner</option><option value="staff">staff</option><option value="parent">parent</option></select></label><label>גן משויך<input name="garden_id" defaultValue={editing.garden_id ?? ""} /></label><label>סטטוס<select name="active" defaultValue={editing.active === false ? "false" : "true"}><option value="true">פעיל</option><option value="false">לא פעיל</option></select></label><label className="wide">תמונת פרופיל URL<input name="profile_image_url" defaultValue={editing.profile_image_url ?? ""} /></label><label className="wide">הערות<textarea name="notes" rows={3} defaultValue={editing.notes ?? ""} /></label></div><div className="actions"><button className="button primary">שמירת שינויים</button><button className="button secondary" type="button" onClick={() => setEditing(null)}>ביטול</button></div></form></section> : null}
-      <section className="dashboard-section">
-        {rows.length === 0 ? <div className="empty-state"><strong>אין משתמשים להצגה</strong><span>כאשר משתמשים ייווצרו הם יופיעו כאן לפי הרשאה ותפקיד.</span></div> : <div className="procedure-list">{rows.map((user) => {
+      <section className="dashboard-section people-directory">
+        <div className="section-heading"><h2>פרופילי משתמשים</h2><p>תצוגת ניהול מלאה עם הרשאה, גן משויך, פרטי כניסה ראשוניים, סטטוס וסיפור ביקורת.</p></div>
+        {rows.length === 0 ? <div className="empty-state"><strong>אין משתמשים להצגה</strong><span>כאשר משתמשים ייווצרו הם יופיעו כאן לפי הרשאה ותפקיד.</span></div> : <div className="people-card-grid admin-user-card-grid">{rows.map((user) => {
           const credential = Array.isArray(user.generated_credentials) ? user.generated_credentials[0] : null;
           const garden = user.gardens ?? user.related_garden ?? null;
           const createdBy = user.created_by_profile?.full_name ?? user.created_by ?? "-";
           const passwordChanged = user.must_change_password === false || credential?.password_changed_at;
           const showPassword = user.role !== "parent" && credential && !passwordChanged;
-          return <article className="card procedure-card" key={user.id}>
-            <div>
-              <span className={user.active === false ? "pill bad" : "pill good"}>{user.active === false ? "לא פעיל" : "פעיל"} · {user.role}</span>
-              <div className="selected-child-strip mini"><Avatar name={user.full_name} src={user.profile_image_url} /><h3>{user.full_name ?? user.email ?? user.username ?? "משתמש"}</h3></div>
-              <p>{user.email ?? credential?.username ?? user.username ?? "-"} · {user.phone ?? "-"}</p>
-              <small>גן: {garden?.name ?? user.garden_id ?? "-"} · נוצר: {user.created_at ? new Date(user.created_at).toLocaleDateString("he-IL") : "-"} · כניסה אחרונה: {user.last_login_at ? new Date(user.last_login_at).toLocaleString("he-IL") : "-"}</small>
-              <small>נוצר על ידי: {createdBy} · שם משתמש: {credential?.username ?? user.username ?? "-"}</small>
-              <div className="credential-box"><b>פרטי כניסה ראשונים:</b> <span>{credential?.username ?? user.email ?? user.username ?? "-"}</span>{showPassword ? <code>{credential.temporary_password}</code> : <strong>{user.role === "parent" ? "סיסמת הורה מוסתרת" : "הסיסמה הוחלפה"}</strong>}</div>
-              <details className="audit-details"><summary>היסטוריית ביקורת למשתמש</summary>{auditLogs.filter((log) => log.entity_id === user.id || log.actor_id === user.id).length === 0 ? <small>אין פעולות ישירות.</small> : auditLogs.filter((log) => log.entity_id === user.id || log.actor_id === user.id).map((log) => <small key={log.id}>{log.action} · {log.created_at ? new Date(log.created_at).toLocaleString("he-IL") : ""}</small>)}</details>
+          const relatedLogs = auditLogs.filter((log) => log.entity_id === user.id || log.actor_id === user.id);
+          return <article className="person-card admin-user-profile-card" key={user.id}>
+            <div className="person-card-top">
+              <Avatar name={user.full_name ?? user.email} src={user.profile_image_url} size="lg" />
+              <div>
+                <span className={user.active === false ? "pill bad" : "pill good"}>{user.active === false ? "לא פעיל" : "פעיל"} · {user.role}</span>
+                <h3>{user.full_name ?? user.email ?? user.username ?? "משתמש"}</h3>
+                <p>{user.email ?? credential?.username ?? user.username ?? "-"} · {user.phone ?? "טלפון חסר"}</p>
+              </div>
             </div>
-            <div className="procedure-meta">
+            <div className="profile-badge-row">
+              <span className="pill"><Avatar name={garden?.name ?? "גן"} size="sm" /> {garden?.name ?? user.garden_id ?? "ללא גן"}</span>
+              <span className="pill warn">נוצר ע״י {createdBy}</span>
+              <span className={passwordChanged ? "pill good" : "pill warn"}>{passwordChanged ? "סיסמה הוחלפה" : "סיסמה ראשונית פעילה"}</span>
+            </div>
+            <div className="mini-kpi-row"><span>נוצר <b>{user.created_at ? new Date(user.created_at).toLocaleDateString("he-IL") : "-"}</b></span><span>כניסה אחרונה <b>{user.last_login_at ? new Date(user.last_login_at).toLocaleDateString("he-IL") : "-"}</b></span><span>Audit <b>{relatedLogs.length}</b></span></div>
+            <div className="credential-box"><b>פרטי כניסה ראשונים:</b> <span>{credential?.username ?? user.email ?? user.username ?? "-"}</span>{showPassword ? <code>{credential.temporary_password}</code> : <strong>{user.role === "parent" ? "סיסמת הורה מוסתרת" : "הסיסמה הוחלפה"}</strong>}</div>
+            <details className="profile-expand audit-details"><summary>היסטוריית ביקורת ופרופיל מלא</summary>{relatedLogs.length === 0 ? <small>אין פעולות ישירות.</small> : relatedLogs.map((log) => <small key={log.id}>{log.action} · {log.created_at ? new Date(log.created_at).toLocaleString("he-IL") : ""}</small>)}</details>
+            <div className="profile-actions">
               <button className="button secondary" type="button" onClick={() => setEditing(user)}>צפייה / עריכה</button>
               {showPassword ? <button className="button secondary" onClick={() => navigator.clipboard?.writeText(`${credential?.username ?? user.username ?? ""}\n${credential?.temporary_password ?? ""}`)}>העתקת פרטים</button> : null}
               <button className="button secondary" onClick={() => action(user.id, "send_password_reset")}>שלח איפוס סיסמה</button>

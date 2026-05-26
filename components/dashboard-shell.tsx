@@ -7,6 +7,7 @@ import { PolicyAcceptanceGate } from "@/components/policy-acceptance-gate";
 import { AdminGlobalSearch } from "@/components/admin-global-search";
 import { RoleOnboardingGuide } from "@/components/role-onboarding-guide";
 import { SandboxModeBanner } from "@/components/sandbox-mode-banner";
+import { AIAssistantPanel } from "@/components/ai-assistant-panel";
 
 const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: string }>> = {
   admin: [
@@ -118,6 +119,7 @@ export function DashboardShell({ role, title, children }: { role: UserRole; titl
           <RoleOnboardingGuide role={role} />
           {role === "admin" ? <AdminGlobalSearch /> : null}
           {children}
+          <AIAssistantPanel role={role} />
         </main>
         <nav className="mobile-tabbar" aria-label="ניווט דשבורד">{navByRole[role].slice(0, 5).map((item) => <Link href={item.href} key={item.href}><strong>{item.label}</strong><span>{item.hint}</span></Link>)}</nav>
         <Link className="mobile-fab" href={navByRole[role][1]?.href ?? navByRole[role][0].href}>+</Link>
