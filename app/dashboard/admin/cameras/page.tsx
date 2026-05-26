@@ -9,9 +9,30 @@ export default async function AdminCamerasPage() {
   await requireRole(["admin"]);
   const result = await safeAdminData("admin cameras", async () => {
     const supabase = await createClient();
-    const [cameras, gardens] = await Promise.all([supabase.from("camera_streams" as any).select("id, garden_id, kindergarten_id, name, area, camera_type, source_type, protocol, status, active, parent_view_allowed, parent_viewing_allowed, last_health_check_at, hls_playback_url, sample_hls_url, webrtc_playback_url, video_gateway_stream_id, gateway_stream_id, viewing_hours, gardens(name, city)").limit(100), supabase.from("gardens" as any).select("id, name, city").limit(200)]);
-    logSupabaseError("admin cameras", cameras.error); logSupabaseError("admin camera gardens", gardens.error);
-    return { cameras: cameras.data ?? [], gardens: gardens.data ?? [], queryError: cameras.error || gardens.error ? "לא ניתן לטעון את הנתונים כרגע" : null };
-  }, { cameras: [] as any[], gardens: [] as any[], queryError: null as string | null });
-  return <DashboardShell role="admin" title="מצלמות"><div className="dashboard-hero-card admin-hero-card"><div><p className="eyebrow">Camera Management</p><h1>תצפיתן דיגיטלי - צפייה במצלמות.</h1><p>DVR/NVR/IP/RTSP/ONVIF נשמרים במערכת, Live דורש Video Gateway או Sample HLS לבדיקה.</p></div><span className={process.env.VIDEO_GATEWAY_URL ? "pill good" : "pill warn"}>{process.env.VIDEO_GATEWAY_URL ? "Gateway connected" : "Gateway missing"}</span></div><AdminDataError message={result.error ?? result.data.queryError} /><CameraAdminManager cameras={result.data.cameras as any[]} gardens={result.data.gardens as any[]} gatewayConnected={Boolean(process.env.VIDEO_GATEWAY_URL)} /></DashboardShell>;
+    const safeCameraColumns = "id, garden_id, kindergarten_id, name, area, camera_type, source_type, protocol, status, active, parent_view_allowed, parent_viewing_allowed, last_health_check_at, hls_playback_url, sample_hls_url, webrtc_playback_url, video_gateway_stream_id, gateway_stream_id, viewing_hours";
+    let cameras = await supabase.from("camera_streams" as any).select(safeCameraColumns).limit(100);
+    let secondaryWarning: string | null = null;
+
+    if (cameras.error) {
+      logSupabaseError("admin cameras primary safe columns", cameras.error);
+      secondaryWarning = "חלק מהנתונים המשניים לא נטענו";
+      cameras = await supabase.from("camera_streams" as any).select("id, garden_id, name, area, camera_type, protocol, status, active, parent_view_allowed, last_health_check_at, hls_playback_url, webrtc_playback_url, video_gateway_stream_id, viewing_hours").limit(100);
+    }
+
+    if (cameras.error) {
+      logSupabaseError("admin cameras fallback direct query", cameras.error);
+      return { cameras: [] as any[], gardens: [] as any[], queryError: "לא ניתן לטעון את הנתונים כרגע", secondaryWarning: null as string | null };
+    }
+
+    const gardens = await supabase.from("gardens" as any).select("id, name, city").limit(200);
+    logSupabaseError("admin camera gardens secondary query", gardens.error);
+    if (gardens.error) secondaryWarning = "חלק מהנתונים המשניים לא נטענו";
+
+    const gardenById = new Map((gardens.data ?? []).map((garden: any) => [garden.id, garden]));
+    const cameraRows = (cameras.data ?? []).map((camera: any) => ({ ...camera, gardens: gardenById.get(camera.garden_id ?? camera.kindergarten_id) ?? null }));
+
+    return { cameras: cameraRows, gardens: gardens.data ?? [], queryError: null as string | null, secondaryWarning };
+  }, { cameras: [] as any[], gardens: [] as any[], queryError: null as string | null, secondaryWarning: null as string | null });
+
+  return <DashboardShell role="admin" title="מצלמות"><div className="dashboard-hero-card admin-hero-card"><div><p className="eyebrow">Camera Management</p><h1>תצפיתן דיגיטלי - צפייה במצלמות.</h1><p>DVR/NVR/IP/RTSP/ONVIF נשמרים במערכת, Live דורש Video Gateway או Sample HLS לבדיקה.</p></div><span className={process.env.VIDEO_GATEWAY_URL ? "pill good" : "pill warn"}>{process.env.VIDEO_GATEWAY_URL ? "Gateway connected" : "Gateway missing"}</span></div><AdminDataError message={result.error ?? result.data.queryError} />{result.data.secondaryWarning ? <div className="gateway-setup-state"><strong>{result.data.secondaryWarning}</strong><p>כרטיסי המצלמות והצפייה נשארים זמינים. פרטי גן/יחסים משניים נטענים בנפרד כדי לא להפיל את המסך.</p></div> : null}<CameraAdminManager cameras={result.data.cameras as any[]} gardens={result.data.gardens as any[]} gatewayConnected={Boolean(process.env.VIDEO_GATEWAY_URL)} /></DashboardShell>;
 }
