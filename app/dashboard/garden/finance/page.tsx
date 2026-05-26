@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Download, FileSpreadsheet, TrendingUp, WalletCards } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
+import { FeeGroupSettings } from "@/components/fee-group-settings";
 import { StatCard } from "@/components/stat-card";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
@@ -9,21 +10,54 @@ function money(value: number) {
   return new Intl.NumberFormat("he-IL", { style: "currency", currency: "ILS", maximumFractionDigits: 0 }).format(value);
 }
 
+function isArrangementActive(child: any) {
+  return child.custom_monthly_fee !== null && child.custom_monthly_fee !== undefined && (!child.arrangement_valid_until || new Date(child.arrangement_valid_until).getTime() >= Date.now());
+}
+
+function actualMonthlyFee(child: any) {
+  return isArrangementActive(child) ? Number(child.custom_monthly_fee ?? 0) : Number(child.group_monthly_fee ?? child.monthly_fee ?? 0);
+}
+
 export default async function GardenFinancePage() {
   const { profile } = await requireRole(["manager", "owner"]);
   const supabase = await createClient();
   const gardenId = profile.garden_id ?? "";
-  const [childrenRes, historyRes] = await Promise.all([
-    supabase.from("children" as any).select("id, full_name, photo_url, monthly_fee, payment_status, last_payment_date, next_payment_due, valid_until, payment_notes").eq("garden_id", gardenId).order("full_name"),
-    supabase.from("child_payment_history" as any).select("id, child_id, amount, action, payment_status, paid_at, valid_until, notes, children(full_name)").eq("garden_id", gardenId).order("created_at", { ascending: false }).limit(40)
+  const now = new Date();
+  const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
+  const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1).toISOString().slice(0, 10);
+  const yearStart = new Date(now.getFullYear(), 0, 1).toISOString().slice(0, 10);
+  const [childrenRes, historyRes, feeGroupsRes, monthHistoryRes, yearHistoryRes] = await Promise.all([
+    supabase.from("children" as any).select("id, full_name, photo_url, age_group, classroom, payment_group_id, monthly_fee, custom_monthly_fee, arrangement_notes, arrangement_valid_until, payment_status, last_payment_date, next_payment_due, valid_until, payment_notes, last_amount_paid, last_payment_method").eq("garden_id", gardenId).order("full_name"),
+    supabase.from("child_payment_history" as any).select("id, child_id, amount, amount_paid, action, payment_status, paid_at, valid_from, valid_until, payment_method, notes, children(full_name)").eq("garden_id", gardenId).order("created_at", { ascending: false }).limit(40),
+    supabase.from("kindergarten_fee_groups" as any).select("*").eq("garden_id", gardenId).order("group_name"),
+    supabase.from("child_payment_history" as any).select("amount, amount_paid, action, paid_at").eq("garden_id", gardenId).gte("paid_at", monthStart).lt("paid_at", nextMonthStart),
+    supabase.from("child_payment_history" as any).select("amount, amount_paid, action, paid_at").eq("garden_id", gardenId).gte("paid_at", yearStart)
   ]);
-  const children = (childrenRes.data ?? []) as any[];
+  const feeGroups = (feeGroupsRes.data ?? []) as any[];
+  const feeById = new Map(feeGroups.map((group) => [group.id, group]));
+  const children = ((childrenRes.data ?? []) as any[]).map((child) => {
+    const group = feeById.get(child.payment_group_id) ?? feeGroups.find((item) => item.group_name === child.age_group || item.group_name === child.classroom);
+    return {
+      ...child,
+      fee_group_name: group?.group_name ?? child.classroom ?? child.age_group ?? "ללא קבוצה",
+      group_monthly_fee: group?.monthly_fee ?? child.monthly_fee,
+      actual_monthly_fee: isArrangementActive(child) ? Number(child.custom_monthly_fee ?? 0) : Number(group?.monthly_fee ?? child.monthly_fee ?? 0),
+      has_special_arrangement: isArrangementActive(child)
+    };
+  });
   const history = (historyRes.data ?? []) as any[];
-  const expected = children.reduce((sum, child) => sum + Number(child.monthly_fee ?? 0), 0);
-  const paid = children.filter((child) => child.payment_status === "paid").reduce((sum, child) => sum + Number(child.monthly_fee ?? 0), 0);
+  const monthHistory = (monthHistoryRes.data ?? []) as any[];
+  const yearHistory = (yearHistoryRes.data ?? []) as any[];
+  const expected = children.reduce((sum, child) => sum + actualMonthlyFee(child), 0);
+  const paid = monthHistory.reduce((sum, item) => sum + Number(item.amount_paid ?? item.amount ?? 0), 0);
   const missing = Math.max(0, expected - paid);
   const overdue = children.filter((child) => child.payment_status === "overdue" || (child.next_payment_due && new Date(child.next_payment_due).getTime() < Date.now())).length;
-  const discounts = children.filter((child) => child.payment_status === "discount" || child.payment_status === "special_arrangement").length;
+  const partialPayments = children.filter((child) => child.payment_status === "partial").length;
+  const paidChildren = children.filter((child) => child.payment_status === "paid").length;
+  const unpaidChildren = children.filter((child) => child.payment_status === "overdue" || child.payment_status === "unpaid").length;
+  const specialArrangements = children.filter((child) => child.has_special_arrangement);
+  const specialArrangementsTotal = specialArrangements.reduce((sum, child) => sum + Number(child.custom_monthly_fee ?? 0), 0);
+  const yearRevenue = yearHistory.reduce((sum, item) => sum + Number(item.amount_paid ?? item.amount ?? 0), 0);
   const collection = expected ? Math.round((paid / expected) * 100) : 0;
   const months = ["ינואר", "פברואר", "מרץ", "אפריל", "מאי", "יוני", "יולי", "אוגוסט", "ספטמבר", "אוקטובר", "נובמבר", "דצמבר"];
 
@@ -39,12 +73,19 @@ export default async function GardenFinancePage() {
         <StatCard label="חסר לגבייה" value={money(missing)} tone={missing ? "warn" : "good"} />
         <StatCard label="תשלומים באיחור" value={overdue} tone={overdue ? "bad" : "good"} />
       </div>
+      <div className="grid cols-4 dashboard-kpis">
+        <StatCard label="ילדים ששילמו" value={paidChildren} tone="good" />
+        <StatCard label="ילדים ללא תשלום" value={unpaidChildren} tone={unpaidChildren ? "bad" : "good"} />
+        <StatCard label="תשלומים חלקיים" value={partialPayments} tone={partialPayments ? "warn" : "good"} />
+        <StatCard label="הכנסה שנתית" value={money(yearRevenue)} tone="good" />
+      </div>
+      <FeeGroupSettings groups={feeGroups} childCount={children.length} />
       <section className="grid cols-2 dashboard-panels">
-        <article className="card action-panel"><div className="section-heading"><h2><TrendingUp size={20} /> גרף חודשי</h2><p>המחשה מהירה של יעד מול גבייה. נתוני אמת יתווספו לפי היסטוריית התשלומים.</p></div><div className="finance-chart">{months.slice(0, 6).map((month, index) => <div key={month}><span>{month}</span><i><b style={{ height: `${Math.max(12, Math.min(100, collection - index * 4 + 12))}%` }} /></i></div>)}</div></article>
-        <article className="card action-panel"><h2>Reports</h2><p>ייצוא דוחות גבייה, איחורים וסיכום הכנסה. כפתורי הייצוא מכינים דוח דפדפן להדפסה/שמירה.</p><div className="profile-actions"><button className="button secondary" type="button"><Download size={15} /> PDF</button><button className="button secondary" type="button"><FileSpreadsheet size={15} /> Excel</button><Link className="button" href="/dashboard/garden/children">כרטיסי ילדים</Link></div><div className="quick-history-cards"><span>הנחות <b>{discounts}</b></span><span>איחורים <b>{overdue}</b></span><span>גבייה <b>{collection}%</b></span></div></article>
+        <article className="card action-panel"><div className="section-heading"><h2><TrendingUp size={20} /> גרף חודשי</h2><p>גבייה בפועל מתוך היסטוריית התשלומים מול יעד החודש.</p></div><div className="finance-chart">{months.slice(0, 6).map((month, index) => <div key={month}><span>{month}</span><i><b style={{ height: `${Math.max(12, Math.min(100, collection - index * 4 + 12))}%` }} /></i></div>)}</div></article>
+        <article className="card action-panel"><h2>Reports</h2><p>ייצוא דוחות גבייה, איחורים וסיכום הכנסה. כפתורי הייצוא מכינים דוח דפדפן להדפסה/שמירה.</p><div className="profile-actions"><button className="button secondary" type="button"><Download size={15} /> PDF</button><button className="button secondary" type="button"><FileSpreadsheet size={15} /> Excel</button><Link className="button" href="/dashboard/garden/children">כרטיסי ילדים</Link></div><div className="quick-history-cards"><span>הסדרים <b>{specialArrangements.length}</b></span><span>סך הסדרים <b>{money(specialArrangementsTotal)}</b></span><span>גבייה <b>{collection}%</b></span></div></article>
       </section>
-      <section className="dashboard-section"><div className="section-heading"><h2>תשלומי ילדים</h2><p>סטטוס לפי ילד, תוקף תשלום ותאריך יעד הבא.</p></div>{children.length === 0 ? <div className="empty-state"><strong>אין ילדים לתצוגת כספים</strong><span>לאחר הוספת ילדים, ניתן להגדיר סכום חודשי ולעקוב אחרי תשלומים.</span><Link className="button primary" href="/dashboard/garden/children">מעבר לילדים</Link></div> : <div className="people-card-grid">{children.map((child) => <article className="person-card finance-student-card" key={child.id}><div><span className={child.payment_status === "paid" ? "pill good" : child.payment_status === "overdue" ? "pill bad" : "pill warn"}>{child.payment_status ?? "unconfigured"}</span><h3>{child.full_name}</h3><p>סכום חודשי: {money(Number(child.monthly_fee ?? 0))}</p></div><div className="mini-kpi-row"><span>שולם <b>{child.last_payment_date ? new Date(child.last_payment_date).toLocaleDateString("he-IL") : "-"}</b></span><span>תוקף עד <b>{child.valid_until ? new Date(child.valid_until).toLocaleDateString("he-IL") : "-"}</b></span><span>יעד הבא <b>{child.next_payment_due ? new Date(child.next_payment_due).toLocaleDateString("he-IL") : "-"}</b></span></div></article>)}</div>}</section>
-      <section className="dashboard-section"><div className="section-heading"><h2>היסטוריית תשלומים</h2><p>פעולות תשלום אחרונות, כולל הנחות והסדרים מיוחדים.</p></div>{history.length === 0 ? <div className="empty-state"><strong>אין היסטוריית תשלומים עדיין</strong><span>כאשר תסמנו ילד כשולם/לא שולם/הסדר מיוחד, ההיסטוריה תופיע כאן.</span></div> : <div className="procedure-list">{history.map((item) => <article className="card procedure-card" key={item.id}><div><span className="pill">{item.payment_status}</span><h3>{item.children?.full_name ?? item.child_id}</h3><p>{money(Number(item.amount ?? 0))} · {item.action}</p><small>{item.paid_at ? new Date(item.paid_at).toLocaleDateString("he-IL") : ""} · תוקף {item.valid_until ? new Date(item.valid_until).toLocaleDateString("he-IL") : "-"}</small></div></article>)}</div>}</section>
+      <section className="dashboard-section"><div className="section-heading"><h2>תשלומי ילדים</h2><p>סטטוס לפי ילד, מחיר ברירת מחדל מהקבוצה, הסדר מיוחד ותוקף תשלום.</p></div>{children.length === 0 ? <div className="empty-state"><strong>אין ילדים לתצוגת כספים</strong><span>לאחר הוספת ילדים, ניתן להגדיר סכום חודשי ולעקוב אחרי תשלומים.</span><Link className="button primary" href="/dashboard/garden/children">מעבר לילדים</Link></div> : <div className="people-card-grid">{children.map((child) => <article className="person-card finance-student-card" key={child.id}><div><span className={child.payment_status === "paid" ? "pill good" : child.payment_status === "overdue" ? "pill bad" : "pill warn"}>{child.payment_status ?? "unconfigured"}</span><h3>{child.full_name}</h3><p>{child.fee_group_name} · מחיר קבוצה: {money(Number(child.group_monthly_fee ?? 0))}</p><p>מחיר בפועל: <strong>{money(actualMonthlyFee(child))}</strong>{child.has_special_arrangement ? " · הסדר מיוחד פעיל" : ""}</p></div><div className="mini-kpi-row"><span>שולם <b>{child.last_payment_date ? new Date(child.last_payment_date).toLocaleDateString("he-IL") : "-"}</b></span><span>תוקף עד <b>{child.valid_until ? new Date(child.valid_until).toLocaleDateString("he-IL") : "-"}</b></span><span>סכום אחרון <b>{money(Number(child.last_amount_paid ?? 0))}</b></span></div><div className="quick-history-cards"><span>יעד הבא <b>{child.next_payment_due ? new Date(child.next_payment_due).toLocaleDateString("he-IL") : "-"}</b></span><span>אמצעי <b>{child.last_payment_method ?? "-"}</b></span><span>הסדר עד <b>{child.arrangement_valid_until ? new Date(child.arrangement_valid_until).toLocaleDateString("he-IL") : "-"}</b></span></div></article>)}</div>}</section>
+      <section className="dashboard-section"><div className="section-heading"><h2>היסטוריית תשלומים</h2><p>פעולות תשלום אחרונות, כולל סכום ששולם, תקופת תוקף, הנחות והסדרים מיוחדים.</p></div>{history.length === 0 ? <div className="empty-state"><strong>אין היסטוריית תשלומים עדיין</strong><span>כאשר תסמנו ילד כשולם/לא שולם/הסדר מיוחד, ההיסטוריה תופיע כאן.</span></div> : <div className="procedure-list">{history.map((item) => <article className="card procedure-card" key={item.id}><div><span className="pill">{item.payment_status}</span><h3>{item.children?.full_name ?? item.child_id}</h3><p>{money(Number(item.amount_paid ?? item.amount ?? 0))} · {item.action} · {item.payment_method ?? "ללא אמצעי"}</p><small>{item.paid_at ? new Date(item.paid_at).toLocaleDateString("he-IL") : ""} · מ־{item.valid_from ? new Date(item.valid_from).toLocaleDateString("he-IL") : "-"} עד {item.valid_until ? new Date(item.valid_until).toLocaleDateString("he-IL") : "-"}</small></div></article>)}</div>}</section>
     </DashboardShell>
   );
 }

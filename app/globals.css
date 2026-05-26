@@ -3185,6 +3185,91 @@ body::before {
   background: linear-gradient(145deg, #ffffff, #f0fdf4);
 }
 
+.fee-settings-section .card {
+  background: linear-gradient(145deg, #ffffff, #f6fbff);
+}
+
+.fee-group-list,
+.fee-group-form {
+  display: grid;
+  gap: 14px;
+}
+
+.fee-group-form label,
+.payment-confirm-modal label {
+  display: grid;
+  gap: 6px;
+  color: var(--blue-dark);
+  font-weight: 900;
+}
+
+.fee-group-form input,
+.payment-confirm-modal input {
+  border: 1px solid rgb(18 59 143 / 14%);
+  border-radius: 14px;
+  padding: 11px 12px;
+  font: inherit;
+  background: white;
+}
+
+.check-row,
+.sync-choice-box label {
+  display: flex !important;
+  align-items: center;
+  gap: 8px;
+}
+
+.sync-choice-box {
+  display: grid;
+  gap: 8px;
+  border-radius: 18px;
+  background: rgb(26 137 98 / 8%);
+  padding: 12px;
+}
+
+.soft-choice {
+  border: 1px solid rgb(18 59 143 / 10%);
+  border-radius: 14px;
+  background: white;
+  color: var(--blue-dark);
+  cursor: pointer;
+  font-weight: 900;
+  padding: 10px;
+}
+
+.payment-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+  background: rgb(4 18 38 / 46%);
+  padding: 18px;
+}
+
+.payment-confirm-modal {
+  width: min(720px, 100%);
+  max-height: calc(100vh - 42px);
+  overflow: auto;
+  background: linear-gradient(145deg, #ffffff, #f2fbff);
+}
+
+.form-grid.compact {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.form-grid.compact .wide {
+  grid-column: 1 / -1;
+}
+
+@media (max-width: 720px) {
+  .form-grid.compact {
+    grid-template-columns: 1fr;
+  }
+}
+
 .parent-spotlight-card,
 .staff-operating-center {
   display: flex;
