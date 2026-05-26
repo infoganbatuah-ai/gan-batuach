@@ -10,7 +10,7 @@ export default async function GardenChildrenPage() {
   const gardenId = profile.garden_id ?? "";
   const today = new Date().toISOString().slice(0, 10);
   const [childrenRes, attendanceRes, journalsRes, incidentsRes] = await Promise.all([
-    supabase.from("children" as any).select("id, full_name, birth_date, identity_number, status, allergies, sensitivities, regular_medications, medical_notes, hmo, emergency_phone, photo_url, face_image_url, pickup_authorized, mother_name, father_name, mother_phone, father_phone, created_at, updated_at").eq("garden_id", gardenId).order("full_name"),
+    supabase.from("children" as any).select("id, full_name, birth_date, identity_number, status, allergies, sensitivities, regular_medications, medical_notes, hmo, emergency_phone, photo_url, face_image_url, pickup_authorized, mother_name, father_name, mother_phone, father_phone, monthly_fee, payment_status, last_payment_date, next_payment_due, valid_until, payment_notes, created_at, updated_at").eq("garden_id", gardenId).order("full_name"),
     supabase.from("attendance" as any).select("child_id, status, pickup_authorized, pickup_name, note").eq("garden_id", gardenId).eq("attendance_date", today),
     supabase.from("child_daily_journals" as any).select("child_id, meals, sleep_summary, mood, bathroom, incidents, notes_to_parents, photo_urls").eq("garden_id", gardenId).eq("journal_date", today),
     supabase.from("incident_reports" as any).select("child_id, id").eq("garden_id", gardenId).neq("status", "closed")

@@ -4,6 +4,7 @@ import { useMemo, useState } from "react";
 import Link from "next/link";
 import { AlertTriangle, Baby, Bell, CalendarClock, FileText, HeartPulse, MessageCircle, Phone, Printer, Search, ShieldCheck, UserCheck, WandSparkles } from "lucide-react";
 import { Avatar } from "@/components/avatar";
+import { ChildPaymentActions } from "@/components/child-payment-actions";
 
 type Row = Record<string, any>;
 
@@ -31,6 +32,13 @@ function riskLevel(score: number) {
   if (score >= 70) return { className: "risk-chip bad", label: "סיכון גבוה" };
   if (score >= 35) return { className: "risk-chip warn", label: "דורש תשומת לב" };
   return { className: "risk-chip good", label: "תקין" };
+}
+
+function paymentClass(status?: string | null) {
+  if (status === "paid") return "pill good";
+  if (status === "due_soon" || status === "partial" || status === "discount" || status === "special_arrangement") return "pill warn";
+  if (status === "overdue" || status === "unpaid") return "pill bad";
+  return "pill";
 }
 
 function Timeline({ items }: { items: Array<{ title: string; meta: string; tone?: "good" | "warn" | "bad" }> }) {
@@ -83,16 +91,21 @@ export function ChildrenProfileCards({ children }: { children: Row[] }) {
           <span className={statusClass(child.attendance_status)}><CalendarClock size={14} /> {child.attendance_status ?? "נוכחות טרם עודכנה"}</span>
           <span className={child.allergies ? "pill bad" : "pill good"}><HeartPulse size={14} /> {child.allergies ? "אלרגיה" : "בריאות תקינה"}</span>
           <span className={child.pickup_authorized === false ? "pill bad" : "pill good"}><ShieldCheck size={14} /> {child.pickup_status ?? "איסוף מורשה"}</span>
+          <span className={paymentClass(child.payment_status)}>תשלום {child.payment_status ?? "לא הוגדר"}</span>
           <span className={risk.className}>{risk.label}</span>
         </div>
-        <div className="mini-kpi-row"><span>שינה <b>{child.sleep_summary ?? "טרם"}</b></span><span>מצב רוח <b>{child.mood ?? "טרם"}</b></span><span>אירועים <b>{child.incident_count ?? 0}</b></span></div>
+        <div className="mini-kpi-row"><span>שינה <b>{child.sleep_summary ?? "טרם"}</b></span><span>מצב רוח <b>{child.mood ?? "טרם"}</b></span><span>תשלום חודשי <b>₪{child.monthly_fee ?? 0}</b></span></div>
         <div className="quick-history-cards"><span>איסוף <b>{child.pickup_status ?? "ממתין"}</b></span><span>בריאות <b>{child.allergies ? "רגישויות" : "תקין"}</b></span><span>שינוי <b>{formatDate(child.updated_at ?? child.created_at)}</b></span></div>
+        <div className="child-profile-tabs" aria-label="אזורים בכרטיס ילד">
+          {["Overview", "Health", "Parents", "Payments", "Daily Journal", "Incidents", "Media", "Documents", "Timeline"].map((tab) => <span key={tab}>{tab}</span>)}
+        </div>
         <details className="profile-expand">
           <summary>פתיחת כרטיס מלא</summary>
           <div className="profile-details-grid">
             <section><h4>פרטים אישיים</h4><p>תאריך לידה: {child.birth_date ?? "-"}</p><p>ת״ז: {child.identity_number ?? "-"}</p><p>הורים: {[child.mother_name, child.father_name, child.parent_name].filter(Boolean).join(" / ") || "-"}</p><p>חירום: {child.emergency_phone ?? "-"}</p></section>
             <section><h4>בריאות</h4><p>קופה: {child.hmo ?? "-"}</p><p>אלרגיות: {child.allergies || "אין אלרגיות מתועדות"}</p><p>תרופות: {child.regular_medications || child.medications || "אין תרופות קבועות"}</p><p>סוג דם: {child.blood_type ?? "לא צוין"}</p><p>{child.medical_notes ?? ""}</p></section>
             <section><h4>פעילות היום</h4><p>ארוחות: {child.meals_text ?? "טרם עודכן"}</p><p>שינה: {child.sleep_summary ?? "טרם עודכן"}</p><p>מצב רוח: {child.mood ?? "טרם עודכן"}</p><p>הערות: {child.notes_to_parents ?? "אין הערות"}</p></section>
+            <section><h4>Payments</h4><p>סכום חודשי: ₪{child.monthly_fee ?? 0}</p><p>סטטוס: {child.payment_status ?? "לא הוגדר"}</p><p>שולם לאחרונה: {formatDate(child.last_payment_date)}</p><p>תוקף עד: {formatDate(child.valid_until)}</p><p>הערות: {child.payment_notes ?? "אין"}</p><ChildPaymentActions childId={child.id} amount={Number(child.monthly_fee ?? 0)} /></section>
             <section><h4>ציר פעילות</h4><Timeline items={timeline} /></section>
             <section><h4>מדיה</h4><div className="gallery-preview">{(child.photo_urls ?? [child.photo_url]).filter(Boolean).slice(0, 3).map((url: string) => <img src={url} alt="תמונת ילד" key={url} />)}</div></section>
           </div>

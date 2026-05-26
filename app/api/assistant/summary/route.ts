@@ -31,20 +31,22 @@ export async function GET() {
     }
 
     if (role === "manager" || role === "owner") {
-      const [children, attendance, docs, messages, inspection, cameras] = await Promise.all([
+      const [children, attendance, docs, messages, inspection, cameras, payments] = await Promise.all([
         supabase.from("children" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId ?? ""),
         supabase.from("attendance" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId ?? "").eq("attendance_date", today).neq("status", "present"),
         supabase.from("documents" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId ?? "").in("status", ["missing", "expired", "rejected"]),
         supabase.from("messages" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId ?? "").eq("recipient_id", profile.id).is("read_at", null),
         supabase.from("required_inspections" as any).select("id, due_at", { count: "exact" }).eq("garden_id", gardenId ?? "").neq("status", "done").order("due_at").limit(1),
-        supabase.from("camera_streams" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId ?? "").in("status", ["pending_gateway", "offline", "failed", "error"])
+        supabase.from("camera_streams" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId ?? "").in("status", ["pending_gateway", "offline", "failed", "error"]),
+        supabase.from("children" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId ?? "").in("payment_status", ["overdue", "unpaid", "partial"])
       ]);
       return ok({ provider: "pending", role, title: "תקציר מנהלת להיום", summary: `בגן יש ${children.count ?? 0} ילדים. בדקו חריגי נוכחות, מסמכים, הודעות ופיקוח קרוב.`, suggestions: [
         item("נוכחות ילדים", `${attendance.count ?? 0} ילדים לא מסומנים כנוכחים`, "/dashboard/garden/attendance", (attendance.count ?? 0) ? "warn" : "good"),
         item("מסמכים חסרים", `${docs.count ?? 0} מסמכים דורשים השלמה`, "/dashboard/garden/documents", (docs.count ?? 0) ? "warn" : "good"),
         item("הודעות הורים/אדמין", `${messages.count ?? 0} הודעות לא נקראו`, "/dashboard/garden/messages", (messages.count ?? 0) ? "warn" : "good"),
-        item("פיקוח ומצלמות", `${inspection.count ?? 0} פיקוחים פתוחים · ${cameras.count ?? 0} מצלמות ממתינות`, "/dashboard/garden/inspections", (cameras.count ?? 0) ? "warn" : "good")
-      ], prompts: ["מה לעשות עכשיו?", "מי מהילדים דורש תשומת לב?", "איזה מסמכים חסרים?", "מה מצב הפיקוח הקרוב?"] });
+        item("פיקוח ומצלמות", `${inspection.count ?? 0} פיקוחים פתוחים · ${cameras.count ?? 0} מצלמות ממתינות`, "/dashboard/garden/inspections", (cameras.count ?? 0) ? "warn" : "good"),
+        item("תשלומים חסרים", `${payments.count ?? 0} ילדים עם תשלום לטיפול`, "/dashboard/garden/finance", (payments.count ?? 0) ? "bad" : "good")
+      ], prompts: ["מה דורש טיפול היום?", "מי עדיין לא שילם?", "איזה ילד דורש תשומת לב?", "איזה מסמכים חסרים?", "מה מצב הפיקוח הקרוב?"] });
     }
 
     if (role === "parent") {

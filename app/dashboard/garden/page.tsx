@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Bell, CalendarCheck, Camera, ClipboardCheck, FileClock, MessageSquare, Plus, ShieldCheck, UserPlus, UsersRound } from "lucide-react";
+import { Bell, CalendarCheck, Camera, ClipboardCheck, FileClock, MessageSquare, Plus, ShieldCheck, UserPlus, UsersRound, WalletCards } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { StatCard } from "@/components/stat-card";
 import { Avatar } from "@/components/avatar";
@@ -20,7 +20,7 @@ export default async function GardenDashboard() {
   const { profile } = await requireRole(["manager", "owner"]);
   const supabase = await createClient();
   const gardenId = profile.garden_id;
-  const [gardenRes, childrenRes, staffRes, parentsRes, tasksRes, leadsRes, complaintsRes, violationsRes, camerasRes, aiRes, documentsRes, messagesRes, inspectionRes] = await Promise.all([
+  const [gardenRes, childrenRes, staffRes, parentsRes, tasksRes, leadsRes, complaintsRes, violationsRes, camerasRes, aiRes, documentsRes, messagesRes, inspectionRes, attendanceRes, unpaidRes, dueInspectionRes, financeChildrenRes] = await Promise.all([
     supabase.from("gardens" as any).select("id, name, city, logo_url, image_url, safe_status, first_inspection_due_at, last_inspection_score").eq("id", gardenId ?? "").maybeSingle(),
     supabase.from("children").select("*", { count: "exact", head: true }).eq("garden_id", gardenId ?? ""),
     supabase.from("staff").select("*", { count: "exact", head: true }).eq("garden_id", gardenId ?? ""),
@@ -33,9 +33,18 @@ export default async function GardenDashboard() {
     supabase.from("ai_events").select("*", { count: "exact", head: true }).eq("garden_id", gardenId ?? "").neq("status", "closed"),
     supabase.from("documents").select("name, document_type, expires_at, status").eq("garden_id", gardenId ?? "").limit(4),
     supabase.from("messages").select("id, subject, content, body, created_at, status").eq("garden_id", gardenId ?? "").eq("recipient_id", profile.id).order("created_at", { ascending: false }).limit(4),
-    supabase.from("inspections" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId ?? "").eq("status", "done")
+    supabase.from("inspections" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId ?? "").eq("status", "done"),
+    supabase.from("attendance" as any).select("id, status", { count: "exact" }).eq("garden_id", gardenId ?? "").eq("attendance_date", new Date().toISOString().slice(0, 10)),
+    supabase.from("children" as any).select("id, monthly_fee, payment_status", { count: "exact" }).eq("garden_id", gardenId ?? "").in("payment_status", ["overdue", "unpaid", "partial"]),
+    supabase.from("required_inspections" as any).select("due_at").eq("garden_id", gardenId ?? "").neq("status", "done").order("due_at").limit(1).maybeSingle(),
+    supabase.from("children" as any).select("monthly_fee").eq("garden_id", gardenId ?? "")
   ]);
   const garden = gardenRes.data as any;
+  const attendanceRows = (attendanceRes.data ?? []) as any[];
+  const presentToday = attendanceRows.filter((row) => row.status === "present").length;
+  const missingToday = Math.max(0, (childrenRes.count ?? 0) - presentToday);
+  const inspectionDays = dueInspectionRes.data?.due_at ? Math.ceil((new Date((dueInspectionRes.data as any).due_at).getTime() - Date.now()) / 86400000) : null;
+  const expectedRevenue = ((financeChildrenRes.data ?? []) as any[]).reduce((sum, child) => sum + Number(child.monthly_fee ?? 0), 0);
   const readyItems = [
     { label: "מסמכי גן", ok: (documentsRes.data ?? []).length > 0, help: "לפחות מסמך אחד הועלה ונמצא במעקב." },
     { label: "צוות מאושר", ok: (staffRes.count ?? 0) > 0, help: "יש אנשי צוות פעילים/בתהליך אישור." },
@@ -47,23 +56,28 @@ export default async function GardenDashboard() {
   ];
 
   return (
-    <DashboardShell role="manager" title="ממשק גן">
-      <div className="dashboard-hero-card garden-hero-card premium-identity-hero">
+    <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title={profile.role === "owner" ? "דשבורד בעלים" : "ממשק גן"}>
+      <div className="dashboard-hero-card garden-hero-card premium-identity-hero ultimate-garden-hero">
         <div>
           <p className="eyebrow">ניהול יומי</p>
-          <h1>בוקר טוב, {garden?.name ?? "הגן שלך"}.</h1>
-          <p>{garden?.city ? `${garden.city} · ` : ""}לידים, ילדים, צוות, בריאות, איסוף, משימות, מצלמות ומסמכים במקום אחד.</p>
+          <h1>בוקר טוב, {profile.full_name ?? garden?.name ?? "הגן שלך"}.</h1>
+          <p>{garden?.city ? `${garden.city} · ` : ""}ילדים היום: {childrenRes.count ?? 0} · נוכחים: {presentToday} · חסרים: {missingToday} · הודעות: {messagesRes.data?.length ?? 0}</p>
         </div>
         <Avatar name={garden?.name} src={garden?.logo_url ?? garden?.image_url} size="lg" />
-        <span className="pill good"><ShieldCheck size={15} /> סטטוס ניהול פעיל</span>
+        <span className={aiRes.count || complaintsRes.count ? "pill bad" : "pill good"}><ShieldCheck size={15} /> {aiRes.count || complaintsRes.count ? "דורש טיפול" : "יום רגוע"}</span>
       </div>
 
       <div className="grid cols-4 dashboard-kpis">
-        <StatCard label="תלמידים פעילים" value={childrenRes.count ?? 0} tone="good" />
-        <StatCard label="אנשי צוות" value={staffRes.count ?? 0} />
-        <StatCard label="לידים ממתינים" value={leadsRes.count ?? 0} tone="warn" />
+        <StatCard label="ילדים היום" value={childrenRes.count ?? 0} tone="good" />
+        <StatCard label="נוכחים" value={presentToday} tone="good" />
+        <StatCard label="חסרים" value={missingToday} tone={missingToday ? "warn" : "good"} />
+        <StatCard label="תשלומים לטיפול" value={unpaidRes.count ?? 0} tone={unpaidRes.count ? "bad" : "good"} />
+        <StatCard label="פיקוח" value={inspectionDays === null ? "טרם" : `${inspectionDays} ימים`} tone={inspectionDays !== null && inspectionDays <= 5 ? "warn" : "good"} />
+        <StatCard label="הודעות ממתינות" value={messagesRes.data?.length ?? 0} tone={messagesRes.data?.length ? "warn" : "good"} />
+        <StatCard label="אירועים דחופים" value={(complaintsRes.count ?? 0) + (aiRes.count ?? 0)} tone={(complaintsRes.count ?? 0) + (aiRes.count ?? 0) ? "bad" : "good"} />
         <StatCard label="משימות פתוחות" value={tasksRes.count ?? 0} tone="warn" />
       </div>
+      {profile.role === "owner" ? <section className="grid cols-4 dashboard-kpis owner-kpis"><StatCard label="הכנסה צפויה" value={`₪${expectedRevenue}`} tone="good" /><StatCard label="ציון גן" value={garden?.last_inspection_score ?? "-"} /><StatCard label="ציון צוות" value={staffRes.count ? "פעיל" : "חסר"} tone={staffRes.count ? "good" : "warn"} /><StatCard label="סיכוני גבייה" value={unpaidRes.count ?? 0} tone={unpaidRes.count ? "bad" : "good"} /></section> : null}
 
       <section className="dashboard-section">
         <div className="section-heading"><h2>פעולות מהירות</h2><p>כל פעולה פותחת תהליך מתועד עם הרשאות ולוגים.</p></div>
@@ -75,6 +89,7 @@ export default async function GardenDashboard() {
               <span>{action.help}</span>
             </Link>
           ))}
+          <Link className="quick-action finance-action" href="/dashboard/garden/finance"><WalletCards size={22} /><strong>מרכז כספים</strong><span>גבייה חודשית, איחורים, הנחות ודוחות.</span></Link>
         </div>
       </section>
 

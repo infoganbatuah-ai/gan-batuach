@@ -39,14 +39,15 @@ export async function GET() {
       const inspectionRes = await supabase.from("required_inspections" as any).select("id, due_at").eq("garden_id", gardenId).neq("status", "done").order("due_at").limit(1);
       const firstInspection = (inspectionRes.data ?? [])[0] as any;
       const days = firstInspection?.due_at ? Math.ceil((new Date(firstInspection.due_at).getTime() - Date.now()) / 86400000) : null;
-      const [attention, messages, incidents, ai, attendance] = await Promise.all([
+      const [attention, messages, incidents, ai, attendance, payments] = await Promise.all([
         safeCount(supabase.from("children" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId).or("allergies.not.is.null,medical_notes.not.is.null,status.neq.active")),
         safeCount(supabase.from("messages" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId).is("read_at", null)),
         safeCount(supabase.from("incident_reports" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId).neq("status", "closed")),
         safeCount(supabase.from("ai_events" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId).neq("status", "done")),
-        safeCount(supabase.from("attendance" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId).eq("attendance_date", today))
+        safeCount(supabase.from("attendance" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId).eq("attendance_date", today)),
+        safeCount(supabase.from("children" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId).in("payment_status", ["overdue", "unpaid", "partial"]))
       ]);
-      return ok({ role, commandCards: [card("ילדים שדורשים תשומת לב", attention, "/dashboard/garden/children", attention ? "warn" : "good"), card(days === null ? "אין פיקוח פתוח" : `פיקוח בעוד ${days} ימים`, inspectionRes.count ?? (firstInspection ? 1 : 0), "/dashboard/garden/inspections", days !== null && days < 0 ? "bad" : "warn"), card("הודעות הורים ממתינות", messages, "/dashboard/garden/messages", messages ? "warn" : "good")], activity: [card("הודעות", messages, "/dashboard/garden/messages"), card("אירועים", incidents, "/dashboard/garden/incidents", incidents ? "warn" : "good"), card("פיקוח", firstInspection ? 1 : 0, "/dashboard/garden/inspections"), card("AI alerts", ai, "/dashboard/garden/cameras", ai ? "warn" : "good"), card("נוכחות היום", attendance, "/dashboard/garden/attendance", "good")] });
+      return ok({ role, commandCards: [card("ילדים שדורשים תשומת לב", attention, "/dashboard/garden/children", attention ? "warn" : "good"), card(days === null ? "אין פיקוח פתוח" : `פיקוח בעוד ${days} ימים`, inspectionRes.count ?? (firstInspection ? 1 : 0), "/dashboard/garden/inspections", days !== null && days < 0 ? "bad" : "warn"), card("תשלומים לטיפול", payments, "/dashboard/garden/finance", payments ? "bad" : "good")], activity: [card("הודעות", messages, "/dashboard/garden/messages"), card("אירועים", incidents, "/dashboard/garden/incidents", incidents ? "warn" : "good"), card("פיקוח", firstInspection ? 1 : 0, "/dashboard/garden/inspections"), card("AI alerts", ai, "/dashboard/garden/cameras", ai ? "warn" : "good"), card("נוכחות היום", attendance, "/dashboard/garden/attendance", "good"), card("גבייה", payments, "/dashboard/garden/finance", payments ? "warn" : "good")] });
     }
 
     if (role === "parent") {

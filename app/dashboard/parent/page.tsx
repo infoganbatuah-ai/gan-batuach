@@ -34,6 +34,10 @@ export default async function ParentDashboard() {
     <DashboardShell role="parent" title="אזור הורים">
       <div className="dashboard-hero-card parent-hero-card premium-identity-hero"><div><p className="eyebrow">שקט להורים</p><h1>כל מה שחשוב לדעת על הילד והגן, בלי עומס.</h1><p>נוכחות, איסוף, יומן יומי, הודעות, מצלמות, פיקוח, מסמכים ותלונות במקום אחד וברור.</p></div><div className="avatar-stack">{(childrenRes.data ?? []).map((child: any) => <Avatar key={child.id} name={child.full_name} src={child.photo_url} size="lg" />)}</div><span className="pill good"><ShieldCheck size={15} /> מידע לפי הרשאה</span></div>
       <div className="grid cols-3 dashboard-kpis"><StatCard label="ילדים משויכים" value={(childrenRes.data ?? []).length} tone="good" /><StatCard label="יומן יומי היום" value={journalRes.count ?? 0} /><StatCard label="התראות פתוחות" value={notificationRes.count ?? 0} tone="warn" /></div>
+      <section className="parent-spotlight-card">
+        <div><p className="eyebrow">Child Spotlight</p><h2>היום היה יום נהדר</h2><p>כאן ההורה מקבל חוויה רגשית: מצב רוח, ארוחה, שינה, תמונות חדשות והודעה מהגן במקום אחד.</p></div>
+        <div className="spotlight-metrics"><span>תמונות היום <b>{(journalRows.data ?? []).reduce((sum: number, row: any) => sum + (row.photo_urls?.length ?? 0), 0)}</b></span><span>יומן חדש <b>{journalRes.count ?? 0}</b></span><span>התראות <b>{notificationRes.count ?? 0}</b></span></div>
+      </section>
       <section className="dashboard-section people-directory">
         <div className="section-heading"><h2>הילדים שלי</h2><p>כרטיס חם וברור לכל ילד: תמונה, בריאות, עדכון יומי ומה כדאי לבדוק עכשיו.</p></div>
         {(childrenRes.data ?? []).length === 0 ? <div className="empty-state"><strong>אין ילדים משויכים עדיין</strong><span>לאחר אישור הגן, כרטיס הילד והיומן היומי יופיעו כאן.</span><Link className="button primary" href="/parent-onboarding">השלמת כרטיס ילד</Link></div> : <div className="people-card-grid parent-child-grid">{(childrenRes.data ?? []).map((child: any) => {
