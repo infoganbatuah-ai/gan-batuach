@@ -133,7 +133,7 @@ export const rolePermissions: Record<UserRole, Permission[]> = {
     "video:stream",
     "ai_events:read"
   ],
-  staff: ["gardens:read", "children:read", "messages:write", "attendance:write", "tasks:write", "child_journal:read", "child_journal:write", "medical_data:read", "documents:read", "documents:write"],
+  staff: ["gardens:read", "children:read", "messages:write", "attendance:write", "tasks:write", "child_journal:read", "child_journal:write", "medical_data:read", "documents:read", "documents:write", "cameras:read", "video:stream"],
   parent: ["children:read", "children:write", "messages:write", "complaints:write", "attendance:write", "cameras:read", "video:stream", "ai_events:read", "child_journal:read", "medical_data:read", "documents:read", "documents:download"]
 };
 

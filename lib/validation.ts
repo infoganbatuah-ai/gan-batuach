@@ -191,6 +191,9 @@ export const cameraStreamSchema = z.object({
   channel: z.string().optional(),
   rtsp_path: z.string().optional(),
   onvif_path: z.string().optional(),
+  hls_playback_url: z.string().url().optional().or(z.literal("")),
+  webrtc_playback_url: z.string().url().optional().or(z.literal("")),
+  video_gateway_stream_id: z.string().optional(),
   ai_enabled: z.boolean().optional(),
   dvr_port: z.number().int().optional(),
   viewing_hours: z.record(z.string(), z.unknown()).optional()

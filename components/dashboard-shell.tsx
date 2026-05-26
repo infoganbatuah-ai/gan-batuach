@@ -85,6 +85,7 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/staff/attendance", label: "נוכחות", hint: "כניסה/יציאה" },
     { href: "/dashboard/staff/child-journal", label: "יומן ילד", hint: "עדכוני הורים" },
     { href: "/dashboard/staff/daily-journal", label: "יומן תפעול", hint: "צ׳קליסט" },
+    { href: "/dashboard/staff/cameras", label: "מצלמות", hint: "צפייה מורשית" },
     { href: "/dashboard/staff/tasks", label: "משימות", hint: "לביצוע" },
     { href: "/dashboard/staff/documents", label: "מסמכים", hint: "תעודות ואישורים" },
     { href: "/dashboard/staff/shifts", label: "שעות", hint: "דוחות חודשיים" },

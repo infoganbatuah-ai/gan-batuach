@@ -43,16 +43,30 @@ export async function createCameraPlaybackSession(cameraStreamId: string, payloa
     if (!allowed) throw new Error("Parent is not allowed to view this camera");
   }
 
-  if (role !== "admin" && role !== "inspector" && role !== "manager" && role !== "owner" && role !== "parent") {
+  if (role === "manager" || role === "owner" || role === "staff") {
+    if (profileRow.garden_id !== cameraRow.garden_id) throw new Error("Camera is not assigned to your kindergarten");
+  }
+
+  if (role === "inspector") {
+    const { data: garden, error } = await supabase.from("gardens" as any).select("id").eq("id", cameraRow.garden_id).eq("inspector_id", user.id).maybeSingle();
+    if (error) throw new Error(error.message);
+    if (!garden) throw new Error("Camera is not assigned to your inspected kindergartens");
+  }
+
+  if (role !== "admin" && role !== "inspector" && role !== "manager" && role !== "owner" && role !== "parent" && role !== "staff") {
     throw new Error("Role is not allowed to view cameras");
   }
 
   const token = createToken();
   const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
-  const playbackUrl =
-    parsed.protocol === "WebRTC"
-      ? `${cameraRow.webrtc_playback_url ?? "/api/video/webrtc"}/${cameraStreamId}?token=${token}`
-      : `${cameraRow.hls_playback_url ?? "/api/video/hls"}/${cameraStreamId}/index.m3u8?token=${token}`;
+  const baseUrl = parsed.protocol === "WebRTC" ? cameraRow.webrtc_playback_url : cameraRow.hls_playback_url;
+  const gatewayBase = process.env.VIDEO_GATEWAY_URL;
+  if (!baseUrl && !gatewayBase) throw new Error("Video gateway is not connected yet");
+  const playbackUrl = baseUrl
+    ? `${baseUrl}${baseUrl.includes("?") ? "&" : "?"}token=${token}`
+    : parsed.protocol === "WebRTC"
+      ? `${gatewayBase}/webrtc/${cameraStreamId}?token=${token}`
+      : `${gatewayBase}/hls/${cameraStreamId}/index.m3u8?token=${token}`;
 
   const { data: session, error: sessionError } = await supabase
     .from("video_stream_sessions")

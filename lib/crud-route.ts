@@ -85,6 +85,10 @@ export function createCrudHandlers(config: CrudConfig) {
             after_data: { name: data.name, status: data.status, camera_type: data.camera_type, parent_view_allowed: data.parent_view_allowed, ai_enabled: data.ai_enabled }
           });
         }
+        if (config.table === "camera_streams" && data) {
+          const { username, password, password_encrypted, username_encrypted, dvr_host_encrypted, ...safeCamera } = data as Record<string, unknown>;
+          return ok(safeCamera, 201);
+        }
         return ok(data, 201);
       } catch (error) {
         return handleRouteError(error);

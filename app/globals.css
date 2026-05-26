@@ -3342,6 +3342,58 @@ body::before {
   align-items: start;
 }
 
+.camera-playback-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.camera-playback-card {
+  overflow: hidden;
+  background: linear-gradient(145deg, #ffffff, #f3fbff);
+}
+
+.camera-player-frame {
+  min-height: 210px;
+  border-radius: 18px;
+  overflow: hidden;
+  background: #08111f;
+}
+
+.camera-player-frame video {
+  width: 100%;
+  min-height: 210px;
+  display: block;
+  background: #08111f;
+}
+
+.camera-pending-frame {
+  min-height: 210px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 8px;
+  color: white;
+  text-align: center;
+  padding: 18px;
+  background:
+    radial-gradient(circle at 30% 20%, rgb(34 198 159 / 28%), transparent 28%),
+    linear-gradient(145deg, #08111f, #123c8c);
+}
+
+.camera-card-body {
+  display: grid;
+  gap: 8px;
+  padding-top: 12px;
+}
+
+.camera-card-body small {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  color: var(--muted);
+}
+
 @media (max-width: 720px) {
   .form-grid.compact {
     grid-template-columns: 1fr;

@@ -13,6 +13,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const session = await createCameraPlaybackSession(id, payload);
     return ok(session, 201);
   } catch (error) {
+    console.error("[camera-playback-token]", error);
     return handleRouteError(error);
   }
 }
