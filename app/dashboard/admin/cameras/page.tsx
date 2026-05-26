@@ -9,7 +9,7 @@ export default async function AdminCamerasPage() {
   await requireRole(["admin"]);
   const result = await safeAdminData("admin cameras", async () => {
     const supabase = await createClient();
-    const [cameras, gardens] = await Promise.all([supabase.from("camera_streams" as any).select("id, garden_id, name, area, camera_type, protocol, status, active, parent_view_allowed, last_health_check_at, hls_playback_url, webrtc_playback_url, video_gateway_stream_id, viewing_hours, gardens(name, city)").limit(100), supabase.from("gardens" as any).select("id, name, city").limit(200)]);
+    const [cameras, gardens] = await Promise.all([supabase.from("camera_streams" as any).select("id, garden_id, kindergarten_id, name, area, camera_type, source_type, protocol, status, active, parent_view_allowed, parent_viewing_allowed, last_health_check_at, hls_playback_url, sample_hls_url, webrtc_playback_url, video_gateway_stream_id, gateway_stream_id, viewing_hours, gardens(name, city)").limit(100), supabase.from("gardens" as any).select("id, name, city").limit(200)]);
     logSupabaseError("admin cameras", cameras.error); logSupabaseError("admin camera gardens", gardens.error);
     return { cameras: cameras.data ?? [], gardens: gardens.data ?? [], queryError: cameras.error || gardens.error ? "לא ניתן לטעון את הנתונים כרגע" : null };
   }, { cameras: [] as any[], gardens: [] as any[], queryError: null as string | null });

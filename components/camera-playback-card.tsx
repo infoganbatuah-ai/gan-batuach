@@ -19,7 +19,9 @@ export function CameraPlaybackCard({ camera, parentId, canRequestPlayback = true
   const [playbackUrl, setPlaybackUrl] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const connected = ["connected", "online"].includes(camera.status) || Boolean(camera.hls_playback_url || camera.webrtc_playback_url);
+  const hlsUrl = camera.hls_playback_url ?? camera.sample_hls_url;
+  const sourceType = camera.source_type ?? camera.camera_type ?? camera.protocol ?? "RTSP";
+  const connected = ["connected", "online"].includes(camera.status) || Boolean(hlsUrl || camera.webrtc_playback_url);
 
   async function start(protocol: "HLS" | "WebRTC" = "HLS") {
     setBusy(true);
@@ -49,7 +51,7 @@ export function CameraPlaybackCard({ camera, parentId, canRequestPlayback = true
       <div className="camera-card-body">
         <span className={connected ? "pill good" : "pill warn"}>{statusText[camera.status] ?? camera.status ?? "ממתין לחיבור Gateway"}</span>
         <h3>{camera.name ?? "מצלמה"}</h3>
-        <p>{camera.gardens?.name ?? camera.garden_name ?? ""} · {camera.area ?? "אזור לא הוגדר"} · {camera.camera_type ?? camera.protocol ?? "RTSP"}</p>
+        <p>{camera.gardens?.name ?? camera.garden_name ?? ""} · {camera.area ?? "אזור לא הוגדר"} · {sourceType}</p>
         <small><ShieldCheck size={13} /> RTSP וסיסמאות לא נשלחים לדפדפן. הצפייה דרך Playback URL זמני בלבד.</small>
         <div className="profile-actions">
           <button className="button primary tiny" disabled={busy || !canRequestPlayback || !connected} type="button" onClick={() => start("HLS")}><Play size={14} /> צפייה HLS</button>

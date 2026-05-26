@@ -9,7 +9,7 @@ export default async function StaffCamerasPage() {
   const gardenId = profile.garden_id ?? "";
   const camerasRes = await supabase
     .from("camera_streams" as any)
-    .select("id, garden_id, name, area, camera_type, protocol, status, active, parent_view_allowed, hls_playback_url, webrtc_playback_url, last_health_check_at, gardens(name, city)")
+    .select("id, garden_id, kindergarten_id, name, area, camera_type, source_type, protocol, status, active, parent_view_allowed, parent_viewing_allowed, hls_playback_url, sample_hls_url, webrtc_playback_url, last_health_check_at, gardens(name, city)")
     .eq("garden_id", gardenId)
     .eq("active", true);
   const cameras = (camerasRes.data ?? []) as any[];

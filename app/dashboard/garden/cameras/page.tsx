@@ -11,7 +11,7 @@ export default async function GardenCameraSetupPage() {
   const result = await safeAdminData("garden cameras", async () => {
     const supabase = await createClient();
     const [cameras, garden] = await Promise.all([
-      supabase.from("camera_streams" as any).select("id, garden_id, name, area, camera_type, protocol, status, active, parent_view_allowed, last_health_check_at, hls_playback_url, webrtc_playback_url, video_gateway_stream_id, viewing_hours").eq("garden_id", gardenId),
+      supabase.from("camera_streams" as any).select("id, garden_id, kindergarten_id, name, area, camera_type, source_type, protocol, status, active, parent_view_allowed, parent_viewing_allowed, last_health_check_at, hls_playback_url, sample_hls_url, webrtc_playback_url, video_gateway_stream_id, gateway_stream_id, viewing_hours").eq("garden_id", gardenId),
       supabase.from("gardens" as any).select("id, name, city").eq("id", gardenId).maybeSingle()
     ]);
     logSupabaseError("garden cameras", cameras.error); logSupabaseError("garden camera garden", garden.error);

@@ -175,13 +175,16 @@ export const attendanceSchema = z.object({
 
 export const cameraStreamSchema = z.object({
   garden_id: z.string().uuid(),
+  kindergarten_id: z.string().uuid().optional(),
   name: z.string().min(2),
   area: z.string().min(2),
   camera_type: z.string().optional(),
+  source_type: z.string().optional(),
   protocol: z.string().default("RTSP"),
   active: z.boolean().default(true),
   status: z.string().optional(),
   parent_view_allowed: z.boolean().optional(),
+  parent_viewing_allowed: z.boolean().optional(),
   class_group: z.string().optional(),
   age_group: z.string().optional(),
   host: z.string().optional(),
@@ -192,8 +195,10 @@ export const cameraStreamSchema = z.object({
   rtsp_path: z.string().optional(),
   onvif_path: z.string().optional(),
   hls_playback_url: z.string().url().optional().or(z.literal("")),
+  sample_hls_url: z.string().url().optional().or(z.literal("")),
   webrtc_playback_url: z.string().url().optional().or(z.literal("")),
   video_gateway_stream_id: z.string().optional(),
+  gateway_stream_id: z.string().optional(),
   ai_enabled: z.boolean().optional(),
   dvr_port: z.number().int().optional(),
   viewing_hours: z.record(z.string(), z.unknown()).optional()

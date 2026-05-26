@@ -1,8 +1,10 @@
 import { type ZodSchema } from "zod";
+import crypto from "node:crypto";
 import { createClient } from "@/lib/supabase/server";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { requirePermission } from "@/lib/auth";
 import type { Permission } from "@/lib/roles";
+import { encryptField } from "@/lib/security/encryption";
 
 type CrudConfig = {
   table: string;
@@ -24,7 +26,11 @@ export function createCrudHandlers(config: CrudConfig) {
         const { searchParams } = new URL(request.url);
         const limit = Number(searchParams.get("limit") ?? 50);
         const gardenId = searchParams.get("garden_id");
-        let query = (supabase as any).from(config.table).select("*").limit(Math.min(limit, 200));
+        const selectColumns =
+          config.table === "camera_streams"
+            ? "id,garden_id,kindergarten_id,name,area,age_group,class_group,camera_type,source_type,protocol,host,port,username,rtsp_path,onvif_path,channel,hls_playback_url,sample_hls_url,webrtc_playback_url,video_gateway_stream_id,gateway_stream_id,viewing_hours,parent_view_allowed,parent_viewing_allowed,status,active,ai_enabled,last_health_check_at,created_at,updated_at"
+            : "*";
+        let query = (supabase as any).from(config.table).select(selectColumns).limit(Math.min(limit, 200));
         if (gardenId) query = query.eq("garden_id", gardenId);
         if (config.defaultOrder) query = query.order(config.defaultOrder, { ascending: false });
         const { data, error } = await query;
@@ -42,9 +48,26 @@ export function createCrudHandlers(config: CrudConfig) {
 
         const payload = await request.json();
         const parsed = config.schema ? config.schema.parse(payload) : payload;
-        const insertPayload = config.table === "messages" && "session" in permission
+        let insertPayload = config.table === "messages" && "session" in permission
           ? { ...parsed, sender_id: permission.session.profile.id, content: parsed.content ?? parsed.body }
           : parsed;
+        if (config.table === "camera_streams") {
+          const cameraPayload = { ...parsed } as Record<string, unknown>;
+          const rawPassword = typeof cameraPayload.password === "string" ? cameraPayload.password : "";
+          delete cameraPayload.password;
+          if (rawPassword) {
+            const encrypted = encryptField(rawPassword);
+            cameraPayload.encrypted_password = encrypted;
+            cameraPayload.password_encrypted = encrypted;
+            cameraPayload.secret_ref = `camera_streams:${crypto.randomUUID()}`;
+          }
+          cameraPayload.kindergarten_id = cameraPayload.garden_id;
+          cameraPayload.source_type = cameraPayload.source_type ?? cameraPayload.camera_type;
+          cameraPayload.sample_hls_url = cameraPayload.sample_hls_url ?? cameraPayload.hls_playback_url;
+          cameraPayload.gateway_stream_id = cameraPayload.gateway_stream_id ?? cameraPayload.video_gateway_stream_id;
+          cameraPayload.parent_viewing_allowed = cameraPayload.parent_viewing_allowed ?? cameraPayload.parent_view_allowed;
+          insertPayload = cameraPayload;
+        }
         const supabase = await createClient();
         const { data, error } = await (supabase as any).from(config.table).insert(insertPayload).select("*").single();
         if (error) return fail(error.message, 400);
@@ -86,7 +109,7 @@ export function createCrudHandlers(config: CrudConfig) {
           });
         }
         if (config.table === "camera_streams" && data) {
-          const { username, password, password_encrypted, username_encrypted, dvr_host_encrypted, ...safeCamera } = data as Record<string, unknown>;
+          const { password, password_encrypted, encrypted_password, secret_ref, username_encrypted, dvr_host_encrypted, ...safeCamera } = data as Record<string, unknown>;
           return ok(safeCamera, 201);
         }
         return ok(data, 201);

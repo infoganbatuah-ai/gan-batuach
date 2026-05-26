@@ -59,14 +59,15 @@ export async function createCameraPlaybackSession(cameraStreamId: string, payloa
 
   const token = createToken();
   const expiresAt = new Date(Date.now() + 5 * 60 * 1000).toISOString();
-  const baseUrl = parsed.protocol === "WebRTC" ? cameraRow.webrtc_playback_url : cameraRow.hls_playback_url;
+  const baseUrl = parsed.protocol === "WebRTC" ? cameraRow.webrtc_playback_url : (cameraRow.hls_playback_url ?? cameraRow.sample_hls_url);
+  const gatewayStreamId = cameraRow.gateway_stream_id ?? cameraRow.video_gateway_stream_id ?? cameraStreamId;
   const gatewayBase = process.env.VIDEO_GATEWAY_URL;
   if (!baseUrl && !gatewayBase) throw new Error("Video gateway is not connected yet");
   const playbackUrl = baseUrl
     ? `${baseUrl}${baseUrl.includes("?") ? "&" : "?"}token=${token}`
     : parsed.protocol === "WebRTC"
-      ? `${gatewayBase}/webrtc/${cameraStreamId}?token=${token}`
-      : `${gatewayBase}/hls/${cameraStreamId}/index.m3u8?token=${token}`;
+      ? `${gatewayBase}/webrtc/${gatewayStreamId}?token=${token}`
+      : `${gatewayBase}/hls/${gatewayStreamId}/index.m3u8?token=${token}`;
 
   const { data: session, error: sessionError } = await supabase
     .from("video_stream_sessions")
