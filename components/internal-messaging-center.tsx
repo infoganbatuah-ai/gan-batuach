@@ -4,7 +4,7 @@ import { useState, useTransition } from "react";
 import { MessageCircleReply } from "lucide-react";
 import { Avatar } from "@/components/avatar";
 
-export function InternalMessagingCenter({ gardenId, recipients, messages, linkedChildren = [] }: { gardenId?: string | null; recipients: any[]; messages: any[]; linkedChildren?: any[] }) {
+export function InternalMessagingCenter({ gardenId, recipients, messages, linkedChildren = [], preselectedChildId, preselectedRecipientId }: { gardenId?: string | null; recipients: any[]; messages: any[]; linkedChildren?: any[]; preselectedChildId?: string; preselectedRecipientId?: string }) {
   const [message, setMessage] = useState("");
   const [isPending, startTransition] = useTransition();
 
@@ -32,8 +32,9 @@ export function InternalMessagingCenter({ gardenId, recipients, messages, linked
         <div className="section-heading"><h2><MessageCircleReply size={20} /> הודעה חדשה</h2><p>בחרו נמען, נושא ותוכן. ההודעה נשמרת עם סטטוס קריאה וטיפול.</p></div>
         {message ? <div className={message.includes("נשלחה") ? "success-banner" : "error-banner"}>{message}</div> : null}
         <div className="form-grid">
-          <label>נמען<select name="recipient_id" required><option value="">בחרו נמען</option>{recipients.map((recipient) => <option key={recipient.id} value={recipient.id}>{recipient.full_name ?? recipient.email ?? recipient.id} · {recipient.role ?? ""}</option>)}</select></label>
-          <label>ילד קשור<select name="linked_child_id"><option value="">לא משויך לילד</option>{linkedChildren.map((child) => <option value={child.id} key={child.id}>{child.full_name}</option>)}</select></label>
+          {preselectedRecipientId ? <input type="hidden" name="recipient_id" value={preselectedRecipientId} /> : <label>נמען<select name="recipient_id" required><option value="">בחרו נמען</option>{recipients.map((recipient) => <option key={recipient.id} value={recipient.id}>{recipient.full_name ?? recipient.email ?? recipient.id} · {recipient.role ?? ""}</option>)}</select></label>}
+          {preselectedChildId ? <input type="hidden" name="linked_child_id" value={preselectedChildId} /> : <label>ילד קשור<select name="linked_child_id"><option value="">לא משויך לילד</option>{linkedChildren.map((child) => <option value={child.id} key={child.id}>{child.full_name}</option>)}</select></label>}
+          {preselectedChildId || preselectedRecipientId ? <div className="context-send-strip">שליחת הודעה בהקשר: {linkedChildren.find((child) => child.id === preselectedChildId)?.full_name ?? "ילד נבחר"} · {recipients.find((recipient) => recipient.id === preselectedRecipientId)?.full_name ?? "הורה משויך"}</div> : null}
           <label className="wide">נושא<input name="subject" required placeholder="לדוגמה: עדכון יומי / מסמך חסר / שאלה" /></label>
           <label className="wide">תוכן<textarea name="body" rows={5} required placeholder="כתבו ברור וקצר. הצד השני יראה את ההודעה באזור האישי." /></label>
         </div>

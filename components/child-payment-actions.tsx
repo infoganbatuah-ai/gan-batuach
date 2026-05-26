@@ -32,8 +32,13 @@ export function ChildPaymentActions({ childId, amount }: { childId: string; amou
   const [validUntil, setValidUntil] = useState(endOfCurrentMonth());
   const [amountPaid, setAmountPaid] = useState(String(amount || 0));
   const [paymentMethod, setPaymentMethod] = useState("");
+  const [transactionType, setTransactionType] = useState("monthly_bank_transfer");
   const [notes, setNotes] = useState("");
   const [customMonthlyFee, setCustomMonthlyFee] = useState(String(amount || 0));
+  const [paymentsPaused, setPaymentsPaused] = useState(false);
+  const [pausedReason, setPausedReason] = useState("");
+  const [debtAmount, setDebtAmount] = useState("0");
+  const [debtNotes, setDebtNotes] = useState("");
 
   function openModal(nextAction: Action) {
     setAction(nextAction);
@@ -63,10 +68,15 @@ export function ChildPaymentActions({ childId, amount }: { childId: string; amou
           valid_from: validFrom,
           valid_until: validUntil,
           payment_method: paymentMethod || undefined,
+          transaction_type: transactionType,
           notes: notes || undefined,
           custom_monthly_fee: action === "special_arrangement" ? Number(customMonthlyFee || 0) : undefined,
           arrangement_notes: action === "special_arrangement" ? notes || undefined : undefined,
-          arrangement_valid_until: action === "special_arrangement" ? validUntil : undefined
+          arrangement_valid_until: action === "special_arrangement" ? validUntil : undefined,
+          payments_paused: paymentsPaused,
+          paused_reason: paymentsPaused ? pausedReason || undefined : undefined,
+          debt_amount: Number(debtAmount || 0),
+          debt_notes: debtNotes || undefined
         })
       });
       const body = await response.json();
@@ -104,7 +114,12 @@ export function ChildPaymentActions({ childId, amount }: { childId: string; amou
               <label>תקף עד<input value={validUntil} onChange={(event) => setValidUntil(event.target.value)} type="date" /></label>
               <label>סכום ששולם<input value={amountPaid} onChange={(event) => setAmountPaid(event.target.value)} type="number" min="0" /></label>
               {action === "special_arrangement" ? <label>סכום חודשי בהסדר<input value={customMonthlyFee} onChange={(event) => setCustomMonthlyFee(event.target.value)} type="number" min="0" /></label> : null}
+              <label>סוג עסקה<select value={transactionType} onChange={(event) => setTransactionType(event.target.value)}><option value="monthly_cash">חודשי - מזומן</option><option value="monthly_bank_transfer">חודשי - העברה בנקאית</option><option value="yearly_plan">עסקה שנתית - בכל חודש יורד סכום זה</option><option value="recurring_monthly">חיוב חודשי חוזר</option><option value="standing_order">הוראת קבע</option><option value="other">אחר</option></select></label>
               <label>אמצעי תשלום<input value={paymentMethod} onChange={(event) => setPaymentMethod(event.target.value)} placeholder="מזומן / העברה / אשראי" /></label>
+              <label>חוב נוכחי<input value={debtAmount} onChange={(event) => setDebtAmount(event.target.value)} type="number" min="0" /></label>
+              <label className="check-row"><input checked={paymentsPaused} onChange={(event) => setPaymentsPaused(event.target.checked)} type="checkbox" /> תשלומים נעצרו</label>
+              {paymentsPaused ? <label className="wide">סיבת עצירה<input value={pausedReason} onChange={(event) => setPausedReason(event.target.value)} placeholder="לדוגמה: הסדר בבדיקה / חוב פתוח" /></label> : null}
+              <label className="wide">הערות חוב<input value={debtNotes} onChange={(event) => setDebtNotes(event.target.value)} placeholder="פירוט חוב או תזכורת גבייה" /></label>
               <label className="wide">הערות<input value={notes} onChange={(event) => setNotes(event.target.value)} placeholder="הערה פנימית או פירוט הסדר" /></label>
             </div>
             <div className="profile-actions">

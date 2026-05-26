@@ -41,7 +41,7 @@ export async function InspectionReportView({ id, role, backHref }: { id: string;
         <span className={Number(inspection.weighted_score ?? 0) >= 8 ? "pill good" : "pill bad"}>ציון {inspection.weighted_score ?? "-"}</span>
       </div>
 
-      <div className="actions"><Link className="button" href={backHref}>חזרה לרשימה</Link><PrintButton /></div>
+      <div className="actions"><Link className="button" href={backHref}>חזרה לרשימה</Link><PrintButton /><a className="button secondary" href={`/api/inspections/${id}/report?download=1`}>הורדת קובץ דוח</a></div>
 
       <div className="grid cols-4 dashboard-kpis">
         <div className="card stat-card">תאריך ביצוע <b>{dateText(inspection.completed_at)}</b></div>

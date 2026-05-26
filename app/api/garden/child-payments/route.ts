@@ -13,9 +13,14 @@ const schema = z.object({
   notes: z.string().optional(),
   valid_until: z.string().optional(),
   payment_method: z.string().optional(),
+  transaction_type: z.enum(["monthly_cash", "monthly_bank_transfer", "yearly_plan", "recurring_monthly", "standing_order", "other"]).optional(),
   custom_monthly_fee: z.coerce.number().min(0).optional(),
   arrangement_notes: z.string().optional(),
-  arrangement_valid_until: z.string().optional()
+  arrangement_valid_until: z.string().optional(),
+  payments_paused: z.boolean().optional(),
+  paused_reason: z.string().optional(),
+  debt_amount: z.coerce.number().min(0).optional(),
+  debt_notes: z.string().optional()
 });
 
 function statusFor(action: string) {
@@ -33,7 +38,7 @@ export async function POST(request: Request) {
     const supabase = await createClient();
     const child = await supabase
       .from("children" as any)
-      .select("id, garden_id, monthly_fee, payment_status, custom_monthly_fee, arrangement_valid_until, payment_group_id, kindergarten_fee_groups(monthly_fee)")
+      .select("id, garden_id, monthly_fee, payment_status, custom_monthly_fee, arrangement_valid_until, payment_group_id, payments_paused, debt_amount, kindergarten_fee_groups(monthly_fee)")
       .eq("id", payload.child_id)
       .maybeSingle();
     if (child.error || !child.data || (child.data as any).garden_id !== profile.garden_id) {
@@ -59,8 +64,16 @@ export async function POST(request: Request) {
       next_payment_due: validUntil ? new Date(new Date(validUntil).getTime() + 86400000).toISOString().slice(0, 10) : null,
       payment_notes: payload.notes ?? payload.arrangement_notes ?? null,
       last_amount_paid: amountPaid,
-      last_payment_method: payload.payment_method ?? null
+      last_payment_method: payload.payment_method ?? payload.transaction_type ?? null
     };
+    if (payload.payments_paused !== undefined) {
+      childPatch.payments_paused = payload.payments_paused;
+      childPatch.paused_reason = payload.paused_reason ?? null;
+    }
+    if (payload.debt_amount !== undefined) {
+      childPatch.debt_amount = payload.debt_amount;
+      childPatch.debt_notes = payload.debt_notes ?? null;
+    }
     if (payload.action === "special_arrangement") {
       childPatch.custom_monthly_fee = payload.custom_monthly_fee ?? amountPaid;
       childPatch.arrangement_notes = payload.arrangement_notes ?? payload.notes ?? null;
@@ -79,6 +92,7 @@ export async function POST(request: Request) {
       valid_from: payload.valid_from ?? paidAt,
       valid_until: validUntil,
       payment_method: payload.payment_method ?? null,
+      transaction_type: payload.transaction_type ?? null,
       previous_status: childData.payment_status ?? null,
       new_status: paymentStatus,
       notes: payload.notes ?? payload.arrangement_notes ?? null,
@@ -103,7 +117,10 @@ export async function POST(request: Request) {
         valid_until: validUntil,
         previous_status: childData.payment_status ?? null,
         new_status: paymentStatus,
-        payment_method: payload.payment_method ?? null
+        payment_method: payload.payment_method ?? null,
+        transaction_type: payload.transaction_type ?? null,
+        payments_paused: payload.payments_paused ?? childData.payments_paused,
+        debt_amount: payload.debt_amount ?? childData.debt_amount
       }
     });
     if (audit.error) console.error("Payment audit insert failed", audit.error);

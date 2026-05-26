@@ -10,6 +10,7 @@ import { SandboxModeBanner } from "@/components/sandbox-mode-banner";
 import { AIAssistantPanel } from "@/components/ai-assistant-panel";
 import { DashboardIntelligenceBar } from "@/components/dashboard-intelligence-bar";
 import { DashboardCommandCenter } from "@/components/dashboard-command-center";
+import { OnboardingGuideControls } from "@/components/onboarding-guide-controls";
 
 const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: string }>> = {
   admin: [
@@ -81,6 +82,7 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
   ],
   staff: [
     { href: "/dashboard/staff", label: "צוות", hint: "GPS ומשימות" },
+    { href: "/dashboard/staff/attendance", label: "נוכחות", hint: "כניסה/יציאה" },
     { href: "/dashboard/staff/child-journal", label: "יומן ילד", hint: "עדכוני הורים" },
     { href: "/dashboard/staff/daily-journal", label: "יומן תפעול", hint: "צ׳קליסט" },
     { href: "/dashboard/staff/tasks", label: "משימות", hint: "לביצוע" },
@@ -121,6 +123,7 @@ export function DashboardShell({ role, title, children }: { role: UserRole; titl
         <main className="dashboard-main">
           <PolicyAcceptanceGate />
           <SandboxModeBanner />
+          <OnboardingGuideControls role={role} />
           <RoleOnboardingGuide role={role} />
           <DashboardIntelligenceBar role={role} title={title} />
           <DashboardCommandCenter role={role} title={title} />

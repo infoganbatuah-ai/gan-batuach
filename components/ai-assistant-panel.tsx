@@ -42,6 +42,7 @@ export function AIAssistantPanel({ role }: { role: UserRole }) {
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<AssistantSummary | null>(null);
   const [selectedPrompt, setSelectedPrompt] = useState<string | null>(null);
+  const [customPrompt, setCustomPrompt] = useState("");
   const [recentInteractions, setRecentInteractions] = useState<Interaction[]>([]);
 
   useEffect(() => {
@@ -80,6 +81,13 @@ export function AIAssistantPanel({ role }: { role: UserRole }) {
     const next = [{ prompt, answer, at: new Date().toISOString() }, ...recentInteractions.filter((item) => item.prompt !== prompt)].slice(0, 6);
     setRecentInteractions(next);
     localStorage.setItem(`gan-batuach-ai-${role}`, JSON.stringify(next));
+  }
+
+  function askCustom() {
+    const prompt = customPrompt.trim();
+    if (!prompt) return;
+    choosePrompt(prompt);
+    setCustomPrompt("");
   }
 
   return (
@@ -125,6 +133,10 @@ export function AIAssistantPanel({ role }: { role: UserRole }) {
             <h3>שאלות מומלצות</h3>
             <div className="assistant-prompt-row">
               {data.prompts.map((prompt) => <button className={selectedPrompt === prompt ? "chip active" : "chip"} type="button" key={prompt} onClick={() => choosePrompt(prompt)}>{prompt}</button>)}
+            </div>
+            <div className="assistant-free-question">
+              <input value={customPrompt} onChange={(event) => setCustomPrompt(event.target.value)} placeholder="שאלו: מה דורש טיפול היום? מי לא שילם? אילו מסמכים חסרים?" />
+              <button className="button secondary tiny" type="button" onClick={askCustom}>ענה לפי הנתונים</button>
             </div>
             {selectedAnswer ? <div className="assistant-answer"><strong>{selectedPrompt}</strong><p>{selectedAnswer}</p></div> : null}
           </section>

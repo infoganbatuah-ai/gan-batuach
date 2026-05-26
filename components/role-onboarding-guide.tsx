@@ -51,6 +51,21 @@ export function RoleOnboardingGuide({ role }: { role: UserRole }) {
     setCompleted(JSON.parse(window.localStorage.getItem(progressKey) || "[]"));
   }, [storageKey, progressKey]);
 
+  useEffect(() => {
+    function handleOpen(event: Event) {
+      const detail = (event as CustomEvent<{ role?: UserRole; resetProgress?: boolean }>).detail;
+      if (detail?.role && detail.role !== role) return;
+      if (detail?.resetProgress) {
+        window.localStorage.removeItem(progressKey);
+        setCompleted([]);
+      }
+      window.localStorage.removeItem(storageKey);
+      setVisible(true);
+    }
+    window.addEventListener("gan-batuach-open-guide", handleOpen);
+    return () => window.removeEventListener("gan-batuach-open-guide", handleOpen);
+  }, [progressKey, role, storageKey]);
+
   function dismiss() {
     window.localStorage.setItem(storageKey, "dismissed");
     setVisible(false);

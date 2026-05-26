@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import Link from "next/link";
-import { AlertTriangle, Baby, Bell, CalendarClock, FileText, HeartPulse, MessageCircle, Phone, Printer, Search, ShieldCheck, UserCheck, WandSparkles } from "lucide-react";
+import { AlertTriangle, Baby, Bell, CalendarClock, FileText, HeartPulse, MessageCircle, Phone, Printer, Search, ShieldCheck, Shirt, UserCheck, WandSparkles } from "lucide-react";
 import { Avatar } from "@/components/avatar";
 import { ChildPaymentActions } from "@/components/child-payment-actions";
 
@@ -59,20 +59,23 @@ export function ChildrenProfileCards({ children }: { children: Row[] }) {
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState("");
   const [sort, setSort] = useState("risk");
+  const [viewMode, setViewMode] = useState<"cards" | "compact" | "attention">("cards");
   const rows = useMemo(() => children.filter((child) => {
-    const text = `${child.full_name} ${child.status} ${child.class_group ?? ""} ${child.allergies ?? ""} ${child.hmo ?? ""}`.toLowerCase();
-    return (!query || text.includes(query.toLowerCase())) && (!filter || child.status === filter || child.attendance_status === filter);
+    const text = `${child.full_name} ${child.mother_name ?? ""} ${child.father_name ?? ""} ${child.status} ${child.class_group ?? ""} ${child.classroom ?? ""} ${child.age_group ?? ""} ${child.allergies ?? ""} ${child.hmo ?? ""} ${child.payment_status ?? ""}`.toLowerCase();
+    const attention = Boolean(child.allergies || child.medical_notes || child.has_change_clothes === false || child.open_parent_requests || ["overdue", "unpaid", "partial"].includes(child.payment_status) || child.attendance_status === "not_updated");
+    return (!query || text.includes(query.toLowerCase())) && (!filter || child.status === filter || child.attendance_status === filter || child.payment_status === filter || child.age_group === filter || child.classroom === filter) && (viewMode !== "attention" || attention);
   }).sort((a, b) => {
     if (sort === "risk") return Number(Boolean(b.allergies) || b.incident_count || b.attendance_status === "late") - Number(Boolean(a.allergies) || a.incident_count || a.attendance_status === "late");
     if (sort === "recent") return new Date(b.updated_at ?? b.created_at ?? 0).getTime() - new Date(a.updated_at ?? a.created_at ?? 0).getTime();
     return String(a.full_name).localeCompare(String(b.full_name), "he");
-  }), [children, query, filter, sort]);
-  const filters = Array.from(new Set(children.flatMap((child) => [child.status, child.attendance_status]).filter(Boolean)));
+  }), [children, query, filter, sort, viewMode]);
+  const filters = Array.from(new Set(children.flatMap((child) => [child.status, child.attendance_status, child.payment_status, child.age_group, child.classroom]).filter(Boolean)));
 
   return (
     <section className="dashboard-section people-directory">
       <div className="section-heading"><h2>כרטיסי ילדים חכמים</h2><p>בריאות, נוכחות, מצב רוח, איסוף, יומן יומי ותיעוד הורים בכרטיס אחד.</p></div>
       <Toolbar query={query} setQuery={setQuery} filter={filter} setFilter={setFilter} sort={sort} setSort={setSort} filterOptions={filters} />
+      <div className="view-mode-switch"><button className={viewMode === "cards" ? "chip active" : "chip"} type="button" onClick={() => setViewMode("cards")}>כרטיסים</button><button className={viewMode === "compact" ? "chip active" : "chip"} type="button" onClick={() => setViewMode("compact")}>רשימה קומפקטית</button><button className={viewMode === "attention" ? "chip active" : "chip"} type="button" onClick={() => setViewMode("attention")}>דורשים תשומת לב</button></div>
       {rows.length === 0 ? <div className="empty-state"><strong>אין ילדים להצגה</strong><span>הוסיפו ילד דרך קליטה. הכרטיסים יציגו תמונה, נוכחות, בריאות, יומן יומי ואיסוף.</span><Link className="button primary" href="/dashboard/garden/onboarding">קליטת ילד/הורה</Link></div> : <div className="people-card-grid">{rows.map((child) => {
         const childRiskScore = Number(Boolean(child.allergies)) * 30 + Number(child.incident_count ?? 0) * 20 + (child.attendance_status === "not_updated" ? 15 : 0) + (child.pickup_authorized === false ? 35 : 0);
         const risk = riskLevel(childRiskScore);
@@ -91,7 +94,9 @@ export function ChildrenProfileCards({ children }: { children: Row[] }) {
           <span className={statusClass(child.attendance_status)}><CalendarClock size={14} /> {child.attendance_status ?? "נוכחות טרם עודכנה"}</span>
           <span className={child.allergies ? "pill bad" : "pill good"}><HeartPulse size={14} /> {child.allergies ? "אלרגיה" : "בריאות תקינה"}</span>
           <span className={child.pickup_authorized === false ? "pill bad" : "pill good"}><ShieldCheck size={14} /> {child.pickup_status ?? "איסוף מורשה"}</span>
-          <span className={paymentClass(child.payment_status)}>תשלום {child.payment_status ?? "לא הוגדר"}</span>
+          <span className={child.has_change_clothes === false ? "pill bad" : "pill good"}><Shirt size={14} /> {child.has_change_clothes === false ? "חסר בגדים" : "בגדים להחלפה"}</span>
+          <span className={child.open_parent_requests ? "pill warn" : "pill good"}><Bell size={14} /> {child.open_parent_requests ?? 0} בקשות</span>
+          <span className={child.payments_paused ? "pill bad" : paymentClass(child.payment_status)}>תשלום {child.payments_paused ? "נעצר" : child.payment_status ?? "לא הוגדר"}</span>
           <span className={risk.className}>{risk.label}</span>
         </div>
         <div className="mini-kpi-row"><span>שינה <b>{child.sleep_summary ?? "טרם"}</b></span><span>מצב רוח <b>{child.mood ?? "טרם"}</b></span><span>תשלום בפועל <b>₪{child.actual_monthly_fee ?? child.monthly_fee ?? 0}</b></span></div>
@@ -105,12 +110,12 @@ export function ChildrenProfileCards({ children }: { children: Row[] }) {
             <section><h4>פרטים אישיים</h4><p>תאריך לידה: {child.birth_date ?? "-"}</p><p>ת״ז: {child.identity_number ?? "-"}</p><p>הורים: {[child.mother_name, child.father_name, child.parent_name].filter(Boolean).join(" / ") || "-"}</p><p>חירום: {child.emergency_phone ?? "-"}</p></section>
             <section><h4>בריאות</h4><p>קופה: {child.hmo ?? "-"}</p><p>אלרגיות: {child.allergies || "אין אלרגיות מתועדות"}</p><p>תרופות: {child.regular_medications || child.medications || "אין תרופות קבועות"}</p><p>סוג דם: {child.blood_type ?? "לא צוין"}</p><p>{child.medical_notes ?? ""}</p></section>
             <section><h4>פעילות היום</h4><p>ארוחות: {child.meals_text ?? "טרם עודכן"}</p><p>שינה: {child.sleep_summary ?? "טרם עודכן"}</p><p>מצב רוח: {child.mood ?? "טרם עודכן"}</p><p>הערות: {child.notes_to_parents ?? "אין הערות"}</p></section>
-            <section><h4>Payments</h4><p>קבוצת תשלום: {child.fee_group_name ?? "לא הוגדרה"}</p><p>מחיר ברירת מחדל: ₪{child.group_monthly_fee ?? child.monthly_fee ?? 0}</p><p>מחיר בפועל: ₪{child.actual_monthly_fee ?? child.monthly_fee ?? 0}</p><p>הסדר מיוחד: {child.has_special_arrangement ? `פעיל עד ${formatDate(child.arrangement_valid_until)}` : "אין"}</p><p>סטטוס: {child.payment_status ?? "לא הוגדר"}</p><p>שולם לאחרונה: {formatDate(child.last_payment_date)}</p><p>תוקף עד: {formatDate(child.valid_until)}</p><p>יעד הבא: {formatDate(child.next_payment_due)}</p><p>סכום אחרון: ₪{child.last_amount_paid ?? 0}</p><p>הערות: {child.arrangement_notes ?? child.payment_notes ?? "אין"}</p><ChildPaymentActions childId={child.id} amount={Number(child.actual_monthly_fee ?? child.monthly_fee ?? 0)} /></section>
+            <section><h4>Payments</h4><p>קבוצת תשלום: {child.fee_group_name ?? "לא הוגדרה"}</p><p>מחיר ברירת מחדל: ₪{child.group_monthly_fee ?? child.monthly_fee ?? 0}</p><p>מחיר בפועל: ₪{child.actual_monthly_fee ?? child.monthly_fee ?? 0}</p><p>הסדר מיוחד: {child.has_special_arrangement ? `פעיל עד ${formatDate(child.arrangement_valid_until)}` : "אין"}</p><p>עצירת תשלומים: {child.payments_paused ? child.paused_reason ?? "כן" : "לא"}</p><p>חוב פתוח: ₪{child.debt_amount ?? 0}</p><p>סטטוס: {child.payment_status ?? "לא הוגדר"}</p><p>שולם לאחרונה: {formatDate(child.last_payment_date)}</p><p>תוקף עד: {formatDate(child.valid_until)}</p><p>יעד הבא: {formatDate(child.next_payment_due)}</p><p>סכום אחרון: ₪{child.last_amount_paid ?? 0}</p><p>הערות: {child.arrangement_notes ?? child.payment_notes ?? "אין"}</p><ChildPaymentActions childId={child.id} amount={Number(child.actual_monthly_fee ?? child.monthly_fee ?? 0)} /></section>
             <section><h4>ציר פעילות</h4><Timeline items={timeline} /></section>
             <section><h4>מדיה</h4><div className="gallery-preview">{(child.photo_urls ?? [child.photo_url]).filter(Boolean).slice(0, 3).map((url: string) => <img src={url} alt="תמונת ילד" key={url} />)}</div></section>
           </div>
         </details>
-        <div className="profile-actions"><Link className="button secondary tiny" href={`/dashboard/garden/children?child=${child.id}`}>פתיחת פרופיל</Link><Link className="button secondary tiny" href="/dashboard/garden/messages"><MessageCircle size={14} /> הודעה להורה</Link><Link className="button secondary tiny" href="/dashboard/garden/incidents"><AlertTriangle size={14} /> אירוע</Link><Link className="button secondary tiny" href="/dashboard/garden/child-journal">הערה</Link><button className="button tiny" type="button" onClick={() => window.print()}><Printer size={14} /> הדפסה</button></div>
+        <div className="profile-actions"><Link className="button secondary tiny" href={`/dashboard/garden/children/${child.id}`}>פתיחת פרופיל</Link><Link className="button secondary tiny" href={`/dashboard/garden/messages?childId=${child.id}`}><MessageCircle size={14} /> הודעה להורה</Link><Link className="button secondary tiny" href="/dashboard/garden/incidents"><AlertTriangle size={14} /> אירוע</Link><Link className="button secondary tiny" href={`/dashboard/garden/children/${child.id}`}>הערה</Link><button className="button tiny" type="button" onClick={() => window.print()}><Printer size={14} /> הדפסה</button></div>
       </article>; })}</div>}
     </section>
   );

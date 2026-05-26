@@ -3185,6 +3185,11 @@ body::before {
   background: linear-gradient(145deg, #ffffff, #f0fdf4);
 }
 
+.finance-student-card.payment-paused {
+  background: linear-gradient(145deg, #fff7ed, #fff1f2);
+  border-color: rgb(239 68 68 / 24%);
+}
+
 .fee-settings-section .card {
   background: linear-gradient(145deg, #ffffff, #f6fbff);
 }
@@ -3205,6 +3210,18 @@ body::before {
 
 .fee-group-form input,
 .payment-confirm-modal input {
+  border: 1px solid rgb(18 59 143 / 14%);
+  border-radius: 14px;
+  padding: 11px 12px;
+  font: inherit;
+  background: white;
+}
+
+.payment-confirm-modal select,
+.parent-request-form select,
+.parent-request-form textarea,
+.parent-request-actions input,
+.child-quick-ops input {
   border: 1px solid rgb(18 59 143 / 14%);
   border-radius: 14px;
   padding: 11px 12px;
@@ -3264,8 +3281,73 @@ body::before {
   grid-column: 1 / -1;
 }
 
+.guide-control-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.view-mode-switch,
+.assistant-free-question {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 10px 0;
+}
+
+.assistant-free-question input {
+  flex: 1 1 240px;
+  border: 1px solid rgb(18 59 143 / 12%);
+  border-radius: 999px;
+  padding: 10px 14px;
+}
+
+.child-profile-hero {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 16px;
+}
+
+.quick-chip-field,
+.payment-profile-box,
+.parent-request-actions {
+  display: grid;
+  gap: 10px;
+}
+
+.quick-chip-field strong {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  color: var(--blue-dark);
+}
+
+.quick-chip-field > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.payment-profile-box,
+.context-send-strip,
+.parent-request-actions {
+  border-radius: 18px;
+  background: rgb(18 59 143 / 6%);
+  padding: 12px;
+}
+
+.parent-request-item {
+  align-items: start;
+}
+
 @media (max-width: 720px) {
   .form-grid.compact {
+    grid-template-columns: 1fr;
+  }
+
+  .child-profile-hero {
     grid-template-columns: 1fr;
   }
 }

@@ -9,12 +9,13 @@ export default async function GardenChildrenPage() {
   const supabase = await createClient();
   const gardenId = profile.garden_id ?? "";
   const today = new Date().toISOString().slice(0, 10);
-  const [childrenRes, attendanceRes, journalsRes, incidentsRes, feeGroupsRes] = await Promise.all([
-    supabase.from("children" as any).select("id, full_name, birth_date, identity_number, status, allergies, sensitivities, regular_medications, medical_notes, hmo, emergency_phone, photo_url, face_image_url, pickup_authorized, mother_name, father_name, mother_phone, father_phone, age_group, classroom, payment_group_id, monthly_fee, custom_monthly_fee, arrangement_notes, arrangement_valid_until, payment_status, last_payment_date, next_payment_due, valid_until, payment_notes, last_amount_paid, last_payment_method, created_at, updated_at").eq("garden_id", gardenId).order("full_name"),
+  const [childrenRes, attendanceRes, journalsRes, incidentsRes, feeGroupsRes, requestsRes] = await Promise.all([
+    supabase.from("children" as any).select("id, full_name, birth_date, identity_number, status, allergies, sensitivities, regular_medications, medical_notes, hmo, emergency_phone, photo_url, face_image_url, pickup_authorized, mother_name, father_name, mother_phone, father_phone, age_group, classroom, payment_group_id, monthly_fee, custom_monthly_fee, arrangement_notes, arrangement_valid_until, payment_status, payments_paused, debt_amount, last_payment_date, next_payment_due, valid_until, payment_notes, last_amount_paid, last_payment_method, has_change_clothes, change_clothes_notes, last_change_clothes_check, created_at, updated_at").eq("garden_id", gardenId).order("full_name"),
     supabase.from("attendance" as any).select("child_id, status, pickup_authorized, pickup_name, note").eq("garden_id", gardenId).eq("attendance_date", today),
     supabase.from("child_daily_journals" as any).select("child_id, meals, sleep_summary, mood, bathroom, incidents, notes_to_parents, photo_urls").eq("garden_id", gardenId).eq("journal_date", today),
     supabase.from("incident_reports" as any).select("child_id, id").eq("garden_id", gardenId).neq("status", "closed"),
-    supabase.from("kindergarten_fee_groups" as any).select("id, group_name, monthly_fee").eq("garden_id", gardenId)
+    supabase.from("kindergarten_fee_groups" as any).select("id, group_name, monthly_fee").eq("garden_id", gardenId),
+    supabase.from("parent_child_requests" as any).select("id, child_id, status").eq("garden_id", gardenId).in("status", ["new", "viewed"])
   ]);
   const attendanceByChild = new Map((attendanceRes.data ?? []).map((row: any) => [row.child_id, row]));
   const journalByChild = new Map((journalsRes.data ?? []).map((row: any) => [row.child_id, row]));
@@ -22,6 +23,8 @@ export default async function GardenChildrenPage() {
   const feeById = new Map(feeGroups.map((group) => [group.id, group]));
   const incidentCount = new Map<string, number>();
   for (const incident of (incidentsRes.data ?? []) as any[]) incidentCount.set(incident.child_id, (incidentCount.get(incident.child_id) ?? 0) + 1);
+  const requestCount = new Map<string, number>();
+  for (const request of (requestsRes.data ?? []) as any[]) requestCount.set(request.child_id, (requestCount.get(request.child_id) ?? 0) + 1);
   const rows = ((childrenRes.data ?? []) as any[]).map((child) => {
     const attendance = attendanceByChild.get(child.id) as any;
     const journal = journalByChild.get(child.id) as any;
@@ -34,6 +37,7 @@ export default async function GardenChildrenPage() {
       group_monthly_fee: group?.monthly_fee ?? child.monthly_fee,
       actual_monthly_fee: hasSpecialArrangement ? Number(child.custom_monthly_fee ?? 0) : Number(group?.monthly_fee ?? child.monthly_fee ?? 0),
       has_special_arrangement: hasSpecialArrangement,
+      open_parent_requests: requestCount.get(child.id) ?? 0,
       attendance_status: attendance?.status ?? "not_updated",
       pickup_status: attendance?.pickup_name ? `נאסף על ידי ${attendance.pickup_name}` : "ממתין לאיסוף",
       pickup_authorized: attendance?.pickup_authorized,
