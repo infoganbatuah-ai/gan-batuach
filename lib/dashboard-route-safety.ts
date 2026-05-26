@@ -1,0 +1,75 @@
+import "server-only";
+
+import fs from "node:fs";
+import path from "node:path";
+import type { UserRole } from "@/lib/roles";
+
+export type DashboardRouteCheck = {
+  route: string;
+  label: string;
+  roles: UserRole[];
+  dataTable?: string;
+  requiredProfileField?: "garden_id";
+};
+
+export const dashboardRouteChecks: DashboardRouteCheck[] = [
+  { route: "/dashboard/admin", label: "מרכז שליטה", roles: ["admin"], dataTable: "gardens" },
+  { route: "/dashboard/admin/leads", label: "לידים", roles: ["admin"], dataTable: "leads" },
+  { route: "/dashboard/admin/users", label: "משתמשים", roles: ["admin"], dataTable: "profiles" },
+  { route: "/dashboard/admin/kindergartens", label: "גנים", roles: ["admin"], dataTable: "gardens" },
+  { route: "/dashboard/admin/inspectors", label: "מפקחים", roles: ["admin"], dataTable: "inspectors" },
+  { route: "/dashboard/admin/inspection-forms", label: "טפסי פיקוח", roles: ["admin"], dataTable: "inspection_forms" },
+  { route: "/dashboard/admin/procedures", label: "נהלים", roles: ["admin"], dataTable: "procedures" },
+  { route: "/dashboard/admin/policies", label: "תקנונים", roles: ["admin"], dataTable: "policies" },
+  { route: "/dashboard/admin/cameras", label: "מצלמות", roles: ["admin"], dataTable: "camera_streams" },
+  { route: "/dashboard/admin/ai-events", label: "אירועי AI", roles: ["admin"], dataTable: "ai_events" },
+  { route: "/dashboard/admin/notifications", label: "התראות", roles: ["admin"], dataTable: "notifications" },
+  { route: "/dashboard/admin/tasks", label: "משימות", roles: ["admin"], dataTable: "tasks" },
+  { route: "/dashboard/admin/complaints", label: "דיווחים ופניות", roles: ["admin"], dataTable: "complaints" },
+  { route: "/dashboard/admin/documents", label: "מסמכים", roles: ["admin"], dataTable: "documents" },
+  { route: "/dashboard/admin/system-health", label: "בריאות מערכת", roles: ["admin"], dataTable: "audit_logs" },
+  { route: "/dashboard/admin/audit-logs", label: "Audit Logs", roles: ["admin"], dataTable: "audit_logs" },
+  { route: "/dashboard/admin/reports", label: "דוחות", roles: ["admin"], dataTable: "complaints" },
+  { route: "/dashboard/admin/settings", label: "הגדרות", roles: ["admin"] },
+  { route: "/dashboard/admin/navigation-health", label: "בריאות ניווט", roles: ["admin"] },
+  { route: "/dashboard/garden", label: "ניהול גן", roles: ["manager", "owner"], dataTable: "gardens", requiredProfileField: "garden_id" },
+  { route: "/dashboard/garden/children", label: "ילדים", roles: ["manager", "owner"], dataTable: "children", requiredProfileField: "garden_id" },
+  { route: "/dashboard/garden/parents", label: "הורים", roles: ["manager", "owner"], dataTable: "parents", requiredProfileField: "garden_id" },
+  { route: "/dashboard/garden/staff", label: "צוות", roles: ["manager", "owner"], dataTable: "staff", requiredProfileField: "garden_id" },
+  { route: "/dashboard/garden/attendance", label: "נוכחות", roles: ["manager", "owner"], dataTable: "attendance", requiredProfileField: "garden_id" },
+  { route: "/dashboard/garden/child-journal", label: "יומן ילד", roles: ["manager", "owner"], dataTable: "child_daily_journals", requiredProfileField: "garden_id" },
+  { route: "/dashboard/garden/health", label: "בריאות", roles: ["manager", "owner"], dataTable: "child_health_records", requiredProfileField: "garden_id" },
+  { route: "/dashboard/garden/pickup", label: "איסוף", roles: ["manager", "owner"], dataTable: "pickup_events", requiredProfileField: "garden_id" },
+  { route: "/dashboard/garden/incidents", label: "אירועים", roles: ["manager", "owner"], dataTable: "incident_reports", requiredProfileField: "garden_id" },
+  { route: "/dashboard/garden/daily-journal", label: "יומן תפעול", roles: ["manager", "owner"], dataTable: "daily_operational_tasks", requiredProfileField: "garden_id" },
+  { route: "/dashboard/garden/cameras", label: "מצלמות", roles: ["manager", "owner"], dataTable: "camera_streams", requiredProfileField: "garden_id" },
+  { route: "/dashboard/garden/tasks", label: "משימות", roles: ["manager", "owner"], dataTable: "tasks", requiredProfileField: "garden_id" },
+  { route: "/dashboard/garden/documents", label: "מסמכים", roles: ["manager", "owner"], dataTable: "documents", requiredProfileField: "garden_id" },
+  { route: "/dashboard/garden/inspections", label: "פיקוח", roles: ["manager", "owner"], dataTable: "inspections", requiredProfileField: "garden_id" },
+  { route: "/dashboard/parent", label: "אזור הורים", roles: ["parent"], dataTable: "children" },
+  { route: "/dashboard/parent/daily-journal", label: "יומן יומי", roles: ["parent"], dataTable: "child_daily_journals" },
+  { route: "/dashboard/parent/notifications", label: "התראות", roles: ["parent"], dataTable: "notifications" },
+  { route: "/dashboard/parent/documents", label: "מסמכים", roles: ["parent"], dataTable: "documents" },
+  { route: "/dashboard/parent/inspections", label: "פיקוח", roles: ["parent"], dataTable: "inspections" },
+  { route: "/dashboard/parent/complaints", label: "תלונות", roles: ["parent"], dataTable: "complaints" },
+  { route: "/dashboard/staff", label: "צוות", roles: ["staff"], dataTable: "tasks" },
+  { route: "/dashboard/staff/child-journal", label: "יומן ילד", roles: ["staff"], dataTable: "child_daily_journals" },
+  { route: "/dashboard/staff/daily-journal", label: "יומן תפעול", roles: ["staff"], dataTable: "daily_operational_tasks" },
+  { route: "/dashboard/staff/tasks", label: "משימות", roles: ["staff"], dataTable: "tasks" },
+  { route: "/dashboard/staff/documents", label: "מסמכים", roles: ["staff"], dataTable: "documents" },
+  { route: "/dashboard/staff/shifts", label: "שעות", roles: ["staff"], dataTable: "staff_shifts" },
+  { route: "/dashboard/staff/messages", label: "הודעות", roles: ["staff"], dataTable: "messages" },
+  { route: "/dashboard/inspector", label: "פקח", roles: ["inspector"], dataTable: "required_inspections" },
+  { route: "/dashboard/inspector/inspections", label: "ביקורות", roles: ["inspector"], dataTable: "inspections" },
+  { route: "/dashboard/inspector/cameras", label: "מצלמות", roles: ["inspector"], dataTable: "camera_streams" },
+  { route: "/dashboard/inspector/ai-events", label: "AI", roles: ["inspector"], dataTable: "ai_events" },
+  { route: "/dashboard/inspector/reports", label: "דיווחים", roles: ["inspector"], dataTable: "complaints" },
+  { route: "/dashboard/inspector/tasks", label: "משימות", roles: ["inspector"], dataTable: "tasks" },
+  { route: "/dashboard/inspector/violations", label: "ליקויים", roles: ["inspector"], dataTable: "violations" }
+];
+
+export function dashboardRouteExists(route: string) {
+  const routePath = route.replace(/^\//, "");
+  const dir = path.join(process.cwd(), "app", routePath);
+  return fs.existsSync(path.join(dir, "page.tsx")) || fs.existsSync(path.join(dir, "page.ts")) || fs.existsSync(path.join(dir, "page.jsx"));
+}

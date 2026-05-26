@@ -3105,12 +3105,110 @@ body::before {
   background: linear-gradient(135deg, var(--blue), var(--success));
 }
 
+.dashboard-safe-state {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background:
+    radial-gradient(circle at 80% 10%, rgb(26 137 98 / 14%), transparent 30%),
+    linear-gradient(145deg, #f7fbff, #ffffff);
+}
+
+.safe-state-card {
+  width: min(720px, 100%);
+  display: grid;
+  gap: 18px;
+  border: 1px solid rgb(18 59 143 / 12%);
+  border-radius: 28px;
+  background: rgb(255 255 255 / 90%);
+  box-shadow: 0 28px 80px rgb(18 59 143 / 14%);
+  padding: 28px;
+}
+
+.safe-state-card.error {
+  border-color: rgb(168 50 50 / 20%);
+  background:
+    radial-gradient(circle at 0 0, rgb(255 228 230 / 70%), transparent 35%),
+    #ffffff;
+}
+
+.loader-ring {
+  width: 58px;
+  height: 58px;
+  border: 5px solid rgb(18 59 143 / 12%);
+  border-top-color: var(--blue);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+.skeleton-stack {
+  display: grid;
+  gap: 10px;
+}
+
+.skeleton-stack i {
+  height: 14px;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgb(18 59 143 / 8%), rgb(26 137 98 / 15%), rgb(18 59 143 / 8%));
+  background-size: 200% 100%;
+  animation: shimmer 1.4s ease-in-out infinite;
+}
+
+.skeleton-stack i:nth-child(2) {
+  width: 78%;
+}
+
+.skeleton-stack i:nth-child(3) {
+  width: 54%;
+}
+
+.navigation-health-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 16px;
+}
+
+.navigation-health-card {
+  display: grid;
+  gap: 12px;
+  border-color: rgb(18 59 143 / 12%);
+  background:
+    radial-gradient(circle at 95% 0, rgb(26 137 98 / 10%), transparent 30%),
+    #ffffff;
+}
+
+.navigation-health-card.bad {
+  border-color: rgb(168 50 50 / 22%);
+  background:
+    radial-gradient(circle at 95% 0, rgb(255 228 230 / 80%), transparent 32%),
+    #ffffff;
+}
+
+.navigation-health-card h3 {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  margin: 10px 0 4px;
+  color: var(--blue-dark);
+}
+
+.navigation-health-card p {
+  direction: ltr;
+  text-align: left;
+  color: var(--muted);
+}
+
 .spin {
   animation: spin 1s linear infinite;
 }
 
 @keyframes spin {
   to { transform: rotate(360deg); }
+}
+
+@keyframes shimmer {
+  to { background-position: -200% 0; }
 }
 
 @media print {
