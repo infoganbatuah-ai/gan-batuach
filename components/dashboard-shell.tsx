@@ -8,6 +8,8 @@ import { AdminGlobalSearch } from "@/components/admin-global-search";
 import { RoleOnboardingGuide } from "@/components/role-onboarding-guide";
 import { SandboxModeBanner } from "@/components/sandbox-mode-banner";
 import { AIAssistantPanel } from "@/components/ai-assistant-panel";
+import { DashboardIntelligenceBar } from "@/components/dashboard-intelligence-bar";
+import { DashboardCommandCenter } from "@/components/dashboard-command-center";
 
 const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: string }>> = {
   admin: [
@@ -118,6 +120,8 @@ export function DashboardShell({ role, title, children }: { role: UserRole; titl
           <PolicyAcceptanceGate />
           <SandboxModeBanner />
           <RoleOnboardingGuide role={role} />
+          <DashboardIntelligenceBar role={role} title={title} />
+          <DashboardCommandCenter role={role} title={title} />
           {role === "admin" ? <AdminGlobalSearch /> : null}
           {children}
           <AIAssistantPanel role={role} />

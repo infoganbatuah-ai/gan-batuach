@@ -21,6 +21,12 @@ type AssistantSummary = {
   prompts: string[];
 };
 
+type Interaction = {
+  prompt: string;
+  answer: string;
+  at: string;
+};
+
 const roleNames: Record<UserRole, string> = {
   admin: "אדמין",
   inspector: "פקח",
@@ -36,6 +42,15 @@ export function AIAssistantPanel({ role }: { role: UserRole }) {
   const [error, setError] = useState<string | null>(null);
   const [data, setData] = useState<AssistantSummary | null>(null);
   const [selectedPrompt, setSelectedPrompt] = useState<string | null>(null);
+  const [recentInteractions, setRecentInteractions] = useState<Interaction[]>([]);
+
+  useEffect(() => {
+    try {
+      setRecentInteractions(JSON.parse(localStorage.getItem(`gan-batuach-ai-${role}`) || "[]"));
+    } catch {
+      setRecentInteractions([]);
+    }
+  }, [role]);
 
   useEffect(() => {
     if (!open || data || loading) return;
@@ -56,6 +71,16 @@ export function AIAssistantPanel({ role }: { role: UserRole }) {
     const suggestionText = data.suggestions.map((suggestion) => `${suggestion.title}: ${suggestion.body}`).join(" · ");
     return `לפי הנתונים הקיימים במערכת: ${suggestionText || data.summary}`;
   }, [data, selectedPrompt]);
+
+  function choosePrompt(prompt: string) {
+    setSelectedPrompt(prompt);
+    if (!data) return;
+    const suggestionText = data.suggestions.map((suggestion) => `${suggestion.title}: ${suggestion.body}`).join(" · ");
+    const answer = `לפי הנתונים הקיימים במערכת: ${suggestionText || data.summary}`;
+    const next = [{ prompt, answer, at: new Date().toISOString() }, ...recentInteractions.filter((item) => item.prompt !== prompt)].slice(0, 6);
+    setRecentInteractions(next);
+    localStorage.setItem(`gan-batuach-ai-${role}`, JSON.stringify(next));
+  }
 
   return (
     <>
@@ -81,6 +106,13 @@ export function AIAssistantPanel({ role }: { role: UserRole }) {
             <p>{data.summary}</p>
           </article>
           <section>
+            <h3>המלצה הקשרית</h3>
+            <div className="assistant-context-card">
+              <Sparkles size={18} />
+              <div><strong>{data.suggestions[0]?.title ?? "אין פעולה דחופה"}</strong><span>{data.suggestions[0]?.body ?? "המערכת לא זיהתה פעולה דחופה לפי הנתונים הזמינים."}</span></div>
+            </div>
+          </section>
+          <section>
             <h3>פעולות מומלצות</h3>
             <div className="assistant-suggestion-list">
               {data.suggestions.map((suggestion) => <Link className={`assistant-suggestion-card ${suggestion.tone ?? "warn"}`} href={suggestion.href} key={`${suggestion.title}-${suggestion.href}`}>
@@ -92,9 +124,13 @@ export function AIAssistantPanel({ role }: { role: UserRole }) {
           <section>
             <h3>שאלות מומלצות</h3>
             <div className="assistant-prompt-row">
-              {data.prompts.map((prompt) => <button className={selectedPrompt === prompt ? "chip active" : "chip"} type="button" key={prompt} onClick={() => setSelectedPrompt(prompt)}>{prompt}</button>)}
+              {data.prompts.map((prompt) => <button className={selectedPrompt === prompt ? "chip active" : "chip"} type="button" key={prompt} onClick={() => choosePrompt(prompt)}>{prompt}</button>)}
             </div>
             {selectedAnswer ? <div className="assistant-answer"><strong>{selectedPrompt}</strong><p>{selectedAnswer}</p></div> : null}
+          </section>
+          <section>
+            <h3>שיחות אחרונות</h3>
+            {recentInteractions.length === 0 ? <div className="empty-mini">עדיין אין שאלות אחרונות. בחרו שאלה מומלצת כדי לשמור אינטראקציה.</div> : <div className="assistant-history-list">{recentInteractions.map((item) => <button type="button" key={`${item.prompt}-${item.at}`} onClick={() => setSelectedPrompt(item.prompt)}><strong>{item.prompt}</strong><span>{new Date(item.at).toLocaleString("he-IL")}</span></button>)}</div>}
           </section>
         </> : null}
       </aside>
