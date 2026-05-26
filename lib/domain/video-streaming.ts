@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
 import type { UserRole } from "@/lib/roles";
 
 export const playbackTokenSchema = z.object({
@@ -27,7 +28,8 @@ export async function createCameraPlaybackSession(cameraStreamId: string, payloa
   const { data: profile, error: profileError } = await supabase.from("profiles").select("id, role, garden_id").eq("id", user.id).single();
   if (profileError || !profile) throw new Error(profileError?.message ?? "Profile not found");
 
-  const { data: camera, error: cameraError } = await supabase.from("camera_streams").select("*").eq("id", cameraStreamId).single();
+  const dataSupabase = isAdminClientConfigured() ? createAdminClient() : supabase;
+  const { data: camera, error: cameraError } = await dataSupabase.from("camera_streams").select("*").eq("id", cameraStreamId).single();
   if (cameraError || !camera) throw new Error(cameraError?.message ?? "Camera not found");
 
   const profileRow = profile as any;
@@ -35,12 +37,17 @@ export async function createCameraPlaybackSession(cameraStreamId: string, payloa
   const role = profileRow.role as UserRole;
   if (role === "parent") {
     if (!parsed.parent_id) throw new Error("Parent id is required for parent playback");
-    const { data: allowed, error } = await supabase.rpc("can_parent_view_camera", {
-      p_parent_id: parsed.parent_id,
-      p_camera_stream_id: cameraStreamId
-    } as any);
+    const parentViewingAllowed = Boolean(cameraRow.parent_view_allowed ?? cameraRow.parent_viewing_allowed);
+    if (!parentViewingAllowed || cameraRow.active === false) throw new Error("Parent is not allowed to view this camera");
+    const { data: child, error } = await dataSupabase
+      .from("children" as any)
+      .select("id")
+      .eq("primary_parent_id", parsed.parent_id)
+      .eq("garden_id", cameraRow.garden_id ?? cameraRow.kindergarten_id)
+      .limit(1)
+      .maybeSingle();
     if (error) throw new Error(error.message);
-    if (!allowed) throw new Error("Parent is not allowed to view this camera");
+    if (!child) throw new Error("Parent is not allowed to view this camera");
   }
 
   if (role === "manager" || role === "owner" || role === "staff") {

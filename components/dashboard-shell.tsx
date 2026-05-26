@@ -93,6 +93,8 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
   ],
   parent: [
     { href: "/dashboard/parent", label: "אזור הורים", hint: "ילד וגן" },
+    { href: "/dashboard/parent/cameras", label: "מצלמות הגן", hint: "צפייה מורשית" },
+    { href: "/dashboard/parent/ai-events", label: "אירועי תצפיתן", hint: "עדכונים מאושרים" },
     { href: "/dashboard/parent/daily-journal", label: "יומן יומי", hint: "עדכוני הילד" },
     { href: "/dashboard/parent/notifications", label: "התראות", hint: "עדכונים חשובים" },
     { href: "/parent-onboarding", label: "כרטיס ילד", hint: "פרטים והסכמות" },
