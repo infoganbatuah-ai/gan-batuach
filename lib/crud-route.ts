@@ -33,8 +33,19 @@ export function createCrudHandlers(config: CrudConfig) {
         let query = (supabase as any).from(config.table).select(selectColumns).limit(Math.min(limit, 200));
         if (gardenId) query = query.eq("garden_id", gardenId);
         if (config.defaultOrder) query = query.order(config.defaultOrder, { ascending: false });
-        const { data, error } = await query;
+        let { data, error } = await query;
+        if (error && config.table === "camera_streams") {
+          console.error("Camera streams safe list query failed, retrying fallback:", error);
+          const fallbackColumns = "id,garden_id,name,area,camera_type,protocol,status,active,parent_view_allowed,last_health_check_at,hls_playback_url,webrtc_playback_url,video_gateway_stream_id,viewing_hours,created_at,updated_at";
+          let fallbackQuery = (supabase as any).from(config.table).select(fallbackColumns).limit(Math.min(limit, 200));
+          if (gardenId) fallbackQuery = fallbackQuery.eq("garden_id", gardenId);
+          if (config.defaultOrder) fallbackQuery = fallbackQuery.order(config.defaultOrder, { ascending: false });
+          const fallback = await fallbackQuery;
+          data = fallback.data;
+          error = fallback.error;
+        }
         if (error) return fail(error.message, 400);
+        if (config.table === "camera_streams") console.info("Camera streams listed", { count: data?.length ?? 0, gardenId: gardenId ?? "all" });
         return ok(data);
       } catch (error) {
         return handleRouteError(error);
@@ -96,6 +107,14 @@ export function createCrudHandlers(config: CrudConfig) {
             entity_id: data.id,
             severity: parsed.priority ?? "medium"
           })));
+        }
+        if (config.table === "camera_streams" && data) {
+          console.info("Camera stream created", {
+            id: data.id,
+            kindergarten_id: data.kindergarten_id ?? data.garden_id,
+            status: data.status,
+            sample_hls_url_exists: Boolean(data.sample_hls_url ?? data.hls_playback_url)
+          });
         }
         if (config.table === "camera_streams" && data && "session" in permission) {
           await (supabase as any).from("audit_logs").insert({
