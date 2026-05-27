@@ -3,6 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
 import { normalizeOptionalEmail, normalizeOptionalPhone } from "@/lib/onboarding/user-provisioning";
 
 function value(formData: FormData, key: string) {
@@ -42,8 +43,7 @@ export async function createParentLead(formData: FormData) {
   ]
     .filter(Boolean)
     .join("\n");
-
-  const { error } = await supabase.from("leads").insert({
+  const leadRow = {
     garden_id: gardenId,
     lead_type: "parent",
     parent_name: value(formData, "parent_name"),
@@ -52,12 +52,43 @@ export async function createParentLead(formData: FormData) {
     child_name: value(formData, "children_names") || null,
     child_age: value(formData, "child_age") || null,
     notes,
-    status: "new_parent_lead"
-  });
+    status: "new",
+    source: "public_kindergarten_page",
+    missing_details: []
+  };
+
+  const writer = isAdminClientConfigured() ? createAdminClient() : supabase;
+  const writeResult = isAdminClientConfigured()
+    ? await writer.from("leads" as any).insert(leadRow).select("id").single()
+    : await writer.from("leads" as any).insert(leadRow);
+  const lead = isAdminClientConfigured() ? writeResult.data : null;
+  const error = writeResult.error;
 
   if (error) redirect(`/gardens?error=${encodeURIComponent(error.message)}`);
+
+  if (gardenId && isAdminClientConfigured()) {
+    const admin = writer;
+    const { data: garden } = await admin.from("gardens" as any).select("id, name, manager_id, owner_profile_id").eq("id", gardenId).maybeSingle();
+    const recipients = Array.from(new Set([garden?.manager_id, garden?.owner_profile_id].filter(Boolean)));
+    if (recipients.length) {
+      await admin.from("notifications" as any).insert(recipients.map((recipientId) => ({
+        garden_id: gardenId,
+        recipient_id: recipientId,
+        title: "בקשת הצטרפות חדשה לגן",
+        body: `${leadRow.parent_name || "הורה"} שלח/ה בקשת רישום${leadRow.child_name ? ` עבור ${leadRow.child_name}` : ""}.`,
+        entity_type: "lead",
+        entity_id: lead?.id,
+        severity: "medium",
+        metadata: { href: "/dashboard/garden/leads", lead_id: lead?.id, garden_name: garden?.name ?? null, child_name: leadRow.child_name, parent_name: leadRow.parent_name }
+      })));
+    }
+    await admin.from("audit_logs" as any).insert({ garden_id: gardenId, entity_type: "leads", entity_id: lead?.id, action: "parent_lead_submitted", after_data: leadRow });
+  }
+
   revalidatePath("/");
   revalidatePath("/gardens");
+  revalidatePath("/dashboard/garden");
+  revalidatePath("/dashboard/garden/leads");
   redirect("/gardens?lead=sent");
 }
 

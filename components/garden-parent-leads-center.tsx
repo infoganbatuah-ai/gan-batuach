@@ -1,0 +1,131 @@
+"use client";
+
+import { useState, type FormEvent } from "react";
+import { CheckCircle2, Copy, Eye, UserRoundPlus } from "lucide-react";
+
+type Lead = Record<string, any>;
+type Credentials = { username: string; email: string; temporary_password: string };
+
+const statusLabels: Record<string, string> = {
+  new: "חדש",
+  viewed: "נצפה",
+  missing_details: "חסרים פרטים",
+  approved_pending_parent_completion: "אושר - ממתין להשלמת הורה",
+  active: "פעיל",
+  rejected: "נדחה",
+  new_parent_lead: "חדש"
+};
+
+export function GardenParentLeadsCenter({ leads }: { leads: Lead[] }) {
+  const [activeLead, setActiveLead] = useState<Lead | null>(null);
+  const [message, setMessage] = useState("");
+  const [credentials, setCredentials] = useState<Credentials | null>(null);
+  const [busy, setBusy] = useState(false);
+
+  async function markViewed(lead: Lead) {
+    if (["viewed", "approved_pending_parent_completion", "active"].includes(lead.status)) return;
+    await fetch(`/api/garden/leads/${lead.id}/status`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "viewed" }) }).catch(() => null);
+  }
+
+  async function convert(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    if (!activeLead) return;
+    setBusy(true);
+    setMessage("");
+    setCredentials(null);
+    const form = event.currentTarget;
+    const data = Object.fromEntries(new FormData(form).entries());
+    try {
+      const response = await fetch(`/api/garden/leads/${activeLead.id}/convert`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          parent_name: String(data.parent_name || ""),
+          phone: String(data.phone || ""),
+          email: String(data.email || "") || undefined,
+          child_name: String(data.child_name || ""),
+          child_age: String(data.child_age || ""),
+          notes: String(data.notes || "")
+        })
+      });
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.error || "המרת הליד נכשלה");
+      setCredentials(body.data.credentials ?? null);
+      setMessage(body.data.existing_user ? "הליד קושר להורה קיים ונוצר כרטיס ילד להשלמה." : "נוצר הורה חדש וכרטיס ילד להשלמה.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "המרת הליד נכשלה");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <div className="lead-center-layout">
+      <section className="dashboard-section">
+        {leads.length === 0 ? (
+          <div className="empty-state">
+            <strong>אין בקשות הצטרפות חדשות</strong>
+            <span>כאשר הורה ישלח בקשת רישום מעמוד גן ציבורי, היא תופיע כאן עם אפשרות המרה להורה פעיל.</span>
+          </div>
+        ) : (
+          <div className="people-card-grid">
+            {leads.map((lead) => (
+              <article className="person-card lead-request-card" key={lead.id}>
+                <div className="person-card-top">
+                  <div className="avatar avatar-lg">{String(lead.parent_name ?? "ה").slice(0, 1)}</div>
+                  <div>
+                    <span className={lead.status === "new" || lead.status === "new_parent_lead" ? "pill warn" : lead.status === "rejected" ? "pill bad" : "pill good"}>{statusLabels[lead.status] ?? lead.status}</span>
+                    <h3>{lead.parent_name ?? "הורה ללא שם"}</h3>
+                    <p>{lead.phone ?? "אין טלפון"} · {lead.email ?? "אין מייל"}</p>
+                  </div>
+                </div>
+                <div className="profile-badge-row">
+                  <span className="pill">ילד: {lead.child_name ?? "לא צוין"}</span>
+                  <span className="pill">גיל: {lead.child_age ?? "לא צוין"}</span>
+                  <span className="pill">מקור: {lead.source ?? "עמוד ציבורי"}</span>
+                </div>
+                <details className="profile-expand">
+                  <summary>פרטי בקשה</summary>
+                  <div className="profile-details-grid">
+                    <section><h4>גן מבוקש</h4><p>{lead.gardens?.name ?? "הגן שלך"}</p><p>{lead.gardens?.city ?? ""}</p></section>
+                    <section><h4>הערות</h4><p>{lead.notes || "אין הערות"}</p></section>
+                    <section><h4>חסרים</h4><p>{Array.isArray(lead.missing_details) && lead.missing_details.length ? lead.missing_details.join(", ") : "טרם נבדק"}</p></section>
+                    <section><h4>זמן</h4><p>{lead.created_at ? new Date(lead.created_at).toLocaleString("he-IL") : "-"}</p></section>
+                  </div>
+                </details>
+                <div className="profile-actions">
+                  <button className="button secondary tiny" type="button" onClick={() => { setActiveLead(lead); void markViewed(lead); }}><Eye size={14} /> סקירה</button>
+                  <button className="button primary tiny" type="button" onClick={() => setActiveLead(lead)}><UserRoundPlus size={14} /> המרה להורה פעיל</button>
+                </div>
+              </article>
+            ))}
+          </div>
+        )}
+      </section>
+
+      {activeLead ? (
+        <section className="card action-panel lead-conversion-panel">
+          <div className="section-heading">
+            <div><h2>המרת בקשה להורה פעיל</h2><p>נוצר משתמש הורה וכרטיס ילד במצב “ממתין להשלמת הורה”. הילד לא יהיה פעיל עד אישור מנהלת.</p></div>
+            <button className="button secondary tiny" type="button" onClick={() => setActiveLead(null)}>סגירה</button>
+          </div>
+          <form className="form-grid" onSubmit={convert}>
+            <label>שם הורה<input name="parent_name" required defaultValue={activeLead.parent_name ?? ""} /></label>
+            <label>טלפון<input name="phone" required defaultValue={activeLead.phone ?? ""} /></label>
+            <label>מייל<input name="email" type="email" defaultValue={activeLead.email ?? ""} /></label>
+            <label>שם ילד<input name="child_name" defaultValue={activeLead.child_name ?? ""} /></label>
+            <label>גיל / תאריך לידה<input name="child_age" defaultValue={activeLead.child_age ?? ""} /></label>
+            <label className="wide">הערות<textarea name="notes" rows={3} defaultValue={activeLead.notes ?? ""} /></label>
+            <button className="button primary large wide" disabled={busy}><CheckCircle2 size={16} /> יצירת הורה וכרטיס ילד להשלמה</button>
+          </form>
+          {message ? <div className={message.includes("נוצר") || message.includes("קושר") ? "success-banner" : "error-banner"}>{message}</div> : null}
+          {credentials ? <div className="credential-box" dir="ltr">
+            <span>Username: {credentials.username}</span>
+            <span>Password: {credentials.temporary_password}</span>
+            <button className="button secondary" type="button" onClick={() => navigator.clipboard?.writeText(`Username: ${credentials.username}\nPassword: ${credentials.temporary_password}`)}><Copy size={14} /> העתקת פרטי כניסה</button>
+          </div> : null}
+        </section>
+      ) : null}
+    </div>
+  );
+}

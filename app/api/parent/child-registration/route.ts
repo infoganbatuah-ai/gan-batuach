@@ -48,9 +48,7 @@ export async function POST(request: Request) {
 
     if (parentError || !parent) return fail(parentError?.message ?? "Parent record not found", 404);
 
-    const { data: child, error } = await supabase
-      .from("children")
-      .insert({
+    const childPayload = {
         garden_id: profile.garden_id,
         primary_parent_id: parent.id as string,
         full_name: payload.full_name,
@@ -79,12 +77,42 @@ export async function POST(request: Request) {
         },
         status: "pending_manager_approval",
         parent_completed: true
-      })
-      .select("*")
-      .single();
+      };
+
+    const { data: pendingChild } = await supabase
+      .from("children")
+      .select("id")
+      .eq("garden_id", profile.garden_id)
+      .eq("primary_parent_id", parent.id as string)
+      .eq("status", "pending_parent_completion")
+      .order("created_at", { ascending: true })
+      .limit(1)
+      .maybeSingle();
+
+    const childWrite = pendingChild?.id
+      ? await supabase.from("children").update(childPayload).eq("id", pendingChild.id).select("*").single()
+      : await supabase.from("children").insert(childPayload).select("*").single();
+
+    const { data: child, error } = childWrite;
 
     if (error) return fail(error.message, 400);
     await supabase.from("parents").update({ completed_profile: true, status: "child_registration_submitted" }).eq("id", parent.id as string);
+
+    const { data: garden } = await supabase.from("gardens" as any).select("manager_id, owner_profile_id").eq("id", profile.garden_id).maybeSingle();
+    const recipients = Array.from(new Set([garden?.manager_id, garden?.owner_profile_id].filter(Boolean)));
+    if (recipients.length) {
+      await supabase.from("notifications" as any).insert(recipients.map((recipientId) => ({
+        garden_id: profile.garden_id,
+        recipient_id: recipientId,
+        recipient_role: "manager",
+        title: "ילד ממתין לאישור",
+        body: `${payload.full_name} השלים/ה כרטיס וממתין/ה לאישור הגן.`,
+        entity_type: "children",
+        entity_id: child.id,
+        severity: "medium",
+        metadata: { href: "/dashboard/garden/children", child_id: child.id }
+      })));
+    }
 
     await writeUserCreationAudit({
       actorId: profile.id,

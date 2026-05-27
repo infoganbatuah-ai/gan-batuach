@@ -21,7 +21,7 @@ export default async function GardenDashboard() {
   const { profile } = await requireRole(["manager", "owner"]);
   const supabase = await createClient();
   const gardenId = profile.garden_id;
-  const [gardenRes, childrenRes, staffRes, parentsRes, tasksRes, leadsRes, complaintsRes, violationsRes, camerasRes, aiRes, documentsRes, messagesRes, inspectionRes, attendanceRes, unpaidRes, dueInspectionRes, financeChildrenRes, changeClothesRes, healthAlertsRes, parentRequestsRes, staffDocsRes, incidentsRes, documentApprovalsRes] = await Promise.all([
+  const [gardenRes, childrenRes, staffRes, parentsRes, tasksRes, leadsRes, complaintsRes, violationsRes, camerasRes, aiRes, documentsRes, messagesRes, inspectionRes, attendanceRes, unpaidRes, dueInspectionRes, financeChildrenRes, changeClothesRes, healthAlertsRes, parentRequestsRes, staffDocsRes, incidentsRes, documentApprovalsRes, pendingParentCompletionRes, pendingApprovalRes] = await Promise.all([
     supabase.from("gardens" as any).select("id, name, city, logo_url, image_url, safe_status, first_inspection_due_at, last_inspection_score").eq("id", gardenId ?? "").maybeSingle(),
     supabase.from("children").select("*", { count: "exact", head: true }).eq("garden_id", gardenId ?? ""),
     supabase.from("staff").select("*", { count: "exact", head: true }).eq("garden_id", gardenId ?? ""),
@@ -44,10 +44,14 @@ export default async function GardenDashboard() {
     supabase.from("parent_child_requests" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId ?? "").in("status", ["new", "viewed"]),
     supabase.from("documents" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId ?? "").in("status", ["missing", "expired", "rejected"]),
     supabase.from("incident_reports" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId ?? "").neq("status", "closed"),
-    supabase.from("documents" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId ?? "").eq("status", "pending_review")
+    supabase.from("documents" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId ?? "").eq("status", "pending_review"),
+    supabase.from("children" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId ?? "").eq("status", "pending_parent_completion"),
+    supabase.from("children" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId ?? "").eq("status", "pending_manager_approval")
   ]);
   const garden = gardenRes.data as any;
   const attendanceRows = (attendanceRes.data ?? []) as any[];
+  const parentLeadRows = (leadsRes.data ?? []) as any[];
+  const newLeadCount = parentLeadRows.filter((lead) => ["new", "new_parent_lead"].includes(lead.status)).length;
   const presentToday = attendanceRows.filter((row) => row.status === "present").length;
   const missingToday = Math.max(0, (childrenRes.count ?? 0) - presentToday);
   const inspectionDays = dueInspectionRes.data?.due_at ? Math.ceil((new Date((dueInspectionRes.data as any).due_at).getTime() - Date.now()) / 86400000) : null;
@@ -95,6 +99,9 @@ export default async function GardenDashboard() {
         <StatCard label="הודעות ממתינות" value={messagesRes.data?.length ?? 0} tone={messagesRes.data?.length ? "warn" : "good"} />
         <StatCard label="אירועים דחופים" value={(complaintsRes.count ?? 0) + (aiRes.count ?? 0)} tone={(complaintsRes.count ?? 0) + (aiRes.count ?? 0) ? "bad" : "good"} />
         <StatCard label="משימות פתוחות" value={tasksRes.count ?? 0} tone="warn" />
+        <StatCard label="לידים חדשים" value={newLeadCount} tone={newLeadCount ? "warn" : "good"} />
+        <StatCard label="הורה משלים פרטים" value={pendingParentCompletionRes.count ?? 0} tone={pendingParentCompletionRes.count ? "warn" : "good"} />
+        <StatCard label="ילדים לאישור" value={pendingApprovalRes.count ?? 0} tone={pendingApprovalRes.count ? "warn" : "good"} />
       </div>
       <SimpleCommandCenter title="מה דורש טיפול היום?" subtitle="המערכת מרכזת עבורך את הדברים שמנהלת גן צריכה לדעת בבוקר, בלי לחפש בתפריטים." items={morningItems} />
       {profile.role === "owner" ? <section className="grid cols-4 dashboard-kpis owner-kpis"><StatCard label="הכנסה צפויה" value={`₪${expectedRevenue}`} tone="good" /><StatCard label="ציון גן" value={garden?.last_inspection_score ?? "-"} /><StatCard label="ציון צוות" value={staffRes.count ? "פעיל" : "חסר"} tone={staffRes.count ? "good" : "warn"} /><StatCard label="סיכוני גבייה" value={unpaidRes.count ?? 0} tone={unpaidRes.count ? "bad" : "good"} /></section> : null}
