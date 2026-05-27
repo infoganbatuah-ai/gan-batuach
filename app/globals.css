@@ -4082,3 +4082,14 @@ body::before {
     flex-direction: column;
   }
 }
+
+.camera-admin-verification {
+  display: grid;
+  gap: 6px;
+  padding: 10px;
+  border: 1px solid rgb(31 95 180 / 16%);
+  border-radius: 14px;
+  background: linear-gradient(135deg, rgb(229 246 255 / 86%), rgb(236 253 245 / 82%));
+  color: #23415f;
+  font-size: 0.82rem;
+}

@@ -2,6 +2,7 @@ import crypto from "node:crypto";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
+import { cameraParentViewingAllowed, resolveParentCameraScope } from "@/lib/domain/parent-camera-access";
 import type { UserRole } from "@/lib/roles";
 
 export const playbackTokenSchema = z.object({
@@ -37,17 +38,21 @@ export async function createCameraPlaybackSession(cameraStreamId: string, payloa
   const role = profileRow.role as UserRole;
   if (role === "parent") {
     if (!parsed.parent_id) throw new Error("Parent id is required for parent playback");
-    const parentViewingAllowed = Boolean(cameraRow.parent_view_allowed ?? cameraRow.parent_viewing_allowed);
-    if (!parentViewingAllowed || cameraRow.active === false) throw new Error("Parent is not allowed to view this camera");
-    const { data: child, error } = await dataSupabase
-      .from("children" as any)
-      .select("id")
-      .eq("primary_parent_id", parsed.parent_id)
-      .eq("garden_id", cameraRow.garden_id ?? cameraRow.kindergarten_id)
-      .limit(1)
-      .maybeSingle();
-    if (error) throw new Error(error.message);
-    if (!child) throw new Error("Parent is not allowed to view this camera");
+    if (!cameraParentViewingAllowed(cameraRow) || cameraRow.active === false) throw new Error("אין הרשאת צפייה למצלמה זו");
+    const scope = await resolveParentCameraScope(dataSupabase as any, profileRow);
+    const cameraGardenId = cameraRow.garden_id ?? cameraRow.kindergarten_id;
+    const requestedParentIsCurrentUser = scope.parentIds.includes(parsed.parent_id);
+    const parentHasChildInGarden = scope.kindergartenIds.includes(cameraGardenId);
+    console.info("Parent playback permission check", {
+      parentProfileId: profileRow.id,
+      requestedParentId: parsed.parent_id,
+      parentRecordIds: scope.parentIds,
+      childIdsFound: scope.children.map((child: any) => child.id),
+      kindergartenIdsFound: scope.kindergartenIds,
+      cameraGardenId,
+      allowed: requestedParentIsCurrentUser && parentHasChildInGarden
+    });
+    if (!requestedParentIsCurrentUser || !parentHasChildInGarden) throw new Error("אין הרשאת צפייה למצלמה זו");
   }
 
   if (role === "manager" || role === "owner" || role === "staff") {

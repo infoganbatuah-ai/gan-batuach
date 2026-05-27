@@ -27,9 +27,25 @@ export default async function AdminCamerasPage() {
     const gardens = await supabase.from("gardens" as any).select("id, name, city").limit(200);
     logSupabaseError("admin camera gardens secondary query", gardens.error);
     if (gardens.error) secondaryWarning = "חלק מהנתונים המשניים לא נטענו";
+    const cameraGardenIds = Array.from(new Set(((cameras.data ?? []) as any[]).map((camera) => camera.garden_id ?? camera.kindergarten_id).filter(Boolean)));
+    const childrenForParents = cameraGardenIds.length ? await supabase.from("children" as any).select("garden_id, kindergarten_id, primary_parent_id").in("garden_id", cameraGardenIds) : { data: [] };
+    logSupabaseError("admin camera expected parents", (childrenForParents as any).error);
+    if ((childrenForParents as any).error) secondaryWarning = "חלק מהנתונים המשניים לא נטענו";
+    const expectedParentsByGarden = new Map<string, Set<string>>();
+    for (const child of ((childrenForParents as any).data ?? []) as any[]) {
+      const gardenId = child.garden_id ?? child.kindergarten_id;
+      if (!gardenId || !child.primary_parent_id) continue;
+      const set = expectedParentsByGarden.get(gardenId) ?? new Set<string>();
+      set.add(child.primary_parent_id);
+      expectedParentsByGarden.set(gardenId, set);
+    }
 
     const gardenById = new Map((gardens.data ?? []).map((garden: any) => [garden.id, garden]));
-    const cameraRows = (cameras.data ?? []).map((camera: any) => ({ ...camera, gardens: gardenById.get(camera.garden_id ?? camera.kindergarten_id) ?? null }));
+    const cameraRows = (cameras.data ?? []).map((camera: any) => {
+      const gardenId = camera.garden_id ?? camera.kindergarten_id;
+      const parentViewing = camera.parent_viewing_allowed === true || camera.parent_view_allowed === true;
+      return { ...camera, gardens: gardenById.get(gardenId) ?? null, expected_parent_count: expectedParentsByGarden.get(gardenId)?.size ?? 0, visibility_status: parentViewing ? "גלויה להורים משויכים" : "צפיית הורים כבויה" };
+    });
     console.info("Admin cameras loaded", { count: cameraRows.length, secondaryWarning: Boolean(secondaryWarning) });
 
     return { cameras: cameraRows, gardens: gardens.data ?? [], queryError: null as string | null, secondaryWarning };
