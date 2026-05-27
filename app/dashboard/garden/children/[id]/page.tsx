@@ -2,6 +2,7 @@ import Link from "next/link";
 import { AlertTriangle, Baby, FileText, HeartPulse, MessageCircle, ShieldCheck, WalletCards } from "lucide-react";
 import { Avatar } from "@/components/avatar";
 import { ChildOperationsPanel } from "@/components/child-operations-panel";
+import { ChildPhotoUpload } from "@/components/child-photo-upload";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { ParentRequestActions } from "@/components/parent-request-actions";
 import { PrintButton } from "@/components/print-button";
@@ -73,6 +74,7 @@ export default async function GardenChildProfilePage({ params }: { params: Promi
       <ChildOperationsPanel child={enriched} gardenId={gardenId} />
 
       <section className="grid cols-2 dashboard-panels">
+        <ChildPhotoUpload childId={child.id} initialUrl={child.photo_url ?? child.face_image_url} />
         <article className="card action-panel"><h2><HeartPulse size={18} /> בריאות - צפייה בלבד לצוות</h2><p>מידע רפואי רגיש נערך על ידי ההורה בלבד. מנהלת/צוות יכולים לצפות ולסמן צורך בבדיקה.</p><div className="risk-list"><div>קופת חולים <b>{child.hmo ?? "-"}</b></div><div>אלרגיות <b>{child.allergies || "אין"}</b></div><div>תרופות <b>{child.regular_medications || "אין"}</b></div><div>הערות <b>{child.medical_notes || "-"}</b></div></div></article>
         <article className="card action-panel"><h2><WalletCards size={18} /> תשלומים</h2><div className="risk-list"><div>קבוצת תשלום <b>{enriched.fee_group_name}</b></div><div>מחיר קבוצה <b>₪{enriched.group_monthly_fee ?? 0}</b></div><div>הסדר מיוחד <b>{enriched.has_special_arrangement ? `₪${child.custom_monthly_fee}` : "אין"}</b></div><div>עצירת תשלומים <b>{child.payments_paused ? child.paused_reason ?? "פעיל" : "לא"}</b></div><div>תוקף עד <b>{dateText(child.valid_until)}</b></div></div></article>
       </section>

@@ -42,7 +42,8 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/inspector/ai-events", label: "AI", hint: "התראות גנים" },
     { href: "/dashboard/inspector/reports", label: "דיווחים", hint: "פניות ואירועים" },
     { href: "/dashboard/inspector/tasks", label: "משימות", hint: "לביצוע" },
-    { href: "/dashboard/inspector/violations", label: "ליקויים", hint: "אישור תיקונים" }
+    { href: "/dashboard/inspector/violations", label: "ליקויים", hint: "אישור תיקונים" },
+    { href: "/dashboard/inspector/settings", label: "הגדרות", hint: "פרופיל והתראות" }
   ],
   manager: [
     { href: "/dashboard/garden", label: "ניהול גן", hint: "יום עבודה" },
@@ -60,7 +61,8 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/garden/tasks", label: "משימות", hint: "לביצוע ואישור" },
     { href: "/dashboard/garden/documents", label: "מסמכים", hint: "תוקף ואישור" },
     { href: "/dashboard/garden/inspections", label: "פיקוח", hint: "דוחות ותיקונים" },
-    { href: "/dashboard/garden/attendance", label: "נוכחות", hint: "ילדים וצוות" }
+    { href: "/dashboard/garden/attendance", label: "נוכחות", hint: "ילדים וצוות" },
+    { href: "/dashboard/garden/settings", label: "הגדרות", hint: "פרופיל ולוגו" }
   ],
   owner: [
     { href: "/dashboard/garden", label: "ניהול גן", hint: "יום עבודה" },
@@ -78,7 +80,8 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/garden/tasks", label: "משימות", hint: "לביצוע ואישור" },
     { href: "/dashboard/garden/documents", label: "מסמכים", hint: "תוקף ואישור" },
     { href: "/dashboard/garden/inspections", label: "פיקוח", hint: "דוחות ותיקונים" },
-    { href: "/dashboard/garden/attendance", label: "נוכחות", hint: "ילדים וצוות" }
+    { href: "/dashboard/garden/attendance", label: "נוכחות", hint: "ילדים וצוות" },
+    { href: "/dashboard/garden/settings", label: "הגדרות", hint: "פרופיל ולוגו" }
   ],
   staff: [
     { href: "/dashboard/staff", label: "צוות", hint: "GPS ומשימות" },
@@ -89,7 +92,8 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/staff/tasks", label: "משימות", hint: "לביצוע" },
     { href: "/dashboard/staff/documents", label: "מסמכים", hint: "תעודות ואישורים" },
     { href: "/dashboard/staff/shifts", label: "שעות", hint: "דוחות חודשיים" },
-    { href: "/dashboard/staff/messages", label: "הודעות", hint: "תקשורת" }
+    { href: "/dashboard/staff/messages", label: "הודעות", hint: "תקשורת" },
+    { href: "/dashboard/staff/settings", label: "הגדרות", hint: "פרופיל והתראות" }
   ],
   parent: [
     { href: "/dashboard/parent", label: "אזור הורים", hint: "ילד וגן" },
@@ -100,7 +104,8 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/parent-onboarding", label: "כרטיס ילד", hint: "פרטים והסכמות" },
     { href: "/dashboard/parent/documents", label: "מסמכים", hint: "אישורים וקבצים" },
     { href: "/dashboard/parent/inspections", label: "פיקוח", hint: "סיכום מאושר" },
-    { href: "/dashboard/parent/complaints", label: "תלונות", hint: "פנייה מסודרת" }
+    { href: "/dashboard/parent/complaints", label: "תלונות", hint: "פנייה מסודרת" },
+    { href: "/dashboard/parent/settings", label: "הגדרות", hint: "פרופיל והתראות" }
   ]
 };
 

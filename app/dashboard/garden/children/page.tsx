@@ -1,5 +1,7 @@
 import { DashboardShell } from "@/components/dashboard-shell";
 import { ChildrenProfileCards } from "@/components/people-profile-cards";
+import { Avatar } from "@/components/avatar";
+import { ChildStatusActions } from "@/components/child-status-actions";
 import { StatCard } from "@/components/stat-card";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
@@ -54,6 +56,11 @@ export default async function GardenChildrenPage() {
     <DashboardShell role="manager" title="ילדים">
       <div className="dashboard-hero-card garden-hero-card"><div><p className="eyebrow">Children Profiles</p><h1>מערכת כרטיסי ילדים חכמה.</h1><p>לא עוד רשימה אפורה: תמונה, נוכחות, בריאות, איסוף, יומן יומי ואירועים בכרטיס אחד.</p></div><span className="pill good">{rows.length} ילדים</span></div>
       <div className="grid cols-4 dashboard-kpis"><StatCard label="נוכחים היום" value={rows.filter((row) => row.attendance_status === "present").length} tone="good" /><StatCard label="טרם עודכנו" value={rows.filter((row) => row.attendance_status === "not_updated").length} tone="warn" /><StatCard label="אלרגיות" value={rows.filter((row) => row.allergies).length} tone="bad" /><StatCard label="אירועים פתוחים" value={rows.reduce((sum, row) => sum + Number(row.incident_count ?? 0), 0)} tone="warn" /></div>
+
+      <section className="dashboard-section">
+        <div className="section-heading"><h2>ילדים ממתינים לאישור</h2><p>בקשות רישום שהורים שלחו, כולל בריאות, אלרגיות, מורשי איסוף ותמונה אם הועלתה.</p></div>
+        {rows.filter((row) => row.status === "pending_manager_approval" || row.status === "request_missing_details" || row.status === "rejected").length === 0 ? <div className="empty-state"><strong>אין ילדים ממתינים לאישור</strong><span>כאשר הורה יוסיף ילד נוסף או ישלים כרטיס, הבקשה תופיע כאן לאישור מנהלת.</span></div> : <div className="people-card-grid">{rows.filter((row) => row.status === "pending_manager_approval" || row.status === "request_missing_details" || row.status === "rejected").map((child) => <article className="person-card child-profile-card" key={`pending-${child.id}`}><div className="person-card-top"><Avatar name={child.full_name} src={child.photo_url ?? child.face_image_url} size="lg" /><div><span className="pill warn">{child.status}</span><h3>{child.full_name}</h3><p>{child.birth_date ?? "תאריך לידה חסר"} · {child.age_group ?? child.classroom ?? "קבוצה לא הוגדרה"}</p></div></div><div className="profile-badge-row"><span className={child.allergies ? "pill bad" : "pill good"}>אלרגיות: {child.allergies || "אין"}</span><span className="pill">קופה: {child.hmo ?? "-"}</span><span className="pill">מורשי איסוף: {Array.isArray(child.pickup_authorized) ? child.pickup_authorized.length : 0}</span></div><details className="profile-expand"><summary>פרטי בקשה</summary><div className="profile-details-grid"><section><h4>הורה</h4><p>{child.mother_name ?? child.father_name ?? child.parent_name ?? "לא צוין"}</p><p>{child.mother_phone ?? child.father_phone ?? child.emergency_phone ?? "אין טלפון"}</p></section><section><h4>בריאות</h4><p>{child.medical_notes || "אין הערה רפואית"}</p><p>תרופות: {child.regular_medications || "אין"}</p></section><section><h4>מסמכים והערות</h4><p>{child.approval_notes ?? child.notes ?? "אין הערות"}</p></section></div></details><ChildStatusActions childId={child.id} /></article>)}</div>}
+      </section>
       <ChildrenProfileCards children={rows} />
     </DashboardShell>
   );

@@ -4093,3 +4093,51 @@ body::before {
   color: #23415f;
   font-size: 0.82rem;
 }
+
+.settings-profile-form,
+.image-upload-panel {
+  animation: softEnter 0.35s ease both;
+}
+
+.profile-preview-image {
+  width: 104px;
+  height: 104px;
+  object-fit: cover;
+  border-radius: 24px;
+  border: 3px solid rgb(255 255 255 / 88%);
+  box-shadow: 0 18px 36px rgb(20 55 90 / 18%);
+  background: linear-gradient(135deg, #dff7ff, #ecfff4);
+}
+
+.upload-image-field {
+  display: grid;
+  gap: 8px;
+  padding: 14px;
+  border: 1px dashed rgb(31 95 180 / 28%);
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgb(239 248 255 / 88%), rgb(245 255 250 / 88%));
+}
+
+.upload-image-field input[type="file"] {
+  padding: 10px;
+  border-radius: 14px;
+  background: white;
+}
+
+.profile-actions .payment-action-message,
+.image-upload-panel small {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+}
+
+@keyframes softEnter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
