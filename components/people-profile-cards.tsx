@@ -5,6 +5,7 @@ import Link from "next/link";
 import { AlertTriangle, Baby, Bell, CalendarClock, FileText, HeartPulse, MessageCircle, Phone, Printer, Search, ShieldCheck, Shirt, UserCheck, WandSparkles } from "lucide-react";
 import { Avatar } from "@/components/avatar";
 import { ChildPaymentActions } from "@/components/child-payment-actions";
+import { QuickChildOps } from "@/components/quick-child-ops";
 
 type Row = Record<string, any>;
 
@@ -101,6 +102,7 @@ export function ChildrenProfileCards({ children }: { children: Row[] }) {
         </div>
         <div className="mini-kpi-row"><span>שינה <b>{child.sleep_summary ?? "טרם"}</b></span><span>מצב רוח <b>{child.mood ?? "טרם"}</b></span><span>תשלום בפועל <b>₪{child.actual_monthly_fee ?? child.monthly_fee ?? 0}</b></span></div>
         <div className="quick-history-cards"><span>איסוף <b>{child.pickup_status ?? "ממתין"}</b></span><span>בריאות <b>{child.allergies ? "רגישויות" : "תקין"}</b></span><span>שינוי <b>{formatDate(child.updated_at ?? child.created_at)}</b></span></div>
+        <QuickChildOps childId={child.id} gardenId={child.garden_id} />
         <div className="child-profile-tabs" aria-label="אזורים בכרטיס ילד">
           {["Overview", "Health", "Parents", "Payments", "Daily Journal", "Incidents", "Media", "Documents", "Timeline"].map((tab) => <span key={tab}>{tab}</span>)}
         </div>

@@ -35,27 +35,33 @@ export async function GET() {
     }
 
     if (role === "manager" || role === "owner") {
-      const [children, attendance, docs, messages, inspection, cameras, payments] = await Promise.all([
+      const [children, attendance, docs, messages, inspection, cameras, payments, clothes, requests, incidents] = await Promise.all([
         supabase.from("children" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId ?? ""),
         supabase.from("attendance" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId ?? "").eq("attendance_date", today).neq("status", "present"),
         supabase.from("documents" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId ?? "").in("status", ["missing", "expired", "rejected"]),
         supabase.from("messages" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId ?? "").eq("recipient_id", profile.id).is("read_at", null),
         supabase.from("required_inspections" as any).select("id, due_at", { count: "exact" }).eq("garden_id", gardenId ?? "").neq("status", "done").order("due_at").limit(1),
         supabase.from("camera_streams" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId ?? "").in("status", ["pending_gateway", "offline", "failed", "error"]),
-        supabase.from("children" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId ?? "").in("payment_status", ["overdue", "unpaid", "partial"])
+        supabase.from("children" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId ?? "").in("payment_status", ["overdue", "unpaid", "partial"]),
+        supabase.from("children" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId ?? "").eq("has_change_clothes", false),
+        supabase.from("parent_child_requests" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId ?? "").in("status", ["new", "viewed"]),
+        supabase.from("incident_reports" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId ?? "").neq("status", "closed")
       ]);
       return ok({ provider: providerStatus(), role, title: "תקציר מנהלת להיום", summary: `בגן יש ${children.count ?? 0} ילדים. בדקו חריגי נוכחות, מסמכים, הודעות, תשלומים ופיקוח קרוב.`, suggestions: [
         item("נוכחות ילדים", `${attendance.count ?? 0} ילדים לא מסומנים כנוכחים`, "/dashboard/garden/attendance", (attendance.count ?? 0) ? "warn" : "good"),
         item("מסמכים חסרים", `${docs.count ?? 0} מסמכים דורשים השלמה`, "/dashboard/garden/documents", (docs.count ?? 0) ? "warn" : "good"),
         item("הודעות הורים/אדמין", `${messages.count ?? 0} הודעות לא נקראו`, "/dashboard/garden/messages", (messages.count ?? 0) ? "warn" : "good"),
         item("פיקוח ומצלמות", `${inspection.count ?? 0} פיקוחים פתוחים · ${cameras.count ?? 0} מצלמות ממתינות`, "/dashboard/garden/inspections", (cameras.count ?? 0) ? "warn" : "good"),
-        item("תשלומים חסרים", `${payments.count ?? 0} ילדים עם תשלום לטיפול`, "/dashboard/garden/finance", (payments.count ?? 0) ? "bad" : "good")
-      ], prompts: ["מה דורש טיפול היום?", "מי עדיין לא שילם?", "איזה ילד דורש תשומת לב?", "איזה מסמכים חסרים?", "מה מצב הפיקוח הקרוב?"] });
+        item("תשלומים חסרים", `${payments.count ?? 0} ילדים עם תשלום לטיפול`, "/dashboard/garden/finance", (payments.count ?? 0) ? "bad" : "good"),
+        item("בגדים ופניות הורים", `${clothes.count ?? 0} חסרי בגדים · ${requests.count ?? 0} פניות פתוחות`, "/dashboard/garden/children?view=attention", (clothes.count ?? 0) || (requests.count ?? 0) ? "warn" : "good"),
+        item("אירועים למעקב", `${incidents.count ?? 0} אירועים לא סגורים`, "/dashboard/garden/incidents", (incidents.count ?? 0) ? "bad" : "good")
+      ], prompts: ["מה דורש טיפול היום?", "מי עדיין לא שילם?", "מי חסר בגדים להחלפה?", "אילו פניות הורים פתוחות?", "איזה ילד דורש תשומת לב?", "איזה מסמכים חסרים?"] });
     }
 
     if (role === "parent") {
-      const parent = await supabase.from("parents" as any).select("id").eq("profile_id", profile.id).maybeSingle();
-      const parentId = (parent.data as any)?.id;
+      const parentByProfile = await supabase.from("parents" as any).select("id").eq("profile_id", profile.id).maybeSingle();
+      const parentByUser = parentByProfile.data ? { data: null } : await supabase.from("parents" as any).select("id").eq("user_id", profile.id).maybeSingle();
+      const parentId = (parentByProfile.data as any)?.id ?? (parentByUser.data as any)?.id;
       const children = parentId ? await supabase.from("children" as any).select("id, full_name").eq("primary_parent_id", parentId) : { data: [] };
       const childIds = (children.data ?? []).map((child: any) => child.id);
       const [journals, docs, messages] = await Promise.all([
@@ -67,7 +73,7 @@ export async function GET() {
         item("יומן יומי", `${journals.count ?? 0} עדכונים יומיים זמינים`, "/dashboard/parent/daily-journal", (journals.count ?? 0) ? "good" : "warn"),
         item("מסמכים וטפסים", `${docs.count ?? 0} מסמכים דורשים טיפול`, "/dashboard/parent/documents", (docs.count ?? 0) ? "warn" : "good"),
         item("הודעות", `${messages.count ?? 0} הודעות לא נקראו`, "/dashboard/parent/messages", (messages.count ?? 0) ? "warn" : "good")
-      ], prompts: ["סכם לי את היום של הילד", "מה חסר לי להשלים?", "מה אומר ציון הביקורת?", "עזור לי לשלוח הודעה"] });
+      ], prompts: ["מה התעדכן היום אצל הילד שלי?", "האם חסר לי מסמך?", "איך שולחים בקשה לגן?", "מה אומר ציון הביקורת?", "עזור לי לשלוח הודעה"] });
     }
 
     if (role === "staff") {

@@ -4,6 +4,7 @@ import { DashboardShell } from "@/components/dashboard-shell";
 import { StatCard } from "@/components/stat-card";
 import { Avatar } from "@/components/avatar";
 import { ParentChildRequestForm } from "@/components/parent-child-request-form";
+import { SimpleCommandCenter } from "@/components/simple-command-center";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
@@ -31,11 +32,20 @@ export default async function ParentDashboard() {
   const journalRows = childIds.length ? await supabase.from("child_daily_journals" as any).select("child_id, meals, sleep_summary, mood, notes_to_parents, photo_urls").in("child_id", childIds).gte("journal_date", today) : { data: [] };
   const journalRes = { count: (journalRows.data ?? []).length };
   const notificationRes = await supabase.from("notifications" as any).select("id", { count: "exact", head: true }).eq("recipient_id", profile.id).is("read_at", null);
+  const docsRes = await supabase.from("documents" as any).select("id", { count: "exact", head: true }).eq("uploaded_by", profile.id).in("status", ["missing", "rejected", "expired"]);
   const journalByChild = new Map((journalRows.data ?? []).map((row: any) => [row.child_id, row]));
+  const calmItems = [
+    { title: "יומן חדש מהגן", count: journalRes.count ?? 0, description: "ארוחה, שינה, מצב רוח ותמונות", href: "/dashboard/parent/daily-journal", tone: (journalRes.count ?? 0) ? "good" as const : "warn" as const, icon: HeartPulse },
+    { title: "מסמך שצריך להשלים", count: docsRes.count ?? 0, description: "רק אם חסר משהו למשפחה", href: "/dashboard/parent/documents", tone: (docsRes.count ?? 0) ? "warn" as const : "good" as const, icon: ShieldCheck },
+    { title: "הודעות שלא נקראו", count: notificationRes.count ?? 0, description: "עדכונים מהגן במקום אחד", href: "/dashboard/parent/notifications", tone: (notificationRes.count ?? 0) ? "warn" as const : "good" as const, icon: MessageCircle },
+    { title: "תמונות היום", count: (journalRows.data ?? []).reduce((sum: number, row: any) => sum + (row.photo_urls?.length ?? 0), 0), description: "רגעים שהגן שיתף איתך", href: "/dashboard/parent/gallery", tone: "good" as const, icon: Image },
+    { title: "מצלמות הגן", count: "מורשה", description: "רק אם הגן פתח צפייה להורים", href: "/dashboard/parent/cameras", tone: "good" as const, icon: Camera }
+  ];
   return (
     <DashboardShell role="parent" title="אזור הורים">
       <div className="dashboard-hero-card parent-hero-card premium-identity-hero"><div><p className="eyebrow">שקט להורים</p><h1>כל מה שחשוב לדעת על הילד והגן, בלי עומס.</h1><p>נוכחות, איסוף, יומן יומי, הודעות, מצלמות, פיקוח, מסמכים ותלונות במקום אחד וברור.</p></div><div className="avatar-stack">{(childrenRes.data ?? []).map((child: any) => <Avatar key={child.id} name={child.full_name} src={child.photo_url} size="lg" />)}</div><span className="pill good"><ShieldCheck size={15} /> מידע לפי הרשאה</span></div>
       <div className="grid cols-3 dashboard-kpis"><StatCard label="ילדים משויכים" value={(childrenRes.data ?? []).length} tone="good" /><StatCard label="יומן יומי היום" value={journalRes.count ?? 0} /><StatCard label="התראות פתוחות" value={notificationRes.count ?? 0} tone="warn" /></div>
+      <SimpleCommandCenter title="מה התעדכן אצל הילד שלי?" subtitle="מסך רגוע להורים: רק עדכונים חשובים, בלי שפה טכנית ובלי עומס." items={calmItems} />
       <section className="parent-spotlight-card">
         <div><p className="eyebrow">Child Spotlight</p><h2>היום היה יום נהדר</h2><p>כאן ההורה מקבל חוויה רגשית: מצב רוח, ארוחה, שינה, תמונות חדשות והודעה מהגן במקום אחד.</p></div>
         <div className="spotlight-metrics"><span>תמונות היום <b>{(journalRows.data ?? []).reduce((sum: number, row: any) => sum + (row.photo_urls?.length ?? 0), 0)}</b></span><span>יומן חדש <b>{journalRes.count ?? 0}</b></span><span>התראות <b>{notificationRes.count ?? 0}</b></span></div>

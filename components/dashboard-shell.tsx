@@ -34,6 +34,7 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/admin/audit-logs", label: "Audit Logs", hint: "פעולות מערכת" },
     { href: "/dashboard/admin/demo-control", label: "Demo Control", hint: "נתוני דמו ו-QA" },
     { href: "/dashboard/admin/qa-checklist", label: "QA Checklist", hint: "בדיקות תפעול" },
+    { href: "/dashboard/admin/simplicity-audit", label: "Simplicity Audit", hint: "פשטות שימוש" },
     { href: "/dashboard/admin/reports", label: "דוחות", hint: "ייצוא וניתוח" },
     { href: "/dashboard/admin/settings", label: "הגדרות", hint: "מערכת והרשאות" }
   ],  inspector: [

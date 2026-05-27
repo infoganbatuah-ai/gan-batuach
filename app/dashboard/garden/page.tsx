@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { Bell, CalendarCheck, Camera, ClipboardCheck, FileClock, MessageSquare, Plus, ShieldCheck, UserPlus, UsersRound, WalletCards } from "lucide-react";
+import { AlertTriangle, Bell, CalendarCheck, Camera, ClipboardCheck, FileClock, HeartPulse, MessageSquare, Plus, Shirt, ShieldCheck, UserPlus, UsersRound, WalletCards } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { StatCard } from "@/components/stat-card";
 import { Avatar } from "@/components/avatar";
 import { ReadyStatusCard } from "@/components/ready-status-card";
+import { SimpleCommandCenter } from "@/components/simple-command-center";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
@@ -20,7 +21,7 @@ export default async function GardenDashboard() {
   const { profile } = await requireRole(["manager", "owner"]);
   const supabase = await createClient();
   const gardenId = profile.garden_id;
-  const [gardenRes, childrenRes, staffRes, parentsRes, tasksRes, leadsRes, complaintsRes, violationsRes, camerasRes, aiRes, documentsRes, messagesRes, inspectionRes, attendanceRes, unpaidRes, dueInspectionRes, financeChildrenRes] = await Promise.all([
+  const [gardenRes, childrenRes, staffRes, parentsRes, tasksRes, leadsRes, complaintsRes, violationsRes, camerasRes, aiRes, documentsRes, messagesRes, inspectionRes, attendanceRes, unpaidRes, dueInspectionRes, financeChildrenRes, changeClothesRes, healthAlertsRes, parentRequestsRes, staffDocsRes, incidentsRes, documentApprovalsRes] = await Promise.all([
     supabase.from("gardens" as any).select("id, name, city, logo_url, image_url, safe_status, first_inspection_due_at, last_inspection_score").eq("id", gardenId ?? "").maybeSingle(),
     supabase.from("children").select("*", { count: "exact", head: true }).eq("garden_id", gardenId ?? ""),
     supabase.from("staff").select("*", { count: "exact", head: true }).eq("garden_id", gardenId ?? ""),
@@ -37,7 +38,13 @@ export default async function GardenDashboard() {
     supabase.from("attendance" as any).select("id, status", { count: "exact" }).eq("garden_id", gardenId ?? "").eq("attendance_date", new Date().toISOString().slice(0, 10)),
     supabase.from("children" as any).select("id, monthly_fee, payment_status", { count: "exact" }).eq("garden_id", gardenId ?? "").in("payment_status", ["overdue", "unpaid", "partial"]),
     supabase.from("required_inspections" as any).select("due_at").eq("garden_id", gardenId ?? "").neq("status", "done").order("due_at").limit(1).maybeSingle(),
-    supabase.from("children" as any).select("monthly_fee").eq("garden_id", gardenId ?? "")
+    supabase.from("children" as any).select("monthly_fee").eq("garden_id", gardenId ?? ""),
+    supabase.from("children" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId ?? "").eq("has_change_clothes", false),
+    supabase.from("children" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId ?? "").or("allergies.not.is.null,medical_notes.not.is.null,regular_medications.not.is.null"),
+    supabase.from("parent_child_requests" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId ?? "").in("status", ["new", "viewed"]),
+    supabase.from("documents" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId ?? "").in("status", ["missing", "expired", "rejected"]),
+    supabase.from("incident_reports" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId ?? "").neq("status", "closed"),
+    supabase.from("documents" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId ?? "").eq("status", "pending_review")
   ]);
   const garden = gardenRes.data as any;
   const attendanceRows = (attendanceRes.data ?? []) as any[];
@@ -45,6 +52,18 @@ export default async function GardenDashboard() {
   const missingToday = Math.max(0, (childrenRes.count ?? 0) - presentToday);
   const inspectionDays = dueInspectionRes.data?.due_at ? Math.ceil((new Date((dueInspectionRes.data as any).due_at).getTime() - Date.now()) / 86400000) : null;
   const expectedRevenue = ((financeChildrenRes.data ?? []) as any[]).reduce((sum, child) => sum + Number(child.monthly_fee ?? 0), 0);
+  const morningItems = [
+    { title: "ילדים חסרים היום", count: missingToday, description: "בדקי מי טרם סומן או נעדר ללא עדכון", href: "/dashboard/garden/attendance", tone: missingToday ? "warn" as const : "good" as const, icon: CalendarCheck },
+    { title: "חסר בגדים להחלפה", count: changeClothesRes.count ?? 0, description: "ילדים צעירים שצריך לבקש מההורים להשלים", href: "/dashboard/garden/children?view=attention", tone: (changeClothesRes.count ?? 0) ? "bad" as const : "good" as const, icon: Shirt },
+    { title: "התראות בריאות/אלרגיה", count: healthAlertsRes.count ?? 0, description: "ילדים עם מידע רפואי שצריך לראות לפני היום", href: "/dashboard/garden/children?view=attention", tone: (healthAlertsRes.count ?? 0) ? "warn" as const : "good" as const, icon: HeartPulse },
+    { title: "תשלומים דורשים טיפול", count: unpaidRes.count ?? 0, description: "גבייה חסרה, חלקית או באיחור", href: "/dashboard/garden/finance?filter=due", tone: (unpaidRes.count ?? 0) ? "bad" as const : "good" as const, icon: WalletCards },
+    { title: "פניות הורים פתוחות", count: parentRequestsRes.count ?? 0, description: "בקשות שצריך לסמן כטופלו או להשיב עליהן", href: "/dashboard/garden/children?view=attention", tone: (parentRequestsRes.count ?? 0) ? "warn" as const : "good" as const, icon: MessageSquare },
+    { title: "הודעות שלא נקראו", count: messagesRes.data?.length ?? 0, description: "הודעות שממתינות למנהלת/בעלים", href: "/dashboard/garden/messages", tone: (messagesRes.data?.length ?? 0) ? "warn" as const : "good" as const, icon: Bell },
+    { title: "מסמכי צוות חסרים", count: staffDocsRes.count ?? 0, description: "עובדים עם מסמך חסר/דחוי/פג תוקף", href: "/dashboard/garden/staff", tone: (staffDocsRes.count ?? 0) ? "bad" as const : "good" as const, icon: FileClock },
+    { title: "אירועים למעקב", count: incidentsRes.count ?? 0, description: "אירועים שלא נסגרו ודורשים טיפול", href: "/dashboard/garden/incidents", tone: (incidentsRes.count ?? 0) ? "bad" as const : "good" as const, icon: AlertTriangle },
+    { title: "מסמכים לאישור", count: documentApprovalsRes.count ?? 0, description: "מסמכים שמחכים לבדיקה ואישור", href: "/dashboard/garden/documents", tone: (documentApprovalsRes.count ?? 0) ? "warn" as const : "good" as const, icon: ClipboardCheck },
+    { title: "פיקוח קרוב", count: inspectionDays === null ? "אין" : `${inspectionDays} ימים`, description: "הכנה לביקורת הקרובה", href: "/dashboard/garden/inspections", tone: inspectionDays !== null && inspectionDays <= 5 ? "warn" as const : "good" as const, icon: ShieldCheck }
+  ];
   const readyItems = [
     { label: "מסמכי גן", ok: (documentsRes.data ?? []).length > 0, help: "לפחות מסמך אחד הועלה ונמצא במעקב." },
     { label: "צוות מאושר", ok: (staffRes.count ?? 0) > 0, help: "יש אנשי צוות פעילים/בתהליך אישור." },
@@ -77,6 +96,7 @@ export default async function GardenDashboard() {
         <StatCard label="אירועים דחופים" value={(complaintsRes.count ?? 0) + (aiRes.count ?? 0)} tone={(complaintsRes.count ?? 0) + (aiRes.count ?? 0) ? "bad" : "good"} />
         <StatCard label="משימות פתוחות" value={tasksRes.count ?? 0} tone="warn" />
       </div>
+      <SimpleCommandCenter title="מה דורש טיפול היום?" subtitle="המערכת מרכזת עבורך את הדברים שמנהלת גן צריכה לדעת בבוקר, בלי לחפש בתפריטים." items={morningItems} />
       {profile.role === "owner" ? <section className="grid cols-4 dashboard-kpis owner-kpis"><StatCard label="הכנסה צפויה" value={`₪${expectedRevenue}`} tone="good" /><StatCard label="ציון גן" value={garden?.last_inspection_score ?? "-"} /><StatCard label="ציון צוות" value={staffRes.count ? "פעיל" : "חסר"} tone={staffRes.count ? "good" : "warn"} /><StatCard label="סיכוני גבייה" value={unpaidRes.count ?? 0} tone={unpaidRes.count ? "bad" : "good"} /></section> : null}
 
       <section className="dashboard-section">
