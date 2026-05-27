@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Camera, Play, ShieldCheck } from "lucide-react";
+import { ParentCameraAccessDebug } from "@/components/parent-camera-access-debug";
 
 type CameraRow = Record<string, any>;
 
@@ -53,7 +54,7 @@ export function CameraPlaybackCard({ camera, parentId, canRequestPlayback = true
         <h3>{camera.name ?? "מצלמה"}</h3>
         <p>{camera.gardens?.name ?? camera.garden_name ?? ""} · {camera.area ?? "אזור לא הוגדר"} · {sourceType}</p>
         <small><ShieldCheck size={13} /> RTSP וסיסמאות לא נשלחים לדפדפן. הצפייה דרך Playback URL זמני בלבד.</small>
-        {camera.expected_parent_count !== undefined ? <div className="camera-admin-verification"><span>Kindergarten ID: {camera.garden_id ?? camera.kindergarten_id ?? "-"}</span><span>צפיית הורים: {(camera.parent_viewing_allowed ?? camera.parent_view_allowed) ? "כן" : "לא"}</span><span>הורים צפויים: {camera.expected_parent_count}</span><span>{camera.visibility_status ?? "בדיקת חשיפה"}</span></div> : null}
+        {camera.expected_parent_count !== undefined ? <div className="camera-admin-verification"><span>Camera ID: {camera.id}</span><span>garden_id: {camera.garden_id ?? "-"}</span><span>kindergarten_id: {camera.kindergarten_id ?? "-"}</span><span>צפיית הורים: {(camera.parent_viewing_allowed ?? camera.parent_view_allowed) ? "כן" : "לא"}</span><span>Sample HLS: {camera.sample_hls_url ? "קיים" : "חסר"}</span><span>הורים צפויים: {camera.expected_parent_count}</span><span>{camera.visibility_status ?? "בדיקת חשיפה"}</span><ParentCameraAccessDebug cameraId={camera.id} /></div> : null}
         <div className="profile-actions">
           <button className="button primary tiny" disabled={busy || !canRequestPlayback || !connected} type="button" onClick={() => start("HLS")}><Play size={14} /> צפייה HLS</button>
           <button className="button secondary tiny" disabled={busy || !canRequestPlayback || !connected || !camera.webrtc_playback_url} type="button" onClick={() => start("WebRTC")}>WebRTC</button>

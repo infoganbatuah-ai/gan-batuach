@@ -28,11 +28,15 @@ export default async function AdminCamerasPage() {
     logSupabaseError("admin camera gardens secondary query", gardens.error);
     if (gardens.error) secondaryWarning = "חלק מהנתונים המשניים לא נטענו";
     const cameraGardenIds = Array.from(new Set(((cameras.data ?? []) as any[]).map((camera) => camera.garden_id ?? camera.kindergarten_id).filter(Boolean)));
-    const childrenForParents = cameraGardenIds.length ? await supabase.from("children" as any).select("garden_id, kindergarten_id, primary_parent_id").in("garden_id", cameraGardenIds) : { data: [] };
-    logSupabaseError("admin camera expected parents", (childrenForParents as any).error);
-    if ((childrenForParents as any).error) secondaryWarning = "חלק מהנתונים המשניים לא נטענו";
+    const childrenByGardenId = cameraGardenIds.length ? await supabase.from("children" as any).select("garden_id, kindergarten_id, primary_parent_id").in("garden_id", cameraGardenIds) : { data: [] };
+    const childrenByKindergartenId = cameraGardenIds.length ? await supabase.from("children" as any).select("garden_id, kindergarten_id, primary_parent_id").in("kindergarten_id", cameraGardenIds) : { data: [] };
+    logSupabaseError("admin camera expected parents garden_id", (childrenByGardenId as any).error);
+    logSupabaseError("admin camera expected parents kindergarten_id", (childrenByKindergartenId as any).error);
+    if ((childrenByGardenId as any).error || (childrenByKindergartenId as any).error) secondaryWarning = "חלק מהנתונים המשניים לא נטענו";
     const expectedParentsByGarden = new Map<string, Set<string>>();
-    for (const child of ((childrenForParents as any).data ?? []) as any[]) {
+    const childRows = [...(((childrenByGardenId as any).data ?? []) as any[]), ...(((childrenByKindergartenId as any).data ?? []) as any[])]
+      .filter((child, index, all) => child?.primary_parent_id && all.findIndex((item) => item?.primary_parent_id === child.primary_parent_id && (item?.garden_id ?? item?.kindergarten_id) === (child.garden_id ?? child.kindergarten_id)) === index);
+    for (const child of childRows) {
       const gardenId = child.garden_id ?? child.kindergarten_id;
       if (!gardenId || !child.primary_parent_id) continue;
       const set = expectedParentsByGarden.get(gardenId) ?? new Set<string>();

@@ -2,7 +2,7 @@ import crypto from "node:crypto";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
-import { cameraParentViewingAllowed, resolveParentCameraScope } from "@/lib/domain/parent-camera-access";
+import { canParentViewCamera, getCameraGardenId } from "@/lib/domain/parent-camera-access";
 import type { UserRole } from "@/lib/roles";
 
 export const playbackTokenSchema = z.object({
@@ -35,32 +35,22 @@ export async function createCameraPlaybackSession(cameraStreamId: string, payloa
 
   const profileRow = profile as any;
   const cameraRow = camera as any;
+  const cameraGardenId = getCameraGardenId(cameraRow);
+  if (!cameraGardenId) throw new Error("Camera is missing kindergarten assignment");
   const role = profileRow.role as UserRole;
   if (role === "parent") {
-    if (!parsed.parent_id) throw new Error("Parent id is required for parent playback");
-    if (!cameraParentViewingAllowed(cameraRow) || cameraRow.active === false) throw new Error("אין הרשאת צפייה למצלמה זו");
-    const scope = await resolveParentCameraScope(dataSupabase as any, profileRow);
-    const cameraGardenId = cameraRow.garden_id ?? cameraRow.kindergarten_id;
-    const requestedParentIsCurrentUser = scope.parentIds.includes(parsed.parent_id);
-    const parentHasChildInGarden = scope.kindergartenIds.includes(cameraGardenId);
-    console.info("Parent playback permission check", {
-      parentProfileId: profileRow.id,
-      requestedParentId: parsed.parent_id,
-      parentRecordIds: scope.parentIds,
-      childIdsFound: scope.children.map((child: any) => child.id),
-      kindergartenIdsFound: scope.kindergartenIds,
-      cameraGardenId,
-      allowed: requestedParentIsCurrentUser && parentHasChildInGarden
-    });
-    if (!requestedParentIsCurrentUser || !parentHasChildInGarden) throw new Error("אין הרשאת צפייה למצלמה זו");
+    const decision = await canParentViewCamera(dataSupabase as any, profileRow.id, cameraStreamId);
+    const requestedParentIsCurrentUser = parsed.parent_id ? decision.diagnostics.parent_records_found.some((parent: any) => parent.id === parsed.parent_id) : true;
+    console.info("Parent playback permission check", { cameraStreamId, requestedParentId: parsed.parent_id ?? null, allowed: decision.allowed && requestedParentIsCurrentUser, reason: decision.reason, diagnostics: decision.diagnostics });
+    if (!decision.allowed || !requestedParentIsCurrentUser) throw new Error("אין הרשאת צפייה למצלמה זו");
   }
 
   if (role === "manager" || role === "owner" || role === "staff") {
-    if (profileRow.garden_id !== cameraRow.garden_id) throw new Error("Camera is not assigned to your kindergarten");
+    if (profileRow.garden_id !== cameraGardenId) throw new Error("Camera is not assigned to your kindergarten");
   }
 
   if (role === "inspector") {
-    const { data: garden, error } = await supabase.from("gardens" as any).select("id").eq("id", cameraRow.garden_id).eq("inspector_id", user.id).maybeSingle();
+    const { data: garden, error } = await supabase.from("gardens" as any).select("id").eq("id", cameraGardenId).eq("inspector_id", user.id).maybeSingle();
     if (error) throw new Error(error.message);
     if (!garden) throw new Error("Camera is not assigned to your inspected kindergartens");
   }
@@ -84,7 +74,7 @@ export async function createCameraPlaybackSession(cameraStreamId: string, payloa
   const { data: session, error: sessionError } = await supabase
     .from("video_stream_sessions")
     .insert({
-      garden_id: cameraRow.garden_id,
+      garden_id: cameraGardenId,
       camera_stream_id: cameraStreamId,
       viewer_id: user.id,
       viewer_role: role,
@@ -101,7 +91,7 @@ export async function createCameraPlaybackSession(cameraStreamId: string, payloa
 
   await supabase.from("camera_view_logs").insert({
     camera_stream_id: cameraStreamId,
-      garden_id: cameraRow.garden_id,
+    garden_id: cameraGardenId,
     viewer_id: user.id,
     viewer_role: role,
     token_hash: sha256(token)

@@ -4105,6 +4105,48 @@ body::before {
   font-size: 0.82rem;
 }
 
+.camera-admin-access-debug {
+  display: grid;
+  gap: 8px;
+  margin-top: 6px;
+  padding-top: 8px;
+  border-top: 1px solid rgb(31 95 180 / 14%);
+}
+
+.inline-action-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.inline-action-row input {
+  min-width: 0;
+  flex: 1;
+}
+
+.access-debug-result {
+  display: grid;
+  gap: 6px;
+  padding: 10px;
+  border-radius: 12px;
+}
+
+.access-debug-result.good {
+  background: rgb(220 252 231 / 72%);
+  color: #14532d;
+}
+
+.access-debug-result.warn {
+  background: rgb(255 247 237 / 86%);
+  color: #7c2d12;
+}
+
+.access-debug-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px 10px;
+}
+
 .dashboard-page-navigation {
   position: sticky;
   top: 0;
