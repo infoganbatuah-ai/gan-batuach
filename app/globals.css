@@ -4081,6 +4081,16 @@ body::before {
     align-items: flex-start;
     flex-direction: column;
   }
+
+  .dashboard-page-navigation {
+    top: 8px;
+    margin-bottom: 12px;
+  }
+
+  .dashboard-back-button {
+    width: 100%;
+    justify-content: center;
+  }
 }
 
 .camera-admin-verification {
@@ -4092,6 +4102,39 @@ body::before {
   background: linear-gradient(135deg, rgb(229 246 255 / 86%), rgb(236 253 245 / 82%));
   color: #23415f;
   font-size: 0.82rem;
+}
+
+.dashboard-page-navigation {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  justify-content: flex-start;
+  margin: -4px 0 14px;
+  pointer-events: none;
+}
+
+.dashboard-back-button {
+  pointer-events: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  padding: 10px 16px;
+  border: 1px solid rgb(31 95 180 / 16%);
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgb(255 255 255 / 94%), rgb(236 253 245 / 94%));
+  color: #17365d;
+  font-weight: 800;
+  box-shadow: 0 16px 34px rgb(20 55 90 / 12%);
+  cursor: pointer;
+  transition: transform 0.18s ease, box-shadow 0.18s ease, border-color 0.18s ease;
+}
+
+.dashboard-back-button:hover {
+  transform: translateY(-1px);
+  border-color: rgb(31 95 180 / 28%);
+  box-shadow: 0 18px 38px rgb(20 55 90 / 16%);
 }
 
 .settings-profile-form,

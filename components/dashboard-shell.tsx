@@ -11,6 +11,7 @@ import { AIAssistantPanel } from "@/components/ai-assistant-panel";
 import { DashboardIntelligenceBar } from "@/components/dashboard-intelligence-bar";
 import { DashboardCommandCenter } from "@/components/dashboard-command-center";
 import { OnboardingGuideControls } from "@/components/onboarding-guide-controls";
+import { DashboardBackButton } from "@/components/dashboard-back-button";
 
 const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: string }>> = {
   admin: [
@@ -109,6 +110,15 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
   ]
 };
 
+const dashboardHomeByRole: Record<UserRole, string> = {
+  admin: "/dashboard/admin",
+  inspector: "/dashboard/inspector",
+  manager: "/dashboard/garden",
+  owner: "/dashboard/garden",
+  staff: "/dashboard/staff",
+  parent: "/dashboard/parent"
+};
+
 export function DashboardShell({ role, title, children }: { role: UserRole; title: string; children: React.ReactNode }) {
   return (
     <>
@@ -129,6 +139,9 @@ export function DashboardShell({ role, title, children }: { role: UserRole; titl
           <PasskeyEnrollmentPrompt />
         </aside>
         <main className="dashboard-main">
+          <div className="dashboard-page-navigation">
+            <DashboardBackButton fallbackHref={dashboardHomeByRole[role]} />
+          </div>
           <PolicyAcceptanceGate />
           <SandboxModeBanner />
           <OnboardingGuideControls role={role} />
