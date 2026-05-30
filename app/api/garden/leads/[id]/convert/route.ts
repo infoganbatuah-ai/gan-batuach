@@ -114,7 +114,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       entity_type: "children",
       entity_id: child.id,
       severity: "medium",
-      metadata: { href: "/parent-onboarding", lead_id: id, child_id: child.id }
+      metadata: { href: `/parent-onboarding?childId=${child.id}`, lead_id: id, child_id: child.id }
     });
 
     await writeUserCreationAudit({
