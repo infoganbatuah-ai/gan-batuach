@@ -72,9 +72,17 @@ export function ParentCameraAccessDebug({ cameraId }: { cameraId: string }) {
               <span>גנים מפרופיל: {(diagnostics.profile_garden_ids ?? []).join(", ") || "-"}</span>
               <span>גנים מותרים סופית: {(diagnostics.final_allowed_garden_ids ?? []).join(", ") || "-"}</span>
               <span>גן מצלמה: {diagnostics.camera_garden_id ?? "-"}</span>
+              <span>camera id: {diagnostics.camera_id ?? "-"}</span>
+              <span>camera name: {diagnostics.camera_name ?? "-"}</span>
+              <span>allow result: {result.allowed ? "ALLOW" : "DENY"}</span>
+              <span>deny reason: {diagnostics.deny_reason ?? "-"}</span>
+              <span>active: {String(diagnostics.active)}</span>
+              <span>status: {diagnostics.status ?? "-"}</span>
+              <span>parent_view_allowed: {String(diagnostics.parent_view_allowed)}</span>
+              <span>parent_viewing_allowed: {String(diagnostics.parent_viewing_allowed)}</span>
               <span>צפיית הורים: {diagnostics.parent_viewing_enabled ? "פעילה" : "כבויה"}</span>
               <span>Sample HLS: {diagnostics.sample_hls_url_exists ? "קיים" : "חסר"}</span>
-              <span>סטטוס: {diagnostics.status ?? "-"}</span>
+              <span>Gateway stream: {diagnostics.gateway_stream_id_exists ? "קיים" : "חסר"}</span>
             </div>
           ) : null}
         </div>

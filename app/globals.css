@@ -4147,6 +4147,19 @@ body::before {
   gap: 4px 10px;
 }
 
+.camera-deny-diagnostics {
+  display: grid;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.camera-debug-card {
+  display: grid;
+  gap: 8px;
+  border-color: rgb(245 158 11 / 28%);
+  background: linear-gradient(135deg, rgb(255 251 235 / 92%), rgb(255 255 255 / 88%));
+}
+
 .live-day-flow,
 .end-day-checklist,
 .staff-one-hand-mode {

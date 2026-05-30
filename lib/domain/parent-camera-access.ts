@@ -21,6 +21,7 @@ export type ParentCameraAccessDecision = {
     child_relation_found: boolean;
     camera_found: boolean;
     camera_id: string | null;
+    camera_name: string | null;
     camera_garden_id: string | null;
     camera_garden_id_fields: {
       garden_id: string | null;
@@ -42,6 +43,10 @@ export type ParentCameraAccessDecision = {
 
 function uniq(values: Array<string | null | undefined>) {
   return Array.from(new Set(values.filter(Boolean) as string[]));
+}
+
+function isTruthyFlag(value: unknown) {
+  return value === true || value === 1 || value === "1" || String(value).toLowerCase() === "true" || String(value).toLowerCase() === "yes";
 }
 
 function log(label: string, payload: Record<string, unknown>) {
@@ -107,7 +112,7 @@ export function getCameraGardenId(camera: any) {
 }
 
 export function cameraParentViewingAllowed(camera: any) {
-  return camera?.parent_viewing_allowed === true || camera?.parent_view_allowed === true;
+  return isTruthyFlag(camera?.parent_viewing_allowed) || isTruthyFlag(camera?.parent_view_allowed);
 }
 
 export function cameraHasParentPlayableSource(camera: any) {
@@ -116,12 +121,12 @@ export function cameraHasParentPlayableSource(camera: any) {
 
 export function cameraStatusAllowsParent(camera: any) {
   const status = String(camera?.status ?? "").toLowerCase();
-  return camera?.active !== false && !["disabled", "deleted"].includes(status);
+  return camera?.active !== false && camera?.active !== "false" && camera?.active !== 0 && !["disabled", "deleted"].includes(status);
 }
 
 export function cameraCanBeListedForParent(camera: any) {
   const status = String(camera?.status ?? "").toLowerCase();
-  return cameraStatusAllowsParent(camera) && (cameraHasParentPlayableSource(camera) || ["pending_gateway", "connected", "online"].includes(status));
+  return cameraStatusAllowsParent(camera) && (cameraHasParentPlayableSource(camera) || ["pending_gateway", "pending", "connected", "online"].includes(status));
 }
 
 function buildDecision(profile: ParentProfile | null, scope: Awaited<ReturnType<typeof resolveParentCameraScope>> | null, camera: any, reason: string, allowed = false): ParentCameraAccessDecision {
@@ -141,6 +146,7 @@ function buildDecision(profile: ParentProfile | null, scope: Awaited<ReturnType<
     child_relation_found: Boolean(scope?.children?.length),
     camera_found: Boolean(camera),
     camera_id: camera?.id ?? null,
+    camera_name: camera?.name ?? null,
     camera_garden_id: cameraGardenId,
     camera_garden_id_fields: {
       garden_id: camera?.garden_id ?? null,
