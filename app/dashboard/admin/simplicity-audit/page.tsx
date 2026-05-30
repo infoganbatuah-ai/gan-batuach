@@ -4,6 +4,10 @@ import { DashboardShell } from "@/components/dashboard-shell";
 import { requireRole } from "@/lib/auth";
 
 const checks = [
+  { role: "מנהלת / בעלים", question: "האם הדשבורד משתנה לפי שלב היום?", status: "עבר", href: "/dashboard/garden" },
+  { role: "מנהלת / צוות", question: "האם כפתור שכחתי משהו מרכז פעולות פתוחות?", status: "עבר", href: "/dashboard/garden" },
+  { role: "צוות", question: "האם מצב יד אחת מאפשר עדכון ילד בלי טפסים?", status: "עבר", href: "/dashboard/staff" },
+  { role: "מנהלת / צוות", question: "האם קיימת סגירת יום עם צ׳קליסט?", status: "עבר", href: "/dashboard/garden" },
   { role: "מנהלת / בעלים", question: "האם ברור תוך 3 שניות מה דורש טיפול?", status: "עבר", href: "/dashboard/garden" },
   { role: "מנהלת / צוות", question: "האם עדכון ילד יומי מתבצע ב-1-2 לחיצות?", status: "עבר", href: "/dashboard/garden/children" },
   { role: "צוות", question: "האם מוסתרים כספים ואנליטיקות מורכבות?", status: "עבר", href: "/dashboard/staff" },
@@ -52,6 +56,9 @@ export default async function SimplicityAuditPage() {
         <article className="card action-panel"><ShieldCheck /><h2>3 שניות להבנה</h2><p>דשבורדים מרכזיים מציגים Command Center לפני טבלאות וניתוחים.</p></article>
         <article className="card action-panel"><MousePointerClick /><h2>2 לחיצות לפעולה</h2><p>כרטיס ילד כולל צ׳יפים מהירים לנוכחות, אוכל, שינה, מצב רוח ובגדים.</p></article>
         <article className="card action-panel"><Sparkles /><h2>שפה רגועה להורים</h2><p>הורה רואה עדכונים, תמונות, מסמכים והודעות בלי מונחים טכניים.</p></article>
+        <article className="card action-panel"><MousePointerClick /><h2>Live Day Flow</h2><p>הדשבורד מזהה בוקר, צהריים, מנוחה ואיסוף ומחליף המלצות בהתאם.</p></article>
+        <article className="card action-panel"><Sparkles /><h2>שכחתי משהו?</h2><p>כפתור צף מרכז ארוחה, שינה, נוכחות, תשלומים, פניות ואירועים פתוחים.</p></article>
+        <article className="card action-panel"><ShieldCheck /><h2>סגירת יום</h2><p>צ׳קליסט סוף יום נשמר בלוג ביקורת גם אם נסגר עם חריגים.</p></article>
       </section>
     </DashboardShell>
   );
