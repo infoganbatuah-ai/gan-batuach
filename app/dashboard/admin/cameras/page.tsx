@@ -30,9 +30,13 @@ export default async function AdminCamerasPage() {
     const cameraGardenIds = Array.from(new Set(((cameras.data ?? []) as any[]).map((camera) => camera.garden_id ?? camera.kindergarten_id).filter(Boolean)));
     const childrenByGardenId = cameraGardenIds.length ? await supabase.from("children" as any).select("garden_id, kindergarten_id, primary_parent_id").in("garden_id", cameraGardenIds) : { data: [] };
     const childrenByKindergartenId = cameraGardenIds.length ? await supabase.from("children" as any).select("garden_id, kindergarten_id, primary_parent_id").in("kindergarten_id", cameraGardenIds) : { data: [] };
+    const parentsByGardenId = cameraGardenIds.length ? await supabase.from("parents" as any).select("id, garden_id").in("garden_id", cameraGardenIds) : { data: [] };
+    const parentsByKindergartenId = cameraGardenIds.length ? await supabase.from("parents" as any).select("id, kindergarten_id").in("kindergarten_id", cameraGardenIds) : { data: [] };
     logSupabaseError("admin camera expected parents garden_id", (childrenByGardenId as any).error);
     logSupabaseError("admin camera expected parents kindergarten_id", (childrenByKindergartenId as any).error);
-    if ((childrenByGardenId as any).error || (childrenByKindergartenId as any).error) secondaryWarning = "חלק מהנתונים המשניים לא נטענו";
+    logSupabaseError("admin camera expected direct parents garden_id", (parentsByGardenId as any).error);
+    logSupabaseError("admin camera expected direct parents kindergarten_id", (parentsByKindergartenId as any).error);
+    if ((childrenByGardenId as any).error || (childrenByKindergartenId as any).error || (parentsByGardenId as any).error || (parentsByKindergartenId as any).error) secondaryWarning = "חלק מהנתונים המשניים לא נטענו";
     const expectedParentsByGarden = new Map<string, Set<string>>();
     const childRows = [...(((childrenByGardenId as any).data ?? []) as any[]), ...(((childrenByKindergartenId as any).data ?? []) as any[])]
       .filter((child, index, all) => child?.primary_parent_id && all.findIndex((item) => item?.primary_parent_id === child.primary_parent_id && (item?.garden_id ?? item?.kindergarten_id) === (child.garden_id ?? child.kindergarten_id)) === index);
@@ -41,6 +45,15 @@ export default async function AdminCamerasPage() {
       if (!gardenId || !child.primary_parent_id) continue;
       const set = expectedParentsByGarden.get(gardenId) ?? new Set<string>();
       set.add(child.primary_parent_id);
+      expectedParentsByGarden.set(gardenId, set);
+    }
+    const directParentRows = [...(((parentsByGardenId as any).data ?? []) as any[]), ...(((parentsByKindergartenId as any).data ?? []) as any[])]
+      .filter((parent, index, all) => parent?.id && all.findIndex((item) => item?.id === parent.id) === index);
+    for (const parent of directParentRows) {
+      const gardenId = parent.garden_id ?? parent.kindergarten_id;
+      if (!gardenId || !parent.id) continue;
+      const set = expectedParentsByGarden.get(gardenId) ?? new Set<string>();
+      set.add(parent.id);
       expectedParentsByGarden.set(gardenId, set);
     }
 

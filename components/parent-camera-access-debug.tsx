@@ -8,9 +8,11 @@ function reasonText(reason: string) {
     parent_profile_not_found: "לא נמצא פרופיל הורה",
     parent_record_not_found: "הפרופיל לא מחובר לרשומת הורה",
     parent_not_linked_to_child: "הורה לא משויך לילד",
+    parent_not_linked_to_kindergarten: "הורה לא משויך לגן",
     camera_not_found: "המצלמה לא נמצאה",
     camera_has_no_garden_id: "למצלמה אין שיוך גן",
     child_camera_garden_mismatch: "הילד משויך לגן אחר מהמצלמה",
+    parent_camera_garden_mismatch: "ההורה משויך לגן אחר מהמצלמה",
     parent_viewing_not_enabled: "צפיית הורים לא הופעלה במצלמה",
     camera_inactive_or_disabled: "המצלמה כבויה או לא פעילה",
     camera_has_no_parent_playback_source: "אין מקור צפייה להורים או סטטוס מתאים",
@@ -63,7 +65,12 @@ export function ParentCameraAccessDebug({ cameraId }: { cameraId: string }) {
               <span>פרופיל: {diagnostics.parent_profile_found ? "נמצא" : "לא נמצא"}</span>
               <span>רשומות הורה: {diagnostics.parent_records_found?.length ?? 0}</span>
               <span>ילדים משויכים: {diagnostics.linked_children_found?.length ?? 0}</span>
-              <span>גני ילדים: {(diagnostics.child_garden_ids ?? []).join(", ") || "-"}</span>
+              <span>שיוך ישיר לגן: {diagnostics.direct_kindergarten_assignment_found ? "נמצא" : "לא נמצא"}</span>
+              <span>קשר ילד: {diagnostics.child_relation_found ? "נמצא" : "לא נמצא"}</span>
+              <span>גנים מילדים: {(diagnostics.child_garden_ids ?? []).join(", ") || "-"}</span>
+              <span>גנים ישירים: {(diagnostics.direct_parent_garden_ids ?? []).join(", ") || "-"}</span>
+              <span>גנים מפרופיל: {(diagnostics.profile_garden_ids ?? []).join(", ") || "-"}</span>
+              <span>גנים מותרים סופית: {(diagnostics.final_allowed_garden_ids ?? []).join(", ") || "-"}</span>
               <span>גן מצלמה: {diagnostics.camera_garden_id ?? "-"}</span>
               <span>צפיית הורים: {diagnostics.parent_viewing_enabled ? "פעילה" : "כבויה"}</span>
               <span>Sample HLS: {diagnostics.sample_hls_url_exists ? "קיים" : "חסר"}</span>

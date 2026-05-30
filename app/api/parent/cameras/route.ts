@@ -10,12 +10,12 @@ export async function GET() {
     const userSupabase = await createClient();
     const supabase = isAdminClientConfigured() ? createAdminClient() : userSupabase;
     const scope = await resolveParentCameraScope(supabase as any, profile as any);
-    if (!scope.childGardenIds.length) return ok([]);
+    if (!scope.kindergartenIds.length) return ok([]);
 
     const selectColumns = "id, garden_id, kindergarten_id, name, area, age_group, class_group, camera_type, source_type, protocol, status, active, parent_view_allowed, parent_viewing_allowed, hls_playback_url, sample_hls_url, webrtc_playback_url, video_gateway_stream_id, gateway_stream_id, viewing_hours, last_health_check_at";
     const [byGardenId, byKindergartenId] = await Promise.all([
-      supabase.from("camera_streams" as any).select(selectColumns).in("garden_id", scope.childGardenIds),
-      supabase.from("camera_streams" as any).select(selectColumns).in("kindergarten_id", scope.childGardenIds)
+      supabase.from("camera_streams" as any).select(selectColumns).in("garden_id", scope.kindergartenIds),
+      supabase.from("camera_streams" as any).select(selectColumns).in("kindergarten_id", scope.kindergartenIds)
     ]);
     if ((byGardenId as any).error) console.error("Parent cameras API garden_id query failed", (byGardenId as any).error);
     if ((byKindergartenId as any).error) console.error("Parent cameras API kindergarten_id query failed", (byKindergartenId as any).error);

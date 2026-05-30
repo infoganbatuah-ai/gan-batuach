@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 type QueryResult = { data?: any[] | null; error?: any };
-type ParentProfile = { id: string; garden_id?: string | null; email?: string | null; role?: string | null };
+type ParentProfile = { id: string; garden_id?: string | null; kindergarten_id?: string | null; email?: string | null; role?: string | null };
 
 export type ParentCameraAccessDecision = {
   allowed: boolean;
@@ -13,7 +13,12 @@ export type ParentCameraAccessDecision = {
     parent_records_found: any[];
     linked_children_found: any[];
     child_garden_ids: string[];
+    direct_parent_garden_ids: string[];
+    profile_garden_ids: string[];
+    final_allowed_garden_ids: string[];
     fallback_parent_garden_ids: string[];
+    direct_kindergarten_assignment_found: boolean;
+    child_relation_found: boolean;
     camera_found: boolean;
     camera_id: string | null;
     camera_garden_id: string | null;
@@ -57,7 +62,13 @@ async function safeQuery(label: string, run: () => any) {
 export async function resolveParentCameraScope(supabase: SupabaseClient<any, any, any>, profile: { id: string; garden_id?: string | null; email?: string | null }) {
   const parentByProfile = await safeQuery("parents.profile_id", () => supabase.from("parents" as any).select("id, garden_id, profile_id, full_name, email").eq("profile_id", profile.id));
   const parentByUser = await safeQuery("parents.user_id", () => supabase.from("parents" as any).select("id, garden_id, user_id, full_name, email").eq("user_id", profile.id));
-  const parentRows = [...parentByProfile, ...parentByUser].filter((row, index, all) => all.findIndex((item) => item.id === row.id) === index);
+  const parentKindergartenByProfile = await safeQuery("parents.kindergarten_id by profile_id", () => supabase.from("parents" as any).select("id, kindergarten_id").eq("profile_id", profile.id));
+  const parentKindergartenByUser = await safeQuery("parents.kindergarten_id by user_id", () => supabase.from("parents" as any).select("id, kindergarten_id").eq("user_id", profile.id));
+  const profileKindergarten = await safeQuery("profiles.kindergarten_id", () => supabase.from("profiles" as any).select("id, kindergarten_id").eq("id", profile.id));
+  const parentKindergartenById = new Map([...parentKindergartenByProfile, ...parentKindergartenByUser].map((row) => [row.id, row.kindergarten_id]));
+  const parentRows = [...parentByProfile, ...parentByUser]
+    .filter((row, index, all) => all.findIndex((item) => item.id === row.id) === index)
+    .map((row) => ({ ...row, kindergarten_id: row.kindergarten_id ?? parentKindergartenById.get(row.id) ?? null }));
   const parentIds = uniq(parentRows.map((parent) => parent.id));
   const relationIds = uniq([...parentIds, profile.id]);
 
@@ -73,8 +84,9 @@ export async function resolveParentCameraScope(supabase: SupabaseClient<any, any
 
   const children = childQueries.filter((child, index, all) => child?.id && all.findIndex((item) => item?.id === child.id) === index);
   const childGardenIds = uniq(children.map((child) => child.garden_id ?? child.kindergarten_id));
-  const parentGardenIds = uniq([...parentRows.map((parent) => parent.garden_id), profile.garden_id]);
-  const kindergartenIds = childGardenIds.length ? childGardenIds : parentGardenIds;
+  const directParentGardenIds = uniq(parentRows.flatMap((parent) => [parent.garden_id, parent.kindergarten_id]));
+  const profileGardenIds = uniq([profile.garden_id, (profile as ParentProfile).kindergarten_id, ...profileKindergarten.map((row: any) => row.kindergarten_id)]);
+  const kindergartenIds = uniq([...childGardenIds, ...directParentGardenIds, ...profileGardenIds]);
 
   log("resolved", {
     parentProfileId: profile.id,
@@ -82,10 +94,12 @@ export async function resolveParentCameraScope(supabase: SupabaseClient<any, any
     relationIds,
     childIds: children.map((child) => child.id),
     childKindergartenIds: childGardenIds,
-    fallbackKindergartenIds: childGardenIds.length ? [] : parentGardenIds
+    directParentGardenIds,
+    profileGardenIds,
+    finalAllowedGardenIds: kindergartenIds
   });
 
-  return { parentRows, parentIds, children, childGardenIds, kindergartenIds };
+  return { parentRows, parentIds, children, childGardenIds, directParentGardenIds, profileGardenIds, kindergartenIds };
 }
 
 export function getCameraGardenId(camera: any) {
@@ -119,7 +133,12 @@ function buildDecision(profile: ParentProfile | null, scope: Awaited<ReturnType<
     parent_records_found: scope?.parentRows ?? [],
     linked_children_found: scope?.children ?? [],
     child_garden_ids: scope?.childGardenIds ?? [],
-    fallback_parent_garden_ids: scope ? uniq([...(scope.parentRows ?? []).map((parent: any) => parent.garden_id), profile?.garden_id]) : [],
+    direct_parent_garden_ids: scope?.directParentGardenIds ?? [],
+    profile_garden_ids: scope?.profileGardenIds ?? [],
+    final_allowed_garden_ids: scope?.kindergartenIds ?? [],
+    fallback_parent_garden_ids: scope ? uniq([...(scope.parentRows ?? []).flatMap((parent: any) => [parent.garden_id, parent.kindergarten_id]), profile?.garden_id, profile?.kindergarten_id]) : [],
+    direct_kindergarten_assignment_found: Boolean((scope?.directParentGardenIds?.length ?? 0) || (scope?.profileGardenIds?.length ?? 0)),
+    child_relation_found: Boolean(scope?.children?.length),
     camera_found: Boolean(camera),
     camera_id: camera?.id ?? null,
     camera_garden_id: cameraGardenId,
@@ -145,11 +164,11 @@ function buildDecision(profile: ParentProfile | null, scope: Awaited<ReturnType<
 export function evaluateParentCameraAccess(profile: ParentProfile, scope: Awaited<ReturnType<typeof resolveParentCameraScope>>, camera: any): ParentCameraAccessDecision {
   if (!profile?.id) return buildDecision(null, scope, camera, "parent_profile_not_found");
   if (!camera?.id) return buildDecision(profile, scope, camera, "camera_not_found");
-  if (!scope.children.length) return buildDecision(profile, scope, camera, "parent_not_linked_to_child");
 
   const cameraGardenId = getCameraGardenId(camera);
   if (!cameraGardenId) return buildDecision(profile, scope, camera, "camera_has_no_garden_id");
-  if (!scope.childGardenIds.includes(cameraGardenId)) return buildDecision(profile, scope, camera, "child_camera_garden_mismatch");
+  if (!scope.kindergartenIds.length) return buildDecision(profile, scope, camera, "parent_not_linked_to_kindergarten");
+  if (!scope.kindergartenIds.includes(cameraGardenId)) return buildDecision(profile, scope, camera, "parent_camera_garden_mismatch");
   if (!cameraParentViewingAllowed(camera)) return buildDecision(profile, scope, camera, "parent_viewing_not_enabled");
   if (!cameraStatusAllowsParent(camera)) return buildDecision(profile, scope, camera, "camera_inactive_or_disabled");
   if (!cameraCanBeListedForParent(camera)) return buildDecision(profile, scope, camera, "camera_has_no_parent_playback_source");
@@ -187,6 +206,9 @@ export async function canParentViewCamera(supabase: SupabaseClient<any, any, any
     parentRecordIds: decision.diagnostics.parent_records_found.map((parent: any) => parent.id),
     childIds: decision.diagnostics.linked_children_found.map((child: any) => child.id),
     childGardenIds: decision.diagnostics.child_garden_ids,
+    directParentGardenIds: decision.diagnostics.direct_parent_garden_ids,
+    profileGardenIds: decision.diagnostics.profile_garden_ids,
+    finalAllowedGardenIds: decision.diagnostics.final_allowed_garden_ids,
     cameraGardenId: decision.diagnostics.camera_garden_id
   });
   return decision;
