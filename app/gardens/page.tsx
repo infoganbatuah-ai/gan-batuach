@@ -2,6 +2,7 @@ import Link from "next/link";
 import { CalendarDays, CheckCircle2, MapPin, ShieldAlert, ShieldCheck, UsersRound } from "lucide-react";
 import { BrandHeader } from "@/components/brand-header";
 import { createParentLead } from "@/app/actions";
+import { formatAgeGroups, getKindergartenAgeGroups, type KindergartenAgeGroup } from "@/lib/kindergarten-age-groups";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
@@ -23,6 +24,8 @@ type PublicGarden = {
   public_profile_enabled?: boolean | null;
   gps_lat?: number | null;
   gps_lng?: number | null;
+  ages?: string[] | null;
+  supported_age_groups?: KindergartenAgeGroup[];
 };
 
 type GardenSearchParams = { lead?: string; name?: string; city?: string; manager?: string; age?: string; status?: string; min_score?: string; lat?: string; lng?: string };
@@ -46,12 +49,16 @@ async function getPublicGardens(filters: GardenSearchParams) {
       .limit(24);
     if (filters.name) query = query.ilike("name", `%${filters.name}%`);
     if (filters.city) query = query.ilike("city", `%${filters.city}%`);
-    if (filters.age) query = query.ilike("framework_type", `%${filters.age}%`);
     if (filters.status) query = query.eq("safe_status", filters.status);
     if (filters.min_score) query = query.gte("last_inspection_score", Number(filters.min_score));
     const { data } = await query;
     let rows = (data ?? []) as unknown as PublicGarden[];
+    rows = await Promise.all(rows.map(async (garden) => ({
+      ...garden,
+      supported_age_groups: await getKindergartenAgeGroups(supabase, garden.id, garden)
+    })));
     if (filters.manager) rows = rows.filter((garden) => (garden.manager?.full_name ?? garden.owner_name ?? "").includes(filters.manager ?? ""));
+    if (filters.age) rows = rows.filter((garden) => formatAgeGroups(garden.supported_age_groups ?? []).includes(filters.age ?? ""));
     const lat = Number(filters.lat);
     const lng = Number(filters.lng);
     if (Number.isFinite(lat) && Number.isFinite(lng)) rows = rows.sort((a, b) => distanceKm(lat, lng, a.gps_lat, a.gps_lng) - distanceKm(lat, lng, b.gps_lat, b.gps_lng));
@@ -115,7 +122,7 @@ export default async function GardensPage({ searchParams }: { searchParams: Prom
                     <div className="garden-image-placeholder">{garden.name}</div><h2>{garden.name}</h2>
                     <p>{garden.address ?? "כתובת תוצג לפי הרשאת הגן"} · מנהלת: {garden.manager?.full_name ?? garden.owner_name ?? "לא צוין"}</p>
                     <div className="garden-facts">
-                      <span><UsersRound size={16} /> גילאים: {garden.framework_type || "לא צוין"}</span>
+                      <span><UsersRound size={16} /> מקבל: {formatAgeGroups(garden.supported_age_groups ?? [])}</span>
                       <span><UsersRound size={16} /> ילדים: {garden.current_children_count ?? 0}/{garden.children_capacity ?? 0}</span>
                       <span><ShieldCheck size={16} /> ציון אחרון: {garden.last_inspection_score ?? "טרם בוצעה ביקורת"}</span>
                       <span><CalendarDays size={16} /> ביקורת אחרונה: {formatDate(garden.last_inspection_at)}</span>

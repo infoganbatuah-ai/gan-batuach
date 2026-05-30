@@ -141,8 +141,8 @@ export default async function GardenDashboard() {
         <StatCard label="הורה משלים פרטים" value={pendingParentCompletionRes.count ?? 0} tone={pendingParentCompletionRes.count ? "warn" : "good"} />
         <StatCard label="ילדים לאישור" value={pendingApprovalRes.count ?? 0} tone={pendingApprovalRes.count ? "warn" : "good"} />
       </div>
-      <LiveDayFlow counts={flowCounts} />
       <SimpleCommandCenter title="מה דורש טיפול היום?" subtitle="המערכת מרכזת עבורך את הדברים שמנהלת גן צריכה לדעת בבוקר, בלי לחפש בתפריטים." items={morningItems} />
+      <LiveDayFlow counts={flowCounts} />
       {profile.role === "owner" ? <section className="grid cols-4 dashboard-kpis owner-kpis"><StatCard label="הכנסה צפויה" value={`₪${expectedRevenue}`} tone="good" /><StatCard label="ציון גן" value={garden?.last_inspection_score ?? "-"} /><StatCard label="ציון צוות" value={staffRes.count ? "פעיל" : "חסר"} tone={staffRes.count ? "good" : "warn"} /><StatCard label="סיכוני גבייה" value={unpaidRes.count ?? 0} tone={unpaidRes.count ? "bad" : "good"} /></section> : null}
 
       <section className="dashboard-section">

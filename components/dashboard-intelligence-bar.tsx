@@ -45,6 +45,15 @@ const roleActions: Record<UserRole, Array<{ label: string; href: string }>> = {
   ]
 };
 
+const dashboardHomeByRole: Record<UserRole, string> = {
+  admin: "/dashboard/admin",
+  manager: "/dashboard/garden",
+  owner: "/dashboard/garden",
+  inspector: "/dashboard/inspector",
+  staff: "/dashboard/staff",
+  parent: "/dashboard/parent"
+};
+
 function greeting() {
   const hour = new Date().getHours();
   if (hour < 11) return "בוקר טוב";
@@ -83,6 +92,7 @@ export function DashboardIntelligenceBar({ role, title }: { role: UserRole; titl
   }
 
   const currentPinned = useMemo(() => favorites.some((item) => item.href === pathname), [favorites, pathname]);
+  const isMainDashboard = pathname === dashboardHomeByRole[role];
 
   function togglePin() {
     if (!mounted) return;
@@ -91,6 +101,17 @@ export function DashboardIntelligenceBar({ role, title }: { role: UserRole; titl
     } else {
       save([{ href: pathname, label: title, type: favoriteType(pathname) }, ...favorites]);
     }
+  }
+
+  if (!isMainDashboard) {
+    return (
+      <details className="dashboard-intelligence-bar compact">
+        <summary><Sparkles size={15} /> כלים חכמים וקיצורים</summary>
+        <div className="pending-actions-strip">
+          {roleActions[role].slice(0, 3).map((action) => <Link href={action.href} key={action.href}>{action.label}</Link>)}
+        </div>
+      </details>
+    );
   }
 
   return (

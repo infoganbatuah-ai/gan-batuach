@@ -4,6 +4,7 @@ import { DashboardBackButton } from "@/components/dashboard-back-button";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { ParentChildRegistrationWizard } from "@/components/provisioning-forms";
 import { requireRole } from "@/lib/auth";
+import { getKindergartenAgeGroups } from "@/lib/kindergarten-age-groups";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
 
@@ -49,9 +50,10 @@ export default async function ParentOnboardingPage({ searchParams }: { searchPar
   }
 
   const [gardenRes, docsRes] = await Promise.all([
-    gardenId ? supabase.from("gardens" as any).select("id, name, logo_url, image_url, manager_id, owner_profile_id, phone, address, city").eq("id", gardenId).maybeSingle() : Promise.resolve({ data: null }),
+    gardenId ? supabase.from("gardens" as any).select("id, name, logo_url, image_url, manager_id, owner_profile_id, phone, address, city, ages, framework_type").eq("id", gardenId).maybeSingle() : Promise.resolve({ data: null }),
     child?.id ? supabase.from("documents" as any).select("id, name, document_type, status, expires_at, created_at").eq("child_id", child.id).limit(20) : Promise.resolve({ data: [] })
   ]);
+  const ageGroups = await getKindergartenAgeGroups(supabase, gardenId, gardenRes.data);
 
   return (
     <DashboardShell role="parent" title="השלמת פרטי ילד">
@@ -84,7 +86,7 @@ export default async function ParentOnboardingPage({ searchParams }: { searchPar
             <div className="card health-card"><HeartPulse /> בריאות: {child.allergies || child.medical_notes ? "יש מידע שמור" : "חסר מידע"}</div>
             <div className="card health-card"><Baby /> גן: {(gardenRes.data as any)?.name ?? "גן משויך"}</div>
           </section>
-          <ParentChildRegistrationWizard child={child} parent={parent} garden={gardenRes.data as any} documents={(docsRes.data ?? []) as any[]} />
+          <ParentChildRegistrationWizard child={child} parent={parent} garden={gardenRes.data as any} documents={(docsRes.data ?? []) as any[]} ageGroups={ageGroups} />
         </>
       )}
     </DashboardShell>

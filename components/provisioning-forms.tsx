@@ -35,6 +35,7 @@ type ParentWizardChild = {
   additional_consents?: any;
   status?: string | null;
 };
+type AgeGroupOption = { id?: string; label: string; age_range?: string | null; monthly_fee?: number | null; source?: string };
 
 function jsonFromForm(form: HTMLFormElement) {
   return Object.fromEntries(new FormData(form).entries());
@@ -214,17 +215,20 @@ export function GardenProvisioningPanel({ pendingChildren, parentLeads, pendingS
   );
 }
 
-export function ParentChildRegistrationWizard({ child, parent, garden, documents = [] }: { child?: ParentWizardChild | null; parent?: any; garden?: any; documents?: any[] }) {
+export function ParentChildRegistrationWizard({ child, parent, garden, documents = [], ageGroups = [] }: { child?: ParentWizardChild | null; parent?: any; garden?: any; documents?: any[]; ageGroups?: AgeGroupOption[] }) {
   const [result, setResult] = useState<ResultState | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const consents = child?.additional_consents ?? {};
   const specialNotes = consents?.special_notes ?? {};
+  const requiredDocs = documents.filter((doc) => ["missing", "rejected", "expired", "requested", "required"].includes(String(doc.status ?? "").toLowerCase()));
+  const documentsRequired = requiredDocs.length > 0;
+  const documentsCompleted = !documentsRequired || requiredDocs.every((doc) => ["approved", "uploaded", "pending_review"].includes(String(doc.status ?? "").toLowerCase()));
   const completed = {
     child: Boolean(child?.full_name && child?.birth_date),
     health: Boolean(child?.allergies || child?.sensitivities || child?.regular_medications || child?.medical_notes || child?.hmo),
     contacts: Boolean(child?.emergency_phone || child?.mother_phone || child?.father_phone || (Array.isArray(child?.pickup_authorized) && child?.pickup_authorized.length)),
-    documents: documents.length === 0 || documents.some((doc) => ["approved", "uploaded", "pending_review"].includes(String(doc.status))),
+    documents: documentsCompleted,
     notes: Boolean(specialNotes.food || specialNotes.sleep || specialNotes.behavior || specialNotes.parent_notes),
     declarations: Boolean(child?.system_consent && consents?.privacy && consents?.health_declaration)
   };
@@ -278,7 +282,7 @@ export function ParentChildRegistrationWizard({ child, parent, garden, documents
       <div className="progress-bar"><span style={{ width: `${progress}%` }} /></div>
       <div className="wizard-summary-strip">
         <span className={child?.status === "active" || child?.status === "approved" ? "pill good" : "pill warn"}>{statusLabel(child?.status)}</span>
-        <span>הושלמו {completedCount} מתוך 6 שלבים</span>
+        <span>{completedCount === 6 ? "הרישום הושלם ונשלח לאישור הגן" : `חסר רק עוד ${6 - completedCount} פרטים`}</span>
         <span>{garden?.name ? `גן: ${garden.name}` : "גן משויך"}</span>
       </div>
       <h2>פרטי הילד נשמרים בשלבים ברורים</h2>
@@ -286,7 +290,7 @@ export function ParentChildRegistrationWizard({ child, parent, garden, documents
 
       <details className="accordion-step" open>
         <summary><strong>1. פרטי הילד</strong><span>{completeText(completed.child)}</span></summary>
-        <div className="form-grid"><label>שם ילד מלא<input name="full_name" required defaultValue={child?.full_name ?? ""} /></label><label>תאריך לידה<input name="birth_date" type="date" defaultValue={child?.birth_date ? String(child.birth_date).slice(0, 10) : ""} /></label><label>תעודת זהות ילד אם קיימת<input name="identity_number" defaultValue={child?.identity_number ?? ""} /></label><label>תמונה / כתובת תמונה<input name="photo_url" defaultValue={child?.photo_url ?? child?.face_image_url ?? ""} placeholder="אפשר להשאיר ריק ולהעלות דרך כרטיס הילד" /></label><label>קבוצת גיל / כיתה<input name="age_group" defaultValue={child?.age_group ?? child?.classroom ?? ""} /></label><label>כתובת<input name="address" defaultValue={child?.address ?? parent?.address ?? ""} /></label></div>
+        <div className="form-grid"><label>שם ילד מלא<input name="full_name" required defaultValue={child?.full_name ?? ""} /></label><label>תאריך לידה<input name="birth_date" type="date" defaultValue={child?.birth_date ? String(child.birth_date).slice(0, 10) : ""} /></label><label>תעודת זהות ילד אם קיימת<input name="identity_number" defaultValue={child?.identity_number ?? ""} /></label><label>תמונה / כתובת תמונה<input name="photo_url" defaultValue={child?.photo_url ?? child?.face_image_url ?? ""} placeholder="אפשר להשאיר ריק ולהעלות דרך כרטיס הילד" /></label>{ageGroups.length ? <label>קבוצת גיל / כיתה<select name="age_group" defaultValue={child?.age_group ?? child?.classroom ?? ""}><option value="">הגן ישייך במידת הצורך</option>{ageGroups.map((group) => <option value={group.label} key={group.id ?? group.label}>{group.age_range ? `${group.label} · ${group.age_range}` : group.label}</option>)}</select><small>האפשרויות מגיעות מהגדרות הגן.</small></label> : <label className="wide">קבוצת גיל / כיתה<div className="gateway-setup-state"><strong>הגן עדיין לא הגדיר קבוצות גיל.</strong><p>ניתן להשלים את שאר הפרטים והגן ישייך את הילד לקבוצה.</p></div><input name="age_group" type="hidden" value={child?.age_group ?? child?.classroom ?? ""} /></label>}<label>כתובת<input name="address" defaultValue={child?.address ?? parent?.address ?? ""} /></label></div>
       </details>
 
       <details className="accordion-step" open={!completed.health}>
@@ -301,7 +305,7 @@ export function ParentChildRegistrationWizard({ child, parent, garden, documents
 
       <details className="accordion-step" open={!completed.documents}>
         <summary><strong>4. מסמכים</strong><span>{completeText(completed.documents)}</span></summary>
-        {documents.length === 0 ? <div className="empty-mini">אין מסמכים נדרשים כרגע. אם הגן יבקש מסמך, הוא יופיע כאן ובמרכז המסמכים.</div> : <div className="risk-list">{documents.map((doc) => <div key={doc.id}><span>{doc.name ?? doc.document_type}</span><b>{doc.status}</b></div>)}</div>}
+        {!documentsRequired ? <div className="success-screen"><strong>העלאת מסמכים אינה נדרשת בשלב זה.</strong><p>המסמכים אינם נדרשים כרגע. אם הגן יבקש מסמך בהמשך, תקבלו התראה.</p></div> : <div className="risk-list">{documents.map((doc) => <div key={doc.id}><span>{doc.name ?? doc.document_type}</span><b>{doc.status}</b></div>)}</div>}
       </details>
 
       <details className="accordion-step" open={!completed.notes}>
@@ -315,6 +319,7 @@ export function ParentChildRegistrationWizard({ child, parent, garden, documents
       </details>
 
       <button className="button primary large" disabled={busy}>{child?.status === "active" || child?.status === "approved" ? "שמירת שינויים" : "שמירה ושליחה לאישור הגן"}</button>
+      <div className={completedCount === 6 ? "success-banner" : "gateway-setup-state"}>{completedCount === 6 ? "הרישום הושלם ונשלח לאישור הגן. הפרטים הושלמו, וכעת הגן בודק ומאשר את הילד." : "אפשר לשמור גם לפני השלמה מלאה, אבל הגן יאשר את הילד רק אחרי שכל שלבי החובה הושלמו."}</div>
     </form>
   );
 }

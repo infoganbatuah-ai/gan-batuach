@@ -41,6 +41,15 @@ function storageKey(role: UserRole) {
   return `gan-batuach-dashboard-widgets-${role}`;
 }
 
+const dashboardHomeByRole: Record<UserRole, string> = {
+  admin: "/dashboard/admin",
+  manager: "/dashboard/garden",
+  owner: "/dashboard/garden",
+  inspector: "/dashboard/inspector",
+  staff: "/dashboard/staff",
+  parent: "/dashboard/parent"
+};
+
 export function DashboardCommandCenter({ role, title }: { role: UserRole; title: string }) {
   const pathname = usePathname();
   const [summary, setSummary] = useState<Summary | null>(null);
@@ -83,6 +92,18 @@ export function DashboardCommandCenter({ role, title }: { role: UserRole; title:
   }, [summary, hidden, pinned]);
 
   const topAction = visibleCommandCards[0];
+  const isMainDashboard = pathname === dashboardHomeByRole[role];
+
+  if (!isMainDashboard) {
+    return (
+      <details className="command-center-layer compact">
+        <summary><Sparkles size={15} /> מה לעשות עכשיו / פעילות אחרונה</summary>
+        <div className="command-card-list compact-list">
+          {visibleCommandCards.slice(0, 3).map((card) => <Link className={`command-action-card ${card.tone}`} href={card.href} key={card.title}><strong>{card.count}</strong><span>{card.title}</span></Link>)}
+        </div>
+      </details>
+    );
+  }
 
   return (
     <section className="command-center-layer">

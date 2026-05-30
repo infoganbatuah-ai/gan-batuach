@@ -7,6 +7,7 @@ import { ParentAdditionalChildRequestForm } from "@/components/parent-additional
 import { ParentChildRequestForm } from "@/components/parent-child-request-form";
 import { SimpleCommandCenter } from "@/components/simple-command-center";
 import { requireRole } from "@/lib/auth";
+import { formatAgeGroups, getKindergartenAgeGroups } from "@/lib/kindergarten-age-groups";
 import { createClient } from "@/lib/supabase/server";
 
 const parentActions = [
@@ -30,9 +31,10 @@ export default async function ParentDashboard() {
   const childrenRes = parentId ? await supabase.from("children" as any).select("id, garden_id, kindergarten_id, full_name, birth_date, photo_url, face_image_url, status, allergies, hmo, medical_notes, age_group, classroom, pickup_status, approval_notes, manager_response").eq("primary_parent_id", parentId).limit(12) : { data: [] };
   const childIds = (childrenRes.data ?? []).map((child: any) => child.id);
   const gardenIds = Array.from(new Set([profile.garden_id, parent?.garden_id, ...(childrenRes.data ?? []).map((child: any) => child.garden_id ?? child.kindergarten_id)].filter(Boolean)));
-  const gardensRes = gardenIds.length ? await supabase.from("gardens" as any).select("id, name, logo_url, image_url, phone, city, address, manager_id, owner_profile_id, last_inspection_score, safe_status").in("id", gardenIds) : { data: [] };
+  const gardensRes = gardenIds.length ? await supabase.from("gardens" as any).select("id, name, logo_url, image_url, phone, city, address, manager_id, owner_profile_id, last_inspection_score, safe_status, ages, framework_type, manager:profiles!gardens_manager_id_fkey(full_name, phone)").in("id", gardenIds) : { data: [] };
   const gardensById = new Map((gardensRes.data ?? []).map((garden: any) => [garden.id, garden]));
   const primaryGarden = gardensById.get(profile.garden_id ?? parent?.garden_id ?? gardenIds[0]) as any;
+  const primaryAgeGroups = primaryGarden ? await getKindergartenAgeGroups(supabase, primaryGarden.id, primaryGarden) : [];
   const { data: latestInspection } = gardenIds.length ? await supabase.from("inspections" as any).select("id, garden_id, completed_at, weighted_score, violation_count").in("garden_id", gardenIds).eq("status", "done").order("completed_at", { ascending: false }).limit(1).maybeSingle() : { data: null };
   const today = new Date().toISOString().slice(0, 10);
   const journalRows = childIds.length ? await supabase.from("child_daily_journals" as any).select("child_id, meals, sleep_summary, mood, notes_to_parents, photo_urls").in("child_id", childIds).gte("journal_date", today) : { data: [] };
@@ -51,11 +53,6 @@ export default async function ParentDashboard() {
     <DashboardShell role="parent" title="אזור הורים">
       <div className="dashboard-hero-card parent-hero-card premium-identity-hero"><div><p className="eyebrow">שקט להורים</p><h1>שלום, {profile.full_name ?? parent?.full_name ?? "הורה יקר/ה"}</h1><p>כל מה שחשוב לדעת על הילד והגן, בלי עומס: היום של הילד, הודעות, מסמכים, מצלמות ופיקוח במקום אחד וברור.</p></div><div className="avatar-stack">{(childrenRes.data ?? []).map((child: any) => <Avatar key={child.id} name={child.full_name} src={child.photo_url ?? child.face_image_url} size="lg" />)}</div><span className="pill good"><ShieldCheck size={15} /> מידע לפי הרשאה</span></div>
       <div className="grid cols-3 dashboard-kpis"><StatCard label="ילדים משויכים" value={(childrenRes.data ?? []).length} tone="good" /><StatCard label="יומן יומי היום" value={journalRes.count ?? 0} /><StatCard label="התראות פתוחות" value={notificationRes.count ?? 0} tone="warn" /></div>
-      <SimpleCommandCenter title="מה התעדכן אצל הילד שלי?" subtitle="מסך רגוע להורים: רק עדכונים חשובים, בלי שפה טכנית ובלי עומס." items={calmItems} />
-      <section className="parent-spotlight-card">
-        <div><p className="eyebrow">Child Spotlight</p><h2>היום היה יום נהדר</h2><p>כאן ההורה מקבל חוויה רגשית: מצב רוח, ארוחה, שינה, תמונות חדשות והודעה מהגן במקום אחד.</p></div>
-        <div className="spotlight-metrics"><span>תמונות היום <b>{(journalRows.data ?? []).reduce((sum: number, row: any) => sum + (row.photo_urls?.length ?? 0), 0)}</b></span><span>יומן חדש <b>{journalRes.count ?? 0}</b></span><span>התראות <b>{notificationRes.count ?? 0}</b></span></div>
-      </section>
       <section className="dashboard-section people-directory">
         <div className="section-heading"><h2>הילדים שלי</h2><p>כרטיס חם וברור לכל ילד: גן, תמונה, בריאות, עדכון יומי ומה כדאי לבדוק עכשיו.</p><Link className="button primary" href="#add-child-request">בקשת רישום ילד נוסף</Link></div>
         {(childrenRes.data ?? []).length === 0 ? <div className="empty-state"><strong>אין ילדים משויכים עדיין</strong><span>לאחר אישור הגן, כרטיס הילד והיומן היומי יופיעו כאן. אם זהו ילד חדש, שלחו בקשה לגן.</span><Link className="button primary" href="#add-child-request">בקשת רישום ילד</Link></div> : <div className="people-card-grid parent-child-grid">{(childrenRes.data ?? []).map((child: any) => {
@@ -73,8 +70,14 @@ export default async function ParentDashboard() {
           </article>;
         })}</div>}
       </section>
+      <section className="grid cols-2 dashboard-panels"><article className="card action-panel"><h2>פרטי הגן של הילד</h2><div className="risk-list"><div>גן <b>{primaryGarden?.name ?? "גן משויך"}</b></div><div>מנהלת <b>{primaryGarden?.manager?.full_name ?? "לפי הרשאת הגן"}</b></div><div>קבוצות גיל <b>{formatAgeGroups(primaryAgeGroups)}</b></div><div>טלפון <b>{primaryGarden?.phone ?? primaryGarden?.manager?.phone ?? "לפי הרשאה"}</b></div><div>מצלמות <b>לפי הרשאה</b></div></div></article><article className="card action-panel"><h2>סיכום אמון ופיקוח</h2>{latestInspection ? <div className="list-item"><div><strong>ציון {latestInspection.weighted_score ?? "-"}</strong><span>{latestInspection.completed_at ? new Date(latestInspection.completed_at).toLocaleDateString("he-IL") : ""} · ליקויים {latestInspection.violation_count ?? 0}</span></div><Link className="button secondary" href={`/dashboard/parent/inspections/${latestInspection.id}/report`}>צפייה בדוח</Link></div> : <p>עדיין אין דוח ביקורת מאושר להצגה.</p>}<div className="risk-list"><div><ShieldCheck /> סטטוס גן בטוח <b>{primaryGarden?.safe_status ?? "לפי הרשאה"}</b></div><div><HeartPulse /> מידע רפואי <b>ניתן לעדכון</b></div><div><Camera /> צפייה בלייב <b>Token זמני</b></div></div></article></section>
       <section className="dashboard-section"><div className="section-heading"><h2>פעולות הורה</h2><p>כל פעולה נשמרת ומתועדת כדי להגן על הילד ועל פרטיות המשפחה.</p></div><div className="quick-actions-grid">{parentActions.map((action) => <Link className="quick-action" href={action.href} key={action.label}><action.icon /><strong>{action.label}</strong><span>{action.text}</span></Link>)}</div></section>
-      <section className="grid cols-2 dashboard-panels"><ParentAdditionalChildRequestForm gardenName={primaryGarden?.name} /><ParentChildRequestForm children={(childrenRes.data ?? []) as any[]} /><article className="card action-panel"><h2>תקציר בטיחות הגן</h2><div className="risk-list"><div><ShieldCheck /> סטטוס גן בטוח <b>{primaryGarden?.safe_status ?? "לפי הרשאה"}</b></div><div><HeartPulse /> מידע רפואי <b>ניתן לעדכון</b></div><div><Camera /> צפייה בלייב <b>Token זמני</b></div>{primaryGarden ? <div>גן <b>{primaryGarden.name}</b></div> : null}</div></article><article className="card action-panel"><h2>דוח ביקורת אחרון</h2>{latestInspection ? <div className="list-item"><div><strong>ציון {latestInspection.weighted_score ?? "-"}</strong><span>{latestInspection.completed_at ? new Date(latestInspection.completed_at).toLocaleDateString("he-IL") : ""} · ליקויים {latestInspection.violation_count ?? 0}</span></div><Link className="button secondary" href={`/dashboard/parent/inspections/${latestInspection.id}/report`}>צפייה בדוח</Link></div> : <p>עדיין אין דוח ביקורת מאושר להצגה.</p>}</article></section>
+      <section className="grid cols-2 dashboard-panels"><ParentAdditionalChildRequestForm gardenName={primaryGarden?.name} /><ParentChildRequestForm children={(childrenRes.data ?? []) as any[]} /></section>
+      <SimpleCommandCenter title="מה התעדכן אצל הילד שלי?" subtitle="מסך רגוע להורים: רק עדכונים חשובים, בלי שפה טכנית ובלי עומס." items={calmItems} />
+      <section className="parent-spotlight-card">
+        <div><p className="eyebrow">Child Spotlight</p><h2>היום היה יום נהדר</h2><p>כאן ההורה מקבל חוויה רגשית: מצב רוח, ארוחה, שינה, תמונות חדשות והודעה מהגן במקום אחד.</p></div>
+        <div className="spotlight-metrics"><span>תמונות היום <b>{(journalRows.data ?? []).reduce((sum: number, row: any) => sum + (row.photo_urls?.length ?? 0), 0)}</b></span><span>יומן חדש <b>{journalRes.count ?? 0}</b></span><span>התראות <b>{notificationRes.count ?? 0}</b></span></div>
+      </section>
     </DashboardShell>
   );
 }
