@@ -17,7 +17,7 @@ export default async function Page() {
   const { profile } = await requireRole(["parent"]);
   const supabase = await createClient();
   const result = await getParentCameraListForProfile(supabase as any, profile);
-  const { cameras, debug, decisions, scope } = result;
+  const { cameras, debug, scope } = result;
 
   const gardenNameById = new Map<string, string>();
   for (const child of scope.children as any[]) {
@@ -45,73 +45,23 @@ export default async function Page() {
           <h1>מצלמות הגן.</h1>
           <p>הורה רואה רק מצלמות של הגן שאליו הוא משויך ורק מצלמות שהגן סימן כמותרות לצפיית הורים. פרטי RTSP, שם משתמש וסיסמאות לא נשלחים לדפדפן.</p>
         </div>
-        <span className={gatewayConnected ? "pill good" : "pill warn"}>{gatewayConnected ? "Gateway מחובר" : "Sample HLS / Gateway"}</span>
+        <span className={gatewayConnected ? "pill good" : "pill warn"}>{gatewayConnected ? "מחובר" : "ממתין לחיבור שידור"}</span>
       </div>
 
       <section className="grid cols-3 dashboard-panels">
         <article className="card action-panel">
           <ShieldCheck />
           <h2>פרטיות</h2>
-          <p>אין גישה למצלמות של גנים אחרים או למצלמות שלא אושרו להורים.</p>
+          <p>אין גישה למצלמות של גנים אחרים או למצלמות שלא אושרו לצפיית הורים.</p>
         </article>
         <article className="card action-panel">
           <Camera />
-          <h2>Token זמני</h2>
-          <p>כל פתיחת צפייה יוצרת Session זמני ומתועד.</p>
+          <h2>צפייה מאובטחת</h2>
+          <p>כל צפייה נפתחת לזמן מוגבל ומתועדת לצורכי פרטיות ובטיחות.</p>
         </article>
         <article className="card action-panel">
           <h2>חלונות צפייה</h2>
           <p>הגן יכול להגדיר שעות ותוקף הרשאה לכל מצלמה.</p>
-        </article>
-      </section>
-
-      <section className="dashboard-section">
-        <article className="card camera-debug-card">
-          <div className="section-heading">
-            <h2>אבחון זמני - מצלמות הורה</h2>
-            <p>הדף משתמש עכשיו באותה שכבת הרשאות שרתית כמו בדיקת האדמין, ולא קורא ישירות את הטבלה מהדפדפן.</p>
-          </div>
-          <div className="access-debug-grid">
-            <span>Parent profile id: {profile.id}</span>
-            <span>Parent record id: {scope.parentIds.join(", ") || "-"}</span>
-            <span>Allowed kindergarten ids: {debug.allowedKindergartenIds.join(", ") || "-"}</span>
-            <span>Data source: {debug.dataSource}</span>
-            <span>Service role configured: {String(debug.serviceRoleConfigured)}</span>
-            <span>garden_id query returned: {debug.gardenIdQueryCount}</span>
-            <span>kindergarten_id query returned: {debug.kindergartenIdQueryCount}</span>
-            <span>Candidate cameras count: {debug.candidateCamerasCount}</span>
-            <span>Candidate camera ids: {debug.candidateCameraIds.join(", ") || "-"}</span>
-            <span>Allowed cameras count: {debug.allowedCamerasCount}</span>
-            <span>Allowed camera ids: {debug.allowedCameraIds.join(", ") || "-"}</span>
-            <span>Allowed cameras missing playback source: {debug.missingPlaybackSourceCount}</span>
-            <span>Cameras hidden because status: {debug.hiddenBecauseStatus}</span>
-            <span>Cameras hidden because parent viewing flag: {debug.hiddenBecauseParentViewingFlag}</span>
-          </div>
-          {debug.queryErrors.length ? (
-            <div className="gateway-setup-state">
-              <strong>חלק משאילתות המצלמה נחסמו או נכשלו</strong>
-              <p>{debug.queryErrors.map((item) => `${item.query}: ${item.message}`).join(" | ")}</p>
-            </div>
-          ) : null}
-          {decisions.length === 0 ? <div className="empty-mini">לא נמצאו מצלמות לבדיקה בדף ההורה.</div> : decisions.map((decision) => (
-            <article className="camera-debug-row" key={decision.diagnostics.camera_id ?? decision.reason}>
-              <strong>{decision.allowed ? "ALLOW" : "DENY"}: {decision.diagnostics.camera_name ?? "מצלמה"}</strong>
-              <span>reason: {decision.reason}</span>
-              <div className="access-debug-grid">
-                <span>camera id: {decision.diagnostics.camera_id ?? "-"}</span>
-                <span>active: {String(decision.diagnostics.active)}</span>
-                <span>status: {decision.diagnostics.status ?? "-"}</span>
-                <span>parent_view_allowed: {String(decision.diagnostics.parent_view_allowed)}</span>
-                <span>parent_viewing_allowed: {String(decision.diagnostics.parent_viewing_allowed)}</span>
-                <span>garden_id: {decision.diagnostics.camera_garden_id_fields.garden_id ?? "-"}</span>
-                <span>kindergarten_id: {decision.diagnostics.camera_garden_id_fields.kindergarten_id ?? "-"}</span>
-                <span>sample_hls_url: {decision.diagnostics.sample_hls_url_exists ? "exists" : "missing"}</span>
-                <span>hls_playback_url: {decision.diagnostics.hls_playback_url_exists ? "exists" : "missing"}</span>
-                <span>webrtc_playback_url: {decision.diagnostics.webrtc_playback_url_exists ? "exists" : "missing"}</span>
-                <span>gateway_stream_id: {decision.diagnostics.gateway_stream_id_exists ? "exists" : "missing"}</span>
-              </div>
-            </article>
-          ))}
         </article>
       </section>
 
@@ -128,7 +78,7 @@ export default async function Page() {
               <p>{group.cameras.length} מצלמות מאושרות לצפיית הורים.</p>
             </div>
             <div className="camera-playback-grid">
-              {group.cameras.map((camera) => <CameraPlaybackCard camera={camera} parentId={scope.parentIds[0]} key={camera.id} />)}
+              {group.cameras.map((camera) => <CameraPlaybackCard camera={camera} parentId={scope.parentIds[0]} parentView key={camera.id} />)}
             </div>
           </section>
         ))}
