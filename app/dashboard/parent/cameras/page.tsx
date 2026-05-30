@@ -25,12 +25,28 @@ export default async function Page() {
   const camerasByKindergartenId = allowedGardenIds.length ? await supabase.from("camera_streams" as any).select(selectColumns).in("kindergarten_id", allowedGardenIds).limit(120) : { data: [] };
   if ((camerasByGardenId as any).error) console.error("Parent camera garden_id query failed", (camerasByGardenId as any).error);
   if ((camerasByKindergartenId as any).error) console.error("Parent camera kindergarten_id query failed", (camerasByKindergartenId as any).error);
-  const allCameras = [...(((camerasByGardenId as any).data ?? []) as any[]), ...(((camerasByKindergartenId as any).data ?? []) as any[])]
+  const candidateCameras = [...(((camerasByGardenId as any).data ?? []) as any[]), ...(((camerasByKindergartenId as any).data ?? []) as any[])]
     .filter((camera, index, all) => camera?.id && all.findIndex((item) => item?.id === camera.id) === index);
-  const accessDecisions = await Promise.all(allCameras.map((camera) => canParentViewCamera(supabase as any, profile.id, camera.id)));
-  const allowedCameraIds = new Set(accessDecisions.filter((decision) => decision.allowed).map((decision) => decision.diagnostics.camera_id));
-  const allowedCameras = allCameras.filter((camera) => allowedCameraIds.has(camera.id));
+  let allCameras = candidateCameras;
+  let accessDecisions = await Promise.all(allCameras.map((camera) => canParentViewCamera(supabase as any, profile.id, camera.id)));
+  let allowedCameraIds = new Set(accessDecisions.filter((decision) => decision.allowed).map((decision) => decision.diagnostics.camera_id));
+  let allowedCameras = allCameras.filter((camera) => allowedCameraIds.has(camera.id));
+
+  if (allowedGardenIds.length && allowedCameras.length === 0) {
+    const fallbackCameras = await supabase.from("camera_streams" as any).select(selectColumns).limit(250);
+    if ((fallbackCameras as any).error) console.error("Parent camera fallback all-cameras query failed", (fallbackCameras as any).error);
+    const merged = [...candidateCameras, ...(((fallbackCameras as any).data ?? []) as any[])]
+      .filter((camera, index, all) => camera?.id && all.findIndex((item) => item?.id === camera.id) === index);
+    const fallbackDecisions = await Promise.all(merged.map((camera) => canParentViewCamera(supabase as any, profile.id, camera.id)));
+    const fallbackAllowedIds = new Set(fallbackDecisions.filter((decision) => decision.allowed).map((decision) => decision.diagnostics.camera_id));
+    allCameras = merged;
+    accessDecisions = fallbackDecisions;
+    allowedCameraIds = fallbackAllowedIds;
+    allowedCameras = merged.filter((camera) => fallbackAllowedIds.has(camera.id));
+  }
+
   const deniedCameraDiagnostics = accessDecisions.filter((decision) => !decision.allowed);
+  const missingPlaybackSourceCount = allowedCameras.filter((camera) => !(camera.sample_hls_url || camera.hls_playback_url || camera.webrtc_playback_url || camera.gateway_stream_id || camera.video_gateway_stream_id)).length;
   console.info("Parent camera query result", {
     parentProfileId: profile.id,
     parentRecordIds: scope.parentIds,
@@ -39,8 +55,10 @@ export default async function Page() {
     directParentGardenIdsFound: scope.directParentGardenIds,
     profileGardenIdsFound: scope.profileGardenIds,
     finalAllowedGardenIds: allowedGardenIds,
+    candidateCamerasCount: candidateCameras.length,
     camerasBeforePermissionFilter: allCameras.length,
     camerasReturnedAfterPermissionFilter: allowedCameras.length,
+    camerasMissingPlaybackSourceCount: missingPlaybackSourceCount,
     camerasUsedForFiltering: allCameras.map((camera) => ({
       id: camera.id,
       name: camera.name,
