@@ -2,9 +2,8 @@ import { Camera, ShieldCheck } from "lucide-react";
 import { CameraPlaybackCard } from "@/components/camera-playback-card";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { requireRole } from "@/lib/auth";
+import { getParentCameraListForProfile } from "@/lib/domain/parent-camera-list";
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
-import { canParentViewCamera, getCameraGardenId, resolveParentCameraScope } from "@/lib/domain/parent-camera-access";
 
 type GardenGroup = { id: string; name: string; cameras: any[] };
 
@@ -16,101 +15,124 @@ function emptyState(kind: "no_relation" | "no_cameras" | "not_allowed") {
 
 export default async function Page() {
   const { profile } = await requireRole(["parent"]);
-  const userScopedSupabase = await createClient();
-  const supabase = isAdminClientConfigured() ? createAdminClient() : userScopedSupabase;
-  const scope = await resolveParentCameraScope(supabase as any, profile as any);
-  const allowedGardenIds = scope.kindergartenIds;
-  const selectColumns = "id, garden_id, kindergarten_id, name, area, camera_type, source_type, protocol, status, active, parent_view_allowed, parent_viewing_allowed, hls_playback_url, sample_hls_url, webrtc_playback_url, video_gateway_stream_id, gateway_stream_id, last_health_check_at, viewing_hours, gardens(name, city)";
-  const parentGardenIdFilter = allowedGardenIds.join(",");
-  const camerasByGardenId = allowedGardenIds.length ? await supabase.from("camera_streams" as any).select(selectColumns).in("garden_id", allowedGardenIds).limit(120) : { data: [] };
-  const camerasByKindergartenId = allowedGardenIds.length ? await supabase.from("camera_streams" as any).select(selectColumns).in("kindergarten_id", allowedGardenIds).limit(120) : { data: [] };
-  const adminEquivalentCameraQuery = allowedGardenIds.length ? await supabase.from("camera_streams" as any).select(selectColumns).limit(250) : { data: [] };
-  const gardenIdQueryRows = (((camerasByGardenId as any).data ?? []) as any[]);
-  const kindergartenIdQueryRows = (((camerasByKindergartenId as any).data ?? []) as any[]);
-  const adminEquivalentRawRows = (((adminEquivalentCameraQuery as any).data ?? []) as any[]);
-  const adminEquivalentRows = adminEquivalentRawRows.filter((camera) => allowedGardenIds.includes(camera?.garden_id) || allowedGardenIds.includes(camera?.kindergarten_id));
-  if ((camerasByGardenId as any).error) console.error("Parent camera garden_id query failed", (camerasByGardenId as any).error);
-  if ((camerasByKindergartenId as any).error) console.error("Parent camera kindergarten_id query failed", (camerasByKindergartenId as any).error);
-  if ((adminEquivalentCameraQuery as any).error) console.error("Parent camera admin-equivalent all-cameras query failed", (adminEquivalentCameraQuery as any).error);
-  const candidateCameras = adminEquivalentRows
-    .filter((camera, index, all) => camera?.id && all.findIndex((item) => item?.id === camera.id) === index);
-  let allCameras = candidateCameras;
-  let accessDecisions = await Promise.all(allCameras.map((camera) => canParentViewCamera(supabase as any, profile.id, camera.id)));
-  let allowedCameraIds = new Set(accessDecisions.filter((decision) => decision.allowed).map((decision) => decision.diagnostics.camera_id));
-  let allowedCameras = allCameras.filter((camera) => allowedCameraIds.has(camera.id));
+  const supabase = await createClient();
+  const result = await getParentCameraListForProfile(supabase as any, profile);
+  const { cameras, debug, decisions, scope } = result;
 
-  const deniedCameraDiagnostics = accessDecisions.filter((decision) => !decision.allowed);
-  const missingPlaybackSourceCount = allowedCameras.filter((camera) => !(camera.sample_hls_url || camera.hls_playback_url || camera.webrtc_playback_url || camera.gateway_stream_id || camera.video_gateway_stream_id)).length;
-  const hiddenBecauseMissingPlaybackSource = accessDecisions.filter((decision) => decision.reason === "camera_has_no_parent_playback_source").length;
-  const hiddenBecauseStatus = accessDecisions.filter((decision) => decision.reason === "camera_inactive_or_disabled").length;
-  const hiddenBecauseParentViewingFlag = accessDecisions.filter((decision) => decision.reason === "parent_viewing_not_enabled").length;
-  const visibleDebug = {
-    parentProfileId: profile.id,
-    parentRecordIds: scope.parentIds,
-    allowedKindergartenIds: allowedGardenIds,
-    queryUsed: "admin-equivalent: camera_streams.select(selectColumns).limit(250), then JS filter by garden_id/kindergarten_id",
-    legacyGardenIdQueryUsed: `camera_streams.select(selectColumns).in("garden_id", [${parentGardenIdFilter}]).limit(120)`,
-    legacyKindergartenIdQueryUsed: `camera_streams.select(selectColumns).in("kindergarten_id", [${parentGardenIdFilter}]).limit(120)`,
-    gardenIdQueryCount: gardenIdQueryRows.length,
-    gardenIdQueryCameraIds: gardenIdQueryRows.map((camera) => camera.id),
-    kindergartenIdQueryCount: kindergartenIdQueryRows.length,
-    kindergartenIdQueryCameraIds: kindergartenIdQueryRows.map((camera) => camera.id),
-    adminEquivalentRawCount: adminEquivalentRawRows.length,
-    adminEquivalentRawCameraIds: adminEquivalentRawRows.map((camera) => camera.id),
-    adminEquivalentFilteredCount: adminEquivalentRows.length,
-    adminEquivalentFilteredCameraIds: adminEquivalentRows.map((camera) => camera.id),
-    candidateCamerasCount: candidateCameras.length,
-    candidateCameraIds: candidateCameras.map((camera) => camera.id),
-    allCamerasCheckedCount: allCameras.length,
-    allCameraIdsChecked: allCameras.map((camera) => camera.id),
-    allowedCamerasCount: allowedCameras.length,
-    allowedCameraIds: allowedCameras.map((camera) => camera.id),
-    hiddenBecauseMissingPlaybackSource,
-    allowedCamerasMissingPlaybackSource: missingPlaybackSourceCount,
-    hiddenBecauseStatus,
-    hiddenBecauseParentViewingFlag,
-    cameraDecisions: accessDecisions
-  };
-  console.info("Parent camera query result", {
-    parentProfileId: profile.id,
-    parentRecordIds: scope.parentIds,
-    childIdsFound: scope.children.map((child: any) => child.id),
-    childKindergartenIdsFound: scope.childGardenIds,
-    directParentGardenIdsFound: scope.directParentGardenIds,
-    profileGardenIdsFound: scope.profileGardenIds,
-    finalAllowedGardenIds: allowedGardenIds,
-    queryUsed: "admin-equivalent: fetch all camera_streams then filter in server code",
-    legacyGardenIdQuery: { filterValues: allowedGardenIds, count: gardenIdQueryRows.length, ids: gardenIdQueryRows.map((camera) => camera.id) },
-    legacyKindergartenIdQuery: { filterValues: allowedGardenIds, count: kindergartenIdQueryRows.length, ids: kindergartenIdQueryRows.map((camera) => camera.id) },
-    adminEquivalentQuery: { rawCount: adminEquivalentRawRows.length, rawIds: adminEquivalentRawRows.map((camera) => camera.id), filteredCount: adminEquivalentRows.length, filteredIds: adminEquivalentRows.map((camera) => camera.id) },
-    candidateCamerasCount: candidateCameras.length,
-    camerasBeforePermissionFilter: allCameras.length,
-    camerasReturnedAfterPermissionFilter: allowedCameras.length,
-    camerasMissingPlaybackSourceCount: missingPlaybackSourceCount,
-    camerasUsedForFiltering: allCameras.map((camera) => ({
-      id: camera.id,
-      name: camera.name,
-      active: camera.active,
-      status: camera.status,
-      parent_view_allowed: camera.parent_view_allowed,
-      parent_viewing_allowed: camera.parent_viewing_allowed,
-      garden_id: camera.garden_id,
-      kindergarten_id: camera.kindergarten_id,
-      sample_hls_url_exists: Boolean(camera.sample_hls_url),
-      gateway_stream_id_exists: Boolean(camera.gateway_stream_id || camera.video_gateway_stream_id)
-    })),
-    deniedReasons: deniedCameraDiagnostics.map((decision) => ({ cameraId: decision.diagnostics.camera_id, cameraName: decision.diagnostics.camera_name, reason: decision.reason, raw: decision.diagnostics }))
-  });
-  const groups = allowedGardenIds.map((gardenId) => {
-    const child = scope.children.find((item: any) => (item.garden_id ?? item.kindergarten_id) === gardenId);
+  const gardenNameById = new Map<string, string>();
+  for (const child of scope.children as any[]) {
+    const gardenId = child.garden_id ?? child.kindergarten_id;
+    const gardenName = child.gardens?.name;
+    if (gardenId && gardenName) gardenNameById.set(gardenId, gardenName);
+  }
+
+  const groups = debug.allowedKindergartenIds.map((gardenId) => {
     return {
       id: gardenId,
-      name: child?.gardens?.name ?? allowedCameras.find((camera) => getCameraGardenId(camera) === gardenId)?.gardens?.name ?? "גן ילדים",
-      cameras: allowedCameras.filter((camera) => getCameraGardenId(camera) === gardenId)
+      name: gardenNameById.get(gardenId) ?? "גן ילדים",
+      cameras: cameras.filter((camera) => camera.camera_garden_id === gardenId)
     } satisfies GardenGroup;
   }).filter((group) => group.cameras.length > 0);
-  const gatewayConnected = Boolean(process.env.VIDEO_GATEWAY_URL);
-  const empty = !allowedGardenIds.length ? emptyState("no_relation") : allCameras.length === 0 ? emptyState("no_cameras") : emptyState("not_allowed");
 
-  return <DashboardShell role="parent" title="מצלמות הגן"><div className="dashboard-hero-card parent-hero-card"><div><p className="eyebrow">צפייה מורשית בלבד</p><h1>מצלמות הגן.</h1><p>הורה רואה רק מצלמות של גני הילדים של ילדיו ורק מצלמות שהגן סימן כמותרות לצפיית הורים. RTSP, שם משתמש וסיסמאות לא נשלחים לדפדפן.</p></div><span className={gatewayConnected ? "pill good" : "pill warn"}>{gatewayConnected ? "Gateway מחובר" : "Sample HLS / Gateway"}</span></div><section className="grid cols-3 dashboard-panels"><article className="card action-panel"><ShieldCheck /><h2>פרטיות</h2><p>אין גישה למצלמות של גנים אחרים או למצלמות שלא אושרו להורים.</p></article><article className="card action-panel"><Camera /><h2>Token זמני</h2><p>כל פתיחת צפייה יוצרת Session זמני ומתועד.</p></article><article className="card action-panel"><h2>חלונות צפייה</h2><p>הגן יכול להגדיר שעות ותוקף הרשאה לכל מצלמה.</p></article></section><section className="dashboard-section"><article className="card camera-debug-card"><div className="section-heading"><h2>אבחון זמני - מצלמות הורה</h2><p>בלוק זה מוצג זמנית כדי לזהות למה דף ההורה לא מוצא מצלמות לפי שיוך הגן.</p></div><div className="access-debug-grid"><span>Parent profile id: {visibleDebug.parentProfileId}</span><span>Parent record id: {visibleDebug.parentRecordIds.join(", ") || "-"}</span><span>Allowed kindergarten ids: {visibleDebug.allowedKindergartenIds.join(", ") || "-"}</span><span>Query used now: {visibleDebug.queryUsed}</span><span>Legacy garden query: {visibleDebug.legacyGardenIdQueryUsed}</span><span>Legacy kindergarten query: {visibleDebug.legacyKindergartenIdQueryUsed}</span><span>legacy garden_id query returned: {visibleDebug.gardenIdQueryCount}</span><span>legacy garden_id query camera ids: {visibleDebug.gardenIdQueryCameraIds.join(", ") || "-"}</span><span>legacy kindergarten_id query returned: {visibleDebug.kindergartenIdQueryCount}</span><span>legacy kindergarten_id query camera ids: {visibleDebug.kindergartenIdQueryCameraIds.join(", ") || "-"}</span><span>admin-equivalent raw count: {visibleDebug.adminEquivalentRawCount}</span><span>admin-equivalent raw ids: {visibleDebug.adminEquivalentRawCameraIds.join(", ") || "-"}</span><span>admin-equivalent filtered count: {visibleDebug.adminEquivalentFilteredCount}</span><span>admin-equivalent filtered ids: {visibleDebug.adminEquivalentFilteredCameraIds.join(", ") || "-"}</span><span>Candidate cameras count: {visibleDebug.candidateCamerasCount}</span><span>Candidate camera ids: {visibleDebug.candidateCameraIds.join(", ") || "-"}</span><span>All checked cameras count: {visibleDebug.allCamerasCheckedCount}</span><span>All checked camera ids: {visibleDebug.allCameraIdsChecked.join(", ") || "-"}</span><span>Allowed cameras count: {visibleDebug.allowedCamerasCount}</span><span>Allowed camera ids: {visibleDebug.allowedCameraIds.join(", ") || "-"}</span><span>Cameras hidden because missing playback source: {visibleDebug.hiddenBecauseMissingPlaybackSource}</span><span>Allowed cameras missing playback source: {visibleDebug.allowedCamerasMissingPlaybackSource}</span><span>Cameras hidden because status: {visibleDebug.hiddenBecauseStatus}</span><span>Cameras hidden because parent viewing flag: {visibleDebug.hiddenBecauseParentViewingFlag}</span></div>{visibleDebug.cameraDecisions.length === 0 ? <div className="empty-mini">לא נמצאו מצלמות לבדיקה בדף ההורה.</div> : visibleDebug.cameraDecisions.map((decision) => <article className="camera-debug-row" key={decision.diagnostics.camera_id ?? decision.reason}><strong>{decision.allowed ? "ALLOW" : "DENY"}: {decision.diagnostics.camera_name ?? "מצלמה"}</strong><span>reason: {decision.reason}</span><div className="access-debug-grid"><span>camera id: {decision.diagnostics.camera_id ?? "-"}</span><span>active: {String(decision.diagnostics.active)}</span><span>status: {decision.diagnostics.status ?? "-"}</span><span>parent_view_allowed: {String(decision.diagnostics.parent_view_allowed)}</span><span>parent_viewing_allowed: {String(decision.diagnostics.parent_viewing_allowed)}</span><span>garden_id: {decision.diagnostics.camera_garden_id_fields.garden_id ?? "-"}</span><span>kindergarten_id: {decision.diagnostics.camera_garden_id_fields.kindergarten_id ?? "-"}</span><span>sample_hls_url: {decision.diagnostics.sample_hls_url_exists ? "exists" : "missing"}</span><span>hls_playback_url: {decision.diagnostics.hls_playback_url_exists ? "exists" : "missing"}</span><span>webrtc_playback_url: {decision.diagnostics.webrtc_playback_url_exists ? "exists" : "missing"}</span><span>gateway_stream_id: {decision.diagnostics.gateway_stream_id_exists ? "exists" : "missing"}</span></div></article>)}</article></section><section className="dashboard-section">{groups.length === 0 ? <><div className="empty-state"><strong>{empty.title}</strong><span>{empty.body}</span></div>{allCameras.length > 0 ? <div className="camera-deny-diagnostics"><div className="section-heading"><h2>בדיקת סינון מצלמות</h2><p>נמצאו מצלמות בגן, אך הן נדחו לפי תנאי הרשאה. זה מוצג כדי לזהות בדיוק מה חסר בהגדרת המצלמה.</p></div>{deniedCameraDiagnostics.map((decision) => <article className="card camera-debug-card" key={decision.diagnostics.camera_id ?? decision.reason}><strong>{decision.allowed ? "ALLOW" : "DENY"}: {decision.diagnostics.camera_name ?? "מצלמה"}</strong><span>סיבה: {decision.reason}</span><div className="access-debug-grid"><span>camera id: {decision.diagnostics.camera_id ?? "-"}</span><span>active: {String(decision.diagnostics.active)}</span><span>status: {decision.diagnostics.status ?? "-"}</span><span>parent_view_allowed: {String(decision.diagnostics.parent_view_allowed)}</span><span>parent_viewing_allowed: {String(decision.diagnostics.parent_viewing_allowed)}</span><span>garden_id: {decision.diagnostics.camera_garden_id_fields.garden_id ?? "-"}</span><span>kindergarten_id: {decision.diagnostics.camera_garden_id_fields.kindergarten_id ?? "-"}</span><span>sample_hls_url: {decision.diagnostics.sample_hls_url_exists ? "exists" : "missing"}</span><span>hls_playback_url: {decision.diagnostics.hls_playback_url_exists ? "exists" : "missing"}</span><span>webrtc_playback_url: {decision.diagnostics.webrtc_playback_url_exists ? "exists" : "missing"}</span><span>gateway_stream_id: {decision.diagnostics.gateway_stream_id_exists ? "exists" : "missing"}</span></div></article>)}</div> : null}</> : groups.map((group) => <section className="dashboard-section" key={group.id}><div className="section-heading"><h2>{group.name}</h2><p>{group.cameras.length} מצלמות מאושרות לצפיית הורים.</p></div><div className="camera-playback-grid">{group.cameras.map((camera) => <CameraPlaybackCard camera={camera} parentId={scope.parentIds[0]} key={camera.id} />)}</div></section>)}</section></DashboardShell>;
+  const gatewayConnected = Boolean(process.env.VIDEO_GATEWAY_URL);
+  const empty = !debug.allowedKindergartenIds.length ? emptyState("no_relation") : debug.candidateCamerasCount === 0 ? emptyState("no_cameras") : emptyState("not_allowed");
+
+  return (
+    <DashboardShell role="parent" title="מצלמות הגן">
+      <div className="dashboard-hero-card parent-hero-card">
+        <div>
+          <p className="eyebrow">צפייה מורשית בלבד</p>
+          <h1>מצלמות הגן.</h1>
+          <p>הורה רואה רק מצלמות של הגן שאליו הוא משויך ורק מצלמות שהגן סימן כמותרות לצפיית הורים. פרטי RTSP, שם משתמש וסיסמאות לא נשלחים לדפדפן.</p>
+        </div>
+        <span className={gatewayConnected ? "pill good" : "pill warn"}>{gatewayConnected ? "Gateway מחובר" : "Sample HLS / Gateway"}</span>
+      </div>
+
+      <section className="grid cols-3 dashboard-panels">
+        <article className="card action-panel">
+          <ShieldCheck />
+          <h2>פרטיות</h2>
+          <p>אין גישה למצלמות של גנים אחרים או למצלמות שלא אושרו להורים.</p>
+        </article>
+        <article className="card action-panel">
+          <Camera />
+          <h2>Token זמני</h2>
+          <p>כל פתיחת צפייה יוצרת Session זמני ומתועד.</p>
+        </article>
+        <article className="card action-panel">
+          <h2>חלונות צפייה</h2>
+          <p>הגן יכול להגדיר שעות ותוקף הרשאה לכל מצלמה.</p>
+        </article>
+      </section>
+
+      <section className="dashboard-section">
+        <article className="card camera-debug-card">
+          <div className="section-heading">
+            <h2>אבחון זמני - מצלמות הורה</h2>
+            <p>הדף משתמש עכשיו באותה שכבת הרשאות שרתית כמו בדיקת האדמין, ולא קורא ישירות את הטבלה מהדפדפן.</p>
+          </div>
+          <div className="access-debug-grid">
+            <span>Parent profile id: {profile.id}</span>
+            <span>Parent record id: {scope.parentIds.join(", ") || "-"}</span>
+            <span>Allowed kindergarten ids: {debug.allowedKindergartenIds.join(", ") || "-"}</span>
+            <span>Data source: {debug.dataSource}</span>
+            <span>Service role configured: {String(debug.serviceRoleConfigured)}</span>
+            <span>garden_id query returned: {debug.gardenIdQueryCount}</span>
+            <span>kindergarten_id query returned: {debug.kindergartenIdQueryCount}</span>
+            <span>Candidate cameras count: {debug.candidateCamerasCount}</span>
+            <span>Candidate camera ids: {debug.candidateCameraIds.join(", ") || "-"}</span>
+            <span>Allowed cameras count: {debug.allowedCamerasCount}</span>
+            <span>Allowed camera ids: {debug.allowedCameraIds.join(", ") || "-"}</span>
+            <span>Allowed cameras missing playback source: {debug.missingPlaybackSourceCount}</span>
+            <span>Cameras hidden because status: {debug.hiddenBecauseStatus}</span>
+            <span>Cameras hidden because parent viewing flag: {debug.hiddenBecauseParentViewingFlag}</span>
+          </div>
+          {debug.queryErrors.length ? (
+            <div className="gateway-setup-state">
+              <strong>חלק משאילתות המצלמה נחסמו או נכשלו</strong>
+              <p>{debug.queryErrors.map((item) => `${item.query}: ${item.message}`).join(" | ")}</p>
+            </div>
+          ) : null}
+          {decisions.length === 0 ? <div className="empty-mini">לא נמצאו מצלמות לבדיקה בדף ההורה.</div> : decisions.map((decision) => (
+            <article className="camera-debug-row" key={decision.diagnostics.camera_id ?? decision.reason}>
+              <strong>{decision.allowed ? "ALLOW" : "DENY"}: {decision.diagnostics.camera_name ?? "מצלמה"}</strong>
+              <span>reason: {decision.reason}</span>
+              <div className="access-debug-grid">
+                <span>camera id: {decision.diagnostics.camera_id ?? "-"}</span>
+                <span>active: {String(decision.diagnostics.active)}</span>
+                <span>status: {decision.diagnostics.status ?? "-"}</span>
+                <span>parent_view_allowed: {String(decision.diagnostics.parent_view_allowed)}</span>
+                <span>parent_viewing_allowed: {String(decision.diagnostics.parent_viewing_allowed)}</span>
+                <span>garden_id: {decision.diagnostics.camera_garden_id_fields.garden_id ?? "-"}</span>
+                <span>kindergarten_id: {decision.diagnostics.camera_garden_id_fields.kindergarten_id ?? "-"}</span>
+                <span>sample_hls_url: {decision.diagnostics.sample_hls_url_exists ? "exists" : "missing"}</span>
+                <span>hls_playback_url: {decision.diagnostics.hls_playback_url_exists ? "exists" : "missing"}</span>
+                <span>webrtc_playback_url: {decision.diagnostics.webrtc_playback_url_exists ? "exists" : "missing"}</span>
+                <span>gateway_stream_id: {decision.diagnostics.gateway_stream_id_exists ? "exists" : "missing"}</span>
+              </div>
+            </article>
+          ))}
+        </article>
+      </section>
+
+      <section className="dashboard-section">
+        {groups.length === 0 ? (
+          <div className="empty-state">
+            <strong>{empty.title}</strong>
+            <span>{empty.body}</span>
+          </div>
+        ) : groups.map((group) => (
+          <section className="dashboard-section" key={group.id}>
+            <div className="section-heading">
+              <h2>{group.name}</h2>
+              <p>{group.cameras.length} מצלמות מאושרות לצפיית הורים.</p>
+            </div>
+            <div className="camera-playback-grid">
+              {group.cameras.map((camera) => <CameraPlaybackCard camera={camera} parentId={scope.parentIds[0]} key={camera.id} />)}
+            </div>
+          </section>
+        ))}
+      </section>
+    </DashboardShell>
+  );
 }
