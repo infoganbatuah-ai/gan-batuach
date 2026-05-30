@@ -9,6 +9,9 @@ type FeeGroup = {
   group_name?: string;
   age_range?: string | null;
   monthly_fee?: number | string | null;
+  capacity?: number | string | null;
+  show_price_public?: boolean;
+  market_average_fee?: number | string | null;
   active?: boolean;
 };
 
@@ -21,6 +24,8 @@ export function FeeGroupSettings({ groups, childCount }: { groups: FeeGroup[]; c
   const [groupName, setGroupName] = useState(selected.group_name ?? (childCount ? "ברירת מחדל לגן" : defaultGroups[0]));
   const [ageRange, setAgeRange] = useState(selected.age_range ?? "");
   const [monthlyFee, setMonthlyFee] = useState(String(selected.monthly_fee ?? ""));
+  const [capacity, setCapacity] = useState(String(selected.capacity ?? ""));
+  const [showPricePublic, setShowPricePublic] = useState(Boolean(selected.show_price_public));
   const [active, setActive] = useState(selected.active ?? true);
   const [updateExisting, setUpdateExisting] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -32,6 +37,8 @@ export function FeeGroupSettings({ groups, childCount }: { groups: FeeGroup[]; c
     setGroupName(group?.group_name ?? "");
     setAgeRange(group?.age_range ?? "");
     setMonthlyFee(String(group?.monthly_fee ?? ""));
+    setCapacity(String(group?.capacity ?? ""));
+    setShowPricePublic(Boolean(group?.show_price_public));
     setActive(group?.active ?? true);
     setUpdateExisting(false);
     setMessage(null);
@@ -42,6 +49,8 @@ export function FeeGroupSettings({ groups, childCount }: { groups: FeeGroup[]; c
     setGroupName(name);
     setAgeRange("");
     setMonthlyFee("");
+    setCapacity("");
+    setShowPricePublic(false);
     setActive(true);
     setUpdateExisting(false);
     setMessage(null);
@@ -60,6 +69,8 @@ export function FeeGroupSettings({ groups, childCount }: { groups: FeeGroup[]; c
           group_name: groupName,
           age_range: ageRange,
           monthly_fee: Number(monthlyFee || 0),
+          capacity: capacity ? Number(capacity) : null,
+          show_price_public: showPricePublic,
           active,
           update_existing_children: updateExisting
         })
@@ -99,6 +110,9 @@ export function FeeGroupSettings({ groups, childCount }: { groups: FeeGroup[]; c
           <label>שם קבוצה / כיתה<input value={groupName} onChange={(event) => setGroupName(event.target.value)} required placeholder="לדוגמה: גילאי 3-4" /></label>
           <label>טווח גילאים<input value={ageRange} onChange={(event) => setAgeRange(event.target.value)} placeholder="לדוגמה: 3 עד 4" /></label>
           <label>תשלום חודשי<input value={monthlyFee} onChange={(event) => setMonthlyFee(event.target.value)} type="number" min="0" required placeholder="₪" /></label>
+          <label>קיבולת בקבוצה<input value={capacity} onChange={(event) => setCapacity(event.target.value)} type="number" min="0" placeholder="מספר ילדים" /></label>
+          <label className="check-row"><input checked={showPricePublic} onChange={(event) => setShowPricePublic(event.target.checked)} type="checkbox" /> להציג מחיר בכרטיס הציבורי</label>
+          {selected.market_average_fee ? <div className="gateway-setup-state"><strong>המלצת מחיר חכמה</strong><p>ממוצע שוק לקבוצה דומה: ₪{Number(selected.market_average_fee).toLocaleString("he-IL")}. המחיר שלך {Number(monthlyFee || 0) > Number(selected.market_average_fee) ? `גבוה ב-${Math.round(((Number(monthlyFee || 0) - Number(selected.market_average_fee)) / Number(selected.market_average_fee)) * 100)}% מהממוצע` : Number(monthlyFee || 0) < Number(selected.market_average_fee) ? `נמוך ב-${Math.round(((Number(selected.market_average_fee) - Number(monthlyFee || 0)) / Number(selected.market_average_fee)) * 100)}% מהממוצע` : "שווה לממוצע"}.</p></div> : <div className="gateway-setup-state"><strong>המלצת מחיר חכמה</strong><p>אין עדיין מספיק נתונים מצטברים לקבוצת גיל זו. המערכת תציג ממוצע כשהצטברו גנים דומים.</p></div>}
           <label className="check-row"><input checked={active} onChange={(event) => setActive(event.target.checked)} type="checkbox" /> קבוצה פעילה</label>
           <div className="sync-choice-box">
             <strong>אם הסכום השתנה, האם לעדכן גם את הילדים בקבוצה זו?</strong>

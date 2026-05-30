@@ -76,6 +76,11 @@ export async function resolveParentCameraScope(supabase: SupabaseClient<any, any
     .map((row) => ({ ...row, kindergarten_id: row.kindergarten_id ?? parentKindergartenById.get(row.id) ?? null }));
   const parentIds = uniq(parentRows.map((parent) => parent.id));
   const relationIds = uniq([...parentIds, profile.id]);
+  const parentKindergartenLinks = await safeQuery("parent_kindergarten_links", () => supabase
+    .from("parent_kindergarten_links" as any)
+    .select("id, parent_id, parent_profile_id, garden_id, kindergarten_id, status")
+    .or(`parent_profile_id.eq.${profile.id}${parentIds.length ? `,parent_id.in.(${parentIds.join(",")})` : ""}`)
+    .in("status", ["pending", "active"]));
 
   const childQueries: any[] = [];
   if (relationIds.length) {
@@ -90,8 +95,9 @@ export async function resolveParentCameraScope(supabase: SupabaseClient<any, any
   const children = childQueries.filter((child, index, all) => child?.id && all.findIndex((item) => item?.id === child.id) === index);
   const childGardenIds = uniq(children.map((child) => child.garden_id ?? child.kindergarten_id));
   const directParentGardenIds = uniq(parentRows.flatMap((parent) => [parent.garden_id, parent.kindergarten_id]));
+  const linkedGardenIds = uniq(parentKindergartenLinks.flatMap((link: any) => [link.garden_id, link.kindergarten_id]));
   const profileGardenIds = uniq([profile.garden_id, (profile as ParentProfile).kindergarten_id, ...profileKindergarten.map((row: any) => row.kindergarten_id)]);
-  const kindergartenIds = uniq([...childGardenIds, ...directParentGardenIds, ...profileGardenIds]);
+  const kindergartenIds = uniq([...childGardenIds, ...directParentGardenIds, ...linkedGardenIds, ...profileGardenIds]);
 
   log("resolved", {
     parentProfileId: profile.id,
@@ -100,6 +106,7 @@ export async function resolveParentCameraScope(supabase: SupabaseClient<any, any
     childIds: children.map((child) => child.id),
     childKindergartenIds: childGardenIds,
     directParentGardenIds,
+    linkedGardenIds,
     profileGardenIds,
     finalAllowedGardenIds: kindergartenIds
   });

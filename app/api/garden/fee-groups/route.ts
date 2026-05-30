@@ -8,6 +8,8 @@ const schema = z.object({
   group_name: z.string().trim().min(1),
   age_range: z.string().trim().optional().nullable(),
   monthly_fee: z.coerce.number().min(0),
+  capacity: z.coerce.number().min(0).optional().nullable(),
+  show_price_public: z.coerce.boolean().default(false),
   active: z.coerce.boolean().default(true),
   update_existing_children: z.coerce.boolean().default(false)
 });
@@ -25,6 +27,8 @@ export async function POST(request: Request) {
       group_name: payload.group_name,
       age_range: payload.age_range || null,
       monthly_fee: payload.monthly_fee,
+      capacity: payload.capacity ?? null,
+      show_price_public: payload.show_price_public,
       active: payload.active,
       updated_at: new Date().toISOString()
     };

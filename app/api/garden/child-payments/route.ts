@@ -5,7 +5,7 @@ import { createClient } from "@/lib/supabase/server";
 
 const schema = z.object({
   child_id: z.string().uuid(),
-  action: z.enum(["mark_paid", "mark_unpaid", "partial_payment", "discount", "special_arrangement"]),
+  action: z.enum(["mark_paid", "mark_unpaid", "partial_payment", "discount", "special_arrangement", "failed", "not_transferred"]),
   amount: z.coerce.number().min(0).default(0),
   amount_paid: z.coerce.number().min(0).optional(),
   payment_date: z.string().optional(),
@@ -20,7 +20,9 @@ const schema = z.object({
   payments_paused: z.boolean().optional(),
   paused_reason: z.string().optional(),
   debt_amount: z.coerce.number().min(0).optional(),
-  debt_notes: z.string().optional()
+  debt_notes: z.string().optional(),
+  failure_reason: z.string().optional(),
+  retry_required: z.boolean().optional()
 });
 
 function statusFor(action: string) {
@@ -28,6 +30,8 @@ function statusFor(action: string) {
   if (action === "mark_unpaid") return "overdue";
   if (action === "partial_payment") return "partial";
   if (action === "discount") return "discount";
+  if (action === "failed") return "failed";
+  if (action === "not_transferred") return "not_transferred";
   return "special_arrangement";
 }
 
@@ -66,6 +70,14 @@ export async function POST(request: Request) {
       last_amount_paid: amountPaid,
       last_payment_method: payload.payment_method ?? payload.transaction_type ?? null
     };
+    if (payload.action === "failed" || payload.action === "not_transferred") {
+      childPatch.failure_reason = payload.failure_reason ?? payload.notes ?? "תשלום לא עבר";
+      childPatch.failed_at = new Date().toISOString();
+      childPatch.retry_required = payload.retry_required ?? true;
+      childPatch.parent_notified = false;
+      childPatch.debt_amount = payload.debt_amount ?? amountPaid;
+      childPatch.debt_notes = payload.debt_notes ?? payload.failure_reason ?? payload.notes ?? null;
+    }
     if (payload.payments_paused !== undefined) {
       childPatch.payments_paused = payload.payments_paused;
       childPatch.paused_reason = payload.paused_reason ?? null;
@@ -96,6 +108,10 @@ export async function POST(request: Request) {
       previous_status: childData.payment_status ?? null,
       new_status: paymentStatus,
       notes: payload.notes ?? payload.arrangement_notes ?? null,
+      failure_reason: payload.failure_reason ?? null,
+      failed_at: payload.action === "failed" || payload.action === "not_transferred" ? new Date().toISOString() : null,
+      retry_required: payload.retry_required ?? false,
+      parent_notified: false,
       created_by: profile.id
     });
     if (history.error) console.error("Payment history insert failed", history.error);
@@ -124,6 +140,22 @@ export async function POST(request: Request) {
       }
     });
     if (audit.error) console.error("Payment audit insert failed", audit.error);
+    if (payload.action === "failed" || payload.action === "not_transferred") {
+      const { data: parentLink } = await supabase.from("children" as any).select("primary_parent_id, parents(profile_id)").eq("id", payload.child_id).maybeSingle();
+      const parentProfileId = (parentLink as any)?.parents?.profile_id;
+      if (parentProfileId) {
+        await supabase.from("notifications" as any).insert({
+          garden_id: profile.garden_id,
+          recipient_id: parentProfileId,
+          recipient_role: "parent",
+          title: "תשלום לא עבר",
+          body: payload.failure_reason ?? payload.notes ?? "הגן סימן שתשלום הילד לא עבר ויש צורך בבדיקה.",
+          entity_type: "children",
+          entity_id: payload.child_id,
+          severity: "high"
+        });
+      }
+    }
     return ok({ payment_status: paymentStatus, valid_until: validUntil, amount_paid: amountPaid });
   } catch (error) {
     return handleRouteError(error);

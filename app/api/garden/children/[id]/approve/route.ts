@@ -19,6 +19,21 @@ export async function POST(_request: Request, context: { params: Promise<{ id: s
       .single();
 
     if (error) return fail(error.message, 400);
+    await supabase.from("child_kindergarten_enrollments" as any).update({
+      status: "active",
+      manager_approved_at: new Date().toISOString(),
+      manager_approved_by: profile.id
+    }).eq("child_id", id).eq("garden_id", profile.garden_id);
+    await supabase.from("child_timeline_events" as any).insert({
+      child_id: id,
+      permanent_child_file_id: (child as any).permanent_child_file_id ?? null,
+      garden_id: profile.garden_id,
+      actor_id: profile.id,
+      actor_role: profile.role,
+      event_type: "manager_approved_enrollment",
+      title: "הגן אישר את הילד",
+      description: "הילד הפך לפעיל בגן הנוכחי."
+    });
 
     await writeUserCreationAudit({
       actorId: profile.id,

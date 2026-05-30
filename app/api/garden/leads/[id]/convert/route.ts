@@ -42,9 +42,12 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       const { data: existingProfile } = await admin.from("profiles" as any).select("id, role, garden_id, email, username").or(`email.eq.${normalizedEmail},username.eq.${normalizedEmail}`).maybeSingle();
       if (existingProfile) {
         if (existingProfile.role !== "parent") return fail("המייל כבר קיים במערכת אך אינו שייך להורה.", 409, { field: "email" });
-        if (existingProfile.garden_id && existingProfile.garden_id !== profile.garden_id) return fail("המייל כבר משויך לגן אחר.", 409, { field: "email" });
         parentUserId = existingProfile.id;
-        await admin.from("profiles" as any).update({ garden_id: profile.garden_id, phone: payload.phone, full_name: payload.parent_name }).eq("id", parentUserId);
+        await admin.from("profiles" as any).update({
+          garden_id: existingProfile.garden_id ?? profile.garden_id,
+          phone: payload.phone,
+          full_name: payload.parent_name
+        }).eq("id", parentUserId);
       }
     }
 
@@ -72,6 +75,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     if (!parent) {
       const inserted = await admin.from("parents" as any).insert({
         profile_id: parentUserId,
+        user_id: parentUserId,
         garden_id: profile.garden_id,
         full_name: payload.parent_name,
         phone: payload.phone,
@@ -83,9 +87,29 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       parent = inserted.data;
     }
 
+    await admin.from("parent_kindergarten_links" as any).upsert({
+      parent_id: parent.id,
+      parent_profile_id: parentUserId,
+      garden_id: profile.garden_id,
+      status: "active",
+      source: "lead",
+      approved_at: new Date().toISOString(),
+      approved_by: profile.id,
+      notes: credentials ? "הורה חדש נוצר מהמרת ליד" : "משתמש הורה קיים - הגן נוסף לחשבון"
+    }, { onConflict: "parent_profile_id,garden_id" });
+
     const childName = payload.child_name || lead.child_name || "ילד/ה להשלמת פרטים";
+    const permanentFile = await admin.from("permanent_child_files" as any).insert({
+      primary_parent_profile_id: parentUserId,
+      primary_parent_id: parent.id,
+      full_name: childName,
+      important_notes: payload.notes || lead.notes || null
+    }).select("*").single();
+    if (permanentFile.error) return fail("יצירת תיק ילד קבוע נכשלה: " + permanentFile.error.message, 400);
+
     const childInsert = await admin.from("children" as any).insert({
       garden_id: profile.garden_id,
+      permanent_child_file_id: permanentFile.data.id,
       primary_parent_id: parent.id,
       full_name: childName,
       temporary_name: childName,
@@ -96,6 +120,25 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     if (childInsert.error) return fail("יצירת כרטיס ילד להשלמה נכשלה: " + childInsert.error.message, 400);
 
     const child = childInsert.data;
+    await admin.from("child_kindergarten_enrollments" as any).insert({
+      child_id: child.id,
+      permanent_child_file_id: permanentFile.data.id,
+      garden_id: profile.garden_id,
+      status: "pending_parent_completion",
+      classroom_name: payload.child_age || lead.child_age || null,
+      notes: payload.notes || lead.notes || null
+    });
+    await admin.from("child_timeline_events" as any).insert({
+      child_id: child.id,
+      permanent_child_file_id: permanentFile.data.id,
+      garden_id: profile.garden_id,
+      actor_id: profile.id,
+      actor_role: profile.role,
+      event_type: "linked_to_kindergarten",
+      title: "הילד שויך לגן",
+      description: credentials ? "נוצר חשבון הורה חדש ונפתח תיק ילד קבוע." : "משתמש הורה קיים קושר לגן נוסף.",
+      metadata: { lead_id: id, existing_parent_user: !credentials }
+    });
     await admin.from("leads" as any).update({
       status: "approved_pending_parent_completion",
       converted_parent_id: parent.id,

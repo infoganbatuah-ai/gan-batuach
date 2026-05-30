@@ -144,6 +144,67 @@ export async function POST(request: Request) {
     if (error) return fail(error.message, 400);
     await supabase.from("parents").update({ completed_profile: true, status: "child_registration_submitted" }).eq("id", parent.id as string);
 
+    let permanentFileId = (child as any).permanent_child_file_id ?? existingChild?.permanent_child_file_id ?? null;
+    if (permanentFileId) {
+      await supabase.from("permanent_child_files" as any).update({
+        primary_parent_profile_id: profile.id,
+        primary_parent_id: parent.id,
+        full_name: payload.full_name,
+        birth_date: payload.birth_date || null,
+        identity_number: payload.identity_number || null,
+        photo_url: payload.photo_url || null,
+        face_image_url: payload.photo_url || null,
+        hmo: payload.hmo || null,
+        allergies: payload.allergies || null,
+        sensitivities: payload.sensitivities || null,
+        regular_medications: payload.regular_medications || null,
+        medical_notes: payload.medical_notes || null,
+        emergency_phone: payload.emergency_phone || null,
+        pickup_authorized: payload.pickup_authorized,
+        updated_at: new Date().toISOString()
+      }).eq("id", permanentFileId);
+    } else {
+      const file = await supabase.from("permanent_child_files" as any).insert({
+        primary_parent_profile_id: profile.id,
+        primary_parent_id: parent.id,
+        full_name: payload.full_name,
+        birth_date: payload.birth_date || null,
+        identity_number: payload.identity_number || null,
+        photo_url: payload.photo_url || null,
+        face_image_url: payload.photo_url || null,
+        hmo: payload.hmo || null,
+        allergies: payload.allergies || null,
+        sensitivities: payload.sensitivities || null,
+        regular_medications: payload.regular_medications || null,
+        medical_notes: payload.medical_notes || null,
+        emergency_phone: payload.emergency_phone || null,
+        pickup_authorized: payload.pickup_authorized
+      }).select("id").single();
+      permanentFileId = file.data?.id ?? null;
+      if (permanentFileId) await supabase.from("children" as any).update({ permanent_child_file_id: permanentFileId }).eq("id", (child as any).id);
+    }
+    if (permanentFileId) {
+      await supabase.from("child_kindergarten_enrollments" as any).upsert({
+        child_id: (child as any).id,
+        permanent_child_file_id: permanentFileId,
+        garden_id: gardenId,
+        status: nextStatus,
+        classroom_name: payload.age_group || null,
+        notes: payload.parent_notes || null
+      }, { onConflict: "child_id,garden_id" });
+      await supabase.from("child_timeline_events" as any).insert({
+        child_id: (child as any).id,
+        permanent_child_file_id: permanentFileId,
+        garden_id: gardenId,
+        actor_id: profile.id,
+        actor_role: "parent",
+        event_type: "parent_completed_child_profile",
+        title: "הורה השלים פרטי ילד",
+        description: "הפרטים נשמרו בתיק הילד הקבוע ונשלחו לאישור הגן.",
+        metadata: { status: nextStatus }
+      });
+    }
+
     const { data: garden } = await supabase.from("gardens" as any).select("manager_id, owner_profile_id").eq("id", gardenId).maybeSingle();
     const recipients = Array.from(new Set([garden?.manager_id, garden?.owner_profile_id].filter(Boolean)));
     if (recipients.length && nextStatus === "pending_manager_approval") {

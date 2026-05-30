@@ -7,6 +7,7 @@ import { ParentAdditionalChildRequestForm } from "@/components/parent-additional
 import { ParentChildRequestForm } from "@/components/parent-child-request-form";
 import { SimpleCommandCenter } from "@/components/simple-command-center";
 import { requireRole } from "@/lib/auth";
+import { getParentFamilyContext } from "@/lib/domain/parent-family";
 import { formatAgeGroups, getKindergartenAgeGroups } from "@/lib/kindergarten-age-groups";
 import { createClient } from "@/lib/supabase/server";
 
@@ -24,14 +25,39 @@ const parentActions = [
 export default async function ParentDashboard() {
   const { profile } = await requireRole(["parent"]);
   const supabase = await createClient();
-  const parentByProfile = await supabase.from("parents" as any).select("*").eq("profile_id", profile.id).maybeSingle();
-  const parentByUser = parentByProfile.data ? { data: null } : await supabase.from("parents" as any).select("*").eq("user_id", profile.id).maybeSingle();
-  const parent = ((parentByProfile.data as any) ?? (parentByUser.data as any) ?? null) as any;
+  const family = await getParentFamilyContext(supabase as any, profile);
+  const parent = (family.parents[0] ?? null) as any;
   const parentId = parent?.id ?? "";
-  const childrenRes = parentId ? await supabase.from("children" as any).select("id, garden_id, kindergarten_id, full_name, birth_date, photo_url, face_image_url, status, allergies, hmo, medical_notes, age_group, classroom, pickup_status, approval_notes, manager_response").eq("primary_parent_id", parentId).limit(12) : { data: [] };
+  const childrenRes = {
+    data: family.enrollments.map((enrollment: any) => ({
+      id: enrollment.child_id ?? enrollment.permanent_child_file_id,
+      enrollment_id: enrollment.id,
+      garden_id: enrollment.garden_id ?? enrollment.kindergarten_id,
+      kindergarten_id: enrollment.garden_id ?? enrollment.kindergarten_id,
+      permanent_child_file_id: enrollment.permanent_child_file_id,
+      full_name: enrollment.full_name,
+      birth_date: enrollment.birth_date,
+      photo_url: enrollment.photo_url,
+      face_image_url: enrollment.photo_url,
+      status: enrollment.status,
+      allergies: enrollment.allergies,
+      hmo: enrollment.hmo,
+      medical_notes: enrollment.medical_notes,
+      age_group: enrollment.kindergarten_fee_groups?.group_name ?? enrollment.classroom_name,
+      classroom: enrollment.classroom_name,
+      payment_status: enrollment.payment_status,
+      monthly_fee: enrollment.monthly_fee,
+      next_payment_due: enrollment.next_payment_due,
+      valid_until: enrollment.valid_until,
+      debt_amount: enrollment.debt_amount,
+      pickup_status: null,
+      approval_notes: enrollment.notes,
+      manager_response: null
+    }))
+  };
   const childIds = (childrenRes.data ?? []).map((child: any) => child.id);
-  const gardenIds = Array.from(new Set([profile.garden_id, parent?.garden_id, ...(childrenRes.data ?? []).map((child: any) => child.garden_id ?? child.kindergarten_id)].filter(Boolean)));
-  const gardensRes = gardenIds.length ? await supabase.from("gardens" as any).select("id, name, logo_url, image_url, phone, city, address, manager_id, owner_profile_id, last_inspection_score, safe_status, ages, framework_type, manager:profiles!gardens_manager_id_fkey(full_name, phone)").in("id", gardenIds) : { data: [] };
+  const gardenIds = family.gardenIds;
+  const gardensRes = { data: family.gardens };
   const gardensById = new Map((gardensRes.data ?? []).map((garden: any) => [garden.id, garden]));
   const primaryGarden = gardensById.get(profile.garden_id ?? parent?.garden_id ?? gardenIds[0]) as any;
   const primaryAgeGroups = primaryGarden ? await getKindergartenAgeGroups(supabase, primaryGarden.id, primaryGarden) : [];
@@ -53,6 +79,14 @@ export default async function ParentDashboard() {
     <DashboardShell role="parent" title="אזור הורים">
       <div className="dashboard-hero-card parent-hero-card premium-identity-hero"><div><p className="eyebrow">שקט להורים</p><h1>שלום, {profile.full_name ?? parent?.full_name ?? "הורה יקר/ה"}</h1><p>כל מה שחשוב לדעת על הילד והגן, בלי עומס: היום של הילד, הודעות, מסמכים, מצלמות ופיקוח במקום אחד וברור.</p></div><div className="avatar-stack">{(childrenRes.data ?? []).map((child: any) => <Avatar key={child.id} name={child.full_name} src={child.photo_url ?? child.face_image_url} size="lg" />)}</div><span className="pill good"><ShieldCheck size={15} /> מידע לפי הרשאה</span></div>
       <div className="grid cols-3 dashboard-kpis"><StatCard label="ילדים משויכים" value={(childrenRes.data ?? []).length} tone="good" /><StatCard label="יומן יומי היום" value={journalRes.count ?? 0} /><StatCard label="התראות פתוחות" value={notificationRes.count ?? 0} tone="warn" /></div>
+      <section className="dashboard-section">
+        <div className="section-heading"><h2>הילדים שלי לפי גנים</h2><p>חשבון הורה אחד יכול לנהל ילדים בכמה גנים. כל הודעה, מצלמה, מסמך ותשלום נשמרים לפי הגן הנכון.</p></div>
+        {gardenIds.length === 0 ? <div className="empty-state"><strong>עדיין אין שיוך לגן</strong><span>לאחר אישור בקשת הרישום, הגן והילדים המשויכים אליו יופיעו כאן.</span></div> : <div className="grid cols-2 dashboard-panels">{gardenIds.map((gardenId: string) => {
+          const garden = gardensById.get(gardenId) as any;
+          const gardenChildren = (childrenRes.data ?? []).filter((child: any) => (child.garden_id ?? child.kindergarten_id) === gardenId);
+          return <article className="card action-panel" key={gardenId}><div className="kindergarten-mini-line"><Avatar name={garden?.name ?? "גן"} src={garden?.logo_url ?? garden?.image_url} size="sm" /><div><h3>{garden?.name ?? "גן ילדים"}</h3><p>{garden?.city ?? ""} · {gardenChildren.length} ילדים משויכים</p></div></div><div className="linked-children-strip">{gardenChildren.map((child: any) => <span key={child.id}><Avatar name={child.full_name} src={child.photo_url} size="sm" /> {child.full_name}</span>)}</div><div className="profile-actions"><Link className="button secondary tiny" href="/dashboard/parent/cameras">מצלמות הגן</Link><Link className="button secondary tiny" href="/dashboard/parent/messages">הודעות</Link><Link className="button secondary tiny" href="/dashboard/parent/documents">מסמכים</Link></div></article>;
+        })}</div>}
+      </section>
       <section className="dashboard-section people-directory">
         <div className="section-heading"><h2>הילדים שלי</h2><p>כרטיס חם וברור לכל ילד: גן, תמונה, בריאות, עדכון יומי ומה כדאי לבדוק עכשיו.</p><Link className="button primary" href="#add-child-request">בקשת רישום ילד נוסף</Link></div>
         {(childrenRes.data ?? []).length === 0 ? <div className="empty-state"><strong>אין ילדים משויכים עדיין</strong><span>לאחר אישור הגן, כרטיס הילד והיומן היומי יופיעו כאן. אם זהו ילד חדש, שלחו בקשה לגן.</span><Link className="button primary" href="#add-child-request">בקשת רישום ילד</Link></div> : <div className="people-card-grid parent-child-grid">{(childrenRes.data ?? []).map((child: any) => {
@@ -63,9 +97,9 @@ export default async function ParentDashboard() {
           return <article className="person-card child-profile-card parent-child-card" key={child.id}>
             <div className="person-card-top"><Avatar name={child.full_name} src={child.photo_url ?? child.face_image_url} size="lg" /><div><span className={child.status === "active" ? "pill good" : "pill warn"}>{child.status ?? "ממתין לאישור"}</span><h3>{child.full_name}</h3><p>{child.birth_date ? new Date(child.birth_date).toLocaleDateString("he-IL") : "תאריך לידה חסר"} · {child.hmo ?? "קופה לא צוינה"}</p></div></div>
             <div className="kindergarten-mini-line"><Avatar name={garden?.name ?? "גן"} src={garden?.logo_url ?? garden?.image_url} size="sm" /><span>{garden?.name ?? "גן משויך"}</span><small>{child.age_group ?? child.classroom ?? "קבוצה לא צוינה"}</small></div>
-            <div className="profile-badge-row"><span className={child.allergies ? "pill bad" : "pill good"}><HeartPulse size={14} /> {child.allergies ? "אלרגיה מתועדת" : "אין אלרגיות"}</span><span className={journal ? "pill good" : "pill warn"}><CalendarDays size={14} /> {journal ? "עודכן יומן חדש" : "אין עדכון היום"}</span><span className={child.status === "active" || child.status === "approved" ? "pill good" : "pill warn"}>{childStatus}</span></div>
+            <div className="profile-badge-row"><span className={child.allergies ? "pill bad" : "pill good"}><HeartPulse size={14} /> {child.allergies ? "אלרגיה מתועדת" : "אין אלרגיות"}</span><span className={journal ? "pill good" : "pill warn"}><CalendarDays size={14} /> {journal ? "עודכן יומן חדש" : "אין עדכון היום"}</span><span className={child.status === "active" || child.status === "approved" ? "pill good" : "pill warn"}>{childStatus}</span><span className={["paid"].includes(child.payment_status) ? "pill good" : ["failed", "not_transferred", "overdue"].includes(child.payment_status) ? "pill bad" : "pill warn"}>תשלום: {child.payment_status ?? "לא עודכן"}</span></div>
             <div className="mini-kpi-row"><span>ארוחות <b>{meals}</b></span><span>שינה <b>{journal?.sleep_summary ?? "טרם"}</b></span><span>מצב רוח <b>{journal?.mood ?? "טרם"}</b></span></div>
-            <details className="profile-expand"><summary>מה חשוב לדעת היום?</summary><div className="profile-details-grid"><section><h4>בריאות</h4><p>{child.medical_notes || "אין הערה רפואית מיוחדת."}</p></section><section><h4>הגן</h4><p>{garden?.name ?? "גן משויך"} · {garden?.phone ? `טלפון: ${garden.phone}` : "פרטי קשר לפי הרשאה"}</p><p>סטטוס אמון: {garden?.safe_status ?? "לפי הרשאה"}</p></section><section><h4>הערת צוות</h4><p>{journal?.notes_to_parents || "עדיין לא נשלחה הערה מהגן."}</p></section><section><h4>תמונות היום</h4><div className="gallery-preview">{(journal?.photo_urls ?? [child.photo_url]).filter(Boolean).slice(0, 3).map((url: string) => <img src={url} alt="תמונה מהגן" key={url} />)}</div></section></div></details>
+            <details className="profile-expand"><summary>מה חשוב לדעת היום?</summary><div className="profile-details-grid"><section><h4>בריאות</h4><p>{child.medical_notes || "אין הערה רפואית מיוחדת."}</p></section><section><h4>הגן</h4><p>{garden?.name ?? "גן משויך"} · {garden?.phone ? `טלפון: ${garden.phone}` : "פרטי קשר לפי הרשאה"}</p><p>סטטוס אמון: {garden?.safe_status ?? "לפי הרשאה"}</p></section><section><h4>תשלום חודשי</h4><p>₪{Number(child.monthly_fee ?? 0).toLocaleString("he-IL")} · סטטוס {child.payment_status ?? "לא עודכן"}</p><p>תשלום הבא: {child.next_payment_due ? new Date(child.next_payment_due).toLocaleDateString("he-IL") : "לא נקבע"} · חוב: ₪{Number(child.debt_amount ?? 0).toLocaleString("he-IL")}</p></section><section><h4>הערת צוות</h4><p>{journal?.notes_to_parents || "עדיין לא נשלחה הערה מהגן."}</p></section><section><h4>תמונות היום</h4><div className="gallery-preview">{(journal?.photo_urls ?? [child.photo_url]).filter(Boolean).slice(0, 3).map((url: string) => <img src={url} alt="תמונה מהגן" key={url} />)}</div></section></div></details>
             <div className="profile-actions"><Link className="button secondary tiny" href={`/dashboard/parent/children/${child.id}`}>כניסה לפרופיל</Link>{child.status === "pending_parent_completion" || child.status === "request_missing_details" ? <Link className="button primary tiny" href={`/parent-onboarding?childId=${child.id}`}>השלמת פרטים</Link> : null}<Link className="button secondary tiny" href="/dashboard/parent/daily-journal">יומן יומי</Link><Link className="button tiny" href="/dashboard/parent/messages">פנייה לגן</Link></div>
           </article>;
         })}</div>}

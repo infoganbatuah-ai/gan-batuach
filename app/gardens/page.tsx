@@ -2,7 +2,7 @@ import Link from "next/link";
 import { CalendarDays, CheckCircle2, MapPin, ShieldAlert, ShieldCheck, UsersRound } from "lucide-react";
 import { BrandHeader } from "@/components/brand-header";
 import { createParentLead } from "@/app/actions";
-import { formatAgeGroups, getKindergartenAgeGroups, type KindergartenAgeGroup } from "@/lib/kindergarten-age-groups";
+import { formatAgeGroups, formatPublicPriceRange, getKindergartenAgeGroups, type KindergartenAgeGroup } from "@/lib/kindergarten-age-groups";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
@@ -123,6 +123,7 @@ export default async function GardensPage({ searchParams }: { searchParams: Prom
                     <p>{garden.address ?? "כתובת תוצג לפי הרשאת הגן"} · מנהלת: {garden.manager?.full_name ?? garden.owner_name ?? "לא צוין"}</p>
                     <div className="garden-facts">
                       <span><UsersRound size={16} /> מקבל: {formatAgeGroups(garden.supported_age_groups ?? [])}</span>
+                      <span><UsersRound size={16} /> {formatPublicPriceRange(garden.supported_age_groups ?? [])}</span>
                       <span><UsersRound size={16} /> ילדים: {garden.current_children_count ?? 0}/{garden.children_capacity ?? 0}</span>
                       <span><ShieldCheck size={16} /> ציון אחרון: {garden.last_inspection_score ?? "טרם בוצעה ביקורת"}</span>
                       <span><CalendarDays size={16} /> ביקורת אחרונה: {formatDate(garden.last_inspection_at)}</span>
