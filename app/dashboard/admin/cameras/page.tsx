@@ -7,6 +7,7 @@ import { createClient } from "@/lib/supabase/server";
 
 export default async function AdminCamerasPage() {
   await requireRole(["admin"]);
+  const debugAllowedGardenId = "825b4b81-6838-46df-9d11-6c8c167b1b8d";
   const result = await safeAdminData("admin cameras", async () => {
     const supabase = await createClient();
     const safeCameraColumns = "id, garden_id, kindergarten_id, name, area, camera_type, source_type, protocol, status, active, parent_view_allowed, parent_viewing_allowed, last_health_check_at, hls_playback_url, sample_hls_url, webrtc_playback_url, video_gateway_stream_id, gateway_stream_id, viewing_hours";
@@ -63,11 +64,35 @@ export default async function AdminCamerasPage() {
       const parentViewing = camera.parent_viewing_allowed === true || camera.parent_view_allowed === true;
       return { ...camera, gardens: gardenById.get(gardenId) ?? null, expected_parent_count: expectedParentsByGarden.get(gardenId)?.size ?? 0, visibility_status: parentViewing ? "גלויה להורים משויכים" : "צפיית הורים כבויה" };
     });
-    console.info("Admin cameras loaded", { count: cameraRows.length, secondaryWarning: Boolean(secondaryWarning) });
+    const debugGardenIdMatches = cameraRows.filter((camera: any) => camera.garden_id === debugAllowedGardenId);
+    const debugKindergartenIdMatches = cameraRows.filter((camera: any) => camera.kindergarten_id === debugAllowedGardenId);
+    console.info("Admin cameras loaded", {
+      count: cameraRows.length,
+      secondaryWarning: Boolean(secondaryWarning),
+      debugAllowedGardenId,
+      gardenIdQueryReturned: debugGardenIdMatches.length,
+      kindergartenIdQueryReturned: debugKindergartenIdMatches.length,
+      rawCameraValues: cameraRows.map((camera: any) => ({
+        id: camera.id,
+        name: camera.name,
+        garden_id: camera.garden_id,
+        kindergarten_id: camera.kindergarten_id,
+        active: camera.active,
+        status: camera.status
+      }))
+    });
 
-    return { cameras: cameraRows, gardens: gardens.data ?? [], queryError: null as string | null, secondaryWarning };
-  }, { cameras: [] as any[], gardens: [] as any[], queryError: null as string | null, secondaryWarning: null as string | null });
+    return {
+      cameras: cameraRows,
+      gardens: gardens.data ?? [],
+      queryError: null as string | null,
+      secondaryWarning,
+      debugAllowedGardenId,
+      debugGardenIdMatches,
+      debugKindergartenIdMatches
+    };
+  }, { cameras: [] as any[], gardens: [] as any[], queryError: null as string | null, secondaryWarning: null as string | null, debugAllowedGardenId, debugGardenIdMatches: [] as any[], debugKindergartenIdMatches: [] as any[] });
 
   const showDebugPanel = process.env.NODE_ENV !== "production" || process.env.NEXT_PUBLIC_SANDBOX_MODE === "true";
-  return <DashboardShell role="admin" title="מצלמות"><div className="dashboard-hero-card admin-hero-card"><div><p className="eyebrow">Camera Management</p><h1>תצפיתן דיגיטלי - צפייה במצלמות.</h1><p>DVR/NVR/IP/RTSP/ONVIF נשמרים במערכת, Live דורש Video Gateway או Sample HLS לבדיקה.</p></div><span className={process.env.VIDEO_GATEWAY_URL ? "pill good" : "pill warn"}>{process.env.VIDEO_GATEWAY_URL ? "Gateway connected" : "Gateway missing"}</span></div><AdminDataError message={result.error ?? result.data.queryError} />{showDebugPanel ? <div className="gateway-setup-state"><strong>Cameras loaded: {(result.data.cameras as any[]).length}</strong><p>Debug panel visible only in development/sandbox.</p></div> : null}{result.data.secondaryWarning ? <div className="gateway-setup-state"><strong>{result.data.secondaryWarning}</strong><p>כרטיסי המצלמות והצפייה נשארים זמינים. פרטי גן/יחסים משניים נטענים בנפרד כדי לא להפיל את המסך.</p></div> : null}<CameraAdminManager cameras={result.data.cameras as any[]} gardens={result.data.gardens as any[]} gatewayConnected={Boolean(process.env.VIDEO_GATEWAY_URL)} /></DashboardShell>;
+  return <DashboardShell role="admin" title="מצלמות"><div className="dashboard-hero-card admin-hero-card"><div><p className="eyebrow">Camera Management</p><h1>תצפיתן דיגיטלי - צפייה במצלמות.</h1><p>DVR/NVR/IP/RTSP/ONVIF נשמרים במערכת, Live דורש Video Gateway או Sample HLS לבדיקה.</p></div><span className={process.env.VIDEO_GATEWAY_URL ? "pill good" : "pill warn"}>{process.env.VIDEO_GATEWAY_URL ? "Gateway connected" : "Gateway missing"}</span></div><AdminDataError message={result.error ?? result.data.queryError} />{showDebugPanel ? <div className="gateway-setup-state"><strong>Cameras loaded: {(result.data.cameras as any[]).length}</strong><p>Debug panel visible only in development/sandbox.</p></div> : null}<section className="dashboard-section"><article className="card camera-debug-card"><div className="section-heading"><h2>אבחון זמני - ערכי מצלמות במסד</h2><p>השוואה מול Allowed kindergarten id: {result.data.debugAllowedGardenId}</p></div><div className="access-debug-grid"><span>garden_id query returned: {(result.data.debugGardenIdMatches as any[]).length}</span><span>garden_id camera ids: {(result.data.debugGardenIdMatches as any[]).map((camera: any) => camera.id).join(", ") || "-"}</span><span>kindergarten_id query returned: {(result.data.debugKindergartenIdMatches as any[]).length}</span><span>kindergarten_id camera ids: {(result.data.debugKindergartenIdMatches as any[]).map((camera: any) => camera.id).join(", ") || "-"}</span></div>{(result.data.cameras as any[]).length === 0 ? <div className="empty-mini">אין מצלמות בטבלת camera_streams לפי שאילתת האדמין.</div> : (result.data.cameras as any[]).map((camera: any) => <article className="camera-debug-row" key={camera.id}><strong>{camera.name ?? "מצלמה ללא שם"}</strong><div className="access-debug-grid"><span>camera id: {camera.id}</span><span>camera name: {camera.name ?? "-"}</span><span>garden_id: {camera.garden_id ?? "-"}</span><span>kindergarten_id: {camera.kindergarten_id ?? "-"}</span><span>active: {String(camera.active)}</span><span>status: {camera.status ?? "-"}</span><span>matches allowed garden_id: {String(camera.garden_id === result.data.debugAllowedGardenId)}</span><span>matches allowed kindergarten_id: {String(camera.kindergarten_id === result.data.debugAllowedGardenId)}</span></div></article>)}</article></section>{result.data.secondaryWarning ? <div className="gateway-setup-state"><strong>{result.data.secondaryWarning}</strong><p>כרטיסי המצלמות והצפייה נשארים זמינים. פרטי גן/יחסים משניים נטענים בנפרד כדי לא להפיל את המסך.</p></div> : null}<CameraAdminManager cameras={result.data.cameras as any[]} gardens={result.data.gardens as any[]} gatewayConnected={Boolean(process.env.VIDEO_GATEWAY_URL)} /></DashboardShell>;
 }
