@@ -31,7 +31,7 @@ export default async function GardenChildProfilePage({ params }: { params: Promi
     supabase.from("incident_reports" as any).select("*").eq("child_id", id).order("created_at", { ascending: false }).limit(10),
     supabase.from("documents" as any).select("*").eq("child_id", id).order("created_at", { ascending: false }).limit(10),
     supabase.from("messages" as any).select("*, sender:sender_id(full_name), recipient:recipient_id(full_name)").eq("linked_child_id", id).order("created_at", { ascending: false }).limit(10),
-    supabase.from("parent_child_requests" as any).select("*, parents(full_name, phone), profiles:parent_profile_id(full_name, profile_image_url)").eq("child_id", id).order("created_at", { ascending: false }).limit(10),
+    supabase.from("parent_child_requests" as any).select("*, parents(full_name, phone), profiles:parent_profile_id(full_name, profile_image_url), recipient:recipient_profile_id(full_name, role, profile_image_url), handler:handled_by(full_name, role)").eq("child_id", id).order("created_at", { ascending: false }).limit(10),
     supabase.from("child_payment_history" as any).select("*").eq("child_id", id).order("created_at", { ascending: false }).limit(12)
   ]);
   const child = childRes.data as any;
@@ -80,7 +80,7 @@ export default async function GardenChildProfilePage({ params }: { params: Promi
       </section>
 
       <section className="grid cols-2 dashboard-panels">
-        <article className="card action-panel"><h2><MessageCircle size={18} /> בקשות הורים</h2>{requests.length === 0 ? <div className="empty-mini">אין בקשות מיוחדות מהורים.</div> : <div className="procedure-list">{requests.map((request) => <div className="list-item parent-request-item" key={request.id}><div><strong>{request.request_type}</strong><span>{request.content}</span><small>{request.profiles?.full_name ?? request.parents?.full_name ?? "הורה"} · {new Date(request.created_at).toLocaleString("he-IL")} · {request.status}</small><ParentRequestActions childId={child.id} requestId={request.id} /></div></div>)}</div>}</article>
+        <article className="card action-panel"><h2><MessageCircle size={18} /> בקשות הורים</h2>{requests.length === 0 ? <div className="empty-mini">אין בקשות מיוחדות מהורים.</div> : <div className="procedure-list">{requests.map((request) => <div className="list-item parent-request-item" key={request.id}><div><strong>{request.request_type}</strong><span>{request.content}</span><small>{request.profiles?.full_name ?? request.parents?.full_name ?? "הורה"} · אל: {request.recipient_label ?? request.recipient?.full_name ?? request.recipient_role_group ?? "מנהלת הגן"} · {new Date(request.created_at).toLocaleString("he-IL")} · {request.status}</small>{request.response_text ? <p>תגובה: {request.response_text}</p> : null}<ParentRequestActions childId={child.id} requestId={request.id} /></div></div>)}</div>}</article>
         <article className="card action-panel"><h2><AlertTriangle size={18} /> אירועים</h2>{incidents.length === 0 ? <div className="empty-mini">אין אירועים פתוחים לילד.</div> : incidents.map((incident) => <div className="list-item" key={incident.id}><div><strong>{incident.title}</strong><span>{incident.description}</span></div><span className={incident.severity === "critical" ? "pill bad" : "pill warn"}>{incident.severity}</span></div>)}</article>
       </section>
 

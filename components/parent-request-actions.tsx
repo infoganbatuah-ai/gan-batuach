@@ -8,7 +8,7 @@ export function ParentRequestActions({ childId, requestId }: { childId: string; 
   const [response, setResponse] = useState("");
   const [pending, startTransition] = useTransition();
 
-  function update(status: "viewed" | "handled" | "rejected") {
+  function update(status: "viewed" | "in_progress" | "handled" | "rejected") {
     setMessage("");
     startTransition(async () => {
       const result = await fetch(`/api/garden/children/${childId}/operations`, {
@@ -26,6 +26,7 @@ export function ParentRequestActions({ childId, requestId }: { childId: string; 
       <input value={response} onChange={(event) => setResponse(event.target.value)} placeholder="תגובה למעקב / להורה" />
       <div className="profile-actions">
         <button className="button secondary tiny" disabled={pending} type="button" onClick={() => update("viewed")}><MessageSquareReply size={14} /> נצפה</button>
+        <button className="button secondary tiny" disabled={pending} type="button" onClick={() => update("in_progress")}>בטיפול</button>
         <button className="button secondary tiny" disabled={pending} type="button" onClick={() => update("handled")}><CheckCircle2 size={14} /> טופל</button>
         <button className="button tiny" disabled={pending} type="button" onClick={() => update("rejected")}>נדחה</button>
       </div>

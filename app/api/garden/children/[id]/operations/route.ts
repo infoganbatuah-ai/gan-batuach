@@ -8,7 +8,7 @@ const schema = z.object({
   has_change_clothes: z.boolean().optional(),
   change_clothes_notes: z.string().optional(),
   request_id: z.string().uuid().optional(),
-  status: z.enum(["new", "viewed", "handled", "rejected"]).optional(),
+  status: z.enum(["new", "viewed", "in_progress", "handled", "rejected"]).optional(),
   manager_response: z.string().optional()
 });
 
@@ -61,8 +61,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const patch = {
       status: payload.status,
       manager_response: payload.manager_response ?? null,
+      response_text: payload.manager_response ?? null,
       handled_by: ["handled", "rejected"].includes(payload.status) ? profile.id : null,
       handled_at: ["handled", "rejected"].includes(payload.status) ? new Date().toISOString() : null,
+      viewed_at: ["viewed", "in_progress", "handled", "rejected"].includes(payload.status) ? new Date().toISOString() : null,
       updated_at: new Date().toISOString()
     };
     const updated = await supabase.from("parent_child_requests" as any).update(patch).eq("id", payload.request_id).eq("garden_id", profile.garden_id).select("*").single();
