@@ -2,7 +2,7 @@ create table if not exists public.parent_kindergarten_links (
   id uuid primary key default gen_random_uuid(),
   parent_id uuid references public.parents(id) on delete cascade,
   parent_profile_id uuid references public.profiles(id) on delete cascade,
-  garden_id uuid not null references public.gardens(id) on delete cascade,
+  garden_id  uuid not null references public.gardens(id) on delete cascade,
   kindergarten_id uuid generated always as (garden_id) stored,
   status text not null default 'active' check (status in ('pending', 'active', 'rejected', 'archived')),
   source text not null default 'legacy_backfill',

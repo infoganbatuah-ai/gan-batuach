@@ -1,6 +1,6 @@
 -- QA correction pass: persist UI actions and support pending camera states.
 
-alter type public.camera_status add value if not exists 'pending_gateway';
+alter typeש public.camera_status add value if not exists 'pending_gateway';
 alter type public.camera_status add value if not exists 'connected';
 alter type public.camera_status add value if not exists 'failed';
 alter type public.camera_status add value if not exists 'error';

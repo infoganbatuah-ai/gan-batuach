@@ -48,6 +48,7 @@ export default async function GardenDashboard() {
     supabase.from("child_transfer_requests" as any).select("id", { count: "exact", head: true }).eq("current_garden_id", gardenId ?? "").in("status", ["pending_new_kindergarten_review", "pending_current_kindergarten_response", "current_kindergarten_requested_call", "current_kindergarten_flagged"])
   ]);
   const transferRequestsCount = (incomingTransfersRes.count ?? 0) + (outgoingTransfersRes.count ?? 0);
+  const roleLabel = profile.role === "owner" ? "בעלים" : "מנהלת גן";
   const attendanceRows = (attendanceRes.data ?? []) as any[];
   const parentLeadRows = (leadsRes.data ?? []) as any[];
   const newLeadCount = parentLeadRows.filter((lead) => ["new", "new_parent_lead"].includes(lead.status)).length;
@@ -89,14 +90,14 @@ export default async function GardenDashboard() {
     openTasks: tasksRes.count ?? 0
   };
   const forgotItems = [
-    { label: "ילדים בלי עדכון ארוחה", count: withoutMeal, href: "/dashboard/garden/child-journal", action: "עדכני ארוחה מהירה", severity: "warn" as const },
-    { label: "ילדים בלי עדכון שינה", count: withoutSleep, href: "/dashboard/garden/child-journal", action: "עדכני שינה", severity: "warn" as const },
-    { label: "פניות הורים לא פתורות", count: parentRequestsRes.count ?? 0, href: "/dashboard/garden/children?view=attention", action: "השיבי או סמני טופל", severity: "warn" as const },
+    { label: "ילדים בלי עדכון ארוחה", count: withoutMeal, href: "/dashboard/garden/child-journal?missing=meal", action: "עדכני ארוחה מהירה", severity: "warn" as const },
+    { label: "ילדים בלי עדכון שינה", count: withoutSleep, href: "/dashboard/garden/child-journal?missing=sleep", action: "עדכני שינה", severity: "warn" as const },
+    { label: "פניות הורים לא פתורות", count: parentRequestsRes.count ?? 0, href: "/dashboard/garden/messages?status=open", action: "השיבי או סמני טופל", severity: "warn" as const },
     { label: "תשלומים שלא עברו", count: failedPayments, href: "/dashboard/garden/finance?filter=failed", action: "עדכני הורה או קבעי תזכורת", severity: "bad" as const },
     { label: "תשלומים באיחור", count: latePayments, href: "/dashboard/garden/finance?filter=overdue", action: "פתחי גבייה", severity: "bad" as const },
-    { label: "נוכחות חסרה", count: missingAttendance, href: "/dashboard/garden/attendance", action: "סמני נוכחות", severity: "warn" as const },
-    { label: "אירועים פתוחים", count: incidentsRes.count ?? 0, href: "/dashboard/garden/incidents", action: "סגרי טיפול", severity: "bad" as const },
-    { label: "מסמכי צוות חסרים", count: staffDocsRes.count ?? 0, href: "/dashboard/garden/staff", action: "בקשי מסמך", severity: "bad" as const },
+    { label: "נוכחות חסרה", count: missingAttendance, href: "/dashboard/garden/attendance?filter=missing", action: "סמני נוכחות", severity: "warn" as const },
+    { label: "אירועים פתוחים", count: incidentsRes.count ?? 0, href: "/dashboard/garden/incidents?status=open", action: "סגרי טיפול", severity: "bad" as const },
+    { label: "מסמכי צוות חסרים", count: staffDocsRes.count ?? 0, href: "/dashboard/garden/documents?filter=missing", action: "בקשי מסמך", severity: "bad" as const },
     { label: "איסופים שלא הושלמו", count: pickupPending, href: "/dashboard/garden/pickup?filter=pending", action: "בדקי מי עדיין בגן", severity: "warn" as const }
   ];
   const endDayItems = [
@@ -112,18 +113,23 @@ export default async function GardenDashboard() {
       <div className="dashboard-hero-card garden-hero-card premium-identity-hero ultimate-garden-hero">
         <div>
           <p className="eyebrow">ניהול יומי</p>
-          <h1>בוקר טוב, {profile.full_name ?? garden?.name ?? "הגן שלך"}.</h1>
-          <p>{garden?.city ? `${garden.city} · ` : ""}ילדים היום: {childrenRes.count ?? 0} · נוכחים: {presentToday} · חסרים: {missingToday} · הודעות: {messagesRes.data?.length ?? 0}</p>
+          <h1>ברוכה הבאה, {profile.full_name ?? "מנהלת הגן"}.</h1>
+          <p>גן: {garden?.name ?? "הגן שלך"}{garden?.city ? ` · ${garden.city}` : ""} · ילדים היום: {childrenRes.count ?? 0} · נוכחים: {presentToday} · חסרים: {missingToday}</p>
+          <div className="profile-badge-row">
+            <span className="pill good">{roleLabel}</span>
+            <span className="pill">הודעות ממתינות: {messagesRes.data?.length ?? 0}</span>
+          </div>
         </div>
         <Avatar name={garden?.name} src={garden?.logo_url ?? garden?.image_url} size="lg" />
         <span className={aiRes.count || complaintsRes.count ? "pill bad" : "pill good"}><ShieldCheck size={15} /> {aiRes.count || complaintsRes.count ? "דורש טיפול" : "יום רגוע"}</span>
       </div>
 
       <div className="grid cols-4 dashboard-kpis zero-click-kpis">
-        <StatCard label="ילדים היום" value={childrenRes.count ?? 0} tone="good" />
-        <StatCard label="נוכחים" value={presentToday} tone="good" />
-        <StatCard label="חסרים" value={missingToday} tone={missingToday ? "warn" : "good"} />
-        <StatCard label="תשלומים לטיפול" value={unpaidRes.count ?? 0} tone={unpaidRes.count ? "bad" : "good"} />
+        <StatCard label="ילדים היום" value={childrenRes.count ?? 0} tone="good" href="/dashboard/garden/children" />
+        <StatCard label="נוכחים" value={presentToday} tone="good" href="/dashboard/garden/attendance" />
+        <StatCard label="חסרים" value={missingToday} tone={missingToday ? "warn" : "good"} href="/dashboard/garden/attendance?filter=missing" />
+        <StatCard label="תשלומים לטיפול" value={unpaidRes.count ?? 0} tone={unpaidRes.count ? "bad" : "good"} href="/dashboard/garden/finance?filter=overdue" />
+        <StatCard label="ילדים לאישור" value={(pendingParentCompletionRes.count ?? 0) + (pendingApprovalRes.count ?? 0)} tone={(pendingParentCompletionRes.count ?? 0) + (pendingApprovalRes.count ?? 0) ? "warn" : "good"} href="/dashboard/garden/children?status=pending" />
       </div>
       <SimpleCommandCenter title="מה דורש טיפול עכשיו?" subtitle="כל כרטיס הוא פעולה אחת ברורה. לחיצה על “טפל עכשיו” פותחת את ההקשר המסונן, לא עמוד כללי." items={morningItems} />
       <LiveDayFlow counts={flowCounts} />
@@ -136,8 +142,8 @@ export default async function GardenDashboard() {
       <EndOfDayChecklist items={endDayItems} />
 
       <section className="grid cols-2 dashboard-panels">
-        {newLeadCount || transferRequestsCount ? <article className="card action-panel"><div className="section-heading"><h2>בקשות הצטרפות שדורשות תגובה</h2><p>רק בקשות שצריך לטפל בהן עכשיו מוצגות כאן.</p></div><div className="risk-list"><div><UserPlus /> לידים חדשים <b>{newLeadCount}</b></div><div><UserPlus /> מעבר/קליטת ילד קיים <b>{transferRequestsCount}</b></div></div><Link className="button primary" href="/dashboard/garden/leads">טפל בבקשות</Link></article> : null}
-        {(messagesRes.data?.length ?? 0) || complaintsRes.count || aiRes.count ? <article className="card action-panel"><div className="section-heading"><h2>תקשורת וחריגים</h2><p>מוצג רק כשיש הודעות או חריגים פתוחים.</p></div><div className="risk-list"><div><Bell /> הודעות <b>{messagesRes.data?.length ?? 0}</b></div><div><AlertTriangle /> תלונות <b>{complaintsRes.count ?? 0}</b></div><div><Camera /> מצלמות / AI <b>{(camerasRes.count ?? 0) + (aiRes.count ?? 0)}</b></div></div><Link className="button secondary" href="/dashboard/garden/messages">פתח הודעות</Link></article> : null}
+        {newLeadCount || transferRequestsCount ? <article className="card action-panel"><div className="section-heading"><h2>בקשות הצטרפות שדורשות תגובה</h2><p>רק בקשות שצריך לטפל בהן עכשיו מוצגות כאן.</p></div><div className="risk-list"><div><UserPlus /> לידים חדשים <b>{newLeadCount}</b></div><div><UserPlus /> מעבר/קליטת ילד קיים <b>{transferRequestsCount}</b></div></div><Link className="button primary" href="/dashboard/garden/leads?status=new">טפל בבקשות</Link></article> : null}
+        {(messagesRes.data?.length ?? 0) || complaintsRes.count || aiRes.count ? <article className="card action-panel"><div className="section-heading"><h2>תקשורת וחריגים</h2><p>מוצג רק כשיש הודעות או חריגים פתוחים.</p></div><div className="risk-list"><div><Bell /> הודעות <b>{messagesRes.data?.length ?? 0}</b></div><div><AlertTriangle /> תלונות <b>{complaintsRes.count ?? 0}</b></div><div><Camera /> מצלמות / AI <b>{(camerasRes.count ?? 0) + (aiRes.count ?? 0)}</b></div></div><Link className="button secondary" href="/dashboard/garden/messages?status=open">פתח הודעות</Link></article> : null}
       </section>
       <ForgotSomethingButton items={forgotItems} />
     </DashboardShell>

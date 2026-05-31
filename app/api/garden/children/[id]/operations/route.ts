@@ -13,13 +13,18 @@ const schema = z.object({
 });
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
+  let actionContext: Record<string, unknown> = { action: "child_operation" };
   try {
     const { id } = await params;
     const payload = schema.parse(await request.json());
     const { profile } = await requireRole(["manager", "owner", "staff"]);
+    actionContext = { action: payload.action, entity_id: id, user_id: profile.id, user_role: profile.role, garden_id: profile.garden_id, new_status: payload.status };
     const supabase = await createClient();
     const child = await supabase.from("children" as any).select("id, garden_id, full_name, primary_parent_id, parents:primary_parent_id(profile_id)").eq("id", id).maybeSingle();
-    if (child.error || !child.data || (child.data as any).garden_id !== profile.garden_id) return fail("אין הרשאה לעדכן ילד שאינו משויך לגן שלך.", 403);
+    if (child.error || !child.data || (child.data as any).garden_id !== profile.garden_id) {
+      console.error("[child-operation] permission/lookup failed", { ...actionContext, error: child.error?.message, found: Boolean(child.data) });
+      return fail("אין הרשאה לעדכן ילד שאינו משויך לגן שלך.", 403);
+    }
 
     if (payload.action === "change_clothes") {
       const patch = {
@@ -28,7 +33,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         last_change_clothes_check: new Date().toISOString().slice(0, 10)
       };
       const updated = await supabase.from("children" as any).update(patch).eq("id", id).select("id").single();
-      if (updated.error) return fail("לא ניתן לעדכן סטטוס בגדים להחלפה כרגע.", 500);
+      if (updated.error) {
+        console.error("[child-operation] change clothes update failed", { ...actionContext, error: updated.error.message });
+        return fail("לא ניתן לעדכן סטטוס בגדים להחלפה כרגע.", 500);
+      }
       const parentProfileId = (child.data as any).parents?.profile_id;
       if (parentProfileId && payload.has_change_clothes === false) {
         await supabase.from("notifications" as any).insert({
@@ -54,6 +62,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         action: "update_change_clothes",
         after_data: patch
       });
+      console.info("[child-operation] change clothes completed", actionContext);
       return ok(patch);
     }
 
@@ -68,7 +77,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       updated_at: new Date().toISOString()
     };
     const updated = await supabase.from("parent_child_requests" as any).update(patch).eq("id", payload.request_id).eq("garden_id", profile.garden_id).select("*").single();
-    if (updated.error) return fail("לא ניתן לעדכן בקשת הורה כרגע.", 500);
+    if (updated.error) {
+      console.error("[child-operation] parent request update failed", { ...actionContext, request_id: payload.request_id, error: updated.error.message });
+      return fail("לא ניתן לעדכן בקשת הורה כרגע.", 500);
+    }
     await supabase.from("audit_logs" as any).insert({
       actor_id: profile.id,
       actor_role: profile.role,
@@ -78,8 +90,10 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       action: "update_parent_request_status",
       after_data: patch
     });
+    console.info("[child-operation] parent request completed", { ...actionContext, request_id: payload.request_id });
     return ok(updated.data);
   } catch (error) {
+    console.error("[child-operation] unhandled failure", { ...actionContext, error });
     return handleRouteError(error);
   }
 }

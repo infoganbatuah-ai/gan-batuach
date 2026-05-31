@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import { Settings2 } from "lucide-react";
 
 type FeeGroup = {
@@ -18,6 +19,7 @@ type FeeGroup = {
 const defaultGroups = ["לידה עד 3", "גילאי 3-4", "גילאי 4-5", "קבוצה מעורבת"];
 
 export function FeeGroupSettings({ groups, childCount }: { groups: FeeGroup[]; childCount: number }) {
+  const router = useRouter();
   const first = groups[0] ?? {};
   const [selectedId, setSelectedId] = useState(first.id ?? "");
   const selected = groups.find((group) => group.id === selectedId) ?? {};
@@ -78,7 +80,7 @@ export function FeeGroupSettings({ groups, childCount }: { groups: FeeGroup[]; c
       const body = await response.json();
       if (!response.ok) throw new Error(body.error || "השמירה נכשלה");
       setMessage(updateExisting ? "ההגדרה נשמרה ועודכנה לילדים בקבוצה." : "ההגדרה נשמרה. היא תחול על ילדים חדשים או על ילדים שתקשרו לקבוצה.");
-      window.setTimeout(() => window.location.reload(), 900);
+      router.refresh();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "השמירה נכשלה");
     } finally {

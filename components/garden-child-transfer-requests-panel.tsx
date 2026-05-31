@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useEffect, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { ArrowLeftRight, CheckCircle2, MessageCircleWarning, XCircle } from "lucide-react";
 import { Avatar } from "@/components/avatar";
 
@@ -34,9 +35,17 @@ export function GardenChildTransferRequestsPanel({
   incoming: TransferRequest[];
   outgoing: TransferRequest[];
 }) {
+  const router = useRouter();
+  const [incomingRows, setIncomingRows] = useState(incoming);
+  const [outgoingRows, setOutgoingRows] = useState(outgoing);
   const [message, setMessage] = useState("");
   const [noteById, setNoteById] = useState<Record<string, string>>({});
   const [pending, startTransition] = useTransition();
+
+  useEffect(() => {
+    setIncomingRows(incoming);
+    setOutgoingRows(outgoing);
+  }, [incoming, outgoing]);
 
   async function act(requestId: string, action: string) {
     setMessage("");
@@ -52,7 +61,12 @@ export function GardenChildTransferRequestsPanel({
         return;
       }
       setMessage("בקשת המעבר עודכנה בהצלחה.");
-      setTimeout(() => window.location.reload(), 600);
+      const terminalActions = new Set(["approve_new_kindergarten", "reject_new_kindergarten", "acknowledge_current_transfer"]);
+      if (terminalActions.has(action)) {
+        setIncomingRows((current) => current.filter((request) => request.id !== requestId));
+        setOutgoingRows((current) => current.filter((request) => request.id !== requestId));
+      }
+      router.refresh();
     });
   }
 
@@ -107,7 +121,7 @@ export function GardenChildTransferRequestsPanel({
     );
   }
 
-  const hasRequests = incoming.length > 0 || outgoing.length > 0;
+  const hasRequests = incomingRows.length > 0 || outgoingRows.length > 0;
 
   return (
     <section className="dashboard-section transfer-requests-section">
@@ -125,11 +139,11 @@ export function GardenChildTransferRequestsPanel({
         <div className="grid cols-2 dashboard-panels">
           <div>
             <h3>בקשות קליטת ילדים קיימים</h3>
-            <div className="people-card-grid">{incoming.length ? incoming.map((request) => renderRequest(request, "incoming")) : <div className="empty-mini">אין בקשות קליטה לגן הזה.</div>}</div>
+            <div className="people-card-grid">{incomingRows.length ? incomingRows.map((request) => renderRequest(request, "incoming")) : <div className="empty-mini">אין בקשות קליטה לגן הזה.</div>}</div>
           </div>
           <div>
             <h3>בקשות מעבר / סיום שיוך</h3>
-            <div className="people-card-grid">{outgoing.length ? outgoing.map((request) => renderRequest(request, "outgoing")) : <div className="empty-mini">אין בקשות מעבר מילדים שעוזבים כרגע.</div>}</div>
+            <div className="people-card-grid">{outgoingRows.length ? outgoingRows.map((request) => renderRequest(request, "outgoing")) : <div className="empty-mini">אין בקשות מעבר מילדים שעוזבים כרגע.</div>}</div>
           </div>
         </div>
       )}

@@ -36,9 +36,11 @@ function statusFor(action: string) {
 }
 
 export async function POST(request: Request) {
+  let actionContext: Record<string, unknown> = { action: "child_payment_update" };
   try {
     const { profile } = await requireRole(["manager", "owner"]);
     const payload = schema.parse(await request.json());
+    actionContext = { ...actionContext, entity_id: payload.child_id, user_id: profile.id, user_role: profile.role, garden_id: profile.garden_id, requested_action: payload.action };
     const supabase = await createClient();
     const child = await supabase
       .from("children" as any)
@@ -46,6 +48,7 @@ export async function POST(request: Request) {
       .eq("id", payload.child_id)
       .maybeSingle();
     if (child.error || !child.data || (child.data as any).garden_id !== profile.garden_id) {
+      console.error("[child-payment-update] permission/lookup failed", { ...actionContext, error: child.error?.message, found: Boolean(child.data) });
       return fail("לא ניתן לעדכן תשלום לילד שאינו משויך לגן שלך.", 403);
     }
     const childData = child.data as any;
@@ -92,7 +95,10 @@ export async function POST(request: Request) {
       childPatch.arrangement_valid_until = payload.arrangement_valid_until ?? validUntil;
     }
     const update = await supabase.from("children" as any).update(childPatch).eq("id", payload.child_id);
-    if (update.error) return fail("לא ניתן לעדכן את סטטוס התשלום כרגע.", 500, update.error);
+    if (update.error) {
+      console.error("[child-payment-update] child update failed", { ...actionContext, previous_status: childData.payment_status, new_status: paymentStatus, error: update.error.message });
+      return fail("לא ניתן לעדכן את סטטוס התשלום כרגע.", 500, update.error);
+    }
     const history = await supabase.from("child_payment_history" as any).insert({
       garden_id: profile.garden_id,
       child_id: payload.child_id,
@@ -114,7 +120,7 @@ export async function POST(request: Request) {
       parent_notified: false,
       created_by: profile.id
     });
-    if (history.error) console.error("Payment history insert failed", history.error);
+    if (history.error) console.error("[child-payment-update] payment history insert failed", { ...actionContext, error: history.error.message });
     const audit = await supabase.from("audit_logs" as any).insert({
       actor_id: profile.id,
       actor_role: profile.role,
@@ -139,7 +145,7 @@ export async function POST(request: Request) {
         debt_amount: payload.debt_amount ?? childData.debt_amount
       }
     });
-    if (audit.error) console.error("Payment audit insert failed", audit.error);
+    if (audit.error) console.error("[child-payment-update] payment audit insert failed", { ...actionContext, error: audit.error.message });
     if (payload.action === "failed" || payload.action === "not_transferred") {
       const { data: parentLink } = await supabase.from("children" as any).select("primary_parent_id, parents(profile_id)").eq("id", payload.child_id).maybeSingle();
       const parentProfileId = (parentLink as any)?.parents?.profile_id;
@@ -156,8 +162,10 @@ export async function POST(request: Request) {
         });
       }
     }
+    console.info("[child-payment-update] completed", { ...actionContext, previous_status: childData.payment_status, new_status: paymentStatus, amount: amountPaid });
     return ok({ payment_status: paymentStatus, valid_until: validUntil, amount_paid: amountPaid });
   } catch (error) {
+    console.error("[child-payment-update] unhandled failure", { ...actionContext, error });
     return handleRouteError(error);
   }
 }

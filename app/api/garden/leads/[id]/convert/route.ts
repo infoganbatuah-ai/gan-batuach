@@ -14,12 +14,14 @@ const schema = z.object({
 });
 
 export async function POST(request: Request, context: { params: Promise<{ id: string }> }) {
+  let actionContext: Record<string, unknown> = { action: "convert_parent_lead_to_parent_pending_child" };
   try {
     const { profile } = await requireRole(["manager", "owner"]);
     if (!profile.garden_id) return fail("לא נמצא גן משויך למשתמש", 422);
     if (!isAdminClientConfigured()) return fail("המרת ליד דורשת SUPABASE_SERVICE_ROLE_KEY בשרת.", 503);
 
     const { id } = await context.params;
+    actionContext = { ...actionContext, entity_id: id, user_id: profile.id, user_role: profile.role, garden_id: profile.garden_id };
     const payload = schema.parse(await request.json());
     const admin = createAdminClient();
 
@@ -31,8 +33,12 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       .eq("lead_type", "parent")
       .maybeSingle();
 
-    if (leadError || !lead) return fail("לא נמצא ליד הורה לגן הזה", 404);
+    if (leadError || !lead) {
+      console.error("[garden-lead-convert] lead lookup failed", { ...actionContext, error: leadError?.message });
+      return fail("לא נמצא ליד הורה לגן הזה", 404);
+    }
     if (["active", "approved_pending_parent_completion"].includes(String(lead.status))) return fail("הליד כבר הומר או נמצא בתהליך", 409);
+    actionContext = { ...actionContext, previous_status: lead.status };
 
     const normalizedEmail = normalizeOptionalEmail(payload.email || lead.email);
     let parentUserId: string | null = null;
@@ -43,11 +49,15 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       if (existingProfile) {
         if (existingProfile.role !== "parent") return fail("המייל כבר קיים במערכת אך אינו שייך להורה.", 409, { field: "email" });
         parentUserId = existingProfile.id;
-        await admin.from("profiles" as any).update({
+        const profileUpdate = await admin.from("profiles" as any).update({
           garden_id: existingProfile.garden_id ?? profile.garden_id,
           phone: payload.phone,
           full_name: payload.parent_name
         }).eq("id", parentUserId);
+        if (profileUpdate.error) {
+          console.error("[garden-lead-convert] existing parent profile update failed", { ...actionContext, parent_user_id: parentUserId, error: profileUpdate.error.message });
+          return fail("ההורה קיים, אך עדכון הפרטים שלו נכשל.", 500);
+        }
       }
     }
 
@@ -83,11 +93,14 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
         completed_profile: false,
         status: "invited"
       }).select("*").single();
-      if (inserted.error) return fail("יצירת כרטיס הורה נכשלה: " + inserted.error.message, 400);
+      if (inserted.error) {
+        console.error("[garden-lead-convert] parent row insert failed", { ...actionContext, parent_user_id: parentUserId, error: inserted.error.message });
+        return fail("יצירת כרטיס הורה נכשלה: " + inserted.error.message, 400);
+      }
       parent = inserted.data;
     }
 
-    await admin.from("parent_kindergarten_links" as any).upsert({
+    const linkResult = await admin.from("parent_kindergarten_links" as any).upsert({
       parent_id: parent.id,
       parent_profile_id: parentUserId,
       garden_id: profile.garden_id,
@@ -97,6 +110,10 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       approved_by: profile.id,
       notes: credentials ? "הורה חדש נוצר מהמרת ליד" : "משתמש הורה קיים - הגן נוסף לחשבון"
     }, { onConflict: "parent_profile_id,garden_id" });
+    if (linkResult.error) {
+      console.error("[garden-lead-convert] parent kindergarten link failed", { ...actionContext, parent_id: parent.id, parent_user_id: parentUserId, error: linkResult.error.message });
+      return fail("ההורה נוצר, אך חסר שיוך לגן.", 500);
+    }
 
     const childName = payload.child_name || lead.child_name || "ילד/ה להשלמת פרטים";
     const permanentFile = await admin.from("permanent_child_files" as any).insert({
@@ -105,7 +122,10 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       full_name: childName,
       important_notes: payload.notes || lead.notes || null
     }).select("*").single();
-    if (permanentFile.error) return fail("יצירת תיק ילד קבוע נכשלה: " + permanentFile.error.message, 400);
+    if (permanentFile.error) {
+      console.error("[garden-lead-convert] permanent child file insert failed", { ...actionContext, parent_id: parent.id, error: permanentFile.error.message });
+      return fail("יצירת תיק ילד קבוע נכשלה: " + permanentFile.error.message, 400);
+    }
 
     const childInsert = await admin.from("children" as any).insert({
       garden_id: profile.garden_id,
@@ -117,10 +137,13 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       status: "pending_parent_completion",
       medical_notes: payload.notes || lead.notes || null
     }).select("*").single();
-    if (childInsert.error) return fail("יצירת כרטיס ילד להשלמה נכשלה: " + childInsert.error.message, 400);
+    if (childInsert.error) {
+      console.error("[garden-lead-convert] pending child insert failed", { ...actionContext, parent_id: parent.id, permanent_child_file_id: permanentFile.data.id, error: childInsert.error.message });
+      return fail("יצירת כרטיס ילד להשלמה נכשלה: " + childInsert.error.message, 400);
+    }
 
     const child = childInsert.data;
-    await admin.from("child_kindergarten_enrollments" as any).insert({
+    const enrollmentResult = await admin.from("child_kindergarten_enrollments" as any).insert({
       child_id: child.id,
       permanent_child_file_id: permanentFile.data.id,
       garden_id: profile.garden_id,
@@ -128,7 +151,11 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       classroom_name: payload.child_age || lead.child_age || null,
       notes: payload.notes || lead.notes || null
     });
-    await admin.from("child_timeline_events" as any).insert({
+    if (enrollmentResult.error) {
+      console.error("[garden-lead-convert] child enrollment insert failed", { ...actionContext, parent_id: parent.id, child_id: child.id, error: enrollmentResult.error.message });
+      return fail("ההורה והילד נוצרו, אך לא נוצר שיוך ילד לגן.", 500);
+    }
+    const timelineResult = await admin.from("child_timeline_events" as any).insert({
       child_id: child.id,
       permanent_child_file_id: permanentFile.data.id,
       garden_id: profile.garden_id,
@@ -139,16 +166,24 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       description: credentials ? "נוצר חשבון הורה חדש ונפתח תיק ילד קבוע." : "משתמש הורה קיים קושר לגן נוסף.",
       metadata: { lead_id: id, existing_parent_user: !credentials }
     });
-    await admin.from("leads" as any).update({
+    if (timelineResult.error) {
+      console.error("[garden-lead-convert] child timeline insert failed", { ...actionContext, child_id: child.id, error: timelineResult.error.message });
+    }
+    const nextLeadStatus = "approved_pending_parent_completion";
+    const leadUpdate = await admin.from("leads" as any).update({
       status: "approved_pending_parent_completion",
       converted_parent_id: parent.id,
       converted_child_id: child.id,
       converted_at: new Date().toISOString(),
       assigned_to: parentUserId,
       missing_details: ["child_profile", "health_details", "pickup_permissions", "declarations"]
-    }).eq("id", id);
+    }).eq("id", id).select("id, status, converted_parent_id, converted_child_id, converted_at").maybeSingle();
+    if (leadUpdate.error || !leadUpdate.data) {
+      console.error("[garden-lead-convert] lead status update failed", { ...actionContext, parent_id: parent.id, child_id: child.id, new_status: nextLeadStatus, error: leadUpdate.error?.message });
+      return fail("ההורה נוצר, אך סטטוס הליד לא עודכן. יש לבדוק את הרשומה לפני ניסיון נוסף.", 500);
+    }
 
-    await admin.from("notifications" as any).insert({
+    const notificationResult = await admin.from("notifications" as any).insert({
       garden_id: profile.garden_id,
       recipient_id: parentUserId,
       recipient_role: "parent",
@@ -159,6 +194,9 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       severity: "medium",
       metadata: { href: `/parent-onboarding?childId=${child.id}`, lead_id: id, child_id: child.id }
     });
+    if (notificationResult.error) {
+      console.error("[garden-lead-convert] notification insert failed", { ...actionContext, parent_id: parent.id, child_id: child.id, error: notificationResult.error.message });
+    }
 
     await writeUserCreationAudit({
       actorId: profile.id,
@@ -169,9 +207,11 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       action: "convert_parent_lead_to_parent_pending_child",
       afterData: { lead_id: id, parent_id: parent.id, parent_user_id: parentUserId, child_id: child.id, created_credentials: Boolean(credentials) }
     });
+    console.info("[garden-lead-convert] completed", { ...actionContext, parent_id: parent.id, child_id: child.id, new_status: nextLeadStatus });
 
-    return ok({ parent, child, credentials, existing_user: !credentials }, 201);
+    return ok({ parent, child, credentials, existing_user: !credentials, lead_status: leadUpdate.data.status, lead_id: id }, 201);
   } catch (error) {
+    console.error("[garden-lead-convert] unhandled failure", { ...actionContext, error });
     return handleRouteError(error);
   }
 }

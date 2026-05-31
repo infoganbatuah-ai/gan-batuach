@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import type { FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import { CreditCard } from "lucide-react";
 
 type Action = "mark_paid" | "mark_unpaid" | "partial_payment" | "discount" | "special_arrangement";
@@ -24,6 +25,7 @@ const actionLabels: Record<Action, string> = {
 };
 
 export function ChildPaymentActions({ childId, amount }: { childId: string; amount: number }) {
+  const router = useRouter();
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [action, setAction] = useState<Action | null>(null);
@@ -83,7 +85,7 @@ export function ChildPaymentActions({ childId, amount }: { childId: string; amou
       if (!response.ok) throw new Error(body.error || "העדכון נכשל");
       setMessage("סטטוס התשלום עודכן ונרשם בהיסטוריה.");
       setAction(null);
-      window.setTimeout(() => window.location.reload(), 900);
+      router.refresh();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "העדכון נכשל");
     } finally {

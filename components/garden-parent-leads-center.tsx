@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useMemo, useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import { CheckCircle2, Copy, Eye, UserRoundPlus } from "lucide-react";
 
 type Lead = Record<string, any>;
@@ -13,18 +14,30 @@ const statusLabels: Record<string, string> = {
   approved_pending_parent_completion: "אושר - ממתין להשלמת הורה",
   active: "פעיל",
   rejected: "נדחה",
+  converted: "הומר",
   new_parent_lead: "חדש"
 };
 
 export function GardenParentLeadsCenter({ leads }: { leads: Lead[] }) {
+  const router = useRouter();
+  const [rows, setRows] = useState(leads);
   const [activeLead, setActiveLead] = useState<Lead | null>(null);
   const [message, setMessage] = useState("");
   const [credentials, setCredentials] = useState<Credentials | null>(null);
   const [busy, setBusy] = useState(false);
+  const pendingConversionStatuses = useMemo(() => new Set(["new", "new_parent_lead", "viewed", "missing_details"]), []);
+
+  useEffect(() => {
+    setRows(leads);
+  }, [leads]);
 
   async function markViewed(lead: Lead) {
     if (["viewed", "approved_pending_parent_completion", "active"].includes(lead.status)) return;
-    await fetch(`/api/garden/leads/${lead.id}/status`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "viewed" }) }).catch(() => null);
+    const response = await fetch(`/api/garden/leads/${lead.id}/status`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status: "viewed" }) }).catch(() => null);
+    if (response?.ok) {
+      setRows((current) => current.map((row) => row.id === lead.id ? { ...row, status: "viewed" } : row));
+      setActiveLead((current) => current?.id === lead.id ? { ...current, status: "viewed" } : current);
+    }
   }
 
   async function convert(event: FormEvent<HTMLFormElement>) {
@@ -52,6 +65,9 @@ export function GardenParentLeadsCenter({ leads }: { leads: Lead[] }) {
       if (!response.ok) throw new Error(body.error || "המרת הליד נכשלה");
       setCredentials(body.data.credentials ?? null);
       setMessage(body.data.existing_user ? "הליד קושר להורה קיים ונוצר כרטיס ילד להשלמה." : "נוצר הורה חדש וכרטיס ילד להשלמה.");
+      setRows((current) => current.filter((lead) => lead.id !== activeLead.id));
+      setActiveLead((current) => current ? { ...current, status: body.data.lead_status ?? "approved_pending_parent_completion" } : current);
+      router.refresh();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "המרת הליד נכשלה");
     } finally {
@@ -62,14 +78,14 @@ export function GardenParentLeadsCenter({ leads }: { leads: Lead[] }) {
   return (
     <div className="lead-center-layout">
       <section className="dashboard-section">
-        {leads.length === 0 ? (
+        {rows.length === 0 ? (
           <div className="empty-state">
             <strong>אין בקשות הצטרפות חדשות</strong>
-            <span>כאשר הורה ישלח בקשת רישום מעמוד גן ציבורי, היא תופיע כאן עם אפשרות המרה להורה פעיל.</span>
+            <span>כאשר הורה ישלח בקשת רישום מעמוד גן ציבורי, היא תופיע כאן. בקשות שהומרו מוסרות מיד מרשימת הטיפול.</span>
           </div>
         ) : (
           <div className="people-card-grid">
-            {leads.map((lead) => (
+            {rows.map((lead) => (
               <article className="person-card lead-request-card" key={lead.id}>
                 <div className="person-card-top">
                   <div className="avatar avatar-lg">{String(lead.parent_name ?? "ה").slice(0, 1)}</div>
@@ -95,7 +111,11 @@ export function GardenParentLeadsCenter({ leads }: { leads: Lead[] }) {
                 </details>
                 <div className="profile-actions">
                   <button className="button secondary tiny" type="button" onClick={() => { setActiveLead(lead); void markViewed(lead); }}><Eye size={14} /> סקירה</button>
-                  <button className="button primary tiny" type="button" onClick={() => setActiveLead(lead)}><UserRoundPlus size={14} /> המרה להורה פעיל</button>
+                  {pendingConversionStatuses.has(String(lead.status)) ? (
+                    <button className="button primary tiny" type="button" onClick={() => setActiveLead(lead)}><UserRoundPlus size={14} /> המרה להורה פעיל</button>
+                  ) : (
+                    <span className="pill good">לא ממתין להמרה</span>
+                  )}
                 </div>
               </article>
             ))}

@@ -1,11 +1,14 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { CheckCircle2, MessageSquareReply } from "lucide-react";
 
 export function ParentRequestActions({ childId, requestId }: { childId: string; requestId: string }) {
+  const router = useRouter();
   const [message, setMessage] = useState("");
   const [response, setResponse] = useState("");
+  const [completed, setCompleted] = useState(false);
   const [pending, startTransition] = useTransition();
 
   function update(status: "viewed" | "in_progress" | "handled" | "rejected") {
@@ -16,9 +19,18 @@ export function ParentRequestActions({ childId, requestId }: { childId: string; 
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "parent_request_status", request_id: requestId, status, manager_response: response || undefined })
       });
-      setMessage(result.ok ? "בקשת ההורה עודכנה." : "לא ניתן לעדכן את הבקשה כרגע.");
-      if (result.ok) window.setTimeout(() => window.location.reload(), 700);
+      if (result.ok) {
+        setMessage("בקשת ההורה עודכנה.");
+        if (["handled", "rejected"].includes(status)) setCompleted(true);
+        router.refresh();
+      } else {
+        setMessage("לא ניתן לעדכן את הבקשה כרגע.");
+      }
     });
+  }
+
+  if (completed) {
+    return <div className="success-banner compact">{message || "בקשת ההורה עודכנה."}</div>;
   }
 
   return (

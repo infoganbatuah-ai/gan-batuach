@@ -28,12 +28,14 @@ function statusForAction(action: z.infer<typeof schema>["action"]) {
 }
 
 export async function POST(request: Request, context: { params: Promise<{ id: string }> }) {
+  let actionContext: Record<string, unknown> = { action: "child_transfer_update" };
   try {
     const { profile } = await requireRole(["manager", "owner"]);
     if (!profile.garden_id) return fail("המשתמש אינו משויך לגן", 422);
     if (!isAdminClientConfigured()) return fail("ניהול בקשות מעבר דורש הגדרת שירות שרת מאובטח.", 503);
     const { id } = await context.params;
     const payload = schema.parse(await request.json());
+    actionContext = { ...actionContext, entity_id: id, user_id: profile.id, user_role: profile.role, garden_id: profile.garden_id, requested_action: payload.action };
     const admin = createAdminClient();
 
     const transferRes = await admin
@@ -41,7 +43,10 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       .select("*")
       .eq("id", id)
       .maybeSingle();
-    if (transferRes.error) return fail("לא ניתן לטעון את בקשת המעבר: " + transferRes.error.message, 400);
+    if (transferRes.error) {
+      console.error("[child-transfer-update] lookup failed", { ...actionContext, error: transferRes.error.message });
+      return fail("לא ניתן לטעון את בקשת המעבר: " + transferRes.error.message, 400);
+    }
     const transfer = transferRes.data as any;
     if (!transfer) return fail("בקשת המעבר לא נמצאה", 404);
 
@@ -110,7 +115,10 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     }
 
     const updateRes = await admin.from("child_transfer_requests" as any).update(patch).eq("id", id).select("*").single();
-    if (updateRes.error) return fail("עדכון בקשת המעבר נכשל: " + updateRes.error.message, 400);
+    if (updateRes.error) {
+      console.error("[child-transfer-update] status update failed", { ...actionContext, previous_status: transfer.status, new_status: status, error: updateRes.error.message });
+      return fail("עדכון בקשת המעבר נכשל: " + updateRes.error.message, 400);
+    }
 
     await admin.from("child_timeline_events" as any).insert({
       child_id: transfer.target_child_id ?? transfer.child_id,
@@ -148,8 +156,10 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       afterData: { status, note: payload.note ?? null }
     });
 
+    console.info("[child-transfer-update] completed", { ...actionContext, previous_status: transfer.status, new_status: status });
     return ok({ transfer: updateRes.data });
   } catch (error) {
+    console.error("[child-transfer-update] unhandled failure", { ...actionContext, error });
     return handleRouteError(error);
   }
 }

@@ -1,4 +1,5 @@
 import { Bell, UserRoundPlus } from "lucide-react";
+import { DashboardFilterChip } from "@/components/dashboard-filter-chip";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { GardenChildTransferRequestsPanel } from "@/components/garden-child-transfer-requests-panel";
 import { GardenParentLeadsCenter } from "@/components/garden-parent-leads-center";
@@ -6,7 +7,26 @@ import { StatCard } from "@/components/stat-card";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
-export default async function GardenLeadsPage() {
+const leadFilterLabels: Record<string, string> = {
+  new: "בקשות חדשות שממתינות להמרה",
+  pending: "בקשות שממתינות לטיפול",
+  completion: "הורים שממתינים להשלמת פרטי ילד",
+  missing: "בקשות שחסרים בהן פרטים",
+  converted: "בקשות שכבר הומרו"
+};
+
+function filterLeads(leads: any[], status?: string) {
+  if (!status) return leads;
+  if (status === "new") return leads.filter((lead) => ["new", "new_parent_lead", "viewed"].includes(String(lead.status)));
+  if (status === "pending") return leads.filter((lead) => ["new", "new_parent_lead", "viewed", "missing_details"].includes(String(lead.status)));
+  if (status === "completion") return leads.filter((lead) => lead.status === "approved_pending_parent_completion");
+  if (status === "missing") return leads.filter((lead) => lead.status === "missing_details");
+  if (status === "converted") return leads.filter((lead) => ["approved_pending_parent_completion", "active", "converted"].includes(String(lead.status)));
+  return leads;
+}
+
+export default async function GardenLeadsPage({ searchParams }: { searchParams: Promise<{ status?: string }> }) {
+  const params = await searchParams;
   const { profile } = await requireRole(["manager", "owner"]);
   const supabase = await createClient();
   const gardenId = profile.garden_id ?? "";
@@ -18,6 +38,7 @@ export default async function GardenLeadsPage() {
     .order("created_at", { ascending: false });
 
   const leads = (data ?? []) as any[];
+  const visibleLeads = filterLeads(leads, params.status);
   const [incomingTransfersRes, outgoingTransfersRes] = await Promise.all([
     supabase.from("child_transfer_requests" as any).select("*").eq("target_garden_id", gardenId).order("created_at", { ascending: false }),
     supabase.from("child_transfer_requests" as any).select("*").eq("current_garden_id", gardenId).order("created_at", { ascending: false })
@@ -65,12 +86,19 @@ export default async function GardenLeadsPage() {
       </div>
 
       <div className="grid cols-4 dashboard-kpis">
-        <StatCard label="לידים חדשים" value={newCount} tone={newCount ? "warn" : "good"} />
-        <StatCard label="ממתינים להשלמת הורה" value={pendingCompletion} tone={pendingCompletion ? "warn" : "good"} />
-        <StatCard label="חסרים פרטים" value={missing} tone={missing ? "bad" : "good"} />
+        <StatCard label="לידים חדשים" value={newCount} tone={newCount ? "warn" : "good"} href="/dashboard/garden/leads?status=new" />
+        <StatCard label="ממתינים להשלמת הורה" value={pendingCompletion} tone={pendingCompletion ? "warn" : "good"} href="/dashboard/garden/leads?status=completion" />
+        <StatCard label="חסרים פרטים" value={missing} tone={missing ? "bad" : "good"} href="/dashboard/garden/leads?status=missing" />
         <StatCard label="בקשות מעבר/קליטה" value={transferCount} tone={transferCount ? "warn" : "good"} />
         <StatCard label="סה״כ בקשות" value={leads.length} />
       </div>
+      <DashboardFilterChip
+        label={leadFilterLabels[params.status ?? ""]}
+        clearHref="/dashboard/garden/leads"
+        isEmpty={visibleLeads.length === 0}
+        emptyTitle={params.status === "new" ? "אין כרגע לידים חדשים" : params.status ? `אין כרגע ${leadFilterLabels[params.status]}` : undefined}
+        emptyText="כל הבקשות במסנן הזה כבר טופלו או עברו לשלב הבא."
+      />
 
       <section className="card action-panel">
         <UserRoundPlus />
@@ -80,7 +108,7 @@ export default async function GardenLeadsPage() {
 
       <GardenChildTransferRequestsPanel incoming={incomingTransfers} outgoing={outgoingTransfers} />
 
-      <GardenParentLeadsCenter leads={leads} />
+      <GardenParentLeadsCenter leads={visibleLeads} />
     </DashboardShell>
   );
 }
