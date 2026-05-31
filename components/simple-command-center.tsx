@@ -31,6 +31,7 @@ export function SimpleCommandCenter({ title, subtitle, items }: { title: string;
               <strong>{item.count}</strong>
               <span>{item.title}</span>
               <small>{item.description}</small>
+              <em>טפל עכשיו</em>
             </div>
           </Link>
         ))}

@@ -12,14 +12,14 @@ import { formatAgeGroups, getKindergartenAgeGroups } from "@/lib/kindergarten-ag
 import { createClient } from "@/lib/supabase/server";
 
 const parentActions = [
-  { href: "/dashboard/parent/daily-journal", label: "יומן יומי", icon: HeartPulse, text: "ארוחות, שינה, מצב רוח ותמונות מהגן." },
-  { href: "/dashboard/parent/notifications", label: "התראות", icon: ShieldCheck, text: "עדכונים חשובים שדורשים תשומת לב." },
-  { href: "/dashboard/parent#add-child-request", label: "בקשת רישום ילד נוסף", icon: Baby, text: "בקשה מסודרת לאישור הגן לפני פתיחת כרטיס חדש." },
-  { href: "/dashboard/parent/messages", label: "פנייה לגן", icon: MessageCircle, text: "שאלה או הודעה מתועדת לגננת." },
-  { href: "/dashboard/parent/complaints", label: "הגשת תלונה", icon: Siren, text: "פנייה לגורם מוסמך לפי חומרה." },
-  { href: "/dashboard/parent/cameras", label: "צפייה במצלמות", icon: Camera, text: "רק מצלמות מורשות ובחלון צפייה מוגדר." },
-  { href: "/dashboard/parent/schedule", label: "לו״ז ותפריט", icon: CalendarDays, text: "סדר יום, אוכל, פעילויות והודעות." },
-  { href: "/dashboard/parent/gallery", label: "גלריה", icon: Image, text: "תמונות לפי הרשאות צילום." }
+  { href: "/dashboard/parent/daily-journal", label: "היום של הילד", icon: HeartPulse, text: "ארוחות, שינה, מצב רוח ותמונות מהגן." },
+  { href: "/dashboard/parent/notifications", label: "עדכונים חדשים", icon: ShieldCheck, text: "רק דברים שחשוב שתראו." },
+  { href: "/dashboard/parent#add-child-request", label: "בקשת רישום ילד נוסף", icon: Baby, text: "בקשה רגועה וברורה לאישור הגן." },
+  { href: "/dashboard/parent/messages", label: "שליחת הודעה לגן", icon: MessageCircle, text: "שאלה קצרה לצוות או למנהלת." },
+  { href: "/dashboard/parent/complaints", label: "בקשה דחופה", icon: Siren, text: "כשמשהו צריך טיפול מיוחד." },
+  { href: "/dashboard/parent/cameras", label: "מצלמות הגן", icon: Camera, text: "רק אם הגן פתח צפייה להורים." },
+  { href: "/dashboard/parent/schedule", label: "לו״ז ותפריט", icon: CalendarDays, text: "מה צפוי היום ובשבוע הקרוב." },
+  { href: "/dashboard/parent/gallery", label: "תמונות", icon: Image, text: "רגעים שהגן שיתף איתך." }
 ];
 
 export default async function ParentDashboard() {
@@ -96,7 +96,7 @@ export default async function ParentDashboard() {
   ];
   return (
     <DashboardShell role="parent" title="אזור הורים">
-      <div className="dashboard-hero-card parent-hero-card premium-identity-hero"><div><p className="eyebrow">שקט להורים</p><h1>שלום, {profile.full_name ?? parent?.full_name ?? "הורה יקר/ה"}</h1><p>כל מה שחשוב לדעת על הילד והגן, בלי עומס: היום של הילד, הודעות, מסמכים, מצלמות ופיקוח במקום אחד וברור.</p></div><div className="avatar-stack">{(childrenRes.data ?? []).map((child: any) => <Avatar key={child.id} name={child.full_name} src={child.photo_url ?? child.face_image_url} size="lg" />)}</div><span className="pill good"><ShieldCheck size={15} /> מידע לפי הרשאה</span></div>
+      <div className="dashboard-hero-card parent-hero-card premium-identity-hero"><div><p className="eyebrow">מה קורה עם הילד שלי היום?</p><h1>שלום, {profile.full_name ?? parent?.full_name ?? "הורה יקר/ה"}</h1><p>היום של הילד, הודעות מהגן, תמונות, מסמכים ותשלומים במקום אחד רגוע וברור.</p></div><div className="avatar-stack">{(childrenRes.data ?? []).map((child: any) => <Avatar key={child.id} name={child.full_name} src={child.photo_url ?? child.face_image_url} size="lg" />)}</div><span className="pill good"><ShieldCheck size={15} /> מידע שמותר להציג לך</span></div>
       <div className="grid cols-3 dashboard-kpis"><StatCard label="ילדים משויכים" value={(childrenRes.data ?? []).length} tone="good" /><StatCard label="יומן יומי היום" value={journalRes.count ?? 0} /><StatCard label="התראות פתוחות" value={notificationRes.count ?? 0} tone="warn" /></div>
       <section className="dashboard-section">
         <div className="section-heading"><h2>הילדים שלי לפי גנים</h2><p>חשבון הורה אחד יכול לנהל ילדים בכמה גנים. כל הודעה, מצלמה, מסמך ותשלום נשמרים לפי הגן הנכון.</p></div>
@@ -123,7 +123,7 @@ export default async function ParentDashboard() {
           </article>;
         })}</div>}
       </section>
-      <section className="grid cols-2 dashboard-panels"><article className="card action-panel"><h2>פרטי הגן של הילד</h2><div className="risk-list"><div>גן <b>{primaryGarden?.name ?? "גן משויך"}</b></div><div>מנהלת <b>{primaryGarden?.manager?.full_name ?? "לפי הרשאת הגן"}</b></div><div>קבוצות גיל <b>{formatAgeGroups(primaryAgeGroups)}</b></div><div>טלפון <b>{primaryGarden?.phone ?? primaryGarden?.manager?.phone ?? "לפי הרשאה"}</b></div><div>מצלמות <b>לפי הרשאה</b></div></div></article><article className="card action-panel"><h2>סיכום אמון ופיקוח</h2>{latestInspection ? <div className="list-item"><div><strong>ציון {latestInspection.weighted_score ?? "-"}</strong><span>{latestInspection.completed_at ? new Date(latestInspection.completed_at).toLocaleDateString("he-IL") : ""} · ליקויים {latestInspection.violation_count ?? 0}</span></div><Link className="button secondary" href={`/dashboard/parent/inspections/${latestInspection.id}/report`}>צפייה בדוח</Link></div> : <p>עדיין אין דוח ביקורת מאושר להצגה.</p>}<div className="risk-list"><div><ShieldCheck /> סטטוס גן בטוח <b>{primaryGarden?.safe_status ?? "לפי הרשאה"}</b></div><div><HeartPulse /> מידע רפואי <b>ניתן לעדכון</b></div><div><Camera /> צפייה בלייב <b>Token זמני</b></div></div></article></section>
+      <section className="grid cols-2 dashboard-panels"><article className="card action-panel"><h2>פרטי הגן של הילד</h2><div className="risk-list"><div>גן <b>{primaryGarden?.name ?? "גן משויך"}</b></div><div>מנהלת <b>{primaryGarden?.manager?.full_name ?? "לפי הרשאת הגן"}</b></div><div>קבוצות גיל <b>{formatAgeGroups(primaryAgeGroups)}</b></div><div>טלפון <b>{primaryGarden?.phone ?? primaryGarden?.manager?.phone ?? "לפי הרשאה"}</b></div><div>מצלמות <b>אם הגן פתח צפייה</b></div></div></article><article className="card action-panel"><h2>סיכום אמון ופיקוח</h2>{latestInspection ? <div className="list-item"><div><strong>ציון {latestInspection.weighted_score ?? "-"}</strong><span>{latestInspection.completed_at ? new Date(latestInspection.completed_at).toLocaleDateString("he-IL") : ""} · ליקויים {latestInspection.violation_count ?? 0}</span></div><Link className="button secondary" href={`/dashboard/parent/inspections/${latestInspection.id}/report`}>צפייה בדוח</Link></div> : <p>עדיין אין דוח ביקורת מאושר להצגה.</p>}<div className="risk-list"><div><ShieldCheck /> סטטוס גן בטוח <b>{primaryGarden?.safe_status ?? "לפי הרשאה"}</b></div><div><HeartPulse /> מידע רפואי <b>אפשר לעדכן כשצריך</b></div><div><Camera /> מצלמות <b>רק אם אושרו להורים</b></div></div></article></section>
       <section className="dashboard-section"><div className="section-heading"><h2>פעולות הורה</h2><p>כל פעולה נשמרת ומתועדת כדי להגן על הילד ועל פרטיות המשפחה.</p></div><div className="quick-actions-grid">{parentActions.map((action) => <Link className="quick-action" href={action.href} key={action.label}><action.icon /><strong>{action.label}</strong><span>{action.text}</span></Link>)}</div></section>
       <section className="grid cols-2 dashboard-panels"><ParentAdditionalChildRequestForm gardenName={primaryGarden?.name} defaultGardenId={primaryGarden?.id ?? gardenIds[0]} gardens={((availableGardens ?? gardensRes.data ?? []) as any[])} children={((childrenRes.data ?? []) as any[]).map((child: any) => ({ ...child, garden_name: (gardensById.get(child.garden_id ?? child.kindergarten_id) as any)?.name }))} /><ParentChildRequestForm children={(childrenRes.data ?? []) as any[]} /></section>
       <SimpleCommandCenter title="מה התעדכן אצל הילד שלי?" subtitle="מסך רגוע להורים: רק עדכונים חשובים, בלי שפה טכנית ובלי עומס." items={calmItems} />

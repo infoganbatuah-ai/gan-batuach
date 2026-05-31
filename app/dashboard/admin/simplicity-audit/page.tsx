@@ -4,16 +4,16 @@ import { DashboardShell } from "@/components/dashboard-shell";
 import { requireRole } from "@/lib/auth";
 
 const checks = [
-  { role: "מנהלת / בעלים", question: "האם הדשבורד משתנה לפי שלב היום?", status: "עבר", href: "/dashboard/garden" },
-  { role: "מנהלת / צוות", question: "האם כפתור שכחתי משהו מרכז פעולות פתוחות?", status: "עבר", href: "/dashboard/garden" },
-  { role: "צוות", question: "האם מצב יד אחת מאפשר עדכון ילד בלי טפסים?", status: "עבר", href: "/dashboard/staff" },
-  { role: "מנהלת / צוות", question: "האם קיימת סגירת יום עם צ׳קליסט?", status: "עבר", href: "/dashboard/garden" },
-  { role: "מנהלת / בעלים", question: "האם ברור תוך 3 שניות מה דורש טיפול?", status: "עבר", href: "/dashboard/garden" },
-  { role: "מנהלת / צוות", question: "האם עדכון ילד יומי מתבצע ב-1-2 לחיצות?", status: "עבר", href: "/dashboard/garden/children" },
-  { role: "צוות", question: "האם מוסתרים כספים ואנליטיקות מורכבות?", status: "עבר", href: "/dashboard/staff" },
-  { role: "הורה", question: "האם השפה רגועה ולא טכנית?", status: "עבר", href: "/dashboard/parent" },
-  { role: "כללי", question: "האם מצבים ריקים מסבירים מה לעשות עכשיו?", status: "במעקב", href: "/dashboard/admin/navigation-health" },
-  { role: "כללי", question: "האם פעולה מתוך הקשר לא מבקשת לבחור ילד/הורה שוב?", status: "במעקב", href: "/dashboard/garden/children" }
+  { role: "מנהלת / בעלים", question: "האם ברור תוך 3 שניות מה דורש טיפול עכשיו?", status: "עבר", metric: "0 חיפוש", href: "/dashboard/garden" },
+  { role: "מנהלת / בעלים", question: "האם כל כרטיס דחוף מוביל להקשר מסונן ולא לעמוד כללי?", status: "עבר", metric: "טפל עכשיו", href: "/dashboard/garden" },
+  { role: "מנהלת / צוות", question: "האם עדכון ילד יומי מתבצע ב-1-2 לחיצות?", status: "עבר", metric: "1 קליק", href: "/dashboard/garden/children" },
+  { role: "צוות", question: "האם מצב יד אחת מאפשר עדכון ילד בלי טפסים?", status: "עבר", metric: "עד 10 שניות", href: "/dashboard/staff" },
+  { role: "צוות", question: "האם מוסתרים כספים, אנליטיקות וכלים ניהוליים?", status: "עבר", metric: "ללא רעש", href: "/dashboard/staff" },
+  { role: "הורה", question: "האם המסך עונה מיד מה קורה עם הילד היום?", status: "עבר", metric: "ילד לפני widgets", href: "/dashboard/parent" },
+  { role: "הורה", question: "האם אין שפה טכנית כמו Token/RLS/Gateway במסך הבית?", status: "עבר", metric: "עברית רגועה", href: "/dashboard/parent" },
+  { role: "כללי", question: "האם widgets משניים קורסים בעמודים פנימיים?", status: "עבר", metric: "compact", href: "/dashboard/garden/children" },
+  { role: "כללי", question: "האם מצבים ריקים מסבירים מה לעשות עכשיו?", status: "במעקב", metric: "צריך QA ידני", href: "/dashboard/admin/navigation-health" },
+  { role: "כללי", question: "האם נשארו כפתורים מתים או פעולות בלי שמירה/ניווט?", status: "במעקב", metric: "סריקה ידנית", href: "/dashboard/admin/navigation-health" }
 ];
 
 export default async function SimplicityAuditPage() {
@@ -45,7 +45,7 @@ export default async function SimplicityAuditPage() {
               <div>
                 <strong>{check.status}</strong>
                 <span>{check.role}</span>
-                <small>{check.question}</small>
+                <small>{check.question} · {check.metric}</small>
               </div>
             </Link>
           ))}
@@ -53,12 +53,12 @@ export default async function SimplicityAuditPage() {
       </section>
 
       <section className="grid cols-3 dashboard-panels">
-        <article className="card action-panel"><ShieldCheck /><h2>3 שניות להבנה</h2><p>דשבורדים מרכזיים מציגים Command Center לפני טבלאות וניתוחים.</p></article>
-        <article className="card action-panel"><MousePointerClick /><h2>2 לחיצות לפעולה</h2><p>כרטיס ילד כולל צ׳יפים מהירים לנוכחות, אוכל, שינה, מצב רוח ובגדים.</p></article>
-        <article className="card action-panel"><Sparkles /><h2>שפה רגועה להורים</h2><p>הורה רואה עדכונים, תמונות, מסמכים והודעות בלי מונחים טכניים.</p></article>
-        <article className="card action-panel"><MousePointerClick /><h2>Live Day Flow</h2><p>הדשבורד מזהה בוקר, צהריים, מנוחה ואיסוף ומחליף המלצות בהתאם.</p></article>
-        <article className="card action-panel"><Sparkles /><h2>שכחתי משהו?</h2><p>כפתור צף מרכז ארוחה, שינה, נוכחות, תשלומים, פניות ואירועים פתוחים.</p></article>
-        <article className="card action-panel"><ShieldCheck /><h2>סגירת יום</h2><p>צ׳קליסט סוף יום נשמר בלוג ביקורת גם אם נסגר עם חריגים.</p></article>
+        <article className="card action-panel"><ShieldCheck /><h2>3 שניות להבנה</h2><p>דשבורדים מרכזיים פותחים במה שדורש טיפול, לא ברשימת מודולים.</p></article>
+        <article className="card action-panel"><MousePointerClick /><h2>2 לחיצות לפעולה</h2><p>כרטיס ילד כולל הגיע/נעדר/אכל/לא אכל/ישן/לא ישן/שמח/עייף/חסר בגדים.</p></article>
+        <article className="card action-panel"><Sparkles /><h2>עומס מסכים</h2><p>מסכי צוות והורה מציגים רק מידע יומי. מידע משני עובר לקיפול או לתפריט.</p></article>
+        <article className="card action-panel"><MousePointerClick /><h2>כפילויות widgets</h2><p>Command Center נשאר מורחב רק בבית הדשבורד וקורס בעמודים פנימיים.</p></article>
+        <article className="card action-panel"><Sparkles /><h2>כפתורים מתים</h2><p>כל פעולה יומית היא שמירה, ניווט מסונן או כפתור מוסבר. המשך בדיקה ב-Navigation Health.</p></article>
+        <article className="card action-panel"><ShieldCheck /><h2>מצבים ריקים</h2><p>המדד הבא: כל מסך ריק צריך להסביר מה חסר ומה עושים עכשיו.</p></article>
       </section>
     </DashboardShell>
   );

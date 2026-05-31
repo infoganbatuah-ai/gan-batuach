@@ -1,5 +1,4 @@
-import Link from "next/link";
-import { AlertTriangle, BadgeCheck, CalendarClock, ClipboardList, FileCheck2, HeartPulse, MapPin, MessageSquare, Timer, UserCheck } from "lucide-react";
+import { AlertTriangle, ClipboardList, FileCheck2, HeartPulse, MapPin, MessageSquare, UserCheck } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { StatCard } from "@/components/stat-card";
 import { SimpleCommandCenter } from "@/components/simple-command-center";
@@ -7,15 +6,6 @@ import { StaffOneHandMode } from "@/components/staff-one-hand-mode";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { Avatar } from "@/components/avatar";
-
-const staffActions = [
-  { href: "/dashboard/staff/attendance", label: "כניסה / יציאה", icon: MapPin, text: "בדיקת GPS מול כתובת הגן." },
-  { href: "/dashboard/staff/shifts", label: "שעות חודשיות", icon: Timer, text: "חישוב שעות, איחורים וחוסרים." },
-  { href: "/dashboard/staff/tasks", label: "משימות", icon: ClipboardList, text: "משימות צוות וצפייה מי ראה." },
-  { href: "/dashboard/staff/messages", label: "הודעות", icon: MessageSquare, text: "תקשורת פנימית מתועדת." },
-  { href: "/dashboard/staff/certificates", label: "תעודות", icon: FileCheck2, text: "עזרה ראשונה, הכשרות ותוקף." },
-  { href: "/dashboard/staff/background", label: "בדיקות רקע", icon: BadgeCheck, text: "אישור עבודה רק עם מסמכים תקפים." }
-];
 
 export default async function StaffDashboard() {
   const { profile } = await requireRole(["staff"]);
@@ -39,13 +29,11 @@ export default async function StaffDashboard() {
   ];
   return (
     <DashboardShell role="staff" title="ממשק צוות">
-      <div className="dashboard-hero-card staff-hero-card premium-identity-hero"><div><p className="eyebrow">צוות גן</p><h1>{staff?.full_name ?? profile.full_name ?? "ממשק צוות"}</h1><p>נוכחות, משימות, יומן ילד, מסמכים ותעודות במקום אחד.</p></div><Avatar name={staff?.full_name ?? profile.full_name} src={staff?.profile_photo_url ?? profile.profile_image_url} size="lg" /><span className={staff?.approved_to_work ? "pill good" : "pill warn"}><UserCheck size={15} /> {staff?.approved_to_work ? "מאושר/ת לעבודה" : "ממתין לאישור"}</span></div>
-      <div className="grid cols-3 dashboard-kpis"><StatCard label="סטטוס עבודה" value={staff?.approved_to_work ? "פעיל" : "דורש אימות"} tone={staff?.approved_to_work ? "good" : "warn"} /><StatCard label="תעודות במערכת" value={certsRes.count ?? 0} /><StatCard label="משימות פתוחות" value={tasksRes.count ?? 0} /></div>
+      <div className="dashboard-hero-card staff-hero-card premium-identity-hero"><div><p className="eyebrow">מסך עבודה יומי</p><h1>{staff?.full_name ?? profile.full_name ?? "ממשק צוות"}</h1><p>מה שצריך למשמרת: כניסה/יציאה, ילדים לעדכון, משימות, אירוע והודעה למנהלת. בלי כספים ובלי ניתוחים.</p></div><Avatar name={staff?.full_name ?? profile.full_name} src={staff?.profile_photo_url ?? profile.profile_image_url} size="lg" /><span className={staff?.approved_to_work ? "pill good" : "pill warn"}><UserCheck size={15} /> {staff?.approved_to_work ? "מאושר/ת לעבודה" : "ממתין לאישור"}</span></div>
+      <div className="grid cols-3 dashboard-kpis zero-click-kpis"><StatCard label="סטטוס עבודה" value={staff?.approved_to_work ? "פעיל" : "דורש אימות"} tone={staff?.approved_to_work ? "good" : "warn"} /><StatCard label="ילדים לעדכון" value={attentionRes.count ?? 0} tone={attentionRes.count ? "warn" : "good"} /><StatCard label="משימות פתוחות" value={tasksRes.count ?? 0} tone={tasksRes.count ? "warn" : "good"} /></div>
       <SimpleCommandCenter title="מה לעשות במשמרת עכשיו?" subtitle="מצב פשוט לצוות: רק הדברים שצריך לבצע היום, בלי כספים ובלי מסכים מורכבים." items={staffCommandItems} />
       <StaffOneHandMode children={(childrenRes.data ?? []) as any[]} />
-      <section className="staff-operating-center"><div><p className="eyebrow">Operating Center</p><h2>מה חשוב במשמרת היום?</h2><p>כניסה/יציאה, ילדים רגישים, משימות, מסמכים והכשרות.</p></div><div className="spotlight-metrics"><span>ילדים לתשומת לב <b>{attentionRes.count ?? 0}</b></span><span>מסמכים חסרים <b>{docsRes.count ?? 0}</b></span><span>הכשרות <b>{certsRes.count ?? 0}</b></span></div></section>
-      <section className="dashboard-section"><div className="section-heading"><h2>פעולות צוות</h2><p>המערכת שומרת זמן, מיקום ולוג צפייה לכל פעולה חשובה.</p></div><div className="quick-actions-grid">{staffActions.map((action) => <Link className="quick-action" href={action.href} key={action.label}><action.icon /><strong>{action.label}</strong><span>{action.text}</span></Link>)}</div></section>
-      <section className="grid cols-2 dashboard-panels"><article className="card action-panel"><h2>לו״ז היום</h2><div className="risk-list"><div><CalendarClock /> כיתה משויכת <b>לפי מנהל</b></div><div><ClipboardList /> משימות פתוחות <b>במעקב</b></div><div><BadgeCheck /> מסמכי חובה <b>נדרש תוקף</b></div></div></article><article className="card action-panel"><h2>כלל בטיחות</h2><p>אם חסרה תעודת יושר, בדיקת רקע או הכשרה שהוגדרה כחובה, העובד לא אמור להיות מאושר כפעיל.</p></article></section>
+      {(docsRes.count ?? 0) > 0 ? <section className="staff-operating-center"><div><p className="eyebrow">נדרש ממך</p><h2>חסרים מסמכי צוות</h2><p>השלמת המסמכים עוזרת למנהלת לסמן אותך כמאושר/ת לעבודה.</p></div><div className="spotlight-metrics"><span>מסמכים חסרים <b>{docsRes.count ?? 0}</b></span><span>תעודות במערכת <b>{certsRes.count ?? 0}</b></span></div></section> : null}
     </DashboardShell>
   );
 }

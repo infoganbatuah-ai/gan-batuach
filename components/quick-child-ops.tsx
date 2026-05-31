@@ -1,11 +1,14 @@
 "use client";
 
 import { useState, useTransition } from "react";
-import { CheckCircle2, Moon, Shirt, Smile, Utensils } from "lucide-react";
+import Link from "next/link";
+import { AlertTriangle, CheckCircle2, MessageCircle, Moon, Shirt, Smile, Utensils } from "lucide-react";
 
 const journalChips = [
   { label: "אכל הכל", field: "meals", value: "אכל הכל", icon: Utensils },
+  { label: "לא אכל", field: "meals", value: "לא אכל", icon: Utensils },
   { label: "ישן טוב", field: "sleep_summary", value: "ישן טוב", icon: Moon },
+  { label: "לא ישן", field: "sleep_summary", value: "לא ישן", icon: Moon },
   { label: "שמח", field: "mood", value: "שמח", icon: Smile },
   { label: "עייף", field: "mood", value: "עייף", icon: Smile }
 ];
@@ -62,6 +65,8 @@ export function QuickChildOps({ childId, gardenId }: { childId: string; gardenId
       <button type="button" disabled={pending} onClick={() => saveAttendance("absent")}>נעדר</button>
       {journalChips.map((chip) => <button type="button" disabled={pending} onClick={() => saveJournal(chip.field, chip.value)} key={chip.label}><chip.icon size={14} /> {chip.label}</button>)}
       <button type="button" disabled={pending} onClick={() => saveClothes(true)}><Shirt size={14} /> חסר בגדים</button>
+      <Link href={`/dashboard/garden/messages?childId=${childId}`}><MessageCircle size={14} /> פנייה להורה</Link>
+      <Link href={`/dashboard/garden/incidents?childId=${childId}`}><AlertTriangle size={14} /> אירוע חדש</Link>
       {message ? <small>{message}</small> : null}
     </div>
   );
