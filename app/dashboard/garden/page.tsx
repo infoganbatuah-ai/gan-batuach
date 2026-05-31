@@ -53,6 +53,11 @@ export default async function GardenDashboard() {
     supabase.from("child_daily_journals" as any).select("child_id, meals, sleep_summary, mood").eq("garden_id", gardenId ?? "").eq("journal_date", new Date().toISOString().slice(0, 10))
   ]);
   const garden = gardenRes.data as any;
+  const [incomingTransfersRes, outgoingTransfersRes] = await Promise.all([
+    supabase.from("child_transfer_requests" as any).select("id", { count: "exact", head: true }).eq("target_garden_id", gardenId ?? "").in("status", ["pending_new_kindergarten_review", "missing_details"]),
+    supabase.from("child_transfer_requests" as any).select("id", { count: "exact", head: true }).eq("current_garden_id", gardenId ?? "").in("status", ["pending_new_kindergarten_review", "pending_current_kindergarten_response", "current_kindergarten_requested_call", "current_kindergarten_flagged"])
+  ]);
+  const transferRequestsCount = (incomingTransfersRes.count ?? 0) + (outgoingTransfersRes.count ?? 0);
   const attendanceRows = (attendanceRes.data ?? []) as any[];
   const parentLeadRows = (leadsRes.data ?? []) as any[];
   const newLeadCount = parentLeadRows.filter((lead) => ["new", "new_parent_lead"].includes(lead.status)).length;
@@ -73,6 +78,7 @@ export default async function GardenDashboard() {
     { title: "התראות בריאות/אלרגיה", count: healthAlertsRes.count ?? 0, description: "ילדים עם מידע רפואי שצריך לראות לפני היום", href: "/dashboard/garden/children?view=attention", tone: (healthAlertsRes.count ?? 0) ? "warn" as const : "good" as const, icon: HeartPulse },
     { title: "תשלומים דורשים טיפול", count: unpaidRes.count ?? 0, description: "גבייה חסרה, חלקית או באיחור", href: "/dashboard/garden/finance?filter=due", tone: (unpaidRes.count ?? 0) ? "bad" as const : "good" as const, icon: WalletCards },
     { title: "פניות הורים פתוחות", count: parentRequestsRes.count ?? 0, description: "בקשות שצריך לסמן כטופלו או להשיב עליהן", href: "/dashboard/garden/children?view=attention", tone: (parentRequestsRes.count ?? 0) ? "warn" as const : "good" as const, icon: MessageSquare },
+    { title: "בקשות מעבר/קליטה", count: transferRequestsCount, description: "ילדים קיימים שמבקשים קליטה או סיום שיוך", href: "/dashboard/garden/leads", tone: transferRequestsCount ? "warn" as const : "good" as const, icon: UserPlus },
     { title: "הודעות שלא נקראו", count: messagesRes.data?.length ?? 0, description: "הודעות שממתינות למנהלת/בעלים", href: "/dashboard/garden/messages", tone: (messagesRes.data?.length ?? 0) ? "warn" as const : "good" as const, icon: Bell },
     { title: "מסמכי צוות חסרים", count: staffDocsRes.count ?? 0, description: "עובדים עם מסמך חסר/דחוי/פג תוקף", href: "/dashboard/garden/staff", tone: (staffDocsRes.count ?? 0) ? "bad" as const : "good" as const, icon: FileClock },
     { title: "אירועים למעקב", count: incidentsRes.count ?? 0, description: "אירועים שלא נסגרו ודורשים טיפול", href: "/dashboard/garden/incidents", tone: (incidentsRes.count ?? 0) ? "bad" as const : "good" as const, icon: AlertTriangle },
@@ -140,6 +146,7 @@ export default async function GardenDashboard() {
         <StatCard label="לידים חדשים" value={newLeadCount} tone={newLeadCount ? "warn" : "good"} />
         <StatCard label="הורה משלים פרטים" value={pendingParentCompletionRes.count ?? 0} tone={pendingParentCompletionRes.count ? "warn" : "good"} />
         <StatCard label="ילדים לאישור" value={pendingApprovalRes.count ?? 0} tone={pendingApprovalRes.count ? "warn" : "good"} />
+        <StatCard label="מעבר/קליטה" value={transferRequestsCount} tone={transferRequestsCount ? "warn" : "good"} />
       </div>
       <SimpleCommandCenter title="מה דורש טיפול היום?" subtitle="המערכת מרכזת עבורך את הדברים שמנהלת גן צריכה לדעת בבוקר, בלי לחפש בתפריטים." items={morningItems} />
       <LiveDayFlow counts={flowCounts} />
@@ -168,6 +175,7 @@ export default async function GardenDashboard() {
       <section className="grid cols-2 dashboard-panels">
         <article className="card action-panel"><div className="section-heading"><h2>הודעות אדמין</h2><p>הודעות שנשלחו מהאדמין למנהלת או לבעלים.</p></div>{(messagesRes.data ?? []).length === 0 ? <div className="empty-mini">אין הודעות חדשות.</div> : (messagesRes.data ?? []).map((message: any) => <div className="list-item" key={message.id}><div><strong>{message.subject}</strong><span>{message.content ?? message.body}</span></div><span className="pill">{message.status ?? "unread"}</span></div>)}</article>
         <article className="card action-panel"><div className="section-heading"><h2>לידים חדשים מהורים</h2><p>אשרו, דחו, צרו קשר או בקשו פרטים נוספים.</p></div>{(leadsRes.data ?? []).length === 0 ? <div className="empty-mini">אין לידים חדשים כרגע.</div> : (leadsRes.data ?? []).map((lead: any) => <div className="list-item" key={lead.id}><div><strong>{lead.parent_name}</strong><span>{lead.phone} · {lead.child_name ?? "ילד/ה"} · {lead.child_age ?? "גיל לא צוין"}</span></div><span className="pill warn">{lead.status}</span></div>)}</article>
+        <article className="card action-panel"><div className="section-heading"><h2>בקשות מעבר / קליטת ילד קיים</h2><p>בקשות שבהן ההורה משתמש בתיק ילד קבוע במקום לפתוח ילד כפול.</p></div>{transferRequestsCount === 0 ? <div className="empty-mini">אין בקשות מעבר כרגע.</div> : <div className="list-item"><div><strong>{transferRequestsCount} בקשות ממתינות</strong><span>פתחו את מרכז הלידים כדי לאשר קליטה, לבקש פרטים או לתעד תגובת גן קיים.</span></div><Link className="button secondary" href="/dashboard/garden/leads">פתיחת בקשות</Link></div>}</article>
         <article className="card action-panel"><div className="section-heading"><h2>ציות ותפעול</h2><p>פריטים שדורשים טיפול לפני ביקורת או במהלך החודש.</p></div><div className="risk-list"><div><Bell /> תלונות פתוחות <b>{complaintsRes.count ?? 0}</b></div><div><ClipboardCheck /> ליקויי ביקורת <b>{violationsRes.count ?? 0}</b></div><div><Camera /> תקלות מצלמה <b>{camerasRes.count ?? 0}</b></div><div><FileClock /> מסמכים למעקב <b>{documentsRes.data?.length ?? 0}</b></div></div></article>
       </section>
 

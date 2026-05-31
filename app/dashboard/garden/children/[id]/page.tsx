@@ -52,6 +52,10 @@ export default async function GardenChildProfilePage({ params }: { params: Promi
   const requests = (requestsRes.data ?? []) as any[];
   const incidents = (incidentsRes.data ?? []) as any[];
   const payments = (paymentHistoryRes.data ?? []) as any[];
+  const [enrollmentsRes, timelineRes] = child.permanent_child_file_id ? await Promise.all([
+    supabase.from("child_kindergarten_enrollments" as any).select("id, garden_id, status, start_date, end_date, classroom_name, notes, gardens(name, city)").eq("permanent_child_file_id", child.permanent_child_file_id).order("created_at", { ascending: false }),
+    supabase.from("child_timeline_events" as any).select("id, event_type, title, description, garden_id, created_at, gardens(name)").eq("permanent_child_file_id", child.permanent_child_file_id).order("created_at", { ascending: false }).limit(20)
+  ]) : [{ data: [] }, { data: [] }] as any;
 
   return (
     <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="כרטיס ילד">
@@ -87,6 +91,10 @@ export default async function GardenChildProfilePage({ params }: { params: Promi
       <section className="grid cols-2 dashboard-panels">
         <article className="card action-panel"><h2>יומן יומי אחרון</h2>{journals.length === 0 ? <div className="empty-mini">אין יומנים שמורים.</div> : journals.map((journal) => <div className="list-item" key={journal.id}><div><strong>{dateText(journal.journal_date)}</strong><span>{journal.mood ?? "-"} · {journal.sleep_summary ?? "-"} · {journal.notes_to_parents ?? ""}</span></div></div>)}</article>
         <article className="card action-panel"><h2><FileText size={18} /> מסמכים והיסטוריית תשלום</h2>{(docsRes.data ?? []).length === 0 ? <div className="empty-mini">אין מסמכי ילד.</div> : (docsRes.data ?? []).map((doc: any) => <div className="list-item" key={doc.id}><strong>{doc.name ?? doc.document_type}</strong><span className="pill">{doc.status}</span></div>)}<hr />{payments.map((payment) => <div className="list-item" key={payment.id}><strong>₪{payment.amount_paid ?? payment.amount}</strong><span>{payment.transaction_type ?? payment.action} · {dateText(payment.paid_at)}</span></div>)}</article>
+      </section>
+      <section className="grid cols-2 dashboard-panels">
+        <article className="card action-panel"><h2>היסטוריית גנים</h2>{(enrollmentsRes.data ?? []).length === 0 ? <div className="empty-mini">אין היסטוריית שיוכים נוספת.</div> : (enrollmentsRes.data ?? []).map((enrollment: any) => <div className="list-item" key={enrollment.id}><div><strong>{enrollment.gardens?.name ?? "גן ילדים"}</strong><span>{dateText(enrollment.start_date)} - {dateText(enrollment.end_date)} · {enrollment.classroom_name ?? "ללא קבוצה"}</span><small>{enrollment.notes ?? ""}</small></div><span className={enrollment.status === "active" ? "pill good" : enrollment.status === "transferred" ? "pill" : "pill warn"}>{enrollment.status}</span></div>)}</article>
+        <article className="card action-panel"><h2>ציר זמן תיק ילד</h2>{(timelineRes.data ?? []).length === 0 ? <div className="empty-mini">אין אירועי ציר זמן נוספים.</div> : (timelineRes.data ?? []).map((event: any) => <div className="list-item" key={event.id}><div><strong>{event.title}</strong><span>{event.description ?? ""}</span><small>{event.gardens?.name ?? "מערכת"} · {event.created_at ? new Date(event.created_at).toLocaleString("he-IL") : ""}</small></div></div>)}</article>
       </section>
     </DashboardShell>
   );

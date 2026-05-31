@@ -28,37 +28,56 @@ export default async function ParentDashboard() {
   const family = await getParentFamilyContext(supabase as any, profile);
   const parent = (family.parents[0] ?? null) as any;
   const parentId = parent?.id ?? "";
+  const enrollmentCards = family.enrollments.map((enrollment: any) => ({
+    id: enrollment.child_id ?? enrollment.permanent_child_file_id,
+    enrollment_id: enrollment.id,
+    garden_id: enrollment.garden_id ?? enrollment.kindergarten_id,
+    kindergarten_id: enrollment.garden_id ?? enrollment.kindergarten_id,
+    permanent_child_file_id: enrollment.permanent_child_file_id,
+    full_name: enrollment.full_name,
+    birth_date: enrollment.birth_date,
+    photo_url: enrollment.photo_url,
+    face_image_url: enrollment.photo_url,
+    status: enrollment.status,
+    allergies: enrollment.allergies,
+    hmo: enrollment.hmo,
+    medical_notes: enrollment.medical_notes,
+    age_group: enrollment.kindergarten_fee_groups?.group_name ?? enrollment.classroom_name,
+    classroom: enrollment.classroom_name,
+    payment_status: enrollment.payment_status,
+    monthly_fee: enrollment.monthly_fee,
+    next_payment_due: enrollment.next_payment_due,
+    valid_until: enrollment.valid_until,
+    debt_amount: enrollment.debt_amount,
+    pickup_status: null,
+    approval_notes: enrollment.notes,
+    manager_response: null
+  }));
+  const statusPriority: Record<string, number> = { active: 5, pending_manager_approval: 4, pending_parent_completion: 3, transferred: 2, completed: 1, rejected: 0 };
+  const childCardsByFile = new Map<string, any>();
+  for (const child of enrollmentCards) {
+    const key = child.permanent_child_file_id ?? child.id;
+    const current = childCardsByFile.get(key);
+    const mergedEnrollments = [...(current?.enrollments ?? []), child];
+    if (!current || (statusPriority[child.status ?? ""] ?? 0) >= (statusPriority[current.status ?? ""] ?? 0)) {
+      childCardsByFile.set(key, { ...child, enrollments: mergedEnrollments });
+    } else {
+      childCardsByFile.set(key, { ...current, enrollments: mergedEnrollments });
+    }
+  }
   const childrenRes = {
-    data: family.enrollments.map((enrollment: any) => ({
-      id: enrollment.child_id ?? enrollment.permanent_child_file_id,
-      enrollment_id: enrollment.id,
-      garden_id: enrollment.garden_id ?? enrollment.kindergarten_id,
-      kindergarten_id: enrollment.garden_id ?? enrollment.kindergarten_id,
-      permanent_child_file_id: enrollment.permanent_child_file_id,
-      full_name: enrollment.full_name,
-      birth_date: enrollment.birth_date,
-      photo_url: enrollment.photo_url,
-      face_image_url: enrollment.photo_url,
-      status: enrollment.status,
-      allergies: enrollment.allergies,
-      hmo: enrollment.hmo,
-      medical_notes: enrollment.medical_notes,
-      age_group: enrollment.kindergarten_fee_groups?.group_name ?? enrollment.classroom_name,
-      classroom: enrollment.classroom_name,
-      payment_status: enrollment.payment_status,
-      monthly_fee: enrollment.monthly_fee,
-      next_payment_due: enrollment.next_payment_due,
-      valid_until: enrollment.valid_until,
-      debt_amount: enrollment.debt_amount,
-      pickup_status: null,
-      approval_notes: enrollment.notes,
-      manager_response: null
-    }))
+    data: Array.from(childCardsByFile.values())
   };
   const childIds = (childrenRes.data ?? []).map((child: any) => child.id);
   const gardenIds = family.gardenIds;
   const gardensRes = { data: family.gardens };
   const gardensById = new Map((gardensRes.data ?? []).map((garden: any) => [garden.id, garden]));
+  const { data: availableGardens } = await supabase
+    .from("gardens" as any)
+    .select("id, name, city")
+    .in("status", ["active", "pending_first_inspection", "safe", "approved"])
+    .order("name")
+    .limit(100);
   const primaryGarden = gardensById.get(profile.garden_id ?? parent?.garden_id ?? gardenIds[0]) as any;
   const primaryAgeGroups = primaryGarden ? await getKindergartenAgeGroups(supabase, primaryGarden.id, primaryGarden) : [];
   const { data: latestInspection } = gardenIds.length ? await supabase.from("inspections" as any).select("id, garden_id, completed_at, weighted_score, violation_count").in("garden_id", gardenIds).eq("status", "done").order("completed_at", { ascending: false }).limit(1).maybeSingle() : { data: null };
@@ -106,7 +125,7 @@ export default async function ParentDashboard() {
       </section>
       <section className="grid cols-2 dashboard-panels"><article className="card action-panel"><h2>פרטי הגן של הילד</h2><div className="risk-list"><div>גן <b>{primaryGarden?.name ?? "גן משויך"}</b></div><div>מנהלת <b>{primaryGarden?.manager?.full_name ?? "לפי הרשאת הגן"}</b></div><div>קבוצות גיל <b>{formatAgeGroups(primaryAgeGroups)}</b></div><div>טלפון <b>{primaryGarden?.phone ?? primaryGarden?.manager?.phone ?? "לפי הרשאה"}</b></div><div>מצלמות <b>לפי הרשאה</b></div></div></article><article className="card action-panel"><h2>סיכום אמון ופיקוח</h2>{latestInspection ? <div className="list-item"><div><strong>ציון {latestInspection.weighted_score ?? "-"}</strong><span>{latestInspection.completed_at ? new Date(latestInspection.completed_at).toLocaleDateString("he-IL") : ""} · ליקויים {latestInspection.violation_count ?? 0}</span></div><Link className="button secondary" href={`/dashboard/parent/inspections/${latestInspection.id}/report`}>צפייה בדוח</Link></div> : <p>עדיין אין דוח ביקורת מאושר להצגה.</p>}<div className="risk-list"><div><ShieldCheck /> סטטוס גן בטוח <b>{primaryGarden?.safe_status ?? "לפי הרשאה"}</b></div><div><HeartPulse /> מידע רפואי <b>ניתן לעדכון</b></div><div><Camera /> צפייה בלייב <b>Token זמני</b></div></div></article></section>
       <section className="dashboard-section"><div className="section-heading"><h2>פעולות הורה</h2><p>כל פעולה נשמרת ומתועדת כדי להגן על הילד ועל פרטיות המשפחה.</p></div><div className="quick-actions-grid">{parentActions.map((action) => <Link className="quick-action" href={action.href} key={action.label}><action.icon /><strong>{action.label}</strong><span>{action.text}</span></Link>)}</div></section>
-      <section className="grid cols-2 dashboard-panels"><ParentAdditionalChildRequestForm gardenName={primaryGarden?.name} /><ParentChildRequestForm children={(childrenRes.data ?? []) as any[]} /></section>
+      <section className="grid cols-2 dashboard-panels"><ParentAdditionalChildRequestForm gardenName={primaryGarden?.name} defaultGardenId={primaryGarden?.id ?? gardenIds[0]} gardens={((availableGardens ?? gardensRes.data ?? []) as any[])} children={((childrenRes.data ?? []) as any[]).map((child: any) => ({ ...child, garden_name: (gardensById.get(child.garden_id ?? child.kindergarten_id) as any)?.name }))} /><ParentChildRequestForm children={(childrenRes.data ?? []) as any[]} /></section>
       <SimpleCommandCenter title="מה התעדכן אצל הילד שלי?" subtitle="מסך רגוע להורים: רק עדכונים חשובים, בלי שפה טכנית ובלי עומס." items={calmItems} />
       <section className="parent-spotlight-card">
         <div><p className="eyebrow">Child Spotlight</p><h2>היום היה יום נהדר</h2><p>כאן ההורה מקבל חוויה רגשית: מצב רוח, ארוחה, שינה, תמונות חדשות והודעה מהגן במקום אחד.</p></div>
