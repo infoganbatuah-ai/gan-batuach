@@ -1,4 +1,5 @@
 import { DashboardShell } from "@/components/dashboard-shell";
+import { DashboardFilterChip } from "@/components/dashboard-filter-chip";
 import { ChildrenProfileCards } from "@/components/people-profile-cards";
 import { Avatar } from "@/components/avatar";
 import { ChildStatusActions } from "@/components/child-status-actions";
@@ -6,8 +7,16 @@ import { StatCard } from "@/components/stat-card";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
-export default async function GardenChildrenPage() {
+const filterLabels: Record<string, string> = {
+  "change-clothes": "ילדים שחסר להם בגדים להחלפה",
+  "parent-requests": "ילדים עם פניות הורים פתוחות",
+  "health": "ילדים עם דגש בריאותי",
+  "payments": "ילדים עם תשלום לטיפול"
+};
+
+export default async function GardenChildrenPage({ searchParams }: { searchParams: Promise<{ view?: string; filter?: string; missing?: string }> }) {
   const { profile } = await requireRole(["manager", "owner"]);
+  const params = await searchParams;
   const supabase = await createClient();
   const gardenId = profile.garden_id ?? "";
   const today = new Date().toISOString().slice(0, 10);
@@ -27,7 +36,7 @@ export default async function GardenChildrenPage() {
   for (const incident of (incidentsRes.data ?? []) as any[]) incidentCount.set(incident.child_id, (incidentCount.get(incident.child_id) ?? 0) + 1);
   const requestCount = new Map<string, number>();
   for (const request of (requestsRes.data ?? []) as any[]) requestCount.set(request.child_id, (requestCount.get(request.child_id) ?? 0) + 1);
-  const rows = ((childrenRes.data ?? []) as any[]).map((child) => {
+  const allRows = ((childrenRes.data ?? []) as any[]).map((child) => {
     const attendance = attendanceByChild.get(child.id) as any;
     const journal = journalByChild.get(child.id) as any;
     const group = feeById.get(child.payment_group_id) ?? feeGroups.find((item) => item.group_name === child.age_group || item.group_name === child.classroom);
@@ -52,10 +61,23 @@ export default async function GardenChildrenPage() {
       incident_count: incidentCount.get(child.id) ?? 0
     };
   });
+  const rows = allRows.filter((row) => {
+    if (params.missing === "meal") return !row.meals_text;
+    if (params.missing === "sleep") return !row.sleep_summary;
+    if (params.filter === "change-clothes") return row.has_change_clothes === false;
+    if (params.filter === "parent-requests") return Number(row.open_parent_requests ?? 0) > 0;
+    if (params.filter === "health") return Boolean(row.allergies || row.medical_notes || row.regular_medications);
+    if (params.filter === "payments") return ["overdue", "unpaid", "partial", "failed", "not_transferred"].includes(row.payment_status);
+    if (params.view === "attention") return Boolean(row.allergies || row.medical_notes || row.has_change_clothes === false || row.open_parent_requests || ["overdue", "unpaid", "partial", "failed", "not_transferred"].includes(row.payment_status) || row.attendance_status === "not_updated" || row.incident_count);
+    return true;
+  });
+  const label = params.missing === "meal" ? "ילדים ללא עדכון ארוחה" : params.missing === "sleep" ? "ילדים ללא עדכון שינה" : filterLabels[params.filter ?? ""] ?? (params.view === "attention" ? "ילדים שדורשים תשומת לב" : null);
+  const emptyTitle = params.missing === "meal" ? "אין כרגע ילדים ללא עדכון ארוחה" : params.missing === "sleep" ? "אין כרגע ילדים ללא עדכון שינה" : label ? `אין כרגע ${label}` : undefined;
 
   return (
     <DashboardShell role="manager" title="ילדים">
       <div className="dashboard-hero-card garden-hero-card"><div><p className="eyebrow">Children Profiles</p><h1>מערכת כרטיסי ילדים חכמה.</h1><p>לא עוד רשימה אפורה: תמונה, נוכחות, בריאות, איסוף, יומן יומי ואירועים בכרטיס אחד.</p></div><span className="pill good">{rows.length} ילדים</span></div>
+      <DashboardFilterChip label={label} clearHref="/dashboard/garden/children" isEmpty={rows.length === 0} emptyTitle={emptyTitle} emptyText="כל הילדים הרלוונטיים כבר טופלו במסנן הזה. אפשר לנקות סינון כדי לראות את כל הילדים." />
       <div className="grid cols-4 dashboard-kpis"><StatCard label="נוכחים היום" value={rows.filter((row) => row.attendance_status === "present").length} tone="good" /><StatCard label="טרם עודכנו" value={rows.filter((row) => row.attendance_status === "not_updated").length} tone="warn" /><StatCard label="אלרגיות" value={rows.filter((row) => row.allergies).length} tone="bad" /><StatCard label="אירועים פתוחים" value={rows.reduce((sum, row) => sum + Number(row.incident_count ?? 0), 0)} tone="warn" /></div>
 
       <section className="dashboard-section">

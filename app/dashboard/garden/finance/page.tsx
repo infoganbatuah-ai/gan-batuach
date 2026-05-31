@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { FileSpreadsheet, TrendingUp, WalletCards } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
+import { DashboardFilterChip } from "@/components/dashboard-filter-chip";
 import { FeeGroupSettings } from "@/components/fee-group-settings";
 import { PrintButton } from "@/components/print-button";
 import { StatCard } from "@/components/stat-card";
@@ -19,8 +20,17 @@ function actualMonthlyFee(child: any) {
   return isArrangementActive(child) ? Number(child.custom_monthly_fee ?? 0) : Number(child.group_monthly_fee ?? child.monthly_fee ?? 0);
 }
 
-export default async function GardenFinancePage() {
+const financeFilterLabels: Record<string, string> = {
+  failed: "תשלומים שלא עברו",
+  overdue: "תשלומים באיחור",
+  due: "תשלומים שדורשים טיפול",
+  partial: "תשלומים חלקיים",
+  paused: "תשלומים שנעצרו"
+};
+
+export default async function GardenFinancePage({ searchParams }: { searchParams: Promise<{ filter?: string }> }) {
   const { profile } = await requireRole(["manager", "owner"]);
+  const params = await searchParams;
   const supabase = await createClient();
   const gardenId = profile.garden_id ?? "";
   const now = new Date();
@@ -44,7 +54,7 @@ export default async function GardenFinancePage() {
   }
   const feeGroupsWithMarket = feeGroups.map((group) => ({ ...group, market_average_fee: marketAverages.get(group.id) ?? group.market_average_fee ?? null }));
   const feeById = new Map(feeGroups.map((group) => [group.id, group]));
-  const children = ((childrenRes.data ?? []) as any[]).map((child) => {
+  const allChildren = ((childrenRes.data ?? []) as any[]).map((child) => {
     const group = feeById.get(child.payment_group_id) ?? feeGroups.find((item) => item.group_name === child.age_group || item.group_name === child.classroom);
     return {
       ...child,
@@ -53,6 +63,14 @@ export default async function GardenFinancePage() {
       actual_monthly_fee: isArrangementActive(child) ? Number(child.custom_monthly_fee ?? 0) : Number(group?.monthly_fee ?? child.monthly_fee ?? 0),
       has_special_arrangement: isArrangementActive(child)
     };
+  });
+  const children = allChildren.filter((child) => {
+    if (params.filter === "failed") return ["failed", "not_transferred"].includes(child.payment_status);
+    if (params.filter === "overdue") return child.payment_status === "overdue" || (child.next_payment_due && new Date(child.next_payment_due).getTime() < Date.now());
+    if (params.filter === "due") return ["overdue", "unpaid", "partial", "failed", "not_transferred"].includes(child.payment_status);
+    if (params.filter === "partial") return child.payment_status === "partial";
+    if (params.filter === "paused") return child.payments_paused;
+    return true;
   });
   const history = (historyRes.data ?? []) as any[];
   const monthHistory = (monthHistoryRes.data ?? []) as any[];
@@ -79,6 +97,7 @@ export default async function GardenFinancePage() {
         <div><p className="eyebrow">Kindergarten Finance</p><h1>מרכז גבייה ותשלומי ילדים.</h1><p>הכנסות חודשיות, תשלומים חסרים, איחורים, הנחות והסדרים מיוחדים במקום אחד.</p></div>
         <span className={overdue ? "pill bad" : "pill good"}><WalletCards size={15} /> גבייה {collection}%</span>
       </div>
+      <DashboardFilterChip label={financeFilterLabels[params.filter ?? ""]} clearHref="/dashboard/garden/finance" isEmpty={children.length === 0} emptyTitle={params.filter === "failed" ? "אין כרגע תשלומים שלא עברו" : params.filter === "overdue" ? "אין כרגע תשלומים באיחור" : params.filter ? `אין כרגע ${financeFilterLabels[params.filter]}` : undefined} emptyText="כל הילדים במסנן הזה תקינים כרגע. אפשר לנקות סינון כדי לראות את כל הגבייה." />
       <div className="grid cols-4 dashboard-kpis">
         <StatCard label="הכנסה חודשית צפויה" value={money(expected)} tone="good" />
         <StatCard label="נגבה החודש" value={money(paid)} tone="good" />
