@@ -1,7 +1,17 @@
 node_modules/
 .next/
+.env
 .env.local
+.env.*
+.vercel/
 __MACOSX/
 .DS_Store
 .git/
 exports/
+logs/
+*.log
+tmp/
+temp/
+*.zip
+*.tar
+*.tar.gz

@@ -1,8 +1,8 @@
 # Keep local artifacts and secrets out of future Docker build contexts.
 .env
 .env.*
-!.env.example
 .git
+.vercel
 .next
 node_modules
 npm-debug.log*
@@ -14,3 +14,17 @@ __MACOSX
 coverage
 *.local
 exports
+logs
+tmp
+temp
+*.zip
+*.tar
+*.tar.gz
+*secret*
+*credential*
+*private-key*
+*service-role*
+*.pem
+*.p12
+*.pfx
+*.key
