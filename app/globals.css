@@ -753,6 +753,45 @@ textarea {
   gap: 14px;
 }
 
+.collapsible-action-panel {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.compact-action-panel {
+  background: linear-gradient(135deg, #ffffff, #eef9f6);
+  border-color: rgba(20, 184, 166, 0.2);
+}
+
+.collapsible-action-body {
+  animation: softReveal .2s ease;
+}
+
+.collapsed-form-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  width: fit-content;
+  padding: 8px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  color: var(--muted);
+  background: #fff;
+  font-size: 13px;
+}
+
+@keyframes softReveal {
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .list-item {
   border: 1px solid var(--line);
   border-radius: 8px;

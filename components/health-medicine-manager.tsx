@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { AlertTriangle, HeartPulse, Pill } from "lucide-react";
 import { Avatar } from "@/components/avatar";
+import { CollapsibleActionPanel } from "@/components/collapsible-action-panel";
 import { uploadFiles } from "@/lib/client-upload";
 
 export function HealthMedicineManager({ gardenId, children, records }: { gardenId: string; children: any[]; records: any[] }) {
@@ -69,6 +70,8 @@ export function HealthMedicineManager({ gardenId, children, records }: { gardenI
       </article>
 
       <div className="stacked-panels">
+        <CollapsibleActionPanel title="עדכון כרטיס בריאות" description="המידע הרפואי מוצג לפי ילד. פתחו את הטופס רק כשצריך לעדכן או להשלים מידע." buttonLabel="עדכון בריאות" defaultOpen={records.length === 0 && children.length > 0}>
+          {({ close }) => <>
         <form action={save} className="card form wizard-form">
           <div className="section-heading"><h2><HeartPulse size={20} /> כרטיס בריאות</h2><p>מידע רפואי רגיש. מוצג רק לבעלי הרשאה בגן.</p></div>
           {message ? <div className={message.includes("נשמר") || message.includes("נרשם") ? "success-banner" : "error-banner"}>{message}</div> : null}
@@ -85,13 +88,15 @@ export function HealthMedicineManager({ gardenId, children, records }: { gardenI
             <label>מועד תרופה הבא<input name="medication_due_at" type="datetime-local" /></label>
             <label className="wide">הערות רפואיות<textarea name="medical_notes" rows={3} defaultValue={selectedRecord?.medical_notes ?? selectedChild?.medical_notes ?? ""} /></label>
           </div>
-          <button className="button primary" disabled={isPending || !selectedChildId}>שמירת כרטיס בריאות</button>
+          <div className="profile-actions"><button className="button primary" disabled={isPending || !selectedChildId}>שמירת כרטיס בריאות</button><button className="button secondary" type="button" onClick={close}>ביטול</button></div>
         </form>
         <form action={logMedicine} className="card form compact-form">
           <h3><Pill size={18} /> רישום מתן תרופה</h3>
           <div className="form-grid"><label>שם תרופה<input name="medicine_name" required /></label><label>מינון<input name="dosage" /></label><label className="wide"><input name="approval_checked" type="checkbox" required /> נבדק אישור הורה בתוקף</label><label className="wide">הערה<input name="notes" /></label></div>
           <button className="button secondary" disabled={isPending || !selectedChildId}>רישום תרופה</button>
         </form>
+          </>}
+        </CollapsibleActionPanel>
       </div>
     </section>
   );

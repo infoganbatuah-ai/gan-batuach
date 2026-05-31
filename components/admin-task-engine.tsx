@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, type FormEvent } from "react";
+import { CollapsibleActionPanel } from "@/components/collapsible-action-panel";
 
 type Row = Record<string, any>;
 
@@ -19,7 +20,7 @@ export function AdminTaskEngine({ tasks, users, gardens }: { tasks: Row[]; users
   const [error, setError] = useState<string | null>(null);
   const filteredUsers = useMemo(() => users.filter((user) => (!role || user.role === role) && (!gardenId || user.garden_id === gardenId || user.role === "inspector")), [users, role, gardenId]);
 
-  async function submit(event: FormEvent<HTMLFormElement>) {
+  async function submit(event: FormEvent<HTMLFormElement>, close?: () => void) {
     event.preventDefault(); setMessage(null); setError(null);
     const form = event.currentTarget;
     const data = Object.fromEntries(new FormData(form).entries());
@@ -39,6 +40,7 @@ export function AdminTaskEngine({ tasks, users, gardens }: { tasks: Row[]; users
       setRows((current) => [created, ...current]);
       form.reset();
       setMessage("המשימה נוצרה ותופיע למשתמשים הרלוונטיים.");
+      close?.();
     } catch (err) {
       setError(err instanceof Error ? err.message : "יצירת משימה נכשלה");
     }
@@ -47,8 +49,9 @@ export function AdminTaskEngine({ tasks, users, gardens }: { tasks: Row[]; users
   return <>
     {message ? <div className="success-banner">{message}</div> : null}
     {error ? <div className="error-banner">{error}</div> : null}
-    <section className="grid cols-2 dashboard-panels">
-      <form className="card form wizard-form" onSubmit={submit}>
+    <CollapsibleActionPanel title="יצירת משימה" description="המשימות הקיימות מוצגות למטה. פתחו את הטופס רק כשצריך להקצות משימה חדשה." buttonLabel="יצירת משימה חדשה" defaultOpen={rows.length === 0}>
+      {({ close }) => <section className="grid cols-2 dashboard-panels">
+      <form className="card form wizard-form" onSubmit={(event) => submit(event, close)}>
         <h2>יצירת משימה</h2>
         <div className="form-grid">
           <label>סוג משתמש<select name="assigned_role" value={role} onChange={(event) => setRole(event.target.value)}><option value="staff">צוות</option><option value="manager">מנהלת</option><option value="owner">בעלים</option><option value="parent">הורים</option><option value="inspector">פקח</option><option value="admin">אדמין</option></select></label>
@@ -61,7 +64,7 @@ export function AdminTaskEngine({ tasks, users, gardens }: { tasks: Row[]; users
           <label>חזרתיות<select name="repeat_rule"><option value="">חד פעמי</option><option value="daily">יומי</option><option value="weekly">שבועי</option><option value="monthly">חודשי</option></select></label>
           <label className="wide">תיאור<textarea name="description" rows={4} /></label>
         </div>
-        <button className="button primary">יצירת משימה</button>
+        <div className="profile-actions"><button className="button primary">יצירת משימה</button><button className="button secondary" type="button" onClick={close}>ביטול</button></div>
       </form>
       <article className="card action-panel">
         <h2>מה המשתמש מקבל</h2>
@@ -72,7 +75,8 @@ export function AdminTaskEngine({ tasks, users, gardens }: { tasks: Row[]; users
           <div>לוג צפייה, ביצוע והסלמה לאדמין</div>
         </div>
       </article>
-    </section>
+    </section>}
+    </CollapsibleActionPanel>
     <section className="dashboard-section">
       {rows.length === 0 ? <div className="empty-state"><strong>אין משימות עדיין</strong><span>צרו משימה חד פעמית או חוזרת כדי להתחיל מעקב.</span></div> : <div className="procedure-list">{rows.map((task) => <article className="card procedure-card" key={task.id}><div><span className="pill">{task.priority ?? "medium"}</span><h3>{task.title}</h3><p>{task.description ?? ""}</p><small>יעד: {task.assigned_role ?? task.assigned_to ?? "כללי"} · דדליין: {task.due_at ? new Date(task.due_at).toLocaleString("he-IL") : "ללא"}</small></div><div className="procedure-meta"><span className="pill">{task.status ?? "open"}</span></div></article>)}</div>}
     </section>

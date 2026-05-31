@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { MessageCircleReply } from "lucide-react";
 import { Avatar } from "@/components/avatar";
+import { CollapsibleActionPanel } from "@/components/collapsible-action-panel";
 
 export function InternalMessagingCenter({ gardenId, recipients, messages, linkedChildren = [], preselectedChildId, preselectedRecipientId }: { gardenId?: string | null; recipients: any[]; messages: any[]; linkedChildren?: any[]; preselectedChildId?: string; preselectedRecipientId?: string }) {
   const [message, setMessage] = useState("");
@@ -28,7 +29,8 @@ export function InternalMessagingCenter({ gardenId, recipients, messages, linked
 
   return (
     <section className="grid cols-2 dashboard-panels">
-      <form action={submit} className="card form wizard-form">
+      <CollapsibleActionPanel title="הודעה חדשה" description="פתחו את הטופס רק כשצריך לשלוח הודעה. השיחות האחרונות נשארות זמינות בצד." buttonLabel="יצירת הודעה חדשה" defaultOpen={messages.length === 0 || Boolean(preselectedChildId || preselectedRecipientId)}>
+        {({ close }) => <form action={async (formData) => { await submit(formData); close(); }} className="card form wizard-form">
         <div className="section-heading"><h2><MessageCircleReply size={20} /> הודעה חדשה</h2><p>בחרו נמען, נושא ותוכן. ההודעה נשמרת עם סטטוס קריאה וטיפול.</p></div>
         {message ? <div className={message.includes("נשלחה") ? "success-banner" : "error-banner"}>{message}</div> : null}
         <div className="form-grid">
@@ -38,8 +40,9 @@ export function InternalMessagingCenter({ gardenId, recipients, messages, linked
           <label className="wide">נושא<input name="subject" required placeholder="לדוגמה: עדכון יומי / מסמך חסר / שאלה" /></label>
           <label className="wide">תוכן<textarea name="body" rows={5} required placeholder="כתבו ברור וקצר. הצד השני יראה את ההודעה באזור האישי." /></label>
         </div>
-        <button className="button primary" disabled={isPending}>שליחת הודעה</button>
-      </form>
+        <div className="profile-actions"><button className="button primary" disabled={isPending}>שליחת הודעה</button><button className="button secondary" type="button" onClick={close}>ביטול</button></div>
+      </form>}
+      </CollapsibleActionPanel>
       <article className="card action-panel">
         <div className="section-heading"><h2>שיחות אחרונות</h2><p>כולל סטטוס קריאה, נושא ותאריך.</p></div>
         {messages.length === 0 ? <div className="empty-state"><strong>אין הודעות עדיין</strong><span>לאחר שליחה או קבלה של הודעה, היא תופיע כאן.</span></div> : <div className="message-thread-list">{messages.map((item) => <div className="message-thread" key={item.id}><Avatar name={item.sender?.full_name ?? item.recipient?.full_name ?? "משתמש"} src={item.sender?.profile_image_url ?? item.recipient?.profile_image_url} /><div><strong>{item.subject}</strong><p>{item.content ?? item.body}</p><small>{item.created_at ? new Date(item.created_at).toLocaleString("he-IL") : ""} · {item.status ?? "unread"}</small></div></div>)}</div>}

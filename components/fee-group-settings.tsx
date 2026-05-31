@@ -4,6 +4,7 @@ import { useState } from "react";
 import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { Settings2 } from "lucide-react";
+import { CollapsibleActionPanel } from "@/components/collapsible-action-panel";
 
 type FeeGroup = {
   id?: string;
@@ -108,7 +109,14 @@ export function FeeGroupSettings({ groups, childCount }: { groups: FeeGroup[]; c
             {defaultGroups.map((name) => <button className="soft-choice" type="button" key={name} onClick={() => startNew(name)}>{name}</button>)}
           </div>
         </article>
-        <form className="card fee-group-form" onSubmit={submit}>
+      </div>
+      <CollapsibleActionPanel
+        title={groups.length ? "הוספת / עריכת קבוצת תשלום" : "הגדרת קבוצת התשלום הראשונה"}
+        description={groups.length ? "הקבוצות הקיימות מופיעות למעלה. פתחו את הטופס רק כשצריך לשנות מחיר או להוסיף קבוצה." : "עדיין אין קבוצות תשלום, לכן כדאי להגדיר אחת כדי שהילדים יקבלו מחיר ברירת מחדל."}
+        buttonLabel={groups.length ? "הוספת קבוצת גיל" : "הגדרת קבוצה ראשונה"}
+        defaultOpen={groups.length === 0}
+      >
+        {({ close }) => <form className="card fee-group-form" onSubmit={submit}>
           <label>שם קבוצה / כיתה<input value={groupName} onChange={(event) => setGroupName(event.target.value)} required placeholder="לדוגמה: גילאי 3-4" /></label>
           <label>טווח גילאים<input value={ageRange} onChange={(event) => setAgeRange(event.target.value)} placeholder="לדוגמה: 3 עד 4" /></label>
           <label>תשלום חודשי<input value={monthlyFee} onChange={(event) => setMonthlyFee(event.target.value)} type="number" min="0" required placeholder="₪" /></label>
@@ -121,10 +129,10 @@ export function FeeGroupSettings({ groups, childCount }: { groups: FeeGroup[]; c
             <label><input checked={updateExisting} onChange={() => setUpdateExisting(true)} name="sync" type="radio" /> לעדכן את כל הילדים בקבוצה</label>
             <label><input checked={!updateExisting} onChange={() => setUpdateExisting(false)} name="sync" type="radio" /> להחיל רק על ילדים חדשים</label>
           </div>
-          <button className="button primary" disabled={busy} type="submit">{busy ? "שומר..." : "שמירת הגדרת תשלום"}</button>
+          <div className="profile-actions"><button className="button primary" disabled={busy} type="submit">{busy ? "שומר..." : "שמירת הגדרת תשלום"}</button><button className="button secondary" type="button" onClick={close}>ביטול</button></div>
           {message ? <small className="payment-action-message">{message}</small> : null}
-        </form>
-      </div>
+        </form>}
+      </CollapsibleActionPanel>
     </section>
   );
 }

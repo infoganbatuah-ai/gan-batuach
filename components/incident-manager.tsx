@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import { Siren } from "lucide-react";
 import { Avatar } from "@/components/avatar";
+import { CollapsibleActionPanel } from "@/components/collapsible-action-panel";
 import { uploadFiles } from "@/lib/client-upload";
 
 const incidentTypes = [
@@ -51,7 +52,8 @@ export function IncidentManager({ gardenId, children, incidents }: { gardenId: s
 
   return (
     <section className="grid cols-2 dashboard-panels">
-      <form action={submit} className="card form wizard-form">
+      <CollapsibleActionPanel title="דיווח אירוע חדש" description="אירועים קיימים מוצגים בציר. פתחו טופס רק כשצריך לתעד אירוע חדש." buttonLabel="פתיחת אירוע חדש" defaultOpen={incidents.length === 0}>
+        {({ close }) => <form action={async (formData) => { await submit(formData); close(); }} className="card form wizard-form">
         <div className="section-heading"><h2><Siren size={20} /> דיווח אירוע</h2><p>תעדו מה קרה, מי עודכן ומה נדרש להמשך טיפול.</p></div>
         {message ? <div className={message.includes("נשמר") ? "success-banner" : "error-banner"}>{message}</div> : null}
         <div className="form-grid">
@@ -64,8 +66,9 @@ export function IncidentManager({ gardenId, children, incidents }: { gardenId: s
           <label><input type="checkbox" name="parent_notified" /> הורה עודכן</label>
           <label><input type="checkbox" name="inspector_notified" /> פקח עודכן</label>
         </div>
-        <button className="button primary" disabled={isPending}>שמירת אירוע</button>
-      </form>
+        <div className="profile-actions"><button className="button primary" disabled={isPending}>שמירת אירוע</button><button className="button secondary" type="button" onClick={close}>ביטול</button></div>
+      </form>}
+      </CollapsibleActionPanel>
       <article className="card action-panel">
         <div className="section-heading"><h2>ציר אירועים פתוחים</h2><p>כל אירוע נשמר עם מדווח, סטטוס והמשך טיפול.</p></div>
         {incidents.length === 0 ? <div className="empty-state"><strong>אין אירועים פתוחים</strong><span>אירועי בטיחות, רפואה, מצלמות ותלונות יופיעו כאן.</span></div> : <div className="timeline-list">{incidents.map((incident) => <div className="timeline-item" key={incident.id}><span className={`severity-dot ${incident.severity}`} /><div><strong>{incident.title}</strong><small>{incident.incident_type} · {incident.status} · {new Date(incident.created_at).toLocaleString("he-IL")}</small><p>{incident.description}</p>{incident.children ? <span className="selected-child-strip mini"><Avatar name={incident.children.full_name} src={incident.children.photo_url} /> {incident.children.full_name}</span> : null}</div></div>)}</div>}
