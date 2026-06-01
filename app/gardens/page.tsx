@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { CalendarDays, CheckCircle2, MapPin, ShieldAlert, ShieldCheck, UsersRound } from "lucide-react";
 import { BrandHeader } from "@/components/brand-header";
-import { createParentLead } from "@/app/actions";
 import { formatAgeGroups, formatPublicPriceRange, getKindergartenAgeGroups, type KindergartenAgeGroup } from "@/lib/kindergarten-age-groups";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -129,20 +128,7 @@ export default async function GardensPage({ searchParams }: { searchParams: Prom
                       <span><CalendarDays size={16} /> ביקורת אחרונה: {formatDate(garden.last_inspection_at)}</span>
                       <span><CalendarDays size={16} /> ביקורת הבאה: {formatDate(garden.next_inspection_at)}</span>
                     </div>
-                    <div className="actions"><Link className="button primary" href={`/gardens/${garden.id}`}>צפייה בפרטי הגן</Link><Link className="button" href="/login">כניסת הורים</Link><Link className="button" href="/login">כניסת צוות/גננת</Link></div><details className="lead-details">
-                      <summary className="button secondary">הורים - בדיקת זמינות / הצטרפות</summary>
-                      <form action={createParentLead} className="form guided-form">
-                        <input type="hidden" name="garden_id" value={garden.id} />
-                        <label>שם הורה מלא<input name="parent_name" required placeholder="שם פרטי ומשפחה" /></label>
-                        <label>טלפון<input name="phone" required placeholder="050-0000000" /></label>
-                        <label>מייל<input name="email" type="email" placeholder="name@example.com" /></label>
-                        <label>שם הילד/ים אם ידוע<input name="children_names" placeholder="לדוגמה: נועה, איתי" /></label>
-                        <label>גיל הילד<input name="child_age" placeholder="לדוגמה: שנתיים וחצי" /></label>
-                        <label>תאריך כניסה רצוי<input name="desired_enrollment_date" type="date" /></label>
-                        <label className="wide">הערות<textarea name="notes" rows={3} placeholder="כל דבר שחשוב שהגן ידע לפני יצירת קשר" /></label>
-                        <button className="button primary" type="submit">שליחת פנייה לגן</button>
-                      </form>
-                    </details>
+                    <div className="actions"><Link className="button primary" href={`/gardens/${garden.id}`}>צפייה בפרטי הגן</Link><Link className="button secondary" href={`/join-parent?gardenId=${garden.id}`}>רישום הורה</Link><Link className="button" href={`/login?gardenId=${garden.id}&audience=parent`}>התחברות הורה</Link><Link className="button" href={`/login?gardenId=${garden.id}&audience=staff`}>התחברות צוות / גננת</Link></div>
                   </article>
                 );
               })}

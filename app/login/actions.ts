@@ -8,6 +8,7 @@ import { isRole } from "@/lib/roles";
 export async function signIn(formData: FormData) {
   const email = String(formData.get("email") || "");
   const password = String(formData.get("password") || "");
+  const gardenId = String(formData.get("context_garden_id") || "");
   const supabase = await createClient();
 
   const { error } = await supabase.auth.signInWithPassword({ email, password });
@@ -19,7 +20,8 @@ export async function signIn(formData: FormData) {
 
   const { data: profile } = await supabase.from("profiles").select("role").eq("id", user?.id ?? "").single();
   const role = profile?.role;
-  redirect(isRole(role) ? dashboardPathForRole(role) : "/dashboard");
+  const path = isRole(role) ? dashboardPathForRole(role) : "/dashboard";
+  redirect(gardenId ? `${path}?gardenId=${encodeURIComponent(gardenId)}` : path);
 }
 
 export async function signOut() {

@@ -4590,3 +4590,183 @@ body::before {
     transform: translateY(0);
   }
 }
+
+.registration-hero {
+  background:
+    radial-gradient(circle at 12% 20%, rgba(34, 197, 94, 0.2), transparent 32%),
+    linear-gradient(135deg, #e0f7ff 0%, #eefdf3 46%, #fff8e7 100%);
+  border-bottom: 1px solid rgba(15, 118, 110, 0.12);
+}
+
+.registration-journey {
+  display: grid;
+  gap: 18px;
+  width: min(980px, 100%);
+  margin-inline: auto;
+  animation: softEnter 0.35s ease both;
+}
+
+.registration-journey.compact {
+  margin: 0;
+}
+
+.registration-banner {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 18px;
+  align-items: center;
+  padding: 22px;
+  border-radius: 22px;
+  background:
+    linear-gradient(135deg, rgba(14, 165, 233, 0.16), rgba(34, 197, 94, 0.18)),
+    rgba(255, 255, 255, 0.9);
+  border: 1px solid rgba(20, 184, 166, 0.18);
+  box-shadow: 0 20px 50px rgba(15, 118, 110, 0.12);
+}
+
+.garden-logo-orb {
+  width: 84px;
+  height: 84px;
+  border-radius: 26px;
+  display: grid;
+  place-items: center;
+  background: linear-gradient(135deg, #0ea5e9, #22c55e);
+  color: white;
+  overflow: hidden;
+  box-shadow: 0 16px 35px rgba(14, 165, 233, 0.25);
+}
+
+.garden-logo-orb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.journey-steps {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.journey-steps span,
+.audience-card,
+.journey-submit-card {
+  border: 1px solid rgba(15, 118, 110, 0.12);
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: 0 12px 30px rgba(15, 23, 42, 0.06);
+}
+
+.journey-steps span {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  border-radius: 16px;
+  color: #0f766e;
+  font-weight: 800;
+}
+
+.journey-steps b {
+  width: 26px;
+  height: 26px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #d9f99d;
+  color: #166534;
+}
+
+.premium-step-form {
+  display: grid;
+  gap: 14px;
+  padding: 20px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid rgba(14, 165, 233, 0.12);
+  box-shadow: 0 24px 70px rgba(15, 23, 42, 0.08);
+}
+
+.form-progress-line {
+  height: 8px;
+  border-radius: 999px;
+  background: #e2e8f0;
+  overflow: hidden;
+}
+
+.form-progress-line span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #0ea5e9, #22c55e);
+}
+
+.journey-submit-card {
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  align-items: center;
+  gap: 14px;
+  padding: 16px;
+  border-radius: 18px;
+}
+
+.journey-submit-card > svg,
+.audience-card svg {
+  color: #0ea5e9;
+}
+
+.login-journey-page {
+  background:
+    radial-gradient(circle at 8% 15%, rgba(14, 165, 233, 0.16), transparent 26%),
+    radial-gradient(circle at 90% 10%, rgba(34, 197, 94, 0.14), transparent 28%);
+}
+
+.login-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+  gap: 24px;
+  align-items: center;
+  margin-bottom: 28px;
+}
+
+.login-audience-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.audience-card {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+  min-height: 160px;
+  padding: 14px;
+  border-radius: 18px;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.audience-card:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 18px 38px rgba(14, 165, 233, 0.13);
+}
+
+.premium-login-card {
+  border: 1px solid rgba(14, 165, 233, 0.14);
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.96), rgba(240, 253, 244, 0.74));
+}
+
+.staff-completion-steps {
+  margin: 14px 0 20px;
+}
+
+@media (max-width: 900px) {
+  .registration-banner,
+  .login-hero,
+  .journey-submit-card {
+    grid-template-columns: 1fr;
+  }
+
+  .journey-steps,
+  .login-audience-grid {
+    grid-template-columns: 1fr 1fr;
+  }
+}

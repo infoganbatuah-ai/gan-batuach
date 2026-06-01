@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Camera, CalendarDays, ClipboardCheck, Image, ShieldCheck, UsersRound } from "lucide-react";
 import { BrandHeader } from "@/components/brand-header";
-import { createParentLead } from "@/app/actions";
+import { ParentRegistrationJourney } from "@/components/parent-registration-journey";
 import { formatAgeGroups, formatPublicPriceRange, getKindergartenAgeGroups } from "@/lib/kindergarten-age-groups";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -35,7 +35,7 @@ export default async function PublicGardenProfilePage({ params }: { params: Prom
           <p className="eyebrow">פרופיל גן ציבורי</p>
           <h1>{garden.name}</h1>
           <p>{garden.city} · {garden.address ?? "כתובת לפי הרשאת הגן"} · מנהלת: {garden.manager?.full_name ?? garden.owner_name ?? "לא צוין"}</p>
-          <div className="actions"><Link className="button primary" href="/login">כניסת הורים</Link><Link className="button" href="/login">כניסת צוות/גננת</Link></div>
+          <div className="actions"><Link className="button primary" href="#registration">רישום הורה</Link><Link className="button secondary" href={`/login?gardenId=${garden.id}&audience=parent`}>התחברות הורה</Link><Link className="button" href={`/login?gardenId=${garden.id}&audience=staff`}>התחברות צוות / גננת</Link></div>
         </section>
 
         <section className="section grid cols-3 dashboard-kpis">
@@ -63,27 +63,7 @@ export default async function PublicGardenProfilePage({ params }: { params: Prom
             <p>דוחות מלאים זמינים רק להורים של הגן, צוות, מנהלת, בעלים, פקח ואדמין.</p>
             {(inspections.data ?? []).map((inspection: any) => <div className="list-item" key={inspection.id}><div><strong>ציון {inspection.weighted_score ?? "-"}</strong><span>{dateText(inspection.completed_at)}</span></div><span className="pill">{inspection.violation_count ?? 0} ליקויים</span></div>)}
           </article>
-          <article className="card action-panel">
-            <h2>בקשת רישום ילד</h2>
-            <p>ממלאים רק פרטים בסיסיים. אחרי אישור הגן ההורה יקבל כניסה וישלים את פרטי הילד בצורה מסודרת.</p>
-            <form action={createParentLead} className="form guided-form">
-              <input type="hidden" name="garden_id" value={garden.id} />
-              <label>שם הורה<input name="parent_name" required /></label>
-              <label>טלפון<input name="phone" required /></label>
-              <label>מייל אופציונלי<input name="email" type="email" /></label>
-              <label>שם הילד<input name="child_name" required /></label>
-              <label>גיל הילד<input name="child_age" required placeholder="לדוגמה: 2.5" /></label>
-              {ageGroups.length ? (
-                <label>קבוצת גיל / כיתה מבוקשת<select name="requested_age_group" required><option value="">בחירת קבוצה</option>{ageGroups.map((group) => <option value={group.label} key={group.id ?? group.label}>{group.age_range ? `${group.label} · ${group.age_range}` : group.label}</option>)}</select></label>
-              ) : (
-                <label className="wide">קבוצת גיל / כיתה<div className="gateway-setup-state"><strong>הגן עדיין לא הגדיר קבוצות גיל.</strong><p>אפשר לשלוח בקשה, והגן ישייך את הילד לקבוצה לאחר בדיקה.</p></div><input name="requested_age_group" type="hidden" value="" /></label>
-              )}
-              <label>כתובת מלאה<input name="address" required /></label>
-              <label>תאריך התחלה מבוקש<input name="requested_start_date" type="date" required /></label>
-              <label className="wide">הערות אופציונליות<textarea name="notes" rows={3} /></label>
-              <button className="button primary">שליחת בקשת רישום</button>
-            </form>
-          </article>
+          <ParentRegistrationJourney garden={garden} ageGroups={ageGroups} compact />
         </section>
       </main>
     </>

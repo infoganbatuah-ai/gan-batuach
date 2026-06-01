@@ -98,7 +98,8 @@ export async function createParentLead(formData: FormData) {
   revalidatePath("/gardens");
   revalidatePath("/dashboard/garden");
   revalidatePath("/dashboard/garden/leads");
-  redirect("/gardens?lead=sent");
+  const successRedirect = value(formData, "success_redirect");
+  redirect(successRedirect && successRedirect.startsWith("/") ? successRedirect : "/gardens?lead=sent");
 }
 
 export async function createGardenLead(formData: FormData) {
