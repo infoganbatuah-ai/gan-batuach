@@ -32,6 +32,7 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/admin/documents", label: "מסמכים", hint: "תוקף וציות" },
     { href: "/dashboard/admin/system-health", label: "בריאות מערכת", hint: "מה חסר" },
     { href: "/dashboard/admin/navigation-health", label: "בריאות ניווט", hint: "בדיקת routes" },
+    { href: "/dashboard/admin/mobile-audit", label: "Mobile Audit", hint: "חוויית טלפון" },
     { href: "/dashboard/admin/duplicates", label: "כפילויות", hint: "תעודות זהות" },
     { href: "/dashboard/admin/user-journey-audit", label: "User Journey Audit", hint: "בדיקת מסעות" },
     { href: "/dashboard/admin/audit-logs", label: "Audit Logs", hint: "פעולות מערכת" },
@@ -129,11 +130,66 @@ const dashboardHomeByRole: Record<UserRole, string> = {
   parent: "/dashboard/parent"
 };
 
+const mobileNavByRole: Record<UserRole, Array<{ href: string; label: string; hint: string }>> = {
+  admin: [
+    { href: "/dashboard/admin", label: "בית", hint: "שליטה" },
+    { href: "/dashboard/admin/system-health", label: "בריאות", hint: "מערכת" },
+    { href: "/dashboard/admin/notifications", label: "התראות", hint: "חשוב" },
+    { href: "/dashboard/admin/users", label: "חיפוש", hint: "משתמשים" },
+    { href: "/dashboard/admin/settings", label: "עוד", hint: "הגדרות" }
+  ],
+  manager: [
+    { href: "/dashboard/garden", label: "בית", hint: "היום" },
+    { href: "/dashboard/garden/children", label: "ילדים", hint: "עדכון" },
+    { href: "/dashboard/garden/messages", label: "פניות", hint: "הורים" },
+    { href: "/dashboard/garden/finance", label: "כספים", hint: "גבייה" },
+    { href: "/dashboard/garden/notifications", label: "עוד", hint: "התראות" }
+  ],
+  owner: [
+    { href: "/dashboard/garden", label: "בית", hint: "היום" },
+    { href: "/dashboard/garden/children", label: "ילדים", hint: "עדכון" },
+    { href: "/dashboard/garden/messages", label: "פניות", hint: "הורים" },
+    { href: "/dashboard/garden/finance", label: "כספים", hint: "גבייה" },
+    { href: "/dashboard/garden/notifications", label: "עוד", hint: "התראות" }
+  ],
+  staff: [
+    { href: "/dashboard/staff", label: "בית", hint: "משמרת" },
+    { href: "/dashboard/staff/child-journal", label: "ילדים", hint: "עדכון" },
+    { href: "/dashboard/staff/child-journal?quick=incident", label: "אירוע", hint: "דיווח" },
+    { href: "/dashboard/staff/tasks", label: "משימות", hint: "היום" },
+    { href: "/dashboard/staff/notifications", label: "עוד", hint: "התראות" }
+  ],
+  inspector: [
+    { href: "/dashboard/inspector", label: "בית", hint: "עבודה" },
+    { href: "/dashboard/inspector/inspections", label: "ביקורות", hint: "היום" },
+    { href: "/dashboard/inspector", label: "גנים", hint: "שיוך" },
+    { href: "/dashboard/inspector/violations", label: "חריגות", hint: "טיפול" },
+    { href: "/dashboard/inspector/notifications", label: "עוד", hint: "התראות" }
+  ],
+  parent: [
+    { href: "/dashboard/parent", label: "בית", hint: "הילד" },
+    { href: "/dashboard/parent", label: "ילד", hint: "פרופיל" },
+    { href: "/dashboard/parent/messages", label: "הודעות", hint: "גן" },
+    { href: "/dashboard/parent/cameras", label: "מצלמות", hint: "צפייה" },
+    { href: "/dashboard/parent/notifications", label: "עוד", hint: "התראות" }
+  ]
+};
+
+const mobileFabByRole: Record<UserRole, string> = {
+  admin: "/dashboard/admin/notifications",
+  manager: "/dashboard/garden/children?view=attention",
+  owner: "/dashboard/garden/finance?filter=due",
+  staff: "/dashboard/staff/child-journal",
+  inspector: "/dashboard/inspector/inspections/due",
+  parent: "/dashboard/parent/messages"
+};
+
 export function DashboardShell({ role, title, children }: { role: UserRole; title: string; children: React.ReactNode }) {
+  const mobileNav = mobileNavByRole[role];
   return (
     <>
       <BrandHeader />
-      <div className="dashboard-layout">
+      <div className={`dashboard-layout dashboard-role-${role}`}>
         <aside className="sidebar">
           <h2>{title}</h2>
           <LogoutButton />
@@ -163,8 +219,8 @@ export function DashboardShell({ role, title, children }: { role: UserRole; titl
           {children}
           <AIAssistantPanel role={role} />
         </main>
-        <nav className="mobile-tabbar" aria-label="ניווט דשבורד">{navByRole[role].slice(0, 5).map((item) => <Link href={item.href} key={item.href}><strong>{item.label}</strong><span>{item.hint}</span></Link>)}</nav>
-        <Link className="mobile-fab" href={navByRole[role][1]?.href ?? navByRole[role][0].href}>+</Link>
+        <nav className="mobile-tabbar" aria-label="ניווט דשבורד">{mobileNav.map((item) => <Link href={item.href} key={item.href}><strong>{item.label}</strong><span>{item.hint}</span></Link>)}</nav>
+        <Link className="mobile-fab" href={mobileFabByRole[role]} aria-label="פעולה מהירה">+</Link>
       </div>
     </>
   );
