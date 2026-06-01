@@ -170,6 +170,7 @@ function SafeStat({ label, value, tone = "default" }: { label: string; value: st
 export default async function GardenFinancePage({ searchParams }: { searchParams: Promise<FinanceSearchParams> }) {
   const params: FinanceSearchParams = await searchParams.catch(() => ({}));
   const debugMode = isDebugEnabled(params);
+  console.error("[finance-page] route started", { debugMode, filter: params.filter ?? null });
 
   try {
     const { profile } = await requireRole(["manager", "owner"]);
@@ -181,6 +182,14 @@ export default async function GardenFinancePage({ searchParams }: { searchParams
       gardenId,
       searchParams: params,
       debug: debugMode
+    });
+    console.error("[finance-page] loader completed", {
+      role,
+      gardenId: gardenId || null,
+      ok: data.ok,
+      children: data.core?.children?.length ?? 0,
+      diagnostics: data.diagnostics?.length ?? 0,
+      errors: data.errors?.length ?? 0
     });
 
     if (!gardenId) {
