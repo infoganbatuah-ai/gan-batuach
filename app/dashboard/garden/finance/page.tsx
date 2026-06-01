@@ -12,6 +12,17 @@ function money(value: number) {
   return new Intl.NumberFormat("he-IL", { style: "currency", currency: "ILS", maximumFractionDigits: 0 }).format(value);
 }
 
+type FinanceSearchParams = { filter?: string; debug?: string };
+
+type FinanceQueryDiagnostic = {
+  label: string;
+  table: string;
+  columns: string;
+  success: boolean;
+  count: number;
+  error?: string | null;
+};
+
 function isArrangementActive(child: any) {
   return child.custom_monthly_fee !== null && child.custom_monthly_fee !== undefined && (!child.arrangement_valid_until || new Date(child.arrangement_valid_until).getTime() >= Date.now());
 }
@@ -40,9 +51,6 @@ const financeFilterLabels: Record<string, string> = {
   not_transferred: "תשלום לא הועבר"
 };
 
-const fullChildColumns = "id, full_name, age_group, classroom, payment_group_id, monthly_fee, custom_monthly_fee, arrangement_valid_until, payment_status, next_payment_due, payments_paused, debt_amount, failure_reason, retry_required, last_payment_date, valid_until, last_payment_method";
-const minimalChildColumns = "id, full_name, age_group, classroom";
-
 function normalizeChild(row: any) {
   return {
     id: row.id,
@@ -61,52 +69,64 @@ function normalizeChild(row: any) {
     retry_required: Boolean(row.retry_required),
     last_payment_date: row.last_payment_date ?? null,
     valid_until: row.valid_until ?? null,
-    last_payment_method: row.last_payment_method ?? null
+    last_payment_method: row.last_payment_method ?? null,
+    last_payment_amount: row.last_payment_amount ?? row.last_amount_paid ?? null
   };
 }
 
-export default async function GardenFinancePage({ searchParams }: { searchParams: Promise<{ filter?: string }> }) {
+function sortByName(rows: any[], key = "full_name") {
+  return [...rows].sort((a, b) => String(a?.[key] ?? "").localeCompare(String(b?.[key] ?? ""), "he"));
+}
+
+function sortRecent(rows: any[]) {
+  return [...rows].sort((a, b) => new Date(b?.created_at ?? b?.paid_at ?? 0).getTime() - new Date(a?.created_at ?? a?.paid_at ?? 0).getTime());
+}
+
+function isWithinDateRange(value: any, from: string, to?: string) {
+  if (!value) return false;
+  const date = String(value).slice(0, 10);
+  return date >= from && (!to || date < to);
+}
+
+export default async function GardenFinancePage({ searchParams }: { searchParams: Promise<FinanceSearchParams> }) {
   const { profile } = await requireRole(["manager", "owner"]);
   const params = await searchParams;
   const supabase = await createClient();
   const gardenId = profile.garden_id ?? "";
+  const debugMode = params.debug === "1" || process.env.NODE_ENV !== "production" || process.env.NEXT_PUBLIC_SANDBOX_MODE === "true";
   const now = new Date();
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
   const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1).toISOString().slice(0, 10);
   const yearStart = new Date(now.getFullYear(), 0, 1).toISOString().slice(0, 10);
-  console.info("[garden-finance] query start", { label: "children full", garden_id: gardenId, columns: fullChildColumns });
-  let childrenRes = await supabase.from("children" as any).select(fullChildColumns).eq("garden_id", gardenId).order("full_name");
   const warnings: string[] = [];
-  if (childrenRes.error) {
-    logFinanceError("children full", gardenId, childrenRes.error);
-    warnings.push("children_full");
-    console.info("[garden-finance] query fallback", { label: "children minimal", garden_id: gardenId, columns: minimalChildColumns });
-    childrenRes = await supabase.from("children" as any).select(minimalChildColumns).eq("garden_id", gardenId).order("full_name");
-  }
-  if (childrenRes.error) {
-    logFinanceError("children minimal", gardenId, childrenRes.error);
-    warnings.push("children_minimal");
-    childrenRes = { data: [], error: null } as any;
-  }
+  const diagnostics: FinanceQueryDiagnostic[] = [];
 
-  const safeSecondary = async <T,>(label: string, query: PromiseLike<{ data: T[] | null; error: any }>, fallback: T[] = []) => {
+  const runFinanceQuery = async <T,>(label: string, table: string, columns: string, query: PromiseLike<{ data: T[] | null; error: any }>, fallback: T[] = []) => {
     const result = await query;
     if (result.error) {
       logFinanceError(label, gardenId, result.error);
       warnings.push(label);
+      diagnostics.push({ label, table, columns, success: false, count: 0, error: result.error.message ?? String(result.error) });
       return fallback;
     }
-    console.info("[garden-finance] query ok", { label, garden_id: gardenId, count: result.data?.length ?? 0 });
-    return result.data ?? fallback;
+    const rows = result.data ?? fallback;
+    diagnostics.push({ label, table, columns, success: true, count: rows.length, error: null });
+    console.info("[garden-finance] query ok", { label, table, columns, garden_id: gardenId, count: rows.length });
+    return rows;
   };
 
-  const [historyRows, feeGroups, monthHistory, yearHistory] = await Promise.all([
-    safeSecondary<any>("child_payment_history recent", supabase.from("child_payment_history" as any).select("*").eq("garden_id", gardenId).order("created_at", { ascending: false }).limit(40)),
-    safeSecondary<any>("kindergarten_fee_groups", supabase.from("kindergarten_fee_groups" as any).select("*").eq("garden_id", gardenId).order("group_name")),
-    safeSecondary<any>("child_payment_history month", supabase.from("child_payment_history" as any).select("amount, amount_paid, action, paid_at").eq("garden_id", gardenId).gte("paid_at", monthStart).lt("paid_at", nextMonthStart)),
-    safeSecondary<any>("child_payment_history year", supabase.from("child_payment_history" as any).select("amount, amount_paid, action, paid_at").eq("garden_id", gardenId).gte("paid_at", yearStart))
+  const [childrenRows, historyRowsRaw, feeGroupsRaw, enrollmentRows, marketRowsRaw] = await Promise.all([
+    runFinanceQuery<any>("children query", "children", "*", supabase.from("children" as any).select("*").eq("garden_id", gardenId)),
+    runFinanceQuery<any>("payment history query", "child_payment_history", "*", supabase.from("child_payment_history" as any).select("*").eq("garden_id", gardenId)),
+    runFinanceQuery<any>("fee groups query", "kindergarten_fee_groups", "*", supabase.from("kindergarten_fee_groups" as any).select("*").eq("garden_id", gardenId)),
+    runFinanceQuery<any>("child enrollments query", "child_kindergarten_enrollments", "*", supabase.from("child_kindergarten_enrollments" as any).select("*").eq("garden_id", gardenId)),
+    runFinanceQuery<any>("recommended averages query", "kindergarten_fee_groups", "*", supabase.from("kindergarten_fee_groups" as any).select("*").eq("active", true).neq("garden_id", gardenId))
   ]);
-  const marketRows = await safeSecondary<any>("kindergarten_fee_groups market averages", supabase.from("kindergarten_fee_groups" as any).select("group_name, monthly_fee").eq("active", true).neq("garden_id", gardenId));
+  const historyRows = sortRecent(historyRowsRaw).slice(0, 40);
+  const feeGroups = sortByName(feeGroupsRaw, "group_name");
+  const monthHistory = historyRowsRaw.filter((item) => isWithinDateRange(item.paid_at ?? item.created_at, monthStart, nextMonthStart));
+  const yearHistory = historyRowsRaw.filter((item) => isWithinDateRange(item.paid_at ?? item.created_at, yearStart));
+  const marketRows = marketRowsRaw;
   const marketAverages = new Map<string, number>();
   for (const group of feeGroups) {
     const similar = marketRows.filter((item) => item.group_name === group.group_name || (item.group_name && group.group_name && String(item.group_name).includes(group.group_name)) || (item.group_name && group.group_name && String(group.group_name).includes(item.group_name)));
@@ -115,9 +135,11 @@ export default async function GardenFinancePage({ searchParams }: { searchParams
   }
   const feeGroupsWithMarket = feeGroups.map((group) => ({ ...group, market_average_fee: marketAverages.get(group.id) ?? group.market_average_fee ?? null }));
   const feeById = new Map(feeGroups.map((group) => [group.id, group]));
-  console.info("[garden-finance] query ok", { label: "children", garden_id: gardenId, count: childrenRes.data?.length ?? 0, warnings });
-  const allChildren = ((childrenRes.data ?? []) as any[]).map(normalizeChild).map((child) => {
-    const group = feeById.get(child.payment_group_id) ?? feeGroups.find((item) => item.group_name === child.age_group || item.group_name === child.classroom);
+  console.info("[garden-finance] summary", { garden_id: gardenId, warnings, diagnostics });
+  const enrollmentByChildId = new Map(enrollmentRows.filter((row) => row.child_id).map((row) => [row.child_id, row]));
+  const allChildren = sortByName(childrenRows).map(normalizeChild).map((child) => {
+    const enrollment = enrollmentByChildId.get(child.id);
+    const group = feeById.get(child.payment_group_id) ?? feeById.get(enrollment?.age_group_id) ?? feeGroups.find((item) => item.group_name === child.age_group || item.group_name === child.classroom || item.group_name === enrollment?.classroom_name);
     return {
       ...child,
       fee_group_name: group?.group_name ?? child.classroom ?? child.age_group ?? "ללא קבוצה",
@@ -160,6 +182,23 @@ export default async function GardenFinancePage({ searchParams }: { searchParams
         <span className={overdue ? "pill bad" : "pill good"}><WalletCards size={15} /> גבייה {collection}%</span>
       </div>
       {warnings.length ? <div className="warning-banner">חלק מנתוני הכספים לא נטענו</div> : null}
+      {debugMode ? (
+        <section className="card action-panel">
+          <div className="section-heading">
+            <h2>אבחון טעינת כספים</h2>
+            <p>מוצג רק בפיתוח / מצב Debug. כאן רואים בדיוק איזו שאילתה הצליחה או נכשלה.</p>
+          </div>
+          <div className="risk-list">
+            <div>גן נוכחי <b>{gardenId || "לא נמצא"}</b></div>
+            {diagnostics.map((item) => (
+              <div key={`${item.table}-${item.label}`}>
+                <span>{item.label} · {item.table} · columns: {item.columns}</span>
+                <b>{item.success ? `success · ${item.count}` : `error · ${item.error}`}</b>
+              </div>
+            ))}
+          </div>
+        </section>
+      ) : null}
       <DashboardFilterChip label={financeFilterLabels[params.filter ?? ""]} clearHref="/dashboard/garden/finance" isEmpty={children.length === 0} emptyTitle={params.filter === "failed" ? "אין כרגע תשלומים שלא עברו" : params.filter === "overdue" ? "אין כרגע תשלומים באיחור" : params.filter ? `אין כרגע ${financeFilterLabels[params.filter]}` : undefined} emptyText="כל הילדים במסנן הזה תקינים כרגע. אפשר לנקות סינון כדי לראות את כל הגבייה." />
       <div className="grid cols-4 dashboard-kpis">
         <StatCard label="הכנסה חודשית צפויה" value={money(expected)} tone="good" />
