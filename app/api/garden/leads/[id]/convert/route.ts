@@ -7,8 +7,10 @@ import { normalizeOptionalEmail, provisionAuthUser, writeUserCreationAudit } fro
 const schema = z.object({
   parent_name: z.string().min(2),
   phone: z.string().min(7),
+  identity_number: z.string().optional(),
   email: z.string().email().optional().or(z.literal("")),
   child_name: z.string().optional(),
+  child_identity_number: z.string().optional(),
   child_age: z.string().optional(),
   requested_age_group: z.string().optional(),
   address: z.string().optional(),
@@ -44,6 +46,15 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     actionContext = { ...actionContext, previous_status: lead.status };
 
     const normalizedEmail = normalizeOptionalEmail(payload.email || lead.email);
+    const parentIdentityNumber = String(payload.identity_number || lead.parent_identity_number || "").replace(/\D/g, "");
+    const childIdentityNumber = String(payload.child_identity_number || lead.child_identity_number || "").replace(/\D/g, "");
+    if (childIdentityNumber) {
+      const [existingChild, existingFile] = await Promise.all([
+        admin.from("children" as any).select("id", { count: "exact", head: true }).eq("identity_number", childIdentityNumber),
+        admin.from("permanent_child_files" as any).select("id", { count: "exact", head: true }).eq("identity_number", childIdentityNumber)
+      ]);
+      if ((existingChild.count ?? 0) + (existingFile.count ?? 0) > 0) return fail("ילד עם תעודת זהות זו כבר קיים במערכת. יש להתחבר לחשבון ההורה הקיים ולהגיש בקשת שיוך/מעבר לגן.", 409, { field: "child_identity_number" });
+    }
     let parentUserId: string | null = null;
     let credentials = null as null | { username: string; email: string; temporary_password: string };
 
@@ -55,7 +66,8 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
         const profileUpdate = await admin.from("profiles" as any).update({
           garden_id: existingProfile.garden_id ?? profile.garden_id,
           phone: payload.phone,
-          full_name: payload.parent_name
+          full_name: payload.parent_name,
+          identity_number: parentIdentityNumber || null
         }).eq("id", parentUserId);
         if (profileUpdate.error) {
           console.error("[garden-lead-convert] existing parent profile update failed", { ...actionContext, parent_user_id: parentUserId, error: profileUpdate.error.message });
@@ -78,6 +90,11 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       credentials = created.oneTimeCredentials;
     }
 
+    if (parentIdentityNumber) {
+      const identitySync = await admin.from("profiles" as any).update({ identity_number: parentIdentityNumber }).eq("id", parentUserId);
+      if (identitySync.error) console.error("[garden-lead-convert] parent identity sync failed", { ...actionContext, parent_user_id: parentUserId, error: identitySync.error.message });
+    }
+
     let { data: parent } = await admin
       .from("parents" as any)
       .select("*")
@@ -94,6 +111,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
         phone: payload.phone,
         email: normalizedEmail ?? null,
         address: payload.address || lead.address || null,
+        identity_number: parentIdentityNumber || null,
         completed_profile: false,
         status: "active"
       }).select("*").single();
@@ -107,6 +125,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
         status: "active",
         phone: payload.phone,
         full_name: payload.parent_name,
+        identity_number: parentIdentityNumber || parent.identity_number || null,
         address: payload.address || lead.address || parent.address || null
       }).eq("id", parent.id).select("*").single();
       if (!updatedParent.error && updatedParent.data) parent = updatedParent.data;
@@ -135,6 +154,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       primary_parent_profile_id: parentUserId,
       primary_parent_id: parent.id,
       full_name: childName,
+      identity_number: childIdentityNumber || null,
       important_notes: payload.notes || lead.notes || null
     }).select("*").single();
     if (permanentFile.error) {
@@ -147,6 +167,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       permanent_child_file_id: permanentFile.data.id,
       primary_parent_id: parent.id,
       full_name: childName,
+      identity_number: childIdentityNumber || null,
       temporary_name: childName,
       child_age: payload.child_age || lead.child_age || null,
       age_group: requestedAgeGroup,

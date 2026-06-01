@@ -7,7 +7,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
 
-export default async function JoinParentPage({ searchParams }: { searchParams: Promise<{ gardenId?: string; lead?: string }> }) {
+export default async function JoinParentPage({ searchParams }: { searchParams: Promise<{ gardenId?: string; lead?: string; error?: string }> }) {
   const params = await searchParams;
   const supabase = createAdminClient();
   const selectedGardenRes = params.gardenId
@@ -35,6 +35,7 @@ export default async function JoinParentPage({ searchParams }: { searchParams: P
           <h1>{selectedGarden ? `מצטרפים לגן ${selectedGarden.name}` : "בוחרים גן ומתחילים בקשת הצטרפות רגועה"}</h1>
           <p>כניסה אחת לכל המשפחה. הגן מאשר את בקשת ההצטרפות, ואז ההורה משלים את פרטי הילד מתוך הדשבורד.</p>
           {params.lead === "sent" ? <div className="success-banner"><CheckCircle2 /> הבקשה נשלחה לגן. לאחר אישור תקבלו פרטי התחברות להשלמת רישום הילד.</div> : null}
+          {params.error ? <div className="error-banner">{params.error}</div> : null}
         </section>
 
         {!selectedGarden ? (

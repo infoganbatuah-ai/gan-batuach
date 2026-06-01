@@ -7,6 +7,7 @@ import { DuplicateContactError, checkEmailConflict, normalizeOptionalEmail, prov
 
 const ownershipTypes = ["teacher_is_owner", "separate_owner", "teacher_only", "owner_only"] as const;
 const provisionedUserWithPhotoSchema = provisionedUserSchema.extend({
+  identity_number: z.string().optional(),
   profile_image_url: z.string().url().optional()
 });
 
@@ -73,6 +74,11 @@ export async function POST(request: Request) {
     }
     const ownerConflict = (ownershipType === "separate_owner" || ownershipType === "owner_only") ? await checkEmailConflict({ supabase: admin, email: ownerEmail, field: "owner_email" }) : null;
     if (ownerConflict) return fail(ownerConflict.message, 409, { field: ownerConflict.field, source: ownerConflict.source });
+    const identityNumbers = [payload.manager?.identity_number, payload.owner?.identity_number].map((item) => String(item ?? "").replace(/\D/g, "")).filter(Boolean);
+    if (identityNumbers.length) {
+      const { count } = await admin.from("profiles" as any).select("id", { count: "exact", head: true }).in("identity_number", identityNumbers);
+      if ((count ?? 0) > 0) return fail("משתמש מנהלת/בעלים כבר קיים. ניתן להוסיף גן נוסף לחשבון הקיים.", 409, { field: "identity_number" });
+    }
 
     const manager = ownershipType !== "owner_only" && payload.manager
       ? await provisionAuthUser({ role: "manager", fullName: payload.manager.full_name, email: managerEmail, phone: payload.manager.phone, temporaryPassword: payload.manager.temporary_password, createdBy: profile.id, conflictField: "manager_email" })
@@ -127,12 +133,12 @@ export async function POST(request: Request) {
     }
 
     if (manager) {
-      const { error: managerProfileError } = await admin.from("profiles").update({ garden_id: garden.id, profile_image_url: payload.manager?.profile_image_url ?? null }).eq("id", manager.user.id);
+      const { error: managerProfileError } = await admin.from("profiles").update({ garden_id: garden.id, identity_number: payload.manager?.identity_number ? payload.manager.identity_number.replace(/\D/g, "") : null, profile_image_url: payload.manager?.profile_image_url ?? null }).eq("id", manager.user.id);
       if (managerProfileError) return fail("הגן נוצר אך שיוך המנהלת נכשל: " + managerProfileError.message, 400);
     }
 
     if (owner) {
-      const { error: ownerProfileError } = await admin.from("profiles").update({ garden_id: garden.id, profile_image_url: payload.owner?.profile_image_url ?? null }).eq("id", owner.user.id);
+      const { error: ownerProfileError } = await admin.from("profiles").update({ garden_id: garden.id, identity_number: payload.owner?.identity_number ? payload.owner.identity_number.replace(/\D/g, "") : null, profile_image_url: payload.owner?.profile_image_url ?? null }).eq("id", owner.user.id);
       if (ownerProfileError) return fail("הגן נוצר אך שיוך הבעלים נכשל: " + ownerProfileError.message, 400);
     }
 

@@ -85,6 +85,15 @@ export async function POST(request: Request) {
 
     const gardenId = existingChild?.garden_id ?? profile.garden_id ?? parent.garden_id;
     if (!gardenId) return fail("לא נמצא שיוך לגן עבור ההורה", 422);
+    const childIdentityNumber = String(payload.identity_number ?? "").replace(/\D/g, "");
+    if (childIdentityNumber) {
+      const [existingById, existingFileById] = await Promise.all([
+        supabase.from("children" as any).select("id, primary_parent_id").eq("identity_number", childIdentityNumber).neq("id", existingChild?.id ?? "00000000-0000-0000-0000-000000000000").maybeSingle(),
+        supabase.from("permanent_child_files" as any).select("id, primary_parent_id").eq("identity_number", childIdentityNumber).maybeSingle()
+      ]);
+      const fileIsCurrent = existingFileById.data?.id && existingFileById.data.id === existingChild?.permanent_child_file_id;
+      if (existingById.data || (existingFileById.data && !fileIsCurrent)) return fail("ילד עם תעודת זהות זו כבר קיים במערכת. כדי להוסיף אותו לגן נוסף יש להשתמש בתהליך מעבר/שיוך ילד קיים.", 409, { field: "identity_number" });
+    }
 
     const nextStatus = existingChild?.status === "active" || existingChild?.status === "approved"
       ? existingChild.status
@@ -95,7 +104,7 @@ export async function POST(request: Request) {
         primary_parent_id: parent.id as string,
         full_name: payload.full_name,
         birth_date: payload.birth_date || null,
-        identity_number: payload.identity_number,
+        identity_number: childIdentityNumber || null,
         photo_url: payload.photo_url || existingChild?.photo_url || null,
         face_image_url: payload.photo_url || existingChild?.face_image_url || null,
         child_age: payload.child_age || existingChild?.child_age || null,
@@ -177,7 +186,7 @@ export async function POST(request: Request) {
         primary_parent_id: parent.id,
         full_name: payload.full_name,
         birth_date: payload.birth_date || null,
-        identity_number: payload.identity_number || null,
+        identity_number: childIdentityNumber || null,
         photo_url: payload.photo_url || null,
         face_image_url: payload.photo_url || null,
         important_notes: payload.important_notes || null,
@@ -198,7 +207,7 @@ export async function POST(request: Request) {
         primary_parent_id: parent.id,
         full_name: payload.full_name,
         birth_date: payload.birth_date || null,
-        identity_number: payload.identity_number || null,
+        identity_number: childIdentityNumber || null,
         photo_url: payload.photo_url || null,
         face_image_url: payload.photo_url || null,
         important_notes: payload.important_notes || null,

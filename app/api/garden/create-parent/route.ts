@@ -2,6 +2,7 @@ import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { requireRole } from "@/lib/auth";
 import { provisionAuthUser, provisionedUserSchema, writeUserCreationAudit } from "@/lib/onboarding/user-provisioning";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 const schema = provisionedUserSchema.extend({
   identity_number: z.string().optional(),
@@ -14,6 +15,15 @@ export async function POST(request: Request) {
     const { profile } = await requireRole(["manager", "owner"]);
     if (!profile.garden_id) return fail("Manager is not assigned to a garden", 422);
     const payload = schema.parse(await request.json());
+    const identityNumber = String(payload.identity_number ?? "").replace(/\D/g, "");
+    if (identityNumber) {
+      const admin = createAdminClient();
+      const [parentExisting, profileExisting] = await Promise.all([
+        admin.from("parents" as any).select("id", { count: "exact", head: true }).eq("identity_number", identityNumber),
+        admin.from("profiles" as any).select("id", { count: "exact", head: true }).eq("identity_number", identityNumber)
+      ]);
+      if ((parentExisting.count ?? 0) + (profileExisting.count ?? 0) > 0) return fail("קיים כבר משתמש הורה במערכת. יש להשתמש בחשבון הקיים ולהגיש בקשת הצטרפות/שיוך לגן נוסף.", 409, { field: "identity_number" });
+    }
     const { supabase, user, oneTimeCredentials } = await provisionAuthUser({
       role: "parent",
       gardenId: profile.garden_id,
@@ -22,6 +32,7 @@ export async function POST(request: Request) {
       phone: payload.phone,
       temporaryPassword: payload.temporary_password
     });
+    if (identityNumber) await supabase.from("profiles" as any).update({ identity_number: identityNumber }).eq("id", user.id);
 
     const { data: parent, error } = await supabase
       .from("parents")
@@ -29,7 +40,7 @@ export async function POST(request: Request) {
         profile_id: user.id,
         garden_id: profile.garden_id,
         full_name: payload.full_name,
-        identity_number: payload.identity_number,
+        identity_number: identityNumber || null,
         phone: payload.phone ?? "",
         email: payload.email,
         address: payload.address,

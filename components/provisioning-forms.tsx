@@ -215,7 +215,7 @@ export function GardenProvisioningPanel({ pendingChildren, parentLeads, pendingS
         </form>
         <form className="card form wizard-form" onSubmit={submitStaff}>
           <h2>יצירת צוות</h2><p>המשתמש יישאר בתהליך אישור עד תעודת יושר ובדיקת רקע תקפות.</p>
-          <div className="form-grid"><label>שם מלא<input name="full_name" required /></label><label>תפקיד<input name="role_title" required placeholder="סייעת / מובילת כיתה" /></label><label>מייל<input name="email" type="email" required /></label><label>טלפון<input name="phone" /></label><label>תעודת זהות<input name="identity_number" /></label><label>כיתה<input name="class_group" /></label><label>תאריך התחלה<input name="start_date" type="date" /></label><label className="wide">הערות<textarea name="notes" rows={3} /></label></div>
+          <div className="form-grid"><label>שם מלא<input name="full_name" required /></label><label>תפקיד<input name="role_title" required placeholder="סייעת / מובילת כיתה" /></label><label>מייל<input name="email" type="email" required /></label><label>טלפון<input name="phone" required /></label><label>תעודת זהות<input name="identity_number" required /></label><label>כיתה<input name="class_group" /></label><label>תאריך התחלה<input name="start_date" type="date" /></label><label className="wide">הערות<textarea name="notes" rows={3} /></label></div>
           <button className="button primary large" disabled={busy}>יצירת משתמש צוות</button>
         </form>
       </section>

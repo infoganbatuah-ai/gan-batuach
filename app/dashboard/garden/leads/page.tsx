@@ -32,7 +32,7 @@ export default async function GardenLeadsPage({ searchParams }: { searchParams: 
   const gardenId = profile.garden_id ?? "";
   const { data } = await supabase
     .from("leads" as any)
-    .select("id, garden_id, lead_type, parent_name, phone, email, child_name, child_age, requested_age_group, requested_start_date, address, notes, status, source, missing_details, converted_parent_id, converted_child_id, converted_at, created_at, gardens(name, city)")
+    .select("id, garden_id, lead_type, parent_name, parent_identity_number, phone, email, child_name, child_identity_number, child_age, requested_age_group, requested_start_date, address, notes, status, source, missing_details, converted_parent_id, converted_child_id, converted_at, created_at, gardens(name, city)")
     .eq("garden_id", gardenId)
     .eq("lead_type", "parent")
     .order("created_at", { ascending: false });

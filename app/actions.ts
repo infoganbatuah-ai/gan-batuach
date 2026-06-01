@@ -18,6 +18,10 @@ function values(formData: FormData, key: string) {
   return formData.getAll(key).map((item) => String(item).trim()).filter(Boolean);
 }
 
+function identityValue(formData: FormData, key: string) {
+  return value(formData, key).replace(/\D/g, "");
+}
+
 async function contactExists(supabase: Awaited<ReturnType<typeof createClient>>, email: string, phone: string) {
   const normalizedEmail = normalizeOptionalEmail(email);
   const normalizedPhone = normalizeOptionalPhone(phone);
@@ -37,6 +41,8 @@ export async function createParentLead(formData: FormData) {
   const supabase = await createClient();
   const gardenId = value(formData, "garden_id") || null;
   const childName = value(formData, "child_name") || value(formData, "children_names");
+  const parentIdentityNumber = identityValue(formData, "parent_identity_number");
+  const childIdentityNumber = identityValue(formData, "child_identity_number");
   const requestedAgeGroup = value(formData, "requested_age_group");
   const requestedStartDate = value(formData, "requested_start_date");
   const address = value(formData, "address");
@@ -49,13 +55,35 @@ export async function createParentLead(formData: FormData) {
   ]
     .filter(Boolean)
     .join("\n");
+  const duplicateReader = isAdminClientConfigured() ? createAdminClient() : supabase;
+  if (childIdentityNumber) {
+    const [childExisting, fileExisting] = await Promise.all([
+      duplicateReader.from("children" as any).select("id", { count: "exact", head: true }).eq("identity_number", childIdentityNumber),
+      duplicateReader.from("permanent_child_files" as any).select("id", { count: "exact", head: true }).eq("identity_number", childIdentityNumber)
+    ]);
+    if ((childExisting.count ?? 0) + (fileExisting.count ?? 0) > 0) {
+      redirect(`/join-parent?${gardenId ? `gardenId=${gardenId}&` : ""}error=${encodeURIComponent("ילד עם תעודת זהות זו כבר קיים במערכת. כדי להוסיף אותו לגן נוסף יש להתחבר למשתמש ההורה הקיים.")}`);
+    }
+  }
+  if (parentIdentityNumber) {
+    const [parentExisting, profileExisting] = await Promise.all([
+      duplicateReader.from("parents" as any).select("id", { count: "exact", head: true }).eq("identity_number", parentIdentityNumber),
+      duplicateReader.from("profiles" as any).select("id", { count: "exact", head: true }).eq("identity_number", parentIdentityNumber)
+    ]);
+    if ((parentExisting.count ?? 0) + (profileExisting.count ?? 0) > 0) {
+      redirect(`/join-parent?${gardenId ? `gardenId=${gardenId}&` : ""}error=${encodeURIComponent("קיים כבר משתמש הורה במערכת. יש להתחבר לחשבון הקיים ולהגיש בקשת הצטרפות לגן נוסף.")}`);
+    }
+  }
+
   const leadRow = {
     garden_id: gardenId,
     lead_type: "parent",
     parent_name: value(formData, "parent_name"),
+    parent_identity_number: parentIdentityNumber || null,
     phone: value(formData, "phone"),
     email: value(formData, "email") || null,
     child_name: childName || null,
+    child_identity_number: childIdentityNumber || null,
     child_age: value(formData, "child_age") || null,
     requested_age_group: requestedAgeGroup || null,
     requested_start_date: requestedStartDate || null,
@@ -107,6 +135,14 @@ export async function createGardenLead(formData: FormData) {
   const duplicate = await contactExists(supabase, value(formData, "email"), value(formData, "phone"));
   if (duplicate.email) redirect("/join-kindergarten?error=" + encodeURIComponent("המייל כבר קיים במערכת"));
   if (duplicate.phone) redirect("/join-kindergarten?error=" + encodeURIComponent("הטלפון כבר קיים במערכת"));
+  const ownerIdentityNumber = identityValue(formData, "owner_identity_number");
+  const managerIdentityNumber = identityValue(formData, "manager_identity_number");
+  const identityReader = isAdminClientConfigured() ? createAdminClient() : supabase;
+  const identityChecks = [ownerIdentityNumber, managerIdentityNumber].filter(Boolean);
+  if (identityChecks.length) {
+    const { count } = await identityReader.from("profiles" as any).select("id", { count: "exact", head: true }).in("identity_number", identityChecks);
+    if ((count ?? 0) > 0) redirect("/join-kindergarten?error=" + encodeURIComponent("משתמש מנהלת/בעלים כבר קיים. ניתן להוסיף גן נוסף לחשבון הקיים."));
+  }
   const notes = [
     value(formData, "notes"),
     values(formData, "age_groups").length ? `קבוצות גיל: ${values(formData, "age_groups").join(", ")}` : "",
@@ -131,6 +167,8 @@ export async function createGardenLead(formData: FormData) {
     garden_name: value(formData, "garden_name"),
     owner_name: value(formData, "owner_name"),
     manager_name: value(formData, "manager_name") || null,
+    manager_identity_number: managerIdentityNumber || null,
+    owner_identity_number: ownerIdentityNumber || null,
     city: value(formData, "city"),
     address: value(formData, "address") || null,
     age_groups: values(formData, "age_groups"),

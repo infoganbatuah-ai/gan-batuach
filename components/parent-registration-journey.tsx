@@ -44,6 +44,7 @@ export function ParentRegistrationJourney({ garden, ageGroups, compact = false }
           <div className="form-grid">
             <label>שם הורה מלא<input name="parent_name" required placeholder="שם פרטי ומשפחה" /></label>
             <label>טלפון<input name="phone" required placeholder="050-0000000" /></label>
+            <label>תעודת זהות הורה<input name="parent_identity_number" required placeholder="לפחות אחד ההורים" /></label>
             <label className="wide">מייל אופציונלי<input name="email" type="email" placeholder="name@example.com" /></label>
           </div>
         </details>
@@ -52,6 +53,7 @@ export function ParentRegistrationJourney({ garden, ageGroups, compact = false }
           <summary><strong>2. פרטי ילד</strong><span>רק מה שצריך כדי שהגן יבדוק התאמה</span></summary>
           <div className="form-grid">
             <label>שם הילד<input name="child_name" required /></label>
+            <label>תעודת זהות ילד<input name="child_identity_number" required /></label>
             <label>גיל הילד<input name="child_age" required placeholder="לדוגמה: 2.5" /></label>
             {ageGroups.length ? (
               <label className="wide">קבוצת גיל / כיתה מבוקשת<select name="requested_age_group" required><option value="">בחירת קבוצה</option>{ageGroups.map((group) => <option value={group.label} key={group.id ?? group.label}>{group.age_range ? `${group.label} · ${group.age_range}` : group.label}</option>)}</select></label>

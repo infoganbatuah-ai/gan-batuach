@@ -56,8 +56,10 @@ export function GardenParentLeadsCenter({ leads }: { leads: Lead[] }) {
         body: JSON.stringify({
           parent_name: String(data.parent_name || ""),
           phone: String(data.phone || ""),
+          identity_number: String(data.identity_number || ""),
           email: String(data.email || "") || undefined,
           child_name: String(data.child_name || ""),
+          child_identity_number: activeLead.child_identity_number ?? "",
           child_age: String(data.child_age || ""),
           requested_age_group: String(data.requested_age_group || ""),
           address: String(data.address || ""),
@@ -101,6 +103,8 @@ export function GardenParentLeadsCenter({ leads }: { leads: Lead[] }) {
                 </div>
                 <div className="profile-badge-row">
                   <span className="pill">ילד: {lead.child_name ?? "לא צוין"}</span>
+                  <span className="pill">ת״ז ילד: {lead.child_identity_number ?? "לא צוינה"}</span>
+                  <span className="pill">ת״ז הורה: {lead.parent_identity_number ?? "לא צוינה"}</span>
                   <span className="pill">גיל: {lead.child_age ?? "לא צוין"}</span>
                   <span className="pill">קבוצה: {lead.requested_age_group ?? "לא צוין"}</span>
                   <span className="pill">מקור: {lead.source ?? "עמוד ציבורי"}</span>
@@ -138,6 +142,7 @@ export function GardenParentLeadsCenter({ leads }: { leads: Lead[] }) {
           <form className="form-grid" onSubmit={convert}>
             <label>שם הורה<input name="parent_name" required defaultValue={activeLead.parent_name ?? ""} /></label>
             <label>טלפון<input name="phone" required defaultValue={activeLead.phone ?? ""} /></label>
+            <label>תעודת זהות הורה<input name="identity_number" required defaultValue={activeLead.parent_identity_number ?? ""} /></label>
             <label>מייל<input name="email" type="email" defaultValue={activeLead.email ?? ""} /></label>
             <label>שם ילד<input name="child_name" defaultValue={activeLead.child_name ?? ""} /></label>
             <label>גיל / תאריך לידה<input name="child_age" defaultValue={activeLead.child_age ?? ""} /></label>

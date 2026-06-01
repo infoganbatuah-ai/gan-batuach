@@ -36,8 +36,34 @@ const financeFilterLabels: Record<string, string> = {
   overdue: "תשלומים באיחור",
   due: "תשלומים שדורשים טיפול",
   partial: "תשלומים חלקיים",
-  paused: "תשלומים שנעצרו"
+  paused: "תשלומים שנעצרו",
+  not_transferred: "תשלום לא הועבר"
 };
+
+const fullChildColumns = "id, full_name, age_group, classroom, payment_group_id, monthly_fee, custom_monthly_fee, arrangement_valid_until, payment_status, next_payment_due, payments_paused, debt_amount, failure_reason, retry_required, last_payment_date, valid_until, last_payment_method";
+const minimalChildColumns = "id, full_name, age_group, classroom";
+
+function normalizeChild(row: any) {
+  return {
+    id: row.id,
+    full_name: row.full_name ?? "ילד/ה",
+    age_group: row.age_group ?? null,
+    classroom: row.classroom ?? null,
+    payment_group_id: row.payment_group_id ?? null,
+    monthly_fee: Number(row.monthly_fee ?? 0),
+    custom_monthly_fee: row.custom_monthly_fee ?? null,
+    arrangement_valid_until: row.arrangement_valid_until ?? null,
+    payment_status: row.payment_status ?? "unconfigured",
+    next_payment_due: row.next_payment_due ?? null,
+    payments_paused: Boolean(row.payments_paused),
+    debt_amount: Number(row.debt_amount ?? 0),
+    failure_reason: row.failure_reason ?? null,
+    retry_required: Boolean(row.retry_required),
+    last_payment_date: row.last_payment_date ?? null,
+    valid_until: row.valid_until ?? null,
+    last_payment_method: row.last_payment_method ?? null
+  };
+}
 
 export default async function GardenFinancePage({ searchParams }: { searchParams: Promise<{ filter?: string }> }) {
   const { profile } = await requireRole(["manager", "owner"]);
@@ -48,26 +74,29 @@ export default async function GardenFinancePage({ searchParams }: { searchParams
   const monthStart = new Date(now.getFullYear(), now.getMonth(), 1).toISOString().slice(0, 10);
   const nextMonthStart = new Date(now.getFullYear(), now.getMonth() + 1, 1).toISOString().slice(0, 10);
   const yearStart = new Date(now.getFullYear(), 0, 1).toISOString().slice(0, 10);
-  const childrenRes = await supabase.from("children" as any).select("*").eq("garden_id", gardenId).order("full_name");
+  console.info("[garden-finance] query start", { label: "children full", garden_id: gardenId, columns: fullChildColumns });
+  let childrenRes = await supabase.from("children" as any).select(fullChildColumns).eq("garden_id", gardenId).order("full_name");
+  const warnings: string[] = [];
   if (childrenRes.error) {
-    logFinanceError("children core", gardenId, childrenRes.error);
-    return (
-      <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="מרכז כספים">
-        <div className="dashboard-hero-card garden-hero-card finance-hero-card">
-          <div><p className="eyebrow">Kindergarten Finance</p><h1>מרכז גבייה ותשלומי ילדים.</h1><p>פרטי התקלה נשמרו בלוג השרת.</p></div>
-          <span className="pill bad"><WalletCards size={15} /> שגיאת טעינה</span>
-        </div>
-        <div className="error-banner">לא ניתן לטעון כספים כרגע</div>
-      </DashboardShell>
-    );
+    logFinanceError("children full", gardenId, childrenRes.error);
+    warnings.push("children_full");
+    console.info("[garden-finance] query fallback", { label: "children minimal", garden_id: gardenId, columns: minimalChildColumns });
+    childrenRes = await supabase.from("children" as any).select(minimalChildColumns).eq("garden_id", gardenId).order("full_name");
+  }
+  if (childrenRes.error) {
+    logFinanceError("children minimal", gardenId, childrenRes.error);
+    warnings.push("children_minimal");
+    childrenRes = { data: [], error: null } as any;
   }
 
   const safeSecondary = async <T,>(label: string, query: PromiseLike<{ data: T[] | null; error: any }>, fallback: T[] = []) => {
     const result = await query;
     if (result.error) {
       logFinanceError(label, gardenId, result.error);
+      warnings.push(label);
       return fallback;
     }
+    console.info("[garden-finance] query ok", { label, garden_id: gardenId, count: result.data?.length ?? 0 });
     return result.data ?? fallback;
   };
 
@@ -86,7 +115,8 @@ export default async function GardenFinancePage({ searchParams }: { searchParams
   }
   const feeGroupsWithMarket = feeGroups.map((group) => ({ ...group, market_average_fee: marketAverages.get(group.id) ?? group.market_average_fee ?? null }));
   const feeById = new Map(feeGroups.map((group) => [group.id, group]));
-  const allChildren = ((childrenRes.data ?? []) as any[]).map((child) => {
+  console.info("[garden-finance] query ok", { label: "children", garden_id: gardenId, count: childrenRes.data?.length ?? 0, warnings });
+  const allChildren = ((childrenRes.data ?? []) as any[]).map(normalizeChild).map((child) => {
     const group = feeById.get(child.payment_group_id) ?? feeGroups.find((item) => item.group_name === child.age_group || item.group_name === child.classroom);
     return {
       ...child,
@@ -98,6 +128,7 @@ export default async function GardenFinancePage({ searchParams }: { searchParams
   });
   const children = allChildren.filter((child) => {
     if (params.filter === "failed") return ["failed", "not_transferred"].includes(child.payment_status);
+    if (params.filter === "not_transferred") return child.payment_status === "not_transferred";
     if (params.filter === "overdue") return child.payment_status === "overdue" || (child.next_payment_due && new Date(child.next_payment_due).getTime() < Date.now());
     if (params.filter === "due") return ["overdue", "unpaid", "partial", "failed", "not_transferred", "paused"].includes(child.payment_status) || child.payments_paused;
     if (params.filter === "partial") return child.payment_status === "partial";
@@ -128,6 +159,7 @@ export default async function GardenFinancePage({ searchParams }: { searchParams
         <div><p className="eyebrow">Kindergarten Finance</p><h1>מרכז גבייה ותשלומי ילדים.</h1><p>הכנסות חודשיות, תשלומים חסרים, איחורים, הנחות והסדרים מיוחדים במקום אחד.</p></div>
         <span className={overdue ? "pill bad" : "pill good"}><WalletCards size={15} /> גבייה {collection}%</span>
       </div>
+      {warnings.length ? <div className="warning-banner">חלק מנתוני הכספים לא נטענו</div> : null}
       <DashboardFilterChip label={financeFilterLabels[params.filter ?? ""]} clearHref="/dashboard/garden/finance" isEmpty={children.length === 0} emptyTitle={params.filter === "failed" ? "אין כרגע תשלומים שלא עברו" : params.filter === "overdue" ? "אין כרגע תשלומים באיחור" : params.filter ? `אין כרגע ${financeFilterLabels[params.filter]}` : undefined} emptyText="כל הילדים במסנן הזה תקינים כרגע. אפשר לנקות סינון כדי לראות את כל הגבייה." />
       <div className="grid cols-4 dashboard-kpis">
         <StatCard label="הכנסה חודשית צפויה" value={money(expected)} tone="good" />
