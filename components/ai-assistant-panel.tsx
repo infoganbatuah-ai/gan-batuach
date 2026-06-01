@@ -19,6 +19,7 @@ type AssistantSummary = {
   summary: string;
   suggestions: Suggestion[];
   prompts: string[];
+  answers?: Record<string, string>;
 };
 
 type Interaction = {
@@ -69,6 +70,7 @@ export function AIAssistantPanel({ role }: { role: UserRole }) {
 
   const selectedAnswer = useMemo(() => {
     if (!selectedPrompt || !data) return null;
+    if (data.answers?.[selectedPrompt]) return data.answers[selectedPrompt];
     const suggestionText = data.suggestions.map((suggestion) => `${suggestion.title}: ${suggestion.body}`).join(" · ");
     return `לפי הנתונים הקיימים במערכת: ${suggestionText || data.summary}`;
   }, [data, selectedPrompt]);
@@ -77,7 +79,7 @@ export function AIAssistantPanel({ role }: { role: UserRole }) {
     setSelectedPrompt(prompt);
     if (!data) return;
     const suggestionText = data.suggestions.map((suggestion) => `${suggestion.title}: ${suggestion.body}`).join(" · ");
-    const answer = `לפי הנתונים הקיימים במערכת: ${suggestionText || data.summary}`;
+    const answer = data.answers?.[prompt] ?? `לפי הנתונים הקיימים במערכת: ${suggestionText || data.summary}`;
     const next = [{ prompt, answer, at: new Date().toISOString() }, ...recentInteractions.filter((item) => item.prompt !== prompt)].slice(0, 6);
     setRecentInteractions(next);
     localStorage.setItem(`gan-batuach-ai-${role}`, JSON.stringify(next));

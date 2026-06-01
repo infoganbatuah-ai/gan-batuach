@@ -8,6 +8,7 @@ import { LiveDayFlow } from "@/components/live-day-flow";
 import { ForgotSomethingButton } from "@/components/forgot-something-button";
 import { EndOfDayChecklist } from "@/components/end-of-day-checklist";
 import { requireRole } from "@/lib/auth";
+import { generateSmartInsights, syncSmartInsights, createNotificationsForUrgentInsights } from "@/lib/domain/smart-kindergarten-engine";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function GardenDashboard() {
@@ -65,6 +66,16 @@ export default async function GardenDashboard() {
   const expectedRevenue = ((financeChildrenRes.data ?? []) as any[]).reduce((sum, child) => sum + Number(child.monthly_fee ?? 0), 0);
   const failedPayments = ((unpaidRes.data ?? []) as any[]).filter((child) => ["failed", "not_transferred"].includes(child.payment_status)).length;
   const latePayments = Math.max(0, (unpaidRes.count ?? 0) - failedPayments);
+  const smartInsights = await syncSmartInsights(supabase as any, await generateSmartInsights(supabase as any, profile));
+  await createNotificationsForUrgentInsights(supabase as any, smartInsights);
+  const smartCommandItems = smartInsights.slice(0, 9).map((item) => ({
+    title: item.title,
+    count: item.severity === "urgent" || item.severity === "critical" ? "דחוף" : item.severity === "warning" ? "כדאי" : "חדש",
+    description: item.description,
+    href: item.action_url,
+    tone: item.severity === "urgent" || item.severity === "critical" ? "bad" as const : item.severity === "warning" ? "warn" as const : "good" as const,
+    icon: item.category === "מצלמות" ? Camera : item.category === "כספים" ? WalletCards : item.category === "מסמכים" ? FileClock : item.category === "הורים" ? MessageSquare : item.category === "פיקוח" ? ShieldCheck : AlertTriangle
+  }));
   const morningItems = [
     { title: "ילדים שלא הגיעו", count: missingToday, description: "פתחי נוכחות מסוננת לילדים שלא סומנו או נעדרים", href: "/dashboard/garden/attendance?filter=missing", tone: missingToday ? "warn" as const : "good" as const, icon: CalendarCheck },
     { title: "ילדים בלי עדכון ארוחה", count: withoutMeal, description: "עדכני ארוחה בצ׳יפים מהירים", href: "/dashboard/garden/child-journal?missing=meal", tone: withoutMeal ? "warn" as const : "good" as const, icon: HeartPulse },
@@ -100,6 +111,15 @@ export default async function GardenDashboard() {
     { label: "מסמכי צוות חסרים", count: staffDocsRes.count ?? 0, href: "/dashboard/garden/documents?filter=missing", action: "בקשי מסמך", severity: "bad" as const },
     { label: "איסופים שלא הושלמו", count: pickupPending, href: "/dashboard/garden/pickup?filter=pending", action: "בדקי מי עדיין בגן", severity: "warn" as const }
   ];
+  const smartForgotItems = smartInsights
+    .filter((item) => item.severity === "warning" || item.severity === "urgent" || item.severity === "critical")
+    .map((item) => ({
+      label: item.title,
+      count: 1,
+      href: item.action_url,
+      action: item.recommended_action,
+      severity: item.severity === "warning" ? "warn" as const : "bad" as const
+    }));
   const endDayItems = [
     { label: "כל הילדים עודכנו ביומן", ok: withoutMeal === 0 && withoutSleep === 0, count: withoutMeal + withoutSleep },
     { label: "כל האירועים טופלו", ok: (incidentsRes.count ?? 0) === 0, count: incidentsRes.count ?? 0 },
@@ -131,7 +151,7 @@ export default async function GardenDashboard() {
         <StatCard label="תשלומים לטיפול" value={unpaidRes.count ?? 0} tone={unpaidRes.count ? "bad" : "good"} href="/dashboard/garden/finance?filter=overdue" />
         <StatCard label="ילדים לאישור" value={(pendingParentCompletionRes.count ?? 0) + (pendingApprovalRes.count ?? 0)} tone={(pendingParentCompletionRes.count ?? 0) + (pendingApprovalRes.count ?? 0) ? "warn" : "good"} href="/dashboard/garden/children?status=pending" />
       </div>
-      <SimpleCommandCenter title="מה דורש טיפול עכשיו?" subtitle="כל כרטיס הוא פעולה אחת ברורה. לחיצה על “טפל עכשיו” פותחת את ההקשר המסונן, לא עמוד כללי." items={morningItems} />
+      <SimpleCommandCenter title="מה דורש טיפול עכשיו?" subtitle="מנוע התובנות בודק את נתוני הגן ומציג רק פעולות שיש להן הקשר ברור." items={smartCommandItems.length ? smartCommandItems : morningItems} />
       <LiveDayFlow counts={flowCounts} />
       {profile.role === "owner" ? <section className="grid cols-4 dashboard-kpis owner-kpis"><StatCard label="הכנסה צפויה" value={`₪${expectedRevenue}`} tone="good" /><StatCard label="ציון גן" value={garden?.last_inspection_score ?? "-"} /><StatCard label="ציון צוות" value={staffRes.count ? "פעיל" : "חסר"} tone={staffRes.count ? "good" : "warn"} /><StatCard label="סיכוני גבייה" value={unpaidRes.count ?? 0} tone={unpaidRes.count ? "bad" : "good"} /></section> : null}
 
@@ -145,7 +165,7 @@ export default async function GardenDashboard() {
         {newLeadCount || transferRequestsCount ? <article className="card action-panel"><div className="section-heading"><h2>בקשות הצטרפות שדורשות תגובה</h2><p>רק בקשות שצריך לטפל בהן עכשיו מוצגות כאן.</p></div><div className="risk-list"><div><UserPlus /> לידים חדשים <b>{newLeadCount}</b></div><div><UserPlus /> מעבר/קליטת ילד קיים <b>{transferRequestsCount}</b></div></div><Link className="button primary" href="/dashboard/garden/leads?status=new">טפל בבקשות</Link></article> : null}
         {(messagesRes.data?.length ?? 0) || complaintsRes.count || aiRes.count ? <article className="card action-panel"><div className="section-heading"><h2>תקשורת וחריגים</h2><p>מוצג רק כשיש הודעות או חריגים פתוחים.</p></div><div className="risk-list"><div><Bell /> הודעות <b>{messagesRes.data?.length ?? 0}</b></div><div><AlertTriangle /> תלונות <b>{complaintsRes.count ?? 0}</b></div><div><Camera /> מצלמות / AI <b>{(camerasRes.count ?? 0) + (aiRes.count ?? 0)}</b></div></div><Link className="button secondary" href="/dashboard/garden/messages?status=open">פתח הודעות</Link></article> : null}
       </section>
-      <ForgotSomethingButton items={forgotItems} />
+      <ForgotSomethingButton items={smartForgotItems.length ? smartForgotItems : forgotItems} />
     </DashboardShell>
   );
 }
