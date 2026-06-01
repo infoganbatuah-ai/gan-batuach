@@ -10,6 +10,15 @@ const schema = z.object({
   birth_date: z.string().optional(),
   identity_number: z.string().optional(),
   photo_url: z.string().optional(),
+  child_age: z.string().optional(),
+  requested_age_group: z.string().optional(),
+  requested_start_date: z.string().optional(),
+  parent_photo_url: z.string().optional(),
+  mother_photo_url: z.string().optional(),
+  father_photo_url: z.string().optional(),
+  important_notes: z.string().optional(),
+  likes_notes: z.string().optional(),
+  dislikes_notes: z.string().optional(),
   age_group: z.string().optional(),
   hmo: z.string().optional(),
   allergies: z.string().optional(),
@@ -24,7 +33,7 @@ const schema = z.object({
   father_identity_number: z.string().optional(),
   father_phone: z.string().optional(),
   emergency_phone: z.string().optional(),
-  pickup_authorized: z.array(z.object({ name: z.string().min(2), phone: z.string().optional(), relation: z.string().optional() })).default([]),
+  pickup_authorized: z.array(z.object({ name: z.string().min(2), identity_number: z.string().optional(), phone: z.string().optional(), photo_url: z.string().optional(), relation: z.string().optional() })).max(3).default([]),
   special_food_notes: z.string().optional(),
   sleep_notes: z.string().optional(),
   behavior_notes: z.string().optional(),
@@ -35,8 +44,8 @@ const schema = z.object({
   privacy_consent: z.literal(true),
   health_declaration: z.literal(true),
   parent_policy_consent: z.boolean().default(false)
-}).refine((value) => Boolean(value.mother_identity_number || value.father_identity_number || value.identity_number), {
-  message: "יש למלא תעודת זהות ילד או לפחות תעודת זהות אחת של הורה",
+}).refine((value) => Boolean(value.mother_identity_number || value.father_identity_number), {
+  message: "יש למלא לפחות תעודת זהות אחת של הורה",
   path: ["mother_identity_number"]
 });
 
@@ -61,9 +70,6 @@ export async function POST(request: Request) {
     const parentError = byProfile.error ?? byUser.error;
     if (parentError || !parent) return fail(parentError?.message ?? "לא נמצא כרטיס הורה למשתמש הזה", 404);
 
-    const gardenId = profile.garden_id ?? parent.garden_id;
-    if (!gardenId) return fail("לא נמצא שיוך לגן עבור ההורה", 422);
-
     let existingChild: any = null;
     if (payload.child_id) {
       const childRes = await supabase
@@ -77,6 +83,9 @@ export async function POST(request: Request) {
       existingChild = childRes.data;
     }
 
+    const gardenId = existingChild?.garden_id ?? profile.garden_id ?? parent.garden_id;
+    if (!gardenId) return fail("לא נמצא שיוך לגן עבור ההורה", 422);
+
     const nextStatus = existingChild?.status === "active" || existingChild?.status === "approved"
       ? existingChild.status
       : "pending_manager_approval";
@@ -89,12 +98,19 @@ export async function POST(request: Request) {
         identity_number: payload.identity_number,
         photo_url: payload.photo_url || existingChild?.photo_url || null,
         face_image_url: payload.photo_url || existingChild?.face_image_url || null,
-        age_group: payload.age_group || existingChild?.age_group || null,
+        child_age: payload.child_age || existingChild?.child_age || null,
+        age_group: payload.requested_age_group || payload.age_group || existingChild?.age_group || null,
+        classroom: payload.requested_age_group || payload.age_group || existingChild?.classroom || null,
+        requested_age_group: payload.requested_age_group || existingChild?.requested_age_group || null,
+        requested_start_date: payload.requested_start_date || existingChild?.requested_start_date || null,
         hmo: payload.hmo,
         allergies: payload.allergies,
         sensitivities: payload.sensitivities,
         regular_medications: payload.regular_medications,
         medical_notes: payload.medical_notes,
+        important_notes: payload.important_notes,
+        likes_notes: payload.likes_notes,
+        dislikes_notes: payload.dislikes_notes,
         address: payload.address,
         mother_name: payload.mother_name,
         mother_identity_number: payload.mother_identity_number,
@@ -102,6 +118,9 @@ export async function POST(request: Request) {
         father_name: payload.father_name,
         father_identity_number: payload.father_identity_number,
         father_phone: payload.father_phone,
+        parent_photo_url: payload.parent_photo_url || payload.mother_photo_url || payload.father_photo_url || null,
+        mother_photo_url: payload.mother_photo_url || null,
+        father_photo_url: payload.father_photo_url || null,
         emergency_phone: payload.emergency_phone,
         pickup_authorized: payload.pickup_authorized,
         photo_consent: payload.photo_consent,
@@ -113,6 +132,9 @@ export async function POST(request: Request) {
           health_declaration: payload.health_declaration,
           parent_policy: payload.parent_policy_consent,
           special_notes: {
+            important: payload.important_notes || "",
+            likes: payload.likes_notes || "",
+            dislikes: payload.dislikes_notes || "",
             food: payload.special_food_notes || "",
             sleep: payload.sleep_notes || "",
             behavior: payload.behavior_notes || "",
@@ -142,7 +164,7 @@ export async function POST(request: Request) {
     const { data: child, error } = childWrite;
 
     if (error) return fail(error.message, 400);
-    await supabase.from("parents").update({ completed_profile: true, status: "child_registration_submitted" }).eq("id", parent.id as string);
+    await supabase.from("parents").update({ completed_profile: true, status: "active" }).eq("id", parent.id as string);
 
     let permanentFileId = (child as any).permanent_child_file_id ?? existingChild?.permanent_child_file_id ?? null;
     if (permanentFileId) {
@@ -154,6 +176,9 @@ export async function POST(request: Request) {
         identity_number: payload.identity_number || null,
         photo_url: payload.photo_url || null,
         face_image_url: payload.photo_url || null,
+        important_notes: payload.important_notes || null,
+        likes_notes: payload.likes_notes || null,
+        dislikes_notes: payload.dislikes_notes || null,
         hmo: payload.hmo || null,
         allergies: payload.allergies || null,
         sensitivities: payload.sensitivities || null,
@@ -172,6 +197,9 @@ export async function POST(request: Request) {
         identity_number: payload.identity_number || null,
         photo_url: payload.photo_url || null,
         face_image_url: payload.photo_url || null,
+        important_notes: payload.important_notes || null,
+        likes_notes: payload.likes_notes || null,
+        dislikes_notes: payload.dislikes_notes || null,
         hmo: payload.hmo || null,
         allergies: payload.allergies || null,
         sensitivities: payload.sensitivities || null,
@@ -189,7 +217,8 @@ export async function POST(request: Request) {
         permanent_child_file_id: permanentFileId,
         garden_id: gardenId,
         status: nextStatus,
-        classroom_name: payload.age_group || null,
+        classroom_name: payload.requested_age_group || payload.age_group || null,
+        start_date: payload.requested_start_date || null,
         notes: payload.parent_notes || null
       }, { onConflict: "child_id,garden_id" });
       await supabase.from("child_timeline_events" as any).insert({

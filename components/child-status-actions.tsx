@@ -23,5 +23,5 @@ export function ChildStatusActions({ childId }: { childId: string }) {
     setBusy(false);
   }
   if (completed) return <div className="success-banner compact">{message}</div>;
-  return <div className="profile-actions"><button className="button primary tiny" disabled={busy} type="button" onClick={() => action("active")}>אישור</button><button className="button secondary tiny" disabled={busy} type="button" onClick={() => action("request_missing_details")}>בקשת השלמה</button><button className="button secondary tiny" disabled={busy} type="button" onClick={() => action("rejected")}>דחייה</button>{message ? <small>{message}</small> : null}</div>;
+  return <div className="profile-actions"><button className="button primary tiny" disabled={busy} type="button" onClick={() => action("active")}>אישור</button><button className="button secondary tiny" disabled={busy} type="button" onClick={() => action("missing_info")}>בקשת השלמה</button><button className="button secondary tiny" disabled={busy} type="button" onClick={() => action("rejected")}>דחייה</button>{message ? <small>{message}</small> : null}</div>;
 }

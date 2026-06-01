@@ -68,6 +68,7 @@ export default async function ParentDashboard() {
   const childrenRes = {
     data: Array.from(childCardsByFile.values())
   };
+  const childrenNeedingCompletion = (childrenRes.data ?? []).filter((child: any) => ["pending_parent_completion", "request_missing_details", "missing_info"].includes(String(child.status)));
   const childIds = (childrenRes.data ?? []).map((child: any) => child.id);
   const gardenIds = family.gardenIds;
   const gardensRes = { data: family.gardens };
@@ -97,6 +98,7 @@ export default async function ParentDashboard() {
   return (
     <DashboardShell role="parent" title="אזור הורים">
       <div className="dashboard-hero-card parent-hero-card premium-identity-hero"><div><p className="eyebrow">מה קורה עם הילד שלי היום?</p><h1>שלום, {profile.full_name ?? parent?.full_name ?? "הורה יקר/ה"}</h1><p>היום של הילד, הודעות מהגן, תמונות, מסמכים ותשלומים במקום אחד רגוע וברור.</p></div><div className="avatar-stack">{(childrenRes.data ?? []).map((child: any) => <Avatar key={child.id} name={child.full_name} src={child.photo_url ?? child.face_image_url} size="lg" />)}</div><span className="pill good"><ShieldCheck size={15} /> מידע שמותר להציג לך</span></div>
+      {childrenNeedingCompletion.length ? <section className="card action-panel urgent-parent-completion"><div><p className="eyebrow">המשימה החשובה עכשיו</p><h2>השלמת פרטי הילד</h2><p>הגן אישר את בקשת ההצטרפות הראשונית. יש להשלים פרטי בריאות, איסוף, תמונות והצהרות כדי שהמנהלת תוכל לאשר את הילד.</p></div><div className="profile-actions">{childrenNeedingCompletion.map((child: any) => <Link className="button primary" key={child.id} href={`/parent-onboarding?childId=${child.id}`}>השלמת רישום {child.full_name}</Link>)}</div></section> : null}
       <div className="grid cols-3 dashboard-kpis"><StatCard label="ילדים משויכים" value={(childrenRes.data ?? []).length} tone="good" /><StatCard label="יומן יומי היום" value={journalRes.count ?? 0} /><StatCard label="התראות פתוחות" value={notificationRes.count ?? 0} tone="warn" /></div>
       <section className="dashboard-section">
         <div className="section-heading"><h2>הילדים שלי לפי גנים</h2><p>חשבון הורה אחד יכול לנהל ילדים בכמה גנים. כל הודעה, מצלמה, מסמך ותשלום נשמרים לפי הגן הנכון.</p></div>

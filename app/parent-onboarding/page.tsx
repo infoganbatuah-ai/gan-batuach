@@ -24,7 +24,7 @@ export default async function ParentOnboardingPage({ searchParams }: { searchPar
   const parentByProfile = await supabase.from("parents" as any).select("*").eq("profile_id", profile.id).maybeSingle();
   const parentByUser = parentByProfile.data ? { data: null } : await supabase.from("parents" as any).select("*").eq("user_id", profile.id).maybeSingle();
   const parent = ((parentByProfile.data as any) ?? (parentByUser.data as any) ?? null) as any;
-  const gardenId = profile.garden_id ?? parent?.garden_id ?? null;
+  let gardenId = profile.garden_id ?? parent?.garden_id ?? null;
 
   let child: any = null;
   if (parent) {
@@ -48,6 +48,7 @@ export default async function ParentOnboardingPage({ searchParams }: { searchPar
       child = existing.data;
     }
   }
+  gardenId = child?.garden_id ?? gardenId;
 
   const [gardenRes, docsRes] = await Promise.all([
     gardenId ? supabase.from("gardens" as any).select("id, name, logo_url, image_url, manager_id, owner_profile_id, phone, address, city, ages, framework_type").eq("id", gardenId).maybeSingle() : Promise.resolve({ data: null }),

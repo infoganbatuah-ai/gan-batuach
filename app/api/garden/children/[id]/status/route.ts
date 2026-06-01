@@ -4,7 +4,7 @@ import { requireRole } from "@/lib/auth";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
 import { writeUserCreationAudit } from "@/lib/onboarding/user-provisioning";
 
-const schema = z.object({ status: z.enum(["active", "rejected", "request_missing_details", "pending_manager_approval"]), reason: z.string().optional() });
+const schema = z.object({ status: z.enum(["active", "rejected", "missing_info", "request_missing_details", "pending_manager_approval"]), reason: z.string().optional() });
 
 export async function POST(request: Request, context: { params: Promise<{ id: string }> }) {
   let actionContext: Record<string, unknown> = { action: "child_registration_status_update" };

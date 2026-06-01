@@ -10,7 +10,7 @@ import { createClient } from "@/lib/supabase/server";
 const leadFilterLabels: Record<string, string> = {
   new: "בקשות חדשות שממתינות להמרה",
   pending: "בקשות שממתינות לטיפול",
-  completion: "הורים שממתינים להשלמת פרטי ילד",
+  completion: "הורים פעילים שממתינים להשלמת פרטי ילד",
   missing: "בקשות שחסרים בהן פרטים",
   converted: "בקשות שכבר הומרו"
 };
@@ -19,9 +19,9 @@ function filterLeads(leads: any[], status?: string) {
   if (!status) return leads;
   if (status === "new") return leads.filter((lead) => ["new", "new_parent_lead", "viewed"].includes(String(lead.status)));
   if (status === "pending") return leads.filter((lead) => ["new", "new_parent_lead", "viewed", "missing_details"].includes(String(lead.status)));
-  if (status === "completion") return leads.filter((lead) => lead.status === "approved_pending_parent_completion");
+  if (status === "completion") return leads.filter((lead) => ["parent_approved_pending_child_completion", "approved_pending_parent_completion"].includes(String(lead.status)));
   if (status === "missing") return leads.filter((lead) => lead.status === "missing_details");
-  if (status === "converted") return leads.filter((lead) => ["approved_pending_parent_completion", "active", "converted"].includes(String(lead.status)));
+  if (status === "converted") return leads.filter((lead) => ["parent_approved_pending_child_completion", "approved_pending_parent_completion", "active", "converted"].includes(String(lead.status)));
   return leads;
 }
 
@@ -32,7 +32,7 @@ export default async function GardenLeadsPage({ searchParams }: { searchParams: 
   const gardenId = profile.garden_id ?? "";
   const { data } = await supabase
     .from("leads" as any)
-    .select("id, garden_id, lead_type, parent_name, phone, email, child_name, child_age, notes, status, source, missing_details, converted_parent_id, converted_child_id, converted_at, created_at, gardens(name, city)")
+    .select("id, garden_id, lead_type, parent_name, phone, email, child_name, child_age, requested_age_group, requested_start_date, address, notes, status, source, missing_details, converted_parent_id, converted_child_id, converted_at, created_at, gardens(name, city)")
     .eq("garden_id", gardenId)
     .eq("lead_type", "parent")
     .order("created_at", { ascending: false });
@@ -70,7 +70,7 @@ export default async function GardenLeadsPage({ searchParams }: { searchParams: 
   const incomingTransfers = ((incomingTransfersRes.data ?? []) as any[]).map(hydrateTransfer);
   const outgoingTransfers = ((outgoingTransfersRes.data ?? []) as any[]).map(hydrateTransfer);
   const newCount = leads.filter((lead) => ["new", "new_parent_lead"].includes(lead.status)).length;
-  const pendingCompletion = leads.filter((lead) => lead.status === "approved_pending_parent_completion").length;
+  const pendingCompletion = leads.filter((lead) => ["parent_approved_pending_child_completion", "approved_pending_parent_completion"].includes(String(lead.status))).length;
   const missing = leads.filter((lead) => lead.status === "missing_details").length;
   const transferCount = incomingTransfers.length + outgoingTransfers.length;
 
@@ -103,7 +103,7 @@ export default async function GardenLeadsPage({ searchParams }: { searchParams: 
       <section className="card action-panel">
         <UserRoundPlus />
         <h2>איך הזרימה עובדת?</h2>
-        <p>המרה יוצרת משתמש הורה וכרטיס ילד במצב `pending_parent_completion`. רק אחרי שההורה משלים פרטים והמנהלת מאשרת, הילד הופך לפעיל ברשימת הילדים.</p>
+        <p>אישור ליד יוצר הורה פעיל וכרטיס ילד במצב `pending_parent_completion`. רק אחרי שההורה משלים פרטים והמנהלת מאשרת, הילד הופך לפעיל ברשימת הילדים.</p>
       </section>
 
       <GardenChildTransferRequestsPanel incoming={incomingTransfers} outgoing={outgoingTransfers} />

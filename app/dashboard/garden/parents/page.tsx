@@ -15,6 +15,17 @@ export default async function GardenParentsPage() {
     supabase.from("messages" as any).select("recipient_id, id, read_at, created_at").eq("garden_id", gardenId).is("read_at", null),
     supabase.from("documents" as any).select("parent_id, id").eq("garden_id", gardenId)
   ]);
+  const parentProfileIds = ((parentsRes.data ?? []) as any[]).map((parent) => parent.profile_id).filter(Boolean);
+  const credentialsRes = parentProfileIds.length
+    ? await supabase.from("generated_credentials" as any).select("id,user_id,username,temporary_password,created_at,password_changed_at,reset_sent_at").in("user_id", parentProfileIds)
+    : { data: [] };
+  if ((credentialsRes as any).error) console.error("[garden-parents] generated credentials query failed", (credentialsRes as any).error);
+  const credentialsByUser = new Map<string, any[]>();
+  for (const credential of ((credentialsRes as any).data ?? []) as any[]) {
+    const list = credentialsByUser.get(credential.user_id) ?? [];
+    list.push(credential);
+    credentialsByUser.set(credential.user_id, list);
+  }
   const childrenByParent = new Map<string, any[]>();
   for (const child of (childrenRes.data ?? []) as any[]) {
     const list = childrenByParent.get(child.primary_parent_id) ?? [];
@@ -28,6 +39,7 @@ export default async function GardenParentsPage() {
   const rows = ((parentsRes.data ?? []) as any[]).map((parent) => ({
     ...parent,
     profile_image_url: parent.profiles?.profile_image_url,
+    generated_credentials: credentialsByUser.get(parent.profile_id) ?? [],
     children: childrenByParent.get(parent.id) ?? [],
     complaint_count: complaintsByParent.get(parent.id) ?? 0,
     document_count: documentsByParent.get(parent.id) ?? 0,

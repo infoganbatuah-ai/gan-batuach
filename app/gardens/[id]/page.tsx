@@ -7,7 +7,9 @@ import { createAdminClient } from "@/lib/supabase/admin";
 
 export const dynamic = "force-dynamic";
 
-function dateText(value?: string | null) { return value ? new Date(value).toLocaleDateString("he-IL") : "טרם נקבע"; }
+function dateText(value?: string | null) {
+  return value ? new Date(value).toLocaleDateString("he-IL") : "טרם נקבע";
+}
 
 export default async function PublicGardenProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -20,7 +22,70 @@ export default async function PublicGardenProfilePage({ params }: { params: Prom
     supabase.from("inspections").select("id, weighted_score, completed_at, violation_count, status").eq("garden_id", id).order("completed_at", { ascending: false }).limit(3)
   ]);
   const garden = gardenRes.data as any;
-  if (!garden || !garden.public_profile_enabled) return <><BrandHeader /><main className="section"><div className="empty-state"><strong>פרופיל הגן לא זמין לציבור</strong><span>ייתכן שהגן עדיין ממתין לאישור אדמין.</span></div></main></>;
+  if (!garden || !garden.public_profile_enabled) {
+    return <><BrandHeader /><main className="section"><div className="empty-state"><strong>פרופיל הגן לא זמין לציבור</strong><span>ייתכן שהגן עדיין ממתין לאישור אדמין.</span></div></main></>;
+  }
   const ageGroups = await getKindergartenAgeGroups(supabase, garden.id, garden);
-  return <><BrandHeader /><main><section className="page-hero slim-hero"><p className="eyebrow">פרופיל גן ציבורי</p><h1>{garden.name}</h1><p>{garden.city} · {garden.address ?? "כתובת לפי הרשאת הגן"} · מנהלת: {garden.manager?.full_name ?? garden.owner_name ?? "לא צוין"}</p><div className="actions"><Link className="button primary" href="/login">כניסת הורים</Link><Link className="button" href="/login">כניסת צוות/גננת</Link></div></section><section className="section grid cols-3 dashboard-kpis"><div className="card health-card"><ShieldCheck /> {garden.safe_status}</div><div className="card health-card"><UsersRound /> {children.count ?? 0} ילדים · {parents.count ?? 0} הורים</div><div className="card health-card"><CalendarDays /> ביקורת הבאה {dateText(garden.next_inspection_at)}</div></section><section className="section grid cols-2 dashboard-panels"><article className="card action-panel"><h2>פרטים ותמונות</h2><div className="garden-image-placeholder"><Image /> {garden.name}</div><p>גילאים / קבוצות שהגן מקבל: <strong>{formatAgeGroups(ageGroups)}</strong>. {formatPublicPriceRange(ageGroups)}. קיבולת: {garden.children_capacity ?? "לא צוין"}. סטטוס גן בטוח מוצג לפי נתוני הפיקוח במערכת.</p><div className="tag-cloud">{ageGroups.length ? ageGroups.map((group) => <span key={group.id ?? group.label}>{group.age_range ? `${group.label} · ${group.age_range}` : group.label}{group.show_price_public && group.monthly_fee ? ` · ₪${Number(group.monthly_fee).toLocaleString("he-IL")}` : ""}</span>) : <span>הגן טרם הגדיר קבוצות גיל</span>}</div></article><article className="card action-panel"><h2>צוות וסיכום פיקוח</h2><div className="risk-list"><div><UsersRound /> אנשי צוות <b>{staff.data?.length ?? 0}</b></div><div><ClipboardCheck /> ציון אחרון <b>{garden.last_inspection_score ?? "טרם"}</b></div><div><Camera /> מצלמות <b>לפי הרשאה בלבד</b></div></div></article></section><section className="section grid cols-2 dashboard-panels"><article className="card action-panel"><h2>ביקורות</h2><p>דוחות מלאים זמינים רק להורים של הגן, צוות, מנהלת, בעלים, פקח ואדמין.</p>{(inspections.data ?? []).map((inspection: any) => <div className="list-item" key={inspection.id}><div><strong>ציון {inspection.weighted_score ?? "-"}</strong><span>{dateText(inspection.completed_at)}</span></div><span className="pill">{inspection.violation_count ?? 0} ליקויים</span></div>)}</article><article className="card action-panel"><h2>בקשת רישום ילד</h2><form action={createParentLead} className="form guided-form"><input type="hidden" name="garden_id" value={garden.id} /><label>שם הורה<input name="parent_name" required /></label><label>טלפון<input name="phone" required /></label><label>מייל<input name="email" type="email" /></label><label>שם הילד/ים<input name="children_names" /></label><label>גיל<input name="child_age" placeholder={ageGroups.length ? formatAgeGroups(ageGroups) : "הגן ישייך לקבוצה לאחר בדיקה"} /></label><label className="wide">הערות<textarea name="notes" rows={3} /></label><button className="button primary">שליחת בקשת רישום</button></form></article></section></main></>;
+
+  return (
+    <>
+      <BrandHeader />
+      <main>
+        <section className="page-hero slim-hero">
+          <p className="eyebrow">פרופיל גן ציבורי</p>
+          <h1>{garden.name}</h1>
+          <p>{garden.city} · {garden.address ?? "כתובת לפי הרשאת הגן"} · מנהלת: {garden.manager?.full_name ?? garden.owner_name ?? "לא צוין"}</p>
+          <div className="actions"><Link className="button primary" href="/login">כניסת הורים</Link><Link className="button" href="/login">כניסת צוות/גננת</Link></div>
+        </section>
+
+        <section className="section grid cols-3 dashboard-kpis">
+          <div className="card health-card"><ShieldCheck /> {garden.safe_status}</div>
+          <div className="card health-card"><UsersRound /> {children.count ?? 0} ילדים · {parents.count ?? 0} הורים</div>
+          <div className="card health-card"><CalendarDays /> ביקורת הבאה {dateText(garden.next_inspection_at)}</div>
+        </section>
+
+        <section className="section grid cols-2 dashboard-panels">
+          <article className="card action-panel">
+            <h2>פרטים ותמונות</h2>
+            <div className="garden-image-placeholder"><Image /> {garden.name}</div>
+            <p>גילאים / קבוצות שהגן מקבל: <strong>{formatAgeGroups(ageGroups)}</strong>. {formatPublicPriceRange(ageGroups)}. קיבולת: {garden.children_capacity ?? "לא צוין"}. סטטוס גן בטוח מוצג לפי נתוני הפיקוח במערכת.</p>
+            <div className="tag-cloud">{ageGroups.length ? ageGroups.map((group) => <span key={group.id ?? group.label}>{group.age_range ? `${group.label} · ${group.age_range}` : group.label}{group.show_price_public && group.monthly_fee ? ` · ₪${Number(group.monthly_fee).toLocaleString("he-IL")}` : ""}</span>) : <span>הגן טרם הגדיר קבוצות גיל</span>}</div>
+          </article>
+          <article className="card action-panel">
+            <h2>צוות וסיכום פיקוח</h2>
+            <div className="risk-list"><div><UsersRound /> אנשי צוות <b>{staff.data?.length ?? 0}</b></div><div><ClipboardCheck /> ציון אחרון <b>{garden.last_inspection_score ?? "טרם"}</b></div><div><Camera /> מצלמות <b>לפי הרשאה בלבד</b></div></div>
+          </article>
+        </section>
+
+        <section className="section grid cols-2 dashboard-panels">
+          <article className="card action-panel">
+            <h2>ביקורות</h2>
+            <p>דוחות מלאים זמינים רק להורים של הגן, צוות, מנהלת, בעלים, פקח ואדמין.</p>
+            {(inspections.data ?? []).map((inspection: any) => <div className="list-item" key={inspection.id}><div><strong>ציון {inspection.weighted_score ?? "-"}</strong><span>{dateText(inspection.completed_at)}</span></div><span className="pill">{inspection.violation_count ?? 0} ליקויים</span></div>)}
+          </article>
+          <article className="card action-panel">
+            <h2>בקשת רישום ילד</h2>
+            <p>ממלאים רק פרטים בסיסיים. אחרי אישור הגן ההורה יקבל כניסה וישלים את פרטי הילד בצורה מסודרת.</p>
+            <form action={createParentLead} className="form guided-form">
+              <input type="hidden" name="garden_id" value={garden.id} />
+              <label>שם הורה<input name="parent_name" required /></label>
+              <label>טלפון<input name="phone" required /></label>
+              <label>מייל אופציונלי<input name="email" type="email" /></label>
+              <label>שם הילד<input name="child_name" required /></label>
+              <label>גיל הילד<input name="child_age" required placeholder="לדוגמה: 2.5" /></label>
+              {ageGroups.length ? (
+                <label>קבוצת גיל / כיתה מבוקשת<select name="requested_age_group" required><option value="">בחירת קבוצה</option>{ageGroups.map((group) => <option value={group.label} key={group.id ?? group.label}>{group.age_range ? `${group.label} · ${group.age_range}` : group.label}</option>)}</select></label>
+              ) : (
+                <label className="wide">קבוצת גיל / כיתה<div className="gateway-setup-state"><strong>הגן עדיין לא הגדיר קבוצות גיל.</strong><p>אפשר לשלוח בקשה, והגן ישייך את הילד לקבוצה לאחר בדיקה.</p></div><input name="requested_age_group" type="hidden" value="" /></label>
+              )}
+              <label>כתובת מלאה<input name="address" required /></label>
+              <label>תאריך התחלה מבוקש<input name="requested_start_date" type="date" required /></label>
+              <label className="wide">הערות אופציונליות<textarea name="notes" rows={3} /></label>
+              <button className="button primary">שליחת בקשת רישום</button>
+            </form>
+          </article>
+        </section>
+      </main>
+    </>
+  );
 }

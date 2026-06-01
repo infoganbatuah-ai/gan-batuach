@@ -36,10 +36,16 @@ async function contactExists(supabase: Awaited<ReturnType<typeof createClient>>,
 export async function createParentLead(formData: FormData) {
   const supabase = await createClient();
   const gardenId = value(formData, "garden_id") || null;
+  const childName = value(formData, "child_name") || value(formData, "children_names");
+  const requestedAgeGroup = value(formData, "requested_age_group");
+  const requestedStartDate = value(formData, "requested_start_date");
+  const address = value(formData, "address");
   const notes = [
     value(formData, "notes"),
-    value(formData, "desired_enrollment_date") ? `תאריך כניסה רצוי: ${value(formData, "desired_enrollment_date")}` : "",
-    value(formData, "children_names") ? `ילדים: ${value(formData, "children_names")}` : ""
+    requestedAgeGroup ? `קבוצת גיל מבוקשת: ${requestedAgeGroup}` : "",
+    requestedStartDate ? `תאריך כניסה מבוקש: ${requestedStartDate}` : "",
+    address ? `כתובת: ${address}` : "",
+    childName ? `ילד: ${childName}` : ""
   ]
     .filter(Boolean)
     .join("\n");
@@ -49,8 +55,11 @@ export async function createParentLead(formData: FormData) {
     parent_name: value(formData, "parent_name"),
     phone: value(formData, "phone"),
     email: value(formData, "email") || null,
-    child_name: value(formData, "children_names") || null,
+    child_name: childName || null,
     child_age: value(formData, "child_age") || null,
+    requested_age_group: requestedAgeGroup || null,
+    requested_start_date: requestedStartDate || null,
+    address: address || null,
     notes,
     status: "new",
     source: "public_kindergarten_page",

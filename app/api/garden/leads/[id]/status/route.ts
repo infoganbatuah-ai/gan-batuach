@@ -5,7 +5,7 @@ import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin
 import { createClient } from "@/lib/supabase/server";
 
 const schema = z.object({
-  status: z.enum(["new", "viewed", "missing_details", "approved_pending_parent_completion", "active", "rejected"]),
+  status: z.enum(["new", "viewed", "missing_details", "parent_approved_pending_child_completion", "approved_pending_parent_completion", "converted", "active", "rejected"]),
   missing_details: z.array(z.string()).optional()
 });
 

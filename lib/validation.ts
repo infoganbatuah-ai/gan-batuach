@@ -66,6 +66,8 @@ export const leadSchema = z.object({
   parent_name: z.string().optional(),
   child_name: z.string().optional(),
   child_age: z.string().optional(),
+  requested_age_group: z.string().optional(),
+  requested_start_date: z.string().optional(),
   garden_name: z.string().optional(),
   owner_name: z.string().optional(),
   city: z.string().optional(),

@@ -14,6 +14,17 @@ type ParentWizardChild = {
   identity_number?: string | null;
   photo_url?: string | null;
   face_image_url?: string | null;
+  child_age?: string | null;
+  requested_age_group?: string | null;
+  requested_start_date?: string | null;
+  lead_parent_name?: string | null;
+  lead_parent_phone?: string | null;
+  parent_photo_url?: string | null;
+  mother_photo_url?: string | null;
+  father_photo_url?: string | null;
+  important_notes?: string | null;
+  likes_notes?: string | null;
+  dislikes_notes?: string | null;
   age_group?: string | null;
   classroom?: string | null;
   hmo?: string | null;
@@ -62,7 +73,7 @@ function CredentialSuccess({ result }: { result: ResultState | null }) {
           <button className="button secondary" type="button" onClick={() => navigator.clipboard?.writeText(copyText)}>העתקת פרטי כניסה</button>
         </div>
       ) : null}
-      <small>פרטי הכניסה מוצגים כאן פעם אחת בלבד. הסיסמה אינה נשמרת בטבלאות המערכת.</small>
+      <small>פרטי הכניסה נשמרים למנהלת עד שהמשתמש מחליף סיסמה.</small>
     </div>
   );
 }
@@ -73,14 +84,14 @@ function ErrorBox({ error }: { error: string | null }) {
 
 function asPickupText(value: unknown) {
   if (!Array.isArray(value)) return "";
-  return value.map((item: any) => [item?.name, item?.phone, item?.relation].filter(Boolean).join(" · ")).filter(Boolean).join("\n");
+  return value.map((item: any) => [item?.name ?? item?.full_name, item?.identity_number, item?.phone, item?.photo_url].filter(Boolean).join(" | ")).filter(Boolean).join("\n");
 }
 
 function statusLabel(status?: string | null) {
   if (status === "active" || status === "approved") return "אושר";
   if (status === "pending_manager_approval") return "ממתין לאישור הגן";
   if (status === "pending_parent_completion") return "חסרים פרטים";
-  if (status === "request_missing_details") return "חסרים פרטים";
+  if (status === "request_missing_details" || status === "missing_info") return "חסרים פרטים";
   return "טיוטה";
 }
 
@@ -224,10 +235,11 @@ export function ParentChildRegistrationWizard({ child, parent, garden, documents
   const requiredDocs = documents.filter((doc) => ["missing", "rejected", "expired", "requested", "required"].includes(String(doc.status ?? "").toLowerCase()));
   const documentsRequired = requiredDocs.length > 0;
   const documentsCompleted = !documentsRequired || requiredDocs.every((doc) => ["approved", "uploaded", "pending_review"].includes(String(doc.status ?? "").toLowerCase()));
+  const parentPhotoComplete = Boolean(child?.parent_photo_url || child?.mother_photo_url || child?.father_photo_url);
   const completed = {
-    child: Boolean(child?.full_name && child?.birth_date),
-    health: Boolean(child?.allergies || child?.sensitivities || child?.regular_medications || child?.medical_notes || child?.hmo),
-    contacts: Boolean(child?.emergency_phone || child?.mother_phone || child?.father_phone || (Array.isArray(child?.pickup_authorized) && child?.pickup_authorized.length)),
+    child: Boolean(child?.full_name && child?.birth_date && (child?.photo_url || child?.face_image_url)),
+    health: Boolean(child?.important_notes || child?.likes_notes || child?.dislikes_notes || child?.allergies || child?.sensitivities || child?.regular_medications || child?.medical_notes || child?.hmo),
+    contacts: Boolean((child?.mother_identity_number || child?.father_identity_number) && parentPhotoComplete && (child?.mother_phone || child?.father_phone) && (Array.isArray(child?.pickup_authorized) && child?.pickup_authorized.length)),
     documents: documentsCompleted,
     notes: Boolean(specialNotes.food || specialNotes.sleep || specialNotes.behavior || specialNotes.parent_notes),
     declarations: Boolean(child?.system_consent && consents?.privacy && consents?.health_declaration)
@@ -259,7 +271,19 @@ export function ParentChildRegistrationWizard({ child, parent, garden, documents
         father_identity_number: String(data.father_identity_number || ""),
         father_phone: String(data.father_phone || ""),
         emergency_phone: String(data.emergency_phone || ""),
-        pickup_authorized: String(data.pickup_authorized || "").split("\n").map((line) => line.trim()).filter(Boolean).map((name) => ({ name })),
+        child_age: String(data.child_age || ""),
+        requested_age_group: String(data.requested_age_group || ""),
+        requested_start_date: String(data.requested_start_date || ""),
+        parent_photo_url: String(data.parent_photo_url || ""),
+        mother_photo_url: String(data.mother_photo_url || ""),
+        father_photo_url: String(data.father_photo_url || ""),
+        important_notes: String(data.important_notes || ""),
+        likes_notes: String(data.likes_notes || ""),
+        dislikes_notes: String(data.dislikes_notes || ""),
+        pickup_authorized: String(data.pickup_authorized || "").split("\n").map((line) => line.trim()).filter(Boolean).slice(0, 3).map((line) => {
+          const [name, identity_number, phone, photo_url] = line.split("|").map((part) => part.trim());
+          return { name, identity_number, phone, photo_url };
+        }),
         special_food_notes: String(data.special_food_notes || ""),
         sleep_notes: String(data.sleep_notes || ""),
         behavior_notes: String(data.behavior_notes || ""),
@@ -285,22 +309,41 @@ export function ParentChildRegistrationWizard({ child, parent, garden, documents
         <span>{completedCount === 6 ? "הרישום הושלם ונשלח לאישור הגן" : `חסר רק עוד ${6 - completedCount} פרטים`}</span>
         <span>{garden?.name ? `גן: ${garden.name}` : "גן משויך"}</span>
       </div>
+      <div className="readonly-lead-summary">
+        <strong>פרטים שנשלחו בבקשת ההצטרפות</strong>
+        <p>פרטים אלו נשלחו בבקשת ההצטרפות. לשינוי יש לשלוח בקשה לגננת.</p>
+        <div className="profile-details-grid">
+          <label>שם הורה<input readOnly value={child?.lead_parent_name ?? parent?.full_name ?? ""} /></label>
+          <label>טלפון הורה<input readOnly value={child?.lead_parent_phone ?? parent?.phone ?? ""} /></label>
+          <label>שם הילד<input readOnly value={child?.full_name ?? ""} /></label>
+          <label>גיל הילד<input readOnly value={child?.child_age ?? ""} /></label>
+          <label>קבוצה מבוקשת<input readOnly value={child?.requested_age_group ?? child?.age_group ?? child?.classroom ?? ""} /></label>
+          <label>תאריך התחלה<input readOnly value={child?.requested_start_date ? String(child.requested_start_date).slice(0, 10) : ""} /></label>
+          <label className="wide">כתובת<input readOnly value={child?.address ?? parent?.address ?? ""} /></label>
+        </div>
+        <a className="button secondary tiny" href="/dashboard/parent/messages">בקשה לתיקון פרטים</a>
+      </div>
       <h2>פרטי הילד נשמרים בשלבים ברורים</h2>
       <p>כל שלב נפתח מתחת לכותרת שלו. אם כבר מילאתם מידע, הוא מופיע כאן ולא תצטרכו להתחיל מחדש.</p>
 
       <details className="accordion-step" open>
         <summary><strong>1. פרטי הילד</strong><span>{completeText(completed.child)}</span></summary>
-        <div className="form-grid"><label>שם ילד מלא<input name="full_name" required defaultValue={child?.full_name ?? ""} /></label><label>תאריך לידה<input name="birth_date" type="date" defaultValue={child?.birth_date ? String(child.birth_date).slice(0, 10) : ""} /></label><label>תעודת זהות ילד אם קיימת<input name="identity_number" defaultValue={child?.identity_number ?? ""} /></label><label>תמונה / כתובת תמונה<input name="photo_url" defaultValue={child?.photo_url ?? child?.face_image_url ?? ""} placeholder="אפשר להשאיר ריק ולהעלות דרך כרטיס הילד" /></label>{ageGroups.length ? <label>קבוצת גיל / כיתה<select name="age_group" defaultValue={child?.age_group ?? child?.classroom ?? ""}><option value="">הגן ישייך במידת הצורך</option>{ageGroups.map((group) => <option value={group.label} key={group.id ?? group.label}>{group.age_range ? `${group.label} · ${group.age_range}` : group.label}</option>)}</select><small>האפשרויות מגיעות מהגדרות הגן.</small></label> : <label className="wide">קבוצת גיל / כיתה<div className="gateway-setup-state"><strong>הגן עדיין לא הגדיר קבוצות גיל.</strong><p>ניתן להשלים את שאר הפרטים והגן ישייך את הילד לקבוצה.</p></div><input name="age_group" type="hidden" value={child?.age_group ?? child?.classroom ?? ""} /></label>}<label>כתובת<input name="address" defaultValue={child?.address ?? parent?.address ?? ""} /></label></div>
+        <input type="hidden" name="full_name" value={child?.full_name ?? ""} />
+        <input type="hidden" name="child_age" value={child?.child_age ?? ""} />
+        <input type="hidden" name="requested_age_group" value={child?.requested_age_group ?? child?.age_group ?? child?.classroom ?? ""} />
+        <input type="hidden" name="requested_start_date" value={child?.requested_start_date ? String(child.requested_start_date).slice(0, 10) : ""} />
+        <input type="hidden" name="address" value={child?.address ?? parent?.address ?? ""} />
+        <div className="form-grid"><label>תאריך לידה<input name="birth_date" type="date" required defaultValue={child?.birth_date ? String(child.birth_date).slice(0, 10) : ""} /></label><label>תעודת זהות ילד אם קיימת<input name="identity_number" defaultValue={child?.identity_number ?? ""} /></label><label className="wide">תמונת ילד / כתובת תמונה<input name="photo_url" required defaultValue={child?.photo_url ?? child?.face_image_url ?? ""} placeholder="הדביקו כתובת תמונה או העלו דרך כרטיס הילד" /></label>{ageGroups.length ? <label className="wide">קבוצת גיל / כיתה<select disabled defaultValue={child?.requested_age_group ?? child?.age_group ?? child?.classroom ?? ""}><option value="">הגן ישייך במידת הצורך</option>{ageGroups.map((group) => <option value={group.label} key={group.id ?? group.label}>{group.age_range ? `${group.label} · ${group.age_range}` : group.label}</option>)}</select><small>האפשרויות מגיעות מהגדרות הגן. לשינוי יש לשלוח בקשה לגננת.</small></label> : <label className="wide">קבוצת גיל / כיתה<div className="gateway-setup-state"><strong>הגן עדיין לא הגדיר קבוצות גיל.</strong><p>ניתן להשלים את שאר הפרטים והגן ישייך את הילד לקבוצה.</p></div></label>}</div>
       </details>
 
       <details className="accordion-step" open={!completed.health}>
         <summary><strong>2. בריאות ואלרגיות</strong><span>{completeText(completed.health)}</span></summary>
-        <div className="form-grid"><label>קופת חולים<input name="hmo" defaultValue={child?.hmo ?? ""} /></label><label>אלרגיות<input name="allergies" defaultValue={child?.allergies ?? ""} placeholder="אם אין, כתבו אין" /></label><label>רגישויות<input name="sensitivities" defaultValue={child?.sensitivities ?? ""} /></label><label>תרופות קבועות<input name="regular_medications" defaultValue={child?.regular_medications ?? ""} placeholder="שם התרופה ומינון" /></label><label className="wide">הערות רפואיות / חירום<textarea name="medical_notes" rows={3} defaultValue={child?.medical_notes ?? ""} /></label></div>
+        <div className="form-grid"><label>קופת חולים<input name="hmo" defaultValue={child?.hmo ?? ""} /></label><label>אלרגיות<input name="allergies" defaultValue={child?.allergies ?? ""} placeholder="אם אין, כתבו אין" /></label><label>רגישויות<input name="sensitivities" defaultValue={child?.sensitivities ?? ""} /></label><label>תרופות קבועות<input name="regular_medications" defaultValue={child?.regular_medications ?? ""} placeholder="שם התרופה ומינון" /></label><label className="wide">דברים שחשוב לדעת<textarea name="important_notes" rows={2} defaultValue={child?.important_notes ?? ""} /></label><label>מה הילד אוהב<input name="likes_notes" defaultValue={child?.likes_notes ?? ""} /></label><label>מה פחות מתאים לילד<input name="dislikes_notes" defaultValue={child?.dislikes_notes ?? ""} /></label><label className="wide">הערות רפואיות / חירום<textarea name="medical_notes" rows={3} defaultValue={child?.medical_notes ?? ""} /></label></div>
       </details>
 
       <details className="accordion-step" open={!completed.contacts}>
         <summary><strong>3. אנשי קשר ואיסוף</strong><span>{completeText(completed.contacts)}</span></summary>
-        <div className="form-grid"><label>שם אם<input name="mother_name" defaultValue={child?.mother_name ?? parent?.full_name ?? ""} /></label><label>ת.ז אם<input name="mother_identity_number" defaultValue={child?.mother_identity_number ?? parent?.identity_number ?? ""} /></label><label>טלפון אם<input name="mother_phone" defaultValue={child?.mother_phone ?? parent?.phone ?? ""} /></label><label>שם אב<input name="father_name" defaultValue={child?.father_name ?? ""} /></label><label>ת.ז אב<input name="father_identity_number" defaultValue={child?.father_identity_number ?? ""} /></label><label>טלפון אב<input name="father_phone" defaultValue={child?.father_phone ?? ""} /></label><label className="wide">טלפון חירום<input name="emergency_phone" defaultValue={child?.emergency_phone ?? ""} /></label><label className="wide">מורשי איסוף<textarea name="pickup_authorized" rows={3} placeholder="כל מורשה בשורה נפרדת" defaultValue={asPickupText(child?.pickup_authorized)} /></label></div>
+        <div className="form-grid"><label>שם אם<input name="mother_name" defaultValue={child?.mother_name ?? parent?.full_name ?? ""} /></label><label>ת.ז אם<input name="mother_identity_number" defaultValue={child?.mother_identity_number ?? parent?.identity_number ?? ""} /></label><label>טלפון אם<input name="mother_phone" defaultValue={child?.mother_phone ?? parent?.phone ?? ""} /></label><label>תמונת אם<input name="mother_photo_url" defaultValue={child?.mother_photo_url ?? child?.parent_photo_url ?? ""} /></label><label>שם אב<input name="father_name" defaultValue={child?.father_name ?? ""} /></label><label>ת.ז אב<input name="father_identity_number" defaultValue={child?.father_identity_number ?? ""} /></label><label>טלפון אב<input name="father_phone" defaultValue={child?.father_phone ?? ""} /></label><label>תמונת אב<input name="father_photo_url" defaultValue={child?.father_photo_url ?? ""} /></label><label className="wide">תמונת הורה ראשית<input name="parent_photo_url" defaultValue={child?.parent_photo_url ?? child?.mother_photo_url ?? child?.father_photo_url ?? ""} /></label><label className="wide">טלפון חירום<input name="emergency_phone" defaultValue={child?.emergency_phone ?? ""} /></label><label className="wide">מורשי איסוף עד 3<textarea name="pickup_authorized" rows={4} placeholder="שם מלא | תעודת זהות | טלפון | כתובת תמונה" defaultValue={asPickupText(child?.pickup_authorized)} /></label></div>
       </details>
 
       <details className="accordion-step" open={!completed.documents}>

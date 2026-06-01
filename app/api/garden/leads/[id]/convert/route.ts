@@ -10,6 +10,9 @@ const schema = z.object({
   email: z.string().email().optional().or(z.literal("")),
   child_name: z.string().optional(),
   child_age: z.string().optional(),
+  requested_age_group: z.string().optional(),
+  address: z.string().optional(),
+  requested_start_date: z.string().optional(),
   notes: z.string().optional()
 });
 
@@ -37,7 +40,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       console.error("[garden-lead-convert] lead lookup failed", { ...actionContext, error: leadError?.message });
       return fail("לא נמצא ליד הורה לגן הזה", 404);
     }
-    if (["active", "approved_pending_parent_completion"].includes(String(lead.status))) return fail("הליד כבר הומר או נמצא בתהליך", 409);
+    if (["active", "converted", "parent_approved_pending_child_completion", "approved_pending_parent_completion"].includes(String(lead.status))) return fail("הליד כבר הומר או נמצא בתהליך", 409);
     actionContext = { ...actionContext, previous_status: lead.status };
 
     const normalizedEmail = normalizeOptionalEmail(payload.email || lead.email);
@@ -90,14 +93,23 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
         full_name: payload.parent_name,
         phone: payload.phone,
         email: normalizedEmail ?? null,
+        address: payload.address || lead.address || null,
         completed_profile: false,
-        status: "invited"
+        status: "active"
       }).select("*").single();
       if (inserted.error) {
         console.error("[garden-lead-convert] parent row insert failed", { ...actionContext, parent_user_id: parentUserId, error: inserted.error.message });
         return fail("יצירת כרטיס הורה נכשלה: " + inserted.error.message, 400);
       }
       parent = inserted.data;
+    } else if (parent.status !== "active" || parent.completed_profile === false) {
+      const updatedParent = await admin.from("parents" as any).update({
+        status: "active",
+        phone: payload.phone,
+        full_name: payload.parent_name,
+        address: payload.address || lead.address || parent.address || null
+      }).eq("id", parent.id).select("*").single();
+      if (!updatedParent.error && updatedParent.data) parent = updatedParent.data;
     }
 
     const linkResult = await admin.from("parent_kindergarten_links" as any).upsert({
@@ -116,6 +128,9 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     }
 
     const childName = payload.child_name || lead.child_name || "ילד/ה להשלמת פרטים";
+    const requestedAgeGroup = payload.requested_age_group || lead.requested_age_group || null;
+    const requestedStartDate = payload.requested_start_date || lead.requested_start_date || null;
+    const parentAddress = payload.address || lead.address || null;
     const permanentFile = await admin.from("permanent_child_files" as any).insert({
       primary_parent_profile_id: parentUserId,
       primary_parent_id: parent.id,
@@ -133,6 +148,14 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       primary_parent_id: parent.id,
       full_name: childName,
       temporary_name: childName,
+      child_age: payload.child_age || lead.child_age || null,
+      age_group: requestedAgeGroup,
+      classroom: requestedAgeGroup,
+      requested_age_group: requestedAgeGroup,
+      requested_start_date: requestedStartDate,
+      address: parentAddress,
+      lead_parent_name: payload.parent_name,
+      lead_parent_phone: payload.phone,
       parent_completed: false,
       status: "pending_parent_completion",
       medical_notes: payload.notes || lead.notes || null
@@ -148,7 +171,8 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       permanent_child_file_id: permanentFile.data.id,
       garden_id: profile.garden_id,
       status: "pending_parent_completion",
-      classroom_name: payload.child_age || lead.child_age || null,
+      classroom_name: requestedAgeGroup,
+      start_date: requestedStartDate,
       notes: payload.notes || lead.notes || null
     });
     if (enrollmentResult.error) {
@@ -169,9 +193,9 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     if (timelineResult.error) {
       console.error("[garden-lead-convert] child timeline insert failed", { ...actionContext, child_id: child.id, error: timelineResult.error.message });
     }
-    const nextLeadStatus = "approved_pending_parent_completion";
+    const nextLeadStatus = "parent_approved_pending_child_completion";
     const leadUpdate = await admin.from("leads" as any).update({
-      status: "approved_pending_parent_completion",
+      status: nextLeadStatus,
       converted_parent_id: parent.id,
       converted_child_id: child.id,
       converted_at: new Date().toISOString(),
