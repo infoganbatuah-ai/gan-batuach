@@ -1,5 +1,5 @@
+import { loadFinanceAuthDiagnostics } from "@/lib/debug/finance-auth-diagnostics";
 import { loadGardenFinanceData } from "@/lib/domain/garden-finance-loader";
-import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
@@ -11,50 +11,39 @@ export default async function FinanceLoaderPingPage() {
   console.error("[finance-loader-ping] route started");
 
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-      error: authError
-    } = await supabase.auth.getUser();
-
-    let profile: any = null;
-    let profileError: string | null = null;
-    if (user?.id) {
-      const result = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
-      profile = result.data;
-      profileError = result.error?.message ?? null;
-    }
-
-    const gardenId = profile?.garden_id ?? profile?.kindergarten_id ?? "";
+    const diagnostics = await loadFinanceAuthDiagnostics();
+    const gardenId = diagnostics.sessionProfile.gardenId ?? "";
     const data = await loadGardenFinanceData({
-      supabase: supabase as any,
+      supabase: diagnostics.supabase as any,
       gardenId,
       searchParams: {},
       debug: true
     });
 
     console.error("[finance-loader-ping] result", {
-      hasUser: Boolean(user),
-      hasProfile: Boolean(profile),
-      role: profile?.role ?? null,
+      cookies: diagnostics.cookieNames,
+      getUser: diagnostics.getUser,
+      getSession: diagnostics.getSession,
+      role: diagnostics.sessionProfile.role,
       gardenId: gardenId || null,
       loaderOk: data.ok,
       diagnostics: data.diagnostics?.length ?? 0,
-      errors: data.errors?.length ?? 0,
-      authError: authError?.message ?? null,
-      profileError
+      errors: data.errors?.length ?? 0
     });
 
     return (
       <main style={{ direction: "rtl", fontFamily: "system-ui", padding: 24 }}>
         <h1>finance loader ping</h1>
-        <p>user found: {user ? "yes" : "no"}</p>
-        <p>profile found: {profile ? "yes" : "no"}</p>
-        <p>role: {profile?.role ?? "none"}</p>
+        <p>cookie names: {diagnostics.cookieNames.length ? diagnostics.cookieNames.join(", ") : "none"}</p>
+        <p>auth.getUser user id: {diagnostics.getUser.userId ?? "not found"}</p>
+        <p>auth.getUser error: {diagnostics.getUser.error ?? "none"}</p>
+        <p>auth.getSession user id: {diagnostics.getSession.userId ?? "not found"}</p>
+        <p>auth.getSession error: {diagnostics.getSession.error ?? "none"}</p>
+        <p>getSessionProfile user id: {diagnostics.sessionProfile.userId ?? "not found"}</p>
+        <p>profile found: {diagnostics.sessionProfile.profileId ? "yes" : "no"}</p>
+        <p>role: {diagnostics.sessionProfile.role ?? "none"}</p>
         <p>garden id: {gardenId || "none"}</p>
         <p>loader ok: {String(data.ok)}</p>
-        <p>auth error: {authError?.message ?? "none"}</p>
-        <p>profile error: {profileError ?? "none"}</p>
         <h2>diagnostics</h2>
         <ul>
           {(data.diagnostics ?? []).map((item, index) => (

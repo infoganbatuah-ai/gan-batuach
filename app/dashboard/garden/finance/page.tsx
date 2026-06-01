@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { cookies } from "next/headers";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { requireRole } from "@/lib/auth";
 import {
@@ -170,7 +171,8 @@ function SafeStat({ label, value, tone = "default" }: { label: string; value: st
 export default async function GardenFinancePage({ searchParams }: { searchParams: Promise<FinanceSearchParams> }) {
   const params: FinanceSearchParams = await searchParams.catch(() => ({}));
   const debugMode = isDebugEnabled(params);
-  console.error("[finance-page] route started", { debugMode, filter: params.filter ?? null });
+  const cookieStore = await cookies();
+  console.error("[finance-page] route started", { debugMode, filter: params.filter ?? null, cookies: cookieStore.getAll().map((cookie) => cookie.name) });
 
   try {
     const { profile } = await requireRole(["manager", "owner"]);

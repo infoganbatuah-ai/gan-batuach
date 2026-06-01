@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { loadFinanceAuthDiagnostics } from "@/lib/debug/finance-auth-diagnostics";
 
 export const dynamic = "force-dynamic";
 
@@ -10,42 +10,31 @@ export default async function FinanceGardenPingPage() {
   console.error("[finance-garden-ping] route started");
 
   try {
-    const supabase = await createClient();
-    const {
-      data: { user },
-      error: authError
-    } = await supabase.auth.getUser();
-
-    let profile: any = null;
-    let profileError: string | null = null;
-
-    if (user?.id) {
-      const result = await supabase.from("profiles").select("*").eq("id", user.id).maybeSingle();
-      profile = result.data;
-      profileError = result.error?.message ?? null;
-    }
-
-    const gardenId = profile?.garden_id ?? profile?.kindergarten_id ?? null;
+    const diagnostics = await loadFinanceAuthDiagnostics();
+    const profile = diagnostics.sessionProfile.profile as any;
+    const gardenId = diagnostics.sessionProfile.gardenId;
 
     console.error("[finance-garden-ping] result", {
-      hasUser: Boolean(user),
-      userId: user?.id ?? null,
+      cookies: diagnostics.cookieNames,
+      getUser: diagnostics.getUser,
+      getSession: diagnostics.getSession,
       hasProfile: Boolean(profile),
-      role: profile?.role ?? null,
-      gardenId,
-      authError: authError?.message ?? null,
-      profileError
+      role: diagnostics.sessionProfile.role,
+      gardenId
     });
 
     return (
       <main style={{ direction: "rtl", fontFamily: "system-ui", padding: 24 }}>
         <h1>finance garden ping</h1>
-        <p>user found: {user ? "yes" : "no"}</p>
+        <p>cookie names: {diagnostics.cookieNames.length ? diagnostics.cookieNames.join(", ") : "none"}</p>
+        <p>auth.getUser user id: {diagnostics.getUser.userId ?? "not found"}</p>
+        <p>auth.getUser error: {diagnostics.getUser.error ?? "none"}</p>
+        <p>auth.getSession user id: {diagnostics.getSession.userId ?? "not found"}</p>
+        <p>auth.getSession error: {diagnostics.getSession.error ?? "none"}</p>
+        <p>dashboard helper user found: {diagnostics.sessionProfile.userId ? "yes" : "no"}</p>
         <p>profile found: {profile ? "yes" : "no"}</p>
-        <p>role: {profile?.role ?? "none"}</p>
+        <p>role: {diagnostics.sessionProfile.role ?? "none"}</p>
         <p>garden id: {gardenId ?? "none"}</p>
-        <p>auth error: {authError?.message ?? "none"}</p>
-        <p>profile error: {profileError ?? "none"}</p>
       </main>
     );
   } catch (error) {
