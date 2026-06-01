@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { UploadImageField } from "@/components/upload-image-field";
 
 type Credentials = { username: string; email: string; temporary_password: string };
 type ResultState = { title: string; message: string; credentials?: Credentials };
@@ -230,14 +231,19 @@ export function ParentChildRegistrationWizard({ child, parent, garden, documents
   const [result, setResult] = useState<ResultState | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [childPhotoUrl, setChildPhotoUrl] = useState(child?.photo_url ?? child?.face_image_url ?? "");
+  const [parentPhotoUrl, setParentPhotoUrl] = useState(child?.parent_photo_url ?? child?.mother_photo_url ?? child?.father_photo_url ?? "");
+  const [motherPhotoUrl, setMotherPhotoUrl] = useState(child?.mother_photo_url ?? child?.parent_photo_url ?? "");
+  const [fatherPhotoUrl, setFatherPhotoUrl] = useState(child?.father_photo_url ?? "");
+  const [pickupPhotos, setPickupPhotos] = useState<string[]>(() => Array.isArray(child?.pickup_authorized) ? child.pickup_authorized.map((item: any) => item?.photo_url ?? "") : []);
   const consents = child?.additional_consents ?? {};
   const specialNotes = consents?.special_notes ?? {};
   const requiredDocs = documents.filter((doc) => ["missing", "rejected", "expired", "requested", "required"].includes(String(doc.status ?? "").toLowerCase()));
   const documentsRequired = requiredDocs.length > 0;
   const documentsCompleted = !documentsRequired || requiredDocs.every((doc) => ["approved", "uploaded", "pending_review"].includes(String(doc.status ?? "").toLowerCase()));
-  const parentPhotoComplete = Boolean(child?.parent_photo_url || child?.mother_photo_url || child?.father_photo_url);
+  const parentPhotoComplete = Boolean(parentPhotoUrl || motherPhotoUrl || fatherPhotoUrl);
   const completed = {
-    child: Boolean(child?.full_name && child?.birth_date && (child?.photo_url || child?.face_image_url)),
+    child: Boolean(child?.full_name && child?.birth_date && childPhotoUrl),
     health: Boolean(child?.important_notes || child?.likes_notes || child?.dislikes_notes || child?.allergies || child?.sensitivities || child?.regular_medications || child?.medical_notes || child?.hmo),
     contacts: Boolean((child?.mother_identity_number || child?.father_identity_number) && parentPhotoComplete && (child?.mother_phone || child?.father_phone) && (Array.isArray(child?.pickup_authorized) && child?.pickup_authorized.length)),
     documents: documentsCompleted,
@@ -250,13 +256,16 @@ export function ParentChildRegistrationWizard({ child, parent, garden, documents
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault(); const form = event.currentTarget; setBusy(true); setError(null);
     try {
+      if (!childPhotoUrl) throw new Error("יש להעלות תמונת ילד");
+      if (!parentPhotoUrl && !motherPhotoUrl && !fatherPhotoUrl) throw new Error("יש להעלות תמונת הורה אחת לפחות");
       const data = jsonFromForm(form);
+      const pickupLines = String(data.pickup_authorized || "").split("\n").map((line) => line.trim()).filter(Boolean).slice(0, 3);
       await postJson("/api/parent/child-registration", {
         child_id: String(data.child_id || "") || undefined,
         full_name: String(data.full_name),
         birth_date: String(data.birth_date || ""),
         identity_number: String(data.identity_number || ""),
-        photo_url: String(data.photo_url || ""),
+        photo_url: childPhotoUrl,
         age_group: String(data.age_group || ""),
         hmo: String(data.hmo || ""),
         allergies: String(data.allergies || ""),
@@ -274,15 +283,15 @@ export function ParentChildRegistrationWizard({ child, parent, garden, documents
         child_age: String(data.child_age || ""),
         requested_age_group: String(data.requested_age_group || ""),
         requested_start_date: String(data.requested_start_date || ""),
-        parent_photo_url: String(data.parent_photo_url || ""),
-        mother_photo_url: String(data.mother_photo_url || ""),
-        father_photo_url: String(data.father_photo_url || ""),
+        parent_photo_url: parentPhotoUrl || motherPhotoUrl || fatherPhotoUrl,
+        mother_photo_url: motherPhotoUrl,
+        father_photo_url: fatherPhotoUrl,
         important_notes: String(data.important_notes || ""),
         likes_notes: String(data.likes_notes || ""),
         dislikes_notes: String(data.dislikes_notes || ""),
-        pickup_authorized: String(data.pickup_authorized || "").split("\n").map((line) => line.trim()).filter(Boolean).slice(0, 3).map((line) => {
+        pickup_authorized: pickupLines.map((line, index) => {
           const [name, identity_number, phone, photo_url] = line.split("|").map((part) => part.trim());
-          return { name, identity_number, phone, photo_url };
+          return { name, identity_number, phone, photo_url: photo_url || pickupPhotos[index] || "" };
         }),
         special_food_notes: String(data.special_food_notes || ""),
         sleep_notes: String(data.sleep_notes || ""),
@@ -333,7 +342,7 @@ export function ParentChildRegistrationWizard({ child, parent, garden, documents
         <input type="hidden" name="requested_age_group" value={child?.requested_age_group ?? child?.age_group ?? child?.classroom ?? ""} />
         <input type="hidden" name="requested_start_date" value={child?.requested_start_date ? String(child.requested_start_date).slice(0, 10) : ""} />
         <input type="hidden" name="address" value={child?.address ?? parent?.address ?? ""} />
-        <div className="form-grid"><label>תאריך לידה<input name="birth_date" type="date" required defaultValue={child?.birth_date ? String(child.birth_date).slice(0, 10) : ""} /></label><label>תעודת זהות ילד אם קיימת<input name="identity_number" defaultValue={child?.identity_number ?? ""} /></label><label className="wide">תמונת ילד / כתובת תמונה<input name="photo_url" required defaultValue={child?.photo_url ?? child?.face_image_url ?? ""} placeholder="הדביקו כתובת תמונה או העלו דרך כרטיס הילד" /></label>{ageGroups.length ? <label className="wide">קבוצת גיל / כיתה<select disabled defaultValue={child?.requested_age_group ?? child?.age_group ?? child?.classroom ?? ""}><option value="">הגן ישייך במידת הצורך</option>{ageGroups.map((group) => <option value={group.label} key={group.id ?? group.label}>{group.age_range ? `${group.label} · ${group.age_range}` : group.label}</option>)}</select><small>האפשרויות מגיעות מהגדרות הגן. לשינוי יש לשלוח בקשה לגננת.</small></label> : <label className="wide">קבוצת גיל / כיתה<div className="gateway-setup-state"><strong>הגן עדיין לא הגדיר קבוצות גיל.</strong><p>ניתן להשלים את שאר הפרטים והגן ישייך את הילד לקבוצה.</p></div></label>}</div>
+        <div className="form-grid"><label>תאריך לידה<input name="birth_date" type="date" required defaultValue={child?.birth_date ? String(child.birth_date).slice(0, 10) : ""} /></label><label>תעודת זהות ילד אם קיימת<input name="identity_number" defaultValue={child?.identity_number ?? ""} /></label><div className="wide upload-card-field"><strong>תמונת ילד חובה</strong>{childPhotoUrl ? <img className="profile-preview-image" src={childPhotoUrl} alt="תמונת ילד" /> : <div className="empty-mini">יש להעלות תמונת ילד</div>}<UploadImageField label={childPhotoUrl ? "החלפת תמונת ילד" : "העלאת תמונת ילד"} bucket="child-photos" prefix="parent-onboarding/child" onUploaded={setChildPhotoUrl} /><button className="button secondary tiny" type="button" disabled={!childPhotoUrl} onClick={() => setChildPhotoUrl("")}>הסרת תמונה</button></div>{ageGroups.length ? <label className="wide">קבוצת גיל / כיתה<select disabled defaultValue={child?.requested_age_group ?? child?.age_group ?? child?.classroom ?? ""}><option value="">הגן ישייך במידת הצורך</option>{ageGroups.map((group) => <option value={group.label} key={group.id ?? group.label}>{group.age_range ? `${group.label} · ${group.age_range}` : group.label}</option>)}</select><small>האפשרויות מגיעות מהגדרות הגן. לשינוי יש לשלוח בקשה לגננת.</small></label> : <label className="wide">קבוצת גיל / כיתה<div className="gateway-setup-state"><strong>הגן עדיין לא הגדיר קבוצות גיל.</strong><p>ניתן להשלים את שאר הפרטים והגן ישייך את הילד לקבוצה.</p></div></label>}</div>
       </details>
 
       <details className="accordion-step" open={!completed.health}>
@@ -343,7 +352,7 @@ export function ParentChildRegistrationWizard({ child, parent, garden, documents
 
       <details className="accordion-step" open={!completed.contacts}>
         <summary><strong>3. אנשי קשר ואיסוף</strong><span>{completeText(completed.contacts)}</span></summary>
-        <div className="form-grid"><label>שם אם<input name="mother_name" defaultValue={child?.mother_name ?? parent?.full_name ?? ""} /></label><label>ת.ז אם<input name="mother_identity_number" defaultValue={child?.mother_identity_number ?? parent?.identity_number ?? ""} /></label><label>טלפון אם<input name="mother_phone" defaultValue={child?.mother_phone ?? parent?.phone ?? ""} /></label><label>תמונת אם<input name="mother_photo_url" defaultValue={child?.mother_photo_url ?? child?.parent_photo_url ?? ""} /></label><label>שם אב<input name="father_name" defaultValue={child?.father_name ?? ""} /></label><label>ת.ז אב<input name="father_identity_number" defaultValue={child?.father_identity_number ?? ""} /></label><label>טלפון אב<input name="father_phone" defaultValue={child?.father_phone ?? ""} /></label><label>תמונת אב<input name="father_photo_url" defaultValue={child?.father_photo_url ?? ""} /></label><label className="wide">תמונת הורה ראשית<input name="parent_photo_url" defaultValue={child?.parent_photo_url ?? child?.mother_photo_url ?? child?.father_photo_url ?? ""} /></label><label className="wide">טלפון חירום<input name="emergency_phone" defaultValue={child?.emergency_phone ?? ""} /></label><label className="wide">מורשי איסוף עד 3<textarea name="pickup_authorized" rows={4} placeholder="שם מלא | תעודת זהות | טלפון | כתובת תמונה" defaultValue={asPickupText(child?.pickup_authorized)} /></label></div>
+        <div className="form-grid"><label>שם אם<input name="mother_name" defaultValue={child?.mother_name ?? parent?.full_name ?? ""} /></label><label>ת.ז אם<input name="mother_identity_number" defaultValue={child?.mother_identity_number ?? parent?.identity_number ?? ""} /></label><label>טלפון אם<input name="mother_phone" defaultValue={child?.mother_phone ?? parent?.phone ?? ""} /></label><div className="upload-card-field"><strong>תמונת אם</strong>{motherPhotoUrl ? <img className="profile-preview-image" src={motherPhotoUrl} alt="תמונת אם" /> : null}<UploadImageField label="העלאת תמונת אם" bucket="documents" prefix="parent-onboarding/parents" onUploaded={(url) => { setMotherPhotoUrl(url); setParentPhotoUrl((current) => current || url); }} /></div><label>שם אב<input name="father_name" defaultValue={child?.father_name ?? ""} /></label><label>ת.ז אב<input name="father_identity_number" defaultValue={child?.father_identity_number ?? ""} /></label><label>טלפון אב<input name="father_phone" defaultValue={child?.father_phone ?? ""} /></label><div className="upload-card-field"><strong>תמונת אב</strong>{fatherPhotoUrl ? <img className="profile-preview-image" src={fatherPhotoUrl} alt="תמונת אב" /> : null}<UploadImageField label="העלאת תמונת אב" bucket="documents" prefix="parent-onboarding/parents" onUploaded={(url) => { setFatherPhotoUrl(url); setParentPhotoUrl((current) => current || url); }} /></div><div className="wide upload-card-field"><strong>תמונת הורה ראשית חובה</strong>{parentPhotoUrl ? <img className="profile-preview-image" src={parentPhotoUrl} alt="תמונת הורה" /> : <div className="empty-mini">יש להעלות לפחות תמונת הורה אחת</div>}<UploadImageField label={parentPhotoUrl ? "החלפת תמונת הורה ראשית" : "העלאת תמונת הורה ראשית"} bucket="documents" prefix="parent-onboarding/parents" onUploaded={setParentPhotoUrl} /><button className="button secondary tiny" type="button" disabled={!parentPhotoUrl} onClick={() => setParentPhotoUrl("")}>הסרת תמונה ראשית</button></div><label className="wide">טלפון חירום<input name="emergency_phone" defaultValue={child?.emergency_phone ?? ""} /></label><label className="wide">מורשי איסוף עד 3<textarea name="pickup_authorized" rows={4} placeholder="שם מלא | תעודת זהות | טלפון" defaultValue={asPickupText(child?.pickup_authorized)} /></label><div className="wide pickup-photo-grid">{[0, 1, 2].map((index) => <div className="upload-card-field" key={index}><strong>תמונת מורשה איסוף {index + 1}</strong>{pickupPhotos[index] ? <img className="profile-preview-image" src={pickupPhotos[index]} alt={`מורשה איסוף ${index + 1}`} /> : null}<UploadImageField label="העלאת תמונה אופציונלית" bucket="documents" prefix="parent-onboarding/pickup" onUploaded={(url) => setPickupPhotos((current) => { const next = [...current]; next[index] = url; return next; })} /></div>)}</div></div>
       </details>
 
       <details className="accordion-step" open={!completed.documents}>

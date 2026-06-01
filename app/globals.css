@@ -4705,6 +4705,25 @@ body::before {
   background: white;
 }
 
+.upload-card-field {
+  display: grid;
+  gap: 10px;
+  padding: 14px;
+  border: 1px solid rgb(31 95 180 / 16%);
+  border-radius: 18px;
+  background: linear-gradient(135deg, rgb(239 248 255 / 86%), rgb(245 255 250 / 88%));
+}
+
+.pickup-photo-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.approval-photo-preview {
+  margin-block: 10px;
+}
+
 .profile-actions .payment-action-message,
 .image-upload-panel small {
   display: inline-flex;

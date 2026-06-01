@@ -165,6 +165,10 @@ export async function POST(request: Request) {
 
     if (error) return fail(error.message, 400);
     await supabase.from("parents").update({ completed_profile: true, status: "active" }).eq("id", parent.id as string);
+    const primaryParentPhoto = payload.parent_photo_url || payload.mother_photo_url || payload.father_photo_url || "";
+    if (primaryParentPhoto) {
+      await supabase.from("profiles" as any).update({ profile_image_url: primaryParentPhoto }).eq("id", profile.id).is("profile_image_url", null);
+    }
 
     let permanentFileId = (child as any).permanent_child_file_id ?? existingChild?.permanent_child_file_id ?? null;
     if (permanentFileId) {
