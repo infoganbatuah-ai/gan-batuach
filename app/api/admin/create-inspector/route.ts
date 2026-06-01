@@ -6,6 +6,7 @@ import { DuplicateContactError, checkEmailConflict, normalizeOptionalEmail, prov
 
 const schema = provisionedUserSchema.extend({
   source_lead_id: z.string().uuid().optional(),
+  profile_image_url: z.string().url().optional(),
   service_cities: z.array(z.string().min(2)).min(1),
   garden_ids: z.array(z.string().uuid()).optional(),
   certification_notes: z.string().optional()
@@ -34,7 +35,7 @@ export async function POST(request: Request) {
 
     const { data: inspector, error } = await supabase
       .from("inspectors")
-      .upsert({ id: user.id, service_cities: payload.service_cities, certification_notes: payload.certification_notes ?? null }, { onConflict: "id" })
+      .upsert({ id: user.id, service_cities: payload.service_cities, certification_notes: payload.certification_notes ?? null, profile_photo_url: payload.profile_image_url ?? null }, { onConflict: "id" })
       .select("*")
       .single();
 
@@ -45,6 +46,11 @@ export async function POST(request: Request) {
 
     if (payload.garden_ids?.length) {
       await supabase.from("gardens").update({ inspector_id: user.id }).in("id", payload.garden_ids);
+    }
+
+    if (payload.profile_image_url) {
+      const { error: profilePhotoError } = await supabase.from("profiles").update({ profile_image_url: payload.profile_image_url }).eq("id", user.id);
+      if (profilePhotoError) console.error("[create-inspector-profile-photo-sync-failed]", { user_id: user.id, message: profilePhotoError.message });
     }
 
     if (payload.source_lead_id) {

@@ -57,10 +57,19 @@ export async function PATCH(request: Request) {
         full_name: profilePatch.full_name,
         phone: profilePatch.phone,
         address: profilePatch.address,
-        profile_image_url: profilePatch.profile_image_url,
+        photo_url: profilePatch.profile_image_url,
         emergency_details: profilePatch.emergency_contact
       }).filter(([, value]) => value !== undefined));
-      await supabase.from("parents" as any).update(parentPatch).eq("profile_id", profile.id);
+      const { error } = await supabase.from("parents" as any).update(parentPatch).eq("profile_id", profile.id);
+      if (error) console.error("[profile-settings-parent-photo-sync-failed]", { profile_id: profile.id, message: error.message });
+    }
+    if (profile.role === "staff" && profilePatch.profile_image_url !== undefined) {
+      const { error } = await supabase.from("staff" as any).update({ profile_photo_url: profilePatch.profile_image_url }).eq("profile_id", profile.id);
+      if (error) console.error("[profile-settings-staff-photo-sync-failed]", { profile_id: profile.id, message: error.message });
+    }
+    if (profile.role === "inspector" && profilePatch.profile_image_url !== undefined) {
+      const { error } = await supabase.from("inspectors" as any).update({ profile_photo_url: profilePatch.profile_image_url }).eq("id", profile.id);
+      if (error) console.error("[profile-settings-inspector-photo-sync-failed]", { profile_id: profile.id, message: error.message });
     }
     await supabase.from("audit_logs" as any).insert({ actor_id: profile.id, actor_role: profile.role, garden_id: profile.garden_id, entity_type: "profiles", entity_id: profile.id, action: "update_profile_settings", after_data: { profilePatch, garden: payload.garden ? true : false } });
     return ok({ profile: updatedProfile, garden: updatedGarden });

@@ -39,6 +39,20 @@ export async function POST(request: Request) {
       const cleanPatch = Object.fromEntries(Object.entries(patch).filter(([, value]) => value !== undefined));
       const { data, error } = await supabase.from("profiles").update(cleanPatch).eq("id", payload.user_id).select("*").single();
       if (error) return fail("שמירת פרטי המשתמש נכשלה: " + error.message, 400);
+      if (payload.profile_image_url !== undefined) {
+        if ((payload.role ?? target.role) === "staff") {
+          const staffSync = await supabase.from("staff" as any).update({ profile_photo_url: payload.profile_image_url || null }).eq("profile_id", payload.user_id);
+          if (staffSync.error) console.error("[admin-user-staff-photo-sync-failed]", { user_id: payload.user_id, message: staffSync.error.message });
+        }
+        if ((payload.role ?? target.role) === "inspector") {
+          const inspectorSync = await supabase.from("inspectors" as any).update({ profile_photo_url: payload.profile_image_url || null }).eq("id", payload.user_id);
+          if (inspectorSync.error) console.error("[admin-user-inspector-photo-sync-failed]", { user_id: payload.user_id, message: inspectorSync.error.message });
+        }
+        if ((payload.role ?? target.role) === "parent") {
+          const parentSync = await supabase.from("parents" as any).update({ photo_url: payload.profile_image_url || null }).eq("profile_id", payload.user_id);
+          if (parentSync.error) console.error("[admin-user-parent-photo-sync-failed]", { user_id: payload.user_id, message: parentSync.error.message });
+        }
+      }
       await writeUserCreationAudit({ actorId: profile.id, actorRole: "admin", entityType: "profiles", entityId: payload.user_id, action: "update_user_profile", afterData: cleanPatch });
       return ok(data);
     }

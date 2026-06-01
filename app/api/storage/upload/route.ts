@@ -3,7 +3,16 @@ import { fail, handleRouteError, ok } from "@/lib/api";
 import { requireUser } from "@/lib/auth";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
 
-const allowedBuckets = new Set(["documents", "child-photos", "incident-photos", "inspection-reports", "gallery"]);
+const allowedBuckets = new Set([
+  "documents",
+  "child-photos",
+  "profile-photos",
+  "pickup-person-photos",
+  "kindergarten-logos",
+  "incident-photos",
+  "inspection-reports",
+  "gallery"
+]);
 
 function safeName(name: string) {
   return name.replace(/[^a-zA-Z0-9._-]/g, "-").slice(-120);

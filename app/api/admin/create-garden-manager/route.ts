@@ -6,6 +6,9 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { DuplicateContactError, checkEmailConflict, normalizeOptionalEmail, provisionAuthUser, provisionedUserSchema, writeUserCreationAudit } from "@/lib/onboarding/user-provisioning";
 
 const ownershipTypes = ["teacher_is_owner", "separate_owner", "teacher_only", "owner_only"] as const;
+const provisionedUserWithPhotoSchema = provisionedUserSchema.extend({
+  profile_image_url: z.string().url().optional()
+});
 
 const schema = z.object({
   source_lead_id: z.string().uuid().optional(),
@@ -23,14 +26,16 @@ const schema = z.object({
     owner_name: z.string().optional(),
     phone: z.string().optional(),
     email: z.string().email().optional(),
+    image_url: z.string().url().optional(),
+    logo_url: z.string().url().optional(),
     inspector_id: z.string().uuid().optional(),
     ownership_type: z.enum(ownershipTypes).optional(),
     owner_role_label: z.string().optional(),
     public_profile_enabled: z.boolean().default(true),
     notes: z.string().optional()
   }),
-  manager: provisionedUserSchema.optional(),
-  owner: provisionedUserSchema.optional()
+  manager: provisionedUserWithPhotoSchema.optional(),
+  owner: provisionedUserWithPhotoSchema.optional()
 }).superRefine((payload, ctx) => {
   const ownership = payload.garden.ownership_type ?? "teacher_only";
   if (ownership !== "owner_only") {
@@ -101,6 +106,8 @@ export async function POST(request: Request) {
       owner_role_label: payload.garden.owner_role_label || (ownershipType === "teacher_is_owner" ? "גננת ובעלים" : ownershipType === "separate_owner" ? "בעלים נפרד" : ownershipType === "owner_only" ? "בעלים בלבד" : "מנהלת/גננת"),
       inspector_id: payload.garden.inspector_id ?? null,
       status: "active",
+      image_url: payload.garden.image_url ?? payload.garden.logo_url ?? null,
+      logo_url: payload.garden.logo_url ?? payload.garden.image_url ?? null,
       safe_status: "pending_review",
       first_inspection_due_at: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
       first_inspection_grace_until: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000).toISOString(),
@@ -120,12 +127,12 @@ export async function POST(request: Request) {
     }
 
     if (manager) {
-      const { error: managerProfileError } = await admin.from("profiles").update({ garden_id: garden.id }).eq("id", manager.user.id);
+      const { error: managerProfileError } = await admin.from("profiles").update({ garden_id: garden.id, profile_image_url: payload.manager?.profile_image_url ?? null }).eq("id", manager.user.id);
       if (managerProfileError) return fail("הגן נוצר אך שיוך המנהלת נכשל: " + managerProfileError.message, 400);
     }
 
     if (owner) {
-      const { error: ownerProfileError } = await admin.from("profiles").update({ garden_id: garden.id }).eq("id", owner.user.id);
+      const { error: ownerProfileError } = await admin.from("profiles").update({ garden_id: garden.id, profile_image_url: payload.owner?.profile_image_url ?? null }).eq("id", owner.user.id);
       if (ownerProfileError) return fail("הגן נוצר אך שיוך הבעלים נכשל: " + ownerProfileError.message, 400);
     }
 
