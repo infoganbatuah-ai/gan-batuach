@@ -30,7 +30,8 @@ export function QuickChildOps({ childId, gardenId }: { childId: string; gardenId
         staff_signature: "עדכון מהיר"
       };
       const response = await fetch("/api/child-daily-journals", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
-      setMessage(response.ok ? "נשמר ונשלחה התראה להורה." : "לא ניתן לשמור כרגע.");
+      const result = await response.json().catch(() => null);
+      setMessage(response.ok ? "נשמר ונשלחה התראה להורה." : result?.error || "לא ניתן לשמור כרגע. בדקו שהילד משויך לגן ונסו שוב.");
     });
   }
 
@@ -42,7 +43,8 @@ export function QuickChildOps({ childId, gardenId }: { childId: string; gardenId
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "change_clothes", has_change_clothes: !missing, change_clothes_notes: missing ? "נא להביא בגדים להחלפה" : "סומן שיש בגדים להחלפה" })
       });
-      setMessage(response.ok ? "סטטוס בגדים עודכן." : "לא ניתן לעדכן בגדים כרגע.");
+      const result = await response.json().catch(() => null);
+      setMessage(response.ok ? "סטטוס בגדים עודכן." : result?.error || "לא ניתן לעדכן בגדים כרגע.");
     });
   }
 
@@ -55,7 +57,8 @@ export function QuickChildOps({ childId, gardenId }: { childId: string; gardenId
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ garden_id: gardenId, child_id: childId, status })
       });
-      setMessage(response.ok ? "נוכחות עודכנה." : "לא ניתן לעדכן נוכחות כרגע.");
+      const result = await response.json().catch(() => null);
+      setMessage(response.ok ? "נוכחות עודכנה." : result?.error || "לא ניתן לעדכן נוכחות כרגע.");
     });
   }
 

@@ -19,12 +19,13 @@ export function ParentRequestActions({ childId, requestId }: { childId: string; 
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "parent_request_status", request_id: requestId, status, manager_response: response || undefined })
       });
+      const body = await result.json().catch(() => null);
       if (result.ok) {
         setMessage("בקשת ההורה עודכנה.");
         if (["handled", "rejected"].includes(status)) setCompleted(true);
         router.refresh();
       } else {
-        setMessage("לא ניתן לעדכן את הבקשה כרגע.");
+        setMessage(body?.error || "לא ניתן לעדכן את הבקשה כרגע. בדקו שהבקשה עדיין משויכת לגן.");
       }
     });
   }

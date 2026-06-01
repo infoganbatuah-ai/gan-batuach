@@ -13,12 +13,12 @@ export function TaskWorkbench({ tasks }: { tasks: any[] }) {
     if (status === "rejected" && !reason) return;
     startTransition(async () => {
       const response = await fetch(`/api/tasks/${id}/status`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ status, rejection_reason: reason, completion_comment: status === "done" ? "בוצע דרך המערכת" : undefined }) });
+      const body = await response.json().catch(() => null);
       if (response.ok) {
-        const body = await response.json();
         setRows((current) => current.map((task) => task.id === id ? body.data : task));
         setMessage("המשימה עודכנה.");
       } else {
-        setMessage("לא ניתן לעדכן משימה כרגע.");
+        setMessage(body?.error || "לא ניתן לעדכן משימה כרגע. בדקו הרשאה או סטטוס משימה.");
       }
     });
   }
