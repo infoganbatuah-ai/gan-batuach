@@ -21,13 +21,19 @@ export default async function GardenChildrenPage({ searchParams }: { searchParam
   const gardenId = profile.garden_id ?? "";
   const today = new Date().toISOString().slice(0, 10);
   const [childrenRes, attendanceRes, journalsRes, incidentsRes, feeGroupsRes, requestsRes] = await Promise.all([
-    supabase.from("children" as any).select("id, garden_id, permanent_child_file_id, full_name, birth_date, child_age, requested_age_group, requested_start_date, lead_parent_name, lead_parent_phone, identity_number, status, allergies, sensitivities, regular_medications, medical_notes, important_notes, likes_notes, dislikes_notes, hmo, emergency_phone, photo_url, face_image_url, parent_photo_url, mother_photo_url, father_photo_url, pickup_authorized, mother_name, father_name, mother_identity_number, father_identity_number, mother_phone, father_phone, address, age_group, classroom, payment_group_id, monthly_fee, custom_monthly_fee, arrangement_notes, arrangement_valid_until, payment_status, payments_paused, debt_amount, failure_reason, failed_at, retry_required, last_payment_date, next_payment_due, valid_until, payment_notes, last_amount_paid, last_payment_method, has_change_clothes, change_clothes_notes, last_change_clothes_check, created_at, updated_at").eq("garden_id", gardenId).order("full_name"),
+    supabase.from("children" as any).select("*").eq("garden_id", gardenId).order("full_name"),
     supabase.from("attendance" as any).select("child_id, status, pickup_authorized, pickup_name, note").eq("garden_id", gardenId).eq("attendance_date", today),
     supabase.from("child_daily_journals" as any).select("child_id, meals, sleep_summary, mood, bathroom, incidents, notes_to_parents, photo_urls").eq("garden_id", gardenId).eq("journal_date", today),
     supabase.from("incident_reports" as any).select("child_id, id").eq("garden_id", gardenId).neq("status", "closed"),
     supabase.from("kindergarten_fee_groups" as any).select("id, group_name, monthly_fee").eq("garden_id", gardenId),
     supabase.from("parent_child_requests" as any).select("id, child_id, status").eq("garden_id", gardenId).in("status", ["new", "viewed"])
   ]);
+  if (childrenRes.error) console.error("[garden-children] children query failed", { garden_id: gardenId, error: childrenRes.error.message });
+  if (attendanceRes.error) console.error("[garden-children] attendance query failed", { garden_id: gardenId, error: attendanceRes.error.message });
+  if (journalsRes.error) console.error("[garden-children] journals query failed", { garden_id: gardenId, error: journalsRes.error.message });
+  if (incidentsRes.error) console.error("[garden-children] incidents query failed", { garden_id: gardenId, error: incidentsRes.error.message });
+  if (feeGroupsRes.error) console.error("[garden-children] fee groups query failed", { garden_id: gardenId, error: feeGroupsRes.error.message });
+  if (requestsRes.error) console.error("[garden-children] requests query failed", { garden_id: gardenId, error: requestsRes.error.message });
   const attendanceByChild = new Map((attendanceRes.data ?? []).map((row: any) => [row.child_id, row]));
   const journalByChild = new Map((journalsRes.data ?? []).map((row: any) => [row.child_id, row]));
   const feeGroups = (feeGroupsRes.data ?? []) as any[];

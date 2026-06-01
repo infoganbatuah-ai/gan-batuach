@@ -2,6 +2,7 @@ import { MessageSquareText } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { DashboardFilterChip } from "@/components/dashboard-filter-chip";
 import { InternalMessagingCenter } from "@/components/internal-messaging-center";
+import { ParentRequestActions } from "@/components/parent-request-actions";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
@@ -10,16 +11,21 @@ export default async function GardenMessagesPage({ searchParams }: { searchParam
   const { childId, status } = await searchParams;
   const supabase = await createClient();
   const gardenId = profile.garden_id ?? "";
-  const [parentsRes, staffRes, inspectorsRes, childrenRes, messagesRes] = await Promise.all([
+  const [parentsRes, staffRes, inspectorsRes, childrenRes, messagesRes, parentRequestsRes] = await Promise.all([
     supabase.from("parents" as any).select("profiles:profile_id(id, full_name, email, role, profile_image_url)").eq("garden_id", gardenId),
     supabase.from("staff" as any).select("profiles:profile_id(id, full_name, email, role, profile_image_url)").eq("garden_id", gardenId),
     supabase.from("profiles" as any).select("id, full_name, email, role, profile_image_url").in("role", ["admin", "inspector"]).limit(50),
     supabase.from("children" as any).select("id, full_name, primary_parent_id, parents:primary_parent_id(profile_id)").eq("garden_id", gardenId).order("full_name"),
-    supabase.from("messages" as any).select("*, sender:sender_id(full_name, profile_image_url), recipient:recipient_id(full_name, profile_image_url)").eq("garden_id", gardenId).or(`sender_id.eq.${profile.id},recipient_id.eq.${profile.id}`).order("created_at", { ascending: false }).limit(80)
+    supabase.from("messages" as any).select("*, sender:sender_id(full_name, profile_image_url), recipient:recipient_id(full_name, profile_image_url)").eq("garden_id", gardenId).or(`sender_id.eq.${profile.id},recipient_id.eq.${profile.id}`).order("created_at", { ascending: false }).limit(80),
+    supabase.from("parent_child_requests" as any).select("id, child_id, parent_profile_id, request_type, content, recipient_label, status, response_text, created_at, children(full_name), parents:parent_id(full_name, phone)").eq("garden_id", gardenId).order("created_at", { ascending: false }).limit(80)
   ]);
   const recipients = [...(parentsRes.data ?? []).map((row: any) => row.profiles).filter(Boolean), ...(staffRes.data ?? []).map((row: any) => row.profiles).filter(Boolean), ...(inspectorsRes.data ?? [])];
   const messages = ((messagesRes.data ?? []) as any[]).filter((message) => {
     if (status === "open") return !["closed", "handled", "archived", "read"].includes(message.status);
+    return true;
+  });
+  const parentRequests = ((parentRequestsRes.data ?? []) as any[]).filter((request) => {
+    if (status === "open") return ["new", "viewed", "in_progress"].includes(String(request.status));
     return true;
   });
   const preselectedChild = ((childrenRes.data ?? []) as any[]).find((child) => child.id === childId);
@@ -27,7 +33,11 @@ export default async function GardenMessagesPage({ searchParams }: { searchParam
   return (
     <DashboardShell role="manager" title="הודעות">
       <div className="dashboard-hero-card garden-hero-card"><div><p className="eyebrow">Internal Messaging</p><h1>תקשורת מתועדת מול הורים, צוות, פקחים ואדמין.</h1><p>סטטוס קריאה, נושא, שיוך לגן ושיוך לילד במידת הצורך.</p></div><span className="pill good"><MessageSquareText size={15} /> הודעות חיות</span></div>
-      <DashboardFilterChip label={status === "open" ? "הודעות / פניות פתוחות" : null} clearHref="/dashboard/garden/messages" isEmpty={messages.length === 0} emptyTitle="אין כרגע הודעות פתוחות" emptyText="כל ההודעות במסנן הזה טופלו או נקראו." />
+      <DashboardFilterChip label={status === "open" ? "הודעות / פניות פתוחות" : null} clearHref="/dashboard/garden/messages" isEmpty={messages.length === 0 && parentRequests.length === 0} emptyTitle="אין כרגע הודעות פתוחות" emptyText="כל ההודעות והפניות במסנן הזה טופלו או נקראו." />
+      <section className="dashboard-section">
+        <div className="section-heading"><h2>פניות הורים לטיפול</h2><p>פניות שנשלחו דרך מסך ההורה עם נמען ותיעוד סטטוס. תגובה כאן תופיע להורה.</p></div>
+        {parentRequests.length === 0 ? <div className="empty-state"><strong>אין פניות הורים פתוחות</strong><span>כאשר הורה ישלח בקשה לגן, היא תופיע כאן עם הילד, סוג הפנייה וסטטוס טיפול.</span></div> : <div className="procedure-list">{parentRequests.map((request) => <article className="card procedure-card" key={request.id}><div><span className={request.status === "handled" ? "pill good" : request.status === "rejected" ? "pill bad" : "pill warn"}>{request.status ?? "new"}</span><h3>{request.request_type ?? "פניית הורה"} · {request.children?.full_name ?? "ילד/ה"}</h3><p>{request.content}</p><small>{request.parents?.full_name ?? "הורה"} · {request.created_at ? new Date(request.created_at).toLocaleString("he-IL") : ""} · נמען: {request.recipient_label ?? "מנהלת הגן"}</small>{request.response_text ? <p className="success-banner">תגובה שנשלחה: {request.response_text}</p> : null}</div><ParentRequestActions childId={request.child_id} requestId={request.id} /></article>)}</div>}
+      </section>
       <InternalMessagingCenter gardenId={gardenId} recipients={recipients} linkedChildren={(childrenRes.data ?? []) as any[]} messages={messages} preselectedChildId={childId} preselectedRecipientId={preselectedRecipientId} />
     </DashboardShell>
   );

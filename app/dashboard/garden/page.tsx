@@ -66,8 +66,14 @@ export default async function GardenDashboard() {
   const expectedRevenue = ((financeChildrenRes.data ?? []) as any[]).reduce((sum, child) => sum + Number(child.monthly_fee ?? 0), 0);
   const failedPayments = ((unpaidRes.data ?? []) as any[]).filter((child) => ["failed", "not_transferred"].includes(child.payment_status)).length;
   const latePayments = Math.max(0, (unpaidRes.count ?? 0) - failedPayments);
-  const smartInsights = await syncSmartInsights(supabase as any, await generateSmartInsights(supabase as any, profile));
-  await createNotificationsForUrgentInsights(supabase as any, smartInsights);
+  let smartInsights: Awaited<ReturnType<typeof generateSmartInsights>> = [];
+  try {
+    smartInsights = await syncSmartInsights(supabase as any, await generateSmartInsights(supabase as any, profile));
+    await createNotificationsForUrgentInsights(supabase as any, smartInsights);
+  } catch (error) {
+    console.error("[garden-dashboard] smart insights failed", { garden_id: gardenId, error });
+    smartInsights = [];
+  }
   const smartCommandItems = smartInsights.slice(0, 9).map((item) => ({
     title: item.title,
     count: item.severity === "urgent" || item.severity === "critical" ? "דחוף" : item.severity === "warning" ? "כדאי" : "חדש",
