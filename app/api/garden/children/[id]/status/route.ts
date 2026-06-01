@@ -49,7 +49,10 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     await writeUserCreationAudit({ actorId: profile.id, actorRole: profile.role, gardenId: profile.garden_id, entityType: "children", entityId: id, action: `child_registration_${payload.status}`, afterData: { child_id: id, status: payload.status, reason: payload.reason ?? null } });
     if (child.primary_parent_id) {
       const { data: parent } = await supabase.from("parents" as any).select("profile_id").eq("id", child.primary_parent_id).maybeSingle();
-      if (parent?.profile_id) await supabase.from("notifications" as any).insert({ garden_id: profile.garden_id, recipient_id: parent.profile_id, recipient_role: "parent", title: "עדכון רישום ילד", body: payload.status === "active" ? "כרטיס הילד אושר על ידי הגן" : payload.reason ?? "עודכן סטטוס רישום הילד", entity_type: "children", entity_id: id, severity: payload.status === "active" ? "low" : "medium" });
+      if (parent?.profile_id) {
+        const body = payload.status === "active" ? "כרטיס הילד אושר על ידי הגן" : payload.status === "rejected" ? payload.reason ?? "בקשת רישום הילד נדחתה" : payload.reason ?? "הגן ביקש השלמת פרטים";
+        await supabase.from("notifications" as any).insert({ garden_id: profile.garden_id, kindergarten_id: profile.garden_id, recipient_id: parent.profile_id, recipient_profile_id: parent.profile_id, recipient_role: "parent", title: "עדכון רישום ילד", body, message: body, entity_type: "children", entity_id: id, child_id: id, severity: payload.status === "active" ? "low" : "medium", action_url: payload.status === "active" ? "/dashboard/parent" : `/parent-onboarding?childId=${id}`, created_by: profile.id, metadata: { href: payload.status === "active" ? "/dashboard/parent" : `/parent-onboarding?childId=${id}`, child_id: id, status: payload.status } });
+      }
     }
     console.info("[child-status-update] completed", actionContext);
     return ok({ child });

@@ -243,9 +243,15 @@ export async function POST(request: Request) {
         recipient_role: "manager",
         title: "ילד ממתין לאישור",
         body: `${payload.full_name} השלים/ה כרטיס וממתין/ה לאישור הגן.`,
+        message: `${payload.full_name} השלים/ה כרטיס וממתין/ה לאישור הגן.`,
         entity_type: "children",
         entity_id: child.id,
         severity: "medium",
+        action_url: "/dashboard/garden/children?status=pending",
+        recipient_profile_id: recipientId,
+        kindergarten_id: gardenId,
+        child_id: child.id,
+        created_by: profile.id,
         metadata: { href: "/dashboard/garden/children", child_id: child.id }
       })));
     }

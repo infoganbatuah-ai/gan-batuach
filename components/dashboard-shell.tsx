@@ -12,6 +12,7 @@ import { DashboardIntelligenceBar } from "@/components/dashboard-intelligence-ba
 import { DashboardCommandCenter } from "@/components/dashboard-command-center";
 import { OnboardingGuideControls } from "@/components/onboarding-guide-controls";
 import { DashboardBackButton } from "@/components/dashboard-back-button";
+import { NotificationBell } from "@/components/notification-bell";
 
 const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: string }>> = {
   admin: [
@@ -31,6 +32,7 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/admin/documents", label: "מסמכים", hint: "תוקף וציות" },
     { href: "/dashboard/admin/system-health", label: "בריאות מערכת", hint: "מה חסר" },
     { href: "/dashboard/admin/navigation-health", label: "בריאות ניווט", hint: "בדיקת routes" },
+    { href: "/dashboard/admin/user-journey-audit", label: "User Journey Audit", hint: "בדיקת מסעות" },
     { href: "/dashboard/admin/audit-logs", label: "Audit Logs", hint: "פעולות מערכת" },
     { href: "/dashboard/admin/demo-control", label: "Demo Control", hint: "נתוני דמו ו-QA" },
     { href: "/dashboard/admin/qa-checklist", label: "QA Checklist", hint: "בדיקות תפעול" },
@@ -43,6 +45,7 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/inspector/cameras", label: "מצלמות", hint: "גנים משויכים" },
     { href: "/dashboard/inspector/ai-events", label: "AI", hint: "התראות גנים" },
     { href: "/dashboard/inspector/reports", label: "דיווחים", hint: "פניות ואירועים" },
+    { href: "/dashboard/inspector/notifications", label: "התראות", hint: "פיקוח ומשימות" },
     { href: "/dashboard/inspector/tasks", label: "משימות", hint: "לביצוע" },
     { href: "/dashboard/inspector/violations", label: "ליקויים", hint: "אישור תיקונים" },
     { href: "/dashboard/inspector/settings", label: "הגדרות", hint: "פרופיל והתראות" }
@@ -57,6 +60,7 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/garden/cameras", label: "מצלמות", hint: "אשף חיבור" },
     { href: "/dashboard/garden/onboarding", label: "קליטה", hint: "הורים, ילדים וצוות" },
     { href: "/dashboard/garden/leads", label: "לידים / בקשות הצטרפות", hint: "רישום הורים" },
+    { href: "/dashboard/garden/notifications", label: "התראות", hint: "מה דורש טיפול" },
     { href: "/dashboard/garden/children", label: "ילדים", hint: "רישום ואישור" },
     { href: "/dashboard/garden/finance", label: "כספים", hint: "גבייה ותשלומים" },
     { href: "/dashboard/garden/parents", label: "הורים", hint: "אנשי קשר" },
@@ -77,6 +81,7 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/garden/cameras", label: "מצלמות", hint: "אשף חיבור" },
     { href: "/dashboard/garden/onboarding", label: "קליטה", hint: "הורים, ילדים וצוות" },
     { href: "/dashboard/garden/leads", label: "לידים / בקשות הצטרפות", hint: "רישום הורים" },
+    { href: "/dashboard/garden/notifications", label: "התראות", hint: "מה דורש טיפול" },
     { href: "/dashboard/garden/children", label: "ילדים", hint: "רישום ואישור" },
     { href: "/dashboard/garden/finance", label: "כספים", hint: "גבייה ותשלומים" },
     { href: "/dashboard/garden/parents", label: "הורים", hint: "אנשי קשר" },
@@ -97,6 +102,7 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/staff/documents", label: "מסמכים", hint: "תעודות ואישורים" },
     { href: "/dashboard/staff/shifts", label: "שעות", hint: "דוחות חודשיים" },
     { href: "/dashboard/staff/messages", label: "הודעות", hint: "תקשורת" },
+    { href: "/dashboard/staff/notifications", label: "התראות", hint: "מה חדש" },
     { href: "/dashboard/staff/settings", label: "הגדרות", hint: "פרופיל והתראות" }
   ],
   parent: [
@@ -144,6 +150,7 @@ export function DashboardShell({ role, title, children }: { role: UserRole; titl
         <main className="dashboard-main">
           <div className="dashboard-page-navigation">
             <DashboardBackButton fallbackHref={dashboardHomeByRole[role]} />
+            <NotificationBell role={role} />
           </div>
           <PolicyAcceptanceGate />
           <SandboxModeBanner />

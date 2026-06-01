@@ -156,9 +156,16 @@ export async function POST(request: Request) {
           recipient_role: "parent",
           title: "תשלום לא עבר",
           body: payload.failure_reason ?? payload.notes ?? "הגן סימן שתשלום הילד לא עבר ויש צורך בבדיקה.",
+          message: payload.failure_reason ?? payload.notes ?? "הגן סימן שתשלום הילד לא עבר ויש צורך בבדיקה.",
           entity_type: "children",
           entity_id: payload.child_id,
-          severity: "high"
+          severity: "urgent",
+          action_url: "/dashboard/parent",
+          recipient_profile_id: parentProfileId,
+          kindergarten_id: profile.garden_id,
+          child_id: payload.child_id,
+          created_by: profile.id,
+          metadata: { href: "/dashboard/parent", child_id: payload.child_id, payment_status: payload.action }
         });
       }
     }

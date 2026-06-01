@@ -213,9 +213,15 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       recipient_role: "parent",
       title: "השלמת פרטי ילד",
       body: "הגן אישר את בקשת ההצטרפות הראשונית. עכשיו יש להשלים את כרטיס הילד.",
+      message: "הגן אישר את בקשת ההצטרפות הראשונית. עכשיו יש להשלים את כרטיס הילד.",
       entity_type: "children",
       entity_id: child.id,
       severity: "medium",
+      action_url: `/parent-onboarding?childId=${child.id}`,
+      recipient_profile_id: parentUserId,
+      kindergarten_id: profile.garden_id,
+      child_id: child.id,
+      created_by: profile.id,
       metadata: { href: `/parent-onboarding?childId=${child.id}`, lead_id: id, child_id: child.id }
     });
     if (notificationResult.error) {
