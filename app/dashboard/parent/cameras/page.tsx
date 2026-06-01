@@ -43,7 +43,7 @@ export default async function Page() {
         <div>
           <p className="eyebrow">צפייה מורשית בלבד</p>
           <h1>מצלמות הגן.</h1>
-          <p>הורה רואה רק מצלמות של הגן שאליו הוא משויך ורק מצלמות שהגן סימן כמותרות לצפיית הורים. פרטי RTSP, שם משתמש וסיסמאות לא נשלחים לדפדפן.</p>
+          <p>כאן מופיעות רק מצלמות שהגן אישר לצפיית הורים. הצפייה נפתחת בצורה מאובטחת ולזמן מוגבל.</p>
         </div>
         <span className={gatewayConnected ? "pill good" : "pill warn"}>{gatewayConnected ? "מחובר" : "ממתין לחיבור שידור"}</span>
       </div>

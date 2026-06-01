@@ -2,10 +2,11 @@ import type { SupabaseClient } from "@supabase/supabase-js";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
 import {
   evaluateParentCameraAccess,
-  getCameraGardenId,
   resolveParentCameraScope,
   type ParentCameraAccessDecision
 } from "@/lib/domain/parent-camera-access";
+import { hasPlaybackSource } from "@/lib/domain/video-gateway";
+import { sanitizeCameraForParent } from "@/lib/domain/camera-diagnostics";
 
 const safeCameraColumns = [
   "id",
@@ -35,35 +36,8 @@ function uniqById(rows: any[]) {
   return rows.filter((row, index, all) => row?.id && all.findIndex((item) => item?.id === row.id) === index);
 }
 
-function sanitizeCamera(camera: any) {
-  return {
-    id: camera.id,
-    garden_id: camera.garden_id ?? null,
-    kindergarten_id: camera.kindergarten_id ?? null,
-    camera_garden_id: getCameraGardenId(camera),
-    name: camera.name ?? "מצלמה",
-    area: camera.area ?? null,
-    age_group: camera.age_group ?? null,
-    class_group: camera.class_group ?? null,
-    camera_type: camera.camera_type ?? null,
-    source_type: camera.source_type ?? null,
-    protocol: camera.protocol ?? null,
-    status: camera.status ?? null,
-    active: camera.active ?? null,
-    parent_view_allowed: camera.parent_view_allowed ?? null,
-    parent_viewing_allowed: camera.parent_viewing_allowed ?? null,
-    hls_playback_url: camera.hls_playback_url ?? null,
-    sample_hls_url: camera.sample_hls_url ?? null,
-    webrtc_playback_url: camera.webrtc_playback_url ?? null,
-    video_gateway_stream_id: camera.video_gateway_stream_id ?? null,
-    gateway_stream_id: camera.gateway_stream_id ?? null,
-    viewing_hours: camera.viewing_hours ?? null,
-    last_health_check_at: camera.last_health_check_at ?? null
-  };
-}
-
 export type ParentCameraListResult = {
-  cameras: ReturnType<typeof sanitizeCamera>[];
+  cameras: ReturnType<typeof sanitizeCameraForParent>[];
   decisions: ParentCameraAccessDecision[];
   scope: Awaited<ReturnType<typeof resolveParentCameraScope>>;
   debug: {
@@ -131,8 +105,9 @@ export async function getParentCameraListForProfile(userSupabase: SupabaseClient
   const candidateCameras = uniqById([...gardenRows, ...kindergartenRows]);
   const decisions = candidateCameras.map((camera) => evaluateParentCameraAccess(profile, scope, camera));
   const allowedIds = new Set(decisions.filter((decision) => decision.allowed).map((decision) => decision.diagnostics.camera_id));
-  const allowedCameras = candidateCameras.filter((camera) => allowedIds.has(camera.id)).map(sanitizeCamera);
-  const missingPlaybackSourceCount = allowedCameras.filter((camera) => !(camera.sample_hls_url || camera.hls_playback_url || camera.webrtc_playback_url || camera.gateway_stream_id || camera.video_gateway_stream_id)).length;
+  const allowedRawCameras = candidateCameras.filter((camera) => allowedIds.has(camera.id));
+  const allowedCameras = allowedRawCameras.map(sanitizeCameraForParent);
+  const missingPlaybackSourceCount = allowedRawCameras.filter((camera) => !hasPlaybackSource(camera)).length;
 
   console.info("Parent cameras secure list result", {
     parentProfileId: profile.id,

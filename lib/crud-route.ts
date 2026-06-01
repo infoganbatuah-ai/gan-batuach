@@ -28,7 +28,7 @@ export function createCrudHandlers(config: CrudConfig) {
         const gardenId = searchParams.get("garden_id");
         const selectColumns =
           config.table === "camera_streams"
-            ? "id,garden_id,kindergarten_id,name,area,age_group,class_group,camera_type,source_type,protocol,host,port,username,rtsp_path,onvif_path,channel,hls_playback_url,sample_hls_url,webrtc_playback_url,video_gateway_stream_id,gateway_stream_id,viewing_hours,parent_view_allowed,parent_viewing_allowed,status,active,ai_enabled,last_health_check_at,created_at,updated_at"
+            ? "id,garden_id,kindergarten_id,name,area,age_group,class_group,camera_type,source_type,source_url,stream_status,health_status,last_seen,connection_method,protocol,host,port,username,rtsp_path,onvif_path,channel,hls_playback_url,sample_hls_url,webrtc_playback_url,video_gateway_stream_id,gateway_stream_id,viewing_hours,parent_view_allowed,parent_viewing_allowed,status,active,ai_enabled,last_health_check_at,last_successful_connection_at,last_stream_activity_at,uptime_seconds,failure_count,reconnect_attempts,recording_enabled,retention_days,archive_policy,created_at,updated_at"
             : "*";
         let query = (supabase as any).from(config.table).select(selectColumns).limit(Math.min(limit, 200));
         if (gardenId) query = query.eq("garden_id", gardenId);
@@ -74,13 +74,42 @@ export function createCrudHandlers(config: CrudConfig) {
           }
           cameraPayload.kindergarten_id = cameraPayload.garden_id;
           cameraPayload.source_type = cameraPayload.source_type ?? cameraPayload.camera_type;
+          cameraPayload.source_url = cameraPayload.source_url ?? "";
           cameraPayload.sample_hls_url = cameraPayload.sample_hls_url ?? cameraPayload.hls_playback_url;
           cameraPayload.gateway_stream_id = cameraPayload.gateway_stream_id ?? cameraPayload.video_gateway_stream_id;
           cameraPayload.parent_viewing_allowed = cameraPayload.parent_viewing_allowed ?? cameraPayload.parent_view_allowed;
+          cameraPayload.stream_status = cameraPayload.stream_status ?? cameraPayload.status ?? "pending";
+          cameraPayload.health_status = cameraPayload.health_status ?? (cameraPayload.status === "connected" ? "healthy" : "pending");
+          cameraPayload.connection_method = cameraPayload.connection_method ?? (cameraPayload.gateway_stream_id || cameraPayload.video_gateway_stream_id ? "video_gateway" : "pending_gateway");
           insertPayload = cameraPayload;
         }
         const supabase = await createClient();
-        const { data, error } = await (supabase as any).from(config.table).insert(insertPayload).select("*").single();
+        let { data, error } = await (supabase as any).from(config.table).insert(insertPayload).select("*").single();
+        if (error && config.table === "camera_streams" && /column .* does not exist|schema cache/i.test(error.message ?? "")) {
+          console.error("Camera stream insert with readiness fields failed, retrying legacy-safe payload:", error);
+          const legacyPayload = { ...(insertPayload as Record<string, unknown>) };
+          [
+            "source_url",
+            "stream_status",
+            "health_status",
+            "last_seen",
+            "connection_method",
+            "last_successful_connection_at",
+            "last_stream_activity_at",
+            "uptime_seconds",
+            "failure_count",
+            "reconnect_attempts",
+            "recording_enabled",
+            "retention_days",
+            "archive_policy",
+            "disabled_at",
+            "disabled_by",
+            "health_summary"
+          ].forEach((key) => delete legacyPayload[key]);
+          const legacyInsert = await (supabase as any).from(config.table).insert(legacyPayload).select("*").single();
+          data = legacyInsert.data;
+          error = legacyInsert.error;
+        }
         if (error) return fail(error.message, 400);
         if (config.table === "messages" && data && parsed.recipient_id) {
           await (supabase as any).from("notifications").insert({

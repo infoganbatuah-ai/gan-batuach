@@ -2,6 +2,60 @@ import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { encryptField } from "@/lib/security/encryption";
 
+export const cameraSourceTypes = ["RTSP", "ONVIF", "DVR", "NVR", "HLS", "WebRTC", "Sample HLS"] as const;
+export type CameraSourceType = (typeof cameraSourceTypes)[number];
+
+export const cameraOperationalStatuses = ["connected", "connecting", "pending", "offline", "error", "disabled"] as const;
+export type CameraOperationalStatus = (typeof cameraOperationalStatuses)[number];
+
+export function normalizeCameraSourceType(value?: string | null): CameraSourceType {
+  const normalized = String(value ?? "RTSP").trim().toLowerCase();
+  if (normalized.includes("sample")) return "Sample HLS";
+  if (normalized === "hls") return "HLS";
+  if (normalized === "webrtc") return "WebRTC";
+  if (normalized === "onvif") return "ONVIF";
+  if (normalized === "dvr") return "DVR";
+  if (normalized === "nvr") return "NVR";
+  return "RTSP";
+}
+
+export function normalizeCameraStatus(value?: string | null, active = true): CameraOperationalStatus {
+  if (!active) return "disabled";
+  const normalized = String(value ?? "pending").trim().toLowerCase();
+  if (["connected", "online"].includes(normalized)) return "connected";
+  if (["connecting"].includes(normalized)) return "connecting";
+  if (["offline", "failed"].includes(normalized)) return "offline";
+  if (["error"].includes(normalized)) return "error";
+  if (["disabled"].includes(normalized)) return "disabled";
+  return "pending";
+}
+
+export function isVideoGatewayConfigured() {
+  return Boolean(process.env.VIDEO_GATEWAY_URL);
+}
+
+export function hasPlaybackSource(camera: Record<string, unknown>) {
+  return Boolean(
+    camera.sample_hls_url ||
+    camera.hls_playback_url ||
+    camera.webrtc_playback_url ||
+    camera.gateway_stream_id ||
+    camera.video_gateway_stream_id
+  );
+}
+
+export function buildCameraGatewayDescriptor(camera: Record<string, unknown>) {
+  const sourceType = normalizeCameraSourceType(String(camera.source_type ?? camera.camera_type ?? camera.protocol ?? "RTSP"));
+  return {
+    sourceType,
+    status: normalizeCameraStatus(String(camera.stream_status ?? camera.status ?? "pending"), camera.active !== false),
+    gatewayConfigured: isVideoGatewayConfigured(),
+    playbackReady: hasPlaybackSource(camera),
+    recordingReady: Boolean(camera.recording_enabled),
+    recordingImplemented: false
+  };
+}
+
 export const onvifDiscoverySchema = z.object({
   garden_id: z.string().uuid(),
   network_cidr: z.string(),
@@ -85,9 +139,16 @@ export async function ingestRtsp(payload: z.infer<typeof rtspIngestSchema>) {
       name: parsed.name,
       area: parsed.area,
       protocol: "RTSP",
+      source_type: "RTSP",
+      source_url: parsed.rtsp_url,
+      stream_status: gatewayStreamId ? "connected" : "pending",
+      health_status: gatewayStreamId ? "healthy" : "pending",
+      connection_method: process.env.VIDEO_GATEWAY_URL ? "video_gateway" : "pending_gateway",
       video_gateway_stream_id: gatewayStreamId,
       hls_playback_url: (gateway as any).hls_url,
       webrtc_playback_url: (gateway as any).webrtc_url,
+      last_seen: gatewayStreamId ? new Date().toISOString() : null,
+      last_successful_connection_at: gatewayStreamId ? new Date().toISOString() : null,
       active: true
     } as any)
     .select("*")

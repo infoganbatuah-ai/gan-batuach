@@ -186,6 +186,10 @@ export const cameraStreamSchema = z.object({
   area: z.string().min(2),
   camera_type: z.string().optional(),
   source_type: z.string().optional(),
+  source_url: z.string().optional(),
+  stream_status: z.enum(["connected", "connecting", "pending", "offline", "error", "disabled"]).optional(),
+  health_status: z.string().optional(),
+  connection_method: z.string().optional(),
   protocol: z.string().default("RTSP"),
   active: z.boolean().default(true),
   status: z.string().optional(),
@@ -206,6 +210,9 @@ export const cameraStreamSchema = z.object({
   video_gateway_stream_id: z.string().optional(),
   gateway_stream_id: z.string().optional(),
   ai_enabled: z.boolean().optional(),
+  recording_enabled: z.boolean().optional(),
+  retention_days: z.coerce.number().int().optional(),
+  archive_policy: z.string().optional(),
   dvr_port: z.number().int().optional(),
   viewing_hours: z.record(z.string(), z.unknown()).optional()
 });

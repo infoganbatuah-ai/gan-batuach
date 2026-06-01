@@ -22,7 +22,9 @@ export function CameraPlaybackCard({ camera, parentId, canRequestPlayback = true
   const [busy, setBusy] = useState(false);
   const hlsUrl = camera.hls_playback_url ?? camera.sample_hls_url;
   const sourceType = camera.source_type ?? camera.camera_type ?? camera.protocol ?? "RTSP";
-  const playbackSourceAvailable = Boolean(hlsUrl || camera.webrtc_playback_url || camera.gateway_stream_id || camera.video_gateway_stream_id);
+  const playbackSourceAvailable = camera.playback_source_available !== undefined
+    ? Boolean(camera.playback_source_available)
+    : Boolean(hlsUrl || camera.webrtc_playback_url || camera.gateway_stream_id || camera.video_gateway_stream_id);
   const connected = ["connected", "online"].includes(camera.status);
   const canOpenPlayback = canRequestPlayback && playbackSourceAvailable;
 
@@ -54,10 +56,10 @@ export function CameraPlaybackCard({ camera, parentId, canRequestPlayback = true
       <div className="camera-card-body">
         <span className={connected ? "pill good" : "pill warn"}>{statusText[camera.status] ?? camera.status ?? "ממתין לחיבור Gateway"}</span>
         <h3>{camera.name ?? "מצלמה"}</h3>
-        <p>{camera.gardens?.name ?? camera.garden_name ?? ""} · {camera.area ?? "אזור לא הוגדר"} · {sourceType}</p>
+        <p>{parentView ? `${camera.area ?? "אזור לא הוגדר"}` : `${camera.gardens?.name ?? camera.garden_name ?? ""} · ${camera.area ?? "אזור לא הוגדר"} · ${sourceType}`}</p>
         {!playbackSourceAvailable ? <small className="gateway-setup-state">המצלמה מורשית לצפייה אך עדיין ממתינה לחיבור שידור</small> : null}
         <small><ShieldCheck size={13} /> הצפייה מאובטחת וזמנית. פרטי החיבור של המצלמה אינם נשלחים לדפדפן.</small>
-        {camera.expected_parent_count !== undefined ? <div className="camera-admin-verification"><span>Camera ID: {camera.id}</span><span>Camera name: {camera.name ?? "-"}</span><span>active: {String(camera.active)}</span><span>status: {camera.status ?? "-"}</span><span>parent_view_allowed: {String(camera.parent_view_allowed)}</span><span>parent_viewing_allowed: {String(camera.parent_viewing_allowed)}</span><span>garden_id: {camera.garden_id ?? "-"}</span><span>kindergarten_id: {camera.kindergarten_id ?? "-"}</span><span>Sample HLS: {camera.sample_hls_url ? "exists" : "missing"}</span><span>gateway_stream_id: {(camera.gateway_stream_id || camera.video_gateway_stream_id) ? "exists" : "missing"}</span><span>הורים צפויים: {camera.expected_parent_count}</span><span>{camera.visibility_status ?? "בדיקת חשיפה"}</span><ParentCameraAccessDebug cameraId={camera.id} /></div> : null}
+        {!parentView && camera.expected_parent_count !== undefined ? <div className="camera-admin-verification"><span>Camera ID: {camera.id}</span><span>Camera name: {camera.name ?? "-"}</span><span>active: {String(camera.active)}</span><span>status: {camera.status ?? "-"}</span><span>parent_view_allowed: {String(camera.parent_view_allowed)}</span><span>parent_viewing_allowed: {String(camera.parent_viewing_allowed)}</span><span>garden_id: {camera.garden_id ?? "-"}</span><span>kindergarten_id: {camera.kindergarten_id ?? "-"}</span><span>Sample HLS: {camera.sample_hls_url ? "exists" : "missing"}</span><span>gateway_stream_id: {(camera.gateway_stream_id || camera.video_gateway_stream_id) ? "exists" : "missing"}</span><span>הורים צפויים: {camera.expected_parent_count}</span><span>{camera.visibility_status ?? "בדיקת חשיפה"}</span><ParentCameraAccessDebug cameraId={camera.id} /></div> : null}
         <div className="profile-actions">
           <button className="button primary tiny" disabled={busy || !canOpenPlayback} type="button" onClick={() => start("HLS")}><Play size={14} /> {parentView ? "פתיחת צפייה" : "צפייה HLS"}</button>
           {!parentView ? <button className="button secondary tiny" disabled={busy || !canOpenPlayback || !camera.webrtc_playback_url} type="button" onClick={() => start("WebRTC")}>WebRTC</button> : null}
