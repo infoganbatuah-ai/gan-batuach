@@ -54,21 +54,30 @@ export async function POST(request: Request) {
     const { profile } = await requireRole(["parent"]);
     const payload = schema.parse(await request.json());
     const supabase = createAdminClient();
+    if (!payload.birth_date) return fail("יש למלא תאריך לידה של הילד.", 422, { field: "birth_date" });
+    if (!payload.photo_url) return fail("יש להעלות תמונת ילד.", 422, { field: "photo_url" });
+    if (!payload.parent_photo_url && !payload.mother_photo_url && !payload.father_photo_url) return fail("יש להעלות תמונת הורה אחת לפחות.", 422, { field: "parent_photo_url" });
+    if (!payload.mother_phone && !payload.father_phone) return fail("יש למלא לפחות טלפון אחד של הורה.", 422, { field: "mother_phone" });
+    if (!payload.address) return fail("יש למלא כתובת מלאה.", 422, { field: "address" });
+    if (!payload.pickup_authorized.length) return fail("יש להוסיף לפחות מורשה איסוף אחד.", 422, { field: "pickup_authorized" });
+    if (!payload.parent_policy_consent) return fail("יש לאשר את תקנון ההורים.", 422, { field: "parent_policy_consent" });
 
     const byProfile = await supabase
       .from("parents")
       .select("*")
       .eq("profile_id", profile.id)
-      .maybeSingle();
-    const byUser = byProfile.data ? { data: null, error: null } : await supabase
+      .limit(20);
+    const byUser = await supabase
       .from("parents")
       .select("*")
       .eq("user_id", profile.id)
-      .maybeSingle();
+      .limit(20);
 
-    const parent = (byProfile.data as any) ?? (byUser.data as any);
+    const parents = [...((byProfile.data ?? []) as any[]), ...((byUser.data ?? []) as any[])]
+      .filter((item, index, all) => item?.id && all.findIndex((candidate) => candidate.id === item.id) === index);
     const parentError = byProfile.error ?? byUser.error;
-    if (parentError || !parent) return fail(parentError?.message ?? "לא נמצא כרטיס הורה למשתמש הזה", 404);
+    if (parentError || !parents.length) return fail(parentError?.message ?? "לא נמצא כרטיס הורה למשתמש הזה", 404);
+    let parent = parents[0];
 
     let existingChild: any = null;
     if (payload.child_id) {
@@ -76,11 +85,12 @@ export async function POST(request: Request) {
         .from("children" as any)
         .select("*")
         .eq("id", payload.child_id)
-        .eq("primary_parent_id", parent.id as string)
+        .in("primary_parent_id", parents.map((item) => item.id))
         .maybeSingle();
       if (childRes.error) return fail("לא ניתן לטעון את כרטיס הילד: " + childRes.error.message, 400);
       if (!childRes.data) return fail("כרטיס הילד לא נמצא או אינו משויך להורה", 404);
       existingChild = childRes.data;
+      parent = parents.find((item) => item.id === existingChild.primary_parent_id) ?? parent;
     }
 
     const gardenId = existingChild?.garden_id ?? profile.garden_id ?? parent.garden_id;
@@ -174,14 +184,19 @@ export async function POST(request: Request) {
 
     if (error) return fail(error.message, 400);
     const primaryParentPhoto = payload.parent_photo_url || payload.mother_photo_url || payload.father_photo_url || "";
-    await supabase.from("parents").update({ completed_profile: true, status: "active", photo_url: primaryParentPhoto || parent.photo_url || null }).eq("id", parent.id as string);
+    const parentUpdate = await supabase.from("parents").update({ completed_profile: true, status: "active", photo_url: primaryParentPhoto || parent.photo_url || null }).eq("id", parent.id as string);
+    if (parentUpdate.error) {
+      console.error("[parent-child-registration] parent update failed", { parent_id: parent.id, child_id: (child as any).id, error: parentUpdate.error.message });
+      return fail("פרטי הילד נשמרו, אך עדכון כרטיס ההורה נכשל.", 500);
+    }
     if (primaryParentPhoto) {
-      await supabase.from("profiles" as any).update({ profile_image_url: primaryParentPhoto }).eq("id", profile.id).is("profile_image_url", null);
+      const profilePhotoUpdate = await supabase.from("profiles" as any).update({ profile_image_url: primaryParentPhoto }).eq("id", profile.id).is("profile_image_url", null);
+      if (profilePhotoUpdate.error) console.error("[parent-child-registration] profile photo update failed", { profile_id: profile.id, error: profilePhotoUpdate.error.message });
     }
 
     let permanentFileId = (child as any).permanent_child_file_id ?? existingChild?.permanent_child_file_id ?? null;
     if (permanentFileId) {
-      await supabase.from("permanent_child_files" as any).update({
+      const fileUpdate = await supabase.from("permanent_child_files" as any).update({
         primary_parent_profile_id: profile.id,
         primary_parent_id: parent.id,
         full_name: payload.full_name,
@@ -201,6 +216,7 @@ export async function POST(request: Request) {
         pickup_authorized: payload.pickup_authorized,
         updated_at: new Date().toISOString()
       }).eq("id", permanentFileId);
+      if (fileUpdate.error) console.error("[parent-child-registration] permanent child file update failed", { child_id: (child as any).id, permanent_child_file_id: permanentFileId, error: fileUpdate.error.message });
     } else {
       const file = await supabase.from("permanent_child_files" as any).insert({
         primary_parent_profile_id: profile.id,
@@ -222,10 +238,13 @@ export async function POST(request: Request) {
         pickup_authorized: payload.pickup_authorized
       }).select("id").single();
       permanentFileId = file.data?.id ?? null;
-      if (permanentFileId) await supabase.from("children" as any).update({ permanent_child_file_id: permanentFileId }).eq("id", (child as any).id);
+      if (permanentFileId) {
+        const childFileLink = await supabase.from("children" as any).update({ permanent_child_file_id: permanentFileId }).eq("id", (child as any).id);
+        if (childFileLink.error) console.error("[parent-child-registration] child file link failed", { child_id: (child as any).id, permanent_child_file_id: permanentFileId, error: childFileLink.error.message });
+      }
     }
     if (permanentFileId) {
-      await supabase.from("child_kindergarten_enrollments" as any).upsert({
+      const enrollmentResult = await supabase.from("child_kindergarten_enrollments" as any).upsert({
         child_id: (child as any).id,
         permanent_child_file_id: permanentFileId,
         garden_id: gardenId,
@@ -234,7 +253,11 @@ export async function POST(request: Request) {
         start_date: payload.requested_start_date || null,
         notes: payload.parent_notes || null
       }, { onConflict: "child_id,garden_id" });
-      await supabase.from("child_timeline_events" as any).insert({
+      if (enrollmentResult.error) {
+        console.error("[parent-child-registration] enrollment upsert failed", { child_id: (child as any).id, permanent_child_file_id: permanentFileId, error: enrollmentResult.error.message });
+        return fail("פרטי הילד נשמרו, אך שיוך הילד לגן לא עודכן.", 500);
+      }
+      const timelineResult = await supabase.from("child_timeline_events" as any).insert({
         child_id: (child as any).id,
         permanent_child_file_id: permanentFileId,
         garden_id: gardenId,
@@ -245,12 +268,13 @@ export async function POST(request: Request) {
         description: "הפרטים נשמרו בתיק הילד הקבוע ונשלחו לאישור הגן.",
         metadata: { status: nextStatus }
       });
+      if (timelineResult.error) console.error("[parent-child-registration] timeline insert failed", { child_id: (child as any).id, error: timelineResult.error.message });
     }
 
     const { data: garden } = await supabase.from("gardens" as any).select("manager_id, owner_profile_id").eq("id", gardenId).maybeSingle();
     const recipients = Array.from(new Set([garden?.manager_id, garden?.owner_profile_id].filter(Boolean)));
     if (recipients.length && nextStatus === "pending_manager_approval") {
-      await supabase.from("notifications" as any).insert(recipients.map((recipientId) => ({
+      const notificationResult = await supabase.from("notifications" as any).insert(recipients.map((recipientId) => ({
         garden_id: gardenId,
         recipient_id: recipientId,
         recipient_role: "manager",
@@ -267,6 +291,7 @@ export async function POST(request: Request) {
         created_by: profile.id,
         metadata: { href: "/dashboard/garden/children", child_id: child.id }
       })));
+      if (notificationResult.error) console.error("[parent-child-registration] notification failed", { child_id: child.id, garden_id: gardenId, error: notificationResult.error.message });
     }
 
     await writeUserCreationAudit({

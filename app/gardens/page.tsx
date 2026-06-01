@@ -27,7 +27,7 @@ type PublicGarden = {
   supported_age_groups?: KindergartenAgeGroup[];
 };
 
-type GardenSearchParams = { lead?: string; name?: string; city?: string; manager?: string; age?: string; status?: string; min_score?: string; lat?: string; lng?: string };
+type GardenSearchParams = { lead?: string; error?: string; name?: string; city?: string; manager?: string; age?: string; status?: string; min_score?: string; lat?: string; lng?: string };
 
 function distanceKm(lat1: number, lng1: number, lat2?: number | null, lng2?: number | null) {
   if (lat2 == null || lng2 == null) return Number.POSITIVE_INFINITY;
@@ -36,6 +36,22 @@ function distanceKm(lat1: number, lng1: number, lat2?: number | null, lng2?: num
   const dLng = toRad(lng2 - lng1);
   const a = Math.sin(dLat / 2) ** 2 + Math.cos(toRad(lat1)) * Math.cos(toRad(lat2)) * Math.sin(dLng / 2) ** 2;
   return 6371 * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function gardenMatchesAge(garden: PublicGarden, filter?: string) {
+  const needle = filter?.trim().toLowerCase();
+  if (!needle) return true;
+  const groups = garden.supported_age_groups ?? [];
+  const searchable = [
+    formatAgeGroups(groups),
+    garden.framework_type,
+    ...(garden.ages ?? []),
+    ...groups.flatMap((group) => [group.label, group.age_range, group.source])
+  ]
+    .filter(Boolean)
+    .join(" ")
+    .toLowerCase();
+  return searchable.includes(needle);
 }
 
 async function getPublicGardens(filters: GardenSearchParams) {
@@ -57,7 +73,7 @@ async function getPublicGardens(filters: GardenSearchParams) {
       supported_age_groups: await getKindergartenAgeGroups(supabase, garden.id, garden)
     })));
     if (filters.manager) rows = rows.filter((garden) => (garden.manager?.full_name ?? garden.owner_name ?? "").includes(filters.manager ?? ""));
-    if (filters.age) rows = rows.filter((garden) => formatAgeGroups(garden.supported_age_groups ?? []).includes(filters.age ?? ""));
+    if (filters.age) rows = rows.filter((garden) => gardenMatchesAge(garden, filters.age));
     const lat = Number(filters.lat);
     const lng = Number(filters.lng);
     if (Number.isFinite(lat) && Number.isFinite(lng)) rows = rows.sort((a, b) => distanceKm(lat, lng, a.gps_lat, a.gps_lng) - distanceKm(lat, lng, b.gps_lat, b.gps_lng));
@@ -91,6 +107,7 @@ export default async function GardensPage({ searchParams }: { searchParams: Prom
           <h1>מצאו גן פרטי עם שקיפות, סטטוס פיקוח ותהליך רישום ברור.</h1>
           <p>הכרטיסים מציגים את הנתונים שהגן בחר לפרסם ואת סטטוס הבקרה במערכת גן בטוח.</p>
           {params.lead === "sent" ? <div className="success-banner">הפנייה התקבלה ותופיע למנהלת הגן ולאדמין.</div> : null}
+          {params.error ? <div className="error-banner">{params.error}</div> : null}
         </section>
 
         <section className="section compact-section">

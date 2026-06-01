@@ -1,6 +1,7 @@
 import { Bot, ShieldCheck } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { requireRole } from "@/lib/auth";
+import { getParentFamilyContext } from "@/lib/domain/parent-family";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
 
@@ -8,11 +9,8 @@ export default async function ParentAiEventsPage() {
   const { profile } = await requireRole(["parent"]);
   const userScopedSupabase = await createClient();
   const supabase = isAdminClientConfigured() ? createAdminClient() : userScopedSupabase;
-  const parentRes = await supabase.from("parents" as any).select("id").eq("profile_id", profile.id).maybeSingle();
-  const parentId = (parentRes.data as any)?.id;
-  const childrenRes = parentId ? await supabase.from("children" as any).select("id, full_name, garden_id, gardens(name, city)").eq("primary_parent_id", parentId) : { data: [] };
-  const children = (childrenRes.data ?? []) as any[];
-  const gardenIds = Array.from(new Set(children.map((child) => child.garden_id).filter(Boolean)));
+  const family = await getParentFamilyContext(userScopedSupabase as any, profile);
+  const gardenIds = family.gardenIds;
   const eventsRes = gardenIds.length
     ? await supabase
         .from("ai_events" as any)

@@ -101,14 +101,20 @@ export async function createParentLead(formData: FormData) {
   const lead = isAdminClientConfigured() ? writeResult.data : null;
   const error = writeResult.error;
 
-  if (error) redirect(`/gardens?error=${encodeURIComponent(error.message)}`);
+  if (error) {
+    const target = gardenId
+      ? `/join-parent?gardenId=${encodeURIComponent(gardenId)}&error=${encodeURIComponent("לא ניתן לשלוח את בקשת ההצטרפות כרגע. נסו שוב או פנו לגן.")}`
+      : `/join-parent?error=${encodeURIComponent("לא ניתן לשלוח את בקשת ההצטרפות כרגע. נסו שוב או בחרו גן מחדש.")}`;
+    console.error("[parent-lead:create] insert failed", { garden_id: gardenId, error: error.message });
+    redirect(target);
+  }
 
   if (gardenId && isAdminClientConfigured()) {
     const admin = writer;
     const { data: garden } = await admin.from("gardens" as any).select("id, name, manager_id, owner_profile_id").eq("id", gardenId).maybeSingle();
     const recipients = Array.from(new Set([garden?.manager_id, garden?.owner_profile_id].filter(Boolean)));
     if (recipients.length) {
-      await admin.from("notifications" as any).insert(recipients.map((recipientId) => ({
+      const notificationResult = await admin.from("notifications" as any).insert(recipients.map((recipientId) => ({
         garden_id: gardenId,
         recipient_id: recipientId,
         title: "בקשת הצטרפות חדשה לגן",
@@ -118,8 +124,14 @@ export async function createParentLead(formData: FormData) {
         severity: "medium",
         metadata: { href: "/dashboard/garden/leads", lead_id: lead?.id, garden_name: garden?.name ?? null, child_name: leadRow.child_name, parent_name: leadRow.parent_name }
       })));
+      if (notificationResult.error) {
+        console.error("[parent-lead:create] notification failed", { garden_id: gardenId, lead_id: lead?.id, error: notificationResult.error.message });
+      }
     }
-    await admin.from("audit_logs" as any).insert({ garden_id: gardenId, entity_type: "leads", entity_id: lead?.id, action: "parent_lead_submitted", after_data: leadRow });
+    const auditResult = await admin.from("audit_logs" as any).insert({ garden_id: gardenId, entity_type: "leads", entity_id: lead?.id, action: "parent_lead_submitted", after_data: leadRow });
+    if (auditResult.error) {
+      console.error("[parent-lead:create] audit log failed", { garden_id: gardenId, lead_id: lead?.id, error: auditResult.error.message });
+    }
   }
 
   revalidatePath("/");

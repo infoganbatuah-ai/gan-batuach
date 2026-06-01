@@ -4,6 +4,7 @@ import { DashboardBackButton } from "@/components/dashboard-back-button";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { ParentChildRegistrationWizard } from "@/components/provisioning-forms";
 import { requireRole } from "@/lib/auth";
+import { getParentFamilyContext } from "@/lib/domain/parent-family";
 import { getKindergartenAgeGroups } from "@/lib/kindergarten-age-groups";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
@@ -21,22 +22,23 @@ export default async function ParentOnboardingPage({ searchParams }: { searchPar
   const query = searchParams ? await searchParams : {};
   const userScopedSupabase = await createClient();
   const supabase = isAdminClientConfigured() ? createAdminClient() : userScopedSupabase;
-  const parentByProfile = await supabase.from("parents" as any).select("*").eq("profile_id", profile.id).maybeSingle();
-  const parentByUser = parentByProfile.data ? { data: null } : await supabase.from("parents" as any).select("*").eq("user_id", profile.id).maybeSingle();
-  const parent = ((parentByProfile.data as any) ?? (parentByUser.data as any) ?? null) as any;
+  const family = await getParentFamilyContext(userScopedSupabase as any, profile);
+  const parents = family.parents as any[];
+  let parent = parents[0] ?? null;
   let gardenId = profile.garden_id ?? parent?.garden_id ?? null;
 
   let child: any = null;
-  if (parent) {
+  if (parents.length) {
+    const parentIds = parents.map((item) => item.id).filter(Boolean);
     if (query.childId) {
-      const selected = await supabase.from("children" as any).select("*").eq("id", query.childId).eq("primary_parent_id", parent.id).maybeSingle();
+      const selected = await supabase.from("children" as any).select("*").eq("id", query.childId).in("primary_parent_id", parentIds).maybeSingle();
       child = selected.data;
     }
     if (!child) {
       const preferred = await supabase
         .from("children" as any)
         .select("*")
-        .eq("primary_parent_id", parent.id)
+        .in("primary_parent_id", parentIds)
         .in("status", ["pending_parent_completion", "request_missing_details", "pending_manager_approval"])
         .order("created_at", { ascending: false })
         .limit(1)
@@ -44,9 +46,10 @@ export default async function ParentOnboardingPage({ searchParams }: { searchPar
       child = preferred.data;
     }
     if (!child) {
-      const existing = await supabase.from("children" as any).select("*").eq("primary_parent_id", parent.id).order("created_at", { ascending: false }).limit(1).maybeSingle();
+      const existing = await supabase.from("children" as any).select("*").in("primary_parent_id", parentIds).order("created_at", { ascending: false }).limit(1).maybeSingle();
       child = existing.data;
     }
+    if (child?.primary_parent_id) parent = parents.find((item) => item.id === child.primary_parent_id) ?? parent;
   }
   gardenId = child?.garden_id ?? gardenId;
 
