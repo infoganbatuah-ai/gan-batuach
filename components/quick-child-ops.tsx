@@ -69,7 +69,7 @@ export function QuickChildOps({ childId, gardenId, basePath = "/dashboard/garden
       {journalChips.map((chip) => <button type="button" disabled={pending} onClick={() => saveJournal(chip.field, chip.value)} key={chip.label}><chip.icon size={14} /> {chip.label}</button>)}
       <button type="button" disabled={pending} onClick={() => saveClothes(true)}><Shirt size={14} /> חסר בגדים</button>
       <Link href={`${basePath}/messages?childId=${childId}`}><MessageCircle size={14} /> פנייה</Link>
-      <Link href={basePath === "/dashboard/staff" ? `/dashboard/staff/child-journal?childId=${childId}&incident=1` : `/dashboard/garden/incidents?childId=${childId}`}><AlertTriangle size={14} /> אירוע חדש</Link>
+      <Link href={basePath === "/dashboard/staff" ? `/dashboard/staff/incidents?childId=${childId}` : `/dashboard/garden/incidents?childId=${childId}`}><AlertTriangle size={14} /> אירוע חדש</Link>
       {message ? <small>{message}</small> : null}
     </div>
   );

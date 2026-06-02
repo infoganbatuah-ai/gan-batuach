@@ -21,6 +21,9 @@ export async function GET(_request: Request, { params }: { params: Promise<{ id:
     supabase.from("inspection_signatures" as any).select("*").eq("inspection_id", id).order("signed_at", { ascending: false }).limit(1).maybeSingle()
   ]);
   const inspection = inspectionRes.data as any;
+  if (inspectionRes.error || !inspection) {
+    return new Response("לא ניתן לטעון את דוח הפיקוח או שאין הרשאה לצפות בו.", { status: 404, headers: { "Content-Type": "text/plain; charset=utf-8" } });
+  }
   const answers = (answersRes.data ?? []) as any[];
   const signature = signatureRes.data as any;
   const reportUrl = `${new URL(_request.url).origin}/dashboard/admin/inspections/${id}/report`;

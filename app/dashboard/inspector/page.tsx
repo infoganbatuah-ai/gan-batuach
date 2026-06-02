@@ -7,29 +7,49 @@ import { createClient } from "@/lib/supabase/server";
 export default async function InspectorDashboard() {
   const { profile } = await requireRole(["inspector"]);
   const supabase = await createClient();
-  const { data: inspections } = await supabase
+  const [inspectorRes, gardensRes, inspectionsRes, requiredRes] = await Promise.all([
+    supabase.from("inspectors" as any).select("id, service_cities, certification_notes, profile_photo_url").eq("id", profile.id).maybeSingle(),
+    supabase.from("gardens" as any).select("id, name, city, address, logo_url, safe_status, last_inspection_score, next_inspection_at").eq("inspector_id", profile.id).order("name"),
+    supabase
     .from("inspections")
     .select("id, status, weighted_score, completed_at, violation_count, gardens(id, name, city, logo_url, safe_status)")
     .eq("inspector_id", profile.id)
-    .limit(20);
-  const { data: required } = await supabase
+    .limit(20),
+    supabase
     .from("required_inspections" as any)
     .select("id, due_at, status, gardens(id, name, city, logo_url, safe_status)")
     .eq("inspector_id", profile.id)
     .neq("status", "done")
     .order("due_at", { ascending: true })
-    .limit(12);
+    .limit(12)
+  ]);
+  const inspector = inspectorRes.data as any;
+  const gardens = (gardensRes.data ?? []) as any[];
+  const inspections = inspectionsRes.data ?? [];
+  const required = requiredRes.data ?? [];
   const now = Date.now();
 
   return (
     <DashboardShell role="inspector" title="דשבורד פקח">
-      <p className="eyebrow">פיקוח חודשי</p>
-      <h1>ביקורות ומשימות פקח</h1>
+      <div className="dashboard-hero-card inspector-hero-card premium-identity-hero">
+        <div>
+          <p className="eyebrow">מרחב פיקוח מקצועי</p>
+          <h1>שלום, {profile.full_name ?? "המפקח"}</h1>
+          <p>גנים משויכים: {gardens.length}. אזורי אחריות: {Array.isArray(inspector?.service_cities) && inspector.service_cities.length ? inspector.service_cities.join(", ") : "לא הוגדרו"}.</p>
+        </div>
+        <Avatar name={profile.full_name} src={inspector?.profile_photo_url ?? profile.profile_image_url} size="lg" />
+        <span className={gardens.length ? "pill good" : "pill warn"}>{gardens.length ? "משויך לגנים" : "אין שיוך גנים"}</span>
+      </div>
+      {(!profile.profile_image_url && !inspector?.profile_photo_url) || gardens.length === 0 ? <section className="staff-operating-center"><div><p className="eyebrow">פעולה נדרשת</p><h2>השלמת פרטים</h2><p>{gardens.length === 0 ? "עדיין לא הוקצו גנים למפקח. אדמין צריך לשייך גנים כדי להתחיל פיקוח." : "יש להשלים תמונת פרופיל ופרטי התקשרות."}</p></div><a className="button primary" href="/dashboard/inspector/settings">השלמת פרטים</a></section> : null}
       <div className="grid cols-3">
         <StatCard label="ביקורות פתוחות" value={(inspections ?? []).filter((item) => item.status !== "done").length} />
         <StatCard label="ביקורות שבוצעו" value={(inspections ?? []).filter((item) => item.status === "done").length} tone="good" />
         <StatCard label="ממוצע אחרון" value={String((inspections ?? [])[0]?.weighted_score ?? "-")} />
       </div>
+      <section className="dashboard-section people-directory">
+        <div className="section-heading"><h2>גנים משויכים</h2><p>מפקח רואה רק גנים שהוקצו אליו, עם מצב אחרון וקישור לפיקוח.</p></div>
+        {gardens.length === 0 ? <div className="empty-state"><strong>לא הוקצו גנים למפקח</strong><span>אדמין יכול לשייך גנים מתוך ניהול גנים או יצירת מפקח.</span></div> : <div className="people-card-grid inspector-garden-grid">{gardens.map((garden: any) => <article className="person-card inspector-garden-card" key={garden.id}><div className="person-card-top"><Avatar name={garden.name} src={garden.logo_url} size="lg" /><div><span className={garden.safe_status === "safe" ? "pill good" : "pill warn"}>{garden.safe_status ?? "בבדיקה"}</span><h3>{garden.name}</h3><p>{garden.city ?? ""} · {garden.address ?? ""}</p></div></div><div className="mini-kpi-row"><span>ציון אחרון <b>{garden.last_inspection_score ?? "-"}</b></span><span>פיקוח הבא <b>{garden.next_inspection_at ? new Date(garden.next_inspection_at).toLocaleDateString("he-IL") : "-"}</b></span></div><div className="profile-actions"><a className="button secondary tiny" href="/dashboard/inspector/inspections">פתיחת ביקורת</a><a className="button tiny" href="/dashboard/inspector/cameras">מצלמות</a></div></article>)}</div>}
+      </section>
       <section className="dashboard-section people-directory">
         <div className="section-heading"><h2>גנים שממתינים לפיקוח</h2><p>כל כרטיס מציג גן משויך בלבד, תאריך יעד, סטטוס סיכון ופעולת מילוי טופס.</p></div>
         {(required ?? []).length === 0 ? <div className="empty-state"><strong>אין ביקורות ממתינות</strong><span>כאשר תיפתח משימת פיקוח חודשית היא תופיע כאן עם תאריך יעד ברור.</span></div> : <div className="people-card-grid inspector-garden-grid">{(required ?? []).map((item: any) => {

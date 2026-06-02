@@ -102,6 +102,7 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/staff", label: "צוות", hint: "GPS ומשימות" },
     { href: "/dashboard/staff/attendance", label: "נוכחות", hint: "כניסה/יציאה" },
     { href: "/dashboard/staff/child-journal", label: "יומן ילד", hint: "עדכוני הורים" },
+    { href: "/dashboard/staff/incidents", label: "אירועים", hint: "דיווח מהיר" },
     { href: "/dashboard/staff/daily-journal", label: "יומן תפעול", hint: "צ׳קליסט" },
     { href: "/dashboard/staff/cameras", label: "מצלמות", hint: "צפייה מורשית" },
     { href: "/dashboard/staff/tasks", label: "משימות", hint: "לביצוע" },
@@ -159,7 +160,7 @@ const mobileNavByRole: Record<UserRole, Array<{ href: string; label: string; hin
   staff: [
     { href: "/dashboard/staff", label: "בית", hint: "משמרת" },
     { href: "/dashboard/staff/child-journal", label: "ילדים", hint: "עדכון" },
-    { href: "/dashboard/staff/child-journal?quick=incident", label: "אירוע", hint: "דיווח" },
+    { href: "/dashboard/staff/incidents", label: "אירוע", hint: "דיווח" },
     { href: "/dashboard/staff/tasks", label: "משימות", hint: "היום" },
     { href: "/dashboard/staff/notifications", label: "עוד", hint: "התראות" }
   ],

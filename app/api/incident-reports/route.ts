@@ -54,6 +54,32 @@ export async function POST(request: Request) {
       console.error("[incident-reports:post]", error);
       return fail("לא ניתן לשמור אירוע כרגע", 400);
     }
+    if (profile.role === "staff") {
+      const managers = await supabase
+        .from("profiles" as any)
+        .select("id, role")
+        .eq("garden_id", payload.garden_id)
+        .in("role", ["manager", "owner"]);
+      if (managers.error) {
+        console.error("[incident-reports:notify-managers]", { garden_id: payload.garden_id, error: managers.error.message });
+      } else {
+        await supabase.from("notifications" as any).insert(((managers.data ?? []) as any[]).map((manager) => ({
+          garden_id: payload.garden_id,
+          recipient_id: manager.id,
+          recipient_profile_id: manager.id,
+          recipient_role: manager.role,
+          title: "אירוע חדש דווח על ידי צוות",
+          message: payload.title,
+          body: payload.description,
+          severity: payload.severity === "critical" || payload.severity === "high" ? "urgent" : "warning",
+          status: "unread",
+          entity_type: "incident_reports",
+          entity_id: data.id,
+          action_url: "/dashboard/garden/incidents?status=open",
+          metadata: { child_id: payload.child_id ?? null, reported_by: profile.id }
+        })));
+      }
+    }
     return ok(data, 201);
   } catch (error) {
     return handleRouteError(error);
