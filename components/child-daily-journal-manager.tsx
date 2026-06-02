@@ -8,11 +8,12 @@ import { uploadFiles } from "@/lib/client-upload";
 type Child = { id: string; full_name: string; photo_url?: string | null; allergies?: string | null; regular_medications?: string | null };
 type Journal = Record<string, any>;
 
-export function ChildDailyJournalManager({ gardenId, children, journals }: { gardenId: string; children: Child[]; journals: Journal[] }) {
-  const [selectedChildId, setSelectedChildId] = useState(children[0]?.id ?? "");
+export function ChildDailyJournalManager({ gardenId, children, journals, initialChildId = "", incidentMode = false }: { gardenId: string; children: Child[]; journals: Journal[]; initialChildId?: string; incidentMode?: boolean }) {
+  const [journalRows, setJournalRows] = useState(journals);
+  const [selectedChildId, setSelectedChildId] = useState(initialChildId && children.some((child) => child.id === initialChildId) ? initialChildId : children[0]?.id ?? "");
   const [message, setMessage] = useState("");
   const [isPending, startTransition] = useTransition();
-  const latestByChild = useMemo(() => new Map(journals.map((journal) => [journal.child_id, journal])), [journals]);
+  const latestByChild = useMemo(() => new Map(journalRows.map((journal) => [journal.child_id, journal])), [journalRows]);
   const selectedChild = children.find((child) => child.id === selectedChildId);
 
   async function submit(formData: FormData) {
@@ -44,7 +45,13 @@ export function ChildDailyJournalManager({ gardenId, children, journals }: { gar
     };
     startTransition(async () => {
       const response = await fetch("/api/child-daily-journals", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
-      setMessage(response.ok ? "היומן נשמר ונשלחה התראה להורה." : "לא ניתן לשמור כרגע. בדקו את השדות ונסו שוב.");
+      const body = await response.json().catch(() => null);
+      if (response.ok && body?.data) {
+        setJournalRows((current) => [body.data, ...current.filter((row) => row.child_id !== body.data.child_id)]);
+        setMessage("היומן נשמר ונשלחה התראה להורה.");
+      } else {
+        setMessage(body?.error || "לא ניתן לשמור כרגע. בדקו את השדות ונסו שוב.");
+      }
     });
   }
 
@@ -75,7 +82,7 @@ export function ChildDailyJournalManager({ gardenId, children, journals }: { gar
           <label><Smile size={16} /> מצב רוח<select name="mood"><option>רגוע/ה</option><option>שמח/ה</option><option>עייף/ה</option><option>רגיש/ה</option><option>צריך תשומת לב</option></select></label>
           <label>שירותים / החתלה<input name="bathroom" placeholder="תקין / נדרש מעקב" /></label>
           <label>תרופה שניתנה<input name="medicine" placeholder="רק אם יש אישור הורה" /></label>
-          <label>אירועים חריגים<input name="incidents" placeholder="ללא / פירוט קצר" /></label>
+          <label>אירועים חריגים<input name="incidents" placeholder="ללא / פירוט קצר" autoFocus={incidentMode} /></label>
           <label className="wide">הערה להורים<textarea name="notes_to_parents" rows={4} placeholder="משהו טוב מהיום, בקשה למחר או עדכון חשוב" /></label>
           <label className="wide"><Camera size={16} /> תמונות יומיות<input name="photos" type="file" accept="image/*" multiple /></label>
           <label className="wide">חתימת איש צוות<input name="staff_signature" placeholder="שם מלא של איש/ת הצוות" required /></label>

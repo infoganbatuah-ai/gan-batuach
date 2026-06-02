@@ -34,7 +34,7 @@ export function StaffOneHandMode({ children }: { children: Child[] }) {
                 <h3>{child.full_name}</h3>
                 <p>{child.allergies || child.medical_notes ? "יש דגש בריאותי" : "עדכון מהיר"}</p>
               </div>
-              <QuickChildOps childId={child.id} gardenId={child.garden_id} />
+              <QuickChildOps childId={child.id} gardenId={child.garden_id} basePath="/dashboard/staff" />
             </article>
           ))}
         </div>

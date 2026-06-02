@@ -4,7 +4,8 @@ import { ChildDailyJournalManager } from "@/components/child-daily-journal-manag
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
-export default async function StaffChildJournalPage() {
+export default async function StaffChildJournalPage({ searchParams }: { searchParams?: Promise<{ childId?: string; incident?: string }> }) {
+  const params: { childId?: string; incident?: string } = searchParams ? await searchParams.catch(() => ({})) : {};
   const { profile } = await requireRole(["staff"]);
   const supabase = await createClient();
   const gardenId = profile.garden_id ?? "";
@@ -16,7 +17,7 @@ export default async function StaffChildJournalPage() {
   return (
     <DashboardShell role="staff" title="יומן ילד">
       <div className="dashboard-hero-card staff-hero-card"><div><p className="eyebrow">Child Notes</p><h1>עדכוני ילדים לצוות.</h1><p>רשמו ארוחות, שינה, מצב רוח, תרופות והערות להורים לפי הרשאת הגן.</p></div><span className="pill good"><BookOpenCheck size={15} /> מתועד</span></div>
-      <ChildDailyJournalManager gardenId={gardenId} children={(childrenRes.data ?? []) as any[]} journals={(journalsRes.data ?? []) as any[]} />
+      <ChildDailyJournalManager gardenId={gardenId} children={(childrenRes.data ?? []) as any[]} journals={(journalsRes.data ?? []) as any[]} initialChildId={params?.childId ?? ""} incidentMode={params?.incident === "1"} />
     </DashboardShell>
   );
 }

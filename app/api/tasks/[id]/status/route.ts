@@ -16,9 +16,12 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const { id } = await params;
     const payload = schema.parse(await request.json());
     const supabase = await createClient();
-    const { data: task } = await supabase.from("tasks" as any).select("id, assigned_to, garden_id").eq("id", id).maybeSingle();
+    const { data: task } = await supabase.from("tasks" as any).select("id, assigned_to, assigned_role, garden_id").eq("id", id).maybeSingle();
     if (!task) return fail("המשימה לא נמצאה", 404);
-    if (profile.role !== "admin" && task.assigned_to && task.assigned_to !== profile.id) return fail("אין הרשאה לעדכן משימה זו", 403);
+    const ownsTask = task.assigned_to === profile.id;
+    const roleScopedTask = task.assigned_role === profile.role && task.garden_id === profile.garden_id;
+    const gardenManagerTask = ["manager", "owner"].includes(profile.role) && task.garden_id === profile.garden_id;
+    if (profile.role !== "admin" && !ownsTask && !roleScopedTask && !gardenManagerTask) return fail("אין הרשאה לעדכן משימה זו", 403);
     const patch: Record<string, unknown> = {
       status: payload.status,
       completion_comment: payload.completion_comment ?? null,

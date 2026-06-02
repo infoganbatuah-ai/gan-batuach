@@ -13,7 +13,7 @@ const journalChips = [
   { label: "עייף", field: "mood", value: "עייף", icon: Smile }
 ];
 
-export function QuickChildOps({ childId, gardenId }: { childId: string; gardenId?: string | null }) {
+export function QuickChildOps({ childId, gardenId, basePath = "/dashboard/garden" }: { childId: string; gardenId?: string | null; basePath?: "/dashboard/garden" | "/dashboard/staff" }) {
   const [message, setMessage] = useState("");
   const [pending, startTransition] = useTransition();
 
@@ -68,8 +68,8 @@ export function QuickChildOps({ childId, gardenId }: { childId: string; gardenId
       <button type="button" disabled={pending} onClick={() => saveAttendance("absent")}>נעדר</button>
       {journalChips.map((chip) => <button type="button" disabled={pending} onClick={() => saveJournal(chip.field, chip.value)} key={chip.label}><chip.icon size={14} /> {chip.label}</button>)}
       <button type="button" disabled={pending} onClick={() => saveClothes(true)}><Shirt size={14} /> חסר בגדים</button>
-      <Link href={`/dashboard/garden/messages?childId=${childId}`}><MessageCircle size={14} /> פנייה להורה</Link>
-      <Link href={`/dashboard/garden/incidents?childId=${childId}`}><AlertTriangle size={14} /> אירוע חדש</Link>
+      <Link href={`${basePath}/messages?childId=${childId}`}><MessageCircle size={14} /> פנייה</Link>
+      <Link href={basePath === "/dashboard/staff" ? `/dashboard/staff/child-journal?childId=${childId}&incident=1` : `/dashboard/garden/incidents?childId=${childId}`}><AlertTriangle size={14} /> אירוע חדש</Link>
       {message ? <small>{message}</small> : null}
     </div>
   );

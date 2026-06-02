@@ -9,6 +9,18 @@ export async function POST(request: Request) {
     if (!permission.allowed) return fail("Forbidden", 403);
     const payload = gpsAttendanceSchema.parse(await request.json());
     const supabase = await createClient();
+    const profile = permission.session.profile;
+    const staffLookup = await supabase.from("staff" as any).select("id, profile_id, garden_id").eq("id", payload.staff_id).maybeSingle();
+    if (staffLookup.error || !staffLookup.data) {
+      console.error("[staff-gps-attendance] staff lookup failed", { staff_id: payload.staff_id, error: staffLookup.error?.message });
+      return fail("לא נמצא איש צוות להחתמה.", 404);
+    }
+    const staff = staffLookup.data as any;
+    const canWrite =
+      profile.role === "admin" ||
+      (staff.profile_id === profile.id && staff.garden_id === payload.garden_id) ||
+      (["manager", "owner"].includes(profile.role) && profile.garden_id === payload.garden_id);
+    if (!canWrite) return fail("אין הרשאה להחתים איש צוות שאינו משויך אליך.", 403);
     const timestamp = new Date().toISOString();
     const update =
       payload.action === "check_in"

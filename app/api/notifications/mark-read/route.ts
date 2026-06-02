@@ -8,7 +8,7 @@ export async function POST(request: Request) {
     const { ids } = await request.json().catch(() => ({ ids: [] }));
     const supabase = await createClient();
     let query = supabase.from("notifications" as any).update({ read_at: new Date().toISOString(), status: "read" });
-    if (profile.role !== "admin") query = query.eq("recipient_id", profile.id);
+    if (profile.role !== "admin") query = query.or(`recipient_id.eq.${profile.id},recipient_profile_id.eq.${profile.id}`);
     if (Array.isArray(ids) && ids.length) query = query.in("id", ids);
     const { data, error } = await query.select("*");
     if (error) {

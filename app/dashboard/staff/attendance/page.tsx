@@ -1,4 +1,5 @@
 import { DashboardShell } from "@/components/dashboard-shell";
+import { StaffAttendanceActions } from "@/components/staff-attendance-actions";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
@@ -14,9 +15,9 @@ export default async function Page() {
     <DashboardShell role="staff" title="נוכחות צוות">
       <div className="dashboard-hero-card staff-hero-card"><div><p className="eyebrow">GPS Attendance</p><h1>כניסה ויציאה מהעבודה עם אימות מיקום.</h1><p>כל החתמה נשמרת עם שעה, מיקום, מרחק מהגן וסטטוס אימות כדי לשמור על תיעוד עבודה תקין.</p></div><span className={openShift ? "pill good" : "pill warn"}>{openShift ? "משמרת פתוחה" : "אין משמרת פתוחה"}</span></div>
       <section className="grid cols-3 dashboard-panels">
-        <article className="card action-panel"><h2>כניסה לעבודה</h2><p>בעת החיבור ל-GPS המערכת תבדוק את המרחק מכתובת הגן.</p><span className="pill good">מוכן לחיבור רכיב החתמה</span></article>
-        <article className="card action-panel"><h2>יציאה מהעבודה</h2><p>סגירת משמרת מתבצעת עם זמן ומיקום, ומופיעה בדוח החודשי.</p><span className="pill warn">דורש הרשאת מיקום בדפדפן</span></article>
+        <StaffAttendanceActions staffId={staff?.id} gardenId={staff?.garden_id ?? profile.garden_id} hasOpenShift={Boolean(openShift)} />
         <article className="card action-panel"><h2>כתובת אימות</h2><p>{staff?.gardens?.name ?? "גן לא משויך"} · {staff?.gardens?.address ?? "כתובת טרם הוגדרה"}</p><span className="pill">GPS מוכן</span></article>
+        <article className="card action-panel"><h2>מה חשוב לדעת?</h2><p>אם אין הרשאת מיקום בדפדפן, ההחתמה לא תישמר כדי למנוע תיעוד לא מדויק.</p><span className="pill warn">דורש הרשאת מיקום</span></article>
       </section>
       <section className="dashboard-section">
         <div className="section-heading"><h2>היסטוריית החתמות</h2><p>רשימת כניסות ויציאות אחרונות, כולל אימות GPS וסטטוס חריגות.</p></div>

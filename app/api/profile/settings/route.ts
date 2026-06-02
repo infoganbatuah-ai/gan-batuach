@@ -63,8 +63,14 @@ export async function PATCH(request: Request) {
       const { error } = await supabase.from("parents" as any).update(parentPatch).eq("profile_id", profile.id);
       if (error) console.error("[profile-settings-parent-photo-sync-failed]", { profile_id: profile.id, message: error.message });
     }
-    if (profile.role === "staff" && profilePatch.profile_image_url !== undefined) {
-      const { error } = await supabase.from("staff" as any).update({ profile_photo_url: profilePatch.profile_image_url }).eq("profile_id", profile.id);
+    if (profile.role === "staff" && Object.keys(profilePatch).length) {
+      const staffPatch = Object.fromEntries(Object.entries({
+        full_name: profilePatch.full_name,
+        phone: profilePatch.phone,
+        address: profilePatch.address,
+        profile_photo_url: profilePatch.profile_image_url
+      }).filter(([, value]) => value !== undefined));
+      const { error } = await supabase.from("staff" as any).update(staffPatch).eq("profile_id", profile.id);
       if (error) console.error("[profile-settings-staff-photo-sync-failed]", { profile_id: profile.id, message: error.message });
     }
     if (profile.role === "inspector" && profilePatch.profile_image_url !== undefined) {

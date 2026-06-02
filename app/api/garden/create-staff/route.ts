@@ -24,7 +24,7 @@ export async function POST(request: Request) {
     if ((existingStaff.count ?? 0) > 0) {
       const existing = existingStaff.data?.[0] as any;
       if (existing?.garden_id !== profile.garden_id) {
-        await admin.from("staff_kindergarten_employments" as any).insert({
+        const employment = await admin.from("staff_kindergarten_employments" as any).insert({
           staff_id: existing.id,
           profile_id: existing.profile_id,
           garden_id: profile.garden_id,
@@ -34,6 +34,10 @@ export async function POST(request: Request) {
           start_date: payload.start_date || null,
           notes: payload.notes || "בקשת שיוך/מעבר צוות לפי תעודת זהות קיימת"
         });
+        if (employment.error) {
+          console.error("[create-staff] existing staff transfer request failed", { staff_id: existing.id, garden_id: profile.garden_id, error: employment.error.message });
+          return fail("איש צוות זה כבר קיים, אך לא ניתן לפתוח בקשת שיוך/מעבר כרגע.", 400);
+        }
       }
       return fail("איש צוות זה כבר קיים במערכת. נפתחה בדיקת שיוך/מעבר במקום יצירת כפילות.", 409, { field: "identity_number", existing_staff_id: existing?.id ?? null });
     }
@@ -77,8 +81,12 @@ export async function POST(request: Request) {
       email: payload.email,
       notes: payload.notes
     }).select("id").single();
-    if (!file.error && file.data?.id) {
-      await supabase.from("staff_kindergarten_employments" as any).insert({
+    if (file.error || !file.data?.id) {
+      console.error("[create-staff] permanent file failed", { staff_id: staff.id, staff_user_id: user.id, error: file.error?.message });
+      return fail("משתמש הצוות נוצר, אך תיק הצוות הקבוע לא נוצר. יש להשלים תיק צוות לפני הצגת הצלחה מלאה.", 409, { staff_id: staff.id, staff_user_id: user.id });
+    }
+
+    const employment = await supabase.from("staff_kindergarten_employments" as any).insert({
         staff_file_id: file.data.id,
         staff_id: staff.id,
         profile_id: user.id,
@@ -89,7 +97,12 @@ export async function POST(request: Request) {
         start_date: payload.start_date || null,
         notes: payload.notes
       });
-      await supabase.from("staff_timeline_events" as any).insert({
+    if (employment.error) {
+      console.error("[create-staff] employment failed", { staff_id: staff.id, staff_file_id: file.data.id, garden_id: profile.garden_id, error: employment.error.message });
+      return fail("משתמש הצוות נוצר, אך השיוך לגן לא נשמר. יש להשלים שיוך לפני הצגת הצלחה מלאה.", 409, { staff_id: staff.id, staff_file_id: file.data.id });
+    }
+
+    const timeline = await supabase.from("staff_timeline_events" as any).insert({
         staff_file_id: file.data.id,
         staff_id: staff.id,
         profile_id: user.id,
@@ -101,7 +114,7 @@ export async function POST(request: Request) {
         description: "נוצר תיק צוות קבוע ושיוך תעסוקה לגן.",
         metadata: { role_title: payload.role_title }
       });
-    }
+    if (timeline.error) console.error("[create-staff] timeline failed", { staff_id: staff.id, staff_file_id: file.data.id, error: timeline.error.message });
 
     await writeUserCreationAudit({
       actorId: profile.id,
