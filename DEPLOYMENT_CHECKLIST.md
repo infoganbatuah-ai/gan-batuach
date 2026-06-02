@@ -121,3 +121,11 @@ Check:
 - No raw SQL/Supabase error is shown to real users.
 - No temporary diagnostics are visible to non-admin users.
 - No production deployment is shipped until typecheck and build pass.
+
+## 13. Mobile Packaging Gate
+
+- Verify `MOBILE_APP_READINESS.md`.
+- Set `CAPACITOR_SERVER_URL` to the production app URL before native sync.
+- Confirm Android/iOS projects do not contain real secrets.
+- Confirm native app opens the same web platform and redirects by role.
+- Confirm login, logout, uploads, notifications and camera pages work in Android/iOS webviews.
