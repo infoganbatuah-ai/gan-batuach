@@ -63,7 +63,7 @@ export async function POST(request: Request) {
       if (managers.error) {
         console.error("[incident-reports:notify-managers]", { garden_id: payload.garden_id, error: managers.error.message });
       } else {
-        await supabase.from("notifications" as any).insert(((managers.data ?? []) as any[]).map((manager) => ({
+        const managerNotifications = await supabase.from("notifications" as any).insert(((managers.data ?? []) as any[]).map((manager) => ({
           garden_id: payload.garden_id,
           recipient_id: manager.id,
           recipient_profile_id: manager.id,
@@ -78,6 +78,64 @@ export async function POST(request: Request) {
           action_url: "/dashboard/garden/incidents?status=open",
           metadata: { child_id: payload.child_id ?? null, reported_by: profile.id }
         })));
+        if (managerNotifications.error) {
+          console.error("[incident-reports:notify-managers]", { garden_id: payload.garden_id, incident_id: data.id, error: managerNotifications.error.message });
+          return fail("האירוע נשמר, אך ההתראה למנהלת לא נשלחה.", 409, { incident_id: data.id });
+        }
+      }
+    }
+    if (payload.parent_notified && payload.child_id) {
+      const parentRes = await supabase.from("children" as any).select("primary_parent_id, parents:primary_parent_id(profile_id)").eq("id", payload.child_id).eq("garden_id", payload.garden_id).maybeSingle();
+      const parentProfileId = (parentRes.data as any)?.parents?.profile_id;
+      if (parentProfileId) {
+        const parentNotification = await supabase.from("notifications" as any).insert({
+          garden_id: payload.garden_id,
+          recipient_id: parentProfileId,
+          recipient_profile_id: parentProfileId,
+          recipient_role: "parent",
+          title: "אירוע חדש מהגן",
+          body: payload.title,
+          message: payload.description,
+          severity: payload.severity === "critical" || payload.severity === "high" ? "urgent" : "medium",
+          status: "unread",
+          entity_type: "incident_reports",
+          entity_id: data.id,
+          child_id: payload.child_id,
+          action_url: `/dashboard/parent/children/${payload.child_id}`,
+          created_by: profile.id,
+          metadata: { href: `/dashboard/parent/children/${payload.child_id}`, incident_id: data.id }
+        });
+        if (parentNotification.error) {
+          console.error("[incident-reports:notify-parent]", { incident_id: data.id, parent_profile_id: parentProfileId, error: parentNotification.error.message });
+          return fail("האירוע נשמר, אך ההתראה להורה לא נשלחה.", 409, { incident_id: data.id });
+        }
+      }
+    }
+    if (payload.inspector_notified) {
+      const gardenRes = await supabase.from("gardens" as any).select("inspector_id").eq("id", payload.garden_id).maybeSingle();
+      const inspectorId = (gardenRes.data as any)?.inspector_id;
+      if (inspectorId) {
+        const inspectorNotification = await supabase.from("notifications" as any).insert({
+          garden_id: payload.garden_id,
+          recipient_id: inspectorId,
+          recipient_profile_id: inspectorId,
+          recipient_role: "inspector",
+          title: "אירוע גן דורש תשומת לב",
+          body: payload.title,
+          message: payload.description,
+          severity: payload.severity === "critical" || payload.severity === "high" ? "urgent" : "medium",
+          status: "unread",
+          entity_type: "incident_reports",
+          entity_id: data.id,
+          child_id: payload.child_id ?? null,
+          action_url: "/dashboard/inspector/reports",
+          created_by: profile.id,
+          metadata: { href: "/dashboard/inspector/reports", incident_id: data.id }
+        });
+        if (inspectorNotification.error) {
+          console.error("[incident-reports:notify-inspector]", { incident_id: data.id, inspector_id: inspectorId, error: inspectorNotification.error.message });
+          return fail("האירוע נשמר, אך ההתראה לפקח לא נשלחה.", 409, { incident_id: data.id });
+        }
       }
     }
     return ok(data, 201);

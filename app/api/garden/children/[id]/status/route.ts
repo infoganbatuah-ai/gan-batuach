@@ -51,7 +51,11 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       const { data: parent } = await supabase.from("parents" as any).select("profile_id").eq("id", child.primary_parent_id).maybeSingle();
       if (parent?.profile_id) {
         const body = payload.status === "active" ? "כרטיס הילד אושר על ידי הגן" : payload.status === "rejected" ? payload.reason ?? "בקשת רישום הילד נדחתה" : payload.reason ?? "הגן ביקש השלמת פרטים";
-        await supabase.from("notifications" as any).insert({ garden_id: profile.garden_id, kindergarten_id: profile.garden_id, recipient_id: parent.profile_id, recipient_profile_id: parent.profile_id, recipient_role: "parent", title: "עדכון רישום ילד", body, message: body, entity_type: "children", entity_id: id, child_id: id, severity: payload.status === "active" ? "low" : "medium", action_url: payload.status === "active" ? "/dashboard/parent" : `/parent-onboarding?childId=${id}`, created_by: profile.id, metadata: { href: payload.status === "active" ? "/dashboard/parent" : `/parent-onboarding?childId=${id}`, child_id: id, status: payload.status } });
+        const notificationResult = await supabase.from("notifications" as any).insert({ garden_id: profile.garden_id, kindergarten_id: profile.garden_id, recipient_id: parent.profile_id, recipient_profile_id: parent.profile_id, recipient_role: "parent", title: "עדכון רישום ילד", body, message: body, entity_type: "children", entity_id: id, child_id: id, severity: payload.status === "active" ? "low" : "medium", action_url: payload.status === "active" ? "/dashboard/parent" : `/parent-onboarding?childId=${id}`, created_by: profile.id, metadata: { href: payload.status === "active" ? "/dashboard/parent" : `/parent-onboarding?childId=${id}`, child_id: id, status: payload.status } });
+        if (notificationResult.error) {
+          console.error("[child-status-update] parent notification failed", { ...actionContext, parent_profile_id: parent.profile_id, error: notificationResult.error.message });
+          return fail("סטטוס הילד עודכן, אך ההתראה להורה לא נשלחה. יש לעדכן את ההורה ידנית או לנסות שוב.", 409, { child_id: id, status: payload.status });
+        }
       }
     }
     console.info("[child-status-update] completed", actionContext);

@@ -13,12 +13,26 @@ const schema = provisionedUserSchema.extend({
   notes: z.string().optional()
 });
 
+async function cleanupProvisionedStaff(userId: string) {
+  const admin = createAdminClient();
+  try {
+    await admin.from("staff" as any).delete().eq("profile_id", userId);
+    await admin.from("generated_credentials" as any).delete().eq("user_id", userId);
+    await admin.from("profiles").delete().eq("id", userId);
+    await admin.auth.admin.deleteUser(userId);
+  } catch (error) {
+    console.error("[create-staff] cleanup failed", { user_id: userId, error });
+  }
+}
+
 export async function POST(request: Request) {
+  let createdUserId: string | null = null;
   try {
     const { profile } = await requireRole(["manager", "owner"]);
     if (!profile.garden_id) return fail("Manager is not assigned to a garden", 422);
     const payload = schema.parse(await request.json());
     const identityNumber = payload.identity_number.replace(/\D/g, "");
+    if (identityNumber.length < 5) return fail("יש להזין תעודת זהות איש צוות תקינה.", 422, { field: "identity_number" });
     const admin = createAdminClient();
     const existingStaff = await admin.from("staff" as any).select("id, garden_id, full_name, profile_id", { count: "exact" }).eq("identity_number", identityNumber).limit(5);
     if ((existingStaff.count ?? 0) > 0) {
@@ -49,6 +63,7 @@ export async function POST(request: Request) {
       phone: payload.phone,
       temporaryPassword: payload.temporary_password
     });
+    createdUserId = user.id;
     await supabase.from("profiles" as any).update({ identity_number: identityNumber }).eq("id", user.id);
 
     const { data: staff, error } = await supabase
@@ -72,7 +87,10 @@ export async function POST(request: Request) {
       .select("*")
       .single();
 
-    if (error) return fail(error.message, 400);
+    if (error) {
+      await cleanupProvisionedStaff(user.id);
+      return fail(error.message, 400);
+    }
     const file = await supabase.from("staff_permanent_files" as any).insert({
       profile_id: user.id,
       full_name: payload.full_name,
@@ -128,6 +146,7 @@ export async function POST(request: Request) {
 
     return ok({ staff, credentials: oneTimeCredentials }, 201);
   } catch (error) {
+    if (createdUserId) await cleanupProvisionedStaff(createdUserId);
     return handleRouteError(error);
   }
 }

@@ -39,17 +39,25 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       }
       const parentProfileId = (child.data as any).parents?.profile_id;
       if (parentProfileId && payload.has_change_clothes === false) {
-        await supabase.from("notifications" as any).insert({
+        const notificationResult = await supabase.from("notifications" as any).insert({
           garden_id: profile.garden_id,
           recipient_id: parentProfileId,
+          recipient_profile_id: parentProfileId,
           recipient_role: "parent",
           title: "נא להביא בגדים להחלפה",
           body: `${(child.data as any).full_name}: חסרים בגדים להחלפה. ${payload.change_clothes_notes ?? ""}`,
+          message: `${(child.data as any).full_name}: חסרים בגדים להחלפה. ${payload.change_clothes_notes ?? ""}`,
           entity_type: "child_change_clothes",
           entity_id: id,
+          child_id: id,
           status: "pending",
-          metadata: { updated_by: profile.id, child_id: id }
+          action_url: `/dashboard/parent/children/${id}`,
+          metadata: { href: `/dashboard/parent/children/${id}`, updated_by: profile.id, child_id: id }
         });
+        if (notificationResult.error) {
+          console.error("[child-operation] change clothes notification failed", { ...actionContext, parent_profile_id: parentProfileId, error: notificationResult.error.message });
+          return fail("סטטוס בגדים נשמר, אך ההתראה להורה לא נשלחה.", 409, { child_id: id });
+        }
       }
       await supabase.from("audit_logs" as any).insert({
         actor_id: profile.id,
@@ -80,6 +88,31 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     if (updated.error) {
       console.error("[child-operation] parent request update failed", { ...actionContext, request_id: payload.request_id, error: updated.error.message });
       return fail("לא ניתן לעדכן בקשת הורה כרגע.", 500);
+    }
+    const parentProfileId = (updated.data as any)?.parent_profile_id;
+    if (parentProfileId && ["in_progress", "handled", "rejected"].includes(payload.status)) {
+      const statusText = payload.status === "handled" ? "הבקשה שלך טופלה" : payload.status === "rejected" ? "הבקשה שלך נדחתה" : "הבקשה שלך בטיפול";
+      const notificationResult = await supabase.from("notifications" as any).insert({
+        garden_id: profile.garden_id,
+        recipient_id: parentProfileId,
+        recipient_profile_id: parentProfileId,
+        recipient_role: "parent",
+        title: "עדכון פנייה מהגן",
+        body: payload.manager_response ? `${statusText}: ${payload.manager_response}` : statusText,
+        message: payload.manager_response ? `${statusText}: ${payload.manager_response}` : statusText,
+        entity_type: "parent_child_requests",
+        entity_id: payload.request_id,
+        child_id: id,
+        status: "pending",
+        severity: payload.status === "rejected" ? "medium" : "low",
+        action_url: "/dashboard/parent/messages",
+        created_by: profile.id,
+        metadata: { href: "/dashboard/parent/messages", request_id: payload.request_id, child_id: id, status: payload.status }
+      });
+      if (notificationResult.error) {
+        console.error("[child-operation] parent request notification failed", { ...actionContext, request_id: payload.request_id, parent_profile_id: parentProfileId, error: notificationResult.error.message });
+        return fail("הפנייה עודכנה, אך ההתראה להורה לא נשלחה.", 409, { request_id: payload.request_id });
+      }
     }
     await supabase.from("audit_logs" as any).insert({
       actor_id: profile.id,

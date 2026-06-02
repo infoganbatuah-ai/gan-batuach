@@ -150,7 +150,7 @@ export async function POST(request: Request) {
       const { data: parentLink } = await supabase.from("children" as any).select("primary_parent_id, parents(profile_id)").eq("id", payload.child_id).maybeSingle();
       const parentProfileId = (parentLink as any)?.parents?.profile_id;
       if (parentProfileId) {
-        await supabase.from("notifications" as any).insert({
+        const notificationResult = await supabase.from("notifications" as any).insert({
           garden_id: profile.garden_id,
           recipient_id: parentProfileId,
           recipient_role: "parent",
@@ -167,6 +167,12 @@ export async function POST(request: Request) {
           created_by: profile.id,
           metadata: { href: "/dashboard/parent", child_id: payload.child_id, payment_status: payload.action }
         });
+        if (notificationResult.error) {
+          console.error("[child-payment-update] parent failed-payment notification failed", { ...actionContext, parent_profile_id: parentProfileId, error: notificationResult.error.message });
+          return fail("סטטוס התשלום עודכן, אך ההתראה להורה לא נשלחה.", 409, { child_id: payload.child_id, payment_status: paymentStatus });
+        }
+        const notifiedUpdate = await supabase.from("children" as any).update({ parent_notified: true }).eq("id", payload.child_id);
+        if (notifiedUpdate.error) console.error("[child-payment-update] parent_notified flag update failed", { ...actionContext, error: notifiedUpdate.error.message });
       }
     }
     console.info("[child-payment-update] completed", { ...actionContext, previous_status: childData.payment_status, new_status: paymentStatus, amount: amountPaid });

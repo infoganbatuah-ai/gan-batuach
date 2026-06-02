@@ -5,7 +5,7 @@ import type { FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { CreditCard } from "lucide-react";
 
-type Action = "mark_paid" | "mark_unpaid" | "partial_payment" | "discount" | "special_arrangement";
+type Action = "mark_paid" | "mark_unpaid" | "partial_payment" | "discount" | "special_arrangement" | "failed" | "not_transferred";
 
 function isoDate(date: Date) {
   return date.toISOString().slice(0, 10);
@@ -21,7 +21,9 @@ const actionLabels: Record<Action, string> = {
   mark_unpaid: "סימון לא שולם",
   partial_payment: "תשלום חלקי",
   discount: "הנחה",
-  special_arrangement: "הסדר מיוחד"
+  special_arrangement: "הסדר מיוחד",
+  failed: "תשלום לא עבר",
+  not_transferred: "תשלום לא הועבר"
 };
 
 export function ChildPaymentActions({ childId, amount }: { childId: string; amount: number }) {
@@ -41,6 +43,7 @@ export function ChildPaymentActions({ childId, amount }: { childId: string; amou
   const [pausedReason, setPausedReason] = useState("");
   const [debtAmount, setDebtAmount] = useState("0");
   const [debtNotes, setDebtNotes] = useState("");
+  const [failureReason, setFailureReason] = useState("");
 
   function openModal(nextAction: Action) {
     setAction(nextAction);
@@ -50,6 +53,7 @@ export function ChildPaymentActions({ childId, amount }: { childId: string; amou
     setPaymentDate(isoDate(new Date()));
     setValidFrom(isoDate(new Date()));
     setValidUntil(endOfCurrentMonth());
+    setFailureReason("");
   }
 
   async function update(event: FormEvent<HTMLFormElement>) {
@@ -78,7 +82,9 @@ export function ChildPaymentActions({ childId, amount }: { childId: string; amou
           payments_paused: paymentsPaused,
           paused_reason: paymentsPaused ? pausedReason || undefined : undefined,
           debt_amount: Number(debtAmount || 0),
-          debt_notes: debtNotes || undefined
+          debt_notes: debtNotes || undefined,
+          failure_reason: ["failed", "not_transferred"].includes(action) ? failureReason || notes || undefined : undefined,
+          retry_required: ["failed", "not_transferred"].includes(action)
         })
       });
       const body = await response.json();
@@ -100,6 +106,8 @@ export function ChildPaymentActions({ childId, amount }: { childId: string; amou
         <button className="button secondary tiny" disabled={busy} type="button" onClick={() => openModal("mark_unpaid")}>לא שולם</button>
         <button className="button secondary tiny" disabled={busy} type="button" onClick={() => openModal("partial_payment")}>חלקי</button>
         <button className="button secondary tiny" disabled={busy} type="button" onClick={() => openModal("discount")}>הנחה</button>
+        <button className="button secondary tiny" disabled={busy} type="button" onClick={() => openModal("failed")}>לא עבר</button>
+        <button className="button secondary tiny" disabled={busy} type="button" onClick={() => openModal("not_transferred")}>לא הועבר</button>
         <button className="button tiny" disabled={busy} type="button" onClick={() => openModal("special_arrangement")}>הסדר מיוחד</button>
       </div>
       {message ? <small className="payment-action-message">{message}</small> : null}
@@ -119,6 +127,7 @@ export function ChildPaymentActions({ childId, amount }: { childId: string; amou
               <label>סוג עסקה<select value={transactionType} onChange={(event) => setTransactionType(event.target.value)}><option value="monthly_cash">חודשי - מזומן</option><option value="monthly_bank_transfer">חודשי - העברה בנקאית</option><option value="yearly_plan">עסקה שנתית - בכל חודש יורד סכום זה</option><option value="recurring_monthly">חיוב חודשי חוזר</option><option value="standing_order">הוראת קבע</option><option value="other">אחר</option></select></label>
               <label>אמצעי תשלום<input value={paymentMethod} onChange={(event) => setPaymentMethod(event.target.value)} placeholder="מזומן / העברה / אשראי" /></label>
               <label>חוב נוכחי<input value={debtAmount} onChange={(event) => setDebtAmount(event.target.value)} type="number" min="0" /></label>
+              {["failed", "not_transferred"].includes(action) ? <label className="wide">סיבת כשל / אי העברה<input value={failureReason} onChange={(event) => setFailureReason(event.target.value)} placeholder="לדוגמה: הוראת קבע נדחתה / לא התקבלה העברה" required /></label> : null}
               <label className="check-row"><input checked={paymentsPaused} onChange={(event) => setPaymentsPaused(event.target.checked)} type="checkbox" /> תשלומים נעצרו</label>
               {paymentsPaused ? <label className="wide">סיבת עצירה<input value={pausedReason} onChange={(event) => setPausedReason(event.target.value)} placeholder="לדוגמה: הסדר בבדיקה / חוב פתוח" /></label> : null}
               <label className="wide">הערות חוב<input value={debtNotes} onChange={(event) => setDebtNotes(event.target.value)} placeholder="פירוט חוב או תזכורת גבייה" /></label>

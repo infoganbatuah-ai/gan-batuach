@@ -1,8 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 export function DocumentReviewActions({ id }: { id: string }) {
+  const router = useRouter();
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -16,6 +18,7 @@ export function DocumentReviewActions({ id }: { id: string }) {
       const body = await response.json();
       if (!response.ok) throw new Error(body.error || "הפעולה נכשלה");
       setMessage(status === "rejected" ? "המסמך נדחה ונשמר לוג." : "המסמך אושר ונשמר לוג.");
+      router.refresh();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "לא ניתן להשלים את הפעולה כרגע");
     } finally {
