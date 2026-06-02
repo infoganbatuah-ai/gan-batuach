@@ -90,7 +90,7 @@ select
   g.id,
   concat_ws(', ', nullif(g.address, ''), nullif(g.city, '')),
   'Asia/Jerusalem',
-  coalesce(g.status, 'active') not in ('archived', 'deleted', 'suspended'),
+  coalesce(g.status::text, 'active') not in ('archived', 'deleted', 'suspended'),
   false,
   null,
   30,
