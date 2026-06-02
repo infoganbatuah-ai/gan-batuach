@@ -1,14 +1,12 @@
 import { fail, handleRouteError, ok } from "@/lib/api";
-import { getSessionProfile } from "@/lib/auth";
+import { requireRole } from "@/lib/auth";
 import { canParentViewCamera } from "@/lib/domain/parent-camera-access";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 export async function GET(request: Request) {
   try {
-    const { profile } = await getSessionProfile();
-    const isDevelopment = process.env.NODE_ENV !== "production" || process.env.NEXT_PUBLIC_SANDBOX_MODE === "true";
-    if (!profile || (profile.role !== "admin" && !isDevelopment)) return fail("Forbidden", 403);
+    await requireRole(["admin"]);
 
     const url = new URL(request.url);
     const cameraId = url.searchParams.get("camera_id");

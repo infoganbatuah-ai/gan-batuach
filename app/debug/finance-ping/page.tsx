@@ -1,6 +1,9 @@
+import { requireRole } from "@/lib/auth";
+
 export const dynamic = "force-dynamic";
 
-export default function FinancePingPage() {
+export default async function FinancePingPage() {
+  await requireRole(["admin"]);
   console.error("[finance-ping] route rendered");
 
   return (

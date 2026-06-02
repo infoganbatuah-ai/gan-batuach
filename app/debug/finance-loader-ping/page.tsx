@@ -1,5 +1,6 @@
 import { loadFinanceAuthDiagnostics } from "@/lib/debug/finance-auth-diagnostics";
 import { loadGardenFinanceData } from "@/lib/domain/garden-finance-loader";
+import { requireRole } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -8,6 +9,7 @@ function formatError(error: unknown) {
 }
 
 export default async function FinanceLoaderPingPage() {
+  await requireRole(["admin"]);
   console.error("[finance-loader-ping] route started");
 
   try {

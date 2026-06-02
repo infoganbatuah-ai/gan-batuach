@@ -1,4 +1,5 @@
 import { loadFinanceAuthDiagnostics } from "@/lib/debug/finance-auth-diagnostics";
+import { requireRole } from "@/lib/auth";
 
 export const dynamic = "force-dynamic";
 
@@ -7,6 +8,7 @@ function formatError(error: unknown) {
 }
 
 export default async function FinanceAuthPingPage() {
+  await requireRole(["admin"]);
   console.error("[finance-auth-ping] route started");
 
   try {

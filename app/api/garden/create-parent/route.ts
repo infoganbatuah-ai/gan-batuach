@@ -10,7 +10,20 @@ const schema = provisionedUserSchema.extend({
   lead_id: z.string().uuid().optional()
 });
 
+async function cleanupProvisionedParent(userId: string) {
+  const admin = createAdminClient();
+  try {
+    await admin.from("parents" as any).delete().eq("profile_id", userId);
+    await admin.from("generated_credentials" as any).delete().eq("user_id", userId);
+    await admin.from("profiles").delete().eq("id", userId);
+    await admin.auth.admin.deleteUser(userId);
+  } catch (error) {
+    console.error("[create-parent] cleanup failed", { user_id: userId, error });
+  }
+}
+
 export async function POST(request: Request) {
+  let createdUserId: string | null = null;
   try {
     const { profile } = await requireRole(["manager", "owner"]);
     if (!profile.garden_id) return fail("Manager is not assigned to a garden", 422);
@@ -32,6 +45,7 @@ export async function POST(request: Request) {
       phone: payload.phone,
       temporaryPassword: payload.temporary_password
     });
+    createdUserId = user.id;
     if (identityNumber) await supabase.from("profiles" as any).update({ identity_number: identityNumber }).eq("id", user.id);
 
     const { data: parent, error } = await supabase
@@ -50,10 +64,17 @@ export async function POST(request: Request) {
       .select("*")
       .single();
 
-    if (error) return fail(error.message, 400);
+    if (error) {
+      await cleanupProvisionedParent(user.id);
+      return fail(error.message, 400);
+    }
 
     if (payload.lead_id) {
-      await supabase.from("leads").update({ status: "parent_user_created", assigned_to: user.id }).eq("id", payload.lead_id);
+      const leadUpdate = await supabase.from("leads").update({ status: "parent_user_created", assigned_to: user.id }).eq("id", payload.lead_id).eq("garden_id", profile.garden_id).select("id").maybeSingle();
+      if (leadUpdate.error || !leadUpdate.data) {
+        console.error("[create-parent] lead update failed", { lead_id: payload.lead_id, garden_id: profile.garden_id, error: leadUpdate.error?.message ?? "lead not found" });
+        return fail("ההורה נוצר, אך עדכון הליד נכשל. יש לבדוק את סטטוס הליד לפני הצגת הצלחה מלאה.", 409, { parent_id: parent.id, parent_user_id: user.id });
+      }
     }
 
     await writeUserCreationAudit({
@@ -68,6 +89,7 @@ export async function POST(request: Request) {
 
     return ok({ parent, credentials: oneTimeCredentials }, 201);
   } catch (error) {
+    if (createdUserId) await cleanupProvisionedParent(createdUserId);
     return handleRouteError(error);
   }
 }
