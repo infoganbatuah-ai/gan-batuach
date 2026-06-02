@@ -3,6 +3,7 @@ import { fail, handleRouteError, ok } from "@/lib/api";
 import { requireRole } from "@/lib/auth";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
 import { normalizeOptionalEmail, provisionAuthUser, writeUserCreationAudit } from "@/lib/onboarding/user-provisioning";
+import { sendCommunication } from "@/lib/domain/communication-service";
 
 const schema = z.object({
   parent_name: z.string().min(2),
@@ -247,6 +248,19 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     });
     if (notificationResult.error) {
       console.error("[garden-lead-convert] notification insert failed", { ...actionContext, parent_id: parent.id, child_id: child.id, error: notificationResult.error.message });
+    }
+
+    const communicationResult = await sendCommunication(admin as any, {
+      recipientProfileId: parentUserId,
+      kindergartenId: profile.garden_id,
+      templateKey: "parent_approved",
+      channels: ["whatsapp", "sms", "email"],
+      variables: { parentName: payload.parent_name, childName },
+      dedupeKey: `parent-approved:${id}:${parentUserId}`,
+      metadata: { lead_id: id, child_id: child.id, source: "lead_conversion" }
+    });
+    if (!communicationResult.ok) {
+      console.error("[garden-lead-convert] communication log failed", { ...actionContext, parent_profile_id: parentUserId, logs: communicationResult.logs });
     }
 
     await writeUserCreationAudit({

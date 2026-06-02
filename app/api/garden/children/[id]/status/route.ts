@@ -3,6 +3,7 @@ import { fail, handleRouteError, ok } from "@/lib/api";
 import { requireRole } from "@/lib/auth";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
 import { writeUserCreationAudit } from "@/lib/onboarding/user-provisioning";
+import { sendCommunication } from "@/lib/domain/communication-service";
 
 const schema = z.object({ status: z.enum(["active", "rejected", "missing_info", "request_missing_details", "pending_manager_approval"]), reason: z.string().optional() });
 
@@ -55,6 +56,20 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
         if (notificationResult.error) {
           console.error("[child-status-update] parent notification failed", { ...actionContext, parent_profile_id: parent.profile_id, error: notificationResult.error.message });
           return fail("סטטוס הילד עודכן, אך ההתראה להורה לא נשלחה. יש לעדכן את ההורה ידנית או לנסות שוב.", 409, { child_id: id, status: payload.status });
+        }
+        if (payload.status === "active" || payload.status === "rejected") {
+          const communicationResult = await sendCommunication(supabase as any, {
+            recipientProfileId: parent.profile_id,
+            kindergartenId: profile.garden_id,
+            templateKey: payload.status === "active" ? "child_approved" : "child_rejected",
+            channels: ["whatsapp", "sms", "email"],
+            variables: { childName: child.full_name },
+            dedupeKey: `child-status:${id}:${payload.status}:${parent.profile_id}`,
+            metadata: { child_id: id, status: payload.status, source: "child_status_update" }
+          });
+          if (!communicationResult.ok) {
+            console.error("[child-status-update] communication log failed", { ...actionContext, parent_profile_id: parent.profile_id, logs: communicationResult.logs });
+          }
         }
       }
     }
