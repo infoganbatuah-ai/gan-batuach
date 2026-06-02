@@ -29,6 +29,7 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/admin/camera-audit", label: "Camera Audit", hint: "מוכנות Gateway" },
     { href: "/dashboard/admin/ai-events", label: "אירועי AI", hint: "אירועים והתראות" },
     { href: "/dashboard/admin/observer-learning", label: "למידת תצפיתן", hint: "אזורים ושגרות" },
+    { href: "/dashboard/admin/observer-platform", label: "Observer Platform", hint: "Multi-site" },
     { href: "/dashboard/admin/notifications", label: "התראות", hint: "מרכז פעולות" },
     { href: "/dashboard/admin/communication", label: "תקשורת", hint: "SMS ו-WhatsApp" },
     { href: "/dashboard/admin/push", label: "Push", hint: "Web, Android, iOS" },
