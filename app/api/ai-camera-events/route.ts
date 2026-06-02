@@ -44,10 +44,9 @@ export async function POST(request: Request) {
           message: title,
           entity_type: "ai_camera_event",
           entity_id: event.id,
-          severity: payload.severity,
           action_url: recipient.role === "admin" ? "/dashboard/admin/ai-events" : "/dashboard/garden/ai-events",
           created_by: profile.id,
-          metadata: { ai_camera_event_id: event.id, human_review_required: true }
+          metadata: { ai_camera_event_id: event.id, severity: payload.severity, human_review_required: true }
         }));
       if (rows.length) await supabase.from("notifications" as any).insert(rows);
     }
