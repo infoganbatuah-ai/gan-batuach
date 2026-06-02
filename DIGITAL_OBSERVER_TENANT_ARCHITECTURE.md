@@ -4,6 +4,14 @@ This document defines the reusable Digital Observer platform structure.
 
 Gan Batuach remains the first and primary implementation. The generic platform layer must not weaken kindergarten privacy or permissions.
 
+Business model split:
+
+- Gan Batuach is one fixed kindergarten plan: 700 ILS/month per kindergarten.
+- The kindergarten management system is included.
+- The Digital Observer is included as "תצפיתן דיגיטלי כלול" / "מצלמות ותובנות בטיחות" / "ניטור בטיחות כחלק מהמערכת".
+- There is no separate observer package upsell inside Gan Batuach at this stage.
+- Standalone Digital Observer is a future separate product for non-kindergarten sites.
+
 ## Core Hierarchy
 
 ```text
@@ -132,15 +140,31 @@ Future standalone observer work may introduce a fully generic event table only a
 
 ## Subscription Readiness
 
-Observer-specific plan dimensions:
+Gan Batuach subscription:
+
+- fixed 700 ILS/month per kindergarten
+- Digital Observer included
+- optional future custom/enterprise only for large kindergarten chains
+
+Future standalone Digital Observer packages:
+
+- Home Basic
+- Home Plus
+- Business
+- Enterprise
+
+Standalone pricing dimensions may include:
 
 - camera count
 - monitoring hours
+- alert types
 - event retention
+- recording retention
 - AI feature flags
+- AI level
 - storage limits
 
-This phase does not implement billing.
+This phase does not implement standalone observer billing.
 
 ## API Readiness
 

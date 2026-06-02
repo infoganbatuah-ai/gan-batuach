@@ -111,7 +111,7 @@ export function SubscriptionAdminManager({ plans, subscriptions, gardens, paymen
         <article className="card metric-card"><span>תוכניות</span><strong>{plans.length}</strong></article>
       </section>
 
-      <CollapsibleActionPanel title="יצירת תוכנית מנוי" buttonLabel="תוכנית חדשה" description="Trial, Monthly, Annual או Enterprise. אפשר לערוך את המחירים והמגבלות בלי לקבע ספק תשלומים.">
+      <CollapsibleActionPanel title="יצירת תוכנית מנוי" buttonLabel="תוכנית חדשה" description="מודל Gan Batuach הרגיל הוא קבוע: 700 ש״ח לחודש לגן, כולל תצפיתן דיגיטלי. Enterprise מיועד רק לרשתות גדולות בעתיד.">
         {({ close }) => (
           <form className="card form wizard-form" onSubmit={(event) => savePlan(event, close)}>
             <div className="form-grid">
@@ -136,7 +136,7 @@ export function SubscriptionAdminManager({ plans, subscriptions, gardens, paymen
         )}
       </CollapsibleActionPanel>
 
-      <CollapsibleActionPanel title="שיוך / עדכון מנוי לגן" buttonLabel="עדכון מנוי" description="אדמין יכול להפעיל Trial, להשעות, לחדש, לבטל או לתת override.">
+      <CollapsibleActionPanel title="שיוך / עדכון מנוי לגן" buttonLabel="עדכון מנוי" description="אדמין משייך את תוכנית Gan Batuach הקבועה או Enterprise עתידי לרשתות. אין חבילת תצפיתן נפרדת לגנים.">
         {({ close }) => (
           <form className="card form wizard-form" onSubmit={(event) => saveSubscription(event, close)}>
             <div className="form-grid">
@@ -160,7 +160,7 @@ export function SubscriptionAdminManager({ plans, subscriptions, gardens, paymen
       </CollapsibleActionPanel>
 
       <section className="dashboard-section">
-        <div className="section-heading"><h2>מנויים פעילים</h2><p>ניהול Trial, חידוש, השעיה, ביטול ותשלומים שנכשלו.</p></div>
+        <div className="section-heading"><h2>מנויים פעילים</h2><p>ניהול תוכנית Gan Batuach קבועה: 700 ש״ח לחודש לגן, כולל ניטור בטיחות כחלק מהמערכת.</p></div>
         <div className="card-list">
           {subscriptions.length === 0 ? <div className="empty-state"><strong>אין עדיין מנויים</strong><span>צרו מנוי ראשון לגן כדי להתחיל מעקב.</span></div> : subscriptions.map((subscription) => (
             <article className="card action-panel" key={subscription.id}>
@@ -197,12 +197,12 @@ export function GardenSubscriptionActions({ plans }: { plans: any[] }) {
   }
   return (
     <section className="card action-panel">
-      <div className="section-heading"><h2>פעולות מנוי</h2><p>חיוב עדיין ידני. הבקשה תגיע לאדמין לטיפול.</p></div>
+      <div className="section-heading"><h2>פעולות מנוי</h2><p>Gan Batuach הוא מנוי קבוע של 700 ש״ח לחודש לגן. תצפיתן דיגיטלי כלול, ללא חבילת תצפיתן נפרדת.</p></div>
       {message ? <div className="success-banner">{message}</div> : null}
       {error ? <div className="error-banner">{error}</div> : null}
       <div className="profile-actions">
         <button className="button primary" type="button" onClick={() => request("request_renewal")}><RefreshCw size={16} /> חידוש מנוי</button>
-        {plans.filter((plan) => plan.plan_type !== "trial").map((plan) => <button className="button secondary" type="button" key={plan.id} onClick={() => request("request_upgrade", plan.id)}>שדרוג ל-{plan.name}</button>)}
+        {plans.filter((plan) => plan.plan_type === "enterprise").map((plan) => <button className="button secondary" type="button" key={plan.id} onClick={() => request("request_upgrade", plan.id)}>פנייה לגבי רשת גנים / {plan.name}</button>)}
       </div>
     </section>
   );
