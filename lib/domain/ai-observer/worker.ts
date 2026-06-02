@@ -180,8 +180,8 @@ export async function processObserverJobMock(supabase: SupabaseLike, inputJob: R
           shadow_mode: true,
           requires_human_review: true,
           parent_visible: false,
-          detector_provider: "local_mock",
-          detector_mode: "local_shadow",
+          detector_provider: String(detection.metadata?.detector_provider ?? detection.metadata?.provider ?? detector.provider ?? "local_mock"),
+          detector_mode: String(detection.metadata?.detector_mode ?? "local_shadow"),
           metadata: { ...(detection.metadata ?? {}), observer_job_id: job.id, observer_rule_id: decision.rule.id, worker_mode: "local_shadow", shadow_mode: true, requires_human_review: true, parent_visible: false },
           is_demo: true
         })
