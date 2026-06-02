@@ -107,6 +107,7 @@ export async function loadGardenFinanceData({ supabase, gardenId, searchParams =
       feeGroups: [] as any[],
       feeGroupsWithMarket: [] as any[],
       history: [] as any[],
+      transfers: [] as any[],
       diagnostics,
       errors
     },
@@ -143,12 +144,13 @@ export async function loadGardenFinanceData({ supabase, gardenId, searchParams =
   }
 
   try {
-    const [childrenRows, historyRowsRaw, feeGroupsRaw, enrollmentRows, marketRowsRaw] = await Promise.all([
+    const [childrenRows, historyRowsRaw, feeGroupsRaw, enrollmentRows, marketRowsRaw, transferRows] = await Promise.all([
       runQuery<any>("children query", "children", "*", () => supabase.from("children" as any).select("*").eq("garden_id", gardenId)),
       runQuery<any>("payment history query", "child_payment_history", "*", () => supabase.from("child_payment_history" as any).select("*").eq("garden_id", gardenId)),
       runQuery<any>("fee groups query", "kindergarten_fee_groups", "*", () => supabase.from("kindergarten_fee_groups" as any).select("*").eq("garden_id", gardenId)),
       runQuery<any>("child enrollments query", "child_kindergarten_enrollments", "*", () => supabase.from("child_kindergarten_enrollments" as any).select("*").eq("garden_id", gardenId)),
-      runQuery<any>("recommended averages query", "kindergarten_fee_groups", "*", () => supabase.from("kindergarten_fee_groups" as any).select("*").eq("active", true).neq("garden_id", gardenId))
+      runQuery<any>("recommended averages query", "kindergarten_fee_groups", "*", () => supabase.from("kindergarten_fee_groups" as any).select("*").eq("active", true).neq("garden_id", gardenId)),
+      runQuery<any>("transfers query", "child_transfer_requests", "*", () => supabase.from("child_transfer_requests" as any).select("*").or(`target_garden_id.eq.${gardenId},current_garden_id.eq.${gardenId}`))
     ]);
 
     const feeGroups = sortByName(feeGroupsRaw, "group_name");
@@ -213,7 +215,7 @@ export async function loadGardenFinanceData({ supabase, gardenId, searchParams =
         children,
         totals: { expected, paid, missing, overdue, partialPayments, paidChildren, unpaidChildren, failedChildren, specialArrangements, specialArrangementsTotal, debtTotal, pausedTotal, yearRevenue, collection }
       },
-      secondary: { feeGroups, feeGroupsWithMarket, history, diagnostics, errors },
+      secondary: { feeGroups, feeGroupsWithMarket, history, transfers: transferRows ?? [], diagnostics, errors },
       diagnostics,
       errors
     };

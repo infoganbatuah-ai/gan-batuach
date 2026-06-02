@@ -55,6 +55,10 @@ function isDebugEnabled(params: FinanceSearchParams) {
   return params.debug === "1" || process.env.NODE_ENV !== "production" || process.env.NEXT_PUBLIC_SANDBOX_MODE === "true";
 }
 
+function hasCriticalFinanceFailure(diagnostics?: FinanceQueryDiagnostic[]) {
+  return asArray(diagnostics).some((item) => !item.success && ["children query", "profile garden", "unexpected loader error"].includes(item.label));
+}
+
 function DebugPanel({
   gardenId,
   diagnostics,
@@ -218,6 +222,7 @@ export default async function GardenFinancePage({ searchParams }: { searchParams
       collection: 0
     };
     const activeFilter = params.filter ?? "";
+    const criticalFinanceFailure = hasCriticalFinanceFailure(data.diagnostics);
 
     return (
       <DashboardShell role={role} title="מרכז כספים">
@@ -230,7 +235,7 @@ export default async function GardenFinancePage({ searchParams }: { searchParams
           <span className={Number(totals.overdue ?? 0) ? "pill bad" : "pill good"}>גבייה {Number(totals.collection ?? 0)}%</span>
         </section>
 
-        {asArray(data.errors).length ? <div className="warning-banner">חלק מנתוני הכספים לא נטענו</div> : null}
+        {criticalFinanceFailure ? <div className="warning-banner">חלק מנתוני הכספים לא נטענו</div> : null}
         {debugMode ? <DebugPanel gardenId={gardenId} diagnostics={data.diagnostics} errors={data.errors} /> : null}
 
         <section className="card action-panel">
