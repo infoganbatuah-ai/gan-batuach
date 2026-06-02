@@ -198,9 +198,8 @@ async function createObserverNotifications(supabase: SupabaseLike, event: Record
       message: title,
       entity_type: "ai_camera_event",
       entity_id: event.id,
-      severity,
       action_url: recipient.role === "admin" ? "/dashboard/admin/ai-events" : "/dashboard/garden/ai-events",
-      metadata: { ai_camera_event_id: event.id, mock: true, human_review_required: true }
+      metadata: { ai_camera_event_id: event.id, severity, mock: true, human_review_required: true }
     }));
   if (rows.length) await supabase.from("notifications" as any).insert(rows);
 }
