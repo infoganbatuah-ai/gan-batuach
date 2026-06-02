@@ -2,6 +2,8 @@ import { z } from "zod";
 import { ok, fail, handleRouteError } from "@/lib/api";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { sendCommunication } from "@/lib/domain/communication-service";
+import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
 
 const schema = z.object({
   child_id: z.string().uuid(),
@@ -170,6 +172,19 @@ export async function POST(request: Request) {
         if (notificationResult.error) {
           console.error("[child-payment-update] parent failed-payment notification failed", { ...actionContext, parent_profile_id: parentProfileId, error: notificationResult.error.message });
           return fail("סטטוס התשלום עודכן, אך ההתראה להורה לא נשלחה.", 409, { child_id: payload.child_id, payment_status: paymentStatus });
+        }
+        const communicationClient = isAdminClientConfigured() ? createAdminClient() : supabase;
+        const communicationResult = await sendCommunication(communicationClient as any, {
+          recipientProfileId: parentProfileId,
+          kindergartenId: profile.garden_id,
+          templateKey: "payment_failed",
+          channels: ["whatsapp", "sms", "email"],
+          variables: { childId: payload.child_id, amount: amountPaid },
+          dedupeKey: `payment-failed:${payload.child_id}:${paymentStatus}:${today}`,
+          metadata: { child_id: payload.child_id, payment_status: paymentStatus, source: "child_payment_update" }
+        });
+        if (!communicationResult.ok) {
+          console.error("[child-payment-update] communication log failed", { ...actionContext, parent_profile_id: parentProfileId, logs: communicationResult.logs });
         }
         const notifiedUpdate = await supabase.from("children" as any).update({ parent_notified: true }).eq("id", payload.child_id);
         if (notifiedUpdate.error) console.error("[child-payment-update] parent_notified flag update failed", { ...actionContext, error: notifiedUpdate.error.message });
