@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { safetyIncidentTypes } from "@/lib/domain/safety-incident-framework";
 
 export const aiCameraEventTypes = [
   "person_detected",
@@ -12,6 +13,12 @@ export const aiCameraEventTypes = [
   "staff_behavior_concern",
   "distress_suspected",
   "violence_indicator",
+  "aggressive_behavior_indicator",
+  "prolonged_crying_indicator",
+  "child_left_alone_indicator",
+  "staff_absence_indicator",
+  "unusual_crowding",
+  "emergency_behavior_indicator",
   "audio_anomaly",
   "keyword_detected",
   "camera_tampering",
@@ -58,6 +65,12 @@ export const aiEventTypeLabels: Record<(typeof aiCameraEventTypes)[number], stri
   staff_behavior_concern: "אינדיקציה להתנהגות צוות לבדיקה",
   distress_suspected: "חשד למצוקה",
   violence_indicator: "אינדיקציה לאלימות לבדיקה",
+  aggressive_behavior_indicator: "אינדיקציה להתנהגות אגרסיבית",
+  prolonged_crying_indicator: "אינדיקציה לבכי ממושך",
+  child_left_alone_indicator: "אינדיקציה לילד ללא השגחה",
+  staff_absence_indicator: "אינדיקציה לחוסר נוכחות צוות",
+  unusual_crowding: "צפיפות חריגה לבדיקה",
+  emergency_behavior_indicator: "אינדיקציה להתנהגות חירום",
   audio_anomaly: "חריגת שמע לבדיקה",
   keyword_detected: "מילת מפתח זוהתה לבדיקה",
   camera_tampering: "חשד לחבלה במצלמה",
@@ -77,3 +90,5 @@ export function titleForAiCameraEvent(eventType: (typeof aiCameraEventTypes)[num
 export function describeObserverPipeline() {
   return ["Camera Stream", "Video Gateway", "AI Observer Worker", "Frame Sampling", "AI/Event Rules", "ai_camera_events", "notifications", "manager/admin/inspector dashboards"];
 }
+
+export { safetyIncidentTypes };
