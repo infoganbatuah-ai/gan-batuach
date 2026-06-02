@@ -5,6 +5,7 @@ import { fail, handleRouteError, ok } from "@/lib/api";
 import { requirePermission } from "@/lib/auth";
 import type { Permission } from "@/lib/roles";
 import { encryptField } from "@/lib/security/encryption";
+import { buildMaskedConnectionSummary } from "@/lib/domain/camera-connection-builder";
 
 type CrudConfig = {
   table: string;
@@ -32,7 +33,7 @@ export function createCrudHandlers(config: CrudConfig) {
         const gardenId = searchParams.get("garden_id");
         const selectColumns =
           config.table === "camera_streams"
-            ? "id,garden_id,kindergarten_id,name,area,age_group,class_group,camera_type,source_type,source_url,stream_status,health_status,last_seen,connection_method,protocol,host,port,username,rtsp_path,onvif_path,channel,hls_playback_url,sample_hls_url,webrtc_playback_url,video_gateway_stream_id,gateway_stream_id,viewing_hours,parent_view_allowed,parent_viewing_allowed,status,active,ai_enabled,last_health_check_at,last_successful_connection_at,last_stream_activity_at,uptime_seconds,failure_count,reconnect_attempts,recording_enabled,retention_days,archive_policy,created_at,updated_at"
+            ? "id,garden_id,kindergarten_id,name,area,age_group,class_group,camera_type,source_type,system_type,stream_status,health_status,last_seen,connection_method,protocol,host,port,channel,connection_host,connection_port,connection_channel,stream_quality,last_test_status,last_test_message,last_test_at,gateway_registration_status,gateway_last_error,masked_connection_summary,hls_playback_url,sample_hls_url,webrtc_playback_url,video_gateway_stream_id,gateway_stream_id,viewing_hours,parent_view_allowed,parent_viewing_allowed,status,active,ai_enabled,last_health_check_at,last_successful_connection_at,last_stream_activity_at,uptime_seconds,failure_count,reconnect_attempts,recording_enabled,retention_days,archive_policy,created_at,updated_at"
             : "*";
         let query = (supabase as any).from(config.table).select(selectColumns).limit(Math.min(limit, 200));
         if (gardenId) query = query.eq("garden_id", gardenId);
@@ -69,22 +70,46 @@ export function createCrudHandlers(config: CrudConfig) {
         if (config.table === "camera_streams") {
           const cameraPayload = { ...parsed } as Record<string, unknown>;
           const rawPassword = typeof cameraPayload.password === "string" ? cameraPayload.password : "";
+          const rawUsername = typeof cameraPayload.username === "string" ? cameraPayload.username : "";
           delete cameraPayload.password;
+          delete cameraPayload.manual_rtsp_url;
           if (rawPassword) {
             const encrypted = encryptField(rawPassword);
             cameraPayload.encrypted_password = encrypted;
             cameraPayload.password_encrypted = encrypted;
+            cameraPayload.connection_password_encrypted = encrypted;
             cameraPayload.secret_ref = `camera_streams:${crypto.randomUUID()}`;
           }
+          if (rawUsername) cameraPayload.connection_username_encrypted = encryptField(rawUsername);
+          const systemType = String(cameraPayload.system_type ?? cameraPayload.source_type ?? cameraPayload.camera_type ?? "manual_rtsp");
+          const connectionHost = String(cameraPayload.connection_host ?? cameraPayload.host ?? "");
+          const connectionPort = cameraPayload.connection_port ?? cameraPayload.port;
+          const connectionChannel = cameraPayload.connection_channel ?? cameraPayload.channel;
+          cameraPayload.system_type = systemType;
+          cameraPayload.connection_host = connectionHost || null;
+          cameraPayload.connection_port = connectionPort ? Number(connectionPort) : null;
+          cameraPayload.connection_channel = connectionChannel ? Number(connectionChannel) : null;
+          cameraPayload.stream_quality = cameraPayload.stream_quality ?? "sub";
+          cameraPayload.masked_connection_summary = buildMaskedConnectionSummary({
+            system_type: systemType === "DVR" || systemType === "NVR" || systemType === "dvr_nvr" ? "dvr_nvr" : systemType === "ONVIF" || systemType === "onvif" ? "onvif" : systemType === "Sample HLS" || systemType === "sample_hls" ? "sample_hls" : systemType === "ip_camera" ? "ip_camera" : "manual_rtsp",
+            host: connectionHost,
+            port: connectionPort ? Number(connectionPort) : undefined,
+            username: rawUsername,
+            password: rawPassword,
+            channel: connectionChannel ? Number(connectionChannel) : undefined,
+            stream_quality: cameraPayload.stream_quality === "main" ? "main" : "sub",
+            sample_hls_url: String(cameraPayload.sample_hls_url ?? cameraPayload.hls_playback_url ?? "")
+          });
           cameraPayload.kindergarten_id = cameraPayload.garden_id;
           cameraPayload.source_type = cameraPayload.source_type ?? cameraPayload.camera_type;
-          cameraPayload.source_url = cameraPayload.source_url ?? "";
+          cameraPayload.source_url = "";
           cameraPayload.sample_hls_url = cameraPayload.sample_hls_url ?? cameraPayload.hls_playback_url;
           cameraPayload.gateway_stream_id = cameraPayload.gateway_stream_id ?? cameraPayload.video_gateway_stream_id;
           cameraPayload.parent_viewing_allowed = cameraPayload.parent_viewing_allowed ?? cameraPayload.parent_view_allowed;
           cameraPayload.stream_status = cameraPayload.stream_status ?? cameraPayload.status ?? "pending";
           cameraPayload.health_status = cameraPayload.health_status ?? (cameraPayload.status === "connected" ? "healthy" : "pending");
           cameraPayload.connection_method = cameraPayload.connection_method ?? (cameraPayload.gateway_stream_id || cameraPayload.video_gateway_stream_id ? "video_gateway" : "pending_gateway");
+          cameraPayload.gateway_registration_status = cameraPayload.gateway_registration_status ?? (cameraPayload.connection_method === "video_gateway" ? "registered" : "pending_gateway");
           insertPayload = cameraPayload;
         }
         const supabase = await createClient();
@@ -108,7 +133,21 @@ export function createCrudHandlers(config: CrudConfig) {
             "archive_policy",
             "disabled_at",
             "disabled_by",
-            "health_summary"
+            "health_summary",
+            "system_type",
+            "connection_host",
+            "connection_port",
+            "connection_channel",
+            "stream_quality",
+            "connection_username_encrypted",
+            "connection_password_encrypted",
+            "rtsp_template",
+            "last_test_status",
+            "last_test_message",
+            "last_test_at",
+            "gateway_registration_status",
+            "gateway_last_error",
+            "masked_connection_summary"
           ].forEach((key) => delete legacyPayload[key]);
           const legacyInsert = await (supabase as any).from(config.table).insert(legacyPayload).select("*").single();
           data = legacyInsert.data;
@@ -161,7 +200,7 @@ export function createCrudHandlers(config: CrudConfig) {
           });
         }
         if (config.table === "camera_streams" && data) {
-          const { password, password_encrypted, encrypted_password, secret_ref, username_encrypted, dvr_host_encrypted, ...safeCamera } = data as Record<string, unknown>;
+          const { password, password_encrypted, encrypted_password, secret_ref, username_encrypted, dvr_host_encrypted, connection_username_encrypted, connection_password_encrypted, source_url, ...safeCamera } = data as Record<string, unknown>;
           return ok(safeCamera, 201);
         }
         return ok(data, 201);

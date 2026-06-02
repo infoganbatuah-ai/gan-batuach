@@ -11,7 +11,7 @@ export default async function AdminCamerasPage() {
   await requireRole(["admin"]);
   const result = await safeAdminData("admin cameras", async () => {
     const supabase = await createClient();
-    const safeCameraColumns = "id, garden_id, kindergarten_id, name, area, camera_type, source_type, stream_status, health_status, last_seen, connection_method, protocol, status, active, parent_view_allowed, parent_viewing_allowed, last_health_check_at, hls_playback_url, sample_hls_url, webrtc_playback_url, video_gateway_stream_id, gateway_stream_id, viewing_hours, recording_enabled, retention_days, archive_policy, is_demo, demo_batch_id";
+    const safeCameraColumns = "id, garden_id, kindergarten_id, name, area, camera_type, source_type, system_type, stream_status, health_status, last_seen, connection_method, protocol, status, active, parent_view_allowed, parent_viewing_allowed, last_health_check_at, last_test_status, last_test_message, last_test_at, gateway_registration_status, gateway_last_error, masked_connection_summary, hls_playback_url, sample_hls_url, webrtc_playback_url, video_gateway_stream_id, gateway_stream_id, viewing_hours, recording_enabled, retention_days, archive_policy, is_demo, demo_batch_id";
     let cameras = await supabase.from("camera_streams" as any).select(safeCameraColumns).limit(100);
     let secondaryWarning: string | null = null;
 

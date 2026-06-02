@@ -3,6 +3,7 @@ import { fail, handleRouteError, ok } from "@/lib/api";
 import { requireRole } from "@/lib/auth";
 import { recordCameraHealthCheck } from "@/lib/domain/camera-health";
 import { hasPlaybackSource } from "@/lib/domain/video-gateway";
+import { testCameraSource } from "@/lib/domain/video-gateway-client";
 import { createClient } from "@/lib/supabase/server";
 
 const actionSchema = z.object({
@@ -39,9 +40,16 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       return ok({ camera: row, message: "המצלמה סומנה כמחוברת" });
     }
     if (body.action === "test_connection") {
-      update = hasPlaybackSource(camera as any)
+      const gatewayTest = await testCameraSource({
+        system_type: ((camera as any).system_type as any) || "manual_rtsp",
+        host: (camera as any).connection_host ?? (camera as any).host ?? undefined,
+        port: (camera as any).connection_port ?? (camera as any).port ?? undefined,
+        channel: (camera as any).connection_channel ?? (camera as any).channel ?? undefined,
+        stream_quality: (camera as any).stream_quality === "main" ? "main" : "sub"
+      });
+      update = hasPlaybackSource(camera as any) && gatewayTest.status !== "gateway_required"
         ? { status: "connected", stream_status: "connected", health_status: "healthy", last_seen: now, last_stream_activity_at: now, last_successful_connection_at: now, health_summary: { ...((camera as any).health_summary ?? {}), last_manual_test_at: now, playback_source_found: true } }
-        : { status: "pending_gateway", stream_status: "pending", health_status: "pending", health_summary: { ...((camera as any).health_summary ?? {}), last_manual_test_at: now, playback_source_found: false, message: "Video Gateway or playback source is required" } };
+        : { status: "pending_gateway", stream_status: "pending", health_status: "pending", last_test_status: gatewayTest.status, last_test_message: gatewayTest.message, last_test_at: now, gateway_registration_status: "pending_gateway", gateway_last_error: gatewayTest.message, health_summary: { ...((camera as any).health_summary ?? {}), last_manual_test_at: now, playback_source_found: false, message: gatewayTest.message } };
     }
 
     let { data, error } = await supabase.from("camera_streams" as any).update(update).eq("id", id).select("*").single();
