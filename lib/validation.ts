@@ -1,0 +1,321 @@
+import { z } from "zod";
+
+export const idParam = z.string().uuid();
+
+export const gardenSchema = z.object({
+  name: z.string().min(2),
+  city: z.string().min(2),
+  address: z.string().optional(),
+  framework_type: z.string().default("mixed"),
+  owner_name: z.string().optional(),
+  phone: z.string().optional(),
+  email: z.string().email().optional()
+});
+
+export const childSchema = z.object({
+  garden_id: z.string().uuid(),
+  primary_parent_id: z.string().uuid().optional(),
+  full_name: z.string().min(2),
+  birth_date: z.string().optional(),
+  identity_number: z.string().optional(),
+  hmo: z.string().optional(),
+  allergies: z.string().optional(),
+  regular_medications: z.string().optional(),
+  mother_identity_number: z.string().optional(),
+  father_identity_number: z.string().optional(),
+  photo_consent: z.boolean().optional(),
+  system_consent: z.boolean().optional()
+});
+
+export const parentSchema = z.object({
+  garden_id: z.string().uuid(),
+  full_name: z.string().min(2),
+  identity_number: z.string().optional(),
+  phone: z.string().min(7),
+  email: z.string().email().optional(),
+  address: z.string().optional()
+});
+
+export const staffSchema = z.object({
+  garden_id: z.string().uuid(),
+  full_name: z.string().min(2),
+  role_title: z.string().min(2),
+  identity_number: z.string().optional(),
+  phone: z.string().optional(),
+  email: z.string().email().optional(),
+  class_group: z.string().optional(),
+  start_date: z.string().optional()
+});
+
+export const teacherSchema = z.object({
+  id: z.string().uuid(),
+  garden_id: z.string().uuid(),
+  title: z.string().default("גננת"),
+  class_group: z.string().optional()
+});
+
+export const inspectorSchema = z.object({
+  id: z.string().uuid(),
+  service_cities: z.array(z.string()).default([]),
+  certification_notes: z.string().optional()
+});
+
+export const leadSchema = z.object({
+  garden_id: z.string().uuid().optional(),
+  lead_type: z.enum(["parent", "garden", "inspector"]),
+  parent_name: z.string().optional(),
+  parent_identity_number: z.string().optional(),
+  child_name: z.string().optional(),
+  child_identity_number: z.string().optional(),
+  child_age: z.string().optional(),
+  requested_age_group: z.string().optional(),
+  requested_start_date: z.string().optional(),
+  garden_name: z.string().optional(),
+  owner_name: z.string().optional(),
+  city: z.string().optional(),
+  address: z.string().optional(),
+  manager_name: z.string().optional(),
+  manager_identity_number: z.string().optional(),
+  owner_identity_number: z.string().optional(),
+  age_groups: z.array(z.string()).optional(),
+  capacity: z.number().int().min(0).optional(),
+  experience: z.string().optional(),
+  certifications: z.string().optional(),
+  status: z.string().optional(),
+  phone: z.string().min(7),
+  email: z.string().email().optional(),
+  notes: z.string().optional()
+});
+
+export const taskSchema = z.object({
+  garden_id: z.string().uuid().optional(),
+  title: z.string().min(2),
+  description: z.string().optional(),
+  assigned_to: z.string().uuid().optional(),
+  assigned_role: z.string().optional(),
+  assigned_group: z.string().optional(),
+  due_at: z.string().optional(),
+  priority: z.string().optional(),
+  repeat_rule: z.string().optional(),
+  task_type: z.string().optional()
+});
+
+export const complaintSchema = z.object({
+  garden_id: z.string().uuid(),
+  parent_id: z.string().uuid().optional(),
+  child_id: z.string().uuid().optional(),
+  subject: z.string().min(2),
+  description: z.string().min(5),
+  category: z.string().optional(),
+  severity: z.enum(["low", "medium", "high", "critical"]).default("medium"),
+  urgent: z.boolean().default(false),
+  attachment_urls: z.array(z.string()).optional()
+});
+
+export const messageSchema = z.object({
+  garden_id: z.string().uuid().optional(),
+  recipient_id: z.string().uuid().optional(),
+  linked_child_id: z.string().uuid().optional(),
+  reply_to_message_id: z.string().uuid().optional(),
+  subject: z.string().min(2),
+  body: z.string().min(1),
+  content: z.string().optional(),
+  status: z.string().optional(),
+  treatment_status: z.string().optional()
+});
+
+export const inspectionSchema = z.object({
+  garden_id: z.string().uuid(),
+  inspector_id: z.string().uuid(),
+  form_id: z.string().uuid(),
+  task_id: z.string().uuid().optional(),
+  gps_lat: z.number().optional(),
+  gps_lng: z.number().optional(),
+  gps_verified: z.boolean().default(false)
+});
+
+export const inspectionFormSchema = z.object({
+  name: z.string().min(2),
+  description: z.string().optional(),
+  framework_type: z.string().default("mixed"),
+  active: z.boolean().default(true),
+  frequency_months: z.number().int().min(1).default(1)
+});
+
+export const inspectionFormQuestionSchema = z.object({
+  form_id: z.string().uuid(),
+  category: z.string().min(2),
+  question_text: z.string().min(2),
+  question_type: z.enum(["score_1_10", "boolean", "photo_upload", "document_upload", "text_note"]).default("score_1_10"),
+  required: z.boolean().default(true),
+  critical: z.boolean().default(false),
+  weight: z.number().positive().default(1),
+  min_score: z.number().int().min(1).max(10).default(1),
+  max_score: z.number().int().min(1).max(10).default(10),
+  violation_threshold: z.number().int().min(1).max(10).default(4),
+  requires_note: z.boolean().default(false),
+  requires_photo: z.boolean().default(false),
+  requires_document: z.boolean().default(false),
+  help_text: z.string().optional(),
+  options: z.record(z.string(), z.unknown()).default({}),
+  sort_order: z.number().int().default(0)
+});
+
+export const documentSchema = z.object({
+  garden_id: z.string().uuid().optional(),
+  staff_id: z.string().uuid().optional(),
+  child_id: z.string().uuid().optional(),
+  name: z.string().min(2),
+  document_type: z.string().min(2),
+  file_url: z.string().url(),
+  expires_at: z.string().optional()
+});
+
+export const attendanceSchema = z.object({
+  garden_id: z.string().uuid(),
+  child_id: z.string().uuid().optional(),
+  staff_id: z.string().uuid().optional(),
+  status: z.enum(["present", "absent", "sick", "late", "left_early", "not_updated"]),
+  note: z.string().optional()
+});
+
+export const cameraStreamSchema = z.object({
+  garden_id: z.string().uuid(),
+  kindergarten_id: z.string().uuid().optional(),
+  name: z.string().min(2),
+  area: z.string().min(2),
+  camera_type: z.string().optional(),
+  source_type: z.string().optional(),
+  source_url: z.string().optional(),
+  stream_status: z.enum(["connected", "connecting", "pending", "offline", "error", "disabled"]).optional(),
+  health_status: z.string().optional(),
+  connection_method: z.string().optional(),
+  protocol: z.string().default("RTSP"),
+  active: z.boolean().default(true),
+  status: z.string().optional(),
+  parent_view_allowed: z.boolean().optional(),
+  parent_viewing_allowed: z.boolean().optional(),
+  class_group: z.string().optional(),
+  age_group: z.string().optional(),
+  host: z.string().optional(),
+  port: z.coerce.number().int().optional(),
+  username: z.string().optional(),
+  password: z.string().optional(),
+  channel: z.string().optional(),
+  rtsp_path: z.string().optional(),
+  onvif_path: z.string().optional(),
+  hls_playback_url: z.string().url().optional().or(z.literal("")),
+  sample_hls_url: z.string().url().optional().or(z.literal("")),
+  webrtc_playback_url: z.string().url().optional().or(z.literal("")),
+  video_gateway_stream_id: z.string().optional(),
+  gateway_stream_id: z.string().optional(),
+  ai_enabled: z.boolean().optional(),
+  recording_enabled: z.boolean().optional(),
+  retention_days: z.coerce.number().int().optional(),
+  archive_policy: z.string().optional(),
+  dvr_port: z.number().int().optional(),
+  viewing_hours: z.record(z.string(), z.unknown()).optional()
+});
+
+export const parentCameraPermissionSchema = z.object({
+  garden_id: z.string().uuid(),
+  parent_id: z.string().uuid(),
+  child_id: z.string().uuid().optional(),
+  camera_stream_id: z.string().uuid(),
+  allowed: z.boolean().default(true),
+  reason: z.string().optional(),
+  valid_until: z.string().optional()
+});
+
+export const cameraSnapshotSchema = z.object({
+  garden_id: z.string().uuid(),
+  camera_stream_id: z.string().uuid().optional(),
+  storage_bucket: z.string().default("camera-snapshots"),
+  storage_path: z.string().min(2),
+  source: z.string().default("manual"),
+  metadata: z.record(z.string(), z.unknown()).default({})
+});
+
+export const restrictedAreaSchema = z.object({
+  garden_id: z.string().uuid(),
+  camera_stream_id: z.string().uuid().optional(),
+  name: z.string().min(2),
+  polygon: z.array(z.object({ x: z.number(), y: z.number() })).min(3),
+  active: z.boolean().default(true)
+});
+
+export const aiEventSchema = z.object({
+  garden_id: z.string().uuid(),
+  camera_stream_id: z.string().uuid().optional(),
+  event_type: z.string().min(2),
+  severity: z.enum(["low", "medium", "high", "critical"]).default("medium"),
+  screenshot_url: z.string().url().optional(),
+  confidence: z.number().optional()
+});
+
+export const procedureSchema = z.object({
+  title: z.string().min(2),
+  procedure_type: z.string().min(2),
+  body: z.string().min(5),
+  required_for_framework: z.string().default("all"),
+  active: z.boolean().default(true),
+  requires_acknowledgement: z.boolean().default(true)
+});
+
+export const campaignSchema = z.object({
+  title: z.string().min(2),
+  body: z.string().min(5),
+  audience: z.record(z.string(), z.unknown()).default({ roles: ["manager"] }),
+  starts_at: z.string().optional(),
+  ends_at: z.string().optional()
+});
+
+export const reportExportSchema = z.object({
+  garden_id: z.string().uuid().optional(),
+  report_type: z.string().min(2),
+  format: z.enum(["pdf", "xlsx", "csv"]),
+  filters: z.record(z.string(), z.unknown()).default({})
+});
+
+export const emergencyTaskSchema = z.object({
+  garden_id: z.string().uuid().optional(),
+  title: z.string().min(2),
+  description: z.string().min(5),
+  due_at: z.string().optional(),
+  priority: z.enum(["low", "medium", "high", "critical"]).default("critical")
+});
+
+export const staffShiftSchema = z.object({
+  staff_id: z.string().uuid(),
+  garden_id: z.string().uuid(),
+  shift_date: z.string(),
+  planned_start: z.string().optional(),
+  planned_end: z.string().optional()
+});
+
+export const staffCertificateSchema = z.object({
+  staff_id: z.string().uuid(),
+  garden_id: z.string().uuid(),
+  certificate_type: z.string().min(2),
+  file_url: z.string().url().optional(),
+  issued_at: z.string().optional(),
+  expires_at: z.string().optional()
+});
+
+export const gpsAttendanceSchema = z.object({
+  staff_id: z.string().uuid(),
+  garden_id: z.string().uuid(),
+  action: z.enum(["check_in", "check_out"]),
+  gps_lat: z.number(),
+  gps_lng: z.number()
+});
+
+export const pickupConfirmationSchema = z.object({
+  garden_id: z.string().uuid(),
+  child_id: z.string().uuid(),
+  parent_id: z.string().uuid().optional(),
+  picked_up_by_name: z.string().min(2),
+  authorized: z.boolean(),
+  gps_lat: z.number().optional(),
+  gps_lng: z.number().optional()
+});

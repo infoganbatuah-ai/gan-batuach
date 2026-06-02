@@ -1,0 +1,33 @@
+import Link from "next/link";
+import { Baby, FileText, HeartPulse, ShieldCheck } from "lucide-react";
+import { Avatar } from "@/components/avatar";
+import { ChildPhotoUpload } from "@/components/child-photo-upload";
+import { DashboardShell } from "@/components/dashboard-shell";
+import { requireRole } from "@/lib/auth";
+import { getParentFamilyContext } from "@/lib/domain/parent-family";
+import { createClient } from "@/lib/supabase/server";
+import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
+
+function dateText(value?: string | null) { return value ? new Date(value).toLocaleDateString("he-IL") : "-"; }
+function age(value?: string | null) { if (!value) return "גיל חסר"; const months = Math.max(0, Math.floor((Date.now() - new Date(value).getTime()) / (1000 * 60 * 60 * 24 * 30.44))); return months >= 12 ? `${Math.floor(months / 12)}.${months % 12} שנים` : `${months} חודשים`; }
+
+export default async function ParentChildProfilePage({ params }: { params: Promise<{ id: string }> }) {
+  const { profile } = await requireRole(["parent"]);
+  const { id } = await params;
+  const userScopedSupabase = await createClient();
+  const supabase = isAdminClientConfigured() ? createAdminClient() : userScopedSupabase;
+  const family = await getParentFamilyContext(userScopedSupabase as any, profile);
+  const familyChild = (family.children as any[]).find((item) => item.id === id || item.permanent_child_file_id === id);
+  const familyEnrollment = (family.enrollments as any[]).find((item) => item.child_id === id || item.permanent_child_file_id === id);
+  const childId = familyChild?.id ?? familyEnrollment?.child_id ?? null;
+  const childRes = childId ? await supabase.from("children" as any).select("*").eq("id", childId).maybeSingle() : { data: null };
+  const child = (childRes.data as any) ?? familyChild ?? (familyEnrollment?.child && familyEnrollment.child.id ? familyEnrollment.child : null);
+  if (!child) return <DashboardShell role="parent" title="כרטיס ילד"><div className="empty-state"><strong>לא נמצא כרטיס ילד</strong><span>ייתכן שהילד לא משויך למשתמש שלך או שהרישום עדיין לא אושר.</span><Link className="button primary" href="/dashboard/parent">חזרה לאזור הורים</Link></div></DashboardShell>;
+  const [journalsRes, docsRes, requestsRes] = await Promise.all([
+    supabase.from("child_daily_journals" as any).select("*").eq("child_id", child.id).order("journal_date", { ascending: false }).limit(10),
+    supabase.from("documents" as any).select("id, name, document_type, status, expires_at, created_at").eq("child_id", child.id).limit(20),
+    supabase.from("parent_child_requests" as any).select("*").eq("child_id", child.id).order("created_at", { ascending: false }).limit(10)
+  ]);
+  const statusLabel = child.status === "active" ? "אושר" : child.status === "rejected" ? `נדחה${child.approval_notes ? ` - ${child.approval_notes}` : ""}` : "ממתין לאישור הגן";
+  return <DashboardShell role="parent" title="כרטיס ילד"><section className="dashboard-section printable-report"><div className="dashboard-hero-card parent-hero-card child-profile-hero"><Avatar name={child.full_name} src={child.photo_url ?? child.face_image_url} size="lg" /><div><p className="eyebrow">כרטיס ילד</p><h1>{child.full_name}</h1><p>{age(child.birth_date)} · {child.hmo ?? "קופה לא צוינה"} · {statusLabel}</p></div><span className={child.status === "active" ? "pill good" : child.status === "rejected" ? "pill bad" : "pill warn"}>{statusLabel}</span></div><div className="profile-actions"><Link className="button secondary" href="/dashboard/parent">חזרה</Link><Link className="button secondary" href="/dashboard/parent/messages">פנייה לגן</Link><Link className="button primary" href="/dashboard/parent#add-child-request">בקשת רישום ילד נוסף</Link>{child.status === "pending_parent_completion" || child.status === "request_missing_details" ? <Link className="button primary" href={`/parent-onboarding?childId=${child.id}`}>השלמת פרטים</Link> : null}</div><div className="child-profile-tabs">{["סקירה", "בריאות", "הורים", "יומן יומי", "מסמכים", "בקשות", "ציר זמן"].map((tab) => <span key={tab}>{tab}</span>)}</div></section><section className="grid cols-2 dashboard-panels"><ChildPhotoUpload childId={child.id} initialUrl={child.photo_url ?? child.face_image_url} /><article className="card action-panel"><h2><HeartPulse size={18} /> בריאות ופרטים רגישים</h2><p>הורה יכול לעדכן מידע רפואי רגיש דרך טופס רישום/עדכון. הצוות יכול לצפות בלבד.</p><div className="risk-list"><div>אלרגיות <b>{child.allergies || "אין"}</b></div><div>רגישויות <b>{child.sensitivities || "אין"}</b></div><div>תרופות <b>{child.regular_medications || "אין"}</b></div><div>הערות רפואיות <b>{child.medical_notes || "אין"}</b></div><div>איש קשר חירום <b>{child.emergency_phone || "-"}</b></div></div></article></section><section className="grid cols-2 dashboard-panels"><article className="card action-panel"><h2><Baby size={18} /> פרטי ילד ומשפחה</h2><div className="risk-list"><div>תאריך לידה <b>{dateText(child.birth_date)}</b></div><div>תעודת זהות <b>{child.identity_number ?? "-"}</b></div><div>אם <b>{child.mother_name ?? "-"}</b></div><div>אב <b>{child.father_name ?? "-"}</b></div><div>מורשי איסוף <b>{Array.isArray(child.pickup_authorized) ? child.pickup_authorized.length : 0}</b></div></div></article><article className="card action-panel"><h2><ShieldCheck size={18} /> סטטוס רישום</h2><p>{statusLabel}</p><p>{child.approval_notes ?? child.manager_response ?? "אין הערת מנהלת."}</p></article></section><section className="grid cols-2 dashboard-panels"><article className="card action-panel"><h2>יומן יומי</h2>{(journalsRes.data ?? []).length === 0 ? <div className="empty-mini">אין עדכונים עדיין.</div> : (journalsRes.data ?? []).map((journal: any) => <div className="list-item" key={journal.id}><div><strong>{dateText(journal.journal_date)}</strong><span>{journal.mood ?? ""} · {journal.sleep_summary ?? ""} · {journal.notes_to_parents ?? ""}</span></div></div>)}</article><article className="card action-panel"><h2><FileText size={18} /> מסמכים ובקשות</h2>{(docsRes.data ?? []).map((doc: any) => <div className="list-item" key={doc.id}><strong>{doc.name ?? doc.document_type}</strong><span className="pill">{doc.status}</span></div>)}{(requestsRes.data ?? []).map((request: any) => <div className="list-item" key={request.id}><div><strong>{request.request_type}</strong><span>{request.content}</span></div><span className="pill">{request.status}</span></div>)}{(docsRes.data ?? []).length === 0 && (requestsRes.data ?? []).length === 0 ? <div className="empty-mini">אין מסמכים או בקשות.</div> : null}</article></section></DashboardShell>;
+}
