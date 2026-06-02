@@ -269,10 +269,8 @@ with check (public.current_role() = 'admin');
 
 insert into public.subscription_plans (name, description, plan_type, price_amount, duration_days, trial_days, active_users_limit, active_children_limit, camera_limit, storage_limit_mb, enabled_features, sort_order)
 values
-  ('Trial Plan', 'Free pilot trial for first onboarding period.', 'trial', 0, 30, 30, 10, 30, 2, 1024, '{"core_dashboard":true,"parent_onboarding":true,"basic_cameras":true}'::jsonb, 10),
-  ('Monthly Plan', 'Monthly operating plan for a single kindergarten.', 'monthly', 599, 30, 0, 25, 80, 6, 10240, '{"core_dashboard":true,"finance":true,"parent_requests":true,"cameras":true,"smart_insights":true}'::jsonb, 20),
-  ('Annual Plan', 'Annual plan with discounted prepaid operation.', 'annual', 5990, 365, 0, 25, 80, 6, 20480, '{"core_dashboard":true,"finance":true,"parent_requests":true,"cameras":true,"smart_insights":true,"priority_support":true}'::jsonb, 30),
-  ('Custom Enterprise Plan', 'Custom multi-kindergarten or enhanced monitoring plan.', 'enterprise', 0, null, 0, null, null, null, null, '{"custom_limits":true,"multi_site":true,"advanced_support":true}'::jsonb, 40)
+  ('Gan Batuach Fixed Kindergarten Plan', 'Fixed Gan Batuach kindergarten plan: management system plus Digital Observer included.', 'monthly', 700, 30, 0, null, null, null, null, '{"core_dashboard":true,"finance":true,"parent_requests":true,"cameras":true,"smart_insights":true,"digital_observer_included":true}'::jsonb, 10),
+  ('Custom Enterprise Plan', 'Future custom plan for large kindergarten chains only.', 'enterprise', 0, null, 0, null, null, null, null, '{"custom_limits":true,"large_chain":true,"advanced_support":true,"digital_observer_included":true}'::jsonb, 40)
 on conflict do nothing;
 
 insert into public.billing_provider_configs (provider, display_name, enabled, mode)

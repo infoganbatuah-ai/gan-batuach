@@ -59,9 +59,9 @@ export default async function AdminObserverPlatformPage() {
         <div>
           <p className="eyebrow">Digital Observer Platform</p>
           <h1>תשתית multi-site לתצפיתן הדיגיטלי.</h1>
-          <p>גן בטוח נשאר המוצר המרכזי. השכבה הזו מכינה Sites, Cameras, Zones ו-Events לשימוש עתידי בבתים, עסקים, מחסנים, משרדים וחניונים.</p>
+          <p>גן בטוח נשאר מוצר הגנים: 700 ש״ח לחודש לגן, כולל תצפיתן דיגיטלי. השכבה הזו היא Future standalone product לבתים, עסקים, מחסנים, משרדים וחניונים.</p>
         </div>
-        <span className="pill warn">Architecture only</span>
+        <span className="pill warn">Future standalone product</span>
       </div>
       <AdminDataError message={result.error ?? data.queryError} />
       <section className="grid cols-4 dashboard-panels">
@@ -72,9 +72,9 @@ export default async function AdminObserverPlatformPage() {
       </section>
       <section className="grid cols-2 dashboard-panels">
         <article className="card action-panel">
-          <div className="section-heading"><h2>Site types</h2><p>כרגע רוב ה-sites מגיעים מגני ילדים קיימים. סוגים אחרים הם מוכנות עתידית.</p></div>
+          <div className="section-heading"><h2>Site types</h2><p>גני ילדים שייכים ל-Gan Batuach ותצפיתן דיגיטלי כלול בהם. סוגים אחרים הם מוצר עצמאי עתידי בלבד.</p></div>
           <div className="tag-cloud">{Object.entries(siteTypeCounts).map(([type, count]) => <span key={type}>{siteTypeLabel(type)}: {count}</span>)}</div>
-          <div className="risk-list"><div>Active monitoring <b>{activeMonitoring}</b></div><div>Standalone product mode <b>Future</b></div><div>Billing observer plans <b>Prepared only</b></div></div>
+          <div className="risk-list"><div>Active monitoring <b>{activeMonitoring}</b></div><div>Standalone product mode <b>Future only</b></div><div>Gan Batuach observer <b>Included</b></div></div>
         </article>
         <article className="card action-panel">
           <div className="section-heading"><h2>Future APIs</h2><p>אין public APIs בשלב הזה. אלו נקודות מוכנות לתכנון.</p></div>

@@ -110,8 +110,9 @@ Business value:
 
 Scope:
 
-- monthly plans
-- annual plans
+- fixed Gan Batuach kindergarten plan: 700 ILS/month
+- Digital Observer included in Gan Batuach
+- optional future enterprise/custom plan for large kindergarten chains
 - trial period
 - manual invoice/receipt tracking
 - grace period
@@ -130,7 +131,7 @@ Dependencies:
 
 Recommended order:
 
-1. subscription status model
+1. fixed Gan Batuach 700 ILS/month plan
 2. admin subscription screen
 3. reminders
 4. grace period
@@ -703,6 +704,14 @@ Goal: create a separate product line using the same observer engine beyond kinde
 
 The Digital Observer can become a standalone AI monitoring platform for camera-based environments.
 
+Commercial separation:
+
+- Gan Batuach: 700 ILS/month per kindergarten.
+- Gan Batuach includes the kindergarten management system.
+- Gan Batuach includes the Digital Observer as part of the package.
+- No separate observer package upsell inside Gan Batuach at this stage.
+- Standalone Digital Observer is future-only and commercially separate.
+
 Markets:
 
 - homes
@@ -710,7 +719,6 @@ Markets:
 - warehouses
 - offices
 - parking lots
-- kindergartens
 
 Business value:
 
@@ -729,14 +737,21 @@ Dependencies:
 - standalone tenant model
 - legal/privacy/compliance review
 
-Subscription model:
+Future standalone packages:
+
+- Home Basic
+- Home Plus
+- Business
+- Enterprise
+
+Standalone subscription model:
 
 - per camera
-- per location
-- per monitoring tier
-- retention add-on
-- emergency escalation add-on
-- business analytics add-on
+- monitoring hours
+- alert types
+- recording retention
+- AI level
+- storage
 
 Services:
 

@@ -1,6 +1,16 @@
 # Digital Observer Platform Roadmap
 
-Gan Batuach remains the primary product. The Digital Observer platform layer is introduced so the same observer engine can later support additional monitored sites without duplicating code.
+Gan Batuach remains the primary product. The Digital Observer is included inside the Gan Batuach kindergarten package and is not a separate upsell for kindergarten managers at this stage.
+
+Commercial split:
+
+- Gan Batuach: fixed price, 700 ILS per kindergarten per month.
+- Gan Batuach includes the kindergarten management system.
+- Gan Batuach includes the Digital Observer as part of the kindergarten package.
+- Optional future enterprise/custom Gan Batuach plan is only for large kindergarten chains.
+- Standalone Digital Observer: future separate product for homes, businesses, warehouses, offices, stores and parking lots.
+
+The Digital Observer platform layer is introduced so the same observer engine can later support additional monitored sites without duplicating code.
 
 ## Platform Model
 
@@ -166,15 +176,32 @@ Kindergarten zones remain compatible.
 
 ## Subscription Readiness
 
-Future observer-specific plan fields:
+Gan Batuach subscription:
+
+- one fixed kindergarten plan: 700 ILS/month
+- Digital Observer included
+- no separate observer package upsell inside Gan Batuach
+- future enterprise/custom only for large chains
+
+Standalone Digital Observer packages are future-only and separate:
+
+- Home Basic
+- Home Plus
+- Business
+- Enterprise
+
+Future standalone pricing dimensions:
 
 - camera count
 - monitoring hours
+- alert types
 - event retention
+- recording retention
 - AI features
+- AI level
 - storage limits
 
-No billing implementation is activated in this phase.
+No standalone observer billing implementation is activated in this phase.
 
 ## Future APIs
 
@@ -222,4 +249,4 @@ Parking:
 2. Add internal admin site management when needed.
 3. Build camera onboarding around `observer_site_id`.
 4. Add generic event feeds after access control is proven.
-5. Add standalone Observer product branding only after pilot validation.
+5. Add standalone Observer product branding only after Gan Batuach pilot validation and separate pricing approval.
