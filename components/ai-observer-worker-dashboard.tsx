@@ -74,6 +74,29 @@ export function AiObserverWorkerDashboard({ workers, jobs, logs, rules, zones, g
     acc[event.event_type] = (acc[event.event_type] ?? 0) + 1;
     return acc;
   }, {});
+  const reviewedEvents = shadowEvents.filter((event) => ["false_positive", "valid_detection", "needs_more_data"].includes(String(event.review_outcome ?? "")));
+  const falsePositiveCount = shadowEvents.filter((event) => event.review_outcome === "false_positive").length;
+  const validDetectionCount = shadowEvents.filter((event) => event.review_outcome === "valid_detection").length;
+  const averageConfidence = shadowEvents.length
+    ? shadowEvents.reduce((sum, event) => sum + Number(event.confidence_score ?? 0), 0) / shadowEvents.length
+    : 0;
+  const latestEvent = shadowEvents[0];
+  const detectorProvider = latestEvent?.detector_provider ?? "local_mock";
+  const detectorMode = latestEvent?.detector_mode ?? "local_shadow";
+  const analyzerFailures = logs.filter((log) => {
+    const message = String(log.message ?? "").toLowerCase();
+    const reason = String(log.failure_reason ?? "").toLowerCase();
+    return message.includes("analyzer") || reason.includes("analyzer") || reason.includes("opencv") || reason.includes("yolo");
+  }).length;
+  const qualityByType = shadowEvents.reduce<Record<string, { total: number; falsePositive: number; valid: number }>>((acc, event) => {
+    const key = String(event.event_type ?? "unknown");
+    acc[key] = acc[key] ?? { total: 0, falsePositive: 0, valid: 0 };
+    acc[key].total += 1;
+    if (event.review_outcome === "false_positive") acc[key].falsePositive += 1;
+    if (event.review_outcome === "valid_detection") acc[key].valid += 1;
+    return acc;
+  }, {});
+  const formatRate = (count: number) => reviewedEvents.length ? `${Math.round((count / reviewedEvents.length) * 100)}%` : "0%";
 
   return (
     <div className="stack">
@@ -87,13 +110,20 @@ export function AiObserverWorkerDashboard({ workers, jobs, logs, rules, zones, g
       </section>
       <section className="grid cols-4 dashboard-panels">
         <article className="card metric-card"><span>Shadow detections today</span><strong>{shadowEvents.length}</strong></article>
-        <article className="card metric-card"><span>False positives</span><strong>{shadowEvents.filter((event) => event.review_outcome === "false_positive").length}</strong></article>
-        <article className="card metric-card"><span>Valid detections</span><strong>{shadowEvents.filter((event) => event.review_outcome === "valid_detection").length}</strong></article>
-        <article className="card metric-card"><span>Detector</span><strong>local_mock</strong></article>
+        <article className="card metric-card"><span>False positive rate</span><strong>{formatRate(falsePositiveCount)}</strong></article>
+        <article className="card metric-card"><span>Valid detection rate</span><strong>{formatRate(validDetectionCount)}</strong></article>
+        <article className="card metric-card"><span>Detector</span><strong>{detectorProvider}</strong></article>
+      </section>
+      <section className="grid cols-4 dashboard-panels">
+        <article className="card metric-card"><span>Detector mode</span><strong>{detectorMode}</strong></article>
+        <article className="card metric-card"><span>Last detection run</span><strong>{latestEvent?.created_at ? new Date(latestEvent.created_at).toLocaleTimeString("he-IL") : "טרם רץ"}</strong></article>
+        <article className="card metric-card"><span>Avg confidence</span><strong>{shadowEvents.length ? averageConfidence.toFixed(2) : "0.00"}</strong></article>
+        <article className="card metric-card"><span>Failed analyzer calls</span><strong>{analyzerFailures}</strong></article>
       </section>
       <section className="card action-panel">
         <div className="section-heading"><h2>Shadow detector mode</h2><p>זיהויים ניסיוניים בלבד. אין parent notifications, אין זיהוי פנים, אין אודיו ואין ספק חיצוני.</p></div>
         <div className="tag-cloud">{Object.entries(byType).length === 0 ? <span>אין זיהויי shadow היום</span> : Object.entries(byType).map(([type, count]) => <span key={type}>{type}: {count}</span>)}</div>
+        <div className="tag-cloud">{Object.entries(qualityByType).length === 0 ? <span>אין עדיין נתוני איכות לפי סוג אירוע</span> : Object.entries(qualityByType).map(([type, quality]) => <span key={type}>{type}: valid {quality.valid}/{quality.total} · false {quality.falsePositive}/{quality.total}</span>)}</div>
       </section>
 
       <form className="form-card compact-form" action={runMock}>

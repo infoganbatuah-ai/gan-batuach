@@ -20,7 +20,7 @@ export default async function AdminAiObserverPage() {
       supabase.from("camera_zones" as any).select("*, camera_streams(name)").order("created_at", { ascending: false }).limit(100),
       supabase.from("gardens" as any).select("id, name").order("name").limit(200),
       supabase.from("camera_streams" as any).select("id, name, garden_id").order("name").limit(300),
-      supabase.from("ai_camera_events" as any).select("id, event_type, severity, review_outcome, detector_provider, detector_mode, created_at").eq("shadow_mode", true).gte("created_at", today.toISOString()).order("created_at", { ascending: false }).limit(200)
+      supabase.from("ai_camera_events" as any).select("id, event_type, severity, confidence_score, review_outcome, detector_provider, detector_mode, camera_id, kindergarten_id, metadata, created_at").eq("shadow_mode", true).gte("created_at", today.toISOString()).order("created_at", { ascending: false }).limit(200)
     ]);
     [workers, jobs, logs, rules, zones, gardens, cameras, shadowEvents].forEach((res, index) => logSupabaseError(`ai observer worker query ${index}`, res.error));
     const queryError = [workers, jobs, logs, rules, zones].some((res) => res.error) ? "חלק מנתוני ה-worker לא נטענו כרגע" : null;
