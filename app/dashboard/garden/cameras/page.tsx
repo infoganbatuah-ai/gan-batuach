@@ -13,7 +13,7 @@ export default async function GardenCameraSetupPage({ searchParams }: { searchPa
   const result = await safeAdminData("garden cameras", async () => {
     const supabase = await createClient();
     const [cameras, garden] = await Promise.all([
-      supabase.from("camera_streams" as any).select("id, garden_id, kindergarten_id, name, area, camera_type, source_type, stream_status, health_status, last_seen, connection_method, protocol, status, active, parent_view_allowed, parent_viewing_allowed, last_health_check_at, hls_playback_url, sample_hls_url, webrtc_playback_url, video_gateway_stream_id, gateway_stream_id, viewing_hours, recording_enabled, retention_days, archive_policy").eq("garden_id", gardenId),
+      supabase.from("camera_streams" as any).select("id, garden_id, kindergarten_id, name, area, camera_type, source_type, system_type, stream_status, health_status, last_seen, connection_method, protocol, status, active, parent_view_allowed, parent_viewing_allowed, last_health_check_at, last_test_status, last_test_message, last_test_at, gateway_registration_status, gateway_last_error, masked_connection_summary, hls_playback_url, sample_hls_url, webrtc_playback_url, video_gateway_stream_id, gateway_stream_id, viewing_hours, recording_enabled, retention_days, archive_policy").eq("garden_id", gardenId),
       supabase.from("gardens" as any).select("id, name, city").eq("id", gardenId).maybeSingle()
     ]);
     logSupabaseError("garden cameras", cameras.error); logSupabaseError("garden camera garden", garden.error);
