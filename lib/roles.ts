@@ -30,6 +30,8 @@ export type Permission =
   | "video:stream"
   | "ai_events:read"
   | "ai_events:write"
+  | "billing:read"
+  | "billing:write"
   | "audit_logs:read";
 
 export const rolePermissions: Record<UserRole, Permission[]> = {
@@ -61,6 +63,8 @@ export const rolePermissions: Record<UserRole, Permission[]> = {
     "video:stream",
     "ai_events:read",
     "ai_events:write",
+    "billing:read",
+    "billing:write",
     "audit_logs:read"
   ],
   inspector: [
@@ -81,7 +85,9 @@ export const rolePermissions: Record<UserRole, Permission[]> = {
     "documents:download",
     "cameras:read",
     "video:stream",
-    "ai_events:read"
+    "ai_events:read",
+    "billing:read",
+    "billing:write"
   ],
   manager: [
     "gardens:read",
@@ -106,7 +112,9 @@ export const rolePermissions: Record<UserRole, Permission[]> = {
     "cameras:read",
     "cameras:write",
     "video:stream",
-    "ai_events:read"
+    "ai_events:read",
+    "billing:read",
+    "billing:write"
   ],
   owner: [
     "gardens:read",
