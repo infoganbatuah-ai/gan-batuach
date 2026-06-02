@@ -7,6 +7,8 @@ const schema = z.object({
   receive_sms: z.boolean().optional(),
   receive_whatsapp: z.boolean().optional(),
   receive_email: z.boolean().optional(),
+  receive_push: z.boolean().optional(),
+  critical_push_allowed: z.boolean().optional(),
   emergency_messages_allowed: z.boolean().optional(),
   preferred_language: z.enum(["he", "en", "ar"]).optional()
 });
@@ -26,6 +28,8 @@ export async function GET() {
         receive_sms: false,
         receive_whatsapp: false,
         receive_email: true,
+        receive_push: true,
+        critical_push_allowed: true,
         emergency_messages_allowed: true,
         preferred_language: "he"
       }
@@ -51,6 +55,8 @@ export async function PATCH(request: Request) {
       receive_sms: payload.receive_sms ?? current?.receive_sms ?? false,
       receive_whatsapp: payload.receive_whatsapp ?? current?.receive_whatsapp ?? false,
       receive_email: payload.receive_email ?? current?.receive_email ?? true,
+      receive_push: payload.receive_push ?? current?.receive_push ?? true,
+      critical_push_allowed: payload.critical_push_allowed ?? current?.critical_push_allowed ?? true,
       emergency_messages_allowed: payload.emergency_messages_allowed ?? current?.emergency_messages_allowed ?? true,
       preferred_language: payload.preferred_language ?? current?.preferred_language ?? "he",
       updated_at: new Date().toISOString()

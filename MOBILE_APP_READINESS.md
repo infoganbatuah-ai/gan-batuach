@@ -127,25 +127,69 @@ iOS permissions to plan:
 
 ## Push Notification Readiness
 
-Not fully implemented yet. Future architecture:
+Foundation implemented for future provider connection. The current behavior is safe mock mode:
 
-- Android: FCM
-- iOS: APNs
-- Store device tokens per profile/user/role/device
-- Route notifications by existing role-aware notification rules
-- Include `action_url` so tapping a push opens the exact dashboard context
-- Deduplicate with existing notification/smart insight dedupe
+- Device tokens are stored in `push_device_tokens`.
+- Push attempts are logged in `push_notification_logs`.
+- `/api/push/register` registers Web/Android/iOS tokens for the authenticated user only.
+- `/api/push/unregister` deactivates the current user's token/device.
+- Admin diagnostics are available at `/dashboard/admin/push`.
+- No real Push is sent unless a real provider adapter is intentionally enabled.
 
-Suggested future table:
+Provider roadmap:
 
-- `user_device_tokens`
-  - `id`
-  - `profile_id`
-  - `platform`
-  - `device_token`
-  - `status`
-  - `last_seen_at`
-  - `created_at`
+- Web: Web Push with VAPID keys and a service worker.
+- Android: Firebase Cloud Messaging.
+- iOS: Apple Push Notification Service.
+- Capacitor: `@capacitor/push-notifications` bridge for native token registration.
+
+Environment variables prepared:
+
+- `PUSH_PROVIDER=mock`
+- `FCM_SERVER_KEY`
+- `FCM_PROJECT_ID`
+- `APNS_KEY_ID`
+- `APNS_TEAM_ID`
+- `APNS_BUNDLE_ID`
+- `VAPID_PUBLIC_KEY`
+- `VAPID_PRIVATE_KEY`
+
+### Android FCM Setup Plan
+
+1. Create Firebase project for Gan Batuach.
+2. Add Android app with package `com.ganbatuach.app`.
+3. Download `google-services.json`.
+4. Keep server credentials outside the client app and configure only on the web server.
+5. Install and configure Capacitor Push Notifications after the Android project exists.
+6. Register the FCM token through `/api/push/register`.
+
+### iOS APNs Setup Plan
+
+1. Configure bundle id in Apple Developer account.
+2. Create APNs auth key and keep it server-only.
+3. Enable Push Notifications capability in Xcode.
+4. Install and configure Capacitor Push Notifications after the iOS project exists.
+5. Register the APNs/FCM token through `/api/push/register`.
+
+### Web Push Setup Plan
+
+1. Generate VAPID public/private keys.
+2. Keep `VAPID_PRIVATE_KEY` server-only.
+3. Expose `VAPID_PUBLIC_KEY` only through a safe client config endpoint when Web Push UI is added.
+4. Add a service worker that receives Push and opens `action_url`.
+5. Ask browser permission only after the user explicitly enables notifications.
+
+### Push Deep Links
+
+Push payloads should keep using existing `action_url` values, for example:
+
+- `/dashboard/parent`
+- `/parent-onboarding?childId=...`
+- `/dashboard/garden/messages?status=open`
+- `/dashboard/garden/finance?filter=failed`
+- `/dashboard/inspector/inspections`
+
+Native app handling should resolve these paths against `CAPACITOR_SERVER_URL` and open the same shared route.
 
 ## Icons And Splash
 

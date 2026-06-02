@@ -4,6 +4,7 @@ import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { sendCommunication } from "@/lib/domain/communication-service";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
+import { preparePushForNotification } from "@/lib/domain/push-service";
 
 const schema = z.object({
   child_id: z.string().uuid(),
@@ -168,7 +169,7 @@ export async function POST(request: Request) {
           child_id: payload.child_id,
           created_by: profile.id,
           metadata: { href: "/dashboard/parent", child_id: payload.child_id, payment_status: payload.action }
-        });
+        }).select("id").maybeSingle();
         if (notificationResult.error) {
           console.error("[child-payment-update] parent failed-payment notification failed", { ...actionContext, parent_profile_id: parentProfileId, error: notificationResult.error.message });
           return fail("סטטוס התשלום עודכן, אך ההתראה להורה לא נשלחה.", 409, { child_id: payload.child_id, payment_status: paymentStatus });
@@ -185,6 +186,18 @@ export async function POST(request: Request) {
         });
         if (!communicationResult.ok) {
           console.error("[child-payment-update] communication log failed", { ...actionContext, parent_profile_id: parentProfileId, logs: communicationResult.logs });
+        }
+        if (notificationResult.data?.id) {
+          const pushResult = await preparePushForNotification(communicationClient as any, {
+            profileId: parentProfileId,
+            notificationId: notificationResult.data.id,
+            title: "תשלום לא עבר",
+            body: payload.failure_reason ?? payload.notes ?? "הגן סימן שתשלום הילד לא עבר ויש צורך בבדיקה.",
+            actionUrl: "/dashboard/parent",
+            critical: true,
+            metadata: { child_id: payload.child_id, payment_status: paymentStatus, source: "child_payment_update" }
+          });
+          if (!pushResult.ok) console.error("[child-payment-update] push log failed", { ...actionContext, parent_profile_id: parentProfileId, error: pushResult.error });
         }
         const notifiedUpdate = await supabase.from("children" as any).update({ parent_notified: true }).eq("id", payload.child_id);
         if (notifiedUpdate.error) console.error("[child-payment-update] parent_notified flag update failed", { ...actionContext, error: notifiedUpdate.error.message });
