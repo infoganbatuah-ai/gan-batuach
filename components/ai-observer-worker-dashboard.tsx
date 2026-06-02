@@ -17,7 +17,7 @@ function statusTone(status?: string) {
   return "good";
 }
 
-export function AiObserverWorkerDashboard({ workers, jobs, logs, rules, zones, gardens, cameras }: { workers: Row[]; jobs: Row[]; logs: Row[]; rules: Row[]; zones: Row[]; gardens: Row[]; cameras: Row[] }) {
+export function AiObserverWorkerDashboard({ workers, jobs, logs, rules, zones, gardens, cameras, shadowEvents = [] }: { workers: Row[]; jobs: Row[]; logs: Row[]; rules: Row[]; zones: Row[]; gardens: Row[]; cameras: Row[]; shadowEvents?: Row[] }) {
   const [jobRows, setJobRows] = useState(jobs);
   const [ruleRows, setRuleRows] = useState(rules);
   const [message, setMessage] = useState<string | null>(null);
@@ -70,6 +70,10 @@ export function AiObserverWorkerDashboard({ workers, jobs, logs, rules, zones, g
   }
 
   const filteredCameras = cameras.filter((camera) => !selectedGardenId || camera.garden_id === selectedGardenId);
+  const byType = shadowEvents.reduce<Record<string, number>>((acc, event) => {
+    acc[event.event_type] = (acc[event.event_type] ?? 0) + 1;
+    return acc;
+  }, {});
 
   return (
     <div className="stack">
@@ -80,6 +84,16 @@ export function AiObserverWorkerDashboard({ workers, jobs, logs, rules, zones, g
         <article className="card metric-card"><span>Queued / Running</span><strong>{jobRows.filter((job) => ["queued", "running", "retrying"].includes(job.status)).length}</strong></article>
         <article className="card metric-card"><span>Failed</span><strong>{jobRows.filter((job) => job.status === "failed").length}</strong></article>
         <article className="card metric-card"><span>Camera zones</span><strong>{zones.length}</strong></article>
+      </section>
+      <section className="grid cols-4 dashboard-panels">
+        <article className="card metric-card"><span>Shadow detections today</span><strong>{shadowEvents.length}</strong></article>
+        <article className="card metric-card"><span>False positives</span><strong>{shadowEvents.filter((event) => event.review_outcome === "false_positive").length}</strong></article>
+        <article className="card metric-card"><span>Valid detections</span><strong>{shadowEvents.filter((event) => event.review_outcome === "valid_detection").length}</strong></article>
+        <article className="card metric-card"><span>Detector</span><strong>local_mock</strong></article>
+      </section>
+      <section className="card action-panel">
+        <div className="section-heading"><h2>Shadow detector mode</h2><p>זיהויים ניסיוניים בלבד. אין parent notifications, אין זיהוי פנים, אין אודיו ואין ספק חיצוני.</p></div>
+        <div className="tag-cloud">{Object.entries(byType).length === 0 ? <span>אין זיהויי shadow היום</span> : Object.entries(byType).map(([type, count]) => <span key={type}>{type}: {count}</span>)}</div>
       </section>
 
       <form className="form-card compact-form" action={runMock}>

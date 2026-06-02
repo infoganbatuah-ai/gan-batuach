@@ -15,7 +15,13 @@ export const aiCameraEventTypes = [
   "audio_anomaly",
   "keyword_detected",
   "camera_tampering",
-  "camera_offline"
+  "camera_offline",
+  "camera_frozen_suspected",
+  "motion_detected",
+  "no_motion_too_long",
+  "multiple_persons_detected",
+  "restricted_area_occupancy",
+  "camera_obstruction_suspected"
 ] as const;
 
 export const aiCameraEventSchema = z.object({
@@ -36,7 +42,7 @@ export const aiCameraEventSchema = z.object({
 });
 
 export const aiCameraReviewActionSchema = z.object({
-  action: z.enum(["review", "confirm", "dismiss", "escalate"]),
+  action: z.enum(["review", "confirm", "dismiss", "escalate", "false_positive", "valid_detection", "needs_more_data"]),
   review_notes: z.string().optional()
 });
 
@@ -55,7 +61,13 @@ export const aiEventTypeLabels: Record<(typeof aiCameraEventTypes)[number], stri
   audio_anomaly: "חריגת שמע לבדיקה",
   keyword_detected: "מילת מפתח זוהתה לבדיקה",
   camera_tampering: "חשד לחבלה במצלמה",
-  camera_offline: "מצלמה לא מחוברת"
+  camera_offline: "מצלמה לא מחוברת",
+  camera_frozen_suspected: "חשד לתמונה קפואה",
+  motion_detected: "תנועה זוהתה לבדיקה",
+  no_motion_too_long: "חשד לחוסר תנועה ממושך",
+  multiple_persons_detected: "מספר דמויות זוהו לבדיקה",
+  restricted_area_occupancy: "נוכחות אפשרית באזור מוגבל",
+  camera_obstruction_suspected: "חשד לחסימת מצלמה"
 };
 
 export function titleForAiCameraEvent(eventType: (typeof aiCameraEventTypes)[number]) {

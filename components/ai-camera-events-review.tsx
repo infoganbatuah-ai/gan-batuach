@@ -11,6 +11,10 @@ function statusLabel(status?: string) {
   return ({ open: "פתוח", reviewing: "בבדיקה", confirmed: "אושר", dismissed: "נדחה", escalated: "הוסלם" } as Record<string, string>)[status ?? "open"] ?? status;
 }
 
+function reviewOutcomeLabel(outcome?: string | null) {
+  return ({ false_positive: "False positive", valid_detection: "Valid detection", needs_more_data: "צריך עוד מידע" } as Record<string, string>)[outcome ?? ""] ?? null;
+}
+
 function severityTone(severity?: string) {
   if (["urgent", "critical", "high"].includes(severity ?? "")) return "bad";
   if (severity === "medium") return "warn";
@@ -23,9 +27,9 @@ export function AiCameraEventsReview({ events, gardens = [], cameras = [], role 
   const [busy, setBusy] = useState<string | null>(null);
   const [selectedGardenId, setSelectedGardenId] = useState(gardens[0]?.id ?? "");
 
-  async function action(event: AiCameraEvent, actionName: "review" | "confirm" | "dismiss" | "escalate") {
+  async function action(event: AiCameraEvent, actionName: "review" | "confirm" | "dismiss" | "escalate" | "false_positive" | "valid_detection" | "needs_more_data") {
     setBusy(event.id);
-    const review_notes = actionName === "confirm" || actionName === "dismiss" || actionName === "escalate" ? window.prompt("הערת review") ?? "" : undefined;
+    const review_notes = actionName !== "review" ? window.prompt("הערת review") ?? "" : undefined;
     const response = await fetch(`/api/ai-camera-events/${event.id}/action`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -69,6 +73,7 @@ export function AiCameraEventsReview({ events, gardens = [], cameras = [], role 
       <section className="grid cols-3">
         <article className="metric-card"><strong>{rows.filter((event) => event.status === "open").length}</strong><span>פתוחים ל-review</span></article>
         <article className="metric-card"><strong>{rows.filter((event) => ["urgent", "critical", "high"].includes(event.severity)).length}</strong><span>חומרה גבוהה</span></article>
+        <article className="metric-card"><strong>{rows.filter((event) => event.shadow_mode || event.metadata?.shadow_mode).length}</strong><span>Shadow detections</span></article>
         <article className="metric-card"><strong>{role === "admin" ? "כל הגנים" : role === "inspector" ? "גנים משויכים" : "הגן שלך"}</strong><span>תחום הרשאה</span></article>
       </section>
       {adminMode ? (
@@ -97,17 +102,23 @@ export function AiCameraEventsReview({ events, gardens = [], cameras = [], role 
                 <div>
                   {event.snapshot_url ? <img className="snapshot-image" src={event.snapshot_url} alt="תמונת אירוע לבדיקה" /> : <div className="snapshot-placeholder">review</div>}
                   <span className={`pill ${severityTone(event.severity)}`}>{event.severity}</span>
+                  {event.shadow_mode || event.metadata?.shadow_mode ? <span className="pill warn">זיהוי ניסיוני - דורש בדיקת אדם</span> : null}
                   <h3>{event.title ?? aiEventTypeLabels[event.event_type as keyof typeof aiEventTypeLabels] ?? event.event_type}</h3>
                   <p>{event.description ?? "אירוע תצפיתן דורש review אנושי."}</p>
+                  {event.recommended_action ? <p><strong>המלצה:</strong> {event.recommended_action}</p> : null}
                   <small>{event.gardens?.name ?? event.kindergarten_id} · {event.camera_streams?.name ?? "מצלמה"} · {event.started_at ? new Date(event.started_at).toLocaleString("he-IL") : ""}</small>
                   {typeof event.confidence_score === "number" ? <small>רמת ביטחון: {Math.round(event.confidence_score * 100)}% · נדרשת בדיקה אנושית</small> : <small>נדרשת בדיקה אנושית לפני הסלמה</small>}
                 </div>
                 <div className="procedure-meta">
                   <span className="pill">{statusLabel(event.status)}</span>
+                  {reviewOutcomeLabel(event.review_outcome) ? <span className="pill good">{reviewOutcomeLabel(event.review_outcome)}</span> : null}
                   <button className="button secondary" disabled={busy === event.id} onClick={() => action(event, "review")}>סימון בבדיקה</button>
                   <button className="button secondary" disabled={busy === event.id} onClick={() => action(event, "confirm")}>אישור לאחר review</button>
                   <button className="button secondary" disabled={busy === event.id} onClick={() => action(event, "dismiss")}>דחייה</button>
                   <button className="button secondary" disabled={busy === event.id} onClick={() => action(event, "escalate")}>הסלמה</button>
+                  <button className="button secondary" disabled={busy === event.id} onClick={() => action(event, "false_positive")}>False positive</button>
+                  <button className="button secondary" disabled={busy === event.id} onClick={() => action(event, "valid_detection")}>Valid detection</button>
+                  <button className="button secondary" disabled={busy === event.id} onClick={() => action(event, "needs_more_data")}>צריך עוד מידע</button>
                   {event.review_notes ? <small>{event.review_notes}</small> : null}
                 </div>
               </article>
