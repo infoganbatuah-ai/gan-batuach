@@ -12,7 +12,7 @@ services:
     ports:
       - "3000:3000"
     env_file:
-      - .env.local
+      - .env.production.local
     environment:
       VIDEO_GATEWAY_URL: http://video-gateway:8080
       AI_GATEWAY_URL: http://ai-gateway:8090

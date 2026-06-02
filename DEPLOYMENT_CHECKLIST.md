@@ -1,94 +1,123 @@
 # Gan Batuach Production Deployment Checklist
 
-## 1. Runtime
+Use this checklist before every production deployment. Do not place real secrets in the repository.
 
-- Install Node.js with npm available in the deployment environment.
-- Run `npm install` to create `node_modules` and `package-lock.json`.
-- Run `npm audit --audit-level=moderate`.
+## 1. Build Gate
+
+- Run `npm ci`.
 - Run `npm run typecheck`.
 - Run `npm run build`.
-- Run `npm start` only after a successful build.
+- If Docker is used, run `docker build -t gan-batuach .`.
+- Confirm `.env*`, `.git`, `.next`, `node_modules`, logs, archives and exports are excluded from Docker/export contexts.
 
 ## 2. Environment Variables
 
-Set all variables from `.env.example`:
+- Copy `.env.example` into the deployment secret manager or `.env.production.local` for local Docker testing.
+- Verify required public variables:
+  - `NEXT_PUBLIC_SUPABASE_URL`
+  - `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
+  - `NEXT_PUBLIC_APP_URL`
+- Verify required server-only variables:
+  - `SUPABASE_SERVICE_ROLE_KEY`
+  - `APP_URL`
+  - `AUTH_REDIRECT_URL`
+  - `CRON_SECRET`
+  - `HEALTHCHECK_SECRET`
+  - `FIELD_ENCRYPTION_KEY`
+- Verify optional integrations only when enabled:
+  - `VIDEO_GATEWAY_URL`
+  - `VIDEO_GATEWAY_SIGNING_SECRET`
+  - `AI_GATEWAY_URL`
+  - `AI_OBSERVER_SECRET`
+  - `OPENAI_API_KEY`
+  - `AI_PROVIDER_API_KEY`
+- Confirm no server-only variable starts with `NEXT_PUBLIC_`.
 
-- `NEXT_PUBLIC_SUPABASE_URL`
-- `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`
-- `SUPABASE_SERVICE_ROLE_KEY`
-- `NEXT_PUBLIC_APP_URL`
-- `CRON_SECRET`
-- `AI_OBSERVER_SECRET`
-- `VIDEO_GATEWAY_URL`
-- `VIDEO_GATEWAY_SIGNING_SECRET`
-- `FIELD_ENCRYPTION_KEY`
+## 3. Supabase Setup
 
-Production requirements:
-
-- `SUPABASE_SERVICE_ROLE_KEY` must exist only on the server.
-- `FIELD_ENCRYPTION_KEY` must be a long random secret and must not change after production data is encrypted.
-- Cron, AI observer and video gateway secrets must be different values.
-
-## 3. Supabase
-
-- Create a Supabase project.
-- Run migrations in order:
-  1. `supabase/migrations/20260523000000_initial_schema.sql`
-  2. `supabase/migrations/20260523001000_production_engines.sql`
-  3. `supabase/migrations/20260523002000_complete_operational_modules.sql`
+- Run all migrations in `supabase/migrations` in timestamp order.
 - Verify RLS is enabled on production tables.
 - Create the first admin user in Supabase Auth.
-- Update the matching `profiles` row to role `admin`.
-- Verify the private `camera-snapshots` storage bucket exists.
+- Set the matching `profiles.role` to `admin`.
+- Verify auth redirect URL points to `/auth/callback`.
+- Verify service role key exists only in server-side deployment configuration.
 
-## 4. Auth And RBAC
+## 4. Storage Buckets
 
-- Verify `/login` authenticates through Supabase Auth.
-- Verify `/dashboard` redirects by role:
-  - `admin`
-  - `inspector`
-  - `manager`
-  - `staff`
-  - `parent`
-- Verify every API route is protected by RBAC, RLS, a service secret, or explicit public lead insertion.
+Create and verify private buckets:
 
-## 5. Production Engines
+- `profile-photos`
+- `child-photos`
+- `pickup-person-photos`
+- `kindergarten-logos`
+- `documents`
+- `camera-snapshots`
 
-- Trigger `POST /api/cron/monthly-inspections` with `x-cron-secret`.
-- Trigger `POST /api/cron/inspection-reminders` with `x-cron-secret`.
-- Submit an inspection through `POST /api/inspections/:id/submit`.
-- Confirm scores 1-4 create violations and correction tasks.
-- Confirm weighted average below 8 moves a garden into `unsafe_gardens`.
-- Confirm AI observer events below threshold are suppressed.
-- Confirm AI observer cooldown prevents duplicate incident storms.
-- Confirm video gateway health checks create camera incidents for unhealthy streams.
+Check:
 
-## 6. Camera Gateway
+- Uploads require authentication.
+- Users can only upload/update files they are allowed to manage.
+- Downloads are permission checked through the app or signed URLs.
 
-- Configure the external video gateway URL.
-- Connect DVR/NVR/RTSP/ONVIF devices through `/api/video-gateway/*`.
-- Confirm RTSP credentials are encrypted in `video_gateway_connections`.
-- Confirm parents receive temporary HLS/WebRTC playback tokens only.
-- Confirm every viewing session writes to `video_stream_sessions` and `camera_view_logs`.
+## 5. Health Checks
 
-## 7. Final Release Gate
+- Open `/api/health`; expected `status: ok`.
+- Open `/api/health/deep` with `x-health-secret`; expected `status: ok`.
+- Confirm health responses do not expose secrets, tokens or raw credentials.
 
-- No legacy static files remain.
-- No static Node server remains.
-- No browser-storage application flow remains.
-- No duplicate API routing exists.
-- No production table is missing from migrations.
-- No build is shipped before dependency audit, typecheck and production build pass.
+## 6. Role Smoke Tests
 
-## Required For Admin Provisioning
+- Admin login opens `/dashboard/admin`.
+- Manager/owner login opens `/dashboard/garden`.
+- Staff login opens `/dashboard/staff`.
+- Parent login opens `/dashboard/parent`.
+- Inspector login opens `/dashboard/inspector`.
+- Wrong-role direct URL access redirects or denies access.
 
-- `SUPABASE_SERVICE_ROLE_KEY` must be configured in Vercel Environment Variables for server-only admin provisioning.
-- Required for: creating Auth users, converting leads, creating managers, owners and inspectors.
-- Do not expose this key to client code. Do not use `NEXT_PUBLIC_`.
-- If missing, admin user-creation pages will show a setup warning and final creation will fail gracefully.
+## 7. Core Product Smoke Tests
 
-## Camera And AI Gateway
+- Public parent registration creates a lead.
+- Manager approves parent lead and credentials are generated.
+- Parent completes child profile with required photos.
+- Manager approves child.
+- Parent dashboard shows active child and kindergarten.
+- Staff daily child update saves.
+- Parent request routes to the intended recipient.
+- Payment failed/not transferred status appears in finance and parent view.
+- Camera permissions show only allowed cameras.
+- Storage uploads work for child, parent, staff and kindergarten photos.
 
-- `VIDEO_GATEWAY_URL` is required for real live camera playback and RTSP/ONVIF conversion to HLS/WebRTC.
-- `VIDEO_GATEWAY_SIGNING_SECRET` should be configured when the gateway signs playback sessions.
-- `AI_GATEWAY_URL` is required for live AI observer analysis. Without it, AI configuration can be saved but live AI is shown as pending.
+## 8. Camera Gateway
+
+- Confirm camera credentials are encrypted and never shown after save.
+- Confirm parents receive only playback tokens or safe playback URLs.
+- Confirm `/api/camera-streams/[id]/playback-token` rechecks permission.
+- If real gateway is enabled, verify `VIDEO_GATEWAY_URL` and `VIDEO_GATEWAY_SIGNING_SECRET`.
+- If gateway is not enabled, cameras should show pending/waiting states.
+
+## 9. Cron And Smart Engine
+
+- Trigger monthly inspection cron with `x-cron-secret`.
+- Trigger inspection reminder cron with `x-cron-secret`.
+- Trigger AI observer ingestion only with `AI_OBSERVER_SECRET`.
+- Verify smart insights dedupe and notification dedupe.
+
+## 10. Monitoring And Logs
+
+- Verify operational errors are logged.
+- Verify logs do not contain passwords, service role keys, auth tokens, camera credentials or private stream URLs.
+- Verify debug routes are removed or admin/secret protected.
+
+## 11. Backup Readiness
+
+- Confirm database backup schedule.
+- Confirm storage bucket backup schedule.
+- Confirm restore runbook in `BACKUP_AND_RESTORE.md`.
+- Confirm a recent restore drill has been performed before production launch.
+
+## 12. Final Release Gate
+
+- No global error page appears in normal smoke tests.
+- No raw SQL/Supabase error is shown to real users.
+- No temporary diagnostics are visible to non-admin users.
+- No production deployment is shipped until typecheck and build pass.
