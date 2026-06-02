@@ -136,6 +136,78 @@ export class MockDetectionEngine implements DetectionEngine {
         zone_type: input.zone?.zone_type ?? "exit",
         metadata: { mock: true, scenario }
       },
+      distress_suspected: {
+        rule_key: "distress_suspected",
+        event_type: "distress_suspected",
+        confidence: 0.72,
+        title: "חשד למצוקה - דורש בדיקת אדם",
+        description: "אינדיקציית mock בלבד. אין מסקנה ואין הודעה להורים לפני review.",
+        zone_type: input.zone?.zone_type,
+        metadata: { mock: true, scenario, safety_framework: true }
+      },
+      violence_indicator: {
+        rule_key: "violence_indicator",
+        event_type: "violence_indicator",
+        confidence: 0.74,
+        title: "אינדיקציה לאלימות לבדיקה",
+        description: "אינדיקציית mock בלבד. אין האשמה או מסקנה משמעתית.",
+        zone_type: input.zone?.zone_type,
+        metadata: { mock: true, scenario, safety_framework: true }
+      },
+      aggressive_behavior_indicator: {
+        rule_key: "aggressive_behavior_indicator",
+        event_type: "aggressive_behavior_indicator",
+        confidence: 0.7,
+        title: "אינדיקציה להתנהגות אגרסיבית",
+        description: "אינדיקציית mock להתנהגות חריגה. נדרש review אנושי.",
+        zone_type: input.zone?.zone_type,
+        metadata: { mock: true, scenario, safety_framework: true }
+      },
+      prolonged_crying_indicator: {
+        rule_key: "prolonged_crying_indicator",
+        event_type: "prolonged_crying_indicator",
+        confidence: 0.68,
+        title: "אינדיקציה לבכי ממושך",
+        description: "אינדיקציית mock בלבד. אין ניתוח שמע אמיתי.",
+        zone_type: input.zone?.zone_type,
+        metadata: { mock: true, scenario, safety_framework: true, audio_analysis: false }
+      },
+      child_left_alone_indicator: {
+        rule_key: "child_left_alone_indicator",
+        event_type: "child_left_alone_indicator",
+        confidence: 0.76,
+        title: "אינדיקציה לילד ללא השגחה",
+        description: "אינדיקציית mock רגישה. אין קביעה אוטומטית.",
+        zone_type: input.zone?.zone_type,
+        metadata: { mock: true, scenario, safety_framework: true }
+      },
+      staff_absence_indicator: {
+        rule_key: "staff_absence_indicator",
+        event_type: "staff_absence_indicator",
+        confidence: 0.71,
+        title: "אינדיקציה לחוסר נוכחות צוות",
+        description: "אינדיקציית mock לאזור ללא צוות ביחס לשגרה. נדרש אימות.",
+        zone_type: input.zone?.zone_type,
+        metadata: { mock: true, scenario, safety_framework: true }
+      },
+      unusual_crowding: {
+        rule_key: "unusual_crowding",
+        event_type: "unusual_crowding",
+        confidence: 0.69,
+        title: "צפיפות חריגה לבדיקה",
+        description: "אינדיקציית mock לצפיפות ביחס לשגרה.",
+        zone_type: input.zone?.zone_type,
+        metadata: { mock: true, scenario, safety_framework: true }
+      },
+      emergency_behavior_indicator: {
+        rule_key: "emergency_behavior_indicator",
+        event_type: "emergency_behavior_indicator",
+        confidence: 0.78,
+        title: "אינדיקציה להתנהגות חירום",
+        description: "אינדיקציית mock דחופה. אין הסלמה אוטומטית.",
+        zone_type: input.zone?.zone_type,
+        metadata: { mock: true, scenario, safety_framework: true }
+      },
       audio_anomaly: {
         rule_key: "audio_anomaly",
         event_type: "audio_anomaly",
