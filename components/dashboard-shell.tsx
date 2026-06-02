@@ -25,6 +25,7 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/admin/procedures", label: "נהלים", hint: "חובה ותאימות" },
     { href: "/dashboard/admin/policies", label: "תקנונים", hint: "אישורי משתמשים" },
     { href: "/dashboard/admin/cameras", label: "מצלמות", hint: "Gateway והרשאות" },
+    { href: "/dashboard/admin/video-gateway", label: "Video Gateway", hint: "MediaMTX/go2rtc" },
     { href: "/dashboard/admin/camera-audit", label: "Camera Audit", hint: "מוכנות Gateway" },
     { href: "/dashboard/admin/ai-events", label: "אירועי AI", hint: "אירועים והתראות" },
     { href: "/dashboard/admin/observer-learning", label: "למידת תצפיתן", hint: "אזורים ושגרות" },

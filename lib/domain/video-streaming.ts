@@ -3,6 +3,7 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
 import { canParentViewCamera, getCameraGardenId } from "@/lib/domain/parent-camera-access";
+import { getGatewayProvider, getPlaybackUrls } from "@/lib/domain/video-gateway-client";
 import type { UserRole } from "@/lib/roles";
 
 export const playbackTokenSchema = z.object({
@@ -71,11 +72,11 @@ export async function createCameraPlaybackSession(cameraStreamId: string, payloa
   const gatewayStreamId = cameraRow.gateway_stream_id ?? cameraRow.video_gateway_stream_id ?? cameraStreamId;
   const gatewayBase = process.env.VIDEO_GATEWAY_URL;
   if (!baseUrl && !gatewayBase) throw new Error("Video gateway is not connected yet");
-  const playbackUrl = baseUrl
-    ? `${baseUrl}${baseUrl.includes("?") ? "&" : "?"}token=${token}`
-    : parsed.protocol === "WebRTC"
-      ? `${gatewayBase}/webrtc/${gatewayStreamId}?token=${token}`
-      : `${gatewayBase}/hls/${gatewayStreamId}/index.m3u8?token=${token}`;
+  let playbackUrl = baseUrl ? `${baseUrl}${baseUrl.includes("?") ? "&" : "?"}token=${token}` : "";
+  if (!playbackUrl) {
+    const gatewayPlayback = await getPlaybackUrls(gatewayStreamId, token);
+    playbackUrl = parsed.protocol === "WebRTC" ? gatewayPlayback.playback.webrtc_url : gatewayPlayback.playback.hls_url;
+  }
 
   const { data: session, error: sessionError } = await supabase
     .from("video_stream_sessions")
@@ -94,6 +95,18 @@ export async function createCameraPlaybackSession(cameraStreamId: string, payloa
     .single();
 
   if (sessionError) throw new Error(sessionError.message);
+
+  await supabase.from("camera_playback_sessions" as any).insert({
+    profile_id: user.id,
+    camera_id: cameraStreamId,
+    kindergarten_id: cameraGardenId,
+    playback_protocol: parsed.protocol,
+    gateway_provider: getGatewayProvider(),
+    token_hash: sha256(token),
+    ip: null,
+    user_agent: null,
+    metadata: { legacy_video_stream_session_id: (session as any).id, no_rtsp_exposed: true }
+  } as any);
 
   await supabase.from("camera_view_logs").insert({
     camera_stream_id: cameraStreamId,
