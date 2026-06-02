@@ -1,5 +1,5 @@
 import { DashboardShell } from "@/components/dashboard-shell";
-import { AiEventsManager } from "@/components/camera-ai-admin-modules";
+import { AiCameraEventsReview } from "@/components/ai-camera-events-review";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
@@ -8,6 +8,6 @@ export default async function InspectorAiEventsPage() {
   const supabase = await createClient();
   const gardensRes = await supabase.from("gardens" as any).select("id").eq("inspector_id", profile.id);
   const gardenIds = (gardensRes.data ?? []).map((garden: any) => garden.id);
-  const eventsRes = gardenIds.length ? await supabase.from("ai_events" as any).select("id, garden_id, camera_stream_id, event_type, severity, status, confidence, detected_at, handled_by, gardens(name), camera_streams(name)").in("garden_id", gardenIds).order("detected_at", { ascending: false }).limit(100) : { data: [] };
-  return <DashboardShell role="inspector" title="אירועי AI"><div className="dashboard-hero-card"><div><p className="eyebrow">Inspector scoped AI</p><h1>אירועי AI בגנים שבאחריותך.</h1><p>אירועים, חומרה, סטטוס ומשימות תיקון רק בגנים שהוקצו לפקח.</p></div><span className="pill good">Scoped</span></div><AiEventsManager events={(eventsRes.data ?? []) as any[]} /></DashboardShell>;
+  const eventsRes = gardenIds.length ? await supabase.from("ai_camera_events" as any).select("*, gardens(name), camera_streams(name, area)").in("kindergarten_id", gardenIds).order("created_at", { ascending: false }).limit(100) : { data: [] };
+  return <DashboardShell role="inspector" title="אירועי תצפיתן"><div className="dashboard-hero-card"><div><p className="eyebrow">Inspector scoped observer</p><h1>אירועי תצפיתן בגנים שבאחריותך.</h1><p>מוצגים רק אירועים חשודים/אינדיקטיביים בגנים שהוקצו לך. כל אירוע דורש review אנושי לפני הסלמה.</p></div><span className="pill good">Scoped</span></div><AiCameraEventsReview events={(eventsRes.data ?? []) as any[]} role="inspector" /></DashboardShell>;
 }
