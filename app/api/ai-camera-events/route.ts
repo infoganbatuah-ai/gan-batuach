@@ -23,7 +23,12 @@ export async function POST(request: Request) {
       snapshot_url: payload.snapshot_url || null,
       clip_url: payload.clip_url || null,
       detected_entities: payload.detected_entities,
-      metadata: { ...payload.metadata, source: "mock_admin", human_review_required: true },
+      shadow_mode: true,
+      requires_human_review: true,
+      parent_visible: false,
+      detector_provider: "local_mock",
+      detector_mode: "shadow",
+      metadata: { ...payload.metadata, source: "mock_admin", shadow_mode: true, requires_human_review: true, parent_visible: false },
       is_demo: payload.is_demo ?? true,
       created_at: new Date().toISOString()
     }).select("*").single();

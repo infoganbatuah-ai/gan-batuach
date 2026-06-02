@@ -30,7 +30,33 @@ export function evaluateObserverRule(params: {
   recentEvent?: Record<string, any> | null;
 }): RuleDecision {
   const rule = selectObserverRule(params.rules, params.detection, params.kindergartenId, params.cameraId, params.zoneId);
-  if (!rule || rule.enabled === false) return { status: "suppressed", reason: "rule_disabled", rule: rule ?? undefined };
+  if (!rule || rule.enabled === false) {
+    const fallbackRule = rule ?? {
+      id: null,
+      rule_key: params.detection.rule_key,
+      severity: params.detection.event_type === "camera_offline" ? "urgent" : "medium",
+      threshold: 0.6,
+      cooldown_seconds: 300,
+      enabled: true,
+      metadata: { fallback: true }
+    };
+    if (!rule && params.detection.confidence >= Number(fallbackRule.threshold)) {
+      return {
+        status: "allow",
+        dedupeKey: buildObserverDedupeKey({
+          kindergartenId: params.kindergartenId,
+          cameraId: params.cameraId,
+          zoneId: params.zoneId,
+          ruleKey: params.detection.rule_key,
+          bucketMs: Number(fallbackRule.cooldown_seconds) * 1000
+        }),
+        severity: String(fallbackRule.severity),
+        cooldownSeconds: Number(fallbackRule.cooldown_seconds),
+        rule: fallbackRule
+      };
+    }
+    return { status: "suppressed", reason: "rule_disabled", rule: rule ?? undefined };
+  }
 
   const threshold = Number(rule.threshold ?? 0.75);
   if (params.detection.confidence < threshold) {

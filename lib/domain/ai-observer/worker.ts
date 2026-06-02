@@ -1,4 +1,5 @@
-import { createDetectionEngine } from "@/lib/domain/ai-observer/detection-engine";
+import type { ObserverDetection } from "@/lib/domain/ai-observer/detection-engine";
+import { createLocalDetector } from "@/lib/domain/ai-observer/local-detector";
 import { evaluateObserverRule } from "@/lib/domain/ai-observer/rule-engine";
 
 type SupabaseLike = any;
@@ -115,15 +116,36 @@ export async function processObserverJobMock(supabase: SupabaseLike, inputJob: R
   if (startError) throw new Error(startError.message);
 
   try {
-    await logJob(supabase, { job_id: job.id, worker_id: job.worker_id, kindergarten_id: job.kindergarten_id, camera_id: job.camera_id, level: "info", message: "Mock frame sampler started", metadata: { real_video_processing: false } });
-    const [{ data: camera }, { data: zone }, { data: rules }] = await Promise.all([
+    await logJob(supabase, { job_id: job.id, worker_id: job.worker_id, kindergarten_id: job.kindergarten_id, camera_id: job.camera_id, level: "info", message: "Local shadow sampler started", metadata: { real_video_processing: false, shadow_mode: true } });
+    const [{ data: camera }, { data: zone }, { data: rules }, { data: routine }, { data: learningProfile }] = await Promise.all([
       job.camera_id ? supabase.from("camera_streams" as any).select("*").eq("id", job.camera_id).maybeSingle() : Promise.resolve({ data: null }),
       job.zone_id ? supabase.from("camera_zones" as any).select("*").eq("id", job.zone_id).maybeSingle() : Promise.resolve({ data: null }),
-      supabase.from("observer_rules" as any).select("*").or(`kindergarten_id.is.null,kindergarten_id.eq.${job.kindergarten_id}` as any).limit(200)
+      supabase.from("observer_rules" as any).select("*").or(`kindergarten_id.is.null,kindergarten_id.eq.${job.kindergarten_id}` as any).limit(200),
+      supabase.from("kindergarten_routine_configs" as any).select("*").eq("kindergarten_id", job.kindergarten_id).maybeSingle(),
+      supabase.from("kindergarten_learning_profiles" as any).select("*").eq("kindergarten_id", job.kindergarten_id).maybeSingle()
     ]);
-    const engine = createDetectionEngine("mock");
-    const detections = await engine.analyze({ camera, zone, rule: rules?.find((rule: any) => rule.id === job.rule_id), mockScenario: job.metadata?.requested_rule_key });
-    await logJob(supabase, { job_id: job.id, worker_id: job.worker_id, kindergarten_id: job.kindergarten_id, camera_id: job.camera_id, level: "info", message: `Mock detection engine returned ${detections.length} detection(s)` });
+    const detector = createLocalDetector();
+    const localDetections = await detector.analyze({
+      camera_id: job.camera_id,
+      kindergarten_id: job.kindergarten_id,
+      gateway_snapshot_url: null,
+      frame_metadata: { synthetic: true, shadow_mode: true, frame_hash: job.metadata?.frame_hash ?? null },
+      zone_id: job.zone_id,
+      timestamp: new Date().toISOString(),
+      previous_frame_hash: job.metadata?.previous_frame_hash ?? null,
+      motion_score: typeof job.metadata?.motion_score === "number" ? job.metadata.motion_score : null,
+      mock_scenario: job.metadata?.requested_rule_key
+    }, { camera, zone, routine, learningProfile });
+    const detections: ObserverDetection[] = localDetections.map((detection) => ({
+      rule_key: ruleKeyForLocalDetection(detection.event_type),
+      event_type: detection.event_type,
+      confidence: detection.confidence_score,
+      title: detection.title,
+      description: detection.description,
+      explanation: detection.recommended_action,
+      metadata: { ...detection.metadata, recommended_action: detection.recommended_action, local_dedupe_key: detection.dedupe_key }
+    }));
+    await logJob(supabase, { job_id: job.id, worker_id: job.worker_id, kindergarten_id: job.kindergarten_id, camera_id: job.camera_id, level: "info", message: `Local shadow detector returned ${detections.length} detection(s)`, metadata: { provider: detector.provider, mode: detector.mode } });
 
     for (const detection of detections) {
       const selectedRule = rules?.find((rule: any) => rule.rule_key === detection.rule_key);
@@ -152,9 +174,15 @@ export async function processObserverJobMock(supabase: SupabaseLike, inputJob: R
           title: detection.title,
           description: detection.description,
           confidence_score: detection.confidence,
+          recommended_action: String(detection.metadata?.recommended_action ?? "בדיקה אנושית"),
           detected_entities: [],
-          dedupe_key: decision.dedupeKey,
-          metadata: { ...(detection.metadata ?? {}), observer_job_id: job.id, observer_rule_id: decision.rule.id, worker_mode: "mock", human_review_required: true },
+          dedupe_key: String(detection.metadata?.local_dedupe_key ?? decision.dedupeKey),
+          shadow_mode: true,
+          requires_human_review: true,
+          parent_visible: false,
+          detector_provider: "local_mock",
+          detector_mode: "local_shadow",
+          metadata: { ...(detection.metadata ?? {}), observer_job_id: job.id, observer_rule_id: decision.rule.id, worker_mode: "local_shadow", shadow_mode: true, requires_human_review: true, parent_visible: false },
           is_demo: true
         })
         .select("*")
@@ -167,7 +195,7 @@ export async function processObserverJobMock(supabase: SupabaseLike, inputJob: R
         throw new Error(eventError.message);
       }
 
-      await supabase.from("observer_rules" as any).update({ last_triggered_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq("id", decision.rule.id);
+      if (decision.rule.id) await supabase.from("observer_rules" as any).update({ last_triggered_at: new Date().toISOString(), updated_at: new Date().toISOString() }).eq("id", decision.rule.id);
       if (["high", "urgent", "critical"].includes(decision.severity)) {
         await createObserverNotifications(supabase, event, detection.title, decision.severity);
       }
@@ -178,6 +206,20 @@ export async function processObserverJobMock(supabase: SupabaseLike, inputJob: R
     const message = error instanceof Error ? error.message : "Mock observer job failed";
     return markJobFailed(supabase, job, message);
   }
+}
+
+function ruleKeyForLocalDetection(eventType: string) {
+  const map: Record<string, string> = {
+    camera_offline: "camera_offline",
+    camera_frozen_suspected: "camera_offline",
+    motion_detected: "crowding_suspected",
+    no_motion_too_long: "child_missing_from_area",
+    person_detected: "person_in_restricted_area",
+    multiple_persons_detected: "crowding_suspected",
+    restricted_area_occupancy: "person_in_restricted_area",
+    camera_obstruction_suspected: "camera_offline"
+  };
+  return map[eventType] ?? eventType;
 }
 
 async function createObserverNotifications(supabase: SupabaseLike, event: Record<string, any>, title: string, severity: string) {

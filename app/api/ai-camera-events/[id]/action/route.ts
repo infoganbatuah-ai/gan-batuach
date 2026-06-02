@@ -18,10 +18,19 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       if (!garden) return fail("אין הרשאה לאירוע הזה.", 403);
     }
 
-    const status = payload.action === "review" ? "reviewing" : payload.action === "confirm" ? "confirmed" : payload.action === "dismiss" ? "dismissed" : "escalated";
+    const status = payload.action === "review" || payload.action === "needs_more_data"
+      ? "reviewing"
+      : payload.action === "confirm" || payload.action === "valid_detection"
+        ? "confirmed"
+        : payload.action === "dismiss" || payload.action === "false_positive"
+          ? "dismissed"
+          : "escalated";
+    const reviewOutcome = payload.action === "false_positive" || payload.action === "valid_detection" || payload.action === "needs_more_data" ? payload.action : null;
     const patch: Record<string, unknown> = {
       status,
       review_notes: payload.review_notes ?? null,
+      review_outcome: reviewOutcome,
+      false_positive_reason: payload.action === "false_positive" ? payload.review_notes ?? null : null,
       reviewed_by: profile.id,
       reviewed_at: new Date().toISOString(),
       escalated_to_role: payload.action === "escalate" ? "admin_inspector" : null
