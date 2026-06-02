@@ -13,6 +13,10 @@ const schema = provisionedUserSchema.extend({
   certification_notes: z.string().optional()
 });
 
+function debugLogsEnabled() {
+  return process.env.NODE_ENV !== "production";
+}
+
 async function cleanupProvisionedInspector(userId: string) {
   const admin = createAdminClient();
   try {
@@ -34,7 +38,7 @@ export async function POST(request: Request) {
     const inspectorEmail = normalizeOptionalEmail(payload.email);
     const identityNumber = payload.identity_number.replace(/\D/g, "");
     if (identityNumber.length < 5) return fail("יש להזין תעודת זהות מפקח תקינה.", 422, { field: "identity_number" });
-    console.info("[create-inspector-email-check]", { attemptedEmail: payload.email ?? null, normalizedEmail: inspectorEmail ?? null });
+    if (debugLogsEnabled()) console.info("[create-inspector-email-check]", { attemptedEmail: payload.email ?? null, normalizedEmail: inspectorEmail ?? null });
     const conflict = await checkEmailConflict({ supabase: admin, email: inspectorEmail, field: "inspector_email" });
     if (conflict) return fail(conflict.message, 409, { field: conflict.field, source: conflict.source });
     const duplicateIdentity = await admin.from("inspectors" as any).select("id", { count: "exact", head: true }).eq("identity_number", identityNumber);

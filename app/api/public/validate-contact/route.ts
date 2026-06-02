@@ -8,16 +8,22 @@ const schema = z.object({
   phone: z.preprocess((value) => normalizeOptionalPhone(value as string | null), z.string().min(5).optional())
 });
 
+function debugLogsEnabled() {
+  return process.env.NODE_ENV !== "production";
+}
+
 export async function POST(request: Request) {
   try {
     const payload = schema.parse(await request.json());
     const supabase = await createClient();
-    console.info("[public-validate-contact]", {
-      attemptedEmail: payload.email ?? null,
-      normalizedEmail: normalizeOptionalEmail(payload.email) ?? null,
-      attemptedPhone: payload.phone ?? null,
-      normalizedPhone: normalizeOptionalPhone(payload.phone) ?? null
-    });
+    if (debugLogsEnabled()) {
+      console.info("[public-validate-contact]", {
+        attemptedEmail: payload.email ?? null,
+        normalizedEmail: normalizeOptionalEmail(payload.email) ?? null,
+        attemptedPhone: payload.phone ?? null,
+        normalizedPhone: normalizeOptionalPhone(payload.phone) ?? null
+      });
+    }
     const checks = await Promise.all([
       payload.email ? supabase.from("profiles" as any).select("id", { count: "exact", head: true }).or(`email.eq.${payload.email},username.eq.${payload.email}`) : Promise.resolve({ count: 0, error: null }),
       payload.email ? supabase.from("generated_credentials" as any).select("id", { count: "exact", head: true }).eq("username", payload.email) : Promise.resolve({ count: 0, error: null }),

@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { cookies } from "next/headers";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { requireRole } from "@/lib/auth";
 import {
@@ -47,87 +46,14 @@ function asArray<T>(value: T[] | undefined | null): T[] {
   return Array.isArray(value) ? value : [];
 }
 
-function errorMessage(error: unknown) {
-  return error instanceof Error ? `${error.message}${error.stack ? `\n${error.stack}` : ""}` : String(error);
-}
-
-function isDebugEnabled(params: FinanceSearchParams) {
-  return params.debug === "1" || process.env.NODE_ENV !== "production" || process.env.NEXT_PUBLIC_SANDBOX_MODE === "true";
-}
-
 function hasCriticalFinanceFailure(diagnostics?: FinanceQueryDiagnostic[]) {
   return asArray(diagnostics).some((item) => !item.success && ["children query", "profile garden", "unexpected loader error"].includes(item.label));
 }
 
-function DebugPanel({
-  gardenId,
-  diagnostics,
-  errors,
-  thrownError
-}: {
-  gardenId?: string | null;
-  diagnostics?: FinanceQueryDiagnostic[];
-  errors?: string[];
-  thrownError?: string | null;
-}) {
-  const items = asArray(diagnostics);
-  const allErrors = asArray(errors);
-
-  return (
-    <section className="card action-panel">
-      <div className="section-heading">
-        <h2>אבחון טעינת כספים</h2>
-        <p>מוצג רק בפיתוח / Debug. העמוד הרגיל ממשיך להיטען גם אם אחת השאילתות נכשלה.</p>
-      </div>
-      <div className="risk-list">
-        <div>
-          <span>גן נוכחי</span>
-          <b>{gardenId || "לא נמצא"}</b>
-        </div>
-        {items.length === 0 ? (
-          <div>
-            <span>שאילתות</span>
-            <b>לא בוצעו או לא דווחו</b>
-          </div>
-        ) : (
-          items.map((item, index) => (
-            <div key={`${item.table}-${item.label}-${index}`}>
-              <span>{item.label} · {item.table} · columns: {item.columns}</span>
-              <b>{item.success ? `success · ${item.count}` : `error · ${item.error ?? "unknown"}`}</b>
-            </div>
-          ))
-        )}
-        {allErrors.map((item, index) => (
-          <div key={`finance-error-${index}`}>
-            <span>שגיאה</span>
-            <b>{item}</b>
-          </div>
-        ))}
-        {thrownError ? (
-          <div>
-            <span>שגיאת רינדור / טעינה כללית</span>
-            <b>{thrownError}</b>
-          </div>
-        ) : null}
-      </div>
-    </section>
-  );
-}
-
 function SafeFinanceShell({
   role = "manager",
-  gardenId,
-  debugMode,
-  diagnostics,
-  errors,
-  thrownError
 }: {
   role?: "manager" | "owner";
-  gardenId?: string | null;
-  debugMode: boolean;
-  diagnostics?: FinanceQueryDiagnostic[];
-  errors?: string[];
-  thrownError?: string | null;
 }) {
   return (
     <DashboardShell role={role} title="מרכז כספים">
@@ -137,17 +63,13 @@ function SafeFinanceShell({
         <div className="profile-actions">
           <Link className="button primary" href="/dashboard/garden/finance">רענון</Link>
           <Link className="button secondary" href="/dashboard/garden">חזרה לדשבורד</Link>
-          <Link className="button secondary" href="/dashboard/garden/finance-debug?debug=1">אבחון כספים</Link>
         </div>
       </section>
-      {debugMode ? (
-        <DebugPanel gardenId={gardenId} diagnostics={diagnostics} errors={errors} thrownError={thrownError} />
-      ) : null}
     </DashboardShell>
   );
 }
 
-function MissingGarden({ role, debugMode, diagnostics, errors }: { role: "manager" | "owner"; debugMode: boolean; diagnostics?: FinanceQueryDiagnostic[]; errors?: string[] }) {
+function MissingGarden({ role }: { role: "manager" | "owner" }) {
   return (
     <DashboardShell role={role} title="מרכז כספים">
       <section className="empty-state">
@@ -155,10 +77,8 @@ function MissingGarden({ role, debugMode, diagnostics, errors }: { role: "manage
         <span>כדי להציג כספים, המשתמש צריך להיות משויך לגן פעיל.</span>
         <div className="profile-actions">
           <Link className="button primary" href="/dashboard/garden">חזרה לדשבורד</Link>
-          <Link className="button secondary" href="/dashboard/garden/finance-debug?debug=1">אבחון כספים</Link>
         </div>
       </section>
-      {debugMode ? <DebugPanel gardenId={null} diagnostics={diagnostics} errors={errors} /> : null}
     </DashboardShell>
   );
 }
@@ -174,9 +94,6 @@ function SafeStat({ label, value, tone = "default" }: { label: string; value: st
 
 export default async function GardenFinancePage({ searchParams }: { searchParams: Promise<FinanceSearchParams> }) {
   const params: FinanceSearchParams = await searchParams.catch(() => ({}));
-  const debugMode = isDebugEnabled(params);
-  const cookieStore = await cookies();
-  console.error("[finance-page] route started", { debugMode, filter: params.filter ?? null, cookies: cookieStore.getAll().map((cookie) => cookie.name) });
 
   try {
     const { profile } = await requireRole(["manager", "owner"]);
@@ -187,19 +104,11 @@ export default async function GardenFinancePage({ searchParams }: { searchParams
       supabase: supabase as any,
       gardenId,
       searchParams: params,
-      debug: debugMode
-    });
-    console.error("[finance-page] loader completed", {
-      role,
-      gardenId: gardenId || null,
-      ok: data.ok,
-      children: data.core?.children?.length ?? 0,
-      diagnostics: data.diagnostics?.length ?? 0,
-      errors: data.errors?.length ?? 0
+      debug: false
     });
 
     if (!gardenId) {
-      return <MissingGarden role={role} debugMode={debugMode} diagnostics={data.diagnostics} errors={data.errors} />;
+      return <MissingGarden role={role} />;
     }
 
     const children = asArray(data.core?.children);
@@ -236,7 +145,6 @@ export default async function GardenFinancePage({ searchParams }: { searchParams
         </section>
 
         {criticalFinanceFailure ? <div className="warning-banner">חלק מנתוני הכספים לא נטענו</div> : null}
-        {debugMode ? <DebugPanel gardenId={gardenId} diagnostics={data.diagnostics} errors={data.errors} /> : null}
 
         <section className="card action-panel">
           <div className="section-heading">
@@ -333,15 +241,9 @@ export default async function GardenFinancePage({ searchParams }: { searchParams
       </DashboardShell>
     );
   } catch (error) {
-    const message = errorMessage(error);
     console.error("[garden-finance] safe page fallback rendered", error);
     return (
-      <SafeFinanceShell
-        debugMode={debugMode}
-        diagnostics={[{ label: "page-level try/catch", table: "finance page", columns: "*", success: false, count: 0, error: message }]}
-        errors={[message]}
-        thrownError={message}
-      />
+      <SafeFinanceShell />
     );
   }
 }

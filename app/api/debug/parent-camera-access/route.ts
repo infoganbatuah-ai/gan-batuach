@@ -4,6 +4,10 @@ import { canParentViewCamera } from "@/lib/domain/parent-camera-access";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
+function debugLogsEnabled() {
+  return process.env.NODE_ENV !== "production";
+}
+
 export async function GET(request: Request) {
   try {
     await requireRole(["admin"]);
@@ -27,7 +31,7 @@ export async function GET(request: Request) {
         .maybeSingle();
       profileLookupError = error ?? null;
       resolvedParentProfileId = data?.id ?? null;
-      console.info("Parent camera debug profile lookup", { email, found: Boolean(data), profileLookupError });
+      if (debugLogsEnabled()) console.info("Parent camera debug profile lookup", { email, found: Boolean(data), profileLookupError });
     }
 
     if (!resolvedParentProfileId) {

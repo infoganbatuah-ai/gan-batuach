@@ -39,6 +39,10 @@ export function generateSystemEmail(prefix: string) {
   return prefix + "." + suffix + "@ganbatuach.local";
 }
 
+function provisioningDebugLogsEnabled() {
+  return process.env.NODE_ENV !== "production";
+}
+
 export const provisionedUserSchema = z.object({
   full_name: z.string().min(2),
   email: z.preprocess((value) => normalizeOptionalEmail(value as string | null), z.string().email().optional()),
@@ -67,7 +71,7 @@ export async function checkEmailConflict({
   field: string;
 }) {
   const normalized = normalizeOptionalEmail(email);
-  console.info("[email-duplicate-check]", { field, attemptedEmail: email ?? null, normalizedEmail: normalized ?? null });
+  if (provisioningDebugLogsEnabled()) console.info("[email-duplicate-check]", { field, attemptedEmail: email ?? null, normalizedEmail: normalized ?? null });
   if (!normalized) return null;
 
   const [profileEmail, profileUsername, generatedCredential] = await Promise.all([
@@ -77,15 +81,15 @@ export async function checkEmailConflict({
   ]);
 
   if ((profileEmail.count ?? 0) > 0) {
-    console.warn("[email-duplicate-check-conflict]", { field, normalizedEmail: normalized, source: "profiles.email" });
+    if (provisioningDebugLogsEnabled()) console.warn("[email-duplicate-check-conflict]", { field, normalizedEmail: normalized, source: "profiles.email" });
     return new DuplicateContactError(field, "profiles.email");
   }
   if ((profileUsername.count ?? 0) > 0) {
-    console.warn("[email-duplicate-check-conflict]", { field, normalizedEmail: normalized, source: "profiles.username" });
+    if (provisioningDebugLogsEnabled()) console.warn("[email-duplicate-check-conflict]", { field, normalizedEmail: normalized, source: "profiles.username" });
     return new DuplicateContactError(field, "profiles.username");
   }
   if ((generatedCredential.count ?? 0) > 0) {
-    console.warn("[email-duplicate-check-conflict]", { field, normalizedEmail: normalized, source: "generated_credentials.username" });
+    if (provisioningDebugLogsEnabled()) console.warn("[email-duplicate-check-conflict]", { field, normalizedEmail: normalized, source: "generated_credentials.username" });
     return new DuplicateContactError(field, "generated_credentials.username");
   }
   return null;

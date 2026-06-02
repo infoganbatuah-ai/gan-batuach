@@ -36,6 +36,10 @@ function uniqById(rows: any[]) {
   return rows.filter((row, index, all) => row?.id && all.findIndex((item) => item?.id === row.id) === index);
 }
 
+function cameraDebugLogsEnabled() {
+  return process.env.NODE_ENV !== "production";
+}
+
 export type ParentCameraListResult = {
   cameras: ReturnType<typeof sanitizeCameraForParent>[];
   decisions: ParentCameraAccessDecision[];
@@ -109,19 +113,21 @@ export async function getParentCameraListForProfile(userSupabase: SupabaseClient
   const allowedCameras = allowedRawCameras.map(sanitizeCameraForParent);
   const missingPlaybackSourceCount = allowedRawCameras.filter((camera) => !hasPlaybackSource(camera)).length;
 
-  console.info("Parent cameras secure list result", {
-    parentProfileId: profile.id,
-    dataSource: serviceRoleConfigured ? "service_role" : "user_rls",
-    allowedKindergartenIds: scope.kindergartenIds,
-    gardenIdQueryCount: gardenRows.length,
-    kindergartenIdQueryCount: kindergartenRows.length,
-    candidateCamerasCount: candidateCameras.length,
-    candidateCameraIds: candidateCameras.map((camera) => camera.id),
-    allowedCamerasCount: allowedCameras.length,
-    allowedCameraIds: allowedCameras.map((camera) => camera.id),
-    missingPlaybackSourceCount,
-    queryErrors
-  });
+  if (cameraDebugLogsEnabled()) {
+    console.info("Parent cameras secure list result", {
+      parentProfileId: profile.id,
+      dataSource: serviceRoleConfigured ? "service_role" : "user_rls",
+      allowedKindergartenIds: scope.kindergartenIds,
+      gardenIdQueryCount: gardenRows.length,
+      kindergartenIdQueryCount: kindergartenRows.length,
+      candidateCamerasCount: candidateCameras.length,
+      candidateCameraIds: candidateCameras.map((camera) => camera.id),
+      allowedCamerasCount: allowedCameras.length,
+      allowedCameraIds: allowedCameras.map((camera) => camera.id),
+      missingPlaybackSourceCount,
+      queryErrors
+    });
+  }
 
   return {
     cameras: allowedCameras,

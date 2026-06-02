@@ -18,6 +18,10 @@ function createToken() {
   return crypto.randomBytes(32).toString("base64url");
 }
 
+function cameraDebugLogsEnabled() {
+  return process.env.NODE_ENV !== "production";
+}
+
 export async function createCameraPlaybackSession(cameraStreamId: string, payload: z.infer<typeof playbackTokenSchema>) {
   const parsed = playbackTokenSchema.parse(payload);
   const supabase = await createClient();
@@ -41,7 +45,9 @@ export async function createCameraPlaybackSession(cameraStreamId: string, payloa
   if (role === "parent") {
     const decision = await canParentViewCamera(dataSupabase as any, profileRow.id, cameraStreamId);
     const requestedParentIsCurrentUser = parsed.parent_id ? decision.diagnostics.parent_records_found.some((parent: any) => parent.id === parsed.parent_id) : true;
-    console.info("Parent playback permission check", { cameraStreamId, requestedParentId: parsed.parent_id ?? null, allowed: decision.allowed && requestedParentIsCurrentUser, reason: decision.reason, diagnostics: decision.diagnostics });
+    if (cameraDebugLogsEnabled()) {
+      console.info("Parent playback permission check", { cameraStreamId, requestedParentId: parsed.parent_id ?? null, allowed: decision.allowed && requestedParentIsCurrentUser, reason: decision.reason, diagnostics: decision.diagnostics });
+    }
     if (!decision.allowed || !requestedParentIsCurrentUser) throw new Error("אין הרשאת צפייה למצלמה זו");
   }
 

@@ -49,6 +49,10 @@ const schema = z.object({
   }
 });
 
+function debugLogsEnabled() {
+  return process.env.NODE_ENV !== "production";
+}
+
 export async function POST(request: Request) {
   const createdAuthUserIds: string[] = [];
   let createdGardenId: string | null = null;
@@ -60,17 +64,19 @@ export async function POST(request: Request) {
     const managerEmail = ownershipType !== "owner_only" ? normalizeOptionalEmail(payload.manager?.email) : undefined;
     const ownerEmail = normalizeOptionalEmail(payload.owner?.email);
 
-    console.info("[create-garden-manager-email-check]", {
-      attemptedManagerEmail: payload.manager?.email ?? null,
-      normalizedManagerEmail: managerEmail ?? null,
-      attemptedOwnerEmail: payload.owner?.email ?? null,
-      normalizedOwnerEmail: ownerEmail ?? null
-    });
+    if (debugLogsEnabled()) {
+      console.info("[create-garden-manager-email-check]", {
+        attemptedManagerEmail: payload.manager?.email ?? null,
+        normalizedManagerEmail: managerEmail ?? null,
+        attemptedOwnerEmail: payload.owner?.email ?? null,
+        normalizedOwnerEmail: ownerEmail ?? null
+      });
+    }
 
     const managerConflict = ownershipType !== "owner_only" ? await checkEmailConflict({ supabase: admin, email: managerEmail, field: "manager_email" }) : null;
     if (managerConflict) return fail(managerConflict.message, 409, { field: managerConflict.field, source: managerConflict.source });
     if (ownerEmail && ownerEmail === managerEmail) {
-      console.warn("[email-duplicate-check-conflict]", { field: "owner_email", normalizedEmail: ownerEmail, source: "same_as_manager_email" });
+      if (debugLogsEnabled()) console.warn("[email-duplicate-check-conflict]", { field: "owner_email", normalizedEmail: ownerEmail, source: "same_as_manager_email" });
       return fail("המייל כבר קיים במערכת", 409, { field: "owner_email", source: "same_as_manager_email" });
     }
     const ownerConflict = (ownershipType === "separate_owner" || ownershipType === "owner_only") ? await checkEmailConflict({ supabase: admin, email: ownerEmail, field: "owner_email" }) : null;

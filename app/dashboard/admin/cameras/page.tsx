@@ -65,19 +65,6 @@ export default async function AdminCamerasPage() {
       const parentViewing = camera.parent_viewing_allowed === true || camera.parent_view_allowed === true;
       return { ...camera, gardens: gardenById.get(gardenId) ?? null, expected_parent_count: expectedParentsByGarden.get(gardenId)?.size ?? 0, visibility_status: parentViewing ? "גלויה להורים משויכים" : "צפיית הורים כבויה" };
     });
-    console.info("Admin cameras loaded", {
-      count: cameraRows.length,
-      secondaryWarning: Boolean(secondaryWarning),
-      rawCameraValues: cameraRows.map((camera: any) => ({
-        id: camera.id,
-        name: camera.name,
-        garden_id: camera.garden_id,
-        kindergarten_id: camera.kindergarten_id,
-        active: camera.active,
-        status: camera.status
-      }))
-    });
-
     return {
       cameras: cameraRows,
       gardens: gardens.data ?? [],
@@ -87,7 +74,6 @@ export default async function AdminCamerasPage() {
     };
   }, { cameras: [] as any[], gardens: [] as any[], queryError: null as string | null, secondaryWarning: null as string | null, summary: buildCameraAuditSummary([]) });
 
-  const showDebugPanel = process.env.NODE_ENV !== "production" || process.env.NEXT_PUBLIC_SANDBOX_MODE === "true";
   const summary = result.data.summary ?? buildCameraAuditSummary([]);
-  return <DashboardShell role="admin" title="מצלמות"><div className="dashboard-hero-card admin-hero-card"><div><p className="eyebrow">Camera Management</p><h1>תצפיתן דיגיטלי - צפייה במצלמות.</h1><p>DVR/NVR/IP/RTSP/ONVIF נשמרים במערכת, Live דורש Video Gateway או Sample HLS לבדיקה.</p></div><div className="profile-actions"><span className={process.env.VIDEO_GATEWAY_URL ? "pill good" : "pill warn"}>{process.env.VIDEO_GATEWAY_URL ? "Gateway connected" : "Gateway missing"}</span><Link className="button secondary" href="/dashboard/admin/camera-audit">Camera Audit</Link></div></div><AdminDataError message={result.error ?? result.data.queryError} />{showDebugPanel ? <div className="gateway-setup-state"><strong>Cameras loaded: {(result.data.cameras as any[]).length}</strong><p>Debug tools are available from admin camera cards and Camera Audit only.</p></div> : null}<section className="grid cols-4 dashboard-panels"><article className="card metric-card"><span>מצלמות פעילות</span><strong>{summary.online}</strong></article><article className="card metric-card"><span>אופליין / תקלה</span><strong>{summary.offline}</strong></article><article className="card metric-card"><span>חסר מקור צפייה</span><strong>{summary.missingPlaybackSource}</strong></article><article className="card metric-card"><span>מצלמות דמו</span><strong>{summary.demo}</strong></article></section>{result.data.secondaryWarning ? <div className="gateway-setup-state"><strong>{result.data.secondaryWarning}</strong><p>כרטיסי המצלמות והצפייה נשארים זמינים. פרטי גן/יחסים משניים נטענים בנפרד כדי לא להפיל את המסך.</p></div> : null}<CameraAdminManager cameras={result.data.cameras as any[]} gardens={result.data.gardens as any[]} gatewayConnected={Boolean(process.env.VIDEO_GATEWAY_URL)} /></DashboardShell>;
+  return <DashboardShell role="admin" title="מצלמות"><div className="dashboard-hero-card admin-hero-card"><div><p className="eyebrow">Camera Management</p><h1>תצפיתן דיגיטלי - צפייה במצלמות.</h1><p>DVR/NVR/IP/RTSP/ONVIF נשמרים במערכת, Live דורש Video Gateway או Sample HLS לבדיקה.</p></div><div className="profile-actions"><span className={process.env.VIDEO_GATEWAY_URL ? "pill good" : "pill warn"}>{process.env.VIDEO_GATEWAY_URL ? "Gateway connected" : "Gateway missing"}</span><Link className="button secondary" href="/dashboard/admin/camera-audit">Camera Audit</Link></div></div><AdminDataError message={result.error ?? result.data.queryError} /><section className="grid cols-4 dashboard-panels"><article className="card metric-card"><span>מצלמות פעילות</span><strong>{summary.online}</strong></article><article className="card metric-card"><span>אופליין / תקלה</span><strong>{summary.offline}</strong></article><article className="card metric-card"><span>חסר מקור צפייה</span><strong>{summary.missingPlaybackSource}</strong></article><article className="card metric-card"><span>מצלמות דמו</span><strong>{summary.demo}</strong></article></section>{result.data.secondaryWarning ? <div className="gateway-setup-state"><strong>{result.data.secondaryWarning}</strong><p>כרטיסי המצלמות והצפייה נשארים זמינים. פרטי גן/יחסים משניים נטענים בנפרד כדי לא להפיל את המסך.</p></div> : null}<CameraAdminManager cameras={result.data.cameras as any[]} gardens={result.data.gardens as any[]} gatewayConnected={Boolean(process.env.VIDEO_GATEWAY_URL)} /></DashboardShell>;
 }

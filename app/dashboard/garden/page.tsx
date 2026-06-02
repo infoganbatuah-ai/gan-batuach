@@ -8,17 +8,13 @@ import { LiveDayFlow } from "@/components/live-day-flow";
 import { ForgotSomethingButton } from "@/components/forgot-something-button";
 import { EndOfDayChecklist } from "@/components/end-of-day-checklist";
 import { requireRole } from "@/lib/auth";
-import { loadFinanceAuthDiagnostics } from "@/lib/debug/finance-auth-diagnostics";
 import { generateSmartInsights, syncSmartInsights, createNotificationsForUrgentInsights } from "@/lib/domain/smart-kindergarten-engine";
 import { createClient } from "@/lib/supabase/server";
 
-export default async function GardenDashboard({ searchParams }: { searchParams: Promise<{ debug?: string }> }) {
-  const params: { debug?: string } = await searchParams.catch(() => ({}));
-  const debugMode = params.debug === "1" || process.env.NODE_ENV !== "production";
+export default async function GardenDashboard() {
   const { profile } = await requireRole(["manager", "owner"]);
   const supabase = await createClient();
   const gardenId = profile.garden_id;
-  const authDiagnostics = debugMode ? await loadFinanceAuthDiagnostics() : null;
   const [gardenRes, childrenRes, staffRes, parentsRes, tasksRes, leadsRes, complaintsRes, violationsRes, camerasRes, aiRes, documentsRes, messagesRes, inspectionRes, attendanceRes, unpaidRes, dueInspectionRes, financeChildrenRes, changeClothesRes, healthAlertsRes, parentRequestsRes, staffDocsRes, incidentsRes, documentApprovalsRes, pendingParentCompletionRes, pendingApprovalRes, childJournalsRes] = await Promise.all([
     supabase.from("gardens" as any).select("id, name, city, logo_url, image_url, safe_status, first_inspection_due_at, last_inspection_score").eq("id", gardenId ?? "").maybeSingle(),
     supabase.from("children").select("*", { count: "exact", head: true }).eq("garden_id", gardenId ?? ""),
@@ -140,24 +136,6 @@ export default async function GardenDashboard({ searchParams }: { searchParams: 
 
   return (
     <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title={profile.role === "owner" ? "דשבורד בעלים" : "ממשק גן"}>
-      {authDiagnostics ? (
-        <section className="card action-panel">
-          <div className="section-heading">
-            <h2>אבחון Auth לדשבורד גן</h2>
-            <p>מוצג רק בפיתוח או עם debug=1. מיועד להשוואה מול finance-garden-ping.</p>
-          </div>
-          <div className="risk-list">
-            <div><span>cookie names</span><b>{authDiagnostics.cookieNames.length ? authDiagnostics.cookieNames.join(", ") : "none"}</b></div>
-            <div><span>auth.getUser user id</span><b>{authDiagnostics.getUser.userId ?? "not found"}</b></div>
-            <div><span>auth.getUser error</span><b>{authDiagnostics.getUser.error ?? "none"}</b></div>
-            <div><span>auth.getSession user id</span><b>{authDiagnostics.getSession.userId ?? "not found"}</b></div>
-            <div><span>auth.getSession error</span><b>{authDiagnostics.getSession.error ?? "none"}</b></div>
-            <div><span>profile id</span><b>{authDiagnostics.sessionProfile.profileId ?? profile.id ?? "not found"}</b></div>
-            <div><span>role</span><b>{authDiagnostics.sessionProfile.role ?? profile.role ?? "none"}</b></div>
-            <div><span>garden id</span><b>{authDiagnostics.sessionProfile.gardenId ?? gardenId ?? "none"}</b></div>
-          </div>
-        </section>
-      ) : null}
       <div className="dashboard-hero-card garden-hero-card premium-identity-hero ultimate-garden-hero">
         <div>
           <p className="eyebrow">ניהול יומי</p>

@@ -49,17 +49,22 @@ function isTruthyFlag(value: unknown) {
   return value === true || value === 1 || value === "1" || String(value).toLowerCase() === "true" || String(value).toLowerCase() === "yes";
 }
 
+function cameraDebugLogsEnabled() {
+  return process.env.NODE_ENV !== "production";
+}
+
 function log(label: string, payload: Record<string, unknown>) {
+  if (!cameraDebugLogsEnabled()) return;
   console.info(`Parent camera access: ${label}`, payload);
 }
 
 async function safeQuery(label: string, run: () => any) {
   try {
     const result = await run();
-    if (result.error) console.info(`Parent camera access optional query failed: ${label}`, result.error);
+    if (result.error && cameraDebugLogsEnabled()) console.info(`Parent camera access optional query failed: ${label}`, result.error);
     return result.error ? [] : (result.data ?? []);
   } catch (error) {
-    console.info(`Parent camera access optional query failed: ${label}`, error);
+    if (cameraDebugLogsEnabled()) console.info(`Parent camera access optional query failed: ${label}`, error);
     return [];
   }
 }
@@ -192,7 +197,7 @@ export function evaluateParentCameraAccess(profile: ParentProfile, scope: Awaite
 export async function canParentViewCamera(supabase: SupabaseClient<any, any, any>, parentProfileId: string, cameraId: string) {
   const profileResult = await supabase.from("profiles" as any).select("id, email, garden_id, role").eq("id", parentProfileId).maybeSingle();
   if (profileResult.error) {
-    console.info("Parent camera access profile query failed", { parentProfileId, error: profileResult.error });
+    if (cameraDebugLogsEnabled()) console.info("Parent camera access profile query failed", { parentProfileId, error: profileResult.error });
     return buildDecision(null, null, null, "parent_profile_query_failed");
   }
   const profile = profileResult.data as ParentProfile | null;
@@ -204,25 +209,27 @@ export async function canParentViewCamera(supabase: SupabaseClient<any, any, any
     .eq("id", cameraId)
     .maybeSingle();
   if (cameraResult.error) {
-    console.info("Parent camera access camera query failed", { parentProfileId, cameraId, error: cameraResult.error });
+    if (cameraDebugLogsEnabled()) console.info("Parent camera access camera query failed", { parentProfileId, cameraId, error: cameraResult.error });
     return buildDecision(profile, null, null, "camera_query_failed");
   }
   if (!cameraResult.data) return buildDecision(profile, null, null, "camera_not_found");
 
   const scope = await resolveParentCameraScope(supabase, profile);
   const decision = evaluateParentCameraAccess(profile, scope, cameraResult.data);
-  console.info("Parent camera access decision", {
-    parentProfileId,
-    cameraId,
-    allowed: decision.allowed,
-    reason: decision.reason,
-    parentRecordIds: decision.diagnostics.parent_records_found.map((parent: any) => parent.id),
-    childIds: decision.diagnostics.linked_children_found.map((child: any) => child.id),
-    childGardenIds: decision.diagnostics.child_garden_ids,
-    directParentGardenIds: decision.diagnostics.direct_parent_garden_ids,
-    profileGardenIds: decision.diagnostics.profile_garden_ids,
-    finalAllowedGardenIds: decision.diagnostics.final_allowed_garden_ids,
-    cameraGardenId: decision.diagnostics.camera_garden_id
-  });
+  if (cameraDebugLogsEnabled()) {
+    console.info("Parent camera access decision", {
+      parentProfileId,
+      cameraId,
+      allowed: decision.allowed,
+      reason: decision.reason,
+      parentRecordIds: decision.diagnostics.parent_records_found.map((parent: any) => parent.id),
+      childIds: decision.diagnostics.linked_children_found.map((child: any) => child.id),
+      childGardenIds: decision.diagnostics.child_garden_ids,
+      directParentGardenIds: decision.diagnostics.direct_parent_garden_ids,
+      profileGardenIds: decision.diagnostics.profile_garden_ids,
+      finalAllowedGardenIds: decision.diagnostics.final_allowed_garden_ids,
+      cameraGardenId: decision.diagnostics.camera_garden_id
+    });
+  }
   return decision;
 }

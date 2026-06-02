@@ -15,6 +15,10 @@ type CrudConfig = {
   publicInsert?: boolean;
 };
 
+function debugLogsEnabled() {
+  return process.env.NODE_ENV !== "production";
+}
+
 export function createCrudHandlers(config: CrudConfig) {
   return {
     async GET(request: Request) {
@@ -45,7 +49,7 @@ export function createCrudHandlers(config: CrudConfig) {
           error = fallback.error;
         }
         if (error) return fail(error.message, 400);
-        if (config.table === "camera_streams") console.info("Camera streams listed", { count: data?.length ?? 0, gardenId: gardenId ?? "all" });
+        if (config.table === "camera_streams" && debugLogsEnabled()) console.info("Camera streams listed", { count: data?.length ?? 0, gardenId: gardenId ?? "all" });
         return ok(data);
       } catch (error) {
         return handleRouteError(error);
@@ -137,7 +141,7 @@ export function createCrudHandlers(config: CrudConfig) {
             severity: parsed.priority ?? "medium"
           })));
         }
-        if (config.table === "camera_streams" && data) {
+        if (config.table === "camera_streams" && data && debugLogsEnabled()) {
           console.info("Camera stream created", {
             id: data.id,
             kindergarten_id: data.kindergarten_id ?? data.garden_id,
