@@ -130,6 +130,7 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/parent/cameras", label: "מצלמות הגן", hint: "צפייה מורשית" },
     { href: "/dashboard/parent/ai-events", label: "אירועי תצפיתן", hint: "עדכונים מאושרים" },
     { href: "/dashboard/parent/daily-journal", label: "יומן יומי", hint: "עדכוני הילד" },
+    { href: "/dashboard/parent/pickup", label: "איסוף", hint: "מורשים וזמני" },
     { href: "/dashboard/parent/notifications", label: "התראות", hint: "עדכונים חשובים" },
     { href: "/parent-onboarding", label: "כרטיס ילד", hint: "פרטים והסכמות" },
     { href: "/dashboard/parent/documents", label: "מסמכים", hint: "אישורים וקבצים" },
@@ -188,7 +189,7 @@ const mobileNavByRole: Record<UserRole, Array<{ href: string; label: string; hin
     { href: "/dashboard/parent", label: "בית", hint: "הילד" },
     { href: "/dashboard/parent", label: "ילד", hint: "פרופיל" },
     { href: "/dashboard/parent/messages", label: "הודעות", hint: "גן" },
-    { href: "/dashboard/parent/cameras", label: "מצלמות", hint: "צפייה" },
+    { href: "/dashboard/parent/pickup", label: "איסוף", hint: "מורשים" },
     { href: "/dashboard/parent/notifications", label: "עוד", hint: "התראות" }
   ]
 };

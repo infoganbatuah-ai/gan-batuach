@@ -16,6 +16,7 @@ const parentActions = [
   { href: "/dashboard/parent/notifications", label: "עדכונים חדשים", icon: ShieldCheck, text: "רק דברים שחשוב שתראו." },
   { href: "/dashboard/parent#add-child-request", label: "בקשת רישום ילד נוסף", icon: Baby, text: "בקשה רגועה וברורה לאישור הגן." },
   { href: "/dashboard/parent/messages", label: "שליחת הודעה לגן", icon: MessageCircle, text: "שאלה קצרה לצוות או למנהלת." },
+  { href: "/dashboard/parent/pickup", label: "מורשי איסוף", icon: ShieldCheck, text: "הרשאות קבועות וזמניות לאיסוף הילד." },
   { href: "/dashboard/parent/complaints", label: "בקשה דחופה", icon: Siren, text: "כשמשהו צריך טיפול מיוחד." },
   { href: "/dashboard/parent/cameras", label: "מצלמות הגן", icon: Camera, text: "רק אם הגן פתח צפייה להורים." },
   { href: "/dashboard/parent/schedule", label: "לו״ז ותפריט", icon: CalendarDays, text: "מה צפוי היום ובשבוע הקרוב." },
