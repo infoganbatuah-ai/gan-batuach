@@ -4,6 +4,7 @@ import { requireRole } from "@/lib/auth";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
 import { normalizeOptionalEmail, provisionAuthUser, writeUserCreationAudit } from "@/lib/onboarding/user-provisioning";
 import { sendCommunication } from "@/lib/domain/communication-service";
+import { preparePushForNotification } from "@/lib/domain/push-service";
 
 const schema = z.object({
   parent_name: z.string().min(2),
@@ -245,9 +246,20 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       child_id: child.id,
       created_by: profile.id,
       metadata: { href: `/parent-onboarding?childId=${child.id}`, lead_id: id, child_id: child.id }
-    });
+    }).select("id").maybeSingle();
     if (notificationResult.error) {
       console.error("[garden-lead-convert] notification insert failed", { ...actionContext, parent_id: parent.id, child_id: child.id, error: notificationResult.error.message });
+    } else if (notificationResult.data?.id) {
+      const pushResult = await preparePushForNotification(admin as any, {
+        profileId: parentUserId,
+        notificationId: notificationResult.data.id,
+        title: "השלמת פרטי ילד",
+        body: "הגן אישר את בקשת ההצטרפות הראשונית. עכשיו יש להשלים את כרטיס הילד.",
+        actionUrl: `/parent-onboarding?childId=${child.id}`,
+        critical: true,
+        metadata: { lead_id: id, child_id: child.id, source: "lead_conversion" }
+      });
+      if (!pushResult.ok) console.error("[garden-lead-convert] push log failed", { ...actionContext, parent_profile_id: parentUserId, error: pushResult.error });
     }
 
     const communicationResult = await sendCommunication(admin as any, {
