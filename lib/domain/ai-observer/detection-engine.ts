@@ -10,15 +10,54 @@ export type ObserverDetection = {
   confidence: number;
   title: string;
   description: string;
+  explanation?: string;
+  cost_estimate?: {
+    provider: DetectionProvider;
+    units: number;
+    estimated_usd: number;
+  };
   zone_type?: string;
   metadata?: Record<string, unknown>;
 };
 
 export type DetectionInput = {
   provider?: DetectionProvider;
+  imageFrame?: {
+    storagePath?: string;
+    signedUrl?: string;
+    capturedAt?: string;
+    width?: number;
+    height?: number;
+  };
+  videoClip?: {
+    storagePath?: string;
+    signedUrl?: string;
+    durationSeconds?: number;
+    startedAt?: string;
+    endedAt?: string;
+  };
+  audioSegment?: {
+    storagePath?: string;
+    signedUrl?: string;
+    durationSeconds?: number;
+    language?: string;
+  };
   camera?: Record<string, any> | null;
   zone?: Record<string, any> | null;
   rule?: Record<string, any> | null;
+  childContext?: Record<string, any> | null;
+  staffContext?: Record<string, any> | null;
+  consentContext?: {
+    aiEnabled: boolean;
+    audioAllowed: boolean;
+    faceRecognitionAllowed: boolean;
+    externalProviderAllowed: boolean;
+  };
+  budgetContext?: {
+    monthlyLimitUsd?: number;
+    spentThisMonthUsd?: number;
+    perCameraRateLimitPerHour?: number;
+  };
   mockScenario?: string;
 };
 
