@@ -17,7 +17,21 @@ export default async function ParentMessagesPage() {
   const { profile } = await requireRole(["parent"]);
   const supabase = await createClient();
   const family = await getParentFamilyContext(supabase as any, profile);
-  const childOptions = (family.children as any[]).map((child) => ({
+  const childrenById = new Map<string, any>();
+  for (const child of family.children as any[]) childrenById.set(child.id, child);
+  for (const enrollment of family.enrollments as any[]) {
+    const childId = enrollment.child_id ?? enrollment.permanent_child_file_id;
+    if (!childId || childrenById.has(childId)) continue;
+    childrenById.set(childId, {
+      id: childId,
+      full_name: enrollment.full_name,
+      garden_id: enrollment.garden_id ?? enrollment.kindergarten_id,
+      kindergarten_id: enrollment.garden_id ?? enrollment.kindergarten_id,
+      status: enrollment.status,
+      photo_url: enrollment.photo_url
+    });
+  }
+  const childOptions = Array.from(childrenById.values()).map((child) => ({
     ...child,
     garden_name: (family.gardens as any[]).find((garden) => garden.id === (child.garden_id ?? child.kindergarten_id))?.name
   }));

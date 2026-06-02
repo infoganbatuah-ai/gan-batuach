@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { Send } from "lucide-react";
 
 type Recipient = { id: string; profile_id?: string | null; role: string; group: string; label: string };
@@ -19,6 +20,7 @@ function defaultGroup(type: string) {
 }
 
 export function ParentChildRequestForm({ children }: { children: any[] }) {
+  const router = useRouter();
   const [message, setMessage] = useState("");
   const [pending, startTransition] = useTransition();
   const [childId, setChildId] = useState(children[0]?.id ?? "");
@@ -64,7 +66,12 @@ export function ParentChildRequestForm({ children }: { children: any[] }) {
     startTransition(async () => {
       const response = await fetch("/api/parent/child-requests", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
       const body = await response.json();
-      setMessage(response.ok ? "הפנייה נשלחה לנמען הרלוונטי ותופיע עם סטטוס טיפול." : body.error || "לא ניתן לשלוח בקשה כרגע.");
+      if (response.ok) {
+        setMessage("הפנייה נשלחה לנמען הרלוונטי ותופיע עם סטטוס טיפול.");
+        router.refresh();
+      } else {
+        setMessage(body.error || "לא ניתן לשלוח בקשה כרגע.");
+      }
     });
   }
 

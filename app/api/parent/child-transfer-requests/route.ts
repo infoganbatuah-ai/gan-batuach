@@ -56,13 +56,17 @@ async function notifyGarden(admin: ReturnType<typeof createAdminClient>, gardenI
   const { data: garden } = await admin.from("gardens" as any).select("manager_id, owner_profile_id, name").eq("id", gardenId).maybeSingle();
   const recipients = uniq([garden?.manager_id, garden?.owner_profile_id]);
   if (!recipients.length) return;
-  await admin.from("notifications" as any).insert(recipients.map((recipientId) => ({
+  const actionUrl = notification.action_url ?? notification.metadata?.href ?? "/dashboard/garden/leads";
+  const result = await admin.from("notifications" as any).insert(recipients.map((recipientId) => ({
     garden_id: gardenId,
     recipient_id: recipientId,
+    recipient_profile_id: recipientId,
     recipient_role: "manager",
     severity: "medium",
+    action_url: actionUrl,
     ...notification
   })));
+  if (result.error) console.error("[parent-child-transfer:notify-garden]", { garden_id: gardenId, error: result.error.message });
 }
 
 export async function POST(request: Request) {

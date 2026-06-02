@@ -73,7 +73,9 @@ export async function POST(request: Request) {
     if (!notificationRecipients.length) {
       notificationRecipients = recipients.filter((recipient) => recipient.group === "manager" && recipient.profile_id);
     }
-    await Promise.all(notificationRecipients.map((recipient) => supabase.from("notifications" as any).insert({
+    const notificationResults = await Promise.all(notificationRecipients.map((recipient) => {
+      const actionUrl = recipient.role === "admin" ? "/dashboard/admin/complaints" : recipient.role === "staff" ? "/dashboard/staff/messages" : recipient.role === "inspector" ? "/dashboard/inspector/reports" : "/dashboard/garden/messages?status=open";
+      return supabase.from("notifications" as any).insert({
       garden_id: gardenId,
       recipient_id: recipient.profile_id,
       recipient_role: recipient.role,
@@ -83,8 +85,15 @@ export async function POST(request: Request) {
       entity_id: data.id,
       status: "pending",
       severity: payload.priority === "urgent" ? "high" : "medium",
-      metadata: { href: recipient.role === "admin" ? "/dashboard/admin/complaints" : recipient.role === "staff" ? "/dashboard/staff/messages" : recipient.role === "inspector" ? "/dashboard/inspector/reports" : "/dashboard/garden/children", request_id: data.id, child_id: payload.child_id, request_type: payload.request_type, target: selectedRecipient?.label ?? requestedGroup }
-    })));
+      action_url: actionUrl,
+      metadata: { href: actionUrl, request_id: data.id, child_id: payload.child_id, request_type: payload.request_type, target: selectedRecipient?.label ?? requestedGroup }
+    });
+    }));
+    const notificationError = notificationResults.find((result) => result.error)?.error;
+    if (notificationError) {
+      console.error("[parent-child-requests:notification]", { request_id: data.id, error: notificationError.message });
+      return fail("הפנייה נשמרה, אך יצירת ההתראה לנמען נכשלה. ניתן לעקוב אחריה במסך הפניות.", 409, { request_id: data.id });
+    }
     return ok(data, 201);
   } catch (error) {
     return handleRouteError(error);
