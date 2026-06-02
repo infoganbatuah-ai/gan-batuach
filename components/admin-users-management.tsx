@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { type FormEvent, useMemo, useState } from "react";
 import { Avatar } from "@/components/avatar";
 import { UploadImageField } from "@/components/upload-image-field";
@@ -42,10 +43,13 @@ export function AdminUsersManagement({ users, auditLogs }: { users: Row[]; audit
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [editing, setEditing] = useState<Row | null>(null);
+  const [busyUserId, setBusyUserId] = useState<string | null>(null);
+  const router = useRouter();
   const rows = useMemo(() => filterRows(users, activeTab), [users, activeTab]);
 
   async function action(userId: string, actionName: string) {
     setMessage(null); setError(null);
+    setBusyUserId(userId);
     try {
       const result = await postAction(userId, actionName);
       if (actionName === "send_password_reset") {
@@ -55,8 +59,11 @@ export function AdminUsersManagement({ users, auditLogs }: { users: Row[]; audit
       } else {
         setMessage("הפעולה בוצעה ונרשמה בלוג.");
       }
+      router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "הפעולה נכשלה");
+    } finally {
+      setBusyUserId(null);
     }
   }
 
@@ -78,6 +85,7 @@ export function AdminUsersManagement({ users, auditLogs }: { users: Row[]; audit
       });
       setMessage("פרטי המשתמש נשמרו ונרשמו בלוג.");
       setEditing(null);
+      router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "שמירת המשתמש נכשלה");
     }
@@ -124,9 +132,9 @@ export function AdminUsersManagement({ users, auditLogs }: { users: Row[]; audit
             <div className="profile-actions">
               <button className="button secondary" type="button" onClick={() => setEditing(user)}>צפייה / עריכה</button>
               {showPassword ? <button className="button secondary" onClick={() => navigator.clipboard?.writeText(`${credential?.username ?? user.username ?? ""}\n${credential?.temporary_password ?? ""}`)}>העתקת פרטים</button> : null}
-              <button className="button secondary" onClick={() => action(user.id, "send_password_reset")}>שלח איפוס סיסמה</button>
-              <button className="button secondary" onClick={() => action(user.id, "reset_password")}>איפוס ידני</button>
-              <button className="button" onClick={() => action(user.id, user.active === false ? "reactivate" : "deactivate")}>{user.active === false ? "הפעלה" : "השבתה"}</button>
+              <button className="button secondary" disabled={busyUserId === user.id} onClick={() => action(user.id, "send_password_reset")}>שלח איפוס סיסמה</button>
+              <button className="button secondary" disabled={busyUserId === user.id} onClick={() => action(user.id, "reset_password")}>איפוס ידני</button>
+              <button className="button" disabled={busyUserId === user.id} onClick={() => action(user.id, user.active === false ? "reactivate" : "deactivate")}>{user.active === false ? "הפעלה" : "השבתה"}</button>
             </div>
           </article>;
         })}</div>}

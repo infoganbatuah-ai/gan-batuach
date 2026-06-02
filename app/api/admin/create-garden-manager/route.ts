@@ -51,6 +51,7 @@ const schema = z.object({
 
 export async function POST(request: Request) {
   const createdAuthUserIds: string[] = [];
+  let createdGardenId: string | null = null;
   try {
     const { profile } = await requireRole(["admin"]);
     const payload = schema.parse(await request.json());
@@ -131,19 +132,32 @@ export async function POST(request: Request) {
       }
       return fail("לא ניתן ליצור את הגן: " + (gardenError?.message ?? "שגיאה לא ידועה"), 400);
     }
+    createdGardenId = garden.id;
 
     if (manager) {
       const { error: managerProfileError } = await admin.from("profiles").update({ garden_id: garden.id, identity_number: payload.manager?.identity_number ? payload.manager.identity_number.replace(/\D/g, "") : null, profile_image_url: payload.manager?.profile_image_url ?? null }).eq("id", manager.user.id);
-      if (managerProfileError) return fail("הגן נוצר אך שיוך המנהלת נכשל: " + managerProfileError.message, 400);
+      if (managerProfileError) {
+        await admin.from("gardens").delete().eq("id", garden.id);
+        for (const userId of createdAuthUserIds) await admin.auth.admin.deleteUser(userId);
+        return fail("שיוך המנהלת נכשל ולכן יצירת הגן בוטלה: " + managerProfileError.message, 400);
+      }
     }
 
     if (owner) {
       const { error: ownerProfileError } = await admin.from("profiles").update({ garden_id: garden.id, identity_number: payload.owner?.identity_number ? payload.owner.identity_number.replace(/\D/g, "") : null, profile_image_url: payload.owner?.profile_image_url ?? null }).eq("id", owner.user.id);
-      if (ownerProfileError) return fail("הגן נוצר אך שיוך הבעלים נכשל: " + ownerProfileError.message, 400);
+      if (ownerProfileError) {
+        await admin.from("gardens").delete().eq("id", garden.id);
+        for (const userId of createdAuthUserIds) await admin.auth.admin.deleteUser(userId);
+        return fail("שיוך הבעלים נכשל ולכן יצירת הגן בוטלה: " + ownerProfileError.message, 400);
+      }
     }
 
     if (payload.source_lead_id) {
-      await admin.from("leads").update({ status: "converted", converted_entity_id: garden.id, converted_at: new Date().toISOString() }).eq("id", payload.source_lead_id);
+      const leadUpdate = await admin.from("leads").update({ status: "converted", converted_entity_id: garden.id, converted_at: new Date().toISOString() }).eq("id", payload.source_lead_id).select("id").maybeSingle();
+      if (leadUpdate.error || !leadUpdate.data) {
+        console.error("[create-garden-lead-conversion-failed]", { garden_id: garden.id, source_lead_id: payload.source_lead_id, message: leadUpdate.error?.message ?? "lead not found" });
+        return fail("הגן נוצר, אך עדכון סטטוס הליד נכשל. יש לפתוח את הליד ולבדוק אותו ידנית לפני הצגת הצלחה.", 409, { garden_id: garden.id, source_lead_id: payload.source_lead_id });
+      }
     }
 
     await writeUserCreationAudit({
@@ -158,6 +172,11 @@ export async function POST(request: Request) {
 
     return ok({ garden, manager_user_id: manager?.user.id ?? null, owner_user_id: owner?.user.id ?? null, credentials: { manager: manager?.oneTimeCredentials ?? null, owner: owner?.oneTimeCredentials ?? null } }, 201);
   } catch (error) {
+    if (createdGardenId) {
+      const admin = createAdminClient();
+      await admin.from("gardens").delete().eq("id", createdGardenId);
+      for (const userId of createdAuthUserIds) await admin.auth.admin.deleteUser(userId);
+    }
     if (error instanceof DuplicateContactError) {
       return fail(error.message, 409, { field: error.field, source: error.source });
     }

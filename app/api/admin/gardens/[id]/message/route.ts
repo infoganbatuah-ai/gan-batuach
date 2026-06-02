@@ -29,6 +29,22 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       treatment_status: "open"
     }).select("*").single();
     if (error) return fail("לא ניתן לשלוח הודעה.", 400);
+    const notification = await supabase.from("notifications").insert({
+      garden_id: id,
+      recipient_id: payload.recipient_id,
+      recipient_profile_id: payload.recipient_id,
+      recipient_role: recipient.role,
+      title: "הודעה חדשה מהמערכת",
+      body: payload.subject,
+      message: payload.content,
+      entity_type: "message",
+      entity_id: data.id,
+      action_url: "/dashboard/garden/messages"
+    }).select("id").maybeSingle();
+    if (notification.error || !notification.data) {
+      console.error("[admin-garden-message-notification-failed]", { garden_id: id, message_id: data.id, recipient_id: payload.recipient_id, error: notification.error?.message ?? "notification not created" });
+      return fail("ההודעה נשמרה, אך ההתראה לנמען לא נוצרה. יש לעדכן את הגן ידנית או לבדוק את מרכז ההתראות.", 409, { message_id: data.id });
+    }
     return ok(data, 201);
   } catch (error) {
     return handleRouteError(error);

@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 type Row = Record<string, any>;
@@ -15,6 +16,7 @@ async function postDemand(payload: Row) {
 export function InspectionSupervisionCenter({ dueSoon, late, history }: { dueSoon: Row[]; late: Row[]; history: Row[] }) {
   const [message, setMessage] = useState<string | null>(null);
   const [busyKey, setBusyKey] = useState<string | null>(null);
+  const router = useRouter();
   async function action(actionName: string, gardenId: string, inspectionId?: string) {
     const reason = actionName === "cancel" || actionName === "override_complete" ? window.prompt("סיבת פעולה") ?? "" : undefined;
     if ((actionName === "cancel" || actionName === "override_complete") && !reason) return;
@@ -24,6 +26,7 @@ export function InspectionSupervisionCenter({ dueSoon, late, history }: { dueSoo
     try {
       const result = await postDemand({ action: actionName, garden_id: gardenId, inspection_id: inspectionId, reason });
       setMessage(result?.notification_sent === false ? "הפעולה נשמרה, אך לא נמצא נמען להתראה." : "הפעולה נשמרה במסד הנתונים ונרשמה.");
+      router.refresh();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "הפעולה נכשלה. בדקו את הפרטים ונסו שוב.");
     } finally {

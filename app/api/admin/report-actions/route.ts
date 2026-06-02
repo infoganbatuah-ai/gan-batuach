@@ -45,7 +45,7 @@ export async function POST(request: Request) {
     if (error) return fail("שמירת הפעולה נכשלה: " + error.message, 400);
 
     if (payload.action === "create_task") {
-      await supabase.from("tasks").insert({
+      const taskInsert = await supabase.from("tasks").insert({
         garden_id: current.garden_id,
         title: `טיפול בדיווח: ${current.subject ?? current.title ?? "דיווח"}`,
         description: payload.message ?? current.description ?? "משימת טיפול מדיווח",
@@ -53,10 +53,18 @@ export async function POST(request: Request) {
         priority: current.severity ?? "medium",
         status: "open",
         task_type: "report_followup"
-      });
+      }).select("id").maybeSingle();
+      if (taskInsert.error || !taskInsert.data) {
+        console.error("[admin-report-create-task-failed]", { source: payload.source, id: payload.id, message: taskInsert.error?.message ?? "task not created" });
+        return fail("הדיווח עודכן, אך יצירת משימת ההמשך נכשלה. יש לפתוח משימה ידנית או לנסות שוב.", 409);
+      }
     }
 
-    await supabase.from("audit_logs").insert({ actor_id: profile.id, actor_role: "admin", garden_id: current.garden_id, entity_type: table, entity_id: payload.id, action: `report_${payload.action}`, after_data: patch });
+    const audit = await supabase.from("audit_logs").insert({ actor_id: profile.id, actor_role: "admin", garden_id: current.garden_id, entity_type: table, entity_id: payload.id, action: `report_${payload.action}`, after_data: patch });
+    if (audit.error) {
+      console.error("[admin-report-audit-failed]", { source: payload.source, id: payload.id, action: payload.action, message: audit.error.message });
+      return fail("הפעולה נשמרה, אך רישום Audit נכשל. יש לבדוק את לוג הביקורת.", 409);
+    }
     return ok(data);
   } catch (error) {
     return handleRouteError(error);

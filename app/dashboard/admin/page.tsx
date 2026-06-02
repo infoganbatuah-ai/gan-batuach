@@ -52,7 +52,7 @@ function statusText(tone: "good" | "warn" | "bad") {
 }
 
 export default async function AdminDashboard() {
-  await requireRole(["admin"]);
+  const { profile } = await requireRole(["admin"]);
   const result = await safeAdminData("admin dashboard", async () => {
     const supabase = await createClient();
     const now = new Date().toISOString();
@@ -63,13 +63,16 @@ export default async function AdminDashboard() {
     previousWeekStart.setDate(previousWeekStart.getDate() - 7);
     const weekStartIso = weekStart.toISOString();
     const previousWeekStartIso = previousWeekStart.toISOString();
-    const [gardens, activeGardens, children, leads, inspectors, violations, complaints, cameras, cameraIssues, aiAlerts, notifications, incidents, activeIncidents, lateInspections, dueSoonInspections, missingDocuments, staffTotal, staffApproved, gardenList, riskyGardensQuery, inspectorProfilesQuery, inspectorHistoryQuery, weekComplaints, previousWeekComplaints, weekInspections, previousWeekInspections, weekAiEvents, previousWeekAiEvents, weekDocuments, previousWeekDocuments, recentComplaints, recentInspections, recentDocuments, recentAiEvents, recentMessages] = await Promise.all([
+    const [gardens, activeGardens, children, parents, leads, inspectors, openViolations, violations, openComplaints, complaints, cameras, cameraIssues, aiAlerts, notifications, incidents, activeIncidents, lateInspections, dueSoonInspections, missingDocuments, staffTotal, staffApproved, gardenList, riskyGardensQuery, inspectorProfilesQuery, inspectorHistoryQuery, weekComplaints, previousWeekComplaints, weekInspections, previousWeekInspections, weekAiEvents, previousWeekAiEvents, weekDocuments, previousWeekDocuments, recentComplaints, recentInspections, recentDocuments, recentAiEvents, recentMessages] = await Promise.all([
       countRows(supabase, "gardens"),
       countFiltered(supabase, "gardens", (query) => query.eq("status", "active")),
       countRows(supabase, "children"),
+      countFiltered(supabase, "profiles", (query) => query.eq("role", "parent")),
       countRows(supabase, "leads"),
       countRows(supabase, "inspectors"),
+      countFiltered(supabase, "violations", (query) => query.in("status", ["open", "in_progress", "new", "overdue"])),
       countRows(supabase, "violations"),
+      countFiltered(supabase, "complaints", (query) => query.in("status", ["new", "open", "in_progress", "waiting_user"])),
       countRows(supabase, "complaints"),
       countRows(supabase, "camera_streams"),
       countFiltered(supabase, "camera_streams", (query) => query.in("status", ["offline", "covered", "frozen", "black_frame", "error", "failed"])),
@@ -102,8 +105,8 @@ export default async function AdminDashboard() {
     ]);
     logSupabaseError("admin garden list", gardenList.error);
     [riskyGardensQuery, inspectorProfilesQuery, inspectorHistoryQuery, recentComplaints, recentInspections, recentDocuments, recentAiEvents, recentMessages].forEach((query, index) => logSupabaseError("admin dashboard query " + index, query.error));
-    return { gardens, activeGardens, children, leads, inspectors, violations, complaints, cameras, cameraIssues, aiAlerts, notifications, incidents, activeIncidents, lateInspections, dueSoonInspections, missingDocuments, staffTotal, staffApproved, gardenList: (gardenList.data ?? []) as any[], riskyGardens: (riskyGardensQuery.data ?? []) as any[], inspectorProfiles: (inspectorProfilesQuery.data ?? []) as any[], inspectorHistory: (inspectorHistoryQuery.data ?? []) as any[], weekComplaints, previousWeekComplaints, weekInspections, previousWeekInspections, weekAiEvents, previousWeekAiEvents, weekDocuments, previousWeekDocuments, recentComplaints: recentComplaints.data ?? [], recentInspections: recentInspections.data ?? [], recentDocuments: recentDocuments.data ?? [], recentAiEvents: recentAiEvents.data ?? [], recentMessages: recentMessages.data ?? [], queryError: gardenList.error ? "לא ניתן לטעון את הנתונים כרגע" : null };
-  }, { gardens: 0, activeGardens: 0, children: 0, leads: 0, inspectors: 0, violations: 0, complaints: 0, cameras: 0, cameraIssues: 0, aiAlerts: 0, notifications: 0, incidents: 0, activeIncidents: 0, lateInspections: 0, dueSoonInspections: 0, missingDocuments: 0, staffTotal: 0, staffApproved: 0, gardenList: [] as any[], riskyGardens: [] as any[], inspectorProfiles: [] as any[], inspectorHistory: [] as any[], weekComplaints: 0, previousWeekComplaints: 0, weekInspections: 0, previousWeekInspections: 0, weekAiEvents: 0, previousWeekAiEvents: 0, weekDocuments: 0, previousWeekDocuments: 0, recentComplaints: [] as any[], recentInspections: [] as any[], recentDocuments: [] as any[], recentAiEvents: [] as any[], recentMessages: [] as any[], queryError: null as string | null });
+    return { gardens, activeGardens, children, parents, leads, inspectors, openViolations, violations, openComplaints, complaints, cameras, cameraIssues, aiAlerts, notifications, incidents, activeIncidents, lateInspections, dueSoonInspections, missingDocuments, staffTotal, staffApproved, gardenList: (gardenList.data ?? []) as any[], riskyGardens: (riskyGardensQuery.data ?? []) as any[], inspectorProfiles: (inspectorProfilesQuery.data ?? []) as any[], inspectorHistory: (inspectorHistoryQuery.data ?? []) as any[], weekComplaints, previousWeekComplaints, weekInspections, previousWeekInspections, weekAiEvents, previousWeekAiEvents, weekDocuments, previousWeekDocuments, recentComplaints: recentComplaints.data ?? [], recentInspections: recentInspections.data ?? [], recentDocuments: recentDocuments.data ?? [], recentAiEvents: recentAiEvents.data ?? [], recentMessages: recentMessages.data ?? [], queryError: gardenList.error ? "לא ניתן לטעון את הנתונים כרגע" : null };
+  }, { gardens: 0, activeGardens: 0, children: 0, parents: 0, leads: 0, inspectors: 0, openViolations: 0, violations: 0, openComplaints: 0, complaints: 0, cameras: 0, cameraIssues: 0, aiAlerts: 0, notifications: 0, incidents: 0, activeIncidents: 0, lateInspections: 0, dueSoonInspections: 0, missingDocuments: 0, staffTotal: 0, staffApproved: 0, gardenList: [] as any[], riskyGardens: [] as any[], inspectorProfiles: [] as any[], inspectorHistory: [] as any[], weekComplaints: 0, previousWeekComplaints: 0, weekInspections: 0, previousWeekInspections: 0, weekAiEvents: 0, previousWeekAiEvents: 0, weekDocuments: 0, previousWeekDocuments: 0, recentComplaints: [] as any[], recentInspections: [] as any[], recentDocuments: [] as any[], recentAiEvents: [] as any[], recentMessages: [] as any[], queryError: null as string | null });
   const data = result.data;
   const staffCompliance = data.staffTotal > 0 ? Math.round((data.staffApproved / data.staffTotal) * 100) : 100;
   const issueLoad = data.lateInspections + data.aiAlerts + data.cameraIssues + data.missingDocuments + data.violations;
@@ -127,6 +130,7 @@ export default async function AdminDashboard() {
   const urgentAlerts = [
     ...(data.lateInspections > 0 ? [{ title: "פיקוחים באיחור", body: `${data.lateInspections} גנים עברו את מועד הפיקוח`, severity: "bad" as const, href: "/dashboard/admin/inspections/late", icon: "inspection" as const }] : []),
     ...(data.activeIncidents > 0 ? [{ title: "אירועים פתוחים", body: `${data.activeIncidents} אירועים דורשים טיפול`, severity: "bad" as const, href: "/dashboard/admin/complaints", icon: "incidents" as const }] : []),
+    ...(data.openComplaints > 0 ? [{ title: "פניות פתוחות", body: `${data.openComplaints} פניות ותלונות פתוחות`, severity: "warn" as const, href: "/dashboard/admin/complaints", icon: "incidents" as const }] : []),
     ...(data.aiAlerts > 0 ? [{ title: "AI חמור", body: `${data.aiAlerts} אירועי AI חמורים פתוחים`, severity: "bad" as const, href: "/dashboard/admin/ai-events", icon: "ai" as const }] : []),
     ...(data.cameraIssues > 0 ? [{ title: "תקלות מצלמה", body: `${data.cameraIssues} מצלמות דורשות בדיקה`, severity: "warn" as const, href: "/dashboard/admin/cameras", icon: "camera" as const }] : []),
     ...(data.missingDocuments > 0 ? [{ title: "מסמכים חסרים", body: `${data.missingDocuments} מסמכים חסרים/פגי תוקף`, severity: "warn" as const, href: "/dashboard/admin/documents", icon: "documents" as const }] : []),
@@ -163,7 +167,7 @@ export default async function AdminDashboard() {
 
   return (
     <DashboardShell role="admin" title="מרכז שליטה ארצי">
-      <div className="dashboard-hero-card admin-hero-card premium-control-hero"><div><p className="eyebrow">Admin Control Center</p><h1>מרכז שליטה חי לכל גן בטוח.</h1><p>תמונת מצב אחת לגנים פעילים, ילדים, פיקוחים, מצלמות, מסמכים, צוות ותצפיתן דיגיטלי.</p></div><div className="map-card"><MapPinned /><strong>{data.activeGardens}/{data.gardens} גנים פעילים</strong><span>ניווט UI מלא, ללא API גולמי</span></div></div>
+      <div className="dashboard-hero-card admin-hero-card premium-control-hero"><div><p className="eyebrow">Admin Control Center</p><h1>שלום {profile.full_name ?? "מנהל המערכת"}</h1><p>תמונת מצב אחת לגנים פעילים, ילדים, הורים, צוות, פיקוחים, מצלמות, מסמכים ותצפיתן דיגיטלי.</p></div><div className="map-card"><MapPinned /><strong>{data.activeGardens}/{data.gardens} גנים פעילים</strong><span>ניהול מלא, דיווחים והרשאות מערכת</span></div></div>
       <AdminDataError message={result.error ?? data.queryError} />
       <section className={`critical-alert-strip ${urgentAlerts.some((alert) => alert.severity === "bad") ? "bad" : urgentAlerts.length ? "warn" : "good"}`}>
         <strong>{urgentAlerts.some((alert) => alert.severity === "bad") ? "התראות קריטיות פתוחות" : urgentAlerts.length ? "יש אזהרות לטיפול" : "המערכת נראית בריאה"}</strong>
@@ -174,6 +178,11 @@ export default async function AdminDashboard() {
       <div className="grid cols-4 dashboard-kpis premium-kpis">
         <StatCard label="גנים פעילים" value={data.activeGardens} tone="good" />
         <StatCard label="ילדים במערכת" value={data.children} />
+        <StatCard label="הורים במערכת" value={data.parents} />
+        <StatCard label="אנשי צוות" value={data.staffTotal} />
+        <StatCard label="מפקחים" value={data.inspectors} />
+        <StatCard label="פניות פתוחות" value={data.openComplaints} tone={data.openComplaints > 0 ? "warn" : "good"} />
+        <StatCard label="ליקויים פתוחים" value={data.openViolations} tone={data.openViolations > 0 ? "bad" : "good"} />
         <StatCard label="פיקוחים באיחור" value={data.lateInspections} tone={data.lateInspections > 0 ? "bad" : "good"} />
         <StatCard label="התראות AI חמורות" value={data.aiAlerts} tone={data.aiAlerts > 0 ? "bad" : "good"} />
         <StatCard label="בעיות מצלמה" value={data.cameraIssues} tone={data.cameraIssues > 0 ? "warn" : "good"} />

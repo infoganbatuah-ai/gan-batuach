@@ -69,16 +69,26 @@ export async function POST(request: Request) {
       if (!username) return fail("אין מייל לשליחת איפוס סיסמה.", 422);
       const { error } = await supabase.auth.admin.generateLink({ type: "recovery", email: username });
       if (error) return fail("לא ניתן לשלוח איפוס סיסמה: " + error.message, 400);
-      await supabase.from("generated_credentials").update({ reset_sent_at: new Date().toISOString() }).eq("user_id", payload.user_id);
+      const credentialUpdate = await supabase.from("generated_credentials").update({ reset_sent_at: new Date().toISOString() }).eq("user_id", payload.user_id);
+      if (credentialUpdate.error) {
+        console.error("[admin-users-reset-credential-state-failed]", { user_id: payload.user_id, message: credentialUpdate.error.message });
+        return fail("נוצר קישור איפוס, אך סטטוס פרטי ההתחברות לא עודכן. יש לבדוק את רשימת פרטי ההתחברות.", 409);
+      }
       await writeUserCreationAudit({ actorId: profile.id, actorRole: "admin", entityType: "profiles", entityId: payload.user_id, action: "send_password_reset", afterData: { username } });
       return ok({ status: "reset_sent" });
     }
 
     const temporaryPassword = generateTemporaryPassword();
+    const username = String(target.email || target.username || "").trim();
+    const { error: credentialDeleteError } = await supabase.from("generated_credentials").delete().eq("user_id", payload.user_id).is("password_changed_at", null);
+    if (credentialDeleteError) {
+      console.error("[admin-users-reset-credential-cleanup-failed]", { user_id: payload.user_id, message: credentialDeleteError.message });
+      return fail("איפוס הסיסמה נעצר לפני שינוי הסיסמה כי לא ניתן לעדכן את רשומת פרטי ההתחברות.", 409);
+    }
+
     const { error: passwordError } = await supabase.auth.admin.updateUserById(payload.user_id, { password: temporaryPassword });
     if (passwordError) return fail("איפוס הסיסמה נכשל: " + passwordError.message, 400);
 
-    const username = String(target.email || target.username || "").trim();
     const { error: credentialError } = await supabase.from("generated_credentials").insert({
       user_id: payload.user_id,
       username,
@@ -87,7 +97,11 @@ export async function POST(request: Request) {
     });
     if (credentialError) return fail("הסיסמה אופסה אך שמירת פרטי ההתחברות נכשלה.", 400);
 
-    await supabase.from("profiles").update({ must_change_password: true }).eq("id", payload.user_id);
+    const profileUpdate = await supabase.from("profiles").update({ must_change_password: true }).eq("id", payload.user_id);
+    if (profileUpdate.error) {
+      console.error("[admin-users-reset-profile-state-failed]", { user_id: payload.user_id, message: profileUpdate.error.message });
+      return fail("הסיסמה אופסה אך סימון החלפת הסיסמה בפרופיל נכשל.", 409);
+    }
     await writeUserCreationAudit({ actorId: profile.id, actorRole: "admin", entityType: "profiles", entityId: payload.user_id, action: payload.action, afterData: { username } });
 
     return ok({ username, temporary_password: temporaryPassword });
