@@ -1,6 +1,7 @@
 import type { ObserverDetection } from "@/lib/domain/ai-observer/detection-engine";
 import { createLocalDetector } from "@/lib/domain/ai-observer/local-detector";
 import { evaluateObserverRule } from "@/lib/domain/ai-observer/rule-engine";
+import { loadActiveWatchRequests, translateWatchRequestToRuleInput } from "@/lib/domain/observer-watch-request-engine";
 
 type SupabaseLike = any;
 
@@ -124,6 +125,26 @@ export async function processObserverJobMock(supabase: SupabaseLike, inputJob: R
       supabase.from("kindergarten_routine_configs" as any).select("*").eq("kindergarten_id", job.kindergarten_id).maybeSingle(),
       supabase.from("kindergarten_learning_profiles" as any).select("*").eq("kindergarten_id", job.kindergarten_id).maybeSingle()
     ]);
+    const watchRequestScope = {
+      observerSiteId: camera?.observer_site_id ?? job.observer_site_id ?? null,
+      kindergartenId: job.kindergarten_id,
+      cameraId: job.camera_id,
+      zoneId: job.zone_id
+    };
+    const { requests: watchRequests, error: watchRequestError } = await loadActiveWatchRequests(supabase, watchRequestScope);
+    const requestedWatch = job.metadata?.watch_request_id
+      ? watchRequests.find((request) => request.id === job.metadata.watch_request_id)
+      : watchRequests[0];
+    const requestedWatchRule = requestedWatch ? translateWatchRequestToRuleInput(requestedWatch) : null;
+    await logJob(supabase, {
+      job_id: job.id,
+      worker_id: job.worker_id,
+      kindergarten_id: job.kindergarten_id,
+      camera_id: job.camera_id,
+      level: watchRequestError ? "warning" : "info",
+      message: `Loaded ${watchRequests.length} active watch request(s)`,
+      metadata: { watch_request_error: watchRequestError, watch_request_ids: watchRequests.map((request) => request.id) }
+    });
     const detector = createLocalDetector();
     const localDetections = await detector.analyze({
       camera_id: job.camera_id,
@@ -143,8 +164,26 @@ export async function processObserverJobMock(supabase: SupabaseLike, inputJob: R
       title: detection.title,
       description: detection.description,
       explanation: detection.recommended_action,
-      metadata: { ...detection.metadata, recommended_action: detection.recommended_action, local_dedupe_key: detection.dedupe_key }
+      metadata: {
+        ...detection.metadata,
+        recommended_action: detection.recommended_action,
+        local_dedupe_key: detection.dedupe_key,
+        active_watch_request_count: watchRequests.length,
+        watch_request_id: requestedWatch?.id ?? null,
+        watch_rule_key: requestedWatchRule?.ruleKey ?? null
+      }
     }));
+    if (requestedWatchRule && detections.length === 0) {
+      detections.push({
+        rule_key: requestedWatchRule.ruleKey,
+        event_type: requestedWatchRule.eventType,
+        confidence: 0.51,
+        title: `בקשת מעקב דורשת review: ${requestedWatchRule.title}`,
+        description: requestedWatchRule.description,
+        explanation: String(requestedWatchRule.metadata.recommended_action ?? "בדיקה אנושית"),
+        metadata: { ...requestedWatchRule.metadata, watch_request_id: requestedWatchRule.watchRequestId, local_dedupe_key: `watch:${requestedWatchRule.watchRequestId}:${new Date().toISOString().slice(0, 10)}` }
+      });
+    }
     await logJob(supabase, { job_id: job.id, worker_id: job.worker_id, kindergarten_id: job.kindergarten_id, camera_id: job.camera_id, level: "info", message: `Local shadow detector returned ${detections.length} detection(s)`, metadata: { provider: detector.provider, mode: detector.mode } });
 
     for (const detection of detections) {
@@ -168,7 +207,10 @@ export async function processObserverJobMock(supabase: SupabaseLike, inputJob: R
         .from("ai_camera_events" as any)
         .insert({
           kindergarten_id: job.kindergarten_id,
+          observer_site_id: camera?.observer_site_id ?? job.observer_site_id ?? null,
           camera_id: job.camera_id,
+          zone_id: job.zone_id,
+          watch_request_id: detection.metadata?.watch_request_id ?? null,
           event_type: detection.event_type,
           severity: decision.severity,
           title: detection.title,
