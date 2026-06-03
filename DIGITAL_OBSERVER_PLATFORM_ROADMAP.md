@@ -215,6 +215,18 @@ Planned API groups:
 - event feeds
 - notification feeds
 
+## Future Site Owner Journey
+
+The standalone customer journey is documented in `DIGITAL_OBSERVER_SITE_OWNER_JOURNEY.md`.
+
+Future readiness routes:
+
+- `/digital-observer`
+- `/digital-observer/onboarding`
+- `/digital-observer/dashboard`
+
+These routes are mock/readiness only. They must not affect Gan Batuach kindergarten onboarding or manager dashboards.
+
 ## Privacy by Site Type
 
 Kindergarten:
