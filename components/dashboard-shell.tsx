@@ -31,6 +31,7 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/admin/observer-learning", label: "למידת תצפיתן", hint: "אזורים ושגרות" },
     { href: "/dashboard/admin/observer-platform", label: "Observer Platform", hint: "Multi-site" },
     { href: "/dashboard/admin/observer-packages", label: "Observer Packages", hint: "Future standalone" },
+    { href: "/dashboard/admin/observer-billing", label: "Observer Billing", hint: "Future standalone" },
     { href: "/dashboard/admin/notifications", label: "התראות", hint: "מרכז פעולות" },
     { href: "/dashboard/admin/communication", label: "תקשורת", hint: "SMS ו-WhatsApp" },
     { href: "/dashboard/admin/push", label: "Push", hint: "Web, Android, iOS" },
