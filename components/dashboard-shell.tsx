@@ -30,6 +30,7 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/admin/ai-events", label: "אירועי AI", hint: "אירועים והתראות" },
     { href: "/dashboard/admin/audio-events", label: "Audio Events", hint: "אינדיקציות שמע" },
     { href: "/dashboard/admin/observer-learning", label: "למידת תצפיתן", hint: "אזורים ושגרות" },
+    { href: "/dashboard/admin/observer-learning-advanced", label: "Advanced Learning", hint: "Baselines ומוכנות" },
     { href: "/dashboard/admin/observer-watch", label: "Observer Watch", hint: "בקשות מעקב" },
     { href: "/dashboard/admin/observer-platform", label: "Observer Platform", hint: "Multi-site" },
     { href: "/dashboard/admin/observer-packages", label: "Observer Packages", hint: "Future standalone" },
