@@ -6254,3 +6254,106 @@ body {
     margin-inline: 0;
   }
 }
+
+/* UX-4 onboarding and first-time experience */
+.first-login-guide-card {
+  display: grid;
+  gap: 14px;
+  border-color: rgb(30 95 116 / 16%) !important;
+  background:
+    linear-gradient(135deg, rgb(255 255 255 / 96%), rgb(245 253 249 / 94%)),
+    linear-gradient(135deg, var(--ux-mint), var(--ux-sky)) !important;
+}
+
+.first-login-copy {
+  display: grid;
+  gap: 6px;
+}
+
+.first-login-copy h2 {
+  margin: 0;
+  color: #143247;
+  font-size: clamp(22px, 3vw, 34px);
+  line-height: 1.15;
+}
+
+.first-login-copy p {
+  max-width: 760px;
+  margin: 0;
+  color: #53677a;
+  line-height: 1.55;
+}
+
+.next-onboarding-step {
+  display: grid;
+  gap: 5px;
+  min-height: 86px;
+  border: 1px solid rgb(30 95 116 / 16%);
+  border-radius: 18px;
+  padding: 14px 16px;
+  background: #fff;
+  color: #173246;
+  box-shadow: 0 10px 24px rgb(20 45 70 / 7%);
+}
+
+.next-onboarding-step small {
+  color: var(--ux-brand);
+  font-weight: 900;
+}
+
+.next-onboarding-step strong {
+  font-size: 18px;
+}
+
+.next-onboarding-step span {
+  color: #5d6f80;
+  font-size: 14px;
+  line-height: 1.45;
+}
+
+.first-login-guide-card .role-guide-steps {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.first-login-guide-card .role-guide-steps a {
+  min-height: 82px;
+  align-items: center;
+}
+
+.guide-control-row {
+  flex-wrap: wrap;
+}
+
+.guide-control-row .button {
+  min-height: 42px;
+}
+
+@media (max-width: 768px) {
+  .first-login-guide-card {
+    gap: 12px;
+    margin-inline: 0;
+    padding: 16px !important;
+  }
+
+  .first-login-copy h2 {
+    font-size: 24px;
+  }
+
+  .next-onboarding-step {
+    min-height: 74px;
+    padding: 13px;
+  }
+
+  .first-login-guide-card .role-guide-steps {
+    grid-template-columns: 1fr;
+  }
+
+  .first-login-guide-card .role-guide-steps a {
+    min-height: 72px;
+  }
+
+  .guide-control-row {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+}
