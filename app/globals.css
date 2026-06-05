@@ -5782,3 +5782,347 @@ td {
     padding: 6px;
   }
 }
+
+/* UX-2 mobile-first experience layer */
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+@media (max-width: 980px) {
+  .dashboard-layout,
+  .dashboard-main,
+  .dashboard-section,
+  .dashboard-panels,
+  .dashboard-kpis,
+  .grid,
+  .stack {
+    max-width: 100%;
+    overflow-x: clip;
+  }
+
+  .sidebar {
+    max-height: none;
+    overflow-y: visible;
+  }
+
+  .sidebar nav {
+    scroll-snap-type: x proximity;
+    scrollbar-width: thin;
+  }
+
+  .nav-group {
+    scroll-snap-align: start;
+  }
+
+  .nav-group:not([open]) {
+    min-width: 148px;
+  }
+
+  .nav-group:not([open]) > div {
+    display: none;
+  }
+
+  .dashboard-main {
+    padding-bottom: calc(124px + var(--safe-bottom, 0px));
+  }
+
+  .dashboard-page-navigation {
+    min-height: 52px;
+  }
+
+  .dashboard-page-navigation .button,
+  .dashboard-page-navigation button,
+  .dashboard-page-navigation a {
+    min-height: 44px;
+  }
+}
+
+@media (max-width: 768px) {
+  body {
+    overscroll-behavior-y: contain;
+  }
+
+  button,
+  .button,
+  .primary-action,
+  .quick-action,
+  .mobile-tabbar a,
+  .mobile-fab,
+  summary,
+  input,
+  select,
+  textarea,
+  [role="button"] {
+    min-height: 48px;
+  }
+
+  input,
+  select,
+  textarea {
+    width: 100%;
+    font-size: 16px;
+    padding: 12px 13px;
+  }
+
+  textarea {
+    min-height: 108px;
+  }
+
+  label {
+    font-size: 14px;
+    line-height: 1.35;
+  }
+
+  .dashboard-main {
+    padding-inline: 12px;
+  }
+
+  .dashboard-hero-card {
+    margin-inline: 0;
+    padding: 18px;
+  }
+
+  .dashboard-hero-card h1 {
+    font-size: clamp(26px, 8vw, 34px);
+    line-height: 1.12;
+  }
+
+  .dashboard-hero-card p {
+    font-size: 15px;
+    line-height: 1.5;
+  }
+
+  .section-heading h2,
+  .action-panel h2,
+  .dashboard-section h2 {
+    font-size: clamp(20px, 6vw, 28px);
+  }
+
+  .card,
+  .panel,
+  .metric-card,
+  .stat-card,
+  .action-panel,
+  .procedure-card,
+  .person-card,
+  .child-card,
+  .camera-card,
+  .finance-student-card,
+  .notification-card,
+  .form-card {
+    border-radius: 18px !important;
+    padding: 16px !important;
+  }
+
+  .metric-card,
+  .stat-card {
+    min-height: 92px;
+  }
+
+  .metric-card strong,
+  .stat-card strong {
+    font-size: 28px;
+  }
+
+  .quick-actions-grid,
+  .command-center-grid,
+  .simple-command-grid,
+  .procedure-list,
+  .dashboard-panels,
+  .stack {
+    gap: 12px;
+  }
+
+  .quick-action {
+    min-height: 76px;
+    padding: 14px;
+  }
+
+  .procedure-card {
+    gap: 12px;
+  }
+
+  .procedure-meta {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    justify-content: stretch;
+  }
+
+  .procedure-meta .button,
+  .procedure-meta button {
+    width: 100%;
+    min-height: 48px;
+  }
+
+  .form-grid,
+  .compact-form,
+  .premium-step-form,
+  .wizard-form,
+  form {
+    gap: 12px;
+  }
+
+  .empty-state,
+  .empty-mini,
+  .notice,
+  .status-banner,
+  .success-banner,
+  .error-banner {
+    padding: 16px;
+  }
+
+  .mobile-tabbar {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    min-height: 72px;
+    padding: 6px;
+    gap: 4px;
+  }
+
+  .mobile-tabbar a {
+    min-width: 0;
+    min-height: 58px;
+    border-radius: 17px;
+    padding: 6px 4px;
+    text-align: center;
+  }
+
+  .mobile-tabbar a strong,
+  .mobile-tabbar a span {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mobile-tabbar a strong {
+    font-size: 12px;
+    line-height: 1.15;
+  }
+
+  .mobile-tabbar a span {
+    font-size: 10px;
+    line-height: 1.1;
+  }
+
+  .mobile-fab {
+    inset-inline-end: 14px;
+    bottom: calc(88px + var(--safe-bottom, 0px));
+    width: 58px;
+    height: 58px;
+    font-size: 28px;
+  }
+
+  .panel,
+  .table-scroll {
+    overflow-x: visible;
+  }
+
+  .panel table,
+  .table-scroll table {
+    display: block;
+    width: 100%;
+    min-width: 0;
+    border-radius: 0;
+    background: transparent;
+  }
+
+  .panel table thead,
+  .table-scroll table thead {
+    display: none;
+  }
+
+  .panel table tbody,
+  .panel table tr,
+  .panel table td,
+  .table-scroll table tbody,
+  .table-scroll table tr,
+  .table-scroll table td {
+    display: block;
+    width: 100%;
+  }
+
+  .panel table tr,
+  .table-scroll table tr {
+    margin-bottom: 10px;
+    border: 1px solid var(--ux-line);
+    border-radius: 16px;
+    padding: 8px;
+    background: #fff;
+    box-shadow: 0 8px 18px rgb(20 45 70 / 5%);
+  }
+
+  .panel table td,
+  .table-scroll table td {
+    border: 0;
+    padding: 8px;
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  .snapshot-image,
+  .snapshot-placeholder,
+  .camera-card video,
+  .camera-player,
+  iframe,
+  video,
+  img {
+    max-width: 100%;
+  }
+}
+
+@media (max-width: 430px) {
+  .dashboard-main {
+    padding-inline: 10px;
+  }
+
+  .sidebar {
+    padding: 10px;
+  }
+
+  .nav-group {
+    min-width: min(86vw, 330px);
+  }
+
+  .dashboard-hero-card,
+  .card,
+  .panel,
+  .action-panel,
+  .procedure-card,
+  .person-card,
+  .child-card,
+  .camera-card,
+  .finance-student-card,
+  .notification-card,
+  .form-card {
+    border-radius: 16px !important;
+  }
+
+  .procedure-meta {
+    grid-template-columns: 1fr;
+  }
+
+  .mobile-tabbar {
+    inset-inline: 6px;
+    bottom: calc(6px + var(--safe-bottom, 0px));
+    border-radius: 20px;
+  }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .dashboard-main {
+    padding-inline: 18px;
+  }
+
+  .grid.cols-4,
+  .dashboard-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .form-grid,
+  .form-grid.two {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}

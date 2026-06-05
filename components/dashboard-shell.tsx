@@ -170,53 +170,53 @@ const dashboardHomeByRole: Record<UserRole, string> = {
 const mobileNavByRole: Record<UserRole, Array<{ href: string; label: string; hint: string }>> = {
   admin: [
     { href: "/dashboard/admin", label: "בית", hint: "שליטה" },
-    { href: "/dashboard/admin/system-health", label: "בריאות", hint: "מערכת" },
+    { href: "/dashboard/admin/kindergartens", label: "גנים", hint: "ניהול" },
+    { href: "/dashboard/admin/users", label: "משתמשים", hint: "ניהול" },
     { href: "/dashboard/admin/notifications", label: "התראות", hint: "חשוב" },
-    { href: "/dashboard/admin/users", label: "חיפוש", hint: "משתמשים" },
-    { href: "/dashboard/admin/settings", label: "עוד", hint: "הגדרות" }
+    { href: "/dashboard/admin/settings", label: "עוד", hint: "מתקדם" }
   ],
   manager: [
     { href: "/dashboard/garden", label: "בית", hint: "היום" },
     { href: "/dashboard/garden/children", label: "ילדים", hint: "עדכון" },
     { href: "/dashboard/garden/messages", label: "פניות", hint: "הורים" },
-    { href: "/dashboard/garden/finance", label: "כספים", hint: "גבייה" },
-    { href: "/dashboard/garden/notifications", label: "עוד", hint: "התראות" }
+    { href: "/dashboard/garden/cameras", label: "מצלמות", hint: "צפייה" },
+    { href: "/dashboard/garden/tasks", label: "משימות", hint: "היום" }
   ],
   owner: [
     { href: "/dashboard/garden", label: "בית", hint: "היום" },
     { href: "/dashboard/garden/children", label: "ילדים", hint: "עדכון" },
     { href: "/dashboard/garden/messages", label: "פניות", hint: "הורים" },
-    { href: "/dashboard/garden/finance", label: "כספים", hint: "גבייה" },
-    { href: "/dashboard/garden/notifications", label: "עוד", hint: "התראות" }
+    { href: "/dashboard/garden/cameras", label: "מצלמות", hint: "צפייה" },
+    { href: "/dashboard/garden/tasks", label: "משימות", hint: "היום" }
   ],
   staff: [
     { href: "/dashboard/staff", label: "בית", hint: "משמרת" },
     { href: "/dashboard/staff/child-journal", label: "ילדים", hint: "עדכון" },
-    { href: "/dashboard/staff/incidents", label: "אירוע", hint: "דיווח" },
+    { href: "/dashboard/staff/messages", label: "הודעות", hint: "גן" },
     { href: "/dashboard/staff/tasks", label: "משימות", hint: "היום" },
-    { href: "/dashboard/staff/notifications", label: "עוד", hint: "התראות" }
+    { href: "/dashboard/staff/notifications", label: "עוד", hint: "עוד" }
   ],
   inspector: [
     { href: "/dashboard/inspector", label: "בית", hint: "עבודה" },
     { href: "/dashboard/inspector/inspections", label: "ביקורות", hint: "היום" },
-    { href: "/dashboard/inspector", label: "גנים", hint: "שיוך" },
+    { href: "/dashboard/inspector/reports", label: "דוחות", hint: "סיכום" },
     { href: "/dashboard/inspector/violations", label: "חריגות", hint: "טיפול" },
-    { href: "/dashboard/inspector/notifications", label: "עוד", hint: "התראות" }
+    { href: "/dashboard/inspector/notifications", label: "עוד", hint: "עוד" }
   ],
   parent: [
     { href: "/dashboard/parent", label: "בית", hint: "הילד" },
-    { href: "/dashboard/parent", label: "ילד", hint: "פרופיל" },
+    { href: "/dashboard/parent/daily-journal", label: "ילדים", hint: "יומן" },
     { href: "/dashboard/parent/messages", label: "הודעות", hint: "גן" },
-    { href: "/dashboard/parent/pickup", label: "איסוף", hint: "מורשים" },
+    { href: "/dashboard/parent/cameras", label: "מצלמות", hint: "צפייה" },
     { href: "/dashboard/parent/notifications", label: "עוד", hint: "התראות" }
   ]
 };
 
 const mobileFabByRole: Record<UserRole, string> = {
   admin: "/dashboard/admin/notifications",
-  manager: "/dashboard/garden/children?view=attention",
-  owner: "/dashboard/garden/finance?filter=due",
-  staff: "/dashboard/staff/child-journal",
+  manager: "/dashboard/garden/observer-intelligence",
+  owner: "/dashboard/garden/observer-intelligence",
+  staff: "/dashboard/staff/incidents",
   inspector: "/dashboard/inspector/inspections/due",
   parent: "/dashboard/parent/messages"
 };
