@@ -25,14 +25,14 @@ export default async function AdminAudioEventsPage() {
   }, { events: [] as any[], cameras: [] as any[], gardens: [] as any[], queryError: null as string | null });
 
   return (
-    <DashboardShell role="admin" title="Audio Observer">
+    <DashboardShell role="admin" title="אינדיקציות שמע">
       <div className="dashboard-hero-card admin-hero-card">
         <div>
-          <p className="eyebrow">Audio intelligence readiness</p>
-          <h1>Audio trends and distress indicators.</h1>
-          <p>Mock-only architecture for future audio safety indicators. No speech-to-text surveillance, no parent audio review, no automatic accusations.</p>
+          <p className="eyebrow">תצפיתן דיגיטלי</p>
+          <h1>אינדיקציות שמע לבדיקה.</h1>
+          <p>תשתית בדיקה בלבד. אין תמלול, אין זיהוי קולי ואין מסקנות אוטומטיות.</p>
         </div>
-        <span className="pill warn"><Ear size={15} /> Human review required</span>
+        <span className="pill warn"><Ear size={15} /> בדיקת אדם נדרשת</span>
       </div>
       <AdminDataError message={result.error ?? result.data.queryError} />
       <AudioObserverEventsPanel role="admin" events={result.data.events} cameras={result.data.cameras} gardens={result.data.gardens} />

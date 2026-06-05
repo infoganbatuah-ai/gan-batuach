@@ -17,14 +17,14 @@ export default async function GardenObserverIntelligencePage() {
   const cameraWarnings = ((cameras.data ?? []) as any[]).filter((camera) => camera.active === false || ["offline", "failed", "error", "disabled", "pending_gateway"].includes(String(camera.status ?? camera.stream_status ?? camera.health_status ?? camera.gateway_registration_status ?? ""))).length;
 
   return (
-    <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="Observer Intelligence">
+    <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="סיכומי תצפיתן">
       <div className="dashboard-hero-card garden-hero-card">
         <div>
-          <p className="eyebrow">Unified observer intelligence</p>
+          <p className="eyebrow">תצפיתן דיגיטלי</p>
           <h1>מה התצפיתן מציע לבדוק עכשיו.</h1>
           <p>סיכום זהיר של מצלמות, שמע, צירי זמן, איסוף ולמידה. אין מסקנות אוטומטיות ואין הודעות הורים ללא אישור.</p>
         </div>
-        <span className="pill warn"><Brain size={15} /> Human review</span>
+        <span className="pill warn"><Brain size={15} /> בדיקת אדם</span>
       </div>
       <ObserverIntelligencePanel
         role="garden"
