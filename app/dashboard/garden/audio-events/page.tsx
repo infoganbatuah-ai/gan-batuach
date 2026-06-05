@@ -14,14 +14,14 @@ export default async function GardenAudioEventsPage() {
   ]);
 
   return (
-    <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="Audio Events">
+    <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="אינדיקציות שמע">
       <div className="dashboard-hero-card garden-hero-card">
         <div>
-          <p className="eyebrow">Audio intelligence readiness</p>
+          <p className="eyebrow">תצפיתן דיגיטלי</p>
           <h1>אינדיקציות שמע לבדיקה אנושית.</h1>
-          <p>אין תמלול שיחות, אין זיהוי קולי, אין מסקנות משמעתיות. רק mock/readiness ו-review אנושי.</p>
+          <p>אין תמלול שיחות, אין זיהוי קולי ואין מסקנות משמעתיות. כל סימן דורש בדיקת אדם.</p>
         </div>
-        <span className="pill warn"><Ear size={15} /> No speech-to-text</span>
+        <span className="pill warn"><Ear size={15} /> בלי תמלול</span>
       </div>
       <AudioObserverEventsPanel role="garden" fixedKindergartenId={gardenId} events={(events.data ?? []) as any[]} cameras={(cameras.data ?? []) as any[]} />
     </DashboardShell>

@@ -29,14 +29,14 @@ export default async function AdminCorrelatedEventsPage() {
   }, { events: [] as any[], links: [] as any[], cameras: [] as any[], zones: [] as any[], gardens: [] as any[], queryError: null as string | null });
 
   return (
-    <DashboardShell role="admin" title="Correlated Events">
+    <DashboardShell role="admin" title="צירי זמן">
       <div className="dashboard-hero-card admin-hero-card">
         <div>
-          <p className="eyebrow">Multi camera correlation</p>
-          <h1>Cross-camera timelines and sensor correlation.</h1>
-          <p>Mock-only correlation readiness. No identity recognition, no biometric tracking, no child/staff profiling.</p>
+          <p className="eyebrow">תצפיתן דיגיטלי</p>
+          <h1>צירי זמן בין מצלמות וחיישנים.</h1>
+          <p>קישור אירועים לבדיקה בלבד. אין זיהוי אדם, אין מעקב ביומטרי ואין פרופיל ילדים או צוות.</p>
         </div>
-        <span className="pill warn"><GitBranch size={15} /> Review required</span>
+        <span className="pill warn"><GitBranch size={15} /> בדיקת אדם</span>
       </div>
       <AdminDataError message={result.error ?? result.data.queryError} />
       <CorrelatedEventsPanel

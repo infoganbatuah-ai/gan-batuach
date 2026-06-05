@@ -16,14 +16,14 @@ export default async function GardenCorrelatedEventsPage() {
   ]) : [{ data: [] }, { data: [] }, { data: [] }, { data: [] }];
 
   return (
-    <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="Correlated Events">
+    <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="צירי זמן">
       <div className="dashboard-hero-card garden-hero-card">
         <div>
-          <p className="eyebrow">Multi camera correlation</p>
+          <p className="eyebrow">תצפיתן דיגיטלי</p>
           <h1>צירי זמן בין מצלמות וחיישנים.</h1>
           <p>קישור אירועים בלבד. אין זיהוי זהות, אין מעקב ביומטרי ואין התראות הורים אוטומטיות.</p>
         </div>
-        <span className="pill warn"><GitBranch size={15} /> Human review</span>
+        <span className="pill warn"><GitBranch size={15} /> בדיקת אדם</span>
       </div>
       <CorrelatedEventsPanel
         role="garden"

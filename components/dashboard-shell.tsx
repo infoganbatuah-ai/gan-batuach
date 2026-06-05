@@ -24,43 +24,43 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/admin/inspection-forms", label: "טפסי פיקוח", hint: "בונה דינמי" },
     { href: "/dashboard/admin/procedures", label: "נהלים", hint: "חובה ותאימות" },
     { href: "/dashboard/admin/policies", label: "תקנונים", hint: "אישורי משתמשים" },
-    { href: "/dashboard/admin/cameras", label: "מצלמות", hint: "Gateway והרשאות" },
-    { href: "/dashboard/admin/video-gateway", label: "Video Gateway", hint: "MediaMTX/go2rtc" },
-    { href: "/dashboard/admin/camera-audit", label: "Camera Audit", hint: "מוכנות Gateway" },
-    { href: "/dashboard/admin/ai-events", label: "אירועי AI", hint: "אירועים והתראות" },
-    { href: "/dashboard/admin/audio-events", label: "Audio Events", hint: "אינדיקציות שמע" },
-    { href: "/dashboard/admin/correlated-events", label: "Correlated Events", hint: "צירי זמן" },
-    { href: "/dashboard/admin/observer-intelligence", label: "Observer Intelligence", hint: "סיכומי מצב" },
+    { href: "/dashboard/admin/cameras", label: "מצלמות", hint: "חיבורים והרשאות" },
+    { href: "/dashboard/admin/video-gateway", label: "שרת וידאו", hint: "חיבור שידורים" },
+    { href: "/dashboard/admin/camera-audit", label: "בדיקת מצלמות", hint: "מוכנות שידור" },
+    { href: "/dashboard/admin/ai-events", label: "אירועי תצפיתן", hint: "אירועים לבדיקה" },
+    { href: "/dashboard/admin/audio-events", label: "אינדיקציות שמע", hint: "שמע לבדיקה" },
+    { href: "/dashboard/admin/correlated-events", label: "צירי זמן", hint: "אירועים מקושרים" },
+    { href: "/dashboard/admin/observer-intelligence", label: "סיכומי תצפיתן", hint: "מה לבדוק" },
     { href: "/dashboard/admin/observer-learning", label: "למידת תצפיתן", hint: "אזורים ושגרות" },
-    { href: "/dashboard/admin/observer-learning-advanced", label: "Advanced Learning", hint: "Baselines ומוכנות" },
-    { href: "/dashboard/admin/observer-watch", label: "Observer Watch", hint: "בקשות מעקב" },
-    { href: "/dashboard/admin/observer-platform", label: "Observer Platform", hint: "Multi-site" },
-    { href: "/dashboard/admin/observer-packages", label: "Observer Packages", hint: "Future standalone" },
-    { href: "/dashboard/admin/observer-billing", label: "Observer Billing", hint: "Future standalone" },
+    { href: "/dashboard/admin/observer-learning-advanced", label: "למידה מתקדמת", hint: "שגרה ומוכנות" },
+    { href: "/dashboard/admin/observer-watch", label: "בקשות מעקב", hint: "מה לבדוק" },
+    { href: "/dashboard/admin/observer-platform", label: "פלטפורמת תצפיתן", hint: "מוצר עתידי" },
+    { href: "/dashboard/admin/observer-packages", label: "חבילות תצפיתן", hint: "מוצר עתידי" },
+    { href: "/dashboard/admin/observer-billing", label: "חיוב תצפיתן", hint: "מוצר עתידי" },
     { href: "/dashboard/admin/notifications", label: "התראות", hint: "מרכז פעולות" },
     { href: "/dashboard/admin/communication", label: "תקשורת", hint: "SMS ו-WhatsApp" },
-    { href: "/dashboard/admin/push", label: "Push", hint: "Web, Android, iOS" },
+    { href: "/dashboard/admin/push", label: "התראות לנייד", hint: "מכשירים ואפליקציה" },
     { href: "/dashboard/admin/subscriptions", label: "מנויים", hint: "חיוב ותוכניות" },
     { href: "/dashboard/admin/tasks", label: "משימות", hint: "מעקב והסלמה" },
     { href: "/dashboard/admin/complaints", label: "דיווחים ופניות", hint: "SLA וחומרה" },
     { href: "/dashboard/admin/documents", label: "מסמכים", hint: "תוקף וציות" },
     { href: "/dashboard/admin/system-health", label: "בריאות מערכת", hint: "מה חסר" },
     { href: "/dashboard/admin/navigation-health", label: "בריאות ניווט", hint: "בדיקת routes" },
-    { href: "/dashboard/admin/mobile-audit", label: "Mobile Audit", hint: "חוויית טלפון" },
+    { href: "/dashboard/admin/mobile-audit", label: "בדיקת מובייל", hint: "חוויית טלפון" },
     { href: "/dashboard/admin/duplicates", label: "כפילויות", hint: "תעודות זהות" },
-    { href: "/dashboard/admin/user-journey-audit", label: "User Journey Audit", hint: "בדיקת מסעות" },
-    { href: "/dashboard/admin/smart-engine-audit", label: "Smart Engine", hint: "אודיט תובנות" },
-    { href: "/dashboard/admin/audit-logs", label: "Audit Logs", hint: "פעולות מערכת" },
+    { href: "/dashboard/admin/user-journey-audit", label: "בדיקת מסעות", hint: "זרימות משתמש" },
+    { href: "/dashboard/admin/smart-engine-audit", label: "בדיקת תובנות", hint: "מנוע המלצות" },
+    { href: "/dashboard/admin/audit-logs", label: "יומן פעולות", hint: "פעולות מערכת" },
     { href: "/dashboard/admin/demo-control", label: "Demo Control", hint: "נתוני דמו ו-QA" },
     { href: "/dashboard/admin/qa-checklist", label: "QA Checklist", hint: "בדיקות תפעול" },
-    { href: "/dashboard/admin/simplicity-audit", label: "Simplicity Audit", hint: "פשטות שימוש" },
+    { href: "/dashboard/admin/simplicity-audit", label: "בדיקת פשטות", hint: "פשטות שימוש" },
     { href: "/dashboard/admin/reports", label: "דוחות", hint: "ייצוא וניתוח" },
     { href: "/dashboard/admin/settings", label: "הגדרות", hint: "מערכת והרשאות" }
   ],  inspector: [
     { href: "/dashboard/inspector", label: "ביקורות", hint: "חודשי, GPS, ליקויים" },
     { href: "/dashboard/inspector/inspections", label: "ביקורות", hint: "נתוני פיקוח" },
     { href: "/dashboard/inspector/cameras", label: "מצלמות", hint: "גנים משויכים" },
-    { href: "/dashboard/inspector/ai-events", label: "AI", hint: "התראות גנים" },
+    { href: "/dashboard/inspector/ai-events", label: "תצפיתן", hint: "אירועים לבדיקה" },
     { href: "/dashboard/inspector/reports", label: "דיווחים", hint: "פניות ואירועים" },
     { href: "/dashboard/inspector/notifications", label: "התראות", hint: "פיקוח ומשימות" },
     { href: "/dashboard/inspector/tasks", label: "משימות", hint: "לביצוע" },
@@ -72,12 +72,12 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/garden/child-journal", label: "יומן ילד", hint: "עדכוני הורים" },
     { href: "/dashboard/garden/health", label: "בריאות", hint: "אלרגיות ותרופות" },
     { href: "/dashboard/garden/pickup", label: "איסוף", hint: "GPS ומורשים" },
-    { href: "/dashboard/garden/pickup-face", label: "Face Review", hint: "איסוף בטוח" },
+    { href: "/dashboard/garden/pickup-face", label: "בדיקת איסוף", hint: "איסוף בטוח" },
     { href: "/dashboard/garden/incidents", label: "אירועים", hint: "דיווח וטיפול" },
     { href: "/dashboard/garden/daily-journal", label: "יומן תפעול", hint: "צ׳קליסט יומי" },
     { href: "/dashboard/garden/cameras", label: "מצלמות", hint: "אשף חיבור" },
-    { href: "/dashboard/garden/ai-events", label: "אירועי תצפיתן", hint: "Review אנושי" },
-    { href: "/dashboard/garden/audio-events", label: "אינדיקציות שמע", hint: "Review אנושי" },
+    { href: "/dashboard/garden/ai-events", label: "אירועי תצפיתן", hint: "בדיקת אדם" },
+    { href: "/dashboard/garden/audio-events", label: "אינדיקציות שמע", hint: "בדיקת אדם" },
     { href: "/dashboard/garden/correlated-events", label: "צירי זמן", hint: "אירועים מקושרים" },
     { href: "/dashboard/garden/observer-intelligence", label: "מה לבדוק", hint: "סיכומי תצפיתן" },
     { href: "/dashboard/garden/onboarding", label: "קליטה", hint: "הורים, ילדים וצוות" },
@@ -103,12 +103,12 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/garden/child-journal", label: "יומן ילד", hint: "עדכוני הורים" },
     { href: "/dashboard/garden/health", label: "בריאות", hint: "אלרגיות ותרופות" },
     { href: "/dashboard/garden/pickup", label: "איסוף", hint: "GPS ומורשים" },
-    { href: "/dashboard/garden/pickup-face", label: "Face Review", hint: "איסוף בטוח" },
+    { href: "/dashboard/garden/pickup-face", label: "בדיקת איסוף", hint: "איסוף בטוח" },
     { href: "/dashboard/garden/incidents", label: "אירועים", hint: "דיווח וטיפול" },
     { href: "/dashboard/garden/daily-journal", label: "יומן תפעול", hint: "צ׳קליסט יומי" },
     { href: "/dashboard/garden/cameras", label: "מצלמות", hint: "אשף חיבור" },
-    { href: "/dashboard/garden/ai-events", label: "אירועי תצפיתן", hint: "Review אנושי" },
-    { href: "/dashboard/garden/audio-events", label: "אינדיקציות שמע", hint: "Review אנושי" },
+    { href: "/dashboard/garden/ai-events", label: "אירועי תצפיתן", hint: "בדיקת אדם" },
+    { href: "/dashboard/garden/audio-events", label: "אינדיקציות שמע", hint: "בדיקת אדם" },
     { href: "/dashboard/garden/correlated-events", label: "צירי זמן", hint: "אירועים מקושרים" },
     { href: "/dashboard/garden/observer-intelligence", label: "מה לבדוק", hint: "סיכומי תצפיתן" },
     { href: "/dashboard/garden/onboarding", label: "קליטה", hint: "הורים, ילדים וצוות" },
@@ -221,22 +221,71 @@ const mobileFabByRole: Record<UserRole, string> = {
   parent: "/dashboard/parent/messages"
 };
 
+function navGroupFor(role: UserRole, href: string) {
+  if (role === "admin") {
+    if (href === "/dashboard/admin" || href.includes("/notifications") || href.includes("/system-health")) return "ראשי";
+    if (href.includes("/users") || href.includes("/kindergartens") || href.includes("/gardens") || href.includes("/inspectors") || href.includes("/leads")) return "ניהול";
+    if (href.includes("observer") || href.includes("ai") || href.includes("camera") || href.includes("video-gateway") || href.includes("audio") || href.includes("correlated")) return "תצפיתן";
+    if (href.includes("inspection") || href.includes("violations") || href.includes("reports") || href.includes("documents") || href.includes("audit")) return "פיקוח ודוחות";
+    return "עוד";
+  }
+  if (role === "manager" || role === "owner") {
+    if (href === "/dashboard/garden" || href.includes("/children") || href.includes("/child-journal") || href.includes("/attendance") || href.includes("/messages") || href.includes("/notifications")) return "היום";
+    if (href.includes("/leads") || href.includes("/parents") || href.includes("/staff") || href.includes("/finance") || href.includes("/documents") || href.includes("/tasks")) return "ניהול";
+    if (href.includes("observer") || href.includes("ai-events") || href.includes("audio-events") || href.includes("correlated") || href.includes("/cameras")) return "תצפיתן";
+    return "עוד";
+  }
+  if (role === "parent") {
+    if (href === "/dashboard/parent" || href.includes("/daily-journal") || href.includes("/messages") || href.includes("/notifications")) return "הילד שלי";
+    if (href.includes("/cameras") || href.includes("/pickup") || href.includes("/documents")) return "שימוש יומי";
+    return "עוד";
+  }
+  if (role === "staff") {
+    if (href === "/dashboard/staff" || href.includes("/child-journal") || href.includes("/tasks") || href.includes("/incidents") || href.includes("/attendance")) return "היום";
+    return "עוד";
+  }
+  if (href === "/dashboard/inspector" || href.includes("/inspections") || href.includes("/violations")) return "פיקוח";
+  return "עוד";
+}
+
+function groupedNav(role: UserRole) {
+  const groups = new Map<string, Array<{ href: string; label: string; hint: string }>>();
+  for (const item of navByRole[role]) {
+    const group = navGroupFor(role, item.href);
+    groups.set(group, [...(groups.get(group) ?? []), item]);
+  }
+  return Array.from(groups.entries());
+}
+
 export function DashboardShell({ role, title, children }: { role: UserRole; title: string; children: React.ReactNode }) {
   const mobileNav = mobileNavByRole[role];
+  const navGroups = groupedNav(role);
   return (
     <>
       <BrandHeader />
       <div className={`dashboard-layout dashboard-role-${role}`}>
         <aside className="sidebar">
-          <h2>{title}</h2>
-          <LogoutButton />
-          <p>ממשק עבודה לפי הרשאה, גן ושיוך.</p>
+          <div className="sidebar-topline">
+            <div>
+              <span className="sidebar-kicker">Gan Batuach</span>
+              <h2>{title}</h2>
+            </div>
+            <LogoutButton />
+          </div>
+          <p>כל מה שחשוב לתפקיד שלך, מסודר לפי פעולה.</p>
           <nav>
-            {navByRole[role].map((item) => (
-              <Link href={item.href} key={item.href}>
-                <strong>{item.label}</strong>
-                <span>{item.hint}</span>
-              </Link>
+            {navGroups.map(([group, items], index) => (
+              <details className="nav-group" key={group} open={index < 2}>
+                <summary>{group}</summary>
+                <div>
+                  {items.map((item) => (
+                    <Link href={item.href} key={item.href}>
+                      <strong>{item.label}</strong>
+                      <span>{item.hint}</span>
+                    </Link>
+                  ))}
+                </div>
+              </details>
             ))}
           </nav>
           <PasskeyEnrollmentPrompt />

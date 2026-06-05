@@ -34,14 +34,14 @@ export default async function AdminObserverIntelligencePage() {
   }).length;
 
   return (
-    <DashboardShell role="admin" title="Observer Intelligence">
+    <DashboardShell role="admin" title="סיכומי תצפיתן">
       <div className="dashboard-hero-card admin-hero-card">
         <div>
-          <p className="eyebrow">Unified observer intelligence</p>
-          <h1>All observer summaries, trends and unresolved signals.</h1>
-          <p>Admin-only overview. No automatic accusations, no parent raw AI access and no disciplinary conclusions.</p>
+          <p className="eyebrow">תצפיתן דיגיטלי</p>
+          <h1>כל סיכומי התצפיתן במקום אחד.</h1>
+          <p>מבט ניהולי על אירועים, מגמות ונושאים פתוחים. אין האשמות אוטומטיות ואין גישה גולמית להורים.</p>
         </div>
-        <span className="pill warn"><Brain size={15} /> Review required</span>
+        <span className="pill warn"><Brain size={15} /> בדיקת אדם</span>
       </div>
       <AdminDataError message={result.error ?? result.data.queryError} />
       <ObserverIntelligencePanel
