@@ -20,9 +20,9 @@ export default async function GardenOnboardingPage() {
         <div>
           <p className="eyebrow">קליטה לגן</p>
           <h1>הורים, ילדים וצוות נכנסים למערכת בתהליך ברור ומבוקר.</h1>
-          <p>כל משתמש נוצר ב־Supabase Auth וב־profiles, וכל אישור נשמר בלוג ביקורת.</p>
+          <p>התחילו מהבקשה הקרובה ביותר: הורה חדש, ילד שממתין לאישור או איש צוות שצריך השלמה.</p>
         </div>
-        <span className="pill good"><UserRoundPlus size={15} /> תהליך מאושר</span>
+        <span className="pill good"><UserRoundPlus size={15} /> קליטה מסודרת</span>
       </div>
       <GardenProvisioningPanel pendingChildren={(children.data ?? []) as any} parentLeads={(leads.data ?? []) as any} pendingStaff={(staff.data ?? []) as any} />
     </DashboardShell>

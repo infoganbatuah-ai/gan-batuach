@@ -10,11 +10,11 @@ export default async function AdminOnboardingPage() {
     <DashboardShell role="admin" title="פתיחת משתמשים">
       <div className="dashboard-hero-card admin-hero-card">
         <div>
-          <p className="eyebrow">יצירה מאובטחת</p>
-          <h1>פתיחת גנים, מנהלות ופקחים עם Auth, הרשאות ולוג ביקורת.</h1>
-          <p>הסיסמה נוצרת זמנית ומוצגת פעם אחת בלבד לאדמין. לאחר הכניסה הראשונה המשתמש מסומן כמי שחייב להחליף סיסמה.</p>
+          <p className="eyebrow">פתיחה מסודרת</p>
+          <h1>פתיחת גנים, מנהלות ופקחים בתהליך קצר וברור.</h1>
+          <p>המערכת תציג פרטי כניסה זמניים בצורה מסודרת ותכוון את המשתמש להחלפת סיסמה בכניסה הראשונה.</p>
         </div>
-        <span className="pill good"><UserPlus size={15} /> Supabase Auth + profiles</span>
+        <span className="pill good"><UserPlus size={15} /> מוכן להפעלה</span>
       </div>
       <AdminProvisioningPanel />
     </DashboardShell>
