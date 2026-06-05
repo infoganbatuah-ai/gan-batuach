@@ -40,6 +40,7 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/admin/observer-billing", label: "חיוב תצפיתן", hint: "מוצר עתידי" },
     { href: "/dashboard/admin/notifications", label: "התראות", hint: "מרכז פעולות" },
     { href: "/dashboard/admin/communication", label: "תקשורת", hint: "SMS ו-WhatsApp" },
+    { href: "/dashboard/admin/whatsapp", label: "WhatsApp", hint: "תבניות ומסירה" },
     { href: "/dashboard/admin/push", label: "התראות לנייד", hint: "מכשירים ואפליקציה" },
     { href: "/dashboard/admin/subscriptions", label: "מנויים", hint: "חיוב ותוכניות" },
     { href: "/dashboard/admin/tasks", label: "משימות", hint: "מעקב והסלמה" },
@@ -227,7 +228,7 @@ function navGroupFor(role: UserRole, href: string) {
   if (role === "admin") {
     if (href === "/dashboard/admin" || href.includes("/notifications") || href.includes("/system-health")) return "ראשי";
     if (href.includes("/users") || href.includes("/kindergartens") || href.includes("/gardens") || href.includes("/inspectors") || href.includes("/leads")) return "ניהול";
-    if (href.includes("/subscriptions") || href.includes("/communication") || href.includes("/push")) return "כספים ותקשורת";
+    if (href.includes("/subscriptions") || href.includes("/communication") || href.includes("/whatsapp") || href.includes("/push")) return "כספים ותקשורת";
     if (href.includes("observer") || href.includes("ai") || href.includes("camera") || href.includes("video-gateway") || href.includes("audio") || href.includes("correlated")) return "תצפיתן";
     if (href.includes("inspection") || href.includes("violations") || href.includes("reports") || href.includes("documents") || href.includes("audit")) return "פיקוח ודוחות";
     return "עוד";
