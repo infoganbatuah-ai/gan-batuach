@@ -37,7 +37,7 @@ create table if not exists public.email_delivery_logs (
   communication_log_id uuid references public.communication_logs(id) on delete set null,
   template_id uuid references public.email_templates(id) on delete set null,
   recipient_profile_id uuid references public.profiles(id) on delete set null,
-  kindergarten_id uuid references public.kindergartens(id) on delete set null,
+  kindergarten_id uuid references public.gardens(id) on delete set null,
   category text,
   recipient_email text,
   subject_preview text,
