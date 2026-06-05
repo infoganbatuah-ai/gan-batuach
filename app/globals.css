@@ -6357,3 +6357,191 @@ body {
     grid-template-columns: 1fr;
   }
 }
+
+/* UX-5 pilot feedback and readiness */
+.pilot-feedback-widget {
+  position: fixed;
+  inset-inline-start: 16px;
+  bottom: calc(86px + var(--safe-bottom, 0px));
+  z-index: 42;
+}
+
+.pilot-feedback-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 44px;
+  border: 1px solid rgb(30 95 116 / 18%);
+  border-radius: 999px;
+  padding: 10px 14px;
+  background: rgb(255 255 255 / 94%);
+  color: var(--ux-brand-strong);
+  font-weight: 900;
+  box-shadow: 0 12px 28px rgb(20 45 70 / 12%);
+  backdrop-filter: blur(16px);
+}
+
+.pilot-feedback-panel {
+  width: min(340px, calc(100vw - 24px));
+  display: grid;
+  gap: 12px;
+  border: 1px solid var(--ux-line);
+  border-radius: 22px;
+  padding: 14px;
+  background: rgb(255 255 255 / 96%);
+  box-shadow: 0 18px 44px rgb(20 45 70 / 16%);
+}
+
+.pilot-feedback-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.pilot-feedback-heading div {
+  display: grid;
+  gap: 3px;
+}
+
+.pilot-feedback-heading span {
+  color: var(--ux-brand);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.pilot-feedback-heading strong {
+  color: #173246;
+  font-size: 18px;
+}
+
+.pilot-feedback-heading button {
+  min-height: 36px;
+  width: 36px;
+  border-radius: 999px;
+}
+
+.pilot-sentiment-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.pilot-sentiment-row button {
+  min-height: 46px;
+  border: 1px solid var(--ux-line);
+  border-radius: 14px;
+  background: #f7fbf9;
+  color: #26384a;
+  font-weight: 900;
+}
+
+.pilot-sentiment-row button.active {
+  border-color: rgb(30 95 116 / 28%);
+  background: #e9f8f4;
+  color: var(--ux-brand-strong);
+}
+
+.pilot-feedback-panel label {
+  display: grid;
+  gap: 6px;
+  color: #274052;
+  font-weight: 900;
+}
+
+.pilot-feedback-panel textarea {
+  min-height: 92px;
+}
+
+.pilot-feedback-ok,
+.pilot-feedback-error {
+  margin: 0;
+  border-radius: 14px;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.pilot-feedback-ok {
+  background: #e8fbf3;
+  color: #08704f;
+}
+
+.pilot-feedback-error {
+  background: #fff0ef;
+  color: #a1322d;
+}
+
+.pilot-readiness-grid {
+  gap: 12px;
+}
+
+.pilot-score-card {
+  display: grid;
+  gap: 8px;
+  min-height: 170px;
+}
+
+.pilot-score-card strong {
+  color: #153247;
+  font-size: 34px;
+  line-height: 1;
+}
+
+.pilot-score-card h3 {
+  margin: 0;
+  color: #173246;
+}
+
+.pilot-score-card p {
+  margin: 0;
+  color: #607284;
+  line-height: 1.45;
+}
+
+.pilot-score-card i {
+  display: block;
+  height: 9px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #edf3f6;
+}
+
+.pilot-score-card i b {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--ux-brand);
+}
+
+.pilot-score-card.good i b {
+  background: #12a26f;
+}
+
+.pilot-score-card.warn i b {
+  background: #d89422;
+}
+
+.pilot-score-card.bad i b {
+  background: #c2413b;
+}
+
+@media (max-width: 768px) {
+  .pilot-feedback-widget {
+    inset-inline: 10px;
+    bottom: calc(92px + var(--safe-bottom, 0px));
+  }
+
+  .pilot-feedback-widget:not(.open) {
+    inset-inline-start: 10px;
+    inset-inline-end: auto;
+  }
+
+  .pilot-feedback-panel {
+    width: calc(100vw - 20px);
+  }
+
+  .pilot-readiness-grid {
+    grid-template-columns: 1fr !important;
+  }
+}

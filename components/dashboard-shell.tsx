@@ -13,6 +13,7 @@ import { DashboardCommandCenter } from "@/components/dashboard-command-center";
 import { OnboardingGuideControls } from "@/components/onboarding-guide-controls";
 import { DashboardBackButton } from "@/components/dashboard-back-button";
 import { NotificationBell } from "@/components/notification-bell";
+import { PilotFeedbackWidget } from "@/components/pilot-feedback-widget";
 
 const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: string }>> = {
   admin: [
@@ -47,6 +48,7 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/admin/system-health", label: "בריאות מערכת", hint: "מה חסר" },
     { href: "/dashboard/admin/navigation-health", label: "בריאות ניווט", hint: "בדיקת routes" },
     { href: "/dashboard/admin/mobile-audit", label: "בדיקת מובייל", hint: "חוויית טלפון" },
+    { href: "/dashboard/admin/pilot-readiness", label: "מוכנות פיילוט", hint: "משוב וחסמים" },
     { href: "/dashboard/admin/duplicates", label: "כפילויות", hint: "תעודות זהות" },
     { href: "/dashboard/admin/user-journey-audit", label: "בדיקת מסעות", hint: "זרימות משתמש" },
     { href: "/dashboard/admin/smart-engine-audit", label: "בדיקת תובנות", hint: "מנוע המלצות" },
@@ -314,6 +316,7 @@ export function DashboardShell({ role, title, children }: { role: UserRole; titl
           {role === "admin" ? <AdminGlobalSearch /> : null}
           {children}
           <AIAssistantPanel role={role} />
+          <PilotFeedbackWidget role={role} />
         </main>
         <nav className="mobile-tabbar" aria-label="ניווט דשבורד">{mobileNav.map((item) => <Link href={item.href} key={item.href}><strong>{item.label}</strong><span>{item.hint}</span></Link>)}</nav>
         <Link className="mobile-fab" href={mobileFabByRole[role]} aria-label="פעולה מהירה">+</Link>
