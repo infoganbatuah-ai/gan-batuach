@@ -51,8 +51,8 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/admin/user-journey-audit", label: "בדיקת מסעות", hint: "זרימות משתמש" },
     { href: "/dashboard/admin/smart-engine-audit", label: "בדיקת תובנות", hint: "מנוע המלצות" },
     { href: "/dashboard/admin/audit-logs", label: "יומן פעולות", hint: "פעולות מערכת" },
-    { href: "/dashboard/admin/demo-control", label: "Demo Control", hint: "נתוני דמו ו-QA" },
-    { href: "/dashboard/admin/qa-checklist", label: "QA Checklist", hint: "בדיקות תפעול" },
+    { href: "/dashboard/admin/demo-control", label: "נתוני ניסיון", hint: "דמו ובדיקות" },
+    { href: "/dashboard/admin/qa-checklist", label: "רשימת בדיקה", hint: "בדיקות תפעול" },
     { href: "/dashboard/admin/simplicity-audit", label: "בדיקת פשטות", hint: "פשטות שימוש" },
     { href: "/dashboard/admin/reports", label: "דוחות", hint: "ייצוא וניתוח" },
     { href: "/dashboard/admin/settings", label: "הגדרות", hint: "מערכת והרשאות" }
@@ -146,7 +146,7 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
   parent: [
     { href: "/dashboard/parent", label: "אזור הורים", hint: "ילד וגן" },
     { href: "/dashboard/parent/cameras", label: "מצלמות הגן", hint: "צפייה מורשית" },
-    { href: "/dashboard/parent/ai-events", label: "אירועי תצפיתן", hint: "עדכונים מאושרים" },
+    { href: "/dashboard/parent/ai-events", label: "עדכוני בטיחות", hint: "רק לאחר בדיקה" },
     { href: "/dashboard/parent/daily-journal", label: "יומן יומי", hint: "עדכוני הילד" },
     { href: "/dashboard/parent/pickup", label: "איסוף", hint: "מורשים וזמני" },
     { href: "/dashboard/parent/notifications", label: "התראות", hint: "עדכונים חשובים" },
@@ -225,27 +225,37 @@ function navGroupFor(role: UserRole, href: string) {
   if (role === "admin") {
     if (href === "/dashboard/admin" || href.includes("/notifications") || href.includes("/system-health")) return "ראשי";
     if (href.includes("/users") || href.includes("/kindergartens") || href.includes("/gardens") || href.includes("/inspectors") || href.includes("/leads")) return "ניהול";
+    if (href.includes("/subscriptions") || href.includes("/communication") || href.includes("/push")) return "כספים ותקשורת";
     if (href.includes("observer") || href.includes("ai") || href.includes("camera") || href.includes("video-gateway") || href.includes("audio") || href.includes("correlated")) return "תצפיתן";
     if (href.includes("inspection") || href.includes("violations") || href.includes("reports") || href.includes("documents") || href.includes("audit")) return "פיקוח ודוחות";
     return "עוד";
   }
   if (role === "manager" || role === "owner") {
-    if (href === "/dashboard/garden" || href.includes("/children") || href.includes("/child-journal") || href.includes("/attendance") || href.includes("/messages") || href.includes("/notifications")) return "היום";
-    if (href.includes("/leads") || href.includes("/parents") || href.includes("/staff") || href.includes("/finance") || href.includes("/documents") || href.includes("/tasks")) return "ניהול";
+    if (href === "/dashboard/garden" || href.includes("/attendance") || href.includes("/messages") || href.includes("/notifications") || href.includes("/insights")) return "ראשי";
+    if (href.includes("/children") || href.includes("/child-journal") || href.includes("/health") || href.includes("/pickup") || href.includes("/incidents") || href.includes("/daily-journal")) return "ילדים";
+    if (href.includes("/parents") || href.includes("/leads") || href.includes("/onboarding") || href.includes("/communication")) return "הורים";
+    if (href.includes("/staff") || href.includes("/tasks")) return "צוות";
+    if (href.includes("/finance") || href.includes("/subscription")) return "כספים";
     if (href.includes("observer") || href.includes("ai-events") || href.includes("audio-events") || href.includes("correlated") || href.includes("/cameras")) return "תצפיתן";
-    return "עוד";
+    if (href.includes("/inspections") || href.includes("/documents")) return "דוחות";
+    return "הגדרות";
   }
   if (role === "parent") {
-    if (href === "/dashboard/parent" || href.includes("/daily-journal") || href.includes("/messages") || href.includes("/notifications")) return "הילד שלי";
-    if (href.includes("/cameras") || href.includes("/pickup") || href.includes("/documents")) return "שימוש יומי";
-    return "עוד";
+    if (href === "/dashboard/parent" || href.includes("/daily-journal") || href.includes("/children") || href.includes("/messages") || href.includes("/notifications")) return "הילד שלי";
+    if (href.includes("/cameras") || href.includes("/pickup") || href.includes("/documents") || href.includes("/gallery")) return "שימוש יומי";
+    if (href.includes("/inspections") || href.includes("/ai-events")) return "עדכונים מאושרים";
+    return "הגדרות";
   }
   if (role === "staff") {
-    if (href === "/dashboard/staff" || href.includes("/child-journal") || href.includes("/tasks") || href.includes("/incidents") || href.includes("/attendance")) return "היום";
-    return "עוד";
+    if (href === "/dashboard/staff" || href.includes("/attendance") || href.includes("/child-journal") || href.includes("/tasks") || href.includes("/incidents") || href.includes("/daily-journal")) return "היום";
+    if (href.includes("/messages") || href.includes("/notifications")) return "תקשורת";
+    if (href.includes("/documents") || href.includes("/certificates") || href.includes("/shifts")) return "צוות";
+    return "הגדרות";
   }
   if (href === "/dashboard/inspector" || href.includes("/inspections") || href.includes("/violations")) return "פיקוח";
-  return "עוד";
+  if (href.includes("/cameras") || href.includes("/ai-events")) return "בטיחות";
+  if (href.includes("/reports") || href.includes("/tasks") || href.includes("/notifications")) return "דוחות";
+  return "הגדרות";
 }
 
 function groupedNav(role: UserRole) {

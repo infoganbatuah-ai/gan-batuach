@@ -6126,3 +6126,131 @@ body {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 }
+
+/* UX-3 role-based dashboard experience */
+.dashboard-role-parent .dashboard-main,
+.dashboard-role-staff .dashboard-main,
+.dashboard-role-inspector .dashboard-main {
+  max-width: 1180px;
+}
+
+.dashboard-role-manager .dashboard-main,
+.dashboard-role-owner .dashboard-main {
+  max-width: 1320px;
+}
+
+.dashboard-role-admin .dashboard-main {
+  max-width: 1400px;
+}
+
+.role-priority-section {
+  border-radius: 24px;
+  padding: 18px;
+  background: linear-gradient(135deg, rgb(255 255 255 / 86%), rgb(244 252 248 / 74%));
+}
+
+.role-action-grid .quick-action {
+  min-height: 96px;
+  justify-content: center;
+  border-color: rgb(30 95 116 / 14%);
+}
+
+.role-action-grid .quick-action strong,
+.role-action-grid .quick-action {
+  font-size: 16px;
+}
+
+.role-action-grid .quick-action span {
+  color: #607284;
+  font-size: 13px;
+  line-height: 1.35;
+}
+
+.dashboard-role-parent .dashboard-kpis,
+.dashboard-role-staff .dashboard-kpis,
+.dashboard-role-inspector .grid.cols-3:first-of-type {
+  margin-top: 14px;
+}
+
+.dashboard-role-parent .people-directory,
+.dashboard-role-staff .staff-operating-center,
+.dashboard-role-inspector .people-directory {
+  scroll-margin-top: 92px;
+}
+
+.dashboard-role-parent .quick-actions-grid,
+.dashboard-role-staff .quick-actions-grid,
+.dashboard-role-inspector .quick-actions-grid {
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+}
+
+.dashboard-role-manager .zero-click-shortcuts,
+.dashboard-role-owner .zero-click-shortcuts {
+  margin-top: 10px;
+}
+
+.dashboard-role-manager .zero-click-shortcuts .section-heading,
+.dashboard-role-owner .zero-click-shortcuts .section-heading {
+  align-items: flex-start;
+}
+
+.dashboard-role-manager .zero-click-shortcuts .quick-action,
+.dashboard-role-owner .zero-click-shortcuts .quick-action {
+  min-height: 92px;
+}
+
+.dashboard-role-admin .premium-kpis {
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+
+.dashboard-role-admin .premium-kpis .metric-card,
+.dashboard-role-admin .premium-kpis .stat-card {
+  min-height: 104px;
+}
+
+.dashboard-role-admin .dashboard-panels,
+.dashboard-role-admin .risk-board {
+  margin-top: 14px;
+}
+
+.dashboard-role-parent .parent-spotlight-card {
+  margin-bottom: 16px;
+}
+
+.dashboard-role-parent .profile-actions,
+.dashboard-role-manager .profile-actions,
+.dashboard-role-owner .profile-actions,
+.dashboard-role-staff .profile-actions,
+.dashboard-role-inspector .profile-actions {
+  gap: 8px;
+}
+
+@media (max-width: 768px) {
+  .role-priority-section {
+    padding: 14px;
+    border-radius: 18px;
+  }
+
+  .role-action-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .role-action-grid .quick-action {
+    min-height: 72px;
+    align-items: center;
+  }
+
+  .dashboard-role-admin .premium-kpis,
+  .dashboard-role-manager .zero-click-kpis,
+  .dashboard-role-owner .zero-click-kpis {
+    grid-template-columns: 1fr !important;
+  }
+
+  .dashboard-role-parent .parent-child-card,
+  .dashboard-role-manager .action-panel,
+  .dashboard-role-owner .action-panel,
+  .dashboard-role-staff .staff-operating-center,
+  .dashboard-role-inspector .inspector-garden-card {
+    margin-inline: 0;
+  }
+}

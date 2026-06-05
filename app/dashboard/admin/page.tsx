@@ -15,11 +15,11 @@ const adminActions = [
   { href: "/dashboard/admin/inspectors", label: "מפקחים", icon: UserCheck },
   { href: "/dashboard/admin/procedures", label: "נהלים", icon: ClipboardCheck },
   { href: "/dashboard/admin/inspection-forms", label: "טפסי פיקוח", icon: FileWarning },
-  { href: "/dashboard/admin/ai-events", label: "אירועי AI", icon: Bot },
+  { href: "/dashboard/admin/ai-events", label: "אירועי תצפיתן", icon: Bot },
   { href: "/dashboard/admin/notifications", label: "התראות", icon: BellRing },
   { href: "/dashboard/admin/cameras", label: "מצלמות", icon: Camera },
-  { href: "/dashboard/admin/demo-control", label: "Demo Control", icon: Sparkles },
-  { href: "/dashboard/admin/qa-checklist", label: "QA Checklist", icon: ClipboardCheck },
+  { href: "/dashboard/admin/demo-control", label: "נתוני ניסיון", icon: Sparkles },
+  { href: "/dashboard/admin/qa-checklist", label: "רשימת בדיקה", icon: ClipboardCheck },
   { href: "/dashboard/admin/reports", label: "דוחות", icon: Download },
   { href: "/dashboard/admin/settings", label: "הגדרות", icon: Settings }
 ];
@@ -118,7 +118,7 @@ export default async function AdminDashboard() {
     ...data.recentComplaints.map((item: any) => ({ type: "פנייה", title: item.subject, meta: `${item.gardens?.name ?? "ללא גן"} · ${item.severity} · ${item.status}`, date: item.created_at, severity: item.severity, tone: item.severity === "critical" || item.severity === "high" ? "bad" : "warn" })),
     ...data.recentInspections.map((item: any) => ({ type: "פיקוח", title: item.gardens?.name ?? "ביקורת", meta: `סטטוס ${item.status} · ציון ${item.weighted_score ?? "-"}`, date: item.completed_at ?? item.created_at, severity: Number(item.weighted_score ?? 10) < 8 ? "high" : "low", tone: Number(item.weighted_score ?? 10) < 8 ? "bad" : "good" })),
     ...data.recentDocuments.map((item: any) => ({ type: "מסמך", title: item.name, meta: `${item.gardens?.name ?? "כללי"} · ${item.status}`, date: item.created_at, severity: item.status === "valid" ? "low" : "medium", tone: item.status === "valid" ? "good" : "warn" })),
-    ...data.recentAiEvents.map((item: any) => ({ type: "AI", title: item.event_type, meta: `${item.gardens?.name ?? "גן"} · ${item.severity} · ${item.status}`, date: item.detected_at, severity: item.severity, tone: item.severity === "critical" || item.severity === "high" ? "bad" : "warn" })),
+    ...data.recentAiEvents.map((item: any) => ({ type: "תצפיתן", title: item.event_type, meta: `${item.gardens?.name ?? "גן"} · ${item.severity} · ${item.status}`, date: item.detected_at, severity: item.severity, tone: item.severity === "critical" || item.severity === "high" ? "bad" : "warn" })),
     ...data.recentMessages.map((item: any) => ({ type: "הודעה", title: item.subject, meta: `${item.gardens?.name ?? "מערכת"} · ${item.treatment_status}`, date: item.created_at, severity: "low", tone: "default" }))
   ].sort((a, b) => new Date(b.date ?? 0).getTime() - new Date(a.date ?? 0).getTime()).slice(0, 10);
   const riskCards = [
@@ -131,7 +131,7 @@ export default async function AdminDashboard() {
     ...(data.lateInspections > 0 ? [{ title: "פיקוחים באיחור", body: `${data.lateInspections} גנים עברו את מועד הפיקוח`, severity: "bad" as const, href: "/dashboard/admin/inspections/late", icon: "inspection" as const }] : []),
     ...(data.activeIncidents > 0 ? [{ title: "אירועים פתוחים", body: `${data.activeIncidents} אירועים דורשים טיפול`, severity: "bad" as const, href: "/dashboard/admin/complaints", icon: "incidents" as const }] : []),
     ...(data.openComplaints > 0 ? [{ title: "פניות פתוחות", body: `${data.openComplaints} פניות ותלונות פתוחות`, severity: "warn" as const, href: "/dashboard/admin/complaints", icon: "incidents" as const }] : []),
-    ...(data.aiAlerts > 0 ? [{ title: "AI חמור", body: `${data.aiAlerts} אירועי AI חמורים פתוחים`, severity: "bad" as const, href: "/dashboard/admin/ai-events", icon: "ai" as const }] : []),
+    ...(data.aiAlerts > 0 ? [{ title: "אירועי תצפיתן דחופים", body: `${data.aiAlerts} אירועים דורשים בדיקה`, severity: "bad" as const, href: "/dashboard/admin/ai-events", icon: "ai" as const }] : []),
     ...(data.cameraIssues > 0 ? [{ title: "תקלות מצלמה", body: `${data.cameraIssues} מצלמות דורשות בדיקה`, severity: "warn" as const, href: "/dashboard/admin/cameras", icon: "camera" as const }] : []),
     ...(data.missingDocuments > 0 ? [{ title: "מסמכים חסרים", body: `${data.missingDocuments} מסמכים חסרים/פגי תוקף`, severity: "warn" as const, href: "/dashboard/admin/documents", icon: "documents" as const }] : []),
     ...(staffCompliance < 80 ? [{ title: "ציות צוות נמוך", body: `ציות צוות ${staffCompliance}%`, severity: "warn" as const, href: "/dashboard/admin/users", icon: "staff" as const }] : [])
@@ -139,7 +139,7 @@ export default async function AdminDashboard() {
   const weekTrends = [
     { title: "פניות", now: data.weekComplaints, previous: data.previousWeekComplaints, href: "/dashboard/admin/complaints" },
     { title: "ביקורות", now: data.weekInspections, previous: data.previousWeekInspections, href: "/dashboard/admin/inspections" },
-    { title: "אירועי AI", now: data.weekAiEvents, previous: data.previousWeekAiEvents, href: "/dashboard/admin/ai-events" },
+    { title: "אירועי תצפיתן", now: data.weekAiEvents, previous: data.previousWeekAiEvents, href: "/dashboard/admin/ai-events" },
     { title: "מסמכים", now: data.weekDocuments, previous: data.previousWeekDocuments, href: "/dashboard/admin/documents" }
   ];
   const inspectorCompletion = new Map<string, { done: number; avg: number; count: number }>();
@@ -160,18 +160,18 @@ export default async function AdminDashboard() {
   const recommendedActions = [
     ...(data.dueSoonInspections > 0 ? [{ title: `${data.dueSoonInspections} גנים צריכים פיקוח בקרוב`, text: "שלחו תזכורת לפקחים ולמנהלות לפני איחור.", href: "/dashboard/admin/inspections/due", tone: "warn" }] : []),
     ...(data.lateInspections > 0 ? [{ title: `${data.lateInspections} גנים באיחור פיקוח`, text: "דרשו פיקוח או בצעו override מנומק עם Audit Log.", href: "/dashboard/admin/inspections/late", tone: "bad" }] : []),
-    ...(data.cameraIssues > 0 ? [{ title: `${data.cameraIssues} מצלמות מנותקות או בתקלה`, text: "פתחו את מרכז המצלמות ובדקו Gateway/הרשאות.", href: "/dashboard/admin/cameras", tone: "warn" }] : []),
+    ...(data.cameraIssues > 0 ? [{ title: `${data.cameraIssues} מצלמות מנותקות או בתקלה`, text: "פתחו את מרכז המצלמות ובדקו חיבור והרשאות.", href: "/dashboard/admin/cameras", tone: "warn" }] : []),
     ...(data.missingDocuments > 0 ? [{ title: `${data.missingDocuments} מסמכים חסרים או לא תקינים`, text: "עברו למרכז המסמכים ושלחו דרישות השלמה.", href: "/dashboard/admin/documents", tone: "warn" }] : []),
-    ...(data.aiAlerts > 0 ? [{ title: `${data.aiAlerts} אירועי AI חמורים`, text: "בדקו אירועים, סמנו טיפול או פתחו משימת המשך.", href: "/dashboard/admin/ai-events", tone: "bad" }] : [])
+    ...(data.aiAlerts > 0 ? [{ title: `${data.aiAlerts} אירועי תצפיתן דחופים`, text: "בדקו אירועים, סמנו טיפול או פתחו משימת המשך.", href: "/dashboard/admin/ai-events", tone: "bad" }] : [])
   ];
 
   return (
     <DashboardShell role="admin" title="מרכז שליטה ארצי">
-      <div className="dashboard-hero-card admin-hero-card premium-control-hero"><div><p className="eyebrow">Admin Control Center</p><h1>שלום {profile.full_name ?? "מנהל המערכת"}</h1><p>תמונת מצב אחת לגנים פעילים, ילדים, הורים, צוות, פיקוחים, מצלמות, מסמכים ותצפיתן דיגיטלי.</p></div><div className="map-card"><MapPinned /><strong>{data.activeGardens}/{data.gardens} גנים פעילים</strong><span>ניהול מלא, דיווחים והרשאות מערכת</span></div></div>
+      <div className="dashboard-hero-card admin-hero-card premium-control-hero"><div><p className="eyebrow">סקירת מערכת</p><h1>שלום {profile.full_name ?? "מנהל המערכת"}</h1><p>תמונת מצב אחת לגנים פעילים, ילדים, הורים, צוות, פיקוחים, מצלמות, מסמכים ותצפיתן דיגיטלי.</p></div><div className="map-card"><MapPinned /><strong>{data.activeGardens}/{data.gardens} גנים פעילים</strong><span>ניהול מלא, דיווחים והרשאות מערכת</span></div></div>
       <AdminDataError message={result.error ?? data.queryError} />
       <section className={`critical-alert-strip ${urgentAlerts.some((alert) => alert.severity === "bad") ? "bad" : urgentAlerts.length ? "warn" : "good"}`}>
         <strong>{urgentAlerts.some((alert) => alert.severity === "bad") ? "התראות קריטיות פתוחות" : urgentAlerts.length ? "יש אזהרות לטיפול" : "המערכת נראית בריאה"}</strong>
-        <span>{urgentAlerts.length ? urgentAlerts.slice(0, 3).map((alert) => alert.title).join(" · ") : "אין כרגע פיקוח באיחור, AI חמור או מצלמות קריטיות לפי הנתונים."}</span>
+        <span>{urgentAlerts.length ? urgentAlerts.slice(0, 3).map((alert) => alert.title).join(" · ") : "אין כרגע פיקוח באיחור, אירועי תצפיתן דחופים או מצלמות קריטיות לפי הנתונים."}</span>
         <Link className="button tiny secondary" href="/dashboard/admin/system-health">מרכז בריאות</Link>
       </section>
       <section className={`system-status-banner status-${tone}`}><div><ShieldCheck /><strong>סטטוס מערכת: {statusText(tone)}</strong><span>ציון בריאות {Math.round(healthScore)}%. עומס חריגים פעיל: {issueLoad} פריטים לטיפול.</span></div><Link className="button secondary" href="/dashboard/admin/system-health">פתיחת בריאות מערכת</Link></section>
@@ -184,7 +184,7 @@ export default async function AdminDashboard() {
         <StatCard label="פניות פתוחות" value={data.openComplaints} tone={data.openComplaints > 0 ? "warn" : "good"} />
         <StatCard label="ליקויים פתוחים" value={data.openViolations} tone={data.openViolations > 0 ? "bad" : "good"} />
         <StatCard label="פיקוחים באיחור" value={data.lateInspections} tone={data.lateInspections > 0 ? "bad" : "good"} />
-        <StatCard label="התראות AI חמורות" value={data.aiAlerts} tone={data.aiAlerts > 0 ? "bad" : "good"} />
+        <StatCard label="אירועי תצפיתן דחופים" value={data.aiAlerts} tone={data.aiAlerts > 0 ? "bad" : "good"} />
         <StatCard label="בעיות מצלמה" value={data.cameraIssues} tone={data.cameraIssues > 0 ? "warn" : "good"} />
         <StatCard label="מסמכים חסרים/פגי תוקף" value={data.missingDocuments} tone={data.missingDocuments > 0 ? "warn" : "good"} />
         <StatCard label="ציות צוות" value={`${staffCompliance}%`} tone={staffCompliance >= 80 ? "good" : "warn"} />
@@ -193,7 +193,7 @@ export default async function AdminDashboard() {
       <GlobalAlertsCenter alerts={urgentAlerts} />
       <section className="grid cols-2 dashboard-panels">
         <article className="card admin-trend-panel"><div className="section-heading"><h2><TrendingUp size={20} /> שבוע מול שבוע</h2><p>השוואת עומס תפעולי השבוע לעומת השבוע הקודם.</p></div><div className="trend-grid">{weekTrends.map((trend) => { const delta = trend.now - trend.previous; const deltaTone = delta > 0 ? "warn" : delta < 0 ? "good" : "default"; return <Link className={`trend-card ${deltaTone}`} href={trend.href} key={trend.title}><span>{trend.title}</span><strong>{trend.now}</strong><small>{delta > 0 ? "+" : ""}{delta} מול שבוע קודם</small><i><b style={{ width: `${Math.min(100, Math.max(8, trend.previous ? (trend.now / Math.max(trend.previous, trend.now)) * 100 : trend.now ? 100 : 8))}%` }} /></i></Link>; })}</div></article>
-        <article className="card recommended-actions-card"><div className="section-heading"><h2><Sparkles size={20} /> המלצות פעולה</h2><p>הצעדים הבאים לפי סיכונים אמיתיים במערכת.</p></div>{recommendedActions.length === 0 ? <div className="empty-state"><strong>אין פעולה דחופה כרגע</strong><span>המערכת תציג כאן המלצות כשנפתחים פיקוחים, מצלמות, מסמכים או אירועי AI.</span></div> : <div className="recommendation-list">{recommendedActions.map((action) => <Link className={`recommendation-item ${action.tone}`} href={action.href} key={action.title}><strong>{action.title}</strong><span>{action.text}</span></Link>)}</div>}</article>
+        <article className="card recommended-actions-card"><div className="section-heading"><h2><Sparkles size={20} /> המלצות פעולה</h2><p>הצעדים הבאים לפי סיכונים אמיתיים במערכת.</p></div>{recommendedActions.length === 0 ? <div className="empty-state"><strong>אין פעולה דחופה כרגע</strong><span>המערכת תציג כאן המלצות כשנפתחים פיקוחים, מצלמות, מסמכים או אירועי תצפיתן.</span></div> : <div className="recommendation-list">{recommendedActions.map((action) => <Link className={`recommendation-item ${action.tone}`} href={action.href} key={action.title}><strong>{action.title}</strong><span>{action.text}</span></Link>)}</div>}</article>
       </section>
       <section className="grid cols-4 risk-score-grid">{riskCards.map((risk) => <Link className={risk.value > 65 ? "card risk-score-card bad" : risk.value > 30 ? "card risk-score-card warn" : "card risk-score-card good"} href={risk.href} key={risk.title}><strong>{risk.value}</strong><span>{risk.title}</span><i><b style={{ width: `${risk.value}%` }} /></i></Link>)}</section>
       <section className="card admin-chart-panel"><div className="section-heading"><h2>גרף סיכונים מהיר</h2><p>מדד יחסי לפי פיקוח, צוות, מצלמות ומסמכים.</p></div><div className="kpi-bar-chart">{riskCards.map((risk) => <div key={risk.title}><span>{risk.title}</span><i><b style={{ width: `${risk.value}%` }} /></i><strong>{risk.value}</strong></div>)}</div></section>
@@ -203,8 +203,8 @@ export default async function AdminDashboard() {
         <AdminActivityCenter items={activityItems} />
       </section>
       <section className="dashboard-section"><div className="section-heading"><h2>פעולות אדמין</h2><p>קישורים מתוקנים לכל דפי האדמין המרכזיים.</p></div><div className="quick-actions-grid">{adminActions.map((action) => <Link className="quick-action" href={action.href} key={action.href}><action.icon /><strong>{action.label}</strong><span>פתיחת דף ניהול</span></Link>)}</div></section>
-      <section className="grid cols-3 risk-board"><article className="card risk-card"><ShieldAlert /><strong>גנים</strong><b>{data.gardens}</b><span>ניהול וסטטוס בטיחות</span></article><article className="card risk-card"><Camera /><strong>מצלמות</strong><b>{data.cameras}</b><span>חיבור, בריאות והרשאות</span></article><article className="card risk-card"><BellRing /><strong>התראות</strong><b>{data.notifications}</b><span>מסמכים, פיקוח, AI ומשימות</span></article></section>
-      <section className="grid cols-3 dashboard-panels"><article className="card action-panel"><FileX2 /><h2>מסמכים</h2><p>{data.missingDocuments} מסמכים דורשים טיפול או בדיקה.</p><Link className="button secondary" href="/dashboard/admin/documents">בדיקת מסמכים</Link></article><article className="card action-panel"><MessageSquareWarning /><h2>פניות</h2><p>{data.complaints} פניות ותלונות נמצאות במרכז הדיווחים.</p><Link className="button secondary" href="/dashboard/admin/complaints">פתיחת פניות</Link></article><article className="card action-panel"><Bot /><h2>תצפיתן דיגיטלי</h2><p>ארכיטקטורת RTSP, HLS, WebRTC ו-AI מוכנה להגדרות. Live תלוי Gateway.</p><Link className="button secondary" href="/dashboard/admin/ai-observer">הגדרות AI</Link></article></section>
+      <section className="grid cols-3 risk-board"><article className="card risk-card"><ShieldAlert /><strong>גנים</strong><b>{data.gardens}</b><span>ניהול וסטטוס בטיחות</span></article><article className="card risk-card"><Camera /><strong>מצלמות</strong><b>{data.cameras}</b><span>חיבור, בריאות והרשאות</span></article><article className="card risk-card"><BellRing /><strong>התראות</strong><b>{data.notifications}</b><span>מסמכים, פיקוח, תצפיתן ומשימות</span></article></section>
+      <section className="grid cols-3 dashboard-panels"><article className="card action-panel"><FileX2 /><h2>מסמכים</h2><p>{data.missingDocuments} מסמכים דורשים טיפול או בדיקה.</p><Link className="button secondary" href="/dashboard/admin/documents">בדיקת מסמכים</Link></article><article className="card action-panel"><MessageSquareWarning /><h2>פניות</h2><p>{data.complaints} פניות ותלונות נמצאות במרכז הדיווחים.</p><Link className="button secondary" href="/dashboard/admin/complaints">פתיחת פניות</Link></article><article className="card action-panel"><Bot /><h2>תצפיתן דיגיטלי</h2><p>מרכז בטיחות למצלמות, אירועים לבדיקה ותצוגת מצב חיבורים.</p><Link className="button secondary" href="/dashboard/admin/ai-observer">מרכז תצפיתן</Link></article></section>
       <section className="dashboard-section"><div className="section-heading"><h2>גנים אחרונים</h2><p>כניסה לפרופיל גן מלא.</p></div><div className="procedure-list">{data.gardenList.length === 0 ? <div className="empty-mini">אין גנים להצגה.</div> : data.gardenList.map((garden: any) => <Link className="card procedure-card" href={`/dashboard/admin/gardens/${garden.id}`} key={garden.id}><div><span className="pill">{garden.city}</span><h3>{garden.name}</h3><p>ציון אחרון: {garden.last_inspection_score ?? "-"}</p></div><div className="procedure-meta"><span className={garden.safe_status === "safe" ? "pill good" : "pill warn"}>{garden.safe_status}</span><span>צפייה בפרופיל</span></div></Link>)}</div></section>
     </DashboardShell>
   );
