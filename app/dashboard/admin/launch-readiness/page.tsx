@@ -3,6 +3,7 @@ import { AlertTriangle, CheckCircle2, Gauge, Rocket, Settings } from "lucide-rea
 import { DashboardShell } from "@/components/dashboard-shell";
 import { StatCard } from "@/components/stat-card";
 import { AdminDataError } from "@/components/admin-data-state";
+import { PremiumDashboardHero } from "@/components/premium-dashboard";
 import { requireRole } from "@/lib/auth";
 import { safeAdminData, logSupabaseError } from "@/lib/admin-safe";
 import { createClient } from "@/lib/supabase/server";
@@ -53,17 +54,7 @@ export default async function AdminLaunchReadinessPage() {
 
   return (
     <DashboardShell role="admin" title="Launch Readiness">
-      <div className="dashboard-hero-card admin-hero-card">
-        <div>
-          <p className="eyebrow">Go Live</p>
-          <h1>מוכנות לפיילוט מסחרי והשקה.</h1>
-          <p>ציון מוכנות, חסמים, בעיות פתוחות, סטטוס פיילוט, קונפיגורציה, ביצועים וצ׳קליסט Go-live.</p>
-        </div>
-        <div className="profile-actions">
-          <span className={summary.launchStatus === "ready" ? "pill good" : summary.launchStatus === "blocked" ? "pill bad" : "pill warn"}><Rocket size={16} /> {summary.launchStatus}</span>
-          <Link className="button secondary" href="/dashboard/admin/pilot-center">מרכז פיילוט</Link>
-        </div>
-      </div>
+      <PremiumDashboardHero eyebrow="השקה" title="מוכנות לפיילוט והשקה." subtitle="חסמים, צ׳קליסט, פיילוט וביצועים במקום אחד." badge={<><Rocket size={16} /> {summary.launchStatus}</>} badgeTone={summary.launchStatus === "ready" ? "good" : summary.launchStatus === "blocked" ? "bad" : "warn"} actions={<Link className="button secondary" href="/dashboard/admin/pilot-center">מרכז פיילוט</Link>} />
       <AdminDataError message={result.error ?? result.data.queryError} />
 
       <section className="grid cols-4 dashboard-kpis">
@@ -79,7 +70,7 @@ export default async function AdminLaunchReadinessPage() {
 
       <section className="grid cols-2 dashboard-panels">
         <article className="card action-panel">
-          <div className="section-heading"><h2><Gauge size={20} /> Readiness score</h2><p>תשתית, קליטה, התראות, תצפיתן, מצלמות, אבטחה, ביצועים ותמיכה.</p></div>
+          <div className="section-heading"><h2><Gauge size={20} /> ציון מוכנות</h2><p>מה מוכן ומה עדיין דורש טיפול.</p></div>
           <div className="procedure-list compact-list">
             {result.data.readiness.map((item: any) => (
               <div className="mini-row" key={item.id}>
@@ -99,7 +90,7 @@ export default async function AdminLaunchReadinessPage() {
           </div>
         </article>
         <article className="card action-panel">
-          <div className="section-heading"><h2><AlertTriangle size={20} /> Launch blockers</h2><p>חסמים שמונעים הרחבת פיילוט או השקה.</p></div>
+          <div className="section-heading"><h2><AlertTriangle size={20} /> חסמי השקה</h2><p>דברים שחייבים לפתור לפני הרחבה.</p></div>
           {openBlockers.length === 0 ? <div className="empty-state"><strong>אין חסמי השקה פתוחים</strong><span>אם יתגלה חסם, הוא יופיע כאן לפי חומרה.</span></div> : <div className="procedure-list compact-list">
             {openBlockers.map((blocker: any) => (
               <div className="mini-row" key={blocker.id}>
@@ -122,7 +113,7 @@ export default async function AdminLaunchReadinessPage() {
 
       <section className="grid cols-3 dashboard-panels">
         <article className="card action-panel">
-          <div className="section-heading"><h2><Settings size={20} /> Production configuration</h2><p>WhatsApp, SMS, Push, Email, Cameras, AI, Security, Backups.</p></div>
+          <div className="section-heading"><h2><Settings size={20} /> חיבורים והגדרות</h2><p>תקשורת, מצלמות, אבטחה וגיבויים.</p></div>
           <div className="procedure-list compact-list">
             {result.data.configuration.map((item: any) => (
               <div className="mini-row" key={item.id}>
@@ -141,7 +132,7 @@ export default async function AdminLaunchReadinessPage() {
           </div>
         </article>
         <article className="card action-panel">
-          <div className="section-heading"><h2><CheckCircle2 size={20} /> Go-live checklist</h2><p>שערי השקה עיקריים.</p></div>
+          <div className="section-heading"><h2><CheckCircle2 size={20} /> רשימת השקה</h2><p>שערים עיקריים לפני עלייה לאוויר.</p></div>
           <div className="procedure-list compact-list">
             {result.data.checklist.map((item: any) => (
               <div className="mini-row" key={item.id}>
@@ -160,7 +151,7 @@ export default async function AdminLaunchReadinessPage() {
           </div>
         </article>
         <article className="card action-panel">
-          <div className="section-heading"><h2><Gauge size={20} /> Performance readiness</h2><p>Database, API, Observer, Notifications, Camera.</p></div>
+          <div className="section-heading"><h2><Gauge size={20} /> ביצועים</h2><p>בדיקות עומס וזמינות לפי תחום.</p></div>
           <div className="procedure-list compact-list">
             {result.data.performance.map((item: any) => (
               <div className="mini-row" key={item.id}>

@@ -1,6 +1,7 @@
 import { Brain } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { ObserverIntelligencePanel } from "@/components/observer-intelligence-panel";
+import { PremiumDashboardHero } from "@/components/premium-dashboard";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
@@ -18,14 +19,7 @@ export default async function GardenObserverIntelligencePage() {
 
   return (
     <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="סיכומי תצפיתן">
-      <div className="dashboard-hero-card garden-hero-card">
-        <div>
-          <p className="eyebrow">תצפיתן דיגיטלי</p>
-          <h1>מה התצפיתן מציע לבדוק עכשיו.</h1>
-          <p>סיכום זהיר של מצלמות, שמע, צירי זמן, איסוף ולמידה. אין מסקנות אוטומטיות ואין הודעות הורים ללא אישור.</p>
-        </div>
-        <span className="pill warn"><Brain size={15} /> בדיקת אדם</span>
-      </div>
+      <PremiumDashboardHero eyebrow="תצפיתן" title="מה כדאי לבדוק עכשיו." subtitle="סיכום זהיר למנהלת. שום דבר לא נשלח להורים בלי אישור." badge={<><Brain size={15} /> בדיקת אדם</>} badgeTone="warn" />
       <ObserverIntelligencePanel
         role="garden"
         fixedKindergartenId={gardenId}

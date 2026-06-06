@@ -1,6 +1,8 @@
+import { Camera, ClipboardCheck, FileText, ShieldAlert } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { StatCard } from "@/components/stat-card";
 import { Avatar } from "@/components/avatar";
+import { ActionCard, CleanSection, PremiumDashboardHero, RoleMetricCard } from "@/components/premium-dashboard";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
@@ -31,6 +33,30 @@ export default async function InspectorDashboard() {
 
   return (
     <DashboardShell role="inspector" title="דשבורד פקח">
+      <div className="commercial-dashboard">
+      <PremiumDashboardHero
+        eyebrow="פיקוח היום"
+        title={`שלום, ${profile.full_name ?? "המפקח"}`}
+        subtitle={`${gardens.length} גנים משויכים. ביקורות, ליקויים ודוחות במסך אחד ברור.`}
+        badge={gardens.length ? "משויך לגנים" : "אין שיוך"}
+        badgeTone={gardens.length ? "good" : "warn"}
+      >
+        <Avatar name={profile.full_name} src={inspector?.profile_photo_url ?? profile.profile_image_url} size="lg" />
+      </PremiumDashboardHero>
+      <div className="premium-metric-grid">
+        <RoleMetricCard label="גנים" value={gardens.length} hint="באחריותך" tone={gardens.length ? "good" : "warn"} />
+        <RoleMetricCard label="ממתינות" value={(required ?? []).length} hint="ביקורות לביצוע" tone={(required ?? []).length ? "warn" : "good"} href="/dashboard/inspector/inspections/due" />
+        <RoleMetricCard label="בוצעו" value={(inspections ?? []).filter((item) => item.status === "done").length} hint="ביקורות אחרונות" tone="good" />
+        <RoleMetricCard label="ציון אחרון" value={String((inspections ?? [])[0]?.weighted_score ?? "-")} hint="מהביקורת האחרונה" />
+      </div>
+      <CleanSection title="פעולות פיקוח" subtitle="פתיחה מהירה למסלולים המרכזיים.">
+        <div className="premium-action-grid">
+          <ActionCard title="ביקורת חדשה" text="גנים שממתינים לך" href="/dashboard/inspector/inspections/due" icon={ClipboardCheck} tone="warn" />
+          <ActionCard title="ליקויים" text="מעקב תיקונים" href="/dashboard/inspector/violations" icon={ShieldAlert} />
+          <ActionCard title="דוחות" text="סיכומים והיסטוריה" href="/dashboard/inspector/reports" icon={FileText} />
+          <ActionCard title="מצלמות" text="רק בגנים משויכים" href="/dashboard/inspector/cameras" icon={Camera} />
+        </div>
+      </CleanSection>
       <div className="dashboard-hero-card inspector-hero-card premium-identity-hero">
         <div>
           <p className="eyebrow">מרחב פיקוח מקצועי</p>
@@ -74,6 +100,7 @@ export default async function InspectorDashboard() {
           <div className="profile-actions"><a className="button secondary tiny" href={`/dashboard/inspector/inspections/history?inspection=${inspection.id}`}>צפייה בדוח</a><a className="button tiny" href="/dashboard/inspector/violations">ליקויים</a></div>
         </article>)}</div>}
       </section>
+      </div>
     </DashboardShell>
   );
 }

@@ -5,6 +5,7 @@ import { StatCard } from "@/components/stat-card";
 import { AdminDataError } from "@/components/admin-data-state";
 import { AdminActivityCenter, type AdminActivityItem } from "@/components/admin-activity-center";
 import { GlobalAlertsCenter } from "@/components/global-alerts-center";
+import { ActionCard, CleanSection, PremiumDashboardHero, RoleMetricCard } from "@/components/premium-dashboard";
 import { requireRole } from "@/lib/auth";
 import { safeAdminData, logSupabaseError } from "@/lib/admin-safe";
 import { createClient } from "@/lib/supabase/server";
@@ -167,6 +168,31 @@ export default async function AdminDashboard() {
 
   return (
     <DashboardShell role="admin" title="מרכז שליטה ארצי">
+      <div className="commercial-dashboard">
+      <PremiumDashboardHero
+        eyebrow="סקירת פלטפורמה"
+        title={`שלום ${profile.full_name ?? "מנהל המערכת"}`}
+        subtitle="גנים, משתמשים, בטיחות והשקה בתמונה אחת קצרה."
+        badge={statusText(tone)}
+        badgeTone={tone}
+        actions={<><Link className="button primary" href="/dashboard/admin/leads">קליטת גנים</Link><Link className="button secondary" href="/dashboard/admin/launch-readiness">מוכנות השקה</Link></>}
+      />
+      <div className="premium-metric-grid">
+        <RoleMetricCard label="גנים פעילים" value={data.activeGardens} hint={`${data.gardens} גנים במערכת`} tone="good" href="/dashboard/admin/gardens" />
+        <RoleMetricCard label="משתמשים" value={data.parents + data.staffTotal + data.inspectors} hint="הורים, צוות ומפקחים" href="/dashboard/admin/users" />
+        <RoleMetricCard label="בטיחות" value={data.openViolations + data.aiAlerts} hint="אירועים וליקויים" tone={data.openViolations + data.aiAlerts ? "bad" : "good"} href="/dashboard/admin/ai-events" />
+        <RoleMetricCard label="השקה" value={`${Math.round(healthScore)}%`} hint="בריאות מערכת" tone={tone} href="/dashboard/admin/system-health" />
+      </div>
+      <CleanSection title="מרכזי ניהול" subtitle="הכל מחולק לפי תחום, בלי להציף את המסך הראשון.">
+        <div className="premium-action-grid">
+          <ActionCard title="גנים" text="קליטה, פרופילים וסטטוס" href="/dashboard/admin/gardens" icon={ShieldAlert} tone="good" />
+          <ActionCard title="משתמשים" text="הרשאות וחשבונות" href="/dashboard/admin/users" icon={UsersRound} />
+          <ActionCard title="בטיחות" text="פיקוח, מצלמות ודיווחים" href="/dashboard/admin/inspections" icon={ShieldCheck} tone={issueLoad ? "warn" : "default"} />
+          <ActionCard title="תצפיתן" text="אירועים לבדיקה" href="/dashboard/admin/observer-intelligence" icon={Bot} />
+          <ActionCard title="השקה" text="פיילוט, חסמים ומוכנות" href="/dashboard/admin/launch-readiness" icon={Sparkles} />
+          <ActionCard title="הגדרות" text="מערכת ותקשורת" href="/dashboard/admin/settings" icon={Settings} />
+        </div>
+      </CleanSection>
       <div className="dashboard-hero-card admin-hero-card premium-control-hero"><div><p className="eyebrow">סקירת מערכת</p><h1>שלום {profile.full_name ?? "מנהל המערכת"}</h1><p>תמונת מצב אחת לגנים פעילים, ילדים, הורים, צוות, פיקוחים, מצלמות, מסמכים ותצפיתן דיגיטלי.</p></div><div className="map-card"><MapPinned /><strong>{data.activeGardens}/{data.gardens} גנים פעילים</strong><span>ניהול מלא, דיווחים והרשאות מערכת</span></div></div>
       <AdminDataError message={result.error ?? data.queryError} />
       <section className={`critical-alert-strip ${urgentAlerts.some((alert) => alert.severity === "bad") ? "bad" : urgentAlerts.length ? "warn" : "good"}`}>
@@ -206,6 +232,7 @@ export default async function AdminDashboard() {
       <section className="grid cols-3 risk-board"><article className="card risk-card"><ShieldAlert /><strong>גנים</strong><b>{data.gardens}</b><span>ניהול וסטטוס בטיחות</span></article><article className="card risk-card"><Camera /><strong>מצלמות</strong><b>{data.cameras}</b><span>חיבור, בריאות והרשאות</span></article><article className="card risk-card"><BellRing /><strong>התראות</strong><b>{data.notifications}</b><span>מסמכים, פיקוח, תצפיתן ומשימות</span></article></section>
       <section className="grid cols-3 dashboard-panels"><article className="card action-panel"><FileX2 /><h2>מסמכים</h2><p>{data.missingDocuments} מסמכים דורשים טיפול או בדיקה.</p><Link className="button secondary" href="/dashboard/admin/documents">בדיקת מסמכים</Link></article><article className="card action-panel"><MessageSquareWarning /><h2>פניות</h2><p>{data.complaints} פניות ותלונות נמצאות במרכז הדיווחים.</p><Link className="button secondary" href="/dashboard/admin/complaints">פתיחת פניות</Link></article><article className="card action-panel"><Bot /><h2>תצפיתן דיגיטלי</h2><p>מרכז בטיחות למצלמות, אירועים לבדיקה ותצוגת מצב חיבורים.</p><Link className="button secondary" href="/dashboard/admin/ai-observer">מרכז תצפיתן</Link></article></section>
       <section className="dashboard-section"><div className="section-heading"><h2>גנים אחרונים</h2><p>כניסה לפרופיל גן מלא.</p></div><div className="procedure-list">{data.gardenList.length === 0 ? <div className="empty-mini">אין גנים להצגה.</div> : data.gardenList.map((garden: any) => <Link className="card procedure-card" href={`/dashboard/admin/gardens/${garden.id}`} key={garden.id}><div><span className="pill">{garden.city}</span><h3>{garden.name}</h3><p>ציון אחרון: {garden.last_inspection_score ?? "-"}</p></div><div className="procedure-meta"><span className={garden.safe_status === "safe" ? "pill good" : "pill warn"}>{garden.safe_status}</span><span>צפייה בפרופיל</span></div></Link>)}</div></section>
+      </div>
     </DashboardShell>
   );
 }

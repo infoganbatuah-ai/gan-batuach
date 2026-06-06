@@ -7,6 +7,7 @@ import { SimpleCommandCenter } from "@/components/simple-command-center";
 import { LiveDayFlow } from "@/components/live-day-flow";
 import { ForgotSomethingButton } from "@/components/forgot-something-button";
 import { EndOfDayChecklist } from "@/components/end-of-day-checklist";
+import { ActionCard, CleanSection, PremiumDashboardHero, RoleMetricCard } from "@/components/premium-dashboard";
 import { requireRole } from "@/lib/auth";
 import { generateSmartInsights, syncSmartInsights, createNotificationsForUrgentInsights } from "@/lib/domain/smart-kindergarten-engine";
 import { createClient } from "@/lib/supabase/server";
@@ -159,9 +160,36 @@ export default async function GardenDashboard() {
     { label: "איסוף הסתיים", ok: pickupPending === 0, count: pickupPending },
     { label: "פניות הורים נסגרו", ok: (parentRequestsRes.count ?? 0) === 0, count: parentRequestsRes.count ?? 0 }
   ];
+  const urgentTotal = (complaintsRes.count ?? 0) + (aiRes.count ?? 0) + (incidentsRes.count ?? 0) + (parentRequestsRes.count ?? 0);
 
   return (
     <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title={profile.role === "owner" ? "דשבורד בעלים" : "ממשק גן"}>
+      <div className="commercial-dashboard">
+      <PremiumDashboardHero
+        eyebrow="היום בגן"
+        title={`שלום, ${profile.full_name ?? "מנהלת הגן"}`}
+        subtitle={`${garden?.name ?? "הגן שלך"}${garden?.city ? ` · ${garden.city}` : ""}. מה שחשוב היום במקום אחד.`}
+        badge={aiRes.count || complaintsRes.count ? "דורש טיפול" : "יום רגוע"}
+        badgeTone={aiRes.count || complaintsRes.count ? "warn" : "good"}
+        actions={<><Link className="button primary" href="/dashboard/garden/children">ילדים</Link><Link className="button secondary" href="/dashboard/garden/messages">הודעות</Link></>}
+      >
+        <Avatar name={garden?.name} src={garden?.logo_url ?? garden?.image_url} size="lg" />
+      </PremiumDashboardHero>
+      <div className="premium-metric-grid">
+        <RoleMetricCard label="ילדים" value={childrenRes.count ?? 0} hint={`${presentToday} נוכחים היום`} tone="good" href="/dashboard/garden/children" />
+        <RoleMetricCard label="דורש טיפול" value={urgentTotal} hint="פניות, אירועים או תשלומים" tone={urgentTotal ? "warn" : "good"} />
+        <RoleMetricCard label="תשלומים" value={unpaidRes.count ?? 0} hint="ילדים עם גבייה לטיפול" tone={unpaidRes.count ? "bad" : "good"} href="/dashboard/garden/finance" />
+        <RoleMetricCard label="מצלמות" value={camerasRes.count ?? 0} hint="לא מחוברות או ממתינות" tone={camerasRes.count ? "warn" : "good"} href="/dashboard/garden/cameras" />
+      </div>
+      <CleanSection title="פעולות מהירות" subtitle="המסכים שהמנהלת צריכה רוב הזמן.">
+        <div className="premium-action-grid">
+          <ActionCard title="ילדים" text="נוכחות, בריאות ואישורים" href="/dashboard/garden/children" icon={UserPlus} tone="good" />
+          <ActionCard title="הורים" text="פניות, הודעות ופרטי קשר" href="/dashboard/garden/parents" icon={MessageSquare} />
+          <ActionCard title="כספים" text="גבייה ותשלומים לטיפול" href="/dashboard/garden/finance" icon={WalletCards} tone={unpaidRes.count ? "bad" : "default"} />
+          <ActionCard title="מצלמות" text="חיבור והרשאות צפייה" href="/dashboard/garden/cameras" icon={Camera} tone={camerasRes.count ? "warn" : "default"} />
+          <ActionCard title="תצפיתן" text="מה כדאי לבדוק עכשיו" href="/dashboard/garden/observer-intelligence" icon={ShieldCheck} />
+        </div>
+      </CleanSection>
       <div className="dashboard-hero-card garden-hero-card premium-identity-hero ultimate-garden-hero">
         <div>
           <p className="eyebrow">ניהול יומי</p>
@@ -198,6 +226,7 @@ export default async function GardenDashboard() {
         {(messagesRes.data?.length ?? 0) || complaintsRes.count || aiRes.count ? <article className="card action-panel"><div className="section-heading"><h2>תקשורת ובטיחות</h2><p>מוצג רק כשיש הודעות, פניות או אירועי בטיחות פתוחים.</p></div><div className="risk-list"><div><Bell /> הודעות <b>{messagesRes.data?.length ?? 0}</b></div><div><AlertTriangle /> פניות דחופות <b>{complaintsRes.count ?? 0}</b></div><div><Camera /> מצלמות ותצפיתן <b>{(camerasRes.count ?? 0) + (aiRes.count ?? 0)}</b></div></div><Link className="button secondary" href="/dashboard/garden/messages?status=open">פתח הודעות</Link></article> : null}
       </section>
       <ForgotSomethingButton items={smartForgotItems.length ? smartForgotItems : forgotItems} />
+      </div>
     </DashboardShell>
   );
 }

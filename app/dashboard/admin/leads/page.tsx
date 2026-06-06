@@ -4,6 +4,7 @@ import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { safeAdminData, logSupabaseError } from "@/lib/admin-safe";
 import { AdminDataError } from "@/components/admin-data-state";
+import { PremiumDashboardHero } from "@/components/premium-dashboard";
 
 export default async function AdminLeadsPage() {
   await requireRole(["admin"]);
@@ -28,14 +29,7 @@ export default async function AdminLeadsPage() {
 
   return (
     <DashboardShell role="admin" title="לידים והמרות">
-      <div className="dashboard-hero-card admin-hero-card">
-        <div>
-          <p className="eyebrow">קליטת גנים</p>
-          <h1>מאשרים בקשה, שולחים כניסה, ואז בודקים את הפרופיל.</h1>
-          <p>המנהלת משלימה את פרטי הגן. האדמין מאשר רק בסוף.</p>
-        </div>
-        <span className="pill good">זרימה חדשה</span>
-      </div>
+      <PremiumDashboardHero eyebrow="קליטת גנים" title="בקשה, כניסה, פרופיל, אישור." subtitle="האדמין מאשר את הבקשה. המנהלת משלימה את פרופיל הגן." badge="זרימה חדשה" badgeTone="good" />
       <AdminDataError message={result.error ?? result.data.queryError} /><AdminLeadsManager leads={result.data.rows} gardens={result.data.gardens} />
     </DashboardShell>
   );
