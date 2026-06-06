@@ -63,13 +63,13 @@ where lead_type = 'garden' and status in ('new', 'new_garden_onboarding');
 
 update public.gardens
 set approval_flow_status = case
-    when status = 'active' then 'active'
-    when status in ('rejected', 'suspended') then status
+    when status::text = 'active' then 'active'
+    when status::text in ('rejected', 'suspended') then status::text
     else approval_flow_status
   end,
   final_approval_status = case
-    when status = 'active' then 'active'
-    when status in ('rejected', 'suspended') then status
+    when status::text = 'active' then 'active'
+    when status::text in ('rejected', 'suspended') then status::text
     else final_approval_status
   end;
 
