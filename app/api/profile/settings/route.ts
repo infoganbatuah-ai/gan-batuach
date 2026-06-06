@@ -50,7 +50,7 @@ export async function PATCH(request: Request) {
         if (payload.garden[key] !== undefined) gardenPatch[key] = payload.garden[key] === "" ? null : payload.garden[key];
       }
       if (payload.garden.submit_for_final_approval) {
-        gardenPatch.status = "pending_final_admin_approval";
+        gardenPatch.status = "pending";
         gardenPatch.approval_flow_status = "pending_final_admin_approval";
         gardenPatch.final_approval_status = "pending_final_admin_approval";
         gardenPatch.onboarding_status = "profile_submitted";

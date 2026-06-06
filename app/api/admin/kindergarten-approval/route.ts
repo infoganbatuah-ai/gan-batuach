@@ -113,7 +113,7 @@ export async function POST(request: Request) {
         email: manager.oneTimeCredentials.email,
         manager_id: manager.user.id,
         owner_name: lead.owner_name || managerName,
-        status: "profile_incomplete",
+        status: "pending",
         approval_flow_status: "lead_approved_credentials_sent",
         final_approval_status: "profile_incomplete",
         onboarding_status: "profile_incomplete",
@@ -228,7 +228,7 @@ export async function POST(request: Request) {
     }
     if (payload.action === "request_corrections") {
       Object.assign(statusPatch, {
-        status: "correction_required",
+        status: "pending",
         approval_flow_status: "correction_required",
         final_approval_status: "correction_required",
         onboarding_status: "correction_required",
@@ -237,7 +237,7 @@ export async function POST(request: Request) {
     }
     if (payload.action === "reject") {
       Object.assign(statusPatch, {
-        status: "rejected",
+        status: "pending",
         approval_flow_status: "rejected",
         final_approval_status: "rejected",
         rejected_at: now,
@@ -246,7 +246,7 @@ export async function POST(request: Request) {
     }
     if (payload.action === "suspend") {
       Object.assign(statusPatch, {
-        status: "suspended",
+        status: "blocked",
         approval_flow_status: "suspended",
         final_approval_status: "suspended",
         suspended_at: now,
