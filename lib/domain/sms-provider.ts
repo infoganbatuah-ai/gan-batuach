@@ -1,6 +1,6 @@
 import { maskPhone } from "@/lib/domain/communication-service";
 
-export type SmsProviderName = "mock_sms" | "twilio" | "messagebird" | "israeli_local" | "custom";
+export type SmsProviderName = "mock_sms" | "twilio" | "messagebird" | "vonage" | "israeli_local" | "custom";
 export type SmsDeliveryStatus = "queued" | "sent" | "delivered" | "failed" | "dead_letter";
 export type SmsEventType =
   | "registration_verification"
@@ -116,6 +116,13 @@ export function getSmsProvider(provider = process.env.SMS_PROVIDER): SmsProvider
   if (provider === "messagebird") {
     return dryRunProvider("messagebird", [
       ["SMS_API_KEY", process.env.SMS_API_KEY],
+      ["SMS_FROM_NUMBER", process.env.SMS_FROM_NUMBER]
+    ]);
+  }
+  if (provider === "vonage") {
+    return dryRunProvider("vonage", [
+      ["VONAGE_API_KEY", process.env.VONAGE_API_KEY],
+      ["VONAGE_API_SECRET", process.env.VONAGE_API_SECRET],
       ["SMS_FROM_NUMBER", process.env.SMS_FROM_NUMBER]
     ]);
   }
