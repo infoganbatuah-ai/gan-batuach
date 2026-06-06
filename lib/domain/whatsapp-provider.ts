@@ -1,6 +1,6 @@
 import { maskPhone } from "@/lib/domain/communication-service";
 
-export type WhatsAppProviderName = "meta_whatsapp_business" | "mock_whatsapp" | "custom";
+export type WhatsAppProviderName = "meta_whatsapp_business" | "twilio_whatsapp" | "mock_whatsapp" | "custom";
 export type WhatsAppDeliveryStatus = "queued" | "sent" | "delivered" | "read" | "failed";
 export type WhatsAppEventType =
   | "registration"
@@ -128,8 +128,46 @@ const metaWhatsAppProvider: WhatsAppProvider = {
   }
 };
 
+const twilioWhatsAppProvider: WhatsAppProvider = {
+  name: "twilio_whatsapp",
+  checkReadiness() {
+    const required: Array<[string, string | undefined]> = [
+      ["TWILIO_ACCOUNT_SID", process.env.TWILIO_ACCOUNT_SID],
+      ["TWILIO_AUTH_TOKEN", process.env.TWILIO_AUTH_TOKEN],
+      ["TWILIO_WHATSAPP_FROM", process.env.TWILIO_WHATSAPP_FROM]
+    ];
+    const missing = required.filter(([, value]) => !value).map(([key]) => key);
+    return {
+      configured: missing.length === 0,
+      mode: missing.length === 0 ? "dry_run" : "mock",
+      provider: "twilio_whatsapp",
+      missing,
+      canSendRealMessages: false,
+      summary: missing.length === 0
+        ? "Twilio WhatsApp credentials are present, but real sending is disabled by product policy."
+        : "Twilio WhatsApp is not fully configured. Mock mode is active."
+    };
+  },
+  async sendTemplate(message) {
+    const readiness = this.checkReadiness();
+    return {
+      status: readiness.configured ? "queued" : "failed",
+      provider: "twilio_whatsapp",
+      providerMessageId: readiness.configured ? `dry_run_twilio_wa_${Date.now()}` : null,
+      failureReason: readiness.configured ? null : `Missing ${readiness.missing.join(", ")}`,
+      dryRunPayload: {
+        provider: "twilio_whatsapp",
+        to: maskPhone(message.to),
+        templateName: message.templateName,
+        eventType: message.eventType
+      }
+    };
+  }
+};
+
 export function getWhatsAppProvider(provider = process.env.WHATSAPP_PROVIDER): WhatsAppProvider {
   if (provider === "meta" || provider === "meta_whatsapp_business") return metaWhatsAppProvider;
+  if (provider === "twilio" || provider === "twilio_whatsapp") return twilioWhatsAppProvider;
   return mockWhatsAppProvider;
 }
 
