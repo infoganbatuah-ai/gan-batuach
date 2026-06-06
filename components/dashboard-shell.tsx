@@ -55,6 +55,8 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/admin/system-health", label: "בריאות מערכת", hint: "מה חסר" },
     { href: "/dashboard/admin/navigation-health", label: "בריאות ניווט", hint: "בדיקת routes" },
     { href: "/dashboard/admin/mobile-audit", label: "בדיקת מובייל", hint: "חוויית טלפון" },
+    { href: "/dashboard/admin/pilot-center", label: "מרכז פיילוט", hint: "לקוחות ראשונים" },
+    { href: "/dashboard/admin/launch-readiness", label: "מוכנות השקה", hint: "Go-live" },
     { href: "/dashboard/admin/pilot-readiness", label: "מוכנות פיילוט", hint: "משוב וחסמים" },
     { href: "/dashboard/admin/duplicates", label: "כפילויות", hint: "תעודות זהות" },
     { href: "/dashboard/admin/user-journey-audit", label: "בדיקת מסעות", hint: "זרימות משתמש" },
@@ -236,7 +238,7 @@ const mobileFabByRole: Record<UserRole, string> = {
 
 function navGroupFor(role: UserRole, href: string) {
   if (role === "admin") {
-    if (href === "/dashboard/admin" || href.includes("/notifications") || href.includes("/system-health") || href.includes("/security")) return "ראשי";
+    if (href === "/dashboard/admin" || href.includes("/notifications") || href.includes("/system-health") || href.includes("/security") || href.includes("/pilot") || href.includes("/launch-readiness")) return "ראשי";
     if (href.includes("/users") || href.includes("/kindergartens") || href.includes("/gardens") || href.includes("/inspectors") || href.includes("/leads")) return "ניהול";
     if (href.includes("/subscriptions") || href.includes("/communication") || href.includes("/sms") || href.includes("/whatsapp") || href.includes("/push")) return "כספים ותקשורת";
     if (href.includes("observer") || href.includes("ai") || href.includes("camera") || href.includes("video-gateway") || href.includes("audio") || href.includes("correlated")) return "תצפיתן";
