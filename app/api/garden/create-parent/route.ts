@@ -3,6 +3,7 @@ import { fail, handleRouteError, ok } from "@/lib/api";
 import { requireRole } from "@/lib/auth";
 import { provisionAuthUser, provisionedUserSchema, writeUserCreationAudit } from "@/lib/onboarding/user-provisioning";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { insertInvitationDeliveryLogs } from "@/lib/onboarding/invitation-delivery";
 
 const schema = provisionedUserSchema.extend({
   identity_number: z.string().optional(),
@@ -45,7 +46,8 @@ export async function POST(request: Request) {
       phone: payload.phone,
       temporaryPassword: payload.temporary_password
     });
-    createdUserId = user.id;
+      createdUserId = user.id;
+    const now = new Date().toISOString();
     if (identityNumber) await supabase.from("profiles" as any).update({ identity_number: identityNumber }).eq("id", user.id);
 
     const { data: parent, error } = await supabase
@@ -59,7 +61,12 @@ export async function POST(request: Request) {
         email: payload.email,
         address: payload.address,
         status: "invited",
-        completed_profile: false
+        completed_profile: false,
+        onboarding_status: "account_created",
+        invitation_status: "account_created",
+        invited_by: profile.id,
+        invited_at: now,
+        account_created_at: now
       })
       .select("*")
       .single();
@@ -68,6 +75,28 @@ export async function POST(request: Request) {
       await cleanupProvisionedParent(user.id);
       return fail(error.message, 400);
     }
+
+    await Promise.all([
+      supabase.from("parent_onboarding_records" as any).upsert({
+        parent_id: parent.id,
+        profile_id: user.id,
+        garden_id: profile.garden_id,
+        status: "account_created",
+        progress_percent: 0,
+        invited_by: profile.id,
+        invited_at: now,
+        account_created_at: now
+      }, { onConflict: "parent_id" }),
+      insertInvitationDeliveryLogs(supabase, {
+        profileId: user.id,
+        gardenId: profile.garden_id,
+        role: "parent",
+        username: oneTimeCredentials.username,
+        temporaryPassword: oneTimeCredentials.temporary_password,
+        recipientName: payload.full_name,
+        phone: payload.phone
+      })
+    ]);
 
     if (payload.lead_id) {
       const leadUpdate = await supabase.from("leads").update({ status: "parent_user_created", assigned_to: user.id }).eq("id", payload.lead_id).eq("garden_id", profile.garden_id).select("id").maybeSingle();
@@ -84,7 +113,7 @@ export async function POST(request: Request) {
       entityType: "parents",
       entityId: parent.id as string,
       action: "create_parent_user",
-      afterData: { parent_id: parent.id, parent_user_id: user.id, lead_id: payload.lead_id ?? null }
+      afterData: { parent_id: parent.id, parent_user_id: user.id, lead_id: payload.lead_id ?? null, onboarding_status: "account_created" }
     });
 
     return ok({ parent, credentials: oneTimeCredentials }, 201);

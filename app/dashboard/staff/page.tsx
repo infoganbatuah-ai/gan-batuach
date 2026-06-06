@@ -1,4 +1,5 @@
 import { AlertTriangle, ClipboardList, FileCheck2, HeartPulse, MapPin, MessageSquare, UserCheck } from "lucide-react";
+import { redirect } from "next/navigation";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { StatCard } from "@/components/stat-card";
 import { SimpleCommandCenter } from "@/components/simple-command-center";
@@ -12,10 +13,11 @@ export default async function StaffDashboard() {
   const { profile } = await requireRole(["staff"]);
   const supabase = await createClient();
   const [staffRes, gardenRes] = await Promise.all([
-    supabase.from("staff" as any).select("id, full_name, role, profile_photo_url, approved_to_work, background_check_status, police_clearance_status").eq("profile_id", profile.id).maybeSingle(),
+    supabase.from("staff" as any).select("id, full_name, role, profile_photo_url, approved_to_work, background_check_status, police_clearance_status, onboarding_status").eq("profile_id", profile.id).maybeSingle(),
     profile.garden_id ? supabase.from("gardens" as any).select("id, name, logo_url, image_url").eq("id", profile.garden_id).maybeSingle() : { data: null, error: null }
   ]);
   const staff = staffRes.data as any;
+  if (staff && (!staff.approved_to_work || staff.onboarding_status !== "active")) redirect("/onboarding/staff");
   const staffId = staff?.id ?? "";
   const [tasksRes, certsRes, docsRes, attentionRes, childrenRes] = await Promise.all([
     supabase.from("tasks" as any).select("id", { count: "exact", head: true }).or(`assigned_to.eq.${profile.id},assigned_role.eq.staff`).eq("garden_id", profile.garden_id ?? "").neq("status", "done"),

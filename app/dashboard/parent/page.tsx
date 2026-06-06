@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Baby, Camera, CalendarDays, HeartPulse, Image, MessageCircle, ShieldCheck, Siren } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { StatCard } from "@/components/stat-card";
@@ -30,6 +31,7 @@ export default async function ParentDashboard() {
   const supabase = await createClient();
   const family = await getParentFamilyContext(supabase as any, profile);
   const parent = (family.parents[0] ?? null) as any;
+  if (parent && (parent.completed_profile !== true || parent.onboarding_status !== "active")) redirect("/parent-onboarding");
   const parentId = parent?.id ?? "";
   const enrollmentCards = family.enrollments.map((enrollment: any) => ({
     id: enrollment.child_id ?? enrollment.permanent_child_file_id,
