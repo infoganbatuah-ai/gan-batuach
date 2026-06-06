@@ -6,7 +6,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { generateTemporaryPassword, provisionAuthUser, writeUserCreationAudit } from "@/lib/onboarding/user-provisioning";
 
 const schema = z.object({
-  action: z.enum(["approve_lead", "resend_credentials", "approve_final_profile", "request_corrections", "reject", "suspend"]),
+  action: z.enum(["approve_lead", "request_contact", "reject_lead", "resend_credentials", "approve_final_profile", "request_corrections", "suspend", "archive"]),
   lead_id: z.string().uuid().optional(),
   garden_id: z.string().uuid().optional(),
   note: z.string().optional()
@@ -22,6 +22,7 @@ async function insertCredentialCommunicationLogs(admin: ReturnType<typeof create
   username: string;
   temporaryPassword: string;
   gardenName: string;
+  phone?: string | null;
 }) {
   const now = new Date().toISOString();
   const messagePreview = `כניסה לגן בטוח עבור ${input.gardenName}. שם משתמש: ${input.username}. יש להשלים פרופיל גן לאחר התחברות.`;
@@ -46,8 +47,8 @@ async function insertCredentialCommunicationLogs(admin: ReturnType<typeof create
       recipient_profile_id: input.managerId,
       kindergarten_id: input.gardenId,
       event_type: "registration",
-      status: "queued_mock",
-      provider: "mock",
+      status: "queued",
+      provider: "mock_whatsapp",
       template_name: "kindergarten_manager_credentials",
       template_language: "he",
       variables: {
@@ -58,6 +59,24 @@ async function insertCredentialCommunicationLogs(admin: ReturnType<typeof create
       },
       queued_at: now,
       metadata: { source: "kindergarten_approval_flow" }
+    }),
+    admin.from("sms_message_logs" as any).insert({
+      recipient_profile_id: input.managerId,
+      kindergarten_id: input.gardenId,
+      event_type: "registration_verification",
+      recipient_phone: input.phone ?? null,
+      masked_phone: input.phone ? `***${String(input.phone).slice(-4)}` : null,
+      message_preview: "פרטי כניסה לגן בטוח נשלחו למנהלת. יש להשלים פרופיל גן.",
+      status: "queued",
+      provider: "mock_sms",
+      variables: {
+        login_url: `${loginUrl()}/login`,
+        username: input.username,
+        temporary_password: input.temporaryPassword,
+        garden_name: input.gardenName
+      },
+      queued_at: now,
+      metadata: { source: "kindergarten_approval_flow", readiness_only: true }
     })
   ]);
 }
@@ -80,6 +99,31 @@ export async function POST(request: Request) {
     const payload = schema.parse(await request.json());
     const admin = createAdminClient();
     const now = new Date().toISOString();
+
+    if (payload.action === "request_contact" || payload.action === "reject_lead") {
+      if (!payload.lead_id) return fail("חסר ליד לעדכון", 422);
+      const nextStatus = payload.action === "request_contact" ? "lead_review" : "archived";
+      const { data: lead, error: leadError } = await admin
+        .from("leads" as any)
+        .update({ status: nextStatus, notes: payload.note ? String(payload.note) : undefined })
+        .eq("id", payload.lead_id)
+        .eq("lead_type", "garden")
+        .select("id")
+        .maybeSingle();
+      if (leadError || !lead) return fail("לא נמצא ליד גן לעדכון", 404);
+      await admin.from("audit_logs" as any).insert({
+        actor_id: profile.id,
+        actor_role: "admin",
+        performed_by_user: profile.id,
+        performed_by_role: "admin",
+        entity_type: "leads",
+        entity_id: payload.lead_id,
+        action: `kindergarten_${payload.action}`,
+        after_data: { status: nextStatus, note: payload.note ?? null }
+      });
+      revalidatePath("/dashboard/admin/leads");
+      return ok({ lead_id: payload.lead_id, status: nextStatus });
+    }
 
     if (payload.action === "approve_lead") {
       if (!payload.lead_id) return fail("חסר ליד לאישור", 422);
@@ -114,9 +158,9 @@ export async function POST(request: Request) {
         manager_id: manager.user.id,
         owner_name: lead.owner_name || managerName,
         status: "pending",
-        approval_flow_status: "lead_approved_credentials_sent",
-        final_approval_status: "profile_incomplete",
-        onboarding_status: "profile_incomplete",
+        approval_flow_status: "credentials_sent",
+        final_approval_status: "onboarding_in_progress",
+        onboarding_status: "onboarding_in_progress",
         public_profile_enabled: false,
         children_capacity: Number(lead.capacity ?? 0),
         current_children_count: Number(lead.children_count ?? 0),
@@ -141,19 +185,27 @@ export async function POST(request: Request) {
 
       await Promise.all([
         admin.from("leads" as any).update({
-          status: "lead_approved_credentials_sent",
+          status: "credentials_sent",
           converted_entity_id: garden.id,
           converted_at: now
         }).eq("id", lead.id),
+        admin.from("kindergarten_onboarding_records" as any).upsert({
+          lead_id: lead.id,
+          garden_id: garden.id,
+          manager_id: manager.user.id,
+          lifecycle_status: "credentials_sent",
+          progress_percent: 0,
+          credentials_sent_at: now
+        }, { onConflict: "garden_id" }),
         admin.from("notifications" as any).insert({
           garden_id: garden.id,
           recipient_id: manager.user.id,
           title: "ברוכה הבאה לגן בטוח",
-          body: "התחברי והשלימי את פרופיל הגן כדי לשלוח לאישור סופי.",
+          body: "התחברי והשלימי את פרופיל הגן כדי לשלוח לאישור.",
           entity_type: "garden",
           entity_id: garden.id,
           severity: "medium",
-          metadata: { href: "/dashboard/garden", onboarding: true }
+          metadata: { href: "/onboarding/kindergarten", onboarding: true }
         })
       ]);
 
@@ -162,7 +214,8 @@ export async function POST(request: Request) {
         managerId: manager.user.id,
         username: manager.oneTimeCredentials.username,
         temporaryPassword,
-        gardenName: garden.name
+        gardenName: garden.name,
+        phone: lead.phone
       });
 
       await writeUserCreationAudit({
@@ -182,7 +235,7 @@ export async function POST(request: Request) {
     if (!payload.garden_id) return fail("חסר גן לעדכון", 422);
     const { data: garden, error: gardenError } = await admin
       .from("gardens" as any)
-      .select("id, name, manager_id, status, approval_flow_status, final_approval_status")
+      .select("id, name, manager_id, status, approval_flow_status, final_approval_status, correction_history")
       .eq("id", payload.garden_id)
       .maybeSingle();
     if (gardenError || !garden) return fail("לא נמצא גן לעדכון", 404);
@@ -209,12 +262,21 @@ export async function POST(request: Request) {
         temporaryPassword: credentials.temporary_password,
         gardenName: garden.name
       });
-      await admin.from("gardens" as any).update({ credentials_sent_at: now }).eq("id", garden.id);
+      await Promise.all([
+        admin.from("gardens" as any).update({ credentials_sent_at: now, approval_flow_status: "credentials_sent" }).eq("id", garden.id),
+        admin.from("kindergarten_onboarding_records" as any).upsert({
+          garden_id: garden.id,
+          manager_id: garden.manager_id,
+          lifecycle_status: "credentials_sent",
+          credentials_sent_at: now
+        }, { onConflict: "garden_id" })
+      ]);
       revalidatePath("/dashboard/admin/leads");
       return ok({ credentials });
     }
 
     const statusPatch: Record<string, unknown> = { updated_at: now };
+    const onboardingPatch: Record<string, unknown> = { updated_at: now };
     if (payload.action === "approve_final_profile") {
       Object.assign(statusPatch, {
         status: "active",
@@ -222,26 +284,39 @@ export async function POST(request: Request) {
         final_approval_status: "active",
         onboarding_status: "completed",
         final_approved_at: now,
+        approved_by: profile.id,
+        reviewed_by: profile.id,
         admin_correction_note: null,
         public_profile_enabled: true
       });
+      Object.assign(onboardingPatch, {
+        lifecycle_status: "active",
+        progress_percent: 100,
+        approved_at: now,
+        activated_at: now,
+        approved_by: profile.id,
+        reviewed_by: profile.id,
+        correction_note: null
+      });
     }
     if (payload.action === "request_corrections") {
+      const correction = {
+        note: payload.note || "נדרשת השלמה לפני אישור סופי",
+        by: profile.id,
+        at: now
+      };
       Object.assign(statusPatch, {
         status: "pending",
         approval_flow_status: "correction_required",
         final_approval_status: "correction_required",
         onboarding_status: "correction_required",
-        admin_correction_note: payload.note || "נדרשת השלמה לפני אישור סופי"
+        reviewed_by: profile.id,
+        admin_correction_note: correction.note
       });
-    }
-    if (payload.action === "reject") {
-      Object.assign(statusPatch, {
-        status: "pending",
-        approval_flow_status: "rejected",
-        final_approval_status: "rejected",
-        rejected_at: now,
-        admin_correction_note: payload.note || null
+      Object.assign(onboardingPatch, {
+        lifecycle_status: "correction_required",
+        correction_note: correction.note,
+        reviewed_by: profile.id
       });
     }
     if (payload.action === "suspend") {
@@ -250,13 +325,61 @@ export async function POST(request: Request) {
         approval_flow_status: "suspended",
         final_approval_status: "suspended",
         suspended_at: now,
+        reviewed_by: profile.id,
         admin_correction_note: payload.note || null,
         public_profile_enabled: false
       });
+      Object.assign(onboardingPatch, {
+        lifecycle_status: "suspended",
+        suspended_at: now,
+        reviewed_by: profile.id,
+        correction_note: payload.note || null
+      });
+    }
+    if (payload.action === "archive") {
+      Object.assign(statusPatch, {
+        status: "blocked",
+        approval_flow_status: "archived",
+        final_approval_status: "archived",
+        archived_at: now,
+        reviewed_by: profile.id,
+        admin_correction_note: payload.note || null,
+        public_profile_enabled: false
+      });
+      Object.assign(onboardingPatch, {
+        lifecycle_status: "archived",
+        archived_at: now,
+        reviewed_by: profile.id,
+        correction_note: payload.note || null
+      });
+    }
+
+    if (payload.action === "request_corrections") {
+      const note = payload.note || "נדרשת השלמה לפני אישור סופי";
+      const correctionItem = { note, by: profile.id, at: now };
+      statusPatch.correction_history = [...((garden as any).correction_history ?? []), correctionItem];
+      onboardingPatch.correction_history = [...((garden as any).correction_history ?? []), correctionItem];
     }
 
     const { error } = await admin.from("gardens" as any).update(statusPatch).eq("id", garden.id);
     if (error) return fail("לא ניתן לעדכן סטטוס גן", 400);
+    await admin.from("kindergarten_onboarding_records" as any).upsert({
+      garden_id: garden.id,
+      manager_id: garden.manager_id,
+      ...onboardingPatch
+    }, { onConflict: "garden_id" });
+    if (garden.manager_id && ["approve_final_profile", "request_corrections", "suspend", "archive"].includes(payload.action)) {
+      await admin.from("notifications" as any).insert({
+        garden_id: garden.id,
+        recipient_id: garden.manager_id,
+        title: payload.action === "approve_final_profile" ? "הגן אושר" : payload.action === "request_corrections" ? "נדרשת השלמה בפרופיל" : "סטטוס הגן עודכן",
+        body: payload.action === "approve_final_profile" ? "הגן פעיל. אפשר להתחיל לעבוד בדשבורד." : payload.note || "יש הודעה חדשה מהאדמין.",
+        entity_type: "garden",
+        entity_id: garden.id,
+        severity: payload.action === "approve_final_profile" ? "low" : "medium",
+        metadata: { href: payload.action === "approve_final_profile" ? "/dashboard/garden" : "/onboarding/kindergarten" }
+      });
+    }
     await admin.from("audit_logs" as any).insert({
       actor_id: profile.id,
       actor_role: "admin",
