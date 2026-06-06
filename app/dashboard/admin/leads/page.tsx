@@ -9,26 +9,34 @@ export default async function AdminLeadsPage() {
   await requireRole(["admin"]);
   const result = await safeAdminData("admin leads", async () => {
     const supabase = await createClient();
-    const { data, error } = await supabase
+    const [{ data, error }, gardensRes] = await Promise.all([
+      supabase
       .from("leads" as any)
       .select("id, lead_type, parent_name, garden_name, owner_name, manager_name, city, address, phone, email, age_groups, capacity, children_count, staff_count, experience, certifications, notes, status")
       .order("created_at", { ascending: false })
-      .limit(100);
-    logSupabaseError("admin leads", error);
-    return { rows: (data ?? []) as any[], queryError: error ? "לא ניתן לטעון את הנתונים כרגע" : null };
-  }, { rows: [] as any[], queryError: null as string | null });
+      .limit(100),
+      supabase
+        .from("gardens" as any)
+        .select("id, name, city, phone, email, manager_id, status, approval_flow_status, final_approval_status, admin_correction_note, profiles:manager_id(full_name, email)")
+        .in("approval_flow_status", ["lead_approved_credentials_sent", "profile_incomplete", "pending_final_admin_approval", "correction_required", "active"])
+        .order("created_at", { ascending: false })
+        .limit(200)
+    ]);
+    logSupabaseError("admin leads", error ?? gardensRes.error);
+    return { rows: (data ?? []) as any[], gardens: (gardensRes.data ?? []) as any[], queryError: error || gardensRes.error ? "לא ניתן לטעון את הנתונים כרגע" : null };
+  }, { rows: [] as any[], gardens: [] as any[], queryError: null as string | null });
 
   return (
     <DashboardShell role="admin" title="לידים והמרות">
       <div className="dashboard-hero-card admin-hero-card">
         <div>
-          <p className="eyebrow">מאגר לקוחות</p>
-          <h1>לידים מגנים, מפקחים והורים עם המרה למשתמש פעיל.</h1>
-          <p>גן או מפקח שאושרו יכולים להפוך מכאן לרשומת מערכת פעילה עם משתמש Supabase Auth, פרופיל והרשאות.</p>
+          <p className="eyebrow">קליטת גנים</p>
+          <h1>מאשרים בקשה, שולחים כניסה, ואז בודקים את הפרופיל.</h1>
+          <p>המנהלת משלימה את פרטי הגן. האדמין מאשר רק בסוף.</p>
         </div>
-        <span className="pill good">new / contacted / approved / rejected</span>
+        <span className="pill good">זרימה חדשה</span>
       </div>
-      <AdminDataError message={result.error ?? result.data.queryError} /><AdminLeadsManager leads={result.data.rows} />
+      <AdminDataError message={result.error ?? result.data.queryError} /><AdminLeadsManager leads={result.data.rows} gardens={result.data.gardens} />
     </DashboardShell>
   );
 }
