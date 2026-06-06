@@ -7,6 +7,15 @@ import { requireRole } from "@/lib/auth";
 import { safeAdminData, logSupabaseError } from "@/lib/admin-safe";
 import { createClient } from "@/lib/supabase/server";
 import { buildLaunchReadinessSummary, readinessTone } from "@/lib/domain/launch-readiness";
+import { updateLaunchIssue } from "../launch-readiness/actions";
+import { updatePilotParticipant, updatePilotProgram } from "./actions";
+
+const pilotStatuses = ["planned", "inviting", "active", "paused", "completed", "cancelled"];
+const onboardingStatuses = ["not_started", "invited", "in_progress", "completed", "blocked"];
+const observerStatuses = ["not_started", "configured", "shadow_active", "review_active", "blocked"];
+const participantStatuses = ["invited", "active", "completed", "suspended"];
+const issueStatuses = ["open", "investigating", "fixed", "verified", "accepted_risk"];
+const severities = ["critical", "high", "medium", "low"];
 
 export default async function AdminPilotCenterPage() {
   await requireRole(["admin"]);
@@ -71,6 +80,15 @@ export default async function AdminPilotCenterPage() {
                 <span>{pilot.pilot_name}</span>
                 <strong className={readinessTone(pilot.pilot_status)}>{pilot.pilot_status}</strong>
                 <small>{pilot.gardens?.name ?? "ללא גן"} · קליטה {pilot.onboarding_status} · תצפיתן {pilot.observer_status}</small>
+                <form className="inline-edit-form" action={updatePilotProgram}>
+                  <input type="hidden" name="id" value={pilot.id} />
+                  <label>Pilot<select name="pilot_status" defaultValue={pilot.pilot_status}>{pilotStatuses.map((status) => <option key={status} value={status}>{status}</option>)}</select></label>
+                  <label>Onboarding<select name="onboarding_status" defaultValue={pilot.onboarding_status}>{onboardingStatuses.map((status) => <option key={status} value={status}>{status}</option>)}</select></label>
+                  <label>Observer<select name="observer_status" defaultValue={pilot.observer_status}>{observerStatuses.map((status) => <option key={status} value={status}>{status}</option>)}</select></label>
+                  <label>Score<input name="satisfaction_score" type="number" min="0" max="100" step="1" defaultValue={pilot.satisfaction_score ?? ""} /></label>
+                  <label className="wide">Notes<input name="notes" defaultValue={pilot.notes ?? ""} /></label>
+                  <button className="button secondary" type="submit">שמירה</button>
+                </form>
               </div>
             ))}
           </div>}
@@ -83,6 +101,11 @@ export default async function AdminPilotCenterPage() {
                 <span>{participant.profiles?.full_name ?? participant.participant_role}</span>
                 <strong className={readinessTone(participant.participant_status)}>{participant.participant_status}</strong>
                 <small>{participant.participant_role} · {participant.gardens?.name ?? "ללא גן"}</small>
+                <form className="inline-edit-form compact" action={updatePilotParticipant}>
+                  <input type="hidden" name="id" value={participant.id} />
+                  <label>Status<select name="participant_status" defaultValue={participant.participant_status}>{participantStatuses.map((status) => <option key={status} value={status}>{status}</option>)}</select></label>
+                  <button className="button secondary" type="submit">עדכון</button>
+                </form>
               </div>
             ))}
           </div>}
@@ -110,6 +133,14 @@ export default async function AdminPilotCenterPage() {
                 <span>{issue.title}</span>
                 <strong className={issue.severity === "critical" || issue.severity === "high" ? "pill bad" : "pill warn"}>{issue.severity}</strong>
                 <small>{issue.status} · {issue.impact ?? ""}</small>
+                <form className="inline-edit-form" action={updateLaunchIssue}>
+                  <input type="hidden" name="id" value={issue.id} />
+                  <label>Severity<select name="severity" defaultValue={issue.severity}>{severities.map((severity) => <option key={severity} value={severity}>{severity}</option>)}</select></label>
+                  <label>Status<select name="status" defaultValue={issue.status}>{issueStatuses.map((status) => <option key={status} value={status}>{status}</option>)}</select></label>
+                  <label className="wide">Impact<input name="impact" defaultValue={issue.impact ?? ""} /></label>
+                  <label className="wide">Resolution<input name="resolution" defaultValue={issue.resolution ?? ""} /></label>
+                  <button className="button secondary" type="submit">עדכון</button>
+                </form>
               </div>
             ))}
           </div>}

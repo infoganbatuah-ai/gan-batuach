@@ -7,6 +7,14 @@ import { requireRole } from "@/lib/auth";
 import { safeAdminData, logSupabaseError } from "@/lib/admin-safe";
 import { createClient } from "@/lib/supabase/server";
 import { buildLaunchReadinessSummary, readinessTone } from "@/lib/domain/launch-readiness";
+import { updateLaunchBlocker, updateLaunchChecklistItem, updateLaunchIssue, updateLaunchReadinessScore, updatePerformanceReadinessCheck, updateProductionConfiguration } from "./actions";
+
+const readinessStatuses = ["ready", "partial", "not_ready", "blocked"];
+const configurationStatuses = ["ready", "partial", "not_ready", "blocked", "not_required"];
+const checklistStatuses = ["pending", "in_progress", "completed", "verified", "blocked", "not_required"];
+const issueStatuses = ["open", "investigating", "fixed", "verified", "accepted_risk"];
+const severities = ["critical", "high", "medium", "low"];
+const performanceStatuses = ["healthy", "degraded", "offline", "unknown", "not_configured"];
 
 export default async function AdminLaunchReadinessPage() {
   await requireRole(["admin"]);
@@ -78,6 +86,14 @@ export default async function AdminLaunchReadinessPage() {
                 <span>{item.category}</span>
                 <strong className={readinessTone(item.status)}>{item.score}%</strong>
                 <small>{item.evidence_summary} · {item.recommended_action}</small>
+                <form className="inline-edit-form" action={updateLaunchReadinessScore}>
+                  <input type="hidden" name="id" value={item.id} />
+                  <label>Score<input name="score" type="number" min="0" max="100" defaultValue={item.score ?? 0} /></label>
+                  <label>Status<select name="status" defaultValue={item.status}>{readinessStatuses.map((status) => <option key={status} value={status}>{status}</option>)}</select></label>
+                  <label className="wide">Evidence<input name="evidence_summary" defaultValue={item.evidence_summary ?? ""} /></label>
+                  <label className="wide">Next action<input name="recommended_action" defaultValue={item.recommended_action ?? ""} /></label>
+                  <button className="button secondary" type="submit">שמירה</button>
+                </form>
               </div>
             ))}
           </div>
@@ -90,6 +106,14 @@ export default async function AdminLaunchReadinessPage() {
                 <span>{blocker.title}</span>
                 <strong className={blocker.severity === "critical" || blocker.severity === "high" ? "pill bad" : "pill warn"}>{blocker.severity}</strong>
                 <small>{blocker.blocker_type} · {blocker.status} · {blocker.resolution ?? ""}</small>
+                <form className="inline-edit-form" action={updateLaunchBlocker}>
+                  <input type="hidden" name="id" value={blocker.id} />
+                  <label>Severity<select name="severity" defaultValue={blocker.severity}>{severities.map((severity) => <option key={severity} value={severity}>{severity}</option>)}</select></label>
+                  <label>Status<select name="status" defaultValue={blocker.status}>{issueStatuses.map((status) => <option key={status} value={status}>{status}</option>)}</select></label>
+                  <label>Due date<input name="due_date" type="date" defaultValue={blocker.due_date ?? ""} /></label>
+                  <label className="wide">Resolution<input name="resolution" defaultValue={blocker.resolution ?? ""} /></label>
+                  <button className="button secondary" type="submit">עדכון</button>
+                </form>
               </div>
             ))}
           </div>}
@@ -105,6 +129,13 @@ export default async function AdminLaunchReadinessPage() {
                 <span>{item.title}</span>
                 <strong className={readinessTone(item.readiness_status)}>{item.readiness_status}</strong>
                 <small>{item.required_for_launch ? "נדרש להשקה" : "אופציונלי"} · {item.recommended_action}</small>
+                <form className="inline-edit-form" action={updateProductionConfiguration}>
+                  <input type="hidden" name="id" value={item.id} />
+                  <label>Status<select name="readiness_status" defaultValue={item.readiness_status}>{configurationStatuses.map((status) => <option key={status} value={status}>{status}</option>)}</select></label>
+                  <label className="wide">Evidence<input name="evidence_summary" defaultValue={item.evidence_summary ?? ""} /></label>
+                  <label className="wide">Next action<input name="recommended_action" defaultValue={item.recommended_action ?? ""} /></label>
+                  <button className="button secondary" type="submit">שמירה</button>
+                </form>
               </div>
             ))}
           </div>
@@ -117,6 +148,13 @@ export default async function AdminLaunchReadinessPage() {
                 <span>{item.title}</span>
                 <strong className={readinessTone(item.status)}>{item.status}</strong>
                 <small>{item.required ? "חובה" : "אופציונלי"} · {item.evidence_url ?? ""}</small>
+                <form className="inline-edit-form" action={updateLaunchChecklistItem}>
+                  <input type="hidden" name="id" value={item.id} />
+                  <label>Status<select name="status" defaultValue={item.status}>{checklistStatuses.map((status) => <option key={status} value={status}>{status}</option>)}</select></label>
+                  <label className="wide">Evidence URL<input name="evidence_url" defaultValue={item.evidence_url ?? ""} /></label>
+                  <label className="wide">Notes<input name="notes" defaultValue={item.notes ?? ""} /></label>
+                  <button className="button secondary" type="submit">שמירה</button>
+                </form>
               </div>
             ))}
           </div>
@@ -129,6 +167,13 @@ export default async function AdminLaunchReadinessPage() {
                 <span>{item.health_area}</span>
                 <strong className={readinessTone(item.status)}>{item.status}</strong>
                 <small>{item.recommended_action}</small>
+                <form className="inline-edit-form" action={updatePerformanceReadinessCheck}>
+                  <input type="hidden" name="id" value={item.id} />
+                  <label>Status<select name="status" defaultValue={item.status}>{performanceStatuses.map((status) => <option key={status} value={status}>{status}</option>)}</select></label>
+                  <label>Value<input name="latest_value" type="number" step="0.01" defaultValue={item.latest_value ?? ""} /></label>
+                  <label className="wide">Next action<input name="recommended_action" defaultValue={item.recommended_action ?? ""} /></label>
+                  <button className="button secondary" type="submit">שמירה</button>
+                </form>
               </div>
             ))}
           </div>
@@ -145,6 +190,14 @@ export default async function AdminLaunchReadinessPage() {
                 <h3>{issue.title}</h3>
                 <p>{issue.impact ?? issue.category}</p>
                 <small>{issue.resolution ?? "ממתין לטיפול"}</small>
+                <form className="inline-edit-form" action={updateLaunchIssue}>
+                  <input type="hidden" name="id" value={issue.id} />
+                  <label>Severity<select name="severity" defaultValue={issue.severity}>{severities.map((severity) => <option key={severity} value={severity}>{severity}</option>)}</select></label>
+                  <label>Status<select name="status" defaultValue={issue.status}>{issueStatuses.map((status) => <option key={status} value={status}>{status}</option>)}</select></label>
+                  <label className="wide">Impact<input name="impact" defaultValue={issue.impact ?? ""} /></label>
+                  <label className="wide">Resolution<input name="resolution" defaultValue={issue.resolution ?? ""} /></label>
+                  <button className="button secondary" type="submit">עדכון</button>
+                </form>
               </div>
               <span className={readinessTone(issue.status)}>{issue.status}</span>
             </article>
