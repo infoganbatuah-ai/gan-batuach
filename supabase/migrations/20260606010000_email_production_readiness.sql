@@ -157,7 +157,7 @@ create policy "email delivery logs scoped read" on public.email_delivery_logs
 for select using (
   public.is_admin()
   or recipient_profile_id = auth.uid()
-  or public.user_has_garden_access(kindergarten_id)
+  or public.can_access_garden(kindergarten_id)
 );
 
 drop policy if exists "email delivery logs scoped insert" on public.email_delivery_logs;
@@ -165,7 +165,7 @@ create policy "email delivery logs scoped insert" on public.email_delivery_logs
 for insert with check (
   public.is_admin()
   or recipient_profile_id = auth.uid()
-  or public.user_has_garden_access(kindergarten_id)
+  or public.can_access_garden(kindergarten_id)
 );
 
 drop policy if exists "email delivery logs admin update" on public.email_delivery_logs;
