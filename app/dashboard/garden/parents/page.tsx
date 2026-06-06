@@ -1,6 +1,7 @@
 import { DashboardShell } from "@/components/dashboard-shell";
 import { ParentProfileCards } from "@/components/people-profile-cards";
 import { StatCard } from "@/components/stat-card";
+import { PremiumDashboardHero } from "@/components/premium-dashboard";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
@@ -51,7 +52,7 @@ export default async function GardenParentsPage() {
 
   return (
     <DashboardShell role="manager" title="הורים">
-      <div className="dashboard-hero-card garden-hero-card"><div><p className="eyebrow">Parent CRM</p><h1>מרכז קשר הורים עשיר ומסודר.</h1><p>הורה, ילדים משויכים, הרשאות, הודעות, מסמכים ופניות בכרטיס אחד ברור.</p></div><span className="pill good">{rows.length} הורים</span></div>
+      <PremiumDashboardHero eyebrow="הורים" title="קשר הורים מסודר." subtitle="ילדים משויכים, הודעות, מסמכים ופניות בכרטיס קצר." badge={`${rows.length} הורים`} badgeTone="good" />
       <div className="grid cols-4 dashboard-kpis"><StatCard label="הורים פעילים" value={rows.filter((row) => row.status === "active").length} tone="good" /><StatCard label="ילדים משויכים" value={rows.reduce((sum, row) => sum + row.children.length, 0)} /><StatCard label="הודעות לא נקראו" value={rows.reduce((sum, row) => sum + Number(row.unread_messages), 0)} tone="warn" /><StatCard label="פניות פתוחות" value={rows.reduce((sum, row) => sum + Number(row.complaint_count), 0)} tone="warn" /></div>
       <ParentProfileCards parents={rows} />
     </DashboardShell>

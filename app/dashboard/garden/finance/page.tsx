@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { DashboardShell } from "@/components/dashboard-shell";
+import { PremiumDashboardHero } from "@/components/premium-dashboard";
 import { requireRole } from "@/lib/auth";
 import {
   loadGardenFinanceData,
@@ -135,21 +136,14 @@ export default async function GardenFinancePage({ searchParams }: { searchParams
 
     return (
       <DashboardShell role={role} title="מרכז כספים">
-        <section className="dashboard-hero-card garden-hero-card finance-hero-card">
-          <div>
-            <p className="eyebrow">Kindergarten Finance</p>
-            <h1>עמוד כספים נטען במצב בטוח</h1>
-            <p>גבייה חודשית, תשלומים חסרים, איחורים ותשלום שלא עבר, בלי תלות ברכיבי תצוגה מורכבים.</p>
-          </div>
-          <span className={Number(totals.overdue ?? 0) ? "pill bad" : "pill good"}>גבייה {Number(totals.collection ?? 0)}%</span>
-        </section>
+        <PremiumDashboardHero eyebrow="כספים" title="גבייה חודשית פשוטה." subtitle="מי שילם, מה חסר ומה דורש שיחה קצרה." badge={`גבייה ${Number(totals.collection ?? 0)}%`} badgeTone={Number(totals.overdue ?? 0) ? "warn" : "good"} />
 
         {criticalFinanceFailure ? <div className="warning-banner">חלק מנתוני הכספים לא נטענו</div> : null}
 
         <section className="card action-panel">
           <div className="section-heading">
             <h2>סינון מהיר</h2>
-            <p>{activeFilter ? `מציג: ${financeFilterLabels[activeFilter] ?? activeFilter}` : "מציג את כל הילדים והתשלומים."}</p>
+            <p>{activeFilter ? `מציג: ${financeFilterLabels[activeFilter] ?? activeFilter}` : "כל הילדים והתשלומים."}</p>
           </div>
           <div className="profile-actions">
             <Link className={activeFilter ? "button secondary" : "button primary"} href="/dashboard/garden/finance">הכל</Link>
@@ -175,7 +169,7 @@ export default async function GardenFinancePage({ searchParams }: { searchParams
         <section className="dashboard-section">
           <div className="section-heading">
             <h2>תשלומי ילדים</h2>
-            <p>כרטיסים מינימליים ובטוחים. אם מסנן פעיל ואין תוצאות, המשמעות היא שאין כרגע פריטים מסוג זה.</p>
+            <p>כרטיס קצר לכל ילד ותשלום.</p>
           </div>
           {children.length === 0 ? (
             <div className="empty-state">

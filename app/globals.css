@@ -6524,6 +6524,311 @@ body {
   color: #a1322d;
 }
 
+/* Phase 100-1 commercial dashboard system. Presentation only. */
+:root {
+  --premium-ink: #102a2f;
+  --premium-muted: #5b7074;
+  --premium-line: #d9e9e7;
+  --premium-soft: #f2faf8;
+  --premium-brand: #0f766e;
+  --premium-brand-strong: #164e63;
+  --premium-gold: #f6c85f;
+}
+
+html,
+body {
+  height: auto !important;
+  min-height: 100%;
+  overflow-y: auto !important;
+  overflow-x: hidden !important;
+}
+
+body:has(.dashboard-layout),
+.dashboard-layout,
+.dashboard-main {
+  overflow: visible !important;
+}
+
+.dashboard-layout {
+  min-height: calc(100dvh - 72px) !important;
+  align-items: start !important;
+}
+
+.dashboard-main {
+  height: auto !important;
+  min-height: auto !important;
+  scrollbar-gutter: stable;
+}
+
+.sidebar {
+  overscroll-behavior: contain;
+}
+
+.premium-dashboard-hero {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: clamp(18px, 3vw, 30px);
+  align-items: center;
+  min-height: 220px;
+  margin-bottom: 18px;
+  border: 1px solid var(--premium-line);
+  border-radius: 30px;
+  padding: clamp(24px, 4vw, 46px);
+  background:
+    radial-gradient(circle at 92% 20%, rgb(246 200 95 / 34%), transparent 28%),
+    linear-gradient(135deg, #fff 0%, #effbf8 52%, #eef6ff 100%);
+  box-shadow: 0 28px 72px rgb(16 75 82 / 12%);
+}
+
+.premium-dashboard-hero h1,
+.premium-page-header h1 {
+  max-width: 880px;
+  margin: 0;
+  color: var(--premium-ink);
+  font-size: clamp(32px, 4.4vw, 56px);
+  line-height: 1.04;
+  letter-spacing: 0;
+}
+
+.premium-dashboard-hero p,
+.premium-page-header p,
+.clean-section-head p {
+  max-width: 680px;
+  margin: 8px 0 0;
+  color: var(--premium-muted);
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+.premium-eyebrow {
+  margin: 0 0 10px !important;
+  color: var(--premium-brand) !important;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.premium-hero-side {
+  display: grid;
+  justify-items: end;
+  gap: 12px;
+}
+
+.premium-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 18px;
+}
+
+.premium-status-badge {
+  min-height: 34px;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  border: 1px solid #d8e8e8;
+  border-radius: 999px;
+  padding: 7px 13px;
+  background: #f6fbfb;
+  color: #23484e;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.premium-status-badge.good { border-color: #bdebd9; background: #e8fbf3; color: #08704f; }
+.premium-status-badge.warn { border-color: #f3dcae; background: #fff8e8; color: #8a5a0a; }
+.premium-status-badge.bad { border-color: #f3c2c0; background: #fff0ef; color: #a1322d; }
+
+.premium-metric-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-block: 16px;
+}
+
+.role-metric-card {
+  min-height: 128px;
+  display: grid;
+  align-content: space-between;
+  gap: 9px;
+  border: 1px solid var(--premium-line);
+  border-radius: 24px;
+  padding: 18px;
+  background: #fff;
+  box-shadow: 0 18px 46px rgb(20 62 70 / 8%);
+}
+
+.role-metric-card span {
+  color: var(--premium-muted);
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.role-metric-card strong {
+  color: var(--premium-ink);
+  font-size: clamp(26px, 3vw, 38px);
+  line-height: 1;
+}
+
+.role-metric-card small {
+  color: var(--premium-muted);
+  line-height: 1.35;
+}
+
+.role-metric-card.good { border-color: #c7eddf; }
+.role-metric-card.warn { border-color: #efd6a6; }
+.role-metric-card.bad { border-color: #efc1bf; }
+
+.clean-section {
+  margin-block: 18px;
+}
+
+.clean-section-head,
+.premium-page-header {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 14px;
+}
+
+.clean-section-head h2 {
+  margin: 0;
+  color: var(--premium-ink);
+  font-size: clamp(23px, 2.6vw, 34px);
+  line-height: 1.1;
+}
+
+.premium-action-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(190px, 1fr));
+  gap: 12px;
+}
+
+.premium-action-card {
+  min-height: 122px;
+  display: grid;
+  align-content: start;
+  gap: 9px;
+  border: 1px solid var(--premium-line);
+  border-radius: 22px;
+  padding: 18px;
+  background: #fff;
+  color: var(--premium-ink);
+  box-shadow: 0 14px 36px rgb(20 62 70 / 7%);
+}
+
+.premium-action-card svg {
+  color: var(--premium-brand);
+}
+
+.premium-action-card strong {
+  font-size: 17px;
+}
+
+.premium-action-card span {
+  color: var(--premium-muted);
+  line-height: 1.35;
+}
+
+.premium-action-card.warn { background: linear-gradient(135deg, #fff, #fff8e8); }
+.premium-action-card.bad { background: linear-gradient(135deg, #fff, #fff0ef); }
+.premium-action-card.good { background: linear-gradient(135deg, #fff, #eafbf4); }
+
+.premium-empty-state {
+  display: grid;
+  gap: 8px;
+  border: 1px dashed #cfe4e2;
+  border-radius: 22px;
+  padding: 22px;
+  background: linear-gradient(135deg, #fff, #f4fbf8);
+  color: var(--premium-muted);
+}
+
+.premium-empty-state strong {
+  color: var(--premium-ink);
+  font-size: 19px;
+}
+
+.mobile-card-list {
+  display: grid;
+  gap: 12px;
+}
+
+.commercial-dashboard .dashboard-hero-card,
+.commercial-dashboard .dashboard-intelligence-bar,
+.commercial-dashboard .command-center-layer {
+  display: none !important;
+}
+
+.commercial-dashboard .dashboard-kpis .stat-card:nth-child(n+6) {
+  display: none;
+}
+
+.commercial-dashboard .dashboard-section {
+  margin-block: 18px;
+}
+
+.commercial-dashboard .procedure-list,
+.commercial-dashboard .people-card-grid {
+  gap: 12px;
+}
+
+@media (max-width: 900px) {
+  html,
+  body,
+  body:has(.dashboard-layout) {
+    overflow-y: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .premium-dashboard-hero,
+  .premium-metric-grid,
+  .clean-section-head,
+  .premium-page-header {
+    grid-template-columns: 1fr;
+    display: grid;
+  }
+
+  .premium-hero-side {
+    justify-items: start;
+  }
+
+  .premium-metric-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .dashboard-main {
+    padding-inline: 12px !important;
+  }
+
+  .premium-dashboard-hero {
+    min-height: auto;
+    border-radius: 22px;
+    padding: 22px;
+  }
+
+  .premium-dashboard-hero h1,
+  .premium-page-header h1 {
+    font-size: 31px;
+  }
+
+  .premium-metric-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .role-metric-card,
+  .premium-action-card {
+    min-height: 104px;
+  }
+
+  .button,
+  .premium-hero-actions .button {
+    width: 100%;
+  }
+}
+
 /* Product launch UX pass: natural page scroll and a cleaner SaaS dashboard skin. */
 html,
 body {

@@ -2,6 +2,7 @@ import { DashboardShell } from "@/components/dashboard-shell";
 import { AdminDataError } from "@/components/admin-data-state";
 import { CameraAdminManager } from "@/components/camera-ai-admin-modules";
 import { DashboardFilterChip } from "@/components/dashboard-filter-chip";
+import { PremiumDashboardHero } from "@/components/premium-dashboard";
 import { requireRole } from "@/lib/auth";
 import { safeAdminData, logSupabaseError } from "@/lib/admin-safe";
 import { createClient } from "@/lib/supabase/server";
@@ -25,6 +26,6 @@ export default async function GardenCameraSetupPage({ searchParams }: { searchPa
     });
     return { cameras: filtered, gardens: garden.data ? [garden.data] : [], queryError: cameras.error || garden.error ? "לא ניתן לטעון את הנתונים כרגע" : null };
   }, { cameras: [] as any[], gardens: [] as any[], queryError: null as string | null });
-  const filterLabel = params.filter === "offline" || params.filter === "issues" || params.camera === "issue" ? "מצלמות לא מחוברות / תקולות" : params.filter === "pending" ? "מצלמות שממתינות לחיבור Gateway" : null;
-  return <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="מצלמות"><div className="dashboard-hero-card"><div><p className="eyebrow">Camera Viewing</p><h1>תצפיתן דיגיטלי - צפייה במצלמות.</h1><p>מנהלת גן רואה ומגדירה רק את המצלמות המשויכות לגן שלה. RTSP וסיסמאות לא מוצגים בדפדפן.</p></div><span className={process.env.VIDEO_GATEWAY_URL ? "pill good" : "pill warn"}>{process.env.VIDEO_GATEWAY_URL ? "Gateway connected" : "Gateway pending"}</span></div><DashboardFilterChip label={filterLabel} clearHref="/dashboard/garden/cameras" isEmpty={(result.data.cameras as any[]).length === 0} emptyTitle={filterLabel ? `אין כרגע ${filterLabel}` : undefined} emptyText="כל המצלמות במסנן הזה תקינות או שאין מצלמות מתאימות." /><AdminDataError message={result.error ?? result.data.queryError} /><CameraAdminManager cameras={result.data.cameras as any[]} gardens={result.data.gardens as any[]} gatewayConnected={Boolean(process.env.VIDEO_GATEWAY_URL)} /></DashboardShell>;
+  const filterLabel = params.filter === "offline" || params.filter === "issues" || params.camera === "issue" ? "מצלמות לא מחוברות" : params.filter === "pending" ? "מצלמות שממתינות לחיבור" : null;
+  return <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="מצלמות"><PremiumDashboardHero eyebrow="מצלמות" title="צפייה וחיבור מצלמות." subtitle="רק מצלמות של הגן שלך, עם מצב חיבור והרשאות צפייה." badge={process.env.VIDEO_GATEWAY_URL ? "מחובר" : "ממתין לחיבור"} badgeTone={process.env.VIDEO_GATEWAY_URL ? "good" : "warn"} /><DashboardFilterChip label={filterLabel} clearHref="/dashboard/garden/cameras" isEmpty={(result.data.cameras as any[]).length === 0} emptyTitle={filterLabel ? `אין כרגע ${filterLabel}` : undefined} emptyText="כל המצלמות במסנן הזה תקינות או שאין מצלמות מתאימות." /><AdminDataError message={result.error ?? result.data.queryError} /><CameraAdminManager cameras={result.data.cameras as any[]} gardens={result.data.gardens as any[]} gatewayConnected={Boolean(process.env.VIDEO_GATEWAY_URL)} /></DashboardShell>;
 }

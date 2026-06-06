@@ -3,6 +3,7 @@ import { DashboardShell } from "@/components/dashboard-shell";
 import { StatCard } from "@/components/stat-card";
 import { SimpleCommandCenter } from "@/components/simple-command-center";
 import { StaffOneHandMode } from "@/components/staff-one-hand-mode";
+import { ActionCard, CleanSection, PremiumDashboardHero, RoleMetricCard } from "@/components/premium-dashboard";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { Avatar } from "@/components/avatar";
@@ -36,12 +37,37 @@ export default async function StaffDashboard() {
   ];
   return (
     <DashboardShell role="staff" title="ממשק צוות">
+      <div className="commercial-dashboard">
+      <PremiumDashboardHero
+        eyebrow="המשמרת שלי"
+        title={`שלום, ${staffName}`}
+        subtitle={`${garden?.name ?? "הגן"} · ${staffRole}. כל מה שצריך למשמרת במקום אחד.`}
+        badge={staff?.approved_to_work ? "מאושר/ת לעבודה" : "נדרשת השלמה"}
+        badgeTone={staff?.approved_to_work ? "good" : "warn"}
+      >
+        <Avatar name={staffName} src={staff?.profile_photo_url ?? profile.profile_image_url} size="lg" />
+      </PremiumDashboardHero>
+      <div className="premium-metric-grid">
+        <RoleMetricCard label="משימות" value={tasksRes.count ?? 0} hint="פתוחות היום" tone={tasksRes.count ? "warn" : "good"} href="/dashboard/staff/tasks" />
+        <RoleMetricCard label="ילדים לתשומת לב" value={attentionRes.count ?? 0} hint="בריאות או רגישות" tone={attentionRes.count ? "warn" : "good"} href="/dashboard/staff/child-journal" />
+        <RoleMetricCard label="מסמכים" value={docsRes.count ?? 0} hint="חסרים או פגי תוקף" tone={docsRes.count ? "bad" : "good"} href="/dashboard/staff/documents" />
+        <RoleMetricCard label="סטטוס" value={staff?.approved_to_work ? "פעיל" : "בהשלמה"} tone={staff?.approved_to_work ? "good" : "warn"} />
+      </div>
+      <CleanSection title="פעולות למשמרת" subtitle="מה שצריך לבצע מהר, גם מהטלפון.">
+        <div className="premium-action-grid">
+          <ActionCard title="נוכחות" text="כניסה ויציאה" href="/dashboard/staff/attendance" icon={MapPin} tone="warn" />
+          <ActionCard title="יומן ילד" text="עדכון קצר להורים" href="/dashboard/staff/child-journal" icon={HeartPulse} />
+          <ActionCard title="משימות" text="מה שממתין לביצוע" href="/dashboard/staff/tasks" icon={ClipboardList} />
+          <ActionCard title="דיווח אירוע" text="תיעוד מהיר" href="/dashboard/staff/incidents" icon={AlertTriangle} />
+        </div>
+      </CleanSection>
       <div className="dashboard-hero-card staff-hero-card premium-identity-hero"><div><p className="eyebrow">מסך עבודה יומי</p><h1>שלום, {staffName}</h1><p>גן: {garden?.name ?? "לא נמצא שיוך לגן"} · תפקיד: {staffRole}. מה שצריך למשמרת: כניסה/יציאה, ילדים לעדכון, משימות, אירוע והודעה למנהלת.</p></div><Avatar name={staffName} src={staff?.profile_photo_url ?? profile.profile_image_url} size="lg" /><span className={staff?.approved_to_work ? "pill good" : "pill warn"}><UserCheck size={15} /> {staff?.approved_to_work ? "מאושר/ת לעבודה" : "השלמת פרטים / אישור נדרש"}</span></div>
       {(!profile.profile_image_url || !staff?.approved_to_work) ? <section className="staff-operating-center"><div><p className="eyebrow">פעולה נדרשת</p><h2>השלמת פרטים</h2><p>כדי להתחיל לעבוד בצורה מלאה, השלימי תמונת פרופיל ומסמכי צוות נדרשים.</p></div><a className="button primary" href="/dashboard/staff/settings">השלמת פרטים</a></section> : null}
       <div className="grid cols-3 dashboard-kpis zero-click-kpis"><StatCard label="סטטוס עבודה" value={staff?.approved_to_work ? "פעיל" : "דורש אימות"} tone={staff?.approved_to_work ? "good" : "warn"} /><StatCard label="ילדים לעדכון" value={attentionRes.count ?? 0} tone={attentionRes.count ? "warn" : "good"} /><StatCard label="משימות פתוחות" value={tasksRes.count ?? 0} tone={tasksRes.count ? "warn" : "good"} /></div>
       <SimpleCommandCenter title="מה לעשות במשמרת עכשיו?" subtitle="מצב פשוט לצוות: רק הדברים שצריך לבצע היום, בלי כספים ובלי מסכים מורכבים." items={staffCommandItems} />
       <StaffOneHandMode children={(childrenRes.data ?? []) as any[]} />
       {(docsRes.count ?? 0) > 0 ? <section className="staff-operating-center"><div><p className="eyebrow">נדרש ממך</p><h2>חסרים מסמכי צוות</h2><p>השלמת המסמכים עוזרת למנהלת לסמן אותך כמאושר/ת לעבודה.</p></div><div className="spotlight-metrics"><span>מסמכים חסרים <b>{docsRes.count ?? 0}</b></span><span>תעודות במערכת <b>{certsRes.count ?? 0}</b></span></div></section> : null}
+      </div>
     </DashboardShell>
   );
 }

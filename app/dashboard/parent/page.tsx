@@ -6,6 +6,7 @@ import { Avatar } from "@/components/avatar";
 import { ParentAdditionalChildRequestForm } from "@/components/parent-additional-child-request-form";
 import { ParentChildRequestForm } from "@/components/parent-child-request-form";
 import { SimpleCommandCenter } from "@/components/simple-command-center";
+import { ActionCard, CleanSection, PremiumDashboardHero, RoleMetricCard } from "@/components/premium-dashboard";
 import { requireRole } from "@/lib/auth";
 import { getParentFamilyContext } from "@/lib/domain/parent-family";
 import { formatAgeGroups, getKindergartenAgeGroups } from "@/lib/kindergarten-age-groups";
@@ -99,6 +100,31 @@ export default async function ParentDashboard() {
   ];
   return (
     <DashboardShell role="parent" title="אזור הורים">
+      <div className="commercial-dashboard">
+      <PremiumDashboardHero
+        eyebrow="הילד שלי היום"
+        title={`שלום, ${profile.full_name ?? parent?.full_name ?? "הורה יקר/ה"}`}
+        subtitle="יומן, הודעות, איסוף, מסמכים ומצלמות במקום אחד רגוע."
+        badge="מידע מאושר"
+        badgeTone="good"
+      >
+        <div className="avatar-stack">{(childrenRes.data ?? []).slice(0, 3).map((child: any) => <Avatar key={child.id} name={child.full_name} src={child.photo_url ?? child.face_image_url} size="lg" />)}</div>
+      </PremiumDashboardHero>
+      <div className="premium-metric-grid">
+        <RoleMetricCard label="ילדים" value={(childrenRes.data ?? []).length} hint="משויכים לחשבון" tone="good" />
+        <RoleMetricCard label="יומן היום" value={journalRes.count ?? 0} hint="עדכונים מהגן" tone={(journalRes.count ?? 0) ? "good" : "warn"} href="/dashboard/parent/daily-journal" />
+        <RoleMetricCard label="התראות" value={notificationRes.count ?? 0} hint="דברים שחשוב לראות" tone={notificationRes.count ? "warn" : "good"} href="/dashboard/parent/notifications" />
+        <RoleMetricCard label="מסמכים" value={docsRes.count ?? 0} hint="דורשים השלמה" tone={docsRes.count ? "warn" : "good"} href="/dashboard/parent/documents" />
+      </div>
+      <CleanSection title="פעולות להורה" subtitle="מה שבאמת צריך ביום רגיל.">
+        <div className="premium-action-grid">
+          <ActionCard title="יומן יומי" text="ארוחה, שינה ומצב רוח" href="/dashboard/parent/daily-journal" icon={HeartPulse} tone="good" />
+          <ActionCard title="הודעות" text="שיחה קצרה עם הגן" href="/dashboard/parent/messages" icon={MessageCircle} />
+          <ActionCard title="איסוף" text="מורשים וזמני איסוף" href="/dashboard/parent/pickup" icon={ShieldCheck} />
+          <ActionCard title="מסמכים" text="אישורים וקבצים" href="/dashboard/parent/documents" icon={ShieldCheck} />
+          <ActionCard title="מצלמות" text="אם הגן פתח צפייה" href="/dashboard/parent/cameras" icon={Camera} />
+        </div>
+      </CleanSection>
       <div className="dashboard-hero-card parent-hero-card premium-identity-hero"><div><p className="eyebrow">מה קורה עם הילד שלי היום?</p><h1>שלום, {profile.full_name ?? parent?.full_name ?? "הורה יקר/ה"}</h1><p>היום של הילד, הודעות מהגן, תמונות, מסמכים ותשלומים במקום אחד רגוע וברור.</p></div><div className="avatar-stack">{(childrenRes.data ?? []).map((child: any) => <Avatar key={child.id} name={child.full_name} src={child.photo_url ?? child.face_image_url} size="lg" />)}</div><span className="pill good"><ShieldCheck size={15} /> מידע שמותר להציג לך</span></div>
       {childrenNeedingCompletion.length ? <section className="card action-panel urgent-parent-completion"><div><p className="eyebrow">המשימה החשובה עכשיו</p><h2>השלמת פרטי הילד</h2><p>הגן אישר את בקשת ההצטרפות הראשונית. יש להשלים פרטי בריאות, איסוף, תמונות והצהרות כדי שהמנהלת תוכל לאשר את הילד.</p></div><div className="profile-actions">{childrenNeedingCompletion.map((child: any) => <Link className="button primary" key={child.id} href={`/parent-onboarding?childId=${child.id}`}>השלמת רישום {child.full_name}</Link>)}</div></section> : null}
       <div className="grid cols-3 dashboard-kpis"><StatCard label="ילדים משויכים" value={(childrenRes.data ?? []).length} tone="good" /><StatCard label="יומן יומי היום" value={journalRes.count ?? 0} /><StatCard label="התראות פתוחות" value={notificationRes.count ?? 0} tone="warn" /></div>
@@ -135,6 +161,7 @@ export default async function ParentDashboard() {
         <div><p className="eyebrow">רגע מהיום</p><h2>היום של הילד במקום אחד</h2><p>מצב רוח, ארוחה, שינה, תמונות חדשות והודעה מהגן בצורה רגועה וברורה.</p></div>
         <div className="spotlight-metrics"><span>תמונות היום <b>{(journalRows.data ?? []).reduce((sum: number, row: any) => sum + (row.photo_urls?.length ?? 0), 0)}</b></span><span>יומן חדש <b>{journalRes.count ?? 0}</b></span><span>התראות <b>{notificationRes.count ?? 0}</b></span></div>
       </section>
+      </div>
     </DashboardShell>
   );
 }

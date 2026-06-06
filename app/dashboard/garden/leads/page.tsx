@@ -4,6 +4,7 @@ import { DashboardShell } from "@/components/dashboard-shell";
 import { GardenChildTransferRequestsPanel } from "@/components/garden-child-transfer-requests-panel";
 import { GardenParentLeadsCenter } from "@/components/garden-parent-leads-center";
 import { StatCard } from "@/components/stat-card";
+import { PremiumDashboardHero } from "@/components/premium-dashboard";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
@@ -76,14 +77,7 @@ export default async function GardenLeadsPage({ searchParams }: { searchParams: 
 
   return (
     <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="לידים / בקשות הצטרפות">
-      <div className="dashboard-hero-card garden-hero-card">
-        <div>
-          <p className="eyebrow">Parent Leads</p>
-          <h1>בקשות רישום שמגיעות ישירות מהעמוד הציבורי של הגן.</h1>
-          <p>כל בקשה נשמרת, נשלחת כהתראה למנהלת/בעלים, וניתנת להמרה להורה פעיל עם כרטיס ילד להשלמת פרטים.</p>
-        </div>
-        <span className={newCount ? "pill warn" : "pill good"}><Bell size={15} /> {newCount} חדשים</span>
-      </div>
+      <PremiumDashboardHero eyebrow="בקשות הצטרפות" title="הורים חדשים במקום מסודר." subtitle="בודקים בקשה, מאשרים, וההורה משלים את פרטי הילד." badge={<><Bell size={15} /> {newCount} חדשים</>} badgeTone={newCount ? "warn" : "good"} />
 
       <div className="grid cols-4 dashboard-kpis">
         <StatCard label="לידים חדשים" value={newCount} tone={newCount ? "warn" : "good"} href="/dashboard/garden/leads?status=new" />
@@ -102,8 +96,8 @@ export default async function GardenLeadsPage({ searchParams }: { searchParams: 
 
       <section className="card action-panel">
         <UserRoundPlus />
-        <h2>איך הזרימה עובדת?</h2>
-        <p>אישור ליד יוצר הורה פעיל וכרטיס ילד במצב `pending_parent_completion`. רק אחרי שההורה משלים פרטים והמנהלת מאשרת, הילד הופך לפעיל ברשימת הילדים.</p>
+        <h2>איך זה עובד?</h2>
+        <p>מאשרים בקשה, ההורה משלים פרטים, ואז המנהלת מאשרת את הילד לגן.</p>
       </section>
 
       <GardenChildTransferRequestsPanel incoming={incomingTransfers} outgoing={outgoingTransfers} />
