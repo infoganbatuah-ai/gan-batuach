@@ -11,13 +11,20 @@ alter table public.leads add constraint leads_status_check check (status in (
   'new_garden_onboarding',
   'new_inspector_lead',
   'lead_submitted',
+  'lead_review',
+  'lead_approved',
+  'credentials_sent',
+  'onboarding_in_progress',
+  'onboarding_submitted',
   'lead_approved_credentials_sent',
   'profile_incomplete',
   'profile_submitted',
   'pending_final_admin_approval',
+  'pending_final_approval',
   'correction_required',
   'active',
   'suspended',
+  'archived',
   'request_more_details',
   'parent_approved_pending_child_completion',
   'approved_pending_parent_completion'
@@ -37,24 +44,35 @@ alter table public.gardens
 alter table public.gardens drop constraint if exists gardens_approval_flow_status_check;
 alter table public.gardens add constraint gardens_approval_flow_status_check check (approval_flow_status in (
   'lead_submitted',
+  'lead_review',
+  'lead_approved',
+  'credentials_sent',
+  'onboarding_in_progress',
+  'onboarding_submitted',
   'lead_approved_credentials_sent',
   'profile_incomplete',
   'profile_submitted',
   'pending_final_admin_approval',
+  'pending_final_approval',
   'correction_required',
   'active',
   'rejected',
-  'suspended'
+  'suspended',
+  'archived'
 ));
 
 alter table public.gardens drop constraint if exists gardens_final_approval_status_check;
 alter table public.gardens add constraint gardens_final_approval_status_check check (final_approval_status in (
   'profile_incomplete',
+  'onboarding_in_progress',
   'pending_final_admin_approval',
+  'pending_final_approval',
+  'onboarding_submitted',
   'correction_required',
   'active',
   'rejected',
-  'suspended'
+  'suspended',
+  'archived'
 ));
 
 update public.leads

@@ -45,3 +45,20 @@ export function dashboardPathForRole(role: UserRole) {
     parent: "/dashboard/parent"
   }[role];
 }
+
+export async function dashboardPathForProfile(profile: { role?: string | null; garden_id?: string | null }) {
+  if (!isRole(profile.role)) return "/dashboard";
+  if ((profile.role === "manager" || profile.role === "owner") && profile.garden_id) {
+    const supabase = await createClient();
+    const { data: garden } = await supabase
+      .from("gardens" as any)
+      .select("approval_flow_status")
+      .eq("id", profile.garden_id)
+      .maybeSingle();
+    const status = String(garden?.approval_flow_status ?? "");
+    if (["credentials_sent", "onboarding_in_progress", "correction_required", "onboarding_submitted", "pending_final_approval"].includes(status)) {
+      return "/onboarding/kindergarten";
+    }
+  }
+  return dashboardPathForRole(profile.role);
+}

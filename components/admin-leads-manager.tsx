@@ -38,13 +38,19 @@ type Props = {
 
 const labels: Record<string, string> = {
   lead_submitted: "בקשה חדשה",
+  lead_review: "צריך ליצור קשר",
+  lead_approved: "אושר ליד",
+  credentials_sent: "נשלחו פרטי כניסה",
+  onboarding_in_progress: "המנהלת משלימה",
+  onboarding_submitted: "נשלח לאישור",
+  pending_final_approval: "ממתין לאישור סופי",
   lead_approved_credentials_sent: "נשלחו פרטי כניסה",
   profile_incomplete: "ממתין להשלמת מנהלת",
   pending_final_admin_approval: "ממתין לאישור סופי",
   correction_required: "נדרש תיקון",
   active: "פעיל",
-  rejected: "נדחה",
-  suspended: "מושהה"
+  suspended: "מושהה",
+  archived: "בארכיון"
 };
 
 async function postAction(payload: Record<string, unknown>) {
@@ -82,11 +88,11 @@ function GardenCard({ garden, onDone }: { garden: GardenRow; onDone: (message: s
         <textarea value={note} onChange={(event) => setNote(event.target.value)} rows={2} placeholder="הערה למנהלת במקרה של תיקונים" />
       </div>
       <div className="procedure-meta">
-        {["lead_approved_credentials_sent", "profile_incomplete", "correction_required"].includes(status) ? <button className="button secondary" disabled={Boolean(busy)} onClick={() => act("resend_credentials", "פרטי הכניסה נשלחו שוב")}>שליחה חוזרת</button> : null}
-        {status === "pending_final_admin_approval" ? <button className="button primary" disabled={Boolean(busy)} onClick={() => act("approve_final_profile", "הגן אושר")}>אישור סופי</button> : null}
-        {status === "pending_final_admin_approval" ? <button className="button secondary" disabled={Boolean(busy)} onClick={() => act("request_corrections", "הוחזר לתיקונים")}>החזרה לתיקון</button> : null}
-        {status !== "active" ? <button className="button secondary" disabled={Boolean(busy)} onClick={() => act("reject", "הגן נדחה")}>דחייה</button> : null}
+        {["credentials_sent", "onboarding_in_progress", "correction_required", "lead_approved_credentials_sent", "profile_incomplete"].includes(status) ? <button className="button secondary" disabled={Boolean(busy)} onClick={() => act("resend_credentials", "פרטי הכניסה נשלחו שוב")}>שליחה חוזרת</button> : null}
+        {["pending_final_approval", "onboarding_submitted", "pending_final_admin_approval"].includes(status) ? <button className="button primary" disabled={Boolean(busy)} onClick={() => act("approve_final_profile", "הגן אושר")}>אישור סופי</button> : null}
+        {["pending_final_approval", "onboarding_submitted", "pending_final_admin_approval"].includes(status) ? <button className="button secondary" disabled={Boolean(busy)} onClick={() => act("request_corrections", "הוחזר לתיקונים")}>החזרה לתיקון</button> : null}
         {status === "active" ? <button className="button secondary" disabled={Boolean(busy)} onClick={() => act("suspend", "הגן הושהה")}>השהיה</button> : null}
+        {status !== "active" && status !== "archived" ? <button className="button secondary" disabled={Boolean(busy)} onClick={() => act("archive", "הועבר לארכיון")}>ארכוב</button> : null}
       </div>
     </article>
   );
@@ -105,6 +111,17 @@ function LeadCard({ lead, onDone }: { lead: LeadRow; onDone: (message: string) =
       setBusy(false);
     }
   }
+  async function leadAction(action: "request_contact" | "reject_lead", success: string) {
+    setBusy(true);
+    try {
+      await postAction({ action, lead_id: lead.id });
+      onDone(success);
+    } catch (error) {
+      onDone(error instanceof Error ? error.message : "הפעולה נכשלה");
+    } finally {
+      setBusy(false);
+    }
+  }
   return (
     <article className="card procedure-card product-flow-card">
       <div>
@@ -115,6 +132,8 @@ function LeadCard({ lead, onDone }: { lead: LeadRow; onDone: (message: string) =
       </div>
       <div className="procedure-meta">
         <button className="button primary" disabled={busy} onClick={approve}>אישור ושליחת כניסה</button>
+        <button className="button secondary" disabled={busy} onClick={() => leadAction("request_contact", "סומן ליצירת קשר")}>צריך קשר</button>
+        <button className="button secondary" disabled={busy} onClick={() => leadAction("reject_lead", "הליד הועבר לארכיון")}>ארכוב</button>
       </div>
     </article>
   );
@@ -132,10 +151,13 @@ function FlowSection({ title, hint, children, empty }: { title: string; hint: st
 export function AdminLeadsManager({ leads, gardens = [] }: Props) {
   const [message, setMessage] = useState("");
   const gardenLeads = leads.filter((lead) => lead.lead_type === "garden" && ["new", "new_garden_onboarding", "lead_submitted"].includes(String(lead.status ?? "new")));
-  const credentialsSent = gardens.filter((garden) => ["lead_approved_credentials_sent", "profile_incomplete"].includes(String(garden.approval_flow_status ?? garden.status)));
-  const pendingFinal = gardens.filter((garden) => String(garden.approval_flow_status ?? garden.status) === "pending_final_admin_approval");
+  const reviewLeads = leads.filter((lead) => lead.lead_type === "garden" && String(lead.status) === "lead_review");
+  const credentialsSent = gardens.filter((garden) => ["credentials_sent", "lead_approved_credentials_sent"].includes(String(garden.approval_flow_status ?? garden.status)));
+  const inProgress = gardens.filter((garden) => ["onboarding_in_progress", "profile_incomplete"].includes(String(garden.approval_flow_status ?? garden.status)));
+  const pendingFinal = gardens.filter((garden) => ["pending_final_approval", "onboarding_submitted", "pending_final_admin_approval"].includes(String(garden.approval_flow_status ?? garden.status)));
   const corrections = gardens.filter((garden) => String(garden.approval_flow_status ?? garden.status) === "correction_required");
   const active = gardens.filter((garden) => String(garden.approval_flow_status ?? garden.status) === "active");
+  const suspended = gardens.filter((garden) => String(garden.approval_flow_status ?? garden.status) === "suspended");
 
   return (
     <>
@@ -143,8 +165,14 @@ export function AdminLeadsManager({ leads, gardens = [] }: Props) {
       <FlowSection title="בקשות גן חדשות" hint="בודקים בקשה ראשונית ושולחים פרטי כניסה למנהלת." empty={gardenLeads.length === 0}>
         {gardenLeads.map((lead) => <LeadCard lead={lead} onDone={setMessage} key={lead.id} />)}
       </FlowSection>
+      <FlowSection title="צריך ליצור קשר" hint="בקשות שדורשות שיחה קצרה לפני אישור." empty={reviewLeads.length === 0}>
+        {reviewLeads.map((lead) => <LeadCard lead={lead} onDone={setMessage} key={lead.id} />)}
+      </FlowSection>
       <FlowSection title="נשלחו פרטי כניסה" hint="המנהלת כבר יכולה להתחבר ולהשלים את פרופיל הגן." empty={credentialsSent.length === 0}>
         {credentialsSent.map((garden) => <GardenCard garden={garden} onDone={setMessage} key={garden.id} />)}
+      </FlowSection>
+      <FlowSection title="בתהליך השלמה" hint="המנהלת עובדת על פרופיל הגן." empty={inProgress.length === 0}>
+        {inProgress.map((garden) => <GardenCard garden={garden} onDone={setMessage} key={garden.id} />)}
       </FlowSection>
       <FlowSection title="ממתינים לאישור סופי" hint="הפרופיל הושלם ונשלח לבדיקה שלך." empty={pendingFinal.length === 0}>
         {pendingFinal.map((garden) => <GardenCard garden={garden} onDone={setMessage} key={garden.id} />)}
@@ -154,6 +182,9 @@ export function AdminLeadsManager({ leads, gardens = [] }: Props) {
       </FlowSection>
       <FlowSection title="גנים פעילים" hint="גנים שעברו אישור סופי ועלו לאוויר." empty={active.length === 0}>
         {active.slice(0, 12).map((garden) => <GardenCard garden={garden} onDone={setMessage} key={garden.id} />)}
+      </FlowSection>
+      <FlowSection title="מושהים" hint="גנים שנעצרו ולא זמינים לעבודה רגילה." empty={suspended.length === 0}>
+        {suspended.map((garden) => <GardenCard garden={garden} onDone={setMessage} key={garden.id} />)}
       </FlowSection>
     </>
   );

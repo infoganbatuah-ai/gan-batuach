@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { AlertTriangle, Bell, CalendarCheck, Camera, ClipboardCheck, FileClock, HeartPulse, MessageSquare, Shirt, ShieldCheck, UserPlus, WalletCards } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { StatCard } from "@/components/stat-card";
@@ -46,30 +47,18 @@ export default async function GardenDashboard() {
   ]);
   const garden = gardenRes.data as any;
   const onboardingStatus = String(garden?.approval_flow_status ?? garden?.final_approval_status ?? "");
-  const mustCompleteGardenProfile = ["lead_approved_credentials_sent", "profile_incomplete", "correction_required"].includes(onboardingStatus);
+  const mustCompleteGardenProfile = [
+    "lead_approved_credentials_sent",
+    "profile_incomplete",
+    "credentials_sent",
+    "onboarding_in_progress",
+    "onboarding_submitted",
+    "pending_final_approval",
+    "pending_final_admin_approval",
+    "correction_required"
+  ].includes(onboardingStatus);
   if (mustCompleteGardenProfile) {
-    const correction = onboardingStatus === "correction_required";
-    return (
-      <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="השלמת פרופיל גן">
-        <section className="onboarding-focus-screen">
-          <div className="onboarding-focus-hero">
-            <p className="eyebrow">{correction ? "נדרשת השלמה" : "ברוכה הבאה"}</p>
-            <h1>{correction ? "האדמין ביקש תיקון קטן לפני אישור." : "משלימים את פרופיל הגן ומגישים לאישור."}</h1>
-            <p>{correction ? garden?.admin_correction_note ?? "יש להשלים את הפרטים החסרים ולשלוח שוב לאישור." : "כמה פרטים קצרים, לוגו, קשר ופרטי גן. אחר כך האדמין מאשר והגן עולה לאוויר."}</p>
-            <Link className="button primary large" href="/dashboard/garden/settings">השלמת פרופיל</Link>
-          </div>
-          <div className="onboarding-checklist-card">
-            {[
-              ["פרטי גן", garden?.name && garden?.address && garden?.phone],
-              ["לוגו או תמונת גן", garden?.logo_url || garden?.image_url],
-              ["פרטי קשר", garden?.email || garden?.phone],
-              ["בעלים / מנהלת", garden?.owner_name || profile.full_name],
-              ["שליחה לאישור", false]
-            ].map(([label, done]) => <div className={done ? "onboarding-check done" : "onboarding-check"} key={String(label)}><span>{done ? "✓" : "•"}</span><strong>{label}</strong></div>)}
-          </div>
-        </section>
-      </DashboardShell>
-    );
+    redirect("/onboarding/kindergarten");
   }
   const [incomingTransfersRes, outgoingTransfersRes] = await Promise.all([
     supabase.from("child_transfer_requests" as any).select("id", { count: "exact", head: true }).eq("target_garden_id", gardenId ?? "").in("status", ["pending_new_kindergarten_review", "missing_details"]),

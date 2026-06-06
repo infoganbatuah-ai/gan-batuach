@@ -19,7 +19,7 @@ export default async function AdminLeadsPage() {
       supabase
         .from("gardens" as any)
         .select("id, name, city, phone, email, manager_id, status, approval_flow_status, final_approval_status, admin_correction_note, profiles:manager_id(full_name, email)")
-        .in("approval_flow_status", ["lead_approved_credentials_sent", "profile_incomplete", "pending_final_admin_approval", "correction_required", "active"])
+        .in("approval_flow_status", ["credentials_sent", "onboarding_in_progress", "onboarding_submitted", "pending_final_approval", "correction_required", "active", "suspended", "archived", "lead_approved_credentials_sent", "profile_incomplete", "pending_final_admin_approval"])
         .order("created_at", { ascending: false })
         .limit(200)
     ]);

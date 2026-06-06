@@ -6829,6 +6829,181 @@ body:has(.dashboard-layout),
   }
 }
 
+/* Phase 100-2 kindergarten onboarding lifecycle */
+.kindergarten-onboarding-page {
+  min-height: 100vh;
+  background:
+    radial-gradient(circle at 92% 0%, rgba(20, 184, 166, 0.14), transparent 28rem),
+    linear-gradient(180deg, #f7fbf8 0%, #ffffff 48%, #f8fafc 100%);
+  padding-top: 2rem;
+}
+
+.kindergarten-onboarding-page .premium-dashboard-hero,
+.kindergarten-onboarding-form,
+.onboarding-waiting-card {
+  max-width: 1120px;
+  margin-inline: auto;
+}
+
+.onboarding-hero-icon {
+  width: 86px;
+  height: 86px;
+  border-radius: 28px;
+  background: #ecfdf5;
+  color: #047857;
+  display: grid;
+  place-items: center;
+  box-shadow: inset 0 0 0 1px rgba(16, 185, 129, 0.2);
+}
+
+.onboarding-hero-icon svg:first-child {
+  position: absolute;
+  opacity: 0.18;
+  transform: translate(-12px, 12px) scale(1.35);
+}
+
+.onboarding-hero-icon svg:last-child {
+  width: 34px;
+  height: 34px;
+}
+
+.kindergarten-onboarding-form {
+  display: grid;
+  gap: 1rem;
+  margin-top: 1.25rem;
+}
+
+.onboarding-progress-panel {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.88);
+  padding: 1rem 1.2rem;
+  box-shadow: 0 18px 45px rgba(15, 23, 42, 0.08);
+}
+
+.onboarding-progress-panel h2,
+.onboarding-waiting-card h2 {
+  margin: 0.2rem 0;
+  color: #102033;
+  font-size: clamp(1.4rem, 2vw, 2rem);
+}
+
+.onboarding-progress-panel p,
+.onboarding-waiting-card p {
+  margin: 0;
+  color: #64748b;
+}
+
+.onboarding-progress-ring {
+  min-width: 220px;
+  display: grid;
+  gap: 0.45rem;
+  text-align: center;
+}
+
+.onboarding-progress-ring strong {
+  font-size: 2rem;
+  color: #047857;
+}
+
+.onboarding-progress-ring span {
+  height: 10px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: #e2e8f0;
+}
+
+.onboarding-progress-ring i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #14b8a6, #22c55e);
+}
+
+.onboarding-missing-card,
+.onboarding-waiting-card {
+  border: 1px solid rgba(245, 158, 11, 0.24);
+  background: #fffaf0;
+  border-radius: 18px;
+  padding: 1rem;
+}
+
+.onboarding-missing-card h3 {
+  margin: 0 0 0.65rem;
+  color: #92400e;
+}
+
+.clean-card-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.kindergarten-onboarding-form .action-panel {
+  border-radius: 18px;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 20px 55px rgba(15, 23, 42, 0.08);
+}
+
+.kindergarten-onboarding-form .action-panel h2 {
+  margin-top: 0;
+  font-size: 1.2rem;
+  color: #0f172a;
+}
+
+.kindergarten-onboarding-form input,
+.kindergarten-onboarding-form textarea,
+.kindergarten-onboarding-form select {
+  border-radius: 12px;
+  border: 1px solid #d7dee8;
+  background: #ffffff;
+}
+
+.onboarding-form-actions {
+  position: sticky;
+  bottom: 1rem;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.94);
+  backdrop-filter: blur(16px);
+  padding: 0.85rem;
+  box-shadow: 0 18px 50px rgba(15, 23, 42, 0.13);
+}
+
+@media (max-width: 760px) {
+  .kindergarten-onboarding-page {
+    padding: 1rem 0.75rem 6rem;
+  }
+
+  .onboarding-progress-panel,
+  .clean-card-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .onboarding-progress-panel {
+    display: grid;
+  }
+
+  .onboarding-progress-ring {
+    min-width: 0;
+  }
+
+  .onboarding-form-actions {
+    left: 0.75rem;
+    right: 0.75rem;
+  }
+}
+
 /* Product launch UX pass: natural page scroll and a cleaner SaaS dashboard skin. */
 html,
 body {

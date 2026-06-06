@@ -2,7 +2,7 @@ import { redirect } from "next/navigation";
 import { Baby, Building2, ClipboardCheck, HeartHandshake, ShieldCheck, UserRoundCheck, UsersRound } from "lucide-react";
 import { BrandHeader } from "@/components/brand-header";
 import { signIn } from "@/app/login/actions";
-import { dashboardPathForRole, getSessionProfile } from "@/lib/auth";
+import { dashboardPathForProfile, getSessionProfile } from "@/lib/auth";
 import { isRole } from "@/lib/roles";
 import { PasskeyLogin } from "@/components/passkey-login";
 
@@ -17,7 +17,7 @@ const audiences = [
 export default async function LoginPage({ searchParams }: { searchParams?: Promise<{ error?: string; next?: string; gardenId?: string; audience?: string }> }) {
   const params = await searchParams;
   const { profile } = await getSessionProfile();
-  if (profile?.role && isRole(profile.role)) redirect(dashboardPathForRole(profile.role));
+  if (profile?.role && isRole(profile.role)) redirect(await dashboardPathForProfile(profile));
   return (
     <>
       <BrandHeader />

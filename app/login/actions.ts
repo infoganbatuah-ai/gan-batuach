@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import { dashboardPathForRole } from "@/lib/auth";
+import { dashboardPathForProfile } from "@/lib/auth";
 import { isRole } from "@/lib/roles";
 
 export async function signIn(formData: FormData) {
@@ -18,9 +18,9 @@ export async function signIn(formData: FormData) {
     data: { user }
   } = await supabase.auth.getUser();
 
-  const { data: profile } = await supabase.from("profiles").select("role").eq("id", user?.id ?? "").single();
+  const { data: profile } = await supabase.from("profiles").select("role, garden_id").eq("id", user?.id ?? "").single();
   const role = profile?.role;
-  const path = isRole(role) ? dashboardPathForRole(role) : "/dashboard";
+  const path = isRole(role) && profile ? await dashboardPathForProfile(profile) : "/dashboard";
   redirect(gardenId ? `${path}?gardenId=${encodeURIComponent(gardenId)}` : path);
 }
 
