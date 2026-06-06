@@ -5627,6 +5627,58 @@ label {
   gap: 14px;
 }
 
+.inline-edit-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) auto;
+  gap: 10px;
+  align-items: end;
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid var(--ux-line);
+}
+
+.inline-edit-form.compact {
+  grid-template-columns: minmax(0, 1fr) auto;
+}
+
+.inline-edit-form label {
+  display: grid;
+  gap: 5px;
+  min-width: 0;
+  color: var(--ux-muted);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.inline-edit-form .wide {
+  grid-column: span 2;
+}
+
+.inline-edit-form input,
+.inline-edit-form select {
+  min-height: 38px;
+  width: 100%;
+  border-radius: 10px;
+  font-size: 13px;
+}
+
+.inline-edit-form .button {
+  min-height: 38px;
+  padding: 8px 12px;
+  white-space: nowrap;
+}
+
+@media (max-width: 720px) {
+  .inline-edit-form,
+  .inline-edit-form.compact {
+    grid-template-columns: 1fr;
+  }
+
+  .inline-edit-form .wide {
+    grid-column: auto;
+  }
+}
+
 .procedure-card {
   display: grid;
   grid-template-columns: minmax(0, 1fr) auto;
