@@ -184,7 +184,16 @@ export async function POST(request: Request) {
 
     if (error) return fail(error.message, 400);
     const primaryParentPhoto = payload.parent_photo_url || payload.mother_photo_url || payload.father_photo_url || "";
-    const parentUpdate = await supabase.from("parents").update({ completed_profile: true, status: "active", photo_url: primaryParentPhoto || parent.photo_url || null }).eq("id", parent.id as string);
+    const now = new Date().toISOString();
+    const parentUpdate = await supabase.from("parents").update({
+      completed_profile: true,
+      status: "active",
+      onboarding_status: "active",
+      invitation_status: "active",
+      onboarding_completed_at: now,
+      activated_at: now,
+      photo_url: primaryParentPhoto || parent.photo_url || null
+    }).eq("id", parent.id as string);
     if (parentUpdate.error) {
       console.error("[parent-child-registration] parent update failed", { parent_id: parent.id, child_id: (child as any).id, error: parentUpdate.error.message });
       return fail("פרטי הילד נשמרו, אך עדכון כרטיס ההורה נכשל.", 500);
@@ -193,6 +202,18 @@ export async function POST(request: Request) {
       const profilePhotoUpdate = await supabase.from("profiles" as any).update({ profile_image_url: primaryParentPhoto }).eq("id", profile.id).is("profile_image_url", null);
       if (profilePhotoUpdate.error) console.error("[parent-child-registration] profile photo update failed", { profile_id: profile.id, error: profilePhotoUpdate.error.message });
     }
+    await supabase.from("parent_onboarding_records" as any).upsert({
+      parent_id: parent.id,
+      profile_id: profile.id,
+      garden_id: gardenId,
+      status: "active",
+      progress_percent: 100,
+      completed_steps: ["profile_completed", "child_linked", "documents_completed", "permissions_reviewed"],
+      missing_items: [],
+      completed_at: now,
+      activated_at: now,
+      metadata: { child_id: (child as any).id }
+    }, { onConflict: "parent_id" });
 
     let permanentFileId = (child as any).permanent_child_file_id ?? existingChild?.permanent_child_file_id ?? null;
     if (permanentFileId) {

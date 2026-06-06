@@ -3,6 +3,7 @@ import { fail, handleRouteError, ok } from "@/lib/api";
 import { requireRole } from "@/lib/auth";
 import { provisionAuthUser, provisionedUserSchema, writeUserCreationAudit } from "@/lib/onboarding/user-provisioning";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { insertInvitationDeliveryLogs } from "@/lib/onboarding/invitation-delivery";
 
 const schema = provisionedUserSchema.extend({
   role_title: z.string().min(2),
@@ -64,6 +65,7 @@ export async function POST(request: Request) {
       temporaryPassword: payload.temporary_password
     });
     createdUserId = user.id;
+    const now = new Date().toISOString();
     await supabase.from("profiles" as any).update({ identity_number: identityNumber }).eq("id", user.id);
 
     const { data: staff, error } = await supabase
@@ -82,7 +84,13 @@ export async function POST(request: Request) {
         notes: payload.notes,
         approved_to_work: false,
         background_check_status: "missing",
-        police_clearance_status: "missing"
+        police_clearance_status: "missing",
+        onboarding_status: "account_created",
+        invited_by: profile.id,
+        invited_at: now,
+        account_created_at: now,
+        policy_acknowledged: false,
+        role_assignment_confirmed: false
       })
       .select("*")
       .single();
@@ -134,6 +142,28 @@ export async function POST(request: Request) {
       });
     if (timeline.error) console.error("[create-staff] timeline failed", { staff_id: staff.id, staff_file_id: file.data.id, error: timeline.error.message });
 
+    await Promise.all([
+      supabase.from("staff_onboarding_records" as any).upsert({
+        staff_id: staff.id,
+        profile_id: user.id,
+        garden_id: profile.garden_id,
+        status: "account_created",
+        progress_percent: 0,
+        invited_by: profile.id,
+        invited_at: now,
+        account_created_at: now
+      }, { onConflict: "staff_id" }),
+      insertInvitationDeliveryLogs(supabase, {
+        profileId: user.id,
+        gardenId: profile.garden_id,
+        role: "staff",
+        username: oneTimeCredentials.username,
+        temporaryPassword: oneTimeCredentials.temporary_password,
+        recipientName: payload.full_name,
+        phone: payload.phone
+      })
+    ]);
+
     await writeUserCreationAudit({
       actorId: profile.id,
       actorRole: profile.role,
@@ -141,7 +171,7 @@ export async function POST(request: Request) {
       entityType: "staff",
       entityId: staff.id as string,
       action: "create_staff_user",
-      afterData: { staff_id: staff.id, staff_user_id: user.id, approval_status: "pending_documents" }
+      afterData: { staff_id: staff.id, staff_user_id: user.id, approval_status: "pending_documents", onboarding_status: "account_created" }
     });
 
     return ok({ staff, credentials: oneTimeCredentials }, 201);

@@ -204,6 +204,12 @@ export function GardenProvisioningPanel({ pendingChildren, parentLeads, pendingS
     catch (err) { setError(err instanceof Error ? err.message : "האישור נכשל"); } finally { setBusy(false); }
   }
 
+  async function staffAction(staffId: string, action: "request_correction" | "suspend", note: string) {
+    setBusy(true); setError(null);
+    try { await postJson("/api/garden/staff/" + staffId + "/approve", { action, note }); setResult({ title: action === "request_correction" ? "נשלח לתיקון" : "הצוות הושהה", message: note }); }
+    catch (err) { setError(err instanceof Error ? err.message : "הפעולה נכשלה"); } finally { setBusy(false); }
+  }
+
   return (
     <div className="onboarding-console">
       <CredentialSuccess result={result} /><ErrorBox error={error} />
@@ -221,7 +227,7 @@ export function GardenProvisioningPanel({ pendingChildren, parentLeads, pendingS
       </section>
       <section className="grid cols-2 dashboard-panels">
         <article className="card action-panel"><div className="section-heading"><h2>אישורי ילדים</h2><p>רק לאחר אישור מנהלת הילד נכנס לרשימת התלמידים הפעילים.</p></div>{pendingChildren.length === 0 ? <div className="empty-mini">אין ילדים שממתינים לאישור.</div> : pendingChildren.map((child) => <div className="list-item" key={child.id}><div><strong>{child.full_name}</strong><span>{child.status}</span></div><button className="button secondary" disabled={busy} onClick={() => approveChild(child.id)}>אישור ילד</button></div>)}</article>
-        <article className="card action-panel"><div className="section-heading"><h2>אישור צוות</h2><p>האישור יתאפשר רק כשבדיקת רקע ותעודת יושר מסומנות valid.</p></div>{pendingStaff.length === 0 ? <div className="empty-mini">אין אנשי צוות שממתינים לאישור.</div> : pendingStaff.map((staff) => <div className="list-item" key={staff.id}><div><strong>{staff.full_name}</strong><span>{staff.role_title ?? "צוות"} · רקע: {staff.background_check_status ?? "missing"} · יושר: {staff.police_clearance_status ?? "missing"}</span></div><button className="button secondary" disabled={busy} onClick={() => approveStaff(staff.id)}>אישור צוות</button></div>)}</article>
+        <article className="card action-panel"><div className="section-heading"><h2>אישור צוות</h2><p>האישור יתאפשר רק כשבדיקת רקע ותעודת יושר מסומנות valid.</p></div>{pendingStaff.length === 0 ? <div className="empty-mini">אין אנשי צוות שממתינים לאישור.</div> : pendingStaff.map((staff) => <div className="list-item" key={staff.id}><div><strong>{staff.full_name}</strong><span>{staff.role_title ?? "צוות"} · רקע: {staff.background_check_status ?? "missing"} · יושר: {staff.police_clearance_status ?? "missing"}</span></div><div className="actions"><button className="button secondary" disabled={busy} onClick={() => approveStaff(staff.id)}>אישור צוות</button><button className="button secondary" disabled={busy} onClick={() => staffAction(staff.id, "request_correction", "נדרשת השלמת פרטים או מסמכים")}>תיקון</button><button className="button secondary" disabled={busy} onClick={() => staffAction(staff.id, "suspend", "החשבון הושהה")}>השהיה</button></div></div>)}</article>
       </section>
     </div>
   );
