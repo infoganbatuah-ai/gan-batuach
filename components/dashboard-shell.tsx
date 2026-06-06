@@ -8,8 +8,6 @@ import { AdminGlobalSearch } from "@/components/admin-global-search";
 import { RoleOnboardingGuide } from "@/components/role-onboarding-guide";
 import { SandboxModeBanner } from "@/components/sandbox-mode-banner";
 import { AIAssistantPanel } from "@/components/ai-assistant-panel";
-import { DashboardIntelligenceBar } from "@/components/dashboard-intelligence-bar";
-import { DashboardCommandCenter } from "@/components/dashboard-command-center";
 import { OnboardingGuideControls } from "@/components/onboarding-guide-controls";
 import { DashboardBackButton } from "@/components/dashboard-back-button";
 import { NotificationBell } from "@/components/notification-bell";
@@ -324,8 +322,6 @@ export function DashboardShell({ role, title, children }: { role: UserRole; titl
           <SandboxModeBanner />
           <OnboardingGuideControls role={role} />
           <RoleOnboardingGuide role={role} />
-          <DashboardIntelligenceBar role={role} title={title} />
-          <DashboardCommandCenter role={role} title={title} />
           {role === "admin" ? <AdminGlobalSearch /> : null}
           {children}
           <AIAssistantPanel role={role} />

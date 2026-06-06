@@ -16,7 +16,7 @@ export default async function GardenDashboard() {
   const supabase = await createClient();
   const gardenId = profile.garden_id;
   const [gardenRes, childrenRes, staffRes, parentsRes, tasksRes, leadsRes, complaintsRes, violationsRes, camerasRes, aiRes, documentsRes, messagesRes, inspectionRes, attendanceRes, unpaidRes, dueInspectionRes, financeChildrenRes, changeClothesRes, healthAlertsRes, parentRequestsRes, staffDocsRes, incidentsRes, documentApprovalsRes, pendingParentCompletionRes, pendingApprovalRes, childJournalsRes] = await Promise.all([
-    supabase.from("gardens" as any).select("id, name, city, logo_url, image_url, safe_status, first_inspection_due_at, last_inspection_score").eq("id", gardenId ?? "").maybeSingle(),
+    supabase.from("gardens" as any).select("id, name, city, logo_url, image_url, address, phone, email, owner_name, public_description, ages, safe_status, first_inspection_due_at, last_inspection_score, approval_flow_status, final_approval_status, admin_correction_note").eq("id", gardenId ?? "").maybeSingle(),
     supabase.from("children").select("*", { count: "exact", head: true }).eq("garden_id", gardenId ?? ""),
     supabase.from("staff").select("*", { count: "exact", head: true }).eq("garden_id", gardenId ?? ""),
     supabase.from("parents").select("*", { count: "exact", head: true }).eq("garden_id", gardenId ?? ""),
@@ -44,6 +44,32 @@ export default async function GardenDashboard() {
     supabase.from("child_daily_journals" as any).select("child_id, meals, sleep_summary, mood").eq("garden_id", gardenId ?? "").eq("journal_date", new Date().toISOString().slice(0, 10))
   ]);
   const garden = gardenRes.data as any;
+  const onboardingStatus = String(garden?.approval_flow_status ?? garden?.final_approval_status ?? "");
+  const mustCompleteGardenProfile = ["lead_approved_credentials_sent", "profile_incomplete", "correction_required"].includes(onboardingStatus);
+  if (mustCompleteGardenProfile) {
+    const correction = onboardingStatus === "correction_required";
+    return (
+      <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="השלמת פרופיל גן">
+        <section className="onboarding-focus-screen">
+          <div className="onboarding-focus-hero">
+            <p className="eyebrow">{correction ? "נדרשת השלמה" : "ברוכה הבאה"}</p>
+            <h1>{correction ? "האדמין ביקש תיקון קטן לפני אישור." : "משלימים את פרופיל הגן ומגישים לאישור."}</h1>
+            <p>{correction ? garden?.admin_correction_note ?? "יש להשלים את הפרטים החסרים ולשלוח שוב לאישור." : "כמה פרטים קצרים, לוגו, קשר ופרטי גן. אחר כך האדמין מאשר והגן עולה לאוויר."}</p>
+            <Link className="button primary large" href="/dashboard/garden/settings">השלמת פרופיל</Link>
+          </div>
+          <div className="onboarding-checklist-card">
+            {[
+              ["פרטי גן", garden?.name && garden?.address && garden?.phone],
+              ["לוגו או תמונת גן", garden?.logo_url || garden?.image_url],
+              ["פרטי קשר", garden?.email || garden?.phone],
+              ["בעלים / מנהלת", garden?.owner_name || profile.full_name],
+              ["שליחה לאישור", false]
+            ].map(([label, done]) => <div className={done ? "onboarding-check done" : "onboarding-check"} key={String(label)}><span>{done ? "✓" : "•"}</span><strong>{label}</strong></div>)}
+          </div>
+        </section>
+      </DashboardShell>
+    );
+  }
   const [incomingTransfersRes, outgoingTransfersRes] = await Promise.all([
     supabase.from("child_transfer_requests" as any).select("id", { count: "exact", head: true }).eq("target_garden_id", gardenId ?? "").in("status", ["pending_new_kindergarten_review", "missing_details"]),
     supabase.from("child_transfer_requests" as any).select("id", { count: "exact", head: true }).eq("current_garden_id", gardenId ?? "").in("status", ["pending_new_kindergarten_review", "pending_current_kindergarten_response", "current_kindergarten_requested_call", "current_kindergarten_flagged"])

@@ -17,9 +17,12 @@ const schema = z.object({
     image_url: z.string().url().optional().or(z.literal("")),
     address: z.string().optional(),
     phone: z.string().optional(),
+    email: z.string().email().optional().or(z.literal("")),
+    owner_name: z.string().optional(),
     public_description: z.string().optional(),
     ages: z.array(z.string()).optional(),
-    public_profile_enabled: z.boolean().optional()
+    public_profile_enabled: z.boolean().optional(),
+    submit_for_final_approval: z.boolean().optional()
   }).optional()
 });
 
@@ -43,11 +46,19 @@ export async function PATCH(request: Request) {
       const gardenId = profile.garden_id;
       if (!gardenId) return fail("לא נמצא גן משויך לעדכון", 422);
       const gardenPatch: Record<string, unknown> = {};
-      for (const key of ["name", "logo_url", "image_url", "address", "phone", "public_description", "ages", "public_profile_enabled"] as const) {
+      for (const key of ["name", "logo_url", "image_url", "address", "phone", "email", "owner_name", "public_description", "ages", "public_profile_enabled"] as const) {
         if (payload.garden[key] !== undefined) gardenPatch[key] = payload.garden[key] === "" ? null : payload.garden[key];
       }
+      if (payload.garden.submit_for_final_approval) {
+        gardenPatch.status = "pending_final_admin_approval";
+        gardenPatch.approval_flow_status = "pending_final_admin_approval";
+        gardenPatch.final_approval_status = "pending_final_admin_approval";
+        gardenPatch.onboarding_status = "profile_submitted";
+        gardenPatch.profile_submitted_at = new Date().toISOString();
+        gardenPatch.onboarding_completed_at = new Date().toISOString();
+      }
       if (Object.keys(gardenPatch).length) {
-        const { data, error } = await supabase.from("gardens" as any).update(gardenPatch).eq("id", gardenId).select("id, name, logo_url, image_url, address, phone, public_description, ages").single();
+        const { data, error } = await supabase.from("gardens" as any).update(gardenPatch).eq("id", gardenId).select("id, name, logo_url, image_url, address, phone, email, owner_name, public_description, ages, approval_flow_status, final_approval_status").single();
         if (error) return fail("לא ניתן לשמור פרטי גן כרגע", 400);
         updatedGarden = data;
       }
