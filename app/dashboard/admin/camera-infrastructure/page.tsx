@@ -18,16 +18,19 @@ export default async function AdminCameraInfrastructurePage() {
   await requireRole(["admin"]);
   const result = await safeAdminData("admin camera infrastructure", async () => {
     const supabase = await createClient();
-    const [camerasRes, validationsRes, healthRes, recordingRes, storageRes, sessionsRes, providersRes] = await Promise.all([
-      supabase.from("camera_streams" as any).select("*").order("created_at", { ascending: false }).limit(300),
+    const safeCameraColumns = "id,garden_id,kindergarten_id,observer_site_id,name,area,camera_type,source_type,system_type,deployment_scope,test_site_type,camera_provider_key,gateway_provider_preference,live_preview_status,clip_readiness_status,snapshot_readiness_status,permission_model,stream_status,health_status,last_seen,connection_method,protocol,status,active,parent_view_allowed,parent_viewing_allowed,last_health_check_at,last_test_status,last_test_message,last_test_at,gateway_registration_status,gateway_last_error,masked_connection_summary,hls_playback_url,sample_hls_url,webrtc_playback_url,video_gateway_stream_id,gateway_stream_id,gateway_provider,gateway_source_id,gateway_playback_id,gateway_registered_at,gateway_latency_ms,gateway_stream_count,gateway_failed_stream_count,viewing_hours,recording_enabled,retention_days,archive_policy,recording_status,recording_retention_days,recording_storage_location,storage_provider,storage_mode,estimated_daily_storage_mb,recording_storage_used_mb,playback_hls_ready,playback_webrtc_ready,created_at,updated_at";
+    const [camerasRes, validationsRes, healthRes, recordingRes, storageRes, sessionsRes, providersRes, gatewaysRes, testSitesRes] = await Promise.all([
+      supabase.from("camera_streams" as any).select(safeCameraColumns).order("created_at", { ascending: false }).limit(300),
       supabase.from("camera_stream_validations" as any).select("*").order("created_at", { ascending: false }).limit(200),
       supabase.from("camera_health_history" as any).select("*").order("checked_at", { ascending: false }).limit(200),
       supabase.from("camera_recording_readiness" as any).select("*").order("updated_at", { ascending: false }).limit(200),
       supabase.from("camera_storage_readiness" as any).select("*").order("updated_at", { ascending: false }).limit(200),
       supabase.from("camera_playback_sessions" as any).select("*").order("started_at", { ascending: false }).limit(200),
-      supabase.from("camera_provider_registry" as any).select("*").order("provider_name")
+      supabase.from("camera_provider_registry" as any).select("*").order("provider_name"),
+      supabase.from("camera_gateway_deployments" as any).select("*").order("provider"),
+      supabase.from("camera_deployment_test_sites" as any).select("*").order("site_key")
     ]);
-    [camerasRes, validationsRes, healthRes, recordingRes, storageRes, sessionsRes, providersRes].forEach((query, index) => logSupabaseError(`camera infrastructure query ${index}`, (query as any).error));
+    [camerasRes, validationsRes, healthRes, recordingRes, storageRes, sessionsRes, providersRes, gatewaysRes, testSitesRes].forEach((query, index) => logSupabaseError(`camera infrastructure query ${index}`, (query as any).error));
     const cameras = (camerasRes.data ?? []) as any[];
     return {
       cameras,
@@ -37,10 +40,12 @@ export default async function AdminCameraInfrastructurePage() {
       storage: storageRes.data ?? [],
       sessions: sessionsRes.data ?? [],
       providers: providersRes.data ?? [],
+      gateways: gatewaysRes.data ?? [],
+      testSites: testSitesRes.data ?? [],
       summary: buildCameraInfrastructureSummary(cameras, (validationsRes.data ?? []) as any[], (sessionsRes.data ?? []) as any[]),
-      queryError: [camerasRes.error, validationsRes.error, healthRes.error, recordingRes.error, storageRes.error, sessionsRes.error, providersRes.error].some(Boolean) ? "חלק מנתוני תשתית המצלמות לא נטענו" : null
+      queryError: [camerasRes.error, validationsRes.error, healthRes.error, recordingRes.error, storageRes.error, sessionsRes.error, providersRes.error, gatewaysRes.error, testSitesRes.error].some(Boolean) ? "חלק מנתוני תשתית המצלמות לא נטענו" : null
     };
-  }, { cameras: [] as any[], validations: [] as any[], healthHistory: [] as any[], recording: [] as any[], storage: [] as any[], sessions: [] as any[], providers: [] as any[], summary: buildCameraInfrastructureSummary([]), queryError: null as string | null });
+  }, { cameras: [] as any[], validations: [] as any[], healthHistory: [] as any[], recording: [] as any[], storage: [] as any[], sessions: [] as any[], providers: [] as any[], gateways: [] as any[], testSites: [] as any[], summary: buildCameraInfrastructureSummary([]), queryError: null as string | null });
 
   const { summary } = result.data;
   const providers = result.data.providers.length ? result.data.providers : Object.entries(cameraProviderRegistry).map(([provider_key, provider]) => ({ provider_key, provider_name: provider.name, capabilities: provider.capabilities }));
@@ -93,6 +98,33 @@ export default async function AdminCameraInfrastructurePage() {
             <div><HardDrive /> Recording readiness <b>{summary.recordingReady}/{summary.total}</b></div>
             <div><Database /> Storage readiness <b>{summary.storageReady}/{summary.total}</b></div>
             <div><ShieldCheck /> Secrets <b>לא מוצגים בדפדפן</b></div>
+          </div>
+        </article>
+      </section>
+
+      <section className="grid cols-2 dashboard-panels">
+        <article className="card action-panel">
+          <div className="section-heading"><h2><RadioTower size={20} /> Gateway</h2><p>MediaMTX, go2rtc או ספק מותאם.</p></div>
+          <div className="procedure-list compact-list">
+            {result.data.gateways.length === 0 ? <div className="empty-mini">אין רשומות Gateway עדיין.</div> : result.data.gateways.map((gateway: any) => (
+              <div className="mini-row" key={`${gateway.provider}-${gateway.environment}`}>
+                <span>{gateway.provider}</span>
+                <strong>{gateway.status} · {gateway.health_status}</strong>
+                <small>{gateway.active_streams ?? 0} פעילים · {gateway.failed_streams ?? 0} נכשלים</small>
+              </div>
+            ))}
+          </div>
+        </article>
+        <article className="card action-panel">
+          <div className="section-heading"><h2><ShieldCheck size={20} /> מצבי בדיקה</h2><p>בדיקות מבודדות לפני חיבור גן אמיתי.</p></div>
+          <div className="procedure-list compact-list">
+            {result.data.testSites.length === 0 ? <div className="empty-mini">אין אתרי בדיקה עדיין.</div> : result.data.testSites.map((site: any) => (
+              <div className="mini-row" key={site.site_key}>
+                <span>{site.display_name}</span>
+                <strong>{site.site_type}</strong>
+                <small>{site.isolated_from_kindergarten_data ? "מבודד מנתוני ייצור" : "דורש בדיקה"}</small>
+              </div>
+            ))}
           </div>
         </article>
       </section>

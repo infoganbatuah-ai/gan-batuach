@@ -3,7 +3,7 @@ import { Camera, Clock, MapPin, PackageCheck, ShieldCheck } from "lucide-react";
 import { BrandHeader } from "@/components/brand-header";
 
 const siteTypes = ["בית", "עסק", "מחסן", "משרד", "חנות", "חניון", "מותאם"];
-const cameraTypes = ["DVR / NVR", "ONVIF", "RTSP", "IP Camera"];
+const cameraTypes = ["DVR", "NVR", "IP Camera", "RTSP", "ONVIF", "Hikvision", "Dahua", "Uniview", "Axis", "Generic"];
 
 export default function DigitalObserverOnboardingPage() {
   return (
@@ -14,7 +14,7 @@ export default function DigitalObserverOnboardingPage() {
           <div>
             <p className="eyebrow">Mock onboarding readiness</p>
             <h1>הצטרפות עתידית ל-Digital Observer.</h1>
-            <p>תצוגת מסע לקוח בלבד. אין כאן הפעלה מסחרית, חיוב או עיבוד וידאו אמיתי.</p>
+            <p>הכנה לחיבור בית, עסק או אתר עתידי. אין כאן הפעלה מסחרית, חיוב או עיבוד וידאו אמיתי.</p>
           </div>
           <span className="pill warn">Future standalone product</span>
         </section>
@@ -37,7 +37,7 @@ export default function DigitalObserverOnboardingPage() {
               <div className="procedure-card"><Clock /><div><h3>לוח ניטור</h3><p>24/7, שעות עסק, לילה בלבד או custom schedule.</p></div></div>
               <div className="procedure-card"><Camera /><div><h3>סוג מצלמות</h3><p>{cameraTypes.join(" · ")}</p></div></div>
               <div className="procedure-card"><PackageCheck /><div><h3>בחירת חבילה</h3><p>Home Basic, Home Plus, Business, Enterprise.</p></div></div>
-              <div className="procedure-card"><ShieldCheck /><div><h3>Human review</h3><p>אירועים דורשים בדיקת אדם לפני הסלמה.</p></div></div>
+              <div className="procedure-card"><ShieldCheck /><div><h3>אבטחה</h3><p>RTSP, סיסמאות ומפתחות Gateway נשארים בצד השרת.</p></div></div>
             </div>
           </article>
         </section>
@@ -45,10 +45,10 @@ export default function DigitalObserverOnboardingPage() {
         <section className="dashboard-section">
           <div className="section-heading">
             <h2>שלבי הפעלה</h2>
-            <p>Create account → Create site → Add cameras → Choose package → Activate monitoring.</p>
+            <p>חשבון → אתר → מצלמות → בדיקה → Gateway → צפייה מאובטחת.</p>
           </div>
           <div className="timeline-list">
-            {["יצירת חשבון", "יצירת אתר", "חיבור מצלמות", "בחירת חבילת ניטור", "הפעלת ניטור"].map((step, index) => (
+            {["יצירת חשבון", "יצירת אתר", "חיבור מצלמות", "בדיקת חיבור", "רישום Gateway", "צפייה עם Token"].map((step, index) => (
               <article className="card timeline-card" key={step}>
                 <span className="pill">{index + 1}</span>
                 <h3>{step}</h3>
