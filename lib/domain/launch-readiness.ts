@@ -1,5 +1,13 @@
 export type LaunchReadinessSummary = {
   overallScore: number;
+  componentScores: {
+    onboarding: number;
+    communication: number;
+    camera: number;
+    observer: number;
+    security: number;
+    support: number;
+  };
   readyCategories: number;
   partialCategories: number;
   notReadyCategories: number;
@@ -18,6 +26,21 @@ export type LaunchReadinessSummary = {
   configurationPending: number;
   launchStatus: "ready" | "partial" | "blocked";
 };
+
+const launchScoreComponents = {
+  onboarding: ["onboarding"],
+  communication: ["notifications", "communication"],
+  camera: ["cameras", "camera"],
+  observer: ["observer"],
+  security: ["security"],
+  support: ["support"]
+} as const;
+
+function componentScore(readiness: any[], categories: readonly string[]) {
+  const matches = readiness.filter((item) => categories.includes(String(item.category)));
+  if (!matches.length) return 0;
+  return Math.round(matches.reduce((sum, item) => sum + Number(item.score ?? 0), 0) / matches.length);
+}
 
 export function buildLaunchReadinessSummary(input: {
   readiness?: any[];
@@ -39,12 +62,22 @@ export function buildLaunchReadinessSummary(input: {
   const openBlockers = blockers.filter((blocker) => !["verified", "accepted_risk"].includes(String(blocker.status)));
   const requiredChecklist = checklist.filter((item) => item.required);
   const completedRequired = requiredChecklist.filter((item) => ["completed", "verified", "not_required"].includes(String(item.status)));
-  const score = readiness.length ? Math.round(readiness.reduce((sum, item) => sum + Number(item.score ?? 0), 0) / readiness.length) : 0;
+  const componentScores = {
+    onboarding: componentScore(readiness, launchScoreComponents.onboarding),
+    communication: componentScore(readiness, launchScoreComponents.communication),
+    camera: componentScore(readiness, launchScoreComponents.camera),
+    observer: componentScore(readiness, launchScoreComponents.observer),
+    security: componentScore(readiness, launchScoreComponents.security),
+    support: componentScore(readiness, launchScoreComponents.support)
+  };
+  const scoreValues = Object.values(componentScores);
+  const score = scoreValues.length ? Math.round(scoreValues.reduce((sum, value) => sum + value, 0) / scoreValues.length) : 0;
   const satisfactionValues = pilots.map((pilot) => Number(pilot.satisfaction_score ?? 0)).filter((value) => value > 0);
   const criticalIssues = openIssues.filter((issue) => issue.severity === "critical").length;
   const criticalBlockers = openBlockers.filter((blocker) => blocker.severity === "critical").length;
   return {
     overallScore: score,
+    componentScores,
     readyCategories: readiness.filter((item) => item.status === "ready").length,
     partialCategories: readiness.filter((item) => item.status === "partial").length,
     notReadyCategories: readiness.filter((item) => ["not_ready", "blocked"].includes(String(item.status))).length,

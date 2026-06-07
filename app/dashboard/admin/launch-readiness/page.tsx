@@ -68,6 +68,15 @@ export default async function AdminLaunchReadinessPage() {
         <StatCard label="פיילוטים פעילים" value={summary.activePilots} tone="good" />
       </section>
 
+      <section className="pilot-readiness-grid">
+        <article className="pilot-score-card"><strong>Onboarding</strong><i><b>{summary.componentScores.onboarding}%</b></i><p>ליד, מנהלת, הורה וצוות</p></article>
+        <article className="pilot-score-card"><strong>Communication</strong><i><b>{summary.componentScores.communication}%</b></i><p>אימייל, WhatsApp, SMS, Push</p></article>
+        <article className="pilot-score-card"><strong>Cameras</strong><i><b>{summary.componentScores.camera}%</b></i><p>Gateway, הרשאות ובריאות</p></article>
+        <article className="pilot-score-card"><strong>Observer</strong><i><b>{summary.componentScores.observer}%</b></i><p>Shadow mode וביקורת אנושית</p></article>
+        <article className="pilot-score-card"><strong>Security</strong><i><b>{summary.componentScores.security}%</b></i><p>RLS, סודות וגיבויים</p></article>
+        <article className="pilot-score-card"><strong>Support</strong><i><b>{summary.componentScores.support}%</b></i><p>תמיכה, הדרכה והסלמה</p></article>
+      </section>
+
       <section className="grid cols-2 dashboard-panels">
         <article className="card action-panel">
           <div className="section-heading"><h2><Gauge size={20} /> ציון מוכנות</h2><p>מה מוכן ומה עדיין דורש טיפול.</p></div>
