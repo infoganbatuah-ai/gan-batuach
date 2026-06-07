@@ -6915,6 +6915,39 @@ body:has(.dashboard-layout),
   font-weight: 900;
 }
 
+.camera-flow-selector {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+  margin-block: 14px 18px;
+}
+
+.camera-flow-selector button {
+  min-height: 94px;
+  display: grid;
+  align-content: start;
+  gap: 6px;
+  border: 1px solid var(--premium-line);
+  border-radius: 18px;
+  padding: 14px;
+  background: #fff;
+  color: var(--premium-ink);
+  text-align: right;
+  cursor: pointer;
+  box-shadow: 0 10px 26px rgb(20 62 70 / 6%);
+}
+
+.camera-flow-selector button.selected-choice {
+  border-color: #96dcca;
+  background: #e8fbf3;
+}
+
+.camera-flow-selector span {
+  color: var(--premium-muted);
+  font-size: 13px;
+  line-height: 1.35;
+}
+
 .premium-empty-state {
   display: grid;
   gap: 8px;
