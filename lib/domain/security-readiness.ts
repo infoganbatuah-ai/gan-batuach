@@ -8,13 +8,16 @@ export type SecurityReadinessSummary = {
   mediumFindings: number;
   lowFindings: number;
   unresolvedFindings: number;
+  resolvedFindings: number;
   secretsTracked: number;
   secretsPending: number;
   backupReady: number;
   backupPending: number;
+  backupReadinessPercent: number;
   recoveryReady: number;
   recoveryPending: number;
   auditCoveragePercent: number;
+  complianceReadinessPercent: number;
   rateLimitBlocks: number;
   monitoringOpen: number;
   overallStatus: "ready" | "partial" | "blocked";
@@ -41,6 +44,14 @@ export function buildSecurityReadinessSummary(input: {
   const unresolved = findings.filter((finding) => !["resolved", "false_positive", "accepted_risk"].includes(String(finding.status)));
   const implementedAudits = auditCatalog.filter((event) => event.implemented).length;
   const auditCoveragePercent = auditCatalog.length ? Math.round((implementedAudits / auditCatalog.length) * 100) : 0;
+  const backupReady = backups.filter((backup) => backup.status === "ready" || backup.status === "not_required").length;
+  const backupReadinessPercent = backups.length ? Math.round((backupReady / backups.length) * 100) : 0;
+  const readinessUnits = checks.length + (auditCatalog.length ? 1 : 0) + (backups.length ? 1 : 0);
+  const readyUnits =
+    checks.filter((check) => check.status === "ready").length +
+    (auditCoveragePercent >= 80 ? 1 : 0) +
+    (backupReadinessPercent >= 80 ? 1 : 0);
+  const complianceReadinessPercent = readinessUnits ? Math.round((readyUnits / readinessUnits) * 100) : 0;
   const blockedChecks = checks.filter((check) => check.status === "blocked").length;
   const criticalFindings = unresolved.filter((finding) => finding.severity === "critical").length;
   return {
@@ -53,13 +64,16 @@ export function buildSecurityReadinessSummary(input: {
     mediumFindings: unresolved.filter((finding) => finding.severity === "medium").length,
     lowFindings: unresolved.filter((finding) => finding.severity === "low").length,
     unresolvedFindings: unresolved.length,
+    resolvedFindings: findings.filter((finding) => ["resolved", "false_positive", "accepted_risk"].includes(String(finding.status))).length,
     secretsTracked: secrets.length,
     secretsPending: secrets.filter((secret) => ["pending", "blocked", "partial"].includes(String(secret.readiness_status))).length,
-    backupReady: backups.filter((backup) => backup.status === "ready").length,
+    backupReady,
     backupPending: backups.filter((backup) => ["pending", "partial", "blocked"].includes(String(backup.status))).length,
+    backupReadinessPercent,
     recoveryReady: recovery.filter((checkpoint) => checkpoint.status === "ready").length,
     recoveryPending: recovery.filter((checkpoint) => ["pending", "partial", "blocked", "needs_review"].includes(String(checkpoint.status))).length,
     auditCoveragePercent,
+    complianceReadinessPercent,
     rateLimitBlocks: rateLimitEvents.filter((event) => event.blocked).length,
     monitoringOpen: monitoringEvents.filter((event) => ["open", "reviewing"].includes(String(event.status))).length,
     overallStatus: criticalFindings || blockedChecks ? "blocked" : checks.some((check) => check.status !== "ready") || unresolved.length ? "partial" : "ready"

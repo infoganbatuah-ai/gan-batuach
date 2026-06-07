@@ -16,6 +16,18 @@ function loginUrl() {
   return process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || "http://localhost:3000";
 }
 
+function canStoreTemporaryPasswordInMockLog() {
+  return process.env.NODE_ENV !== "production" || process.env.NEXT_PUBLIC_SANDBOX_MODE === "true";
+}
+
+function credentialVariables(temporaryPassword: string) {
+  const mockLogAllowed = canStoreTemporaryPasswordInMockLog();
+  return {
+    temporary_password: mockLogAllowed ? temporaryPassword : "[redacted]",
+    temporary_password_redacted: !mockLogAllowed
+  };
+}
+
 async function insertCredentialCommunicationLogs(admin: ReturnType<typeof createAdminClient>, input: {
   gardenId: string;
   managerId: string;
@@ -26,6 +38,7 @@ async function insertCredentialCommunicationLogs(admin: ReturnType<typeof create
 }) {
   const now = new Date().toISOString();
   const messagePreview = `כניסה לגן בטוח עבור ${input.gardenName}. שם משתמש: ${input.username}. יש להשלים פרופיל גן לאחר התחברות.`;
+  const passwordVariables = credentialVariables(input.temporaryPassword);
   await Promise.all([
     admin.from("email_delivery_logs" as any).insert({
       recipient_profile_id: input.managerId,
@@ -39,7 +52,8 @@ async function insertCredentialCommunicationLogs(admin: ReturnType<typeof create
       sent_at: null,
       metadata: {
         login_url: `${loginUrl()}/login`,
-        includes_temporary_password: true,
+        includes_temporary_password: canStoreTemporaryPasswordInMockLog(),
+        temporary_password_redacted: !canStoreTemporaryPasswordInMockLog(),
         password_delivery: "provider_payload_only"
       }
     }),
@@ -54,7 +68,7 @@ async function insertCredentialCommunicationLogs(admin: ReturnType<typeof create
       variables: {
         login_url: `${loginUrl()}/login`,
         username: input.username,
-        temporary_password: input.temporaryPassword,
+        ...passwordVariables,
         garden_name: input.gardenName
       },
       queued_at: now,
@@ -72,7 +86,7 @@ async function insertCredentialCommunicationLogs(admin: ReturnType<typeof create
       variables: {
         login_url: `${loginUrl()}/login`,
         username: input.username,
-        temporary_password: input.temporaryPassword,
+        ...passwordVariables,
         garden_name: input.gardenName
       },
       queued_at: now,
