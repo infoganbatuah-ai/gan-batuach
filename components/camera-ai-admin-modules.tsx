@@ -25,18 +25,20 @@ const systemTypeLabels: Record<string, string> = {
   manual_rtsp: "חיבור ידני",
   sample_hls: "בדיקת Sample HLS"
 };
-const cameraSystemOptions = [
-  ["dvr", "DVR"],
-  ["nvr", "NVR"],
-  ["ip_camera", "מצלמת IP"],
-  ["rtsp", "RTSP"],
-  ["onvif", "ONVIF"],
+type CameraSetupFlow = "dvr_nvr" | "ip_camera" | "manual_rtsp" | "onvif" | "home_test";
+const cameraFlowOptions: Array<{ value: CameraSetupFlow; title: string; text: string }> = [
+  { value: "dvr_nvr", title: "DVR / NVR", text: "מערכת מרכזית שמחוברים אליה כמה ערוצים." },
+  { value: "ip_camera", title: "מצלמת IP", text: "מצלמה שמחוברת ישירות לרשת." },
+  { value: "manual_rtsp", title: "RTSP ידני", text: "כתובת שידור מלאה מטכנאי או מספק המצלמות." },
+  { value: "onvif", title: "ONVIF", text: "תקן שמאפשר לגלות מצלמות ולבדוק יכולות." },
+  { value: "home_test", title: "בדיקת בית", text: "מצלמה פרטית לבדיקה בלבד, לא נתוני גן." }
+] as const;
+const cameraBrandOptions = [
   ["hikvision", "Hikvision"],
   ["dahua", "Dahua"],
   ["uniview", "Uniview"],
   ["axis", "Axis"],
-  ["generic_camera", "מצלמה כללית"],
-  ["sample_hls", "בדיקת HLS"]
+  ["generic_camera", "Generic"]
 ] as const;
 const testSiteOptions = [
   ["", "גן פעיל"],
@@ -64,6 +66,7 @@ export function CameraAdminManager({ cameras, gardens, gatewayConnected }: { cam
   const [rows, setRows] = useState(cameras);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [setupFlow, setSetupFlow] = useState<CameraSetupFlow>("dvr_nvr");
   useEffect(() => setRows(cameras), [cameras]);
   async function refreshRows() {
     const freshRows = await postJson("/api/camera-streams?limit=200", undefined, "GET");
@@ -115,7 +118,121 @@ export function CameraAdminManager({ cameras, gardens, gatewayConnected }: { cam
   }
   const hasCameras = rows.length > 0;
   const health = summarizeCameraHealth(rows);
-  return <><div className={gatewayConnected ? "success-screen" : "gateway-setup-state"}><strong>{gatewayConnected ? "Gateway וידאו מחובר" : "Gateway וידאו עדיין לא מחובר"}</strong><p>הפלטפורמה תומכת ברישום DVR, NVR, IP, RTSP, ONVIF וספקים נפוצים. אין חשיפת RTSP או סיסמאות בדפדפן.</p></div><section className="grid cols-4 dashboard-panels"><article className="card metric-card"><span>מחוברות</span><strong>{health.online}</strong></article><article className="card metric-card"><span>דורשות טיפול</span><strong>{health.warning + health.pending}</strong></article><article className="card metric-card"><span>לא מחוברות</span><strong>{health.offline}</strong></article><article className="card metric-card"><span>מושבתות</span><strong>{health.disabled}</strong></article></section>{message ? <div className="success-banner">{message}</div> : null}{error ? <div className="error-banner">{error}</div> : null}<CollapsibleActionPanel title={hasCameras ? "הוספת מצלמה" : "חיבור מצלמה ראשונה"} description={hasCameras ? "פתחו אשף קצר רק כשצריך להוסיף מקור חדש." : "אפשר להוסיף מצלמה כממתינה ל-Gateway או כמצלמת בדיקה מבודדת."} buttonLabel={hasCameras ? "הוספת מצלמה" : "חיבור מצלמה ראשונה"} defaultOpen={!hasCameras}>{({ close }) => <section className="grid cols-2 dashboard-panels"><form className="card form wizard-form" onSubmit={(event) => save(event, close)}><h2>אשף חיבור מצלמה</h2><div className="stepper expanded">{["סוג","כתובת","כניסה","ערוץ","בדיקה","Gateway","צפייה"].map((s,i)=><span key={s}><b>{i+1}</b>{s}</span>)}</div><div className="form-grid"><label>גן<select name="garden_id" required><option value="">בחר גן</option>{gardens.map((g) => <option key={g.id} value={g.id}>{g.name} · {g.city}</option>)}</select></label><label>מצב בדיקה<select name="test_site_type">{testSiteOptions.map(([value, label]) => <option key={value || "production"} value={value}>{label}</option>)}</select></label><label>שם מצלמה<input name="name" required placeholder="כניסה ראשית" /></label><label>סוג מערכת<select name="system_type">{cameraSystemOptions.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select></label><label>Gateway<select name="gateway_provider_preference"><option value="mediamtx">MediaMTX</option><option value="go2rtc">go2rtc</option><option value="custom">מותאם</option></select></label><label>איכות שידור<select name="stream_quality"><option value="sub">רגילה</option><option value="main">גבוהה</option></select></label><label>כתובת<input name="connection_host" placeholder="IP או דומיין" /></label><label>פורט<input name="connection_port" placeholder="554" /></label><label>שם משתמש<input name="username" autoComplete="off" /></label><label>סיסמה<input name="password" type="password" autoComplete="new-password" /><small>נשמרת מוצפנת בשרת ולא מוצגת שוב.</small></label><label>מספר ערוץ<input name="connection_channel" type="number" min="1" placeholder="1" /></label><label>Sample HLS לבדיקה<input name="hls_playback_url" placeholder="https://.../index.m3u8" /></label><label>כיתה/אזור<input name="area" required /></label><label>שעות צפייה<input name="viewing_hours" placeholder="08:00-12:00" /></label><label>ימי שמירה עתידיים<input name="retention_days" type="number" min="0" placeholder="לא פעיל עדיין" /></label><label>מדיניות ארכיון<input name="archive_policy" placeholder="למשל: מחיקה אחרי 14 יום" /></label><label><input name="recording_enabled" type="checkbox" /> הכנה להקלטה</label><label><input name="parent_view_allowed" type="checkbox" /> צפיית הורים מותרת</label></div><div className="profile-actions"><button className="button secondary" type="button" onClick={(event) => { const form = event.currentTarget.form; if (form) void testDraft({ preventDefault() {}, currentTarget: form } as any); }}>בדיקת חיבור</button><button className="button primary">שמירת מצלמה</button><button className="button secondary" type="button" onClick={close}>ביטול</button></div></form><article className="card action-panel"><h2>מה קורה אחרי שמירה</h2><div className="setup-checklist"><span>בדיקת Host ופורט</span><span>בדיקת שם משתמש וסיסמה דרך השרת</span><span>רישום ל-Gateway</span><span>Token צפייה זמני בלבד</span><span>Audit לכל פעולה</span></div></article></section>}</CollapsibleActionPanel><section className="dashboard-section"><div className="section-heading"><h2>מרכז בריאות מצלמות</h2><p>מצלמות מחוברות, מנותקות ודורשות טיפול. צפייה עוברת דרך הרשאות ו-Token זמני.</p></div>{rows.length===0?<div className="empty-state"><strong>אין מצלמות עדיין</strong><span>לחצו על “חיבור מצלמה ראשונה” כדי להתחיל.</span></div>:<div className="camera-playback-grid">{rows.map((cam)=><div key={cam.id} className="camera-operation-stack"><CameraPlaybackCard camera={cam} /><div className="camera-admin-verification"><span>סוג: {systemTypeLabels[cam.system_type] ?? cam.system_type ?? cam.source_type ?? "מצלמה"}</span><span>בדיקה אחרונה: {cam.last_test_message ?? "טרם נבדקה"}</span><span>Gateway: {cam.gateway_registration_status ?? cam.connection_method ?? "ממתין"}</span><span>בדיקה/ייצור: {cam.test_site_type ? systemTypeLabels[cam.test_site_type] ?? cam.test_site_type : "גן פעיל"}</span><span>פרטי חיבור: {cam.masked_connection_summary?.password_present ? "סיסמה שמורה ומוצפנת" : "ללא סיסמה שמורה"}</span></div><div className="profile-actions"><button className="button secondary tiny" type="button" onClick={() => cameraAction(cam, "test_connection")}>בדיקת חיבור</button><button className="button secondary tiny" type="button" onClick={() => cameraAction(cam, "register_gateway")}>רישום Gateway</button><button className="button secondary tiny" type="button" onClick={() => cameraAction(cam, cam.active === false ? "enable" : "disable")}>{cam.active === false ? "הפעלה" : "השבתה"}</button><button className="button secondary tiny" type="button" onClick={() => cameraAction(cam, "mark_offline")}>סימון תקלה</button></div></div>)}</div>}</section></>;
+  const effectiveSystemType = setupFlow === "home_test" ? "generic_camera" : setupFlow;
+  return (
+    <>
+      <div className={gatewayConnected ? "success-screen" : "gateway-setup-state"}>
+        <strong>{gatewayConnected ? "Gateway וידאו מחובר" : "המערכת מוכנה לחיבור, אך נדרש Video Gateway פעיל כדי להציג שידור חי."}</strong>
+        <p>פרטי מצלמה נבדקים ונשמרים דרך השרת בלבד. כתובות RTSP, שמות משתמש, סיסמאות ומפתחות Gateway לא מוצגים בדפדפן.</p>
+      </div>
+      <section className="grid cols-4 dashboard-panels">
+        <article className="card metric-card"><span>מחוברות</span><strong>{health.online}</strong></article>
+        <article className="card metric-card"><span>דורשות טיפול</span><strong>{health.warning + health.pending}</strong></article>
+        <article className="card metric-card"><span>לא מחוברות</span><strong>{health.offline}</strong></article>
+        <article className="card metric-card"><span>מושבתות</span><strong>{health.disabled}</strong></article>
+      </section>
+      {message ? <div className="success-banner">{message}</div> : null}
+      {error ? <div className="error-banner">{error}</div> : null}
+      <CollapsibleActionPanel title={hasCameras ? "הוספת מצלמה" : "חיבור מצלמה ראשונה"} description="בחרו את סוג החיבור, והטופס יציג רק את הפרטים הרלוונטיים." buttonLabel={hasCameras ? "הוספת מצלמה" : "חיבור מצלמה ראשונה"} defaultOpen={!hasCameras}>
+        {({ close }) => (
+          <section className="grid cols-2 dashboard-panels">
+            <form className="card form wizard-form camera-connection-wizard" onSubmit={(event) => save(event, close)}>
+              <h2>אשף חיבור מצלמה</h2>
+              <div className="camera-flow-selector">
+                {cameraFlowOptions.map((flow) => (
+                  <button className={setupFlow === flow.value ? "selected-choice" : ""} key={flow.value} type="button" onClick={() => setSetupFlow(flow.value)}>
+                    <strong>{flow.title}</strong>
+                    <span>{flow.text}</span>
+                  </button>
+                ))}
+              </div>
+              <input type="hidden" name="system_type" value={effectiveSystemType} />
+              <input type="hidden" name="test_site_type" value={setupFlow === "home_test" ? "home_test" : ""} />
+              <div className="form-grid">
+                <label>גן<select name="garden_id" required><option value="">בחר גן</option>{gardens.map((g) => <option key={g.id} value={g.id}>{g.name} · {g.city}</option>)}</select></label>
+                <label>שם מצלמה<input name="name" required placeholder="כניסה ראשית" /></label>
+                {setupFlow === "dvr_nvr" ? (
+                  <>
+                    <label>מותג<select name="camera_provider_key">{cameraBrandOptions.map(([value, label]) => <option key={value} value={value}>{label}</option>)}</select><small>DVR/NVR הוא מכשיר מרכזי שמרכז כמה מצלמות. בוחרים ערוץ לכל מצלמה.</small></label>
+                    <label>כתובת DVR/NVR<input name="connection_host" placeholder="IP או דומיין של המכשיר" /><small>בדרך כלל מופיע במסך ההגדרות של המכשיר או אצל הטכנאי.</small></label>
+                    <label>פורט<input name="connection_port" defaultValue="554" /><small>RTSP משתמש לרוב בפורט 554.</small></label>
+                    <label>שם משתמש<input name="username" autoComplete="off" /></label>
+                    <label>סיסמה<input name="password" type="password" autoComplete="new-password" /></label>
+                    <label>מספר ערוץ<input name="connection_channel" type="number" min="1" placeholder="1" /><small>הערוץ הוא מספר המצלמה בתוך ה-DVR/NVR.</small></label>
+                    <label>איכות שידור<select name="stream_quality"><option value="sub">רגילה</option><option value="main">גבוהה</option></select></label>
+                  </>
+                ) : null}
+                {setupFlow === "ip_camera" ? (
+                  <>
+                    <input type="hidden" name="camera_provider_key" value="ip_camera" />
+                    <label>כתובת מצלמה<input name="connection_host" placeholder="IP או דומיין של המצלמה" /><small>אפשר למצוא בנתב, באפליקציית היצרן או בעזרת הטכנאי.</small></label>
+                    <label>פורט<input name="connection_port" defaultValue="554" /></label>
+                    <label>שם משתמש<input name="username" autoComplete="off" /></label>
+                    <label>סיסמה<input name="password" type="password" autoComplete="new-password" /></label>
+                    <label>תמיכה<select name="camera_provider_key"><option value="ip_camera">RTSP</option><option value="generic_camera">RTSP / ONVIF</option></select><small>RTSP הוא נתיב השידור. ONVIF הוא תקן גילוי ושליטה במצלמות.</small></label>
+                    <label>איכות שידור<select name="stream_quality"><option value="sub">רגילה</option><option value="main">גבוהה</option></select></label>
+                  </>
+                ) : null}
+                {setupFlow === "manual_rtsp" ? (
+                  <>
+                    <input type="hidden" name="camera_provider_key" value="generic_camera" />
+                    <label className="wide">כתובת RTSP מלאה<input name="manual_rtsp_url" placeholder="rtsp://..." /><small>RTSP היא כתובת השידור של המצלמה. היא לא תוצג שוב אחרי שמירה.</small></label>
+                    <label>שם משתמש נפרד<input name="username" autoComplete="off" /></label>
+                    <label>סיסמה נפרדת<input name="password" type="password" autoComplete="new-password" /></label>
+                  </>
+                ) : null}
+                {setupFlow === "onvif" ? (
+                  <>
+                    <input type="hidden" name="camera_provider_key" value="generic_camera" />
+                    <label>כתובת מצלמה<input name="connection_host" placeholder="IP או דומיין" /><small>ONVIF עוזר לגלות מצלמות ויכולות, אבל עדיין צריך Gateway לצפייה חיה.</small></label>
+                    <label>פורט<input name="connection_port" placeholder="80 או 8899" /></label>
+                    <label>שם משתמש<input name="username" autoComplete="off" /></label>
+                    <label>סיסמה<input name="password" type="password" autoComplete="new-password" /></label>
+                    <label>מספר ערוץ<input name="connection_channel" type="number" min="1" placeholder="1" /></label>
+                  </>
+                ) : null}
+                {setupFlow === "home_test" ? (
+                  <>
+                    <input type="hidden" name="camera_provider_key" value="generic_camera" />
+                    <label className="wide">מצלמת בדיקה פרטית<div className="gateway-setup-state"><strong>בדיקה בלבד</strong><p>המצלמה חייבת לתמוך ב-RTSP או ONVIF. היא תסומן כ-home_test ולא תתערבב עם נתוני גן פעיל.</p></div></label>
+                    <label>כתובת מצלמה<input name="connection_host" placeholder="IP או דומיין פרטי" /></label>
+                    <label>פורט<input name="connection_port" defaultValue="554" /></label>
+                    <label>שם משתמש<input name="username" autoComplete="off" /></label>
+                    <label>סיסמה<input name="password" type="password" autoComplete="new-password" /></label>
+                    <label>מספר ערוץ<input name="connection_channel" type="number" min="1" placeholder="1" /></label>
+                  </>
+                ) : null}
+                <label>Gateway<select name="gateway_provider_preference"><option value="mediamtx">MediaMTX</option><option value="go2rtc">go2rtc</option><option value="custom">מותאם</option></select><small>Gateway ממיר RTSP/ONVIF ל-HLS/WebRTC ומייצר צפייה מאובטחת.</small></label>
+                <label>אזור בגן<input name="area" required placeholder="כניסה / חצר / כיתה" /></label>
+                <label>שעות צפייה<input name="viewing_hours" placeholder="08:00-12:00" /></label>
+                <label><input name="recording_enabled" type="checkbox" /> הכנה להקלטה</label>
+                <label><input name="parent_view_allowed" type="checkbox" /> צפיית הורים מותרת</label>
+              </div>
+              <div className="profile-actions">
+                <button className="button secondary" type="button" onClick={(event) => { const form = event.currentTarget.form; if (form) void testDraft({ preventDefault() {}, currentTarget: form } as any); }}>בדיקת חיבור</button>
+                <button className="button primary">שמירת מצלמה</button>
+                <button className="button secondary" type="button" onClick={close}>ביטול</button>
+              </div>
+            </form>
+            <article className="card action-panel">
+              <h2>מדריך קצר</h2>
+              <div className="setup-checklist">
+                <span>DVR/NVR: קופסה מרכזית עם ערוצים.</span>
+                <span>IP: מצלמה עצמאית עם כתובת ברשת.</span>
+                <span>RTSP: כתובת השידור הגולמית.</span>
+                <span>ONVIF: תקן גילוי ובדיקה.</span>
+                <span>Gateway: שכבת שרת שמגינה על השידור.</span>
+              </div>
+            </article>
+          </section>
+        )}
+      </CollapsibleActionPanel>
+      <section className="dashboard-section">
+        <div className="section-heading"><h2>מרכז בריאות מצלמות</h2><p>צפייה עוברת דרך הרשאות ו-Token זמני. פרטי מקור לא מוצגים.</p></div>
+        {rows.length === 0 ? <div className="empty-state"><strong>אין מצלמות עדיין</strong><span>לחצו על “חיבור מצלמה ראשונה” כדי להתחיל.</span></div> : <div className="camera-playback-grid">{rows.map((cam) => <div key={cam.id} className="camera-operation-stack"><CameraPlaybackCard camera={cam} /><div className="camera-admin-verification"><span>סוג: {systemTypeLabels[cam.system_type] ?? cam.system_type ?? cam.source_type ?? "מצלמה"}</span><span>בדיקה אחרונה: {cam.last_test_message ?? "טרם נבדקה"}</span><span>Gateway: {cam.gateway_registration_status ?? cam.connection_method ?? "ממתין"}</span><span>בדיקה/ייצור: {cam.test_site_type ?? "גן פעיל"}</span><span>פרטי חיבור: {cam.masked_connection_summary?.password_present ? "סיסמה שמורה ומוצפנת" : "ללא סיסמה שמורה"}</span></div><div className="profile-actions"><button className="button secondary tiny" type="button" onClick={() => cameraAction(cam, "test_connection")}>בדיקת חיבור</button><button className="button secondary tiny" type="button" onClick={() => cameraAction(cam, "register_gateway")}>רישום Gateway</button><button className="button secondary tiny" type="button" onClick={() => cameraAction(cam, cam.active === false ? "enable" : "disable")}>{cam.active === false ? "הפעלה" : "השבתה"}</button><button className="button secondary tiny" type="button" onClick={() => cameraAction(cam, "mark_offline")}>סימון תקלה</button></div></div>)}</div>}
+      </section>
+    </>
+  );
 }
 
 export function AiEventsManager({ events }: { events: AiEvent[] }) {
