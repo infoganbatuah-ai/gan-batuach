@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AlertTriangle, ArchiveRestore, KeyRound, LockKeyhole, Radar, ShieldCheck } from "lucide-react";
+import { AlertTriangle, ArchiveRestore, FileClock, KeyRound, LockKeyhole, Radar, Scale, ShieldCheck } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { StatCard } from "@/components/stat-card";
 import { AdminDataError } from "@/components/admin-data-state";
@@ -57,6 +57,12 @@ export default async function AdminSecurityPage() {
   const { summary } = result.data;
   const unresolvedFindings = result.data.findings.filter((finding: any) => !["resolved", "false_positive", "accepted_risk"].includes(String(finding.status)));
   const criticalItems = [...result.data.checks.filter((check: any) => check.severity === "critical"), ...unresolvedFindings.filter((finding: any) => finding.severity === "critical")].slice(0, 8);
+  const retentionItems = [
+    { label: "מסמכים", value: "מוגדר לפי מדיניות גן" },
+    { label: "צפייה במצלמות", value: "Audit נשמר, RTSP לא נשמר" },
+    { label: "אירועי Observer", value: "מוכנות ל-30 יום ומעלה" },
+    { label: "לוג תקשורת", value: "נשמר בלי סודות" }
+  ];
 
   return (
     <DashboardShell role="admin" title="Security Center">
@@ -64,7 +70,7 @@ export default async function AdminSecurityPage() {
         <div>
           <p className="eyebrow">Enterprise Readiness</p>
           <h1>מרכז אבטחה ומוכנות ייצור.</h1>
-          <p>מעקב פנימי אחרי הרשאות, RLS, סודות, Audit, גיבויים, התאוששות, Rate limiting וניטור. ערכי סודות אינם מוצגים.</p>
+          <p>מעקב פנימי אחרי הרשאות, פרטיות מצלמות, Observer, סודות, Audit, גיבויים, התאוששות ותאימות לפני פיילוט.</p>
         </div>
         <div className="profile-actions">
           <span className={summary.overallStatus === "ready" ? "pill good" : summary.overallStatus === "blocked" ? "pill bad" : "pill warn"}>{summary.overallStatus}</span>
@@ -77,10 +83,10 @@ export default async function AdminSecurityPage() {
         <StatCard label="Critical" value={summary.criticalFindings} tone={summary.criticalFindings ? "bad" : "good"} />
         <StatCard label="High" value={summary.highFindings} tone={summary.highFindings ? "bad" : "good"} />
         <StatCard label="Medium" value={summary.mediumFindings} tone={summary.mediumFindings ? "warn" : "good"} />
-        <StatCard label="Low" value={summary.lowFindings} tone="good" />
-        <StatCard label="בדיקות אבטחה" value={summary.totalChecks} tone="good" />
+        <StatCard label="Resolved" value={summary.resolvedFindings} tone="good" />
+        <StatCard label="מוכנות תאימות" value={`${summary.complianceReadinessPercent}%`} tone={summary.complianceReadinessPercent < 80 ? "warn" : "good"} />
         <StatCard label="סודות במעקב" value={summary.secretsTracked} tone={summary.secretsPending ? "warn" : "good"} />
-        <StatCard label="גיבויים פתוחים" value={summary.backupPending} tone={summary.backupPending ? "warn" : "good"} />
+        <StatCard label="מוכנות גיבוי" value={`${summary.backupReadinessPercent}%`} tone={summary.backupPending ? "warn" : "good"} />
         <StatCard label="Audit coverage" value={`${summary.auditCoveragePercent}%`} tone={summary.auditCoveragePercent < 80 ? "warn" : "good"} />
       </section>
 
@@ -113,6 +119,15 @@ export default async function AdminSecurityPage() {
 
       <section className="grid cols-3 dashboard-panels">
         <article className="card action-panel">
+          <div className="section-heading"><h2><Scale size={20} /> Compliance readiness</h2><p>תמונת מצב קצרה לפני פיילוט.</p></div>
+          <div className="risk-list">
+            <div>RLS וסקופ הרשאות <b>{summary.blockedChecks ? "דורש בדיקה" : "מוכן לבדיקת פיילוט"}</b></div>
+            <div>פרטיות מצלמות <b>ללא RTSP בדפדפן</b></div>
+            <div>Observer <b>Shadow + human review</b></div>
+            <div>מסמכים וקטינים <b>נדרש ייעוץ משפטי</b></div>
+          </div>
+        </article>
+        <article className="card action-panel">
           <div className="section-heading"><h2><KeyRound size={20} /> Secrets readiness</h2><p>שמות וסטטוסים בלבד. אין ערכי סודות.</p></div>
           <div className="procedure-list compact-list">
             {result.data.secrets.map((secret: any) => (
@@ -140,6 +155,30 @@ export default async function AdminSecurityPage() {
             <div>Blocked rate limits <b>{summary.rateLimitBlocks}</b></div>
             <div>Recent audit logs <b>{result.data.auditLogs.length}</b></div>
             <div>Audit events implemented <b>{summary.auditCoveragePercent}%</b></div>
+          </div>
+        </article>
+      </section>
+
+      <section className="grid cols-2 dashboard-panels">
+        <article className="card action-panel">
+          <div className="section-heading"><h2><FileClock size={20} /> Retention readiness</h2><p>מודל שמירה לפני מחיקה אוטומטית.</p></div>
+          <div className="procedure-list compact-list">
+            {retentionItems.map((item) => (
+              <div className="mini-row" key={item.label}>
+                <span>{item.label}</span>
+                <strong className="pill warn">review</strong>
+                <small>{item.value}</small>
+              </div>
+            ))}
+          </div>
+        </article>
+        <article className="card action-panel">
+          <div className="section-heading"><h2><ShieldCheck size={20} /> Access scope</h2><p>בדיקות הרשאה שצריכות להישאר ירוקות.</p></div>
+          <div className="risk-list">
+            <div>הורה רואה רק ילדים ונתונים שלו <b>RLS + server checks</b></div>
+            <div>מנהלת רואה רק את הגן שלה <b>garden_id scoped</b></div>
+            <div>צוות רואה שיוך גן וצוות <b>assigned garden</b></div>
+            <div>אתר Observer עצמאי נשאר נפרד <b>observer_site_id</b></div>
           </div>
         </article>
       </section>

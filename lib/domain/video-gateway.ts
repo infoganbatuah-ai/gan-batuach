@@ -119,6 +119,44 @@ async function gatewayRequest(path: string, payload: unknown) {
   return response.json();
 }
 
+function maskRtspUrl(value: string) {
+  try {
+    const url = new URL(value);
+    if (url.username || url.password) {
+      url.username = "***";
+      url.password = "***";
+    }
+    return url.toString();
+  } catch {
+    return value.includes("@") ? value.replace(/\/\/[^@]+@/, "//***:***@") : value;
+  }
+}
+
+function credentialsFromRtspUrl(value: string) {
+  try {
+    const url = new URL(value);
+    return {
+      username: url.username ? decodeURIComponent(url.username) : undefined,
+      password: url.password ? decodeURIComponent(url.password) : undefined
+    };
+  } catch {
+    return { username: undefined, password: undefined };
+  }
+}
+
+function sanitizeCameraRow(camera: Record<string, unknown>) {
+  const {
+    dvr_host_encrypted,
+    username_encrypted,
+    password_encrypted,
+    encrypted_password,
+    connection_username_encrypted,
+    connection_password_encrypted,
+    ...safeCamera
+  } = camera;
+  return safeCamera;
+}
+
 export async function discoverOnvif(payload: z.infer<typeof onvifDiscoverySchema>) {
   const parsed = onvifDiscoverySchema.parse(payload);
   const gateway = await gatewayRequest("/onvif/discover", parsed);
@@ -130,6 +168,10 @@ export async function ingestRtsp(payload: z.infer<typeof rtspIngestSchema>) {
   const supabase = createAdminClient();
   const gateway = await gatewayRequest("/streams/rtsp", parsed);
   const gatewayStreamId = (gateway as any).stream_id ?? (gateway as any).id ?? null;
+  const urlCredentials = credentialsFromRtspUrl(parsed.rtsp_url);
+  const username = parsed.username ?? urlCredentials.username;
+  const password = parsed.password ?? urlCredentials.password;
+  const maskedSourceUrl = maskRtspUrl(parsed.rtsp_url);
 
   const { data: camera, error } = await supabase
     .from("camera_streams")
@@ -140,7 +182,10 @@ export async function ingestRtsp(payload: z.infer<typeof rtspIngestSchema>) {
       area: parsed.area,
       protocol: "RTSP",
       source_type: "RTSP",
-      source_url: parsed.rtsp_url,
+      source_url: maskedSourceUrl,
+      dvr_host_encrypted: encryptField(parsed.rtsp_url),
+      username_encrypted: encryptField(username),
+      password_encrypted: encryptField(password),
       stream_status: gatewayStreamId ? "connected" : "pending",
       health_status: gatewayStreamId ? "healthy" : "pending",
       connection_method: process.env.VIDEO_GATEWAY_URL ? "video_gateway" : "pending_gateway",
@@ -149,12 +194,17 @@ export async function ingestRtsp(payload: z.infer<typeof rtspIngestSchema>) {
       webrtc_playback_url: (gateway as any).webrtc_url,
       last_seen: gatewayStreamId ? new Date().toISOString() : null,
       last_successful_connection_at: gatewayStreamId ? new Date().toISOString() : null,
+      metadata: {
+        source_url_masked: true,
+        no_rtsp_exposed: true,
+        credentials_encrypted: Boolean(username || password)
+      },
       active: true
     } as any)
     .select("*")
     .single();
   if (error) throw new Error(error.message);
-  return { camera, gateway };
+  return { camera: sanitizeCameraRow(camera as any), gateway };
 }
 
 export async function createDvrConnection(payload: z.infer<typeof dvrConnectionSchema>) {

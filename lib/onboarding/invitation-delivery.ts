@@ -6,6 +6,18 @@ function loginUrl() {
   return process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || "http://localhost:3000";
 }
 
+function canStoreTemporaryPasswordInMockLog() {
+  return process.env.NODE_ENV !== "production" || process.env.NEXT_PUBLIC_SANDBOX_MODE === "true";
+}
+
+function credentialVariables(temporaryPassword: string) {
+  const mockLogAllowed = canStoreTemporaryPasswordInMockLog();
+  return {
+    temporary_password: mockLogAllowed ? temporaryPassword : "[redacted]",
+    temporary_password_redacted: !mockLogAllowed
+  };
+}
+
 export async function insertInvitationDeliveryLogs(admin: AdminClient, input: {
   profileId: string;
   gardenId: string;
@@ -20,6 +32,7 @@ export async function insertInvitationDeliveryLogs(admin: AdminClient, input: {
   const title = `פרטי כניסה לגן בטוח - ${roleLabel}`;
   const preview = `שלום ${input.recipientName}, נוצרו לך פרטי כניסה לגן בטוח. יש להתחבר ולהשלים תהליך קצר.`;
   const href = input.role === "parent" ? "/parent-onboarding" : "/onboarding/staff";
+  const passwordVariables = credentialVariables(input.temporaryPassword);
 
   await Promise.all([
     admin.from("email_delivery_logs" as any).insert({
@@ -34,7 +47,8 @@ export async function insertInvitationDeliveryLogs(admin: AdminClient, input: {
       metadata: {
         login_url: `${loginUrl()}/login`,
         onboarding_url: `${loginUrl()}${href}`,
-        includes_temporary_password: true,
+        includes_temporary_password: canStoreTemporaryPasswordInMockLog(),
+        temporary_password_redacted: !canStoreTemporaryPasswordInMockLog(),
         role: input.role
       }
     }),
@@ -52,7 +66,7 @@ export async function insertInvitationDeliveryLogs(admin: AdminClient, input: {
         login_url: `${loginUrl()}/login`,
         onboarding_url: `${loginUrl()}${href}`,
         username: input.username,
-        temporary_password: input.temporaryPassword,
+        ...passwordVariables,
         recipient_name: input.recipientName
       },
       queued_at: now,
@@ -70,7 +84,7 @@ export async function insertInvitationDeliveryLogs(admin: AdminClient, input: {
       variables: {
         login_url: `${loginUrl()}/login`,
         username: input.username,
-        temporary_password: input.temporaryPassword,
+        ...passwordVariables,
         role: input.role
       },
       queued_at: now,

@@ -11,7 +11,7 @@ export default async function JoinParentPage({ searchParams }: { searchParams: P
   const params = await searchParams;
   const supabase = createAdminClient();
   const selectedGardenRes = params.gardenId
-    ? await supabase.from("gardens" as any).select("id, name, city, address, logo_url, image_url, public_profile_enabled").eq("id", params.gardenId).maybeSingle()
+    ? await supabase.from("gardens" as any).select("id, name, city, address, logo_url, image_url, public_profile_enabled").eq("id", params.gardenId).eq("public_profile_enabled", true).maybeSingle()
     : { data: null };
   const selectedGarden = selectedGardenRes.data as any;
   const selectedAgeGroups = selectedGarden ? await getKindergartenAgeGroups(supabase, selectedGarden.id, selectedGarden) : [];
