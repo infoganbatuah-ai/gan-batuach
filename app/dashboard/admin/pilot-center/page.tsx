@@ -21,15 +21,17 @@ export default async function AdminPilotCenterPage() {
   await requireRole(["admin"]);
   const result = await safeAdminData("pilot center", async () => {
     const supabase = await createClient();
-    const [pilotsRes, participantsRes, feedbackRes, issuesRes, blockersRes, checklistRes] = await Promise.all([
+    const [pilotsRes, participantsRes, feedbackRes, issuesRes, blockersRes, checklistRes, readinessRes, configRes] = await Promise.all([
       supabase.from("pilot_programs" as any).select("*, gardens(name, city)").order("created_at", { ascending: false }).limit(100),
       supabase.from("pilot_participants" as any).select("*, profiles(full_name, role), gardens(name)").order("created_at", { ascending: false }).limit(300),
       supabase.from("pilot_feedback" as any).select("id,user_role,category,status,severity,sentiment,rating,comment,page_path,created_at").order("created_at", { ascending: false }).limit(80),
       supabase.from("launch_issues" as any).select("*").order("created_at", { ascending: false }).limit(120),
       supabase.from("launch_blockers" as any).select("*").order("created_at", { ascending: false }).limit(80),
-      supabase.from("launch_checklist" as any).select("*").order("category")
+      supabase.from("launch_checklist" as any).select("*").order("category"),
+      supabase.from("launch_readiness_scores" as any).select("*").order("category"),
+      supabase.from("production_configuration_readiness" as any).select("*").order("category")
     ]);
-    [pilotsRes, participantsRes, feedbackRes, issuesRes, blockersRes, checklistRes].forEach((query, index) => logSupabaseError(`pilot center query ${index}`, (query as any).error));
+    [pilotsRes, participantsRes, feedbackRes, issuesRes, blockersRes, checklistRes, readinessRes, configRes].forEach((query, index) => logSupabaseError(`pilot center query ${index}`, (query as any).error));
     return {
       pilots: pilotsRes.data ?? [],
       participants: participantsRes.data ?? [],
@@ -37,10 +39,12 @@ export default async function AdminPilotCenterPage() {
       issues: issuesRes.data ?? [],
       blockers: blockersRes.data ?? [],
       checklist: checklistRes.data ?? [],
-      summary: buildLaunchReadinessSummary({ pilots: pilotsRes.data ?? [], participants: participantsRes.data ?? [], issues: issuesRes.data ?? [], blockers: blockersRes.data ?? [], checklist: checklistRes.data ?? [] }),
-      queryError: [pilotsRes.error, participantsRes.error, feedbackRes.error, issuesRes.error, blockersRes.error, checklistRes.error].some(Boolean) ? "חלק מנתוני הפיילוט לא נטענו" : null
+      readiness: readinessRes.data ?? [],
+      configuration: configRes.data ?? [],
+      summary: buildLaunchReadinessSummary({ readiness: readinessRes.data ?? [], configuration: configRes.data ?? [], pilots: pilotsRes.data ?? [], participants: participantsRes.data ?? [], issues: issuesRes.data ?? [], blockers: blockersRes.data ?? [], checklist: checklistRes.data ?? [] }),
+      queryError: [pilotsRes.error, participantsRes.error, feedbackRes.error, issuesRes.error, blockersRes.error, checklistRes.error, readinessRes.error, configRes.error].some(Boolean) ? "חלק מנתוני הפיילוט לא נטענו" : null
     };
-  }, { pilots: [] as any[], participants: [] as any[], feedback: [] as any[], issues: [] as any[], blockers: [] as any[], checklist: [] as any[], summary: buildLaunchReadinessSummary(), queryError: null as string | null });
+  }, { pilots: [] as any[], participants: [] as any[], feedback: [] as any[], issues: [] as any[], blockers: [] as any[], checklist: [] as any[], readiness: [] as any[], configuration: [] as any[], summary: buildLaunchReadinessSummary(), queryError: null as string | null });
 
   const { summary } = result.data;
   const openIssues = result.data.issues.filter((issue: any) => !["verified", "accepted_risk"].includes(String(issue.status))).slice(0, 8);
@@ -61,14 +65,23 @@ export default async function AdminPilotCenterPage() {
       <AdminDataError message={result.error ?? result.data.queryError} />
 
       <section className="grid cols-4 dashboard-kpis">
+        <StatCard label="Launch score" value={`${summary.overallScore}%`} tone={summary.overallScore >= 85 ? "good" : summary.overallScore >= 60 ? "warn" : "bad"} />
         <StatCard label="פיילוטים פעילים" value={summary.activePilots} tone="good" />
         <StatCard label="פיילוטים הושלמו" value={summary.completedPilots} tone="good" />
         <StatCard label="משתתפים פעילים" value={summary.participantsActive} tone="good" />
-        <StatCard label="שביעות רצון" value={summary.satisfactionAverage ? `${summary.satisfactionAverage}%` : "-"} tone="good" />
         <StatCard label="בעיות פתוחות" value={summary.openIssues} tone={summary.openIssues ? "warn" : "good"} />
         <StatCard label="Critical" value={summary.criticalIssues} tone={summary.criticalIssues ? "bad" : "good"} />
         <StatCard label="חסמים" value={summary.openBlockers} tone={summary.openBlockers ? "bad" : "good"} />
         <StatCard label="Checklist" value={`${summary.checklistPercent}%`} tone={summary.checklistPercent >= 80 ? "good" : "warn"} />
+      </section>
+
+      <section className="pilot-readiness-grid">
+        <article className="pilot-score-card"><strong>Onboarding</strong><i><b>{summary.componentScores.onboarding}%</b></i><p>מנהלת, הורה וצוות</p></article>
+        <article className="pilot-score-card"><strong>Communication</strong><i><b>{summary.componentScores.communication}%</b></i><p>אימייל, WhatsApp, SMS, Push</p></article>
+        <article className="pilot-score-card"><strong>Cameras</strong><i><b>{summary.componentScores.camera}%</b></i><p>Gateway, הרשאות ובריאות</p></article>
+        <article className="pilot-score-card"><strong>Observer</strong><i><b>{summary.componentScores.observer}%</b></i><p>Shadow mode וביקורת אנושית</p></article>
+        <article className="pilot-score-card"><strong>Security</strong><i><b>{summary.componentScores.security}%</b></i><p>RLS, סודות וגיבויים</p></article>
+        <article className="pilot-score-card"><strong>Support</strong><i><b>{summary.componentScores.support}%</b></i><p>הדרכה ותמיכה בפיילוט</p></article>
       </section>
 
       <section className="grid cols-2 dashboard-panels">
