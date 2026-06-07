@@ -33,7 +33,7 @@ export function createCrudHandlers(config: CrudConfig) {
         const gardenId = searchParams.get("garden_id");
         const selectColumns =
           config.table === "camera_streams"
-            ? "id,garden_id,kindergarten_id,name,area,age_group,class_group,camera_type,source_type,system_type,stream_status,health_status,last_seen,connection_method,protocol,host,port,channel,connection_host,connection_port,connection_channel,stream_quality,last_test_status,last_test_message,last_test_at,gateway_registration_status,gateway_last_error,masked_connection_summary,hls_playback_url,sample_hls_url,webrtc_playback_url,video_gateway_stream_id,gateway_stream_id,viewing_hours,parent_view_allowed,parent_viewing_allowed,status,active,ai_enabled,last_health_check_at,last_successful_connection_at,last_stream_activity_at,uptime_seconds,failure_count,reconnect_attempts,recording_enabled,retention_days,archive_policy,created_at,updated_at"
+            ? "id,garden_id,kindergarten_id,name,area,age_group,class_group,camera_type,source_type,system_type,deployment_scope,test_site_type,camera_provider_key,gateway_provider_preference,live_preview_status,clip_readiness_status,snapshot_readiness_status,permission_model,stream_status,health_status,last_seen,connection_method,protocol,host,port,channel,connection_host,connection_port,connection_channel,stream_quality,last_test_status,last_test_message,last_test_at,gateway_registration_status,gateway_last_error,masked_connection_summary,hls_playback_url,sample_hls_url,webrtc_playback_url,video_gateway_stream_id,gateway_stream_id,viewing_hours,parent_view_allowed,parent_viewing_allowed,status,active,ai_enabled,last_health_check_at,last_successful_connection_at,last_stream_activity_at,uptime_seconds,failure_count,reconnect_attempts,recording_enabled,retention_days,archive_policy,created_at,updated_at"
             : "*";
         let query = (supabase as any).from(config.table).select(selectColumns).limit(Math.min(limit, 200));
         if (gardenId) query = query.eq("garden_id", gardenId);
@@ -85,13 +85,23 @@ export function createCrudHandlers(config: CrudConfig) {
           const connectionHost = String(cameraPayload.connection_host ?? cameraPayload.host ?? "");
           const connectionPort = cameraPayload.connection_port ?? cameraPayload.port;
           const connectionChannel = cameraPayload.connection_channel ?? cameraPayload.channel;
+          const testSiteType = String(cameraPayload.test_site_type ?? "");
           cameraPayload.system_type = systemType;
+          cameraPayload.camera_provider_key = cameraPayload.camera_provider_key ?? (["hikvision", "dahua", "uniview", "axis"].includes(systemType) ? systemType : systemType === "ip_camera" ? "ip_camera" : systemType === "dvr" || systemType === "dvr_nvr" ? "dvr" : systemType === "nvr" ? "nvr" : "generic_camera");
+          cameraPayload.deployment_scope = testSiteType || cameraPayload.deployment_scope || "kindergarten_production";
+          cameraPayload.test_site_type = testSiteType || null;
+          cameraPayload.gateway_provider_preference = cameraPayload.gateway_provider_preference ?? process.env.VIDEO_GATEWAY_PROVIDER ?? "custom";
+          cameraPayload.live_preview_status = cameraPayload.live_preview_status ?? (cameraPayload.gateway_stream_id || cameraPayload.video_gateway_stream_id || cameraPayload.sample_hls_url || cameraPayload.hls_playback_url ? "ready" : "pending_gateway");
+          cameraPayload.clip_readiness_status = cameraPayload.clip_readiness_status ?? "not_configured";
+          cameraPayload.snapshot_readiness_status = cameraPayload.snapshot_readiness_status ?? "not_configured";
+          cameraPayload.permission_model = cameraPayload.permission_model ?? "scoped_playback_token";
+          cameraPayload.security_review = { rtsp_exposed: false, credentials_browser_exposed: false, gateway_secret_browser_exposed: false };
           cameraPayload.connection_host = connectionHost || null;
           cameraPayload.connection_port = connectionPort ? Number(connectionPort) : null;
           cameraPayload.connection_channel = connectionChannel ? Number(connectionChannel) : null;
           cameraPayload.stream_quality = cameraPayload.stream_quality ?? "sub";
           cameraPayload.masked_connection_summary = buildMaskedConnectionSummary({
-            system_type: systemType === "DVR" || systemType === "NVR" || systemType === "dvr_nvr" ? "dvr_nvr" : systemType === "ONVIF" || systemType === "onvif" ? "onvif" : systemType === "Sample HLS" || systemType === "sample_hls" ? "sample_hls" : systemType === "ip_camera" ? "ip_camera" : "manual_rtsp",
+            system_type: systemType === "DVR" || systemType === "dvr" || systemType === "NVR" || systemType === "nvr" || systemType === "dvr_nvr" ? "dvr_nvr" : systemType === "ONVIF" || systemType === "onvif" ? "onvif" : systemType === "Sample HLS" || systemType === "sample_hls" ? "sample_hls" : systemType === "ip_camera" || systemType === "hikvision" || systemType === "dahua" || systemType === "uniview" || systemType === "axis" || systemType === "generic_camera" || systemType === "rtsp" ? systemType as any : "manual_rtsp",
             host: connectionHost,
             port: connectionPort ? Number(connectionPort) : undefined,
             username: rawUsername,
@@ -147,7 +157,16 @@ export function createCrudHandlers(config: CrudConfig) {
             "last_test_at",
             "gateway_registration_status",
             "gateway_last_error",
-            "masked_connection_summary"
+            "masked_connection_summary",
+            "deployment_scope",
+            "test_site_type",
+            "camera_provider_key",
+            "gateway_provider_preference",
+            "live_preview_status",
+            "clip_readiness_status",
+            "snapshot_readiness_status",
+            "permission_model",
+            "security_review"
           ].forEach((key) => delete legacyPayload[key]);
           const legacyInsert = await (supabase as any).from(config.table).insert(legacyPayload).select("*").single();
           data = legacyInsert.data;
@@ -196,7 +215,19 @@ export function createCrudHandlers(config: CrudConfig) {
             entity_type: "camera_streams",
             entity_id: data.id,
             action: "create_camera_source",
-            after_data: { name: data.name, status: data.status, camera_type: data.camera_type, parent_view_allowed: data.parent_view_allowed, ai_enabled: data.ai_enabled }
+            after_data: { name: data.name, status: data.status, camera_type: data.camera_type, deployment_scope: data.deployment_scope, test_site_type: data.test_site_type, parent_view_allowed: data.parent_view_allowed, ai_enabled: data.ai_enabled }
+          });
+          await (supabase as any).from("camera_deployment_audit_logs").insert({
+            actor_id: permission.session.profile.id,
+            actor_role: permission.session.profile.role,
+            garden_id: data.garden_id ?? parsed.garden_id ?? null,
+            camera_id: data.id,
+            action: "create_camera_deployment_source",
+            status: "logged",
+            gateway_provider: data.gateway_provider_preference ?? process.env.VIDEO_GATEWAY_PROVIDER ?? "custom",
+            validation_status: data.last_test_status ?? "not_tested",
+            no_secrets_exposed: true,
+            metadata: { deployment_scope: data.deployment_scope ?? null, test_site_type: data.test_site_type ?? null }
           });
         }
         if (config.table === "camera_streams" && data) {

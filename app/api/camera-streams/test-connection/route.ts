@@ -31,6 +31,30 @@ export async function POST(request: Request) {
         ? "החיבור הצליח"
         : gateway.message || "בדיקת החיבור נכשלה";
     const now = new Date().toISOString();
+    const validationStatus = gateway.status === "healthy" ? "success" : gateway.status === "gateway_required" ? "gateway_required" : "failed";
+    const validationRow = {
+      camera_id: payload.camera_id ?? null,
+      garden_id: gardenId,
+      provider_key: payload.system_type,
+      validation_type: "gateway_readiness",
+      status: validationStatus,
+      rtsp_valid: (gateway.candidatesTried ?? 0) > 0 || Boolean(payload.sample_hls_url),
+      connection_valid: gateway.status === "healthy",
+      credentials_valid: Boolean(payload.username && payload.password) || payload.system_type === "sample_hls" || payload.system_type === "manual_rtsp",
+      stream_available: gateway.status === "healthy" || Boolean(payload.sample_hls_url),
+      latency_ms: gateway.latencyMs ?? null,
+      candidates_tried_count: gateway.candidatesTried ?? 0,
+      message: friendlyMessage,
+      failure_reason: gateway.status === "healthy" ? null : friendlyMessage,
+      gateway_required: gateway.status === "gateway_required",
+      no_secrets_exposed: true,
+      metadata: {
+        gateway_provider: gateway.provider ?? null,
+        validation_checks: ["reachable_host", "authentication", "stream_exists", "channel_exists", "latency", "timeout", "invalid_credentials"]
+      }
+    };
+    const validationInsert = await supabase.from("camera_stream_validations" as any).insert(validationRow);
+    if (validationInsert.error) console.error("[camera-test-connection] validation log failed", { error: validationInsert.error.message });
 
     if (payload.camera_id) {
       const patch = {
@@ -42,11 +66,29 @@ export async function POST(request: Request) {
         last_test_at: now,
         gateway_registration_status: gateway.status === "healthy" ? "registered" : "pending_gateway",
         gateway_last_error: gateway.status === "healthy" ? null : friendlyMessage,
-        masked_connection_summary: buildMaskedConnectionSummary(payload)
+        masked_connection_summary: buildMaskedConnectionSummary(payload),
+        validation_status: validationStatus,
+        validation_message: friendlyMessage,
+        validation_latency_ms: gateway.latencyMs ?? null,
+        last_validation_at: now,
+        live_preview_status: gateway.status === "healthy" ? "ready" : "pending_gateway",
+        security_review: { rtsp_exposed: false, credentials_browser_exposed: false, gateway_secret_browser_exposed: false }
       };
       const { error } = await supabase.from("camera_streams" as any).update(patch).eq("id", payload.camera_id);
       if (error) console.error("[camera-test-connection] camera status update failed", { camera_id: payload.camera_id, error: error.message });
     }
+    await supabase.from("camera_deployment_audit_logs" as any).insert({
+      camera_id: payload.camera_id ?? null,
+      garden_id: gardenId,
+      actor_id: profile.id,
+      actor_role: profile.role,
+      action: "test_camera_connection",
+      status: gateway.status === "healthy" ? "success" : "logged",
+      gateway_provider: gateway.provider ?? null,
+      validation_status: gateway.status,
+      no_secrets_exposed: true,
+      metadata: { candidates_tried_count: gateway.candidatesTried ?? 0, reason: gateway.reason ?? null }
+    });
 
     return ok({
       success: gateway.status === "healthy",
