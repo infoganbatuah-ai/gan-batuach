@@ -16,6 +16,10 @@ const categories = [
   { value: "parent_experience", label: "הורים" },
   { value: "inspections", label: "פיקוח" },
   { value: "performance", label: "מהירות" },
+  { value: "ux", label: "חוויית שימוש" },
+  { value: "reliability", label: "אמינות" },
+  { value: "confusion", label: "בלבול" },
+  { value: "missing_feature", label: "חסר לי" },
   { value: "bug_report", label: "תקלה" },
   { value: "feature_request", label: "בקשה" }
 ] as const;
@@ -48,7 +52,7 @@ export function PilotFeedbackWidget({ role }: { role: UserRole }) {
           rating: nextSentiment === "easy" ? 5 : nextSentiment === "confusing" ? -1 : 0,
           comment,
           page_path: pathname,
-          severity: category === "bug_report" ? "major" : "minor"
+          severity: category === "bug_report" || category === "reliability" ? "major" : "minor"
         })
       });
       if (!response.ok) throw new Error("feedback failed");

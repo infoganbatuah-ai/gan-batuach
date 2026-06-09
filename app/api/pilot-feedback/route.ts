@@ -15,6 +15,10 @@ const feedbackSchema = z.object({
     "parent_experience",
     "inspections",
     "performance",
+    "ux",
+    "reliability",
+    "confusion",
+    "missing_feature",
     "bug_report",
     "feature_request"
   ]).default("dashboard"),
