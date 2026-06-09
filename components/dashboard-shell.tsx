@@ -55,6 +55,7 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/admin/tasks", label: "משימות", hint: "מעקב והסלמה" },
     { href: "/dashboard/admin/complaints", label: "דיווחים ופניות", hint: "SLA וחומרה" },
     { href: "/dashboard/admin/documents", label: "מסמכים", hint: "תוקף וציות" },
+    { href: "/dashboard/admin/security-center", label: "מרכז אבטחה", hint: "Audit חיצוני" },
     { href: "/dashboard/admin/security", label: "אבטחה", hint: "מוכנות ייצור" },
     { href: "/dashboard/admin/system-health", label: "בריאות מערכת", hint: "מה חסר" },
     { href: "/dashboard/admin/navigation-health", label: "בריאות ניווט", hint: "בדיקת routes" },
