@@ -9284,3 +9284,110 @@ textarea {
     grid-template-columns: 1fr;
   }
 }
+
+/* PHASE 106: multi-kindergarten scale validation */
+.scale-validation-shell .premium-dashboard-hero {
+  margin-bottom: 1rem;
+}
+
+.scale-score-grid {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: .8rem;
+  margin: .6rem 0 1.2rem;
+}
+
+.scale-score-grid article {
+  display: grid;
+  gap: .3rem;
+  padding: 1rem;
+  border: 1px solid rgba(15, 23, 42, .08);
+  border-radius: 18px;
+  background: linear-gradient(145deg, #ffffff, #f8fbff);
+  box-shadow: 0 14px 34px rgba(15, 23, 42, .06);
+}
+
+.scale-score-grid svg {
+  color: #1d4ed8;
+}
+
+.scale-score-grid span {
+  color: var(--muted);
+  font-size: .85rem;
+}
+
+.scale-score-grid strong {
+  font-size: 1.45rem;
+  color: var(--text);
+}
+
+.scale-comparison-table {
+  display: grid;
+  gap: .55rem;
+}
+
+.scale-comparison-head,
+.scale-comparison-row {
+  display: grid;
+  grid-template-columns: 1.25fr 1.45fr 1fr 1fr .7fr .75fr;
+  gap: .75rem;
+  align-items: center;
+}
+
+.scale-comparison-head {
+  padding: 0 .85rem;
+  color: var(--muted);
+  font-size: .82rem;
+  font-weight: 800;
+}
+
+.scale-comparison-row {
+  padding: .85rem;
+  border: 1px solid rgba(15, 23, 42, .08);
+  border-radius: 16px;
+  background: #fff;
+  color: inherit;
+  text-decoration: none;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, .05);
+}
+
+.scale-comparison-row:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 34px rgba(15, 23, 42, .08);
+}
+
+.scale-comparison-row > span {
+  min-width: 0;
+  color: var(--muted);
+  font-size: .88rem;
+}
+
+.scale-comparison-row strong,
+.scale-comparison-row small {
+  display: block;
+}
+
+.scale-comparison-row strong {
+  color: var(--text);
+  font-size: .98rem;
+}
+
+.scale-comparison-row small {
+  color: var(--muted);
+  margin-top: .18rem;
+}
+
+@media (max-width: 980px) {
+  .scale-score-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .scale-comparison-head {
+    display: none;
+  }
+
+  .scale-comparison-row {
+    grid-template-columns: 1fr;
+    gap: .45rem;
+  }
+}
