@@ -9045,3 +9045,242 @@ textarea {
     grid-column: 2;
   }
 }
+
+/* UX-FINAL-6: super admin national control center */
+.super-admin-shell {
+  display: grid;
+  gap: 16px;
+}
+
+.national-command-hero {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  gap: 18px;
+  align-items: center;
+  padding: clamp(18px, 3vw, 34px);
+  border: 1px solid var(--ux-border);
+  border-radius: 24px;
+  background:
+    radial-gradient(circle at 94% 10%, rgb(15 118 110 / 12%), transparent 30%),
+    linear-gradient(135deg, #fff, #f4fbf9);
+  box-shadow: var(--ux-shadow-sm);
+}
+
+.national-command-hero h1 {
+  margin: 0;
+  color: var(--ux-text);
+  font-size: clamp(30px, 3.4vw, 48px);
+  line-height: 1.05;
+}
+
+.national-command-hero p {
+  color: var(--ux-muted);
+}
+
+.national-health-score {
+  width: 138px;
+  min-height: 138px;
+  display: grid;
+  place-items: center;
+  align-content: center;
+  gap: 2px;
+  border-radius: 30px;
+  color: #fff;
+  box-shadow: var(--ux-shadow-md);
+}
+
+.national-health-score.good {
+  background: linear-gradient(135deg, var(--ux-brand), var(--ux-brand-strong));
+}
+
+.national-health-score.warn {
+  background: linear-gradient(135deg, #b7791f, #854d0e);
+}
+
+.national-health-score.bad {
+  background: linear-gradient(135deg, #b42318, #7f1d1d);
+}
+
+.national-health-score span,
+.national-health-score small {
+  font-size: 13px;
+  font-weight: 850;
+  opacity: .9;
+}
+
+.national-health-score strong {
+  font-size: 46px;
+  line-height: 1;
+}
+
+.national-kpi-strip,
+.executive-kpi-center,
+.national-action-grid,
+.national-report-row {
+  display: grid;
+  gap: 12px;
+}
+
+.national-kpi-strip {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.executive-kpi-center,
+.national-action-grid {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.executive-kpi-center article {
+  min-height: 132px;
+  display: grid;
+  gap: 6px;
+  align-content: center;
+  padding: 16px;
+  border: 1px solid var(--ux-border);
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: var(--ux-shadow-sm);
+}
+
+.executive-kpi-center svg {
+  color: var(--ux-brand);
+}
+
+.executive-kpi-center span,
+.executive-kpi-center small {
+  color: var(--ux-muted);
+  font-weight: 800;
+}
+
+.executive-kpi-center strong {
+  color: var(--ux-text);
+  font-size: 28px;
+  line-height: 1;
+}
+
+.national-two-column {
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(320px, .8fr);
+  gap: 14px;
+}
+
+.national-panel {
+  display: grid;
+  gap: 12px;
+  align-content: start;
+  padding: 18px;
+  border: 1px solid var(--ux-border);
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: var(--ux-shadow-sm);
+}
+
+.national-safety-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.national-safety-grid a {
+  min-height: 104px;
+  display: grid;
+  gap: 4px;
+  align-content: center;
+  padding: 14px;
+  border: 1px solid #e0ece9;
+  border-radius: 16px;
+  background: #fbfefd;
+  color: var(--ux-text);
+  text-decoration: none;
+}
+
+.national-safety-grid strong {
+  font-size: 30px;
+  line-height: 1;
+}
+
+.national-alert-feed,
+.national-assistant-list,
+.national-health-list,
+.national-garden-list {
+  display: grid;
+  gap: 9px;
+}
+
+.national-alert-feed a,
+.national-garden-list a,
+.national-assistant-list a,
+.national-health-list span,
+.national-report-row span {
+  min-height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid #e0ece9;
+  border-radius: 13px;
+  background: #fbfefd;
+  color: var(--ux-text);
+  text-decoration: none;
+  font-weight: 850;
+}
+
+.national-alert-feed a {
+  justify-content: flex-start;
+}
+
+.national-alert-feed small,
+.national-garden-list span,
+.national-assistant-list a,
+.national-health-list span {
+  color: var(--ux-muted);
+}
+
+.national-report-row {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+@media (max-width: 1200px) {
+  .national-kpi-strip,
+  .executive-kpi-center,
+  .national-action-grid,
+  .national-report-row {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  .national-safety-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 860px) {
+  .national-command-hero,
+  .national-two-column {
+    grid-template-columns: 1fr;
+  }
+
+  .national-health-score {
+    width: 116px;
+    min-height: 116px;
+  }
+}
+
+@media (max-width: 620px) {
+  .national-command-hero {
+    padding: 16px;
+    border-radius: 18px;
+  }
+
+  .national-command-hero h1 {
+    font-size: 28px;
+  }
+
+  .national-kpi-strip,
+  .executive-kpi-center,
+  .national-action-grid,
+  .national-report-row,
+  .national-safety-grid {
+    grid-template-columns: 1fr;
+  }
+}
