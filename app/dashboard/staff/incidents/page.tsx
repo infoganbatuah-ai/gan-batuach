@@ -16,11 +16,11 @@ export default async function StaffIncidentsPage({ searchParams }: { searchParam
 
   return (
     <DashboardShell role="staff" title="דיווח אירוע">
-      <div className="dashboard-hero-card staff-hero-card">
+      <div className="parent-page-head staff-page-head">
         <div>
-          <p className="eyebrow">Incident Report</p>
-          <h1>דיווח אירוע מהיר לצוות.</h1>
-          <p>תיעוד אירוע, ילד קשור, חומרה ותמונה. המנהלת מקבלת התראה להמשך טיפול.</p>
+          <p className="eyebrow">דיווח מהיר</p>
+          <h1>קרה משהו? מתעדים מיד.</h1>
+          <p>בחרו ילד, חומרה, טקסט קצר ואם צריך תמונה. המנהלת מקבלת התראה להמשך טיפול.</p>
         </div>
         <span className="pill warn"><Siren size={15} /> מתועד</span>
       </div>

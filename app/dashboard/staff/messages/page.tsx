@@ -15,5 +15,5 @@ export default async function StaffMessagesPage({ searchParams }: { searchParams
   ]);
   const garden = gardenRes.data as any;
   const recipients = [garden?.manager, garden?.owner, garden?.inspector].filter(Boolean);
-  return <DashboardShell role="staff" title="הודעות צוות"><div className="dashboard-hero-card staff-hero-card"><div><p className="eyebrow">Staff Messaging</p><h1>תקשורת פנימית מתועדת.</h1><p>צוות יכול לפנות למנהלת, בעלים או פקח לפי הרשאה.</p></div><span className="pill good">מתועד</span></div><InternalMessagingCenter gardenId={gardenId} recipients={recipients} messages={(messagesRes.data ?? []) as any[]} linkedChildren={(childrenRes.data ?? []) as any[]} preselectedChildId={params?.childId} /></DashboardShell>;
+  return <DashboardShell role="staff" title="הודעות צוות"><div className="parent-page-head staff-page-head"><div><p className="eyebrow">הודעות במשמרת</p><h1>מנהלת, צוות ועדכונים דחופים.</h1><p>פנייה קצרה למנהלת או לצוות, עם אפשרות לקשר ילד כשצריך.</p></div><span className="pill good">מתועד</span></div><InternalMessagingCenter gardenId={gardenId} recipients={recipients} messages={(messagesRes.data ?? []) as any[]} linkedChildren={(childrenRes.data ?? []) as any[]} preselectedChildId={params?.childId} /></DashboardShell>;
 }
