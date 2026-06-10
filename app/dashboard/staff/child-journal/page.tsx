@@ -16,7 +16,7 @@ export default async function StaffChildJournalPage({ searchParams }: { searchPa
   ]);
   return (
     <DashboardShell role="staff" title="יומן ילד">
-      <div className="dashboard-hero-card staff-hero-card"><div><p className="eyebrow">Child Notes</p><h1>עדכוני ילדים לצוות.</h1><p>רשמו ארוחות, שינה, מצב רוח, תרופות והערות להורים לפי הרשאת הגן.</p></div><span className="pill good"><BookOpenCheck size={15} /> מתועד</span></div>
+      <div className="parent-page-head staff-page-head"><div><p className="eyebrow">עדכון ילד מהיר</p><h1>ארוחה, שינה, שירותים, מצב רוח.</h1><p>בחרו ילד ועדכנו את מה שקרה עכשיו. קצר, ברור ומתאים לטלפון.</p></div><span className="pill good"><BookOpenCheck size={15} /> נשמר ליומן</span></div>
       <ChildDailyJournalManager gardenId={gardenId} children={(childrenRes.data ?? []) as any[]} journals={(journalsRes.data ?? []) as any[]} initialChildId={params?.childId ?? ""} incidentMode={params?.incident === "1"} />
     </DashboardShell>
   );
