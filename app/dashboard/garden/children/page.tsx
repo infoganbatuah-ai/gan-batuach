@@ -83,9 +83,10 @@ export default async function GardenChildrenPage({ searchParams }: { searchParam
 
   return (
     <DashboardShell role="manager" title="ילדים">
-      <PremiumDashboardHero eyebrow="ילדים" title="כל ילד בכרטיס ברור." subtitle="נוכחות, בריאות, איסוף ויומן יומי בלי עומס." badge={`${rows.length} ילדים`} badgeTone="good" />
+      <PremiumDashboardHero eyebrow="מרכז ילדים" title="כל ילד במבט תפעולי ברור." subtitle="תמונה, נוכחות, בריאות, איסוף, יומן ופעולות אישור בלי טבלאות צפופות." badge={`${rows.length} ילדים`} badgeTone="good" />
       <DashboardFilterChip label={label} clearHref="/dashboard/garden/children" isEmpty={rows.length === 0} emptyTitle={emptyTitle} emptyText="כל הילדים הרלוונטיים כבר טופלו במסנן הזה. אפשר לנקות סינון כדי לראות את כל הילדים." />
       <div className="grid cols-4 dashboard-kpis"><StatCard label="נוכחים היום" value={rows.filter((row) => row.attendance_status === "present").length} tone="good" /><StatCard label="טרם עודכנו" value={rows.filter((row) => row.attendance_status === "not_updated").length} tone="warn" /><StatCard label="אלרגיות" value={rows.filter((row) => row.allergies).length} tone="bad" /><StatCard label="אירועים פתוחים" value={rows.reduce((sum, row) => sum + Number(row.incident_count ?? 0), 0)} tone="warn" /></div>
+      <section className="manager-report-row"><span>חסרי ארוחה <b>{rows.filter((row) => !row.meals_text).length}</b></span><span>חסרי שינה <b>{rows.filter((row) => !row.sleep_summary).length}</b></span><span>פניות הורים <b>{rows.reduce((sum, row) => sum + Number(row.open_parent_requests ?? 0), 0)}</b></span><span>תשלומים לטיפול <b>{rows.filter((row) => ["overdue", "unpaid", "partial", "failed", "not_transferred"].includes(row.payment_status)).length}</b></span></section>
 
       <section className="dashboard-section">
         <div className="section-heading"><h2>ממתינים לאישור</h2><p>בקשות שהורים השלימו ומחכות להחלטה.</p></div>

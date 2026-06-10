@@ -30,8 +30,9 @@ export default async function GardenStaffPage() {
 
   return (
     <DashboardShell role="manager" title="צוות">
-      <div className="dashboard-hero-card garden-hero-card"><div><p className="eyebrow">Staff Compliance</p><h1>ניהול צוות ברמת פרופיל.</h1><p>תפקיד, תעודות, משמרת, מסמכים, בדיקות רקע, משימות ואישור עבודה בכרטיס אחד.</p></div><span className="pill good">{rows.length} אנשי צוות</span></div>
+      <div className="parent-page-head manager-page-head"><div><p className="eyebrow">מרכז צוות</p><h1>מי כאן, מי חסר ומה צריך אישור.</h1><p>נוכחות, תעודות, מסמכים, משימות ואישור עבודה בכרטיסים קצרים.</p></div><span className="pill good">{rows.length} אנשי צוות</span></div>
       <div className="grid cols-4 dashboard-kpis"><StatCard label="מאושרים לעבודה" value={rows.filter((row) => row.approved_to_work).length} tone="good" /><StatCard label="ממתינים לאישור" value={rows.filter((row) => !row.approved_to_work).length} tone="warn" /><StatCard label="מסמכים חסרים" value={rows.reduce((sum, row) => sum + Number(row.missing_documents), 0)} tone="bad" /><StatCard label="ממוצע ציות" value={`${Math.round(rows.reduce((sum, row) => sum + Number(row.compliance_score), 0) / Math.max(rows.length, 1))}%`} tone="good" /></div>
+      <section className="manager-report-row"><span>נוכחים היום <b>{rows.filter((row) => row.shift_today).length}</b></span><span>נעדרים/טרם נכנסו <b>{rows.filter((row) => !row.shift_today).length}</b></span><span>תעודות חסרות <b>{rows.filter((row) => !row.certificate_count).length}</b></span><span>משימות פתוחות <b>{rows.reduce((sum, row) => sum + Number(row.task_count ?? 0), 0)}</b></span></section>
       <StaffProfileCards staff={rows} />
     </DashboardShell>
   );

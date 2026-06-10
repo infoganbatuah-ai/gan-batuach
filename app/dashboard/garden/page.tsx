@@ -1,53 +1,72 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { AlertTriangle, Bell, CalendarCheck, Camera, ClipboardCheck, FileClock, HeartPulse, MessageSquare, Shirt, ShieldCheck, UserPlus, WalletCards } from "lucide-react";
-import { DashboardShell } from "@/components/dashboard-shell";
-import { StatCard } from "@/components/stat-card";
+import { AlertTriangle, Baby, Camera, ClipboardCheck, FileClock, HeartPulse, MessageSquare, ShieldCheck, UsersRound, WalletCards } from "lucide-react";
 import { Avatar } from "@/components/avatar";
-import { SimpleCommandCenter } from "@/components/simple-command-center";
-import { LiveDayFlow } from "@/components/live-day-flow";
-import { ForgotSomethingButton } from "@/components/forgot-something-button";
-import { EndOfDayChecklist } from "@/components/end-of-day-checklist";
-import { ActionCard, CleanSection, PremiumDashboardHero, RoleMetricCard } from "@/components/premium-dashboard";
+import { DashboardShell } from "@/components/dashboard-shell";
+import { ActionCard, RoleMetricCard } from "@/components/premium-dashboard";
 import { requireRole } from "@/lib/auth";
-import { generateSmartInsights, syncSmartInsights, createNotificationsForUrgentInsights } from "@/lib/domain/smart-kindergarten-engine";
+import { createNotificationsForUrgentInsights, generateSmartInsights, syncSmartInsights } from "@/lib/domain/smart-kindergarten-engine";
 import { createClient } from "@/lib/supabase/server";
+
+function clampScore(value: number) {
+  return Math.max(0, Math.min(100, Math.round(value)));
+}
+
+function toneForCount(count: number) {
+  return count > 0 ? "warn" as const : "good" as const;
+}
 
 export default async function GardenDashboard() {
   const { profile } = await requireRole(["manager", "owner"]);
   const supabase = await createClient();
-  const gardenId = profile.garden_id;
-  const [gardenRes, childrenRes, staffRes, parentsRes, tasksRes, leadsRes, complaintsRes, violationsRes, camerasRes, aiRes, documentsRes, messagesRes, inspectionRes, attendanceRes, unpaidRes, dueInspectionRes, financeChildrenRes, changeClothesRes, healthAlertsRes, parentRequestsRes, staffDocsRes, incidentsRes, documentApprovalsRes, pendingParentCompletionRes, pendingApprovalRes, childJournalsRes] = await Promise.all([
-    supabase.from("gardens" as any).select("id, name, city, logo_url, image_url, address, phone, email, owner_name, public_description, ages, safe_status, first_inspection_due_at, last_inspection_score, approval_flow_status, final_approval_status, admin_correction_note").eq("id", gardenId ?? "").maybeSingle(),
-    supabase.from("children").select("*", { count: "exact", head: true }).eq("garden_id", gardenId ?? ""),
-    supabase.from("staff").select("*", { count: "exact", head: true }).eq("garden_id", gardenId ?? ""),
-    supabase.from("parents").select("*", { count: "exact", head: true }).eq("garden_id", gardenId ?? ""),
-    supabase.from("tasks").select("*", { count: "exact", head: true }).eq("garden_id", gardenId ?? "").neq("status", "done"),
-    supabase.from("leads").select("id, parent_name, phone, child_name, child_age, status, created_at", { count: "exact" }).eq("garden_id", gardenId ?? "").eq("lead_type", "parent").limit(5),
-    supabase.from("complaints").select("*", { count: "exact", head: true }).eq("garden_id", gardenId ?? "").neq("status", "closed"),
-    supabase.from("violations").select("*", { count: "exact", head: true }).eq("garden_id", gardenId ?? "").neq("status", "done"),
-    supabase.from("camera_streams").select("*", { count: "exact", head: true }).eq("garden_id", gardenId ?? "").neq("status", "online"),
-    supabase.from("ai_events").select("*", { count: "exact", head: true }).eq("garden_id", gardenId ?? "").neq("status", "closed"),
-    supabase.from("documents").select("name, document_type, expires_at, status").eq("garden_id", gardenId ?? "").limit(4),
-    supabase.from("messages").select("id, subject, content, body, created_at, status").eq("garden_id", gardenId ?? "").eq("recipient_id", profile.id).order("created_at", { ascending: false }).limit(4),
-    supabase.from("inspections" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId ?? "").eq("status", "done"),
-    supabase.from("attendance" as any).select("id, status, pickup_name", { count: "exact" }).eq("garden_id", gardenId ?? "").eq("attendance_date", new Date().toISOString().slice(0, 10)),
-    supabase.from("children" as any).select("id, monthly_fee, payment_status", { count: "exact" }).eq("garden_id", gardenId ?? "").in("payment_status", ["overdue", "unpaid", "partial", "failed", "not_transferred"]),
-    supabase.from("required_inspections" as any).select("due_at").eq("garden_id", gardenId ?? "").neq("status", "done").order("due_at").limit(1).maybeSingle(),
-    supabase.from("children" as any).select("monthly_fee").eq("garden_id", gardenId ?? ""),
-    supabase.from("children" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId ?? "").eq("has_change_clothes", false),
-    supabase.from("children" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId ?? "").or("allergies.not.is.null,medical_notes.not.is.null,regular_medications.not.is.null"),
-    supabase.from("parent_child_requests" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId ?? "").in("status", ["new", "viewed"]),
-    supabase.from("documents" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId ?? "").in("status", ["missing", "expired", "rejected"]),
-    supabase.from("incident_reports" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId ?? "").neq("status", "closed"),
-    supabase.from("documents" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId ?? "").eq("status", "pending_review"),
-    supabase.from("children" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId ?? "").eq("status", "pending_parent_completion"),
-    supabase.from("children" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId ?? "").eq("status", "pending_manager_approval"),
-    supabase.from("child_daily_journals" as any).select("child_id, meals, sleep_summary, mood").eq("garden_id", gardenId ?? "").eq("journal_date", new Date().toISOString().slice(0, 10))
+  const gardenId = profile.garden_id ?? "";
+  const today = new Date().toISOString().slice(0, 10);
+
+  const [
+    gardenRes,
+    childrenRes,
+    staffRes,
+    attendanceRes,
+    shiftsRes,
+    tasksRes,
+    parentRequestsRes,
+    complaintsRes,
+    incidentsRes,
+    documentsRes,
+    pendingDocsRes,
+    pendingChildrenRes,
+    staffDocsRes,
+    cameraIssuesRes,
+    aiRes,
+    paymentsRes,
+    inspectionsRes,
+    journalsRes,
+    messagesRes
+  ] = await Promise.all([
+    supabase.from("gardens" as any).select("id, name, city, logo_url, image_url, safe_status, approval_flow_status, final_approval_status, admin_correction_note, last_inspection_score").eq("id", gardenId).maybeSingle(),
+    supabase.from("children" as any).select("id, full_name, photo_url, allergies, medical_notes, regular_medications, status, has_change_clothes, payment_status, monthly_fee", { count: "exact" }).eq("garden_id", gardenId),
+    supabase.from("staff" as any).select("id, profile_id, full_name, role_title, approved_to_work", { count: "exact" }).eq("garden_id", gardenId),
+    supabase.from("attendance" as any).select("id, child_id, status, pickup_name", { count: "exact" }).eq("garden_id", gardenId).eq("attendance_date", today),
+    supabase.from("staff_shifts" as any).select("staff_id, clock_in_at, clock_out_at", { count: "exact" }).eq("garden_id", gardenId).eq("shift_date", today),
+    supabase.from("tasks" as any).select("id, title, priority, status, category, due_at", { count: "exact" }).eq("garden_id", gardenId).neq("status", "done").order("created_at", { ascending: false }).limit(8),
+    supabase.from("parent_child_requests" as any).select("id, request_type, status", { count: "exact" }).eq("garden_id", gardenId).in("status", ["new", "viewed"]),
+    supabase.from("complaints" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId).neq("status", "closed"),
+    supabase.from("incident_reports" as any).select("id, title, severity, status", { count: "exact" }).eq("garden_id", gardenId).neq("status", "closed").limit(6),
+    supabase.from("documents" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId).in("status", ["missing", "expired", "rejected"]),
+    supabase.from("documents" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId).eq("status", "pending_review"),
+    supabase.from("children" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId).in("status", ["pending_manager_approval", "missing_info", "request_missing_details", "pending_parent_completion"]),
+    supabase.from("documents" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId).in("status", ["missing", "expired", "rejected"]),
+    supabase.from("camera_streams" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId).or("active.eq.false,status.in.(offline,failed,error,disabled,pending_gateway)"),
+    supabase.from("ai_events" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId).neq("status", "closed"),
+    supabase.from("children" as any).select("id, monthly_fee, payment_status").eq("garden_id", gardenId).in("payment_status", ["overdue", "unpaid", "partial", "failed", "not_transferred"]),
+    supabase.from("required_inspections" as any).select("id, title, due_at, status").eq("garden_id", gardenId).neq("status", "done").order("due_at", { ascending: true }).limit(4),
+    supabase.from("child_daily_journals" as any).select("child_id, meals, sleep_summary, mood").eq("garden_id", gardenId).eq("journal_date", today),
+    supabase.from("messages" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId).eq("recipient_id", profile.id).is("read_at", null)
   ]);
+
   const garden = gardenRes.data as any;
   const onboardingStatus = String(garden?.approval_flow_status ?? garden?.final_approval_status ?? "");
-  const mustCompleteGardenProfile = [
+  if ([
     "lead_approved_credentials_sent",
     "profile_incomplete",
     "credentials_sent",
@@ -56,165 +75,159 @@ export default async function GardenDashboard() {
     "pending_final_approval",
     "pending_final_admin_approval",
     "correction_required"
-  ].includes(onboardingStatus);
-  if (mustCompleteGardenProfile) {
-    redirect("/onboarding/kindergarten");
-  }
-  const [incomingTransfersRes, outgoingTransfersRes] = await Promise.all([
-    supabase.from("child_transfer_requests" as any).select("id", { count: "exact", head: true }).eq("target_garden_id", gardenId ?? "").in("status", ["pending_new_kindergarten_review", "missing_details"]),
-    supabase.from("child_transfer_requests" as any).select("id", { count: "exact", head: true }).eq("current_garden_id", gardenId ?? "").in("status", ["pending_new_kindergarten_review", "pending_current_kindergarten_response", "current_kindergarten_requested_call", "current_kindergarten_flagged"])
-  ]);
-  const transferRequestsCount = (incomingTransfersRes.count ?? 0) + (outgoingTransfersRes.count ?? 0);
-  const roleLabel = profile.role === "owner" ? "בעלים" : "מנהלת גן";
-  const attendanceRows = (attendanceRes.data ?? []) as any[];
-  const parentLeadRows = (leadsRes.data ?? []) as any[];
-  const newLeadCount = parentLeadRows.filter((lead) => ["new", "new_parent_lead"].includes(lead.status)).length;
-  const presentToday = attendanceRows.filter((row) => row.status === "present").length;
-  const missingToday = Math.max(0, (childrenRes.count ?? 0) - presentToday);
-  const missingAttendance = Math.max(0, (childrenRes.count ?? 0) - attendanceRows.length);
-  const journalRows = (childJournalsRes.data ?? []) as any[];
-  const withMealUpdate = journalRows.filter((row) => Array.isArray(row.meals) && row.meals.length > 0).length;
-  const withSleepUpdate = journalRows.filter((row) => Boolean(row.sleep_summary)).length;
-  const withoutMeal = Math.max(0, (childrenRes.count ?? 0) - withMealUpdate);
-  const withoutSleep = Math.max(0, (childrenRes.count ?? 0) - withSleepUpdate);
-  const pickupPending = Math.max(0, presentToday - attendanceRows.filter((row) => row.pickup_name || row.status === "picked_up").length);
-  const inspectionDays = dueInspectionRes.data?.due_at ? Math.ceil((new Date((dueInspectionRes.data as any).due_at).getTime() - Date.now()) / 86400000) : null;
-  const expectedRevenue = ((financeChildrenRes.data ?? []) as any[]).reduce((sum, child) => sum + Number(child.monthly_fee ?? 0), 0);
-  const failedPayments = ((unpaidRes.data ?? []) as any[]).filter((child) => ["failed", "not_transferred"].includes(child.payment_status)).length;
-  const latePayments = Math.max(0, (unpaidRes.count ?? 0) - failedPayments);
+  ].includes(onboardingStatus)) redirect("/onboarding/kindergarten");
+
+  const children = (childrenRes.data ?? []) as any[];
+  const staff = (staffRes.data ?? []) as any[];
+  const attendance = (attendanceRes.data ?? []) as any[];
+  const journals = (journalsRes.data ?? []) as any[];
+  const presentChildren = attendance.filter((row: any) => row.status === "present").length;
+  const missingAttendance = Math.max(0, (childrenRes.count ?? 0) - attendance.length);
+  const staffPresent = ((shiftsRes.data ?? []) as any[]).filter((row) => row.clock_in_at && !row.clock_out_at).length;
+  const missingMeal = Math.max(0, (childrenRes.count ?? 0) - journals.filter((row: any) => Array.isArray(row.meals) && row.meals.length > 0).length);
+  const missingSleep = Math.max(0, (childrenRes.count ?? 0) - journals.filter((row: any) => row.sleep_summary).length);
+  const healthChildren = children.filter((child) => child.allergies || child.medical_notes || child.regular_medications);
+  const clothesMissing = children.filter((child) => child.has_change_clothes === false).length;
+  const paymentIssues = (paymentsRes.data ?? []) as any[];
+  const expectedIncome = children.reduce((sum, child) => sum + Number(child.monthly_fee ?? 0), 0);
+  const unresolvedIssues = (tasksRes.count ?? 0) + (parentRequestsRes.count ?? 0) + (complaintsRes.count ?? 0) + (incidentsRes.count ?? 0) + (cameraIssuesRes.count ?? 0) + (aiRes.count ?? 0);
+  const attendanceCompletion = childrenRes.count ? ((attendance.length / childrenRes.count) * 100) : 100;
+  const documentCompliance = clampScore(100 - (documentsRes.count ?? 0) * 8 - (staffDocsRes.count ?? 0) * 6);
+  const inspectionReadiness = clampScore(100 - (inspectionsRes.data?.length ?? 0) * 12);
+  const safetyReadiness = clampScore(100 - (incidentsRes.count ?? 0) * 10 - (aiRes.count ?? 0) * 8);
+  const staffReadiness = staffRes.count ? clampScore((staff.filter((member) => member.approved_to_work).length / staffRes.count) * 100) : 80;
+  const healthScore = clampScore((attendanceCompletion + documentCompliance + inspectionReadiness + safetyReadiness + staffReadiness) / 5);
+
   let smartInsights: Awaited<ReturnType<typeof generateSmartInsights>> = [];
   try {
     smartInsights = await syncSmartInsights(supabase as any, await generateSmartInsights(supabase as any, profile));
     await createNotificationsForUrgentInsights(supabase as any, smartInsights);
   } catch (error) {
     console.error("[garden-dashboard] smart insights failed", { garden_id: gardenId, error });
-    smartInsights = [];
   }
-  const smartCommandItems = smartInsights.slice(0, 9).map((item) => ({
-    title: item.title,
-    count: item.severity === "urgent" || item.severity === "critical" ? "דחוף" : item.severity === "warning" ? "כדאי" : "חדש",
-    description: item.description,
-    href: item.action_url,
-    tone: item.severity === "urgent" || item.severity === "critical" ? "bad" as const : item.severity === "warning" ? "warn" as const : "good" as const,
-    icon: item.category === "מצלמות" ? Camera : item.category === "כספים" ? WalletCards : item.category === "מסמכים" ? FileClock : item.category === "הורים" ? MessageSquare : item.category === "פיקוח" ? ShieldCheck : AlertTriangle
-  }));
-  const morningItems = [
-    { title: "ילדים שלא הגיעו", count: missingToday, description: "פתחי נוכחות מסוננת לילדים שלא סומנו או נעדרים", href: "/dashboard/garden/attendance?filter=missing", tone: missingToday ? "warn" as const : "good" as const, icon: CalendarCheck },
-    { title: "ילדים בלי עדכון ארוחה", count: withoutMeal, description: "עדכני ארוחה בצ׳יפים מהירים", href: "/dashboard/garden/child-journal?missing=meal", tone: withoutMeal ? "warn" as const : "good" as const, icon: HeartPulse },
-    { title: "ילדים בלי עדכון שינה", count: withoutSleep, description: "עדכני שינה בלי לפתוח טופס ארוך", href: "/dashboard/garden/child-journal?missing=sleep", tone: withoutSleep ? "warn" as const : "good" as const, icon: HeartPulse },
-    { title: "חסר בגדים להחלפה", count: changeClothesRes.count ?? 0, description: "ילדים צעירים שצריך לבקש מההורים להשלים", href: "/dashboard/garden/children?view=attention&filter=change-clothes", tone: (changeClothesRes.count ?? 0) ? "bad" as const : "good" as const, icon: Shirt },
-    { title: "פניות הורים פתוחות", count: parentRequestsRes.count ?? 0, description: "השיבי או סמני כטופל מתוך הקשר הילד", href: "/dashboard/garden/children?view=attention&filter=parent-requests", tone: (parentRequestsRes.count ?? 0) ? "warn" as const : "good" as const, icon: MessageSquare },
-    { title: "תשלומים באיחור", count: latePayments, description: "גבייה חסרה, חלקית או באיחור", href: "/dashboard/garden/finance?filter=overdue", tone: latePayments ? "bad" as const : "good" as const, icon: WalletCards },
-    { title: "תשלום לא עבר", count: failedPayments, description: "עסקאות שנכשלו ודורשות עדכון הורה", href: "/dashboard/garden/finance?filter=failed", tone: failedPayments ? "bad" as const : "good" as const, icon: WalletCards },
-    { title: "מסמכים חסרים", count: staffDocsRes.count ?? 0, description: "צוות/גן עם מסמך חסר, דחוי או פג תוקף", href: "/dashboard/garden/documents?filter=missing", tone: (staffDocsRes.count ?? 0) ? "bad" as const : "good" as const, icon: FileClock },
-    { title: "אירועים שלא טופלו", count: incidentsRes.count ?? 0, description: "אירועים פתוחים שצריכים סגירה או תגובה", href: "/dashboard/garden/incidents?status=open", tone: (incidentsRes.count ?? 0) ? "bad" as const : "good" as const, icon: AlertTriangle },
-    { title: "פיקוח קרוב", count: inspectionDays === null ? "אין" : `${inspectionDays} ימים`, description: "הכנה לביקורת הקרובה", href: "/dashboard/garden/inspections?filter=due-soon", tone: inspectionDays !== null && inspectionDays <= 5 ? "warn" as const : "good" as const, icon: ShieldCheck },
-    { title: "מצלמות לא מחוברות", count: camerasRes.count ?? 0, description: "מצלמות שממתינות לחיבור או לא מחוברות", href: "/dashboard/garden/cameras?filter=offline", tone: (camerasRes.count ?? 0) ? "warn" as const : "good" as const, icon: Camera }
+
+  const attentionItems = [
+    { title: "ילדים בלי נוכחות", count: missingAttendance, href: "/dashboard/garden/attendance?filter=missing", tone: toneForCount(missingAttendance), text: "סימון נוכחות חסר" },
+    { title: "ילדים בלי ארוחה", count: missingMeal, href: "/dashboard/garden/child-journal?missing=meal", tone: toneForCount(missingMeal), text: "עדכון יומן קצר" },
+    { title: "ילדים בלי שינה", count: missingSleep, href: "/dashboard/garden/child-journal?missing=sleep", tone: toneForCount(missingSleep), text: "השלמת מנוחה" },
+    { title: "ילדים עם דגש בריאותי", count: healthChildren.length, href: "/dashboard/garden/children?view=attention&filter=health", tone: healthChildren.length ? "warn" as const : "good" as const, text: "אלרגיות/תרופות" },
+    { title: "מסמכים לבדיקה", count: pendingDocsRes.count ?? 0, href: "/dashboard/garden/documents?filter=pending", tone: toneForCount(pendingDocsRes.count ?? 0), text: "ממתין לאישור" },
+    { title: "ילדים לאישור", count: pendingChildrenRes.count ?? 0, href: "/dashboard/garden/children?status=pending", tone: toneForCount(pendingChildrenRes.count ?? 0), text: "בקשות הורים" }
   ];
-  const flowCounts = {
-    missingAttendance,
-    missingClothes: changeClothesRes.count ?? 0,
-    parentRequests: parentRequestsRes.count ?? 0,
-    withoutMeal,
-    withoutSleep,
-    healthAlerts: healthAlertsRes.count ?? 0,
-    openIncidents: incidentsRes.count ?? 0,
-    pickupPending,
-    openTasks: tasksRes.count ?? 0
-  };
-  const forgotItems = [
-    { label: "ילדים בלי עדכון ארוחה", count: withoutMeal, href: "/dashboard/garden/child-journal?missing=meal", action: "עדכני ארוחה מהירה", severity: "warn" as const },
-    { label: "ילדים בלי עדכון שינה", count: withoutSleep, href: "/dashboard/garden/child-journal?missing=sleep", action: "עדכני שינה", severity: "warn" as const },
-    { label: "פניות הורים לא פתורות", count: parentRequestsRes.count ?? 0, href: "/dashboard/garden/messages?status=open", action: "השיבי או סמני טופל", severity: "warn" as const },
-    { label: "תשלומים שלא עברו", count: failedPayments, href: "/dashboard/garden/finance?filter=failed", action: "עדכני הורה או קבעי תזכורת", severity: "bad" as const },
-    { label: "תשלומים באיחור", count: latePayments, href: "/dashboard/garden/finance?filter=overdue", action: "פתחי גבייה", severity: "bad" as const },
-    { label: "נוכחות חסרה", count: missingAttendance, href: "/dashboard/garden/attendance?filter=missing", action: "סמני נוכחות", severity: "warn" as const },
-    { label: "אירועים פתוחים", count: incidentsRes.count ?? 0, href: "/dashboard/garden/incidents?status=open", action: "סגרי טיפול", severity: "bad" as const },
-    { label: "מסמכי צוות חסרים", count: staffDocsRes.count ?? 0, href: "/dashboard/garden/documents?filter=missing", action: "בקשי מסמך", severity: "bad" as const },
-    { label: "איסופים שלא הושלמו", count: pickupPending, href: "/dashboard/garden/pickup?filter=pending", action: "בדקי מי עדיין בגן", severity: "warn" as const }
+
+  const assistantQuestions = [
+    { label: "אילו ילדים צריכים תשומת לב?", href: "/dashboard/garden/children?view=attention" },
+    { label: "מה נשאר פתוח היום?", href: "/dashboard/garden/tasks" },
+    { label: "אילו מסמכים עומדים לפוג?", href: "/dashboard/garden/documents?filter=missing" },
+    { label: "מה מצב התשלומים?", href: "/dashboard/garden/finance?filter=due" },
+    { label: "מה התצפיתן ממליץ לבדוק?", href: "/dashboard/garden/observer-intelligence" }
   ];
-  const smartForgotItems = smartInsights
-    .filter((item) => item.severity === "warning" || item.severity === "urgent" || item.severity === "critical")
-    .map((item) => ({
-      label: item.title,
-      count: 1,
-      href: item.action_url,
-      action: item.recommended_action,
-      severity: item.severity === "warning" ? "warn" as const : "bad" as const
-    }));
-  const endDayItems = [
-    { label: "כל הילדים עודכנו ביומן", ok: withoutMeal === 0 && withoutSleep === 0, count: withoutMeal + withoutSleep },
-    { label: "כל האירועים טופלו", ok: (incidentsRes.count ?? 0) === 0, count: incidentsRes.count ?? 0 },
-    { label: "כל ההודעות נקראו", ok: (messagesRes.data?.length ?? 0) === 0, count: messagesRes.data?.length ?? 0 },
-    { label: "איסוף הסתיים", ok: pickupPending === 0, count: pickupPending },
-    { label: "פניות הורים נסגרו", ok: (parentRequestsRes.count ?? 0) === 0, count: parentRequestsRes.count ?? 0 }
-  ];
-  const urgentTotal = (complaintsRes.count ?? 0) + (aiRes.count ?? 0) + (incidentsRes.count ?? 0) + (parentRequestsRes.count ?? 0);
 
   return (
-    <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title={profile.role === "owner" ? "דשבורד בעלים" : "ממשק גן"}>
-      <div className="commercial-dashboard">
-      <PremiumDashboardHero
-        eyebrow="היום בגן"
-        title={`שלום, ${profile.full_name ?? "מנהלת הגן"}`}
-        subtitle={`${garden?.name ?? "הגן שלך"}${garden?.city ? ` · ${garden.city}` : ""}. מה שחשוב היום במקום אחד.`}
-        badge={aiRes.count || complaintsRes.count ? "דורש טיפול" : "יום רגוע"}
-        badgeTone={aiRes.count || complaintsRes.count ? "warn" : "good"}
-        actions={<><Link className="button primary" href="/dashboard/garden/children">ילדים</Link><Link className="button secondary" href="/dashboard/garden/messages">הודעות</Link></>}
-      >
-        <Avatar name={garden?.name} src={garden?.logo_url ?? garden?.image_url} size="lg" />
-      </PremiumDashboardHero>
-      <div className="premium-metric-grid">
-        <RoleMetricCard label="ילדים" value={childrenRes.count ?? 0} hint={`${presentToday} נוכחים היום`} tone="good" href="/dashboard/garden/children" />
-        <RoleMetricCard label="דורש טיפול" value={urgentTotal} hint="פניות, אירועים או תשלומים" tone={urgentTotal ? "warn" : "good"} />
-        <RoleMetricCard label="תשלומים" value={unpaidRes.count ?? 0} hint="ילדים עם גבייה לטיפול" tone={unpaidRes.count ? "bad" : "good"} href="/dashboard/garden/finance" />
-        <RoleMetricCard label="מצלמות" value={camerasRes.count ?? 0} hint="לא מחוברות או ממתינות" tone={camerasRes.count ? "warn" : "good"} href="/dashboard/garden/cameras" />
-      </div>
-      <CleanSection title="פעולות מהירות" subtitle="המסכים שהמנהלת צריכה רוב הזמן.">
-        <div className="premium-action-grid">
-          <ActionCard title="ילדים" text="נוכחות, בריאות ואישורים" href="/dashboard/garden/children" icon={UserPlus} tone="good" />
-          <ActionCard title="הורים" text="פניות, הודעות ופרטי קשר" href="/dashboard/garden/parents" icon={MessageSquare} />
-          <ActionCard title="כספים" text="גבייה ותשלומים לטיפול" href="/dashboard/garden/finance" icon={WalletCards} tone={unpaidRes.count ? "bad" : "default"} />
-          <ActionCard title="מצלמות" text="חיבור והרשאות צפייה" href="/dashboard/garden/cameras" icon={Camera} tone={camerasRes.count ? "warn" : "default"} />
-          <ActionCard title="תצפיתן" text="מה כדאי לבדוק עכשיו" href="/dashboard/garden/observer-intelligence" icon={ShieldCheck} />
-        </div>
-      </CleanSection>
-      <div className="dashboard-hero-card garden-hero-card premium-identity-hero ultimate-garden-hero">
-        <div>
-          <p className="eyebrow">ניהול יומי</p>
-          <h1>ברוכה הבאה, {profile.full_name ?? "מנהלת הגן"}.</h1>
-          <p>גן: {garden?.name ?? "הגן שלך"}{garden?.city ? ` · ${garden.city}` : ""} · ילדים היום: {childrenRes.count ?? 0} · נוכחים: {presentToday} · חסרים: {missingToday}</p>
-          <div className="profile-badge-row">
-            <span className="pill good">{roleLabel}</span>
-            <span className="pill">הודעות ממתינות: {messagesRes.data?.length ?? 0}</span>
+    <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="מפקדת גן">
+      <div className="manager-command-shell">
+        <section className="manager-command-hero">
+          <div className="manager-health-score">
+            <span>בריאות גן</span>
+            <strong>{healthScore}</strong>
+            <small>מתוך 100</small>
           </div>
-        </div>
-        <Avatar name={garden?.name} src={garden?.logo_url ?? garden?.image_url} size="lg" />
-        <span className={aiRes.count || complaintsRes.count ? "pill bad" : "pill good"}><ShieldCheck size={15} /> {aiRes.count || complaintsRes.count ? "דורש טיפול" : "יום רגוע"}</span>
-      </div>
+          <div>
+            <p className="eyebrow">מה צריך טיפול עכשיו?</p>
+            <h1>{garden?.name ?? "הגן שלך"} במבט אחד.</h1>
+            <p>{garden?.city ? `${garden.city} · ` : ""}{presentChildren} ילדים נוכחים, {staffPresent} אנשי צוות במשמרת, {unresolvedIssues} נושאים פתוחים.</p>
+            <div className="parent-status-row">
+              <span className={healthScore >= 85 ? "pill good" : healthScore >= 70 ? "pill warn" : "pill bad"}>{healthScore >= 85 ? "יום יציב" : "דורש תשומת לב"}</span>
+              <span className="pill good">{profile.role === "owner" ? "בעלים" : "מנהלת גן"}</span>
+              <span className={smartInsights.length ? "pill warn" : "pill good"}>{smartInsights.length || "אין"} המלצות</span>
+            </div>
+          </div>
+          <Avatar name={garden?.name} src={garden?.logo_url ?? garden?.image_url} size="lg" />
+        </section>
 
-      <div className="grid cols-4 dashboard-kpis zero-click-kpis">
-        <StatCard label="ילדים היום" value={childrenRes.count ?? 0} tone="good" href="/dashboard/garden/children" />
-        <StatCard label="נוכחים" value={presentToday} tone="good" href="/dashboard/garden/attendance" />
-        <StatCard label="חסרים" value={missingToday} tone={missingToday ? "warn" : "good"} href="/dashboard/garden/attendance?filter=missing" />
-        <StatCard label="תשלומים לטיפול" value={unpaidRes.count ?? 0} tone={unpaidRes.count ? "bad" : "good"} href="/dashboard/garden/finance?filter=overdue" />
-        <StatCard label="ילדים לאישור" value={(pendingParentCompletionRes.count ?? 0) + (pendingApprovalRes.count ?? 0)} tone={(pendingParentCompletionRes.count ?? 0) + (pendingApprovalRes.count ?? 0) ? "warn" : "good"} href="/dashboard/garden/children?status=pending" />
-      </div>
-      <SimpleCommandCenter title="מה דורש טיפול עכשיו?" subtitle="מנוע התובנות בודק את נתוני הגן ומציג רק פעולות שיש להן הקשר ברור." items={smartCommandItems.length ? smartCommandItems : morningItems} />
-      <LiveDayFlow counts={flowCounts} />
-      {profile.role === "owner" ? <section className="grid cols-4 dashboard-kpis owner-kpis"><StatCard label="הכנסה צפויה" value={`₪${expectedRevenue}`} tone="good" /><StatCard label="ציון גן" value={garden?.last_inspection_score ?? "-"} /><StatCard label="ציון צוות" value={staffRes.count ? "פעיל" : "חסר"} tone={staffRes.count ? "good" : "warn"} /><StatCard label="סיכוני גבייה" value={unpaidRes.count ?? 0} tone={unpaidRes.count ? "bad" : "good"} /></section> : null}
+        <section className="manager-kpi-strip">
+          <RoleMetricCard label="נוכחות היום" value={`${presentChildren}/${childrenRes.count ?? 0}`} hint={`${missingAttendance} חסרים לסימון`} tone={missingAttendance ? "warn" : "good"} href="/dashboard/garden/attendance" />
+          <RoleMetricCard label="צוות נוכח" value={`${staffPresent}/${staffRes.count ?? 0}`} hint="לפי שעון נוכחות" tone={staffPresent ? "good" : "warn"} href="/dashboard/garden/staff" />
+          <RoleMetricCard label="נושאים פתוחים" value={unresolvedIssues} hint="משימות, פניות ובטיחות" tone={unresolvedIssues ? "warn" : "good"} href="/dashboard/garden/tasks" />
+          <RoleMetricCard label="תשלומים לטיפול" value={paymentIssues.length} hint={`צפי ${expectedIncome.toLocaleString("he-IL")} ש״ח`} tone={paymentIssues.length ? "bad" : "good"} href="/dashboard/garden/finance" />
+          <RoleMetricCard label="מצלמות ותצפיתן" value={(cameraIssuesRes.count ?? 0) + (aiRes.count ?? 0)} hint="דורש בדיקה" tone={(cameraIssuesRes.count ?? 0) + (aiRes.count ?? 0) ? "warn" : "good"} href="/dashboard/garden/observer-intelligence" />
+        </section>
 
-      <section className="dashboard-section zero-click-shortcuts">
-        <div className="section-heading"><h2>פעולות יומיומיות בלי חיפוש</h2><p>הפעולות השכיחות ביותר נשארות קרובות. כל השאר נשאר בתפריט הצד.</p></div>
-        <div className="quick-actions-grid compact role-action-grid"><Link className="quick-action" href="/dashboard/garden/children?status=pending">ילד חדש<span>אישור או השלמת פרטי ילד</span></Link><Link className="quick-action" href="/dashboard/garden/staff">צוות<span>הוספה, מסמכים ותפקידים</span></Link><Link className="quick-action" href="/dashboard/garden/cameras">מצלמות<span>חיבור, הרשאות וצפייה</span></Link><Link className="quick-action" href="/dashboard/garden/finance?filter=due">תשלום<span>גבייה, איחורים וסידורים</span></Link><Link className="quick-action" href="/dashboard/garden/children?view=attention">ילדים לתשומת לב<span>בריאות, בגדים ופניות</span></Link><Link className="quick-action" href="/dashboard/garden/child-journal">עדכון יומן יומי<span>ארוחה, שינה ומצב רוח</span></Link><Link className="quick-action" href="/dashboard/garden/pickup">איסוף היום<span>מי נאסף ומי ממתין</span></Link><Link className="quick-action" href="/dashboard/garden/incidents">דיווח אירוע<span>פתיחה מהירה ותיעוד</span></Link></div>
-      </section>
-      <EndOfDayChecklist items={endDayItems} />
+        <section className="manager-two-column">
+          <article className="manager-priority-card">
+            <div className="section-heading"><h2>מרכז תפעול יומי</h2><p>כל מה שצריך לסגור היום.</p></div>
+            <div className="manager-attention-grid">{attentionItems.map((item) => <Link className={`manager-attention-item ${item.tone}`} href={item.href} key={item.title}><strong>{item.count}</strong><span>{item.title}</span><small>{item.text}</small></Link>)}</div>
+          </article>
+          <article className="manager-assistant-card">
+            <ShieldCheck />
+            <h2>עוזר מנהלת</h2>
+            <p>שאלות מוכנות על בסיס נתוני הגן הקיימים.</p>
+            <div>{assistantQuestions.map((item) => <Link href={item.href} key={item.label}>{item.label}</Link>)}</div>
+          </article>
+        </section>
 
-      <section className="grid cols-2 dashboard-panels">
-        {newLeadCount || transferRequestsCount ? <article className="card action-panel"><div className="section-heading"><h2>בקשות הצטרפות שדורשות תגובה</h2><p>רק בקשות שצריך לטפל בהן עכשיו מוצגות כאן.</p></div><div className="risk-list"><div><UserPlus /> לידים חדשים <b>{newLeadCount}</b></div><div><UserPlus /> מעבר/קליטת ילד קיים <b>{transferRequestsCount}</b></div></div><Link className="button primary" href="/dashboard/garden/leads?status=new">טפל בבקשות</Link></article> : null}
-        {(messagesRes.data?.length ?? 0) || complaintsRes.count || aiRes.count ? <article className="card action-panel"><div className="section-heading"><h2>תקשורת ובטיחות</h2><p>מוצג רק כשיש הודעות, פניות או אירועי בטיחות פתוחים.</p></div><div className="risk-list"><div><Bell /> הודעות <b>{messagesRes.data?.length ?? 0}</b></div><div><AlertTriangle /> פניות דחופות <b>{complaintsRes.count ?? 0}</b></div><div><Camera /> מצלמות ותצפיתן <b>{(camerasRes.count ?? 0) + (aiRes.count ?? 0)}</b></div></div><Link className="button secondary" href="/dashboard/garden/messages?status=open">פתח הודעות</Link></article> : null}
-      </section>
-      <ForgotSomethingButton items={smartForgotItems.length ? smartForgotItems : forgotItems} />
+        <section className="manager-action-grid">
+          <ActionCard title="הוספת ילד" text="רישום ואישור ילדים" href="/dashboard/garden/children" icon={Baby} tone="good" />
+          <ActionCard title="הוספת צוות" text="תפקידים ומסמכים" href="/dashboard/garden/staff" icon={UsersRound} />
+          <ActionCard title="שליחת הודעה" text="פנייה להורים" href="/dashboard/garden/communication" icon={MessageSquare} />
+          <ActionCard title="משימה חדשה" text="מעקב וביצוע" href="/dashboard/garden/tasks" icon={ClipboardCheck} />
+          <ActionCard title="ביקורת" text="פעולות פיקוח" href="/dashboard/garden/inspections" icon={ShieldCheck} />
+          <ActionCard title="התראות" text="אירועים ותצפיתן" href="/dashboard/garden/observer-intelligence" icon={AlertTriangle} tone={(aiRes.count ?? 0) ? "warn" : "default"} />
+        </section>
+
+        <section className="manager-two-column">
+          <article className="manager-priority-card">
+            <div className="section-heading"><h2>צוות ומשמרות</h2><p>נוכחות, אישורי עבודה ומסמכים.</p></div>
+            <div className="manager-health-list">
+              <span>נוכחים עכשיו <b>{staffPresent}</b></span>
+              <span>מאושרים לעבודה <b>{staff.filter((member) => member.approved_to_work).length}</b></span>
+              <span>מסמכי צוות חסרים <b>{staffDocsRes.count ?? 0}</b></span>
+              <span>ציון מוכנות צוות <b>{staffReadiness}</b></span>
+            </div>
+            <Link className="button secondary" href="/dashboard/garden/staff">פתיחת מרכז צוות</Link>
+          </article>
+          <article className="manager-priority-card">
+            <div className="section-heading"><h2>פיקוח ותאימות</h2><p>ביקורות, מסמכים ופעולות חובה.</p></div>
+            <div className="manager-health-list">
+              <span>פעולות פיקוח <b>{inspectionsRes.data?.length ?? 0}</b></span>
+              <span>מסמכים חסרים <b>{documentsRes.count ?? 0}</b></span>
+              <span>אירועים פתוחים <b>{incidentsRes.count ?? 0}</b></span>
+              <span>ציון מוכנות <b>{inspectionReadiness}</b></span>
+            </div>
+            <Link className="button secondary" href="/dashboard/garden/inspections">פתיחת פיקוח</Link>
+          </article>
+        </section>
+
+        <section className="manager-two-column">
+          <article className="manager-priority-card">
+            <div className="section-heading"><h2>תקשורת הורים</h2><p>פניות, תלונות והודעות שלא נקראו.</p></div>
+            <div className="manager-health-list">
+              <span>פניות הורים <b>{parentRequestsRes.count ?? 0}</b></span>
+              <span>הודעות לא נקראו <b>{messagesRes.count ?? 0}</b></span>
+              <span>פניות דחופות <b>{complaintsRes.count ?? 0}</b></span>
+              <span>ילדים בלי בגדים להחלפה <b>{clothesMissing}</b></span>
+            </div>
+            <Link className="button secondary" href="/dashboard/garden/parents">פתיחת מרכז הורים</Link>
+          </article>
+          <article className="manager-priority-card">
+            <div className="section-heading"><h2>כספים, מצלמות ותצפיתן</h2><p>סיכום קצר בלי לפתוח כמה מסכים.</p></div>
+            <div className="manager-health-list">
+              <span>הכנסה צפויה <b>₪{expectedIncome.toLocaleString("he-IL")}</b></span>
+              <span>תשלומים לטיפול <b>{paymentIssues.length}</b></span>
+              <span>מצלמות דורשות בדיקה <b>{cameraIssuesRes.count ?? 0}</b></span>
+              <span>עדכוני תצפיתן <b>{aiRes.count ?? 0}</b></span>
+            </div>
+            <div className="profile-actions"><Link className="button secondary" href="/dashboard/garden/finance">כספים</Link><Link className="button secondary" href="/dashboard/garden/cameras">מצלמות</Link></div>
+          </article>
+        </section>
+
+        <section className="manager-report-row">
+          <span><HeartPulse /> נוכחות: {Math.round(attendanceCompletion)}%</span>
+          <span><FileClock /> מסמכים: {documentCompliance}%</span>
+          <span><ShieldCheck /> פיקוח: {inspectionReadiness}%</span>
+          <span><AlertTriangle /> בטיחות: {safetyReadiness}%</span>
+          <span><UsersRound /> צוות: {staffReadiness}%</span>
+        </section>
       </div>
     </DashboardShell>
   );
