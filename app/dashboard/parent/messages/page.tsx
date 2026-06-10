@@ -52,21 +52,21 @@ export default async function ParentMessagesPage() {
 
   return (
     <DashboardShell role="parent" title="פנייה לגן">
-      <div className="dashboard-hero-card parent-hero-card">
+      <div className="parent-page-head">
         <div>
-          <p className="eyebrow">פניות הורים</p>
-          <h1>פנייה מתועדת לגן.</h1>
-          <p>בחרו ילד, סוג פנייה ונמען. הפנייה תישלח רק למי שרלוונטי לגן של הילד, ותוכלו לעקוב אחרי הסטטוס כאן.</p>
+          <p className="eyebrow">שיחה עם הגן</p>
+          <h1>כמו הודעה, עם מעקב מסודר.</h1>
+          <p>כותבים קצר, בוחרים נושא, ורואים מתי הפנייה נקראה וטופלה.</p>
         </div>
         <span className="pill good"><MessageCircleHeart size={15} /> ערוץ מאובטח</span>
       </div>
 
-      <section className="grid cols-2 dashboard-panels">
+      <section className="parent-message-layout">
         <ParentChildRequestForm children={childOptions} />
-        <article className="card action-panel">
+        <article className="parent-chat-card">
           <div className="section-heading">
-            <h2>הפניות שלי</h2>
-            <p>סטטוס טיפול ותשובות מהגן יופיעו כאן.</p>
+            <h2>השיחות שלי</h2>
+            <p>תשובות מהגן וסטטוס טיפול במקום אחד.</p>
           </div>
           {(requestsRes.data ?? []).length === 0 ? (
             <div className="empty-state">
@@ -76,7 +76,7 @@ export default async function ParentMessagesPage() {
           ) : (
             <div className="message-thread-list">
               {(requestsRes.data ?? []).map((request: any) => (
-                <div className="message-thread" key={request.id}>
+                <div className="message-thread parent-message-bubble" key={request.id}>
                   <div>
                     <strong>{request.request_type}</strong>
                     <p>{request.content}</p>
