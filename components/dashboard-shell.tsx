@@ -12,6 +12,7 @@ import { OnboardingGuideControls } from "@/components/onboarding-guide-controls"
 import { DashboardBackButton } from "@/components/dashboard-back-button";
 import { NotificationBell } from "@/components/notification-bell";
 import { PilotFeedbackWidget } from "@/components/pilot-feedback-widget";
+import { FloatingActionCenter } from "@/components/floating-action-center";
 
 const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: string }>> = {
   admin: [
@@ -233,15 +234,6 @@ const mobileNavByRole: Record<UserRole, Array<{ href: string; label: string; hin
   ]
 };
 
-const mobileFabByRole: Record<UserRole, string> = {
-  admin: "/dashboard/admin/notifications",
-  manager: "/dashboard/garden/observer-intelligence",
-  owner: "/dashboard/garden/observer-intelligence",
-  staff: "/dashboard/staff/incidents",
-  inspector: "/dashboard/inspector/inspections/due",
-  parent: "/dashboard/parent/messages"
-};
-
 function navGroupFor(role: UserRole, href: string) {
   if (role === "admin") {
     if (href === "/dashboard/admin" || href.includes("/notifications") || href.includes("/system-health") || href.includes("/security") || href.includes("/pilot") || href.includes("/launch-readiness")) return "ראשי";
@@ -336,7 +328,7 @@ export function DashboardShell({ role, title, children }: { role: UserRole; titl
           <PilotFeedbackWidget role={role} />
         </main>
         <nav className="mobile-tabbar" aria-label="ניווט דשבורד">{mobileNav.map((item) => <Link href={item.href} key={item.href}><strong>{item.label}</strong><span>{item.hint}</span></Link>)}</nav>
-        <Link className="mobile-fab" href={mobileFabByRole[role]} aria-label="פעולה מהירה">+</Link>
+        <FloatingActionCenter role={role} />
       </div>
     </>
   );
