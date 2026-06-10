@@ -9391,3 +9391,109 @@ textarea {
     gap: .45rem;
   }
 }
+
+/* PHASE 107: national inspection network */
+.national-inspection-shell .premium-dashboard-hero {
+  margin-bottom: 1rem;
+}
+
+.national-inspection-score-grid {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: .8rem;
+  margin: .6rem 0 1.2rem;
+}
+
+.national-inspection-score-grid article {
+  display: grid;
+  gap: .32rem;
+  padding: 1rem;
+  border: 1px solid rgba(15, 23, 42, .08);
+  border-radius: 18px;
+  background: linear-gradient(145deg, #ffffff, #f9fcfb);
+  box-shadow: 0 14px 34px rgba(15, 23, 42, .06);
+}
+
+.national-inspection-score-grid svg {
+  color: #0f766e;
+}
+
+.national-inspection-score-grid span {
+  color: var(--muted);
+  font-size: .85rem;
+}
+
+.national-inspection-score-grid strong {
+  font-size: 1.45rem;
+  color: var(--text);
+}
+
+.national-inspection-table {
+  display: grid;
+  gap: .55rem;
+}
+
+.national-inspection-head,
+.national-inspection-row {
+  display: grid;
+  grid-template-columns: 1.35fr .9fr .65fr .65fr .65fr .75fr;
+  gap: .75rem;
+  align-items: center;
+}
+
+.national-inspection-head {
+  padding: 0 .85rem;
+  color: var(--muted);
+  font-size: .82rem;
+  font-weight: 800;
+}
+
+.national-inspection-row {
+  padding: .85rem;
+  border: 1px solid rgba(15, 23, 42, .08);
+  border-radius: 16px;
+  background: #fff;
+  color: inherit;
+  text-decoration: none;
+  box-shadow: 0 10px 24px rgba(15, 23, 42, .05);
+}
+
+.national-inspection-row:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 34px rgba(15, 23, 42, .08);
+}
+
+.national-inspection-row > span {
+  color: var(--muted);
+  font-size: .88rem;
+}
+
+.national-inspection-row strong,
+.national-inspection-row small {
+  display: block;
+}
+
+.national-inspection-row strong {
+  color: var(--text);
+  font-size: .98rem;
+}
+
+.national-inspection-row small {
+  margin-top: .18rem;
+  color: var(--muted);
+}
+
+@media (max-width: 980px) {
+  .national-inspection-score-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .national-inspection-head {
+    display: none;
+  }
+
+  .national-inspection-row {
+    grid-template-columns: 1fr;
+    gap: .45rem;
+  }
+}
