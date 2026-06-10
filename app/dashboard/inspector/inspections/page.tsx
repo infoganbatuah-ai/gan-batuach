@@ -22,7 +22,7 @@ export default async function InspectorInspectionsPage({ searchParams }: { searc
 
   return (
     <DashboardShell role="inspector" title="ביקורת פקח">
-      <div className="dashboard-hero-card"><div><p className="eyebrow">ביקורת מודרכת</p><h1>מילוי טופס פיקוח עם ציון, חריגים ו-GPS.</h1><p>הטופס מציג קטגוריות, התקדמות, ציון משוקלל וחריגים אדומים לפני שליחה.</p></div><span className="pill warn">GPS חובה</span></div>
+      <div className="parent-page-head inspector-page-head"><div><p className="eyebrow">טופס פיקוח בשטח</p><h1>סעיפים, תמונות, הערות, ניקוד וחתימה.</h1><p>הטופס מיועד לעבודה בשטח: התקדמות לפי סעיפים, אימות מיקום, משך ביקורת וחתימה בסיום.</p></div><span className="pill warn">GPS וחתימה</span></div>
       <InspectorInspectionWizard inspections={(inspections ?? []) as any[]} questions={(questions ?? []) as any[]} initialInspectionId={initialInspectionId} />
     </DashboardShell>
   );
