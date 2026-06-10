@@ -116,3 +116,21 @@ export function PageHeader({ title, subtitle, action }: { title: string; subtitl
 export function MobileCardList({ children }: { children: ReactNode }) {
   return <div className="mobile-card-list">{children}</div>;
 }
+
+export function ExecutiveDashboardFrame({
+  alerts,
+  metrics,
+  activity
+}: {
+  alerts: ReactNode;
+  metrics: ReactNode;
+  activity: ReactNode;
+}) {
+  return (
+    <div className="executive-dashboard-frame">
+      <section className="executive-priority-strip" aria-label="מה דורש טיפול">{alerts}</section>
+      <section className="executive-kpi-strip" aria-label="מדדים מרכזיים">{metrics}</section>
+      <section className="executive-activity-strip" aria-label="פעילות אחרונה">{activity}</section>
+    </div>
+  );
+}
