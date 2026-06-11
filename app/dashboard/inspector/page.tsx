@@ -113,7 +113,7 @@ export default async function InspectorDashboard() {
               <Link href="/dashboard/inspector/inspections/due">אילו גנים צריכים ביקורת?</Link>
               <Link href="/dashboard/inspector/violations">אילו ליקויים לא נסגרו?</Link>
               <Link href="/dashboard/inspector/reports">אילו תלונות דורשות תגובה?</Link>
-              <Link href="/dashboard/inspector/ai-events">איפה יש סיכון עולה?</Link>
+              <Link href="/dashboard/inspector/observer-network">איפה יש סיכון עולה?</Link>
             </div>
           </article>
         </section>
@@ -123,7 +123,7 @@ export default async function InspectorDashboard() {
           <ActionCard title="לוח ביקורות" text="קרובות, באיחור ומעקב" href="/dashboard/inspector/inspections/due" icon={MapPin} />
           <ActionCard title="תלונות" text="בדיקה והסלמה" href="/dashboard/inspector/reports" icon={MessageSquareWarning} />
           <ActionCard title="ליקויים" text="תיקונים ואישורים" href="/dashboard/inspector/violations" icon={ShieldAlert} />
-          <ActionCard title="תצפיתן" text="התראות בטיחות" href="/dashboard/inspector/ai-events" icon={AlertTriangle} />
+          <ActionCard title="רשת בטיחות" text="סימנים והמלצות" href="/dashboard/inspector/observer-network" icon={AlertTriangle} />
           <ActionCard title="דוחות" text="סיכום והפקה" href="/dashboard/inspector/reports" icon={FileText} />
         </section>
 
