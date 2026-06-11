@@ -49,9 +49,9 @@ export default async function ParentChildTimelinePage({ params }: { params: Prom
     <DashboardShell role="parent" title="ציר היום">
       <div className="parent-experience-shell child-timeline-shell">
         <PremiumDashboardHero
-          eyebrow="Child Timeline"
+          eyebrow="ציר משפחתי"
           title={`היום של ${child.full_name}`}
-          subtitle="עדכונים מאושרים מהגן במקום אחד: פעילות, ארוחות, שינה, בריאות, מסמכים, הודעות ואיסוף."
+          subtitle="פיד יומי נעים וברור: פעילות, ארוחות, שינה, בריאות, תמונות, הודעות ואיסוף. רק עדכונים שאושרו להורים."
           badge={`${timeline.length} עדכונים`}
           badgeTone={today.length ? "good" : "warn"}
           actions={<><Link className="button primary" href="/dashboard/parent/messages">שאלה לגן</Link><Link className="button secondary" href={`/dashboard/parent/children/${child.id}`}>כרטיס ילד</Link></>}
@@ -72,7 +72,7 @@ export default async function ParentChildTimelinePage({ params }: { params: Prom
         <section className="parent-two-column">
           <article className="parent-ai-card">
             <Sparkles />
-            <h2>סיכום קצר</h2>
+            <h2>סיכום היום</h2>
             <p>{record?.daily_summary ?? `כאשר הגן יעדכן את היום של ${child.full_name}, הסיכום יופיע כאן.`}</p>
             <div className="parent-question-list">{childTimelineQuestions.map((question) => <Link href={`/dashboard/parent/children/${child.id}/timeline`} key={question}>{question}</Link>)}</div>
           </article>
@@ -88,7 +88,21 @@ export default async function ParentChildTimelinePage({ params }: { params: Prom
           </article>
         </section>
 
-        <CleanSection title="ציר זמן" subtitle="פיד קצר וברור, לא דוח.">
+        <section className="parent-weekly-summary-card">
+          <div>
+            <p className="eyebrow">סיכום שבועי</p>
+            <h2>תמונה משפחתית רחבה יותר</h2>
+            <p>{record?.weekly_summary ?? "סיכום שבועי יופיע כאן לאחר שיצטברו מספיק עדכונים מאושרים: נוכחות, פעילות, ארוחות, שינה והערות חשובות."}</p>
+          </div>
+          <div className="parent-engagement-grid">
+            <span>נוכחות <b>{record?.attendance_trend ?? "במעקב"}</b></span>
+            <span>בריאות <b>{record?.health_trend ?? "במעקב"}</b></span>
+            <span>עדכונים <b>{record?.parent_visible_event_count ?? timeline.length}</b></span>
+            <span>שפה <b>רגועה</b></span>
+          </div>
+        </section>
+
+        <CleanSection title="ציר היום" subtitle="כמו פיד משפחתי: קצר, ברור ומאושר לשיתוף.">
           {timeline.length === 0 ? <EmptyState title="אין עדכונים מאושרים עדיין" text="כשהגן יעדכן וישתף אירוע, הוא יופיע כאן." /> : (
             <div className="child-timeline-days">
               {Array.from(grouped.entries()).map(([date, items]: [string, any[]]) => <section className="child-timeline-day" key={date}>

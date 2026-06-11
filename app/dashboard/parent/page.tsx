@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Baby, Camera, FileText, HeartPulse, Image, MessageCircle, ShieldCheck, Sparkles, Utensils } from "lucide-react";
+import { Baby, Bell, Camera, CheckCircle2, FileText, HeartPulse, Image, MessageCircle, ShieldCheck, Sparkles, Utensils, WalletCards } from "lucide-react";
 import { Avatar } from "@/components/avatar";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { ParentAdditionalChildRequestForm } from "@/components/parent-additional-child-request-form";
 import { ParentChildRequestForm } from "@/components/parent-child-request-form";
 import { ActionCard, EmptyState, RoleMetricCard } from "@/components/premium-dashboard";
 import { requireRole } from "@/lib/auth";
+import { eventTimeText, timelineCategoryLabel, timelineTone } from "@/lib/domain/child-safety-timeline";
 import { getParentFamilyContext } from "@/lib/domain/parent-family";
 import { getKindergartenAgeGroups } from "@/lib/kindergarten-age-groups";
 import { createClient } from "@/lib/supabase/server";
@@ -38,18 +39,6 @@ function buildDailySummary(childName: string, journal?: any) {
     journal.notes_to_parents ? journal.notes_to_parents : null
   ].filter(Boolean);
   return parts.length ? parts.join(". ") : `היום של ${childName} עודכן ביומן הגן.`;
-}
-
-function timelineFor(childName: string, journal?: any) {
-  const meals = Array.isArray(journal?.meals) ? journal.meals : [];
-  return [
-    { time: "08:05", title: "הגעה לגן", text: `${childName} התחיל/ה את היום בגן.` },
-    { time: "09:10", title: "פעילות בוקר", text: journal?.mood ? `מצב רוח: ${journal.mood}` : "פעילות הבוקר תופיע כאן כשהגן יעדכן." },
-    { time: "10:20", title: "משחק בחוץ", text: "זמן חצר או פעילות תנועה." },
-    { time: "11:30", title: "ארוחה", text: meals.map((meal: any) => meal.note ?? meal.text ?? meal).filter(Boolean).join(", ") || "ארוחות עדיין לא עודכנו." },
-    { time: "13:00", title: "מנוחה", text: journal?.sleep_summary ?? "שינה או מנוחה עדיין לא עודכנו." },
-    { time: "15:20", title: "איסוף", text: "פרטי איסוף יופיעו לאחר תיעוד הגן." }
-  ];
 }
 
 export default async function ParentDashboard() {
@@ -96,12 +85,16 @@ export default async function ParentDashboard() {
   const today = new Date().toISOString().slice(0, 10);
   const [
     journalRows,
+    recordRes,
+    timelineRes,
     notificationRes,
     docsRes,
     latestInspectionRes,
     availableGardensRes
   ] = await Promise.all([
     childIds.length ? supabase.from("child_daily_journals" as any).select("id, child_id, journal_date, meals, sleep_summary, mood, notes_to_parents, photo_urls, created_at").in("child_id", childIds).gte("journal_date", today).order("created_at", { ascending: false }) : Promise.resolve({ data: [] }),
+    primaryChild ? supabase.from("child_unified_records" as any).select("*").eq("child_id", primaryChild.id).maybeSingle() : Promise.resolve({ data: null }),
+    primaryChild ? supabase.from("child_timeline_events" as any).select("*").eq("child_id", primaryChild.id).eq("parent_visible", true).eq("internal_only", false).in("visibility", ["parent", "approved_parent"]).order("event_time", { ascending: false }).limit(8) : Promise.resolve({ data: [] }),
     supabase.from("notifications" as any).select("id", { count: "exact", head: true }).eq("recipient_id", profile.id).is("read_at", null),
     supabase.from("documents" as any).select("id", { count: "exact", head: true }).eq("uploaded_by", profile.id).in("status", ["missing", "rejected", "expired"]),
     gardenIds.length ? supabase.from("inspections" as any).select("id, completed_at, weighted_score, violation_count").in("garden_id", gardenIds).eq("status", "done").order("completed_at", { ascending: false }).limit(1).maybeSingle() : Promise.resolve({ data: null }),
@@ -110,12 +103,17 @@ export default async function ParentDashboard() {
 
   const journalByChild = new Map((journalRows.data ?? []).map((row: any) => [row.child_id, row]));
   const primaryJournal = primaryChild ? journalByChild.get(primaryChild.id) : null;
-  const timeline = primaryChild ? timelineFor(primaryChild.full_name, primaryJournal) : [];
+  const record = recordRes.data as any;
+  const timeline = ((timelineRes.data ?? []) as any[]).filter((event) => event.parent_visible && !event.internal_only && ["parent", "approved_parent"].includes(String(event.visibility)));
   const safetyScore = latestInspectionRes.data?.weighted_score ?? (primaryGarden?.safe_status ? 92 : 88);
-  const latestUpdate = primaryJournal?.created_at ? `עודכן היום ב-${formatDateTime(primaryJournal.created_at)}` : "ממתין לעדכון מהגן";
+  const latestEvent = timeline[0] ?? null;
+  const latestUpdate = latestEvent?.event_time ? `עודכן ב-${formatDateTime(latestEvent.event_time)}` : primaryJournal?.created_at ? `עודכן היום ב-${formatDateTime(primaryJournal.created_at)}` : "ממתין לעדכון מהגן";
   const photoCount = (journalRows.data ?? []).reduce((sum: number, row: any) => sum + (Array.isArray(row.photo_urls) ? row.photo_urls.length : 0), 0);
   const primaryAgeGroups = primaryGarden ? await getKindergartenAgeGroups(supabase, primaryGarden.id, primaryGarden) : [];
   const needsCompletion = children.filter((child) => ["pending_parent_completion", "request_missing_details", "missing_info"].includes(String(child.status)));
+  const actionRequiredCount = Number(notificationRes.count ?? 0) + Number(docsRes.count ?? 0) + needsCompletion.length;
+  const paymentNeedsAttention = children.filter((child) => ["overdue", "unpaid", "partial", "failed", "not_transferred"].includes(String(child.payment_status)) || Number(child.debt_amount ?? 0) > 0);
+  const parentSummary = record?.daily_summary ?? buildDailySummary(primaryChild?.full_name ?? "הילד/ה", primaryJournal);
 
   return (
     <DashboardShell role="parent" title="הילד שלי">
@@ -127,7 +125,7 @@ export default async function ParentDashboard() {
             </div>
             <div>
               <p className="eyebrow">היום של {primaryChild.full_name}</p>
-              <h1>{buildDailySummary(primaryChild.full_name, primaryJournal)}</h1>
+              <h1>{parentSummary}</h1>
               <div className="parent-status-row">
                 <span className={`pill ${statusTone(primaryChild.status)}`}>{statusLabel(primaryChild.status)}</span>
                 <span className="pill good">{primaryGarden?.name ?? "גן משויך"}</span>
@@ -137,7 +135,7 @@ export default async function ParentDashboard() {
             </div>
             <div className="parent-hero-actions">
               <Link className="button primary" href="/dashboard/parent/messages">הודעה לגן</Link>
-              <Link className="button secondary" href="/dashboard/parent/daily-journal">יומן מלא</Link>
+              <Link className="button secondary" href={`/dashboard/parent/children/${primaryChild.id}/timeline`}>ציר היום</Link>
             </div>
           </section>
         ) : (
@@ -148,23 +146,23 @@ export default async function ParentDashboard() {
 
         <section className="parent-metric-strip">
           <RoleMetricCard label="ילדים" value={children.length} hint="בחשבון שלך" tone="good" />
-          <RoleMetricCard label="עדכונים היום" value={(journalRows.data ?? []).length} hint="מהגן" tone={(journalRows.data ?? []).length ? "good" : "warn"} href="/dashboard/parent/daily-journal" />
-          <RoleMetricCard label="התראות" value={notificationRes.count ?? 0} hint="לא נקראו" tone={notificationRes.count ? "warn" : "good"} href="/dashboard/parent/notifications" />
+          <RoleMetricCard label="ציר היום" value={timeline.length} hint="עדכונים מאושרים" tone={timeline.length ? "good" : "warn"} href={primaryChild ? `/dashboard/parent/children/${primaryChild.id}/timeline` : "/dashboard/parent"} />
+          <RoleMetricCard label="צריך פעולה" value={actionRequiredCount} hint="התראות ומסמכים" tone={actionRequiredCount ? "warn" : "good"} href="/dashboard/parent/notifications" />
           <RoleMetricCard label="תמונות" value={photoCount} hint="מהיום" tone="good" href="/dashboard/parent/gallery" />
         </section>
 
         {primaryChild ? <section className="parent-two-column">
           <article className="parent-feed-card">
-            <div className="section-heading"><h2>ציר היום</h2><p>פיד קצר, לא דוח.</p></div>
-            <div className="parent-day-feed">{timeline.map((item) => <div className="parent-feed-item" key={`${item.time}-${item.title}`}><time>{item.time}</time><div><strong>{item.title}</strong><span>{item.text}</span></div></div>)}</div>
+            <div className="section-heading"><h2>ציר היום</h2><p>פיד משפחתי קצר, רק עדכונים שאושרו להורים.</p></div>
+            <div className="parent-day-feed">{timeline.length === 0 ? <div className="empty-state"><strong>אין עדכונים מאושרים עדיין</strong><span>כשהגן יעדכן וישתף, הפיד יופיע כאן.</span></div> : timeline.slice(0, 6).map((item) => <Link className={`parent-feed-item ${timelineTone(item.event_category, item.safety_relevance)}`} href={`/dashboard/parent/children/${primaryChild.id}/timeline`} key={item.id}><time>{eventTimeText(item.event_time)}</time><div><strong>{item.title}</strong><span>{item.summary_safe ?? item.description ?? ""}</span><small>{timelineCategoryLabel(item.event_category)}</small></div></Link>)}</div>
           </article>
           <article className="parent-ai-card">
             <Sparkles />
-            <h2>אפשר לשאול</h2>
-            <p>התשובות מתבססות רק על מידע שהגן כבר עדכן ואישר.</p>
+            <h2>סיכום משפחתי</h2>
+            <p>{record?.weekly_summary ?? "סיכום שבועי יופיע כאן כשהצטברו מספיק עדכונים מאושרים מהגן."}</p>
             <div className="parent-question-list">
-              <Link href="/dashboard/parent/daily-journal">איך עבר היום?</Link>
-              <Link href="/dashboard/parent/daily-journal">האם הילד אכל?</Link>
+              <Link href={`/dashboard/parent/children/${primaryChild.id}/timeline`}>איך עבר היום?</Link>
+              <Link href={`/dashboard/parent/children/${primaryChild.id}/timeline`}>האם הילד אכל או נח?</Link>
               <Link href="/dashboard/parent/messages">יש משהו שכדאי לשאול את הגן?</Link>
             </div>
           </article>
@@ -174,11 +172,12 @@ export default async function ParentDashboard() {
           <ActionCard title="הודעות" text="שיחה קצרה וברורה עם הגן" href="/dashboard/parent/messages" icon={MessageCircle} tone="good" />
           {primaryChild ? <ActionCard title="ציר היום" text="כל עדכוני הילד במקום אחד" href={`/dashboard/parent/children/${primaryChild.id}/timeline`} icon={Sparkles} tone="good" /> : null}
           <ActionCard title="מרכז אמון" text="שקיפות, פיקוח וציות" href="/dashboard/parent/trust" icon={ShieldCheck} />
-          <ActionCard title="יומן יומי" text="אוכל, שינה, מצב רוח ותמונות" href="/dashboard/parent/daily-journal" icon={HeartPulse} />
+          <ActionCard title="עדכוני ילד" text="אוכל, שינה, מצב רוח ותמונות" href="/dashboard/parent/daily-journal" icon={HeartPulse} />
           <ActionCard title="מצלמות" text="צפייה רק אם הגן אישר" href="/dashboard/parent/cameras" icon={Camera} />
           <ActionCard title="גלריה" text="רגעים שהגן שיתף" href="/dashboard/parent/gallery" icon={Image} />
           <ActionCard title="מסמכים" text="אישורים וקבצים" href="/dashboard/parent/documents" icon={FileText} />
           <ActionCard title="איסוף" text="מורשים וזמני איסוף" href="/dashboard/parent/pickup" icon={ShieldCheck} />
+          <ActionCard title="תשלומים" text="יתרה ותשלום הבא" href="/dashboard/parent/payments" icon={WalletCards} tone={paymentNeedsAttention.length ? "warn" : "default"} />
         </section>
 
         <section className="parent-two-column">
@@ -205,11 +204,13 @@ export default async function ParentDashboard() {
         </section>
 
         <section className="parent-engagement-panel">
-          <div><p className="eyebrow">מעורבות הורים</p><h2>מה נפתח היום?</h2><p>מדדים פנימיים לחוויית הורה, ללא תלות חדשה וללא חשיפת מידע אישי מעבר לחשבון שלך.</p></div>
+          <div><p className="eyebrow">מעורבות משפחתית</p><h2>מה זמין היום?</h2><p>החוויה מציגה רק מידע שאושר לחשבון שלך: עדכוני ילד, הודעות, מסמכים, תמונות וצפייה מורשית.</p></div>
           <div className="parent-engagement-grid">
             <span><HeartPulse /> עדכוני ילד <b>{(journalRows.data ?? []).length}</b></span>
-            <span><MessageCircle /> התראות פתוחות <b>{notificationRes.count ?? 0}</b></span>
-            <span><Utensils /> יומן נצפה <b>{primaryJournal ? "זמין" : "ממתין"}</b></span>
+            <span><Bell /> התראות פתוחות <b>{notificationRes.count ?? 0}</b></span>
+            <span><FileText /> מסמכים לטיפול <b>{docsRes.count ?? 0}</b></span>
+            <span><CheckCircle2 /> ציר מאושר <b>{timeline.length}</b></span>
+            <span><Utensils /> סיכום יומי <b>{primaryJournal || record?.daily_summary ? "זמין" : "ממתין"}</b></span>
             <span><Camera /> מצלמות <b>לפי הרשאת הגן</b></span>
           </div>
         </section>

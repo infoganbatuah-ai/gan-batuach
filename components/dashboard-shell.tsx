@@ -178,8 +178,11 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/parent/daily-journal", label: "יומן יומי", hint: "עדכוני הילד" },
     { href: "/dashboard/parent/pickup", label: "איסוף", hint: "מורשים וזמני" },
     { href: "/dashboard/parent/notifications", label: "התראות", hint: "עדכונים חשובים" },
+    { href: "/dashboard/parent/messages", label: "הודעות", hint: "שיחה עם הגן" },
+    { href: "/dashboard/parent/gallery", label: "גלריה", hint: "רגעים מהגן" },
     { href: "/parent-onboarding", label: "כרטיס ילד", hint: "פרטים והסכמות" },
     { href: "/dashboard/parent/documents", label: "מסמכים", hint: "אישורים וקבצים" },
+    { href: "/dashboard/parent/payments", label: "תשלומים", hint: "יתרה ותאריך הבא" },
     { href: "/dashboard/parent/inspections", label: "פיקוח", hint: "סיכום מאושר" },
     { href: "/dashboard/parent/complaints", label: "תלונות", hint: "פנייה מסודרת" },
     { href: "/dashboard/parent/settings", label: "הגדרות", hint: "פרופיל והתראות" }
@@ -261,7 +264,7 @@ function navGroupFor(role: UserRole, href: string) {
   }
   if (role === "parent") {
     if (href === "/dashboard/parent" || href.includes("/daily-journal") || href.includes("/children") || href.includes("/messages") || href.includes("/notifications")) return "הילד שלי";
-    if (href.includes("/cameras") || href.includes("/pickup") || href.includes("/documents") || href.includes("/gallery")) return "שימוש יומי";
+    if (href.includes("/cameras") || href.includes("/pickup") || href.includes("/documents") || href.includes("/gallery") || href.includes("/payments")) return "שימוש יומי";
     if (href.includes("/inspections") || href.includes("/ai-events")) return "עדכונים מאושרים";
     return "הגדרות";
   }
