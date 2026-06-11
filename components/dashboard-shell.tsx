@@ -17,6 +17,7 @@ import { FloatingActionCenter } from "@/components/floating-action-center";
 const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: string }>> = {
   admin: [
     { href: "/dashboard/admin", label: "מרכז שליטה", hint: "סיכונים, ערים, לידים" },
+    { href: "/dashboard/admin/analytics-center", label: "מרכז אנליטיקה", hint: "מגמות והשוואות" },
     { href: "/dashboard/admin/leads", label: "לידים", hint: "המרות גנים ומפקחים" },
     { href: "/dashboard/admin/users", label: "הוספת משתמשים", hint: "גנים ופקחים" },
     { href: "/dashboard/admin/kindergartens", label: "גנים", hint: "פרופילים וסטטוס" },
@@ -245,7 +246,7 @@ const mobileNavByRole: Record<UserRole, Array<{ href: string; label: string; hin
 
 function navGroupFor(role: UserRole, href: string) {
   if (role === "admin") {
-    if (href === "/dashboard/admin" || href.includes("/notifications") || href.includes("/system-health") || href.includes("/security") || href.includes("/pilot") || href.includes("/launch-readiness")) return "ראשי";
+    if (href === "/dashboard/admin" || href.includes("/analytics-center") || href.includes("/notifications") || href.includes("/system-health") || href.includes("/security") || href.includes("/pilot") || href.includes("/launch-readiness")) return "ראשי";
     if (href.includes("/users") || href.includes("/kindergartens") || href.includes("/gardens") || href.includes("/inspectors") || href.includes("/leads")) return "ניהול";
     if (href.includes("/subscriptions") || href.includes("/communication") || href.includes("/sms") || href.includes("/whatsapp") || href.includes("/push")) return "כספים ותקשורת";
     if (href.includes("observer") || href.includes("risk") || href.includes("ai") || href.includes("camera") || href.includes("video-gateway") || href.includes("audio") || href.includes("correlated")) return "תצפיתן";
