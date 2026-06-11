@@ -4176,13 +4176,112 @@ body::before {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
+/* PHASE 118: predictive safety and prevention */
+.predictive-safety-shell {
+  display: grid;
+  gap: 16px;
+}
+
+.prediction-score-grid,
+.prediction-mini-grid,
+.prediction-question-grid {
+  display: grid;
+  gap: 12px;
+}
+
+.prediction-score-grid {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.prediction-score-grid article {
+  display: grid;
+  gap: 8px;
+  padding: 16px;
+  border: 1px solid var(--ux-border);
+  border-radius: 18px;
+  background: #fff;
+  box-shadow: var(--ux-shadow-sm);
+}
+
+.prediction-score-grid svg {
+  color: var(--ux-brand-strong);
+}
+
+.prediction-score-grid span,
+.prediction-score-grid small {
+  color: var(--ux-muted);
+}
+
+.prediction-score-grid strong {
+  color: var(--ux-text);
+  font-size: 28px;
+  line-height: 1;
+}
+
+.prediction-table {
+  display: grid;
+  gap: 10px;
+}
+
+.prediction-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(120px, .45fr) auto;
+  gap: 10px;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid var(--ux-border);
+  border-radius: 16px;
+  background: #fff;
+  box-shadow: var(--ux-shadow-sm);
+}
+
+.prediction-row strong,
+.prediction-row span,
+.prediction-row b {
+  display: block;
+}
+
+.prediction-row span {
+  color: var(--ux-muted);
+}
+
+.prediction-row b {
+  color: var(--ux-text);
+}
+
+.prediction-mini-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.prediction-mini-grid span,
+.prediction-question-grid a {
+  display: flex;
+  min-height: 46px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid #dce8e5;
+  border-radius: 14px;
+  background: #fbfefd;
+  color: var(--ux-text);
+  text-decoration: none;
+  font-weight: 850;
+}
+
+.prediction-question-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
 @media (max-width: 1180px) {
   .analytics-trend-grid,
-  .analytics-region-grid {
+  .analytics-region-grid,
+  .prediction-score-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
-  .analytics-row {
+  .analytics-row,
+  .prediction-row {
     grid-template-columns: minmax(0, 1fr) repeat(2, minmax(90px, .45fr));
   }
 }
@@ -4191,11 +4290,15 @@ body::before {
   .analytics-trend-grid,
   .analytics-region-grid,
   .analytics-mini-grid,
-  .analytics-question-grid {
+  .analytics-question-grid,
+  .prediction-score-grid,
+  .prediction-mini-grid,
+  .prediction-question-grid {
     grid-template-columns: 1fr;
   }
 
-  .analytics-row {
+  .analytics-row,
+  .prediction-row {
     grid-template-columns: 1fr;
   }
 }

@@ -28,6 +28,7 @@ export const dashboardRouteChecks: DashboardRouteCheck[] = [
   { route: "/dashboard/admin/tasks", label: "משימות", roles: ["admin"], dataTable: "tasks" },
   { route: "/dashboard/admin/complaints", label: "דיווחים ופניות", roles: ["admin"], dataTable: "complaints" },
   { route: "/dashboard/admin/incident-center", label: "תיקי אירוע", roles: ["admin"], dataTable: "incident_cases" },
+  { route: "/dashboard/admin/predictive-safety", label: "בטיחות חזויה", roles: ["admin"], dataTable: "early_warning_signals" },
   { route: "/dashboard/admin/documents", label: "מסמכים", roles: ["admin"], dataTable: "documents" },
   { route: "/dashboard/admin/system-health", label: "בריאות מערכת", roles: ["admin"], dataTable: "audit_logs" },
   { route: "/dashboard/admin/audit-logs", label: "Audit Logs", roles: ["admin"], dataTable: "audit_logs" },

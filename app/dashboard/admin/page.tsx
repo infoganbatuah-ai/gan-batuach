@@ -319,6 +319,7 @@ export default async function AdminDashboard() {
           <ActionCard title="תיקי אירוע" text="חקירה, ראיות וסגירה" href="/dashboard/admin/incident-center" icon={MessageSquareWarning} tone={data.activeIncidents || data.criticalComplaints ? "warn" : "good"} />
           <ActionCard title="דירוג לאומי" text="ציונים, מגמות ושיפור" href="/dashboard/admin/rating-system" icon={Star} tone="good" />
           <ActionCard title="מודיעין סיכון" text="חיזוי, דפוסים ומניעה" href="/dashboard/admin/risk-intelligence" icon={AlertTriangle} tone={data.observerAlerts || data.criticalComplaints ? "warn" : "default"} />
+          <ActionCard title="בטיחות חזויה" text="אזהרות ומניעה מוקדמת" href="/dashboard/admin/predictive-safety" icon={ShieldAlert} tone={data.observerAlerts || data.criticalComplaints ? "warn" : "good"} />
           <ActionCard title="ציות חכם" text="מסמכים, תעודות ותיקונים" href="/dashboard/admin/compliance-center" icon={FileText} tone={data.securityFindings || data.overdueInspections ? "warn" : "good"} />
           <ActionCard title="תצפיתן" text="מוכנות, כיול והתראות" href="/dashboard/admin/observer-calibration" icon={Bot} tone={data.observerAlerts ? "warn" : "default"} />
           <ActionCard title="רשת בטיחות" text="סימנים, סיכון ובדיקה אנושית" href="/dashboard/admin/observer-network" icon={ShieldAlert} tone={data.observerAlerts ? "warn" : "default"} />
