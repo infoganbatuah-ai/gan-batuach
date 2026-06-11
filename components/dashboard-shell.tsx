@@ -92,6 +92,7 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
   ],
   manager: [
     { href: "/dashboard/garden", label: "ניהול גן", hint: "יום עבודה" },
+    { href: "/dashboard/garden/operations", label: "מערכת הפעלה", hint: "כל הגן במקום אחד" },
     { href: "/dashboard/garden/child-journal", label: "יומן ילד", hint: "עדכוני הורים" },
     { href: "/dashboard/garden/health", label: "בריאות", hint: "אלרגיות ותרופות" },
     { href: "/dashboard/garden/pickup", label: "איסוף", hint: "GPS ומורשים" },
@@ -126,6 +127,7 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
   ],
   owner: [
     { href: "/dashboard/garden", label: "ניהול גן", hint: "יום עבודה" },
+    { href: "/dashboard/garden/operations", label: "מערכת הפעלה", hint: "כל הגן במקום אחד" },
     { href: "/dashboard/garden/child-journal", label: "יומן ילד", hint: "עדכוני הורים" },
     { href: "/dashboard/garden/health", label: "בריאות", hint: "אלרגיות ותרופות" },
     { href: "/dashboard/garden/pickup", label: "איסוף", hint: "GPS ומורשים" },
@@ -209,14 +211,14 @@ const mobileNavByRole: Record<UserRole, Array<{ href: string; label: string; hin
     { href: "/dashboard/admin/settings", label: "עוד", hint: "מתקדם" }
   ],
   manager: [
-    { href: "/dashboard/garden", label: "בית", hint: "היום" },
+    { href: "/dashboard/garden/operations", label: "בית", hint: "היום" },
     { href: "/dashboard/garden/children", label: "ילדים", hint: "עדכון" },
     { href: "/dashboard/garden/messages", label: "פניות", hint: "הורים" },
     { href: "/dashboard/garden/cameras", label: "מצלמות", hint: "צפייה" },
     { href: "/dashboard/garden/tasks", label: "משימות", hint: "היום" }
   ],
   owner: [
-    { href: "/dashboard/garden", label: "בית", hint: "היום" },
+    { href: "/dashboard/garden/operations", label: "בית", hint: "היום" },
     { href: "/dashboard/garden/children", label: "ילדים", hint: "עדכון" },
     { href: "/dashboard/garden/messages", label: "פניות", hint: "הורים" },
     { href: "/dashboard/garden/cameras", label: "מצלמות", hint: "צפייה" },
@@ -255,7 +257,7 @@ function navGroupFor(role: UserRole, href: string) {
     return "עוד";
   }
   if (role === "manager" || role === "owner") {
-    if (href === "/dashboard/garden" || href.includes("/attendance") || href.includes("/messages") || href.includes("/notifications") || href.includes("/insights")) return "ראשי";
+    if (href === "/dashboard/garden" || href.includes("/operations") || href.includes("/attendance") || href.includes("/messages") || href.includes("/notifications") || href.includes("/insights")) return "ראשי";
     if (href.includes("/children") || href.includes("/child-journal") || href.includes("/health") || href.includes("/pickup") || href.includes("/incidents") || href.includes("/daily-journal")) return "ילדים";
     if (href.includes("/parents") || href.includes("/leads") || href.includes("/onboarding") || href.includes("/communication")) return "הורים";
     if (href.includes("/staff") || href.includes("/tasks")) return "צוות";
