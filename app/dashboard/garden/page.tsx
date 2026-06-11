@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { AlertTriangle, Baby, Camera, ClipboardCheck, FileClock, HeartPulse, MessageSquare, ShieldCheck, UsersRound, WalletCards } from "lucide-react";
+import { AlertTriangle, Baby, Camera, ClipboardCheck, FileClock, HeartPulse, MessageSquare, ShieldCheck, Star, UsersRound, WalletCards } from "lucide-react";
 import { Avatar } from "@/components/avatar";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { ActionCard, RoleMetricCard } from "@/components/premium-dashboard";
@@ -172,6 +172,7 @@ export default async function GardenDashboard() {
           <ActionCard title="שליחת הודעה" text="פנייה להורים" href="/dashboard/garden/communication" icon={MessageSquare} />
           <ActionCard title="משימה חדשה" text="מעקב וביצוע" href="/dashboard/garden/tasks" icon={ClipboardCheck} />
           <ActionCard title="ביקורת" text="פעולות פיקוח" href="/dashboard/garden/inspections" icon={ShieldCheck} />
+          <ActionCard title="דירוג הגן" text="ציון והמלצות שיפור" href="/dashboard/garden/rating" icon={Star} />
           <ActionCard title="התראות" text="אירועים ותצפיתן" href="/dashboard/garden/observer-intelligence" icon={AlertTriangle} tone={(aiRes.count ?? 0) ? "warn" : "default"} />
         </section>
 

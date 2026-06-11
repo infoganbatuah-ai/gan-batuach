@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AlertTriangle, Camera, ClipboardCheck, FileText, MapPin, MessageSquareWarning, ShieldAlert, ShieldCheck } from "lucide-react";
+import { AlertTriangle, Camera, ClipboardCheck, FileText, MapPin, MessageSquareWarning, ShieldAlert, ShieldCheck, Star } from "lucide-react";
 import { Avatar } from "@/components/avatar";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { ActionCard, RoleMetricCard } from "@/components/premium-dashboard";
@@ -123,6 +123,7 @@ export default async function InspectorDashboard() {
           <ActionCard title="לוח ביקורות" text="קרובות, באיחור ומעקב" href="/dashboard/inspector/inspections/due" icon={MapPin} />
           <ActionCard title="תלונות" text="בדיקה והסלמה" href="/dashboard/inspector/reports" icon={MessageSquareWarning} />
           <ActionCard title="ליקויים" text="תיקונים ואישורים" href="/dashboard/inspector/violations" icon={ShieldAlert} />
+          <ActionCard title="דירוג גנים" text="ציונים וסיכון" href="/dashboard/inspector/ratings" icon={Star} />
           <ActionCard title="רשת בטיחות" text="סימנים והמלצות" href="/dashboard/inspector/observer-network" icon={AlertTriangle} />
           <ActionCard title="דוחות" text="סיכום והפקה" href="/dashboard/inspector/reports" icon={FileText} />
         </section>
