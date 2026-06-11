@@ -36,6 +36,7 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/admin/observer-intelligence", label: "סיכומי תצפיתן", hint: "מה לבדוק" },
     { href: "/dashboard/admin/observer-test-center", label: "בדיקות תצפיתן", hint: "Shadow וכיול" },
     { href: "/dashboard/admin/observer-calibration", label: "כיול תצפיתן", hint: "דיוק ובשלות" },
+    { href: "/dashboard/admin/risk-intelligence", label: "מודיעין סיכון", hint: "חיזוי ומניעה" },
     { href: "/dashboard/admin/observer-replay", label: "Replay תצפיתן", hint: "בדיקת אירועים" },
     { href: "/dashboard/admin/observer-learning", label: "למידת תצפיתן", hint: "אזורים ושגרות" },
     { href: "/dashboard/admin/observer-learning-advanced", label: "למידה מתקדמת", hint: "שגרה ומוכנות" },
@@ -79,6 +80,7 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/inspector/inspections", label: "ביקורות", hint: "נתוני פיקוח" },
     { href: "/dashboard/inspector/cameras", label: "מצלמות", hint: "גנים משויכים" },
     { href: "/dashboard/inspector/ai-events", label: "תצפיתן", hint: "אירועים לבדיקה" },
+    { href: "/dashboard/inspector/risk", label: "מודיעין סיכון", hint: "תיעדוף מונע" },
     { href: "/dashboard/inspector/reports", label: "דיווחים", hint: "פניות ואירועים" },
     { href: "/dashboard/inspector/notifications", label: "התראות", hint: "פיקוח ומשימות" },
     { href: "/dashboard/inspector/tasks", label: "משימות", hint: "לביצוע" },
@@ -100,6 +102,7 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/garden/audio-events", label: "אינדיקציות שמע", hint: "בדיקת אדם" },
     { href: "/dashboard/garden/correlated-events", label: "צירי זמן", hint: "אירועים מקושרים" },
     { href: "/dashboard/garden/observer-intelligence", label: "מה לבדוק", hint: "סיכומי תצפיתן" },
+    { href: "/dashboard/garden/risk", label: "סיכון ומניעה", hint: "המלצות רגועות" },
     { href: "/dashboard/garden/onboarding", label: "קליטה", hint: "הורים, ילדים וצוות" },
     { href: "/dashboard/garden/leads", label: "לידים / בקשות הצטרפות", hint: "רישום הורים" },
     { href: "/dashboard/garden/notifications", label: "התראות", hint: "מה דורש טיפול" },
@@ -133,6 +136,7 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/garden/audio-events", label: "אינדיקציות שמע", hint: "בדיקת אדם" },
     { href: "/dashboard/garden/correlated-events", label: "צירי זמן", hint: "אירועים מקושרים" },
     { href: "/dashboard/garden/observer-intelligence", label: "מה לבדוק", hint: "סיכומי תצפיתן" },
+    { href: "/dashboard/garden/risk", label: "סיכון ומניעה", hint: "המלצות רגועות" },
     { href: "/dashboard/garden/onboarding", label: "קליטה", hint: "הורים, ילדים וצוות" },
     { href: "/dashboard/garden/leads", label: "לידים / בקשות הצטרפות", hint: "רישום הורים" },
     { href: "/dashboard/garden/notifications", label: "התראות", hint: "מה דורש טיפול" },
@@ -240,7 +244,7 @@ function navGroupFor(role: UserRole, href: string) {
     if (href === "/dashboard/admin" || href.includes("/notifications") || href.includes("/system-health") || href.includes("/security") || href.includes("/pilot") || href.includes("/launch-readiness")) return "ראשי";
     if (href.includes("/users") || href.includes("/kindergartens") || href.includes("/gardens") || href.includes("/inspectors") || href.includes("/leads")) return "ניהול";
     if (href.includes("/subscriptions") || href.includes("/communication") || href.includes("/sms") || href.includes("/whatsapp") || href.includes("/push")) return "כספים ותקשורת";
-    if (href.includes("observer") || href.includes("ai") || href.includes("camera") || href.includes("video-gateway") || href.includes("audio") || href.includes("correlated")) return "תצפיתן";
+    if (href.includes("observer") || href.includes("risk") || href.includes("ai") || href.includes("camera") || href.includes("video-gateway") || href.includes("audio") || href.includes("correlated")) return "תצפיתן";
     if (href.includes("inspection") || href.includes("violations") || href.includes("reports") || href.includes("documents") || href.includes("audit")) return "פיקוח ודוחות";
     return "עוד";
   }
@@ -250,7 +254,7 @@ function navGroupFor(role: UserRole, href: string) {
     if (href.includes("/parents") || href.includes("/leads") || href.includes("/onboarding") || href.includes("/communication")) return "הורים";
     if (href.includes("/staff") || href.includes("/tasks")) return "צוות";
     if (href.includes("/finance") || href.includes("/subscription")) return "כספים";
-    if (href.includes("observer") || href.includes("ai-events") || href.includes("audio-events") || href.includes("correlated") || href.includes("/cameras")) return "תצפיתן";
+    if (href.includes("observer") || href.includes("/risk") || href.includes("ai-events") || href.includes("audio-events") || href.includes("correlated") || href.includes("/cameras")) return "תצפיתן";
     if (href.includes("/inspections") || href.includes("/documents")) return "דוחות";
     return "הגדרות";
   }
@@ -267,7 +271,7 @@ function navGroupFor(role: UserRole, href: string) {
     return "הגדרות";
   }
   if (href === "/dashboard/inspector" || href.includes("/inspections") || href.includes("/violations")) return "פיקוח";
-  if (href.includes("/cameras") || href.includes("/ai-events")) return "בטיחות";
+  if (href.includes("/cameras") || href.includes("/ai-events") || href.includes("/risk")) return "בטיחות";
   if (href.includes("/reports") || href.includes("/tasks") || href.includes("/notifications")) return "דוחות";
   return "הגדרות";
 }

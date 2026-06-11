@@ -124,6 +124,7 @@ export default async function InspectorDashboard() {
           <ActionCard title="תלונות" text="בדיקה והסלמה" href="/dashboard/inspector/reports" icon={MessageSquareWarning} />
           <ActionCard title="ליקויים" text="תיקונים ואישורים" href="/dashboard/inspector/violations" icon={ShieldAlert} />
           <ActionCard title="דירוג גנים" text="ציונים וסיכון" href="/dashboard/inspector/ratings" icon={Star} />
+          <ActionCard title="מודיעין סיכון" text="גנים במגמת עלייה" href="/dashboard/inspector/risk" icon={AlertTriangle} />
           <ActionCard title="רשת בטיחות" text="סימנים והמלצות" href="/dashboard/inspector/observer-network" icon={AlertTriangle} />
           <ActionCard title="דוחות" text="סיכום והפקה" href="/dashboard/inspector/reports" icon={FileText} />
         </section>

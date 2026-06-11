@@ -9957,3 +9957,112 @@ textarea {
     flex-direction: column;
   }
 }
+
+/* PHASE 112: AI risk scoring and predictive safety */
+.risk-intelligence-shell .premium-dashboard-hero {
+  background:
+    radial-gradient(circle at top left, rgba(239, 68, 68, 0.12), transparent 34%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.98), rgba(255, 247, 237, 0.9));
+}
+
+.risk-score-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.risk-score-grid article {
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: var(--radius-md);
+  box-shadow: 0 16px 42px rgba(15, 23, 42, 0.06);
+  display: grid;
+  gap: 7px;
+  min-height: 132px;
+  padding: 18px;
+}
+
+.risk-score-grid svg {
+  color: #dc2626;
+}
+
+.risk-score-grid span,
+.risk-score-grid small,
+.risk-row span,
+.risk-question-grid span {
+  color: var(--muted-foreground);
+  font-size: 0.9rem;
+}
+
+.risk-score-grid strong {
+  color: var(--foreground);
+  font-size: 1.5rem;
+}
+
+.risk-table {
+  display: grid;
+  gap: 10px;
+}
+
+.risk-row {
+  align-items: center;
+  background: #ffffff;
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: var(--radius-md);
+  color: inherit;
+  display: flex;
+  gap: 14px;
+  justify-content: space-between;
+  min-height: 66px;
+  padding: 14px 16px;
+  text-decoration: none;
+}
+
+.risk-row:hover {
+  border-color: rgba(220, 38, 38, 0.28);
+  box-shadow: 0 18px 44px rgba(15, 23, 42, 0.08);
+}
+
+.risk-row div {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.risk-question-grid {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.risk-question-grid a,
+.risk-question-grid span {
+  align-items: center;
+  background: rgba(248, 250, 252, 0.94);
+  border: 1px solid rgba(15, 23, 42, 0.08);
+  border-radius: var(--radius-md);
+  color: var(--foreground);
+  display: flex;
+  min-height: 58px;
+  padding: 12px 14px;
+  text-decoration: none;
+}
+
+@media (max-width: 1020px) {
+  .risk-score-grid,
+  .risk-question-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 620px) {
+  .risk-score-grid,
+  .risk-question-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .risk-row {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
