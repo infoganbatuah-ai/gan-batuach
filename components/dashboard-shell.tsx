@@ -92,6 +92,7 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
   ],
   manager: [
     { href: "/dashboard/garden", label: "ניהול גן", hint: "יום עבודה" },
+    { href: "/dashboard/garden/command-center", label: "מרכז פיקוד", hint: "ניהול הגן עכשיו" },
     { href: "/dashboard/garden/operations", label: "מערכת הפעלה", hint: "כל הגן במקום אחד" },
     { href: "/dashboard/garden/child-journal", label: "יומן ילד", hint: "עדכוני הורים" },
     { href: "/dashboard/garden/health", label: "בריאות", hint: "אלרגיות ותרופות" },
@@ -127,6 +128,7 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
   ],
   owner: [
     { href: "/dashboard/garden", label: "ניהול גן", hint: "יום עבודה" },
+    { href: "/dashboard/garden/command-center", label: "מרכז פיקוד", hint: "ניהול הגן עכשיו" },
     { href: "/dashboard/garden/operations", label: "מערכת הפעלה", hint: "כל הגן במקום אחד" },
     { href: "/dashboard/garden/child-journal", label: "יומן ילד", hint: "עדכוני הורים" },
     { href: "/dashboard/garden/health", label: "בריאות", hint: "אלרגיות ותרופות" },
@@ -197,8 +199,8 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
 const dashboardHomeByRole: Record<UserRole, string> = {
   admin: "/dashboard/admin",
   inspector: "/dashboard/inspector",
-  manager: "/dashboard/garden/operations",
-  owner: "/dashboard/garden/operations",
+  manager: "/dashboard/garden/command-center",
+  owner: "/dashboard/garden/command-center",
   staff: "/dashboard/staff/operations",
   parent: "/dashboard/parent"
 };
@@ -212,14 +214,14 @@ const mobileNavByRole: Record<UserRole, Array<{ href: string; label: string; hin
     { href: "/dashboard/admin/settings", label: "עוד", hint: "מתקדם" }
   ],
   manager: [
-    { href: "/dashboard/garden/operations", label: "בית", hint: "היום" },
+    { href: "/dashboard/garden/command-center", label: "בית", hint: "היום" },
     { href: "/dashboard/garden/children", label: "ילדים", hint: "עדכון" },
     { href: "/dashboard/garden/messages", label: "פניות", hint: "הורים" },
     { href: "/dashboard/garden/cameras", label: "מצלמות", hint: "צפייה" },
     { href: "/dashboard/garden/tasks", label: "משימות", hint: "היום" }
   ],
   owner: [
-    { href: "/dashboard/garden/operations", label: "בית", hint: "היום" },
+    { href: "/dashboard/garden/command-center", label: "בית", hint: "היום" },
     { href: "/dashboard/garden/children", label: "ילדים", hint: "עדכון" },
     { href: "/dashboard/garden/messages", label: "פניות", hint: "הורים" },
     { href: "/dashboard/garden/cameras", label: "מצלמות", hint: "צפייה" },
@@ -263,7 +265,7 @@ function navGroupFor(role: UserRole, href: string) {
     return "הגדרות";
   }
   if (role === "manager" || role === "owner") {
-    if (href === "/dashboard/garden" || href.includes("/operations") || href.includes("/attendance") || href.includes("/daily-journal") || href.includes("/insights")) return "תפעול";
+    if (href === "/dashboard/garden" || href.includes("/command-center") || href.includes("/operations") || href.includes("/attendance") || href.includes("/daily-journal") || href.includes("/insights")) return "תפעול";
     if (href.includes("/children") || href.includes("/child-journal") || href.includes("/health") || href.includes("/pickup") || href.includes("/incidents") || href.includes("/daily-journal")) return "ילדים";
     if (href.includes("/parents") || href.includes("/leads") || href.includes("/onboarding")) return "הורים";
     if (href.includes("/staff") || href.includes("/tasks")) return "צוות";
