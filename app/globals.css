@@ -12038,3 +12038,193 @@ th {
     min-height: auto;
   }
 }
+
+/* PHASE 127: Enterprise Task, Workflow & Automation Platform */
+.workflow-command-center,
+.unified-task-center {
+  display: grid;
+  gap: 1rem;
+}
+
+.workflow-kpi-grid,
+.task-kpi-grid,
+.workflow-command-grid,
+.workflow-template-grid {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.workflow-kpi-grid,
+.task-kpi-grid {
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+}
+
+.workflow-command-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.workflow-focus-card,
+.workflow-template-card {
+  background: #fff;
+  border: 1px solid var(--ds-border, #d8e3df);
+  border-radius: var(--ds-radius-md, 14px);
+  box-shadow: var(--ds-shadow-card, 0 10px 26px rgb(17 39 43 / 7%));
+  display: grid;
+  gap: 0.65rem;
+  min-height: 150px;
+  padding: 1rem;
+}
+
+.workflow-focus-card > div,
+.workflow-template-card svg {
+  align-items: center;
+  color: var(--ds-brand, #0d766f);
+  display: flex;
+  gap: 0.45rem;
+  font-weight: 850;
+}
+
+.workflow-focus-card strong {
+  color: var(--ds-text, #142326);
+  font-size: clamp(2rem, 4vw, 3.1rem);
+  line-height: 1;
+}
+
+.workflow-focus-card p,
+.workflow-template-card p,
+.workflow-template-card span {
+  color: var(--ds-muted, #5d6f72);
+  margin: 0;
+}
+
+.workflow-layout {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: minmax(0, 1.45fr) minmax(310px, 0.75fr);
+}
+
+.workflow-side-panel {
+  display: grid;
+  gap: 1rem;
+}
+
+.workflow-task-list,
+.unified-task-list {
+  display: grid;
+  gap: 0.65rem;
+}
+
+.workflow-task-row,
+.unified-task-row {
+  align-items: center;
+  background: #fff;
+  border: 1px solid var(--ds-border, #d8e3df);
+  border-radius: var(--ds-radius-md, 14px);
+  color: var(--ds-text, #142326);
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: minmax(0, 1fr) auto auto minmax(110px, auto);
+  min-height: 76px;
+  padding: 0.9rem 1rem;
+  text-decoration: none;
+}
+
+.workflow-task-row strong,
+.unified-task-row strong {
+  display: block;
+  line-height: 1.25;
+}
+
+.workflow-task-row span,
+.workflow-task-row small,
+.unified-task-row span,
+.unified-task-row small,
+.unified-task-row p {
+  color: var(--ds-muted, #5d6f72);
+  margin: 0;
+}
+
+.workflow-template-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.workflow-assistant-prompts {
+  display: grid;
+  gap: 0.6rem;
+}
+
+.workflow-assistant-prompts a,
+.task-search-hint {
+  align-items: center;
+  background: var(--ds-surface-soft, #f1f6f4);
+  border: 1px solid var(--ds-border, #d8e3df);
+  border-radius: var(--ds-radius-sm, 10px);
+  color: var(--ds-brand-strong, #124f4b);
+  display: flex;
+  font-weight: 850;
+  gap: 0.45rem;
+  min-height: 42px;
+  padding: 0.7rem 0.85rem;
+  text-decoration: none;
+}
+
+.unified-task-row {
+  grid-template-columns: minmax(0, 1fr) minmax(190px, auto);
+}
+
+.unified-task-main {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.unified-task-main > span {
+  align-items: center;
+  display: flex;
+  gap: 0.35rem;
+  font-weight: 850;
+}
+
+.unified-task-main > span svg {
+  color: var(--ds-brand, #0d766f);
+}
+
+.unified-task-meta {
+  align-items: end;
+  display: grid;
+  gap: 0.45rem;
+  justify-items: end;
+}
+
+@media (max-width: 1180px) {
+  .workflow-kpi-grid,
+  .task-kpi-grid,
+  .workflow-command-grid,
+  .workflow-template-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .workflow-layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .workflow-kpi-grid,
+  .task-kpi-grid,
+  .workflow-command-grid,
+  .workflow-template-grid,
+  .workflow-task-row,
+  .unified-task-row {
+    grid-template-columns: 1fr;
+  }
+
+  .workflow-focus-card,
+  .workflow-template-card {
+    min-height: auto;
+  }
+
+  .unified-task-meta {
+    align-items: start;
+    justify-items: start;
+  }
+}

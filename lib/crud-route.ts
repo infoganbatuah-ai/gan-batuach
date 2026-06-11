@@ -198,6 +198,63 @@ export function createCrudHandlers(config: CrudConfig) {
             entity_id: data.id,
             severity: parsed.priority ?? "medium"
           })));
+          const safePriority = ["low", "medium", "high", "critical"].includes(String(parsed.priority)) ? String(parsed.priority) : "medium";
+          const safeRole = ["admin", "inspector", "manager", "owner", "staff", "parent"].includes(String(parsed.assigned_role)) ? String(parsed.assigned_role) : null;
+          const workflowType = ["inspection", "compliance", "incident", "complaint", "document_renewal", "communication", "onboarding", "observer_alert"].includes(String(parsed.task_type))
+            ? String(parsed.task_type)
+            : String(parsed.task_type) === "ai_event"
+              ? "ai_recommendation"
+              : "general";
+          const workflowInsert = await (supabase as any).from("workflows").insert({
+            garden_id: parsed.garden_id ?? null,
+            assigned_role: safeRole,
+            assigned_to: parsed.assigned_to ?? null,
+            created_by: "session" in permission ? permission.session.profile.id : null,
+            workflow_type: workflowType,
+            title: parsed.title,
+            summary: parsed.description ?? null,
+            trigger_type: "manual_task",
+            source_entity_type: "tasks",
+            source_entity_id: data.id,
+            priority: safePriority,
+            status: "active",
+            sla_due_at: parsed.due_at ?? null,
+            metadata: { source: "api_tasks_create" }
+          }).select("id").single();
+          if (!workflowInsert.error && workflowInsert.data?.id) {
+            const responseTarget = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+            const completionTarget = parsed.due_at || new Date(Date.now() + 72 * 60 * 60 * 1000).toISOString();
+            const escalationTarget = parsed.due_at ? new Date(new Date(parsed.due_at).getTime() + 24 * 60 * 60 * 1000).toISOString() : new Date(Date.now() + 96 * 60 * 60 * 1000).toISOString();
+            const workflowTaskInsert = await (supabase as any).from("workflow_tasks").insert({
+              workflow_id: workflowInsert.data.id,
+              legacy_task_id: data.id,
+              garden_id: parsed.garden_id ?? null,
+              assigned_role: safeRole,
+              assigned_to: parsed.assigned_to ?? null,
+              created_by: "session" in permission ? permission.session.profile.id : null,
+              task_type: parsed.task_type ?? "general",
+              title: parsed.title,
+              description: parsed.description ?? null,
+              priority: safePriority,
+              status: data.status ?? "open",
+              due_at: parsed.due_at ?? null,
+              response_target_at: responseTarget,
+              completion_target_at: completionTarget,
+              escalation_target_at: escalationTarget,
+              source_entity_type: "tasks",
+              source_entity_id: data.id,
+              metadata: { source: "api_tasks_create" }
+            }).select("id").single();
+            if (!workflowTaskInsert.error && workflowTaskInsert.data?.id) {
+              await (supabase as any).from("tasks").update({
+                workflow_id: workflowInsert.data.id,
+                workflow_task_id: workflowTaskInsert.data.id,
+                response_target_at: responseTarget,
+                completion_target_at: completionTarget,
+                escalation_target_at: escalationTarget
+              }).eq("id", data.id);
+            }
+          }
         }
         if (config.table === "camera_streams" && data && debugLogsEnabled()) {
           console.info("Camera stream created", {

@@ -16,7 +16,7 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const { id } = await params;
     const payload = schema.parse(await request.json());
     const supabase = await createClient();
-    const { data: task } = await supabase.from("tasks" as any).select("id, assigned_to, assigned_role, garden_id").eq("id", id).maybeSingle();
+    const { data: task } = await supabase.from("tasks" as any).select("id, assigned_to, assigned_role, garden_id, workflow_id, workflow_task_id").eq("id", id).maybeSingle();
     if (!task) return fail("המשימה לא נמצאה", 404);
     const ownsTask = task.assigned_to === profile.id;
     let roleScopedTask = task.assigned_role === profile.role && task.garden_id === profile.garden_id;
@@ -39,6 +39,26 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     if (error) {
       console.error("[task-status]", error);
       return fail("לא ניתן לעדכן משימה כרגע", 400);
+    }
+    if (task.workflow_task_id) {
+      const workflowPatch = {
+        status: payload.status,
+        completed_by: payload.status === "done" ? profile.id : null,
+        completed_at: payload.status === "done" ? new Date().toISOString() : null,
+        outcome_notes: payload.completion_comment ?? payload.rejection_reason ?? null,
+        updated_at: new Date().toISOString()
+      };
+      await supabase.from("workflow_tasks" as any).update(workflowPatch).eq("id", task.workflow_task_id);
+      await supabase.from("workflow_audit_events" as any).insert({
+        workflow_id: task.workflow_id ?? null,
+        workflow_task_id: task.workflow_task_id,
+        actor_id: profile.id,
+        actor_role: profile.role,
+        garden_id: task.garden_id,
+        event_type: "task_status_updated",
+        after_data: workflowPatch,
+        metadata: { legacy_task_id: id }
+      });
     }
     await supabase.from("audit_logs" as any).insert({ actor_id: profile.id, actor_role: profile.role, garden_id: task.garden_id, entity_type: "tasks", entity_id: id, action: "update_task_status", after_data: patch });
     return ok(data);
