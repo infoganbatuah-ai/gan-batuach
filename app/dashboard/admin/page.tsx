@@ -315,6 +315,7 @@ export default async function AdminDashboard() {
           <ActionCard title="גנים" text="פעילים, קליטה, מושעים וניסיון" href="/dashboard/admin/kindergartens" icon={ShieldAlert} tone="good" />
           <ActionCard title="מפקחים" text="שיבוץ, עומס וביצוע" href="/dashboard/admin/inspectors" icon={UsersRound} />
           <ActionCard title="פיקוח ארצי" text="תכנון, ציות וסיכונים" href="/dashboard/admin/national-inspections" icon={ShieldCheck} tone={data.overdueInspections ? "warn" : "good"} />
+          <ActionCard title="תיקי אירוע" text="חקירה, ראיות וסגירה" href="/dashboard/admin/incident-center" icon={MessageSquareWarning} tone={data.activeIncidents || data.criticalComplaints ? "warn" : "good"} />
           <ActionCard title="דירוג לאומי" text="ציונים, מגמות ושיפור" href="/dashboard/admin/rating-system" icon={Star} tone="good" />
           <ActionCard title="מודיעין סיכון" text="חיזוי, דפוסים ומניעה" href="/dashboard/admin/risk-intelligence" icon={AlertTriangle} tone={data.observerAlerts || data.criticalComplaints ? "warn" : "default"} />
           <ActionCard title="ציות חכם" text="מסמכים, תעודות ותיקונים" href="/dashboard/admin/compliance-center" icon={FileText} tone={data.securityFindings || data.overdueInspections ? "warn" : "good"} />
