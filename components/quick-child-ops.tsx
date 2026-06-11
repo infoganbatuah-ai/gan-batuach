@@ -3,6 +3,7 @@
 import { useState, useTransition } from "react";
 import Link from "next/link";
 import { AlertTriangle, CheckCircle2, MessageCircle, Moon, Shirt, Smile, Utensils } from "lucide-react";
+import { queueStaffOfflineAction } from "@/lib/client/staff-offline-queue";
 
 const journalChips = [
   { label: "אכל הכל", field: "meals", value: "אכל הכל", icon: Utensils },
@@ -20,15 +21,20 @@ export function QuickChildOps({ childId, gardenId, basePath = "/dashboard/garden
   function saveJournal(field: string, value: string) {
     if (!gardenId) return setMessage("חסר שיוך גן לעדכון מהיר.");
     setMessage("");
+    const body: Record<string, unknown> = {
+      garden_id: gardenId,
+      child_id: childId,
+      meals: field === "meals" ? [{ title: "עדכון מהיר", note: value }] : [],
+      sleep_summary: field === "sleep_summary" ? value : "",
+      mood: field === "mood" ? value : "",
+      staff_signature: "עדכון מהיר"
+    };
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      queueStaffOfflineAction({ type: "child_update", label: value, endpoint: "/api/child-daily-journals", method: "POST", body });
+      setMessage("אין חיבור כרגע. העדכון נשמר לסנכרון.");
+      return;
+    }
     startTransition(async () => {
-      const body: Record<string, unknown> = {
-        garden_id: gardenId,
-        child_id: childId,
-        meals: field === "meals" ? [{ title: "עדכון מהיר", note: value }] : [],
-        sleep_summary: field === "sleep_summary" ? value : "",
-        mood: field === "mood" ? value : "",
-        staff_signature: "עדכון מהיר"
-      };
       const response = await fetch("/api/child-daily-journals", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
       const result = await response.json().catch(() => null);
       setMessage(response.ok ? "נשמר ונשלחה התראה להורה." : result?.error || "לא ניתן לשמור כרגע. בדקו שהילד משויך לגן ונסו שוב.");
@@ -37,11 +43,17 @@ export function QuickChildOps({ childId, gardenId, basePath = "/dashboard/garden
 
   function saveClothes(missing: boolean) {
     setMessage("");
+    const body = { action: "change_clothes", has_change_clothes: !missing, change_clothes_notes: missing ? "נא להביא בגדים להחלפה" : "סומן שיש בגדים להחלפה" };
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      queueStaffOfflineAction({ type: "child_operation", label: missing ? "חסר בגדים" : "יש בגדים", endpoint: `/api/garden/children/${childId}/operations`, method: "POST", body });
+      setMessage("אין חיבור כרגע. הפעולה נשמרה לסנכרון.");
+      return;
+    }
     startTransition(async () => {
       const response = await fetch(`/api/garden/children/${childId}/operations`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "change_clothes", has_change_clothes: !missing, change_clothes_notes: missing ? "נא להביא בגדים להחלפה" : "סומן שיש בגדים להחלפה" })
+        body: JSON.stringify(body)
       });
       const result = await response.json().catch(() => null);
       setMessage(response.ok ? "סטטוס בגדים עודכן." : result?.error || "לא ניתן לעדכן בגדים כרגע.");
@@ -51,11 +63,17 @@ export function QuickChildOps({ childId, gardenId, basePath = "/dashboard/garden
   function saveAttendance(status: "present" | "absent") {
     if (!gardenId) return setMessage("חסר שיוך גן לעדכון נוכחות.");
     setMessage("");
+    const body = { garden_id: gardenId, child_id: childId, status };
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      queueStaffOfflineAction({ type: "child_update", label: status === "present" ? "הגיע" : "נעדר", endpoint: "/api/attendance", method: "POST", body });
+      setMessage("אין חיבור כרגע. הנוכחות נשמרה לסנכרון.");
+      return;
+    }
     startTransition(async () => {
       const response = await fetch("/api/attendance", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ garden_id: gardenId, child_id: childId, status })
+        body: JSON.stringify(body)
       });
       const result = await response.json().catch(() => null);
       setMessage(response.ok ? "נוכחות עודכנה." : result?.error || "לא ניתן לעדכן נוכחות כרגע.");

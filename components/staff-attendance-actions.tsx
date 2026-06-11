@@ -2,6 +2,7 @@
 
 import { useState, useTransition } from "react";
 import { LogIn, LogOut, MapPin } from "lucide-react";
+import { queueStaffOfflineAction } from "@/lib/client/staff-offline-queue";
 
 type Props = {
   staffId?: string | null;
@@ -17,6 +18,17 @@ export function StaffAttendanceActions({ staffId, gardenId, hasOpenShift = false
   function update(action: "check_in" | "check_out") {
     if (!staffId || !gardenId) {
       setMessage("לא נמצא שיוך צוות וגן לביצוע החתמה.");
+      return;
+    }
+    if (typeof navigator !== "undefined" && !navigator.onLine) {
+      queueStaffOfflineAction({
+        type: "attendance",
+        label: action === "check_in" ? "כניסה למשמרת" : "יציאה ממשמרת",
+        endpoint: "/api/staff/gps-attendance",
+        method: "POST",
+        body: { action, staff_id: staffId, garden_id: gardenId, gps_lat: null, gps_lng: null, offline: true }
+      });
+      setMessage("אין חיבור כרגע. הפעולה נשמרה לסנכרון כשיחזור החיבור.");
       return;
     }
     setMessage("מבקש הרשאת מיקום...");

@@ -113,6 +113,7 @@ export default async function StaffDashboard() {
         </section>
 
         <section className="staff-action-grid">
+          <ActionCard title="תפעול משמרת" text="כל הפעולות במסך אחד" href="/dashboard/staff/operations" icon={ClipboardList} tone="good" />
           <ActionCard title="כניסה / יציאה" text="נוכחות עם מיקום" href="/dashboard/staff/attendance" icon={MapPin} tone={checkedIn ? "good" : "warn"} />
           <ActionCard title="עדכון ילד" text="ארוחה, שינה, שירותים" href="/dashboard/staff/child-journal" icon={Baby} />
           <ActionCard title="דיווח אירוע" text="מהיר ומתועד" href="/dashboard/staff/incidents" icon={Siren} tone="warn" />

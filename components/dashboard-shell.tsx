@@ -162,6 +162,7 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
   ],
   staff: [
     { href: "/dashboard/staff", label: "צוות", hint: "מיקום ומשימות" },
+    { href: "/dashboard/staff/operations", label: "תפעול משמרת", hint: "הכל במסך אחד" },
     { href: "/dashboard/staff/attendance", label: "נוכחות", hint: "כניסה/יציאה" },
     { href: "/dashboard/staff/child-journal", label: "יומן ילד", hint: "עדכוני הורים" },
     { href: "/dashboard/staff/incidents", label: "אירועים", hint: "דיווח מהיר" },
@@ -198,7 +199,7 @@ const dashboardHomeByRole: Record<UserRole, string> = {
   inspector: "/dashboard/inspector",
   manager: "/dashboard/garden/operations",
   owner: "/dashboard/garden/operations",
-  staff: "/dashboard/staff",
+  staff: "/dashboard/staff/operations",
   parent: "/dashboard/parent"
 };
 
@@ -225,7 +226,7 @@ const mobileNavByRole: Record<UserRole, Array<{ href: string; label: string; hin
     { href: "/dashboard/garden/tasks", label: "משימות", hint: "היום" }
   ],
   staff: [
-    { href: "/dashboard/staff", label: "בית", hint: "משמרת" },
+    { href: "/dashboard/staff/operations", label: "בית", hint: "משמרת" },
     { href: "/dashboard/staff/child-journal", label: "ילדים", hint: "עדכון" },
     { href: "/dashboard/staff/messages", label: "הודעות", hint: "גן" },
     { href: "/dashboard/staff/tasks", label: "משימות", hint: "היום" },
@@ -282,7 +283,7 @@ function navGroupFor(role: UserRole, href: string) {
     return "הגדרות";
   }
   if (role === "staff") {
-    if (href === "/dashboard/staff" || href.includes("/attendance") || href.includes("/tasks") || href.includes("/daily-journal")) return "תפעול";
+    if (href === "/dashboard/staff" || href.includes("/operations") || href.includes("/attendance") || href.includes("/tasks") || href.includes("/daily-journal")) return "תפעול";
     if (href.includes("/child-journal") || href.includes("/incidents")) return "ילדים";
     if (href.includes("/messages") || href.includes("/notifications")) return "תקשורת";
     if (href.includes("/cameras")) return "מצלמות";

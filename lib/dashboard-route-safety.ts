@@ -66,6 +66,7 @@ export const dashboardRouteChecks: DashboardRouteCheck[] = [
   { route: "/dashboard/parent/inspections", label: "פיקוח", roles: ["parent"], dataTable: "inspections" },
   { route: "/dashboard/parent/complaints", label: "תלונות", roles: ["parent"], dataTable: "complaints" },
   { route: "/dashboard/staff", label: "צוות", roles: ["staff"], dataTable: "tasks" },
+  { route: "/dashboard/staff/operations", label: "תפעול משמרת", roles: ["staff"], dataTable: "staff_shifts" },
   { route: "/dashboard/staff/child-journal", label: "יומן ילד", roles: ["staff"], dataTable: "child_daily_journals" },
   { route: "/dashboard/staff/daily-journal", label: "יומן תפעול", roles: ["staff"], dataTable: "daily_operational_tasks" },
   { route: "/dashboard/staff/tasks", label: "משימות", roles: ["staff"], dataTable: "tasks" },
