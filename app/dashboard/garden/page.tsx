@@ -173,6 +173,7 @@ export default async function GardenDashboard() {
           <ActionCard title="משימה חדשה" text="מעקב וביצוע" href="/dashboard/garden/tasks" icon={ClipboardCheck} />
           <ActionCard title="ביקורת" text="פעולות פיקוח" href="/dashboard/garden/inspections" icon={ShieldCheck} />
           <ActionCard title="דירוג הגן" text="ציון והמלצות שיפור" href="/dashboard/garden/rating" icon={Star} />
+          <ActionCard title="סיכון ומניעה" text="דפוסים והמלצות רגועות" href="/dashboard/garden/risk" icon={AlertTriangle} tone={unresolvedIssues ? "warn" : "good"} />
           <ActionCard title="התראות" text="אירועים ותצפיתן" href="/dashboard/garden/observer-intelligence" icon={AlertTriangle} tone={(aiRes.count ?? 0) ? "warn" : "default"} />
         </section>
 
