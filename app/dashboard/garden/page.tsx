@@ -167,6 +167,7 @@ export default async function GardenDashboard() {
         </section>
 
         <section className="manager-action-grid">
+          <ActionCard title="מערכת הפעלה" text="כל הגן במקום אחד" href="/dashboard/garden/operations" icon={ShieldCheck} tone="good" />
           <ActionCard title="הוספת ילד" text="רישום ואישור ילדים" href="/dashboard/garden/children" icon={Baby} tone="good" />
           <ActionCard title="הוספת צוות" text="תפקידים ומסמכים" href="/dashboard/garden/staff" icon={UsersRound} />
           <ActionCard title="שליחת הודעה" text="פנייה להורים" href="/dashboard/garden/communication" icon={MessageSquare} />
