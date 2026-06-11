@@ -14,6 +14,7 @@ export type DashboardRouteCheck = {
 
 export const dashboardRouteChecks: DashboardRouteCheck[] = [
   { route: "/dashboard/admin", label: "מרכז שליטה", roles: ["admin"], dataTable: "gardens" },
+  { route: "/dashboard/admin/analytics-center", label: "מרכז אנליטיקה", roles: ["admin"], dataTable: "cross_kindergarten_analytics_snapshots" },
   { route: "/dashboard/admin/leads", label: "לידים", roles: ["admin"], dataTable: "leads" },
   { route: "/dashboard/admin/users", label: "משתמשים", roles: ["admin"], dataTable: "profiles" },
   { route: "/dashboard/admin/kindergartens", label: "גנים", roles: ["admin"], dataTable: "gardens" },

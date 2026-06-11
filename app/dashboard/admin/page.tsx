@@ -313,6 +313,7 @@ export default async function AdminDashboard() {
 
         <section className="national-action-grid">
           <ActionCard title="גנים" text="פעילים, קליטה, מושעים וניסיון" href="/dashboard/admin/kindergartens" icon={ShieldAlert} tone="good" />
+          <ActionCard title="אנליטיקה ארצית" text="Benchmarking, מגמות ואזורים" href="/dashboard/admin/analytics-center" icon={BarChart3} tone="good" />
           <ActionCard title="מפקחים" text="שיבוץ, עומס וביצוע" href="/dashboard/admin/inspectors" icon={UsersRound} />
           <ActionCard title="פיקוח ארצי" text="תכנון, ציות וסיכונים" href="/dashboard/admin/national-inspections" icon={ShieldCheck} tone={data.overdueInspections ? "warn" : "good"} />
           <ActionCard title="תיקי אירוע" text="חקירה, ראיות וסגירה" href="/dashboard/admin/incident-center" icon={MessageSquareWarning} tone={data.activeIncidents || data.criticalComplaints ? "warn" : "good"} />
