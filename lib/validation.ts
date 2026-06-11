@@ -186,6 +186,8 @@ export const cameraStreamSchema = z.object({
   area: z.string().min(2),
   camera_type: z.string().optional(),
   source_type: z.string().optional(),
+  source_category: z.enum(["dvr_nvr", "rtsp_direct", "onvif", "ip_camera", "manual_external_stream", "demo_camera", "home_test"]).optional(),
+  camera_zone_label: z.string().optional(),
   system_type: z.string().optional(),
   source_url: z.string().optional(),
   stream_status: z.enum(["connected", "connecting", "pending", "offline", "error", "disabled"]).optional(),
@@ -196,6 +198,11 @@ export const cameraStreamSchema = z.object({
   status: z.string().optional(),
   parent_view_allowed: z.boolean().optional(),
   parent_viewing_allowed: z.boolean().optional(),
+  parent_visibility_status: z.string().optional(),
+  parent_blocked_reason: z.string().optional(),
+  staff_view_allowed: z.boolean().optional(),
+  inspector_view_allowed: z.boolean().optional(),
+  inspector_access_policy: z.string().optional(),
   class_group: z.string().optional(),
   age_group: z.string().optional(),
   host: z.string().optional(),
@@ -230,11 +237,18 @@ export const cameraStreamSchema = z.object({
   video_gateway_stream_id: z.string().optional(),
   gateway_stream_id: z.string().optional(),
   ai_enabled: z.boolean().optional(),
+  observer_enabled: z.boolean().optional(),
+  observer_review_required: z.boolean().optional(),
+  observer_confidence_threshold: z.coerce.number().min(0).max(1).optional(),
+  observer_zone_mapping: z.record(z.string(), z.unknown()).optional(),
+  safety_indicator_categories: z.array(z.string()).optional(),
   recording_enabled: z.boolean().optional(),
   retention_days: z.coerce.number().int().optional(),
   archive_policy: z.string().optional(),
   dvr_port: z.number().int().optional(),
-  viewing_hours: z.record(z.string(), z.unknown()).optional()
+  viewing_hours: z.record(z.string(), z.unknown()).optional(),
+  operating_hours: z.record(z.string(), z.unknown()).optional(),
+  privacy_policy: z.record(z.string(), z.unknown()).optional()
 });
 
 export const parentCameraPermissionSchema = z.object({

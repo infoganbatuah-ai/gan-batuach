@@ -7,6 +7,14 @@ import { createClient } from "@/lib/supabase/server";
 
 type GardenGroup = { id: string; name: string; cameras: any[] };
 
+const reasonText: Record<string, string> = {
+  parent_viewing_not_enabled: "הגן לא פתח צפייה להורים",
+  camera_inactive_or_disabled: "המצלמה לא זמינה כרגע",
+  camera_has_no_parent_playback_source: "המצלמה לא זמינה כרגע",
+  parent_camera_garden_mismatch: "נדרשת הרשאה מהגן",
+  parent_not_linked_to_kindergarten: "נדרשת הרשאה מהגן"
+};
+
 function emptyState(kind: "no_relation" | "no_cameras" | "not_allowed") {
   if (kind === "no_relation") return { title: "עדיין אין שיוך לגן", body: "לאחר שהגן יאשר את הילד, צפייה שאושרה להורים תופיע כאן." };
   if (kind === "no_cameras") return { title: "אין צפייה זמינה כרגע", body: "הגן עדיין לא פתח מצלמות לצפיית הורים. כשתהיה צפייה מאושרת, היא תופיע כאן." };
@@ -35,6 +43,7 @@ export default async function Page() {
   }).filter((group) => group.cameras.length > 0);
 
   const empty = !debug.allowedKindergartenIds.length ? emptyState("no_relation") : debug.candidateCamerasCount === 0 ? emptyState("no_cameras") : emptyState("not_allowed");
+  const blocked = result.decisions.filter((decision) => !decision.allowed && decision.diagnostics.camera_found);
 
   return (
     <DashboardShell role="parent" title="מצלמות הגן">
@@ -82,6 +91,22 @@ export default async function Page() {
           </section>
         ))}
       </section>
+      {blocked.length ? (
+        <section className="dashboard-section">
+          <div className="section-heading">
+            <h2>מצלמות שלא זמינות כרגע</h2>
+            <p>הגן שולט בהרשאות ובשעות הצפייה. כאן מוצגת הסיבה בלי פרטי חיבור טכניים.</p>
+          </div>
+          <div className="mobile-card-list">
+            {blocked.slice(0, 6).map((decision) => (
+              <article className="card action-panel" key={decision.diagnostics.camera_id}>
+                <h3>{decision.diagnostics.camera_name ?? "מצלמה"}</h3>
+                <p>{reasonText[decision.reason] ?? "נדרשת הרשאה מהגן"}</p>
+              </article>
+            ))}
+          </div>
+        </section>
+      ) : null}
     </DashboardShell>
   );
 }

@@ -1,79 +1,186 @@
-import { DashboardShell } from "@/components/dashboard-shell";
+import Link from "next/link";
+import { Activity, AlertTriangle, Camera, Eye, RadioTower, ShieldCheck, Video, Workflow } from "lucide-react";
 import { AdminDataError } from "@/components/admin-data-state";
 import { CameraAdminManager } from "@/components/camera-ai-admin-modules";
+import { DashboardShell } from "@/components/dashboard-shell";
+import { ActionCard, CleanSection, EmptyState, PremiumDashboardHero, RoleMetricCard, StatusBadge } from "@/components/premium-dashboard";
 import { requireRole } from "@/lib/auth";
-import { safeAdminData, logSupabaseError } from "@/lib/admin-safe";
+import { logSupabaseError, safeAdminData } from "@/lib/admin-safe";
 import { buildCameraAuditSummary } from "@/lib/domain/camera-diagnostics";
 import { createClient } from "@/lib/supabase/server";
-import Link from "next/link";
+
+type Row = Record<string, any>;
+
+function healthTone(value?: string | null): "default" | "good" | "warn" | "bad" {
+  const status = String(value ?? "");
+  if (["healthy", "connected", "online", "active", "allowed"].includes(status)) return "good";
+  if (["unknown", "pending", "pending_gateway", "testing", "degraded", "outside_hours"].includes(status)) return "warn";
+  if (["failed", "offline", "error", "disabled", "blocked", "no_signal", "unauthorized"].includes(status)) return "bad";
+  return "default";
+}
+
+function dateText(value?: string | null) {
+  return value ? new Date(value).toLocaleString("he-IL", { dateStyle: "short", timeStyle: "short" }) : "לא עודכן";
+}
+
+async function safeQuery<T>(label: string, run: () => any) {
+  try {
+    const result = await run() as { data: T[] | null; error: any };
+    logSupabaseError(label, result.error);
+    return result.error ? [] : result.data ?? [];
+  } catch (error) {
+    logSupabaseError(label, error);
+    return [];
+  }
+}
 
 export default async function AdminCamerasPage() {
   await requireRole(["admin"]);
-  const result = await safeAdminData("admin cameras", async () => {
+  const result = await safeAdminData("camera operations center", async () => {
     const supabase = await createClient();
-    const safeCameraColumns = "id, garden_id, kindergarten_id, name, area, camera_type, source_type, system_type, deployment_scope, test_site_type, camera_provider_key, gateway_provider_preference, live_preview_status, clip_readiness_status, snapshot_readiness_status, permission_model, stream_status, health_status, last_seen, connection_method, protocol, status, active, parent_view_allowed, parent_viewing_allowed, last_health_check_at, last_test_status, last_test_message, last_test_at, gateway_registration_status, gateway_last_error, masked_connection_summary, hls_playback_url, sample_hls_url, webrtc_playback_url, video_gateway_stream_id, gateway_stream_id, viewing_hours, recording_enabled, retention_days, archive_policy, is_demo, demo_batch_id";
-    let cameras = await supabase.from("camera_streams" as any).select(safeCameraColumns).limit(100);
-    let secondaryWarning: string | null = null;
-
-    if (cameras.error) {
-      logSupabaseError("admin cameras primary safe columns", cameras.error);
-      secondaryWarning = "חלק מהנתונים המשניים לא נטענו";
-      cameras = await supabase.from("camera_streams" as any).select("id, garden_id, name, area, camera_type, protocol, status, active, parent_view_allowed, last_health_check_at, hls_playback_url, webrtc_playback_url, video_gateway_stream_id, viewing_hours").limit(100);
-    }
-
-    if (cameras.error) {
-      logSupabaseError("admin cameras fallback direct query", cameras.error);
-      return { cameras: [] as any[], gardens: [] as any[], queryError: "לא ניתן לטעון את הנתונים כרגע", secondaryWarning: null as string | null };
-    }
-
-    const gardens = await supabase.from("gardens" as any).select("id, name, city").limit(200);
-    logSupabaseError("admin camera gardens secondary query", gardens.error);
-    if (gardens.error) secondaryWarning = "חלק מהנתונים המשניים לא נטענו";
-    const cameraGardenIds = Array.from(new Set(((cameras.data ?? []) as any[]).map((camera) => camera.garden_id ?? camera.kindergarten_id).filter(Boolean)));
-    const childrenByGardenId = cameraGardenIds.length ? await supabase.from("children" as any).select("garden_id, kindergarten_id, primary_parent_id").in("garden_id", cameraGardenIds) : { data: [] };
-    const childrenByKindergartenId = cameraGardenIds.length ? await supabase.from("children" as any).select("garden_id, kindergarten_id, primary_parent_id").in("kindergarten_id", cameraGardenIds) : { data: [] };
-    const parentsByGardenId = cameraGardenIds.length ? await supabase.from("parents" as any).select("id, garden_id").in("garden_id", cameraGardenIds) : { data: [] };
-    const parentsByKindergartenId = cameraGardenIds.length ? await supabase.from("parents" as any).select("id, kindergarten_id").in("kindergarten_id", cameraGardenIds) : { data: [] };
-    logSupabaseError("admin camera expected parents garden_id", (childrenByGardenId as any).error);
-    logSupabaseError("admin camera expected parents kindergarten_id", (childrenByKindergartenId as any).error);
-    logSupabaseError("admin camera expected direct parents garden_id", (parentsByGardenId as any).error);
-    logSupabaseError("admin camera expected direct parents kindergarten_id", (parentsByKindergartenId as any).error);
-    if ((childrenByGardenId as any).error || (childrenByKindergartenId as any).error || (parentsByGardenId as any).error || (parentsByKindergartenId as any).error) secondaryWarning = "חלק מהנתונים המשניים לא נטענו";
-    const expectedParentsByGarden = new Map<string, Set<string>>();
-    const childRows = [...(((childrenByGardenId as any).data ?? []) as any[]), ...(((childrenByKindergartenId as any).data ?? []) as any[])]
-      .filter((child, index, all) => child?.primary_parent_id && all.findIndex((item) => item?.primary_parent_id === child.primary_parent_id && (item?.garden_id ?? item?.kindergarten_id) === (child.garden_id ?? child.kindergarten_id)) === index);
-    for (const child of childRows) {
-      const gardenId = child.garden_id ?? child.kindergarten_id;
-      if (!gardenId || !child.primary_parent_id) continue;
-      const set = expectedParentsByGarden.get(gardenId) ?? new Set<string>();
-      set.add(child.primary_parent_id);
-      expectedParentsByGarden.set(gardenId, set);
-    }
-    const directParentRows = [...(((parentsByGardenId as any).data ?? []) as any[]), ...(((parentsByKindergartenId as any).data ?? []) as any[])]
-      .filter((parent, index, all) => parent?.id && all.findIndex((item) => item?.id === parent.id) === index);
-    for (const parent of directParentRows) {
-      const gardenId = parent.garden_id ?? parent.kindergarten_id;
-      if (!gardenId || !parent.id) continue;
-      const set = expectedParentsByGarden.get(gardenId) ?? new Set<string>();
-      set.add(parent.id);
-      expectedParentsByGarden.set(gardenId, set);
-    }
-
-    const gardenById = new Map((gardens.data ?? []).map((garden: any) => [garden.id, garden]));
-    const cameraRows = (cameras.data ?? []).map((camera: any) => {
+    const cameraColumns = "id,garden_id,kindergarten_id,name,area,camera_type,source_type,source_category,camera_zone_label,system_type,deployment_scope,test_site_type,camera_provider_key,gateway_provider_preference,stream_status,health_status,last_seen,connection_method,protocol,status,active,parent_view_allowed,parent_viewing_allowed,parent_visibility_status,parent_blocked_reason,staff_view_allowed,inspector_view_allowed,observer_enabled,observer_review_required,observer_confidence_threshold,last_health_check_at,last_test_status,last_test_message,last_test_at,gateway_registration_status,gateway_last_error,masked_connection_summary,hls_playback_url,sample_hls_url,webrtc_playback_url,video_gateway_stream_id,gateway_stream_id,viewing_hours,operating_hours,recording_enabled,retention_days,archive_policy";
+    const camerasRes = await supabase.from("camera_streams" as any).select(cameraColumns).limit(220);
+    logSupabaseError("admin camera operations cameras", camerasRes.error);
+    const rawCameras = (camerasRes.data ?? []) as Row[];
+    const gardenIds = Array.from(new Set(rawCameras.map((camera) => camera.garden_id ?? camera.kindergarten_id).filter(Boolean)));
+    const [gardens, gateways, validations, health, sessions, audit, observerQueue] = await Promise.all([
+      safeQuery<Row>("camera operations gardens", () => supabase.from("gardens" as any).select("id,name,city").limit(300)),
+      safeQuery<Row>("camera gateway registry", () => supabase.from("camera_gateway_registry" as any).select("*").order("created_at", { ascending: false }).limit(50)),
+      safeQuery<Row>("camera validations", () => supabase.from("camera_stream_validations" as any).select("*").order("created_at", { ascending: false }).limit(120)),
+      safeQuery<Row>("camera health history", () => supabase.from("camera_health_history" as any).select("*").order("checked_at", { ascending: false }).limit(120)),
+      safeQuery<Row>("camera playback sessions", () => supabase.from("camera_playback_sessions" as any).select("id,camera_id,kindergarten_id,profile_id,playback_protocol,gateway_provider,started_at,metadata").order("started_at", { ascending: false }).limit(120)),
+      safeQuery<Row>("camera infra audit", () => supabase.from("camera_infrastructure_audit_logs" as any).select("*").order("created_at", { ascending: false }).limit(120)),
+      safeQuery<Row>("observer processing queue", () => supabase.from("observer_processing_queue" as any).select("*").order("created_at", { ascending: false }).limit(120))
+    ]);
+    const gardenById = new Map(gardens.map((garden) => [garden.id, garden]));
+    const cameras: Row[] = rawCameras.map((camera) => {
       const gardenId = camera.garden_id ?? camera.kindergarten_id;
-      const parentViewing = camera.parent_viewing_allowed === true || camera.parent_view_allowed === true;
-      return { ...camera, gardens: gardenById.get(gardenId) ?? null, expected_parent_count: expectedParentsByGarden.get(gardenId)?.size ?? 0, visibility_status: parentViewing ? "גלויה להורים משויכים" : "צפיית הורים כבויה" };
+      return {
+        ...camera,
+        gardens: gardenById.get(gardenId) ?? null,
+        expected_parent_count: 0,
+        visibility_status: camera.parent_visibility_status === "allowed" ? "גלויה להורים מורשים" : camera.parent_blocked_reason ?? "צפיית הורים חסומה"
+      };
     });
+    const summary = buildCameraAuditSummary(cameras);
+    const failedStreams = cameras.filter((camera) => ["offline", "failed", "error", "no_signal", "unauthorized"].includes(String(camera.status ?? camera.health_status ?? camera.stream_status)));
+    const pendingSetup = cameras.filter((camera) => ["pending_gateway", "pending", "not_configured"].includes(String(camera.gateway_registration_status ?? camera.status ?? camera.parent_visibility_status)));
+    const parentExposure = cameras.filter((camera) => camera.parent_viewing_allowed === true || camera.parent_view_allowed === true);
+    const observerEnabled = cameras.filter((camera) => camera.observer_enabled === true || camera.ai_enabled === true);
+    const activeGateways = gateways.filter((gateway) => ["active", "configured", "testing"].includes(String(gateway.status)));
     return {
-      cameras: cameraRows,
-      gardens: gardens.data ?? [],
-      queryError: null as string | null,
-      secondaryWarning,
-      summary: buildCameraAuditSummary(cameraRows)
+      cameras,
+      gardens,
+      gateways,
+      validations,
+      health,
+      sessions,
+      audit,
+      observerQueue,
+      summary,
+      failedStreams,
+      pendingSetup,
+      parentExposure,
+      observerEnabled,
+      activeGateways,
+      queryError: camerasRes.error ? "לא ניתן לטעון את כל נתוני המצלמות כרגע" : null
     };
-  }, { cameras: [] as any[], gardens: [] as any[], queryError: null as string | null, secondaryWarning: null as string | null, summary: buildCameraAuditSummary([]) });
+  }, {
+    cameras: [] as Row[],
+    gardens: [] as Row[],
+    gateways: [] as Row[],
+    validations: [] as Row[],
+    health: [] as Row[],
+    sessions: [] as Row[],
+    audit: [] as Row[],
+    observerQueue: [] as Row[],
+    summary: buildCameraAuditSummary([]),
+    failedStreams: [] as Row[],
+    pendingSetup: [] as Row[],
+    parentExposure: [] as Row[],
+    observerEnabled: [] as Row[],
+    activeGateways: [] as Row[],
+    queryError: null as string | null
+  });
 
-  const summary = result.data.summary ?? buildCameraAuditSummary([]);
-  return <DashboardShell role="admin" title="מצלמות"><div className="dashboard-hero-card admin-hero-card"><div><p className="eyebrow">Camera Management</p><h1>תצפיתן דיגיטלי - צפייה במצלמות.</h1><p>DVR/NVR/IP/RTSP/ONVIF נשמרים במערכת, Live דורש Video Gateway או Sample HLS לבדיקה.</p></div><div className="profile-actions"><span className={process.env.VIDEO_GATEWAY_URL ? "pill good" : "pill warn"}>{process.env.VIDEO_GATEWAY_URL ? "Gateway connected" : "Gateway missing"}</span><Link className="button secondary" href="/dashboard/admin/camera-audit">Camera Audit</Link></div></div><AdminDataError message={result.error ?? result.data.queryError} /><section className="grid cols-4 dashboard-panels"><article className="card metric-card"><span>מצלמות פעילות</span><strong>{summary.online}</strong></article><article className="card metric-card"><span>אופליין / תקלה</span><strong>{summary.offline}</strong></article><article className="card metric-card"><span>חסר מקור צפייה</span><strong>{summary.missingPlaybackSource}</strong></article><article className="card metric-card"><span>מצלמות דמו</span><strong>{summary.demo}</strong></article></section>{result.data.secondaryWarning ? <div className="gateway-setup-state"><strong>{result.data.secondaryWarning}</strong><p>כרטיסי המצלמות והצפייה נשארים זמינים. פרטי גן/יחסים משניים נטענים בנפרד כדי לא להפיל את המסך.</p></div> : null}<CameraAdminManager cameras={result.data.cameras as any[]} gardens={result.data.gardens as any[]} gatewayConnected={Boolean(process.env.VIDEO_GATEWAY_URL)} /></DashboardShell>;
+  const data = result.data;
+  const gatewayConfigured = Boolean(process.env.VIDEO_GATEWAY_URL);
+
+  return (
+    <DashboardShell role="admin" title="מצלמות">
+      <div className="commercial-dashboard camera-infra-center">
+        <PremiumDashboardHero
+          eyebrow="Camera Operations"
+          title="מרכז תשתיות מצלמות ותצפיתן"
+          subtitle="כל המצלמות, שערי הווידאו, הרשאות הצפייה, בריאות השידורים ותור הבדיקה האנושי במקום אחד."
+          badge={gatewayConfigured ? "שרת וידאו מוגדר" : "ממתין לשרת וידאו"}
+          badgeTone={gatewayConfigured ? "good" : "warn"}
+          actions={<><Link className="button primary" href="/dashboard/admin/video-gateway">שרת וידאו</Link><Link className="button secondary" href="/dashboard/admin/camera-audit">בדיקת חשיפה</Link></>}
+        >
+          <div className="setup-checklist"><span>ללא חשיפת RTSP</span><span>צפייה מתועדת</span><span>בדיקה אנושית</span></div>
+        </PremiumDashboardHero>
+        <AdminDataError message={result.error ?? data.queryError} />
+
+        <section className="camera-infra-kpis">
+          <RoleMetricCard label="מצלמות" value={data.cameras.length} hint={`${data.summary.online} מחוברות`} tone={data.failedStreams.length ? "warn" : "good"} />
+          <RoleMetricCard label="תקלות שידור" value={data.failedStreams.length} tone={data.failedStreams.length ? "bad" : "good"} />
+          <RoleMetricCard label="ממתינות לחיבור" value={data.pendingSetup.length} tone={data.pendingSetup.length ? "warn" : "good"} />
+          <RoleMetricCard label="גלויות להורים" value={data.parentExposure.length} tone={data.parentExposure.length ? "warn" : "default"} />
+          <RoleMetricCard label="תצפיתן מחובר" value={data.observerEnabled.length} tone={data.observerEnabled.length ? "good" : "default"} />
+          <RoleMetricCard label="Gateway" value={data.activeGateways.length || (gatewayConfigured ? 1 : 0)} tone={gatewayConfigured || data.activeGateways.length ? "good" : "warn"} />
+        </section>
+
+        <section className="camera-infra-grid">
+          <CleanSection title="שערי וידאו" subtitle="MediaMTX, go2rtc או שער מותאם. אין שמירת סודות במסד.">
+            {data.gateways.length === 0 ? <EmptyState title="אין רישום שערים" text="לאחר הרצת המיגרציה יופיעו שערי וידאו מוכנים להגדרה." /> : (
+              <div className="camera-infra-list">{data.gateways.map((gateway) => (
+                <article className="camera-infra-row" key={gateway.id}>
+                  <div><strong>{gateway.display_name}</strong><span>{gateway.provider} · {gateway.deployment_scope} · {gateway.active_streams} שידורים</span></div>
+                  <StatusBadge tone={healthTone(gateway.status)}>{gateway.status}</StatusBadge>
+                  <StatusBadge tone={healthTone(gateway.health_status)}>{gateway.health_status}</StatusBadge>
+                </article>
+              ))}</div>
+            )}
+          </CleanSection>
+
+          <CleanSection title="תור תצפיתן" subtitle="אינדיקציות לבדיקה. הורים לא רואים חומר גולמי.">
+            {data.observerQueue.length === 0 ? <EmptyState title="אין אירועים בתור" text="כאשר התצפיתן יזהה אינדיקציה, היא תמתין כאן לבדיקה אנושית." /> : (
+              <div className="camera-infra-list">{data.observerQueue.slice(0, 8).map((item) => (
+                <article className="camera-infra-row" key={item.id}>
+                  <div><strong>{item.event_type}</strong><span>{item.status} · ביטחון {item.confidence ?? "-"}</span></div>
+                  <StatusBadge tone={item.parent_visible ? "warn" : "good"}>{item.parent_visible ? "מאושר להורה" : "פנימי"}</StatusBadge>
+                </article>
+              ))}</div>
+            )}
+          </CleanSection>
+        </section>
+
+        <section className="grid cols-2 dashboard-panels">
+          <article className="card action-panel">
+            <h2><AlertTriangle size={20} /> דורש טיפול</h2>
+            {[...data.failedStreams, ...data.pendingSetup].slice(0, 8).length === 0 ? <div className="empty-mini">אין מצלמות שדורשות טיפול.</div> : [...data.failedStreams, ...data.pendingSetup].slice(0, 8).map((camera) => (
+              <div className="list-item" key={camera.id}><div><strong>{camera.name}</strong><span>{camera.gardens?.name ?? "גן"} · {camera.area ?? "אזור"} · {camera.gateway_last_error ?? camera.last_test_message ?? "נדרש חיבור"}</span></div><StatusBadge tone={healthTone(camera.status ?? camera.health_status)}>{camera.status ?? camera.health_status}</StatusBadge></div>
+            ))}
+          </article>
+          <article className="card action-panel">
+            <h2><Activity size={20} /> צפיות ולוגים</h2>
+            {data.sessions.length === 0 && data.audit.length === 0 ? <div className="empty-mini">אין פעילות צפייה עדיין.</div> : [...data.sessions, ...data.audit].slice(0, 8).map((item) => (
+              <div className="list-item" key={item.id}><div><strong>{item.action ?? "צפייה מאובטחת"}</strong><span>{dateText(item.started_at ?? item.created_at)} · {item.playback_protocol ?? item.status ?? "מתועד"}</span></div><StatusBadge tone={item.no_secrets_exposed === false ? "bad" : "good"}>{item.no_secrets_exposed === false ? "בדיקה" : "מאובטח"}</StatusBadge></div>
+            ))}
+          </article>
+        </section>
+
+        <CameraAdminManager cameras={data.cameras as Row[]} gardens={data.gardens as Array<{ id: string; name: string; city?: string | null }>} gatewayConnected={gatewayConfigured} />
+
+        <section className="quick-actions-grid">
+          <ActionCard title="שרת וידאו" text="Gateway ובריאות" href="/dashboard/admin/video-gateway" icon={RadioTower} />
+          <ActionCard title="פריסת מצלמות" text="בדיקות והתקנה" href="/dashboard/admin/camera-deployment" icon={Video} />
+          <ActionCard title="בדיקת חשיפה" text="הורים והרשאות" href="/dashboard/admin/camera-audit" icon={ShieldCheck} />
+          <ActionCard title="תצפיתן" text="תור בדיקה" href="/dashboard/admin/observer-network" icon={Eye} />
+          <ActionCard title="אירועי תצפיתן" text="בדיקה אנושית" href="/dashboard/admin/ai-events" icon={Workflow} />
+          <ActionCard title="אינטגרציות" text="הפעלת ספקים" href="/dashboard/admin/integrations" icon={Camera} />
+        </section>
+      </div>
+    </DashboardShell>
+  );
 }

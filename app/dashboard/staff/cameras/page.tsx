@@ -9,9 +9,10 @@ export default async function StaffCamerasPage() {
   const gardenId = profile.garden_id ?? "";
   const camerasRes = await supabase
     .from("camera_streams" as any)
-    .select("id, garden_id, kindergarten_id, name, area, camera_type, source_type, protocol, status, active, parent_view_allowed, parent_viewing_allowed, hls_playback_url, sample_hls_url, webrtc_playback_url, last_health_check_at, gardens(name, city)")
+    .select("id, garden_id, kindergarten_id, name, area, camera_type, source_type, protocol, status, active, staff_view_allowed, hls_playback_url, sample_hls_url, webrtc_playback_url, gateway_stream_id, video_gateway_stream_id, last_health_check_at, gardens(name, city)")
     .eq("garden_id", gardenId)
-    .eq("active", true);
+    .eq("active", true)
+    .eq("staff_view_allowed", true);
   const cameras = (camerasRes.data ?? []) as any[];
   return (
     <DashboardShell role="staff" title="מצלמות צוות">
@@ -20,7 +21,7 @@ export default async function StaffCamerasPage() {
         <span className="pill good">גן משויך בלבד</span>
       </div>
       <section className="dashboard-section">
-        {cameras.length === 0 ? <div className="empty-state"><strong>אין מצלמות זמינות לצוות</strong><span>כאשר מנהלת הגן תגדיר מצלמה פעילה, היא תופיע כאן לצפייה מאובטחת.</span></div> : <div className="camera-playback-grid">{cameras.map((camera) => <CameraPlaybackCard camera={camera} key={camera.id} />)}</div>}
+        {cameras.length === 0 ? <div className="empty-state"><strong>אין מצלמות זמינות לצוות</strong><span>צפיית צוות נפתחת רק אם מנהלת הגן אישרה זאת. כל צפייה מתועדת.</span></div> : <div className="camera-playback-grid">{cameras.map((camera) => <CameraPlaybackCard camera={camera} accessReason="צפיית צוות מורשית" key={camera.id} />)}</div>}
       </section>
     </DashboardShell>
   );

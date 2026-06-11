@@ -19,6 +19,9 @@ export function sanitizeCameraForParent(camera: Record<string, any>) {
     status: camera.status ?? camera.stream_status ?? null,
     active: camera.active ?? null,
     viewing_hours: camera.viewing_hours ?? null,
+    operating_hours: camera.operating_hours ?? null,
+    parent_visibility_status: camera.parent_visibility_status ?? null,
+    parent_blocked_reason: camera.parent_blocked_reason ?? null,
     last_health_check_at: camera.last_health_check_at ?? null,
     health_status: getCameraHealthStatus(camera),
     playback_source_available: hasPlaybackSource(camera)

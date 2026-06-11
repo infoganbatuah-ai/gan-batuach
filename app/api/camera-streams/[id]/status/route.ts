@@ -102,6 +102,18 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       before_data: { status: (camera as any).status, active: (camera as any).active },
       after_data: { status: (data as any).status, active: (data as any).active, note: body.note ?? null }
     });
+    await supabase.from("camera_infrastructure_audit_logs" as any).insert({
+      actor_id: profile.id,
+      actor_role: profile.role,
+      garden_id: cameraGardenId,
+      camera_id: id,
+      action: `camera_${body.action}`,
+      status: body.action === "test_connection" && (data as any).last_test_status !== "healthy" ? "warning" : "success",
+      no_secrets_exposed: true,
+      before_data: { status: (camera as any).status, active: (camera as any).active },
+      after_data: { status: (data as any).status, active: (data as any).active, gateway_registration_status: (data as any).gateway_registration_status ?? null },
+      metadata: { note: body.note ?? null }
+    });
     return ok({ camera: data, message: "סטטוס המצלמה עודכן" });
   } catch (error) {
     return handleRouteError(error);

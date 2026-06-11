@@ -33,7 +33,7 @@ export function createCrudHandlers(config: CrudConfig) {
         const gardenId = searchParams.get("garden_id");
         const selectColumns =
           config.table === "camera_streams"
-            ? "id,garden_id,kindergarten_id,name,area,age_group,class_group,camera_type,source_type,system_type,deployment_scope,test_site_type,camera_provider_key,gateway_provider_preference,live_preview_status,clip_readiness_status,snapshot_readiness_status,permission_model,stream_status,health_status,last_seen,connection_method,protocol,host,port,channel,connection_host,connection_port,connection_channel,stream_quality,last_test_status,last_test_message,last_test_at,gateway_registration_status,gateway_last_error,masked_connection_summary,hls_playback_url,sample_hls_url,webrtc_playback_url,video_gateway_stream_id,gateway_stream_id,viewing_hours,parent_view_allowed,parent_viewing_allowed,status,active,ai_enabled,last_health_check_at,last_successful_connection_at,last_stream_activity_at,uptime_seconds,failure_count,reconnect_attempts,recording_enabled,retention_days,archive_policy,created_at,updated_at"
+            ? "id,garden_id,kindergarten_id,name,area,age_group,class_group,camera_type,source_type,source_category,camera_zone_label,system_type,deployment_scope,test_site_type,camera_provider_key,gateway_provider_preference,live_preview_status,clip_readiness_status,snapshot_readiness_status,permission_model,stream_status,health_status,last_seen,connection_method,protocol,host,port,channel,connection_host,connection_port,connection_channel,stream_quality,last_test_status,last_test_message,last_test_at,gateway_registration_status,gateway_last_error,masked_connection_summary,hls_playback_url,sample_hls_url,webrtc_playback_url,video_gateway_stream_id,gateway_stream_id,viewing_hours,operating_hours,parent_view_allowed,parent_viewing_allowed,parent_visibility_status,parent_blocked_reason,staff_view_allowed,inspector_view_allowed,inspector_access_policy,status,active,ai_enabled,observer_enabled,observer_review_required,observer_confidence_threshold,last_health_check_at,last_successful_connection_at,last_stream_activity_at,uptime_seconds,failure_count,reconnect_attempts,recording_enabled,retention_days,archive_policy,created_at,updated_at"
             : "*";
         let query = (supabase as any).from(config.table).select(selectColumns).limit(Math.min(limit, 200));
         if (gardenId) query = query.eq("garden_id", gardenId);
@@ -144,6 +144,20 @@ export function createCrudHandlers(config: CrudConfig) {
             "disabled_at",
             "disabled_by",
             "health_summary",
+            "source_category",
+            "camera_zone_label",
+            "operating_hours",
+            "parent_visibility_status",
+            "parent_blocked_reason",
+            "staff_view_allowed",
+            "inspector_view_allowed",
+            "inspector_access_policy",
+            "observer_enabled",
+            "observer_review_required",
+            "observer_confidence_threshold",
+            "observer_zone_mapping",
+            "safety_indicator_categories",
+            "privacy_policy",
             "system_type",
             "connection_host",
             "connection_port",
@@ -285,6 +299,23 @@ export function createCrudHandlers(config: CrudConfig) {
             validation_status: data.last_test_status ?? "not_tested",
             no_secrets_exposed: true,
             metadata: { deployment_scope: data.deployment_scope ?? null, test_site_type: data.test_site_type ?? null }
+          });
+          await (supabase as any).from("camera_infrastructure_audit_logs").insert({
+            actor_id: permission.session.profile.id,
+            actor_role: permission.session.profile.role,
+            garden_id: data.garden_id ?? parsed.garden_id ?? null,
+            camera_id: data.id,
+            action: "camera_created",
+            status: "success",
+            no_secrets_exposed: true,
+            after_data: {
+              name: data.name,
+              status: data.status,
+              source_category: data.source_category ?? null,
+              parent_visibility_status: data.parent_visibility_status ?? null,
+              staff_view_allowed: data.staff_view_allowed ?? false,
+              observer_enabled: data.observer_enabled ?? false
+            }
           });
         }
         if (config.table === "camera_streams" && data) {
