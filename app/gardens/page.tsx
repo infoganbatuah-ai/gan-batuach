@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { CalendarDays, CheckCircle2, MapPin, ShieldAlert, ShieldCheck, UsersRound } from "lucide-react";
 import { BrandHeader } from "@/components/brand-header";
+import { trustBadgeLabel } from "@/lib/domain/parent-trust";
 import { formatAgeGroups, formatPublicPriceRange, getKindergartenAgeGroups, type KindergartenAgeGroup } from "@/lib/kindergarten-age-groups";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -21,6 +22,7 @@ type PublicGarden = {
   last_inspection_at?: string | null;
   next_inspection_at?: string | null;
   public_profile_enabled?: boolean | null;
+  parent_trust_profiles?: Array<{ trust_score?: number | null; trust_badge_status?: string | null; public_profile_ready?: boolean | null }> | null;
   gps_lat?: number | null;
   gps_lng?: number | null;
   ages?: string[] | null;
@@ -59,7 +61,7 @@ async function getPublicGardens(filters: GardenSearchParams) {
     const supabase = createAdminClient();
     let query = supabase
       .from("gardens")
-      .select("id, name, city, address, owner_name, framework_type, children_capacity, current_children_count, safe_status, last_inspection_score, last_inspection_at, next_inspection_at, public_profile_enabled, gps_lat, gps_lng, manager:profiles!gardens_manager_id_fkey(full_name)")
+      .select("id, name, city, address, owner_name, framework_type, children_capacity, current_children_count, safe_status, last_inspection_score, last_inspection_at, next_inspection_at, public_profile_enabled, gps_lat, gps_lng, manager:profiles!gardens_manager_id_fkey(full_name), parent_trust_profiles(trust_score, trust_badge_status, public_profile_ready)")
       .eq("public_profile_enabled", true)
       .limit(24);
     if (filters.name) query = query.ilike("name", `%${filters.name}%`);
@@ -141,6 +143,8 @@ export default async function GardensPage({ searchParams }: { searchParams: Prom
                       <span><UsersRound size={16} /> מקבל: {formatAgeGroups(garden.supported_age_groups ?? [])}</span>
                       <span><UsersRound size={16} /> {formatPublicPriceRange(garden.supported_age_groups ?? [])}</span>
                       <span><UsersRound size={16} /> ילדים: {garden.current_children_count ?? 0}/{garden.children_capacity ?? 0}</span>
+                      <span><ShieldCheck size={16} /> אמון: {garden.parent_trust_profiles?.[0]?.trust_score ?? "חדש"}</span>
+                      <span><ShieldCheck size={16} /> {trustBadgeLabel(garden.parent_trust_profiles?.[0]?.trust_badge_status)}</span>
                       <span><ShieldCheck size={16} /> ציון אחרון: {garden.last_inspection_score ?? "טרם בוצעה ביקורת"}</span>
                       <span><CalendarDays size={16} /> ביקורת אחרונה: {formatDate(garden.last_inspection_at)}</span>
                       <span><CalendarDays size={16} /> ביקורת הבאה: {formatDate(garden.next_inspection_at)}</span>
