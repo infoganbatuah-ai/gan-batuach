@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import {
+  AlertCircle,
   Baby,
   Bell,
   Camera,
@@ -60,6 +61,16 @@ function parentDailySummary(childName: string, journal?: any, timeline: any[] = 
 function safeDate(value?: string | null) {
   if (!value) return "לא עודכן";
   return new Date(value).toLocaleDateString("he-IL");
+}
+
+function categoryLabelForFeed(item: any) {
+  const text = `${item.title ?? ""} ${item.body ?? ""} ${item.message ?? ""} ${item.entity_type ?? ""}`;
+  if (text.includes("מסמך") || text.toLowerCase().includes("document")) return "מסמך";
+  if (text.includes("תשלום") || text.toLowerCase().includes("payment")) return "תשלום";
+  if (text.includes("בטיחות") || text.includes("תצפיתן") || text.toLowerCase().includes("safety")) return "בטיחות";
+  if (text.includes("הודעה") || text.toLowerCase().includes("message")) return "הודעה";
+  if (text.includes("איסוף") || text.toLowerCase().includes("pickup")) return "איסוף";
+  return "עדכון";
 }
 
 export default async function ParentFamilyHomePage() {
@@ -170,6 +181,42 @@ export default async function ParentFamilyHomePage() {
     { label: "תשלומים", count: paymentAttention.length },
     { label: "פיקוח", count: inspectionRes.data ? 1 : 0 }
   ];
+  const actionItems = [
+    unreadNotifications ? { title: "יש עדכונים שלא נקראו", text: `${unreadNotifications} עדכונים מחכים לך`, href: "/dashboard/parent/notifications", tone: "warn" } : null,
+    actionDocs.length ? { title: "מסמכים לטיפול", text: `${actionDocs.length} מסמכים דורשים אישור או השלמה`, href: "/dashboard/parent/documents", tone: "warn" } : null,
+    paymentAttention.length ? { title: "תשלום לבדיקה", text: `${paymentAttention.length} פריטים כספיים דורשים תשומת לב`, href: "/dashboard/parent/payments", tone: "warn" } : null,
+    openRequests.length ? { title: "פניות פתוחות", text: `${openRequests.length} פניות עדיין בטיפול`, href: "/dashboard/parent/messages", tone: "good" } : null,
+    timeline.length === 0 && primaryChild ? { title: "ממתינים לעדכון יומי", text: "הגן עדיין לא שיתף ציר יום מאושר", href: "/dashboard/parent/messages", tone: "default" } : null
+  ].filter(Boolean) as Array<{ title: string; text: string; href: string; tone: string }>;
+  const smartFeed = [
+    ...timeline.slice(0, 5).map((event) => ({
+      id: `timeline-${event.id}`,
+      title: event.title,
+      text: event.summary_safe ?? event.description ?? "עדכון מאושר מהגן",
+      href: primaryChild ? `/dashboard/parent/children/${primaryChild.id}/timeline` : "/dashboard/parent/family-home",
+      time: event.event_time,
+      kind: timelineCategoryLabel(event.event_category),
+      tone: timelineTone(event.event_category, event.safety_relevance)
+    })),
+    ...gallery.slice(0, 4).map((item) => ({
+      id: `gallery-${item.id}`,
+      title: item.title ?? "תמונה חדשה מהגן",
+      text: "רגע משפחתי שהגן שיתף",
+      href: "/dashboard/parent/gallery",
+      time: item.created_at,
+      kind: "תמונה",
+      tone: "good"
+    })),
+    ...notifications.slice(0, 5).map((item) => ({
+      id: `notification-${item.id}`,
+      title: item.title ?? "עדכון חדש",
+      text: item.body ?? item.message ?? "עדכון שמחכה לך",
+      href: "/dashboard/parent/notifications",
+      time: item.created_at,
+      kind: categoryLabelForFeed(item),
+      tone: item.read_at ? "default" : "warn"
+    }))
+  ].sort((a, b) => new Date(b.time ?? 0).getTime() - new Date(a.time ?? 0).getTime()).slice(0, 8);
 
   return (
     <DashboardShell role="parent" title="בית משפחתי">
@@ -205,6 +252,22 @@ export default async function ParentFamilyHomePage() {
           <RoleMetricCard label="מצלמות" value={availableCameras} hint={unavailableCameras ? "חלק ממתינות לאישור/חיבור" : "צפייה מורשית"} tone={availableCameras ? "good" : "warn"} href="/dashboard/parent/cameras" />
         </section>
 
+        <section className="parent-attention-center">
+          <div>
+            <p className="eyebrow">מה דורש תשומת לב?</p>
+            <h2>המערכת מרכזת עבורך את החשוב.</h2>
+            <p>בלי לחפש: מסמכים, הודעות, תשלומים ועדכונים רגישים מופיעים כאן לפי חשיבות.</p>
+          </div>
+          <div className="parent-attention-list">
+            {actionItems.length ? actionItems.map((item) => (
+              <Link className={`parent-attention-item ${item.tone}`} href={item.href} key={item.title}>
+                <AlertCircle size={18} />
+                <div><strong>{item.title}</strong><span>{item.text}</span></div>
+              </Link>
+            )) : <div className="parent-attention-item good"><CheckCircle2 size={18} /><div><strong>אין משימות פתוחות</strong><span>הכול מסודר כרגע. עדכונים חדשים יופיעו כאן.</span></div></div>}
+          </div>
+        </section>
+
         <section className="family-home-layout">
           <article className="family-feed-card">
             <div className="section-heading">
@@ -236,6 +299,23 @@ export default async function ParentFamilyHomePage() {
               <Link href="/dashboard/parent/messages">לשאול את הגן</Link>
             </div>
           </aside>
+        </section>
+
+        <section className="family-smart-feed">
+          <div className="section-heading">
+            <h2>הפיד המשפחתי</h2>
+            <p>תמונות, עדכונים, הודעות ותצפיות שאושרו להורים, מסודרים לפי מה שחשוב עכשיו.</p>
+          </div>
+          <div className="family-smart-feed-grid">
+            {smartFeed.length ? smartFeed.map((item) => (
+              <Link className={`family-smart-feed-item ${item.tone}`} href={item.href} key={item.id}>
+                <span>{item.kind}</span>
+                <strong>{item.title}</strong>
+                <p>{item.text}</p>
+                <small>{item.time ? eventDateText(item.time) : "חדש"}</small>
+              </Link>
+            )) : <div className="empty-state"><strong>הפיד עדיין ריק</strong><span>כאשר הגן ישתף תמונות, פעילות, הודעות או עדכונים מאושרים, הם יופיעו כאן.</span></div>}
+          </div>
         </section>
 
         <section className="family-action-center">
