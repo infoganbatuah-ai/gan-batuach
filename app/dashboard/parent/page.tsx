@@ -172,6 +172,7 @@ export default async function ParentDashboard() {
 
         <section className="parent-action-grid">
           <ActionCard title="הודעות" text="שיחה קצרה וברורה עם הגן" href="/dashboard/parent/messages" icon={MessageCircle} tone="good" />
+          <ActionCard title="מרכז אמון" text="שקיפות, פיקוח וציות" href="/dashboard/parent/trust" icon={ShieldCheck} />
           <ActionCard title="יומן יומי" text="אוכל, שינה, מצב רוח ותמונות" href="/dashboard/parent/daily-journal" icon={HeartPulse} />
           <ActionCard title="מצלמות" text="צפייה רק אם הגן אישר" href="/dashboard/parent/cameras" icon={Camera} />
           <ActionCard title="גלריה" text="רגעים שהגן שיתף" href="/dashboard/parent/gallery" icon={Image} />

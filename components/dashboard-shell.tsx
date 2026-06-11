@@ -167,6 +167,7 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
   ],
   parent: [
     { href: "/dashboard/parent", label: "אזור הורים", hint: "ילד וגן" },
+    { href: "/dashboard/parent/trust", label: "מרכז אמון", hint: "שקיפות ובטיחות" },
     { href: "/dashboard/parent/cameras", label: "מצלמות הגן", hint: "צפייה מורשית" },
     { href: "/dashboard/parent/ai-events", label: "עדכוני בטיחות", hint: "רק לאחר בדיקה" },
     { href: "/dashboard/parent/daily-journal", label: "יומן יומי", hint: "עדכוני הילד" },
