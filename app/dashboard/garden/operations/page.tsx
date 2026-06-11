@@ -97,7 +97,7 @@ export default async function GardenOperationsPage() {
     supabase.from("child_daily_journals" as any).select("child_id,meals,sleep_summary,health_notes,mood").eq("garden_id", gardenId).eq("journal_date", today),
     supabase.from("staff" as any).select("id,full_name,role_title,approved_to_work,onboarding_status", { count: "exact" }).eq("garden_id", gardenId),
     supabase.from("staff_shifts" as any).select("staff_id,clock_in_at,clock_out_at", { count: "exact" }).eq("garden_id", gardenId).eq("shift_date", today),
-    supabase.from("tasks" as any).select("id,title,status,priority,category,task_type,due_at,source_entity_type,source_entity_id", { count: "exact" }).eq("garden_id", gardenId).neq("status", "done").order("created_at", { ascending: false }).limit(12),
+    supabase.from("tasks" as any).select("id,title,status,task_type,due_at,source_entity_type,source_entity_id", { count: "exact" }).eq("garden_id", gardenId).neq("status", "done").order("created_at", { ascending: false }).limit(12),
     supabase.from("notifications" as any).select("id,title,body,status,entity_type,created_at", { count: "exact" }).eq("garden_id", gardenId).in("status", ["pending", "sent"]).is("read_at", null).order("created_at", { ascending: false }).limit(10),
     supabase.from("messages" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId).is("read_at", null),
     supabase.from("documents" as any).select("id,status,expires_at", { count: "exact" }).eq("garden_id", gardenId).in("status", ["missing", "expired", "rejected", "pending_review"]).limit(30),
@@ -110,7 +110,7 @@ export default async function GardenOperationsPage() {
     supabase.from("children" as any).select("id,payment_status,monthly_fee").eq("garden_id", gardenId).in("payment_status", ["overdue", "unpaid", "partial", "failed", "not_transferred"]),
     supabase.from("daily_operations" as any).select("*").eq("garden_id", gardenId).eq("operation_date", today).maybeSingle(),
     supabase.from("kindergarten_operational_health_scores" as any).select("*").eq("garden_id", gardenId).order("snapshot_date", { ascending: false }).limit(1).maybeSingle(),
-    supabase.from("operational_workflow_events" as any).select("*, tasks(title,status,priority,due_at)").eq("garden_id", gardenId).neq("event_status", "completed").order("created_at", { ascending: false }).limit(12),
+    supabase.from("operational_workflow_events" as any).select("*").eq("garden_id", gardenId).neq("event_status", "completed").order("created_at", { ascending: false }).limit(12),
     supabase.from("compliance_corrective_actions" as any).select("id,title,status,priority,due_date").eq("garden_id", gardenId).in("status", ["open", "in_progress", "overdue"]).order("created_at", { ascending: false }).limit(8),
     supabase.from("prevention_recommendation_actions" as any).select("id,title,status,priority,recommendation_type").eq("garden_id", gardenId).in("status", ["open", "in_progress", "approved"]).order("created_at", { ascending: false }).limit(8)
   ]);
@@ -194,16 +194,16 @@ export default async function GardenOperationsPage() {
       status: item.event_status,
       href: item.task_id ? "/dashboard/garden/tasks" : "/dashboard/garden/operations",
       due: item.due_at,
-      priority: item.metadata?.priority ?? item.tasks?.priority
+      priority: item.metadata?.priority
     })),
     ...tasks.map((item) => ({
       id: item.id,
       title: item.title,
-      source: item.source_entity_type ?? item.category ?? item.task_type ?? "communications",
+      source: item.source_entity_type ?? item.task_type ?? "communications",
       status: item.status,
       href: "/dashboard/garden/tasks",
       due: item.due_at,
-      priority: item.priority
+      priority: null
     })),
     ...complianceActions.map((item) => ({
       id: item.id,
