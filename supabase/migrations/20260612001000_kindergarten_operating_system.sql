@@ -237,9 +237,9 @@ select
   t.id,
   case when t.status::text in ('done','completed','closed') then 'approved' else 'needs_review' end,
   case when t.status::text in ('done','completed','closed') then 'closed' else 'open' end,
-  case when t.assigned_role in ('admin','owner','manager','staff','parent','inspector','observer_owner') then t.assigned_role::public.app_role else null end,
+  null,
   t.due_at,
-  jsonb_build_object('task_status', t.status::text, 'category', coalesce(t.category, t.task_type, 'general'))
+  jsonb_build_object('task_status', t.status::text, 'category', coalesce(t.task_type, 'general'))
 from public.tasks t
 where t.garden_id is not null
 on conflict (garden_id, workflow_key) do nothing;
