@@ -56,6 +56,8 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/admin/push-production", label: "התראות פעילות", hint: "בדיקות ושליחה" },
     { href: "/dashboard/admin/email-production", label: "מיילים פעילים", hint: "תבניות ושליחה" },
     { href: "/dashboard/admin/subscriptions", label: "מנויים", hint: "חיוב ותוכניות" },
+    { href: "/dashboard/admin/workflows", label: "מרכז עבודה", hint: "תהליכים ואוטומציה" },
+    { href: "/dashboard/tasks", label: "תיבת משימות", hint: "כל המשימות במקום אחד" },
     { href: "/dashboard/admin/tasks", label: "משימות", hint: "מעקב והסלמה" },
     { href: "/dashboard/admin/complaints", label: "דיווחים ופניות", hint: "זמן טיפול ודחיפות" },
     { href: "/dashboard/admin/incident-center", label: "תיקי אירוע", hint: "חקירה וראיות" },
@@ -88,6 +90,7 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/inspector/risk", label: "מודיעין סיכון", hint: "תיעדוף מונע" },
     { href: "/dashboard/inspector/reports", label: "דיווחים", hint: "פניות ואירועים" },
     { href: "/dashboard/inspector/notifications", label: "התראות", hint: "פיקוח ומשימות" },
+    { href: "/dashboard/tasks", label: "תיבת משימות", hint: "כל המשימות" },
     { href: "/dashboard/inspector/tasks", label: "משימות", hint: "לביצוע" },
     { href: "/dashboard/inspector/violations", label: "ליקויים", hint: "אישור תיקונים" },
     { href: "/dashboard/inspector/settings", label: "הגדרות", hint: "פרופיל והתראות" }
@@ -122,6 +125,7 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/garden/subscription", label: "מנוי", hint: "תוכנית וחידוש" },
     { href: "/dashboard/garden/parents", label: "הורים", hint: "אנשי קשר" },
     { href: "/dashboard/garden/staff", label: "צוות", hint: "אישורים ותעודות" },
+    { href: "/dashboard/tasks", label: "תיבת משימות", hint: "כל המשימות" },
     { href: "/dashboard/garden/tasks", label: "משימות", hint: "לביצוע ואישור" },
     { href: "/dashboard/garden/documents", label: "מסמכים", hint: "תוקף ואישור" },
     { href: "/dashboard/garden/inspections", label: "פיקוח", hint: "דוחות ותיקונים" },
@@ -158,6 +162,7 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/garden/subscription", label: "מנוי", hint: "תוכנית וחידוש" },
     { href: "/dashboard/garden/parents", label: "הורים", hint: "אנשי קשר" },
     { href: "/dashboard/garden/staff", label: "צוות", hint: "אישורים ותעודות" },
+    { href: "/dashboard/tasks", label: "תיבת משימות", hint: "כל המשימות" },
     { href: "/dashboard/garden/tasks", label: "משימות", hint: "לביצוע ואישור" },
     { href: "/dashboard/garden/documents", label: "מסמכים", hint: "תוקף ואישור" },
     { href: "/dashboard/garden/inspections", label: "פיקוח", hint: "דוחות ותיקונים" },
@@ -172,6 +177,7 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/staff/incidents", label: "אירועים", hint: "דיווח מהיר" },
     { href: "/dashboard/staff/daily-journal", label: "יומן תפעול", hint: "צ׳קליסט" },
     { href: "/dashboard/staff/cameras", label: "מצלמות", hint: "צפייה מורשית" },
+    { href: "/dashboard/tasks", label: "תיבת משימות", hint: "כל המשימות" },
     { href: "/dashboard/staff/tasks", label: "משימות", hint: "לביצוע" },
     { href: "/dashboard/staff/documents", label: "מסמכים", hint: "תעודות ואישורים" },
     { href: "/dashboard/staff/shifts", label: "שעות", hint: "דוחות חודשיים" },
@@ -188,6 +194,7 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/parent/daily-journal", label: "יומן יומי", hint: "עדכוני הילד" },
     { href: "/dashboard/parent/pickup", label: "איסוף", hint: "מורשים וזמני" },
     { href: "/dashboard/parent/notifications", label: "התראות", hint: "עדכונים חשובים" },
+    { href: "/dashboard/tasks", label: "משימות", hint: "מה דורש טיפול" },
     { href: "/dashboard/parent/messages", label: "הודעות", hint: "שיחה עם הגן" },
     { href: "/dashboard/parent/gallery", label: "גלריה", hint: "רגעים מהגן" },
     { href: "/parent-onboarding", label: "כרטיס ילד", hint: "פרטים והסכמות" },
@@ -214,27 +221,27 @@ const mobileNavByRole: Record<UserRole, Array<{ href: string; label: string; hin
     { href: "/dashboard/admin/kindergartens", label: "גנים", hint: "ניהול" },
     { href: "/dashboard/admin/users", label: "משתמשים", hint: "ניהול" },
     { href: "/dashboard/admin/notifications", label: "התראות", hint: "חשוב" },
-    { href: "/dashboard/admin/settings", label: "עוד", hint: "מתקדם" }
+    { href: "/dashboard/tasks", label: "משימות", hint: "עבודה" }
   ],
   manager: [
     { href: "/dashboard/garden/command-center", label: "בית", hint: "היום" },
     { href: "/dashboard/garden/children", label: "ילדים", hint: "עדכון" },
     { href: "/dashboard/garden/messages", label: "פניות", hint: "הורים" },
     { href: "/dashboard/garden/cameras", label: "מצלמות", hint: "צפייה" },
-    { href: "/dashboard/garden/tasks", label: "משימות", hint: "היום" }
+    { href: "/dashboard/tasks", label: "משימות", hint: "היום" }
   ],
   owner: [
     { href: "/dashboard/garden/command-center", label: "בית", hint: "היום" },
     { href: "/dashboard/garden/children", label: "ילדים", hint: "עדכון" },
     { href: "/dashboard/garden/messages", label: "פניות", hint: "הורים" },
     { href: "/dashboard/garden/cameras", label: "מצלמות", hint: "צפייה" },
-    { href: "/dashboard/garden/tasks", label: "משימות", hint: "היום" }
+    { href: "/dashboard/tasks", label: "משימות", hint: "היום" }
   ],
   staff: [
     { href: "/dashboard/staff/operations", label: "בית", hint: "משמרת" },
     { href: "/dashboard/staff/child-journal", label: "ילדים", hint: "עדכון" },
     { href: "/dashboard/staff/messages", label: "הודעות", hint: "גן" },
-    { href: "/dashboard/staff/tasks", label: "משימות", hint: "היום" },
+    { href: "/dashboard/tasks", label: "משימות", hint: "היום" },
     { href: "/dashboard/staff/notifications", label: "עוד", hint: "עוד" }
   ],
   inspector: [
@@ -242,14 +249,14 @@ const mobileNavByRole: Record<UserRole, Array<{ href: string; label: string; hin
     { href: "/dashboard/inspector/inspections", label: "ביקורות", hint: "היום" },
     { href: "/dashboard/inspector/reports", label: "דוחות", hint: "סיכום" },
     { href: "/dashboard/inspector/violations", label: "חריגות", hint: "טיפול" },
-    { href: "/dashboard/inspector/notifications", label: "עוד", hint: "עוד" }
+    { href: "/dashboard/tasks", label: "משימות", hint: "היום" }
   ],
   parent: [
     { href: "/dashboard/parent/family-home", label: "בית", hint: "משפחה" },
     { href: "/dashboard/parent/daily-journal", label: "ילדים", hint: "יומן" },
     { href: "/dashboard/parent/messages", label: "הודעות", hint: "גן" },
     { href: "/dashboard/parent/cameras", label: "מצלמות", hint: "צפייה" },
-    { href: "/dashboard/parent/notifications", label: "עוד", hint: "התראות" }
+    { href: "/dashboard/tasks", label: "משימות", hint: "לטיפול" }
   ]
 };
 
