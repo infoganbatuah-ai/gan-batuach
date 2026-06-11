@@ -79,6 +79,7 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/admin/reports", label: "דוחות", hint: "ייצוא וניתוח" },
     { href: "/dashboard/admin/settings", label: "הגדרות", hint: "מערכת והרשאות" }
   ],  inspector: [
+    { href: "/dashboard/inspector/command-center", label: "מרכז שטח", hint: "פיקוח היום" },
     { href: "/dashboard/inspector", label: "ביקורות", hint: "חודשי, GPS, ליקויים" },
     { href: "/dashboard/inspector/inspections", label: "ביקורות", hint: "נתוני פיקוח" },
     { href: "/dashboard/inspector/cameras", label: "מצלמות", hint: "גנים משויכים" },
@@ -178,6 +179,7 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/staff/settings", label: "הגדרות", hint: "פרופיל והתראות" }
   ],
   parent: [
+    { href: "/dashboard/parent/family-home", label: "בית משפחתי", hint: "היום של הילד" },
     { href: "/dashboard/parent", label: "אזור הורים", hint: "ילד וגן" },
     { href: "/dashboard/parent/trust", label: "מרכז אמון", hint: "שקיפות ובטיחות" },
     { href: "/dashboard/parent/cameras", label: "מצלמות הגן", hint: "צפייה מורשית" },
@@ -198,11 +200,11 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
 
 const dashboardHomeByRole: Record<UserRole, string> = {
   admin: "/dashboard/admin",
-  inspector: "/dashboard/inspector",
+  inspector: "/dashboard/inspector/command-center",
   manager: "/dashboard/garden/command-center",
   owner: "/dashboard/garden/command-center",
   staff: "/dashboard/staff/operations",
-  parent: "/dashboard/parent"
+  parent: "/dashboard/parent/family-home"
 };
 
 const mobileNavByRole: Record<UserRole, Array<{ href: string; label: string; hint: string }>> = {
@@ -235,14 +237,14 @@ const mobileNavByRole: Record<UserRole, Array<{ href: string; label: string; hin
     { href: "/dashboard/staff/notifications", label: "עוד", hint: "עוד" }
   ],
   inspector: [
-    { href: "/dashboard/inspector", label: "בית", hint: "עבודה" },
+    { href: "/dashboard/inspector/command-center", label: "בית", hint: "שטח" },
     { href: "/dashboard/inspector/inspections", label: "ביקורות", hint: "היום" },
     { href: "/dashboard/inspector/reports", label: "דוחות", hint: "סיכום" },
     { href: "/dashboard/inspector/violations", label: "חריגות", hint: "טיפול" },
     { href: "/dashboard/inspector/notifications", label: "עוד", hint: "עוד" }
   ],
   parent: [
-    { href: "/dashboard/parent", label: "בית", hint: "הילד" },
+    { href: "/dashboard/parent/family-home", label: "בית", hint: "משפחה" },
     { href: "/dashboard/parent/daily-journal", label: "ילדים", hint: "יומן" },
     { href: "/dashboard/parent/messages", label: "הודעות", hint: "גן" },
     { href: "/dashboard/parent/cameras", label: "מצלמות", hint: "צפייה" },
@@ -277,7 +279,7 @@ function navGroupFor(role: UserRole, href: string) {
     return "הגדרות";
   }
   if (role === "parent") {
-    if (href === "/dashboard/parent" || href.includes("/daily-journal") || href.includes("/children") || href.includes("/gallery")) return "ילדים";
+    if (href === "/dashboard/parent" || href.includes("/family-home") || href.includes("/daily-journal") || href.includes("/children") || href.includes("/gallery")) return "ילדים";
     if (href.includes("/messages") || href.includes("/notifications")) return "תקשורת";
     if (href.includes("/cameras")) return "מצלמות";
     if (href.includes("/pickup") || href.includes("/documents") || href.includes("/payments")) return "תפעול";
@@ -292,7 +294,7 @@ function navGroupFor(role: UserRole, href: string) {
     if (href.includes("/documents") || href.includes("/certificates") || href.includes("/shifts") || href.includes("/background")) return "צוות";
     return "הגדרות";
   }
-  if (href === "/dashboard/inspector" || href.includes("/tasks") || href.includes("/notifications")) return "תפעול";
+  if (href === "/dashboard/inspector" || href.includes("/command-center") || href.includes("/tasks") || href.includes("/notifications")) return "תפעול";
   if (href.includes("/inspections") || href.includes("/violations") || href.includes("/compliance")) return "ציות";
   if (href.includes("/cameras")) return "מצלמות";
   if (href.includes("/ai-events") || href.includes("/risk") || href.includes("/observer")) return "חכם";
