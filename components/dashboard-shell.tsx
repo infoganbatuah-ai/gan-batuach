@@ -38,6 +38,7 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/admin/observer-test-center", label: "בדיקות תצפיתן", hint: "Shadow וכיול" },
     { href: "/dashboard/admin/observer-calibration", label: "כיול תצפיתן", hint: "דיוק ובשלות" },
     { href: "/dashboard/admin/risk-intelligence", label: "מודיעין סיכון", hint: "חיזוי ומניעה" },
+    { href: "/dashboard/admin/predictive-safety", label: "בטיחות חזויה", hint: "מניעה מוקדמת" },
     { href: "/dashboard/admin/observer-replay", label: "Replay תצפיתן", hint: "בדיקת אירועים" },
     { href: "/dashboard/admin/observer-learning", label: "למידת תצפיתן", hint: "אזורים ושגרות" },
     { href: "/dashboard/admin/observer-learning-advanced", label: "למידה מתקדמת", hint: "שגרה ומוכנות" },
