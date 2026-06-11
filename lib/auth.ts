@@ -38,11 +38,11 @@ export async function requirePermission(permission: Permission) {
 export function dashboardPathForRole(role: UserRole) {
   return {
     admin: "/dashboard/admin",
-    inspector: "/dashboard/inspector",
+    inspector: "/dashboard/inspector/command-center",
     manager: "/dashboard/garden",
     owner: "/dashboard/garden",
     staff: "/dashboard/staff",
-    parent: "/dashboard/parent"
+    parent: "/dashboard/parent/family-home"
   }[role];
 }
 
