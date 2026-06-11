@@ -69,6 +69,7 @@ export default async function ParentChildProfilePage({ params }: { params: Promi
           </div>
           <div className="parent-hero-actions">
             <Link className="button secondary" href="/dashboard/parent">חזרה</Link>
+            <Link className="button secondary" href={`/dashboard/parent/children/${child.id}/timeline`}>ציר היום</Link>
             <Link className="button primary" href="/dashboard/parent/messages">פנייה לגן</Link>
           </div>
         </section>
@@ -98,6 +99,7 @@ export default async function ParentChildProfilePage({ params }: { params: Promi
             <p>{latestJournal?.notes_to_parents ?? `${child.full_name} מחכה לעדכון יומי מהגן. ברגע שהצוות יעדכן, הסיכום יופיע כאן.`}</p>
             <div className="parent-question-list">
               <Link href="/dashboard/parent/daily-journal">יומן מלא</Link>
+              <Link href={`/dashboard/parent/children/${child.id}/timeline`}>ציר היום</Link>
               <Link href="/dashboard/parent/pickup">מורשי איסוף</Link>
               <Link href="/dashboard/parent/messages">שאלה לצוות</Link>
             </div>
