@@ -4011,6 +4011,48 @@ body::before {
   padding: 12px;
 }
 
+.assistant-source-list,
+.assistant-priority-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.assistant-source-list span,
+.assistant-priority-grid span {
+  display: inline-flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  min-height: 34px;
+  padding: 7px 10px;
+  border: 1px solid rgb(18 59 143 / 10%);
+  border-radius: 999px;
+  background: white;
+  color: var(--blue-dark);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.assistant-priority-grid span.bad {
+  border-color: rgb(168 50 50 / 22%);
+  background: #fff1f2;
+  color: #9f1239;
+}
+
+.assistant-priority-grid span.warn {
+  border-color: rgb(154 102 18 / 24%);
+  background: #fffbeb;
+  color: #92400e;
+}
+
+.assistant-priority-grid span.good {
+  border-color: rgb(10 122 85 / 22%);
+  background: #ecfdf5;
+  color: #166534;
+}
+
 .assistant-suggestion-card {
   display: flex;
   gap: 10px;

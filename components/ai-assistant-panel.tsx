@@ -15,8 +15,17 @@ type Suggestion = {
 type AssistantSummary = {
   provider: "pending" | "connected";
   role: UserRole;
+  session_id?: string | null;
   title: string;
   summary: string;
+  daily_briefing?: string;
+  permission_summary?: string;
+  context_sources?: string[];
+  notification_intelligence?: {
+    urgent: number;
+    important: number;
+    informational: number;
+  };
   suggestions: Suggestion[];
   prompts: string[];
   answers?: Record<string, string>;
@@ -83,6 +92,19 @@ export function AIAssistantPanel({ role }: { role: UserRole }) {
     const next = [{ prompt, answer, at: new Date().toISOString() }, ...recentInteractions.filter((item) => item.prompt !== prompt)].slice(0, 6);
     setRecentInteractions(next);
     localStorage.setItem(`gan-batuach-ai-${role}`, JSON.stringify(next));
+    if (data.session_id) {
+      fetch("/api/assistant/summary", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify({
+          session_id: data.session_id,
+          prompt,
+          response: answer,
+          context_sources: data.context_sources ?? [],
+          suggested_actions: data.suggestions.slice(0, 5)
+        })
+      }).catch(() => undefined);
+    }
   }
 
   function askCustom() {
@@ -115,6 +137,26 @@ export function AIAssistantPanel({ role }: { role: UserRole }) {
             <span className="eyebrow">{data.title}</span>
             <p>{data.summary}</p>
           </article>
+          <article className="assistant-summary-card">
+            <span className="eyebrow">תדרוך יומי</span>
+            <p>{data.daily_briefing ?? "התדרוך מבוסס על הנתונים המותרים לתפקיד שלך."}</p>
+          </article>
+          <section>
+            <h3>גבולות מידע</h3>
+            <div className="assistant-context-card">
+              <CheckCircle2 size={18} />
+              <div><strong>הרשאות נשמרות</strong><span>{data.permission_summary ?? "העוזר משתמש רק במידע שהמשתמש רשאי לראות."}</span></div>
+            </div>
+            {data.context_sources?.length ? <div className="assistant-source-list">{data.context_sources.map((source) => <span key={source}>{source}</span>)}</div> : null}
+          </section>
+          {data.notification_intelligence ? <section>
+            <h3>עדיפות התראות</h3>
+            <div className="assistant-priority-grid">
+              <span className="bad">דחוף <b>{data.notification_intelligence.urgent}</b></span>
+              <span className="warn">חשוב <b>{data.notification_intelligence.important}</b></span>
+              <span className="good">מידע <b>{data.notification_intelligence.informational}</b></span>
+            </div>
+          </section> : null}
           <section>
             <h3>המלצה הקשרית</h3>
             <div className="assistant-context-card">
