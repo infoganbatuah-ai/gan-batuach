@@ -37,6 +37,7 @@ export const dashboardRouteChecks: DashboardRouteCheck[] = [
   { route: "/dashboard/admin/navigation-health", label: "בריאות ניווט", roles: ["admin"] },
   { route: "/dashboard/admin/user-journey-audit", label: "User Journey Audit", roles: ["admin"] },
   { route: "/dashboard/garden", label: "ניהול גן", roles: ["manager", "owner"], dataTable: "gardens", requiredProfileField: "garden_id" },
+  { route: "/dashboard/garden/command-center", label: "מרכז פיקוד", roles: ["manager", "owner"], dataTable: "kindergarten_operational_health_scores", requiredProfileField: "garden_id" },
   { route: "/dashboard/garden/operations", label: "מערכת הפעלה", roles: ["manager", "owner"], dataTable: "daily_operations", requiredProfileField: "garden_id" },
   { route: "/dashboard/garden/children", label: "ילדים", roles: ["manager", "owner"], dataTable: "children", requiredProfileField: "garden_id" },
   { route: "/dashboard/garden/children/[id]/timeline", label: "ציר ילד", roles: ["manager", "owner"], dataTable: "child_timeline_events", requiredProfileField: "garden_id" },
