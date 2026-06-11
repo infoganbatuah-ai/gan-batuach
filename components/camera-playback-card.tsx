@@ -16,7 +16,7 @@ const statusText: Record<string, string> = {
   disabled: "לא מחובר"
 };
 
-export function CameraPlaybackCard({ camera, parentId, canRequestPlayback = true, parentView = false }: { camera: CameraRow; parentId?: string; canRequestPlayback?: boolean; parentView?: boolean }) {
+export function CameraPlaybackCard({ camera, parentId, canRequestPlayback = true, parentView = false, accessReason }: { camera: CameraRow; parentId?: string; canRequestPlayback?: boolean; parentView?: boolean; accessReason?: string }) {
   const [playbackUrl, setPlaybackUrl] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -26,7 +26,8 @@ export function CameraPlaybackCard({ camera, parentId, canRequestPlayback = true
     ? Boolean(camera.playback_source_available)
     : Boolean(hlsUrl || camera.webrtc_playback_url || camera.gateway_stream_id || camera.video_gateway_stream_id);
   const connected = ["connected", "online"].includes(camera.status);
-  const canOpenPlayback = canRequestPlayback && playbackSourceAvailable;
+  const blockedReason = camera.parent_blocked_reason ?? (!playbackSourceAvailable ? "המצלמה לא זמינה כרגע" : null);
+  const canOpenPlayback = canRequestPlayback && playbackSourceAvailable && (!parentView || !blockedReason);
 
   async function start(protocol: "HLS" | "WebRTC" = "HLS") {
     setBusy(true);
@@ -35,7 +36,7 @@ export function CameraPlaybackCard({ camera, parentId, canRequestPlayback = true
       const response = await fetch(`/api/camera-streams/${camera.id}/playback-token`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ protocol, parent_id: parentId || undefined })
+        body: JSON.stringify({ protocol, parent_id: parentId || undefined, access_reason: accessReason })
       });
       const body = await response.json();
       if (!response.ok) throw new Error(body.error || "לא ניתן לפתוח צפייה כרגע");
@@ -51,13 +52,13 @@ export function CameraPlaybackCard({ camera, parentId, canRequestPlayback = true
   return (
     <article className="card camera-playback-card">
       <div className="camera-player-frame">
-        {playbackUrl ? <video src={playbackUrl} controls playsInline preload="metadata" /> : <div className="camera-pending-frame"><Camera /><strong>{playbackSourceAvailable ? "מוכן לצפייה מאובטחת" : "המצלמה מורשית לצפייה אך עדיין לא מחובר מקור צפייה"}</strong><span>{playbackSourceAvailable ? "לחצו לפתיחת צפייה מאובטחת." : "מצלמה מורשית, ממתינה לחיבור מקור צפייה."}</span></div>}
+        {playbackUrl ? <video src={playbackUrl} controls playsInline preload="metadata" /> : <div className="camera-pending-frame"><Camera /><strong>{blockedReason ?? (playbackSourceAvailable ? "מוכן לצפייה מאובטחת" : "המצלמה לא זמינה כרגע")}</strong><span>{playbackSourceAvailable && !blockedReason ? "לחצו לפתיחת צפייה מאובטחת." : "הצפייה תיפתח כשכללי הגן והחיבור יאפשרו זאת."}</span></div>}
       </div>
       <div className="camera-card-body">
         <span className={connected ? "pill good" : "pill warn"}>{statusText[camera.status] ?? camera.status ?? "ממתין לחיבור שידור"}</span>
         <h3>{camera.name ?? "מצלמה"}</h3>
         <p>{parentView ? `${camera.area ?? "אזור לא הוגדר"}` : `${camera.gardens?.name ?? camera.garden_name ?? ""} · ${camera.area ?? "אזור לא הוגדר"} · ${sourceType}`}</p>
-        {!playbackSourceAvailable ? <small className="gateway-setup-state">המצלמה מורשית לצפייה אך עדיין ממתינה לחיבור שידור</small> : null}
+        {blockedReason ? <small className="gateway-setup-state">{blockedReason}</small> : !playbackSourceAvailable ? <small className="gateway-setup-state">המצלמה ממתינה לחיבור שידור</small> : null}
         <small><ShieldCheck size={13} /> הצפייה מאובטחת וזמנית. פרטי החיבור של המצלמה אינם נשלחים לדפדפן.</small>
         {!parentView && camera.expected_parent_count !== undefined ? <div className="camera-admin-verification"><span>מזהה מצלמה: {camera.id}</span><span>שם מצלמה: {camera.name ?? "-"}</span><span>זמינה: {camera.active === false ? "לא" : "כן"}</span><span>מצב: {statusText[camera.status] ?? camera.status ?? "-"}</span><span>צפיית הורים: {camera.parent_view_allowed || camera.parent_viewing_allowed ? "מאושרת" : "לא מאושרת"}</span><span>גן: {camera.garden_id ?? camera.kindergarten_id ?? "-"}</span><span>מקור בדיקה: {camera.sample_hls_url ? "קיים" : "חסר"}</span><span>חיבור שידור: {(camera.gateway_stream_id || camera.video_gateway_stream_id) ? "קיים" : "חסר"}</span><span>הורים צפויים: {camera.expected_parent_count}</span><span>{camera.visibility_status ?? "בדיקת חשיפה"}</span><ParentCameraAccessDebug cameraId={camera.id} /></div> : null}
         <div className="profile-actions">

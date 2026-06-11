@@ -29,6 +29,9 @@ const safeCameraColumns = [
   "video_gateway_stream_id",
   "gateway_stream_id",
   "viewing_hours",
+  "operating_hours",
+  "parent_visibility_status",
+  "parent_blocked_reason",
   "last_health_check_at"
 ].join(", ");
 

@@ -23,6 +23,28 @@ export async function POST(request: Request) {
       gardenId = (camera as any).garden_id ?? (camera as any).kindergarten_id ?? gardenId;
     }
     if (profile.role !== "admin" && (!gardenId || gardenId !== profile.garden_id)) return fail("אין הרשאה לבדוק מצלמה שאינה משויכת לגן שלך.", 403);
+    const missing: string[] = [];
+    if (payload.system_type !== "manual_rtsp" && payload.system_type !== "sample_hls" && !payload.host) missing.push("כתובת מצלמה או DVR/NVR");
+    if (payload.system_type === "manual_rtsp" && !payload.manual_rtsp_url) missing.push("כתובת RTSP מלאה");
+    if (["dvr", "nvr", "dvr_nvr", "hikvision", "dahua", "uniview"].includes(payload.system_type) && !payload.channel) missing.push("מספר ערוץ");
+    if (!gardenId) missing.push("גן");
+    if (missing.length) {
+      return ok({
+        success: false,
+        status: "failed",
+        result: "failed",
+        message: `חסרים פרטים: ${missing.join(", ")}`,
+        next_action: "להשלים את השדות החסרים ולבדוק שוב",
+        checks: { required_fields: "failed", gateway_reachable: "not_checked", source_reachable: "not_checked", streaming_readiness: "not_checked" }
+      });
+    }
+    const duplicateQuery = gardenId && payload.host ? await supabase
+      .from("camera_streams" as any)
+      .select("id,name")
+      .eq("garden_id", gardenId)
+      .eq("connection_host", payload.host)
+      .limit(1) : { data: [] };
+    const duplicate = (duplicateQuery as any).data?.find((row: any) => row.id !== payload.camera_id);
 
     const gateway = await testCameraSource(payload);
     const friendlyMessage = gateway.status === "gateway_required"
@@ -32,6 +54,14 @@ export async function POST(request: Request) {
         : gateway.message || "בדיקת החיבור נכשלה";
     const now = new Date().toISOString();
     const validationStatus = gateway.status === "healthy" ? "success" : gateway.status === "gateway_required" ? "gateway_required" : "failed";
+    const userResult = duplicate ? "warning" : gateway.status === "healthy" ? "success" : gateway.status === "gateway_required" ? "warning" : "failed";
+    const nextAction = duplicate
+      ? "נמצאה מצלמה עם כתובת דומה. לבדוק שלא יוצרים כפילות."
+      : gateway.status === "healthy"
+        ? "אפשר לשמור את המצלמה ולפתוח צפייה מאובטחת"
+        : gateway.status === "gateway_required"
+          ? "להפעיל Video Gateway ואז להריץ בדיקה חוזרת"
+          : "לבדוק כתובת, פורט, ערוץ והרשאות";
     const validationRow = {
       camera_id: payload.camera_id ?? null,
       garden_id: gardenId,
@@ -50,6 +80,7 @@ export async function POST(request: Request) {
       no_secrets_exposed: true,
       metadata: {
         gateway_provider: gateway.provider ?? null,
+        duplicate_camera_id: duplicate?.id ?? null,
         validation_checks: ["reachable_host", "authentication", "stream_exists", "channel_exists", "latency", "timeout", "invalid_credentials"]
       }
     };
@@ -92,9 +123,20 @@ export async function POST(request: Request) {
 
     return ok({
       success: gateway.status === "healthy",
+      result: userResult,
       status: gateway.status,
       reason: gateway.reason,
       message: friendlyMessage,
+      next_action: nextAction,
+      checks: {
+        required_fields: "success",
+        duplicate_camera: duplicate ? "warning" : "success",
+        gateway_reachable: gateway.configured ? (gateway.status === "healthy" ? "success" : "failed") : "warning",
+        rtsp_format: payload.system_type === "manual_rtsp" ? (String(payload.manual_rtsp_url).startsWith("rtsp://") ? "success" : "failed") : "success",
+        channel_value: payload.channel ? "success" : ["dvr", "nvr", "dvr_nvr", "hikvision", "dahua", "uniview"].includes(payload.system_type) ? "warning" : "not_required",
+        source_reachable: gateway.status === "healthy" ? "success" : "placeholder",
+        streaming_readiness: gateway.status === "healthy" ? "success" : "placeholder"
+      },
       gateway_status: gateway.configured ? "configured" : "not_configured",
       gateway_provider: gateway.provider,
       candidates_tried_count: gateway.candidatesTried,
