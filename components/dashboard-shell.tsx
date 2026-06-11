@@ -56,6 +56,7 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/admin/subscriptions", label: "מנויים", hint: "חיוב ותוכניות" },
     { href: "/dashboard/admin/tasks", label: "משימות", hint: "מעקב והסלמה" },
     { href: "/dashboard/admin/complaints", label: "דיווחים ופניות", hint: "SLA וחומרה" },
+    { href: "/dashboard/admin/incident-center", label: "תיקי אירוע", hint: "חקירה וראיות" },
     { href: "/dashboard/admin/documents", label: "מסמכים", hint: "תוקף וציות" },
     { href: "/dashboard/admin/security-center", label: "מרכז אבטחה", hint: "Audit חיצוני" },
     { href: "/dashboard/admin/security", label: "אבטחה", hint: "מוכנות ייצור" },
@@ -245,7 +246,7 @@ function navGroupFor(role: UserRole, href: string) {
     if (href.includes("/users") || href.includes("/kindergartens") || href.includes("/gardens") || href.includes("/inspectors") || href.includes("/leads")) return "ניהול";
     if (href.includes("/subscriptions") || href.includes("/communication") || href.includes("/sms") || href.includes("/whatsapp") || href.includes("/push")) return "כספים ותקשורת";
     if (href.includes("observer") || href.includes("risk") || href.includes("ai") || href.includes("camera") || href.includes("video-gateway") || href.includes("audio") || href.includes("correlated")) return "תצפיתן";
-    if (href.includes("inspection") || href.includes("violations") || href.includes("reports") || href.includes("documents") || href.includes("audit")) return "פיקוח ודוחות";
+    if (href.includes("inspection") || href.includes("incident") || href.includes("violations") || href.includes("reports") || href.includes("documents") || href.includes("audit")) return "פיקוח ודוחות";
     return "עוד";
   }
   if (role === "manager" || role === "owner") {
