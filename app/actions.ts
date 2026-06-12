@@ -38,6 +38,69 @@ async function contactExists(supabase: Awaited<ReturnType<typeof createClient>>,
   };
 }
 
+function normalizeGrowthLeadSource(lead: Record<string, any>) {
+  const source = String(lead.source ?? "");
+  if (source === "demo_booking") return "demo_booking";
+  if (source === "parent_request") return "parent_request";
+  if (source.includes("referral")) return "referral";
+  if (source.includes("campaign")) return "campaign";
+  if (lead.lead_type === "garden") return "kindergarten_registration";
+  return "campaign";
+}
+
+function normalizeGrowthLeadStatus(status?: string | null) {
+  const normalized = String(status ?? "new");
+  if (["new", "contacted", "qualified", "approved", "converted", "rejected"].includes(normalized)) return normalized;
+  if (["lead_review", "lead_approved", "registration_pending", "credentials_sent", "onboarding_in_progress", "onboarding_submitted", "pending_final_approval"].includes(normalized)) return "qualified";
+  if (["active"].includes(normalized)) return "converted";
+  if (["not_relevant", "archived"].includes(normalized)) return "rejected";
+  return "new";
+}
+
+function normalizeGrowthFunnelStage(stage?: string | null, leadSource?: string) {
+  const normalized = String(stage ?? "");
+  if (["visit", "lead", "demo", "qualification", "approval", "conversion", "activation", "lost"].includes(normalized)) return normalized;
+  if (["book_demo", "trial"].includes(normalized)) return "demo";
+  if (["subscription", "converted"].includes(normalized)) return "conversion";
+  if (["parent_request", "learn"].includes(normalized)) return "lead";
+  if (leadSource === "demo_booking") return "demo";
+  return "lead";
+}
+
+async function mirrorGrowthLead(supabase: Awaited<ReturnType<typeof createClient>>, lead: Record<string, any>) {
+  if (!lead?.id) return;
+  try {
+    const leadSource = normalizeGrowthLeadSource(lead);
+    const contactName = lead.manager_name || lead.owner_name || lead.parent_name || null;
+    const { error } = await supabase.from("growth_leads" as any).insert({
+      source_lead_id: lead.id,
+      lead_source: leadSource,
+      status: normalizeGrowthLeadStatus(lead.status),
+      funnel_stage: normalizeGrowthFunnelStage(lead.funnel_stage, leadSource),
+      interest_score: Math.max(0, Math.min(100, Number(lead.lead_score ?? 0))),
+      garden_name: lead.garden_name || null,
+      parent_name: lead.parent_name || null,
+      contact_name: contactName,
+      manager_name: lead.manager_name || null,
+      phone: lead.phone || null,
+      email: lead.email || null,
+      city: lead.city || null,
+      address: lead.address || null,
+      campaign: lead.campaign || null,
+      utm_source: lead.utm_source || null,
+      utm_medium: lead.utm_medium || null,
+      utm_campaign: lead.utm_campaign || null,
+      qualification: lead.qualification || {},
+      metadata: { source: lead.source ?? null, lead_type: lead.lead_type ?? null, conversion_goal: lead.conversion_goal ?? null }
+    });
+    if (error && error.code !== "23505") {
+      console.error("[growth-lead:mirror] insert failed", error.message);
+    }
+  } catch (error) {
+    console.error("[growth-lead:mirror] skipped", error);
+  }
+}
+
 export async function createParentLead(formData: FormData) {
   const supabase = await createClient();
   const gardenId = value(formData, "garden_id") || null;
@@ -203,7 +266,7 @@ export async function createGardenLead(formData: FormData) {
   };
   const leadScore = Math.min(100, 30 + (qualification.children_count ? 20 : 0) + (qualification.camera_status ? 15 : 0) + (value(formData, "email") ? 10 : 0));
 
-  const { data: lead, error } = await supabase.from("leads").insert({
+  const leadPayload = {
     lead_type: "garden",
     garden_name: value(formData, "garden_name"),
     owner_name: value(formData, "owner_name"),
@@ -229,10 +292,13 @@ export async function createGardenLead(formData: FormData) {
     conversion_goal: value(formData, "conversion_goal") || "demo_to_trial",
     qualification,
     lead_score: leadScore
-  }).select("id").single();
+  };
+
+  const { data: lead, error } = await supabase.from("leads").insert(leadPayload).select("id").single();
 
   if (error) redirect(`/join-kindergarten?error=${encodeURIComponent(error.message)}`);
   if (lead?.id) {
+    await mirrorGrowthLead(supabase, { id: lead.id, ...leadPayload });
     await supabase.from("kindergarten_legal_acceptances" as any).insert(acceptedTerms.map((acceptanceType) => ({
       lead_id: lead.id,
       acceptance_type: acceptanceType,
@@ -268,37 +334,40 @@ export async function createDemoBooking(formData: FormData) {
   };
   const score = Math.min(100, 35 + (childrenCount >= 20 ? 20 : 0) + (contactEmail ? 10 : 0) + (qualification.decision_timeline === "now" ? 20 : 0));
 
+  const leadPayload = {
+    lead_type: "garden",
+    garden_name: gardenName,
+    manager_name: contactName,
+    city,
+    phone: contactPhone,
+    email: contactEmail || null,
+    children_count: childrenCount,
+    staff_count: staffCount,
+    notes: [
+      `בקשת הדגמה: ${preferredDemoDate || preferredTime || "לא צוין מועד מועדף"}`,
+      qualification.biggest_challenge ? `אתגר מרכזי: ${qualification.biggest_challenge}` : "",
+      qualification.current_tools ? `כלים קיימים: ${qualification.current_tools}` : "",
+      qualification.interest?.length ? `עניין: ${qualification.interest.join(", ")}` : ""
+    ].filter(Boolean).join("\n"),
+    status: "new",
+    source: "demo_booking",
+    campaign: "kindergarten_demo_funnel",
+    funnel_stage: "book_demo",
+    conversion_goal: "demo_to_trial",
+    qualification,
+    lead_score: score
+  };
+
   const { data: lead, error: leadError } = await supabase
     .from("leads" as any)
-    .insert({
-      lead_type: "garden",
-      garden_name: gardenName,
-      manager_name: contactName,
-      city,
-      phone: contactPhone,
-      email: contactEmail || null,
-      children_count: childrenCount,
-      staff_count: staffCount,
-      notes: [
-        `בקשת הדגמה: ${preferredDemoDate || preferredTime || "לא צוין מועד מועדף"}`,
-        qualification.biggest_challenge ? `אתגר מרכזי: ${qualification.biggest_challenge}` : "",
-        qualification.current_tools ? `כלים קיימים: ${qualification.current_tools}` : "",
-        qualification.interest?.length ? `עניין: ${qualification.interest.join(", ")}` : ""
-      ].filter(Boolean).join("\n"),
-      status: "new",
-      source: "demo_booking",
-      campaign: "kindergarten_demo_funnel",
-      funnel_stage: "book_demo",
-      conversion_goal: "demo_to_trial",
-      qualification,
-      lead_score: score
-    })
+    .insert(leadPayload)
     .select("id")
     .single();
 
   if (leadError) {
     redirect(`/book-demo?error=${encodeURIComponent("לא ניתן לשלוח בקשת הדגמה כרגע. נסו שוב או צרו קשר.")}`);
   }
+  await mirrorGrowthLead(supabase, { id: lead?.id, ...leadPayload });
 
   const { error: bookingError } = await supabase.from("demo_booking_requests" as any).insert({
     lead_id: lead?.id,
@@ -365,29 +434,32 @@ export async function createParentDemandLead(formData: FormData) {
     value(formData, "notes") ? `הערה: ${value(formData, "notes")}` : ""
   ].filter(Boolean).join("\n");
 
+  const leadPayload = {
+    lead_type: "garden",
+    parent_name: parentName,
+    garden_name: gardenName,
+    manager_name: managerName || null,
+    address: gardenAddress || null,
+    phone: parentPhone,
+    email: parentEmail || null,
+    notes,
+    status: "new",
+    source: "parent_request",
+    campaign: "parent_demand",
+    funnel_stage: "parent_request",
+    conversion_goal: "parent_request_to_kindergarten_registration",
+    qualification,
+    lead_score: Math.min(100, 35 + (gardenName ? 20 : 0) + (managerPhone ? 20 : 0) + (parentEmail ? 10 : 0))
+  };
+
   const { error, data: lead } = await supabase
     .from("leads" as any)
-    .insert({
-      lead_type: "garden",
-      parent_name: parentName,
-      garden_name: gardenName,
-      manager_name: managerName || null,
-      address: gardenAddress || null,
-      phone: parentPhone,
-      email: parentEmail || null,
-      notes,
-      status: "new",
-      source: "parent_request",
-      campaign: "parent_demand",
-      funnel_stage: "parent_request",
-      conversion_goal: "parent_request_to_kindergarten_registration",
-      qualification,
-      lead_score: Math.min(100, 35 + (gardenName ? 20 : 0) + (managerPhone ? 20 : 0) + (parentEmail ? 10 : 0))
-    })
+    .insert(leadPayload)
     .select("id")
     .single();
 
   if (error) redirect(`/parents-demand?error=${encodeURIComponent("לא ניתן לשלוח את הבקשה כרגע. נסו שוב בעוד רגע.")}`);
+  await mirrorGrowthLead(supabase, { id: lead?.id, ...leadPayload });
 
   await supabase.from("website_conversion_events" as any).insert({
     lead_id: lead?.id,
