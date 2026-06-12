@@ -57,6 +57,7 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/admin/email-production", label: "מיילים פעילים", hint: "תבניות ושליחה" },
     { href: "/dashboard/admin/subscriptions", label: "מנויים", hint: "חיוב ותוכניות" },
     { href: "/dashboard/admin/workflows", label: "מרכז עבודה", hint: "תהליכים ואוטומציה" },
+    { href: "/dashboard/admin/migrations", label: "מיגרציות", hint: "יבוא, בדיקה ושחזור" },
     { href: "/dashboard/tasks", label: "תיבת משימות", hint: "כל המשימות במקום אחד" },
     { href: "/dashboard/admin/tasks", label: "משימות", hint: "מעקב והסלמה" },
     { href: "/dashboard/admin/complaints", label: "דיווחים ופניות", hint: "זמן טיפול ודחיפות" },

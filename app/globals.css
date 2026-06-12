@@ -12809,3 +12809,35 @@ th {
     grid-template-columns: 1fr;
   }
 }
+
+/* PHASE 133: Data migration import center */
+.migration-template-grid {
+  display: grid;
+  gap: 0.75rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.migration-template-grid .mini-card,
+.ai-prompt-grid .mini-card {
+  align-content: start;
+  display: grid;
+  gap: 0.5rem;
+  min-height: 132px;
+}
+
+.migration-template-grid .mini-card svg,
+.ai-prompt-grid .mini-card svg {
+  color: var(--ds-brand, #0d766f);
+}
+
+.migration-template-grid .mini-card span,
+.migration-template-grid .mini-card small,
+.ai-prompt-grid .mini-card span {
+  color: var(--ds-muted, #5d6f72);
+}
+
+@media (max-width: 820px) {
+  .migration-template-grid {
+    grid-template-columns: 1fr;
+  }
+}
