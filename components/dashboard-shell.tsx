@@ -17,6 +17,7 @@ import { FloatingActionCenter } from "@/components/floating-action-center";
 const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: string }>> = {
   admin: [
     { href: "/dashboard/admin", label: "מרכז שליטה", hint: "סיכונים, ערים, לידים" },
+    { href: "/dashboard/admin/enterprise", label: "ניהול ארגוני", hint: "רשתות ואזורים" },
     { href: "/dashboard/admin/analytics-center", label: "מרכז אנליטיקה", hint: "מגמות והשוואות" },
     { href: "/dashboard/admin/leads", label: "לידים", hint: "המרות גנים ומפקחים" },
     { href: "/dashboard/admin/kindergarten-activation", label: "הפעלת גנים", hint: "אישור, אשף ותשלום" },
@@ -88,7 +89,16 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/admin/simplicity-audit", label: "בדיקת פשטות", hint: "פשטות שימוש" },
     { href: "/dashboard/admin/reports", label: "דוחות", hint: "ייצוא וניתוח" },
     { href: "/dashboard/admin/settings", label: "הגדרות", hint: "מערכת והרשאות" }
-  ],  inspector: [
+  ],
+  network_manager: [
+    { href: "/dashboard/admin/enterprise", label: "מרכז רשת", hint: "גנים, אזורים וביצועים" },
+    { href: "/dashboard/admin/analytics-center", label: "אנליטיקה", hint: "השוואות ומגמות" },
+    { href: "/dashboard/admin/compliance-center", label: "ציות", hint: "פערים ותוקף" },
+    { href: "/dashboard/admin/national-inspections", label: "פיקוח", hint: "כיסוי וביקורות" },
+    { href: "/dashboard/admin/billing", label: "כספים", hint: "מנויים רשתיים" },
+    { href: "/dashboard/tasks", label: "משימות", hint: "פעולות פתוחות" }
+  ],
+  inspector: [
     { href: "/dashboard/inspector/control-center", label: "מרכז פיקוח", hint: "חודשי, GPS ותלונות" },
     { href: "/dashboard/inspector/command-center", label: "שטח", hint: "פיקוח היום" },
     { href: "/dashboard/inspector", label: "ביקורות", hint: "חודשי וליקויים" },
@@ -168,6 +178,7 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
 
 const dashboardHomeByRole: Record<UserRole, string> = {
   admin: "/dashboard/admin",
+  network_manager: "/dashboard/admin/enterprise",
   inspector: "/dashboard/inspector/control-center",
   manager: "/dashboard/garden/command-center",
   owner: "/dashboard/garden/command-center",
@@ -182,6 +193,13 @@ const mobileNavByRole: Record<UserRole, Array<{ href: string; label: string; hin
     { href: "/dashboard/admin/users", label: "משתמשים", hint: "ניהול" },
     { href: "/dashboard/admin/notifications", label: "התראות", hint: "חשוב" },
     { href: "/dashboard/tasks", label: "משימות", hint: "עבודה" }
+  ],
+  network_manager: [
+    { href: "/dashboard/admin/enterprise", label: "בית", hint: "רשת" },
+    { href: "/dashboard/admin/analytics-center", label: "מדדים", hint: "השוואות" },
+    { href: "/dashboard/admin/national-inspections", label: "פיקוח", hint: "כיסוי" },
+    { href: "/dashboard/tasks", label: "משימות", hint: "היום" },
+    { href: "/dashboard/admin/billing", label: "כספים", hint: "מנויים" }
   ],
   manager: [
     { href: "/dashboard/garden/command-center", label: "בית", hint: "היום" },

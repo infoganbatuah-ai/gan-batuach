@@ -8,6 +8,11 @@ const actionByRole: Record<UserRole, Array<{ label: string; href: string; icon: 
     { label: "הודעה", href: "/dashboard/admin/notifications", icon: MessageSquareText },
     { label: "גן", href: "/dashboard/admin/users/new-kindergarten", icon: Plus }
   ],
+  network_manager: [
+    { label: "רשת", href: "/dashboard/admin/enterprise", icon: UsersRound },
+    { label: "הודעה", href: "/dashboard/admin/communications", icon: MessageSquareText },
+    { label: "משימה", href: "/dashboard/tasks", icon: ClipboardCheck }
+  ],
   manager: [
     { label: "ילד", href: "/dashboard/garden/children", icon: UserRound },
     { label: "צוות", href: "/dashboard/garden/staff", icon: UsersRound },

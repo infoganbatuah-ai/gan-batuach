@@ -39,6 +39,7 @@ type Interaction = {
 
 const roleNames: Record<UserRole, string> = {
   admin: "אדמין",
+  network_manager: "מנהל רשת",
   inspector: "פקח",
   manager: "מנהלת גן",
   owner: "בעלים",
