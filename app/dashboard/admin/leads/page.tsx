@@ -13,7 +13,7 @@ export default async function AdminLeadsPage() {
     const [{ data, error }, gardensRes] = await Promise.all([
       supabase
       .from("leads" as any)
-      .select("id, lead_type, parent_name, garden_name, owner_name, manager_name, city, address, phone, email, age_groups, capacity, children_count, staff_count, experience, certifications, notes, status")
+      .select("id, lead_type, parent_name, garden_name, owner_name, manager_name, city, address, phone, email, age_groups, capacity, children_count, staff_count, experience, certifications, notes, status, source, campaign, funnel_stage, lead_score, follow_up_at, conversion_goal, qualification")
       .order("created_at", { ascending: false })
       .limit(100),
       supabase

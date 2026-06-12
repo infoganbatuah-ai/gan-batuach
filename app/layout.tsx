@@ -3,9 +3,22 @@ import { AppMotionShell, MobilePublicTabs } from "@/components/app-motion-shell"
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "גן בטוח | מערכת ניהול ופיקוח לגני ילדים פרטיים",
-  description: "מערכת ניהול, פיקוח, שקיפות ובקרה לגני ילדים פרטיים בישראל",
+  metadataBase: new URL("https://gan-batuach.vercel.app"),
+  title: {
+    default: "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+    template: "%s | גן בטוח"
+  },
+  description: "גן בטוח היא פלטפורמת בטיחות, פיקוח, שקיפות וניהול לגני ילדים: הורים, צוות, פקחים ומנהלים במקום אחד.",
   applicationName: "גן בטוח",
+  keywords: ["גן בטוח", "בטיחות בגני ילדים", "פיקוח גני ילדים", "שקיפות הורים", "ניהול גן ילדים", "תצפיתן דיגיטלי"],
+  openGraph: {
+    type: "website",
+    locale: "he_IL",
+    url: "https://gan-batuach.vercel.app",
+    siteName: "גן בטוח",
+    title: "גן בטוח – תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+    description: "פלטפורמה לאמון הורים, פיקוח, תפעול גנים ושקיפות בטיחותית."
+  },
   manifest: "/manifest.webmanifest",
   appleWebApp: { capable: true, title: "גן בטוח", statusBarStyle: "default" },
   icons: { icon: "/assets/company-symbol.png", apple: "/assets/company-symbol.png" },

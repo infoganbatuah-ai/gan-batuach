@@ -15,6 +15,13 @@ type LeadRow = {
   email?: string | null;
   notes?: string | null;
   status?: string | null;
+  source?: string | null;
+  campaign?: string | null;
+  funnel_stage?: string | null;
+  lead_score?: number | null;
+  follow_up_at?: string | null;
+  conversion_goal?: string | null;
+  qualification?: Record<string, unknown> | null;
 };
 
 type GardenRow = {
@@ -51,6 +58,25 @@ const labels: Record<string, string> = {
   active: "פעיל",
   suspended: "מושהה",
   archived: "בארכיון"
+};
+
+const sourceLabels: Record<string, string> = {
+  public_website: "אתר",
+  book_demo: "הדגמה",
+  parent_pressure: "הורה",
+  referral: "הפניה",
+  organic: "אורגני"
+};
+
+const funnelLabels: Record<string, string> = {
+  visit: "ביקור",
+  learn: "למידה",
+  book_demo: "הדגמה",
+  trial: "ניסיון",
+  subscription: "מנוי",
+  parent_request: "בקשת הורה",
+  converted: "הומר",
+  lost: "נסגר"
 };
 
 async function postAction(payload: Record<string, unknown>) {
@@ -128,6 +154,12 @@ function LeadCard({ lead, onDone }: { lead: LeadRow; onDone: (message: string) =
         <span className="pill warn">{labels[lead.status ?? "lead_submitted"] ?? lead.status ?? "בקשה חדשה"}</span>
         <h3>{lead.garden_name || "גן חדש"}</h3>
         <p>{lead.city || "עיר לא צוינה"} · {lead.manager_name || lead.owner_name || "איש קשר"} · {lead.email || lead.phone || "אין פרטי קשר"}</p>
+        <div className="lead-conversion-meta" aria-label="פרטי המרה">
+          <span>{sourceLabels[lead.source ?? ""] ?? lead.source ?? "מקור לא צוין"}</span>
+          <span>{funnelLabels[lead.funnel_stage ?? ""] ?? lead.funnel_stage ?? "שלב לא צוין"}</span>
+          <span>ציון {lead.lead_score ?? 0}/100</span>
+          {lead.campaign ? <span>{lead.campaign.replaceAll("_", " ")}</span> : null}
+        </div>
         <small>{lead.notes || ""}</small>
       </div>
       <div className="procedure-meta">

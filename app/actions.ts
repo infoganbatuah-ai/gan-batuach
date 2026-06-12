@@ -173,6 +173,16 @@ export async function createGardenLead(formData: FormData) {
   ]
     .filter(Boolean)
     .join("\n");
+  const qualification = {
+    children_count: Number(value(formData, "children_count") || 0),
+    staff_count: Number(value(formData, "staff_count") || 0),
+    capacity: Number(value(formData, "capacity") || 0),
+    camera_status: value(formData, "camera_status") || null,
+    documents_status: value(formData, "documents_status") || null,
+    requested_plan: value(formData, "requested_plan") || null,
+    urgency: value(formData, "urgency") || null
+  };
+  const leadScore = Math.min(100, 30 + (qualification.children_count ? 20 : 0) + (qualification.camera_status ? 15 : 0) + (value(formData, "email") ? 10 : 0));
 
   const { error } = await supabase.from("leads").insert({
     lead_type: "garden",
@@ -190,13 +200,107 @@ export async function createGardenLead(formData: FormData) {
     children_count: Number(value(formData, "children_count") || 0),
     staff_count: Number(value(formData, "staff_count") || 0),
     notes,
-    status: "new"
+    status: "new",
+    source: value(formData, "source") || "public_website",
+    campaign: value(formData, "campaign") || "kindergarten_conversion",
+    utm_source: value(formData, "utm_source") || null,
+    utm_medium: value(formData, "utm_medium") || null,
+    utm_campaign: value(formData, "utm_campaign") || null,
+    funnel_stage: value(formData, "funnel_stage") || "book_demo",
+    conversion_goal: value(formData, "conversion_goal") || "demo_to_trial",
+    qualification,
+    lead_score: leadScore
   });
 
   if (error) redirect(`/join-kindergarten?error=${encodeURIComponent(error.message)}`);
   revalidatePath("/");
   revalidatePath("/dashboard/admin");
   redirect("/join-kindergarten?lead=sent");
+}
+
+export async function createDemoBooking(formData: FormData) {
+  const supabase = await createClient();
+  const contactName = value(formData, "contact_name");
+  const contactPhone = value(formData, "contact_phone");
+  const contactEmail = value(formData, "contact_email");
+  const gardenName = value(formData, "garden_name");
+  const city = value(formData, "city");
+  const childrenCount = Number(value(formData, "children_count") || 0);
+  const staffCount = Number(value(formData, "staff_count") || 0);
+  const preferredTime = value(formData, "preferred_time");
+  const qualification = {
+    role: value(formData, "role"),
+    current_tools: value(formData, "current_tools"),
+    biggest_challenge: value(formData, "biggest_challenge"),
+    camera_status: value(formData, "camera_status"),
+    decision_timeline: value(formData, "decision_timeline"),
+    interest: values(formData, "interest")
+  };
+  const score = Math.min(100, 35 + (childrenCount >= 20 ? 20 : 0) + (contactEmail ? 10 : 0) + (qualification.decision_timeline === "now" ? 20 : 0));
+
+  const { data: lead, error: leadError } = await supabase
+    .from("leads" as any)
+    .insert({
+      lead_type: "garden",
+      garden_name: gardenName,
+      manager_name: contactName,
+      city,
+      phone: contactPhone,
+      email: contactEmail || null,
+      children_count: childrenCount,
+      staff_count: staffCount,
+      notes: [
+        `בקשת הדגמה: ${preferredTime || "לא צוין זמן מועדף"}`,
+        qualification.biggest_challenge ? `אתגר מרכזי: ${qualification.biggest_challenge}` : "",
+        qualification.current_tools ? `כלים קיימים: ${qualification.current_tools}` : "",
+        qualification.interest?.length ? `עניין: ${qualification.interest.join(", ")}` : ""
+      ].filter(Boolean).join("\n"),
+      status: "new",
+      source: "book_demo",
+      campaign: "kindergarten_demo_funnel",
+      funnel_stage: "book_demo",
+      conversion_goal: "demo_to_trial",
+      qualification,
+      lead_score: score
+    })
+    .select("id")
+    .single();
+
+  if (leadError) {
+    redirect(`/book-demo?error=${encodeURIComponent("לא ניתן לשלוח בקשת הדגמה כרגע. נסו שוב או צרו קשר.")}`);
+  }
+
+  const { error: bookingError } = await supabase.from("demo_booking_requests" as any).insert({
+    lead_id: lead?.id,
+    garden_name: gardenName,
+    contact_name: contactName,
+    contact_phone: contactPhone,
+    contact_email: contactEmail || null,
+    city,
+    children_count: childrenCount,
+    staff_count: staffCount,
+    preferred_time: preferredTime || null,
+    qualification,
+    status: "new",
+    notes: value(formData, "notes") || null
+  });
+
+  if (bookingError) {
+    console.error("[demo-booking:create] insert failed", bookingError.message);
+  }
+
+  await supabase.from("website_conversion_events" as any).insert({
+    lead_id: lead?.id,
+    event_type: "demo_booked",
+    page_path: "/book-demo",
+    audience: "kindergartens",
+    campaign: "kindergarten_demo_funnel",
+    metadata: { garden_name: gardenName, city, children_count: childrenCount }
+  });
+
+  revalidatePath("/");
+  revalidatePath("/dashboard/admin/leads");
+  redirect("/book-demo?lead=sent");
 }
 
 export async function createInspectorLead(formData: FormData) {

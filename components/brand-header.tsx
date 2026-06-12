@@ -14,12 +14,12 @@ export function BrandHeader() {
         </span>
       </Link>
       <nav className="nav" aria-label="ניווט ראשי">
-        <Link href="/gardens">חיפוש גנים</Link>
-        <Link href="/join-kindergarten">הצטרפות גן</Link>
-        <Link href="/trust">Trust Center</Link>
-        <Link href="/join-parent">רישום הורה</Link>
+        <Link href="/why-gan-batuach">למה גן בטוח</Link>
+        <Link href="/safety-standard">תקן הבטיחות</Link>
+        <Link href="/parents-demand-safety">להורים</Link>
+        <Link href="/kindergarten-directory">גנים</Link>
+        <Link href="/book-demo">קביעת הדגמה</Link>
         <Link href="/login">כניסה</Link>
-        <Link href="/dashboard/admin">אדמין</Link>
       </nav>
     </header>
   );
