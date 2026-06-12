@@ -8,7 +8,7 @@ alter table public.subscription_plans
   add column if not exists limits jsonb not null default '{}'::jsonb,
   add column if not exists active_status text not null default 'active',
   add column if not exists plan_category text not null default 'standard',
-  add column if not exists billing_cycle_options text[] not null default array['monthly']::text[],
+  add column if not exists billing_cycle_options text[] not null default array['annual']::text[],
   add column if not exists public_purchase_enabled boolean not null default false,
   add column if not exists enterprise_contact_required boolean not null default false,
   add column if not exists promotional_until date;
@@ -39,17 +39,27 @@ set
   active_status = case when active then 'active' else 'inactive' end,
   billing_cycle_options = case
     when plan_type::text = 'annual' then array['annual']::text[]
-    when plan_type::text = 'enterprise' then array['monthly','annual','custom']::text[]
-    else array['monthly']::text[]
+    when plan_type::text = 'enterprise' then array['annual','custom']::text[]
+    when plan_type::text = 'trial' then array['annual']::text[]
+    else array['annual']::text[]
   end,
-  public_purchase_enabled = case when plan_type::text in ('monthly','annual','trial') and active then true else public_purchase_enabled end,
+  public_purchase_enabled = case when plan_type::text in ('annual','trial') and active then true else false end,
   enterprise_contact_required = case when plan_type::text = 'enterprise' then true else enterprise_contact_required end,
   updated_at = now();
+
+update public.subscription_plans
+set
+  active = false,
+  active_status = 'inactive',
+  public_purchase_enabled = false,
+  billing_cycle_options = array['annual']::text[],
+  updated_at = now()
+where plan_type::text = 'monthly';
 
 alter table public.kindergarten_subscriptions
   add column if not exists billing_status text not null default 'not_configured',
   add column if not exists payment_method text,
-  add column if not exists billing_cycle text not null default 'monthly',
+  add column if not exists billing_cycle text not null default 'annual',
   add column if not exists current_period_start date,
   add column if not exists current_period_end date,
   add column if not exists auto_renew boolean not null default true,
@@ -68,8 +78,12 @@ alter table public.kindergarten_subscriptions
 alter table public.kindergarten_subscriptions
   drop constraint if exists kindergarten_subscriptions_billing_cycle_check;
 
+update public.kindergarten_subscriptions
+set billing_cycle = 'annual'
+where coalesce(billing_cycle, '') in ('', 'monthly');
+
 alter table public.kindergarten_subscriptions
-  add constraint kindergarten_subscriptions_billing_cycle_check check (billing_cycle in ('monthly','annual','custom'));
+  add constraint kindergarten_subscriptions_billing_cycle_check check (billing_cycle in ('annual','custom'));
 
 alter table public.kindergarten_subscriptions
   drop constraint if exists kindergarten_subscriptions_trial_conversion_check;
@@ -88,11 +102,42 @@ set
     when status::text = 'expired' then 'past_due'
     else billing_status
   end,
-  billing_cycle = case when plan_type::text = 'annual' then 'annual' else billing_cycle end,
+  billing_cycle = 'annual',
   current_period_start = coalesce(current_period_start, start_date),
   current_period_end = coalesce(current_period_end, renewal_date, expires_at::date, trial_ends_at::date),
   trial_conversion_status = case when status::text = 'trial' then 'trial_active' else trial_conversion_status end,
   updated_at = now();
+
+alter table public.kindergarten_fee_groups
+  add column if not exists annual_fee numeric(12,2),
+  add column if not exists enrollment_fee numeric(12,2) not null default 0,
+  add column if not exists activity_fee numeric(12,2) not null default 0,
+  add column if not exists parent_billing_cycle text not null default 'monthly',
+  add column if not exists payment_approval_required boolean not null default true;
+
+alter table public.kindergarten_fee_groups
+  drop constraint if exists kindergarten_fee_groups_parent_billing_cycle_check;
+
+alter table public.kindergarten_fee_groups
+  add constraint kindergarten_fee_groups_parent_billing_cycle_check check (parent_billing_cycle in ('monthly','annual'));
+
+update public.kindergarten_fee_groups
+set annual_fee = coalesce(annual_fee, monthly_fee * 12)
+where annual_fee is null;
+
+alter table public.child_payment_history
+  add column if not exists revenue_stream text not null default 'parent_tuition',
+  add column if not exists provider_transaction_reference text,
+  add column if not exists payout_destination_key text,
+  add column if not exists routed_to_garden boolean not null default true,
+  add column if not exists invoice_url text,
+  add column if not exists receipt_url text;
+
+alter table public.child_payment_history
+  drop constraint if exists child_payment_history_revenue_stream_check;
+
+alter table public.child_payment_history
+  add constraint child_payment_history_revenue_stream_check check (revenue_stream in ('parent_tuition','enrollment_fee','activity_fee','other_kindergarten_income'));
 
 alter table public.subscription_payments
   add column if not exists payment_gateway_key text,
@@ -215,7 +260,7 @@ create table if not exists public.subscription_checkout_sessions (
   plan_id uuid references public.subscription_plans(id) on delete set null,
   subscription_id uuid references public.kindergarten_subscriptions(id) on delete set null,
   gateway_key text,
-  billing_cycle text not null default 'monthly',
+  billing_cycle text not null default 'annual',
   amount numeric(12,2) not null default 0,
   currency text not null default 'ILS',
   status text not null default 'draft',
@@ -228,9 +273,19 @@ create table if not exists public.subscription_checkout_sessions (
   metadata jsonb not null default '{}'::jsonb,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
-  constraint checkout_billing_cycle_check check (billing_cycle in ('monthly','annual','custom')),
+  constraint checkout_billing_cycle_check check (billing_cycle in ('annual','custom')),
   constraint checkout_session_status_check check (status in ('draft','pending_payment','completed','expired','cancelled','failed'))
 );
+
+update public.subscription_checkout_sessions
+set billing_cycle = 'annual'
+where coalesce(billing_cycle, '') in ('', 'monthly');
+
+alter table public.subscription_checkout_sessions
+  drop constraint if exists checkout_billing_cycle_check;
+
+alter table public.subscription_checkout_sessions
+  add constraint checkout_billing_cycle_check check (billing_cycle in ('annual','custom'));
 
 create table if not exists public.payment_retry_attempts (
   id uuid primary key default gen_random_uuid(),
@@ -306,9 +361,15 @@ create table if not exists public.financial_audit_events (
   after_data jsonb,
   metadata jsonb not null default '{}'::jsonb,
   created_at timestamptz not null default now(),
-  constraint financial_audit_event_type_check check (event_type in ('subscription_created','plan_changed','invoice_generated','payment_received','payment_failed','refund_issued','credit_note_created','subscription_cancelled','billing_settings_changed','gateway_status_changed')),
+  constraint financial_audit_event_type_check check (event_type in ('subscription_created','plan_changed','invoice_generated','payment_received','payment_failed','refund_issued','credit_note_created','subscription_cancelled','billing_settings_changed','gateway_status_changed','payout_configuration_changed','parent_payment_authorized','parent_payment_received','parent_payment_failed','discount_applied','subscription_suspended','subscription_reactivated')),
   constraint financial_audit_severity_check check (severity in ('low','medium','high','critical'))
 );
+
+alter table public.financial_audit_events
+  drop constraint if exists financial_audit_event_type_check;
+
+alter table public.financial_audit_events
+  add constraint financial_audit_event_type_check check (event_type in ('subscription_created','plan_changed','invoice_generated','payment_received','payment_failed','refund_issued','credit_note_created','subscription_cancelled','billing_settings_changed','gateway_status_changed','payout_configuration_changed','parent_payment_authorized','parent_payment_received','parent_payment_failed','discount_applied','subscription_suspended','subscription_reactivated'));
 
 create table if not exists public.billing_refund_credit_notes (
   id uuid primary key default gen_random_uuid(),
@@ -413,6 +474,133 @@ create table if not exists public.financial_ai_insights (
   constraint financial_ai_insight_status_check check (status in ('open','reviewing','resolved','dismissed'))
 );
 
+create table if not exists public.kindergarten_payout_configurations (
+  id uuid primary key default gen_random_uuid(),
+  garden_id uuid not null references public.gardens(id) on delete cascade,
+  destination_key text not null unique,
+  destination_type text not null default 'payment_provider',
+  provider text not null default 'manual_bank',
+  status text not null default 'not_configured',
+  account_holder_name text,
+  bank_name text,
+  bank_branch text,
+  bank_account_last4 text,
+  provider_account_reference text,
+  billing_email text,
+  default_currency text not null default 'ILS',
+  receives_parent_payments boolean not null default true,
+  verified_at timestamptz,
+  verified_by uuid references public.profiles(id) on delete set null,
+  last_changed_by uuid references public.profiles(id) on delete set null,
+  notes text,
+  metadata jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  constraint kindergarten_payout_destination_type_check check (destination_type in ('bank_account','payment_provider')),
+  constraint kindergarten_payout_provider_check check (provider in ('manual_bank','meshulam','tranzila','cardcom','pelecard','future_provider')),
+  constraint kindergarten_payout_status_check check (status in ('not_configured','pending_verification','verified','needs_update','disabled'))
+);
+
+create table if not exists public.parent_payment_authorizations (
+  id uuid primary key default gen_random_uuid(),
+  authorization_key text not null unique,
+  garden_id uuid not null references public.gardens(id) on delete cascade,
+  child_id uuid references public.children(id) on delete cascade,
+  parent_profile_id uuid references public.profiles(id) on delete set null,
+  fee_group_id uuid references public.kindergarten_fee_groups(id) on delete set null,
+  payout_configuration_id uuid references public.kindergarten_payout_configurations(id) on delete set null,
+  billing_cycle text not null default 'monthly',
+  amount numeric(12,2) not null default 0,
+  currency text not null default 'ILS',
+  status text not null default 'pending_parent_approval',
+  payment_method_type text,
+  token_reference text,
+  provider text,
+  approved_at timestamptz,
+  cancelled_at timestamptz,
+  next_billing_date date,
+  metadata jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  constraint parent_payment_authorization_cycle_check check (billing_cycle in ('monthly','annual')),
+  constraint parent_payment_authorization_status_check check (status in ('pending_parent_approval','approved','active','paused','cancelled','expired','failed')),
+  constraint parent_payment_authorization_method_check check (payment_method_type is null or payment_method_type in ('card','apple_pay','google_pay','bank_transfer','manual'))
+);
+
+create table if not exists public.parent_payment_transactions (
+  id uuid primary key default gen_random_uuid(),
+  transaction_key text not null unique,
+  garden_id uuid not null references public.gardens(id) on delete cascade,
+  child_id uuid references public.children(id) on delete set null,
+  parent_profile_id uuid references public.profiles(id) on delete set null,
+  authorization_id uuid references public.parent_payment_authorizations(id) on delete set null,
+  payout_configuration_id uuid references public.kindergarten_payout_configurations(id) on delete set null,
+  revenue_stream text not null default 'parent_tuition',
+  billing_cycle text not null default 'monthly',
+  amount numeric(12,2) not null default 0,
+  currency text not null default 'ILS',
+  provider text not null default 'manual',
+  provider_transaction_reference text,
+  status text not null default 'pending',
+  routed_directly_to_kindergarten boolean not null default true,
+  platform_fee_amount numeric(12,2) not null default 0,
+  paid_at timestamptz,
+  failed_at timestamptz,
+  failure_reason text,
+  invoice_url text,
+  receipt_url text,
+  metadata jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  constraint parent_payment_transaction_stream_check check (revenue_stream in ('parent_tuition','enrollment_fee','activity_fee','other_kindergarten_income')),
+  constraint parent_payment_transaction_cycle_check check (billing_cycle in ('monthly','annual')),
+  constraint parent_payment_transaction_status_check check (status in ('pending','authorized','paid','failed','refunded','cancelled','requires_action')),
+  constraint parent_payment_direct_routing_check check (routed_directly_to_kindergarten = true and platform_fee_amount = 0)
+);
+
+create table if not exists public.subscription_discount_codes (
+  id uuid primary key default gen_random_uuid(),
+  code text not null unique,
+  description text,
+  discount_type text not null default 'percentage',
+  discount_value numeric(12,2) not null default 0,
+  free_months integer not null default 0,
+  status text not null default 'active',
+  valid_from date,
+  valid_until date,
+  max_redemptions integer,
+  redemption_count integer not null default 0,
+  metadata jsonb not null default '{}'::jsonb,
+  created_by uuid references public.profiles(id) on delete set null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now(),
+  constraint subscription_discount_type_check check (discount_type in ('percentage','fixed','free_months','enterprise_price')),
+  constraint subscription_discount_status_check check (status in ('active','paused','expired','archived'))
+);
+
+create table if not exists public.revenue_separation_ledger (
+  id uuid primary key default gen_random_uuid(),
+  ledger_key text not null unique,
+  revenue_type text not null,
+  source_table text not null,
+  source_id uuid,
+  garden_id uuid references public.gardens(id) on delete set null,
+  amount numeric(12,2) not null default 0,
+  currency text not null default 'ILS',
+  destination_account_type text not null,
+  destination_label text,
+  status text not null default 'recorded',
+  metadata jsonb not null default '{}'::jsonb,
+  created_at timestamptz not null default now(),
+  constraint revenue_separation_type_check check (revenue_type in ('gan_batuach_subscription','parent_tuition')),
+  constraint revenue_separation_destination_check check (
+    (revenue_type = 'gan_batuach_subscription' and destination_account_type = 'gan_batuach_company')
+    or
+    (revenue_type = 'parent_tuition' and destination_account_type = 'kindergarten_account')
+  ),
+  constraint revenue_separation_status_check check (status in ('recorded','reconciled','needs_review','void'))
+);
+
 create index if not exists kindergarten_subscriptions_billing_status_idx on public.kindergarten_subscriptions(billing_status, renewal_date);
 create index if not exists subscription_payments_gateway_status_idx on public.subscription_payments(gateway_status, billing_status, created_at desc);
 create index if not exists billing_invoices_email_status_idx on public.billing_invoices(email_status, billing_status, issued_at desc);
@@ -426,6 +614,11 @@ create index if not exists financial_audit_events_type_idx on public.financial_a
 create index if not exists refund_credit_notes_status_idx on public.billing_refund_credit_notes(status, created_at desc);
 create index if not exists revenue_snapshots_period_idx on public.revenue_snapshots(period, snapshot_date desc);
 create index if not exists financial_ai_insights_status_idx on public.financial_ai_insights(status, severity, created_at desc);
+create index if not exists kindergarten_payout_configurations_garden_idx on public.kindergarten_payout_configurations(garden_id, status);
+create index if not exists parent_payment_authorizations_garden_idx on public.parent_payment_authorizations(garden_id, status, next_billing_date);
+create index if not exists parent_payment_transactions_garden_idx on public.parent_payment_transactions(garden_id, status, created_at desc);
+create index if not exists subscription_discount_codes_status_idx on public.subscription_discount_codes(status, valid_until);
+create index if not exists revenue_separation_ledger_type_idx on public.revenue_separation_ledger(revenue_type, created_at desc);
 
 alter table public.company_billing_settings enable row level security;
 alter table public.payment_gateway_readiness enable row level security;
@@ -441,6 +634,11 @@ alter table public.billing_network_gardens enable row level security;
 alter table public.revenue_snapshots enable row level security;
 alter table public.accounting_export_batches enable row level security;
 alter table public.financial_ai_insights enable row level security;
+alter table public.kindergarten_payout_configurations enable row level security;
+alter table public.parent_payment_authorizations enable row level security;
+alter table public.parent_payment_transactions enable row level security;
+alter table public.subscription_discount_codes enable row level security;
+alter table public.revenue_separation_ledger enable row level security;
 
 drop policy if exists "company billing settings admin only" on public.company_billing_settings;
 create policy "company billing settings admin only" on public.company_billing_settings for all using (public.is_admin()) with check (public.is_admin());
@@ -507,6 +705,49 @@ create policy "accounting exports admin only" on public.accounting_export_batche
 
 drop policy if exists "financial ai insights admin only" on public.financial_ai_insights;
 create policy "financial ai insights admin only" on public.financial_ai_insights for all using (public.is_admin()) with check (public.is_admin());
+
+drop policy if exists "kindergarten payout scoped read" on public.kindergarten_payout_configurations;
+create policy "kindergarten payout scoped read" on public.kindergarten_payout_configurations for select using (public.is_admin() or public.can_access_garden(garden_id));
+
+drop policy if exists "kindergarten payout manager write" on public.kindergarten_payout_configurations;
+create policy "kindergarten payout manager write" on public.kindergarten_payout_configurations for all using (public.is_admin() or public.can_access_garden(garden_id)) with check (public.is_admin() or public.can_access_garden(garden_id));
+
+drop policy if exists "parent payment authorizations scoped read" on public.parent_payment_authorizations;
+create policy "parent payment authorizations scoped read" on public.parent_payment_authorizations for select using (
+  public.is_admin()
+  or public.can_access_garden(garden_id)
+  or parent_profile_id = auth.uid()
+);
+
+drop policy if exists "parent payment authorizations scoped write" on public.parent_payment_authorizations;
+create policy "parent payment authorizations scoped write" on public.parent_payment_authorizations for all using (
+  public.is_admin()
+  or public.can_access_garden(garden_id)
+  or parent_profile_id = auth.uid()
+) with check (
+  public.is_admin()
+  or public.can_access_garden(garden_id)
+  or parent_profile_id = auth.uid()
+);
+
+drop policy if exists "parent payment transactions scoped read" on public.parent_payment_transactions;
+create policy "parent payment transactions scoped read" on public.parent_payment_transactions for select using (
+  public.is_admin()
+  or public.can_access_garden(garden_id)
+  or parent_profile_id = auth.uid()
+);
+
+drop policy if exists "parent payment transactions service write" on public.parent_payment_transactions;
+create policy "parent payment transactions service write" on public.parent_payment_transactions for insert with check (public.is_admin() or public.can_access_garden(garden_id));
+
+drop policy if exists "subscription discount codes admin only" on public.subscription_discount_codes;
+create policy "subscription discount codes admin only" on public.subscription_discount_codes for all using (public.is_admin()) with check (public.is_admin());
+
+drop policy if exists "revenue separation ledger admin read" on public.revenue_separation_ledger;
+create policy "revenue separation ledger admin read" on public.revenue_separation_ledger for select using (public.is_admin());
+
+drop policy if exists "revenue separation ledger append" on public.revenue_separation_ledger;
+create policy "revenue separation ledger append" on public.revenue_separation_ledger for insert with check (public.is_admin());
 
 insert into public.company_billing_settings (settings_key, company_name, vat_number, billing_email, support_email, support_phone, invoice_footer, status)
 values ('default', 'Gan Batuach', null, 'billing@ganbatuach.local', 'support@ganbatuach.local', null, 'תודה שבחרתם בגן בטוח.', 'needs_review')
@@ -579,7 +820,7 @@ insert into public.subscription_plans (
 )
 select
   'Gan Batuach Monthly',
-  'חבילת גן בטוח חודשית לגן יחיד.',
+  'מסלול ישן שאינו זמין לרכישה. מנוי גן בטוח מופעל שנתית בלבד.',
   'monthly',
   700,
   700,
@@ -590,11 +831,11 @@ select
   '{"core_dashboard":true,"communications":true,"documents":true,"cameras":true,"digital_observer_included":true}'::jsonb,
   '{"core_dashboard":true,"communications":true,"documents":true,"cameras":true,"digital_observer_included":true}'::jsonb,
   '{"gardens":1}'::jsonb,
-  true,
-  'active',
+  false,
+  'inactive',
   'standard',
-  array['monthly']::text[],
-  true,
+  array['annual']::text[],
+  false,
   false,
   10
 where not exists (select 1 from public.subscription_plans where name = 'Gan Batuach Monthly');
@@ -645,7 +886,7 @@ select
   true,
   'active',
   'pilot',
-  array['monthly']::text[],
+  array['annual']::text[],
   true,
   false,
   5
@@ -671,11 +912,35 @@ select
   true,
   'active',
   'enterprise',
-  array['monthly','annual','custom']::text[],
+  array['annual','custom']::text[],
   false,
   true,
   40
 where not exists (select 1 from public.subscription_plans where name = 'Network Enterprise');
+
+update public.subscription_plans
+set
+  active = false,
+  active_status = 'inactive',
+  public_purchase_enabled = false,
+  billing_cycle_options = array['annual']::text[],
+  updated_at = now()
+where plan_type::text = 'monthly';
+
+insert into public.subscription_discount_codes (code, description, discount_type, discount_value, free_months, status, metadata)
+values
+  ('PILOT100', 'קוד פיילוט להפעלה ראשונית מבוקרת.', 'free_months', 0, 1, 'active', '{"use_case":"pilot"}'::jsonb),
+  ('ANNUAL10', 'הנחה שנתית לקמפיין פתיחה.', 'percentage', 10, 0, 'active', '{"use_case":"annual_subscription"}'::jsonb),
+  ('ENTERPRISE', 'תמחור מותאם לרשת גנים.', 'enterprise_price', 0, 0, 'active', '{"use_case":"network"}'::jsonb)
+on conflict (code)
+do update set
+  description = excluded.description,
+  discount_type = excluded.discount_type,
+  discount_value = excluded.discount_value,
+  free_months = excluded.free_months,
+  status = excluded.status,
+  metadata = excluded.metadata,
+  updated_at = now();
 
 insert into public.financial_ai_insights (insight_key, insight_type, severity, status, title, explanation, recommended_action, metadata)
 values
@@ -709,13 +974,11 @@ select
   current_date,
   'monthly',
   coalesce(sum(case
-    when ks.status::text = 'active' and coalesce(ks.billing_cycle, 'monthly') = 'annual' then coalesce(sp.annual_price, sp.price_amount * 12, 0) / 12
-    when ks.status::text = 'active' then coalesce(sp.monthly_price, sp.price_amount, 0)
+    when ks.status::text = 'active' then coalesce(sp.annual_price, sp.price_amount, 0) / 12
     else 0
   end), 0),
   coalesce(sum(case
-    when ks.status::text = 'active' and coalesce(ks.billing_cycle, 'monthly') = 'annual' then coalesce(sp.annual_price, sp.price_amount * 12, 0)
-    when ks.status::text = 'active' then coalesce(sp.monthly_price, sp.price_amount, 0) * 12
+    when ks.status::text = 'active' then coalesce(sp.annual_price, sp.price_amount, 0)
     else 0
   end), 0),
   count(*) filter (where ks.status::text = 'active'),
@@ -747,5 +1010,9 @@ comment on table public.payment_method_tokens is 'Tokenized payment method refer
 comment on table public.subscription_checkout_sessions is 'Self-service subscription checkout sessions for kindergarten managers.';
 comment on table public.financial_audit_events is 'Append-only financial audit trail for subscription, payment, invoice, refund and gateway actions.';
 comment on table public.revenue_snapshots is 'Aggregated revenue metrics for MRR, ARR, churn, renewals and collections.';
+comment on table public.kindergarten_payout_configurations is 'Kindergarten-owned payout destinations for parent tuition. Stores references and last four digits only, never raw bank or card secrets.';
+comment on table public.parent_payment_authorizations is 'Parent approval records for tuition billing routed directly to the kindergarten payout destination.';
+comment on table public.parent_payment_transactions is 'Parent-to-kindergarten payment records. Gan Batuach facilitates the transaction but does not receive tuition funds.';
+comment on table public.revenue_separation_ledger is 'Audit ledger separating Gan Batuach subscription revenue from parent tuition routed to kindergarten accounts.';
 
 notify pgrst, 'reload schema';

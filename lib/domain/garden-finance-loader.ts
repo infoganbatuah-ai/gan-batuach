@@ -108,6 +108,9 @@ export async function loadGardenFinanceData({ supabase, gardenId, searchParams =
       feeGroupsWithMarket: [] as any[],
       history: [] as any[],
       transfers: [] as any[],
+      payoutConfigurations: [] as any[],
+      parentPaymentAuthorizations: [] as any[],
+      parentPaymentTransactions: [] as any[],
       diagnostics,
       errors
     },
@@ -144,13 +147,16 @@ export async function loadGardenFinanceData({ supabase, gardenId, searchParams =
   }
 
   try {
-    const [childrenRows, historyRowsRaw, feeGroupsRaw, enrollmentRows, marketRowsRaw, transferRows] = await Promise.all([
+    const [childrenRows, historyRowsRaw, feeGroupsRaw, enrollmentRows, marketRowsRaw, transferRows, payoutRows, authorizationRows, transactionRows] = await Promise.all([
       runQuery<any>("children query", "children", "*", () => supabase.from("children" as any).select("*").eq("garden_id", gardenId)),
       runQuery<any>("payment history query", "child_payment_history", "*", () => supabase.from("child_payment_history" as any).select("*").eq("garden_id", gardenId)),
       runQuery<any>("fee groups query", "kindergarten_fee_groups", "*", () => supabase.from("kindergarten_fee_groups" as any).select("*").eq("garden_id", gardenId)),
       runQuery<any>("child enrollments query", "child_kindergarten_enrollments", "*", () => supabase.from("child_kindergarten_enrollments" as any).select("*").eq("garden_id", gardenId)),
       runQuery<any>("recommended averages query", "kindergarten_fee_groups", "*", () => supabase.from("kindergarten_fee_groups" as any).select("*").eq("active", true).neq("garden_id", gardenId)),
-      runQuery<any>("transfers query", "child_transfer_requests", "*", () => supabase.from("child_transfer_requests" as any).select("*").or(`target_garden_id.eq.${gardenId},current_garden_id.eq.${gardenId}`))
+      runQuery<any>("transfers query", "child_transfer_requests", "*", () => supabase.from("child_transfer_requests" as any).select("*").or(`target_garden_id.eq.${gardenId},current_garden_id.eq.${gardenId}`)),
+      runQuery<any>("payout configuration query", "kindergarten_payout_configurations", "*", () => supabase.from("kindergarten_payout_configurations" as any).select("*").eq("garden_id", gardenId)),
+      runQuery<any>("parent payment authorization query", "parent_payment_authorizations", "*", () => supabase.from("parent_payment_authorizations" as any).select("*").eq("garden_id", gardenId)),
+      runQuery<any>("parent payment transaction query", "parent_payment_transactions", "*", () => supabase.from("parent_payment_transactions" as any).select("*").eq("garden_id", gardenId).order("created_at", { ascending: false }).limit(80))
     ]);
 
     const feeGroups = sortByName(feeGroupsRaw, "group_name");
@@ -215,7 +221,17 @@ export async function loadGardenFinanceData({ supabase, gardenId, searchParams =
         children,
         totals: { expected, paid, missing, overdue, partialPayments, paidChildren, unpaidChildren, failedChildren, specialArrangements, specialArrangementsTotal, debtTotal, pausedTotal, yearRevenue, collection }
       },
-      secondary: { feeGroups, feeGroupsWithMarket, history, transfers: transferRows ?? [], diagnostics, errors },
+      secondary: {
+        feeGroups,
+        feeGroupsWithMarket,
+        history,
+        transfers: transferRows ?? [],
+        payoutConfigurations: payoutRows ?? [],
+        parentPaymentAuthorizations: authorizationRows ?? [],
+        parentPaymentTransactions: transactionRows ?? [],
+        diagnostics,
+        errors
+      },
       diagnostics,
       errors
     };

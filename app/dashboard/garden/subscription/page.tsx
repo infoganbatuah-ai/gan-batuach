@@ -40,9 +40,9 @@ export default async function GardenSubscriptionPage() {
     <DashboardShell role={role} title="Subscription Center">
       <div className="dashboard-hero-card garden-hero-card">
         <div>
-          <p className="eyebrow">Subscription Center</p>
-          <h1>מנוי וחיוב של הגן.</h1>
-          <p>מחיר קבוע: 700 ש״ח לחודש לגן. כולל מערכת ניהול, תצפיתן דיגיטלי כלול, מצלמות ותובנות בטיחות כחלק מהמערכת.</p>
+          <p className="eyebrow">מנוי שנתי</p>
+          <h1>הפעלת מערכת גן בטוח.</h1>
+          <p>אפשר להשלים פרופיל, ילדים והורים לפני תשלום. להפעלה מלאה נדרש תשלום מנוי שנתי.</p>
         </div>
         <span className={["active", "trial"].includes(subscription?.status) ? "pill good" : subscription?.status === "pending_payment" ? "pill warn" : "pill bad"}>
           {statusLabels[subscription?.status] ?? "לא הוגדר"}
@@ -50,16 +50,22 @@ export default async function GardenSubscriptionPage() {
       </div>
       <AdminDataError message={data.errors.length ? "חלק מנתוני המנוי לא נטענו" : null} />
 
+      {subscription?.status !== "active" ? (
+        <section className="warning-banner">
+          תשלום מנוי שנתי נדרש להפעלת המערכת.
+        </section>
+      ) : null}
+
       {!subscription ? (
         <section className="empty-state">
           <strong>עדיין לא הוגדר מנוי לגן</strong>
-          <span>אדמין יכול להגדיר את תוכנית Gan Batuach הקבועה: 700 ש״ח לחודש לגן.</span>
+          <span>יש לבחור מסלול שנתי ולהשלים תשלום כדי לפתוח את כל יכולות המערכת.</span>
         </section>
       ) : (
         <>
           <section className="grid cols-4 dashboard-panels">
             <article className="card metric-card"><span>תוכנית</span><strong>{plan?.name ?? "Gan Batuach 700"}</strong></article>
-            <article className="card metric-card"><span>מחיר</span><strong>{money(plan?.price_amount, plan?.currency ?? "ILS")}</strong></article>
+            <article className="card metric-card"><span>מחיר שנתי</span><strong>{money(plan?.annual_price ?? plan?.price_amount, plan?.currency ?? "ILS")}</strong></article>
             <article className="card metric-card"><span>חידוש</span><strong>{date(subscription.renewal_date)}</strong></article>
             <article className="card metric-card"><span>תוקף</span><strong>{date(subscription.expires_at ?? subscription.trial_ends_at)}</strong></article>
           </section>
@@ -74,7 +80,7 @@ export default async function GardenSubscriptionPage() {
       <GardenSubscriptionActions plans={data.plans as any[]} />
 
       <section className="dashboard-section">
-        <div className="section-heading"><h2>היסטוריית תשלומים</h2><p>חיוב גן בטוח הוא 700 ש״ח לחודש לגן. תצפיתן דיגיטלי כלול, ללא חבילת תצפיתן נפרדת בשלב זה.</p></div>
+        <div className="section-heading"><h2>היסטוריית תשלומים</h2><p>חיוב גן בטוח הוא מנוי שנתי של הגן מול גן בטוח. תשלומי הורים מנוהלים בנפרד ומועברים ישירות לחשבון הגן.</p></div>
         {data.payments.length === 0 ? <div className="empty-state"><strong>אין עדיין תשלומים</strong><span>כאשר אדמין יתעד תשלום או ספק תשלומים יחובר, ההיסטוריה תופיע כאן.</span></div> : (
           <div className="card-list">{(data.payments as any[]).map((payment) => <article className="card action-panel" key={payment.id}><h3>{money(payment.amount, payment.currency)}</h3><p>{payment.payment_method ?? "ידני"} · {payment.billing_status}</p><span>{date(payment.created_at)}</span></article>)}</div>
         )}
@@ -92,7 +98,7 @@ export default async function GardenSubscriptionPage() {
       </section>
 
       <section className="dashboard-section">
-        <div className="section-heading"><h2>תזכורות מנוי</h2><p>30, 14, 7, 3, 1 ימים, יום סיום ואחרי סיום. כרגע in-app, מוכנות ל-SMS/WhatsApp/Push.</p></div>
+        <div className="section-heading"><h2>תזכורות מנוי</h2><p>90, 60, 30, 14 ו-7 ימים לפני סיום. כרגע in-app, מוכנות ל-SMS/WhatsApp/Push.</p></div>
         {data.reminders.length === 0 ? <div className="empty-state"><strong>אין תזכורות מתוזמנות</strong><span>תזכורות ייווצרו כאשר אדמין יגדיר תאריך תוקף או חידוש.</span></div> : (
           <div className="card-list">{(data.reminders as any[]).map((reminder) => <article className="card action-panel" key={reminder.id}><h3>{reminder.title}</h3><p>{date(reminder.scheduled_for)} · {reminder.channel} · {reminder.status}</p></article>)}</div>
         )}

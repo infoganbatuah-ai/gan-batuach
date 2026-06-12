@@ -39,8 +39,15 @@ export async function POST(request: Request) {
     const { profile } = await requireRole(["admin"]);
     const payload = schema.parse(await request.json());
     const supabase = await createClient();
+    const normalizedPlanType = payload.plan_type === "monthly" ? "annual" : payload.plan_type;
     const row = {
       ...payload,
+      plan_type: normalizedPlanType,
+      duration_days: normalizedPlanType === "annual" ? 365 : payload.duration_days,
+      annual_price: payload.price_amount,
+      monthly_price: null,
+      billing_cycle_options: ["annual"],
+      public_purchase_enabled: normalizedPlanType === "annual" ? payload.active : false,
       updated_by: profile.id,
       updated_at: new Date().toISOString(),
       created_by: payload.id ? undefined : profile.id
