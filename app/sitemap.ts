@@ -6,6 +6,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "",
     "/why-gan-batuach",
     "/safety-standard",
+    "/parents-demand",
     "/parents-demand-safety",
     "/parent-portal",
     "/ai-observer",

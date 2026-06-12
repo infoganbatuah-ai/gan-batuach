@@ -13,6 +13,7 @@ type LeadRow = {
   city?: string | null;
   phone?: string | null;
   email?: string | null;
+  address?: string | null;
   notes?: string | null;
   status?: string | null;
   source?: string | null;
@@ -57,13 +58,17 @@ const labels: Record<string, string> = {
   correction_required: "נדרש תיקון",
   active: "פעיל",
   suspended: "מושהה",
-  archived: "בארכיון"
+  archived: "בארכיון",
+  contacted: "נוצר קשר",
+  not_relevant: "לא רלוונטי"
 };
 
 const sourceLabels: Record<string, string> = {
   public_website: "אתר",
   book_demo: "הדגמה",
+  demo_booking: "הדגמה",
   parent_pressure: "הורה",
+  parent_request: "בקשת הורה",
   referral: "הפניה",
   organic: "אורגני"
 };
@@ -126,10 +131,16 @@ function GardenCard({ garden, onDone }: { garden: GardenRow; onDone: (message: s
 
 function LeadCard({ lead, onDone }: { lead: LeadRow; onDone: (message: string) => void }) {
   const [busy, setBusy] = useState(false);
+  const qualification = lead.qualification ?? {};
+  const isParentOrigin = lead.source === "parent_request";
+  const [note, setNote] = useState("");
+  const [managerName, setManagerName] = useState(String(qualification.manager_name ?? lead.manager_name ?? ""));
+  const [managerPhone, setManagerPhone] = useState(String(qualification.manager_phone ?? ""));
+  const [managerEmail, setManagerEmail] = useState(String(qualification.manager_email ?? ""));
   async function approve() {
     setBusy(true);
     try {
-      const result = await postAction({ action: "approve_lead", lead_id: lead.id });
+      const result = await postAction({ action: "approve_lead", lead_id: lead.id, note, manager_name: managerName || undefined, manager_phone: managerPhone || undefined, manager_email: managerEmail || undefined });
       onDone(`נוצרו פרטי כניסה: ${result.credentials?.username ?? "נשלח למנהלת"}`);
     } catch (error) {
       onDone(error instanceof Error ? error.message : "האישור נכשל");
@@ -137,10 +148,10 @@ function LeadCard({ lead, onDone }: { lead: LeadRow; onDone: (message: string) =
       setBusy(false);
     }
   }
-  async function leadAction(action: "request_contact" | "reject_lead", success: string) {
+  async function leadAction(action: "request_contact" | "reject_lead" | "mark_contacted" | "mark_not_relevant", success: string) {
     setBusy(true);
     try {
-      await postAction({ action, lead_id: lead.id });
+      await postAction({ action, lead_id: lead.id, note });
       onDone(success);
     } catch (error) {
       onDone(error instanceof Error ? error.message : "הפעולה נכשלה");
@@ -160,11 +171,25 @@ function LeadCard({ lead, onDone }: { lead: LeadRow; onDone: (message: string) =
           <span>ציון {lead.lead_score ?? 0}/100</span>
           {lead.campaign ? <span>{lead.campaign.replaceAll("_", " ")}</span> : null}
         </div>
+        {isParentOrigin ? <div className="lead-conversion-meta" aria-label="פרטי הורה">
+          <span>הורה: {lead.parent_name || "לא צוין"}</span>
+          <span>טלפון הורה: {lead.phone || "לא צוין"}</span>
+          {lead.address || qualification.kindergarten_address ? <span>כתובת: {String(lead.address ?? qualification.kindergarten_address)}</span> : null}
+          {Array.isArray(qualification.child_age_groups) ? <span>גילאים: {qualification.child_age_groups.join(", ")}</span> : null}
+        </div> : null}
         <small>{lead.notes || ""}</small>
+        <textarea value={note} onChange={(event) => setNote(event.target.value)} rows={2} placeholder="הערת טיפול / פרטי קשר שנאספו" />
+        {isParentOrigin ? <div className="form-grid compact-form-grid">
+          <label>שם מנהלת<input value={managerName} onChange={(event) => setManagerName(event.target.value)} /></label>
+          <label>טלפון מנהלת<input value={managerPhone} onChange={(event) => setManagerPhone(event.target.value)} /></label>
+          <label>מייל מנהלת<input type="email" value={managerEmail} onChange={(event) => setManagerEmail(event.target.value)} /></label>
+        </div> : null}
       </div>
       <div className="procedure-meta">
-        <button className="button primary" disabled={busy} onClick={approve}>אישור ושליחת כניסה</button>
+        <button className="button primary" disabled={busy} onClick={approve}>המרה לרישום גן</button>
         <button className="button secondary" disabled={busy} onClick={() => leadAction("request_contact", "סומן ליצירת קשר")}>צריך קשר</button>
+        <button className="button secondary" disabled={busy} onClick={() => leadAction("mark_contacted", "סומן שנוצר קשר")}>נוצר קשר</button>
+        <button className="button secondary" disabled={busy} onClick={() => leadAction("mark_not_relevant", "סומן כלא רלוונטי")}>לא רלוונטי</button>
         <button className="button secondary" disabled={busy} onClick={() => leadAction("reject_lead", "הליד הועבר לארכיון")}>ארכוב</button>
       </div>
     </article>
@@ -182,7 +207,10 @@ function FlowSection({ title, hint, children, empty }: { title: string; hint: st
 
 export function AdminLeadsManager({ leads, gardens = [] }: Props) {
   const [message, setMessage] = useState("");
-  const gardenLeads = leads.filter((lead) => lead.lead_type === "garden" && ["new", "new_garden_onboarding", "lead_submitted"].includes(String(lead.status ?? "new")));
+  const activeLeadStatuses = ["new", "new_garden_onboarding", "lead_submitted", "contacted"];
+  const demoLeads = leads.filter((lead) => lead.lead_type === "garden" && lead.source === "demo_booking" && activeLeadStatuses.includes(String(lead.status ?? "new")));
+  const parentOriginLeads = leads.filter((lead) => lead.lead_type === "garden" && lead.source === "parent_request" && activeLeadStatuses.includes(String(lead.status ?? "new")));
+  const gardenLeads = leads.filter((lead) => lead.lead_type === "garden" && !["demo_booking", "parent_request"].includes(String(lead.source ?? "")) && activeLeadStatuses.includes(String(lead.status ?? "new")));
   const reviewLeads = leads.filter((lead) => lead.lead_type === "garden" && String(lead.status) === "lead_review");
   const credentialsSent = gardens.filter((garden) => ["credentials_sent", "lead_approved_credentials_sent"].includes(String(garden.approval_flow_status ?? garden.status)));
   const inProgress = gardens.filter((garden) => ["onboarding_in_progress", "profile_incomplete"].includes(String(garden.approval_flow_status ?? garden.status)));
@@ -194,6 +222,12 @@ export function AdminLeadsManager({ leads, gardens = [] }: Props) {
   return (
     <>
       {message ? <div className={message.includes("נכשל") || message.includes("לא ") ? "error-banner" : "success-banner"}>{message}</div> : null}
+      <FlowSection title="בקשות הדגמה" hint="גנים שקבעו הדגמה מהאתר וממתינים לשיחת המשך." empty={demoLeads.length === 0}>
+        {demoLeads.map((lead) => <LeadCard lead={lead} onDone={setMessage} key={lead.id} />)}
+      </FlowSection>
+      <FlowSection title="בקשות שהגיעו מהורים" hint="פניות הורים שמבקשים מהגן להצטרף. מצרפים פרטי מנהלת לפני המרה." empty={parentOriginLeads.length === 0}>
+        {parentOriginLeads.map((lead) => <LeadCard lead={lead} onDone={setMessage} key={lead.id} />)}
+      </FlowSection>
       <FlowSection title="בקשות גן חדשות" hint="בודקים בקשה ראשונית ושולחים פרטי כניסה למנהלת." empty={gardenLeads.length === 0}>
         {gardenLeads.map((lead) => <LeadCard lead={lead} onDone={setMessage} key={lead.id} />)}
       </FlowSection>

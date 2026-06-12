@@ -16,7 +16,7 @@ export function BrandHeader() {
       <nav className="nav" aria-label="ניווט ראשי">
         <Link href="/why-gan-batuach">למה גן בטוח</Link>
         <Link href="/safety-standard">תקן הבטיחות</Link>
-        <Link href="/parents-demand-safety">להורים</Link>
+        <Link href="/parents-demand">להורים</Link>
         <Link href="/kindergarten-directory">גנים</Link>
         <Link href="/book-demo">קביעת הדגמה</Link>
         <Link href="/login">כניסה</Link>
