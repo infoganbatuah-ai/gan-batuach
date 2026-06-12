@@ -9,7 +9,7 @@ export default function ParentPortalPage() {
     <>
       <BrandHeader />
       <main>
-        <MarketingHero eyebrow="Parent Portal" title="ההורים רואים את מה שחשוב, בלי לרדוף אחרי מידע" subtitle="עדכונים יומיים, הודעות, תמונות, מסמכים, איסוף, תשלומים ושקיפות בטיחותית במקום אחד." primaryHref="/parents-demand-safety" primaryLabel="בקשו מהגן להצטרף" />
+        <MarketingHero eyebrow="Parent Portal" title="ההורים רואים את מה שחשוב, בלי לרדוף אחרי מידע" subtitle="עדכונים יומיים, הודעות, תמונות, מסמכים, איסוף, תשלומים ושקיפות בטיחותית במקום אחד." primaryHref="/parents-demand" primaryLabel="בקשו מהגן להצטרף" />
         <MarketingSection eyebrow="Daily experience" title="מה הורה מקבל כל יום">
           <div className="grid cols-3 feature-grid">
             <MarketingCard icon={BellRing} title="עדכונים" text="מה קרה היום ומה דורש תשומת לב." />

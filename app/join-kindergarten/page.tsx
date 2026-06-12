@@ -1,4 +1,5 @@
-import { Building2, Camera, ClipboardList, FileCheck2, Send, UsersRound } from "lucide-react";
+import Link from "next/link";
+import { Bot, Building2, Camera, ClipboardList, FileCheck2, ShieldCheck, Send, UsersRound, WalletCards } from "lucide-react";
 import { BrandHeader } from "@/components/brand-header";
 import { ContactAvailabilityGuard } from "@/components/contact-availability-guard";
 import { createGardenLead } from "@/app/actions";
@@ -12,6 +13,15 @@ const steps = [
   { icon: Send, title: "סיום ושליחה", text: "גן בטוח בודק וחוזר אליכם." }
 ];
 
+const valueCards = [
+  { icon: ShieldCheck, title: "בטיחות ושקיפות", text: "פיקוח, תיעוד, התראות והצגת מידע ברור להורים." },
+  { icon: UsersRound, title: "אמון הורים", text: "עדכונים יומיים, מסמכים, הודעות ותמונת מצב במקום אחד." },
+  { icon: ClipboardList, title: "ציות ומסמכים", text: "מעקב אחר אישורים, הכשרות, בדיקות ופעולות תיקון." },
+  { icon: Camera, title: "מצלמות ופיקוח", text: "הכנה לחיבור מצלמות, הרשאות צפייה וסיכומי בטיחות מאושרים." },
+  { icon: Bot, title: "עוזר חכם", text: "המלצות תפעוליות למנהלת בלי החלטות אוטומטיות." },
+  { icon: WalletCards, title: "תשלומים ותפעול", text: "ניהול תשלומי הורים, מסמכים, צוות ופעילות יומית." }
+];
+
 export default async function JoinKindergartenPage({ searchParams }: { searchParams: Promise<{ lead?: string; error?: string }> }) {
   const params = await searchParams;
   return (
@@ -20,14 +30,21 @@ export default async function JoinKindergartenPage({ searchParams }: { searchPar
       <main>
         <section className="page-hero slim-hero registration-hero">
           <p className="eyebrow">הצטרפות גן</p>
-          <h1>פותחים את גן בטוח לגן שלך</h1>
-          <p>מסע קצר ומודרך לרישום גן: ממלאים רק מה שצריך עכשיו, ואת ההשלמות עושים אחרי אישור ראשוני.</p>
+          <h1>גן בטוח הופך את הגן שלך לשקוף, מסודר ובטוח יותר</h1>
+          <p>מערכת אחת לניהול יומי, אמון הורים, מסמכים, צוות, פיקוח, מצלמות, תשלומים ותובנות חכמות.</p>
+          <div className="hero-actions">
+            <Link className="button primary large" href="#kindergarten-registration">רישום גן למערכת גן בטוח</Link>
+            <Link className="button secondary large" href="/book-demo">קבעו הדגמה</Link>
+          </div>
           {params.lead === "sent" ? <div className="success-banner">בקשת הצטרפות הגן נשלחה. צוות גן בטוח יבדוק את הפרטים ויחזור אליכם.</div> : null}
           {params.error ? <div className="error-banner">{params.error}</div> : null}
         </section>
+        <section className="section feature-grid">
+          {valueCards.map((item) => <article className="card trust-card" key={item.title}><item.icon size={22} /><h3>{item.title}</h3><p>{item.text}</p></article>)}
+        </section>
         <section className="section wizard-layout">
           <aside className="wizard-steps">{steps.map((step, index) => <div className="wizard-step" key={step.title}><span>{index + 1}</span><step.icon size={20} /><div><strong>{step.title}</strong><small>{step.text}</small></div></div>)}</aside>
-          <form action={createGardenLead} className="card form wizard-form premium-step-form">
+          <form id="kindergarten-registration" action={createGardenLead} className="card form wizard-form premium-step-form">
             <input type="hidden" name="source" value="public_website" />
             <input type="hidden" name="campaign" value="kindergarten_conversion" />
             <input type="hidden" name="funnel_stage" value="book_demo" />
@@ -42,7 +59,7 @@ export default async function JoinKindergartenPage({ searchParams }: { searchPar
             <details className="accordion-step"><summary><strong>5. מסמכים / אישורים אם קיימים</strong><span>אפשר לצרף עכשיו או להשלים בהמשך</span></summary><div className="form-grid"><label>עוסק פטור / מורשה / חברה<input name="business_document_name" type="file" /></label><label>רישיון גן<input name="license_document_name" type="file" /></label><label>אישור לימודים / הוראה של הגננת<input name="teacher_certificate_name" type="file" /></label><label className="wide">מסמכים נוספים<input name="additional_documents_name" type="file" multiple /></label><label className="wide">הערות למסמכים<input name="additional_documents_note" placeholder="שם מסמך/קישור אם קיים" /></label></div></details>
             <label className="declaration-box"><input name="declaration" type="checkbox" required /><span><strong>הצהרה</strong> המערכת אינה גוף ממשלתי ואינה מחליפה ייעוץ משפטי. הפרטים נשלחים לבדיקה והמשך תהליך מול אדמין.</span></label>
             <label className="declaration-box"><input name="kindergarten_terms_commitment" type="checkbox" required /><span><strong>התחייבות לתקנון גני ילדים</strong> קראתי ואני מתחייב/ת להשלים מסמכים, לפעול לפי נהלי גן בטוח ולשמור על פרטיות קטינים.</span></label>
-            <button className="button primary large" type="submit">שליחת בקשה לאדמין</button>
+            <button className="button primary large" type="submit">רישום גן למערכת גן בטוח</button>
           </form>
         </section>
       </main>

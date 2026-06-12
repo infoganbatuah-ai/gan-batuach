@@ -38,7 +38,8 @@ export default async function BookDemoPage({ searchParams }: { searchParams: Pro
               <label>מייל<input name="contact_email" type="email" /></label>
               <label>מספר ילדים<input name="children_count" type="number" min="0" /></label>
               <label>מספר אנשי צוות<input name="staff_count" type="number" min="0" /></label>
-              <label>מתי נוח לדבר?<input name="preferred_time" placeholder="לדוגמה: מחר בבוקר" /></label>
+              <label>תאריך מועדף להדגמה<input name="preferred_demo_date" type="date" /></label>
+              <label>שעה או חלון נוח<input name="preferred_time" placeholder="לדוגמה: מחר בבוקר" /></label>
               <label>מצלמות קיימות?<select name="camera_status"><option value="unknown">לא יודע/ת</option><option value="none">אין</option><option value="dvr_nvr">יש DVR/NVR</option><option value="ip">יש מצלמות IP</option></select></label>
               <label>מתי תרצו להתחיל?<select name="decision_timeline"><option value="now">מיידי</option><option value="month">בחודש הקרוב</option><option value="quarter">ברבעון הקרוב</option><option value="later">בהמשך</option></select></label>
               <label className="wide">מה האתגר המרכזי?<textarea name="biggest_challenge" rows={3} placeholder="שקיפות הורים, פיקוח, מסמכים, צוות, מצלמות, תפעול..." /></label>

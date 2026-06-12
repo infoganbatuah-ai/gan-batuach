@@ -228,13 +228,15 @@ export async function createDemoBooking(formData: FormData) {
   const childrenCount = Number(value(formData, "children_count") || 0);
   const staffCount = Number(value(formData, "staff_count") || 0);
   const preferredTime = value(formData, "preferred_time");
+  const preferredDemoDate = value(formData, "preferred_demo_date");
   const qualification = {
     role: value(formData, "role"),
     current_tools: value(formData, "current_tools"),
     biggest_challenge: value(formData, "biggest_challenge"),
     camera_status: value(formData, "camera_status"),
     decision_timeline: value(formData, "decision_timeline"),
-    interest: values(formData, "interest")
+    interest: values(formData, "interest"),
+    preferred_demo_date: preferredDemoDate || null
   };
   const score = Math.min(100, 35 + (childrenCount >= 20 ? 20 : 0) + (contactEmail ? 10 : 0) + (qualification.decision_timeline === "now" ? 20 : 0));
 
@@ -250,13 +252,13 @@ export async function createDemoBooking(formData: FormData) {
       children_count: childrenCount,
       staff_count: staffCount,
       notes: [
-        `בקשת הדגמה: ${preferredTime || "לא צוין זמן מועדף"}`,
+        `בקשת הדגמה: ${preferredDemoDate || preferredTime || "לא צוין מועד מועדף"}`,
         qualification.biggest_challenge ? `אתגר מרכזי: ${qualification.biggest_challenge}` : "",
         qualification.current_tools ? `כלים קיימים: ${qualification.current_tools}` : "",
         qualification.interest?.length ? `עניין: ${qualification.interest.join(", ")}` : ""
       ].filter(Boolean).join("\n"),
       status: "new",
-      source: "book_demo",
+      source: "demo_booking",
       campaign: "kindergarten_demo_funnel",
       funnel_stage: "book_demo",
       conversion_goal: "demo_to_trial",
@@ -280,6 +282,7 @@ export async function createDemoBooking(formData: FormData) {
     children_count: childrenCount,
     staff_count: staffCount,
     preferred_time: preferredTime || null,
+    preferred_demo_date: preferredDemoDate || null,
     qualification,
     status: "new",
     notes: value(formData, "notes") || null
@@ -301,6 +304,75 @@ export async function createDemoBooking(formData: FormData) {
   revalidatePath("/");
   revalidatePath("/dashboard/admin/leads");
   redirect("/book-demo?lead=sent");
+}
+
+export async function createParentDemandLead(formData: FormData) {
+  const supabase = await createClient();
+  const parentName = value(formData, "parent_name");
+  const parentPhone = value(formData, "parent_phone");
+  const parentEmail = value(formData, "parent_email");
+  const gardenName = value(formData, "garden_name");
+  const gardenAddress = value(formData, "garden_address");
+  const managerName = value(formData, "manager_name");
+  const managerPhone = value(formData, "manager_phone");
+  const childAgeGroups = values(formData, "child_age_groups");
+  const qualification = {
+    parent_origin: true,
+    parent_name: parentName,
+    parent_phone: parentPhone,
+    parent_email: parentEmail || null,
+    kindergarten_address: gardenAddress || null,
+    child_age_groups: childAgeGroups,
+    child_age_unknown: childAgeGroups.includes("unknown"),
+    manager_name: managerName || null,
+    manager_phone: managerPhone || null,
+    contact_next_step: "contact_parent_then_kindergarten"
+  };
+  const notes = [
+    "פניית הורה: מבקש/ת שהגן יצטרף לגן בטוח.",
+    childAgeGroups.length ? `קבוצות גיל: ${childAgeGroups.join(", ")}` : "",
+    gardenAddress ? `כתובת גן: ${gardenAddress}` : "",
+    managerName ? `שם מנהלת ידוע: ${managerName}` : "",
+    managerPhone ? `טלפון מנהלת ידוע: ${managerPhone}` : "",
+    value(formData, "notes") ? `הערה: ${value(formData, "notes")}` : ""
+  ].filter(Boolean).join("\n");
+
+  const { error, data: lead } = await supabase
+    .from("leads" as any)
+    .insert({
+      lead_type: "garden",
+      parent_name: parentName,
+      garden_name: gardenName,
+      manager_name: managerName || null,
+      address: gardenAddress || null,
+      phone: parentPhone,
+      email: parentEmail || null,
+      notes,
+      status: "new",
+      source: "parent_request",
+      campaign: "parent_demand",
+      funnel_stage: "parent_request",
+      conversion_goal: "parent_request_to_kindergarten_registration",
+      qualification,
+      lead_score: Math.min(100, 35 + (gardenName ? 20 : 0) + (managerPhone ? 20 : 0) + (parentEmail ? 10 : 0))
+    })
+    .select("id")
+    .single();
+
+  if (error) redirect(`/parents-demand?error=${encodeURIComponent("לא ניתן לשלוח את הבקשה כרגע. נסו שוב בעוד רגע.")}`);
+
+  await supabase.from("website_conversion_events" as any).insert({
+    lead_id: lead?.id,
+    event_type: "parent_request",
+    page_path: "/parents-demand",
+    audience: "parents",
+    campaign: "parent_demand",
+    metadata: { garden_name: gardenName, parent_origin: true }
+  });
+
+  revalidatePath("/");
+  revalidatePath("/dashboard/admin/leads");
+  redirect("/parents-demand?lead=sent");
 }
 
 export async function createInspectorLead(formData: FormData) {

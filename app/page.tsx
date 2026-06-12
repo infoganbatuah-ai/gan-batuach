@@ -61,7 +61,7 @@ export default async function HomePage() {
           subtitle="הפלטפורמה שמחברת גנים, הורים, צוות, פקחים ומצלמות למערכת אחת שמייצרת אמון, תיעוד ותפעול מקצועי."
           primaryHref="/book-demo"
           primaryLabel="קביעת הדגמה לגן"
-          secondaryHref="/parents-demand-safety"
+          secondaryHref="/parents-demand"
           secondaryLabel="אני הורה"
         >
           <div className="authority-panel">
@@ -103,7 +103,7 @@ export default async function HomePage() {
             <p>הורים לא צריכים לנחש. בקשו מהגן שקיפות, סטטוס בטיחות, עדכונים יומיים ומעקב פיקוח ברור.</p>
           </div>
           <div className="actions">
-            <Link className="button primary large" href="/parents-demand-safety">דרשו שקיפות מהגן</Link>
+            <Link className="button primary large" href="/parents-demand">דרשו שקיפות מהגן</Link>
             <Link className="button secondary large" href="/parent-portal">ראו מה הורים מקבלים</Link>
           </div>
         </section>

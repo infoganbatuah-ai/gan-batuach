@@ -6,10 +6,13 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { generateTemporaryPassword, provisionAuthUser, writeUserCreationAudit } from "@/lib/onboarding/user-provisioning";
 
 const schema = z.object({
-  action: z.enum(["approve_lead", "request_contact", "reject_lead", "resend_credentials", "approve_final_profile", "request_corrections", "suspend", "archive"]),
+  action: z.enum(["approve_lead", "request_contact", "reject_lead", "mark_contacted", "mark_not_relevant", "resend_credentials", "approve_final_profile", "request_corrections", "suspend", "archive"]),
   lead_id: z.string().uuid().optional(),
   garden_id: z.string().uuid().optional(),
-  note: z.string().optional()
+  note: z.string().optional(),
+  manager_name: z.string().optional(),
+  manager_phone: z.string().optional(),
+  manager_email: z.string().email().optional().or(z.literal(""))
 });
 
 function loginUrl() {
@@ -114,12 +117,19 @@ export async function POST(request: Request) {
     const admin = createAdminClient();
     const now = new Date().toISOString();
 
-    if (payload.action === "request_contact" || payload.action === "reject_lead") {
+    if (payload.action === "request_contact" || payload.action === "reject_lead" || payload.action === "mark_contacted" || payload.action === "mark_not_relevant") {
       if (!payload.lead_id) return fail("חסר ליד לעדכון", 422);
-      const nextStatus = payload.action === "request_contact" ? "lead_review" : "archived";
+      const nextStatus =
+        payload.action === "request_contact" ? "lead_review" :
+        payload.action === "mark_contacted" ? "contacted" :
+        payload.action === "mark_not_relevant" ? "not_relevant" :
+        "archived";
+      const { data: existingLead } = await admin.from("leads" as any).select("notes").eq("id", payload.lead_id).eq("lead_type", "garden").maybeSingle();
+      const note = payload.note?.trim();
+      const nextNotes = note ? [existingLead?.notes, `[${new Date().toLocaleDateString("he-IL")}] ${note}`].filter(Boolean).join("\n") : existingLead?.notes;
       const { data: lead, error: leadError } = await admin
         .from("leads" as any)
-        .update({ status: nextStatus, notes: payload.note ? String(payload.note) : undefined })
+        .update({ status: nextStatus, notes: nextNotes })
         .eq("id", payload.lead_id)
         .eq("lead_type", "garden")
         .select("id")
@@ -150,14 +160,20 @@ export async function POST(request: Request) {
       if (leadError || !lead) return fail("לא נמצא ליד גן לאישור", 404);
       if (lead.converted_entity_id) return fail("הליד כבר חובר לגן", 409);
 
-      const managerName = lead.manager_name || lead.owner_name || lead.garden_name || "מנהלת הגן";
-      const managerEmail = lead.email || undefined;
+      const qualification = (lead.qualification && typeof lead.qualification === "object" ? lead.qualification : {}) as Record<string, unknown>;
+      const isParentOriginLead = lead.source === "parent_request";
+      const managerName = payload.manager_name?.trim() || String(qualification.manager_name ?? "") || lead.manager_name || lead.owner_name || lead.garden_name || "מנהלת הגן";
+      const managerEmail = payload.manager_email?.trim() || String(qualification.manager_email ?? "") || (isParentOriginLead ? "" : lead.email) || undefined;
+      const managerPhone = payload.manager_phone?.trim() || String(qualification.manager_phone ?? "") || (isParentOriginLead ? "" : lead.phone) || undefined;
+      if (isParentOriginLead && !managerEmail && !managerPhone) {
+        return fail("צריך לצרף טלפון או מייל של מנהלת הגן לפני המרה לרישום", 422);
+      }
       const temporaryPassword = generateTemporaryPassword();
       const manager = await provisionAuthUser({
         role: "manager",
         fullName: managerName,
         email: managerEmail,
-        phone: lead.phone,
+        phone: managerPhone,
         temporaryPassword,
         createdBy: profile.id,
         conflictField: "manager_email"
@@ -167,7 +183,7 @@ export async function POST(request: Request) {
         name: lead.garden_name || "גן חדש",
         city: lead.city || "לא צוינה",
         address: lead.address || null,
-        phone: lead.phone || null,
+        phone: managerPhone || lead.phone || null,
         email: manager.oneTimeCredentials.email,
         manager_id: manager.user.id,
         owner_name: lead.owner_name || managerName,
@@ -200,6 +216,18 @@ export async function POST(request: Request) {
       await Promise.all([
         admin.from("leads" as any).update({
           status: "credentials_sent",
+          manager_name: managerName,
+          phone: isParentOriginLead ? lead.phone : (managerPhone || lead.phone),
+          email: isParentOriginLead ? lead.email : (managerEmail || lead.email),
+          funnel_stage: "converted",
+          qualification: {
+            ...qualification,
+            manager_name: managerName,
+            manager_phone: managerPhone ?? null,
+            manager_email: managerEmail ?? null,
+            converted_from_source: lead.source ?? null,
+            admin_conversion_note: payload.note?.trim() || null
+          },
           converted_entity_id: garden.id,
           converted_at: now
         }).eq("id", lead.id),
@@ -229,7 +257,7 @@ export async function POST(request: Request) {
         username: manager.oneTimeCredentials.username,
         temporaryPassword,
         gardenName: garden.name,
-        phone: lead.phone
+        phone: managerPhone || lead.phone
       });
 
       await writeUserCreationAudit({

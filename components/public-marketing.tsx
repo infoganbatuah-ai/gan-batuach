@@ -10,7 +10,7 @@ export function MarketingHero({
   subtitle,
   primaryHref = "/book-demo",
   primaryLabel = "קביעת הדגמה",
-  secondaryHref = "/parents-demand-safety",
+  secondaryHref = "/parents-demand",
   secondaryLabel = "להורים",
   children
 }: {
