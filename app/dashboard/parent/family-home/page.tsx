@@ -353,7 +353,7 @@ export default async function ParentFamilyHomePage() {
               <span>ביקורת אחרונה <b>{safeDate(inspectionRes.data?.completed_at)}</b></span>
               <span>שיפורים שהושלמו <b>{inspectionRes.data?.violation_count ? "בתהליך" : "אין פתוחים"}</b></span>
             </div>
-            <Link className="button secondary" href="/dashboard/parent/trust">פתיחת מרכז אמון</Link>
+            <Link className="button secondary" href="/dashboard/parent/trust-center">פתיחת מרכז אמון</Link>
           </article>
         </section>
 
