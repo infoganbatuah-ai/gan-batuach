@@ -1,65 +1,97 @@
 import Link from "next/link";
-import { Bot, Building2, Camera, ClipboardList, FileCheck2, ShieldCheck, Send, UsersRound, WalletCards } from "lucide-react";
+import { Building2, CheckCircle2, ClipboardList, FileCheck2, MapPin, ShieldCheck, UsersRound } from "lucide-react";
 import { BrandHeader } from "@/components/brand-header";
 import { ContactAvailabilityGuard } from "@/components/contact-availability-guard";
 import { createGardenLead } from "@/app/actions";
+import { israeliCityStreetMap, kindergartenAgeGroups, regulatoryAcceptanceItems } from "@/lib/domain/kindergarten-onboarding";
 
-const steps = [
-  { icon: UsersRound, title: "פרטי מנהלת / בעלים", text: "מי מוביל את הגן ועם מי חוזרים להמשך." },
-  { icon: Building2, title: "פרטי הגן", text: "שם, עיר, כתובת וסוג מסגרת." },
-  { icon: ClipboardList, title: "קבוצות גיל ומחיר", text: "גילאים, קיבולת ותשלום חודשי ראשוני." },
-  { icon: Camera, title: "כתובת ופרטי קשר", text: "טלפון, מייל, מצלמות ותפעול." },
-  { icon: FileCheck2, title: "מסמכים / אישורים", text: "אם קיימים עכשיו, מצרפים לבדיקה." },
-  { icon: Send, title: "סיום ושליחה", text: "גן בטוח בודק וחוזר אליכם." }
-];
-
-const valueCards = [
-  { icon: ShieldCheck, title: "בטיחות ושקיפות", text: "פיקוח, תיעוד, התראות והצגת מידע ברור להורים." },
-  { icon: UsersRound, title: "אמון הורים", text: "עדכונים יומיים, מסמכים, הודעות ותמונת מצב במקום אחד." },
-  { icon: ClipboardList, title: "ציות ומסמכים", text: "מעקב אחר אישורים, הכשרות, בדיקות ופעולות תיקון." },
-  { icon: Camera, title: "מצלמות ופיקוח", text: "הכנה לחיבור מצלמות, הרשאות צפייה וסיכומי בטיחות מאושרים." },
-  { icon: Bot, title: "עוזר חכם", text: "המלצות תפעוליות למנהלת בלי החלטות אוטומטיות." },
-  { icon: WalletCards, title: "תשלומים ותפעול", text: "ניהול תשלומי הורים, מסמכים, צוות ופעילות יומית." }
+const benefits = [
+  { icon: ShieldCheck, title: "בטיחות ושקיפות", text: "תיעוד, פיקוח, מסמכים והתראות במקום אחד." },
+  { icon: UsersRound, title: "הורים וצוות", text: "הזמנות הורים, צוות, הרשאות ועדכונים יומיים." },
+  { icon: ClipboardList, title: "הפעלה מודרכת", text: "תהליך ברור עד אישור, תשלום והפעלה מלאה." },
+  { icon: FileCheck2, title: "אמנה ומסמכים", text: "אישור תנאים, העלאת מסמכים ובדיקת אדמין." }
 ];
 
 export default async function JoinKindergartenPage({ searchParams }: { searchParams: Promise<{ lead?: string; error?: string }> }) {
   const params = await searchParams;
+  const cities = Object.keys(israeliCityStreetMap);
+  const streets = [...new Set(Object.values(israeliCityStreetMap).flat())].sort((a, b) => a.localeCompare(b, "he"));
+
   return (
     <>
       <BrandHeader />
       <main>
         <section className="page-hero slim-hero registration-hero">
-          <p className="eyebrow">הצטרפות גן</p>
-          <h1>גן בטוח הופך את הגן שלך לשקוף, מסודר ובטוח יותר</h1>
-          <p>מערכת אחת לניהול יומי, אמון הורים, מסמכים, צוות, פיקוח, מצלמות, תשלומים ותובנות חכמות.</p>
+          <p className="eyebrow">רישום גן</p>
+          <h1>רישום גן למערכת גן בטוח</h1>
+          <p>מתחילים בהרשמה קצרה. אחרי אישור אדמין המנהלת תקבל פרטי כניסה חד-פעמיים ותמשיך לאשף ההפעלה.</p>
           <div className="hero-actions">
-            <Link className="button primary large" href="#kindergarten-registration">רישום גן למערכת גן בטוח</Link>
-            <Link className="button secondary large" href="/book-demo">קבעו הדגמה</Link>
+            <Link className="button primary large" href="#kindergarten-registration">התחלת רישום</Link>
+            <Link className="button secondary large" href="/service-charter">אמנת השירות</Link>
           </div>
-          {params.lead === "sent" ? <div className="success-banner">בקשת הצטרפות הגן נשלחה. צוות גן בטוח יבדוק את הפרטים ויחזור אליכם.</div> : null}
+          {params.lead === "sent" ? <div className="success-banner"><CheckCircle2 /> הרישום שלך התקבל בהצלחה. צוות גן בטוח יצור איתך קשר בהקדם.</div> : null}
           {params.error ? <div className="error-banner">{params.error}</div> : null}
         </section>
+
         <section className="section feature-grid">
-          {valueCards.map((item) => <article className="card trust-card" key={item.title}><item.icon size={22} /><h3>{item.title}</h3><p>{item.text}</p></article>)}
+          {benefits.map((item) => <article className="card trust-card" key={item.title}><item.icon size={22} /><h3>{item.title}</h3><p>{item.text}</p></article>)}
         </section>
+
         <section className="section wizard-layout">
-          <aside className="wizard-steps">{steps.map((step, index) => <div className="wizard-step" key={step.title}><span>{index + 1}</span><step.icon size={20} /><div><strong>{step.title}</strong><small>{step.text}</small></div></div>)}</aside>
+          <aside className="wizard-steps">
+            {["פרטי מנהלת", "כתובת מאומתת", "קבוצות גיל", "תנאים ואמנה"].map((step, index) => (
+              <div className="wizard-step" key={step}><span>{index + 1}</span><Building2 size={20} /><div><strong>{step}</strong><small>שלב חובה לרישום</small></div></div>
+            ))}
+          </aside>
+
           <form id="kindergarten-registration" action={createGardenLead} className="card form wizard-form premium-step-form">
-            <input type="hidden" name="source" value="public_website" />
-            <input type="hidden" name="campaign" value="kindergarten_conversion" />
-            <input type="hidden" name="funnel_stage" value="book_demo" />
-            <input type="hidden" name="conversion_goal" value="demo_to_trial" />
-            <div className="progress-bar"><span style={{ width: "82%" }} /></div>
-            <h2>בקשת הצטרפות גן לגן בטוח</h2><p>פותחים שלב, ממלאים, וממשיכים. אין צורך במסמכים מלאים כדי להתחיל.</p>
-            <details className="accordion-step" open><summary><strong>1. פרטי מנהלת / בעלים</strong><span>איש קשר ראשי להמשך</span></summary><div className="form-grid"><label>שם בעלים *<input name="owner_name" required /></label><label>תעודת זהות בעלים *<input name="owner_identity_number" required /></label><label>שם מנהל/גננת<input name="manager_name" /></label><label>תעודת זהות מנהלת / גננת<input name="manager_identity_number" /></label><label>טלפון *<input name="phone" required /></label><label>מייל<input name="email" type="email" /></label></div></details>
-            <details className="accordion-step"><summary><strong>2. פרטי הגן</strong><span>שם, עיר וכתובת</span></summary><div className="form-grid"><label>שם הגן *<input name="garden_name" required /></label><label>עיר *<input name="city" required /></label><label className="wide">כתובת מלאה<input name="address" required /></label></div></details>
+            <input type="hidden" name="source" value="public_kindergarten_registration" />
+            <input type="hidden" name="campaign" value="kindergarten_activation_flow" />
+            <input type="hidden" name="funnel_stage" value="trial" />
+            <input type="hidden" name="conversion_goal" value="registration_to_activation" />
+            <input type="hidden" name="requested_plan" value="annual" />
+            <input type="hidden" name="regulatory_terms_version" value="2026-06-13" />
+            <h2>פרטי רישום ראשוניים</h2>
+            <p>הגן לא יהיה פעיל עד אישור אדמין, השלמת אשף ההפעלה, הזמנת צוות והורים, מסמכים ותשלום.</p>
+
+            <div className="form-grid">
+              <label>שם מנהלת מלא *<input name="manager_name" required /></label>
+              <label>טלפון מנהלת *<input name="phone" required /></label>
+              <label>מייל מנהלת *<input name="email" type="email" required /></label>
+              <label>שם הגן *<input name="garden_name" required /></label>
+              <label>עיר *<select name="city" required><option value="">בחרו עיר</option>{cities.map((city) => <option key={city} value={city}>{city}</option>)}</select></label>
+              <label>רחוב *<select name="street" required><option value="">בחרו רחוב</option>{streets.map((street) => <option key={street} value={street}>{street}</option>)}</select></label>
+              <label>מספר בניין *<input name="building_number" required inputMode="numeric" /></label>
+              <label>שם בעלים<input name="owner_name" /></label>
+            </div>
             <ContactAvailabilityGuard />
-            <details className="accordion-step"><summary><strong>3. קבוצות גיל ומחיר חודשי</strong><span>בסיס לתפעול ולתשלומי הורים</span></summary><div className="choice-grid detection-grid"><label><input type="checkbox" name="age_groups" value="babies" /> תינוקות</label><label><input type="checkbox" name="age_groups" value="toddlers" /> פעוטות</label><label><input type="checkbox" name="age_groups" value="3-4" /> 3-4</label><label><input type="checkbox" name="age_groups" value="4-5" /> 4-5</label><label><input type="checkbox" name="age_groups" value="mixed" /> קבוצה מעורבת</label></div><div className="form-grid"><label>טווח גיל מותאם<input name="custom_age_range" placeholder="לדוגמה: שנה וחצי עד ארבע" /></label><label>מספר ילדים<input name="children_count" type="number" min="0" /></label><label>קיבולת<input name="capacity" type="number" min="0" /></label><label>מספר אנשי צוות<input name="staff_count" type="number" min="0" /></label></div></details>
-            <details className="accordion-step"><summary><strong>4. כתובת, קשר ותפעול</strong><span>מצלמות, מטבח וסטטוס מוכנות</span></summary><div className="form-grid"><label>האם קיימות מצלמות?<select name="camera_status"><option value="no">לא</option><option value="dvr_nvr">כן, DVR/NVR</option><option value="ip">כן, מצלמות IP</option><option value="unknown">צריך בדיקת חיבור</option></select></label><label>מטבח / אוכל<select name="food_kitchen"><option>יש מטבח</option><option>ספק אוכל חיצוני</option><option>אין מטבח</option></select></label><label>סטטוס מסמכים<select name="documents_status"><option>לא הועלו עדיין</option><option>קיימים חלקית</option><option>קיימים ומוכנים לבדיקה</option></select></label><label>מתי תרצו להתחיל?<select name="urgency"><option value="now">כמה שיותר מהר</option><option value="month">בחודש הקרוב</option><option value="quarter">ברבעון הקרוב</option><option value="later">בהמשך</option></select></label><label>מסלול מועדף<select name="requested_plan"><option value="monthly">חודשי</option><option value="annual">שנתי</option><option value="pilot">פיילוט</option><option value="enterprise">רשת גנים</option></select></label><label className="wide">הערות<textarea name="notes" rows={4} placeholder="מועדי פעילות, צרכים, מצב פיקוח וכל פרט חשוב" /></label></div></details>
-            <details className="accordion-step"><summary><strong>5. מסמכים / אישורים אם קיימים</strong><span>אפשר לצרף עכשיו או להשלים בהמשך</span></summary><div className="form-grid"><label>עוסק פטור / מורשה / חברה<input name="business_document_name" type="file" /></label><label>רישיון גן<input name="license_document_name" type="file" /></label><label>אישור לימודים / הוראה של הגננת<input name="teacher_certificate_name" type="file" /></label><label className="wide">מסמכים נוספים<input name="additional_documents_name" type="file" multiple /></label><label className="wide">הערות למסמכים<input name="additional_documents_note" placeholder="שם מסמך/קישור אם קיים" /></label></div></details>
-            <label className="declaration-box"><input name="declaration" type="checkbox" required /><span><strong>הצהרה</strong> המערכת אינה גוף ממשלתי ואינה מחליפה ייעוץ משפטי. הפרטים נשלחים לבדיקה והמשך תהליך מול אדמין.</span></label>
-            <label className="declaration-box"><input name="kindergarten_terms_commitment" type="checkbox" required /><span><strong>התחייבות לתקנון גני ילדים</strong> קראתי ואני מתחייב/ת להשלים מסמכים, לפעול לפי נהלי גן בטוח ולשמור על פרטיות קטינים.</span></label>
-            <button className="button primary large" type="submit">רישום גן למערכת גן בטוח</button>
+
+            <section className="card action-panel">
+              <h3><MapPin size={18} /> קבוצות גיל קבועות</h3>
+              <div className="choice-grid detection-grid">
+                {kindergartenAgeGroups.map((group) => (
+                  <label key={group.key}>
+                    <input type="checkbox" name="age_groups" value={group.key} />
+                    <strong>{group.label}</strong>
+                    <span>{group.range} · עד {group.maxChildrenPerClass} ילדים · {group.rule}</span>
+                  </label>
+                ))}
+              </div>
+            </section>
+
+            <section className="card action-panel">
+              <h3>אישורי חובה</h3>
+              <p>האישור נשמר עם גרסת התנאים והזמן. IP ייקלט בצד השרת אם זמין.</p>
+              <div className="choice-grid detection-grid">
+                {regulatoryAcceptanceItems.map((item) => (
+                  <label key={item.key}><input type="checkbox" name="regulatory_acceptance" value={item.key} required /> {item.label}</label>
+                ))}
+              </div>
+              <Link className="button secondary" href="/service-charter">קריאת אמנת השירות</Link>
+            </section>
+
+            <label className="wide">הערות ראשוניות<textarea name="notes" rows={3} placeholder="שעות פעילות, מספר ילדים משוער, מסמכים קיימים או כל פרט חשוב" /></label>
+            <button className="button primary large" type="submit">שליחת רישום לאישור</button>
           </form>
         </section>
       </main>

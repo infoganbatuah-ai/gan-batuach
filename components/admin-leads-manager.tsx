@@ -60,7 +60,11 @@ const labels: Record<string, string> = {
   suspended: "מושהה",
   archived: "בארכיון",
   contacted: "נוצר קשר",
-  not_relevant: "לא רלוונטי"
+  not_relevant: "לא רלוונטי",
+  registration_pending: "ממתין לאישור רישום",
+  admin_approved: "אושר על ידי אדמין",
+  activation_in_progress: "בהפעלה",
+  payment_pending: "ממתין לתשלום"
 };
 
 const sourceLabels: Record<string, string> = {
@@ -119,7 +123,7 @@ function GardenCard({ garden, onDone }: { garden: GardenRow; onDone: (message: s
         <textarea value={note} onChange={(event) => setNote(event.target.value)} rows={2} placeholder="הערה למנהלת במקרה של תיקונים" />
       </div>
       <div className="procedure-meta">
-        {["credentials_sent", "onboarding_in_progress", "correction_required", "lead_approved_credentials_sent", "profile_incomplete"].includes(status) ? <button className="button secondary" disabled={Boolean(busy)} onClick={() => act("resend_credentials", "פרטי הכניסה נשלחו שוב")}>שליחה חוזרת</button> : null}
+        {["admin_approved", "credentials_sent", "activation_in_progress", "payment_pending", "onboarding_in_progress", "correction_required", "lead_approved_credentials_sent", "profile_incomplete"].includes(status) ? <button className="button secondary" disabled={Boolean(busy)} onClick={() => act("resend_credentials", "פרטי הכניסה נשלחו שוב")}>שליחה חוזרת</button> : null}
         {["pending_final_approval", "onboarding_submitted", "pending_final_admin_approval"].includes(status) ? <button className="button primary" disabled={Boolean(busy)} onClick={() => act("approve_final_profile", "הגן אושר")}>אישור סופי</button> : null}
         {["pending_final_approval", "onboarding_submitted", "pending_final_admin_approval"].includes(status) ? <button className="button secondary" disabled={Boolean(busy)} onClick={() => act("request_corrections", "הוחזר לתיקונים")}>החזרה לתיקון</button> : null}
         {status === "active" ? <button className="button secondary" disabled={Boolean(busy)} onClick={() => act("suspend", "הגן הושהה")}>השהיה</button> : null}
@@ -207,7 +211,7 @@ function FlowSection({ title, hint, children, empty }: { title: string; hint: st
 
 export function AdminLeadsManager({ leads, gardens = [] }: Props) {
   const [message, setMessage] = useState("");
-  const activeLeadStatuses = ["new", "new_garden_onboarding", "lead_submitted", "contacted"];
+  const activeLeadStatuses = ["new", "registration_pending", "new_garden_onboarding", "lead_submitted", "contacted"];
   const demoLeads = leads.filter((lead) => lead.lead_type === "garden" && lead.source === "demo_booking" && activeLeadStatuses.includes(String(lead.status ?? "new")));
   const parentOriginLeads = leads.filter((lead) => lead.lead_type === "garden" && lead.source === "parent_request" && activeLeadStatuses.includes(String(lead.status ?? "new")));
   const gardenLeads = leads.filter((lead) => lead.lead_type === "garden" && !["demo_booking", "parent_request"].includes(String(lead.source ?? "")) && activeLeadStatuses.includes(String(lead.status ?? "new")));
