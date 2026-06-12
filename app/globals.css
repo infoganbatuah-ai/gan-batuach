@@ -9556,6 +9556,41 @@ textarea {
   gap: 16px;
 }
 
+.staff-attendance-kpis,
+.staff-workforce-panels,
+.staff-auto-attendance-state {
+  display: grid;
+  gap: 0.85rem;
+}
+
+.staff-attendance-kpis {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.staff-workforce-panels {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.staff-attendance-actions.automatic {
+  min-height: 100%;
+}
+
+.staff-auto-attendance-state {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.staff-auto-attendance-state span {
+  align-items: center;
+  background: var(--ds-surface-soft, #f1f6f4);
+  border: 1px solid var(--ds-border, #d8e3df);
+  border-radius: var(--ds-radius-sm, 10px);
+  color: var(--ds-text, #142326);
+  display: flex;
+  gap: 0.45rem;
+  min-height: 44px;
+  padding: 0.65rem 0.75rem;
+}
+
 .staff-shift-hero {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
@@ -9768,6 +9803,9 @@ textarea {
   .staff-shift-hero,
   .staff-progress-card,
   .staff-two-column,
+  .staff-attendance-kpis,
+  .staff-workforce-panels,
+  .staff-auto-attendance-state,
   .staff-emergency-center {
     grid-template-columns: 1fr;
   }

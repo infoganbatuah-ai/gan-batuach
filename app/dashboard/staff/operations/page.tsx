@@ -80,7 +80,7 @@ export default async function StaffOperationsPage() {
 
   const checkedIn = Boolean(shift?.actual_start && !shift?.actual_end);
   const checkedOut = Boolean(shift?.actual_end);
-  const shiftStatus = checkedIn ? "במשמרת" : checkedOut ? "יציאה נשמרה" : "כניסה מהירה";
+  const shiftStatus = checkedIn ? "במשמרת" : checkedOut ? "משמרת נסגרה" : "נוכחות אוטומטית";
   const childrenUpdated = children.filter((child) => journalByChild.has(child.id)).length;
   const attendanceDone = attendance.length;
   const mealUpdates = journals.filter((journal: any) => Array.isArray(journal.meals) && journal.meals.length > 0).length;
@@ -117,14 +117,14 @@ export default async function StaffOperationsPage() {
           <div className="staff-shift-status">
             <MapPin />
             <strong>{shiftStatus}</strong>
-            <span>{checkedIn ? `נכנסת ב-${timeText(shift.actual_start)}` : checkedOut ? `יצאת ב-${timeText(shift.actual_end)}` : "בדיקת מיקום"}</span>
+            <span>{checkedIn ? `זוהית ב-${timeText(shift.actual_start)}` : checkedOut ? `יציאה זוהתה ב-${timeText(shift.actual_end)}` : "בדיקת מיקום"}</span>
           </div>
           <div>
             <p className="eyebrow">מה לעשות עכשיו?</p>
             <h1>{staff?.full_name ?? profile.full_name ?? "צוות גן"}, המשמרת שלך במקום אחד.</h1>
             <p>{garden?.name ?? "הגן"} · עדכוני ילדים, נוכחות, משימות, הודעות ואירועים במסך מהיר אחד.</p>
             <div className="parent-status-row">
-              <span className={checkedIn ? "pill good" : checkedOut ? "pill good" : "pill warn"}>{checkedIn ? "נוכחות פעילה" : checkedOut ? "משמרת נסגרה" : "נדרשת כניסה"}</span>
+              <span className={checkedIn ? "pill good" : checkedOut ? "pill good" : "pill warn"}>{checkedIn ? "נוכחות פעילה" : checkedOut ? "משמרת נסגרה" : "ממתין לזיהוי"}</span>
               <span className={urgentCount ? "pill bad" : "pill good"}>{urgentCount} דחופים</span>
               <span className={shiftCompletion >= 80 ? "pill good" : "pill warn"}>{shiftCompletion}% משמרת</span>
             </div>

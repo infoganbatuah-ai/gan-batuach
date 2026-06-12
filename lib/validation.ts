@@ -339,9 +339,12 @@ export const staffCertificateSchema = z.object({
 export const gpsAttendanceSchema = z.object({
   staff_id: z.string().uuid(),
   garden_id: z.string().uuid(),
-  action: z.enum(["check_in", "check_out"]),
+  action: z.enum(["location_sample", "check_in", "check_out"]),
   gps_lat: z.number(),
-  gps_lng: z.number()
+  gps_lng: z.number(),
+  gps_accuracy_meters: z.number().optional(),
+  captured_at: z.string().optional(),
+  network_reliable: z.boolean().optional()
 });
 
 export const pickupConfirmationSchema = z.object({
