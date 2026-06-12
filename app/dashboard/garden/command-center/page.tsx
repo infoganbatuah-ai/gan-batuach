@@ -125,7 +125,7 @@ export default async function ManagerCommandCenterPage() {
 
   const garden = gardenRes.data as any;
   const onboardingStatus = String(garden?.approval_flow_status ?? garden?.final_approval_status ?? "");
-  if (["credentials_sent", "onboarding_in_progress", "onboarding_submitted", "pending_final_approval", "pending_final_admin_approval", "correction_required", "profile_incomplete"].includes(onboardingStatus)) redirect("/onboarding/kindergarten");
+  if (["admin_approved", "credentials_sent", "activation_in_progress", "payment_pending", "onboarding_in_progress", "onboarding_submitted", "pending_final_approval", "pending_final_admin_approval", "correction_required", "profile_incomplete"].includes(onboardingStatus)) redirect("/onboarding/kindergarten");
 
   const children = (childrenRes.data ?? []) as any[];
   const attendance = (attendanceRes.data ?? []) as any[];

@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
+import { kindergartenAgeGroups, regulatoryAcceptanceItems } from "@/lib/domain/kindergarten-onboarding";
 import { normalizeOptionalEmail, normalizeOptionalPhone } from "@/lib/onboarding/user-provisioning";
 
 function value(formData: FormData, key: string) {
@@ -155,14 +156,26 @@ export async function createGardenLead(formData: FormData) {
     const { count } = await identityReader.from("profiles" as any).select("id", { count: "exact", head: true }).in("identity_number", identityChecks);
     if ((count ?? 0) > 0) redirect("/join-kindergarten?error=" + encodeURIComponent("משתמש מנהלת/בעלים כבר קיים. ניתן להוסיף גן נוסף לחשבון הקיים."));
   }
+  const selectedAgeGroups = values(formData, "age_groups");
+  const allowedAgeGroups = new Set(kindergartenAgeGroups.map((group) => group.key));
+  const validAgeGroups = selectedAgeGroups.filter((group) => allowedAgeGroups.has(group as any));
+  if (validAgeGroups.length === 0) redirect("/join-kindergarten?error=" + encodeURIComponent("יש לבחור לפחות קבוצת גיל אחת"));
+  const acceptedTerms = values(formData, "regulatory_acceptance");
+  const requiredTerms = regulatoryAcceptanceItems.map((item) => item.key);
+  const missingTerms = requiredTerms.filter((item) => !acceptedTerms.includes(item));
+  if (missingTerms.length) redirect("/join-kindergarten?error=" + encodeURIComponent("יש לאשר את כל תנאי הרישום והאמנה"));
+  const city = value(formData, "city");
+  const street = value(formData, "street");
+  const buildingNumber = value(formData, "building_number");
+  const address = value(formData, "address") || [street, buildingNumber, city].filter(Boolean).join(", ");
   const notes = [
     value(formData, "notes"),
-    values(formData, "age_groups").length ? `קבוצות גיל: ${values(formData, "age_groups").join(", ")}` : "",
+    validAgeGroups.length ? `קבוצות גיל: ${validAgeGroups.join(", ")}` : "",
     value(formData, "custom_age_range") ? `טווח גיל מותאם: ${value(formData, "custom_age_range")}` : "",
     value(formData, "capacity") ? `קיבולת: ${value(formData, "capacity")}` : "",
     value(formData, "manager_name") ? `מנהל/גננת: ${value(formData, "manager_name")}` : "",
     value(formData, "food_kitchen") ? `מטבח/אוכל: ${value(formData, "food_kitchen")}` : "",
-    value(formData, "address") ? `כתובת: ${value(formData, "address")}` : "",
+    address ? `כתובת: ${address}` : "",
     value(formData, "camera_status") ? `מצלמות: ${value(formData, "camera_status")}` : "",
     value(formData, "documents_status") ? `מסמכים: ${value(formData, "documents_status")}` : "",
     value(formData, "business_document_name") ? `מסמך עסק: ${value(formData, "business_document_name")}` : "",
@@ -180,27 +193,33 @@ export async function createGardenLead(formData: FormData) {
     camera_status: value(formData, "camera_status") || null,
     documents_status: value(formData, "documents_status") || null,
     requested_plan: value(formData, "requested_plan") || null,
-    urgency: value(formData, "urgency") || null
+    urgency: value(formData, "urgency") || null,
+    street: street || null,
+    building_number: buildingNumber || null,
+    age_groups: validAgeGroups,
+    regulatory_acceptance: acceptedTerms,
+    regulatory_terms_version: value(formData, "regulatory_terms_version") || "2026-06-13",
+    terms_accepted_at: new Date().toISOString()
   };
   const leadScore = Math.min(100, 30 + (qualification.children_count ? 20 : 0) + (qualification.camera_status ? 15 : 0) + (value(formData, "email") ? 10 : 0));
 
-  const { error } = await supabase.from("leads").insert({
+  const { data: lead, error } = await supabase.from("leads").insert({
     lead_type: "garden",
     garden_name: value(formData, "garden_name"),
     owner_name: value(formData, "owner_name"),
     manager_name: value(formData, "manager_name") || null,
     manager_identity_number: managerIdentityNumber || null,
     owner_identity_number: ownerIdentityNumber || null,
-    city: value(formData, "city"),
-    address: value(formData, "address") || null,
-    age_groups: values(formData, "age_groups"),
+    city,
+    address: address || null,
+    age_groups: validAgeGroups,
     capacity: Number(value(formData, "capacity") || 0),
     phone: value(formData, "phone"),
     email: value(formData, "email") || null,
     children_count: Number(value(formData, "children_count") || 0),
     staff_count: Number(value(formData, "staff_count") || 0),
     notes,
-    status: "new",
+    status: "registration_pending",
     source: value(formData, "source") || "public_website",
     campaign: value(formData, "campaign") || "kindergarten_conversion",
     utm_source: value(formData, "utm_source") || null,
@@ -210,9 +229,18 @@ export async function createGardenLead(formData: FormData) {
     conversion_goal: value(formData, "conversion_goal") || "demo_to_trial",
     qualification,
     lead_score: leadScore
-  });
+  }).select("id").single();
 
   if (error) redirect(`/join-kindergarten?error=${encodeURIComponent(error.message)}`);
+  if (lead?.id) {
+    await supabase.from("kindergarten_legal_acceptances" as any).insert(acceptedTerms.map((acceptanceType) => ({
+      lead_id: lead.id,
+      acceptance_type: acceptanceType,
+      accepted: true,
+      version: qualification.regulatory_terms_version,
+      metadata: { source: "public_kindergarten_registration" }
+    })));
+  }
   revalidatePath("/");
   revalidatePath("/dashboard/admin");
   redirect("/join-kindergarten?lead=sent");

@@ -56,7 +56,7 @@ export async function dashboardPathForProfile(profile: { id?: string | null; rol
       .eq("id", profile.garden_id)
       .maybeSingle();
     const status = String(garden?.approval_flow_status ?? "");
-    if (["credentials_sent", "onboarding_in_progress", "correction_required", "onboarding_submitted", "pending_final_approval"].includes(status)) {
+    if (["admin_approved", "credentials_sent", "activation_in_progress", "payment_pending", "onboarding_in_progress", "correction_required", "onboarding_submitted", "pending_final_approval"].includes(status)) {
       return "/onboarding/kindergarten";
     }
   }

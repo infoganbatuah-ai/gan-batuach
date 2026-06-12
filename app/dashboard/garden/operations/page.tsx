@@ -119,8 +119,11 @@ export default async function GardenOperationsPage() {
   const onboardingStatus = String(garden?.approval_flow_status ?? garden?.final_approval_status ?? "");
   if ([
     "lead_approved_credentials_sent",
+    "admin_approved",
     "profile_incomplete",
     "credentials_sent",
+    "activation_in_progress",
+    "payment_pending",
     "onboarding_in_progress",
     "onboarding_submitted",
     "pending_final_approval",
