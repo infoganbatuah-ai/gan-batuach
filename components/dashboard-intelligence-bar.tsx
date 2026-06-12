@@ -18,6 +18,11 @@ const roleActions: Record<UserRole, Array<{ label: string; href: string }>> = {
     { label: "מסמכים חסרים", href: "/dashboard/admin/documents" },
     { label: "בריאות ניווט", href: "/dashboard/admin/navigation-health" }
   ],
+  network_manager: [
+    { label: "רשתות גנים", href: "/dashboard/admin/enterprise" },
+    { label: "אנליטיקה", href: "/dashboard/admin/analytics-center" },
+    { label: "פיקוח אזורי", href: "/dashboard/admin/national-inspections" }
+  ],
   manager: [
     { label: "עדכון נוכחות", href: "/dashboard/garden/attendance" },
     { label: "יומן ילד", href: "/dashboard/garden/child-journal" },
@@ -47,6 +52,7 @@ const roleActions: Record<UserRole, Array<{ label: string; href: string }>> = {
 
 const dashboardHomeByRole: Record<UserRole, string> = {
   admin: "/dashboard/admin",
+  network_manager: "/dashboard/admin/enterprise",
   manager: "/dashboard/garden",
   owner: "/dashboard/garden",
   inspector: "/dashboard/inspector",

@@ -12,6 +12,12 @@ const welcomeByRole: Record<UserRole, { eyebrow: string; title: string; intro: s
     intro: "נתחיל מהדברים ששומרים על המערכת יציבה: בריאות, משתמשים, גנים ודוחות.",
     done: "מרכז השליטה מוכן לעבודה שוטפת."
   },
+  network_manager: {
+    eyebrow: "ניהול רשת",
+    title: "נבנה תמונת שליטה לרשת הגנים",
+    intro: "נבדוק גנים משויכים, אזורים, פיקוח, ציות, כספים ומדדי תפעול בלי לפתוח מידע שאינו בהרשאה.",
+    done: "מרכז הרשת מוכן לעבודה."
+  },
   manager: {
     eyebrow: "ברוכה הבאה לגן",
     title: "בואי נכין את הגן לעבודה",
@@ -52,6 +58,13 @@ const stepsByRole: Record<UserRole, Array<{ title: string; body: string; href: s
     { title: "דוחות ופיקוח", body: "בדקו טפסים, ביקורות פתוחות ודוחות אחרונים.", href: "/dashboard/admin/inspections" },
     { title: "תצפיתן ומצלמות", body: "עברו על מצלמות, חיבורי שידור ואירועים לבדיקה.", href: "/dashboard/admin/ai-observer" },
     { title: "התראות ותקשורת", body: "בדקו הודעות, התראות וערוצי קשר חשובים.", href: "/dashboard/admin/notifications" }
+  ],
+  network_manager: [
+    { title: "מרכז רשת", body: "ראו את הרשתות, הגנים, האזורים והמדדים שהוקצו לכם.", href: "/dashboard/admin/enterprise" },
+    { title: "מדדים והשוואות", body: "בדקו ביצועים, ציות, בטיחות ומגמות רוחביות.", href: "/dashboard/admin/analytics-center" },
+    { title: "פיקוח אזורי", body: "עקבו אחרי כיסוי ביקורות, פערים וממצאים פתוחים.", href: "/dashboard/admin/national-inspections" },
+    { title: "כספים", body: "בדקו מנויים רשתיים וחידושים קרובים בהרשאה שלכם.", href: "/dashboard/admin/billing" },
+    { title: "משימות", body: "ראו פעולות פתוחות לרשת ולגנים המשויכים.", href: "/dashboard/tasks" }
   ],
   manager: [
     { title: "פרופיל הגן", body: "שם, לוגו, כתובת, קשר וקבוצות גיל צריכים להיות ברורים להורים.", href: "/dashboard/garden/settings" },

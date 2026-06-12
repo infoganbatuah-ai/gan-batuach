@@ -22,6 +22,7 @@ type Summary = {
 
 const roleName: Record<UserRole, string> = {
   admin: "אדמין",
+  network_manager: "מנהל רשת",
   manager: "מנהלת גן",
   owner: "בעלים",
   inspector: "פקח",
@@ -43,6 +44,7 @@ function storageKey(role: UserRole) {
 
 const dashboardHomeByRole: Record<UserRole, string> = {
   admin: "/dashboard/admin",
+  network_manager: "/dashboard/admin/enterprise",
   manager: "/dashboard/garden",
   owner: "/dashboard/garden",
   inspector: "/dashboard/inspector",

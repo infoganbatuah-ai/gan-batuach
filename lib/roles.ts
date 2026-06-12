@@ -1,4 +1,4 @@
-export const roles = ["admin", "inspector", "manager", "owner", "staff", "parent"] as const;
+export const roles = ["admin", "network_manager", "inspector", "manager", "owner", "staff", "parent"] as const;
 
 export type UserRole = (typeof roles)[number];
 
@@ -65,6 +65,20 @@ export const rolePermissions: Record<UserRole, Permission[]> = {
     "ai_events:write",
     "billing:read",
     "billing:write",
+    "audit_logs:read"
+  ],
+  network_manager: [
+    "gardens:read",
+    "staff:read",
+    "inspections:read",
+    "tasks:write",
+    "messages:write",
+    "complaints:write",
+    "documents:read",
+    "documents:download",
+    "cameras:read",
+    "ai_events:read",
+    "billing:read",
     "audit_logs:read"
   ],
   inspector: [
