@@ -55,6 +55,9 @@ function statusLabel(value?: string | null) {
     pending: "ממתין",
     scheduled: "מתוכנן",
     in_progress: "בתהליך",
+    completed: "הושלם",
+    overdue: "באיחור",
+    rescheduled: "נדחה",
     done: "הושלם",
     open: "פתוח",
     reviewing: "בבדיקה",
@@ -97,6 +100,12 @@ export default async function InspectorCommandCenterPage() {
     complianceAlertsRes,
     riskRes,
     camerasRes,
+    monthlyCyclesRes,
+    inspectionAlertsRes,
+    additionalRequestsRes,
+    gpsValidationsRes,
+    performanceRes,
+    regulatoryAuditRes,
     tasksRes
   ] = await Promise.all([
     gardenIds.length ? supabase.from("required_inspections" as any).select("id,garden_id,due_at,status,inspection_type,created_at,gardens(id,name,city,address,logo_url,last_inspection_score)").in("garden_id", gardenIds).neq("status", "done").order("due_at", { ascending: true }).limit(80) : Promise.resolve({ data: [] }),
@@ -106,9 +115,15 @@ export default async function InspectorCommandCenterPage() {
     gardenIds.length ? supabase.from("incident_reports" as any).select("id,garden_id,title,severity,status,created_at,gardens(name,city)").in("garden_id", gardenIds).neq("status", "closed").order("created_at", { ascending: false }).limit(60) : Promise.resolve({ data: [] }),
     gardenIds.length ? supabase.from("observer_intelligence_signals" as any).select("id,kindergarten_id,signal_type,severity,confidence,review_status,recommended_action,created_at,gardens(name,city)").in("kindergarten_id", gardenIds).in("review_status", ["needs_review", "reviewing", "escalated"]).order("created_at", { ascending: false }).limit(60) : Promise.resolve({ data: [] }),
     gardenIds.length ? supabase.from("compliance_corrective_actions" as any).select("id,garden_id,action_title,status,priority,due_at,gardens(name,city)").in("garden_id", gardenIds).in("status", ["identified", "assigned", "in_progress", "ready_for_verification"]).order("due_at", { ascending: true }).limit(60) : Promise.resolve({ data: [] }),
-    gardenIds.length ? supabase.from("compliance_alerts" as any).select("id,garden_id,title,severity,status,due_at,gardens(name,city)").in("garden_id", gardenIds).neq("status", "resolved").order("due_at", { ascending: true }).limit(60) : Promise.resolve({ data: [] }),
+    gardenIds.length ? supabase.from("compliance_alerts" as any).select("id,garden_id,title,severity,alert_status,due_at,gardens(name,city)").in("garden_id", gardenIds).in("alert_status", ["open", "in_progress"]).order("due_at", { ascending: true }).limit(60) : Promise.resolve({ data: [] }),
     gardenIds.length ? supabase.from("kindergarten_risk_profiles" as any).select("id,garden_id,overall_risk_score,risk_level,risk_trend,prediction_summary,gardens(name,city)").in("garden_id", gardenIds).order("overall_risk_score", { ascending: false }).limit(80) : Promise.resolve({ data: [] }),
     gardenIds.length ? supabase.from("camera_streams" as any).select("id,garden_id,kindergarten_id,name,status,active,last_health_check_at").or(`garden_id.in.(${gardenIds.join(",")}),kindergarten_id.in.(${gardenIds.join(",")})`) : Promise.resolve({ data: [] }),
+    gardenIds.length ? supabase.from("monthly_inspection_cycles" as any).select("id,garden_id,cycle_month,due_at,completion_status,readiness_status,completed_at,gardens(name,city,logo_url)").in("garden_id", gardenIds).eq("cycle_month", new Date().toISOString().slice(0, 7) + "-01").order("due_at", { ascending: true }) : Promise.resolve({ data: [] }),
+    gardenIds.length ? supabase.from("inspection_alert_events" as any).select("id,garden_id,alert_type,recipient_role,status,message_title,created_at,gardens(name,city)").in("garden_id", gardenIds).order("created_at", { ascending: false }).limit(40) : Promise.resolve({ data: [] }),
+    gardenIds.length ? supabase.from("inspection_additional_requests" as any).select("id,garden_id,request_type,status,priority,scheduled_for,reason,gardens(name,city)").in("garden_id", gardenIds).in("status", ["requested", "approved", "scheduled"]).order("created_at", { ascending: false }).limit(40) : Promise.resolve({ data: [] }),
+    supabase.from("inspection_gps_validations" as any).select("id,inspection_id,garden_id,validation_result,consistency_status,distance_meters,duration_minutes,created_at,gardens(name,city)").eq("inspector_id", profile.id).order("created_at", { ascending: false }).limit(40),
+    supabase.from("inspector_performance_metrics" as any).select("id,metric_month,inspections_assigned,inspections_completed,overdue_inspections,complaints_handled,findings_verified,performance_score").eq("inspector_id", profile.id).order("metric_month", { ascending: false }).limit(1).maybeSingle(),
+    gardenIds.length ? supabase.from("regulatory_audit_events" as any).select("id,garden_id,event_type,event_title,created_at,gardens(name,city)").in("garden_id", gardenIds).order("created_at", { ascending: false }).limit(20) : Promise.resolve({ data: [] }),
     supabase.from("tasks" as any).select("id,garden_id,title,priority,status,due_at,assigned_to,assigned_role").or(`assigned_to.eq.${profile.id},assigned_role.eq.inspector`).neq("status", "done").order("created_at", { ascending: false }).limit(60)
   ]);
 
@@ -122,6 +137,12 @@ export default async function InspectorCommandCenterPage() {
   const complianceAlerts = (complianceAlertsRes.data ?? []) as any[];
   const risks = (riskRes.data ?? []) as any[];
   const cameras = (camerasRes.data ?? []) as any[];
+  const monthlyCycles = (monthlyCyclesRes.data ?? []) as any[];
+  const inspectionAlerts = (inspectionAlertsRes.data ?? []) as any[];
+  const additionalRequests = (additionalRequestsRes.data ?? []) as any[];
+  const gpsValidations = (gpsValidationsRes.data ?? []) as any[];
+  const performance = performanceRes.data as any;
+  const regulatoryAudit = (regulatoryAuditRes.data ?? []) as any[];
   const tasks = ((tasksRes.data ?? []) as any[]).filter((task) => task.assigned_to === profile.id || task.assigned_role === "inspector" || !task.garden_id || gardenIds.includes(task.garden_id));
 
   const dueToday = required.filter((item) => String(item.due_at ?? "").slice(0, 10) === today);
@@ -138,11 +159,16 @@ export default async function InspectorCommandCenterPage() {
   const signedInspections = inspections.filter((item) => item.signature_image || item.signed_at).length;
   const gpsVerified = inspections.filter((item) => item.gps_verified).length;
   const suspiciousGps = inspections.filter((item) => item.gps_verified === false && item.completed_at).length;
+  const gpsNeedsReview = gpsValidations.filter((item) => item.validation_result !== "valid" || item.consistency_status !== "consistent").length;
   const unresolvedFindings = violations.length + complianceActions.length;
   const activeComplaints = complaints.filter((item) => !["closed", "resolved"].includes(String(item.status)));
   const cameraIssues = cameras.filter((camera) => camera.active === false || ["offline", "failed", "error", "disabled", "pending_gateway"].includes(String(camera.status ?? "")));
   const highRiskGardens = risks.filter((risk) => ["high", "critical"].includes(String(risk.risk_level)) || Number(risk.overall_risk_score ?? 0) >= 70);
-  const attentionTotal = dueToday.length + overdue.length + unresolvedFindings + activeComplaints.length + observerSignals.length + highRiskGardens.length;
+  const monthlyCompleted = monthlyCycles.filter((cycle) => cycle.completion_status === "completed").length || completedThisMonth;
+  const monthlyOverdue = monthlyCycles.filter((cycle) => cycle.completion_status === "overdue").length || overdue.length;
+  const monthlyPending = monthlyCycles.filter((cycle) => ["pending", "rescheduled"].includes(String(cycle.completion_status))).length;
+  const readinessIssues = monthlyCycles.filter((cycle) => ["needs_attention", "blocked"].includes(String(cycle.readiness_status))).length;
+  const attentionTotal = dueToday.length + overdue.length + unresolvedFindings + activeComplaints.length + observerSignals.length + highRiskGardens.length + additionalRequests.length + gpsNeedsReview;
   const calendarGroups = [
     { label: "חודשיות", items: required.filter((item) => item.inspection_type === "monthly") },
     { label: "פתע", items: required.filter((item) => item.inspection_type === "surprise") },
@@ -173,7 +199,7 @@ export default async function InspectorCommandCenterPage() {
             <p>{gardens.length} גנים משויכים · {dueToday.length} ביקורות היום · {overdue.length} באיחור · {observerSignals.length} סימני תצפיתן לבדיקה.</p>
             <div className="parent-status-row">
               <StatusBadge tone={overdue.length ? "bad" : "good"}>{overdue.length ? "יש ביקורות באיחור" : "אין איחורים"}</StatusBadge>
-              <StatusBadge tone={suspiciousGps ? "warn" : "good"}>{suspiciousGps ? "יש GPS לבדיקה" : "GPS תקין"}</StatusBadge>
+              <StatusBadge tone={suspiciousGps || gpsNeedsReview ? "warn" : "good"}>{suspiciousGps || gpsNeedsReview ? "יש GPS לבדיקה" : "GPS תקין"}</StatusBadge>
               <StatusBadge tone="good">{Array.isArray(inspector?.service_cities) && inspector.service_cities.length ? inspector.service_cities.join(", ") : "אזור לא הוגדר"}</StatusBadge>
             </div>
           </div>
@@ -186,6 +212,34 @@ export default async function InspectorCommandCenterPage() {
           <RoleMetricCard label="ליקויים" value={unresolvedFindings} hint="פתוחים לאימות" tone={unresolvedFindings ? "warn" : "good"} href="/dashboard/inspector/violations" />
           <RoleMetricCard label="תלונות" value={activeComplaints.length} hint="לטיפול פקח" tone={activeComplaints.length ? "warn" : "good"} href="/dashboard/inspector/reports" />
           <RoleMetricCard label="סיכון גבוה" value={highRiskGardens.length} hint={`ממוצע ${avg(risks, "overall_risk_score")}/100`} tone={highRiskGardens.length ? "bad" : "good"} href="/dashboard/inspector/risk" />
+        </section>
+
+        <section className="inspector-monthly-supervision">
+          <article>
+            <span>מחזור פיקוח חודשי</span>
+            <strong>{monthlyCompleted}/{monthlyCycles.length || gardens.length}</strong>
+            <small>הושלמו החודש</small>
+          </article>
+          <article>
+            <span>באיחור</span>
+            <strong>{monthlyOverdue}</strong>
+            <small>דורש תיאום מיידי</small>
+          </article>
+          <article>
+            <span>ממתינים</span>
+            <strong>{monthlyPending}</strong>
+            <small>כולל נדחו</small>
+          </article>
+          <article>
+            <span>מוכנות</span>
+            <strong>{readinessIssues}</strong>
+            <small>גנים עם פערי מוכנות</small>
+          </article>
+          <article>
+            <span>התראות</span>
+            <strong>{inspectionAlerts.length}</strong>
+            <small>14/7/3 ימים ואיחור</small>
+          </article>
         </section>
 
         <section className="inspector-two-column">
@@ -208,6 +262,7 @@ export default async function InspectorCommandCenterPage() {
 
         <section className="inspector-calendar-grid">
           {calendarGroups.map((group) => <Link href="/dashboard/inspector/inspections/due" key={group.label}><span>{group.label}</span><strong>{group.items.length}</strong><small>{group.items[0]?.due_at ? `קרוב: ${dateText(group.items[0].due_at)}` : "אין כרגע"}</small></Link>)}
+          <Link href="/dashboard/inspector/inspections/due"><span>בקשות נוספות</span><strong>{additionalRequests.length}</strong><small>{additionalRequests[0]?.reason ?? "מעקב, פתע ודחוף"}</small></Link>
         </section>
 
         <section className="inspector-field-workflow">
@@ -246,8 +301,21 @@ export default async function InspectorCommandCenterPage() {
           </CleanSection>
         </section>
 
+        <section className="inspector-two-column">
+          <CleanSection title="בקשות פיקוח נוספות" subtitle="מעקב, פתע, דחוף או בעקבות תלונה.">
+            {additionalRequests.length ? <div className="inspector-alert-feed">{additionalRequests.slice(0, 8).map((request) => <Link href="/dashboard/inspector/inspections/due" key={request.id}><span className={request.priority === "urgent" ? "severity-dot critical" : "severity-dot medium"} /><div><strong>{inspectionTypeLabel(request.request_type)}</strong><small>{request.gardens?.name ?? "גן"} · {statusLabel(request.status)} · {request.scheduled_for ? dateText(request.scheduled_for) : "טרם נקבע"}</small></div></Link>)}</div> : <EmptyState title="אין בקשות נוספות" text="בקשות מעקב, פתע ותלונה יופיעו כאן אחרי אישור אנושי." />}
+          </CleanSection>
+          <CleanSection title="מדדי פיקוח וביקורת" subtitle="למפקח מוצגים רק המדדים שלו. אדמין רואה תמונה ארצית.">
+            <div className="inspector-alert-feed">
+              <div className="list-item"><div><strong>{performance?.performance_score ?? 0}/100</strong><span>ציון פעילות חודשי</span></div><StatusBadge tone={severityTone(100 - Number(performance?.performance_score ?? 0))}>החודש</StatusBadge></div>
+              <div className="list-item"><div><strong>{gpsNeedsReview}</strong><span>אימותי GPS לבדיקה</span></div><StatusBadge tone={gpsNeedsReview ? "warn" : "good"}>GPS</StatusBadge></div>
+              <div className="list-item"><div><strong>{regulatoryAudit.length}</strong><span>פעולות ביקורת אחרונות</span></div><StatusBadge tone="good">תיעוד</StatusBadge></div>
+            </div>
+          </CleanSection>
+        </section>
+
         <section className="inspector-report-row">
-          <span><ClipboardCheck /> ביקורות החודש <b>{completedThisMonth}</b></span>
+          <span><ClipboardCheck /> ביקורות החודש <b>{monthlyCompleted}</b></span>
           <span><ShieldAlert /> ליקויים פתוחים <b>{violations.length}</b></span>
           <span><MessageSquareWarning /> תלונות פתוחות <b>{activeComplaints.length}</b></span>
           <span><Camera /> מצלמות לבדיקה <b>{cameraIssues.length}</b></span>

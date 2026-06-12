@@ -38,7 +38,7 @@ export async function requirePermission(permission: Permission) {
 export function dashboardPathForRole(role: UserRole) {
   return {
     admin: "/dashboard/admin",
-    inspector: "/dashboard/inspector/command-center",
+    inspector: "/dashboard/inspector/control-center",
     manager: "/dashboard/garden",
     owner: "/dashboard/garden",
     staff: "/dashboard/staff",
