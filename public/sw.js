@@ -25,3 +25,39 @@ self.addEventListener('fetch', (event) => {
     return new Response('', { status: 204 });
   }));
 });
+
+self.addEventListener('push', (event) => {
+  if (!event.data) return;
+  let payload = {};
+  try {
+    payload = event.data.json();
+  } catch {
+    payload = { title: 'גן בטוח', body: event.data.text() };
+  }
+  const title = payload.title || 'גן בטוח';
+  const options = {
+    body: payload.body || '',
+    icon: '/assets/company-symbol.png',
+    badge: '/assets/company-symbol.png',
+    dir: 'rtl',
+    lang: 'he-IL',
+    data: {
+      url: payload.action_url || payload.url || '/dashboard',
+      deep_link_type: payload.deep_link_type || 'system_notification'
+    }
+  };
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+  const targetUrl = event.notification.data?.url || '/dashboard';
+  event.waitUntil((async () => {
+    const clientsList = await self.clients.matchAll({ type: 'window', includeUncontrolled: true });
+    const absoluteUrl = new URL(targetUrl, self.location.origin).href;
+    for (const client of clientsList) {
+      if ('focus' in client && client.url === absoluteUrl) return client.focus();
+    }
+    return self.clients.openWindow(absoluteUrl);
+  })());
+});
