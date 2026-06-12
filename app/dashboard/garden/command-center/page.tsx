@@ -45,6 +45,21 @@ function money(value: number) {
   return new Intl.NumberFormat("he-IL", { style: "currency", currency: "ILS", maximumFractionDigits: 0 }).format(value);
 }
 
+function weakestHealthFactors(components: Record<string, number>) {
+  const labels: Record<string, string> = {
+    attendance: "נוכחות",
+    compliance: "ציות",
+    inspections: "פיקוח",
+    incidents: "אירועים",
+    communication: "תקשורת",
+    observer: "מצלמות ותצפיתן"
+  };
+  return Object.entries(components)
+    .sort((a, b) => a[1] - b[1])
+    .slice(0, 3)
+    .map(([key, value]) => ({ label: labels[key] ?? key, value }));
+}
+
 export default async function ManagerCommandCenterPage() {
   const { profile } = await requireRole(["manager", "owner"]);
   const gardenId = profile.garden_id ?? "";
@@ -235,12 +250,19 @@ export default async function ManagerCommandCenterPage() {
     cameraIssues ? `בדקי ${cameraIssues} מצלמות שלא זמינות.` : "המצלמות נראות תקינות.",
     inspections.length ? `הכיני את הגן לביקורת הקרובה.` : "אין ביקורת פתוחה שמחכה לטיפול."
   ];
+  const weakFactors = weakestHealthFactors(liveHealth.components);
+  const managerAnalytics = [
+    { label: "עדכוני ילדים", value: `${pct(updatedChildren, childCount)}%`, hint: `${updatedChildren}/${childCount} עודכנו`, href: "/dashboard/garden/child-journal", tone: missingChildUpdates ? "warn" as const : "good" as const },
+    { label: "מעורבות הורים", value: communicationItems, hint: "הודעות ופניות פתוחות", href: "/dashboard/garden/communication", tone: communicationItems ? "warn" as const : "good" as const },
+    { label: "מוכנות פיקוח", value: `${liveHealth.components.inspections}%`, hint: `${inspections.length + findings.length} פריטים פתוחים`, href: "/dashboard/garden/inspections", tone: liveHealth.components.inspections >= 85 ? "good" as const : "warn" as const },
+    { label: "מוכנות צוות", value: `${pct(staffCount - staffGaps, staffCount)}%`, hint: `${staffGaps} פערים`, href: "/dashboard/garden/staff", tone: staffGaps ? "warn" as const : "good" as const }
+  ];
 
   return (
     <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="מרכז פיקוד">
       <div className="manager-command-center-2">
         <PremiumDashboardHero
-          eyebrow="Command Center"
+          eyebrow="מרכז ניהול"
           title={`${garden?.name ?? "הגן"} במבט ניהולי אחד`}
           subtitle="תפעול, ילדים, צוות, ציות, פיקוח, תצפיתן, תקשורת וכספים במקום אחד."
           badge={`${healthScore}/100`}
@@ -257,6 +279,17 @@ export default async function ManagerCommandCenterPage() {
           <RoleMetricCard label="אירועים פתוחים" value={unresolvedIncidents} hint="אירועים ופניות" tone={unresolvedIncidents ? "bad" : "good"} href="/dashboard/garden/incidents" />
           <RoleMetricCard label="ציות" value={complianceIssues} hint="מסמכים, ליקויים, פעולות" tone={complianceIssues ? "warn" : "good"} href="/dashboard/garden/compliance" />
           <RoleMetricCard label="תצפיתן" value={observerAlerts + cameraIssues} hint="התראות ומצלמות" tone={observerAlerts + cameraIssues ? "warn" : "good"} href="/dashboard/garden/observer-intelligence" />
+        </section>
+
+        <section className="manager-health-explainer">
+          <div>
+            <p className="eyebrow">ציון בריאות הגן</p>
+            <h2>{healthScore}/100</h2>
+            <p>הציון מחושב מנוכחות, ציות, פיקוח, אירועים, תקשורת, מצלמות ותצפיתן. הוא כלי ניהולי בלבד ומראה איפה כדאי להתחיל.</p>
+          </div>
+          <div className="manager-health-factor-list">
+            {weakFactors.map((factor) => <span key={factor.label}>{factor.label}<b>{factor.value}</b></span>)}
+          </div>
         </section>
 
         <section className="manager-daily-focus">
@@ -284,6 +317,18 @@ export default async function ManagerCommandCenterPage() {
         <CleanSection title="תדריך בוקר" subtitle="מה דורש החלטה או פעולה עכשיו.">
           <div className="manager-briefing-grid">
             {briefing.map((item) => <Link className={`manager-briefing-card ${item.tone}`} href={item.href} key={item.text}><StatusBadge tone={item.tone}>{item.tone === "good" ? "תקין" : "לטיפול"}</StatusBadge><strong>{item.text}</strong></Link>)}
+          </div>
+        </CleanSection>
+
+        <CleanSection title="מדדי ניהול" subtitle="תדירות עדכונים, תגובתיות, מוכנות פיקוח ומוכנות צוות.">
+          <div className="manager-analytics-grid">
+            {managerAnalytics.map((item) => (
+              <Link className={`manager-analytics-card ${item.tone}`} href={item.href} key={item.label}>
+                <strong>{item.label}</strong>
+                <b>{item.value}</b>
+                <span>{item.hint}</span>
+              </Link>
+            ))}
           </div>
         </CleanSection>
 

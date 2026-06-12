@@ -2,118 +2,136 @@
 
 ## Command Center Architecture
 
-The manager homepage is now `/dashboard/garden/command-center`.
+The manager homepage is `/dashboard/garden/command-center`.
 
-`/dashboard/garden` redirects there, reducing duplicate dashboard surfaces and making the command center the primary operating workspace.
+`/dashboard/garden` redirects there, making the command center the primary manager entry point.
 
-The command center is organized around:
+The command center is organized around one question:
 
-- Daily focus
-- Kindergarten health score
-- One-tap operations
-- Smart alerts
-- Unified work queue
-- Garden timeline
-- Opening and closing checklists
-- Operational widgets
-- Explainable health components
+**מה דורש את תשומת לבך היום?**
 
-The goal is that a manager can understand the garden state in a few seconds and act without jumping across many screens.
+The screen is structured as:
+
+- Daily focus: maximum five prioritized issues.
+- Kindergarten health score: one explainable operating score.
+- One-tap operations: daily actions without searching.
+- Morning briefing: quick operational reminders.
+- Manager analytics: update frequency, parent engagement, inspection readiness and staff readiness.
+- Smart alerts: critical, important and informational.
+- Unified work queue: tasks from workflows, compliance, incidents, documents, observer and recommendations.
+- Garden timeline: chronological operating feed.
+- Opening and closing checklists.
+- Widgets for children, staff, parents, compliance, inspections, finance, cameras and observer.
 
 ## Widget Architecture
 
-The command center includes focused widgets for:
+Widgets are designed to summarize and route, not duplicate full pages.
 
-- Children
-- Staff
-- Parent communication
-- Compliance
-- Inspections
-- Finance
-- Cameras
-- Digital Observer
-- Reports
+Main widgets:
 
-Each widget shows a short status, one meaningful count, and one primary action. Details stay in the existing specialist screens.
+- Children: attendance, missing updates, allergies, health notes and new registrations.
+- Staff: active staff, missing attendance, approvals and document gaps.
+- Parents: unread messages, pending replies, complaints and feedback.
+- Compliance: expiring items, missing documents, corrective actions and score.
+- Inspections: next inspection, last inspection, open findings and follow-up actions.
+- Finance: active children, unpaid balances, expected revenue and collected revenue.
+- Cameras: online/offline state, gateway issues and observer status.
+- Observer: reviewed signals, recommended checks and human-review queue.
+
+The widget action opens the relevant full page only when deeper work is needed.
 
 ## AI Assistant Architecture
 
-The assistant remains advisory.
+The manager assistant is advisory only.
 
-It can suggest:
+Supported prompts:
 
-- Send daily child updates.
-- Review parent messages.
-- Check expiring documents.
-- Prepare for inspection.
-- Review unavailable cameras.
+- What requires attention today?
+- Which children need follow-up?
+- Which staff members are missing updates?
+- Which documents are expiring?
+- What inspections are pending?
 
-It must not:
-
-- Make automatic decisions.
-- Assign blame.
-- Trigger disciplinary actions.
-- Expose raw observer signals to parents.
-
-The assistant uses existing command-center signals and links the manager to the correct action screen.
+The assistant may summarize existing data and suggest next steps. It does not make decisions, contact parents automatically, approve corrections, discipline staff, or expose raw observer conclusions.
 
 ## Health Score Model
 
-The Kindergarten Health Score is explainable and uses:
+Kindergarten Health Score is 0-100.
+
+It is calculated from:
 
 - Attendance completion
 - Compliance readiness
 - Inspection readiness
 - Incident readiness
 - Communication readiness
-- Observer/camera readiness
+- Camera and observer readiness
 
-The current implementation uses `buildOperationalHealthScore` in `lib/domain/kindergarten-operating-system.ts` and prefers the latest saved score from `kindergarten_operational_health_scores` when available.
-
-Scores are shown with components so managers understand why the score changed.
+The command center now explains the lowest scoring factors so the manager understands why the score changed and what to improve first.
 
 ## Workflow Integration
 
-The command center integrates:
+The command center does not create another task system.
 
-- `daily_operations`
-- `kindergarten_operational_health_scores`
-- `operational_workflow_events`
+It aggregates:
+
 - `tasks`
-- `documents`
-- `required_inspections`
-- `incident_reports`
-- `complaints`
-- `parent_child_requests`
-- `camera_streams`
-- `observer_intelligence_signals`
-- `prevention_recommendation_actions`
+- `operational_workflow_events`
+- `compliance_corrective_actions`
+- prevention recommendations
+- observer signals
+- parent requests
+- inspections
+- documents
 
-PHASE 130 adds:
+The operational model remains:
 
-- `manager_command_center_events`
-- `manager_daily_checklist_status`
-
-These tables prepare manager analytics and daily checklist persistence without replacing the task system.
+Event → Task → Assignment → Action → Verification → Closure
 
 ## Screen Reduction
 
-Primary manager surfaces are now intended to be:
+The manager sidebar has been reduced to the primary operating areas:
 
-- Command Center
+- Home
 - Children
-- Staff
 - Parents
+- Staff
 - Cameras
 - Compliance
 - Inspections
 - Settings
+- Tasks
+- Finance
 
-Other existing pages remain available, but the command center now acts as the operating hub.
+Secondary pages remain available through command-center widgets and contextual actions, but they are no longer all exposed as top-level navigation.
+
+## Manager Analytics
+
+PHASE 130 adds readiness for daily manager metrics:
+
+- Response time
+- Child update completion
+- Parent engagement
+- Inspection readiness
+- Staff readiness
+- Health score
+
+These are stored in `manager_operating_metrics` when generated by future scheduled jobs or operational events.
+
+Command-center interaction analytics are stored in `manager_command_center_events`.
+
+## Mobile Model
+
+The command center is mobile-first:
+
+- One-column layout on phone.
+- One-tap action grid collapses cleanly.
+- Daily focus remains above widgets.
+- Checklist and timeline are scannable.
+- No desktop-only workflow is required.
 
 ## Remaining Gaps
 
-- Checklist items are currently displayed from live data; completion persistence is prepared but not yet wired to interactive check buttons.
-- Manager analytics events are ready in schema but not yet emitted from every command-center click.
-- Smart alert priority is deterministic; future iterations can include response-time and engagement trends.
-- Screen reduction still needs navigation cleanup in the sidebar so secondary pages are grouped behind the primary manager surfaces.
+- Analytics are prepared and shown from live data, but automated daily metric snapshots still need a scheduled job.
+- Assistant answers are currently shortcut links and summaries; deeper natural-language responses depend on the broader AI assistant layer.
+- Some secondary manager pages still exist and need later visual cleanup, but they are no longer primary navigation surfaces.
