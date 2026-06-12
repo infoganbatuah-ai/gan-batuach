@@ -19,6 +19,7 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/admin", label: "מרכז שליטה", hint: "סיכונים, ערים, לידים" },
     { href: "/dashboard/admin/enterprise", label: "ניהול ארגוני", hint: "רשתות ואזורים" },
     { href: "/dashboard/admin/analytics-center", label: "מרכז אנליטיקה", hint: "מגמות והשוואות" },
+    { href: "/dashboard/admin/growth", label: "צמיחה", hint: "ביקוש והמרות" },
     { href: "/dashboard/admin/leads", label: "לידים", hint: "המרות גנים ומפקחים" },
     { href: "/dashboard/admin/kindergarten-activation", label: "הפעלת גנים", hint: "אישור, אשף ותשלום" },
     { href: "/dashboard/admin/service-charter", label: "אמנת שירות", hint: "תוכן רישום" },
