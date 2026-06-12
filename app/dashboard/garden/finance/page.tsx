@@ -115,6 +115,9 @@ export default async function GardenFinancePage({ searchParams }: { searchParams
     const children = asArray(data.core?.children);
     const allChildren = asArray(data.core?.allChildren);
     const history = asArray(data.secondary?.history);
+    const payoutConfigurations = asArray(data.secondary?.payoutConfigurations);
+    const parentPaymentAuthorizations = asArray(data.secondary?.parentPaymentAuthorizations);
+    const parentPaymentTransactions = asArray(data.secondary?.parentPaymentTransactions);
     const totals = data.core?.totals ?? {
       expected: 0,
       paid: 0,
@@ -139,6 +142,10 @@ export default async function GardenFinancePage({ searchParams }: { searchParams
         <PremiumDashboardHero eyebrow="כספים" title="גבייה חודשית פשוטה." subtitle="מי שילם, מה חסר ומה דורש שיחה קצרה." badge={`גבייה ${Number(totals.collection ?? 0)}%`} badgeTone={Number(totals.overdue ?? 0) ? "warn" : "good"} />
 
         {criticalFinanceFailure ? <div className="warning-banner">חלק מנתוני הכספים לא נטענו</div> : null}
+
+        <section className="warning-banner finance-routing-banner">
+          תשלומי הורים עוברים ישירות לחשבון הגן או לספק התשלום של הגן. גן בטוח לא מקבל כספי שכר לימוד.
+        </section>
 
         <section className="card action-panel">
           <div className="section-heading">
@@ -165,6 +172,36 @@ export default async function GardenFinancePage({ searchParams }: { searchParams
           <SafeStat label="תשלומים חלקיים" value={Number(totals.partialPayments ?? 0)} tone={Number(totals.partialPayments ?? 0) ? "warn" : "good"} />
           <SafeStat label="תשלום לא עבר" value={Number(totals.failedChildren ?? 0)} tone={Number(totals.failedChildren ?? 0) ? "bad" : "good"} />
         </div>
+
+        <section className="grid cols-3 dashboard-panels">
+          <article className="card action-panel">
+            <div className="section-heading">
+              <h2>יעד תשלום של הגן</h2>
+              <p>לא נשמרים פרטי אשראי או סודות תשלום בדפדפן.</p>
+            </div>
+            {payoutConfigurations.length ? (
+              <div className="procedure-list">
+                {payoutConfigurations.slice(0, 3).map((config: any) => (
+                  <article className="list-item" key={config.id}>
+                    <div>
+                      <strong>{config.provider === "manual_bank" ? "חשבון בנק" : config.provider}</strong>
+                      <span>{config.account_holder_name ?? "שם בעל החשבון חסר"} · {config.billing_email ?? "מייל חיוב חסר"}</span>
+                      <small>{config.bank_account_last4 ? `סיומת חשבון ${config.bank_account_last4}` : "אין פרטי חשבון מלאים במערכת"}</small>
+                    </div>
+                    <span className={config.status === "verified" ? "pill good" : "pill warn"}>{config.status === "verified" ? "מאומת" : "דורש השלמה"}</span>
+                  </article>
+                ))}
+              </div>
+            ) : (
+              <div className="empty-state">
+                <strong>עדיין לא הוגדר יעד תשלום</strong>
+                <span>כדי לקבל תשלומי הורים, יש להגדיר חשבון בנק או ספק תשלום של הגן.</span>
+              </div>
+            )}
+          </article>
+          <SafeStat label="אישורי הורים לתשלום" value={parentPaymentAuthorizations.length} tone={parentPaymentAuthorizations.length ? "good" : "warn"} />
+          <SafeStat label="עסקאות הורים ישירות" value={parentPaymentTransactions.length} tone="default" />
+        </section>
 
         <section className="dashboard-section">
           <div className="section-heading">

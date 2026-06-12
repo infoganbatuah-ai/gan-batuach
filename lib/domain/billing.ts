@@ -26,7 +26,17 @@ export type BillingAccessPolicy = {
 };
 
 export function evaluateSubscriptionAccess(status?: string | null, adminOverride = false): BillingAccessPolicy {
-  if (adminOverride || status === "active" || status === "trial" || status === "pending_payment") {
+  if (status === "pending_payment" && !adminOverride) {
+    return {
+      ownerAccess: "full",
+      parentHistoricalAccess: "allowed",
+      adminOverride,
+      blockedCapabilities: ["send_parent_messages", "camera_playback", "finance_updates"],
+      message: "תשלום מנוי שנתי נדרש להפעלת המערכת. ניתן להשלים פרופיל, ילדים והורים, אך פעולות מתקדמות ייפתחו אחרי תשלום."
+    };
+  }
+
+  if (adminOverride || status === "active" || status === "trial") {
     return {
       ownerAccess: "full",
       parentHistoricalAccess: "allowed",
@@ -58,11 +68,11 @@ export function evaluateSubscriptionAccess(status?: string | null, adminOverride
 const reminderKey = (label: string, days: number) => label + "_" + Math.abs(days) + "_days";
 
 export const reminderOffsets = [
+  { key: reminderKey("before", -), days: -90, title: "המנוי השנתי מסתיים בעוד 90 יום" },
+  { key: reminderKey("before", -), days: -60, title: "המנוי השנתי מסתיים בעוד 60 יום" },
   { key: reminderKey("before", -), days: -30, title: "המנוי מסתיים בעוד 30 יום" },
   { key: reminderKey("before", -), days: -14, title: "המנוי מסתיים בעוד 14 יום" },
   { key: reminderKey("before", -), days: -7, title: "המנוי מסתיים בעוד שבוע" },
-  { key: reminderKey("before", -), days: -3, title: "המנוי מסתיים בעוד 3 ימים" },
-  { key: "before_1_day", days: -1, title: "המנוי מסתיים מחר" },
   { key: ["expiration", "day"].join("_"), days: 0, title: "המנוי מסתיים היום" },
   { key: ["after", "expiration"].join("_"), days: 1, title: "המנוי הסתיים" }
 ] as const;

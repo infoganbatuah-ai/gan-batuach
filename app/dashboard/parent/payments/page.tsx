@@ -46,7 +46,7 @@ export default async function ParentPaymentsPage() {
           <div>
             <p className="eyebrow">תשלומים</p>
             <h1>תמונה פשוטה של התשלומים לגן.</h1>
-            <p>יתרה, תשלום קרוב ופרטי ילד במקום אחד. בלי מונחים חשבונאיים ובלי פעולות גבייה אוטומטיות.</p>
+            <p>יתרה, תשלום קרוב ופרטי ילד במקום אחד. התשלום מועבר ישירות לחשבון הגן, לא דרך גן בטוח.</p>
           </div>
           <span className={attention.length ? "pill warn" : "pill good"}><WalletCards size={15} /> {attention.length ? "דורש בדיקה" : "מסודר"}</span>
         </div>
@@ -56,6 +56,10 @@ export default async function ParentPaymentsPage() {
           <RoleMetricCard label="ילדים לתשלום" value={children.length} tone="default" />
           <RoleMetricCard label="דורש בדיקה" value={attention.length} tone={attention.length ? "warn" : "good"} />
           <RoleMetricCard label="תשלום קרוב" value={nextPayments[0]?.next_payment_due ? dateText(nextPayments[0].next_payment_due) : "לא נקבע"} tone="default" />
+        </section>
+
+        <section className="warning-banner finance-routing-banner">
+          תשלומי הורים שייכים לגן הילדים. גן בטוח מציג ומאשר את התהליך, אך לא מקבל את כספי שכר הלימוד.
         </section>
 
         <section className="dashboard-section">
@@ -92,7 +96,7 @@ export default async function ParentPaymentsPage() {
         <section className="parent-camera-promise">
           <article><CheckCircle2 /><h2>ברור</h2><p>הורה רואה רק את מצב התשלום של הילדים שלו.</p></article>
           <article><CalendarClock /><h2>רגוע</h2><p>אין חיוב אוטומטי במסך הזה. שאלות עוברות לגן.</p></article>
-          <article><WalletCards /><h2>מוכן לעתיד</h2><p>כשספק תשלומים יחובר, אותו מסך יוכל להציג פעולות מאושרות.</p></article>
+          <article><WalletCards /><h2>אמצעי תשלום</h2><p>מוכן לאשראי, Apple Pay ו-Google Pay דרך ספק מאושר וללא שמירת פרטי אשראי גולמיים.</p></article>
         </section>
       </div>
     </DashboardShell>

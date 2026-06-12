@@ -975,6 +975,12 @@ textarea {
   font-weight: 800;
 }
 
+.finance-routing-banner {
+  border-color: rgba(20, 184, 166, 0.28);
+  background: linear-gradient(135deg, #ecfeff, #f8fafc);
+  color: #0f766e;
+}
+
 .success-screen strong {
   display: block;
   font-size: 20px;

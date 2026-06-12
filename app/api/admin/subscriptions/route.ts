@@ -61,6 +61,8 @@ export async function POST(request: Request) {
 
     const patch = {
       ...payload,
+      plan_type: payload.plan_type === "monthly" ? "annual" : payload.plan_type,
+      billing_cycle: "annual",
       start_date: payload.start_date ?? new Date().toISOString().slice(0, 10),
       updated_by: profile.id,
       updated_at: new Date().toISOString(),
