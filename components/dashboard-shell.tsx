@@ -113,7 +113,8 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/garden/inspections", label: "פיקוח", hint: "ביקורות ופעולות" },
     { href: "/dashboard/garden/settings", label: "הגדרות", hint: "פרופיל הגן" },
     { href: "/dashboard/tasks", label: "משימות", hint: "כל מה שפתוח" },
-    { href: "/dashboard/garden/finance", label: "כספים", hint: "תשלומים ומנוי" }
+    { href: "/dashboard/garden/finance", label: "כספים", hint: "תשלומים ומנוי" },
+    { href: "/dashboard/garden/trust-center", label: "אמון הורים", hint: "שקיפות וקהילה" }
   ],
   owner: [
     { href: "/dashboard/garden/command-center", label: "בית", hint: "מה דורש טיפול" },
@@ -125,7 +126,8 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/garden/inspections", label: "פיקוח", hint: "ביקורות ופעולות" },
     { href: "/dashboard/garden/settings", label: "הגדרות", hint: "פרופיל הגן" },
     { href: "/dashboard/tasks", label: "משימות", hint: "כל מה שפתוח" },
-    { href: "/dashboard/garden/finance", label: "כספים", hint: "תשלומים ומנוי" }
+    { href: "/dashboard/garden/finance", label: "כספים", hint: "תשלומים ומנוי" },
+    { href: "/dashboard/garden/trust-center", label: "אמון הורים", hint: "שקיפות וקהילה" }
   ],
   staff: [
     { href: "/dashboard/staff", label: "צוות", hint: "מיקום ומשימות" },
@@ -146,7 +148,7 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
   parent: [
     { href: "/dashboard/parent/family-home", label: "בית משפחתי", hint: "היום של הילד" },
     { href: "/dashboard/parent", label: "אזור הורים", hint: "ילד וגן" },
-    { href: "/dashboard/parent/trust", label: "מרכז אמון", hint: "שקיפות ובטיחות" },
+    { href: "/dashboard/parent/trust-center", label: "מרכז אמון", hint: "שקיפות וקהילה" },
     { href: "/dashboard/parent/cameras", label: "מצלמות הגן", hint: "צפייה מורשית" },
     { href: "/dashboard/parent/ai-events", label: "עדכוני בטיחות", hint: "רק לאחר אישור" },
     { href: "/dashboard/parent/daily-journal", label: "יומן יומי", hint: "עדכוני הילד" },
