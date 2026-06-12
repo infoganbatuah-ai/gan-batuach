@@ -10056,6 +10056,7 @@ textarea {
 .inspector-priority-queue,
 .inspector-field-links,
 .inspector-calendar-grid,
+.inspector-monthly-supervision,
 .inspector-field-workflow {
   display: grid;
   gap: 0.75rem;
@@ -10142,6 +10143,32 @@ textarea {
   color: var(--ds-muted, #5d6f72);
 }
 
+.inspector-monthly-supervision {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.inspector-monthly-supervision article {
+  background: linear-gradient(180deg, #ffffff, #f6fbf9);
+  border: 1px solid var(--ds-border, #d8e3df);
+  border-radius: var(--ds-radius-md, 14px);
+  box-shadow: var(--ds-shadow-card, 0 10px 26px rgb(17 39 43 / 7%));
+  display: grid;
+  gap: 0.4rem;
+  min-height: 128px;
+  padding: 1rem;
+}
+
+.inspector-monthly-supervision span,
+.inspector-monthly-supervision small {
+  color: var(--ds-muted, #5d6f72);
+}
+
+.inspector-monthly-supervision strong {
+  color: var(--ds-brand-strong, #124f4b);
+  font-size: clamp(1.7rem, 5vw, 2.55rem);
+  line-height: 1;
+}
+
 .inspector-field-workflow {
   grid-template-columns: repeat(5, minmax(0, 1fr));
 }
@@ -10161,6 +10188,7 @@ textarea {
 
 @media (max-width: 1120px) {
   .inspector-calendar-grid,
+  .inspector-monthly-supervision,
   .inspector-field-workflow {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -10169,6 +10197,7 @@ textarea {
 @media (max-width: 620px) {
   .inspector-priority-queue a,
   .inspector-calendar-grid,
+  .inspector-monthly-supervision,
   .inspector-field-workflow {
     grid-template-columns: 1fr;
   }

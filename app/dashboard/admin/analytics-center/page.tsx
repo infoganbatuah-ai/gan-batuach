@@ -68,7 +68,7 @@ export default async function AdminAnalyticsCenterPage() {
       supabase.from("complaints" as any).select("id,garden_id,severity,status,created_at").gte("created_at", thirtyDaysAgo).limit(5000),
       supabase.from("complaints" as any).select("id,garden_id,severity,status,created_at").gte("created_at", sixtyDaysAgo).lt("created_at", thirtyDaysAgo).limit(5000),
       supabase.from("incident_cases" as any).select("id,garden_id,severity,status,created_at,closed_at").gte("created_at", thirtyDaysAgo).limit(5000),
-      supabase.from("compliance_alerts" as any).select("id,garden_id,category,severity,status,created_at,due_date").limit(5000),
+      supabase.from("compliance_alerts" as any).select("id,garden_id,category,severity,alert_status,created_at,due_at,expiration_date").limit(5000),
       supabase.from("observer_intelligence_signals" as any).select("id,kindergarten_id,observer_site_id,signal_type,severity,confidence,review_status,created_at").gte("created_at", thirtyDaysAgo).limit(5000),
       supabase.from("observer_ground_truth_reviews" as any).select("id,site_id,camera_id,review_outcome,created_at").gte("created_at", thirtyDaysAgo).limit(5000),
       supabase.from("observer_calibration_profiles" as any).select("id,site_id,kindergarten_id,readiness_score,calibration_status,updated_at").limit(1000),
@@ -119,7 +119,7 @@ export default async function AdminAnalyticsCenterPage() {
     const completedInspections = inspections.filter((inspection) => completed(inspection.status) || inspection.completed_at).length;
     const openInspections = inspections.filter((inspection) => !completed(inspection.status) && !inspection.completed_at).length;
     const unresolvedFindings = findings.filter((finding) => !completed(finding.resolution_status)).length;
-    const complianceOpen = compliance.filter((item) => !completed(item.status)).length;
+    const complianceOpen = compliance.filter((item) => !completed(item.alert_status)).length;
     const observerReviewed = observerSignals.filter((signal) => ["confirmed", "dismissed", "resolved"].includes(String(signal.review_status))).length;
     const observerReviewRate = pct(observerReviewed, observerSignals.length);
     const falsePositiveRate = pct(observerReviews.filter((review) => review.review_outcome === "false_positive").length, observerReviews.length);
