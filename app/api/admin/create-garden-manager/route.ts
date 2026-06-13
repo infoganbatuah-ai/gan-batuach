@@ -4,6 +4,7 @@ import { fail, handleRouteError, ok } from "@/lib/api";
 import type { Database } from "@/lib/supabase/types";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { DuplicateContactError, checkEmailConflict, normalizeOptionalEmail, provisionAuthUser, provisionedUserSchema, writeUserCreationAudit } from "@/lib/onboarding/user-provisioning";
+import { encryptField, getCurrentKeyVersion, hashForLookup } from "@/lib/security/field-encryption";
 
 const ownershipTypes = ["teacher_is_owner", "separate_owner", "teacher_only", "owner_only"] as const;
 const provisionedUserWithPhotoSchema = provisionedUserSchema.extend({
@@ -141,7 +142,15 @@ export async function POST(request: Request) {
     createdGardenId = garden.id;
 
     if (manager) {
-      const { error: managerProfileError } = await admin.from("profiles").update({ garden_id: garden.id, identity_number: payload.manager?.identity_number ? payload.manager.identity_number.replace(/\D/g, "") : null, profile_image_url: payload.manager?.profile_image_url ?? null }).eq("id", manager.user.id);
+      const managerIdentity = payload.manager?.identity_number ? payload.manager.identity_number.replace(/\D/g, "") : null;
+      const { error: managerProfileError } = await admin.from("profiles").update({
+        garden_id: garden.id,
+        identity_number: managerIdentity,
+        identity_number_encrypted: encryptField(managerIdentity),
+        identity_number_hash: hashForLookup(managerIdentity),
+        encryption_version: getCurrentKeyVersion(),
+        profile_image_url: payload.manager?.profile_image_url ?? null
+      }).eq("id", manager.user.id);
       if (managerProfileError) {
         await admin.from("gardens").delete().eq("id", garden.id);
         for (const userId of createdAuthUserIds) await admin.auth.admin.deleteUser(userId);
@@ -150,7 +159,15 @@ export async function POST(request: Request) {
     }
 
     if (owner) {
-      const { error: ownerProfileError } = await admin.from("profiles").update({ garden_id: garden.id, identity_number: payload.owner?.identity_number ? payload.owner.identity_number.replace(/\D/g, "") : null, profile_image_url: payload.owner?.profile_image_url ?? null }).eq("id", owner.user.id);
+      const ownerIdentity = payload.owner?.identity_number ? payload.owner.identity_number.replace(/\D/g, "") : null;
+      const { error: ownerProfileError } = await admin.from("profiles").update({
+        garden_id: garden.id,
+        identity_number: ownerIdentity,
+        identity_number_encrypted: encryptField(ownerIdentity),
+        identity_number_hash: hashForLookup(ownerIdentity),
+        encryption_version: getCurrentKeyVersion(),
+        profile_image_url: payload.owner?.profile_image_url ?? null
+      }).eq("id", owner.user.id);
       if (ownerProfileError) {
         await admin.from("gardens").delete().eq("id", garden.id);
         for (const userId of createdAuthUserIds) await admin.auth.admin.deleteUser(userId);

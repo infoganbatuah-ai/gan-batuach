@@ -5,7 +5,7 @@ import { createCrudHandlers } from "@/lib/crud-route";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { attendanceSchema } from "@/lib/validation";
-import { encryptSensitiveFieldCbc } from "@/lib/security/encryption";
+import { encryptField, getCurrentKeyVersion } from "@/lib/security/field-encryption";
 
 export const { GET } = createCrudHandlers({
   table: "attendance",
@@ -53,7 +53,7 @@ async function storeSignature(supabase: Awaited<ReturnType<typeof createClient>>
     upsert: false
   });
   if (!uploaded.error) return { storage_path: path, encrypted_fallback: null };
-  return { storage_path: null, encrypted_fallback: encryptSensitiveFieldCbc(payload.signatureBase64) };
+  return { storage_path: null, encrypted_fallback: encryptField(payload.signatureBase64) };
 }
 
 export async function POST(request: Request) {
@@ -162,6 +162,13 @@ export async function POST(request: Request) {
     action: payload.action,
     signature_image: signatureStorage.storage_path ?? signatureStorage.encrypted_fallback,
     signature_hash: signatureHash(payload.signature_base64),
+    signature_metadata_encrypted: encryptField({
+      storage_path: signatureStorage.storage_path,
+      encrypted_fallback_used: Boolean(signatureStorage.encrypted_fallback),
+      device_label: payload.device_label ?? null,
+      ip: firstForwardedIp(request.headers.get("x-forwarded-for"))
+    }),
+    encryption_version: getCurrentKeyVersion(),
     gps_lat: payload.latitude,
     gps_lng: payload.longitude,
     gps_validation_id: gps.data?.id ?? null,

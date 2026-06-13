@@ -4,6 +4,7 @@ import { requireRole } from "@/lib/auth";
 import { provisionAuthUser, provisionedUserSchema, writeUserCreationAudit } from "@/lib/onboarding/user-provisioning";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { insertInvitationDeliveryLogs } from "@/lib/onboarding/invitation-delivery";
+import { encryptField, getCurrentKeyVersion, hashForLookup } from "@/lib/security/field-encryption";
 
 const schema = provisionedUserSchema.extend({
   role_title: z.string().min(2),
@@ -66,7 +67,12 @@ export async function POST(request: Request) {
     });
     createdUserId = user.id;
     const now = new Date().toISOString();
-    await supabase.from("profiles" as any).update({ identity_number: identityNumber }).eq("id", user.id);
+    await supabase.from("profiles" as any).update({
+      identity_number: identityNumber,
+      identity_number_encrypted: encryptField(identityNumber),
+      identity_number_hash: hashForLookup(identityNumber),
+      encryption_version: getCurrentKeyVersion()
+    }).eq("id", user.id);
 
     const { data: staff, error } = await supabase
       .from("staff")
@@ -76,9 +82,13 @@ export async function POST(request: Request) {
         full_name: payload.full_name,
         role_title: payload.role_title,
         identity_number: identityNumber,
+        identity_number_encrypted: encryptField(identityNumber),
+        identity_number_hash: hashForLookup(identityNumber),
         phone: payload.phone,
         email: payload.email,
         address: payload.address,
+        address_encrypted: encryptField(payload.address),
+        encryption_version: getCurrentKeyVersion(),
         class_group: payload.class_group,
         start_date: payload.start_date || null,
         notes: payload.notes,
@@ -103,8 +113,11 @@ export async function POST(request: Request) {
       profile_id: user.id,
       full_name: payload.full_name,
       identity_number: identityNumber,
+      identity_number_encrypted: encryptField(identityNumber),
+      identity_number_hash: hashForLookup(identityNumber),
       phone: payload.phone,
       email: payload.email,
+      encryption_version: getCurrentKeyVersion(),
       notes: payload.notes
     }).select("id").single();
     if (file.error || !file.data?.id) {
