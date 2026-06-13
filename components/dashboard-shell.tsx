@@ -44,6 +44,7 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/admin/observer-intelligence", label: "סיכומי תצפיתן", hint: "מה לבדוק" },
     { href: "/dashboard/admin/observer-test-center", label: "בדיקות תצפיתן", hint: "בדיקה שקטה וכיול" },
     { href: "/dashboard/admin/observer-calibration", label: "כיול תצפיתן", hint: "דיוק ובשלות" },
+    { href: "/dashboard/admin/digital-observer-core", label: "Observer Core", hint: "יכולות וורטיקלים" },
     { href: "/dashboard/admin/ai-platform", label: "פלטפורמת AI", hint: "מודלים, כיול ובקרה" },
     { href: "/dashboard/admin/ai-governance", label: "ממשל AI", hint: "DPIA וביקורת" },
     { href: "/dashboard/admin/risk-intelligence", label: "מודיעין סיכון", hint: "חיזוי ומניעה" },
