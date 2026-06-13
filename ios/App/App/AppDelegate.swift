@@ -5,10 +5,37 @@ import Capacitor
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
+    private var captureShieldView: UIView?
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
+        NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(screenCaptureStateChanged),
+            name: UIScreen.capturedDidChangeNotification,
+            object: nil
+        )
+        updateCaptureShield()
         return true
+    }
+
+    @objc private func screenCaptureStateChanged() {
+        updateCaptureShield()
+    }
+
+    private func updateCaptureShield() {
+        guard let window = window else { return }
+        if UIScreen.main.isCaptured {
+            if captureShieldView == nil {
+                let shield = UIView(frame: window.bounds)
+                shield.backgroundColor = UIColor.black
+                shield.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+                window.addSubview(shield)
+                captureShieldView = shield
+            }
+            captureShieldView?.isHidden = false
+        } else {
+            captureShieldView?.isHidden = true
+        }
     }
 
     func applicationWillResignActive(_ application: UIApplication) {

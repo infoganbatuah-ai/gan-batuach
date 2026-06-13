@@ -14,6 +14,8 @@
     "seed:test-users": "node scripts/seed-test-users.mjs",
     "seed:demo-full": "node scripts/seed-demo-full.mjs",
     "demo:reset": "node scripts/seed-demo-full.mjs --reset",
+    "compliance:permit-scan": "node scripts/scan-permit-expirations.mjs",
+    "privacy:forget-family": "node scripts/right-to-be-forgotten.mjs",
     "mobile:open:android": "npx cap open android",
     "mobile:open:ios": "npx cap open ios",
     "mobile:build:android": "cd android && ./gradlew assembleDebug"

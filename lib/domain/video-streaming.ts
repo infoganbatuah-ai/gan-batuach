@@ -8,7 +8,7 @@ import type { UserRole } from "@/lib/roles";
 
 export const playbackTokenSchema = z.object({
   parent_id: z.string().uuid().optional(),
-  protocol: z.enum(["HLS", "WebRTC"]).default("HLS"),
+  protocol: z.enum(["HLS", "WebRTC"]).default("WebRTC"),
   access_reason: z.string().max(160).optional()
 });
 
@@ -83,6 +83,7 @@ export async function createCameraPlaybackSession(cameraStreamId: string, payloa
   let selectedChildId: string | null = null;
   let parentPolicy: any = null;
   if (role === "parent") {
+    if (parsed.protocol !== "WebRTC") throw new Error("צפיית הורים זמינה דרך WebRTC מאובטח בלבד");
     const policyResult = await dataSupabase
       .from("parent_camera_policies" as any)
       .select("*")
@@ -154,6 +155,19 @@ export async function createCameraPlaybackSession(cameraStreamId: string, payloa
     await recordCameraAuthorizationCheck(supabase, { garden_id: cameraGardenId, camera_id: cameraStreamId, profile_id: user.id, parent_id: parsed.parent_id ?? null, child_id: present?.child_id ?? linkedChildIds[0], check_type: "child_present", status: present ? "passed" : "failed", reason: present ? null : "child_not_checked_in_or_already_checked_out" });
     if (!present) throw new Error("הצפייה זמינה רק כאשר הילד נמצא בגן");
     selectedChildId = present.child_id;
+    const roomLabel = cameraRow.class_group ?? cameraRow.age_group ?? cameraRow.camera_zone_label ?? null;
+    if (roomLabel) {
+      const childRoom = await dataSupabase
+        .from("children" as any)
+        .select("id,classroom,age_group")
+        .eq("id", selectedChildId)
+        .maybeSingle();
+      if (childRoom.error) throw new Error(childRoom.error.message);
+      const childLabels = [childRoom.data?.classroom, childRoom.data?.age_group].filter(Boolean).map((value) => String(value));
+      const roomAllowed = !childLabels.length || childLabels.includes(String(roomLabel));
+      await recordCameraAuthorizationCheck(supabase, { garden_id: cameraGardenId, camera_id: cameraStreamId, profile_id: user.id, parent_id: parsed.parent_id ?? null, child_id: selectedChildId, check_type: "child_present", status: roomAllowed ? "passed" : "failed", reason: roomAllowed ? null : "child_not_in_camera_room", metadata: { camera_room: roomLabel, child_labels: childLabels } });
+      if (!roomAllowed) throw new Error("הצפייה זמינה רק למצלמה המשויכת לחדר של הילד בשעה זו");
+    }
   }
 
   if (role === "manager" || role === "owner" || role === "staff") {
@@ -202,7 +216,7 @@ export async function createCameraPlaybackSession(cameraStreamId: string, payloa
       token_expires_at: expiresAt,
       playback_url: playbackUrl,
       child_id: selectedChildId,
-      watermark_text: role === "parent" ? `${profileRow.full_name ?? "Parent"} · ${maskPhone(profileRow.phone)} · ${new Date().toLocaleString("he-IL")}` : null
+      watermark_text: role === "parent" ? `${profileRow.full_name ?? "Parent"} · ${maskPhone(profileRow.phone)} · ${requestMeta.ip ?? "IP"} · ${new Date().toLocaleString("he-IL")}` : null
     } as any)
     .select("*")
     .single();
@@ -210,7 +224,7 @@ export async function createCameraPlaybackSession(cameraStreamId: string, payloa
   if (sessionError) throw new Error(sessionError.message);
 
   const watermarkText = role === "parent"
-    ? `${profileRow.full_name ?? "Parent"} · ${maskPhone(profileRow.phone)} · ${new Date().toLocaleString("he-IL")} · ${String(session.id).slice(0, 8)}`
+    ? `${profileRow.full_name ?? "Parent"} · ${maskPhone(profileRow.phone)} · ${requestMeta.ip ?? "IP"} · ${new Date().toLocaleString("he-IL")} · ${String(session.id).slice(0, 8)}`
     : `${role} · ${new Date().toLocaleString("he-IL")}`;
   const watermarkHash = sha256(watermarkText);
   const playbackSessionResult = await supabase.from("camera_playback_sessions" as any).insert({
@@ -230,6 +244,8 @@ export async function createCameraPlaybackSession(cameraStreamId: string, payloa
     metadata: {
       legacy_video_stream_session_id: (session as any).id,
       no_rtsp_exposed: true,
+      dtls_srtp_required: parsed.protocol === "WebRTC",
+      secure_webrtc_gateway_required: true,
       child_presence_required: role === "parent",
       mfa_required: role === "parent",
       expires_at: expiresAt
