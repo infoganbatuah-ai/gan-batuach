@@ -45,6 +45,7 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/admin/observer-test-center", label: "בדיקות תצפיתן", hint: "בדיקה שקטה וכיול" },
     { href: "/dashboard/admin/observer-calibration", label: "כיול תצפיתן", hint: "דיוק ובשלות" },
     { href: "/dashboard/admin/ai-platform", label: "פלטפורמת AI", hint: "מודלים, כיול ובקרה" },
+    { href: "/dashboard/admin/ai-governance", label: "ממשל AI", hint: "DPIA וביקורת" },
     { href: "/dashboard/admin/risk-intelligence", label: "מודיעין סיכון", hint: "חיזוי ומניעה" },
     { href: "/dashboard/admin/predictive-safety", label: "בטיחות חזויה", hint: "מניעה מוקדמת" },
     { href: "/dashboard/admin/observer-replay", label: "סקירת תצפיתן", hint: "בדיקת אירועים" },
