@@ -21,6 +21,7 @@ export const childSchema = z.object({
   hmo: z.string().optional(),
   allergies: z.string().optional(),
   regular_medications: z.string().optional(),
+  medical_notes: z.string().optional(),
   mother_identity_number: z.string().optional(),
   father_identity_number: z.string().optional(),
   photo_consent: z.boolean().optional(),

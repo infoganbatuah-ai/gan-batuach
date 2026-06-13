@@ -4,7 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { requirePermission } from "@/lib/auth";
 import type { Permission } from "@/lib/roles";
-import { encryptField } from "@/lib/security/encryption";
+import { encryptField, encryptSensitiveFieldCbc } from "@/lib/security/encryption";
 import { buildMaskedConnectionSummary } from "@/lib/domain/camera-connection-builder";
 
 type CrudConfig = {
@@ -67,6 +67,37 @@ export function createCrudHandlers(config: CrudConfig) {
         let insertPayload = config.table === "messages" && "session" in permission
           ? { ...parsed, sender_id: permission.session.profile.id, content: parsed.content ?? parsed.body }
           : parsed;
+        if (config.table === "children") {
+          insertPayload = {
+            ...insertPayload,
+            allergies_encrypted: encryptSensitiveFieldCbc(parsed.allergies),
+            medical_notes_encrypted: encryptSensitiveFieldCbc(parsed.medical_notes),
+            regular_medications_encrypted: encryptSensitiveFieldCbc(parsed.regular_medications),
+            medical_encryption_status: parsed.allergies || parsed.medical_notes || parsed.regular_medications ? "encrypted" : "not_required",
+            medical_encrypted_at: parsed.allergies || parsed.medical_notes || parsed.regular_medications ? new Date().toISOString() : null
+          };
+        }
+        if (config.table === "child_health_records") {
+          insertPayload = {
+            ...insertPayload,
+            allergies_encrypted: encryptSensitiveFieldCbc(parsed.allergies),
+            sensitivities_encrypted: encryptSensitiveFieldCbc(parsed.sensitivities),
+            regular_medications_encrypted: encryptSensitiveFieldCbc(parsed.regular_medications),
+            medical_notes_encrypted: encryptSensitiveFieldCbc(parsed.medical_notes),
+            encryption_status: "encrypted",
+            encrypted_at: new Date().toISOString()
+          };
+        }
+        if (config.table === "medicine_given_logs") {
+          insertPayload = {
+            ...insertPayload,
+            medicine_name_encrypted: encryptSensitiveFieldCbc(parsed.medicine_name),
+            dosage_encrypted: encryptSensitiveFieldCbc(parsed.dosage),
+            notes_encrypted: encryptSensitiveFieldCbc(parsed.notes),
+            encryption_status: "encrypted",
+            encrypted_at: new Date().toISOString()
+          };
+        }
         if (config.table === "camera_streams") {
           const cameraPayload = { ...parsed } as Record<string, unknown>;
           const rawPassword = typeof cameraPayload.password === "string" ? cameraPayload.password : "";

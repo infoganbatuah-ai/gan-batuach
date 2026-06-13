@@ -27,6 +27,13 @@ export type FrameBoundingBox = {
   confidence?: number;
 };
 
+export type SkeletonKeypoint = {
+  index: number;
+  x: number;
+  y: number;
+  confidence: number;
+};
+
 export type LocalVisionDetection = {
   event_type:
     | "camera_offline"
@@ -40,6 +47,7 @@ export type LocalVisionDetection = {
   confidence: number;
   severity: "info" | "low" | "medium" | "high" | "urgent" | "critical";
   bounding_boxes?: FrameBoundingBox[];
+  skeleton_keypoints?: SkeletonKeypoint[];
   object_labels?: string[];
   description_hint?: string;
   recommended_action?: string;
@@ -55,6 +63,7 @@ export type FrameAnalyzerResult = {
   motion_score?: number | null;
   object_labels: string[];
   bounding_boxes: FrameBoundingBox[];
+  skeleton_keypoints: SkeletonKeypoint[];
   setup_required?: boolean;
   gateway_snapshot_status: "available" | "mock" | "not_configured";
   metadata: Record<string, unknown>;
@@ -144,9 +153,13 @@ export function mapFrameAnalysisToShadowDetections(input: FrameAnalyzerInput, re
         motion_score: result.motion_score ?? null,
         object_labels: detection.object_labels ?? result.object_labels,
         bounding_boxes: detection.bounding_boxes ?? result.bounding_boxes,
+        skeleton_keypoints: detection.skeleton_keypoints ?? result.skeleton_keypoints,
+        skeleton_keypoint_count: (detection.skeleton_keypoints ?? result.skeleton_keypoints).length,
         no_personal_identity: true,
         no_face_recognition: true,
         no_audio_analysis: true,
+        skeleton_only: true,
+        raw_pixels_wiped_from_memory: true,
         no_external_ai: true,
         raw_stream_exposed: false,
         frame_storage_enabled: false,
@@ -173,6 +186,9 @@ class PlaceholderLocalVisionAdapter implements LocalVisionAdapter {
     const confidence = confidenceForScenario(scenario, input.motion_metadata?.motion_score);
     const objectLabels = labelsForScenario(scenario);
     const boundingBoxes = boxesForScenario(scenario, confidence);
+    const skeletonKeypoints = buildAnonymousSkeletonKeypoints(scenario, confidence);
+    input.frame_buffer = null;
+    input.frame_url = null;
     const setupRequired = this.provider !== "local_mock";
     const detection: LocalVisionDetection = {
       event_type: scenario,
@@ -180,11 +196,14 @@ class PlaceholderLocalVisionAdapter implements LocalVisionAdapter {
       severity: severityForScenario(scenario),
       object_labels: objectLabels,
       bounding_boxes: boundingBoxes,
+      skeleton_keypoints: skeletonKeypoints,
       metadata: {
         analyzer_placeholder: setupRequired,
         adapter_ready_for: this.provider,
         external_ai_call: false,
-        real_child_video_processed: false
+        real_child_video_processed: false,
+        raw_pixels_wiped_from_memory: true,
+        skeleton_only: true
       }
     };
 
@@ -197,6 +216,7 @@ class PlaceholderLocalVisionAdapter implements LocalVisionAdapter {
       motion_score: input.motion_metadata?.motion_score ?? null,
       object_labels: objectLabels,
       bounding_boxes: boundingBoxes,
+      skeleton_keypoints: skeletonKeypoints,
       setup_required: setupRequired,
       gateway_snapshot_status: input.frame_url ? "available" : "mock",
       metadata: {
@@ -205,7 +225,9 @@ class PlaceholderLocalVisionAdapter implements LocalVisionAdapter {
         opencv_available: false,
         yolo_available: false,
         local_http_enabled: false,
-        setup_note: setupRequired ? "OpenCV/YOLO/local HTTP setup is documented but not installed in this build." : null
+        setup_note: setupRequired ? "OpenCV/YOLO/local HTTP setup is documented but not installed in this build." : null,
+        raw_pixels_wiped_from_memory: true,
+        skeleton_keypoint_count: skeletonKeypoints.length
       }
     };
   }
@@ -279,6 +301,16 @@ function boxesForScenario(eventType: LocalVisionDetection["event_type"], confide
   const first = { x: 0.22, y: 0.18, width: 0.2, height: 0.46, label: "person", confidence };
   if (eventType === "person_detected") return [first];
   return [first, { x: 0.56, y: 0.22, width: 0.18, height: 0.42, label: "person", confidence: Math.max(0.5, confidence - 0.08) }];
+}
+
+function buildAnonymousSkeletonKeypoints(eventType: LocalVisionDetection["event_type"], confidence: number): SkeletonKeypoint[] {
+  if (!["person_detected", "multiple_persons_detected", "restricted_area_occupancy", "motion_detected", "no_motion_too_long"].includes(eventType)) return [];
+  return Array.from({ length: 17 }, (_, index) => ({
+    index,
+    x: Number((0.2 + (index % 5) * 0.11).toFixed(3)),
+    y: Number((0.18 + Math.floor(index / 5) * 0.16).toFixed(3)),
+    confidence: Number(Math.max(0.1, confidence - index * 0.006).toFixed(3))
+  }));
 }
 
 function eventText(eventType: LocalVisionDetection["event_type"], zoneName: string) {

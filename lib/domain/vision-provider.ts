@@ -39,6 +39,7 @@ export type VisionDetection = {
   recommendedAction: string;
   objectLabels?: string[];
   boundingBoxes?: Array<{ x: number; y: number; width: number; height: number; label?: string; confidence?: number }>;
+  skeletonKeypoints?: Array<{ index: number; x: number; y: number; confidence: number }>;
   metadata?: Record<string, unknown>;
 };
 
@@ -182,12 +183,17 @@ class SafeVisionProvider implements VisionProvider {
         recommendedAction: recommendedActionFor(category),
         objectLabels: labelsFor(category),
         boundingBoxes: boxesFor(category, modelConfidence),
+        skeletonKeypoints: skeletonFor(category, modelConfidence),
         metadata: {
           shadow_mode: true,
           requires_human_review: true,
           parent_visible: false,
           no_identity_recognition: true,
-          no_biometric_assumption: true
+          no_biometric_assumption: true,
+          no_face_recognition: true,
+          no_audio_processing: true,
+          skeleton_only: true,
+          raw_pixels_wiped_from_memory: true
         }
       }],
       latencyMs: Math.max(1, Date.now() - started),
@@ -203,6 +209,8 @@ class SafeVisionProvider implements VisionProvider {
         frame_source_type: input.frameSourceType ?? "mock_frame",
         gateway_snapshot_available: Boolean(input.gatewaySnapshotUrl),
         raw_stream_exposed: false,
+        raw_pixels_wiped_from_memory: true,
+        skeleton_only: true,
         child_identity_recognition: false,
         staff_scoring: false,
         automatic_accusation: false
@@ -303,6 +311,16 @@ function boxesFor(category: VisionDetectionCategory, confidence: number) {
   if (!["person_detected", "multiple_persons_detected", "occupancy", "restricted_area_presence"].includes(category)) return [];
   const first = { x: 0.24, y: 0.2, width: 0.19, height: 0.44, label: "person", confidence };
   return category === "multiple_persons_detected" ? [first, { x: 0.58, y: 0.22, width: 0.16, height: 0.4, label: "person", confidence: Math.max(0.5, confidence - 0.08) }] : [first];
+}
+
+function skeletonFor(category: VisionDetectionCategory, confidence: number) {
+  if (!["person_detected", "multiple_persons_detected", "occupancy", "restricted_area_presence", "unusual_activity"].includes(category)) return [];
+  return Array.from({ length: 17 }, (_, index) => ({
+    index,
+    x: Number((0.18 + (index % 5) * 0.12).toFixed(3)),
+    y: Number((0.2 + Math.floor(index / 5) * 0.15).toFixed(3)),
+    confidence: Number(Math.max(0.1, confidence - index * 0.005).toFixed(3))
+  }));
 }
 
 function clamp(value: number) {

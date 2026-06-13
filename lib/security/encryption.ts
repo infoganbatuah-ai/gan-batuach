@@ -1,6 +1,7 @@
 import crypto from "node:crypto";
 
 const algorithm = "aes-256-gcm";
+const cbcAlgorithm = "aes-256-cbc";
 
 function key() {
   const raw = process.env.FIELD_ENCRYPTION_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || "";
@@ -24,4 +25,23 @@ export function decryptField(value: string | undefined | null) {
   decipher.setAuthTag(Buffer.from(tagRaw, "base64url"));
   const decrypted = Buffer.concat([decipher.update(Buffer.from(encryptedRaw, "base64url")), decipher.final()]);
   return decrypted.toString("utf8");
+}
+
+export function encryptSensitiveFieldCbc(value: string | undefined | null) {
+  if (!value) return null;
+  const iv = crypto.randomBytes(16);
+  const cipher = crypto.createCipheriv(cbcAlgorithm, key(), iv);
+  const encrypted = Buffer.concat([cipher.update(value, "utf8"), cipher.final()]);
+  return `cbc.v1.${iv.toString("base64url")}.${encrypted.toString("base64url")}`;
+}
+
+export function decryptSensitiveField(value: string | undefined | null) {
+  if (!value) return null;
+  if (value.startsWith("cbc.v1.")) {
+    const [, , ivRaw, encryptedRaw] = value.split(".");
+    const decipher = crypto.createDecipheriv(cbcAlgorithm, key(), Buffer.from(ivRaw, "base64url"));
+    const decrypted = Buffer.concat([decipher.update(Buffer.from(encryptedRaw, "base64url")), decipher.final()]);
+    return decrypted.toString("utf8");
+  }
+  return decryptField(value);
 }

@@ -36,12 +36,6 @@ export type DetectionInput = {
     startedAt?: string;
     endedAt?: string;
   };
-  audioSegment?: {
-    storagePath?: string;
-    signedUrl?: string;
-    durationSeconds?: number;
-    language?: string;
-  };
   camera?: Record<string, any> | null;
   zone?: Record<string, any> | null;
   rule?: Record<string, any> | null;
@@ -49,8 +43,6 @@ export type DetectionInput = {
   staffContext?: Record<string, any> | null;
   consentContext?: {
     aiEnabled: boolean;
-    audioAllowed: boolean;
-    faceRecognitionAllowed: boolean;
     externalProviderAllowed: boolean;
   };
   budgetContext?: {
@@ -208,24 +200,6 @@ export class MockDetectionEngine implements DetectionEngine {
         zone_type: input.zone?.zone_type,
         metadata: { mock: true, scenario, safety_framework: true }
       },
-      audio_anomaly: {
-        rule_key: "audio_anomaly",
-        event_type: "audio_anomaly",
-        confidence: 0.77,
-        title: "חריגת שמע לבדיקה",
-        description: "אינדיקציית mock לחריגת שמע. אין ניתוח שמע אמיתי בשלב זה.",
-        zone_type: input.zone?.zone_type,
-        metadata: { mock: true, scenario }
-      },
-      keyword_detected: {
-        rule_key: "keyword_detected",
-        event_type: "keyword_detected",
-        confidence: 0.81,
-        title: "מילת מפתח זוהתה לבדיקה",
-        description: "אינדיקציית mock למילת מפתח. אין האזנה או ניתוח שמע אמיתי בשלב זה.",
-        zone_type: input.zone?.zone_type,
-        metadata: { mock: true, scenario }
-      }
     };
     return [labels[scenario] ?? labels.fall_suspected];
   }
