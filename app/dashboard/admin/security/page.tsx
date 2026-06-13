@@ -28,7 +28,7 @@ export default async function AdminSecurityPage() {
   await requireRole(["admin"]);
   const result = await safeAdminData("admin security center", async () => {
     const supabase = await createClient();
-    const [checksRes, findingsRes, secretsRes, backupsRes, recoveryRes, monitoringRes, rateLimitRes, auditCatalogRes, auditLogsRes, profilesRes, mfaRes, classificationsRes, encryptedFieldsRes, securityEventsRes, devicesRes, sessionsRes, privacyRequestsRes, riskRegisterRes, policiesRes, trainingRes] = await Promise.all([
+    const [checksRes, findingsRes, secretsRes, backupsRes, recoveryRes, monitoringRes, rateLimitRes, auditCatalogRes, auditLogsRes, profilesRes, mfaRes, classificationsRes, encryptedFieldsRes, medicalAccessLogsRes, securityEventsRes, devicesRes, sessionsRes, privacyRequestsRes, riskRegisterRes, policiesRes, trainingRes] = await Promise.all([
       supabase.from("security_readiness_checks" as any).select("*").order("severity").order("category"),
       supabase.from("security_findings" as any).select("*").order("detected_at", { ascending: false }).limit(200),
       supabase.from("security_secret_inventory" as any).select("id,secret_key,secret_type,location,required,server_only,rotation_status,readiness_status,last_rotated_at,next_rotation_due_at,notes,created_at,updated_at").order("required", { ascending: false }),
@@ -42,6 +42,7 @@ export default async function AdminSecurityPage() {
       supabase.from("mfa_enrollment_status" as any).select("*").order("role").limit(5000),
       supabase.from("security_data_classifications" as any).select("*").order("data_classification").limit(300),
       supabase.from("encrypted_field_registry" as any).select("*").order("data_classification").limit(200),
+      supabase.from("medical_data_access_logs" as any).select("id,field_accessed,action,role,created_at").order("created_at", { ascending: false }).limit(200),
       supabase.from("security_events" as any).select("*").order("created_at", { ascending: false }).limit(120),
       supabase.from("trusted_devices" as any).select("*").order("last_seen_at", { ascending: false }).limit(200),
       supabase.from("security_sessions" as any).select("*").order("last_seen_at", { ascending: false }).limit(200),
@@ -50,7 +51,7 @@ export default async function AdminSecurityPage() {
       supabase.from("security_policies_repository" as any).select("*").order("policy_type").limit(120),
       supabase.from("security_training_readiness" as any).select("*").order("role").limit(120)
     ]);
-    [checksRes, findingsRes, secretsRes, backupsRes, recoveryRes, monitoringRes, rateLimitRes, auditCatalogRes, auditLogsRes, profilesRes, mfaRes, classificationsRes, encryptedFieldsRes, securityEventsRes, devicesRes, sessionsRes, privacyRequestsRes, riskRegisterRes, policiesRes, trainingRes].forEach((query, index) => logSupabaseError(`security center query ${index}`, (query as any).error));
+    [checksRes, findingsRes, secretsRes, backupsRes, recoveryRes, monitoringRes, rateLimitRes, auditCatalogRes, auditLogsRes, profilesRes, mfaRes, classificationsRes, encryptedFieldsRes, medicalAccessLogsRes, securityEventsRes, devicesRes, sessionsRes, privacyRequestsRes, riskRegisterRes, policiesRes, trainingRes].forEach((query, index) => logSupabaseError(`security center query ${index}`, (query as any).error));
     return {
       checks: checksRes.data ?? [],
       findings: findingsRes.data ?? [],
@@ -65,6 +66,7 @@ export default async function AdminSecurityPage() {
       mfa: mfaRes.data ?? [],
       classifications: classificationsRes.data ?? [],
       encryptedFields: encryptedFieldsRes.data ?? [],
+      medicalAccessLogs: medicalAccessLogsRes.data ?? [],
       securityEvents: securityEventsRes.data ?? [],
       devices: devicesRes.data ?? [],
       sessions: sessionsRes.data ?? [],
@@ -82,9 +84,9 @@ export default async function AdminSecurityPage() {
         rateLimitEvents: rateLimitRes.data ?? [],
         auditCatalog: auditCatalogRes.data ?? []
       }),
-      queryError: [checksRes.error, findingsRes.error, secretsRes.error, backupsRes.error, recoveryRes.error, monitoringRes.error, rateLimitRes.error, auditCatalogRes.error, auditLogsRes.error, profilesRes.error, mfaRes.error, classificationsRes.error, encryptedFieldsRes.error, securityEventsRes.error, devicesRes.error, sessionsRes.error, privacyRequestsRes.error, riskRegisterRes.error, policiesRes.error, trainingRes.error].some(Boolean) ? "חלק מנתוני האבטחה לא נטענו. ייתכן שמיגרציית PHASE 146 עדיין לא הורצה." : null
+      queryError: [checksRes.error, findingsRes.error, secretsRes.error, backupsRes.error, recoveryRes.error, monitoringRes.error, rateLimitRes.error, auditCatalogRes.error, auditLogsRes.error, profilesRes.error, mfaRes.error, classificationsRes.error, encryptedFieldsRes.error, medicalAccessLogsRes.error, securityEventsRes.error, devicesRes.error, sessionsRes.error, privacyRequestsRes.error, riskRegisterRes.error, policiesRes.error, trainingRes.error].some(Boolean) ? "חלק מנתוני האבטחה לא נטענו. ייתכן שמיגרציית PHASE 146/153 עדיין לא הורצה." : null
     };
-  }, { checks: [] as any[], findings: [] as any[], secrets: [] as any[], backups: [] as any[], recovery: [] as any[], monitoring: [] as any[], rateLimit: [] as any[], auditCatalog: [] as any[], auditLogs: [] as any[], profiles: [] as any[], mfa: [] as any[], classifications: [] as any[], encryptedFields: [] as any[], securityEvents: [] as any[], devices: [] as any[], sessions: [] as any[], privacyRequests: [] as any[], riskRegister: [] as any[], policies: [] as any[], training: [] as any[], summary: buildSecurityReadinessSummary(), queryError: null as string | null });
+  }, { checks: [] as any[], findings: [] as any[], secrets: [] as any[], backups: [] as any[], recovery: [] as any[], monitoring: [] as any[], rateLimit: [] as any[], auditCatalog: [] as any[], auditLogs: [] as any[], profiles: [] as any[], mfa: [] as any[], classifications: [] as any[], encryptedFields: [] as any[], medicalAccessLogs: [] as any[], securityEvents: [] as any[], devices: [] as any[], sessions: [] as any[], privacyRequests: [] as any[], riskRegister: [] as any[], policies: [] as any[], training: [] as any[], summary: buildSecurityReadinessSummary(), queryError: null as string | null });
 
   const { summary } = result.data;
   const unresolvedFindings = result.data.findings.filter((finding: any) => !["resolved", "false_positive", "accepted_risk"].includes(String(finding.status)));
@@ -93,6 +95,7 @@ export default async function AdminSecurityPage() {
   const enrolledMfa = result.data.mfa.filter((item: any) => item.enrollment_status === "enrolled").length;
   const mfaReadiness = percent(enrolledMfa, Math.max(profileCount, result.data.mfa.length));
   const encryptionCoverage = result.data.encryptedFields.length ? Math.round(result.data.encryptedFields.reduce((sum: number, item: any) => sum + Number(item.coverage_percent ?? 0), 0) / result.data.encryptedFields.length) : 0;
+  const encryptionGaps = result.data.encryptedFields.filter((field: any) => ["planned", "partial", "blocked"].includes(String(field.encryption_status))).length;
   const requiredAudit = result.data.auditCatalog.filter((item: any) => item.required).length;
   const implementedAudit = result.data.auditCatalog.filter((item: any) => item.required && item.implemented).length;
   const auditReadiness = percent(implementedAudit, requiredAudit);
@@ -146,6 +149,11 @@ export default async function AdminSecurityPage() {
         </article>
         <article className="card action-panel">
           <div className="section-heading"><h2><DatabaseZap size={20} /> Medical encryption</h2><p>מידע רפואי חייב לעבור הצפנה ברמת האפליקציה.</p></div>
+          <div className="risk-list">
+            <div>גישה רפואית מתועדת <b>{result.data.medicalAccessLogs.length}</b></div>
+            <div>פערי הצפנה פתוחים <b>{encryptionGaps}</b></div>
+            <div>גרסת מפתח <b>{result.data.encryptedFields[0]?.key_reference ?? "FIELD_ENCRYPTION_KEY_CURRENT"}</b></div>
+          </div>
           <div className="procedure-list compact-list">
             {result.data.encryptedFields.slice(0, 7).map((field: any) => (
               <div className="mini-row" key={field.id}>

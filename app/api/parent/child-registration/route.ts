@@ -3,6 +3,7 @@ import { fail, handleRouteError, ok } from "@/lib/api";
 import { requireRole } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { writeUserCreationAudit } from "@/lib/onboarding/user-provisioning";
+import { encryptField, getCurrentKeyVersion, hashForLookup } from "@/lib/security/field-encryption";
 
 const schema = z.object({
   child_id: z.string().uuid().optional(),
@@ -108,6 +109,8 @@ export async function POST(request: Request) {
     const nextStatus = existingChild?.status === "active" || existingChild?.status === "approved"
       ? existingChild.status
       : "pending_manager_approval";
+    const now = new Date().toISOString();
+    const medicalSensitive = Boolean(payload.allergies?.trim() || payload.sensitivities?.trim() || payload.regular_medications?.trim() || payload.medical_notes?.trim());
 
     const childPayload = {
         garden_id: gardenId,
@@ -115,6 +118,8 @@ export async function POST(request: Request) {
         full_name: payload.full_name,
         birth_date: payload.birth_date || null,
         identity_number: childIdentityNumber || null,
+        identity_number_encrypted: encryptField(childIdentityNumber || null),
+        identity_number_hash: hashForLookup(childIdentityNumber || null),
         photo_url: payload.photo_url || existingChild?.photo_url || null,
         face_image_url: payload.photo_url || existingChild?.face_image_url || null,
         child_age: payload.child_age || existingChild?.child_age || null,
@@ -136,12 +141,24 @@ export async function POST(request: Request) {
         mother_phone: payload.mother_phone,
         father_name: payload.father_name,
         father_identity_number: payload.father_identity_number,
+        mother_identity_number_encrypted: encryptField(payload.mother_identity_number || null),
+        mother_identity_number_hash: hashForLookup(payload.mother_identity_number || null),
+        father_identity_number_encrypted: encryptField(payload.father_identity_number || null),
+        father_identity_number_hash: hashForLookup(payload.father_identity_number || null),
         father_phone: payload.father_phone,
         parent_photo_url: payload.parent_photo_url || payload.mother_photo_url || payload.father_photo_url || null,
         mother_photo_url: payload.mother_photo_url || null,
         father_photo_url: payload.father_photo_url || null,
         emergency_phone: payload.emergency_phone,
         pickup_authorized: payload.pickup_authorized,
+        pickup_authorized_encrypted: encryptField(payload.pickup_authorized),
+        allergies_encrypted: encryptField(payload.allergies || null),
+        sensitivities_encrypted: encryptField(payload.sensitivities || null),
+        regular_medications_encrypted: encryptField(payload.regular_medications || null),
+        medical_notes_encrypted: encryptField(payload.medical_notes || null),
+        medical_encryption_status: medicalSensitive ? "encrypted" : "not_required",
+        medical_encrypted_at: medicalSensitive ? now : null,
+        encryption_version: getCurrentKeyVersion(),
         photo_consent: payload.photo_consent,
         system_consent: payload.system_consent,
         additional_consents: {
@@ -184,7 +201,6 @@ export async function POST(request: Request) {
 
     if (error) return fail(error.message, 400);
     const primaryParentPhoto = payload.parent_photo_url || payload.mother_photo_url || payload.father_photo_url || "";
-    const now = new Date().toISOString();
     const parentUpdate = await supabase.from("parents").update({
       completed_profile: true,
       status: "active",
@@ -192,6 +208,11 @@ export async function POST(request: Request) {
       invitation_status: "active",
       onboarding_completed_at: now,
       activated_at: now,
+      identity_number_encrypted: encryptField(payload.mother_identity_number || payload.father_identity_number || null),
+      identity_number_hash: hashForLookup(payload.mother_identity_number || payload.father_identity_number || null),
+      address_encrypted: encryptField(payload.address || null),
+      phone_hash: hashForLookup(payload.mother_phone || payload.father_phone || null),
+      encryption_version: getCurrentKeyVersion(),
       photo_url: primaryParentPhoto || parent.photo_url || null
     }).eq("id", parent.id as string);
     if (parentUpdate.error) {
@@ -223,6 +244,8 @@ export async function POST(request: Request) {
         full_name: payload.full_name,
         birth_date: payload.birth_date || null,
         identity_number: childIdentityNumber || null,
+        identity_number_encrypted: encryptField(childIdentityNumber || null),
+        identity_number_hash: hashForLookup(childIdentityNumber || null),
         photo_url: payload.photo_url || null,
         face_image_url: payload.photo_url || null,
         important_notes: payload.important_notes || null,
@@ -233,6 +256,12 @@ export async function POST(request: Request) {
         sensitivities: payload.sensitivities || null,
         regular_medications: payload.regular_medications || null,
         medical_notes: payload.medical_notes || null,
+        allergies_encrypted: encryptField(payload.allergies || null),
+        sensitivities_encrypted: encryptField(payload.sensitivities || null),
+        regular_medications_encrypted: encryptField(payload.regular_medications || null),
+        medical_notes_encrypted: encryptField(payload.medical_notes || null),
+        pickup_authorized_encrypted: encryptField(payload.pickup_authorized),
+        encryption_version: getCurrentKeyVersion(),
         emergency_phone: payload.emergency_phone || null,
         pickup_authorized: payload.pickup_authorized,
         updated_at: new Date().toISOString()
@@ -245,6 +274,8 @@ export async function POST(request: Request) {
         full_name: payload.full_name,
         birth_date: payload.birth_date || null,
         identity_number: childIdentityNumber || null,
+        identity_number_encrypted: encryptField(childIdentityNumber || null),
+        identity_number_hash: hashForLookup(childIdentityNumber || null),
         photo_url: payload.photo_url || null,
         face_image_url: payload.photo_url || null,
         important_notes: payload.important_notes || null,
@@ -255,6 +286,12 @@ export async function POST(request: Request) {
         sensitivities: payload.sensitivities || null,
         regular_medications: payload.regular_medications || null,
         medical_notes: payload.medical_notes || null,
+        allergies_encrypted: encryptField(payload.allergies || null),
+        sensitivities_encrypted: encryptField(payload.sensitivities || null),
+        regular_medications_encrypted: encryptField(payload.regular_medications || null),
+        medical_notes_encrypted: encryptField(payload.medical_notes || null),
+        pickup_authorized_encrypted: encryptField(payload.pickup_authorized),
+        encryption_version: getCurrentKeyVersion(),
         emergency_phone: payload.emergency_phone || null,
         pickup_authorized: payload.pickup_authorized
       }).select("id").single();

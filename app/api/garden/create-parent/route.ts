@@ -4,6 +4,7 @@ import { requireRole } from "@/lib/auth";
 import { provisionAuthUser, provisionedUserSchema, writeUserCreationAudit } from "@/lib/onboarding/user-provisioning";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { insertInvitationDeliveryLogs } from "@/lib/onboarding/invitation-delivery";
+import { encryptField, getCurrentKeyVersion, hashForLookup } from "@/lib/security/field-encryption";
 
 const schema = provisionedUserSchema.extend({
   identity_number: z.string().optional(),
@@ -48,7 +49,12 @@ export async function POST(request: Request) {
     });
       createdUserId = user.id;
     const now = new Date().toISOString();
-    if (identityNumber) await supabase.from("profiles" as any).update({ identity_number: identityNumber }).eq("id", user.id);
+    if (identityNumber) await supabase.from("profiles" as any).update({
+      identity_number: identityNumber,
+      identity_number_encrypted: encryptField(identityNumber),
+      identity_number_hash: hashForLookup(identityNumber),
+      encryption_version: getCurrentKeyVersion()
+    }).eq("id", user.id);
 
     const { data: parent, error } = await supabase
       .from("parents")
@@ -57,9 +63,14 @@ export async function POST(request: Request) {
         garden_id: profile.garden_id,
         full_name: payload.full_name,
         identity_number: identityNumber || null,
+        identity_number_encrypted: encryptField(identityNumber || null),
+        identity_number_hash: hashForLookup(identityNumber || null),
         phone: payload.phone ?? "",
+        phone_hash: hashForLookup(payload.phone),
         email: payload.email,
         address: payload.address,
+        address_encrypted: encryptField(payload.address),
+        encryption_version: getCurrentKeyVersion(),
         status: "invited",
         completed_profile: false,
         onboarding_status: "account_created",

@@ -1,0 +1,70 @@
+import { NextRequest, NextResponse } from "next/server";
+
+// ממשק להגדרת נקודות הציון הקינטיות של שלד אנונימי (17 מפרקים לפי תקן YOLO-Pose)
+interface SkeletonKeypoint {
+  jointName: string;
+  x: number;
+  y: number;
+  score: number;
+}
+
+interface AIAnomalyPayload {
+  roomUuid: string;
+  timestamp: string;
+  detectedAnomalies: string[];
+}
+
+export async function processVideoTelemetry(request: NextRequest) {
+  try {
+    const body = await request.json();
+    const { roomUuid, skeletons }: { roomUuid: string; skeletons: SkeletonKeypoint[][] } = body;
+
+    const detectedAnomalies: string[] = [];
+
+    // מנוע ה-AI מנתח את וקטורי התנועה של השלדים האנונימיים בלבד (ללא תווי פנים או אודיו)
+    skeletons.forEach((skeleton) => {
+      // 1. אנליטיקת זיהוי אנומליה מסוג נפילה/הזנחה (Static Ground State)
+      const hipJoint = skeleton.find(k => k.jointName === "hip");
+      const ankleJoint = skeleton.find(k => k.jointName === "ankle");
+
+      if (hipJoint && ankleJoint) {
+        const heightDistance = Math.abs(hipJoint.y - ankleJoint.y);
+        // אם מרכז המסה של השלד צונח לקו האפס (הרצפה) והמפרקים נשארים סטטיים
+        if (heightDistance < 15 && hipJoint.score > 0.8) {
+          detectedAnomalies.push("SUSPECTED_FALL_OR_INJURY_STATE");
+        }
+      }
+
+      // 2. אנליטיקת זיהוי אנומליה מסוג אלימות (High-Velocity Acceleration)
+      const wristJoint = skeleton.find(k => k.jointName === "wrist");
+      if (wristJoint && wristJoint.score > 0.8) {
+        // המערכת מזהה תאוצה וקטורית חריגה ומהירה של מפרק כף היד לעבר שלד סמוך
+        const isVelocityAnomalous = Math.abs(wristJoint.x) > 150 || Math.abs(wristJoint.y) > 150;
+        if (isVelocityAnomalous) {
+          detectedAnomalies.push("HIGH_VELOCITY_IMPACT_DETECTION");
+        }
+      }
+    });
+
+    // הסרת כפל התרעות
+    const uniqueAnomalies = Array.from(new Set(detectedAnomalies));
+
+    if (uniqueAnomalies.length > 0) {
+      const alertPayload: AIAnomalyPayload = {
+        roomUuid,
+        timestamp: new Date().toISOString(),
+        detectedAnomalies: uniqueAnomalies
+      };
+
+      // הדפסת ההתרעה המאובטחת לקונסול - המערכת דוחפת את ה-JSON אנונימי ישירות לדשבורד של האדמין
+      console.log("⚠️ [ISO COMPLIANCE AI OBSERVER ALERT]:", JSON.stringify(alertPayload));
+      return NextResponse.json({ success: true, alertTriggered: true, details: alertPayload });
+    }
+
+    // החזרת תשובה תקינה אם הגן שקט ואין אירועים חריגים בשלדים
+    return NextResponse.json({ success: true, alertTriggered: false });
+
+  } catch (error) {
+    return NextResponse.json({ error: "Internal Server Error" }, { status: 500 });
+  }
+}

@@ -2,6 +2,7 @@ import { z } from "zod";
 import { requireRole } from "@/lib/auth";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { createClient } from "@/lib/supabase/server";
+import { encryptField, getCurrentKeyVersion } from "@/lib/security/field-encryption";
 
 const healthSchema = z.object({
   garden_id: z.string().uuid(),
@@ -21,7 +22,7 @@ const healthSchema = z.object({
 
 export async function GET(request: Request) {
   try {
-    await requireRole(["admin", "manager", "owner", "staff", "parent", "inspector"]);
+    const { profile } = await requireRole(["admin", "manager", "owner", "staff", "parent", "inspector"]);
     const supabase = await createClient();
     const { searchParams } = new URL(request.url);
     const gardenId = searchParams.get("garden_id");
@@ -34,6 +35,17 @@ export async function GET(request: Request) {
       console.error("[child-health-records:get]", error);
       return fail("לא ניתן לטעון מידע רפואי כרגע", 400);
     }
+    await supabase.from("medical_data_access_logs" as any).insert({
+      user_id: profile.id,
+      role: profile.role,
+      child_id: childId,
+      garden_id: gardenId ?? profile.garden_id ?? null,
+      field_accessed: "child_health_records",
+      action: "view",
+      ip: request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || null,
+      user_agent: request.headers.get("user-agent"),
+      reason: "api_read"
+    });
     return ok(data ?? []);
   } catch (error) {
     return handleRouteError(error);
@@ -48,11 +60,37 @@ export async function POST(request: Request) {
     const supabase = await createClient();
     const missingInfo = payload.missing_info ?? !(payload.hmo && payload.emergency_contacts.length);
     const allergyWarning = payload.allergy_warning ?? Boolean(payload.allergies?.trim());
-    const { data, error } = await supabase.from("child_health_records" as any).upsert({ ...payload, missing_info: missingInfo, allergy_warning: allergyWarning, updated_by: profile.id }, { onConflict: "child_id" }).select("*").single();
+    const encryptedPayload = {
+      ...payload,
+      allergies_encrypted: encryptField(payload.allergies),
+      sensitivities_encrypted: encryptField(payload.sensitivities),
+      medications_encrypted: encryptField(payload.medications),
+      medical_notes_encrypted: encryptField(payload.medical_notes),
+      emergency_contacts_encrypted: encryptField(payload.emergency_contacts),
+      medication_approval_url_encrypted: encryptField(payload.medication_approval_url),
+      encryption_status: "encrypted",
+      encrypted_at: new Date().toISOString(),
+      encryption_version: getCurrentKeyVersion(),
+      missing_info: missingInfo,
+      allergy_warning: allergyWarning,
+      updated_by: profile.id
+    };
+    const { data, error } = await supabase.from("child_health_records" as any).upsert(encryptedPayload, { onConflict: "child_id" }).select("*").single();
     if (error) {
       console.error("[child-health-records:post]", error);
       return fail("לא ניתן לשמור מידע רפואי כרגע", 400);
     }
+    await supabase.from("medical_data_access_logs" as any).insert({
+      user_id: profile.id,
+      role: profile.role,
+      child_id: payload.child_id,
+      garden_id: payload.garden_id,
+      field_accessed: "child_health_records",
+      action: "update",
+      ip: request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || null,
+      user_agent: request.headers.get("user-agent"),
+      reason: "api_write"
+    });
     return ok(data, 201);
   } catch (error) {
     return handleRouteError(error);
