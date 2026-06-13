@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AlertTriangle, ArchiveRestore, FileClock, KeyRound, LockKeyhole, Radar, Scale, ShieldCheck } from "lucide-react";
+import { AlertTriangle, ArchiveRestore, DatabaseZap, FileClock, Fingerprint, KeyRound, LockKeyhole, Radar, Scale, ShieldCheck, Smartphone, UserCheck } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { StatCard } from "@/components/stat-card";
 import { AdminDataError } from "@/components/admin-data-state";
@@ -14,11 +14,21 @@ function severityClass(severity: string) {
   return "pill";
 }
 
+function percent(part: number, total: number) {
+  return total ? Math.round((part / total) * 100) : 0;
+}
+
+function scoreTone(score: number): "good" | "warn" | "bad" {
+  if (score >= 80) return "good";
+  if (score >= 60) return "warn";
+  return "bad";
+}
+
 export default async function AdminSecurityPage() {
   await requireRole(["admin"]);
   const result = await safeAdminData("admin security center", async () => {
     const supabase = await createClient();
-    const [checksRes, findingsRes, secretsRes, backupsRes, recoveryRes, monitoringRes, rateLimitRes, auditCatalogRes, auditLogsRes] = await Promise.all([
+    const [checksRes, findingsRes, secretsRes, backupsRes, recoveryRes, monitoringRes, rateLimitRes, auditCatalogRes, auditLogsRes, profilesRes, mfaRes, classificationsRes, encryptedFieldsRes, securityEventsRes, devicesRes, sessionsRes, privacyRequestsRes, riskRegisterRes, policiesRes, trainingRes] = await Promise.all([
       supabase.from("security_readiness_checks" as any).select("*").order("severity").order("category"),
       supabase.from("security_findings" as any).select("*").order("detected_at", { ascending: false }).limit(200),
       supabase.from("security_secret_inventory" as any).select("id,secret_key,secret_type,location,required,server_only,rotation_status,readiness_status,last_rotated_at,next_rotation_due_at,notes,created_at,updated_at").order("required", { ascending: false }),
@@ -27,9 +37,20 @@ export default async function AdminSecurityPage() {
       supabase.from("security_monitoring_events" as any).select("*").order("created_at", { ascending: false }).limit(100),
       supabase.from("rate_limit_events" as any).select("id,route,hits,blocked,window_start").order("window_start", { ascending: false }).limit(100),
       supabase.from("audit_event_catalog" as any).select("*").order("category"),
-      supabase.from("audit_logs" as any).select("id,action,actor_role,entity_type,created_at").order("created_at", { ascending: false }).limit(100)
+      supabase.from("audit_logs" as any).select("id,action,actor_role,entity_type,created_at").order("created_at", { ascending: false }).limit(100),
+      supabase.from("profiles" as any).select("id,role").in("role", ["admin", "owner", "manager", "parent", "staff", "inspector", "network_manager"]).limit(5000),
+      supabase.from("mfa_enrollment_status" as any).select("*").order("role").limit(5000),
+      supabase.from("security_data_classifications" as any).select("*").order("data_classification").limit(300),
+      supabase.from("encrypted_field_registry" as any).select("*").order("data_classification").limit(200),
+      supabase.from("security_events" as any).select("*").order("created_at", { ascending: false }).limit(120),
+      supabase.from("trusted_devices" as any).select("*").order("last_seen_at", { ascending: false }).limit(200),
+      supabase.from("security_sessions" as any).select("*").order("last_seen_at", { ascending: false }).limit(200),
+      supabase.from("privacy_rights_requests" as any).select("*").order("created_at", { ascending: false }).limit(120),
+      supabase.from("security_risk_register" as any).select("*").order("severity").order("created_at", { ascending: false }).limit(120),
+      supabase.from("security_policies_repository" as any).select("*").order("policy_type").limit(120),
+      supabase.from("security_training_readiness" as any).select("*").order("role").limit(120)
     ]);
-    [checksRes, findingsRes, secretsRes, backupsRes, recoveryRes, monitoringRes, rateLimitRes, auditCatalogRes, auditLogsRes].forEach((query, index) => logSupabaseError(`security center query ${index}`, (query as any).error));
+    [checksRes, findingsRes, secretsRes, backupsRes, recoveryRes, monitoringRes, rateLimitRes, auditCatalogRes, auditLogsRes, profilesRes, mfaRes, classificationsRes, encryptedFieldsRes, securityEventsRes, devicesRes, sessionsRes, privacyRequestsRes, riskRegisterRes, policiesRes, trainingRes].forEach((query, index) => logSupabaseError(`security center query ${index}`, (query as any).error));
     return {
       checks: checksRes.data ?? [],
       findings: findingsRes.data ?? [],
@@ -40,6 +61,17 @@ export default async function AdminSecurityPage() {
       rateLimit: rateLimitRes.data ?? [],
       auditCatalog: auditCatalogRes.data ?? [],
       auditLogs: auditLogsRes.data ?? [],
+      profiles: profilesRes.data ?? [],
+      mfa: mfaRes.data ?? [],
+      classifications: classificationsRes.data ?? [],
+      encryptedFields: encryptedFieldsRes.data ?? [],
+      securityEvents: securityEventsRes.data ?? [],
+      devices: devicesRes.data ?? [],
+      sessions: sessionsRes.data ?? [],
+      privacyRequests: privacyRequestsRes.data ?? [],
+      riskRegister: riskRegisterRes.data ?? [],
+      policies: policiesRes.data ?? [],
+      training: trainingRes.data ?? [],
       summary: buildSecurityReadinessSummary({
         checks: checksRes.data ?? [],
         findings: findingsRes.data ?? [],
@@ -50,12 +82,24 @@ export default async function AdminSecurityPage() {
         rateLimitEvents: rateLimitRes.data ?? [],
         auditCatalog: auditCatalogRes.data ?? []
       }),
-      queryError: [checksRes.error, findingsRes.error, secretsRes.error, backupsRes.error, recoveryRes.error, monitoringRes.error, rateLimitRes.error, auditCatalogRes.error, auditLogsRes.error].some(Boolean) ? "חלק מנתוני האבטחה לא נטענו" : null
+      queryError: [checksRes.error, findingsRes.error, secretsRes.error, backupsRes.error, recoveryRes.error, monitoringRes.error, rateLimitRes.error, auditCatalogRes.error, auditLogsRes.error, profilesRes.error, mfaRes.error, classificationsRes.error, encryptedFieldsRes.error, securityEventsRes.error, devicesRes.error, sessionsRes.error, privacyRequestsRes.error, riskRegisterRes.error, policiesRes.error, trainingRes.error].some(Boolean) ? "חלק מנתוני האבטחה לא נטענו. ייתכן שמיגרציית PHASE 146 עדיין לא הורצה." : null
     };
-  }, { checks: [] as any[], findings: [] as any[], secrets: [] as any[], backups: [] as any[], recovery: [] as any[], monitoring: [] as any[], rateLimit: [] as any[], auditCatalog: [] as any[], auditLogs: [] as any[], summary: buildSecurityReadinessSummary(), queryError: null as string | null });
+  }, { checks: [] as any[], findings: [] as any[], secrets: [] as any[], backups: [] as any[], recovery: [] as any[], monitoring: [] as any[], rateLimit: [] as any[], auditCatalog: [] as any[], auditLogs: [] as any[], profiles: [] as any[], mfa: [] as any[], classifications: [] as any[], encryptedFields: [] as any[], securityEvents: [] as any[], devices: [] as any[], sessions: [] as any[], privacyRequests: [] as any[], riskRegister: [] as any[], policies: [] as any[], training: [] as any[], summary: buildSecurityReadinessSummary(), queryError: null as string | null });
 
   const { summary } = result.data;
   const unresolvedFindings = result.data.findings.filter((finding: any) => !["resolved", "false_positive", "accepted_risk"].includes(String(finding.status)));
+  const openRisks = result.data.riskRegister.filter((risk: any) => !["verified", "accepted_risk"].includes(String(risk.status)));
+  const profileCount = result.data.profiles.length;
+  const enrolledMfa = result.data.mfa.filter((item: any) => item.enrollment_status === "enrolled").length;
+  const mfaReadiness = percent(enrolledMfa, Math.max(profileCount, result.data.mfa.length));
+  const encryptionCoverage = result.data.encryptedFields.length ? Math.round(result.data.encryptedFields.reduce((sum: number, item: any) => sum + Number(item.coverage_percent ?? 0), 0) / result.data.encryptedFields.length) : 0;
+  const requiredAudit = result.data.auditCatalog.filter((item: any) => item.required).length;
+  const implementedAudit = result.data.auditCatalog.filter((item: any) => item.required && item.implemented).length;
+  const auditReadiness = percent(implementedAudit, requiredAudit);
+  const privacyOpen = result.data.privacyRequests.filter((item: any) => !["completed", "rejected", "cancelled"].includes(String(item.status))).length;
+  const privacyReadiness = result.data.policies.some((policy: any) => policy.policy_type === "privacy") ? Math.max(55, 100 - privacyOpen * 8) : 0;
+  const backupReadiness = summary.backupReadinessPercent;
+  const highSecurityScore = Math.round((mfaReadiness + encryptionCoverage + auditReadiness + privacyReadiness + backupReadiness) / 5);
   const criticalItems = [...result.data.checks.filter((check: any) => check.severity === "critical"), ...unresolvedFindings.filter((finding: any) => finding.severity === "critical")].slice(0, 8);
   const retentionItems = [
     { label: "מסמכים", value: "מוגדר לפי מדיניות גן" },
@@ -69,25 +113,58 @@ export default async function AdminSecurityPage() {
       <div className="dashboard-hero-card admin-hero-card">
         <div>
           <p className="eyebrow">Enterprise Readiness</p>
-          <h1>מרכז אבטחה ומוכנות ייצור.</h1>
-          <p>מעקב פנימי אחרי הרשאות, פרטיות מצלמות, Observer, סודות, Audit, גיבויים, התאוששות ותאימות לפני פיילוט.</p>
+          <h1>מרכז אבטחה, פרטיות ותאימות גבוהה.</h1>
+          <p>מוכנות High Security למידע ילדים, הורים, בריאות, נוכחות, פיקוח, מצלמות ו-AI. הבקרות מדידות, נאכפות ומתועדות.</p>
         </div>
         <div className="profile-actions">
-          <span className={summary.overallStatus === "ready" ? "pill good" : summary.overallStatus === "blocked" ? "pill bad" : "pill warn"}>{summary.overallStatus}</span>
+          <span className={`pill ${scoreTone(highSecurityScore)}`}>{highSecurityScore}/100</span>
           <Link className="button secondary" href="/dashboard/admin/audit-logs">יומן פעולות</Link>
         </div>
       </div>
       <AdminDataError message={result.error ?? result.data.queryError} />
 
       <section className="grid cols-4 dashboard-kpis">
-        <StatCard label="Critical" value={summary.criticalFindings} tone={summary.criticalFindings ? "bad" : "good"} />
-        <StatCard label="High" value={summary.highFindings} tone={summary.highFindings ? "bad" : "good"} />
-        <StatCard label="Medium" value={summary.mediumFindings} tone={summary.mediumFindings ? "warn" : "good"} />
-        <StatCard label="Resolved" value={summary.resolvedFindings} tone="good" />
-        <StatCard label="מוכנות תאימות" value={`${summary.complianceReadinessPercent}%`} tone={summary.complianceReadinessPercent < 80 ? "warn" : "good"} />
-        <StatCard label="סודות במעקב" value={summary.secretsTracked} tone={summary.secretsPending ? "warn" : "good"} />
-        <StatCard label="מוכנות גיבוי" value={`${summary.backupReadinessPercent}%`} tone={summary.backupPending ? "warn" : "good"} />
-        <StatCard label="Audit coverage" value={`${summary.auditCoveragePercent}%`} tone={summary.auditCoveragePercent < 80 ? "warn" : "good"} />
+        <StatCard label="MFA readiness" value={`${mfaReadiness}%`} tone={scoreTone(mfaReadiness)} />
+        <StatCard label="Encryption" value={`${encryptionCoverage}%`} tone={scoreTone(encryptionCoverage)} />
+        <StatCard label="Audit readiness" value={`${auditReadiness}%`} tone={scoreTone(auditReadiness)} />
+        <StatCard label="Privacy" value={`${privacyReadiness}%`} tone={scoreTone(privacyReadiness)} />
+        <StatCard label="Backup" value={`${backupReadiness}%`} tone={summary.backupPending ? "warn" : "good"} />
+        <StatCard label="Open risks" value={openRisks.length} tone={openRisks.some((risk: any) => risk.severity === "critical") ? "bad" : openRisks.length ? "warn" : "good"} />
+        <StatCard label="Security events" value={result.data.securityEvents.length} tone={result.data.securityEvents.some((event: any) => event.severity === "critical") ? "bad" : "good"} />
+        <StatCard label="Classified data" value={result.data.classifications.length} tone="good" />
+      </section>
+
+      <section className="grid cols-3 dashboard-panels">
+        <article className="card action-panel">
+          <div className="section-heading"><h2><Fingerprint size={20} /> Mandatory MFA</h2><p>כל התפקידים חייבים לעבור MFA לפני ייצור.</p></div>
+          <div className="risk-list">
+            <div>משתמשים במעקב <b>{profileCount}</b></div>
+            <div>רשומות MFA <b>{result.data.mfa.length}</b></div>
+            <div>הושלם <b>{enrolledMfa}</b></div>
+            <div>גורמים נתמכים <b>Authenticator, SMS, Backup Codes</b></div>
+          </div>
+        </article>
+        <article className="card action-panel">
+          <div className="section-heading"><h2><DatabaseZap size={20} /> Medical encryption</h2><p>מידע רפואי חייב לעבור הצפנה ברמת האפליקציה.</p></div>
+          <div className="procedure-list compact-list">
+            {result.data.encryptedFields.slice(0, 7).map((field: any) => (
+              <div className="mini-row" key={field.id}>
+                <span>{field.table_name}.{field.encrypted_field}</span>
+                <strong className={securityStatusTone(field.encryption_status)}>{field.encryption_status}</strong>
+                <small>{field.coverage_percent}% · {field.key_reference}</small>
+              </div>
+            ))}
+          </div>
+        </article>
+        <article className="card action-panel">
+          <div className="section-heading"><h2><UserCheck size={20} /> Privacy rights</h2><p>בקשות גישה, תיקון, מחיקה וייצוא.</p></div>
+          <div className="risk-list">
+            <div>פתוחות <b>{privacyOpen}</b></div>
+            <div>מדיניות פרטיות <b>{result.data.policies.find((policy: any) => policy.policy_type === "privacy")?.status ?? "חסר"}</b></div>
+            <div>בקשות אחרונות <b>{result.data.privacyRequests.length}</b></div>
+            <div>סוגי בקשות <b>access / correction / deletion / export</b></div>
+          </div>
+        </article>
       </section>
 
       <section className="grid cols-2 dashboard-panels">
@@ -114,6 +191,54 @@ export default async function AdminSecurityPage() {
               </div>
             ))}
           </div>}
+        </article>
+      </section>
+
+      <section className="grid cols-2 dashboard-panels">
+        <article className="card action-panel">
+          <div className="section-heading"><h2><Smartphone size={20} /> Device & session trust</h2><p>מכשירים, סשנים, יציאה כפויה וזיהוי חריגות.</p></div>
+          <div className="risk-list">
+            <div>מכשירים מוכרים <b>{result.data.devices.length}</b></div>
+            <div>מכשירים חשודים <b>{result.data.devices.filter((device: any) => device.trust_status === "suspicious").length}</b></div>
+            <div>סשנים במעקב <b>{result.data.sessions.length}</b></div>
+            <div>סשנים בסיכון גבוה <b>{result.data.sessions.filter((session: any) => ["high", "critical"].includes(String(session.risk_level))).length}</b></div>
+          </div>
+        </article>
+        <article className="card action-panel">
+          <div className="section-heading"><h2><AlertTriangle size={20} /> Security risk register</h2><p>סיכונים, בעלות, מיטיגציה ותאריך יעד.</p></div>
+          {openRisks.length === 0 ? <div className="empty-state"><strong>אין סיכוני אבטחה פתוחים</strong><span>סיכונים חדשים יופיעו כאן.</span></div> : <div className="procedure-list compact-list">
+            {openRisks.slice(0, 8).map((risk: any) => (
+              <div className="mini-row" key={risk.id}>
+                <span>{risk.title}</span>
+                <strong className={severityClass(risk.severity)}>{risk.severity}</strong>
+                <small>{risk.mitigation_plan}</small>
+              </div>
+            ))}
+          </div>}
+        </article>
+      </section>
+
+      <section className="grid cols-2 dashboard-panels">
+        <article className="card action-panel">
+          <div className="section-heading"><h2><Scale size={20} /> Data classification</h2><p>Public, Internal, Confidential, Sensitive, Medical, Regulated.</p></div>
+          <div className="procedure-list compact-list">
+            {result.data.classifications.slice(0, 10).map((item: any) => (
+              <div className="mini-row" key={item.id}>
+                <span>{item.table_name}{item.field_name ? `.${item.field_name}` : ""}</span>
+                <strong className={item.data_classification === "medical" || item.data_classification === "regulated" ? "pill bad" : "pill warn"}>{item.data_classification}</strong>
+                <small>{item.access_rule_summary}</small>
+              </div>
+            ))}
+          </div>
+        </article>
+        <article className="card action-panel">
+          <div className="section-heading"><h2><FileClock size={20} /> Policies & training</h2><p>מאגר מדיניות והכשרות אבטחה.</p></div>
+          <div className="risk-list">
+            <div>מדיניות <b>{result.data.policies.length}</b></div>
+            <div>מאושרות <b>{result.data.policies.filter((policy: any) => policy.status === "approved").length}</b></div>
+            <div>הכשרות <b>{result.data.training.length}</b></div>
+            <div>השלמה ממוצעת <b>{result.data.training.length ? Math.round(result.data.training.reduce((sum: number, item: any) => sum + Number(item.completion_rate ?? 0), 0) / result.data.training.length) : 0}%</b></div>
+          </div>
         </article>
       </section>
 
