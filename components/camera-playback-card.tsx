@@ -18,6 +18,7 @@ const statusText: Record<string, string> = {
 
 export function CameraPlaybackCard({ camera, parentId, canRequestPlayback = true, parentView = false, accessReason }: { camera: CameraRow; parentId?: string; canRequestPlayback?: boolean; parentView?: boolean; accessReason?: string }) {
   const [playbackUrl, setPlaybackUrl] = useState<string | null>(null);
+  const [watermark, setWatermark] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const hlsUrl = camera.hls_playback_url ?? camera.sample_hls_url;
@@ -41,6 +42,7 @@ export function CameraPlaybackCard({ camera, parentId, canRequestPlayback = true
       const body = await response.json();
       if (!response.ok) throw new Error(body.error || "לא ניתן לפתוח צפייה כרגע");
       setPlaybackUrl(body.data.playback_url);
+      setWatermark(body.data.watermark?.text ?? null);
       setMessage("נפתחה צפייה זמנית ומתועדת.");
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "לא ניתן לפתוח צפייה כרגע");
@@ -52,14 +54,14 @@ export function CameraPlaybackCard({ camera, parentId, canRequestPlayback = true
   return (
     <article className="card camera-playback-card">
       <div className="camera-player-frame">
-        {playbackUrl ? <video src={playbackUrl} controls playsInline preload="metadata" /> : <div className="camera-pending-frame"><Camera /><strong>{blockedReason ?? (playbackSourceAvailable ? "מוכן לצפייה מאובטחת" : "המצלמה לא זמינה כרגע")}</strong><span>{playbackSourceAvailable && !blockedReason ? "לחצו לפתיחת צפייה מאובטחת." : "הצפייה תיפתח כשכללי הגן והחיבור יאפשרו זאת."}</span></div>}
+        {playbackUrl ? <><video src={playbackUrl} controls playsInline preload="metadata" />{watermark ? <span className="camera-watermark">{watermark}</span> : null}</> : <div className="camera-pending-frame"><Camera /><strong>{blockedReason ?? (playbackSourceAvailable ? "מוכן לצפייה מאובטחת" : "המצלמה לא זמינה כרגע")}</strong><span>{playbackSourceAvailable && !blockedReason ? "לחצו לפתיחת צפייה מאובטחת." : "הצפייה תיפתח כשכללי הגן והחיבור יאפשרו זאת."}</span></div>}
       </div>
       <div className="camera-card-body">
         <span className={connected ? "pill good" : "pill warn"}>{statusText[camera.status] ?? camera.status ?? "ממתין לחיבור שידור"}</span>
         <h3>{camera.name ?? "מצלמה"}</h3>
         <p>{parentView ? `${camera.area ?? "אזור לא הוגדר"}` : `${camera.gardens?.name ?? camera.garden_name ?? ""} · ${camera.area ?? "אזור לא הוגדר"} · ${sourceType}`}</p>
         {blockedReason ? <small className="gateway-setup-state">{blockedReason}</small> : !playbackSourceAvailable ? <small className="gateway-setup-state">המצלמה ממתינה לחיבור שידור</small> : null}
-        <small><ShieldCheck size={13} /> הצפייה מאובטחת וזמנית. פרטי החיבור של המצלמה אינם נשלחים לדפדפן.</small>
+        <small><ShieldCheck size={13} /> הצפייה מאובטחת, זמנית ומסומנת ב-Watermark. פרטי החיבור של המצלמה אינם נשלחים לדפדפן.</small>
         {!parentView && camera.expected_parent_count !== undefined ? <div className="camera-admin-verification"><span>מזהה מצלמה: {camera.id}</span><span>שם מצלמה: {camera.name ?? "-"}</span><span>זמינה: {camera.active === false ? "לא" : "כן"}</span><span>מצב: {statusText[camera.status] ?? camera.status ?? "-"}</span><span>צפיית הורים: {camera.parent_view_allowed || camera.parent_viewing_allowed ? "מאושרת" : "לא מאושרת"}</span><span>גן: {camera.garden_id ?? camera.kindergarten_id ?? "-"}</span><span>מקור בדיקה: {camera.sample_hls_url ? "קיים" : "חסר"}</span><span>חיבור שידור: {(camera.gateway_stream_id || camera.video_gateway_stream_id) ? "קיים" : "חסר"}</span><span>הורים צפויים: {camera.expected_parent_count}</span><span>{camera.visibility_status ?? "בדיקת חשיפה"}</span><ParentCameraAccessDebug cameraId={camera.id} /></div> : null}
         <div className="profile-actions">
           <button className="button primary tiny" disabled={busy || !canOpenPlayback} type="button" onClick={() => start("HLS")}><Play size={14} /> {parentView ? "פתיחת צפייה" : "צפייה HLS"}</button>
