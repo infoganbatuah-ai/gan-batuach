@@ -6,7 +6,7 @@ import { createClient } from "@/lib/supabase/server";
 const contactSchema = z.object({
   child_id: z.string().uuid(),
   full_name: z.string().min(2),
-  relation: z.enum(["parent", "second_parent", "grandparent", "sibling", "nanny", "emergency_contact", "temporary", "other"]),
+  relation: z.enum(["mother", "father", "parent", "second_parent", "grandparent", "sibling", "babysitter", "nanny", "guardian", "approved_pickup_contact", "emergency_contact", "temporary", "other"]),
   phone: z.string().optional().nullable(),
   identity_number: z.string().optional().nullable(),
   face_reference_image: z.string().url().optional().nullable(),
@@ -73,11 +73,69 @@ export async function POST(request: Request) {
       valid_from: payload.valid_from || null,
       valid_until: payload.valid_until || null,
       notes: payload.notes || null,
-      metadata: { source: "parent_pickup_center", human_review_required: true, face_verification_enabled: false }
+      identity_verification_status: "pending",
+      authorization_status: "approved",
+      legal_identity_method: "parent_declared",
+      biometric_identification_used: false,
+      camera_based_authorization_used: false,
+      metadata: { source: "parent_pickup_center", human_review_required: true, face_verification_enabled: false, no_child_face_recognition: true }
     })
     .select("*")
     .single();
   if (insert.error) return NextResponse.json({ ok: false, error: "שמירת מורשה האיסוף נכשלה" }, { status: 500 });
+
+  const adult = await supabase.from("authorized_adults" as any).insert({
+    garden_id: child.data.garden_id,
+    child_id: payload.child_id,
+    parent_profile_id: profile.id,
+    source_pickup_contact_id: insert.data.id,
+    full_name: payload.full_name,
+    identity_number: payload.identity_number || null,
+    phone: payload.phone || null,
+    relationship: payload.temporary ? "temporary" : payload.relation === "nanny" ? "babysitter" : ["mother", "father", "parent", "grandparent", "babysitter", "guardian", "approved_pickup_contact", "emergency_contact", "temporary", "other"].includes(payload.relation) ? payload.relation : "other",
+    identity_verification_status: "pending",
+    authorization_status: "approved",
+    authorization_scope: "pickup",
+    created_by: profile.id,
+    expires_at: payload.valid_until || null,
+    biometric_identification_allowed: false,
+    camera_based_identification_allowed: false,
+    notes: payload.notes || null,
+    metadata: { source: "parent_pickup_center", no_face_recognition: true }
+  }).select("id").maybeSingle();
+
+  const adultId = adult.data?.id ?? null;
+  if (adultId) {
+    await supabase.from("authorized_pickup_contacts" as any).update({ authorized_adult_id: adultId }).eq("id", insert.data.id);
+    await supabase.from("pickup_authorizations" as any).insert({
+      child_id: payload.child_id,
+      garden_id: child.data.garden_id,
+      authorized_adult_id: adultId,
+      pickup_contact_id: insert.data.id,
+      authorization_type: payload.temporary ? "temporary" : "permanent",
+      status: "approved",
+      created_by: profile.id,
+      valid_from: payload.valid_from || null,
+      valid_until: payload.valid_until || null,
+      approval_method: "parent_request",
+      notes: payload.notes || null,
+      metadata: { source: "parent_pickup_center" }
+    });
+  }
+
+  await supabase.from("attendance_compliance_audit_trail" as any).insert({
+    child_id: payload.child_id,
+    garden_id: child.data.garden_id,
+    authorized_adult_id: adultId,
+    actor_profile_id: profile.id,
+    action: authorizationType === "temporary" ? "temporary_authorization_created" : "pickup_authorization_created",
+    status: "success",
+    metadata: {
+      pickup_contact_id: insert.data.id,
+      authorization_type: authorizationType,
+      no_biometric_identification: true
+    }
+  });
 
   await notifyGardenManagers(supabase, child.data.garden_id, {
     title: authorizationType === "temporary" ? "נוצרה הרשאת איסוף זמנית" : "עודכן מורשה איסוף",

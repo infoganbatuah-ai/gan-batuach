@@ -176,6 +176,19 @@ export const attendanceSchema = z.object({
   child_id: z.string().uuid().optional(),
   staff_id: z.string().uuid().optional(),
   status: z.enum(["present", "absent", "sick", "late", "left_early", "not_updated"]),
+  attendance_date: z.string().optional(),
+  check_in_at: z.string().optional(),
+  check_out_at: z.string().optional(),
+  pickup_name: z.string().optional(),
+  pickup_authorized: z.boolean().optional(),
+  gps_lat: z.number().optional(),
+  gps_lng: z.number().optional(),
+  gps_validation_status: z.enum(["passed", "failed", "not_available", "manual_override", "requires_review"]).optional(),
+  gps_distance_meters: z.number().optional(),
+  legal_attendance_method: z.enum(["adult_initiated", "staff_recorded", "manager_override", "emergency_override"]).optional(),
+  parent_identity_verified: z.boolean().optional(),
+  biometric_identification_used: z.boolean().optional(),
+  camera_based_attendance_used: z.boolean().optional(),
   note: z.string().optional()
 });
 

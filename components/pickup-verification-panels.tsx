@@ -7,11 +7,16 @@ import { UploadImageField } from "@/components/upload-image-field";
 type Row = Record<string, any>;
 
 const relationLabels: Record<string, string> = {
+  mother: "אמא",
+  father: "אבא",
   parent: "הורה",
   second_parent: "הורה נוסף",
   grandparent: "סבא/סבתא",
   sibling: "אח/ות",
+  babysitter: "בייביסיטר",
   nanny: "מטפל/ת",
+  guardian: "אפוטרופוס",
+  approved_pickup_contact: "מורשה איסוף",
   emergency_contact: "איש קשר חירום",
   temporary: "הרשאה זמנית",
   other: "אחר"

@@ -30,6 +30,7 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/admin/procedures", label: "נהלים", hint: "חובה ותאימות" },
     { href: "/dashboard/admin/policies", label: "תקנונים", hint: "אישורי משתמשים" },
     { href: "/dashboard/admin/regulatory", label: "רגולציה", hint: "ישראל ופרטיות" },
+    { href: "/dashboard/admin/attendance-compliance", label: "ציות נוכחות", hint: "GPS ואיסוף" },
     { href: "/dashboard/admin/cameras", label: "מצלמות", hint: "חיבורים והרשאות" },
     { href: "/dashboard/admin/camera-compliance", label: "ציות מצלמות", hint: "צפייה חוקית" },
     { href: "/dashboard/admin/camera-deployment", label: "פריסת מצלמות", hint: "חיבור שידור וניסיון ביתי" },
