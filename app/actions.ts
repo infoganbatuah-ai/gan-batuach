@@ -413,6 +413,12 @@ export async function createParentDemandLead(formData: FormData) {
   const managerName = value(formData, "manager_name");
   const managerPhone = value(formData, "manager_phone");
   const childAgeGroups = values(formData, "child_age_groups");
+  const normalizedGardenName = gardenName.trim();
+  const { count: existingDemandCount } = normalizedGardenName
+    ? await supabase.from("leads" as any).select("id", { count: "exact", head: true }).eq("source", "parent_request").ilike("garden_name", normalizedGardenName)
+    : { count: 0 };
+  const parentRequestCount = (existingDemandCount ?? 0) + 1;
+  const demandTier = parentRequestCount >= 10 ? "high" : parentRequestCount >= 5 ? "medium" : "normal";
   const qualification = {
     parent_origin: true,
     parent_name: parentName,
@@ -423,7 +429,9 @@ export async function createParentDemandLead(formData: FormData) {
     child_age_unknown: childAgeGroups.includes("unknown"),
     manager_name: managerName || null,
     manager_phone: managerPhone || null,
-    contact_next_step: "contact_parent_then_kindergarten"
+    contact_next_step: "contact_parent_then_kindergarten",
+    parent_request_count: parentRequestCount,
+    demand_tier: demandTier
   };
   const notes = [
     "פניית הורה: מבקש/ת שהגן יצטרף לגן בטוח.",
@@ -449,7 +457,7 @@ export async function createParentDemandLead(formData: FormData) {
     funnel_stage: "parent_request",
     conversion_goal: "parent_request_to_kindergarten_registration",
     qualification,
-    lead_score: Math.min(100, 35 + (gardenName ? 20 : 0) + (managerPhone ? 20 : 0) + (parentEmail ? 10 : 0))
+    lead_score: Math.min(100, 35 + (gardenName ? 20 : 0) + (managerPhone ? 20 : 0) + (parentEmail ? 10 : 0) + (parentRequestCount >= 10 ? 30 : parentRequestCount >= 5 ? 18 : 0))
   };
 
   const { error, data: lead } = await supabase

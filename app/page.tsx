@@ -25,6 +25,27 @@ const funnelSteps = [
   "הגן מקבל סטנדרט שקיפות"
 ];
 
+const websiteEntryPoints = [
+  {
+    href: "/book-demo",
+    title: "קבע הדגמה",
+    text: "למנהלות שרוצות לראות את המערכת לפני רישום.",
+    icon: CalendarCheck
+  },
+  {
+    href: "/join-kindergarten",
+    title: "רישום גן ילדים",
+    text: "פתיחת בקשת הצטרפות והתחלת תהליך הפעלה מסודר.",
+    icon: Building2
+  },
+  {
+    href: "/parents",
+    title: "הורים? לחצו כאן",
+    text: "בקשת הורים שהגן יצטרף לסטנדרט גן בטוח.",
+    icon: HeartHandshake
+  }
+];
+
 async function getHomeGardens() {
   try {
     const supabase = createAdminClient();
@@ -60,9 +81,11 @@ export default async function HomePage() {
           title="גן בטוח – תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים"
           subtitle="הפלטפורמה שמחברת גנים, הורים, צוות, פקחים ומצלמות למערכת אחת שמייצרת אמון, תיעוד ותפעול מקצועי."
           primaryHref="/book-demo"
-          primaryLabel="קביעת הדגמה לגן"
-          secondaryHref="/parents-demand"
-          secondaryLabel="אני הורה"
+          primaryLabel="קבע הדגמה"
+          secondaryHref="/join-kindergarten"
+          secondaryLabel="רישום גן ילדים"
+          tertiaryHref="/parents"
+          tertiaryLabel="הורים? לחצו כאן"
         >
           <div className="authority-panel">
             <div><ShieldCheck /><strong>סטנדרט בטיחות</strong><span>פיקוח, תיקונים ושקיפות</span></div>
@@ -71,6 +94,16 @@ export default async function HomePage() {
             <div><UsersRound /><strong>אמון הורים</strong><span>עדכונים ברורים מדי יום</span></div>
           </div>
         </MarketingHero>
+
+        <section className="website-entry-strip" aria-label="מסלולי כניסה">
+          {websiteEntryPoints.map((entry) => (
+            <Link className="website-entry-card" href={entry.href} key={entry.title}>
+              <entry.icon size={22} />
+              <strong>{entry.title}</strong>
+              <span>{entry.text}</span>
+            </Link>
+          ))}
+        </section>
 
         <section className="marketing-metrics-strip">
           <MarketingMetric label="מה ההורים מקבלים" value="שקיפות" text="סטטוס, עדכונים, מסמכים ותקשורת" />
@@ -103,7 +136,7 @@ export default async function HomePage() {
             <p>הורים לא צריכים לנחש. בקשו מהגן שקיפות, סטטוס בטיחות, עדכונים יומיים ומעקב פיקוח ברור.</p>
           </div>
           <div className="actions">
-            <Link className="button primary large" href="/parents-demand">דרשו שקיפות מהגן</Link>
+            <Link className="button primary large" href="/parents">הגן שלי עדיין לא בגן בטוח</Link>
             <Link className="button secondary large" href="/parent-portal">ראו מה הורים מקבלים</Link>
           </div>
         </section>

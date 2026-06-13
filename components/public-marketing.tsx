@@ -12,6 +12,8 @@ export function MarketingHero({
   primaryLabel = "קביעת הדגמה",
   secondaryHref = "/parents-demand",
   secondaryLabel = "להורים",
+  tertiaryHref,
+  tertiaryLabel,
   children
 }: {
   eyebrow: string;
@@ -21,6 +23,8 @@ export function MarketingHero({
   primaryLabel?: string;
   secondaryHref?: string;
   secondaryLabel?: string;
+  tertiaryHref?: string;
+  tertiaryLabel?: string;
   children?: ReactNode;
 }) {
   return (
@@ -32,6 +36,7 @@ export function MarketingHero({
         <div className="actions hero-actions">
           <Link className="button primary large" href={primaryHref}>{primaryLabel}</Link>
           <Link className="button secondary large" href={secondaryHref}>{secondaryLabel}</Link>
+          {tertiaryHref && tertiaryLabel ? <Link className="button secondary large" href={tertiaryHref}>{tertiaryLabel}</Link> : null}
         </div>
       </div>
       <div className="marketing-hero-panel">

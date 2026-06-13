@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Building2, CheckCircle2, ClipboardList, FileCheck2, MapPin, ShieldCheck, UsersRound } from "lucide-react";
+import { Bot, Building2, Camera, CheckCircle2, ClipboardList, CreditCard, FileCheck2, MapPin, ShieldCheck, Sparkles, UsersRound } from "lucide-react";
 import { BrandHeader } from "@/components/brand-header";
 import { ContactAvailabilityGuard } from "@/components/contact-availability-guard";
 import { createGardenLead } from "@/app/actions";
@@ -12,6 +12,24 @@ const benefits = [
   { icon: FileCheck2, title: "אמנה ומסמכים", text: "אישור תנאים, העלאת מסמכים ובדיקת אדמין." }
 ];
 
+const managerValueBlocks = [
+  { icon: ClipboardList, title: "פיקוח וביקורות", text: "ביקורות, ממצאים, תיקונים ודוחות במקום אחד." },
+  { icon: ShieldCheck, title: "שקיפות ואמון", text: "הורים רואים מידע מאושר וברור בלי להציף את הצוות." },
+  { icon: Bot, title: "תצפיתן AI", text: "המלצות לבדיקה אנושית בלבד, בלי החלטות אוטומטיות." },
+  { icon: Camera, title: "מצלמות בהרשאה", text: "גישה לפי שעות, תפקידים ואישור מפורש של הגן." },
+  { icon: FileCheck2, title: "מסמכים וציות", text: "תוקף מסמכים, הכשרות, אישורים ופעולות תיקון." },
+  { icon: CreditCard, title: "תשלומים", text: "מנוי גן, תשלומי הורים, חשבוניות ודוחות הכנסה." },
+  { icon: UsersRound, title: "ניהול צוות", text: "קליטת עובדים, מסמכים, משימות ונוכחות." },
+  { icon: Sparkles, title: "אוטומציה", text: "פחות מעקב ידני, יותר פעולות ברורות ליום העבודה." }
+];
+
+const faq = [
+  ["האם הרישום מפעיל את הגן מיד?", "לא. הגן הופך פעיל רק אחרי אישור אדמין, השלמת אשף הפעלה, מסמכים ותשלום."],
+  ["האם צריך מצלמות כדי להתחיל?", "לא. אפשר להתחיל בהפעלה תפעולית ולחבר מצלמות בהמשך לפי מדיניות הגן."],
+  ["האם AI שולח התרעות להורים לבד?", "לא. אירועים רגישים דורשים בדיקה ואישור אנושי לפני חשיפה כלשהי."],
+  ["מה קורה אחרי שליחת הרישום?", "הליד נכנס למרכז הלידים, האדמין מאשר, ואז המנהלת מקבלת פרטי כניסה חד-פעמיים להמשך Phase 139."]
+];
+
 export default async function JoinKindergartenPage({ searchParams }: { searchParams: Promise<{ lead?: string; error?: string }> }) {
   const params = await searchParams;
   const cities = Object.keys(israeliCityStreetMap);
@@ -21,20 +39,69 @@ export default async function JoinKindergartenPage({ searchParams }: { searchPar
     <>
       <BrandHeader />
       <main>
-        <section className="page-hero slim-hero registration-hero">
-          <p className="eyebrow">רישום גן</p>
-          <h1>רישום גן למערכת גן בטוח</h1>
-          <p>מתחילים בהרשמה קצרה. אחרי אישור אדמין המנהלת תקבל פרטי כניסה חד-פעמיים ותמשיך לאשף ההפעלה.</p>
-          <div className="hero-actions">
-            <Link className="button primary large" href="#kindergarten-registration">התחלת רישום</Link>
-            <Link className="button secondary large" href="/service-charter">אמנת השירות</Link>
+        <section className="page-hero acquisition-hero kindergarten-acquisition-hero">
+          <div className="acquisition-copy">
+            <p className="eyebrow">רישום גן ילדים</p>
+            <h1>הופכים את הגן לגן בטוח, שקוף ומוכן לפיקוח.</h1>
+            <p>מערכת אחת לניהול בטיחות, פיקוח, מסמכים, צוות, הורים, מצלמות, תשלומים ותפעול יומי. לא עוד עודף מסכים, אלא סטנדרט אמון שמבדל את הגן.</p>
+            <div className="hero-actions">
+              <Link className="button primary large" href="#kindergarten-registration">רישום גן למערכת גן בטוח</Link>
+              <Link className="button secondary large" href="/book-demo">קבע הדגמה</Link>
+              <Link className="button secondary large" href="/service-charter">אמנת השירות</Link>
+            </div>
+            {params.lead === "sent" ? <div className="success-banner"><CheckCircle2 /> הרישום שלך התקבל בהצלחה. צוות גן בטוח יצור איתך קשר בהקדם.</div> : null}
+            {params.error ? <div className="error-banner">{params.error}</div> : null}
           </div>
-          {params.lead === "sent" ? <div className="success-banner"><CheckCircle2 /> הרישום שלך התקבל בהצלחה. צוות גן בטוח יצור איתך קשר בהקדם.</div> : null}
-          {params.error ? <div className="error-banner">{params.error}</div> : null}
+          <div className="acquisition-visual">
+            <img src="https://images.unsplash.com/photo-1503454537195-1dcabb73ffb9?auto=format&fit=crop&w=1100&q=80" alt="גן ילדים בטוח ושקוף" />
+            <div className="floating-proof-card">
+              <strong>סטנדרט גן בטוח</strong>
+              <span>פיקוח · שקיפות · תיעוד · אמון הורים</span>
+            </div>
+          </div>
         </section>
 
         <section className="section feature-grid">
           {benefits.map((item) => <article className="card trust-card" key={item.title}><item.icon size={22} /><h3>{item.title}</h3><p>{item.text}</p></article>)}
+        </section>
+
+        <section className="marketing-section">
+          <div className="marketing-section-head">
+            <span className="marketing-badge">מה הגן מקבל</span>
+            <h2>תפעול, שקיפות ופיקוח שמרגישים כמו מערכת אחת.</h2>
+            <p>גן בטוח מחברת את כל מה שמנהלת צריכה כדי להפעיל גן אמיתי מול צוות, הורים, מסמכים, תשלומים ופיקוח.</p>
+          </div>
+          <div className="grid cols-4 feature-grid">
+            {managerValueBlocks.map((item) => <article className="marketing-card animated-feature-card" key={item.title}><item.icon size={24} /><h3>{item.title}</h3><p>{item.text}</p></article>)}
+          </div>
+        </section>
+
+        <section className="marketing-section">
+          <div className="marketing-section-head">
+            <span className="marketing-badge">לפני ואחרי</span>
+            <h2>מגן שמנוהל ידנית לגן שמוכן לצמיחה.</h2>
+          </div>
+          <div className="scale-comparison-table">
+            <div className="scale-comparison-head"><span>תחום</span><span>לפני</span><span>עם גן בטוח</span></div>
+            {[
+              ["מסמכים", "קבצים מפוזרים ותוקפים שנשכחים", "מרכז מסמכים עם תוקף, תזכורות ואישור"],
+              ["הורים", "הודעות מפוזרות וחוסר ודאות", "עדכונים, שקיפות ובקשות במקום אחד"],
+              ["פיקוח", "דוח חד פעמי בלי מעקב", "ממצאים, תיקון, אימות וסגירת מעגל"],
+              ["תפעול", "טבלאות, פתקים ושיחות", "מרכז פיקוד יומי למנהלת"]
+            ].map(([area, before, after]) => (
+              <div className="scale-comparison-row" key={area}><strong>{area}</strong><small>{before}</small><small>{after}</small></div>
+            ))}
+          </div>
+        </section>
+
+        <section className="marketing-section">
+          <div className="marketing-section-head">
+            <span className="marketing-badge">FAQ</span>
+            <h2>שאלות נפוצות לפני רישום</h2>
+          </div>
+          <div className="faq-grid">
+            {faq.map(([question, answer]) => <article className="card" key={question}><h3>{question}</h3><p>{answer}</p></article>)}
+          </div>
         </section>
 
         <section className="section wizard-layout">
