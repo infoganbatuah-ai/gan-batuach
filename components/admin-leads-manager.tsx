@@ -60,6 +60,11 @@ const labels: Record<string, string> = {
   suspended: "מושהה",
   archived: "בארכיון",
   contacted: "נוצר קשר",
+  qualified: "מתאים",
+  approved: "מאושר",
+  onboarding: "בתהליך קליטה",
+  converted: "הומר",
+  rejected: "נדחה",
   not_relevant: "לא רלוונטי",
   registration_pending: "ממתין לאישור רישום",
   admin_approved: "אושר על ידי אדמין",
@@ -69,6 +74,7 @@ const labels: Record<string, string> = {
 
 const sourceLabels: Record<string, string> = {
   public_website: "אתר",
+  public_kindergarten_registration: "רישום גן",
   book_demo: "הדגמה",
   demo_booking: "הדגמה",
   parent_pressure: "הורה",
@@ -85,8 +91,16 @@ const funnelLabels: Record<string, string> = {
   subscription: "מנוי",
   parent_request: "בקשת הורה",
   converted: "הומר",
+  conversion: "המרה",
+  activation: "הפעלה",
   lost: "נסגר"
 };
+
+function demandLabel(count: number) {
+  if (count >= 10) return "ביקוש גבוה";
+  if (count >= 5) return "ביקוש בינוני";
+  return "ביקוש רגיל";
+}
 
 async function postAction(payload: Record<string, unknown>) {
   const response = await fetch("/api/admin/kindergarten-approval", {
@@ -137,6 +151,7 @@ function LeadCard({ lead, onDone }: { lead: LeadRow; onDone: (message: string) =
   const [busy, setBusy] = useState(false);
   const qualification = lead.qualification ?? {};
   const isParentOrigin = lead.source === "parent_request";
+  const requestCount = Number(qualification.parent_request_count ?? qualification.same_kindergarten_requests ?? 1);
   const [note, setNote] = useState("");
   const [managerName, setManagerName] = useState(String(qualification.manager_name ?? lead.manager_name ?? ""));
   const [managerPhone, setManagerPhone] = useState(String(qualification.manager_phone ?? ""));
@@ -178,6 +193,7 @@ function LeadCard({ lead, onDone }: { lead: LeadRow; onDone: (message: string) =
         {isParentOrigin ? <div className="lead-conversion-meta" aria-label="פרטי הורה">
           <span>הורה: {lead.parent_name || "לא צוין"}</span>
           <span>טלפון הורה: {lead.phone || "לא צוין"}</span>
+          <span>{demandLabel(requestCount)} · {requestCount} בקשות</span>
           {lead.address || qualification.kindergarten_address ? <span>כתובת: {String(lead.address ?? qualification.kindergarten_address)}</span> : null}
           {Array.isArray(qualification.child_age_groups) ? <span>גילאים: {qualification.child_age_groups.join(", ")}</span> : null}
         </div> : null}
@@ -211,10 +227,11 @@ function FlowSection({ title, hint, children, empty }: { title: string; hint: st
 
 export function AdminLeadsManager({ leads, gardens = [] }: Props) {
   const [message, setMessage] = useState("");
-  const activeLeadStatuses = ["new", "registration_pending", "new_garden_onboarding", "lead_submitted", "contacted"];
+  const activeLeadStatuses = ["new", "registration_pending", "new_garden_onboarding", "lead_submitted", "contacted", "qualified", "approved", "onboarding"];
   const demoLeads = leads.filter((lead) => lead.lead_type === "garden" && lead.source === "demo_booking" && activeLeadStatuses.includes(String(lead.status ?? "new")));
   const parentOriginLeads = leads.filter((lead) => lead.lead_type === "garden" && lead.source === "parent_request" && activeLeadStatuses.includes(String(lead.status ?? "new")));
-  const gardenLeads = leads.filter((lead) => lead.lead_type === "garden" && !["demo_booking", "parent_request"].includes(String(lead.source ?? "")) && activeLeadStatuses.includes(String(lead.status ?? "new")));
+  const referralLeads = leads.filter((lead) => lead.lead_type === "garden" && String(lead.source ?? "").includes("referral") && activeLeadStatuses.includes(String(lead.status ?? "new")));
+  const gardenLeads = leads.filter((lead) => lead.lead_type === "garden" && !["demo_booking", "parent_request"].includes(String(lead.source ?? "")) && !String(lead.source ?? "").includes("referral") && activeLeadStatuses.includes(String(lead.status ?? "new")));
   const reviewLeads = leads.filter((lead) => lead.lead_type === "garden" && String(lead.status) === "lead_review");
   const credentialsSent = gardens.filter((garden) => ["credentials_sent", "lead_approved_credentials_sent"].includes(String(garden.approval_flow_status ?? garden.status)));
   const inProgress = gardens.filter((garden) => ["onboarding_in_progress", "profile_incomplete"].includes(String(garden.approval_flow_status ?? garden.status)));
@@ -234,6 +251,9 @@ export function AdminLeadsManager({ leads, gardens = [] }: Props) {
       </FlowSection>
       <FlowSection title="בקשות גן חדשות" hint="בודקים בקשה ראשונית ושולחים פרטי כניסה למנהלת." empty={gardenLeads.length === 0}>
         {gardenLeads.map((lead) => <LeadCard lead={lead} onDone={setMessage} key={lead.id} />)}
+      </FlowSection>
+      <FlowSection title="הפניות" hint="הפניות הורים, שותפים או גנים שדורשות טיפול מסחרי." empty={referralLeads.length === 0}>
+        {referralLeads.map((lead) => <LeadCard lead={lead} onDone={setMessage} key={lead.id} />)}
       </FlowSection>
       <FlowSection title="צריך ליצור קשר" hint="בקשות שדורשות שיחה קצרה לפני אישור." empty={reviewLeads.length === 0}>
         {reviewLeads.map((lead) => <LeadCard lead={lead} onDone={setMessage} key={lead.id} />)}
