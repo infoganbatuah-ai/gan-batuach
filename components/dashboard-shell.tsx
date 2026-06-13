@@ -29,6 +29,7 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/admin/inspection-forms", label: "טפסי פיקוח", hint: "בונה דינמי" },
     { href: "/dashboard/admin/procedures", label: "נהלים", hint: "חובה ותאימות" },
     { href: "/dashboard/admin/policies", label: "תקנונים", hint: "אישורי משתמשים" },
+    { href: "/dashboard/admin/regulatory", label: "רגולציה", hint: "ישראל ופרטיות" },
     { href: "/dashboard/admin/cameras", label: "מצלמות", hint: "חיבורים והרשאות" },
     { href: "/dashboard/admin/camera-deployment", label: "פריסת מצלמות", hint: "חיבור שידור וניסיון ביתי" },
     { href: "/dashboard/admin/camera-infrastructure", label: "תשתית מצלמות", hint: "בריאות ואחסון" },
@@ -250,7 +251,7 @@ function navGroupFor(role: UserRole, href: string) {
     if (href.includes("camera") || href.includes("video-gateway")) return "מצלמות";
     if (href.includes("observer") || href.includes("risk") || href.includes("ai") || href.includes("vision") || href.includes("audio") || href.includes("correlated")) return "חכם";
     if (href.includes("inspection") || href.includes("incident") || href.includes("violations") || href.includes("complaints")) return "בטיחות";
-    if (href.includes("documents") || href.includes("policies") || href.includes("procedures") || href.includes("security")) return "ציות";
+    if (href.includes("documents") || href.includes("policies") || href.includes("procedures") || href.includes("regulatory") || href.includes("security")) return "ציות";
     if (href.includes("reports") || href.includes("audit") || href.includes("qa") || href.includes("journey") || href.includes("navigation") || href.includes("mobile") || href.includes("duplicates") || href.includes("simplicity") || href.includes("smart-engine")) return "דוחות";
     return "הגדרות";
   }
