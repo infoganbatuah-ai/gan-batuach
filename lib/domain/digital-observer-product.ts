@@ -300,6 +300,57 @@ export const DIGITAL_OBSERVER_PILOT_PRIVACY_RULES = [
   "No restricted capability activation by default"
 ] as const;
 
+export const DIGITAL_OBSERVER_STABILIZATION_AREAS = [
+  "camera",
+  "gateway",
+  "playback",
+  "alerts",
+  "AI accuracy",
+  "UX",
+  "pricing",
+  "support",
+  "onboarding",
+  "billing"
+] as const;
+
+export const DIGITAL_OBSERVER_SUPPORT_PLAYBOOKS = [
+  { key: "camera_connection_failed", title: "Camera connection failed", summary: "Check camera type, local network, gateway health and server-side credentials without exposing RTSP." },
+  { key: "rtsp_not_working", title: "RTSP not working", summary: "Validate RTSP path server-side, confirm port and credentials, then retry gateway registration." },
+  { key: "dvr_channel_unknown", title: "DVR channel unknown", summary: "Guide owner to identify channel number and stream quality before another test." },
+  { key: "gateway_unavailable", title: "Gateway unavailable", summary: "Check provider health, base URL, auth secret readiness and reconnect status." },
+  { key: "playback_not_loading", title: "Playback not loading", summary: "Check token scope, stream availability, schedule policy and camera health." },
+  { key: "alerts_too_noisy", title: "Alerts too noisy", summary: "Review false positives, schedule, zone boundaries and sensitivity before changing thresholds." },
+  { key: "subscription_issue", title: "Subscription issue", summary: "Confirm Digital Observer billing stream only; do not touch Gan Batuach or parent tuition." },
+  { key: "onboarding_stuck", title: "Onboarding stuck", summary: "Move owner through monitor target, camera count, connection method, schedule, recipients and test mode." }
+] as const;
+
+export const DIGITAL_OBSERVER_KNOWLEDGE_BASE_ARTICLES = [
+  "How to connect a camera",
+  "What is RTSP?",
+  "What is DVR/NVR?",
+  "What is ONVIF?",
+  "Why do I need a gateway?",
+  "Why is my camera offline?",
+  "How alerts work",
+  "How to reduce false alerts"
+] as const;
+
+export const DIGITAL_OBSERVER_PACKAGE_RECOMMENDATIONS = [
+  { rule: "1-2 cameras at home", packageKey: "home_basic", packageName: "Home Basic" },
+  { rule: "3-6 cameras at home", packageKey: "home_plus", packageName: "Home Plus" },
+  { rule: "Business with night monitoring", packageKey: "business_basic", packageName: "Business Basic" },
+  { rule: "Multiple users / advanced analytics", packageKey: "business_pro", packageName: "Business Pro" },
+  { rule: "Custom sites / high camera count", packageKey: "enterprise_monitoring", packageName: "Enterprise Monitoring" }
+] as const;
+
+export const DIGITAL_OBSERVER_LAUNCH_DECISION_STATES = [
+  "not_ready",
+  "needs_more_pilots",
+  "pilot_ready",
+  "paid_beta_ready",
+  "standalone_launch_ready"
+] as const;
+
 export const DIGITAL_OBSERVER_PRODUCT_SWITCHER = [
   { product: "Gan Batuach", href: "/", description: "Kindergarten management, parents, children, staff, inspectors and Israeli regulation." },
   { product: "Digital Observer", href: "/digital-observer", description: "Standalone camera monitoring for homes, businesses and organizations." }

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AlertTriangle, Bell, Camera, CheckCircle2, CreditCard, Gauge, HeartPulse, MessageSquare, Radar, ShieldCheck, SlidersHorizontal, Wrench } from "lucide-react";
+import { AlertTriangle, Bell, Camera, CreditCard, Gauge, HeartPulse, ShieldCheck, SlidersHorizontal, Wrench } from "lucide-react";
 import { AdminDataError } from "@/components/admin-data-state";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { logSupabaseError, safeAdminData } from "@/lib/admin-safe";

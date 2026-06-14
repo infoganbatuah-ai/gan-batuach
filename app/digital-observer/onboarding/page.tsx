@@ -5,14 +5,12 @@ import { DIGITAL_OBSERVER_AI_GOALS, DIGITAL_OBSERVER_NAVIGATION, DIGITAL_OBSERVE
 
 const cameraTypes = ["home camera", "business DVR/NVR", "RTSP", "ONVIF", "generic camera", "Hikvision", "Dahua"];
 const onboardingSteps = [
-  { title: "Choose site type", text: "Home, office, business, warehouse, store, parking lot, future school or custom.", icon: MapPin },
-  { title: "Add site details", text: "Name, address, timezone, owner and estimated camera count.", icon: ClipboardCheck },
-  { title: "Choose package", text: "Set camera limits, monitoring hours, retention and alert channels.", icon: PackageCheck },
-  { title: "Add camera source", text: "Connect through gateway readiness only. RTSP and credentials stay server-side.", icon: Camera },
-  { title: "Configure observer goals", text: "Select what should be watched and keep human review enabled.", icon: Radar },
-  { title: "Configure alert channels", text: "Choose in-app, email, SMS, WhatsApp or push readiness through provider safety modes.", icon: Bell },
-  { title: "Review privacy settings", text: "Capabilities are gated per vertical and legal review status.", icon: LockKeyhole },
-  { title: "Activate test mode", text: "Run in controlled test mode before production monitoring.", icon: ShieldCheck }
+  { title: "What do you monitor?", text: "Home, office, business, warehouse, store, parking lot or custom site.", icon: MapPin },
+  { title: "How many cameras?", text: "Choose a simple camera count so the right package and setup path can be suggested.", icon: ClipboardCheck },
+  { title: "How are cameras connected?", text: "Home camera, DVR/NVR, RTSP, ONVIF or generic camera through the secure gateway.", icon: Camera },
+  { title: "When should Observer watch?", text: "24/7, business hours, night only, custom schedule or event-only mode.", icon: Radar },
+  { title: "Who receives alerts?", text: "Owner, family member, business manager, employee or reviewer with channel preferences.", icon: Bell },
+  { title: "Start test mode", text: "Run a controlled pilot before paid billing or production monitoring.", icon: ShieldCheck }
 ];
 
 export default function DigitalObserverOnboardingPage() {
@@ -40,8 +38,8 @@ export default function DigitalObserverOnboardingPage() {
 
         <section className="dashboard-section">
           <div className="section-heading">
-            <h2>Eight-step setup flow</h2>
-            <p>Prepared as shell readiness. No real billing, DNS or camera activation happens automatically.</p>
+            <h2>Simple setup flow</h2>
+            <p>Six clear steps. No real billing, DNS or camera activation happens automatically.</p>
           </div>
           <div className="timeline-list">
             {onboardingSteps.map((step, index) => {
@@ -89,6 +87,21 @@ export default function DigitalObserverOnboardingPage() {
             <div className="procedure-list">
               <div className="procedure-card"><Camera /><div><h3>Gateway registration</h3><p>Build candidate server-side, test gateway health, register source, then issue scoped playback token.</p></div></div>
               <div className="procedure-card"><LockKeyhole /><div><h3>Credential boundary</h3><p>Camera usernames, passwords and RTSP paths are masked and never returned to the client.</p></div></div>
+            </div>
+          </article>
+        </section>
+
+        <section className="grid cols-2 dashboard-panels">
+          <article className="card action-panel">
+            <div className="section-heading"><h2>Monitoring schedule</h2><p>Choose when the observer should watch. Start simple, tune later.</p></div>
+            <div className="setup-checklist">
+              {["24/7", "business hours", "night only", "custom schedule", "event-only mode"].map((mode) => <span key={mode}>{mode}</span>)}
+            </div>
+          </article>
+          <article className="card action-panel">
+            <div className="section-heading"><h2>Alert recipients</h2><p>Choose people and channels without broad real sending unless provider mode is active.</p></div>
+            <div className="setup-checklist">
+              {["owner", "family member", "business manager", "employee", "reviewer", "in-app", "email", "SMS readiness", "WhatsApp readiness", "push readiness"].map((item) => <span key={item}>{item}</span>)}
             </div>
           </article>
         </section>
