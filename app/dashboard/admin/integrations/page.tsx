@@ -98,7 +98,7 @@ const integrationMeta: Record<IntegrationType, { title: string; icon: typeof Mai
   invoice: { title: "Invoices", icon: FileText, href: "/dashboard/admin/billing", description: "חשבונית ירוקה, iCount, Morning" },
   supabase: { title: "Supabase", icon: Database, href: "/dashboard/admin/security", description: "Auth, DB, Storage, RLS" },
   vercel: { title: "Vercel", icon: Cloud, href: "/dashboard/admin/launch-readiness", description: "Deployment, domain, SSL" },
-  camera_gateway: { title: "Camera Gateway", icon: Camera, href: "/dashboard/admin/video-gateway", description: "MediaMTX, go2rtc, custom gateway" },
+  camera_gateway: { title: "Camera Gateway", icon: Camera, href: "/dashboard/admin/camera-gateway", description: "MediaMTX, go2rtc, custom gateway" },
   ai_provider: { title: "AI Provider", icon: Brain, href: "/dashboard/admin/vision-ai", description: "Shadow mode, human review, local/custom models" }
 };
 
@@ -350,7 +350,7 @@ export default async function AdminIntegrationsPage() {
         <CleanSection title="מסכים קשורים" subtitle="ניהול עמוק נשאר במסכים הייעודיים.">
           <div className="premium-action-grid">
             <ActionCard title="מרכז תקשורת" text="ספקים, תבניות ובדיקות ערוצים" href="/dashboard/admin/communications" icon={MessageCircle} />
-            <ActionCard title="שרת וידאו" text="Gateway, בריאות וחיבור מצלמות" href="/dashboard/admin/video-gateway" icon={Camera} />
+            <ActionCard title="Camera Gateway" text="Gateway, בריאות וחיבור מצלמות" href="/dashboard/admin/camera-gateway" icon={Camera} />
             <ActionCard title="אבטחה" text="סודות, RLS, גיבויים ותאימות" href="/dashboard/admin/security" icon={ShieldCheck} />
             <ActionCard title="מוכנות השקה" text="חסמים, ציון והשקה מבוקרת" href="/dashboard/admin/launch-readiness" icon={CheckCircle2} />
           </div>
