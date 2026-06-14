@@ -37,6 +37,7 @@ function dateText(value?: string | null) {
 export default async function DigitalObserverBillingPage() {
   const { profile } = await requireUser();
   const supabase = await createClient();
+  const profileEmail = (profile as any).email ?? (profile as any).contact_email ?? null;
   const [ownedSites, memberships, packageRows] = await Promise.all([
     safeQuery<Row>("observer owned billing sites", () => supabase.from("observer_sites" as any).select("id, name, site_type, active, monitoring_enabled, owner_profile_id").eq("owner_profile_id", profile.id).neq("site_type", "kindergarten").limit(50)),
     safeQuery<Row>("observer billing memberships", () => supabase.from("observer_site_memberships" as any).select("observer_site_id, member_role, observer_sites(id, name, site_type, active, monitoring_enabled)").eq("profile_id", profile.id).eq("active", true).in("member_role", ["owner", "admin", "billing"]).limit(50)),
@@ -60,9 +61,40 @@ export default async function DigitalObserverBillingPage() {
       ])
     : [[], [], [], [], await safeQuery<Row>("observer payment provider readiness", () => supabase.from("observer_payment_provider_readiness" as any).select("provider_key, provider_name, status, mode, raw_card_storage_allowed, supported_flows, missing_configuration").order("provider_name").limit(20))];
 
+  const betaCustomers = profileEmail
+    ? await safeQuery<Row>("digital observer beta customer billing", () => supabase.from("digital_observer_beta_customers" as any).select("id, customer_name, customer_type, site_type, package_selected, trial_status, payment_status, beta_status, onboarding_status, feedback_status, email").eq("email", profileEmail).limit(10))
+    : [];
+  const betaCustomerIds = betaCustomers.map((customer) => customer.id).filter(Boolean);
+  const betaSitesByCustomer = betaCustomerIds.length
+    ? await safeQuery<Row>("digital observer beta sites by customer", () => supabase.from("digital_observer_beta_sites" as any).select("id, observer_site_id, customer_id, site_name, site_type, camera_count, package_key, camera_health, gateway_health, observer_health, support_status, beta_readiness, payment_mode").in("customer_id", betaCustomerIds).limit(20))
+    : [];
+  const betaSitesByObserverSite = siteIds.length
+    ? await safeQuery<Row>("digital observer beta sites by observer site", () => supabase.from("digital_observer_beta_sites" as any).select("id, observer_site_id, customer_id, site_name, site_type, camera_count, package_key, camera_health, gateway_health, observer_health, support_status, beta_readiness, payment_mode").in("observer_site_id", siteIds).limit(20))
+    : [];
+  const betaSiteMap = new Map<string, Row>();
+  [...betaSitesByCustomer, ...betaSitesByObserverSite].forEach((site) => {
+    if (site?.id) betaSiteMap.set(site.id, site);
+  });
+  const betaSites = Array.from(betaSiteMap.values());
+  const betaSiteIds = betaSites.map((site) => site.id).filter(Boolean);
+  const betaFilterParts = [
+    betaSiteIds.length ? `beta_site_id.in.(${betaSiteIds.join(",")})` : null,
+    betaCustomerIds.length ? `customer_id.in.(${betaCustomerIds.join(",")})` : null
+  ].filter(Boolean);
+  const betaFilter = betaFilterParts.join(",");
+  const [betaSubscriptions, betaInvoices, betaHealth] = betaSiteIds.length || betaCustomerIds.length
+    ? await Promise.all([
+        safeQuery<Row>("digital observer beta subscriptions billing", () => supabase.from("digital_observer_beta_subscriptions" as any).select("id, customer_id, beta_site_id, subscription_status, payment_mode, provider, package_key, trial_start, trial_end, next_charge_at, monthly_price, annual_price, live_charge_allowed, raw_card_storage_allowed, separation_verified").or(betaFilter).limit(20)),
+        safeQuery<Row>("digital observer beta invoices billing", () => supabase.from("digital_observer_beta_invoices" as any).select("id, invoice_number, customer_id, beta_site_id, package_key, billing_cycle, amount, currency, tax_readiness, invoice_status, pdf_ready, email_delivery_readiness, issued_at, due_at, paid_at").or(betaFilter).order("created_at", { ascending: false }).limit(20)),
+        safeQuery<Row>("digital observer beta health billing", () => supabase.from("digital_observer_customer_health_scores" as any).select("id, customer_id, beta_site_id, score, setup_completion_score, camera_stability_score, alert_value_score, support_load_score, payment_status_score, churn_risk_score, status").or(betaFilter).order("calculated_at", { ascending: false }).limit(20))
+      ])
+    : [[], [], []];
+
   const activeSubscription = subscriptions.find((item) => ["active", "trial"].includes(String(item.subscription_status ?? item.status))) ?? subscriptions[0];
+  const activeBetaSubscription = betaSubscriptions.find((item) => ["trial", "active_paid_beta"].includes(String(item.subscription_status))) ?? betaSubscriptions[0];
   const currentPackage = packageRows.find((pkg) => pkg.id === activeSubscription?.package_id) ?? packageRows[0];
   const currentUsage = usage[0] ?? {};
+  const betaHealthScore = betaHealth[0]?.score ?? 0;
   const cameraLimit = Number(currentPackage?.camera_limit ?? 0);
   const activeCameras = Number(currentUsage.active_cameras ?? 0);
   const cameraUsageText = cameraLimit ? `${activeCameras}/${cameraLimit}` : `${activeCameras}/custom`;
@@ -92,10 +124,35 @@ export default async function DigitalObserverBillingPage() {
 
         <section className="grid cols-4 dashboard-panels">
           <article className="metric-card"><PackageCheck /><strong>{currentPackage?.name ?? "No package"}</strong><span>current package</span></article>
-          <article className="metric-card"><CreditCard /><strong>{activeSubscription?.subscription_status ?? activeSubscription?.status ?? "setup"}</strong><span>subscription status</span></article>
+          <article className="metric-card"><CreditCard /><strong>{activeBetaSubscription?.subscription_status ?? activeSubscription?.subscription_status ?? activeSubscription?.status ?? "setup"}</strong><span>subscription status</span></article>
           <article className="metric-card"><TrendingUp /><strong>{cameraUsageText}</strong><span>camera usage</span></article>
-          <article className="metric-card"><FileText /><strong>{invoices.length}</strong><span>invoices</span></article>
+          <article className="metric-card"><FileText /><strong>{invoices.length + betaInvoices.length}</strong><span>invoices</span></article>
         </section>
+
+        {(betaCustomers.length > 0 || betaSites.length > 0 || activeBetaSubscription) && (
+          <section className="grid cols-2 dashboard-panels">
+            <article className="card action-panel">
+              <ShieldCheck />
+              <h2>Paid beta status</h2>
+              <div className="procedure-list compact-list">
+                <div className="mini-row"><span>Beta customer</span><strong>{betaCustomers[0]?.customer_name ?? "not linked"}</strong><small>{betaCustomers[0]?.beta_status ?? "status pending"} · {betaCustomers[0]?.customer_type ?? "type TBD"}</small></div>
+                <div className="mini-row"><span>Beta site</span><strong>{betaSites[0]?.site_name ?? "site pending"}</strong><small>{betaSites[0]?.camera_count ?? 0} cameras · readiness {betaSites[0]?.beta_readiness ?? 0}/100</small></div>
+                <div className="mini-row"><span>Payment mode</span><strong>{activeBetaSubscription?.payment_mode ?? betaSites[0]?.payment_mode ?? "disabled"}</strong><small>Live charging only when explicitly configured.</small></div>
+                <div className="mini-row"><span>Customer health</span><strong>{betaHealthScore}/100</strong><small>Setup, camera stability, alert value, support, payment and churn.</small></div>
+              </div>
+            </article>
+            <article className="card action-panel">
+              <CreditCard />
+              <h2>Paid beta billing</h2>
+              <div className="procedure-list compact-list">
+                <div className="mini-row"><span>Package</span><strong>{activeBetaSubscription?.package_key ?? betaCustomers[0]?.package_selected ?? "package TBD"}</strong><small>Digital Observer package only.</small></div>
+                <div className="mini-row"><span>Next charge</span><strong>{dateText(activeBetaSubscription?.next_charge_at)}</strong><small>{activeBetaSubscription?.live_charge_allowed ? "Provider allows charge" : "Charge blocked until provider is configured"}</small></div>
+                <div className="mini-row"><span>Monthly</span><strong>{money(activeBetaSubscription?.monthly_price)}</strong><small>Accepted beta price or readiness value.</small></div>
+                <div className="mini-row"><span>Separation</span><strong>{activeBetaSubscription?.separation_verified === false ? "needs review" : "verified"}</strong><small>Not Gan Batuach billing, not parent tuition.</small></div>
+              </div>
+            </article>
+          </section>
+        )}
 
         <section className="grid cols-2 dashboard-panels">
           <article className="card action-panel">
@@ -188,6 +245,17 @@ export default async function DigitalObserverBillingPage() {
                     <span>{invoice.invoice_number}</span>
                     <strong><span className={statusClass(invoice.status)}>{invoice.status}</span></strong>
                     <small>{money(invoice.amount)} · due {dateText(invoice.due_at)} · PDF {invoice.pdf_ready ? "ready" : "not ready"}</small>
+                  </div>
+                ))}
+              </div>
+            )}
+            {betaInvoices.length > 0 && (
+              <div className="procedure-list compact-list">
+                {betaInvoices.map((invoice) => (
+                  <div className="mini-row" key={invoice.id}>
+                    <span>{invoice.invoice_number}</span>
+                    <strong><span className={statusClass(invoice.invoice_status)}>{invoice.invoice_status}</span></strong>
+                    <small>{money(invoice.amount)} · paid beta · PDF {invoice.pdf_ready ? "ready" : "not ready"}</small>
                   </div>
                 ))}
               </div>
