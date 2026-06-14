@@ -327,6 +327,7 @@ export default async function AdminDashboard() {
           <ActionCard title="תקשורת" text="Email, WhatsApp, SMS, Push" href="/dashboard/admin/communications" icon={BellRing} tone={data.communicationFailures ? "warn" : "default"} />
           <ActionCard title="הכנסות" text="מנויים, גבייה וסיכון" href="/dashboard/admin/subscriptions" icon={CreditCard} />
           <ActionCard title="סקייל" text="ריבוי גנים, בידוד וביצועים" href="/dashboard/admin/scale-validation" icon={BarChart3} tone={data.activeGardens >= 5 ? "good" : "warn"} />
+          <ActionCard title="100 גנים" text="תוכנית סקייל מבוקרת" href="/dashboard/admin/scale-100" icon={BarChart3} tone={data.activeGardens >= 25 ? "good" : "warn"} />
           <ActionCard title="השקה" text="פיילוט, אבטחה וציות" href="/dashboard/admin/launch-readiness" icon={Rocket} tone={data.launchBlockers ? "bad" : "good"} />
           <ActionCard title="דוחות" text="שבועי, חודשי, בטיחות והכנסות" href="/dashboard/admin/reports" icon={FileText} />
         </section>
