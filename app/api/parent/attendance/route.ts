@@ -6,6 +6,7 @@ import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { attendanceSchema } from "@/lib/validation";
 import { encryptField, getCurrentKeyVersion } from "@/lib/security/field-encryption";
+import { deviceFingerprint, requestId, writeAuditEvent } from "@/lib/security/audit-log-service";
 
 export const { GET } = createCrudHandlers({
   table: "attendance",
@@ -191,6 +192,29 @@ export async function POST(request: Request) {
     ip: firstForwardedIp(request.headers.get("x-forwarded-for")),
     user_agent: request.headers.get("user-agent"),
     metadata: { distance_meters: distance, realtime_dashboard_update: true }
+  });
+
+  await writeAuditEvent({
+    eventType: payload.action === "check_in" ? "child_check_in_completed" : "child_check_out_completed",
+    eventCategory: "child",
+    actorProfileId: profile.id,
+    actorRole: profile.role,
+    targetType: "attendance",
+    targetId: attendanceWrite.data.id,
+    gardenId,
+    childId: payload.child_id,
+    ipAddress: firstForwardedIp(request.headers.get("x-forwarded-for")),
+    userAgent: request.headers.get("user-agent"),
+    deviceFingerprint: deviceFingerprint(request.headers),
+    requestId: requestId(request.headers),
+    metadata: {
+      gps_validation_result: "passed",
+      distance_meters: distance,
+      signature_recorded: Boolean(signature.data?.id),
+      biometric_identification_used: false,
+      camera_based_attendance_used: false
+    },
+    riskLevel: "medium"
   });
 
   await supabase.from("notifications" as any).insert({

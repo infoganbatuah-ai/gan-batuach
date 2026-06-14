@@ -2,6 +2,7 @@ import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
 import type { Json } from "@/lib/supabase/types";
 import type { UserRole } from "@/lib/roles";
+import { writeAdminActionEvent } from "@/lib/security/audit-log-service";
 
 const alphabet = "ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnopqrstuvwxyz23456789";
 
@@ -192,4 +193,14 @@ export async function writeUserCreationAudit({
     after_data: afterData
   });
   if (error) console.error("Audit log write failed", error);
+  await writeAdminActionEvent({
+    eventType: action,
+    actorProfileId: actorId,
+    actorRole,
+    targetType: entityType,
+    targetId: entityId ?? null,
+    gardenId: gardenId ?? null,
+    metadata: afterData,
+    riskLevel: "medium"
+  });
 }
