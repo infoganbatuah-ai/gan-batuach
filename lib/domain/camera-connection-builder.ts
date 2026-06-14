@@ -13,8 +13,11 @@ export const cameraConnectionInputSchema = z.object({
     "uniview",
     "axis",
     "generic_camera",
+    "generic",
     "manual_rtsp",
-    "sample_hls"
+    "sample_hls",
+    "home_test",
+    "demo_camera"
   ]),
   host: z.string().optional(),
   port: z.coerce.number().int().min(1).max(65535).optional(),
@@ -38,7 +41,7 @@ function channelSuffix(channel: number, quality: "main" | "sub") {
 
 export function buildRtspCandidates(input: CameraConnectionInput) {
   const parsed = cameraConnectionInputSchema.parse(input);
-  if (parsed.system_type === "sample_hls") return [];
+  if (parsed.system_type === "sample_hls" || parsed.system_type === "demo_camera") return [];
   if (parsed.system_type === "manual_rtsp") return parsed.manual_rtsp_url ? [{ vendor: "manual", template: "manual_rtsp", url: parsed.manual_rtsp_url }] : [];
   const host = parsed.host?.trim();
   if (!host) return [];
@@ -61,7 +64,7 @@ export function buildRtspCandidates(input: CameraConnectionInput) {
   if (parsed.system_type === "dahua") return candidates.filter((item) => item.vendor === "Dahua");
   if (parsed.system_type === "uniview") return candidates.filter((item) => item.vendor === "Uniview");
   if (parsed.system_type === "axis") return candidates.filter((item) => item.vendor === "Axis");
-  if (parsed.system_type === "rtsp" || parsed.system_type === "generic_camera" || parsed.system_type === "ip_camera") return candidates;
+  if (parsed.system_type === "rtsp" || parsed.system_type === "generic" || parsed.system_type === "generic_camera" || parsed.system_type === "ip_camera" || parsed.system_type === "home_test") return candidates;
   return candidates;
 }
 

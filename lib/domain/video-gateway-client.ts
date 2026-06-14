@@ -1,6 +1,6 @@
 import { buildRtspCandidates, type CameraConnectionInput } from "@/lib/domain/camera-connection-builder";
 
-export type VideoGatewayProvider = "mediamtx" | "go2rtc" | "custom";
+export type VideoGatewayProvider = "mediamtx" | "go2rtc" | "custom" | "future_webrtc";
 
 export type GatewayResult = {
   configured: boolean;
@@ -15,7 +15,7 @@ export type GatewayResult = {
 
 export function getGatewayProvider(): VideoGatewayProvider {
   const provider = process.env.VIDEO_GATEWAY_PROVIDER;
-  if (provider === "mediamtx" || provider === "go2rtc") return provider;
+  if (provider === "mediamtx" || provider === "go2rtc" || provider === "future_webrtc") return provider;
   return "custom";
 }
 

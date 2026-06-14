@@ -23,6 +23,7 @@ export const dashboardRouteChecks: DashboardRouteCheck[] = [
   { route: "/dashboard/admin/procedures", label: "נהלים", roles: ["admin"], dataTable: "procedures" },
   { route: "/dashboard/admin/policies", label: "תקנונים", roles: ["admin"], dataTable: "policies" },
   { route: "/dashboard/admin/cameras", label: "מצלמות", roles: ["admin"], dataTable: "camera_streams" },
+  { route: "/dashboard/admin/camera-gateway", label: "Camera Gateway", roles: ["admin"], dataTable: "camera_gateway_configs" },
   { route: "/dashboard/admin/ai-events", label: "אירועי AI", roles: ["admin"], dataTable: "ai_events" },
   { route: "/dashboard/admin/notifications", label: "התראות", roles: ["admin"], dataTable: "notifications" },
   { route: "/dashboard/admin/tasks", label: "משימות", roles: ["admin"], dataTable: "tasks" },

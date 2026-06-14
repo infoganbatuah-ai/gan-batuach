@@ -35,6 +35,7 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/admin/camera-compliance", label: "ציות מצלמות", hint: "צפייה חוקית" },
     { href: "/dashboard/admin/camera-deployment", label: "פריסת מצלמות", hint: "חיבור שידור וניסיון ביתי" },
     { href: "/dashboard/admin/camera-infrastructure", label: "תשתית מצלמות", hint: "בריאות ואחסון" },
+    { href: "/dashboard/admin/camera-gateway", label: "Camera Gateway", hint: "DVR/NVR ופיילוט בית" },
     { href: "/dashboard/admin/video-gateway", label: "שרת וידאו", hint: "חיבור שידורים" },
     { href: "/dashboard/admin/camera-audit", label: "בדיקת מצלמות", hint: "מוכנות שידור" },
     { href: "/dashboard/admin/ai-events", label: "אירועי תצפיתן", hint: "אירועים לבדיקה" },
