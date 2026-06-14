@@ -46,6 +46,7 @@ export const dashboardRouteChecks: DashboardRouteCheck[] = [
   { route: "/dashboard/admin/security-review", label: "בדיקת חדירה", roles: ["admin"], dataTable: "penetration_test_scopes" },
   { route: "/dashboard/admin/master-qa", label: "Master QA", roles: ["admin"], dataTable: "qa_test_cases" },
   { route: "/dashboard/admin/first-pilot", label: "פיילוט ראשון", roles: ["admin"], dataTable: "pilot_kindergarten_profiles" },
+  { route: "/dashboard/admin/mobile-release", label: "הגשה לחנויות", roles: ["admin"], dataTable: "mobile_release_readiness_scores" },
   { route: "/dashboard/admin/settings", label: "הגדרות", roles: ["admin"] },
   { route: "/dashboard/admin/navigation-health", label: "בריאות ניווט", roles: ["admin"] },
   { route: "/dashboard/admin/user-journey-audit", label: "User Journey Audit", roles: ["admin"] },
