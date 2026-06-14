@@ -67,9 +67,9 @@ export function buildMetaWhatsAppTemplatePayload(message: WhatsAppTemplateMessag
 
 function getMetaReadiness(): WhatsAppProviderReadiness {
   const envVars: Array<[string, string | undefined]> = [
-    ["WHATSAPP_ACCESS_TOKEN", process.env.WHATSAPP_ACCESS_TOKEN],
-    ["WHATSAPP_PHONE_NUMBER_ID", process.env.WHATSAPP_PHONE_NUMBER_ID],
-    ["WHATSAPP_BUSINESS_ACCOUNT_ID", process.env.WHATSAPP_BUSINESS_ACCOUNT_ID]
+    ["META_WHATSAPP_TOKEN", process.env.META_WHATSAPP_TOKEN || process.env.WHATSAPP_ACCESS_TOKEN],
+    ["META_WHATSAPP_PHONE_NUMBER_ID", process.env.META_WHATSAPP_PHONE_NUMBER_ID || process.env.WHATSAPP_PHONE_NUMBER_ID],
+    ["META_WHATSAPP_BUSINESS_ACCOUNT_ID", process.env.META_WHATSAPP_BUSINESS_ACCOUNT_ID || process.env.WHATSAPP_BUSINESS_ACCOUNT_ID]
   ];
   const missing = envVars.filter(([, value]) => !value).map(([key]) => key);
   const configured = missing.length === 0;
@@ -132,8 +132,8 @@ const twilioWhatsAppProvider: WhatsAppProvider = {
   name: "twilio_whatsapp",
   checkReadiness() {
     const required: Array<[string, string | undefined]> = [
-      ["TWILIO_ACCOUNT_SID", process.env.TWILIO_ACCOUNT_SID],
-      ["TWILIO_AUTH_TOKEN", process.env.TWILIO_AUTH_TOKEN],
+      ["TWILIO_WHATSAPP_SID", process.env.TWILIO_WHATSAPP_SID || process.env.TWILIO_ACCOUNT_SID],
+      ["TWILIO_WHATSAPP_TOKEN", process.env.TWILIO_WHATSAPP_TOKEN || process.env.TWILIO_AUTH_TOKEN],
       ["TWILIO_WHATSAPP_FROM", process.env.TWILIO_WHATSAPP_FROM]
     ];
     const missing = required.filter(([, value]) => !value).map(([key]) => key);

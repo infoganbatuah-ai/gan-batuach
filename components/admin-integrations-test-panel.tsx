@@ -2,9 +2,9 @@
 
 import { useMemo, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Bell, Brain, Camera, Cloud, Database, Mail, MessageCircle, Send, Server, Smartphone } from "lucide-react";
+import { Bell, Brain, Camera, Cloud, CreditCard, Database, FileText, Mail, MessageCircle, Send, Server, Smartphone } from "lucide-react";
 
-type IntegrationType = "email" | "whatsapp" | "sms" | "push" | "supabase" | "vercel" | "camera_gateway" | "ai_provider";
+type IntegrationType = "email" | "whatsapp" | "sms" | "push" | "payment" | "invoice" | "supabase" | "vercel" | "camera_gateway" | "ai_provider";
 
 type IntegrationOption = {
   integration_type: IntegrationType;
@@ -17,6 +17,8 @@ const integrationTabs: Array<{ key: IntegrationType; label: string; icon: typeof
   { key: "whatsapp", label: "WhatsApp", icon: MessageCircle },
   { key: "sms", label: "SMS", icon: Smartphone },
   { key: "push", label: "Push", icon: Bell },
+  { key: "payment", label: "Payment", icon: CreditCard },
+  { key: "invoice", label: "Invoice", icon: FileText },
   { key: "supabase", label: "Supabase", icon: Database },
   { key: "vercel", label: "Vercel", icon: Cloud },
   { key: "camera_gateway", label: "Video", icon: Camera },
@@ -26,6 +28,8 @@ const integrationTabs: Array<{ key: IntegrationType; label: string; icon: typeof
 function placeholderFor(type: IntegrationType) {
   if (type === "email") return "admin@example.com";
   if (type === "push") return "profile id או email של אדמין";
+  if (type === "payment") return "sandbox checkout בלבד";
+  if (type === "invoice") return "mock invoice בלבד";
   if (type === "supabase" || type === "vercel" || type === "camera_gateway" || type === "ai_provider") return "לא נדרש";
   return "0500000000";
 }

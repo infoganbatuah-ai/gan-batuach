@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Bell, Brain, Camera, CheckCircle2, Cloud, Database, Mail, MessageCircle, Server, ShieldCheck, Smartphone, TriangleAlert } from "lucide-react";
+import { Bell, Brain, Camera, CheckCircle2, Cloud, CreditCard, Database, FileText, Mail, MessageCircle, ShieldCheck, Smartphone, TriangleAlert } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { ActionCard, CleanSection, EmptyState, PremiumDashboardHero, RoleMetricCard, StatusBadge } from "@/components/premium-dashboard";
 import { AdminIntegrationsTestPanel } from "@/components/admin-integrations-test-panel";
@@ -11,8 +11,9 @@ import { getWhatsAppProductionReadiness } from "@/lib/domain/whatsapp-provider";
 import { getPushProductionReadiness } from "@/lib/domain/push-provider";
 import { getGatewayProvider, isGatewayConfigured } from "@/lib/domain/video-gateway-client";
 import { getVisionProductionReadiness } from "@/lib/domain/vision-provider";
+import { getIntegrationSafetyModes, getProviderMissingConfiguration, getSafeIntegrationStatus } from "@/lib/domain/provider-integration-safety";
 
-type IntegrationType = "email" | "whatsapp" | "sms" | "push" | "supabase" | "vercel" | "camera_gateway" | "ai_provider";
+type IntegrationType = "email" | "whatsapp" | "sms" | "push" | "payment" | "invoice" | "supabase" | "vercel" | "camera_gateway" | "ai_provider";
 
 type ProductionIntegration = {
   id: string;
@@ -20,8 +21,11 @@ type ProductionIntegration = {
   provider: string;
   status?: string | null;
   environment?: string | null;
+  send_mode?: string | null;
   last_test_at?: string | null;
   last_test_status?: string | null;
+  missing_configuration?: string[] | null;
+  webhook_status?: string | null;
   notes?: string | null;
   metadata?: Record<string, any> | null;
 };
@@ -61,11 +65,37 @@ type TestLog = {
   completed_at?: string | null;
 };
 
+type ProviderHealth = {
+  id: string;
+  integration_type: IntegrationType;
+  provider: string;
+  status?: string | null;
+  credentials_configured?: boolean | null;
+  webhook_healthy?: boolean | null;
+  last_success_at?: string | null;
+  last_failure_at?: string | null;
+  next_action?: string | null;
+};
+
+type DeliveryLog = {
+  id: string;
+  channel: string;
+  provider: string;
+  status?: string | null;
+  template?: string | null;
+  sent_at?: string | null;
+  delivered_at?: string | null;
+  failed_at?: string | null;
+  created_at?: string | null;
+};
+
 const integrationMeta: Record<IntegrationType, { title: string; icon: typeof Mail; href: string; description: string }> = {
   email: { title: "Email", icon: Mail, href: "/dashboard/admin/email-production", description: "Resend, SendGrid, Amazon SES" },
   whatsapp: { title: "WhatsApp", icon: MessageCircle, href: "/dashboard/admin/whatsapp", description: "Meta Cloud API, Twilio WhatsApp" },
   sms: { title: "SMS", icon: Smartphone, href: "/dashboard/admin/sms", description: "Twilio, MessageBird, Vonage, ספק ישראלי" },
   push: { title: "Push", icon: Bell, href: "/dashboard/admin/push-production", description: "FCM, APNs, Web Push" },
+  payment: { title: "Payments", icon: CreditCard, href: "/dashboard/admin/billing", description: "Tranzila, Meshulam, Cardcom, Pelecard" },
+  invoice: { title: "Invoices", icon: FileText, href: "/dashboard/admin/billing", description: "חשבונית ירוקה, iCount, Morning" },
   supabase: { title: "Supabase", icon: Database, href: "/dashboard/admin/security", description: "Auth, DB, Storage, RLS" },
   vercel: { title: "Vercel", icon: Cloud, href: "/dashboard/admin/launch-readiness", description: "Deployment, domain, SSL" },
   camera_gateway: { title: "Camera Gateway", icon: Camera, href: "/dashboard/admin/video-gateway", description: "MediaMTX, go2rtc, custom gateway" },
@@ -80,7 +110,11 @@ const statusLabels: Record<string, string> = {
   active: "פעיל",
   disabled: "כבוי",
   failed: "נכשל",
-  testing: "בדיקה"
+  testing: "בדיקה",
+  mock: "Mock",
+  sandbox: "Sandbox",
+  production: "Production",
+  live: "Live"
 };
 
 function toneForStatus(status?: string | null): "good" | "warn" | "bad" | "default" {
@@ -119,13 +153,16 @@ export default async function AdminIntegrationsPage() {
   await requireRole(["admin"]);
   const supabase = await createClient();
 
-  const [integrations, providerConfigs, webhookRows, testLogs] = await Promise.all([
+  const [integrations, providerConfigs, webhookRows, testLogs, providerHealth, deliveryLogs] = await Promise.all([
     safeQuery<ProductionIntegration>(supabase.from("production_integrations" as any).select("*").order("integration_type").order("provider"), "production integrations"),
     safeQuery<ProviderConfig>(supabase.from("communication_provider_configs" as any).select("*").order("channel").order("provider"), "communication provider configs"),
     safeQuery<WebhookReadiness>(supabase.from("production_webhook_readiness" as any).select("*").order("integration_type").order("provider"), "webhook readiness"),
-    safeQuery<TestLog>(supabase.from("production_integration_test_logs" as any).select("*").order("created_at", { ascending: false }).limit(40), "integration test logs")
+    safeQuery<TestLog>(supabase.from("production_integration_test_logs" as any).select("*").order("created_at", { ascending: false }).limit(40), "integration test logs"),
+    safeQuery<ProviderHealth>(supabase.from("provider_integration_health" as any).select("*").order("integration_type").order("provider"), "provider integration health"),
+    safeQuery<DeliveryLog>(supabase.from("provider_delivery_logs" as any).select("*").order("created_at", { ascending: false }).limit(30), "provider delivery logs")
   ]);
 
+  const safetyModes = getIntegrationSafetyModes();
   const emailReadiness = getEmailProductionReadiness();
   const whatsappReadiness = getWhatsAppProductionReadiness();
   const smsReadiness = getSmsProductionReadiness();
@@ -140,6 +177,8 @@ export default async function AdminIntegrationsPage() {
     whatsapp: envStatus(whatsappReadiness.configured),
     sms: envStatus(smsReadiness.configured),
     push: pushReadiness.configured ? (pushReadiness.realSendEnabled ? "production_ready" : "configured") : "not_configured",
+    payment: getSafeIntegrationStatus("payment", process.env.PAYMENT_PROVIDER),
+    invoice: getSafeIntegrationStatus("invoice", process.env.INVOICE_PROVIDER),
     supabase: envStatus(supabaseConfigured),
     vercel: envStatus(vercelConfigured),
     camera_gateway: gatewayConfigured ? "configured" : "not_configured",
@@ -157,6 +196,12 @@ export default async function AdminIntegrationsPage() {
   const activeCount = cards.filter((card) => card.status === "active").length;
   const failedCount = cards.filter((card) => card.status === "failed").length;
   const webhooksReady = webhookRows.filter((row) => ["configured", "production_ready", "active"].includes(String(row.status))).length;
+  const totalIntegrations = Object.keys(integrationMeta).length;
+  const safetyWarnings = [
+    safetyModes.communications !== "production" ? "תקשורת במצב בטוח" : null,
+    safetyModes.payment !== "live" ? "תשלומים לא במצב live" : null,
+    safetyModes.invoice !== "production" ? "חשבוניות לא במצב ייצור" : null
+  ].filter(Boolean);
 
   return (
     <DashboardShell role="admin" title="Production Integrations">
@@ -164,18 +209,27 @@ export default async function AdminIntegrationsPage() {
         <PremiumDashboardHero
           eyebrow="אינטגרציות"
           title="הפעלה מבוקרת של ספקי ייצור"
-          subtitle="Email, WhatsApp, SMS, Push, Supabase, Vercel, Video Gateway ו-AI במקום אחד. אין שליחה אמיתית בלי הפעלה מפורשת."
+          subtitle="Email, WhatsApp, SMS, Push, Payments, Invoices, Video Gateway ו-AI במקום אחד. אין שליחה אמיתית או חיוב live בלי הפעלה מפורשת."
           badge="Safe activation"
           badgeTone="warn"
           actions={<><Link className="button primary" href="#integration-test-center">בדיקת אינטגרציה</Link><Link className="button secondary" href="/dashboard/admin/communications">מרכז תקשורת</Link></>}
         />
 
         <div className="premium-metric-grid">
-          <RoleMetricCard label="אינטגרציות מוכנות" value={`${readyCount}/8`} hint="מוגדרות או במצב בדיקה" tone={readyCount >= 7 ? "good" : "warn"} />
+          <RoleMetricCard label="אינטגרציות מוכנות" value={`${readyCount}/${totalIntegrations}`} hint="מוגדרות או במצב בדיקה" tone={readyCount >= totalIntegrations - 1 ? "good" : "warn"} />
           <RoleMetricCard label="פעילות באמת" value={activeCount} hint="לא מופעל אוטומטית" tone={activeCount ? "good" : "warn"} />
           <RoleMetricCard label="Webhooks" value={`${webhooksReady}/${webhookRows.length || 6}`} hint="מוכנות חתימה ומשוב" tone={webhooksReady ? "good" : "warn"} />
           <RoleMetricCard label="כשלים" value={failedCount} hint="דורש טיפול לפני הפעלה" tone={failedCount ? "bad" : "good"} />
         </div>
+
+        <CleanSection title="מצבי בטיחות גלובליים" subtitle="ברירת המחדל שומרת על בדיקות בלבד עד שמגדירים סודות שרת ודגלי ייצור.">
+          <div className="communication-template-grid">
+            <article className="communication-template-card"><div><strong>תקשורת</strong><span>COMMUNICATIONS_SEND_MODE · אין שליחה רחבה אוטומטית</span></div><StatusBadge tone={safetyModes.communications === "production" ? "warn" : "good"}>{statusLabels[safetyModes.communications]}</StatusBadge></article>
+            <article className="communication-template-card"><div><strong>תשלומים</strong><span>PAYMENT_MODE · חיובים live דורשים ספק ותצורת webhook</span></div><StatusBadge tone={safetyModes.payment === "live" ? "warn" : "good"}>{statusLabels[safetyModes.payment]}</StatusBadge></article>
+            <article className="communication-template-card"><div><strong>חשבוניות</strong><span>INVOICE_MODE · הפקה אמיתית דורשת ספק חשבוניות</span></div><StatusBadge tone={safetyModes.invoice === "production" ? "warn" : "good"}>{statusLabels[safetyModes.invoice]}</StatusBadge></article>
+          </div>
+          {safetyWarnings.length ? <div className="error-banner"><ShieldCheck size={16} /> {safetyWarnings.join(" · ")}</div> : null}
+        </CleanSection>
 
         <CleanSection title="סטטוס אינטגרציות" subtitle="סטטוס ייצור ללא שמירת סודות במסד הנתונים.">
           <div className="communication-channel-grid">
@@ -193,15 +247,17 @@ export default async function AdminIntegrationsPage() {
                     <StatusBadge tone={toneForStatus(card.status)}>{statusLabels[card.status] ?? card.status}</StatusBadge>
                   </div>
                   <div className="communication-provider-list">
-                    {(card.rows.length ? card.rows : [{ provider: "env", status: computedOverrides[card.type], environment: "production" } as ProductionIntegration]).slice(0, 4).map((row) => (
+                    {(card.rows.length ? card.rows : [{ provider: "env", status: computedOverrides[card.type], environment: "production" } as ProductionIntegration]).slice(0, 4).map((row) => {
+                      const missing = row.missing_configuration?.length ? row.missing_configuration : getProviderMissingConfiguration(card.type, row.provider);
+                      return (
                       <div className="communication-provider-row" key={`${card.type}-${row.provider}`}>
                         <div>
                           <strong>{row.provider}</strong>
-                          <span>{row.environment ?? "production"} · בדיקה אחרונה {formatDate(row.last_test_at)}</span>
+                          <span>{row.environment ?? "production"} · {row.send_mode ?? "mock"} · {missing.length ? `חסר: ${missing.slice(0, 2).join(", ")}` : `בדיקה אחרונה ${formatDate(row.last_test_at)}`}</span>
                         </div>
                         <StatusBadge tone={toneForStatus(row.status ?? computedOverrides[card.type])}>{statusLabels[row.status ?? computedOverrides[card.type] ?? ""] ?? row.status ?? computedOverrides[card.type]}</StatusBadge>
                       </div>
-                    ))}
+                    );})}
                   </div>
                   <Link className="button secondary" href={meta.href}>ניהול {meta.title}</Link>
                 </article>
@@ -216,9 +272,43 @@ export default async function AdminIntegrationsPage() {
             <article className="communication-template-card"><div><strong>WhatsApp</strong><span>Phone Number ID, Business Account ID, template approval, webhook</span></div><StatusBadge tone={toneForStatus(computedOverrides.whatsapp)}>{statusLabels[computedOverrides.whatsapp ?? ""]}</StatusBadge></article>
             <article className="communication-template-card"><div><strong>SMS</strong><span>Sender name, provider account, delivery readiness</span></div><StatusBadge tone={toneForStatus(computedOverrides.sms)}>{statusLabels[computedOverrides.sms ?? ""]}</StatusBadge></article>
             <article className="communication-template-card"><div><strong>Push</strong><span>Android FCM, iOS APNs, Web Push, token health</span></div><StatusBadge tone={toneForStatus(computedOverrides.push)}>{statusLabels[computedOverrides.push ?? ""]}</StatusBadge></article>
+            <article className="communication-template-card"><div><strong>Payments</strong><span>מנוי גן בטוח לחברה; תשלומי הורים ישירות לחשבון הגן</span></div><StatusBadge tone={toneForStatus(computedOverrides.payment)}>{statusLabels[computedOverrides.payment ?? ""]}</StatusBadge></article>
+            <article className="communication-template-card"><div><strong>Invoices</strong><span>PDF, משלוח במייל, ארכיון וייצוא חודשי/שנתי</span></div><StatusBadge tone={toneForStatus(computedOverrides.invoice)}>{statusLabels[computedOverrides.invoice ?? ""]}</StatusBadge></article>
             <article className="communication-template-card"><div><strong>Camera Gateway</strong><span>{getGatewayProvider()} · RTSP server-only · playback via token</span></div><StatusBadge tone={toneForStatus(computedOverrides.camera_gateway)}>{statusLabels[computedOverrides.camera_gateway ?? ""]}</StatusBadge></article>
             <article className="communication-template-card"><div><strong>AI Provider</strong><span>Shadow mode, calibration and human review required</span></div><StatusBadge tone={toneForStatus(computedOverrides.ai_provider)}>{statusLabels[computedOverrides.ai_provider ?? ""]}</StatusBadge></article>
           </div>
+        </CleanSection>
+
+        <CleanSection title="בריאות ספקים" subtitle="סטטוס תצורה, webhook ופעילות אחרונה לכל ספק.">
+          {providerHealth.length ? (
+            <div className="communication-log-list">
+              {providerHealth.slice(0, 16).map((row) => (
+                <article className="communication-log-row" key={row.id}>
+                  <div>
+                    <strong>{integrationMeta[row.integration_type]?.title ?? row.integration_type} · {row.provider}</strong>
+                    <span>{row.next_action ?? "ממתין לבדיקה"} · הצלחה אחרונה {formatDate(row.last_success_at)}</span>
+                  </div>
+                  <StatusBadge tone={toneForStatus(row.status)}>{statusLabels[row.status ?? ""] ?? row.status}</StatusBadge>
+                </article>
+              ))}
+            </div>
+          ) : <EmptyState title="אין נתוני בריאות ספקים" text="מיגרציית PHASE 163 מוסיפה provider health readiness." />}
+        </CleanSection>
+
+        <CleanSection title="לוגי מסירה" subtitle="לוג אחיד לאימייל, WhatsApp, SMS, Push, תשלומים וחשבוניות.">
+          {deliveryLogs.length ? (
+            <div className="communication-log-list">
+              {deliveryLogs.slice(0, 10).map((log) => (
+                <article className="communication-log-row" key={log.id}>
+                  <div>
+                    <strong>{log.channel} · {log.provider}</strong>
+                    <span>{log.template ?? "provider event"} · {formatDate(log.delivered_at ?? log.sent_at ?? log.failed_at ?? log.created_at)}</span>
+                  </div>
+                  <StatusBadge tone={String(log.status).includes("failed") ? "bad" : "good"}>{log.status ?? "queued"}</StatusBadge>
+                </article>
+              ))}
+            </div>
+          ) : <EmptyState title="עוד אין לוגי מסירה" text="לוגים יופיעו אחרי בדיקות ספקים, webhooks או משלוחים מבוקרים." />}
         </CleanSection>
 
         <div id="integration-test-center">

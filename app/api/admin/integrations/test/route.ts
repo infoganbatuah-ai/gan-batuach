@@ -6,7 +6,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 const communicationTypes = new Set(["email", "whatsapp", "sms", "push"]);
 
 const schema = z.object({
-  integration_type: z.enum(["email", "whatsapp", "sms", "push", "supabase", "vercel", "camera_gateway", "ai_provider"]),
+  integration_type: z.enum(["email", "whatsapp", "sms", "push", "payment", "invoice", "supabase", "vercel", "camera_gateway", "ai_provider"]),
   provider: z.string().min(2).optional(),
   recipient: z.string().trim().optional()
 });
@@ -52,7 +52,7 @@ export async function POST(request: Request) {
     const payload = schema.parse(await request.json());
     const admin = createAdminClient();
     const now = new Date().toISOString();
-    const provider = payload.provider || (payload.integration_type === "email" ? "mock_email" : payload.integration_type === "whatsapp" ? "mock_whatsapp" : payload.integration_type === "sms" ? "mock_sms" : payload.integration_type === "push" ? "mock_push" : payload.integration_type);
+    const provider = payload.provider || (payload.integration_type === "email" ? "mock_email" : payload.integration_type === "whatsapp" ? "mock_whatsapp" : payload.integration_type === "sms" ? "mock_sms" : payload.integration_type === "push" ? "mock_push" : payload.integration_type === "payment" ? "sandbox_payment" : payload.integration_type === "invoice" ? "mock_invoice" : payload.integration_type);
     const approved = await isApprovedRecipient(admin, profile, payload.integration_type, payload.recipient);
     if (!approved) return fail("נמען הבדיקה לא מאושר. יש להשתמש בפרטי האדמין המחובר או להוסיף נמען מאושר.", 403);
 
@@ -99,6 +99,34 @@ export async function POST(request: Request) {
         completed_at: now
       });
     }
+
+    await admin.from("provider_delivery_logs" as any).insert({
+      channel: payload.integration_type,
+      provider,
+      recipient: null,
+      template: payload.integration_type === "payment" ? "sandbox_payment_check" : payload.integration_type === "invoice" ? "mock_invoice_check" : "safe_provider_check",
+      status: "skipped",
+      metadata: {
+        source: "admin_integration_test",
+        recipient_preview: recipientPreview,
+        real_send: false,
+        live_payment: false,
+        production_invoice: false
+      }
+    });
+
+    await admin.from("integration_audit_events" as any).insert({
+      event_type: "test_send_performed",
+      integration_type: payload.integration_type,
+      provider,
+      actor_id: profile.id,
+      severity: "info",
+      description: "Safe provider integration test performed. No real send, live charge or production invoice was triggered.",
+      metadata: {
+        production_integration_test_log_id: testLog.data.id,
+        recipient_preview: recipientPreview
+      }
+    });
 
     return ok({ test: testLog.data });
   } catch (error) {

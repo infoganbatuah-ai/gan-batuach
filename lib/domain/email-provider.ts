@@ -112,19 +112,19 @@ function dryRunProvider(name: Exclude<EmailProviderName, "mock_email" | "custom"
 export function getEmailProvider(provider = process.env.EMAIL_PROVIDER): EmailProvider {
   if (provider === "resend") {
     return dryRunProvider("resend", [
-      ["EMAIL_API_KEY", process.env.EMAIL_API_KEY],
+      ["RESEND_API_KEY", process.env.RESEND_API_KEY || process.env.EMAIL_API_KEY],
       ["EMAIL_FROM_ADDRESS", process.env.EMAIL_FROM_ADDRESS]
     ]);
   }
   if (provider === "sendgrid") {
     return dryRunProvider("sendgrid", [
-      ["EMAIL_API_KEY", process.env.EMAIL_API_KEY],
+      ["SENDGRID_API_KEY", process.env.SENDGRID_API_KEY || process.env.EMAIL_API_KEY],
       ["EMAIL_FROM_ADDRESS", process.env.EMAIL_FROM_ADDRESS]
     ]);
   }
   if (provider === "amazon_ses") {
     return dryRunProvider("amazon_ses", [
-      ["AWS_SES_REGION", process.env.AWS_SES_REGION],
+      ["SES_REGION", process.env.SES_REGION || process.env.AWS_SES_REGION],
       ["AWS_SES_ACCESS_KEY_ID", process.env.AWS_SES_ACCESS_KEY_ID],
       ["AWS_SES_SECRET_ACCESS_KEY", process.env.AWS_SES_SECRET_ACCESS_KEY],
       ["EMAIL_FROM_ADDRESS", process.env.EMAIL_FROM_ADDRESS]
