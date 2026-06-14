@@ -79,6 +79,7 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/admin/security-center", label: "מרכז אבטחה", hint: "בדיקה חיצונית" },
     { href: "/dashboard/admin/security", label: "אבטחה", hint: "מוכנות ייצור" },
     { href: "/dashboard/admin/iso-readiness", label: "מוכנות ISO", hint: "27001, 27017, 27701" },
+    { href: "/dashboard/admin/iso-evidence", label: "ראיות ISO", hint: "מדיניות ותיק ביקורת" },
     { href: "/dashboard/admin/business-continuity", label: "המשכיות", hint: "גיבוי והתאוששות" },
     { href: "/dashboard/admin/system-health", label: "בריאות מערכת", hint: "מה חסר" },
     { href: "/dashboard/admin/navigation-health", label: "בריאות ניווט", hint: "בדיקת routes" },
