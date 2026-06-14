@@ -48,7 +48,8 @@ export default async function DigitalObserverUseCasePage({ params }: PageProps) 
             <h1>{item.title}</h1>
             <p>{item.solution}</p>
             <div className="hero-actions">
-              <Link className="button primary" href="/digital-observer/onboarding">Start monitoring <ArrowLeft size={18} /></Link>
+              <Link className="button primary" href={`/digital-observer/start?site_type=${item.key}`}>Start monitoring <ArrowLeft size={18} /></Link>
+              <Link className="button secondary" href={`/digital-observer/request-demo?site_type=${item.key}`}>Request demo</Link>
               <Link className="button secondary" href="/digital-observer">Digital Observer home</Link>
             </div>
           </div>
@@ -103,8 +104,9 @@ export default async function DigitalObserverUseCasePage({ params }: PageProps) 
 
         <section className="dashboard-section">
           <div className="hero-actions">
-            <Link className="button primary" href="/book-demo?product=digital_observer">Request demo</Link>
-            <Link className="button secondary" href="/digital-observer/onboarding">Create observer site</Link>
+            <Link className="button primary" href={`/digital-observer/request-demo?site_type=${item.key}`}>Request demo</Link>
+            <Link className="button secondary" href={`/digital-observer/start?site_type=${item.key}`}>Create observer site</Link>
+            <Link className="button secondary" href="/digital-observer/pricing">Compare packages</Link>
           </div>
         </section>
       </main>

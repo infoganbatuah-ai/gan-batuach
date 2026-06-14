@@ -5,6 +5,7 @@ import { BrandHeader } from "@/components/brand-header";
 import {
   DIGITAL_OBSERVER_AI_GOALS,
   DIGITAL_OBSERVER_DOMAIN_OPTIONS,
+  DIGITAL_OBSERVER_FAQ,
   DIGITAL_OBSERVER_NAVIGATION,
   DIGITAL_OBSERVER_PACKAGES,
   DIGITAL_OBSERVER_PRODUCT_BOUNDARIES,
@@ -43,14 +44,15 @@ export default function DigitalObserverPublicPage() {
           <div className="hero-content">
             <p className="eyebrow">Digital Observer</p>
             <h1>Digital Observer – AI Camera Monitoring for homes, businesses and organizations.</h1>
+            <p className="hero-subtitle">התצפיתן הדיגיטלי – ניטור חכם למצלמות הבית והעסק.</p>
             <p>
               Connect cameras, monitor sites and receive intelligent alerts for homes, offices, warehouses, stores, parking lots and custom sites.
               Digital Observer helps monitor unusual activity and supports review without making automatic accusations or unsupported safety claims.
             </p>
             <div className="hero-actions">
-              <Link className="button primary" href="/digital-observer/onboarding">Start monitoring <ArrowLeft size={18} /></Link>
-              <Link className="button secondary" href="/digital-observer/dashboard">Open dashboard</Link>
-              <Link className="button secondary" href="/book-demo?product=digital_observer">Request demo</Link>
+              <Link className="button primary" href="/digital-observer/start?source=homepage">Start monitoring <ArrowLeft size={18} /></Link>
+              <Link className="button secondary" href="/digital-observer/request-demo?source=homepage">Request demo</Link>
+              <Link className="button secondary" href="/digital-observer/pricing">Choose package</Link>
             </div>
           </div>
           <div className="observer-visual-panel" aria-label="Digital Observer product signals">
@@ -181,7 +183,10 @@ export default function DigitalObserverPublicPage() {
                   <p>{pkg.cameras} cameras · {pkg.hours} · {pkg.retention}</p>
                   <small>{pkg.ai.join(" · ")} · {pkg.channels}</small>
                 </div>
-                <strong>{pkg.monthlyPrice}</strong>
+                <div className="procedure-meta">
+                  <strong>{pkg.monthlyPrice}</strong>
+                  <Link className="button secondary" href={`/digital-observer/pricing?package=${pkg.key}`}>Choose package</Link>
+                </div>
               </article>
             ))}
           </div>
@@ -212,10 +217,13 @@ export default function DigitalObserverPublicPage() {
             <p>Launch copy uses careful wording and avoids unsupported claims.</p>
           </div>
           <div className="grid cols-2 dashboard-panels">
-            <article className="card action-panel"><HelpCircle /><h3>Does it replace security personnel?</h3><p>No. Digital Observer improves visibility and supports review. It does not replace professional judgment or emergency procedures.</p></article>
-            <article className="card action-panel"><HelpCircle /><h3>Can it use existing cameras?</h3><p>Yes, through gateway readiness for DVR/NVR, RTSP, ONVIF and generic cameras. Credentials are not exposed in the browser.</p></article>
-            <article className="card action-panel"><HelpCircle /><h3>Are sensitive capabilities enabled by default?</h3><p>No. Capability status is controlled per vertical as allowed, disabled, restricted, legal review required, consent required or future only.</p></article>
-            <article className="card action-panel"><HelpCircle /><h3>Is this Gan Batuach?</h3><p>No. Gan Batuach remains the kindergarten product. Digital Observer is the standalone monitoring product shell.</p></article>
+            {DIGITAL_OBSERVER_FAQ.slice(0, 8).map((item) => (
+              <article className="card action-panel" key={item.question}>
+                <HelpCircle />
+                <h3>{item.question}</h3>
+                <p>{item.answer}</p>
+              </article>
+            ))}
           </div>
         </section>
 
@@ -238,8 +246,9 @@ export default function DigitalObserverPublicPage() {
             <p>Standalone launch readiness is prepared without activating production billing, DNS or restricted capabilities automatically.</p>
           </div>
           <div className="hero-actions">
-            <Link className="button primary" href="/digital-observer/onboarding">Create observer site</Link>
-            <Link className="button secondary" href="/book-demo?product=digital_observer">Request demo</Link>
+            <Link className="button primary" href="/digital-observer/start?source=final_cta">Create observer site</Link>
+            <Link className="button secondary" href="/digital-observer/request-demo?source=final_cta">Request demo</Link>
+            <Link className="button secondary" href="/digital-observer/trust">Trust and privacy</Link>
             <Link className="button secondary" href="/digital-observer/dashboard">Open app shell</Link>
           </div>
         </section>
