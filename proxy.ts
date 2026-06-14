@@ -17,6 +17,7 @@ function hostWithoutPort(value: string | null) {
 }
 
 function isDigitalObserverHost(request: NextRequest) {
+  if (process.env.DIGITAL_OBSERVER_CUSTOM_DOMAIN_ENABLED !== "true") return false;
   const host = hostWithoutPort(request.headers.get("host"));
   if (!host) return false;
   return envHosts(process.env.DIGITAL_OBSERVER_PUBLIC_HOST, process.env.DIGITAL_OBSERVER_APP_HOST).includes(host);

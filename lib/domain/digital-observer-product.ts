@@ -14,13 +14,13 @@ export const DIGITAL_OBSERVER_SITE_TYPES = [
 
 export const DIGITAL_OBSERVER_NAVIGATION = [
   { href: "/digital-observer/dashboard", label: "Overview" },
-  { href: "/digital-observer/dashboard#sites", label: "Sites" },
-  { href: "/digital-observer/dashboard#cameras", label: "Cameras" },
-  { href: "/digital-observer/dashboard#alerts", label: "Observer Alerts" },
+  { href: "/digital-observer/sites", label: "Sites" },
+  { href: "/digital-observer/cameras", label: "Cameras" },
+  { href: "/digital-observer/alerts", label: "Observer Alerts" },
   { href: "/digital-observer/onboarding#goals", label: "Monitoring Rules" },
   { href: "/digital-observer#packages", label: "Packages" },
   { href: "/digital-observer/billing", label: "Billing" },
-  { href: "/digital-observer/onboarding#settings", label: "Settings" }
+  { href: "/digital-observer/settings", label: "Settings" }
 ] as const;
 
 export const DIGITAL_OBSERVER_PUBLIC_SECTIONS = [
