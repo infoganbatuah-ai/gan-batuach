@@ -420,3 +420,67 @@ export const DIGITAL_OBSERVER_PAID_BETA_DECISION_STATES = [
   "ready_for_standalone_launch",
   "ready_for_infrastructure_extraction"
 ] as const;
+
+export const DIGITAL_OBSERVER_SEPARATION_DECISION_STATES = [
+  "not_ready",
+  "keep_inside_gan_batuach",
+  "monorepo_recommended",
+  "separate_vercel_ready",
+  "separate_supabase_ready",
+  "separate_repo_ready",
+  "full_separation_ready"
+] as const;
+
+export const DIGITAL_OBSERVER_SEPARATION_FACTORS = [
+  "paying customers",
+  "product usage",
+  "camera setup success",
+  "support load",
+  "billing separation",
+  "legal readiness",
+  "data boundaries",
+  "technical complexity"
+] as const;
+
+export const DIGITAL_OBSERVER_FUTURE_MONOREPO_PLAN = {
+  apps: ["gan-batuach", "digital-observer"],
+  packages: ["observer-core", "camera-core", "ai-core", "workflow-core", "audit-core", "notification-core", "billing-core", "analytics-core", "ui-core"]
+} as const;
+
+export const DIGITAL_OBSERVER_GITHUB_STRATEGIES = [
+  { key: "single_monorepo", title: "Single Monorepo", recommendation: "recommended_next", pros: ["shared packages", "one source of truth", "easier shared engine development"], cons: ["larger repo", "requires careful project boundaries"] },
+  { key: "separate_repositories", title: "Separate Repositories", recommendation: "later", pros: ["stronger product separation", "cleaner permissions"], cons: ["shared package complexity", "duplicated setup", "harder synchronization"] }
+] as const;
+
+export const DIGITAL_OBSERVER_VERCEL_STRATEGIES = [
+  { key: "same_project_route_based", title: "Same Vercel project, route-based separation", recommendation: "current", note: "Keep /digital-observer while traction is still being validated." },
+  { key: "separate_projects_same_monorepo", title: "Separate Vercel projects from same monorepo", recommendation: "next_after_paid_beta", note: "Best first infrastructure split once beta is validated." },
+  { key: "separate_projects_separate_repos", title: "Separate Vercel projects and separate repos", recommendation: "future_only", note: "Use only after shared package boundaries are stable." }
+] as const;
+
+export const DIGITAL_OBSERVER_SUPABASE_STRATEGIES = [
+  { key: "same_project_product_type", title: "Same Supabase project with product_type / observer_site_id separation", recommendation: "current", risk: "Requires strict RLS and reporting separation." },
+  { key: "separate_project", title: "Separate Supabase project for Digital Observer", recommendation: "later", risk: "Higher migration, auth and rollback complexity." },
+  { key: "hybrid_transition", title: "Hybrid transition model", recommendation: "recommended_for_extraction", risk: "Requires bridge views, export tooling and careful cutover." }
+] as const;
+
+export const DIGITAL_OBSERVER_DATA_BOUNDARY_GROUPS = {
+  ganBatuachOnly: ["children", "parents", "staff", "inspections", "kindergarten billing", "parent tuition payments", "child medical records"],
+  digitalObserverOnly: ["observer_sites", "observer_subscriptions", "observer_usage_tracking", "observer_site_members", "standalone observer billing"],
+  sharedCore: ["camera infrastructure", "observer signals", "audit logs", "AI models", "workflows", "notifications", "capability matrix"]
+} as const;
+
+export const DIGITAL_OBSERVER_EXTRACTION_RISK_CATEGORIES = [
+  "data migration",
+  "auth",
+  "billing",
+  "camera gateway",
+  "shared packages",
+  "deployment",
+  "DNS/domain",
+  "Supabase",
+  "Vercel",
+  "support",
+  "legal",
+  "customer disruption"
+] as const;
