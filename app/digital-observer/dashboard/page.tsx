@@ -43,7 +43,7 @@ export default async function DigitalObserverOwnerDashboardPage() {
 
   const [camerasRes, signalsRes, subscriptionsRes, usageRes, billingUsageRes] = siteIds.length
     ? await Promise.all([
-        safeQuery<Row>("observer cameras", () => supabase.from("camera_streams" as any).select("id, name, observer_site_id, status, parent_visible, ai_enabled").in("observer_site_id", siteIds).limit(200)),
+        safeQuery<Row>("observer cameras", () => supabase.from("camera_streams" as any).select("id, name, observer_site_id, status, health_status, stream_status, gateway_registration_status, digital_observer_pilot_mode, site_owner_visible, ai_enabled, last_health_check_at, last_seen").in("observer_site_id", siteIds).limit(200)),
         safeQuery<Row>("observer signals", () => supabase.from("observer_intelligence_signals" as any).select("id, observer_site_id, signal_type, severity, review_status, risk_score, recommended_action, created_at").in("observer_site_id", siteIds).order("created_at", { ascending: false }).limit(80)),
         safeQuery<Row>("observer subscriptions", () => supabase.from("observer_site_subscriptions" as any).select("id, observer_site_id, status, subscription_status, renewal_date, trial_start, trial_end, billing_cycle, monthly_price, annual_price, timezone, package_id").in("observer_site_id", siteIds).limit(80)),
         safeQuery<Row>("observer usage", () => supabase.from("observer_site_usage_snapshots" as any).select("id, observer_site_id, active_cameras, ai_events_count, playback_sessions, alerts_sent, users_invited, failed_camera_checks, period_start, period_end").in("observer_site_id", siteIds).order("period_start", { ascending: false }).limit(80)),
@@ -225,7 +225,36 @@ export default async function DigitalObserverOwnerDashboardPage() {
           </div>
         </section>
 
-        <section className="grid cols-3 dashboard-panels" id="cameras">
+        <section className="dashboard-section" id="cameras">
+          <div className="section-heading">
+            <h2>Camera cards</h2>
+            <p>Simple pilot view for site owners. Technical diagnostics stay in admin/advanced tools.</p>
+          </div>
+          {cameras.length === 0 ? (
+            <div className="empty-state">
+              <strong>No cameras connected yet</strong>
+              <span>Add a demo, RTSP, DVR/NVR, ONVIF or generic IP camera through the secure gateway flow.</span>
+            </div>
+          ) : (
+            <div className="grid cols-3 dashboard-panels">
+              {cameras.slice(0, 12).map((camera) => (
+                <article className="card compact-card" key={camera.id}>
+                  <Camera />
+                  <span className={statusTone(camera.health_status ?? camera.status)}>{camera.health_status ?? camera.status ?? "setup"}</span>
+                  <h3>{camera.name ?? "Camera"}</h3>
+                  <p>{camera.gateway_registration_status ?? camera.stream_status ?? "Gateway pending"} · {camera.digital_observer_pilot_mode ? "pilot mode" : "standard mode"}</p>
+                  <small>Last checked: {camera.last_health_check_at ? new Date(camera.last_health_check_at).toLocaleString("he-IL") : camera.last_seen ? new Date(camera.last_seen).toLocaleString("he-IL") : "not checked yet"}</small>
+                  <div className="hero-actions">
+                    <Link className="button secondary" href={`/digital-observer/sites/${camera.observer_site_id}`}>Open view</Link>
+                    <Link className="button secondary" href="/digital-observer/onboarding#cameras">Test connection</Link>
+                  </div>
+                </article>
+              ))}
+            </div>
+          )}
+        </section>
+
+        <section className="grid cols-3 dashboard-panels">
           <article className="card compact-card"><CheckCircle2 /><h3>AI readiness</h3><p>Observer goals are advisory and require human review before action.</p></article>
           <article className="card compact-card"><AlertTriangle /><h3>Restricted capabilities</h3><p>Audio, face, biometric and legal-review features are controlled by the capability matrix.</p></article>
           <article className="card compact-card"><HeartPulse /><h3>Site health</h3><p>Camera health, gateway status, alerts and subscriptions share existing infrastructure.</p></article>

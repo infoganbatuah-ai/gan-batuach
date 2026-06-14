@@ -256,6 +256,50 @@ export const DIGITAL_OBSERVER_FOLLOW_UP_TEMPLATES = [
   { key: "package_suggestion", channel: "email", title: "Package suggestion", purpose: "Recommend Home Basic, Home Plus, Business Basic, Business Pro or Enterprise Monitoring." }
 ] as const;
 
+export const DIGITAL_OBSERVER_PILOT_CAMERA_SYSTEMS = [
+  "RTSP",
+  "ONVIF readiness",
+  "DVR",
+  "NVR",
+  "Hikvision",
+  "Dahua",
+  "Generic IP Camera",
+  "Demo Camera"
+] as const;
+
+export const DIGITAL_OBSERVER_PILOT_SUPPORT_CATEGORIES = [
+  "camera connection",
+  "gateway issue",
+  "playback issue",
+  "alert issue",
+  "billing/trial issue",
+  "onboarding issue",
+  "UX confusion",
+  "feature request"
+] as const;
+
+export const DIGITAL_OBSERVER_PILOT_REVIEW_LIFECYCLE = [
+  "detected",
+  "pending_review",
+  "dismissed",
+  "confirmed",
+  "needs_followup",
+  "uncertain",
+  "action_suggested",
+  "closed"
+] as const;
+
+export const DIGITAL_OBSERVER_PILOT_PRIVACY_RULES = [
+  "No kindergarten data",
+  "No Gan Batuach parent/child/staff flows",
+  "RTSP URLs stay server-side",
+  "Camera credentials are encrypted or server-only",
+  "Playback uses secure token readiness",
+  "Shadow mode first",
+  "Human review required",
+  "No restricted capability activation by default"
+] as const;
+
 export const DIGITAL_OBSERVER_PRODUCT_SWITCHER = [
   { product: "Gan Batuach", href: "/", description: "Kindergarten management, parents, children, staff, inspectors and Israeli regulation." },
   { product: "Digital Observer", href: "/digital-observer", description: "Standalone camera monitoring for homes, businesses and organizations." }
