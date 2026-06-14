@@ -19,7 +19,18 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/join-parent",
     "/gardens",
     "/kindergarten-directory",
-    "/trust"
+    "/trust",
+    "/digital-observer",
+    "/digital-observer/home",
+    "/digital-observer/business",
+    "/digital-observer/office",
+    "/digital-observer/warehouse",
+    "/digital-observer/store",
+    "/digital-observer/parking",
+    "/digital-observer/pricing",
+    "/digital-observer/request-demo",
+    "/digital-observer/start",
+    "/digital-observer/trust"
   ];
   return routes.map((route) => ({
     url: `${base}${route}`,

@@ -92,6 +92,18 @@ export const DIGITAL_OBSERVER_USE_CASES = [
     alerts: "Camera offline, obstruction, motion after hours, crowding and restricted area.",
     benefits: ["Retail visibility", "Camera health tracking", "Alert readiness", "Human-reviewed signals"],
     packageSuggestion: "Business Basic or Business Pro"
+  },
+  {
+    key: "parking",
+    path: "/digital-observer/parking",
+    title: "Parking Lot Monitoring",
+    audience: "Parking operators",
+    problem: "Parking lots need perimeter visibility, camera health and after-hours motion awareness without exposing camera infrastructure.",
+    solution: "Connect parking cameras through the secure gateway, define monitoring hours and review unusual activity before action.",
+    cameraSetup: "Parking lot DVR/NVR, RTSP, ONVIF or generic IP camera readiness.",
+    alerts: "Camera offline, motion after hours, obstruction, restricted area and unusual motion.",
+    benefits: ["Perimeter visibility", "After-hours awareness", "Camera health tracking", "Review-first alerts"],
+    packageSuggestion: "Business Pro or Enterprise Monitoring"
   }
 ] as const;
 
@@ -191,12 +203,57 @@ export const DIGITAL_OBSERVER_ANALYTICS_EVENTS = [
 ] as const;
 
 export const DIGITAL_OBSERVER_LEAD_SOURCES = [
-  "home",
-  "business",
-  "office",
-  "warehouse",
-  "store",
-  "custom"
+  "digital_observer_home",
+  "digital_observer_business",
+  "digital_observer_office",
+  "digital_observer_warehouse",
+  "digital_observer_store",
+  "digital_observer_parking",
+  "digital_observer_demo",
+  "digital_observer_pricing",
+  "digital_observer_start",
+  "referral",
+  "campaign"
+] as const;
+
+export const DIGITAL_OBSERVER_MARKETING_CTA_EVENTS = [
+  "homepage_cta_click",
+  "pricing_cta_click",
+  "demo_form_started",
+  "demo_form_submitted",
+  "start_monitoring_clicked",
+  "package_selected",
+  "onboarding_started"
+] as const;
+
+export const DIGITAL_OBSERVER_SAFE_COPY_RULES = [
+  { avoid: "prevents all incidents", use: "helps monitor unusual activity" },
+  { avoid: "guarantees safety", use: "improves visibility and response readiness" },
+  { avoid: "replaces human security completely", use: "supports review and operational decisions" },
+  { avoid: "identifies criminals", use: "detects activity that may require attention" },
+  { avoid: "watches everything without limits", use: "monitors configured cameras, schedules and goals" }
+] as const;
+
+export const DIGITAL_OBSERVER_FAQ = [
+  { question: "What cameras are supported?", answer: "Digital Observer is ready for DVR/NVR, RTSP, ONVIF and generic IP camera setup through the secure gateway." },
+  { question: "Do I need a DVR/NVR?", answer: "No. A DVR/NVR is supported, but standalone IP cameras and demo cameras can also be prepared." },
+  { question: "Does it work with RTSP?", answer: "Yes, RTSP readiness is included, but RTSP URLs and credentials stay server-side and are not shown in the browser." },
+  { question: "Can I connect home cameras?", answer: "Yes. Home sites can start in test mode with privacy settings and controlled alert goals." },
+  { question: "What happens if a camera is offline?", answer: "The system can track camera health and create a controlled alert for configured recipients." },
+  { question: "Who receives alerts?", answer: "Site owners choose recipients and channels by severity, package and notification preferences." },
+  { question: "What is AI monitoring?", answer: "AI monitoring means selected observer goals such as camera offline, motion after hours or restricted-area activity. It supports review and does not make unsupported conclusions." },
+  { question: "Is recording required?", answer: "No. Event-only mode and camera health monitoring can be prepared without activating recording." },
+  { question: "Can I cancel?", answer: "Cancellation readiness is part of the standalone billing model. Monitoring pauses according to package and retention rules." },
+  { question: "Is there a trial?", answer: "Trial readiness exists for standalone sites, with test mode first and production activation only when provider settings are configured." }
+] as const;
+
+export const DIGITAL_OBSERVER_FOLLOW_UP_TEMPLATES = [
+  { key: "demo_request_received", channel: "email", title: "Demo request received", purpose: "Confirm the request and explain next steps." },
+  { key: "follow_up_reminder", channel: "whatsapp", title: "Follow-up reminder", purpose: "Remind the lead that a short setup call is pending." },
+  { key: "onboarding_link", channel: "email", title: "Onboarding link", purpose: "Send the standalone onboarding link after qualification." },
+  { key: "trial_started", channel: "email", title: "Trial started", purpose: "Explain test mode, camera setup and privacy controls." },
+  { key: "camera_setup_reminder", channel: "sms", title: "Camera setup reminder", purpose: "Remind the site owner to finish camera connection." },
+  { key: "package_suggestion", channel: "email", title: "Package suggestion", purpose: "Recommend Home Basic, Home Plus, Business Basic, Business Pro or Enterprise Monitoring." }
 ] as const;
 
 export const DIGITAL_OBSERVER_PRODUCT_SWITCHER = [
