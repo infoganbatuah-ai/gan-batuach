@@ -32,6 +32,7 @@ export const dashboardRouteChecks: DashboardRouteCheck[] = [
   { route: "/dashboard/admin/document-center", label: "מרכז מסמכים", roles: ["admin"], dataTable: "documents" },
   { route: "/dashboard/admin/documents", label: "מסמכים", roles: ["admin"], dataTable: "documents" },
   { route: "/dashboard/admin/iso-evidence", label: "ראיות ISO", roles: ["admin"], dataTable: "iso_evidence_items" },
+  { route: "/dashboard/admin/capability-legal-review", label: "בדיקת יכולות", roles: ["admin"], dataTable: "observer_vertical_capability_decisions" },
   { route: "/dashboard/admin/system-health", label: "בריאות מערכת", roles: ["admin"], dataTable: "audit_logs" },
   { route: "/dashboard/admin/audit-logs", label: "Audit Logs", roles: ["admin"], dataTable: "audit_logs" },
   { route: "/dashboard/admin/reports", label: "דוחות", roles: ["admin"], dataTable: "complaints" },
