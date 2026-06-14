@@ -39,7 +39,7 @@ export default async function AdminIsoEvidencePage() {
   const result = await safeAdminData("iso evidence", async () => {
     const supabase = await createClient();
     const [evidenceRes, soaRes, policiesRes, proceduresRes, suppliersRes, accessReviewsRes, gapsRes, actionsRes, binderRes, scheduleRes, controlsRes, risksRes] = await Promise.all([
-      supabase.from("iso_evidence_items" as any).select("*").order("standard").order("control_id", { nullsFirst: false }).limit(300),
+      supabase.from("iso_evidence_items" as any).select("*").order("standard").order("control_id").limit(300),
       supabase.from("iso_statement_of_applicability" as any).select("*").order("control_id").limit(200),
       supabase.from("security_policies_repository" as any).select("*").order("policy_type").limit(200),
       supabase.from("security_procedures" as any).select("*").order("procedure_type").limit(200),

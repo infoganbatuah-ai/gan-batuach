@@ -35,6 +35,7 @@ export const dashboardRouteChecks: DashboardRouteCheck[] = [
   { route: "/dashboard/admin/system-health", label: "בריאות מערכת", roles: ["admin"], dataTable: "audit_logs" },
   { route: "/dashboard/admin/audit-logs", label: "Audit Logs", roles: ["admin"], dataTable: "audit_logs" },
   { route: "/dashboard/admin/reports", label: "דוחות", roles: ["admin"], dataTable: "complaints" },
+  { route: "/dashboard/admin/final-compliance-review", label: "סקירת ציות סופית", roles: ["admin"], dataTable: "final_compliance_gaps" },
   { route: "/dashboard/admin/settings", label: "הגדרות", roles: ["admin"] },
   { route: "/dashboard/admin/navigation-health", label: "בריאות ניווט", roles: ["admin"] },
   { route: "/dashboard/admin/user-journey-audit", label: "User Journey Audit", roles: ["admin"] },
