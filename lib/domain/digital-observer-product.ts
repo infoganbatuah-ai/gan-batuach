@@ -484,3 +484,64 @@ export const DIGITAL_OBSERVER_EXTRACTION_RISK_CATEGORIES = [
   "legal",
   "customer disruption"
 ] as const;
+
+export const DIGITAL_OBSERVER_COMMERCIAL_LAUNCH_STATUSES = [
+  "not_ready",
+  "internal_ready",
+  "beta_ready",
+  "paid_beta_ready",
+  "launch_ready",
+  "commercially_live",
+  "paused"
+] as const;
+
+export const DIGITAL_OBSERVER_COMMERCIAL_LAUNCH_DECISIONS = [
+  "not_ready",
+  "needs_more_beta",
+  "soft_launch_ready",
+  "commercial_launch_ready",
+  "pause_launch"
+] as const;
+
+export const DIGITAL_OBSERVER_LAUNCH_JOURNEY = [
+  "Visitor",
+  "Digital Observer website",
+  "Choose use case",
+  "Request demo or start monitoring",
+  "Lead created",
+  "Admin follow-up",
+  "Observer site created",
+  "Package selected",
+  "Cameras added",
+  "Monitoring goals configured",
+  "Trial started",
+  "Payment readiness",
+  "Active customer"
+] as const;
+
+export const DIGITAL_OBSERVER_LAUNCH_SUPPORT_WORKFLOWS = [
+  "camera setup failed",
+  "RTSP unknown",
+  "DVR/NVR channel issue",
+  "gateway unavailable",
+  "playback issue",
+  "alerts too noisy",
+  "missed alert",
+  "billing issue",
+  "package upgrade",
+  "cancellation request"
+] as const;
+
+export const DIGITAL_OBSERVER_LAUNCH_KNOWLEDGE_BASE = [
+  "What is Digital Observer?",
+  "How to connect cameras",
+  "What is RTSP?",
+  "What is DVR/NVR?",
+  "What is ONVIF?",
+  "Why do I need a gateway?",
+  "How alerts work",
+  "How monitoring schedules work",
+  "How packages work",
+  "How billing works",
+  "How to contact support"
+] as const;
