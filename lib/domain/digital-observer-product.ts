@@ -19,7 +19,7 @@ export const DIGITAL_OBSERVER_NAVIGATION = [
   { href: "/digital-observer/dashboard#alerts", label: "Observer Alerts" },
   { href: "/digital-observer/onboarding#goals", label: "Monitoring Rules" },
   { href: "/digital-observer#packages", label: "Packages" },
-  { href: "/digital-observer/dashboard#billing", label: "Billing" },
+  { href: "/digital-observer/billing", label: "Billing" },
   { href: "/digital-observer/onboarding#settings", label: "Settings" }
 ] as const;
 
@@ -96,11 +96,38 @@ export const DIGITAL_OBSERVER_USE_CASES = [
 ] as const;
 
 export const DIGITAL_OBSERVER_PACKAGES = [
-  { key: "home_basic", name: "Home Basic", type: "home", cameras: "up to 2", hours: "event-based", retention: "14 days events", ai: ["camera offline", "motion after hours"], channels: "in-app", price: "pricing readiness" },
-  { key: "home_plus", name: "Home Plus", type: "home", cameras: "up to 6", hours: "night / custom", retention: "30 days events", ai: ["restricted area", "obstruction", "person detected"], channels: "in-app, SMS, WhatsApp readiness", price: "pricing readiness" },
-  { key: "business_basic", name: "Business Basic", type: "business", cameras: "up to 8", hours: "business hours", retention: "30 days events", ai: ["camera offline", "restricted area", "door/gate open"], channels: "email, SMS, WhatsApp readiness", price: "pricing readiness" },
-  { key: "business_pro", name: "Business Pro", type: "business", cameras: "up to 20", hours: "custom schedule", retention: "60 days events", ai: ["crowding", "camera tampering", "unusual motion"], channels: "multi-channel readiness", price: "pricing readiness" },
-  { key: "enterprise_monitoring", name: "Enterprise Monitoring", type: "enterprise", cameras: "custom", hours: "24/7 readiness", retention: "custom", ai: ["advanced policies", "multi-site", "review workflows"], channels: "custom SLA readiness", price: "custom" }
+  { key: "home_basic", name: "Home Basic", type: "home", cameras: "up to 2", cameraLimit: 2, hours: "event-only mode", monitoringMode: "event_only", retention: "14 days events", retentionDays: 14, recordingRetention: "not included", ai: ["camera offline", "motion after hours"], channels: "in-app", monthlyPrice: "99 ILS readiness", annualPrice: "990 ILS readiness", liveView: true, multiUser: false, advancedAnalytics: false },
+  { key: "home_plus", name: "Home Plus", type: "home", cameras: "up to 6", cameraLimit: 6, hours: "night / custom", monitoringMode: "night_only", retention: "30 days events", retentionDays: 30, recordingRetention: "7 days readiness", ai: ["restricted area", "obstruction", "person detected"], channels: "in-app, SMS, WhatsApp readiness", monthlyPrice: "179 ILS readiness", annualPrice: "1,790 ILS readiness", liveView: true, multiUser: true, advancedAnalytics: false },
+  { key: "business_basic", name: "Business Basic", type: "business", cameras: "up to 8", cameraLimit: 8, hours: "business hours / night monitoring", monitoringMode: "business_hours", retention: "30 days events", retentionDays: 30, recordingRetention: "7 days readiness", ai: ["camera offline", "restricted area", "door/gate open"], channels: "email, SMS, WhatsApp readiness", monthlyPrice: "299 ILS readiness", annualPrice: "2,990 ILS readiness", liveView: true, multiUser: true, advancedAnalytics: false },
+  { key: "business_pro", name: "Business Pro", type: "business", cameras: "up to 20", cameraLimit: 20, hours: "custom schedule", monitoringMode: "custom_schedule", retention: "60 days events", retentionDays: 60, recordingRetention: "14 days readiness", ai: ["crowding", "camera tampering", "unusual motion"], channels: "multi-channel readiness", monthlyPrice: "599 ILS readiness", annualPrice: "5,990 ILS readiness", liveView: true, multiUser: true, advancedAnalytics: true },
+  { key: "enterprise_monitoring", name: "Enterprise Monitoring", type: "enterprise", cameras: "custom", cameraLimit: null, hours: "custom / 24/7 readiness", monitoringMode: "always_on", retention: "custom", retentionDays: 180, recordingRetention: "custom readiness", ai: ["advanced policies", "multi-site", "review workflows"], channels: "custom SLA readiness", monthlyPrice: "custom", annualPrice: "custom", liveView: true, multiUser: true, advancedAnalytics: true }
+] as const;
+
+export const DIGITAL_OBSERVER_SITE_OWNER_JOURNEY = [
+  "Create account",
+  "Choose site type",
+  "Choose package",
+  "Add site details",
+  "Add cameras",
+  "Configure monitoring goals",
+  "Configure alert channels",
+  "Review privacy/security settings",
+  "Start trial or subscription"
+] as const;
+
+export const DIGITAL_OBSERVER_BILLING_STREAMS = [
+  { stream: "Digital Observer", payer: "Digital Observer customer", destination: "Digital Observer product account" },
+  { stream: "Gan Batuach", payer: "Kindergarten", destination: "Gan Batuach subscription account" },
+  { stream: "Parent tuition", payer: "Parent", destination: "Kindergarten account" }
+] as const;
+
+export const DIGITAL_OBSERVER_PAYMENT_PROVIDERS = ["Stripe", "Cardcom", "Tranzila", "Meshulam", "Pelecard"] as const;
+
+export const DIGITAL_OBSERVER_MEMBER_ROLES = [
+  { role: "owner", permissions: ["billing", "package", "cameras", "users", "alerts"] },
+  { role: "admin", permissions: ["cameras", "users", "alerts", "settings"] },
+  { role: "viewer", permissions: ["view_dashboard", "view_allowed_cameras", "view_allowed_events"] },
+  { role: "reviewer", permissions: ["review_observer_alerts", "comment_on_events"] }
 ] as const;
 
 export const DIGITAL_OBSERVER_AI_GOALS = [

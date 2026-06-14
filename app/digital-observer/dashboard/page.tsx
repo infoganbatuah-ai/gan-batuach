@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { AlertTriangle, BarChart3, Bell, Camera, CheckCircle2, HeartPulse, PackageCheck, Radar, ShieldCheck, UserRound } from "lucide-react";
+import { AlertTriangle, BarChart3, Bell, Camera, CheckCircle2, CreditCard, HeartPulse, PackageCheck, Radar, ShieldCheck, UserRound } from "lucide-react";
 import { BrandHeader } from "@/components/brand-header";
 import { requireUser } from "@/lib/auth";
 import { logSupabaseError } from "@/lib/admin-safe";
@@ -41,14 +41,15 @@ export default async function DigitalObserverOwnerDashboardPage() {
   const sites = Array.from(siteMap.values());
   const siteIds = sites.map((site) => site.id).filter(Boolean);
 
-  const [camerasRes, signalsRes, subscriptionsRes, usageRes] = siteIds.length
+  const [camerasRes, signalsRes, subscriptionsRes, usageRes, billingUsageRes] = siteIds.length
     ? await Promise.all([
         safeQuery<Row>("observer cameras", () => supabase.from("camera_streams" as any).select("id, name, observer_site_id, status, parent_visible, ai_enabled").in("observer_site_id", siteIds).limit(200)),
         safeQuery<Row>("observer signals", () => supabase.from("observer_intelligence_signals" as any).select("id, observer_site_id, signal_type, severity, review_status, risk_score, recommended_action, created_at").in("observer_site_id", siteIds).order("created_at", { ascending: false }).limit(80)),
-        safeQuery<Row>("observer subscriptions", () => supabase.from("observer_site_subscriptions" as any).select("id, observer_site_id, status, renewal_date, timezone, package_id").in("observer_site_id", siteIds).limit(80)),
-        safeQuery<Row>("observer usage", () => supabase.from("observer_site_usage_snapshots" as any).select("id, observer_site_id, active_cameras, ai_events_count, playback_sessions, period_start, period_end").in("observer_site_id", siteIds).order("period_start", { ascending: false }).limit(80))
+        safeQuery<Row>("observer subscriptions", () => supabase.from("observer_site_subscriptions" as any).select("id, observer_site_id, status, subscription_status, renewal_date, trial_start, trial_end, billing_cycle, monthly_price, annual_price, timezone, package_id").in("observer_site_id", siteIds).limit(80)),
+        safeQuery<Row>("observer usage", () => supabase.from("observer_site_usage_snapshots" as any).select("id, observer_site_id, active_cameras, ai_events_count, playback_sessions, alerts_sent, users_invited, failed_camera_checks, period_start, period_end").in("observer_site_id", siteIds).order("period_start", { ascending: false }).limit(80)),
+        safeQuery<Row>("observer billing usage", () => supabase.from("observer_usage_tracking" as any).select("id, observer_site_id, active_cameras, ai_events_count, storage_used_mb, monitoring_hours_used, alerts_sent, playback_sessions, users_invited, failed_camera_checks, package_limit_status, period_start, period_end").in("observer_site_id", siteIds).order("period_start", { ascending: false }).limit(80))
       ])
-    : [{ data: [], count: 0 }, { data: [], count: 0 }, { data: [], count: 0 }, { data: [], count: 0 }];
+    : [{ data: [], count: 0 }, { data: [], count: 0 }, { data: [], count: 0 }, { data: [], count: 0 }, { data: [], count: 0 }];
 
   const activeSites = sites.filter((site) => site.active).length;
   const cameras = camerasRes.data;
@@ -57,6 +58,10 @@ export default async function DigitalObserverOwnerDashboardPage() {
   const unhealthyCameras = cameras.filter((camera) => !["online", "active", "ready"].includes(String(camera.status)));
   const subscriptions = subscriptionsRes.data;
   const latestUsage = usageRes.data[0];
+  const latestBillingUsage = billingUsageRes.data[0] ?? latestUsage ?? {};
+  const activeSubscriptions = subscriptions.filter((item) => ["active", "trial"].includes(String(item.subscription_status ?? item.status))).length;
+  const billingIssues = subscriptions.filter((item) => ["pending_payment", "overdue", "expired", "suspended"].includes(String(item.subscription_status ?? item.status))).length;
+  const setupProgress = sites.length ? Math.round(((sites.filter((site) => site.monitoring_enabled).length + (cameras.length ? 1 : 0) + (subscriptions.length ? 1 : 0)) / (sites.length + 2)) * 100) : 0;
   const [analyticsRes, leadsRes] = await Promise.all([
     safeQuery<Row>("digital observer analytics readiness", () => supabase.from("digital_observer_analytics_events" as any).select("event_type, count_value, status, source, site_type, package_key").order("occurred_at", { ascending: false }).limit(40)),
     safeQuery<Row>("digital observer leads readiness", () => supabase.from("digital_observer_leads" as any).select("source, status, site_type, package_interest, estimated_cameras").order("created_at", { ascending: false }).limit(40))
@@ -92,6 +97,10 @@ export default async function DigitalObserverOwnerDashboardPage() {
           <article className="metric-card"><Camera /><strong>{cameras.length}</strong><span>cameras</span></article>
           <article className="metric-card"><Bell /><strong>{openSignals.length}</strong><span>open observer alerts</span></article>
           <article className="metric-card"><ShieldCheck /><strong>{activeSites ? "active" : "setup"}</strong><span>site health</span></article>
+          <article className="metric-card"><PackageCheck /><strong>{activeSubscriptions}</strong><span>active/trial subscriptions</span></article>
+          <article className="metric-card"><BarChart3 /><strong>{latestBillingUsage.ai_events_count ?? 0}</strong><span>AI events this month</span></article>
+          <article className="metric-card"><CreditCard /><strong>{billingIssues}</strong><span>billing issues</span></article>
+          <article className="metric-card"><CheckCircle2 /><strong>{setupProgress}%</strong><span>setup progress</span></article>
         </section>
 
         <section className="grid cols-2 dashboard-panels" id="setup">
@@ -122,7 +131,9 @@ export default async function DigitalObserverOwnerDashboardPage() {
               <span>{subscriptions.length} subscription records</span>
               <span>{unhealthyCameras.length} cameras need attention</span>
               <span>{signals.length} recent signals</span>
-              <span>{latestUsage?.active_cameras ?? 0} cameras in latest usage snapshot</span>
+              <span>{latestBillingUsage.active_cameras ?? latestUsage?.active_cameras ?? 0} active cameras this month</span>
+              <span>{latestBillingUsage.monitoring_hours_used ?? 0} monitoring hours used</span>
+              <span>{latestBillingUsage.alerts_sent ?? 0} alerts sent</span>
               <span>Human review required</span>
               <span>No parent/child flows</span>
             </div>
@@ -152,7 +163,7 @@ export default async function DigitalObserverOwnerDashboardPage() {
                       <span className={statusTone(site.active ? "active" : "inactive")}>{site.active ? "active" : "inactive"}</span>
                       <span className="pill">{site.site_type}</span>
                       <h3>{site.name}</h3>
-                      <p>{site.monitoring_enabled ? "Monitoring enabled" : "Monitoring waiting for setup"} · subscription {subscription?.status ?? site.observer_subscription_status ?? "trial"}</p>
+                      <p>{site.monitoring_enabled ? "Monitoring enabled" : "Monitoring waiting for setup"} · subscription {subscription?.subscription_status ?? subscription?.status ?? site.observer_subscription_status ?? "trial"}</p>
                       <Link className="button secondary" href={`/digital-observer/sites/${site.id}`}>Open site</Link>
                     </div>
                     <div className="procedure-meta">
@@ -199,6 +210,19 @@ export default async function DigitalObserverOwnerDashboardPage() {
               </div>
             )}
           </article>
+        </section>
+
+        <section className="dashboard-section">
+          <div className="section-heading">
+            <h2>Recommended actions</h2>
+            <p>Digital Observer commercial actions stay separate from kindergarten billing and parent tuition.</p>
+          </div>
+          <div className="grid cols-4 dashboard-panels">
+            <Link className="premium-action-card" href="/digital-observer/onboarding"><Camera /><strong>Add cameras</strong><span>Use gateway readiness; never expose RTSP or credentials.</span></Link>
+            <Link className="premium-action-card" href="/digital-observer/billing"><CreditCard /><strong>Review billing</strong><span>Package, trial, usage, invoices and upgrade readiness.</span></Link>
+            <Link className="premium-action-card" href="/digital-observer/onboarding#goals"><Radar /><strong>Monitoring goals</strong><span>Select generic goals through capability policy.</span></Link>
+            <Link className="premium-action-card" href="/dashboard/security-settings"><ShieldCheck /><strong>Security settings</strong><span>Keep account and device security current.</span></Link>
+          </div>
         </section>
 
         <section className="grid cols-3 dashboard-panels" id="cameras">
