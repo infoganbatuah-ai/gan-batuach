@@ -41,6 +41,7 @@ export const dashboardRouteChecks: DashboardRouteCheck[] = [
   { route: "/dashboard/admin/iso-certification-handoff", label: "מסירת ISO", roles: ["admin"], dataTable: "iso_external_process_readiness_scores" },
   { route: "/dashboard/admin/capability-legal-review", label: "בדיקת יכולות", roles: ["admin"], dataTable: "observer_vertical_capability_decisions" },
   { route: "/dashboard/admin/legal-review", label: "סקירה משפטית", roles: ["admin"], dataTable: "legal_review_documents" },
+  { route: "/dashboard/admin/external-validation", label: "אימות חיצוני", roles: ["admin"], dataTable: "external_validation_scores" },
   { route: "/dashboard/admin/observer-pilot", label: "פיילוט תצפיתן", roles: ["admin"], dataTable: "observer_pilot_runs" },
   { route: "/dashboard/admin/system-health", label: "בריאות מערכת", roles: ["admin"], dataTable: "audit_logs" },
   { route: "/dashboard/admin/audit-logs", label: "Audit Logs", roles: ["admin"], dataTable: "audit_logs" },

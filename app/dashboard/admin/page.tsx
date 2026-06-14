@@ -331,6 +331,7 @@ export default async function AdminDashboard() {
           <ActionCard title="סקייל" text="ריבוי גנים, בידוד וביצועים" href="/dashboard/admin/scale-validation" icon={BarChart3} tone={data.activeGardens >= 5 ? "good" : "warn"} />
           <ActionCard title="100 גנים" text="תוכנית סקייל מבוקרת" href="/dashboard/admin/scale-100" icon={BarChart3} tone={data.activeGardens >= 25 ? "good" : "warn"} />
           <ActionCard title="השקה" text="פיילוט, אבטחה וציות" href="/dashboard/admin/launch-readiness" icon={Rocket} tone={data.launchBlockers ? "bad" : "good"} />
+          <ActionCard title="אימות חיצוני" text="משפטי, PT, ISO וחנויות" href="/dashboard/admin/external-validation" icon={ShieldCheck} tone={data.launchBlockers ? "warn" : "good"} />
           <ActionCard title="הגשה למובייל" text="TestFlight ו-Google Play" href="/dashboard/admin/mobile-submission" icon={Rocket} tone={data.launchBlockers ? "warn" : "good"} />
           <ActionCard title="דוחות" text="שבועי, חודשי, בטיחות והכנסות" href="/dashboard/admin/reports" icon={FileText} />
         </section>
