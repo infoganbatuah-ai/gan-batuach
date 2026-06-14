@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Bell, Camera, CheckCircle2, ClipboardCheck, Eye, LockKeyhole, MapPin, PackageCheck, Radar, Settings2, ShieldCheck } from "lucide-react";
 import { BrandHeader } from "@/components/brand-header";
-import { DIGITAL_OBSERVER_AI_GOALS, DIGITAL_OBSERVER_NAVIGATION, DIGITAL_OBSERVER_PACKAGES, DIGITAL_OBSERVER_SITE_TYPES } from "@/lib/domain/digital-observer-product";
+import { DIGITAL_OBSERVER_AI_GOALS, DIGITAL_OBSERVER_NAVIGATION, DIGITAL_OBSERVER_PACKAGES, DIGITAL_OBSERVER_SITE_OWNER_JOURNEY, DIGITAL_OBSERVER_SITE_TYPES } from "@/lib/domain/digital-observer-product";
 
 const cameraTypes = ["home camera", "business DVR/NVR", "RTSP", "ONVIF", "generic camera", "Hikvision", "Dahua"];
 const onboardingSteps = [
@@ -58,12 +58,22 @@ export default function DigitalObserverOnboardingPage() {
           </div>
         </section>
 
+        <section className="dashboard-section">
+          <div className="section-heading">
+            <h2>Site owner journey</h2>
+            <p>A commercial path for Digital Observer customers, separate from Gan Batuach manager onboarding.</p>
+          </div>
+          <div className="setup-checklist">
+            {DIGITAL_OBSERVER_SITE_OWNER_JOURNEY.map((step) => <span key={step}>{step}</span>)}
+          </div>
+        </section>
+
         <section className="grid cols-2 dashboard-panels">
           <article className="card action-panel" id="settings">
             <div className="section-heading"><h2>Site details</h2><p>Standalone observer site draft. Not a Gan Batuach kindergarten.</p></div>
             <div className="form-grid compact-form">
               <label className="form-field"><span>Site name</span><input placeholder="Example: Herzl Street Office" disabled /></label>
-              <label className="form-field"><span>Site type</span><select disabled>{DIGITAL_OBSERVER_SITE_TYPES.map((type) => <option key={type.key}>{type.label}</option>)}</select></label>
+              <label className="form-field"><span>Site type</span><select disabled>{DIGITAL_OBSERVER_SITE_TYPES.filter((type) => !type.key.includes("future")).map((type) => <option key={type.key}>{type.label}</option>)}</select></label>
               <label className="form-field full"><span>Address</span><input placeholder="City, street, number" disabled /></label>
               <label className="form-field"><span>Timezone</span><input value="Asia/Jerusalem" disabled readOnly /></label>
               <label className="form-field"><span>Estimated cameras</span><input placeholder="4" disabled /></label>
@@ -91,7 +101,7 @@ export default function DigitalObserverOnboardingPage() {
                 <div className="mini-row" key={pkg.key}>
                   <span>{pkg.name}</span>
                   <strong>{pkg.cameras}</strong>
-                  <small>{pkg.hours} · {pkg.retention} · {pkg.price}</small>
+                  <small>{pkg.hours} · {pkg.retention} · {pkg.monthlyPrice}</small>
                 </div>
               ))}
             </div>

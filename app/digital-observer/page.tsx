@@ -181,7 +181,7 @@ export default function DigitalObserverPublicPage() {
                   <p>{pkg.cameras} cameras · {pkg.hours} · {pkg.retention}</p>
                   <small>{pkg.ai.join(" · ")} · {pkg.channels}</small>
                 </div>
-                <strong>{pkg.price}</strong>
+                <strong>{pkg.monthlyPrice}</strong>
               </article>
             ))}
           </div>

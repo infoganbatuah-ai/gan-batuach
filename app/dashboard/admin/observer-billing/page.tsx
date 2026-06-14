@@ -76,7 +76,7 @@ export default async function AdminObserverBillingPage() {
         <div>
           <p className="eyebrow">Future standalone product</p>
           <h1>Billing automation ל-Digital Observer העצמאי.</h1>
-          <p>מסך readiness בלבד למנויי בתים, עסקים, מחסנים, משרדים וחניונים. חיוב Gan Batuach נשאר קבוע: 700 ש״ח לחודש לגן, כולל תצפיתן דיגיטלי.</p>
+          <p>מסך readiness בלבד למנויי בתים, עסקים, מחסנים, משרדים וחניונים. חיוב Digital Observer נפרד ממנויי Gan Batuach ומתשלומי הורים לגנים.</p>
         </div>
         <span className="pill warn">Mock billing only</span>
       </div>
@@ -110,7 +110,7 @@ export default async function AdminObserverBillingPage() {
       <section className="dashboard-section">
         <div className="section-heading">
           <h2>Standalone subscriptions</h2>
-          <p>אין כאן מנויי Gan Batuach. גנים נשארים במסלול 700 ש״ח לחודש.</p>
+          <p>אין כאן מנויי Gan Batuach, ואין כאן תשלומי הורים לגנים. זהו זרם מסחרי נפרד של Digital Observer.</p>
         </div>
         {data.subscriptions.length === 0 ? (
           <div className="empty-state"><strong>אין עדיין מנויי Digital Observer standalone</strong><span>לאחר יצירת אתרי standalone ושיוך חבילות יופיעו כאן מנויים.</span></div>
