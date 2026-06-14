@@ -1,61 +1,119 @@
 import Link from "next/link";
-import { Camera, Clock, MapPin, PackageCheck, ShieldCheck } from "lucide-react";
+import { Bell, Camera, CheckCircle2, ClipboardCheck, Eye, LockKeyhole, MapPin, PackageCheck, Radar, Settings2, ShieldCheck } from "lucide-react";
 import { BrandHeader } from "@/components/brand-header";
+import { DIGITAL_OBSERVER_AI_GOALS, DIGITAL_OBSERVER_PACKAGES, DIGITAL_OBSERVER_SITE_TYPES } from "@/lib/domain/digital-observer-product";
 
-const siteTypes = ["בית", "עסק", "מחסן", "משרד", "חנות", "חניון", "מותאם"];
-const cameraTypes = ["DVR", "NVR", "IP Camera", "RTSP", "ONVIF", "Hikvision", "Dahua", "Uniview", "Axis", "Generic"];
+const cameraTypes = ["home camera", "business DVR/NVR", "RTSP", "ONVIF", "generic camera", "Hikvision", "Dahua"];
+const onboardingSteps = [
+  { title: "Choose site type", text: "Home, office, business, warehouse, store, parking lot, future school or custom.", icon: MapPin },
+  { title: "Add site details", text: "Name, address, timezone, owner and estimated camera count.", icon: ClipboardCheck },
+  { title: "Choose package", text: "Set camera limits, monitoring hours, retention and alert channels.", icon: PackageCheck },
+  { title: "Add camera source", text: "Connect through gateway readiness only. RTSP and credentials stay server-side.", icon: Camera },
+  { title: "Configure observer goals", text: "Select what should be watched and keep human review enabled.", icon: Radar },
+  { title: "Review privacy settings", text: "Capabilities are gated per vertical and legal review status.", icon: LockKeyhole },
+  { title: "Activate test mode", text: "Run in controlled test mode before production monitoring.", icon: ShieldCheck }
+];
 
 export default function DigitalObserverOnboardingPage() {
   return (
     <>
       <BrandHeader />
-      <main className="public-page">
-        <section className="dashboard-hero-card">
+      <main className="public-page digital-observer-app">
+        <section className="dashboard-hero-card observer-dashboard-hero">
           <div>
-            <p className="eyebrow">Mock onboarding readiness</p>
-            <h1>הצטרפות עתידית ל-Digital Observer.</h1>
-            <p>הכנה לחיבור בית, עסק או אתר עתידי. אין כאן הפעלה מסחרית, חיוב או עיבוד וידאו אמיתי.</p>
+            <p className="eyebrow">Digital Observer Onboarding</p>
+            <h1>Create a standalone observer site.</h1>
+            <p>This flow is for homes, businesses and organizations. Kindergarten activation remains inside Gan Batuach and uses its own regulatory onboarding.</p>
           </div>
-          <span className="pill warn">Future standalone product</span>
+          <span className="pill warn">test mode first</span>
+        </section>
+
+        <section className="dashboard-section">
+          <div className="section-heading">
+            <h2>Seven-step setup flow</h2>
+            <p>Prepared as shell readiness. No real billing, DNS or camera activation happens automatically.</p>
+          </div>
+          <div className="timeline-list">
+            {onboardingSteps.map((step, index) => {
+              const Icon = step.icon;
+              return (
+                <article className="card timeline-card" key={step.title}>
+                  <span className="pill">{index + 1}</span>
+                  <Icon />
+                  <h3>{step.title}</h3>
+                  <p>{step.text}</p>
+                </article>
+              );
+            })}
+          </div>
         </section>
 
         <section className="grid cols-2 dashboard-panels">
           <article className="card action-panel">
-            <div className="section-heading"><h2>פרטי אתר</h2><p>הנתונים יישמרו בעתיד כטיוטת onboarding.</p></div>
+            <div className="section-heading"><h2>Site details</h2><p>Standalone observer site draft. Not a Gan Batuach kindergarten.</p></div>
             <div className="form-grid compact-form">
-              <label className="form-field"><span>שם האתר</span><input placeholder="לדוגמה: הבית ברחוב הרצל" disabled /></label>
-              <label className="form-field"><span>סוג אתר</span><select disabled>{siteTypes.map((type) => <option key={type}>{type}</option>)}</select></label>
-              <label className="form-field full"><span>כתובת</span><input placeholder="עיר, רחוב, מספר" disabled /></label>
-              <label className="form-field"><span>אזור זמן</span><input value="Asia/Jerusalem" disabled readOnly /></label>
-              <label className="form-field"><span>מספר מצלמות משוער</span><input placeholder="4" disabled /></label>
+              <label className="form-field"><span>Site name</span><input placeholder="Example: Herzl Street Office" disabled /></label>
+              <label className="form-field"><span>Site type</span><select disabled>{DIGITAL_OBSERVER_SITE_TYPES.map((type) => <option key={type.key}>{type.label}</option>)}</select></label>
+              <label className="form-field full"><span>Address</span><input placeholder="City, street, number" disabled /></label>
+              <label className="form-field"><span>Timezone</span><input value="Asia/Jerusalem" disabled readOnly /></label>
+              <label className="form-field"><span>Estimated cameras</span><input placeholder="4" disabled /></label>
+              <label className="form-field"><span>Mode</span><input value="test_mode" disabled readOnly /></label>
             </div>
           </article>
 
           <article className="card action-panel">
-            <div className="section-heading"><h2>ניטור וחבילה</h2><p>חבילות standalone עתידיות בלבד.</p></div>
+            <div className="section-heading"><h2>Camera source</h2><p>All camera traffic goes through the gateway layer. No direct RTSP in browser.</p></div>
+            <div className="setup-checklist">
+              {cameraTypes.map((type) => <span key={type}>{type}</span>)}
+            </div>
             <div className="procedure-list">
-              <div className="procedure-card"><Clock /><div><h3>לוח ניטור</h3><p>24/7, שעות עסק, לילה בלבד או custom schedule.</p></div></div>
-              <div className="procedure-card"><Camera /><div><h3>סוג מצלמות</h3><p>{cameraTypes.join(" · ")}</p></div></div>
-              <div className="procedure-card"><PackageCheck /><div><h3>בחירת חבילה</h3><p>Home Basic, Home Plus, Business, Enterprise.</p></div></div>
-              <div className="procedure-card"><ShieldCheck /><div><h3>אבטחה</h3><p>RTSP, סיסמאות ומפתחות Gateway נשארים בצד השרת.</p></div></div>
+              <div className="procedure-card"><Camera /><div><h3>Gateway registration</h3><p>Build candidate server-side, test gateway health, register source, then issue scoped playback token.</p></div></div>
+              <div className="procedure-card"><LockKeyhole /><div><h3>Credential boundary</h3><p>Camera usernames, passwords and RTSP paths are masked and never returned to the client.</p></div></div>
+            </div>
+          </article>
+        </section>
+
+        <section className="grid cols-2 dashboard-panels">
+          <article className="card action-panel">
+            <div className="section-heading"><h2>Package selection</h2><p>Pricing and real billing remain provider-gated readiness.</p></div>
+            <div className="procedure-list compact-list">
+              {DIGITAL_OBSERVER_PACKAGES.map((pkg) => (
+                <div className="mini-row" key={pkg.key}>
+                  <span>{pkg.name}</span>
+                  <strong>{pkg.cameras}</strong>
+                  <small>{pkg.hours} · {pkg.retention} · {pkg.price}</small>
+                </div>
+              ))}
+            </div>
+          </article>
+
+          <article className="card action-panel">
+            <div className="section-heading"><h2>Observer goals</h2><p>Site owners choose goals; policy decides which capabilities can run.</p></div>
+            <div className="setup-checklist">
+              {DIGITAL_OBSERVER_AI_GOALS.map((goal) => <span key={goal}>{goal}</span>)}
+            </div>
+            <div className="procedure-list">
+              <div className="procedure-card"><Eye /><div><h3>Human review</h3><p>Observer may recommend; it does not accuse, discipline or trigger irreversible actions automatically.</p></div></div>
+              <div className="procedure-card"><Bell /><div><h3>Alert channels</h3><p>Email, SMS, WhatsApp and push readiness use existing provider safety modes.</p></div></div>
             </div>
           </article>
         </section>
 
         <section className="dashboard-section">
           <div className="section-heading">
-            <h2>שלבי הפעלה</h2>
-            <p>חשבון → אתר → מצלמות → בדיקה → Gateway → צפייה מאובטחת.</p>
+            <h2>Activation gate</h2>
+            <p>Before production monitoring, the site must pass privacy, capability, camera and subscription checks.</p>
           </div>
-          <div className="timeline-list">
-            {["יצירת חשבון", "יצירת אתר", "חיבור מצלמות", "בדיקת חיבור", "רישום Gateway", "צפייה עם Token"].map((step, index) => (
-              <article className="card timeline-card" key={step}>
-                <span className="pill">{index + 1}</span>
-                <h3>{step}</h3>
-              </article>
-            ))}
+          <div className="grid cols-4 dashboard-panels">
+            <article className="card compact-card"><CheckCircle2 /><h3>Test mode</h3><p>Default activation starts in controlled test mode.</p></article>
+            <article className="card compact-card"><Settings2 /><h3>Capability matrix</h3><p>Enabled, disabled, legal review, consent or future only.</p></article>
+            <article className="card compact-card"><ShieldCheck /><h3>Privacy settings</h3><p>No kindergarten child/parent flows in standalone observer sites.</p></article>
+            <article className="card compact-card"><PackageCheck /><h3>Subscription readiness</h3><p>Real billing requires provider configuration and admin approval.</p></article>
           </div>
-          <Link className="button secondary" href="/digital-observer">חזרה לעמוד Digital Observer</Link>
+          <div className="hero-actions">
+            <Link className="button primary" href="/digital-observer/dashboard">Open dashboard shell</Link>
+            <Link className="button secondary" href="/digital-observer">Back to Digital Observer</Link>
+          </div>
         </section>
       </main>
     </>

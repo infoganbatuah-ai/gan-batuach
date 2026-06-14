@@ -12,6 +12,104 @@
   --success: #0a7a55;
 }
 
+/* PHASE 173: standalone Digital Observer product shell */
+.digital-observer-public,
+.digital-observer-app {
+  direction: ltr;
+  text-align: left;
+}
+
+.digital-observer-public .hero-section,
+.digital-observer-hero,
+.observer-dashboard-hero {
+  background:
+    linear-gradient(135deg, rgba(6, 20, 38, 0.94), rgba(23, 56, 92, 0.9)),
+    radial-gradient(circle at 78% 18%, rgba(45, 212, 191, 0.22), transparent 34%),
+    #07111f;
+  color: #f8fafc;
+  border: 1px solid rgba(148, 163, 184, 0.22);
+}
+
+.digital-observer-public .hero-section h1,
+.observer-dashboard-hero h1 {
+  color: #f8fafc;
+}
+
+.digital-observer-public .hero-section p,
+.observer-dashboard-hero p {
+  color: rgba(226, 232, 240, 0.86);
+}
+
+.observer-visual-panel {
+  width: min(420px, 100%);
+  display: grid;
+  gap: 16px;
+}
+
+.observer-signal-map,
+.observer-live-card {
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  background: rgba(15, 23, 42, 0.62);
+  box-shadow: 0 22px 60px rgba(2, 6, 23, 0.28);
+}
+
+.observer-signal-map {
+  min-height: 240px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+  align-items: center;
+  padding: 18px;
+}
+
+.signal-node {
+  min-height: 92px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border: 1px solid rgba(148, 163, 184, 0.24);
+  background: rgba(255, 255, 255, 0.06);
+  color: #dbeafe;
+  font-weight: 800;
+}
+
+.signal-node.active {
+  background: rgba(20, 184, 166, 0.18);
+  color: #ccfbf1;
+  border-color: rgba(45, 212, 191, 0.42);
+}
+
+.observer-live-card {
+  display: grid;
+  gap: 8px;
+  padding: 18px;
+  color: #e2e8f0;
+}
+
+.observer-live-card strong {
+  color: #ffffff;
+  font-size: 1.05rem;
+}
+
+.digital-observer-app .dashboard-hero-card {
+  align-items: flex-start;
+}
+
+.digital-observer-app .procedure-card svg,
+.digital-observer-public .procedure-card svg,
+.digital-observer-public .action-panel svg,
+.digital-observer-app .action-panel svg {
+  color: #0f766e;
+}
+
+@media (max-width: 760px) {
+  .observer-signal-map {
+    min-height: auto;
+    grid-template-columns: 1fr;
+  }
+}
+
 * {
   box-sizing: border-box;
 }
