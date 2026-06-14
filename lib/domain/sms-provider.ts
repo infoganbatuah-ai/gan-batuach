@@ -109,28 +109,29 @@ function dryRunProvider(name: Exclude<SmsProviderName, "mock_sms" | "custom">, r
 export function getSmsProvider(provider = process.env.SMS_PROVIDER): SmsProvider {
   if (provider === "twilio") {
     return dryRunProvider("twilio", [
-      ["SMS_API_KEY", process.env.SMS_API_KEY],
-      ["SMS_FROM_NUMBER", process.env.SMS_FROM_NUMBER]
+      ["TWILIO_ACCOUNT_SID", process.env.TWILIO_ACCOUNT_SID || process.env.SMS_PROVIDER_ACCOUNT_ID],
+      ["TWILIO_AUTH_TOKEN", process.env.TWILIO_AUTH_TOKEN || process.env.SMS_API_KEY],
+      ["SMS_SENDER_ID", process.env.SMS_SENDER_ID || process.env.SMS_FROM_NUMBER]
     ]);
   }
   if (provider === "messagebird") {
     return dryRunProvider("messagebird", [
       ["SMS_API_KEY", process.env.SMS_API_KEY],
-      ["SMS_FROM_NUMBER", process.env.SMS_FROM_NUMBER]
+      ["SMS_SENDER_ID", process.env.SMS_SENDER_ID || process.env.SMS_FROM_NUMBER]
     ]);
   }
   if (provider === "vonage") {
     return dryRunProvider("vonage", [
       ["VONAGE_API_KEY", process.env.VONAGE_API_KEY],
       ["VONAGE_API_SECRET", process.env.VONAGE_API_SECRET],
-      ["SMS_FROM_NUMBER", process.env.SMS_FROM_NUMBER]
+      ["SMS_SENDER_ID", process.env.SMS_SENDER_ID || process.env.SMS_FROM_NUMBER]
     ]);
   }
   if (provider === "israeli_local") {
     return dryRunProvider("israeli_local", [
       ["SMS_API_KEY", process.env.SMS_API_KEY],
       ["SMS_PROVIDER_ACCOUNT_ID", process.env.SMS_PROVIDER_ACCOUNT_ID],
-      ["SMS_FROM_NUMBER", process.env.SMS_FROM_NUMBER]
+      ["SMS_SENDER_ID", process.env.SMS_SENDER_ID || process.env.SMS_FROM_NUMBER]
     ]);
   }
   return mockSmsProvider;
