@@ -1,6 +1,9 @@
 export type CommunicationsSendMode = "mock" | "test" | "production";
 export type PaymentMode = "disabled" | "sandbox" | "live";
 export type InvoiceMode = "disabled" | "mock" | "production";
+export type PushMode = "disabled" | "test" | "production";
+export type CameraGatewayMode = "disabled" | "test" | "production";
+export type AiProviderMode = "mock" | "shadow" | "production";
 export type IntegrationType =
   | "email"
   | "whatsapp"
@@ -25,14 +28,23 @@ export function getIntegrationSafetyModes() {
   const communications = oneOf(process.env.COMMUNICATIONS_SEND_MODE, ["mock", "test", "production"] as const, "mock");
   const payment = oneOf(process.env.PAYMENT_MODE, ["disabled", "sandbox", "live"] as const, "disabled");
   const invoice = oneOf(process.env.INVOICE_MODE, ["disabled", "mock", "production"] as const, "mock");
+  const push = oneOf(process.env.PUSH_MODE, ["disabled", "test", "production"] as const, "disabled");
+  const cameraGateway = oneOf(process.env.CAMERA_GATEWAY_MODE, ["disabled", "test", "production"] as const, "disabled");
+  const aiProvider = oneOf(process.env.AI_PROVIDER_MODE, ["mock", "shadow", "production"] as const, "mock");
 
   return {
     communications,
     payment,
     invoice,
+    push,
+    cameraGateway,
+    aiProvider,
     productionCommunicationsAllowed: communications === "production",
     livePaymentsAllowed: payment === "live",
-    productionInvoicesAllowed: invoice === "production"
+    productionInvoicesAllowed: invoice === "production",
+    productionPushAllowed: push === "production",
+    productionCameraGatewayAllowed: cameraGateway === "production",
+    productionAiProviderAllowed: aiProvider === "production"
   };
 }
 
@@ -92,7 +104,18 @@ export function getSafeIntegrationStatus(type: IntegrationType, provider?: strin
     return missing.length ? "not_configured" : modes.invoice === "production" ? "production_ready" : "test_mode";
   }
   if (["email", "whatsapp", "sms", "push"].includes(type)) {
+    if (type === "push") {
+      if (modes.push === "disabled") return "disabled";
+      return missing.length ? "not_configured" : modes.push === "production" ? "production_ready" : "test_mode";
+    }
     return missing.length ? "not_configured" : modes.communications === "production" ? "production_ready" : "test_mode";
+  }
+  if (type === "camera_gateway") {
+    if (modes.cameraGateway === "disabled") return "disabled";
+    return missing.length ? "not_configured" : modes.cameraGateway === "production" ? "production_ready" : "test_mode";
+  }
+  if (type === "ai_provider") {
+    return missing.length ? "not_configured" : modes.aiProvider === "production" ? "production_ready" : "test_mode";
   }
   return missing.length ? "not_configured" : "configured";
 }

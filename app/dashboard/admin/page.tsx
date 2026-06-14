@@ -326,6 +326,7 @@ export default async function AdminDashboard() {
           <ActionCard title="רשת בטיחות" text="סימנים, סיכון ובדיקה אנושית" href="/dashboard/admin/observer-network" icon={ShieldAlert} tone={data.observerAlerts ? "warn" : "default"} />
           <ActionCard title="מצלמות" text="בריאות, Gateway ושידורים" href="/dashboard/admin/camera-deployment" icon={Camera} tone={data.offlineCameras ? "warn" : "default"} />
           <ActionCard title="תקשורת" text="Email, WhatsApp, SMS, Push" href="/dashboard/admin/communications" icon={BellRing} tone={data.communicationFailures ? "warn" : "default"} />
+          <ActionCard title="ספקי Production" text="הפעלה, בדיקות ו-Rollback" href="/dashboard/admin/provider-production" icon={BellRing} tone={data.communicationFailures ? "warn" : "good"} />
           <ActionCard title="הכנסות" text="מנויים, גבייה וסיכון" href="/dashboard/admin/subscriptions" icon={CreditCard} />
           <ActionCard title="סקייל" text="ריבוי גנים, בידוד וביצועים" href="/dashboard/admin/scale-validation" icon={BarChart3} tone={data.activeGardens >= 5 ? "good" : "warn"} />
           <ActionCard title="100 גנים" text="תוכנית סקייל מבוקרת" href="/dashboard/admin/scale-100" icon={BarChart3} tone={data.activeGardens >= 25 ? "good" : "warn"} />
