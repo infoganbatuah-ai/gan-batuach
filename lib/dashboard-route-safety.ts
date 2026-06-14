@@ -36,6 +36,7 @@ export const dashboardRouteChecks: DashboardRouteCheck[] = [
   { route: "/dashboard/admin/integrations", label: "אינטגרציות", roles: ["admin"], dataTable: "production_integrations" },
   { route: "/dashboard/admin/database-integrity", label: "שלמות DB", roles: ["admin"], dataTable: "database_integrity_audit_items" },
   { route: "/dashboard/admin/iso-evidence", label: "ראיות ISO", roles: ["admin"], dataTable: "iso_evidence_items" },
+  { route: "/dashboard/admin/iso-certification-handoff", label: "מסירת ISO", roles: ["admin"], dataTable: "iso_external_process_readiness_scores" },
   { route: "/dashboard/admin/capability-legal-review", label: "בדיקת יכולות", roles: ["admin"], dataTable: "observer_vertical_capability_decisions" },
   { route: "/dashboard/admin/legal-review", label: "סקירה משפטית", roles: ["admin"], dataTable: "legal_review_documents" },
   { route: "/dashboard/admin/observer-pilot", label: "פיילוט תצפיתן", roles: ["admin"], dataTable: "observer_pilot_runs" },
