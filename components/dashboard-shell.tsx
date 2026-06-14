@@ -91,6 +91,7 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/admin/pilot-health", label: "בריאות פיילוט", hint: "גן ראשון" },
     { href: "/dashboard/admin/launch-readiness", label: "מוכנות השקה", hint: "עלייה לאוויר" },
     { href: "/dashboard/admin/final-compliance-review", label: "סקירת ציות סופית", hint: "רגולציה והשקה" },
+    { href: "/dashboard/admin/master-qa", label: "Master QA", hint: "בדיקות וחסמים" },
     { href: "/dashboard/admin/pilot-readiness", label: "מוכנות פיילוט", hint: "משוב וחסמים" },
     { href: "/dashboard/admin/duplicates", label: "כפילויות", hint: "תעודות זהות" },
     { href: "/dashboard/admin/user-journey-audit", label: "בדיקת מסעות", hint: "זרימות משתמש" },
