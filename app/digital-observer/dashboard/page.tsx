@@ -1,10 +1,10 @@
 import Link from "next/link";
-import { AlertTriangle, Bell, Camera, CheckCircle2, HeartPulse, PackageCheck, Radar, ShieldCheck, UserRound } from "lucide-react";
+import { AlertTriangle, BarChart3, Bell, Camera, CheckCircle2, HeartPulse, PackageCheck, Radar, ShieldCheck, UserRound } from "lucide-react";
 import { BrandHeader } from "@/components/brand-header";
 import { requireUser } from "@/lib/auth";
 import { logSupabaseError } from "@/lib/admin-safe";
 import { createClient } from "@/lib/supabase/server";
-import { DIGITAL_OBSERVER_SETUP_ACTIONS } from "@/lib/domain/digital-observer-product";
+import { DIGITAL_OBSERVER_ADMIN_OVERVIEW, DIGITAL_OBSERVER_NAVIGATION, DIGITAL_OBSERVER_SETUP_ACTIONS } from "@/lib/domain/digital-observer-product";
 
 type Row = Record<string, any>;
 
@@ -57,11 +57,24 @@ export default async function DigitalObserverOwnerDashboardPage() {
   const unhealthyCameras = cameras.filter((camera) => !["online", "active", "ready"].includes(String(camera.status)));
   const subscriptions = subscriptionsRes.data;
   const latestUsage = usageRes.data[0];
+  const [analyticsRes, leadsRes] = await Promise.all([
+    safeQuery<Row>("digital observer analytics readiness", () => supabase.from("digital_observer_analytics_events" as any).select("event_type, count_value, status, source, site_type, package_key").order("occurred_at", { ascending: false }).limit(40)),
+    safeQuery<Row>("digital observer leads readiness", () => supabase.from("digital_observer_leads" as any).select("source, status, site_type, package_interest, estimated_cameras").order("created_at", { ascending: false }).limit(40))
+  ]);
 
   return (
     <>
       <BrandHeader />
       <main className="public-page digital-observer-app">
+        <nav className="product-switcher" aria-label="Digital Observer application navigation">
+          <strong>Digital Observer</strong>
+          <div>
+            {DIGITAL_OBSERVER_NAVIGATION.map((item) => (
+              <Link key={item.href} href={item.href}>{item.label}</Link>
+            ))}
+          </div>
+        </nav>
+
         <section className="dashboard-hero-card observer-dashboard-hero">
           <div>
             <p className="eyebrow">Digital Observer Dashboard</p>
@@ -81,7 +94,7 @@ export default async function DigitalObserverOwnerDashboardPage() {
           <article className="metric-card"><ShieldCheck /><strong>{activeSites ? "active" : "setup"}</strong><span>site health</span></article>
         </section>
 
-        <section className="grid cols-2 dashboard-panels">
+        <section className="grid cols-2 dashboard-panels" id="setup">
           <article className="card action-panel">
             <div className="section-heading">
               <h2>Setup actions</h2>
@@ -116,7 +129,7 @@ export default async function DigitalObserverOwnerDashboardPage() {
           </article>
         </section>
 
-        <section className="dashboard-section">
+        <section className="dashboard-section" id="sites">
           <div className="section-heading">
             <h2>My observer sites</h2>
             <p>Homes, businesses, offices, warehouses, stores and parking lots only. Kindergartens use Gan Batuach.</p>
@@ -140,6 +153,7 @@ export default async function DigitalObserverOwnerDashboardPage() {
                       <span className="pill">{site.site_type}</span>
                       <h3>{site.name}</h3>
                       <p>{site.monitoring_enabled ? "Monitoring enabled" : "Monitoring waiting for setup"} · subscription {subscription?.status ?? site.observer_subscription_status ?? "trial"}</p>
+                      <Link className="button secondary" href={`/digital-observer/sites/${site.id}`}>Open site</Link>
                     </div>
                     <div className="procedure-meta">
                       <span>{siteCameras.length} cameras</span>
@@ -153,7 +167,7 @@ export default async function DigitalObserverOwnerDashboardPage() {
           )}
         </section>
 
-        <section className="grid cols-2 dashboard-panels">
+        <section className="grid cols-2 dashboard-panels" id="alerts">
           <article className="card action-panel">
             <Radar />
             <h2>Recent observer events</h2>
@@ -170,7 +184,7 @@ export default async function DigitalObserverOwnerDashboardPage() {
             )}
           </article>
 
-          <article className="card action-panel">
+          <article className="card action-panel" id="billing">
             <PackageCheck />
             <h2>Package readiness</h2>
             {packagesRes.data.length === 0 ? <p>Package records may be admin-only or pending migration.</p> : (
@@ -187,10 +201,57 @@ export default async function DigitalObserverOwnerDashboardPage() {
           </article>
         </section>
 
-        <section className="grid cols-3 dashboard-panels">
+        <section className="grid cols-3 dashboard-panels" id="cameras">
           <article className="card compact-card"><CheckCircle2 /><h3>AI readiness</h3><p>Observer goals are advisory and require human review before action.</p></article>
           <article className="card compact-card"><AlertTriangle /><h3>Restricted capabilities</h3><p>Audio, face, biometric and legal-review features are controlled by the capability matrix.</p></article>
           <article className="card compact-card"><HeartPulse /><h3>Site health</h3><p>Camera health, gateway status, alerts and subscriptions share existing infrastructure.</p></article>
+        </section>
+
+        <section className="grid cols-2 dashboard-panels">
+          <article className="card action-panel">
+            <BarChart3 />
+            <h2>Analytics readiness</h2>
+            <div className="procedure-list compact-list">
+              {analyticsRes.data.length === 0 ? <p>Analytics events are readiness-only until tracking is connected.</p> : analyticsRes.data.map((event) => (
+                <div className="mini-row" key={`${event.event_type}-${event.source}-${event.package_key}`}>
+                  <span>{event.event_type}</span>
+                  <strong>{event.count_value}</strong>
+                  <small>{event.source ?? "source TBD"} · {event.site_type ?? "all sites"} · {event.status}</small>
+                </div>
+              ))}
+            </div>
+          </article>
+
+          <article className="card action-panel">
+            <UserRound />
+            <h2>Lead flow readiness</h2>
+            <div className="procedure-list compact-list">
+              {leadsRes.data.length === 0 ? <p>Digital Observer leads will be tracked separately from kindergarten leads.</p> : leadsRes.data.map((lead, index) => (
+                <div className="mini-row" key={`${lead.source}-${lead.site_type}-${index}`}>
+                  <span>{lead.source}</span>
+                  <strong><span className={statusTone(lead.status)}>{lead.status}</span></strong>
+                  <small>{lead.site_type} · {lead.estimated_cameras} cameras · {lead.package_interest ?? "package TBD"}</small>
+                </div>
+              ))}
+            </div>
+          </article>
+        </section>
+
+        <section className="dashboard-section">
+          <div className="section-heading">
+            <h2>Admin product overview readiness</h2>
+            <p>Admins can distinguish Gan Batuach gardens from Digital Observer sites and shared core infrastructure.</p>
+          </div>
+          <div className="grid cols-4 dashboard-panels">
+            {DIGITAL_OBSERVER_ADMIN_OVERVIEW.map((item) => (
+              <article className="card compact-card" key={item.label}>
+                <ShieldCheck />
+                <h3>{item.label}</h3>
+                <p>{item.note}</p>
+                <span className="pill">{item.source}</span>
+              </article>
+            ))}
+          </div>
         </section>
       </main>
     </>
