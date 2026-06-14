@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { requireRole } from "@/lib/auth";
+import { assertCapabilityEnabled, CapabilityPolicyError } from "@/lib/domain/capability-policy-engine";
 import { createClient } from "@/lib/supabase/server";
 
 const createMockSchema = z.object({
@@ -34,6 +35,16 @@ export async function POST(request: Request) {
       if (contactRes.error || !contactRes.data) return fail("מורשה האיסוף לא נמצא.", 404);
       const contact = contactRes.data as any;
       if (profile.role !== "admin" && contact.kindergarten_id !== profile.garden_id) return fail("אין הרשאה לגן הזה.", 403);
+      try {
+        await assertCapabilityEnabled(supabase, "gan_batuach", "face_matching", {
+          actorId: profile.id,
+          reason: "face_match_result_creation",
+          metadata: { kindergarten_id: contact.kindergarten_id, pickup_contact_id: contact.id }
+        });
+      } catch (error) {
+        if (error instanceof CapabilityPolicyError) return fail(error.message, error.status);
+        throw error;
+      }
 
       const reference = await supabase
         .from("face_reference_images" as any)

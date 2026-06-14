@@ -3,6 +3,7 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
 import { canParentViewCamera, getCameraGardenId } from "@/lib/domain/parent-camera-access";
+import { assertCapabilityEnabled } from "@/lib/domain/capability-policy-engine";
 import { getGatewayProvider, getPlaybackUrls } from "@/lib/domain/video-gateway-client";
 import type { UserRole } from "@/lib/roles";
 import { getMfaGateStatus } from "@/lib/security/identity-security";
@@ -107,6 +108,16 @@ export async function createCameraPlaybackSession(cameraStreamId: string, payloa
       });
       throw new Error("הגן עדיין לא פתח צפייה להורים במדיניות מאושרת");
     }
+    await assertCapabilityEnabled(dataSupabase, "gan_batuach", "parent_viewing", {
+      actorId: user.id,
+      legalReviewApproved:
+        parentPolicy.legal_review_approved === true ||
+        parentPolicy.metadata?.legal_review_approved === true ||
+        parentPolicy.metadata?.external_legal_review_status === "approved",
+      consentConfirmed: parentPolicy.parent_consent_required !== true || parentPolicy.metadata?.parent_consent_ready === true,
+      reason: "parent_camera_viewing",
+      metadata: { camera_id: cameraStreamId, garden_id: cameraGardenId }
+    });
     if (Array.isArray(parentPolicy.approved_camera_ids) && parentPolicy.approved_camera_ids.length && !parentPolicy.approved_camera_ids.includes(cameraStreamId)) {
       await recordCameraAuthorizationCheck(supabase, { garden_id: cameraGardenId, camera_id: cameraStreamId, profile_id: user.id, check_type: "camera_approved", status: "failed", reason: "camera_not_in_approved_policy_list" });
       throw new Error("מצלמה זו לא אושרה לצפיית הורים");

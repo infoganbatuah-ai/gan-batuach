@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { requireRole } from "@/lib/auth";
+import { assertCapabilityEnabled, CapabilityPolicyError } from "@/lib/domain/capability-policy-engine";
 import { createClient } from "@/lib/supabase/server";
 
 const audioEventTypes = [
@@ -57,6 +58,18 @@ export async function POST(request: Request) {
       const kindergartenId = profile.role === "admin" ? payload.kindergarten_id ?? null : profile.garden_id;
       if (!kindergartenId && !payload.site_id) return fail("יש לבחור גן או אתר Observer.", 422);
       if (profile.role !== "admin" && payload.kindergarten_id && payload.kindergarten_id !== profile.garden_id) return fail("אין הרשאה לגן הזה.", 403);
+      if (kindergartenId) {
+        try {
+          await assertCapabilityEnabled(supabase, "gan_batuach", "audio_analytics", {
+            actorId: profile.id,
+            reason: "audio_observer_event_creation",
+            metadata: { kindergarten_id: kindergartenId, camera_id: payload.camera_id ?? null, event_type: payload.event_type }
+          });
+        } catch (error) {
+          if (error instanceof CapabilityPolicyError) return fail(error.message, error.status);
+          throw error;
+        }
+      }
       if (payload.camera_id) {
         const camera = await supabase.from("camera_streams" as any).select("id, garden_id").eq("id", payload.camera_id).single();
         if (camera.error || !camera.data) return fail("מקור השמע לא נמצא.", 404);
