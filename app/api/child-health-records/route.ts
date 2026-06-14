@@ -3,6 +3,7 @@ import { requireRole } from "@/lib/auth";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { createClient } from "@/lib/supabase/server";
 import { encryptField, getCurrentKeyVersion } from "@/lib/security/field-encryption";
+import { deviceFingerprint, firstForwardedIp, requestId, writeMedicalAccessEvent } from "@/lib/security/audit-log-service";
 
 const healthSchema = z.object({
   garden_id: z.string().uuid(),
@@ -35,15 +36,17 @@ export async function GET(request: Request) {
       console.error("[child-health-records:get]", error);
       return fail("לא ניתן לטעון מידע רפואי כרגע", 400);
     }
-    await supabase.from("medical_data_access_logs" as any).insert({
-      user_id: profile.id,
-      role: profile.role,
-      child_id: childId,
-      garden_id: gardenId ?? profile.garden_id ?? null,
-      field_accessed: "child_health_records",
+    await writeMedicalAccessEvent({
+      actorProfileId: profile.id,
+      actorRole: profile.role,
+      childId,
+      gardenId: gardenId ?? profile.garden_id ?? null,
+      fieldAccessed: "child_health_records",
       action: "view",
-      ip: request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || null,
-      user_agent: request.headers.get("user-agent"),
+      ipAddress: firstForwardedIp(request.headers),
+      userAgent: request.headers.get("user-agent"),
+      deviceFingerprint: deviceFingerprint(request.headers),
+      requestId: requestId(request.headers),
       reason: "api_read"
     });
     return ok(data ?? []);
@@ -80,15 +83,17 @@ export async function POST(request: Request) {
       console.error("[child-health-records:post]", error);
       return fail("לא ניתן לשמור מידע רפואי כרגע", 400);
     }
-    await supabase.from("medical_data_access_logs" as any).insert({
-      user_id: profile.id,
-      role: profile.role,
-      child_id: payload.child_id,
-      garden_id: payload.garden_id,
-      field_accessed: "child_health_records",
+    await writeMedicalAccessEvent({
+      actorProfileId: profile.id,
+      actorRole: profile.role,
+      childId: payload.child_id,
+      gardenId: payload.garden_id,
+      fieldAccessed: "child_health_records",
       action: "update",
-      ip: request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || null,
-      user_agent: request.headers.get("user-agent"),
+      ipAddress: firstForwardedIp(request.headers),
+      userAgent: request.headers.get("user-agent"),
+      deviceFingerprint: deviceFingerprint(request.headers),
+      requestId: requestId(request.headers),
       reason: "api_write"
     });
     return ok(data, 201);

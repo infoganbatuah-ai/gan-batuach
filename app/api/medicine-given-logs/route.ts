@@ -3,6 +3,7 @@ import { requireRole } from "@/lib/auth";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { createClient } from "@/lib/supabase/server";
 import { encryptField, getCurrentKeyVersion } from "@/lib/security/field-encryption";
+import { deviceFingerprint, firstForwardedIp, requestId, writeMedicalAccessEvent } from "@/lib/security/audit-log-service";
 
 const medicineLogSchema = z.object({
   garden_id: z.string().uuid(),
@@ -25,15 +26,17 @@ export async function GET(request: Request) {
     if (childId) query = query.eq("child_id", childId);
     const { data, error } = await query;
     if (error) return fail("לא ניתן לטעון רישום תרופות כרגע", 400);
-    await supabase.from("medical_data_access_logs" as any).insert({
-      user_id: profile.id,
-      role: profile.role,
-      child_id: childId,
-      garden_id: gardenId ?? profile.garden_id ?? null,
-      field_accessed: "medicine_given_logs",
+    await writeMedicalAccessEvent({
+      actorProfileId: profile.id,
+      actorRole: profile.role,
+      childId,
+      gardenId: gardenId ?? profile.garden_id ?? null,
+      fieldAccessed: "medicine_given_logs",
       action: "view",
-      ip: request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || null,
-      user_agent: request.headers.get("user-agent"),
+      ipAddress: firstForwardedIp(request.headers),
+      userAgent: request.headers.get("user-agent"),
+      deviceFingerprint: deviceFingerprint(request.headers),
+      requestId: requestId(request.headers),
       reason: "api_read"
     });
     return ok(data ?? []);
@@ -62,15 +65,17 @@ export async function POST(request: Request) {
       console.error("[medicine-given-logs:post]", error);
       return fail("לא ניתן לשמור מתן תרופה כרגע", 400);
     }
-    await supabase.from("medical_data_access_logs" as any).insert({
-      user_id: profile.id,
-      role: profile.role,
-      child_id: payload.child_id,
-      garden_id: payload.garden_id,
-      field_accessed: "medicine_given_logs",
+    await writeMedicalAccessEvent({
+      actorProfileId: profile.id,
+      actorRole: profile.role,
+      childId: payload.child_id,
+      gardenId: payload.garden_id,
+      fieldAccessed: "medicine_given_logs",
       action: "update",
-      ip: request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || null,
-      user_agent: request.headers.get("user-agent"),
+      ipAddress: firstForwardedIp(request.headers),
+      userAgent: request.headers.get("user-agent"),
+      deviceFingerprint: deviceFingerprint(request.headers),
+      requestId: requestId(request.headers),
       reason: "api_write"
     });
     return ok(data, 201);

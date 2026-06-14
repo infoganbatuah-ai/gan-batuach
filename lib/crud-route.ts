@@ -6,6 +6,7 @@ import { requirePermission } from "@/lib/auth";
 import type { Permission } from "@/lib/roles";
 import { encryptField, getCurrentKeyVersion, hashForLookup } from "@/lib/security/field-encryption";
 import { buildMaskedConnectionSummary } from "@/lib/domain/camera-connection-builder";
+import { writeCameraAccessEvent } from "@/lib/security/audit-log-service";
 
 type CrudConfig = {
   table: string;
@@ -365,6 +366,22 @@ export function createCrudHandlers(config: CrudConfig) {
               staff_view_allowed: data.staff_view_allowed ?? false,
               observer_enabled: data.observer_enabled ?? false
             }
+          });
+          await writeCameraAccessEvent({
+            eventType: "camera_created",
+            actorProfileId: permission.session.profile.id,
+            actorRole: permission.session.profile.role,
+            gardenId: data.garden_id ?? parsed.garden_id ?? null,
+            cameraId: data.id,
+            targetId: data.id,
+            metadata: {
+              name: data.name,
+              status: data.status,
+              source_category: data.source_category ?? null,
+              parent_visibility_status: data.parent_visibility_status ?? null,
+              no_secrets_exposed: true
+            },
+            riskLevel: "high"
           });
         }
         if (config.table === "camera_streams" && data) {
