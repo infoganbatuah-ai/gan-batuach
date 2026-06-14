@@ -1,0 +1,107 @@
+name: Security checks
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+      - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+  actions: read
+
+jobs:
+  security-gates:
+    name: Typecheck, build, dependencies and secrets
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Typecheck gate
+        run: npm run typecheck
+
+      - name: Build gate
+        run: npm run build
+
+      - name: Diff cleanliness gate
+        run: git diff --check
+
+      - name: Dependency vulnerability gate
+        run: npm audit --audit-level=high
+
+      - name: Secret scanning readiness gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Scanning for committed secret-like values, not ordinary environment variable names."
+          if git grep -n -I -E "(sk-[A-Za-z0-9_-]{20,}|sb_secret_[A-Za-z0-9_-]+|xox[baprs]-[A-Za-z0-9-]+|AIza[0-9A-Za-z_-]{35}|-----BEGIN ((RSA|OPENSSH|EC) )?PRIVATE KEY-----|eyJ[A-Za-z0-9_-]{20,}\\.[A-Za-z0-9_-]{20,}\\.[A-Za-z0-9_-]{20,})" -- . \
+            ':!*.md' ':!.env.example' ':!supabase/migrations/*' ':!package-lock.json' ':!node_modules/*' ':!android/*' ':!ios/*'; then
+            echo "::error::Potential secret-like value or private camera URL found in source files."
+            exit 1
+          fi
+          if git grep -n -I -E "NEXT_PUBLIC_[A-Z0-9_]*(SECRET|TOKEN|PRIVATE|SERVICE_ROLE|ENCRYPTION|PASSWORD)[A-Z0-9_]*\\s*=" -- . ':!*.md' ':!.env.example' ':!node_modules/*'; then
+            echo "::error::Server-only secret appears to be exposed through NEXT_PUBLIC."
+            exit 1
+          fi
+          echo "No blocked secret-looking values found outside allowed readiness files."
+
+      - name: Migration safety readiness gate
+        shell: bash
+        run: |
+          set -euo pipefail
+          echo "Checking migration safety markers."
+          if git grep -n -I -E "drop table|drop schema|truncate table|delete from public\\.|alter table public\\.[a-z_]+ drop column" -- supabase/migrations; then
+            echo "::warning::Potential destructive migration statement found. Confirm it is intentional and reviewed."
+          fi
+          if git grep -n -I -E "create table public\\." -- supabase/migrations; then
+            echo "::warning::Legacy non-idempotent CREATE TABLE statements found. New migrations should use CREATE TABLE IF NOT EXISTS."
+          fi
+
+  codeql:
+    name: CodeQL JavaScript/TypeScript readiness
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      security-events: write
+      actions: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript-typescript
+          queries: security-and-quality
+
+      - name: Autobuild
+        uses: github/codeql-action/autobuild@v3
+
+      - name: Analyze
+        uses: github/codeql-action/analyze@v3
+
+  provider-readiness:
+    name: Future provider readiness
+    runs-on: ubuntu-latest
+    steps:
+      - name: Document optional providers
+        run: |
+          echo "Future optional providers: Snyk, SonarQube, Semgrep, GitHub Advanced Security."
+          echo "These are readiness items and are not required for this workflow to pass."
