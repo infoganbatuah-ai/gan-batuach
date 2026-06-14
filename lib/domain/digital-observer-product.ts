@@ -366,3 +366,57 @@ export const DIGITAL_OBSERVER_ADMIN_OVERVIEW = [
   { label: "Observer health", source: "observer_intelligence_signals", note: "Human-reviewed signals only." },
   { label: "Billing status", source: "observer_site_subscriptions.status", note: "Billing remains provider-gated readiness." }
 ] as const;
+
+export const DIGITAL_OBSERVER_PAID_BETA_FUNNEL_STAGES = [
+  { key: "lead", label: "Lead", description: "Qualified Digital Observer lead, not a Gan Batuach kindergarten record." },
+  { key: "demo", label: "Demo", description: "Product value explained for the selected site type." },
+  { key: "trial", label: "Trial", description: "Trial started with safe provider mode and test monitoring first." },
+  { key: "camera_setup", label: "Camera setup", description: "Camera/gateway connected without exposing RTSP or credentials." },
+  { key: "first_alerts", label: "First alerts", description: "Observer creates reviewed, non-automatic alerts." },
+  { key: "customer_feedback", label: "Customer feedback", description: "Alert value, setup friction and willingness to pay captured." },
+  { key: "package_confirmation", label: "Package confirmation", description: "Home Basic, Home Plus, Business Basic, Business Pro or Enterprise selected." },
+  { key: "payment", label: "Payment", description: "Payment readiness or configured payment. No raw card data." },
+  { key: "paid_beta", label: "Paid beta", description: "Auditable paid beta subscription, separate from Gan Batuach revenue." }
+] as const;
+
+export const DIGITAL_OBSERVER_PAID_BETA_SUCCESS_CRITERIA = [
+  { metric: "paid_beta_customers", label: "Paid beta customers", threshold: "5 or more", defaultTarget: 5 },
+  { metric: "camera_setup_completion", label: "Camera setup completion", threshold: "70% or more", defaultTarget: 70 },
+  { metric: "alert_usefulness", label: "Useful alerts reported", threshold: "60% or more", defaultTarget: 60 },
+  { metric: "support_load", label: "Support load", threshold: "manageable", defaultTarget: 75 },
+  { metric: "paid_continuation", label: "Willing to continue paid", threshold: "50% or more", defaultTarget: 50 },
+  { metric: "critical_security_privacy_issues", label: "Critical security/privacy issues", threshold: "0", defaultTarget: 0 }
+] as const;
+
+export const DIGITAL_OBSERVER_PAID_BETA_SUPPORT_PLAYBOOKS = [
+  { key: "camera_cannot_connect", title: "Camera cannot connect", category: "camera", summary: "Validate camera type, network reachability, gateway health and server-side credentials." },
+  { key: "rtsp_path_unknown", title: "RTSP path unknown", category: "camera", summary: "Identify DVR/NVR brand and channel, then test candidate paths server-side only." },
+  { key: "dvr_channel_issue", title: "DVR channel issue", category: "camera", summary: "Confirm channel number, main/sub stream and camera index before another gateway test." },
+  { key: "gateway_unavailable", title: "Gateway unavailable", category: "gateway", summary: "Check provider status, credentials, latency and retry readiness before escalating." },
+  { key: "alert_too_noisy", title: "Alert too noisy", category: "alerts", summary: "Review schedule, zones, sensitivity and false positives before changing thresholds." },
+  { key: "alert_missed", title: "Alert missed", category: "alerts", summary: "Record false negative context and add calibration recommendation." },
+  { key: "payment_failed", title: "Payment failed", category: "billing", summary: "Keep revenue in the Digital Observer stream and verify provider mode before retry." },
+  { key: "invoice_issue", title: "Invoice issue", category: "billing", summary: "Use Digital Observer invoice wording and never reuse Gan Batuach kindergarten invoice labels." },
+  { key: "package_upgrade_request", title: "Package upgrade request", category: "package", summary: "Check usage limits, upgrade interest, renewal timing and provider readiness." },
+  { key: "cancellation_request", title: "Cancellation request", category: "billing", summary: "Pause monitoring according to retention rules and keep support/billing access available." }
+] as const;
+
+export const DIGITAL_OBSERVER_BETA_COMMUNICATION_TEMPLATES = [
+  { key: "welcome_paid_beta", channel: "email", title: "Welcome to paid beta", purpose: "Set expectations, support contact and safe test mode rules." },
+  { key: "trial_ending", channel: "email", title: "Trial ending", purpose: "Explain package confirmation and payment readiness." },
+  { key: "payment_required", channel: "whatsapp", title: "Payment required", purpose: "Request payment setup only when provider mode allows it." },
+  { key: "payment_successful", channel: "email", title: "Payment successful", purpose: "Confirm paid beta activation and invoice readiness." },
+  { key: "camera_setup_reminder", channel: "sms", title: "Camera setup reminder", purpose: "Help the site owner complete camera/gateway setup." },
+  { key: "alert_calibration_reminder", channel: "in_app", title: "Alert calibration reminder", purpose: "Ask for feedback after noisy or missed alerts." },
+  { key: "feedback_request", channel: "email", title: "Feedback request", purpose: "Collect setup, value, price and support feedback." },
+  { key: "upgrade_suggestion", channel: "email", title: "Upgrade suggestion", purpose: "Suggest a package only from observed usage and limits." },
+  { key: "cancellation_confirmation", channel: "email", title: "Cancellation confirmation", purpose: "Confirm monitoring suspension and retention next steps." }
+] as const;
+
+export const DIGITAL_OBSERVER_PAID_BETA_DECISION_STATES = [
+  "not_ready",
+  "needs_more_beta",
+  "paid_beta_validated",
+  "ready_for_standalone_launch",
+  "ready_for_infrastructure_extraction"
+] as const;
