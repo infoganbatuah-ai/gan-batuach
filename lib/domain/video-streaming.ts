@@ -5,6 +5,7 @@ import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin
 import { canParentViewCamera, getCameraGardenId } from "@/lib/domain/parent-camera-access";
 import { getGatewayProvider, getPlaybackUrls } from "@/lib/domain/video-gateway-client";
 import type { UserRole } from "@/lib/roles";
+import { getMfaGateStatus } from "@/lib/security/identity-security";
 
 export const playbackTokenSchema = z.object({
   parent_id: z.string().uuid().optional(),
@@ -115,15 +116,9 @@ export async function createCameraPlaybackSession(cameraStreamId: string, payloa
       await recordCameraAuthorizationCheck(supabase, { garden_id: cameraGardenId, camera_id: cameraStreamId, profile_id: user.id, check_type: "viewing_window", status: "failed", reason: policyHours.reason });
       throw new Error(policyHours.reason ?? "מחוץ לשעות הצפייה");
     }
-    const mfaResult = await dataSupabase
-      .from("mfa_enrollment_status" as any)
-      .select("enrollment_status, authenticator_app_enabled, sms_otp_enabled, backup_codes_generated")
-      .eq("profile_id", user.id)
-      .maybeSingle();
-    if (mfaResult.error) throw new Error(mfaResult.error.message);
-    const mfaReady = mfaResult.data?.enrollment_status === "enrolled" && (mfaResult.data?.authenticator_app_enabled || mfaResult.data?.sms_otp_enabled || mfaResult.data?.backup_codes_generated);
-    await recordCameraAuthorizationCheck(supabase, { garden_id: cameraGardenId, camera_id: cameraStreamId, profile_id: user.id, check_type: "mfa_enabled", status: mfaReady ? "passed" : "failed", reason: mfaReady ? null : "mfa_not_enrolled" });
-    if (!mfaReady) throw new Error("נדרש אימות דו-שלבי לפני צפייה במצלמות");
+    const mfaGate = await getMfaGateStatus(dataSupabase, { id: user.id, role }, "camera_view");
+    await recordCameraAuthorizationCheck(supabase, { garden_id: cameraGardenId, camera_id: cameraStreamId, profile_id: user.id, check_type: "mfa_enabled", status: mfaGate.allowed ? "passed" : "failed", reason: mfaGate.reason });
+    if (!mfaGate.allowed) throw new Error(mfaGate.reason === "fresh_mfa_required" ? "נדרש אימות נוסף לפני צפייה במצלמות." : "נדרש להפעיל אימות נוסף לפני צפייה במצלמות.");
 
     const decision = await canParentViewCamera(dataSupabase as any, profileRow.id, cameraStreamId);
     const requestedParentIsCurrentUser = parsed.parent_id ? decision.diagnostics.parent_records_found.some((parent: any) => parent.id === parsed.parent_id) : true;
