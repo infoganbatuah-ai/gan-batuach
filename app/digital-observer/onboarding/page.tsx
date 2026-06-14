@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Bell, Camera, CheckCircle2, ClipboardCheck, Eye, LockKeyhole, MapPin, PackageCheck, Radar, Settings2, ShieldCheck } from "lucide-react";
 import { BrandHeader } from "@/components/brand-header";
-import { DIGITAL_OBSERVER_AI_GOALS, DIGITAL_OBSERVER_PACKAGES, DIGITAL_OBSERVER_SITE_TYPES } from "@/lib/domain/digital-observer-product";
+import { DIGITAL_OBSERVER_AI_GOALS, DIGITAL_OBSERVER_NAVIGATION, DIGITAL_OBSERVER_PACKAGES, DIGITAL_OBSERVER_SITE_TYPES } from "@/lib/domain/digital-observer-product";
 
 const cameraTypes = ["home camera", "business DVR/NVR", "RTSP", "ONVIF", "generic camera", "Hikvision", "Dahua"];
 const onboardingSteps = [
@@ -10,6 +10,7 @@ const onboardingSteps = [
   { title: "Choose package", text: "Set camera limits, monitoring hours, retention and alert channels.", icon: PackageCheck },
   { title: "Add camera source", text: "Connect through gateway readiness only. RTSP and credentials stay server-side.", icon: Camera },
   { title: "Configure observer goals", text: "Select what should be watched and keep human review enabled.", icon: Radar },
+  { title: "Configure alert channels", text: "Choose in-app, email, SMS, WhatsApp or push readiness through provider safety modes.", icon: Bell },
   { title: "Review privacy settings", text: "Capabilities are gated per vertical and legal review status.", icon: LockKeyhole },
   { title: "Activate test mode", text: "Run in controlled test mode before production monitoring.", icon: ShieldCheck }
 ];
@@ -19,6 +20,15 @@ export default function DigitalObserverOnboardingPage() {
     <>
       <BrandHeader />
       <main className="public-page digital-observer-app">
+        <nav className="product-switcher" aria-label="Digital Observer onboarding navigation">
+          <strong>Digital Observer</strong>
+          <div>
+            {DIGITAL_OBSERVER_NAVIGATION.slice(0, 7).map((item) => (
+              <Link key={item.href} href={item.href}>{item.label}</Link>
+            ))}
+          </div>
+        </nav>
+
         <section className="dashboard-hero-card observer-dashboard-hero">
           <div>
             <p className="eyebrow">Digital Observer Onboarding</p>
@@ -30,7 +40,7 @@ export default function DigitalObserverOnboardingPage() {
 
         <section className="dashboard-section">
           <div className="section-heading">
-            <h2>Seven-step setup flow</h2>
+            <h2>Eight-step setup flow</h2>
             <p>Prepared as shell readiness. No real billing, DNS or camera activation happens automatically.</p>
           </div>
           <div className="timeline-list">
@@ -49,7 +59,7 @@ export default function DigitalObserverOnboardingPage() {
         </section>
 
         <section className="grid cols-2 dashboard-panels">
-          <article className="card action-panel">
+          <article className="card action-panel" id="settings">
             <div className="section-heading"><h2>Site details</h2><p>Standalone observer site draft. Not a Gan Batuach kindergarten.</p></div>
             <div className="form-grid compact-form">
               <label className="form-field"><span>Site name</span><input placeholder="Example: Herzl Street Office" disabled /></label>
@@ -61,7 +71,7 @@ export default function DigitalObserverOnboardingPage() {
             </div>
           </article>
 
-          <article className="card action-panel">
+          <article className="card action-panel" id="cameras">
             <div className="section-heading"><h2>Camera source</h2><p>All camera traffic goes through the gateway layer. No direct RTSP in browser.</p></div>
             <div className="setup-checklist">
               {cameraTypes.map((type) => <span key={type}>{type}</span>)}
@@ -74,7 +84,7 @@ export default function DigitalObserverOnboardingPage() {
         </section>
 
         <section className="grid cols-2 dashboard-panels">
-          <article className="card action-panel">
+          <article className="card action-panel" id="packages">
             <div className="section-heading"><h2>Package selection</h2><p>Pricing and real billing remain provider-gated readiness.</p></div>
             <div className="procedure-list compact-list">
               {DIGITAL_OBSERVER_PACKAGES.map((pkg) => (
@@ -87,7 +97,7 @@ export default function DigitalObserverOnboardingPage() {
             </div>
           </article>
 
-          <article className="card action-panel">
+          <article className="card action-panel" id="goals">
             <div className="section-heading"><h2>Observer goals</h2><p>Site owners choose goals; policy decides which capabilities can run.</p></div>
             <div className="setup-checklist">
               {DIGITAL_OBSERVER_AI_GOALS.map((goal) => <span key={goal}>{goal}</span>)}

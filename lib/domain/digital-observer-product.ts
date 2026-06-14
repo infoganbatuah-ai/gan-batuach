@@ -1,4 +1,4 @@
-import { Bell, Building2, Camera, Car, Factory, Home, Landmark, PackageCheck, School, ShieldCheck, ShoppingBag, Warehouse } from "lucide-react";
+import { BarChart3, Bell, Building2, Camera, Car, Factory, Home, Landmark, PackageCheck, Radar, School, Settings2, ShieldCheck, ShoppingBag, Warehouse } from "lucide-react";
 
 export const DIGITAL_OBSERVER_SITE_TYPES = [
   { key: "home", label: "Home", description: "Private home monitoring with privacy-first setup.", icon: Home },
@@ -12,6 +12,89 @@ export const DIGITAL_OBSERVER_SITE_TYPES = [
   { key: "custom", label: "Custom", description: "Enterprise or special-purpose observer site.", icon: Factory }
 ] as const;
 
+export const DIGITAL_OBSERVER_NAVIGATION = [
+  { href: "/digital-observer/dashboard", label: "Overview" },
+  { href: "/digital-observer/dashboard#sites", label: "Sites" },
+  { href: "/digital-observer/dashboard#cameras", label: "Cameras" },
+  { href: "/digital-observer/dashboard#alerts", label: "Observer Alerts" },
+  { href: "/digital-observer/onboarding#goals", label: "Monitoring Rules" },
+  { href: "/digital-observer#packages", label: "Packages" },
+  { href: "/digital-observer/dashboard#billing", label: "Billing" },
+  { href: "/digital-observer/onboarding#settings", label: "Settings" }
+] as const;
+
+export const DIGITAL_OBSERVER_PUBLIC_SECTIONS = [
+  { title: "Use cases", text: "Homes, offices, businesses, warehouses, stores, parking lots and custom monitored sites.", icon: Building2 },
+  { title: "Camera connection", text: "DVR/NVR, RTSP, ONVIF and generic IP camera readiness through the existing secure gateway.", icon: Camera },
+  { title: "AI monitoring", text: "Observer goals are policy-gated and reviewed before real action.", icon: Radar },
+  { title: "Alerts", text: "In-app, email, SMS, WhatsApp and push readiness through existing provider safety modes.", icon: Bell },
+  { title: "Privacy and control", text: "Capabilities are separated by vertical and do not enable sensitive features automatically.", icon: ShieldCheck },
+  { title: "Packages", text: "Home, business and enterprise package readiness without activating real billing.", icon: PackageCheck }
+] as const;
+
+export const DIGITAL_OBSERVER_USE_CASES = [
+  {
+    key: "home",
+    path: "/digital-observer/home",
+    title: "Home Monitoring",
+    audience: "Home owners",
+    problem: "Home owners need visibility when they are away without exposing camera credentials or creating noisy alerts.",
+    solution: "Connect home cameras through a gateway, monitor selected goals and keep alerts controlled by privacy settings.",
+    cameraSetup: "Home camera, generic IP camera, RTSP or ONVIF readiness.",
+    alerts: "Camera offline, motion after hours, restricted area and obstruction.",
+    benefits: ["Always-on visibility", "Simple test mode", "Privacy-first controls", "Human-reviewed observer events"],
+    packageSuggestion: "Home Basic or Home Plus"
+  },
+  {
+    key: "business",
+    path: "/digital-observer/business",
+    title: "Business Monitoring",
+    audience: "Business owners",
+    problem: "Small businesses need camera health, after-hours awareness and operational alerts without building a security platform.",
+    solution: "Reuse camera gateway and observer signals to monitor business goals, site health and recent events.",
+    cameraSetup: "Business DVR/NVR, RTSP, ONVIF, Hikvision, Dahua or generic camera readiness.",
+    alerts: "Motion after hours, person detected, restricted area, obstruction and camera offline.",
+    benefits: ["Multi-camera readiness", "Package-based limits", "Operations-friendly alerts", "No direct RTSP exposure"],
+    packageSuggestion: "Business Basic or Business Pro"
+  },
+  {
+    key: "warehouse",
+    path: "/digital-observer/warehouse",
+    title: "Warehouse Monitoring",
+    audience: "Warehouse operators",
+    problem: "Warehouses need coverage across larger zones, restricted areas and activity patterns.",
+    solution: "Define zones, monitoring goals and schedules while keeping camera credentials server-side.",
+    cameraSetup: "DVR/NVR, RTSP and ONVIF readiness with zone mapping.",
+    alerts: "Restricted area, crowding, no motion too long, unusual motion and obstruction.",
+    benefits: ["Zone-based monitoring", "Operational visibility", "After-hours awareness", "Scalable camera limits"],
+    packageSuggestion: "Business Pro or Enterprise Monitoring"
+  },
+  {
+    key: "office",
+    path: "/digital-observer/office",
+    title: "Office Monitoring",
+    audience: "Office managers",
+    problem: "Offices need after-hours visibility, access-area awareness and camera health without overcomplicating setup.",
+    solution: "Configure office monitoring goals, alert channels and business-hours rules in test mode first.",
+    cameraSetup: "Office IP cameras, generic camera, RTSP or ONVIF readiness.",
+    alerts: "Motion after hours, restricted area, camera offline and obstruction.",
+    benefits: ["Business-hours rules", "Simple alerts", "Privacy settings", "Package readiness"],
+    packageSuggestion: "Business Basic"
+  },
+  {
+    key: "store",
+    path: "/digital-observer/store",
+    title: "Store Monitoring",
+    audience: "Store owners",
+    problem: "Stores need camera availability, after-hours activity and quick visibility across customer and staff areas.",
+    solution: "Connect existing cameras and select monitoring goals that fit retail operations.",
+    cameraSetup: "Store DVR/NVR, IP camera, RTSP or ONVIF readiness.",
+    alerts: "Camera offline, obstruction, motion after hours, crowding and restricted area.",
+    benefits: ["Retail visibility", "Camera health tracking", "Alert readiness", "Human-reviewed signals"],
+    packageSuggestion: "Business Basic or Business Pro"
+  }
+] as const;
+
 export const DIGITAL_OBSERVER_PACKAGES = [
   { key: "home_basic", name: "Home Basic", type: "home", cameras: "up to 2", hours: "event-based", retention: "14 days events", ai: ["camera offline", "motion after hours"], channels: "in-app", price: "pricing readiness" },
   { key: "home_plus", name: "Home Plus", type: "home", cameras: "up to 6", hours: "night / custom", retention: "30 days events", ai: ["restricted area", "obstruction", "person detected"], channels: "in-app, SMS, WhatsApp readiness", price: "pricing readiness" },
@@ -23,12 +106,14 @@ export const DIGITAL_OBSERVER_PACKAGES = [
 export const DIGITAL_OBSERVER_AI_GOALS = [
   "camera offline",
   "motion after hours",
-  "restricted area",
   "person detected",
-  "crowding",
   "no motion too long",
+  "restricted area",
   "camera obstruction",
-  "suspicious motion"
+  "crowding",
+  "unusual motion",
+  "business hours monitoring",
+  "night monitoring"
 ] as const;
 
 export const DIGITAL_OBSERVER_SHARED_CORE = [
@@ -45,7 +130,14 @@ export const DIGITAL_OBSERVER_SHARED_CORE = [
 export const DIGITAL_OBSERVER_DOMAIN_OPTIONS = [
   "observer.gan-batuach.co.il",
   "app.digitalobserver.ai",
-  "digital-observer.co.il"
+  "digital-observer.co.il",
+  "app.digital-observer.co.il"
+] as const;
+
+export const DIGITAL_OBSERVER_DOMAIN_ENV = [
+  "DIGITAL_OBSERVER_PUBLIC_HOST",
+  "DIGITAL_OBSERVER_APP_HOST",
+  "GAN_BATUACH_PUBLIC_HOST"
 ] as const;
 
 export const DIGITAL_OBSERVER_PRODUCT_BOUNDARIES = {
@@ -58,4 +150,40 @@ export const DIGITAL_OBSERVER_SETUP_ACTIONS = [
   { title: "Connect cameras", text: "Use DVR/NVR, RTSP, ONVIF or generic camera through the secure gateway.", icon: Camera },
   { title: "Choose monitoring package", text: "Select limits, monitoring hours, retention and alert channels.", icon: PackageCheck },
   { title: "Configure alert goals", text: "Select what the observer should watch for and keep human review enabled.", icon: Bell }
+] as const;
+
+export const DIGITAL_OBSERVER_ANALYTICS_EVENTS = [
+  "visitor_source",
+  "demo_request",
+  "package_interest",
+  "onboarding_started",
+  "cameras_added",
+  "first_alert_created",
+  "active_observer_site",
+  "churn_risk"
+] as const;
+
+export const DIGITAL_OBSERVER_LEAD_SOURCES = [
+  "home",
+  "business",
+  "office",
+  "warehouse",
+  "store",
+  "custom"
+] as const;
+
+export const DIGITAL_OBSERVER_PRODUCT_SWITCHER = [
+  { product: "Gan Batuach", href: "/", description: "Kindergarten management, parents, children, staff, inspectors and Israeli regulation." },
+  { product: "Digital Observer", href: "/digital-observer", description: "Standalone camera monitoring for homes, businesses and organizations." }
+] as const;
+
+export const DIGITAL_OBSERVER_ADMIN_OVERVIEW = [
+  { label: "Gan Batuach gardens", source: "gardens", note: "Kindergarten vertical remains separate." },
+  { label: "Digital Observer sites", source: "observer_sites", note: "Standalone sites use observer_site_id." },
+  { label: "Product type", source: "observer_sites.site_type", note: "Do not mix parent/child flows into standalone observer." },
+  { label: "Subscriptions", source: "observer_site_subscriptions", note: "Separate from Gan Batuach kindergarten subscription billing." },
+  { label: "Usage", source: "observer_site_usage_snapshots", note: "Cameras, alerts, playback and monitoring usage." },
+  { label: "Camera health", source: "camera_streams", note: "Shared infrastructure, scoped by observer_site_id." },
+  { label: "Observer health", source: "observer_intelligence_signals", note: "Human-reviewed signals only." },
+  { label: "Billing status", source: "observer_site_subscriptions.status", note: "Billing remains provider-gated readiness." }
 ] as const;

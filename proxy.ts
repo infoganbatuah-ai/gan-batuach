@@ -1,8 +1,49 @@
-import { type NextFetchEvent, type NextRequest } from "next/server";
+import { NextResponse, type NextFetchEvent, type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
 
 function firstForwardedIp(value: string | null) {
   return value?.split(",")[0]?.trim() || null;
+}
+
+function envHosts(...values: Array<string | undefined>) {
+  return values
+    .flatMap((value) => value?.split(",") ?? [])
+    .map((value) => value.trim().toLowerCase())
+    .filter(Boolean);
+}
+
+function hostWithoutPort(value: string | null) {
+  return value?.split(":")[0]?.toLowerCase() ?? "";
+}
+
+function isDigitalObserverHost(request: NextRequest) {
+  const host = hostWithoutPort(request.headers.get("host"));
+  if (!host) return false;
+  return envHosts(process.env.DIGITAL_OBSERVER_PUBLIC_HOST, process.env.DIGITAL_OBSERVER_APP_HOST).includes(host);
+}
+
+function digitalObserverRewritePath(pathname: string) {
+  if (pathname.startsWith("/digital-observer")) return null;
+  if (pathname.startsWith("/api") || pathname.startsWith("/auth")) return null;
+  if (pathname === "/") return "/digital-observer";
+  if (pathname === "/dashboard") return "/digital-observer/dashboard";
+  if (pathname === "/onboarding") return "/digital-observer/onboarding";
+  if (pathname.startsWith("/sites/")) return `/digital-observer${pathname}`;
+  return `/digital-observer${pathname}`;
+}
+
+function rewriteForDigitalObserverHost(request: NextRequest, response: NextResponse) {
+  if (!isDigitalObserverHost(request)) return response;
+  const nextPath = digitalObserverRewritePath(request.nextUrl.pathname);
+  if (!nextPath) return response;
+
+  const url = request.nextUrl.clone();
+  url.pathname = nextPath;
+  const rewrite = NextResponse.rewrite(url, { request });
+  response.headers.forEach((value, key) => rewrite.headers.set(key, value));
+  response.cookies.getAll().forEach((cookie) => rewrite.cookies.set(cookie));
+  rewrite.headers.set("x-digital-observer-host-routing", "ready");
+  return rewrite;
 }
 
 function writeAuditLog(request: NextRequest, responseStatus: number, requestId: string) {
@@ -43,9 +84,10 @@ function writeAuditLog(request: NextRequest, responseStatus: number, requestId: 
 export async function proxy(request: NextRequest, event: NextFetchEvent) {
   const requestId = crypto.randomUUID();
   const response = await updateSession(request);
-  response.headers.set("x-request-id", requestId);
-  event.waitUntil(writeAuditLog(request, response.status, requestId));
-  return response;
+  const routedResponse = rewriteForDigitalObserverHost(request, response);
+  routedResponse.headers.set("x-request-id", requestId);
+  event.waitUntil(writeAuditLog(request, routedResponse.status, requestId));
+  return routedResponse;
 }
 
 export const config = {

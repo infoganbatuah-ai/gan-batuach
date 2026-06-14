@@ -92,6 +92,39 @@
   font-size: 1.05rem;
 }
 
+.product-switcher {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  max-width: 1180px;
+  margin: 0 auto 18px;
+  padding: 12px 0;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.12);
+}
+
+.product-switcher strong {
+  color: #0f172a;
+  font-size: 0.98rem;
+}
+
+.product-switcher div {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.product-switcher a {
+  padding: 7px 10px;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: #ffffff;
+  color: #334155;
+  font-size: 0.84rem;
+  font-weight: 700;
+}
+
 .digital-observer-app .dashboard-hero-card {
   align-items: flex-start;
 }
@@ -104,6 +137,15 @@
 }
 
 @media (max-width: 760px) {
+  .product-switcher {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .product-switcher div {
+    justify-content: flex-start;
+  }
+
   .observer-signal-map {
     min-height: auto;
     grid-template-columns: 1fr;
