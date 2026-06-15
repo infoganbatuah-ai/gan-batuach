@@ -9,10 +9,12 @@ export async function signIn(formData: FormData) {
   const email = String(formData.get("email") || "");
   const password = String(formData.get("password") || "");
   const gardenId = String(formData.get("context_garden_id") || "");
+  const authSource = String(formData.get("auth_source") || "");
+  const loginPath = authSource === "app" ? "/app/login" : "/login";
   const supabase = await createClient();
 
   const { error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) redirect(`/login?error=${encodeURIComponent(error.message)}`);
+  if (error) redirect(`${loginPath}?error=${encodeURIComponent(error.message)}`);
 
   const {
     data: { user }
@@ -27,5 +29,5 @@ export async function signIn(formData: FormData) {
 export async function signOut() {
   const supabase = await createClient();
   await supabase.auth.signOut();
-  redirect("/login");
+  redirect("/app/login");
 }
