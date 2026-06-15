@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { BrandHeader } from "@/components/brand-header";
-import { ProductRoleCards, SelfServiceRegisterForm } from "@/components/self-service-forms";
+import { SelfServiceRegisterForm } from "@/components/self-service-forms";
 
 export default function RegisterPage() {
   return (
@@ -18,7 +18,11 @@ export default function RegisterPage() {
               <Link className="button secondary" href="/login">התחברות למערכת</Link>
             </div>
           </div>
-          <ProductRoleCards />
+          <section className="card action-panel auth-readiness-card">
+            <p className="eyebrow">חשבון מוגבל קודם</p>
+            <h2>אישור לפני גישה רגישה</h2>
+            <p>הורה, צוות, מפקח או מנהלת גן לא מקבלים גישה לנתוני גן עד אישור ושיוך מתאים.</p>
+          </section>
         </section>
         <div className="grid cols-2 login-content-grid">
           <section className="card action-panel">

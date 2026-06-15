@@ -149,6 +149,163 @@
   font-weight: 800;
 }
 
+.registration-app-card {
+  display: grid;
+  gap: 18px;
+}
+
+.register-role-card-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.register-role-card {
+  min-height: 164px;
+  display: grid;
+  align-content: start;
+  gap: 9px;
+  text-align: right;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: #ffffff;
+  color: var(--ink);
+  cursor: pointer;
+  box-shadow: 0 12px 34px rgba(16, 32, 51, 0.07);
+}
+
+.register-role-card svg {
+  color: var(--blue);
+}
+
+.register-role-card strong {
+  font-size: 1.02rem;
+}
+
+.register-role-card span {
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.register-role-card small {
+  color: var(--blue);
+  font-weight: 800;
+}
+
+.register-role-card.active {
+  border-color: rgba(18, 59, 143, 0.42);
+  background: var(--blue-soft);
+  box-shadow: 0 18px 44px rgba(18, 59, 143, 0.14);
+}
+
+.focused-register-form {
+  border-radius: 20px;
+}
+
+.register-form-heading {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  background: #f8faff;
+}
+
+.register-form-heading svg,
+.auth-readiness-card svg {
+  color: var(--blue);
+}
+
+.register-form-heading h3 {
+  margin: 6px 0;
+}
+
+.register-form-heading p,
+.auth-switch-line,
+.login-form-links {
+  margin: 0;
+  color: var(--muted);
+}
+
+.terms-check {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #ffffff;
+  line-height: 1.6;
+}
+
+.terms-check input {
+  margin-top: 4px;
+}
+
+.register-helper-row,
+.login-form-links {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.register-helper-row a,
+.login-form-links a,
+.auth-switch-line a {
+  color: var(--blue);
+  font-weight: 800;
+}
+
+.compact-auth-hero {
+  align-items: stretch;
+}
+
+.auth-readiness-card {
+  align-content: center;
+}
+
+.subscription-activation-panel {
+  gap: 18px;
+}
+
+.subscription-breakdown-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.subscription-breakdown-grid div {
+  display: grid;
+  gap: 6px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: #ffffff;
+}
+
+.subscription-breakdown-grid span {
+  color: var(--muted);
+  font-size: 0.88rem;
+}
+
+.subscription-breakdown-grid strong {
+  font-size: 1.28rem;
+  color: var(--blue-dark);
+}
+
+.subscription-breakdown-grid small {
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.kindergarten-city-analytics article {
+  min-height: 210px;
+}
+
 @media (max-width: 760px) {
   .app-gateway-page {
     padding: 18px 14px 86px;
@@ -178,6 +335,15 @@
 
   .app-workspace-actions {
     justify-content: stretch;
+  }
+
+  .register-role-card-grid,
+  .subscription-breakdown-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .register-role-card {
+    min-height: auto;
   }
 }
 

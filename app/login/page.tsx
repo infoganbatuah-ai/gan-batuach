@@ -6,6 +6,7 @@ import { signIn } from "@/app/login/actions";
 import { dashboardPathForProfile, getSessionProfile } from "@/lib/auth";
 import { isRole } from "@/lib/roles";
 import { PasskeyLogin } from "@/components/passkey-login";
+import { LoginSubmitButton } from "@/components/auth-submit-button";
 
 const audiences = [
   { icon: Baby, title: "הורים", text: "היום של הילד, הודעות, מסמכים, תשלומים ומצלמות אם אושרו." },
@@ -26,8 +27,8 @@ export default async function LoginPage({ searchParams }: { searchParams?: Promi
         <section className="login-hero">
           <div>
             <p className="eyebrow">התחברות למערכת</p>
-            <h1>מתחברים פעם אחת, והמערכת מעבירה אותך למקום הנכון.</h1>
-            <p>הורים, צוות, גננת/מנהלת, בעלים ומפקחים משתמשים באותו מסך כניסה. אחרי ההתחברות גן בטוח מזהה את התפקיד ומציג את הדשבורד המתאים.</p>
+            <h1>כניסה למערכת גן בטוח</h1>
+            <p>התחברו כדי לנהל את הגן, לעקוב אחרי ילדכם או לבצע פיקוח. אחרי ההתחברות גן בטוח מזהה את התפקיד ומציג את סביבת העבודה המתאימה.</p>
             {params?.gardenId ? <div className="notice"><ShieldCheck size={16} /> ההתחברות נשמרת בהקשר של הגן שממנו הגעת.</div> : null}
             <div className="profile-actions">
               <Link className="button secondary" href="/app">כניסה למערכת</Link>
@@ -40,7 +41,7 @@ export default async function LoginPage({ searchParams }: { searchParams?: Promi
         </section>
         <div className="grid cols-2 login-content-grid">
           <section className="card action-panel">
-            <p className="eyebrow">Role detection</p>
+            <p className="eyebrow">זיהוי תפקיד אוטומטי</p>
             <h2>מסך כניסה אחד לכל התפקידים</h2>
             <p>אין צורך לבחור “הורה” או “צוות” אחרי הכניסה. המערכת עושה זאת לבד לפי המשתמש שנוצר בגן.</p>
             <div className="journey-steps compact"><span><b>1</b><UserRoundCheck size={16} /> הזנת פרטים</span><span><b>2</b><ShieldCheck size={16} /> אימות מאובטח</span><span><b>3</b><Building2 size={16} /> מעבר לדשבורד</span></div>
@@ -51,7 +52,9 @@ export default async function LoginPage({ searchParams }: { searchParams?: Promi
               <input type="hidden" name="context_garden_id" value={params?.gardenId ?? ""} />
               <label>אימייל<input name="email" type="email" required placeholder="name@example.com" autoComplete="username" /></label>
               <label>סיסמה<input name="password" type="password" required autoComplete="current-password" /></label>
-              <button className="button primary" type="submit">כניסה</button>
+              <div className="login-form-links"><Link href="/forgot-password">שכחת סיסמה?</Link></div>
+              <LoginSubmitButton />
+              <p className="auth-switch-line">עדיין אין לך חשבון? <Link href="/register">הרשמה עכשיו</Link></p>
             </form>
             <PasskeyLogin />
           </div>
