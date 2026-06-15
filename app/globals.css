@@ -12,6 +12,175 @@
   --success: #0a7a55;
 }
 
+.nav-system-entry {
+  background: var(--blue);
+  color: #ffffff !important;
+  border-radius: 999px;
+  padding: 9px 14px;
+  box-shadow: 0 10px 24px rgba(18, 59, 143, 0.18);
+}
+
+.app-gateway-page {
+  min-height: calc(100vh - 78px);
+  display: grid;
+  align-content: center;
+  gap: 24px;
+  padding: 32px min(5vw, 56px) 96px;
+  background:
+    linear-gradient(180deg, rgba(248, 250, 255, 0.96), rgba(234, 240, 255, 0.86)),
+    var(--paper);
+}
+
+.app-gateway-hero {
+  width: min(760px, 100%);
+  margin: 0 auto;
+  display: grid;
+  gap: 20px;
+  text-align: center;
+  justify-items: center;
+  padding: 34px;
+  border: 1px solid var(--line);
+  border-radius: 22px;
+  background: var(--surface);
+  box-shadow: 0 24px 70px rgba(18, 59, 143, 0.12);
+}
+
+.app-gateway-brand {
+  display: inline-grid;
+  gap: 10px;
+  justify-items: center;
+}
+
+.app-gateway-hero h1 {
+  margin: 4px 0 10px;
+  font-size: clamp(2rem, 5vw, 3.4rem);
+  letter-spacing: 0;
+}
+
+.app-gateway-hero p {
+  max-width: 560px;
+  margin: 0 auto;
+  color: var(--muted);
+  line-height: 1.7;
+}
+
+.app-gateway-actions,
+.app-workspace-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.app-gateway-actions .button[disabled] {
+  opacity: 0.62;
+  cursor: not-allowed;
+}
+
+.app-gateway-note {
+  max-width: 520px;
+  text-align: center;
+}
+
+.app-gateway-grid {
+  width: min(960px, 100%);
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.app-gateway-card {
+  min-height: 150px;
+  display: grid;
+  align-content: start;
+  gap: 10px;
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: #ffffff;
+  box-shadow: 0 14px 42px rgba(16, 32, 51, 0.08);
+}
+
+.app-gateway-card svg {
+  color: var(--blue);
+}
+
+.app-gateway-card strong {
+  font-size: 1.08rem;
+}
+
+.app-gateway-card span {
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.app-workspace-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  margin: 0 0 18px;
+  padding: 16px 18px;
+  border: 1px solid rgba(219, 228, 243, 0.9);
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.88);
+  box-shadow: 0 12px 36px rgba(16, 32, 51, 0.07);
+  backdrop-filter: blur(12px);
+}
+
+.app-workspace-header h1 {
+  margin: 4px 0;
+  font-size: clamp(1.25rem, 3vw, 1.85rem);
+  letter-spacing: 0;
+}
+
+.app-workspace-header p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.app-workspace-kicker {
+  display: inline-flex;
+  align-items: center;
+  color: var(--blue);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+@media (max-width: 760px) {
+  .app-gateway-page {
+    padding: 18px 14px 86px;
+  }
+
+  .app-gateway-hero {
+    padding: 24px 16px;
+    border-radius: 18px;
+  }
+
+  .app-gateway-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .app-gateway-actions .button,
+  .app-workspace-actions .button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .app-workspace-header {
+    align-items: stretch;
+    flex-direction: column;
+    padding: 14px;
+    border-radius: 16px;
+  }
+
+  .app-workspace-actions {
+    justify-content: stretch;
+  }
+}
+
 /* PHASE 173: standalone Digital Observer product shell */
 .digital-observer-public,
 .digital-observer-app {

@@ -18,6 +18,7 @@ export function BrandHeader() {
         <Link href="/safety-standard">תקן הבטיחות</Link>
         <Link href="/parents-demand">להורים</Link>
         <Link href="/kindergarten-directory">גנים</Link>
+        <Link className="nav-system-entry" href="/app">כניסה למערכת</Link>
         <Link href="/register">רישום עצמי</Link>
         <Link href="/book-demo">קביעת הדגמה</Link>
         <Link href="/login">כניסה</Link>

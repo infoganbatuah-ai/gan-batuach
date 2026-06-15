@@ -14,6 +14,16 @@ import { NotificationBell } from "@/components/notification-bell";
 import { PilotFeedbackWidget } from "@/components/pilot-feedback-widget";
 import { FloatingActionCenter } from "@/components/floating-action-center";
 
+const roleLabels: Record<UserRole, string> = {
+  admin: "אדמין",
+  network_manager: "מנהל/ת רשת",
+  inspector: "מפקח/ת",
+  manager: "מנהלת גן",
+  owner: "בעלות גן",
+  staff: "צוות גן",
+  parent: "הורה"
+};
+
 const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: string }>> = {
   admin: [
     { href: "/dashboard/admin", label: "מרכז שליטה", hint: "סיכונים, ערים, לידים" },
@@ -371,9 +381,18 @@ export function DashboardShell({ role, title, children }: { role: UserRole; titl
           <PasskeyEnrollmentPrompt />
         </aside>
         <main className="dashboard-main">
-          <div className="dashboard-page-navigation">
-            <DashboardBackButton fallbackHref={dashboardHomeByRole[role]} />
-            <NotificationBell role={role} />
+          <div className="app-workspace-header">
+            <div>
+              <span className="app-workspace-kicker">גן בטוח App</span>
+              <h1>{title}</h1>
+              <p>{roleLabels[role]} · סביבת עבודה מאובטחת לפי תפקיד</p>
+            </div>
+            <div className="app-workspace-actions">
+              <span className="pill good">גישה לפי תפקיד</span>
+              <DashboardBackButton fallbackHref={dashboardHomeByRole[role]} />
+              <NotificationBell role={role} />
+              <LogoutButton />
+            </div>
           </div>
           <PolicyAcceptanceGate />
           <SandboxModeBanner />

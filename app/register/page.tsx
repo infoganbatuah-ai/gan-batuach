@@ -10,10 +10,13 @@ export default function RegisterPage() {
         <section className="login-hero">
           <div>
             <p className="eyebrow">הרשמה עצמאית</p>
-            <h1>מצטרפים לגן בטוח ומגישים בקשת שיוך.</h1>
+            <h1>משתמש חדש?</h1>
             <p>הרשמה עצמאית יוצרת חשבון מוגבל בלבד. גישה לגן, ילדים, צוות או פיקוח נפתחת רק אחרי אישור הגורם המתאים.</p>
             <div className="notice">כבר קיבלתם הזמנה מהגן? השתמשו במסך הכניסה הרגיל כדי לשמור על מסלול ההזמנה הקיים.</div>
-            <Link className="button secondary" href="/login">כניסה לחשבון קיים</Link>
+            <div className="profile-actions">
+              <Link className="button secondary" href="/app">חזרה לכניסה למערכת</Link>
+              <Link className="button secondary" href="/login">התחברות למערכת</Link>
+            </div>
           </div>
           <ProductRoleCards />
         </section>

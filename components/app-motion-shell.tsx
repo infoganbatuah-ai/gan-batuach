@@ -69,5 +69,5 @@ function PwaInstallPrompt() {
 }
 
 export function MobilePublicTabs() {
-  return <nav className="mobile-public-tabs" aria-label="ניווט מהיר"><Link href="/"><Home size={19} /><span>בית</span></Link><Link href="/parents-demand"><Search size={19} /><span>הורים</span></Link><Link href="/book-demo"><ShieldCheck size={19} /><span>הדגמה</span></Link><Link href="/login"><Bell size={19} /><span>כניסה</span></Link></nav>;
+  return <nav className="mobile-public-tabs" aria-label="ניווט מהיר"><Link href="/"><Home size={19} /><span>בית</span></Link><Link href="/parents-demand"><Search size={19} /><span>הורים</span></Link><Link href="/book-demo"><ShieldCheck size={19} /><span>הדגמה</span></Link><Link href="/app"><Bell size={19} /><span>מערכת</span></Link></nav>;
 }
