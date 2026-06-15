@@ -25,6 +25,24 @@ export default async function InspectorDashboard() {
     supabase.from("gardens" as any).select("id, name, city, address, logo_url, safe_status, last_inspection_score, next_inspection_at").eq("inspector_id", profile.id).order("name")
   ]);
   const inspector = inspectorRes.data as any;
+  if (!inspector || profile.active === false) {
+    return (
+      <DashboardShell role="inspector" title="בקשת מפקח">
+        <section className="dashboard-hero-card">
+          <div>
+            <p className="eyebrow">חשבון מפקח מוגבל</p>
+            <h1>יש להשלים בקשת הצטרפות למערך המפקחים.</h1>
+            <p>עד אישור אדמין ושיוך גנים, אין גישה לגנים, ביקורות, מצלמות, דוחות או נתונים רגישים.</p>
+          </div>
+          <span className="pill warn">ממתין לאישור</span>
+        </section>
+        <section className="staff-action-grid">
+          <ActionCard title="הגשת בקשה" text="פרטים, אזורים ומסמכים" href="/dashboard/inspector/apply" icon={ClipboardCheck} tone="good" />
+          <ActionCard title="התראות" text="עדכוני אדמין על הבקשה" href="/dashboard/inspector/notifications" icon={ShieldAlert} />
+        </section>
+      </DashboardShell>
+    );
+  }
   const gardens = (gardensRes.data ?? []) as any[];
   const gardenIds = gardens.map((garden: any) => garden.id);
 
