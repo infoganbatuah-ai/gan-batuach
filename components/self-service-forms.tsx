@@ -6,16 +6,16 @@ import { Baby, BriefcaseBusiness, Building2, CheckCircle2, ClipboardCheck, Send,
 import { knownKindergartenCities } from "@/lib/domain/kindergarten-onboarding";
 
 type ApiState = { ok: boolean; message: string; href?: string };
-type AccountType = "parent" | "staff_candidate" | "inspector_candidate" | "kindergarten_manager";
+export type SelfServiceAccountType = "parent" | "staff_candidate" | "inspector_candidate" | "kindergarten_manager";
 
-const registrationRoles: Array<{ type: AccountType; icon: typeof Baby; title: string; text: string; cta: string }> = [
-  { type: "parent", icon: Baby, title: "הורה", text: "צרו כרטיס ילד, מצאו גנים בטוחים והגישו בקשת רישום.", cta: "הרשמת הורה" },
+const registrationRoles: Array<{ type: SelfServiceAccountType; icon: typeof Baby; title: string; text: string; cta: string }> = [
+  { type: "parent", icon: Baby, title: "הורה", text: "צרו כרטיס ילד, מצאו גנים בטוחים והגישו בקשת רישום.", cta: "הרשמה כהורה" },
   { type: "kindergarten_manager", icon: Building2, title: "מנהלת גן / גננת", text: "רשמו את הגן, הגדירו קבוצות גיל, מחירים וניהול מלא.", cta: "רישום גן" },
-  { type: "staff_candidate", icon: BriefcaseBusiness, title: "צוות גן", text: "השלימו פרטים, העלו מסמכים והתחברו לגן שבו אתם עובדים.", cta: "הרשמת צוות" },
-  { type: "inspector_candidate", icon: ClipboardCheck, title: "מפקח", text: "הגישו בקשה להצטרפות למערך הפיקוח ושיוך לגנים.", cta: "בקשת מפקח" }
+  { type: "staff_candidate", icon: BriefcaseBusiness, title: "צוות גן", text: "השלימו פרטים והתחברו לגן שבו אתם עובדים או מגישים מועמדות.", cta: "הרשמה כאיש צוות" },
+  { type: "inspector_candidate", icon: ClipboardCheck, title: "מפקח", text: "הגישו בקשה להצטרפות למערך הפיקוח ושיוך לגנים.", cta: "הרשמה כמפקח" }
 ];
 
-const roleNotice: Record<AccountType, string> = {
+const roleNotice: Record<SelfServiceAccountType, string> = {
   parent: "פרטי ההורה והילד ישמשו רק להפעלת בקשות רישום ושירותי הגן לאחר אישור.",
   staff_candidate: "פרטי מועמדות ומסמכים ישמשו לבדיקה על ידי מנהלת הגן שאליו תגישו מועמדות.",
   inspector_candidate: "פרטי בקשת המפקח ישמשו לבדיקת התאמה ושיוך אזורים על ידי אדמין.",
@@ -37,10 +37,11 @@ function formValue(form: HTMLFormElement, name: string) {
   return String(new FormData(form).get(name) ?? "").trim();
 }
 
-export function SelfServiceRegisterForm() {
+export function SelfServiceRegisterForm({ fixedAccountType, appMode = false }: { fixedAccountType?: SelfServiceAccountType; appMode?: boolean } = {}) {
   const [state, setState] = useState<ApiState | null>(null);
   const [busy, setBusy] = useState(false);
-  const [accountType, setAccountType] = useState<AccountType>("parent");
+  const [accountType, setAccountType] = useState<SelfServiceAccountType>(fixedAccountType ?? "parent");
+  const isFixedRole = Boolean(fixedAccountType);
   const cities = knownKindergartenCities();
   const activeRole = registrationRoles.find((role) => role.type === accountType) ?? registrationRoles[0];
 
@@ -81,24 +82,28 @@ export function SelfServiceRegisterForm() {
   }
 
   return (
-    <section className="registration-app-card">
-      <div className="section-heading">
-        <p className="eyebrow">הרשמה עצמאית</p>
-        <h2>מה סוג המשתמש שלך?</h2>
-        <p>החשבון נפתח במצב מוגבל. גישה לגן, ילדים, צוות או פיקוח נפתחת רק אחרי אישור מתאים.</p>
-      </div>
-      <div className="register-role-card-grid" role="tablist" aria-label="בחירת סוג משתמש">
-        {registrationRoles.map((role) => (
-          <button className={role.type === accountType ? "register-role-card active" : "register-role-card"} type="button" key={role.type} onClick={() => { setAccountType(role.type); setState(null); }}>
-            <role.icon />
-            <strong>{role.title}</strong>
-            <span>{role.text}</span>
-            <small>{role.cta}</small>
-          </button>
-        ))}
-      </div>
+    <section className={appMode ? "registration-app-card app-focused-registration" : "registration-app-card"}>
+      {!isFixedRole ? (
+        <>
+          <div className="section-heading">
+            <p className="eyebrow">הרשמה עצמאית</p>
+            <h2>מה סוג המשתמש שלך?</h2>
+            <p>החשבון נפתח במצב מוגבל. גישה לגן, ילדים, צוות או פיקוח נפתחת רק אחרי אישור מתאים.</p>
+          </div>
+          <div className="register-role-card-grid" role="tablist" aria-label="בחירת סוג משתמש">
+            {registrationRoles.map((role) => (
+              <button className={role.type === accountType ? "register-role-card active" : "register-role-card"} type="button" key={role.type} onClick={() => { setAccountType(role.type); setState(null); }}>
+                <role.icon />
+                <strong>{role.title}</strong>
+                <span>{role.text}</span>
+                <small>{role.cta}</small>
+              </button>
+            ))}
+          </div>
+        </>
+      ) : null}
 
-      <form className="form premium-login-card focused-register-form" onSubmit={submit}>
+      <form className={appMode ? "app-auth-form focused-register-form" : "form premium-login-card focused-register-form"} onSubmit={submit}>
         <input type="hidden" name="account_type" value={accountType} />
         <div className="register-form-heading">
           <activeRole.icon />
@@ -131,8 +136,8 @@ export function SelfServiceRegisterForm() {
           <Link href="/service-charter">תנאי שירות</Link>
         </div>
         <button className="button primary large" disabled={busy} type="submit"><Send size={16} /> {busy ? "יוצר חשבון..." : "יצירת חשבון מוגבל"}</button>
-        {state ? <div className={state.ok ? "success-screen" : "error-banner"}><strong>{state.message}</strong>{state.href ? <Link className="button secondary tiny" href="/login">כניסה לחשבון</Link> : null}</div> : null}
-        <p className="auth-switch-line">כבר יש לך חשבון? <Link href="/login">התחברות</Link></p>
+        {state ? <div className={state.ok ? "success-screen" : "error-banner"}><strong>{state.message}</strong>{state.href ? <Link className="button secondary tiny" href="/app/login">כניסה לחשבון</Link> : null}</div> : null}
+        <p className="auth-switch-line">כבר יש לך חשבון? <Link href="/app/login">התחברות</Link></p>
       </form>
     </section>
   );

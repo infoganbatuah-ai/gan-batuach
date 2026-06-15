@@ -27,7 +27,7 @@ export default function AppGatewayPage() {
             <button className="button secondary large" type="button" disabled title="קישורי החנויות יופעלו לאחר אישור App Store ו-Google Play">
               <Download size={18} /> הורדת אפליקציה
             </button>
-            <Link className="button primary large" href="/login">
+            <Link className="button primary large" href="/app/login">
               <MonitorSmartphone size={18} /> המשך בדפדפן
             </Link>
           </div>
@@ -35,12 +35,12 @@ export default function AppGatewayPage() {
         </section>
 
         <section className="app-gateway-grid">
-          <Link className="app-gateway-card" href="/login">
+          <Link className="app-gateway-card" href="/app/login">
             <LogIn />
             <strong>משתמש קיים</strong>
             <span>התחברות למערכת והעברה אוטומטית לדשבורד המתאים.</span>
           </Link>
-          <Link className="app-gateway-card" href="/register">
+          <Link className="app-gateway-card" href="/app/register">
             <UserPlus />
             <strong>משתמש חדש</strong>
             <span>בחירת מסלול: הורה, מנהלת גן, צוות גן או מפקח.</span>

@@ -116,6 +116,153 @@
   line-height: 1.55;
 }
 
+.app-auth-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: 26px min(5vw, 56px);
+  background:
+    linear-gradient(180deg, rgba(248, 250, 255, 0.96), rgba(234, 240, 255, 0.86)),
+    var(--paper);
+}
+
+.app-auth-card-shell {
+  width: min(620px, 100%);
+  display: grid;
+  gap: 18px;
+  padding: 24px;
+  border: 1px solid var(--line);
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 24px 70px rgba(18, 59, 143, 0.12);
+}
+
+.app-auth-topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.app-auth-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--blue);
+  font-weight: 800;
+}
+
+.app-auth-brand,
+.app-auth-heading {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+}
+
+.app-auth-brand {
+  gap: 8px;
+}
+
+.app-auth-heading h1 {
+  margin: 4px 0 8px;
+  font-size: clamp(1.9rem, 5vw, 2.8rem);
+  letter-spacing: 0;
+}
+
+.app-auth-heading p {
+  max-width: 440px;
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.app-auth-form {
+  display: grid;
+  gap: 14px;
+}
+
+.app-auth-form label {
+  display: grid;
+  gap: 7px;
+  color: var(--ink);
+  font-weight: 800;
+}
+
+.app-auth-form input,
+.app-auth-form select,
+.app-auth-form textarea {
+  width: 100%;
+  min-height: 48px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 12px 14px;
+  background: #ffffff;
+  color: var(--ink);
+  font: inherit;
+}
+
+.app-auth-form textarea {
+  min-height: 92px;
+}
+
+.app-auth-form .button {
+  width: 100%;
+  justify-content: center;
+}
+
+.app-auth-footer {
+  display: flex;
+  justify-content: center;
+  text-align: center;
+  color: var(--muted);
+}
+
+.app-auth-footer a {
+  color: var(--blue);
+  font-weight: 900;
+}
+
+.app-role-choice-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.app-role-choice-card {
+  min-height: 176px;
+  display: grid;
+  align-content: start;
+  gap: 9px;
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: #ffffff;
+  color: var(--ink);
+  box-shadow: 0 12px 34px rgba(16, 32, 51, 0.07);
+}
+
+.app-role-choice-card svg {
+  color: var(--blue);
+}
+
+.app-role-choice-card strong {
+  font-size: 1.08rem;
+}
+
+.app-role-choice-card span {
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.app-role-choice-card small {
+  color: var(--blue);
+  font-weight: 900;
+}
+
+.app-focused-registration .register-form-heading {
+  background: var(--blue-soft);
+}
+
 .app-workspace-header {
   display: flex;
   align-items: center;
@@ -324,6 +471,25 @@
   .app-workspace-actions .button {
     width: 100%;
     justify-content: center;
+  }
+
+  .app-auth-page {
+    align-items: start;
+    padding: 14px;
+  }
+
+  .app-auth-card-shell {
+    padding: 18px;
+    border-radius: 20px;
+  }
+
+  .app-auth-topbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .app-role-choice-grid {
+    grid-template-columns: 1fr;
   }
 
   .app-workspace-header {
