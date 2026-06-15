@@ -4,7 +4,7 @@ import { fail, handleRouteError, ok } from "@/lib/api";
 import { requireRole } from "@/lib/auth";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
-import { activationWizardSteps, calculateGanBatuachMonthlyPrice, calculateRequiredStaff, kindergartenAgeGroups, requiredKindergartenDocumentCategories, validateClassCapacity } from "@/lib/domain/kindergarten-onboarding";
+import { activationWizardSteps, calculateGanBatuachMonthlyPrice, calculateRequiredStaff, kindergartenAgeGroups, operationalDistrictForCity, requiredKindergartenDocumentCategories, validateClassCapacity } from "@/lib/domain/kindergarten-onboarding";
 
 const onboardingSchema = z.object({
   submit: z.boolean().optional(),
@@ -13,6 +13,9 @@ const onboardingSchema = z.object({
     logo_url: z.string().trim().optional(),
     image_url: z.string().trim().optional(),
     gallery_urls: z.array(z.string()).optional(),
+    city: z.string().trim().optional(),
+    street: z.string().trim().optional(),
+    operational_district: z.string().trim().optional(),
     address: z.string().trim().optional(),
     phone: z.string().trim().optional(),
     email: z.string().trim().optional(),
@@ -152,6 +155,7 @@ export async function PATCH(request: Request) {
     const subscriptionAmount = calculateGanBatuachMonthlyPrice(classCount);
     const gardenPatch = Object.fromEntries(Object.entries({
       name: payload.garden.name || existingGarden?.name,
+      city: payload.garden.city || undefined,
       logo_url: payload.garden.logo_url || null,
       image_url: payload.garden.image_url || null,
       address: payload.garden.address || null,
@@ -192,6 +196,7 @@ export async function PATCH(request: Request) {
         required_fields: activationWizardSteps as unknown as string[],
         profile_data: {
           ...profileData,
+          operational_district: payload.garden.operational_district || operationalDistrictForCity(payload.garden.city),
           required_staff: requiredStaff,
           current_staff: currentStaff,
           missing_staff: missingStaff,

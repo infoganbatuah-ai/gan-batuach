@@ -40,6 +40,7 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/admin/requests", label: "בקשות משתמשים", hint: "הרשמה ושיוכים" },
     { href: "/dashboard/admin/inspector-applications", label: "בקשות מפקחים", hint: "אישור ושיוך" },
     { href: "/dashboard/admin/kindergartens", label: "גנים", hint: "פרופילים וסטטוס" },
+    { href: "/dashboard/admin/kindergarten-analytics", label: "אנליטיקת גנים", hint: "עיר, מחוז וסטטוס" },
     { href: "/dashboard/admin/inspectors", label: "מפקחים", hint: "ערים ושיוך" },
     { href: "/dashboard/admin/inspection-forms", label: "טפסי פיקוח", hint: "בונה דינמי" },
     { href: "/dashboard/admin/procedures", label: "נהלים", hint: "חובה ותאימות" },

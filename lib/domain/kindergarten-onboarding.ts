@@ -48,6 +48,31 @@ export const israeliCityStreetMap: Record<string, string[]> = {
   "הרצליה": ["סוקולוב", "בן גוריון", "הנשיא", "מדינת היהודים", "משכית"]
 };
 
+export const operationalDistricts = ["צפון", "חיפה", "מרכז", "תל אביב", "ירושלים", "דרום", "אחר", "לא ידוע"] as const;
+
+const cityDistrictMap: Record<string, (typeof operationalDistricts)[number]> = {
+  "תל אביב-יפו": "תל אביב",
+  "רמת גן": "תל אביב",
+  "הרצליה": "תל אביב",
+  "ירושלים": "ירושלים",
+  "חיפה": "חיפה",
+  "ראשון לציון": "מרכז",
+  "פתח תקווה": "מרכז",
+  "נתניה": "מרכז",
+  "אשדוד": "דרום",
+  "באר שבע": "דרום"
+};
+
+export function knownKindergartenCities() {
+  return Object.keys(israeliCityStreetMap);
+}
+
+export function operationalDistrictForCity(city?: string | null) {
+  const normalized = String(city ?? "").trim();
+  if (!normalized) return "לא ידוע";
+  return cityDistrictMap[normalized] ?? "לא ידוע";
+}
+
 export const regulatoryAcceptanceItems = [
   { key: "platform_terms", label: "תנאי שימוש במערכת" },
   { key: "privacy_terms", label: "תנאי פרטיות ושמירת מידע" },

@@ -2,7 +2,7 @@
 
 import { useMemo, useState, type FormEvent } from "react";
 import { UploadImageField } from "@/components/upload-image-field";
-import { calculateGanBatuachMonthlyPrice, calculateRequiredStaff, kindergartenAgeGroups, requiredKindergartenDocumentCategories } from "@/lib/domain/kindergarten-onboarding";
+import { calculateGanBatuachMonthlyPrice, calculateRequiredStaff, kindergartenAgeGroups, knownKindergartenCities, operationalDistrictForCity, requiredKindergartenDocumentCategories } from "@/lib/domain/kindergarten-onboarding";
 
 type Garden = {
   name?: string | null;
@@ -69,6 +69,7 @@ export function ManagerKindergartenApplicationForm({ managerName, managerPhone, 
     setBusy(true);
     setMessage("");
     const form = new FormData(event.currentTarget);
+    const city = text(form.get("city"));
     try {
       const response = await fetch("/api/garden/manager-application", {
         method: "POST",
@@ -81,7 +82,7 @@ export function ManagerKindergartenApplicationForm({ managerName, managerPhone, 
           manager_id_number: text(form.get("manager_id_number")),
           manager_phone: text(form.get("manager_phone")),
           manager_email: text(form.get("manager_email")),
-          city: text(form.get("city")),
+          city,
           street: text(form.get("street")),
           address_details: text(form.get("address_details")),
           public_description: text(form.get("public_description")),
@@ -101,6 +102,8 @@ export function ManagerKindergartenApplicationForm({ managerName, managerPhone, 
     }
   }
 
+  const cities = knownKindergartenCities();
+
   return (
     <form className="card form wizard-form premium-step-form" onSubmit={submit}>
       <h2>פתיחת בקשת גן</h2>
@@ -113,9 +116,10 @@ export function ManagerKindergartenApplicationForm({ managerName, managerPhone, 
         <label>תעודת זהות מנהלת<input name="manager_id_number" /></label>
         <label>טלפון מנהלת<input name="manager_phone" defaultValue={managerPhone ?? ""} /></label>
         <label>אימייל מנהלת<input name="manager_email" type="email" defaultValue={managerEmail ?? ""} /></label>
-        <label>עיר *<input name="city" required minLength={2} /></label>
-        <label>רחוב<input name="street" /></label>
+        <label>עיר *<select name="city" required defaultValue=""><option value="">בחרי עיר</option>{cities.map((city) => <option value={city} key={city}>{city}</option>)}<option value="אחר">אחר</option></select></label>
+        <label>רחוב<input name="street" required /></label>
         <label>פרטי כתובת<input name="address_details" /></label>
+        <label>מחוז תפעולי<input value="נגזר לפי העיר באדמין" readOnly /></label>
         <label>טלפון לפרסום<input name="contact_phone" defaultValue={managerPhone ?? ""} /></label>
         <label>אימייל לפרסום<input name="contact_email" type="email" defaultValue={managerEmail ?? ""} /></label>
         <label className="wide">שעות פעילות<textarea name="opening_hours" rows={3} /></label>
@@ -150,14 +154,17 @@ export function KindergartenSubscriptionActivationPanel({ gardenName, monthlyAmo
     }
   }
   return (
-    <section className="card action-panel">
+    <section className="card action-panel subscription-activation-panel">
       <p className="eyebrow">אישור אדמין הושלם</p>
-      <h2>הגן ממתין להפעלת מנוי גן בטוח.</h2>
-      <p>{gardenName ?? "הגן"} אושר להפעלה, אבל הגישה המלאה תיפתח רק אחרי תשלום מנוי או override אדמין מתועד.</p>
-      <div className="status-chip-row">
-        <span className="pill warn">מנוי גן בטוח: ₪{Number(monthlyAmount ?? 800).toLocaleString("he-IL")}/חודש</span>
-        <span className="pill">תשלומי הורים נשארים בנפרד ומועברים לגן</span>
+      <h2>הגן אושר — יש להשלים תשלום מנוי.</h2>
+      <p>{gardenName ?? "הגן"} אושר להפעלה, אבל הגישה המלאה תיפתח רק אחרי תשלום מנוי גן בטוח או override אדמין מתועד.</p>
+      <div className="subscription-breakdown-grid">
+        <div><span>מנוי גן בטוח</span><strong>₪{Number(monthlyAmount ?? 800).toLocaleString("he-IL")}/חודש</strong><small>מחיר בסיס: 800 ₪ לחודש לכיתה/קבוצת גיל ראשונה.</small></div>
+        <div><span>קבוצה נוספת</span><strong>+200 ₪</strong><small>לכל כיתה/קבוצת גיל נוספת לפי ההגדרה באשף.</small></div>
+        <div><span>דמו</span><strong>3 ימים</strong><small>אם הופעל דמו, לאחריו יש להסדיר תשלום כדי למנוע הקפאה.</small></div>
+        <div><span>תשלומי הורים</span><strong>נפרד</strong><small>הורה משלם לגן. זה לא מנוי Gan Batuach.</small></div>
       </div>
+      <div className="warning-banner">אם ספק תשלומים חי לא מוגדר, הבקשה תישלח לאדמין במצב ידני/מוכנות ולא תתבצע גבייה חיה.</div>
       <button className="button primary large" disabled={busy} onClick={requestPayment}>{busy ? "שולח..." : "פתיחת בקשת תשלום מנוי"}</button>
       {message ? <span className={message.includes("לא ") ? "error-text" : "payment-action-message"}>{message}</span> : null}
     </section>
@@ -181,6 +188,8 @@ export function KindergartenOnboardingForm({ garden, onboarding, managerName }: 
   const missingStaff = Math.max(0, requiredStaff - staffCount);
   const classCount = selectedAgeGroups.filter((groupKey) => Number(classCapacity[groupKey] ?? 0) > 0).length || selectedAgeGroups.length;
   const ganBatuachMonthlyPrice = calculateGanBatuachMonthlyPrice(classCount);
+  const cityFromAddress = String(profileData.city ?? "").trim();
+  const districtLabel = operationalDistrictForCity(cityFromAddress);
 
   const statusLabel = useMemo(() => {
     const status = onboarding.lifecycle_status ?? "credentials_sent";
@@ -218,6 +227,9 @@ export function KindergartenOnboardingForm({ garden, onboarding, managerName }: 
             phone: text(form.get("phone")),
             email: text(form.get("email")),
             owner_name: text(form.get("owner_name")),
+            city: text(form.get("city")),
+            street: text(form.get("street")),
+            operational_district: operationalDistrictForCity(text(form.get("city"))),
             manager_name: text(form.get("manager_name")),
             manager_phone: text(form.get("manager_phone")),
             business_id: text(form.get("business_id")),
@@ -288,6 +300,9 @@ export function KindergartenOnboardingForm({ garden, onboarding, managerName }: 
           <div className="form-grid">
             <label>שם הגן<input name="name" required defaultValue={garden.name ?? ""} /></label>
             <label>כתובת<input name="address" required defaultValue={garden.address ?? ""} /></label>
+            <label>עיר<select name="city" required defaultValue={cityFromAddress}><option value="">בחרי עיר</option>{knownKindergartenCities().map((city) => <option value={city} key={city}>{city}</option>)}<option value="אחר">אחר</option></select></label>
+            <label>רחוב<input name="street" required defaultValue={profileData.street ?? ""} /></label>
+            <label>מחוז תפעולי<input value={districtLabel} readOnly /></label>
             <label>טלפון<input name="phone" required defaultValue={garden.phone ?? ""} /></label>
             <label>מייל<input name="email" type="email" defaultValue={garden.email ?? ""} /></label>
             <label className="wide">תיאור קצר<textarea name="public_description" rows={3} defaultValue={garden.public_description ?? ""} /></label>

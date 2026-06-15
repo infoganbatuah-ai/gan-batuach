@@ -3,8 +3,24 @@
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { Baby, BriefcaseBusiness, Building2, CheckCircle2, ClipboardCheck, Send, ShieldCheck } from "lucide-react";
+import { knownKindergartenCities } from "@/lib/domain/kindergarten-onboarding";
 
 type ApiState = { ok: boolean; message: string; href?: string };
+type AccountType = "parent" | "staff_candidate" | "inspector_candidate" | "kindergarten_manager";
+
+const registrationRoles: Array<{ type: AccountType; icon: typeof Baby; title: string; text: string; cta: string }> = [
+  { type: "parent", icon: Baby, title: "הורה", text: "צרו כרטיס ילד, מצאו גנים בטוחים והגישו בקשת רישום.", cta: "הרשמת הורה" },
+  { type: "kindergarten_manager", icon: Building2, title: "מנהלת גן / גננת", text: "רשמו את הגן, הגדירו קבוצות גיל, מחירים וניהול מלא.", cta: "רישום גן" },
+  { type: "staff_candidate", icon: BriefcaseBusiness, title: "צוות גן", text: "השלימו פרטים, העלו מסמכים והתחברו לגן שבו אתם עובדים.", cta: "הרשמת צוות" },
+  { type: "inspector_candidate", icon: ClipboardCheck, title: "מפקח", text: "הגישו בקשה להצטרפות למערך הפיקוח ושיוך לגנים.", cta: "בקשת מפקח" }
+];
+
+const roleNotice: Record<AccountType, string> = {
+  parent: "פרטי ההורה והילד ישמשו רק להפעלת בקשות רישום ושירותי הגן לאחר אישור.",
+  staff_candidate: "פרטי מועמדות ומסמכים ישמשו לבדיקה על ידי מנהלת הגן שאליו תגישו מועמדות.",
+  inspector_candidate: "פרטי בקשת המפקח ישמשו לבדיקת התאמה ושיוך אזורים על ידי אדמין.",
+  kindergarten_manager: "פרטי הגן והמנוי ישמשו לפתיחת בקשת גן, אישור אדמין והפעלת מנוי גן בטוח."
+};
 
 async function postJson(url: string, payload: Record<string, unknown>) {
   const response = await fetch(url, {
@@ -24,20 +40,36 @@ function formValue(form: HTMLFormElement, name: string) {
 export function SelfServiceRegisterForm() {
   const [state, setState] = useState<ApiState | null>(null);
   const [busy, setBusy] = useState(false);
+  const [accountType, setAccountType] = useState<AccountType>("parent");
+  const cities = knownKindergartenCities();
+  const activeRole = registrationRoles.find((role) => role.type === accountType) ?? registrationRoles[0];
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     setBusy(true);
     setState(null);
     const form = event.currentTarget;
+    if (formValue(form, "password") !== formValue(form, "confirm_password")) {
+      setBusy(false);
+      setState({ ok: false, message: "הסיסמאות אינן זהות." });
+      return;
+    }
+    if (new FormData(form).get("terms_approved") !== "on") {
+      setBusy(false);
+      setState({ ok: false, message: "יש לאשר את תנאי השימוש והפרטיות כדי להמשיך." });
+      return;
+    }
     try {
       const data = await postJson("/api/self-service/register", {
-        account_type: formValue(form, "account_type"),
+        account_type: accountType,
         full_name: formValue(form, "full_name"),
         email: formValue(form, "email"),
         phone: formValue(form, "phone") || undefined,
         city: formValue(form, "city") || undefined,
-        password: formValue(form, "password")
+        password: formValue(form, "password"),
+        identity_number: formValue(form, "identity_number") || undefined,
+        previous_experience: formValue(form, "previous_experience") || undefined,
+        preferred_regions: formValue(form, "preferred_regions") || undefined
       });
       setState({ ok: true, message: "החשבון נוצר במצב מוגבל. אפשר להתחבר ולהגיש בקשת שיוך.", href: data.next_path });
       form.reset();
@@ -49,24 +81,60 @@ export function SelfServiceRegisterForm() {
   }
 
   return (
-    <form className="card form premium-login-card" onSubmit={submit}>
-      <h2>הרשמה עצמאית</h2>
-      <label>סוג חשבון
-        <select name="account_type" required defaultValue="parent">
-          <option value="parent">הורה</option>
-          <option value="staff_candidate">מועמד/ת צוות</option>
-          <option value="inspector_candidate">מועמד/ת מפקח</option>
-          <option value="kindergarten_manager">מנהלת גן</option>
-        </select>
-      </label>
-      <label>שם מלא<input name="full_name" required minLength={2} /></label>
-      <label>אימייל<input name="email" type="email" required autoComplete="username" /></label>
-      <label>טלפון<input name="phone" autoComplete="tel" /></label>
-      <label>עיר<input name="city" /></label>
-      <label>סיסמה<input name="password" type="password" required minLength={8} autoComplete="new-password" /></label>
-      <button className="button primary" disabled={busy} type="submit"><Send size={16} /> {busy ? "שומר..." : "יצירת חשבון"}</button>
-      {state ? <div className={state.ok ? "success-screen" : "error-banner"}><strong>{state.message}</strong>{state.href ? <Link className="button secondary tiny" href="/login">כניסה לחשבון</Link> : null}</div> : null}
-    </form>
+    <section className="registration-app-card">
+      <div className="section-heading">
+        <p className="eyebrow">הרשמה עצמאית</p>
+        <h2>מה סוג המשתמש שלך?</h2>
+        <p>החשבון נפתח במצב מוגבל. גישה לגן, ילדים, צוות או פיקוח נפתחת רק אחרי אישור מתאים.</p>
+      </div>
+      <div className="register-role-card-grid" role="tablist" aria-label="בחירת סוג משתמש">
+        {registrationRoles.map((role) => (
+          <button className={role.type === accountType ? "register-role-card active" : "register-role-card"} type="button" key={role.type} onClick={() => { setAccountType(role.type); setState(null); }}>
+            <role.icon />
+            <strong>{role.title}</strong>
+            <span>{role.text}</span>
+            <small>{role.cta}</small>
+          </button>
+        ))}
+      </div>
+
+      <form className="form premium-login-card focused-register-form" onSubmit={submit}>
+        <input type="hidden" name="account_type" value={accountType} />
+        <div className="register-form-heading">
+          <activeRole.icon />
+          <div>
+            <span className="pill good">שלב 2 מתוך 2</span>
+            <h3>{activeRole.cta}</h3>
+            <p>{roleNotice[accountType]}</p>
+          </div>
+        </div>
+        <div className="form-grid">
+          <label>שם מלא *<input name="full_name" required minLength={2} autoComplete="name" /></label>
+          <label>טלפון *<input name="phone" required autoComplete="tel" /></label>
+          <label>אימייל *<input name="email" type="email" required autoComplete="username" /></label>
+          <label>תעודת זהות{accountType === "parent" ? "" : " *"}<input name="identity_number" required={accountType !== "parent"} inputMode="numeric" /></label>
+          {accountType === "kindergarten_manager" || accountType === "inspector_candidate" ? (
+            <label>עיר *<select name="city" required defaultValue=""><option value="">בחרו עיר</option>{cities.map((city) => <option value={city} key={city}>{city}</option>)}<option value="אחר">אחר</option></select></label>
+          ) : (
+            <label>עיר<input name="city" list="known-cities" /></label>
+          )}
+          {accountType === "staff_candidate" ? <label className="wide">ניסיון קודם קצר<textarea name="previous_experience" rows={3} placeholder="ספרו בקצרה על ניסיון בגן או עבודה עם ילדים" /></label> : null}
+          {accountType === "inspector_candidate" ? <label className="wide">אזורים מועדפים<textarea name="preferred_regions" rows={3} placeholder="מרכז, שרון, ירושלים" /></label> : null}
+          {accountType === "inspector_candidate" ? <label className="wide">ניסיון מקצועי<textarea name="previous_experience" rows={3} placeholder="פיקוח, חינוך, בטיחות, תפעול או ניסיון רלוונטי" /></label> : null}
+          <label>סיסמה *<input name="password" type="password" required minLength={8} autoComplete="new-password" /></label>
+          <label>אימות סיסמה *<input name="confirm_password" type="password" required minLength={8} autoComplete="new-password" /></label>
+        </div>
+        <datalist id="known-cities">{cities.map((city) => <option value={city} key={city} />)}</datalist>
+        <label className="terms-check"><input name="terms_approved" type="checkbox" required /> אני מאשר/ת שימוש בפרטים לצורך הפעלת השירות, שיוך לגן או בדיקת מועמדות, בהתאם למדיניות הפרטיות ותנאי השימוש.</label>
+        <div className="register-helper-row">
+          <Link href="/trust">מדיניות פרטיות ואמון</Link>
+          <Link href="/service-charter">תנאי שירות</Link>
+        </div>
+        <button className="button primary large" disabled={busy} type="submit"><Send size={16} /> {busy ? "יוצר חשבון..." : "יצירת חשבון מוגבל"}</button>
+        {state ? <div className={state.ok ? "success-screen" : "error-banner"}><strong>{state.message}</strong>{state.href ? <Link className="button secondary tiny" href="/login">כניסה לחשבון</Link> : null}</div> : null}
+        <p className="auth-switch-line">כבר יש לך חשבון? <Link href="/login">התחברות</Link></p>
+      </form>
+    </section>
   );
 }
 
@@ -368,10 +436,7 @@ export function ApplicationDecisionForm({ endpoint, actions }: { endpoint: strin
 export function ProductRoleCards() {
   return (
     <div className="login-audience-grid">
-      <article className="audience-card"><Baby /><strong>הורים</strong><span>מצאו את הגן של ילדכם והגישו בקשת הצטרפות.</span></article>
-      <article className="audience-card"><BriefcaseBusiness /><strong>צוות</strong><span>מצאו גן שמחפש עובדים והגישו מועמדות.</span></article>
-      <article className="audience-card"><ClipboardCheck /><strong>מפקחים</strong><span>הגישו בקשה להצטרף למערך המפקחים של גן בטוח.</span></article>
-      <article className="audience-card"><Building2 /><strong>מנהלות גן</strong><span>מסלול רישום גנים נשאר דרך תהליך ההפעלה הקיים.</span></article>
+      {registrationRoles.map((role) => <article className="audience-card" key={role.type}><role.icon /><strong>{role.title}</strong><span>{role.text}</span></article>)}
     </div>
   );
 }

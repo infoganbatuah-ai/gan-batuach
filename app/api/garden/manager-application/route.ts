@@ -3,7 +3,7 @@ import { revalidatePath } from "next/cache";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { requireRole } from "@/lib/auth";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
-import { calculateGanBatuachMonthlyPrice } from "@/lib/domain/kindergarten-onboarding";
+import { calculateGanBatuachMonthlyPrice, operationalDistrictForCity } from "@/lib/domain/kindergarten-onboarding";
 
 const schema = z.object({
   kindergarten_name: z.string().trim().min(2),
@@ -74,6 +74,7 @@ export async function POST(request: Request) {
       manager_phone: clean(payload.manager_phone),
       manager_email: clean(payload.manager_email),
       city: payload.city,
+      operational_district: operationalDistrictForCity(payload.city),
       street: clean(payload.street),
       address_details: clean(payload.address_details),
       operating_hours: clean(payload.opening_hours),
