@@ -26,6 +26,43 @@ export default async function StaffDashboard() {
     profile.garden_id ? supabase.from("gardens" as any).select("id, name, logo_url, image_url, address, gps_lat, gps_lng").eq("id", profile.garden_id).maybeSingle() : { data: null, error: null }
   ]);
   const staff = staffRes.data as any;
+  if (!staff || !profile.garden_id) {
+    const applicationsRes = await supabase.from("staff_job_applications" as any)
+      .select("id,status,submitted_at,gardens(name,city),kindergarten_staff_openings(role_needed)")
+      .eq("staff_candidate_id", profile.id)
+      .order("created_at", { ascending: false })
+      .limit(20);
+    const applications = (applicationsRes.data ?? []) as any[];
+    return (
+      <DashboardShell role="staff" title="מועמדות צוות">
+        <section className="dashboard-hero-card">
+          <div>
+            <p className="eyebrow">חשבון צוות מוגבל</p>
+            <h1>מצאו גן שמחפש עובדים והגישו מועמדות.</h1>
+            <p>עד שמנהלת גן מאשרת אותך, אין גישה לילדים, הורים, מסמכים, מצלמות או מידע פנימי של גן.</p>
+          </div>
+          <span className="pill warn">ממתין לשיוך</span>
+        </section>
+        <section className="staff-action-grid">
+          <ActionCard title="שוק משרות" text="משרות שגנים פרסמו לצוות" href="/dashboard/staff/job-market" icon={ClipboardList} tone="good" />
+          <ActionCard title="פרופיל ומסמכים" text="השלמת פרטים ומסמכים" href="/dashboard/staff/settings" icon={ShieldAlert} />
+          <ActionCard title="התראות" text="עדכונים על מועמדות" href="/dashboard/staff/notifications" icon={Bell} />
+        </section>
+        <section className="dashboard-section">
+          <div className="section-heading"><h2>מועמדויות שהוגשו</h2><p>סטטוס הבקשות שלך לגנים.</p></div>
+          {applications.length === 0 ? <div className="empty-state"><strong>עוד לא הוגשה מועמדות</strong><span>פתחו את שוק המשרות כדי להגיש בקשה לגן.</span></div> : <div className="procedure-list">{applications.map((application) => (
+            <article className="card procedure-card" key={application.id}>
+              <div>
+                <span className={application.status === "approved" ? "pill good" : application.status === "rejected" ? "pill bad" : "pill warn"}>{application.status}</span>
+                <h3>{application.gardens?.name ?? "גן"}</h3>
+                <p>{application.gardens?.city ?? ""} · {application.kindergarten_staff_openings?.role_needed ?? "צוות"}</p>
+              </div>
+            </article>
+          ))}</div>}
+        </section>
+      </DashboardShell>
+    );
+  }
   if (staff && (!staff.approved_to_work || staff.onboarding_status !== "active")) redirect("/onboarding/staff");
 
   const staffId = staff?.id ?? "";

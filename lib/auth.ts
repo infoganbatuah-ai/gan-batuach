@@ -47,7 +47,7 @@ export function dashboardPathForRole(role: UserRole) {
   }[role];
 }
 
-export async function dashboardPathForProfile(profile: { id?: string | null; role?: string | null; garden_id?: string | null }) {
+export async function dashboardPathForProfile(profile: { id?: string | null; role?: string | null; garden_id?: string | null; active?: boolean | null }) {
   if (!isRole(profile.role)) return "/dashboard";
   if ((profile.role === "manager" || profile.role === "owner") && profile.garden_id) {
     const supabase = await createClient();
@@ -70,6 +70,7 @@ export async function dashboardPathForProfile(profile: { id?: string | null; rol
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
+    if (!parent) return "/dashboard/parent";
     if (parent && (parent.completed_profile !== true || parent.onboarding_status !== "active")) {
       return "/parent-onboarding";
     }
@@ -81,9 +82,19 @@ export async function dashboardPathForProfile(profile: { id?: string | null; rol
       .select("id, approved_to_work, onboarding_status")
       .eq("profile_id", profile.id)
       .maybeSingle();
+    if (!staff) return "/dashboard/staff";
     if (staff && (staff.approved_to_work !== true || staff.onboarding_status !== "active")) {
       return "/onboarding/staff";
     }
+  }
+  if (profile.role === "inspector" && profile.id) {
+    const supabase = await createClient();
+    const { data: inspector } = await supabase
+      .from("inspectors" as any)
+      .select("id")
+      .eq("id", profile.id)
+      .maybeSingle();
+    if (!inspector || profile.active === false) return "/dashboard/inspector/apply";
   }
   return dashboardPathForRole(profile.role);
 }
