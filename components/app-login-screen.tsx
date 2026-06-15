@@ -17,8 +17,8 @@ export async function AppLoginScreen({ searchParams }: { searchParams?: Promise<
   return (
     <AppAuthShell
       eyebrow="משתמש קיים"
-      title="כניסה למערכת"
-      subtitle="התחברו לחשבון שלכם והמשיכו לניהול, מעקב או פיקוח."
+      title="כניסה למערכת גן בטוח"
+      subtitle="התחברו כדי לנהל את הגן, לעקוב אחרי ילדכם או לבצע פיקוח."
       footer={<span>עדיין אין לך חשבון? <Link href="/app/register">הרשמה עכשיו</Link></span>}
     >
       <form className="app-auth-form" action={signIn}>
