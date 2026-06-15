@@ -5,6 +5,20 @@ import { ApplicationDecisionForm } from "@/components/self-service-forms";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
+function formatStatus(status?: string | null) {
+  const map: Record<string, string> = {
+    submitted: "הוגש",
+    under_review: "נבדק",
+    approve_pending_assignment: "ממתין לשיוך",
+    approved_pending_assignment: "ממתין לשיוך",
+    request_more_information: "נדרשת השלמה",
+    approved: "מאושר",
+    rejected: "נדחה",
+    suspended: "מושהה"
+  };
+  return map[status ?? ""] ?? status ?? "-";
+}
+
 const actions = [
   { value: "under_review", label: "סימון בבדיקה" },
   { value: "request_more_information", label: "בקשת מידע נוסף" },
@@ -23,7 +37,7 @@ export default async function AdminInspectorApplicationsPage() {
     <DashboardShell role="admin" title="בקשות מפקחים">
       <section className="dashboard-hero-card admin-hero-card">
         <div>
-          <p className="eyebrow">Inspector Applications</p>
+          <p className="eyebrow">בקשות מפקחים</p>
           <h1>אישור מועמדים למערך המפקחים.</h1>
           <p>מועמד מפקח לא רואה גנים עד אישור אדמין ושיוך מפורש.</p>
         </div>
@@ -39,7 +53,7 @@ export default async function AdminInspectorApplicationsPage() {
         {rows.map((row) => (
           <article className="card procedure-card" key={row.id}>
             <div>
-              <span className={row.status === "approved" ? "pill good" : row.status === "rejected" ? "pill bad" : "pill warn"}>{row.status}</span>
+              <span className={row.status === "approved" ? "pill good" : row.status === "rejected" ? "pill bad" : "pill warn"}>{formatStatus(row.status)}</span>
               <h3>{row.full_name}</h3>
               <p>{row.phone ?? ""} · {row.email ?? ""} · {row.city ?? ""}</p>
               <small><MapPin size={13} /> {(row.preferred_regions ?? []).join(", ") || "לא נבחרו אזורים"}</small>
