@@ -79,9 +79,11 @@ Reviewed representative migrations:
 
 ## Findings
 
-### Blocking - Parent Access Can Be Too Broad Through Garden-Scoped RLS
+### Fixed / Requires Recheck - Parent Access Can Be Too Broad Through Garden-Scoped RLS
 
-Classification: `blocking`, `requires_stronger_model`, `requires_manual_review`
+Classification before fix: `blocking`, `requires_stronger_model`, `requires_manual_review`
+
+Status after security fix: `fixed`, `requires_recheck`
 
 The latest `public.can_access_garden(target_garden_id)` function grants access when an active profile has `p.garden_id = target_garden_id`. It does not exclude parent profiles. Several sensitive policies use `public.can_access_garden(garden_id)` for whole-garden access.
 
@@ -95,22 +97,19 @@ Impact:
 
 If an active parent profile has `garden_id`, RLS can allow whole-kindergarten reads for tables that should be child-scoped for parents. Affected areas may include children, health records, medicine logs, journals, documents, billing visibility and any generic CRUD route where parent role has the relevant permission.
 
-Why not fixed in this QA:
+Fix applied after QA 3:
 
-Changing `can_access_garden` or broad table policies is a cross-platform RLS change. It can break parent dashboards, staff dashboards, inspector routes and manager views if done without a full policy migration and regression test. This must be handled as a dedicated security patch.
+`supabase/migrations/20260616000100_parent_rls_scope_hardening.sql` narrows `can_access_garden` to operational non-parent access and adds granular helpers such as `can_manage_garden`, `can_parent_access_child`, `can_access_child_record`, `can_access_sensitive_child_data` and `can_access_document`. Sensitive policies were hardened for children, medical records, documents, child timelines, payments, attendance, complaints, camera JWT reads and AI events.
 
-Required fix:
+Required recheck:
 
-Create role-specific helpers/policies:
+Run QA 3B with live/staging Supabase policies and role fixtures to verify parent, manager, staff, inspector and admin behavior.
 
-- `can_manage_garden(target_garden_id)` for admin/manager/owner/staff/assigned inspector/network manager as appropriate.
-- `can_parent_access_child(child_id)` for parent child-level access.
-- `can_parent_access_public_garden(target_garden_id)` for public-safe discovery only.
-- Replace sensitive parent-readable policies so parents access only their own linked children and request records, not whole-garden rows.
+### Partially Fixed / Requires Recheck - Generic Parent-Accessible Routes Depend On RLS For Child/Medical Isolation
 
-### High - Generic Parent-Accessible Routes Depend On RLS For Child/Medical Isolation
+Classification before fix: `high`, `requires_stronger_model`
 
-Classification: `high`, `requires_stronger_model`
+Status after security fix: `partially_fixed`, `requires_recheck`
 
 Some routes use the generic CRUD handler and broad permissions:
 
@@ -119,21 +118,27 @@ Some routes use the generic CRUD handler and broad permissions:
 - `app/api/parent/timeline/route.ts` points to `incident_timeline` through generic CRUD.
 - `app/api/child-health-records/route.ts` allows parent role and relies on RLS/query params for read narrowing.
 
-These routes are only safe if RLS is strictly child-scoped for parents. Because of the blocking `can_access_garden` issue, these should be treated as not production-safe for parent access until RLS is corrected.
+These routes are only safe if RLS is strictly child-scoped for parents. The security fix hardens the relevant RLS helpers and sensitive policies, but these routes still require QA 3B regression with real role fixtures.
 
-### High - Storage Upload Signed URLs Are Valid For 30 Days
+### Fixed / Requires Recheck - Storage Upload Signed URLs Are Valid For 30 Days
 
-Classification: `high`, `requires_manual_review`
+Classification before fix: `high`, `requires_manual_review`
 
-`app/api/storage/upload/route.ts:73` creates a signed URL with `60 * 60 * 24 * 30`, or 30 days.
+Status after security fix: `fixed`, `requires_recheck`
+
+`app/api/storage/upload/route.ts:73` previously created a signed URL with `60 * 60 * 24 * 30`, or 30 days.
 
 Impact:
 
 For child documents, medical files, staff ID documents, police clearance, sexual offense clearance, inspection evidence and regulatory documents, a 30-day URL increases exposure if a link is copied, logged or forwarded.
 
-Recommended fix:
+Fix applied after QA 3:
 
-Use short-lived signed URLs for sensitive buckets, such as 5-15 minutes, and generate download URLs only after a fresh authorization check. Consider bucket-specific TTLs and audit every download.
+Storage upload signed URLs are now 10 minutes for sensitive buckets and 15 minutes for logo/gallery previews. Inspection signature/evidence signed URLs were reduced from 365 days to 10 minutes.
+
+Remaining recommendation:
+
+A dedicated secure document download endpoint should still be added later so every download performs a fresh authorization check and writes a document access audit event.
 
 ### Medium - Upload Authorization Is Role/Bucket Based, Not Entity-Ownership Based
 
@@ -251,9 +256,9 @@ Recommendation: proceed to QA 4 only as provider/payment QA, not as production a
 
 Blocking before production:
 
-1. Fix parent-vs-garden RLS separation.
+1. Run QA 3B against the RLS hardening migration.
 2. Add live Supabase policy introspection evidence.
-3. Shorten or redesign signed URL handling for sensitive documents.
+3. Verify short-lived signed URLs in real storage flows.
 4. Re-test parent, staff, manager, inspector and admin access after RLS patch.
 
 ## Changes Made
@@ -264,3 +269,8 @@ Created reports:
 
 - `QA_3_SENSITIVE_ACCESS_AND_RLS_INVENTORY.md`
 - `QA_3_SECURITY_PERMISSIONS_RLS_REPORT.md`
+
+Security fix follow-up:
+
+- `SECURITY_FIX_PARENT_RLS_SCOPE_AND_SIGNED_URL_REPORT.md`
+- `supabase/migrations/20260616000100_parent_rls_scope_hardening.sql`
