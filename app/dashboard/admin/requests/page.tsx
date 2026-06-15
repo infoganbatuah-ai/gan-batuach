@@ -11,6 +11,33 @@ function statusTone(status?: string | null) {
   return "pill warn";
 }
 
+function formatStatus(status?: string | null) {
+  const map: Record<string, string> = {
+    draft: "טיוטה",
+    submitted: "נשלח",
+    under_review: "נבדק",
+    more_information_requested: "נדרש מידע נוסף",
+    approved_pending_payment: "אושר, ממתין לתשלום",
+    approved_pending_subscription: "אושר, ממתין למנוי",
+    approved: "מאושר",
+    rejected: "נדחה",
+    cancelled: "בוטל",
+    expired: "פג תוקף",
+    suspended: "מושהה",
+    activation_in_progress: "בהקמה",
+    onboarding_submitted: "הגשה לאדמין",
+    pending_final_approval: "ממתין לאישור סופי",
+    correction_required: "נדרש תיקון",
+    payment_pending: "ממתין לתשלום",
+    pending_affiliation: "ממתין לשיוך",
+    active: "פעיל",
+    processing: "מעובד",
+    completed: "בוצע",
+    review_required: "דורש בדיקה"
+  };
+  return map[status ?? ""] ?? status ?? "-";
+}
+
 export default async function AdminRequestsPage() {
   await requireRole(["admin"]);
   const supabase = await createClient();
@@ -53,19 +80,19 @@ export default async function AdminRequestsPage() {
         <article className="card action-panel">
           <h2><Baby size={18} /> בקשות הורים</h2>
           <div className="procedure-list compact">
-            {parentRows.slice(0, 12).map((row) => <Link href="/dashboard/garden/enrollment-requests" key={row.id}><span className={statusTone(row.status)}>{row.status}</span><strong>{row.permanent_child_files?.full_name ?? "ילד/ה"}</strong><small>{row.gardens?.name ?? ""} · {row.payment_status}</small></Link>)}
+            {parentRows.slice(0, 12).map((row) => <Link href="/dashboard/garden/enrollment-requests" key={row.id}><span className={statusTone(row.status)}>{formatStatus(row.status)}</span><strong>{row.permanent_child_files?.full_name ?? "ילד/ה"}</strong><small>{row.gardens?.name ?? ""} · {row.payment_status}</small></Link>)}
           </div>
         </article>
         <article className="card action-panel">
           <h2><BriefcaseBusiness size={18} /> מועמדויות צוות</h2>
           <div className="procedure-list compact">
-            {staffRows.slice(0, 12).map((row) => <Link href="/dashboard/garden/staff-applications" key={row.id}><span className={statusTone(row.status)}>{row.status}</span><strong>{row.staff_candidate_profiles?.full_name ?? "מועמד/ת"}</strong><small>{row.gardens?.name ?? ""}</small></Link>)}
+            {staffRows.slice(0, 12).map((row) => <Link href="/dashboard/garden/staff-applications" key={row.id}><span className={statusTone(row.status)}>{formatStatus(row.status)}</span><strong>{row.staff_candidate_profiles?.full_name ?? "מועמד/ת"}</strong><small>{row.gardens?.name ?? ""}</small></Link>)}
           </div>
         </article>
         <article className="card action-panel">
           <h2><ClipboardCheck size={18} /> בקשות מפקחים</h2>
           <div className="procedure-list compact">
-            {inspectorRows.slice(0, 12).map((row) => <Link href="/dashboard/admin/inspector-applications" key={row.id}><span className={statusTone(row.status)}>{row.status}</span><strong>{row.full_name}</strong><small>{row.city ?? ""}</small></Link>)}
+            {inspectorRows.slice(0, 12).map((row) => <Link href="/dashboard/admin/inspector-applications" key={row.id}><span className={statusTone(row.status)}>{formatStatus(row.status)}</span><strong>{row.full_name}</strong><small>{row.city ?? ""}</small></Link>)}
           </div>
         </article>
       </section>

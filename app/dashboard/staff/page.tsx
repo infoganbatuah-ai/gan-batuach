@@ -16,6 +16,23 @@ function timeText(value?: string | null) {
   return value ? new Date(value).toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" }) : "";
 }
 
+function formatStatus(status?: string | null) {
+  const map: Record<string, string> = {
+    draft: "טיוטה",
+    submitted: "נשלח",
+    under_review: "בתהליך בדיקה",
+    more_information_requested: "נדרש מידע נוסף",
+    approved_pending_completion: "ממתין לסיום",
+    approved: "מאושר",
+    rejected: "נדחה",
+    cancelled: "בוטל",
+    active: "פעיל",
+    pending_affiliation: "ממתין לשיוך",
+    pending_approval: "ממתין לאישור"
+  };
+  return map[status ?? ""] ?? status ?? "-";
+}
+
 export default async function StaffDashboard() {
   const { profile } = await requireRole(["staff"]);
   const supabase = await createClient();
@@ -53,7 +70,7 @@ export default async function StaffDashboard() {
           {applications.length === 0 ? <div className="empty-state"><strong>עוד לא הוגשה מועמדות</strong><span>פתחו את שוק המשרות כדי להגיש בקשה לגן.</span></div> : <div className="procedure-list">{applications.map((application) => (
             <article className="card procedure-card" key={application.id}>
               <div>
-                <span className={application.status === "approved" ? "pill good" : application.status === "rejected" ? "pill bad" : "pill warn"}>{application.status}</span>
+              <span className={application.status === "approved" ? "pill good" : application.status === "rejected" ? "pill bad" : "pill warn"}>{formatStatus(application.status)}</span>
                 <h3>{application.gardens?.name ?? "גן"}</h3>
                 <p>{application.gardens?.city ?? ""} · {application.kindergarten_staff_openings?.role_needed ?? "צוות"}</p>
               </div>

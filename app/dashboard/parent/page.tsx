@@ -7,6 +7,23 @@ import { ParentChildProfileForm } from "@/components/self-service-forms";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
+function formatStatus(status?: string | null) {
+  const map: Record<string, string> = {
+    draft: "טיוטה",
+    submitted: "נשלח",
+    under_review: "בבדיקה",
+    more_information_requested: "נדרש מידע נוסף",
+    approved_pending_payment: "אושר, ממתין לתשלום",
+    approved: "מאושר",
+    rejected: "נדחה",
+    cancelled: "בוטל",
+    expired: "פג תוקף",
+    pending_affiliation: "ממתין לשיוך",
+    active: "פעיל"
+  };
+  return map[status ?? ""] ?? status ?? "-";
+}
+
 export default async function ParentDashboard() {
   const { profile } = await requireRole(["parent"]);
   const supabase = await createClient();
@@ -31,7 +48,7 @@ export default async function ParentDashboard() {
           <h1>מצאו את הגן של ילדכם והגישו בקשת הצטרפות.</h1>
           <p>עד אישור מנהלת והפעלת תשלום אם נדרש, מוצגים רק הפרופיל שלכם, כרטיסי הילדים שיצרתם, רשימת גנים ציבורית ובקשות שלכם.</p>
         </div>
-        <StatusBadge tone={approvedPendingPayment.length ? "warn" : pending.length ? "warn" : "good"}>{selfServiceRes.data?.status ?? "pending_affiliation"}</StatusBadge>
+        <StatusBadge tone={approvedPendingPayment.length ? "warn" : pending.length ? "warn" : "good"}>{formatStatus(selfServiceRes.data?.status)}</StatusBadge>
       </section>
 
       <section className="grid cols-4 dashboard-kpis">
@@ -55,7 +72,7 @@ export default async function ParentDashboard() {
         {requests.length === 0 ? <div className="empty-state"><Baby /><strong>עוד לא הוגשה בקשה</strong><span>צרו כרטיס ילד ואז בחרו גן מרשימת הגנים הציבורית.</span></div> : <div className="procedure-list">{requests.map((request) => (
           <article className="card procedure-card" key={request.id}>
             <div>
-              <span className={request.status === "approved" ? "pill good" : request.status === "rejected" ? "pill bad" : "pill warn"}>{request.status}</span>
+            <span className={request.status === "approved" ? "pill good" : request.status === "rejected" ? "pill bad" : "pill warn"}>{formatStatus(request.status)}</span>
               <h3>{request.gardens?.name ?? "גן"}</h3>
               <p>{request.gardens?.city ?? ""} · תשלום: {request.payment_status}</p>
               <small>מחיר שפורסם בעת הבקשה: {request.published_price_snapshot ? `${request.published_price_snapshot} ₪` : "לא פורסם"}</small>

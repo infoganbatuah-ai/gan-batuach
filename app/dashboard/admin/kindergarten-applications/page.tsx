@@ -21,6 +21,23 @@ function dateText(value: unknown) {
   return Number.isNaN(parsed.getTime()) ? "-" : parsed.toLocaleDateString("he-IL");
 }
 
+function formatApprovalStatus(status?: string | null) {
+  const map: Record<string, string> = {
+    activation_in_progress: "בתהליך הקמה",
+    onboarding_submitted: "הוגש לאדמין",
+    pending_final_approval: "ממתין לאישור סופי",
+    correction_required: "נדרש תיקון",
+    payment_pending: "ממתין למנוי",
+    active: "פעיל",
+    approved: "מאושר",
+    suspended: "מושהה",
+    archived: "הוצא מהמערכת",
+    draft: "טיוטה",
+    submitted: "נשלח"
+  };
+  return map[status ?? ""] ?? status ?? "-";
+}
+
 export default async function AdminKindergartenApplicationsPage() {
   await requireRole(["admin"]);
   const result = await safeAdminData("kindergarten applications", async () => {
@@ -72,10 +89,10 @@ export default async function AdminKindergartenApplicationsPage() {
   const avgProgress = rows.length ? Math.round(rows.reduce((sum, row) => sum + Number(row.onboarding?.progress_percent ?? 0), 0) / rows.length) : 0;
 
   return (
-    <DashboardShell role="admin" title="בקשות גנים">
+      <DashboardShell role="admin" title="בקשות גנים">
       <div className="commercial-dashboard">
         <PremiumDashboardHero
-          eyebrow="Kindergarten Applications"
+          eyebrow="בקשות גנים"
           title="אישור מנהלות, פרופיל גן ומנוי הפעלה"
           subtitle="מסלול רישום עצמי מוגבל: טיוטה, אשף, אישור אדמין, מנוי גן בטוח ואז הפעלה מלאה."
           badge={`${avgProgress}%`}
@@ -99,7 +116,7 @@ export default async function AdminKindergartenApplicationsPage() {
                 return (
                   <article className="card procedure-card" key={row.id}>
                     <div>
-                      <StatusBadge tone={statusTone(row.approval_flow_status)}>{row.approval_flow_status}</StatusBadge>
+                      <StatusBadge tone={statusTone(row.approval_flow_status)}>{formatApprovalStatus(row.approval_flow_status)}</StatusBadge>
                       <h3>{row.name}</h3>
                       <p>{row.city ?? "עיר לא צוינה"} · {row.address ?? "כתובת לא צוינה"} · נוצר {dateText(row.created_at)}</p>
                       <div className="lead-conversion-meta">
