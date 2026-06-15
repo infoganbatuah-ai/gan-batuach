@@ -63,7 +63,7 @@ function weakestHealthFactors(components: Record<string, number>) {
 export default async function ManagerCommandCenterPage() {
   const { profile } = await requireRole(["manager", "owner"]);
   const gardenId = profile.garden_id ?? "";
-  if (!gardenId) redirect("/dashboard/garden");
+  if (!gardenId) redirect("/onboarding/kindergarten");
 
   const supabase = await createClient();
   const today = new Date().toISOString().slice(0, 10);
@@ -124,6 +124,7 @@ export default async function ManagerCommandCenterPage() {
   ]);
 
   const garden = gardenRes.data as any;
+  if (!garden) redirect("/onboarding/kindergarten");
   const onboardingStatus = String(garden?.approval_flow_status ?? garden?.final_approval_status ?? "");
   if (["admin_approved", "credentials_sent", "activation_in_progress", "payment_pending", "onboarding_in_progress", "onboarding_submitted", "pending_final_approval", "pending_final_admin_approval", "correction_required", "profile_incomplete"].includes(onboardingStatus)) redirect("/onboarding/kindergarten");
 

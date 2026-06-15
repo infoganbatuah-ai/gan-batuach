@@ -28,7 +28,8 @@ const onboardingSchema = z.object({
       monthly_price: z.coerce.number().min(0).optional(),
       annual_price: z.coerce.number().min(0).optional(),
       billing_day: z.coerce.number().min(1).max(28).optional(),
-      billing_cycle: z.enum(["monthly", "annual"]).optional()
+      billing_cycle: z.enum(["monthly", "annual"]).optional(),
+      show_price_public: z.boolean().optional()
     })).optional(),
     class_capacity: z.record(z.string(), z.coerce.number().min(0)).optional(),
     staff_count: z.coerce.number().min(0).optional(),
@@ -109,7 +110,7 @@ function calculateProgress(data: Record<string, unknown>) {
 export async function PATCH(request: Request) {
   try {
     const { profile } = await requireRole(["manager", "owner"]);
-    if (!profile.garden_id) return fail("לא נמצא גן משויך", 422);
+    if (!profile.garden_id) return fail("לא נמצא גן משויך. יש לפתוח קודם בקשת גן.", 422);
     const payload = onboardingSchema.parse(await request.json());
     const supabase = isAdminClientConfigured() ? createAdminClient() : await createClient();
     const now = new Date().toISOString();
@@ -146,7 +147,7 @@ export async function PATCH(request: Request) {
       return fail(`חסרים פרטים: ${blockingMissing.map((key) => requiredLabels[key] ?? key).join(", ")}`, 422);
     }
 
-    const lifecycleStatus = payload.submit ? (profileData.payment_status === "paid" ? "pending_final_approval" : "payment_pending") : "activation_in_progress";
+    const lifecycleStatus = payload.submit ? "onboarding_submitted" : "activation_in_progress";
     const classCount = selectedAgeGroups.filter((groupKey) => Number(classCapacity[String(groupKey)] ?? 0) > 0).length || selectedAgeGroups.length;
     const subscriptionAmount = calculateGanBatuachMonthlyPrice(classCount);
     const gardenPatch = Object.fromEntries(Object.entries({
@@ -163,8 +164,7 @@ export async function PATCH(request: Request) {
       final_approval_status: lifecycleStatus,
       onboarding_status: lifecycleStatus,
       activation_progress_percent: progress.progressPercent,
-      activation_payment_status: profileData.payment_status === "paid" ? "paid" : "payment_pending",
-      payment_completed_at: profileData.payment_status === "paid" ? now : undefined,
+      activation_payment_status: payload.submit ? "payment_pending" : "not_started",
       approval_requested_at: payload.submit ? now : undefined,
       profile_submitted_at: payload.submit ? now : undefined,
       onboarding_completed_at: payload.submit ? now : undefined,
@@ -199,7 +199,7 @@ export async function PATCH(request: Request) {
           required_document_categories: requiredKindergartenDocumentCategories
         },
         activation_steps: progress.completedSteps,
-        payment_status: profileData.payment_status ?? "not_started",
+        payment_status: payload.submit ? "payment_pending" : "not_started",
         subscription_monthly_amount: subscriptionAmount,
         correction_note: payload.submit ? null : existingGarden?.admin_correction_note ?? null,
         started_at: now,
@@ -231,6 +231,35 @@ export async function PATCH(request: Request) {
     });
     if (ageGroupRows.length) {
       await supabase.from("kindergarten_age_group_setups" as any).upsert(ageGroupRows, { onConflict: "garden_id,age_group" });
+      const feeGroupRows = selectedAgeGroups.map((groupKey) => {
+        const group = kindergartenAgeGroups.find((item) => item.key === groupKey);
+        const childrenCount = Number(classCapacity[String(groupKey)] ?? 0);
+        const pricing = ((profileData.age_group_pricing ?? {}) as Record<string, any>)[String(groupKey)] ?? {};
+        return {
+          garden_id: profile.garden_id,
+          group_name: group?.label ?? String(groupKey),
+          age_range: group?.range ?? String(groupKey),
+          monthly_fee: Number(pricing.monthly_price ?? 0),
+          annual_fee: Number(pricing.annual_price ?? 0) || Number(pricing.monthly_price ?? 0) * 12,
+          capacity: childrenCount || group?.maxChildrenPerClass || null,
+          show_price_public: Boolean(pricing.show_price_public),
+          active: childrenCount > 0 || Boolean(pricing.monthly_price),
+          parent_billing_cycle: pricing.billing_cycle === "annual" ? "annual" : "monthly",
+          updated_at: now
+        };
+      });
+      await Promise.all(feeGroupRows.map(async (row) => {
+        const existing = await supabase
+          .from("kindergarten_fee_groups" as any)
+          .select("id")
+          .eq("garden_id", profile.garden_id)
+          .eq("group_name", row.group_name)
+          .maybeSingle();
+        if (existing.data?.id) {
+          return supabase.from("kindergarten_fee_groups" as any).update(row).eq("id", existing.data.id);
+        }
+        return supabase.from("kindergarten_fee_groups" as any).insert(row);
+      }));
     }
 
     await supabase.from("kindergarten_activation_events" as any).insert({

@@ -2,6 +2,7 @@ import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { requireRole } from "@/lib/auth";
 import { getPaymentProviderAdapter } from "@/lib/domain/billing";
+import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 const schema = z.object({
@@ -15,7 +16,7 @@ export async function POST(request: Request) {
     const { profile } = await requireRole(["manager", "owner"]);
     const payload = schema.parse(await request.json());
     if (!profile.garden_id) return fail("לא נמצא גן משויך למשתמש.", 403);
-    const supabase = await createClient();
+    const supabase = !profile.active && isAdminClientConfigured() ? createAdminClient() : await createClient();
     const subscription = await supabase
       .from("kindergarten_subscriptions" as any)
       .select("*")

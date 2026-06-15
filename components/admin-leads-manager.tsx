@@ -69,7 +69,7 @@ const labels: Record<string, string> = {
   registration_pending: "ממתין לאישור רישום",
   admin_approved: "אושר על ידי אדמין",
   activation_in_progress: "בהפעלה",
-  payment_pending: "ממתין לתשלום"
+  payment_pending: "אושר וממתין למנוי"
 };
 
 const sourceLabels: Record<string, string> = {
@@ -138,7 +138,8 @@ function GardenCard({ garden, onDone }: { garden: GardenRow; onDone: (message: s
       </div>
       <div className="procedure-meta">
         {["admin_approved", "credentials_sent", "activation_in_progress", "payment_pending", "onboarding_in_progress", "correction_required", "lead_approved_credentials_sent", "profile_incomplete"].includes(status) ? <button className="button secondary" disabled={Boolean(busy)} onClick={() => act("resend_credentials", "פרטי הכניסה נשלחו שוב")}>שליחה חוזרת</button> : null}
-        {["pending_final_approval", "onboarding_submitted", "pending_final_admin_approval"].includes(status) ? <button className="button primary" disabled={Boolean(busy)} onClick={() => act("approve_final_profile", "הגן אושר")}>אישור סופי</button> : null}
+        {["pending_final_approval", "onboarding_submitted", "pending_final_admin_approval"].includes(status) ? <button className="button primary" disabled={Boolean(busy)} onClick={() => act("approve_final_profile", "הגן אושר וממתין למנוי")}>אישור למנוי</button> : null}
+        {status === "payment_pending" ? <button className="button primary" disabled={Boolean(busy)} onClick={() => act("activate_after_payment", "הגן הופעל אחרי תשלום/override")}>הפעלה אחרי תשלום</button> : null}
         {["pending_final_approval", "onboarding_submitted", "pending_final_admin_approval"].includes(status) ? <button className="button secondary" disabled={Boolean(busy)} onClick={() => act("request_corrections", "הוחזר לתיקונים")}>החזרה לתיקון</button> : null}
         {status === "active" ? <button className="button secondary" disabled={Boolean(busy)} onClick={() => act("suspend", "הגן הושהה")}>השהיה</button> : null}
         {status !== "active" && status !== "archived" ? <button className="button secondary" disabled={Boolean(busy)} onClick={() => act("archive", "הועבר לארכיון")}>ארכוב</button> : null}

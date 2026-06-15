@@ -49,6 +49,9 @@ export function dashboardPathForRole(role: UserRole) {
 
 export async function dashboardPathForProfile(profile: { id?: string | null; role?: string | null; garden_id?: string | null; active?: boolean | null }) {
   if (!isRole(profile.role)) return "/dashboard";
+  if ((profile.role === "manager" || profile.role === "owner") && !profile.garden_id) {
+    return "/onboarding/kindergarten";
+  }
   if ((profile.role === "manager" || profile.role === "owner") && profile.garden_id) {
     const supabase = await createClient();
     const { data: garden } = await supabase
