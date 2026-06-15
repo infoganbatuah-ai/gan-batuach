@@ -42,6 +42,8 @@ export const dashboardRouteChecks: DashboardRouteCheck[] = [
   { route: "/dashboard/admin/capability-legal-review", label: "בדיקת יכולות", roles: ["admin"], dataTable: "observer_vertical_capability_decisions" },
   { route: "/dashboard/admin/legal-review", label: "סקירה משפטית", roles: ["admin"], dataTable: "legal_review_documents" },
   { route: "/dashboard/admin/external-validation", label: "אימות חיצוני", roles: ["admin"], dataTable: "external_validation_scores" },
+  { route: "/dashboard/admin/final-production-launch", label: "השקה סופית", roles: ["admin"], dataTable: "final_launch_status" },
+  { route: "/dashboard/admin/company-operations", label: "תפעול חברה", roles: ["admin"], dataTable: "company_customer_lifecycle" },
   { route: "/dashboard/admin/observer-pilot", label: "פיילוט תצפיתן", roles: ["admin"], dataTable: "observer_pilot_runs" },
   { route: "/dashboard/admin/system-health", label: "בריאות מערכת", roles: ["admin"], dataTable: "audit_logs" },
   { route: "/dashboard/admin/audit-logs", label: "Audit Logs", roles: ["admin"], dataTable: "audit_logs" },

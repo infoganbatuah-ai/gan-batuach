@@ -86,6 +86,8 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/admin/security-center", label: "מרכז אבטחה", hint: "בדיקה חיצונית" },
     { href: "/dashboard/admin/security-review", label: "בדיקת חדירה", hint: "PT חיצוני" },
     { href: "/dashboard/admin/external-validation", label: "אימות חיצוני", hint: "משפטי, PT ו-ISO" },
+    { href: "/dashboard/admin/final-production-launch", label: "השקה סופית", hint: "Go/No-Go וחסמים" },
+    { href: "/dashboard/admin/company-operations", label: "תפעול חברה", hint: "ריליסים, תמיכה וצמיחה" },
     { href: "/dashboard/admin/security", label: "אבטחה", hint: "מוכנות ייצור" },
     { href: "/dashboard/admin/database-integrity", label: "שלמות DB", hint: "מיגרציות ו-RLS" },
     { href: "/dashboard/admin/iso-readiness", label: "מוכנות ISO", hint: "27001, 27017, 27701" },
