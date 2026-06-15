@@ -1,6 +1,19 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-export const subscriptionStatuses = ["active", "trial", "pending_payment", "suspended", "expired", "cancelled"] as const;
+export const subscriptionStatuses = [
+  "pending_admin_approval",
+  "approved_pending_onboarding",
+  "approved_pending_subscription",
+  "demo_active",
+  "active",
+  "trial",
+  "pending_payment",
+  "payment_failed",
+  "frozen",
+  "suspended",
+  "expired",
+  "cancelled"
+] as const;
 export const planTypes = ["trial", "monthly", "annual", "enterprise"] as const;
 export const billingProviders = ["manual", "credit_card", "tranzila", "meshulam", "pelecard", "grow", "stripe"] as const;
 
@@ -26,33 +39,33 @@ export type BillingAccessPolicy = {
 };
 
 export function evaluateSubscriptionAccess(status?: string | null, adminOverride = false): BillingAccessPolicy {
-  if (status === "pending_payment" && !adminOverride) {
+  if (["pending_payment", "approved_pending_subscription", "payment_failed"].includes(String(status)) && !adminOverride) {
     return {
       ownerAccess: "full",
       parentHistoricalAccess: "allowed",
       adminOverride,
       blockedCapabilities: ["send_parent_messages", "camera_playback", "finance_updates"],
-      message: "תשלום מנוי שנתי נדרש להפעלת המערכת. ניתן להשלים פרופיל, ילדים והורים, אך פעולות מתקדמות ייפתחו אחרי תשלום."
+      message: "הגן אושר — יש להשלים תשלום מנוי. ניתן להשלים פרופיל בסיסי, אך פעולות מתקדמות ייפתחו אחרי תשלום או override אדמין."
     };
   }
 
-  if (adminOverride || status === "active" || status === "trial") {
+  if (adminOverride || status === "active" || status === "trial" || status === "demo_active") {
     return {
       ownerAccess: "full",
       parentHistoricalAccess: "allowed",
       adminOverride,
       blockedCapabilities: [],
-      message: "המנוי פעיל או בתקופת טיפול. כל הפעולות פתוחות."
+      message: status === "demo_active" ? "הגן בתקופת דמו מבוקרת. יש להסדיר תשלום לפני סיום הדמו כדי למנוע הקפאה." : "המנוי פעיל או בתקופת טיפול. כל הפעולות פתוחות."
     };
   }
 
-  if (status === "expired" || status === "suspended" || status === "cancelled") {
+  if (status === "expired" || status === "suspended" || status === "cancelled" || status === "frozen") {
     return {
       ownerAccess: "full",
       parentHistoricalAccess: "allowed",
       adminOverride,
       blockedCapabilities: ["manage_children", "manage_staff", "create_parent_leads", "send_parent_messages", "camera_playback", "finance_updates"],
-      message: "המנוי אינו פעיל. בעלים ומנהלת עדיין יכולים להיכנס, הורים שומרים גישה להיסטוריה, אך פעולות ניהול חדשות מוגבלות עד חידוש או override אדמין."
+      message: "המנוי עדיין לא הופעל או הוקפא. בעלים ומנהלת עדיין יכולים להיכנס, אך פעולות ניהול חדשות מוגבלות עד הסדרת תשלום או override אדמין."
     };
   }
 

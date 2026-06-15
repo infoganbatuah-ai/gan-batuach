@@ -6,13 +6,16 @@ Date: 2026-06-16
 Verified:
 
 - `/app` exists and remains the app gateway.
+- `/app/login` exists and keeps browser continuation inside the app-like auth shell.
+- `/app/register` exists and keeps registration inside the app-like auth shell.
+- `/app/register/parent`, `/app/register/kindergarten`, `/app/register/staff`, `/app/register/inspector` exist as focused role-specific registration screens.
 - `DashboardShell` remains the shared internal app shell.
 - Public website routes remain marketing/information routes.
 - No internal dashboard route was removed.
-- No redirect was added.
+- No public route was removed.
 
 ## Login UX Status
-Updated `/login` to feel more app-like:
+Updated `/login` and `/app/login` to feel more app-like:
 
 - Clear title: `כניסה למערכת גן בטוח`.
 - Clear trust/use sentence.
@@ -20,7 +23,8 @@ Updated `/login` to feel more app-like:
 - Added loading/disabled submit button through `LoginSubmitButton`.
 - Added `שכחת סיסמה?` link.
 - Added secondary registration link.
-- Kept Passkey/WebAuthn surface only where existing component already exists.
+- `/login` remains available for existing links but is now wrapped in the same app auth shell.
+- `/app/login` is the primary app gateway login route.
 
 Not added intentionally:
 
@@ -30,10 +34,10 @@ Not added intentionally:
 - Fake Face ID / biometric button.
 
 ## Register UX Status
-Updated `/register` and `SelfServiceRegisterForm`:
+Updated `/register`, `/app/register` and `SelfServiceRegisterForm`:
 
 - Role-card selection: parent, kindergarten manager, staff, inspector.
-- Focused form updates based on selected role.
+- Focused forms are available per role under `/app/register/*`.
 - Password confirmation validation.
 - Terms/privacy consent checkbox.
 - Role-specific neutral data-use explanation.
@@ -98,15 +102,26 @@ Admin can see:
 No database migration was added.
 
 ## Manager Subscription / Payment Status
-Improved manager-facing subscription panel:
+Improved manager-facing subscription panel and `/dashboard/garden/subscription`:
 
 - Shows Gan Batuach subscription.
-- Shows base monthly price.
-- Shows additional group/class price rule.
+- Shows base monthly price: 800 NIS/month.
+- Shows additional group/class price rule: +200 NIS/month.
 - Shows 3-day demo readiness text.
 - Shows frozen/suspended risk message.
 - Separates parent tuition from Gan Batuach subscription.
 - Warns that live charging does not occur if provider is not configured.
+- Shows payment provider mode from safe env flags: disabled / sandbox / live.
+- Recognizes lifecycle statuses:
+  - `pending_admin_approval`
+  - `approved_pending_onboarding`
+  - `approved_pending_subscription`
+  - `demo_active`
+  - `active`
+  - `payment_failed`
+  - `frozen`
+  - `suspended`
+  - `cancelled`
 
 No payment provider logic was changed.
 
@@ -181,3 +196,9 @@ Then proceed to QA 3 for:
 - Medical data.
 - Camera access.
 - AI exposure.
+
+## Final Verification
+
+- `npm run typecheck`: עבר
+- `npm run build`: עבר
+- `git diff --check`: עבר

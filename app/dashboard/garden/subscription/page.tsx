@@ -3,18 +3,31 @@ import { DashboardShell } from "@/components/dashboard-shell";
 import { GardenSubscriptionActions } from "@/components/subscription-admin-manager";
 import { requireRole } from "@/lib/auth";
 import { evaluateSubscriptionAccess, loadGardenSubscriptionData } from "@/lib/domain/billing";
+import { getIntegrationSafetyModes, getSafeIntegrationStatus } from "@/lib/domain/provider-integration-safety";
 import { createClient } from "@/lib/supabase/server";
 
 export const dynamic = "force-dynamic";
 
 const statusLabels: Record<string, string> = {
+  pending_admin_approval: "ממתין לאישור אדמין",
+  approved_pending_onboarding: "אושר, ממתין להשלמת פרופיל",
+  approved_pending_subscription: "הגן אושר — יש להשלים תשלום מנוי",
+  demo_active: "דמו פעיל",
   active: "פעיל",
   trial: "ניסיון",
-  pending_payment: "ממתין לתשלום",
+  pending_payment: "המנוי עדיין לא הופעל",
+  payment_failed: "תשלום נכשל",
+  frozen: "מוקפא",
   suspended: "מושעה",
   expired: "פג תוקף",
   cancelled: "בוטל"
 };
+
+function statusTone(status?: string | null) {
+  if (["active", "trial", "demo_active"].includes(String(status))) return "pill good";
+  if (["pending_payment", "approved_pending_subscription", "approved_pending_onboarding", "pending_admin_approval"].includes(String(status))) return "pill warn";
+  return "pill bad";
+}
 
 function money(value: unknown, currency = "ILS") {
   return new Intl.NumberFormat("he-IL", { style: "currency", currency, maximumFractionDigits: 0 }).format(Number(value ?? 0));
@@ -35,16 +48,20 @@ export default async function GardenSubscriptionPage() {
   const subscription = data.subscription as any;
   const plan = subscription?.subscription_plans;
   const policy = evaluateSubscriptionAccess(subscription?.status, Boolean(subscription?.admin_override));
+  const providerModes = getIntegrationSafetyModes();
+  const paymentProviderStatus = getSafeIntegrationStatus("payment", process.env.PAYMENT_PROVIDER);
+  const classCount = Number(subscription?.metadata?.class_count ?? subscription?.metadata?.age_group_count ?? 1);
+  const expectedMonthly = 800 + Math.max(0, classCount - 1) * 200;
 
   return (
     <DashboardShell role={role} title="Subscription Center">
       <div className="dashboard-hero-card garden-hero-card">
         <div>
           <p className="eyebrow">מנוי שנתי</p>
-          <h1>הפעלת מערכת גן בטוח.</h1>
-          <p>אפשר להשלים פרופיל, ילדים והורים לפני תשלום. להפעלה מלאה נדרש תשלום מנוי שנתי.</p>
+          <h1>מנוי גן בטוח.</h1>
+          <p>זהו מנוי הגן מול גן בטוח. תשלומי הורים לגן נשארים זרם נפרד ואינם הכנסה של גן בטוח.</p>
         </div>
-        <span className={["active", "trial"].includes(subscription?.status) ? "pill good" : subscription?.status === "pending_payment" ? "pill warn" : "pill bad"}>
+        <span className={statusTone(subscription?.status)}>
           {statusLabels[subscription?.status] ?? "לא הוגדר"}
         </span>
       </div>
@@ -64,10 +81,20 @@ export default async function GardenSubscriptionPage() {
       ) : (
         <>
           <section className="grid cols-4 dashboard-panels">
-            <article className="card metric-card"><span>תוכנית</span><strong>{plan?.name ?? "Gan Batuach 700"}</strong></article>
-            <article className="card metric-card"><span>מחיר שנתי</span><strong>{money(plan?.annual_price ?? plan?.price_amount, plan?.currency ?? "ILS")}</strong></article>
+            <article className="card metric-card"><span>תוכנית</span><strong>{plan?.name ?? "Gan Batuach 800"}</strong></article>
+            <article className="card metric-card"><span>מחיר חודשי משוער</span><strong>{money(subscription?.metadata?.monthly_amount_nis ?? expectedMonthly)}</strong></article>
             <article className="card metric-card"><span>חידוש</span><strong>{date(subscription.renewal_date)}</strong></article>
             <article className="card metric-card"><span>תוקף</span><strong>{date(subscription.expires_at ?? subscription.trial_ends_at)}</strong></article>
+          </section>
+
+          <section className="card action-panel subscription-activation-panel">
+            <div className="section-heading"><h2>כללי התמחור</h2><p>מנוי Gan Batuach מחושב בנפרד מתשלומי הורים ומ-Digital Observer.</p></div>
+            <div className="subscription-breakdown-grid">
+              <div><span>בסיס</span><strong>₪800</strong><small>לחודש עבור כיתה/קבוצת גיל ראשונה.</small></div>
+              <div><span>תוספת</span><strong>+₪200</strong><small>לחודש לכל כיתה/קבוצת גיל נוספת.</small></div>
+              <div><span>דמו</span><strong>3 ימים</strong><small>אם הופעל דמו, יש להסדיר תשלום לפני סיום התקופה.</small></div>
+              <div><span>מצב ספק תשלום</span><strong>{providerModes.payment === "live" ? "Live" : providerModes.payment === "sandbox" ? "Sandbox" : "כבוי"}</strong><small>{paymentProviderStatus === "production_ready" ? "ספק מוכן לפי env" : "אין להניח חיוב חי ללא הגדרה חיצונית."}</small></div>
+            </div>
           </section>
 
           <section className="card action-panel">
