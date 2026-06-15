@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import Link from "next/link";
 import { Baby, Building2, ClipboardCheck, HeartHandshake, ShieldCheck, UserRoundCheck, UsersRound } from "lucide-react";
 import { BrandHeader } from "@/components/brand-header";
 import { signIn } from "@/app/login/actions";
@@ -24,10 +25,14 @@ export default async function LoginPage({ searchParams }: { searchParams?: Promi
       <main className="section login-journey-page">
         <section className="login-hero">
           <div>
-            <p className="eyebrow">כניסה אחת לכל משתמשי גן בטוח</p>
+            <p className="eyebrow">התחברות למערכת</p>
             <h1>מתחברים פעם אחת, והמערכת מעבירה אותך למקום הנכון.</h1>
             <p>הורים, צוות, גננת/מנהלת, בעלים ומפקחים משתמשים באותו מסך כניסה. אחרי ההתחברות גן בטוח מזהה את התפקיד ומציג את הדשבורד המתאים.</p>
             {params?.gardenId ? <div className="notice"><ShieldCheck size={16} /> ההתחברות נשמרת בהקשר של הגן שממנו הגעת.</div> : null}
+            <div className="profile-actions">
+              <Link className="button secondary" href="/app">כניסה למערכת</Link>
+              <Link className="button secondary" href="/register">הרשמה חדשה</Link>
+            </div>
           </div>
           <div className="login-audience-grid">
             {audiences.map((item) => <article className="audience-card" key={item.title}><item.icon /><strong>{item.title}</strong><span>{item.text}</span><a href="#login-form" className="button secondary tiny">התחברות</a></article>)}
@@ -36,7 +41,7 @@ export default async function LoginPage({ searchParams }: { searchParams?: Promi
         <div className="grid cols-2 login-content-grid">
           <section className="card action-panel">
             <p className="eyebrow">Role detection</p>
-            <h2>אין מערכות כניסה נפרדות</h2>
+            <h2>מסך כניסה אחד לכל התפקידים</h2>
             <p>אין צורך לבחור “הורה” או “צוות” אחרי הכניסה. המערכת עושה זאת לבד לפי המשתמש שנוצר בגן.</p>
             <div className="journey-steps compact"><span><b>1</b><UserRoundCheck size={16} /> הזנת פרטים</span><span><b>2</b><ShieldCheck size={16} /> אימות מאובטח</span><span><b>3</b><Building2 size={16} /> מעבר לדשבורד</span></div>
           </section>
