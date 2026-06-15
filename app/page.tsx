@@ -33,6 +33,12 @@ const websiteEntryPoints = [
     icon: CalendarCheck
   },
   {
+    href: "/register",
+    title: "רישום עצמי",
+    text: "הורים, צוות, מפקחים או רישום גן — התחילו מהמסלול המתאים.",
+    icon: UsersRound
+  },
+  {
     href: "/join-kindergarten",
     title: "רישום גן ילדים",
     text: "פתיחת בקשת הצטרפות והתחלת תהליך הפעלה מסודר.",
@@ -82,8 +88,8 @@ export default async function HomePage() {
           subtitle="הפלטפורמה שמחברת גנים, הורים, צוות, פקחים ומצלמות למערכת אחת שמייצרת אמון, תיעוד ותפעול מקצועי."
           primaryHref="/book-demo"
           primaryLabel="קבע הדגמה"
-          secondaryHref="/join-kindergarten"
-          secondaryLabel="רישום גן ילדים"
+          secondaryHref="/register"
+          secondaryLabel="רישום עצמי"
           tertiaryHref="/parents"
           tertiaryLabel="הורים? לחצו כאן"
         >
