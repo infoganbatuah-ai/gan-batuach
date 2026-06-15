@@ -25,6 +25,8 @@ const allowedMimeTypes = new Set([
 ]);
 
 const imageBuckets = new Set(["child-photos", "profile-photos", "pickup-person-photos", "kindergarten-logos", "incident-photos", "gallery"]);
+const sensitiveSignedUrlTtlSeconds = 10 * 60;
+const publicPreviewSignedUrlTtlSeconds = 15 * 60;
 const roleBucketAccess: Record<string, Set<string>> = {
   admin: allowedBuckets,
   manager: new Set(["documents", "child-photos", "profile-photos", "pickup-person-photos", "kindergarten-logos", "incident-photos", "gallery"]),
@@ -70,8 +72,16 @@ export async function POST(request: Request) {
       console.error("Supabase storage upload failed", { bucket, path, message: error.message });
       return fail("לא ניתן להעלות את הקובץ כרגע. נסו שוב או בדקו את הגדרת Storage.", 400);
     }
-    const signed = await supabase.storage.from(bucket).createSignedUrl(path, 60 * 60 * 24 * 30);
-    await supabase.from("audit_logs").insert({ actor_id: profile.id, actor_role: profile.role, garden_id: profile.garden_id, entity_type: "storage.objects", action: "upload_file", after_data: { bucket, path, size: file.size, type: contentType } });
+    const signedUrlTtlSeconds = bucket === "kindergarten-logos" || bucket === "gallery" ? publicPreviewSignedUrlTtlSeconds : sensitiveSignedUrlTtlSeconds;
+    const signed = await supabase.storage.from(bucket).createSignedUrl(path, signedUrlTtlSeconds);
+    await supabase.from("audit_logs").insert({
+      actor_id: profile.id,
+      actor_role: profile.role,
+      garden_id: profile.garden_id,
+      entity_type: "storage.objects",
+      action: "upload_file",
+      after_data: { bucket, path, size: file.size, type: contentType, signed_url_ttl_seconds: signedUrlTtlSeconds }
+    });
     return ok({ bucket, path, url: signed.data?.signedUrl ?? null, file_name: file.name, content_type: contentType, size: file.size });
   } catch (error) {
     return handleRouteError(error);

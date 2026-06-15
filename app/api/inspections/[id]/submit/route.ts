@@ -4,6 +4,8 @@ import { inspectionSubmitSchema, submitInspection } from "@/lib/domain/inspectio
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
+const inspectionEvidenceSignedUrlTtlSeconds = 10 * 60;
+
 function distanceMeters(lat1?: number | null, lng1?: number | null, lat2?: number | null, lng2?: number | null) {
   if ([lat1, lng1, lat2, lng2].some((value) => typeof value !== "number" || !Number.isFinite(value))) return null;
   const toRad = (value: number) => (value * Math.PI) / 180;
@@ -30,7 +32,7 @@ async function uploadSignatureIfPossible(inspectionId: string, signatureImage: s
   const supabase = createAdminClient();
   const { error } = await supabase.storage.from("inspection-reports").upload(path, Buffer.from(base64, "base64"), { contentType: mimeType, upsert: true });
   if (error) return signatureImage;
-  const signed = await supabase.storage.from("inspection-reports").createSignedUrl(path, 60 * 60 * 24 * 365);
+  const signed = await supabase.storage.from("inspection-reports").createSignedUrl(path, inspectionEvidenceSignedUrlTtlSeconds);
   return signed.data?.signedUrl ?? signatureImage;
 }
 
