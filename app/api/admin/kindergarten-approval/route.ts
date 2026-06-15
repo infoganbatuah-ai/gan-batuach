@@ -6,7 +6,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { generateTemporaryPassword, provisionAuthUser, writeUserCreationAudit } from "@/lib/onboarding/user-provisioning";
 
 const schema = z.object({
-  action: z.enum(["approve_lead", "request_contact", "reject_lead", "mark_contacted", "mark_not_relevant", "resend_credentials", "approve_final_profile", "request_corrections", "suspend", "archive"]),
+  action: z.enum(["approve_lead", "request_contact", "reject_lead", "mark_contacted", "mark_not_relevant", "resend_credentials", "approve_final_profile", "activate_after_payment", "request_corrections", "suspend", "archive"]),
   lead_id: z.string().uuid().optional(),
   garden_id: z.string().uuid().optional(),
   note: z.string().optional(),
@@ -322,11 +322,35 @@ export async function POST(request: Request) {
     const onboardingPatch: Record<string, unknown> = { updated_at: now };
     if (payload.action === "approve_final_profile") {
       Object.assign(statusPatch, {
+        status: "pending",
+        approval_flow_status: "payment_pending",
+        final_approval_status: "payment_pending",
+        onboarding_status: "payment_pending",
+        activation_payment_status: "payment_pending",
+        final_approved_at: now,
+        approved_by: profile.id,
+        reviewed_by: profile.id,
+        admin_correction_note: null,
+        public_profile_enabled: false
+      });
+      Object.assign(onboardingPatch, {
+        lifecycle_status: "payment_pending",
+        progress_percent: 100,
+        approved_at: now,
+        approved_by: profile.id,
+        reviewed_by: profile.id,
+        payment_status: "payment_pending",
+        correction_note: null
+      });
+    }
+    if (payload.action === "activate_after_payment") {
+      Object.assign(statusPatch, {
         status: "active",
         approval_flow_status: "active",
         final_approval_status: "active",
         onboarding_status: "completed",
-        final_approved_at: now,
+        activation_payment_status: "paid",
+        payment_completed_at: now,
         approved_by: profile.id,
         reviewed_by: profile.id,
         admin_correction_note: null,
@@ -335,7 +359,7 @@ export async function POST(request: Request) {
       Object.assign(onboardingPatch, {
         lifecycle_status: "active",
         progress_percent: 100,
-        approved_at: now,
+        payment_status: "paid",
         activated_at: now,
         approved_by: profile.id,
         reviewed_by: profile.id,
@@ -411,16 +435,86 @@ export async function POST(request: Request) {
       manager_id: garden.manager_id,
       ...onboardingPatch
     }, { onConflict: "garden_id" });
-    if (garden.manager_id && ["approve_final_profile", "request_corrections", "suspend", "archive"].includes(payload.action)) {
+    if (payload.action === "approve_final_profile" || payload.action === "activate_after_payment") {
+      const onboarding = await admin
+        .from("kindergarten_onboarding_records" as any)
+        .select("subscription_monthly_amount, profile_data")
+        .eq("garden_id", garden.id)
+        .maybeSingle();
+      const monthlyAmount = Number((onboarding.data as any)?.subscription_monthly_amount ?? (onboarding.data as any)?.profile_data?.subscription_monthly_amount ?? 800);
+      const existingSubscription = await admin
+        .from("kindergarten_subscriptions" as any)
+        .select("id")
+        .eq("garden_id", garden.id)
+        .in("status", ["active", "trial", "pending_payment", "suspended"])
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      const subscriptionPatch = {
+        garden_id: garden.id,
+        status: payload.action === "activate_after_payment" ? "active" : "pending_payment",
+        billing_status: payload.action === "activate_after_payment" ? "active" : "pending_payment",
+        plan_type: "annual",
+        billing_cycle: "annual",
+        start_date: new Date().toISOString().slice(0, 10),
+        renewal_date: new Date(Date.now() + 365 * 86400000).toISOString().slice(0, 10),
+        billing_contact_name: garden.name,
+        provider: "manual",
+        metadata: {
+          revenue_stream: "gan_batuach_subscription",
+          parent_tuition_separate: true,
+          monthly_amount_nis: monthlyAmount,
+          annual_amount_nis: monthlyAmount * 12,
+          payment_mode: payload.action === "activate_after_payment" ? "manual_or_provider_success" : "pending"
+        },
+        updated_by: profile.id,
+        updated_at: now
+      };
+      if (existingSubscription.data?.id) {
+        await admin.from("kindergarten_subscriptions" as any).update(subscriptionPatch).eq("id", existingSubscription.data.id);
+      } else {
+        await admin.from("kindergarten_subscriptions" as any).insert({ ...subscriptionPatch, created_by: profile.id });
+      }
+      if (payload.action === "activate_after_payment") {
+        if (garden.manager_id) {
+          await Promise.all([
+            admin.from("profiles" as any).update({
+              active: true,
+              self_service_status: "active",
+              self_service_approved_at: now,
+              self_service_approved_by: profile.id,
+              updated_at: now
+            }).eq("id", garden.manager_id),
+            admin.from("self_service_user_profiles" as any).update({
+              status: "active",
+              updated_at: now,
+              metadata: { activation_source: "admin_payment_or_override", garden_id: garden.id }
+            }).eq("profile_id", garden.manager_id)
+          ]);
+        }
+        await admin.from("subscription_payments" as any).insert({
+          garden_id: garden.id,
+          provider: "manual",
+          amount: monthlyAmount,
+          currency: "ILS",
+          billing_status: "paid",
+          paid_at: now,
+          payment_method: "admin_manual_activation_or_verified_provider",
+          metadata: { revenue_stream: "gan_batuach_subscription", parent_tuition_separate: true },
+          created_by: profile.id
+        });
+      }
+    }
+    if (garden.manager_id && ["approve_final_profile", "activate_after_payment", "request_corrections", "suspend", "archive"].includes(payload.action)) {
       await admin.from("notifications" as any).insert({
         garden_id: garden.id,
         recipient_id: garden.manager_id,
-        title: payload.action === "approve_final_profile" ? "הגן אושר" : payload.action === "request_corrections" ? "נדרשת השלמה בפרופיל" : "סטטוס הגן עודכן",
-        body: payload.action === "approve_final_profile" ? "הגן פעיל. אפשר להתחיל לעבוד בדשבורד." : payload.note || "יש הודעה חדשה מהאדמין.",
+        title: payload.action === "approve_final_profile" ? "הגן אושר וממתין למנוי" : payload.action === "activate_after_payment" ? "הגן הופעל" : payload.action === "request_corrections" ? "נדרשת השלמה בפרופיל" : "סטטוס הגן עודכן",
+        body: payload.action === "approve_final_profile" ? "הבקשה אושרה. יש להשלים מנוי גן בטוח לפני פתיחת הדשבורד המלא." : payload.action === "activate_after_payment" ? "התשלום או override האדמין תועדו. הדשבורד המלא פתוח." : payload.note || "יש הודעה חדשה מהאדמין.",
         entity_type: "garden",
         entity_id: garden.id,
-        severity: payload.action === "approve_final_profile" ? "low" : "medium",
-        metadata: { href: payload.action === "approve_final_profile" ? "/dashboard/garden" : "/onboarding/kindergarten" }
+        severity: payload.action === "activate_after_payment" ? "low" : "medium",
+        metadata: { href: payload.action === "activate_after_payment" ? "/dashboard/garden" : "/onboarding/kindergarten" }
       });
     }
     await admin.from("audit_logs" as any).insert({

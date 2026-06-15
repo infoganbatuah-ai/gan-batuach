@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, type FormEvent } from "react";
 import { UploadImageField } from "@/components/upload-image-field";
 import { calculateGanBatuachMonthlyPrice, calculateRequiredStaff, kindergartenAgeGroups, requiredKindergartenDocumentCategories } from "@/lib/domain/kindergarten-onboarding";
 
@@ -60,6 +60,110 @@ function checked(form: FormData, name: string) {
   return form.get(name) === "on";
 }
 
+export function ManagerKindergartenApplicationForm({ managerName, managerPhone, managerEmail }: { managerName?: string | null; managerPhone?: string | null; managerEmail?: string | null }) {
+  const [message, setMessage] = useState("");
+  const [busy, setBusy] = useState(false);
+
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setBusy(true);
+    setMessage("");
+    const form = new FormData(event.currentTarget);
+    try {
+      const response = await fetch("/api/garden/manager-application", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          kindergarten_name: text(form.get("kindergarten_name")),
+          legal_entity_name: text(form.get("legal_entity_name")),
+          business_id: text(form.get("business_id")),
+          manager_full_name: text(form.get("manager_full_name")),
+          manager_id_number: text(form.get("manager_id_number")),
+          manager_phone: text(form.get("manager_phone")),
+          manager_email: text(form.get("manager_email")),
+          city: text(form.get("city")),
+          street: text(form.get("street")),
+          address_details: text(form.get("address_details")),
+          public_description: text(form.get("public_description")),
+          opening_hours: text(form.get("opening_hours")),
+          contact_phone: text(form.get("contact_phone")),
+          contact_email: text(form.get("contact_email"))
+        })
+      });
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.error || "לא ניתן ליצור בקשת גן כרגע");
+      setMessage("טיוטת הגן נוצרה. אפשר להמשיך לאשף ההפעלה.");
+      window.location.reload();
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "לא ניתן ליצור בקשת גן כרגע");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  return (
+    <form className="card form wizard-form premium-step-form" onSubmit={submit}>
+      <h2>פתיחת בקשת גן</h2>
+      <p>הבקשה יוצרת טיוטת גן מוגבלת בלבד. הגן לא פעיל, לא ציבורי, ולא פתוח להורים עד אישור אדמין ותשלום מנוי.</p>
+      <div className="form-grid">
+        <label>שם הגן *<input name="kindergarten_name" required minLength={2} /></label>
+        <label>שם משפטי / עוסק<input name="legal_entity_name" /></label>
+        <label>ח.פ / עוסק / מזהה עסק<input name="business_id" /></label>
+        <label>שם מנהלת *<input name="manager_full_name" required minLength={2} defaultValue={managerName ?? ""} /></label>
+        <label>תעודת זהות מנהלת<input name="manager_id_number" /></label>
+        <label>טלפון מנהלת<input name="manager_phone" defaultValue={managerPhone ?? ""} /></label>
+        <label>אימייל מנהלת<input name="manager_email" type="email" defaultValue={managerEmail ?? ""} /></label>
+        <label>עיר *<input name="city" required minLength={2} /></label>
+        <label>רחוב<input name="street" /></label>
+        <label>פרטי כתובת<input name="address_details" /></label>
+        <label>טלפון לפרסום<input name="contact_phone" defaultValue={managerPhone ?? ""} /></label>
+        <label>אימייל לפרסום<input name="contact_email" type="email" defaultValue={managerEmail ?? ""} /></label>
+        <label className="wide">שעות פעילות<textarea name="opening_hours" rows={3} /></label>
+        <label className="wide">תיאור ציבורי קצר<textarea name="public_description" rows={3} /></label>
+      </div>
+      <div className="warning-banner">גישה מלאה לדשבורד, ילדים, צוות, מסמכים פנימיים ותשלומים תיפתח רק אחרי אישור אדמין ותשלום מנוי גן בטוח.</div>
+      <button className="button primary large" disabled={busy} type="submit">{busy ? "יוצר..." : "יצירת טיוטת גן"}</button>
+      {message ? <span className={message.includes("לא ") ? "error-text" : "payment-action-message"}>{message}</span> : null}
+    </form>
+  );
+}
+
+export function KindergartenSubscriptionActivationPanel({ gardenName, monthlyAmount }: { gardenName?: string | null; monthlyAmount?: number | null }) {
+  const [message, setMessage] = useState("");
+  const [busy, setBusy] = useState(false);
+  async function requestPayment() {
+    setBusy(true);
+    setMessage("");
+    try {
+      const response = await fetch("/api/garden/subscription", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ action: "request_renewal", notes: "Manager approved application subscription activation request" })
+      });
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.error || "לא ניתן לפתוח בקשת תשלום כרגע");
+      setMessage(body.data?.message ?? "בקשת התשלום נשלחה לאדמין.");
+    } catch (error) {
+      setMessage(error instanceof Error ? error.message : "לא ניתן לפתוח בקשת תשלום כרגע");
+    } finally {
+      setBusy(false);
+    }
+  }
+  return (
+    <section className="card action-panel">
+      <p className="eyebrow">אישור אדמין הושלם</p>
+      <h2>הגן ממתין להפעלת מנוי גן בטוח.</h2>
+      <p>{gardenName ?? "הגן"} אושר להפעלה, אבל הגישה המלאה תיפתח רק אחרי תשלום מנוי או override אדמין מתועד.</p>
+      <div className="status-chip-row">
+        <span className="pill warn">מנוי גן בטוח: ₪{Number(monthlyAmount ?? 800).toLocaleString("he-IL")}/חודש</span>
+        <span className="pill">תשלומי הורים נשארים בנפרד ומועברים לגן</span>
+      </div>
+      <button className="button primary large" disabled={busy} onClick={requestPayment}>{busy ? "שולח..." : "פתיחת בקשת תשלום מנוי"}</button>
+      {message ? <span className={message.includes("לא ") ? "error-text" : "payment-action-message"}>{message}</span> : null}
+    </section>
+  );
+}
+
 export function KindergartenOnboardingForm({ garden, onboarding, managerName }: Props) {
   const profileData = onboarding.profile_data ?? {};
   const galleryUrls = Array.isArray(profileData.gallery_urls) ? profileData.gallery_urls : [];
@@ -96,7 +200,8 @@ export function KindergartenOnboardingForm({ garden, onboarding, managerName }: 
       monthly_price: Number(text(form.get(`monthly_price_${group.key}`)) || 0),
       annual_price: Number(text(form.get(`annual_price_${group.key}`)) || 0),
       billing_day: Number(text(form.get(`billing_day_${group.key}`)) || 1),
-      billing_cycle: text(form.get(`billing_cycle_${group.key}`)) === "annual" ? "annual" : "monthly"
+      billing_cycle: text(form.get(`billing_cycle_${group.key}`)) === "annual" ? "annual" : "monthly",
+      show_price_public: checked(form, `show_price_public_${group.key}`)
     }]));
     try {
       const response = await fetch("/api/kindergarten-onboarding", {
@@ -130,7 +235,7 @@ export function KindergartenOnboardingForm({ garden, onboarding, managerName }: 
             weekly_schedule_ready: checked(form, "weekly_schedule_ready"),
             manager_profile_completed: checked(form, "manager_profile_completed"),
             uploaded_document_categories: form.getAll("uploaded_document_categories").map((item) => String(item)),
-            payment_status: text(form.get("payment_status")) === "paid" ? "paid" : "payment_pending",
+            payment_status: "not_started",
             documents_summary: text(form.get("documents_summary")),
             camera_readiness: text(form.get("camera_readiness")),
             public_description: text(form.get("public_description"))
@@ -228,6 +333,7 @@ export function KindergartenOnboardingForm({ garden, onboarding, managerName }: 
                   <label>מחיר שנתי לילד<input name={`annual_price_${group.key}`} type="number" min="0" defaultValue={profileData.age_group_pricing?.[group.key]?.annual_price ?? ""} /></label>
                   <label>יום חיוב<input name={`billing_day_${group.key}`} type="number" min="1" max="28" defaultValue={profileData.age_group_pricing?.[group.key]?.billing_day ?? 1} /></label>
                   <label>מחזור חיוב<select name={`billing_cycle_${group.key}`} defaultValue={profileData.age_group_pricing?.[group.key]?.billing_cycle ?? "monthly"}><option value="monthly">חודשי</option><option value="annual">שנתי</option></select></label>
+                  <label><input name={`show_price_public_${group.key}`} type="checkbox" defaultChecked={Boolean(profileData.age_group_pricing?.[group.key]?.show_price_public)} /> הצגת מחיר להורים בחיפוש</label>
                 </div>
               </div>
             ))}
@@ -261,7 +367,7 @@ export function KindergartenOnboardingForm({ garden, onboarding, managerName }: 
           </div>
           <div className="form-grid">
             <label className="wide">סיכום מסמכים<textarea name="documents_summary" rows={3} required defaultValue={profileData.documents_summary ?? ""} placeholder="מה הועלה ומה חסר" /></label>
-            <label>סטטוס תשלום<select name="payment_status" defaultValue={profileData.payment_status ?? "payment_pending"}><option value="payment_pending">ממתין לתשלום</option><option value="paid">שולם</option></select></label>
+            <div className="notice">תשלום מנוי גן בטוח ייפתח רק אחרי אישור אדמין. מנהלת לא יכולה לסמן תשלום בעצמה מתוך אשף הפרופיל.</div>
           </div>
         </article>
       </section>

@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { Baby, BriefcaseBusiness, ClipboardCheck, ShieldAlert } from "lucide-react";
+import { Baby, BriefcaseBusiness, Building2, ClipboardCheck, ShieldAlert } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { ActionCard, RoleMetricCard } from "@/components/premium-dashboard";
 import { requireRole } from "@/lib/auth";
@@ -14,17 +14,19 @@ function statusTone(status?: string | null) {
 export default async function AdminRequestsPage() {
   await requireRole(["admin"]);
   const supabase = await createClient();
-  const [enrollments, staffApps, inspectorApps, affiliations] = await Promise.all([
+  const [enrollments, staffApps, inspectorApps, affiliations, gardenApps] = await Promise.all([
     supabase.from("kindergarten_enrollment_requests" as any).select("id,status,payment_status,created_at,gardens(name,city),permanent_child_files:child_profile_id(full_name),profiles:parent_id(full_name)").order("created_at", { ascending: false }).limit(80),
     supabase.from("staff_job_applications" as any).select("id,status,created_at,gardens(name,city),staff_candidate_profiles:staff_candidate_id(full_name)").order("created_at", { ascending: false }).limit(80),
     supabase.from("inspector_applications" as any).select("id,status,created_at,full_name,city,duplicate_flags").order("created_at", { ascending: false }).limit(80),
-    supabase.from("user_affiliation_requests" as any).select("id,status,request_type,target_type,created_at").order("created_at", { ascending: false }).limit(80)
+    supabase.from("user_affiliation_requests" as any).select("id,status,request_type,target_type,created_at").order("created_at", { ascending: false }).limit(80),
+    supabase.from("gardens" as any).select("id,name,city,approval_flow_status,created_at").in("approval_flow_status", ["activation_in_progress", "onboarding_submitted", "pending_final_approval", "correction_required", "payment_pending"]).order("created_at", { ascending: false }).limit(80)
   ]);
   const parentRows = (enrollments.data ?? []) as any[];
   const staffRows = (staffApps.data ?? []) as any[];
   const inspectorRows = (inspectorApps.data ?? []) as any[];
   const affiliationRows = (affiliations.data ?? []) as any[];
-  const allOpen = [...parentRows, ...staffRows, ...inspectorRows, ...affiliationRows].filter((row) => !["approved", "rejected", "cancelled", "expired", "suspended"].includes(String(row.status)));
+  const gardenRows = (gardenApps.data ?? []) as any[];
+  const allOpen = [...parentRows, ...staffRows, ...inspectorRows, ...affiliationRows, ...gardenRows].filter((row) => !["approved", "active", "rejected", "cancelled", "expired", "suspended"].includes(String(row.status ?? row.approval_flow_status)));
 
   return (
     <DashboardShell role="admin" title="בקשות משתמשים">
@@ -40,9 +42,10 @@ export default async function AdminRequestsPage() {
         <RoleMetricCard label="בקשות הורים" value={parentRows.length} />
         <RoleMetricCard label="מועמדויות צוות" value={staffRows.length} />
         <RoleMetricCard label="בקשות מפקחים" value={inspectorRows.length} />
-        <RoleMetricCard label="כפילות לבדיקה" value={inspectorRows.filter((row) => Array.isArray(row.duplicate_flags) && row.duplicate_flags.length).length} tone="warn" />
+        <RoleMetricCard label="בקשות גנים" value={gardenRows.length} />
       </section>
       <section className="staff-action-grid">
+        <ActionCard title="בקשות גנים" text="אישור מנהלות, פרופיל גן ומנוי" href="/dashboard/admin/kindergarten-applications" icon={Building2} />
         <ActionCard title="בקשות מפקחים" text="אישור, דחייה ושיוך גנים" href="/dashboard/admin/inspector-applications" icon={ClipboardCheck} />
         <ActionCard title="משתמשים" text="ניהול חשבונות קיימים" href="/dashboard/admin/users" icon={ShieldAlert} />
       </section>

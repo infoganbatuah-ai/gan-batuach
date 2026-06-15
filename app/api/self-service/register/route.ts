@@ -85,7 +85,7 @@ export async function POST(request: Request) {
       user_id: data.user.id,
       role,
       status,
-      next_path: role === "parent" ? "/dashboard/parent" : role === "staff" ? "/dashboard/staff" : role === "inspector" ? "/dashboard/inspector/apply" : "/dashboard/garden"
+      next_path: role === "parent" ? "/dashboard/parent" : role === "staff" ? "/dashboard/staff" : role === "inspector" ? "/dashboard/inspector/apply" : "/onboarding/kindergarten"
     }, 201);
   } catch (error) {
     return handleRouteError(error);
