@@ -237,6 +237,16 @@ const dashboardHomeByRole: Record<UserRole, string> = {
   parent: "/dashboard/parent/family-home"
 };
 
+const profileHrefByRole: Record<UserRole, string> = {
+  admin: "/dashboard/admin/settings",
+  network_manager: "/dashboard/admin/settings",
+  inspector: "/dashboard/inspector/settings",
+  manager: "/dashboard/garden/settings",
+  owner: "/dashboard/garden/settings",
+  staff: "/dashboard/staff/settings",
+  parent: "/dashboard/parent/settings"
+};
+
 const mobileNavByRole: Record<UserRole, Array<{ href: string; label: string; hint: string }>> = {
   admin: [
     { href: "/dashboard/admin", label: "בית", hint: "שליטה" },
@@ -390,6 +400,8 @@ export function DashboardShell({ role, title, children }: { role: UserRole; titl
             </div>
             <div className="app-workspace-actions">
               <span className="pill good">גישה לפי תפקיד</span>
+              <Link className="app-shell-quick-link" href={dashboardHomeByRole[role]}>בית</Link>
+              <Link className="app-shell-quick-link" href={profileHrefByRole[role]}>פרופיל</Link>
               <DashboardBackButton fallbackHref={dashboardHomeByRole[role]} />
               <NotificationBell role={role} />
               <LogoutButton />
@@ -400,7 +412,9 @@ export function DashboardShell({ role, title, children }: { role: UserRole; titl
           <OnboardingGuideControls role={role} />
           <RoleOnboardingGuide role={role} />
           {role === "admin" ? <AdminGlobalSearch /> : null}
-          {children}
+          <section className="app-dashboard-stage" aria-label="אזור עבודה">
+            {children}
+          </section>
           <AIAssistantPanel role={role} />
           <PilotFeedbackWidget role={role} />
         </main>
