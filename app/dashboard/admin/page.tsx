@@ -246,7 +246,7 @@ export default async function AdminDashboard() {
   ];
 
   return (
-    <DashboardShell role="admin" title="מרכז שליטה ארצי">
+    <DashboardShell role="admin" title="מרכז שליטה ארצי" appHome>
       <AppHomeShell className="super-admin-shell admin-app-home">
         <section className="national-command-hero">
           <div className={`national-health-score ${tone}`}>

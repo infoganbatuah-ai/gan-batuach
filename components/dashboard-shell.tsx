@@ -358,65 +358,93 @@ function groupedNav(role: UserRole) {
   return Array.from(groups.entries());
 }
 
-export function DashboardShell({ role, title, children }: { role: UserRole; title: string; children: React.ReactNode }) {
+export function DashboardShell({
+  role,
+  title,
+  children,
+  appHome = false
+}: {
+  role: UserRole;
+  title: string;
+  children: React.ReactNode;
+  appHome?: boolean;
+}) {
   const mobileNav = mobileNavByRole[role];
   const navGroups = groupedNav(role);
   return (
     <>
-      <BrandHeader />
-      <div className={`dashboard-layout dashboard-role-${role}`}>
-        <aside className="sidebar">
-          <div className="sidebar-topline">
-            <div>
-              <span className="sidebar-kicker">Gan Batuach</span>
-              <h2>{title}</h2>
-            </div>
-            <LogoutButton />
-          </div>
-          <p>כל מה שחשוב לתפקיד שלך, מסודר לפי פעולה.</p>
-          <nav>
-            {navGroups.map(([group, items], index) => (
-              <details className="nav-group" key={group} open={index < 2}>
-                <summary>{group}</summary>
-                <div>
-                  {items.map((item) => (
-                    <Link href={item.href} key={item.href}>
-                      <strong>{item.label}</strong>
-                      <span>{item.hint}</span>
-                    </Link>
-                  ))}
-                </div>
-              </details>
-            ))}
-          </nav>
-          <PasskeyEnrollmentPrompt />
-        </aside>
-        <main className="dashboard-main">
-          <div className="app-workspace-header">
-            <div>
-              <span className="app-workspace-kicker">גן בטוח App</span>
-              <h1>{title}</h1>
-              <p>{roleLabels[role]} · סביבת עבודה מאובטחת לפי תפקיד</p>
-            </div>
-            <div className="app-workspace-actions">
-              <span className="pill good">גישה לפי תפקיד</span>
-              <Link className="app-shell-quick-link" href={dashboardHomeByRole[role]}>בית</Link>
-              <Link className="app-shell-quick-link" href={profileHrefByRole[role]}>פרופיל</Link>
-              <DashboardBackButton fallbackHref={dashboardHomeByRole[role]} />
-              <NotificationBell role={role} />
+      {appHome ? null : <BrandHeader />}
+      <div className={`dashboard-layout dashboard-role-${role}${appHome ? " app-home-layout" : ""}`}>
+        {appHome ? null : (
+          <aside className="sidebar">
+            <div className="sidebar-topline">
+              <div>
+                <span className="sidebar-kicker">Gan Batuach</span>
+                <h2>{title}</h2>
+              </div>
               <LogoutButton />
             </div>
-          </div>
+            <p>כל מה שחשוב לתפקיד שלך, מסודר לפי פעולה.</p>
+            <nav>
+              {navGroups.map(([group, items], index) => (
+                <details className="nav-group" key={group} open={index < 2}>
+                  <summary>{group}</summary>
+                  <div>
+                    {items.map((item) => (
+                      <Link href={item.href} key={item.href}>
+                        <strong>{item.label}</strong>
+                        <span>{item.hint}</span>
+                      </Link>
+                    ))}
+                  </div>
+                </details>
+              ))}
+            </nav>
+            <PasskeyEnrollmentPrompt />
+          </aside>
+        )}
+        <main className="dashboard-main">
+          {appHome ? (
+            <div className="native-app-topbar">
+              <div>
+                <span className="native-app-logo">גן בטוח</span>
+                <h1>{title}</h1>
+              </div>
+              <div className="native-app-topbar-actions">
+                <span>{roleLabels[role]}</span>
+                <Link href={dashboardHomeByRole[role]} aria-label="בית">בית</Link>
+                <NotificationBell role={role} />
+                <Link href={profileHrefByRole[role]} aria-label="פרופיל">פרופיל</Link>
+                <LogoutButton />
+              </div>
+            </div>
+          ) : (
+            <div className="app-workspace-header">
+              <div>
+                <span className="app-workspace-kicker">גן בטוח App</span>
+                <h1>{title}</h1>
+                <p>{roleLabels[role]} · סביבת עבודה מאובטחת לפי תפקיד</p>
+              </div>
+              <div className="app-workspace-actions">
+                <span className="pill good">גישה לפי תפקיד</span>
+                <Link className="app-shell-quick-link" href={dashboardHomeByRole[role]}>בית</Link>
+                <Link className="app-shell-quick-link" href={profileHrefByRole[role]}>פרופיל</Link>
+                <DashboardBackButton fallbackHref={dashboardHomeByRole[role]} />
+                <NotificationBell role={role} />
+                <LogoutButton />
+              </div>
+            </div>
+          )}
           <PolicyAcceptanceGate />
           <SandboxModeBanner />
-          <OnboardingGuideControls role={role} />
-          <RoleOnboardingGuide role={role} />
-          {role === "admin" ? <AdminGlobalSearch /> : null}
-          <section className="app-dashboard-stage" aria-label="אזור עבודה">
+          {appHome ? null : <OnboardingGuideControls role={role} />}
+          {appHome ? null : <RoleOnboardingGuide role={role} />}
+          {role === "admin" && !appHome ? <AdminGlobalSearch /> : null}
+          <section className={`app-dashboard-stage${appHome ? " native-app-stage" : ""}`} aria-label="אזור עבודה">
             {children}
           </section>
-          <AIAssistantPanel role={role} />
-          <PilotFeedbackWidget role={role} />
+          {appHome ? null : <AIAssistantPanel role={role} />}
+          {appHome ? null : <PilotFeedbackWidget role={role} />}
         </main>
         <nav className="mobile-tabbar" aria-label="ניווט דשבורד">{mobileNav.map((item) => <Link href={item.href} key={item.href}><strong>{item.label}</strong><span>{item.hint}</span></Link>)}</nav>
         <FloatingActionCenter role={role} />

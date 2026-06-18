@@ -41,7 +41,7 @@ export default async function ParentDashboard() {
   const approvedPendingPayment = requests.filter((request) => request.status === "approved_pending_payment");
 
   return (
-    <DashboardShell role="parent" title="אזור הורה">
+    <DashboardShell role="parent" title="אזור הורה" appHome>
       <AppHomeShell className="parent-app-home">
         <AppHomeHero
           eyebrow="בית הורה"
