@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { AlertTriangle, BarChart3, Bell, Camera, CheckCircle2, CreditCard, HeartPulse, PackageCheck, Radar, ShieldCheck, UserRound } from "lucide-react";
 import { BrandHeader } from "@/components/brand-header";
+import { AppHomeGrid, AppHomeHero, AppHomeShell, AppQuickAction, AppStatusCard } from "@/components/premium-dashboard";
 import { requireUser } from "@/lib/auth";
 import { logSupabaseError } from "@/lib/admin-safe";
 import { createClient } from "@/lib/supabase/server";
@@ -23,6 +24,33 @@ function statusTone(status?: string | null) {
   if (["active", "resolved", "confirmed", "ready", "healthy"].includes(String(status))) return "pill good";
   if (["trial", "needs_review", "reviewing", "pending_payment", "degraded"].includes(String(status))) return "pill warn";
   return "pill";
+}
+
+function statusLabel(status?: string | null) {
+  if (!status) return "";
+  const map: Record<string, string> = {
+    active: "פעיל",
+    inactive: "לא פעיל",
+    resolved: "נסגר",
+    confirmed: "מאושר",
+    ready: "מוכן",
+    healthy: "בריא",
+    trial: "נסיון",
+    needs_review: "דורש בדיקה",
+    reviewing: "בבדיקה",
+    pending_payment: "ממתין לתשלום",
+    degraded: "מורד איכות",
+    pending: "ממתין",
+    setup: "בתהליך הגדרה",
+    online: "מחובר",
+    ready_status: "מוכן",
+    camera_offline: "מנותק",
+    monitoring_enabled: "מופעל",
+    monitoring_waiting: "ממתין",
+    "not_checked_yet": "טרם נבדק",
+    setup_waiting: "ממתין להגדרה",
+  };
+  return map[String(status)] ?? String(status);
 }
 
 export default async function DigitalObserverOwnerDashboardPage() {
@@ -70,7 +98,7 @@ export default async function DigitalObserverOwnerDashboardPage() {
   return (
     <>
       <BrandHeader />
-      <main className="public-page digital-observer-app">
+      <main className="public-page digital-observer-app digital-observer-dashboard-app">
         <nav className="product-switcher" aria-label="Digital Observer application navigation">
           <strong>Digital Observer</strong>
           <div>
@@ -80,34 +108,42 @@ export default async function DigitalObserverOwnerDashboardPage() {
           </div>
         </nav>
 
-        <section className="dashboard-hero-card observer-dashboard-hero">
-          <div>
-            <p className="eyebrow">Digital Observer Dashboard</p>
-            <h1>Welcome, {profile.full_name ?? "site owner"}.</h1>
-            <p>Standalone site monitoring for homes, businesses and organizations. Gan Batuach kindergarten data stays in Gan Batuach dashboards.</p>
-          </div>
-          <div className="hero-actions">
-            <Link className="button primary" href="/digital-observer/onboarding">Create observer site</Link>
-            <Link className="button secondary" href="/dashboard/security-settings">Security settings</Link>
-          </div>
-        </section>
+        <AppHomeShell className="observer-app-home">
+          <AppHomeHero
+            eyebrow="Digital Observer App"
+            title={`שלום, ${profile.full_name ?? "בעל האתר"}`}
+            subtitle="מסך בית לאתרים, מצלמות והתראות. נתוני Gan Batuach נשארים בנפרד, והחלטות AI דורשות בדיקה אנושית."
+            badge={activeSites ? "פעיל" : "בהקמה"}
+            badgeTone={activeSites ? "good" : "warn"}
+            actions={<><Link className="button primary" href="/digital-observer/onboarding">יצירת אתר תצפית</Link><Link className="button secondary" href="/dashboard/security-settings">הגדרות אבטחה</Link></>}
+          />
 
-        <section className="grid cols-4 dashboard-panels">
-          <article className="metric-card"><UserRound /><strong>{sites.length}</strong><span>monitored sites</span></article>
-          <article className="metric-card"><Camera /><strong>{cameras.length}</strong><span>cameras</span></article>
-          <article className="metric-card"><Bell /><strong>{openSignals.length}</strong><span>open observer alerts</span></article>
-          <article className="metric-card"><ShieldCheck /><strong>{activeSites ? "active" : "setup"}</strong><span>site health</span></article>
-          <article className="metric-card"><PackageCheck /><strong>{activeSubscriptions}</strong><span>active/trial subscriptions</span></article>
-          <article className="metric-card"><BarChart3 /><strong>{latestBillingUsage.ai_events_count ?? 0}</strong><span>AI events this month</span></article>
-          <article className="metric-card"><CreditCard /><strong>{billingIssues}</strong><span>billing issues</span></article>
-          <article className="metric-card"><CheckCircle2 /><strong>{setupProgress}%</strong><span>setup progress</span></article>
-        </section>
+          <AppHomeGrid compact>
+            <AppStatusCard label="אתרים" value={sites.length} hint="אתרי Digital Observer" tone={sites.length ? "good" : "warn"} href="#sites" />
+            <AppStatusCard label="מצלמות" value={cameras.length} hint={`${unhealthyCameras.length} דורשות בדיקה`} tone={unhealthyCameras.length ? "warn" : cameras.length ? "good" : "default"} href="#cameras" />
+            <AppStatusCard label="התראות פתוחות" value={openSignals.length} hint="בדיקה אנושית" tone={openSignals.length ? "warn" : "good"} href="#alerts" />
+            <AppStatusCard label="חיוב" value={billingIssues ? "לטיפול" : "תקין"} hint={`${activeSubscriptions} מנויים פעילים/ניסיון`} tone={billingIssues ? "warn" : "good"} href="/digital-observer/billing" />
+            <AppStatusCard label="הגדרה" value={`${setupProgress}%`} hint="אתר, מצלמות ומנוי" tone={setupProgress >= 80 ? "good" : "warn"} href="#setup" />
+            <AppStatusCard label="AI החודש" value={latestBillingUsage.ai_events_count ?? 0} hint="ללא החלטה אוטומטית" tone="default" />
+          </AppHomeGrid>
+
+          <section className="app-home-section">
+            <div className="app-home-section-head">
+              <div><h2>פעולות מהירות</h2><p>התחלה, מצלמות, חיוב ואבטחה בלי לעבור במסכי ניהול ארוכים.</p></div>
+            </div>
+            <AppHomeGrid>
+              <AppQuickAction title="הוספת אתר" text="הקמה מודרכת" href="/digital-observer/onboarding" icon={UserRound} tone="good" />
+              <AppQuickAction title="הוספת מצלמות" text="דרך שער מאובטח" href="/digital-observer/onboarding#cameras" icon={Camera} />
+              <AppQuickAction title="התראות" text="תור בדיקה אנושית" href="#alerts" icon={Bell} tone={openSignals.length ? "warn" : "default"} />
+              <AppQuickAction title="סקירת חיוב" text="חבילות, ניסיון וחשבוניות" href="/digital-observer/billing" icon={CreditCard} tone={billingIssues ? "warn" : "default"} />
+            </AppHomeGrid>
+          </section>
 
         <section className="grid cols-2 dashboard-panels" id="setup">
           <article className="card action-panel">
             <div className="section-heading">
-              <h2>Setup actions</h2>
-              <p>Keep Digital Observer setup separate from kindergarten onboarding.</p>
+              <h2>פעולות הגדרה</h2>
+              <p>הקמת Digital Observer מופרדת מזרימת הגדרת גן.</p>
             </div>
             <div className="procedure-list">
               {DIGITAL_OBSERVER_SETUP_ACTIONS.map((action) => {
@@ -124,32 +160,32 @@ export default async function DigitalObserverOwnerDashboardPage() {
 
           <article className="card action-panel">
             <div className="section-heading">
-              <h2>Readiness snapshot</h2>
-              <p>Uses shared observer core tables, scoped to standalone observer sites.</p>
+              <h2>מצב מוכנות</h2>
+              <p>מבוסס על נתוני Digital Observer לאתרים עצמיים בלבד.</p>
             </div>
             <div className="setup-checklist">
-              <span>{subscriptions.length} subscription records</span>
-              <span>{unhealthyCameras.length} cameras need attention</span>
-              <span>{signals.length} recent signals</span>
-              <span>{latestBillingUsage.active_cameras ?? latestUsage?.active_cameras ?? 0} active cameras this month</span>
-              <span>{latestBillingUsage.monitoring_hours_used ?? 0} monitoring hours used</span>
-              <span>{latestBillingUsage.alerts_sent ?? 0} alerts sent</span>
-              <span>Human review required</span>
-              <span>No parent/child flows</span>
+              <span>{subscriptions.length} רשומות מנוי</span>
+              <span>{unhealthyCameras.length} מצלמות דורשות בדיקה</span>
+              <span>{signals.length} אותות אחרונים</span>
+              <span>{latestBillingUsage.active_cameras ?? latestUsage?.active_cameras ?? 0} מצלמות פעילות החודש</span>
+              <span>{latestBillingUsage.monitoring_hours_used ?? 0} שעות ניטור בשימוש</span>
+              <span>{latestBillingUsage.alerts_sent ?? 0} התראות שנשלחו</span>
+              <span>נדרשת בדיקה אנושית</span>
+              <span>אין זרימות הורים/ילדים</span>
             </div>
           </article>
         </section>
 
         <section className="dashboard-section" id="sites">
           <div className="section-heading">
-            <h2>My observer sites</h2>
-            <p>Homes, businesses, offices, warehouses, stores and parking lots only. Kindergartens use Gan Batuach.</p>
-            <Link className="button secondary" href="/digital-observer/onboarding">Add site</Link>
+            <h2>האתרים שלי</h2>
+            <p>בתים, עסקים ומתחמים — לא כולל אתרי גן. ניהול הגנים נשאר בדשבורד Gan Batuach.</p>
+            <Link className="button secondary" href="/digital-observer/onboarding">הוספת אתר</Link>
           </div>
           {sites.length === 0 ? (
             <div className="empty-state">
-              <strong>No standalone Digital Observer sites yet</strong>
-              <span>Create a setup draft to connect cameras and activate test mode when ready.</span>
+              <strong>עדיין אין אתרי Digital Observer</strong>
+              <span>צור טיוטת הקמה, חבר מצלמות והפעל בדיקת תקינות.</span>
             </div>
           ) : (
             <div className="procedure-list">
@@ -160,16 +196,16 @@ export default async function DigitalObserverOwnerDashboardPage() {
                 return (
                   <article className="card procedure-card" key={site.id}>
                     <div>
-                      <span className={statusTone(site.active ? "active" : "inactive")}>{site.active ? "active" : "inactive"}</span>
-                      <span className="pill">{site.site_type}</span>
-                      <h3>{site.name}</h3>
-                      <p>{site.monitoring_enabled ? "Monitoring enabled" : "Monitoring waiting for setup"} · subscription {subscription?.subscription_status ?? subscription?.status ?? site.observer_subscription_status ?? "trial"}</p>
-                      <Link className="button secondary" href={`/digital-observer/sites/${site.id}`}>Open site</Link>
-                    </div>
-                    <div className="procedure-meta">
-                      <span>{siteCameras.length} cameras</span>
-                      <span>{siteSignals.length} alerts</span>
-                      <span>{site.event_retention_days ?? 30} days retention</span>
+                    <span className={statusTone(site.active ? "active" : "inactive")}>{site.active ? "פעיל" : "לא פעיל"}</span>
+                    <span className="pill">{site.site_type}</span>
+                    <h3>{site.name}</h3>
+                    <p>{site.monitoring_enabled ? "ניטור פעיל" : "ניטור ממתין להגדרה"} · סטטוס מנוי: {statusLabel(subscription?.subscription_status ?? subscription?.status ?? site.observer_subscription_status) || "ניסיוני"}</p>
+                    <Link className="button secondary" href={`/digital-observer/sites/${site.id}`}>כניסה לאתר</Link>
+                  </div>
+                  <div className="procedure-meta">
+                      <span>{siteCameras.length} מצלמות</span>
+                      <span>{siteSignals.length} התראות פתוחות</span>
+                      <span>{site.event_retention_days ?? 30} ימים שמירה</span>
                     </div>
                   </article>
                 );
@@ -181,14 +217,14 @@ export default async function DigitalObserverOwnerDashboardPage() {
         <section className="grid cols-2 dashboard-panels" id="alerts">
           <article className="card action-panel">
             <Radar />
-            <h2>Recent observer events</h2>
-            {signals.length === 0 ? <p>No observer events yet. Events will appear after camera and shadow-mode setup.</p> : (
+            <h2>אירועים אחרונים</h2>
+            {signals.length === 0 ? <p>אין אירועי מצלמה כרגע. האירועים יופיעו אחרי חיבור מצלמות והגדרת מצב shadow.</p> : (
               <div className="procedure-list compact-list">
                 {signals.slice(0, 8).map((signal) => (
                   <div className="mini-row" key={signal.id}>
                     <span>{signal.signal_type}</span>
-                    <strong><span className={statusTone(signal.review_status)}>{signal.review_status}</span></strong>
-                    <small>{signal.recommended_action ?? "Review recommended"} · risk {signal.risk_score ?? 0}/100</small>
+                    <strong><span className={statusTone(signal.review_status)}>{statusLabel(signal.review_status) || signal.review_status}</span></strong>
+                    <small>{signal.recommended_action ?? "נדרשת בדיקה אנושית"} · סיכון {signal.risk_score ?? 0}/100</small>
                   </div>
                 ))}
               </div>
@@ -197,14 +233,14 @@ export default async function DigitalObserverOwnerDashboardPage() {
 
           <article className="card action-panel" id="billing">
             <PackageCheck />
-            <h2>Package readiness</h2>
-            {packagesRes.data.length === 0 ? <p>Package records may be admin-only or pending migration.</p> : (
+            <h2>מוכנות חבילה</h2>
+            {packagesRes.data.length === 0 ? <p>נתוני חבילות זמינים דרך הגדרות מנהל או בהמתנה.</p> : (
               <div className="procedure-list compact-list">
                 {packagesRes.data.slice(0, 6).map((pkg) => (
                   <div className="mini-row" key={pkg.id}>
                     <span>{pkg.name}</span>
-                    <strong>{pkg.camera_limit ?? "custom"} cameras</strong>
-                    <small>{pkg.monitoring_mode} · {pkg.event_retention_days} days · {pkg.monthly_price ?? 0} ILS readiness</small>
+                    <strong>{pkg.camera_limit ?? "מותאם"} מצלמות</strong>
+                    <small>{pkg.monitoring_mode} · {pkg.event_retention_days} ימים · {pkg.monthly_price ?? 0} ₪</small>
                   </div>
                 ))}
               </div>
@@ -214,39 +250,39 @@ export default async function DigitalObserverOwnerDashboardPage() {
 
         <section className="dashboard-section">
           <div className="section-heading">
-            <h2>Recommended actions</h2>
-            <p>Digital Observer commercial actions stay separate from kindergarten billing and parent tuition.</p>
+            <h2>פעולות מומלצות</h2>
+            <p>פעולות Digital Observer מופרדות ממודול הגן ומכספי תשלום ההורים.</p>
           </div>
           <div className="grid cols-4 dashboard-panels">
-            <Link className="premium-action-card" href="/digital-observer/onboarding"><Camera /><strong>Add cameras</strong><span>Use gateway readiness; never expose RTSP or credentials.</span></Link>
-            <Link className="premium-action-card" href="/digital-observer/billing"><CreditCard /><strong>Review billing</strong><span>Package, trial, usage, invoices and upgrade readiness.</span></Link>
-            <Link className="premium-action-card" href="/digital-observer/onboarding#goals"><Radar /><strong>Monitoring goals</strong><span>Select generic goals through capability policy.</span></Link>
-            <Link className="premium-action-card" href="/dashboard/security-settings"><ShieldCheck /><strong>Security settings</strong><span>Keep account and device security current.</span></Link>
+            <Link className="premium-action-card" href="/digital-observer/onboarding"><Camera /><strong>הוספת מצלמות</strong><span>הגדר דרך שער מאובטח ללא חשיפת RTSP/אישורי גישה.</span></Link>
+            <Link className="premium-action-card" href="/digital-observer/billing"><CreditCard /><strong>סקירת חיוב</strong><span>חבילת שירות, ניסיון, שימוש, חשבוניות ושדרוג.</span></Link>
+            <Link className="premium-action-card" href="/digital-observer/onboarding#goals"><Radar /><strong>מטרות ניטור</strong><span>בחירת יעדים לפי מדיניות יכולות.</span></Link>
+            <Link className="premium-action-card" href="/dashboard/security-settings"><ShieldCheck /><strong>הגדרות אבטחה</strong><span>שמור את חשבונך והמכשירים מוגנים.</span></Link>
           </div>
         </section>
 
         <section className="dashboard-section" id="cameras">
           <div className="section-heading">
-            <h2>Camera cards</h2>
-            <p>Simple pilot view for site owners. Technical diagnostics stay in admin/advanced tools.</p>
+            <h2>מצלמות</h2>
+            <p>תצוגה מהירה לבעל האתר. אבחונים טכניים מתקדמים נשארים בכלים ייעודיים.</p>
           </div>
           {cameras.length === 0 ? (
             <div className="empty-state">
-              <strong>No cameras connected yet</strong>
-              <span>Add a demo, RTSP, DVR/NVR, ONVIF or generic IP camera through the secure gateway flow.</span>
+              <strong>טרם חוברו מצלמות</strong>
+              <span>הוסף מצלמה דרך תהליך שער מאובטח והפעל בדיקת חיבור.</span>
             </div>
           ) : (
             <div className="grid cols-3 dashboard-panels">
               {cameras.slice(0, 12).map((camera) => (
                 <article className="card compact-card" key={camera.id}>
                   <Camera />
-                  <span className={statusTone(camera.health_status ?? camera.status)}>{camera.health_status ?? camera.status ?? "setup"}</span>
-                  <h3>{camera.name ?? "Camera"}</h3>
-                  <p>{camera.gateway_registration_status ?? camera.stream_status ?? "Gateway pending"} · {camera.digital_observer_pilot_mode ? "pilot mode" : "standard mode"}</p>
-                  <small>Last checked: {camera.last_health_check_at ? new Date(camera.last_health_check_at).toLocaleString("he-IL") : camera.last_seen ? new Date(camera.last_seen).toLocaleString("he-IL") : "not checked yet"}</small>
+                  <span className={statusTone(camera.health_status ?? camera.status)}>{statusLabel(camera.health_status ?? camera.status) || "ממתין"}</span>
+                  <h3>{camera.name ?? "מצלמה"}</h3>
+                  <p>{camera.gateway_registration_status ?? camera.stream_status ?? "שער ממתין"} · {camera.digital_observer_pilot_mode ? "מצב פיילוט" : "מצב רגיל"}</p>
+                  <small>נבדק לאחרונה: {camera.last_health_check_at ? new Date(camera.last_health_check_at).toLocaleString("he-IL") : camera.last_seen ? new Date(camera.last_seen).toLocaleString("he-IL") : "עדיין לא נבדק"}</small>
                   <div className="hero-actions">
-                    <Link className="button secondary" href={`/digital-observer/sites/${camera.observer_site_id}`}>Open view</Link>
-                    <Link className="button secondary" href="/digital-observer/onboarding#cameras">Test connection</Link>
+                    <Link className="button secondary" href={`/digital-observer/sites/${camera.observer_site_id}`}>צפייה</Link>
+                    <Link className="button secondary" href="/digital-observer/onboarding#cameras">בדיקת חיבור</Link>
                   </div>
                 </article>
               ))}
@@ -255,21 +291,21 @@ export default async function DigitalObserverOwnerDashboardPage() {
         </section>
 
         <section className="grid cols-3 dashboard-panels">
-          <article className="card compact-card"><CheckCircle2 /><h3>AI readiness</h3><p>Observer goals are advisory and require human review before action.</p></article>
-          <article className="card compact-card"><AlertTriangle /><h3>Restricted capabilities</h3><p>Audio, face, biometric and legal-review features are controlled by the capability matrix.</p></article>
-          <article className="card compact-card"><HeartPulse /><h3>Site health</h3><p>Camera health, gateway status, alerts and subscriptions share existing infrastructure.</p></article>
+          <article className="card compact-card"><CheckCircle2 /><h3>מוכנות AI</h3><p>יעדי הניטור אינם מחליטים על פעולה לבד; נדרש אישור אנושי.</p></article>
+          <article className="card compact-card"><AlertTriangle /><h3>יכולות מוגבלות</h3><p>יכולות אודיו, פנים, ביומטריה וביקורות משפטיות נשלטות לפי מדיניות ההיתרים.</p></article>
+          <article className="card compact-card"><HeartPulse /><h3>בריאות אתר</h3><p>מצב מצלמות, שער, התראות ומנויים פועלים על תשתית קיימת.</p></article>
         </section>
 
         <section className="grid cols-2 dashboard-panels">
           <article className="card action-panel">
             <BarChart3 />
-            <h2>Analytics readiness</h2>
+            <h2>אנליטיקות</h2>
             <div className="procedure-list compact-list">
-              {analyticsRes.data.length === 0 ? <p>Analytics events are readiness-only until tracking is connected.</p> : analyticsRes.data.map((event) => (
+              {analyticsRes.data.length === 0 ? <p>אירועי אנליטיקה זמינים בהכנה בלבד עד לחיבור ניטור מלא.</p> : analyticsRes.data.map((event) => (
                 <div className="mini-row" key={`${event.event_type}-${event.source}-${event.package_key}`}>
                   <span>{event.event_type}</span>
                   <strong>{event.count_value}</strong>
-                  <small>{event.source ?? "source TBD"} · {event.site_type ?? "all sites"} · {event.status}</small>
+                  <small>{event.source ?? "מקור ממתין"} · {event.site_type ?? "כל האתרים"} · {statusLabel(event.status) || event.status}</small>
                 </div>
               ))}
             </div>
@@ -277,13 +313,13 @@ export default async function DigitalObserverOwnerDashboardPage() {
 
           <article className="card action-panel">
             <UserRound />
-            <h2>Lead flow readiness</h2>
+            <h2>מעקב פניות</h2>
             <div className="procedure-list compact-list">
-              {leadsRes.data.length === 0 ? <p>Digital Observer leads will be tracked separately from kindergarten leads.</p> : leadsRes.data.map((lead, index) => (
+              {leadsRes.data.length === 0 ? <p>פניות Digital Observer מופרדות מפניות הגן.</p> : leadsRes.data.map((lead, index) => (
                 <div className="mini-row" key={`${lead.source}-${lead.site_type}-${index}`}>
                   <span>{lead.source}</span>
-                  <strong><span className={statusTone(lead.status)}>{lead.status}</span></strong>
-                  <small>{lead.site_type} · {lead.estimated_cameras} cameras · {lead.package_interest ?? "package TBD"}</small>
+                  <strong><span className={statusTone(lead.status)}>{statusLabel(lead.status) || lead.status}</span></strong>
+                  <small>{lead.site_type} · {lead.estimated_cameras} מצלמות · {lead.package_interest ?? "חבילה תוגדר"}</small>
                 </div>
               ))}
             </div>
@@ -292,8 +328,8 @@ export default async function DigitalObserverOwnerDashboardPage() {
 
         <section className="dashboard-section">
           <div className="section-heading">
-            <h2>Admin product overview readiness</h2>
-            <p>Admins can distinguish Gan Batuach gardens from Digital Observer sites and shared core infrastructure.</p>
+            <h2>סקירת מוצר מנהל</h2>
+            <p>מנהלים יכולים להבחין בין גני Gan Batuach לאתרי Digital Observer באותה תשתית.</p>
           </div>
           <div className="grid cols-4 dashboard-panels">
             {DIGITAL_OBSERVER_ADMIN_OVERVIEW.map((item) => (
@@ -306,6 +342,7 @@ export default async function DigitalObserverOwnerDashboardPage() {
             ))}
           </div>
         </section>
+        </AppHomeShell>
       </main>
     </>
   );

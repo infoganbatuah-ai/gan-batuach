@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Baby, Building2, FileText, MessageCircle, ShieldCheck } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
-import { ActionCard, RoleMetricCard, StatusBadge } from "@/components/premium-dashboard";
+import { AppEmptyState, AppHomeGrid, AppHomeHero, AppHomeSection, AppHomeShell, AppQuickAction, AppStatusCard, StatusBadge } from "@/components/premium-dashboard";
 import { ParentChildProfileForm } from "@/components/self-service-forms";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
@@ -42,45 +42,48 @@ export default async function ParentDashboard() {
 
   return (
     <DashboardShell role="parent" title="אזור הורה">
-      <section className="dashboard-hero-card parent-hero-card">
-        <div>
-          <p className="eyebrow">הורה לא משויך</p>
-          <h1>מצאו את הגן של ילדכם והגישו בקשת הצטרפות.</h1>
-          <p>עד אישור מנהלת והפעלת תשלום אם נדרש, מוצגים רק הפרופיל שלכם, כרטיסי הילדים שיצרתם, רשימת גנים ציבורית ובקשות שלכם.</p>
-        </div>
-        <StatusBadge tone={approvedPendingPayment.length ? "warn" : pending.length ? "warn" : "good"}>{formatStatus(selfServiceRes.data?.status)}</StatusBadge>
-      </section>
+      <AppHomeShell className="parent-app-home">
+        <AppHomeHero
+          eyebrow="בית הורה"
+          title={childProfiles.length ? "הילד עדיין לא משויך לגן" : "עדיין לא נוסף ילד לחשבון שלך"}
+          subtitle="כאן מתחילים: מוסיפים כרטיס ילד, מוצאים גן בטוח ומגישים בקשת הצטרפות. עד אישור הגן מוצג רק המידע שלך."
+          badge={formatStatus(selfServiceRes.data?.status)}
+          badgeTone={approvedPendingPayment.length || pending.length ? "warn" : "good"}
+          actions={<><Link className="button primary" href="#child-profile">הוסף ילד</Link><Link className="button secondary" href="/dashboard/parent/discover-kindergartens">מצא גן בטוח</Link></>}
+        />
 
-      <section className="grid cols-4 dashboard-kpis">
-        <RoleMetricCard label="כרטיסי ילדים" value={childProfiles.length} tone={childProfiles.length ? "good" : "warn"} />
-        <RoleMetricCard label="בקשות פתוחות" value={pending.length} tone={pending.length ? "warn" : "good"} />
-        <RoleMetricCard label="ממתין לתשלום" value={approvedPendingPayment.length} tone={approvedPendingPayment.length ? "warn" : "good"} />
-        <RoleMetricCard label="גישה לגן" value={parent?.garden_id ? "פעילה" : "מוגבלת"} tone={parent?.garden_id ? "good" : "warn"} />
-      </section>
+        <AppHomeGrid compact>
+          <AppStatusCard label="כרטיסי ילדים" value={childProfiles.length} hint={childProfiles.length ? "נוצרו בחשבון שלך" : "צריך להוסיף ילד"} tone={childProfiles.length ? "good" : "warn"} href="#child-profile" />
+          <AppStatusCard label="בקשות פתוחות" value={pending.length} hint="ממתינות לגן" tone={pending.length ? "warn" : "good"} href="#requests" />
+          <AppStatusCard label="ממתין לתשלום" value={approvedPendingPayment.length} hint="אחרי אישור מנהלת" tone={approvedPendingPayment.length ? "warn" : "good"} href="/dashboard/parent/payments" />
+          <AppStatusCard label="גישה לגן" value={parent?.garden_id ? "פעילה" : "מוגבלת"} hint="נפתחת רק אחרי אישור" tone={parent?.garden_id ? "good" : "warn"} />
+        </AppHomeGrid>
 
-      <section className="staff-action-grid">
-        <ActionCard title="גילוי גנים" text="רשימת גנים עם מידע ציבורי בלבד" href="/dashboard/parent/discover-kindergartens" icon={Building2} tone="good" />
-        <ActionCard title="בקשות שלי" text={`${requests.length} בקשות הצטרפות`} href="#requests" icon={FileText} />
-        <ActionCard title="הודעות" text="עדכונים על בקשות ואישור" href="/dashboard/parent/notifications" icon={MessageCircle} />
-        <ActionCard title="פרופיל" text="פרטי קשר ואימות" href="/dashboard/parent/settings" icon={ShieldCheck} />
-      </section>
+        <AppHomeSection title="הפעולה הבאה שלך" subtitle="מסך קצר וברור, בלי מידע פנימי של גנים לפני אישור.">
+          <AppHomeGrid>
+            <AppQuickAction title="הוסף ילד" text="כרטיס ילד פרטי שלך" href="#child-profile" icon={Baby} tone="good" />
+            <AppQuickAction title="מצא גן בטוח" text="רק מידע ציבורי מאושר" href="/dashboard/parent/discover-kindergartens" icon={Building2} tone={childProfiles.length ? "good" : "default"} />
+            <AppQuickAction title="בקשות שלי" text={`${requests.length} בקשות הצטרפות`} href="#requests" icon={FileText} tone={pending.length ? "warn" : "default"} />
+            <AppQuickAction title="התראות" text="עדכונים על בקשה ואישור" href="/dashboard/parent/notifications" icon={MessageCircle} />
+            <AppQuickAction title="פרופיל" text="פרטי קשר ואימות" href="/dashboard/parent/settings" icon={ShieldCheck} />
+          </AppHomeGrid>
+        </AppHomeSection>
 
-      <ParentChildProfileForm />
+        <AppHomeSection title="בקשות הצטרפות" subtitle="סטטוס הבקשות שהגשתם לגנים." action={<Link className="button secondary" href="/dashboard/parent/discover-kindergartens">הגשת בקשה חדשה</Link>}>
+          {requests.length === 0 ? <AppEmptyState title="עוד לא הוגשה בקשה" text="צרו כרטיס ילד ואז בחרו גן מרשימת הגנים הציבורית." /> : <div className="app-home-list">{requests.map((request) => (
+            <Link href={request.status === "approved_pending_payment" ? "/dashboard/parent/payments" : "#requests"} key={request.id}>
+              <strong>{request.gardens?.name ?? "גן"} · {formatStatus(request.status)}</strong>
+              <span>{request.gardens?.city ?? ""} · תשלום: {formatStatus(request.payment_status)}</span>
+            </Link>
+          ))}</div>}
+        </AppHomeSection>
 
-      <section className="dashboard-section" id="requests">
-        <div className="section-heading"><h2>בקשות הצטרפות</h2><p>סטטוס בקשות שהגשתם לגנים.</p></div>
-        {requests.length === 0 ? <div className="empty-state"><Baby /><strong>עוד לא הוגשה בקשה</strong><span>צרו כרטיס ילד ואז בחרו גן מרשימת הגנים הציבורית.</span></div> : <div className="procedure-list">{requests.map((request) => (
-          <article className="card procedure-card" key={request.id}>
-            <div>
-            <span className={request.status === "approved" ? "pill good" : request.status === "rejected" ? "pill bad" : "pill warn"}>{formatStatus(request.status)}</span>
-              <h3>{request.gardens?.name ?? "גן"}</h3>
-              <p>{request.gardens?.city ?? ""} · תשלום: {request.payment_status}</p>
-              <small>מחיר שפורסם בעת הבקשה: {request.published_price_snapshot ? `${request.published_price_snapshot} ₪` : "לא פורסם"}</small>
-            </div>
-            {request.status === "approved_pending_payment" ? <Link className="button primary tiny" href="/dashboard/parent/payments">מעבר לתשלום</Link> : null}
-          </article>
-        ))}</div>}
-      </section>
+        <AppHomeSection title="כרטיס ילד" subtitle="המידע נשאר שלך עד שתבחרו גן ותשלחו בקשה." action={<StatusBadge tone="warn">מידע פרטי</StatusBadge>}>
+          <div id="child-profile">
+            <ParentChildProfileForm />
+          </div>
+        </AppHomeSection>
+      </AppHomeShell>
     </DashboardShell>
   );
 }

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { AlertTriangle, BarChart3, BellRing, Bot, Camera, CreditCard, FileText, HeartPulse, MessageSquareWarning, Rocket, Search, ShieldAlert, ShieldCheck, Star, UsersRound } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { AdminDataError } from "@/components/admin-data-state";
-import { ActionCard, RoleMetricCard } from "@/components/premium-dashboard";
+import { ActionCard, AppHomeShell, AppHomeSection, RoleMetricCard } from "@/components/premium-dashboard";
 import { requireRole } from "@/lib/auth";
 import { logSupabaseError, safeAdminData } from "@/lib/admin-safe";
 import { createClient } from "@/lib/supabase/server";
@@ -247,7 +247,7 @@ export default async function AdminDashboard() {
 
   return (
     <DashboardShell role="admin" title="מרכז שליטה ארצי">
-      <div className="super-admin-shell">
+      <AppHomeShell className="super-admin-shell admin-app-home">
         <section className="national-command-hero">
           <div className={`national-health-score ${tone}`}>
             <span>בריאות מערכת</span>
@@ -311,32 +311,37 @@ export default async function AdminDashboard() {
           </article>
         </section>
 
-        <section className="national-action-grid">
-          <ActionCard title="גנים" text="פעילים, קליטה, מושעים וניסיון" href="/dashboard/admin/kindergartens" icon={ShieldAlert} tone="good" />
-          <ActionCard title="אנליטיקה ארצית" text="Benchmarking, מגמות ואזורים" href="/dashboard/admin/analytics-center" icon={BarChart3} tone="good" />
-          <ActionCard title="מפקחים" text="שיבוץ, עומס וביצוע" href="/dashboard/admin/inspectors" icon={UsersRound} />
-          <ActionCard title="כוח פיקוח" text="קיבולת, תגמול ו-SLA" href="/dashboard/admin/inspection-workforce" icon={UsersRound} tone={data.overdueInspections ? "warn" : "good"} />
-          <ActionCard title="פיקוח ארצי" text="תכנון, ציות וסיכונים" href="/dashboard/admin/national-inspections" icon={ShieldCheck} tone={data.overdueInspections ? "warn" : "good"} />
-          <ActionCard title="תיקי אירוע" text="חקירה, ראיות וסגירה" href="/dashboard/admin/incident-center" icon={MessageSquareWarning} tone={data.activeIncidents || data.criticalComplaints ? "warn" : "good"} />
-          <ActionCard title="דירוג לאומי" text="ציונים, מגמות ושיפור" href="/dashboard/admin/rating-system" icon={Star} tone="good" />
-          <ActionCard title="מודיעין סיכון" text="חיזוי, דפוסים ומניעה" href="/dashboard/admin/risk-intelligence" icon={AlertTriangle} tone={data.observerAlerts || data.criticalComplaints ? "warn" : "default"} />
-          <ActionCard title="בטיחות חזויה" text="אזהרות ומניעה מוקדמת" href="/dashboard/admin/predictive-safety" icon={ShieldAlert} tone={data.observerAlerts || data.criticalComplaints ? "warn" : "good"} />
-          <ActionCard title="ציות חכם" text="מסמכים, תעודות ותיקונים" href="/dashboard/admin/compliance-center" icon={FileText} tone={data.securityFindings || data.overdueInspections ? "warn" : "good"} />
-          <ActionCard title="תצפיתן" text="מוכנות, כיול והתראות" href="/dashboard/admin/observer-calibration" icon={Bot} tone={data.observerAlerts ? "warn" : "default"} />
-          <ActionCard title="רשת בטיחות" text="סימנים, סיכון ובדיקה אנושית" href="/dashboard/admin/observer-network" icon={ShieldAlert} tone={data.observerAlerts ? "warn" : "default"} />
-          <ActionCard title="מצלמות" text="בריאות, Gateway ושידורים" href="/dashboard/admin/camera-deployment" icon={Camera} tone={data.offlineCameras ? "warn" : "default"} />
-          <ActionCard title="תקשורת" text="Email, WhatsApp, SMS, Push" href="/dashboard/admin/communications" icon={BellRing} tone={data.communicationFailures ? "warn" : "default"} />
-          <ActionCard title="ספקי Production" text="הפעלה, בדיקות ו-Rollback" href="/dashboard/admin/provider-production" icon={BellRing} tone={data.communicationFailures ? "warn" : "good"} />
-          <ActionCard title="הכנסות" text="מנויים, גבייה וסיכון" href="/dashboard/admin/subscriptions" icon={CreditCard} />
-          <ActionCard title="סקייל" text="ריבוי גנים, בידוד וביצועים" href="/dashboard/admin/scale-validation" icon={BarChart3} tone={data.activeGardens >= 5 ? "good" : "warn"} />
-          <ActionCard title="100 גנים" text="תוכנית סקייל מבוקרת" href="/dashboard/admin/scale-100" icon={BarChart3} tone={data.activeGardens >= 25 ? "good" : "warn"} />
-          <ActionCard title="השקה" text="פיילוט, אבטחה וציות" href="/dashboard/admin/launch-readiness" icon={Rocket} tone={data.launchBlockers ? "bad" : "good"} />
-          <ActionCard title="אימות חיצוני" text="משפטי, PT, ISO וחנויות" href="/dashboard/admin/external-validation" icon={ShieldCheck} tone={data.launchBlockers ? "warn" : "good"} />
-          <ActionCard title="השקה סופית" text="Go/No-Go, חסמים וסיכונים" href="/dashboard/admin/final-production-launch" icon={Rocket} tone={data.launchBlockers ? "bad" : "good"} />
-          <ActionCard title="תפעול חברה" text="ריליסים, תמיכה ופידבק" href="/dashboard/admin/company-operations" icon={HeartPulse} tone="good" />
-          <ActionCard title="הגשה למובייל" text="TestFlight ו-Google Play" href="/dashboard/admin/mobile-submission" icon={Rocket} tone={data.launchBlockers ? "warn" : "good"} />
-          <ActionCard title="דוחות" text="שבועי, חודשי, בטיחות והכנסות" href="/dashboard/admin/reports" icon={FileText} />
-        </section>
+        <AppHomeSection title="ניהול מלא" subtitle="כל מודולי האדמין נשארו זמינים, אבל אינם שולטים במסך הראשון.">
+          <details className="app-management-drawer">
+            <summary>הצג את כל מרכזי הניהול</summary>
+            <section className="national-action-grid">
+              <ActionCard title="גנים" text="פעילים, קליטה, מושעים וניסיון" href="/dashboard/admin/kindergartens" icon={ShieldAlert} tone="good" />
+              <ActionCard title="אנליטיקה ארצית" text="Benchmarking, מגמות ואזורים" href="/dashboard/admin/analytics-center" icon={BarChart3} tone="good" />
+              <ActionCard title="מפקחים" text="שיבוץ, עומס וביצוע" href="/dashboard/admin/inspectors" icon={UsersRound} />
+              <ActionCard title="כוח פיקוח" text="קיבולת, תגמול ו-SLA" href="/dashboard/admin/inspection-workforce" icon={UsersRound} tone={data.overdueInspections ? "warn" : "good"} />
+              <ActionCard title="פיקוח ארצי" text="תכנון, ציות וסיכונים" href="/dashboard/admin/national-inspections" icon={ShieldCheck} tone={data.overdueInspections ? "warn" : "good"} />
+              <ActionCard title="תיקי אירוע" text="חקירה, ראיות וסגירה" href="/dashboard/admin/incident-center" icon={MessageSquareWarning} tone={data.activeIncidents || data.criticalComplaints ? "warn" : "good"} />
+              <ActionCard title="דירוג לאומי" text="ציונים, מגמות ושיפור" href="/dashboard/admin/rating-system" icon={Star} tone="good" />
+              <ActionCard title="מודיעין סיכון" text="חיזוי, דפוסים ומניעה" href="/dashboard/admin/risk-intelligence" icon={AlertTriangle} tone={data.observerAlerts || data.criticalComplaints ? "warn" : "default"} />
+              <ActionCard title="בטיחות חזויה" text="אזהרות ומניעה מוקדמת" href="/dashboard/admin/predictive-safety" icon={ShieldAlert} tone={data.observerAlerts || data.criticalComplaints ? "warn" : "good"} />
+              <ActionCard title="ציות חכם" text="מסמכים, תעודות ותיקונים" href="/dashboard/admin/compliance-center" icon={FileText} tone={data.securityFindings || data.overdueInspections ? "warn" : "good"} />
+              <ActionCard title="תצפיתן" text="מוכנות, כיול והתראות" href="/dashboard/admin/observer-calibration" icon={Bot} tone={data.observerAlerts ? "warn" : "default"} />
+              <ActionCard title="רשת בטיחות" text="סימנים, סיכון ובדיקה אנושית" href="/dashboard/admin/observer-network" icon={ShieldAlert} tone={data.observerAlerts ? "warn" : "default"} />
+              <ActionCard title="מצלמות" text="בריאות, Gateway ושידורים" href="/dashboard/admin/camera-deployment" icon={Camera} tone={data.offlineCameras ? "warn" : "default"} />
+              <ActionCard title="תקשורת" text="Email, WhatsApp, SMS, Push" href="/dashboard/admin/communications" icon={BellRing} tone={data.communicationFailures ? "warn" : "default"} />
+              <ActionCard title="ספקי Production" text="הפעלה, בדיקות ו-Rollback" href="/dashboard/admin/provider-production" icon={BellRing} tone={data.communicationFailures ? "warn" : "good"} />
+              <ActionCard title="הכנסות" text="מנויים, גבייה וסיכון" href="/dashboard/admin/subscriptions" icon={CreditCard} />
+              <ActionCard title="סקייל" text="ריבוי גנים, בידוד וביצועים" href="/dashboard/admin/scale-validation" icon={BarChart3} tone={data.activeGardens >= 5 ? "good" : "warn"} />
+              <ActionCard title="100 גנים" text="תוכנית סקייל מבוקרת" href="/dashboard/admin/scale-100" icon={BarChart3} tone={data.activeGardens >= 25 ? "good" : "warn"} />
+              <ActionCard title="השקה" text="פיילוט, אבטחה וציות" href="/dashboard/admin/launch-readiness" icon={Rocket} tone={data.launchBlockers ? "bad" : "good"} />
+              <ActionCard title="אימות חיצוני" text="משפטי, PT, ISO וחנויות" href="/dashboard/admin/external-validation" icon={ShieldCheck} tone={data.launchBlockers ? "warn" : "good"} />
+              <ActionCard title="השקה סופית" text="Go/No-Go, חסמים וסיכונים" href="/dashboard/admin/final-production-launch" icon={Rocket} tone={data.launchBlockers ? "bad" : "good"} />
+              <ActionCard title="תפעול חברה" text="ריליסים, תמיכה ופידבק" href="/dashboard/admin/company-operations" icon={HeartPulse} tone="good" />
+              <ActionCard title="הגשה למובייל" text="TestFlight ו-Google Play" href="/dashboard/admin/mobile-submission" icon={Rocket} tone={data.launchBlockers ? "warn" : "good"} />
+              <ActionCard title="דוחות" text="שבועי, חודשי, בטיחות והכנסות" href="/dashboard/admin/reports" icon={FileText} />
+            </section>
+          </details>
+        </AppHomeSection>
 
         <section className="national-two-column">
           <article className="national-panel">
@@ -360,7 +365,7 @@ export default async function AdminDashboard() {
           <span><BellRing /> כשלי תקשורת <b>{data.communicationFailures}</b></span>
           <span><Rocket /> פיילוטים פעילים <b>{data.pilotPrograms}</b></span>
         </section>
-      </div>
+      </AppHomeShell>
     </DashboardShell>
   );
 }

@@ -2,7 +2,7 @@ import Link from "next/link";
 import { AlertTriangle, Camera, ClipboardCheck, FileText, MapPin, MessageSquareWarning, ShieldAlert, ShieldCheck, Star } from "lucide-react";
 import { Avatar } from "@/components/avatar";
 import { DashboardShell } from "@/components/dashboard-shell";
-import { ActionCard, RoleMetricCard } from "@/components/premium-dashboard";
+import { ActionCard, AppHomeGrid, AppHomeHero, AppHomeSection, AppHomeShell, AppQuickAction, AppStatusCard, RoleMetricCard } from "@/components/premium-dashboard";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
@@ -28,18 +28,27 @@ export default async function InspectorDashboard() {
   if (!inspector || profile.active === false) {
     return (
       <DashboardShell role="inspector" title="בקשת מפקח">
-        <section className="dashboard-hero-card">
-          <div>
-            <p className="eyebrow">חשבון מפקח מוגבל</p>
-            <h1>יש להשלים בקשת הצטרפות למערך המפקחים.</h1>
-            <p>עד אישור אדמין ושיוך גנים, אין גישה לגנים, ביקורות, מצלמות, דוחות או נתונים רגישים.</p>
-          </div>
-          <span className="pill warn">ממתין לאישור</span>
-        </section>
-        <section className="staff-action-grid">
-          <ActionCard title="הגשת בקשה" text="פרטים, אזורים ומסמכים" href="/dashboard/inspector/apply" icon={ClipboardCheck} tone="good" />
-          <ActionCard title="התראות" text="עדכוני אדמין על הבקשה" href="/dashboard/inspector/notifications" icon={ShieldAlert} />
-        </section>
+        <AppHomeShell className="inspector-app-home">
+          <AppHomeHero
+            eyebrow="בית מפקח"
+            title="הבקשה שלך ממתינה לאישור אדמין"
+            subtitle="עד אישור ושיוך גנים לא מוצגים גנים, ביקורות, מצלמות, דוחות או נתונים רגישים."
+            badge="ממתין לאישור"
+            badgeTone="warn"
+            actions={<><Link className="button primary" href="/dashboard/inspector/apply">השלמת בקשה</Link><Link className="button secondary" href="/dashboard/inspector/notifications">התראות</Link></>}
+          />
+          <AppHomeGrid compact>
+            <AppStatusCard label="גישה לגנים" value="חסומה" hint="עד אישור ושיוך" tone="warn" />
+            <AppStatusCard label="בקשה" value="בהמתנה" hint="פרטים ומסמכים" tone="warn" href="/dashboard/inspector/apply" />
+            <AppStatusCard label="משימות" value="0" hint="יופיעו לאחר שיוך" tone="default" />
+          </AppHomeGrid>
+          <AppHomeSection title="הפעולות הזמינות כרגע" subtitle="מסך מוגבל ובטוח עד אישור מנהל מערכת.">
+            <AppHomeGrid>
+              <AppQuickAction title="הגשת בקשה" text="פרטים, אזורים ומסמכים" href="/dashboard/inspector/apply" icon={ClipboardCheck} tone="good" />
+              <AppQuickAction title="התראות" text="עדכוני אדמין על הבקשה" href="/dashboard/inspector/notifications" icon={ShieldAlert} />
+            </AppHomeGrid>
+          </AppHomeSection>
+        </AppHomeShell>
       </DashboardShell>
     );
   }
@@ -87,7 +96,13 @@ export default async function InspectorDashboard() {
 
   return (
     <DashboardShell role="inspector" title="מרכז פיקוח">
-      <div className="inspector-command-shell">
+      <AppHomeShell className="inspector-command-shell inspector-app-home">
+        <AppHomeGrid compact>
+          <AppStatusCard label="גנים משויכים" value={gardens.length} hint="רק גנים שאושרו לך" tone={gardens.length ? "good" : "warn"} href="#assigned-gardens" />
+          <AppStatusCard label="ביקורות קרובות" value={dueSoon.length} hint="עד 7 ימים" tone={dueSoon.length ? "warn" : "good"} href="/dashboard/inspector/inspections/due" />
+          <AppStatusCard label="באיחור" value={overdue.length} hint="דורש טיפול" tone={overdue.length ? "bad" : "good"} href="/dashboard/inspector/inspections/due" />
+          <AppStatusCard label="התראות" value={observerAlerts.length + complaints.length} hint="בדיקה אנושית" tone={observerAlerts.length + complaints.length ? "warn" : "good"} href="/dashboard/inspector/reports" />
+        </AppHomeGrid>
         <section className="inspector-command-hero">
           <div className="inspector-alert-score">
             <span>לטיפול</span>
@@ -149,7 +164,7 @@ export default async function InspectorDashboard() {
 
         <section className="inspector-two-column">
           <article className="inspector-priority-card">
-            <div className="section-heading"><h2>גנים משויכים</h2><p>ציון, ביקורת אחרונה ותאריך יעד הבא.</p></div>
+            <div className="section-heading" id="assigned-gardens"><h2>גנים משויכים</h2><p>ציון, ביקורת אחרונה ותאריך יעד הבא.</p></div>
             {gardens.length === 0 ? <div className="empty-state"><strong>לא הוקצו גנים</strong><span>אדמין צריך לשייך גנים כדי להתחיל פיקוח.</span></div> : <div className="inspector-garden-list">{gardens.map((garden: any) => {
               const nextDays = daysUntil(garden.next_inspection_at);
               return <article key={garden.id}><Avatar name={garden.name} src={garden.logo_url} /><div><strong>{garden.name}</strong><span>{garden.city ?? ""} · {garden.address ?? ""}</span><small>ביקורת הבאה: {garden.next_inspection_at ? new Date(garden.next_inspection_at).toLocaleDateString("he-IL") : "לא נקבעה"}</small></div><span className={`pill ${safetyTone(garden.last_inspection_score, garden.safe_status)}`}>{garden.last_inspection_score ?? "-"} / 100</span><Link className="button secondary tiny" href={`/dashboard/inspector/inspections?garden=${garden.id}`}>{nextDays !== null && nextDays < 0 ? "בדיקה דחופה" : "פתיחה"}</Link></article>;
@@ -171,7 +186,7 @@ export default async function InspectorDashboard() {
           <span><Camera /> מצלמות לבדיקה <b>{cameraIssues.length}</b></span>
           <span><MapPin /> GPS וחתימה <b>נדרש בטופס</b></span>
         </section>
-      </div>
+      </AppHomeShell>
     </DashboardShell>
   );
 }

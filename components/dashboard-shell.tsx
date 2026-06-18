@@ -230,11 +230,11 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
 const dashboardHomeByRole: Record<UserRole, string> = {
   admin: "/dashboard/admin",
   network_manager: "/dashboard/admin/enterprise",
-  inspector: "/dashboard/inspector/control-center",
-  manager: "/dashboard/garden/command-center",
-  owner: "/dashboard/garden/command-center",
-  staff: "/dashboard/staff/operations",
-  parent: "/dashboard/parent/family-home"
+  inspector: "/dashboard/inspector",
+  manager: "/dashboard/garden",
+  owner: "/dashboard/garden",
+  staff: "/dashboard/staff",
+  parent: "/dashboard/parent"
 };
 
 const profileHrefByRole: Record<UserRole, string> = {
@@ -263,14 +263,14 @@ const mobileNavByRole: Record<UserRole, Array<{ href: string; label: string; hin
     { href: "/dashboard/admin/billing", label: "כספים", hint: "מנויים" }
   ],
   manager: [
-    { href: "/dashboard/garden/command-center", label: "בית", hint: "היום" },
+    { href: "/dashboard/garden", label: "בית", hint: "היום" },
     { href: "/dashboard/garden/children", label: "ילדים", hint: "עדכון" },
     { href: "/dashboard/garden/messages", label: "פניות", hint: "הורים" },
     { href: "/dashboard/garden/cameras", label: "מצלמות", hint: "צפייה" },
     { href: "/dashboard/tasks", label: "משימות", hint: "היום" }
   ],
   owner: [
-    { href: "/dashboard/garden/command-center", label: "בית", hint: "היום" },
+    { href: "/dashboard/garden", label: "בית", hint: "היום" },
     { href: "/dashboard/garden/children", label: "ילדים", hint: "עדכון" },
     { href: "/dashboard/garden/messages", label: "פניות", hint: "הורים" },
     { href: "/dashboard/garden/cameras", label: "מצלמות", hint: "צפייה" },

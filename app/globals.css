@@ -13176,6 +13176,274 @@ th {
   }
 }
 
+/* PHASE 190E-FIX: Force app-like dashboard home screens after login */
+.app-dashboard-stage {
+  width: 100%;
+}
+
+.app-home-shell {
+  display: grid;
+  gap: 16px;
+  margin-inline: auto;
+  max-width: 1180px;
+  width: 100%;
+}
+
+.app-home-hero {
+  align-items: stretch;
+  background:
+    linear-gradient(135deg, #ffffff 0%, #f3faf8 100%);
+  border: 1px solid var(--ds-border, #d8e3df);
+  border-radius: 20px;
+  box-shadow: var(--ds-shadow-card, 0 10px 26px rgb(17 39 43 / 7%));
+  display: grid;
+  gap: 16px;
+  grid-template-columns: minmax(0, 1fr) auto;
+  min-height: 168px;
+  overflow: hidden;
+  padding: clamp(18px, 3vw, 28px);
+}
+
+.app-home-hero-copy {
+  display: grid;
+  gap: 10px;
+  max-width: 760px;
+}
+
+.app-home-hero-copy h1 {
+  color: var(--ds-text, #142326);
+  font-size: clamp(28px, 3.2vw, 42px);
+  line-height: 1.08;
+  margin: 0;
+}
+
+.app-home-hero-copy p {
+  color: var(--ds-muted, #5d6f72);
+  font-size: 15px;
+  line-height: 1.7;
+  margin: 0;
+}
+
+.app-home-actions,
+.app-home-hero-side {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.app-home-hero-side {
+  align-content: flex-start;
+  justify-content: flex-end;
+  min-width: 140px;
+}
+
+.app-home-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.app-home-grid.compact {
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+}
+
+.app-status-card,
+.app-quick-action,
+.app-home-section,
+.app-empty-state,
+.app-home-list a,
+.app-management-drawer {
+  background: #fff;
+  border: 1px solid var(--ds-border, #d8e3df);
+  border-radius: 16px;
+  box-shadow: var(--ds-shadow-card, 0 10px 26px rgb(17 39 43 / 7%));
+}
+
+.app-status-card {
+  display: grid;
+  gap: 6px;
+  min-height: 104px;
+  padding: 15px;
+  text-decoration: none;
+}
+
+.app-status-card span,
+.app-status-card small,
+.app-quick-action small,
+.app-empty-state span,
+.app-home-list span {
+  color: var(--ds-muted, #5d6f72);
+}
+
+.app-status-card strong {
+  color: var(--ds-text, #142326);
+  font-size: 24px;
+  line-height: 1.05;
+}
+
+.app-status-card.good,
+.app-quick-action.good {
+  background: #edf9f3;
+  border-color: #bfe7d7;
+}
+
+.app-status-card.warn,
+.app-quick-action.warn {
+  background: #fff8ec;
+  border-color: #f0d6a8;
+}
+
+.app-status-card.bad,
+.app-quick-action.bad {
+  background: #fff3f1;
+  border-color: #efc7c2;
+}
+
+.app-home-section {
+  display: grid;
+  gap: 14px;
+  padding: clamp(14px, 2vw, 18px);
+}
+
+.app-home-section-head {
+  align-items: center;
+  display: flex;
+  gap: 12px;
+  justify-content: space-between;
+}
+
+.app-home-section-head h2 {
+  color: var(--ds-text, #142326);
+  font-size: clamp(20px, 2.1vw, 28px);
+  margin: 0;
+}
+
+.app-home-section-head p {
+  color: var(--ds-muted, #5d6f72);
+  margin: 4px 0 0;
+}
+
+.app-quick-action {
+  align-items: center;
+  color: var(--ds-text, #142326);
+  display: flex;
+  gap: 12px;
+  min-height: 76px;
+  padding: 14px;
+  text-decoration: none;
+}
+
+.app-quick-action svg {
+  color: var(--ds-brand, #0d766f);
+  flex: 0 0 auto;
+}
+
+.app-quick-action span {
+  display: grid;
+  gap: 3px;
+}
+
+.app-empty-state {
+  display: grid;
+  gap: 8px;
+  padding: 18px;
+  text-align: center;
+}
+
+.app-home-list {
+  display: grid;
+  gap: 10px;
+}
+
+.app-home-list a {
+  color: var(--ds-text, #142326);
+  display: grid;
+  gap: 4px;
+  padding: 13px 14px;
+  text-decoration: none;
+}
+
+.app-management-drawer {
+  padding: 0;
+}
+
+.app-management-drawer summary {
+  cursor: pointer;
+  font-weight: 900;
+  list-style: none;
+  min-height: 54px;
+  padding: 16px;
+}
+
+.app-management-drawer summary::-webkit-details-marker {
+  display: none;
+}
+
+.app-management-drawer[open] summary {
+  border-bottom: 1px solid var(--ds-border, #d8e3df);
+}
+
+.app-management-drawer .national-action-grid {
+  padding: 14px;
+}
+
+.digital-observer-dashboard-app {
+  background: var(--ds-bg, #f7f9f8);
+}
+
+.digital-observer-dashboard-app .product-switcher,
+.digital-observer-dashboard-app > .app-home-shell {
+  margin-inline: auto;
+  max-width: 1180px;
+}
+
+@media (max-width: 820px) {
+  .app-home-hero,
+  .app-home-section-head {
+    grid-template-columns: 1fr;
+  }
+
+  .app-home-hero {
+    display: grid;
+  }
+
+  .app-home-hero-side,
+  .app-home-actions {
+    justify-content: stretch;
+  }
+
+  .app-home-actions .button,
+  .app-home-hero-side .button {
+    width: 100%;
+  }
+
+  .app-home-grid,
+  .app-home-grid.compact {
+    grid-template-columns: 1fr;
+  }
+
+  .app-status-card,
+  .app-quick-action {
+    min-height: 72px;
+  }
+}
+
+@media (max-width: 640px) {
+  .app-home-shell {
+    gap: 12px;
+  }
+
+  .app-home-hero,
+  .app-home-section {
+    border-radius: 14px;
+  }
+
+  .app-home-hero-copy h1 {
+    font-size: 28px;
+  }
+}
+
 /* PHASE 122: Manager Operations Platform 2.0 */
 .manager-command-center-2 {
   display: grid;
