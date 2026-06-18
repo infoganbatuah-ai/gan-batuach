@@ -371,11 +371,12 @@ export function DashboardShell({
 }) {
   const mobileNav = mobileNavByRole[role];
   const navGroups = groupedNav(role);
+  const isAppHome = appHome || role === "manager" || role === "owner";
   return (
     <>
-      {appHome ? null : <BrandHeader />}
-      <div className={`dashboard-layout dashboard-role-${role}${appHome ? " app-home-layout" : ""}`}>
-        {appHome ? null : (
+      {isAppHome ? null : <BrandHeader />}
+      <div className={`dashboard-layout dashboard-role-${role}${isAppHome ? " app-home-layout" : ""}`}>
+        {isAppHome ? null : (
           <aside className="sidebar">
             <div className="sidebar-topline">
               <div>
@@ -404,7 +405,7 @@ export function DashboardShell({
           </aside>
         )}
         <main className="dashboard-main">
-          {appHome ? (
+          {isAppHome ? (
             <div className="native-app-topbar">
               <div>
                 <span className="native-app-logo">גן בטוח</span>
@@ -437,14 +438,14 @@ export function DashboardShell({
           )}
           <PolicyAcceptanceGate />
           <SandboxModeBanner />
-          {appHome ? null : <OnboardingGuideControls role={role} />}
-          {appHome ? null : <RoleOnboardingGuide role={role} />}
-          {role === "admin" && !appHome ? <AdminGlobalSearch /> : null}
-          <section className={`app-dashboard-stage${appHome ? " native-app-stage" : ""}`} aria-label="אזור עבודה">
+          {isAppHome ? null : <OnboardingGuideControls role={role} />}
+          {isAppHome ? null : <RoleOnboardingGuide role={role} />}
+          {role === "admin" && !isAppHome ? <AdminGlobalSearch /> : null}
+          <section className={`app-dashboard-stage${isAppHome ? " native-app-stage" : ""}`} aria-label="אזור עבודה">
             {children}
           </section>
-          {appHome ? null : <AIAssistantPanel role={role} />}
-          {appHome ? null : <PilotFeedbackWidget role={role} />}
+          {isAppHome ? null : <AIAssistantPanel role={role} />}
+          {isAppHome ? null : <PilotFeedbackWidget role={role} />}
         </main>
         <nav className="mobile-tabbar" aria-label="ניווט דשבורד">{mobileNav.map((item) => <Link href={item.href} key={item.href}><strong>{item.label}</strong><span>{item.hint}</span></Link>)}</nav>
         <FloatingActionCenter role={role} />
