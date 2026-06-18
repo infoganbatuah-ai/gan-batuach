@@ -27,7 +27,7 @@ export default async function InspectorDashboard() {
   const inspector = inspectorRes.data as any;
   if (!inspector || profile.active === false) {
     return (
-      <DashboardShell role="inspector" title="בקשת מפקח">
+      <DashboardShell role="inspector" title="בקשת מפקח" appHome>
         <AppHomeShell className="inspector-app-home">
           <AppHomeHero
             eyebrow="בית מפקח"
@@ -95,7 +95,7 @@ export default async function InspectorDashboard() {
   const attentionTotal = overdue.length + dueSoon.length + findingsOpen + complaints.length + observerAlerts.length;
 
   return (
-    <DashboardShell role="inspector" title="מרכז פיקוח">
+    <DashboardShell role="inspector" title="מרכז פיקוח" appHome>
       <AppHomeShell className="inspector-command-shell inspector-app-home">
         <AppHomeGrid compact>
           <AppStatusCard label="גנים משויכים" value={gardens.length} hint="רק גנים שאושרו לך" tone={gardens.length ? "good" : "warn"} href="#assigned-gardens" />

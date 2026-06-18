@@ -2,7 +2,7 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { Baby, CalendarCheck, CreditCard, FileText, ShieldCheck, UserPlus, UsersRound } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
-import { AppEmptyState, AppHomeGrid, AppHomeHero, AppHomeSection, AppHomeShell, AppQuickAction, AppStatusCard } from "@/components/premium-dashboard";
+import { AppEmptyState, AppHomeShell } from "@/components/premium-dashboard";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
@@ -70,53 +70,102 @@ export default async function GardenDashboard() {
   const activeStaff = staffRows.filter((member) => member.approved_to_work && member.onboarding_status === "active").length;
   const nextInspection = ((inspectionsRes.data ?? []) as any[])[0];
   const monthlyAmount = Number(subscription?.monthly_amount ?? subscription?.amount ?? subscription?.price ?? 800);
+  const documentsToHandle = documentsRes.count ?? 0;
+  const childrenCount = childrenRes.count ?? 0;
+  const staffCount = staffRes.count ?? staffRows.length;
+  const todayPriority = pendingRequests
+    ? { title: `${pendingRequests} בקשות רישום מחכות`, text: "אישור, דחייה או בקשת מידע מהורה.", href: "/dashboard/garden/enrollment-requests", tone: "warn" }
+    : waitingPaymentRequests
+      ? { title: `${waitingPaymentRequests} ילדים ממתינים לתשלום`, text: "לא נפתחת גישה מלאה עד הפעלה או החלטת מנהלת.", href: "/dashboard/garden/enrollment-requests", tone: "warn" }
+      : documentsToHandle
+        ? { title: `${documentsToHandle} מסמכים דורשים טיפול`, text: "השלמת מסמכים ותוקף לפני שהדבר הופך לבעיה.", href: "/dashboard/garden/documents", tone: "warn" }
+        : nextInspection
+          ? { title: "פיקוח קרוב", text: `${nextInspection.title ?? "ביקורת"} · ${nextInspection.due_at ? new Date(nextInspection.due_at).toLocaleDateString("he-IL") : "תאריך לא נקבע"}`, href: "/dashboard/garden/inspections", tone: "default" }
+          : { title: "הגן רגוע כרגע", text: "אין פעולות דחופות. אפשר להמשיך לניהול ילדים, צוות או מסמכים.", href: "/dashboard/garden/command-center", tone: "good" };
+  const appStats = [
+    { label: "ילדים", value: childrenCount, hint: "פעילים", href: "/dashboard/garden/children", tone: "good" },
+    { label: "בקשות", value: pendingRequests + waitingPaymentRequests, hint: "לטיפול", href: "/dashboard/garden/enrollment-requests", tone: pendingRequests || waitingPaymentRequests ? "warn" : "good" },
+    { label: "צוות", value: `${activeStaff}/${staffCount}`, hint: "מאושר", href: "/dashboard/garden/staff", tone: activeStaff ? "good" : "warn" },
+    { label: "מסמכים", value: documentsToHandle, hint: "חסרים/בבדיקה", href: "/dashboard/garden/documents", tone: documentsToHandle ? "warn" : "good" }
+  ];
+  const quickActions = [
+    { title: "ילד", text: "הוספה וניהול", href: "/dashboard/garden/children", icon: Baby, tone: "good" },
+    { title: "הורה", text: "הזמנה ושיוך", href: "/dashboard/garden/parents", icon: UserPlus },
+    { title: "בקשות", text: "רישום לגן", href: "/dashboard/garden/enrollment-requests", icon: ShieldCheck, tone: pendingRequests ? "warn" : "default" },
+    { title: "צוות", text: "עובדים ומועמדים", href: "/dashboard/garden/staff", icon: UsersRound },
+    { title: "מסמך", text: "העלאה ותוקף", href: "/dashboard/garden/documents", icon: FileText, tone: documentsToHandle ? "warn" : "default" },
+    { title: "תשלום", text: "מנוי וגבייה", href: "/dashboard/garden/finance", icon: CreditCard },
+    { title: "פיקוח", text: "ביקורות וליקויים", href: "/dashboard/garden/inspections", icon: CalendarCheck }
+  ];
 
   return (
-    <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="בית הגן">
-      <AppHomeShell className="garden-app-home">
-        <AppHomeHero
-          eyebrow="בית הגן"
-          title={`${garden.name ?? "הגן"} מוכן לניהול יומי`}
-          subtitle="המסך הראשון מציג רק את מה שצריך עכשיו. כל הניהול המלא נשאר זמין בכפתורים ובתפריט."
-          badge={statusLabel(subscriptionStatus)}
-          badgeTone={toneForStatus(subscriptionStatus)}
-          actions={<><Link className="button primary" href="/dashboard/garden/command-center">מרכז פיקוד מלא</Link><Link className="button secondary" href="/dashboard/garden/settings">פרופיל הגן</Link></>}
-        />
+    <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="בית הגן" appHome>
+      <AppHomeShell className="garden-app-home garden-mobile-app-home">
+        <section className="garden-phone-hero" aria-label="מסך בית גן">
+          <div className="garden-phone-hero-top">
+            <span>גן בטוח</span>
+            <b className={`garden-mini-status ${toneForStatus(subscriptionStatus)}`}>{statusLabel(subscriptionStatus)}</b>
+          </div>
+          <div>
+            <p className="garden-hello">שלום, {profile.full_name ?? "מנהלת הגן"}</p>
+            <h1>{garden.name ?? "הגן"}</h1>
+            <p>{garden.city ?? "העיר לא הוגדרה"} · מנוי גן בטוח {monthlyAmount} ₪ לחודש · הכל מנוהל במסך קצר וברור.</p>
+          </div>
+          <Link className="garden-primary-action" href={todayPriority.href}>
+            <span>{todayPriority.title}</span>
+            <small>{todayPriority.text}</small>
+          </Link>
+        </section>
 
-        <AppHomeGrid compact>
-          <AppStatusCard label="ילדים פעילים" value={childrenRes.count ?? 0} hint="רשומות פעילות בגן" tone="good" href="/dashboard/garden/children" />
-          <AppStatusCard label="בקשות רישום" value={pendingRequests} hint={`${waitingPaymentRequests} ממתינות לתשלום`} tone={pendingRequests || waitingPaymentRequests ? "warn" : "good"} href="/dashboard/garden/enrollment-requests" />
-          <AppStatusCard label="צוות פעיל" value={`${activeStaff}/${staffRes.count ?? staffRows.length}`} hint="מאושר ומשויך" tone={activeStaff ? "good" : "warn"} href="/dashboard/garden/staff" />
-          <AppStatusCard label="מנוי גן בטוח" value={statusLabel(subscriptionStatus)} hint={`החל מ-${monthlyAmount} ₪ לחודש`} tone={toneForStatus(subscriptionStatus)} href="/dashboard/garden/subscription" />
-          <AppStatusCard label="מסמכים לטיפול" value={documentsRes.count ?? 0} hint="חסרים/פגי תוקף/בבדיקה" tone={(documentsRes.count ?? 0) ? "warn" : "good"} href="/dashboard/garden/documents" />
-          <AppStatusCard label="פיקוח הבא" value={nextInspection?.due_at ? new Date(nextInspection.due_at).toLocaleDateString("he-IL") : "לא נקבע"} hint={nextInspection?.title ?? "תכנון פיקוח"} tone={nextInspection ? "warn" : "good"} href="/dashboard/garden/inspections" />
-        </AppHomeGrid>
+        <section className="garden-today-glance" aria-label="היום בגן">
+          {appStats.map((item) => (
+            <Link className={`garden-glance-card ${item.tone}`} href={item.href} key={item.label}>
+              <span>{item.label}</span>
+              <strong>{item.value}</strong>
+              <small>{item.hint}</small>
+            </Link>
+          ))}
+        </section>
 
-        <AppHomeSection title="פעולות מהירות" subtitle="הפעולות שמנהלת גן צריכה להגיע אליהן בלי לחפש.">
-          <AppHomeGrid>
-            <AppQuickAction title="הוסף ילד" text="יצירת כרטיס ילד" href="/dashboard/garden/children" icon={Baby} tone="good" />
-            <AppQuickAction title="הזמן הורה" text="חיבור הורה לילד" href="/dashboard/garden/parents" icon={UserPlus} />
-            <AppQuickAction title="בקשות רישום" text="אישור או בקשת מידע" href="/dashboard/garden/enrollment-requests" icon={ShieldCheck} tone={pendingRequests ? "warn" : "default"} />
-            <AppQuickAction title="הוסף איש צוות" text="צוות ומועמדויות" href="/dashboard/garden/staff" icon={UsersRound} />
-            <AppQuickAction title="העלאת מסמך" text="מסמכי גן ותוקף" href="/dashboard/garden/documents" icon={FileText} tone={(documentsRes.count ?? 0) ? "warn" : "default"} />
-            <AppQuickAction title="תשלומים" text="מנוי וגבייה" href="/dashboard/garden/finance" icon={CreditCard} />
-            <AppQuickAction title="פיקוחים" text="ביקורות וליקויים" href="/dashboard/garden/inspections" icon={CalendarCheck} />
-          </AppHomeGrid>
-        </AppHomeSection>
+        <section className="garden-focus-card">
+          <div>
+            <p className="premium-eyebrow">מה עכשיו?</p>
+            <h2>{todayPriority.title}</h2>
+            <p>{todayPriority.text}</p>
+          </div>
+          <Link className={`button ${todayPriority.tone === "good" ? "secondary" : "primary"}`} href={todayPriority.href}>לטיפול</Link>
+        </section>
 
-        <AppHomeSection title="מה דורש טיפול עכשיו" subtitle="אם אין נתונים, המסך נשאר נקי וברור.">
-          {(pendingRequests || waitingPaymentRequests || (documentsRes.count ?? 0) || nextInspection || (messagesRes.count ?? 0)) ? (
-            <div className="app-home-list">
-              {pendingRequests ? <Link href="/dashboard/garden/enrollment-requests"><strong>{pendingRequests} בקשות רישום מחכות</strong><span>סקירה, אישור או בקשת מידע מהורה</span></Link> : null}
-              {waitingPaymentRequests ? <Link href="/dashboard/garden/enrollment-requests"><strong>{waitingPaymentRequests} ילדים ממתינים לתשלום</strong><span>לא לפתוח גישה מלאה לפני הפעלה</span></Link> : null}
-              {(documentsRes.count ?? 0) ? <Link href="/dashboard/garden/documents"><strong>{documentsRes.count} מסמכים דורשים טיפול</strong><span>בדיקה, העלאה או חידוש</span></Link> : null}
-              {nextInspection ? <Link href="/dashboard/garden/inspections"><strong>פיקוח קרוב</strong><span>{nextInspection.due_at ? new Date(nextInspection.due_at).toLocaleDateString("he-IL") : "תאריך לא נקבע"} · {nextInspection.title ?? "פעולת פיקוח"}</span></Link> : null}
-              {(messagesRes.count ?? 0) ? <Link href="/dashboard/garden/messages"><strong>{messagesRes.count} הודעות שלא נקראו</strong><span>תקשורת עם הורים/צוות</span></Link> : null}
-            </div>
-          ) : (
-            <AppEmptyState title="אין פעולות דחופות כרגע" text="אפשר לפתוח את מרכז הפיקוד המלא או להמשיך לניהול ילדים, צוות ומסמכים." action={<Link className="button secondary" href="/dashboard/garden/command-center">מרכז פיקוד מלא</Link>} />
-          )}
-        </AppHomeSection>
+        <section className="garden-action-dock" aria-label="פעולות מהירות">
+          {quickActions.map((action) => {
+            const Icon = action.icon;
+            return (
+              <Link className={`garden-dock-action ${action.tone ?? "default"}`} href={action.href} key={action.title}>
+                <Icon size={20} />
+                <strong>{action.title}</strong>
+                <span>{action.text}</span>
+              </Link>
+            );
+          })}
+        </section>
+
+        <details className="garden-management-drawer">
+          <summary>ניהול מלא</summary>
+          <div>
+            <Link href="/dashboard/garden/command-center">מרכז פיקוד מלא</Link>
+            <Link href="/dashboard/garden/children">כל הילדים</Link>
+            <Link href="/dashboard/garden/parents">הורים ותקשורת</Link>
+            <Link href="/dashboard/garden/staff-applications">מועמדויות צוות</Link>
+            <Link href="/dashboard/garden/compliance">ציות ומסמכים</Link>
+            <Link href="/dashboard/garden/cameras">מצלמות</Link>
+            <Link href="/dashboard/garden/trust-center">אמון הורים</Link>
+            <Link href="/dashboard/garden/settings">הגדרות הגן</Link>
+          </div>
+        </details>
+
+        {(pendingRequests || waitingPaymentRequests || documentsToHandle || nextInspection || (messagesRes.count ?? 0)) ? null : (
+          <AppEmptyState title="אין פעולות דחופות כרגע" text="המסך נשאר נקי. אפשר להמשיך לניהול מלא או לבצע פעולה מהירה." />
+        )}
       </AppHomeShell>
     </DashboardShell>
   );

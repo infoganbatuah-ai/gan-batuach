@@ -13398,7 +13398,327 @@ th {
   max-width: 1180px;
 }
 
+.dashboard-layout.app-home-layout {
+  background:
+    radial-gradient(circle at 86% 0%, rgb(38 166 154 / 14%), transparent 34%),
+    linear-gradient(180deg, #eff8f6 0%, #f8fbfa 42%, #ffffff 100%);
+  display: block;
+  min-height: 100dvh;
+}
+
+.dashboard-layout.app-home-layout .dashboard-main {
+  margin-inline: auto;
+  max-width: 1120px;
+  padding: clamp(12px, 3vw, 22px) clamp(12px, 3vw, 26px) 112px;
+}
+
+.dashboard-layout.app-home-layout .app-workspace-header {
+  align-items: center;
+  backdrop-filter: blur(18px);
+  background: rgb(255 255 255 / 82%);
+  border: 1px solid rgb(216 227 223 / 88%);
+  border-radius: 24px;
+  box-shadow: 0 18px 48px rgb(17 39 43 / 9%);
+  margin: 0 auto 16px;
+  max-width: 980px;
+  min-height: 74px;
+  padding: 14px 16px;
+}
+
+.dashboard-layout.app-home-layout .app-workspace-header h1 {
+  font-size: clamp(20px, 2.5vw, 28px);
+}
+
+.dashboard-layout.app-home-layout .app-workspace-header p {
+  font-size: 13px;
+}
+
+.dashboard-layout.app-home-layout .app-workspace-actions {
+  gap: 7px;
+}
+
+.dashboard-layout.app-home-layout .app-shell-quick-link,
+.dashboard-layout.app-home-layout .dashboard-back-button {
+  min-height: 38px;
+}
+
+.dashboard-layout.app-home-layout .app-dashboard-stage {
+  max-width: 980px;
+}
+
+.dashboard-layout.app-home-layout .role-onboarding-guide,
+.dashboard-layout.app-home-layout .onboarding-guide-controls {
+  display: none;
+}
+
+.garden-mobile-app-home {
+  gap: 14px;
+  max-width: 760px;
+}
+
+.garden-phone-hero {
+  background:
+    linear-gradient(145deg, #0f766e 0%, #0e5f61 52%, #142326 100%);
+  border-radius: 30px;
+  box-shadow: 0 24px 70px rgb(15 118 110 / 22%);
+  color: #fff;
+  display: grid;
+  gap: 20px;
+  overflow: hidden;
+  padding: clamp(20px, 4vw, 30px);
+  position: relative;
+}
+
+.garden-phone-hero::after {
+  background: linear-gradient(135deg, rgb(255 255 255 / 18%), transparent);
+  border-radius: 999px;
+  content: "";
+  height: 220px;
+  left: -82px;
+  position: absolute;
+  top: -96px;
+  width: 220px;
+}
+
+.garden-phone-hero > * {
+  position: relative;
+  z-index: 1;
+}
+
+.garden-phone-hero-top {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+}
+
+.garden-phone-hero-top span {
+  color: rgb(255 255 255 / 78%);
+  font-weight: 900;
+}
+
+.garden-mini-status {
+  background: rgb(255 255 255 / 16%);
+  border: 1px solid rgb(255 255 255 / 24%);
+  border-radius: 999px;
+  color: #fff;
+  padding: 7px 12px;
+}
+
+.garden-mini-status.good {
+  background: rgb(220 252 231 / 20%);
+}
+
+.garden-mini-status.warn {
+  background: rgb(254 243 199 / 20%);
+}
+
+.garden-mini-status.bad {
+  background: rgb(254 226 226 / 20%);
+}
+
+.garden-hello {
+  color: rgb(255 255 255 / 78%);
+  font-weight: 800;
+  margin: 0 0 6px;
+}
+
+.garden-phone-hero h1 {
+  color: #fff;
+  font-size: clamp(32px, 8vw, 48px);
+  line-height: 1.02;
+  margin: 0;
+}
+
+.garden-phone-hero p {
+  color: rgb(255 255 255 / 78%);
+  line-height: 1.65;
+  margin: 10px 0 0;
+}
+
+.garden-primary-action {
+  background: #fff;
+  border-radius: 22px;
+  color: #103f3d;
+  display: grid;
+  gap: 5px;
+  padding: 16px;
+  text-decoration: none;
+}
+
+.garden-primary-action span {
+  font-size: 18px;
+  font-weight: 950;
+}
+
+.garden-primary-action small {
+  color: #55706d;
+  font-weight: 700;
+}
+
+.garden-today-glance {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.garden-glance-card {
+  background: #fff;
+  border: 1px solid #d8e3df;
+  border-radius: 20px;
+  box-shadow: 0 14px 34px rgb(17 39 43 / 8%);
+  color: #142326;
+  display: grid;
+  gap: 6px;
+  min-height: 112px;
+  padding: 14px;
+  text-decoration: none;
+}
+
+.garden-glance-card span,
+.garden-glance-card small {
+  color: #607471;
+  font-weight: 800;
+}
+
+.garden-glance-card strong {
+  font-size: clamp(24px, 5vw, 34px);
+  line-height: 1;
+}
+
+.garden-glance-card.good {
+  background: #eefaf4;
+  border-color: #c2ebd9;
+}
+
+.garden-glance-card.warn {
+  background: #fff8ec;
+  border-color: #f1d9aa;
+}
+
+.garden-focus-card {
+  align-items: center;
+  background: #fff;
+  border: 1px solid #d8e3df;
+  border-radius: 24px;
+  box-shadow: 0 14px 34px rgb(17 39 43 / 8%);
+  display: flex;
+  gap: 16px;
+  justify-content: space-between;
+  padding: 18px;
+}
+
+.garden-focus-card h2 {
+  color: #142326;
+  font-size: clamp(22px, 3vw, 30px);
+  margin: 4px 0;
+}
+
+.garden-focus-card p {
+  color: #607471;
+  margin: 0;
+}
+
+.garden-action-dock {
+  background: rgb(255 255 255 / 86%);
+  border: 1px solid #d8e3df;
+  border-radius: 28px;
+  box-shadow: 0 18px 46px rgb(17 39 43 / 9%);
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  padding: 12px;
+}
+
+.garden-dock-action {
+  align-items: center;
+  background: #f7fbfa;
+  border: 1px solid transparent;
+  border-radius: 20px;
+  color: #142326;
+  display: grid;
+  gap: 5px;
+  justify-items: center;
+  min-height: 94px;
+  padding: 12px 8px;
+  text-align: center;
+  text-decoration: none;
+}
+
+.garden-dock-action svg {
+  color: #0d766f;
+}
+
+.garden-dock-action strong {
+  font-size: 14px;
+}
+
+.garden-dock-action span {
+  color: #607471;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.garden-dock-action.good {
+  background: #edf9f3;
+  border-color: #c2ebd9;
+}
+
+.garden-dock-action.warn {
+  background: #fff8ec;
+  border-color: #f1d9aa;
+}
+
+.garden-management-drawer {
+  background: #fff;
+  border: 1px solid #d8e3df;
+  border-radius: 22px;
+  box-shadow: 0 12px 30px rgb(17 39 43 / 7%);
+}
+
+.garden-management-drawer summary {
+  cursor: pointer;
+  font-size: 16px;
+  font-weight: 950;
+  list-style: none;
+  padding: 17px 18px;
+}
+
+.garden-management-drawer summary::-webkit-details-marker {
+  display: none;
+}
+
+.garden-management-drawer div {
+  border-top: 1px solid #d8e3df;
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  padding: 12px;
+}
+
+.garden-management-drawer a {
+  background: #f7fbfa;
+  border-radius: 14px;
+  color: #142326;
+  font-weight: 850;
+  padding: 12px;
+  text-decoration: none;
+}
+
 @media (max-width: 820px) {
+  .dashboard-layout.app-home-layout .dashboard-main {
+    padding-inline: 10px;
+  }
+
+  .dashboard-layout.app-home-layout .app-workspace-header {
+    border-radius: 20px;
+    margin-bottom: 12px;
+  }
+
+  .dashboard-layout.app-home-layout .app-workspace-actions .pill,
+  .dashboard-layout.app-home-layout .app-workspace-actions .dashboard-back-button {
+    display: none;
+  }
+
   .app-home-hero,
   .app-home-section-head {
     grid-template-columns: 1fr;
@@ -13427,6 +13747,16 @@ th {
   .app-quick-action {
     min-height: 72px;
   }
+
+  .garden-today-glance,
+  .garden-action-dock {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .garden-focus-card {
+    align-items: stretch;
+    display: grid;
+  }
 }
 
 @media (max-width: 640px) {
@@ -13441,6 +13771,22 @@ th {
 
   .app-home-hero-copy h1 {
     font-size: 28px;
+  }
+
+  .garden-mobile-app-home {
+    max-width: 100%;
+  }
+
+  .garden-phone-hero {
+    border-radius: 26px;
+  }
+
+  .garden-today-glance {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .garden-management-drawer div {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -14222,5 +14568,273 @@ th {
 
   .authority-panel div {
     grid-template-columns: 1fr;
+  }
+}
+
+/* FINAL APP DASHBOARD OVERRIDE: internal home screens must feel like a native app. */
+body:has(.app-home-layout) {
+  background:
+    radial-gradient(circle at 50% -8%, rgb(45 212 191 / 18%), transparent 34%),
+    linear-gradient(180deg, #edf8f6 0%, #f8fbfa 48%, #ffffff 100%) !important;
+}
+
+.dashboard-layout.app-home-layout {
+  background: transparent !important;
+  display: block !important;
+  grid-template-columns: 1fr !important;
+  min-height: 100dvh !important;
+  overflow-x: clip !important;
+  padding: 0 !important;
+}
+
+.dashboard-layout.app-home-layout .dashboard-main {
+  background: transparent !important;
+  box-sizing: border-box;
+  height: auto !important;
+  margin: 0 auto !important;
+  max-width: 1040px !important;
+  min-height: 100dvh !important;
+  overflow: visible !important;
+  padding: 14px clamp(12px, 3vw, 24px) 118px !important;
+  width: 100% !important;
+}
+
+.native-app-topbar {
+  align-items: center;
+  background: rgb(255 255 255 / 78%);
+  border: 1px solid rgb(216 227 223 / 84%);
+  border-radius: 28px;
+  box-shadow: 0 18px 50px rgb(17 39 43 / 10%);
+  display: flex;
+  gap: 14px;
+  justify-content: space-between;
+  margin: 0 auto 14px;
+  max-width: 860px;
+  min-height: 72px;
+  padding: 12px 14px;
+  position: sticky;
+  top: 10px;
+  z-index: 30;
+  backdrop-filter: blur(22px);
+}
+
+.native-app-topbar h1 {
+  color: #102b2d;
+  font-size: clamp(18px, 3vw, 24px);
+  line-height: 1.1;
+  margin: 2px 0 0;
+}
+
+.native-app-logo {
+  color: #0d766f;
+  display: block;
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.native-app-topbar-actions {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+}
+
+.native-app-topbar-actions > span,
+.native-app-topbar-actions > a,
+.native-app-topbar-actions button {
+  align-items: center;
+  background: #f4faf8;
+  border: 1px solid #d8e3df;
+  border-radius: 999px;
+  color: #12383a;
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 900;
+  min-height: 38px;
+  padding: 8px 11px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+
+.dashboard-layout.app-home-layout .sandbox-banner,
+.dashboard-layout.app-home-layout .policy-card {
+  border-radius: 22px !important;
+  margin: 0 auto 12px !important;
+  max-width: 860px !important;
+}
+
+.dashboard-layout.app-home-layout .native-app-stage {
+  margin: 0 auto !important;
+  max-width: 860px !important;
+  width: 100% !important;
+}
+
+.dashboard-layout.app-home-layout .app-home-shell,
+.dashboard-layout.app-home-layout .staff-workspace-shell,
+.dashboard-layout.app-home-layout .inspector-command-shell,
+.dashboard-layout.app-home-layout .super-admin-shell {
+  gap: 14px !important;
+  max-width: 860px !important;
+}
+
+.dashboard-layout.app-home-layout .app-home-hero,
+.dashboard-layout.app-home-layout .staff-shift-hero,
+.dashboard-layout.app-home-layout .inspector-command-hero,
+.dashboard-layout.app-home-layout .national-command-hero {
+  background:
+    linear-gradient(145deg, #12383a 0%, #0f766e 55%, #22a38f 100%) !important;
+  border: 0 !important;
+  border-radius: 32px !important;
+  box-shadow: 0 24px 70px rgb(15 118 110 / 24%) !important;
+  color: #fff !important;
+  min-height: auto !important;
+  overflow: hidden !important;
+  padding: clamp(20px, 4vw, 32px) !important;
+}
+
+.dashboard-layout.app-home-layout .app-home-hero h1,
+.dashboard-layout.app-home-layout .staff-shift-hero h1,
+.dashboard-layout.app-home-layout .inspector-command-hero h1,
+.dashboard-layout.app-home-layout .national-command-hero h1 {
+  color: #fff !important;
+  font-size: clamp(30px, 7vw, 48px) !important;
+  letter-spacing: 0 !important;
+  line-height: 1.04 !important;
+}
+
+.dashboard-layout.app-home-layout .app-home-hero p,
+.dashboard-layout.app-home-layout .staff-shift-hero p,
+.dashboard-layout.app-home-layout .inspector-command-hero p,
+.dashboard-layout.app-home-layout .national-command-hero p,
+.dashboard-layout.app-home-layout .staff-shift-hero span {
+  color: rgb(255 255 255 / 78%) !important;
+}
+
+.dashboard-layout.app-home-layout .app-home-grid,
+.dashboard-layout.app-home-layout .app-home-grid.compact,
+.dashboard-layout.app-home-layout .staff-metric-strip,
+.dashboard-layout.app-home-layout .inspector-kpi-strip,
+.dashboard-layout.app-home-layout .national-kpi-strip,
+.dashboard-layout.app-home-layout .executive-kpi-center {
+  display: grid !important;
+  gap: 10px !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+}
+
+.dashboard-layout.app-home-layout .app-status-card,
+.dashboard-layout.app-home-layout .role-metric-card,
+.dashboard-layout.app-home-layout .executive-kpi-center article,
+.dashboard-layout.app-home-layout .app-quick-action,
+.dashboard-layout.app-home-layout .premium-action-card,
+.dashboard-layout.app-home-layout .staff-progress-card,
+.dashboard-layout.app-home-layout .staff-emergency-center,
+.dashboard-layout.app-home-layout .inspector-priority-card,
+.dashboard-layout.app-home-layout .inspector-assistant-card,
+.dashboard-layout.app-home-layout .national-panel,
+.dashboard-layout.app-home-layout .app-home-section,
+.dashboard-layout.app-home-layout .garden-focus-card,
+.dashboard-layout.app-home-layout .garden-management-drawer {
+  background: rgb(255 255 255 / 92%) !important;
+  border: 1px solid rgb(216 227 223 / 90%) !important;
+  border-radius: 24px !important;
+  box-shadow: 0 16px 42px rgb(17 39 43 / 9%) !important;
+}
+
+.dashboard-layout.app-home-layout .app-status-card,
+.dashboard-layout.app-home-layout .role-metric-card,
+.dashboard-layout.app-home-layout .executive-kpi-center article {
+  min-height: 104px !important;
+  padding: 15px !important;
+}
+
+.dashboard-layout.app-home-layout .app-status-card strong,
+.dashboard-layout.app-home-layout .role-metric-card strong,
+.dashboard-layout.app-home-layout .executive-kpi-center strong {
+  font-size: clamp(25px, 5vw, 36px) !important;
+}
+
+.dashboard-layout.app-home-layout .app-quick-action,
+.dashboard-layout.app-home-layout .premium-action-card {
+  min-height: 92px !important;
+  padding: 14px !important;
+}
+
+.dashboard-layout.app-home-layout .national-two-column,
+.dashboard-layout.app-home-layout .inspector-two-column,
+.dashboard-layout.app-home-layout .staff-intelligence-grid {
+  display: grid !important;
+  gap: 12px !important;
+  grid-template-columns: 1fr !important;
+}
+
+.dashboard-layout.app-home-layout .mobile-tabbar {
+  background: rgb(255 255 255 / 88%) !important;
+  border: 1px solid rgb(216 227 223 / 86%) !important;
+  border-radius: 26px !important;
+  bottom: 14px !important;
+  box-shadow: 0 18px 54px rgb(17 39 43 / 16%) !important;
+  inset-inline: max(12px, calc((100vw - 520px) / 2)) !important;
+  min-height: 66px !important;
+  padding: 7px !important;
+  position: fixed !important;
+  z-index: 50 !important;
+  backdrop-filter: blur(22px);
+}
+
+.dashboard-layout.app-home-layout .mobile-tabbar a {
+  border-radius: 18px !important;
+  min-height: 52px !important;
+}
+
+.dashboard-layout.app-home-layout .mobile-fab,
+.dashboard-layout.app-home-layout .floating-action-center {
+  display: none !important;
+}
+
+@media (max-width: 760px) {
+  .dashboard-layout.app-home-layout .dashboard-main {
+    padding: 10px 10px 104px !important;
+  }
+
+  .native-app-topbar {
+    border-radius: 24px;
+    min-height: 64px;
+    top: 8px;
+  }
+
+  .native-app-topbar-actions > span {
+    display: none;
+  }
+
+  .native-app-topbar-actions > a {
+    display: none;
+  }
+
+  .dashboard-layout.app-home-layout .app-home-grid,
+  .dashboard-layout.app-home-layout .app-home-grid.compact,
+  .dashboard-layout.app-home-layout .staff-metric-strip,
+  .dashboard-layout.app-home-layout .inspector-kpi-strip,
+  .dashboard-layout.app-home-layout .national-kpi-strip,
+  .dashboard-layout.app-home-layout .executive-kpi-center {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .dashboard-layout.app-home-layout .app-home-hero,
+  .dashboard-layout.app-home-layout .staff-shift-hero,
+  .dashboard-layout.app-home-layout .inspector-command-hero,
+  .dashboard-layout.app-home-layout .national-command-hero {
+    border-radius: 28px !important;
+  }
+}
+
+@media (max-width: 420px) {
+  .dashboard-layout.app-home-layout .app-home-grid,
+  .dashboard-layout.app-home-layout .app-home-grid.compact,
+  .dashboard-layout.app-home-layout .staff-metric-strip,
+  .dashboard-layout.app-home-layout .inspector-kpi-strip,
+  .dashboard-layout.app-home-layout .national-kpi-strip,
+  .dashboard-layout.app-home-layout .executive-kpi-center,
+  .garden-today-glance,
+  .garden-action-dock {
+    grid-template-columns: 1fr !important;
   }
 }

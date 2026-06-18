@@ -51,7 +51,7 @@ export default async function StaffDashboard() {
       .limit(20);
     const applications = (applicationsRes.data ?? []) as any[];
     return (
-      <DashboardShell role="staff" title="מועמדות צוות">
+      <DashboardShell role="staff" title="מועמדות צוות" appHome>
         <AppHomeShell className="staff-app-home">
           <AppHomeHero
             eyebrow="בית צוות"
@@ -133,7 +133,7 @@ export default async function StaffDashboard() {
   const urgentAlerts = (incidentsRes.count ?? 0) + (notificationsRes.count ?? 0);
 
   return (
-    <DashboardShell role="staff" title="משמרת">
+    <DashboardShell role="staff" title="משמרת" appHome>
       <AppHomeShell className="staff-workspace-shell staff-app-home">
         <section className="staff-shift-hero">
           <div className="staff-shift-status">
