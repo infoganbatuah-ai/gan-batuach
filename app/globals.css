@@ -14838,3 +14838,388 @@ body:has(.app-home-layout) {
     grid-template-columns: 1fr !important;
   }
 }
+
+/* USER REFERENCE PASS: colorful kindergarten app UX inspired by the supplied PDF. */
+body:has(.app-home-layout) {
+  background:
+    radial-gradient(circle at 12% 10%, rgb(255 196 87 / 32%), transparent 24%),
+    radial-gradient(circle at 88% 4%, rgb(118 217 226 / 34%), transparent 26%),
+    linear-gradient(180deg, #fff7ea 0%, #eef8ff 46%, #fff9f7 100%) !important;
+}
+
+.dashboard-layout.app-home-layout .dashboard-main {
+  max-width: 520px !important;
+  padding-top: 18px !important;
+}
+
+.dashboard-role-admin.app-home-layout .dashboard-main {
+  max-width: 760px !important;
+}
+
+.dashboard-layout.app-home-layout .native-app-stage,
+.dashboard-layout.app-home-layout .native-app-topbar,
+.dashboard-layout.app-home-layout .sandbox-banner,
+.dashboard-layout.app-home-layout .policy-card {
+  max-width: 460px !important;
+}
+
+.dashboard-role-admin.app-home-layout .native-app-stage,
+.dashboard-role-admin.app-home-layout .native-app-topbar {
+  max-width: 720px !important;
+}
+
+.dashboard-layout.app-home-layout .native-app-stage {
+  background: rgb(255 255 255 / 74%);
+  border: 1px solid rgb(255 255 255 / 84%);
+  border-radius: 42px;
+  box-shadow:
+    0 30px 90px rgb(27 56 61 / 16%),
+    inset 0 1px 0 rgb(255 255 255 / 80%);
+  padding: 12px;
+}
+
+.native-app-topbar {
+  background: rgb(255 255 255 / 88%) !important;
+  border: 1px solid rgb(255 255 255 / 90%) !important;
+  border-radius: 30px !important;
+  box-shadow: 0 18px 46px rgb(60 76 90 / 12%) !important;
+}
+
+.native-app-logo {
+  color: #ff7a5f !important;
+}
+
+.native-app-topbar-actions > span,
+.native-app-topbar-actions > a,
+.native-app-topbar-actions button {
+  background: #fff3ed !important;
+  border-color: #ffe0d3 !important;
+  color: #25324b !important;
+}
+
+.dashboard-layout.app-home-layout .app-home-shell,
+.dashboard-layout.app-home-layout .garden-mobile-app-home,
+.dashboard-layout.app-home-layout .parent-app-home,
+.dashboard-layout.app-home-layout .staff-app-home,
+.dashboard-layout.app-home-layout .inspector-app-home {
+  max-width: 100% !important;
+}
+
+.dashboard-layout.app-home-layout .app-home-hero,
+.dashboard-layout.app-home-layout .staff-shift-hero,
+.dashboard-layout.app-home-layout .inspector-command-hero,
+.dashboard-layout.app-home-layout .national-command-hero {
+  background:
+    linear-gradient(145deg, #ff8a65 0%, #ffc44f 46%, #78d6c6 100%) !important;
+  border-radius: 34px !important;
+  box-shadow: 0 18px 54px rgb(255 138 101 / 22%) !important;
+  color: #25324b !important;
+}
+
+.dashboard-layout.app-home-layout .app-home-hero h1,
+.dashboard-layout.app-home-layout .staff-shift-hero h1,
+.dashboard-layout.app-home-layout .inspector-command-hero h1,
+.dashboard-layout.app-home-layout .national-command-hero h1 {
+  color: #25324b !important;
+  font-size: clamp(29px, 8vw, 44px) !important;
+  font-weight: 950 !important;
+}
+
+.dashboard-layout.app-home-layout .app-home-hero p,
+.dashboard-layout.app-home-layout .staff-shift-hero p,
+.dashboard-layout.app-home-layout .inspector-command-hero p,
+.dashboard-layout.app-home-layout .national-command-hero p {
+  color: rgb(37 50 75 / 78%) !important;
+  font-weight: 750 !important;
+}
+
+.garden-phone-hero {
+  background:
+    linear-gradient(145deg, #59c7df 0%, #6bd49d 44%, #ffd56a 100%) !important;
+  border: 8px solid #ffffff !important;
+  border-radius: 38px !important;
+  box-shadow:
+    0 24px 70px rgb(89 199 223 / 24%),
+    inset 0 1px 0 rgb(255 255 255 / 55%) !important;
+  color: #213049 !important;
+}
+
+.garden-phone-hero::after {
+  display: none !important;
+}
+
+.garden-phone-hero-top span,
+.garden-phone-hero p,
+.garden-hello {
+  color: rgb(33 48 73 / 74%) !important;
+}
+
+.garden-phone-hero h1 {
+  color: #213049 !important;
+  text-shadow: none !important;
+}
+
+.garden-mini-status {
+  background: #fff !important;
+  border-color: rgb(255 255 255 / 80%) !important;
+  color: #ff725e !important;
+  box-shadow: 0 10px 24px rgb(33 48 73 / 10%);
+}
+
+.garden-hero-illustration {
+  background: rgb(255 255 255 / 48%);
+  border: 1px solid rgb(255 255 255 / 72%);
+  border-radius: 28px;
+  height: 150px;
+  overflow: hidden;
+  position: relative;
+}
+
+.garden-hero-illustration .sun,
+.garden-hero-illustration .child,
+.garden-hero-illustration .teacher,
+.garden-hero-illustration .board {
+  display: block;
+  position: absolute;
+}
+
+.garden-hero-illustration .sun {
+  background: #ffd456;
+  border-radius: 50%;
+  height: 42px;
+  left: 20px;
+  top: 18px;
+  width: 42px;
+}
+
+.garden-hero-illustration .board {
+  background: #75d7c4;
+  border: 6px solid #fff;
+  border-radius: 18px;
+  bottom: 24px;
+  height: 58px;
+  left: 58px;
+  width: 124px;
+}
+
+.garden-hero-illustration .child,
+.garden-hero-illustration .teacher {
+  background: #ff8a65;
+  border: 5px solid #fff;
+  border-radius: 999px 999px 20px 20px;
+  bottom: 18px;
+  height: 72px;
+  width: 48px;
+}
+
+.garden-hero-illustration .child::before,
+.garden-hero-illustration .teacher::before {
+  background: #ffe0b2;
+  border-radius: 50%;
+  content: "";
+  height: 28px;
+  left: 5px;
+  position: absolute;
+  top: -18px;
+  width: 28px;
+}
+
+.garden-hero-illustration .child.one {
+  background: #5ab3f0;
+  right: 42px;
+}
+
+.garden-hero-illustration .child.two {
+  background: #b28cff;
+  right: 96px;
+  transform: scale(.88);
+}
+
+.garden-hero-illustration .teacher {
+  background: #ffbd4a;
+  bottom: 16px;
+  right: 148px;
+  transform: scale(1.05);
+}
+
+.garden-primary-action {
+  background: #fff !important;
+  border: 0 !important;
+  border-radius: 26px !important;
+  box-shadow: 0 16px 42px rgb(33 48 73 / 14%) !important;
+}
+
+.garden-today-glance,
+.garden-action-dock,
+.dashboard-layout.app-home-layout .app-home-grid,
+.dashboard-layout.app-home-layout .app-home-grid.compact,
+.dashboard-layout.app-home-layout .staff-metric-strip,
+.dashboard-layout.app-home-layout .inspector-kpi-strip,
+.dashboard-layout.app-home-layout .national-kpi-strip {
+  gap: 12px !important;
+}
+
+.garden-glance-card,
+.dashboard-layout.app-home-layout .app-status-card,
+.dashboard-layout.app-home-layout .role-metric-card,
+.dashboard-layout.app-home-layout .executive-kpi-center article {
+  border: 0 !important;
+  border-radius: 26px !important;
+  box-shadow: 0 14px 34px rgb(51 65 85 / 10%) !important;
+}
+
+.garden-glance-card:nth-child(4n+1),
+.dashboard-layout.app-home-layout .app-status-card:nth-child(4n+1),
+.dashboard-layout.app-home-layout .role-metric-card:nth-child(4n+1) {
+  background: #dff7ff !important;
+}
+
+.garden-glance-card:nth-child(4n+2),
+.dashboard-layout.app-home-layout .app-status-card:nth-child(4n+2),
+.dashboard-layout.app-home-layout .role-metric-card:nth-child(4n+2) {
+  background: #fff0b9 !important;
+}
+
+.garden-glance-card:nth-child(4n+3),
+.dashboard-layout.app-home-layout .app-status-card:nth-child(4n+3),
+.dashboard-layout.app-home-layout .role-metric-card:nth-child(4n+3) {
+  background: #e5f8d7 !important;
+}
+
+.garden-glance-card:nth-child(4n+4),
+.dashboard-layout.app-home-layout .app-status-card:nth-child(4n+4),
+.dashboard-layout.app-home-layout .role-metric-card:nth-child(4n+4) {
+  background: #ffe0ec !important;
+}
+
+.garden-action-dock,
+.dashboard-layout.app-home-layout .app-home-section {
+  background: #ffffff !important;
+  border: 0 !important;
+  border-radius: 32px !important;
+  box-shadow: 0 18px 48px rgb(51 65 85 / 11%) !important;
+}
+
+.garden-dock-action,
+.dashboard-layout.app-home-layout .app-quick-action,
+.dashboard-layout.app-home-layout .premium-action-card {
+  border: 0 !important;
+  border-radius: 24px !important;
+  min-height: 106px !important;
+}
+
+.garden-dock-action:nth-child(6n+1),
+.dashboard-layout.app-home-layout .app-quick-action:nth-child(6n+1),
+.dashboard-layout.app-home-layout .premium-action-card:nth-child(6n+1) {
+  background: #51c7d9 !important;
+}
+
+.garden-dock-action:nth-child(6n+2),
+.dashboard-layout.app-home-layout .app-quick-action:nth-child(6n+2),
+.dashboard-layout.app-home-layout .premium-action-card:nth-child(6n+2) {
+  background: #ffbd4a !important;
+}
+
+.garden-dock-action:nth-child(6n+3),
+.dashboard-layout.app-home-layout .app-quick-action:nth-child(6n+3),
+.dashboard-layout.app-home-layout .premium-action-card:nth-child(6n+3) {
+  background: #78d68c !important;
+}
+
+.garden-dock-action:nth-child(6n+4),
+.dashboard-layout.app-home-layout .app-quick-action:nth-child(6n+4),
+.dashboard-layout.app-home-layout .premium-action-card:nth-child(6n+4) {
+  background: #b28cff !important;
+}
+
+.garden-dock-action:nth-child(6n+5),
+.dashboard-layout.app-home-layout .app-quick-action:nth-child(6n+5),
+.dashboard-layout.app-home-layout .premium-action-card:nth-child(6n+5) {
+  background: #ff8a9a !important;
+}
+
+.garden-dock-action:nth-child(6n+6),
+.dashboard-layout.app-home-layout .app-quick-action:nth-child(6n+6),
+.dashboard-layout.app-home-layout .premium-action-card:nth-child(6n+6) {
+  background: #8bd6ff !important;
+}
+
+.garden-dock-action,
+.garden-dock-action span,
+.garden-dock-action svg,
+.dashboard-layout.app-home-layout .app-quick-action,
+.dashboard-layout.app-home-layout .app-quick-action small,
+.dashboard-layout.app-home-layout .app-quick-action svg,
+.dashboard-layout.app-home-layout .premium-action-card,
+.dashboard-layout.app-home-layout .premium-action-card span,
+.dashboard-layout.app-home-layout .premium-action-card svg {
+  color: #25324b !important;
+}
+
+.dashboard-layout.app-home-layout .button.primary,
+.dashboard-layout.app-home-layout .button.secondary {
+  border: 0 !important;
+  border-radius: 999px !important;
+  box-shadow: 0 12px 28px rgb(255 122 95 / 18%) !important;
+  font-weight: 950 !important;
+}
+
+.dashboard-layout.app-home-layout .button.primary {
+  background: #ff725e !important;
+  color: #fff !important;
+}
+
+.dashboard-layout.app-home-layout .button.secondary {
+  background: #ffffff !important;
+  color: #25324b !important;
+}
+
+.dashboard-layout.app-home-layout .mobile-tabbar {
+  background: #ffffff !important;
+  border: 0 !important;
+  border-radius: 30px !important;
+  box-shadow: 0 18px 48px rgb(40 50 68 / 18%) !important;
+  max-width: 390px !important;
+}
+
+.dashboard-layout.app-home-layout .mobile-tabbar a {
+  color: #7a8498 !important;
+}
+
+.dashboard-layout.app-home-layout .mobile-tabbar a:first-child {
+  background: #2ec4b6 !important;
+  color: #fff !important;
+}
+
+@media (min-width: 900px) {
+  .dashboard-layout.app-home-layout::before {
+    border: 10px solid #111827;
+    border-radius: 52px;
+    box-shadow: 0 34px 90px rgb(17 24 39 / 18%);
+    content: "";
+    inset-block: 8px 24px;
+    left: 50%;
+    max-width: 500px;
+    pointer-events: none;
+    position: fixed;
+    transform: translateX(-50%);
+    width: min(500px, calc(100vw - 40px));
+    z-index: 0;
+  }
+
+  .dashboard-layout.app-home-layout .dashboard-main {
+    position: relative;
+    z-index: 1;
+  }
+}
+
+@media (max-width: 760px) {
+  .dashboard-layout.app-home-layout .native-app-stage {
+    border-radius: 30px;
+    padding: 8px;
+  }
+
+  .garden-hero-illustration {
+    height: 128px;
+  }
+}

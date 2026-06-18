@@ -111,6 +111,13 @@ export default async function GardenDashboard() {
             <h1>{garden.name ?? "הגן"}</h1>
             <p>{garden.city ?? "העיר לא הוגדרה"} · מנוי גן בטוח {monthlyAmount} ₪ לחודש · הכל מנוהל במסך קצר וברור.</p>
           </div>
+          <div className="garden-hero-illustration" aria-hidden="true">
+            <span className="sun" />
+            <span className="child one" />
+            <span className="child two" />
+            <span className="teacher" />
+            <span className="board" />
+          </div>
           <Link className="garden-primary-action" href={todayPriority.href}>
             <span>{todayPriority.title}</span>
             <small>{todayPriority.text}</small>
