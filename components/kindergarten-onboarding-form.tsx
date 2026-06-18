@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, type FormEvent } from "react";
+import { Bell, CheckCircle2, CreditCard, Lock, Rocket, Save, ShieldCheck, WalletCards } from "lucide-react";
 import { UploadImageField } from "@/components/upload-image-field";
 import { calculateGanBatuachMonthlyPrice, calculateRequiredStaff, kindergartenAgeGroups, knownKindergartenCities, operationalDistrictForCity, requiredKindergartenDocumentCategories } from "@/lib/domain/kindergarten-onboarding";
 
@@ -132,9 +133,11 @@ export function ManagerKindergartenApplicationForm({ managerName, managerPhone, 
   );
 }
 
-export function KindergartenSubscriptionActivationPanel({ gardenName, monthlyAmount }: { gardenName?: string | null; monthlyAmount?: number | null }) {
+export function KindergartenSubscriptionActivationPanel({ gardenName, managerName, monthlyAmount }: { gardenName?: string | null; managerName?: string | null; monthlyAmount?: number | null }) {
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
+  const monthly = Number(monthlyAmount ?? 800);
+  const annual = monthly * 12;
   async function requestPayment() {
     setBusy(true);
     setMessage("");
@@ -154,20 +157,113 @@ export function KindergartenSubscriptionActivationPanel({ gardenName, monthlyAmo
     }
   }
   return (
-    <section className="card action-panel subscription-activation-panel">
-      <p className="eyebrow">אישור אדמין הושלם</p>
-      <h2>הגן אושר — יש להשלים תשלום מנוי.</h2>
-      <p>{gardenName ?? "הגן"} אושר להפעלה, אבל הגישה המלאה תיפתח רק אחרי תשלום מנוי גן בטוח או override אדמין מתועד.</p>
-      <div className="subscription-breakdown-grid">
-        <div><span>מנוי גן בטוח</span><strong>₪{Number(monthlyAmount ?? 800).toLocaleString("he-IL")}/חודש</strong><small>מחיר בסיס: 800 ₪ לחודש לכיתה/קבוצת גיל ראשונה.</small></div>
-        <div><span>קבוצה נוספת</span><strong>+200 ₪</strong><small>לכל כיתה/קבוצת גיל נוספת לפי ההגדרה באשף.</small></div>
-        <div><span>דמו</span><strong>3 ימים</strong><small>אם הופעל דמו, לאחריו יש להסדיר תשלום כדי למנוע הקפאה.</small></div>
-        <div><span>תשלומי הורים</span><strong>נפרד</strong><small>הורה משלם לגן. זה לא מנוי Gan Batuach.</small></div>
-      </div>
-      <div className="warning-banner">אם ספק תשלומים חי לא מוגדר, הבקשה תישלח לאדמין במצב ידני/מוכנות ולא תתבצע גבייה חיה.</div>
-      <button className="button primary large" disabled={busy} onClick={requestPayment}>{busy ? "שולח..." : "פתיחת בקשת תשלום מנוי"}</button>
-      {message ? <span className={message.includes("לא ") ? "error-text" : "payment-action-message"}>{message}</span> : null}
-    </section>
+    <main className="teacher-payment-complete-page" dir="rtl">
+      <section className="teacher-payment-phone">
+        <header className="teacher-payment-header">
+          <button className="teacher-icon-button" type="button" aria-label="התראות"><Bell size={24} /><span /></button>
+          <div className="teacher-app-greeting">
+            <div className="teacher-avatar"><span>{managerName?.slice(0, 1) ?? "מ"}</span><i /></div>
+            <div>
+              <h1>בוקר טוב, {managerName?.split(" ")[0] ?? "מאיה"}</h1>
+              <p>{gardenName ?? "גן חמודים"}, תל אביב</p>
+            </div>
+            <b aria-hidden="true">☀️</b>
+          </div>
+        </header>
+
+        <section className="teacher-payment-title">
+          <WalletCards size={40} />
+          <h2>סיכום ותשלום</h2>
+          <p>שלב 5 מתוך 5 · סיכום, מנוי ותשלום</p>
+        </section>
+
+        <ol className="teacher-payment-steps" aria-label="שלבי רישום">
+          <li><span>1</span><b>אישור</b></li>
+          <li><span>2</span><b>פרטי הגן</b></li>
+          <li className="done"><span><CheckCircle2 size={18} /></span><b>צוות</b></li>
+          <li className="done"><span><CheckCircle2 size={18} /></span><b>ילדים והורים</b></li>
+          <li className="active"><span>5</span><b>סיכום ותשלום</b></li>
+        </ol>
+
+        <section className="teacher-payment-grid">
+          <article className="teacher-payment-card ready-card">
+            <div className="ready-ring"><strong>100%</strong><span>הקמה הושלמה</span></div>
+            <div>
+              <h3>הכל מוכן להפעלה</h3>
+              {["פרטי הגן הושלמו", "אנשי צוות נוספו", "ילדים והורים הוזנו", "מצלמות וחיבורים הוגדרו", "אמצעי דיווח וניטור מוכנים"].map((item) => (
+                <p key={item}><CheckCircle2 size={20} /> {item}</p>
+              ))}
+            </div>
+          </article>
+
+          <article className="teacher-payment-card plan-card">
+            <span className="teacher-green-pill">התוכנית שנבחרה</span>
+            <h3>פרטי המנוי</h3>
+            <div className="plan-badge"><ShieldCheck size={54} /></div>
+            <p>מנוי שנתי בתשלום חודשי</p>
+            <strong>{monthly.toLocaleString("he-IL")} ₪ לחודש</strong>
+            <small>התחייבות ל־12 חודשים</small>
+            <em>סה״כ לשנה: {annual.toLocaleString("he-IL")} ₪</em>
+            <p>כולל גישה מלאה למערכת, מצלמות להורים, דוחות, נוכחות, התראות ותקשורת.</p>
+          </article>
+
+          <article className="teacher-payment-card billing-card">
+            <h3>פירוט חיוב</h3>
+            <dl>
+              <div><dt>מנוי חודשי</dt><dd>{monthly.toLocaleString("he-IL")} ₪</dd></div>
+              <div><dt>כמות משתמשים</dt><dd>ללא הגבלה</dd></div>
+              <div><dt>תקופת התחייבות</dt><dd>12 חודשים</dd></div>
+              <div><dt>חיוב הבא</dt><dd>15.06.2025</dd></div>
+              <div className="total"><dt>סה״כ לחיוב היום</dt><dd>{monthly.toLocaleString("he-IL")} ₪</dd></div>
+            </dl>
+          </article>
+
+          <article className="teacher-payment-card method-card">
+            <h3><Lock size={18} /> אמצעי תשלום</h3>
+            <div className="payment-method-tabs">
+              <button className="active" type="button"><CreditCard size={20} /> כרטיס אשראי</button>
+              <button type="button">Apple Pay</button>
+              <button type="button">Google Pay</button>
+            </div>
+            <label>שם בעל הכרטיס<input value={managerName ?? "מאיה לוי"} readOnly /></label>
+            <label>מספר כרטיס<input value="**** **** **** 4242" readOnly /></label>
+            <div className="method-row">
+              <label>תוקף<input value="06 / 28" readOnly /></label>
+              <label>CVV<input value="***" readOnly /></label>
+            </div>
+            <p className="safe-payment-note"><ShieldCheck size={18} /> התשלום מאובטח ומוצפן</p>
+          </article>
+
+          <article className="teacher-payment-card ai-after-payment">
+            <div className="teacher-ai-bot" aria-hidden="true"><span /></div>
+            <div>
+              <h3>לאחר השלמת התשלום</h3>
+              <p>ניתן יהיה להפעיל את המערכת ולפתוח גישת הורים.</p>
+            </div>
+          </article>
+
+          <article className="teacher-payment-card confirmations-card">
+            <h3>אישורים ותנאים</h3>
+            {[
+              "אני מאשרת את תנאי המנוי והתשלום החודשי",
+              `אני מאשרת חיוב חודשי של ${monthly.toLocaleString("he-IL")} ₪ למשך 12 חודשים`,
+              "אני מאשרת קבלת חשבונית למייל"
+            ].map((item) => (
+              <label key={item}><input defaultChecked type="checkbox" /> {item}</label>
+            ))}
+          </article>
+        </section>
+
+        <div className="teacher-payment-actions">
+          <button className="teacher-pay-button" disabled={busy} onClick={requestPayment} type="button">
+            <Rocket size={24} /> {busy ? "שולח..." : "שלם והפעל מנוי"}
+          </button>
+          <button className="teacher-save-button" type="button"><Save size={22} /> שמור לטיוטה</button>
+          {message ? <span className={message.includes("לא ") ? "error-text" : "payment-action-message"}>{message}</span> : null}
+          <small>אם ספק תשלומים חי לא מוגדר, הבקשה תישלח לאדמין במצב ידני/מוכנות ולא תתבצע גבייה חיה.</small>
+        </div>
+      </section>
+    </main>
   );
 }
 

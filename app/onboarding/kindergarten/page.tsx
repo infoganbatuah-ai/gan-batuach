@@ -57,6 +57,10 @@ export default async function KindergartenOnboardingPage() {
   const isWaitingForAdmin = ["onboarding_submitted", "pending_final_approval"].includes(String(onboarding.lifecycle_status ?? garden?.approval_flow_status ?? ""));
   const isPaymentPending = String(onboarding.lifecycle_status ?? garden?.approval_flow_status ?? "") === "payment_pending";
 
+  if (isPaymentPending) {
+    return <KindergartenSubscriptionActivationPanel gardenName={garden?.name} managerName={profile.full_name} monthlyAmount={Number(onboarding.subscription_monthly_amount ?? onboarding.profile_data?.subscription_monthly_amount ?? 800)} />;
+  }
+
   return (
     <>
       <BrandHeader />
@@ -71,9 +75,7 @@ export default async function KindergartenOnboardingPage() {
         >
           <div className="onboarding-hero-icon"><ClipboardCheck /><ShieldCheck /></div>
         </PremiumDashboardHero>
-        {isPaymentPending ? (
-          <KindergartenSubscriptionActivationPanel gardenName={garden?.name} monthlyAmount={Number(onboarding.subscription_monthly_amount ?? onboarding.profile_data?.subscription_monthly_amount ?? 800)} />
-        ) : isWaitingForAdmin ? (
+        {isWaitingForAdmin ? (
           <section className="card onboarding-waiting-card">
             <p className="eyebrow">נשלח לאישור</p>
             <h2>הפרופיל אצל האדמין.</h2>

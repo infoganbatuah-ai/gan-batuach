@@ -1313,6 +1313,446 @@
   }
 }
 
+.teacher-payment-complete-page {
+  background:
+    radial-gradient(circle at 50% -15%, #fff 0 16%, transparent 42%),
+    linear-gradient(180deg, #f8fbff 0%, #eff6ff 100%);
+  color: #102d55;
+  min-height: 100vh;
+  padding: 14px;
+}
+
+.teacher-payment-phone {
+  background:
+    radial-gradient(circle at 75% 3%, rgb(255 255 255 / 94%) 0 130px, transparent 260px),
+    linear-gradient(180deg, rgb(255 255 255 / 84%), rgb(255 255 255 / 72%));
+  border: 1px solid #e6edf8;
+  border-radius: 52px;
+  box-shadow: 0 28px 80px rgb(32 64 108 / 13%);
+  margin: 0 auto;
+  max-width: 940px;
+  min-height: calc(100vh - 28px);
+  overflow: hidden;
+  padding: 40px 30px 34px;
+  position: relative;
+}
+
+.teacher-payment-phone::before {
+  color: #0b0d13;
+  content: "9:41";
+  direction: ltr;
+  font-size: 26px;
+  font-weight: 950;
+  left: 72px;
+  position: absolute;
+  top: 30px;
+}
+
+.teacher-payment-phone::after {
+  color: #0b0d13;
+  content: "▮▮▮  WiFi  ▰";
+  direction: ltr;
+  font-size: 18px;
+  font-weight: 900;
+  position: absolute;
+  right: 60px;
+  top: 34px;
+}
+
+.teacher-payment-header {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  margin-top: 54px;
+}
+
+.teacher-payment-title {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 28px auto 18px;
+  text-align: center;
+}
+
+.teacher-payment-title svg {
+  color: #7d52f4;
+}
+
+.teacher-payment-title h2 {
+  color: #102d55;
+  font-size: clamp(34px, 6vw, 48px);
+  font-weight: 950;
+  margin: 0;
+}
+
+.teacher-payment-title p {
+  color: #71809c;
+  font-size: 19px;
+  font-weight: 800;
+  margin: 0;
+}
+
+.teacher-payment-steps {
+  align-items: flex-start;
+  counter-reset: none;
+  display: grid;
+  gap: 0;
+  grid-template-columns: repeat(5, 1fr);
+  list-style: none;
+  margin: 30px 18px 34px;
+  padding: 0;
+  position: relative;
+}
+
+.teacher-payment-steps::before {
+  background: #cbb7ff;
+  content: "";
+  height: 2px;
+  left: 8%;
+  position: absolute;
+  right: 8%;
+  top: 23px;
+  z-index: 0;
+}
+
+.teacher-payment-steps li {
+  align-items: center;
+  color: #647899;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  position: relative;
+  z-index: 1;
+}
+
+.teacher-payment-steps span {
+  align-items: center;
+  background: linear-gradient(135deg, #9568ff, #6f42ee);
+  border-radius: 999px;
+  box-shadow: 0 12px 26px rgb(107 70 238 / 22%);
+  color: #fff;
+  display: flex;
+  font-size: 18px;
+  font-weight: 950;
+  height: 46px;
+  justify-content: center;
+  width: 46px;
+}
+
+.teacher-payment-steps b {
+  color: #7359e8;
+  font-size: 15px;
+  font-weight: 950;
+}
+
+.teacher-payment-grid {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.teacher-payment-card {
+  background: rgb(255 255 255 / 88%);
+  border: 1px solid #e6edf8;
+  border-radius: 28px;
+  box-shadow: 0 16px 44px rgb(37 66 110 / 8%);
+  padding: 26px;
+}
+
+.teacher-payment-card h3 {
+  color: #102d55;
+  font-size: 24px;
+  font-weight: 950;
+  margin: 0 0 18px;
+}
+
+.ready-card {
+  align-items: center;
+  display: grid;
+  gap: 24px;
+  grid-template-columns: 210px minmax(0, 1fr);
+}
+
+.ready-ring {
+  align-items: center;
+  aspect-ratio: 1;
+  background:
+    radial-gradient(circle, #fff 0 55%, transparent 56%),
+    conic-gradient(#28cd64 0 100%, #e9eff8 0);
+  border-radius: 999px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.ready-ring strong {
+  color: #102d55;
+  font-size: 40px;
+  font-weight: 950;
+}
+
+.ready-ring span,
+.ready-card p,
+.plan-card p,
+.plan-card small,
+.teacher-payment-actions small {
+  color: #637594;
+  font-weight: 800;
+}
+
+.ready-card p {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  justify-content: flex-start;
+}
+
+.ready-card p svg {
+  color: #28c866;
+}
+
+.teacher-green-pill {
+  background: #dff9e8;
+  border-radius: 999px;
+  color: #20ad62;
+  display: inline-flex;
+  font-weight: 950;
+  margin-bottom: 12px;
+  padding: 8px 14px;
+}
+
+.plan-card {
+  text-align: center;
+}
+
+.plan-badge {
+  align-items: center;
+  background: #f0eaff;
+  border-radius: 28px;
+  color: #8058f6;
+  display: inline-flex;
+  height: 98px;
+  justify-content: center;
+  margin: 8px auto 14px;
+  width: 98px;
+}
+
+.plan-card > strong {
+  color: #102d55;
+  display: block;
+  font-size: 30px;
+  font-weight: 950;
+}
+
+.plan-card em {
+  background: #f4f1ff;
+  border-radius: 14px;
+  color: #102d55;
+  display: block;
+  font-size: 22px;
+  font-style: normal;
+  font-weight: 950;
+  margin: 18px auto;
+  padding: 14px;
+  width: fit-content;
+}
+
+.billing-card dl {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 0;
+}
+
+.billing-card div {
+  align-items: center;
+  background: #fff;
+  border: 1px solid #e8eff9;
+  border-radius: 14px;
+  display: flex;
+  justify-content: space-between;
+  padding: 13px 16px;
+}
+
+.billing-card dt,
+.billing-card dd {
+  color: #102d55;
+  font-weight: 900;
+  margin: 0;
+}
+
+.billing-card .total {
+  color: #7d52f4;
+  font-size: 20px;
+}
+
+.method-card label {
+  color: #7a8ba7;
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+  font-weight: 900;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.method-card input {
+  background: #fff;
+  border: 1px solid #e1eaf7;
+  border-radius: 14px;
+  color: #102d55;
+  font-size: 18px;
+  font-weight: 900;
+  padding: 14px;
+}
+
+.payment-method-tabs {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.payment-method-tabs button {
+  align-items: center;
+  background: #fff;
+  border: 1px solid #e1eaf7;
+  border-radius: 16px;
+  color: #102d55;
+  display: inline-flex;
+  font-weight: 950;
+  gap: 7px;
+  justify-content: center;
+  min-height: 72px;
+}
+
+.payment-method-tabs button.active {
+  border-color: #8758ff;
+  box-shadow: inset 0 0 0 1px #8758ff;
+  color: #7b4cf2;
+}
+
+.method-row {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 1fr 1fr;
+}
+
+.safe-payment-note {
+  align-items: center;
+  color: #6e7f9b;
+  display: inline-flex;
+  font-weight: 900;
+  gap: 8px;
+  justify-content: center;
+  margin: 14px 0 0;
+  width: 100%;
+}
+
+.safe-payment-note svg {
+  color: #27c66a;
+}
+
+.ai-after-payment {
+  align-items: center;
+  display: flex;
+  gap: 18px;
+}
+
+.confirmations-card label {
+  align-items: center;
+  color: #102d55;
+  display: flex;
+  font-size: 17px;
+  font-weight: 900;
+  gap: 10px;
+  margin: 14px 0;
+}
+
+.confirmations-card input {
+  accent-color: #8758ff;
+  height: 22px;
+  width: 22px;
+}
+
+.teacher-payment-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  margin-top: 22px;
+}
+
+.teacher-pay-button,
+.teacher-save-button {
+  align-items: center;
+  border-radius: 18px;
+  display: inline-flex;
+  font-size: 22px;
+  font-weight: 950;
+  gap: 10px;
+  justify-content: center;
+  min-height: 72px;
+  width: 100%;
+}
+
+.teacher-pay-button {
+  background: linear-gradient(135deg, #8d5bff, #6e42ef);
+  border: 0;
+  box-shadow: 0 18px 38px rgb(111 66 239 / 24%);
+  color: #fff;
+}
+
+.teacher-save-button {
+  background: #fff;
+  border: 2px solid #8758ff;
+  color: #7b4cf2;
+}
+
+@media (max-width: 760px) {
+  .teacher-payment-complete-page {
+    padding: 0;
+  }
+
+  .teacher-payment-phone {
+    border-radius: 0;
+    min-height: 100vh;
+    padding: 24px 16px 28px;
+  }
+
+  .teacher-payment-phone::before,
+  .teacher-payment-phone::after {
+    display: none;
+  }
+
+  .teacher-payment-header {
+    margin-top: 0;
+  }
+
+  .teacher-payment-grid,
+  .ready-card {
+    grid-template-columns: 1fr;
+  }
+
+  .ready-ring {
+    margin: 0 auto;
+    max-width: 210px;
+    width: 70%;
+  }
+
+  .teacher-payment-steps {
+    margin-inline: 0;
+  }
+
+  .teacher-payment-steps b {
+    font-size: 12px;
+  }
+
+  .payment-method-tabs,
+  .method-row {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* PHASE 173: standalone Digital Observer product shell */
 .digital-observer-public,
 .digital-observer-app {
