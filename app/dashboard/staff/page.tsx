@@ -4,7 +4,7 @@ import { AlertTriangle, Baby, Bell, ClipboardList, HeartPulse, MapPin, MessageSq
 import { Avatar } from "@/components/avatar";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { StaffOneHandMode } from "@/components/staff-one-hand-mode";
-import { ActionCard, RoleMetricCard } from "@/components/premium-dashboard";
+import { ActionCard, AppHomeGrid, AppHomeHero, AppHomeSection, AppHomeShell, AppQuickAction, AppStatusCard, RoleMetricCard } from "@/components/premium-dashboard";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
@@ -52,31 +52,36 @@ export default async function StaffDashboard() {
     const applications = (applicationsRes.data ?? []) as any[];
     return (
       <DashboardShell role="staff" title="מועמדות צוות">
-        <section className="dashboard-hero-card">
-          <div>
-            <p className="eyebrow">חשבון צוות מוגבל</p>
-            <h1>מצאו גן שמחפש עובדים והגישו מועמדות.</h1>
-            <p>עד שמנהלת גן מאשרת אותך, אין גישה לילדים, הורים, מסמכים, מצלמות או מידע פנימי של גן.</p>
-          </div>
-          <span className="pill warn">ממתין לשיוך</span>
-        </section>
-        <section className="staff-action-grid">
-          <ActionCard title="שוק משרות" text="משרות שגנים פרסמו לצוות" href="/dashboard/staff/job-market" icon={ClipboardList} tone="good" />
-          <ActionCard title="פרופיל ומסמכים" text="השלמת פרטים ומסמכים" href="/dashboard/staff/settings" icon={ShieldAlert} />
-          <ActionCard title="התראות" text="עדכונים על מועמדות" href="/dashboard/staff/notifications" icon={Bell} />
-        </section>
-        <section className="dashboard-section">
-          <div className="section-heading"><h2>מועמדויות שהוגשו</h2><p>סטטוס הבקשות שלך לגנים.</p></div>
-          {applications.length === 0 ? <div className="empty-state"><strong>עוד לא הוגשה מועמדות</strong><span>פתחו את שוק המשרות כדי להגיש בקשה לגן.</span></div> : <div className="procedure-list">{applications.map((application) => (
-            <article className="card procedure-card" key={application.id}>
-              <div>
-              <span className={application.status === "approved" ? "pill good" : application.status === "rejected" ? "pill bad" : "pill warn"}>{formatStatus(application.status)}</span>
-                <h3>{application.gardens?.name ?? "גן"}</h3>
-                <p>{application.gardens?.city ?? ""} · {application.kindergarten_staff_openings?.role_needed ?? "צוות"}</p>
-              </div>
-            </article>
-          ))}</div>}
-        </section>
+        <AppHomeShell className="staff-app-home">
+          <AppHomeHero
+            eyebrow="בית צוות"
+            title="עדיין לא שובצת לגן"
+            subtitle="אפשר להשלים פרטים ולהגיש מועמדות. עד אישור מנהלת אין גישה לילדים, הורים, מצלמות או מידע פנימי."
+            badge="ממתין לשיוך"
+            badgeTone="warn"
+            actions={<><Link className="button primary" href="/dashboard/staff/job-market">הגש מועמדות</Link><Link className="button secondary" href="/dashboard/staff/settings">השלמת פרטים</Link></>}
+          />
+          <AppHomeGrid compact>
+            <AppStatusCard label="מועמדויות" value={applications.length} hint="בקשות שהוגשו" tone={applications.length ? "warn" : "default"} href="#applications" />
+            <AppStatusCard label="גישה לגן" value="חסומה" hint="נפתחת רק אחרי אישור" tone="warn" />
+            <AppStatusCard label="מסמכים" value="להשלמה" hint="פרופיל ומסמכי צוות" tone="warn" href="/dashboard/staff/settings" />
+          </AppHomeGrid>
+          <AppHomeSection title="פעולות צוות" subtitle="הפעולות הזמינות לפני שיוך לגן.">
+            <AppHomeGrid>
+              <AppQuickAction title="שוק משרות" text="משרות שגנים פרסמו לצוות" href="/dashboard/staff/job-market" icon={ClipboardList} tone="good" />
+              <AppQuickAction title="פרופיל ומסמכים" text="השלמת פרטים ומסמכים" href="/dashboard/staff/settings" icon={ShieldAlert} />
+              <AppQuickAction title="התראות" text="עדכונים על מועמדות" href="/dashboard/staff/notifications" icon={Bell} />
+            </AppHomeGrid>
+          </AppHomeSection>
+          <AppHomeSection title="מועמדויות שהוגשו" subtitle="סטטוס הבקשות שלך לגנים.">
+            {applications.length === 0 ? <div className="app-empty-state"><strong>עוד לא הוגשה מועמדות</strong><span>פתחו את שוק המשרות כדי להגיש בקשה לגן.</span></div> : <div className="app-home-list" id="applications">{applications.map((application) => (
+              <Link href="/dashboard/staff/job-market" key={application.id}>
+                <strong>{application.gardens?.name ?? "גן"} · {formatStatus(application.status)}</strong>
+                <span>{application.gardens?.city ?? ""} · {application.kindergarten_staff_openings?.role_needed ?? "צוות"}</span>
+              </Link>
+            ))}</div>}
+          </AppHomeSection>
+        </AppHomeShell>
       </DashboardShell>
     );
   }
@@ -129,7 +134,7 @@ export default async function StaffDashboard() {
 
   return (
     <DashboardShell role="staff" title="משמרת">
-      <div className="staff-workspace-shell">
+      <AppHomeShell className="staff-workspace-shell staff-app-home">
         <section className="staff-shift-hero">
           <div className="staff-shift-status">
             <MapPin />
@@ -209,7 +214,7 @@ export default async function StaffDashboard() {
         </section>
 
         {(docsRes.count ?? 0) > 0 ? <section className="staff-emergency-center documents"><div><p className="eyebrow">נדרש ממך</p><h2>חסרים מסמכי צוות</h2><p>השלמת המסמכים עוזרת למנהלת להשאיר אותך מאושר/ת לעבודה.</p></div><Link className="button primary" href="/dashboard/staff/documents">השלמת מסמכים</Link></section> : null}
-      </div>
+      </AppHomeShell>
     </DashboardShell>
   );
 }

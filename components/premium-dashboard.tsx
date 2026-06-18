@@ -101,6 +101,96 @@ export function EmptyState({ title, text, action }: { title: string; text?: stri
   );
 }
 
+export function AppHomeShell({ children, className = "" }: { children: ReactNode; className?: string }) {
+  return <div className={`app-home-shell ${className}`}>{children}</div>;
+}
+
+export function AppHomeHero({
+  eyebrow,
+  title,
+  subtitle,
+  badge,
+  badgeTone = "default",
+  actions,
+  children
+}: {
+  eyebrow: string;
+  title: string;
+  subtitle?: string;
+  badge?: ReactNode;
+  badgeTone?: Tone;
+  actions?: ReactNode;
+  children?: ReactNode;
+}) {
+  return (
+    <section className="app-home-hero">
+      <div className="app-home-hero-copy">
+        <p className="premium-eyebrow">{eyebrow}</p>
+        <h1>{title}</h1>
+        {subtitle ? <p>{subtitle}</p> : null}
+        {actions ? <div className="app-home-actions">{actions}</div> : null}
+      </div>
+      <div className="app-home-hero-side">
+        {badge ? <StatusBadge tone={badgeTone}>{badge}</StatusBadge> : null}
+        {children}
+      </div>
+    </section>
+  );
+}
+
+export function AppHomeSection({ title, subtitle, action, children }: { title: string; subtitle?: string; action?: ReactNode; children: ReactNode }) {
+  return (
+    <section className="app-home-section">
+      <div className="app-home-section-head">
+        <div>
+          <h2>{title}</h2>
+          {subtitle ? <p>{subtitle}</p> : null}
+        </div>
+        {action}
+      </div>
+      {children}
+    </section>
+  );
+}
+
+export function AppHomeGrid({ children, compact = false }: { children: ReactNode; compact?: boolean }) {
+  return <div className={compact ? "app-home-grid compact" : "app-home-grid"}>{children}</div>;
+}
+
+export function AppStatusCard({ label, value, hint, tone = "default", href }: { label: string; value: ReactNode; hint?: string; tone?: Tone; href?: string }) {
+  const content = (
+    <>
+      <span>{label}</span>
+      <strong>{value}</strong>
+      {hint ? <small>{hint}</small> : null}
+    </>
+  );
+  if (href) return <Link className={`app-status-card ${tone}`} href={href}>{content}</Link>;
+  return <article className={`app-status-card ${tone}`}>{content}</article>;
+}
+
+export function AppQuickAction({ title, text, href, icon: Icon, tone = "default" }: { title: string; text?: string; href: string; icon?: IconType; tone?: Tone }) {
+  return (
+    <Link className={`app-quick-action ${tone}`} href={href}>
+      {Icon ? <Icon size={21} /> : null}
+      <span>
+        <strong>{title}</strong>
+        {text ? <small>{text}</small> : null}
+      </span>
+    </Link>
+  );
+}
+
+export function AppEmptyState({ title, text, action }: { title: string; text?: string; action?: ReactNode }) {
+  return (
+    <div className="app-empty-state">
+      <strong>{title}</strong>
+      {text ? <span>{text}</span> : null}
+      {action ? <div>{action}</div> : null}
+    </div>
+  );
+}
+
 export function PageHeader({ title, subtitle, action }: { title: string; subtitle?: string; action?: ReactNode }) {
   return (
     <header className="premium-page-header">
