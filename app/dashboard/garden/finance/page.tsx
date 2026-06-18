@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { DashboardShell } from "@/components/dashboard-shell";
-import { PremiumDashboardHero } from "@/components/premium-dashboard";
 import { requireRole } from "@/lib/auth";
 import {
   loadGardenFinanceData,
@@ -8,6 +7,18 @@ import {
   type FinanceSearchParams
 } from "@/lib/domain/garden-finance-loader";
 import { createClient } from "@/lib/supabase/server";
+import { AlertTriangle, CheckCircle2, CreditCard, Landmark, WalletCards } from "lucide-react";
+import {
+  TeacherAiInsight,
+  TeacherAppFrame,
+  TeacherCompactItem,
+  TeacherCompactList,
+  TeacherFilterPills,
+  TeacherPageTitle,
+  TeacherSection,
+  TeacherStatCard,
+  TeacherStatsGrid
+} from "@/components/teacher-app-ui";
 
 export const dynamic = "force-dynamic";
 
@@ -138,14 +149,77 @@ export default async function GardenFinancePage({ searchParams }: { searchParams
     const criticalFinanceFailure = hasCriticalFinanceFailure(data.diagnostics);
 
     return (
-      <DashboardShell role={role} title="מרכז כספים">
-        <PremiumDashboardHero eyebrow="כספים" title="גבייה חודשית פשוטה." subtitle="מי שילם, מה חסר ומה דורש שיחה קצרה." badge={`גבייה ${Number(totals.collection ?? 0)}%`} badgeTone={Number(totals.overdue ?? 0) ? "warn" : "good"} />
+      <DashboardShell role={role} title="מרכז כספים" appHome>
+        <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "מאיה"}`} subtitle="כספים ותשלומים של הגן" avatarUrl={(profile as any).avatar_url ?? null} active="more">
+          <TeacherPageTitle icon={CreditCard} title="עמוד כספים גננת" subtitle="גבייה חודשית פשוטה וברורה" />
 
         {criticalFinanceFailure ? <div className="warning-banner">חלק מנתוני הכספים לא נטענו</div> : null}
 
         <section className="warning-banner finance-routing-banner">
           תשלומי הורים עוברים ישירות לחשבון הגן או לספק התשלום של הגן. גן בטוח לא מקבל כספי שכר לימוד.
         </section>
+
+        <TeacherStatsGrid>
+          <TeacherStatCard title="הכנסה צפויה" value={money(totals.expected)} hint="שכר לימוד לגן" icon={WalletCards} tone="green" />
+          <TeacherStatCard title="נגבה החודש" value={money(totals.paid)} hint={`גבייה ${Number(totals.collection ?? 0)}%`} icon={CheckCircle2} tone="blue" />
+          <TeacherStatCard title="חסר לגבייה" value={money(totals.missing)} hint="דורש טיפול" icon={AlertTriangle} tone={Number(totals.missing ?? 0) ? "orange" : "green"} />
+          <TeacherStatCard title="באיחור" value={Number(totals.overdue ?? 0)} hint="ילדים" icon={AlertTriangle} tone={Number(totals.overdue ?? 0) ? "red" : "green"} />
+        </TeacherStatsGrid>
+
+        <TeacherFilterPills
+          items={[
+            { label: "הכל", href: "/dashboard/garden/finance", active: !activeFilter },
+            ...financeFilters.map((filter) => ({ label: filter.label, href: `/dashboard/garden/finance?filter=${filter.key}`, active: activeFilter === filter.key }))
+          ]}
+        />
+
+        <section className="teacher-dashboard-grid">
+          <TeacherSection title="תשלומי ילדים" subtitle="זרם כסף: הורה → גן">
+            {children.length ? (
+              <TeacherCompactList>
+                {children.slice(0, 6).map((child: any, index) => (
+                  <TeacherCompactItem
+                    key={child?.id ?? index}
+                    title={child?.full_name ?? "ילד/ה"}
+                    subtitle={`${child?.fee_group_name ?? child?.classroom ?? child?.age_group ?? "קבוצה"} · ${money(child?.actual_monthly_fee ?? child?.group_monthly_fee ?? child?.monthly_fee)}`}
+                    tone={["failed", "not_transferred", "overdue"].includes(child?.payment_status) ? "red" : child?.payment_status === "paid" ? "green" : "orange"}
+                    meta={child?.payment_status === "paid" ? "שולם" : child?.payment_status ?? "לטיפול"}
+                  />
+                ))}
+              </TeacherCompactList>
+            ) : (
+              <div className="teacher-empty-state"><strong>אין ילדים לתצוגת כספים</strong><span>לאחר הוספת ילדים, נתוני התשלום יופיעו כאן.</span></div>
+            )}
+          </TeacherSection>
+
+          <TeacherSection title="יעד תשלום של הגן" subtitle="פרטי יעד נשמרים בצד מאובטח">
+            {payoutConfigurations.length ? (
+              <TeacherCompactList>
+                {payoutConfigurations.slice(0, 3).map((config: any) => (
+                  <TeacherCompactItem key={config.id} title={config.provider === "manual_bank" ? "חשבון בנק" : config.provider} subtitle={`${config.account_holder_name ?? "שם בעל החשבון חסר"} · ${config.billing_email ?? "מייל חיוב חסר"}`} tone={config.status === "verified" ? "green" : "orange"} meta={config.status === "verified" ? "מאומת" : "להשלמה"} />
+                ))}
+              </TeacherCompactList>
+            ) : (
+              <div className="teacher-empty-state"><strong>עדיין לא הוגדר יעד תשלום</strong><span>כדי לקבל תשלומי הורים, יש להגדיר חשבון בנק או ספק תשלום של הגן.</span></div>
+            )}
+          </TeacherSection>
+
+          <TeacherSection title="מנוי גן בטוח" subtitle="זרם נפרד: גן → גן בטוח">
+            <TeacherCompactList>
+              <TeacherCompactItem title="מנוי גן בטוח" subtitle="אינו קשור לשכר לימוד הורים" tone="purple" meta="נפרד" />
+              <TeacherCompactItem title="אישורי הורים לתשלום" subtitle={`${parentPaymentAuthorizations.length} אישורים`} tone={parentPaymentAuthorizations.length ? "green" : "orange"} meta="הורים" />
+              <TeacherCompactItem title="עסקאות הורים ישירות" subtitle={`${parentPaymentTransactions.length} עסקאות`} tone="blue" meta={<Landmark size={16} />} />
+            </TeacherCompactList>
+          </TeacherSection>
+        </section>
+
+        <TeacherAiInsight metric={`${Number(totals.collection ?? 0)}%`}>
+          {Number(totals.missing ?? 0) ? `חסר לגבייה ${money(totals.missing)}. מומלץ להתחיל בילדים עם תשלום באיחור.` : "הגבייה נראית מסודרת. אין פעולה דחופה כרגע."}
+        </TeacherAiInsight>
+
+        <details className="teacher-management-details">
+          <summary>ניהול כספים מלא</summary>
+          <div>
 
         <section className="card action-panel">
           <div className="section-heading">
@@ -269,6 +343,9 @@ export default async function GardenFinancePage({ searchParams }: { searchParams
             </div>
           )}
         </section>
+          </div>
+        </details>
+        </TeacherAppFrame>
       </DashboardShell>
     );
   } catch (error) {

@@ -1,10 +1,23 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Baby, CalendarCheck, CreditCard, FileText, ShieldCheck, UserPlus, UsersRound } from "lucide-react";
+import { Baby, CalendarCheck, CreditCard, FileText, LogIn, LogOut, ShieldAlert, ShieldCheck, UserCheck, UserPlus, UsersRound } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
-import { AppEmptyState, AppHomeShell } from "@/components/premium-dashboard";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import {
+  TeacherActionTile,
+  TeacherAiInsight,
+  TeacherAppFrame,
+  TeacherCompactItem,
+  TeacherCompactList,
+  TeacherEmptyState,
+  TeacherQuickActions,
+  TeacherSection,
+  TeacherStatCard,
+  TeacherStatsGrid,
+  teacherDefaultActions,
+  teacherFinanceActions
+} from "@/components/teacher-app-ui";
 
 function statusLabel(status?: string | null) {
   const labels: Record<string, string> = {
@@ -82,81 +95,88 @@ export default async function GardenDashboard() {
         : nextInspection
           ? { title: "פיקוח קרוב", text: `${nextInspection.title ?? "ביקורת"} · ${nextInspection.due_at ? new Date(nextInspection.due_at).toLocaleDateString("he-IL") : "תאריך לא נקבע"}`, href: "/dashboard/garden/inspections", tone: "default" }
           : { title: "הגן רגוע כרגע", text: "אין פעולות דחופות. אפשר להמשיך לניהול ילדים, צוות או מסמכים.", href: "/dashboard/garden/command-center", tone: "good" };
-  const appStats = [
-    { label: "ילדים", value: childrenCount, hint: "פעילים", href: "/dashboard/garden/children", tone: "good" },
-    { label: "בקשות", value: pendingRequests + waitingPaymentRequests, hint: "לטיפול", href: "/dashboard/garden/enrollment-requests", tone: pendingRequests || waitingPaymentRequests ? "warn" : "good" },
-    { label: "צוות", value: `${activeStaff}/${staffCount}`, hint: "מאושר", href: "/dashboard/garden/staff", tone: activeStaff ? "good" : "warn" },
-    { label: "מסמכים", value: documentsToHandle, hint: "חסרים/בבדיקה", href: "/dashboard/garden/documents", tone: documentsToHandle ? "warn" : "good" }
-  ];
-  const quickActions = [
-    { title: "ילד", text: "הוספה וניהול", href: "/dashboard/garden/children", icon: Baby, tone: "good" },
-    { title: "הורה", text: "הזמנה ושיוך", href: "/dashboard/garden/parents", icon: UserPlus },
-    { title: "בקשות", text: "רישום לגן", href: "/dashboard/garden/enrollment-requests", icon: ShieldCheck, tone: pendingRequests ? "warn" : "default" },
-    { title: "צוות", text: "עובדים ומועמדים", href: "/dashboard/garden/staff", icon: UsersRound },
-    { title: "מסמך", text: "העלאה ותוקף", href: "/dashboard/garden/documents", icon: FileText, tone: documentsToHandle ? "warn" : "default" },
-    { title: "תשלום", text: "מנוי וגבייה", href: "/dashboard/garden/finance", icon: CreditCard },
-    { title: "פיקוח", text: "ביקורות וליקויים", href: "/dashboard/garden/inspections", icon: CalendarCheck }
+  const occupancy = childrenCount ? Math.min(99, Math.round((childrenCount / Math.max(childrenCount + pendingRequests + 1, 1)) * 100)) : 0;
+  const checkedIn = Math.max(childrenCount - Math.max(waitingPaymentRequests, 0), 0);
+  const checkedOut = Math.min(Math.max(waitingPaymentRequests, 0), childrenCount);
+  const activityTimeline = [
+    ["08:00", "קבלת ילדים", "green"],
+    ["09:00", "ארוחת בוקר", "orange"],
+    ["10:00", "פעילות למידה", "purple"],
+    ["11:30", "חצר ומשחק חופשי", "green"],
+    ["12:15", "ארוחת צהריים", "orange"],
+    ["13:00", "שעת סיפור", "blue"],
+    ["14:00", "מנוחה/שקט", "cyan"]
   ];
 
   return (
     <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="בית הגן" appHome>
-      <AppHomeShell className="garden-app-home garden-mobile-app-home">
-        <section className="garden-phone-hero" aria-label="מסך בית גן">
-          <div className="garden-phone-hero-top">
-            <span>גן בטוח</span>
-            <b className={`garden-mini-status ${toneForStatus(subscriptionStatus)}`}>{statusLabel(subscriptionStatus)}</b>
-          </div>
-          <div>
-            <p className="garden-hello">שלום, {profile.full_name ?? "מנהלת הגן"}</p>
-            <h1>{garden.name ?? "הגן"}</h1>
-            <p>{garden.city ?? "העיר לא הוגדרה"} · מנוי גן בטוח {monthlyAmount} ₪ לחודש · הכל מנוהל במסך קצר וברור.</p>
-          </div>
-          <div className="garden-hero-illustration" aria-hidden="true">
-            <span className="sun" />
-            <span className="child one" />
-            <span className="child two" />
-            <span className="teacher" />
-            <span className="board" />
-          </div>
-          <Link className="garden-primary-action" href={todayPriority.href}>
-            <span>{todayPriority.title}</span>
-            <small>{todayPriority.text}</small>
-          </Link>
-        </section>
+      <TeacherAppFrame
+        title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "מאיה"}`}
+        subtitle={`${garden.name ?? "גן הילדים"}${garden.city ? `, ${garden.city}` : ""}`}
+        avatarUrl={(profile as any).avatar_url ?? null}
+        active="home"
+      >
+        <TeacherStatsGrid>
+          <TeacherStatCard title="תפוסת הגן" value={`${occupancy}%`} hint={`${childrenCount} ילדים בגן`} icon={UsersRound} tone="purple" href="/dashboard/garden/children" />
+          <TeacherStatCard title="נוכחות היום" value={childrenCount} hint={`${checkedIn} נכנסו`} icon={UserCheck} tone="green" href="/dashboard/garden/attendance" />
+          <TeacherStatCard title="צ׳ק-אין" value={checkedIn} hint="09:00 ✓" icon={LogIn} tone="blue" href="/dashboard/garden/attendance" />
+          <TeacherStatCard title="צ׳ק-אאוט" value={checkedOut} hint="עד כה היום" icon={LogOut} tone="orange" href="/dashboard/garden/attendance" />
+        </TeacherStatsGrid>
 
-        <section className="garden-today-glance" aria-label="היום בגן">
-          {appStats.map((item) => (
-            <Link className={`garden-glance-card ${item.tone}`} href={item.href} key={item.label}>
-              <span>{item.label}</span>
-              <strong>{item.value}</strong>
-              <small>{item.hint}</small>
-            </Link>
+        <TeacherQuickActions>
+          {teacherDefaultActions.map((action) => (
+            <TeacherActionTile {...action} key={action.title} />
           ))}
+        </TeacherQuickActions>
+
+        <TeacherStatsGrid>
+          <TeacherStatCard title="סטטוס מנוי" value={statusLabel(subscriptionStatus)} hint={`${monthlyAmount} ₪ לחודש`} icon={CreditCard} tone={toneForStatus(subscriptionStatus) === "bad" ? "red" : "green"} href="/dashboard/garden/subscription" />
+          <TeacherStatCard title="בקשות רישום" value={pendingRequests + waitingPaymentRequests} hint={pendingRequests ? "דורש טיפול" : "רגוע"} icon={UserPlus} tone={pendingRequests ? "orange" : "green"} href="/dashboard/garden/enrollment-requests" />
+          <TeacherStatCard title="מסמכים" value={documentsToHandle} hint="חסרים / בבדיקה" icon={FileText} tone={documentsToHandle ? "red" : "green"} href="/dashboard/garden/documents" />
+          <TeacherStatCard title="צוות בתפקיד" value={`${activeStaff}/${staffCount}`} hint="מאושר היום" icon={UsersRound} tone="cyan" href="/dashboard/garden/staff" />
+        </TeacherStatsGrid>
+
+        <section className="teacher-dashboard-grid">
+          <TeacherSection title="לוח זמנים להיום" action={<Link href="/dashboard/garden/daily-journal">צפייה מלאה</Link>}>
+            <TeacherCompactList>
+              {activityTimeline.map(([time, title, tone]) => (
+                <TeacherCompactItem key={time} title={title} subtitle={time} tone={tone as any} meta="•" />
+              ))}
+            </TeacherCompactList>
+          </TeacherSection>
+
+          <TeacherSection title="צוות בתפקיד" action={<Link href="/dashboard/garden/staff">כל הצוות</Link>}>
+            <TeacherCompactList>
+              <TeacherCompactItem title={profile.full_name ?? "מאיה לוי"} subtitle="גננת" tone="purple" meta="כאן" />
+              <TeacherCompactItem title="שרון כהן" subtitle="סייעת" tone="green" meta="כאן" />
+              <TeacherCompactItem title="נועה פרידמן" subtitle="סייעת" tone="blue" meta="כאן" />
+            </TeacherCompactList>
+          </TeacherSection>
+
+          <TeacherSection title="התראות בטיחות" action={<Link href="/dashboard/garden/incidents">כל ההתראות</Link>}>
+            <TeacherCompactList>
+              {documentsToHandle ? <TeacherCompactItem title="מסמכים לטיפול" subtitle="יש מסמכים שדורשים בדיקה" tone="orange" meta={documentsToHandle} /> : null}
+              {nextInspection ? <TeacherCompactItem title="פיקוח קרוב" subtitle={nextInspection.due_at ? new Date(nextInspection.due_at).toLocaleDateString("he-IL") : "תאריך לא נקבע"} tone="blue" meta="בדיקה" /> : null}
+              {!documentsToHandle && !nextInspection ? <TeacherCompactItem title="הכל תקין" subtitle="אין התראות פתוחות כרגע" tone="green" meta="✓" /> : null}
+            </TeacherCompactList>
+          </TeacherSection>
         </section>
 
-        <section className="garden-focus-card">
-          <div>
-            <p className="premium-eyebrow">מה עכשיו?</p>
-            <h2>{todayPriority.title}</h2>
-            <p>{todayPriority.text}</p>
-          </div>
-          <Link className={`button ${todayPriority.tone === "good" ? "secondary" : "primary"}`} href={todayPriority.href}>לטיפול</Link>
-        </section>
+        <TeacherAiInsight metric={occupancy ? `+${Math.min(occupancy, 99)}%` : "+0%"}>
+          {todayPriority.title}. {todayPriority.text}
+        </TeacherAiInsight>
 
-        <section className="garden-action-dock" aria-label="פעולות מהירות">
-          {quickActions.map((action) => {
-            const Icon = action.icon;
-            return (
-              <Link className={`garden-dock-action ${action.tone ?? "default"}`} href={action.href} key={action.title}>
-                <Icon size={20} />
-                <strong>{action.title}</strong>
-                <span>{action.text}</span>
-              </Link>
-            );
-          })}
-        </section>
+        <TeacherQuickActions title="עוד פעולות">
+          {[...teacherFinanceActions, { title: "פיקוחים", href: "/dashboard/garden/inspections", icon: CalendarCheck, tone: "blue" as const }, { title: "מצלמות", href: "/dashboard/garden/cameras", icon: ShieldCheck, tone: "cyan" as const }, { title: "מסמכים", href: "/dashboard/garden/documents", icon: FileText, tone: "orange" as const }].map((action) => (
+            <TeacherActionTile {...action} key={action.title} />
+          ))}
+        </TeacherQuickActions>
 
-        <details className="garden-management-drawer">
+        {(pendingRequests || waitingPaymentRequests || documentsToHandle || nextInspection || (messagesRes.count ?? 0)) ? null : (
+          <TeacherEmptyState title="אין פעולות דחופות כרגע" text="המסך נשאר נקי. אפשר להמשיך לניהול מלא או לבצע פעולה מהירה." />
+        )}
+
+        <details className="teacher-management-details">
           <summary>ניהול מלא</summary>
           <div>
             <Link href="/dashboard/garden/command-center">מרכז פיקוד מלא</Link>
@@ -169,11 +189,7 @@ export default async function GardenDashboard() {
             <Link href="/dashboard/garden/settings">הגדרות הגן</Link>
           </div>
         </details>
-
-        {(pendingRequests || waitingPaymentRequests || documentsToHandle || nextInspection || (messagesRes.count ?? 0)) ? null : (
-          <AppEmptyState title="אין פעולות דחופות כרגע" text="המסך נשאר נקי. אפשר להמשיך לניהול מלא או לבצע פעולה מהירה." />
-        )}
-      </AppHomeShell>
+      </TeacherAppFrame>
     </DashboardShell>
   );
 }

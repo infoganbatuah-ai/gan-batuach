@@ -542,6 +542,777 @@
   }
 }
 
+/* Teacher/Ganenet app screens based on supplied visual references. */
+.teacher-app-frame {
+  --teacher-navy: #102d55;
+  --teacher-muted: #71809c;
+  --teacher-line: #e6edf8;
+  --teacher-purple: #8b58ff;
+  --teacher-blue: #2f8cff;
+  background:
+    radial-gradient(circle at 74% 5%, rgb(255 255 255 / 92%) 0 120px, transparent 250px),
+    linear-gradient(180deg, #f8fbff 0%, #eef6ff 100%);
+  border: 1px solid rgb(232 240 250 / 92%);
+  border-radius: 48px;
+  box-shadow:
+    0 26px 72px rgb(34 64 110 / 12%),
+    inset 0 1px 0 rgb(255 255 255 / 96%);
+  color: var(--teacher-navy);
+  margin-inline: auto;
+  max-width: 920px;
+  min-height: min(1320px, calc(100vh - 20px));
+  overflow: hidden;
+  padding: 34px 34px 112px;
+  position: relative;
+}
+
+.teacher-app-frame::before {
+  color: #0b0d13;
+  content: "9:41";
+  direction: ltr;
+  font-size: 26px;
+  font-weight: 950;
+  left: 62px;
+  letter-spacing: 0;
+  position: absolute;
+  top: 28px;
+  z-index: 1;
+}
+
+.teacher-app-frame::after {
+  color: #0b0d13;
+  content: "▮▮▮  WiFi  ▰";
+  direction: ltr;
+  font-size: 18px;
+  font-weight: 900;
+  position: absolute;
+  right: 58px;
+  top: 32px;
+  z-index: 1;
+}
+
+.teacher-app-header {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  margin-top: 54px;
+}
+
+.teacher-icon-button {
+  align-items: center;
+  background: #fff;
+  border: 0;
+  border-radius: 26px;
+  box-shadow: 0 14px 34px rgb(37 65 108 / 10%);
+  color: #0b2a54;
+  display: inline-flex;
+  height: 72px;
+  justify-content: center;
+  position: relative;
+  width: 72px;
+}
+
+.teacher-icon-button span {
+  background: #ff4f78;
+  border: 3px solid #fff;
+  border-radius: 999px;
+  height: 15px;
+  position: absolute;
+  right: 15px;
+  top: 10px;
+  width: 15px;
+}
+
+.teacher-app-greeting {
+  align-items: center;
+  display: flex;
+  gap: 16px;
+  text-align: right;
+}
+
+.teacher-app-greeting h1 {
+  color: var(--teacher-navy);
+  font-size: clamp(26px, 4vw, 40px);
+  font-weight: 950;
+  margin: 0;
+}
+
+.teacher-app-greeting p {
+  color: var(--teacher-muted);
+  font-size: 18px;
+  font-weight: 700;
+  margin: 4px 0 0;
+}
+
+.teacher-app-greeting b {
+  font-size: 34px;
+  order: -1;
+}
+
+.teacher-avatar {
+  background: #fff;
+  border: 5px solid #fff;
+  border-radius: 999px;
+  box-shadow: 0 10px 28px rgb(28 57 100 / 12%);
+  height: 78px;
+  overflow: visible;
+  position: relative;
+  width: 78px;
+}
+
+.teacher-avatar img,
+.teacher-mini-avatar img {
+  border-radius: inherit;
+  height: 100%;
+  object-fit: cover;
+  width: 100%;
+}
+
+.teacher-avatar > span {
+  align-items: center;
+  background: linear-gradient(135deg, #8f6cff, #25c2f4);
+  border-radius: inherit;
+  color: #fff;
+  display: flex;
+  font-size: 30px;
+  font-weight: 950;
+  height: 100%;
+  justify-content: center;
+  width: 100%;
+}
+
+.teacher-avatar i {
+  background: #21cf87;
+  border: 4px solid #fff;
+  border-radius: 999px;
+  bottom: 3px;
+  height: 18px;
+  position: absolute;
+  right: -2px;
+  width: 18px;
+}
+
+.teacher-app-main {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  margin-top: 34px;
+}
+
+.teacher-page-title {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  gap: 18px;
+  text-align: right;
+}
+
+.teacher-page-title > div {
+  align-items: center;
+  display: flex;
+  gap: 14px;
+}
+
+.teacher-page-title svg {
+  color: var(--teacher-purple);
+}
+
+.teacher-page-title h2 {
+  color: var(--teacher-navy);
+  font-size: clamp(34px, 6vw, 54px);
+  font-weight: 950;
+  margin: 0;
+}
+
+.teacher-page-title p {
+  color: var(--teacher-muted);
+  font-size: 20px;
+  font-weight: 700;
+  margin: 4px 0 0;
+}
+
+.teacher-stats-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.teacher-stat-card,
+.teacher-section-card,
+.teacher-compact-item,
+.teacher-empty-state {
+  background: rgb(255 255 255 / 86%);
+  border: 1px solid var(--teacher-line);
+  border-radius: 26px;
+  box-shadow: 0 16px 42px rgb(39 67 111 / 8%);
+}
+
+.teacher-stat-card {
+  align-items: center;
+  color: var(--teacher-navy);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  justify-content: center;
+  min-height: 164px;
+  padding: 22px 16px;
+  text-align: center;
+}
+
+.teacher-stat-card small {
+  color: var(--teacher-purple);
+  font-size: 17px;
+  font-style: normal;
+  font-weight: 950;
+}
+
+.teacher-stat-card strong {
+  font-size: clamp(34px, 5vw, 50px);
+  font-weight: 950;
+  line-height: 1;
+}
+
+.teacher-stat-card em {
+  background: rgb(45 196 133 / 12%);
+  border-radius: 999px;
+  color: #16a364;
+  font-size: 15px;
+  font-style: normal;
+  font-weight: 900;
+  padding: 5px 12px;
+}
+
+.teacher-stat-icon {
+  align-items: center;
+  border-radius: 999px;
+  display: flex;
+  height: 58px;
+  justify-content: center;
+  width: 58px;
+}
+
+.teacher-stat-card.blue .teacher-stat-icon,
+.teacher-action-tile.blue span,
+.teacher-mini-avatar.blue {
+  background: #eaf3ff;
+  color: #2f82ee;
+}
+
+.teacher-stat-card.purple .teacher-stat-icon,
+.teacher-action-tile.purple span,
+.teacher-mini-avatar.purple {
+  background: #f2eaff;
+  color: #8958ff;
+}
+
+.teacher-stat-card.green .teacher-stat-icon,
+.teacher-action-tile.green span,
+.teacher-mini-avatar.green {
+  background: #e9fbf2;
+  color: #23b971;
+}
+
+.teacher-stat-card.orange .teacher-stat-icon,
+.teacher-action-tile.orange span,
+.teacher-mini-avatar.orange {
+  background: #fff4e6;
+  color: #f08a16;
+}
+
+.teacher-stat-card.red .teacher-stat-icon,
+.teacher-action-tile.red span,
+.teacher-mini-avatar.red {
+  background: #fff0f2;
+  color: #f44360;
+}
+
+.teacher-stat-card.cyan .teacher-stat-icon,
+.teacher-action-tile.cyan span,
+.teacher-mini-avatar.cyan {
+  background: #e9fbff;
+  color: #17adce;
+}
+
+.teacher-section-card {
+  padding: 22px;
+}
+
+.teacher-section-head {
+  align-items: center;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 18px;
+}
+
+.teacher-section-head h3 {
+  color: var(--teacher-navy);
+  font-size: clamp(22px, 3vw, 32px);
+  font-weight: 950;
+  margin: 0;
+}
+
+.teacher-section-head p,
+.teacher-section-head a {
+  color: #7f92b3;
+  font-size: 16px;
+  font-weight: 800;
+  margin: 4px 0 0;
+}
+
+.teacher-action-grid {
+  display: grid;
+  gap: 14px;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+
+.teacher-action-tile {
+  align-items: center;
+  background: #fff;
+  border: 1px solid #e7eef9;
+  border-radius: 22px;
+  box-shadow: 0 12px 28px rgb(35 66 109 / 7%);
+  color: var(--teacher-navy);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  justify-content: center;
+  min-height: 118px;
+  padding: 16px 10px;
+  text-align: center;
+}
+
+.teacher-action-tile span {
+  align-items: center;
+  border-radius: 999px;
+  display: flex;
+  height: 58px;
+  justify-content: center;
+  width: 58px;
+}
+
+.teacher-action-tile strong {
+  font-size: 16px;
+  font-weight: 950;
+}
+
+.teacher-dashboard-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.teacher-compact-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.teacher-compact-item {
+  align-items: center;
+  color: var(--teacher-navy);
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 58px minmax(0, 1fr) auto;
+  padding: 12px;
+}
+
+.teacher-mini-avatar {
+  align-items: center;
+  border-radius: 999px;
+  display: flex;
+  font-size: 20px;
+  font-weight: 950;
+  height: 58px;
+  justify-content: center;
+  overflow: hidden;
+  width: 58px;
+}
+
+.teacher-compact-item strong {
+  color: var(--teacher-navy);
+  display: block;
+  font-size: 18px;
+  font-weight: 950;
+}
+
+.teacher-compact-item small {
+  color: var(--teacher-muted);
+  display: block;
+  font-size: 14px;
+  font-weight: 700;
+  margin-top: 3px;
+}
+
+.teacher-compact-item em {
+  background: #edf9f2;
+  border-radius: 999px;
+  color: #1fac6a;
+  font-size: 13px;
+  font-style: normal;
+  font-weight: 950;
+  padding: 7px 11px;
+  white-space: nowrap;
+}
+
+.teacher-filter-pills {
+  align-items: center;
+  background: rgb(255 255 255 / 76%);
+  border: 1px solid var(--teacher-line);
+  border-radius: 24px;
+  display: flex;
+  gap: 10px;
+  overflow-x: auto;
+  padding: 10px;
+}
+
+.teacher-filter-pills a {
+  background: #fff;
+  border: 1px solid #e4ebf6;
+  border-radius: 18px;
+  color: #6d7f9c;
+  flex: 0 0 auto;
+  font-weight: 900;
+  padding: 12px 20px;
+}
+
+.teacher-filter-pills a.active {
+  background: #f4edff;
+  border-color: #c6abff;
+  color: #7e4ff4;
+}
+
+.teacher-ai-card {
+  align-items: center;
+  background: linear-gradient(135deg, rgb(246 251 255 / 95%), #fff);
+  border: 1px solid #dfe9ff;
+  border-radius: 28px;
+  box-shadow: 0 16px 42px rgb(39 67 111 / 9%);
+  display: grid;
+  gap: 18px;
+  grid-template-columns: 92px minmax(0, 1fr) 110px;
+  padding: 18px 22px;
+}
+
+.teacher-ai-card h3 {
+  color: #7052e8;
+  font-size: 24px;
+  font-weight: 950;
+  margin: 0 0 6px;
+}
+
+.teacher-ai-card p {
+  color: var(--teacher-navy);
+  font-size: 18px;
+  font-weight: 800;
+  margin: 0;
+}
+
+.teacher-ai-card > strong {
+  background: #fff;
+  border-radius: 20px;
+  color: #18ba71;
+  font-size: 28px;
+  font-weight: 950;
+  padding: 18px;
+  text-align: center;
+}
+
+.teacher-ai-bot {
+  align-items: center;
+  background: radial-gradient(circle at 50% 30%, #ffffff 0 18%, #b7e9ff 19% 62%, #eef9ff 63%);
+  border-radius: 30px;
+  display: flex;
+  height: 86px;
+  justify-content: center;
+  width: 86px;
+}
+
+.teacher-ai-bot span {
+  background: #164b8f;
+  border-radius: 18px;
+  box-shadow: inset 10px 0 0 #28d3ff, inset -10px 0 0 #28d3ff;
+  height: 32px;
+  width: 52px;
+}
+
+.teacher-empty-state {
+  color: var(--teacher-muted);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 28px;
+  text-align: center;
+}
+
+.teacher-empty-state strong {
+  color: var(--teacher-navy);
+  font-size: 22px;
+  font-weight: 950;
+}
+
+.teacher-bottom-nav {
+  align-items: center;
+  background: rgb(255 255 255 / 92%);
+  border: 1px solid rgb(230 238 250 / 70%);
+  border-radius: 999px;
+  bottom: 24px;
+  box-shadow: 0 18px 54px rgb(35 67 112 / 17%);
+  display: grid;
+  gap: 4px;
+  grid-template-columns: repeat(5, 1fr);
+  left: 50%;
+  max-width: 760px;
+  padding: 10px 18px;
+  position: absolute;
+  transform: translateX(-50%);
+  width: calc(100% - 68px);
+  z-index: 6;
+}
+
+.teacher-bottom-nav a {
+  align-items: center;
+  color: #92a1ba;
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+  font-weight: 900;
+  gap: 5px;
+  min-height: 60px;
+  justify-content: center;
+}
+
+.teacher-bottom-nav a.active {
+  color: #4a92ff;
+  margin-top: -34px;
+}
+
+.teacher-bottom-nav a.active svg {
+  background: linear-gradient(135deg, #25c6f6, #8f58ff);
+  border: 5px solid #fff;
+  border-radius: 999px;
+  box-shadow: 0 14px 28px rgb(95 102 240 / 28%);
+  color: #fff;
+  height: 76px;
+  padding: 17px;
+  width: 76px;
+}
+
+.teacher-management-details {
+  background: rgb(255 255 255 / 72%);
+  border: 1px solid var(--teacher-line);
+  border-radius: 24px;
+  color: var(--teacher-navy);
+  padding: 16px 20px;
+}
+
+.teacher-management-details summary {
+  cursor: pointer;
+  font-size: 18px;
+  font-weight: 950;
+}
+
+.teacher-management-details > div {
+  margin-top: 18px;
+}
+
+.teacher-children-layout {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
+}
+
+.teacher-child-mini-card {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  text-align: center;
+}
+
+.teacher-child-mini-actions {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  width: 100%;
+}
+
+.teacher-child-mini-actions span {
+  align-items: center;
+  background: #f5f8fd;
+  border: 1px solid #e5edf8;
+  border-radius: 18px;
+  color: #70819c;
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+  font-weight: 900;
+  gap: 5px;
+  padding: 12px 6px;
+}
+
+.teacher-child-info-grid {
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  width: 100%;
+}
+
+.teacher-child-info-grid span {
+  background: #fff;
+  border: 1px solid #e7eef9;
+  border-radius: 14px;
+  color: #7b8ba7;
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+  font-weight: 800;
+  padding: 10px;
+}
+
+.teacher-child-info-grid b {
+  color: #102d55;
+  font-size: 15px;
+  margin-top: 3px;
+}
+
+.teacher-child-note {
+  background: #f6f9ff;
+  border-radius: 18px;
+  color: #405574;
+  font-size: 16px;
+  font-weight: 800;
+  margin: 0;
+  padding: 16px;
+  width: 100%;
+}
+
+.teacher-request-detail {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.teacher-request-actions {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.teacher-soft-button {
+  align-items: center;
+  border: 1px solid transparent;
+  border-radius: 18px;
+  display: inline-flex;
+  font-size: 15px;
+  font-weight: 950;
+  gap: 8px;
+  justify-content: center;
+  min-height: 54px;
+  padding: 12px;
+}
+
+.teacher-soft-button.purple {
+  background: #f4edff;
+  color: #7b4cf2;
+}
+
+.teacher-soft-button.orange {
+  background: #fff3e7;
+  color: #ed8615;
+}
+
+.teacher-soft-button.green {
+  background: #eafbf2;
+  color: #18a965;
+}
+
+.teacher-soft-button.red {
+  background: #fff0f2;
+  color: #ee3f5f;
+}
+
+@media (max-width: 760px) {
+  .teacher-app-frame {
+    border-radius: 0;
+    margin: -12px;
+    min-height: 100vh;
+    padding: 28px 16px 104px;
+  }
+
+  .teacher-app-frame::before,
+  .teacher-app-frame::after {
+    display: none;
+  }
+
+  .teacher-app-header {
+    margin-top: 6px;
+  }
+
+  .teacher-icon-button {
+    height: 58px;
+    width: 58px;
+  }
+
+  .teacher-avatar {
+    height: 62px;
+    width: 62px;
+  }
+
+  .teacher-app-greeting h1 {
+    font-size: 25px;
+  }
+
+  .teacher-app-greeting p {
+    font-size: 15px;
+  }
+
+  .teacher-page-title {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .teacher-stats-grid,
+  .teacher-dashboard-grid,
+  .teacher-children-layout {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .teacher-action-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .teacher-stat-card {
+    min-height: 138px;
+  }
+
+  .teacher-section-card {
+    padding: 16px;
+  }
+
+  .teacher-ai-card {
+    grid-template-columns: 72px minmax(0, 1fr);
+  }
+
+  .teacher-ai-card > strong {
+    grid-column: 1 / -1;
+  }
+
+  .teacher-children-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .teacher-child-info-grid,
+  .teacher-child-mini-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .teacher-bottom-nav {
+    bottom: 12px;
+    width: calc(100% - 24px);
+  }
+}
+
 /* PHASE 173: standalone Digital Observer product shell */
 .digital-observer-public,
 .digital-observer-app {
@@ -15221,5 +15992,405 @@ body:has(.app-home-layout) {
 
   .garden-hero-illustration {
     height: 128px;
+  }
+}
+
+/* TEACHER EXACT REFERENCE PASS: match the supplied Ganenet screens. */
+body:has(.dashboard-role-manager.app-home-layout),
+body:has(.dashboard-role-owner.app-home-layout) {
+  background:
+    radial-gradient(circle at 50% -12%, #ffffff 0 18%, transparent 42%),
+    linear-gradient(180deg, #f7fbff 0%, #eef5ff 55%, #ffffff 100%) !important;
+}
+
+.dashboard-role-manager.app-home-layout .dashboard-main,
+.dashboard-role-owner.app-home-layout .dashboard-main {
+  max-width: 940px !important;
+  padding: 22px 18px 120px !important;
+}
+
+.dashboard-role-manager.app-home-layout .native-app-topbar,
+.dashboard-role-owner.app-home-layout .native-app-topbar,
+.dashboard-role-manager.app-home-layout .native-app-stage,
+.dashboard-role-owner.app-home-layout .native-app-stage,
+.dashboard-role-manager.app-home-layout .sandbox-banner,
+.dashboard-role-owner.app-home-layout .sandbox-banner,
+.dashboard-role-manager.app-home-layout .policy-card,
+.dashboard-role-owner.app-home-layout .policy-card {
+  max-width: 900px !important;
+}
+
+.dashboard-role-manager.app-home-layout .native-app-stage,
+.dashboard-role-owner.app-home-layout .native-app-stage {
+  background:
+    linear-gradient(180deg, rgb(255 255 255 / 84%) 0%, rgb(255 255 255 / 70%) 100%) !important;
+  border: 1px solid rgb(226 234 246 / 92%) !important;
+  border-radius: 42px !important;
+  box-shadow:
+    0 28px 80px rgb(30 64 110 / 10%),
+    inset 0 1px 0 rgb(255 255 255 / 92%) !important;
+  padding: 22px !important;
+}
+
+.dashboard-role-manager.app-home-layout .native-app-topbar,
+.dashboard-role-owner.app-home-layout .native-app-topbar {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  margin-bottom: 18px !important;
+  padding-inline: 4px !important;
+  position: static !important;
+}
+
+.dashboard-role-manager.app-home-layout .native-app-logo,
+.dashboard-role-owner.app-home-layout .native-app-logo {
+  color: #f6b71d !important;
+  font-size: 18px !important;
+}
+
+.dashboard-role-manager.app-home-layout .native-app-topbar h1,
+.dashboard-role-owner.app-home-layout .native-app-topbar h1 {
+  color: #0f2d55 !important;
+  font-size: clamp(28px, 5vw, 42px) !important;
+  font-weight: 950 !important;
+}
+
+.dashboard-role-manager.app-home-layout .native-app-topbar-actions > span,
+.dashboard-role-owner.app-home-layout .native-app-topbar-actions > span,
+.dashboard-role-manager.app-home-layout .native-app-topbar-actions > a,
+.dashboard-role-owner.app-home-layout .native-app-topbar-actions > a,
+.dashboard-role-manager.app-home-layout .native-app-topbar-actions button,
+.dashboard-role-owner.app-home-layout .native-app-topbar-actions button {
+  background: #ffffff !important;
+  border: 0 !important;
+  box-shadow: 0 10px 24px rgb(30 64 110 / 8%) !important;
+  color: #0f2d55 !important;
+}
+
+.dashboard-role-manager.app-home-layout .app-home-shell,
+.dashboard-role-owner.app-home-layout .app-home-shell {
+  gap: 18px !important;
+  max-width: 100% !important;
+}
+
+.dashboard-role-manager.app-home-layout .garden-phone-hero {
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  display: grid !important;
+  grid-template-columns: minmax(0, 1fr) 260px !important;
+  padding: 0 !important;
+}
+
+.dashboard-role-manager.app-home-layout .garden-phone-hero-top,
+.dashboard-role-manager.app-home-layout .garden-primary-action {
+  grid-column: 1 / -1;
+}
+
+.dashboard-role-manager.app-home-layout .garden-phone-hero h1 {
+  color: #0f2d55 !important;
+  font-size: clamp(32px, 5vw, 48px) !important;
+}
+
+.dashboard-role-manager.app-home-layout .garden-phone-hero p,
+.dashboard-role-manager.app-home-layout .garden-hello {
+  color: #6b7893 !important;
+  font-size: 18px !important;
+}
+
+.dashboard-role-manager.app-home-layout .garden-hero-illustration {
+  background:
+    linear-gradient(135deg, #f3f8ff 0%, #ffffff 55%, #eef7ff 100%) !important;
+  border: 1px solid #e6eefb !important;
+  border-radius: 30px !important;
+  box-shadow: 0 18px 45px rgb(30 64 110 / 8%) !important;
+  height: 180px !important;
+}
+
+.dashboard-role-manager.app-home-layout .garden-primary-action,
+.dashboard-role-owner.app-home-layout .garden-primary-action {
+  background: linear-gradient(135deg, #28b6f6, #8756f5) !important;
+  border-radius: 22px !important;
+  color: #fff !important;
+  margin-top: 4px;
+}
+
+.dashboard-role-manager.app-home-layout .garden-primary-action small,
+.dashboard-role-owner.app-home-layout .garden-primary-action small {
+  color: rgb(255 255 255 / 82%) !important;
+}
+
+.dashboard-role-manager.app-home-layout .garden-today-glance,
+.dashboard-role-owner.app-home-layout .garden-today-glance,
+.dashboard-role-manager.app-home-layout .app-home-grid,
+.dashboard-role-owner.app-home-layout .app-home-grid,
+.dashboard-role-manager.app-home-layout .app-home-grid.compact,
+.dashboard-role-owner.app-home-layout .app-home-grid.compact,
+.dashboard-role-manager.app-home-layout .grid.cols-4,
+.dashboard-role-owner.app-home-layout .grid.cols-4,
+.dashboard-role-manager.app-home-layout .dashboard-kpis,
+.dashboard-role-owner.app-home-layout .dashboard-kpis {
+  display: grid !important;
+  gap: 16px !important;
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+}
+
+.dashboard-role-manager.app-home-layout .grid.cols-3,
+.dashboard-role-owner.app-home-layout .grid.cols-3,
+.dashboard-role-manager.app-home-layout .dashboard-panels,
+.dashboard-role-owner.app-home-layout .dashboard-panels {
+  display: grid !important;
+  gap: 16px !important;
+  grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+}
+
+.dashboard-role-manager.app-home-layout .garden-glance-card,
+.dashboard-role-owner.app-home-layout .garden-glance-card,
+.dashboard-role-manager.app-home-layout .app-status-card,
+.dashboard-role-owner.app-home-layout .app-status-card,
+.dashboard-role-manager.app-home-layout .role-metric-card,
+.dashboard-role-owner.app-home-layout .role-metric-card,
+.dashboard-role-manager.app-home-layout .stat-card,
+.dashboard-role-owner.app-home-layout .stat-card,
+.dashboard-role-manager.app-home-layout .card,
+.dashboard-role-owner.app-home-layout .card,
+.dashboard-role-manager.app-home-layout .panel,
+.dashboard-role-owner.app-home-layout .panel,
+.dashboard-role-manager.app-home-layout .action-panel,
+.dashboard-role-owner.app-home-layout .action-panel,
+.dashboard-role-manager.app-home-layout .dashboard-hero-card,
+.dashboard-role-owner.app-home-layout .dashboard-hero-card,
+.dashboard-role-manager.app-home-layout .app-home-section,
+.dashboard-role-owner.app-home-layout .app-home-section {
+  background: rgb(255 255 255 / 88%) !important;
+  border: 1px solid #e5edf8 !important;
+  border-radius: 24px !important;
+  box-shadow: 0 14px 36px rgb(30 64 110 / 7%) !important;
+}
+
+.dashboard-role-manager.app-home-layout .garden-glance-card,
+.dashboard-role-owner.app-home-layout .garden-glance-card,
+.dashboard-role-manager.app-home-layout .app-status-card,
+.dashboard-role-owner.app-home-layout .app-status-card,
+.dashboard-role-manager.app-home-layout .role-metric-card,
+.dashboard-role-owner.app-home-layout .role-metric-card,
+.dashboard-role-manager.app-home-layout .stat-card,
+.dashboard-role-owner.app-home-layout .stat-card {
+  min-height: 150px !important;
+  padding: 22px !important;
+  text-align: center !important;
+}
+
+.dashboard-role-manager.app-home-layout .garden-glance-card strong,
+.dashboard-role-owner.app-home-layout .garden-glance-card strong,
+.dashboard-role-manager.app-home-layout .app-status-card strong,
+.dashboard-role-owner.app-home-layout .app-status-card strong,
+.dashboard-role-manager.app-home-layout .role-metric-card strong,
+.dashboard-role-owner.app-home-layout .role-metric-card strong,
+.dashboard-role-manager.app-home-layout .stat-card strong,
+.dashboard-role-owner.app-home-layout .stat-card strong {
+  color: #0f2d55 !important;
+  font-size: clamp(30px, 5vw, 44px) !important;
+}
+
+.dashboard-role-manager.app-home-layout .garden-glance-card span,
+.dashboard-role-owner.app-home-layout .garden-glance-card span,
+.dashboard-role-manager.app-home-layout .app-status-card span,
+.dashboard-role-owner.app-home-layout .app-status-card span,
+.dashboard-role-manager.app-home-layout .role-metric-card span,
+.dashboard-role-owner.app-home-layout .role-metric-card span,
+.dashboard-role-manager.app-home-layout .stat-card span,
+.dashboard-role-owner.app-home-layout .stat-card span {
+  color: #6c4af2 !important;
+  font-weight: 950 !important;
+}
+
+.dashboard-role-manager.app-home-layout .garden-glance-card:nth-child(4n+1),
+.dashboard-role-owner.app-home-layout .garden-glance-card:nth-child(4n+1),
+.dashboard-role-manager.app-home-layout .app-status-card:nth-child(4n+1),
+.dashboard-role-owner.app-home-layout .app-status-card:nth-child(4n+1),
+.dashboard-role-manager.app-home-layout .role-metric-card:nth-child(4n+1),
+.dashboard-role-owner.app-home-layout .role-metric-card:nth-child(4n+1),
+.dashboard-role-manager.app-home-layout .stat-card:nth-child(4n+1),
+.dashboard-role-owner.app-home-layout .stat-card:nth-child(4n+1) {
+  background: linear-gradient(180deg, #fbf8ff, #ffffff) !important;
+}
+
+.dashboard-role-manager.app-home-layout .garden-glance-card:nth-child(4n+2),
+.dashboard-role-owner.app-home-layout .garden-glance-card:nth-child(4n+2),
+.dashboard-role-manager.app-home-layout .app-status-card:nth-child(4n+2),
+.dashboard-role-owner.app-home-layout .app-status-card:nth-child(4n+2),
+.dashboard-role-manager.app-home-layout .role-metric-card:nth-child(4n+2),
+.dashboard-role-owner.app-home-layout .role-metric-card:nth-child(4n+2),
+.dashboard-role-manager.app-home-layout .stat-card:nth-child(4n+2),
+.dashboard-role-owner.app-home-layout .stat-card:nth-child(4n+2) {
+  background: linear-gradient(180deg, #f4fffb, #ffffff) !important;
+}
+
+.dashboard-role-manager.app-home-layout .garden-glance-card:nth-child(4n+3),
+.dashboard-role-owner.app-home-layout .garden-glance-card:nth-child(4n+3),
+.dashboard-role-manager.app-home-layout .app-status-card:nth-child(4n+3),
+.dashboard-role-owner.app-home-layout .app-status-card:nth-child(4n+3),
+.dashboard-role-manager.app-home-layout .role-metric-card:nth-child(4n+3),
+.dashboard-role-owner.app-home-layout .role-metric-card:nth-child(4n+3),
+.dashboard-role-manager.app-home-layout .stat-card:nth-child(4n+3),
+.dashboard-role-owner.app-home-layout .stat-card:nth-child(4n+3) {
+  background: linear-gradient(180deg, #f7fbff, #ffffff) !important;
+}
+
+.dashboard-role-manager.app-home-layout .garden-glance-card:nth-child(4n+4),
+.dashboard-role-owner.app-home-layout .garden-glance-card:nth-child(4n+4),
+.dashboard-role-manager.app-home-layout .app-status-card:nth-child(4n+4),
+.dashboard-role-owner.app-home-layout .app-status-card:nth-child(4n+4),
+.dashboard-role-manager.app-home-layout .role-metric-card:nth-child(4n+4),
+.dashboard-role-owner.app-home-layout .role-metric-card:nth-child(4n+4),
+.dashboard-role-manager.app-home-layout .stat-card:nth-child(4n+4),
+.dashboard-role-owner.app-home-layout .stat-card:nth-child(4n+4) {
+  background: linear-gradient(180deg, #fffaf4, #ffffff) !important;
+}
+
+.dashboard-role-manager.app-home-layout .garden-action-dock,
+.dashboard-role-owner.app-home-layout .garden-action-dock {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  display: grid !important;
+  grid-template-columns: repeat(5, minmax(0, 1fr)) !important;
+  padding: 0 !important;
+}
+
+.dashboard-role-manager.app-home-layout .garden-dock-action,
+.dashboard-role-owner.app-home-layout .garden-dock-action,
+.dashboard-role-manager.app-home-layout .app-quick-action,
+.dashboard-role-owner.app-home-layout .app-quick-action,
+.dashboard-role-manager.app-home-layout .premium-action-card,
+.dashboard-role-owner.app-home-layout .premium-action-card,
+.dashboard-role-manager.app-home-layout .quick-action,
+.dashboard-role-owner.app-home-layout .quick-action {
+  background: #ffffff !important;
+  border: 1px solid #e7eef9 !important;
+  border-radius: 22px !important;
+  box-shadow: 0 12px 30px rgb(30 64 110 / 7%) !important;
+  color: #0f2d55 !important;
+}
+
+.dashboard-role-manager.app-home-layout .button.primary,
+.dashboard-role-owner.app-home-layout .button.primary,
+.dashboard-role-manager.app-home-layout button[type="submit"],
+.dashboard-role-owner.app-home-layout button[type="submit"] {
+  background: linear-gradient(135deg, #22b8f0, #8756f5) !important;
+  border: 0 !important;
+  border-radius: 18px !important;
+  box-shadow: 0 14px 28px rgb(104 93 245 / 22%) !important;
+  color: #fff !important;
+}
+
+.dashboard-role-manager.app-home-layout .button.secondary,
+.dashboard-role-owner.app-home-layout .button.secondary {
+  background: #ffffff !important;
+  border: 1px solid #dfe8f7 !important;
+  border-radius: 18px !important;
+  color: #6c4af2 !important;
+}
+
+.dashboard-role-manager.app-home-layout .procedure-list,
+.dashboard-role-owner.app-home-layout .procedure-list,
+.dashboard-role-manager.app-home-layout .people-card-grid,
+.dashboard-role-owner.app-home-layout .people-card-grid,
+.dashboard-role-manager.app-home-layout .document-center-grid,
+.dashboard-role-owner.app-home-layout .document-center-grid {
+  display: grid !important;
+  gap: 14px !important;
+}
+
+.dashboard-role-manager.app-home-layout .procedure-card,
+.dashboard-role-owner.app-home-layout .procedure-card,
+.dashboard-role-manager.app-home-layout .person-card,
+.dashboard-role-owner.app-home-layout .person-card,
+.dashboard-role-manager.app-home-layout .list-item,
+.dashboard-role-owner.app-home-layout .list-item {
+  background: #ffffff !important;
+  border: 1px solid #e5edf8 !important;
+  border-radius: 22px !important;
+  box-shadow: 0 10px 28px rgb(30 64 110 / 6%) !important;
+}
+
+.dashboard-role-manager.app-home-layout input,
+.dashboard-role-owner.app-home-layout input,
+.dashboard-role-manager.app-home-layout select,
+.dashboard-role-owner.app-home-layout select,
+.dashboard-role-manager.app-home-layout textarea,
+.dashboard-role-owner.app-home-layout textarea {
+  background: #ffffff !important;
+  border: 1px solid #dfe8f7 !important;
+  border-radius: 18px !important;
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 80%) !important;
+  color: #0f2d55 !important;
+}
+
+.dashboard-role-manager.app-home-layout .mobile-tabbar,
+.dashboard-role-owner.app-home-layout .mobile-tabbar {
+  background: #ffffff !important;
+  border: 0 !important;
+  border-radius: 34px !important;
+  box-shadow: 0 18px 54px rgb(30 64 110 / 18%) !important;
+  max-width: 760px !important;
+}
+
+.dashboard-role-manager.app-home-layout .mobile-tabbar a:first-child,
+.dashboard-role-owner.app-home-layout .mobile-tabbar a:first-child {
+  background: linear-gradient(135deg, #23b8f0, #8756f5) !important;
+  border-radius: 50% !important;
+  color: #ffffff !important;
+  height: 74px !important;
+  margin-top: -28px !important;
+  width: 74px !important;
+}
+
+@media (min-width: 900px) {
+  .dashboard-role-manager.app-home-layout::before,
+  .dashboard-role-owner.app-home-layout::before {
+    border-color: rgb(255 255 255 / 72%) !important;
+    border-radius: 58px !important;
+    max-width: 940px !important;
+    width: min(940px, calc(100vw - 32px)) !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .dashboard-role-manager.app-home-layout .dashboard-main,
+  .dashboard-role-owner.app-home-layout .dashboard-main {
+    padding: 10px 8px 108px !important;
+  }
+
+  .dashboard-role-manager.app-home-layout .native-app-stage,
+  .dashboard-role-owner.app-home-layout .native-app-stage {
+    border-radius: 30px !important;
+    padding: 12px !important;
+  }
+
+  .dashboard-role-manager.app-home-layout .garden-phone-hero,
+  .dashboard-role-owner.app-home-layout .garden-phone-hero {
+    grid-template-columns: 1fr !important;
+  }
+
+  .dashboard-role-manager.app-home-layout .garden-today-glance,
+  .dashboard-role-owner.app-home-layout .garden-today-glance,
+  .dashboard-role-manager.app-home-layout .app-home-grid,
+  .dashboard-role-owner.app-home-layout .app-home-grid,
+  .dashboard-role-manager.app-home-layout .app-home-grid.compact,
+  .dashboard-role-owner.app-home-layout .app-home-grid.compact,
+  .dashboard-role-manager.app-home-layout .grid.cols-4,
+  .dashboard-role-owner.app-home-layout .grid.cols-4,
+  .dashboard-role-manager.app-home-layout .grid.cols-3,
+  .dashboard-role-owner.app-home-layout .grid.cols-3,
+  .dashboard-role-manager.app-home-layout .dashboard-kpis,
+  .dashboard-role-owner.app-home-layout .dashboard-kpis,
+  .dashboard-role-manager.app-home-layout .dashboard-panels,
+  .dashboard-role-owner.app-home-layout .dashboard-panels,
+  .dashboard-role-manager.app-home-layout .garden-action-dock,
+  .dashboard-role-owner.app-home-layout .garden-action-dock {
+    grid-template-columns: 1fr 1fr !important;
   }
 }
