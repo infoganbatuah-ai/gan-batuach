@@ -24698,13 +24698,13 @@ body:has(.gb-reference-login) .gb-reference-security-card {
   }
 
   .ganenet-reference-phone {
-    --ganenet-mobile-scale: .78;
+    --ganenet-mobile-scale: .70;
     border: 0 !important;
     border-radius: 0 !important;
     box-shadow: none !important;
     display: grid !important;
     gap: 7px !important;
-    grid-template-rows: auto auto auto auto auto 1fr !important;
+    grid-template-rows: auto auto auto auto auto !important;
     height: calc(100svh / var(--ganenet-mobile-scale)) !important;
     left: 50% !important;
     margin: 0 !important;
@@ -24713,7 +24713,7 @@ body:has(.gb-reference-login) .gb-reference-security-card {
     min-height: 0 !important;
     min-width: 0 !important;
     overflow: hidden !important;
-    padding: 10px 12px 58px !important;
+    padding: 14px 12px 70px !important;
     position: absolute !important;
     top: 0 !important;
     transform: translateX(-50%) scale(var(--ganenet-mobile-scale)) !important;
@@ -24725,7 +24725,7 @@ body:has(.gb-reference-login) .gb-reference-security-card {
     align-items: start !important;
     grid-template-areas: "logo profile" "greeting profile" !important;
     grid-template-columns: minmax(0, 1fr) auto !important;
-    margin: 0 !important;
+    margin: 0 0 42px !important;
     row-gap: 3px !important;
   }
 
@@ -24797,10 +24797,14 @@ body:has(.gb-reference-login) .gb-reference-security-card {
     gap: 8px !important;
     justify-content: flex-start !important;
     line-height: 1.25 !important;
+    left: 24px !important;
     margin: 0 !important;
     min-height: 38px !important;
     padding: 6px 12px !important;
-    width: auto !important;
+    position: absolute !important;
+    top: 92px !important;
+    width: 218px !important;
+    z-index: 2 !important;
   }
 
   .ganenet-date-pill svg {
@@ -24815,20 +24819,29 @@ body:has(.gb-reference-login) .gb-reference-security-card {
   }
 
   .ganenet-kpis {
+    direction: ltr !important;
     gap: 7px !important;
     grid-template-columns: 1.08fr 1.08fr .92fr !important;
   }
 
   .ganenet-mid-grid {
+    direction: ltr !important;
     gap: 7px !important;
     grid-template-columns: 1fr 1.16fr !important;
     margin-top: 0 !important;
   }
 
   .ganenet-bottom-grid {
+    align-items: start !important;
+    direction: ltr !important;
     gap: 7px !important;
     grid-template-columns: repeat(3, 1fr) !important;
     margin-top: 0 !important;
+  }
+
+  .ganenet-kpi,
+  .ganenet-card {
+    direction: rtl !important;
   }
 
   .ganenet-kpi {
@@ -25034,6 +25047,14 @@ body:has(.gb-reference-login) .gb-reference-security-card {
     min-height: 28px !important;
   }
 
+  .ganenet-parent-messages,
+  .ganenet-tasks,
+  .ganenet-shortcuts {
+    min-height: 172px !important;
+    max-height: 190px !important;
+    overflow: hidden !important;
+  }
+
   .ganenet-parent-messages em {
     font-size: 10px !important;
     height: 20px !important;
@@ -25083,7 +25104,7 @@ body:has(.gb-reference-login) .gb-reference-security-card {
   }
 
   .ganenet-bottom-nav {
-    bottom: 10px !important;
+    bottom: 12px !important;
     min-height: 54px !important;
     padding: 5px 12px !important;
     width: calc(100% - 28px) !important;
