@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { AlertTriangle, Camera, ClipboardCheck, FileText, MapPin, MessageSquareWarning, ShieldAlert, ShieldCheck, Star } from "lucide-react";
+import Image from "next/image";
+import { AlertTriangle, Bell, CalendarDays, Camera, ClipboardCheck, FileText, Home, MapPin, Menu, MessageSquareWarning, ShieldAlert, ShieldCheck, Star, UserRound } from "lucide-react";
 import { Avatar } from "@/components/avatar";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { ActionCard, AppHomeGrid, AppHomeHero, AppHomeSection, AppHomeShell, AppQuickAction, AppStatusCard, RoleMetricCard } from "@/components/premium-dashboard";
@@ -28,7 +29,17 @@ export default async function InspectorDashboard() {
   if (!inspector || profile.active === false) {
     return (
       <DashboardShell role="inspector" title="בקשת מפקח" appHome>
-        <AppHomeShell className="inspector-app-home">
+        <div className="inspector-reference-frame" dir="rtl">
+          <header className="inspector-reference-top">
+            <div className="inspector-reference-avatar"><Avatar name={profile.full_name} src={profile.profile_image_url} size="lg" /></div>
+            <div className="inspector-reference-brand">
+              <Image src="/assets/company-symbol.png" alt="" width={94} height={94} />
+              <Image src="/assets/company-name.png" alt="גן בטוח" width={250} height={80} />
+              <p>עובדים. שומרים. אכפתיים.</p>
+            </div>
+            <button className="inspector-reference-bell" type="button" aria-label="התראות"><Bell size={27} /><span /></button>
+          </header>
+          <main className="inspector-reference-main">
           <AppHomeHero
             eyebrow="בית מפקח"
             title="הבקשה שלך ממתינה לאישור אדמין"
@@ -48,7 +59,15 @@ export default async function InspectorDashboard() {
               <AppQuickAction title="התראות" text="עדכוני אדמין על הבקשה" href="/dashboard/inspector/notifications" icon={ShieldAlert} />
             </AppHomeGrid>
           </AppHomeSection>
-        </AppHomeShell>
+          </main>
+          <nav className="inspector-reference-bottom" aria-label="ניווט מפקח">
+            <Link className="active" href="/dashboard/inspector"><Home size={24} /><span>ראשי</span></Link>
+            <Link href="/dashboard/inspector/inspections"><ClipboardCheck size={24} /><span>ביקורות</span></Link>
+            <Link href="/dashboard/inspector/reports"><FileText size={24} /><span>דוחות</span></Link>
+            <Link href="/dashboard/inspector/settings"><UserRound size={24} /><span>פרופיל</span></Link>
+            <Link href="/dashboard/inspector/tasks"><Menu size={24} /><span>עוד</span></Link>
+          </nav>
+        </div>
       </DashboardShell>
     );
   }
@@ -96,7 +115,22 @@ export default async function InspectorDashboard() {
 
   return (
     <DashboardShell role="inspector" title="מרכז פיקוח" appHome>
-      <AppHomeShell className="inspector-command-shell inspector-app-home">
+      <div className="inspector-reference-frame" dir="rtl">
+        <header className="inspector-reference-top">
+          <div className="inspector-reference-avatar"><Avatar name={profile.full_name} src={inspector?.profile_photo_url ?? profile.profile_image_url} size="lg" /></div>
+          <div className="inspector-reference-brand">
+            <Image src="/assets/company-symbol.png" alt="" width={94} height={94} />
+            <Image src="/assets/company-name.png" alt="גן בטוח" width={250} height={80} />
+            <p>עובדים. שומרים. אכפתיים.</p>
+          </div>
+          <button className="inspector-reference-bell" type="button" aria-label="התראות"><Bell size={27} /><span /></button>
+        </header>
+        <main className="inspector-reference-main">
+          <section className="inspector-reference-greeting">
+            <span>מפקח אזורי</span>
+            <h1>בוקר טוב, {profile.full_name?.split(" ")[0] ?? "מפקח"}</h1>
+            <p>יש לך היום ביקורות משמעותיות, גנים משויכים והתראות שדורשות מבט מקצועי.</p>
+          </section>
         <AppHomeGrid compact>
           <AppStatusCard label="גנים משויכים" value={gardens.length} hint="רק גנים שאושרו לך" tone={gardens.length ? "good" : "warn"} href="#assigned-gardens" />
           <AppStatusCard label="ביקורות קרובות" value={dueSoon.length} hint="עד 7 ימים" tone={dueSoon.length ? "warn" : "good"} href="/dashboard/inspector/inspections/due" />
@@ -186,7 +220,15 @@ export default async function InspectorDashboard() {
           <span><Camera /> מצלמות לבדיקה <b>{cameraIssues.length}</b></span>
           <span><MapPin /> GPS וחתימה <b>נדרש בטופס</b></span>
         </section>
-      </AppHomeShell>
+        </main>
+        <nav className="inspector-reference-bottom" aria-label="ניווט מפקח">
+          <Link className="active" href="/dashboard/inspector"><Home size={24} /><span>ראשי</span></Link>
+          <Link href="/dashboard/inspector/inspections"><ClipboardCheck size={24} /><span>ביקורות</span></Link>
+          <Link href="/dashboard/inspector/reports"><FileText size={24} /><span>דוחות</span></Link>
+          <Link href="/dashboard/inspector/settings"><UserRound size={24} /><span>פרופיל</span></Link>
+          <Link href="/dashboard/inspector/tasks"><Menu size={24} /><span>עוד</span></Link>
+        </nav>
+      </div>
     </DashboardShell>
   );
 }
