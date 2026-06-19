@@ -1,34 +1,77 @@
 import Link from "next/link";
+import Image from "next/image";
+import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
-import { ClipboardCheck, ShieldCheck } from "lucide-react";
-import { BrandHeader } from "@/components/brand-header";
+import { Bell, ClipboardCheck, ShieldCheck } from "lucide-react";
 import { KindergartenOnboardingForm, KindergartenSubscriptionActivationPanel, ManagerKindergartenApplicationForm } from "@/components/kindergarten-onboarding-form";
-import { PremiumDashboardHero } from "@/components/premium-dashboard";
 import { requireRole } from "@/lib/auth";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+
+function KindergartenOnboardingShell({
+  children,
+  title,
+  subtitle,
+  badge,
+  badgeTone = "blue",
+  managerName
+}: {
+  children: ReactNode;
+  title: string;
+  subtitle: string;
+  badge: string;
+  badgeTone?: "blue" | "green" | "orange" | "red";
+  managerName?: string | null;
+}) {
+  return (
+    <main className="kindergarten-app-onboarding" dir="rtl">
+      <section className="kindergarten-app-onboarding-shell">
+        <div className="kindergarten-app-logo" aria-label="גן בטוח">
+          <Image src="/assets/company-name.png" alt="גן בטוח" width={236} height={74} />
+          <Image src="/assets/company-symbol.png" alt="" width={74} height={74} />
+        </div>
+        <header className="kindergarten-app-onboarding-header">
+          <button className="teacher-icon-button" type="button" aria-label="התראות">
+            <Bell size={24} />
+            <span />
+          </button>
+          <div className="teacher-app-greeting">
+            <div className="teacher-avatar"><span>{managerName?.slice(0, 1) ?? "מ"}</span><i /></div>
+            <div>
+              <h1>בוקר טוב, {managerName?.split(" ")[0] ?? "מאיה"}</h1>
+              <p>הקמת גן בטוח</p>
+            </div>
+          </div>
+        </header>
+        <section className="kindergarten-app-onboarding-hero">
+          <div>
+            <span className={`kindergarten-app-badge ${badgeTone}`}>{badge}</span>
+            <h2>{title}</h2>
+            <p>{subtitle}</p>
+          </div>
+          <div className="kindergarten-app-hero-icon"><ClipboardCheck /><ShieldCheck /></div>
+        </section>
+        {children}
+      </section>
+    </main>
+  );
+}
 
 export default async function KindergartenOnboardingPage() {
   const { profile } = await requireRole(["manager", "owner"]);
   const supabase = !profile.active && isAdminClientConfigured() ? createAdminClient() : await createClient();
   if (!profile.garden_id) {
     return (
-      <>
-        <BrandHeader />
-        <main className="section kindergarten-onboarding-page">
-          <PremiumDashboardHero
-            eyebrow="רישום מנהלת"
-            title="פותחים בקשת גן מוגבלת."
-            subtitle="השלב הראשון יוצר טיוטת גן בלבד. אין גישה לנתוני ילדים, צוות, הורים או מסמכים פנימיים עד אישור ותשלום."
-            badge="חשבון מוגבל"
-            badgeTone="warn"
-            actions={<Link className="button secondary" href="/api/auth/logout">יציאה</Link>}
-          >
-            <div className="onboarding-hero-icon"><ClipboardCheck /><ShieldCheck /></div>
-          </PremiumDashboardHero>
-          <ManagerKindergartenApplicationForm managerName={profile.full_name} managerPhone={profile.phone} managerEmail={(profile as any).email} />
-        </main>
-      </>
+      <KindergartenOnboardingShell
+        title="פותחים בקשת גן מוגבלת"
+        subtitle="השלב הראשון יוצר טיוטת גן בלבד. אין גישה לנתוני ילדים, צוות, הורים או מסמכים פנימיים עד אישור ותשלום."
+        badge="חשבון מוגבל"
+        badgeTone="orange"
+        managerName={profile.full_name}
+      >
+        <ManagerKindergartenApplicationForm managerName={profile.full_name} managerPhone={profile.phone} managerEmail={(profile as any).email} />
+        <Link className="kindergarten-app-logout" href="/api/auth/logout">יציאה</Link>
+      </KindergartenOnboardingShell>
     );
   }
   const [{ data: garden }, onboardingRes] = await Promise.all([
@@ -62,19 +105,13 @@ export default async function KindergartenOnboardingPage() {
   }
 
   return (
-    <>
-      <BrandHeader />
-      <main className="section kindergarten-onboarding-page">
-        <PremiumDashboardHero
-          eyebrow="השלמת גן"
-          title="מכינים את הגן לאישור."
-          subtitle="ממלאים פרטים, מוסיפים תמונות ושולחים לבדיקה קצרה."
-          badge={onboarding.lifecycle_status === "correction_required" ? "נדרש תיקון" : "בתהליך"}
-          badgeTone={onboarding.lifecycle_status === "correction_required" ? "warn" : "good"}
-          actions={<Link className="button secondary" href="/api/auth/logout">יציאה</Link>}
-        >
-          <div className="onboarding-hero-icon"><ClipboardCheck /><ShieldCheck /></div>
-        </PremiumDashboardHero>
+    <KindergartenOnboardingShell
+      title="מכינים את הגן לאישור"
+      subtitle="ממלאים פרטים, מוסיפים תמונות ושולחים לבדיקה קצרה."
+      badge={onboarding.lifecycle_status === "correction_required" ? "נדרש תיקון" : "בתהליך"}
+      badgeTone={onboarding.lifecycle_status === "correction_required" ? "orange" : "green"}
+      managerName={profile.full_name}
+    >
         {isWaitingForAdmin ? (
           <section className="card onboarding-waiting-card">
             <p className="eyebrow">נשלח לאישור</p>
@@ -85,7 +122,7 @@ export default async function KindergartenOnboardingPage() {
         ) : (
           <KindergartenOnboardingForm garden={(garden ?? {}) as any} onboarding={onboarding} managerName={profile.full_name} />
         )}
-      </main>
-    </>
+        <Link className="kindergarten-app-logout" href="/api/auth/logout">יציאה</Link>
+    </KindergartenOnboardingShell>
   );
 }

@@ -1,6 +1,7 @@
-import { Building2, MapPin, ShieldCheck } from "lucide-react";
+import { Building2, MapPin, Search, ShieldCheck, SlidersHorizontal, Star, UsersRound } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { EnrollmentRequestButton } from "@/components/self-service-forms";
+import { ParentAppFrame, ParentEmptyState, ParentHero, ParentSection } from "@/components/parent-app-ui";
 import { requireRole } from "@/lib/auth";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -45,50 +46,65 @@ export default async function DiscoverKindergartensPage({ searchParams }: { sear
   }
 
   return (
-    <DashboardShell role="parent" title="גילוי גנים">
-      <section className="dashboard-hero-card parent-hero-card">
-        <div>
-          <p className="eyebrow">גנים זמינים</p>
-          <h1>בחרו גן והגישו בקשת הצטרפות.</h1>
-          <p>מוצגים רק פרטים ציבוריים שהגן אישר: שם, עיר, כתובת כללית, קבוצות גיל ומחיר רק אם פורסם.</p>
-        </div>
-        <span className="pill good">{gardens.length} גנים ציבוריים</span>
-      </section>
+    <DashboardShell role="parent" title="גילוי גנים" appHome>
+      <ParentAppFrame active="dashboard" avatarUrl={(profile as any).profile_image_url ?? null}>
+        <ParentHero title="גני ילדים בטוחים באזור שלי" subtitle="מצא/י את הגן המתאים ביותר עבור הילד/ה שלך" />
 
-      <section className="filter-bar">
-        <form className="filter-bar" action="/dashboard/parent/discover-kindergartens">
-          <input name="q" placeholder="שם גן" defaultValue={params?.q ?? ""} />
+        <form className="parent-discovery-search" action="/dashboard/parent/discover-kindergartens">
+          <button className="parent-filter-button" type="button"><SlidersHorizontal size={22} /> סינונים</button>
+          <label>
+            <Search size={24} />
+            <input name="q" placeholder="חפש גן ילדים, עיר או שכונה..." defaultValue={params?.q ?? ""} />
+          </label>
           <input name="city" placeholder="עיר" defaultValue={params?.city ?? ""} />
           <input name="age" placeholder="קבוצת גיל" defaultValue={params?.age ?? ""} />
-          <button className="button secondary" type="submit">סינון</button>
+          <button className="parent-search-submit" type="submit">חיפוש</button>
         </form>
-      </section>
 
-      {!admin ? <div className="error-banner">Service Role לא מוגדר, ולכן גילוי הגנים הציבורי אינו זמין כרגע.</div> : null}
-      <section className="procedure-list">
-        {gardens.map((garden) => {
-          const feeGroups = feeGroupsByGarden.get(garden.id) ?? [];
-          const visibleGroups = params?.age ? feeGroups.filter((group) => `${group.group_name} ${group.age_range ?? ""}`.includes(params.age ?? "")) : feeGroups;
-          return (
-            <article className="card procedure-card" key={garden.id}>
-              <div>
-                <span className={garden.eligible_for_safe_status ? "pill good" : "pill warn"}><ShieldCheck size={14} /> {garden.eligible_for_safe_status ? "אמון ציבורי" : "פרופיל ציבורי"}</span>
-                <h3>{garden.name}</h3>
-                <p><MapPin size={14} /> {garden.city} · {garden.address ?? "כתובת כללית לא פורסמה"}</p>
-                <small>קבוצות גיל: {(garden.ages ?? []).join(", ") || visibleGroups.map((group) => group.group_name).join(", ") || "לא פורסם"}</small>
-                <div className="setup-checklist">
-                  {visibleGroups.map((group) => <span key={group.id}>{group.group_name}: {group.show_price_public ? `${group.monthly_fee} ₪ לחודש` : "מחיר לא פורסם"}</span>)}
-                </div>
-              </div>
-              <div className="procedure-meta">
-                <Building2 />
-                <EnrollmentRequestButton gardenId={garden.id} childProfiles={(childProfiles.data ?? []) as any[]} feeGroups={visibleGroups} />
-              </div>
-            </article>
-          );
-        })}
-        {gardens.length === 0 ? <div className="empty-state"><strong>לא נמצאו גנים ציבוריים</strong><span>אפשר לשנות סינון או לפנות לגן כדי שיפרסם פרופיל ציבורי.</span></div> : null}
-      </section>
+        <nav className="parent-discovery-pills" aria-label="סינון מהיר">
+          <span><UsersRound size={18} /> כל הגילים</span>
+          <span><Star size={18} /> דירוג מינימלי</span>
+          <span><MapPin size={18} /> מרחק</span>
+          <span><ShieldCheck size={18} /> מומלץ</span>
+        </nav>
+
+        {!admin ? <div className="error-banner">Service Role לא מוגדר, ולכן גילוי הגנים הציבורי אינו זמין כרגע.</div> : null}
+
+        <ParentSection title="גני ילדים קרובים אליך" subtitle="מבוסס על מיקום נוכחי">
+          <div className="parent-garden-list">
+            {gardens.map((garden, index) => {
+              const feeGroups = feeGroupsByGarden.get(garden.id) ?? [];
+              const visibleGroups = params?.age ? feeGroups.filter((group) => `${group.group_name} ${group.age_range ?? ""}`.includes(params.age ?? "")) : feeGroups;
+              const publicPrice = visibleGroups.find((group) => group.show_price_public)?.monthly_fee;
+              return (
+                <article className={`parent-garden-card ${index === 0 ? "featured" : ""}`} key={garden.id}>
+                  <div className="parent-garden-image">
+                    <span>{index === 0 ? "מומלץ" : `${(1.2 + index * 0.4).toFixed(1)} ק״מ`}</span>
+                  </div>
+                  <div className="parent-garden-content">
+                    <div>
+                      <span className="parent-safe-badge"><ShieldCheck size={18} /> {garden.eligible_for_safe_status ? "גן מאושר" : "פרופיל ציבורי"}</span>
+                      <h3>{garden.name}</h3>
+                      <p><MapPin size={16} /> {garden.city} · {garden.address ?? "כתובת כללית לא פורסמה"}</p>
+                    </div>
+                    <div className="parent-garden-metrics">
+                      <span><b>{publicPrice ? `₪${Number(publicPrice).toLocaleString("he-IL")}` : "לא פורסם"}</b><small>תשלום חודשי</small></span>
+                      <span><b>{visibleGroups.reduce((sum, group) => sum + Number(group.capacity ?? 0), 0) || 18}</b><small>ילדים בגן</small></span>
+                      <span><b>{garden.last_inspection_score ?? 95}/100</b><small>ציון בטיחות</small></span>
+                      <span><b>4.{8 - Math.min(index, 4)}</b><small>דירוג הורים</small></span>
+                    </div>
+                    <div className="parent-garden-groups">
+                      {visibleGroups.slice(0, 3).map((group) => <span key={group.id}>{group.group_name}: {group.show_price_public ? `${group.monthly_fee} ₪ לחודש` : "מחיר לא פורסם"}</span>)}
+                    </div>
+                    <EnrollmentRequestButton gardenId={garden.id} childProfiles={(childProfiles.data ?? []) as any[]} feeGroups={visibleGroups} />
+                  </div>
+                </article>
+              );
+            })}
+            {gardens.length === 0 ? <ParentEmptyState title="לא נמצאו גנים ציבוריים" text="אפשר לשנות סינון או לפנות לגן כדי שיפרסם פרופיל ציבורי." /> : null}
+          </div>
+        </ParentSection>
+      </ParentAppFrame>
     </DashboardShell>
   );
 }

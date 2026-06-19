@@ -1,8 +1,18 @@
 import { DashboardShell } from "@/components/dashboard-shell";
 import { StaffProfileCards } from "@/components/people-profile-cards";
-import { StatCard } from "@/components/stat-card";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { ClipboardCheck, ShieldCheck, UserCheck, UsersRound } from "lucide-react";
+import {
+  TeacherAppFrame,
+  TeacherCompactItem,
+  TeacherCompactList,
+  TeacherEmptyState,
+  TeacherPageTitle,
+  TeacherSection,
+  TeacherStatCard,
+  TeacherStatsGrid
+} from "@/components/teacher-app-ui";
 
 export default async function GardenStaffPage() {
   const { profile } = await requireRole(["manager", "owner"]);
@@ -46,11 +56,50 @@ export default async function GardenStaffPage() {
   const reviewNeeded = rows.reduce((sum, row) => sum + Number(row.anomaly_count ?? 0), 0) + rows.filter((row) => row.attendance_confidence === "requires_review" && row.shift_today).length;
 
   return (
-    <DashboardShell role="manager" title="צוות">
-      <div className="parent-page-head manager-page-head"><div><p className="eyebrow">מרכז כוח אדם</p><h1>מי נמצא בגן, מי חסר ומה דורש בדיקה.</h1><p>נוכחות אוטומטית לפי מיקום, תעודות, מסמכים, משימות ואישור עבודה בכרטיסים קצרים.</p></div><span className="pill good">{rows.length} אנשי צוות</span></div>
-      <div className="grid cols-4 dashboard-kpis"><StatCard label="זוהו היום" value={activeToday} tone="good" /><StatCard label="נעדרים/טרם זוהו" value={rows.length - activeToday} tone={rows.length - activeToday ? "warn" : "good"} /><StatCard label="דורש בדיקה" value={reviewNeeded} tone={reviewNeeded ? "bad" : "good"} /><StatCard label="מוכנות ממוצעת" value={`${Math.round(rows.reduce((sum, row) => sum + Number(row.compliance_score), 0) / Math.max(rows.length, 1))}%`} tone="good" /></div>
-      <section className="manager-report-row"><span>נוכחות אוטומטית <b>{activeToday}</b></span><span>חריגות GPS <b>{reviewNeeded}</b></span><span>תעודות חסרות <b>{rows.filter((row) => !row.certificate_count).length}</b></span><span>משימות פתוחות <b>{rows.reduce((sum, row) => sum + Number(row.task_count ?? 0), 0)}</b></span></section>
-      <StaffProfileCards staff={rows} />
+    <DashboardShell role="manager" title="צוות" appHome>
+      <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "מאיה"}`} subtitle="ניהול צוות ושכר" avatarUrl={(profile as any).avatar_url ?? null} active="more">
+        <TeacherPageTitle icon={UsersRound} title="ניהול צוות" subtitle="מי נמצא בגן, מי חסר ומה דורש בדיקה" />
+        <TeacherStatsGrid>
+          <TeacherStatCard title="אנשי צוות" value={rows.length} hint="משויכים לגן" icon={UsersRound} tone="purple" />
+          <TeacherStatCard title="זוהו היום" value={activeToday} hint="נוכחים" icon={UserCheck} tone="green" />
+          <TeacherStatCard title="דורש בדיקה" value={reviewNeeded} hint="חריגות / GPS" icon={ShieldCheck} tone={reviewNeeded ? "red" : "green"} />
+          <TeacherStatCard title="מוכנות ממוצעת" value={`${Math.round(rows.reduce((sum, row) => sum + Number(row.compliance_score), 0) / Math.max(rows.length, 1))}%`} hint="מסמכים ותעודות" icon={ClipboardCheck} tone="blue" />
+        </TeacherStatsGrid>
+
+        <section className="teacher-dashboard-grid">
+          <TeacherSection title="צוות בתפקיד" action={<a href="/dashboard/garden/staff-applications">מועמדויות</a>}>
+            {rows.length ? (
+              <TeacherCompactList>
+                {rows.slice(0, 8).map((member) => (
+                  <TeacherCompactItem
+                    key={member.id}
+                    title={member.full_name ?? "איש צוות"}
+                    subtitle={`${member.role_title ?? "צוות"} · ${member.class_group ?? "כל הגן"}`}
+                    avatar={member.profile_photo_url}
+                    tone={member.approved_to_work ? "green" : "orange"}
+                    meta={member.shift_today ?? (member.approved_to_work ? "מאושר" : "ממתין")}
+                  />
+                ))}
+              </TeacherCompactList>
+            ) : (
+              <TeacherEmptyState title="עדיין אין צוות משויך" text="אפשר להזמין איש צוות או לאשר מועמדות קיימת." />
+            )}
+          </TeacherSection>
+
+          <TeacherSection title="מסמכים ותעודות" subtitle="בדיקת כשירות לפני עבודה עם ילדים">
+            <TeacherCompactList>
+              <TeacherCompactItem title="תעודות חסרות" subtitle="אישורי הכשרה / עזרה ראשונה" tone={rows.filter((row) => !row.certificate_count).length ? "orange" : "green"} meta={rows.filter((row) => !row.certificate_count).length} />
+              <TeacherCompactItem title="משימות פתוחות" subtitle="משימות שהוקצו לצוות" tone="blue" meta={rows.reduce((sum, row) => sum + Number(row.task_count ?? 0), 0)} />
+              <TeacherCompactItem title="בדיקות רקע" subtitle="אישור עבודה ומסמכים רגישים" tone={reviewNeeded ? "red" : "green"} meta={reviewNeeded ? "בדיקה" : "תקין"} />
+            </TeacherCompactList>
+          </TeacherSection>
+        </section>
+
+        <details className="teacher-management-details">
+          <summary>ניהול מלא</summary>
+          <StaffProfileCards staff={rows} />
+        </details>
+      </TeacherAppFrame>
     </DashboardShell>
   );
 }

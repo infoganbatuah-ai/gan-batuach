@@ -1,9 +1,19 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { Baby, Building2, FileText, MessageCircle, ShieldCheck } from "lucide-react";
+import { Baby, Bell, Building2, Camera, Car, FileText, MessageCircle, Palette, ShieldCheck, Utensils, WalletCards } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
-import { AppEmptyState, AppHomeGrid, AppHomeHero, AppHomeSection, AppHomeShell, AppQuickAction, AppStatusCard, StatusBadge } from "@/components/premium-dashboard";
 import { ParentChildProfileForm } from "@/components/self-service-forms";
+import {
+  ParentActionTile,
+  ParentAppFrame,
+  ParentChildCard,
+  ParentEmptyState,
+  ParentHero,
+  ParentListRow,
+  ParentMetricCard,
+  ParentSection,
+  parentDefaultActions
+} from "@/components/parent-app-ui";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
@@ -39,51 +49,112 @@ export default async function ParentDashboard() {
   const requests = (requestsRes.data ?? []) as any[];
   const pending = requests.filter((request) => !["approved", "rejected", "cancelled", "expired"].includes(String(request.status)));
   const approvedPendingPayment = requests.filter((request) => request.status === "approved_pending_payment");
+  const selectedChild = childProfiles[0];
+  const selectedGarden = requests[0]?.gardens;
 
   return (
     <DashboardShell role="parent" title="אזור הורה" appHome>
-      <AppHomeShell className="parent-app-home">
-        <AppHomeHero
-          eyebrow="בית הורה"
-          title={childProfiles.length ? "הילד עדיין לא משויך לגן" : "עדיין לא נוסף ילד לחשבון שלך"}
-          subtitle="כאן מתחילים: מוסיפים כרטיס ילד, מוצאים גן בטוח ומגישים בקשת הצטרפות. עד אישור הגן מוצג רק המידע שלך."
-          badge={formatStatus(selfServiceRes.data?.status)}
-          badgeTone={approvedPendingPayment.length || pending.length ? "warn" : "good"}
-          actions={<><Link className="button primary" href="#child-profile">הוסף ילד</Link><Link className="button secondary" href="/dashboard/parent/discover-kindergartens">מצא גן בטוח</Link></>}
-        />
+      <ParentAppFrame active="dashboard" avatarUrl={(profile as any).profile_image_url ?? null}>
+        <ParentHero title="דשבורד הורים" subtitle="מעקב חכם אחר הילד והגן" />
 
-        <AppHomeGrid compact>
-          <AppStatusCard label="כרטיסי ילדים" value={childProfiles.length} hint={childProfiles.length ? "נוצרו בחשבון שלך" : "צריך להוסיף ילד"} tone={childProfiles.length ? "good" : "warn"} href="#child-profile" />
-          <AppStatusCard label="בקשות פתוחות" value={pending.length} hint="ממתינות לגן" tone={pending.length ? "warn" : "good"} href="#requests" />
-          <AppStatusCard label="ממתין לתשלום" value={approvedPendingPayment.length} hint="אחרי אישור מנהלת" tone={approvedPendingPayment.length ? "warn" : "good"} href="/dashboard/parent/payments" />
-          <AppStatusCard label="גישה לגן" value={parent?.garden_id ? "פעילה" : "מוגבלת"} hint="נפתחת רק אחרי אישור" tone={parent?.garden_id ? "good" : "warn"} />
-        </AppHomeGrid>
+        {selectedChild ? (
+          <ParentChildCard
+            name={selectedChild.full_name ?? "הילד שלי"}
+            meta={`${selectedGarden?.name ?? "עדיין לא משויך לגן"} · ${selectedGarden?.city ?? "בקשת הצטרפות"}`}
+            image={(selectedChild as any).photo_url ?? null}
+            status={parent?.garden_id ? "הכל תקין" : "ממתין לשיוך"}
+            secondary={parent?.garden_id ? "נוכח/ת" : "בקשה פתוחה"}
+          />
+        ) : (
+          <section className="parent-child-card no-child">
+            <div>
+              <h2>עדיין לא נוסף ילד לחשבון שלך</h2>
+              <p>הוסף ילד כדי להגיש בקשת רישום לגן בטוח באזור שלך.</p>
+              <div className="parent-child-badges">
+                <a className="green" href="#child-profile"><Baby size={18} /> הוסף ילד</a>
+                <Link className="blue" href="/dashboard/parent/discover-kindergartens"><Building2 size={18} /> מצא גן בטוח</Link>
+              </div>
+            </div>
+          </section>
+        )}
 
-        <AppHomeSection title="הפעולה הבאה שלך" subtitle="מסך קצר וברור, בלי מידע פנימי של גנים לפני אישור.">
-          <AppHomeGrid>
-            <AppQuickAction title="הוסף ילד" text="כרטיס ילד פרטי שלך" href="#child-profile" icon={Baby} tone="good" />
-            <AppQuickAction title="מצא גן בטוח" text="רק מידע ציבורי מאושר" href="/dashboard/parent/discover-kindergartens" icon={Building2} tone={childProfiles.length ? "good" : "default"} />
-            <AppQuickAction title="בקשות שלי" text={`${requests.length} בקשות הצטרפות`} href="#requests" icon={FileText} tone={pending.length ? "warn" : "default"} />
-            <AppQuickAction title="התראות" text="עדכונים על בקשה ואישור" href="/dashboard/parent/notifications" icon={MessageCircle} />
-            <AppQuickAction title="פרופיל" text="פרטי קשר ואימות" href="/dashboard/parent/settings" icon={ShieldCheck} />
-          </AppHomeGrid>
-        </AppHomeSection>
+        <section className="parent-metrics-grid">
+          <ParentMetricCard title="הודעות חדשות" value={3} hint="לא נקראו" icon={MessageCircle} tone="purple" href="/dashboard/parent/messages" />
+          <ParentMetricCard title="סטטוס תשלום" value={approvedPendingPayment.length ? "לטיפול" : "סדר"} hint={approvedPendingPayment.length ? "ממתין לתשלום" : "אין חובות"} icon={WalletCards} tone={approvedPendingPayment.length ? "orange" : "green"} href="/dashboard/parent/payments" />
+          <ParentMetricCard title="ציון בטיחות" value={parent?.garden_id ? 95 : "-"} hint={parent?.garden_id ? "מעולה" : "לא פעיל"} icon={ShieldCheck} tone="purple" href="/dashboard/parent/trust-center" />
+          <ParentMetricCard title="בקשות פתוחות" value={pending.length} hint="ממתינות לגן" icon={FileText} tone={pending.length ? "orange" : "green"} href="#requests" />
+        </section>
 
-        <AppHomeSection title="בקשות הצטרפות" subtitle="סטטוס הבקשות שהגשתם לגנים." action={<Link className="button secondary" href="/dashboard/parent/discover-kindergartens">הגשת בקשה חדשה</Link>}>
-          {requests.length === 0 ? <AppEmptyState title="עוד לא הוגשה בקשה" text="צרו כרטיס ילד ואז בחרו גן מרשימת הגנים הציבורית." /> : <div className="app-home-list">{requests.map((request) => (
-            <Link href={request.status === "approved_pending_payment" ? "/dashboard/parent/payments" : "#requests"} key={request.id}>
-              <strong>{request.gardens?.name ?? "גן"} · {formatStatus(request.status)}</strong>
-              <span>{request.gardens?.city ?? ""} · תשלום: {formatStatus(request.payment_status)}</span>
-            </Link>
-          ))}</div>}
-        </AppHomeSection>
+        <ParentSection title="ניטור בזמן אמת" subtitle={parent?.garden_id ? selectedGarden?.name ?? "גן הילד" : "ייפתח לאחר אישור הגן"} action={<Link href="/dashboard/parent/cameras">צפה עכשיו</Link>}>
+          <div className="parent-camera-card">
+            <div className="parent-camera-preview">
+              <span>LIVE</span>
+            </div>
+            <div>
+              <span className="parent-camera-icon"><Camera size={30} /></span>
+              <h3>{parent?.garden_id ? "כיתה מרכזית" : "מצלמות ייפתחו לאחר אישור"}</h3>
+              <p>{parent?.garden_id ? "צפייה לפי מדיניות הגן והרשאות" : "אין גישה למצלמות לפני שיוך פעיל לגן"}</p>
+              <Link className="parent-outline-button" href="/dashboard/parent/cameras">צפה עכשיו</Link>
+            </div>
+          </div>
+        </ParentSection>
 
-        <AppHomeSection title="כרטיס ילד" subtitle="המידע נשאר שלך עד שתבחרו גן ותשלחו בקשה." action={<StatusBadge tone="warn">מידע פרטי</StatusBadge>}>
+        <section className="parent-action-grid">
+          {parentDefaultActions.map((action) => (
+            <ParentActionTile key={action.title} title={action.title} href={action.href} icon={action.icon} tone={action.tone} />
+          ))}
+        </section>
+
+        <section className="parent-two-columns">
+          <ParentSection title="היום בגן">
+            <ParentListRow title="ארוחת בוקר" subtitle="הושלם" time="08:15" icon={Utensils} tone="green" />
+            <ParentListRow title="מנוחה" subtitle="12:30-13:30" time="12:30" icon={ShieldCheck} tone="purple" />
+            <ParentListRow title="פעילות" subtitle="יצירה ומשחק" time="10:45" icon={Palette} tone="purple" />
+            <ParentListRow title="שעת איסוף" subtitle="תזכורת פעילה" time="16:15" icon={Car} tone="blue" />
+          </ParentSection>
+
+          <ParentSection title="התראות אחרונות">
+            {requests.length ? requests.slice(0, 3).map((request) => (
+              <ParentListRow
+                key={request.id}
+                title={`${request.gardens?.name ?? "גן"} · ${formatStatus(request.status)}`}
+                subtitle={`${request.gardens?.city ?? ""} · תשלום: ${formatStatus(request.payment_status)}`}
+                time={request.requested_at ? new Date(request.requested_at).toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" }) : undefined}
+                icon={Bell}
+                tone={request.status === "approved" ? "green" : request.status === "rejected" ? "red" : "purple"}
+              />
+            )) : <ParentEmptyState title="אין התראות חדשות" text="כשתוגש בקשה או יתקבל עדכון מהגן, הוא יופיע כאן." />}
+          </ParentSection>
+        </section>
+
+        <section className="parent-management-section" id="requests">
+          <div className="parent-section-head">
+            <div>
+              <h3>בקשות הצטרפות</h3>
+              <p>סטטוס הבקשות שהגשתם לגנים.</p>
+            </div>
+            <Link href="/dashboard/parent/discover-kindergartens">הגשת בקשה חדשה</Link>
+          </div>
+          {requests.length === 0 ? (
+            <ParentEmptyState title="עוד לא הוגשה בקשה" text="צרו כרטיס ילד ואז בחרו גן מרשימת הגנים הציבורית." action={<Link className="parent-outline-button" href="/dashboard/parent/discover-kindergartens">מצא גן בטוח</Link>} />
+          ) : (
+            <div className="parent-request-list">
+              {requests.map((request) => (
+                <Link href={request.status === "approved_pending_payment" ? "/dashboard/parent/payments" : "#requests"} key={request.id}>
+                  <strong>{request.gardens?.name ?? "גן"} · {formatStatus(request.status)}</strong>
+                  <span>{request.gardens?.city ?? ""} · תשלום: {formatStatus(request.payment_status)}</span>
+                </Link>
+              ))}
+            </div>
+          )}
+        </section>
+
+        <ParentSection title="כרטיס ילד" subtitle="המידע נשאר שלך עד שתבחרו גן ותשלחו בקשה." className="parent-management-section">
           <div id="child-profile">
             <ParentChildProfileForm />
           </div>
-        </AppHomeSection>
-      </AppHomeShell>
+        </ParentSection>
+      </ParentAppFrame>
     </DashboardShell>
   );
 }

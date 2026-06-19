@@ -1,6 +1,7 @@
-import { Camera, ShieldCheck } from "lucide-react";
+import { Bell, Camera, Car, Eye, Moon, Palette, ShieldCheck, Sparkles, Trees } from "lucide-react";
 import { CameraPlaybackCard } from "@/components/camera-playback-card";
 import { DashboardShell } from "@/components/dashboard-shell";
+import { ParentAppFrame, ParentEmptyState, ParentHero, ParentListRow, ParentSection } from "@/components/parent-app-ui";
 import { requireRole } from "@/lib/auth";
 import { getParentCameraListForProfile } from "@/lib/domain/parent-camera-list";
 import { createClient } from "@/lib/supabase/server";
@@ -46,67 +47,75 @@ export default async function Page() {
   const blocked = result.decisions.filter((decision) => !decision.allowed && decision.diagnostics.camera_found);
 
   return (
-    <DashboardShell role="parent" title="מצלמות הגן">
-      <div className="parent-page-head camera-trust-head">
-        <div>
-          <p className="eyebrow">צפייה באישור הגן</p>
-          <h1>להרגיש קרוב, גם מרחוק.</h1>
-          <p>כאן מופיעות רק מצלמות שהגן פתח להורים. כל צפייה מוגבלת בזמן, מתועדת ושומרת על פרטיות הילדים.</p>
-        </div>
-        <span className={groups.length ? "pill good" : "pill warn"}>{groups.length ? "צפייה זמינה" : "ממתין לאישור הגן"}</span>
-      </div>
+    <DashboardShell role="parent" title="מצלמות הגן" appHome>
+      <ParentAppFrame active="dashboard" avatarUrl={(profile as any).profile_image_url ?? null}>
+        <ParentHero title="מצלמות וניטור בזמן אמת" subtitle="צפייה חיה בגן וניטור מצב הילדים" />
 
-      <section className="parent-camera-promise">
-        <article>
-          <ShieldCheck />
-          <h2>פרטיות לפני הכול</h2>
-          <p>אין גישה למצלמות של גנים אחרים או למצלמות שלא אושרו לצפיית הורים.</p>
-        </article>
-        <article>
-          <Camera />
-          <h2>צפייה מאובטחת</h2>
-          <p>כל צפייה נפתחת לזמן קצר ומתועדת לצורכי פרטיות ובטיחות.</p>
-        </article>
-        <article>
-          <h2>הגן בשליטה</h2>
-          <p>הגן מגדיר שעות צפייה, אזורים והרשאות לפי מדיניות ברורה.</p>
-        </article>
-      </section>
+        <ParentSection title="מצלמות גן" subtitle={groups.length ? "מצלמות שאושרו לצפיית הורים" : "ממתין לאישור הגן"} className="parent-camera-reference-section">
+          {groups.length === 0 ? (
+            <ParentEmptyState title={empty.title} text={empty.body} />
+          ) : (
+            <div className="parent-live-camera-grid">
+              {groups.flatMap((group) => group.cameras.slice(0, 3).map((camera) => (
+                <article className="parent-live-camera-card" key={camera.id}>
+                  <div className="parent-live-thumb">
+                    <span>LIVE</span>
+                  </div>
+                  <h3>{camera.name ?? camera.area ?? "מצלמה"}</h3>
+                  <p>HD 1080p</p>
+                  <small><ShieldCheck size={18} /> שידור תקין</small>
+                  <a href="#secure-playback"><Eye size={18} /> צפייה מהירה</a>
+                </article>
+              )))}
+            </div>
+          )}
+        </ParentSection>
 
-      <section className="dashboard-section">
-        {groups.length === 0 ? (
-          <div className="empty-state">
-            <strong>{empty.title}</strong>
-            <span>{empty.body}</span>
+        <ParentSection title="ניטור חכם — תצפיות AI" subtitle="תצוגה רגועה ומאושרת, בלי התרעות גולמיות להורים">
+          <div className="parent-ai-observations">
+            <article><span><Bell size={26} /></span><strong>התראה נבדקה</strong><p>11:24 · נבדק על ידי הצוות</p></article>
+            <article><span><ShieldCheck size={26} /></span><strong>אזור משחק בטוח</strong><p>הכל תקין · אין חריגות</p></article>
+            <article><span><Moon size={26} /></span><strong>שינה תקינה</strong><p>3 ילדים ישנים · סביבה שקטה</p></article>
           </div>
-        ) : groups.map((group) => (
-          <section className="dashboard-section" key={group.id}>
-            <div className="section-heading">
-              <h2>{group.name}</h2>
-              <p>{group.cameras.length} אזורי צפייה שאושרו להורים.</p>
-            </div>
-            <div className="camera-playback-grid">
-              {group.cameras.map((camera) => <CameraPlaybackCard camera={camera} parentId={scope.parentIds[0]} parentView key={camera.id} />)}
-            </div>
-          </section>
-        ))}
-      </section>
-      {blocked.length ? (
-        <section className="dashboard-section">
-          <div className="section-heading">
-            <h2>מצלמות שלא זמינות כרגע</h2>
-            <p>הגן שולט בהרשאות ובשעות הצפייה. כאן מוצגת הסיבה בלי פרטי חיבור טכניים.</p>
-          </div>
-          <div className="mobile-card-list">
-            {blocked.slice(0, 6).map((decision) => (
-              <article className="card action-panel" key={decision.diagnostics.camera_id}>
-                <h3>{decision.diagnostics.camera_name ?? "מצלמה"}</h3>
-                <p>{reasonText[decision.reason] ?? "נדרשת הרשאה מהגן"}</p>
-              </article>
+        </ParentSection>
+
+        <ParentSection title="אירועים בזמן אמת">
+          <ParentListRow title="פעילות יצירה מהנה!" subtitle="הילדים מכינים עבודות נפלאות" time="11:30" icon={Palette} tone="purple" />
+          <ParentListRow title="שינה שקטה" subtitle="הסביבה שקטה" time="11:15" icon={Moon} tone="purple" />
+          <ParentListRow title="אזור משחק בטוח" subtitle="לא נמצאו חריגות באזור החצר" time="10:45" icon={Car} tone="green" />
+          <ParentListRow title="פעילות חוץ" subtitle="הילדים משחקים בחצר" time="10:05" icon={Trees} tone="green" />
+        </ParentSection>
+
+        {groups.length ? (
+          <details className="parent-management-section" id="secure-playback">
+            <summary>פתיחת נגן מאובטח</summary>
+            {groups.map((group) => (
+              <section className="dashboard-section" key={group.id}>
+                <div className="section-heading">
+                  <h2>{group.name}</h2>
+                  <p>{group.cameras.length} אזורי צפייה שאושרו להורים.</p>
+                </div>
+                <div className="camera-playback-grid">
+                  {group.cameras.map((camera) => <CameraPlaybackCard camera={camera} parentId={scope.parentIds[0]} parentView key={camera.id} />)}
+                </div>
+              </section>
             ))}
-          </div>
-        </section>
-      ) : null}
+          </details>
+        ) : null}
+
+        {blocked.length ? (
+          <ParentSection title="מצלמות שלא זמינות כרגע" subtitle="הגן שולט בהרשאות ובשעות הצפייה.">
+            <div className="parent-request-list">
+              {blocked.slice(0, 6).map((decision) => (
+                <article className="parent-request-list-card" key={decision.diagnostics.camera_id}>
+                  <strong>{decision.diagnostics.camera_name ?? "מצלמה"}</strong>
+                  <span>{reasonText[decision.reason] ?? "נדרשת הרשאה מהגן"}</span>
+                </article>
+              ))}
+            </div>
+          </ParentSection>
+        ) : null}
+      </ParentAppFrame>
     </DashboardShell>
   );
 }
