@@ -24709,7 +24709,7 @@ body:has(.gb-reference-login) .gb-reference-security-card {
     left: 50% !important;
     margin: 0 !important;
     max-height: none !important;
-    max-width: 430px !important;
+    max-width: calc(430px / var(--ganenet-mobile-scale)) !important;
     min-height: 0 !important;
     min-width: 0 !important;
     overflow: hidden !important;
