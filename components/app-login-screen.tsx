@@ -9,7 +9,6 @@ import {
   Heart,
   Lock,
   Mail,
-  MessageCircle,
   School,
   ShieldCheck,
   User,
@@ -87,15 +86,6 @@ export async function AppLoginScreen({ searchParams }: { searchParams?: Promise<
             </div>
 
             <LoginSubmitButton />
-
-            <div className="gb-reference-divider"><span>או התחברו בדרך נוספת</span></div>
-
-            <div className="gb-reference-alt-actions">
-              <Link className="gb-reference-alt-button" href="/forgot-password">
-                <MessageCircle size={29} />
-                <span>כניסה עם קוד חד-פעמי</span>
-              </Link>
-            </div>
           </form>
 
           <p className="gb-reference-register-line">אין לכם חשבון? <Link href="/app/register">הרשמה</Link></p>
