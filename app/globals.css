@@ -13229,6 +13229,654 @@ textarea {
   }
 }
 
+.admin-reference-frame {
+  background:
+    radial-gradient(circle at 8% 17%, rgba(116, 91, 242, 0.13), transparent 28%),
+    linear-gradient(180deg, #fbfdff 0%, #f2f6fc 100%);
+  border: 1px solid rgba(210, 222, 242, 0.86);
+  border-radius: 34px;
+  box-shadow: 0 28px 90px rgba(25, 55, 109, 0.13);
+  color: #102f6f;
+  margin: 0 auto;
+  max-width: 1060px;
+  min-height: 100vh;
+  overflow: hidden;
+  padding: 0 28px 124px;
+  position: relative;
+}
+
+.admin-reference-frame::before {
+  background: rgba(116, 91, 242, 0.12);
+  border-radius: 45% 55% 60% 40%;
+  content: "";
+  height: 180px;
+  opacity: 0.65;
+  pointer-events: none;
+  position: absolute;
+  right: -70px;
+  top: 130px;
+  transform: rotate(-18deg);
+  width: 260px;
+}
+
+.admin-reference-top {
+  align-items: center;
+  border-bottom: 1px solid #dfe8f5;
+  display: grid;
+  gap: 18px;
+  grid-template-columns: 72px 1fr auto 72px;
+  margin: 0 -28px;
+  padding: 18px 30px;
+  position: relative;
+  z-index: 1;
+}
+
+.admin-reference-avatar,
+.admin-reference-bell {
+  align-items: center;
+  background: #fff;
+  border: 0;
+  border-radius: 22px;
+  box-shadow: 0 16px 38px rgba(25, 55, 109, 0.12);
+  color: #17346b;
+  display: flex;
+  height: 64px;
+  justify-content: center;
+  position: relative;
+  width: 64px;
+}
+
+.admin-reference-avatar span {
+  color: #745bf2;
+  font-size: 1.35rem;
+  font-weight: 950;
+}
+
+.admin-reference-bell span {
+  align-items: center;
+  background: #745bf2;
+  border-radius: 999px;
+  color: #fff;
+  display: flex;
+  font-size: 0.82rem;
+  font-weight: 950;
+  height: 24px;
+  justify-content: center;
+  left: -6px;
+  position: absolute;
+  top: -6px;
+  width: 24px;
+}
+
+.admin-reference-date {
+  align-items: center;
+  color: #465a89;
+  display: flex;
+  font-weight: 800;
+  gap: 10px;
+  justify-content: center;
+  text-align: center;
+}
+
+.admin-reference-brand {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+}
+
+.admin-reference-brand img:first-child {
+  height: auto;
+  width: 210px;
+}
+
+.admin-reference-brand img:last-child {
+  height: 62px;
+  width: 62px;
+}
+
+.admin-reference-main {
+  display: grid;
+  gap: 22px;
+  padding-top: 36px;
+  position: relative;
+  z-index: 1;
+}
+
+.admin-reference-hero {
+  text-align: center;
+}
+
+.admin-reference-hero h1 {
+  color: #082a6d;
+  font-size: clamp(2.7rem, 6vw, 4.8rem);
+  font-weight: 950;
+  letter-spacing: 0;
+  line-height: 1.02;
+  margin: 0;
+}
+
+.admin-reference-hero p {
+  color: #586583;
+  font-size: 1.45rem;
+  font-weight: 750;
+  margin: 12px 0 0;
+}
+
+.admin-reference-frame .national-command-hero {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid #e2ebf8;
+  border-radius: 30px;
+  box-shadow: 0 20px 58px rgba(25, 55, 109, 0.1);
+  display: grid;
+  gap: 24px;
+  grid-template-columns: 170px 1fr auto;
+  padding: 26px;
+}
+
+.admin-reference-frame .national-health-score {
+  align-items: center;
+  background: linear-gradient(135deg, #fff, #edf5ff);
+  border-radius: 30px;
+  box-shadow: inset 0 0 0 10px #eef0ff;
+  display: grid;
+  height: 148px;
+  justify-items: center;
+  padding: 16px;
+  width: 148px;
+}
+
+.admin-reference-frame .national-health-score strong {
+  color: #745bf2;
+  font-size: 3rem;
+  font-weight: 950;
+}
+
+.admin-reference-frame .national-command-hero h1 {
+  color: #102f6f;
+  font-size: 2.6rem;
+  font-weight: 950;
+  margin: 0 0 8px;
+}
+
+.admin-reference-frame .national-kpi-strip,
+.admin-reference-frame .executive-kpi-center,
+.admin-reference-frame .national-action-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.admin-reference-frame .role-metric-card,
+.admin-reference-frame .executive-kpi-center article,
+.admin-reference-frame .national-panel,
+.admin-reference-frame .action-card,
+.admin-reference-frame .app-home-section,
+.admin-reference-frame .national-report-row {
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid #e2ebf8;
+  border-radius: 24px;
+  box-shadow: 0 16px 42px rgba(25, 55, 109, 0.09);
+}
+
+.admin-reference-frame .executive-kpi-center article {
+  align-items: center;
+  display: grid;
+  gap: 6px;
+  justify-items: center;
+  min-height: 150px;
+  padding: 18px;
+  text-align: center;
+}
+
+.admin-reference-frame .executive-kpi-center svg {
+  color: #745bf2;
+}
+
+.admin-reference-frame .executive-kpi-center strong {
+  color: #092a6c;
+  font-size: 2.1rem;
+  font-weight: 950;
+}
+
+.admin-reference-frame .national-two-column {
+  display: grid;
+  gap: 22px;
+  grid-template-columns: 1.1fr 0.9fr;
+}
+
+.admin-reference-frame .national-panel {
+  padding: 22px;
+}
+
+.admin-reference-frame .national-safety-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.admin-reference-frame .national-safety-grid a {
+  align-items: center;
+  background: #f8fbff;
+  border: 1px solid #e4edf8;
+  border-radius: 18px;
+  color: #17346b;
+  display: grid;
+  justify-items: center;
+  min-height: 100px;
+  padding: 12px;
+  text-align: center;
+  text-decoration: none;
+}
+
+.admin-reference-frame .national-safety-grid strong {
+  color: #745bf2;
+  font-size: 2rem;
+  font-weight: 950;
+}
+
+.admin-reference-frame .national-alert-feed,
+.admin-reference-frame .national-assistant-list,
+.admin-reference-frame .national-health-list,
+.admin-reference-frame .national-garden-list {
+  display: grid;
+  gap: 12px;
+}
+
+.admin-reference-frame .national-alert-feed a,
+.admin-reference-frame .national-assistant-list a,
+.admin-reference-frame .national-garden-list a,
+.admin-reference-frame .national-garden-list article,
+.admin-reference-frame .national-health-list span {
+  align-items: center;
+  background: #fff;
+  border: 1px solid #e5edf8;
+  border-radius: 18px;
+  color: #17346b;
+  display: grid;
+  gap: 10px;
+  grid-template-columns: auto 1fr auto;
+  padding: 12px 14px;
+  text-decoration: none;
+}
+
+.admin-reference-frame .national-assistant-list a,
+.admin-reference-frame .national-health-list span {
+  grid-template-columns: 1fr auto;
+}
+
+.admin-reference-bottom {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid #e4edf8;
+  border-radius: 30px;
+  bottom: 24px;
+  box-shadow: 0 18px 50px rgba(25, 55, 109, 0.14);
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(5, 1fr);
+  left: 24px;
+  min-height: 88px;
+  padding: 10px;
+  position: absolute;
+  right: 24px;
+  z-index: 5;
+}
+
+.admin-reference-bottom a {
+  align-items: center;
+  border-radius: 22px;
+  color: #7d89a8;
+  display: grid;
+  font-size: 0.88rem;
+  font-weight: 850;
+  gap: 4px;
+  justify-items: center;
+  min-height: 66px;
+  text-decoration: none;
+}
+
+.admin-reference-bottom a.active {
+  background: linear-gradient(135deg, rgba(122, 91, 246, 0.15), rgba(255, 255, 255, 0.9));
+  color: #745bf2;
+}
+
+@media (max-width: 860px) {
+  .admin-reference-frame {
+    border-radius: 28px;
+    padding: 0 14px 118px;
+  }
+
+  .admin-reference-top {
+    grid-template-columns: 56px 1fr 56px;
+    margin: 0 -14px;
+    padding: 14px;
+  }
+
+  .admin-reference-date {
+    display: none;
+  }
+
+  .admin-reference-brand img:first-child {
+    width: 152px;
+  }
+
+  .admin-reference-brand img:last-child,
+  .admin-reference-avatar,
+  .admin-reference-bell {
+    height: 52px;
+    width: 52px;
+  }
+
+  .admin-reference-frame .national-command-hero,
+  .admin-reference-frame .national-two-column,
+  .admin-reference-frame .national-kpi-strip,
+  .admin-reference-frame .executive-kpi-center,
+  .admin-reference-frame .national-action-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-reference-frame .national-health-score {
+    height: 124px;
+    width: 124px;
+  }
+
+  .admin-reference-frame .national-safety-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-reference-bottom {
+    bottom: 16px;
+    left: 14px;
+    right: 14px;
+  }
+}
+
+.inspector-reference-frame {
+  background:
+    radial-gradient(circle at 48% 10%, rgba(116, 91, 242, 0.12), transparent 28%),
+    linear-gradient(180deg, #fff 0%, #f5f8fd 100%);
+  border: 1px solid rgba(210, 222, 242, 0.84);
+  border-radius: 34px;
+  box-shadow: 0 28px 90px rgba(25, 55, 109, 0.13);
+  color: #102f6f;
+  margin: 0 auto;
+  max-width: 980px;
+  min-height: 100vh;
+  overflow: hidden;
+  padding: 30px 30px 124px;
+  position: relative;
+}
+
+.inspector-reference-top {
+  align-items: flex-start;
+  display: grid;
+  gap: 18px;
+  grid-template-columns: 92px 1fr 92px;
+  justify-items: center;
+}
+
+.inspector-reference-avatar {
+  position: relative;
+}
+
+.inspector-reference-avatar::after {
+  background: #21c667;
+  border: 4px solid #fff;
+  border-radius: 999px;
+  bottom: 4px;
+  content: "";
+  height: 22px;
+  position: absolute;
+  right: 4px;
+  width: 22px;
+}
+
+.inspector-reference-brand {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+}
+
+.inspector-reference-brand img:first-child {
+  height: 92px;
+  width: 92px;
+}
+
+.inspector-reference-brand img:nth-child(2) {
+  height: auto;
+  margin-top: -8px;
+  width: 230px;
+}
+
+.inspector-reference-brand p {
+  color: #6d7adb;
+  font-size: 1.15rem;
+  font-weight: 850;
+  margin: 0;
+}
+
+.inspector-reference-bell {
+  align-items: center;
+  background: #fff;
+  border: 0;
+  border-radius: 22px;
+  box-shadow: 0 16px 38px rgba(25, 55, 109, 0.13);
+  color: #19376d;
+  display: flex;
+  height: 72px;
+  justify-content: center;
+  position: relative;
+  width: 72px;
+}
+
+.inspector-reference-bell span {
+  background: #745bf2;
+  border-radius: 999px;
+  height: 13px;
+  left: 16px;
+  position: absolute;
+  top: 15px;
+  width: 13px;
+}
+
+.inspector-reference-main {
+  display: grid;
+  gap: 22px;
+  margin-top: 18px;
+}
+
+.inspector-reference-greeting {
+  text-align: right;
+}
+
+.inspector-reference-greeting span {
+  background: #f0e8ff;
+  border: 1px solid #d8ceff;
+  border-radius: 999px;
+  color: #745bf2;
+  display: inline-flex;
+  font-weight: 950;
+  padding: 9px 16px;
+}
+
+.inspector-reference-greeting h1 {
+  color: #102f6f;
+  font-size: clamp(2.3rem, 6vw, 3.7rem);
+  font-weight: 950;
+  margin: 16px 0 6px;
+}
+
+.inspector-reference-greeting p {
+  color: #667398;
+  font-size: 1.12rem;
+  font-weight: 750;
+  margin: 0;
+}
+
+.inspector-reference-frame .app-home-grid,
+.inspector-reference-frame .inspector-kpi-strip {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.inspector-reference-frame .app-status-card,
+.inspector-reference-frame .role-metric-card,
+.inspector-reference-frame .action-card,
+.inspector-reference-frame .inspector-priority-card,
+.inspector-reference-frame .inspector-assistant-card,
+.inspector-reference-frame .inspector-report-row {
+  background: rgba(255, 255, 255, 0.94);
+  border: 1px solid #e2ebf8;
+  border-radius: 24px;
+  box-shadow: 0 16px 42px rgba(25, 55, 109, 0.09);
+}
+
+.inspector-reference-frame .inspector-command-hero {
+  align-items: center;
+  background: linear-gradient(135deg, rgba(116, 91, 242, 0.12), rgba(255, 255, 255, 0.92));
+  border: 1px solid #ded7ff;
+  border-radius: 30px;
+  box-shadow: 0 20px 58px rgba(25, 55, 109, 0.1);
+  display: grid;
+  gap: 20px;
+  grid-template-columns: 150px 1fr auto;
+  padding: 26px;
+}
+
+.inspector-reference-frame .inspector-alert-score {
+  align-items: center;
+  background: #fff;
+  border-radius: 28px;
+  box-shadow: inset 0 0 0 10px #f0e8ff;
+  display: grid;
+  height: 130px;
+  justify-items: center;
+  padding: 14px;
+  width: 130px;
+}
+
+.inspector-reference-frame .inspector-alert-score strong {
+  color: #745bf2;
+  font-size: 2.8rem;
+  font-weight: 950;
+}
+
+.inspector-reference-frame .inspector-two-column {
+  display: grid;
+  gap: 22px;
+  grid-template-columns: 1.25fr 0.9fr;
+}
+
+.inspector-reference-frame .inspector-action-grid {
+  display: grid;
+  gap: 16px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.inspector-reference-frame .inspector-planning-list,
+.inspector-reference-frame .inspector-garden-list,
+.inspector-reference-frame .inspector-alert-feed {
+  display: grid;
+  gap: 12px;
+}
+
+.inspector-reference-frame .inspector-planning-list a,
+.inspector-reference-frame .inspector-garden-list article,
+.inspector-reference-frame .inspector-alert-feed a {
+  align-items: center;
+  background: #fff;
+  border: 1px solid #e5edf8;
+  border-radius: 18px;
+  color: #17346b;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: auto 1fr auto;
+  padding: 12px 14px;
+  text-decoration: none;
+}
+
+.inspector-reference-bottom {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.96);
+  border: 1px solid #e4edf8;
+  border-radius: 30px;
+  bottom: 24px;
+  box-shadow: 0 18px 50px rgba(25, 55, 109, 0.14);
+  display: grid;
+  gap: 8px;
+  grid-template-columns: repeat(5, 1fr);
+  left: 24px;
+  min-height: 88px;
+  padding: 10px;
+  position: absolute;
+  right: 24px;
+  z-index: 5;
+}
+
+.inspector-reference-bottom a {
+  align-items: center;
+  border-radius: 22px;
+  color: #7d89a8;
+  display: grid;
+  font-size: 0.88rem;
+  font-weight: 850;
+  gap: 4px;
+  justify-items: center;
+  min-height: 66px;
+  text-decoration: none;
+}
+
+.inspector-reference-bottom a.active {
+  background: linear-gradient(135deg, rgba(122, 91, 246, 0.15), rgba(255, 255, 255, 0.9));
+  color: #745bf2;
+}
+
+@media (max-width: 820px) {
+  .inspector-reference-frame {
+    border-radius: 28px;
+    padding: 22px 14px 118px;
+  }
+
+  .inspector-reference-top {
+    grid-template-columns: 64px 1fr 64px;
+  }
+
+  .inspector-reference-bell {
+    height: 58px;
+    width: 58px;
+  }
+
+  .inspector-reference-brand img:first-child {
+    height: 74px;
+    width: 74px;
+  }
+
+  .inspector-reference-brand img:nth-child(2) {
+    width: 172px;
+  }
+
+  .inspector-reference-frame .app-home-grid,
+  .inspector-reference-frame .inspector-kpi-strip,
+  .inspector-reference-frame .inspector-command-hero,
+  .inspector-reference-frame .inspector-two-column,
+  .inspector-reference-frame .inspector-action-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .inspector-reference-frame .inspector-alert-score {
+    height: 112px;
+    width: 112px;
+  }
+
+  .inspector-reference-bottom {
+    bottom: 16px;
+    left: 14px;
+    right: 14px;
+  }
+}
+
 .staff-app-frame {
   background:
     radial-gradient(circle at 50% 8%, rgba(116, 91, 242, 0.12), transparent 24%),

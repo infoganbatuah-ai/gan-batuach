@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { AlertTriangle, BarChart3, BellRing, Bot, Camera, CreditCard, FileText, HeartPulse, MessageSquareWarning, Rocket, Search, ShieldAlert, ShieldCheck, Star, UsersRound } from "lucide-react";
+import Image from "next/image";
+import { AlertTriangle, BarChart3, Bell, BellRing, Bot, CalendarDays, Camera, CreditCard, FileText, HeartPulse, Home, Menu, MessageSquareWarning, Rocket, Search, ShieldAlert, ShieldCheck, Star, UsersRound } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { AdminDataError } from "@/components/admin-data-state";
 import { ActionCard, AppHomeShell, AppHomeSection, RoleMetricCard } from "@/components/premium-dashboard";
@@ -247,7 +248,26 @@ export default async function AdminDashboard() {
 
   return (
     <DashboardShell role="admin" title="מרכז שליטה ארצי" appHome>
-      <AppHomeShell className="super-admin-shell admin-app-home">
+      <div className="admin-reference-frame" dir="rtl">
+        <header className="admin-reference-top">
+          <div className="admin-reference-avatar">
+            <span>{profile.full_name?.slice(0, 1) ?? "א"}</span>
+          </div>
+          <div className="admin-reference-date">
+            <CalendarDays size={25} />
+            <span>יום ראשון, כ״ד אייר תשפ״ה<br />18 במאי 2025</span>
+          </div>
+          <div className="admin-reference-brand">
+            <Image src="/assets/company-name.png" alt="גן בטוח" width={230} height={72} />
+            <Image src="/assets/company-symbol.png" alt="" width={72} height={72} />
+          </div>
+          <button className="admin-reference-bell" type="button" aria-label="התראות"><Bell size={26} /><span>3</span></button>
+        </header>
+        <main className="admin-reference-main">
+          <section className="admin-reference-hero">
+            <h1>דשבורד אדמין ראשי</h1>
+            <p>שליטה מלאה על כלל המערכת</p>
+          </section>
         <section className="national-command-hero">
           <div className={`national-health-score ${tone}`}>
             <span>בריאות מערכת</span>
@@ -365,7 +385,15 @@ export default async function AdminDashboard() {
           <span><BellRing /> כשלי תקשורת <b>{data.communicationFailures}</b></span>
           <span><Rocket /> פיילוטים פעילים <b>{data.pilotPrograms}</b></span>
         </section>
-      </AppHomeShell>
+        </main>
+        <nav className="admin-reference-bottom" aria-label="ניווט אדמין">
+          <Link href="/dashboard/admin"><Home size={24} /><span>בית</span></Link>
+          <Link href="/dashboard/admin/tasks"><CalendarDays size={24} /><span>יומן</span></Link>
+          <Link className="active" href="/dashboard/admin"><ShieldCheck size={24} /><span>אדמין</span></Link>
+          <Link href="/dashboard/admin/notifications"><Bell size={24} /><span>התראות</span></Link>
+          <Link href="/dashboard/admin/settings"><Menu size={24} /><span>עוד</span></Link>
+        </nav>
+      </div>
     </DashboardShell>
   );
 }
