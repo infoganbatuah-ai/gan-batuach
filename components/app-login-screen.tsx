@@ -95,14 +95,6 @@ export async function AppLoginScreen({ searchParams }: { searchParams?: Promise<
                 <MessageCircle size={29} />
                 <span>כניסה עם קוד חד-פעמי</span>
               </Link>
-              <button className="gb-reference-alt-button is-disabled" type="button" disabled aria-disabled="true" title="חיבור Google יופעל רק לאחר הגדרת ספק מאובטח">
-                <b aria-hidden="true">G</b>
-                <span>המשך עם Google</span>
-              </button>
-              <button className="gb-reference-alt-button is-disabled" type="button" disabled aria-disabled="true" title="חיבור Apple יופעל רק לאחר הגדרת ספק מאובטח">
-                <b aria-hidden="true"></b>
-                <span>המשך עם Apple</span>
-              </button>
             </div>
           </form>
 
