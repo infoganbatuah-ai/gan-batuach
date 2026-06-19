@@ -23955,3 +23955,68 @@ body:has(.gb-reference-login) .gb-reference-login-form .button.primary.large {
   font-size: 23px !important;
   font-weight: 950 !important;
 }
+
+html:has(.gb-reference-login),
+body:has(.gb-reference-login) {
+  height: 100% !important;
+  max-height: 100% !important;
+  overflow: hidden !important;
+  overscroll-behavior: none !important;
+}
+
+body:has(.gb-reference-login) .gb-reference-login {
+  position: fixed !important;
+  inset: 0 !important;
+  width: 100vw !important;
+  height: 100svh !important;
+  max-height: 100svh !important;
+  overflow: hidden !important;
+}
+
+body:has(.gb-reference-login) .gb-reference-login-inner {
+  min-height: 100svh !important;
+  max-height: 100svh !important;
+  overflow: hidden !important;
+  transform: scale(.9) !important;
+  transform-origin: top center !important;
+}
+
+body:has(.gb-reference-login) .gb-reference-brand-stage {
+  min-height: 250px !important;
+}
+
+body:has(.gb-reference-login) .gb-reference-logo-mark {
+  width: 88px !important;
+  height: 88px !important;
+}
+
+body:has(.gb-reference-login) .gb-reference-logo-name {
+  width: 174px !important;
+}
+
+body:has(.gb-reference-login) .gb-reference-brand-stage p {
+  font-size: 13px !important;
+}
+
+body:has(.gb-reference-login) .gb-reference-login-heading h1 {
+  font-size: 29px !important;
+}
+
+body:has(.gb-reference-login) .gb-reference-login-heading p {
+  font-size: 13px !important;
+}
+
+body:has(.gb-reference-login) .gb-reference-field input {
+  min-height: 52px !important;
+  font-size: 16px !important;
+}
+
+body:has(.gb-reference-login) .gb-reference-login-form .button.primary.large {
+  min-height: 52px !important;
+  font-size: 21px !important;
+}
+
+body:has(.gb-reference-login) .gb-reference-security-card {
+  min-height: 92px !important;
+  padding: 12px 14px !important;
+}
