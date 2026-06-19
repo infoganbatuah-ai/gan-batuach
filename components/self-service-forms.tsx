@@ -3,6 +3,7 @@
 import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { Baby, BriefcaseBusiness, Building2, CheckCircle2, ClipboardCheck, Send, ShieldCheck } from "lucide-react";
+import { FormField, PremiumCard, ProgressStepper, StatusChip } from "@/components/gan-batuach-design-system";
 import { knownKindergartenCities } from "@/lib/domain/kindergarten-onboarding";
 
 type ApiState = { ok: boolean; message: string; href?: string };
@@ -82,7 +83,7 @@ export function SelfServiceRegisterForm({ fixedAccountType, appMode = false }: {
   }
 
   return (
-    <section className={appMode ? "registration-app-card app-focused-registration" : "registration-app-card"}>
+    <section className={appMode ? "registration-app-card app-focused-registration gb-role-register-screen" : "registration-app-card"}>
       {!isFixedRole ? (
         <>
           <div className="section-heading">
@@ -103,31 +104,33 @@ export function SelfServiceRegisterForm({ fixedAccountType, appMode = false }: {
         </>
       ) : null}
 
-      <form className={appMode ? "app-auth-form focused-register-form" : "form premium-login-card focused-register-form"} onSubmit={submit}>
+      <PremiumCard className={appMode ? "focused-register-form gb-role-register-card" : "focused-register-form"} size="lg">
+      <form className={appMode ? "app-auth-form gb-role-register-form" : "form premium-login-card gb-role-register-form"} onSubmit={submit}>
         <input type="hidden" name="account_type" value={accountType} />
         <div className="register-form-heading">
           <activeRole.icon />
           <div>
-            <span className="pill good">שלב 2 מתוך 2</span>
+            <StatusChip tone="success">שלב 2 מתוך 2</StatusChip>
             <h3>{activeRole.cta}</h3>
             <p>{roleNotice[accountType]}</p>
           </div>
         </div>
-        <div className="form-grid">
-          <label>שם מלא *<input name="full_name" required minLength={2} autoComplete="name" /></label>
-          <label>טלפון *<input name="phone" required autoComplete="tel" /></label>
-          <label>אימייל *<input name="email" type="email" required autoComplete="username" /></label>
-          <label>תעודת זהות{accountType === "parent" ? "" : " *"}<input name="identity_number" required={accountType !== "parent"} inputMode="numeric" /></label>
+        <ProgressStepper current={1} steps={[{ label: "בחירת מסלול" }, { label: "פרטים אישיים" }]} />
+        <div className="form-grid gb-form-grid">
+          <FormField label="שם מלא *" name="full_name" required minLength={2} autoComplete="name" />
+          <FormField label="טלפון *" name="phone" required autoComplete="tel" />
+          <FormField label="אימייל *" name="email" type="email" required autoComplete="username" />
+          <FormField label={accountType === "parent" ? "תעודת זהות" : "תעודת זהות *"} name="identity_number" required={accountType !== "parent"} inputMode="numeric" />
           {accountType === "kindergarten_manager" || accountType === "inspector_candidate" ? (
-            <label>עיר *<select name="city" required defaultValue=""><option value="">בחרו עיר</option>{cities.map((city) => <option value={city} key={city}>{city}</option>)}<option value="אחר">אחר</option></select></label>
+            <FormField as="select" label="עיר *" name="city" required defaultValue=""><option value="">בחרו עיר</option>{cities.map((city) => <option value={city} key={city}>{city}</option>)}<option value="אחר">אחר</option></FormField>
           ) : (
-            <label>עיר<input name="city" list="known-cities" /></label>
+            <FormField label="עיר" name="city" list="known-cities" />
           )}
-          {accountType === "staff_candidate" ? <label className="wide">ניסיון קודם קצר<textarea name="previous_experience" rows={3} placeholder="ספרו בקצרה על ניסיון בגן או עבודה עם ילדים" /></label> : null}
-          {accountType === "inspector_candidate" ? <label className="wide">אזורים מועדפים<textarea name="preferred_regions" rows={3} placeholder="מרכז, שרון, ירושלים" /></label> : null}
-          {accountType === "inspector_candidate" ? <label className="wide">ניסיון מקצועי<textarea name="previous_experience" rows={3} placeholder="פיקוח, חינוך, בטיחות, תפעול או ניסיון רלוונטי" /></label> : null}
-          <label>סיסמה *<input name="password" type="password" required minLength={8} autoComplete="new-password" /></label>
-          <label>אימות סיסמה *<input name="confirm_password" type="password" required minLength={8} autoComplete="new-password" /></label>
+          {accountType === "staff_candidate" ? <FormField as="textarea" className="wide" label="ניסיון קודם קצר" name="previous_experience" rows={3} placeholder="ספרו בקצרה על ניסיון בגן או עבודה עם ילדים" /> : null}
+          {accountType === "inspector_candidate" ? <FormField as="textarea" className="wide" label="אזורים מועדפים" name="preferred_regions" rows={3} placeholder="מרכז, שרון, ירושלים" /> : null}
+          {accountType === "inspector_candidate" ? <FormField as="textarea" className="wide" label="ניסיון מקצועי" name="previous_experience" rows={3} placeholder="פיקוח, חינוך, בטיחות, תפעול או ניסיון רלוונטי" /> : null}
+          <FormField label="סיסמה *" name="password" type="password" required minLength={8} autoComplete="new-password" />
+          <FormField label="אימות סיסמה *" name="confirm_password" type="password" required minLength={8} autoComplete="new-password" />
         </div>
         <datalist id="known-cities">{cities.map((city) => <option value={city} key={city} />)}</datalist>
         <label className="terms-check"><input name="terms_approved" type="checkbox" required /> אני מאשר/ת שימוש בפרטים לצורך הפעלת השירות, שיוך לגן או בדיקת מועמדות, בהתאם למדיניות הפרטיות ותנאי השימוש.</label>
@@ -139,6 +142,7 @@ export function SelfServiceRegisterForm({ fixedAccountType, appMode = false }: {
         {state ? <div className={state.ok ? "success-screen" : "error-banner"}><strong>{state.message}</strong>{state.href ? <Link className="button secondary tiny" href="/app/login">כניסה לחשבון</Link> : null}</div> : null}
         <p className="auth-switch-line">כבר יש לך חשבון? <Link href="/app/login">התחברות</Link></p>
       </form>
+      </PremiumCard>
     </section>
   );
 }

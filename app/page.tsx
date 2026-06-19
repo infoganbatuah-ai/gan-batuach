@@ -1,7 +1,29 @@
+import Image from "next/image";
 import Link from "next/link";
-import { BarChart3, Bot, Building2, CalendarCheck, Camera, CheckCircle2, ClipboardCheck, HeartHandshake, MapPin, ShieldCheck, Sparkles, UsersRound } from "lucide-react";
-import { BrandHeader } from "@/components/brand-header";
-import { ConversionBand, MarketingCard, MarketingHero, MarketingMetric, MarketingSection } from "@/components/public-marketing";
+import {
+  BarChart3,
+  Bot,
+  Building2,
+  CalendarCheck,
+  Camera,
+  CheckCircle2,
+  ClipboardCheck,
+  HeartHandshake,
+  MapPin,
+  MessageCircle,
+  ShieldCheck,
+  Sparkles,
+  UsersRound
+} from "lucide-react";
+import {
+  ActionCard,
+  DashboardGrid,
+  EmptyState,
+  PremiumCard,
+  ResponsivePage,
+  SectionHeader,
+  StatusChip
+} from "@/components/gan-batuach-design-system";
 import { formatAgeGroups, formatPublicPriceRange, getKindergartenAgeGroups } from "@/lib/kindergarten-age-groups";
 import { createAdminClient } from "@/lib/supabase/admin";
 
@@ -10,46 +32,29 @@ export const metadata = {
   description: "גן בטוח היא פלטפורמת בטיחות, פיקוח, שקיפות וניהול לגני ילדים. הורים מקבלים אמון, גנים מקבלים מערכת תפעול, ופיקוח מקבל תיעוד."
 };
 
-const platformPillars = [
-  { icon: ClipboardCheck, title: "פיקוח שמייצר פעולה", text: "ביקורות, ממצאים, תיקון ומעקב במקום אחד. לא עוד דוח שנשכח במגירה." },
-  { icon: HeartHandshake, title: "אמון הורים יומי", text: "הורים רואים עדכונים, מסמכים, סטטוס בטיחות ושקיפות מאושרת." },
-  { icon: Bot, title: "תצפיתן דיגיטלי זהיר", text: "זיהוי חריגים והמלצות לבדיקה אנושית. בלי האשמות אוטומטיות ובלי חשיפת אירועים גולמיים." },
-  { icon: Building2, title: "מערכת הפעלה לגן", text: "ילדים, צוות, מסמכים, הורים, מצלמות, משימות ותשלומים במסך עבודה אחד." }
+const heroPills = [
+  "פטנט ישראלי",
+  "תו תקן חדש",
+  "מצלמות וניטור",
+  "פיקוח חודשי",
+  "ניהול גן מלא",
+  "ממשק הורים"
 ];
 
-const funnelSteps = [
-  "מבינים את הפערים בגן",
-  "קובעים הדגמה קצרה",
-  "פותחים פיילוט",
-  "הצוות עולה למערכת",
-  "הגן מקבל סטנדרט שקיפות"
+const moduleCards = [
+  { icon: Building2, title: "ניהול גן", text: "ילדים, צוות, נוכחות, מסמכים ותשלומים בממשק אחד.", href: "/join-kindergarten", tone: "primary" as const },
+  { icon: HeartHandshake, title: "ממשק הורים", text: "כרטיס ילד, עדכונים, תשלומים, הודעות ובקשות הצטרפות.", href: "/parents", tone: "success" as const },
+  { icon: ClipboardCheck, title: "פיקוח וביקורות", text: "ביקורת חודשית, ליקויים, תיקונים ודוחות מסודרים.", href: "/safety-standard", tone: "info" as const },
+  { icon: Bot, title: "תצפיתן דיגיטלי", text: "AI זהיר במצב shadow עם בדיקה אנושית לפני פעולה.", href: "/digital-observer", tone: "warning" as const }
 ];
 
-const websiteEntryPoints = [
-  {
-    href: "/book-demo",
-    title: "קבע הדגמה",
-    text: "למנהלות שרוצות לראות את המערכת לפני רישום.",
-    icon: CalendarCheck
-  },
-  {
-    href: "/register",
-    title: "רישום עצמי",
-    text: "הורים, צוות, מפקחים או רישום גן — התחילו מהמסלול המתאים.",
-    icon: UsersRound
-  },
-  {
-    href: "/join-kindergarten",
-    title: "רישום גן ילדים",
-    text: "פתיחת בקשת הצטרפות והתחלת תהליך הפעלה מסודר.",
-    icon: Building2
-  },
-  {
-    href: "/parents",
-    title: "הורים? לחצו כאן",
-    text: "בקשת הורים שהגן יצטרף לסטנדרט גן בטוח.",
-    icon: HeartHandshake
-  }
+const trustReasons = [
+  { icon: ShieldCheck, title: "בטיחות לפני הכול", text: "תיעוד פיקוח, סטטוס תיקון ושקיפות שמקטינה אי ודאות." },
+  { icon: Camera, title: "מצלמות עם גבולות", text: "צפייה בהרשאות, בלי חשיפת כתובות RTSP או סודות מצלמה." },
+  { icon: MessageCircle, title: "תקשורת מסודרת", text: "הודעות, עדכונים ופעולות להורה ולגן במקום אחד." },
+  { icon: BarChart3, title: "נתונים ברורים", text: "מדדים, בקשות, סטטוס מנוי ותפעול בלי עומס מיותר." },
+  { icon: CalendarCheck, title: "שגרה יומית", text: "נוכחות, לו״ז, פעילות, צוות ומשימות בצורה פשוטה." },
+  { icon: Sparkles, title: "חוויה פרימיום", text: "אפליקציה נקייה, עברית מלאה ופעולות קצרות וברורות." }
 ];
 
 async function getHomeGardens() {
@@ -66,6 +71,52 @@ async function getHomeGardens() {
   }
 }
 
+function PublicHeader() {
+  return (
+    <header className="gb-public-header">
+      <Link href="/" className="gb-public-brand" aria-label="גן בטוח">
+        <Image src="/assets/company-symbol.png" alt="" width={48} height={48} />
+        <Image src="/assets/company-name.png" alt="גן בטוח" width={146} height={46} />
+      </Link>
+      <nav aria-label="ניווט ציבורי">
+        <Link href="/kindergarten-directory">רשימת גנים</Link>
+        <Link href="/parents">להורים</Link>
+        <Link href="/digital-observer">Digital Observer</Link>
+      </nav>
+      <div className="gb-public-header-actions">
+        <Link className="gb-public-button ghost" href="/app/login">התחברות</Link>
+        <Link className="gb-public-button primary" href="/app/register">הרשמה</Link>
+      </div>
+    </header>
+  );
+}
+
+function HeroVisual() {
+  return (
+    <div className="gb-public-hero-visual" aria-hidden="true">
+      <div className="gb-public-orbit-card top">
+        <ShieldCheck size={24} />
+        <span>בטיחות</span>
+      </div>
+      <div className="gb-public-logo-medallion">
+        <Image src="/assets/company-symbol.png" alt="" width={118} height={118} />
+      </div>
+      <div className="gb-public-orbit-card left">
+        <Camera size={24} />
+        <span>ניטור</span>
+      </div>
+      <div className="gb-public-orbit-card right">
+        <UsersRound size={24} />
+        <span>הורים</span>
+      </div>
+      <div className="gb-public-floating-panel">
+        <b>100%</b>
+        <span>תהליך מסודר לגן, הורים וצוות</span>
+      </div>
+    </div>
+  );
+}
+
 export default async function HomePage() {
   const homeGardens = await getHomeGardens();
   const structuredData = {
@@ -79,111 +130,86 @@ export default async function HomePage() {
 
   return (
     <>
-      <BrandHeader />
-      <main>
+      <PublicHeader />
+      <ResponsivePage className="gb-public-page" size="lg">
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
-        <MarketingHero
-          eyebrow="תקן חדש לגני ילדים"
-          title="גן בטוח – תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים"
-          subtitle="הפלטפורמה שמחברת גנים, הורים, צוות, פקחים ומצלמות למערכת אחת שמייצרת אמון, תיעוד ותפעול מקצועי."
-          primaryHref="/book-demo"
-          primaryLabel="קבע הדגמה"
-          secondaryHref="/register"
-          secondaryLabel="רישום עצמי"
-          tertiaryHref="/parents"
-          tertiaryLabel="הורים? לחצו כאן"
-        >
-          <div className="authority-panel">
-            <div><ShieldCheck /><strong>סטנדרט בטיחות</strong><span>פיקוח, תיקונים ושקיפות</span></div>
-            <div><Camera /><strong>מצלמות מוגנות</strong><span>הרשאות צפייה בלבד</span></div>
-            <div><Bot /><strong>AI לבדיקה אנושית</strong><span>המלצות, לא החלטות</span></div>
-            <div><UsersRound /><strong>אמון הורים</strong><span>עדכונים ברורים מדי יום</span></div>
-          </div>
-        </MarketingHero>
 
-        <section className="website-entry-strip" aria-label="מסלולי כניסה">
-          {websiteEntryPoints.map((entry) => (
-            <Link className="website-entry-card" href={entry.href} key={entry.title}>
-              <entry.icon size={22} />
-              <strong>{entry.title}</strong>
-              <span>{entry.text}</span>
-            </Link>
-          ))}
+        <section className="gb-public-hero">
+          <div className="gb-public-hero-copy">
+            <StatusChip tone="primary" icon={Sparkles}>תקן חדש לגני ילדים</StatusChip>
+            <h1>
+              הפטנט הישראלי לניהול גני ילדים <span>מקצה לקצה</span>
+            </h1>
+            <p>
+              מערכת אחת שמחברת מנהלות, הורים, צוות, פיקוח, מצלמות, מסמכים ותשלומים לחוויית שימוש פשוטה,
+              שקופה ובטוחה.
+            </p>
+            <div className="gb-public-hero-actions">
+              <Link className="gb-public-button primary large" href="/app/register">הרשמה בחינם</Link>
+              <Link className="gb-public-button ghost large" href="/app/login">התחברות</Link>
+              <Link className="gb-public-button soft large" href="/book-demo">קביעת הדגמה</Link>
+            </div>
+            <div className="gb-public-pill-row">
+              {heroPills.map((pill) => <span key={pill}>{pill}</span>)}
+            </div>
+          </div>
+          <HeroVisual />
         </section>
 
-        <section className="marketing-metrics-strip">
-          <MarketingMetric label="מה ההורים מקבלים" value="שקיפות" text="סטטוס, עדכונים, מסמכים ותקשורת" />
-          <MarketingMetric label="מה הגן מקבל" value="מערכת אחת" text="תפעול, צוות, הורים ופיקוח" />
-          <MarketingMetric label="מה הפיקוח מקבל" value="תיעוד" text="ממצאים, תיקונים ודוחות" />
-          <MarketingMetric label="מה העסק מקבל" value="אמון" text="יתרון מסחרי מול הורים" />
-        </section>
-
-        <MarketingSection eyebrow="Why Gan Batuach" title="לא עוד תוכנה לגן. סטנדרט אמון חדש." subtitle="גן בטוח הופכת בטיחות ושקיפות ליתרון עסקי, לא לעוד מטלה.">
-          <div className="grid cols-4 feature-grid">
-            {platformPillars.map((item) => <MarketingCard key={item.title} {...item} />)}
-          </div>
-        </MarketingSection>
-
-        <MarketingSection eyebrow="Conversion Funnel" title="מהביקור באתר לפיילוט פעיל" subtitle="מסלול קצר וברור שמוריד חיכוך ומעביר גן מהתעניינות להתחלה.">
-          <div className="conversion-funnel">
-            {funnelSteps.map((step, index) => (
-              <article key={step}>
-                <span>{index + 1}</span>
-                <strong>{step}</strong>
-              </article>
+        <section className="gb-public-section">
+          <SectionHeader eyebrow="מה כוללת המערכת?" title="כל תפקיד מקבל מסך פשוט, ברור ואפליקטיבי." subtitle="המערכת שומרת על הפרדה בין הרשאות, תפקידים ותהליכים, אבל מרגישה כמו אפליקציה אחת." />
+          <DashboardGrid min="220px">
+            {moduleCards.map((item) => (
+              <ActionCard key={item.title} icon={item.icon} title={item.title} text={item.text} href={item.href} tone={item.tone} />
             ))}
-          </div>
-        </MarketingSection>
+          </DashboardGrid>
+        </section>
 
-        <section className="parent-pressure-band">
+        <section className="gb-public-section">
+          <SectionHeader eyebrow="למה גן בטוח?" title="שקט להורים. סדר לצוות. שליטה למנהלת." />
+          <DashboardGrid min="240px">
+            {trustReasons.map((reason) => (
+              <PremiumCard key={reason.title} className="gb-public-reason-card">
+                <span><reason.icon size={24} /></span>
+                <h3>{reason.title}</h3>
+                <p>{reason.text}</p>
+              </PremiumCard>
+            ))}
+          </DashboardGrid>
+        </section>
+
+        <section className="gb-public-cta-band">
           <div>
-            <span className="marketing-badge">Parent pressure</span>
-            <h2>גן הילדים שלכם עדיין לא בגן בטוח?</h2>
-            <p>הורים לא צריכים לנחש. בקשו מהגן שקיפות, סטטוס בטיחות, עדכונים יומיים ומעקב פיקוח ברור.</p>
+            <StatusChip tone="success" icon={CheckCircle2}>מוכן להתחלה</StatusChip>
+            <h2>רוצים לראות איך גן בטוח עובד אצלכם?</h2>
+            <p>התחילו ברישום קצר או קבעו הדגמה. בלי הפעלה ציבורית, בלי חיוב חי, ובלי חשיפת מידע רגיש.</p>
           </div>
-          <div className="actions">
-            <Link className="button primary large" href="/parents">הגן שלי עדיין לא בגן בטוח</Link>
-            <Link className="button secondary large" href="/parent-portal">ראו מה הורים מקבלים</Link>
+          <div className="gb-public-hero-actions">
+            <Link className="gb-public-button white" href="/app/register">הרשמה עכשיו</Link>
+            <Link className="gb-public-button outline-white" href="/book-demo">קביעת הדגמה</Link>
           </div>
         </section>
 
-        <MarketingSection eyebrow="Authority" title="שלושה מנועי אמון במקום אחד">
-          <div className="grid cols-3 feature-grid">
-            <MarketingCard icon={ClipboardCheck} title="פיקוח ובקרה" text="תהליכי ביקורת, ממצאים, תיקון, חתימה ותיעוד לאורך זמן." />
-            <MarketingCard icon={BarChart3} title="מדדי איכות" text="הכנה לציונים, דירוגים, מגמות ושקיפות ציבורית מאושרת." />
-            <MarketingCard icon={Sparkles} title="טכנולוגיה אחראית" text="AI, מצלמות וניתוח סיכונים תחת review אנושי וגבולות פרטיות." />
-          </div>
-        </MarketingSection>
-
-        <MarketingSection eyebrow="Participating Kindergartens" title="גנים שבוחרים לעבוד בשקיפות">
+        <section className="gb-public-section">
+          <SectionHeader eyebrow="רשימת גנים" title="גנים שבוחרים לעבוד בשקיפות" subtitle="רק מידע ציבורי שאושר להצגה מופיע כאן." action={<Link className="gb-public-button soft" href="/kindergarten-directory">לכל הגנים</Link>} />
           {homeGardens.length === 0 ? (
-            <div className="empty-state">
-              <strong>רשימת הגנים הציבורית בהכנה</strong>
-              <span>כאשר גן יאשר פרופיל ציבורי, הוא יוצג כאן עם badge וסטטוס מאושר.</span>
-              <Link className="button primary" href="/book-demo">היו מהגנים הראשונים</Link>
-            </div>
+            <EmptyState icon={Building2} title="רשימת הגנים הציבורית בהכנה" text="כאשר גן יאשר פרופיל ציבורי, הוא יוצג כאן עם סטטוס, עיר, קבוצות גיל ונתונים ציבוריים בלבד." action={<Link className="gb-public-button primary" href="/join-kindergarten">הצטרפות גן</Link>} />
           ) : (
-            <div className="garden-card-grid">
+            <DashboardGrid min="280px">
               {homeGardens.map((garden: any) => (
-                <article className="public-garden-card" key={garden.id}>
-                  {garden.image_url ? <img className="garden-card-image" src={garden.image_url} alt={garden.name} /> : <div className="garden-image-placeholder">{garden.name}</div>}
-                  <div className="garden-card-top"><span className={garden.safe_status === "safe" ? "pill good" : "pill warn"}>{garden.safe_status ?? "בתהליך"}</span><span><MapPin size={16} /> {garden.city}</span></div>
+                <PremiumCard key={garden.id} className="gb-public-home-garden-card" href={`/gardens/${garden.id}`}>
+                  <div className="gb-public-garden-thumb">{garden.image_url ? <img src={garden.image_url} alt={garden.name} /> : <Building2 size={34} />}</div>
+                  <StatusChip tone={garden.safe_status === "safe" ? "success" : "warning"} icon={ShieldCheck}>{garden.safe_status === "safe" ? "גן בטוח" : "בתהליך"}</StatusChip>
                   <h3>{garden.name}</h3>
-                  <p>{garden.address ?? "כתובת לפי הרשאת הגן"} · {garden.manager?.full_name ?? garden.owner_name ?? "מנהלת הגן"}</p>
-                  <div className="garden-facts">
-                    <span>{formatAgeGroups(garden.supported_age_groups ?? [])}</span>
-                    <span>{formatPublicPriceRange(garden.supported_age_groups ?? [])}</span>
-                    <span>ציון ביקורת: {garden.last_inspection_score ?? "טרם פורסם"}</span>
-                  </div>
-                  <Link className="button primary" href={`/gardens/${garden.id}`}>צפייה בגן</Link>
-                </article>
+                  <p><MapPin size={16} /> {garden.city} · {garden.address ?? "כתובת לפי הרשאת הגן"}</p>
+                  <small>{formatAgeGroups(garden.supported_age_groups ?? [])}</small>
+                  <b>{formatPublicPriceRange(garden.supported_age_groups ?? [])}</b>
+                </PremiumCard>
               ))}
-            </div>
+            </DashboardGrid>
           )}
-        </MarketingSection>
-
-        <ConversionBand title="רוצים שהגן שלכם יהיה חלק מסטנדרט גן בטוח?" text="קבעו הדגמה קצרה. נראה איך הגן עובר מתפעול מפוזר למערכת אחת של בטיחות, שקיפות וניהול." />
-      </main>
+        </section>
+      </ResponsivePage>
     </>
   );
 }

@@ -1,9 +1,10 @@
 import { redirect } from "next/navigation";
 import Link from "next/link";
-import { LogIn } from "lucide-react";
+import { Lock, LogIn, Mail } from "lucide-react";
 import { signIn } from "@/app/login/actions";
 import { LoginSubmitButton } from "@/components/auth-submit-button";
 import { AppAuthShell } from "@/components/app-auth-shell";
+import { FormField } from "@/components/gan-batuach-design-system";
 import { dashboardPathForProfile, getSessionProfile } from "@/lib/auth";
 import { isRole } from "@/lib/roles";
 
@@ -25,8 +26,8 @@ export async function AppLoginScreen({ searchParams }: { searchParams?: Promise<
         {params?.error ? <p className="error-banner">{params.error}</p> : null}
         <input type="hidden" name="context_garden_id" value={params?.gardenId ?? ""} />
         <input type="hidden" name="auth_source" value="app" />
-        <label>אימייל<input name="email" type="email" required placeholder="name@example.com" autoComplete="username" /></label>
-        <label>סיסמה<input name="password" type="password" required autoComplete="current-password" /></label>
+        <FormField label="אימייל או שם משתמש" icon={Mail} name="email" type="email" required placeholder="name@example.com" autoComplete="username" />
+        <FormField label="סיסמה" icon={Lock} name="password" type="password" required autoComplete="current-password" />
         <div className="login-form-links"><Link href="/forgot-password">שכחת סיסמה?</Link></div>
         <LoginSubmitButton />
         <Link className="button secondary large" href="/app/register"><LogIn size={18} /> הרשמה כמשתמש חדש</Link>
