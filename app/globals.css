@@ -24685,85 +24685,124 @@ body:has(.gb-reference-login) .gb-reference-security-card {
 }
 
 @media (max-width: 760px) {
+  .dashboard-role-manager.app-home-layout:has(.ganenet-reference-phone),
+  .dashboard-role-owner.app-home-layout:has(.ganenet-reference-phone),
+  .dashboard-role-manager.app-home-layout:has(.ganenet-reference-phone) .dashboard-main,
+  .dashboard-role-owner.app-home-layout:has(.ganenet-reference-phone) .dashboard-main,
+  .dashboard-role-manager.app-home-layout:has(.ganenet-reference-phone) .native-app-stage,
+  .dashboard-role-owner.app-home-layout:has(.ganenet-reference-phone) .native-app-stage {
+    height: 100svh !important;
+    max-height: 100svh !important;
+    overflow: hidden !important;
+    position: relative !important;
+  }
+
   .ganenet-reference-phone {
+    border: 0 !important;
+    border-radius: 0 !important;
+    box-shadow: none !important;
+    height: 1668px !important;
+    left: 50% !important;
+    margin: 0 !important;
     max-width: none !important;
-    min-height: 100svh !important;
-    padding: 20px 14px 124px !important;
+    min-height: 1668px !important;
+    min-width: 943px !important;
+    overflow: hidden !important;
+    padding: 50px 40px 142px !important;
+    position: absolute !important;
+    top: 0 !important;
+    transform: translateX(-50%) scale(calc((100vw - 8px) / 943)) !important;
+    transform-origin: top center !important;
+    width: 943px !important;
   }
 
   .ganenet-reference-header {
-    grid-template-areas: "logo" "profile" "greeting" !important;
-    grid-template-columns: 1fr !important;
-    row-gap: 18px !important;
+    grid-template-areas: "logo profile" "greeting profile" !important;
+    grid-template-columns: minmax(0, 1fr) auto !important;
+    row-gap: 24px !important;
   }
 
-  .ganenet-logo-lockup,
-  .ganenet-profile-actions {
-    justify-content: center !important;
+  .ganenet-logo-lockup {
+    justify-content: flex-start !important;
   }
 
   .ganenet-logo-lockup img:first-child {
-    width: 184px !important;
+    width: 260px !important;
   }
 
   .ganenet-logo-lockup img:last-child {
-    height: 58px !important;
-    width: 58px !important;
+    height: 78px !important;
+    width: 78px !important;
   }
 
   .ganenet-profile-actions {
-    padding-top: 0 !important;
+    justify-content: flex-start !important;
+    padding-top: 8px !important;
+  }
+
+  .ganenet-avatar,
+  .ganenet-bell {
+    height: 72px !important;
+    width: 72px !important;
   }
 
   .ganenet-greeting {
-    text-align: center !important;
+    text-align: right !important;
   }
 
   .ganenet-greeting h1 {
-    font-size: 24px !important;
+    font-size: 31px !important;
   }
 
   .ganenet-greeting p {
-    font-size: 15px !important;
+    font-size: 19px !important;
   }
 
   .ganenet-date-pill {
-    justify-content: center !important;
-    width: 100% !important;
+    justify-content: flex-start !important;
+    width: auto !important;
   }
 
   .ganenet-kpis,
   .ganenet-mid-grid,
   .ganenet-bottom-grid {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: revert !important;
+  }
+
+  .ganenet-kpis {
+    grid-template-columns: 1.1fr 1.1fr .95fr !important;
+  }
+
+  .ganenet-mid-grid {
+    grid-template-columns: 1fr 1.16fr !important;
+  }
+
+  .ganenet-bottom-grid {
+    grid-template-columns: repeat(3, 1fr) !important;
   }
 
   .ganenet-kpi {
-    min-height: 250px !important;
+    min-height: 306px !important;
   }
 
   .ganenet-action-row {
-    gap: 12px !important;
-    grid-template-columns: 1fr 1fr !important;
+    gap: 28px !important;
+    grid-template-columns: repeat(5, 1fr) !important;
   }
 
   .ganenet-ai,
   .ganenet-insights {
-    grid-column: auto !important;
-    grid-template-columns: 1fr !important;
-    text-align: center !important;
-  }
-
-  .ganenet-bot {
-    justify-self: center !important;
+    grid-column: span 3 !important;
+    grid-template-columns: 120px 1fr !important;
+    text-align: right !important;
   }
 
   .ganenet-insights > div {
-    grid-template-columns: 1fr !important;
+    grid-template-columns: repeat(3, 1fr) !important;
   }
 
   .ganenet-bottom-nav {
-    bottom: 12px !important;
-    width: calc(100% - 20px) !important;
+    bottom: 28px !important;
+    width: calc(100% - 80px) !important;
   }
 }
