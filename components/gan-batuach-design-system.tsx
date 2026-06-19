@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type {
   ComponentType,
+  CSSProperties,
   InputHTMLAttributes,
   ReactNode,
   SelectHTMLAttributes,
@@ -325,17 +326,19 @@ export function SearchFilterBar({
   search,
   filters,
   action,
+  children,
   className
 }: {
   search?: ReactNode;
   filters?: ReactNode;
   action?: ReactNode;
+  children?: ReactNode;
   className?: string;
 }) {
   return (
     <section className={cx("gb-search-filter-bar", className)}>
       {search ? <div className="gb-search-slot">{search}</div> : null}
-      {filters ? <div className="gb-filter-slot">{filters}</div> : null}
+      {filters || children ? <div className="gb-filter-slot">{filters ?? children}</div> : null}
       {action ? <div className="gb-filter-action">{action}</div> : null}
     </section>
   );
@@ -375,12 +378,14 @@ export function ListRowCard({
 }
 
 export function SectionHeader({
+  eyebrow,
   title,
   subtitle,
   icon: Icon,
   action,
   centered = false
 }: {
+  eyebrow?: ReactNode;
   title: ReactNode;
   subtitle?: ReactNode;
   icon?: IconType;
@@ -392,6 +397,7 @@ export function SectionHeader({
       <div>
         {Icon ? <span><Icon size={22} /></span> : null}
         <div>
+          {eyebrow ? <small className="gb-section-eyebrow">{eyebrow}</small> : null}
           <h2>{title}</h2>
           {subtitle ? <p>{subtitle}</p> : null}
         </div>
@@ -428,13 +434,15 @@ export function ProgressStepper({
 export function DashboardGrid({
   children,
   columns = 3,
+  min,
   className
 }: {
   children: ReactNode;
   columns?: 1 | 2 | 3 | 4 | 5;
+  min?: string;
   className?: string;
 }) {
-  return <div className={cx("gb-dashboard-grid", `gb-grid-${columns}`, className)}>{children}</div>;
+  return <div className={cx("gb-dashboard-grid", `gb-grid-${columns}`, className)} style={min ? ({ "--gb-grid-min": min } as CSSProperties) : undefined}>{children}</div>;
 }
 
 export function UploadBox({

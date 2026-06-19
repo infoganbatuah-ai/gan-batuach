@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Baby, BriefcaseBusiness, Building2, ClipboardCheck } from "lucide-react";
 import { AppAuthShell } from "@/components/app-auth-shell";
+import { ActionCard, DashboardGrid } from "@/components/gan-batuach-design-system";
 import { SelfServiceRegisterForm, type SelfServiceAccountType } from "@/components/self-service-forms";
 
 const roleCards: Array<{ type: SelfServiceAccountType; href: string; icon: typeof Baby; title: string; text: string; cta: string }> = [
@@ -18,16 +19,11 @@ export function AppRegisterEntryScreen() {
       subtitle="בחרו מסלול אחד. כל חשבון חדש נפתח במצב מוגבל עד אישור מתאים."
       footer={<span>כבר יש לך חשבון? <Link href="/app/login">התחברות</Link></span>}
     >
-      <div className="app-role-choice-grid">
+      <DashboardGrid columns={2} className="app-role-choice-grid gb-auth-role-grid">
         {roleCards.map((role) => (
-          <Link className="app-role-choice-card" href={role.href} key={role.type}>
-            <role.icon />
-            <strong>{role.title}</strong>
-            <span>{role.text}</span>
-            <small>{role.cta}</small>
-          </Link>
+          <ActionCard title={role.title} text={<><span>{role.text}</span><em>{role.cta}</em></>} icon={role.icon} href={role.href} key={role.type} tone={role.type === "staff_candidate" ? "info" : "primary"} />
         ))}
-      </div>
+      </DashboardGrid>
     </AppAuthShell>
   );
 }
