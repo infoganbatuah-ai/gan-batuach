@@ -5,6 +5,8 @@ import {
   BarChart3,
   CalendarDays,
   Camera,
+  ChevronDown,
+  ChevronLeft,
   ClipboardCheck,
   Home,
   Megaphone,
@@ -68,26 +70,29 @@ export default async function GardenDashboard() {
   return (
     <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="בית הגן" appHome>
       <main className="ganenet-reference-phone" dir="rtl">
-        <div className="ganenet-logo-lockup" aria-label="גן בטוח">
-          <Image src="/assets/company-name.png" alt="גן בטוח" width={300} height={96} priority />
-          <Image src="/assets/company-symbol.png" alt="" width={92} height={92} priority />
-        </div>
-
         <header className="ganenet-reference-header">
-          <div className="ganenet-greeting">
-            <div className="ganenet-avatar">
+          <div className="ganenet-logo-lockup" aria-label="גן בטוח">
+            <Image src="/assets/company-name.png" alt="גן בטוח" width={300} height={96} priority />
+            <Image src="/assets/company-symbol.png" alt="" width={92} height={92} priority />
+          </div>
+
+          <div className="ganenet-profile-actions">
+            <a className="ganenet-avatar" href="/dashboard/profile" aria-label="פרופיל">
               {(profile as any).avatar_url ? <img src={(profile as any).avatar_url} alt="" /> : <span>{profile.full_name?.slice(0, 1) ?? "מ"}</span>}
+            </a>
+            <ChevronDown className="ganenet-profile-chevron" size={28} />
+            <a className="ganenet-bell" href="/dashboard/garden/notifications" aria-label="התראות">
+              <Bell size={34} />
               <i />
-            </div>
+            </a>
+          </div>
+
+          <div className="ganenet-greeting">
             <div>
-              <h1>בוקר טוב, {profile.full_name?.split(" ")[0] ?? "רונית"} 🌸</h1>
-              <p>ברוכה הבאה ל{garden.name ?? "גן הפרחים"}</p>
+              <h1>בוקר טוב, {profile.full_name?.split(" ")[0] ?? "רונית"} <span>🌸</span></h1>
+              <p>ברוכה הבאה ל{garden.name ?? "גן הפרחים"} <ChevronLeft size={22} /></p>
             </div>
           </div>
-          <a className="ganenet-bell" href="/dashboard/garden/notifications" aria-label="התראות">
-            <Bell size={34} />
-            <i />
-          </a>
         </header>
 
         <div className="ganenet-date-pill">
@@ -138,7 +143,7 @@ export default async function GardenDashboard() {
               <h2><Megaphone size={30} /> עדכונים אחרונים</h2>
             </div>
             {[
-              ["הזון את אירוע קל", "חדר גן סגול", "08:30", "purple"],
+              ["הוזן אירוע קל", "חדר גן סגול", "08:30", "purple"],
               ["עליה של יעל לוי", "עלייה מההסעה", "08:15", "green"],
               ["הודעה להורים", "טיול שנתי - עדכון פרטים", "07:50", "blue"]
             ].map(([title, text, time, tone]) => (
