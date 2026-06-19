@@ -3,6 +3,19 @@ import { DashboardFilterChip } from "@/components/dashboard-filter-chip";
 import { ModuleListPage } from "@/components/module-list-page";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { CheckCircle2, FileText, ShieldAlert, Upload } from "lucide-react";
+import {
+  TeacherActionTile,
+  TeacherAppFrame,
+  TeacherCompactItem,
+  TeacherCompactList,
+  TeacherEmptyState,
+  TeacherPageTitle,
+  TeacherQuickActions,
+  TeacherSection,
+  TeacherStatCard,
+  TeacherStatsGrid
+} from "@/components/teacher-app-ui";
 
 export default async function GardenDocumentsPage({ searchParams }: { searchParams: Promise<{ filter?: string }> }) {
   const { profile } = await requireRole(["manager", "owner"]);
@@ -16,5 +29,49 @@ export default async function GardenDocumentsPage({ searchParams }: { searchPara
       return true;
     })
     .map((doc: any) => ({ ...doc, title: doc.name, description: `${doc.document_type} · תוקף ${doc.expires_at ? new Date(doc.expires_at).toLocaleDateString("he-IL") : "לא הוגדר"}` }));
-  return <DashboardShell role="manager" title="מסמכים"><DashboardFilterChip label={params.filter === "missing" ? "מסמכים חסרים / דחויים / פגי תוקף" : params.filter === "review" ? "מסמכים שממתינים לאישור" : null} clearHref="/dashboard/garden/documents" isEmpty={rows.length === 0} emptyTitle={params.filter === "missing" ? "אין כרגע מסמכים חסרים" : params.filter === "review" ? "אין כרגע מסמכים שממתינים לאישור" : undefined} emptyText="כל המסמכים במסנן הזה תקינים כרגע." /><ModuleListPage title="מרכז מסמכי גן" eyebrow="Document Center" description="מסמכי גן, צוות, ילדים, אישורי מצלמות, תברואה, בטיחות ותוקף." rows={rows} emptyTitle={params.filter === "missing" ? "אין כרגע מסמכים חסרים" : "אין מסמכים עדיין"} emptyText={params.filter === "missing" ? "אין מסמכים חסרים, דחויים או פגי תוקף כרגע." : "העלו מסמכים מתוך תהליך הקליטה או מרכז המסמכים. מסמכים חסרים יוצגו לאדמין ולפקח."} /></DashboardShell>;
+  const missing = rows.filter((doc: any) => ["missing", "required", "expired", "rejected"].includes(doc.status)).length;
+  const review = rows.filter((doc: any) => doc.status === "pending_review").length;
+  const ready = rows.filter((doc: any) => ["approved", "valid"].includes(doc.status)).length;
+  return (
+    <DashboardShell role="manager" title="מסמכים" appHome>
+      <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "מאיה"}`} subtitle="מסמכים ואישורים" avatarUrl={(profile as any).avatar_url ?? null} active="more">
+        <TeacherPageTitle icon={FileText} title="מסמכים ואישורים" subtitle="מסמכי גן, צוות, ילדים, אישורי מצלמות ובטיחות" />
+        <TeacherStatsGrid>
+          <TeacherStatCard title="מסמכים" value={rows.length} hint="במערכת" icon={FileText} tone="blue" />
+          <TeacherStatCard title="תקינים" value={ready} hint="מאושרים" icon={CheckCircle2} tone="green" />
+          <TeacherStatCard title="דורשים טיפול" value={missing} hint="חסר / פג תוקף" icon={ShieldAlert} tone={missing ? "red" : "green"} href="/dashboard/garden/documents?filter=missing" />
+          <TeacherStatCard title="בבדיקה" value={review} hint="ממתינים לאישור" icon={Upload} tone={review ? "orange" : "green"} href="/dashboard/garden/documents?filter=review" />
+        </TeacherStatsGrid>
+        <DashboardFilterChip label={params.filter === "missing" ? "מסמכים חסרים / דחויים / פגי תוקף" : params.filter === "review" ? "מסמכים שממתינים לאישור" : null} clearHref="/dashboard/garden/documents" isEmpty={rows.length === 0} emptyTitle={params.filter === "missing" ? "אין כרגע מסמכים חסרים" : params.filter === "review" ? "אין כרגע מסמכים שממתינים לאישור" : undefined} emptyText="כל המסמכים במסנן הזה תקינים כרגע." />
+
+        <TeacherSection title="רשימת מסמכים" action={<a href="/dashboard/garden/documents?filter=missing">דורשים טיפול</a>}>
+          {rows.length ? (
+            <TeacherCompactList>
+              {rows.slice(0, 8).map((doc: any) => (
+                <TeacherCompactItem
+                  key={doc.id}
+                  title={doc.name ?? doc.document_type ?? "מסמך"}
+                  subtitle={doc.description}
+                  tone={["missing", "expired", "rejected"].includes(doc.status) ? "red" : doc.status === "pending_review" ? "orange" : "green"}
+                  meta={doc.status ?? "חדש"}
+                />
+              ))}
+            </TeacherCompactList>
+          ) : (
+            <TeacherEmptyState title={params.filter === "missing" ? "אין כרגע מסמכים חסרים" : "אין מסמכים עדיין"} text={params.filter === "missing" ? "אין מסמכים חסרים, דחויים או פגי תוקף כרגע." : "העלו מסמכים מתוך תהליך הקליטה או מרכז המסמכים."} />
+          )}
+        </TeacherSection>
+
+        <TeacherQuickActions title="פעולות מסמכים">
+          <TeacherActionTile title="העלאת מסמך" href="/dashboard/garden/documents" icon={Upload} tone="purple" />
+          <TeacherActionTile title="דורשים טיפול" href="/dashboard/garden/documents?filter=missing" icon={ShieldAlert} tone="orange" />
+        </TeacherQuickActions>
+
+        <details className="teacher-management-details">
+          <summary>ניהול מלא</summary>
+          <ModuleListPage title="מרכז מסמכי גן" eyebrow="Document Center" description="מסמכי גן, צוות, ילדים, אישורי מצלמות, תברואה, בטיחות ותוקף." rows={rows} emptyTitle={params.filter === "missing" ? "אין כרגע מסמכים חסרים" : "אין מסמכים עדיין"} emptyText={params.filter === "missing" ? "אין מסמכים חסרים, דחויים או פגי תוקף כרגע." : "העלו מסמכים מתוך תהליך הקליטה או מרכז המסמכים. מסמכים חסרים יוצגו לאדמין ולפקח."} />
+        </details>
+      </TeacherAppFrame>
+    </DashboardShell>
+  );
 }

@@ -1,10 +1,20 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
-import { AlertTriangle, Baby, Bell, ClipboardList, HeartPulse, MapPin, MessageSquare, ShieldAlert, Siren } from "lucide-react";
+import { AlertTriangle, Baby, Bell, BriefcaseBusiness, Building2, CalendarDays, ClipboardList, Fingerprint, HeartPulse, LogIn, LogOut, MapPin, MessageSquare, ShieldAlert, Siren, UserRound, UsersRound } from "lucide-react";
 import { Avatar } from "@/components/avatar";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { StaffOneHandMode } from "@/components/staff-one-hand-mode";
-import { ActionCard, AppHomeGrid, AppHomeHero, AppHomeSection, AppHomeShell, AppQuickAction, AppStatusCard, RoleMetricCard } from "@/components/premium-dashboard";
+import {
+  StaffActionTile,
+  StaffAppFrame,
+  StaffInfoPill,
+  StaffMessageRow,
+  StaffMetricCard,
+  StaffSection,
+  StaffShiftCard,
+  StaffShiftHero,
+  StaffTaskRow
+} from "@/components/staff-app-ui";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
@@ -52,36 +62,46 @@ export default async function StaffDashboard() {
     const applications = (applicationsRes.data ?? []) as any[];
     return (
       <DashboardShell role="staff" title="מועמדות צוות" appHome>
-        <AppHomeShell className="staff-app-home">
-          <AppHomeHero
-            eyebrow="בית צוות"
-            title="עדיין לא שובצת לגן"
-            subtitle="אפשר להשלים פרטים ולהגיש מועמדות. עד אישור מנהלת אין גישה לילדים, הורים, מצלמות או מידע פנימי."
-            badge="ממתין לשיוך"
-            badgeTone="warn"
-            actions={<><Link className="button primary" href="/dashboard/staff/job-market">הגש מועמדות</Link><Link className="button secondary" href="/dashboard/staff/settings">השלמת פרטים</Link></>}
-          />
-          <AppHomeGrid compact>
-            <AppStatusCard label="מועמדויות" value={applications.length} hint="בקשות שהוגשו" tone={applications.length ? "warn" : "default"} href="#applications" />
-            <AppStatusCard label="גישה לגן" value="חסומה" hint="נפתחת רק אחרי אישור" tone="warn" />
-            <AppStatusCard label="מסמכים" value="להשלמה" hint="פרופיל ומסמכי צוות" tone="warn" href="/dashboard/staff/settings" />
-          </AppHomeGrid>
-          <AppHomeSection title="פעולות צוות" subtitle="הפעולות הזמינות לפני שיוך לגן.">
-            <AppHomeGrid>
-              <AppQuickAction title="שוק משרות" text="משרות שגנים פרסמו לצוות" href="/dashboard/staff/job-market" icon={ClipboardList} tone="good" />
-              <AppQuickAction title="פרופיל ומסמכים" text="השלמת פרטים ומסמכים" href="/dashboard/staff/settings" icon={ShieldAlert} />
-              <AppQuickAction title="התראות" text="עדכונים על מועמדות" href="/dashboard/staff/notifications" icon={Bell} />
-            </AppHomeGrid>
-          </AppHomeSection>
-          <AppHomeSection title="מועמדויות שהוגשו" subtitle="סטטוס הבקשות שלך לגנים.">
-            {applications.length === 0 ? <div className="app-empty-state"><strong>עוד לא הוגשה מועמדות</strong><span>פתחו את שוק המשרות כדי להגיש בקשה לגן.</span></div> : <div className="app-home-list" id="applications">{applications.map((application) => (
-              <Link href="/dashboard/staff/job-market" key={application.id}>
-                <strong>{application.gardens?.name ?? "גן"} · {formatStatus(application.status)}</strong>
-                <span>{application.gardens?.city ?? ""} · {application.kindergarten_staff_openings?.role_needed ?? "צוות"}</span>
-              </Link>
-            ))}</div>}
-          </AppHomeSection>
-        </AppHomeShell>
+        <StaffAppFrame avatarUrl={(profile as any).profile_image_url ?? null}>
+          <section className="staff-unassigned-card">
+            <div className="staff-search-art" aria-hidden="true" />
+            <div>
+              <h1>עדיין לא שובצת לגן</h1>
+              <p>אנחנו שמחים שאת איתנו! בינתיים תוכלי לחפש גנים באזור שלך ולהציע את עצמך לעבודה.</p>
+            </div>
+          </section>
+
+          <StaffSection title="העדפות העבודה שלי" action={<Link href="/dashboard/staff/settings">עריכה</Link>}>
+            <div className="staff-preference-grid">
+              <StaffInfoPill title="תפקיד" value="סייעת מועדפת" icon={UsersRound} />
+              <StaffInfoPill title="אזור" value="גם מתאים" icon={MapPin} />
+              <StaffInfoPill title="ניסיון" value="מועדפת" icon={BriefcaseBusiness} />
+            </div>
+          </StaffSection>
+
+          <StaffSection title="חיפוש גנים באזור">
+            <div className="staff-action-grid-ref">
+              <StaffActionTile title="שוק משרות" href="/dashboard/staff/job-market" icon={ClipboardList} />
+              <StaffActionTile title="פרופיל ומסמכים" href="/dashboard/staff/settings" icon={ShieldAlert} />
+              <StaffActionTile title="התראות" href="/dashboard/staff/notifications" icon={Bell} />
+            </div>
+          </StaffSection>
+
+          <StaffSection title="מועמדויות שהוגשו">
+            {applications.length === 0 ? (
+              <div className="staff-empty-ref"><strong>עוד לא הוגשה מועמדות</strong><span>פתחי את שוק המשרות כדי להגיש בקשה לגן.</span></div>
+            ) : (
+              <div className="staff-application-list" id="applications">
+                {applications.map((application) => (
+                  <Link href="/dashboard/staff/job-market" key={application.id}>
+                    <strong>{application.gardens?.name ?? "גן"} · {formatStatus(application.status)}</strong>
+                    <span>{application.gardens?.city ?? ""} · {application.kindergarten_staff_openings?.role_needed ?? "צוות"}</span>
+                  </Link>
+                ))}
+              </div>
+            )}
+          </StaffSection>
+        </StaffAppFrame>
       </DashboardShell>
     );
   }
@@ -134,87 +154,94 @@ export default async function StaffDashboard() {
 
   return (
     <DashboardShell role="staff" title="משמרת" appHome>
-      <AppHomeShell className="staff-workspace-shell staff-app-home">
-        <section className="staff-shift-hero">
-          <div className="staff-shift-status">
-            <MapPin />
-            <strong>{shiftStatus}</strong>
-            <span>{checkedIn ? `נכנסת ב-${timeText(shift.actual_start)}` : checkedOut ? `יצאת ב-${timeText(shift.actual_end)}` : "התחילו בהחתמה"}</span>
+      <StaffAppFrame avatarUrl={staff?.profile_photo_url ?? profile.profile_image_url}>
+        <StaffShiftHero name={staffName.split(" ")[0] ?? staffName} subtitle="אנחנו שמחים שאת איתנו היום!">
+          <div className="staff-side-info">
+            <StaffInfoPill title="הגן שלי" value={garden?.name ?? "גן"} icon={Building2} />
+            <StaffInfoPill title="קבוצת גיל" value="גילאי 3-4" icon={UsersRound} />
           </div>
-          <div>
-            <p className="eyebrow">מה צריך לעשות עכשיו?</p>
-            <h1>שלום, {staffName}</h1>
-            <p>{garden?.name ?? "הגן"} · {staffRole}. עדכוני ילדים, משימות, נוכחות ואירועים במקום אחד מהיר.</p>
-            <div className="parent-status-row">
-              <span className={checkedIn ? "pill good" : "pill warn"}>{checkedIn ? "נוכחות פעילה" : "נדרשת החתמה"}</span>
-              <span className={urgentAlerts ? "pill bad" : "pill good"}>{urgentAlerts} התראות</span>
-              <span className={tasksRes.count ? "pill warn" : "pill good"}>{tasksRes.count ?? 0} משימות</span>
+        </StaffShiftHero>
+
+        <StaffShiftCard status={shiftStatus} hours="07:30 - 16:00">
+          <div className="staff-shift-buttons">
+            <Link href="/dashboard/staff/attendance"><LogIn size={22} /> כניסה</Link>
+            <Link href="/dashboard/staff/attendance"><LogOut size={22} /> יציאה</Link>
+            <Link href="/dashboard/staff/shifts"><Fingerprint size={22} /> בהפסקה</Link>
+          </div>
+        </StaffShiftCard>
+
+        <section className="staff-metric-grid-ref">
+          <StaffMetricCard title="השלמת משימות" value={`${updatedChildren}/${Math.max(children.length, 1)}`} hint={`${shiftProgress}% הושלם`} icon={ClipboardList} tone={shiftProgress >= 80 ? "green" : "purple"} href="/dashboard/staff/tasks" />
+          <StaffMetricCard title="ילדים בקבוצה" value={children.length} hint="בקבוצת הגן" icon={UsersRound} tone="purple" href="/dashboard/staff/child-journal" />
+          <StaffMetricCard title="עדכוני צוות" value={notificationsRes.count ?? 0} hint="הודעות חדשות" icon={Bell} tone={urgentAlerts ? "orange" : "blue"} href="/dashboard/staff/notifications" />
+          <StaffMetricCard title="הודעות מהורים" value={messagesRes.count ?? 0} hint="חדשות" icon={MessageSquare} tone="purple" href="/dashboard/staff/messages" />
+        </section>
+
+        <section className="staff-dashboard-columns-ref">
+          <StaffSection title="המשימות שלי היום" action={<Link href="/dashboard/staff/tasks">צפייה בכל המשימות</Link>}>
+            <div className="staff-task-list-ref">
+              <StaffTaskRow title="הכנת אזור ארוחת בוקר" time="07:15" done />
+              <StaffTaskRow title="סיוע בקבלת הילדים בבוקר" time="07:30" done />
+              <StaffTaskRow title="השגחה על משחק בחצר" time="09:30" done />
+              <StaffTaskRow title="סיוע בהגשת ארוחת צהריים" time="12:00" done />
+              <StaffTaskRow title="תמיכה בזמן מנוחה" time="13:00" />
+              <StaffTaskRow title="ניקיון צעצועים וחומרים" time="14:30" />
+              <StaffTaskRow title="הכנת הגן למסירת סוף יום" time="15:30" />
             </div>
-          </div>
-          <Avatar name={staffName} src={staff?.profile_photo_url ?? profile.profile_image_url} size="lg" />
-        </section>
+          </StaffSection>
 
-        <section className="staff-metric-strip">
-          <RoleMetricCard label="התקדמות משמרת" value={`${shiftProgress}%`} hint="ילדים, ארוחות ושינה" tone={shiftProgress >= 80 ? "good" : "warn"} />
-          <RoleMetricCard label="ילדים לעדכון" value={Math.max(0, children.length - updatedChildren)} hint="עדיין בלי עדכון" tone={children.length - updatedChildren ? "warn" : "good"} href="/dashboard/staff/child-journal" />
-          <RoleMetricCard label="משימות" value={tasksRes.count ?? 0} hint="פתוחות" tone={tasksRes.count ? "warn" : "good"} href="/dashboard/staff/tasks" />
-          <RoleMetricCard label="אירועים" value={incidentsRes.count ?? 0} hint="פתוחים" tone={incidentsRes.count ? "bad" : "good"} href="/dashboard/staff/incidents" />
-        </section>
-
-        <section className="staff-progress-card">
-          <div><p className="eyebrow">התקדמות משמרת</p><h2>{shiftProgress}% הושלם</h2><p>מדד עבודה מהיר לצוות: עדכוני ילדים, ארוחות, שינה, בריאות ואירועים.</p></div>
-          <div className="staff-progress-bars">
-            <span><b style={{ width: `${percent(updatedChildren, children.length)}%` }} />ילדים עודכנו {updatedChildren}/{children.length}</span>
-            <span><b style={{ width: `${percent(mealUpdates, children.length)}%` }} />ארוחות {mealUpdates}/{children.length}</span>
-            <span><b style={{ width: `${percent(sleepUpdates, children.length)}%` }} />שינה {sleepUpdates}/{children.length}</span>
-            <span><b style={{ width: `${percent(healthUpdates + (medicineRes.count ?? 0), Math.max(children.length, 1))}%` }} />בריאות/תרופות {healthUpdates + (medicineRes.count ?? 0)}</span>
+          <div className="staff-side-stack-ref">
+            <StaffSection title="מהורים" action={<Link href="/dashboard/staff/messages">צפייה בכל</Link>}>
+              <StaffMessageRow title="אמא של יובל" body="יובל התעורר עם קצת חום, תשימו לב בבקשה" time="08:21" />
+              <StaffMessageRow title="אבא של מאיה" body="מאיה קצת עייפה הבוקר, תודה על תשומת הלב" time="07:48" />
+            </StaffSection>
+            <StaffSection title="עדכוני צוות" action={<Link href="/dashboard/staff/notifications">צפייה בכל</Link>}>
+              <StaffMessageRow title="מיכל, מנהלת" body="היום מגיע מדריכה לביקור בגן בשעה 10:00" time="06:45" />
+            </StaffSection>
           </div>
         </section>
 
-        <section className="staff-action-grid">
-          <ActionCard title="תפעול משמרת" text="כל הפעולות במסך אחד" href="/dashboard/staff/operations" icon={ClipboardList} tone="good" />
-          <ActionCard title="כניסה / יציאה" text="נוכחות עם מיקום" href="/dashboard/staff/attendance" icon={MapPin} tone={checkedIn ? "good" : "warn"} />
-          <ActionCard title="עדכון ילד" text="ארוחה, שינה, שירותים" href="/dashboard/staff/child-journal" icon={Baby} />
-          <ActionCard title="דיווח אירוע" text="מהיר ומתועד" href="/dashboard/staff/incidents" icon={Siren} tone="warn" />
-          <ActionCard title="משימות" text="מה שנשאר למשמרת" href="/dashboard/staff/tasks" icon={ClipboardList} />
-          <ActionCard title="הודעות" text="מנהלת וצוות" href="/dashboard/staff/messages" icon={MessageSquare} />
-          <ActionCard title="בריאות" text="תרופה או תצפית" href="/dashboard/staff/child-journal?health=1" icon={HeartPulse} />
+        <section className="staff-action-grid-ref">
+          <StaffActionTile title="משמרות" href="/dashboard/staff/shifts" icon={CalendarDays} />
+          <StaffActionTile title="נוכחות" href="/dashboard/staff/attendance" icon={Fingerprint} />
+          <StaffActionTile title="הודעות" href="/dashboard/staff/messages" icon={MessageSquare} />
+          <StaffActionTile title="תפקידים" href="/dashboard/staff/tasks" icon={UserRound} />
         </section>
 
-        <section className="staff-two-column">
-          <article className="staff-attention-card">
-            <div className="section-heading"><h2>ילדים שדורשים תשומת לב</h2><p>בלי חיפוש. קודם הילדים שצריך לעדכן או לבדוק.</p></div>
-            {childrenNeedingAttention.length === 0 ? <div className="empty-state"><strong>אין ילדים שממתינים לעדכון</strong><span>כל הילדים עודכנו או שאין דגשי בריאות פתוחים.</span></div> : <div className="staff-attention-list">{childrenNeedingAttention.map((child) => {
-              const journal = journalByChild.get(child.id) as any;
-              return <Link href={`/dashboard/staff/child-journal?childId=${child.id}`} key={child.id}><Avatar name={child.full_name} src={child.photo_url ?? child.face_image_url} /><div><strong>{child.full_name}</strong><span>{!journal ? "אין עדכון היום" : child.allergies ? `אלרגיה: ${child.allergies}` : child.medical_notes ? "הערת בריאות" : "דורש בדיקה"}</span></div><small>{journal?.mood ?? "עדכון"}</small></Link>;
-            })}</div>}
-          </article>
-          <article className="staff-assistant-card">
-            <ShieldAlert />
-            <h2>עוזר צוות</h2>
-            <p>שאלות קצרות שמובילות למסך הנכון.</p>
-            <div>
-              <Link href="/dashboard/staff/child-journal">מי עדיין צריך עדכון?</Link>
-              <Link href="/dashboard/staff/tasks">אילו משימות נשארו?</Link>
-              <Link href="/dashboard/staff/child-journal?health=1">למי יש דגש בריאותי?</Link>
-              <Link href="/dashboard/staff/incidents">צריך לדווח אירוע?</Link>
+        <details className="staff-management-details">
+          <summary>ניהול מתקדם לצוות</summary>
+          <section className="staff-two-column">
+            <article className="staff-attention-card">
+              <div className="section-heading"><h2>ילדים שדורשים תשומת לב</h2><p>בלי חיפוש. קודם הילדים שצריך לעדכן או לבדוק.</p></div>
+              {childrenNeedingAttention.length === 0 ? <div className="empty-state"><strong>אין ילדים שממתינים לעדכון</strong><span>כל הילדים עודכנו או שאין דגשי בריאות פתוחים.</span></div> : <div className="staff-attention-list">{childrenNeedingAttention.map((child) => {
+                const journal = journalByChild.get(child.id) as any;
+                return <Link href={`/dashboard/staff/child-journal?childId=${child.id}`} key={child.id}><Avatar name={child.full_name} src={child.photo_url ?? child.face_image_url} /><div><strong>{child.full_name}</strong><span>{!journal ? "אין עדכון היום" : child.allergies ? `אלרגיה: ${child.allergies}` : child.medical_notes ? "הערת בריאות" : "דורש בדיקה"}</span></div><small>{journal?.mood ?? "עדכון"}</small></Link>;
+              })}</div>}
+            </article>
+            <article className="staff-assistant-card">
+              <ShieldAlert />
+              <h2>עוזר צוות</h2>
+              <p>שאלות קצרות שמובילות למסך הנכון.</p>
+              <div>
+                <Link href="/dashboard/staff/child-journal">מי עדיין צריך עדכון?</Link>
+                <Link href="/dashboard/staff/tasks">אילו משימות נשארו?</Link>
+                <Link href="/dashboard/staff/child-journal?health=1">למי יש דגש בריאותי?</Link>
+                <Link href="/dashboard/staff/incidents">צריך לדווח אירוע?</Link>
+              </div>
+            </article>
+          </section>
+          <StaffOneHandMode children={children.slice(0, 24)} />
+          <section className="staff-emergency-center">
+            <div><p className="eyebrow">פעולות חירום</p><h2>תמיד קרוב</h2><p>לדווח מהר, ליצור קשר עם מנהלת או לפתוח התראה דחופה.</p></div>
+            <div className="profile-actions">
+              <Link className="button primary" href="/dashboard/staff/incidents"><AlertTriangle size={16} /> דיווח אירוע</Link>
+              <Link className="button secondary" href="/dashboard/staff/messages"><MessageSquare size={16} /> הודעה למנהלת</Link>
+              <Link className="button secondary" href="/dashboard/staff/notifications"><Bell size={16} /> התראות</Link>
             </div>
-          </article>
-        </section>
-
-        <StaffOneHandMode children={children.slice(0, 24)} />
-
-        <section className="staff-emergency-center">
-          <div><p className="eyebrow">פעולות חירום</p><h2>תמיד קרוב</h2><p>לדווח מהר, ליצור קשר עם מנהלת או לפתוח התראה דחופה.</p></div>
-          <div className="profile-actions">
-            <Link className="button primary" href="/dashboard/staff/incidents"><AlertTriangle size={16} /> דיווח אירוע</Link>
-            <Link className="button secondary" href="/dashboard/staff/messages"><MessageSquare size={16} /> הודעה למנהלת</Link>
-            <Link className="button secondary" href="/dashboard/staff/notifications"><Bell size={16} /> התראות</Link>
-          </div>
-        </section>
-
-        {(docsRes.count ?? 0) > 0 ? <section className="staff-emergency-center documents"><div><p className="eyebrow">נדרש ממך</p><h2>חסרים מסמכי צוות</h2><p>השלמת המסמכים עוזרת למנהלת להשאיר אותך מאושר/ת לעבודה.</p></div><Link className="button primary" href="/dashboard/staff/documents">השלמת מסמכים</Link></section> : null}
-      </AppHomeShell>
+          </section>
+          {(docsRes.count ?? 0) > 0 ? <section className="staff-emergency-center documents"><div><p className="eyebrow">נדרש ממך</p><h2>חסרים מסמכי צוות</h2><p>השלמת המסמכים עוזרת למנהלת להשאיר אותך מאושר/ת לעבודה.</p></div><Link className="button primary" href="/dashboard/staff/documents">השלמת מסמכים</Link></section> : null}
+        </details>
+      </StaffAppFrame>
     </DashboardShell>
   );
 }

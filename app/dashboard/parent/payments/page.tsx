@@ -1,8 +1,9 @@
 import Link from "next/link";
-import { CalendarClock, CheckCircle2, MessageCircle, WalletCards } from "lucide-react";
+import { CalendarClock, CheckCircle2, CreditCard, MessageCircle, ShieldCheck, WalletCards } from "lucide-react";
 import { Avatar } from "@/components/avatar";
 import { DashboardShell } from "@/components/dashboard-shell";
-import { EmptyState, RoleMetricCard, StatusBadge } from "@/components/premium-dashboard";
+import { StatusBadge } from "@/components/premium-dashboard";
+import { ParentAppFrame, ParentEmptyState, ParentHero, ParentMetricCard, ParentSection } from "@/components/parent-app-ui";
 import { requireRole } from "@/lib/auth";
 import { getParentFamilyContext } from "@/lib/domain/parent-family";
 import { createClient } from "@/lib/supabase/server";
@@ -40,30 +41,23 @@ export default async function ParentPaymentsPage() {
   const nextPayments = children.filter((child) => child.next_payment_due).sort((a, b) => String(a.next_payment_due).localeCompare(String(b.next_payment_due)));
 
   return (
-    <DashboardShell role="parent" title="תשלומים">
-      <div className="parent-experience-shell">
-        <div className="parent-page-head">
-          <div>
-            <p className="eyebrow">תשלומים</p>
-            <h1>תמונה פשוטה של התשלומים לגן.</h1>
-            <p>יתרה, תשלום קרוב ופרטי ילד במקום אחד. התשלום מועבר ישירות לחשבון הגן, לא דרך גן בטוח.</p>
-          </div>
-          <span className={attention.length ? "pill warn" : "pill good"}><WalletCards size={15} /> {attention.length ? "דורש בדיקה" : "מסודר"}</span>
-        </div>
+    <DashboardShell role="parent" title="תשלומים" appHome>
+      <ParentAppFrame active="dashboard" avatarUrl={(profile as any).profile_image_url ?? null}>
+        <ParentHero title="תשלומים וחיובים" subtitle="תמונה פשוטה וברורה של התשלומים לגן" />
 
-        <section className="parent-metric-strip">
-          <RoleMetricCard label="יתרה פתוחה" value={`₪${totalDebt.toLocaleString("he-IL")}`} tone={totalDebt ? "warn" : "good"} />
-          <RoleMetricCard label="ילדים לתשלום" value={children.length} tone="default" />
-          <RoleMetricCard label="דורש בדיקה" value={attention.length} tone={attention.length ? "warn" : "good"} />
-          <RoleMetricCard label="תשלום קרוב" value={nextPayments[0]?.next_payment_due ? dateText(nextPayments[0].next_payment_due) : "לא נקבע"} tone="default" />
+        <section className="parent-metrics-grid">
+          <ParentMetricCard title="יתרה פתוחה" value={`₪${totalDebt.toLocaleString("he-IL")}`} hint={totalDebt ? "דורש טיפול" : "אין חוב"} icon={WalletCards} tone={totalDebt ? "orange" : "green"} />
+          <ParentMetricCard title="ילדים לתשלום" value={children.length} hint="משויכים" icon={CheckCircle2} tone="purple" />
+          <ParentMetricCard title="דורש בדיקה" value={attention.length} hint="סטטוס תשלום" icon={ShieldCheck} tone={attention.length ? "orange" : "green"} />
+          <ParentMetricCard title="תשלום קרוב" value={nextPayments[0]?.next_payment_due ? dateText(nextPayments[0].next_payment_due) : "לא נקבע"} hint="מועד הבא" icon={CalendarClock} tone="blue" />
         </section>
 
-        <section className="warning-banner finance-routing-banner">
+        <section className="parent-payment-notice">
           תשלומי הורים שייכים לגן הילדים. גן בטוח מציג ומאשר את התהליך, אך לא מקבל את כספי שכר הלימוד.
         </section>
 
-        <section className="dashboard-section">
-          {children.length === 0 ? <EmptyState title="אין ילדים משויכים לתשלום" text="לאחר אישור הגן, פרטי התשלום יוצגו כאן." /> : (
+        <ParentSection title="חיובים לפי ילד" subtitle="כל ילד מוצג רק להורה המשויך אליו">
+          {children.length === 0 ? <ParentEmptyState title="אין ילדים משויכים לתשלום" text="לאחר אישור הגן, פרטי התשלום יוצגו כאן." /> : (
             <div className="parent-payment-list">
               {children.map((child) => {
                 const debt = Number(child.debt_amount ?? 0);
@@ -91,14 +85,14 @@ export default async function ParentPaymentsPage() {
               })}
             </div>
           )}
-        </section>
+        </ParentSection>
 
-        <section className="parent-camera-promise">
+        <section className="parent-payment-methods">
           <article><CheckCircle2 /><h2>ברור</h2><p>הורה רואה רק את מצב התשלום של הילדים שלו.</p></article>
           <article><CalendarClock /><h2>רגוע</h2><p>אין חיוב אוטומטי במסך הזה. שאלות עוברות לגן.</p></article>
-          <article><WalletCards /><h2>אמצעי תשלום</h2><p>מוכן לאשראי, Apple Pay ו-Google Pay דרך ספק מאושר וללא שמירת פרטי אשראי גולמיים.</p></article>
+          <article><CreditCard /><h2>אמצעי תשלום</h2><p>מוכן לספק מאושר וללא שמירת פרטי אשראי גולמיים.</p></article>
         </section>
-      </div>
+      </ParentAppFrame>
     </DashboardShell>
   );
 }

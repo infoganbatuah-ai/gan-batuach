@@ -3,6 +3,20 @@ import { DashboardShell } from "@/components/dashboard-shell";
 import { DashboardFilterChip } from "@/components/dashboard-filter-chip";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { AlertTriangle, CalendarCheck, ClipboardCheck, FileText, ShieldCheck } from "lucide-react";
+import {
+  TeacherActionTile,
+  TeacherAiInsight,
+  TeacherAppFrame,
+  TeacherCompactItem,
+  TeacherCompactList,
+  TeacherEmptyState,
+  TeacherPageTitle,
+  TeacherQuickActions,
+  TeacherSection,
+  TeacherStatCard,
+  TeacherStatsGrid
+} from "@/components/teacher-app-ui";
 
 export default async function GardenInspectionsPage({ searchParams }: { searchParams: Promise<{ filter?: string }> }) {
   const { profile } = await requireRole(["manager", "owner"]);
@@ -16,5 +30,73 @@ export default async function GardenInspectionsPage({ searchParams }: { searchPa
   const garden = gardenRes.data as any;
   const dueSoon = Boolean(garden?.next_inspection_at && Math.ceil((new Date(garden.next_inspection_at).getTime() - Date.now()) / 86400000) <= 5);
   const showDueOnly = params.filter === "due-soon";
-  return <DashboardShell role="manager" title="פיקוח"><div className="dashboard-hero-card garden-hero-card"><div><p className="eyebrow">Inspection Status</p><h1>סטטוס פיקוח ודוחות ביקורת.</h1><p>ביקורת חודשית, ציון אחרון, דוחות, ליקויים ומשימות תיקון.</p></div><span className={garden?.safe_status === "safe" ? "pill good" : "pill warn"}>{garden?.safe_status ?? "pending"}</span></div><DashboardFilterChip label={showDueOnly ? "פיקוח קרוב" : null} clearHref="/dashboard/garden/inspections" isEmpty={showDueOnly && !dueSoon} emptyTitle="אין כרגע פיקוח קרוב" emptyText="לא נמצא מועד פיקוח בטווח הקרוב לגן הזה." /><section className="grid cols-3 dashboard-kpis"><div className="card stat-card">ציון אחרון <b>{garden?.last_inspection_score ?? "-"}</b></div><div className="card stat-card">ביקורת הבאה <b>{garden?.next_inspection_at ? new Date(garden.next_inspection_at).toLocaleDateString("he-IL") : "טרם"}</b></div><div className="card stat-card">ליקויים פתוחים <b>{violationsRes.data?.length ?? 0}</b></div></section><section className="grid cols-2 dashboard-panels"><article className="card action-panel"><h2>{showDueOnly ? "פיקוח קרוב" : "היסטוריית ביקורות"}</h2>{showDueOnly && !dueSoon ? <div className="empty-state"><strong>אין כרגע פיקוח קרוב</strong><span>כאשר מועד הפיקוח יתקרב, הוא יופיע כאן.</span></div> : (inspectionsRes.data ?? []).length === 0 ? <div className="empty-state"><strong>אין ביקורות עדיין</strong><span>לאחר ביקורת פקח, הדוח והציון יופיעו כאן.</span></div> : <div className="procedure-list">{(inspectionsRes.data ?? []).map((inspection: any) => <div className="list-item" key={inspection.id}><div><strong>ציון {inspection.weighted_score ?? "-"}</strong><span>{inspection.inspectors?.full_name ?? "פקח"} · {inspection.completed_at ? new Date(inspection.completed_at).toLocaleString("he-IL") : inspection.status}</span></div><Link className="button secondary" href={`/dashboard/garden/inspections/${inspection.id}/report`}>דוח</Link></div>)}</div>}</article><article className="card action-panel"><h2>ליקויים ותיקונים</h2>{(violationsRes.data ?? []).length === 0 ? <div className="empty-state"><strong>אין ליקויים פתוחים</strong><span>שאלות בציון 1-4 או כשל קריטי יופיעו כאן עם משימת תיקון.</span></div> : (violationsRes.data ?? []).map((v: any) => <div className="list-item" key={v.id}><div><strong>{v.title}</strong><span>{v.severity} · {v.due_at ? new Date(v.due_at).toLocaleDateString("he-IL") : ""}</span></div><span className="pill warn">{v.status}</span></div>)}</article></section></DashboardShell>;
+  const inspections = (inspectionsRes.data ?? []) as any[];
+  const violations = (violationsRes.data ?? []) as any[];
+  const nextInspection = garden?.next_inspection_at ? new Date(garden.next_inspection_at).toLocaleDateString("he-IL") : "טרם";
+
+  return (
+    <DashboardShell role="manager" title="פיקוח" appHome>
+      <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "מאיה"}`} subtitle="פיקוח ובטיחות גן" avatarUrl={(profile as any).avatar_url ?? null} active="more">
+        <TeacherPageTitle icon={ShieldCheck} title="פיקוחים ודוחות" subtitle="ביקורת חודשית, ציון אחרון וליקויים לתיקון" />
+        <DashboardFilterChip label={showDueOnly ? "פיקוח קרוב" : null} clearHref="/dashboard/garden/inspections" isEmpty={showDueOnly && !dueSoon} emptyTitle="אין כרגע פיקוח קרוב" emptyText="לא נמצא מועד פיקוח בטווח הקרוב לגן הזה." />
+
+        <TeacherStatsGrid>
+          <TeacherStatCard title="ציון אחרון" value={garden?.last_inspection_score ?? "-"} hint="בטיחות" icon={ShieldCheck} tone={garden?.safe_status === "safe" ? "green" : "orange"} />
+          <TeacherStatCard title="ביקורת הבאה" value={nextInspection} hint={dueSoon ? "קרוב" : "מתוכנן"} icon={CalendarCheck} tone={dueSoon ? "orange" : "blue"} href="/dashboard/garden/inspections?filter=due-soon" />
+          <TeacherStatCard title="ליקויים פתוחים" value={violations.length} hint="לתיקון" icon={AlertTriangle} tone={violations.length ? "red" : "green"} />
+          <TeacherStatCard title="דוחות" value={inspections.length} hint="היסטוריה" icon={FileText} tone="purple" />
+        </TeacherStatsGrid>
+
+        <section className="teacher-dashboard-grid">
+          <TeacherSection title={showDueOnly ? "פיקוח קרוב" : "היסטוריית ביקורות"}>
+            {showDueOnly && !dueSoon ? (
+              <TeacherEmptyState title="אין כרגע פיקוח קרוב" text="כאשר מועד הפיקוח יתקרב, הוא יופיע כאן." />
+            ) : inspections.length ? (
+              <TeacherCompactList>
+                {inspections.slice(0, 6).map((inspection: any) => (
+                  <TeacherCompactItem
+                    key={inspection.id}
+                    title={`ציון ${inspection.weighted_score ?? "-"}`}
+                    subtitle={`${inspection.inspectors?.full_name ?? "פקח"} · ${inspection.completed_at ? new Date(inspection.completed_at).toLocaleString("he-IL") : inspection.status}`}
+                    tone={Number(inspection.violation_count ?? 0) ? "orange" : "green"}
+                    meta={<Link href={`/dashboard/garden/inspections/${inspection.id}/report`}>דוח</Link>}
+                  />
+                ))}
+              </TeacherCompactList>
+            ) : (
+              <TeacherEmptyState title="אין ביקורות עדיין" text="לאחר ביקורת פקח, הדוח והציון יופיעו כאן." />
+            )}
+          </TeacherSection>
+
+          <TeacherSection title="ליקויים ותיקונים" subtitle="משימות שממתינות לטיפול">
+            {violations.length ? (
+              <TeacherCompactList>
+                {violations.slice(0, 6).map((violation: any) => (
+                  <TeacherCompactItem
+                    key={violation.id}
+                    title={violation.title}
+                    subtitle={`${violation.severity ?? "חומרה"} · ${violation.due_at ? new Date(violation.due_at).toLocaleDateString("he-IL") : "ללא יעד"}`}
+                    tone={violation.severity === "critical" || violation.severity === "high" ? "red" : "orange"}
+                    meta={violation.status ?? "פתוח"}
+                  />
+                ))}
+              </TeacherCompactList>
+            ) : (
+              <TeacherEmptyState title="אין ליקויים פתוחים" text="שאלות בציון נמוך או כשל קריטי יופיעו כאן עם משימת תיקון." />
+            )}
+          </TeacherSection>
+        </section>
+
+        <TeacherAiInsight>
+          {violations.length ? "יש ליקויים פתוחים. מומלץ לטפל קודם בפריטים עם חומרה גבוהה או תאריך יעד קרוב." : "אין ליקויים פתוחים כרגע. המשיכי לשמור על תיעוד מסודר לקראת הפיקוח הבא."}
+        </TeacherAiInsight>
+
+        <TeacherQuickActions title="פעולות פיקוח">
+          <TeacherActionTile title="סטטוס פיקוח" href="/dashboard/garden/inspection-status" icon={ClipboardCheck} tone="purple" />
+          <TeacherActionTile title="דוחות" href="/dashboard/garden/inspections" icon={FileText} tone="blue" />
+          <TeacherActionTile title="מסמכים" href="/dashboard/garden/documents" icon={ShieldCheck} tone="green" />
+        </TeacherQuickActions>
+      </TeacherAppFrame>
+    </DashboardShell>
+  );
 }

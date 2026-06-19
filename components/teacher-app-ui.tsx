@@ -1,4 +1,5 @@
 import Link from "next/link";
+import Image from "next/image";
 import type { ComponentType, ReactNode } from "react";
 import {
   Baby,
@@ -33,6 +34,10 @@ export function TeacherAppFrame({
 }) {
   return (
     <div className="teacher-app-frame" dir="rtl">
+      <div className="teacher-app-logo" aria-label="גן בטוח">
+        <Image src="/assets/company-name.png" alt="גן בטוח" width={260} height={82} />
+        <Image src="/assets/company-symbol.png" alt="" width={82} height={82} />
+      </div>
       <header className="teacher-app-header">
         <button className="teacher-icon-button" type="button" aria-label="התראות">
           <Bell size={24} />
@@ -47,9 +52,12 @@ export function TeacherAppFrame({
             <h1>{title}</h1>
             {subtitle ? <p>{subtitle}</p> : null}
           </div>
-          <b aria-hidden="true">☀️</b>
         </div>
       </header>
+      <div className="teacher-app-date-pill">
+        <CalendarDays size={28} />
+        <span>יום ראשון, כ״ה אייר תשפ״ה<br />25 במאי 2025</span>
+      </div>
       <main className="teacher-app-main">{children}</main>
       <TeacherBottomNav active={active} />
     </div>

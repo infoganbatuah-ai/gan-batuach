@@ -5,6 +5,16 @@ import { requireRole } from "@/lib/auth";
 import { evaluateSubscriptionAccess, loadGardenSubscriptionData } from "@/lib/domain/billing";
 import { getIntegrationSafetyModes, getSafeIntegrationStatus } from "@/lib/domain/provider-integration-safety";
 import { createClient } from "@/lib/supabase/server";
+import { CheckCircle2, CreditCard, ShieldCheck, WalletCards } from "lucide-react";
+import {
+  TeacherAppFrame,
+  TeacherCompactItem,
+  TeacherCompactList,
+  TeacherPageTitle,
+  TeacherSection,
+  TeacherStatCard,
+  TeacherStatsGrid
+} from "@/components/teacher-app-ui";
 
 export const dynamic = "force-dynamic";
 
@@ -54,17 +64,9 @@ export default async function GardenSubscriptionPage() {
   const expectedMonthly = 800 + Math.max(0, classCount - 1) * 200;
 
   return (
-    <DashboardShell role={role} title="Subscription Center">
-      <div className="dashboard-hero-card garden-hero-card">
-        <div>
-          <p className="eyebrow">מנוי שנתי</p>
-          <h1>מנוי גן בטוח.</h1>
-          <p>זהו מנוי הגן מול גן בטוח. תשלומי הורים לגן נשארים זרם נפרד ואינם הכנסה של גן בטוח.</p>
-        </div>
-        <span className={statusTone(subscription?.status)}>
-          {statusLabels[subscription?.status] ?? "לא הוגדר"}
-        </span>
-      </div>
+    <DashboardShell role={role} title="Subscription Center" appHome>
+      <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "מאיה"}`} subtitle="סיכום ותשלום מנוי" avatarUrl={(profile as any).avatar_url ?? null} active="more">
+      <TeacherPageTitle icon={WalletCards} title="סיכום ותשלום" subtitle="מנוי גן בטוח בלבד — לא תשלומי הורים" />
       <AdminDataError message={data.errors.length ? "חלק מנתוני המנוי לא נטענו" : null} />
 
       {subscription?.status !== "active" ? (
@@ -80,56 +82,49 @@ export default async function GardenSubscriptionPage() {
         </section>
       ) : (
         <>
-          <section className="grid cols-4 dashboard-panels">
-            <article className="card metric-card"><span>תוכנית</span><strong>{plan?.name ?? "Gan Batuach 800"}</strong></article>
-            <article className="card metric-card"><span>מחיר חודשי משוער</span><strong>{money(subscription?.metadata?.monthly_amount_nis ?? expectedMonthly)}</strong></article>
-            <article className="card metric-card"><span>חידוש</span><strong>{date(subscription.renewal_date)}</strong></article>
-            <article className="card metric-card"><span>תוקף</span><strong>{date(subscription.expires_at ?? subscription.trial_ends_at)}</strong></article>
+          <TeacherStatsGrid>
+            <TeacherStatCard title="תוכנית" value={plan?.name ?? "Gan Batuach"} hint="מנוי גן" icon={ShieldCheck} tone="purple" />
+            <TeacherStatCard title="מחיר חודשי" value={money(subscription?.metadata?.monthly_amount_nis ?? expectedMonthly)} hint="משוער" icon={WalletCards} tone="blue" />
+            <TeacherStatCard title="חידוש" value={date(subscription.renewal_date)} hint="תאריך הבא" icon={CreditCard} tone="green" />
+            <TeacherStatCard title="סטטוס" value={statusLabels[subscription?.status] ?? "לא הוגדר"} hint="מנוי" icon={CheckCircle2} tone={["active", "trial", "demo_active"].includes(String(subscription?.status)) ? "green" : "orange"} />
+          </TeacherStatsGrid>
+
+          <section className="teacher-dashboard-grid">
+            <TeacherSection title="פרטי המנוי" subtitle="התוכנית שנבחרה">
+              <TeacherCompactList>
+                <TeacherCompactItem title="מנוי שנתי בתשלום חודשי" subtitle="התחייבות ל-12 חודשים" tone="purple" meta={money(subscription?.metadata?.monthly_amount_nis ?? expectedMonthly)} />
+                <TeacherCompactItem title="סה״כ לשנה" subtitle="חישוב לפי קבוצות / כיתות" tone="blue" meta={money((Number(subscription?.metadata?.monthly_amount_nis ?? expectedMonthly)) * 12)} />
+                <TeacherCompactItem title="מצב ספק תשלום" subtitle={paymentProviderStatus === "production_ready" ? "ספק מוכן לפי env" : "אין להניח חיוב חי ללא הגדרה חיצונית"} tone={providerModes.payment === "live" ? "green" : "orange"} meta={providerModes.payment === "live" ? "Live" : providerModes.payment === "sandbox" ? "Sandbox" : "כבוי"} />
+              </TeacherCompactList>
+            </TeacherSection>
+
+            <TeacherSection title="פירוט חיוב" subtitle="מנוי גן בטוח נפרד מתשלומי הורים">
+              <TeacherCompactList>
+                <TeacherCompactItem title="בסיס" subtitle="כיתה / קבוצת גיל ראשונה" tone="green" meta="₪800" />
+                <TeacherCompactItem title="תוספת" subtitle="כל כיתה / קבוצת גיל נוספת" tone="blue" meta="+₪200" />
+                <TeacherCompactItem title="דמו" subtitle="אם הופעל דמו, יש להסדיר תשלום לפני סיום התקופה" tone="orange" meta="3 ימים" />
+              </TeacherCompactList>
+            </TeacherSection>
           </section>
 
-          <section className="card action-panel subscription-activation-panel">
-            <div className="section-heading"><h2>כללי התמחור</h2><p>מנוי Gan Batuach מחושב בנפרד מתשלומי הורים ומ-Digital Observer.</p></div>
-            <div className="subscription-breakdown-grid">
-              <div><span>בסיס</span><strong>₪800</strong><small>לחודש עבור כיתה/קבוצת גיל ראשונה.</small></div>
-              <div><span>תוספת</span><strong>+₪200</strong><small>לחודש לכל כיתה/קבוצת גיל נוספת.</small></div>
-              <div><span>דמו</span><strong>3 ימים</strong><small>אם הופעל דמו, יש להסדיר תשלום לפני סיום התקופה.</small></div>
-              <div><span>מצב ספק תשלום</span><strong>{providerModes.payment === "live" ? "Live" : providerModes.payment === "sandbox" ? "Sandbox" : "כבוי"}</strong><small>{paymentProviderStatus === "production_ready" ? "ספק מוכן לפי env" : "אין להניח חיוב חי ללא הגדרה חיצונית."}</small></div>
-            </div>
-          </section>
-
-          <section className="card action-panel">
-            <div className="section-heading"><h2>מדיניות גישה</h2><p>{policy.message}</p></div>
+          <TeacherSection title="מדיניות גישה" subtitle={policy.message}>
             {policy.blockedCapabilities.length ? <div className="profile-actions">{policy.blockedCapabilities.map((capability) => <span className="pill warn" key={capability}>{capability}</span>)}</div> : <span className="pill good">כל הפעולות פתוחות</span>}
-          </section>
+          </TeacherSection>
         </>
       )}
 
       <GardenSubscriptionActions plans={data.plans as any[]} />
 
-      <section className="dashboard-section">
-        <div className="section-heading"><h2>היסטוריית תשלומים</h2><p>חיוב גן בטוח הוא מנוי שנתי של הגן מול גן בטוח. תשלומי הורים מנוהלים בנפרד ומועברים ישירות לחשבון הגן.</p></div>
-        {data.payments.length === 0 ? <div className="empty-state"><strong>אין עדיין תשלומים</strong><span>כאשר אדמין יתעד תשלום או ספק תשלומים יחובר, ההיסטוריה תופיע כאן.</span></div> : (
-          <div className="card-list">{(data.payments as any[]).map((payment) => <article className="card action-panel" key={payment.id}><h3>{money(payment.amount, payment.currency)}</h3><p>{payment.payment_method ?? "ידני"} · {payment.billing_status}</p><span>{date(payment.created_at)}</span></article>)}</div>
-        )}
-      </section>
-
-      <section className="grid cols-2 dashboard-panels">
-        <article className="card action-panel">
-          <h2>חשבוניות</h2>
-          {data.invoices.length === 0 ? <p>אין חשבוניות עדיין.</p> : (data.invoices as any[]).map((invoice) => <p key={invoice.id}>{invoice.invoice_number} · {money(invoice.amount, invoice.currency)} · {invoice.billing_status}</p>)}
-        </article>
-        <article className="card action-panel">
-          <h2>קבלות</h2>
-          {data.receipts.length === 0 ? <p>אין קבלות עדיין.</p> : (data.receipts as any[]).map((receipt) => <p key={receipt.id}>{receipt.receipt_number} · {money(receipt.amount, receipt.currency)}</p>)}
-        </article>
-      </section>
-
-      <section className="dashboard-section">
-        <div className="section-heading"><h2>תזכורות מנוי</h2><p>90, 60, 30, 14 ו-7 ימים לפני סיום. כרגע in-app, מוכנות ל-SMS/WhatsApp/Push.</p></div>
-        {data.reminders.length === 0 ? <div className="empty-state"><strong>אין תזכורות מתוזמנות</strong><span>תזכורות ייווצרו כאשר אדמין יגדיר תאריך תוקף או חידוש.</span></div> : (
-          <div className="card-list">{(data.reminders as any[]).map((reminder) => <article className="card action-panel" key={reminder.id}><h3>{reminder.title}</h3><p>{date(reminder.scheduled_for)} · {reminder.channel} · {reminder.status}</p></article>)}</div>
-        )}
-      </section>
+      <details className="teacher-management-details">
+        <summary>היסטוריית תשלומים וחשבוניות</summary>
+        <section className="dashboard-section">
+          <div className="section-heading"><h2>היסטוריית תשלומים</h2><p>חיוב גן בטוח הוא מנוי שנתי של הגן מול גן בטוח. תשלומי הורים מנוהלים בנפרד ומועברים ישירות לחשבון הגן.</p></div>
+          {data.payments.length === 0 ? <div className="empty-state"><strong>אין עדיין תשלומים</strong><span>כאשר אדמין יתעד תשלום או ספק תשלומים יחובר, ההיסטוריה תופיע כאן.</span></div> : (
+            <div className="card-list">{(data.payments as any[]).map((payment) => <article className="card action-panel" key={payment.id}><h3>{money(payment.amount, payment.currency)}</h3><p>{payment.payment_method ?? "ידני"} · {payment.billing_status}</p><span>{date(payment.created_at)}</span></article>)}</div>
+          )}
+        </section>
+      </details>
+      </TeacherAppFrame>
     </DashboardShell>
   );
 }
