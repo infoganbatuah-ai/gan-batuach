@@ -9,7 +9,6 @@ import {
   Heart,
   Lock,
   Mail,
-  School,
   ShieldCheck,
   User,
   Users
@@ -101,8 +100,6 @@ export async function AppLoginScreen({ searchParams }: { searchParams?: Promise<
             </div>
             <div className="gb-reference-security-shield"><ShieldCheck size={86} /></div>
           </aside>
-
-          <Link className="gb-reference-back-link" href="/app"><School size={18} /> חזרה לעמוד הכניסה</Link>
         </section>
       </div>
     </main>
