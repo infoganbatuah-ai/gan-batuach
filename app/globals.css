@@ -594,6 +594,7 @@
 .teacher-app-header {
   align-items: center;
   display: flex;
+  direction: ltr;
   justify-content: space-between;
   margin-top: 54px;
 }
@@ -625,6 +626,7 @@
 
 .teacher-app-greeting {
   align-items: center;
+  direction: rtl;
   display: flex;
   gap: 16px;
   text-align: right;
@@ -732,6 +734,7 @@
 }
 
 .teacher-stats-grid {
+  direction: ltr;
   display: grid;
   gap: 16px;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -750,6 +753,7 @@
 .teacher-stat-card {
   align-items: center;
   color: var(--teacher-navy);
+  direction: rtl;
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -861,6 +865,7 @@
 }
 
 .teacher-action-grid {
+  direction: ltr;
   display: grid;
   gap: 14px;
   grid-template-columns: repeat(5, minmax(0, 1fr));
@@ -873,6 +878,7 @@
   border-radius: 22px;
   box-shadow: 0 12px 28px rgb(35 66 109 / 7%);
   color: var(--teacher-navy);
+  direction: rtl;
   display: flex;
   flex-direction: column;
   gap: 10px;
@@ -897,9 +903,15 @@
 }
 
 .teacher-dashboard-grid {
+  direction: ltr;
   display: grid;
   gap: 16px;
   grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.teacher-dashboard-grid > *,
+.teacher-children-layout > * {
+  direction: rtl;
 }
 
 .teacher-compact-list {
@@ -1117,6 +1129,7 @@
 }
 
 .teacher-children-layout {
+  direction: ltr;
   display: grid;
   gap: 18px;
   grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr);
@@ -16912,49 +16925,116 @@ body:has(.dashboard-role-owner.app-home-layout) {
 
 .dashboard-role-manager.app-home-layout:has(.teacher-app-frame) .teacher-app-frame,
 .dashboard-role-owner.app-home-layout:has(.teacher-app-frame) .teacher-app-frame {
+  background:
+    radial-gradient(circle at 50% 0%, #ffffff 0 12%, transparent 34%),
+    linear-gradient(180deg, #fbfdff 0%, #f4f8ff 100%) !important;
+  border: 10px solid rgb(255 255 255 / 72%) !important;
   border-radius: 58px !important;
+  box-shadow:
+    0 30px 90px rgb(27 55 98 / 13%),
+    inset 0 1px 0 #fff !important;
   max-width: 943px !important;
   min-height: 1668px !important;
-  padding: 74px 72px 150px !important;
+  padding: 72px 70px 150px !important;
 }
 
 .dashboard-role-manager.app-home-layout:has(.teacher-app-frame) .teacher-app-header,
 .dashboard-role-owner.app-home-layout:has(.teacher-app-frame) .teacher-app-header {
-  margin-top: 8px !important;
+  margin-top: 10px !important;
+}
+
+.dashboard-role-manager.app-home-layout:has(.teacher-app-frame) .teacher-app-greeting,
+.dashboard-role-owner.app-home-layout:has(.teacher-app-frame) .teacher-app-greeting {
+  justify-content: flex-start !important;
+}
+
+.dashboard-role-manager.app-home-layout:has(.teacher-app-frame) .teacher-app-greeting b,
+.dashboard-role-owner.app-home-layout:has(.teacher-app-frame) .teacher-app-greeting b {
+  order: 2 !important;
+}
+
+.dashboard-role-manager.app-home-layout:has(.teacher-app-frame) .teacher-app-greeting > div:not(.teacher-avatar),
+.dashboard-role-owner.app-home-layout:has(.teacher-app-frame) .teacher-app-greeting > div:not(.teacher-avatar) {
+  order: 1 !important;
+}
+
+.dashboard-role-manager.app-home-layout:has(.teacher-app-frame) .teacher-avatar,
+.dashboard-role-owner.app-home-layout:has(.teacher-app-frame) .teacher-avatar {
+  order: 0 !important;
 }
 
 .dashboard-role-manager.app-home-layout:has(.teacher-app-frame) .teacher-app-main,
 .dashboard-role-owner.app-home-layout:has(.teacher-app-frame) .teacher-app-main {
-  gap: 24px !important;
-  margin-top: 38px !important;
+  gap: 22px !important;
+  margin-top: 42px !important;
 }
 
 .dashboard-role-manager.app-home-layout:has(.teacher-app-frame) .teacher-stats-grid,
 .dashboard-role-owner.app-home-layout:has(.teacher-app-frame) .teacher-stats-grid {
   gap: 14px !important;
+  grid-template-columns: repeat(4, 1fr) !important;
 }
 
 .dashboard-role-manager.app-home-layout:has(.teacher-app-frame) .teacher-stat-card,
 .dashboard-role-owner.app-home-layout:has(.teacher-app-frame) .teacher-stat-card {
   border-radius: 18px !important;
-  min-height: 256px !important;
-  padding: 24px 12px !important;
+  min-height: 252px !important;
+  padding: 26px 12px 22px !important;
 }
 
 .dashboard-role-manager.app-home-layout:has(.teacher-app-frame) .teacher-stat-card strong,
 .dashboard-role-owner.app-home-layout:has(.teacher-app-frame) .teacher-stat-card strong {
-  font-size: 36px !important;
+  font-size: 39px !important;
+}
+
+.dashboard-role-manager.app-home-layout:has(.teacher-app-frame) .teacher-stat-icon,
+.dashboard-role-owner.app-home-layout:has(.teacher-app-frame) .teacher-stat-icon {
+  height: 76px !important;
+  width: 76px !important;
+}
+
+.dashboard-role-manager.app-home-layout:has(.teacher-app-frame) .teacher-stat-card small,
+.dashboard-role-owner.app-home-layout:has(.teacher-app-frame) .teacher-stat-card small {
+  font-size: 18px !important;
+}
+
+.dashboard-role-manager.app-home-layout:has(.teacher-app-frame) .teacher-stat-card em,
+.dashboard-role-owner.app-home-layout:has(.teacher-app-frame) .teacher-stat-card em {
+  font-size: 16px !important;
+  padding: 7px 14px !important;
 }
 
 .dashboard-role-manager.app-home-layout:has(.teacher-app-frame) .teacher-section-card,
 .dashboard-role-owner.app-home-layout:has(.teacher-app-frame) .teacher-section-card {
   border-radius: 22px !important;
+  padding: 24px !important;
+}
+
+.dashboard-role-manager.app-home-layout:has(.teacher-app-frame) .teacher-section-head,
+.dashboard-role-owner.app-home-layout:has(.teacher-app-frame) .teacher-section-head {
+  margin-bottom: 22px !important;
+}
+
+.dashboard-role-manager.app-home-layout:has(.teacher-app-frame) .teacher-section-head h3,
+.dashboard-role-owner.app-home-layout:has(.teacher-app-frame) .teacher-section-head h3 {
+  font-size: 31px !important;
 }
 
 .dashboard-role-manager.app-home-layout:has(.teacher-app-frame) .teacher-action-tile,
 .dashboard-role-owner.app-home-layout:has(.teacher-app-frame) .teacher-action-tile {
   border-radius: 18px !important;
-  min-height: 108px !important;
+  min-height: 126px !important;
+}
+
+.dashboard-role-manager.app-home-layout:has(.teacher-app-frame) .teacher-action-tile span,
+.dashboard-role-owner.app-home-layout:has(.teacher-app-frame) .teacher-action-tile span {
+  height: 72px !important;
+  width: 72px !important;
+}
+
+.dashboard-role-manager.app-home-layout:has(.teacher-app-frame) .teacher-quick-actions-card,
+.dashboard-role-owner.app-home-layout:has(.teacher-app-frame) .teacher-quick-actions-card {
+  padding: 26px 28px 30px !important;
 }
 
 .dashboard-role-manager.app-home-layout:has(.teacher-app-frame) .teacher-dashboard-grid,
