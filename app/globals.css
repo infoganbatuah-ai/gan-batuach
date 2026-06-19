@@ -24020,3 +24020,750 @@ body:has(.gb-reference-login) .gb-reference-security-card {
   min-height: 92px !important;
   padding: 12px 14px !important;
 }
+
+/* Final visual matching pass for the main Ganenet dashboard only. */
+.dashboard-role-manager.app-home-layout:has(.ganenet-reference-phone),
+.dashboard-role-owner.app-home-layout:has(.ganenet-reference-phone) {
+  background: #edf4ff !important;
+}
+
+.dashboard-role-manager.app-home-layout:has(.ganenet-reference-phone) .native-app-topbar,
+.dashboard-role-owner.app-home-layout:has(.ganenet-reference-phone) .native-app-topbar,
+.dashboard-role-manager.app-home-layout:has(.ganenet-reference-phone) .sandbox-banner,
+.dashboard-role-owner.app-home-layout:has(.ganenet-reference-phone) .sandbox-banner,
+.dashboard-role-manager.app-home-layout:has(.ganenet-reference-phone) .policy-card,
+.dashboard-role-owner.app-home-layout:has(.ganenet-reference-phone) .policy-card,
+.dashboard-role-manager.app-home-layout:has(.ganenet-reference-phone) .mobile-tabbar,
+.dashboard-role-owner.app-home-layout:has(.ganenet-reference-phone) .mobile-tabbar,
+.dashboard-role-manager.app-home-layout:has(.ganenet-reference-phone) .floating-action-center,
+.dashboard-role-owner.app-home-layout:has(.ganenet-reference-phone) .floating-action-center,
+.dashboard-role-manager.app-home-layout:has(.ganenet-reference-phone)::before,
+.dashboard-role-owner.app-home-layout:has(.ganenet-reference-phone)::before {
+  display: none !important;
+}
+
+.dashboard-role-manager.app-home-layout:has(.ganenet-reference-phone) .dashboard-main,
+.dashboard-role-owner.app-home-layout:has(.ganenet-reference-phone) .dashboard-main,
+.dashboard-role-manager.app-home-layout:has(.ganenet-reference-phone) .native-app-stage,
+.dashboard-role-owner.app-home-layout:has(.ganenet-reference-phone) .native-app-stage {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  margin: 0 !important;
+  max-width: none !important;
+  padding: 0 !important;
+}
+
+.ganenet-reference-phone {
+  --ganenet-blue: #102d55;
+  --ganenet-muted: #71809c;
+  --ganenet-purple: #7157f4;
+  --ganenet-line: #e5edf8;
+  background:
+    radial-gradient(circle at 82% -2%, rgba(255, 255, 255, .98) 0 180px, transparent 390px),
+    radial-gradient(circle at 26% 100%, rgba(126, 87, 255, .14), transparent 34%),
+    linear-gradient(180deg, #fbfdff 0%, #f4f8ff 100%) !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  color: var(--ganenet-blue) !important;
+  margin: 0 auto !important;
+  max-width: 943px !important;
+  min-height: 1668px !important;
+  overflow: hidden !important;
+  padding: 50px 40px 142px !important;
+  position: relative !important;
+}
+
+.ganenet-reference-header {
+  align-items: start !important;
+  direction: rtl !important;
+  display: grid !important;
+  grid-template-areas: "logo profile" "greeting profile" !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  margin: 0 0 28px !important;
+  row-gap: 24px !important;
+}
+
+.ganenet-logo-lockup {
+  align-items: center !important;
+  display: flex !important;
+  gap: 18px !important;
+  grid-area: logo !important;
+  justify-content: flex-start !important;
+  margin: 0 !important;
+}
+
+.ganenet-logo-lockup img:first-child {
+  height: auto !important;
+  width: 260px !important;
+}
+
+.ganenet-logo-lockup img:last-child {
+  height: 78px !important;
+  width: 78px !important;
+}
+
+.ganenet-profile-actions {
+  align-items: center;
+  direction: ltr;
+  display: flex;
+  gap: 20px;
+  grid-area: profile;
+  justify-content: flex-start;
+  padding-top: 8px;
+}
+
+.ganenet-avatar {
+  background: #fff !important;
+  border: 5px solid #fff !important;
+  border-radius: 999px !important;
+  box-shadow: 0 12px 32px rgba(30, 64, 110, .13) !important;
+  display: block !important;
+  height: 72px !important;
+  overflow: visible !important;
+  position: relative !important;
+  width: 72px !important;
+}
+
+.ganenet-avatar img,
+.ganenet-avatar span {
+  align-items: center !important;
+  background: linear-gradient(135deg, #8d74ff, #47b8ff) !important;
+  border-radius: inherit !important;
+  color: #fff !important;
+  display: flex !important;
+  font-size: 30px !important;
+  font-weight: 950 !important;
+  height: 100% !important;
+  justify-content: center !important;
+  object-fit: cover !important;
+  width: 100% !important;
+}
+
+.ganenet-profile-chevron {
+  color: #607394;
+}
+
+.ganenet-bell {
+  align-items: center !important;
+  background: #fff !important;
+  border-radius: 999px !important;
+  box-shadow: 0 18px 42px rgba(30, 64, 110, .1) !important;
+  color: var(--ganenet-purple) !important;
+  display: flex !important;
+  height: 72px !important;
+  justify-content: center !important;
+  position: relative !important;
+  width: 72px !important;
+}
+
+.ganenet-bell i {
+  background: #b83dff !important;
+  border: 4px solid #fff !important;
+  border-radius: 999px !important;
+  height: 17px !important;
+  position: absolute !important;
+  right: 17px !important;
+  top: 13px !important;
+  width: 17px !important;
+}
+
+.ganenet-greeting {
+  direction: rtl !important;
+  display: block !important;
+  grid-area: greeting !important;
+  text-align: right !important;
+}
+
+.ganenet-greeting h1 {
+  color: var(--ganenet-blue) !important;
+  font-size: 31px !important;
+  font-weight: 950 !important;
+  line-height: 1.1 !important;
+  margin: 0 !important;
+}
+
+.ganenet-greeting h1 span {
+  font-size: .86em;
+}
+
+.ganenet-greeting p {
+  align-items: center !important;
+  color: var(--ganenet-muted) !important;
+  display: inline-flex !important;
+  font-size: 19px !important;
+  font-weight: 800 !important;
+  gap: 10px !important;
+  margin: 10px 0 0 !important;
+}
+
+.ganenet-greeting p svg,
+.ganenet-date-pill svg {
+  color: var(--ganenet-purple) !important;
+}
+
+.ganenet-date-pill {
+  align-items: center !important;
+  background: rgba(255, 255, 255, .82) !important;
+  border: 1px solid #dde6f5 !important;
+  border-radius: 999px !important;
+  box-shadow: 0 16px 38px rgba(30, 64, 110, .07) !important;
+  color: #697995 !important;
+  display: inline-flex !important;
+  font-size: 16px !important;
+  font-weight: 850 !important;
+  gap: 15px !important;
+  line-height: 1.42 !important;
+  margin: 0 0 32px !important;
+  padding: 13px 23px !important;
+}
+
+.ganenet-kpis {
+  direction: rtl !important;
+  display: grid !important;
+  gap: 16px !important;
+  grid-template-columns: 1.1fr 1.1fr .95fr !important;
+  margin-top: 0 !important;
+}
+
+.ganenet-kpi,
+.ganenet-card {
+  background: rgba(255, 255, 255, .9) !important;
+  border: 1px solid var(--ganenet-line) !important;
+  border-radius: 24px !important;
+  box-shadow: 0 18px 44px rgba(30, 64, 110, .08) !important;
+  color: var(--ganenet-blue) !important;
+}
+
+.ganenet-kpi {
+  align-items: center !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: center !important;
+  min-height: 306px !important;
+  padding: 24px 18px !important;
+  position: relative !important;
+  text-align: center !important;
+}
+
+.ganenet-card-icon,
+.ganenet-section-icon {
+  align-items: center !important;
+  background: #f1edff !important;
+  border-radius: 999px !important;
+  box-shadow: inset 0 0 0 1px #e2d9ff !important;
+  color: var(--ganenet-purple) !important;
+  display: flex !important;
+  height: 58px !important;
+  justify-content: center !important;
+  width: 58px !important;
+}
+
+.ganenet-card-icon {
+  position: absolute !important;
+  right: 20px !important;
+  top: 20px !important;
+}
+
+.ganenet-kpi > strong {
+  color: var(--ganenet-blue) !important;
+  font-size: 21px !important;
+  font-weight: 950 !important;
+  margin: 0 !important;
+  padding-right: 64px !important;
+  width: 100% !important;
+}
+
+.ganenet-gauge {
+  align-items: center !important;
+  background:
+    radial-gradient(circle, #fff 0 56%, transparent 57%),
+    conic-gradient(#745bf2 0 var(--value), #e7e9f1 var(--value) 100%) !important;
+  border-radius: 999px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  height: 140px !important;
+  justify-content: center !important;
+  margin: 24px auto 12px !important;
+  width: 140px !important;
+}
+
+.ganenet-gauge b {
+  color: var(--ganenet-blue) !important;
+  font-size: 38px !important;
+  font-weight: 950 !important;
+  line-height: 1 !important;
+}
+
+.ganenet-gauge span {
+  color: var(--ganenet-blue) !important;
+  font-size: 15px !important;
+  font-weight: 800 !important;
+}
+
+.ganenet-attendance-legend {
+  display: grid !important;
+  gap: 10px !important;
+  left: 24px !important;
+  position: absolute !important;
+  top: 112px !important;
+}
+
+.ganenet-attendance-legend span {
+  align-items: center !important;
+  color: #445a81 !important;
+  display: flex !important;
+  font-size: 16px !important;
+  font-weight: 850 !important;
+  gap: 8px !important;
+  justify-content: space-between !important;
+  min-width: 94px !important;
+}
+
+.ganenet-attendance-legend span::after {
+  background: #745bf2 !important;
+  border-radius: 999px !important;
+  content: "" !important;
+  height: 10px !important;
+  width: 10px !important;
+}
+
+.ganenet-attendance-legend .pink::after {
+  background: #f14186 !important;
+}
+
+.ganenet-attendance-legend b {
+  color: #745bf2 !important;
+  font-size: 22px !important;
+}
+
+.ganenet-attendance-legend .pink b {
+  color: #f14186 !important;
+}
+
+.ganenet-kpi > em,
+.ganenet-kpi.staff-present small,
+.ganenet-kpi.safety small {
+  background: transparent !important;
+  color: #73819b !important;
+  font-size: 15px !important;
+  font-style: normal !important;
+  font-weight: 850 !important;
+  padding: 0 !important;
+}
+
+.ganenet-kpi.staff-present > b {
+  color: var(--ganenet-blue) !important;
+  font-size: 48px !important;
+  font-weight: 950 !important;
+  line-height: 1 !important;
+  margin-top: 58px !important;
+}
+
+.ganenet-mini-avatars {
+  direction: ltr !important;
+  display: flex !important;
+  justify-content: center !important;
+  margin: 10px 0 7px !important;
+}
+
+.ganenet-mini-avatars span,
+.ganenet-mini-avatars em {
+  align-items: center !important;
+  background: linear-gradient(135deg, #f8e5d8, #fff) !important;
+  border: 3px solid #fff !important;
+  border-radius: 999px !important;
+  box-shadow: 0 8px 18px rgba(30, 64, 110, .12) !important;
+  color: #24406d !important;
+  display: flex !important;
+  font-size: 16px !important;
+  font-style: normal !important;
+  font-weight: 950 !important;
+  height: 42px !important;
+  justify-content: center !important;
+  margin-left: -10px !important;
+  width: 42px !important;
+}
+
+.ganenet-shield {
+  align-items: center !important;
+  background: radial-gradient(circle at 50% 35%, #7ef2aa, #22c96b) !important;
+  border-radius: 32px !important;
+  color: #fff !important;
+  display: flex !important;
+  height: 146px !important;
+  justify-content: center !important;
+  margin: 26px auto 10px !important;
+  width: 146px !important;
+}
+
+.ganenet-kpi.safety > b {
+  color: #24c66d !important;
+  font-size: 26px !important;
+  font-weight: 950 !important;
+}
+
+.ganenet-mid-grid {
+  display: grid !important;
+  gap: 16px !important;
+  grid-template-columns: 1fr 1.16fr !important;
+  margin-top: 24px !important;
+}
+
+.ganenet-updates,
+.ganenet-schedule,
+.ganenet-parent-messages,
+.ganenet-tasks,
+.ganenet-shortcuts {
+  padding: 24px !important;
+}
+
+.ganenet-section-title {
+  align-items: center !important;
+  direction: rtl !important;
+  display: flex !important;
+  justify-content: space-between !important;
+  margin-bottom: 20px !important;
+}
+
+.ganenet-section-title h2,
+.ganenet-card h2 {
+  align-items: center !important;
+  color: var(--ganenet-blue) !important;
+  display: flex !important;
+  font-size: 26px !important;
+  font-weight: 950 !important;
+  gap: 10px !important;
+  margin: 0 !important;
+}
+
+.ganenet-section-title a,
+.ganenet-card > a,
+.ganenet-ai a,
+.ganenet-insights a,
+.ganenet-parent-messages > strong,
+.ganenet-tasks > strong {
+  color: var(--ganenet-purple) !important;
+  font-size: 16px !important;
+  font-weight: 950 !important;
+}
+
+.ganenet-update-row {
+  align-items: center !important;
+  background: #fff !important;
+  border: 1px solid var(--ganenet-line) !important;
+  border-radius: 14px !important;
+  color: var(--ganenet-blue) !important;
+  display: grid !important;
+  gap: 12px !important;
+  grid-template-columns: auto 1fr auto !important;
+  margin-bottom: 12px !important;
+  min-height: 70px !important;
+  padding: 12px 16px !important;
+}
+
+.ganenet-update-row i {
+  border-radius: 999px !important;
+  height: 12px !important;
+  width: 12px !important;
+}
+
+.ganenet-update-row i.purple { background: #853df3 !important; }
+.ganenet-update-row i.green { background: #2dcf7e !important; }
+.ganenet-update-row i.blue { background: #318bef !important; }
+
+.ganenet-update-row b,
+.ganenet-parent-messages b,
+.ganenet-tasks span,
+.ganenet-shortcuts span {
+  color: var(--ganenet-blue) !important;
+  font-weight: 950 !important;
+}
+
+.ganenet-update-row span,
+.ganenet-update-row em,
+.ganenet-parent-messages span,
+.ganenet-parent-messages small,
+.ganenet-tasks small {
+  color: #73819b !important;
+  font-style: normal !important;
+  font-weight: 800 !important;
+}
+
+.ganenet-schedule ul {
+  list-style: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.ganenet-schedule li {
+  align-items: center !important;
+  border-bottom: 1px solid var(--ganenet-line) !important;
+  display: grid !important;
+  gap: 12px !important;
+  grid-template-columns: 32px 1fr 112px !important;
+  margin: 0 !important;
+  min-height: 48px !important;
+}
+
+.ganenet-schedule li:last-child {
+  border-bottom: 0 !important;
+}
+
+.ganenet-schedule li b {
+  color: #6b7896 !important;
+  direction: ltr !important;
+  font-size: 14px !important;
+  font-weight: 900 !important;
+}
+
+.ganenet-schedule li em {
+  color: #50617e !important;
+  font-style: normal !important;
+  font-weight: 850 !important;
+}
+
+.ganenet-actions {
+  margin-top: 24px !important;
+  padding: 24px 26px 28px !important;
+}
+
+.ganenet-action-row {
+  direction: rtl !important;
+  display: grid !important;
+  gap: 28px !important;
+  grid-template-columns: repeat(5, 1fr) !important;
+}
+
+.ganenet-action {
+  align-items: center !important;
+  background: linear-gradient(180deg, #fff, #f7f5ff) !important;
+  border: 1px solid var(--ganenet-line) !important;
+  border-radius: 18px !important;
+  box-shadow: 0 12px 30px rgba(30, 64, 110, .06) !important;
+  color: var(--ganenet-blue) !important;
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 10px !important;
+  justify-content: center !important;
+  min-height: 106px !important;
+  padding: 12px 8px !important;
+  text-align: center !important;
+}
+
+.ganenet-action span {
+  align-items: center !important;
+  background: #f0edff !important;
+  border-radius: 999px !important;
+  color: var(--ganenet-purple) !important;
+  display: flex !important;
+  height: 60px !important;
+  justify-content: center !important;
+  width: 60px !important;
+}
+
+.ganenet-action b {
+  font-size: 16px !important;
+  font-weight: 950 !important;
+}
+
+.ganenet-bottom-grid {
+  display: grid !important;
+  gap: 16px !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+  margin-top: 24px !important;
+}
+
+.ganenet-ai,
+.ganenet-insights {
+  align-items: center !important;
+  display: grid !important;
+  gap: 18px !important;
+  grid-column: span 3 !important;
+  grid-template-columns: 120px 1fr !important;
+  min-height: 180px !important;
+  padding: 22px !important;
+}
+
+.ganenet-bot {
+  align-items: center !important;
+  background: radial-gradient(circle at 50% 30%, #fff 0 18%, #bdeaff 19% 62%, #eef9ff 63%) !important;
+  border-radius: 34px !important;
+  display: flex !important;
+  height: 112px !important;
+  justify-content: center !important;
+  width: 112px !important;
+}
+
+.ganenet-ai h2,
+.ganenet-insights h2 {
+  color: var(--ganenet-purple) !important;
+  font-size: 24px !important;
+}
+
+.ganenet-insights > div {
+  display: grid !important;
+  gap: 12px !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+}
+
+.ganenet-bottom-nav {
+  align-items: center !important;
+  background: rgba(255, 255, 255, .94) !important;
+  border: 1px solid var(--ganenet-line) !important;
+  border-radius: 999px !important;
+  bottom: 28px !important;
+  box-shadow: 0 18px 56px rgba(30, 64, 110, .16) !important;
+  display: grid !important;
+  gap: 4px !important;
+  grid-template-columns: repeat(5, 1fr) !important;
+  left: 50% !important;
+  min-height: 104px !important;
+  padding: 10px 26px !important;
+  position: absolute !important;
+  transform: translateX(-50%) !important;
+  width: calc(100% - 80px) !important;
+  z-index: 10 !important;
+}
+
+.ganenet-bottom-nav a {
+  align-items: center !important;
+  color: #8d9ab4 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  font-size: 14px !important;
+  font-weight: 900 !important;
+  gap: 5px !important;
+  justify-content: center !important;
+  min-height: 60px !important;
+  position: relative !important;
+}
+
+.ganenet-bottom-nav a.active {
+  color: #4d55e8 !important;
+  margin-top: -42px !important;
+}
+
+.ganenet-bottom-nav a.active span {
+  align-items: center !important;
+  background: linear-gradient(135deg, #5b4bff, #8b5cf6) !important;
+  border: 6px solid #fff !important;
+  border-radius: 999px !important;
+  box-shadow: 0 14px 30px rgba(95, 102, 240, .28) !important;
+  color: #fff !important;
+  display: flex !important;
+  height: 86px !important;
+  justify-content: center !important;
+  width: 86px !important;
+}
+
+.ganenet-bottom-nav i {
+  align-items: center !important;
+  background: #ff4d8d !important;
+  border-radius: 999px !important;
+  color: #fff !important;
+  display: flex !important;
+  font-size: 12px !important;
+  font-style: normal !important;
+  font-weight: 950 !important;
+  height: 22px !important;
+  justify-content: center !important;
+  position: absolute !important;
+  right: 31px !important;
+  top: -2px !important;
+  width: 22px !important;
+}
+
+@media (min-width: 1100px) {
+  .ganenet-reference-phone {
+    border: 10px solid rgba(255, 255, 255, .72) !important;
+    border-radius: 58px !important;
+    box-shadow: 0 32px 90px rgba(30, 64, 110, .13) !important;
+    margin-block: 24px !important;
+  }
+}
+
+@media (max-width: 760px) {
+  .ganenet-reference-phone {
+    max-width: none !important;
+    min-height: 100svh !important;
+    padding: 20px 14px 124px !important;
+  }
+
+  .ganenet-reference-header {
+    grid-template-areas: "logo" "profile" "greeting" !important;
+    grid-template-columns: 1fr !important;
+    row-gap: 18px !important;
+  }
+
+  .ganenet-logo-lockup,
+  .ganenet-profile-actions {
+    justify-content: center !important;
+  }
+
+  .ganenet-logo-lockup img:first-child {
+    width: 184px !important;
+  }
+
+  .ganenet-logo-lockup img:last-child {
+    height: 58px !important;
+    width: 58px !important;
+  }
+
+  .ganenet-profile-actions {
+    padding-top: 0 !important;
+  }
+
+  .ganenet-greeting {
+    text-align: center !important;
+  }
+
+  .ganenet-greeting h1 {
+    font-size: 24px !important;
+  }
+
+  .ganenet-greeting p {
+    font-size: 15px !important;
+  }
+
+  .ganenet-date-pill {
+    justify-content: center !important;
+    width: 100% !important;
+  }
+
+  .ganenet-kpis,
+  .ganenet-mid-grid,
+  .ganenet-bottom-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .ganenet-kpi {
+    min-height: 250px !important;
+  }
+
+  .ganenet-action-row {
+    gap: 12px !important;
+    grid-template-columns: 1fr 1fr !important;
+  }
+
+  .ganenet-ai,
+  .ganenet-insights {
+    grid-column: auto !important;
+    grid-template-columns: 1fr !important;
+    text-align: center !important;
+  }
+
+  .ganenet-bot {
+    justify-self: center !important;
+  }
+
+  .ganenet-insights > div {
+    grid-template-columns: 1fr !important;
+  }
+
+  .ganenet-bottom-nav {
+    bottom: 12px !important;
+    width: calc(100% - 20px) !important;
+  }
+}
