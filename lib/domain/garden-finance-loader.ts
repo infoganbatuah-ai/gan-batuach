@@ -1,6 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
-export type FinanceSearchParams = { filter?: string; debug?: string };
+export type FinanceSearchParams = { filter?: string; debug?: string; payout?: string };
 
 export type FinanceQueryDiagnostic = {
   label: string;

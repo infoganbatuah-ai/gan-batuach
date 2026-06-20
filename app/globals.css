@@ -25576,7 +25576,7 @@ body:has(.gb-reference-login) .gb-reference-security-card {
   display: grid !important;
   gap: 22px !important;
   min-width: 0 !important;
-  padding-bottom: 36px !important;
+  padding-bottom: 150px !important;
 }
 
 .ganenet-module-title-card {
@@ -25760,6 +25760,88 @@ body:has(.gb-reference-login) .gb-reference-security-card {
   text-align: right !important;
 }
 
+.garden-inline-action-panel {
+  direction: rtl !important;
+}
+
+.garden-inline-action-panel .ganenet-module-title-card {
+  align-items: center !important;
+  display: grid !important;
+  gap: 10px !important;
+  grid-template-columns: minmax(0, 1fr) auto !important;
+  text-align: right !important;
+}
+
+.garden-inline-action-panel .ganenet-module-title-card h2 {
+  align-items: center !important;
+  color: var(--ganenet-blue) !important;
+  display: flex !important;
+  font-size: 24px !important;
+  font-weight: 950 !important;
+  gap: 10px !important;
+  justify-content: flex-start !important;
+  margin: 0 !important;
+}
+
+.garden-inline-action-panel .ganenet-module-title-card p {
+  grid-column: 1 / -1 !important;
+  margin: 0 !important;
+}
+
+.ganenet-form-grid {
+  background: rgba(255, 255, 255, .88) !important;
+  border: 1px solid var(--ganenet-line) !important;
+  border-radius: 24px !important;
+  box-shadow: 0 16px 38px rgba(82, 74, 206, .06) !important;
+  display: grid !important;
+  gap: 14px !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  padding: 18px !important;
+}
+
+.ganenet-form-grid label {
+  color: var(--ganenet-blue) !important;
+  display: grid !important;
+  font-size: 14px !important;
+  font-weight: 900 !important;
+  gap: 7px !important;
+  text-align: right !important;
+}
+
+.ganenet-form-grid .wide,
+.ganenet-form-grid button.wide {
+  grid-column: 1 / -1 !important;
+}
+
+.ganenet-form-grid input,
+.ganenet-form-grid select,
+.ganenet-form-grid textarea {
+  background: #fff !important;
+  border: 1px solid #e3ebf7 !important;
+  border-radius: 16px !important;
+  color: var(--ganenet-blue) !important;
+  font: inherit !important;
+  min-height: 48px !important;
+  padding: 10px 13px !important;
+  text-align: right !important;
+}
+
+.ganenet-checkbox-row {
+  align-items: center !important;
+  background: #fff !important;
+  border: 1px solid #e3ebf7 !important;
+  border-radius: 16px !important;
+  display: flex !important;
+  gap: 10px !important;
+  min-height: 50px !important;
+  padding: 10px 13px !important;
+}
+
+.ganenet-checkbox-row input {
+  min-height: 0 !important;
+  width: 20px !important;
+}
+
 @media (min-width: 1100px) {
   .ganenet-reference-phone {
     border: 10px solid rgba(255, 255, 255, .72) !important;
@@ -25782,6 +25864,22 @@ body:has(.gb-reference-login) .gb-reference-security-card {
     overflow: hidden !important;
     position: relative !important;
     width: 100vw !important;
+  }
+
+  .ganenet-module-screen {
+    overflow-y: auto !important;
+    overscroll-behavior: contain !important;
+    padding-bottom: 132px !important;
+    scrollbar-width: none !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  .ganenet-module-screen::-webkit-scrollbar {
+    display: none !important;
+  }
+
+  .ganenet-module-screen .ganenet-module-content {
+    padding-bottom: 180px !important;
   }
 
   .ganenet-reference-phone {
@@ -26407,5 +26505,13 @@ body:has(.gb-reference-login) .gb-reference-security-card {
 
   .ganenet-bottom-nav a.active:active {
     transform: translateY(1px) scale(.99) !important;
+  }
+
+  .garden-inline-action-panel .ganenet-module-title-card {
+    grid-template-columns: 1fr !important;
+  }
+
+  .ganenet-form-grid {
+    grid-template-columns: 1fr !important;
   }
 }

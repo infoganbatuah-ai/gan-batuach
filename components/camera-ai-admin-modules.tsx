@@ -62,7 +62,7 @@ async function postJson(url: string, payload: unknown, method = "POST") {
   return body.data;
 }
 
-export function CameraAdminManager({ cameras, gardens, gatewayConnected }: { cameras: CameraRow[]; gardens: Garden[]; gatewayConnected: boolean }) {
+export function CameraAdminManager({ cameras, gardens, gatewayConnected, defaultOpenAdd = false }: { cameras: CameraRow[]; gardens: Garden[]; gatewayConnected: boolean; defaultOpenAdd?: boolean }) {
   const [rows, setRows] = useState(cameras);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -133,7 +133,7 @@ export function CameraAdminManager({ cameras, gardens, gatewayConnected }: { cam
       </section>
       {message ? <div className="success-banner">{message}</div> : null}
       {error ? <div className="error-banner">{error}</div> : null}
-      <CollapsibleActionPanel title={hasCameras ? "הוספת מצלמה" : "חיבור מצלמה ראשונה"} description="בחרו את סוג החיבור, והטופס יציג רק את הפרטים הרלוונטיים." buttonLabel={hasCameras ? "הוספת מצלמה" : "חיבור מצלמה ראשונה"} defaultOpen={!hasCameras}>
+      <CollapsibleActionPanel title={hasCameras ? "הוספת מצלמה" : "חיבור מצלמה ראשונה"} description="בחרו את סוג החיבור, והטופס יציג רק את הפרטים הרלוונטיים." buttonLabel={hasCameras ? "הוספת מצלמה" : "חיבור מצלמה ראשונה"} defaultOpen={defaultOpenAdd || !hasCameras}>
         {({ close }) => (
           <section className="grid cols-2 dashboard-panels">
             <form className="card form wizard-form camera-connection-wizard" onSubmit={(event) => save(event, close)}>
