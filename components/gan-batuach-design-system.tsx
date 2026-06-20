@@ -110,7 +110,8 @@ export function AppHeader({
   notification,
   date,
   action,
-  centered = false
+  centered = false,
+  className
 }: {
   logo?: ReactNode;
   title?: ReactNode;
@@ -120,9 +121,10 @@ export function AppHeader({
   date?: ReactNode;
   action?: ReactNode;
   centered?: boolean;
+  className?: string;
 }) {
   return (
-    <header className={cx("gb-app-header", centered && "gb-app-header-centered")}>
+    <header className={cx("gb-app-header", centered && "gb-app-header-centered", className)}>
       <div className="gb-app-header-brand">
         {logo ? <div className="gb-app-logo">{logo}</div> : null}
         <div>

@@ -1598,13 +1598,102 @@ textarea.gb-form-control {
 
 .gb-teacher-module-header {
   display: grid;
-  grid-template-columns: 1fr auto;
+  grid-template-columns: minmax(0, 1fr) minmax(360px, auto);
   grid-template-areas:
-    "profile brand"
-    "date greeting";
+    "actions brand"
+    "actions brand";
   align-items: start;
-  gap: 12px 20px;
+  justify-content: space-between;
+  gap: 12px 24px;
   padding: 4px 4px 2px;
+}
+
+.gb-teacher-module-header .gb-app-header-brand {
+  grid-area: brand;
+  display: grid;
+  justify-items: end;
+  gap: 10px;
+  text-align: right;
+}
+
+.gb-teacher-module-header .gb-app-logo {
+  order: -1;
+}
+
+.gb-teacher-module-header .gb-app-header-brand > div:last-child {
+  display: grid;
+  gap: 4px;
+  justify-items: end;
+}
+
+.gb-teacher-module-header .gb-app-header-brand h1 {
+  display: flex;
+  flex-direction: row-reverse;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  color: var(--gb-ink);
+  font-size: clamp(28px, 4vw, 42px);
+  line-height: 1.08;
+  text-align: right;
+}
+
+.gb-teacher-module-header .gb-app-header-brand p {
+  margin: 0;
+  color: var(--gb-muted);
+  font-size: clamp(15px, 2vw, 20px);
+  font-weight: 850;
+  text-align: right;
+}
+
+.gb-teacher-module-header .gb-app-header-actions {
+  grid-area: actions;
+  display: grid;
+  grid-template-columns: auto auto auto;
+  grid-template-areas:
+    "date date date"
+    "notification avatar action";
+  align-items: center;
+  justify-content: start;
+  gap: 12px;
+}
+
+.gb-teacher-module-header .gb-app-date-pill {
+  grid-area: date;
+  min-height: 52px;
+  min-width: min(100%, 320px);
+  display: inline-flex;
+  flex-direction: row-reverse;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  border: 1px solid var(--gb-line);
+  border-radius: 999px;
+  padding: 8px 18px;
+  background: rgb(255 255 255 / 84%);
+  color: var(--gb-text);
+  box-shadow: var(--gb-shadow-soft);
+  text-align: center;
+  font-size: 15px;
+  font-weight: 900;
+  line-height: 1.35;
+}
+
+.gb-teacher-module-header .gb-app-date-pill svg {
+  color: var(--gb-primary);
+}
+
+.gb-teacher-module-header .gb-app-header-actions > .gb-teacher-round-button {
+  grid-area: notification;
+}
+
+.gb-teacher-module-header .gb-app-header-actions > .gb-teacher-avatar {
+  grid-area: avatar;
+}
+
+.gb-teacher-module-header .gb-app-header-actions > .gb-teacher-profile-chevron {
+  grid-area: action;
+  color: #64708c;
 }
 
 .gb-teacher-module-brand {
@@ -1735,41 +1824,24 @@ textarea.gb-form-control {
 }
 
 .gb-teacher-attendance-stats {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 12px;
+}
+
+.gb-teacher-attendance-summary {
   padding: clamp(18px, 2.8vw, 28px);
 }
 
-.gb-teacher-attendance-stats > div {
-  min-height: 132px;
-  display: grid;
-  place-items: center;
-  align-content: center;
-  gap: 7px;
+.gb-teacher-attendance-stats .gb-metric-card {
+  min-height: 148px;
   border: 1px solid rgb(219 226 242 / 72%);
   border-radius: var(--gb-radius-md);
   background: linear-gradient(180deg, #fff, rgb(249 250 255 / 80%));
+  box-shadow: 0 16px 42px rgb(42 70 120 / 7%);
 }
-
-.gb-teacher-stat-icon {
-  width: 48px;
-  height: 48px;
-  display: grid;
-  place-items: center;
-  border-radius: 999px;
-}
-
-.gb-teacher-stat-icon.success { color: var(--gb-success); background: #e8fbf1; }
-.gb-teacher-stat-icon.danger { color: var(--gb-danger); background: #fff0f4; }
-.gb-teacher-stat-icon.warning { color: var(--gb-warning); background: #fff4e5; }
-.gb-teacher-stat-icon.primary { color: var(--gb-primary); background: #f0ecff; }
 
 .gb-teacher-attendance-stats b {
   color: var(--gb-ink);
-  font-size: clamp(34px, 5vw, 54px);
-  font-weight: 950;
-  line-height: 1;
+  font-size: clamp(32px, 4.6vw, 48px);
 }
 
 .gb-teacher-attendance-stats strong {
@@ -1785,7 +1857,25 @@ textarea.gb-form-control {
 
 .gb-teacher-attendance-board {
   display: grid;
-  gap: 18px;
+  gap: 16px;
+}
+
+.gb-teacher-attendance-board .gb-section-header {
+  direction: rtl;
+  text-align: right;
+}
+
+.gb-teacher-attendance-board .gb-section-header > div {
+  flex-direction: row-reverse;
+}
+
+.gb-teacher-attendance-board .gb-section-header h2 {
+  font-size: clamp(24px, 3.6vw, 34px);
+}
+
+.gb-teacher-attendance-board .gb-section-header > a {
+  color: var(--gb-primary);
+  font-weight: 950;
 }
 
 .gb-teacher-attendance-filters {
@@ -1823,30 +1913,25 @@ textarea.gb-form-control {
   max-height: min(48dvh, 520px);
   overflow: auto;
   display: grid;
-  gap: 12px;
+  gap: 11px;
   padding: 2px 2px 6px;
   scrollbar-width: thin;
 }
 
 .gb-teacher-attendance-row {
   display: grid;
-  grid-template-columns: minmax(170px, 1.45fr) .8fr .65fr 1fr minmax(130px, .8fr);
+  grid-template-columns: auto minmax(0, 1fr) auto auto;
   align-items: center;
-  gap: 12px;
+  gap: 14px;
   border: 1px solid var(--gb-line);
   border-radius: var(--gb-radius-md);
-  padding: 14px 16px;
+  padding: 13px 16px;
   background: rgb(255 255 255 / 82%);
   box-shadow: 0 14px 34px rgb(49 76 145 / 6%);
 }
 
-.gb-teacher-child-cell {
-  display: flex;
-  flex-direction: row-reverse;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 12px;
-  min-width: 0;
+.gb-teacher-attendance-row .gb-list-main {
+  text-align: right;
 }
 
 .gb-teacher-child-avatar {
@@ -1864,23 +1949,16 @@ textarea.gb-form-control {
   font-weight: 950;
 }
 
-.gb-teacher-child-cell b {
+.gb-teacher-attendance-row .gb-list-main b {
   color: var(--gb-ink);
-  display: block;
-  font-size: 18px;
+  font-size: 19px;
   font-weight: 950;
 }
 
-.gb-teacher-child-cell small,
-.gb-teacher-attendance-row time,
-.gb-teacher-attendance-row strong {
+.gb-teacher-attendance-row .gb-list-main span,
+.gb-teacher-attendance-row .gb-list-main small {
   color: var(--gb-muted);
   font-weight: 850;
-}
-
-.gb-teacher-attendance-row time,
-.gb-teacher-attendance-row strong {
-  font-size: 16px;
 }
 
 .gb-teacher-row-actions {
@@ -1922,10 +2000,21 @@ textarea.gb-form-control {
 }
 
 .gb-teacher-attendance-actions {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(180px, .8fr) minmax(0, 1fr);
   gap: 14px;
   align-items: stretch;
+}
+
+.gb-teacher-attendance-actions-card {
+  display: grid;
+  gap: 16px;
+}
+
+.gb-teacher-attendance-actions-card .gb-section-header > div {
+  flex-direction: row-reverse;
+}
+
+.gb-teacher-attendance-actions-card .gb-section-header h2 {
+  font-size: clamp(24px, 3.6vw, 34px);
 }
 
 .gb-teacher-count-action {
@@ -1969,52 +2058,48 @@ textarea.gb-form-control {
     grid-template-columns: 1fr;
     grid-template-areas:
       "brand"
-      "profile"
-      "greeting"
-      "date";
+      "actions";
     justify-items: stretch;
     gap: 10px;
     padding-top: 2px;
   }
 
-  .gb-teacher-module-brand {
+  .gb-teacher-module-header .gb-app-header-brand {
     justify-content: flex-start;
+    justify-items: end;
   }
 
-  .gb-teacher-module-profile {
-    justify-content: flex-start;
+  .gb-teacher-module-header .gb-app-header-actions {
+    justify-content: start;
     order: -1;
   }
 
-  .gb-teacher-module-greeting,
-  .gb-teacher-date-pill {
-    justify-self: stretch;
-  }
-
-  .gb-teacher-module-greeting h1 {
-    justify-content: flex-start;
+  .gb-teacher-module-header .gb-app-header-brand h1 {
     font-size: 30px;
   }
 
-  .gb-teacher-date-pill {
+  .gb-teacher-module-header .gb-app-date-pill {
     min-width: 0;
   }
 
   .gb-teacher-attendance-stats {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .gb-teacher-attendance-summary {
     padding: 14px;
   }
 
-  .gb-teacher-attendance-stats > div {
+  .gb-teacher-attendance-stats .gb-metric-card {
     min-height: 112px;
+    padding: 14px 10px;
   }
 
   .gb-teacher-attendance-board {
     padding: 16px;
   }
 
-  .gb-teacher-attendance-filters,
-  .gb-teacher-attendance-table-head {
+  .gb-teacher-attendance-filters {
     display: none;
   }
 
@@ -2023,21 +2108,17 @@ textarea.gb-form-control {
   }
 
   .gb-teacher-attendance-row {
-    grid-template-columns: 1fr auto;
-    grid-template-areas:
-      "child status"
-      "pickup time"
-      "actions actions";
+    grid-template-columns: auto minmax(0, 1fr) auto;
     gap: 10px;
     padding: 12px;
   }
 
-  .gb-teacher-child-cell { grid-area: child; }
-  .gb-teacher-attendance-row .gb-status-chip { grid-area: status; }
-  .gb-teacher-attendance-row time { grid-area: time; text-align: left; }
-  .gb-teacher-attendance-row strong { grid-area: pickup; }
+  .gb-teacher-attendance-row .gb-list-status {
+    justify-self: end;
+  }
+
   .gb-teacher-row-actions {
-    grid-area: actions;
+    grid-column: 1 / -1;
     justify-content: space-between;
   }
 
