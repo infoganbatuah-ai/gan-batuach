@@ -12,6 +12,7 @@ logs/
 *.log
 tmp/
 temp/
+.visual-matching/
 *.zip
 *.tar
 *.tar.gz
