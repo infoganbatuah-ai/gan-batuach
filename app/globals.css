@@ -24705,7 +24705,7 @@ body:has(.gb-reference-login) .gb-reference-security-card {
     border-radius: 0 !important;
     box-shadow: none !important;
     display: grid !important;
-    gap: 16px !important;
+    gap: 14px !important;
     grid-template-rows: auto auto auto auto auto !important;
     height: 1668px !important;
     left: 50% !important;
@@ -24715,7 +24715,7 @@ body:has(.gb-reference-login) .gb-reference-security-card {
     min-height: 0 !important;
     min-width: 0 !important;
     overflow: hidden !important;
-    padding: 50px 40px 142px !important;
+    padding: 44px 40px 104px !important;
     position: absolute !important;
     top: -8px !important;
     transform: translateX(-50%) scale(var(--ganenet-mobile-scale)) !important;
@@ -24733,8 +24733,8 @@ body:has(.gb-reference-login) .gb-reference-security-card {
     align-items: start !important;
     grid-template-areas: "logo profile" "greeting profile" !important;
     grid-template-columns: minmax(0, 1fr) auto !important;
-    margin: 0 0 28px !important;
-    row-gap: 24px !important;
+    margin: 0 0 18px !important;
+    row-gap: 16px !important;
   }
 
   .ganenet-logo-lockup {
@@ -24829,7 +24829,7 @@ body:has(.gb-reference-login) .gb-reference-security-card {
     min-height: 62px !important;
     padding: 13px 23px !important;
     position: absolute !important;
-    top: 150px !important;
+    top: 138px !important;
     width: 300px !important;
     z-index: 2 !important;
   }
@@ -24876,8 +24876,8 @@ body:has(.gb-reference-login) .gb-reference-security-card {
     border: 1px solid rgba(131, 119, 236, .16) !important;
     border-radius: 30px !important;
     box-shadow: 0 22px 54px rgba(34, 58, 108, .075), inset 0 1px 0 rgba(255, 255, 255, .78) !important;
-    min-height: 306px !important;
-    padding: 24px 18px !important;
+    min-height: 288px !important;
+    padding: 22px 18px !important;
   }
 
   .ganenet-kpi > strong {
@@ -24900,9 +24900,9 @@ body:has(.gb-reference-login) .gb-reference-security-card {
   }
 
   .ganenet-gauge {
-    height: 140px !important;
-    margin: 24px auto 12px !important;
-    width: 140px !important;
+    height: 136px !important;
+    margin: 20px auto 10px !important;
+    width: 136px !important;
   }
 
   .ganenet-gauge b {
@@ -24939,7 +24939,7 @@ body:has(.gb-reference-login) .gb-reference-security-card {
 
   .ganenet-kpi.staff-present > b {
     font-size: 48px !important;
-    margin-top: 58px !important;
+    margin-top: 46px !important;
   }
 
   .ganenet-mini-avatars {
@@ -24965,16 +24965,16 @@ body:has(.gb-reference-login) .gb-reference-security-card {
     border: 1px solid rgba(255, 255, 255, .78) !important;
     border-radius: 36px !important;
     box-shadow: 0 22px 44px rgba(34, 201, 107, .26), inset 0 1px 0 rgba(255, 255, 255, .55) !important;
-    height: 146px !important;
-    margin: 26px auto 10px !important;
-    width: 146px !important;
+    height: 132px !important;
+    margin: 20px auto 10px !important;
+    width: 132px !important;
   }
 
   .ganenet-shield svg {
     filter: drop-shadow(0 7px 10px rgba(9, 116, 62, .18)) !important;
-    height: 88px !important;
+    height: 80px !important;
     stroke-width: 1.8 !important;
-    width: 88px !important;
+    width: 80px !important;
   }
 
   .ganenet-kpi.safety > b {
@@ -24992,7 +24992,7 @@ body:has(.gb-reference-login) .gb-reference-security-card {
   .ganenet-parent-messages,
   .ganenet-tasks,
   .ganenet-shortcuts {
-    padding: 24px !important;
+    padding: 20px !important;
   }
 
   .ganenet-section-title {
@@ -25000,7 +25000,7 @@ body:has(.gb-reference-login) .gb-reference-security-card {
     direction: rtl !important;
     display: flex !important;
     justify-content: space-between !important;
-    margin-bottom: 18px !important;
+    margin-bottom: 14px !important;
   }
 
   .ganenet-section-title h2,
@@ -25040,8 +25040,8 @@ body:has(.gb-reference-login) .gb-reference-security-card {
     gap: 10px !important;
     grid-template-columns: 14px minmax(0, 1fr) 58px !important;
     margin-bottom: 5px !important;
-    min-height: 70px !important;
-    padding: 12px 16px !important;
+    min-height: 62px !important;
+    padding: 10px 16px !important;
   }
 
   .ganenet-update-row div {
@@ -25084,7 +25084,7 @@ body:has(.gb-reference-login) .gb-reference-security-card {
     direction: rtl !important;
     gap: 6px !important;
     grid-template-columns: 20px minmax(0, 1fr) 102px !important;
-    min-height: 48px !important;
+    min-height: 43px !important;
   }
 
   .ganenet-schedule li span {
@@ -25116,29 +25116,29 @@ body:has(.gb-reference-login) .gb-reference-security-card {
 
   .ganenet-actions {
     margin-top: 0 !important;
-    padding: 24px 26px 28px !important;
+    padding: 20px 24px 22px !important;
   }
 
   .ganenet-action {
     border: 1px solid rgba(131, 119, 236, .16) !important;
     border-radius: 18px !important;
     gap: 4px !important;
-    min-height: 106px !important;
-    padding: 12px 8px !important;
+    min-height: 92px !important;
+    padding: 10px 8px !important;
   }
 
   .ganenet-action span {
-    height: 60px !important;
-    width: 60px !important;
+    height: 52px !important;
+    width: 52px !important;
   }
 
   .ganenet-action span svg {
-    height: 35px !important;
-    width: 35px !important;
+    height: 30px !important;
+    width: 30px !important;
   }
 
   .ganenet-action b {
-    font-size: 16px !important;
+    font-size: 15px !important;
     line-height: 1.15 !important;
   }
 
@@ -25153,8 +25153,8 @@ body:has(.gb-reference-login) .gb-reference-security-card {
   .ganenet-parent-messages,
   .ganenet-tasks,
   .ganenet-shortcuts {
-    min-height: 194px !important;
-    max-height: 202px !important;
+    min-height: 184px !important;
+    max-height: 190px !important;
     overflow: hidden !important;
     padding: 18px !important;
   }
@@ -25220,17 +25220,17 @@ body:has(.gb-reference-login) .gb-reference-security-card {
   }
 
   .ganenet-bottom-nav {
-    bottom: max(10px, env(safe-area-inset-bottom)) !important;
+    bottom: max(0px, env(safe-area-inset-bottom)) !important;
     box-shadow: 0 24px 58px rgba(82, 74, 206, .18), inset 0 1px 0 rgba(255, 255, 255, .88) !important;
-    min-height: 94px !important;
-    padding: 8px 24px !important;
+    min-height: 86px !important;
+    padding: 6px 22px !important;
     width: calc(100% - 80px) !important;
   }
 
   .ganenet-bottom-nav a {
-    font-size: 15px !important;
-    gap: 5px !important;
-    min-height: 60px !important;
+    font-size: 14px !important;
+    gap: 4px !important;
+    min-height: 54px !important;
   }
 
   .ganenet-bottom-nav a svg {
@@ -25239,13 +25239,13 @@ body:has(.gb-reference-login) .gb-reference-security-card {
   }
 
   .ganenet-bottom-nav a.active {
-    margin-top: -42px !important;
+    margin-top: -36px !important;
   }
 
   .ganenet-bottom-nav a.active span {
     border-width: 6px !important;
-    height: 86px !important;
-    width: 86px !important;
+    height: 78px !important;
+    width: 78px !important;
   }
 
   .ganenet-bottom-nav a.active span svg {
