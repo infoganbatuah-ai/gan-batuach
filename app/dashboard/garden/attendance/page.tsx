@@ -6,6 +6,7 @@ import {
   CalendarDays,
   CheckCircle2,
   ChevronDown,
+  ChevronLeft,
   ClipboardCheck,
   Clock3,
   Filter,
@@ -16,24 +17,11 @@ import {
   Search,
   Send,
   UsersRound,
-  XCircle
+  XCircle,
+  Zap,
+  type LucideIcon
 } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
-import {
-  ActionCard,
-  AppHeader,
-  BottomNav,
-  DashboardGrid,
-  EmptyState,
-  FormField,
-  ListRowCard,
-  MetricCard,
-  PremiumCard,
-  ResponsivePage,
-  SearchFilterBar,
-  SectionHeader,
-  StatusChip
-} from "@/components/gan-batuach-design-system";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
@@ -148,139 +136,159 @@ export default async function GardenAttendancePage({ searchParams }: { searchPar
   const avatarUrl = typeof (profile as any).avatar_url === "string" && (profile as any).avatar_url.trim()
     ? (profile as any).avatar_url
     : "/assets/teacher-avatar.svg";
+  const activeNavHref = "/dashboard/garden/attendance";
+  const summaryStats: Array<{ label: string; value: number; hint: string; icon: LucideIcon; tone: string }> = [
+    { label: "סה״כ ילדים", value: totalChildren, hint: "בגן היום", icon: UsersRound, tone: "purple" },
+    { label: "נוכחים", value: present, hint: "ילדים", icon: CheckCircle2, tone: "green" },
+    { label: "נעדרים", value: absent, hint: "דורש בדיקה", icon: XCircle, tone: "pink" },
+    { label: "מאחרים", value: late, hint: "מעקב הגעה", icon: Clock3, tone: "orange" }
+  ];
+  const navItems = [
+    { href: "/dashboard/garden/command-center", label: "עוד", icon: MoreHorizontal },
+    { href: "/dashboard/garden/notifications", label: "התראות", icon: Bell, badge: "2" },
+    { href: activeNavHref, label: "נוכחות", icon: Home },
+    { href: "/dashboard/garden/daily-journal", label: "יומן", icon: CalendarDays },
+    { href: "/dashboard/garden", label: "בית", icon: Home }
+  ];
 
   return (
     <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="נוכחות וצ׳ק אין" appHome>
-      <ResponsivePage className="gb-teacher-module-page gb-teacher-attendance-page" size="lg">
-        <section className="gb-teacher-app-surface" dir="rtl">
-          <AppHeader
-            className="gb-teacher-module-header"
-            logo={(
-              <div className="gb-teacher-module-brand" aria-label="גן בטוח">
-                <Image src="/assets/company-name.png" alt="גן בטוח" width={262} height={84} priority />
-                <Image src="/assets/company-symbol.png" alt="" width={70} height={70} priority />
+      <main className="ganenet-reference-phone ganenet-module-screen ganenet-attendance-screen" dir="rtl">
+        <header className="ganenet-reference-header">
+          <div className="ganenet-logo-lockup" aria-label="גן בטוח">
+            <Image src="/assets/company-name.png" alt="גן בטוח" width={300} height={96} priority />
+            <Image src="/assets/company-symbol.png" alt="" width={92} height={92} priority />
+          </div>
+
+          <div className="ganenet-profile-actions">
+            <a className="ganenet-avatar" href="/dashboard/profile" aria-label="פרופיל">
+              <img src={avatarUrl} alt="" />
+            </a>
+            <ChevronDown className="ganenet-profile-chevron" size={28} />
+            <a className="ganenet-bell" href="/dashboard/garden/notifications" aria-label="התראות">
+              <Bell size={34} />
+              <i />
+            </a>
+          </div>
+
+          <div className="ganenet-greeting">
+            <div>
+              <h1>נוכחות וצ׳ק אין <span>👥</span></h1>
+              <p>ניהול נוכחות הילדים ב{gardenName} <ChevronLeft size={22} /></p>
+            </div>
+          </div>
+        </header>
+
+        <div className="ganenet-date-pill">
+          <CalendarDays size={32} />
+          <span>יום ראשון, כ״ה אייר תשפ״ה<br />25 במאי 2025</span>
+        </div>
+
+        <section className="ganenet-attendance-summary-grid">
+          {summaryStats.map(({ label, value, hint, icon: Icon, tone }) => (
+            <article className={`ganenet-attendance-stat ${tone}`} key={label}>
+              <span><Icon size={30} /></span>
+              <strong>{label}</strong>
+              <b>{value}</b>
+              <small>{hint}</small>
+            </article>
+          ))}
+        </section>
+
+        <section className="ganenet-card ganenet-attendance-panel">
+          <div className="ganenet-section-title">
+            <h2>רשימת נוכחות <ClipboardCheck size={30} /></h2>
+            <a href="/dashboard/garden/attendance?filter=missing">טרם סומנו ›</a>
+          </div>
+
+          <form className="ganenet-attendance-filterbar" action="/dashboard/garden/attendance">
+            <label>
+              <Search size={23} />
+              <input name="q" placeholder="חיפוש ילד או הורה" />
+            </label>
+            <label>
+              <Filter size={22} />
+              <select name="filter" defaultValue={params.filter ?? "all"}>
+                <option value="all">כל הסטטוסים</option>
+                <option value="missing">טרם סומנו</option>
+                <option value="present">נוכחים</option>
+              </select>
+            </label>
+            <label>
+              <UsersRound size={22} />
+              <select name="group" defaultValue="all">
+                <option value="all">כל הקבוצות</option>
+                <option value="flowers">קבוצת פרחים</option>
+                <option value="purple">קבוצת סגול</option>
+              </select>
+            </label>
+          </form>
+
+          <div className="ganenet-attendance-list">
+            {displayRows.length ? displayRows.map((row) => {
+              const meta = statusMeta[row.status];
+              const StatusIcon = meta.icon;
+              return (
+                <article className="ganenet-attendance-row" key={row.id}>
+                  <span className="ganenet-attendance-avatar">{row.avatar}</span>
+                  <div>
+                    <b>{row.childName}</b>
+                    <small>{row.group}</small>
+                  </div>
+                  <em className={`ganenet-attendance-chip ${row.status}`}>
+                    <StatusIcon size={17} />
+                    {meta.label}
+                  </em>
+                  <p>הגעה: <strong>{row.arrival}</strong><br />איסוף: <strong>{row.pickup}</strong></p>
+                  <Link className="ganenet-attendance-action" href="/dashboard/garden/attendance">
+                    {row.status === "present" ? <LogOut size={18} /> : <LogIn size={18} />}
+                    {row.status === "present" ? "צ׳ק אאוט" : "צ׳ק אין"}
+                  </Link>
+                  <button type="button" aria-label="פעולות נוספות"><MoreHorizontal size={22} /></button>
+                </article>
+              );
+            }) : (
+              <div className="ganenet-attendance-empty">
+                <UsersRound size={54} />
+                <b>{params.filter === "missing" ? "אין ילדים שממתינים לסימון" : "אין ילדים להצגה"}</b>
+                <p>{children.length ? "אין תוצאות בסינון הנוכחי. אפשר לשנות סינון או לחזור לכל הילדים." : "עדיין לא נמצאו ילדים פעילים בגן. לאחר הוספת ילדים, הנוכחות היומית תופיע כאן."}</p>
+                <Link href="/dashboard/garden/children">ניהול ילדים</Link>
               </div>
             )}
-            title={<>נוכחות וצ׳ק אין <UsersRound size={34} /></>}
-            subtitle={`ניהול נוכחות הילדים ב${gardenName} · בוקר טוב, ${teacherFirstName}`}
-            notification={(
-              <Link className="gb-teacher-round-button" href="/dashboard/garden/notifications" aria-label="התראות">
-                <Bell size={26} />
-                <i />
-              </Link>
-            )}
-            avatar={(
-              <Link className="gb-teacher-avatar" href="/dashboard/profile" aria-label="פרופיל">
-                <img src={avatarUrl} alt="" />
-                <i />
-              </Link>
-            )}
-            action={<ChevronDown className="gb-teacher-profile-chevron" size={24} />}
-            date={(
-              <>
-                <CalendarDays size={26} />
-                <span>יום ראשון, כ״ה אייר תשפ״ה<br />25 במאי 2025</span>
-              </>
-            )}
-          />
-
-          <PremiumCard className="gb-teacher-attendance-summary" size="lg">
-            <DashboardGrid columns={4} className="gb-teacher-attendance-stats">
-              <MetricCard label="סה״כ ילדים" value={totalChildren} hint="בגן היום" icon={UsersRound} tone="primary" />
-              <MetricCard label="נוכחים" value={present} hint="ילדים" icon={CheckCircle2} tone="success" />
-              <MetricCard label="נעדרים" value={absent} hint="דורש בדיקה" icon={XCircle} tone="danger" />
-              <MetricCard label="מאחרים" value={late} hint="מעקב הגעה" icon={Clock3} tone="warning" />
-            </DashboardGrid>
-          </PremiumCard>
-
-          <PremiumCard className="gb-teacher-attendance-board" size="lg">
-            <SectionHeader
-              title="רשימת נוכחות"
-              subtitle="סימון כניסה, יציאה ואיסוף ילדים"
-              icon={ClipboardCheck}
-              action={<Link href="/dashboard/garden/attendance?filter=missing">טרם סומנו</Link>}
-            />
-
-            <SearchFilterBar
-              className="gb-teacher-attendance-filters"
-              search={<FormField label="חיפוש ילד/ה" icon={Search} placeholder="חיפוש לפי שם ילד או הורה" />}
-              filters={(
-                <>
-                  <FormField label="סטטוס" as="select" icon={Filter} defaultValue={params.filter ?? "all"}>
-                    <option value="all">כל הסטטוסים</option>
-                    <option value="missing">טרם סומנו</option>
-                    <option value="present">נוכחים</option>
-                  </FormField>
-                  <FormField label="קבוצה" as="select" icon={UsersRound} defaultValue="all">
-                    <option value="all">כל הקבוצות</option>
-                    <option value="flowers">קבוצת פרחים</option>
-                    <option value="purple">קבוצת סגול</option>
-                  </FormField>
-                </>
-              )}
-            />
-
-            <div className="gb-teacher-attendance-list">
-              {displayRows.length ? displayRows.map((row) => {
-                const meta = statusMeta[row.status];
-                const StatusIcon = meta.icon;
-                return (
-                  <ListRowCard
-                    key={row.id}
-                    className="gb-teacher-attendance-row"
-                    avatar={<span className="gb-teacher-child-avatar">{row.avatar}</span>}
-                    title={row.childName}
-                    subtitle={row.group}
-                    meta={`שעת הגעה: ${row.arrival} · איסוף: ${row.pickup}`}
-                    status={<StatusChip tone={meta.tone} icon={StatusIcon}>{meta.label}</StatusChip>}
-                    actions={(
-                      <div className="gb-teacher-row-actions">
-                        <Link href="/dashboard/garden/attendance" className="gb-teacher-row-action">
-                          {row.status === "present" ? <LogOut size={18} /> : <LogIn size={18} />}
-                          {row.status === "present" ? "צ׳ק אאוט" : "צ׳ק אין"}
-                        </Link>
-                        <button type="button" aria-label="פעולות נוספות"><MoreHorizontal size={20} /></button>
-                      </div>
-                    )}
-                  />
-                );
-              }) : (
-                <EmptyState
-                  icon={UsersRound}
-                  title={params.filter === "missing" ? "אין ילדים שממתינים לסימון" : "אין ילדים להצגה"}
-                  text={children.length ? "אין תוצאות בסינון הנוכחי. אפשר לשנות סינון או לחזור לכל הילדים." : "עדיין לא נמצאו ילדים פעילים בגן. לאחר הוספת ילדים, הנוכחות היומית תופיע כאן."}
-                  action={<Link className="gb-teacher-row-action" href="/dashboard/garden/children">ניהול ילדים</Link>}
-                />
-              )}
-            </div>
-          </PremiumCard>
-
-          <PremiumCard className="gb-teacher-attendance-actions-card" size="lg">
-            <SectionHeader title="פעולות מהירות" icon={ClipboardCheck} />
-            <DashboardGrid columns={3} className="gb-teacher-attendance-actions">
-              <ActionCard title="שליחת הודעה להורים" text="עדכון מהיר למשפחות" icon={Send} href="/dashboard/garden/messages" tone="primary" />
-              <Link className="gb-teacher-count-action" href="/dashboard/garden/attendance">
-                <ClipboardCheck size={42} />
-                <b>ספירת נוכחות</b>
-                <small>{presentPct}% עודכנו</small>
-              </Link>
-              <ActionCard title="דוח נוכחות יומי" text="ייצוא וסיכום היום" icon={BarChart3} href="/dashboard/garden/reports" tone="info" />
-            </DashboardGrid>
-          </PremiumCard>
-
-          <BottomNav
-            className="gb-teacher-module-bottom-nav"
-            activeHref="/dashboard/garden/attendance"
-            items={[
-              { href: "/dashboard/garden", label: "בית", icon: Home },
-              { href: "/dashboard/garden/daily-journal", label: "יומן", icon: CalendarDays },
-              { href: "/dashboard/garden/attendance", label: "דשבורד", icon: Home },
-              { href: "/dashboard/garden/notifications", label: "התראות", icon: Bell, badge: "2" },
-              { href: "/dashboard/garden/command-center", label: "עוד", icon: MoreHorizontal }
-            ]}
-          />
+          </div>
         </section>
-      </ResponsivePage>
+
+        <section className="ganenet-card ganenet-attendance-actions-panel">
+          <div className="ganenet-section-title">
+            <h2>פעולות מהירות <span className="ganenet-section-icon"><Zap size={28} /></span></h2>
+          </div>
+          <div className="ganenet-action-row">
+            <a className="ganenet-action purple" href="/dashboard/garden/messages">
+              <span><Send size={35} /></span>
+              <b>הודעה להורים</b>
+            </a>
+            <a className="ganenet-action blue" href="/dashboard/garden/attendance">
+              <span><ClipboardCheck size={35} /></span>
+              <b>ספירת נוכחות</b>
+              <small>{presentPct}% עודכנו</small>
+            </a>
+            <a className="ganenet-action purple" href="/dashboard/garden/reports">
+              <span><BarChart3 size={35} /></span>
+              <b>דוח נוכחות יומי</b>
+            </a>
+          </div>
+        </section>
+
+        <nav className="ganenet-bottom-nav" aria-label="ניווט גננת">
+          {navItems.map(({ href, label, icon: Icon, badge }) => (
+            <a className={href === activeNavHref ? "active" : undefined} href={href} key={href}>
+              <span><Icon size={href === activeNavHref ? 38 : 28} /></span>
+              {badge ? <i>{badge}</i> : null}
+              <b>{label}</b>
+            </a>
+          ))}
+        </nav>
+      </main>
     </DashboardShell>
   );
 }
