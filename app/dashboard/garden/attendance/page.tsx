@@ -24,6 +24,7 @@ import {
   AppHeader,
   BottomNav,
   DashboardGrid,
+  EmptyState,
   FormField,
   ListRowCard,
   MetricCard,
@@ -46,14 +47,6 @@ type AttendanceRow = {
   avatar: string;
 };
 
-const fallbackRows: AttendanceRow[] = [
-  { id: "demo-1", childName: "אורי לוי", group: "קבוצת פרחים", status: "present", arrival: "07:45", pickup: "מאיה לוי", avatar: "א" },
-  { id: "demo-2", childName: "יעל כהן", group: "קבוצת פרחים", status: "late", arrival: "08:22", pickup: "רונית כהן", avatar: "י" },
-  { id: "demo-3", childName: "נועה שחר", group: "קבוצת סגול", status: "present", arrival: "07:58", pickup: "דניאל שחר", avatar: "נ" },
-  { id: "demo-4", childName: "איתן ברק", group: "קבוצת סגול", status: "absent", arrival: "-", pickup: "לא נקבע", avatar: "א" },
-  { id: "demo-5", childName: "מיקה רוזן", group: "קבוצת פרחים", status: "present", arrival: "08:05", pickup: "ליאת רוזן", avatar: "מ" }
-];
-
 const statusMeta = {
   present: { label: "נכח", tone: "success" as const, icon: CheckCircle2 },
   late: { label: "מאחר", tone: "warning" as const, icon: Clock3 },
@@ -69,6 +62,14 @@ function toDisplayTime(value?: string | null) {
   if (!value) return "-";
   const timePart = value.includes("T") ? value.split("T")[1] : value;
   return timePart.slice(0, 5) || "-";
+}
+
+function normalizeAttendanceStatus(value?: string | null): AttendanceRow["status"] {
+  const rawStatus = String(value ?? "");
+  if (rawStatus === "late") return "late";
+  if (rawStatus === "absent") return "absent";
+  if (rawStatus === "checked_out" || rawStatus === "present" || rawStatus === "checked_in") return "present";
+  return "not_updated";
 }
 
 export default async function GardenAttendancePage({ searchParams }: { searchParams: Promise<{ filter?: string }> }) {
@@ -100,30 +101,28 @@ export default async function GardenAttendancePage({ searchParams }: { searchPar
 
   const attendance = (attendanceRes.data ?? []) as any[];
   const children = (childrenRes.data ?? []) as any[];
-  const markedChildIds = new Set(attendance.map((row) => row.child_id).filter(Boolean));
-  const missingChildren = children.filter((child) => !markedChildIds.has(child.id));
-  const realRows: AttendanceRow[] = params.filter === "missing"
-    ? missingChildren.map((child, index) => ({
-        id: child.id,
-        childName: child.full_name ?? "ילד/ה",
-        group: "טרם סומן/ה היום",
-        status: "not_updated",
-        arrival: "-",
-        pickup: "טרם נקבע",
-        avatar: (child.full_name ?? "י").slice(0, 1) || `${index + 1}`
-      }))
+  const attendanceByChildId = new Map(attendance.filter((row) => row.child_id).map((row) => [row.child_id, row]));
+  const childRows: AttendanceRow[] = children.map((child, index) => {
+    const attendanceRow = attendanceByChildId.get(child.id);
+    const status = normalizeAttendanceStatus(attendanceRow?.status);
+    const childName = child.full_name ?? "ילד/ה";
+    return {
+      id: child.id ?? `child-${index}`,
+      childName,
+      group: status === "not_updated" ? "טרם סומן/ה היום" : "נוכחות עודכנה",
+      status,
+      arrival: toDisplayTime(attendanceRow?.check_in_at),
+      pickup: attendanceRow?.pickup_name ?? "טרם נקבע",
+      avatar: childName.slice(0, 1) || `${index + 1}`
+    };
+  });
+  const orphanAttendanceRows: AttendanceRow[] = children.length
+    ? []
     : attendance.map((row, index) => {
-        const rawStatus = String(row.status ?? "");
-        const status: AttendanceRow["status"] = rawStatus === "late"
-          ? "late"
-          : rawStatus === "absent"
-            ? "absent"
-            : rawStatus === "checked_out" || rawStatus === "present" || rawStatus === "checked_in"
-              ? "present"
-              : "not_updated";
+        const status = normalizeAttendanceStatus(row.status);
         const name = row.children?.full_name ?? row.staff?.full_name ?? "נוכחות";
         return {
-          id: row.id ?? `row-${index}`,
+          id: row.id ?? `attendance-${index}`,
           childName: name,
           group: status === "present" ? "נוכחות עודכנה" : "דורש מעקב",
           status,
@@ -132,16 +131,20 @@ export default async function GardenAttendancePage({ searchParams }: { searchPar
           avatar: name.slice(0, 1) || `${index + 1}`
         };
       });
-
-  const displayRows = realRows.length ? realRows : fallbackRows;
-  const totalChildren = children.length || 24;
-  const present = realRows.length ? realRows.filter((row) => row.status === "present").length : 19;
-  const absent = realRows.length ? realRows.filter((row) => row.status === "absent" || row.status === "not_updated").length : 3;
-  const late = realRows.length ? realRows.filter((row) => row.status === "late").length : 2;
+  const allRows = childRows.length ? childRows : orphanAttendanceRows;
+  const displayRows = allRows.filter((row) => {
+    if (params.filter === "missing") return row.status === "not_updated";
+    if (params.filter === "present") return row.status === "present";
+    return true;
+  });
+  const totalChildren = children.length || allRows.length;
+  const present = allRows.filter((row) => row.status === "present").length;
+  const absent = allRows.filter((row) => row.status === "absent").length;
+  const late = allRows.filter((row) => row.status === "late").length;
   const presentPct = Math.min(100, Math.round((present / Math.max(totalChildren, 1)) * 100));
-  const cleanProfileName = cleanDemoText(profile.full_name, "רונית");
-  const teacherFirstName = cleanProfileName.split(" ").filter(Boolean)[0] || "רונית";
-  const gardenName = cleanDemoText((gardenRes.data as any)?.name, "גן הפרחים") || "גן הפרחים";
+  const cleanProfileName = cleanDemoText(profile.full_name, "מנהלת");
+  const teacherFirstName = cleanProfileName.split(" ").filter(Boolean)[0] || "מנהלת";
+  const gardenName = cleanDemoText((gardenRes.data as any)?.name, "הגן") || "הגן";
   const avatarUrl = typeof (profile as any).avatar_url === "string" && (profile as any).avatar_url.trim()
     ? (profile as any).avatar_url
     : "/assets/teacher-avatar.svg";
@@ -218,7 +221,7 @@ export default async function GardenAttendancePage({ searchParams }: { searchPar
             />
 
             <div className="gb-teacher-attendance-list">
-              {displayRows.map((row) => {
+              {displayRows.length ? displayRows.map((row) => {
                 const meta = statusMeta[row.status];
                 const StatusIcon = meta.icon;
                 return (
@@ -241,7 +244,14 @@ export default async function GardenAttendancePage({ searchParams }: { searchPar
                     )}
                   />
                 );
-              })}
+              }) : (
+                <EmptyState
+                  icon={UsersRound}
+                  title={params.filter === "missing" ? "אין ילדים שממתינים לסימון" : "אין ילדים להצגה"}
+                  text={children.length ? "אין תוצאות בסינון הנוכחי. אפשר לשנות סינון או לחזור לכל הילדים." : "עדיין לא נמצאו ילדים פעילים בגן. לאחר הוספת ילדים, הנוכחות היומית תופיע כאן."}
+                  action={<Link className="gb-teacher-row-action" href="/dashboard/garden/children">ניהול ילדים</Link>}
+                />
+              )}
             </div>
           </PremiumCard>
 
