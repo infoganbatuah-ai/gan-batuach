@@ -24861,9 +24861,9 @@ body:has(.gb-reference-login) .gb-reference-security-card {
   .ganenet-bottom-grid {
     align-items: start !important;
     direction: ltr !important;
-    gap: 14px !important;
+    gap: 12px !important;
     grid-template-columns: repeat(3, 1fr) !important;
-    margin-top: -4px !important;
+    margin-top: -20px !important;
   }
 
   .ganenet-kpi,
@@ -24874,8 +24874,8 @@ body:has(.gb-reference-login) .gb-reference-security-card {
 
   .ganenet-kpi {
     border: 1px solid rgba(131, 119, 236, .16) !important;
-    border-radius: 30px !important;
-    box-shadow: 0 22px 54px rgba(34, 58, 108, .075), inset 0 1px 0 rgba(255, 255, 255, .78) !important;
+    border-radius: 32px !important;
+    box-shadow: 0 24px 54px rgba(82, 74, 206, .07), inset 0 1px 0 rgba(255, 255, 255, .84) !important;
     min-height: 288px !important;
     padding: 22px 18px !important;
   }
@@ -24961,10 +24961,12 @@ body:has(.gb-reference-login) .gb-reference-security-card {
   }
 
   .ganenet-shield {
-    background: radial-gradient(circle at 36% 20%, #9effc6 0%, #3ce58d 45%, #22c96d 100%) !important;
+    background:
+      radial-gradient(circle at 36% 16%, rgba(255, 255, 255, .55) 0 15%, transparent 42%),
+      linear-gradient(145deg, #7ff4ad 0%, #38dd83 54%, #21c870 100%) !important;
     border: 1px solid rgba(255, 255, 255, .78) !important;
     border-radius: 36px !important;
-    box-shadow: 0 22px 44px rgba(34, 201, 107, .26), inset 0 1px 0 rgba(255, 255, 255, .55) !important;
+    box-shadow: 0 22px 46px rgba(34, 201, 107, .22), inset 0 1px 0 rgba(255, 255, 255, .62) !important;
     height: 132px !important;
     margin: 20px auto 10px !important;
     width: 132px !important;
@@ -24983,8 +24985,8 @@ body:has(.gb-reference-login) .gb-reference-security-card {
 
   .ganenet-card {
     border: 1px solid rgba(131, 119, 236, .15) !important;
-    border-radius: 30px !important;
-    box-shadow: 0 20px 50px rgba(34, 58, 108, .072), inset 0 1px 0 rgba(255, 255, 255, .78) !important;
+    border-radius: 32px !important;
+    box-shadow: 0 22px 50px rgba(82, 74, 206, .066), inset 0 1px 0 rgba(255, 255, 255, .84) !important;
   }
 
   .ganenet-updates,
@@ -25016,6 +25018,11 @@ body:has(.gb-reference-login) .gb-reference-security-card {
     text-align: right !important;
   }
 
+  .ganenet-section-title h2 {
+    margin-inline-end: 0 !important;
+    order: 1 !important;
+  }
+
   .ganenet-section-title h2 svg,
   .ganenet-card h2 svg {
     height: 30px !important;
@@ -25029,6 +25036,7 @@ body:has(.gb-reference-login) .gb-reference-security-card {
     direction: rtl !important;
     font-size: 16px !important;
     margin-inline-start: auto !important;
+    order: 2 !important;
     text-align: left !important;
     white-space: nowrap !important;
   }
@@ -25153,17 +25161,17 @@ body:has(.gb-reference-login) .gb-reference-security-card {
   .ganenet-parent-messages,
   .ganenet-tasks,
   .ganenet-shortcuts {
-    min-height: 184px !important;
-    max-height: 190px !important;
+    min-height: 164px !important;
+    max-height: 170px !important;
     overflow: hidden !important;
-    padding: 18px !important;
+    padding: 15px 16px !important;
   }
 
   .ganenet-bottom-grid .ganenet-card h2 {
-    font-size: 22px !important;
+    font-size: 21px !important;
     gap: 6px !important;
     line-height: 1.05 !important;
-    margin-bottom: 10px !important;
+    margin-bottom: 8px !important;
   }
 
   .ganenet-bottom-grid .ganenet-card h2 svg {
@@ -25172,9 +25180,9 @@ body:has(.gb-reference-login) .gb-reference-security-card {
   }
 
   .ganenet-parent-messages em {
-    font-size: 13px !important;
-    height: 24px !important;
-    width: 24px !important;
+    font-size: 12px !important;
+    height: 22px !important;
+    width: 22px !important;
   }
 
   .ganenet-parent-messages b,
@@ -25188,13 +25196,13 @@ body:has(.gb-reference-login) .gb-reference-security-card {
   }
 
   .ganenet-tasks label {
-    min-height: 36px !important;
-    padding: 3px 7px !important;
+    min-height: 31px !important;
+    padding: 2px 7px !important;
   }
 
   .ganenet-tasks input {
-    height: 26px !important;
-    width: 26px !important;
+    height: 23px !important;
+    width: 23px !important;
   }
 
   .ganenet-shortcuts > div {
@@ -25205,13 +25213,13 @@ body:has(.gb-reference-login) .gb-reference-security-card {
   .ganenet-shortcuts a {
     border-radius: 10px !important;
     gap: 2px !important;
-    min-height: 46px !important;
+    min-height: 40px !important;
     padding: 3px !important;
   }
 
   .ganenet-shortcuts a svg {
-    height: 22px !important;
-    width: 22px !important;
+    height: 20px !important;
+    width: 20px !important;
   }
 
   .ganenet-ai,
@@ -25220,37 +25228,39 @@ body:has(.gb-reference-login) .gb-reference-security-card {
   }
 
   .ganenet-bottom-nav {
-    bottom: max(0px, env(safe-area-inset-bottom)) !important;
-    box-shadow: 0 24px 58px rgba(82, 74, 206, .18), inset 0 1px 0 rgba(255, 255, 255, .88) !important;
-    min-height: 86px !important;
-    padding: 6px 22px !important;
+    bottom: max(10px, env(safe-area-inset-bottom)) !important;
+    direction: ltr !important;
+    box-shadow: 0 22px 54px rgba(82, 74, 206, .16), inset 0 1px 0 rgba(255, 255, 255, .9) !important;
+    min-height: 78px !important;
+    padding: 5px 20px !important;
     width: calc(100% - 80px) !important;
   }
 
   .ganenet-bottom-nav a {
+    direction: rtl !important;
     font-size: 14px !important;
-    gap: 4px !important;
-    min-height: 54px !important;
+    gap: 3px !important;
+    min-height: 48px !important;
   }
 
   .ganenet-bottom-nav a svg {
-    height: 28px !important;
-    width: 28px !important;
+    height: 24px !important;
+    width: 24px !important;
   }
 
   .ganenet-bottom-nav a.active {
-    margin-top: -36px !important;
+    margin-top: -31px !important;
   }
 
   .ganenet-bottom-nav a.active span {
     border-width: 6px !important;
-    height: 78px !important;
-    width: 78px !important;
+    height: 72px !important;
+    width: 72px !important;
   }
 
   .ganenet-bottom-nav a.active span svg {
-    height: 27px !important;
-    width: 27px !important;
+    height: 24px !important;
+    width: 24px !important;
   }
 
   .ganenet-bottom-nav i {
