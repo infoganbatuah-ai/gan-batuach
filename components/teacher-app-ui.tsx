@@ -6,6 +6,8 @@ import {
   Bell,
   CalendarDays,
   Camera,
+  ChevronDown,
+  ChevronLeft,
   CreditCard,
   Home,
   MessageCircle,
@@ -32,39 +34,239 @@ export function TeacherAppFrame({
   avatarUrl?: string | null;
   active?: "home" | "children" | "calendar" | "messages" | "more";
 }) {
+  const firstTitleWord = title.replace(/\[DEMO\]/g, "").trim();
+  const activeMap = {
+    home: { href: "/dashboard/garden", label: "דשבורד", icon: Home },
+    children: { href: "/dashboard/garden/children", label: "ילדים", icon: UsersRound },
+    calendar: { href: "/dashboard/garden/daily-journal", label: "יומן", icon: CalendarDays },
+    messages: { href: "/dashboard/garden/messages", label: "הודעות", icon: MessageCircle },
+    more: { href: "/dashboard/garden/command-center", label: "ניהול", icon: MoreHorizontal }
+  }[active];
+  const ActiveIcon = activeMap.icon;
+
   return (
-    <div className="teacher-app-frame" dir="rtl">
-      <div className="teacher-app-logo" aria-label="גן בטוח">
-        <Image src="/assets/company-name.png" alt="גן בטוח" width={260} height={82} />
-        <Image src="/assets/company-symbol.png" alt="" width={82} height={82} />
-      </div>
-      <header className="teacher-app-header">
-        <button className="teacher-icon-button" type="button" aria-label="התראות">
-          <Bell size={24} />
-          <span />
-        </button>
-        <div className="teacher-app-greeting">
-          <div className="teacher-avatar">
-            {avatarUrl ? <img src={avatarUrl} alt="" /> : <span>מ</span>}
+    <main className="ganenet-reference-phone ganenet-module-screen teacher-baseline-frame" dir="rtl">
+      <header className="ganenet-reference-header">
+        <div className="ganenet-logo-lockup" aria-label="גן בטוח">
+          <Image src="/assets/company-name.png" alt="גן בטוח" width={300} height={96} priority />
+          <Image src="/assets/company-symbol.png" alt="" width={92} height={92} priority />
+        </div>
+
+        <div className="ganenet-profile-actions">
+          <a className="ganenet-avatar" href="/dashboard/profile" aria-label="פרופיל">
+            {avatarUrl ? <img src={avatarUrl} alt="" /> : <img src="/assets/teacher-avatar.svg" alt="" />}
+          </a>
+          <ChevronDown className="ganenet-profile-chevron" size={28} />
+          <a className="ganenet-bell" href="/dashboard/garden/notifications" aria-label="התראות">
+            <Bell size={34} />
             <i />
-          </div>
+          </a>
+        </div>
+
+        <div className="ganenet-greeting">
           <div>
-            <h1>{title}</h1>
-            {subtitle ? <p>{subtitle}</p> : null}
+            <h1>{firstTitleWord} <span>🌸</span></h1>
+            {subtitle ? <p>{subtitle.replace(/\[DEMO\]/g, "")} <ChevronLeft size={22} /></p> : null}
           </div>
         </div>
       </header>
-      <div className="teacher-app-date-pill">
-        <CalendarDays size={28} />
+
+      <div className="ganenet-date-pill">
+        <CalendarDays size={32} />
         <span>יום ראשון, כ״ה אייר תשפ״ה<br />25 במאי 2025</span>
       </div>
-      <main className="teacher-app-main">{children}</main>
-      <TeacherBottomNav active={active} />
-    </div>
+
+      <div className="ganenet-module-content">{children}</div>
+
+      <nav className="ganenet-bottom-nav" aria-label="ניווט גננת">
+        <a href="/dashboard/garden/command-center"><span>•••</span><b>עוד</b></a>
+        <a href="/dashboard/garden/messages"><Bell size={26} /><i>2</i><b>התראות</b></a>
+        <a className="active" href={activeMap.href}><span><ActiveIcon size={38} /></span><b>{activeMap.label}</b></a>
+        <a href="/dashboard/garden/daily-journal"><CalendarDays size={28} /><b>יומן</b></a>
+        <a href="/dashboard/garden"><Home size={28} /><b>בית</b></a>
+      </nav>
+    </main>
   );
 }
 
 export function TeacherPageTitle({
+  icon: Icon,
+  title,
+  subtitle,
+  action
+}: {
+  icon?: IconType;
+  title: string;
+  subtitle?: string;
+  action?: ReactNode;
+}) {
+  return (
+    <section className="ganenet-card ganenet-module-title-card">
+      <div className="ganenet-section-title">
+        <h2>{title} {Icon ? <Icon size={30} /> : null}</h2>
+        {action}
+      </div>
+      {subtitle ? <p>{subtitle}</p> : null}
+    </section>
+  );
+}
+
+export function TeacherStatsGrid({ children }: { children: ReactNode }) {
+  return <section className="ganenet-attendance-summary-grid ganenet-module-stats-grid">{children}</section>;
+}
+
+export function TeacherStatCard({
+  title,
+  value,
+  hint,
+  icon: Icon,
+  tone = "blue",
+  href
+}: {
+  title: string;
+  value: ReactNode;
+  hint?: string;
+  icon?: IconType;
+  tone?: Tone;
+  href?: string;
+}) {
+  const content = (
+    <>
+      <span>{Icon ? <Icon size={30} /> : null}</span>
+      <strong>{title}</strong>
+      <b>{value}</b>
+      {hint ? <small>{hint}</small> : null}
+    </>
+  );
+  const className = `ganenet-attendance-stat ${tone === "red" ? "pink" : tone}`;
+  if (href) return <Link className={className} href={href}>{content}</Link>;
+  return <article className={className}>{content}</article>;
+}
+
+export function TeacherQuickActions({ children, title = "פעולות מהירות" }: { children: ReactNode; title?: string }) {
+  return (
+    <section className="ganenet-card ganenet-attendance-actions-panel">
+      <div className="ganenet-section-title">
+        <h2>{title} <span className="ganenet-section-icon"><Plus size={28} /></span></h2>
+        <Link href="/dashboard/garden/command-center">צפו בכל הפעולות ›</Link>
+      </div>
+      <div className="ganenet-action-row">{children}</div>
+    </section>
+  );
+}
+
+export function TeacherActionTile({
+  title,
+  href,
+  icon: Icon,
+  tone = "blue"
+}: {
+  title: string;
+  href: string;
+  icon: IconType;
+  tone?: Tone;
+}) {
+  return (
+    <Link className={`ganenet-action ${tone === "red" ? "pink" : tone}`} href={href}>
+      <span>{<Icon size={35} />}</span>
+      <b>{title}</b>
+    </Link>
+  );
+}
+
+export function TeacherSection({
+  title,
+  subtitle,
+  action,
+  children,
+  className = ""
+}: {
+  title: string;
+  subtitle?: string;
+  action?: ReactNode;
+  children: ReactNode;
+  className?: string;
+}) {
+  return (
+    <section className={`ganenet-card ganenet-module-panel ${className}`}>
+      <div className="ganenet-section-title">
+        <h2>{title}</h2>
+        {action}
+      </div>
+      {subtitle ? <p className="ganenet-module-subtitle">{subtitle}</p> : null}
+      {children}
+    </section>
+  );
+}
+
+export function TeacherCompactList({ children }: { children: ReactNode }) {
+  return <div className="ganenet-module-list">{children}</div>;
+}
+
+export function TeacherCompactItem({
+  title,
+  subtitle,
+  meta,
+  tone = "blue",
+  avatar,
+  href
+}: {
+  title: string;
+  subtitle?: string;
+  meta?: ReactNode;
+  tone?: Tone;
+  avatar?: string | null;
+  href?: string;
+}) {
+  const content = (
+    <>
+      <span className={`ganenet-module-avatar ${tone === "red" ? "pink" : tone}`}>{avatar ? <img src={avatar} alt="" /> : title.slice(0, 1)}</span>
+      <div>
+        <b>{title}</b>
+        {subtitle ? <small>{subtitle}</small> : null}
+      </div>
+      {meta ? <em>{meta}</em> : null}
+    </>
+  );
+  if (href) return <Link className="ganenet-module-row" href={href}>{content}</Link>;
+  return <article className="ganenet-module-row">{content}</article>;
+}
+
+export function TeacherFilterPills({ items }: { items: Array<{ label: string; href: string; active?: boolean }> }) {
+  return (
+    <nav className="ganenet-filter-pills" aria-label="סינון">
+      {items.map((item) => (
+        <Link className={item.active ? "active" : ""} href={item.href} key={item.label}>{item.label}</Link>
+      ))}
+    </nav>
+  );
+}
+
+export function TeacherAiInsight({ children, metric = "+92%" }: { children: ReactNode; metric?: string }) {
+  return (
+    <section className="ganenet-card ganenet-ai">
+      <div className="ganenet-bot"><span /></div>
+      <div>
+        <h2>תובנות AI ✨</h2>
+        <p>{children}</p>
+        <a href="/dashboard/garden/insights">לכל התובנות ›</a>
+      </div>
+      <strong>{metric}</strong>
+    </section>
+  );
+}
+
+export function TeacherEmptyState({ title, text, action }: { title: string; text?: string; action?: ReactNode }) {
+  return (
+    <div className="ganenet-attendance-empty">
+      <strong>{title}</strong>
+      {text ? <p>{text}</p> : null}
+      {action}
+    </div>
+  );
+}
+
+function LegacyTeacherPageTitle({
   icon: Icon,
   title,
   subtitle,
@@ -89,11 +291,11 @@ export function TeacherPageTitle({
   );
 }
 
-export function TeacherStatsGrid({ children }: { children: ReactNode }) {
+function LegacyTeacherStatsGrid({ children }: { children: ReactNode }) {
   return <section className="teacher-stats-grid">{children}</section>;
 }
 
-export function TeacherStatCard({
+function LegacyTeacherStatCard({
   title,
   value,
   hint,
@@ -120,7 +322,7 @@ export function TeacherStatCard({
   return <article className={`teacher-stat-card ${tone}`}>{content}</article>;
 }
 
-export function TeacherQuickActions({ children, title = "פעולות מהירות" }: { children: ReactNode; title?: string }) {
+function LegacyTeacherQuickActions({ children, title = "פעולות מהירות" }: { children: ReactNode; title?: string }) {
   return (
     <section className="teacher-section-card teacher-quick-actions-card">
       <div className="teacher-section-head">
@@ -132,7 +334,7 @@ export function TeacherQuickActions({ children, title = "פעולות מהירו
   );
 }
 
-export function TeacherActionTile({
+function LegacyTeacherActionTile({
   title,
   href,
   icon: Icon,
@@ -151,7 +353,7 @@ export function TeacherActionTile({
   );
 }
 
-export function TeacherSection({
+function LegacyTeacherSection({
   title,
   subtitle,
   action,
@@ -178,11 +380,11 @@ export function TeacherSection({
   );
 }
 
-export function TeacherCompactList({ children }: { children: ReactNode }) {
+function LegacyTeacherCompactList({ children }: { children: ReactNode }) {
   return <div className="teacher-compact-list">{children}</div>;
 }
 
-export function TeacherCompactItem({
+function LegacyTeacherCompactItem({
   title,
   subtitle,
   meta,
@@ -211,7 +413,7 @@ export function TeacherCompactItem({
   return <article className="teacher-compact-item">{content}</article>;
 }
 
-export function TeacherFilterPills({ items }: { items: Array<{ label: string; href: string; active?: boolean }> }) {
+function LegacyTeacherFilterPills({ items }: { items: Array<{ label: string; href: string; active?: boolean }> }) {
   return (
     <nav className="teacher-filter-pills" aria-label="סינון">
       {items.map((item) => (
@@ -221,7 +423,7 @@ export function TeacherFilterPills({ items }: { items: Array<{ label: string; hr
   );
 }
 
-export function TeacherAiInsight({ children, metric = "+92%" }: { children: ReactNode; metric?: string }) {
+function LegacyTeacherAiInsight({ children, metric = "+92%" }: { children: ReactNode; metric?: string }) {
   return (
     <section className="teacher-ai-card">
       <div className="teacher-ai-bot" aria-hidden="true">
@@ -236,7 +438,7 @@ export function TeacherAiInsight({ children, metric = "+92%" }: { children: Reac
   );
 }
 
-export function TeacherEmptyState({ title, text, action }: { title: string; text?: string; action?: ReactNode }) {
+function LegacyTeacherEmptyState({ title, text, action }: { title: string; text?: string; action?: ReactNode }) {
   return (
     <div className="teacher-empty-state">
       <strong>{title}</strong>
