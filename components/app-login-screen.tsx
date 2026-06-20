@@ -4,7 +4,6 @@ import Image from "next/image";
 import {
   BarChart3,
   Building2,
-  Check,
   Eye,
   Heart,
   Lock,
@@ -90,15 +89,11 @@ export async function AppLoginScreen({ searchParams }: { searchParams?: Promise<
           <p className="gb-reference-register-line">אין לכם חשבון? <Link href="/app/register">הרשמה</Link></p>
 
           <aside className="gb-reference-security-card" aria-label="כניסה אחת לכל סוגי המשתמשים">
-            <div className="gb-reference-security-illustration">
-              <span><Lock size={44} /></span>
-              <i><Check size={34} /></i>
-            </div>
+            <div className="gb-reference-security-shield"><ShieldCheck size={82} /></div>
             <div>
               <h2>כניסה אחת לכל סוגי המשתמשים</h2>
               <p>הורים, גנים, צוות, מפקחים ואדמין — המערכת תזהה את החשבון לאחר ההתחברות</p>
             </div>
-            <div className="gb-reference-security-shield"><ShieldCheck size={86} /></div>
           </aside>
         </section>
       </div>
