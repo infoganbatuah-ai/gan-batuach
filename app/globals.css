@@ -24698,7 +24698,7 @@ body:has(.gb-reference-login) .gb-reference-security-card {
   }
 
   .ganenet-reference-phone {
-    --ganenet-mobile-scale: min(calc(100vw / 943), calc(100svh / 1668));
+    --ganenet-mobile-scale: .43;
     border: 0 !important;
     border-radius: 0 !important;
     box-shadow: none !important;
