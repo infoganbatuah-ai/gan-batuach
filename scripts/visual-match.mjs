@@ -1,15 +1,24 @@
 import fs from "node:fs/promises";
 import path from "node:path";
+import { createRequire } from "node:module";
 import { fileURLToPath } from "node:url";
 import sharp from "sharp";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const root = path.resolve(__dirname, "..");
+const require = createRequire(import.meta.url);
 const outputRoot = path.join(root, ".visual-matching");
 
 const baseUrl = process.env.VISUAL_BASE_URL ?? "http://127.0.0.1:3000";
 const authState = process.env.VISUAL_AUTH_STATE;
 const threshold = Number(process.env.VISUAL_DIFF_THRESHOLD ?? "28");
+const chromeExecutable =
+  process.env.VISUAL_CHROME_EXECUTABLE ??
+  "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
+const bundledPlaywrightCandidates = [
+  "/Users/danielderi/.cache/codex-runtimes/codex-primary-runtime/dependencies/node/node_modules/playwright",
+  "/Users/danielderi/Library/Caches/com.openai.codex/org.sparkle-project.Sparkle/Installation/T08Ed3DUZ/PDjNIEySX/Codex.app/Contents/Resources/cua_node/lib/node_modules/playwright"
+];
 
 const viewports = {
   mobile: { width: 390, height: 844, isMobile: true },
@@ -46,19 +55,37 @@ function requestedScreens() {
 
 async function ensurePlaywright() {
   try {
-    return await import("playwright");
+    return require("playwright");
   } catch {
-    throw new Error(
-      [
-        "Playwright is not installed in this workspace.",
-        "Install it before running visual matching:",
-        "  npm install -D playwright",
-        "  npx playwright install chromium",
-        "",
-        "Then run:",
-        "  npm run visual:match -- login-general"
-      ].join("\n")
-    );
+    for (const candidate of bundledPlaywrightCandidates) {
+      try {
+        await fs.access(candidate);
+        return require(candidate);
+      } catch {
+        // Try the next bundled runtime path.
+      }
+    }
+  }
+
+  throw new Error(
+    [
+      "Playwright is not installed in this workspace and no bundled runtime was found.",
+      "Install it before running visual matching:",
+      "  npm install -D playwright",
+      "  npx playwright install chromium",
+      "",
+      "Then run:",
+      "  npm run visual:match -- login-general"
+    ].join("\n")
+  );
+}
+
+async function browserLaunchOptions() {
+  try {
+    await fs.access(chromeExecutable);
+    return { executablePath: chromeExecutable };
+  } catch {
+    return {};
   }
 }
 
@@ -174,7 +201,7 @@ async function main() {
   const { chromium } = await ensurePlaywright();
   await fs.mkdir(outputRoot, { recursive: true });
 
-  const browser = await chromium.launch();
+  const browser = await chromium.launch(await browserLaunchOptions());
   const contextOptions = authState ? { storageState: authState } : {};
   const context = await browser.newContext(contextOptions);
   const page = await context.newPage();
