@@ -248,23 +248,23 @@ export default async function GardenAttendancePage({ searchParams }: { searchPar
           <PremiumCard className="gb-teacher-attendance-actions-card" size="lg">
             <SectionHeader title="פעולות מהירות" icon={ClipboardCheck} />
             <DashboardGrid columns={3} className="gb-teacher-attendance-actions">
-            <ActionCard title="שליחת הודעה להורים" text="עדכון מהיר למשפחות" icon={Send} href="/dashboard/garden/messages" tone="primary" />
-            <Link className="gb-teacher-count-action" href="/dashboard/garden/attendance">
-              <ClipboardCheck size={42} />
-              <b>ספירת נוכחות</b>
-              <small>{presentPct}% עודכנו</small>
-            </Link>
-            <ActionCard title="דוח נוכחות יומי" text="ייצוא וסיכום היום" icon={BarChart3} href="/dashboard/garden/reports" tone="info" />
+              <ActionCard title="שליחת הודעה להורים" text="עדכון מהיר למשפחות" icon={Send} href="/dashboard/garden/messages" tone="primary" />
+              <Link className="gb-teacher-count-action" href="/dashboard/garden/attendance">
+                <ClipboardCheck size={42} />
+                <b>ספירת נוכחות</b>
+                <small>{presentPct}% עודכנו</small>
+              </Link>
+              <ActionCard title="דוח נוכחות יומי" text="ייצוא וסיכום היום" icon={BarChart3} href="/dashboard/garden/reports" tone="info" />
             </DashboardGrid>
           </PremiumCard>
 
           <BottomNav
             className="gb-teacher-module-bottom-nav"
-            activeHref="/dashboard/garden"
+            activeHref="/dashboard/garden/attendance"
             items={[
               { href: "/dashboard/garden", label: "בית", icon: Home },
               { href: "/dashboard/garden/daily-journal", label: "יומן", icon: CalendarDays },
-              { href: "/dashboard/garden", label: "דשבורד", icon: Home },
+              { href: "/dashboard/garden/attendance", label: "דשבורד", icon: Home },
               { href: "/dashboard/garden/notifications", label: "התראות", icon: Bell, badge: "2" },
               { href: "/dashboard/garden/command-center", label: "עוד", icon: MoreHorizontal }
             ]}

@@ -1581,7 +1581,7 @@ textarea.gb-form-control {
 /* Ganenet module screens: shared app dashboard language built on gb-* tokens. */
 .gb-teacher-module-page {
   min-height: 100dvh;
-  padding: clamp(14px, 2.4vw, 28px) clamp(12px, 2vw, 24px) calc(112px + env(safe-area-inset-bottom));
+  padding: clamp(14px, 2.4vw, 28px) clamp(12px, 2vw, 24px) calc(132px + env(safe-area-inset-bottom));
   background:
     radial-gradient(circle at 7% 10%, rgb(107 76 246 / 10%), transparent 24%),
     radial-gradient(circle at 92% 92%, rgb(148 112 255 / 16%), transparent 26%),
@@ -1591,7 +1591,7 @@ textarea.gb-form-control {
 .gb-teacher-app-surface {
   position: relative;
   display: grid;
-  gap: clamp(16px, 2vw, 22px);
+  gap: clamp(15px, 1.8vw, 20px);
   color: var(--gb-ink);
   text-align: right;
 }
@@ -1604,8 +1604,8 @@ textarea.gb-form-control {
     "actions brand";
   align-items: start;
   justify-content: space-between;
-  gap: 12px 24px;
-  padding: 4px 4px 2px;
+  gap: 10px 24px;
+  padding: 2px 4px 0;
 }
 
 .gb-teacher-module-header .gb-app-header-brand {
@@ -1824,19 +1824,23 @@ textarea.gb-form-control {
 }
 
 .gb-teacher-attendance-stats {
-  gap: 12px;
+  gap: 14px;
 }
 
 .gb-teacher-attendance-summary {
-  padding: clamp(18px, 2.8vw, 28px);
+  border: 1px solid rgb(219 226 242 / 72%);
+  border-radius: 32px;
+  background: rgb(255 255 255 / 88%);
+  box-shadow: 0 22px 54px rgb(82 74 206 / 7%);
+  padding: clamp(16px, 2.3vw, 24px);
 }
 
 .gb-teacher-attendance-stats .gb-metric-card {
-  min-height: 148px;
+  min-height: 132px;
   border: 1px solid rgb(219 226 242 / 72%);
-  border-radius: var(--gb-radius-md);
+  border-radius: 28px;
   background: linear-gradient(180deg, #fff, rgb(249 250 255 / 80%));
-  box-shadow: 0 16px 42px rgb(42 70 120 / 7%);
+  box-shadow: 0 16px 38px rgb(82 74 206 / 7%);
 }
 
 .gb-teacher-attendance-stats b {
@@ -1857,20 +1861,31 @@ textarea.gb-form-control {
 
 .gb-teacher-attendance-board {
   display: grid;
-  gap: 16px;
+  gap: 15px;
+  border: 1px solid rgb(219 226 242 / 72%);
+  border-radius: 32px;
+  background: rgb(255 255 255 / 90%);
+  box-shadow: 0 22px 54px rgb(82 74 206 / 7%);
 }
 
-.gb-teacher-attendance-board .gb-section-header {
+.gb-teacher-attendance-board .gb-section-header,
+.gb-teacher-attendance-actions-card .gb-section-header {
   direction: rtl;
   text-align: right;
+  align-items: center;
 }
 
-.gb-teacher-attendance-board .gb-section-header > div {
+.gb-teacher-attendance-board .gb-section-header > div,
+.gb-teacher-attendance-actions-card .gb-section-header > div {
   flex-direction: row-reverse;
+  justify-content: flex-start;
 }
 
-.gb-teacher-attendance-board .gb-section-header h2 {
+.gb-teacher-attendance-board .gb-section-header h2,
+.gb-teacher-attendance-actions-card .gb-section-header h2 {
   font-size: clamp(24px, 3.6vw, 34px);
+  line-height: 1.1;
+  text-align: right;
 }
 
 .gb-teacher-attendance-board .gb-section-header > a {
@@ -1879,7 +1894,10 @@ textarea.gb-form-control {
 }
 
 .gb-teacher-attendance-filters {
-  box-shadow: none;
+  border: 1px solid rgb(219 226 242 / 64%);
+  border-radius: 24px;
+  background: linear-gradient(180deg, rgb(255 255 255 / 84%), rgb(248 250 255 / 76%));
+  box-shadow: 0 14px 34px rgb(82 74 206 / 5%);
 }
 
 .gb-teacher-attendance-filters .gb-form-field {
@@ -1899,23 +1917,14 @@ textarea.gb-form-control {
   border-radius: 18px;
 }
 
-.gb-teacher-attendance-table-head {
-  display: grid;
-  grid-template-columns: minmax(170px, 1.45fr) .8fr .65fr 1fr minmax(130px, .8fr);
-  gap: 12px;
-  padding: 0 12px;
-  color: var(--gb-muted);
-  font-size: 14px;
-  font-weight: 950;
-}
-
 .gb-teacher-attendance-list {
   max-height: min(48dvh, 520px);
   overflow: auto;
   display: grid;
   gap: 11px;
-  padding: 2px 2px 6px;
+  padding: 2px 3px 8px;
   scrollbar-width: thin;
+  overscroll-behavior: contain;
 }
 
 .gb-teacher-attendance-row {
@@ -1923,11 +1932,11 @@ textarea.gb-form-control {
   grid-template-columns: auto minmax(0, 1fr) auto auto;
   align-items: center;
   gap: 14px;
-  border: 1px solid var(--gb-line);
-  border-radius: var(--gb-radius-md);
-  padding: 13px 16px;
-  background: rgb(255 255 255 / 82%);
-  box-shadow: 0 14px 34px rgb(49 76 145 / 6%);
+  border: 1px solid rgb(219 226 242 / 76%);
+  border-radius: 24px;
+  padding: 14px 16px;
+  background: rgb(255 255 255 / 88%);
+  box-shadow: 0 14px 34px rgb(82 74 206 / 6%);
 }
 
 .gb-teacher-attendance-row .gb-list-main {
@@ -2006,15 +2015,11 @@ textarea.gb-form-control {
 
 .gb-teacher-attendance-actions-card {
   display: grid;
-  gap: 16px;
-}
-
-.gb-teacher-attendance-actions-card .gb-section-header > div {
-  flex-direction: row-reverse;
-}
-
-.gb-teacher-attendance-actions-card .gb-section-header h2 {
-  font-size: clamp(24px, 3.6vw, 34px);
+  gap: 15px;
+  border: 1px solid rgb(219 226 242 / 72%);
+  border-radius: 32px;
+  background: rgb(255 255 255 / 90%);
+  box-shadow: 0 22px 54px rgb(82 74 206 / 7%);
 }
 
 .gb-teacher-count-action {
@@ -2042,12 +2047,26 @@ textarea.gb-form-control {
 
 .gb-teacher-module-bottom-nav {
   bottom: max(10px, env(safe-area-inset-bottom));
+  direction: rtl;
+  min-height: 82px;
+  border: 1px solid rgb(219 226 242 / 64%);
+  background: rgb(255 255 255 / 88%);
+  box-shadow: 0 20px 54px rgb(82 74 206 / 14%);
+  backdrop-filter: blur(22px);
+}
+
+.gb-teacher-module-bottom-nav .gb-bottom-nav-item.active .gb-bottom-nav-icon {
+  width: 74px;
+  height: 74px;
+  margin-top: -34px;
+  border: 6px solid #fff;
+  box-shadow: 0 18px 34px rgb(107 76 246 / 28%);
 }
 
 @media (max-width: 760px) {
   .gb-teacher-module-page {
-    padding-inline: 10px;
-    padding-bottom: calc(104px + env(safe-area-inset-bottom));
+    padding-inline: 12px;
+    padding-bottom: calc(126px + env(safe-area-inset-bottom));
   }
 
   .gb-teacher-app-surface {
@@ -2091,7 +2110,7 @@ textarea.gb-form-control {
   }
 
   .gb-teacher-attendance-stats .gb-metric-card {
-    min-height: 112px;
+    min-height: 108px;
     padding: 14px 10px;
   }
 
@@ -2100,11 +2119,18 @@ textarea.gb-form-control {
   }
 
   .gb-teacher-attendance-filters {
-    display: none;
+    display: grid;
+    gap: 10px;
+    padding: 10px;
+  }
+
+  .gb-teacher-attendance-filters .gb-filter-slot {
+    grid-template-columns: 1fr;
+    gap: 10px;
   }
 
   .gb-teacher-attendance-list {
-    max-height: 48dvh;
+    max-height: 42dvh;
   }
 
   .gb-teacher-attendance-row {
@@ -2132,6 +2158,20 @@ textarea.gb-form-control {
 
   .gb-teacher-count-action {
     min-height: 118px;
+  }
+
+  .gb-teacher-module-bottom-nav {
+    left: 12px;
+    right: 12px;
+    bottom: max(8px, env(safe-area-inset-bottom));
+    min-height: 78px;
+    padding: 6px 12px 8px;
+  }
+
+  .gb-teacher-module-bottom-nav .gb-bottom-nav-item.active .gb-bottom-nav-icon {
+    width: 70px;
+    height: 70px;
+    margin-top: -32px;
   }
 }
 
