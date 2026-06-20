@@ -147,8 +147,8 @@ export default async function GardenDashboard() {
         <section className="ganenet-mid-grid">
           <article className="ganenet-card ganenet-updates">
             <div className="ganenet-section-title">
+              <h2>עדכונים אחרונים <Megaphone size={30} /></h2>
               <a href="/dashboard/garden/notifications">לכל העדכונים ›</a>
-              <h2><Megaphone size={30} /> עדכונים אחרונים</h2>
             </div>
             {[
               ["הוזן אירוע קל", "חדר גן סגול", "08:30", "purple"],
@@ -165,8 +165,8 @@ export default async function GardenDashboard() {
 
           <article className="ganenet-card ganenet-schedule">
             <div className="ganenet-section-title">
+              <h2>לוח זמנים להיום <CalendarDays size={30} /></h2>
               <a href="/dashboard/garden/daily-journal">לכל לוח הזמנים ›</a>
-              <h2><CalendarDays size={30} /> לוח זמנים להיום</h2>
             </div>
             <ul>
               {schedule.map(([time, label, icon]) => (
@@ -178,8 +178,7 @@ export default async function GardenDashboard() {
 
         <section className="ganenet-card ganenet-actions">
           <div className="ganenet-section-title">
-            <h2>פעולות מהירות</h2>
-            <span className="ganenet-section-icon"><Zap size={28} /></span>
+            <h2>פעולות מהירות <span className="ganenet-section-icon"><Zap size={28} /></span></h2>
           </div>
           <div className="ganenet-action-row">
             {[
@@ -199,14 +198,14 @@ export default async function GardenDashboard() {
 
         <section className="ganenet-bottom-grid">
           <article className="ganenet-card ganenet-parent-messages">
-            <h2><MessageCircle size={30} /> הודעות הורים</h2>
+            <h2>הודעות הורים <MessageCircle size={30} /></h2>
             <a href="/dashboard/garden/messages"><em>2</em><div><b>אמא של יעל</b><span>הודעה על אלרגיה</span></div><small>08:32</small></a>
             <a href="/dashboard/garden/messages"><em>1</em><div><b>אבא של עומר</b><span>שאלה לגבי טיול</span></div><small>07:58</small></a>
             <strong>לכל ההודעות ›</strong>
           </article>
 
           <article className="ganenet-card ganenet-tasks">
-            <h2><ClipboardCheck size={30} /> משימות להיום</h2>
+            <h2>משימות להיום <ClipboardCheck size={30} /></h2>
             {["להעביר תרופות", "לעדכן יומן גן", "להכין דוח שבועי"].map((task, index) => (
               <label key={task}><input type="checkbox" readOnly /> <span>{task}<small>עד {index === 0 ? "09:00" : index === 1 ? "12:00" : "16:00"}</small></span></label>
             ))}
