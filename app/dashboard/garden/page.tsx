@@ -78,7 +78,7 @@ export default async function GardenDashboard() {
 
           <div className="ganenet-profile-actions">
             <a className="ganenet-avatar" href="/dashboard/profile" aria-label="פרופיל">
-              {(profile as any).avatar_url ? <img src={(profile as any).avatar_url} alt="" /> : <span>{profile.full_name?.slice(0, 1) ?? "מ"}</span>}
+              <img src={(profile as any).avatar_url ?? "/assets/teacher-avatar.svg"} alt="" />
             </a>
             <ChevronDown className="ganenet-profile-chevron" size={28} />
             <a className="ganenet-bell" href="/dashboard/garden/notifications" aria-label="התראות">
