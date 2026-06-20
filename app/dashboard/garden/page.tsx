@@ -40,6 +40,14 @@ export default async function GardenDashboard() {
   const garden = gardenRes.data as any;
   if (!garden) redirect("/onboarding/kindergarten");
 
+  const cleanDemoText = (value?: string | null, fallback = "") =>
+    (value ?? fallback).replace(/\[DEMO\]/g, "").replace(/\s+/g, " ").trim();
+  const cleanProfileName = cleanDemoText(profile.full_name, "רונית");
+  const teacherFirstName = cleanProfileName.split(" ").filter(Boolean)[0] || "רונית";
+  const displayGardenName = cleanDemoText(garden.name, "גן הפרחים") || "גן הפרחים";
+  const rawAvatarUrl = (profile as any).avatar_url;
+  const avatarUrl = typeof rawAvatarUrl === "string" && rawAvatarUrl.trim() ? rawAvatarUrl : "/assets/teacher-avatar.svg";
+
   const pendingRequests = ((enrollmentRes.data ?? []) as any[]).filter((row) => row.status !== "approved_pending_payment").length;
   const waitingPaymentRequests = ((enrollmentRes.data ?? []) as any[]).filter((row) => row.status === "approved_pending_payment").length;
   const nextInspection = ((inspectionsRes.data ?? []) as any[])[0];
@@ -78,7 +86,7 @@ export default async function GardenDashboard() {
 
           <div className="ganenet-profile-actions">
             <a className="ganenet-avatar" href="/dashboard/profile" aria-label="פרופיל">
-              <img src={(profile as any).avatar_url ?? "/assets/teacher-avatar.svg"} alt="" />
+              <img src={avatarUrl} alt="" />
             </a>
             <ChevronDown className="ganenet-profile-chevron" size={28} />
             <a className="ganenet-bell" href="/dashboard/garden/notifications" aria-label="התראות">
@@ -89,8 +97,8 @@ export default async function GardenDashboard() {
 
           <div className="ganenet-greeting">
             <div>
-              <h1>בוקר טוב, {profile.full_name?.split(" ")[0] ?? "רונית"} <span>🌸</span></h1>
-              <p>ברוכה הבאה ל{garden.name ?? "גן הפרחים"} <ChevronLeft size={22} /></p>
+              <h1>בוקר טוב, {teacherFirstName} <span>🌸</span></h1>
+              <p>ברוכה הבאה ל{displayGardenName} <ChevronLeft size={22} /></p>
             </div>
           </div>
         </header>
