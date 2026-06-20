@@ -25005,11 +25005,12 @@ body:has(.gb-reference-login) .gb-reference-security-card {
 
   .ganenet-section-title h2,
   .ganenet-card h2 {
+    align-items: center !important;
     direction: rtl !important;
     display: flex !important;
     flex-direction: row !important;
     font-size: 26px !important;
-    gap: 5px !important;
+    gap: 8px !important;
     justify-content: flex-start !important;
     line-height: 1.1 !important;
     text-align: right !important;
@@ -25025,8 +25026,11 @@ body:has(.gb-reference-login) .gb-reference-security-card {
   .ganenet-card > a,
   .ganenet-parent-messages > strong,
   .ganenet-tasks > strong {
+    direction: rtl !important;
     font-size: 16px !important;
+    margin-inline-start: auto !important;
     text-align: left !important;
+    white-space: nowrap !important;
   }
 
   .ganenet-update-row {
@@ -25149,8 +25153,8 @@ body:has(.gb-reference-login) .gb-reference-security-card {
   .ganenet-parent-messages,
   .ganenet-tasks,
   .ganenet-shortcuts {
-    min-height: 238px !important;
-    max-height: 260px !important;
+    min-height: 218px !important;
+    max-height: 226px !important;
     overflow: hidden !important;
   }
 
@@ -25171,8 +25175,8 @@ body:has(.gb-reference-login) .gb-reference-security-card {
   }
 
   .ganenet-tasks label {
-    min-height: 52px !important;
-    padding: 6px 8px !important;
+    min-height: 44px !important;
+    padding: 4px 8px !important;
   }
 
   .ganenet-tasks input {
@@ -25188,7 +25192,7 @@ body:has(.gb-reference-login) .gb-reference-security-card {
   .ganenet-shortcuts a {
     border-radius: 10px !important;
     gap: 3px !important;
-    min-height: 68px !important;
+    min-height: 56px !important;
     padding: 5px !important;
   }
 
@@ -25203,7 +25207,7 @@ body:has(.gb-reference-login) .gb-reference-security-card {
   }
 
   .ganenet-bottom-nav {
-    bottom: max(122px, env(safe-area-inset-bottom)) !important;
+    bottom: max(42px, env(safe-area-inset-bottom)) !important;
     box-shadow: 0 24px 58px rgba(82, 74, 206, .18), inset 0 1px 0 rgba(255, 255, 255, .88) !important;
     min-height: 104px !important;
     padding: 10px 26px !important;
