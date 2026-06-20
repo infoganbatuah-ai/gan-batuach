@@ -18,6 +18,7 @@
     "privacy:forget-family": "node scripts/right-to-be-forgotten.mjs",
     "mobile:open:android": "npx cap open android",
     "mobile:open:ios": "npx cap open ios",
+    "visual:match": "node scripts/visual-match.mjs",
     "mobile:build:android": "cd android && ./gradlew assembleDebug"
   },
   "dependencies": {

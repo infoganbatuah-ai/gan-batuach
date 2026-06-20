@@ -53,6 +53,8 @@ Mobile must match the reference composition as closely as practical without copy
 
 Desktop must preserve the same design language while expanding into a wider layout with app-like cards, grids, and navigation.
 
+Use `npm run visual:match` and the process documented in `VISUAL_MATCHING_WORKFLOW.md` for real app screenshots, normalized references, diff images, and the review report.
+
 ## Safety
 
 UI work must not weaken or change authentication, routing, roles, Supabase access, RLS, payment logic, sensitive documents, medical data access, camera access, or AI access.
