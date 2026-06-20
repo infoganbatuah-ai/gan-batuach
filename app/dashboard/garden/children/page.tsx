@@ -3,6 +3,7 @@ import { DashboardFilterChip } from "@/components/dashboard-filter-chip";
 import { ChildrenProfileCards } from "@/components/people-profile-cards";
 import { Avatar } from "@/components/avatar";
 import { ChildStatusActions } from "@/components/child-status-actions";
+import { GardenChildCreatePanel } from "@/components/garden-child-create-panel";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { Baby, CheckCircle2, Heart, Moon, Plus, Smile, Utensils, UsersRound } from "lucide-react";
@@ -27,7 +28,7 @@ const filterLabels: Record<string, string> = {
   "payments": "ילדים עם תשלום לטיפול"
 };
 
-export default async function GardenChildrenPage({ searchParams }: { searchParams: Promise<{ view?: string; filter?: string; missing?: string }> }) {
+export default async function GardenChildrenPage({ searchParams }: { searchParams: Promise<{ view?: string; filter?: string; missing?: string; new?: string }> }) {
   const { profile } = await requireRole(["manager", "owner"]);
   const params = await searchParams;
   const supabase = await createClient();
@@ -133,6 +134,8 @@ export default async function GardenChildrenPage({ searchParams }: { searchParam
         />
 
         <DashboardFilterChip label={label} clearHref="/dashboard/garden/children" isEmpty={rows.length === 0} emptyTitle={emptyTitle} emptyText="כל הילדים הרלוונטיים כבר טופלו במסנן הזה. אפשר לנקות סינון כדי לראות את כל הילדים." />
+
+        {params.new === "1" ? <GardenChildCreatePanel gardenId={gardenId} defaultOpen /> : null}
 
         <section className="teacher-children-layout">
           <TeacherSection title="רשימת ילדים" action={<a href="/dashboard/garden/children">צפייה בכל הילדים</a>}>

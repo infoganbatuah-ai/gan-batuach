@@ -20,7 +20,7 @@ import {
   TeacherStatsGrid
 } from "@/components/teacher-app-ui";
 
-export default async function GardenCameraSetupPage({ searchParams }: { searchParams: Promise<{ filter?: string; camera?: string }> }) {
+export default async function GardenCameraSetupPage({ searchParams }: { searchParams: Promise<{ filter?: string; camera?: string; add?: string }> }) {
   const { profile } = await requireRole(["manager", "owner"]);
   const params = await searchParams;
   const gardenId = profile.garden_id ?? "";
@@ -79,7 +79,7 @@ export default async function GardenCameraSetupPage({ searchParams }: { searchPa
 
         <details className="teacher-management-details">
           <summary>ניהול מצלמות מלא</summary>
-          <CameraAdminManager cameras={cameras} gardens={result.data.gardens as any[]} gatewayConnected={Boolean(process.env.VIDEO_GATEWAY_URL)} />
+          <CameraAdminManager cameras={cameras} gardens={result.data.gardens as any[]} gatewayConnected={Boolean(process.env.VIDEO_GATEWAY_URL)} defaultOpenAdd={params.add === "1"} />
         </details>
       </TeacherAppFrame>
     </DashboardShell>

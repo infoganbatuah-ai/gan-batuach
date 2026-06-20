@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { DashboardShell } from "@/components/dashboard-shell";
+import { GardenPayoutConfigurationForm } from "@/components/garden-payout-configuration-form";
 import { requireRole } from "@/lib/auth";
 import {
   loadGardenFinanceData,
@@ -151,7 +152,7 @@ export default async function GardenFinancePage({ searchParams }: { searchParams
     return (
       <DashboardShell role={role} title="מרכז כספים" appHome>
         <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "מאיה"}`} subtitle="כספים ותשלומים של הגן" avatarUrl={(profile as any).avatar_url ?? null} active="more">
-          <TeacherPageTitle icon={CreditCard} title="עמוד כספים גננת" subtitle="גבייה חודשית פשוטה וברורה" />
+        <TeacherPageTitle icon={CreditCard} title="עמוד כספים גננת" subtitle="גבייה חודשית פשוטה וברורה" action={<Link className="button primary" href="/dashboard/garden/finance?payout=1#payout-settings"><Landmark size={18} /> הגדרת יעד תשלום</Link>} />
 
         {criticalFinanceFailure ? <div className="warning-banner">חלק מנתוני הכספים לא נטענו</div> : null}
 
@@ -172,6 +173,8 @@ export default async function GardenFinancePage({ searchParams }: { searchParams
             ...financeFilters.map((filter) => ({ label: filter.label, href: `/dashboard/garden/finance?filter=${filter.key}`, active: activeFilter === filter.key }))
           ]}
         />
+
+        {params.payout === "1" || payoutConfigurations.length === 0 ? <GardenPayoutConfigurationForm defaultOpen={params.payout === "1"} /> : null}
 
         <section className="teacher-dashboard-grid">
           <TeacherSection title="תשלומי ילדים" subtitle="זרם כסף: הורה → גן">
@@ -206,7 +209,7 @@ export default async function GardenFinancePage({ searchParams }: { searchParams
 
           <TeacherSection title="מנוי גן בטוח" subtitle="זרם נפרד: גן → גן בטוח">
             <TeacherCompactList>
-              <TeacherCompactItem title="מנוי גן בטוח" subtitle="אינו קשור לשכר לימוד הורים" tone="purple" meta="נפרד" />
+              <TeacherCompactItem title="מנוי גן בטוח" subtitle="אינו קשור לשכר לימוד הורים" tone="purple" meta={<Link href="/dashboard/garden/subscription">חידוש</Link>} />
               <TeacherCompactItem title="אישורי הורים לתשלום" subtitle={`${parentPaymentAuthorizations.length} אישורים`} tone={parentPaymentAuthorizations.length ? "green" : "orange"} meta="הורים" />
               <TeacherCompactItem title="עסקאות הורים ישירות" subtitle={`${parentPaymentTransactions.length} עסקאות`} tone="blue" meta={<Landmark size={16} />} />
             </TeacherCompactList>
