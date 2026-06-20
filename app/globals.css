@@ -25297,6 +25297,276 @@ body:has(.gb-reference-login) .gb-reference-security-card {
   width: 22px !important;
 }
 
+.ganenet-module-screen {
+  min-height: 1668px !important;
+}
+
+.ganenet-attendance-screen .ganenet-reference-header {
+  margin-bottom: 18px !important;
+}
+
+.ganenet-attendance-summary-grid {
+  direction: rtl !important;
+  display: grid !important;
+  gap: 16px !important;
+  grid-template-columns: repeat(4, 1fr) !important;
+  margin: 0 0 22px !important;
+}
+
+.ganenet-attendance-stat {
+  align-items: center !important;
+  background: rgba(255, 255, 255, .9) !important;
+  border: 1px solid var(--ganenet-line) !important;
+  border-radius: 24px !important;
+  box-shadow: 0 18px 44px rgba(30, 64, 110, .08) !important;
+  color: var(--ganenet-blue) !important;
+  display: grid !important;
+  justify-items: center !important;
+  min-height: 148px !important;
+  padding: 18px 14px !important;
+  text-align: center !important;
+}
+
+.ganenet-attendance-stat span {
+  align-items: center !important;
+  background: #f1edff !important;
+  border-radius: 999px !important;
+  box-shadow: inset 0 0 0 1px #e2d9ff !important;
+  color: var(--ganenet-purple) !important;
+  display: flex !important;
+  height: 52px !important;
+  justify-content: center !important;
+  width: 52px !important;
+}
+
+.ganenet-attendance-stat.green span { background: #e8fbf0 !important; color: #24c66d !important; }
+.ganenet-attendance-stat.pink span { background: #fff0f6 !important; color: #f14186 !important; }
+.ganenet-attendance-stat.orange span { background: #fff6e6 !important; color: #e69022 !important; }
+
+.ganenet-attendance-stat strong {
+  color: var(--ganenet-blue) !important;
+  font-size: 18px !important;
+  font-weight: 950 !important;
+}
+
+.ganenet-attendance-stat b {
+  color: var(--ganenet-blue) !important;
+  font-size: 38px !important;
+  font-weight: 950 !important;
+  line-height: 1 !important;
+}
+
+.ganenet-attendance-stat small {
+  color: #73819b !important;
+  font-size: 14px !important;
+  font-weight: 850 !important;
+}
+
+.ganenet-attendance-panel {
+  display: grid !important;
+  gap: 16px !important;
+  min-height: 670px !important;
+  padding: 24px !important;
+}
+
+.ganenet-attendance-filterbar {
+  background: linear-gradient(180deg, rgba(255, 255, 255, .9), rgba(248, 250, 255, .82)) !important;
+  border: 1px solid var(--ganenet-line) !important;
+  border-radius: 20px !important;
+  display: grid !important;
+  gap: 12px !important;
+  grid-template-columns: 1.35fr .82fr .82fr !important;
+  padding: 12px !important;
+}
+
+.ganenet-attendance-filterbar label {
+  align-items: center !important;
+  background: #fff !important;
+  border: 1px solid #e3ebf7 !important;
+  border-radius: 16px !important;
+  color: var(--ganenet-purple) !important;
+  display: flex !important;
+  gap: 10px !important;
+  min-height: 54px !important;
+  padding: 0 14px !important;
+}
+
+.ganenet-attendance-filterbar input,
+.ganenet-attendance-filterbar select {
+  appearance: none !important;
+  background: transparent !important;
+  border: 0 !important;
+  color: var(--ganenet-blue) !important;
+  flex: 1 !important;
+  font: inherit !important;
+  font-size: 15px !important;
+  font-weight: 850 !important;
+  min-width: 0 !important;
+  outline: 0 !important;
+  text-align: right !important;
+}
+
+.ganenet-attendance-list {
+  display: grid !important;
+  gap: 12px !important;
+  max-height: 448px !important;
+  overflow: auto !important;
+  padding: 2px 2px 10px !important;
+  scrollbar-width: thin !important;
+}
+
+.ganenet-attendance-row {
+  align-items: center !important;
+  background: #fff !important;
+  border: 1px solid var(--ganenet-line) !important;
+  border-radius: 18px !important;
+  box-shadow: 0 12px 30px rgba(30, 64, 110, .055) !important;
+  color: var(--ganenet-blue) !important;
+  display: grid !important;
+  gap: 12px !important;
+  grid-template-columns: 58px minmax(0, 1fr) 104px 152px 126px 44px !important;
+  min-height: 84px !important;
+  padding: 12px 14px !important;
+}
+
+.ganenet-attendance-avatar {
+  align-items: center !important;
+  background: linear-gradient(135deg, #8d74ff, #47b8ff) !important;
+  border: 4px solid #fff !important;
+  border-radius: 999px !important;
+  box-shadow: 0 12px 28px rgba(30, 64, 110, .13) !important;
+  color: #fff !important;
+  display: flex !important;
+  font-size: 22px !important;
+  font-weight: 950 !important;
+  height: 56px !important;
+  justify-content: center !important;
+  width: 56px !important;
+}
+
+.ganenet-attendance-row div {
+  min-width: 0 !important;
+  text-align: right !important;
+}
+
+.ganenet-attendance-row b {
+  color: var(--ganenet-blue) !important;
+  display: block !important;
+  font-size: 18px !important;
+  font-weight: 950 !important;
+  line-height: 1.25 !important;
+}
+
+.ganenet-attendance-row small,
+.ganenet-attendance-row p {
+  color: #73819b !important;
+  font-size: 13px !important;
+  font-weight: 820 !important;
+  line-height: 1.35 !important;
+  margin: 0 !important;
+}
+
+.ganenet-attendance-row p strong {
+  color: var(--ganenet-blue) !important;
+}
+
+.ganenet-attendance-chip {
+  align-items: center !important;
+  border-radius: 999px !important;
+  display: inline-flex !important;
+  font-size: 13px !important;
+  font-style: normal !important;
+  font-weight: 950 !important;
+  gap: 6px !important;
+  justify-content: center !important;
+  min-height: 36px !important;
+  padding: 6px 10px !important;
+}
+
+.ganenet-attendance-chip.present { background: #e8fbf0 !important; color: #15945a !important; }
+.ganenet-attendance-chip.late { background: #fff6e6 !important; color: #a7650f !important; }
+.ganenet-attendance-chip.absent { background: #fff0f6 !important; color: #c42364 !important; }
+.ganenet-attendance-chip.not_updated { background: #f1edff !important; color: var(--ganenet-purple) !important; }
+
+.ganenet-attendance-action {
+  align-items: center !important;
+  background: linear-gradient(135deg, #5b4bff, #8b5cf6) !important;
+  border-radius: 999px !important;
+  box-shadow: 0 12px 26px rgba(107, 76, 246, .16) !important;
+  color: #fff !important;
+  display: inline-flex !important;
+  font-size: 14px !important;
+  font-weight: 950 !important;
+  gap: 7px !important;
+  justify-content: center !important;
+  min-height: 42px !important;
+  padding: 8px 12px !important;
+}
+
+.ganenet-attendance-row button {
+  align-items: center !important;
+  background: #fff !important;
+  border: 1px solid var(--ganenet-line) !important;
+  border-radius: 999px !important;
+  color: #7d8ba5 !important;
+  display: flex !important;
+  height: 42px !important;
+  justify-content: center !important;
+  width: 42px !important;
+}
+
+.ganenet-attendance-empty {
+  align-items: center !important;
+  background: linear-gradient(180deg, #fff, #f8f6ff) !important;
+  border: 1px solid var(--ganenet-line) !important;
+  border-radius: 22px !important;
+  color: var(--ganenet-blue) !important;
+  display: grid !important;
+  justify-items: center !important;
+  min-height: 250px !important;
+  padding: 28px !important;
+  text-align: center !important;
+}
+
+.ganenet-attendance-empty svg {
+  color: var(--ganenet-purple) !important;
+}
+
+.ganenet-attendance-empty b {
+  font-size: 24px !important;
+  font-weight: 950 !important;
+}
+
+.ganenet-attendance-empty p {
+  color: #73819b !important;
+  font-size: 16px !important;
+  font-weight: 820 !important;
+  max-width: 440px !important;
+}
+
+.ganenet-attendance-empty a {
+  background: linear-gradient(135deg, #5b4bff, #8b5cf6) !important;
+  border-radius: 999px !important;
+  color: #fff !important;
+  font-weight: 950 !important;
+  padding: 12px 22px !important;
+}
+
+.ganenet-attendance-actions-panel {
+  margin-top: 22px !important;
+  padding: 24px 26px 28px !important;
+}
+
+.ganenet-attendance-actions-panel .ganenet-action-row {
+  grid-template-columns: repeat(3, 1fr) !important;
+}
+
+.ganenet-attendance-actions-panel .ganenet-action small {
+  color: #73819b !important;
+  font-size: 14px !important;
+  font-weight: 850 !important;
+}
+
 @media (min-width: 1100px) {
   .ganenet-reference-phone {
     border: 10px solid rgba(255, 255, 255, .72) !important;
