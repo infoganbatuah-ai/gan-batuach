@@ -2,7 +2,18 @@ import Link from "next/link";
 import { AlertTriangle, Camera, ClipboardCheck, Eye, ShieldCheck } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { AdminDataError } from "@/components/admin-data-state";
-import { ActionCard, CleanSection, EmptyState, PremiumDashboardHero, RoleMetricCard, StatusBadge } from "@/components/premium-dashboard";
+import {
+  TeacherActionTile,
+  TeacherAppFrame,
+  TeacherCompactItem,
+  TeacherCompactList,
+  TeacherEmptyState,
+  TeacherPageTitle,
+  TeacherQuickActions,
+  TeacherSection,
+  TeacherStatCard,
+  TeacherStatsGrid
+} from "@/components/teacher-app-ui";
 import { requireRole } from "@/lib/auth";
 import { logSupabaseError, safeAdminData } from "@/lib/admin-safe";
 import { createClient } from "@/lib/supabase/server";
@@ -29,5 +40,58 @@ export default async function GardenObserverNetworkPage() {
     return { signals, recommendations, cameras, unhealthy, compliance: complianceRes.data ?? [], readiness, queryError: [signalsRes.error, recommendationsRes.error].some(Boolean) ? "חלק מנתוני תקציר הבטיחות לא נטענו" : null };
   }, { signals: [] as any[], recommendations: [] as any[], cameras: [] as any[], unhealthy: 0, compliance: [] as any[], readiness: buildObserverReadinessScore({ totalCameras: 0, activeCameras: 0, unhealthyCameras: 0, totalSignals: 0, reviewedSignals: 0, falsePositiveSignals: 0, unresolvedSignals: 0, complianceSignals: 0 }), queryError: null as string | null });
   const data = result.data;
-  return <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="תקציר בטיחות"><div className="commercial-dashboard observer-network-shell"><PremiumDashboardHero eyebrow="Safety Digest" title="מה דורש תשומת לב היום" subtitle="תקציר מנהלת פשוט: מצלמות, ציות, אירועים פתוחים והמלצות בדיקה. שום דבר לא נשלח להורים בלי אישור." badge={`${data.readiness.readinessScore}/100`} badgeTone={data.readiness.tone} actions={<Link className="button primary" href="/dashboard/garden/observer-intelligence">סיכומי תצפיתן</Link>}><div className="setup-checklist"><span>בדיקה אנושית</span><span>ללא מונחים טכניים</span><span>ללא הודעות אוטומטיות להורים</span></div></PremiumDashboardHero><AdminDataError message={result.error ?? data.queryError} /><section className="grid cols-4 dashboard-kpis"><RoleMetricCard label="דורש בדיקה" value={data.signals.length} tone={data.signals.length ? "warn" : "good"} /><RoleMetricCard label="מצלמות" value={`${data.cameras.length - data.unhealthy}/${data.cameras.length}`} hint={`${data.unhealthy} דורשות טיפול`} tone={data.unhealthy ? "warn" : "good"} /><RoleMetricCard label="ציות" value={data.compliance.length} hint="פערים פתוחים" tone={data.compliance.length ? "warn" : "good"} /><RoleMetricCard label="המלצות" value={data.recommendations.length} tone={data.recommendations.length ? "warn" : "good"} /></section><CleanSection title="נושאים לטיפול" subtitle="אינדיקציות בלבד. בודקים לפני שפועלים.">{data.signals.length === 0 ? <EmptyState title="אין נושאים פתוחים" text="כשהמערכת תזהה משהו לבדיקה, הוא יופיע כאן." /> : <div className="observer-network-table">{data.signals.slice(0, 8).map((signal: any) => <Link href="/dashboard/garden/observer-intelligence" className="observer-network-row" key={signal.id}><div><strong>{signal.signal_type === "camera_health" ? "מצלמה דורשת בדיקה" : signal.signal_type === "compliance" ? "פער ציות" : "אירוע לבדיקה"}</strong><span>{signal.recommended_action ?? "בדיקה מומלצת"}</span></div><StatusBadge tone={observerNetworkTone(100 - Number(signal.risk_score ?? 0))}>{signal.risk_score}/100</StatusBadge></Link>)}</div>}</CleanSection><section className="grid cols-2 dashboard-panels"><article className="card action-panel"><h2><ShieldCheck size={20} /> המלצות</h2>{data.recommendations.length === 0 ? <div className="empty-mini">אין המלצות פתוחות.</div> : data.recommendations.slice(0, 6).map((rec: any) => <div className="list-item" key={rec.id}><div><strong>{rec.recommendation_text}</strong><span>{rec.recommendation_type}</span></div><StatusBadge tone="warn">{rec.status}</StatusBadge></div>)}</article><article className="card action-panel"><h2><AlertTriangle size={20} /> גבול בטיחות</h2><div className="setup-checklist"><span>אין מסקנות אוטומטיות</span><span>אין הודעות פאניקה להורים</span><span>בודקים עם הצוות לפני פעולה</span></div></article></section><section className="quick-actions-grid"><ActionCard title="מצלמות" text="בדיקת חיבור" href="/dashboard/garden/camera-health" icon={Camera} /><ActionCard title="תצפיתן" text="סיכומים והקשר" href="/dashboard/garden/observer-intelligence" icon={Eye} /><ActionCard title="ציות" text="מסמכים ונהלים" href="/dashboard/garden/compliance" icon={ClipboardCheck} /></section></div></DashboardShell>;
+  return (
+    <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="תקציר בטיחות" appHome>
+      <TeacherAppFrame
+        title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "רונית"}`}
+        subtitle="תקציר בטיחות"
+        avatarUrl={(profile as any).avatar_url ?? null}
+        active="more"
+      >
+        <TeacherPageTitle
+          icon={ShieldCheck}
+          title="מה דורש תשומת לב היום"
+          subtitle="מצלמות, ציות, אירועים פתוחים והמלצות בדיקה. שום דבר לא נשלח להורים בלי אישור."
+          action={<Link className="teacher-soft-button purple" href="/dashboard/garden/observer-intelligence">סיכומי תצפיתן</Link>}
+        />
+        <AdminDataError message={result.error ?? data.queryError} />
+        <TeacherStatsGrid>
+          <TeacherStatCard title="דורש בדיקה" value={data.signals.length} icon={AlertTriangle} tone={data.signals.length ? "orange" : "green"} />
+          <TeacherStatCard title="מצלמות" value={`${data.cameras.length - data.unhealthy}/${data.cameras.length}`} hint={`${data.unhealthy} דורשות טיפול`} icon={Camera} tone={data.unhealthy ? "orange" : "green"} />
+          <TeacherStatCard title="ציות" value={data.compliance.length} hint="פערים פתוחים" icon={ClipboardCheck} tone={data.compliance.length ? "orange" : "green"} />
+          <TeacherStatCard title="המלצות" value={data.recommendations.length} icon={ShieldCheck} tone={data.recommendations.length ? "orange" : "green"} />
+        </TeacherStatsGrid>
+        <TeacherSection title="נושאים לטיפול" subtitle="אינדיקציות בלבד. בודקים לפני שפועלים.">
+          {data.signals.length === 0 ? <TeacherEmptyState title="אין נושאים פתוחים" text="כשהמערכת תזהה משהו לבדיקה, הוא יופיע כאן." /> : (
+            <TeacherCompactList>
+              {data.signals.slice(0, 8).map((signal: any) => (
+                <TeacherCompactItem
+                  key={signal.id}
+                  title={signal.signal_type === "camera_health" ? "מצלמה דורשת בדיקה" : signal.signal_type === "compliance" ? "פער ציות" : "אירוע לבדיקה"}
+                  subtitle={signal.recommended_action ?? "בדיקה מומלצת"}
+                  meta={`${signal.risk_score ?? 0}/100`}
+                  tone={observerNetworkTone(100 - Number(signal.risk_score ?? 0)) === "good" ? "green" : "orange"}
+                  href="/dashboard/garden/observer-intelligence"
+                />
+              ))}
+            </TeacherCompactList>
+          )}
+        </TeacherSection>
+        <TeacherSection title="המלצות">
+          {data.recommendations.length === 0 ? <TeacherEmptyState title="אין המלצות פתוחות" /> : (
+            <TeacherCompactList>
+              {data.recommendations.slice(0, 6).map((rec: any) => (
+                <TeacherCompactItem key={rec.id} title={rec.recommendation_text} subtitle={rec.recommendation_type} meta={rec.status} tone="purple" />
+              ))}
+            </TeacherCompactList>
+          )}
+        </TeacherSection>
+        <TeacherQuickActions title="פעולות בטיחות">
+          <TeacherActionTile title="מצלמות" href="/dashboard/garden/camera-health" icon={Camera} tone="blue" />
+          <TeacherActionTile title="תצפיתן" href="/dashboard/garden/observer-intelligence" icon={Eye} tone="purple" />
+          <TeacherActionTile title="ציות" href="/dashboard/garden/compliance" icon={ClipboardCheck} tone="green" />
+        </TeacherQuickActions>
+      </TeacherAppFrame>
+    </DashboardShell>
+  );
 }

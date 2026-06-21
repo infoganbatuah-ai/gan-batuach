@@ -1,5 +1,14 @@
-import { DashboardShell } from "@/components/dashboard-shell";
+import { AlertTriangle, Bot, CheckCircle2, ClipboardCheck } from "lucide-react";
 import { SmartInsightsCenter } from "@/components/smart-insights-center";
+import {
+  TeacherAppFrame,
+  TeacherPageTitle,
+  TeacherQuickActions,
+  TeacherActionTile,
+  TeacherSection,
+  TeacherStatCard,
+  TeacherStatsGrid
+} from "@/components/teacher-app-ui";
 import { requireRole } from "@/lib/auth";
 import {
   createNotificationsForUrgentInsights,
@@ -19,22 +28,23 @@ export default async function GardenInsightsPage() {
   const warnings = insights.filter((item) => item.severity === "warning").length;
 
   return (
-    <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="תובנות חכמות">
-      <div className="dashboard-hero-card garden-hero-card">
-        <div>
-          <p className="eyebrow">Smart Kindergarten Engine</p>
-          <h1>תובנות חכמות.</h1>
-          <p>המנוע בודק נוכחות, יומן יומי, פניות, תשלומים, מסמכים, אירועים, מצלמות ופיקוח ומציג רק מה שדורש פעולה.</p>
+    <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "רונית"}`} subtitle="תובנות חכמות לגן" avatarUrl={(profile as any).avatar_url ?? null} active="more">
+      <TeacherPageTitle icon={Bot} title="תובנות חכמות" subtitle="מה דורש פעולה מתוך נוכחות, יומן, מסמכים, אירועים ופיקוח" />
+      <TeacherStatsGrid>
+        <TeacherStatCard title="דחוף" value={urgent} hint="לטיפול מיידי" icon={AlertTriangle} tone={urgent ? "red" : "green"} />
+        <TeacherStatCard title="פתוחות" value={insights.filter((item) => item.status === "open").length} hint="ממתינות" icon={ClipboardCheck} tone="purple" />
+        <TeacherStatCard title="טופלו" value={insights.filter((item) => item.status === "handled").length} hint="נסגרו" icon={CheckCircle2} tone="green" />
+      </TeacherStatsGrid>
+      <TeacherQuickActions title="פעולות תובנות">
+        <TeacherActionTile title="משימות" href="/dashboard/garden/tasks" icon={ClipboardCheck} tone="purple" />
+        <TeacherActionTile title="סיכוני בטיחות" href="/dashboard/garden/risk" icon={AlertTriangle} tone="orange" />
+        <TeacherActionTile title="דוחות" href="/dashboard/garden/reports" icon={Bot} tone="blue" />
+      </TeacherQuickActions>
+      <TeacherSection title="מרכז תובנות" subtitle="פעולות מוצעות בלבד, לא החלטות אוטומטיות">
+        <div className="teacher-embedded-module">
+          <SmartInsightsCenter insights={insights} />
         </div>
-        <span className={urgent ? "pill bad" : warnings ? "pill warn" : "pill good"}>{urgent ? `${urgent} דחופות` : warnings ? `${warnings} המלצות` : "הכל רגוע"}</span>
-      </div>
-      <section className="grid cols-4 dashboard-panels">
-        <article className="card metric-card"><span>דחוף</span><strong>{urgent}</strong></article>
-        <article className="card metric-card"><span>היום</span><strong>{insights.filter((item) => item.status === "open").length}</strong></article>
-        <article className="card metric-card"><span>השבוע</span><strong>{insights.length}</strong></article>
-        <article className="card metric-card"><span>טופלו</span><strong>{insights.filter((item) => item.status === "handled").length}</strong></article>
-      </section>
-      <SmartInsightsCenter insights={insights} />
-    </DashboardShell>
+      </TeacherSection>
+    </TeacherAppFrame>
   );
 }

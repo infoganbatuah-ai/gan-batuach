@@ -1,6 +1,15 @@
-import { DashboardShell } from "@/components/dashboard-shell";
+import { Bot, Camera, MapPinned, TrendingUp } from "lucide-react";
 import { AdvancedLearningDashboard } from "@/components/advanced-learning-dashboard";
 import { ObserverLearningDashboard } from "@/components/observer-learning-dashboard";
+import {
+  TeacherAppFrame,
+  TeacherPageTitle,
+  TeacherQuickActions,
+  TeacherActionTile,
+  TeacherSection,
+  TeacherStatCard,
+  TeacherStatsGrid
+} from "@/components/teacher-app-ui";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
@@ -19,35 +28,49 @@ export default async function GardenObserverLearningPage() {
     supabase.from("zone_learning_profiles" as any).select("*, camera_zones(name, zone_type)").eq("kindergarten_id", gardenId).order("updated_at", { ascending: false }).limit(100),
     supabase.from("learning_feedback_signals" as any).select("*").eq("kindergarten_id", gardenId).order("created_at", { ascending: false }).limit(100)
   ]) : [{ data: null }, { data: null }, { data: [] }, { data: [] }, { data: null }, { data: [] }, { data: [] }, { data: [] }, { data: [] }];
+  const zoneRows = (zones.data ?? []) as any[];
+  const signalRows = (signals.data ?? []) as any[];
+  const baselineRows = (baselines.data ?? []) as any[];
 
   return (
-    <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="למידת תצפיתן">
-      <div className="dashboard-hero-card garden-hero-card">
-        <div>
-          <p className="eyebrow">Digital Observer Learning</p>
-          <h1>פרופיל למידה של הגן.</h1>
-          <p>הגדרת אזורי מצלמות ושגרת יום כ-baseline בלבד. אין למידה אמיתית, אין פרופיל ילדים ואין החלטות אוטומטיות.</p>
+    <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "רונית"}`} subtitle="למידת תצפיתן" avatarUrl={(profile as any).avatar_url ?? null} active="more">
+      <TeacherPageTitle icon={TrendingUp} title="למידת תצפיתן" subtitle="Baseline תפעולי בלבד. אין פרופיל ילדים ואין החלטות אוטומטיות" />
+      <TeacherStatsGrid>
+        <TeacherStatCard title="אזורים" value={zoneRows.length} hint="מוגדרים" icon={MapPinned} tone="blue" />
+        <TeacherStatCard title="סימנים" value={signalRows.length} hint="ללמידה מבוקרת" icon={Bot} tone="purple" />
+        <TeacherStatCard title="Baseline" value={baselineRows.length} hint="פרופילי התנהגות" icon={TrendingUp} tone="green" />
+      </TeacherStatsGrid>
+      <TeacherQuickActions title="פעולות למידה">
+        <TeacherActionTile title="מצלמות" href="/dashboard/garden/cameras" icon={Camera} tone="blue" />
+        <TeacherActionTile title="צירי זמן" href="/dashboard/garden/correlated-events" icon={MapPinned} tone="purple" />
+        <TeacherActionTile title="תובנות" href="/dashboard/garden/insights" icon={Bot} tone="green" />
+      </TeacherQuickActions>
+      <TeacherSection title="למידה בסיסית" subtitle="מוגדר לפי שגרת גן, בלי החלטות אוטומטיות">
+        <div className="teacher-embedded-module">
+          <ObserverLearningDashboard
+            role="garden"
+            kindergartenId={gardenId}
+            learningProfile={learning.data as any}
+            routine={routine.data as any}
+            zones={zoneRows}
+            signals={signalRows}
+            riskProfile={risk.data as any}
+          />
         </div>
-        <span className="pill warn">Mock baseline</span>
-      </div>
-      <ObserverLearningDashboard
-        role="garden"
-        kindergartenId={gardenId}
-        learningProfile={learning.data as any}
-        routine={routine.data as any}
-        zones={(zones.data ?? []) as any[]}
-        signals={(signals.data ?? []) as any[]}
-        riskProfile={risk.data as any}
-      />
-      <AdvancedLearningDashboard
-        role="garden"
-        kindergartenId={gardenId}
-        learningProfiles={learning.data ? [learning.data as any] : []}
-        baselines={(baselines.data ?? []) as any[]}
-        cameraProfiles={(cameraProfiles.data ?? []) as any[]}
-        zoneProfiles={(zoneProfiles.data ?? []) as any[]}
-        feedbackSignals={(feedbackSignals.data ?? []) as any[]}
-      />
-    </DashboardShell>
+      </TeacherSection>
+      <TeacherSection title="למידה מתקדמת" subtitle="פרופילים ומדדי feedback לבדיקה פנימית">
+        <div className="teacher-embedded-module">
+          <AdvancedLearningDashboard
+            role="garden"
+            kindergartenId={gardenId}
+            learningProfiles={learning.data ? [learning.data as any] : []}
+            baselines={baselineRows}
+            cameraProfiles={(cameraProfiles.data ?? []) as any[]}
+            zoneProfiles={(zoneProfiles.data ?? []) as any[]}
+            feedbackSignals={(feedbackSignals.data ?? []) as any[]}
+          />
+        </div>
+      </TeacherSection>
+    </TeacherAppFrame>
   );
 }

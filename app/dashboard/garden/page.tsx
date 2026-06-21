@@ -182,11 +182,11 @@ export default async function GardenDashboard() {
           </div>
           <div className="ganenet-action-row">
             {[
-              ["קבלת ילד", "/dashboard/garden/children", UsersRound, "purple"],
+              ["קבלת ילד", "/dashboard/garden/children?new=1#new-child", UsersRound, "purple"],
               ["ספירת נוכחות", "/dashboard/garden/attendance", ClipboardCheck, "blue"],
-              ["דיווח אירוע", "/dashboard/garden/incidents", ShieldAlert, "pink"],
-              ["הודעה להורים", "/dashboard/garden/messages", Megaphone, "purple"],
-              ["הוספת עדכון", "/dashboard/garden/daily-journal", Plus, "purple"]
+              ["דיווח אירוע", "/dashboard/garden/incidents?new=1#incident-workbench", ShieldAlert, "pink"],
+              ["הודעה להורים", "/dashboard/garden/messages?compose=1#message-workbench", Megaphone, "purple"],
+              ["הוספת עדכון", "/dashboard/garden/daily-journal?workbench=1#daily-journal-workbench", Plus, "purple"]
             ].map(([label, href, Icon, tone]) => (
               <a className={`ganenet-action ${tone}`} href={href as string} key={label as string}>
                 <span>{<Icon size={35} />}</span>

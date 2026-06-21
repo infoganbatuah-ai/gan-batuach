@@ -15,8 +15,9 @@ import {
   TeacherStatsGrid
 } from "@/components/teacher-app-ui";
 
-export default async function GardenDailyJournalPage() {
+export default async function GardenDailyJournalPage({ searchParams }: { searchParams?: Promise<{ workbench?: string }> }) {
   const { profile } = await requireRole(["manager", "owner"]);
+  const params = searchParams ? await searchParams : {};
   const supabase = await createClient();
   const today = new Date().toISOString().slice(0, 10);
   const [tasksRes, completionsRes] = await Promise.all([
@@ -49,10 +50,10 @@ export default async function GardenDailyJournalPage() {
           </TeacherCompactList>
         </TeacherSection>
         <TeacherQuickActions title="פעולות היום">
-          <TeacherActionTile title="עדכון פעילות" href="/dashboard/garden/daily-journal" icon={ClipboardCheck} tone="purple" />
+          <TeacherActionTile title="עדכון פעילות" href="/dashboard/garden/daily-journal?workbench=1#daily-journal-workbench" icon={ClipboardCheck} tone="purple" />
           <TeacherActionTile title="נוכחות" href="/dashboard/garden/attendance" icon={CheckCircle2} tone="green" />
         </TeacherQuickActions>
-        <details className="teacher-management-details">
+        <details id="daily-journal-workbench" className="teacher-management-details" open={params.workbench === "1"}>
           <summary>צ׳קליסט מלא</summary>
           <DailyTaskJournal tasks={tasks} completions={completions} gardenId={profile.garden_id} />
         </details>

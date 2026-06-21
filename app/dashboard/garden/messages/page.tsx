@@ -18,9 +18,9 @@ import {
   TeacherStatsGrid
 } from "@/components/teacher-app-ui";
 
-export default async function GardenMessagesPage({ searchParams }: { searchParams: Promise<{ childId?: string; status?: string }> }) {
+export default async function GardenMessagesPage({ searchParams }: { searchParams: Promise<{ childId?: string; status?: string; compose?: string }> }) {
   const { profile } = await requireRole(["manager", "owner"]);
-  const { childId, status } = await searchParams;
+  const { childId, status, compose } = await searchParams;
   const supabase = await createClient();
   const gardenId = profile.garden_id ?? "";
   const [parentsRes, staffRes, inspectorsRes, childrenRes, messagesRes, parentRequestsRes] = await Promise.all([
@@ -73,19 +73,19 @@ export default async function GardenMessagesPage({ searchParams }: { searchParam
             </TeacherCompactList>
           ) : <TeacherEmptyState title="אין הודעות להצגה" text="שלחי הודעה מהירה להורה או לצוות." />}
         </TeacherSection>
-        <TeacherQuickActions title="פעולות תקשורת">
-          <TeacherActionTile title="שליחת הודעה" href="/dashboard/garden/messages" icon={Send} tone="purple" />
+      <TeacherQuickActions title="פעולות תקשורת">
+          <TeacherActionTile title="שליחת הודעה" href="/dashboard/garden/messages?compose=1#message-workbench" icon={Send} tone="purple" />
           <TeacherActionTile title="פניות פתוחות" href="/dashboard/garden/messages?status=open" icon={MessageCircle} tone="orange" />
         </TeacherQuickActions>
       </section>
 
-      <details className="teacher-management-details">
+      <details className="teacher-management-details" id="message-workbench" open={compose === "1" || Boolean(childId)}>
         <summary>ניהול מלא של הודעות</summary>
       <section className="dashboard-section">
         <div className="section-heading"><h2>פניות הורים לטיפול</h2><p>פניות שנשלחו דרך מסך ההורה עם נמען ותיעוד סטטוס. תגובה כאן תופיע להורה.</p></div>
         {parentRequests.length === 0 ? <div className="empty-state"><strong>אין פניות הורים פתוחות</strong><span>כאשר הורה ישלח בקשה לגן, היא תופיע כאן עם הילד, סוג הפנייה וסטטוס טיפול.</span></div> : <div className="procedure-list">{parentRequests.map((request) => <article className="card procedure-card" key={request.id}><div><span className={request.status === "handled" ? "pill good" : request.status === "rejected" ? "pill bad" : "pill warn"}>{request.status ?? "new"}</span><h3>{request.request_type ?? "פניית הורה"} · {request.children?.full_name ?? "ילד/ה"}</h3><p>{request.content}</p><small>{request.parents?.full_name ?? "הורה"} · {request.created_at ? new Date(request.created_at).toLocaleString("he-IL") : ""} · נמען: {request.recipient_label ?? "מנהלת הגן"}</small>{request.response_text ? <p className="success-banner">תגובה שנשלחה: {request.response_text}</p> : null}</div><ParentRequestActions childId={request.child_id} requestId={request.id} /></article>)}</div>}
       </section>
-      <InternalMessagingCenter gardenId={gardenId} recipients={recipients} linkedChildren={(childrenRes.data ?? []) as any[]} messages={messages} preselectedChildId={childId} preselectedRecipientId={preselectedRecipientId} />
+      <InternalMessagingCenter gardenId={gardenId} recipients={recipients} linkedChildren={(childrenRes.data ?? []) as any[]} messages={messages} preselectedChildId={childId} preselectedRecipientId={preselectedRecipientId} defaultOpen={compose === "1"} />
       </details>
       </TeacherAppFrame>
     </DashboardShell>

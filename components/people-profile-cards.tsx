@@ -117,7 +117,7 @@ export function ChildrenProfileCards({ children }: { children: Row[] }) {
             <section><h4>מדיה</h4><div className="gallery-preview">{(child.photo_urls ?? [child.photo_url]).filter(Boolean).slice(0, 3).map((url: string) => <img src={url} alt="תמונת ילד" key={url} />)}</div></section>
           </div>
         </details>
-        <div className="profile-actions"><Link className="button secondary tiny" href={`/dashboard/garden/children/${child.id}`}>פתיחת פרופיל</Link><Link className="button secondary tiny" href={`/dashboard/garden/messages?childId=${child.id}`}><MessageCircle size={14} /> הודעה להורה</Link><Link className="button secondary tiny" href="/dashboard/garden/incidents"><AlertTriangle size={14} /> אירוע</Link><Link className="button secondary tiny" href={`/dashboard/garden/children/${child.id}`}>הערה</Link><button className="button tiny" type="button" onClick={() => window.print()}><Printer size={14} /> הדפסה</button></div>
+        <div className="profile-actions"><Link className="button secondary tiny" href={`/dashboard/garden/children/${child.id}`}>פתיחת פרופיל</Link><Link className="button secondary tiny" href={`/dashboard/garden/messages?compose=1&childId=${child.id}#message-workbench`}><MessageCircle size={14} /> הודעה להורה</Link><Link className="button secondary tiny" href="/dashboard/garden/incidents?new=1#incident-workbench"><AlertTriangle size={14} /> אירוע</Link><Link className="button secondary tiny" href={`/dashboard/garden/children/${child.id}/timeline`}>הערה</Link><button className="button tiny" type="button" onClick={() => window.print()}><Printer size={14} /> הדפסה</button></div>
       </article>; })}</div>}
     </section>
   );

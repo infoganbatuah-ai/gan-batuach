@@ -43,6 +43,68 @@
   --gb-container-desktop: 1240px;
 }
 
+.ganenet-module-split {
+  display: grid;
+  gap: 18px;
+  grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr);
+}
+
+.ganenet-module-split .ganenet-module-panel,
+.ganenet-journal-form {
+  background: rgba(255, 255, 255, .94);
+  border: 1px solid var(--ganenet-line);
+  border-radius: 30px;
+  box-shadow: 0 20px 44px rgba(55, 70, 118, .07), inset 0 1px 0 rgba(255, 255, 255, .86);
+  padding: 20px;
+}
+
+.ganenet-journal-form .form-grid,
+.teacher-embedded-module .form-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.ganenet-journal-form label,
+.teacher-embedded-module label {
+  color: var(--ganenet-blue);
+  display: grid;
+  font-weight: 900;
+  gap: 8px;
+}
+
+.ganenet-journal-form input,
+.ganenet-journal-form select,
+.ganenet-journal-form textarea,
+.teacher-embedded-module input,
+.teacher-embedded-module select,
+.teacher-embedded-module textarea {
+  background: #fff;
+  border: 1px solid var(--ganenet-line);
+  border-radius: 18px;
+  color: var(--ganenet-blue);
+  font: inherit;
+  padding: 12px 14px;
+}
+
+.ganenet-journal-form .wide,
+.teacher-embedded-module .wide {
+  grid-column: 1 / -1;
+}
+
+.teacher-embedded-module .button,
+.ganenet-journal-form .button {
+  border-radius: 18px;
+}
+
+@media (max-width: 760px) {
+  .ganenet-module-split,
+  .ganenet-journal-form .form-grid,
+  .teacher-embedded-module .form-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
 /* Gan Batuach public reference implementation */
 .gb-public-header {
   align-items: center;
@@ -25486,7 +25548,14 @@ body:has(.gb-reference-login) .gb-reference-security-card {
 .ganenet-attendance-chip.present { background: #e8fbf0 !important; color: #15945a !important; }
 .ganenet-attendance-chip.late { background: #fff6e6 !important; color: #a7650f !important; }
 .ganenet-attendance-chip.absent { background: #fff0f6 !important; color: #c42364 !important; }
+.ganenet-attendance-chip.left_early { background: #eef5ff !important; color: #3767c7 !important; }
 .ganenet-attendance-chip.not_updated { background: #f1edff !important; color: var(--ganenet-purple) !important; }
+
+.ganenet-attendance-action-wrap {
+  align-items: stretch !important;
+  display: grid !important;
+  gap: 4px !important;
+}
 
 .ganenet-attendance-action {
   align-items: center !important;
@@ -25503,7 +25572,21 @@ body:has(.gb-reference-login) .gb-reference-security-card {
   padding: 8px 12px !important;
 }
 
-.ganenet-attendance-row button {
+.ganenet-attendance-action:disabled {
+  cursor: not-allowed !important;
+  opacity: .62 !important;
+}
+
+.ganenet-inline-error {
+  color: #c42364 !important;
+  font-size: 11px !important;
+  font-weight: 850 !important;
+  text-align: center !important;
+}
+
+.ganenet-attendance-row > a[aria-label="כרטיס ילד"],
+.ganenet-attendance-row button:not(.ganenet-attendance-action),
+.ganenet-attendance-more-disabled {
   align-items: center !important;
   background: #fff !important;
   border: 1px solid var(--ganenet-line) !important;
@@ -25513,6 +25596,120 @@ body:has(.gb-reference-login) .gb-reference-security-card {
   height: 42px !important;
   justify-content: center !important;
   width: 42px !important;
+}
+
+.ganenet-attendance-more-disabled {
+  opacity: .55 !important;
+}
+
+.ganenet-success-banner {
+  background: linear-gradient(135deg, #e9fff3, #f6fffb) !important;
+  border: 1px solid rgba(37, 195, 112, .22) !important;
+  border-radius: 18px !important;
+  color: #15945a !important;
+  font-weight: 900 !important;
+  margin-bottom: 12px !important;
+  padding: 12px 16px !important;
+  text-align: right !important;
+}
+
+.ganenet-progress-bar {
+  background: #edf1fb !important;
+  border-radius: 999px !important;
+  height: 12px !important;
+  margin: 14px 0 !important;
+  overflow: hidden !important;
+}
+
+.ganenet-progress-bar span {
+  background: linear-gradient(90deg, #5b4bff, #8b5cf6) !important;
+  border-radius: inherit !important;
+  display: block !important;
+  height: 100% !important;
+}
+
+.ganenet-control-metrics {
+  display: grid !important;
+  gap: 10px !important;
+  grid-template-columns: repeat(3, 1fr) !important;
+}
+
+.ganenet-control-metrics span {
+  background: #fff !important;
+  border: 1px solid var(--ganenet-line) !important;
+  border-radius: 16px !important;
+  color: #73819b !important;
+  font-size: 13px !important;
+  font-weight: 850 !important;
+  padding: 10px !important;
+  text-align: center !important;
+}
+
+.ganenet-control-metrics b {
+  color: var(--ganenet-blue) !important;
+  display: block !important;
+  font-size: 20px !important;
+  font-weight: 950 !important;
+}
+
+.ganenet-checklist-row {
+  align-items: center !important;
+  background: #fff !important;
+  border: 1px solid var(--ganenet-line) !important;
+  border-radius: 18px !important;
+  display: grid !important;
+  gap: 12px !important;
+  grid-template-columns: 34px minmax(0, 1fr) auto !important;
+  min-height: 70px !important;
+  padding: 10px 14px !important;
+}
+
+.ganenet-checklist-row input {
+  accent-color: var(--ganenet-purple) !important;
+  height: 24px !important;
+  width: 24px !important;
+}
+
+.ganenet-checklist-row strong,
+.ganenet-checklist-row small {
+  display: block !important;
+  text-align: right !important;
+}
+
+.ganenet-checklist-row strong {
+  color: var(--ganenet-blue) !important;
+  font-size: 15px !important;
+  font-weight: 950 !important;
+}
+
+.ganenet-checklist-row small {
+  color: #73819b !important;
+  font-size: 12px !important;
+  font-weight: 800 !important;
+}
+
+.ganenet-checklist-row em {
+  background: #f1edff !important;
+  border-radius: 999px !important;
+  color: var(--ganenet-purple) !important;
+  font-size: 12px !important;
+  font-style: normal !important;
+  font-weight: 900 !important;
+  padding: 6px 10px !important;
+}
+
+.ganenet-empty-mini {
+  background: linear-gradient(180deg, #fff, #f8f6ff) !important;
+  border: 1px dashed rgba(131, 119, 236, .28) !important;
+  border-radius: 18px !important;
+  color: #73819b !important;
+  font-weight: 850 !important;
+  padding: 18px !important;
+  text-align: center !important;
+}
+
+.ganenet-embedded-panel > * {
+  border-radius: 28px !important;
 }
 
 .ganenet-attendance-empty {
@@ -25823,6 +26020,68 @@ body:has(.gb-reference-login) .gb-reference-security-card {
 
 .teacher-embedded-module > * {
   margin-block-start: 0;
+}
+
+.ganenet-shortcut-grid {
+  display: grid !important;
+  gap: 12px !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+}
+
+.ganenet-shortcut-tile {
+  align-items: center !important;
+  background: linear-gradient(180deg, #fff, #fbf9ff) !important;
+  border: 1px solid var(--ganenet-line) !important;
+  border-radius: 18px !important;
+  box-shadow: 0 12px 28px rgba(35, 53, 95, .055) !important;
+  color: var(--ganenet-blue) !important;
+  display: grid !important;
+  gap: 8px !important;
+  min-height: 108px !important;
+  padding: 14px 12px !important;
+  place-items: center !important;
+  text-align: center !important;
+  transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease !important;
+}
+
+.ganenet-shortcut-tile:active,
+.ganenet-shortcut-tile:focus-visible {
+  border-color: rgba(107, 76, 246, .32) !important;
+  box-shadow: 0 16px 32px rgba(107, 76, 246, .16) !important;
+  transform: translateY(1px) scale(.985) !important;
+}
+
+.ganenet-shortcut-tile span {
+  align-items: center !important;
+  background: #f1edff !important;
+  border-radius: 999px !important;
+  color: var(--ganenet-purple) !important;
+  display: flex !important;
+  height: 46px !important;
+  justify-content: center !important;
+  width: 46px !important;
+}
+
+.ganenet-shortcut-tile b {
+  color: var(--ganenet-blue) !important;
+  font-size: 15px !important;
+  font-weight: 950 !important;
+  line-height: 1.2 !important;
+}
+
+.garden-inline-action-panel .button,
+.teacher-management-details .button,
+.teacher-management-details button,
+.garden-inline-action-panel button {
+  transition: transform 160ms ease, box-shadow 160ms ease, filter 160ms ease !important;
+}
+
+.garden-inline-action-panel .button:active,
+.teacher-management-details .button:active,
+.teacher-management-details button:active,
+.garden-inline-action-panel button:active {
+  filter: saturate(1.12) !important;
+  transform: translateY(1px) scale(.985) !important;
 }
 
 .ganenet-form-grid {

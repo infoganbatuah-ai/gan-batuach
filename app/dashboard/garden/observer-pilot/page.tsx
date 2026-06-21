@@ -1,6 +1,18 @@
 import Link from "next/link";
+import { Activity, Camera, ClipboardCheck, ShieldCheck } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
-import { CleanSection, EmptyState, PremiumDashboardHero, RoleMetricCard, StatusBadge } from "@/components/premium-dashboard";
+import {
+  TeacherActionTile,
+  TeacherAppFrame,
+  TeacherCompactItem,
+  TeacherCompactList,
+  TeacherEmptyState,
+  TeacherPageTitle,
+  TeacherQuickActions,
+  TeacherSection,
+  TeacherStatCard,
+  TeacherStatsGrid
+} from "@/components/teacher-app-ui";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { calculateObserverPilotReadiness, scoreTone, statusTone } from "@/lib/domain/observer-pilot";
@@ -53,71 +65,71 @@ export default async function GardenObserverPilotPage() {
   });
 
   return (
-    <DashboardShell role="manager" title="פיילוט תצפיתן">
-      <div className="commercial-dashboard">
-        <PremiumDashboardHero
-          eyebrow="Observer Pilot"
+    <DashboardShell role="manager" title="פיילוט תצפיתן" appHome>
+      <TeacherAppFrame
+        title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "רונית"}`}
+        subtitle="פיילוט תצפיתן"
+        avatarUrl={(profile as any).avatar_url ?? null}
+        active="more"
+      >
+        <TeacherPageTitle
+          icon={Activity}
           title="תצפיתן AI במצב בדיקה"
-          subtitle="המערכת מציגה סימנים לבדיקה בלבד. אין הודעות להורים, אין מסקנות אוטומטיות ואין פעולה ללא החלטת אדם."
-          badge={`${readiness.readiness}/100`}
-          badgeTone={scoreTone(readiness.readiness)}
-          actions={<><Link className="button primary" href="/dashboard/garden/cameras">מצלמות</Link><Link className="button secondary" href="/dashboard/garden/tasks">משימות</Link></>}
+          subtitle="סימנים לבדיקה בלבד. אין הודעות להורים ואין פעולה ללא החלטת אדם."
+          action={<Link className="teacher-soft-button purple" href="/dashboard/garden/cameras">מצלמות</Link>}
         />
 
-        <div className="premium-metric-grid">
-          <RoleMetricCard label="אירועים לבדיקה" value={pendingReview.length} hint="דורש review אנושי" tone={pendingReview.length ? "warn" : "good"} />
-          <RoleMetricCard label="מצלמות מכוסות" value={`${stableCameras}/${cameras.length}`} hint="בריאות Gateway" tone={stableCameras === cameras.length && cameras.length ? "good" : "warn"} />
-          <RoleMetricCard label="כיול" value={`${readiness.calibration}/100`} hint="מבוסס review" tone={scoreTone(readiness.calibration)} />
-          <RoleMetricCard label="בדיקות שבוצעו" value={reviews.length} hint="Ground truth" tone={reviews.length ? "good" : "warn"} />
-        </div>
+        <TeacherStatsGrid>
+          <TeacherStatCard title="אירועים לבדיקה" value={pendingReview.length} hint="בדיקה אנושית" icon={Activity} tone={pendingReview.length ? "orange" : "green"} />
+          <TeacherStatCard title="מצלמות מכוסות" value={`${stableCameras}/${cameras.length}`} hint="בריאות Gateway" icon={Camera} tone={stableCameras === cameras.length && cameras.length ? "green" : "orange"} />
+          <TeacherStatCard title="כיול" value={`${readiness.calibration}/100`} hint="מבוסס review" icon={ClipboardCheck} tone={readiness.calibration >= 80 ? "green" : "orange"} />
+          <TeacherStatCard title="בדיקות שבוצעו" value={reviews.length} hint="Ground truth" icon={ShieldCheck} tone={reviews.length ? "green" : "orange"} />
+        </TeacherStatsGrid>
 
-        <CleanSection title="מה דורש בדיקה" subtitle="שפה זהירה: סימן תנועה, לא מסקנה.">
+        <TeacherSection title="מה דורש בדיקה" subtitle="שפה זהירה: סימן תנועה, לא מסקנה.">
           {pendingReview.length ? (
-            <div className="communication-log-list">
+            <TeacherCompactList>
               {pendingReview.slice(0, 12).map((event) => (
-                <article className="communication-log-row" key={event.id}>
-                  <div>
-                    <strong>{label(event.event_type)}</strong>
-                    <span>{event.camera_streams?.name ?? "מצלמה"} · {event.camera_zones?.name ?? "אזור"} · {new Date(event.event_timestamp).toLocaleString("he-IL")}</span>
-                  </div>
-                  <StatusBadge tone={statusTone(event.review_status)}>{event.review_status}</StatusBadge>
-                </article>
+                <TeacherCompactItem
+                  key={event.id}
+                  title={label(event.event_type)}
+                  subtitle={`${event.camera_streams?.name ?? "מצלמה"} · ${event.camera_zones?.name ?? "אזור"} · ${new Date(event.event_timestamp).toLocaleString("he-IL")}`}
+                  meta={event.review_status}
+                  tone={statusTone(event.review_status) === "good" ? "green" : "orange"}
+                />
               ))}
-            </div>
-          ) : <EmptyState title="אין אירועים שממתינים לבדיקה" text="כאשר התצפיתן יזהה סימן תנועה, הוא יופיע כאן לבדיקה." />}
-        </CleanSection>
+            </TeacherCompactList>
+          ) : <TeacherEmptyState title="אין אירועים שממתינים לבדיקה" text="כאשר התצפיתן יזהה סימן תנועה, הוא יופיע כאן לבדיקה." />}
+        </TeacherSection>
 
-        <section className="grid cols-2 dashboard-panels">
-          <CleanSection title="כיסוי מצלמות" subtitle="מצלמות יציבות משפרות את איכות הפיילוט.">
-            <div className="communication-log-list">
-              {cameras.map((camera) => (
-                <article className="communication-log-row" key={camera.id}>
-                  <div><strong>{camera.name}</strong><span>{camera.area ?? "אזור"} · Shadow mode {camera.observer_shadow_mode ? "פעיל" : "כבוי"}</span></div>
-                  <StatusBadge tone={statusTone(camera.gateway_registration_status ?? camera.health_status ?? camera.status)}>{camera.gateway_registration_status ?? camera.health_status ?? camera.status}</StatusBadge>
-                </article>
-              ))}
-            </div>
-          </CleanSection>
+        <TeacherSection title="כיסוי מצלמות" subtitle="מצלמות יציבות משפרות את איכות הפיילוט.">
+          <TeacherCompactList>
+            {cameras.map((camera) => (
+              <TeacherCompactItem
+                key={camera.id}
+                title={camera.name}
+                subtitle={`${camera.area ?? "אזור"} · Shadow mode ${camera.observer_shadow_mode ? "פעיל" : "כבוי"}`}
+                meta={camera.gateway_registration_status ?? camera.health_status ?? camera.status}
+                tone={statusTone(camera.gateway_registration_status ?? camera.health_status ?? camera.status) === "good" ? "green" : "orange"}
+              />
+            ))}
+          </TeacherCompactList>
+        </TeacherSection>
 
-          <CleanSection title="כיול והמלצות" subtitle="אין צורך במונחים טכניים כדי לקבל החלטה.">
-            {calibration.length ? calibration.map((profile) => (
-              <article className="communication-log-row" key={profile.id}>
-                <div><strong>{profile.event_type ?? "כל האירועים"}</strong><span>סף ביטחון {Math.round(Number(profile.confidence_threshold ?? 0) * 100)}%</span></div>
-                <StatusBadge tone={statusTone(profile.calibration_status)}>{profile.calibration_status}</StatusBadge>
-              </article>
-            )) : <EmptyState title="כיול עדיין בתחילת הדרך" text="המערכת צריכה עוד בדיקות אנושיות כדי להשתפר." />}
-          </CleanSection>
-        </section>
+        <TeacherSection title="כללי בטיחות" subtitle="הפיילוט לא מפעיל שום פעולה לבד.">
+          <TeacherCompactList>
+            <TeacherCompactItem title="בדיקת אדם חובה" subtitle="כל סימן צריך אישור מנהלת/אדמין/מפקח." tone="green" />
+            <TeacherCompactItem title="הורים לא רואים raw AI" subtitle="רק סיכום מאושר יכול להפוך להודעה." tone="green" />
+            <TeacherCompactItem title="אין שמע או זיהוי פנים" subtitle="מצב ישראל לגני ילדים." tone="green" />
+          </TeacherCompactList>
+        </TeacherSection>
 
-        <CleanSection title="כללי בטיחות" subtitle="הפיילוט לא מפעיל שום פעולה לבד.">
-          <div className="communication-template-grid">
-            <article className="communication-template-card"><div><strong>בדיקת אדם חובה</strong><span>כל סימן צריך אישור מנהלת/אדמין/מפקח.</span></div><StatusBadge tone="good">פעיל</StatusBadge></article>
-            <article className="communication-template-card"><div><strong>הורים לא רואים raw AI</strong><span>רק סיכום מאושר יכול להפוך להודעה.</span></div><StatusBadge tone="good">חסום</StatusBadge></article>
-            <article className="communication-template-card"><div><strong>אין שמע או זיהוי פנים</strong><span>מצב ישראל לגני ילדים.</span></div><StatusBadge tone="good">נאכף</StatusBadge></article>
-            <article className="communication-template-card"><div><strong>החלטה אנושית</strong><span>המערכת ממליצה בלבד.</span></div><StatusBadge tone="good">חובה</StatusBadge></article>
-          </div>
-        </CleanSection>
-      </div>
+        <TeacherQuickActions title="פעולות פיילוט">
+          <TeacherActionTile title="מצלמות" href="/dashboard/garden/cameras" icon={Camera} tone="blue" />
+          <TeacherActionTile title="משימות" href="/dashboard/garden/tasks" icon={ClipboardCheck} tone="purple" />
+          <TeacherActionTile title="סיכומי תצפיתן" href="/dashboard/garden/observer-intelligence" icon={Activity} tone="orange" />
+        </TeacherQuickActions>
+      </TeacherAppFrame>
     </DashboardShell>
   );
 }

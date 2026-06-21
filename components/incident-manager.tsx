@@ -19,7 +19,19 @@ const incidentTypes = [
   ["parent_complaint", "תלונת הורה"]
 ];
 
-export function IncidentManager({ gardenId, children, incidents, initialChildId = "" }: { gardenId: string; children: any[]; incidents: any[]; initialChildId?: string }) {
+export function IncidentManager({
+  gardenId,
+  children,
+  incidents,
+  initialChildId = "",
+  defaultOpen = false
+}: {
+  gardenId: string;
+  children: any[];
+  incidents: any[];
+  initialChildId?: string;
+  defaultOpen?: boolean;
+}) {
   const [rows, setRows] = useState(incidents);
   const [message, setMessage] = useState("");
   const [isPending, startTransition] = useTransition();
@@ -59,7 +71,7 @@ export function IncidentManager({ gardenId, children, incidents, initialChildId 
 
   return (
     <section className="grid cols-2 dashboard-panels">
-      <CollapsibleActionPanel title="דיווח אירוע חדש" description="אירועים קיימים מוצגים בציר. פתחו טופס רק כשצריך לתעד אירוע חדש." buttonLabel="פתיחת אירוע חדש" defaultOpen={rows.length === 0 || Boolean(initialChildId)}>
+      <CollapsibleActionPanel title="דיווח אירוע חדש" description="אירועים קיימים מוצגים בציר. פתחו טופס רק כשצריך לתעד אירוע חדש." buttonLabel="פתיחת אירוע חדש" defaultOpen={defaultOpen || rows.length === 0 || Boolean(initialChildId)}>
         {({ close }) => <form action={submit} className="card form wizard-form">
         <div className="section-heading"><h2><Siren size={20} /> דיווח אירוע</h2><p>תעדו מה קרה, מי עודכן ומה נדרש להמשך טיפול.</p></div>
         {message ? <div className={message.includes("נשמר") ? "success-banner" : "error-banner"}>{message}</div> : null}

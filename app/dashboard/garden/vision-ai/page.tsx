@@ -1,12 +1,23 @@
 import Link from "next/link";
 import { Brain, ShieldCheck } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
-import { StatCard } from "@/components/stat-card";
 import { AdminDataError } from "@/components/admin-data-state";
 import { requireRole } from "@/lib/auth";
 import { safeAdminData, logSupabaseError } from "@/lib/admin-safe";
 import { createClient } from "@/lib/supabase/server";
 import { buildReviewedManagerDetection, buildVisionDiagnosticsSummary } from "@/lib/domain/vision-analysis-pipeline";
+import {
+  TeacherActionTile,
+  TeacherAppFrame,
+  TeacherCompactItem,
+  TeacherCompactList,
+  TeacherEmptyState,
+  TeacherPageTitle,
+  TeacherQuickActions,
+  TeacherSection,
+  TeacherStatCard,
+  TeacherStatsGrid
+} from "@/components/teacher-app-ui";
 
 function percent(value: number | null | undefined) {
   return `${Math.round(Number(value ?? 0) * 100)}%`;
@@ -37,62 +48,57 @@ export default async function GardenVisionAiPage() {
   const reviewed = result.data.reviewedEvents.map((event: any) => buildReviewedManagerDetection(event));
 
   return (
-    <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="זיהוי חזותי">
-      <div className="dashboard-hero-card">
-        <div>
-          <p className="eyebrow">Vision AI</p>
-          <h1>זיהוי חזותי לאחר בדיקת אדם.</h1>
-          <p>כאן מופיעות תוצאות בטוחות ומסוכמות בלבד. אין זיהוי פנים, אין ניקוד צוות, ואין מסקנות אוטומטיות.</p>
-        </div>
-        <div className="profile-actions">
-          <span className="pill good">בדיקת אדם חובה</span>
-          <Link className="button secondary" href="/dashboard/garden/ai-events">אירועים לבדיקה</Link>
-        </div>
-      </div>
+    <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="זיהוי חזותי" appHome>
+      <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "מאיה"}`} subtitle="זיהוי חזותי בטוח" avatarUrl={(profile as any).avatar_url ?? null} active="more">
+      <TeacherPageTitle
+        icon={Brain}
+        title="זיהוי חזותי"
+        subtitle="רק תוצאות שעברו בדיקת אדם. בלי זיהוי פנים, בלי ניקוד צוות ובלי מסקנות אוטומטיות."
+        action={<Link className="teacher-soft-button purple" href="/dashboard/garden/ai-events">אירועים לבדיקה</Link>}
+      />
       <AdminDataError message={result.error ?? result.data.queryError} />
 
-      <section className="grid cols-4 dashboard-kpis">
-        <StatCard label="זיהויים" value={result.data.summary.detectionVolume} tone="good" />
-        <StatCard label="Confidence" value={percent(result.data.summary.averageConfidence)} tone="good" />
-        <StatCard label="False positive" value={percent(result.data.summary.falsePositiveRate)} tone={result.data.summary.falsePositiveRate > 0.2 ? "warn" : "good"} />
-        <StatCard label="נבדקו" value={reviewed.length} tone="good" />
+      <TeacherStatsGrid>
+        <TeacherStatCard title="זיהויים" value={result.data.summary.detectionVolume} hint="מסוכמים" icon={Brain} tone="blue" />
+        <TeacherStatCard title="דיוק ממוצע" value={percent(result.data.summary.averageConfidence)} hint="לא החלטה אוטומטית" icon={ShieldCheck} tone="green" />
+        <TeacherStatCard title="False positive" value={percent(result.data.summary.falsePositiveRate)} hint="למעקב אנושי" icon={ShieldCheck} tone={result.data.summary.falsePositiveRate > 0.2 ? "orange" : "green"} />
+        <TeacherStatCard title="נבדקו" value={reviewed.length} hint="אירועים" icon={ShieldCheck} tone="purple" />
+      </TeacherStatsGrid>
+
+      <section className="teacher-dashboard-grid">
+        <TeacherSection title="מה מוצג למנהלת" subtitle="מידע מסוכם בלבד, ללא פריימים גולמיים או פרטי מודל פנימיים">
+          <TeacherCompactList>
+            <TeacherCompactItem title="זיהויים שנבדקו" subtitle="עברו סינון אנושי לפני הצגה" tone="green" meta={reviewed.length} />
+            <TeacherCompactItem title="מצב Shadow" subtitle="תצפית זהירה ללא פעולה אוטומטית" tone="purple" meta="פעיל" />
+            <TeacherCompactItem title="הורים" subtitle="לא רואים זיהויים גולמיים" tone="blue" meta="מוגן" />
+          </TeacherCompactList>
+        </TeacherSection>
+        <TeacherSection title="המלצות זהירות" subtitle="תזכורות לבדיקה בלבד, לא החלטה אוטומטית">
+          <TeacherCompactList>
+            <TeacherCompactItem title="אין זיהוי ילדים" subtitle="פונקציה רגישה נשארת כבויה" tone="green" meta="מושבת" />
+            <TeacherCompactItem title="אין ניקוד צוות" subtitle="אין דירוג אישי או אוטומטי" tone="green" meta="מושבת" />
+            <TeacherCompactItem title="אין האשמות אוטומטיות" subtitle="כל פעולה דורשת בדיקת אדם" tone="green" meta="מושבת" />
+          </TeacherCompactList>
+        </TeacherSection>
       </section>
 
-      <section className="grid cols-2 dashboard-panels">
-        <article className="card action-panel">
-          <div className="section-heading"><h2><ShieldCheck size={20} /> מה מוצג למנהלת</h2><p>רק מידע מסוכם, ללא פריימים גולמיים או פרטי מודל פנימיים.</p></div>
-          <div className="risk-list">
-            <div>זיהויים שנבדקו <b>{reviewed.length}</b></div>
-            <div>מצב shadow <b>פעיל</b></div>
-            <div>הורים <b>לא רואים זיהויים גולמיים</b></div>
-          </div>
-        </article>
-        <article className="card action-panel">
-          <div className="section-heading"><h2><Brain size={20} /> המלצות זהירות</h2><p>כל המלצה היא תזכורת לבדיקה, לא החלטה אוטומטית.</p></div>
-          <div className="risk-list">
-            <div>אין זיהוי ילדים <b>מושבת</b></div>
-            <div>אין ניקוד צוות <b>מושבת</b></div>
-            <div>אין האשמות אוטומטיות <b>מושבת</b></div>
-          </div>
-        </article>
-      </section>
+      <TeacherSection title="זיהויים שנבדקו" subtitle="רק אירועים שעברו בדיקה אנושית מוצגים כאן">
+        {reviewed.length === 0 ? (
+          <TeacherEmptyState title="אין זיהויים שנבדקו עדיין" text="אירועי Shadow יופיעו קודם במסך אירועי תצפיתן." />
+        ) : (
+          <TeacherCompactList>
+            {reviewed.map((event: any, index: number) => (
+              <TeacherCompactItem key={`${event.title}-${index}`} title={event.title} subtitle={`${event.recommendedAction} · דיוק ${percent(event.confidence)}`} tone="green" meta={event.status} />
+            ))}
+          </TeacherCompactList>
+        )}
+      </TeacherSection>
 
-      <section className="dashboard-section">
-        <div className="section-heading"><h2>זיהויים שנבדקו</h2><p>רק אירועים שעברו בדיקה אנושית מוצגים כאן.</p></div>
-        {reviewed.length === 0 ? <div className="empty-state"><strong>אין זיהויים שנבדקו עדיין</strong><span>אירועי shadow יופיעו קודם במסך אירועי תצפיתן.</span></div> : <div className="procedure-list">
-          {reviewed.map((event: any, index: number) => (
-            <article className="card procedure-card" key={`${event.title}-${index}`}>
-              <div>
-                <span className="pill good">נבדק</span>
-                <h3>{event.title}</h3>
-                <p>{event.recommendedAction}</p>
-                <small>Confidence לאחר כיול: {percent(event.confidence)}</small>
-              </div>
-              <span className="pill">{event.status}</span>
-            </article>
-          ))}
-        </div>}
-      </section>
+      <TeacherQuickActions title="פעולות זיהוי">
+        <TeacherActionTile title="אירועים לבדיקה" href="/dashboard/garden/ai-events" icon={ShieldCheck} tone="purple" />
+        <TeacherActionTile title="מצלמות" href="/dashboard/garden/cameras" icon={Brain} tone="blue" />
+      </TeacherQuickActions>
+      </TeacherAppFrame>
     </DashboardShell>
   );
 }

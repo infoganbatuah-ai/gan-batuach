@@ -11,8 +11,7 @@ import {
   Clock3,
   Filter,
   Home,
-  LogIn,
-  LogOut,
+  LogOut as LogOutIcon,
   MoreHorizontal,
   Search,
   Send,
@@ -22,14 +21,16 @@ import {
   type LucideIcon
 } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
+import { GardenAttendanceActionButton } from "@/components/garden-attendance-action-button";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
 type AttendanceRow = {
   id: string;
+  childId?: string;
   childName: string;
   group: string;
-  status: "present" | "late" | "absent" | "not_updated";
+  status: "present" | "late" | "absent" | "not_updated" | "left_early";
   arrival: string;
   pickup: string;
   avatar: string;
@@ -39,6 +40,7 @@ const statusMeta = {
   present: { label: "נכח", tone: "success" as const, icon: CheckCircle2 },
   late: { label: "מאחר", tone: "warning" as const, icon: Clock3 },
   absent: { label: "נעדר", tone: "danger" as const, icon: XCircle },
+  left_early: { label: "יצא", tone: "muted" as const, icon: LogOutIcon },
   not_updated: { label: "טרם סומן", tone: "muted" as const, icon: Clock3 }
 };
 
@@ -56,6 +58,7 @@ function normalizeAttendanceStatus(value?: string | null): AttendanceRow["status
   const rawStatus = String(value ?? "");
   if (rawStatus === "late") return "late";
   if (rawStatus === "absent") return "absent";
+  if (rawStatus === "left_early") return "left_early";
   if (rawStatus === "checked_out" || rawStatus === "present" || rawStatus === "checked_in") return "present";
   return "not_updated";
 }
@@ -72,7 +75,7 @@ export default async function GardenAttendancePage({ searchParams }: { searchPar
       .from("attendance" as any)
       .select("id, child_id, status, attendance_date, check_in_at, check_out_at, pickup_name, children(full_name), staff(full_name)")
       .eq("garden_id", gardenId)
-      .gte("attendance_date", today)
+      .eq("attendance_date", today)
       .order("created_at", { ascending: false }),
     supabase
       .from("children" as any)
@@ -96,8 +99,9 @@ export default async function GardenAttendancePage({ searchParams }: { searchPar
     const childName = child.full_name ?? "ילד/ה";
     return {
       id: child.id ?? `child-${index}`,
+      childId: child.id,
       childName,
-      group: status === "not_updated" ? "טרם סומן/ה היום" : "נוכחות עודכנה",
+      group: status === "not_updated" ? "טרם סומן/ה היום" : status === "left_early" ? "יציאה עודכנה" : "נוכחות עודכנה",
       status,
       arrival: toDisplayTime(attendanceRow?.check_in_at),
       pickup: attendanceRow?.pickup_name ?? "טרם נקבע",
@@ -111,8 +115,9 @@ export default async function GardenAttendancePage({ searchParams }: { searchPar
         const name = row.children?.full_name ?? row.staff?.full_name ?? "נוכחות";
         return {
           id: row.id ?? `attendance-${index}`,
+          childId: row.child_id ?? undefined,
           childName: name,
-          group: status === "present" ? "נוכחות עודכנה" : "דורש מעקב",
+          group: status === "present" ? "נוכחות עודכנה" : status === "left_early" ? "יציאה עודכנה" : "דורש מעקב",
           status,
           arrival: toDisplayTime(row.check_in_at),
           pickup: row.pickup_name ?? "לא נקבע",
@@ -240,11 +245,16 @@ export default async function GardenAttendancePage({ searchParams }: { searchPar
                     {meta.label}
                   </em>
                   <p>הגעה: <strong>{row.arrival}</strong><br />איסוף: <strong>{row.pickup}</strong></p>
-                  <Link className="ganenet-attendance-action" href="/dashboard/garden/attendance">
-                    {row.status === "present" ? <LogOut size={18} /> : <LogIn size={18} />}
-                    {row.status === "present" ? "צ׳ק אאוט" : "צ׳ק אין"}
-                  </Link>
-                  <button type="button" aria-label="פעולות נוספות"><MoreHorizontal size={22} /></button>
+                  <GardenAttendanceActionButton
+                    childId={row.childId ?? row.id}
+                    currentStatus={row.status}
+                    disabled={!row.childId}
+                  />
+                  {row.childId ? (
+                    <Link href={`/dashboard/garden/children/${row.childId}`} aria-label="כרטיס ילד"><MoreHorizontal size={22} /></Link>
+                  ) : (
+                    <span className="ganenet-attendance-more-disabled" aria-label="אין כרטיס ילד"><MoreHorizontal size={22} /></span>
+                  )}
                 </article>
               );
             }) : (
@@ -263,7 +273,7 @@ export default async function GardenAttendancePage({ searchParams }: { searchPar
             <h2>פעולות מהירות <span className="ganenet-section-icon"><Zap size={28} /></span></h2>
           </div>
           <div className="ganenet-action-row">
-            <a className="ganenet-action purple" href="/dashboard/garden/messages">
+            <a className="ganenet-action purple" href="/dashboard/garden/messages?compose=1#message-workbench">
               <span><Send size={35} /></span>
               <b>הודעה להורים</b>
             </a>
@@ -272,7 +282,7 @@ export default async function GardenAttendancePage({ searchParams }: { searchPar
               <b>ספירת נוכחות</b>
               <small>{presentPct}% עודכנו</small>
             </a>
-            <a className="ganenet-action purple" href="/dashboard/garden/reports">
+            <a className="ganenet-action purple" href="/dashboard/garden/reports?manage=1#reports-workbench">
               <span><BarChart3 size={35} /></span>
               <b>דוח נוכחות יומי</b>
             </a>
