@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import type { ComponentType, ReactNode } from "react";
 import {
   AlertCircle,
   Baby,
@@ -17,7 +18,7 @@ import {
 } from "lucide-react";
 import { Avatar } from "@/components/avatar";
 import { DashboardShell } from "@/components/dashboard-shell";
-import { ActionCard, EmptyState, RoleMetricCard, StatusBadge } from "@/components/premium-dashboard";
+import { ParentActionTile, ParentAppFrame, ParentEmptyState, ParentMetricCard } from "@/components/parent-app-ui";
 import { requireRole } from "@/lib/auth";
 import { eventDateText, eventTimeText, timelineCategoryLabel, timelineTone } from "@/lib/domain/child-safety-timeline";
 import { getParentCameraListForProfile } from "@/lib/domain/parent-camera-list";
@@ -71,6 +72,52 @@ function categoryLabelForFeed(item: any) {
   if (text.includes("הודעה") || text.toLowerCase().includes("message")) return "הודעה";
   if (text.includes("איסוף") || text.toLowerCase().includes("pickup")) return "איסוף";
   return "עדכון";
+}
+
+function parentTone(tone?: string | null) {
+  if (tone === "good") return "green" as const;
+  if (tone === "warn") return "orange" as const;
+  if (tone === "bad") return "red" as const;
+  return "purple" as const;
+}
+
+function StatusBadge({ tone, children }: { tone?: string | null; children: ReactNode }) {
+  return <span className={`parent-status-chip ${parentTone(tone)}`}>{children}</span>;
+}
+
+function RoleMetricCard({
+  label,
+  value,
+  hint,
+  tone,
+  href
+}: {
+  label: string;
+  value: ReactNode;
+  hint?: string;
+  tone?: string | null;
+  href?: string;
+}) {
+  return <ParentMetricCard title={label} value={value} hint={hint} icon={Sparkles} tone={parentTone(tone)} href={href} />;
+}
+
+function EmptyState({ title, text, action }: { title: string; text?: string; action?: ReactNode }) {
+  return <ParentEmptyState title={title} text={text} action={action} />;
+}
+
+function ActionCard({
+  title,
+  href,
+  icon,
+  tone
+}: {
+  title: string;
+  text?: string;
+  href: string;
+  icon: ComponentType<any>;
+  tone?: string | null;
+}) {
+  return <ParentActionTile title={title} href={href} icon={icon} tone={parentTone(tone)} />;
 }
 
 export default async function ParentFamilyHomePage() {
@@ -219,7 +266,8 @@ export default async function ParentFamilyHomePage() {
   ].sort((a, b) => new Date(b.time ?? 0).getTime() - new Date(a.time ?? 0).getTime()).slice(0, 8);
 
   return (
-    <DashboardShell role="parent" title="בית משפחתי">
+    <DashboardShell role="parent" title="בית משפחתי" appHome>
+      <ParentAppFrame active="home" avatarUrl={(profile as any).profile_image_url ?? null}>
       <div className="family-home-2">
         {primaryChild ? (
           <section className="family-home-hero">
@@ -314,7 +362,7 @@ export default async function ParentFamilyHomePage() {
                 <p>{item.text}</p>
                 <small>{item.time ? eventDateText(item.time) : "חדש"}</small>
               </Link>
-            )) : <div className="empty-state"><strong>הפיד עדיין ריק</strong><span>כאשר הגן ישתף תמונות, פעילות, הודעות או עדכונים מאושרים, הם יופיעו כאן.</span></div>}
+            )) : <ParentEmptyState title="הפיד עדיין ריק" text="כאשר הגן ישתף תמונות, פעילות, הודעות או עדכונים מאושרים, הם יופיעו כאן." />}
           </div>
         </section>
 
@@ -404,6 +452,7 @@ export default async function ParentFamilyHomePage() {
           </div>
         </section>
       </div>
+      </ParentAppFrame>
     </DashboardShell>
   );
 }

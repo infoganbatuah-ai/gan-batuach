@@ -1,5 +1,6 @@
 import { DashboardShell } from "@/components/dashboard-shell";
 import { NotificationCenter } from "@/components/notification-center";
+import { ParentAppFrame, ParentHero, ParentSection } from "@/components/parent-app-ui";
 import { ParentNotificationPreferences } from "@/components/parent-notification-preferences";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
@@ -26,13 +27,17 @@ export default async function ParentNotificationsPage() {
   const categories = ["עדכוני ילד", "הודעות", "מסמכים", "תשלומים", "בטיחות", "כללי"].map((label) => ({ label, count: rows.filter((item) => categoryLabel(item) === label).length }));
   const pushCategoryPreferences = Object.fromEntries((pushPreferencesRes.data ?? []).map((row: any) => [row.category, row.enabled]));
   return (
-    <DashboardShell role="parent" title="התראות">
-      <div className="parent-experience-shell">
-        <div className="parent-page-head"><div><p className="eyebrow">מרכז עדכונים</p><h1>מה צריך את תשומת הלב שלך היום?</h1><p>עדכוני ילד, הודעות, מסמכים, תשלומים ובטיחות מסודרים לפי חשיבות. אירועים רגישים מוצגים רק אחרי בדיקה ואישור.</p></div><span className="pill good">מרכז הורים</span></div>
+    <DashboardShell role="parent" title="התראות" appHome>
+      <ParentAppFrame active="alerts" avatarUrl={(profile as any).profile_image_url ?? null}>
+        <ParentHero title="מרכז עדכונים" subtitle="מה צריך את תשומת הלב שלך היום?" />
         <section className="parent-notification-categories">{categories.map((category) => <span key={category.label}>{category.label}<b>{category.count}</b></span>)}</section>
-        <ParentNotificationPreferences preferences={preferencesRes.data as any} pushCategoryPreferences={pushCategoryPreferences} />
-        <NotificationCenter notifications={rows} />
-      </div>
+        <ParentSection title="העדפות התראות" subtitle="בחירה אילו עדכונים לקבל ובאיזה ערוץ.">
+          <ParentNotificationPreferences preferences={preferencesRes.data as any} pushCategoryPreferences={pushCategoryPreferences} />
+        </ParentSection>
+        <ParentSection title="התראות אחרונות" subtitle="אירועים רגישים מוצגים רק אחרי בדיקה ואישור.">
+          <NotificationCenter notifications={rows} />
+        </ParentSection>
+      </ParentAppFrame>
     </DashboardShell>
   );
 }

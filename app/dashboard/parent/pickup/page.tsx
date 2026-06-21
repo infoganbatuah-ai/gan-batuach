@@ -1,5 +1,6 @@
 import { ShieldCheck } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
+import { ParentAppFrame, ParentHero, ParentSection } from "@/components/parent-app-ui";
 import { ParentPickupCenter } from "@/components/pickup-verification-panels";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
@@ -18,16 +19,13 @@ export default async function ParentPickupPage() {
     : [{ data: [] }, { data: [] }];
 
   return (
-    <DashboardShell role="parent" title="איסוף הילד">
-      <div className="dashboard-hero-card parent-hero-card">
-        <div>
-          <p className="eyebrow">Pickup Verification</p>
-          <h1>מורשי איסוף והרשאות זמניות.</h1>
-          <p>הוסיפו מורשי איסוף, צרו הרשאה זמנית וצפו בהיסטוריית איסופים. הגן תמיד מבצע בדיקה אנושית לפני שחרור ילד.</p>
-        </div>
-        <span className="pill good"><ShieldCheck size={15} /> בדיקה אנושית בלבד</span>
-      </div>
-      <ParentPickupCenter children={family.children as any[]} contacts={(contactsRes.data ?? []) as any[]} events={(eventsRes.data ?? []) as any[]} />
+    <DashboardShell role="parent" title="איסוף הילד" appHome>
+      <ParentAppFrame active="more" avatarUrl={(profile as any).profile_image_url ?? null}>
+        <ParentHero title="איסוף הילד" subtitle="מורשי איסוף, הרשאות זמניות והיסטוריה" />
+        <ParentSection title="מרכז איסוף" subtitle="הגן תמיד מבצע בדיקה אנושית לפני שחרור ילד." action={<span className="pill good"><ShieldCheck size={15} /> בדיקה אנושית בלבד</span>}>
+          <ParentPickupCenter children={family.children as any[]} contacts={(contactsRes.data ?? []) as any[]} events={(eventsRes.data ?? []) as any[]} />
+        </ParentSection>
+      </ParentAppFrame>
     </DashboardShell>
   );
 }

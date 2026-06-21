@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { CheckCircle2, Clock, FileText, ShieldCheck, TriangleAlert } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
-import { EmptyState, RoleMetricCard, StatusBadge } from "@/components/premium-dashboard";
+import { ParentAppFrame, ParentEmptyState, ParentHero, ParentMetricCard, ParentSection } from "@/components/parent-app-ui";
 import { requireRole } from "@/lib/auth";
 import { getParentFamilyContext } from "@/lib/domain/parent-family";
 import { createClient } from "@/lib/supabase/server";
@@ -16,9 +16,9 @@ function docStatusLabel(status?: string | null) {
 }
 
 function docTone(status?: string | null) {
-  if (status === "approved" || status === "signed") return "good" as const;
-  if (status === "missing" || status === "expired" || status === "rejected") return "warn" as const;
-  return "default" as const;
+  if (status === "approved" || status === "signed") return "green" as const;
+  if (status === "missing" || status === "expired" || status === "rejected") return "orange" as const;
+  return "purple" as const;
 }
 
 function dateText(value?: string | null) {
@@ -47,31 +47,24 @@ export default async function ParentDocumentsPage() {
   const newDocs = rows.filter((row) => !["missing", "rejected", "expired", "approved", "signed"].includes(String(row.status)));
 
   return (
-    <DashboardShell role="parent" title="מסמכים">
-      <div className="parent-experience-shell">
-        <div className="parent-page-head">
-          <div>
-            <p className="eyebrow">מסמכים ואישורים</p>
-            <h1>כל מה שצריך לאשר או לשמור.</h1>
-            <p>מסמכי בריאות, פרטיות, צילום ואישורי גן מסודרים לפי מה שדורש פעולה.</p>
-          </div>
-          <span className={needsAction.length ? "pill warn" : "pill good"}><FileText size={15} /> {needsAction.length ? "צריך פעולה" : "מסודר"}</span>
-        </div>
+    <DashboardShell role="parent" title="מסמכים" appHome>
+      <ParentAppFrame active="more" avatarUrl={(profile as any).profile_image_url ?? null}>
+        <ParentHero title="מסמכים ואישורים" subtitle="כל מה שצריך לאשר או לשמור" />
 
         <section className="parent-metric-strip">
-          <RoleMetricCard label="צריך פעולה" value={needsAction.length} tone={needsAction.length ? "warn" : "good"} />
-          <RoleMetricCard label="חדשים" value={newDocs.length} tone={newDocs.length ? "default" : "good"} />
-          <RoleMetricCard label="חתומים" value={signed.length} tone="good" />
-          <RoleMetricCard label="סה״כ" value={rows.length} tone="default" />
+          <ParentMetricCard title="צריך פעולה" value={needsAction.length} hint="מסמכים" icon={TriangleAlert} tone={needsAction.length ? "orange" : "green"} />
+          <ParentMetricCard title="חדשים" value={newDocs.length} hint="ממתינים" icon={Clock} tone={newDocs.length ? "purple" : "green"} />
+          <ParentMetricCard title="חתומים" value={signed.length} hint="מאושרים" icon={CheckCircle2} tone="green" />
+          <ParentMetricCard title="סה״כ" value={rows.length} hint="מסמכים" icon={FileText} tone="blue" />
         </section>
 
-        <section className="dashboard-section">
-          {rows.length === 0 ? <EmptyState title="אין מסמכים נדרשים כרגע" text="אם הגן יבקש אישור או ישתף מסמך, הוא יופיע כאן עם פעולה ברורה." /> : (
+        <ParentSection title="מסמכים שלי" subtitle="מסמכי בריאות, פרטיות, צילום ואישורי גן מסודרים לפי מה שדורש פעולה.">
+          {rows.length === 0 ? <ParentEmptyState title="אין מסמכים נדרשים כרגע" text="אם הגן יבקש אישור או ישתף מסמך, הוא יופיע כאן עם פעולה ברורה." /> : (
             <div className="parent-document-list">
               {rows.map((row) => (
                 <article className="parent-document-card" key={row.id}>
                   <div>
-                    <StatusBadge tone={docTone(row.status)}>{docStatusLabel(row.status)}</StatusBadge>
+                    <span className={`parent-status-chip ${docTone(row.status)}`}>{docStatusLabel(row.status)}</span>
                     <h3>{row.name ?? row.document_type ?? "מסמך"}</h3>
                     <p>{row.document_type ?? "אישור משפחתי"}</p>
                     <small>{row.expires_at ? `בתוקף עד ${dateText(row.expires_at)}` : row.created_at ? `נוסף ${dateText(row.created_at)}` : ""}</small>
@@ -81,7 +74,7 @@ export default async function ParentDocumentsPage() {
               ))}
             </div>
           )}
-        </section>
+        </ParentSection>
 
         <section className="parent-camera-promise">
           <article><TriangleAlert /><h2>צריך פעולה</h2><p>מסמך חסר, פג תוקף או דורש תיקון מופיע ראשון במדדים.</p></article>
@@ -94,7 +87,7 @@ export default async function ParentDocumentsPage() {
           <h2>פרטיות</h2>
           <p>הורה רואה רק מסמכים של הילדים שלו או מסמכים שהוא העלה. מסמכים פנימיים של הגן לא מוצגים כאן.</p>
         </section>
-      </div>
+      </ParentAppFrame>
     </DashboardShell>
   );
 }

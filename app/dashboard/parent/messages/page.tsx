@@ -1,5 +1,6 @@
 import { MessageCircleHeart } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
+import { ParentAppFrame, ParentEmptyState, ParentHero, ParentSection } from "@/components/parent-app-ui";
 import { ParentChildRequestForm } from "@/components/parent-child-request-form";
 import { requireRole } from "@/lib/auth";
 import { getParentFamilyContext } from "@/lib/domain/parent-family";
@@ -51,28 +52,17 @@ export default async function ParentMessagesPage() {
   if (requestsRes.error) console.error("[parent-messages] requests query failed", { profile_id: profile.id, error: requestsRes.error.message });
 
   return (
-    <DashboardShell role="parent" title="פנייה לגן">
-      <div className="parent-page-head">
-        <div>
-          <p className="eyebrow">שיחה עם הגן</p>
-          <h1>כמו הודעה, עם מעקב מסודר.</h1>
-          <p>כותבים קצר, בוחרים נושא, ורואים מתי הפנייה נקראה וטופלה.</p>
-        </div>
-        <span className="pill good"><MessageCircleHeart size={15} /> ערוץ מאובטח</span>
-      </div>
+    <DashboardShell role="parent" title="פנייה לגן" appHome>
+      <ParentAppFrame active="alerts" avatarUrl={(profile as any).profile_image_url ?? null}>
+        <ParentHero title="הודעות ותקשורת" subtitle="שיחה עם הגן, בקשות ועדכונים במקום אחד" />
 
       <section className="parent-message-layout">
-        <ParentChildRequestForm children={childOptions} />
-        <article className="parent-chat-card">
-          <div className="section-heading">
-            <h2>השיחות שלי</h2>
-            <p>תשובות מהגן וסטטוס טיפול במקום אחד.</p>
-          </div>
+        <ParentSection title="פנייה חדשה" subtitle="כותבים קצר, בוחרים נושא, ורואים מתי הפנייה נקראה וטופלה." action={<span className="pill good"><MessageCircleHeart size={15} /> ערוץ מאובטח</span>}>
+          <ParentChildRequestForm children={childOptions} />
+        </ParentSection>
+        <ParentSection title="השיחות שלי" subtitle="תשובות מהגן וסטטוס טיפול במקום אחד." className="parent-chat-card">
           {(requestsRes.data ?? []).length === 0 ? (
-            <div className="empty-state">
-              <strong>אין פניות פתוחות כרגע</strong>
-              <span>כשתשלחו פנייה לגן, היא תופיע כאן עם סטטוס קריאה וטיפול.</span>
-            </div>
+            <ParentEmptyState title="אין פניות פתוחות כרגע" text="כשתשלחו פנייה לגן, היא תופיע כאן עם סטטוס קריאה וטיפול." />
           ) : (
             <div className="message-thread-list">
               {(requestsRes.data ?? []).map((request: any) => (
@@ -88,8 +78,9 @@ export default async function ParentMessagesPage() {
               ))}
             </div>
           )}
-        </article>
+        </ParentSection>
       </section>
+      </ParentAppFrame>
     </DashboardShell>
   );
 }

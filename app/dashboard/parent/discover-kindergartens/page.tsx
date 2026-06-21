@@ -51,7 +51,7 @@ export default async function DiscoverKindergartensPage({ searchParams }: { sear
         <ParentHero title="גני ילדים בטוחים באזור שלי" subtitle="מצא/י את הגן המתאים ביותר עבור הילד/ה שלך" />
 
         <form className="parent-discovery-search" action="/dashboard/parent/discover-kindergartens">
-          <button className="parent-filter-button" type="button"><SlidersHorizontal size={22} /> סינונים</button>
+          <button className="parent-filter-button" type="submit"><SlidersHorizontal size={22} /> סינון</button>
           <label>
             <Search size={24} />
             <input name="q" placeholder="חפש גן ילדים, עיר או שכונה..." defaultValue={params?.q ?? ""} />

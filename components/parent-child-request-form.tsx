@@ -76,7 +76,7 @@ export function ParentChildRequestForm({ children }: { children: any[] }) {
   }
 
   return (
-    <form action={submit} className="card action-panel parent-request-form">
+    <form action={submit} className="parent-section-card parent-request-form">
       <div className="section-heading"><h2>פנייה חכמה לגן</h2><p>בחרו סוג פנייה ונמען. המערכת תציג רק אנשי קשר רלוונטיים לגן של הילד ותשלח התראה למי שצריך לטפל.</p></div>
       {message ? <div className={message.includes("נשלחה") ? "success-banner" : "error-banner"}>{message}</div> : null}
       <label>ילד<select name="child_id" value={childId} onChange={(event) => setChildId(event.target.value)} required>{children.map((child) => <option value={child.id} key={child.id}>{child.full_name}</option>)}</select></label>

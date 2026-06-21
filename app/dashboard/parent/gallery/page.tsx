@@ -1,5 +1,6 @@
 import { Camera, Image as ImageIcon, SlidersHorizontal } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
+import { ParentAppFrame, ParentEmptyState, ParentHero, ParentSection } from "@/components/parent-app-ui";
 import { requireRole } from "@/lib/auth";
 import { getParentFamilyContext } from "@/lib/domain/parent-family";
 import { createClient } from "@/lib/supabase/server";
@@ -28,5 +29,35 @@ export default async function Page() {
   const todayCount = rows.filter((item) => String(item.created_at ?? "").slice(0, 10) === todayKey).length;
   const weekCount = rows.filter((item) => item.created_at && new Date(item.created_at) >= weekStart).length;
   const monthCount = rows.filter((item) => item.created_at && new Date(item.created_at) >= monthStart).length;
-  return <DashboardShell role="parent" title="גלריה"><div className="parent-page-head"><div><p className="eyebrow">רגעים מהגן</p><h1>התמונות שהגן שיתף איתך.</h1><p>רק תמונות וסרטונים שאושרו להורים. הרגעים מסודרים כמו זיכרונות משפחתיים לפי זמן.</p></div><span className="pill good">{rows.length} רגעים</span></div><section className="parent-gallery-filters"><span><SlidersHorizontal size={15} /> כל הרגעים <b>{rows.length}</b></span><span>היום <b>{todayCount}</b></span><span>השבוע <b>{weekCount}</b></span><span>החודש <b>{monthCount}</b></span></section><section className="dashboard-section">{rows.length === 0 ? <div className="empty-state"><strong>אין תמונות עדיין</strong><span>כאשר הגן יעלה רגעים שאושרו לצפייה, הם יופיעו כאן כציר זיכרונות משפחתי.</span></div> : <div className="parent-gallery-timeline">{rows.map((item) => <article className="card gallery-card parent-gallery-card" key={item.id}>{item.media_type === "image" ? <img src={item.file_url} alt={item.title} /> : <div className="video-tile"><Camera /><span>וידאו</span></div>}<div><span className="pill">{item.media_type === "image" ? "תמונה" : "וידאו"}</span><h3>{item.title}</h3><p>{item.created_at ? new Date(item.created_at).toLocaleDateString("he-IL") : ""}</p><small>{item.watermark_applied ? "מוגן לצפייה משפחתית" : "ממתין לאישור הצגה"}</small></div><a className="button secondary tiny" href={item.file_url}><ImageIcon size={14} /> פתיחה</a></article>)}</div>}</section></DashboardShell>;
+  return (
+    <DashboardShell role="parent" title="גלריה" appHome>
+      <ParentAppFrame active="dashboard" avatarUrl={(profile as any).profile_image_url ?? null}>
+        <ParentHero title="רגעים מהגן" subtitle="התמונות והסרטונים שהגן שיתף איתך" />
+        <section className="parent-gallery-filters">
+          <span><SlidersHorizontal size={15} /> כל הרגעים <b>{rows.length}</b></span>
+          <span>היום <b>{todayCount}</b></span>
+          <span>השבוע <b>{weekCount}</b></span>
+          <span>החודש <b>{monthCount}</b></span>
+        </section>
+        <ParentSection title="גלריה משפחתית" subtitle="רק תמונות וסרטונים שאושרו להורים.">
+          {rows.length === 0 ? <ParentEmptyState title="אין תמונות עדיין" text="כאשר הגן יעלה רגעים שאושרו לצפייה, הם יופיעו כאן כציר זיכרונות משפחתי." /> : (
+            <div className="parent-gallery-timeline">
+              {rows.map((item) => (
+                <article className="parent-gallery-card" key={item.id}>
+                  {item.media_type === "image" ? <img src={item.file_url} alt={item.title} /> : <div className="video-tile"><Camera /><span>וידאו</span></div>}
+                  <div>
+                    <span className="parent-status-chip purple">{item.media_type === "image" ? "תמונה" : "וידאו"}</span>
+                    <h3>{item.title}</h3>
+                    <p>{item.created_at ? new Date(item.created_at).toLocaleDateString("he-IL") : ""}</p>
+                    <small>{item.watermark_applied ? "מוגן לצפייה משפחתית" : "ממתין לאישור הצגה"}</small>
+                  </div>
+                  <a className="parent-outline-button" href={item.file_url}><ImageIcon size={14} /> פתיחה</a>
+                </article>
+              ))}
+            </div>
+          )}
+        </ParentSection>
+      </ParentAppFrame>
+    </DashboardShell>
+  );
 }
