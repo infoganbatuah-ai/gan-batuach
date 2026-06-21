@@ -1,12 +1,23 @@
-import { Bell, UserRoundPlus } from "lucide-react";
+import { Bell, CheckCircle2, FileText, UserRoundPlus, UsersRound } from "lucide-react";
 import { DashboardFilterChip } from "@/components/dashboard-filter-chip";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { GardenChildTransferRequestsPanel } from "@/components/garden-child-transfer-requests-panel";
 import { GardenParentLeadsCenter } from "@/components/garden-parent-leads-center";
-import { StatCard } from "@/components/stat-card";
-import { PremiumDashboardHero } from "@/components/premium-dashboard";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import {
+  TeacherActionTile,
+  TeacherAiInsight,
+  TeacherAppFrame,
+  TeacherCompactItem,
+  TeacherCompactList,
+  TeacherEmptyState,
+  TeacherPageTitle,
+  TeacherQuickActions,
+  TeacherSection,
+  TeacherStatCard,
+  TeacherStatsGrid
+} from "@/components/teacher-app-ui";
 
 const leadFilterLabels: Record<string, string> = {
   new: "בקשות חדשות שממתינות להמרה",
@@ -76,33 +87,59 @@ export default async function GardenLeadsPage({ searchParams }: { searchParams: 
   const transferCount = incomingTransfers.length + outgoingTransfers.length;
 
   return (
-    <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="לידים / בקשות הצטרפות">
-      <PremiumDashboardHero eyebrow="בקשות הצטרפות" title="הורים חדשים במקום מסודר." subtitle="בודקים בקשה, מאשרים, וההורה משלים את פרטי הילד." badge={<><Bell size={15} /> {newCount} חדשים</>} badgeTone={newCount ? "warn" : "good"} />
+    <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="לידים / בקשות הצטרפות" appHome>
+      <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "רונית"}`} subtitle="בקשות הורים וקליטה" avatarUrl={(profile as any).avatar_url ?? null} active="children">
+        <TeacherPageTitle icon={UserRoundPlus} title="בקשות הצטרפות ולידים" subtitle="בודקים בקשה, מאשרים, וההורה משלים את פרטי הילד" action={<a className="button primary" href="#leads-full"><Bell size={18} /> ניהול מלא</a>} />
 
-      <div className="grid cols-4 dashboard-kpis">
-        <StatCard label="לידים חדשים" value={newCount} tone={newCount ? "warn" : "good"} href="/dashboard/garden/leads?status=new" />
-        <StatCard label="ממתינים להשלמת הורה" value={pendingCompletion} tone={pendingCompletion ? "warn" : "good"} href="/dashboard/garden/leads?status=completion" />
-        <StatCard label="חסרים פרטים" value={missing} tone={missing ? "bad" : "good"} href="/dashboard/garden/leads?status=missing" />
-        <StatCard label="בקשות מעבר/קליטה" value={transferCount} tone={transferCount ? "warn" : "good"} />
-        <StatCard label="סה״כ בקשות" value={leads.length} />
-      </div>
-      <DashboardFilterChip
-        label={leadFilterLabels[params.status ?? ""]}
-        clearHref="/dashboard/garden/leads"
-        isEmpty={visibleLeads.length === 0}
-        emptyTitle={params.status === "new" ? "אין כרגע לידים חדשים" : params.status ? `אין כרגע ${leadFilterLabels[params.status]}` : undefined}
-        emptyText="כל הבקשות במסנן הזה כבר טופלו או עברו לשלב הבא."
-      />
+        <TeacherStatsGrid>
+          <TeacherStatCard title="חדשים" value={newCount} hint="לטיפול" icon={Bell} tone={newCount ? "orange" : "green"} href="/dashboard/garden/leads?status=new" />
+          <TeacherStatCard title="השלמת הורה" value={pendingCompletion} hint="ממתינים" icon={UserRoundPlus} tone={pendingCompletion ? "purple" : "blue"} href="/dashboard/garden/leads?status=completion" />
+          <TeacherStatCard title="חסרים פרטים" value={missing} hint="להשלמה" icon={FileText} tone={missing ? "red" : "green"} href="/dashboard/garden/leads?status=missing" />
+          <TeacherStatCard title="בקשות מעבר" value={transferCount} hint="קליטה/שחרור" icon={UsersRound} tone={transferCount ? "orange" : "green"} />
+        </TeacherStatsGrid>
 
-      <section className="card action-panel">
-        <UserRoundPlus />
-        <h2>איך זה עובד?</h2>
-        <p>מאשרים בקשה, ההורה משלים פרטים, ואז המנהלת מאשרת את הילד לגן.</p>
-      </section>
+        <TeacherSection title="בקשות אחרונות" action={<a href="#leads-full">לכל הבקשות ›</a>}>
+          {visibleLeads.length ? (
+            <TeacherCompactList>
+              {visibleLeads.slice(0, 7).map((lead) => (
+                <TeacherCompactItem
+                  key={lead.id}
+                  title={lead.child_name ?? lead.parent_name ?? "בקשת הורה"}
+                  subtitle={`${lead.parent_name ?? "הורה"} · ${lead.phone ?? "טלפון חסר"} · ${lead.requested_age_group ?? "קבוצת גיל"}`}
+                  tone={lead.status === "missing_details" ? "red" : ["new", "new_parent_lead"].includes(String(lead.status)) ? "orange" : "purple"}
+                  meta={lead.status ?? "חדש"}
+                />
+              ))}
+            </TeacherCompactList>
+          ) : (
+            <TeacherEmptyState title="אין בקשות במסנן הזה" text="כל הבקשות במסנן הזה כבר טופלו או עברו לשלב הבא." />
+          )}
+        </TeacherSection>
 
-      <GardenChildTransferRequestsPanel incoming={incomingTransfers} outgoing={outgoingTransfers} />
+        <TeacherAiInsight metric={`${leads.length}`}>
+          מאשרים בקשה, ההורה משלים פרטים, ורק לאחר אישור הגן הילד עובר להפעלה. אין העברת ילד אוטומטית בין גנים.
+        </TeacherAiInsight>
 
-      <GardenParentLeadsCenter leads={visibleLeads} />
+        <TeacherQuickActions title="פעולות בקשה">
+          <TeacherActionTile title="בקשות הצטרפות" href="/dashboard/garden/enrollment-requests" icon={UserRoundPlus} tone="purple" />
+          <TeacherActionTile title="ילדי הגן" href="/dashboard/garden/children" icon={UsersRound} tone="blue" />
+          <TeacherActionTile title="הודעות הורים" href="/dashboard/garden/messages" icon={Bell} tone="orange" />
+          <TeacherActionTile title="מסמכים" href="/dashboard/garden/documents" icon={FileText} tone="green" />
+        </TeacherQuickActions>
+
+        <details className="teacher-management-details" id="leads-full">
+          <summary>ניהול מלא של בקשות ולידים</summary>
+          <DashboardFilterChip
+            label={leadFilterLabels[params.status ?? ""]}
+            clearHref="/dashboard/garden/leads"
+            isEmpty={visibleLeads.length === 0}
+            emptyTitle={params.status === "new" ? "אין כרגע לידים חדשים" : params.status ? `אין כרגע ${leadFilterLabels[params.status]}` : undefined}
+            emptyText="כל הבקשות במסנן הזה כבר טופלו או עברו לשלב הבא."
+          />
+          <GardenChildTransferRequestsPanel incoming={incomingTransfers} outgoing={outgoingTransfers} />
+          <GardenParentLeadsCenter leads={visibleLeads} />
+        </details>
+      </TeacherAppFrame>
     </DashboardShell>
   );
 }

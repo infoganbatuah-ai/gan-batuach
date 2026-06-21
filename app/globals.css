@@ -25788,6 +25788,43 @@ body:has(.gb-reference-login) .gb-reference-security-card {
   margin: 0 !important;
 }
 
+.teacher-live-action-wrap {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.teacher-soft-button {
+  transition: transform 180ms ease, box-shadow 180ms ease, filter 180ms ease;
+}
+
+.teacher-soft-button.is-pressed,
+.teacher-soft-button:active {
+  transform: translateY(1px) scale(0.98);
+  filter: saturate(1.12);
+  box-shadow: 0 10px 22px rgba(112, 83, 245, 0.18);
+}
+
+.teacher-soft-button:disabled {
+  cursor: progress;
+  opacity: 0.72;
+}
+
+.teacher-action-error {
+  color: #f14186;
+  font-weight: 800;
+  text-align: center;
+}
+
+.teacher-embedded-module {
+  overflow: hidden;
+  border-radius: 34px;
+}
+
+.teacher-embedded-module > * {
+  margin-block-start: 0;
+}
+
 .ganenet-form-grid {
   background: rgba(255, 255, 255, .88) !important;
   border: 1px solid var(--ganenet-line) !important;

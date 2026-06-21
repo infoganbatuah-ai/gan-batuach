@@ -2,11 +2,23 @@ import Link from "next/link";
 import { AlertTriangle, BookOpenCheck, ClipboardCheck, FileText, ShieldCheck, UserCheck } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { AdminDataError } from "@/components/admin-data-state";
-import { ActionCard, CleanSection, EmptyState, PremiumDashboardHero, RoleMetricCard, StatusBadge } from "@/components/premium-dashboard";
 import { requireRole } from "@/lib/auth";
 import { logSupabaseError, safeAdminData } from "@/lib/admin-safe";
 import { createClient } from "@/lib/supabase/server";
 import { buildComplianceScore, complianceTone, expirationBucket } from "@/lib/domain/smart-compliance";
+import {
+  TeacherActionTile,
+  TeacherAiInsight,
+  TeacherAppFrame,
+  TeacherCompactItem,
+  TeacherCompactList,
+  TeacherEmptyState,
+  TeacherPageTitle,
+  TeacherQuickActions,
+  TeacherSection,
+  TeacherStatCard,
+  TeacherStatsGrid
+} from "@/components/teacher-app-ui";
 
 export default async function GardenCompliancePage() {
   const { profile } = await requireRole(["manager", "owner"]);
@@ -44,5 +56,62 @@ export default async function GardenCompliancePage() {
     return { documents, staff, alerts, actions, findings, overdueInspections, score, queryError: [documentsRes.error, staffRes.error].some(Boolean) ? "חלק מנתוני הציות לא נטענו" : null };
   }, { documents: [] as any[], staff: [] as any[], alerts: [] as any[], actions: [] as any[], findings: [] as any[], overdueInspections: [] as any[], score: buildComplianceScore({ totalDocuments: 0, invalidDocuments: 0, expiringDocuments: 0, totalStaff: 0, staffIssues: 0, overdueInspections: 0, unresolvedFindings: 0, missingProcedures: 0, policyGaps: 0 }), queryError: null as string | null });
   const data = result.data;
-  return <DashboardShell role="manager" title="ציות הגן"><div className="commercial-dashboard compliance-center-shell"><PremiumDashboardHero eyebrow="Compliance" title="מוכנות ציות של הגן" subtitle="מה חסר, מה עומד לפוג ומה צריך תיקון כדי להישאר מוכנים לפיקוח." badge={`${data.score.score}/100`} badgeTone={data.score.tone} actions={<Link className="button primary" href="/dashboard/garden/documents">מסמכים</Link>}><div className="setup-checklist"><span>מסמכים</span><span>צוות</span><span>פיקוח</span></div></PremiumDashboardHero><AdminDataError message={result.error ?? data.queryError} /><section className="grid cols-4 dashboard-kpis"><RoleMetricCard label="ציון" value={`${data.score.score}/100`} tone={data.score.tone} /><RoleMetricCard label="התראות" value={data.alerts.length} tone={data.alerts.length ? "warn" : "good"} /><RoleMetricCard label="פעולות" value={data.actions.length} tone={data.actions.length ? "warn" : "good"} /><RoleMetricCard label="פיקוח באיחור" value={data.overdueInspections.length} tone={data.overdueInspections.length ? "bad" : "good"} /></section><section className="grid cols-2 dashboard-panels"><article className="card action-panel"><h2><AlertTriangle size={20} /> מה דורש טיפול</h2>{data.alerts.length === 0 ? <div className="empty-mini">אין התראות פתוחות.</div> : data.alerts.slice(0, 8).map((alert: any) => <div className="list-item" key={alert.id}><div><strong>{alert.title}</strong><span>{alert.expiration_date ? new Date(alert.expiration_date).toLocaleDateString("he-IL") : alert.category}</span></div><StatusBadge tone={complianceTone(alert.severity)}>{alert.severity}</StatusBadge></div>)}</article><article className="card action-panel"><h2><ShieldCheck size={20} /> פעולות תיקון</h2>{data.actions.length === 0 ? <div className="empty-mini">אין פעולות תיקון.</div> : data.actions.slice(0, 8).map((action: any) => <div className="list-item" key={action.id}><div><strong>{action.action_title}</strong><span>{action.due_at ? new Date(action.due_at).toLocaleDateString("he-IL") : "ללא תאריך"}</span></div><StatusBadge tone={complianceTone(action.priority)}>{action.status}</StatusBadge></div>)}</article></section><CleanSection title="מסמכים ותוקף" subtitle="מסמכים שפגו או עומדים לפוג.">{data.documents.length === 0 ? <EmptyState title="אין מסמכים להצגה" /> : <div className="compliance-risk-list">{data.documents.slice(0, 10).map((doc: any) => <Link href="/dashboard/garden/documents" key={doc.id}><div><strong>{doc.name}</strong><span>{doc.document_type} · {doc.expires_at ? new Date(doc.expires_at).toLocaleDateString("he-IL") : "ללא תוקף"}</span></div><StatusBadge tone={complianceTone(expirationBucket(doc.expires_at))}>{doc.status}</StatusBadge></Link>)}</div>}</CleanSection><section className="quick-actions-grid"><ActionCard title="מסמכים" text="העלאה וחידוש" href="/dashboard/garden/documents" icon={FileText} /><ActionCard title="צוות" text="אישורים והדרכות" href="/dashboard/garden/staff" icon={UserCheck} /><ActionCard title="פיקוחים" text="סטטוס וליקויים" href="/dashboard/garden/inspections" icon={ClipboardCheck} /><ActionCard title="נהלים" text="הנחיות חובה" href="/dashboard/garden/tasks" icon={BookOpenCheck} /></section></div></DashboardShell>;
+  return (
+    <DashboardShell role="manager" title="ציות הגן" appHome>
+      <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "רונית"}`} subtitle="מוכנות ציות ופיקוח" avatarUrl={(profile as any).avatar_url ?? null} active="more">
+        <TeacherPageTitle icon={ShieldCheck} title="מוכנות ציות של הגן" subtitle="מה חסר, מה עומד לפוג ומה צריך תיקון כדי להישאר מוכנים לפיקוח" action={<Link className="button primary" href="/dashboard/garden/documents">מסמכים</Link>} />
+        <AdminDataError message={result.error ?? data.queryError} />
+
+        <TeacherStatsGrid>
+          <TeacherStatCard title="ציון" value={`${data.score.score}/100`} hint="מוכנות" icon={ShieldCheck} tone={data.score.tone === "bad" ? "red" : data.score.tone === "warn" ? "orange" : "green"} />
+          <TeacherStatCard title="התראות" value={data.alerts.length} hint="פתוחות" icon={AlertTriangle} tone={data.alerts.length ? "orange" : "green"} />
+          <TeacherStatCard title="פעולות" value={data.actions.length} hint="תיקון" icon={BookOpenCheck} tone={data.actions.length ? "purple" : "green"} />
+          <TeacherStatCard title="פיקוח באיחור" value={data.overdueInspections.length} hint="דורש טיפול" icon={ClipboardCheck} tone={data.overdueInspections.length ? "red" : "green"} />
+        </TeacherStatsGrid>
+
+        <section className="teacher-children-layout">
+          <TeacherSection title="מה דורש טיפול">
+            {data.alerts.length === 0 ? <TeacherEmptyState title="אין התראות פתוחות" text="מסמכים, צוות ופיקוח נראים תקינים כרגע." /> : (
+              <TeacherCompactList>
+                {data.alerts.slice(0, 8).map((alert: any) => (
+                  <TeacherCompactItem key={alert.id} title={alert.title} subtitle={alert.expiration_date ? new Date(alert.expiration_date).toLocaleDateString("he-IL") : alert.category} tone={complianceTone(alert.severity) === "bad" ? "red" : "orange"} meta={alert.severity} />
+                ))}
+              </TeacherCompactList>
+            )}
+          </TeacherSection>
+
+          <TeacherSection title="פעולות תיקון">
+            {data.actions.length === 0 ? <TeacherEmptyState title="אין פעולות תיקון" text="פעולות תיקון יופיעו כאן לאחר פיקוח או התראת ציות." /> : (
+              <TeacherCompactList>
+                {data.actions.slice(0, 8).map((action: any) => (
+                  <TeacherCompactItem key={action.id} title={action.action_title} subtitle={action.due_at ? new Date(action.due_at).toLocaleDateString("he-IL") : "ללא תאריך"} tone={complianceTone(action.priority) === "bad" ? "red" : "purple"} meta={action.status} />
+                ))}
+              </TeacherCompactList>
+            )}
+          </TeacherSection>
+        </section>
+
+        <TeacherSection title="מסמכים ותוקף" action={<Link href="/dashboard/garden/documents">ניהול מסמכים ›</Link>}>
+          {data.documents.length === 0 ? <TeacherEmptyState title="אין מסמכים להצגה" text="מסמכים שיועלו לגן יופיעו כאן לפי תוקף וסטטוס." /> : (
+            <TeacherCompactList>
+              {data.documents.slice(0, 8).map((doc: any) => (
+                <TeacherCompactItem key={doc.id} title={doc.name} subtitle={`${doc.document_type} · ${doc.expires_at ? new Date(doc.expires_at).toLocaleDateString("he-IL") : "ללא תוקף"}`} tone={complianceTone(expirationBucket(doc.expires_at)) === "bad" ? "red" : "blue"} meta={doc.status} href="/dashboard/garden/documents" />
+              ))}
+            </TeacherCompactList>
+          )}
+        </TeacherSection>
+
+        <TeacherAiInsight metric={`${data.score.score}/100`}>
+          המסך מציג readiness בלבד. פעולות תיקון ומסמכים נשארים במסכים המורשים ואינם נחשפים לציבור.
+        </TeacherAiInsight>
+
+        <TeacherQuickActions title="פעולות ציות">
+          <TeacherActionTile title="מסמכים" href="/dashboard/garden/documents" icon={FileText} tone="purple" />
+          <TeacherActionTile title="צוות" href="/dashboard/garden/staff" icon={UserCheck} tone="blue" />
+          <TeacherActionTile title="פיקוחים" href="/dashboard/garden/inspections" icon={ClipboardCheck} tone="green" />
+          <TeacherActionTile title="נהלים" href="/dashboard/garden/tasks" icon={BookOpenCheck} tone="orange" />
+        </TeacherQuickActions>
+      </TeacherAppFrame>
+    </DashboardShell>
+  );
 }

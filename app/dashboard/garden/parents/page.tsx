@@ -1,9 +1,21 @@
+import { Baby, Bell, MessageCircle, UsersRound } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { ParentProfileCards } from "@/components/people-profile-cards";
-import { StatCard } from "@/components/stat-card";
-import { PremiumDashboardHero } from "@/components/premium-dashboard";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import {
+  TeacherActionTile,
+  TeacherAiInsight,
+  TeacherAppFrame,
+  TeacherCompactItem,
+  TeacherCompactList,
+  TeacherEmptyState,
+  TeacherPageTitle,
+  TeacherQuickActions,
+  TeacherSection,
+  TeacherStatCard,
+  TeacherStatsGrid
+} from "@/components/teacher-app-ui";
 
 export default async function GardenParentsPage() {
   const { profile } = await requireRole(["manager", "owner"]);
@@ -51,10 +63,53 @@ export default async function GardenParentsPage() {
   }));
 
   return (
-    <DashboardShell role="manager" title="הורים">
-      <PremiumDashboardHero eyebrow="הורים" title="קשר הורים מסודר." subtitle="ילדים משויכים, הודעות, מסמכים ופניות בכרטיס קצר." badge={`${rows.length} הורים`} badgeTone="good" />
-      <div className="grid cols-4 dashboard-kpis"><StatCard label="הורים פעילים" value={rows.filter((row) => row.status === "active").length} tone="good" /><StatCard label="ילדים משויכים" value={rows.reduce((sum, row) => sum + row.children.length, 0)} /><StatCard label="הודעות לא נקראו" value={rows.reduce((sum, row) => sum + Number(row.unread_messages), 0)} tone="warn" /><StatCard label="פניות פתוחות" value={rows.reduce((sum, row) => sum + Number(row.complaint_count), 0)} tone="warn" /></div>
-      <ParentProfileCards parents={rows} />
+    <DashboardShell role="manager" title="הורים" appHome>
+      <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "רונית"}`} subtitle="קשר הורים מסודר" avatarUrl={(profile as any).avatar_url ?? null} active="messages">
+        <TeacherPageTitle icon={UsersRound} title="הורים ומשפחות" subtitle="ילדים משויכים, הודעות, מסמכים ופניות בכרטיס קצר" action={<a className="button primary" href="#parents-full">ניהול מלא</a>} />
+
+        <TeacherStatsGrid>
+          <TeacherStatCard title="הורים פעילים" value={rows.filter((row) => row.status === "active").length} hint="משויכים" icon={UsersRound} tone="green" />
+          <TeacherStatCard title="ילדים משויכים" value={rows.reduce((sum, row) => sum + row.children.length, 0)} hint="בגן" icon={Baby} tone="purple" />
+          <TeacherStatCard title="הודעות לא נקראו" value={rows.reduce((sum, row) => sum + Number(row.unread_messages), 0)} hint="דורש מענה" icon={Bell} tone={rows.some((row) => row.unread_messages) ? "orange" : "blue"} />
+          <TeacherStatCard title="פניות פתוחות" value={rows.reduce((sum, row) => sum + Number(row.complaint_count), 0)} hint="טיפול" icon={MessageCircle} tone={rows.some((row) => row.complaint_count) ? "red" : "green"} />
+        </TeacherStatsGrid>
+
+        <TeacherSection title="הורים אחרונים" action={<a href="#parents-full">לכל ההורים ›</a>}>
+          {rows.length ? (
+            <TeacherCompactList>
+              {rows.slice(0, 7).map((row) => (
+                <TeacherCompactItem
+                  key={row.id}
+                  title={row.full_name ?? "הורה"}
+                  subtitle={`${row.children.map((child: any) => child.full_name).join(", ") || "אין ילד משויך"} · ${row.phone ?? "טלפון חסר"}`}
+                  tone={row.status === "active" ? "green" : "orange"}
+                  avatar={row.profile_image_url}
+                  meta={row.unread_messages ? `${row.unread_messages} הודעות` : row.emergency_status}
+                />
+              ))}
+            </TeacherCompactList>
+          ) : (
+            <TeacherEmptyState title="אין הורים פעילים" text="הורים יופיעו כאן לאחר אישור בקשת הצטרפות או הזמנה." />
+          )}
+        </TeacherSection>
+
+        <TeacherAiInsight metric={`${rows.length}`}>
+          כרטיסי הורים מציגים רק מידע תפעולי לגן. מסמכים ופרטי ילדים רגישים נשארים במסכים המורשים.
+        </TeacherAiInsight>
+
+        <TeacherQuickActions title="פעולות הורים">
+          <TeacherActionTile title="הודעות" href="/dashboard/garden/messages" icon={MessageCircle} tone="purple" />
+          <TeacherActionTile title="בקשות הצטרפות" href="/dashboard/garden/enrollment-requests" icon={UsersRound} tone="blue" />
+          <TeacherActionTile title="ילדי הגן" href="/dashboard/garden/children" icon={Baby} tone="green" />
+        </TeacherQuickActions>
+
+        <details className="teacher-management-details" id="parents-full">
+          <summary>ניהול מלא של הורים</summary>
+          <div className="teacher-embedded-module">
+            <ParentProfileCards parents={rows} />
+          </div>
+        </details>
+      </TeacherAppFrame>
     </DashboardShell>
   );
 }

@@ -1,10 +1,22 @@
 import Link from "next/link";
 import { CalendarDays, HeartHandshake, Megaphone, MessageSquareWarning, ShieldCheck, Sparkles } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
-import { ActionCard, CleanSection, EmptyState, PremiumDashboardHero, RoleMetricCard, StatusBadge } from "@/components/premium-dashboard";
 import { requireRole } from "@/lib/auth";
 import { parentTrustTone, trustBadgeLabel } from "@/lib/domain/parent-trust";
 import { createClient } from "@/lib/supabase/server";
+import {
+  TeacherActionTile,
+  TeacherAiInsight,
+  TeacherAppFrame,
+  TeacherCompactItem,
+  TeacherCompactList,
+  TeacherEmptyState,
+  TeacherPageTitle,
+  TeacherQuickActions,
+  TeacherSection,
+  TeacherStatCard,
+  TeacherStatsGrid
+} from "@/components/teacher-app-ui";
 
 function date(value: unknown) {
   if (!value) return "";
@@ -22,6 +34,11 @@ function statusLabel(status?: string | null) {
     closed: "נסגר"
   };
   return labels[status ?? "received"] ?? "בטיפול";
+}
+
+function toneForTrust(value: unknown) {
+  const tone = parentTrustTone(typeof value === "number" ? value : Number(value ?? 0));
+  return tone === "bad" ? "red" : tone === "warn" ? "orange" : "green";
 }
 
 export default async function GardenTrustCenterPage() {
@@ -50,100 +67,65 @@ export default async function GardenTrustCenterPage() {
   const reports = (reportsRes.data ?? []) as any[];
   const openFeedback = feedback.filter((item) => !["resolved", "closed"].includes(String(item.lifecycle_status)));
   const openRequests = requests.filter((item) => !["answered", "closed"].includes(String(item.lifecycle_status)));
+  const score = Number(transparency.transparency_score ?? trust.trust_score ?? 0);
 
   return (
-    <DashboardShell role="manager" title="אמון הורים">
-      <div className="commercial-dashboard parent-trust-network-shell">
-        <PremiumDashboardHero
-          eyebrow="Parent Trust"
-          title="מרכז אמון, שקיפות וקהילה"
-          subtitle="תמונה אחת של אמון ההורים: עדכונים, זמני תגובה, ביקורות, מסמכים, פניות, סקרים ואירועי קהילה."
-          badge={`${transparency.transparency_score ?? trust.trust_score ?? 0}/100`}
-          badgeTone={parentTrustTone(Number(transparency.transparency_score ?? trust.trust_score ?? 0))}
-          actions={<><Link className="button primary" href="/dashboard/garden/messages">תקשורת הורים</Link><Link className="button secondary" href="/dashboard/garden/parents">הורים</Link></>}
-        >
-          <div className="setup-checklist">
-            <span>{trust.gardens?.name ?? "הגן שלי"}</span>
-            <span>{trustBadgeLabel(trust.trust_badge_status)}</span>
-            <span>מידע פנימי נשאר פנימי</span>
-          </div>
-        </PremiumDashboardHero>
+    <DashboardShell role="manager" title="אמון הורים" appHome>
+      <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "רונית"}`} subtitle={trust.gardens?.name ?? "אמון ושקיפות"} avatarUrl={(profile as any).avatar_url ?? null} active="messages">
+        <TeacherPageTitle icon={ShieldCheck} title="מרכז אמון, שקיפות וקהילה" subtitle="תמונה אחת של אמון ההורים: עדכונים, בקשות, סקרים ואירועי קהילה" action={<Link className="button primary" href="/dashboard/garden/messages">תקשורת הורים</Link>} />
 
-        <section className="grid cols-4 dashboard-kpis">
-          <RoleMetricCard label="שקיפות" value={`${transparency.transparency_score ?? 0}/100`} tone={parentTrustTone(Number(transparency.transparency_score ?? 0))} />
-          <RoleMetricCard label="אמון" value={`${trust.trust_score ?? 0}/100`} tone={parentTrustTone(Number(trust.trust_score ?? 0))} />
-          <RoleMetricCard label="תקשורת" value={`${transparency.communication_quality_score ?? trust.response_score ?? 0}/100`} tone={parentTrustTone(Number(transparency.communication_quality_score ?? trust.response_score ?? 0))} />
-          <RoleMetricCard label="פניות פתוחות" value={openFeedback.length + openRequests.length} tone={openFeedback.length + openRequests.length ? "warn" : "good"} />
-          <RoleMetricCard label="תדירות עדכונים" value={`${transparency.update_frequency_score ?? 0}/100`} tone={parentTrustTone(Number(transparency.update_frequency_score ?? 0))} />
-          <RoleMetricCard label="מוכנות מסמכים" value={`${transparency.document_readiness_score ?? trust.compliance_score ?? 0}/100`} tone={parentTrustTone(Number(transparency.document_readiness_score ?? trust.compliance_score ?? 0))} />
-          <RoleMetricCard label="הודעות קהילה" value={announcements.length} tone="good" />
-          <RoleMetricCard label="סקרים" value={surveys.length} tone={surveys.some((survey) => survey.status === "active") ? "good" : "warn"} />
+        <TeacherStatsGrid>
+          <TeacherStatCard title="שקיפות" value={`${transparency.transparency_score ?? 0}/100`} hint="ציון" icon={Sparkles} tone={toneForTrust(transparency.transparency_score)} />
+          <TeacherStatCard title="אמון" value={`${trust.trust_score ?? 0}/100`} hint={trustBadgeLabel(trust.trust_badge_status)} icon={HeartHandshake} tone={toneForTrust(trust.trust_score)} />
+          <TeacherStatCard title="פניות פתוחות" value={openFeedback.length + openRequests.length} hint="דורש תגובה" icon={MessageSquareWarning} tone={openFeedback.length + openRequests.length ? "orange" : "green"} />
+          <TeacherStatCard title="הודעות קהילה" value={announcements.length} hint="עדכונים" icon={Megaphone} tone="purple" />
+        </TeacherStatsGrid>
+
+        <section className="teacher-children-layout">
+          <TeacherSection title="משוב ובקשות הורים" action={<Link href="/dashboard/garden/parents">הורים ›</Link>}>
+            {[...feedback, ...requests].length === 0 ? (
+              <TeacherEmptyState title="אין עדיין פניות אמון" text="משובים ובקשות הורים יופיעו כאן אחרי פתיחה." />
+            ) : (
+              <TeacherCompactList>
+                {[...feedback, ...requests].slice(0, 8).map((item) => (
+                  <TeacherCompactItem key={item.id} title={item.title} subtitle={date(item.created_at)} tone={["resolved", "closed"].includes(String(item.lifecycle_status)) ? "green" : "orange"} meta={statusLabel(item.lifecycle_status)} />
+                ))}
+              </TeacherCompactList>
+            )}
+          </TeacherSection>
+
+          <TeacherSection title="הודעות קהילה" action={<Link href="/dashboard/garden/messages">הודעות ›</Link>}>
+            {announcements.length === 0 ? (
+              <TeacherEmptyState title="אין הודעות קהילה" text="טיוטות ופרסומים להורים יוצגו כאן." />
+            ) : (
+              <TeacherCompactList>
+                {announcements.slice(0, 6).map((item) => (
+                  <TeacherCompactItem key={item.id} title={item.title} subtitle={item.published ? `פורסם ${date(item.published_at)}` : "טיוטה"} tone={item.published ? "green" : "purple"} meta={item.announcement_type} />
+                ))}
+              </TeacherCompactList>
+            )}
+          </TeacherSection>
         </section>
 
-        <section className="grid cols-2 dashboard-panels">
-          <article className="card action-panel">
-            <h2><Sparkles size={20} /> המלצות אמון</h2>
-            <div className="parent-trust-list">
-              <span>{transparency.explanation ?? "עדיין אין הסבר מדד. לאחר חישוב שקיפות יוצגו כאן גורמים לשיפור."}</span>
-              <span>{openFeedback.length ? `יש ${openFeedback.length} משובים שדורשים תגובה.` : "אין משובים פתוחים."}</span>
-              <span>{openRequests.length ? `יש ${openRequests.length} בקשות הורים פתוחות.` : "אין בקשות הורים פתוחות."}</span>
-            </div>
-          </article>
-          <article className="card action-panel">
-            <h2><ShieldCheck size={20} /> שקיפות בטוחה</h2>
-            <div className="parent-trust-list">
-              <span>להורים מוצגים רק סיכומים מאושרים.</span>
-              <span>חקירות פנימיות, אירועי AI גולמיים ומידע אישי אינם מוצגים.</span>
-              <span>פניות ותגובות נשמרות עם היסטוריה מסודרת.</span>
-            </div>
-          </article>
-        </section>
+        <TeacherSection title="סקרים, אירועים ודוחות">
+          <TeacherCompactList>
+            <TeacherCompactItem title="סקרים פעילים" subtitle="מדידת שביעות רצון ואמון" tone={surveys.some((survey) => survey.status === "active") ? "green" : "orange"} meta={surveys.length} />
+            <TeacherCompactItem title="אירועי קהילה" subtitle={calendar[0] ? `${calendar[0].title} · ${date(calendar[0].starts_at)}` : "אין אירועים קרובים"} tone="blue" meta={calendar.length} />
+            <TeacherCompactItem title="דוחות אמון" subtitle={reports[0] ? `${date(reports[0].period_start)} - ${date(reports[0].period_end)}` : "טרם הופקו דוחות"} tone="purple" meta={reports.length} />
+          </TeacherCompactList>
+        </TeacherSection>
 
-        <section className="grid cols-2 dashboard-panels">
-          <article className="card action-panel">
-            <h2><MessageSquareWarning size={20} /> משוב ובקשות הורים</h2>
-            {[...feedback, ...requests].length === 0 ? <div className="empty-mini">אין עדיין פניות אמון.</div> : [...feedback, ...requests].slice(0, 10).map((item) => (
-              <div className="list-item" key={item.id}>
-                <div><strong>{item.title}</strong><span>{date(item.created_at)}</span></div>
-                <StatusBadge tone={parentTrustTone(item.lifecycle_status)}>{statusLabel(item.lifecycle_status)}</StatusBadge>
-              </div>
-            ))}
-          </article>
-          <article className="card action-panel">
-            <h2><Megaphone size={20} /> הודעות קהילה</h2>
-            {announcements.length === 0 ? <div className="empty-mini">אין הודעות קהילה.</div> : announcements.map((item) => (
-              <div className="list-item" key={item.id}>
-                <div><strong>{item.title}</strong><span>{item.published ? `פורסם ${date(item.published_at)}` : "טיוטה"}</span></div>
-                <StatusBadge tone={item.published ? "good" : "warn"}>{item.announcement_type}</StatusBadge>
-              </div>
-            ))}
-          </article>
-        </section>
+        <TeacherAiInsight metric={`${score}/100`}>
+          להורים מוצגים רק סיכומים מאושרים. חקירות פנימיות, אירועי AI גולמיים ומידע אישי אינם מוצגים.
+        </TeacherAiInsight>
 
-        <CleanSection title="סקרים, אירועים ודוחות" subtitle="כלים למדידת אמון וקהילה בלי להציף את ההורים.">
-          <section className="grid cols-3 dashboard-panels">
-            <article className="card action-panel">
-              <h2><HeartHandshake size={20} /> סקרים</h2>
-              {surveys.length === 0 ? <EmptyState title="אין סקרים" text="סקרי אמון ושביעות רצון יופיעו כאן." /> : surveys.map((survey) => <div className="list-item" key={survey.id}><div><strong>{survey.title}</strong><span>{survey.description}</span></div><StatusBadge tone={survey.status === "active" ? "good" : "warn"}>{survey.status}</StatusBadge></div>)}
-            </article>
-            <article className="card action-panel">
-              <h2><CalendarDays size={20} /> לוח קהילה</h2>
-              {calendar.length === 0 ? <EmptyState title="אין אירועים" text="אירועים וימי קהילה יופיעו כאן." /> : calendar.map((event) => <div className="list-item" key={event.id}><div><strong>{event.title}</strong><span>{date(event.starts_at)}</span></div><StatusBadge tone={event.visible_to_parents ? "good" : "warn"}>{event.event_type}</StatusBadge></div>)}
-            </article>
-            <article className="card action-panel">
-              <h2><ShieldCheck size={20} /> דוחות אמון</h2>
-              {reports.length === 0 ? <EmptyState title="אין דוחות עדיין" text="דוח חודשי יופיע לאחר הפקת מדדים." /> : reports.map((report) => <div className="list-item" key={report.id}><div><strong>{report.report_type}</strong><span>{date(report.period_start)} - {date(report.period_end)}</span></div><StatusBadge tone={parentTrustTone(Number(report.trust_score ?? 0))}>{report.trust_score}/100</StatusBadge></div>)}
-            </article>
-          </section>
-        </CleanSection>
-
-        <section className="quick-actions-grid">
-          <ActionCard title="הודעות להורים" text="ניהול תקשורת" href="/dashboard/garden/messages" icon={Megaphone} />
-          <ActionCard title="בקשות הורים" text="פניות ותגובות" href="/dashboard/garden/parents" icon={MessageSquareWarning} />
-          <ActionCard title="מסמכים" text="שקיפות וציות" href="/dashboard/garden/documents" icon={ShieldCheck} />
-          <ActionCard title="פיקוח" text="ביקורות וסיכומים" href="/dashboard/garden/inspections" icon={CalendarDays} />
-        </section>
-      </div>
+        <TeacherQuickActions title="פעולות אמון">
+          <TeacherActionTile title="הודעות להורים" href="/dashboard/garden/messages" icon={Megaphone} tone="purple" />
+          <TeacherActionTile title="הורים" href="/dashboard/garden/parents" icon={MessageSquareWarning} tone="blue" />
+          <TeacherActionTile title="מסמכים" href="/dashboard/garden/documents" icon={ShieldCheck} tone="green" />
+          <TeacherActionTile title="פיקוח" href="/dashboard/garden/inspections" icon={CalendarDays} tone="orange" />
+        </TeacherQuickActions>
+      </TeacherAppFrame>
     </DashboardShell>
   );
 }

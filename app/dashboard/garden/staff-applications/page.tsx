@@ -1,5 +1,6 @@
-import { BriefcaseBusiness, CheckCircle2, FileCheck2, Plus, ShieldCheck, UserRoundCheck, UsersRound } from "lucide-react";
+import { BriefcaseBusiness, CheckCircle2, FileCheck2, Plus, ShieldCheck, UsersRound } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
+import { StaffApplicationActionButtons } from "@/components/garden-request-action-buttons";
 import { ApplicationDecisionForm, StaffOpeningForm } from "@/components/self-service-forms";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
@@ -74,10 +75,7 @@ export default async function GardenStaffApplicationsPage() {
                 <TeacherCompactItem title="תפקיד מבוקש" subtitle={selected.requested_role ?? selected.kindergarten_staff_openings?.role_needed ?? "צוות גן"} tone="purple" meta={<BriefcaseBusiness size={16} />} />
                 <TeacherCompactItem title="מסמכים" subtitle={`${Object.keys(selected.staff_candidate_profiles?.document_status ?? {}).length} פריטים הועלו`} tone="blue" meta={<FileCheck2 size={16} />} />
                 <TeacherCompactItem title="סטטוס גישה" subtitle="אין גישה לילדים או למסמכים לפני אישור מנהלת" tone="green" meta={<ShieldCheck size={16} />} />
-                <div className="teacher-request-actions">
-                  <button className="teacher-soft-button purple" type="button"><UserRoundCheck size={18} /> אישור מועמד/ת</button>
-                  <button className="teacher-soft-button orange" type="button"><FileCheck2 size={18} /> בקשת מסמכים</button>
-                </div>
+                <StaffApplicationActionButtons applicationId={selected.id} />
               </div>
             ) : (
               <TeacherEmptyState title="אין מועמד להצגה" text="מועמדויות חדשות יוצגו כאן עם סטטוס ופעולות." />
