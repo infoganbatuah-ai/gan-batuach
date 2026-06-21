@@ -5,7 +5,7 @@ import { DashboardFilterChip } from "@/components/dashboard-filter-chip";
 import { requireRole } from "@/lib/auth";
 import { safeAdminData, logSupabaseError } from "@/lib/admin-safe";
 import { createClient } from "@/lib/supabase/server";
-import { Camera, CameraOff, Eye, Plus, ShieldCheck, Video } from "lucide-react";
+import { Camera, CameraOff, Eye, LockKeyhole, PlayCircle, Plus, RadioTower, ShieldCheck, Video } from "lucide-react";
 import {
   TeacherActionTile,
   TeacherAiInsight,
@@ -19,6 +19,29 @@ import {
   TeacherStatCard,
   TeacherStatsGrid
 } from "@/components/teacher-app-ui";
+
+function isCameraOnline(camera: any) {
+  return Boolean(camera.active) && ["online", "connected"].includes(String(camera.status ?? camera.stream_status ?? ""));
+}
+
+function cameraStatusLabel(camera: any) {
+  if (isCameraOnline(camera)) return "מחוברת ומוכנה";
+  if (camera.status === "pending_gateway" || camera.stream_status === "pending") return "ממתינה לחיבור";
+  if (camera.active === false) return "כבויה";
+  return "דורשת בדיקה";
+}
+
+function cameraStatusTone(camera: any) {
+  if (isCameraOnline(camera)) return "green";
+  if (camera.status === "pending_gateway" || camera.stream_status === "pending") return "orange";
+  return "red";
+}
+
+function cameraVisibilityLabel(camera: any) {
+  if (camera.parent_view_allowed || camera.parent_viewing_allowed) return "צפיית הורים מאושרת";
+  if (camera.parent_visibility_status === "pending_gateway") return "צפייה ממתינה ל-Gateway";
+  return "צפייה להורים חסומה";
+}
 
 export default async function GardenCameraSetupPage({ searchParams }: { searchParams: Promise<{ filter?: string; camera?: string; add?: string }> }) {
   const { profile } = await requireRole(["manager", "owner"]);
@@ -47,7 +70,7 @@ export default async function GardenCameraSetupPage({ searchParams }: { searchPa
   return (
     <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="מצלמות" appHome>
       <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "מאיה"}`} subtitle="אזור מצלמות גננת" avatarUrl={(profile as any).avatar_url ?? null} active="more">
-        <TeacherPageTitle icon={Camera} title="אזור מצלמות" subtitle="צפייה, חיבור והרשאות צפייה בטוחות" action={<a className="button primary" href="/dashboard/garden/cameras?add=1"><Plus size={18} /> הוספת מצלמה</a>} />
+        <TeacherPageTitle icon={Camera} title="אזור מצלמות" subtitle="צפייה, חיבור והרשאות צפייה בטוחות" action={<a className="button primary" href="/dashboard/garden/cameras?add=1#camera-management"><Plus size={18} /> הוספת מצלמה</a>} />
         <TeacherStatsGrid>
           <TeacherStatCard title="מצלמות" value={cameras.length} hint="בגן" icon={Video} tone="blue" />
           <TeacherStatCard title="מחוברות" value={online} hint="פעילות" icon={ShieldCheck} tone="green" />
@@ -57,18 +80,44 @@ export default async function GardenCameraSetupPage({ searchParams }: { searchPa
         <DashboardFilterChip label={filterLabel} clearHref="/dashboard/garden/cameras" isEmpty={cameras.length === 0} emptyTitle={filterLabel ? `אין כרגע ${filterLabel}` : undefined} emptyText="כל המצלמות במסנן הזה תקינות או שאין מצלמות מתאימות." />
         <AdminDataError message={result.error ?? result.data.queryError} />
 
-        <TeacherSection title="מצלמות הגן" subtitle={process.env.VIDEO_GATEWAY_URL ? "Gateway מחובר" : "ממתין לחיבור Gateway"}>
+        <TeacherSection title="גלריית מצלמות הגן" subtitle={process.env.VIDEO_GATEWAY_URL ? "Gateway מחובר לצפייה בטוחה" : "התצוגה מוכנה לחיבור Gateway, בלי לחשוף כתובות או סיסמאות"}>
           {cameras.length ? (
-            <TeacherCompactList>
-              {cameras.slice(0, 8).map((camera) => (
-                <TeacherCompactItem key={camera.id} title={camera.name ?? camera.area ?? "מצלמה"} subtitle={`${camera.area ?? "אזור לא צוין"} · ${camera.masked_connection_summary ?? camera.protocol ?? "חיבור מוסתר"}`} tone={camera.active && ["online", "connected"].includes(camera.status) ? "green" : "orange"} meta={camera.status ?? "ממתין"} />
-              ))}
-            </TeacherCompactList>
-          ) : <TeacherEmptyState title="עדיין אין מצלמות מחוברות" text="אפשר להכין חיבור מצלמה בלי לחשוף כתובת RTSP או סיסמאות בדפדפן." />}
+            <div className="ganenet-camera-gallery">
+              {cameras.map((camera) => {
+                const onlineCamera = isCameraOnline(camera);
+                const tone = cameraStatusTone(camera);
+                return (
+                  <article className={`ganenet-camera-card ${tone}`} key={camera.id}>
+                    <div className="ganenet-camera-preview">
+                      <span className={`ganenet-camera-signal ${onlineCamera ? "online" : ""}`} />
+                      <Camera size={42} />
+                      <strong>{camera.area ?? camera.camera_zone_label ?? camera.name ?? "מצלמת גן"}</strong>
+                      <small>{onlineCamera ? "צפייה זמינה דרך Gateway" : "תצוגה תיפתח לאחר חיבור"}</small>
+                    </div>
+                    <div className="ganenet-camera-info">
+                      <div className="ganenet-camera-heading">
+                        <b>{camera.name ?? "מצלמת גן"}</b>
+                        <span>{cameraStatusLabel(camera)}</span>
+                      </div>
+                      <div className="ganenet-camera-tags">
+                        <span><RadioTower size={15} /> {camera.protocol ?? camera.connection_method ?? "חיבור מאובטח"}</span>
+                        <span><Eye size={15} /> {cameraVisibilityLabel(camera)}</span>
+                        <span><LockKeyhole size={15} /> {camera.masked_connection_summary ? "פרטי חיבור מוסתרים" : "ללא חשיפת סיסמאות"}</span>
+                      </div>
+                      <div className="ganenet-camera-actions">
+                        <a href={`/dashboard/garden/cameras?camera=${camera.id}#camera-management`}><PlayCircle size={16} /> ניהול וצפייה</a>
+                        <a href="/dashboard/garden/camera-health"><ShieldCheck size={16} /> בדיקת חיבור</a>
+                      </div>
+                    </div>
+                  </article>
+                );
+              })}
+            </div>
+          ) : <TeacherEmptyState title="עדיין אין מצלמות מחוברות" text="אפשר להכין חיבור מצלמה בלי לחשוף כתובת RTSP או סיסמאות בדפדפן." action={<a className="button primary" href="/dashboard/garden/cameras?add=1#camera-management"><Plus size={18} /> הוספת מצלמה ראשונה</a>} />}
         </TeacherSection>
 
         <TeacherQuickActions title="פעולות מצלמה">
-          <TeacherActionTile title="הוספת מצלמה" href="/dashboard/garden/cameras?add=1" icon={Plus} tone="purple" />
+          <TeacherActionTile title="הוספת מצלמה" href="/dashboard/garden/cameras?add=1#camera-management" icon={Plus} tone="purple" />
           <TeacherActionTile title="מצלמות תקולות" href="/dashboard/garden/cameras?filter=issues" icon={CameraOff} tone="orange" />
           <TeacherActionTile title="הרשאות צפייה" href="/dashboard/garden/camera-health" icon={ShieldCheck} tone="green" />
         </TeacherQuickActions>
@@ -77,7 +126,7 @@ export default async function GardenCameraSetupPage({ searchParams }: { searchPa
           אין חשיפת RTSP או סיסמאות במסך הגננת. צפייה להורים נפתחת רק לפי מדיניות והרשאה.
         </TeacherAiInsight>
 
-        <details className="teacher-management-details">
+        <details className="teacher-management-details" id="camera-management" open={params.add === "1" || Boolean(params.camera)}>
           <summary>ניהול מצלמות מלא</summary>
           <CameraAdminManager cameras={cameras} gardens={result.data.gardens as any[]} gatewayConnected={Boolean(process.env.VIDEO_GATEWAY_URL)} defaultOpenAdd={params.add === "1"} />
         </details>

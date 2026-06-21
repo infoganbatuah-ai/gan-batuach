@@ -53,7 +53,7 @@ export function TeacherAppFrame({
         </div>
 
         <div className="ganenet-profile-actions">
-          <a className="ganenet-avatar" href="/dashboard/profile" aria-label="פרופיל">
+          <a className="ganenet-avatar" href="/dashboard/garden/settings" aria-label="פרופיל">
             {avatarUrl ? <img src={avatarUrl} alt="" /> : <img src="/assets/teacher-avatar.svg" alt="" />}
           </a>
           <ChevronDown className="ganenet-profile-chevron" size={28} />

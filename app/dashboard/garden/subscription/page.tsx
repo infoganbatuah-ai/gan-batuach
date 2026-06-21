@@ -10,6 +10,7 @@ import {
   TeacherAppFrame,
   TeacherCompactItem,
   TeacherCompactList,
+  TeacherEmptyState,
   TeacherPageTitle,
   TeacherSection,
   TeacherStatCard,
@@ -64,22 +65,22 @@ export default async function GardenSubscriptionPage() {
   const expectedMonthly = 800 + Math.max(0, classCount - 1) * 200;
 
   return (
-    <DashboardShell role={role} title="Subscription Center" appHome>
+    <DashboardShell role={role} title="מנוי גן בטוח" appHome>
       <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "מאיה"}`} subtitle="סיכום ותשלום מנוי" avatarUrl={(profile as any).avatar_url ?? null} active="more">
       <TeacherPageTitle icon={WalletCards} title="סיכום ותשלום" subtitle="מנוי גן בטוח בלבד — לא תשלומי הורים" />
       <AdminDataError message={data.errors.length ? "חלק מנתוני המנוי לא נטענו" : null} />
 
       {subscription?.status !== "active" ? (
-        <section className="warning-banner">
-          תשלום מנוי שנתי נדרש להפעלת המערכת.
-        </section>
+        <TeacherSection title="נדרש להשלים מנוי" subtitle="תשלום מנוי גן בטוח נדרש להפעלת המערכת המלאה.">
+          <span className="pill warn">הגן אושר — יש להשלים תשלום מנוי</span>
+        </TeacherSection>
       ) : null}
 
       {!subscription ? (
-        <section className="empty-state">
-          <strong>עדיין לא הוגדר מנוי לגן</strong>
-          <span>יש לבחור מסלול שנתי ולהשלים תשלום כדי לפתוח את כל יכולות המערכת.</span>
-        </section>
+        <TeacherEmptyState
+          title="עדיין לא הוגדר מנוי לגן"
+          text="יש לבחור מסלול שנתי ולהשלים תשלום כדי לפתוח את כל יכולות המערכת."
+        />
       ) : (
         <>
           <TeacherStatsGrid>

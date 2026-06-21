@@ -166,7 +166,7 @@ export default async function GardenAttendancePage({ searchParams }: { searchPar
           </div>
 
           <div className="ganenet-profile-actions">
-            <a className="ganenet-avatar" href="/dashboard/profile" aria-label="פרופיל">
+            <a className="ganenet-avatar" href="/dashboard/garden/settings" aria-label="פרופיל">
               <img src={avatarUrl} alt="" />
             </a>
             <ChevronDown className="ganenet-profile-chevron" size={28} />
