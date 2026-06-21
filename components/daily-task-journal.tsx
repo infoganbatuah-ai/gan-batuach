@@ -23,13 +23,28 @@ export function DailyTaskJournal({ tasks, completions, gardenId }: { tasks: Row[
 
   const byFrequency = ["daily", "weekly", "monthly"].map((frequency) => ({ frequency, rows: tasks.filter((task) => task.frequency === frequency) }));
   return <>
-    {message ? <div className="success-banner">{message}</div> : null}
-    <section className="card action-panel">
-      <h2>יומן תפעול</h2>
-      <p>צ׳קליסט יומי, שבועי וחודשי שמותאם לתפעול גן ילדים פרטי בישראל: בטיחות, נוכחות, היגיינה, מטבח, תרופות, חירום ועדכוני הורים.</p>
-      <div className="progress-bar"><span style={{ width: `${completionRate}%` }} /></div>
-      <div className="control-metrics"><span><b>{completionRate}%</b> הושלם</span><span><b>{done.size}/{tasks.length}</b> משימות</span><span><b>{tasks.length - done.size}</b> באיחור/ממתינות</span></div>
+    {message ? <div className="ganenet-success-banner">{message}</div> : null}
+    <section className="ganenet-card ganenet-module-panel">
+      <div className="ganenet-section-title"><h2>יומן תפעול</h2></div>
+      <p className="ganenet-module-subtitle">צ׳קליסט יומי, שבועי וחודשי שמותאם לתפעול גן ילדים פרטי בישראל: בטיחות, נוכחות, היגיינה, מטבח, תרופות, חירום ועדכוני הורים.</p>
+      <div className="ganenet-progress-bar"><span style={{ width: `${completionRate}%` }} /></div>
+      <div className="ganenet-control-metrics"><span><b>{completionRate}%</b> הושלם</span><span><b>{done.size}/{tasks.length}</b> משימות</span><span><b>{tasks.length - done.size}</b> ממתינות</span></div>
     </section>
-    {byFrequency.map((group) => <section className="card action-panel" key={group.frequency}><h2>{group.frequency === "daily" ? "משימות יומיות" : group.frequency === "weekly" ? "משימות שבועיות" : "משימות חודשיות"}</h2>{group.rows.length === 0 ? <div className="empty-mini">אין משימות בקבוצה זו.</div> : group.rows.map((task) => <div className="checklist-row" key={task.id}><label><input type="checkbox" checked={done.has(task.id)} onChange={() => complete(task)} /> <strong>{task.title}</strong><span>{task.description}</span></label><span className="pill">{task.category}</span></div>)}</section>)}
+    {byFrequency.map((group) => (
+      <section className="ganenet-card ganenet-module-panel" key={group.frequency}>
+        <div className="ganenet-section-title"><h2>{group.frequency === "daily" ? "משימות יומיות" : group.frequency === "weekly" ? "משימות שבועיות" : "משימות חודשיות"}</h2></div>
+        {group.rows.length === 0 ? <div className="ganenet-empty-mini">אין משימות בקבוצה זו.</div> : (
+          <div className="ganenet-module-list">
+            {group.rows.map((task) => (
+              <label className="ganenet-checklist-row" key={task.id}>
+                <input type="checkbox" checked={done.has(task.id)} onChange={() => complete(task)} />
+                <span><strong>{task.title}</strong><small>{task.description}</small></span>
+                <em>{task.category}</em>
+              </label>
+            ))}
+          </div>
+        )}
+      </section>
+    ))}
   </>;
 }

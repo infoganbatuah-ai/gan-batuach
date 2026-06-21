@@ -1,9 +1,19 @@
 import Link from "next/link";
 import { Activity, AlertTriangle, Baby, FileText, HeartPulse, MessageCircle, ShieldCheck, Sparkles } from "lucide-react";
-import { Avatar } from "@/components/avatar";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { AdminDataError } from "@/components/admin-data-state";
-import { CleanSection, EmptyState, PremiumDashboardHero, RoleMetricCard, StatusBadge } from "@/components/premium-dashboard";
+import {
+  TeacherActionTile,
+  TeacherAppFrame,
+  TeacherCompactItem,
+  TeacherCompactList,
+  TeacherEmptyState,
+  TeacherPageTitle,
+  TeacherQuickActions,
+  TeacherSection,
+  TeacherStatCard,
+  TeacherStatsGrid
+} from "@/components/teacher-app-ui";
 import { requireRole } from "@/lib/auth";
 import { logSupabaseError, safeAdminData } from "@/lib/admin-safe";
 import { createClient } from "@/lib/supabase/server";
@@ -37,7 +47,7 @@ export default async function GardenChildTimelinePage({ params }: { params: Prom
 
   const data = result.data;
   if (!data.child) {
-    return <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="ציר ילד"><EmptyState title="לא נמצא ילד" text="ייתכן שהילד לא שייך לגן שלך." action={<Link className="button primary" href="/dashboard/garden/children">חזרה לילדים</Link>} /></DashboardShell>;
+    return <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="ציר ילד"><TeacherEmptyState title="לא נמצא ילד" text="ייתכן שהילד לא שייך לגן שלך." action={<Link className="teacher-soft-button purple" href="/dashboard/garden/children">חזרה לילדים</Link>} /></DashboardShell>;
   }
 
   const parentVisible = data.timeline.filter((item) => item.parent_visible && !item.internal_only);
@@ -51,81 +61,69 @@ export default async function GardenChildTimelinePage({ params }: { params: Prom
   }, new Map<string, any[]>());
 
   return (
-    <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="ציר בטיחות ילד">
-      <div className="commercial-dashboard child-timeline-shell">
-        <PremiumDashboardHero
-          eyebrow="Child Safety Timeline"
-          title={`ציר בטיחות של ${data.child.full_name}`}
-          subtitle="כל מה שקרה לילד/ה במקום אחד: נוכחות, בריאות, אירועים, מסמכים, הודעות, איסוף ותיקי בדיקה. זהו תיק תפעולי, לא פרופיל אישי."
-          badge={`${data.record?.current_safety_score ?? 100}/100`}
-          badgeTone={timelineTone(undefined, incidents.length ? "attention" : "routine")}
-          actions={<><Link className="button primary" href={`/dashboard/garden/messages?childId=${data.child.id}`}>הודעה להורה</Link><Link className="button secondary" href={`/dashboard/garden/children/${data.child.id}`}>כרטיס ילד</Link></>}
-        >
-          <div className="child-timeline-hero-card">
-            <Avatar name={data.child.full_name} src={data.child.photo_url ?? data.child.face_image_url} />
-            <span>{data.child.classroom ?? data.child.age_group ?? "קבוצה לא הוגדרה"}</span>
-          </div>
-        </PremiumDashboardHero>
+    <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="ציר בטיחות ילד" appHome>
+      <TeacherAppFrame
+        title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "רונית"}`}
+        subtitle={`ציר בטיחות של ${data.child.full_name}`}
+        avatarUrl={(profile as any).avatar_url ?? null}
+        active="children"
+      >
+        <TeacherPageTitle
+          icon={Baby}
+          title={`כרטיס זמן של ${data.child.full_name}`}
+          subtitle={`${data.child.classroom ?? data.child.age_group ?? "קבוצה לא הוגדרה"} · אירועים, בריאות, איסוף ועדכונים במקום אחד.`}
+          action={<Link className="teacher-soft-button purple" href={`/dashboard/garden/children/${data.child.id}`}>כרטיס ילד</Link>}
+        />
         <AdminDataError message={result.error ?? data.queryError} />
 
-        <section className="grid cols-4 dashboard-kpis">
-          <RoleMetricCard label="אירועים בציר" value={data.timeline.length} tone={data.timeline.length ? "good" : "warn"} />
-          <RoleMetricCard label="היום" value={today.length} hint="עדכונים" tone={today.length ? "good" : "warn"} />
-          <RoleMetricCard label="גלוי להורים" value={parentVisible.length} tone="good" />
-          <RoleMetricCard label="תיקי בדיקה" value={data.cases.length} tone={data.cases.length ? "warn" : "good"} />
-          <RoleMetricCard label="בריאות" value={health.length} tone={health.length ? "warn" : "good"} />
-          <RoleMetricCard label="אירועים" value={incidents.length} tone={incidents.length ? "bad" : "good"} />
-          <RoleMetricCard label="חוסרים" value={data.record?.missing_update_count ?? 0} tone={data.record?.missing_update_count ? "warn" : "good"} />
-          <RoleMetricCard label="עדכון אחרון" value={data.record?.last_event_at ? eventDateText(data.record.last_event_at) : "-"} tone="default" />
-        </section>
+        <TeacherStatsGrid>
+          <TeacherStatCard title="אירועים בציר" value={data.timeline.length} icon={Sparkles} tone={data.timeline.length ? "green" : "orange"} />
+          <TeacherStatCard title="היום" value={today.length} hint="עדכונים" icon={Activity} tone={today.length ? "green" : "orange"} />
+          <TeacherStatCard title="גלוי להורים" value={parentVisible.length} icon={MessageCircle} tone="green" />
+          <TeacherStatCard title="תיקי בדיקה" value={data.cases.length} icon={AlertTriangle} tone={data.cases.length ? "orange" : "green"} />
+        </TeacherStatsGrid>
 
-        <section className="grid cols-2 dashboard-panels">
-          <article className="card action-panel">
-            <h2><Sparkles size={20} /> סיכום בטוח</h2>
-            <p>{data.record?.daily_summary ?? "עדיין אין סיכום יומי. הסיכום משתמש רק באירועי ציר הזמן."}</p>
-            <div className="child-question-grid">{childTimelineQuestions.map((question) => <Link href={`/dashboard/garden/children/${data.child.id}/timeline`} key={question}>{question}</Link>)}</div>
-          </article>
-          <article className="card action-panel">
-            <h2><ShieldCheck size={20} /> כללי פרטיות</h2>
-            <div className="setup-checklist">{childTimelinePrivacyRules.map((rule) => <span key={rule}>{rule}</span>)}</div>
-          </article>
-        </section>
+        <TeacherSection title="סיכום בטוח" subtitle="מידע תפעולי למנהלת בלבד. הורים רואים רק מה שאושר.">
+          <p className="ganenet-module-subtitle">{data.record?.daily_summary ?? "עדיין אין סיכום יומי. הסיכום משתמש רק באירועי ציר הזמן."}</p>
+          <TeacherCompactList>
+            {childTimelinePrivacyRules.slice(0, 4).map((rule) => <TeacherCompactItem key={rule} title={rule} tone="purple" />)}
+          </TeacherCompactList>
+        </TeacherSection>
 
-        <CleanSection title="ציר זמן מלא" subtitle="למנהלת מוצגים גם אירועים פנימיים. הורים רואים רק מה שאושר.">
-          {data.timeline.length === 0 ? <EmptyState title="אין עדיין אירועים בציר" text="עדכונים מהגן, בריאות, איסוף ומסמכים יופיעו כאן." /> : (
-            <div className="child-timeline-days">
-              {Array.from(grouped.entries()).map(([date, items]: [string, any[]]) => <section className="child-timeline-day" key={date}>
-                <h3>{date === "unknown" ? "ללא תאריך" : new Date(date).toLocaleDateString("he-IL")}</h3>
-                <div className="child-timeline-list">{items.map((item: any) => <article className={`child-timeline-item ${timelineTone(item.event_category, item.safety_relevance)}`} key={item.id}>
-                  <time>{eventTimeText(item.event_time)}</time>
-                  <div>
-                    <strong>{item.title}</strong>
-                    <span>{item.description ?? item.summary_safe ?? ""}</span>
-                    <small>{timelineCategoryLabel(item.event_category)} · {item.parent_visible ? "גלוי להורים" : "פנימי"}</small>
-                  </div>
-                  <StatusBadge tone={timelineTone(item.event_category, item.safety_relevance)}>{timelineCategoryLabel(item.event_category)}</StatusBadge>
-                </article>)}</div>
-              </section>)}
-            </div>
+        <TeacherQuickActions title="פעולות ילד">
+          <TeacherActionTile title="הודעה להורה" href={`/dashboard/garden/messages?childId=${data.child.id}`} icon={MessageCircle} tone="purple" />
+          <TeacherActionTile title="כרטיס ילד" href={`/dashboard/garden/children/${data.child.id}`} icon={Baby} tone="blue" />
+          <TeacherActionTile title="בריאות" href={`/dashboard/garden/health?childId=${data.child.id}`} icon={HeartPulse} tone="green" />
+        </TeacherQuickActions>
+
+        <TeacherSection title="ציר זמן מלא" subtitle="כל העדכונים נשארים מסודרים לפי ימים.">
+          {data.timeline.length === 0 ? <TeacherEmptyState title="אין עדיין אירועים בציר" text="עדכונים מהגן, בריאות, איסוף ומסמכים יופיעו כאן." /> : (
+            <TeacherCompactList>
+              {Array.from(grouped.entries()).flatMap(([date, items]: [string, any[]]) => [
+                <TeacherCompactItem key={`day-${date}`} title={date === "unknown" ? "ללא תאריך" : new Date(date).toLocaleDateString("he-IL")} subtitle="יום בציר הזמן" tone="neutral" />,
+                ...items.map((item: any) => (
+                  <TeacherCompactItem
+                    key={item.id}
+                    title={item.title}
+                    subtitle={`${eventTimeText(item.event_time)} · ${timelineCategoryLabel(item.event_category)} · ${item.parent_visible ? "גלוי להורים" : "פנימי"}`}
+                    meta={item.description ?? item.summary_safe ?? ""}
+                    tone={timelineTone(item.event_category, item.safety_relevance) === "bad" ? "red" : timelineTone(item.event_category, item.safety_relevance) === "warn" ? "orange" : "purple"}
+                  />
+                ))
+              ])}
+            </TeacherCompactList>
           )}
-        </CleanSection>
+        </TeacherSection>
 
-        <section className="grid cols-2 dashboard-panels">
-          <article className="card action-panel">
-            <h2><AlertTriangle size={20} /> תיקי אירוע</h2>
-            {data.cases.length === 0 ? <div className="empty-mini">אין תיקי אירוע לילד/ה.</div> : data.cases.map((item) => <div className="list-item" key={item.id}><div><strong>{item.case_number}</strong><span>{item.title}</span></div><StatusBadge tone={timelineTone("incidents", item.severity === "critical" ? "incident" : "attention")}>{item.status}</StatusBadge></div>)}
-          </article>
-          <article className="card action-panel">
-            <h2><HeartPulse size={20} /> בריאות ותפעול</h2>
-            <div className="risk-list">
-              <div><Activity /> נוכחות <b>{data.record?.attendance_trend?.present_days_30d ?? 0} ימים ב-30 יום</b></div>
-              <div><HeartPulse /> תרופות <b>{data.record?.health_trend?.medicine_events ?? 0}</b></div>
-              <div><Baby /> אלרגיות <b>{data.child.allergies || "אין"}</b></div>
-              <div><FileText /> עדכונים להורים <b>{parentVisible.length}</b></div>
-            </div>
-          </article>
-        </section>
-      </div>
+        <TeacherSection title="בריאות ותפעול">
+          <TeacherCompactList>
+            <TeacherCompactItem title="נוכחות" subtitle={`${data.record?.attendance_trend?.present_days_30d ?? 0} ימים ב-30 יום`} tone="green" />
+            <TeacherCompactItem title="תרופות" subtitle={`${data.record?.health_trend?.medicine_events ?? 0} אירועים`} tone="orange" />
+            <TeacherCompactItem title="אלרגיות" subtitle={data.child.allergies || "אין"} tone={data.child.allergies ? "red" : "green"} />
+            <TeacherCompactItem title="עדכונים להורים" subtitle={`${parentVisible.length} פריטים`} tone="blue" />
+          </TeacherCompactList>
+        </TeacherSection>
+      </TeacherAppFrame>
     </DashboardShell>
   );
 }

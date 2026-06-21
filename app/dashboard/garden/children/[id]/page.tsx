@@ -159,7 +159,7 @@ export default async function GardenChildProfilePage({ params }: { params: Promi
         <TeacherQuickActions title="פעולות מהירות">
           <TeacherActionTile title="שליחת הודעה להורים" href={`/dashboard/garden/messages?childId=${child.id}`} icon={MessageCircle} tone="purple" />
           <TeacherActionTile title="עדכון פרטים" href={`/dashboard/garden/children/${child.id}`} icon={FileText} tone="blue" />
-          <TeacherActionTile title="דיווח אירוע" href="/dashboard/garden/incidents" icon={AlertTriangle} tone="red" />
+          <TeacherActionTile title="דיווח אירוע" href={`/dashboard/garden/incidents?new=1#incident-workbench`} icon={AlertTriangle} tone="red" />
           <TeacherActionTile title="מעבר לכרטיס תשלומים" href="/dashboard/garden/finance" icon={CreditCard} tone="green" />
         </TeacherQuickActions>
 

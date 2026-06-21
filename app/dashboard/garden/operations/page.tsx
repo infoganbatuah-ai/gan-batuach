@@ -15,7 +15,18 @@ import {
   WalletCards
 } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
-import { ActionCard, CleanSection, EmptyState, PremiumDashboardHero, RoleMetricCard, StatusBadge } from "@/components/premium-dashboard";
+import {
+  TeacherActionTile,
+  TeacherAppFrame,
+  TeacherCompactItem,
+  TeacherCompactList,
+  TeacherEmptyState,
+  TeacherPageTitle,
+  TeacherQuickActions,
+  TeacherSection,
+  TeacherStatCard,
+  TeacherStatsGrid
+} from "@/components/teacher-app-ui";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -240,119 +251,89 @@ export default async function GardenOperationsPage() {
   ];
 
   return (
-    <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="מערכת הפעלה">
-      <div className="kos-shell">
-        <PremiumDashboardHero
-          eyebrow="Kindergarten OS"
-          title="מערכת ההפעלה של הגן"
-          subtitle="ילדים, צוות, הורים, פיקוח, ציות, תצפיתן וכספים במקום אחד ברור."
-          badge={`${healthScore}/100`}
-          badgeTone={healthTone}
-          actions={<><Link className="button primary" href="/dashboard/garden/tasks">משימות</Link><Link className="button secondary" href="/dashboard/garden/notifications">התראות</Link></>}
-        >
-          <span className={`kos-status ${healthTone}`}>{statusText(operationStatus)}</span>
-        </PremiumDashboardHero>
+    <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="מערכת הפעלה" appHome>
+      <TeacherAppFrame
+        title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "רונית"}`}
+        subtitle="מערכת ההפעלה של הגן"
+        avatarUrl={(profile as any).avatar_url ?? null}
+        active="more"
+      >
+        <TeacherPageTitle
+          icon={Bot}
+          title="מערכת הפעלה"
+          subtitle="כל מה שדורש טיפול היום: ילדים, צוות, הורים, פיקוח, תשלומים ותצפיתן."
+          action={<Link className="teacher-soft-button purple" href="/dashboard/garden/tasks">משימות</Link>}
+        />
 
-        <section className="kos-metrics">
-          <RoleMetricCard label="בריאות תפעולית" value={`${healthScore}/100`} hint="ציון גן כולל" tone={healthTone} />
-          <RoleMetricCard label="נוכחות ילדים" value={`${presentChildren}/${childCount}`} hint={`${attendanceCompletion}% הושלם`} tone={attendanceCompletion >= 90 ? "good" : "warn"} href="/dashboard/garden/attendance" />
-          <RoleMetricCard label="צוות מוכן" value={`${staffReady}/${staffCount}`} hint={`${staffPresent} במשמרת`} tone={staffReadiness >= 80 ? "good" : "warn"} href="/dashboard/garden/staff" />
-          <RoleMetricCard label="משימות פתוחות" value={unifiedTasks.length} hint="מכל המקורות" tone={unifiedTasks.length ? "warn" : "good"} href="/dashboard/garden/tasks" />
-          <RoleMetricCard label="התראות" value={communicationItems + observerIssues} hint="תקשורת ובטיחות" tone={communicationItems + observerIssues ? "warn" : "good"} href="/dashboard/garden/notifications" />
-        </section>
+        <TeacherStatsGrid>
+          <TeacherStatCard title="בריאות תפעולית" value={`${healthScore}/100`} hint={statusText(operationStatus)} icon={ShieldCheck} tone={healthScore >= 85 ? "green" : healthScore >= 65 ? "orange" : "red"} />
+          <TeacherStatCard title="נוכחות ילדים" value={`${presentChildren}/${childCount}`} hint={`${attendanceCompletion}% הושלם`} icon={Baby} tone={attendanceCompletion >= 90 ? "green" : "orange"} href="/dashboard/garden/attendance" />
+          <TeacherStatCard title="צוות מוכן" value={`${staffReady}/${staffCount}`} hint={`${staffPresent} במשמרת`} icon={UsersRound} tone={staffReadiness >= 80 ? "green" : "orange"} href="/dashboard/garden/staff" />
+          <TeacherStatCard title="התראות" value={communicationItems + observerIssues} hint="תקשורת ובטיחות" icon={Activity} tone={communicationItems + observerIssues ? "orange" : "green"} href="/dashboard/garden/notifications" />
+        </TeacherStatsGrid>
 
-        <CleanSection title="מה דורש טיפול עכשיו" subtitle="תמונה אחת של היום, בלי לקפוץ בין מסכים.">
-          <div className="kos-attention-grid">
+        <TeacherSection title="מה דורש טיפול עכשיו" subtitle="תמונה אחת של היום, בלי לקפוץ בין מסכים.">
+          <TeacherCompactList>
             {attentionItems.map((item) => (
-              <Link className={`kos-attention-card ${item.value ? "warn" : "good"}`} href={item.href} key={item.label}>
-                <small>{sourceLabel(item.source)}</small>
-                <strong>{item.value}</strong>
-                <span>{item.label}</span>
-              </Link>
+              <TeacherCompactItem
+                key={item.label}
+                title={item.label}
+                subtitle={sourceLabel(item.source)}
+                meta={item.value}
+                tone={item.value ? "orange" : "green"}
+                href={item.href}
+              />
             ))}
+          </TeacherCompactList>
+        </TeacherSection>
+
+        <TeacherSection title="משימות מכל המערכת" subtitle="פיקוח, ציות, מסמכים, תקשורת ואירועים בתור אחד.">
+          {unifiedTasks.length ? (
+            <TeacherCompactList>
+              {unifiedTasks.slice(0, 8).map((task) => (
+                <TeacherCompactItem
+                  key={`${task.source}-${task.id}`}
+                  title={task.title}
+                  subtitle={`${sourceLabel(task.source)} · ${statusLabel(task.status)} · ${dateText(task.due)}`}
+                  tone={task.priority === "high" ? "red" : "purple"}
+                  href={task.href}
+                />
+              ))}
+            </TeacherCompactList>
+          ) : (
+            <TeacherEmptyState title="אין משימות פתוחות" text="היום נראה מסודר. אם יעלה משהו חדש, הוא יופיע כאן." />
+          )}
+        </TeacherSection>
+
+        <TeacherQuickActions title="מרכזי פעולה">
+          {operationalAreas.slice(0, 5).map((area) => (
+            <TeacherActionTile key={area.title} title={area.title} href={area.href} icon={area.icon} tone={area.tone === "warn" ? "orange" : area.tone === "bad" ? "red" : "purple"} />
+          ))}
+        </TeacherQuickActions>
+
+        <TeacherSection title="קיצורי חיפוש" subtitle="גישה מהירה לכל אזורי הגן.">
+          <div className="ganenet-shortcut-grid">
+            {operationalAreas.slice(5).map((area) => {
+              const AreaIcon = area.icon;
+              return (
+                <Link className="ganenet-shortcut-tile" href={area.href} key={area.title}>
+                  <AreaIcon size={26} />
+                  <b>{area.title}</b>
+                  <small>{area.text}</small>
+                </Link>
+              );
+            })}
           </div>
-        </CleanSection>
+        </TeacherSection>
 
-        <section className="kos-two-column">
-          <CleanSection title="משימות מכל המערכת" subtitle="פיקוח, ציות, תצפיתן, מסמכים, תקשורת ואירועים בתור אחד.">
-            {unifiedTasks.length ? (
-              <div className="kos-task-list">
-                {unifiedTasks.map((task) => (
-                  <Link href={task.href} className="kos-task-row" key={`${task.source}-${task.id}`}>
-                    <span>{sourceLabel(task.source)}</span>
-                    <strong>{task.title}</strong>
-                    <small>{statusLabel(task.status)} · {dateText(task.due)}</small>
-                  </Link>
-                ))}
-              </div>
-            ) : (
-              <EmptyState title="אין משימות פתוחות" text="היום נראה מסודר. אם יעלה משהו חדש, הוא יופיע כאן." />
-            )}
-          </CleanSection>
-
-          <CleanSection title="עוזר תפעולי" subtitle="שאלות מוכנות למנהלת, מבוססות על נתוני הגן בלבד.">
-            <div className="kos-assistant-card">
-              <Bot />
-              <div>
-                {kosAssistantQuestions.map((question) => <Link href="/dashboard/garden/insights" key={question}>{question}</Link>)}
-              </div>
-            </div>
-          </CleanSection>
-        </section>
-
-        <CleanSection title="זרימות עבודה מחוברות" subtitle="אירוע הופך למשימה, הודעה, בדיקה וסגירה.">
-          <div className="kos-workflow-grid">
-            {kosWorkflowExamples.map((workflow) => (
-              <article className="kos-workflow-card" key={workflow.event}>
-                <StatusBadge tone="default">{workflow.event}</StatusBadge>
-                <span>{workflow.task}</span>
-                <span>{workflow.notification}</span>
-                <span>{workflow.review}</span>
-                <strong>{workflow.closure}</strong>
-              </article>
+        <TeacherSection title="עוזר תפעולי" subtitle="שאלות מוכנות למנהלת, מבוססות על נתוני הגן בלבד.">
+          <TeacherCompactList>
+            {kosAssistantQuestions.slice(0, 4).map((question) => (
+              <TeacherCompactItem key={question} title={question} subtitle="פתיחה בתובנות" tone="blue" href="/dashboard/garden/insights" />
             ))}
-          </div>
-        </CleanSection>
-
-        <CleanSection title="מרכזי פעולה" subtitle="כל תחום נשאר במקומו, אבל מתחבר לתפעול יומי אחד.">
-          <div className="kos-action-grid">
-            {operationalAreas.map((area) => <ActionCard key={area.title} title={area.title} text={area.text} href={area.href} icon={area.icon} tone={area.tone} />)}
-          </div>
-        </CleanSection>
-
-        <section className="kos-two-column">
-          <CleanSection title="חיפוש אחוד" subtitle="קיצורי חיפוש לכל אזורי הגן.">
-            <div className="kos-search-grid">
-              {[
-                { label: "ילדים", href: "/dashboard/garden/children", icon: Baby },
-                { label: "צוות", href: "/dashboard/garden/staff", icon: UsersRound },
-                { label: "הורים", href: "/dashboard/garden/parents", icon: MessageSquare },
-                { label: "מסמכים", href: "/dashboard/garden/documents", icon: FileText },
-                { label: "אירועים", href: "/dashboard/garden/incidents", icon: HeartPulse },
-                { label: "תצפיתן", href: "/dashboard/garden/observer-intelligence", icon: Sparkles }
-              ].map((item) => {
-                const SearchIcon = item.icon;
-                return <Link className="kos-search-card" href={item.href} key={item.label}><SearchIcon size={18} /><span>{item.label}</span></Link>;
-              })}
-            </div>
-          </CleanSection>
-          <CleanSection title="ציוני תפעול" subtitle="ציון ברור, לא קופסה שחורה.">
-            <div className="kos-score-list">
-              <span>נוכחות <b>{liveHealth.components.attendance}</b></span>
-              <span>ציות <b>{liveHealth.components.compliance}</b></span>
-              <span>פיקוח <b>{liveHealth.components.inspections}</b></span>
-              <span>אירועים <b>{liveHealth.components.incidents}</b></span>
-              <span>תקשורת <b>{liveHealth.components.communication}</b></span>
-              <span>תצפיתן <b>{liveHealth.components.observer}</b></span>
-            </div>
-          </CleanSection>
-        </section>
-
-        <div className="kos-mobile-note">
-          <ShieldCheck />
-          <span>המסך בנוי לטלפון, טאבלט ודסקטופ: פעולה מהירה, מעט טקסט, וקישורים ישרים למה שצריך לסגור.</span>
-        </div>
-      </div>
+          </TeacherCompactList>
+        </TeacherSection>
+      </TeacherAppFrame>
     </DashboardShell>
   );
 }

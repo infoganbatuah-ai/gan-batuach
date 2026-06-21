@@ -24,8 +24,9 @@ import {
   TeacherStatsGrid
 } from "@/components/teacher-app-ui";
 
-export default async function GardenReportsPage() {
+export default async function GardenReportsPage({ searchParams }: { searchParams: Promise<{ manage?: string }> }) {
   const { profile } = await requireRole(["manager", "owner"]);
+  const params = await searchParams;
   const supabase = await createClient();
   const gardenId = profile.garden_id ?? "";
   const today = new Date().toISOString().slice(0, 10);
@@ -94,10 +95,10 @@ export default async function GardenReportsPage() {
           <TeacherActionTile title="דוח נוכחות" href="/dashboard/garden/attendance" icon={UsersRound} tone="purple" />
           <TeacherActionTile title="לוח יום" href="/dashboard/garden/daily-journal" icon={CalendarDays} tone="blue" />
           <TeacherActionTile title="אירועים" href="/dashboard/garden/incidents" icon={ShieldCheck} tone="orange" />
-          <TeacherActionTile title="ייצוא וניהול" href="/dashboard/garden/reports" icon={FileText} tone="green" />
+          <TeacherActionTile title="ייצוא וניהול" href="/dashboard/garden/reports?manage=1#reports-workbench" icon={FileText} tone="green" />
         </TeacherQuickActions>
 
-        <details className="teacher-management-details">
+        <details className="teacher-management-details" id="reports-workbench" open={params.manage === "1"}>
           <summary>מרכז דוחות מלא</summary>
           <ReportsCenter exports={[]} />
         </details>

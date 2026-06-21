@@ -56,8 +56,8 @@ export function ChildDailyJournalManager({ gardenId, children, journals, initial
   }
 
   return (
-    <section className="grid cols-2 dashboard-panels">
-      <article className="card action-panel">
+    <section className="ganenet-module-split">
+      <article className="ganenet-module-panel">
         <div className="section-heading"><h2>ילדים להיום</h2><p>בחרו ילד, מלאו עדכון יומי קצר וברור ושלחו להורים.</p></div>
         {children.length === 0 ? <div className="empty-state"><strong>אין ילדים פעילים</strong><span>לאחר אישור רישום ילדים, הם יופיעו כאן ליומן יומי.</span></div> : <div className="child-card-list">{children.map((child) => {
           const latest = latestByChild.get(child.id);
@@ -69,7 +69,7 @@ export function ChildDailyJournalManager({ gardenId, children, journals, initial
         })}</div>}
       </article>
 
-      <form action={submit} className="card form wizard-form premium-form">
+      <form action={submit} className="ganenet-module-panel ganenet-journal-form">
         <div className="section-heading"><h2>עדכון יומי להורה</h2><p>כתבו קצר, חיובי ומדויק. הורה רואה רק את ילדו.</p></div>
         {message ? <div className={message.includes("נשמר") ? "success-banner" : "error-banner"}>{message}</div> : null}
         <input type="hidden" name="child_id" value={selectedChildId} />

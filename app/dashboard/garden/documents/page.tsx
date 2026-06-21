@@ -1,6 +1,7 @@
 import { DashboardShell } from "@/components/dashboard-shell";
 import { DashboardFilterChip } from "@/components/dashboard-filter-chip";
 import { ModuleListPage } from "@/components/module-list-page";
+import { GardenDocumentUploadPanel } from "@/components/garden-document-upload-panel";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { CheckCircle2, FileText, ShieldAlert, Upload } from "lucide-react";
@@ -17,7 +18,7 @@ import {
   TeacherStatsGrid
 } from "@/components/teacher-app-ui";
 
-export default async function GardenDocumentsPage({ searchParams }: { searchParams: Promise<{ filter?: string }> }) {
+export default async function GardenDocumentsPage({ searchParams }: { searchParams: Promise<{ filter?: string; upload?: string }> }) {
   const { profile } = await requireRole(["manager", "owner"]);
   const params = await searchParams;
   const supabase = await createClient();
@@ -63,11 +64,13 @@ export default async function GardenDocumentsPage({ searchParams }: { searchPara
         </TeacherSection>
 
         <TeacherQuickActions title="פעולות מסמכים">
-          <TeacherActionTile title="העלאת מסמך" href="/dashboard/garden/documents" icon={Upload} tone="purple" />
+          <TeacherActionTile title="העלאת מסמך" href="/dashboard/garden/documents?upload=1#document-upload" icon={Upload} tone="purple" />
           <TeacherActionTile title="דורשים טיפול" href="/dashboard/garden/documents?filter=missing" icon={ShieldAlert} tone="orange" />
         </TeacherQuickActions>
 
-        <details className="teacher-management-details">
+        <GardenDocumentUploadPanel gardenId={profile.garden_id ?? ""} documents={rows as any[]} defaultOpen={params.upload === "1"} />
+
+        <details className="teacher-management-details" open={params.upload === "1"}>
           <summary>ניהול מלא</summary>
           <ModuleListPage title="מרכז מסמכי גן" eyebrow="Document Center" description="מסמכי גן, צוות, ילדים, אישורי מצלמות, תברואה, בטיחות ותוקף." rows={rows} emptyTitle={params.filter === "missing" ? "אין כרגע מסמכים חסרים" : "אין מסמכים עדיין"} emptyText={params.filter === "missing" ? "אין מסמכים חסרים, דחויים או פגי תוקף כרגע." : "העלו מסמכים מתוך תהליך הקליטה או מרכז המסמכים. מסמכים חסרים יוצגו לאדמין ולפקח."} />
         </details>

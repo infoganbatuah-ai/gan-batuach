@@ -5,7 +5,23 @@ import { MessageCircleReply } from "lucide-react";
 import { Avatar } from "@/components/avatar";
 import { CollapsibleActionPanel } from "@/components/collapsible-action-panel";
 
-export function InternalMessagingCenter({ gardenId, recipients, messages, linkedChildren = [], preselectedChildId, preselectedRecipientId }: { gardenId?: string | null; recipients: any[]; messages: any[]; linkedChildren?: any[]; preselectedChildId?: string; preselectedRecipientId?: string }) {
+export function InternalMessagingCenter({
+  gardenId,
+  recipients,
+  messages,
+  linkedChildren = [],
+  preselectedChildId,
+  preselectedRecipientId,
+  defaultOpen = false
+}: {
+  gardenId?: string | null;
+  recipients: any[];
+  messages: any[];
+  linkedChildren?: any[];
+  preselectedChildId?: string;
+  preselectedRecipientId?: string;
+  defaultOpen?: boolean;
+}) {
   const [message, setMessage] = useState("");
   const [isPending, startTransition] = useTransition();
 
@@ -29,7 +45,7 @@ export function InternalMessagingCenter({ gardenId, recipients, messages, linked
 
   return (
     <section className="grid cols-2 dashboard-panels">
-      <CollapsibleActionPanel title="הודעה חדשה" description="פתחו את הטופס רק כשצריך לשלוח הודעה. השיחות האחרונות נשארות זמינות בצד." buttonLabel="יצירת הודעה חדשה" defaultOpen={messages.length === 0 || Boolean(preselectedChildId || preselectedRecipientId)}>
+      <CollapsibleActionPanel title="הודעה חדשה" description="פתחו את הטופס רק כשצריך לשלוח הודעה. השיחות האחרונות נשארות זמינות בצד." buttonLabel="יצירת הודעה חדשה" defaultOpen={defaultOpen || messages.length === 0 || Boolean(preselectedChildId || preselectedRecipientId)}>
         {({ close }) => <form action={async (formData) => { await submit(formData); close(); }} className="card form wizard-form">
         <div className="section-heading"><h2><MessageCircleReply size={20} /> הודעה חדשה</h2><p>בחרו נמען, נושא ותוכן. ההודעה נשמרת עם סטטוס קריאה וטיפול.</p></div>
         {message ? <div className={message.includes("נשלחה") ? "success-banner" : "error-banner"}>{message}</div> : null}

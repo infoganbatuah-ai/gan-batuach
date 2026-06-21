@@ -1,7 +1,15 @@
-import { BookOpenCheck } from "lucide-react";
-import { DashboardShell } from "@/components/dashboard-shell";
+import { Bell, BookOpenCheck, Moon, Utensils, UsersRound } from "lucide-react";
 import { ChildDailyJournalManager } from "@/components/child-daily-journal-manager";
 import { DashboardFilterChip } from "@/components/dashboard-filter-chip";
+import {
+  TeacherAppFrame,
+  TeacherPageTitle,
+  TeacherQuickActions,
+  TeacherActionTile,
+  TeacherSection,
+  TeacherStatCard,
+  TeacherStatsGrid
+} from "@/components/teacher-app-ui";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
@@ -25,11 +33,34 @@ export default async function GardenChildJournalPage({ searchParams }: { searchP
     return true;
   });
   const label = params.missing === "meal" ? "ילדים ללא עדכון ארוחה" : params.missing === "sleep" ? "ילדים ללא עדכון שינה" : null;
+  const allChildren = (childrenRes.data ?? []) as any[];
+  const missingMeal = allChildren.filter((child: any) => {
+    const journal = journalByChild.get(child.id) as any;
+    return !(Array.isArray(journal?.meals) && journal.meals.length > 0);
+  }).length;
+  const missingSleep = allChildren.filter((child: any) => {
+    const journal = journalByChild.get(child.id) as any;
+    return !journal?.sleep_summary;
+  }).length;
   return (
-    <DashboardShell role="manager" title="יומן ילד יומי">
-      <div className="dashboard-hero-card garden-hero-card"><div><p className="eyebrow">Child Daily Journal</p><h1>עדכון יומי אישי לכל ילד.</h1><p>ארוחות, שינה, מצב רוח, שירותים, תרופות, אירועים, תמונות וחתימת צוות להורים.</p></div><span className="pill good"><BookOpenCheck size={15} /> הורים מקבלים התראה</span></div>
+    <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "רונית"}`} subtitle="יומן יומי לילדים" avatarUrl={(profile as any).avatar_url ?? null} active="calendar">
+      <TeacherPageTitle icon={BookOpenCheck} title="יומן ילד יומי" subtitle="ארוחות, שינה, מצב רוח, תרופות ועדכונים להורים" />
+      <TeacherStatsGrid>
+        <TeacherStatCard title="ילדים" value={children.length} hint="לפי הסינון" icon={UsersRound} tone="blue" />
+        <TeacherStatCard title="ללא ארוחה" value={missingMeal} hint="דורש עדכון" icon={Utensils} tone={missingMeal ? "orange" : "green"} />
+        <TeacherStatCard title="ללא שינה" value={missingSleep} hint="דורש עדכון" icon={Moon} tone={missingSleep ? "purple" : "green"} />
+      </TeacherStatsGrid>
+      <TeacherQuickActions title="פעולות יומן">
+        <TeacherActionTile title="ללא ארוחה" href="/dashboard/garden/child-journal?missing=meal" icon={Utensils} tone="orange" />
+        <TeacherActionTile title="ללא שינה" href="/dashboard/garden/child-journal?missing=sleep" icon={Moon} tone="purple" />
+        <TeacherActionTile title="הודעה להורים" href="/dashboard/garden/messages?compose=1#message-workbench" icon={Bell} tone="blue" />
+      </TeacherQuickActions>
       <DashboardFilterChip label={label} clearHref="/dashboard/garden/child-journal" isEmpty={children.length === 0} emptyTitle={params.missing === "meal" ? "אין כרגע ילדים ללא עדכון ארוחה" : params.missing === "sleep" ? "אין כרגע ילדים ללא עדכון שינה" : undefined} emptyText="כל הילדים במסנן הזה כבר קיבלו עדכון. אפשר לנקות סינון כדי לראות את כולם." />
-      <ChildDailyJournalManager gardenId={gardenId} children={children} journals={journals} />
-    </DashboardShell>
+      <TeacherSection title="עדכון יומי" subtitle="טופס מלא לכל ילד, עם שמירה למערכת הקיימת">
+        <div className="teacher-embedded-module">
+          <ChildDailyJournalManager gardenId={gardenId} children={children} journals={journals} />
+        </div>
+      </TeacherSection>
+    </TeacherAppFrame>
   );
 }

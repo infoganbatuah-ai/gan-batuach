@@ -1,6 +1,14 @@
-import { GitBranch } from "lucide-react";
-import { DashboardShell } from "@/components/dashboard-shell";
+import { Bot, Camera, GitBranch, MapPinned } from "lucide-react";
 import { CorrelatedEventsPanel } from "@/components/correlated-events-panel";
+import {
+  TeacherAppFrame,
+  TeacherPageTitle,
+  TeacherQuickActions,
+  TeacherActionTile,
+  TeacherSection,
+  TeacherStatCard,
+  TeacherStatsGrid
+} from "@/components/teacher-app-ui";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
@@ -14,25 +22,36 @@ export default async function GardenCorrelatedEventsPage() {
     supabase.from("camera_streams" as any).select("id, name, garden_id, kindergarten_id").or(`garden_id.eq.${gardenId},kindergarten_id.eq.${gardenId}`).order("name").limit(200),
     supabase.from("camera_zones" as any).select("id, name, kindergarten_id, camera_id").eq("kindergarten_id", gardenId).order("name").limit(200)
   ]) : [{ data: [] }, { data: [] }, { data: [] }, { data: [] }];
+  const eventRows = (events.data ?? []) as any[];
+  const linkRows = (links.data ?? []) as any[];
+  const cameraRows = (cameras.data ?? []) as any[];
+  const zoneRows = (zones.data ?? []) as any[];
 
   return (
-    <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="צירי זמן">
-      <div className="dashboard-hero-card garden-hero-card">
-        <div>
-          <p className="eyebrow">תצפיתן דיגיטלי</p>
-          <h1>צירי זמן בין מצלמות וחיישנים.</h1>
-          <p>קישור אירועים בלבד. אין זיהוי זהות, אין מעקב ביומטרי ואין התראות הורים אוטומטיות.</p>
+    <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "רונית"}`} subtitle="צירי זמן תצפיתן" avatarUrl={(profile as any).avatar_url ?? null} active="more">
+      <TeacherPageTitle icon={GitBranch} title="צירי זמן" subtitle="קישור אירועים בין מצלמות ואזורים לבדיקה אנושית" />
+      <TeacherStatsGrid>
+        <TeacherStatCard title="אירועים" value={eventRows.length} hint="מקושרים" icon={GitBranch} tone="purple" />
+        <TeacherStatCard title="קישורים" value={linkRows.length} hint="בין מקורות" icon={Bot} tone="blue" />
+        <TeacherStatCard title="אזורים" value={zoneRows.length} hint="לניתוח" icon={MapPinned} tone="green" />
+      </TeacherStatsGrid>
+      <TeacherQuickActions title="פעולות ציר זמן">
+        <TeacherActionTile title="בקשות מעקב" href="/dashboard/garden/observer-watch" icon={MapPinned} tone="purple" />
+        <TeacherActionTile title="אירועי AI" href="/dashboard/garden/ai-events" icon={Bot} tone="blue" />
+        <TeacherActionTile title="מצלמות" href="/dashboard/garden/cameras" icon={Camera} tone="green" />
+      </TeacherQuickActions>
+      <TeacherSection title="צירי זמן לבדיקה" subtitle="אין זיהוי זהות ואין התראות הורים אוטומטיות">
+        <div className="teacher-embedded-module">
+          <CorrelatedEventsPanel
+            role="garden"
+            fixedKindergartenId={gardenId}
+            events={eventRows}
+            links={linkRows}
+            cameras={cameraRows}
+            zones={zoneRows}
+          />
         </div>
-        <span className="pill warn"><GitBranch size={15} /> בדיקת אדם</span>
-      </div>
-      <CorrelatedEventsPanel
-        role="garden"
-        fixedKindergartenId={gardenId}
-        events={(events.data ?? []) as any[]}
-        links={(links.data ?? []) as any[]}
-        cameras={(cameras.data ?? []) as any[]}
-        zones={(zones.data ?? []) as any[]}
-      />
-    </DashboardShell>
+      </TeacherSection>
+    </TeacherAppFrame>
   );
 }

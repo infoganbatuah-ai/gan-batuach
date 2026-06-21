@@ -17,7 +17,7 @@ import {
   TeacherStatsGrid
 } from "@/components/teacher-app-ui";
 
-export default async function GardenIncidentsPage({ searchParams }: { searchParams: Promise<{ status?: string }> }) {
+export default async function GardenIncidentsPage({ searchParams }: { searchParams: Promise<{ status?: string; new?: string }> }) {
   const { profile } = await requireRole(["manager", "owner"]);
   const params = await searchParams;
   const supabase = await createClient();
@@ -51,12 +51,12 @@ export default async function GardenIncidentsPage({ searchParams }: { searchPara
         ) : <TeacherEmptyState title="אין אירועים פתוחים" text="כשתפתחי דיווח חדש הוא יופיע כאן בצורה ברורה ומהירה." />}
       </TeacherSection>
       <TeacherQuickActions title="פעולות דיווח">
-        <TeacherActionTile title="דיווח חדש" href="/dashboard/garden/incidents" icon={Siren} tone="red" />
+        <TeacherActionTile title="דיווח חדש" href="/dashboard/garden/incidents?new=1#incident-workbench" icon={Siren} tone="red" />
         <TeacherActionTile title="דוחות" href="/dashboard/garden/inspections" icon={FileText} tone="blue" />
       </TeacherQuickActions>
-      <details className="teacher-management-details">
+      <details className="teacher-management-details" id="incident-workbench" open={params.new === "1"}>
         <summary>ניהול דיווחים מלא</summary>
-      <IncidentManager gardenId={gardenId} children={(childrenRes.data ?? []) as any[]} incidents={incidents} />
+      <IncidentManager gardenId={gardenId} children={(childrenRes.data ?? []) as any[]} incidents={incidents} defaultOpen={params.new === "1"} />
       </details>
       </TeacherAppFrame>
     </DashboardShell>
