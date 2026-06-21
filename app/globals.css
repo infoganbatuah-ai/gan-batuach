@@ -43,6 +43,195 @@
   --gb-container-desktop: 1240px;
 }
 
+.ganenet-camera-gallery {
+  display: grid;
+  gap: clamp(12px, 1.7vw, 18px);
+  grid-template-columns: repeat(auto-fit, minmax(245px, 1fr));
+  margin-top: 14px;
+}
+
+.ganenet-camera-card {
+  align-items: stretch;
+  background:
+    radial-gradient(circle at 18% 16%, rgba(124, 105, 255, .13), transparent 34%),
+    linear-gradient(180deg, rgba(255, 255, 255, .98), rgba(252, 251, 255, .94));
+  border: 1px solid rgba(132, 118, 235, .16);
+  border-radius: 24px;
+  box-shadow: 0 20px 44px rgba(41, 60, 126, .07), inset 0 1px 0 rgba(255, 255, 255, .92);
+  display: grid;
+  gap: 14px;
+  grid-template-columns: minmax(122px, .82fr) 1.18fr;
+  min-height: 196px;
+  overflow: hidden;
+  padding: 14px;
+}
+
+.ganenet-camera-preview {
+  align-items: center;
+  background:
+    linear-gradient(145deg, rgba(246, 243, 255, .96), rgba(255, 255, 255, .92));
+  border: 1px solid rgba(113, 87, 244, .13);
+  border-radius: 22px;
+  color: var(--ganenet-purple, #6f55f8);
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  min-height: 164px;
+  position: relative;
+  text-align: center;
+}
+
+.ganenet-camera-preview::after {
+  border: 1px dashed rgba(113, 87, 244, .2);
+  border-radius: 999px;
+  content: "";
+  height: 96px;
+  inset: 50% auto auto 50%;
+  opacity: .8;
+  position: absolute;
+  transform: translate(-50%, -50%);
+  width: 96px;
+}
+
+.ganenet-camera-preview svg,
+.ganenet-camera-preview strong,
+.ganenet-camera-preview small {
+  position: relative;
+  z-index: 1;
+}
+
+.ganenet-camera-preview strong {
+  color: var(--ganenet-navy, #08275f);
+  font-size: 17px;
+  font-weight: 900;
+  margin-top: 10px;
+}
+
+.ganenet-camera-preview small {
+  color: var(--ganenet-muted, #71809e);
+  font-size: 12px;
+  font-weight: 800;
+  margin-top: 3px;
+}
+
+.ganenet-camera-signal {
+  background: #f59e0b;
+  border: 3px solid #fff;
+  border-radius: 999px;
+  box-shadow: 0 8px 18px rgba(245, 158, 11, .24);
+  height: 16px;
+  left: 14px;
+  position: absolute;
+  top: 14px;
+  width: 16px;
+  z-index: 2;
+}
+
+.ganenet-camera-signal.online {
+  background: #22c55e;
+  box-shadow: 0 8px 18px rgba(34, 197, 94, .24);
+}
+
+.ganenet-camera-info {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  justify-content: space-between;
+  min-width: 0;
+}
+
+.ganenet-camera-heading {
+  display: grid;
+  gap: 4px;
+  text-align: right;
+}
+
+.ganenet-camera-heading b {
+  color: var(--ganenet-navy, #08275f);
+  font-size: 18px;
+  font-weight: 950;
+  line-height: 1.15;
+}
+
+.ganenet-camera-heading span {
+  color: var(--ganenet-muted, #71809e);
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.ganenet-camera-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+}
+
+.ganenet-camera-tags span {
+  align-items: center;
+  background: rgba(255, 255, 255, .78);
+  border: 1px solid rgba(113, 87, 244, .12);
+  border-radius: 999px;
+  color: #60708f;
+  display: inline-flex;
+  font-size: 11px;
+  font-weight: 850;
+  gap: 5px;
+  min-height: 30px;
+  padding: 5px 9px;
+}
+
+.ganenet-camera-tags svg {
+  color: var(--ganenet-purple, #6f55f8);
+}
+
+.ganenet-camera-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.ganenet-camera-actions a {
+  align-items: center;
+  background: linear-gradient(135deg, rgba(113, 87, 244, .11), rgba(255, 255, 255, .93));
+  border: 1px solid rgba(113, 87, 244, .18);
+  border-radius: 15px;
+  color: var(--ganenet-purple, #6f55f8);
+  display: inline-flex;
+  font-size: 12px;
+  font-weight: 950;
+  gap: 6px;
+  min-height: 38px;
+  padding: 8px 12px;
+  text-decoration: none;
+}
+
+.ganenet-camera-card.green .ganenet-camera-preview {
+  background:
+    radial-gradient(circle at 50% 45%, rgba(39, 220, 132, .22), transparent 44%),
+    linear-gradient(145deg, rgba(238, 255, 247, .96), rgba(255, 255, 255, .92));
+}
+
+.ganenet-camera-card.green .ganenet-camera-preview svg {
+  color: #22c55e;
+}
+
+.ganenet-camera-card.red .ganenet-camera-preview svg {
+  color: #ef477f;
+}
+
+@media (max-width: 760px) {
+  .ganenet-camera-gallery {
+    grid-template-columns: 1fr;
+  }
+
+  .ganenet-camera-card {
+    grid-template-columns: 1fr;
+  }
+
+  .ganenet-camera-preview {
+    min-height: 142px;
+  }
+}
+
 .ganenet-module-split {
   display: grid;
   gap: 18px;

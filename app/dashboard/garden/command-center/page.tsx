@@ -73,7 +73,7 @@ export default async function ManagerCommandCenterPage() {
 
         <TeacherQuickActions title="פעולות מרכזיות">
           <TeacherActionTile title="הוסף ילד" href="/dashboard/garden/children?new=1#new-child" icon={Plus} tone="purple" />
-          <TeacherActionTile title="הוספת מצלמה" href="/dashboard/garden/cameras?add=1" icon={Camera} tone="blue" />
+          <TeacherActionTile title="הוספת מצלמה" href="/dashboard/garden/cameras?add=1#camera-management" icon={Camera} tone="blue" />
           <TeacherActionTile title="בקשות הצטרפות" href="/dashboard/garden/enrollment-requests" icon={UsersRound} tone="orange" />
           <TeacherActionTile title="יעד תשלום" href="/dashboard/garden/finance?payout=1#payout-settings" icon={WalletCards} tone="green" />
           <TeacherActionTile title="חידוש מנוי" href="/dashboard/garden/subscription" icon={CreditCard} tone="purple" />

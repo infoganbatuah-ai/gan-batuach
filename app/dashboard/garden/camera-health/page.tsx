@@ -61,9 +61,9 @@ export default async function GardenCameraHealthPage() {
           <TeacherStatCard title="Gateway" value={summary.gatewayConfigured ? "מחובר" : "ממתין"} hint="מצב ספק" icon={RadioTower} tone={summary.gatewayConfigured ? "green" : "orange"} />
         </TeacherStatsGrid>
 
-        <TeacherSection title="אבחון מצלמות" action={<Link href="/dashboard/garden/cameras?add=1">הוספת מצלמה ›</Link>}>
+        <TeacherSection title="אבחון מצלמות" action={<Link href="/dashboard/garden/cameras?add=1#camera-management">הוספת מצלמה ›</Link>}>
           {diagnostics.length === 0 ? (
-            <TeacherEmptyState title="אין מצלמות עדיין" text="הוסיפו מצלמה ראשונה במסך ניהול מצלמות." action={<Link className="button primary" href="/dashboard/garden/cameras?add=1">הוספת מצלמה</Link>} />
+            <TeacherEmptyState title="אין מצלמות עדיין" text="הוסיפו מצלמה ראשונה במסך ניהול מצלמות." action={<Link className="button primary" href="/dashboard/garden/cameras?add=1#camera-management">הוספת מצלמה</Link>} />
           ) : (
             <TeacherCompactList>
               {diagnostics.slice(0, 8).map(({ camera, diagnostics: item }: any) => (
@@ -93,7 +93,7 @@ export default async function GardenCameraHealthPage() {
         </TeacherAiInsight>
 
         <TeacherQuickActions title="פעולות מצלמות">
-          <TeacherActionTile title="הוספת מצלמה" href="/dashboard/garden/cameras?add=1" icon={Camera} tone="purple" />
+          <TeacherActionTile title="הוספת מצלמה" href="/dashboard/garden/cameras?add=1#camera-management" icon={Camera} tone="purple" />
           <TeacherActionTile title="ניהול מצלמות" href="/dashboard/garden/cameras" icon={Video} tone="blue" />
           <TeacherActionTile title="מסמכי בטיחות" href="/dashboard/garden/documents" icon={ShieldCheck} tone="green" />
           <TeacherActionTile title="דוחות" href="/dashboard/garden/reports" icon={HardDrive} tone="orange" />
