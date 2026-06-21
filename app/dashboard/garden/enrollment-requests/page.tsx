@@ -1,5 +1,6 @@
-import { Baby, CalendarDays, CheckCircle2, CreditCard, FileText, Phone, UserPlus, UserRoundCheck, UsersRound, XCircle } from "lucide-react";
+import { Baby, CalendarDays, CheckCircle2, CreditCard, FileText, Phone, UserPlus, UserRoundCheck, UsersRound } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
+import { EnrollmentRequestActionButtons } from "@/components/garden-request-action-buttons";
 import { ApplicationDecisionForm } from "@/components/self-service-forms";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
@@ -88,12 +89,7 @@ export default async function GardenEnrollmentRequestsPage() {
                 <TeacherCompactItem title="פרטי הילד" subtitle={`תאריך לידה: ${selected.permanent_child_files?.birth_date ? new Date(selected.permanent_child_files.birth_date).toLocaleDateString("he-IL") : "-"}`} tone="blue" meta={<Baby size={16} />} />
                 <TeacherCompactItem title="פרטי ההורה" subtitle={`${selected.profiles?.phone ?? "טלפון חסר"} · ${selected.profiles?.email ?? "אימייל חסר"}`} tone="green" meta={<Phone size={16} />} />
                 <TeacherCompactItem title="הערת רישום" subtitle={selected.parent_message ?? "אין הערה מיוחדת"} tone="purple" meta="💬" />
-                <div className="teacher-request-actions">
-                  <button className="teacher-soft-button purple" type="button"><CheckCircle2 size={18} /> אשר המשך טיפול</button>
-                  <button className="teacher-soft-button orange" type="button"><FileText size={18} /> בקשת פרטים נוספים</button>
-                  <button className="teacher-soft-button green" type="button"><Phone size={18} /> צור קשר</button>
-                  <button className="teacher-soft-button red" type="button"><XCircle size={18} /> דחה</button>
-                </div>
+                <EnrollmentRequestActionButtons requestId={selected.id} />
               </div>
             ) : (
               <TeacherEmptyState title="אין בקשה להצגה" text="בקשות חדשות יוצגו כאן עם פרטים ופעולות." />

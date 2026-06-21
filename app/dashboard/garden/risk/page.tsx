@@ -2,12 +2,31 @@ import Link from "next/link";
 import { AlertTriangle, Camera, ClipboardCheck, ShieldCheck, UsersRound } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { AdminDataError } from "@/components/admin-data-state";
-import { ActionCard, CleanSection, EmptyState, PremiumDashboardHero, RoleMetricCard, StatusBadge } from "@/components/premium-dashboard";
 import { requireRole } from "@/lib/auth";
 import { logSupabaseError, safeAdminData } from "@/lib/admin-safe";
 import { createClient } from "@/lib/supabase/server";
 import { cleanRiskReasons, predictiveRiskSafeguards, riskCategoryRows, riskLevelLabel, riskTone, riskTrendLabel } from "@/lib/domain/predictive-risk";
 import { preventionTone, warningTypeLabel } from "@/lib/domain/predictive-safety-prevention";
+import {
+  TeacherActionTile,
+  TeacherAiInsight,
+  TeacherAppFrame,
+  TeacherCompactItem,
+  TeacherCompactList,
+  TeacherEmptyState,
+  TeacherPageTitle,
+  TeacherQuickActions,
+  TeacherSection,
+  TeacherStatCard,
+  TeacherStatsGrid
+} from "@/components/teacher-app-ui";
+
+function teacherTone(tone: string) {
+  if (tone === "bad") return "red";
+  if (tone === "warn") return "orange";
+  if (tone === "good") return "green";
+  return "purple";
+}
 
 export default async function GardenRiskPage() {
   const { profile } = await requireRole(["manager", "owner"]);
@@ -33,46 +52,62 @@ export default async function GardenRiskPage() {
   const improvements = cleanRiskReasons(risk.explanation?.how_to_improve);
 
   return (
-    <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="סיכון ומניעה">
-      <div className="commercial-dashboard risk-intelligence-shell">
-        <PremiumDashboardHero eyebrow="Prevention" title="מרכז מניעה של הגן" subtitle="איתור מוקדם של דפוסים: אירועים, פניות, צוות, ציות, מצלמות ותצפיתן. המלצות בלבד, בדיקה אנושית לפני פעולה." badge={`${risk.overall_risk_score}/100`} badgeTone={riskTone(Number(risk.overall_risk_score ?? 0))} actions={<Link className="button primary" href="/dashboard/garden/tasks">משימות</Link>}>
-          <div className="setup-checklist"><span>{riskLevelLabel(risk.risk_level)}</span><span>{riskTrendLabel(risk.risk_trend)}</span><span>לא מוצג להורים</span></div>
-        </PremiumDashboardHero>
+    <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="סיכון ומניעה" appHome>
+      <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "רונית"}`} subtitle="מרכז מניעה ובטיחות" avatarUrl={(profile as any).avatar_url ?? null} active="more">
+        <TeacherPageTitle icon={AlertTriangle} title="מרכז מניעה של הגן" subtitle="דפוסים מוקדמים לבדיקה אנושית לפני פעולה" action={<Link className="button primary" href="/dashboard/garden/tasks">משימות</Link>} />
         <AdminDataError message={result.error ?? data.queryError} />
 
-        <section className="grid cols-4 dashboard-kpis">
-          <RoleMetricCard label="סיכון כללי" value={`${risk.overall_risk_score}/100`} tone={riskTone(Number(risk.overall_risk_score ?? 0))} />
-          <RoleMetricCard label="מוכנות מניעה" value={`${data.readiness?.prevention_readiness_score ?? 0}/100`} tone={preventionTone(Number(data.readiness?.prevention_readiness_score ?? 0))} />
-          <RoleMetricCard label="בטיחות" value={`${risk.safety_risk}/100`} tone={riskTone(Number(risk.safety_risk ?? 0))} />
-          <RoleMetricCard label="צוות" value={`${risk.staffing_risk}/100`} tone={riskTone(Number(risk.staffing_risk ?? 0))} />
-          <RoleMetricCard label="אזהרות" value={data.warnings.length} tone={data.warnings.length ? "warn" : "good"} />
+        <TeacherStatsGrid>
+          <TeacherStatCard title="סיכון כללי" value={`${risk.overall_risk_score}/100`} hint={riskLevelLabel(risk.risk_level)} icon={AlertTriangle} tone={teacherTone(riskTone(Number(risk.overall_risk_score ?? 0))) as any} />
+          <TeacherStatCard title="מוכנות מניעה" value={`${data.readiness?.prevention_readiness_score ?? 0}/100`} hint="readiness" icon={ShieldCheck} tone={teacherTone(preventionTone(Number(data.readiness?.prevention_readiness_score ?? 0))) as any} />
+          <TeacherStatCard title="אזהרות" value={data.warnings.length} hint={riskTrendLabel(risk.risk_trend)} icon={ClipboardCheck} tone={data.warnings.length ? "orange" : "green"} />
+          <TeacherStatCard title="צוות" value={`${risk.staffing_risk}/100`} hint="שיבוץ ואישורים" icon={UsersRound} tone={teacherTone(riskTone(Number(risk.staffing_risk ?? 0))) as any} />
+        </TeacherStatsGrid>
+
+        <TeacherSection title="קטגוריות סיכון">
+          <TeacherCompactList>
+            {riskCategoryRows(risk).map((row) => <TeacherCompactItem key={row.key} title={row.label} subtitle={row.description} tone={teacherTone(riskTone(Number(row.value ?? 0))) as any} meta={`${row.value}/100`} />)}
+          </TeacherCompactList>
+        </TeacherSection>
+
+        <section className="teacher-children-layout">
+          <TeacherSection title="מה מעלה סיכון">
+            {reasons.length === 0 ? <TeacherEmptyState title="אין דפוס חריג כרגע" /> : <TeacherCompactList>{reasons.map((reason) => <TeacherCompactItem key={reason} title={reason} subtitle="דורש בדיקה רגועה" tone="orange" meta="פתוח" />)}</TeacherCompactList>}
+          </TeacherSection>
+          <TeacherSection title="איך מורידים סיכון">
+            {improvements.length === 0 ? <TeacherEmptyState title="אין המלצות זמינות" /> : <TeacherCompactList>{improvements.map((item) => <TeacherCompactItem key={item} title={item} subtitle="פעולה מונעת" tone="green" meta="מומלץ" />)}</TeacherCompactList>}
+          </TeacherSection>
         </section>
 
-        <section className="risk-score-grid">
-          {riskCategoryRows(risk).map((row) => <article key={row.key}><AlertTriangle /><span>{row.label}</span><strong>{row.value}/100</strong><small>{row.description}</small></article>)}
-        </section>
+        <TeacherSection title="אזהרות מוקדמות">
+          {data.warnings.length === 0 && data.signals.length === 0 ? <TeacherEmptyState title="אין אזהרות פתוחות" text="אם יתגלה דפוס לבדיקה הוא יופיע כאן." /> : (
+            <TeacherCompactList>
+              {data.warnings.map((warning: any) => <TeacherCompactItem key={warning.id} title={warningTypeLabel(warning.warning_type)} subtitle={warning.recommended_action} tone={teacherTone(preventionTone(warning.severity)) as any} meta={`${warning.confidence_score}%`} />)}
+              {data.signals.map((signal: any) => <TeacherCompactItem key={signal.id} title={signal.title} subtitle={signal.explanation} tone={teacherTone(riskTone(signal.severity)) as any} meta={signal.pattern_count} />)}
+            </TeacherCompactList>
+          )}
+        </TeacherSection>
 
-        <section className="grid cols-2 dashboard-panels">
-          <article className="card action-panel"><h2><AlertTriangle size={20} /> מה מעלה סיכון</h2>{reasons.length === 0 ? <div className="empty-mini">אין דפוס חריג כרגע.</div> : reasons.map((reason) => <div className="list-item" key={reason}><div><strong>{reason}</strong><span>דורש בדיקה רגועה</span></div><StatusBadge tone="warn">פתוח</StatusBadge></div>)}</article>
-          <article className="card action-panel"><h2><ShieldCheck size={20} /> איך מורידים סיכון</h2>{improvements.length === 0 ? <div className="empty-mini">אין המלצות זמינות.</div> : improvements.map((item) => <div className="list-item" key={item}><div><strong>{item}</strong><span>פעולה מונעת</span></div><StatusBadge tone="good">מומלץ</StatusBadge></div>)}</article>
-        </section>
+        <TeacherSection title="המלצות מניעה">
+          {data.recommendations.length === 0 && data.actions.length === 0 ? <TeacherEmptyState title="אין המלצות פתוחות" /> : (
+            <TeacherCompactList>
+              {data.actions.map((rec: any) => <TeacherCompactItem key={rec.id} title={rec.title} subtitle={rec.description} tone={teacherTone(preventionTone(rec.priority)) as any} meta={rec.priority} />)}
+              {data.recommendations.map((rec: any) => <TeacherCompactItem key={rec.id} title={rec.title} subtitle={rec.explanation} tone={teacherTone(riskTone(rec.priority)) as any} meta={rec.priority} />)}
+            </TeacherCompactList>
+          )}
+        </TeacherSection>
 
-        <CleanSection title="אזהרות מוקדמות" subtitle="דפוסים חוזרים לבדיקה. אין מסקנה אוטומטית.">
-          {data.warnings.length === 0 && data.signals.length === 0 ? <EmptyState title="אין אזהרות פתוחות" /> : <div className="risk-table">{data.warnings.map((warning) => <div className="risk-row" key={warning.id}><div><strong>{warningTypeLabel(warning.warning_type)}</strong><span>{warning.recommended_action}</span></div><StatusBadge tone={preventionTone(warning.severity)}>{warning.confidence_score}%</StatusBadge></div>)}{data.signals.map((signal) => <div className="risk-row" key={signal.id}><div><strong>{signal.title}</strong><span>{signal.explanation}</span></div><StatusBadge tone={riskTone(signal.severity)}>{signal.pattern_count}</StatusBadge></div>)}</div>}
-        </CleanSection>
+        <TeacherAiInsight metric={riskLevelLabel(risk.risk_level)}>
+          {predictiveRiskSafeguards.join(" · ")}. המידע אינו מוצג להורים ואינו מחליף בדיקה אנושית.
+        </TeacherAiInsight>
 
-        <section className="grid cols-2 dashboard-panels">
-          <article className="card action-panel"><h2><ClipboardCheck size={20} /> המלצות מניעה</h2>{data.recommendations.length === 0 && data.actions.length === 0 ? <div className="empty-mini">אין המלצות פתוחות.</div> : <>{data.actions.map((rec) => <div className="list-item" key={rec.id}><div><strong>{rec.title}</strong><span>{rec.description}</span></div><StatusBadge tone={preventionTone(rec.priority)}>{rec.priority}</StatusBadge></div>)}{data.recommendations.map((rec) => <div className="list-item" key={rec.id}><div><strong>{rec.title}</strong><span>{rec.explanation}</span></div><StatusBadge tone={riskTone(rec.priority)}>{rec.priority}</StatusBadge></div>)}</>}</article>
-          <article className="card action-panel"><h2><UsersRound size={20} /> גבול צוות וילדים</h2><div className="setup-checklist">{predictiveRiskSafeguards.map((item) => <span key={item}>{item}</span>)}</div></article>
-        </section>
-
-        <section className="quick-actions-grid">
-          <ActionCard title="צוות" text="שיבוץ ונוכחות" href="/dashboard/garden/staff" icon={UsersRound} />
-          <ActionCard title="ציות" text="מסמכים ופעולות" href="/dashboard/garden/compliance" icon={ShieldCheck} />
-          <ActionCard title="פיקוח" text="ליקויים וביקורות" href="/dashboard/garden/inspections" icon={ClipboardCheck} />
-          <ActionCard title="מצלמות" text="כיסוי ובריאות" href="/dashboard/garden/camera-health" icon={Camera} />
-        </section>
-      </div>
+        <TeacherQuickActions title="פעולות מניעה">
+          <TeacherActionTile title="צוות" href="/dashboard/garden/staff" icon={UsersRound} tone="blue" />
+          <TeacherActionTile title="ציות" href="/dashboard/garden/compliance" icon={ShieldCheck} tone="purple" />
+          <TeacherActionTile title="פיקוח" href="/dashboard/garden/inspections" icon={ClipboardCheck} tone="green" />
+          <TeacherActionTile title="מצלמות" href="/dashboard/garden/camera-health" icon={Camera} tone="orange" />
+        </TeacherQuickActions>
+      </TeacherAppFrame>
     </DashboardShell>
   );
 }
