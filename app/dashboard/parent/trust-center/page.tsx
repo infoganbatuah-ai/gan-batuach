@@ -1,8 +1,9 @@
 import Link from "next/link";
+import type { ComponentType, ReactNode } from "react";
 import { BookOpenCheck, CalendarDays, ClipboardCheck, FileText, HeartHandshake, MessageCircleHeart, MessageSquareWarning, ShieldCheck, Sparkles, UsersRound } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { ParentTrustCenterActions } from "@/components/parent-trust-center-actions";
-import { ActionCard, CleanSection, EmptyState, PremiumDashboardHero, RoleMetricCard, StatusBadge } from "@/components/premium-dashboard";
+import { ParentActionTile, ParentAppFrame, ParentEmptyState, ParentHero, ParentMetricCard, ParentSection } from "@/components/parent-app-ui";
 import { requireRole } from "@/lib/auth";
 import { getParentFamilyContext } from "@/lib/domain/parent-family";
 import { complaintParentStatus, parentTrustTone, parentTrustVisibilityRules, trustBadgeLabel, trustFeedLabel } from "@/lib/domain/parent-trust";
@@ -12,6 +13,33 @@ function date(value: unknown) {
   if (!value) return "";
   const parsed = new Date(String(value));
   return Number.isNaN(parsed.getTime()) ? "" : parsed.toLocaleDateString("he-IL");
+}
+
+function parentTone(tone?: string | null) {
+  if (tone === "good") return "green" as const;
+  if (tone === "warn") return "orange" as const;
+  if (tone === "bad") return "red" as const;
+  return "purple" as const;
+}
+
+function StatusBadge({ tone, children }: { tone?: string | null; children: ReactNode }) {
+  return <span className={`parent-status-chip ${parentTone(tone)}`}>{children}</span>;
+}
+
+function RoleMetricCard({ label, value, hint, tone }: { label: string; value: ReactNode; hint?: string; tone?: string | null }) {
+  return <ParentMetricCard title={label} value={value} hint={hint} icon={ShieldCheck} tone={parentTone(tone)} />;
+}
+
+function EmptyState({ title, text }: { title: string; text?: string }) {
+  return <ParentEmptyState title={title} text={text} />;
+}
+
+function CleanSection({ title, subtitle, children }: { title: string; subtitle?: string; children: ReactNode }) {
+  return <ParentSection title={title} subtitle={subtitle}>{children}</ParentSection>;
+}
+
+function ActionCard({ title, href, icon }: { title: string; text?: string; href: string; icon: ComponentType<any> }) {
+  return <ParentActionTile title={title} href={href} icon={icon} tone="purple" />;
 }
 
 export default async function ParentTrustCenterV2Page() {
@@ -51,18 +79,14 @@ export default async function ParentTrustCenterV2Page() {
   const latestInspection = inspections[0];
 
   return (
-    <DashboardShell role="parent" title="Trust Center">
+    <DashboardShell role="parent" title="Trust Center" appHome>
+      <ParentAppFrame active="more" avatarUrl={(profile as any).profile_image_url ?? null}>
       <div className="commercial-dashboard parent-trust-network-shell">
-        <PremiumDashboardHero
-          eyebrow="Trust Center"
-          title="אמון, שקיפות וקהילה"
-          subtitle="כל מה שהורה צריך לדעת: בטיחות, ציות, צוות, ביקורות, הודעות, בקשות ואירועים. רק מידע מאושר ובטוח מוצג כאן."
-          badge={`${trust.trust_score ?? 0}/100`}
-          badgeTone={parentTrustTone(Number(trust.trust_score ?? 0))}
-          actions={<><Link className="button primary" href="/dashboard/parent/messages">מרכז תקשורת</Link><Link className="button secondary" href="/dashboard/parent/notifications">התראות</Link></>}
-        >
+        <ParentHero title="אמון, שקיפות וקהילה" subtitle="בטיחות, ציות, צוות, ביקורות, הודעות, בקשות ואירועים במרכז אחד" />
+        <ParentSection title="מצב אמון" subtitle={`${trust.trust_score ?? 0}/100`}>
           <div className="setup-checklist"><span>{trustBadgeLabel(trust.trust_badge_status)}</span><span>{trust.gardens?.name ?? "גן משויך"}</span><span>אין מידע פנימי רגיש</span></div>
-        </PremiumDashboardHero>
+          <div className="parent-status-row"><Link className="button primary" href="/dashboard/parent/messages">מרכז תקשורת</Link><Link className="button secondary" href="/dashboard/parent/notifications">התראות</Link></div>
+        </ParentSection>
 
         <section className="grid cols-4 dashboard-kpis">
           <RoleMetricCard label="אמון" value={`${trust.trust_score ?? 0}/100`} tone={parentTrustTone(Number(trust.trust_score ?? 0))} />
@@ -76,7 +100,7 @@ export default async function ParentTrustCenterV2Page() {
         </section>
 
         <section className="grid cols-2 dashboard-panels">
-          <article className="card action-panel">
+          <article className="parent-section-card">
             <h2><ShieldCheck size={20} /> מצב בטיחות וציות</h2>
             <div className="parent-trust-list">
               <span>{trust.parent_summary ?? "סיכום אמון יוצג לאחר חישוב הדירוג."}</span>
@@ -84,7 +108,7 @@ export default async function ParentTrustCenterV2Page() {
               <span>מוצגים רק נתונים מאושרים להורים.</span>
             </div>
           </article>
-          <article className="card action-panel">
+          <article className="parent-section-card">
             <h2><Sparkles size={20} /> עוזר הורים</h2>
             <div className="parent-trust-list">
               <span>מה השתנה: {feed[0]?.title ?? announcements[0]?.title ?? "אין עדכון חדש"}</span>
@@ -99,11 +123,11 @@ export default async function ParentTrustCenterV2Page() {
         </CleanSection>
 
         <section className="grid cols-2 dashboard-panels">
-          <article className="card action-panel">
+          <article className="parent-section-card">
             <h2><MessageCircleHeart size={20} /> הודעות קהילה</h2>
             {announcements.length === 0 ? <div className="empty-mini">אין הודעות קהילה כרגע.</div> : announcements.map((item) => <div className="list-item" key={item.id}><div><strong>{item.title}</strong><span>{item.body}</span></div><StatusBadge tone="good">{item.announcement_type}</StatusBadge></div>)}
           </article>
-          <article className="card action-panel">
+          <article className="parent-section-card">
             <h2><CalendarDays size={20} /> לוח קהילה</h2>
             {calendar.length === 0 ? <div className="empty-mini">אין אירועים קרובים.</div> : calendar.map((item) => <div className="list-item" key={item.id}><div><strong>{item.title}</strong><span>{date(item.starts_at)} · {item.description}</span></div><StatusBadge tone={item.participation_enabled ? "good" : "default"}>{item.event_type}</StatusBadge></div>)}
           </article>
@@ -112,8 +136,8 @@ export default async function ParentTrustCenterV2Page() {
         <ParentTrustCenterActions surveys={surveys as any[]} events={calendar as any[]} />
 
         <section className="grid cols-2 dashboard-panels">
-          <article className="card action-panel"><h2><MessageSquareWarning size={20} /> משוב ובקשות</h2>{[...feedback, ...requests].length === 0 ? <div className="empty-mini">אין בקשות פתוחות.</div> : [...feedback, ...requests].slice(0, 8).map((item) => <div className="list-item" key={item.id}><div><strong>{item.title}</strong><span>{date(item.created_at)}</span></div><StatusBadge tone={parentTrustTone(item.lifecycle_status)}>{complaintParentStatus(item.lifecycle_status)}</StatusBadge></div>)}</article>
-          <article className="card action-panel"><h2><UsersRound size={20} /> השתתפות</h2>{participation.length === 0 ? <div className="empty-mini">אין השתתפויות רשומות.</div> : participation.map((item) => <div className="list-item" key={item.id}><div><strong>{item.participation_type}</strong><span>{date(item.created_at)}</span></div><StatusBadge tone="good">{item.status}</StatusBadge></div>)}</article>
+          <article className="parent-section-card"><h2><MessageSquareWarning size={20} /> משוב ובקשות</h2>{[...feedback, ...requests].length === 0 ? <div className="empty-mini">אין בקשות פתוחות.</div> : [...feedback, ...requests].slice(0, 8).map((item) => <div className="list-item" key={item.id}><div><strong>{item.title}</strong><span>{date(item.created_at)}</span></div><StatusBadge tone={parentTrustTone(item.lifecycle_status)}>{complaintParentStatus(item.lifecycle_status)}</StatusBadge></div>)}</article>
+          <article className="parent-section-card"><h2><UsersRound size={20} /> השתתפות</h2>{participation.length === 0 ? <div className="empty-mini">אין השתתפויות רשומות.</div> : participation.map((item) => <div className="list-item" key={item.id}><div><strong>{item.participation_type}</strong><span>{date(item.created_at)}</span></div><StatusBadge tone="good">{item.status}</StatusBadge></div>)}</article>
         </section>
 
         <CleanSection title="גבולות שקיפות" subtitle="שקיפות טובה שומרת גם על פרטיות.">
@@ -131,6 +155,7 @@ export default async function ParentTrustCenterV2Page() {
           <ActionCard title="התראות" text="עדכונים חשובים" href="/dashboard/parent/notifications" icon={HeartHandshake} />
         </section>
       </div>
+      </ParentAppFrame>
     </DashboardShell>
   );
 }

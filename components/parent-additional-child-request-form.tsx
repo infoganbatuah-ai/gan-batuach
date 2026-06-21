@@ -69,7 +69,7 @@ export function ParentAdditionalChildRequestForm({
   }
 
   return (
-    <form id="add-child-request" action={submit} className="card action-panel parent-request-form warm-request-card">
+    <form id="add-child-request" action={submit} className="parent-section-card parent-request-form warm-request-card">
       <div className="section-heading">
         <h2><Baby size={18} /> בקשת רישום / מעבר ילד</h2>
         <p>אם זה ילד שכבר קיים בחשבון, נשתמש בתיק הילד הקבוע ולא נבקש למלא הכל מחדש. אם זה ילד חדש, נפתח בקשת רישום רגילה.</p>

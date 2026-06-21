@@ -24158,9 +24158,9 @@ body:has(.dashboard-role-owner.app-home-layout) {
   color: #17346b;
   margin: 0 auto;
   max-width: 980px;
-  min-height: 100vh;
-  overflow: hidden;
-  padding: 22px 24px 118px;
+  min-height: 100dvh;
+  overflow-x: hidden;
+  padding: 22px 24px calc(124px + env(safe-area-inset-bottom));
   position: relative;
 }
 
@@ -24250,6 +24250,7 @@ body:has(.dashboard-role-owner.app-home-layout) {
   justify-content: center;
   overflow: hidden;
   width: 68px;
+  text-decoration: none;
 }
 
 .parent-avatar img {
@@ -24658,6 +24659,41 @@ body:has(.dashboard-role-owner.app-home-layout) {
   font-weight: 950;
 }
 
+.parent-status-chip {
+  align-items: center;
+  border-radius: 999px;
+  display: inline-flex;
+  font-size: 0.82rem;
+  font-weight: 950;
+  justify-content: center;
+  padding: 7px 13px;
+}
+
+.parent-status-chip.purple {
+  background: #f0e8ff;
+  color: #745bf2;
+}
+
+.parent-status-chip.blue {
+  background: #eaf4ff;
+  color: #397fea;
+}
+
+.parent-status-chip.green {
+  background: #e6f9ef;
+  color: #18a653;
+}
+
+.parent-status-chip.orange {
+  background: #fff0dc;
+  color: #d97916;
+}
+
+.parent-status-chip.red {
+  background: #ffe8ee;
+  color: #da3d59;
+}
+
 .parent-request-list {
   display: grid;
   gap: 12px;
@@ -24683,21 +24719,96 @@ body:has(.dashboard-role-owner.app-home-layout) {
   font-weight: 700;
 }
 
+.parent-document-list,
+.parent-gallery-timeline,
+.parent-journal-feed {
+  display: grid;
+  gap: 14px;
+}
+
+.parent-document-card,
+.parent-gallery-card,
+.parent-journal-card {
+  align-items: center;
+  background: #fff;
+  border: 1px solid #e2ebf8;
+  border-radius: 22px;
+  box-shadow: 0 12px 34px rgba(25, 55, 109, 0.08);
+  color: #17346b;
+  display: grid;
+  gap: 16px;
+  grid-template-columns: 1fr auto;
+  padding: 16px 18px;
+}
+
+.parent-document-card h3,
+.parent-gallery-card h3 {
+  color: #0c2d6e;
+  font-weight: 950;
+  margin: 8px 0 4px;
+}
+
+.parent-document-card p,
+.parent-document-card small,
+.parent-gallery-card p,
+.parent-gallery-card small {
+  color: #657295;
+  font-weight: 750;
+  margin: 0;
+}
+
+.parent-gallery-card {
+  grid-template-columns: 148px 1fr auto;
+}
+
+.parent-gallery-card img,
+.parent-gallery-card .video-tile {
+  background: #eef4ff;
+  border-radius: 18px;
+  height: 104px;
+  object-fit: cover;
+  width: 148px;
+}
+
+.parent-gallery-filters {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.parent-gallery-filters span {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.92);
+  border: 1px solid #e2ebf8;
+  border-radius: 20px;
+  color: #17346b;
+  display: flex;
+  font-weight: 900;
+  gap: 8px;
+  justify-content: center;
+  min-height: 58px;
+}
+
+.parent-gallery-filters b {
+  color: #745bf2;
+}
+
 .parent-bottom-nav {
   align-items: center;
   background: rgba(255, 255, 255, 0.94);
   border: 1px solid #e4edf8;
   border-radius: 30px;
-  bottom: 24px;
+  backdrop-filter: blur(20px);
+  bottom: max(12px, env(safe-area-inset-bottom));
   box-shadow: 0 18px 50px rgba(25, 55, 109, 0.14);
   display: grid;
   gap: 8px;
   grid-template-columns: repeat(5, 1fr);
-  left: 24px;
+  left: max(18px, env(safe-area-inset-left));
   min-height: 88px;
   padding: 10px;
-  position: absolute;
-  right: 24px;
+  position: fixed;
+  right: max(18px, env(safe-area-inset-right));
   z-index: 5;
 }
 
@@ -24719,10 +24830,26 @@ body:has(.dashboard-role-owner.app-home-layout) {
   color: #745bf2;
 }
 
+.parent-bottom-nav a.active:nth-child(3) {
+  background: transparent;
+}
+
+.parent-bottom-nav a.active:nth-child(3) svg {
+  background: linear-gradient(135deg, #5b4bff, #8b5cf6);
+  border: 6px solid #fff;
+  border-radius: 999px;
+  box-shadow: 0 16px 34px rgba(91, 75, 255, 0.28);
+  color: #fff;
+  height: 72px;
+  margin-top: -32px;
+  padding: 15px;
+  width: 72px;
+}
+
 @media (max-width: 820px) {
   .parent-app-frame {
     border-radius: 28px;
-    padding: 16px 14px 118px;
+    padding: 16px 14px calc(122px + env(safe-area-inset-bottom));
   }
 
   .parent-app-topbar {
@@ -24796,14 +24923,31 @@ body:has(.dashboard-role-owner.app-home-layout) {
     gap: 10px;
   }
 
+  .parent-document-card,
+  .parent-gallery-card,
+  .parent-journal-card {
+    grid-template-columns: 1fr;
+  }
+
+  .parent-gallery-card img,
+  .parent-gallery-card .video-tile {
+    height: 180px;
+    width: 100%;
+  }
+
+  .parent-gallery-filters {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   .parent-list-row {
     grid-template-columns: 50px 56px 1fr;
   }
 
   .parent-bottom-nav {
-    bottom: 16px;
-    left: 14px;
-    right: 14px;
+    bottom: max(10px, env(safe-area-inset-bottom));
+    left: max(12px, env(safe-area-inset-left));
+    min-height: 82px;
+    right: max(12px, env(safe-area-inset-right));
   }
 }
 
@@ -26998,5 +27142,134 @@ body:has(.gb-reference-login) .gb-reference-security-card {
 
   .ganenet-form-grid {
     grid-template-columns: 1fr !important;
+  }
+}
+
+/* Global dashboard scroll safety net.
+   App dashboards use floating bottom navigation. Long screens must always be
+   scrollable and content must never sit under the nav. Keep this block last. */
+:root {
+  --app-bottom-nav-clearance: calc(132px + env(safe-area-inset-bottom, 0px));
+}
+
+html:has(.ganenet-reference-phone):not(:has(.gb-reference-login)),
+body:has(.ganenet-reference-phone):not(:has(.gb-reference-login)),
+html:has(.parent-app-frame),
+body:has(.parent-app-frame),
+html:has(.staff-app-frame),
+body:has(.staff-app-frame),
+html:has(.gb-app-shell),
+body:has(.gb-app-shell) {
+  min-height: 100%;
+  overflow-x: hidden !important;
+  overflow-y: auto !important;
+}
+
+body:has(.ganenet-reference-phone):not(:has(.gb-reference-login)) .dashboard-layout.app-home-layout,
+body:has(.parent-app-frame) .dashboard-layout.app-home-layout,
+body:has(.staff-app-frame) .dashboard-layout.app-home-layout,
+body:has(.gb-app-shell) .dashboard-layout.app-home-layout {
+  height: auto !important;
+  max-height: none !important;
+  min-height: 100dvh !important;
+  overflow-x: hidden !important;
+  overflow-y: visible !important;
+}
+
+body:has(.ganenet-reference-phone):not(:has(.gb-reference-login)) .dashboard-main,
+body:has(.ganenet-reference-phone):not(:has(.gb-reference-login)) .native-app-stage,
+body:has(.parent-app-frame) .dashboard-main,
+body:has(.parent-app-frame) .native-app-stage,
+body:has(.staff-app-frame) .dashboard-main,
+body:has(.staff-app-frame) .native-app-stage {
+  height: auto !important;
+  max-height: none !important;
+  overflow-x: hidden !important;
+  overflow-y: visible !important;
+}
+
+.ganenet-module-screen {
+  height: auto !important;
+  max-height: none !important;
+  min-height: 100dvh !important;
+  overflow-x: hidden !important;
+  overflow-y: visible !important;
+  padding-bottom: var(--app-bottom-nav-clearance) !important;
+}
+
+.ganenet-module-screen .ganenet-module-content,
+.parent-app-main,
+.staff-app-main,
+.gb-app-shell-main,
+.gb-responsive-page {
+  overflow: visible !important;
+  padding-bottom: var(--app-bottom-nav-clearance) !important;
+}
+
+.parent-app-frame,
+.staff-app-frame,
+.gb-app-shell {
+  height: auto !important;
+  max-height: none !important;
+  min-height: 100dvh !important;
+  overflow-x: hidden !important;
+  overflow-y: visible !important;
+}
+
+.parent-bottom-nav,
+.ganenet-bottom-nav,
+.teacher-bottom-nav,
+.staff-bottom-nav-ref,
+.gb-bottom-nav {
+  bottom: max(10px, env(safe-area-inset-bottom, 0px)) !important;
+}
+
+.ganenet-camera-gallery,
+.parent-document-list,
+.parent-gallery-timeline,
+.parent-journal-feed,
+.teacher-compact-list,
+.gb-compact-list,
+.staff-application-list {
+  max-height: none !important;
+  overflow: visible !important;
+}
+
+@media (max-width: 760px) {
+  body:has(.ganenet-module-screen):not(:has(.gb-reference-login)) .dashboard-layout.app-home-layout,
+  body:has(.ganenet-module-screen):not(:has(.gb-reference-login)) .dashboard-main,
+  body:has(.ganenet-module-screen):not(:has(.gb-reference-login)) .native-app-stage {
+    height: auto !important;
+    max-height: none !important;
+    min-height: 100dvh !important;
+    overflow-x: hidden !important;
+    overflow-y: visible !important;
+    position: relative !important;
+    width: 100% !important;
+  }
+
+  .ganenet-module-screen {
+    display: block !important;
+    height: auto !important;
+    left: auto !important;
+    margin: 0 auto !important;
+    max-height: none !important;
+    max-width: 943px !important;
+    min-height: 100dvh !important;
+    overflow-x: hidden !important;
+    overflow-y: visible !important;
+    position: relative !important;
+    top: auto !important;
+    transform: none !important;
+    width: 100% !important;
+  }
+
+  .ganenet-module-screen .ganenet-module-content {
+    padding-bottom: var(--app-bottom-nav-clearance) !important;
+  }
+
+  .parent-app-frame,
+  .staff-app-frame {
+    padding-bottom: var(--app-bottom-nav-clearance) !important;
   }
 }

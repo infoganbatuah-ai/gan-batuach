@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { ComponentType, ReactNode } from "react";
-import { Bell, CalendarDays, Camera, FileText, Grid3X3, Home, Menu, MessageCircle, ShieldCheck, WalletCards } from "lucide-react";
+import { Bell, CalendarDays, Camera, FileText, Home, Menu, MessageCircle, ShieldCheck, WalletCards } from "lucide-react";
 import type { LucideProps } from "lucide-react";
 
 type Tone = "blue" | "purple" | "green" | "orange" | "red" | "neutral";
@@ -27,11 +27,11 @@ export function ParentAppFrame({
           <CalendarDays size={26} />
           <span>יום ראשון, כ״ד אייר תשפ״ה<br />18 במאי 2025</span>
         </div>
-        <button className="parent-icon-button" type="button" aria-label="התראות">
+        <Link className="parent-icon-button" href="/dashboard/parent/notifications" aria-label="התראות">
           <Bell size={26} />
           <span />
-        </button>
-        <div className="parent-avatar">{avatarUrl ? <img src={avatarUrl} alt="" /> : <span>ה</span>}</div>
+        </Link>
+        <Link className="parent-avatar" href="/dashboard/parent/settings" aria-label="פרופיל הורה">{avatarUrl ? <img src={avatarUrl} alt="" /> : <span>ה</span>}</Link>
       </header>
       <main className="parent-app-main">{children}</main>
       <ParentBottomNav active={active} />
@@ -145,7 +145,7 @@ export function ParentBottomNav({ active }: { active: "home" | "dashboard" | "ca
   const items = [
     { key: "more", label: "עוד", href: "/dashboard/parent/settings", icon: Menu },
     { key: "alerts", label: "התראות", href: "/dashboard/parent/notifications", icon: Bell },
-    { key: "dashboard", label: "דשבורד", href: "/dashboard/parent", icon: Grid3X3 },
+    { key: "dashboard", label: "דשבורד", href: "/dashboard/parent", icon: Home },
     { key: "calendar", label: "יומן", href: "/dashboard/parent/schedule", icon: CalendarDays },
     { key: "home", label: "בית", href: "/dashboard/parent/family-home", icon: Home }
   ] as const;

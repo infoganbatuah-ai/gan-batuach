@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Baby, FileText, HeartPulse, MessageCircle, ShieldCheck, Sparkles } from "lucide-react";
 import { Avatar } from "@/components/avatar";
 import { DashboardShell } from "@/components/dashboard-shell";
-import { CleanSection, EmptyState, PremiumDashboardHero, RoleMetricCard, StatusBadge } from "@/components/premium-dashboard";
+import { ParentAppFrame, ParentEmptyState, ParentHero, ParentMetricCard, ParentSection } from "@/components/parent-app-ui";
 import { requireRole } from "@/lib/auth";
 import { childTimelinePrivacyRules, childTimelineQuestions, eventDateText, eventTimeText, timelineCategoryLabel, timelineTone } from "@/lib/domain/child-safety-timeline";
 import { getParentFamilyContext } from "@/lib/domain/parent-family";
@@ -11,6 +11,13 @@ import { createClient } from "@/lib/supabase/server";
 
 function dayKey(value?: string | null) {
   return value ? new Date(value).toISOString().slice(0, 10) : "unknown";
+}
+
+function parentTone(tone?: string | null) {
+  if (tone === "good") return "green";
+  if (tone === "warn") return "orange";
+  if (tone === "bad") return "red";
+  return "purple";
 }
 
 export default async function ParentChildTimelinePage({ params }: { params: Promise<{ id: string }> }) {
@@ -24,7 +31,13 @@ export default async function ParentChildTimelinePage({ params }: { params: Prom
   const childId = familyChild?.id ?? familyEnrollment?.child_id ?? null;
 
   if (!childId) {
-    return <DashboardShell role="parent" title="ציר ילד"><EmptyState title="לא נמצא כרטיס ילד" text="הילד אינו משויך לחשבון שלך." action={<Link className="button primary" href="/dashboard/parent">חזרה</Link>} /></DashboardShell>;
+    return (
+      <DashboardShell role="parent" title="ציר ילד" appHome>
+        <ParentAppFrame active="calendar" avatarUrl={(profile as any).profile_image_url ?? null}>
+          <ParentEmptyState title="לא נמצא כרטיס ילד" text="הילד אינו משויך לחשבון שלך." action={<Link className="button primary" href="/dashboard/parent">חזרה</Link>} />
+        </ParentAppFrame>
+      </DashboardShell>
+    );
   }
 
   const [childRes, recordRes, timelineRes] = await Promise.all([
@@ -46,27 +59,27 @@ export default async function ParentChildTimelinePage({ params }: { params: Prom
   }, new Map<string, any[]>());
 
   return (
-    <DashboardShell role="parent" title="ציר היום">
+    <DashboardShell role="parent" title="ציר היום" appHome>
+      <ParentAppFrame active="calendar" avatarUrl={(profile as any).profile_image_url ?? null}>
       <div className="parent-experience-shell child-timeline-shell">
-        <PremiumDashboardHero
-          eyebrow="ציר משפחתי"
-          title={`היום של ${child.full_name}`}
-          subtitle="פיד יומי נעים וברור: פעילות, ארוחות, שינה, בריאות, תמונות, הודעות ואיסוף. רק עדכונים שאושרו להורים."
-          badge={`${timeline.length} עדכונים`}
-          badgeTone={today.length ? "good" : "warn"}
-          actions={<><Link className="button primary" href="/dashboard/parent/messages">שאלה לגן</Link><Link className="button secondary" href={`/dashboard/parent/children/${child.id}`}>כרטיס ילד</Link></>}
-        >
+        <ParentHero title={`היום של ${child.full_name}`} subtitle="פעילות, ארוחות, שינה, בריאות, תמונות, הודעות ואיסוף שאושרו להורים" />
+        <section className="parent-child-hero compact">
           <div className="child-timeline-hero-card">
             <Avatar name={child.full_name} src={child.photo_url ?? child.face_image_url} />
             <span>{child.classroom ?? child.age_group ?? "גן"}</span>
           </div>
-        </PremiumDashboardHero>
+          <div className="parent-status-row">
+            <span className={`parent-status-chip ${today.length ? "green" : "orange"}`}>{timeline.length} עדכונים</span>
+            <Link className="button primary" href="/dashboard/parent/messages">שאלה לגן</Link>
+            <Link className="button secondary" href={`/dashboard/parent/children/${child.id}`}>כרטיס ילד</Link>
+          </div>
+        </section>
 
         <section className="parent-metric-strip">
-          <RoleMetricCard label="עדכונים היום" value={today.length} tone={today.length ? "good" : "warn"} />
-          <RoleMetricCard label="בריאות" value={health.length} hint="עדכונים מאושרים" tone={health.length ? "warn" : "good"} />
-          <RoleMetricCard label="איסוף" value={pickup.length} hint="רישומים" tone={pickup.length ? "good" : "default"} />
-          <RoleMetricCard label="עדכון אחרון" value={record?.last_event_at ? eventDateText(record.last_event_at) : "-"} tone="default" />
+          <ParentMetricCard title="עדכונים היום" value={today.length} icon={Sparkles} tone={today.length ? "green" : "orange"} />
+          <ParentMetricCard title="בריאות" value={health.length} hint="עדכונים מאושרים" icon={HeartPulse} tone={health.length ? "orange" : "green"} />
+          <ParentMetricCard title="איסוף" value={pickup.length} hint="רישומים" icon={ShieldCheck} tone={pickup.length ? "green" : "neutral"} />
+          <ParentMetricCard title="עדכון אחרון" value={record?.last_event_at ? eventDateText(record.last_event_at) : "-"} icon={Baby} tone="purple" />
         </section>
 
         <section className="parent-two-column">
@@ -102,8 +115,8 @@ export default async function ParentChildTimelinePage({ params }: { params: Prom
           </div>
         </section>
 
-        <CleanSection title="ציר היום" subtitle="כמו פיד משפחתי: קצר, ברור ומאושר לשיתוף.">
-          {timeline.length === 0 ? <EmptyState title="אין עדכונים מאושרים עדיין" text="כשהגן יעדכן וישתף אירוע, הוא יופיע כאן." /> : (
+        <ParentSection title="ציר היום" subtitle="כמו פיד משפחתי: קצר, ברור ומאושר לשיתוף.">
+          {timeline.length === 0 ? <ParentEmptyState title="אין עדכונים מאושרים עדיין" text="כשהגן יעדכן וישתף אירוע, הוא יופיע כאן." /> : (
             <div className="child-timeline-days">
               {Array.from(grouped.entries()).map(([date, items]: [string, any[]]) => <section className="child-timeline-day" key={date}>
                 <h3>{date === "unknown" ? "ללא תאריך" : new Date(date).toLocaleDateString("he-IL")}</h3>
@@ -114,12 +127,12 @@ export default async function ParentChildTimelinePage({ params }: { params: Prom
                     <span>{item.summary_safe ?? item.description ?? ""}</span>
                     <small>{timelineCategoryLabel(item.event_category)}</small>
                   </div>
-                  <StatusBadge tone={timelineTone(item.event_category, item.safety_relevance)}>{timelineCategoryLabel(item.event_category)}</StatusBadge>
+                  <span className={`parent-status-chip ${parentTone(timelineTone(item.event_category, item.safety_relevance))}`}>{timelineCategoryLabel(item.event_category)}</span>
                 </article>)}</div>
               </section>)}
             </div>
           )}
-        </CleanSection>
+        </ParentSection>
 
         <section className="parent-two-column">
           <article className="parent-trust-card">
@@ -148,6 +161,7 @@ export default async function ParentChildTimelinePage({ params }: { params: Prom
           <div className="setup-checklist">{childTimelinePrivacyRules.map((rule) => <span key={rule}>{rule}</span>)}</div>
         </details>
       </div>
+      </ParentAppFrame>
     </DashboardShell>
   );
 }

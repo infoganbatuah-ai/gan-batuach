@@ -2,7 +2,6 @@ import Link from "next/link";
 import { CalendarClock, CheckCircle2, CreditCard, MessageCircle, ShieldCheck, WalletCards } from "lucide-react";
 import { Avatar } from "@/components/avatar";
 import { DashboardShell } from "@/components/dashboard-shell";
-import { StatusBadge } from "@/components/premium-dashboard";
 import { ParentAppFrame, ParentEmptyState, ParentHero, ParentMetricCard, ParentSection } from "@/components/parent-app-ui";
 import { requireRole } from "@/lib/auth";
 import { getParentFamilyContext } from "@/lib/domain/parent-family";
@@ -18,9 +17,9 @@ function paymentLabel(status?: string | null) {
 }
 
 function paymentTone(status?: string | null, debt = 0) {
-  if (status === "paid" && debt <= 0) return "good" as const;
-  if (status === "overdue" || status === "failed" || status === "not_transferred" || debt > 0) return "warn" as const;
-  return "default" as const;
+  if (status === "paid" && debt <= 0) return "green" as const;
+  if (status === "overdue" || status === "failed" || status === "not_transferred" || debt > 0) return "orange" as const;
+  return "purple" as const;
 }
 
 function dateText(value?: string | null) {
@@ -37,7 +36,7 @@ export default async function ParentPaymentsPage() {
     garden_name: (family.gardens as any[]).find((garden) => garden.id === (child.garden_id ?? child.kindergarten_id))?.name
   }));
   const totalDebt = children.reduce((sum, child) => sum + Number(child.debt_amount ?? 0), 0);
-  const attention = children.filter((child) => paymentTone(child.payment_status, Number(child.debt_amount ?? 0)) === "warn");
+  const attention = children.filter((child) => paymentTone(child.payment_status, Number(child.debt_amount ?? 0)) === "orange");
   const nextPayments = children.filter((child) => child.next_payment_due).sort((a, b) => String(a.next_payment_due).localeCompare(String(b.next_payment_due)));
 
   return (
@@ -77,7 +76,7 @@ export default async function ParentPaymentsPage() {
                       <span>תשלום אחרון <b>{dateText(child.last_payment_date)}</b></span>
                     </div>
                     <div className="profile-actions">
-                      <StatusBadge tone={paymentTone(child.payment_status, debt)}>{paymentLabel(child.payment_status)}</StatusBadge>
+                      <span className={`parent-status-chip ${paymentTone(child.payment_status, debt)}`}>{paymentLabel(child.payment_status)}</span>
                       <Link className="button secondary tiny" href="/dashboard/parent/messages"><MessageCircle size={14} /> שאלה לגן</Link>
                     </div>
                   </article>

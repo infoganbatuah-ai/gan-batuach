@@ -1,5 +1,7 @@
 import Link from "next/link";
+import { ClipboardCheck } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
+import { ParentAppFrame, ParentEmptyState, ParentHero, ParentMetricCard, ParentSection } from "@/components/parent-app-ui";
 import { requireRole } from "@/lib/auth";
 import { getParentFamilyContext } from "@/lib/domain/parent-family";
 import { createClient } from "@/lib/supabase/server";
@@ -11,5 +13,29 @@ export default async function ParentInspectionsPage() {
   const { data } = family.gardenIds.length
     ? await supabase.from("inspections" as any).select("id, completed_at, weighted_score, violation_count, status").in("garden_id", family.gardenIds).eq("status", "done").order("completed_at", { ascending: false }).limit(20)
     : { data: [] };
-  return <DashboardShell role="parent" title="סיכום פיקוח"><div className="dashboard-hero-card parent-hero-card"><div><p className="eyebrow">Inspection Summary</p><h1>סיכום ביקורות מאושר להורים.</h1><p>הורים רואים רק דוחות המאושרים לגן של ילדיהם, לפי הרשאה.</p></div><span className="pill good">שקיפות לפי הרשאה</span></div><section className="dashboard-section">{(data ?? []).length === 0 ? <div className="empty-state"><strong>אין דוחות ביקורת להצגה</strong><span>לאחר ביקורת מאושרת, הציון והסיכום יופיעו כאן.</span></div> : <div className="procedure-list">{(data ?? []).map((inspection: any) => <article className="card procedure-card" key={inspection.id}><div><h3>ציון {inspection.weighted_score ?? "-"}</h3><p>ליקויים: {inspection.violation_count ?? 0}</p><small>{inspection.completed_at ? new Date(inspection.completed_at).toLocaleString("he-IL") : ""}</small></div><div className="procedure-meta"><Link className="button secondary" href={`/dashboard/parent/inspections/${inspection.id}/report`}>צפייה בדוח</Link></div></article>)}</div>}</section></DashboardShell>;
+  const rows = (data ?? []) as any[];
+  const latestScore = rows[0]?.weighted_score ?? "-";
+  return (
+    <DashboardShell role="parent" title="סיכום פיקוח" appHome>
+      <ParentAppFrame active="more" avatarUrl={(profile as any).profile_image_url ?? null}>
+        <ParentHero title="דוח בטיחות ופעילות" subtitle="סיכומי ביקורת שאושרו להצגת הורים" />
+        <section className="parent-metrics-grid">
+          <ParentMetricCard title="דוחות" value={rows.length} hint="מאושרים" icon={ClipboardCheck} tone="purple" />
+          <ParentMetricCard title="ציון אחרון" value={latestScore} hint="פיקוח" icon={ClipboardCheck} tone="green" />
+        </section>
+        <ParentSection title="ביקורות מאושרות" subtitle="הורים רואים רק דוחות המאושרים לגן של ילדיהם, לפי הרשאה.">
+          {rows.length === 0 ? <ParentEmptyState title="אין דוחות ביקורת להצגה" text="לאחר ביקורת מאושרת, הציון והסיכום יופיעו כאן." /> : (
+            <div className="parent-request-list">
+              {rows.map((inspection: any) => (
+                <Link href={`/dashboard/parent/inspections/${inspection.id}/report`} key={inspection.id}>
+                  <strong>ציון {inspection.weighted_score ?? "-"}</strong>
+                  <span>{inspection.completed_at ? new Date(inspection.completed_at).toLocaleString("he-IL") : ""} · ליקויים: {inspection.violation_count ?? 0}</span>
+                </Link>
+              ))}
+            </div>
+          )}
+        </ParentSection>
+      </ParentAppFrame>
+    </DashboardShell>
+  );
 }

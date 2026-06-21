@@ -3,6 +3,7 @@ import { Baby, FileText, HeartPulse, ShieldCheck, UserRoundCheck } from "lucide-
 import { Avatar } from "@/components/avatar";
 import { ChildPhotoUpload } from "@/components/child-photo-upload";
 import { DashboardShell } from "@/components/dashboard-shell";
+import { ParentAppFrame, ParentEmptyState, ParentHero, ParentSection } from "@/components/parent-app-ui";
 import { requireRole } from "@/lib/auth";
 import { getParentFamilyContext } from "@/lib/domain/parent-family";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
@@ -25,6 +26,12 @@ function statusLabel(status?: string | null) {
   return "ממתין לאישור הגן";
 }
 
+function parentTone(status?: string | null) {
+  if (status === "active" || status === "approved") return "green";
+  if (status === "rejected") return "red";
+  return "orange";
+}
+
 export default async function ParentChildProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { profile } = await requireRole(["parent"]);
   const { id } = await params;
@@ -39,8 +46,14 @@ export default async function ParentChildProfilePage({ params }: { params: Promi
 
   if (!child) {
     return (
-      <DashboardShell role="parent" title="כרטיס ילד">
-        <div className="empty-state"><strong>לא נמצא כרטיס ילד</strong><span>ייתכן שהילד לא משויך למשתמש שלך או שהרישום עדיין לא אושר.</span><Link className="button primary" href="/dashboard/parent">חזרה לאזור הורים</Link></div>
+      <DashboardShell role="parent" title="כרטיס ילד" appHome>
+        <ParentAppFrame active="home" avatarUrl={(profile as any).profile_image_url ?? null}>
+          <ParentEmptyState
+            title="לא נמצא כרטיס ילד"
+            text="ייתכן שהילד לא משויך למשתמש שלך או שהרישום עדיין לא אושר."
+            action={<Link className="button primary" href="/dashboard/parent">חזרה לאזור הורים</Link>}
+          />
+        </ParentAppFrame>
       </DashboardShell>
     );
   }
@@ -54,7 +67,9 @@ export default async function ParentChildProfilePage({ params }: { params: Promi
   const latestJournal = (journalsRes.data ?? [])[0] as any;
 
   return (
-    <DashboardShell role="parent" title="כרטיס ילד">
+    <DashboardShell role="parent" title="כרטיס ילד" appHome>
+      <ParentAppFrame active="home" avatarUrl={(profile as any).profile_image_url ?? null}>
+        <ParentHero title={child.full_name} subtitle="כרטיס הילד, בריאות, מסמכים ועדכונים מהגן" />
       <div className="parent-experience-shell">
         <section className="parent-child-hero compact">
           <div className="parent-child-photo"><Avatar name={child.full_name} src={child.photo_url ?? child.face_image_url} size="lg" /></div>
@@ -62,9 +77,9 @@ export default async function ParentChildProfilePage({ params }: { params: Promi
             <p className="eyebrow">כרטיס ילד</p>
             <h1>{child.full_name}</h1>
             <div className="parent-status-row">
-              <span className={child.status === "active" || child.status === "approved" ? "pill good" : child.status === "rejected" ? "pill bad" : "pill warn"}>{statusLabel(child.status)}</span>
-              <span className="pill good">{age(child.birth_date)}</span>
-              <span className={child.allergies ? "pill bad" : "pill good"}>{child.allergies ? "יש אלרגיה מתועדת" : "אין אלרגיות"}</span>
+              <span className={`parent-status-chip ${parentTone(child.status)}`}>{statusLabel(child.status)}</span>
+              <span className="parent-status-chip green">{age(child.birth_date)}</span>
+              <span className={`parent-status-chip ${child.allergies ? "red" : "green"}`}>{child.allergies ? "יש אלרגיה מתועדת" : "אין אלרגיות"}</span>
             </div>
           </div>
           <div className="parent-hero-actions">
@@ -91,7 +106,7 @@ export default async function ParentChildProfilePage({ params }: { params: Promi
         <section className="parent-two-column">
           <article className="parent-feed-card">
             <div className="section-heading"><h2>עדכונים אחרונים</h2><p>היומן מוצג כפיד קצר.</p></div>
-            {(journalsRes.data ?? []).length === 0 ? <div className="empty-state"><strong>אין עדכונים עדיין</strong><span>כשהגן יעדכן את היום של הילד, זה יופיע כאן.</span></div> : <div className="parent-day-feed">{(journalsRes.data ?? []).map((journal: any) => <div className="parent-feed-item" key={journal.id}><time>{dateText(journal.journal_date)}</time><div><strong>{journal.mood ?? "עדכון מהגן"}</strong><span>{journal.notes_to_parents ?? journal.sleep_summary ?? "עודכן ביומן היומי"}</span></div></div>)}</div>}
+            {(journalsRes.data ?? []).length === 0 ? <ParentEmptyState title="אין עדכונים עדיין" text="כשהגן יעדכן את היום של הילד, זה יופיע כאן." /> : <div className="parent-day-feed">{(journalsRes.data ?? []).map((journal: any) => <div className="parent-feed-item" key={journal.id}><time>{dateText(journal.journal_date)}</time><div><strong>{journal.mood ?? "עדכון מהגן"}</strong><span>{journal.notes_to_parents ?? journal.sleep_summary ?? "עודכן ביומן היומי"}</span></div></div>)}</div>}
           </article>
           <article className="parent-ai-card">
             <Baby />
@@ -129,17 +144,16 @@ export default async function ParentChildProfilePage({ params }: { params: Promi
         <details className="parent-advanced-details">
           <summary>מסמכים ובקשות</summary>
           <div className="parent-two-column">
-            <article className="card action-panel">
-              <h2><FileText size={18} /> מסמכים</h2>
+            <ParentSection title="מסמכים" action={<FileText size={18} />}>
               {(docsRes.data ?? []).length === 0 ? <div className="empty-mini">אין מסמכים להצגה.</div> : (docsRes.data ?? []).map((doc: any) => <div className="list-item" key={doc.id}><strong>{doc.name ?? doc.document_type}</strong><span className="pill">{doc.status}</span></div>)}
-            </article>
-            <article className="card action-panel">
-              <h2>פניות</h2>
+            </ParentSection>
+            <ParentSection title="פניות">
               {(requestsRes.data ?? []).length === 0 ? <div className="empty-mini">אין פניות לילד זה.</div> : (requestsRes.data ?? []).map((request: any) => <div className="list-item" key={request.id}><div><strong>{request.request_type}</strong><span>{request.content}</span></div><span className="pill">{request.status}</span></div>)}
-            </article>
+            </ParentSection>
           </div>
         </details>
       </div>
+      </ParentAppFrame>
     </DashboardShell>
   );
 }

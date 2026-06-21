@@ -1,11 +1,39 @@
 import Link from "next/link";
+import type { ComponentType, ReactNode } from "react";
 import { Award, BookOpenCheck, ClipboardCheck, FileText, MessageSquareWarning, ShieldCheck, Sparkles } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
-import { ActionCard, CleanSection, EmptyState, PremiumDashboardHero, RoleMetricCard, StatusBadge } from "@/components/premium-dashboard";
+import { ParentActionTile, ParentAppFrame, ParentEmptyState, ParentHero, ParentMetricCard, ParentSection } from "@/components/parent-app-ui";
 import { requireRole } from "@/lib/auth";
 import { getParentFamilyContext } from "@/lib/domain/parent-family";
 import { complaintParentStatus, parentTrustTone, parentTrustVisibilityRules, trustBadgeLabel, trustFeedLabel, trustScoreWeights } from "@/lib/domain/parent-trust";
 import { createClient } from "@/lib/supabase/server";
+
+function parentTone(tone?: string | null) {
+  if (tone === "good") return "green" as const;
+  if (tone === "warn") return "orange" as const;
+  if (tone === "bad") return "red" as const;
+  return "purple" as const;
+}
+
+function StatusBadge({ tone, children }: { tone?: string | null; children: ReactNode }) {
+  return <span className={`parent-status-chip ${parentTone(tone)}`}>{children}</span>;
+}
+
+function RoleMetricCard({ label, value, hint, tone }: { label: string; value: ReactNode; hint?: string; tone?: string | null }) {
+  return <ParentMetricCard title={label} value={value} hint={hint} icon={ShieldCheck} tone={parentTone(tone)} />;
+}
+
+function EmptyState({ title, text }: { title: string; text?: string }) {
+  return <ParentEmptyState title={title} text={text} />;
+}
+
+function CleanSection({ title, subtitle, children }: { title: string; subtitle?: string; children: ReactNode }) {
+  return <ParentSection title={title} subtitle={subtitle}>{children}</ParentSection>;
+}
+
+function ActionCard({ title, href, icon }: { title: string; text?: string; href: string; icon: ComponentType<any> }) {
+  return <ParentActionTile title={title} href={href} icon={icon} tone="purple" />;
+}
 
 export default async function ParentTrustCenterPage() {
   const { profile } = await requireRole(["parent"]);
@@ -33,11 +61,14 @@ export default async function ParentTrustCenterPage() {
   const latestInspection = inspections[0];
 
   return (
-    <DashboardShell role="parent" title="מרכז אמון">
+    <DashboardShell role="parent" title="מרכז אמון" appHome>
+      <ParentAppFrame active="more" avatarUrl={(profile as any).profile_image_url ?? null}>
       <div className="commercial-dashboard parent-trust-network-shell">
-        <PremiumDashboardHero eyebrow="Parent Trust" title="מרכז האמון של הגן" subtitle="שקיפות פשוטה ובטוחה: ציון אמון, ביקורות, ציות, שיפורים ופניות שלך. מידע רגיש ו-AI גולמי לא מוצגים." badge={`${trust.trust_score ?? 0}/100`} badgeTone={parentTrustTone(Number(trust.trust_score ?? 0))} actions={<><Link className="button primary" href="/dashboard/parent/complaints">פנייה לגן</Link><Link className="button secondary" href="/dashboard/parent/inspections">ביקורות</Link></>}>
+        <ParentHero title="מרכז האמון של הגן" subtitle="שקיפות פשוטה ובטוחה: ציון אמון, ביקורות, ציות, שיפורים ופניות שלך" />
+        <ParentSection title="מידע מאושר להורים" subtitle={`${trust.trust_score ?? 0}/100`}>
           <div className="setup-checklist"><span>{trustBadgeLabel(trust.trust_badge_status ?? badge.badge_status)}</span><span>{trust.gardens?.name ?? "גן משויך"}</span><span>רק מידע מאושר</span></div>
-        </PremiumDashboardHero>
+          <div className="parent-status-row"><Link className="button primary" href="/dashboard/parent/complaints">פנייה לגן</Link><Link className="button secondary" href="/dashboard/parent/inspections">ביקורות</Link></div>
+        </ParentSection>
 
         <section className="grid cols-4 dashboard-kpis">
           <RoleMetricCard label="ציון אמון" value={`${trust.trust_score ?? 0}/100`} tone={parentTrustTone(Number(trust.trust_score ?? 0))} />
@@ -55,8 +86,8 @@ export default async function ParentTrustCenterPage() {
         </section>
 
         <section className="grid cols-2 dashboard-panels">
-          <article className="card action-panel"><h2><ShieldCheck size={20} /> תג אמון</h2><div className="parent-trust-badge-card"><strong>{badge.public_label ?? trustBadgeLabel(trust.trust_badge_status)}</strong><span>{badge.public_summary ?? trust.parent_summary ?? "הגן נמצא במעקב אמון פעיל."}</span></div></article>
-          <article className="card action-panel"><h2><Sparkles size={20} /> סיכום בטוח</h2><div className="parent-trust-list"><span>{trust.parent_summary ?? "נתוני אמון יופיעו לאחר חישוב הדירוג."}</span><span>{trust.latest_inspection_summary ?? "סיכום ביקורת מאושר יופיע כאן לאחר פרסום."}</span></div></article>
+          <article className="parent-section-card"><h2><ShieldCheck size={20} /> תג אמון</h2><div className="parent-trust-badge-card"><strong>{badge.public_label ?? trustBadgeLabel(trust.trust_badge_status)}</strong><span>{badge.public_summary ?? trust.parent_summary ?? "הגן נמצא במעקב אמון פעיל."}</span></div></article>
+          <article className="parent-section-card"><h2><Sparkles size={20} /> סיכום בטוח</h2><div className="parent-trust-list"><span>{trust.parent_summary ?? "נתוני אמון יופיעו לאחר חישוב הדירוג."}</span><span>{trust.latest_inspection_summary ?? "סיכום ביקורת מאושר יופיע כאן לאחר פרסום."}</span></div></article>
         </section>
 
         <CleanSection title="פיד שקיפות" subtitle="רק עדכונים שאושרו להצגה להורים.">
@@ -64,8 +95,8 @@ export default async function ParentTrustCenterPage() {
         </CleanSection>
 
         <section className="grid cols-2 dashboard-panels">
-          <article className="card action-panel"><h2><ClipboardCheck size={20} /> היסטוריית ביקורות</h2>{inspections.length === 0 ? <div className="empty-mini">אין ביקורות מאושרות להצגה.</div> : inspections.map((inspection) => <div className="list-item" key={inspection.id}><div><strong>ציון {inspection.weighted_score ?? "-"}</strong><span>{inspection.completed_at ? new Date(inspection.completed_at).toLocaleDateString("he-IL") : ""} · {inspection.violation_count ?? 0} ליקויים</span></div><Link className="button secondary tiny" href={`/dashboard/parent/inspections/${inspection.id}/report`}>דוח</Link></div>)}</article>
-          <article className="card action-panel"><h2><MessageSquareWarning size={20} /> הפניות שלך</h2>{complaints.length === 0 ? <div className="empty-mini">אין פניות פתוחות.</div> : complaints.map((complaint) => <div className="list-item" key={complaint.id}><div><strong>{complaint.subject}</strong><span>{complaint.created_at ? new Date(complaint.created_at).toLocaleDateString("he-IL") : ""}</span></div><StatusBadge tone={parentTrustTone(complaint.status)}>{complaintParentStatus(complaint.status)}</StatusBadge></div>)}</article>
+          <article className="parent-section-card"><h2><ClipboardCheck size={20} /> היסטוריית ביקורות</h2>{inspections.length === 0 ? <div className="empty-mini">אין ביקורות מאושרות להצגה.</div> : inspections.map((inspection) => <div className="list-item" key={inspection.id}><div><strong>ציון {inspection.weighted_score ?? "-"}</strong><span>{inspection.completed_at ? new Date(inspection.completed_at).toLocaleDateString("he-IL") : ""} · {inspection.violation_count ?? 0} ליקויים</span></div><Link className="button secondary tiny" href={`/dashboard/parent/inspections/${inspection.id}/report`}>דוח</Link></div>)}</article>
+          <article className="parent-section-card"><h2><MessageSquareWarning size={20} /> הפניות שלך</h2>{complaints.length === 0 ? <div className="empty-mini">אין פניות פתוחות.</div> : complaints.map((complaint) => <div className="list-item" key={complaint.id}><div><strong>{complaint.subject}</strong><span>{complaint.created_at ? new Date(complaint.created_at).toLocaleDateString("he-IL") : ""}</span></div><StatusBadge tone={parentTrustTone(complaint.status)}>{complaintParentStatus(complaint.status)}</StatusBadge></div>)}</article>
         </section>
 
         <CleanSection title="מה לא מוצג כאן" subtitle="גבולות שקיפות כדי לשמור על פרטיות ובטיחות.">
@@ -82,6 +113,7 @@ export default async function ParentTrustCenterPage() {
           <ActionCard title="מסמכים" text="קבצים ואישורים" href="/dashboard/parent/documents" icon={FileText} />
         </section>
       </div>
+      </ParentAppFrame>
     </DashboardShell>
   );
 }
