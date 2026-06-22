@@ -1,4 +1,6 @@
-import { DashboardShell } from "@/components/dashboard-shell";
+import { CalendarDays, Clock, TimerReset } from "lucide-react";
+import { ListRowCard, StatusChip } from "@/components/gan-batuach-design-system";
+import { StaffAppFrame, StaffEmpty, StaffMetricCard, StaffPageHero, StaffSection, StaffStats } from "@/components/staff-app-ui";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
@@ -16,5 +18,31 @@ export default async function Page() {
   const rows = (shiftsRes.data ?? []) as any[];
   const monthHours = rows.reduce((sum, row) => sum + hours(row.actual_start, row.actual_end), 0);
   const lateCount = rows.filter((row) => row.status === "late").length;
-  return <DashboardShell role="staff" title="שעות חודשיות"><div className="dashboard-hero-card staff-hero-card"><div><p className="eyebrow">דוחות שעות</p><h1>שעות עבודה, איחורים וחוסרים.</h1><p>הדוח מציג משמרות בפועל מול תכנון, ומאפשר למנהלת לראות חוסרים או חריגות.</p></div><span className="pill good">{monthHours.toFixed(1)} שעות</span></div><section className="grid cols-3 dashboard-kpis"><div className="card stat-card">שעות מחושבות <b>{monthHours.toFixed(1)}</b></div><div className="card stat-card">משמרות <b>{rows.length}</b></div><div className="card stat-card">איחורים <b>{lateCount}</b></div></section><section className="dashboard-section">{rows.length === 0 ? <div className="empty-state"><strong>אין משמרות להצגה</strong><span>לאחר שהמנהלת תגדיר משמרות או שתבוצע החתמה, שעות העבודה יופיעו כאן.</span></div> : <div className="procedure-list">{rows.map((row) => <article className="card procedure-card" key={row.id}><div><span className="pill">{row.status}</span><h3>{new Date(row.shift_date).toLocaleDateString("he-IL")}</h3><p>מתוכנן {row.planned_start ?? "-"}-{row.planned_end ?? "-"} · בפועל {row.actual_start ? new Date(row.actual_start).toLocaleTimeString("he-IL") : "-"}-{row.actual_end ? new Date(row.actual_end).toLocaleTimeString("he-IL") : "-"}</p></div><span className="pill">{hours(row.actual_start, row.actual_end).toFixed(1)} שעות</span></article>)}</div>}</section></DashboardShell>;
+  return (
+    <StaffAppFrame active="shifts">
+      <StaffPageHero eyebrow="דוחות שעות" title="שעות עבודה, איחורים וחוסרים" text="הדוח מציג משמרות בפועל מול תכנון." icon={CalendarDays} badge={<StatusChip tone="success">{monthHours.toFixed(1)} שעות</StatusChip>} />
+      <StaffStats>
+        <StaffMetricCard title="שעות מחושבות" value={monthHours.toFixed(1)} icon={Clock} tone="purple" />
+        <StaffMetricCard title="משמרות" value={rows.length} icon={CalendarDays} tone="blue" />
+        <StaffMetricCard title="איחורים" value={lateCount} icon={TimerReset} tone={lateCount ? "orange" : "green"} />
+      </StaffStats>
+      <StaffSection title="היסטוריית משמרות">
+        {rows.length === 0 ? (
+          <StaffEmpty title="אין משמרות להצגה" text="לאחר שהמנהלת תגדיר משמרות או שתבוצע החתמה, שעות העבודה יופיעו כאן." icon={CalendarDays} />
+        ) : (
+          <div className="staff-task-list-ref">
+            {rows.map((row) => (
+              <ListRowCard
+                key={row.id}
+                title={new Date(row.shift_date).toLocaleDateString("he-IL")}
+                subtitle={`מתוכנן ${row.planned_start ?? "-"}-${row.planned_end ?? "-"}`}
+                meta={`בפועל ${row.actual_start ? new Date(row.actual_start).toLocaleTimeString("he-IL") : "-"}-${row.actual_end ? new Date(row.actual_end).toLocaleTimeString("he-IL") : "-"}`}
+                status={<StatusChip tone={row.status === "late" ? "warning" : "success"}>{hours(row.actual_start, row.actual_end).toFixed(1)} שעות</StatusChip>}
+              />
+            ))}
+          </div>
+        )}
+      </StaffSection>
+    </StaffAppFrame>
+  );
 }

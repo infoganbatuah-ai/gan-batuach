@@ -1,5 +1,7 @@
 import { CameraPlaybackCard } from "@/components/camera-playback-card";
-import { DashboardShell } from "@/components/dashboard-shell";
+import { Camera, ShieldCheck } from "lucide-react";
+import { CameraPreviewCard, StatusChip } from "@/components/gan-batuach-design-system";
+import { StaffAppFrame, StaffEmpty, StaffPageHero, StaffSection } from "@/components/staff-app-ui";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
@@ -15,14 +17,32 @@ export default async function StaffCamerasPage() {
     .eq("staff_view_allowed", true);
   const cameras = (camerasRes.data ?? []) as any[];
   return (
-    <DashboardShell role="staff" title="מצלמות צוות">
-      <div className="dashboard-hero-card staff-hero-card">
-        <div><p className="eyebrow">Staff scoped cameras</p><h1>תצפיתן דיגיטלי - צפייה במצלמות.</h1><p>צוות רואה רק מצלמות של הגן המשויך אליו. אין חשיפה ל־RTSP או סיסמאות.</p></div>
-        <span className="pill good">גן משויך בלבד</span>
-      </div>
-      <section className="dashboard-section">
-        {cameras.length === 0 ? <div className="empty-state"><strong>אין מצלמות זמינות לצוות</strong><span>צפיית צוות נפתחת רק אם מנהלת הגן אישרה זאת. כל צפייה מתועדת.</span></div> : <div className="camera-playback-grid">{cameras.map((camera) => <CameraPlaybackCard camera={camera} accessReason="צפיית צוות מורשית" key={camera.id} />)}</div>}
-      </section>
-    </DashboardShell>
+    <StaffAppFrame active="more">
+      <StaffPageHero
+        eyebrow="מצלמות צוות"
+        title="צפייה במצלמות המאושרות לצוות"
+        text="צוות רואה רק מצלמות של הגן המשויך אליו, ורק אם מנהלת הגן אישרה צפייה."
+        icon={Camera}
+        badge={<StatusChip tone="success" icon={ShieldCheck}>גן משויך בלבד</StatusChip>}
+      />
+      <StaffSection title="גלריית מצלמות">
+        {cameras.length === 0 ? (
+          <StaffEmpty title="אין מצלמות זמינות לצוות" text="צפיית צוות נפתחת רק אם מנהלת הגן אישרה זאת. כל צפייה מתועדת." icon={Camera} />
+        ) : (
+          <div className="camera-playback-grid">
+            {cameras.map((camera) => (
+              <CameraPreviewCard
+                key={camera.id}
+                title={camera.name}
+                subtitle={`${camera.area ?? "אזור לא צוין"} · ${camera.gardens?.name ?? "גן"}`}
+                live={camera.status === "online" || camera.active}
+                status={<StatusChip tone={camera.status === "online" ? "success" : "warning"}>{camera.status ?? "ממתין"}</StatusChip>}
+                action={<CameraPlaybackCard camera={camera} accessReason="צפיית צוות מורשית" />}
+              />
+            ))}
+          </div>
+        )}
+      </StaffSection>
+    </StaffAppFrame>
   );
 }

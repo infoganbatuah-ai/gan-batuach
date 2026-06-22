@@ -1,9 +1,8 @@
-import { ClipboardCheck, ShieldCheck } from "lucide-react";
-import { DashboardShell } from "@/components/dashboard-shell";
-import { RoleMetricCard } from "@/components/premium-dashboard";
+import { ClipboardCheck, FileText, MapPin, ShieldCheck } from "lucide-react";
 import { InspectorApplicationForm } from "@/components/self-service-forms";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { InspectorAppFrame, InspectorHero, InspectorMetricCard, InspectorMetricGrid, InspectorSection } from "@/components/inspector-app-ui";
 
 function formatStatus(status?: string | null) {
   const map: Record<string, string> = {
@@ -17,7 +16,7 @@ function formatStatus(status?: string | null) {
     suspended: "מושהה",
     inactive: "לא פעיל"
   };
-  return map[status ?? ""] ?? status ?? "-";
+  return map[status ?? ""] ?? status ?? "טיוטה";
 }
 
 export default async function InspectorApplyPage() {
@@ -29,25 +28,21 @@ export default async function InspectorApplyPage() {
     .maybeSingle()).data as any;
 
   return (
-    <DashboardShell role="inspector" title="בקשת מפקח">
-      <section className="dashboard-hero-card">
-        <div>
-          <p className="eyebrow">מועמד/ת מפקח</p>
-          <h1>הגישו בקשה להצטרף למערך המפקחים של גן בטוח.</h1>
-          <p>עד אישור אדמין ושיוך גנים, אין גישה לגנים, ביקורות, מצלמות, דוחות או נתוני ילדים.</p>
-        </div>
-        <span className={application?.status === "approved" ? "pill good" : "pill warn"}>{formatStatus(application?.status)}</span>
-      </section>
-      <section className="grid cols-3 dashboard-kpis">
-        <RoleMetricCard label="סטטוס בקשה" value={application?.status ?? "טיוטה"} tone={application?.status === "approved" ? "good" : "warn"} />
-        <RoleMetricCard label="מסמכים" value={Object.keys(application?.documents ?? {}).length} />
-        <RoleMetricCard label="אזורים" value={(application?.preferred_regions ?? []).length} />
-      </section>
-      <InspectorApplicationForm application={application} />
-      <section className="manager-report-row">
-        <span><ShieldCheck /> אישור מפקח מתבצע על ידי אדמין בלבד.</span>
-        <span><ClipboardCheck /> גנים נפתחים רק לאחר שיוך מפורש.</span>
-      </section>
-    </DashboardShell>
+    <InspectorAppFrame profile={profile} activeHref="/dashboard/inspector/settings" title="בקשת מפקח" subtitle="הגשה, מסמכים ואישור אדמין" badge={formatStatus(application?.status)}>
+      <InspectorHero
+        eyebrow="מועמד/ת מפקח"
+        title="הצטרפות למערך המפקחים של גן בטוח"
+        subtitle="עד אישור אדמין ושיוך גנים, אין גישה לגנים, ביקורות, מצלמות, דוחות או נתוני ילדים."
+        artwork={<ClipboardCheck />}
+      />
+      <InspectorMetricGrid columns={3}>
+        <InspectorMetricCard label="סטטוס בקשה" value={formatStatus(application?.status)} hint="אישור אדמין בלבד" icon={ShieldCheck} tone={application?.status === "approved" ? "success" : "warning"} />
+        <InspectorMetricCard label="מסמכים" value={Object.keys(application?.documents ?? {}).length} hint="צורפו לבקשה" icon={FileText} />
+        <InspectorMetricCard label="אזורים" value={(application?.preferred_regions ?? []).length} hint="העדפות אזור" icon={MapPin} />
+      </InspectorMetricGrid>
+      <InspectorSection title="טופס בקשה" subtitle="הטופס הקיים נשמר כדי לא לשנות את תהליך ההגשה" icon={ClipboardCheck}>
+        <InspectorApplicationForm application={application} />
+      </InspectorSection>
+    </InspectorAppFrame>
   );
 }

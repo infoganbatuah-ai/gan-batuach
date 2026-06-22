@@ -1,6 +1,7 @@
 import { BriefcaseBusiness, Building2 } from "lucide-react";
-import { DashboardShell } from "@/components/dashboard-shell";
 import { StaffApplicationForm } from "@/components/self-service-forms";
+import { FormField, ListRowCard, SearchFilterBar, StatusChip } from "@/components/gan-batuach-design-system";
+import { StaffAppFrame, StaffEmpty, StaffPageHero, StaffSection } from "@/components/staff-app-ui";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
@@ -21,35 +22,34 @@ export default async function StaffJobMarketPage({ searchParams }: { searchParam
   });
 
   return (
-    <DashboardShell role="staff" title="שוק משרות">
-      <section className="dashboard-hero-card">
-        <div>
-          <p className="eyebrow">מועמדות צוות</p>
-          <h1>מצאו גן שמחפש עובדים והגישו מועמדות.</h1>
-          <p>מוצגים רק פרטים ציבוריים של משרות. אין גישה לילדים, הורים, מסמכים או מידע פנימי לפני אישור מנהלת.</p>
-        </div>
-        <span className="pill good">{filtered.length} משרות פתוחות</span>
-      </section>
-      <form className="filter-bar" action="/dashboard/staff/job-market">
-        <input name="q" placeholder="תפקיד או שם גן" defaultValue={params?.q ?? ""} />
-        <input name="city" placeholder="עיר" defaultValue={params?.city ?? ""} />
-        <button className="button secondary" type="submit">סינון</button>
+    <StaffAppFrame active="more">
+      <StaffPageHero eyebrow="מועמדות צוות" title="מצאו גן שמחפש עובדים" text="מוצגים רק פרטים ציבוריים של משרות. אין גישה למידע פנימי לפני אישור מנהלת." icon={BriefcaseBusiness} badge={<StatusChip tone="success">{filtered.length} משרות פתוחות</StatusChip>} />
+      <form action="/dashboard/staff/job-market">
+        <SearchFilterBar
+          search={<FormField label="חיפוש" name="q" placeholder="תפקיד או שם גן" defaultValue={params?.q ?? ""} />}
+          filters={<FormField label="עיר" name="city" placeholder="עיר" defaultValue={params?.city ?? ""} />}
+          action={<button className="gb-primary-button" type="submit">סינון</button>}
+        />
       </form>
-      <section className="procedure-list">
-        {filtered.map((opening) => (
-          <article className="card procedure-card" key={opening.id}>
-            <div>
-              <span className="pill good"><BriefcaseBusiness size={14} /> פתוח</span>
-              <h3>{opening.role_needed}</h3>
-              <p><Building2 size={14} /> {opening.gardens?.name ?? "גן"} · {opening.gardens?.city ?? ""}</p>
-              <small>{opening.age_group ?? "כל הגילאים"} · {opening.employment_type ?? "סוג העסקה לא פורסם"}</small>
-              <p>{opening.requirements ?? opening.description ?? "דרישות יפורסמו על ידי הגן."}</p>
-            </div>
-            <div className="procedure-meta"><StaffApplicationForm opening={opening} /></div>
-          </article>
-        ))}
-        {filtered.length === 0 ? <div className="empty-state"><strong>אין משרות פתוחות</strong><span>כאשר גן יפרסם משרה, היא תופיע כאן.</span></div> : null}
-      </section>
-    </DashboardShell>
+      <StaffSection title="משרות פתוחות">
+        {filtered.length === 0 ? (
+          <StaffEmpty title="אין משרות פתוחות" text="כאשר גן יפרסם משרה, היא תופיע כאן." icon={BriefcaseBusiness} />
+        ) : (
+          <div className="staff-task-list-ref">
+            {filtered.map((opening) => (
+              <ListRowCard
+                key={opening.id}
+                title={opening.role_needed}
+                subtitle={`${opening.gardens?.name ?? "גן"} · ${opening.gardens?.city ?? ""}`}
+                meta={`${opening.age_group ?? "כל הגילאים"} · ${opening.employment_type ?? "סוג העסקה לא פורסם"}`}
+                avatar={<Building2 size={22} />}
+                status={<StatusChip tone="success">פתוח</StatusChip>}
+                actions={<StaffApplicationForm opening={opening} />}
+              />
+            ))}
+          </div>
+        )}
+      </StaffSection>
+    </StaffAppFrame>
   );
 }

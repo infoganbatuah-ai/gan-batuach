@@ -1,5 +1,7 @@
-import { DashboardShell } from "@/components/dashboard-shell";
+import { Bell } from "lucide-react";
 import { NotificationCenter } from "@/components/notification-center";
+import { StatusChip } from "@/components/gan-batuach-design-system";
+import { StaffAppFrame, StaffPageHero, StaffSection } from "@/components/staff-app-ui";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
@@ -13,9 +15,11 @@ export default async function StaffNotificationsPage() {
     .order("created_at", { ascending: false })
     .limit(100);
   return (
-    <DashboardShell role="staff" title="התראות צוות">
-      <div className="dashboard-hero-card staff-hero-card"><div><p className="eyebrow">עדכוני צוות</p><h1>מה חדש במשמרת?</h1><p>משימות, הודעות מנהלת, ילדים שדורשים עדכון, מסמכים חסרים ואירועים שהוקצו.</p></div><span className="pill good">צוות</span></div>
-      <NotificationCenter notifications={(data ?? []) as any[]} />
-    </DashboardShell>
+    <StaffAppFrame active="messages">
+      <StaffPageHero eyebrow="עדכוני צוות" title="מה חדש במשמרת?" text="משימות, הודעות מנהלת, מסמכים חסרים ואירועים שהוקצו." icon={Bell} badge={<StatusChip tone="success">צוות</StatusChip>} />
+      <StaffSection title="מרכז התראות">
+        <NotificationCenter notifications={(data ?? []) as any[]} />
+      </StaffSection>
+    </StaffAppFrame>
   );
 }

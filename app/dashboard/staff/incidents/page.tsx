@@ -1,6 +1,7 @@
 import { Siren } from "lucide-react";
-import { DashboardShell } from "@/components/dashboard-shell";
 import { IncidentManager } from "@/components/incident-manager";
+import { StatusChip } from "@/components/gan-batuach-design-system";
+import { StaffAppFrame, StaffPageHero, StaffSection } from "@/components/staff-app-ui";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
@@ -15,16 +16,11 @@ export default async function StaffIncidentsPage({ searchParams }: { searchParam
   ]);
 
   return (
-    <DashboardShell role="staff" title="דיווח אירוע">
-      <div className="parent-page-head staff-page-head">
-        <div>
-          <p className="eyebrow">דיווח מהיר</p>
-          <h1>קרה משהו? מתעדים מיד.</h1>
-          <p>בחרו ילד, חומרה, טקסט קצר ואם צריך תמונה. המנהלת מקבלת התראה להמשך טיפול.</p>
-        </div>
-        <span className="pill warn"><Siren size={15} /> מתועד</span>
-      </div>
-      <IncidentManager gardenId={gardenId} children={(childrenRes.data ?? []) as any[]} incidents={(incidentsRes.data ?? []) as any[]} initialChildId={params.childId ?? ""} />
-    </DashboardShell>
+    <StaffAppFrame active="more">
+      <StaffPageHero eyebrow="דיווח מהיר" title="קרה משהו? מתעדים מיד" text="בחרו ילד, חומרה, טקסט קצר ואם צריך תמונה. המנהלת מקבלת התראה להמשך טיפול." icon={Siren} badge={<StatusChip tone="warning">מתועד</StatusChip>} />
+      <StaffSection title="דיווח אירוע">
+        <IncidentManager gardenId={gardenId} children={(childrenRes.data ?? []) as any[]} incidents={(incidentsRes.data ?? []) as any[]} initialChildId={params.childId ?? ""} />
+      </StaffSection>
+    </StaffAppFrame>
   );
 }

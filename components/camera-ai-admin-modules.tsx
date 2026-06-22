@@ -62,7 +62,19 @@ async function postJson(url: string, payload: unknown, method = "POST") {
   return body.data;
 }
 
-export function CameraAdminManager({ cameras, gardens, gatewayConnected, defaultOpenAdd = false }: { cameras: CameraRow[]; gardens: Garden[]; gatewayConnected: boolean; defaultOpenAdd?: boolean }) {
+export function CameraAdminManager({
+  cameras,
+  gardens,
+  gatewayConnected,
+  defaultOpenAdd = false,
+  showHealthCenter = true
+}: {
+  cameras: CameraRow[];
+  gardens: Garden[];
+  gatewayConnected: boolean;
+  defaultOpenAdd?: boolean;
+  showHealthCenter?: boolean;
+}) {
   const [rows, setRows] = useState(cameras);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -231,10 +243,12 @@ export function CameraAdminManager({ cameras, gardens, gatewayConnected, default
           </section>
         )}
       </CollapsibleActionPanel>
-      <section className="dashboard-section">
-        <div className="section-heading"><h2>מרכז בריאות מצלמות</h2><p>צפייה עוברת דרך הרשאות ו-Token זמני. פרטי מקור לא מוצגים.</p></div>
-        {rows.length === 0 ? <div className="empty-state"><strong>אין מצלמות עדיין</strong><span>לחצו על “חיבור מצלמה ראשונה” כדי להתחיל.</span></div> : <div className="camera-playback-grid">{rows.map((cam) => <div key={cam.id} className="camera-operation-stack"><CameraPlaybackCard camera={cam} /><div className="camera-admin-verification"><span>סוג: {systemTypeLabels[cam.system_type] ?? cam.system_type ?? cam.source_type ?? "מצלמה"}</span><span>בדיקה אחרונה: {cam.last_test_message ?? "טרם נבדקה"}</span><span>Gateway: {cam.gateway_registration_status ?? cam.connection_method ?? "ממתין"}</span><span>בדיקה/ייצור: {cam.test_site_type ?? "גן פעיל"}</span><span>פרטי חיבור: {cam.masked_connection_summary?.password_present ? "סיסמה שמורה ומוצפנת" : "ללא סיסמה שמורה"}</span></div><div className="profile-actions"><button className="button secondary tiny" type="button" onClick={() => cameraAction(cam, "test_connection")}>בדיקת חיבור</button><button className="button secondary tiny" type="button" onClick={() => cameraAction(cam, "register_gateway")}>רישום Gateway</button><button className="button secondary tiny" type="button" onClick={() => cameraAction(cam, cam.active === false ? "enable" : "disable")}>{cam.active === false ? "הפעלה" : "השבתה"}</button><button className="button secondary tiny" type="button" onClick={() => cameraAction(cam, "mark_offline")}>סימון תקלה</button></div></div>)}</div>}
-      </section>
+      {showHealthCenter ? (
+        <section className="dashboard-section">
+          <div className="section-heading"><h2>מרכז בריאות מצלמות</h2><p>צפייה עוברת דרך הרשאות ו-Token זמני. פרטי מקור לא מוצגים.</p></div>
+          {rows.length === 0 ? <div className="empty-state"><strong>אין מצלמות עדיין</strong><span>לחצו על “חיבור מצלמה ראשונה” כדי להתחיל.</span></div> : <div className="camera-playback-grid">{rows.map((cam) => <div key={cam.id} className="camera-operation-stack"><CameraPlaybackCard camera={cam} /><div className="camera-admin-verification"><span>סוג: {systemTypeLabels[cam.system_type] ?? cam.system_type ?? cam.source_type ?? "מצלמה"}</span><span>בדיקה אחרונה: {cam.last_test_message ?? "טרם נבדקה"}</span><span>Gateway: {cam.gateway_registration_status ?? cam.connection_method ?? "ממתין"}</span><span>בדיקה/ייצור: {cam.test_site_type ?? "גן פעיל"}</span><span>פרטי חיבור: {cam.masked_connection_summary?.password_present ? "סיסמה שמורה ומוצפנת" : "ללא סיסמה שמורה"}</span></div><div className="profile-actions"><button className="button secondary tiny" type="button" onClick={() => cameraAction(cam, "test_connection")}>בדיקת חיבור</button><button className="button secondary tiny" type="button" onClick={() => cameraAction(cam, "register_gateway")}>רישום Gateway</button><button className="button secondary tiny" type="button" onClick={() => cameraAction(cam, cam.active === false ? "enable" : "disable")}>{cam.active === false ? "הפעלה" : "השבתה"}</button><button className="button secondary tiny" type="button" onClick={() => cameraAction(cam, "mark_offline")}>סימון תקלה</button></div></div>)}</div>}
+        </section>
+      ) : null}
     </>
   );
 }

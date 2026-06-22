@@ -1,5 +1,7 @@
-import { DashboardShell } from "@/components/dashboard-shell";
+import { ClipboardList } from "lucide-react";
 import { DailyTaskJournal } from "@/components/daily-task-journal";
+import { StatusChip } from "@/components/gan-batuach-design-system";
+import { StaffAppFrame, StaffPageHero, StaffSection } from "@/components/staff-app-ui";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
@@ -11,5 +13,12 @@ export default async function StaffDailyJournalPage() {
     supabase.from("daily_operational_tasks" as any).select("*").eq("active", true).contains("role_scope", ["staff"]),
     supabase.from("daily_task_completions" as any).select("*").eq("completed_for_date", today).eq("completed_by", profile.id)
   ]);
-  return <DashboardShell role="staff" title="יומן צוות"><div className="dashboard-hero-card"><div><p className="eyebrow">Staff Journal</p><h1>משימות תפעול לצוות.</h1><p>סימון משימות, היסטוריה והתקדמות יומית.</p></div><span className="pill good">צוות</span></div><DailyTaskJournal tasks={(tasksRes.data ?? []) as any[]} completions={(completionsRes.data ?? []) as any[]} gardenId={profile.garden_id} /></DashboardShell>;
+  return (
+    <StaffAppFrame active="more">
+      <StaffPageHero eyebrow="יומן צוות" title="משימות תפעול לצוות" text="סימון משימות, היסטוריה והתקדמות יומית." icon={ClipboardList} badge={<StatusChip tone="success">צוות</StatusChip>} />
+      <StaffSection title="משימות תפעול">
+        <DailyTaskJournal tasks={(tasksRes.data ?? []) as any[]} completions={(completionsRes.data ?? []) as any[]} gardenId={profile.garden_id} />
+      </StaffSection>
+    </StaffAppFrame>
+  );
 }

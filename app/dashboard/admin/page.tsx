@@ -1,9 +1,19 @@
 import Link from "next/link";
-import Image from "next/image";
-import { AlertTriangle, BarChart3, Bell, BellRing, Bot, CalendarDays, Camera, CreditCard, FileText, HeartPulse, Home, Menu, MessageSquareWarning, Rocket, Search, ShieldAlert, ShieldCheck, Star, UsersRound } from "lucide-react";
-import { DashboardShell } from "@/components/dashboard-shell";
+import type { CSSProperties } from "react";
+import { AlertTriangle, BarChart3, BellRing, Bot, Camera, CreditCard, FileText, HeartPulse, MessageSquareWarning, Rocket, Search, ShieldAlert, ShieldCheck, Star, UsersRound } from "lucide-react";
+import { AdminAppFrame } from "@/components/admin-app-ui";
 import { AdminDataError } from "@/components/admin-data-state";
-import { ActionCard, AppHomeShell, AppHomeSection, RoleMetricCard } from "@/components/premium-dashboard";
+import {
+  ActionCard,
+  DashboardGrid,
+  EmptyState,
+  ListRowCard,
+  MetricCard,
+  PremiumCard,
+  ReportCard,
+  SectionHeader,
+  StatusChip
+} from "@/components/gan-batuach-design-system";
 import { requireRole } from "@/lib/auth";
 import { logSupabaseError, safeAdminData } from "@/lib/admin-safe";
 import { createClient } from "@/lib/supabase/server";
@@ -24,10 +34,10 @@ function money(value: number) {
   return new Intl.NumberFormat("he-IL", { style: "currency", currency: "ILS", maximumFractionDigits: 0 }).format(value);
 }
 
-function healthTone(score: number): "good" | "warn" | "bad" {
-  if (score >= 82) return "good";
-  if (score >= 62) return "warn";
-  return "bad";
+function healthTone(score: number): "success" | "warning" | "danger" {
+  if (score >= 82) return "success";
+  if (score >= 62) return "warning";
+  return "danger";
 }
 
 function clamp(value: number) {
@@ -246,158 +256,174 @@ export default async function AdminDashboard() {
     { label: "מה חששות הבטיחות החודש?", href: "/dashboard/admin/ai-events" }
   ];
 
+  const safetyItems = [
+    { label: "תלונות דחופות", value: data.criticalComplaints, href: "/dashboard/admin/complaints", tone: data.criticalComplaints ? "danger" : "success" },
+    { label: "אירועים פתוחים", value: data.activeIncidents, href: "/dashboard/admin/incident-center", tone: data.activeIncidents ? "warning" : "success" },
+    { label: "פיקוחים באיחור", value: data.overdueInspections, href: "/dashboard/admin/inspections/late", tone: data.overdueInspections ? "warning" : "success" },
+    { label: "התראות תצפיתן", value: data.observerAlerts, href: "/dashboard/admin/ai-events", tone: data.observerAlerts ? "danger" : "success" }
+  ] as const;
+
+  const managementModules = [
+    { title: "גנים", text: "פעילים, קליטה, מושעים וניסיון", href: "/dashboard/admin/kindergartens", icon: ShieldAlert, tone: "primary" },
+    { title: "אנליטיקה ארצית", text: "מגמות, ערים ואזורים", href: "/dashboard/admin/analytics-center", icon: BarChart3, tone: "primary" },
+    { title: "מפקחים", text: "שיבוץ, עומס וביצוע", href: "/dashboard/admin/inspectors", icon: UsersRound, tone: "primary" },
+    { title: "כוח פיקוח", text: "קיבולת, תגמול ו-SLA", href: "/dashboard/admin/inspection-workforce", icon: UsersRound, tone: data.overdueInspections ? "warning" : "success" },
+    { title: "פיקוח ארצי", text: "תכנון, ציות וסיכונים", href: "/dashboard/admin/national-inspections", icon: ShieldCheck, tone: data.overdueInspections ? "warning" : "success" },
+    { title: "תיקי אירוע", text: "חקירה, ראיות וסגירה", href: "/dashboard/admin/incident-center", icon: MessageSquareWarning, tone: data.activeIncidents || data.criticalComplaints ? "warning" : "success" },
+    { title: "דירוג לאומי", text: "ציונים, מגמות ושיפור", href: "/dashboard/admin/rating-system", icon: Star, tone: "primary" },
+    { title: "מודיעין סיכון", text: "חיזוי, דפוסים ומניעה", href: "/dashboard/admin/risk-intelligence", icon: AlertTriangle, tone: data.observerAlerts || data.criticalComplaints ? "warning" : "muted" },
+    { title: "בטיחות חזויה", text: "אזהרות ומניעה מוקדמת", href: "/dashboard/admin/predictive-safety", icon: ShieldAlert, tone: data.observerAlerts || data.criticalComplaints ? "warning" : "success" },
+    { title: "ציות חכם", text: "מסמכים, תעודות ותיקונים", href: "/dashboard/admin/compliance-center", icon: FileText, tone: data.securityFindings || data.overdueInspections ? "warning" : "success" },
+    { title: "תצפיתן", text: "מוכנות, כיול והתראות", href: "/dashboard/admin/observer-calibration", icon: Bot, tone: data.observerAlerts ? "warning" : "muted" },
+    { title: "רשת בטיחות", text: "סימנים, סיכון ובדיקה אנושית", href: "/dashboard/admin/observer-network", icon: ShieldAlert, tone: data.observerAlerts ? "warning" : "muted" },
+    { title: "מצלמות", text: "בריאות, Gateway ושידורים", href: "/dashboard/admin/camera-deployment", icon: Camera, tone: data.offlineCameras ? "warning" : "muted" },
+    { title: "תקשורת", text: "Email, WhatsApp, SMS, Push", href: "/dashboard/admin/communications", icon: BellRing, tone: data.communicationFailures ? "warning" : "muted" },
+    { title: "ספקי Production", text: "הפעלה, בדיקות ו-Rollback", href: "/dashboard/admin/provider-production", icon: BellRing, tone: data.communicationFailures ? "warning" : "success" },
+    { title: "הכנסות", text: "מנויים, גבייה וסיכון", href: "/dashboard/admin/subscriptions", icon: CreditCard, tone: "primary" },
+    { title: "סקייל", text: "ריבוי גנים, בידוד וביצועים", href: "/dashboard/admin/scale-validation", icon: BarChart3, tone: data.activeGardens >= 5 ? "success" : "warning" },
+    { title: "100 גנים", text: "תוכנית סקייל מבוקרת", href: "/dashboard/admin/scale-100", icon: BarChart3, tone: data.activeGardens >= 25 ? "success" : "warning" },
+    { title: "השקה", text: "פיילוט, אבטחה וציות", href: "/dashboard/admin/launch-readiness", icon: Rocket, tone: data.launchBlockers ? "danger" : "success" },
+    { title: "אימות חיצוני", text: "משפטי, PT, ISO וחנויות", href: "/dashboard/admin/external-validation", icon: ShieldCheck, tone: data.launchBlockers ? "warning" : "success" },
+    { title: "השקה סופית", text: "Go/No-Go, חסמים וסיכונים", href: "/dashboard/admin/final-production-launch", icon: Rocket, tone: data.launchBlockers ? "danger" : "success" },
+    { title: "תפעול חברה", text: "ריליסים, תמיכה ופידבק", href: "/dashboard/admin/company-operations", icon: HeartPulse, tone: "success" },
+    { title: "הגשה למובייל", text: "TestFlight ו-Google Play", href: "/dashboard/admin/mobile-submission", icon: Rocket, tone: data.launchBlockers ? "warning" : "success" },
+    { title: "דוחות", text: "שבועי, חודשי, בטיחות והכנסות", href: "/dashboard/admin/reports", icon: FileText, tone: "primary" }
+  ] as const;
+
   return (
-    <DashboardShell role="admin" title="מרכז שליטה ארצי" appHome>
-      <div className="admin-reference-frame" dir="rtl">
-        <header className="admin-reference-top">
-          <div className="admin-reference-avatar">
-            <span>{profile.full_name?.slice(0, 1) ?? "א"}</span>
+    <AdminAppFrame
+      profile={profile}
+      title="דשבורד אדמין ראשי"
+      subtitle="שליטה מלאה על גנים, פיקוח, מנויים, ספקים ובטיחות."
+      badge="🌐 מרכז שליטה ארצי"
+    >
+      {result.error || data.queryError ? <AdminDataError message={result.error ?? data.queryError ?? undefined} /> : null}
+
+      <PremiumCard className="admin-command-hero" size="lg">
+        <div className={`admin-health-orb gb-tone-${tone}`} style={{ "--score": systemHealth } as CSSProperties}>
+          <span>בריאות מערכת</span>
+          <strong>{systemHealth}</strong>
+          <small>מתוך 100</small>
+        </div>
+        <div className="admin-command-copy">
+          <span>מבט מנהלים</span>
+          <h2>כל גן בטוח במקום אחד.</h2>
+          <p>{data.activeGardens} גנים פעילים, {data.inspectors} מפקחים, {data.children} ילדים, {data.staff} אנשי צוות ו-{safetyPressure} נושאי בטיחות פתוחים.</p>
+          <div className="admin-chip-row">
+            <StatusChip tone={tone}>{tone === "success" ? "מערכת יציבה" : tone === "warning" ? "דורש תשומת לב" : "חריגים פתוחים"}</StatusChip>
+            <StatusChip tone={data.launchBlockers ? "danger" : "success"}>{data.launchBlockers} חסמי השקה</StatusChip>
+            <StatusChip tone={data.securityFindings ? "warning" : "success"}>{data.securityFindings} ממצאי אבטחה</StatusChip>
           </div>
-          <div className="admin-reference-date">
-            <CalendarDays size={25} />
-            <span>יום ראשון, כ״ד אייר תשפ״ה<br />18 במאי 2025</span>
+        </div>
+        <Link className="admin-primary-button" href="/dashboard/admin/users"><Search size={18} /> חיפוש ארצי</Link>
+      </PremiumCard>
+
+      <DashboardGrid className="admin-kpi-grid" columns={3}>
+        <MetricCard label="גנים פעילים" value={data.activeGardens} hint={`${data.gardens} סה״כ`} tone="success" href="/dashboard/admin/kindergartens" icon={ShieldCheck} />
+        <MetricCard label="מפקחים" value={data.inspectors} hint="שיבוץ וביצוע" tone="primary" href="/dashboard/admin/inspectors" icon={UsersRound} />
+        <MetricCard label="ילדים" value={data.children} hint={`${data.parents} הורים`} tone="primary" href="/dashboard/admin/users" icon={UsersRound} />
+        <MetricCard label="צוות פעיל" value={`${data.activeStaff}/${data.staff}`} hint={`${staffReadiness}% מוכנות`} tone={staffReadiness >= 80 ? "success" : "warning"} href="/dashboard/admin/users" icon={UsersRound} />
+        <MetricCard label="מנויים" value={data.activeSubscriptions} hint={`${data.overdueAccounts} בסיכון`} tone={data.overdueAccounts ? "warning" : "success"} href="/dashboard/admin/subscriptions" icon={CreditCard} />
+        <MetricCard label="בריאות" value={`${systemHealth}%`} hint="פלטפורמה" tone={tone} href="/dashboard/admin/system-health" icon={HeartPulse} />
+      </DashboardGrid>
+
+      <DashboardGrid className="admin-report-grid" columns={3}>
+        <ReportCard title="MRR" value={money(data.mrr)} subtitle={`ARR ${money(data.arr)}`} icon={CreditCard} tone="primary" href="/dashboard/admin/subscriptions" />
+        <ReportCard title="לקוחות פעילים" value={activeCustomers} subtitle="כולל גנים בקליטה" icon={UsersRound} tone="success" href="/dashboard/admin/kindergartens" />
+        <ReportCard title="צמיחה שבועית" value={`${growthRate}%`} subtitle={`${data.newThisWeek} גנים חדשים`} icon={BarChart3} tone={growthRate ? "success" : "muted"} href="/dashboard/admin/analytics-center" />
+        <ReportCard title="סיכון נטישה" value={`${churnRisk}%`} subtitle="מנויים באיחור/לקראת סיום" icon={AlertTriangle} tone={churnRisk ? "warning" : "success"} href="/dashboard/admin/subscriptions" />
+        <ReportCard title="מוכנות השקה" value={`${data.launchReadiness}%`} subtitle="Readiness center" icon={Rocket} tone={data.launchReadiness >= 80 ? "success" : "warning"} href="/dashboard/admin/launch-readiness" />
+        <ReportCard title="פיקוח" value={`${inspectionCompletion}%`} subtitle={`${data.overdueInspections} באיחור`} icon={ShieldCheck} tone={data.overdueInspections ? "warning" : "success"} href="/dashboard/admin/national-inspections" />
+      </DashboardGrid>
+
+      <DashboardGrid className="admin-two-column" columns={2}>
+        <PremiumCard className="admin-section-card" size="lg">
+          <SectionHeader title="בטיחות ארצית" subtitle="תלונות, אירועים, פיקוח ותצפיתן לפי חומרה." icon={ShieldAlert} />
+          <DashboardGrid className="admin-alert-grid" columns={4}>
+            {safetyItems.map((item) => (
+              <ReportCard key={item.label} title={item.label} value={item.value} tone={item.tone} href={item.href} />
+            ))}
+          </DashboardGrid>
+          <div className="admin-list-stack">
+            {[...data.recentComplaints, ...data.recentAiEvents].slice(0, 6).map((item: any) => (
+              <ListRowCard
+                key={`${item.id}-${item.subject ?? item.event_type}`}
+                href={item.event_type ? "/dashboard/admin/ai-events" : "/dashboard/admin/complaints"}
+                title={item.subject ?? item.event_type ?? "אירוע לבדיקה"}
+                subtitle={`${item.gardens?.name ?? "גן"} · ${item.gardens?.city ?? "אזור לא צוין"}`}
+                meta={item.created_at || item.detected_at ? new Date(item.created_at ?? item.detected_at).toLocaleString("he-IL") : "זמן לא צוין"}
+                status={<StatusChip tone={["critical", "high", "urgent"].includes(String(item.severity)) ? "danger" : "warning"}>{item.severity ?? item.status ?? "פתוח"}</StatusChip>}
+              />
+            ))}
+            {[...data.recentComplaints, ...data.recentAiEvents].length === 0 ? <EmptyState title="אין התראות חריגות" text="אירועים ותלונות שייווצרו יופיעו כאן." icon={ShieldCheck} /> : null}
           </div>
-          <div className="admin-reference-brand">
-            <Image src="/assets/company-name.png" alt="גן בטוח" width={230} height={72} />
-            <Image src="/assets/company-symbol.png" alt="" width={72} height={72} />
+        </PremiumCard>
+
+        <PremiumCard className="admin-section-card" size="lg">
+          <SectionHeader title="עוזר מנהלים" subtitle="שאלות שמובילות להחלטה מהירה." icon={Bot} />
+          <div className="admin-question-list">
+            {executiveQuestions.map((question) => <Link href={question.href} key={question.label}>{question.label}</Link>)}
           </div>
-          <button className="admin-reference-bell" type="button" aria-label="התראות"><Bell size={26} /><span>3</span></button>
-        </header>
-        <main className="admin-reference-main">
-          <section className="admin-reference-hero">
-            <h1>דשבורד אדמין ראשי</h1>
-            <p>שליטה מלאה על כלל המערכת</p>
-          </section>
-        <section className="national-command-hero">
-          <div className={`national-health-score ${tone}`}>
-            <span>בריאות מערכת</span>
-            <strong>{systemHealth}</strong>
-            <small>מתוך 100</small>
+          <div className="admin-health-list">
+            <span>מצלמות תקינות <b>{cameraHealth}%</b></span>
+            <span>תקשורת תקינה <b>{communicationHealth}%</b></span>
+            <span>מוכנות צוות <b>{staffReadiness}%</b></span>
+            <span>פיקוח החודש <b>{data.completedInspections}</b></span>
           </div>
-          <div>
-            <p className="eyebrow">שליטה ארצית</p>
-            <h1>כל Gan Batuach במבט אחד.</h1>
-            <p>{data.activeGardens} גנים פעילים, {data.inspectors} מפקחים, {data.children} ילדים, {data.staff} אנשי צוות ו-{safetyPressure} נושאי בטיחות פתוחים.</p>
-            <div className="parent-status-row">
-              <span className={`pill ${tone}`}>{tone === "good" ? "מערכת יציבה" : tone === "warn" ? "דורש תשומת לב" : "חריגים פתוחים"}</span>
-              <span className={data.launchBlockers ? "pill bad" : "pill good"}>{data.launchBlockers} חסמי השקה</span>
-              <span className={data.securityFindings ? "pill warn" : "pill good"}>{data.securityFindings} ממצאי אבטחה</span>
-            </div>
+        </PremiumCard>
+      </DashboardGrid>
+
+      <PremiumCard className="admin-section-card admin-management-card" size="lg">
+        <SectionHeader title="ניהול מלא" subtitle="כל מודולי האדמין זמינים, בלי להפוך את המסך הראשון לקיר טבלאות." icon={BarChart3} />
+        <details className="admin-management-drawer">
+          <summary>הצג את כל מרכזי הניהול</summary>
+          <DashboardGrid className="admin-management-grid" columns={4}>
+            {managementModules.map((module) => <ActionCard key={module.href} {...module} />)}
+          </DashboardGrid>
+        </details>
+      </PremiumCard>
+
+      <DashboardGrid className="admin-two-column" columns={2}>
+        <PremiumCard className="admin-section-card" size="lg">
+          <SectionHeader title="מרכז גנים" subtitle="סטטוס, בטיחות ופיקוח הבא." icon={ShieldCheck} action={<Link className="admin-link-button" href="/dashboard/admin/kindergartens">ניהול מלא</Link>} />
+          <div className="admin-list-stack">
+            {data.gardenRows.length === 0 ? <EmptyState title="אין גנים להצגה" text="גנים שייווצרו יופיעו כאן." icon={ShieldCheck} /> : data.gardenRows.map((garden: any) => (
+              <ListRowCard
+                key={garden.id}
+                href={`/dashboard/admin/gardens/${garden.id}`}
+                title={garden.name}
+                subtitle={`${garden.city ?? "עיר לא צוינה"} · ${garden.status ?? "סטטוס חסר"}`}
+                meta={garden.next_inspection_at ? `פיקוח הבא: ${new Date(garden.next_inspection_at).toLocaleDateString("he-IL")}` : "פיקוח הבא לא נקבע"}
+                status={<StatusChip tone={Number(garden.last_inspection_score ?? 100) < 70 ? "danger" : garden.safe_status === "safe" ? "success" : "warning"}>{garden.last_inspection_score ?? garden.safe_status ?? "בדיקה"}</StatusChip>}
+              />
+            ))}
           </div>
-          <Link className="button primary" href="/dashboard/admin/users"><Search size={16} /> חיפוש ארצי</Link>
-        </section>
+        </PremiumCard>
 
-        <section className="national-kpi-strip">
-          <RoleMetricCard label="גנים פעילים" value={data.activeGardens} hint={`${data.gardens} סה״כ`} tone="good" href="/dashboard/admin/kindergartens" />
-          <RoleMetricCard label="מפקחים" value={data.inspectors} hint="שיבוץ וביצוע" tone="good" href="/dashboard/admin/inspectors" />
-          <RoleMetricCard label="ילדים" value={data.children} hint={`${data.parents} הורים`} tone="good" href="/dashboard/admin/users" />
-          <RoleMetricCard label="צוות פעיל" value={`${data.activeStaff}/${data.staff}`} hint={`${staffReadiness}% מוכנות`} tone={staffReadiness >= 80 ? "good" : "warn"} href="/dashboard/admin/users" />
-          <RoleMetricCard label="מנויים" value={data.activeSubscriptions} hint={`${data.overdueAccounts} בסיכון`} tone={data.overdueAccounts ? "warn" : "good"} href="/dashboard/admin/subscriptions" />
-          <RoleMetricCard label="בריאות" value={`${systemHealth}%`} hint="פלטפורמה" tone={tone} href="/dashboard/admin/system-health" />
-        </section>
+        <PremiumCard className="admin-section-card" size="lg">
+          <SectionHeader title="מפקחים ועומס" subtitle="שיבוץ ומוכנות פיקוח." icon={UsersRound} action={<Link className="admin-link-button" href="/dashboard/admin/inspectors">ניהול מלא</Link>} />
+          <div className="admin-list-stack">
+            {data.inspectorRows.length === 0 ? <EmptyState title="אין מפקחים להצגה" text="מפקחים שייווצרו יופיעו כאן." icon={UsersRound} /> : data.inspectorRows.map((inspector: any) => (
+              <ListRowCard
+                key={inspector.id}
+                href="/dashboard/admin/inspectors"
+                title={inspector.full_name ?? "מפקח"}
+                subtitle={Array.isArray(inspector.assigned_cities) ? inspector.assigned_cities.join(", ") : inspector.city ?? "אזור לא צוין"}
+                meta="בדיקת עומס ושיוך"
+                status={<StatusChip tone="success">{inspector.status ?? "פעיל"}</StatusChip>}
+              />
+            ))}
+          </div>
+        </PremiumCard>
+      </DashboardGrid>
 
-        <section className="executive-kpi-center">
-          <article><CreditCard /><span>MRR</span><strong>{money(data.mrr)}</strong><small>ARR {money(data.arr)}</small></article>
-          <article><UsersRound /><span>לקוחות פעילים</span><strong>{activeCustomers}</strong><small>כולל קליטה</small></article>
-          <article><BarChart3 /><span>צמיחה שבועית</span><strong>{growthRate}%</strong><small>{data.newThisWeek} גנים חדשים</small></article>
-          <article><AlertTriangle /><span>סיכון נטישה</span><strong>{churnRisk}%</strong><small>מנויים באיחור/לקראת סיום</small></article>
-          <article><Rocket /><span>מוכנות השקה</span><strong>{data.launchReadiness}%</strong><small>Readiness center</small></article>
-          <article><ClipboardIcon /><span>פיקוח</span><strong>{inspectionCompletion}%</strong><small>{data.overdueInspections} באיחור</small></article>
-        </section>
-
-        <section className="national-two-column">
-          <article className="national-panel">
-            <div className="section-heading"><h2>בטיחות ארצית</h2><p>תלונות, אירועים, פיקוח ותצפיתן לפי חומרה.</p></div>
-            <div className="national-safety-grid">
-              <Link href="/dashboard/admin/complaints"><strong>{data.criticalComplaints}</strong><span>תלונות דחופות</span></Link>
-              <Link href="/dashboard/admin/complaints"><strong>{data.activeIncidents}</strong><span>אירועים פתוחים</span></Link>
-              <Link href="/dashboard/admin/inspections/late"><strong>{data.overdueInspections}</strong><span>פיקוחים באיחור</span></Link>
-              <Link href="/dashboard/admin/ai-events"><strong>{data.observerAlerts}</strong><span>התראות תצפיתן</span></Link>
-            </div>
-            <div className="national-alert-feed">
-              {[...data.recentComplaints, ...data.recentAiEvents].slice(0, 8).map((item: any) => <Link href={item.event_type ? "/dashboard/admin/ai-events" : "/dashboard/admin/complaints"} key={`${item.id}-${item.subject ?? item.event_type}`}><span className={["critical", "high", "urgent"].includes(String(item.severity)) ? "severity-dot critical" : "severity-dot medium"} /><div><strong>{item.subject ?? item.event_type}</strong><small>{item.gardens?.name ?? "גן"} · {item.created_at || item.detected_at ? new Date(item.created_at ?? item.detected_at).toLocaleString("he-IL") : ""}</small></div></Link>)}
-            </div>
-          </article>
-
-          <article className="national-panel">
-            <div className="section-heading"><h2>עוזר מנהלים</h2><p>שאלות שמובילות להחלטה מהירה.</p></div>
-            <div className="national-assistant-list">{executiveQuestions.map((question) => <Link href={question.href} key={question.label}>{question.label}</Link>)}</div>
-            <div className="national-health-list">
-              <span>מצלמות תקינות <b>{cameraHealth}%</b></span>
-              <span>תקשורת תקינה <b>{communicationHealth}%</b></span>
-              <span>מוכנות צוות <b>{staffReadiness}%</b></span>
-              <span>פיקוח החודש <b>{data.completedInspections}</b></span>
-            </div>
-          </article>
-        </section>
-
-        <AppHomeSection title="ניהול מלא" subtitle="כל מודולי האדמין נשארו זמינים, אבל אינם שולטים במסך הראשון.">
-          <details className="app-management-drawer">
-            <summary>הצג את כל מרכזי הניהול</summary>
-            <section className="national-action-grid">
-              <ActionCard title="גנים" text="פעילים, קליטה, מושעים וניסיון" href="/dashboard/admin/kindergartens" icon={ShieldAlert} tone="good" />
-              <ActionCard title="אנליטיקה ארצית" text="Benchmarking, מגמות ואזורים" href="/dashboard/admin/analytics-center" icon={BarChart3} tone="good" />
-              <ActionCard title="מפקחים" text="שיבוץ, עומס וביצוע" href="/dashboard/admin/inspectors" icon={UsersRound} />
-              <ActionCard title="כוח פיקוח" text="קיבולת, תגמול ו-SLA" href="/dashboard/admin/inspection-workforce" icon={UsersRound} tone={data.overdueInspections ? "warn" : "good"} />
-              <ActionCard title="פיקוח ארצי" text="תכנון, ציות וסיכונים" href="/dashboard/admin/national-inspections" icon={ShieldCheck} tone={data.overdueInspections ? "warn" : "good"} />
-              <ActionCard title="תיקי אירוע" text="חקירה, ראיות וסגירה" href="/dashboard/admin/incident-center" icon={MessageSquareWarning} tone={data.activeIncidents || data.criticalComplaints ? "warn" : "good"} />
-              <ActionCard title="דירוג לאומי" text="ציונים, מגמות ושיפור" href="/dashboard/admin/rating-system" icon={Star} tone="good" />
-              <ActionCard title="מודיעין סיכון" text="חיזוי, דפוסים ומניעה" href="/dashboard/admin/risk-intelligence" icon={AlertTriangle} tone={data.observerAlerts || data.criticalComplaints ? "warn" : "default"} />
-              <ActionCard title="בטיחות חזויה" text="אזהרות ומניעה מוקדמת" href="/dashboard/admin/predictive-safety" icon={ShieldAlert} tone={data.observerAlerts || data.criticalComplaints ? "warn" : "good"} />
-              <ActionCard title="ציות חכם" text="מסמכים, תעודות ותיקונים" href="/dashboard/admin/compliance-center" icon={FileText} tone={data.securityFindings || data.overdueInspections ? "warn" : "good"} />
-              <ActionCard title="תצפיתן" text="מוכנות, כיול והתראות" href="/dashboard/admin/observer-calibration" icon={Bot} tone={data.observerAlerts ? "warn" : "default"} />
-              <ActionCard title="רשת בטיחות" text="סימנים, סיכון ובדיקה אנושית" href="/dashboard/admin/observer-network" icon={ShieldAlert} tone={data.observerAlerts ? "warn" : "default"} />
-              <ActionCard title="מצלמות" text="בריאות, Gateway ושידורים" href="/dashboard/admin/camera-deployment" icon={Camera} tone={data.offlineCameras ? "warn" : "default"} />
-              <ActionCard title="תקשורת" text="Email, WhatsApp, SMS, Push" href="/dashboard/admin/communications" icon={BellRing} tone={data.communicationFailures ? "warn" : "default"} />
-              <ActionCard title="ספקי Production" text="הפעלה, בדיקות ו-Rollback" href="/dashboard/admin/provider-production" icon={BellRing} tone={data.communicationFailures ? "warn" : "good"} />
-              <ActionCard title="הכנסות" text="מנויים, גבייה וסיכון" href="/dashboard/admin/subscriptions" icon={CreditCard} />
-              <ActionCard title="סקייל" text="ריבוי גנים, בידוד וביצועים" href="/dashboard/admin/scale-validation" icon={BarChart3} tone={data.activeGardens >= 5 ? "good" : "warn"} />
-              <ActionCard title="100 גנים" text="תוכנית סקייל מבוקרת" href="/dashboard/admin/scale-100" icon={BarChart3} tone={data.activeGardens >= 25 ? "good" : "warn"} />
-              <ActionCard title="השקה" text="פיילוט, אבטחה וציות" href="/dashboard/admin/launch-readiness" icon={Rocket} tone={data.launchBlockers ? "bad" : "good"} />
-              <ActionCard title="אימות חיצוני" text="משפטי, PT, ISO וחנויות" href="/dashboard/admin/external-validation" icon={ShieldCheck} tone={data.launchBlockers ? "warn" : "good"} />
-              <ActionCard title="השקה סופית" text="Go/No-Go, חסמים וסיכונים" href="/dashboard/admin/final-production-launch" icon={Rocket} tone={data.launchBlockers ? "bad" : "good"} />
-              <ActionCard title="תפעול חברה" text="ריליסים, תמיכה ופידבק" href="/dashboard/admin/company-operations" icon={HeartPulse} tone="good" />
-              <ActionCard title="הגשה למובייל" text="TestFlight ו-Google Play" href="/dashboard/admin/mobile-submission" icon={Rocket} tone={data.launchBlockers ? "warn" : "good"} />
-              <ActionCard title="דוחות" text="שבועי, חודשי, בטיחות והכנסות" href="/dashboard/admin/reports" icon={FileText} />
-            </section>
-          </details>
-        </AppHomeSection>
-
-        <section className="national-two-column">
-          <article className="national-panel">
-            <div className="section-heading"><h2>מרכז גנים</h2><p>סטטוס, בטיחות ופיקוח הבא.</p></div>
-            <div className="national-garden-list">
-              {data.gardenRows.length === 0 ? <div className="empty-state"><strong>אין גנים להצגה</strong><span>גנים שייווצרו יופיעו כאן.</span></div> : data.gardenRows.map((garden: any) => <Link href={`/dashboard/admin/gardens/${garden.id}`} key={garden.id}><div><strong>{garden.name}</strong><span>{garden.city ?? ""} · {garden.status ?? "סטטוס חסר"}</span></div><span className={Number(garden.last_inspection_score ?? 100) < 70 ? "pill bad" : garden.safe_status === "safe" ? "pill good" : "pill warn"}>{garden.last_inspection_score ?? garden.safe_status ?? "בדיקה"}</span></Link>)}
-            </div>
-          </article>
-          <article className="national-panel">
-            <div className="section-heading"><h2>מפקחים ועומס</h2><p>שיבוץ ומוכנות פיקוח.</p></div>
-            <div className="national-garden-list">
-              {data.inspectorRows.length === 0 ? <div className="empty-state"><strong>אין מפקחים להצגה</strong><span>מפקחים שייווצרו יופיעו כאן.</span></div> : data.inspectorRows.map((inspector: any) => <Link href="/dashboard/admin/inspectors" key={inspector.id}><div><strong>{inspector.full_name ?? "מפקח"}</strong><span>{Array.isArray(inspector.assigned_cities) ? inspector.assigned_cities.join(", ") : inspector.city ?? "אזור לא צוין"}</span></div><span className="pill good">{inspector.status ?? "פעיל"}</span></Link>)}
-            </div>
-          </article>
-        </section>
-
-        <section className="national-report-row">
-          <span><ShieldCheck /> גנים פעילים <b>{data.activeGardens}</b></span>
-          <span><HeartPulse /> בטיחות פתוחה <b>{safetyPressure}</b></span>
-          <span><Camera /> מצלמות לא תקינות <b>{data.offlineCameras + data.unhealthyCameras}</b></span>
-          <span><BellRing /> כשלי תקשורת <b>{data.communicationFailures}</b></span>
-          <span><Rocket /> פיילוטים פעילים <b>{data.pilotPrograms}</b></span>
-        </section>
-        </main>
-        <nav className="admin-reference-bottom" aria-label="ניווט אדמין">
-          <Link href="/dashboard/admin"><Home size={24} /><span>בית</span></Link>
-          <Link href="/dashboard/admin/tasks"><CalendarDays size={24} /><span>יומן</span></Link>
-          <Link className="active" href="/dashboard/admin"><ShieldCheck size={24} /><span>אדמין</span></Link>
-          <Link href="/dashboard/admin/notifications"><Bell size={24} /><span>התראות</span></Link>
-          <Link href="/dashboard/admin/settings"><Menu size={24} /><span>עוד</span></Link>
-        </nav>
-      </div>
-    </DashboardShell>
+      <PremiumCard className="admin-ops-strip">
+        <span><ShieldCheck /> גנים פעילים <b>{data.activeGardens}</b></span>
+        <span><HeartPulse /> בטיחות פתוחה <b>{safetyPressure}</b></span>
+        <span><Camera /> מצלמות לא תקינות <b>{data.offlineCameras + data.unhealthyCameras}</b></span>
+        <span><BellRing /> כשלי תקשורת <b>{data.communicationFailures}</b></span>
+        <span><Rocket /> פיילוטים פעילים <b>{data.pilotPrograms}</b></span>
+      </PremiumCard>
+    </AdminAppFrame>
   );
-}
-
-function ClipboardIcon(props: { size?: number }) {
-  return <BarChart3 {...props} />;
 }

@@ -2,7 +2,6 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AlertTriangle, Baby, Bell, BriefcaseBusiness, Building2, CalendarDays, ClipboardList, Fingerprint, HeartPulse, LogIn, LogOut, MapPin, MessageSquare, ShieldAlert, Siren, UserRound, UsersRound } from "lucide-react";
 import { Avatar } from "@/components/avatar";
-import { DashboardShell } from "@/components/dashboard-shell";
 import { StaffOneHandMode } from "@/components/staff-one-hand-mode";
 import {
   StaffActionTile,
@@ -61,8 +60,7 @@ export default async function StaffDashboard() {
       .limit(20);
     const applications = (applicationsRes.data ?? []) as any[];
     return (
-      <DashboardShell role="staff" title="מועמדות צוות" appHome>
-        <StaffAppFrame avatarUrl={(profile as any).profile_image_url ?? null}>
+      <StaffAppFrame avatarUrl={(profile as any).profile_image_url ?? null}>
           <section className="staff-unassigned-card">
             <div className="staff-search-art" aria-hidden="true" />
             <div>
@@ -101,8 +99,7 @@ export default async function StaffDashboard() {
               </div>
             )}
           </StaffSection>
-        </StaffAppFrame>
-      </DashboardShell>
+      </StaffAppFrame>
     );
   }
   if (staff && (!staff.approved_to_work || staff.onboarding_status !== "active")) redirect("/onboarding/staff");
@@ -153,7 +150,6 @@ export default async function StaffDashboard() {
   const urgentAlerts = (incidentsRes.count ?? 0) + (notificationsRes.count ?? 0);
 
   return (
-    <DashboardShell role="staff" title="משמרת" appHome>
       <StaffAppFrame avatarUrl={staff?.profile_photo_url ?? profile.profile_image_url}>
         <StaffShiftHero name={staffName.split(" ")[0] ?? staffName} subtitle="אנחנו שמחים שאת איתנו היום!">
           <div className="staff-side-info">
@@ -242,6 +238,5 @@ export default async function StaffDashboard() {
           {(docsRes.count ?? 0) > 0 ? <section className="staff-emergency-center documents"><div><p className="eyebrow">נדרש ממך</p><h2>חסרים מסמכי צוות</h2><p>השלמת המסמכים עוזרת למנהלת להשאיר אותך מאושר/ת לעבודה.</p></div><Link className="button primary" href="/dashboard/staff/documents">השלמת מסמכים</Link></section> : null}
         </details>
       </StaffAppFrame>
-    </DashboardShell>
   );
 }

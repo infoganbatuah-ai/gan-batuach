@@ -1,9 +1,21 @@
 import Link from "next/link";
-import { DashboardShell } from "@/components/dashboard-shell";
-import { CleanSection, EmptyState, PremiumDashboardHero, RoleMetricCard, StatusBadge } from "@/components/premium-dashboard";
+import { Camera, Eye, Radar, ShieldCheck, SlidersHorizontal } from "lucide-react";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { calculateObserverPilotReadiness, scoreTone, statusTone } from "@/lib/domain/observer-pilot";
+import {
+  InspectorActionCard,
+  InspectorActions,
+  InspectorAppFrame,
+  InspectorEmpty,
+  InspectorHero,
+  InspectorList,
+  InspectorMetricCard,
+  InspectorMetricGrid,
+  InspectorRow,
+  InspectorSection,
+  InspectorStatus
+} from "@/components/inspector-app-ui";
 
 type Row = Record<string, any>;
 
@@ -25,21 +37,27 @@ function eventLabel(value?: string | null) {
   return labels[String(value ?? "")] ?? value ?? "סימן לבדיקה";
 }
 
+function toTone(value?: string | number | null) {
+  const tone = typeof value === "number" ? scoreTone(value) : statusTone(value);
+  return tone === "bad" ? "danger" : tone === "warn" ? "warning" : tone === "good" ? "success" : "primary";
+}
+
 export default async function InspectorObserverPilotPage() {
   const { profile } = await requireRole(["inspector"]);
   const supabase = await createClient();
-
-  const assignedGardens = await safeQuery<Row>(
-    supabase
-      .from("gardens" as any)
-      .select("id,name,city,inspector_id")
-      .eq("inspector_id", profile.id)
-      .order("name", { ascending: true })
-      .limit(80)
-  );
+  const [inspectorRes, assignedGardens] = await Promise.all([
+    supabase.from("inspectors" as any).select("profile_photo_url").eq("id", profile.id).maybeSingle(),
+    safeQuery<Row>(
+      supabase
+        .from("gardens" as any)
+        .select("id,name,city,inspector_id")
+        .eq("inspector_id", profile.id)
+        .order("name", { ascending: true })
+        .limit(80)
+    )
+  ]);
 
   const gardenIds = assignedGardens.map((garden) => garden.id).filter(Boolean);
-
   const [signals, reviews, calibration, cameras] = gardenIds.length
     ? await Promise.all([
         safeQuery<Row>(
@@ -92,81 +110,69 @@ export default async function InspectorObserverPilotPage() {
     stableCameras
   });
   const precisionReadiness = Math.max(0, 100 - readiness.falsePositiveRate);
+  const profileForUi = { ...profile, profile_image_url: (inspectorRes.data as any)?.profile_photo_url ?? profile.profile_image_url };
 
   return (
-    <DashboardShell role="inspector" title="פיילוט תצפיתן">
-      <div className="commercial-dashboard">
-        <PremiumDashboardHero
-          eyebrow="Observer Pilot"
-          title="תצפיתן AI לפיקוח"
-          subtitle="סימני תנועה חוזרים מופיעים כאן כדי לעזור לתעדף בדיקה. כל פעולה פורמלית דורשת אישור אנושי ותהליך פיקוח רגיל."
-          badge={`${readiness.readiness}/100`}
-          badgeTone={scoreTone(readiness.readiness)}
-          actions={<><Link className="button primary" href="/dashboard/inspector/inspections">ביקורות</Link><Link className="button secondary" href="/dashboard/inspector/cameras">מצלמות</Link></>}
-        />
+    <InspectorAppFrame profile={profileForUi} activeHref="/dashboard/inspector/reports" title="פיילוט תצפיתן" subtitle="סימני תנועה לבדיקה אנושית" badge="AI" backHref="/dashboard/inspector">
+      <InspectorHero
+        eyebrow="Observer Pilot"
+        title="תצפיתן AI לפיקוח"
+        subtitle="סימני תנועה חוזרים עוזרים לתעדף בדיקה. כל פעולה פורמלית דורשת אישור אנושי ותהליך פיקוח רגיל."
+        artwork={<Radar />}
+        action={<><Link className="inspector-action-button" href="/dashboard/inspector/inspections">ביקורות</Link><Link className="inspector-action-button secondary" href="/dashboard/inspector/cameras">מצלמות</Link></>}
+        meta={<><span>Shadow mode בלבד</span><span>ללא מסקנות אוטומטיות</span></>}
+      />
+      <InspectorMetricGrid columns={4}>
+        <InspectorMetricCard label="גנים משויכים" value={assignedGardens.length} hint="בתחום הפיקוח שלך" icon={ShieldCheck} tone={assignedGardens.length ? "success" : "warning"} />
+        <InspectorMetricCard label="סימנים לבדיקה" value={pendingReview.length} hint="ממתינים לאדם" icon={Eye} tone={pendingReview.length ? "warning" : "success"} />
+        <InspectorMetricCard label="דיוק בבדיקה" value={`${precisionReadiness}%`} hint="לאחר ground truth" icon={Radar} tone={toTone(precisionReadiness)} />
+        <InspectorMetricCard label="כיול" value={`${readiness.calibration}/100`} hint="בשלות לפי מצלמות" icon={SlidersHorizontal} tone={toTone(readiness.calibration)} />
+      </InspectorMetricGrid>
 
-        <div className="premium-metric-grid">
-          <RoleMetricCard label="גנים משויכים" value={assignedGardens.length} hint="בתחום הפיקוח שלך" tone={assignedGardens.length ? "good" : "warn"} />
-          <RoleMetricCard label="סימנים לבדיקה" value={pendingReview.length} hint="ממתינים לאדם" tone={pendingReview.length ? "warn" : "good"} />
-          <RoleMetricCard label="דיוק בבדיקה" value={`${precisionReadiness}%`} hint="לאחר ground truth" tone={scoreTone(precisionReadiness)} />
-          <RoleMetricCard label="כיול" value={`${readiness.calibration}/100`} hint="בשלות לפי מצלמות וסקירות" tone={scoreTone(readiness.calibration)} />
-        </div>
+      <InspectorSection title="סימנים שממתינים לעיון" subtitle="ללא האשמה וללא הסקת מסקנות אוטומטית" icon={Eye}>
+        <InspectorList>
+          {pendingReview.slice(0, 12).map((signal) => (
+            <InspectorRow
+              key={signal.id}
+              title={eventLabel(signal.event_type)}
+              subtitle={`${signal.camera_streams?.name ?? "מצלמה"} · ${signal.camera_zones?.name ?? "אזור"}`}
+              meta={signal.event_timestamp ? new Date(signal.event_timestamp).toLocaleString("he-IL") : ""}
+              status={<InspectorStatus tone={toTone(signal.review_status)}>{signal.review_status}</InspectorStatus>}
+            />
+          ))}
+          {pendingReview.length === 0 ? <InspectorEmpty title="אין סימנים שממתינים לעיון" text="כאשר תצטבר אינדיקציה רלוונטית בגנים המשויכים, היא תופיע כאן." icon={ShieldCheck} /> : null}
+        </InspectorList>
+      </InspectorSection>
 
-        <section className="grid cols-2 dashboard-panels">
-          <CleanSection title="סימנים שממתינים לעיון" subtitle="ללא האשמה וללא הסקת מסקנות אוטומטית.">
-            {pendingReview.length ? (
-              <div className="communication-log-list">
-                {pendingReview.slice(0, 12).map((signal) => (
-                  <article className="communication-log-row" key={signal.id}>
-                    <div>
-                      <strong>{eventLabel(signal.event_type)}</strong>
-                      <span>{signal.camera_streams?.name ?? "מצלמה"} · {signal.camera_zones?.name ?? "אזור"} · {new Date(signal.event_timestamp).toLocaleString("he-IL")}</span>
-                    </div>
-                    <StatusBadge tone={statusTone(signal.review_status)}>{signal.review_status}</StatusBadge>
-                  </article>
-                ))}
-              </div>
-            ) : <EmptyState title="אין סימנים שממתינים לעיון" text="כאשר תצטבר אינדיקציה רלוונטית בגנים המשויכים, היא תופיע כאן." />}
-          </CleanSection>
+      <InspectorSection title="כיול לפי אזורים" subtitle="אזור לא יציב דורש עוד בדיקות לפני שימוש תפעולי" icon={SlidersHorizontal}>
+        <InspectorList>
+          {calibration.slice(0, 12).map((item) => (
+            <InspectorRow
+              key={item.id}
+              title={eventLabel(item.event_type)}
+              subtitle={`${Number(item.reviewed_events_count ?? 0)} סקירות · ${Number(item.false_positive_count ?? 0)} FP · ${Number(item.false_negative_count ?? 0)} FN`}
+              meta={`סף ביטחון ${item.confidence_threshold ?? "-"}`}
+              status={<InspectorStatus tone={toTone(item.calibration_status)}>{item.calibration_status}</InspectorStatus>}
+            />
+          ))}
+          {calibration.length === 0 ? <InspectorEmpty title="אין עדיין פרופילי כיול" text="נדרש איסוף אירועים וסקירה אנושית כדי לבנות כיול." icon={SlidersHorizontal} /> : null}
+        </InspectorList>
+      </InspectorSection>
 
-          <CleanSection title="כיול לפי אזורים" subtitle="אזור לא יציב דורש עוד בדיקות לפני שימוש תפעולי.">
-            {calibration.length ? (
-              <div className="communication-log-list">
-                {calibration.slice(0, 12).map((profile) => (
-                  <article className="communication-log-row" key={profile.id}>
-                    <div>
-                      <strong>{eventLabel(profile.event_type)}</strong>
-                      <span>{Number(profile.reviewed_events_count ?? 0)} סקירות · {Number(profile.false_positive_count ?? 0)} FP · {Number(profile.false_negative_count ?? 0)} FN</span>
-                    </div>
-                    <StatusBadge tone={statusTone(profile.calibration_status)}>{profile.calibration_status}</StatusBadge>
-                  </article>
-                ))}
-              </div>
-            ) : <EmptyState title="אין עדיין פרופילי כיול" text="נדרש איסוף אירועים וסקירה אנושית כדי לבנות כיול." />}
-          </CleanSection>
-        </section>
+      <InspectorSection title="גבולות הפיילוט" subtitle="המלצות בלבד, לא החלטות אוטומטיות" icon={ShieldCheck}>
+        <InspectorList>
+          <InspectorRow title="בדוק מצלמות עם FP גבוה" subtitle="זווית מצלמה, תאורה וצפיפות עלולים לייצר סימנים מיותרים." status={<InspectorStatus tone={falsePositive ? "warning" : "success"}>{falsePositive}</InspectorStatus>} />
+          <InspectorRow title="בדוק אירועים שהוחמצו" subtitle="דיווח false negative עוזר לכייל ספים לפני הפעלה רחבה." status={<InspectorStatus tone={falseNegative ? "danger" : "success"}>{falseNegative}</InspectorStatus>} />
+          <InspectorRow title="Shadow mode בלבד" subtitle="אין הודעות להורים ואין פתיחת אירוע פורמלי בלי אישור." status={<InspectorStatus tone="success">נאכף</InspectorStatus>} />
+          <InspectorRow title="מצב ישראל" subtitle="שמע, זיהוי פנים וזיהוי ביומטרי אינם חלק מהפיילוט." status={<InspectorStatus tone="success">מוגבל</InspectorStatus>} />
+        </InspectorList>
+      </InspectorSection>
 
-        <CleanSection title="המלצות פיקוח" subtitle="המלצות בלבד, לא החלטות אוטומטיות.">
-          <div className="communication-template-grid">
-            <article className="communication-template-card">
-              <div><strong>בדוק מצלמות עם FP גבוה</strong><span>זווית מצלמה, תאורה וצפיפות עלולים לייצר סימנים מיותרים.</span></div>
-              <StatusBadge tone={falsePositive ? "warn" : "good"}>{falsePositive}</StatusBadge>
-            </article>
-            <article className="communication-template-card">
-              <div><strong>בדוק אירועים שהוחמצו</strong><span>דיווח false negative עוזר לכייל ספים לפני כל הפעלה רחבה.</span></div>
-              <StatusBadge tone={falseNegative ? "bad" : "good"}>{falseNegative}</StatusBadge>
-            </article>
-            <article className="communication-template-card">
-              <div><strong>Shadow mode בלבד</strong><span>אין הודעות להורים ואין פתיחת אירוע פורמלי בלי אישור.</span></div>
-              <StatusBadge tone="good">נאכף</StatusBadge>
-            </article>
-            <article className="communication-template-card">
-              <div><strong>מצב ישראל</strong><span>שמע, זיהוי פנים וזיהוי ביומטרי אינם חלק מהפיילוט.</span></div>
-              <StatusBadge tone="good">מוגבל</StatusBadge>
-            </article>
-          </div>
-        </CleanSection>
-      </div>
-    </DashboardShell>
+      <InspectorActions>
+        <InspectorActionCard title="מצלמות" text="סטטוס ויציבות" href="/dashboard/inspector/cameras" icon={Camera} />
+        <InspectorActionCard title="תור בדיקה" text="אירועי תצפיתן" href="/dashboard/inspector/ai-events" icon={Eye} />
+        <InspectorActionCard title="ביקורות" text="פיקוח אנושי" href="/dashboard/inspector/inspections" icon={ShieldCheck} />
+      </InspectorActions>
+    </InspectorAppFrame>
   );
 }

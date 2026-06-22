@@ -1,6 +1,7 @@
 import { BookOpenCheck } from "lucide-react";
-import { DashboardShell } from "@/components/dashboard-shell";
 import { ChildDailyJournalManager } from "@/components/child-daily-journal-manager";
+import { StatusChip } from "@/components/gan-batuach-design-system";
+import { StaffAppFrame, StaffPageHero, StaffSection } from "@/components/staff-app-ui";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
@@ -15,9 +16,11 @@ export default async function StaffChildJournalPage({ searchParams }: { searchPa
     supabase.from("child_daily_journals" as any).select("*").eq("garden_id", gardenId).eq("journal_date", today)
   ]);
   return (
-    <DashboardShell role="staff" title="יומן ילד">
-      <div className="parent-page-head staff-page-head"><div><p className="eyebrow">עדכון ילד מהיר</p><h1>ארוחה, שינה, שירותים, מצב רוח.</h1><p>בחרו ילד ועדכנו את מה שקרה עכשיו. קצר, ברור ומתאים לטלפון.</p></div><span className="pill good"><BookOpenCheck size={15} /> נשמר ליומן</span></div>
-      <ChildDailyJournalManager gardenId={gardenId} children={(childrenRes.data ?? []) as any[]} journals={(journalsRes.data ?? []) as any[]} initialChildId={params?.childId ?? ""} incidentMode={params?.incident === "1"} />
-    </DashboardShell>
+    <StaffAppFrame active="home">
+      <StaffPageHero eyebrow="עדכון ילד מהיר" title="ארוחה, שינה, שירותים ומצב רוח" text="בחרו ילד ועדכנו את מה שקרה עכשיו. קצר, ברור ומתאים לטלפון." icon={BookOpenCheck} badge={<StatusChip tone="success">נשמר ליומן</StatusChip>} />
+      <StaffSection title="יומן ילדים">
+        <ChildDailyJournalManager gardenId={gardenId} children={(childrenRes.data ?? []) as any[]} journals={(journalsRes.data ?? []) as any[]} initialChildId={params?.childId ?? ""} incidentMode={params?.incident === "1"} />
+      </StaffSection>
+    </StaffAppFrame>
   );
 }
