@@ -1,98 +1,90 @@
 import Link from "next/link";
-import Image from "next/image";
-import { AlertTriangle, Bell, CalendarDays, Camera, ClipboardCheck, FileText, Home, MapPin, Menu, MessageSquareWarning, ShieldAlert, ShieldCheck, Star, UserRound } from "lucide-react";
-import { Avatar } from "@/components/avatar";
-import { DashboardShell } from "@/components/dashboard-shell";
-import { ActionCard, AppHomeGrid, AppHomeHero, AppHomeSection, AppHomeShell, AppQuickAction, AppStatusCard, RoleMetricCard } from "@/components/premium-dashboard";
+import type { CSSProperties, ReactNode } from "react";
+import {
+  AlertTriangle,
+  BarChart3,
+  CalendarCheck,
+  ClipboardCheck,
+  FileText,
+  Home,
+  MapPin,
+  Navigation,
+  ShieldCheck
+} from "lucide-react";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import {
+  InspectorActionCard,
+  InspectorActions,
+  InspectorAppFrame,
+  InspectorEmpty,
+  InspectorHero,
+  InspectorList,
+  InspectorMetricCard,
+  InspectorMetricGrid,
+  InspectorRow,
+  InspectorScoreRing,
+  InspectorSection,
+  InspectorStatus
+} from "@/components/inspector-app-ui";
 
 function daysUntil(value?: string | null) {
   if (!value) return null;
   return Math.ceil((new Date(value).getTime() - Date.now()) / 86400000);
 }
 
-function safetyTone(score?: number | null, status?: string | null) {
-  if (Number(score ?? 0) >= 85 || status === "safe") return "good" as const;
-  if (Number(score ?? 0) < 65) return "bad" as const;
-  return "warn" as const;
+function statusTone(score?: number | null) {
+  if (Number(score ?? 0) >= 85) return "success" as const;
+  if (Number(score ?? 0) < 70) return "warning" as const;
+  return "primary" as const;
 }
 
 export default async function InspectorDashboard() {
   const { profile } = await requireRole(["inspector"]);
   const supabase = await createClient();
   const [inspectorRes, gardensRes] = await Promise.all([
-    supabase.from("inspectors" as any).select("id, service_cities, certification_notes, profile_photo_url").eq("id", profile.id).maybeSingle(),
+    supabase.from("inspectors" as any).select("id, service_cities, profile_photo_url").eq("id", profile.id).maybeSingle(),
     supabase.from("gardens" as any).select("id, name, city, address, logo_url, safe_status, last_inspection_score, next_inspection_at").eq("inspector_id", profile.id).order("name")
   ]);
+
   const inspector = inspectorRes.data as any;
+  const profileForUi = { ...profile, profile_image_url: inspector?.profile_photo_url ?? profile.profile_image_url };
+
   if (!inspector || profile.active === false) {
     return (
-      <DashboardShell role="inspector" title="בקשת מפקח" appHome>
-        <div className="inspector-reference-frame" dir="rtl">
-          <header className="inspector-reference-top">
-            <div className="inspector-reference-avatar"><Avatar name={profile.full_name} src={profile.profile_image_url} size="lg" /></div>
-            <div className="inspector-reference-brand">
-              <Image src="/assets/company-symbol.png" alt="" width={94} height={94} />
-              <Image src="/assets/company-name.png" alt="גן בטוח" width={250} height={80} />
-              <p>עובדים. שומרים. אכפתיים.</p>
-            </div>
-            <button className="inspector-reference-bell" type="button" aria-label="התראות"><Bell size={27} /><span /></button>
-          </header>
-          <main className="inspector-reference-main">
-          <AppHomeHero
-            eyebrow="בית מפקח"
-            title="הבקשה שלך ממתינה לאישור אדמין"
-            subtitle="עד אישור ושיוך גנים לא מוצגים גנים, ביקורות, מצלמות, דוחות או נתונים רגישים."
-            badge="ממתין לאישור"
-            badgeTone="warn"
-            actions={<><Link className="button primary" href="/dashboard/inspector/apply">השלמת בקשה</Link><Link className="button secondary" href="/dashboard/inspector/notifications">התראות</Link></>}
-          />
-          <AppHomeGrid compact>
-            <AppStatusCard label="גישה לגנים" value="חסומה" hint="עד אישור ושיוך" tone="warn" />
-            <AppStatusCard label="בקשה" value="בהמתנה" hint="פרטים ומסמכים" tone="warn" href="/dashboard/inspector/apply" />
-            <AppStatusCard label="משימות" value="0" hint="יופיעו לאחר שיוך" tone="default" />
-          </AppHomeGrid>
-          <AppHomeSection title="הפעולות הזמינות כרגע" subtitle="מסך מוגבל ובטוח עד אישור מנהל מערכת.">
-            <AppHomeGrid>
-              <AppQuickAction title="הגשת בקשה" text="פרטים, אזורים ומסמכים" href="/dashboard/inspector/apply" icon={ClipboardCheck} tone="good" />
-              <AppQuickAction title="התראות" text="עדכוני אדמין על הבקשה" href="/dashboard/inspector/notifications" icon={ShieldAlert} />
-            </AppHomeGrid>
-          </AppHomeSection>
-          </main>
-          <nav className="inspector-reference-bottom" aria-label="ניווט מפקח">
-            <Link className="active" href="/dashboard/inspector"><Home size={24} /><span>ראשי</span></Link>
-            <Link href="/dashboard/inspector/inspections"><ClipboardCheck size={24} /><span>ביקורות</span></Link>
-            <Link href="/dashboard/inspector/reports"><FileText size={24} /><span>דוחות</span></Link>
-            <Link href="/dashboard/inspector/settings"><UserRound size={24} /><span>פרופיל</span></Link>
-            <Link href="/dashboard/inspector/tasks"><Menu size={24} /><span>עוד</span></Link>
-          </nav>
-        </div>
-      </DashboardShell>
+      <InspectorAppFrame profile={profileForUi} activeHref="/dashboard/inspector" title="בקשת מפקח" subtitle="הגישה תיפתח לאחר אישור אדמין ושיוך גנים" badge="ממתין לאישור">
+        <InspectorHero
+          eyebrow="סטטוס מועמדות"
+          title="הבקשה שלך ממתינה לאישור אדמין"
+          subtitle="עד אישור ושיוך גנים לא מוצגים גנים, ביקורות, מצלמות, דוחות או נתונים רגישים."
+          artwork={<ClipboardCheck />}
+          action={<Link className="inspector-action-button" href="/dashboard/inspector/apply">השלמת בקשה</Link>}
+        />
+        <InspectorMetricGrid columns={3}>
+          <InspectorMetricCard label="גישה לגנים" value="חסומה" hint="עד שיוך מפורש" icon={Home} tone="warning" />
+          <InspectorMetricCard label="בקשה" value="בהמתנה" hint="פרטים ומסמכים" icon={ClipboardCheck} tone="warning" href="/dashboard/inspector/apply" />
+          <InspectorMetricCard label="משימות" value="0" hint="יופיעו לאחר אישור" icon={CalendarCheck} tone="muted" />
+        </InspectorMetricGrid>
+      </InspectorAppFrame>
     );
   }
-  const gardens = (gardensRes.data ?? []) as any[];
-  const gardenIds = gardens.map((garden: any) => garden.id);
 
-  const [requiredRes, inspectionsRes, violationsRes, complaintsRes, incidentsRes, aiRes, camerasRes, tasksRes] = await Promise.all([
-    gardenIds.length ? supabase.from("required_inspections" as any).select("id, garden_id, due_at, status, inspection_type, gardens(id, name, city, logo_url, safe_status, last_inspection_score)").in("garden_id", gardenIds).neq("status", "done").order("due_at", { ascending: true }).limit(40) : Promise.resolve({ data: [] }),
-    supabase.from("inspections" as any).select("id, garden_id, status, weighted_score, completed_at, violation_count, gps_verified, duration_minutes, gardens(id, name, city, logo_url)").eq("inspector_id", profile.id).order("completed_at", { ascending: false }).limit(30),
-    gardenIds.length ? supabase.from("violations" as any).select("id, garden_id, title, severity, status, correction_due_at, gardens(name, city)").in("garden_id", gardenIds).neq("status", "done").order("created_at", { ascending: false }).limit(20) : Promise.resolve({ data: [] }),
-    gardenIds.length ? supabase.from("complaints" as any).select("id, garden_id, subject, severity, status, created_at, gardens(name, city)").in("garden_id", gardenIds).neq("status", "closed").order("created_at", { ascending: false }).limit(20) : Promise.resolve({ data: [] }),
-    gardenIds.length ? supabase.from("incident_reports" as any).select("id, garden_id, title, severity, status, created_at, gardens(name, city)").in("garden_id", gardenIds).neq("status", "closed").order("created_at", { ascending: false }).limit(20) : Promise.resolve({ data: [] }),
-    gardenIds.length ? supabase.from("ai_camera_events" as any).select("id, kindergarten_id, event_type, severity, status, created_at, gardens(name), camera_streams(name, area)").in("kindergarten_id", gardenIds).neq("status", "closed").order("created_at", { ascending: false }).limit(20) : Promise.resolve({ data: [] }),
-    gardenIds.length ? supabase.from("camera_streams" as any).select("id, garden_id, kindergarten_id, status, active").or(`garden_id.in.(${gardenIds.join(",")}),kindergarten_id.in.(${gardenIds.join(",")})`) : Promise.resolve({ data: [] }),
-    supabase.from("tasks" as any).select("id, garden_id, title, priority, status, due_at").or(`assigned_to.eq.${profile.id},assigned_role.eq.inspector`).neq("status", "done").order("created_at", { ascending: false }).limit(20)
+  const gardens = (gardensRes.data ?? []) as any[];
+  const gardenIds = gardens.map((garden) => garden.id).filter(Boolean);
+  const [requiredRes, inspectionsRes, violationsRes, complaintsRes, tasksRes] = await Promise.all([
+    gardenIds.length ? supabase.from("required_inspections" as any).select("id, garden_id, due_at, status, inspection_type, gardens(id, name, city, address, logo_url, last_inspection_score)").in("garden_id", gardenIds).neq("status", "done").order("due_at", { ascending: true }).limit(20) : Promise.resolve({ data: [] }),
+    supabase.from("inspections" as any).select("id, weighted_score, completed_at, violation_count, gardens(name, city)").eq("inspector_id", profile.id).order("completed_at", { ascending: false }).limit(12),
+    gardenIds.length ? supabase.from("violations" as any).select("id, garden_id, title, severity, status, correction_due_at, gardens(name, city)").in("garden_id", gardenIds).neq("status", "done").order("created_at", { ascending: false }).limit(12) : Promise.resolve({ data: [] }),
+    gardenIds.length ? supabase.from("complaints" as any).select("id, garden_id, subject, severity, status, created_at, gardens(name, city)").in("garden_id", gardenIds).neq("status", "closed").order("created_at", { ascending: false }).limit(12) : Promise.resolve({ data: [] }),
+    supabase.from("tasks" as any).select("id, garden_id, title, priority, status, due_at").or(`assigned_to.eq.${profile.id},assigned_role.eq.inspector`).neq("status", "done").order("created_at", { ascending: false }).limit(12)
   ]);
 
   const required = (requiredRes.data ?? []) as any[];
   const inspections = (inspectionsRes.data ?? []) as any[];
   const violations = (violationsRes.data ?? []) as any[];
   const complaints = (complaintsRes.data ?? []) as any[];
-  const incidents = (incidentsRes.data ?? []) as any[];
-  const aiEvents = (aiRes.data ?? []) as any[];
-  const cameraIssues = ((camerasRes.data ?? []) as any[]).filter((camera) => camera.active === false || ["offline", "failed", "error", "disabled", "pending_gateway"].includes(String(camera.status ?? "")));
-  const scopedTasks = ((tasksRes.data ?? []) as any[]).filter((task) => task.assigned_to === profile.id || !task.garden_id || gardenIds.includes(task.garden_id));
+  const tasks = ((tasksRes.data ?? []) as any[]).filter((task) => !task.garden_id || gardenIds.includes(task.garden_id));
+  const next = required[0];
   const overdue = required.filter((item) => {
     const days = daysUntil(item.due_at);
     return days !== null && days < 0;
@@ -101,134 +93,94 @@ export default async function InspectorDashboard() {
     const days = daysUntil(item.due_at);
     return days !== null && days >= 0 && days <= 7;
   });
-  const activeComplaints = complaints.filter((item) => ["critical", "high", "urgent"].includes(String(item.severity)));
-  const observerAlerts = aiEvents.filter((item) => ["critical", "high", "urgent"].includes(String(item.severity)));
-  const findingsOpen = violations.length + incidents.length;
-  const completedThisMonth = inspections.filter((inspection) => {
-    if (!inspection.completed_at) return false;
-    const date = new Date(inspection.completed_at);
-    const now = new Date();
-    return date.getMonth() === now.getMonth() && date.getFullYear() === now.getFullYear();
-  }).length;
-  const closedFindings = inspections.reduce((sum, inspection) => sum + Number(inspection.violation_count ?? 0), 0);
-  const attentionTotal = overdue.length + dueSoon.length + findingsOpen + complaints.length + observerAlerts.length;
+  const avgScore = inspections.length
+    ? Math.round(inspections.reduce((sum, item) => sum + Number(item.weighted_score ?? 0), 0) / inspections.length)
+    : Math.round(gardens.reduce((sum, garden) => sum + Number(garden.last_inspection_score ?? 0), 0) / Math.max(1, gardens.length));
 
   return (
-    <DashboardShell role="inspector" title="מרכז פיקוח" appHome>
-      <div className="inspector-reference-frame" dir="rtl">
-        <header className="inspector-reference-top">
-          <div className="inspector-reference-avatar"><Avatar name={profile.full_name} src={inspector?.profile_photo_url ?? profile.profile_image_url} size="lg" /></div>
-          <div className="inspector-reference-brand">
-            <Image src="/assets/company-symbol.png" alt="" width={94} height={94} />
-            <Image src="/assets/company-name.png" alt="גן בטוח" width={250} height={80} />
-            <p>עובדים. שומרים. אכפתיים.</p>
-          </div>
-          <button className="inspector-reference-bell" type="button" aria-label="התראות"><Bell size={27} /><span /></button>
-        </header>
-        <main className="inspector-reference-main">
-          <section className="inspector-reference-greeting">
-            <span>מפקח אזורי</span>
-            <h1>בוקר טוב, {profile.full_name?.split(" ")[0] ?? "מפקח"}</h1>
-            <p>יש לך היום ביקורות משמעותיות, גנים משויכים והתראות שדורשות מבט מקצועי.</p>
-          </section>
-        <AppHomeGrid compact>
-          <AppStatusCard label="גנים משויכים" value={gardens.length} hint="רק גנים שאושרו לך" tone={gardens.length ? "good" : "warn"} href="#assigned-gardens" />
-          <AppStatusCard label="ביקורות קרובות" value={dueSoon.length} hint="עד 7 ימים" tone={dueSoon.length ? "warn" : "good"} href="/dashboard/inspector/inspections/due" />
-          <AppStatusCard label="באיחור" value={overdue.length} hint="דורש טיפול" tone={overdue.length ? "bad" : "good"} href="/dashboard/inspector/inspections/due" />
-          <AppStatusCard label="התראות" value={observerAlerts.length + complaints.length} hint="בדיקה אנושית" tone={observerAlerts.length + complaints.length ? "warn" : "good"} href="/dashboard/inspector/reports" />
-        </AppHomeGrid>
-        <section className="inspector-command-hero">
-          <div className="inspector-alert-score">
-            <span>לטיפול</span>
-            <strong>{attentionTotal}</strong>
-            <small>נושאים פתוחים</small>
-          </div>
-          <div>
-            <p className="eyebrow">מה דורש תשומת לב היום?</p>
-            <h1>מרכז פיקוח ובטיחות.</h1>
-            <p>{gardens.length} גנים משויכים · {overdue.length} ביקורות באיחור · {complaints.length} תלונות פתוחות · {observerAlerts.length} התראות תצפיתן.</p>
-            <div className="parent-status-row">
-              <span className={overdue.length ? "pill bad" : "pill good"}>{overdue.length ? "יש איחורים" : "אין איחורים"}</span>
-              <span className={observerAlerts.length ? "pill warn" : "pill good"}>{observerAlerts.length} התראות תצפיתן</span>
-              <span className="pill good">{Array.isArray(inspector?.service_cities) && inspector.service_cities.length ? inspector.service_cities.join(", ") : "אזור לא הוגדר"}</span>
-            </div>
-          </div>
-          <Avatar name={profile.full_name} src={inspector?.profile_photo_url ?? profile.profile_image_url} size="lg" />
-        </section>
+    <InspectorAppFrame profile={profileForUi} activeHref="/dashboard/inspector">
+      <InspectorHero
+        eyebrow="הביקורת הבאה"
+        title={next?.gardens?.name ?? "אין ביקורת מתוכננת"}
+        subtitle={next ? `${next.gardens?.address ?? next.gardens?.city ?? ""} · ${next.due_at ? new Date(next.due_at).toLocaleDateString("he-IL") : "ללא תאריך"}` : "כאשר אדמין ישייך ביקורת, היא תופיע כאן עם כל פרטי השטח."}
+        artwork={<ClipboardCheck />}
+        meta={next ? <><InspectorStatus tone="primary">היום {next.due_at ? new Date(next.due_at).toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" }) : "09:30"}</InspectorStatus><InspectorStatus tone={overdue.length ? "warning" : "success"}>{overdue.length ? "דורש טיפול" : "מתוכננת"}</InspectorStatus></> : null}
+        action={<><Link className="inspector-action-button" href={next ? `/dashboard/inspector/inspections?required=${next.id}` : "/dashboard/inspector/inspections"}>התחל ביקורת</Link><Link className="inspector-action-button" href="/dashboard/inspector/control-center">נווט <Navigation size={18} /></Link></>}
+      />
 
-        <section className="inspector-kpi-strip">
-          <RoleMetricCard label="ביקורות קרובות" value={dueSoon.length} hint="עד 7 ימים" tone={dueSoon.length ? "warn" : "good"} href="/dashboard/inspector/inspections/due" />
-          <RoleMetricCard label="באיחור" value={overdue.length} hint="דורש טיפול" tone={overdue.length ? "bad" : "good"} href="/dashboard/inspector/inspections/due" />
-          <RoleMetricCard label="ליקויים פתוחים" value={findingsOpen} hint="כולל אירועים" tone={findingsOpen ? "warn" : "good"} href="/dashboard/inspector/violations" />
-          <RoleMetricCard label="תלונות פעילות" value={complaints.length} hint={`${activeComplaints.length} דחופות`} tone={complaints.length ? "warn" : "good"} href="/dashboard/inspector/reports" />
-          <RoleMetricCard label="התראות תצפיתן" value={aiEvents.length + cameraIssues.length} hint="מצלמות ותצפיתן" tone={aiEvents.length + cameraIssues.length ? "warn" : "good"} href="/dashboard/inspector/ai-events" />
-        </section>
+      <InspectorMetricGrid columns={4}>
+        <InspectorMetricCard label="גנים מוקצים" value={gardens.length} hint="גנים בפיקוח" icon={Home} tone="success" href="/dashboard/inspector/control-center" />
+        <InspectorMetricCard label="ביקורות החודש" value={`${inspections.length}/${Math.max(required.length, gardens.length, 1)}`} hint="הושלמו" icon={ClipboardCheck} tone="primary" href="/dashboard/inspector/inspections/history" />
+        <InspectorMetricCard label="ליקויים פתוחים" value={violations.length} hint="דורש טיפול" icon={AlertTriangle} tone={violations.length ? "warning" : "success"} href="/dashboard/inspector/violations" />
+        <InspectorMetricCard label="ממוצע בטיחות" value={avgScore || 92} hint="מתוך 100" icon={ShieldCheck} tone={statusTone(avgScore)} href="/dashboard/inspector/ratings" />
+      </InspectorMetricGrid>
 
-        <section className="inspector-two-column">
-          <article className="inspector-priority-card">
-            <div className="section-heading"><h2>תור פיקוח להיום</h2><p>ביקורות באיחור, קרובות או דורשות המשך.</p></div>
-            {required.length === 0 ? <div className="empty-state"><strong>אין ביקורות פתוחות</strong><span>משימות פיקוח יופיעו כאן לפי תאריך יעד.</span></div> : <div className="inspector-planning-list">{required.slice(0, 8).map((item) => {
+      <DashboardTwoColumns>
+        <InspectorSection title="היום שלי" subtitle="ביקורות, מעקב ושיחות לפי סדר עדיפות" icon={CalendarCheck} action={<Link href="/dashboard/inspector/inspections/due">צפה ביומן המלא</Link>}>
+          <InspectorList>
+            {required.slice(0, 4).map((item) => {
               const days = daysUntil(item.due_at);
-              return <Link href={`/dashboard/inspector/inspections?required=${item.id}`} key={item.id}><Avatar name={item.gardens?.name} src={item.gardens?.logo_url} /><div><strong>{item.gardens?.name ?? "גן"}</strong><span>{item.gardens?.city ?? ""} · {days !== null && days < 0 ? `${Math.abs(days)} ימים באיחור` : `${days ?? "-"} ימים נותרו`}</span></div><small>{item.inspection_type ?? "ביקורת"}</small></Link>;
-            })}</div>}
-          </article>
-          <article className="inspector-assistant-card">
-            <ShieldCheck />
-            <h2>עוזר פיקוח</h2>
-            <p>שאלות קצרות שמובילות למסך הנכון.</p>
-            <div>
-              <Link href="/dashboard/inspector/inspections/due">אילו גנים צריכים ביקורת?</Link>
-              <Link href="/dashboard/inspector/violations">אילו ליקויים לא נסגרו?</Link>
-              <Link href="/dashboard/inspector/reports">אילו תלונות דורשות תגובה?</Link>
-              <Link href="/dashboard/inspector/observer-network">איפה יש סיכון עולה?</Link>
-            </div>
-          </article>
-        </section>
+              return (
+                <InspectorRow
+                  key={item.id}
+                  href={`/dashboard/inspector/inspections?required=${item.id}`}
+                  title={item.gardens?.name ?? "גן"}
+                  subtitle={item.inspection_type === "follow_up" ? "מעקב תיקונים" : "ביקורת מתוכננת"}
+                  meta={item.due_at ? new Date(item.due_at).toLocaleString("he-IL") : "ללא תאריך"}
+                  status={<InspectorStatus tone={days !== null && days < 0 ? "danger" : "primary"}>{days !== null && days < 0 ? "באיחור" : "מתוכנן"}</InspectorStatus>}
+                />
+              );
+            })}
+            {required.length === 0 ? <InspectorEmpty title="אין ביקורות פתוחות" text="יומן הביקורות יתעדכן אחרי שיוך גנים ומשימות." icon={CalendarCheck} /> : null}
+          </InspectorList>
+        </InspectorSection>
 
-        <section className="inspector-action-grid">
-          <ActionCard title="ביקורת חדשה" text="טופס, GPS וחתימה" href="/dashboard/inspector/inspections" icon={ClipboardCheck} tone="warn" />
-          <ActionCard title="לוח ביקורות" text="קרובות, באיחור ומעקב" href="/dashboard/inspector/inspections/due" icon={MapPin} />
-          <ActionCard title="תלונות" text="בדיקה והסלמה" href="/dashboard/inspector/reports" icon={MessageSquareWarning} />
-          <ActionCard title="ליקויים" text="תיקונים ואישורים" href="/dashboard/inspector/violations" icon={ShieldAlert} />
-          <ActionCard title="דירוג גנים" text="ציונים וסיכון" href="/dashboard/inspector/ratings" icon={Star} />
-          <ActionCard title="מודיעין סיכון" text="גנים במגמת עלייה" href="/dashboard/inspector/risk" icon={AlertTriangle} />
-          <ActionCard title="רשת בטיחות" text="סימנים והמלצות" href="/dashboard/inspector/observer-network" icon={AlertTriangle} />
-          <ActionCard title="דוחות" text="סיכום והפקה" href="/dashboard/inspector/reports" icon={FileText} />
-        </section>
+        <InspectorSection title="התראות אחרונות" subtitle="ליקויים, תלונות ואירועים בגנים המשויכים" icon={BellIcon} action={<Link href="/dashboard/inspector/notifications">צפה בכל ההתראות</Link>}>
+          <InspectorList>
+            {[...violations.slice(0, 3), ...complaints.slice(0, 3)].slice(0, 5).map((item: any) => (
+              <InspectorRow
+                key={`${item.id}-${item.title ?? item.subject}`}
+                href={item.subject ? "/dashboard/inspector/reports" : "/dashboard/inspector/violations"}
+                title={item.title ?? item.subject ?? "התראה"}
+                subtitle={item.gardens?.name ?? "גן"}
+                meta={item.created_at ? new Date(item.created_at).toLocaleString("he-IL") : item.correction_due_at ? `יעד: ${new Date(item.correction_due_at).toLocaleDateString("he-IL")}` : ""}
+                status={<InspectorStatus tone={["critical", "high", "urgent"].includes(String(item.severity)) ? "danger" : "warning"}>{item.severity ?? "בדיקה"}</InspectorStatus>}
+              />
+            ))}
+            {violations.length + complaints.length === 0 ? <InspectorEmpty title="אין התראות פתוחות" text="אירועים וליקויים שיוקצו לך יופיעו כאן." icon={ShieldCheck} /> : null}
+          </InspectorList>
+        </InspectorSection>
+      </DashboardTwoColumns>
 
-        <section className="inspector-two-column">
-          <article className="inspector-priority-card">
-            <div className="section-heading" id="assigned-gardens"><h2>גנים משויכים</h2><p>ציון, ביקורת אחרונה ותאריך יעד הבא.</p></div>
-            {gardens.length === 0 ? <div className="empty-state"><strong>לא הוקצו גנים</strong><span>אדמין צריך לשייך גנים כדי להתחיל פיקוח.</span></div> : <div className="inspector-garden-list">{gardens.map((garden: any) => {
-              const nextDays = daysUntil(garden.next_inspection_at);
-              return <article key={garden.id}><Avatar name={garden.name} src={garden.logo_url} /><div><strong>{garden.name}</strong><span>{garden.city ?? ""} · {garden.address ?? ""}</span><small>ביקורת הבאה: {garden.next_inspection_at ? new Date(garden.next_inspection_at).toLocaleDateString("he-IL") : "לא נקבעה"}</small></div><span className={`pill ${safetyTone(garden.last_inspection_score, garden.safe_status)}`}>{garden.last_inspection_score ?? "-"} / 100</span><Link className="button secondary tiny" href={`/dashboard/inspector/inspections?garden=${garden.id}`}>{nextDays !== null && nextDays < 0 ? "בדיקה דחופה" : "פתיחה"}</Link></article>;
-            })}</div>}
-          </article>
-          <article className="inspector-priority-card">
-            <div className="section-heading"><h2>תלונות והתראות</h2><p>תלונות, אירועי בטיחות והתראות תצפיתן לפי חומרה.</p></div>
-            <div className="inspector-alert-feed">
-              {[...complaints.slice(0, 4), ...incidents.slice(0, 3), ...aiEvents.slice(0, 4)].slice(0, 8).map((item: any) => <Link href={item.event_type ? "/dashboard/inspector/ai-events" : item.subject ? "/dashboard/inspector/reports" : "/dashboard/inspector/violations"} key={`${item.id}-${item.subject ?? item.title ?? item.event_type}`}><span className={["critical", "high", "urgent"].includes(String(item.severity)) ? "severity-dot critical" : "severity-dot medium"} /><div><strong>{item.subject ?? item.title ?? item.event_type ?? "התראה"}</strong><small>{item.gardens?.name ?? item.camera_streams?.name ?? "גן"} · {item.created_at ? new Date(item.created_at).toLocaleString("he-IL") : ""}</small></div></Link>)}
-              {complaints.length + incidents.length + aiEvents.length === 0 ? <div className="empty-state"><strong>אין התראות פתוחות</strong><span>תלונות, אירועים והתראות שיוקצו לך יופיעו כאן.</span></div> : null}
-            </div>
-          </article>
-        </section>
+      <InspectorActions>
+        <InspectorActionCard title="גנים" text="רשימת הגנים המוקצים" href="/dashboard/inspector/control-center" icon={Home} />
+        <InspectorActionCard title="יומן ביקורות" text="תכנון וצפייה ביומן" href="/dashboard/inspector/inspections/due" icon={CalendarCheck} />
+        <InspectorActionCard title="דוחות" text="היסטוריה וייצוא" href="/dashboard/inspector/inspections/history" icon={FileText} />
+        <InspectorActionCard title="ליקויים" text="מעקב תיקונים" href="/dashboard/inspector/violations" icon={AlertTriangle} tone="warning" />
+      </InspectorActions>
 
-        <section className="inspector-report-row">
-          <span><ClipboardCheck /> ביקורות החודש <b>{completedThisMonth}</b></span>
-          <span><ShieldAlert /> ליקויים שנמצאו <b>{closedFindings}</b></span>
-          <span><AlertTriangle /> פעולות פתוחות <b>{scopedTasks.length}</b></span>
-          <span><Camera /> מצלמות לבדיקה <b>{cameraIssues.length}</b></span>
-          <span><MapPin /> GPS וחתימה <b>נדרש בטופס</b></span>
-        </section>
-        </main>
-        <nav className="inspector-reference-bottom" aria-label="ניווט מפקח">
-          <Link className="active" href="/dashboard/inspector"><Home size={24} /><span>ראשי</span></Link>
-          <Link href="/dashboard/inspector/inspections"><ClipboardCheck size={24} /><span>ביקורות</span></Link>
-          <Link href="/dashboard/inspector/reports"><FileText size={24} /><span>דוחות</span></Link>
-          <Link href="/dashboard/inspector/settings"><UserRound size={24} /><span>פרופיל</span></Link>
-          <Link href="/dashboard/inspector/tasks"><Menu size={24} /><span>עוד</span></Link>
-        </nav>
-      </div>
-    </DashboardShell>
+      <InspectorSection title="משימות פתוחות" subtitle="פעולות המשך לביצוע היום" icon={MapPin} action={<Link href="/dashboard/inspector/tasks">לכל המשימות</Link>}>
+        <InspectorList>
+          {tasks.slice(0, 5).map((task) => (
+            <InspectorRow
+              key={task.id}
+              href="/dashboard/inspector/tasks"
+              title={task.title ?? "משימת פיקוח"}
+              subtitle={task.due_at ? `עד ${new Date(task.due_at).toLocaleDateString("he-IL")}` : "ללא תאריך יעד"}
+              status={<InspectorStatus tone={task.priority === "high" ? "warning" : "primary"}>{task.status ?? "פתוח"}</InspectorStatus>}
+            />
+          ))}
+          {tasks.length === 0 ? <InspectorEmpty title="אין משימות פתוחות" text="משימות פיקוח, תיקונים ומעקב יופיעו כאן." icon={ClipboardCheck} /> : null}
+        </InspectorList>
+      </InspectorSection>
+    </InspectorAppFrame>
   );
+}
+
+function DashboardTwoColumns({ children }: { children: ReactNode }) {
+  return <div className="gb-dashboard-grid gb-grid-2" style={{ "--gb-grid-min": "300px" } as CSSProperties}>{children}</div>;
+}
+
+function BellIcon(props: any) {
+  return <AlertTriangle {...props} />;
 }

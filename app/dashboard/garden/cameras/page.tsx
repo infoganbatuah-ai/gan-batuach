@@ -1,6 +1,7 @@
 import { DashboardShell } from "@/components/dashboard-shell";
 import { AdminDataError } from "@/components/admin-data-state";
 import { CameraAdminManager } from "@/components/camera-ai-admin-modules";
+import { CameraPlaybackCard } from "@/components/camera-playback-card";
 import { DashboardFilterChip } from "@/components/dashboard-filter-chip";
 import { requireRole } from "@/lib/auth";
 import { safeAdminData, logSupabaseError } from "@/lib/admin-safe";
@@ -84,15 +85,11 @@ export default async function GardenCameraSetupPage({ searchParams }: { searchPa
           {cameras.length ? (
             <div className="ganenet-camera-gallery">
               {cameras.map((camera) => {
-                const onlineCamera = isCameraOnline(camera);
                 const tone = cameraStatusTone(camera);
                 return (
                   <article className={`ganenet-camera-card ${tone}`} key={camera.id}>
-                    <div className="ganenet-camera-preview">
-                      <span className={`ganenet-camera-signal ${onlineCamera ? "online" : ""}`} />
-                      <Camera size={42} />
-                      <strong>{camera.area ?? camera.camera_zone_label ?? camera.name ?? "מצלמת גן"}</strong>
-                      <small>{onlineCamera ? "צפייה זמינה דרך Gateway" : "תצוגה תיפתח לאחר חיבור"}</small>
+                    <div className="ganenet-camera-preview ganenet-camera-playback-preview">
+                      <CameraPlaybackCard camera={camera} accessReason="צפיית גננת מורשית" />
                     </div>
                     <div className="ganenet-camera-info">
                       <div className="ganenet-camera-heading">
@@ -128,7 +125,7 @@ export default async function GardenCameraSetupPage({ searchParams }: { searchPa
 
         <details className="teacher-management-details" id="camera-management" open={params.add === "1" || Boolean(params.camera)}>
           <summary>ניהול מצלמות מלא</summary>
-          <CameraAdminManager cameras={cameras} gardens={result.data.gardens as any[]} gatewayConnected={Boolean(process.env.VIDEO_GATEWAY_URL)} defaultOpenAdd={params.add === "1"} />
+          <CameraAdminManager cameras={cameras} gardens={result.data.gardens as any[]} gatewayConnected={Boolean(process.env.VIDEO_GATEWAY_URL)} defaultOpenAdd={params.add === "1"} showHealthCenter={false} />
         </details>
       </TeacherAppFrame>
     </DashboardShell>

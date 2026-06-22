@@ -1,4 +1,6 @@
-import { DashboardShell } from "@/components/dashboard-shell";
+import { ClipboardList } from "lucide-react";
+import { StatusChip } from "@/components/gan-batuach-design-system";
+import { StaffAppFrame, StaffMetricCard, StaffPageHero, StaffSection, StaffStats } from "@/components/staff-app-ui";
 import { TaskWorkbench } from "@/components/task-workbench";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
@@ -10,5 +12,23 @@ export default async function StaffTasksPage() {
   const rows = (data ?? []) as any[];
   const overdue = rows.filter((task) => task.due_at && new Date(task.due_at).getTime() < Date.now()).length;
   const done = rows.filter((task) => task.status === "done" || task.status === "completed").length;
-  return <DashboardShell role="staff" title="משימות צוות"><div className="parent-page-head staff-page-head"><div><p className="eyebrow">המשימות שלי</p><h1>מה נשאר למשמרת?</h1><p>משימות להיום, משימות באיחור ומה שכבר הושלם.</p></div><span className={overdue ? "pill bad" : "pill good"}>{overdue ? `${overdue} באיחור` : "אין איחורים"}</span></div><section className="staff-task-summary"><span>פתוחות <b>{rows.length - done}</b></span><span>באיחור <b>{overdue}</b></span><span>הושלמו <b>{done}</b></span></section><TaskWorkbench tasks={rows} /></DashboardShell>;
+  return (
+    <StaffAppFrame active="more">
+      <StaffPageHero
+        eyebrow="המשימות שלי"
+        title="מה נשאר למשמרת?"
+        text="משימות להיום, משימות באיחור ומה שכבר הושלם."
+        icon={ClipboardList}
+        badge={<StatusChip tone={overdue ? "danger" : "success"}>{overdue ? `${overdue} באיחור` : "אין איחורים"}</StatusChip>}
+      />
+      <StaffStats>
+        <StaffMetricCard title="פתוחות" value={rows.length - done} icon={ClipboardList} tone="purple" />
+        <StaffMetricCard title="באיחור" value={overdue} icon={ClipboardList} tone={overdue ? "red" : "green"} />
+        <StaffMetricCard title="הושלמו" value={done} icon={ClipboardList} tone="green" />
+      </StaffStats>
+      <StaffSection title="ניהול משימות">
+        <TaskWorkbench tasks={rows} />
+      </StaffSection>
+    </StaffAppFrame>
+  );
 }

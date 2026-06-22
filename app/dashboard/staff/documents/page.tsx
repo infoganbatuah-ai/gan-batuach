@@ -1,5 +1,7 @@
-import { DashboardShell } from "@/components/dashboard-shell";
+import { FileCheck2 } from "lucide-react";
 import { StaffDocumentUpload } from "@/components/staff-document-upload";
+import { StatusChip } from "@/components/gan-batuach-design-system";
+import { StaffAppFrame, StaffPageHero, StaffSection } from "@/components/staff-app-ui";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
@@ -10,9 +12,11 @@ export default async function StaffDocumentsPage() {
   const staffId = (staffRes.data as any)?.id ?? "";
   const { data } = await supabase.from("documents" as any).select("id, name, document_type, status, expires_at, created_at, file_url").eq("staff_id", staffId).order("created_at", { ascending: false });
   return (
-    <DashboardShell role="staff" title="מסמכים">
-      <div className="dashboard-hero-card staff-hero-card"><div><p className="eyebrow">Staff Documents</p><h1>מסמכי עובד ותעודות.</h1><p>העלאת תעודת יושר, בדיקת רקע, הכשרות, עזרה ראשונה ותוקף מסמכים.</p></div><span className="pill good">בדיקה ואישור</span></div>
-      <StaffDocumentUpload gardenId={profile.garden_id} staffId={staffId} documents={(data ?? []) as any[]} />
-    </DashboardShell>
+    <StaffAppFrame active="profile">
+      <StaffPageHero eyebrow="מסמכי עובד" title="מסמכי עובד ותעודות" text="העלאת תעודת יושר, בדיקת רקע, הכשרות, עזרה ראשונה ותוקף מסמכים." icon={FileCheck2} badge={<StatusChip tone="success">בדיקה ואישור</StatusChip>} />
+      <StaffSection title="העלאה וניהול מסמכים">
+        <StaffDocumentUpload gardenId={profile.garden_id} staffId={staffId} documents={(data ?? []) as any[]} />
+      </StaffSection>
+    </StaffAppFrame>
   );
 }

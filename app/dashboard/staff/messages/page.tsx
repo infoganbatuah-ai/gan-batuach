@@ -1,5 +1,7 @@
-import { DashboardShell } from "@/components/dashboard-shell";
+import { MessageCircle } from "lucide-react";
 import { InternalMessagingCenter } from "@/components/internal-messaging-center";
+import { StatusChip } from "@/components/gan-batuach-design-system";
+import { StaffAppFrame, StaffPageHero, StaffSection } from "@/components/staff-app-ui";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
@@ -15,5 +17,12 @@ export default async function StaffMessagesPage({ searchParams }: { searchParams
   ]);
   const garden = gardenRes.data as any;
   const recipients = [garden?.manager, garden?.owner, garden?.inspector].filter(Boolean);
-  return <DashboardShell role="staff" title="הודעות צוות"><div className="parent-page-head staff-page-head"><div><p className="eyebrow">הודעות במשמרת</p><h1>מנהלת, צוות ועדכונים דחופים.</h1><p>פנייה קצרה למנהלת או לצוות, עם אפשרות לקשר ילד כשצריך.</p></div><span className="pill good">מתועד</span></div><InternalMessagingCenter gardenId={gardenId} recipients={recipients} messages={(messagesRes.data ?? []) as any[]} linkedChildren={(childrenRes.data ?? []) as any[]} preselectedChildId={params?.childId} /></DashboardShell>;
+  return (
+    <StaffAppFrame active="messages">
+      <StaffPageHero eyebrow="הודעות במשמרת" title="מנהלת, צוות ועדכונים דחופים" text="פנייה קצרה למנהלת או לצוות, עם אפשרות לקשר ילד כשצריך." icon={MessageCircle} badge={<StatusChip tone="success">מתועד</StatusChip>} />
+      <StaffSection title="מרכז הודעות">
+        <InternalMessagingCenter gardenId={gardenId} recipients={recipients} messages={(messagesRes.data ?? []) as any[]} linkedChildren={(childrenRes.data ?? []) as any[]} preselectedChildId={params?.childId} />
+      </StaffSection>
+    </StaffAppFrame>
+  );
 }

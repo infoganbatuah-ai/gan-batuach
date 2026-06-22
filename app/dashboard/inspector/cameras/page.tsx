@@ -1,12 +1,16 @@
-import { DashboardShell } from "@/components/dashboard-shell";
+import { Camera, ShieldCheck } from "lucide-react";
 import { CameraPlaybackCard } from "@/components/camera-playback-card";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { InspectorAppFrame, InspectorEmpty, InspectorHero, InspectorMetricCard, InspectorMetricGrid, InspectorSection } from "@/components/inspector-app-ui";
 
 export default async function InspectorCamerasPage() {
   const { profile } = await requireRole(["inspector"]);
   const supabase = await createClient();
-  const gardensRes = await supabase.from("gardens" as any).select("id, name, city").eq("inspector_id", profile.id);
+  const [inspectorRes, gardensRes] = await Promise.all([
+    supabase.from("inspectors" as any).select("profile_photo_url").eq("id", profile.id).maybeSingle(),
+    supabase.from("gardens" as any).select("id, name, city").eq("inspector_id", profile.id)
+  ]);
   const gardenIds = (gardensRes.data ?? []).map((garden: any) => garden.id);
   const camerasRes = gardenIds.length
     ? await supabase
@@ -20,5 +24,26 @@ export default async function InspectorCamerasPage() {
     seen.add(camera.id);
     return true;
   });
-  return <DashboardShell role="inspector" title="מצלמות גנים"><div className="dashboard-hero-card"><div><p className="eyebrow">מצלמות משויכות</p><h1>צפייה לצורכי פיקוח בלבד.</h1><p>רק מצלמות של גנים שהוקצו לך מוצגות כאן. כל פתיחת צפייה דורשת סיבה ונרשמת ביומן.</p></div><span className="pill good">{gardenIds.length} גנים משויכים</span></div><section className="dashboard-section">{cameras.length === 0 ? <div className="empty-state"><strong>אין מצלמות בגנים המשויכים</strong><span>כאשר גן משויך יגדיר מצלמות, הן יופיעו כאן לצפייה מאובטחת.</span></div> : <div className="camera-playback-grid">{cameras.filter((camera) => camera.inspector_view_allowed !== false).map((camera) => <CameraPlaybackCard camera={camera} accessReason="בדיקת פיקוח/ציות בגן משויך" key={camera.id} />)}</div>}</section></DashboardShell>;
+  const allowed = cameras.filter((camera) => camera.inspector_view_allowed !== false);
+  const profileForUi = { ...profile, profile_image_url: (inspectorRes.data as any)?.profile_photo_url ?? profile.profile_image_url };
+
+  return (
+    <InspectorAppFrame profile={profileForUi} activeHref="/dashboard/inspector/control-center" title="מצלמות גנים" subtitle="צפייה לצורכי פיקוח בלבד" badge="מצלמות">
+      <InspectorHero eyebrow="גישה מבוקרת" title="גלריית מצלמות בגנים המשויכים" subtitle="רק מצלמות של גנים שהוקצו לך מוצגות כאן. כל פתיחת צפייה דורשת סיבה ונרשמת ביומן." artwork={<Camera />} />
+      <InspectorMetricGrid columns={3}>
+        <InspectorMetricCard label="גנים משויכים" value={gardenIds.length} hint="טווח הרשאה" icon={ShieldCheck} />
+        <InspectorMetricCard label="מצלמות" value={cameras.length} hint="נמצאו" icon={Camera} />
+        <InspectorMetricCard label="מותרות לצפייה" value={allowed.length} hint="לפי מדיניות" icon={Camera} tone="success" />
+      </InspectorMetricGrid>
+      <InspectorSection title="גלריית מצלמות" subtitle="אין חשיפת פרטי חיבור בדפדפן" icon={Camera}>
+        {allowed.length === 0 ? (
+          <InspectorEmpty title="אין מצלמות בגנים המשויכים" text="כאשר גן משויך יגדיר מצלמות מאושרות לפיקוח, הן יופיעו כאן לצפייה מאובטחת." icon={Camera} />
+        ) : (
+          <div className="camera-playback-grid">
+            {allowed.map((camera) => <CameraPlaybackCard camera={camera} accessReason="בדיקת פיקוח/ציות בגן משויך" key={camera.id} />)}
+          </div>
+        )}
+      </InspectorSection>
+    </InspectorAppFrame>
+  );
 }

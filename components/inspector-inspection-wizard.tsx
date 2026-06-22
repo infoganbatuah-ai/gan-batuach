@@ -1,6 +1,14 @@
 "use client";
 
 import { useMemo, useRef, useState } from "react";
+import { ClipboardCheck, FileSignature, ListChecks } from "lucide-react";
+import {
+  DashboardGrid,
+  EmptyState,
+  PremiumCard,
+  SectionHeader,
+  StatusChip
+} from "@/components/gan-batuach-design-system";
 
 type Inspection = { id: string; garden_id: string; form_id: string; status?: string | null; gardens?: { name?: string | null; city?: string | null } | null };
 type Question = { id: string; form_id: string; category: string; question_text: string; question_type?: string | null; weight?: number | null; critical?: boolean | null; required?: boolean | null };
@@ -98,9 +106,64 @@ export function InspectorInspectionWizard({ inspections, questions, initialInspe
     <div className="inspection-wizard-shell">
       {error ? <div className="error-banner">{error}</div> : null}
       {message ? <div className="success-banner">{message}</div> : null}
-      <section className="grid cols-2 dashboard-panels"><article className="card action-panel"><h2>בחירת ביקורת</h2>{rows.length === 0 ? <div className="empty-state"><strong>אין ביקורות פתוחות</strong><span>משימות חודשיות יופיעו כאן לאחר יצירה.</span></div> : <div className="stack-list">{rows.map((item) => <button className={item.id === selectedInspectionId ? "quick-action selected-choice" : "quick-action"} key={item.id} onClick={() => setSelectedInspectionId(item.id)}><strong>{item.gardens?.name || "גן"}</strong><span>{item.gardens?.city || ""} · {item.status || "open"}</span></button>)}</div>}</article><article className="card action-panel"><h2>התקדמות וציון</h2><div className="progress-bar"><span style={{ width: formQuestions.length ? `${Math.round((answered / formQuestions.length) * 100)}%` : "0%" }} /></div><div className="control-metrics"><span><b>{answered}/{formQuestions.length}</b> שאלות</span><span><b>{score}</b> ציון</span><span><b>{exceptions.length}</b> חריגים אדומים</span></div></article></section>
-      {categories.map((category) => <section className="card form wizard-form" key={category}><h2>{category}</h2><p>מלאו ציון, הערות והוכחות לפי סוג השאלה. ציון 1-4 ייצור ליקוי אוטומטי.</p>{formQuestions.filter((question) => question.category === category).map((question) => <div className="inspection-answer-card" key={question.id}><div><span className={question.critical ? "pill bad" : "pill"}>{question.critical ? "קריטי" : question.question_type || "score"}</span><strong>{question.question_text}</strong></div>{question.question_type === "boolean" ? <select onChange={(event) => update(question.id, { boolean_value: event.target.value === "yes", score: event.target.value === "yes" ? 10 : 4 })}><option value="">בחרו</option><option value="yes">כן</option><option value="no">לא</option></select> : question.question_type === "text_note" ? <textarea placeholder="תשובה / הערה" onChange={(event) => update(question.id, { text_value: event.target.value, score: 10 })} /> : <input type="number" min="1" max="10" placeholder="ציון 1-10" onChange={(event) => update(question.id, { score: Number(event.target.value) })} />}<textarea placeholder="הערת פקח" onChange={(event) => update(question.id, { note: event.target.value })} />{question.question_type === "photo_upload" ? <input placeholder="קישור צילום / נתיב אחסון" onChange={(event) => update(question.id, { photo_url: event.target.value })} /> : null}{question.question_type === "document_upload" || question.question_type === "video_upload" ? <input placeholder={question.question_type === "video_upload" ? "קישור וידאו / ראיה" : "קישור מסמך / נתיב אחסון"} onChange={(event) => update(question.id, { document_url: event.target.value })} /> : null}</div>)}</section>)}
-      {inspection ? <section className="card action-panel"><h2>חתימה וסיום</h2><p>ציון משוקלל: {score}. חריגים: {exceptions.length}. חובה לחתום על המסך. החתימה, זמן השליחה ו-GPS יישמרו בהיסטוריית הביקורת וב-PDF.</p><canvas ref={canvasRef} width={620} height={180} className="signature-pad" onPointerDown={startSign} onPointerMove={point} onPointerUp={() => setIsSigning(false)} onPointerLeave={() => setIsSigning(false)} /><div className="actions"><button className="button secondary" disabled={busy} onClick={clearSignature}>ניקוי חתימה</button><button className="button primary large" disabled={busy} onClick={submit}>{busy ? "שולח..." : "שליחת דוח ביקורת"}</button></div></section> : null}
+      <DashboardGrid columns={2} className="inspector-form-grid">
+        <PremiumCard className="inspector-section-card">
+          <SectionHeader title="בחירת ביקורת" subtitle="בחרו גן ומשימת ביקורת פתוחה" icon={ClipboardCheck} />
+          {rows.length === 0 ? (
+            <EmptyState title="אין ביקורות פתוחות" text="משימות חודשיות יופיעו כאן לאחר יצירה." icon={ClipboardCheck} />
+          ) : (
+            <div className="inspector-list">
+              {rows.map((item) => (
+                <button className={item.id === selectedInspectionId ? "gb-list-row-card selected" : "gb-list-row-card"} key={item.id} onClick={() => setSelectedInspectionId(item.id)}>
+                  <div className="gb-list-main">
+                    <b>{item.gardens?.name || "גן"}</b>
+                    <span>{item.gardens?.city || ""} · {item.status || "פתוח"}</span>
+                  </div>
+                </button>
+              ))}
+            </div>
+          )}
+        </PremiumCard>
+        <PremiumCard className="inspector-section-card">
+          <SectionHeader title="התקדמות וציון" subtitle="מעקב מילוי לפני שליחה" icon={ListChecks} />
+          <div className="inspector-progress-line">
+            <div><b>{answered}/{formQuestions.length} שאלות</b><small>{score} ציון</small></div>
+            <span><i style={{ width: formQuestions.length ? `${Math.round((answered / formQuestions.length) * 100)}%` : "0%" }} /></span>
+          </div>
+          <DashboardGrid columns={3}>
+            <StatusChip tone="primary">{answered} נענו</StatusChip>
+            <StatusChip tone={exceptions.length ? "danger" : "success"}>{exceptions.length} חריגים</StatusChip>
+            <StatusChip tone="muted">{categories.length} קטגוריות</StatusChip>
+          </DashboardGrid>
+        </PremiumCard>
+      </DashboardGrid>
+      {categories.map((category) => (
+        <PremiumCard className="inspector-section-card inspector-form-stack" key={category}>
+          <SectionHeader title={category} subtitle="מלאו ציון, הערות והוכחות לפי סוג השאלה" icon={ListChecks} />
+          {formQuestions.filter((question) => question.category === category).map((question) => (
+            <div className="inspection-answer-card" key={question.id}>
+              <div>
+                <StatusChip tone={question.critical ? "danger" : "muted"}>{question.critical ? "קריטי" : question.question_type || "ציון"}</StatusChip>
+                <strong>{question.question_text}</strong>
+              </div>
+              {question.question_type === "boolean" ? <select onChange={(event) => update(question.id, { boolean_value: event.target.value === "yes", score: event.target.value === "yes" ? 10 : 4 })}><option value="">בחרו</option><option value="yes">כן</option><option value="no">לא</option></select> : question.question_type === "text_note" ? <textarea placeholder="תשובה / הערה" onChange={(event) => update(question.id, { text_value: event.target.value, score: 10 })} /> : <input type="number" min="1" max="10" placeholder="ציון 1-10" onChange={(event) => update(question.id, { score: Number(event.target.value) })} />}
+              <textarea placeholder="הערת פקח" onChange={(event) => update(question.id, { note: event.target.value })} />
+              {question.question_type === "photo_upload" ? <input placeholder="קישור צילום / נתיב אחסון" onChange={(event) => update(question.id, { photo_url: event.target.value })} /> : null}
+              {question.question_type === "document_upload" || question.question_type === "video_upload" ? <input placeholder={question.question_type === "video_upload" ? "קישור וידאו / ראיה" : "קישור מסמך / נתיב אחסון"} onChange={(event) => update(question.id, { document_url: event.target.value })} /> : null}
+            </div>
+          ))}
+        </PremiumCard>
+      ))}
+      {inspection ? (
+        <PremiumCard className="inspector-section-card">
+          <SectionHeader title="חתימה וסיום" subtitle={`ציון משוקלל: ${score}. חריגים: ${exceptions.length}. החתימה, זמן השליחה ו-GPS יישמרו בדוח.`} icon={FileSignature} />
+          <canvas ref={canvasRef} width={620} height={180} className="signature-pad" onPointerDown={startSign} onPointerMove={point} onPointerUp={() => setIsSigning(false)} onPointerLeave={() => setIsSigning(false)} />
+          <div className="inspector-hero-actions">
+            <button className="inspector-action-button" type="button" disabled={busy} onClick={clearSignature}>ניקוי חתימה</button>
+            <button className="inspector-action-button" type="button" disabled={busy} onClick={submit}>{busy ? "שולח..." : "סיים ושלח ביקורת"}</button>
+          </div>
+        </PremiumCard>
+      ) : null}
     </div>
   );
 }

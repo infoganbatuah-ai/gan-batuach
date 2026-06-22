@@ -1,12 +1,13 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
+import type { ReactNode } from "react";
 import { AlertTriangle, Baby, Bell, CheckCircle2, ClipboardList, HeartPulse, MapPin, MessageSquare, ShieldAlert, Siren, Timer, Utensils } from "lucide-react";
 import { Avatar } from "@/components/avatar";
-import { DashboardShell } from "@/components/dashboard-shell";
 import { StaffAttendanceActions } from "@/components/staff-attendance-actions";
 import { StaffOfflineQueue } from "@/components/staff-offline-queue";
 import { StaffOneHandMode } from "@/components/staff-one-hand-mode";
-import { ActionCard, RoleMetricCard, StatusBadge } from "@/components/premium-dashboard";
+import { ActionCard as GBActionCard, MetricCard, StatusChip } from "@/components/gan-batuach-design-system";
+import { StaffAppFrame } from "@/components/staff-app-ui";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
@@ -23,7 +24,26 @@ function dateTimeText(value?: string | null) {
 }
 
 function taskTone(count: number) {
-  return count ? "warn" as const : "good" as const;
+  return count ? "warning" as const : "success" as const;
+}
+
+function tone(value: "good" | "warn" | "bad" | "default") {
+  if (value === "good") return "success";
+  if (value === "warn") return "warning";
+  if (value === "bad") return "danger";
+  return "primary";
+}
+
+function RoleMetricCard({ label, value, hint, tone: cardTone = "default", href }: { label: string; value: string | number; hint?: string; tone?: "good" | "warn" | "bad" | "default"; href?: string }) {
+  return <MetricCard label={label} value={value} hint={hint} tone={tone(cardTone)} href={href} />;
+}
+
+function StatusBadge({ children, tone: chipTone = "default" }: { children: ReactNode; tone?: "good" | "warn" | "bad" | "default" }) {
+  return <StatusChip tone={tone(chipTone)}>{children}</StatusChip>;
+}
+
+function ActionCard({ title, text, href, icon, tone: cardTone = "default" }: { title: string; text?: string; href?: string; icon: any; tone?: "good" | "warn" | "bad" | "default" }) {
+  return <GBActionCard title={title} text={text} href={href} icon={icon} tone={tone(cardTone)} />;
 }
 
 export default async function StaffOperationsPage() {
@@ -111,7 +131,7 @@ export default async function StaffOperationsPage() {
   ];
 
   return (
-    <DashboardShell role="staff" title="תפעול צוות">
+    <StaffAppFrame active="home" avatarUrl={staff?.profile_photo_url ?? profile.profile_image_url}>
       <div className="staff-workspace-shell staff-operations-2">
         <section className="staff-shift-hero">
           <div className="staff-shift-status">
@@ -135,7 +155,7 @@ export default async function StaffOperationsPage() {
         <section className="staff-metric-strip">
           <RoleMetricCard label="התקדמות" value={`${shiftCompletion}%`} hint="נוכחות, עדכונים ומשימות" tone={shiftCompletion >= 80 ? "good" : "warn"} />
           <RoleMetricCard label="ילדים לעדכון" value={Math.max(0, children.length - childrenUpdated)} hint="יומן היום" tone={children.length - childrenUpdated ? "warn" : "good"} href="/dashboard/staff/child-journal" />
-          <RoleMetricCard label="משימות" value={tasksRes.count ?? tasks.length} hint="פתוחות" tone={taskTone(tasksRes.count ?? tasks.length)} href="/dashboard/staff/tasks" />
+          <MetricCard label="משימות" value={tasksRes.count ?? tasks.length} hint="פתוחות" tone={taskTone(tasksRes.count ?? tasks.length)} href="/dashboard/staff/tasks" />
           <RoleMetricCard label="התראות" value={(messagesRes.count ?? 0) + notices.length} hint="הודעות ועדכונים" tone={(messagesRes.count ?? 0) + notices.length ? "warn" : "good"} href="/dashboard/staff/notifications" />
         </section>
 
@@ -218,6 +238,6 @@ export default async function StaffOperationsPage() {
           {(documentsRes.count ?? 0) ? <StatusBadge tone="warn">{documentsRes.count} מסמכים חסרים</StatusBadge> : <StatusBadge tone="good">מסמכים תקינים</StatusBadge>}
         </section>
       </div>
-    </DashboardShell>
+    </StaffAppFrame>
   );
 }
