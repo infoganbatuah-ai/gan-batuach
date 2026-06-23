@@ -26,6 +26,22 @@ export default async function Page() {
   const supabase = await createClient();
   const staffRes = await supabase.from("staff" as any).select("id, garden_id, full_name, gardens(name, address, gps_lat, gps_lng)").eq("profile_id", profile.id).maybeSingle();
   const staff = staffRes.data as any;
+  if (!staff?.id || !staff?.garden_id) {
+    return (
+      <StaffAppFrame active="home" mode="candidate">
+        <StaffPageHero
+          eyebrow="נוכחות צוות"
+          title="נוכחות תיפתח אחרי שיוך לגן"
+          text="מערכת הנוכחות זמינה רק לעובדי צוות שאושרו ושויכו לגן פעיל."
+          icon={Fingerprint}
+          badge={<StatusChip tone="warning">ממתין לשיוך</StatusChip>}
+        />
+        <StaffSection title="אין פעולות נוכחות">
+          <StaffEmpty title="עדיין לא שובצת לגן" text="לאחר אישור מנהלת, כניסה ויציאה מהעבודה יופיעו כאן." icon={Fingerprint} />
+        </StaffSection>
+      </StaffAppFrame>
+    );
+  }
   const monthStart = new Date();
   monthStart.setDate(1);
   const monthStartText = monthStart.toISOString().slice(0, 10);

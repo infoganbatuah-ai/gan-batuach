@@ -9,6 +9,22 @@ export default async function StaffCamerasPage() {
   const { profile } = await requireRole(["staff"]);
   const supabase = await createClient();
   const gardenId = profile.garden_id ?? "";
+  if (!gardenId) {
+    return (
+      <StaffAppFrame active="home" mode="candidate">
+        <StaffPageHero
+          eyebrow="מצלמות צוות"
+          title="מצלמות ייפתחו רק אחרי שיוך לגן"
+          text="לפני אישור ושיוך אין גישה למצלמות, למיקומים פנימיים או למידע תפעולי של גן."
+          icon={Camera}
+          badge={<StatusChip tone="warning" icon={ShieldCheck}>ממתין לשיוך</StatusChip>}
+        />
+        <StaffSection title="אין גישה למצלמות">
+          <StaffEmpty title="עדיין לא שובצת לגן" text="כאשר מנהלת תאשר את השיוך, יוצגו רק מצלמות שאושרו לצפיית צוות." icon={Camera} />
+        </StaffSection>
+      </StaffAppFrame>
+    );
+  }
   const camerasRes = await supabase
     .from("camera_streams" as any)
     .select("id, garden_id, kindergarten_id, name, area, camera_type, source_type, protocol, status, active, staff_view_allowed, hls_playback_url, sample_hls_url, webrtc_playback_url, gateway_stream_id, video_gateway_stream_id, last_health_check_at, gardens(name, city)")

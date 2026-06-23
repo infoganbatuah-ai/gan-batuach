@@ -12,8 +12,18 @@ function hours(start?: string | null, end?: string | null) {
 export default async function Page() {
   const { profile } = await requireRole(["staff"]);
   const supabase = await createClient();
-  const staffRes = await supabase.from("staff" as any).select("id, full_name").eq("profile_id", profile.id).maybeSingle();
+  const staffRes = await supabase.from("staff" as any).select("id, full_name, garden_id").eq("profile_id", profile.id).maybeSingle();
   const staff = staffRes.data as any;
+  if (!staff?.id || !staff?.garden_id) {
+    return (
+      <StaffAppFrame active="home" mode="candidate">
+        <StaffPageHero eyebrow="משמרות צוות" title="לוח משמרות ייפתח אחרי שיוך לגן" text="לפני אישור מנהלת אין משמרות פעילות או שעות עבודה להצגה." icon={CalendarDays} badge={<StatusChip tone="warning">ממתין לשיוך</StatusChip>} />
+        <StaffSection title="אין משמרות">
+          <StaffEmpty title="עדיין לא שובצת לגן" text="לאחר שיוך לגן, לוח המשמרות והשעות שלך יופיעו כאן." icon={CalendarDays} />
+        </StaffSection>
+      </StaffAppFrame>
+    );
+  }
   const shiftsRes = staff?.id ? await supabase.from("staff_shifts" as any).select("id, shift_date, planned_start, planned_end, actual_start, actual_end, status").eq("staff_id", staff.id).order("shift_date", { ascending: false }).limit(60) : { data: [] };
   const rows = (shiftsRes.data ?? []) as any[];
   const monthHours = rows.reduce((sum, row) => sum + hours(row.actual_start, row.actual_end), 0);

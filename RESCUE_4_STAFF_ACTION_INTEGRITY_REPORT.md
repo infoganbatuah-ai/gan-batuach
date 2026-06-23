@@ -20,6 +20,7 @@ Audited visible staff actions across assigned and unassigned staff states, inclu
 | Unassigned dashboard | Discover hiring kindergartens | fully functional | Routes to `/dashboard/staff/job-market`. |
 | Unassigned dashboard | Complete profile | fully functional | Routes to `/dashboard/staff/settings`. |
 | Unassigned dashboard | Upload required documents | fully functional | Routes to `/dashboard/staff/documents`. |
+| Unassigned route guard UX | Manual access to attendance/shifts/messages/cameras | fixed | These routes now show an honest “ממתין לשיוך” state instead of operational modules. |
 | Job market | Search/filter openings | fully functional | Existing server-side route preserved. |
 | Job market | Submit job application | fully functional | Existing `/api/staff/job-applications` flow preserved. |
 | Attendance | Clock-in/clock-out/break actions | fully functional | Existing location/geofence and attendance logic preserved. |
@@ -39,6 +40,7 @@ Audited visible staff actions across assigned and unassigned staff states, inclu
 - Dashboard staff task/message previews no longer present fixed sample content.
 - Direct links to staff private `file_url` values were removed from staff document-related pages.
 - Staff camera cards no longer imply live playback unless a connection and playback source are both present.
+- Candidate/unassigned staff routes now use candidate navigation and blocked states for attendance, shifts, messages and cameras.
 
 ## Remaining Action Gaps
 

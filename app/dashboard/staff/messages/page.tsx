@@ -1,7 +1,7 @@
 import { MessageCircle } from "lucide-react";
 import { InternalMessagingCenter } from "@/components/internal-messaging-center";
 import { StatusChip } from "@/components/gan-batuach-design-system";
-import { StaffAppFrame, StaffPageHero, StaffSection } from "@/components/staff-app-ui";
+import { StaffAppFrame, StaffEmpty, StaffPageHero, StaffSection } from "@/components/staff-app-ui";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
@@ -10,6 +10,16 @@ export default async function StaffMessagesPage({ searchParams }: { searchParams
   const { profile } = await requireRole(["staff"]);
   const supabase = await createClient();
   const gardenId = profile.garden_id ?? "";
+  if (!gardenId) {
+    return (
+      <StaffAppFrame active="home" mode="candidate">
+        <StaffPageHero eyebrow="הודעות צוות" title="הודעות ייפתחו אחרי שיוך לגן" text="לפני אישור מנהלת ושיוך לגן אין גישה להודעות פנימיות, הורים או צוות." icon={MessageCircle} badge={<StatusChip tone="warning">ממתין לשיוך</StatusChip>} />
+        <StaffSection title="אין הודעות פנימיות">
+          <StaffEmpty title="עדיין לא שובצת לגן" text="לאחר אישור ושיוך, הודעות המנהלת והצוות יופיעו כאן." icon={MessageCircle} />
+        </StaffSection>
+      </StaffAppFrame>
+    );
+  }
   const [gardenRes, messagesRes, childrenRes] = await Promise.all([
     supabase.from("gardens" as any).select("manager:manager_id(id, full_name, email, role, profile_image_url), owner:owner_profile_id(id, full_name, email, role, profile_image_url), inspector:inspector_id(id, full_name, email, role, profile_image_url)").eq("id", gardenId).maybeSingle(),
     supabase.from("messages" as any).select("*, sender:sender_id(full_name, profile_image_url), recipient:recipient_id(full_name, profile_image_url)").eq("garden_id", gardenId).or(`sender_id.eq.${profile.id},recipient_id.eq.${profile.id}`).order("created_at", { ascending: false }).limit(80),

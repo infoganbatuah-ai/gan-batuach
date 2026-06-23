@@ -6,9 +6,12 @@ import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function StaffJobMarketPage({ searchParams }: { searchParams?: Promise<{ city?: string; q?: string }> }) {
-  await requireRole(["staff"]);
+  const { profile } = await requireRole(["staff"]);
   const params = await searchParams;
   const supabase = await createClient();
+  const staffRes = await supabase.from("staff" as any).select("id, garden_id, approved_to_work").eq("profile_id", profile.id).maybeSingle();
+  const staff = staffRes.data as any;
+  const isAssigned = Boolean(staff?.garden_id && staff?.approved_to_work);
   let query = supabase.from("kindergarten_staff_openings" as any)
     .select("*, gardens(name,city,address,public_profile_enabled)")
     .eq("active_status", "published")
@@ -22,7 +25,7 @@ export default async function StaffJobMarketPage({ searchParams }: { searchParam
   });
 
   return (
-    <StaffAppFrame active="more">
+    <StaffAppFrame active={isAssigned ? "more" : "jobs"} mode={isAssigned ? "assigned" : "candidate"}>
       <StaffPageHero eyebrow="מועמדות צוות" title="מצאו גן שמחפש עובדים" text="מוצגים רק פרטים ציבוריים של משרות. אין גישה למידע פנימי לפני אישור מנהלת." icon={BriefcaseBusiness} badge={<StatusChip tone="success">{filtered.length} משרות פתוחות</StatusChip>} />
       <form action="/dashboard/staff/job-market">
         <SearchFilterBar
