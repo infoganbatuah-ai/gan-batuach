@@ -1,7 +1,7 @@
-import { Bell, Camera, Car, Eye, Moon, Palette, ShieldCheck, Sparkles, Trees } from "lucide-react";
+import { Eye, ShieldCheck } from "lucide-react";
 import { CameraPlaybackCard } from "@/components/camera-playback-card";
 import { DashboardShell } from "@/components/dashboard-shell";
-import { ParentAppFrame, ParentEmptyState, ParentHero, ParentListRow, ParentSection } from "@/components/parent-app-ui";
+import { ParentAppFrame, ParentEmptyState, ParentHero, ParentSection } from "@/components/parent-app-ui";
 import { requireRole } from "@/lib/auth";
 import { getParentCameraListForProfile } from "@/lib/domain/parent-camera-list";
 import { createClient } from "@/lib/supabase/server";
@@ -59,12 +59,12 @@ export default async function Page() {
               {groups.flatMap((group) => group.cameras.slice(0, 3).map((camera) => (
                 <article className="parent-live-camera-card" key={camera.id}>
                   <div className="parent-live-thumb">
-                    <span>LIVE</span>
+                    <span>{camera.status === "online" || camera.health_status === "healthy" ? "זמין" : "בדיקה"}</span>
                   </div>
                   <h3>{camera.name ?? camera.area ?? "מצלמה"}</h3>
-                  <p>HD 1080p</p>
-                  <small><ShieldCheck size={18} /> שידור תקין</small>
-                  <a href="#secure-playback"><Eye size={18} /> צפייה מהירה</a>
+                  <p>{camera.area ?? "אזור צפייה מאושר"}</p>
+                  <small><ShieldCheck size={18} /> {camera.status === "online" || camera.health_status === "healthy" ? "זמינה דרך שער מאובטח" : "ממתינה לאימות שער"}</small>
+                  <a href="#secure-playback"><Eye size={18} /> פתיחת נגן מאובטח</a>
                 </article>
               )))}
             </div>
@@ -73,17 +73,12 @@ export default async function Page() {
 
         <ParentSection title="ניטור חכם — תצפיות AI" subtitle="תצוגה רגועה ומאושרת, בלי התרעות גולמיות להורים">
           <div className="parent-ai-observations">
-            <article><span><Bell size={26} /></span><strong>התראה נבדקה</strong><p>11:24 · נבדק על ידי הצוות</p></article>
-            <article><span><ShieldCheck size={26} /></span><strong>אזור משחק בטוח</strong><p>הכל תקין · אין חריגות</p></article>
-            <article><span><Moon size={26} /></span><strong>שינה תקינה</strong><p>3 ילדים ישנים · סביבה שקטה</p></article>
+            <ParentEmptyState title="אין תצפיות מאושרות להצגה כרגע" text="רק עדכונים שעברו בדיקה אנושית ואושרו להורים יוצגו כאן." />
           </div>
         </ParentSection>
 
         <ParentSection title="אירועים בזמן אמת">
-          <ParentListRow title="פעילות יצירה מהנה!" subtitle="הילדים מכינים עבודות נפלאות" time="11:30" icon={Palette} tone="purple" />
-          <ParentListRow title="שינה שקטה" subtitle="הסביבה שקטה" time="11:15" icon={Moon} tone="purple" />
-          <ParentListRow title="אזור משחק בטוח" subtitle="לא נמצאו חריגות באזור החצר" time="10:45" icon={Car} tone="green" />
-          <ParentListRow title="פעילות חוץ" subtitle="הילדים משחקים בחצר" time="10:05" icon={Trees} tone="green" />
+          <ParentEmptyState title="אין אירועים מאושרים להצגה" text="כאשר הגן יאשר עדכון או אירוע להורים, הוא יופיע כאן." />
         </ParentSection>
 
         {groups.length ? (

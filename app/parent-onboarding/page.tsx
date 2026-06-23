@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Baby, CheckCircle2, HeartPulse, ShieldCheck } from "lucide-react";
 import { DashboardBackButton } from "@/components/dashboard-back-button";
 import { DashboardShell } from "@/components/dashboard-shell";
+import { ParentAppFrame, ParentHero, ParentSection } from "@/components/parent-app-ui";
 import { ParentChildRegistrationWizard } from "@/components/provisioning-forms";
 import { requireRole } from "@/lib/auth";
 import { getParentFamilyContext } from "@/lib/domain/parent-family";
@@ -60,21 +61,27 @@ export default async function ParentOnboardingPage({ searchParams }: { searchPar
   const ageGroups = await getKindergartenAgeGroups(supabase, gardenId, gardenRes.data);
 
   return (
-    <DashboardShell role="parent" title="השלמת פרטי ילד">
-      <div className="page-header-row">
-        <DashboardBackButton fallbackHref="/dashboard/parent" />
-        <Link className="button secondary" href="/dashboard/parent">חזרה לדשבורד ההורה</Link>
-        <Link className="button secondary" href="/dashboard/parent#add-child-request">בקשת רישום ילד נוסף</Link>
-      </div>
-
-      <section className="dashboard-hero-card parent-hero-card">
-        <div>
-          <p className="eyebrow">כרטיס ילד</p>
-          <h1>{child?.full_name ? `פרטי ${child.full_name}` : "השלמת פרטי ילד לגן"}</h1>
-          <p>{child ? "הפרטים שנשמרו כבר מוצגים כאן. ניתן לערוך רק את השדות שמותרים להורה, ולהשלים רק מה שחסר." : "לא נמצא כרטיס ילד פתוח. כדי להוסיף ילד נוסף יש לשלוח בקשת רישום לגן."}</p>
+    <DashboardShell role="parent" title="השלמת פרטי ילד" appHome>
+      <ParentAppFrame active="home" avatarUrl={(profile as any).profile_image_url ?? null}>
+        <div className="page-header-row">
+          <DashboardBackButton fallbackHref="/dashboard/parent" />
+          <Link className="button secondary" href="/dashboard/parent">חזרה לדשבורד ההורה</Link>
+          <Link className="button secondary" href="/dashboard/parent#add-child-request">בקשת רישום ילד נוסף</Link>
         </div>
-        <span className={child?.status === "active" || child?.status === "approved" ? "pill good" : "pill warn"}><CheckCircle2 size={15} /> {childStatusText(child?.status)}</span>
-      </section>
+
+        <ParentHero
+          title={child?.full_name ? `פרטי ${child.full_name}` : "השלמת פרטי ילד"}
+          subtitle={child ? "מעדכנים רק את השדות שמותרים להורה ומשלימים את מה שחסר." : "כדי להוסיף ילד נוסף יש לשלוח בקשת רישום לגן."}
+        />
+
+        <section className="dashboard-hero-card parent-hero-card">
+          <div>
+            <p className="eyebrow">כרטיס ילד</p>
+            <h1>{child?.full_name ? `פרטי ${child.full_name}` : "השלמת פרטי ילד לגן"}</h1>
+            <p>{child ? "הפרטים שנשמרו כבר מוצגים כאן. ניתן לערוך רק את השדות שמותרים להורה, ולהשלים רק מה שחסר." : "לא נמצא כרטיס ילד פתוח. כדי להוסיף ילד נוסף יש לשלוח בקשת רישום לגן."}</p>
+          </div>
+          <span className={child?.status === "active" || child?.status === "approved" ? "pill good" : "pill warn"}><CheckCircle2 size={15} /> {childStatusText(child?.status)}</span>
+        </section>
 
       {!child ? (
         <section className="empty-state">
@@ -90,9 +97,12 @@ export default async function ParentOnboardingPage({ searchParams }: { searchPar
             <div className="card health-card"><HeartPulse /> בריאות: {child.allergies || child.medical_notes ? "יש מידע שמור" : "חסר מידע"}</div>
             <div className="card health-card"><Baby /> גן: {(gardenRes.data as any)?.name ?? "גן משויך"}</div>
           </section>
-          <ParentChildRegistrationWizard child={child} parent={parent} garden={gardenRes.data as any} documents={(docsRes.data ?? []) as any[]} ageGroups={ageGroups} />
+          <ParentSection title="פרטים, בריאות ומסמכים" subtitle="הטופס נשאר מחובר ללוגיקה הקיימת ולשדות המאושרים.">
+            <ParentChildRegistrationWizard child={child} parent={parent} garden={gardenRes.data as any} documents={(docsRes.data ?? []) as any[]} ageGroups={ageGroups} />
+          </ParentSection>
         </>
       )}
+      </ParentAppFrame>
     </DashboardShell>
   );
 }
