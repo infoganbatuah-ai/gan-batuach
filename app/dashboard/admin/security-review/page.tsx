@@ -103,10 +103,10 @@ export default async function SecurityReviewPage() {
         </section>
 
         <section className="grid cols-2 dashboard-panels">
-          <ActionCard icon={FileCheck2} title="Rules of engagement" text="סביבת בדיקה, פעולות אסורות, חלון בדיקה, דיווח והסלמה." href="/PENETRATION_TEST_RULES_OF_ENGAGEMENT.md" />
-          <ActionCard icon={ShieldCheck} title="Security architecture pack" text="Auth, RLS, storage, camera, AI, payments, audit and data protection." href="/SECURITY_ARCHITECTURE_EXTERNAL_REVIEW_PACK.md" />
-          <ActionCard icon={Bug} title="External review checklist" text="Authentication, authorization, RLS, API, storage, cameras, payments, AI, mobile." href="/EXTERNAL_SECURITY_REVIEW_CHECKLIST.md" />
-          <ActionCard icon={Route} title="Master PT package" text="Scope, roles, test users, findings workflow and remediation workflow." href="/EXTERNAL_PENETRATION_TEST_AND_SECURITY_REVIEW_PREPARATION.md" />
+          <ActionCard icon={FileCheck2} title="Rules of engagement" text="סביבת בדיקה, פעולות אסורות, חלון בדיקה, דיווח והסלמה." href="/dashboard/admin/docs/PENETRATION_TEST_RULES_OF_ENGAGEMENT" />
+          <ActionCard icon={ShieldCheck} title="Security architecture pack" text="Auth, RLS, storage, camera, AI, payments, audit and data protection." href="/dashboard/admin/docs/SECURITY_ARCHITECTURE_EXTERNAL_REVIEW_PACK" />
+          <ActionCard icon={Bug} title="External review checklist" text="Authentication, authorization, RLS, API, storage, cameras, payments, AI, mobile." href="/dashboard/admin/docs/EXTERNAL_SECURITY_REVIEW_CHECKLIST" />
+          <ActionCard icon={Route} title="Master PT package" text="Scope, roles, test users, findings workflow and remediation workflow." href="/dashboard/admin/docs/EXTERNAL_PENETRATION_TEST_AND_SECURITY_REVIEW_PREPARATION" />
         </section>
 
         <CleanSection title="Penetration Test Scopes" subtitle="מה מותר לבדוק, באיזו סביבה, ומה מחוץ לתחום.">

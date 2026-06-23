@@ -1,3 +1,8 @@
+@import "./styles/tokens.css";
+@import "./styles/app-shell.css";
+@import "./styles/public.css";
+@import "./styles/auth.css";
+
 :root {
   --blue: #123b8f;
   --blue-dark: #071f5c;

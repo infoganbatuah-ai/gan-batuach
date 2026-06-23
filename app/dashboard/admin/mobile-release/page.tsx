@@ -337,8 +337,8 @@ export default async function MobileReleasePage() {
             <ActionCard icon={Camera} title="Camera Protection" text="Android FLAG_SECURE readiness, iOS capture detection readiness, web watermark only." href="/dashboard/admin/camera-compliance" />
             <ActionCard icon={Bell} title="Push Readiness" text={`${data.push.length} push capabilities tracked.`} href="/dashboard/admin/push-production" />
             <ActionCard icon={Link2} title="Deep Links" text="Child timeline, messages, documents, payments, pickup, inspection, task and camera." href="/dashboard/admin/mobile-platform" />
-            <ActionCard icon={Image} title="Screenshots" text="No real children, private data, medical docs or ID documents." href="/APP_STORE_GOOGLE_PLAY_SUBMISSION_READINESS.md" />
-            <ActionCard icon={FileCheck2} title="Documentation" text="Full store submission readiness pack." href="/APP_STORE_GOOGLE_PLAY_SUBMISSION_READINESS.md" />
+            <ActionCard icon={Image} title="Screenshots" text="No real children, private data, medical docs or ID documents." href="/dashboard/admin/docs/APP_STORE_GOOGLE_PLAY_SUBMISSION_READINESS" />
+            <ActionCard icon={FileCheck2} title="Documentation" text="Full store submission readiness pack." href="/dashboard/admin/docs/APP_STORE_GOOGLE_PLAY_SUBMISSION_READINESS" />
           </div>
         </CleanSection>
 

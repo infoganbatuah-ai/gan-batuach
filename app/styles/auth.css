@@ -1,0 +1,5 @@
+/* Auth/onboarding surface. RESCUE 1 preserves the approved login baseline and avoids new overrides. */
+.auth-surface {
+  background: var(--gb-page-gradient, #f3f7ff);
+}
+
