@@ -4,6 +4,8 @@ Status date: 2026-06-23
 
 Scope: parent visible buttons, links, tabs, forms, filters, payment actions, enrollment actions, message actions, camera actions and report links after RESCUE 3 implementation.
 
+UXQA 3A update: QA review completed after RESCUE 3. Typecheck and build passed. Browser screenshots were not captured because Playwright is unavailable in this environment.
+
 ## Classification Summary
 
 | Area | Status | Notes |
@@ -21,6 +23,11 @@ Scope: parent visible buttons, links, tabs, forms, filters, payment actions, enr
 | Daily journal | fully functional | Uses `child_daily_journals` for own children. |
 | Multiple child context | partially functional | Existing family context supports multiple children; full selector parity across every screen still requires manual QA. |
 | Bottom navigation | functional | Existing parent bottom nav remains; no duplicate public header was introduced. |
+| Parent app date chip | fixed | Removed the hardcoded May 2025 date from the shared parent shell. |
+| Parent family safety score fallback | fixed | Removed fallback `92/88` trust scores; unavailable scores now display “לא פורסם”/“טרם פורסם”. |
+| Discovery filter wording | fixed | Removed unbacked “distance/minimum rating” wording; search now presents public profile and city/area filters only. |
+| Parent documents direct file links | security_followup_required | Some parent document/gallery links still open stored `file_url` directly. This needs a signed-url/auth-gated download review before production. |
+| Parent inspection detail shell | low | `/dashboard/parent/inspections/[id]/report` uses `DashboardShell` without the parent app frame; route works but needs visual-shell polish. |
 
 ## Safe Fixes Made
 
@@ -30,6 +37,9 @@ Scope: parent visible buttons, links, tabs, forms, filters, payment actions, enr
 - Public kindergarten discovery no longer shows fake distance, fake rating, fake child count or default safety score.
 - Parent camera screen no longer displays fake live/AI observations or fake real-time activity rows.
 - Parent onboarding was wrapped in the parent app frame so child setup does not jump back to a desktop-style surface.
+- UXQA 3A removed the hardcoded parent shell date.
+- UXQA 3A removed fallback family-home safety scores.
+- UXQA 3A adjusted discovery quick-filter copy to avoid implying unimplemented distance/rating calculations.
 
 ## Functional With Provider Configuration
 
@@ -49,6 +59,8 @@ Scope: parent visible buttons, links, tabs, forms, filters, payment actions, enr
 - Full child transfer flow should remain blocked unless the existing authorized workflow is confirmed.
 - Multiple-child switching should receive dedicated UXQA across dashboard, cameras, payments, messages and reports.
 - Exact visual parity against all parent screenshots still needs browser screenshot review in an environment with auth/session access.
+- Parent document/gallery downloads should be reviewed for short-lived signed URL issuance and fresh authorization before production.
+- Parent inspection report detail should be wrapped in the unified parent app frame in a follow-up visual polish pass.
 
 ## Security Notes
 
