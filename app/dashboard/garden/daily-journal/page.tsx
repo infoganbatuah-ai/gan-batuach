@@ -8,6 +8,7 @@ import {
   TeacherAppFrame,
   TeacherCompactItem,
   TeacherCompactList,
+  TeacherEmptyState,
   TeacherPageTitle,
   TeacherQuickActions,
   TeacherSection,
@@ -27,6 +28,12 @@ export default async function GardenDailyJournalPage({ searchParams }: { searchP
   const tasks = (tasksRes.data ?? []) as any[];
   const completions = (completionsRes.data ?? []) as any[];
   const completionPercent = tasks.length ? Math.round((completions.length / tasks.length) * 100) : 0;
+  const completionIds = new Set(completions.map((item: any) => item.operational_task_id));
+  const orderedTasks = [...tasks].sort((a: any, b: any) => {
+    const categoryA = String(a.category ?? "");
+    const categoryB = String(b.category ?? "");
+    return categoryA.localeCompare(categoryB, "he") || String(a.title ?? "").localeCompare(String(b.title ?? ""), "he");
+  });
   return (
     <DashboardShell role={profile.role} title="יומן תפעול" appHome>
       <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "מאיה"}`} subtitle="לוח יום פעילות גננת" avatarUrl={(profile as any).avatar_url ?? null} active="calendar">
@@ -37,17 +44,28 @@ export default async function GardenDailyJournalPage({ searchParams }: { searchP
           <TeacherStatCard title="נותרו" value={Math.max(0, tasks.length - completions.length)} hint="מעקב" icon={Clock} tone={tasks.length - completions.length ? "orange" : "green"} />
           <TeacherStatCard title="שעה נוכחית" value={new Date().toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" })} hint="גן פעיל" icon={CalendarDays} tone="purple" />
         </TeacherStatsGrid>
-        <TeacherSection title="סדר יום">
-          <TeacherCompactList>
-            {[
-              ["08:00", "קבלת ילדים", "green"],
-              ["09:00", "ארוחת בוקר", "orange"],
-              ["10:00", "פעילות למידה", "purple"],
-              ["11:30", "חצר ומשחק חופשי", "green"],
-              ["12:15", "ארוחת צהריים", "orange"],
-              ["13:00", "שעת סיפור", "blue"]
-            ].map(([time, title, tone]) => <TeacherCompactItem key={time} title={title} subtitle={time} tone={tone as any} meta="•" />)}
-          </TeacherCompactList>
+        <TeacherSection title="סדר יום" subtitle="מבוסס על המשימות שהוגדרו לגן">
+          {orderedTasks.length ? (
+            <TeacherCompactList>
+              {orderedTasks.slice(0, 7).map((task: any) => {
+                const completed = completionIds.has(task.id);
+                return (
+                  <TeacherCompactItem
+                    key={task.id}
+                    title={task.title ?? "משימה"}
+                    subtitle={task.description ?? task.category ?? "משימת תפעול"}
+                    tone={completed ? "green" : task.required ? "orange" : "blue"}
+                    meta={completed ? "הושלם" : task.required ? "חובה" : "רשות"}
+                  />
+                );
+              })}
+            </TeacherCompactList>
+          ) : (
+            <TeacherEmptyState
+              title="עדיין לא הוגדר סדר יום"
+              text="כשתוגדרנה משימות תפעול או פעילויות לגן, הן יוצגו כאן במקום נתוני דוגמה."
+            />
+          )}
         </TeacherSection>
         <TeacherQuickActions title="פעולות היום">
           <TeacherActionTile title="עדכון פעילות" href="/dashboard/garden/daily-journal?workbench=1#daily-journal-workbench" icon={ClipboardCheck} tone="purple" />
