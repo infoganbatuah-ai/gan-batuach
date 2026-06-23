@@ -16,6 +16,15 @@ export default async function StaffCamerasPage() {
     .eq("active", true)
     .eq("staff_view_allowed", true);
   const cameras = (camerasRes.data ?? []) as any[];
+  const hasPlaybackSource = (camera: any) => Boolean(camera.hls_playback_url || camera.sample_hls_url || camera.webrtc_playback_url || camera.gateway_stream_id || camera.video_gateway_stream_id);
+  const statusLabel: Record<string, string> = {
+    online: "זמינה",
+    connected: "זמינה",
+    pending_gateway: "ממתינה לחיבור",
+    offline: "לא זמינה",
+    disabled: "כבויה",
+    error: "תקלה"
+  };
   return (
     <StaffAppFrame active="more">
       <StaffPageHero
@@ -35,9 +44,9 @@ export default async function StaffCamerasPage() {
                 key={camera.id}
                 title={camera.name}
                 subtitle={`${camera.area ?? "אזור לא צוין"} · ${camera.gardens?.name ?? "גן"}`}
-                live={camera.status === "online" || camera.active}
-                status={<StatusChip tone={camera.status === "online" ? "success" : "warning"}>{camera.status ?? "ממתין"}</StatusChip>}
-                action={<CameraPlaybackCard camera={camera} accessReason="צפיית צוות מורשית" />}
+                live={(camera.status === "online" || camera.status === "connected") && hasPlaybackSource(camera)}
+                status={<StatusChip tone={(camera.status === "online" || camera.status === "connected") && hasPlaybackSource(camera) ? "success" : "warning"}>{statusLabel[camera.status] ?? "ממתינה"}</StatusChip>}
+                action={<CameraPlaybackCard camera={camera} accessReason="צפיית צוות מורשית" safeDetails />}
               />
             ))}
           </div>

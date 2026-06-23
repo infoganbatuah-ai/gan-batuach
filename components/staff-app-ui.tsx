@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { ComponentType, ReactNode } from "react";
-import { Bell, CalendarDays, Home, Menu, MessageCircle, UserRound } from "lucide-react";
+import { Bell, BriefcaseBusiness, CalendarDays, FileCheck2, Home, Menu, MessageCircle, Search, UserRound } from "lucide-react";
 import type { LucideProps } from "lucide-react";
 import {
   ActionCard,
@@ -21,11 +21,13 @@ type IconType = ComponentType<LucideProps>;
 export function StaffAppFrame({
   children,
   active = "home",
-  avatarUrl
+  avatarUrl,
+  mode = "assigned"
 }: {
   children: ReactNode;
-  active?: "profile" | "shifts" | "home" | "messages" | "more";
+  active?: "profile" | "shifts" | "home" | "messages" | "more" | "jobs" | "applications" | "documents";
   avatarUrl?: string | null;
+  mode?: "assigned" | "candidate";
 }) {
   return (
     <AppShell
@@ -41,11 +43,11 @@ export function StaffAppFrame({
           }
           title="צוות גן"
           subtitle="עובדים. שומרים. אכפתיים."
-          notification={<button className="staff-bell" type="button" aria-label="התראות"><Bell size={26} /><span /></button>}
-          avatar={<div className="staff-avatar">{avatarUrl ? <img src={avatarUrl} alt="" /> : <span>צ</span>}<i /></div>}
+          notification={<Link className="staff-bell" href="/dashboard/staff/notifications" aria-label="התראות"><Bell size={26} /><span /></Link>}
+          avatar={<Link className="staff-avatar" href="/dashboard/staff/settings" aria-label="פרופיל צוות">{avatarUrl ? <img src={avatarUrl} alt="" /> : <span>צ</span>}<i /></Link>}
         />
       }
-      bottomNav={<StaffBottomNav active={active} />}
+      bottomNav={<StaffBottomNav active={active} mode={mode} />}
     >
       <main className="staff-app-main">{children}</main>
     </AppShell>
@@ -165,14 +167,22 @@ export function StaffActionTile({ title, href, icon: Icon }: { title: string; hr
   return <ActionCard title={title} href={href} icon={Icon} />;
 }
 
-export function StaffBottomNav({ active }: { active: "profile" | "shifts" | "home" | "messages" | "more" }) {
-  const items = [
+export function StaffBottomNav({ active, mode = "assigned" }: { active: "profile" | "shifts" | "home" | "messages" | "more" | "jobs" | "applications" | "documents"; mode?: "assigned" | "candidate" }) {
+  const assignedItems = [
     { key: "profile", label: "פרופיל", href: "/dashboard/staff/settings", icon: UserRound },
     { key: "shifts", label: "משמרות", href: "/dashboard/staff/shifts", icon: CalendarDays },
     { key: "home", label: "ראשי", href: "/dashboard/staff", icon: Home },
     { key: "messages", label: "הודעות", href: "/dashboard/staff/messages", icon: MessageCircle },
     { key: "more", label: "עוד", href: "/dashboard/staff/tasks", icon: Menu }
   ] as const;
+  const candidateItems = [
+    { key: "profile", label: "פרופיל", href: "/dashboard/staff/settings", icon: UserRound },
+    { key: "documents", label: "מסמכים", href: "/dashboard/staff/documents", icon: FileCheck2 },
+    { key: "home", label: "ראשי", href: "/dashboard/staff", icon: Home },
+    { key: "applications", label: "מועמדויות", href: "/dashboard/staff/job-market#applications", icon: BriefcaseBusiness },
+    { key: "jobs", label: "חיפוש גנים", href: "/dashboard/staff/job-market", icon: Search }
+  ] as const;
+  const items = mode === "candidate" ? candidateItems : assignedItems;
   return (
     <BottomNav
       className="staff-bottom-nav-ref"

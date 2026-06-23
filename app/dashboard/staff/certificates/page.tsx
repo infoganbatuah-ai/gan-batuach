@@ -38,7 +38,7 @@ export default async function Page() {
                 subtitle={row.issued_at ? `הונפק: ${new Date(row.issued_at).toLocaleDateString("he-IL")}` : "תאריך הנפקה לא צוין"}
                 meta={row.expires_at ? `תוקף: ${new Date(row.expires_at).toLocaleDateString("he-IL")}` : "ללא תוקף"}
                 status={<StatusChip tone={row.status === "valid" || row.status === "approved" ? "success" : row.status === "rejected" ? "danger" : "warning"}>{row.status}</StatusChip>}
-                href={row.file_url ?? undefined}
+                actions={<small className="gateway-setup-state">קובץ מאובטח</small>}
               />
             ))}
           </div>
