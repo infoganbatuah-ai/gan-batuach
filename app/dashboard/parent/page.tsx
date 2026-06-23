@@ -1,6 +1,5 @@
 import Link from "next/link";
-import { redirect } from "next/navigation";
-import { Baby, Bell, Building2, Camera, Car, FileText, MessageCircle, Palette, ShieldCheck, Utensils, WalletCards } from "lucide-react";
+import { Baby, Bell, Building2, CalendarDays, Camera, FileText, MessageCircle, ShieldCheck, WalletCards } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { ParentChildProfileForm } from "@/components/self-service-forms";
 import {
@@ -15,6 +14,7 @@ import {
   parentDefaultActions
 } from "@/components/parent-app-ui";
 import { requireRole } from "@/lib/auth";
+import { getParentFamilyContext } from "@/lib/domain/parent-family";
 import { createClient } from "@/lib/supabase/server";
 
 function formatStatus(status?: string | null) {
@@ -43,14 +43,28 @@ export default async function ParentDashboard() {
     supabase.from("kindergarten_enrollment_requests" as any).select("id,status,payment_status,requested_at,decided_at,published_price_snapshot,gardens(name,city)").eq("parent_id", profile.id).order("created_at", { ascending: false }).limit(20),
     supabase.from("self_service_user_profiles" as any).select("*").eq("profile_id", profile.id).maybeSingle()
   ]);
+  const family = await getParentFamilyContext(supabase as any, profile);
   const parent = parentRes.data as any;
-  if (parent?.garden_id && parent.completed_profile && parent.onboarding_status === "active") redirect("/dashboard/parent/family-home");
   const childProfiles = (childrenRes.data ?? []) as any[];
   const requests = (requestsRes.data ?? []) as any[];
   const pending = requests.filter((request) => !["approved", "rejected", "cancelled", "expired"].includes(String(request.status)));
   const approvedPendingPayment = requests.filter((request) => request.status === "approved_pending_payment");
-  const selectedChild = childProfiles[0];
-  const selectedGarden = requests[0]?.gardens;
+  const activeEnrollment = (family.enrollments as any[]).find((enrollment) => ["active", "approved"].includes(String(enrollment.status))) ?? (family.enrollments as any[])[0];
+  const selectedChild = activeEnrollment ?? childProfiles[0];
+  const selectedGarden = (family.gardens as any[]).find((garden) => garden.id === (activeEnrollment?.garden_id ?? activeEnrollment?.kindergarten_id)) ?? requests[0]?.gardens;
+  const hasActiveKindergarten = Boolean((family.gardenIds ?? []).length || parent?.garden_id);
+  const scheduleRes = hasActiveKindergarten && (family.gardenIds ?? []).length
+    ? await supabase
+      .from("schedule_items" as any)
+      .select("id,title,description,starts_at,visible_to_parents")
+      .in("garden_id", family.gardenIds)
+      .eq("visible_to_parents", true)
+      .order("starts_at", { ascending: true })
+      .limit(4)
+    : { data: [] };
+  const scheduleItems = (scheduleRes.data ?? []) as any[];
+  const safetyScore = selectedGarden?.last_inspection_score ?? null;
+  const unreadOrPendingCount = pending.length;
 
   return (
     <DashboardShell role="parent" title="אזור הורה" appHome>
@@ -62,8 +76,8 @@ export default async function ParentDashboard() {
             name={selectedChild.full_name ?? "הילד שלי"}
             meta={`${selectedGarden?.name ?? "עדיין לא משויך לגן"} · ${selectedGarden?.city ?? "בקשת הצטרפות"}`}
             image={(selectedChild as any).photo_url ?? null}
-            status={parent?.garden_id ? "הכל תקין" : "ממתין לשיוך"}
-            secondary={parent?.garden_id ? "נוכח/ת" : "בקשה פתוחה"}
+            status={hasActiveKindergarten ? "משויך לגן" : "ממתין לשיוך"}
+            secondary={hasActiveKindergarten ? "מידע לפי הרשאה" : "בקשה פתוחה"}
           />
         ) : (
           <section className="parent-child-card no-child">
@@ -79,22 +93,22 @@ export default async function ParentDashboard() {
         )}
 
         <section className="parent-metrics-grid">
-          <ParentMetricCard title="הודעות חדשות" value={3} hint="לא נקראו" icon={MessageCircle} tone="purple" href="/dashboard/parent/messages" />
+          <ParentMetricCard title="עדכונים פתוחים" value={unreadOrPendingCount} hint="בקשות/התראות לטיפול" icon={MessageCircle} tone={unreadOrPendingCount ? "orange" : "green"} href="/dashboard/parent/messages" />
           <ParentMetricCard title="סטטוס תשלום" value={approvedPendingPayment.length ? "לטיפול" : "סדר"} hint={approvedPendingPayment.length ? "ממתין לתשלום" : "אין חובות"} icon={WalletCards} tone={approvedPendingPayment.length ? "orange" : "green"} href="/dashboard/parent/payments" />
-          <ParentMetricCard title="ציון בטיחות" value={parent?.garden_id ? 95 : "-"} hint={parent?.garden_id ? "מעולה" : "לא פעיל"} icon={ShieldCheck} tone="purple" href="/dashboard/parent/trust-center" />
+          <ParentMetricCard title="ציון בטיחות" value={safetyScore ?? "לא פורסם"} hint={safetyScore ? "סיכום שאושר להצגה" : "יופיע אחרי פרסום הגן"} icon={ShieldCheck} tone={safetyScore ? "purple" : "neutral"} href="/dashboard/parent/trust-center" />
           <ParentMetricCard title="בקשות פתוחות" value={pending.length} hint="ממתינות לגן" icon={FileText} tone={pending.length ? "orange" : "green"} href="#requests" />
         </section>
 
-        <ParentSection title="ניטור בזמן אמת" subtitle={parent?.garden_id ? selectedGarden?.name ?? "גן הילד" : "ייפתח לאחר אישור הגן"} action={<Link href="/dashboard/parent/cameras">צפה עכשיו</Link>}>
+        <ParentSection title="צפייה במצלמות" subtitle={hasActiveKindergarten ? selectedGarden?.name ?? "גן הילד" : "ייפתח לאחר אישור הגן"} action={<Link href="/dashboard/parent/cameras">בדיקת זמינות</Link>}>
           <div className="parent-camera-card">
             <div className="parent-camera-preview">
-              <span>LIVE</span>
+              <span>{hasActiveKindergarten ? "מאובטח" : "ממתין"}</span>
             </div>
             <div>
               <span className="parent-camera-icon"><Camera size={30} /></span>
-              <h3>{parent?.garden_id ? "כיתה מרכזית" : "מצלמות ייפתחו לאחר אישור"}</h3>
-              <p>{parent?.garden_id ? "צפייה לפי מדיניות הגן והרשאות" : "אין גישה למצלמות לפני שיוך פעיל לגן"}</p>
-              <Link className="parent-outline-button" href="/dashboard/parent/cameras">צפה עכשיו</Link>
+              <h3>{hasActiveKindergarten ? "מצלמות שאושרו להורים" : "מצלמות ייפתחו לאחר אישור"}</h3>
+              <p>{hasActiveKindergarten ? "הצפייה זמינה רק אם הגן פתח מצלמה ושער הצפייה פעיל." : "אין גישה למצלמות לפני שיוך פעיל לגן"}</p>
+              <Link className="parent-outline-button" href="/dashboard/parent/cameras">בדוק זמינות</Link>
             </div>
           </div>
         </ParentSection>
@@ -107,10 +121,16 @@ export default async function ParentDashboard() {
 
         <section className="parent-two-columns">
           <ParentSection title="היום בגן">
-            <ParentListRow title="ארוחת בוקר" subtitle="הושלם" time="08:15" icon={Utensils} tone="green" />
-            <ParentListRow title="מנוחה" subtitle="12:30-13:30" time="12:30" icon={ShieldCheck} tone="purple" />
-            <ParentListRow title="פעילות" subtitle="יצירה ומשחק" time="10:45" icon={Palette} tone="purple" />
-            <ParentListRow title="שעת איסוף" subtitle="תזכורת פעילה" time="16:15" icon={Car} tone="blue" />
+            {scheduleItems.length ? scheduleItems.map((item) => (
+              <ParentListRow
+                key={item.id}
+                title={item.title ?? "פעילות"}
+                subtitle={item.description ?? "פורסם על ידי הגן"}
+                time={item.starts_at ? new Date(item.starts_at).toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" }) : undefined}
+                icon={CalendarDays}
+                tone="purple"
+              />
+            )) : <ParentEmptyState title="אין לו״ז מפורסם כרגע" text="כאשר הגן יפרסם סדר יום להורים, הוא יופיע כאן." />}
           </ParentSection>
 
           <ParentSection title="התראות אחרונות">

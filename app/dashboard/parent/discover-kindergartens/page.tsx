@@ -79,7 +79,7 @@ export default async function DiscoverKindergartensPage({ searchParams }: { sear
               return (
                 <article className={`parent-garden-card ${index === 0 ? "featured" : ""}`} key={garden.id}>
                   <div className="parent-garden-image">
-                    <span>{index === 0 ? "מומלץ" : `${(1.2 + index * 0.4).toFixed(1)} ק״מ`}</span>
+                    <span>{index === 0 ? "פרופיל ציבורי" : garden.city ?? "גן ציבורי"}</span>
                   </div>
                   <div className="parent-garden-content">
                     <div>
@@ -89,9 +89,9 @@ export default async function DiscoverKindergartensPage({ searchParams }: { sear
                     </div>
                     <div className="parent-garden-metrics">
                       <span><b>{publicPrice ? `₪${Number(publicPrice).toLocaleString("he-IL")}` : "לא פורסם"}</b><small>תשלום חודשי</small></span>
-                      <span><b>{visibleGroups.reduce((sum, group) => sum + Number(group.capacity ?? 0), 0) || 18}</b><small>ילדים בגן</small></span>
-                      <span><b>{garden.last_inspection_score ?? 95}/100</b><small>ציון בטיחות</small></span>
-                      <span><b>4.{8 - Math.min(index, 4)}</b><small>דירוג הורים</small></span>
+                      <span><b>{visibleGroups.reduce((sum, group) => sum + Number(group.capacity ?? 0), 0) || "לא פורסם"}</b><small>קיבולת שפורסמה</small></span>
+                      <span><b>{garden.last_inspection_score ? `${garden.last_inspection_score}/100` : "לא פורסם"}</b><small>ציון בטיחות</small></span>
+                      <span><b>{garden.safe_status ?? "בבדיקה"}</b><small>סטטוס ציבורי</small></span>
                     </div>
                     <div className="parent-garden-groups">
                       {visibleGroups.slice(0, 3).map((group) => <span key={group.id}>{group.group_name}: {group.show_price_public ? `${group.monthly_fee} ₪ לחודש` : "מחיר לא פורסם"}</span>)}
