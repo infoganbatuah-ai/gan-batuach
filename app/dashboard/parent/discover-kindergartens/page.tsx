@@ -63,14 +63,14 @@ export default async function DiscoverKindergartensPage({ searchParams }: { sear
 
         <nav className="parent-discovery-pills" aria-label="סינון מהיר">
           <span><UsersRound size={18} /> כל הגילים</span>
-          <span><Star size={18} /> דירוג מינימלי</span>
-          <span><MapPin size={18} /> מרחק</span>
+          <span><Star size={18} /> פרופיל ציבורי</span>
+          <span><MapPin size={18} /> עיר / אזור</span>
           <span><ShieldCheck size={18} /> מומלץ</span>
         </nav>
 
         {!admin ? <div className="error-banner">Service Role לא מוגדר, ולכן גילוי הגנים הציבורי אינו זמין כרגע.</div> : null}
 
-        <ParentSection title="גני ילדים קרובים אליך" subtitle="מבוסס על מיקום נוכחי">
+        <ParentSection title="גני ילדים בטוחים באזור שלך" subtitle="מוצגים רק גנים עם פרופיל ציבורי פעיל">
           <div className="parent-garden-list">
             {gardens.map((garden, index) => {
               const feeGroups = feeGroupsByGarden.get(garden.id) ?? [];

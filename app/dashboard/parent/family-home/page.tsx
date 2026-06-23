@@ -215,7 +215,7 @@ export default async function ParentFamilyHomePage() {
   const paymentAttention = children.filter(paymentNeedsAttention);
   const availableCameras = cameraResult.cameras.length;
   const unavailableCameras = cameraResult.debug.missingPlaybackSourceCount + cameraResult.debug.hiddenBecauseStatus + cameraResult.debug.hiddenBecauseParentViewingFlag;
-  const safetyScore = inspectionRes.data?.weighted_score ?? primaryGarden?.last_inspection_score ?? (primaryGarden?.safe_status ? 92 : 88);
+  const safetyScore = inspectionRes.data?.weighted_score ?? primaryGarden?.last_inspection_score ?? null;
   const latestUpdate = timeline[0]?.event_time ?? primaryJournal?.created_at ?? record?.last_timeline_event_at;
   const dailySummary = record?.parent_visible_summary ?? record?.daily_summary ?? parentDailySummary(primaryChild?.full_name ?? "הילד/ה", primaryJournal, timeline);
   const weeklySummary = record?.weekly_summary ?? `${timeline.filter((event) => event.event_time && new Date(event.event_time) >= weekStart).length} עדכוני ציר נצפו השבוע. סיכום מלא יופיע כאשר הגן ישתף מספיק עדכונים.`;
@@ -280,7 +280,7 @@ export default async function ParentFamilyHomePage() {
               <div className="parent-status-row">
                 <StatusBadge tone={toneForChild(primaryChild.status)}>{childStatusLabel(primaryChild.status)}</StatusBadge>
                 <StatusBadge tone="good">{primaryGarden?.name ?? "גן משויך"}</StatusBadge>
-                <StatusBadge tone="good">אמון {safetyScore}/100</StatusBadge>
+                <StatusBadge tone={safetyScore ? "good" : "warn"}>{safetyScore ? `אמון ${safetyScore}/100` : "ציון אמון טרם פורסם"}</StatusBadge>
                 <StatusBadge tone={latestUpdate ? "good" : "warn"}>{latestUpdate ? `עודכן ${eventDateText(latestUpdate)}` : "ממתין לעדכון"}</StatusBadge>
               </div>
             </div>
@@ -397,7 +397,7 @@ export default async function ParentFamilyHomePage() {
             </div>
             <div className="parent-trust-list">
               <span>תג אמון <b>{primaryGarden?.safe_status === "suspended" ? "בהשהיה" : "במעקב"}</b></span>
-              <span>ציון בטיחות <b>{safetyScore}/100</b></span>
+              <span>ציון בטיחות <b>{safetyScore ? `${safetyScore}/100` : "לא פורסם"}</b></span>
               <span>ביקורת אחרונה <b>{safeDate(inspectionRes.data?.completed_at)}</b></span>
               <span>שיפורים שהושלמו <b>{inspectionRes.data?.violation_count ? "בתהליך" : "אין פתוחים"}</b></span>
             </div>

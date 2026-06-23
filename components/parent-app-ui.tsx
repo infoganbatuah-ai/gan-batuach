@@ -16,6 +16,13 @@ export function ParentAppFrame({
   active?: "home" | "dashboard" | "calendar" | "alerts" | "more";
   avatarUrl?: string | null;
 }) {
+  const today = new Date().toLocaleDateString("he-IL", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+    year: "numeric"
+  });
+
   return (
     <div className="parent-app-frame" dir="rtl">
       <header className="parent-app-topbar">
@@ -25,7 +32,7 @@ export function ParentAppFrame({
         </div>
         <div className="parent-date-pill">
           <CalendarDays size={26} />
-          <span>יום ראשון, כ״ד אייר תשפ״ה<br />18 במאי 2025</span>
+          <span>{today}</span>
         </div>
         <Link className="parent-icon-button" href="/dashboard/parent/notifications" aria-label="התראות">
           <Bell size={26} />
