@@ -213,7 +213,7 @@ export function KindergartenSubscriptionActivationPanel({ gardenName, managerNam
               <div><dt>מנוי חודשי</dt><dd>{monthly.toLocaleString("he-IL")} ₪</dd></div>
               <div><dt>כמות משתמשים</dt><dd>ללא הגבלה</dd></div>
               <div><dt>תקופת התחייבות</dt><dd>12 חודשים</dd></div>
-              <div><dt>חיוב הבא</dt><dd>15.06.2025</dd></div>
+              <div><dt>חיוב הבא</dt><dd>ייקבע לאחר הפעלת ספק תשלום</dd></div>
               <div className="total"><dt>סה״כ לחיוב היום</dt><dd>{monthly.toLocaleString("he-IL")} ₪</dd></div>
             </dl>
           </article>
@@ -221,17 +221,13 @@ export function KindergartenSubscriptionActivationPanel({ gardenName, managerNam
           <article className="teacher-payment-card method-card">
             <h3><Lock size={18} /> אמצעי תשלום</h3>
             <div className="payment-method-tabs">
-              <button className="active" type="button"><CreditCard size={20} /> כרטיס אשראי</button>
-              <button type="button">Apple Pay</button>
-              <button type="button">Google Pay</button>
+              <button className="active" type="button"><CreditCard size={20} /> תשלום מנוי</button>
             </div>
-            <label>שם בעל הכרטיס<input value={managerName ?? "מאיה לוי"} readOnly /></label>
-            <label>מספר כרטיס<input value="**** **** **** 4242" readOnly /></label>
-            <div className="method-row">
-              <label>תוקף<input value="06 / 28" readOnly /></label>
-              <label>CVV<input value="***" readOnly /></label>
+            <div className="gateway-setup-state">
+              <strong>פרטי כרטיס לא נשמרים במערכת</strong>
+              <p>כאשר ספק תשלומים חי יחובר, התשלום יתבצע בעמוד מאובטח של הספק. כרגע ניתן לשלוח בקשת הפעלת מנוי לאדמין.</p>
             </div>
-            <p className="safe-payment-note"><ShieldCheck size={18} /> התשלום מאובטח ומוצפן</p>
+            <p className="safe-payment-note"><ShieldCheck size={18} /> ללא הצגת Apple Pay / Google Pay עד חיבור ספק שתומך בכך בפועל</p>
           </article>
 
           <article className="teacher-payment-card ai-after-payment">

@@ -28036,7 +28036,7 @@ body:has(.gb-reference-login) .gb-reference-security-card {
    App dashboards use floating bottom navigation. Long screens must always be
    scrollable and content must never sit under the nav. Keep this block last. */
 :root {
-  --app-bottom-nav-clearance: calc(124px + env(safe-area-inset-bottom, 0px));
+  --app-bottom-nav-clearance: calc(112px + env(safe-area-inset-bottom, 0px));
 }
 
 html:has(.ganenet-reference-phone):not(:has(.gb-reference-login)),
@@ -28090,7 +28090,7 @@ body:has(.staff-app-frame) .native-app-stage {
 .gb-app-shell-main,
 .gb-responsive-page {
   overflow: visible !important;
-  padding-bottom: var(--app-bottom-nav-clearance) !important;
+  padding-bottom: calc(var(--app-bottom-nav-clearance) + 18px) !important;
 }
 
 .parent-app-frame,
@@ -28123,12 +28123,12 @@ body:has(.staff-app-frame) .native-app-stage {
 }
 
 .ganenet-bottom-nav {
-  min-height: 88px !important;
-  padding: 8px 16px !important;
+  min-height: 82px !important;
+  padding: 6px 16px !important;
 }
 
 .ganenet-bottom-nav a {
-  min-height: 62px !important;
+  min-height: 56px !important;
 }
 
 .ganenet-bottom-nav a.active {
@@ -28136,8 +28136,8 @@ body:has(.staff-app-frame) .native-app-stage {
 }
 
 .ganenet-bottom-nav a.active span {
-  height: 72px !important;
-  width: 72px !important;
+  height: 76px !important;
+  width: 76px !important;
 }
 
 .staff-bottom-nav-ref {
@@ -28347,6 +28347,93 @@ body:has(.staff-app-frame) .native-app-stage {
 .staff-application-list {
   max-height: none !important;
   overflow: visible !important;
+}
+
+.ganenet-module-screen .ganenet-card,
+.ganenet-module-screen .ganenet-module-panel,
+.ganenet-module-screen .teacher-management-details,
+.ganenet-module-screen .teacher-dashboard-grid > *,
+.ganenet-module-screen .teacher-children-layout > * {
+  min-width: 0 !important;
+}
+
+.ganenet-module-screen .ganenet-module-row,
+.ganenet-module-screen .ganenet-action,
+.ganenet-module-screen .button,
+.ganenet-module-screen button,
+.ganenet-module-screen summary,
+.ganenet-module-screen .ganenet-shortcut-tile,
+.ganenet-module-screen .ganenet-camera-actions a {
+  -webkit-tap-highlight-color: transparent !important;
+  transition: background .16s ease, border-color .16s ease, box-shadow .16s ease, color .16s ease, filter .16s ease, transform .16s ease !important;
+}
+
+.ganenet-module-screen .ganenet-module-row:active,
+.ganenet-module-screen .ganenet-action:active,
+.ganenet-module-screen .button:active,
+.ganenet-module-screen button:active,
+.ganenet-module-screen summary:active,
+.ganenet-module-screen .ganenet-shortcut-tile:active,
+.ganenet-module-screen .ganenet-camera-actions a:active {
+  border-color: rgba(113, 87, 244, .34) !important;
+  box-shadow: 0 16px 34px rgba(113, 87, 244, .16), inset 0 0 0 1px rgba(113, 87, 244, .12) !important;
+  filter: saturate(1.1) !important;
+  transform: translateY(1px) scale(.985) !important;
+}
+
+.ganenet-module-screen .ganenet-module-row:focus-visible,
+.ganenet-module-screen .ganenet-action:focus-visible,
+.ganenet-module-screen .button:focus-visible,
+.ganenet-module-screen button:focus-visible,
+.ganenet-module-screen summary:focus-visible,
+.ganenet-module-screen .ganenet-shortcut-tile:focus-visible,
+.ganenet-module-screen .ganenet-camera-actions a:focus-visible {
+  outline: 3px solid rgba(113, 87, 244, .26) !important;
+  outline-offset: 3px !important;
+}
+
+.teacher-management-details[open] {
+  display: grid !important;
+  gap: 14px !important;
+}
+
+.teacher-management-details > div,
+.teacher-management-details > section,
+.teacher-management-details .dashboard-section,
+.teacher-management-details .procedure-list,
+.teacher-management-details .card-list,
+.teacher-management-details .people-card-grid,
+.teacher-management-details .camera-playback-grid,
+.teacher-management-details .profile-details-grid {
+  max-height: min(72dvh, 760px) !important;
+  overflow: auto !important;
+  overscroll-behavior: contain !important;
+  padding-bottom: 10px !important;
+  scrollbar-width: thin !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+.teacher-management-details .procedure-card,
+.teacher-management-details .action-panel,
+.teacher-management-details .person-card,
+.teacher-management-details .card {
+  border-color: rgba(131, 119, 236, .16) !important;
+  border-radius: 22px !important;
+  box-shadow: 0 14px 34px rgba(82, 74, 206, .06) !important;
+}
+
+.ganenet-module-panel .ganenet-module-list {
+  max-height: min(54dvh, 540px) !important;
+  overflow: auto !important;
+  overscroll-behavior: contain !important;
+  scrollbar-width: thin !important;
+  -webkit-overflow-scrolling: touch !important;
+}
+
+.ganenet-camera-gallery {
+  display: grid !important;
+  gap: 14px !important;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)) !important;
 }
 
 @media (max-width: 760px) {

@@ -32,11 +32,14 @@ export default async function GardenEnrollmentRequestsPage() {
   const { profile } = await requireRole(["manager", "owner"]);
   const supabase = await createClient();
   const gardenId = profile.garden_id ?? "";
-  const requestsRes = await supabase.from("kindergarten_enrollment_requests" as any)
-    .select("*, permanent_child_files:child_profile_id(full_name,birth_date,allergies,medical_notes,important_notes,duplicate_flags), profiles:parent_id(full_name,phone,email)")
-    .eq("garden_id", gardenId)
-    .order("created_at", { ascending: false })
-    .limit(100);
+  const [requestsRes, gardenRes] = await Promise.all([
+    supabase.from("kindergarten_enrollment_requests" as any)
+      .select("*, permanent_child_files:child_profile_id(full_name,birth_date,allergies,medical_notes,important_notes,duplicate_flags), profiles:parent_id(full_name,phone,email)")
+      .eq("garden_id", gardenId)
+      .order("created_at", { ascending: false })
+      .limit(100),
+    supabase.from("gardens" as any).select("name, city").eq("id", gardenId).maybeSingle()
+  ]);
   const rows = (requestsRes.data ?? []) as any[];
   const open = rows.filter((row) => ["submitted", "under_review", "more_information_requested", "approved_pending_payment"].includes(String(row.status)));
   const paymentPending = rows.filter((row) => row.status === "approved_pending_payment");
@@ -44,7 +47,7 @@ export default async function GardenEnrollmentRequestsPage() {
 
   return (
     <DashboardShell role="manager" title="בקשות הצטרפות" appHome>
-      <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "מאיה"}`} subtitle="גן שמש, תל אביב" avatarUrl={(profile as any).avatar_url ?? null} active="children">
+      <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "מנהלת"}`} subtitle={(gardenRes.data as any)?.name ?? "בקשות הורים וקליטה"} avatarUrl={(profile as any).avatar_url ?? null} active="children">
         <TeacherPageTitle icon={UserPlus} title="בקשות הצטרפות חדשות" subtitle="בקשות מהאתר הציבורי להצטרפות לגן" />
 
         <TeacherStatsGrid>

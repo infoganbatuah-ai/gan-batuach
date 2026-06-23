@@ -1,7 +1,6 @@
 import { DashboardShell } from "@/components/dashboard-shell";
 import { AdminDataError } from "@/components/admin-data-state";
 import { CameraAdminManager } from "@/components/camera-ai-admin-modules";
-import { CameraPlaybackCard } from "@/components/camera-playback-card";
 import { DashboardFilterChip } from "@/components/dashboard-filter-chip";
 import { requireRole } from "@/lib/auth";
 import { safeAdminData, logSupabaseError } from "@/lib/admin-safe";
@@ -88,8 +87,11 @@ export default async function GardenCameraSetupPage({ searchParams }: { searchPa
                 const tone = cameraStatusTone(camera);
                 return (
                   <article className={`ganenet-camera-card ${tone}`} key={camera.id}>
-                    <div className="ganenet-camera-preview ganenet-camera-playback-preview">
-                      <CameraPlaybackCard camera={camera} accessReason="צפיית גננת מורשית" />
+                    <div className="ganenet-camera-preview">
+                      <Video size={42} />
+                      <strong>{isCameraOnline(camera) ? "מוכנה לצפייה מאובטחת" : "ממתינה לחיבור בטוח"}</strong>
+                      <small>{camera.area ?? camera.camera_zone_label ?? "אזור הגן"}</small>
+                      <span className={`ganenet-camera-signal ${isCameraOnline(camera) ? "online" : ""}`} />
                     </div>
                     <div className="ganenet-camera-info">
                       <div className="ganenet-camera-heading">

@@ -34,13 +34,14 @@ export default async function GardenChildrenPage({ searchParams }: { searchParam
   const supabase = await createClient();
   const gardenId = profile.garden_id ?? "";
   const today = new Date().toISOString().slice(0, 10);
-  const [childrenRes, attendanceRes, journalsRes, incidentsRes, feeGroupsRes, requestsRes] = await Promise.all([
+  const [childrenRes, attendanceRes, journalsRes, incidentsRes, feeGroupsRes, requestsRes, gardenRes] = await Promise.all([
     supabase.from("children" as any).select("*").eq("garden_id", gardenId).order("full_name"),
     supabase.from("attendance" as any).select("child_id, status, pickup_authorized, pickup_name, note").eq("garden_id", gardenId).eq("attendance_date", today),
     supabase.from("child_daily_journals" as any).select("child_id, meals, sleep_summary, mood, bathroom, incidents, notes_to_parents, photo_urls").eq("garden_id", gardenId).eq("journal_date", today),
     supabase.from("incident_reports" as any).select("child_id, id").eq("garden_id", gardenId).neq("status", "closed"),
     supabase.from("kindergarten_fee_groups" as any).select("id, group_name, monthly_fee").eq("garden_id", gardenId),
-    supabase.from("parent_child_requests" as any).select("id, child_id, status").eq("garden_id", gardenId).in("status", ["new", "viewed"])
+    supabase.from("parent_child_requests" as any).select("id, child_id, status").eq("garden_id", gardenId).in("status", ["new", "viewed"]),
+    supabase.from("gardens" as any).select("name").eq("id", gardenId).maybeSingle()
   ]);
   if (childrenRes.error) console.error("[garden-children] children query failed", { garden_id: gardenId, error: childrenRes.error.message });
   if (attendanceRes.error) console.error("[garden-children] attendance query failed", { garden_id: gardenId, error: attendanceRes.error.message });
@@ -48,6 +49,7 @@ export default async function GardenChildrenPage({ searchParams }: { searchParam
   if (incidentsRes.error) console.error("[garden-children] incidents query failed", { garden_id: gardenId, error: incidentsRes.error.message });
   if (feeGroupsRes.error) console.error("[garden-children] fee groups query failed", { garden_id: gardenId, error: feeGroupsRes.error.message });
   if (requestsRes.error) console.error("[garden-children] requests query failed", { garden_id: gardenId, error: requestsRes.error.message });
+  if (gardenRes.error) console.error("[garden-children] garden query failed", { garden_id: gardenId, error: gardenRes.error.message });
   const attendanceByChild = new Map((attendanceRes.data ?? []).map((row: any) => [row.child_id, row]));
   const journalByChild = new Map((journalsRes.data ?? []).map((row: any) => [row.child_id, row]));
   const feeGroups = (feeGroupsRes.data ?? []) as any[];
@@ -104,8 +106,8 @@ export default async function GardenChildrenPage({ searchParams }: { searchParam
   return (
     <DashboardShell role="manager" title="ילדים" appHome>
       <TeacherAppFrame
-        title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "מאיה"}`}
-        subtitle="ברוכים הבאים לגן השמים תקשורת"
+        title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "מנהלת"}`}
+        subtitle={(gardenRes.data as any)?.name ?? "ניהול ילדי הגן"}
         avatarUrl={(profile as any).avatar_url ?? null}
         active="children"
       >

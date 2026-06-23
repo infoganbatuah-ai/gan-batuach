@@ -85,6 +85,9 @@ export default async function GardenChildProfilePage({ params }: { params: Promi
   const payments = (paymentHistoryRes.data ?? []) as any[];
   const docs = (docsRes.data ?? []) as any[];
   const messages = (messagesRes.data ?? []) as any[];
+  const latestJournal = journals[0] as any;
+  const latestPayment = payments[0] as any;
+  const latestDocument = docs[0] as any;
   const [enrollmentsRes, timelineRes] = child.permanent_child_file_id ? await Promise.all([
     supabase.from("child_kindergarten_enrollments" as any).select("id, garden_id, status, start_date, end_date, classroom_name, notes, gardens(name, city)").eq("permanent_child_file_id", child.permanent_child_file_id).order("created_at", { ascending: false }),
     supabase.from("child_timeline_events" as any).select("id, event_type, title, description, garden_id, created_at, gardens(name)").eq("permanent_child_file_id", child.permanent_child_file_id).order("created_at", { ascending: false }).limit(20)
@@ -102,23 +105,23 @@ export default async function GardenChildProfilePage({ params }: { params: Promi
           </div>
           <div>
             <h2>{child.full_name}</h2>
-            <p>{age(child.birth_date)} · {child.classroom ?? child.age_group ?? "קבוצת פרחים"}</p>
+            <p>{age(child.birth_date)} · {child.classroom ?? child.age_group ?? "קבוצה לא הוגדרה"}</p>
             <div className="profile-badge-row">
               <span className={child.status === "active" || child.status === "approved" ? "pill good" : "pill warn"}><CheckCircle2 size={14} /> {child.status ?? "פעיל"}</span>
               <span className={child.allergies ? "pill warn" : "pill good"}><HeartPulse size={14} /> {child.allergies ? "בריאות" : "בריא/ה"}</span>
             </div>
           </div>
           <div className="teacher-child-status-strip">
-            <span><ShieldCheck size={24} /><b>מצב בטיחות</b><em>תקין</em></span>
-            <span><CalendarDays size={24} /><b>נוכח היום</b><em>הגיע 07:45</em></span>
-            <span><Baby size={24} /><b>הסעה חזור</b><em>בוד 3</em></span>
+            <span><ShieldCheck size={24} /><b>מצב בטיחות</b><em>{incidents.length ? "דורש מעקב" : "ללא אירועים פתוחים"}</em></span>
+            <span><CalendarDays size={24} /><b>יומן אחרון</b><em>{latestJournal?.journal_date ? dateText(latestJournal.journal_date) : "אין עדכון היום"}</em></span>
+            <span><Baby size={24} /><b>איסוף</b><em>{child.pickup_status ?? child.pickup_notes ?? "לא הוגדר"}</em></span>
           </div>
         </section>
 
         <TeacherStatsGrid>
-          <TeacherStatCard title="אחוז נוכחות" value="92%" hint="החודש" icon={CheckCircle2} tone="purple" />
-          <TeacherStatCard title="ימי נוכחות" value="19" hint="בחודש" icon={CalendarDays} tone="green" />
-          <TeacherStatCard title="ימי היעדרות" value="1" hint="החודש" icon={AlertTriangle} tone="orange" />
+          <TeacherStatCard title="עדכוני יומן" value={journals.length} hint="רשומות אחרונות" icon={CheckCircle2} tone="purple" />
+          <TeacherStatCard title="אירועים פתוחים" value={incidents.length} hint="דורש מעקב" icon={CalendarDays} tone={incidents.length ? "orange" : "green"} />
+          <TeacherStatCard title="מסמכים" value={docs.length} hint={latestDocument ? latestDocument.status ?? "קיים" : "אין מסמכים"} icon={AlertTriangle} tone={docs.length ? "green" : "orange"} />
           <TeacherStatCard title="יתרה" value={`₪${Number(child.debt_amount ?? 0).toLocaleString("he-IL")}`} hint="תשלומים" icon={WalletCards} tone={Number(child.debt_amount ?? 0) ? "orange" : "green"} />
         </TeacherStatsGrid>
 
@@ -135,23 +138,33 @@ export default async function GardenChildProfilePage({ params }: { params: Promi
             <TeacherCompactList>
               <TeacherCompactItem title={child.mother_name ?? "אמא"} subtitle={child.mother_phone ?? child.emergency_phone ?? "-"} tone="purple" meta={<Phone size={16} />} />
               <TeacherCompactItem title={child.father_name ?? "אבא"} subtitle={child.father_phone ?? "-"} tone="blue" meta={<Phone size={16} />} />
-              <TeacherCompactItem title="סבתא רחל" subtitle="איש קשר / איסוף" tone="green" meta={<UserRound size={16} />} />
+              <TeacherCompactItem title="איש קשר חירום" subtitle={child.emergency_contact_name ?? child.emergency_phone ?? "לא הוגדר"} tone="green" meta={<UserRound size={16} />} />
             </TeacherCompactList>
           </TeacherSection>
 
           <TeacherSection title="מסמכים ואישורים">
-            <TeacherCompactList>
-              <TeacherCompactItem title="טופס הרשמה" subtitle="עודכן: 01.09.2024" tone="green" meta={<CheckCircle2 size={16} />} />
-              <TeacherCompactItem title="אישור בריאות" subtitle={docs.length ? "קיים במערכת" : "לא הועלה"} tone={docs.length ? "green" : "orange"} meta={<FileText size={16} />} />
-              <TeacherCompactItem title="אישור יציאה לטיולים" subtitle="עודכן: 01.09.2024" tone="green" meta={<CheckCircle2 size={16} />} />
-            </TeacherCompactList>
+            {docs.length ? (
+              <TeacherCompactList>
+                {docs.slice(0, 3).map((doc: any) => (
+                  <TeacherCompactItem
+                    key={doc.id}
+                    title={doc.name ?? doc.document_type ?? "מסמך ילד"}
+                    subtitle={doc.created_at ? `עודכן: ${dateText(doc.created_at)}` : "קיים במערכת"}
+                    tone={["approved", "valid"].includes(String(doc.status)) ? "green" : "orange"}
+                    meta={<FileText size={16} />}
+                  />
+                ))}
+              </TeacherCompactList>
+            ) : (
+              <TeacherEmptyState title="אין מסמכי ילד להצגה" text="מסמכים שהועלו בהרשאה מתאימה יופיעו כאן." />
+            )}
           </TeacherSection>
 
           <TeacherSection title="תשלומים">
             <TeacherCompactList>
               <TeacherCompactItem title="יתרה נוכחית" subtitle="כל התשלומים זוכו" tone={Number(child.debt_amount ?? 0) ? "orange" : "green"} meta={`₪${Number(child.debt_amount ?? 0).toLocaleString("he-IL")}`} />
               <TeacherCompactItem title="קבוצת תשלום" subtitle={enriched.fee_group_name} tone="blue" meta={`₪${enriched.actual_monthly_fee}`} />
-              <TeacherCompactItem title="תשלומים אחרונים" subtitle={`${payments.length} רשומות`} tone="purple" meta={<CreditCard size={16} />} />
+              <TeacherCompactItem title="תשלום אחרון" subtitle={latestPayment?.created_at ? dateText(latestPayment.created_at) : `${payments.length} רשומות`} tone="purple" meta={<CreditCard size={16} />} />
             </TeacherCompactList>
           </TeacherSection>
         </section>
