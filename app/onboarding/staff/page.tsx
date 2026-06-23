@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
-import { ClipboardCheck, UserCheck } from "lucide-react";
-import { BrandHeader } from "@/components/brand-header";
-import { PremiumDashboardHero } from "@/components/premium-dashboard";
+import { ClipboardCheck } from "lucide-react";
+import { StatusChip } from "@/components/gan-batuach-design-system";
+import { StaffAppFrame, StaffPageHero, StaffSection } from "@/components/staff-app-ui";
 import { StaffOnboardingForm } from "@/components/staff-onboarding-form";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
@@ -24,29 +24,26 @@ export default async function StaffOnboardingPage() {
   const waiting = staff.onboarding_status === "pending_verification";
 
   return (
-    <>
-      <BrandHeader />
-      <main className="section kindergarten-onboarding-page">
-        <PremiumDashboardHero
+    <StaffAppFrame mode="candidate" active="profile" avatarUrl={staff.profile_photo_url}>
+        <StaffPageHero
           eyebrow="קליטת צוות"
-          title="מסיימים כמה פרטים קצרים."
-          subtitle="הפרטים נשמרים, המנהלת בודקת, ואז נפתח ממשק הצוות."
-          badge={waiting ? "ממתין לאישור" : staff.onboarding_status === "correction_required" ? "נדרש תיקון" : "בתהליך"}
-          badgeTone={waiting ? "warn" : "good"}
-        >
-          <div className="onboarding-hero-icon"><ClipboardCheck /><UserCheck /></div>
-        </PremiumDashboardHero>
+          title="מסיימים כמה פרטים קצרים"
+          text="הפרטים נשמרים, המנהלת בודקת, ואז נפתח ממשק הצוות."
+          icon={ClipboardCheck}
+          badge={<StatusChip tone={waiting ? "warning" : staff.onboarding_status === "correction_required" ? "danger" : "success"}>{waiting ? "ממתין לאישור" : staff.onboarding_status === "correction_required" ? "נדרש תיקון" : "בתהליך"}</StatusChip>}
+        />
         {waiting ? (
+          <StaffSection title="בקשה בבדיקה">
           <section className="card onboarding-waiting-card">
             <p className="eyebrow">נשלח לבדיקה</p>
             <h2>הפרטים אצל המנהלת.</h2>
             <p>נעדכן אותך כאן אם נדרש תיקון או כשהחשבון יאושר.</p>
             <div className="onboarding-progress-ring"><strong>{Number(onboarding?.progress_percent ?? 100)}%</strong><span><i style={{ width: `${Number(onboarding?.progress_percent ?? 100)}%` }} /></span></div>
           </section>
+          </StaffSection>
         ) : (
           <StaffOnboardingForm staff={staff} onboarding={onboarding ?? { progress_percent: 0, missing_items: [] }} />
         )}
-      </main>
-    </>
+    </StaffAppFrame>
   );
 }

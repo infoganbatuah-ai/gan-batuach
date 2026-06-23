@@ -37,7 +37,7 @@ export default async function Page() {
                 subtitle={doc.document_type}
                 meta={doc.expires_at ? `תוקף: ${new Date(doc.expires_at).toLocaleDateString("he-IL")}` : "ללא תאריך תפוגה"}
                 status={<StatusChip tone={doc.status === "approved" ? "success" : "warning"}>{doc.status}</StatusChip>}
-                href={doc.file_url ?? undefined}
+                actions={<small className="gateway-setup-state">קובץ מאובטח</small>}
               />
             ))}
           </div>
