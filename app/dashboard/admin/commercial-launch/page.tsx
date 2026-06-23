@@ -258,9 +258,9 @@ export default async function CommercialLaunchPage() {
         <section className="grid cols-2 dashboard-panels">
           <CleanSection title="Collateral, Demo Scripts & Objections" subtitle="חומרי מכירה פנימיים בשפה פשוטה ולא טכנית.">
             <div className="premium-action-grid">
-              <ActionCard icon={BriefcaseBusiness} title="Collateral" text={`${data.collateral.length} sales and onboarding items`} href="/COMMERCIAL_LAUNCH_READINESS_AND_SALES_OPERATIONS_PLATFORM.md" />
-              <ActionCard icon={Target} title="Demo scripts" text={`${data.scripts.length} audience scripts`} href="/COMMERCIAL_LAUNCH_READINESS_AND_SALES_OPERATIONS_PLATFORM.md" />
-              <ActionCard icon={Handshake} title="Objections" text={`${data.objections.length} clear answers`} href="/COMMERCIAL_LAUNCH_READINESS_AND_SALES_OPERATIONS_PLATFORM.md" />
+              <ActionCard icon={BriefcaseBusiness} title="Collateral" text={`${data.collateral.length} sales and onboarding items`} href="/dashboard/admin/docs/COMMERCIAL_LAUNCH_READINESS_AND_SALES_OPERATIONS_PLATFORM" />
+              <ActionCard icon={Target} title="Demo scripts" text={`${data.scripts.length} audience scripts`} href="/dashboard/admin/docs/COMMERCIAL_LAUNCH_READINESS_AND_SALES_OPERATIONS_PLATFORM" />
+              <ActionCard icon={Handshake} title="Objections" text={`${data.objections.length} clear answers`} href="/dashboard/admin/docs/COMMERCIAL_LAUNCH_READINESS_AND_SALES_OPERATIONS_PLATFORM" />
               <ActionCard icon={PackageCheck} title="Referral readiness" text={`${data.referrals.length} referral tracks, not active by default`} href="/dashboard/admin/growth" />
             </div>
           </CleanSection>

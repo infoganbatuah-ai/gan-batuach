@@ -102,10 +102,10 @@ export default async function LegalReviewPage() {
         </section>
 
         <section className="grid cols-2 dashboard-panels">
-          <ActionCard icon={Scale} title="Legal architecture pack" text="Roles, data types, sensitive categories, camera/AI processing, audit and retention." href="/GAN_BATUACH_LEGAL_ARCHITECTURE_PACK.md" />
-          <ActionCard icon={Video} title="Camera compliance pack" text="No RTSP exposure, short tokens, checked-in validation, watermark and web limitations." href="/CAMERA_COMPLIANCE_EXTERNAL_REVIEW_PACK.md" />
-          <ActionCard icon={ShieldCheck} title="DPIA and AI review" text="No automatic decisions, parent raw AI blocked, explainability and human review." href="/DPIA_EXTERNAL_REVIEW_PACK.md" />
-          <ActionCard icon={FileCheck2} title="DPA readiness" text="Controller/processor roles, subprocessors, security measures and deletion/return model." href="/DATA_PROCESSING_AGREEMENT_READINESS.md" />
+          <ActionCard icon={Scale} title="Legal architecture pack" text="Roles, data types, sensitive categories, camera/AI processing, audit and retention." href="/dashboard/admin/docs/GAN_BATUACH_LEGAL_ARCHITECTURE_PACK" />
+          <ActionCard icon={Video} title="Camera compliance pack" text="No RTSP exposure, short tokens, checked-in validation, watermark and web limitations." href="/dashboard/admin/docs/CAMERA_COMPLIANCE_EXTERNAL_REVIEW_PACK" />
+          <ActionCard icon={ShieldCheck} title="DPIA and AI review" text="No automatic decisions, parent raw AI blocked, explainability and human review." href="/dashboard/admin/docs/DPIA_EXTERNAL_REVIEW_PACK" />
+          <ActionCard icon={FileCheck2} title="DPA readiness" text="Controller/processor roles, subprocessors, security measures and deletion/return model." href="/dashboard/admin/docs/DATA_PROCESSING_AGREEMENT_READINESS" />
         </section>
 
         <CleanSection title="Review Pack Documents" subtitle="כל המסמכים מסומנים כטיוטה לסקירה חיצונית, לא כמסמך משפטי סופי.">

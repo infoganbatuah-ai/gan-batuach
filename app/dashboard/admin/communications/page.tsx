@@ -254,7 +254,7 @@ export default async function AdminCommunicationsPage() {
             <ActionCard title="מנהלת" text="הורים, צוות, תלונות ופיקוח" href="/dashboard/garden/communication" icon={UsersRound} />
             <ActionCard title="פקחים" text="תלונות, פיקוח ופעולות תיקון" href="/dashboard/inspector/reports" icon={ShieldAlert} />
             <ActionCard title="חירום" text="התראות דחופות לכל ערוץ" href="/dashboard/admin/notifications" icon={Bell} tone="warn" />
-            <ActionCard title="חיפוש" text="שיחות, נמענים ותבניות" href="/dashboard/admin/search" icon={Search} />
+            <ActionCard title="חיפוש" text="שיחות, נמענים ותבניות" href="/dashboard/admin/users" icon={Search} />
           </div>
         </CleanSection>
       </div>

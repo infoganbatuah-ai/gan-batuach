@@ -1,0 +1,5 @@
+/* Public website surface. Kept intentionally small in RESCUE 1; existing public styles remain active. */
+.public-surface {
+  background: var(--surface, #fff);
+}
+
