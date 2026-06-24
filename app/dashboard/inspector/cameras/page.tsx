@@ -40,7 +40,7 @@ export default async function InspectorCamerasPage() {
           <InspectorEmpty title="אין מצלמות בגנים המשויכים" text="כאשר גן משויך יגדיר מצלמות מאושרות לפיקוח, הן יופיעו כאן לצפייה מאובטחת." icon={Camera} />
         ) : (
           <div className="camera-playback-grid">
-            {allowed.map((camera) => <CameraPlaybackCard camera={camera} accessReason="בדיקת פיקוח/ציות בגן משויך" key={camera.id} />)}
+            {allowed.map((camera) => <CameraPlaybackCard camera={camera} accessReason="בדיקת פיקוח/ציות בגן משויך" safeDetails key={camera.id} />)}
           </div>
         )}
       </InspectorSection>

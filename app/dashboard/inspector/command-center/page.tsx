@@ -17,6 +17,31 @@ import {
   InspectorStatus
 } from "@/components/inspector-app-ui";
 
+function safeStatusLabel(value?: string | null) {
+  const labels: Record<string, string> = {
+    active: "פעיל",
+    approved: "פעיל",
+    safe: "תקין",
+    ok: "תקין",
+    pending: "ממתין",
+    review: "בבדיקה",
+    suspended: "מושעה",
+    blocked: "חסום"
+  };
+  return labels[String(value ?? "").toLowerCase()] ?? "פעיל";
+}
+
+function inspectionTypeLabel(value?: string | null) {
+  const labels: Record<string, string> = {
+    monthly: "ביקורת חודשית",
+    routine: "ביקורת שגרתית",
+    follow_up: "מעקב תיקונים",
+    urgent: "ביקורת דחופה",
+    complaint: "בעקבות תלונה"
+  };
+  return labels[String(value ?? "").toLowerCase()] ?? "ביקורת";
+}
+
 export default async function InspectorCommandCenterPage() {
   const { profile } = await requireRole(["inspector"]);
   const supabase = await createClient();
@@ -30,14 +55,15 @@ export default async function InspectorCommandCenterPage() {
   const gardens = (gardensRes.data ?? []) as any[];
   const required = (requiredRes.data ?? []) as any[];
   const active = gardens.filter((garden) => garden.safe_status !== "suspended").length;
-  const needsCare = gardens.filter((garden) => Number(garden.last_inspection_score ?? 100) < 80).length;
+  const scoreValues = gardens.map((garden) => Number(garden.last_inspection_score)).filter((score) => Number.isFinite(score));
+  const avgScore = scoreValues.length ? Math.round(scoreValues.reduce((sum, score) => sum + score, 0) / scoreValues.length) : null;
   const next = required[0];
 
   return (
     <InspectorAppFrame profile={profileForUi} activeHref="/dashboard/inspector/control-center" title="גנים מוקצים" subtitle="יומן ביקורות · בוקר טוב, מפקח" badge="💜">
       <InspectorMetricGrid columns={4}>
-        <InspectorMetricCard label="עיר" value={gardens[0]?.city ?? "תל אביב"} hint="אזור פעילות" icon={MapPin} />
-        <InspectorMetricCard label="ציון בטיחות" value={`${Math.round(gardens.reduce((sum, g) => sum + Number(g.last_inspection_score ?? 0), 0) / Math.max(gardens.length, 1)) || 92}`} hint="ממוצע גנים" icon={ShieldCheck} />
+        <InspectorMetricCard label="עיר" value={gardens[0]?.city ?? "לא הוגדר"} hint="אזור פעילות" icon={MapPin} />
+        <InspectorMetricCard label="ציון בטיחות" value={avgScore ?? "—"} hint={avgScore === null ? "טרם חושב" : "ממוצע גנים"} icon={ShieldCheck} tone={avgScore === null ? "muted" : avgScore >= 85 ? "success" : avgScore < 70 ? "warning" : "primary"} />
         <InspectorMetricCard label="גנים פעילים" value={active} hint="מתוך הגנים המוקצים" icon={Home} tone="success" />
         <InspectorMetricCard label="ביקורת הבאה" value={next?.due_at ? new Date(next.due_at).toLocaleDateString("he-IL") : "לא נקבע"} hint={next?.gardens?.name ?? "יופיע לאחר שיבוץ"} icon={CalendarCheck} tone="primary" />
       </InspectorMetricGrid>
@@ -60,7 +86,7 @@ export default async function InspectorCommandCenterPage() {
               title={garden.name}
               subtitle={`${garden.city ?? ""} · ${garden.address ?? ""}`}
               meta={garden.next_inspection_at ? `ביקורת הבאה: ${new Date(garden.next_inspection_at).toLocaleDateString("he-IL")}` : "טרם נקבעה ביקורת"}
-              status={<><InspectorScoreRing value={garden.last_inspection_score ?? 92} label="בטיחות" /><InspectorStatus tone={Number(garden.last_inspection_score ?? 100) < 80 ? "warning" : "success"}>{garden.safe_status ?? "פעיל"}</InspectorStatus></>}
+              status={<><InspectorScoreRing value={garden.last_inspection_score ?? "—"} label="בטיחות" /><InspectorStatus tone={Number.isFinite(Number(garden.last_inspection_score)) && Number(garden.last_inspection_score) < 80 ? "warning" : "success"}>{safeStatusLabel(garden.safe_status)}</InspectorStatus></>}
             />
           ))}
           {gardens.length === 0 ? <InspectorEmpty title="אין גנים מוקצים" text="אדמין צריך לשייך גנים כדי לפתוח יומן ביקורות." icon={Home} /> : null}
@@ -76,7 +102,7 @@ export default async function InspectorCommandCenterPage() {
               title={item.gardens?.name ?? "גן"}
               subtitle={item.gardens?.city ?? ""}
               meta={item.due_at ? new Date(item.due_at).toLocaleString("he-IL") : "ללא תאריך"}
-              status={<InspectorStatus tone="primary">{item.inspection_type ?? "ביקורת"}</InspectorStatus>}
+              status={<InspectorStatus tone="primary">{inspectionTypeLabel(item.inspection_type)}</InspectorStatus>}
             />
           ))}
           {required.length === 0 ? <InspectorEmpty title="אין ביקורות פתוחות" text="יומן הביקורות יתעדכן לאחר שיוך משימות." icon={CalendarCheck} /> : null}

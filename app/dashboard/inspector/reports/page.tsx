@@ -13,6 +13,25 @@ import {
   InspectorStatus
 } from "@/components/inspector-app-ui";
 
+function reportStatusLabel(status?: string | null, severity?: string | null) {
+  const statusLabels: Record<string, string> = {
+    open: "פתוח",
+    pending: "ממתין",
+    review: "בבדיקה",
+    in_progress: "בטיפול",
+    closed: "נסגר",
+    done: "הושלם"
+  };
+  const severityLabels: Record<string, string> = {
+    critical: "קריטי",
+    urgent: "דחוף",
+    high: "גבוה",
+    medium: "בינוני",
+    low: "נמוך"
+  };
+  return statusLabels[String(status ?? "").toLowerCase()] ?? severityLabels[String(severity ?? "").toLowerCase()] ?? "פתוח";
+}
+
 export default async function InspectorReportsPage() {
   const { profile } = await requireRole(["inspector"]);
   const supabase = await createClient();
@@ -45,7 +64,7 @@ export default async function InspectorReportsPage() {
               title={row.subject ?? row.title ?? "דיווח"}
               subtitle={row.gardens?.name ?? "גן"}
               meta={row.created_at ? new Date(row.created_at).toLocaleString("he-IL") : ""}
-              status={<InspectorStatus tone={["critical", "high", "urgent"].includes(String(row.severity)) ? "danger" : "warning"}>{row.status ?? row.severity ?? "פתוח"}</InspectorStatus>}
+              status={<InspectorStatus tone={["critical", "high", "urgent"].includes(String(row.severity)) ? "danger" : "warning"}>{reportStatusLabel(row.status, row.severity)}</InspectorStatus>}
             />
           ))}
           {rows.length === 0 ? <InspectorEmpty title="אין דיווחים פתוחים" text="כאשר הורה, גן או תצפיתן ייצרו אירוע בגנים שלך, הוא יופיע כאן." icon={FileText} /> : null}
