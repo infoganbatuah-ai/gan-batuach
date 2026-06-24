@@ -34,9 +34,33 @@ function daysUntil(value?: string | null) {
 }
 
 function statusTone(score?: number | null) {
+  if (score === null || score === undefined) return "muted" as const;
   if (Number(score ?? 0) >= 85) return "success" as const;
   if (Number(score ?? 0) < 70) return "warning" as const;
   return "primary" as const;
+}
+
+function severityLabel(value?: string | null) {
+  const labels: Record<string, string> = {
+    critical: "קריטי",
+    urgent: "דחוף",
+    high: "גבוה",
+    medium: "בינוני",
+    low: "נמוך"
+  };
+  return labels[String(value ?? "").toLowerCase()] ?? "בדיקה";
+}
+
+function taskStatusLabel(value?: string | null) {
+  const labels: Record<string, string> = {
+    open: "פתוח",
+    todo: "פתוח",
+    pending: "ממתין",
+    in_progress: "בטיפול",
+    review: "בבדיקה",
+    blocked: "חסום"
+  };
+  return labels[String(value ?? "").toLowerCase()] ?? "פתוח";
 }
 
 export default async function InspectorDashboard() {
@@ -93,9 +117,13 @@ export default async function InspectorDashboard() {
     const days = daysUntil(item.due_at);
     return days !== null && days >= 0 && days <= 7;
   });
-  const avgScore = inspections.length
-    ? Math.round(inspections.reduce((sum, item) => sum + Number(item.weighted_score ?? 0), 0) / inspections.length)
-    : Math.round(gardens.reduce((sum, garden) => sum + Number(garden.last_inspection_score ?? 0), 0) / Math.max(1, gardens.length));
+  const inspectionScores = inspections.map((item) => Number(item.weighted_score)).filter((score) => Number.isFinite(score));
+  const gardenScores = gardens.map((garden) => Number(garden.last_inspection_score)).filter((score) => Number.isFinite(score));
+  const avgScore = inspectionScores.length
+    ? Math.round(inspectionScores.reduce((sum, score) => sum + score, 0) / inspectionScores.length)
+    : gardenScores.length
+      ? Math.round(gardenScores.reduce((sum, score) => sum + score, 0) / gardenScores.length)
+      : null;
 
   return (
     <InspectorAppFrame profile={profileForUi} activeHref="/dashboard/inspector">
@@ -104,7 +132,7 @@ export default async function InspectorDashboard() {
         title={next?.gardens?.name ?? "אין ביקורת מתוכננת"}
         subtitle={next ? `${next.gardens?.address ?? next.gardens?.city ?? ""} · ${next.due_at ? new Date(next.due_at).toLocaleDateString("he-IL") : "ללא תאריך"}` : "כאשר אדמין ישייך ביקורת, היא תופיע כאן עם כל פרטי השטח."}
         artwork={<ClipboardCheck />}
-        meta={next ? <><InspectorStatus tone="primary">היום {next.due_at ? new Date(next.due_at).toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" }) : "09:30"}</InspectorStatus><InspectorStatus tone={overdue.length ? "warning" : "success"}>{overdue.length ? "דורש טיפול" : "מתוכננת"}</InspectorStatus></> : null}
+        meta={next ? <><InspectorStatus tone="primary">{next.due_at ? new Date(next.due_at).toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" }) : "ללא שעה"}</InspectorStatus><InspectorStatus tone={overdue.length ? "warning" : "success"}>{overdue.length ? "דורש טיפול" : "מתוכננת"}</InspectorStatus></> : null}
         action={<><Link className="inspector-action-button" href={next ? `/dashboard/inspector/inspections?required=${next.id}` : "/dashboard/inspector/inspections"}>התחל ביקורת</Link><Link className="inspector-action-button" href="/dashboard/inspector/control-center">נווט <Navigation size={18} /></Link></>}
       />
 
@@ -112,7 +140,7 @@ export default async function InspectorDashboard() {
         <InspectorMetricCard label="גנים מוקצים" value={gardens.length} hint="גנים בפיקוח" icon={Home} tone="success" href="/dashboard/inspector/control-center" />
         <InspectorMetricCard label="ביקורות החודש" value={`${inspections.length}/${Math.max(required.length, gardens.length, 1)}`} hint="הושלמו" icon={ClipboardCheck} tone="primary" href="/dashboard/inspector/inspections/history" />
         <InspectorMetricCard label="ליקויים פתוחים" value={violations.length} hint="דורש טיפול" icon={AlertTriangle} tone={violations.length ? "warning" : "success"} href="/dashboard/inspector/violations" />
-        <InspectorMetricCard label="ממוצע בטיחות" value={avgScore || 92} hint="מתוך 100" icon={ShieldCheck} tone={statusTone(avgScore)} href="/dashboard/inspector/ratings" />
+        <InspectorMetricCard label="ממוצע בטיחות" value={avgScore ?? "—"} hint={avgScore === null ? "טרם חושב" : "מתוך 100"} icon={ShieldCheck} tone={statusTone(avgScore)} href="/dashboard/inspector/ratings" />
       </InspectorMetricGrid>
 
       <DashboardTwoColumns>
@@ -144,7 +172,7 @@ export default async function InspectorDashboard() {
                 title={item.title ?? item.subject ?? "התראה"}
                 subtitle={item.gardens?.name ?? "גן"}
                 meta={item.created_at ? new Date(item.created_at).toLocaleString("he-IL") : item.correction_due_at ? `יעד: ${new Date(item.correction_due_at).toLocaleDateString("he-IL")}` : ""}
-                status={<InspectorStatus tone={["critical", "high", "urgent"].includes(String(item.severity)) ? "danger" : "warning"}>{item.severity ?? "בדיקה"}</InspectorStatus>}
+                status={<InspectorStatus tone={["critical", "high", "urgent"].includes(String(item.severity)) ? "danger" : "warning"}>{severityLabel(item.severity)}</InspectorStatus>}
               />
             ))}
             {violations.length + complaints.length === 0 ? <InspectorEmpty title="אין התראות פתוחות" text="אירועים וליקויים שיוקצו לך יופיעו כאן." icon={ShieldCheck} /> : null}
@@ -167,7 +195,7 @@ export default async function InspectorDashboard() {
               href="/dashboard/inspector/tasks"
               title={task.title ?? "משימת פיקוח"}
               subtitle={task.due_at ? `עד ${new Date(task.due_at).toLocaleDateString("he-IL")}` : "ללא תאריך יעד"}
-              status={<InspectorStatus tone={task.priority === "high" ? "warning" : "primary"}>{task.status ?? "פתוח"}</InspectorStatus>}
+              status={<InspectorStatus tone={task.priority === "high" ? "warning" : "primary"}>{taskStatusLabel(task.status)}</InspectorStatus>}
             />
           ))}
           {tasks.length === 0 ? <InspectorEmpty title="אין משימות פתוחות" text="משימות פיקוח, תיקונים ומעקב יופיעו כאן." icon={ClipboardCheck} /> : null}

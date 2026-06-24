@@ -61,18 +61,18 @@ export function InspectorAppFrame({
   badge?: ReactNode;
   backHref?: string;
 }) {
-  const firstName = String(profile.full_name ?? "דנה").split(" ").filter(Boolean)[0] ?? "דנה";
+  const firstName = String(profile.full_name ?? "מפקח/ת").split(" ").filter(Boolean)[0] ?? "מפקח/ת";
   const header = (
     <header className="inspector-app-header">
       <div className="inspector-header-actions">
-        <span className="inspector-avatar-wrap">
+        <Link className="inspector-avatar-wrap" href="/dashboard/inspector/settings" aria-label="פרופיל מפקח">
           <Avatar name={profile.full_name ?? firstName} src={profile.profile_image_url} size="lg" />
           <i />
-        </span>
-        <button type="button" className="inspector-icon-button" aria-label="התראות">
+        </Link>
+        <Link className="inspector-icon-button" href="/dashboard/inspector/notifications" aria-label="התראות">
           <Bell size={24} />
           <i />
-        </button>
+        </Link>
         {backHref ? (
           <Link className="inspector-icon-button" href={backHref} aria-label="חזרה">
             <ChevronLeft size={26} />
