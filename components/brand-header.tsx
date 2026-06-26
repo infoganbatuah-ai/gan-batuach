@@ -3,26 +3,25 @@ import Link from "next/link";
 
 export function BrandHeader() {
   return (
-    <header className="topbar">
-      <Link className="brand" href="/">
-        <span>
-          <Image className="brand-name" src="/assets/company-name.png" alt="גן בטוח" width={118} height={26} priority />
-          <small>ניהול, שקיפות ופיקוח</small>
-        </span>
-        <span className="brand-symbol">
-          <Image src="/assets/company-symbol.png" alt="" width={34} height={34} priority />
-        </span>
+    <header className="gb-public-header">
+      <Link href="/" className="gb-public-brand" aria-label="גן בטוח">
+        <Image src="/assets/company-symbol.png" alt="" width={48} height={48} priority />
+        <Image src="/assets/company-name.png" alt="גן בטוח" width={146} height={46} priority />
       </Link>
-      <nav className="nav" aria-label="ניווט ראשי">
-        <Link href="/why-gan-batuach">למה גן בטוח</Link>
-        <Link href="/safety-standard">תקן הבטיחות</Link>
-        <Link href="/parents-demand">להורים</Link>
-        <Link href="/kindergarten-directory">גנים</Link>
-        <Link className="nav-system-entry" href="/app">כניסה למערכת</Link>
-        <Link href="/register">רישום עצמי</Link>
-        <Link href="/book-demo">קביעת הדגמה</Link>
-        <Link href="/login">כניסה</Link>
+      <nav aria-label="ניווט ציבורי">
+        <Link href="/">ראשי</Link>
+        <Link href="/parents">הורים</Link>
+        <Link href="/join-kindergarten">גני ילדים</Link>
+        <Link href="/staff">צוות גן</Link>
+        <Link href="/join-inspector">מפקחים</Link>
+        <Link href="/digital-observer">התצפיתן הדיגיטלי</Link>
+        <Link href="/kindergarten-directory">רשימת גנים</Link>
       </nav>
+      <div className="gb-public-header-actions">
+        <Link className="gb-public-button ghost" href="/app/login">התחברות</Link>
+        <Link className="gb-public-button primary" href="/app/register">הרשמה</Link>
+        <Link className="nav-system-entry" href="/app">כניסה למערכת</Link>
+      </div>
     </header>
   );
 }
