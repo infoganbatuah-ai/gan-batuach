@@ -74,3 +74,20 @@ Known remaining areas for UXQA 6A:
 - `provider_required`: live providers, gateway, AI, external delivery and file generation.
 - `preserved_legacy_advanced_module`: advanced modules not redesigned in RESCUE 6.
 - `manual_visual_review_required`: final matching against external admin PNG references.
+
+## UXQA 6A Update - 2026-06-26
+
+This QA pass statically audited the admin routes and action surfaces after RESCUE 6. No broad backend or security-sensitive code changes were made.
+
+| Finding | Classification | Result |
+|---|---|---|
+| Core admin navigation routes under `/dashboard/admin`, approvals, users, subscriptions, notifications, reports, inspectors, cameras and provider production are connected | `fully_functional` / `functional_with_existing_backend` | Existing route/action wiring is preserved. |
+| Live payment, invoice, email, SMS, WhatsApp, push, camera gateway, AI and external export flows require provider configuration | `provider_required` | UI must remain in readiness/test state until providers are configured and tested. |
+| Many advanced admin routes still use `DashboardShell` and `premium-dashboard` | `high` | Not broken functionally, but this prevents a fully unified admin app experience. Requires staged migration, not a QA quick fix. |
+| Several advanced provider/security/AI/launch modules still expose English technical labels or raw operational terminology | `medium` | Needs normalization to Hebrew/admin-safe status labels in a follow-up pass. |
+| Admin user management preserves temporary generated credential display for non-parent users | `security_followup_required` | Existing admin-only behavior; should be reviewed against production security policy before launch. |
+| Camera setup forms accept credentials/RTSP-style inputs for server-side configuration | `security_followup_required` | Needed for setup, but saved displays must remain redacted and never expose credentials or raw stream URLs. |
+| Security inventory displays secret key names, not values | `security_followup_required` | No secret values found in normal UI scan, but this area should be reviewed before production. |
+| Canonical admin screenshots are not in `docs/ux-references/admin/` | `manual_visual_review_required` | External PNGs were found on the desktop, but portable screenshot-to-reference validation remains incomplete. |
+
+No dead core admin action was hidden or left knowingly functional without a destination during UXQA 6A. Advanced route actions remain classified as preserved and require module-by-module QA before production sign-off.
