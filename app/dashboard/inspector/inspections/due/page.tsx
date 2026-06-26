@@ -15,6 +15,18 @@ import {
   InspectorStatus
 } from "@/components/inspector-app-ui";
 
+function inspectionTypeLabel(value?: string | null) {
+  const labels: Record<string, string> = {
+    monthly: "ביקורת חודשית",
+    routine: "ביקורת שגרתית",
+    follow_up: "מעקב תיקונים",
+    urgent: "ביקורת דחופה",
+    complaint: "בעקבות תלונה",
+    surprise: "ביקורת פתע"
+  };
+  return labels[String(value ?? "").toLowerCase()] ?? "ביקורת";
+}
+
 export default async function InspectorDueInspectionsPage() {
   const { profile } = await requireRole(["inspector"]);
   const supabase = await createClient();
@@ -59,7 +71,7 @@ export default async function InspectorDueInspectionsPage() {
                 href={`/dashboard/inspector/inspections?required=${row.id}`}
                 title={row.gardens?.name ?? row.garden_id}
                 subtitle={`${row.gardens?.city ?? ""} · ${row.gardens?.address ?? ""}`}
-                meta={`${row.inspection_type ?? "ביקורת"} · ציון אחרון: ${row.gardens?.last_inspection_score ?? "-"} · יעד: ${row.due_at ? new Date(row.due_at).toLocaleDateString("he-IL") : "לא נקבע"}`}
+                meta={`${inspectionTypeLabel(row.inspection_type)} · ציון אחרון: ${row.gardens?.last_inspection_score ?? "-"} · יעד: ${row.due_at ? new Date(row.due_at).toLocaleDateString("he-IL") : "לא נקבע"}`}
                 status={<InspectorStatus tone={days !== null && days < 0 ? "danger" : "warning"}>{days !== null && days < 0 ? `${Math.abs(days)} ימים באיחור` : `${days ?? "-"} ימים נותרו`}</InspectorStatus>}
               />
             );

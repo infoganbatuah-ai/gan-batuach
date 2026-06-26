@@ -24,6 +24,31 @@ function toTone(value?: string | null) {
   return tone === "bad" ? "danger" : tone === "warn" ? "warning" : tone === "good" ? "success" : "primary";
 }
 
+function resolutionStatusLabel(value?: string | null) {
+  const labels: Record<string, string> = {
+    open: "פתוח",
+    identified: "זוהה",
+    assigned: "שויך",
+    in_progress: "בטיפול",
+    ready_for_verification: "ממתין לאימות",
+    resolved: "נפתר",
+    verified: "אומת",
+    closed: "נסגר"
+  };
+  return labels[String(value ?? "").toLowerCase()] ?? "פתוח";
+}
+
+function severityLabel(value?: string | null) {
+  const labels: Record<string, string> = {
+    critical: "קריטי",
+    high: "גבוה",
+    medium: "בינוני",
+    low: "נמוך",
+    warning: "דורש תשומת לב"
+  };
+  return labels[String(value ?? "").toLowerCase()] ?? "בדיקה";
+}
+
 export default async function InspectorCompliancePage() {
   const { profile } = await requireRole(["inspector"]);
   const result = await safeAdminData("inspector compliance", async () => {
@@ -82,7 +107,7 @@ export default async function InspectorCompliancePage() {
       <InspectorSection title="ממתין לאימות" subtitle="ממצאים שדורשים סגירה מקצועית" icon={FileWarning}>
         <InspectorList>
           {data.findings.slice(0, 12).map((item: any) => (
-            <InspectorRow key={item.id} title={item.title} subtitle={item.gardens?.name ?? "גן"} meta={item.due_at ? new Date(item.due_at).toLocaleDateString("he-IL") : "ללא תאריך"} status={<InspectorStatus tone={toTone(item.severity)}>{item.resolution_status}</InspectorStatus>} />
+            <InspectorRow key={item.id} title={item.title} subtitle={item.gardens?.name ?? "גן"} meta={item.due_at ? new Date(item.due_at).toLocaleDateString("he-IL") : "ללא תאריך"} status={<InspectorStatus tone={toTone(item.severity)}>{resolutionStatusLabel(item.resolution_status)}</InspectorStatus>} />
           ))}
           {data.findings.length === 0 ? <InspectorEmpty title="אין ממצאים פתוחים" text="ממצאים שדורשים אימות יופיעו כאן." icon={ShieldCheck} /> : null}
         </InspectorList>
@@ -91,7 +116,7 @@ export default async function InspectorCompliancePage() {
       <InspectorSection title="התראות ציות" subtitle="התראות פתוחות בגנים שלך" icon={AlertTriangle}>
         <InspectorList>
           {data.alerts.slice(0, 12).map((alert: any) => (
-            <InspectorRow key={alert.id} title={alert.title} subtitle={alert.gardens?.name ?? "גן"} meta={alert.due_at ? new Date(alert.due_at).toLocaleDateString("he-IL") : ""} status={<InspectorStatus tone={toTone(alert.severity)}>{alert.severity}</InspectorStatus>} />
+            <InspectorRow key={alert.id} title={alert.title} subtitle={alert.gardens?.name ?? "גן"} meta={alert.due_at ? new Date(alert.due_at).toLocaleDateString("he-IL") : ""} status={<InspectorStatus tone={toTone(alert.severity)}>{severityLabel(alert.severity)}</InspectorStatus>} />
           ))}
           {data.alerts.length === 0 ? <InspectorEmpty title="אין התראות פתוחות" text="כרגע אין פערי ציות שממתינים לטיפול." icon={ShieldCheck} /> : null}
         </InspectorList>
