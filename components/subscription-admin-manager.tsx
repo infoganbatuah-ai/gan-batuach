@@ -5,9 +5,15 @@ import { CreditCard, RefreshCw, Save } from "lucide-react";
 import { CollapsibleActionPanel } from "@/components/collapsible-action-panel";
 
 const statusLabels: Record<string, string> = {
+  pending_admin_approval: "ממתין לאישור אדמין",
+  approved_pending_onboarding: "אושר, ממתין להשלמת פרופיל",
+  approved_pending_subscription: "הגן אושר — יש להשלים תשלום מנוי",
+  demo_active: "דמו פעיל",
   active: "פעיל",
   trial: "ניסיון",
   pending_payment: "ממתין לתשלום",
+  payment_failed: "תשלום נכשל",
+  frozen: "מוקפא",
   suspended: "מושעה",
   expired: "פג תוקף",
   cancelled: "בוטל"
@@ -31,9 +37,9 @@ async function postJson(url: string, payload: Record<string, unknown>) {
 export function SubscriptionAdminManager({ plans, subscriptions, gardens, payments }: { plans: any[]; subscriptions: any[]; gardens: any[]; payments: any[] }) {
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const activeCount = subscriptions.filter((item) => item.status === "active" || item.status === "trial").length;
+  const activeCount = subscriptions.filter((item) => ["active", "trial", "demo_active"].includes(item.status)).length;
   const failedCount = payments.filter((item) => item.billing_status === "failed").length;
-  const expiredCount = subscriptions.filter((item) => item.status === "expired" || item.status === "suspended").length;
+  const expiredCount = subscriptions.filter((item) => ["expired", "suspended", "frozen", "payment_failed"].includes(item.status)).length;
   const defaultPlan = plans[0];
   const planById = useMemo(() => new Map(plans.map((plan) => [plan.id, plan])), [plans]);
 
@@ -106,8 +112,8 @@ export function SubscriptionAdminManager({ plans, subscriptions, gardens, paymen
       {message ? <div className="success-banner">{message}</div> : null}
       {error ? <div className="error-banner">{error}</div> : null}
       <section className="grid cols-4 dashboard-panels">
-        <article className="card metric-card"><span>מנויים פעילים/Trial</span><strong>{activeCount}</strong></article>
-        <article className="card metric-card"><span>מושעים/פג תוקף</span><strong>{expiredCount}</strong></article>
+        <article className="card metric-card"><span>מנויים פעילים/דמו</span><strong>{activeCount}</strong></article>
+        <article className="card metric-card"><span>מוקפאים/כשלים</span><strong>{expiredCount}</strong></article>
         <article className="card metric-card"><span>תשלומים שנכשלו</span><strong>{failedCount}</strong></article>
         <article className="card metric-card"><span>תוכניות</span><strong>{plans.length}</strong></article>
       </section>
@@ -167,7 +173,7 @@ export function SubscriptionAdminManager({ plans, subscriptions, gardens, paymen
             <article className="card action-panel" key={subscription.id}>
               <div className="section-heading">
                 <div><h3>{subscription.gardens?.name ?? "גן"}</h3><p>{subscription.subscription_plans?.name ?? subscription.plan_type} · חידוש {subscription.renewal_date ?? "-"}</p></div>
-                <span className={["active", "trial"].includes(subscription.status) ? "pill good" : subscription.status === "pending_payment" ? "pill warn" : "pill bad"}>{statusLabels[subscription.status] ?? subscription.status}</span>
+                <span className={["active", "trial", "demo_active"].includes(subscription.status) ? "pill good" : ["pending_payment", "approved_pending_subscription", "approved_pending_onboarding", "pending_admin_approval"].includes(subscription.status) ? "pill warn" : "pill bad"}>{statusLabels[subscription.status] ?? "סטטוס לא מוכר"}</span>
               </div>
               <p>{subscription.admin_override ? "Override אדמין פעיל" : subscription.suspension_reason ?? "אין הערת חסימה"}</p>
             </article>

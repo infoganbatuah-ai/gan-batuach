@@ -50,6 +50,14 @@ function date(value: unknown) {
   return Number.isNaN(parsed.getTime()) ? "-" : parsed.toLocaleDateString("he-IL");
 }
 
+function demoDaysLeft(subscription: any) {
+  const end = subscription?.trial_ends_at ?? subscription?.expires_at;
+  if (!end) return null;
+  const parsed = new Date(String(end));
+  if (Number.isNaN(parsed.getTime())) return null;
+  return Math.max(0, Math.ceil((parsed.getTime() - Date.now()) / 86400000));
+}
+
 export default async function GardenSubscriptionPage() {
   const { profile } = await requireRole(["manager", "owner"]);
   const role = profile.role === "owner" ? "owner" : "manager";
@@ -63,6 +71,7 @@ export default async function GardenSubscriptionPage() {
   const paymentProviderStatus = getSafeIntegrationStatus("payment", process.env.PAYMENT_PROVIDER);
   const classCount = Number(subscription?.metadata?.class_count ?? subscription?.metadata?.age_group_count ?? 1);
   const expectedMonthly = 800 + Math.max(0, classCount - 1) * 200;
+  const daysLeft = demoDaysLeft(subscription);
 
   return (
     <DashboardShell role={role} title="מנוי גן בטוח" appHome>
@@ -72,7 +81,15 @@ export default async function GardenSubscriptionPage() {
 
       {subscription?.status !== "active" ? (
         <TeacherSection title="נדרש להשלים מנוי" subtitle="תשלום מנוי גן בטוח נדרש להפעלת המערכת המלאה.">
-          <span className="pill warn">הגן אושר — יש להשלים תשלום מנוי</span>
+          <span className="pill warn">
+            {subscription?.status === "demo_active" && daysLeft !== null
+              ? `הגן בדמו — נותרו ${daysLeft} ימים`
+              : subscription?.status === "payment_failed"
+                ? "התשלום נכשל — ניתן לנסות שוב"
+                : subscription?.status === "frozen"
+                  ? "הגן מוקפא עד להסדרת תשלום"
+                  : statusLabels[subscription?.status] ?? "הגן אושר — יש להשלים תשלום מנוי"}
+          </span>
         </TeacherSection>
       ) : null}
 
