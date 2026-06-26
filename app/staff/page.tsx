@@ -29,7 +29,7 @@ export default function StaffPublicPage() {
             </p>
             <div className="gb-public-hero-actions">
               <Link className="gb-public-button primary large" href="/app/register/staff">הרשמה כאיש צוות</Link>
-              <Link className="gb-public-button soft large" href="/dashboard/staff/job-market">חיפוש גנים שמגייסים</Link>
+              <Link className="gb-public-button soft large" href="/app/register/staff">חיפוש גנים לאחר הרשמה</Link>
               <Link className="gb-public-button ghost large" href="/app/login">כניסה למערכת</Link>
             </div>
           </div>

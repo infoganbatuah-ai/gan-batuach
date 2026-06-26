@@ -43,16 +43,16 @@ export default function DigitalObserverPublicPage() {
         <section className="hero-section digital-observer-hero">
           <div className="hero-content">
             <p className="eyebrow">Digital Observer</p>
-            <h1>Digital Observer – AI Camera Monitoring for homes, businesses and organizations.</h1>
+            <h1>התצפיתן הדיגיטלי לניטור מצלמות חכם וזהיר.</h1>
             <p className="hero-subtitle">התצפיתן הדיגיטלי – ניטור חכם למצלמות הבית והעסק.</p>
             <p>
-              Connect cameras, monitor sites and receive intelligent alerts for homes, offices, warehouses, stores, parking lots and custom sites.
-              Digital Observer helps monitor unusual activity and supports review without making automatic accusations or unsupported safety claims.
+              חברו מצלמות, נטרו אתרים וקבלו התרעות חכמות לבית, עסק, מחסן, חנות, חניון או אתר מותאם.
+              Digital Observer מסייע בזיהוי פעילות חריגה ובבדיקה אנושית, בלי קביעות אוטומטיות או הבטחות בטיחות לא מבוססות.
             </p>
             <div className="hero-actions">
-              <Link className="button primary" href="/digital-observer/start?source=homepage">Start monitoring <ArrowLeft size={18} /></Link>
-              <Link className="button secondary" href="/digital-observer/request-demo?source=homepage">Request demo</Link>
-              <Link className="button secondary" href="/digital-observer/pricing">Choose package</Link>
+              <Link className="button primary" href="/digital-observer/start?source=homepage">התחלת ניטור <ArrowLeft size={18} /></Link>
+              <Link className="button secondary" href="/digital-observer/request-demo?source=homepage">קביעת הדגמה</Link>
+              <Link className="button secondary" href="/digital-observer/pricing">בחירת חבילה</Link>
             </div>
           </div>
           <div className="observer-visual-panel" aria-label="Digital Observer product signals">
@@ -132,13 +132,13 @@ export default function DigitalObserverPublicPage() {
 
         <section className="dashboard-section" id="camera-connection">
           <div className="section-heading">
-            <h2>Camera connection</h2>
-            <p>Digital Observer supports real-world camera readiness while keeping credentials and RTSP server-side.</p>
+            <h2>חיבור מצלמות מאובטח</h2>
+            <p>Digital Observer תומך במוכנות לחיבור מצלמות אמיתיות, תוך שמירת פרטי גישה ונתוני חיבור בצד השרת בלבד.</p>
           </div>
           <div className="grid cols-3 dashboard-panels">
-            <article className="card compact-card"><Camera /><h3>Home cameras</h3><p>Private camera setup through gateway readiness and test mode.</p></article>
-            <article className="card compact-card"><Camera /><h3>Business DVR/NVR</h3><p>Hikvision, Dahua, RTSP and ONVIF readiness without browser exposure.</p></article>
-            <article className="card compact-card"><LockKeyhole /><h3>Secure playback</h3><p>Short-lived, scoped playback tokens and audit logs remain part of the shared camera infrastructure.</p></article>
+            <article className="card compact-card"><Camera /><h3>מצלמות ביתיות</h3><p>הגדרה פרטית דרך שער מצלמות, מצב בדיקה ומוכנות לפני הפעלה.</p></article>
+            <article className="card compact-card"><Camera /><h3>מערכות עסקיות</h3><p>מוכנות לחיבור מערכות מצלמות עסקיות בלי חשיפת פרטי חיבור בדפדפן.</p></article>
+            <article className="card compact-card"><LockKeyhole /><h3>צפייה מאובטחת</h3><p>אסימוני צפייה קצרים, הרשאות ממוקדות ותיעוד גישה נשארים חלק מתשתית המצלמות.</p></article>
           </div>
         </section>
 
@@ -242,14 +242,14 @@ export default function DigitalObserverPublicPage() {
 
         <section className="dashboard-section">
           <div className="section-heading">
-            <h2>Start with test mode</h2>
-            <p>Standalone launch readiness is prepared without activating production billing, DNS or restricted capabilities automatically.</p>
+            <h2>מתחילים במצב בדיקה</h2>
+            <p>הפעלה עצמאית מוכנה לבדיקה בלי להפעיל אוטומטית חיוב חי, DNS ייצור או יכולות מוגבלות.</p>
           </div>
           <div className="hero-actions">
-            <Link className="button primary" href="/digital-observer/start?source=final_cta">Create observer site</Link>
-            <Link className="button secondary" href="/digital-observer/request-demo?source=final_cta">Request demo</Link>
-            <Link className="button secondary" href="/digital-observer/trust">Trust and privacy</Link>
-            <Link className="button secondary" href="/digital-observer/dashboard">Open app shell</Link>
+            <Link className="button primary" href="/digital-observer/start?source=final_cta">יצירת אתר תצפיתן</Link>
+            <Link className="button secondary" href="/digital-observer/request-demo?source=final_cta">קביעת הדגמה</Link>
+            <Link className="button secondary" href="/digital-observer/trust">אמון ופרטיות</Link>
+            <Link className="button secondary" href="/digital-observer/dashboard">כניסה לאפליקציה</Link>
           </div>
         </section>
       </main>

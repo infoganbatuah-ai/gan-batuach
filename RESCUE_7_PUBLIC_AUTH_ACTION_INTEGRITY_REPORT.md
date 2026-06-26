@@ -59,3 +59,21 @@ No push. No RLS, authentication architecture, invitation-token logic, payment lo
 - `manual_visual_review_required`: public/auth reference PNGs are outside the repo, so screenshots should be copied into `docs/ux-references/public-auth/` for repeatable matching.
 - `provider_required`: demo requests, external delivery and Digital Observer live provider behavior depend on configured providers.
 - `auth_context_required`: staff job-market route exists but is an internal route and may require login.
+
+## UXQA 7A Update - 2026-06-26
+
+Additional QA fixes made:
+
+| Area | Previous state | UXQA 7A result |
+|---|---|---|
+| Staff public CTA | “חיפוש גנים שמגייסים” linked directly to `/dashboard/staff/job-market`, an internal route | Now routes to `/app/register/staff` with copy “חיפוש גנים לאחר הרשמה” |
+| Digital Observer public hero | Key CTAs and explanations were in English | Main hero, camera connection and final CTA copy translated to Hebrew |
+| Public technical camera wording | Homepage mentioned RTSP directly | Reworded to “כתובות חיבור או סודות מצלמה” |
+
+Static action audit after fixes:
+
+- No audited public/auth route imports `DashboardShell`, role frames or internal bottom navigation.
+- No Google, Apple or fake Face ID login action was found.
+- App download remains safely disabled with honest placeholder copy.
+- `/safe-kindergartens` does not exist; current public directory path is `/kindergarten-directory` -> `/gardens`.
+- Digital Observer still has advanced product routes that require provider/live setup; they remain `provider_required`.
