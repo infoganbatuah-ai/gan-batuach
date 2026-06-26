@@ -45,3 +45,23 @@ Because the screenshots are outside the repository, final pixel-level validation
 - `preserved`: route already matched the app/auth direction and was left functionally intact.
 - `manual_visual_review_required`: external reference PNG must be reviewed manually or copied into the repo for repeatable screenshot QA.
 - `provider_required`: external live provider behavior cannot be claimed until configured.
+
+## UXQA 7A Update - 2026-06-26
+
+`docs/ux-references/public-auth/` is still missing or empty. External screenshots were found in `/Users/danielderi/Desktop/עיצוב גן בטוח/עמוד ראשי/`, including the public homepage, login, role selection, kindergarten directory and role explanation references. Pixel-level validation therefore remains `manual_visual_review_required`.
+
+| Reference / route | UXQA 7A classification | Notes |
+|---|---|---|
+| `/` - עמוד ראשי של האתר | Implemented with minor visual differences | Public header/CTAs are connected; public copy avoids unsupported certification/safety claims. |
+| `/app/login`, `/login` - התחברות כללית | Implemented accurately based on approved login baseline | Existing auth flow preserved; no Google/Apple/Face ID added. |
+| `/app/register`, `/register` - בחירת סוג משתמש | Implemented accurately / minor visual review required | Role cards route to parent, manager, staff and inspector registration entries. |
+| `/gardens`, `/kindergarten-directory` - רשימת גני הילדים | Implemented partially | Public-safe directory exists with filters and cards. `/safe-kindergartens` route does not exist and is not required unless requested as an alias. |
+| `/gardens/[id]` - פרופיל גן ציבורי | Implemented partially | Hidden unless public profile is enabled; manual privacy review with real data is still required. |
+| `/parents` - דף הסבר הורים | Implemented partially | Public page exists and uses the unified public header. Some legacy content styling remains for future visual polish. |
+| `/join-kindergarten` - דף הסבר גננת/מנהלת | Implemented partially | Public page exists with real lead flow and admin approval language. Some legacy content styling remains. |
+| `/staff` - דף הסבר צוות | Implemented with minor visual differences | New public page exists; CTA now routes to staff registration instead of an internal protected route. |
+| `/join-inspector` - דף הסבר מפקח | Implemented partially | Public page exists with lead flow and no claim of access to all gardens. |
+| `/app` - שער אפליקציה | Implemented with minor visual differences | App-like gateway, no public clutter, honest disabled download button. |
+| `/digital-observer` | Implemented partially | Public product page exists; UXQA 7A translated key CTAs/copy and removed public RTSP-style technical wording from touched sections. Full visual rewrite remains out of scope. |
+
+UXQA 7A found no internal dashboard shell rendered in the audited public/auth routes.
