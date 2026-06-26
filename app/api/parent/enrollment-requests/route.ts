@@ -25,10 +25,13 @@ export async function POST(request: Request) {
     if (child.error || !child.data) return fail("כרטיס הילד לא נמצא או אינו שייך לחשבון שלך.", 403);
 
     const garden = await admin.from("gardens" as any)
-      .select("id, name, city, status, public_profile_enabled")
+      .select("id, name, city, status, public_profile_enabled, activation_payment_status, frozen_at")
       .eq("id", payload.garden_id)
       .maybeSingle();
     if (garden.error || !garden.data) return fail("הגן לא נמצא.", 404);
+    if ((garden.data as any).status !== "active" || ["frozen", "suspended", "failed"].includes(String((garden.data as any).activation_payment_status))) {
+      return fail("לא ניתן לשלוח בקשת הצטרפות לגן שאינו פעיל או מוקפא להסדרת תשלום.", 409);
+    }
 
     let price: number | null = null;
     if (payload.requested_class_id) {

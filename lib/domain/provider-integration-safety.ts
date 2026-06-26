@@ -1,6 +1,7 @@
 export type CommunicationsSendMode = "mock" | "test" | "production";
-export type PaymentMode = "disabled" | "sandbox" | "live";
-export type InvoiceMode = "disabled" | "mock" | "production";
+export type ProviderMode = "disabled" | "mock" | "sandbox" | "test" | "production" | "live";
+export type PaymentMode = ProviderMode;
+export type InvoiceMode = ProviderMode;
 export type PushMode = "disabled" | "test" | "production";
 export type CameraGatewayMode = "disabled" | "test" | "production";
 export type AiProviderMode = "mock" | "shadow" | "production";
@@ -24,10 +25,14 @@ function hasAny(names: string[]) {
   return names.some((name) => Boolean(process.env[name]));
 }
 
+export function normalizeProviderMode(value: string | undefined, fallback: ProviderMode = "disabled"): ProviderMode {
+  return oneOf(value, ["disabled", "mock", "sandbox", "test", "production", "live"] as const, fallback);
+}
+
 export function getIntegrationSafetyModes() {
   const communications = oneOf(process.env.COMMUNICATIONS_SEND_MODE, ["mock", "test", "production"] as const, "mock");
-  const payment = oneOf(process.env.PAYMENT_MODE, ["disabled", "sandbox", "live"] as const, "disabled");
-  const invoice = oneOf(process.env.INVOICE_MODE, ["disabled", "mock", "production"] as const, "mock");
+  const payment = normalizeProviderMode(process.env.PAYMENT_MODE, "disabled");
+  const invoice = normalizeProviderMode(process.env.INVOICE_MODE, "mock");
   const push = oneOf(process.env.PUSH_MODE, ["disabled", "test", "production"] as const, "disabled");
   const cameraGateway = oneOf(process.env.CAMERA_GATEWAY_MODE, ["disabled", "test", "production"] as const, "disabled");
   const aiProvider = oneOf(process.env.AI_PROVIDER_MODE, ["mock", "shadow", "production"] as const, "mock");
@@ -40,8 +45,8 @@ export function getIntegrationSafetyModes() {
     cameraGateway,
     aiProvider,
     productionCommunicationsAllowed: communications === "production",
-    livePaymentsAllowed: payment === "live",
-    productionInvoicesAllowed: invoice === "production",
+    livePaymentsAllowed: payment === "live" || payment === "production",
+    productionInvoicesAllowed: invoice === "production" || invoice === "live",
     productionPushAllowed: push === "production",
     productionCameraGatewayAllowed: cameraGateway === "production",
     productionAiProviderAllowed: aiProvider === "production"
@@ -97,11 +102,11 @@ export function getSafeIntegrationStatus(type: IntegrationType, provider?: strin
 
   if (type === "payment") {
     if (modes.payment === "disabled") return "disabled";
-    return missing.length ? "not_configured" : modes.payment === "live" ? "production_ready" : "test_mode";
+    return missing.length ? "not_configured" : modes.livePaymentsAllowed ? "production_ready" : "test_mode";
   }
   if (type === "invoice") {
     if (modes.invoice === "disabled") return "disabled";
-    return missing.length ? "not_configured" : modes.invoice === "production" ? "production_ready" : "test_mode";
+    return missing.length ? "not_configured" : modes.productionInvoicesAllowed ? "production_ready" : "test_mode";
   }
   if (["email", "whatsapp", "sms", "push"].includes(type)) {
     if (type === "push") {
