@@ -12,6 +12,7 @@ import { getPushProductionReadiness } from "@/lib/domain/push-provider";
 import { getGatewayProvider, isGatewayConfigured } from "@/lib/domain/video-gateway-client";
 import { getVisionProductionReadiness } from "@/lib/domain/vision-provider";
 import { getIntegrationSafetyModes, getProviderMissingConfiguration, getSafeIntegrationStatus } from "@/lib/domain/provider-integration-safety";
+import { getProviderActivationInventory } from "@/lib/domain/provider-configuration-validator";
 
 type IntegrationType = "email" | "whatsapp" | "sms" | "push" | "payment" | "invoice" | "supabase" | "vercel" | "camera_gateway" | "ai_provider";
 
@@ -114,13 +115,17 @@ const statusLabels: Record<string, string> = {
   mock: "Mock",
   sandbox: "Sandbox",
   production: "Production",
-  live: "Live"
+  live: "Live",
+  missing_env: "חסרה הגדרה",
+  sandbox_ready: "מוכן ל-Sandbox",
+  production_blocked: "Production חסום",
+  invalid_mode: "מצב לא תקין"
 };
 
 function toneForStatus(status?: string | null): "good" | "warn" | "bad" | "default" {
-  if (status === "active" || status === "production_ready" || status === "configured") return "good";
-  if (status === "test_mode" || status === "testing" || status === "not_configured") return "warn";
-  if (status === "failed" || status === "disabled") return "bad";
+  if (status === "active" || status === "production_ready" || status === "configured" || status === "sandbox_ready") return "good";
+  if (status === "test_mode" || status === "testing" || status === "not_configured" || status === "missing_env") return "warn";
+  if (status === "failed" || status === "disabled" || status === "production_blocked" || status === "invalid_mode") return "bad";
   return "default";
 }
 
@@ -168,6 +173,7 @@ export default async function AdminIntegrationsPage() {
   const smsReadiness = getSmsProductionReadiness();
   const pushReadiness = getPushProductionReadiness();
   const visionReadiness = getVisionProductionReadiness();
+  const providerActivation = getProviderActivationInventory();
   const gatewayConfigured = isGatewayConfigured();
   const supabaseConfigured = Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY && process.env.SUPABASE_SERVICE_ROLE_KEY);
   const vercelConfigured = Boolean(process.env.VERCEL_URL || process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL);
@@ -229,6 +235,23 @@ export default async function AdminIntegrationsPage() {
             <article className="communication-template-card"><div><strong>חשבוניות</strong><span>INVOICE_MODE · הפקה אמיתית דורשת ספק חשבוניות</span></div><StatusBadge tone={safetyModes.invoice === "production" ? "warn" : "good"}>{statusLabels[safetyModes.invoice]}</StatusBadge></article>
           </div>
           {safetyWarnings.length ? <div className="error-banner"><ShieldCheck size={16} /> {safetyWarnings.join(" · ")}</div> : null}
+        </CleanSection>
+
+        <CleanSection title="כשירות Sandbox/Test" subtitle="בדיקת ספקים לפי שמות משתני ENV בלבד, בלי הצגת סודות ובלי הפעלה live.">
+          <div className="communication-template-grid">
+            {providerActivation.map((provider) => (
+              <article className="communication-template-card" key={provider.type}>
+                <div>
+                  <strong>{integrationMeta[provider.type]?.title ?? provider.type}</strong>
+                  <span>
+                    {provider.provider} · {provider.mode}
+                    {provider.missingEnv.length ? ` · חסר: ${provider.missingEnv.slice(0, 3).join(", ")}` : " · ההגדרות הדרושות קיימות"}
+                  </span>
+                </div>
+                <StatusBadge tone={toneForStatus(provider.status)}>{statusLabels[provider.status] ?? provider.status}</StatusBadge>
+              </article>
+            ))}
+          </div>
         </CleanSection>
 
         <CleanSection title="סטטוס אינטגרציות" subtitle="סטטוס ייצור ללא שמירת סודות במסד הנתונים.">
