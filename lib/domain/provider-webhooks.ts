@@ -7,20 +7,22 @@ import { assertRateLimit } from "@/lib/security/rate-limit";
 
 type IntegrationKind = "payment" | "invoice";
 
+const supportedEventTypes = [
+  "payment_success",
+  "payment_failed",
+  "subscription_created",
+  "subscription_updated",
+  "subscription_cancelled",
+  "invoice_created",
+  "invoice_sent",
+  "invoice_paid",
+  "invoice_failed",
+  "receipt_created"
+] as const;
+
 const eventSchema = z.object({
   provider: z.string().trim().min(1).max(80).optional(),
-  event_type: z.enum([
-    "payment_success",
-    "payment_failed",
-    "subscription_created",
-    "subscription_updated",
-    "subscription_cancelled",
-    "invoice_created",
-    "invoice_sent",
-    "invoice_paid",
-    "invoice_failed",
-    "receipt_created"
-  ]),
+  event_type: z.string().trim().min(1).max(120),
   event_id: z.string().trim().min(1).max(180),
   idempotency_key: z.string().trim().min(1).max(220).optional(),
   stream: z.enum(["gan_batuach_subscription", "parent_tuition", "digital_observer"]).optional(),
@@ -69,6 +71,10 @@ function modeFor(kind: IntegrationKind) {
 
 function webhookKey(kind: IntegrationKind, provider: string) {
   return `${kind}:${provider}`;
+}
+
+function isSupportedEventType(eventType: string) {
+  return (supportedEventTypes as readonly string[]).includes(eventType);
 }
 
 function safeMetadata(payload: z.infer<typeof eventSchema>, mode: string, secretEnv: string) {
@@ -223,6 +229,7 @@ export async function handleProviderWebhook(request: Request, kind: IntegrationK
     const signatureValid = verifySignature(rawBody, signatureHeader(request), guard.secret);
     const signatureRequired = guard.live || Boolean(guard.secret);
     const missing = getProviderMissingConfiguration(kind, provider);
+    const supportedEvent = isSupportedEventType(payload.event_type);
 
     if (signatureRequired && !signatureValid) {
       await recordEvent({
@@ -238,14 +245,18 @@ export async function handleProviderWebhook(request: Request, kind: IntegrationK
       return fail("Invalid or missing webhook signature.", 401);
     }
 
-    const shouldApplySideEffects = guard.live && missing.length === 0 && signatureValid;
+    const shouldApplySideEffects = supportedEvent && guard.live && missing.length === 0 && signatureValid;
     const eventRecord = await recordEvent({
       kind,
       provider,
       payload,
       signatureValid,
       status: shouldApplySideEffects ? "verified" : "ignored",
-      errorMessage: shouldApplySideEffects ? undefined : "Provider mode is not live/production with verified configuration; side effects skipped.",
+      errorMessage: shouldApplySideEffects
+        ? undefined
+        : supportedEvent
+          ? "Provider mode is not live/production with verified configuration; side effects skipped."
+          : "Unsupported webhook event type ignored safely.",
       mode: guard.mode,
       secretEnv: guard.secretEnv
     });
@@ -256,6 +267,7 @@ export async function handleProviderWebhook(request: Request, kind: IntegrationK
         status: "readiness_logged",
         side_effects_applied: false,
         mode: guard.mode,
+        supported_event: supportedEvent,
         missing_configuration: missing,
         signature_valid: signatureValid
       }, 202);
