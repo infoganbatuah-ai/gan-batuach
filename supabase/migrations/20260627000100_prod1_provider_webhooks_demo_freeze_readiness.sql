@@ -31,8 +31,8 @@ on public.provider_webhook_events(related_entity_type, related_entity_id)
 where related_entity_id is not null;
 
 create index if not exists kindergarten_subscriptions_demo_expiration_idx
-on public.kindergarten_subscriptions((status::text), trial_ends_at)
-where status::text in ('demo_active', 'trial') and admin_override = false;
+on public.kindergarten_subscriptions(status, trial_ends_at)
+where admin_override = false;
 
 insert into public.production_webhook_readiness (webhook_key, integration_type, provider, endpoint_path, status, signing_secret_env, notes, metadata)
 values
