@@ -307,12 +307,12 @@
   border-radius: 0 0 34px 34px;
   box-shadow: 0 18px 50px rgba(28, 55, 105, 0.08);
   display: grid;
-  gap: 20px;
-  grid-template-columns: auto 1fr auto;
+  gap: clamp(10px, 1.4vw, 20px);
+  grid-template-columns: auto minmax(0, 1fr) auto;
   inset: 0 0 auto;
   margin: 0 auto;
   max-width: 1180px;
-  padding: 18px 26px;
+  padding: 16px clamp(14px, 2vw, 26px);
   position: sticky;
   top: 0;
   z-index: 50;
@@ -334,14 +334,16 @@
 .gb-public-header nav {
   align-items: center;
   display: flex;
-  gap: 26px;
+  gap: clamp(10px, 1.45vw, 22px);
   justify-content: center;
+  min-width: 0;
 }
 
 .gb-public-header nav a {
   color: #526282;
-  font-size: 15px;
+  font-size: clamp(13px, 1.05vw, 15px);
   font-weight: 850;
+  white-space: nowrap;
 }
 
 .gb-public-header-actions,
@@ -350,6 +352,13 @@
   display: flex;
   flex-wrap: wrap;
   gap: 12px;
+}
+
+.gb-public-header-actions .nav-system-entry {
+  align-items: center;
+  display: inline-flex;
+  min-height: 46px;
+  white-space: nowrap;
 }
 
 .gb-public-button {
@@ -957,6 +966,11 @@
   }
 
   .gb-public-header-actions .gb-public-button {
+    min-height: 40px;
+    padding-inline: 14px;
+  }
+
+  .gb-public-header-actions .nav-system-entry {
     min-height: 40px;
     padding-inline: 14px;
   }
@@ -2604,6 +2618,11 @@ textarea.gb-form-control {
   cursor: not-allowed;
 }
 
+.app-gateway-actions .gb-public-button[disabled] {
+  opacity: 0.62;
+  cursor: not-allowed;
+}
+
 .app-gateway-note {
   max-width: 520px;
   text-align: center;
@@ -2640,6 +2659,59 @@ textarea.gb-form-control {
 .app-gateway-card span {
   color: var(--muted);
   line-height: 1.55;
+}
+
+.gb-app-entry-page {
+  min-height: 100dvh;
+}
+
+.gb-app-entry-inner {
+  background: transparent;
+  padding-top: 0;
+}
+
+.gb-app-entry-hero {
+  border-color: rgba(126, 87, 255, 0.16);
+  border-radius: 34px;
+  box-shadow: 0 28px 80px rgba(66, 73, 180, 0.14);
+}
+
+.gb-role-public-page {
+  padding-bottom: 72px;
+}
+
+.gb-role-public-hero {
+  min-height: auto;
+}
+
+.gb-role-public-panel {
+  align-content: center;
+  background:
+    radial-gradient(circle at 20% 16%, rgba(126, 87, 255, 0.16), transparent 34%),
+    #ffffff;
+  display: grid;
+  gap: 16px;
+  min-height: 320px;
+  text-align: center;
+}
+
+.gb-role-public-panel svg {
+  color: #7650f2;
+  justify-self: center;
+}
+
+.gb-role-public-panel h2 {
+  color: #10245a;
+  font-size: clamp(1.5rem, 3vw, 2.2rem);
+  letter-spacing: 0;
+  margin: 0;
+}
+
+.gb-role-public-panel p {
+  color: #5c6780;
+  font-weight: 750;
+  line-height: 1.8;
+  margin: 0;
 }
 
 .app-auth-page {

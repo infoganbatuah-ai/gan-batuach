@@ -26,6 +26,7 @@ import {
 } from "@/components/gan-batuach-design-system";
 import { formatAgeGroups, formatPublicPriceRange, getKindergartenAgeGroups } from "@/lib/kindergarten-age-groups";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { BrandHeader } from "@/components/brand-header";
 
 export const metadata = {
   title: "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
@@ -42,9 +43,10 @@ const heroPills = [
 ];
 
 const moduleCards = [
-  { icon: Building2, title: "ניהול גן", text: "ילדים, צוות, נוכחות, מסמכים ותשלומים בממשק אחד.", href: "/join-kindergarten", tone: "primary" as const },
-  { icon: HeartHandshake, title: "ממשק הורים", text: "כרטיס ילד, עדכונים, תשלומים, הודעות ובקשות הצטרפות.", href: "/parents", tone: "success" as const },
-  { icon: ClipboardCheck, title: "פיקוח וביקורות", text: "ביקורת חודשית, ליקויים, תיקונים ודוחות מסודרים.", href: "/safety-standard", tone: "info" as const },
+  { icon: Building2, title: "דשבורד גננת", text: "ילדים, צוות, נוכחות, מסמכים ותשלומים בממשק אחד.", href: "/join-kindergarten", tone: "primary" as const },
+  { icon: HeartHandshake, title: "דשבורד הורים", text: "כרטיס ילד, עדכונים, תשלומים, הודעות ובקשות הצטרפות.", href: "/parents", tone: "success" as const },
+  { icon: UsersRound, title: "דשבורד צוות", text: "משמרות, נוכחות, משימות, מסמכים ותקשורת עם הגן.", href: "/staff", tone: "info" as const },
+  { icon: ClipboardCheck, title: "דשבורד מפקח", text: "ביקורת חודשית, ליקויים, תיקונים ודוחות מסודרים.", href: "/join-inspector", tone: "info" as const },
   { icon: Bot, title: "תצפיתן דיגיטלי", text: "AI זהיר במצב shadow עם בדיקה אנושית לפני פעולה.", href: "/digital-observer", tone: "warning" as const }
 ];
 
@@ -69,26 +71,6 @@ async function getHomeGardens() {
   } catch {
     return [];
   }
-}
-
-function PublicHeader() {
-  return (
-    <header className="gb-public-header">
-      <Link href="/" className="gb-public-brand" aria-label="גן בטוח">
-        <Image src="/assets/company-symbol.png" alt="" width={48} height={48} />
-        <Image src="/assets/company-name.png" alt="גן בטוח" width={146} height={46} />
-      </Link>
-      <nav aria-label="ניווט ציבורי">
-        <Link href="/kindergarten-directory">רשימת גנים</Link>
-        <Link href="/parents">להורים</Link>
-        <Link href="/digital-observer">Digital Observer</Link>
-      </nav>
-      <div className="gb-public-header-actions">
-        <Link className="gb-public-button ghost" href="/app/login">התחברות</Link>
-        <Link className="gb-public-button primary" href="/app/register">הרשמה</Link>
-      </div>
-    </header>
-  );
 }
 
 function HeroVisual() {
@@ -130,7 +112,7 @@ export default async function HomePage() {
 
   return (
     <>
-      <PublicHeader />
+      <BrandHeader />
       <ResponsivePage className="gb-public-page" size="lg">
         <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(structuredData) }} />
 
@@ -145,9 +127,10 @@ export default async function HomePage() {
               שקופה ובטוחה.
             </p>
             <div className="gb-public-hero-actions">
-              <Link className="gb-public-button primary large" href="/app/register">הרשמה בחינם</Link>
-              <Link className="gb-public-button ghost large" href="/app/login">התחברות</Link>
+              <Link className="gb-public-button primary large" href="/app/register">רישום למערכת</Link>
+              <Link className="gb-public-button ghost large" href="/app/login">כניסה למערכת</Link>
               <Link className="gb-public-button soft large" href="/book-demo">קביעת הדגמה</Link>
+              <Link className="gb-public-button soft large" href="/kindergarten-directory">רשימת גני הילדים</Link>
             </div>
             <div className="gb-public-pill-row">
               {heroPills.map((pill) => <span key={pill}>{pill}</span>)}

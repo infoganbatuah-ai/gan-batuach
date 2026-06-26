@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Download, LogIn, MonitorSmartphone, UserPlus } from "lucide-react";
-import { BrandHeader } from "@/components/brand-header";
+import { PremiumCard, ResponsivePage, StatusChip } from "@/components/gan-batuach-design-system";
 
 export const metadata = {
   title: "כניסה למערכת | גן בטוח",
@@ -10,24 +10,24 @@ export const metadata = {
 
 export default function AppGatewayPage() {
   return (
-    <>
-      <BrandHeader />
-      <main className="app-gateway-page">
-        <section className="app-gateway-hero">
+    <main className="app-gateway-page gb-app-entry-page" dir="rtl">
+      <ResponsivePage size="md" className="gb-app-entry-inner">
+        <section className="app-gateway-hero gb-app-entry-hero">
+          <Link className="app-auth-back" href="/">חזרה לאתר</Link>
           <div className="app-gateway-brand">
             <Image src="/assets/company-symbol.png" alt="" width={72} height={72} priority />
             <Image src="/assets/company-name.png" alt="גן בטוח" width={164} height={42} priority />
           </div>
           <div>
-            <p className="eyebrow">כניסה למערכת</p>
+            <StatusChip tone="primary" icon={MonitorSmartphone}>כניסה למערכת</StatusChip>
             <h1>ברוכים הבאים לגן בטוח</h1>
             <p>הורידו את האפליקציה או המשיכו בדפדפן. המערכת תעביר כל משתמש למסך המתאים לפי התפקיד והסטטוס שלו.</p>
           </div>
           <div className="app-gateway-actions">
-            <button className="button secondary large" type="button" disabled title="קישורי החנויות יופעלו לאחר אישור App Store ו-Google Play">
+            <button className="gb-public-button soft large" type="button" disabled title="קישורי החנויות יופעלו לאחר אישור App Store ו-Google Play">
               <Download size={18} /> הורדת אפליקציה
             </button>
-            <Link className="button primary large" href="/app/login">
+            <Link className="gb-public-button primary large" href="/app/login">
               <MonitorSmartphone size={18} /> המשך בדפדפן
             </Link>
           </div>
@@ -35,23 +35,23 @@ export default function AppGatewayPage() {
         </section>
 
         <section className="app-gateway-grid">
-          <Link className="app-gateway-card" href="/app/login">
+          <PremiumCard className="app-gateway-card" href="/app/login">
             <LogIn />
             <strong>משתמש קיים</strong>
             <span>התחברות למערכת והעברה אוטומטית לדשבורד המתאים.</span>
-          </Link>
-          <Link className="app-gateway-card" href="/app/register">
+          </PremiumCard>
+          <PremiumCard className="app-gateway-card" href="/app/register">
             <UserPlus />
             <strong>משתמש חדש</strong>
             <span>בחירת מסלול: הורה, מנהלת גן, צוות גן או מפקח.</span>
-          </Link>
-          <Link className="app-gateway-card" href="/digital-observer/dashboard">
+          </PremiumCard>
+          <PremiumCard className="app-gateway-card" href="/digital-observer">
             <MonitorSmartphone />
             <strong>Digital Observer</strong>
-            <span>כניסה למוצר התצפיתן הדיגיטלי עבור אתרים, מצלמות והתראות.</span>
-          </Link>
+            <span>עמוד המוצר הציבורי של התצפיתן הדיגיטלי. כניסה לאפליקציה רק לאחר הרשאה.</span>
+          </PremiumCard>
         </section>
-      </main>
-    </>
+      </ResponsivePage>
+    </main>
   );
 }
