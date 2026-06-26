@@ -1,13 +1,12 @@
 import Link from "next/link";
 import { ClipboardCheck, CreditCard, FileText, ShieldCheck } from "lucide-react";
 import { AdminDataError } from "@/components/admin-data-state";
-import { DashboardShell } from "@/components/dashboard-shell";
+import { AdminAppFrame } from "@/components/admin-app-ui";
 import { KindergartenApplicationAdminActions } from "@/components/kindergarten-application-admin-actions";
-import { CleanSection, EmptyState, PremiumDashboardHero, RoleMetricCard, StatusBadge } from "@/components/premium-dashboard";
+import { DashboardGrid, EmptyState, MetricCard, PremiumCard, SectionHeader, StatusChip } from "@/components/gan-batuach-design-system";
 import { requireRole } from "@/lib/auth";
 import { safeAdminData, logSupabaseError } from "@/lib/admin-safe";
 import { createClient } from "@/lib/supabase/server";
-import { scoreTone, statusTone } from "@/lib/domain/observer-calibration";
 
 export const dynamic = "force-dynamic";
 
@@ -38,8 +37,23 @@ function formatApprovalStatus(status?: string | null) {
   return map[status ?? ""] ?? status ?? "-";
 }
 
+function approvalTone(status?: string | null): "success" | "warning" | "danger" | "primary" | "muted" {
+  const value = String(status ?? "");
+  if (["active", "approved"].includes(value)) return "success";
+  if (["rejected", "suspended", "archived"].includes(value)) return "danger";
+  if (["correction_required", "payment_pending", "pending_final_approval", "onboarding_submitted"].includes(value)) return "warning";
+  return "primary";
+}
+
+function progressTone(value: number): "success" | "warning" | "danger" | "primary" {
+  if (value >= 80) return "success";
+  if (value >= 45) return "warning";
+  if (value > 0) return "primary";
+  return "danger";
+}
+
 export default async function AdminKindergartenApplicationsPage() {
-  await requireRole(["admin"]);
+  const { profile } = await requireRole(["admin"]);
   const result = await safeAdminData("kindergarten applications", async () => {
     const supabase = await createClient();
     const [gardensRes, onboardingRes, feeGroupsRes, ageSetupsRes, documentsRes, profilesRes, subscriptionsRes] = await Promise.all([
@@ -89,26 +103,29 @@ export default async function AdminKindergartenApplicationsPage() {
   const avgProgress = rows.length ? Math.round(rows.reduce((sum, row) => sum + Number(row.onboarding?.progress_percent ?? 0), 0) / rows.length) : 0;
 
   return (
-      <DashboardShell role="admin" title="בקשות גנים">
+    <AdminAppFrame profile={profile} activeHref="/dashboard/admin/kindergarten-applications" title="אישורי גנים חדשים" subtitle="בדיקת מנהלת, פרופיל גן, מסמכים, מחירי הורים ומנוי הפעלה." badge="אישורים">
       <div className="commercial-dashboard">
-        <PremiumDashboardHero
-          eyebrow="בקשות גנים"
-          title="אישור מנהלות, פרופיל גן ומנוי הפעלה"
-          subtitle="מסלול רישום עצמי מוגבל: טיוטה, אשף, אישור אדמין, מנוי גן בטוח ואז הפעלה מלאה."
-          badge={`${avgProgress}%`}
-          badgeTone={scoreTone(avgProgress)}
-          actions={<><Link className="button secondary" href="/dashboard/admin/kindergarten-activation">מרכז הפעלה</Link><Link className="button secondary" href="/dashboard/admin/billing">חיוב</Link></>}
-        />
+        <PremiumCard size="lg" className="admin-section-card">
+          <SectionHeader
+            eyebrow="בקשות גנים"
+            title="אישור מנהלות, פרופיל גן ומנוי הפעלה"
+            subtitle="מסלול רישום עצמי מוגבל: טיוטה, אשף, אישור אדמין, מנוי גן בטוח ואז הפעלה מלאה."
+            icon={ClipboardCheck}
+            action={<><Link className="admin-link-button" href="/dashboard/admin/kindergarten-activation">מרכז הפעלה</Link><Link className="admin-link-button" href="/dashboard/admin/billing">חיוב</Link></>}
+          />
+          <StatusChip tone={progressTone(avgProgress)}>{avgProgress}% התקדמות ממוצעת</StatusChip>
+        </PremiumCard>
         <AdminDataError message={result.error ?? result.data.queryError} />
 
-        <div className="premium-metric-grid">
-          <RoleMetricCard label="ממתינות לאישור" value={pendingReview} hint="פרופיל נשלח לאדמין" tone={pendingReview ? "warn" : "good"} />
-          <RoleMetricCard label="ממתינות למנוי" value={paymentPending} hint="אושרו אך לא פעילות" tone={paymentPending ? "warn" : "good"} />
-          <RoleMetricCard label="פעילות" value={active} hint="תשלום/override תועד" tone="good" />
-          <RoleMetricCard label="התקדמות ממוצעת" value={`${avgProgress}%`} hint="אשף מנהלת" tone={scoreTone(avgProgress)} />
-        </div>
+        <DashboardGrid columns={4}>
+          <MetricCard label="ממתינות לאישור" value={pendingReview} hint="פרופיל נשלח לאדמין" tone={pendingReview ? "warning" : "success"} icon={ClipboardCheck} />
+          <MetricCard label="ממתינות למנוי" value={paymentPending} hint="אושרו אך לא פעילות" tone={paymentPending ? "warning" : "success"} icon={CreditCard} />
+          <MetricCard label="פעילות" value={active} hint="תשלום/override תועד" tone="success" icon={ShieldCheck} />
+          <MetricCard label="התקדמות ממוצעת" value={`${avgProgress}%`} hint="אשף מנהלת" tone={progressTone(avgProgress)} icon={ClipboardCheck} />
+        </DashboardGrid>
 
-        <CleanSection title="בקשות גן" subtitle="מנהלת pending אינה מקבלת גישה מלאה. הורים רואים רק גנים פעילים ו-public-safe.">
+        <PremiumCard className="admin-section-card" size="lg">
+          <SectionHeader title="בקשות גן" subtitle="מנהלת pending אינה מקבלת גישה מלאה. הורים רואים רק גנים פעילים ו-public-safe." icon={ClipboardCheck} />
           {rows.length === 0 ? <EmptyState title="אין בקשות גנים" text="בקשות מרישום עצמי או המרת ליד יופיעו כאן." /> : (
             <div className="procedure-list">
               {rows.map((row) => {
@@ -116,14 +133,14 @@ export default async function AdminKindergartenApplicationsPage() {
                 return (
                   <article className="card procedure-card" key={row.id}>
                     <div>
-                      <StatusBadge tone={statusTone(row.approval_flow_status)}>{formatApprovalStatus(row.approval_flow_status)}</StatusBadge>
+                      <StatusChip tone={approvalTone(row.approval_flow_status)}>{formatApprovalStatus(row.approval_flow_status)}</StatusChip>
                       <h3>{row.name}</h3>
                       <p>{row.city ?? "עיר לא צוינה"} · {row.address ?? "כתובת לא צוינה"} · נוצר {dateText(row.created_at)}</p>
                       <div className="lead-conversion-meta">
                         <span>מנהלת: {row.manager?.full_name ?? row.owner_name ?? "לא צוינה"}</span>
                         <span>חשבון מנהלת: {row.manager?.active ? "פעיל" : "מוגבל/ממתין"}</span>
-                        <span>מסמכים: {row.documents.length}</span>
-                        <span>מנוי: {row.subscription?.status ?? "לא נוצר"}</span>
+                      <span>מסמכים: {row.documents.length}</span>
+                        <span>מנוי: {formatApprovalStatus(row.subscription?.status) ?? "לא נוצר"}</span>
                         <span>מחיר גן בטוח: {money(row.onboarding?.subscription_monthly_amount ?? row.subscription?.metadata?.monthly_amount_nis ?? 800)}/חודש</span>
                       </div>
                       <div className="grid cols-2 dashboard-panels">
@@ -148,7 +165,7 @@ export default async function AdminKindergartenApplicationsPage() {
               })}
             </div>
           )}
-        </CleanSection>
+        </PremiumCard>
 
         <section className="quick-actions-grid">
           <Link className="card action-card" href="/dashboard/admin/document-center"><FileText /><strong>מסמכים</strong><span>בדיקת מסמכי גנים פרטיים</span></Link>
@@ -156,6 +173,6 @@ export default async function AdminKindergartenApplicationsPage() {
           <Link className="card action-card" href="/dashboard/admin/security-center"><ShieldCheck /><strong>אבטחה</strong><span>בדיקת הרשאות לפני הפעלה</span></Link>
         </section>
       </div>
-    </DashboardShell>
+    </AdminAppFrame>
   );
 }

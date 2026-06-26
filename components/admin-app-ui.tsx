@@ -6,8 +6,10 @@ import {
   Bell,
   CalendarDays,
   ChevronLeft,
+  CreditCard,
   Home,
   Menu,
+  Search,
   ShieldCheck,
   UserRound
 } from "lucide-react";
@@ -25,9 +27,10 @@ type AdminProfile = {
 };
 
 const adminNavItems = [
-  { href: "/dashboard/admin/kindergartens", label: "גנים", icon: Home },
-  { href: "/dashboard/admin/tasks", label: "יומן", icon: CalendarDays },
-  { href: "/dashboard/admin", label: "אדמין", icon: ShieldCheck },
+  { href: "/dashboard/admin", label: "ראשי", icon: ShieldCheck },
+  { href: "/dashboard/admin/kindergarten-applications", label: "אישורים", icon: CalendarDays },
+  { href: "/dashboard/admin/users", label: "משתמשים", icon: UserRound },
+  { href: "/dashboard/admin/subscriptions", label: "תשלומים", icon: CreditCard },
   { href: "/dashboard/admin/notifications", label: "התראות", icon: Bell, badge: "2" },
   { href: "/dashboard/admin/settings", label: "עוד", icon: Menu }
 ];
@@ -62,10 +65,13 @@ export function AdminAppFrame({
             <ChevronLeft size={26} />
           </Link>
         ) : null}
-        <button type="button" className="admin-icon-button" aria-label="התראות">
+        <Link className="admin-icon-button" href="/dashboard/admin/users" aria-label="חיפוש משתמשים">
+          <Search size={23} />
+        </Link>
+        <Link className="admin-icon-button" href="/dashboard/admin/notifications" aria-label="התראות">
           <Bell size={24} />
           <i />
-        </button>
+        </Link>
       </div>
       <div className="admin-brand-block">
         <div className="admin-brand-logo">
@@ -89,7 +95,7 @@ export function AdminAppFrame({
         ...adminNavItems,
         { href: "/dashboard/admin/kindergartens", label: "גנים", icon: ShieldCheck, hint: "ניהול ובקרה" },
         { href: "/dashboard/admin/inspectors", label: "מפקחים", icon: UserRound, hint: "שיוך ועומסים" },
-        { href: "/dashboard/admin/subscriptions", label: "מנויים", icon: BarChart3, hint: "הכנסות וסיכון" }
+        { href: "/dashboard/admin/analytics-center", label: "דוחות", icon: BarChart3, hint: "ניתוח וערים" }
       ]}
     />
   );

@@ -1,15 +1,16 @@
 import Link from "next/link";
-import { DashboardShell } from "@/components/dashboard-shell";
+import { UsersRound } from "lucide-react";
+import { AdminAppFrame } from "@/components/admin-app-ui";
 import { AdminDataError } from "@/components/admin-data-state";
 import { AdminUsersManagement } from "@/components/admin-users-management";
-import { PremiumDashboardHero } from "@/components/premium-dashboard";
+import { PremiumCard, SectionHeader, StatusChip } from "@/components/gan-batuach-design-system";
 import { requireRole } from "@/lib/auth";
 import { isAdminClientConfigured } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { safeAdminData, logSupabaseError } from "@/lib/admin-safe";
 
 export default async function AdminUsersPage() {
-  await requireRole(["admin"]);
+  const { profile } = await requireRole(["admin"]);
   const configured = isAdminClientConfigured();
   const result = await safeAdminData("ניהול משתמשים", async () => {
     const supabase = await createClient();
@@ -29,10 +30,13 @@ export default async function AdminUsersPage() {
     return { users, auditLogs: (logsRes.data ?? []) as any[], queryError: usersRes.error || credentialsRes.error || logsRes.error ? "לא ניתן לטעון את הנתונים כרגע" : null };
   }, { users: [] as any[], auditLogs: [] as any[], queryError: null as string | null });
 
-  return <DashboardShell role="admin" title="ניהול משתמשים">
-    <PremiumDashboardHero eyebrow="משתמשים" title="ניהול חשבונות והרשאות." subtitle="מנהלות, הורים, צוות ומפקחים במקום אחד." badge={configured ? "מוכן" : "נדרשת הגדרה"} badgeTone={configured ? "good" : "bad"} />
+  return <AdminAppFrame profile={profile} activeHref="/dashboard/admin/users" title="ניהול משתמשים" subtitle="חשבונות, הרשאות, שיוכים ופעולות זהירות במקום אחד." badge="משתמשים">
+    <PremiumCard size="lg" className="admin-section-card">
+      <SectionHeader eyebrow="משתמשים" title="ניהול חשבונות והרשאות" subtitle="מנהלות, הורים, צוות, מפקחים ואדמין, עם Audit ושיוך גן ברור." icon={UsersRound} />
+      <StatusChip tone={configured ? "success" : "danger"}>{configured ? "מוכן לפעולות אדמין" : "נדרשת הגדרת Service Role"}</StatusChip>
+    </PremiumCard>
     {!configured ? <div className="error-banner">SUPABASE_SERVICE_ROLE_KEY חסר. יצירת משתמשים ואיפוס סיסמה דורשים להגדיר אותו ב-Vercel Environment Variables.</div> : null}
     <AdminDataError message={result.error ?? result.data.queryError} />
     <AdminUsersManagement users={result.data.users} auditLogs={result.data.auditLogs} />
-  </DashboardShell>;
+  </AdminAppFrame>;
 }

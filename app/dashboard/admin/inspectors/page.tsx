@@ -1,12 +1,27 @@
 import Link from "next/link";
-import { DashboardShell } from "@/components/dashboard-shell";
+import { ClipboardCheck, UsersRound } from "lucide-react";
+import { AdminAppFrame } from "@/components/admin-app-ui";
 import { AdminDataError } from "@/components/admin-data-state";
+import { DashboardGrid, EmptyState, ListRowCard, MetricCard, PremiumCard, SectionHeader, StatusChip } from "@/components/gan-batuach-design-system";
 import { requireRole } from "@/lib/auth";
 import { safeAdminData, logSupabaseError } from "@/lib/admin-safe";
 import { createClient } from "@/lib/supabase/server";
 
+function inspectionStatusLabel(value?: string | null) {
+  const labels: Record<string, string> = {
+    done: "הושלמה",
+    completed: "הושלמה",
+    in_progress: "בביצוע",
+    planned: "מתוכננת",
+    scheduled: "מתוכננת",
+    pending: "ממתינה",
+    overdue: "באיחור"
+  };
+  return labels[String(value ?? "").toLowerCase()] ?? "פתוחה";
+}
+
 export default async function AdminInspectorsPage() {
-  await requireRole(["admin"]);
+  const { profile } = await requireRole(["admin"]);
   const result = await safeAdminData("מפקחים", async () => {
     const supabase = await createClient();
     const [inspectorsRes, gardensRes, inspectionsRes, tasksRes] = await Promise.all([
@@ -22,14 +37,41 @@ export default async function AdminInspectorsPage() {
     return { rows: (inspectorsRes.data ?? []) as any[], gardensByInspector, inspectionsByInspector, tasksByInspector, queryError: inspectorsRes.error ? "לא ניתן לטעון את הנתונים כרגע" : null };
   }, { rows: [] as any[], gardensByInspector: {}, inspectionsByInspector: {}, tasksByInspector: {}, queryError: null as string | null });
 
-  return <DashboardShell role="admin" title="מפקחים">
-    <div className="dashboard-hero-card admin-hero-card"><div><p className="eyebrow">Inspectors Directory</p><h1>ניהול מפקחים וביקורות.</h1><p>ערים משויכות, גנים באחריות, משימות פעילות והיסטוריית ביקורות.</p></div><Link className="button primary" href="/dashboard/admin/users/new-inspector">הוספת מפקח</Link></div>
+  const activeInspectors = result.data.rows.filter((inspector: any) => {
+    const profileRow = Array.isArray(inspector.profiles) ? inspector.profiles[0] : inspector.profiles;
+    return profileRow?.active !== false;
+  }).length;
+  const assignedGardens = Object.values(result.data.gardensByInspector ?? {}).reduce((sum: number, gardens: any) => sum + (Array.isArray(gardens) ? gardens.length : 0), 0);
+  const openTasks = Object.values(result.data.tasksByInspector ?? {}).reduce((sum: number, count: any) => sum + Number(count ?? 0), 0);
+
+  return <AdminAppFrame profile={profile} activeHref="/dashboard/admin/inspectors" title="ניהול מפקחים" subtitle="שיבוצים, עומסים, ביקורות פתוחות ומוכנות פיקוח." badge="מפקחים">
+    <PremiumCard size="lg" className="admin-section-card">
+      <SectionHeader eyebrow="Inspectors Directory" title="ניהול מפקחים וביקורות" subtitle="ערים משויכות, גנים באחריות, משימות פעילות והיסטוריית ביקורות." icon={UsersRound} action={<Link className="admin-primary-button" href="/dashboard/admin/users/new-inspector">הוספת מפקח</Link>} />
+    </PremiumCard>
+    <DashboardGrid columns={4}>
+      <MetricCard label="מפקחים" value={result.data.rows.length} hint="סה״כ" icon={UsersRound} tone="primary" />
+      <MetricCard label="פעילים" value={activeInspectors} hint="מאושרים לגישה" icon={UsersRound} tone="success" />
+      <MetricCard label="גנים משויכים" value={assignedGardens} hint="טווח אחריות" icon={ClipboardCheck} tone="primary" />
+      <MetricCard label="משימות פתוחות" value={openTasks} hint="דורש מעקב" icon={ClipboardCheck} tone={openTasks ? "warning" : "success"} />
+    </DashboardGrid>
     <AdminDataError message={result.error ?? result.data.queryError} />
-    <section className="dashboard-section">{result.data.rows.length === 0 ? <div className="empty-state"><strong>אין מפקחים להצגה</strong><span>מפקח שייווצר ידנית או מליד יופיע כאן.</span></div> : <div className="procedure-list">{result.data.rows.map((inspector) => {
+    <PremiumCard size="lg" className="admin-section-card">
+      <SectionHeader title="רשימת מפקחים" subtitle="כל מפקח מוצג עם שיבוץ גנים, ביקורות ומשימות פתוחות." icon={UsersRound} />
+      {result.data.rows.length === 0 ? <EmptyState title="אין מפקחים להצגה" text="מפקח שייווצר ידנית או מליד יופיע כאן." icon={UsersRound} /> : <div className="admin-list-stack">{result.data.rows.map((inspector) => {
       const profile = Array.isArray(inspector.profiles) ? inspector.profiles[0] : inspector.profiles;
       const gardens = result.data.gardensByInspector?.[inspector.id] ?? [];
       const inspections = result.data.inspectionsByInspector?.[inspector.id] ?? [];
-      return <article className="card procedure-card" key={inspector.id}><div><span className={profile?.active === false ? "pill bad" : "pill good"}>{profile?.active === false ? "לא פעיל" : "פעיל"}</span><h3>{profile?.full_name ?? "פקח"}</h3><p>{Array.isArray(inspector.service_cities) ? inspector.service_cities.join(", ") : ""}</p><small>גנים משויכים: {gardens.map((garden: any) => garden.name).join(", ") || "-"} · ביקורות שהושלמו: {inspections.filter((inspection: any) => inspection.status === "done").length} · משימות פעילות: {result.data.tasksByInspector?.[inspector.id] ?? 0}</small><div className="stack-list">{inspections.slice(0, 4).map((inspection: any) => <div className="list-item" key={inspection.id}><div><strong>{inspection.gardens?.name ?? inspection.garden_id}</strong><span>{inspection.completed_at ? new Date(inspection.completed_at).toLocaleString("he-IL") : "פתוחה"}</span></div><span className="pill">{inspection.weighted_score ?? inspection.status ?? "-"}</span></div>)}</div></div><div className="procedure-meta"><Link className="button secondary" href="/dashboard/admin/inspection-forms">טפסים</Link><Link className="button secondary" href="/dashboard/admin/tasks">משימות</Link><Link className="button" href="/dashboard/admin/users">פרופיל</Link></div></article>;
-    })}</div>}</section>
-  </DashboardShell>;
+      const completed = inspections.filter((inspection: any) => ["done", "completed"].includes(String(inspection.status))).length;
+      return <ListRowCard
+        key={inspector.id}
+        href="/dashboard/admin/users"
+        title={profile?.full_name ?? "מפקח"}
+        subtitle={Array.isArray(inspector.service_cities) ? inspector.service_cities.join(", ") : "אזור לא צוין"}
+        meta={`גנים משויכים: ${gardens.map((garden: any) => garden.name).join(", ") || "-"} · ביקורות שהושלמו: ${completed} · משימות פעילות: ${result.data.tasksByInspector?.[inspector.id] ?? 0}`}
+        status={<StatusChip tone={profile?.active === false ? "danger" : "success"}>{profile?.active === false ? "לא פעיל" : "פעיל"}</StatusChip>}
+        actions={<div className="gb-list-actions"><Link className="admin-link-button" href="/dashboard/admin/inspection-forms">טפסים</Link><Link className="admin-link-button" href="/dashboard/admin/tasks">משימות</Link>{inspections[0] ? <StatusChip tone="primary">{inspections[0].weighted_score ?? inspectionStatusLabel(inspections[0].status)}</StatusChip> : null}</div>}
+      />;
+    })}</div>}
+    </PremiumCard>
+  </AdminAppFrame>;
 }

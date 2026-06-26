@@ -1,6 +1,8 @@
 import { AdminDataError } from "@/components/admin-data-state";
-import { DashboardShell } from "@/components/dashboard-shell";
+import { AdminAppFrame } from "@/components/admin-app-ui";
 import { SubscriptionAdminManager } from "@/components/subscription-admin-manager";
+import { CreditCard, ShieldCheck } from "lucide-react";
+import { DashboardGrid, MetricCard, PremiumCard, SectionHeader, StatusChip } from "@/components/gan-batuach-design-system";
 import { safeAdminData, logSupabaseError } from "@/lib/admin-safe";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
@@ -8,7 +10,7 @@ import { createClient } from "@/lib/supabase/server";
 export const dynamic = "force-dynamic";
 
 export default async function AdminSubscriptionsPage() {
-  await requireRole(["admin"]);
+  const { profile } = await requireRole(["admin"]);
   const result = await safeAdminData("subscription management", async () => {
     const supabase = await createClient();
     const [subscriptions, plans, gardens, payments] = await Promise.all([
@@ -27,18 +29,24 @@ export default async function AdminSubscriptionsPage() {
     };
   }, { subscriptions: [] as any[], plans: [] as any[], gardens: [] as any[], payments: [] as any[], queryError: null as string | null });
 
+  const active = result.data.subscriptions.filter((item) => ["active", "trial"].includes(String(item.status))).length;
+  const failed = result.data.payments.filter((item) => String(item.billing_status) === "failed").length;
+  const suspended = result.data.subscriptions.filter((item) => ["expired", "suspended"].includes(String(item.status))).length;
+
   return (
-    <DashboardShell role="admin" title="Subscription Management">
-      <div className="dashboard-hero-card admin-hero-card">
-        <div>
-          <p className="eyebrow">Billing Platform</p>
-          <h1>ניהול מנויים וחיובים.</h1>
-          <p>תוכניות, Trial, חידושים, השעיות, תשלומים שנכשלו ותשתית לספקי תשלום עתידיים.</p>
-        </div>
-        <span className="pill good">V2A</span>
-      </div>
+    <AdminAppFrame profile={profile} activeHref="/dashboard/admin/subscriptions" title="מנויים ותשלומים" subtitle="Gan Batuach, תשלומי גנים ו־Digital Observer נשארים מופרדים וברורים." badge="תשלומים">
+      <PremiumCard size="lg" className="admin-section-card">
+        <SectionHeader eyebrow="Billing Platform" title="ניהול מנויים וחיובים" subtitle="תוכניות, Trial, חידושים, השעיות, תשלומים שנכשלו ותשתית לספקי תשלום עתידיים." icon={CreditCard} />
+        <StatusChip tone="success" icon={ShieldCheck}>ללא חשיפת פרטי כרטיס</StatusChip>
+      </PremiumCard>
+      <DashboardGrid columns={4}>
+        <MetricCard label="מנויים פעילים" value={active} hint="כולל Trial" tone="success" icon={CreditCard} />
+        <MetricCard label="תשלומים שנכשלו" value={failed} hint="דורש טיפול" tone={failed ? "warning" : "success"} icon={CreditCard} />
+        <MetricCard label="מושעים/פג תוקף" value={suspended} hint="Lifecycle" tone={suspended ? "warning" : "success"} icon={ShieldCheck} />
+        <MetricCard label="תוכניות" value={result.data.plans.length} hint="מחירון פעיל" tone="primary" icon={CreditCard} />
+      </DashboardGrid>
       <AdminDataError message={result.error ?? result.data.queryError} />
       <SubscriptionAdminManager plans={result.data.plans} subscriptions={result.data.subscriptions} gardens={result.data.gardens} payments={result.data.payments} />
-    </DashboardShell>
+    </AdminAppFrame>
   );
 }
