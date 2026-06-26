@@ -63,3 +63,27 @@ The admin area contains many advanced modules that remain available. They are in
 - `preserved_legacy_advanced_module`: feature retained, not redesigned in this pass.
 - `provider_required`: requires configured external provider to prove live behavior.
 - `manual_visual_review_required`: requires screenshot review against external PNGs.
+
+## UXQA 6A Update - 2026-06-26
+
+Canonical repository references are still absent from `docs/ux-references/admin/`. The external PNGs under `/Users/danielderi/Desktop/עיצוב גן בטוח/אדמין ראשי/` were found, so this QA can validate route coverage and implementation intent, but not repository-portable pixel matching.
+
+Static route audit found 140 admin `page.tsx` files. The core RESCUE 6 admin routes use `AdminAppFrame`, but many advanced routes still render through `DashboardShell` and `premium-dashboard`. That means the admin core is upgraded, while the full advanced admin surface is not yet a single-shell visual experience.
+
+| Reference / area | UXQA 6A classification | Notes |
+|---|---|---|
+| דשבורד אדמין ראשי | Implemented with minor visual differences; `manual_visual_review_required` | `/dashboard/admin` uses the admin app shell, gb tokens and truthful metrics/empty states. Final visual match still needs browser/screenshot review against the external PNG. |
+| אישור גנים חדשים | Implemented partially | `/dashboard/admin/kindergarten-applications` uses the admin shell and preserves approval actions. Advanced filtering/search requirements should be manually verified and completed if missing in a follow-up. |
+| ניהול משתמשים | Implemented partially | `/dashboard/admin/users` is in the admin shell and keeps real user actions. Existing `AdminUsersManagement` still carries complex legacy behavior and requires deeper action/security review. |
+| מנויים ותשלומים | Implemented with provider dependencies | `/dashboard/admin/subscriptions` uses the admin shell and keeps subscription/payment separation. Live payment state depends on configured provider mode. |
+| ניטור והתראות | Implemented partially | `/dashboard/admin/notifications` and `/dashboard/admin/provider-production` are upgraded. Several monitoring/security/provider advanced routes remain legacy-shell modules. |
+| דוחות וניתוח נתונים | Implemented partially | `/dashboard/admin/reports` is upgraded. `/dashboard/admin/analytics-center` and related advanced analytics modules remain preserved legacy modules. |
+| Inspector management | Implemented partially | `/dashboard/admin/inspectors` is upgraded. Applications/workforce/deep assignment screens still need staged visual migration. |
+| Provider health | Implemented partially; `provider_required` | Provider readiness is visible without exposing secrets in the upgraded route. Real provider tests require configured safe/test providers. |
+| Security and QA blockers | Route exists but visual mismatch | Security/QA/launch/database integrity modules remain mostly advanced legacy modules. They preserve functionality but are not fully aligned visually. |
+| City and district analytics | Route exists but visual mismatch | Analytics routes exist and are preserved; district/city data normalization and visual polish remain follow-up work. |
+| Camera operations | Implemented partially; `security_followup_required` | `/dashboard/admin/cameras` is upgraded. Setup forms accept credentials for server-side configuration; saved/overview display must continue redaction checks. |
+| AI / Digital Observer operations | Implemented partially; `security_followup_required` | Product routes are preserved and separated, but several advanced modules still show technical labels/raw operational language and need staged cleanup. |
+| Full-management drawer / advanced modules | Implemented partially | Advanced admin capabilities remain reachable, but not all are migrated to the unified admin shell. |
+
+UXQA 6A readiness classification: the core admin experience is build-stable and navigable, but the full admin journey is not yet a 100/100 unified visual system because preserved advanced modules still use the legacy shell.
