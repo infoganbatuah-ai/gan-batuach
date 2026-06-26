@@ -40,6 +40,28 @@ function healthTone(score: number): "success" | "warning" | "danger" {
   return "danger";
 }
 
+function adminStatusLabel(value?: string | null) {
+  const labels: Record<string, string> = {
+    active: "פעיל",
+    safe: "תקין",
+    approved: "מאושר",
+    pending: "ממתין",
+    open: "פתוח",
+    new: "חדש",
+    in_progress: "בטיפול",
+    waiting_user: "ממתין למשתמש",
+    high: "גבוה",
+    critical: "קריטי",
+    urgent: "דחוף",
+    medium: "בינוני",
+    low: "נמוך",
+    warning: "אזהרה",
+    offline: "לא מחובר",
+    failed: "נכשל"
+  };
+  return labels[String(value ?? "").toLowerCase()] ?? "בדיקה";
+}
+
 function clamp(value: number) {
   return Math.max(0, Math.min(100, Math.round(value)));
 }
@@ -352,7 +374,7 @@ export default async function AdminDashboard() {
                 title={item.subject ?? item.event_type ?? "אירוע לבדיקה"}
                 subtitle={`${item.gardens?.name ?? "גן"} · ${item.gardens?.city ?? "אזור לא צוין"}`}
                 meta={item.created_at || item.detected_at ? new Date(item.created_at ?? item.detected_at).toLocaleString("he-IL") : "זמן לא צוין"}
-                status={<StatusChip tone={["critical", "high", "urgent"].includes(String(item.severity)) ? "danger" : "warning"}>{item.severity ?? item.status ?? "פתוח"}</StatusChip>}
+                status={<StatusChip tone={["critical", "high", "urgent"].includes(String(item.severity)) ? "danger" : "warning"}>{adminStatusLabel(item.severity ?? item.status)}</StatusChip>}
               />
             ))}
             {[...data.recentComplaints, ...data.recentAiEvents].length === 0 ? <EmptyState title="אין התראות חריגות" text="אירועים ותלונות שייווצרו יופיעו כאן." icon={ShieldCheck} /> : null}
@@ -392,9 +414,9 @@ export default async function AdminDashboard() {
                 key={garden.id}
                 href={`/dashboard/admin/gardens/${garden.id}`}
                 title={garden.name}
-                subtitle={`${garden.city ?? "עיר לא צוינה"} · ${garden.status ?? "סטטוס חסר"}`}
+                subtitle={`${garden.city ?? "עיר לא צוינה"} · ${adminStatusLabel(garden.status)}`}
                 meta={garden.next_inspection_at ? `פיקוח הבא: ${new Date(garden.next_inspection_at).toLocaleDateString("he-IL")}` : "פיקוח הבא לא נקבע"}
-                status={<StatusChip tone={Number(garden.last_inspection_score ?? 100) < 70 ? "danger" : garden.safe_status === "safe" ? "success" : "warning"}>{garden.last_inspection_score ?? garden.safe_status ?? "בדיקה"}</StatusChip>}
+                status={<StatusChip tone={Number(garden.last_inspection_score ?? 100) < 70 ? "danger" : garden.safe_status === "safe" ? "success" : "warning"}>{garden.last_inspection_score ?? adminStatusLabel(garden.safe_status)}</StatusChip>}
               />
             ))}
           </div>
@@ -410,7 +432,7 @@ export default async function AdminDashboard() {
                 title={inspector.full_name ?? "מפקח"}
                 subtitle={Array.isArray(inspector.assigned_cities) ? inspector.assigned_cities.join(", ") : inspector.city ?? "אזור לא צוין"}
                 meta="בדיקת עומס ושיוך"
-                status={<StatusChip tone="success">{inspector.status ?? "פעיל"}</StatusChip>}
+                status={<StatusChip tone="success">{adminStatusLabel(inspector.status ?? "active")}</StatusChip>}
               />
             ))}
           </div>

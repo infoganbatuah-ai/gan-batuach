@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { Activity, AlertTriangle, Camera, Eye, RadioTower, ShieldCheck, Video, Workflow } from "lucide-react";
 import { AdminDataError } from "@/components/admin-data-state";
+import { AdminAppFrame } from "@/components/admin-app-ui";
 import { CameraAdminManager } from "@/components/camera-ai-admin-modules";
-import { DashboardShell } from "@/components/dashboard-shell";
 import { ActionCard, CleanSection, EmptyState, PremiumDashboardHero, RoleMetricCard, StatusBadge } from "@/components/premium-dashboard";
 import { requireRole } from "@/lib/auth";
 import { logSupabaseError, safeAdminData } from "@/lib/admin-safe";
@@ -17,6 +17,31 @@ function healthTone(value?: string | null): "default" | "good" | "warn" | "bad" 
   if (["unknown", "pending", "pending_gateway", "testing", "degraded", "outside_hours"].includes(status)) return "warn";
   if (["failed", "offline", "error", "disabled", "blocked", "no_signal", "unauthorized"].includes(status)) return "bad";
   return "default";
+}
+
+function healthLabel(value?: string | null) {
+  const labels: Record<string, string> = {
+    healthy: "תקין",
+    connected: "מחובר",
+    online: "מחובר",
+    active: "פעיל",
+    allowed: "מאושר",
+    configured: "מוגדר",
+    testing: "בבדיקה",
+    unknown: "לא ידוע",
+    pending: "ממתין",
+    pending_gateway: "ממתין ל-Gateway",
+    degraded: "ירידה באיכות",
+    outside_hours: "מחוץ לשעות",
+    failed: "נכשל",
+    offline: "לא מחובר",
+    error: "שגיאה",
+    disabled: "מושבת",
+    blocked: "חסום",
+    no_signal: "אין אות",
+    unauthorized: "לא מורשה"
+  };
+  return labels[String(value ?? "").toLowerCase()] ?? "לא ידוע";
 }
 
 function dateText(value?: string | null) {
@@ -35,7 +60,7 @@ async function safeQuery<T>(label: string, run: () => any) {
 }
 
 export default async function AdminCamerasPage() {
-  await requireRole(["admin"]);
+  const { profile } = await requireRole(["admin"]);
   const result = await safeAdminData("camera operations center", async () => {
     const supabase = await createClient();
     const cameraColumns = "id,garden_id,kindergarten_id,name,area,camera_type,source_type,source_category,camera_zone_label,system_type,deployment_scope,test_site_type,camera_provider_key,gateway_provider_preference,stream_status,health_status,last_seen,connection_method,protocol,status,active,parent_view_allowed,parent_viewing_allowed,parent_visibility_status,parent_blocked_reason,staff_view_allowed,inspector_view_allowed,observer_enabled,observer_review_required,observer_confidence_threshold,last_health_check_at,last_test_status,last_test_message,last_test_at,gateway_registration_status,gateway_last_error,masked_connection_summary,hls_playback_url,sample_hls_url,webrtc_playback_url,video_gateway_stream_id,gateway_stream_id,viewing_hours,operating_hours,recording_enabled,retention_days,archive_policy";
@@ -107,7 +132,7 @@ export default async function AdminCamerasPage() {
   const gatewayConfigured = Boolean(process.env.VIDEO_GATEWAY_URL);
 
   return (
-    <DashboardShell role="admin" title="מצלמות">
+    <AdminAppFrame profile={profile} activeHref="/dashboard/admin/cameras" title="תפעול מצלמות ו-AI" subtitle="בריאות מצלמות, Gateway, הרשאות צפייה ותור בדיקה אנושי." badge="מצלמות">
       <div className="commercial-dashboard camera-infra-center">
         <PremiumDashboardHero
           eyebrow="Camera Operations"
@@ -136,8 +161,8 @@ export default async function AdminCamerasPage() {
               <div className="camera-infra-list">{data.gateways.map((gateway) => (
                 <article className="camera-infra-row" key={gateway.id}>
                   <div><strong>{gateway.display_name}</strong><span>{gateway.provider} · {gateway.deployment_scope} · {gateway.active_streams} שידורים</span></div>
-                  <StatusBadge tone={healthTone(gateway.status)}>{gateway.status}</StatusBadge>
-                  <StatusBadge tone={healthTone(gateway.health_status)}>{gateway.health_status}</StatusBadge>
+                  <StatusBadge tone={healthTone(gateway.status)}>{healthLabel(gateway.status)}</StatusBadge>
+                  <StatusBadge tone={healthTone(gateway.health_status)}>{healthLabel(gateway.health_status)}</StatusBadge>
                 </article>
               ))}</div>
             )}
@@ -147,7 +172,7 @@ export default async function AdminCamerasPage() {
             {data.observerQueue.length === 0 ? <EmptyState title="אין אירועים בתור" text="כאשר התצפיתן יזהה אינדיקציה, היא תמתין כאן לבדיקה אנושית." /> : (
               <div className="camera-infra-list">{data.observerQueue.slice(0, 8).map((item) => (
                 <article className="camera-infra-row" key={item.id}>
-                  <div><strong>{item.event_type}</strong><span>{item.status} · ביטחון {item.confidence ?? "-"}</span></div>
+                  <div><strong>{item.event_type}</strong><span>{healthLabel(item.status)} · ביטחון {item.confidence ?? "-"}</span></div>
                   <StatusBadge tone={item.parent_visible ? "warn" : "good"}>{item.parent_visible ? "מאושר להורה" : "פנימי"}</StatusBadge>
                 </article>
               ))}</div>
@@ -159,13 +184,13 @@ export default async function AdminCamerasPage() {
           <article className="card action-panel">
             <h2><AlertTriangle size={20} /> דורש טיפול</h2>
             {[...data.failedStreams, ...data.pendingSetup].slice(0, 8).length === 0 ? <div className="empty-mini">אין מצלמות שדורשות טיפול.</div> : [...data.failedStreams, ...data.pendingSetup].slice(0, 8).map((camera) => (
-              <div className="list-item" key={camera.id}><div><strong>{camera.name}</strong><span>{camera.gardens?.name ?? "גן"} · {camera.area ?? "אזור"} · {camera.gateway_last_error ?? camera.last_test_message ?? "נדרש חיבור"}</span></div><StatusBadge tone={healthTone(camera.status ?? camera.health_status)}>{camera.status ?? camera.health_status}</StatusBadge></div>
+              <div className="list-item" key={camera.id}><div><strong>{camera.name}</strong><span>{camera.gardens?.name ?? "גן"} · {camera.area ?? "אזור"} · {camera.gateway_last_error ?? camera.last_test_message ?? "נדרש חיבור"}</span></div><StatusBadge tone={healthTone(camera.status ?? camera.health_status)}>{healthLabel(camera.status ?? camera.health_status)}</StatusBadge></div>
             ))}
           </article>
           <article className="card action-panel">
             <h2><Activity size={20} /> צפיות ולוגים</h2>
             {data.sessions.length === 0 && data.audit.length === 0 ? <div className="empty-mini">אין פעילות צפייה עדיין.</div> : [...data.sessions, ...data.audit].slice(0, 8).map((item) => (
-              <div className="list-item" key={item.id}><div><strong>{item.action ?? "צפייה מאובטחת"}</strong><span>{dateText(item.started_at ?? item.created_at)} · {item.playback_protocol ?? item.status ?? "מתועד"}</span></div><StatusBadge tone={item.no_secrets_exposed === false ? "bad" : "good"}>{item.no_secrets_exposed === false ? "בדיקה" : "מאובטח"}</StatusBadge></div>
+              <div className="list-item" key={item.id}><div><strong>{item.action ?? "צפייה מאובטחת"}</strong><span>{dateText(item.started_at ?? item.created_at)} · {healthLabel(item.status) || "מתועד"}</span></div><StatusBadge tone={item.no_secrets_exposed === false ? "bad" : "good"}>{item.no_secrets_exposed === false ? "בדיקה" : "מאובטח"}</StatusBadge></div>
             ))}
           </article>
         </section>
@@ -181,6 +206,6 @@ export default async function AdminCamerasPage() {
           <ActionCard title="אינטגרציות" text="הפעלת ספקים" href="/dashboard/admin/integrations" icon={Camera} />
         </section>
       </div>
-    </DashboardShell>
+    </AdminAppFrame>
   );
 }

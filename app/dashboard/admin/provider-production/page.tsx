@@ -2,7 +2,7 @@ import Link from "next/link";
 import { Banknote, BellRing, Brain, Camera, CreditCard, FileText, HeartPulse, Mail, MessageCircle, RotateCcw, ShieldCheck, Smartphone, TestTube2, Webhook } from "lucide-react";
 import { AdminDataError } from "@/components/admin-data-state";
 import { AdminIntegrationsTestPanel } from "@/components/admin-integrations-test-panel";
-import { DashboardShell } from "@/components/dashboard-shell";
+import { AdminAppFrame } from "@/components/admin-app-ui";
 import { ActionCard, CleanSection, EmptyState, PremiumDashboardHero, RoleMetricCard, StatusBadge } from "@/components/premium-dashboard";
 import { requireRole } from "@/lib/auth";
 import { logSupabaseError, safeAdminData } from "@/lib/admin-safe";
@@ -35,7 +35,42 @@ async function safeQuery<T>(label: string, run: () => any) {
 }
 
 function label(value?: string | null) {
-  return String(value ?? "לא ידוע").replaceAll("_", " ");
+  const labels: Record<string, string> = {
+    configured: "מוגדר",
+    test_mode: "מצב בדיקה",
+    production_ready: "מוכן לייצור",
+    production_active: "פעיל בייצור",
+    active: "פעיל",
+    healthy: "תקין",
+    passed: "עבר",
+    ready: "מוכן",
+    available: "זמין",
+    tested: "נבדק",
+    approved: "מאושר",
+    reconciled: "מותאם",
+    production_pending: "ממתין לייצור",
+    not_configured: "לא מוגדר",
+    estimated: "אומדן",
+    reported: "דווח",
+    open: "פתוח",
+    ready_for_review: "מוכן לבדיקה",
+    acknowledged: "אושר בטיפול",
+    needs_review: "דורש בדיקה",
+    skipped: "דולג",
+    degraded: "ירידה בשירות",
+    failed: "נכשל",
+    disabled: "מושבת",
+    blocked: "חסום",
+    critical: "קריטי",
+    high: "גבוה",
+    medium: "בינוני",
+    low: "נמוך",
+    not_ready: "לא מוכן",
+    live: "חי",
+    mock: "מדומה",
+    sandbox: "Sandbox"
+  };
+  return labels[String(value ?? "").toLowerCase()] ?? String(value ?? "לא ידוע").replaceAll("_", " ");
 }
 
 function money(value: unknown) {
@@ -72,7 +107,7 @@ function modeFor(type: IntegrationType, modes: ReturnType<typeof getIntegrationS
 }
 
 export default async function ProviderProductionPage() {
-  await requireRole(["admin"]);
+  const { profile } = await requireRole(["admin"]);
   const modes = getIntegrationSafetyModes();
   const result = await safeAdminData("provider production activation", async () => {
     const supabase = await createClient();
@@ -126,7 +161,7 @@ export default async function ProviderProductionPage() {
   });
 
   return (
-    <DashboardShell role="admin" title="Provider Production">
+    <AdminAppFrame profile={profile} activeHref="/dashboard/admin/provider-production" title="בריאות ספקים" subtitle="ספקי תקשורת, תשלום, חשבוניות, Camera Gateway ו־AI תחת בקרה." badge="ספקים">
       <div className="commercial-dashboard">
         <PremiumDashboardHero
           eyebrow="Provider Production Activation"
@@ -344,6 +379,6 @@ export default async function ProviderProductionPage() {
           </section>
         </CleanSection>
       </div>
-    </DashboardShell>
+    </AdminAppFrame>
   );
 }
