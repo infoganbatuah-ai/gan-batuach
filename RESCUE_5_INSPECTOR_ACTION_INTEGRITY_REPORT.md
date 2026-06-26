@@ -57,3 +57,31 @@ This report covers visible inspector buttons, links and operational actions in t
 - No child/parent/staff detail expansion was added.
 - No RLS, authentication, GPS, signature, AI or camera policy logic was changed.
 
+## UXQA 5A Update - 2026-06-26
+
+Additional QA checks performed:
+
+| Area | Check | Result |
+|---|---|---|
+| Inspector shell | Searched inspector routes for legacy `DashboardShell`, parent/staff/admin frames, public header usage and duplicate navigation markers | No conflicting shell usage found inside `app/dashboard/inspector`. |
+| Camera safety | Searched inspector camera route for RTSP/IP/credential exposure | Inspector route passes `safeDetails` to the camera card. The generic card still contains a non-safe fallback for other contexts, but inspector usage is safe. |
+| Raw statuses | Searched common raw enum display patterns | Fixed direct raw display in due inspections, inspection wizard, compliance, observer pilot and ratings. |
+| Assignment scope | Reviewed primary dashboard/camera query patterns | Routes continue to scope by `requireRole(["inspector"])` and assigned garden IDs; real-data URL manipulation still needs authenticated QA. |
+
+Actions fixed during UXQA 5A:
+
+| Route/component | Issue | Fix |
+|---|---|---|
+| `components/inspector-inspection-wizard.tsx` | Inspection status and question type could fall back to raw enum text | Added Hebrew status and question-type label helpers. |
+| `/dashboard/inspector/inspections/due` | Inspection type could display raw enum values | Added Hebrew inspection-type labels. |
+| `/dashboard/inspector/compliance` | Resolution status and alert severity could display raw enum values | Added Hebrew resolution/severity labels. |
+| `/dashboard/inspector/observer-pilot` | Reviewed signal and calibration statuses could display raw enum values | Added Hebrew review/calibration labels. |
+| `/dashboard/inspector/ratings` | Recommendation impact level displayed raw enum values | Added Hebrew impact labels and matching status tone helper. |
+
+Remaining action classifications after UXQA 5A:
+
+- `fully functional`: internal navigation to inspector dashboard, gardens, inspections, history, violations, compliance, ratings, tasks, settings and notifications.
+- `functional with existing backend`: inspection wizard draft/submit, task workbench, violation status actions and notification center.
+- `provider_required`: live camera playback, external messaging/notification delivery and any gateway-backed camera session.
+- `backend_verification_required`: report/PDF generation, evidence uploads, GPS validation and signed evidence/report access should be tested with real authenticated inspector data.
+- `manual_visual_review_required`: all reference matching should be reviewed visually against the external PNGs.

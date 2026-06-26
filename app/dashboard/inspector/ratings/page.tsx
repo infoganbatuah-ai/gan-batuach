@@ -30,6 +30,23 @@ function toTone(value: string | number) {
   return tone === "good" ? "success" : tone === "warn" ? "warning" : tone === "bad" ? "danger" : "primary";
 }
 
+function impactLevelLabel(value?: string | null) {
+  const labels: Record<string, string> = {
+    critical: "קריטי",
+    high: "גבוה",
+    medium: "בינוני",
+    low: "נמוך"
+  };
+  return labels[String(value ?? "").toLowerCase()] ?? "דורש בדיקה";
+}
+
+function impactTone(value?: string | null) {
+  const key = String(value ?? "").toLowerCase();
+  if (key === "critical" || key === "high") return "danger";
+  if (key === "medium") return "warning";
+  return "primary";
+}
+
 export default async function InspectorRatingsPage() {
   const { profile } = await requireRole(["inspector"]);
   const result = await safeAdminData("inspector ratings", async () => {
@@ -111,7 +128,7 @@ export default async function InspectorRatingsPage() {
               title={rec.title}
               subtitle={rec.gardens?.name ?? "גן"}
               meta={rec.category}
-              status={<InspectorStatus tone={rec.impact_level === "high" ? "danger" : "warning"}>{rec.impact_level}</InspectorStatus>}
+              status={<InspectorStatus tone={impactTone(rec.impact_level)}>{impactLevelLabel(rec.impact_level)}</InspectorStatus>}
             />
           ))}
           {data.recommendations.length === 0 ? <InspectorEmpty title="אין המלצות פתוחות" text="כאשר תיווצר המלצה מקצועית, היא תופיע כאן." icon={ShieldCheck} /> : null}

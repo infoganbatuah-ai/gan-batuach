@@ -58,3 +58,32 @@ The following inspector routes remain available and use the inspector app frame 
 - `/dashboard/inspector/ai-events`
 - `/dashboard/inspector/apply`
 
+## UXQA 5A Update - 2026-06-26
+
+Reference storage status:
+
+- Repository reference folder `docs/ux-references/inspector/` is still not present.
+- External inspector reference PNGs were identified and used for route coverage mapping.
+- Pixel-perfect validation remains `manual_visual_review_required` because references are outside the repository and no authenticated browser capture was produced during this pass.
+
+Coverage classification:
+
+| Reference | Route(s) checked | UXQA 5A status | Notes |
+|---|---|---|---|
+| דשבורד ראשי מפקח | `/dashboard/inspector` | Implemented with minor manual visual review required | Uses `InspectorAppFrame`, assigned-garden scoped queries, pending state branch and truthful empty states. |
+| גנים משויכים | `/dashboard/inspector/control-center`, `/dashboard/inspector/command-center` | Implemented with minor manual visual review required | Assigned-garden list is scoped by inspector assignment. No unassigned garden list UI was found. |
+| ביקורות | `/dashboard/inspector/inspections`, `/dashboard/inspector/inspections/due` | Implemented with backend/provider QA required | Existing wizard preserved. Inspection type/status labels were normalized to Hebrew where direct raw display was found. |
+| טופס ביקורת | `InspectorInspectionWizard`, `InspectionFormBuilder` | Implemented with manual form QA required | Canonical form flow preserved. Question type chips were changed from raw enum fallback to Hebrew labels. |
+| היסטוריית ביקורות | `/dashboard/inspector/inspections/history` | Implemented with minor manual visual review required | Existing report links retained; report API must be verified with real authorized data. |
+| דוח ביקורת לגן | `/api/inspections/[id]/report`, history report links | Provider/backend verification required | No fake PDF button was added. Existing report endpoint remains the source of truth. |
+| ליקויים וממצאים | `/dashboard/inspector/violations`, `/dashboard/inspector/compliance` | Implemented with fixed label issues | Compliance resolution/severity chips now render Hebrew labels instead of raw enum values. |
+| מעקב ותיקון ליקויים | `/dashboard/inspector/violations`, `/dashboard/inspector/compliance` | Implemented with backend QA required | Existing status components and authorization logic preserved. |
+| מצלמות / Observer / AI | `/dashboard/inspector/cameras`, `/dashboard/inspector/observer-pilot`, `/dashboard/inspector/observer-network`, `/dashboard/inspector/ai-events` | Implemented with provider/security follow-up required | Inspector camera route forces `safeDetails`; observer review/calibration statuses now render Hebrew labels. |
+| פרופיל / בקשת מפקח | `/dashboard/inspector/apply`, `/dashboard/inspector/settings` | Implemented with manual flow QA required | Pending inspector sees a focused non-operational state. |
+
+UXQA 5A findings applied to this matrix:
+
+- `fixed`: raw enum labels in due inspections, inspection wizard, compliance, observer pilot and ratings recommendations.
+- `provider_required`: live camera access, external notification delivery, evidence upload, report/PDF generation.
+- `security_followup_required`: real-data assignment isolation, evidence signed URL access, GPS server validation, report authorization and reviewed AI signal boundaries require QA with seeded/authenticated accounts.
+- `manual_visual_review_required`: final screenshot matching at mobile/tablet/desktop.

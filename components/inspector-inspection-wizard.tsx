@@ -15,6 +15,34 @@ type Question = { id: string; form_id: string; category: string; question_text: 
 
 type AnswerState = Record<string, { score?: number; boolean_value?: boolean; text_value?: string; note?: string; photo_url?: string; document_url?: string }>;
 
+function statusLabel(value?: string | null) {
+  const labels: Record<string, string> = {
+    open: "פתוח",
+    planned: "מתוכננת",
+    scheduled: "מתוכננת",
+    in_progress: "בביצוע",
+    pending: "ממתינה להשלמה",
+    follow_up: "נדרש מעקב",
+    overdue: "באיחור",
+    done: "הושלמה",
+    completed: "הושלמה",
+    closed: "נסגרה"
+  };
+  return labels[String(value ?? "").toLowerCase()] ?? "פתוח";
+}
+
+function questionTypeLabel(value?: string | null) {
+  const labels: Record<string, string> = {
+    score: "ציון",
+    boolean: "כן/לא",
+    text_note: "הערה",
+    photo_upload: "צילום",
+    document_upload: "מסמך",
+    video_upload: "ראיה"
+  };
+  return labels[String(value ?? "").toLowerCase()] ?? "ציון";
+}
+
 export function InspectorInspectionWizard({ inspections, questions, initialInspectionId = "" }: { inspections: Inspection[]; questions: Question[]; initialInspectionId?: string }) {
   const [rows, setRows] = useState(inspections);
   const [selectedInspectionId, setSelectedInspectionId] = useState(initialInspectionId && inspections.some((inspection) => inspection.id === initialInspectionId) ? initialInspectionId : inspections[0]?.id || "");
@@ -117,7 +145,7 @@ export function InspectorInspectionWizard({ inspections, questions, initialInspe
                 <button className={item.id === selectedInspectionId ? "gb-list-row-card selected" : "gb-list-row-card"} key={item.id} onClick={() => setSelectedInspectionId(item.id)}>
                   <div className="gb-list-main">
                     <b>{item.gardens?.name || "גן"}</b>
-                    <span>{item.gardens?.city || ""} · {item.status || "פתוח"}</span>
+                    <span>{item.gardens?.city || ""} · {statusLabel(item.status)}</span>
                   </div>
                 </button>
               ))}
@@ -143,7 +171,7 @@ export function InspectorInspectionWizard({ inspections, questions, initialInspe
           {formQuestions.filter((question) => question.category === category).map((question) => (
             <div className="inspection-answer-card" key={question.id}>
               <div>
-                <StatusChip tone={question.critical ? "danger" : "muted"}>{question.critical ? "קריטי" : question.question_type || "ציון"}</StatusChip>
+                <StatusChip tone={question.critical ? "danger" : "muted"}>{question.critical ? "קריטי" : questionTypeLabel(question.question_type)}</StatusChip>
                 <strong>{question.question_text}</strong>
               </div>
               {question.question_type === "boolean" ? <select onChange={(event) => update(question.id, { boolean_value: event.target.value === "yes", score: event.target.value === "yes" ? 10 : 4 })}><option value="">בחרו</option><option value="yes">כן</option><option value="no">לא</option></select> : question.question_type === "text_note" ? <textarea placeholder="תשובה / הערה" onChange={(event) => update(question.id, { text_value: event.target.value, score: 10 })} /> : <input type="number" min="1" max="10" placeholder="ציון 1-10" onChange={(event) => update(question.id, { score: Number(event.target.value) })} />}

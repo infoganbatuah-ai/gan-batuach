@@ -42,6 +42,31 @@ function toTone(value?: string | number | null) {
   return tone === "bad" ? "danger" : tone === "warn" ? "warning" : tone === "good" ? "success" : "primary";
 }
 
+function reviewStatusLabel(value?: string | null) {
+  const labels: Record<string, string> = {
+    detected: "זוהה לבדיקה",
+    pending_review: "ממתין לעיון",
+    reviewing: "בסקירה",
+    needs_followup: "נדרש מעקב",
+    dismissed: "נסגר כלא רלוונטי",
+    confirmed: "אושר אנושית"
+  };
+  return labels[String(value ?? "").toLowerCase()] ?? "ממתין לעיון";
+}
+
+function calibrationStatusLabel(value?: string | null) {
+  const labels: Record<string, string> = {
+    draft: "טיוטה",
+    collecting: "איסוף נתונים",
+    calibrating: "בכיול",
+    ready: "מוכן לבדיקה",
+    stable: "יציב",
+    needs_review: "דורש סקירה",
+    blocked: "חסום"
+  };
+  return labels[String(value ?? "").toLowerCase()] ?? "בכיול";
+}
+
 export default async function InspectorObserverPilotPage() {
   const { profile } = await requireRole(["inspector"]);
   const supabase = await createClient();
@@ -137,7 +162,7 @@ export default async function InspectorObserverPilotPage() {
               title={eventLabel(signal.event_type)}
               subtitle={`${signal.camera_streams?.name ?? "מצלמה"} · ${signal.camera_zones?.name ?? "אזור"}`}
               meta={signal.event_timestamp ? new Date(signal.event_timestamp).toLocaleString("he-IL") : ""}
-              status={<InspectorStatus tone={toTone(signal.review_status)}>{signal.review_status}</InspectorStatus>}
+              status={<InspectorStatus tone={toTone(signal.review_status)}>{reviewStatusLabel(signal.review_status)}</InspectorStatus>}
             />
           ))}
           {pendingReview.length === 0 ? <InspectorEmpty title="אין סימנים שממתינים לעיון" text="כאשר תצטבר אינדיקציה רלוונטית בגנים המשויכים, היא תופיע כאן." icon={ShieldCheck} /> : null}
@@ -152,7 +177,7 @@ export default async function InspectorObserverPilotPage() {
               title={eventLabel(item.event_type)}
               subtitle={`${Number(item.reviewed_events_count ?? 0)} סקירות · ${Number(item.false_positive_count ?? 0)} FP · ${Number(item.false_negative_count ?? 0)} FN`}
               meta={`סף ביטחון ${item.confidence_threshold ?? "-"}`}
-              status={<InspectorStatus tone={toTone(item.calibration_status)}>{item.calibration_status}</InspectorStatus>}
+              status={<InspectorStatus tone={toTone(item.calibration_status)}>{calibrationStatusLabel(item.calibration_status)}</InspectorStatus>}
             />
           ))}
           {calibration.length === 0 ? <InspectorEmpty title="אין עדיין פרופילי כיול" text="נדרש איסוף אירועים וסקירה אנושית כדי לבנות כיול." icon={SlidersHorizontal} /> : null}
