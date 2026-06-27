@@ -4,24 +4,33 @@ import { ParentAppFrame, ParentEmptyState, ParentHero, ParentSection } from "@/c
 import { requireRole } from "@/lib/auth";
 import { getParentFamilyContext } from "@/lib/domain/parent-family";
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
+
+function isParentApprovedSummary(event: any) {
+  const metadata = event?.metadata ?? {};
+  return (
+    metadata.parent_visible === true &&
+    metadata.parent_approved === true &&
+    typeof metadata.parent_summary === "string" &&
+    metadata.parent_summary.trim().length > 0 &&
+    ["confirmed", "reviewed", "parent_approved", "done"].includes(String(event?.status ?? ""))
+  );
+}
 
 export default async function ParentAiEventsPage() {
   const { profile } = await requireRole(["parent"]);
   const userScopedSupabase = await createClient();
-  const supabase = isAdminClientConfigured() ? createAdminClient() : userScopedSupabase;
   const family = await getParentFamilyContext(userScopedSupabase as any, profile);
   const gardenIds = family.gardenIds;
   const eventsRes = gardenIds.length
-    ? await supabase
+    ? await userScopedSupabase
         .from("ai_events" as any)
-        .select("id, garden_id, camera_stream_id, event_type, severity, status, confidence, detected_at, screenshot_url, notes, metadata, gardens(name), camera_streams(name, area)")
+        .select("id, garden_id, severity, status, detected_at, metadata, gardens(name)")
         .in("garden_id", gardenIds)
         .filter("metadata->>parent_visible", "eq", "true")
         .order("detected_at", { ascending: false })
         .limit(40)
     : { data: [] };
-  const events = (eventsRes.data ?? []) as any[];
+  const events = ((eventsRes.data ?? []) as any[]).filter(isParentApprovedSummary);
 
   return (
     <DashboardShell role="parent" title="עדכוני בטיחות" appHome>
@@ -38,11 +47,11 @@ export default async function ParentAiEventsPage() {
                 <article className="parent-document-card" key={event.id}>
                   <div>
                     <span className={event.severity === "critical" || event.severity === "high" ? "parent-status-chip orange" : "parent-status-chip purple"}>{event.severity === "critical" || event.severity === "high" ? "חשוב" : "לעדכון"}</span>
-                    <h3>{event.metadata?.parent_title ?? event.event_type}</h3>
-                    <p>{event.gardens?.name ?? "גן"} · {event.camera_streams?.area ?? "אזור"}</p>
+                    <h3>{event.metadata?.parent_title ?? "עדכון בטיחות שאושר"}</h3>
+                    <p>{event.gardens?.name ?? "גן"}</p>
                     <small>{event.detected_at ? new Date(event.detected_at).toLocaleString("he-IL") : ""}</small>
                   </div>
-                  <p>{event.notes ?? event.metadata?.parent_summary ?? "עדכון שאושר להצגת הורים."}</p>
+                  <p>{event.metadata?.parent_summary ?? "עדכון שאושר להצגת הורים."}</p>
                 </article>
               ))}
             </div>
