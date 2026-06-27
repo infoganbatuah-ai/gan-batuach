@@ -45,6 +45,11 @@ const severityByEvent: Record<(typeof aiDetectionTypes)[number], "low" | "medium
   camera_disconnected: "high"
 };
 
+const blockedGanBatuachEventTypes = new Set<(typeof aiDetectionTypes)[number]>([
+  "violence_detection",
+  "cry_detection"
+]);
+
 function pickRule(rules: any[], gardenId: string, cameraStreamId?: string) {
   return (
     rules.find((rule) => rule.camera_stream_id && cameraStreamId && rule.camera_stream_id === cameraStreamId) ??
@@ -55,12 +60,13 @@ function pickRule(rules: any[], gardenId: string, cameraStreamId?: string) {
 }
 
 export async function registerAiObservation(payload: z.infer<typeof aiObservationSchema>) {
-  // Future architecture integration point:
-  // AI_GATEWAY_URL will orchestrate face-recognition-service,
-  // speech-analysis-service and motion analysis. This function is the current
-  // signed event ingestion contract for structured AI events after gateway-side
-  // analysis, without claiming live AI is active before the gateway exists.
+  // Future architecture integration point for reviewed motion/pose/camera-health
+  // candidates. Gan Batuach Israel Mode blocks audio, face recognition and
+  // automatic accusations before structured events enter the review workflow.
   const parsed = aiObservationSchema.parse(payload);
+  if (blockedGanBatuachEventTypes.has(parsed.event_type)) {
+    throw new Error("This AI event type is restricted in Gan Batuach Israel Mode and requires a separate legal/product workflow.");
+  }
   const supabase = createAdminClient();
   const { data: rules, error: rulesError } = await supabase
     .from("ai_observer_rules")
@@ -135,7 +141,18 @@ export async function registerAiObservation(payload: z.infer<typeof aiObservatio
       confidence: parsed.confidence,
       snapshot_id: snapshotId,
       screenshot_url: parsed.snapshot_storage_path,
-      metadata: { ...parsed.metadata, threshold, cooldown_seconds: cooldownSeconds, rule_id: rule?.id ?? null },
+      metadata: {
+        ...parsed.metadata,
+        threshold,
+        cooldown_seconds: cooldownSeconds,
+        rule_id: rule?.id ?? null,
+        shadow_mode: true,
+        review_required: true,
+        parent_visible: false,
+        no_audio_analysis: true,
+        no_face_recognition: true,
+        automatic_accusation: false
+      },
       notes: parsed.notes
     } as any)
     .select("*")

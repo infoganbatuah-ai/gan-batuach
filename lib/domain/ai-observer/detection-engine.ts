@@ -141,8 +141,8 @@ export class MockDetectionEngine implements DetectionEngine {
         rule_key: "violence_indicator",
         event_type: "violence_indicator",
         confidence: 0.74,
-        title: "אינדיקציה לאלימות לבדיקה",
-        description: "אינדיקציית mock בלבד. אין האשמה או מסקנה משמעתית.",
+        title: "אינדיקציה לתנועה חריגה לבדיקה",
+        description: "אינדיקציית mock בלבד. אין האשמה, אין זיהוי אלימות ואין מסקנה משמעתית.",
         zone_type: input.zone?.zone_type,
         metadata: { mock: true, scenario, safety_framework: true }
       },
@@ -150,8 +150,8 @@ export class MockDetectionEngine implements DetectionEngine {
         rule_key: "aggressive_behavior_indicator",
         event_type: "aggressive_behavior_indicator",
         confidence: 0.7,
-        title: "אינדיקציה להתנהגות אגרסיבית",
-        description: "אינדיקציית mock להתנהגות חריגה. נדרש review אנושי.",
+        title: "אינדיקציה לתנועה חריגה",
+        description: "אינדיקציית mock לתנועה חריגה. נדרש review אנושי.",
         zone_type: input.zone?.zone_type,
         metadata: { mock: true, scenario, safety_framework: true }
       },
@@ -159,8 +159,8 @@ export class MockDetectionEngine implements DetectionEngine {
         rule_key: "prolonged_crying_indicator",
         event_type: "prolonged_crying_indicator",
         confidence: 0.68,
-        title: "אינדיקציה לבכי ממושך",
-        description: "אינדיקציית mock בלבד. אין ניתוח שמע אמיתי.",
+        title: "אינדיקציה חזותית למצוקה לבדיקה",
+        description: "אינדיקציית mock בלבד. אין ניתוח שמע, אין האזנה ואין מסקנה אוטומטית.",
         zone_type: input.zone?.zone_type,
         metadata: { mock: true, scenario, safety_framework: true, audio_analysis: false }
       },
