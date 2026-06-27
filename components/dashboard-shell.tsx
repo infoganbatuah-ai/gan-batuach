@@ -375,7 +375,7 @@ export function DashboardShell({
   return (
     <>
       {isAppHome ? null : <BrandHeader />}
-      <div className={`dashboard-layout dashboard-role-${role}${isAppHome ? " app-home-layout" : ""}`}>
+      <div className={`dashboard-layout responsive-dashboard-shell dashboard-role-${role}${isAppHome ? " app-home-layout" : ""}`}>
         {isAppHome ? null : (
           <aside className="sidebar">
             <div className="sidebar-topline">
@@ -404,7 +404,7 @@ export function DashboardShell({
             <PasskeyEnrollmentPrompt />
           </aside>
         )}
-        <main className="dashboard-main">
+        <main className="dashboard-main responsive-dashboard-main">
           {isAppHome ? (
             <div className="native-app-topbar">
               <div>
@@ -441,7 +441,7 @@ export function DashboardShell({
           {isAppHome ? null : <OnboardingGuideControls role={role} />}
           {isAppHome ? null : <RoleOnboardingGuide role={role} />}
           {role === "admin" && !isAppHome ? <AdminGlobalSearch /> : null}
-          <section className={`app-dashboard-stage${isAppHome ? " native-app-stage" : ""}`} aria-label="אזור עבודה">
+          <section className={`app-dashboard-stage responsive-content-stage${isAppHome ? " native-app-stage" : ""}`} aria-label="אזור עבודה">
             {children}
           </section>
           {isAppHome ? null : <AIAssistantPanel role={role} />}
