@@ -1,3 +1,5 @@
+import { getAiProviderGuardrails } from "@/lib/domain/ai-provider-guardrails";
+
 export type VisionProviderKey = "local_mock" | "opencv" | "yolo" | "ultralytics" | "local_http" | "custom";
 
 export type VisionProviderType = "mock" | "opencv" | "yolo" | "ultralytics" | "local_http" | "custom";
@@ -113,7 +115,7 @@ export function normalizeVisionProvider(provider?: string | null): VisionProvide
 }
 
 export function getVisionProvider(provider?: string | null): VisionProvider {
-  return new SafeVisionProvider(normalizeVisionProvider(provider ?? process.env.VISION_PROVIDER ?? process.env.LOCAL_VISION_PROVIDER));
+  return new SafeVisionProvider(normalizeVisionProvider(provider ?? process.env.AI_PROVIDER ?? process.env.VISION_PROVIDER ?? process.env.LOCAL_VISION_PROVIDER));
 }
 
 export function combineVisionConfidence(input: VisionConfidenceInput) {
@@ -166,7 +168,8 @@ class SafeVisionProvider implements VisionProvider {
 
   async analyzeFrame(input: VisionFrameAnalysisInput): Promise<VisionFrameAnalysisResult> {
     const started = Date.now();
-    const configured = this.isConfigured();
+    const guardrails = getAiProviderGuardrails();
+    const configured = this.isConfigured() && guardrails.realInferenceAllowed;
     const activeKey: VisionProviderKey = configured ? this.key : "local_mock";
     const category = inferDetectionCategory(input);
     const modelConfidence = confidenceFor(category, configured);
@@ -206,6 +209,8 @@ class SafeVisionProvider implements VisionProvider {
       metadata: {
         requested_provider: this.key,
         active_provider: activeKey,
+        ai_provider_mode: guardrails.mode,
+        frame_source_status: guardrails.frameSourceStatus,
         frame_source_type: input.frameSourceType ?? "mock_frame",
         gateway_snapshot_available: Boolean(input.gatewaySnapshotUrl),
         raw_stream_exposed: false,
@@ -219,7 +224,8 @@ class SafeVisionProvider implements VisionProvider {
   }
 
   readiness(): VisionProviderReadiness {
-    const configured = this.isConfigured();
+    const guardrails = getAiProviderGuardrails();
+    const configured = this.isConfigured() && guardrails.realInferenceAllowed;
     return {
       key: this.key,
       type: this.type,
@@ -231,15 +237,17 @@ class SafeVisionProvider implements VisionProvider {
       message: this.key === "local_mock"
         ? "Mock provider is active. No real frames are processed."
         : configured
-          ? "Provider is configured for future local processing. Shadow mode remains required."
-          : "Provider adapter is ready, but runtime credentials/dependencies are not configured."
+          ? "Provider and frame source are configured for controlled test inference. Shadow mode remains required."
+          : guardrails.missingEnv.length
+            ? `Provider adapter is ready, but setup is incomplete: ${guardrails.missingEnv.join(", ")}.`
+            : "Provider adapter is ready, but real inference mode is not enabled."
     };
   }
 
   private isConfigured() {
     if (this.key === "local_mock") return true;
-    if (this.key === "local_http") return Boolean(process.env.LOCAL_VISION_ENDPOINT);
-    if (this.key === "custom") return Boolean(process.env.CUSTOM_VISION_ENDPOINT);
+    if (this.key === "local_http") return Boolean(process.env.AI_INFERENCE_ENDPOINT ?? process.env.LOCAL_VISION_ENDPOINT);
+    if (this.key === "custom") return Boolean(process.env.AI_INFERENCE_ENDPOINT ?? process.env.CUSTOM_VISION_ENDPOINT);
     return Boolean(process.env.LOCAL_VISION_ENABLED === "true");
   }
 }

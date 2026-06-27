@@ -4,7 +4,7 @@ export type PaymentMode = ProviderMode;
 export type InvoiceMode = ProviderMode;
 export type PushMode = "disabled" | "test" | "production";
 export type CameraGatewayMode = "disabled" | "test" | "production";
-export type AiProviderMode = "mock" | "shadow" | "production";
+export type AiProviderMode = "disabled" | "mock" | "readiness" | "shadow" | "test_inference" | "real_inference" | "production";
 export type IntegrationType =
   | "email"
   | "whatsapp"
@@ -35,7 +35,7 @@ export function getIntegrationSafetyModes() {
   const invoice = normalizeProviderMode(process.env.INVOICE_MODE, "mock");
   const push = oneOf(process.env.PUSH_MODE, ["disabled", "test", "production"] as const, "disabled");
   const cameraGateway = oneOf(process.env.CAMERA_GATEWAY_MODE, ["disabled", "test", "production"] as const, "disabled");
-  const aiProvider = oneOf(process.env.AI_PROVIDER_MODE, ["mock", "shadow", "production"] as const, "mock");
+  const aiProvider = oneOf(process.env.AI_PROVIDER_MODE, ["disabled", "mock", "readiness", "shadow", "test_inference", "real_inference", "production"] as const, "mock");
 
   return {
     communications,
@@ -91,7 +91,7 @@ export function getProviderMissingConfiguration(type: IntegrationType, provider?
     return [["CAMERA_GATEWAY_URL", "VIDEO_GATEWAY_URL"], ["CAMERA_GATEWAY_SECRET", "VIDEO_GATEWAY_API_KEY", "VIDEO_GATEWAY_SIGNING_SECRET"], ["CAMERA_GATEWAY_PUBLIC_BASE_URL", "VIDEO_GATEWAY_PUBLIC_URL"]].filter((group) => !hasAny(group)).map((group) => group.join(" or "));
   }
   if (type === "ai_provider") {
-    return [["LOCAL_VISION_ENDPOINT", "CUSTOM_VISION_ENDPOINT"]].filter((group) => !hasAny(group)).map((group) => group.join(" or "));
+    return [["AI_INFERENCE_ENDPOINT", "LOCAL_VISION_ENDPOINT", "CUSTOM_VISION_ENDPOINT"], ["CAMERA_GATEWAY_PUBLIC_BASE_URL", "AI_SAFE_TEST_FRAME_PATH"]].filter((group) => !hasAny(group)).map((group) => group.join(" or "));
   }
   return [];
 }
@@ -120,6 +120,7 @@ export function getSafeIntegrationStatus(type: IntegrationType, provider?: strin
     return missing.length ? "not_configured" : modes.cameraGateway === "production" ? "production_ready" : "test_mode";
   }
   if (type === "ai_provider") {
+    if (modes.aiProvider === "disabled") return "disabled";
     return missing.length ? "not_configured" : modes.aiProvider === "production" ? "production_ready" : "test_mode";
   }
   return missing.length ? "not_configured" : "configured";
