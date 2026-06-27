@@ -28,6 +28,24 @@ export function sanitizeCameraForParent(camera: Record<string, any>) {
   };
 }
 
+export function sanitizeCameraForPlaybackCard(camera: Record<string, any>) {
+  return {
+    id: camera.id,
+    camera_garden_id: getCameraGardenId(camera),
+    garden_id: getCameraGardenId(camera),
+    kindergarten_id: getCameraGardenId(camera),
+    name: camera.name ?? "מצלמה",
+    area: camera.area ?? null,
+    status: camera.status ?? camera.stream_status ?? null,
+    active: camera.active ?? null,
+    health_status: getCameraHealthStatus(camera),
+    last_health_check_at: camera.last_health_check_at ?? null,
+    parent_visibility_status: camera.parent_visibility_status ?? null,
+    parent_blocked_reason: camera.parent_blocked_reason ?? null,
+    playback_source_available: hasPlaybackSource(camera)
+  };
+}
+
 export function buildCameraAuditSummary(cameras: Array<Record<string, any>>) {
   const health = summarizeCameraHealth(cameras);
   const orphanCameras = cameras.filter((camera) => !getCameraGardenId(camera));

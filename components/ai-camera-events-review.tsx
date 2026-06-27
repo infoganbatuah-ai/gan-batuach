@@ -24,7 +24,7 @@ function severityTone(severity?: string) {
 function categoryLabel(category?: string | null) {
   return ({
     distress: "מצוקה",
-    violence: "אלימות/אגרסיביות",
+    violence: "תנועה חריגה לבדיקה",
     supervision: "השגחה",
     crowding: "צפיפות",
     fall: "נפילה",
@@ -112,7 +112,7 @@ export function AiCameraEventsReview({ events, gardens = [], cameras = [], role 
       <section className="card action-panel">
         <div className="section-heading"><h2>Safety review framework</h2><p>אינדיקציות בלבד. אין האשמה, אין מסקנה משמעתית ואין הודעת הורים לפני workflow מאושר.</p></div>
         <div className="tag-cloud">{Object.entries(byCategory).length === 0 ? <span>אין safety indicators כרגע</span> : Object.entries(byCategory).map(([category, count]) => <span key={category}>{categoryLabel(category)}: {count}</span>)}</div>
-        <div className="tag-cloud"><span>Confirmed: {confirmedRows.length}</span><span>Dismissed: {safetyRows.filter((event) => event.status === "dismissed").length}</span><span>Open: {safetyRows.filter((event) => ["open", "reviewing"].includes(event.status ?? "open")).length}</span></div>
+        <div className="tag-cloud"><span>אושרו לאחר בדיקה: {confirmedRows.length}</span><span>נדחו: {safetyRows.filter((event) => event.status === "dismissed").length}</span><span>פתוחים לבדיקה: {safetyRows.filter((event) => ["open", "reviewing"].includes(event.status ?? "open")).length}</span></div>
       </section>
       {adminMode ? (
         <form className="form-card compact-form" action={createMock}>

@@ -49,7 +49,7 @@ export default async function Page() {
   return (
     <DashboardShell role="parent" title="מצלמות הגן" appHome>
       <ParentAppFrame active="dashboard" avatarUrl={(profile as any).profile_image_url ?? null}>
-        <ParentHero title="מצלמות וניטור בזמן אמת" subtitle="צפייה חיה בגן וניטור מצב הילדים" />
+        <ParentHero title="מצלמות הגן" subtitle="צפייה מאובטחת רק כאשר הגן, המדיניות והשער הטכני מאפשרים זאת" />
 
         <ParentSection title="מצלמות גן" subtitle={groups.length ? "מצלמות שאושרו לצפיית הורים" : "ממתין לאישור הגן"} className="parent-camera-reference-section">
           {groups.length === 0 ? (

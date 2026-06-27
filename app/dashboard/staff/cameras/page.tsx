@@ -3,6 +3,7 @@ import { Camera, ShieldCheck } from "lucide-react";
 import { CameraPreviewCard, StatusChip } from "@/components/gan-batuach-design-system";
 import { StaffAppFrame, StaffEmpty, StaffPageHero, StaffSection } from "@/components/staff-app-ui";
 import { requireRole } from "@/lib/auth";
+import { sanitizeCameraForPlaybackCard } from "@/lib/domain/camera-diagnostics";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function StaffCamerasPage() {
@@ -62,7 +63,7 @@ export default async function StaffCamerasPage() {
                 subtitle={`${camera.area ?? "אזור לא צוין"} · ${camera.gardens?.name ?? "גן"}`}
                 live={(camera.status === "online" || camera.status === "connected") && hasPlaybackSource(camera)}
                 status={<StatusChip tone={(camera.status === "online" || camera.status === "connected") && hasPlaybackSource(camera) ? "success" : "warning"}>{statusLabel[camera.status] ?? "ממתינה"}</StatusChip>}
-                action={<CameraPlaybackCard camera={camera} accessReason="צפיית צוות מורשית" safeDetails />}
+                action={<CameraPlaybackCard camera={sanitizeCameraForPlaybackCard(camera)} accessReason="צפיית צוות מורשית" safeDetails />}
               />
             ))}
           </div>

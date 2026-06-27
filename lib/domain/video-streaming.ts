@@ -344,7 +344,14 @@ export async function createCameraPlaybackSession(cameraStreamId: string, payloa
     token,
     expires_at: expiresAt,
     playback_url: playbackUrl,
-    session,
+    session: {
+      id: (session as any).id,
+      camera_stream_id: cameraStreamId,
+      garden_id: cameraGardenId,
+      viewer_role: role,
+      playback_protocol: parsed.protocol,
+      token_expires_at: expiresAt
+    },
     watermark: {
       text: watermarkText,
       required: role === "parent" ? parentPolicy?.watermark_required !== false : false,

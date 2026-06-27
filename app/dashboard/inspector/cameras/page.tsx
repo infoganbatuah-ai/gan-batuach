@@ -1,6 +1,7 @@
 import { Camera, ShieldCheck } from "lucide-react";
 import { CameraPlaybackCard } from "@/components/camera-playback-card";
 import { requireRole } from "@/lib/auth";
+import { sanitizeCameraForPlaybackCard } from "@/lib/domain/camera-diagnostics";
 import { createClient } from "@/lib/supabase/server";
 import { InspectorAppFrame, InspectorEmpty, InspectorHero, InspectorMetricCard, InspectorMetricGrid, InspectorSection } from "@/components/inspector-app-ui";
 
@@ -40,7 +41,7 @@ export default async function InspectorCamerasPage() {
           <InspectorEmpty title="אין מצלמות בגנים המשויכים" text="כאשר גן משויך יגדיר מצלמות מאושרות לפיקוח, הן יופיעו כאן לצפייה מאובטחת." icon={Camera} />
         ) : (
           <div className="camera-playback-grid">
-            {allowed.map((camera) => <CameraPlaybackCard camera={camera} accessReason="בדיקת פיקוח/ציות בגן משויך" safeDetails key={camera.id} />)}
+            {allowed.map((camera) => <CameraPlaybackCard camera={sanitizeCameraForPlaybackCard(camera)} accessReason="בדיקת פיקוח/ציות בגן משויך" safeDetails key={camera.id} />)}
           </div>
         )}
       </InspectorSection>
