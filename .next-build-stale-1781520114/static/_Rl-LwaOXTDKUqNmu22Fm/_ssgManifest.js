@@ -1,1 +1,0 @@
-self.__SSG_MANIFEST=new Set(["\u002Fdigital-observer\u002F[useCase]"]);self.__SSG_MANIFEST_CB&&self.__SSG_MANIFEST_CB()

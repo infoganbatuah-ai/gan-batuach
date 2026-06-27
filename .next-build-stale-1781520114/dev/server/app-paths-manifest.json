@@ -1,8 +1,0 @@
-{
-  "/dashboard/admin/launch-readiness/page": "app/dashboard/admin/launch-readiness/page.js",
-  "/dashboard/admin/page": "app/dashboard/admin/page.js",
-  "/dashboard/admin/pilot-center/page": "app/dashboard/admin/pilot-center/page.js",
-  "/dashboard/garden/page": "app/dashboard/garden/page.js",
-  "/dashboard/parent/page": "app/dashboard/parent/page.js",
-  "/login/page": "app/login/page.js"
-}

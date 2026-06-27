@@ -1,6 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 4, "column": 0}, "map": {"version":3,"sources":["file:///Users/danielderi/Desktop/text-web-ai-1-rtl-2/app/dashboard/admin/loading.tsx"],"sourcesContent":["import { DashboardLoadingState } from \"@/components/dashboard-loading-state\";\n\nexport default function Loading() {\n  return <DashboardLoadingState title=\"טוען מרכז אדמין\" body=\"בודקים גנים, משתמשים, פיקוחים, מצלמות, AI ומשימות בלי להציג מסך ריק.\" />;\n}\n"],"names":["Loading","title","body"],"mappings":";;;;;AAAA;;;AAEe,SAASA;IACtB,qBAAO,8OAAC,qKAAqB;QAACC,OAAM;QAAkBC,MAAK;;;;;;AAC7D"}}]
-}

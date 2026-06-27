@@ -1,1 +1,0 @@
-(globalThis.TURBOPACK||(globalThis.TURBOPACK=[])).push(["object"==typeof document?document.currentScript:void 0,13704,t=>{"use strict";var n=t.i(843476);t.s(["PrintButton",0,function({label:t="הדפסה / שמירה כ-PDF"}){return(0,n.jsx)("button",{className:"button secondary",type:"button",onClick:()=>window.print(),children:t})}])}]);

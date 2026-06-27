@@ -1,6 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 4, "column": 0}, "map": {"version":3,"sources":["file:///Users/danielderi/Desktop/text-web-ai-1-rtl-2/app/dashboard/garden/loading.tsx"],"sourcesContent":["import { DashboardLoadingState } from \"@/components/dashboard-loading-state\";\n\nexport default function Loading() {\n  return <DashboardLoadingState title=\"טוען ממשק גן\" body=\"מכינים ילדים, הורים, צוות, משימות ופיקוח בצורה בטוחה גם אם חלק מהנתונים חסרים.\" />;\n}\n"],"names":["Loading","title","body"],"mappings":";;;;;AAAA;;;AAEe,SAASA;IACtB,qBAAO,8OAAC,qKAAqB;QAACC,OAAM;QAAeC,MAAK;;;;;;AAC1D"}}]
-}
