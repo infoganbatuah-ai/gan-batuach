@@ -237,6 +237,479 @@
   }
 }
 
+/* RESPONSIVE 1: cross-device layout stabilization.
+   Keep this block last. It centralizes safe-area, overflow, table, dialog and
+   optional mobile-preview behavior without changing role permissions or data. */
+:root {
+  --app-safe-top: env(safe-area-inset-top, 0px);
+  --app-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --app-safe-left: env(safe-area-inset-left, 0px);
+  --app-safe-right: env(safe-area-inset-right, 0px);
+  --app-header-height: 78px;
+  --app-bottom-nav-height: 92px;
+  --app-bottom-nav-gap: 14px;
+  --app-bottom-nav-clearance: calc(var(--app-bottom-nav-height) + var(--app-bottom-nav-gap) + var(--app-safe-bottom));
+  --app-mobile-padding: clamp(14px, 4vw, 22px);
+  --app-tablet-padding: clamp(20px, 3vw, 32px);
+  --app-desktop-padding: clamp(24px, 3vw, 42px);
+  --app-content-max-width: 1180px;
+  --app-mobile-preview-width: 430px;
+}
+
+html,
+body {
+  max-width: 100%;
+  overflow-x: clip;
+  scroll-padding-bottom: var(--app-bottom-nav-clearance);
+}
+
+body {
+  min-height: 100dvh;
+}
+
+img,
+svg,
+video,
+canvas,
+iframe {
+  max-width: 100%;
+}
+
+button,
+input,
+select,
+textarea {
+  max-width: 100%;
+}
+
+a,
+button,
+.button,
+.primary-action,
+.secondary-action,
+.gb-primary-button {
+  min-width: 0;
+  white-space: normal;
+}
+
+p,
+li,
+span,
+small,
+strong,
+b,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+td,
+th {
+  overflow-wrap: anywhere;
+}
+
+.app-page-transition {
+  min-height: 100dvh;
+  max-width: 100%;
+}
+
+.dashboard-layout,
+.dashboard-main,
+.native-app-stage,
+.gb-app-shell,
+.parent-app-frame,
+.staff-app-frame,
+.ganenet-reference-phone,
+.ganenet-module-screen,
+.inspector-app-shell,
+.admin-app-shell,
+.digital-observer-app-shell {
+  max-width: 100%;
+}
+
+.dashboard-main,
+.gb-app-shell-main,
+.parent-app-main,
+.staff-app-main,
+.ganenet-module-content,
+.inspector-app-main,
+.admin-app-main,
+.digital-observer-main {
+  min-width: 0;
+}
+
+.dashboard-section,
+.parent-section-card,
+.staff-section-ref,
+.teacher-section,
+.inspector-section,
+.admin-section,
+.gb-responsive-page,
+.card,
+.metric-card,
+.action-panel,
+.form-card,
+.table-card,
+.report-card {
+  min-width: 0;
+}
+
+.grid,
+.dashboard-grid,
+.gb-dashboard-grid,
+.teacher-stats-grid,
+.parent-metrics-grid,
+.parent-action-grid,
+.staff-stats-grid-ref,
+.inspector-metric-grid,
+.inspector-actions-grid,
+.admin-kpi-grid,
+.camera-playback-grid,
+.people-card-grid,
+.card-grid,
+.form-grid,
+.public-card-grid {
+  min-width: 0;
+}
+
+.grid > *,
+.dashboard-grid > *,
+.gb-dashboard-grid > *,
+.teacher-stats-grid > *,
+.parent-metrics-grid > *,
+.parent-action-grid > *,
+.staff-stats-grid-ref > *,
+.inspector-metric-grid > *,
+.inspector-actions-grid > *,
+.admin-kpi-grid > *,
+.camera-playback-grid > *,
+.people-card-grid > *,
+.card-grid > *,
+.form-grid > *,
+.public-card-grid > * {
+  min-width: 0;
+}
+
+table {
+  max-width: 100%;
+}
+
+.table-wrap,
+.data-table-wrap,
+.responsive-table,
+.admin-table,
+.dashboard-table,
+.reports-table,
+.audit-table,
+.provider-table,
+.payment-table,
+.messages-table,
+.inspection-table,
+.children-table,
+.staff-table,
+.user-table,
+.card:has(> table),
+.dashboard-section:has(> table),
+.table-card:has(table) {
+  max-width: 100%;
+  overflow-x: auto;
+  overscroll-behavior-inline: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table-wrap table,
+.data-table-wrap table,
+.responsive-table table,
+.admin-table table,
+.dashboard-table table,
+.reports-table table,
+.audit-table table,
+.provider-table table,
+.payment-table table,
+.messages-table table,
+.inspection-table table,
+.children-table table,
+.staff-table table,
+.user-table table,
+.card:has(> table) > table,
+.dashboard-section:has(> table) > table,
+.table-card table {
+  min-width: min(760px, 100%);
+}
+
+.modal,
+.dialog,
+.drawer,
+.sheet,
+[role="dialog"],
+.admin-drawer,
+.management-drawer,
+.teacher-management-details,
+.full-management-drawer,
+.filter-panel,
+.search-panel,
+.upload-dialog,
+.report-dialog {
+  max-height: calc(100dvh - var(--app-safe-top) - var(--app-safe-bottom) - 24px);
+  max-width: min(100%, calc(100vw - 24px));
+  overflow: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.parent-bottom-nav,
+.ganenet-bottom-nav,
+.teacher-bottom-nav,
+.staff-bottom-nav-ref,
+.gb-bottom-nav,
+.mobile-public-tabs {
+  max-width: min(100% - 24px, 520px);
+}
+
+body:has(.parent-bottom-nav) .parent-app-main,
+body:has(.ganenet-bottom-nav) .ganenet-module-content,
+body:has(.teacher-bottom-nav) .teacher-app-frame,
+body:has(.staff-bottom-nav-ref) .staff-app-main,
+body:has(.gb-bottom-nav) .gb-app-shell-main,
+body:has(.mobile-public-tabs) .public-page,
+body:has(.mobile-public-tabs) .public-main {
+  padding-bottom: calc(var(--app-bottom-nav-clearance) + 18px);
+}
+
+.sticky-cta,
+.form-actions,
+.wizard-actions,
+.inspection-form-actions,
+.payment-actions,
+.camera-actions,
+.report-actions,
+.dialog-actions {
+  scroll-margin-bottom: var(--app-bottom-nav-clearance);
+}
+
+@media (max-width: 480px) {
+  :root {
+    --app-bottom-nav-height: 88px;
+    --app-mobile-padding: 14px;
+  }
+
+  .gb-responsive-page,
+  .parent-app-main,
+  .staff-app-main,
+  .ganenet-module-content,
+  .inspector-app-main,
+  .admin-app-main,
+  .dashboard-main,
+  .public-main {
+    padding-left: max(var(--app-mobile-padding), var(--app-safe-left));
+    padding-right: max(var(--app-mobile-padding), var(--app-safe-right));
+  }
+
+  .grid,
+  .dashboard-grid,
+  .gb-dashboard-grid,
+  .teacher-stats-grid,
+  .parent-metrics-grid,
+  .parent-action-grid,
+  .staff-stats-grid-ref,
+  .inspector-metric-grid,
+  .inspector-actions-grid,
+  .admin-kpi-grid,
+  .camera-playback-grid,
+  .people-card-grid,
+  .card-grid,
+  .form-grid,
+  .public-card-grid {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .form-grid.two,
+  .form-grid.three,
+  .form-grid.four,
+  .form-grid.cols-2,
+  .form-grid.cols-3,
+  .form-grid.cols-4 {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .parent-app-topbar,
+  .gb-app-header,
+  .role-app-header,
+  .staff-gb-header,
+  .teacher-page-title,
+  .parent-section-head,
+  .section-heading,
+  .dashboard-section-header,
+  .admin-section-header {
+    align-items: stretch;
+    gap: 10px;
+  }
+
+  .gb-app-header,
+  .role-app-header,
+  .staff-page-hero-ref,
+  .parent-child-card,
+  .teacher-page-title {
+    flex-wrap: wrap;
+  }
+
+  .gb-app-header-actions,
+  .role-app-actions,
+  .parent-section-head > a,
+  .section-heading > a {
+    max-width: 100%;
+  }
+
+  .parent-bottom-nav,
+  .ganenet-bottom-nav,
+  .teacher-bottom-nav,
+  .staff-bottom-nav-ref,
+  .gb-bottom-nav,
+  .mobile-public-tabs {
+    left: max(10px, var(--app-safe-left)) !important;
+    right: max(10px, var(--app-safe-right)) !important;
+    width: auto !important;
+  }
+
+  .parent-bottom-nav a,
+  .ganenet-bottom-nav a,
+  .teacher-bottom-nav a,
+  .staff-bottom-nav-ref a,
+  .gb-bottom-nav-item,
+  .mobile-public-tabs a {
+    min-width: 0;
+  }
+}
+
+@media (min-width: 481px) and (max-width: 640px) {
+  .gb-dashboard-grid,
+  .dashboard-grid,
+  .parent-metrics-grid,
+  .parent-action-grid,
+  .staff-stats-grid-ref,
+  .inspector-metric-grid,
+  .camera-playback-grid,
+  .people-card-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1024px) {
+  :root {
+    --app-bottom-nav-height: 94px;
+  }
+
+  .gb-responsive-page,
+  .parent-app-main,
+  .staff-app-main,
+  .ganenet-module-content,
+  .inspector-app-main,
+  .admin-app-main,
+  .dashboard-main {
+    padding-left: var(--app-tablet-padding);
+    padding-right: var(--app-tablet-padding);
+  }
+
+  .gb-dashboard-grid,
+  .dashboard-grid,
+  .parent-metrics-grid,
+  .parent-action-grid,
+  .staff-stats-grid-ref,
+  .inspector-metric-grid,
+  .camera-playback-grid,
+  .people-card-grid,
+  .admin-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (min-width: 1025px) {
+  .gb-responsive-page,
+  .parent-app-frame,
+  .staff-gb-frame,
+  .ganenet-reference-phone,
+  .ganenet-module-screen,
+  .inspector-app-shell,
+  .admin-app-shell,
+  .dashboard-layout.app-home-layout .native-app-stage {
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  .gb-responsive-page-lg,
+  .role-app-page,
+  .dashboard-layout.app-home-layout .native-app-stage {
+    max-width: var(--app-content-max-width);
+  }
+
+  .public-main,
+  .public-page,
+  .marketing-page {
+    max-width: 100%;
+  }
+}
+
+html.gb-mobile-preview-mode,
+body.gb-mobile-preview-mode {
+  background:
+    radial-gradient(circle at 50% 0%, rgba(116, 91, 242, 0.1), transparent 32%),
+    #edf2fb;
+}
+
+body.gb-mobile-preview-mode {
+  overflow-x: hidden;
+}
+
+.gb-mobile-preview-mode .app-page-transition {
+  margin: 0 auto;
+  max-width: var(--app-mobile-preview-width);
+  min-height: 100dvh;
+  overflow-x: clip;
+  position: relative;
+  width: min(100%, var(--app-mobile-preview-width));
+}
+
+.gb-mobile-preview-mode .dashboard-layout,
+.gb-mobile-preview-mode .dashboard-main,
+.gb-mobile-preview-mode .native-app-stage,
+.gb-mobile-preview-mode .gb-app-shell,
+.gb-mobile-preview-mode .parent-app-frame,
+.gb-mobile-preview-mode .staff-app-frame,
+.gb-mobile-preview-mode .ganenet-reference-phone,
+.gb-mobile-preview-mode .ganenet-module-screen {
+  max-width: var(--app-mobile-preview-width) !important;
+  width: 100% !important;
+}
+
+.gb-mobile-preview-mode .gb-app-shell-sidebar,
+.gb-mobile-preview-mode .dashboard-sidebar {
+  display: none !important;
+}
+
+.gb-mobile-preview-mode .gb-bottom-nav,
+.gb-mobile-preview-mode .parent-bottom-nav,
+.gb-mobile-preview-mode .ganenet-bottom-nav,
+.gb-mobile-preview-mode .teacher-bottom-nav,
+.gb-mobile-preview-mode .staff-bottom-nav-ref {
+  left: max(10px, calc((100vw - var(--app-mobile-preview-width)) / 2 + 10px)) !important;
+  right: max(10px, calc((100vw - var(--app-mobile-preview-width)) / 2 + 10px)) !important;
+  width: auto !important;
+}
+
+.gb-mobile-preview-mode .gb-dashboard-grid,
+.gb-mobile-preview-mode .dashboard-grid,
+.gb-mobile-preview-mode .parent-metrics-grid,
+.gb-mobile-preview-mode .parent-action-grid,
+.gb-mobile-preview-mode .staff-stats-grid-ref,
+.gb-mobile-preview-mode .inspector-metric-grid,
+.gb-mobile-preview-mode .camera-playback-grid,
+.gb-mobile-preview-mode .people-card-grid,
+.gb-mobile-preview-mode .admin-kpi-grid,
+.gb-mobile-preview-mode .form-grid {
+  grid-template-columns: minmax(0, 1fr) !important;
+}
+
 .ganenet-module-split {
   display: grid;
   gap: 18px;

@@ -11,6 +11,7 @@ export function AppMotionShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const reduceMotion = useReducedMotion();
   const [ready, setReady] = useState(false);
+  const [mobilePreview, setMobilePreview] = useState(false);
 
   useEffect(() => {
     setReady(true);
@@ -18,6 +19,28 @@ export function AppMotionShell({ children }: { children: React.ReactNode }) {
       navigator.serviceWorker.register("/sw.js").catch(() => undefined);
     }
   }, []);
+
+  useEffect(() => {
+    const requestedView = new URLSearchParams(window.location.search).get("view");
+    const storageKey = "gan-batuach-view-mode";
+    if (requestedView === "mobile" || requestedView === "desktop") {
+      window.localStorage.setItem(storageKey, requestedView);
+      setMobilePreview(requestedView === "mobile");
+      return;
+    }
+    setMobilePreview(window.localStorage.getItem(storageKey) === "mobile");
+  }, [pathname]);
+
+  useEffect(() => {
+    document.documentElement.classList.toggle("gb-mobile-preview-mode", mobilePreview);
+    document.body.classList.toggle("gb-mobile-preview-mode", mobilePreview);
+    document.body.dataset.viewMode = mobilePreview ? "mobile-preview" : "responsive";
+    return () => {
+      document.documentElement.classList.remove("gb-mobile-preview-mode");
+      document.body.classList.remove("gb-mobile-preview-mode");
+      delete document.body.dataset.viewMode;
+    };
+  }, [mobilePreview]);
 
   return (
     <>
@@ -31,6 +54,7 @@ export function AppMotionShell({ children }: { children: React.ReactNode }) {
           animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
           exit={reduceMotion ? undefined : { opacity: 0, y: -8, filter: "blur(4px)" }}
           transition={{ duration: 0.24, ease: "easeOut" }}
+          data-view-mode={mobilePreview ? "mobile-preview" : "responsive"}
         >
           {children}
         </motion.div>
