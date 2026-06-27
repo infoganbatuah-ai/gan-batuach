@@ -53,11 +53,16 @@ export async function getPlaybackUrls(gatewayStreamId: string, token?: string) {
 
 export function getGatewayDiagnostics(input?: Partial<CameraConnectionInput>) {
   const provider = getGatewayProvider();
+  const configured = Boolean(
+    (process.env.CAMERA_GATEWAY_URL ?? process.env.VIDEO_GATEWAY_URL) &&
+    (process.env.CAMERA_GATEWAY_SECRET ?? process.env.VIDEO_GATEWAY_API_KEY ?? process.env.VIDEO_GATEWAY_SIGNING_SECRET)
+  );
+  const requiredEnv = ["CAMERA_GATEWAY_URL", "CAMERA_GATEWAY_SECRET", "CAMERA_GATEWAY_PUBLIC_BASE_URL"];
   if (!input) {
     return {
       provider,
-      configured: Boolean(process.env.VIDEO_GATEWAY_URL && (process.env.VIDEO_GATEWAY_API_KEY || process.env.VIDEO_GATEWAY_SIGNING_SECRET)),
-      requiredEnv: ["VIDEO_GATEWAY_URL", "VIDEO_GATEWAY_API_KEY or VIDEO_GATEWAY_SIGNING_SECRET"],
+      configured,
+      requiredEnv,
       noRtspBrowserExposure: true,
       audioDisabledForGanBatuach: true,
       faceRecognitionDisabledForGanBatuach: true
@@ -68,7 +73,7 @@ export function getGatewayDiagnostics(input?: Partial<CameraConnectionInput>) {
   const candidates = parsed.system_type ? buildRtspCandidates(parsed as CameraConnectionInput) : [];
   return {
     provider,
-    configured: Boolean(process.env.VIDEO_GATEWAY_URL && (process.env.VIDEO_GATEWAY_API_KEY || process.env.VIDEO_GATEWAY_SIGNING_SECRET)),
+    configured,
     candidatesTried: candidates.length,
     sourceSummary: parsed.system_type ? buildMaskedConnectionSummary(parsed as CameraConnectionInput) : null,
     candidateTemplates: candidates.map((candidate) => ({ vendor: candidate.vendor, template: candidate.template })),

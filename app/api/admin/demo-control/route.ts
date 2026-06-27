@@ -116,7 +116,7 @@ export async function POST(request: Request) {
     }
 
     if (payload.action === "create_sample_camera_issue") {
-      const { data, error } = await supabase.from("camera_streams" as any).insert(demoRow({ garden_id: garden.id, name: demoName("מצלמת דמו ממתינה Gateway"), area: "חצר", camera_type: "DVR", protocol: "RTSP", status: "pending_gateway", active: true, parent_view_allowed: true, ai_enabled: true, host: "192.168.1.50", port: 554, rtsp_path: "/Streaming/Channels/101" })).select("*").single();
+      const { data, error } = await supabase.from("camera_streams" as any).insert(demoRow({ garden_id: garden.id, name: demoName("מצלמת דמו ממתינה Gateway"), area: "חצר", camera_type: "Gateway readiness", protocol: "gateway_required", status: "pending_gateway", active: true, parent_view_allowed: false, parent_viewing_allowed: false, ai_enabled: false, host: "", port: null, rtsp_path: "", parent_blocked_reason: "נדרש חיבור Gateway אמיתי ומדיניות צפיית הורים מאושרת" })).select("*").single();
       if (error) throw error;
       return ok({ message: "נוצרה מצלמת דמו במצב pending_gateway.", item: data });
     }

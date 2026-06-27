@@ -88,7 +88,7 @@ export function getProviderMissingConfiguration(type: IntegrationType, provider?
     return [["INVOICE_PROVIDER"], ["INVOICE_API_KEY"]].filter((group) => !hasAny(group)).map((group) => group.join(" or "));
   }
   if (type === "camera_gateway") {
-    return [["VIDEO_GATEWAY_URL"], ["VIDEO_GATEWAY_API_KEY", "VIDEO_GATEWAY_SIGNING_SECRET"]].filter((group) => !hasAny(group)).map((group) => group.join(" or "));
+    return [["CAMERA_GATEWAY_URL", "VIDEO_GATEWAY_URL"], ["CAMERA_GATEWAY_SECRET", "VIDEO_GATEWAY_API_KEY", "VIDEO_GATEWAY_SIGNING_SECRET"], ["CAMERA_GATEWAY_PUBLIC_BASE_URL", "VIDEO_GATEWAY_PUBLIC_URL"]].filter((group) => !hasAny(group)).map((group) => group.join(" or "));
   }
   if (type === "ai_provider") {
     return [["LOCAL_VISION_ENDPOINT", "CUSTOM_VISION_ENDPOINT"]].filter((group) => !hasAny(group)).map((group) => group.join(" or "));

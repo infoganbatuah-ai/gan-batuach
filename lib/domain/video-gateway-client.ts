@@ -14,13 +14,25 @@ export type GatewayResult = {
 };
 
 export function getGatewayProvider(): VideoGatewayProvider {
-  const provider = process.env.VIDEO_GATEWAY_PROVIDER;
+  const provider = process.env.CAMERA_PROVIDER ?? process.env.VIDEO_GATEWAY_PROVIDER;
   if (provider === "mediamtx" || provider === "go2rtc" || provider === "future_webrtc") return provider;
   return "custom";
 }
 
+function gatewayUrl() {
+  return process.env.CAMERA_GATEWAY_URL ?? process.env.VIDEO_GATEWAY_URL ?? "";
+}
+
+function gatewayPublicBaseUrl() {
+  return process.env.CAMERA_GATEWAY_PUBLIC_BASE_URL ?? process.env.CAMERA_GATEWAY_PUBLIC_URL ?? process.env.VIDEO_GATEWAY_PUBLIC_URL ?? "";
+}
+
+function gatewaySecret() {
+  return process.env.CAMERA_GATEWAY_SECRET ?? process.env.VIDEO_GATEWAY_API_KEY ?? process.env.VIDEO_GATEWAY_SIGNING_SECRET ?? "";
+}
+
 export function isGatewayConfigured() {
-  return Boolean(process.env.VIDEO_GATEWAY_URL && (process.env.VIDEO_GATEWAY_API_KEY || process.env.VIDEO_GATEWAY_SIGNING_SECRET));
+  return Boolean(gatewayUrl() && gatewaySecret());
 }
 
 function providerPath(provider: VideoGatewayProvider, action: "health" | "test" | "register" | "playback" | "disable", value?: string) {
@@ -58,7 +70,8 @@ function providerPayload(provider: VideoGatewayProvider, action: "test" | "regis
 }
 
 function playbackUrlsFor(provider: VideoGatewayProvider, gatewayStreamId: string, token?: string) {
-  const base = process.env.VIDEO_GATEWAY_PUBLIC_URL ?? process.env.VIDEO_GATEWAY_URL ?? "";
+  const base = gatewayPublicBaseUrl();
+  if (!base) return { hls_url: "", webrtc_url: "" };
   const suffix = token ? `?token=${encodeURIComponent(token)}` : "";
   if (provider === "mediamtx") {
     return {
@@ -84,21 +97,27 @@ async function gatewayFetch(path: string, payload?: unknown, methodOverride?: st
     return { configured: false, status: "gateway_required", message: "שרת הווידאו עדיין לא מחובר", provider };
   }
   const started = Date.now();
+  let timeout: ReturnType<typeof setTimeout> | null = null;
   try {
-    const response = await fetch(`${process.env.VIDEO_GATEWAY_URL}${path}`, {
+    const controller = new AbortController();
+    timeout = setTimeout(() => controller.abort(), 5000);
+    const response = await fetch(`${gatewayUrl()}${path}`, {
       method: methodOverride ?? (payload ? "POST" : "GET"),
       headers: {
         "content-type": "application/json",
-        "x-video-gateway-key": process.env.VIDEO_GATEWAY_API_KEY ?? process.env.VIDEO_GATEWAY_SIGNING_SECRET ?? ""
+        "x-video-gateway-key": gatewaySecret()
       },
-      body: payload ? JSON.stringify(payload) : undefined
+      body: payload ? JSON.stringify(payload) : undefined,
+      signal: controller.signal
     });
+    if (timeout) clearTimeout(timeout);
     if (!response.ok) return { configured: true, status: "error", message: "שרת הווידאו החזיר שגיאה", provider, latencyMs: Date.now() - started };
     const data = await response.json().catch(() => ({}));
     const streamCount = Array.isArray(data) ? data.length : Array.isArray((data as any).items) ? (data as any).items.length : typeof (data as any).streamCount === "number" ? (data as any).streamCount : null;
     const failedStreamCount = typeof (data as any).failedStreamCount === "number" ? (data as any).failedStreamCount : null;
     return { configured: true, status: "healthy", message: "החיבור הצליח", provider, data, latencyMs: Date.now() - started, streamCount, failedStreamCount };
   } catch {
+    if (timeout) clearTimeout(timeout);
     return { configured: true, status: "error", message: "הפורט חסום או לא נגיש", provider, latencyMs: Date.now() - started };
   }
 }

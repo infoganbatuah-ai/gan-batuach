@@ -22,8 +22,43 @@ function createToken() {
   return crypto.randomBytes(32).toString("base64url");
 }
 
+function cameraTokenTtlSeconds(role: UserRole, parentPolicy: any, cameraRow: any) {
+  const envTtl = Number(process.env.CAMERA_STREAM_TOKEN_TTL_SECONDS ?? process.env.CAMERA_TOKEN_TTL_SECONDS ?? "");
+  if (Number.isFinite(envTtl) && envTtl > 0) return Math.min(Math.max(envTtl, 60), 300);
+  const maxSessionMinutes = role === "parent"
+    ? Math.min(Number(parentPolicy?.max_session_minutes ?? cameraRow.max_parent_session_minutes ?? 5), Number(cameraRow.max_parent_session_minutes ?? 5), 5)
+    : 5;
+  return Math.min(Math.max(maxSessionMinutes * 60, 60), 300);
+}
+
 function cameraDebugLogsEnabled() {
   return process.env.NODE_ENV !== "production";
+}
+
+function isPrivatePlaybackHost(hostname: string) {
+  const host = hostname.toLowerCase();
+  return (
+    host === "localhost" ||
+    host === "127.0.0.1" ||
+    host === "::1" ||
+    host.endsWith(".local") ||
+    host.startsWith("10.") ||
+    host.startsWith("192.168.") ||
+    /^172\.(1[6-9]|2\d|3[0-1])\./.test(host)
+  );
+}
+
+function assertBrowserSafePlaybackUrl(value: string) {
+  if (value.startsWith("/")) return;
+  let parsed: URL;
+  try {
+    parsed = new URL(value);
+  } catch {
+    throw new Error("Secure gateway playback URL is not available");
+  }
+  if (parsed.protocol === "rtsp:") throw new Error("Direct camera stream is not allowed");
+  if (parsed.protocol !== "https:" && parsed.protocol !== "http:") throw new Error("Secure gateway playback URL is not available");
+  if (isPrivatePlaybackHost(parsed.hostname)) throw new Error("Internal camera or gateway address cannot be exposed to the browser");
 }
 
 function parseViewingWindow(input: Record<string, any> | null | undefined) {
@@ -194,20 +229,20 @@ export async function createCameraPlaybackSession(cameraStreamId: string, payloa
   }
 
   const token = createToken();
-  const maxSessionMinutes = role === "parent"
-    ? Math.min(Number(parentPolicy?.max_session_minutes ?? cameraRow.max_parent_session_minutes ?? 5), Number(cameraRow.max_parent_session_minutes ?? 5), 30)
-    : 15;
-  const expiresAt = new Date(Date.now() + maxSessionMinutes * 60 * 1000).toISOString();
+  const ttlSeconds = cameraTokenTtlSeconds(role, parentPolicy, cameraRow);
+  const expiresAt = new Date(Date.now() + ttlSeconds * 1000).toISOString();
   const baseUrl = parsed.protocol === "WebRTC" ? cameraRow.webrtc_playback_url : (cameraRow.hls_playback_url ?? cameraRow.sample_hls_url);
   const gatewayStreamId = cameraRow.gateway_stream_id ?? cameraRow.video_gateway_stream_id ?? cameraStreamId;
-  const gatewayBase = process.env.VIDEO_GATEWAY_URL;
-  if (!baseUrl && !gatewayBase) throw new Error("Video gateway is not connected yet");
-  if (baseUrl && String(baseUrl).toLowerCase().startsWith("rtsp://")) throw new Error("Direct camera stream is not allowed");
+  const gatewayPublicBase = process.env.CAMERA_GATEWAY_PUBLIC_BASE_URL ?? process.env.CAMERA_GATEWAY_PUBLIC_URL ?? process.env.VIDEO_GATEWAY_PUBLIC_URL;
+  if (!baseUrl && !gatewayPublicBase) throw new Error("Video gateway public playback endpoint is not configured yet");
+  if (baseUrl) assertBrowserSafePlaybackUrl(String(baseUrl));
   let playbackUrl = baseUrl ? `${baseUrl}${baseUrl.includes("?") ? "&" : "?"}token=${token}` : "";
   if (!playbackUrl) {
     const gatewayPlayback = await getPlaybackUrls(gatewayStreamId, token);
     playbackUrl = parsed.protocol === "WebRTC" ? gatewayPlayback.playback.webrtc_url : gatewayPlayback.playback.hls_url;
   }
+  if (!playbackUrl) throw new Error("Secure gateway playback URL is not available");
+  assertBrowserSafePlaybackUrl(playbackUrl);
 
   const { data: session, error: sessionError } = await supabase
     .from("video_stream_sessions")
@@ -254,7 +289,8 @@ export async function createCameraPlaybackSession(cameraStreamId: string, payloa
       secure_webrtc_gateway_required: true,
       child_presence_required: role === "parent",
       mfa_required: role === "parent",
-      expires_at: expiresAt
+      expires_at: expiresAt,
+      ttl_seconds: ttlSeconds
     }
   } as any).select("id").maybeSingle();
   if (playbackSessionResult.error) throw new Error(playbackSessionResult.error.message);
@@ -299,6 +335,7 @@ export async function createCameraPlaybackSession(cameraStreamId: string, payloa
       parent_id: parsed.parent_id ?? null,
       access_reason: parsed.access_reason ?? null,
       token_expires_at: expiresAt,
+      token_ttl_seconds: ttlSeconds,
       source: "playback_token"
     }
   });
