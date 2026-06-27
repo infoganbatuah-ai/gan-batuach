@@ -53,7 +53,7 @@ export function AppShell({
   dir?: "rtl" | "ltr";
 }) {
   return (
-    <div className={cx("gb-app-shell", className)} dir={dir}>
+    <div className={cx("gb-app-shell responsive-app-shell", className)} dir={dir}>
       {sidebar ? <aside className="gb-app-shell-sidebar">{sidebar}</aside> : null}
       <div className="gb-app-shell-main">
         {header}
@@ -73,7 +73,7 @@ export function ResponsivePage({
   className?: string;
   size?: CardSize;
 }) {
-  return <main className={cx("gb-responsive-page", `gb-responsive-page-${size}`, className)}>{children}</main>;
+  return <main className={cx("gb-responsive-page responsive-app-page", `gb-responsive-page-${size}`, className)}>{children}</main>;
 }
 
 export function MobileAppShell({ children, className }: { children: ReactNode; className?: string }) {
