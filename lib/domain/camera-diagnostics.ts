@@ -46,6 +46,32 @@ export function sanitizeCameraForPlaybackCard(camera: Record<string, any>) {
   };
 }
 
+export function sanitizeCameraForAdminResponse(camera: Record<string, any>) {
+  const {
+    password,
+    password_encrypted,
+    encrypted_password,
+    secret_ref,
+    username,
+    username_encrypted,
+    dvr_host_encrypted,
+    connection_username_encrypted,
+    connection_password_encrypted,
+    source_url,
+    manual_rtsp_url,
+    rtsp_url,
+    gateway_secret,
+    provider_token,
+    ...safeCamera
+  } = camera;
+
+  return {
+    ...safeCamera,
+    source_url_masked: Boolean(source_url),
+    credentials_redacted: Boolean(password || password_encrypted || encrypted_password || username || username_encrypted || connection_username_encrypted || connection_password_encrypted)
+  };
+}
+
 export function buildCameraAuditSummary(cameras: Array<Record<string, any>>) {
   const health = summarizeCameraHealth(cameras);
   const orphanCameras = cameras.filter((camera) => !getCameraGardenId(camera));

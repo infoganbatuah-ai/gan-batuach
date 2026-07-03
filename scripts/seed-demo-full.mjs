@@ -264,8 +264,8 @@ async function seed() {
   await supabase.from("pickup_confirmations").insert(demoRows(children.slice(0, 8).map((child, index) => ({ garden_id: child.garden_id, child_id: child.id, parent_id: child.primary_parent_id, picked_up_by_name: demoName(index === 7 ? "דוד שלא מופיע ברשימה" : child.mother_name.replace(DEMO_PREFIX, "").trim()), authorized: index !== 7, gps_lat: 32.084, gps_lng: 34.812 }))));
 
   const cameras = demoRows(insertedGardens.flatMap((garden) => [
-    { garden_id: garden.id, name: demoName("מצלמת כיתה מרכזית"), area: "כיתה", camera_type: "DVR", protocol: "RTSP", status: "pending_gateway", host: "192.168.1.20", port: 554, channel: "1", rtsp_path: "/Streaming/Channels/101", parent_view_allowed: true, ai_enabled: true, active: true },
-    { garden_id: garden.id, name: demoName("מצלמת חצר"), area: "חצר", camera_type: "IP Camera", protocol: "ONVIF", status: garden.safe_status === "not_compliant" ? "offline" : "pending_gateway", host: "192.168.1.21", port: 554, channel: "2", onvif_path: "/onvif/device_service", parent_view_allowed: false, ai_enabled: true, active: true }
+    { garden_id: garden.id, name: demoName("מצלמת כיתה מרכזית"), area: "כיתה", camera_type: "DVR", protocol: "RTSP", status: "pending_gateway", host: "", port: 554, channel: "1", rtsp_path: "", parent_view_allowed: false, ai_enabled: false, active: true },
+    { garden_id: garden.id, name: demoName("מצלמת חצר"), area: "חצר", camera_type: "IP Camera", protocol: "ONVIF", status: garden.safe_status === "not_compliant" ? "offline" : "pending_gateway", host: "", port: 554, channel: "2", onvif_path: "", parent_view_allowed: false, ai_enabled: false, active: true }
   ]));
   const { data: cameraRows, error: cameraError } = await supabase.from("camera_streams").insert(cameras).select("*");
   if (cameraError) throw cameraError;

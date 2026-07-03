@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { requireRole } from "@/lib/auth";
+import { sanitizeCameraForAdminResponse } from "@/lib/domain/camera-diagnostics";
 import { checkGatewayHealth, disableCameraSource, getGatewayProvider, registerCameraSource, testCameraSource } from "@/lib/domain/video-gateway-client";
 import { createClient } from "@/lib/supabase/server";
 
@@ -52,7 +53,7 @@ export async function POST(request: Request) {
         disabled_by: profile.id
       }).eq("id", payload.camera_id).select("*").single();
       if (error) return fail(error.message, 400);
-      return ok({ camera: data, gateway: result, message: "המקור הושבת ב-Gateway." });
+      return ok({ camera: sanitizeCameraForAdminResponse(data as any), gateway: result, message: "המקור הושבת ב-Gateway." });
     }
 
     await supabase.from("camera_streams" as any).update({
@@ -104,7 +105,7 @@ export async function POST(request: Request) {
       action: `video_gateway_${payload.action}`,
       after_data: { gateway_status: result.status, provider: result.provider, no_rtsp_exposed: true }
     });
-    return ok({ camera: data, gateway: result, message: registered ? "המצלמה נרשמה ל-Gateway." : result.message });
+    return ok({ camera: sanitizeCameraForAdminResponse(data as any), gateway: result, message: registered ? "המצלמה נרשמה ל-Gateway." : result.message });
   } catch (error) {
     return handleRouteError(error);
   }
