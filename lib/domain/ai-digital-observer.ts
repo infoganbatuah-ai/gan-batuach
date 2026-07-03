@@ -52,7 +52,7 @@ export const aiCameraReviewActionSchema = z.object({
 });
 
 export const aiEventTypeLabels: Record<(typeof aiCameraEventTypes)[number], string> = {
-  person_detected: "זוהתה דמות לבדיקה",
+  person_detected: "דמות אפשרית לבדיקה",
   unauthorized_person: "חשד לאדם לא מורשה",
   child_missing_from_area: "חשד שילד חסר מאזור",
   restricted_area_entry: "כניסה אפשרית לאזור מוגבל",
@@ -72,9 +72,9 @@ export const aiEventTypeLabels: Record<(typeof aiCameraEventTypes)[number], stri
   camera_tampering: "חשד לחבלה במצלמה",
   camera_offline: "מצלמה לא מחוברת",
   camera_frozen_suspected: "חשד לתמונה קפואה",
-  motion_detected: "תנועה זוהתה לבדיקה",
+  motion_detected: "תנועה אפשרית לבדיקה",
   no_motion_too_long: "חשד לחוסר תנועה ממושך",
-  multiple_persons_detected: "מספר דמויות זוהו לבדיקה",
+  multiple_persons_detected: "מספר דמויות אפשריות לבדיקה",
   restricted_area_occupancy: "נוכחות אפשרית באזור מוגבל",
   camera_obstruction_suspected: "חשד לחסימת מצלמה"
 };
