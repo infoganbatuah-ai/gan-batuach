@@ -2,6 +2,7 @@ import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { requireRole } from "@/lib/auth";
 import { recordCameraHealthCheck } from "@/lib/domain/camera-health";
+import { sanitizeCameraForAdminResponse } from "@/lib/domain/camera-diagnostics";
 import { hasPlaybackSource } from "@/lib/domain/video-gateway";
 import { getGatewayProvider, registerCameraSource, testCameraSource } from "@/lib/domain/video-gateway-client";
 import { createClient } from "@/lib/supabase/server";
@@ -33,11 +34,11 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     }
     if (body.action === "mark_offline") {
       const row = await recordCameraHealthCheck(supabase as any, camera as any, { offline: true, metadata: { source: "manual", note: body.note ?? null } });
-      return ok({ camera: row, message: "המצלמה סומנה כלא מחוברת" });
+      return ok({ camera: sanitizeCameraForAdminResponse(row as any), message: "המצלמה סומנה כלא מחוברת" });
     }
     if (body.action === "mark_connected") {
       const row = await recordCameraHealthCheck(supabase as any, camera as any, { metadata: { source: "manual", note: body.note ?? null } });
-      return ok({ camera: row, message: "המצלמה סומנה כמחוברת" });
+      return ok({ camera: sanitizeCameraForAdminResponse(row as any), message: "המצלמה סומנה כמחוברת" });
     }
     if (body.action === "test_connection") {
       const gatewayTest = await testCameraSource({
@@ -114,7 +115,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       after_data: { status: (data as any).status, active: (data as any).active, gateway_registration_status: (data as any).gateway_registration_status ?? null },
       metadata: { note: body.note ?? null }
     });
-    return ok({ camera: data, message: "סטטוס המצלמה עודכן" });
+    return ok({ camera: sanitizeCameraForAdminResponse(data as any), message: "סטטוס המצלמה עודכן" });
   } catch (error) {
     return handleRouteError(error);
   }
