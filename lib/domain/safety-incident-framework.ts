@@ -39,8 +39,8 @@ const config: Record<SafetyIncidentType, Omit<SafetyIncidentAssessment, "event_t
     safety_category: "violence",
     severity: "critical",
     review_priority: 1,
-    title: "אינדיקציה לאלימות - review דחוף",
-    description: "אינדיקציה בלבד, לא האשמה ולא מסקנה משמעתית. נדרש review אנושי לפני כל הסלמה.",
+    title: "אינדיקציה לתנועה חריגה - review דחוף",
+    description: "אינדיקציה בלבד לתנועה חריגה, לא האשמה ולא מסקנה משמעתית. נדרש review אנושי לפני כל הסלמה.",
     recommended_action: "בדקי את האירוע עם מנהלת/אדמין ושמרי תיעוד פנימי בלבד."
   },
   aggressive_behavior_indicator: {
