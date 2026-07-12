@@ -52,3 +52,14 @@
 - [ ] needs_fix
 
 אם יש FAIL בבדיקת בידוד תפקידים, אין פיילוט עם נתונים אמיתיים.
+
+## מילוי Codex Execution 2
+
+סעיף זה מולא על ידי Codex בתאריך 2026-07-12.
+
+- בדיקות אוטומטיות ייעודיות ל-Parent A/B, Manager A/B, Staff ו-Inspector: לא נמצאו.
+- בדיקות עם משתמשים סינתטיים מחוברים בסביבת Supabase אמיתית: לא בוצעו.
+- סקירה סטטית של Route guards, API routes, RLS ומסמכי PILOT FIX בוצעה.
+- תוצאה: PASS_STATIC_ONLY עבור כוונת ההפרדה, אבל MANUAL_REQUIRED עבור חתימה אמיתית.
+- קובץ ראיות: `MANUAL_SIGNOFF_EXECUTION_2_ROLE_FLOW_AB_RESULTS.md`.
+- החלטה נוכחית: לא signed_off. חובה להריץ ידנית עם משתמשים סינתטיים לפני פיילוט עם נתונים אמיתיים.
