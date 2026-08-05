@@ -63,3 +63,17 @@ It can run only after Daniel fills the master checklist and sends evidence back.
 
 **READY_FOR_PILOT_QA_2_AFTER_TEMPLATE_FILLED**
 
+## 2026-08-06 Update
+
+Added an even shorter execution path for Daniel:
+
+- `DANIEL_PILOT_QA_2_MINIMAL_ANSWERS_NEEDED_HE.md`
+- updated `DANIEL_ONE_PAGE_PILOT_SIGNOFF_GUIDE_HE.md`
+- updated `DANIEL_SEND_RESULTS_BACK_TO_CODEX_TEMPLATE_HE.md`
+- added `PILOT_QA_2_READINESS_STATUS_FROM_CODEX_HE.md`
+
+Current status remains:
+
+**WAITING_FOR_DANIEL_MINIMAL_ANSWERS**
+
+Pilot QA 2 can be run only after Daniel provides the minimal answers, and real pilot approval still depends on the answers and evidence.
