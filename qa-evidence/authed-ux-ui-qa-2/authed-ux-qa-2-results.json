@@ -1,0 +1,47 @@
+[
+  {
+    "key": "parent",
+    "email": "parent.1@demo.ganbatuach.com",
+    "route": "/dashboard/parent",
+    "credentialAvailable": true,
+    "login": "error",
+    "screenshots": [],
+    "error": "TypeError: fetch is not a function\n    at __playwrightEvaluate (<anonymous>:2642:11)\n    at <anonymous>:2644:14\n    at runUserScript (<anonymous>:2645:10)\n    at <anonymous>:2649:10\n    at <anonymous>:2650:3"
+  },
+  {
+    "key": "manager",
+    "email": "manager.rakefet@demo.ganbatuach.com",
+    "route": "/dashboard/garden",
+    "credentialAvailable": true,
+    "login": "error",
+    "screenshots": [],
+    "error": "TypeError: fetch is not a function\n    at __playwrightEvaluate (<anonymous>:2642:11)\n    at <anonymous>:2644:14\n    at runUserScript (<anonymous>:2645:10)\n    at <anonymous>:2649:10\n    at <anonymous>:2650:3"
+  },
+  {
+    "key": "staff_assigned",
+    "email": "staff.1@demo.ganbatuach.com",
+    "route": "/dashboard/staff",
+    "credentialAvailable": true,
+    "login": "error",
+    "screenshots": [],
+    "error": "TypeError: fetch is not a function\n    at __playwrightEvaluate (<anonymous>:2642:11)\n    at <anonymous>:2644:14\n    at runUserScript (<anonymous>:2645:10)\n    at <anonymous>:2649:10\n    at <anonymous>:2650:3"
+  },
+  {
+    "key": "inspector_assigned",
+    "email": "inspector.yael@demo.ganbatuach.com",
+    "route": "/dashboard/inspector",
+    "credentialAvailable": true,
+    "login": "error",
+    "screenshots": [],
+    "error": "TypeError: fetch is not a function\n    at __playwrightEvaluate (<anonymous>:2642:11)\n    at <anonymous>:2644:14\n    at runUserScript (<anonymous>:2645:10)\n    at <anonymous>:2649:10\n    at <anonymous>:2650:3"
+  },
+  {
+    "key": "admin",
+    "email": "admin-demo@demo.ganbatuach.com",
+    "route": "/dashboard/admin",
+    "credentialAvailable": true,
+    "login": "error",
+    "screenshots": [],
+    "error": "TypeError: fetch is not a function\n    at __playwrightEvaluate (<anonymous>:2642:11)\n    at <anonymous>:2644:14\n    at runUserScript (<anonymous>:2645:10)\n    at <anonymous>:2649:10\n    at <anonymous>:2650:3"
+  }
+]
