@@ -23,6 +23,7 @@ import {
 import { DashboardShell } from "@/components/dashboard-shell";
 import { GardenAttendanceActionButton } from "@/components/garden-attendance-action-button";
 import { requireRole } from "@/lib/auth";
+import { israelTodayDateLine } from "@/lib/domain/israel-date";
 import { createClient } from "@/lib/supabase/server";
 
 type AttendanceRow = {
@@ -155,6 +156,7 @@ export default async function GardenAttendancePage({ searchParams }: { searchPar
     { href: "/dashboard/garden/daily-journal", label: "יומן", icon: CalendarDays },
     { href: "/dashboard/garden", label: "בית", icon: Home }
   ];
+  const todayLine = israelTodayDateLine();
 
   return (
     <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="נוכחות וצ׳ק אין" appHome>
@@ -186,7 +188,7 @@ export default async function GardenAttendancePage({ searchParams }: { searchPar
 
         <div className="ganenet-date-pill">
           <CalendarDays size={32} />
-          <span>יום ראשון, כ״ה אייר תשפ״ה<br />25 במאי 2025</span>
+          <span>{todayLine.top}<br />{todayLine.bottom}</span>
         </div>
 
         <section className="ganenet-attendance-summary-grid">

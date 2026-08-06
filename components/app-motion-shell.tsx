@@ -22,13 +22,7 @@ export function AppMotionShell({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     const requestedView = new URLSearchParams(window.location.search).get("view");
-    const storageKey = "gan-batuach-view-mode";
-    if (requestedView === "mobile" || requestedView === "desktop") {
-      window.localStorage.setItem(storageKey, requestedView);
-      setMobilePreview(requestedView === "mobile");
-      return;
-    }
-    setMobilePreview(window.localStorage.getItem(storageKey) === "mobile");
+    setMobilePreview(requestedView === "mobile");
   }, [pathname]);
 
   useEffect(() => {

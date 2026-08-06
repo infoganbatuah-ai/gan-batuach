@@ -17,6 +17,7 @@ import {
   UsersRound
 } from "lucide-react";
 import type { LucideProps } from "lucide-react";
+import { israelTodayDateLine } from "@/lib/domain/israel-date";
 
 type Tone = "blue" | "purple" | "green" | "orange" | "red" | "cyan" | "neutral";
 type IconType = ComponentType<LucideProps>;
@@ -35,6 +36,7 @@ export function TeacherAppFrame({
   active?: "home" | "children" | "calendar" | "messages" | "more";
 }) {
   const firstTitleWord = title.replace(/\[DEMO\]/g, "").trim();
+  const todayLine = israelTodayDateLine();
   const activeMap = {
     home: { href: "/dashboard/garden", label: "דשבורד", icon: Home },
     children: { href: "/dashboard/garden/children", label: "ילדים", icon: UsersRound },
@@ -73,7 +75,7 @@ export function TeacherAppFrame({
 
       <div className="ganenet-date-pill">
         <CalendarDays size={32} />
-        <span>יום ראשון, כ״ה אייר תשפ״ה<br />25 במאי 2025</span>
+        <span>{todayLine.top}<br />{todayLine.bottom}</span>
       </div>
 
       <div className="ganenet-module-content">{children}</div>

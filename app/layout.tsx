@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import { AppMotionShell, MobilePublicTabs } from "@/components/app-motion-shell";
 import "./globals.css";
+import "./styles/app-shell.css";
 import "./styles/responsive-contract.css";
 import "./styles/ux-ui-rescue.css";
 

@@ -34,11 +34,26 @@ body {
   scroll-padding-bottom: var(--rfx-bottom-nav-clearance);
 }
 
+.app-page-transition,
+#__next {
+  inline-size: 100%;
+  max-inline-size: 100%;
+}
+
 .app-page-transition {
   width: 100%;
   max-width: 100%;
   min-height: 100dvh;
   overflow-x: clip;
+}
+
+.gb-app-shell,
+.role-app-shell {
+  --role-shell-max-width: min(100%, var(--rfx-desktop-max));
+  --role-shell-page-padding: var(--rfx-gutter-mobile);
+  --role-shell-header-gap: 14px;
+  --role-shell-bottom-nav-height: var(--rfx-bottom-nav-height);
+  --role-shell-safe-bottom: var(--rfx-safe-bottom);
 }
 
 :where(
@@ -58,6 +73,16 @@ body {
   min-width: 0;
   min-height: 100dvh;
   overflow-x: clip;
+}
+
+:where(.gb-app-shell, .role-app-shell) {
+  inline-size: 100%;
+  max-inline-size: 100%;
+}
+
+:where(.gb-app-shell-main, .role-app-page, .role-app-header) {
+  min-inline-size: 0;
+  max-inline-size: 100%;
 }
 
 :where(
@@ -205,6 +230,12 @@ body {
     --rfx-bottom-nav-height: 88px;
   }
 
+  .gb-app-shell,
+  .role-app-shell {
+    --role-shell-max-width: 100%;
+    --role-shell-page-padding: max(var(--rfx-gutter-mobile), var(--rfx-safe-left));
+  }
+
   :where(
     .gb-responsive-page,
     .responsive-app-page,
@@ -288,11 +319,22 @@ body {
     max-width: none !important;
     z-index: 90;
   }
+
+  :where(.role-app-page, .role-app-header) {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
 }
 
 @media (min-width: 641px) and (max-width: 1024px) {
   :root {
     --rfx-bottom-nav-height: 94px;
+  }
+
+  .gb-app-shell,
+  .role-app-shell {
+    --role-shell-max-width: 100%;
+    --role-shell-page-padding: var(--rfx-gutter-tablet);
   }
 
   :where(
@@ -343,11 +385,24 @@ body {
   :where(.gb-app-shell-sidebar, .sidebar) {
     display: none !important;
   }
+
+  :where(.role-app-page, .role-app-header) {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
 }
 
 @media (min-width: 1025px) {
   :root {
     --rfx-bottom-nav-clearance: 0px;
+  }
+
+  .gb-app-shell,
+  .role-app-shell {
+    --role-shell-max-width: var(--rfx-desktop-max);
+    --role-shell-page-padding: var(--rfx-gutter-desktop);
+    --role-shell-header-gap: 18px;
+    --role-shell-bottom-nav-height: 0px;
   }
 
   :where(.mobile-tabbar, .gb-bottom-nav, .parent-bottom-nav, .ganenet-bottom-nav, .teacher-bottom-nav, .staff-bottom-nav-ref, .mobile-public-tabs) {
@@ -366,6 +421,10 @@ body {
     width: min(var(--rfx-wide-max), calc(100% - 48px));
     margin-inline: auto;
     padding: var(--rfx-gutter-desktop) 0;
+  }
+
+  .role-app-shell.gb-app-shell:has(.gb-app-shell-sidebar) {
+    inline-size: min(var(--rfx-wide-max), calc(100% - 48px));
   }
 
   .gb-app-shell:has(.gb-app-shell-sidebar) .gb-app-shell-main {
