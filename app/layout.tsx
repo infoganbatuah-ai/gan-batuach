@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { AppMotionShell, MobilePublicTabs } from "@/components/app-motion-shell";
 import "./globals.css";
 import "./styles/responsive-contract.css";
+import "./styles/ux-ui-rescue.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://gan-batuach.vercel.app"),

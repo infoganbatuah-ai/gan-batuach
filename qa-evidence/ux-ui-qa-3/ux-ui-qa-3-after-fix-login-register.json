@@ -1,0 +1,240 @@
+[
+  {
+    "name": "mobile390",
+    "width": 390,
+    "height": 844,
+    "route": "/app/login",
+    "file": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/ux-ui-qa-3/after-fix-mobile390-login.png",
+    "metrics": {
+      "bottomRisk": [],
+      "finalPath": "/app/login",
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "tooSmall": [
+        {
+          "bottomRisk": false,
+          "h": 38,
+          "href": null,
+          "offscreenX": false,
+          "tag": "INPUT",
+          "text": "",
+          "tooSmall": true,
+          "visible": true,
+          "w": 25
+        },
+        {
+          "bottomRisk": false,
+          "h": 17,
+          "href": "/app/register",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "הרשמה",
+          "tooSmall": true,
+          "visible": true,
+          "w": 47
+        }
+      ]
+    }
+  },
+  {
+    "name": "mobile390",
+    "width": 390,
+    "height": 844,
+    "route": "/app/register",
+    "file": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/ux-ui-qa-3/after-fix-mobile390-register.png",
+    "metrics": {
+      "bottomRisk": [
+        {
+          "bottomRisk": true,
+          "h": 281,
+          "href": "/app/register/parent",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "הורהצרו כרטיס ילד, מצאו גנים בטוחים והגישו בקשת רישום.הרשמה כהורה",
+          "tooSmall": false,
+          "visible": true,
+          "w": 284
+        },
+        {
+          "bottomRisk": true,
+          "h": 44,
+          "href": "/",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "בית",
+          "tooSmall": false,
+          "visible": true,
+          "w": 85
+        },
+        {
+          "bottomRisk": true,
+          "h": 44,
+          "href": "/parents-demand",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "הורים",
+          "tooSmall": false,
+          "visible": true,
+          "w": 85
+        },
+        {
+          "bottomRisk": true,
+          "h": 44,
+          "href": "/book-demo",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "הדגמה",
+          "tooSmall": false,
+          "visible": true,
+          "w": 85
+        },
+        {
+          "bottomRisk": true,
+          "h": 44,
+          "href": "/app",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "מערכת",
+          "tooSmall": false,
+          "visible": true,
+          "w": 85
+        }
+      ],
+      "finalPath": "/app/register",
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "tooSmall": [
+        {
+          "bottomRisk": false,
+          "h": 21,
+          "href": "/app/login",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "התחברות",
+          "tooSmall": true,
+          "visible": true,
+          "w": 71
+        }
+      ]
+    }
+  },
+  {
+    "name": "tablet768",
+    "width": 768,
+    "height": 1024,
+    "route": "/app/login",
+    "file": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/ux-ui-qa-3/after-fix-tablet768-login.png",
+    "metrics": {
+      "bottomRisk": [],
+      "finalPath": "/app/login",
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "tooSmall": [
+        {
+          "bottomRisk": false,
+          "h": 38,
+          "href": null,
+          "offscreenX": false,
+          "tag": "INPUT",
+          "text": "",
+          "tooSmall": true,
+          "visible": true,
+          "w": 25
+        },
+        {
+          "bottomRisk": false,
+          "h": 17,
+          "href": "/app/register",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "הרשמה",
+          "tooSmall": true,
+          "visible": true,
+          "w": 47
+        }
+      ]
+    }
+  },
+  {
+    "name": "tablet768",
+    "width": 768,
+    "height": 1024,
+    "route": "/app/register",
+    "file": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/ux-ui-qa-3/after-fix-tablet768-register.png",
+    "metrics": {
+      "bottomRisk": [
+        {
+          "bottomRisk": true,
+          "h": 281,
+          "href": "/app/register/staff",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "צוות גןהשלימו פרטים והתחברו לגן שבו אתם עובדים או מגישים מועמדות.הרשמה כאיש צוות",
+          "tooSmall": false,
+          "visible": true,
+          "w": 304
+        },
+        {
+          "bottomRisk": true,
+          "h": 281,
+          "href": "/app/register/inspector",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "מפקחהגישו בקשה להצטרפות למערך הפיקוח ושיוך לגנים.הרשמה כמפקח",
+          "tooSmall": false,
+          "visible": true,
+          "w": 304
+        },
+        {
+          "bottomRisk": true,
+          "h": 44,
+          "href": "/",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "בית",
+          "tooSmall": false,
+          "visible": true,
+          "w": 122
+        },
+        {
+          "bottomRisk": true,
+          "h": 44,
+          "href": "/parents-demand",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "הורים",
+          "tooSmall": false,
+          "visible": true,
+          "w": 122
+        },
+        {
+          "bottomRisk": true,
+          "h": 44,
+          "href": "/book-demo",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "הדגמה",
+          "tooSmall": false,
+          "visible": true,
+          "w": 122
+        }
+      ],
+      "finalPath": "/app/register",
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "tooSmall": [
+        {
+          "bottomRisk": false,
+          "h": 21,
+          "href": "/app/login",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "התחברות",
+          "tooSmall": true,
+          "visible": true,
+          "w": 71
+        }
+      ]
+    }
+  }
+]
