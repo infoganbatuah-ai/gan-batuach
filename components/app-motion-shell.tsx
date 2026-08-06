@@ -64,6 +64,19 @@ export function AppMotionShell({ children }: { children: React.ReactNode }) {
 }
 
 function BrandedSplash({ ready }: { ready: boolean }) {
+  const [mounted, setMounted] = useState(true);
+
+  useEffect(() => {
+    if (!ready) {
+      setMounted(true);
+      return;
+    }
+    const timer = window.setTimeout(() => setMounted(false), 750);
+    return () => window.clearTimeout(timer);
+  }, [ready]);
+
+  if (!mounted) return null;
+
   return (
     <motion.div className="branded-splash" initial={{ opacity: 1 }} animate={{ opacity: ready ? 0 : 1, pointerEvents: ready ? "none" : "auto" }} transition={{ delay: 0.2, duration: 0.45 }} aria-hidden="true">
       <motion.div className="splash-logo" initial={{ scale: 0.86, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.5, ease: "easeOut" }}>

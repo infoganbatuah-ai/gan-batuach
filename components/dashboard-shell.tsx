@@ -405,21 +405,7 @@ export function DashboardShell({
           </aside>
         )}
         <main className="dashboard-main responsive-dashboard-main">
-          {isAppHome ? (
-            <div className="native-app-topbar">
-              <div>
-                <span className="native-app-logo">גן בטוח</span>
-                <h1>{title}</h1>
-              </div>
-              <div className="native-app-topbar-actions">
-                <span>{roleLabels[role]}</span>
-                <Link href={dashboardHomeByRole[role]} aria-label="בית">בית</Link>
-                <NotificationBell role={role} />
-                <Link href={profileHrefByRole[role]} aria-label="פרופיל">פרופיל</Link>
-                <LogoutButton />
-              </div>
-            </div>
-          ) : (
+          {isAppHome ? null : (
             <div className="app-workspace-header">
               <div>
                 <span className="app-workspace-kicker">גן בטוח App</span>
@@ -447,8 +433,8 @@ export function DashboardShell({
           {isAppHome ? null : <AIAssistantPanel role={role} />}
           {isAppHome ? null : <PilotFeedbackWidget role={role} />}
         </main>
-        <nav className="mobile-tabbar" aria-label="ניווט דשבורד">{mobileNav.map((item) => <Link href={item.href} key={item.href}><strong>{item.label}</strong><span>{item.hint}</span></Link>)}</nav>
-        <FloatingActionCenter role={role} />
+        {isAppHome ? null : <nav className="mobile-tabbar" aria-label="ניווט דשבורד">{mobileNav.map((item) => <Link href={item.href} key={item.href}><strong>{item.label}</strong><span>{item.hint}</span></Link>)}</nav>}
+        {isAppHome ? null : <FloatingActionCenter role={role} />}
       </div>
     </>
   );

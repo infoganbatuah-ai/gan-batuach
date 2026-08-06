@@ -1,0 +1,2428 @@
+[
+  {
+    "viewport": "mobile390",
+    "width": 390,
+    "height": 844,
+    "route": "/",
+    "key": "home",
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/ux-ui-qa-3/mobile390-home.png",
+    "metrics": {
+      "bodyTextSample": "התחברות\nהרשמה\nכניסה למערכת\nתקן חדש לגני ילדים\nהפטנט הישראלי לניהול גני ילדים מקצה לקצה\n\nמערכת אחת שמחברת מנהלות, הורים, צוות, פיקוח, מצלמות, מסמכים ותשלומים לחוויית שימוש פשוטה, שקופה ובטוחה.\n\nרישום למערכת\nכניסה למערכת\nקביעת הדגמה\nרשימת גני הילדים\nפטנט ישראלי\n",
+      "bottomRisk": [
+        {
+          "bottomRisk": true,
+          "disabled": false,
+          "h": 44,
+          "href": "/",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "בית",
+          "tooSmall": false,
+          "visible": true,
+          "w": 85
+        },
+        {
+          "bottomRisk": true,
+          "disabled": false,
+          "h": 44,
+          "href": "/parents-demand",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "הורים",
+          "tooSmall": false,
+          "visible": true,
+          "w": 85
+        },
+        {
+          "bottomRisk": true,
+          "disabled": false,
+          "h": 44,
+          "href": "/book-demo",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "הדגמה",
+          "tooSmall": false,
+          "visible": true,
+          "w": 85
+        },
+        {
+          "bottomRisk": true,
+          "disabled": false,
+          "h": 44,
+          "href": "/app",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "מערכת",
+          "tooSmall": false,
+          "visible": true,
+          "w": 85
+        }
+      ],
+      "clientWidth": 390,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/",
+      "h1": [
+        "הפטנט הישראלי לניהול גני ילדים מקצה לקצה"
+      ],
+      "hasFakeLiveRiskText": true,
+      "hasLoginText": true,
+      "hasUnavailableText": true,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 390,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [],
+      "visibleActionCount": 21
+    }
+  },
+  {
+    "viewport": "mobile390",
+    "width": 390,
+    "height": 844,
+    "route": "/app",
+    "key": "app",
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/ux-ui-qa-3/mobile390-app.png",
+    "metrics": {
+      "bodyTextSample": "חזרה לאתר\nכניסה למערכת\nברוכים הבאים לגן בטוח\n\nהורידו את האפליקציה או המשיכו בדפדפן. המערכת תעביר כל משתמש למסך המתאים לפי התפקיד והסטטוס שלו.\n\nהורדת אפליקציה\nהמשך בדפדפן\nהאפליקציה תעלה בקרוב. ניתן להמשיך בדפדפן כבר עכשיו.\nמשתמש קיים\nהתחברות למערכת והעברה אוטומ",
+      "bottomRisk": [
+        {
+          "bottomRisk": true,
+          "disabled": false,
+          "h": 155,
+          "href": "/app/login",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "משתמש קייםהתחברות למערכת והעברה אוטומטית לדשבורד המתאים.",
+          "tooSmall": false,
+          "visible": true,
+          "w": 334
+        },
+        {
+          "bottomRisk": true,
+          "disabled": false,
+          "h": 44,
+          "href": "/",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "בית",
+          "tooSmall": false,
+          "visible": true,
+          "w": 85
+        },
+        {
+          "bottomRisk": true,
+          "disabled": false,
+          "h": 44,
+          "href": "/parents-demand",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "הורים",
+          "tooSmall": false,
+          "visible": true,
+          "w": 85
+        },
+        {
+          "bottomRisk": true,
+          "disabled": false,
+          "h": 44,
+          "href": "/book-demo",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "הדגמה",
+          "tooSmall": false,
+          "visible": true,
+          "w": 85
+        },
+        {
+          "bottomRisk": true,
+          "disabled": false,
+          "h": 44,
+          "href": "/app",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "מערכת",
+          "tooSmall": false,
+          "visible": true,
+          "w": 85
+        }
+      ],
+      "clientWidth": 390,
+      "disabledVisibleActionCount": 1,
+      "finalPath": "/app",
+      "h1": [
+        "ברוכים הבאים לגן בטוח"
+      ],
+      "hasFakeLiveRiskText": true,
+      "hasLoginText": true,
+      "hasUnavailableText": false,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 390,
+      "title": "כניסה למערכת | גן בטוח | גן בטוח",
+      "tooSmall": [],
+      "visibleActionCount": 10
+    }
+  },
+  {
+    "viewport": "mobile390",
+    "width": 390,
+    "height": 844,
+    "route": "/app/login",
+    "key": "login",
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/ux-ui-qa-3/mobile390-login.png",
+    "metrics": {
+      "bodyTextSample": "סביבה בטוחה. חיבורים שמחזיקים. עתיד טוב יותר.\n\nהתחברות למערכת\n\nהזינו את הפרטים שלכם והמערכת תזהה את סוג החשבון שלכם\n\nאימייל או טלפון\nסיסמה\nזכור אותי\nשכחתי סיסמה\nהתחברות\n\nאין לכם חשבון? הרשמה\n\nכניסה אחת לכל סוגי המשתמשים\n\nהורים, גנים, צוות, מפקחים ואדמין — המער",
+      "bottomRisk": [],
+      "clientWidth": 390,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/app/login",
+      "h1": [
+        "התחברות למערכת"
+      ],
+      "hasFakeLiveRiskText": true,
+      "hasLoginText": true,
+      "hasUnavailableText": false,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 390,
+      "title": "כניסה למערכת | גן בטוח | גן בטוח",
+      "tooSmall": [
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 38,
+          "href": null,
+          "offscreenX": false,
+          "tag": "INPUT",
+          "text": "",
+          "tooSmall": true,
+          "visible": true,
+          "w": 25
+        },
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 17,
+          "href": "/app/register",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "הרשמה",
+          "tooSmall": true,
+          "visible": true,
+          "w": 47
+        }
+      ],
+      "visibleActionCount": 6
+    }
+  },
+  {
+    "viewport": "mobile390",
+    "width": 390,
+    "height": 844,
+    "route": "/app/register",
+    "key": "register",
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/ux-ui-qa-3/mobile390-register.png",
+    "metrics": {
+      "bodyTextSample": "חזרה\nחיבור מאובטח\n\nמשתמש חדש\n\nמה סוג המשתמש שלך?\n\nבחרו מסלול אחד. כל חשבון חדש נפתח במצב מוגבל עד אישור מתאים.\n\nהורה\nצרו כרטיס ילד, מצאו גנים בטוחים והגישו בקשת רישום.\nהרשמה כהורה\nמנהלת גן / גננת\nרשמו את הגן, הגדירו קבוצות גיל, מחירים וניהול מלא.\nרישום גן\nצוות",
+      "bottomRisk": [
+        {
+          "bottomRisk": true,
+          "disabled": false,
+          "h": 281,
+          "href": "/app/register/parent",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "הורהצרו כרטיס ילד, מצאו גנים בטוחים והגישו בקשת רישום.הרשמה כהורה",
+          "tooSmall": false,
+          "visible": true,
+          "w": 284
+        },
+        {
+          "bottomRisk": true,
+          "disabled": false,
+          "h": 44,
+          "href": "/",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "בית",
+          "tooSmall": false,
+          "visible": true,
+          "w": 85
+        },
+        {
+          "bottomRisk": true,
+          "disabled": false,
+          "h": 44,
+          "href": "/parents-demand",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "הורים",
+          "tooSmall": false,
+          "visible": true,
+          "w": 85
+        },
+        {
+          "bottomRisk": true,
+          "disabled": false,
+          "h": 44,
+          "href": "/book-demo",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "הדגמה",
+          "tooSmall": false,
+          "visible": true,
+          "w": 85
+        },
+        {
+          "bottomRisk": true,
+          "disabled": false,
+          "h": 44,
+          "href": "/app",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "מערכת",
+          "tooSmall": false,
+          "visible": true,
+          "w": 85
+        }
+      ],
+      "clientWidth": 390,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/app/register",
+      "h1": [
+        "מה סוג המשתמש שלך?"
+      ],
+      "hasFakeLiveRiskText": true,
+      "hasLoginText": true,
+      "hasUnavailableText": false,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 390,
+      "title": "הרשמה | גן בטוח | גן בטוח",
+      "tooSmall": [
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 21,
+          "href": "/app/login",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "התחברות",
+          "tooSmall": true,
+          "visible": true,
+          "w": 71
+        }
+      ],
+      "visibleActionCount": 10
+    }
+  },
+  {
+    "viewport": "mobile390",
+    "width": 390,
+    "height": 844,
+    "route": "/dashboard/parent",
+    "key": "parent-dashboard",
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/ux-ui-qa-3/mobile390-parent-dashboard.png",
+    "metrics": {
+      "bodyTextSample": "סביבה בטוחה. חיבורים שמחזיקים. עתיד טוב יותר.\n\nהתחברות למערכת\n\nהזינו את הפרטים שלכם והמערכת תזהה את סוג החשבון שלכם\n\nאימייל או טלפון\nסיסמה\nזכור אותי\nשכחתי סיסמה\nהתחברות\n\nאין לכם חשבון? הרשמה\n\nכניסה אחת לכל סוגי המשתמשים\n\nהורים, גנים, צוות, מפקחים ואדמין — המער",
+      "bottomRisk": [],
+      "clientWidth": 390,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/login",
+      "h1": [
+        "התחברות למערכת"
+      ],
+      "hasFakeLiveRiskText": true,
+      "hasLoginText": true,
+      "hasUnavailableText": false,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 390,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 38,
+          "href": null,
+          "offscreenX": false,
+          "tag": "INPUT",
+          "text": "",
+          "tooSmall": true,
+          "visible": true,
+          "w": 25
+        },
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 17,
+          "href": "/app/register",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "הרשמה",
+          "tooSmall": true,
+          "visible": true,
+          "w": 47
+        }
+      ],
+      "visibleActionCount": 6
+    }
+  },
+  {
+    "viewport": "mobile390",
+    "width": 390,
+    "height": 844,
+    "route": "/dashboard/garden",
+    "key": "manager-dashboard",
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/ux-ui-qa-3/mobile390-manager-dashboard.png",
+    "metrics": {
+      "bodyTextSample": "סביבה בטוחה. חיבורים שמחזיקים. עתיד טוב יותר.\n\nהתחברות למערכת\n\nהזינו את הפרטים שלכם והמערכת תזהה את סוג החשבון שלכם\n\nאימייל או טלפון\nסיסמה\nזכור אותי\nשכחתי סיסמה\nהתחברות\n\nאין לכם חשבון? הרשמה\n\nכניסה אחת לכל סוגי המשתמשים\n\nהורים, גנים, צוות, מפקחים ואדמין — המער",
+      "bottomRisk": [],
+      "clientWidth": 390,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/login",
+      "h1": [
+        "התחברות למערכת"
+      ],
+      "hasFakeLiveRiskText": true,
+      "hasLoginText": true,
+      "hasUnavailableText": false,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 390,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 38,
+          "href": null,
+          "offscreenX": false,
+          "tag": "INPUT",
+          "text": "",
+          "tooSmall": true,
+          "visible": true,
+          "w": 25
+        },
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 17,
+          "href": "/app/register",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "הרשמה",
+          "tooSmall": true,
+          "visible": true,
+          "w": 47
+        }
+      ],
+      "visibleActionCount": 6
+    }
+  },
+  {
+    "viewport": "mobile390",
+    "width": 390,
+    "height": 844,
+    "route": "/dashboard/staff",
+    "key": "staff-dashboard",
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/ux-ui-qa-3/mobile390-staff-dashboard.png",
+    "metrics": {
+      "bodyTextSample": "סביבה בטוחה. חיבורים שמחזיקים. עתיד טוב יותר.\n\nהתחברות למערכת\n\nהזינו את הפרטים שלכם והמערכת תזהה את סוג החשבון שלכם\n\nאימייל או טלפון\nסיסמה\nזכור אותי\nשכחתי סיסמה\nהתחברות\n\nאין לכם חשבון? הרשמה\n\nכניסה אחת לכל סוגי המשתמשים\n\nהורים, גנים, צוות, מפקחים ואדמין — המער",
+      "bottomRisk": [],
+      "clientWidth": 390,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/login",
+      "h1": [
+        "התחברות למערכת"
+      ],
+      "hasFakeLiveRiskText": true,
+      "hasLoginText": true,
+      "hasUnavailableText": false,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 390,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 38,
+          "href": null,
+          "offscreenX": false,
+          "tag": "INPUT",
+          "text": "",
+          "tooSmall": true,
+          "visible": true,
+          "w": 25
+        },
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 17,
+          "href": "/app/register",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "הרשמה",
+          "tooSmall": true,
+          "visible": true,
+          "w": 47
+        }
+      ],
+      "visibleActionCount": 6
+    }
+  },
+  {
+    "viewport": "mobile390",
+    "width": 390,
+    "height": 844,
+    "route": "/dashboard/inspector",
+    "key": "inspector-dashboard",
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/ux-ui-qa-3/mobile390-inspector-dashboard.png",
+    "metrics": {
+      "bodyTextSample": "סביבה בטוחה. חיבורים שמחזיקים. עתיד טוב יותר.\n\nהתחברות למערכת\n\nהזינו את הפרטים שלכם והמערכת תזהה את סוג החשבון שלכם\n\nאימייל או טלפון\nסיסמה\nזכור אותי\nשכחתי סיסמה\nהתחברות\n\nאין לכם חשבון? הרשמה\n\nכניסה אחת לכל סוגי המשתמשים\n\nהורים, גנים, צוות, מפקחים ואדמין — המער",
+      "bottomRisk": [],
+      "clientWidth": 390,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/login",
+      "h1": [
+        "התחברות למערכת"
+      ],
+      "hasFakeLiveRiskText": true,
+      "hasLoginText": true,
+      "hasUnavailableText": false,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 390,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 38,
+          "href": null,
+          "offscreenX": false,
+          "tag": "INPUT",
+          "text": "",
+          "tooSmall": true,
+          "visible": true,
+          "w": 25
+        },
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 17,
+          "href": "/app/register",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "הרשמה",
+          "tooSmall": true,
+          "visible": true,
+          "w": 47
+        }
+      ],
+      "visibleActionCount": 6
+    }
+  },
+  {
+    "viewport": "mobile390",
+    "width": 390,
+    "height": 844,
+    "route": "/dashboard/admin",
+    "key": "admin-dashboard",
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/ux-ui-qa-3/mobile390-admin-dashboard.png",
+    "metrics": {
+      "bodyTextSample": "סביבה בטוחה. חיבורים שמחזיקים. עתיד טוב יותר.\n\nהתחברות למערכת\n\nהזינו את הפרטים שלכם והמערכת תזהה את סוג החשבון שלכם\n\nאימייל או טלפון\nסיסמה\nזכור אותי\nשכחתי סיסמה\nהתחברות\n\nאין לכם חשבון? הרשמה\n\nכניסה אחת לכל סוגי המשתמשים\n\nהורים, גנים, צוות, מפקחים ואדמין — המער",
+      "bottomRisk": [],
+      "clientWidth": 390,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/login",
+      "h1": [
+        "התחברות למערכת"
+      ],
+      "hasFakeLiveRiskText": true,
+      "hasLoginText": true,
+      "hasUnavailableText": false,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 390,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 38,
+          "href": null,
+          "offscreenX": false,
+          "tag": "INPUT",
+          "text": "",
+          "tooSmall": true,
+          "visible": true,
+          "w": 25
+        },
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 17,
+          "href": "/app/register",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "הרשמה",
+          "tooSmall": true,
+          "visible": true,
+          "w": 47
+        }
+      ],
+      "visibleActionCount": 6
+    }
+  },
+  {
+    "viewport": "mobile390",
+    "width": 390,
+    "height": 844,
+    "route": "/digital-observer",
+    "key": "digital-observer",
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/ux-ui-qa-3/mobile390-digital-observer.png",
+    "metrics": {
+      "bodyTextSample": "התחברות\nהרשמה\nכניסה למערכת\nDigital Observer\nOverview\nSites\nCameras\nObserver Alerts\nMonitoring Rules\nPackages\n\nDigital Observer\n\nהתצפיתן הדיגיטלי לניטור מצלמות חכם וזהיר.\n\nהתצפיתן הדיגיטלי – ניטור חכם למצלמות הבית והעסק.\n\nחברו מצלמות, נטרו אתרים וקבלו התרעות חכ",
+      "bottomRisk": [
+        {
+          "bottomRisk": true,
+          "disabled": false,
+          "h": 44,
+          "href": "/",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "בית",
+          "tooSmall": false,
+          "visible": true,
+          "w": 85
+        },
+        {
+          "bottomRisk": true,
+          "disabled": false,
+          "h": 44,
+          "href": "/parents-demand",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "הורים",
+          "tooSmall": false,
+          "visible": true,
+          "w": 85
+        },
+        {
+          "bottomRisk": true,
+          "disabled": false,
+          "h": 44,
+          "href": "/book-demo",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "הדגמה",
+          "tooSmall": false,
+          "visible": true,
+          "w": 85
+        },
+        {
+          "bottomRisk": true,
+          "disabled": false,
+          "h": 44,
+          "href": "/app",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "מערכת",
+          "tooSmall": false,
+          "visible": true,
+          "w": 85
+        }
+      ],
+      "clientWidth": 390,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/digital-observer",
+      "h1": [
+        "התצפיתן הדיגיטלי לניטור מצלמות חכם וזהיר."
+      ],
+      "hasFakeLiveRiskText": true,
+      "hasLoginText": true,
+      "hasUnavailableText": true,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 390,
+      "title": "Digital Observer – AI Camera Monitoring Platform | גן בטוח",
+      "tooSmall": [],
+      "visibleActionCount": 32
+    }
+  },
+  {
+    "viewport": "mobile390",
+    "width": 390,
+    "height": 844,
+    "route": "/digital-observer/dashboard",
+    "key": "digital-observer-dashboard",
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/ux-ui-qa-3/mobile390-digital-observer-dashboard.png",
+    "metrics": {
+      "bodyTextSample": "סביבה בטוחה. חיבורים שמחזיקים. עתיד טוב יותר.\n\nהתחברות למערכת\n\nהזינו את הפרטים שלכם והמערכת תזהה את סוג החשבון שלכם\n\nאימייל או טלפון\nסיסמה\nזכור אותי\nשכחתי סיסמה\nהתחברות\n\nאין לכם חשבון? הרשמה\n\nכניסה אחת לכל סוגי המשתמשים\n\nהורים, גנים, צוות, מפקחים ואדמין — המער",
+      "bottomRisk": [],
+      "clientWidth": 390,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/login",
+      "h1": [
+        "התחברות למערכת"
+      ],
+      "hasFakeLiveRiskText": true,
+      "hasLoginText": true,
+      "hasUnavailableText": false,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 390,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 38,
+          "href": null,
+          "offscreenX": false,
+          "tag": "INPUT",
+          "text": "",
+          "tooSmall": true,
+          "visible": true,
+          "w": 25
+        },
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 17,
+          "href": "/app/register",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "הרשמה",
+          "tooSmall": true,
+          "visible": true,
+          "w": 47
+        }
+      ],
+      "visibleActionCount": 6
+    }
+  },
+  {
+    "viewport": "mobile390",
+    "width": 390,
+    "height": 844,
+    "route": "/dashboard/garden/subscription",
+    "key": "payment-readiness",
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/ux-ui-qa-3/mobile390-payment-readiness.png",
+    "metrics": {
+      "bodyTextSample": "סביבה בטוחה. חיבורים שמחזיקים. עתיד טוב יותר.\n\nהתחברות למערכת\n\nהזינו את הפרטים שלכם והמערכת תזהה את סוג החשבון שלכם\n\nאימייל או טלפון\nסיסמה\nזכור אותי\nשכחתי סיסמה\nהתחברות\n\nאין לכם חשבון? הרשמה\n\nכניסה אחת לכל סוגי המשתמשים\n\nהורים, גנים, צוות, מפקחים ואדמין — המער",
+      "bottomRisk": [],
+      "clientWidth": 390,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/login",
+      "h1": [
+        "התחברות למערכת"
+      ],
+      "hasFakeLiveRiskText": true,
+      "hasLoginText": true,
+      "hasUnavailableText": false,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 390,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 38,
+          "href": null,
+          "offscreenX": false,
+          "tag": "INPUT",
+          "text": "",
+          "tooSmall": true,
+          "visible": true,
+          "w": 25
+        },
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 17,
+          "href": "/app/register",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "הרשמה",
+          "tooSmall": true,
+          "visible": true,
+          "w": 47
+        }
+      ],
+      "visibleActionCount": 6
+    }
+  },
+  {
+    "viewport": "mobile390",
+    "width": 390,
+    "height": 844,
+    "route": "/dashboard/parent/cameras",
+    "key": "camera-readiness",
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/ux-ui-qa-3/mobile390-camera-readiness.png",
+    "metrics": {
+      "bodyTextSample": "סביבה בטוחה. חיבורים שמחזיקים. עתיד טוב יותר.\n\nהתחברות למערכת\n\nהזינו את הפרטים שלכם והמערכת תזהה את סוג החשבון שלכם\n\nאימייל או טלפון\nסיסמה\nזכור אותי\nשכחתי סיסמה\nהתחברות\n\nאין לכם חשבון? הרשמה\n\nכניסה אחת לכל סוגי המשתמשים\n\nהורים, גנים, צוות, מפקחים ואדמין — המער",
+      "bottomRisk": [],
+      "clientWidth": 390,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/login",
+      "h1": [
+        "התחברות למערכת"
+      ],
+      "hasFakeLiveRiskText": true,
+      "hasLoginText": true,
+      "hasUnavailableText": false,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 390,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 38,
+          "href": null,
+          "offscreenX": false,
+          "tag": "INPUT",
+          "text": "",
+          "tooSmall": true,
+          "visible": true,
+          "w": 25
+        },
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 17,
+          "href": "/app/register",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "הרשמה",
+          "tooSmall": true,
+          "visible": true,
+          "w": 47
+        }
+      ],
+      "visibleActionCount": 6
+    }
+  },
+  {
+    "viewport": "mobile390",
+    "width": 390,
+    "height": 844,
+    "route": "/dashboard/parent/ai-events",
+    "key": "ai-readiness",
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/ux-ui-qa-3/mobile390-ai-readiness.png",
+    "metrics": {
+      "bodyTextSample": "סביבה בטוחה. חיבורים שמחזיקים. עתיד טוב יותר.\n\nהתחברות למערכת\n\nהזינו את הפרטים שלכם והמערכת תזהה את סוג החשבון שלכם\n\nאימייל או טלפון\nסיסמה\nזכור אותי\nשכחתי סיסמה\nהתחברות\n\nאין לכם חשבון? הרשמה\n\nכניסה אחת לכל סוגי המשתמשים\n\nהורים, גנים, צוות, מפקחים ואדמין — המער",
+      "bottomRisk": [],
+      "clientWidth": 390,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/login",
+      "h1": [
+        "התחברות למערכת"
+      ],
+      "hasFakeLiveRiskText": true,
+      "hasLoginText": true,
+      "hasUnavailableText": false,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 390,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 38,
+          "href": null,
+          "offscreenX": false,
+          "tag": "INPUT",
+          "text": "",
+          "tooSmall": true,
+          "visible": true,
+          "w": 25
+        },
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 17,
+          "href": "/app/register",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "הרשמה",
+          "tooSmall": true,
+          "visible": true,
+          "w": 47
+        }
+      ],
+      "visibleActionCount": 6
+    }
+  },
+  {
+    "viewport": "tablet768",
+    "width": 768,
+    "height": 1024,
+    "route": "/",
+    "key": "home",
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/ux-ui-qa-3/tablet768-home.png",
+    "metrics": {
+      "bodyTextSample": "התחברות\nהרשמה\nכניסה למערכת\nתקן חדש לגני ילדים\nהפטנט הישראלי לניהול גני ילדים מקצה לקצה\n\nמערכת אחת שמחברת מנהלות, הורים, צוות, פיקוח, מצלמות, מסמכים ותשלומים לחוויית שימוש פשוטה, שקופה ובטוחה.\n\nרישום למערכת\nכניסה למערכת\nקביעת הדגמה\nרשימת גני הילדים\nפטנט ישראלי\n",
+      "bottomRisk": [
+        {
+          "bottomRisk": true,
+          "disabled": false,
+          "h": 44,
+          "href": "/",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "בית",
+          "tooSmall": false,
+          "visible": true,
+          "w": 122
+        },
+        {
+          "bottomRisk": true,
+          "disabled": false,
+          "h": 44,
+          "href": "/parents-demand",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "הורים",
+          "tooSmall": false,
+          "visible": true,
+          "w": 122
+        },
+        {
+          "bottomRisk": true,
+          "disabled": false,
+          "h": 44,
+          "href": "/book-demo",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "הדגמה",
+          "tooSmall": false,
+          "visible": true,
+          "w": 122
+        },
+        {
+          "bottomRisk": true,
+          "disabled": false,
+          "h": 44,
+          "href": "/app",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "מערכת",
+          "tooSmall": false,
+          "visible": true,
+          "w": 122
+        }
+      ],
+      "clientWidth": 768,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/",
+      "h1": [
+        "הפטנט הישראלי לניהול גני ילדים מקצה לקצה"
+      ],
+      "hasFakeLiveRiskText": true,
+      "hasLoginText": true,
+      "hasUnavailableText": true,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 768,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [],
+      "visibleActionCount": 21
+    }
+  },
+  {
+    "viewport": "tablet768",
+    "width": 768,
+    "height": 1024,
+    "route": "/app",
+    "key": "app",
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/ux-ui-qa-3/tablet768-app.png",
+    "metrics": {
+      "bodyTextSample": "חזרה לאתר\nכניסה למערכת\nברוכים הבאים לגן בטוח\n\nהורידו את האפליקציה או המשיכו בדפדפן. המערכת תעביר כל משתמש למסך המתאים לפי התפקיד והסטטוס שלו.\n\nהורדת אפליקציה\nהמשך בדפדפן\nהאפליקציה תעלה בקרוב. ניתן להמשיך בדפדפן כבר עכשיו.\nמשתמש קיים\nהתחברות למערכת והעברה אוטומ",
+      "bottomRisk": [
+        {
+          "bottomRisk": true,
+          "disabled": false,
+          "h": 44,
+          "href": "/",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "בית",
+          "tooSmall": false,
+          "visible": true,
+          "w": 122
+        },
+        {
+          "bottomRisk": true,
+          "disabled": false,
+          "h": 44,
+          "href": "/parents-demand",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "הורים",
+          "tooSmall": false,
+          "visible": true,
+          "w": 122
+        },
+        {
+          "bottomRisk": true,
+          "disabled": false,
+          "h": 44,
+          "href": "/book-demo",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "הדגמה",
+          "tooSmall": false,
+          "visible": true,
+          "w": 122
+        },
+        {
+          "bottomRisk": true,
+          "disabled": false,
+          "h": 44,
+          "href": "/app",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "מערכת",
+          "tooSmall": false,
+          "visible": true,
+          "w": 122
+        }
+      ],
+      "clientWidth": 768,
+      "disabledVisibleActionCount": 1,
+      "finalPath": "/app",
+      "h1": [
+        "ברוכים הבאים לגן בטוח"
+      ],
+      "hasFakeLiveRiskText": true,
+      "hasLoginText": true,
+      "hasUnavailableText": false,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 768,
+      "title": "כניסה למערכת | גן בטוח | גן בטוח",
+      "tooSmall": [],
+      "visibleActionCount": 10
+    }
+  },
+  {
+    "viewport": "tablet768",
+    "width": 768,
+    "height": 1024,
+    "route": "/app/login",
+    "key": "login",
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/ux-ui-qa-3/tablet768-login.png",
+    "metrics": {
+      "bodyTextSample": "סביבה בטוחה. חיבורים שמחזיקים. עתיד טוב יותר.\n\nהתחברות למערכת\n\nהזינו את הפרטים שלכם והמערכת תזהה את סוג החשבון שלכם\n\nאימייל או טלפון\nסיסמה\nזכור אותי\nשכחתי סיסמה\nהתחברות\n\nאין לכם חשבון? הרשמה\n\nכניסה אחת לכל סוגי המשתמשים\n\nהורים, גנים, צוות, מפקחים ואדמין — המער",
+      "bottomRisk": [],
+      "clientWidth": 768,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/app/login",
+      "h1": [
+        "התחברות למערכת"
+      ],
+      "hasFakeLiveRiskText": true,
+      "hasLoginText": true,
+      "hasUnavailableText": false,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 768,
+      "title": "כניסה למערכת | גן בטוח | גן בטוח",
+      "tooSmall": [
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 38,
+          "href": null,
+          "offscreenX": false,
+          "tag": "INPUT",
+          "text": "",
+          "tooSmall": true,
+          "visible": true,
+          "w": 25
+        },
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 17,
+          "href": "/app/register",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "הרשמה",
+          "tooSmall": true,
+          "visible": true,
+          "w": 47
+        }
+      ],
+      "visibleActionCount": 6
+    }
+  },
+  {
+    "viewport": "tablet768",
+    "width": 768,
+    "height": 1024,
+    "route": "/app/register",
+    "key": "register",
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/ux-ui-qa-3/tablet768-register.png",
+    "metrics": {
+      "bodyTextSample": "חזרה\nחיבור מאובטח\n\nמשתמש חדש\n\nמה סוג המשתמש שלך?\n\nבחרו מסלול אחד. כל חשבון חדש נפתח במצב מוגבל עד אישור מתאים.\n\nהורה\nצרו כרטיס ילד, מצאו גנים בטוחים והגישו בקשת רישום.\nהרשמה כהורה\nמנהלת גן / גננת\nרשמו את הגן, הגדירו קבוצות גיל, מחירים וניהול מלא.\nרישום גן\nצוות",
+      "bottomRisk": [
+        {
+          "bottomRisk": true,
+          "disabled": false,
+          "h": 281,
+          "href": "/app/register/staff",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "צוות גןהשלימו פרטים והתחברו לגן שבו אתם עובדים או מגישים מועמדות.הרשמה כאיש צוות",
+          "tooSmall": false,
+          "visible": true,
+          "w": 304
+        },
+        {
+          "bottomRisk": true,
+          "disabled": false,
+          "h": 281,
+          "href": "/app/register/inspector",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "מפקחהגישו בקשה להצטרפות למערך הפיקוח ושיוך לגנים.הרשמה כמפקח",
+          "tooSmall": false,
+          "visible": true,
+          "w": 304
+        },
+        {
+          "bottomRisk": true,
+          "disabled": false,
+          "h": 44,
+          "href": "/",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "בית",
+          "tooSmall": false,
+          "visible": true,
+          "w": 122
+        },
+        {
+          "bottomRisk": true,
+          "disabled": false,
+          "h": 44,
+          "href": "/parents-demand",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "הורים",
+          "tooSmall": false,
+          "visible": true,
+          "w": 122
+        },
+        {
+          "bottomRisk": true,
+          "disabled": false,
+          "h": 44,
+          "href": "/book-demo",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "הדגמה",
+          "tooSmall": false,
+          "visible": true,
+          "w": 122
+        }
+      ],
+      "clientWidth": 768,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/app/register",
+      "h1": [
+        "מה סוג המשתמש שלך?"
+      ],
+      "hasFakeLiveRiskText": true,
+      "hasLoginText": true,
+      "hasUnavailableText": false,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 768,
+      "title": "הרשמה | גן בטוח | גן בטוח",
+      "tooSmall": [
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 21,
+          "href": "/app/login",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "התחברות",
+          "tooSmall": true,
+          "visible": true,
+          "w": 71
+        }
+      ],
+      "visibleActionCount": 10
+    }
+  },
+  {
+    "viewport": "tablet768",
+    "width": 768,
+    "height": 1024,
+    "route": "/dashboard/parent",
+    "key": "parent-dashboard",
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/ux-ui-qa-3/tablet768-parent-dashboard.png",
+    "metrics": {
+      "bodyTextSample": "סביבה בטוחה. חיבורים שמחזיקים. עתיד טוב יותר.\n\nהתחברות למערכת\n\nהזינו את הפרטים שלכם והמערכת תזהה את סוג החשבון שלכם\n\nאימייל או טלפון\nסיסמה\nזכור אותי\nשכחתי סיסמה\nהתחברות\n\nאין לכם חשבון? הרשמה\n\nכניסה אחת לכל סוגי המשתמשים\n\nהורים, גנים, צוות, מפקחים ואדמין — המער",
+      "bottomRisk": [],
+      "clientWidth": 768,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/login",
+      "h1": [
+        "התחברות למערכת"
+      ],
+      "hasFakeLiveRiskText": true,
+      "hasLoginText": true,
+      "hasUnavailableText": false,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 768,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 38,
+          "href": null,
+          "offscreenX": false,
+          "tag": "INPUT",
+          "text": "",
+          "tooSmall": true,
+          "visible": true,
+          "w": 25
+        },
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 17,
+          "href": "/app/register",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "הרשמה",
+          "tooSmall": true,
+          "visible": true,
+          "w": 47
+        }
+      ],
+      "visibleActionCount": 6
+    }
+  },
+  {
+    "viewport": "tablet768",
+    "width": 768,
+    "height": 1024,
+    "route": "/dashboard/garden",
+    "key": "manager-dashboard",
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/ux-ui-qa-3/tablet768-manager-dashboard.png",
+    "metrics": {
+      "bodyTextSample": "סביבה בטוחה. חיבורים שמחזיקים. עתיד טוב יותר.\n\nהתחברות למערכת\n\nהזינו את הפרטים שלכם והמערכת תזהה את סוג החשבון שלכם\n\nאימייל או טלפון\nסיסמה\nזכור אותי\nשכחתי סיסמה\nהתחברות\n\nאין לכם חשבון? הרשמה\n\nכניסה אחת לכל סוגי המשתמשים\n\nהורים, גנים, צוות, מפקחים ואדמין — המער",
+      "bottomRisk": [],
+      "clientWidth": 768,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/login",
+      "h1": [
+        "התחברות למערכת"
+      ],
+      "hasFakeLiveRiskText": true,
+      "hasLoginText": true,
+      "hasUnavailableText": false,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 768,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 38,
+          "href": null,
+          "offscreenX": false,
+          "tag": "INPUT",
+          "text": "",
+          "tooSmall": true,
+          "visible": true,
+          "w": 25
+        },
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 17,
+          "href": "/app/register",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "הרשמה",
+          "tooSmall": true,
+          "visible": true,
+          "w": 47
+        }
+      ],
+      "visibleActionCount": 6
+    }
+  },
+  {
+    "viewport": "tablet768",
+    "width": 768,
+    "height": 1024,
+    "route": "/dashboard/staff",
+    "key": "staff-dashboard",
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/ux-ui-qa-3/tablet768-staff-dashboard.png",
+    "metrics": {
+      "bodyTextSample": "סביבה בטוחה. חיבורים שמחזיקים. עתיד טוב יותר.\n\nהתחברות למערכת\n\nהזינו את הפרטים שלכם והמערכת תזהה את סוג החשבון שלכם\n\nאימייל או טלפון\nסיסמה\nזכור אותי\nשכחתי סיסמה\nהתחברות\n\nאין לכם חשבון? הרשמה\n\nכניסה אחת לכל סוגי המשתמשים\n\nהורים, גנים, צוות, מפקחים ואדמין — המער",
+      "bottomRisk": [],
+      "clientWidth": 768,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/login",
+      "h1": [
+        "התחברות למערכת"
+      ],
+      "hasFakeLiveRiskText": true,
+      "hasLoginText": true,
+      "hasUnavailableText": false,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 768,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 38,
+          "href": null,
+          "offscreenX": false,
+          "tag": "INPUT",
+          "text": "",
+          "tooSmall": true,
+          "visible": true,
+          "w": 25
+        },
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 17,
+          "href": "/app/register",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "הרשמה",
+          "tooSmall": true,
+          "visible": true,
+          "w": 47
+        }
+      ],
+      "visibleActionCount": 6
+    }
+  },
+  {
+    "viewport": "tablet768",
+    "width": 768,
+    "height": 1024,
+    "route": "/dashboard/inspector",
+    "key": "inspector-dashboard",
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/ux-ui-qa-3/tablet768-inspector-dashboard.png",
+    "metrics": {
+      "bodyTextSample": "סביבה בטוחה. חיבורים שמחזיקים. עתיד טוב יותר.\n\nהתחברות למערכת\n\nהזינו את הפרטים שלכם והמערכת תזהה את סוג החשבון שלכם\n\nאימייל או טלפון\nסיסמה\nזכור אותי\nשכחתי סיסמה\nהתחברות\n\nאין לכם חשבון? הרשמה\n\nכניסה אחת לכל סוגי המשתמשים\n\nהורים, גנים, צוות, מפקחים ואדמין — המער",
+      "bottomRisk": [],
+      "clientWidth": 768,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/login",
+      "h1": [
+        "התחברות למערכת"
+      ],
+      "hasFakeLiveRiskText": true,
+      "hasLoginText": true,
+      "hasUnavailableText": false,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 768,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 38,
+          "href": null,
+          "offscreenX": false,
+          "tag": "INPUT",
+          "text": "",
+          "tooSmall": true,
+          "visible": true,
+          "w": 25
+        },
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 17,
+          "href": "/app/register",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "הרשמה",
+          "tooSmall": true,
+          "visible": true,
+          "w": 47
+        }
+      ],
+      "visibleActionCount": 6
+    }
+  },
+  {
+    "viewport": "tablet768",
+    "width": 768,
+    "height": 1024,
+    "route": "/dashboard/admin",
+    "key": "admin-dashboard",
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/ux-ui-qa-3/tablet768-admin-dashboard.png",
+    "metrics": {
+      "bodyTextSample": "סביבה בטוחה. חיבורים שמחזיקים. עתיד טוב יותר.\n\nהתחברות למערכת\n\nהזינו את הפרטים שלכם והמערכת תזהה את סוג החשבון שלכם\n\nאימייל או טלפון\nסיסמה\nזכור אותי\nשכחתי סיסמה\nהתחברות\n\nאין לכם חשבון? הרשמה\n\nכניסה אחת לכל סוגי המשתמשים\n\nהורים, גנים, צוות, מפקחים ואדמין — המער",
+      "bottomRisk": [],
+      "clientWidth": 768,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/login",
+      "h1": [
+        "התחברות למערכת"
+      ],
+      "hasFakeLiveRiskText": true,
+      "hasLoginText": true,
+      "hasUnavailableText": false,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 768,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 38,
+          "href": null,
+          "offscreenX": false,
+          "tag": "INPUT",
+          "text": "",
+          "tooSmall": true,
+          "visible": true,
+          "w": 25
+        },
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 17,
+          "href": "/app/register",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "הרשמה",
+          "tooSmall": true,
+          "visible": true,
+          "w": 47
+        }
+      ],
+      "visibleActionCount": 6
+    }
+  },
+  {
+    "viewport": "tablet768",
+    "width": 768,
+    "height": 1024,
+    "route": "/digital-observer",
+    "key": "digital-observer",
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/ux-ui-qa-3/tablet768-digital-observer.png",
+    "metrics": {
+      "bodyTextSample": "התחברות\nהרשמה\nכניסה למערכת\nDigital Observer\nOverview\nSites\nCameras\nObserver Alerts\nMonitoring Rules\nPackages\n\nDigital Observer\n\nהתצפיתן הדיגיטלי לניטור מצלמות חכם וזהיר.\n\nהתצפיתן הדיגיטלי – ניטור חכם למצלמות הבית והעסק.\n\nחברו מצלמות, נטרו אתרים וקבלו התרעות חכ",
+      "bottomRisk": [
+        {
+          "bottomRisk": true,
+          "disabled": false,
+          "h": 44,
+          "href": "/",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "בית",
+          "tooSmall": false,
+          "visible": true,
+          "w": 122
+        },
+        {
+          "bottomRisk": true,
+          "disabled": false,
+          "h": 44,
+          "href": "/parents-demand",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "הורים",
+          "tooSmall": false,
+          "visible": true,
+          "w": 122
+        },
+        {
+          "bottomRisk": true,
+          "disabled": false,
+          "h": 44,
+          "href": "/book-demo",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "הדגמה",
+          "tooSmall": false,
+          "visible": true,
+          "w": 122
+        },
+        {
+          "bottomRisk": true,
+          "disabled": false,
+          "h": 44,
+          "href": "/app",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "מערכת",
+          "tooSmall": false,
+          "visible": true,
+          "w": 122
+        }
+      ],
+      "clientWidth": 768,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/digital-observer",
+      "h1": [
+        "התצפיתן הדיגיטלי לניטור מצלמות חכם וזהיר."
+      ],
+      "hasFakeLiveRiskText": true,
+      "hasLoginText": true,
+      "hasUnavailableText": true,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 768,
+      "title": "Digital Observer – AI Camera Monitoring Platform | גן בטוח",
+      "tooSmall": [],
+      "visibleActionCount": 32
+    }
+  },
+  {
+    "viewport": "tablet768",
+    "width": 768,
+    "height": 1024,
+    "route": "/digital-observer/dashboard",
+    "key": "digital-observer-dashboard",
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/ux-ui-qa-3/tablet768-digital-observer-dashboard.png",
+    "metrics": {
+      "bodyTextSample": "סביבה בטוחה. חיבורים שמחזיקים. עתיד טוב יותר.\n\nהתחברות למערכת\n\nהזינו את הפרטים שלכם והמערכת תזהה את סוג החשבון שלכם\n\nאימייל או טלפון\nסיסמה\nזכור אותי\nשכחתי סיסמה\nהתחברות\n\nאין לכם חשבון? הרשמה\n\nכניסה אחת לכל סוגי המשתמשים\n\nהורים, גנים, צוות, מפקחים ואדמין — המער",
+      "bottomRisk": [],
+      "clientWidth": 768,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/login",
+      "h1": [
+        "התחברות למערכת"
+      ],
+      "hasFakeLiveRiskText": true,
+      "hasLoginText": true,
+      "hasUnavailableText": false,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 768,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 38,
+          "href": null,
+          "offscreenX": false,
+          "tag": "INPUT",
+          "text": "",
+          "tooSmall": true,
+          "visible": true,
+          "w": 25
+        },
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 17,
+          "href": "/app/register",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "הרשמה",
+          "tooSmall": true,
+          "visible": true,
+          "w": 47
+        }
+      ],
+      "visibleActionCount": 6
+    }
+  },
+  {
+    "viewport": "tablet768",
+    "width": 768,
+    "height": 1024,
+    "route": "/dashboard/garden/subscription",
+    "key": "payment-readiness",
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/ux-ui-qa-3/tablet768-payment-readiness.png",
+    "metrics": {
+      "bodyTextSample": "סביבה בטוחה. חיבורים שמחזיקים. עתיד טוב יותר.\n\nהתחברות למערכת\n\nהזינו את הפרטים שלכם והמערכת תזהה את סוג החשבון שלכם\n\nאימייל או טלפון\nסיסמה\nזכור אותי\nשכחתי סיסמה\nהתחברות\n\nאין לכם חשבון? הרשמה\n\nכניסה אחת לכל סוגי המשתמשים\n\nהורים, גנים, צוות, מפקחים ואדמין — המער",
+      "bottomRisk": [],
+      "clientWidth": 768,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/login",
+      "h1": [
+        "התחברות למערכת"
+      ],
+      "hasFakeLiveRiskText": true,
+      "hasLoginText": true,
+      "hasUnavailableText": false,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 768,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 38,
+          "href": null,
+          "offscreenX": false,
+          "tag": "INPUT",
+          "text": "",
+          "tooSmall": true,
+          "visible": true,
+          "w": 25
+        },
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 17,
+          "href": "/app/register",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "הרשמה",
+          "tooSmall": true,
+          "visible": true,
+          "w": 47
+        }
+      ],
+      "visibleActionCount": 6
+    }
+  },
+  {
+    "viewport": "tablet768",
+    "width": 768,
+    "height": 1024,
+    "route": "/dashboard/parent/cameras",
+    "key": "camera-readiness",
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/ux-ui-qa-3/tablet768-camera-readiness.png",
+    "metrics": {
+      "bodyTextSample": "סביבה בטוחה. חיבורים שמחזיקים. עתיד טוב יותר.\n\nהתחברות למערכת\n\nהזינו את הפרטים שלכם והמערכת תזהה את סוג החשבון שלכם\n\nאימייל או טלפון\nסיסמה\nזכור אותי\nשכחתי סיסמה\nהתחברות\n\nאין לכם חשבון? הרשמה\n\nכניסה אחת לכל סוגי המשתמשים\n\nהורים, גנים, צוות, מפקחים ואדמין — המער",
+      "bottomRisk": [],
+      "clientWidth": 768,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/login",
+      "h1": [
+        "התחברות למערכת"
+      ],
+      "hasFakeLiveRiskText": true,
+      "hasLoginText": true,
+      "hasUnavailableText": false,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 768,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 38,
+          "href": null,
+          "offscreenX": false,
+          "tag": "INPUT",
+          "text": "",
+          "tooSmall": true,
+          "visible": true,
+          "w": 25
+        },
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 17,
+          "href": "/app/register",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "הרשמה",
+          "tooSmall": true,
+          "visible": true,
+          "w": 47
+        }
+      ],
+      "visibleActionCount": 6
+    }
+  },
+  {
+    "viewport": "tablet768",
+    "width": 768,
+    "height": 1024,
+    "route": "/dashboard/parent/ai-events",
+    "key": "ai-readiness",
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/ux-ui-qa-3/tablet768-ai-readiness.png",
+    "metrics": {
+      "bodyTextSample": "סביבה בטוחה. חיבורים שמחזיקים. עתיד טוב יותר.\n\nהתחברות למערכת\n\nהזינו את הפרטים שלכם והמערכת תזהה את סוג החשבון שלכם\n\nאימייל או טלפון\nסיסמה\nזכור אותי\nשכחתי סיסמה\nהתחברות\n\nאין לכם חשבון? הרשמה\n\nכניסה אחת לכל סוגי המשתמשים\n\nהורים, גנים, צוות, מפקחים ואדמין — המער",
+      "bottomRisk": [],
+      "clientWidth": 768,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/login",
+      "h1": [
+        "התחברות למערכת"
+      ],
+      "hasFakeLiveRiskText": true,
+      "hasLoginText": true,
+      "hasUnavailableText": false,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 768,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 38,
+          "href": null,
+          "offscreenX": false,
+          "tag": "INPUT",
+          "text": "",
+          "tooSmall": true,
+          "visible": true,
+          "w": 25
+        },
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 17,
+          "href": "/app/register",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "הרשמה",
+          "tooSmall": true,
+          "visible": true,
+          "w": 47
+        }
+      ],
+      "visibleActionCount": 6
+    }
+  },
+  {
+    "viewport": "desktop1440",
+    "width": 1440,
+    "height": 900,
+    "route": "/",
+    "key": "home",
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/ux-ui-qa-3/desktop1440-home.png",
+    "metrics": {
+      "bodyTextSample": "ראשי\nהורים\nגני ילדים\nצוות גן\nמפקחים\nהתצפיתן הדיגיטלי\nרשימת גנים\nהתחברות\nהרשמה\nכניסה למערכת\nתקן חדש לגני ילדים\nהפטנט הישראלי לניהול גני ילדים מקצה לקצה\n\nמערכת אחת שמחברת מנהלות, הורים, צוות, פיקוח, מצלמות, מסמכים ותשלומים לחוויית שימוש פשוטה, שקופה ובטוחה.\n\nריש",
+      "bottomRisk": [],
+      "clientWidth": 1440,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/",
+      "h1": [
+        "הפטנט הישראלי לניהול גני ילדים מקצה לקצה"
+      ],
+      "hasFakeLiveRiskText": true,
+      "hasLoginText": true,
+      "hasUnavailableText": true,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 1440,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 44,
+          "href": "/",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "ראשי",
+          "tooSmall": true,
+          "visible": true,
+          "w": 31
+        }
+      ],
+      "visibleActionCount": 24
+    }
+  },
+  {
+    "viewport": "desktop1440",
+    "width": 1440,
+    "height": 900,
+    "route": "/app",
+    "key": "app",
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/ux-ui-qa-3/desktop1440-app.png",
+    "metrics": {
+      "bodyTextSample": "חזרה לאתר\nכניסה למערכת\nברוכים הבאים לגן בטוח\n\nהורידו את האפליקציה או המשיכו בדפדפן. המערכת תעביר כל משתמש למסך המתאים לפי התפקיד והסטטוס שלו.\n\nהורדת אפליקציה\nהמשך בדפדפן\nהאפליקציה תעלה בקרוב. ניתן להמשיך בדפדפן כבר עכשיו.\nמשתמש קיים\nהתחברות למערכת והעברה אוטומ",
+      "bottomRisk": [],
+      "clientWidth": 1440,
+      "disabledVisibleActionCount": 1,
+      "finalPath": "/app",
+      "h1": [
+        "ברוכים הבאים לגן בטוח"
+      ],
+      "hasFakeLiveRiskText": true,
+      "hasLoginText": true,
+      "hasUnavailableText": false,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 1440,
+      "title": "כניסה למערכת | גן בטוח | גן בטוח",
+      "tooSmall": [],
+      "visibleActionCount": 6
+    }
+  },
+  {
+    "viewport": "desktop1440",
+    "width": 1440,
+    "height": 900,
+    "route": "/app/login",
+    "key": "login",
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/ux-ui-qa-3/desktop1440-login.png",
+    "metrics": {
+      "bodyTextSample": "סביבה בטוחה. חיבורים שמחזיקים. עתיד טוב יותר.\n\nהתחברות למערכת\n\nהזינו את הפרטים שלכם והמערכת תזהה את סוג החשבון שלכם\n\nאימייל או טלפון\nסיסמה\nזכור אותי\nשכחתי סיסמה\nהתחברות\n\nאין לכם חשבון? הרשמה\n\nכניסה אחת לכל סוגי המשתמשים\n\nהורים, גנים, צוות, מפקחים ואדמין — המער",
+      "bottomRisk": [],
+      "clientWidth": 1440,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/app/login",
+      "h1": [
+        "התחברות למערכת"
+      ],
+      "hasFakeLiveRiskText": true,
+      "hasLoginText": true,
+      "hasUnavailableText": false,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 1440,
+      "title": "כניסה למערכת | גן בטוח | גן בטוח",
+      "tooSmall": [
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 38,
+          "href": null,
+          "offscreenX": false,
+          "tag": "INPUT",
+          "text": "",
+          "tooSmall": true,
+          "visible": true,
+          "w": 23
+        },
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 17,
+          "href": "/app/register",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "הרשמה",
+          "tooSmall": true,
+          "visible": true,
+          "w": 47
+        }
+      ],
+      "visibleActionCount": 6
+    }
+  },
+  {
+    "viewport": "desktop1440",
+    "width": 1440,
+    "height": 900,
+    "route": "/app/register",
+    "key": "register",
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/ux-ui-qa-3/desktop1440-register.png",
+    "metrics": {
+      "bodyTextSample": "חזרה\nחיבור מאובטח\n\nמשתמש חדש\n\nמה סוג המשתמש שלך?\n\nבחרו מסלול אחד. כל חשבון חדש נפתח במצב מוגבל עד אישור מתאים.\n\nהורה\nצרו כרטיס ילד, מצאו גנים בטוחים והגישו בקשת רישום.\nהרשמה כהורה\nמנהלת גן / גננת\nרשמו את הגן, הגדירו קבוצות גיל, מחירים וניהול מלא.\nרישום גן\nצוות",
+      "bottomRisk": [
+        {
+          "bottomRisk": true,
+          "disabled": false,
+          "h": 254,
+          "href": "/app/register/parent",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "הורהצרו כרטיס ילד, מצאו גנים בטוחים והגישו בקשת רישום.הרשמה כהורה",
+          "tooSmall": false,
+          "visible": true,
+          "w": 541
+        },
+        {
+          "bottomRisk": true,
+          "disabled": false,
+          "h": 254,
+          "href": "/app/register/kindergarten",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "מנהלת גן / גננתרשמו את הגן, הגדירו קבוצות גיל, מחירים וניהול מלא.רישום גן",
+          "tooSmall": false,
+          "visible": true,
+          "w": 541
+        },
+        {
+          "bottomRisk": true,
+          "disabled": false,
+          "h": 254,
+          "href": "/app/register/staff",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "צוות גןהשלימו פרטים והתחברו לגן שבו אתם עובדים או מגישים מועמדות.הרשמה כאיש צוות",
+          "tooSmall": false,
+          "visible": true,
+          "w": 541
+        },
+        {
+          "bottomRisk": true,
+          "disabled": false,
+          "h": 254,
+          "href": "/app/register/inspector",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "מפקחהגישו בקשה להצטרפות למערך הפיקוח ושיוך לגנים.הרשמה כמפקח",
+          "tooSmall": false,
+          "visible": true,
+          "w": 541
+        }
+      ],
+      "clientWidth": 1440,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/app/register",
+      "h1": [
+        "מה סוג המשתמש שלך?"
+      ],
+      "hasFakeLiveRiskText": true,
+      "hasLoginText": true,
+      "hasUnavailableText": false,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 1440,
+      "title": "הרשמה | גן בטוח | גן בטוח",
+      "tooSmall": [
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 21,
+          "href": "/app/login",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "התחברות",
+          "tooSmall": true,
+          "visible": true,
+          "w": 71
+        }
+      ],
+      "visibleActionCount": 6
+    }
+  },
+  {
+    "viewport": "desktop1440",
+    "width": 1440,
+    "height": 900,
+    "route": "/dashboard/parent",
+    "key": "parent-dashboard",
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/ux-ui-qa-3/desktop1440-parent-dashboard.png",
+    "metrics": {
+      "bodyTextSample": "סביבה בטוחה. חיבורים שמחזיקים. עתיד טוב יותר.\n\nהתחברות למערכת\n\nהזינו את הפרטים שלכם והמערכת תזהה את סוג החשבון שלכם\n\nאימייל או טלפון\nסיסמה\nזכור אותי\nשכחתי סיסמה\nהתחברות\n\nאין לכם חשבון? הרשמה\n\nכניסה אחת לכל סוגי המשתמשים\n\nהורים, גנים, צוות, מפקחים ואדמין — המער",
+      "bottomRisk": [],
+      "clientWidth": 1440,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/login",
+      "h1": [
+        "התחברות למערכת"
+      ],
+      "hasFakeLiveRiskText": true,
+      "hasLoginText": true,
+      "hasUnavailableText": false,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 1440,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 38,
+          "href": null,
+          "offscreenX": false,
+          "tag": "INPUT",
+          "text": "",
+          "tooSmall": true,
+          "visible": true,
+          "w": 23
+        },
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 17,
+          "href": "/app/register",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "הרשמה",
+          "tooSmall": true,
+          "visible": true,
+          "w": 47
+        }
+      ],
+      "visibleActionCount": 6
+    }
+  },
+  {
+    "viewport": "desktop1440",
+    "width": 1440,
+    "height": 900,
+    "route": "/dashboard/garden",
+    "key": "manager-dashboard",
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/ux-ui-qa-3/desktop1440-manager-dashboard.png",
+    "metrics": {
+      "bodyTextSample": "סביבה בטוחה. חיבורים שמחזיקים. עתיד טוב יותר.\n\nהתחברות למערכת\n\nהזינו את הפרטים שלכם והמערכת תזהה את סוג החשבון שלכם\n\nאימייל או טלפון\nסיסמה\nזכור אותי\nשכחתי סיסמה\nהתחברות\n\nאין לכם חשבון? הרשמה\n\nכניסה אחת לכל סוגי המשתמשים\n\nהורים, גנים, צוות, מפקחים ואדמין — המער",
+      "bottomRisk": [],
+      "clientWidth": 1440,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/login",
+      "h1": [
+        "התחברות למערכת"
+      ],
+      "hasFakeLiveRiskText": true,
+      "hasLoginText": true,
+      "hasUnavailableText": false,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 1440,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 38,
+          "href": null,
+          "offscreenX": false,
+          "tag": "INPUT",
+          "text": "",
+          "tooSmall": true,
+          "visible": true,
+          "w": 23
+        },
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 17,
+          "href": "/app/register",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "הרשמה",
+          "tooSmall": true,
+          "visible": true,
+          "w": 47
+        }
+      ],
+      "visibleActionCount": 6
+    }
+  },
+  {
+    "viewport": "desktop1440",
+    "width": 1440,
+    "height": 900,
+    "route": "/dashboard/staff",
+    "key": "staff-dashboard",
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/ux-ui-qa-3/desktop1440-staff-dashboard.png",
+    "metrics": {
+      "bodyTextSample": "סביבה בטוחה. חיבורים שמחזיקים. עתיד טוב יותר.\n\nהתחברות למערכת\n\nהזינו את הפרטים שלכם והמערכת תזהה את סוג החשבון שלכם\n\nאימייל או טלפון\nסיסמה\nזכור אותי\nשכחתי סיסמה\nהתחברות\n\nאין לכם חשבון? הרשמה\n\nכניסה אחת לכל סוגי המשתמשים\n\nהורים, גנים, צוות, מפקחים ואדמין — המער",
+      "bottomRisk": [],
+      "clientWidth": 1440,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/login",
+      "h1": [
+        "התחברות למערכת"
+      ],
+      "hasFakeLiveRiskText": true,
+      "hasLoginText": true,
+      "hasUnavailableText": false,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 1440,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 38,
+          "href": null,
+          "offscreenX": false,
+          "tag": "INPUT",
+          "text": "",
+          "tooSmall": true,
+          "visible": true,
+          "w": 23
+        },
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 17,
+          "href": "/app/register",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "הרשמה",
+          "tooSmall": true,
+          "visible": true,
+          "w": 47
+        }
+      ],
+      "visibleActionCount": 6
+    }
+  },
+  {
+    "viewport": "desktop1440",
+    "width": 1440,
+    "height": 900,
+    "route": "/dashboard/inspector",
+    "key": "inspector-dashboard",
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/ux-ui-qa-3/desktop1440-inspector-dashboard.png",
+    "metrics": {
+      "bodyTextSample": "סביבה בטוחה. חיבורים שמחזיקים. עתיד טוב יותר.\n\nהתחברות למערכת\n\nהזינו את הפרטים שלכם והמערכת תזהה את סוג החשבון שלכם\n\nאימייל או טלפון\nסיסמה\nזכור אותי\nשכחתי סיסמה\nהתחברות\n\nאין לכם חשבון? הרשמה\n\nכניסה אחת לכל סוגי המשתמשים\n\nהורים, גנים, צוות, מפקחים ואדמין — המער",
+      "bottomRisk": [],
+      "clientWidth": 1440,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/login",
+      "h1": [
+        "התחברות למערכת"
+      ],
+      "hasFakeLiveRiskText": true,
+      "hasLoginText": true,
+      "hasUnavailableText": false,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 1440,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 38,
+          "href": null,
+          "offscreenX": false,
+          "tag": "INPUT",
+          "text": "",
+          "tooSmall": true,
+          "visible": true,
+          "w": 23
+        },
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 17,
+          "href": "/app/register",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "הרשמה",
+          "tooSmall": true,
+          "visible": true,
+          "w": 47
+        }
+      ],
+      "visibleActionCount": 6
+    }
+  },
+  {
+    "viewport": "desktop1440",
+    "width": 1440,
+    "height": 900,
+    "route": "/dashboard/admin",
+    "key": "admin-dashboard",
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/ux-ui-qa-3/desktop1440-admin-dashboard.png",
+    "metrics": {
+      "bodyTextSample": "סביבה בטוחה. חיבורים שמחזיקים. עתיד טוב יותר.\n\nהתחברות למערכת\n\nהזינו את הפרטים שלכם והמערכת תזהה את סוג החשבון שלכם\n\nאימייל או טלפון\nסיסמה\nזכור אותי\nשכחתי סיסמה\nהתחברות\n\nאין לכם חשבון? הרשמה\n\nכניסה אחת לכל סוגי המשתמשים\n\nהורים, גנים, צוות, מפקחים ואדמין — המער",
+      "bottomRisk": [],
+      "clientWidth": 1440,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/login",
+      "h1": [
+        "התחברות למערכת"
+      ],
+      "hasFakeLiveRiskText": true,
+      "hasLoginText": true,
+      "hasUnavailableText": false,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 1440,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 38,
+          "href": null,
+          "offscreenX": false,
+          "tag": "INPUT",
+          "text": "",
+          "tooSmall": true,
+          "visible": true,
+          "w": 23
+        },
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 17,
+          "href": "/app/register",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "הרשמה",
+          "tooSmall": true,
+          "visible": true,
+          "w": 47
+        }
+      ],
+      "visibleActionCount": 6
+    }
+  },
+  {
+    "viewport": "desktop1440",
+    "width": 1440,
+    "height": 900,
+    "route": "/digital-observer",
+    "key": "digital-observer",
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/ux-ui-qa-3/desktop1440-digital-observer.png",
+    "metrics": {
+      "bodyTextSample": "ראשי\nהורים\nגני ילדים\nצוות גן\nמפקחים\nהתצפיתן הדיגיטלי\nרשימת גנים\nהתחברות\nהרשמה\nכניסה למערכת\nDigital Observer\nOverview\nSites\nCameras\nObserver Alerts\nMonitoring Rules\nPackages\n\nDigital Observer\n\nהתצפיתן הדיגיטלי לניטור מצלמות חכם וזהיר.\n\nהתצפיתן הדיגיטלי – ניטור ",
+      "bottomRisk": [],
+      "clientWidth": 1440,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/digital-observer",
+      "h1": [
+        "התצפיתן הדיגיטלי לניטור מצלמות חכם וזהיר."
+      ],
+      "hasFakeLiveRiskText": true,
+      "hasLoginText": true,
+      "hasUnavailableText": true,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 1440,
+      "title": "Digital Observer – AI Camera Monitoring Platform | גן בטוח",
+      "tooSmall": [
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 44,
+          "href": "/",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "ראשי",
+          "tooSmall": true,
+          "visible": true,
+          "w": 31
+        }
+      ],
+      "visibleActionCount": 35
+    }
+  },
+  {
+    "viewport": "desktop1440",
+    "width": 1440,
+    "height": 900,
+    "route": "/digital-observer/dashboard",
+    "key": "digital-observer-dashboard",
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/ux-ui-qa-3/desktop1440-digital-observer-dashboard.png",
+    "metrics": {
+      "bodyTextSample": "סביבה בטוחה. חיבורים שמחזיקים. עתיד טוב יותר.\n\nהתחברות למערכת\n\nהזינו את הפרטים שלכם והמערכת תזהה את סוג החשבון שלכם\n\nאימייל או טלפון\nסיסמה\nזכור אותי\nשכחתי סיסמה\nהתחברות\n\nאין לכם חשבון? הרשמה\n\nכניסה אחת לכל סוגי המשתמשים\n\nהורים, גנים, צוות, מפקחים ואדמין — המער",
+      "bottomRisk": [],
+      "clientWidth": 1440,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/login",
+      "h1": [
+        "התחברות למערכת"
+      ],
+      "hasFakeLiveRiskText": true,
+      "hasLoginText": true,
+      "hasUnavailableText": false,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 1440,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 38,
+          "href": null,
+          "offscreenX": false,
+          "tag": "INPUT",
+          "text": "",
+          "tooSmall": true,
+          "visible": true,
+          "w": 23
+        },
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 17,
+          "href": "/app/register",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "הרשמה",
+          "tooSmall": true,
+          "visible": true,
+          "w": 47
+        }
+      ],
+      "visibleActionCount": 6
+    }
+  },
+  {
+    "viewport": "desktop1440",
+    "width": 1440,
+    "height": 900,
+    "route": "/dashboard/garden/subscription",
+    "key": "payment-readiness",
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/ux-ui-qa-3/desktop1440-payment-readiness.png",
+    "metrics": {
+      "bodyTextSample": "סביבה בטוחה. חיבורים שמחזיקים. עתיד טוב יותר.\n\nהתחברות למערכת\n\nהזינו את הפרטים שלכם והמערכת תזהה את סוג החשבון שלכם\n\nאימייל או טלפון\nסיסמה\nזכור אותי\nשכחתי סיסמה\nהתחברות\n\nאין לכם חשבון? הרשמה\n\nכניסה אחת לכל סוגי המשתמשים\n\nהורים, גנים, צוות, מפקחים ואדמין — המער",
+      "bottomRisk": [],
+      "clientWidth": 1440,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/login",
+      "h1": [
+        "התחברות למערכת"
+      ],
+      "hasFakeLiveRiskText": true,
+      "hasLoginText": true,
+      "hasUnavailableText": false,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 1440,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 38,
+          "href": null,
+          "offscreenX": false,
+          "tag": "INPUT",
+          "text": "",
+          "tooSmall": true,
+          "visible": true,
+          "w": 23
+        },
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 17,
+          "href": "/app/register",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "הרשמה",
+          "tooSmall": true,
+          "visible": true,
+          "w": 47
+        }
+      ],
+      "visibleActionCount": 6
+    }
+  },
+  {
+    "viewport": "desktop1440",
+    "width": 1440,
+    "height": 900,
+    "route": "/dashboard/parent/cameras",
+    "key": "camera-readiness",
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/ux-ui-qa-3/desktop1440-camera-readiness.png",
+    "metrics": {
+      "bodyTextSample": "סביבה בטוחה. חיבורים שמחזיקים. עתיד טוב יותר.\n\nהתחברות למערכת\n\nהזינו את הפרטים שלכם והמערכת תזהה את סוג החשבון שלכם\n\nאימייל או טלפון\nסיסמה\nזכור אותי\nשכחתי סיסמה\nהתחברות\n\nאין לכם חשבון? הרשמה\n\nכניסה אחת לכל סוגי המשתמשים\n\nהורים, גנים, צוות, מפקחים ואדמין — המער",
+      "bottomRisk": [],
+      "clientWidth": 1440,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/login",
+      "h1": [
+        "התחברות למערכת"
+      ],
+      "hasFakeLiveRiskText": true,
+      "hasLoginText": true,
+      "hasUnavailableText": false,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 1440,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 38,
+          "href": null,
+          "offscreenX": false,
+          "tag": "INPUT",
+          "text": "",
+          "tooSmall": true,
+          "visible": true,
+          "w": 23
+        },
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 17,
+          "href": "/app/register",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "הרשמה",
+          "tooSmall": true,
+          "visible": true,
+          "w": 47
+        }
+      ],
+      "visibleActionCount": 6
+    }
+  },
+  {
+    "viewport": "desktop1440",
+    "width": 1440,
+    "height": 900,
+    "route": "/dashboard/parent/ai-events",
+    "key": "ai-readiness",
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/ux-ui-qa-3/desktop1440-ai-readiness.png",
+    "metrics": {
+      "bodyTextSample": "סביבה בטוחה. חיבורים שמחזיקים. עתיד טוב יותר.\n\nהתחברות למערכת\n\nהזינו את הפרטים שלכם והמערכת תזהה את סוג החשבון שלכם\n\nאימייל או טלפון\nסיסמה\nזכור אותי\nשכחתי סיסמה\nהתחברות\n\nאין לכם חשבון? הרשמה\n\nכניסה אחת לכל סוגי המשתמשים\n\nהורים, גנים, צוות, מפקחים ואדמין — המער",
+      "bottomRisk": [],
+      "clientWidth": 1440,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/login",
+      "h1": [
+        "התחברות למערכת"
+      ],
+      "hasFakeLiveRiskText": true,
+      "hasLoginText": true,
+      "hasUnavailableText": false,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 1440,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 38,
+          "href": null,
+          "offscreenX": false,
+          "tag": "INPUT",
+          "text": "",
+          "tooSmall": true,
+          "visible": true,
+          "w": 23
+        },
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 17,
+          "href": "/app/register",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "הרשמה",
+          "tooSmall": true,
+          "visible": true,
+          "w": 47
+        }
+      ],
+      "visibleActionCount": 6
+    }
+  }
+]
