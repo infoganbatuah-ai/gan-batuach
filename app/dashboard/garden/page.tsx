@@ -20,6 +20,7 @@ import {
 } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { requireRole } from "@/lib/auth";
+import { israelTodayDateLine } from "@/lib/domain/israel-date";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function GardenDashboard() {
@@ -28,13 +29,14 @@ export default async function GardenDashboard() {
   if (!gardenId) redirect("/onboarding/kindergarten");
 
   const supabase = await createClient();
-  const [gardenRes, childrenRes, enrollmentRes, documentsRes, inspectionsRes, messagesRes] = await Promise.all([
+  const [gardenRes, childrenRes, enrollmentRes, documentsRes, inspectionsRes, messagesRes, staffRes] = await Promise.all([
     supabase.from("gardens" as any).select("id,name,city,status,approval_flow_status,final_approval_status,safe_status,last_inspection_score,next_inspection_at").eq("id", gardenId).maybeSingle(),
     supabase.from("children" as any).select("id,status", { count: "exact", head: true }).eq("garden_id", gardenId).in("status", ["active", "approved"]),
     supabase.from("kindergarten_enrollment_requests" as any).select("id,status", { count: "exact" }).eq("garden_id", gardenId).in("status", ["submitted", "under_review", "more_information_requested", "approved_pending_payment"]).limit(6),
     supabase.from("documents" as any).select("id,status,expires_at", { count: "exact" }).eq("garden_id", gardenId).in("status", ["missing", "expired", "rejected", "pending_review"]).limit(6),
     supabase.from("required_inspections" as any).select("id,title,status,due_at", { count: "exact" }).eq("garden_id", gardenId).neq("status", "done").order("due_at", { ascending: true }).limit(4),
-    supabase.from("messages" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId).is("read_at", null)
+    supabase.from("messages" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId).is("read_at", null),
+    supabase.from("staff" as any).select("id,full_name,approved_to_work,onboarding_status", { count: "exact" }).eq("garden_id", gardenId).limit(24)
   ]);
 
   const garden = gardenRes.data as any;
@@ -53,10 +55,15 @@ export default async function GardenDashboard() {
   const nextInspection = ((inspectionsRes.data ?? []) as any[])[0];
   const documentsToHandle = documentsRes.count ?? 0;
   const childrenCount = childrenRes.count ?? 0;
+  const staffRows = (staffRes.data ?? []) as any[];
+  const approvedStaffCount = staffRows.filter((member) => member.approved_to_work === true && member.onboarding_status === "active").length;
+  const staffCount = staffRes.count ?? staffRows.length;
   const capacity = Math.max(childrenCount + pendingRequests + 4, 28);
   const checkedIn = Math.max(childrenCount - Math.max(waitingPaymentRequests, 0), 0);
   const absent = Math.max(capacity - checkedIn, 0);
   const occupancy = childrenCount ? Math.min(99, Math.round((childrenCount / capacity) * 100)) : 0;
+  const todayLine = israelTodayDateLine();
+  const lastUpdatedLabel = new Intl.DateTimeFormat("he-IL", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jerusalem" }).format(new Date());
   const todayPriority = pendingRequests
     ? { title: `${pendingRequests} בקשות רישום מחכות`, text: "אישור, דחייה או בקשת מידע מהורה.", href: "/dashboard/garden/enrollment-requests" }
     : waitingPaymentRequests
@@ -105,7 +112,7 @@ export default async function GardenDashboard() {
 
         <div className="ganenet-date-pill">
           <CalendarDays size={32} />
-          <span>יום ראשון, כ״ה אייר תשפ״ה<br />25 במאי 2025</span>
+          <span>{todayLine.top}<br />{todayLine.bottom}</span>
         </div>
 
         <section className="ganenet-kpis">
@@ -113,26 +120,26 @@ export default async function GardenDashboard() {
             <div className="ganenet-card-icon"><UsersRound size={38} /></div>
             <strong>נוכחות ילדים</strong>
             <div className="ganenet-gauge" style={{ "--value": `${occupancy}%` } as any}>
-              <b>{childrenCount || 24}</b>
+              <b>{childrenCount}</b>
               <span>מתוך {capacity}</span>
             </div>
             <div className="ganenet-attendance-legend">
-              <span>נוכחים <b>{checkedIn || 24}</b></span>
-              <span className="pink">נעדרים <b>{absent > 12 ? 4 : absent}</b></span>
+              <span>נוכחים <b>{checkedIn}</b></span>
+              <span className="pink">נעדרים <b>{childrenCount ? absent : 0}</b></span>
             </div>
-            <em>עדכון אחרון: 07:45</em>
+            <em>עדכון אחרון: {childrenCount ? lastUpdatedLabel : "טרם עודכן היום"}</em>
           </a>
 
           <a className="ganenet-kpi staff-present" href="/dashboard/garden/staff">
             <div className="ganenet-card-icon"><UserCheck size={38} /></div>
             <strong>צוות נוכח היום</strong>
-            <b>5</b>
-            <small>מתוך 6</small>
+            <b>{approvedStaffCount}</b>
+            <small>{staffCount ? `מתוך ${staffCount}` : "טרם עודכן"}</small>
             <div className="ganenet-mini-avatars">
-              {[0, 1, 2, 3].map((item) => <span key={item}>{profile.full_name?.slice(0, 1) ?? "מ"}</span>)}
-              <em>+1</em>
+              {staffRows.slice(0, 4).map((item) => <span key={item.id}>{item.full_name?.slice(0, 1) ?? profile.full_name?.slice(0, 1) ?? "צ"}</span>)}
+              {staffCount > 4 ? <em>+{staffCount - 4}</em> : null}
             </div>
-            <em>עדכון אחרון: 07:45</em>
+            <em>עדכון אחרון: {staffCount ? lastUpdatedLabel : "אין רשומות צוות"}</em>
           </a>
 
           <a className="ganenet-kpi safety" href="/dashboard/garden/trust-center">
