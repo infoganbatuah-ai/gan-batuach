@@ -1,0 +1,1744 @@
+[
+  {
+    "viewport": "mobile390",
+    "width": 390,
+    "height": 844,
+    "route": "/dashboard/parent",
+    "file": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/authed-ux-ui-qa-1/parent-mobile390-dashboard-parent.png",
+    "metrics": {
+      "bodySample": "דשבורד הורים\n\nמעקב חכם אחר הילד והגן\n\n[DEMO] מאיה כהן\n\n[DEMO] גן רקפת הקטנה · רמת גן\n\nמשויך לגן\nמידע לפי הרשאה\n0\nעדכונים פתוחים\nבקשות/התראות לטיפול\nסדר\nסטטוס תשלום\nאין חובות\n9.2\nציון בטיחות\nסיכום שאושר להצגה\n0\nבקשות פתוחות\nממתינות לגן\nצפייה במצלמות\n\n[DEMO] גן רקפת הקטנה\n\nבדיקת זמינות\nמאובטח\nמצלמות שאושרו להורים\n\nהצפייה",
+      "bottomRisk": [
+        {
+          "bottomRisk": true,
+          "disabled": false,
+          "h": 198,
+          "href": "/dashboard/parent/messages",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "0עדכונים פתוחיםבקשות/התראות לטיפול",
+          "tooSmall": false,
+          "visible": true,
+          "w": 294
+        }
+      ],
+      "clientWidth": 390,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/dashboard/parent",
+      "h1": [
+        "דשבורד הורים"
+      ],
+      "hasFakeLiveRisk": false,
+      "hasLogin": false,
+      "hasReadiness": false,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 390,
+      "secretRiskText": false,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [],
+      "visibleActionCount": 41
+    }
+  },
+  {
+    "viewport": "mobile390",
+    "width": 390,
+    "height": 844,
+    "route": "/dashboard/parent/family-home",
+    "file": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/authed-ux-ui-qa-1/parent-mobile390-dashboard-parent-family-home.png",
+    "metrics": {
+      "bodySample": "היום של [DEMO] מאיה כהן\n\n[DEMO] מאיה כהן השתתף/ה בפעילות היום.\nמחובר לגן\n[DEMO] גן רקפת הקטנה\nאמון 9.2/100\nעודכן 25.5.2026\nהודעה לגן\nציר היום\n2\nציר היום\nעדכונים מאושרים\n12\nצריך פעולה\nהתראות, מסמכים ותשלומים\n0\nתמונות\nשיתופים משפחתיים\n3\nמצלמות\nחלק ממתינות לאישור/חיבור\n\nמה דורש תשומת לב?\n\nהמערכת מרכזת עבורך את החשוב.\n\nבלי",
+      "bottomRisk": [
+        {
+          "bottomRisk": true,
+          "disabled": false,
+          "h": 198,
+          "href": "/dashboard/parent/children/3512db37-2f4b-4af6-ad8a-a0461571ee1f/timeline",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "2ציר היוםעדכונים מאושרים",
+          "tooSmall": false,
+          "visible": true,
+          "w": 294
+        }
+      ],
+      "clientWidth": 390,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/dashboard/parent/family-home",
+      "h1": [
+        "[DEMO] מאיה כהן השתתף/ה בפעילות היום."
+      ],
+      "hasFakeLiveRisk": false,
+      "hasLogin": false,
+      "hasReadiness": true,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 390,
+      "secretRiskText": false,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [],
+      "visibleActionCount": 51
+    }
+  },
+  {
+    "viewport": "mobile390",
+    "width": 390,
+    "height": 844,
+    "route": "/dashboard/parent/messages",
+    "file": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/authed-ux-ui-qa-1/parent-mobile390-dashboard-parent-messages.png",
+    "metrics": {
+      "bodySample": "הודעות ותקשורת\n\nשיחה עם הגן, בקשות ועדכונים במקום אחד\n\nפנייה חדשה\n\nכותבים קצר, בוחרים נושא, ורואים מתי הפנייה נקראה וטופלה.\n\nערוץ מאובטח\nפנייה חכמה לגן\n\nבחרו סוג פנייה ונמען. המערכת תציג רק אנשי קשר רלוונטיים לגן של הילד ותשלח התראה למי שצריך לטפל.\n\nילד\n[DEMO] מאיה כהן\n[DEMO] ליה דגן\n[DEMO] ריף אברהמי\n[DEMO] אורי רוזן\n",
+      "bottomRisk": [
+        {
+          "bottomRisk": true,
+          "disabled": false,
+          "h": 42,
+          "href": null,
+          "offscreenX": false,
+          "tag": "SELECT",
+          "text": "[DEMO] מאיה כהן[DEMO] ליה דגן[DEMO] ריף אברהמי[DEMO] אורי רוזן",
+          "tooSmall": false,
+          "visible": true,
+          "w": 218
+        }
+      ],
+      "clientWidth": 390,
+      "disabledVisibleActionCount": 1,
+      "finalPath": "/dashboard/parent/messages",
+      "h1": [
+        "הודעות ותקשורת"
+      ],
+      "hasFakeLiveRisk": false,
+      "hasLogin": false,
+      "hasReadiness": false,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 390,
+      "secretRiskText": false,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [],
+      "visibleActionCount": 12
+    }
+  },
+  {
+    "viewport": "mobile390",
+    "width": 390,
+    "height": 844,
+    "route": "/dashboard/parent/payments",
+    "file": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/authed-ux-ui-qa-1/parent-mobile390-dashboard-parent-payments.png",
+    "metrics": {
+      "bodySample": "תשלומים וחיובים\n\nתמונה פשוטה וברורה של התשלומים לגן\n\n₪0\nיתרה פתוחה\nאין חוב\n4\nילדים לתשלום\nמשויכים\n0\nדורש בדיקה\nסטטוס תשלום\nלא נקבע\nתשלום קרוב\nמועד הבא\nתשלומי הורים שייכים לגן הילדים. גן בטוח מציג ומאשר את התהליך, אך לא מקבל את כספי שכר הלימוד.\nחיובים לפי ילד\n\nכל ילד מוצג רק להורה המשויך אליו\n\n[DEMO] מאיה כהן\n[DEMO] גן ",
+      "bottomRisk": [],
+      "clientWidth": 390,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/dashboard/parent/payments",
+      "h1": [
+        "תשלומים וחיובים"
+      ],
+      "hasFakeLiveRisk": false,
+      "hasLogin": false,
+      "hasReadiness": true,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 390,
+      "secretRiskText": false,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [],
+      "visibleActionCount": 11
+    }
+  },
+  {
+    "viewport": "mobile390",
+    "width": 390,
+    "height": 844,
+    "route": "/dashboard/parent/cameras",
+    "file": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/authed-ux-ui-qa-1/parent-mobile390-dashboard-parent-cameras.png",
+    "metrics": {
+      "bodySample": "מצלמות הגן\n\nצפייה מאובטחת רק כאשר הגן, המדיניות והשער הטכני מאפשרים זאת\n\nמצלמות גן\n\nמצלמות שאושרו לצפיית הורים\n\nבדיקה\nמצלמות הגן רקפת\n\nחדר גדול\n\nממתינה לאימות שער\nפתיחת נגן מאובטח\nזמין\n[DEMO] מצלמת כיתה מרכזית\n\nכיתה\n\nזמינה דרך שער מאובטח\nפתיחת נגן מאובטח\nבדיקה\nמצלמות הגן\n\nחדר משחקים\n\nממתינה לאימות שער\nפתיחת נגן מאובטח\n",
+      "bottomRisk": [
+        {
+          "bottomRisk": true,
+          "disabled": false,
+          "h": 46,
+          "href": "#secure-playback",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "פתיחת נגן מאובטח",
+          "tooSmall": false,
+          "visible": true,
+          "w": 218
+        }
+      ],
+      "clientWidth": 390,
+      "disabledVisibleActionCount": 2,
+      "finalPath": "/dashboard/parent/cameras",
+      "h1": [
+        "מצלמות הגן"
+      ],
+      "hasFakeLiveRisk": false,
+      "hasLogin": false,
+      "hasReadiness": true,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 390,
+      "secretRiskText": false,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [],
+      "visibleActionCount": 13
+    }
+  },
+  {
+    "viewport": "mobile390",
+    "width": 390,
+    "height": 844,
+    "route": "/dashboard/parent/schedule",
+    "file": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/authed-ux-ui-qa-1/parent-mobile390-dashboard-parent-schedule.png",
+    "metrics": {
+      "bodySample": "היום של הילד\n\nסדר יום, אוכל, פעילויות ואירועים שהגן פרסם\n\nלו״ז, תפריט ופעילויות\n\nמה שהגן פרסם להורים מופיע כאן בצורה פשוטה וברורה.\n\nאין לו״ז מפורסם כרגע\nכאשר הגן יפרסם פעילות, תפריט או אירוע להורים, הם יופיעו כאן.\nעוד\nהתראות\nדשבורד\nיומן\nבית",
+      "bottomRisk": [],
+      "clientWidth": 390,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/dashboard/parent/schedule",
+      "h1": [
+        "היום של הילד"
+      ],
+      "hasFakeLiveRisk": false,
+      "hasLogin": false,
+      "hasReadiness": false,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 390,
+      "secretRiskText": false,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [],
+      "visibleActionCount": 7
+    }
+  },
+  {
+    "viewport": "mobile390",
+    "width": 390,
+    "height": 844,
+    "route": "/dashboard/parent/discover-kindergartens",
+    "file": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/authed-ux-ui-qa-1/parent-mobile390-dashboard-parent-discover-kindergartens.png",
+    "metrics": {
+      "bodySample": "גני ילדים בטוחים באזור שלי\n\nמצא/י את הגן המתאים ביותר עבור הילד/ה שלך\n\nסינון\nחיפוש\nכל הגילים\nפרופיל ציבורי\nעיר / אזור\nמומלץ\nגני ילדים בטוחים באזור שלך\n\nמוצגים רק גנים עם פרופיל ציבורי פעיל\n\nפרופיל ציבורי\nפרופיל ציבורי\nשרקרק\n\nחולון · 21 הטייסים\n\nלא פורסם\nתשלום חודשי\nלא פורסם\nקיבולת שפורסמה\nלא פורסם\nציון בטיחות\npending_r",
+      "bottomRisk": [
+        {
+          "bottomRisk": true,
+          "disabled": false,
+          "h": 44,
+          "href": null,
+          "offscreenX": false,
+          "tag": "BUTTON",
+          "text": "חיפוש",
+          "tooSmall": false,
+          "visible": true,
+          "w": 294
+        }
+      ],
+      "clientWidth": 390,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/dashboard/parent/discover-kindergartens",
+      "h1": [
+        "גני ילדים בטוחים באזור שלי"
+      ],
+      "hasFakeLiveRisk": false,
+      "hasLogin": false,
+      "hasReadiness": false,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 390,
+      "secretRiskText": false,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [],
+      "visibleActionCount": 47
+    }
+  },
+  {
+    "viewport": "mobile430",
+    "width": 430,
+    "height": 932,
+    "route": "/dashboard/parent",
+    "file": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/authed-ux-ui-qa-1/parent-mobile430-dashboard-parent.png",
+    "metrics": {
+      "bodySample": "דשבורד הורים\n\nמעקב חכם אחר הילד והגן\n\n[DEMO] מאיה כהן\n\n[DEMO] גן רקפת הקטנה · רמת גן\n\nמשויך לגן\nמידע לפי הרשאה\n0\nעדכונים פתוחים\nבקשות/התראות לטיפול\nסדר\nסטטוס תשלום\nאין חובות\n9.2\nציון בטיחות\nסיכום שאושר להצגה\n0\nבקשות פתוחות\nממתינות לגן\nצפייה במצלמות\n\n[DEMO] גן רקפת הקטנה\n\nבדיקת זמינות\nמאובטח\nמצלמות שאושרו להורים\n\nהצפייה",
+      "bottomRisk": [
+        {
+          "bottomRisk": true,
+          "disabled": false,
+          "h": 198,
+          "href": "/dashboard/parent/messages",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "0עדכונים פתוחיםבקשות/התראות לטיפול",
+          "tooSmall": false,
+          "visible": true,
+          "w": 334
+        }
+      ],
+      "clientWidth": 430,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/dashboard/parent",
+      "h1": [
+        "דשבורד הורים"
+      ],
+      "hasFakeLiveRisk": false,
+      "hasLogin": false,
+      "hasReadiness": false,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 430,
+      "secretRiskText": false,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [],
+      "visibleActionCount": 41
+    }
+  },
+  {
+    "viewport": "mobile430",
+    "width": 430,
+    "height": 932,
+    "route": "/dashboard/parent/family-home",
+    "file": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/authed-ux-ui-qa-1/parent-mobile430-dashboard-parent-family-home.png",
+    "metrics": {
+      "bodySample": "היום של [DEMO] מאיה כהן\n\n[DEMO] מאיה כהן השתתף/ה בפעילות היום.\nמחובר לגן\n[DEMO] גן רקפת הקטנה\nאמון 9.2/100\nעודכן 25.5.2026\nהודעה לגן\nציר היום\n2\nציר היום\nעדכונים מאושרים\n12\nצריך פעולה\nהתראות, מסמכים ותשלומים\n0\nתמונות\nשיתופים משפחתיים\n3\nמצלמות\nחלק ממתינות לאישור/חיבור\n\nמה דורש תשומת לב?\n\nהמערכת מרכזת עבורך את החשוב.\n\nבלי",
+      "bottomRisk": [
+        {
+          "bottomRisk": true,
+          "disabled": false,
+          "h": 198,
+          "href": "/dashboard/parent/notifications",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "12צריך פעולההתראות, מסמכים ותשלומים",
+          "tooSmall": false,
+          "visible": true,
+          "w": 334
+        }
+      ],
+      "clientWidth": 430,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/dashboard/parent/family-home",
+      "h1": [
+        "[DEMO] מאיה כהן השתתף/ה בפעילות היום."
+      ],
+      "hasFakeLiveRisk": false,
+      "hasLogin": false,
+      "hasReadiness": true,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 430,
+      "secretRiskText": false,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [],
+      "visibleActionCount": 51
+    }
+  },
+  {
+    "viewport": "mobile430",
+    "width": 430,
+    "height": 932,
+    "route": "/dashboard/parent/messages",
+    "file": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/authed-ux-ui-qa-1/parent-mobile430-dashboard-parent-messages.png",
+    "metrics": {
+      "bodySample": "הודעות ותקשורת\n\nשיחה עם הגן, בקשות ועדכונים במקום אחד\n\nפנייה חדשה\n\nכותבים קצר, בוחרים נושא, ורואים מתי הפנייה נקראה וטופלה.\n\nערוץ מאובטח\nפנייה חכמה לגן\n\nבחרו סוג פנייה ונמען. המערכת תציג רק אנשי קשר רלוונטיים לגן של הילד ותשלח התראה למי שצריך לטפל.\n\nילד\n[DEMO] ליה דגן\n[DEMO] מאיה כהן\n[DEMO] אורי רוזן\n[DEMO] ריף אברהמי\n",
+      "bottomRisk": [
+        {
+          "bottomRisk": true,
+          "disabled": false,
+          "h": 42,
+          "href": null,
+          "offscreenX": false,
+          "tag": "SELECT",
+          "text": "בחרו נמען",
+          "tooSmall": false,
+          "visible": true,
+          "w": 258
+        }
+      ],
+      "clientWidth": 430,
+      "disabledVisibleActionCount": 1,
+      "finalPath": "/dashboard/parent/messages",
+      "h1": [
+        "הודעות ותקשורת"
+      ],
+      "hasFakeLiveRisk": false,
+      "hasLogin": false,
+      "hasReadiness": false,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 430,
+      "secretRiskText": false,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [],
+      "visibleActionCount": 12
+    }
+  },
+  {
+    "viewport": "mobile430",
+    "width": 430,
+    "height": 932,
+    "route": "/dashboard/parent/payments",
+    "file": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/authed-ux-ui-qa-1/parent-mobile430-dashboard-parent-payments.png",
+    "metrics": {
+      "bodySample": "תשלומים וחיובים\n\nתמונה פשוטה וברורה של התשלומים לגן\n\n₪0\nיתרה פתוחה\nאין חוב\n4\nילדים לתשלום\nמשויכים\n0\nדורש בדיקה\nסטטוס תשלום\nלא נקבע\nתשלום קרוב\nמועד הבא\nתשלומי הורים שייכים לגן הילדים. גן בטוח מציג ומאשר את התהליך, אך לא מקבל את כספי שכר הלימוד.\nחיובים לפי ילד\n\nכל ילד מוצג רק להורה המשויך אליו\n\n[DEMO] מאיה כהן\n[DEMO] גן ",
+      "bottomRisk": [],
+      "clientWidth": 430,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/dashboard/parent/payments",
+      "h1": [
+        "תשלומים וחיובים"
+      ],
+      "hasFakeLiveRisk": false,
+      "hasLogin": false,
+      "hasReadiness": true,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 430,
+      "secretRiskText": false,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [],
+      "visibleActionCount": 11
+    }
+  },
+  {
+    "viewport": "mobile430",
+    "width": 430,
+    "height": 932,
+    "route": "/dashboard/parent/cameras",
+    "file": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/authed-ux-ui-qa-1/parent-mobile430-dashboard-parent-cameras.png",
+    "metrics": {
+      "bodySample": "מצלמות הגן\n\nצפייה מאובטחת רק כאשר הגן, המדיניות והשער הטכני מאפשרים זאת\n\nמצלמות גן\n\nמצלמות שאושרו לצפיית הורים\n\nבדיקה\nמצלמות הגן רקפת\n\nחדר גדול\n\nממתינה לאימות שער\nפתיחת נגן מאובטח\nזמין\n[DEMO] מצלמת כיתה מרכזית\n\nכיתה\n\nזמינה דרך שער מאובטח\nפתיחת נגן מאובטח\nבדיקה\nמצלמות הגן\n\nחדר משחקים\n\nממתינה לאימות שער\nפתיחת נגן מאובטח\n",
+      "bottomRisk": [],
+      "clientWidth": 430,
+      "disabledVisibleActionCount": 2,
+      "finalPath": "/dashboard/parent/cameras",
+      "h1": [
+        "מצלמות הגן"
+      ],
+      "hasFakeLiveRisk": false,
+      "hasLogin": false,
+      "hasReadiness": true,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 430,
+      "secretRiskText": false,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [],
+      "visibleActionCount": 13
+    }
+  },
+  {
+    "viewport": "mobile430",
+    "width": 430,
+    "height": 932,
+    "route": "/dashboard/parent/schedule",
+    "file": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/authed-ux-ui-qa-1/parent-mobile430-dashboard-parent-schedule.png",
+    "metrics": {
+      "bodySample": "היום של הילד\n\nסדר יום, אוכל, פעילויות ואירועים שהגן פרסם\n\nלו״ז, תפריט ופעילויות\n\nמה שהגן פרסם להורים מופיע כאן בצורה פשוטה וברורה.\n\nאין לו״ז מפורסם כרגע\nכאשר הגן יפרסם פעילות, תפריט או אירוע להורים, הם יופיעו כאן.\nעוד\nהתראות\nדשבורד\nיומן\nבית",
+      "bottomRisk": [],
+      "clientWidth": 430,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/dashboard/parent/schedule",
+      "h1": [
+        "היום של הילד"
+      ],
+      "hasFakeLiveRisk": false,
+      "hasLogin": false,
+      "hasReadiness": false,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 430,
+      "secretRiskText": false,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [],
+      "visibleActionCount": 7
+    }
+  },
+  {
+    "viewport": "mobile430",
+    "width": 430,
+    "height": 932,
+    "route": "/dashboard/parent/discover-kindergartens",
+    "file": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/authed-ux-ui-qa-1/parent-mobile430-dashboard-parent-discover-kindergartens.png",
+    "metrics": {
+      "bodySample": "גני ילדים בטוחים באזור שלי\n\nמצא/י את הגן המתאים ביותר עבור הילד/ה שלך\n\nסינון\nחיפוש\nכל הגילים\nפרופיל ציבורי\nעיר / אזור\nמומלץ\nגני ילדים בטוחים באזור שלך\n\nמוצגים רק גנים עם פרופיל ציבורי פעיל\n\nפרופיל ציבורי\nפרופיל ציבורי\nשרקרק\n\nחולון · 21 הטייסים\n\nלא פורסם\nתשלום חודשי\nלא פורסם\nקיבולת שפורסמה\nלא פורסם\nציון בטיחות\npending_r",
+      "bottomRisk": [],
+      "clientWidth": 430,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/dashboard/parent/discover-kindergartens",
+      "h1": [
+        "גני ילדים בטוחים באזור שלי"
+      ],
+      "hasFakeLiveRisk": false,
+      "hasLogin": false,
+      "hasReadiness": false,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 430,
+      "secretRiskText": false,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [],
+      "visibleActionCount": 47
+    }
+  },
+  {
+    "viewport": "tablet768",
+    "width": 768,
+    "height": 1024,
+    "route": "/dashboard/parent",
+    "file": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/authed-ux-ui-qa-1/parent-tablet768-dashboard-parent.png",
+    "metrics": {
+      "bodySample": "דשבורד הורים\n\nמעקב חכם אחר הילד והגן\n\n[DEMO] מאיה כהן\n\n[DEMO] גן רקפת הקטנה · רמת גן\n\nמשויך לגן\nמידע לפי הרשאה\n0\nעדכונים פתוחים\nבקשות/התראות לטיפול\nסדר\nסטטוס תשלום\nאין חובות\n9.2\nציון בטיחות\nסיכום שאושר להצגה\n0\nבקשות פתוחות\nממתינות לגן\nצפייה במצלמות\n\n[DEMO] גן רקפת הקטנה\n\nבדיקת זמינות\nמאובטח\nמצלמות שאושרו להורים\n\nהצפייה",
+      "bottomRisk": [
+        {
+          "bottomRisk": true,
+          "disabled": false,
+          "h": 198,
+          "href": "/dashboard/parent/trust-center",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "9.2ציון בטיחותסיכום שאושר להצגה",
+          "tooSmall": false,
+          "visible": true,
+          "w": 170
+        },
+        {
+          "bottomRisk": true,
+          "disabled": false,
+          "h": 198,
+          "href": "#requests",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "0בקשות פתוחותממתינות לגן",
+          "tooSmall": false,
+          "visible": true,
+          "w": 170
+        }
+      ],
+      "clientWidth": 768,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/dashboard/parent",
+      "h1": [
+        "דשבורד הורים"
+      ],
+      "hasFakeLiveRisk": false,
+      "hasLogin": false,
+      "hasReadiness": false,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 768,
+      "secretRiskText": false,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [],
+      "visibleActionCount": 41
+    }
+  },
+  {
+    "viewport": "tablet768",
+    "width": 768,
+    "height": 1024,
+    "route": "/dashboard/parent/family-home",
+    "file": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/authed-ux-ui-qa-1/parent-tablet768-dashboard-parent-family-home.png",
+    "metrics": {
+      "bodySample": "היום של [DEMO] ליה דגן\n\n[DEMO] ליה דגן השתתף/ה בפעילות היום.\nמחובר לגן\n[DEMO] גן שקד וחברים\nאמון 8.7/100\nעודכן 25.5.2026\nהודעה לגן\nציר היום\n2\nציר היום\nעדכונים מאושרים\n12\nצריך פעולה\nהתראות, מסמכים ותשלומים\n0\nתמונות\nשיתופים משפחתיים\n3\nמצלמות\nחלק ממתינות לאישור/חיבור\n\nמה דורש תשומת לב?\n\nהמערכת מרכזת עבורך את החשוב.\n\nבלי ל",
+      "bottomRisk": [
+        {
+          "bottomRisk": true,
+          "disabled": false,
+          "h": 216,
+          "href": "/dashboard/parent/gallery",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "0תמונותשיתופים משפחתיים",
+          "tooSmall": false,
+          "visible": true,
+          "w": 173
+        },
+        {
+          "bottomRisk": true,
+          "disabled": false,
+          "h": 216,
+          "href": "/dashboard/parent/cameras",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "3מצלמותחלק ממתינות לאישור/חיבור",
+          "tooSmall": false,
+          "visible": true,
+          "w": 173
+        }
+      ],
+      "clientWidth": 768,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/dashboard/parent/family-home",
+      "h1": [
+        "[DEMO] ליה דגן השתתף/ה בפעילות היום."
+      ],
+      "hasFakeLiveRisk": false,
+      "hasLogin": false,
+      "hasReadiness": true,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 768,
+      "secretRiskText": false,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [],
+      "visibleActionCount": 51
+    }
+  },
+  {
+    "viewport": "tablet768",
+    "width": 768,
+    "height": 1024,
+    "route": "/dashboard/parent/messages",
+    "file": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/authed-ux-ui-qa-1/parent-tablet768-dashboard-parent-messages.png",
+    "metrics": {
+      "bodySample": "הודעות ותקשורת\n\nשיחה עם הגן, בקשות ועדכונים במקום אחד\n\nפנייה חדשה\n\nכותבים קצר, בוחרים נושא, ורואים מתי הפנייה נקראה וטופלה.\n\nערוץ מאובטח\nפנייה חכמה לגן\n\nבחרו סוג פנייה ונמען. המערכת תציג רק אנשי קשר רלוונטיים לגן של הילד ותשלח התראה למי שצריך לטפל.\n\nילד\n[DEMO] מאיה כהן\n[DEMO] ליה דגן\n[DEMO] ריף אברהמי\n[DEMO] אורי רוזן\n",
+      "bottomRisk": [
+        {
+          "bottomRisk": true,
+          "disabled": false,
+          "h": 81,
+          "href": null,
+          "offscreenX": false,
+          "tag": "TEXTAREA",
+          "text": "כתבו בקשה ברורה וקצרה. ההורה והנמען יראו סטטוס טיפול.",
+          "tooSmall": false,
+          "visible": true,
+          "w": 282
+        },
+        {
+          "bottomRisk": true,
+          "disabled": true,
+          "h": 42,
+          "href": null,
+          "offscreenX": false,
+          "tag": "BUTTON",
+          "text": "שליחת פנייה",
+          "tooSmall": false,
+          "visible": true,
+          "w": 282
+        }
+      ],
+      "clientWidth": 768,
+      "disabledVisibleActionCount": 1,
+      "finalPath": "/dashboard/parent/messages",
+      "h1": [
+        "הודעות ותקשורת"
+      ],
+      "hasFakeLiveRisk": false,
+      "hasLogin": false,
+      "hasReadiness": false,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 768,
+      "secretRiskText": false,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [],
+      "visibleActionCount": 12
+    }
+  },
+  {
+    "viewport": "tablet768",
+    "width": 768,
+    "height": 1024,
+    "route": "/dashboard/parent/payments",
+    "file": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/authed-ux-ui-qa-1/parent-tablet768-dashboard-parent-payments.png",
+    "metrics": {
+      "bodySample": "תשלומים וחיובים\n\nתמונה פשוטה וברורה של התשלומים לגן\n\n₪0\nיתרה פתוחה\nאין חוב\n4\nילדים לתשלום\nמשויכים\n0\nדורש בדיקה\nסטטוס תשלום\nלא נקבע\nתשלום קרוב\nמועד הבא\nתשלומי הורים שייכים לגן הילדים. גן בטוח מציג ומאשר את התהליך, אך לא מקבל את כספי שכר הלימוד.\nחיובים לפי ילד\n\nכל ילד מוצג רק להורה המשויך אליו\n\n[DEMO] ליה דגן\n[DEMO] גן ש",
+      "bottomRisk": [],
+      "clientWidth": 768,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/dashboard/parent/payments",
+      "h1": [
+        "תשלומים וחיובים"
+      ],
+      "hasFakeLiveRisk": false,
+      "hasLogin": false,
+      "hasReadiness": true,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 768,
+      "secretRiskText": false,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [],
+      "visibleActionCount": 11
+    }
+  },
+  {
+    "viewport": "tablet768",
+    "width": 768,
+    "height": 1024,
+    "route": "/dashboard/parent/cameras",
+    "file": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/authed-ux-ui-qa-1/parent-tablet768-dashboard-parent-cameras.png",
+    "metrics": {
+      "bodySample": "מצלמות הגן\n\nצפייה מאובטחת רק כאשר הגן, המדיניות והשער הטכני מאפשרים זאת\n\nמצלמות גן\n\nמצלמות שאושרו לצפיית הורים\n\nבדיקה\nמצלמות הגן רקפת\n\nחדר גדול\n\nממתינה לאימות שער\nפתיחת נגן מאובטח\nזמין\n[DEMO] מצלמת כיתה מרכזית\n\nכיתה\n\nזמינה דרך שער מאובטח\nפתיחת נגן מאובטח\nבדיקה\nמצלמות הגן\n\nחדר משחקים\n\nממתינה לאימות שער\nפתיחת נגן מאובטח\n",
+      "bottomRisk": [],
+      "clientWidth": 768,
+      "disabledVisibleActionCount": 2,
+      "finalPath": "/dashboard/parent/cameras",
+      "h1": [
+        "מצלמות הגן"
+      ],
+      "hasFakeLiveRisk": false,
+      "hasLogin": false,
+      "hasReadiness": true,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 768,
+      "secretRiskText": false,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [],
+      "visibleActionCount": 13
+    }
+  },
+  {
+    "viewport": "tablet768",
+    "width": 768,
+    "height": 1024,
+    "route": "/dashboard/parent/schedule",
+    "file": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/authed-ux-ui-qa-1/parent-tablet768-dashboard-parent-schedule.png",
+    "metrics": {
+      "bodySample": "היום של הילד\n\nסדר יום, אוכל, פעילויות ואירועים שהגן פרסם\n\nלו״ז, תפריט ופעילויות\n\nמה שהגן פרסם להורים מופיע כאן בצורה פשוטה וברורה.\n\nאין לו״ז מפורסם כרגע\nכאשר הגן יפרסם פעילות, תפריט או אירוע להורים, הם יופיעו כאן.\nעוד\nהתראות\nדשבורד\nיומן\nבית",
+      "bottomRisk": [],
+      "clientWidth": 768,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/dashboard/parent/schedule",
+      "h1": [
+        "היום של הילד"
+      ],
+      "hasFakeLiveRisk": false,
+      "hasLogin": false,
+      "hasReadiness": false,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 768,
+      "secretRiskText": false,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [],
+      "visibleActionCount": 7
+    }
+  },
+  {
+    "viewport": "tablet768",
+    "width": 768,
+    "height": 1024,
+    "route": "/dashboard/parent/discover-kindergartens",
+    "file": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/authed-ux-ui-qa-1/parent-tablet768-dashboard-parent-discover-kindergartens.png",
+    "metrics": {
+      "bodySample": "גני ילדים בטוחים באזור שלי\n\nמצא/י את הגן המתאים ביותר עבור הילד/ה שלך\n\nסינון\nחיפוש\nכל הגילים\nפרופיל ציבורי\nעיר / אזור\nמומלץ\nגני ילדים בטוחים באזור שלך\n\nמוצגים רק גנים עם פרופיל ציבורי פעיל\n\nפרופיל ציבורי\nפרופיל ציבורי\nשרקרק\n\nחולון · 21 הטייסים\n\nלא פורסם\nתשלום חודשי\nלא פורסם\nקיבולת שפורסמה\nלא פורסם\nציון בטיחות\npending_r",
+      "bottomRisk": [],
+      "clientWidth": 768,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/dashboard/parent/discover-kindergartens",
+      "h1": [
+        "גני ילדים בטוחים באזור שלי"
+      ],
+      "hasFakeLiveRisk": false,
+      "hasLogin": false,
+      "hasReadiness": false,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 768,
+      "secretRiskText": false,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [],
+      "visibleActionCount": 47
+    }
+  },
+  {
+    "viewport": "tablet1024",
+    "width": 1024,
+    "height": 768,
+    "route": "/dashboard/parent",
+    "file": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/authed-ux-ui-qa-1/parent-tablet1024-dashboard-parent.png",
+    "metrics": {
+      "bodySample": "יום חמישי, 6 באוגוסט 2026\nדשבורד הורים\n\nמעקב חכם אחר הילד והגן\n\n‹\n[DEMO] מאיה כהן\n\n[DEMO] גן רקפת הקטנה · רמת גן\n\nמשויך לגן\nמידע לפי הרשאה\n0\nעדכונים פתוחים\nבקשות/התראות לטיפול\nסדר\nסטטוס תשלום\nאין חובות\n9.2\nציון בטיחות\nסיכום שאושר להצגה\n0\nבקשות פתוחות\nממתינות לגן\nצפייה במצלמות\n\n[DEMO] גן רקפת הקטנה\n\nבדיקת זמינות\nמאובטח\n",
+      "bottomRisk": [],
+      "clientWidth": 1024,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/dashboard/parent",
+      "h1": [
+        "דשבורד הורים"
+      ],
+      "hasFakeLiveRisk": false,
+      "hasLogin": false,
+      "hasReadiness": false,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 1024,
+      "secretRiskText": false,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [],
+      "visibleActionCount": 36
+    }
+  },
+  {
+    "viewport": "tablet1024",
+    "width": 1024,
+    "height": 768,
+    "route": "/dashboard/parent/family-home",
+    "file": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/authed-ux-ui-qa-1/parent-tablet1024-dashboard-parent-family-home.png",
+    "metrics": {
+      "bodySample": "יום חמישי, 6 באוגוסט 2026\n\nהיום של [DEMO] ליה דגן\n\n[DEMO] ליה דגן השתתף/ה בפעילות היום.\nמחובר לגן\n[DEMO] גן שקד וחברים\nאמון 8.7/100\nעודכן 25.5.2026\nהודעה לגן\nציר היום\n2\nציר היום\nעדכונים מאושרים\n12\nצריך פעולה\nהתראות, מסמכים ותשלומים\n0\nתמונות\nשיתופים משפחתיים\n3\nמצלמות\nחלק ממתינות לאישור/חיבור\n\nמה דורש תשומת לב?\n\nהמערכת מ",
+      "bottomRisk": [],
+      "clientWidth": 1024,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/dashboard/parent/family-home",
+      "h1": [
+        "[DEMO] ליה דגן השתתף/ה בפעילות היום."
+      ],
+      "hasFakeLiveRisk": false,
+      "hasLogin": false,
+      "hasReadiness": true,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 1024,
+      "secretRiskText": false,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 1876,
+          "href": "/dashboard/parent/children/71606e31-4775-44da-9328-08f42bd88cae/timeline",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "23:25עדכון יומי מהגןמצב רוח: שמח/ה. ארוחות עודכנו. שינה: נח/ה מעט מהרגיל. יום נעים, השתתף/",
+          "tooSmall": true,
+          "visible": true,
+          "w": 26
+        },
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 563,
+          "href": "/dashboard/parent/children/71606e31-4775-44da-9328-08f42bd88cae/timeline",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "21:01הגעה לגןהילד/ה הגיע/ה לגן.נוכחות",
+          "tooSmall": true,
+          "visible": true,
+          "w": 26
+        },
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 193,
+          "href": "/dashboard/parent/notifications",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "עדכוני ילד6",
+          "tooSmall": true,
+          "visible": true,
+          "w": 26
+        },
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 193,
+          "href": "/dashboard/parent/notifications",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "הודעות0",
+          "tooSmall": true,
+          "visible": true,
+          "w": 26
+        },
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 193,
+          "href": "/dashboard/parent/notifications",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "מסמכים0",
+          "tooSmall": true,
+          "visible": true,
+          "w": 26
+        },
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 156,
+          "href": "/dashboard/parent/notifications",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "בטיחות0",
+          "tooSmall": true,
+          "visible": true,
+          "w": 26
+        },
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 156,
+          "href": "/dashboard/parent/notifications",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "תשלומים4",
+          "tooSmall": true,
+          "visible": true,
+          "w": 26
+        },
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 156,
+          "href": "/dashboard/parent/notifications",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "פיקוח0",
+          "tooSmall": true,
+          "visible": true,
+          "w": 26
+        }
+      ],
+      "visibleActionCount": 46
+    }
+  },
+  {
+    "viewport": "tablet1024",
+    "width": 1024,
+    "height": 768,
+    "route": "/dashboard/parent/messages",
+    "file": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/authed-ux-ui-qa-1/parent-tablet1024-dashboard-parent-messages.png",
+    "metrics": {
+      "bodySample": "יום חמישי, 6 באוגוסט 2026\nהודעות ותקשורת\n\nשיחה עם הגן, בקשות ועדכונים במקום אחד\n\nפנייה חדשה\n\nכותבים קצר, בוחרים נושא, ורואים מתי הפנייה נקראה וטופלה.\n\nערוץ מאובטח\nפנייה חכמה לגן\n\nבחרו סוג פנייה ונמען. המערכת תציג רק אנשי קשר רלוונטיים לגן של הילד ותשלח התראה למי שצריך לטפל.\n\nילד\n[DEMO] מאיה כהן\n[DEMO] ליה דגן\n[DEMO] רי",
+      "bottomRisk": [],
+      "clientWidth": 1024,
+      "disabledVisibleActionCount": 1,
+      "finalPath": "/dashboard/parent/messages",
+      "h1": [
+        "הודעות ותקשורת"
+      ],
+      "hasFakeLiveRisk": false,
+      "hasLogin": false,
+      "hasReadiness": false,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 1024,
+      "secretRiskText": false,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 44,
+          "href": null,
+          "offscreenX": false,
+          "tag": "SELECT",
+          "text": "[DEMO] מאיה כהן[DEMO] ליה דגן[DEMO] ריף אברהמי[DEMO] אורי רוזן",
+          "tooSmall": true,
+          "visible": true,
+          "w": 26
+        },
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 80,
+          "href": null,
+          "offscreenX": false,
+          "tag": "TEXTAREA",
+          "text": "כתבו בקשה ברורה וקצרה. ההורה והנמען יראו סטטוס טיפול.",
+          "tooSmall": true,
+          "visible": true,
+          "w": 27
+        }
+      ],
+      "visibleActionCount": 7
+    }
+  },
+  {
+    "viewport": "tablet1024",
+    "width": 1024,
+    "height": 768,
+    "route": "/dashboard/parent/payments",
+    "file": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/authed-ux-ui-qa-1/parent-tablet1024-dashboard-parent-payments.png",
+    "metrics": {
+      "bodySample": "יום חמישי, 6 באוגוסט 2026\nתשלומים וחיובים\n\nתמונה פשוטה וברורה של התשלומים לגן\n\n₪0\nיתרה פתוחה\nאין חוב\n4\nילדים לתשלום\nמשויכים\n0\nדורש בדיקה\nסטטוס תשלום\nלא נקבע\nתשלום קרוב\nמועד הבא\nתשלומי הורים שייכים לגן הילדים. גן בטוח מציג ומאשר את התהליך, אך לא מקבל את כספי שכר הלימוד.\nחיובים לפי ילד\n\nכל ילד מוצג רק להורה המשויך אליו\n\n",
+      "bottomRisk": [],
+      "clientWidth": 1024,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/dashboard/parent/payments",
+      "h1": [
+        "תשלומים וחיובים"
+      ],
+      "hasFakeLiveRisk": false,
+      "hasLogin": false,
+      "hasReadiness": true,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 1024,
+      "secretRiskText": false,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [],
+      "visibleActionCount": 6
+    }
+  },
+  {
+    "viewport": "tablet1024",
+    "width": 1024,
+    "height": 768,
+    "route": "/dashboard/parent/cameras",
+    "file": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/authed-ux-ui-qa-1/parent-tablet1024-dashboard-parent-cameras.png",
+    "metrics": {
+      "bodySample": "יום חמישי, 6 באוגוסט 2026\nמצלמות הגן\n\nצפייה מאובטחת רק כאשר הגן, המדיניות והשער הטכני מאפשרים זאת\n\nמצלמות גן\n\nמצלמות שאושרו לצפיית הורים\n\nבדיקה\nמצלמות הגן רקפת\n\nחדר גדול\n\nממתינה לאימות שער\nפתיחת נגן מאובטח\nזמין\n[DEMO] מצלמת כיתה מרכזית\n\nכיתה\n\nזמינה דרך שער מאובטח\nפתיחת נגן מאובטח\nבדיקה\nמצלמות הגן\n\nחדר משחקים\n\nממתינה לא",
+      "bottomRisk": [],
+      "clientWidth": 1024,
+      "disabledVisibleActionCount": 2,
+      "finalPath": "/dashboard/parent/cameras",
+      "h1": [
+        "מצלמות הגן"
+      ],
+      "hasFakeLiveRisk": false,
+      "hasLogin": false,
+      "hasReadiness": true,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 1024,
+      "secretRiskText": false,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [],
+      "visibleActionCount": 8
+    }
+  },
+  {
+    "viewport": "tablet1024",
+    "width": 1024,
+    "height": 768,
+    "route": "/dashboard/parent/schedule",
+    "file": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/authed-ux-ui-qa-1/parent-tablet1024-dashboard-parent-schedule.png",
+    "metrics": {
+      "bodySample": "יום חמישי, 6 באוגוסט 2026\nהיום של הילד\n\nסדר יום, אוכל, פעילויות ואירועים שהגן פרסם\n\nלו״ז, תפריט ופעילויות\n\nמה שהגן פרסם להורים מופיע כאן בצורה פשוטה וברורה.\n\nאין לו״ז מפורסם כרגע\nכאשר הגן יפרסם פעילות, תפריט או אירוע להורים, הם יופיעו כאן.",
+      "bottomRisk": [],
+      "clientWidth": 1024,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/dashboard/parent/schedule",
+      "h1": [
+        "היום של הילד"
+      ],
+      "hasFakeLiveRisk": false,
+      "hasLogin": false,
+      "hasReadiness": false,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 1024,
+      "secretRiskText": false,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [],
+      "visibleActionCount": 2
+    }
+  },
+  {
+    "viewport": "tablet1024",
+    "width": 1024,
+    "height": 768,
+    "route": "/dashboard/parent/discover-kindergartens",
+    "file": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/authed-ux-ui-qa-1/parent-tablet1024-dashboard-parent-discover-kindergartens.png",
+    "metrics": {
+      "bodySample": "יום חמישי, 6 באוגוסט 2026\nגני ילדים בטוחים באזור שלי\n\nמצא/י את הגן המתאים ביותר עבור הילד/ה שלך\n\nסינון\nחיפוש\nכל הגילים\nפרופיל ציבורי\nעיר / אזור\nמומלץ\nגני ילדים בטוחים באזור שלך\n\nמוצגים רק גנים עם פרופיל ציבורי פעיל\n\nפרופיל ציבורי\nפרופיל ציבורי\nשרקרק\n\nחולון · 21 הטייסים\n\nלא פורסם\nתשלום חודשי\nלא פורסם\nקיבולת שפורסמה\nלא פ",
+      "bottomRisk": [],
+      "clientWidth": 1024,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/dashboard/parent/discover-kindergartens",
+      "h1": [
+        "גני ילדים בטוחים באזור שלי"
+      ],
+      "hasFakeLiveRisk": false,
+      "hasLogin": false,
+      "hasReadiness": false,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 1024,
+      "secretRiskText": false,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 43,
+          "href": null,
+          "offscreenX": false,
+          "tag": "INPUT",
+          "text": "חפש גן ילדים, עיר או שכונה...",
+          "tooSmall": true,
+          "visible": true,
+          "w": 26
+        },
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 21,
+          "href": null,
+          "offscreenX": false,
+          "tag": "INPUT",
+          "text": "עיר",
+          "tooSmall": true,
+          "visible": true,
+          "w": 120
+        },
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 21,
+          "href": null,
+          "offscreenX": false,
+          "tag": "INPUT",
+          "text": "קבוצת גיל",
+          "tooSmall": true,
+          "visible": true,
+          "w": 120
+        }
+      ],
+      "visibleActionCount": 42
+    }
+  },
+  {
+    "viewport": "desktop1366",
+    "width": 1366,
+    "height": 768,
+    "route": "/dashboard/parent",
+    "file": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/authed-ux-ui-qa-1/parent-desktop1366-dashboard-parent.png",
+    "metrics": {
+      "bodySample": "יום חמישי, 6 באוגוסט 2026\nדשבורד הורים\n\nמעקב חכם אחר הילד והגן\n\n‹\n[DEMO] מאיה כהן\n\n[DEMO] גן רקפת הקטנה · רמת גן\n\nמשויך לגן\nמידע לפי הרשאה\n0\nעדכונים פתוחים\nבקשות/התראות לטיפול\nסדר\nסטטוס תשלום\nאין חובות\n9.2\nציון בטיחות\nסיכום שאושר להצגה\n0\nבקשות פתוחות\nממתינות לגן\nצפייה במצלמות\n\n[DEMO] גן רקפת הקטנה\n\nבדיקת זמינות\nמאובטח\n",
+      "bottomRisk": [],
+      "clientWidth": 1366,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/dashboard/parent",
+      "h1": [
+        "דשבורד הורים"
+      ],
+      "hasFakeLiveRisk": false,
+      "hasLogin": false,
+      "hasReadiness": false,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 1366,
+      "secretRiskText": false,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [],
+      "visibleActionCount": 36
+    }
+  },
+  {
+    "viewport": "desktop1366",
+    "width": 1366,
+    "height": 768,
+    "route": "/dashboard/parent/family-home",
+    "file": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/authed-ux-ui-qa-1/parent-desktop1366-dashboard-parent-family-home.png",
+    "metrics": {
+      "bodySample": "יום חמישי, 6 באוגוסט 2026\n\nהיום של [DEMO] ליה דגן\n\n[DEMO] ליה דגן השתתף/ה בפעילות היום.\nמחובר לגן\n[DEMO] גן שקד וחברים\nאמון 8.7/100\nעודכן 25.5.2026\nהודעה לגן\nציר היום\n2\nציר היום\nעדכונים מאושרים\n12\nצריך פעולה\nהתראות, מסמכים ותשלומים\n0\nתמונות\nשיתופים משפחתיים\n3\nמצלמות\nחלק ממתינות לאישור/חיבור\n\nמה דורש תשומת לב?\n\nהמערכת מ",
+      "bottomRisk": [],
+      "clientWidth": 1366,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/dashboard/parent/family-home",
+      "h1": [
+        "[DEMO] ליה דגן השתתף/ה בפעילות היום."
+      ],
+      "hasFakeLiveRisk": false,
+      "hasLogin": false,
+      "hasReadiness": true,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 1366,
+      "secretRiskText": false,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 193,
+          "href": "/dashboard/parent/notifications",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "עדכוני ילד6",
+          "tooSmall": true,
+          "visible": true,
+          "w": 26
+        },
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 193,
+          "href": "/dashboard/parent/notifications",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "הודעות0",
+          "tooSmall": true,
+          "visible": true,
+          "w": 26
+        },
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 193,
+          "href": "/dashboard/parent/notifications",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "מסמכים0",
+          "tooSmall": true,
+          "visible": true,
+          "w": 26
+        },
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 156,
+          "href": "/dashboard/parent/notifications",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "בטיחות0",
+          "tooSmall": true,
+          "visible": true,
+          "w": 26
+        },
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 156,
+          "href": "/dashboard/parent/notifications",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "תשלומים4",
+          "tooSmall": true,
+          "visible": true,
+          "w": 26
+        },
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 156,
+          "href": "/dashboard/parent/notifications",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "פיקוח0",
+          "tooSmall": true,
+          "visible": true,
+          "w": 26
+        }
+      ],
+      "visibleActionCount": 46
+    }
+  },
+  {
+    "viewport": "desktop1366",
+    "width": 1366,
+    "height": 768,
+    "route": "/dashboard/parent/messages",
+    "file": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/authed-ux-ui-qa-1/parent-desktop1366-dashboard-parent-messages.png",
+    "metrics": {
+      "bodySample": "יום חמישי, 6 באוגוסט 2026\nהודעות ותקשורת\n\nשיחה עם הגן, בקשות ועדכונים במקום אחד\n\nפנייה חדשה\n\nכותבים קצר, בוחרים נושא, ורואים מתי הפנייה נקראה וטופלה.\n\nערוץ מאובטח\nפנייה חכמה לגן\n\nבחרו סוג פנייה ונמען. המערכת תציג רק אנשי קשר רלוונטיים לגן של הילד ותשלח התראה למי שצריך לטפל.\n\nילד\n[DEMO] ליה דגן\n[DEMO] מאיה כהן\n[DEMO] או",
+      "bottomRisk": [],
+      "clientWidth": 1366,
+      "disabledVisibleActionCount": 1,
+      "finalPath": "/dashboard/parent/messages",
+      "h1": [
+        "הודעות ותקשורת"
+      ],
+      "hasFakeLiveRisk": false,
+      "hasLogin": false,
+      "hasReadiness": false,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 1366,
+      "secretRiskText": false,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 44,
+          "href": null,
+          "offscreenX": false,
+          "tag": "SELECT",
+          "text": "[DEMO] ליה דגן[DEMO] מאיה כהן[DEMO] אורי רוזן[DEMO] ריף אברהמי",
+          "tooSmall": true,
+          "visible": true,
+          "w": 26
+        },
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 80,
+          "href": null,
+          "offscreenX": false,
+          "tag": "TEXTAREA",
+          "text": "כתבו בקשה ברורה וקצרה. ההורה והנמען יראו סטטוס טיפול.",
+          "tooSmall": true,
+          "visible": true,
+          "w": 27
+        }
+      ],
+      "visibleActionCount": 7
+    }
+  },
+  {
+    "viewport": "desktop1366",
+    "width": 1366,
+    "height": 768,
+    "route": "/dashboard/parent/payments",
+    "file": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/authed-ux-ui-qa-1/parent-desktop1366-dashboard-parent-payments.png",
+    "metrics": {
+      "bodySample": "יום חמישי, 6 באוגוסט 2026\nתשלומים וחיובים\n\nתמונה פשוטה וברורה של התשלומים לגן\n\n₪0\nיתרה פתוחה\nאין חוב\n4\nילדים לתשלום\nמשויכים\n0\nדורש בדיקה\nסטטוס תשלום\nלא נקבע\nתשלום קרוב\nמועד הבא\nתשלומי הורים שייכים לגן הילדים. גן בטוח מציג ומאשר את התהליך, אך לא מקבל את כספי שכר הלימוד.\nחיובים לפי ילד\n\nכל ילד מוצג רק להורה המשויך אליו\n\n",
+      "bottomRisk": [],
+      "clientWidth": 1366,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/dashboard/parent/payments",
+      "h1": [
+        "תשלומים וחיובים"
+      ],
+      "hasFakeLiveRisk": false,
+      "hasLogin": false,
+      "hasReadiness": true,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 1366,
+      "secretRiskText": false,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [],
+      "visibleActionCount": 6
+    }
+  },
+  {
+    "viewport": "desktop1366",
+    "width": 1366,
+    "height": 768,
+    "route": "/dashboard/parent/cameras",
+    "file": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/authed-ux-ui-qa-1/parent-desktop1366-dashboard-parent-cameras.png",
+    "metrics": {
+      "bodySample": "יום חמישי, 6 באוגוסט 2026\nמצלמות הגן\n\nצפייה מאובטחת רק כאשר הגן, המדיניות והשער הטכני מאפשרים זאת\n\nמצלמות גן\n\nמצלמות שאושרו לצפיית הורים\n\nבדיקה\nמצלמות הגן רקפת\n\nחדר גדול\n\nממתינה לאימות שער\nפתיחת נגן מאובטח\nזמין\n[DEMO] מצלמת כיתה מרכזית\n\nכיתה\n\nזמינה דרך שער מאובטח\nפתיחת נגן מאובטח\nבדיקה\nמצלמות הגן\n\nחדר משחקים\n\nממתינה לא",
+      "bottomRisk": [],
+      "clientWidth": 1366,
+      "disabledVisibleActionCount": 2,
+      "finalPath": "/dashboard/parent/cameras",
+      "h1": [
+        "מצלמות הגן"
+      ],
+      "hasFakeLiveRisk": false,
+      "hasLogin": false,
+      "hasReadiness": true,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 1366,
+      "secretRiskText": false,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [],
+      "visibleActionCount": 8
+    }
+  },
+  {
+    "viewport": "desktop1366",
+    "width": 1366,
+    "height": 768,
+    "route": "/dashboard/parent/schedule",
+    "file": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/authed-ux-ui-qa-1/parent-desktop1366-dashboard-parent-schedule.png",
+    "metrics": {
+      "bodySample": "יום חמישי, 6 באוגוסט 2026\nהיום של הילד\n\nסדר יום, אוכל, פעילויות ואירועים שהגן פרסם\n\nלו״ז, תפריט ופעילויות\n\nמה שהגן פרסם להורים מופיע כאן בצורה פשוטה וברורה.\n\nאין לו״ז מפורסם כרגע\nכאשר הגן יפרסם פעילות, תפריט או אירוע להורים, הם יופיעו כאן.",
+      "bottomRisk": [],
+      "clientWidth": 1366,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/dashboard/parent/schedule",
+      "h1": [
+        "היום של הילד"
+      ],
+      "hasFakeLiveRisk": false,
+      "hasLogin": false,
+      "hasReadiness": false,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 1366,
+      "secretRiskText": false,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [],
+      "visibleActionCount": 2
+    }
+  },
+  {
+    "viewport": "desktop1366",
+    "width": 1366,
+    "height": 768,
+    "route": "/dashboard/parent/discover-kindergartens",
+    "file": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/authed-ux-ui-qa-1/parent-desktop1366-dashboard-parent-discover-kindergartens.png",
+    "metrics": {
+      "bodySample": "יום חמישי, 6 באוגוסט 2026\nגני ילדים בטוחים באזור שלי\n\nמצא/י את הגן המתאים ביותר עבור הילד/ה שלך\n\nסינון\nחיפוש\nכל הגילים\nפרופיל ציבורי\nעיר / אזור\nמומלץ\nגני ילדים בטוחים באזור שלך\n\nמוצגים רק גנים עם פרופיל ציבורי פעיל\n\nפרופיל ציבורי\nפרופיל ציבורי\nשרקרק\n\nחולון · 21 הטייסים\n\nלא פורסם\nתשלום חודשי\nלא פורסם\nקיבולת שפורסמה\nלא פ",
+      "bottomRisk": [],
+      "clientWidth": 1366,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/dashboard/parent/discover-kindergartens",
+      "h1": [
+        "גני ילדים בטוחים באזור שלי"
+      ],
+      "hasFakeLiveRisk": false,
+      "hasLogin": false,
+      "hasReadiness": false,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 1366,
+      "secretRiskText": false,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 43,
+          "href": null,
+          "offscreenX": false,
+          "tag": "INPUT",
+          "text": "חפש גן ילדים, עיר או שכונה...",
+          "tooSmall": true,
+          "visible": true,
+          "w": 26
+        },
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 21,
+          "href": null,
+          "offscreenX": false,
+          "tag": "INPUT",
+          "text": "עיר",
+          "tooSmall": true,
+          "visible": true,
+          "w": 120
+        },
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 21,
+          "href": null,
+          "offscreenX": false,
+          "tag": "INPUT",
+          "text": "קבוצת גיל",
+          "tooSmall": true,
+          "visible": true,
+          "w": 120
+        }
+      ],
+      "visibleActionCount": 42
+    }
+  },
+  {
+    "viewport": "desktop1440",
+    "width": 1440,
+    "height": 900,
+    "route": "/dashboard/parent",
+    "file": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/authed-ux-ui-qa-1/parent-desktop1440-dashboard-parent.png",
+    "metrics": {
+      "bodySample": "יום חמישי, 6 באוגוסט 2026\nדשבורד הורים\n\nמעקב חכם אחר הילד והגן\n\n‹\n[DEMO] מאיה כהן\n\n[DEMO] גן רקפת הקטנה · רמת גן\n\nמשויך לגן\nמידע לפי הרשאה\n0\nעדכונים פתוחים\nבקשות/התראות לטיפול\nסדר\nסטטוס תשלום\nאין חובות\n9.2\nציון בטיחות\nסיכום שאושר להצגה\n0\nבקשות פתוחות\nממתינות לגן\nצפייה במצלמות\n\n[DEMO] גן רקפת הקטנה\n\nבדיקת זמינות\nמאובטח\n",
+      "bottomRisk": [],
+      "clientWidth": 1440,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/dashboard/parent",
+      "h1": [
+        "דשבורד הורים"
+      ],
+      "hasFakeLiveRisk": false,
+      "hasLogin": false,
+      "hasReadiness": false,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 1440,
+      "secretRiskText": false,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [],
+      "visibleActionCount": 36
+    }
+  },
+  {
+    "viewport": "desktop1440",
+    "width": 1440,
+    "height": 900,
+    "route": "/dashboard/parent/family-home",
+    "file": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/authed-ux-ui-qa-1/parent-desktop1440-dashboard-parent-family-home.png",
+    "metrics": {
+      "bodySample": "יום חמישי, 6 באוגוסט 2026\n\nהיום של [DEMO] מאיה כהן\n\n[DEMO] מאיה כהן השתתף/ה בפעילות היום.\nמחובר לגן\n[DEMO] גן רקפת הקטנה\nאמון 9.2/100\nעודכן 25.5.2026\nהודעה לגן\nציר היום\n2\nציר היום\nעדכונים מאושרים\n12\nצריך פעולה\nהתראות, מסמכים ותשלומים\n0\nתמונות\nשיתופים משפחתיים\n3\nמצלמות\nחלק ממתינות לאישור/חיבור\n\nמה דורש תשומת לב?\n\nהמערכת",
+      "bottomRisk": [],
+      "clientWidth": 1440,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/dashboard/parent/family-home",
+      "h1": [
+        "[DEMO] מאיה כהן השתתף/ה בפעילות היום."
+      ],
+      "hasFakeLiveRisk": false,
+      "hasLogin": false,
+      "hasReadiness": true,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 1440,
+      "secretRiskText": false,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 193,
+          "href": "/dashboard/parent/notifications",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "עדכוני ילד6",
+          "tooSmall": true,
+          "visible": true,
+          "w": 26
+        },
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 193,
+          "href": "/dashboard/parent/notifications",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "הודעות0",
+          "tooSmall": true,
+          "visible": true,
+          "w": 26
+        },
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 193,
+          "href": "/dashboard/parent/notifications",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "מסמכים0",
+          "tooSmall": true,
+          "visible": true,
+          "w": 26
+        },
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 156,
+          "href": "/dashboard/parent/notifications",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "בטיחות0",
+          "tooSmall": true,
+          "visible": true,
+          "w": 26
+        },
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 156,
+          "href": "/dashboard/parent/notifications",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "תשלומים4",
+          "tooSmall": true,
+          "visible": true,
+          "w": 26
+        },
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 156,
+          "href": "/dashboard/parent/notifications",
+          "offscreenX": false,
+          "tag": "A",
+          "text": "פיקוח0",
+          "tooSmall": true,
+          "visible": true,
+          "w": 26
+        }
+      ],
+      "visibleActionCount": 46
+    }
+  },
+  {
+    "viewport": "desktop1440",
+    "width": 1440,
+    "height": 900,
+    "route": "/dashboard/parent/messages",
+    "file": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/authed-ux-ui-qa-1/parent-desktop1440-dashboard-parent-messages.png",
+    "metrics": {
+      "bodySample": "יום חמישי, 6 באוגוסט 2026\nהודעות ותקשורת\n\nשיחה עם הגן, בקשות ועדכונים במקום אחד\n\nפנייה חדשה\n\nכותבים קצר, בוחרים נושא, ורואים מתי הפנייה נקראה וטופלה.\n\nערוץ מאובטח\nפנייה חכמה לגן\n\nבחרו סוג פנייה ונמען. המערכת תציג רק אנשי קשר רלוונטיים לגן של הילד ותשלח התראה למי שצריך לטפל.\n\nילד\n[DEMO] מאיה כהן\n[DEMO] ליה דגן\n[DEMO] רי",
+      "bottomRisk": [],
+      "clientWidth": 1440,
+      "disabledVisibleActionCount": 1,
+      "finalPath": "/dashboard/parent/messages",
+      "h1": [
+        "הודעות ותקשורת"
+      ],
+      "hasFakeLiveRisk": false,
+      "hasLogin": false,
+      "hasReadiness": false,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 1440,
+      "secretRiskText": false,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 44,
+          "href": null,
+          "offscreenX": false,
+          "tag": "SELECT",
+          "text": "[DEMO] מאיה כהן[DEMO] ליה דגן[DEMO] ריף אברהמי[DEMO] אורי רוזן",
+          "tooSmall": true,
+          "visible": true,
+          "w": 26
+        },
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 80,
+          "href": null,
+          "offscreenX": false,
+          "tag": "TEXTAREA",
+          "text": "כתבו בקשה ברורה וקצרה. ההורה והנמען יראו סטטוס טיפול.",
+          "tooSmall": true,
+          "visible": true,
+          "w": 27
+        }
+      ],
+      "visibleActionCount": 7
+    }
+  },
+  {
+    "viewport": "desktop1440",
+    "width": 1440,
+    "height": 900,
+    "route": "/dashboard/parent/payments",
+    "file": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/authed-ux-ui-qa-1/parent-desktop1440-dashboard-parent-payments.png",
+    "metrics": {
+      "bodySample": "יום חמישי, 6 באוגוסט 2026\nתשלומים וחיובים\n\nתמונה פשוטה וברורה של התשלומים לגן\n\n₪0\nיתרה פתוחה\nאין חוב\n4\nילדים לתשלום\nמשויכים\n0\nדורש בדיקה\nסטטוס תשלום\nלא נקבע\nתשלום קרוב\nמועד הבא\nתשלומי הורים שייכים לגן הילדים. גן בטוח מציג ומאשר את התהליך, אך לא מקבל את כספי שכר הלימוד.\nחיובים לפי ילד\n\nכל ילד מוצג רק להורה המשויך אליו\n\n",
+      "bottomRisk": [],
+      "clientWidth": 1440,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/dashboard/parent/payments",
+      "h1": [
+        "תשלומים וחיובים"
+      ],
+      "hasFakeLiveRisk": false,
+      "hasLogin": false,
+      "hasReadiness": true,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 1440,
+      "secretRiskText": false,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [],
+      "visibleActionCount": 6
+    }
+  },
+  {
+    "viewport": "desktop1440",
+    "width": 1440,
+    "height": 900,
+    "route": "/dashboard/parent/cameras",
+    "file": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/authed-ux-ui-qa-1/parent-desktop1440-dashboard-parent-cameras.png",
+    "metrics": {
+      "bodySample": "יום חמישי, 6 באוגוסט 2026\nמצלמות הגן\n\nצפייה מאובטחת רק כאשר הגן, המדיניות והשער הטכני מאפשרים זאת\n\nמצלמות גן\n\nמצלמות שאושרו לצפיית הורים\n\nבדיקה\nמצלמות הגן רקפת\n\nחדר גדול\n\nממתינה לאימות שער\nפתיחת נגן מאובטח\nזמין\n[DEMO] מצלמת כיתה מרכזית\n\nכיתה\n\nזמינה דרך שער מאובטח\nפתיחת נגן מאובטח\nבדיקה\nמצלמות הגן\n\nחדר משחקים\n\nממתינה לא",
+      "bottomRisk": [],
+      "clientWidth": 1440,
+      "disabledVisibleActionCount": 2,
+      "finalPath": "/dashboard/parent/cameras",
+      "h1": [
+        "מצלמות הגן"
+      ],
+      "hasFakeLiveRisk": false,
+      "hasLogin": false,
+      "hasReadiness": true,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 1440,
+      "secretRiskText": false,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [],
+      "visibleActionCount": 8
+    }
+  },
+  {
+    "viewport": "desktop1440",
+    "width": 1440,
+    "height": 900,
+    "route": "/dashboard/parent/schedule",
+    "file": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/authed-ux-ui-qa-1/parent-desktop1440-dashboard-parent-schedule.png",
+    "metrics": {
+      "bodySample": "יום חמישי, 6 באוגוסט 2026\nהיום של הילד\n\nסדר יום, אוכל, פעילויות ואירועים שהגן פרסם\n\nלו״ז, תפריט ופעילויות\n\nמה שהגן פרסם להורים מופיע כאן בצורה פשוטה וברורה.\n\nאין לו״ז מפורסם כרגע\nכאשר הגן יפרסם פעילות, תפריט או אירוע להורים, הם יופיעו כאן.",
+      "bottomRisk": [],
+      "clientWidth": 1440,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/dashboard/parent/schedule",
+      "h1": [
+        "היום של הילד"
+      ],
+      "hasFakeLiveRisk": false,
+      "hasLogin": false,
+      "hasReadiness": false,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 1440,
+      "secretRiskText": false,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [],
+      "visibleActionCount": 2
+    }
+  },
+  {
+    "viewport": "desktop1440",
+    "width": 1440,
+    "height": 900,
+    "route": "/dashboard/parent/discover-kindergartens",
+    "file": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/authed-ux-ui-qa-1/parent-desktop1440-dashboard-parent-discover-kindergartens.png",
+    "metrics": {
+      "bodySample": "יום חמישי, 6 באוגוסט 2026\nגני ילדים בטוחים באזור שלי\n\nמצא/י את הגן המתאים ביותר עבור הילד/ה שלך\n\nסינון\nחיפוש\nכל הגילים\nפרופיל ציבורי\nעיר / אזור\nמומלץ\nגני ילדים בטוחים באזור שלך\n\nמוצגים רק גנים עם פרופיל ציבורי פעיל\n\nפרופיל ציבורי\nפרופיל ציבורי\nשרקרק\n\nחולון · 21 הטייסים\n\nלא פורסם\nתשלום חודשי\nלא פורסם\nקיבולת שפורסמה\nלא פ",
+      "bottomRisk": [],
+      "clientWidth": 1440,
+      "disabledVisibleActionCount": 0,
+      "finalPath": "/dashboard/parent/discover-kindergartens",
+      "h1": [
+        "גני ילדים בטוחים באזור שלי"
+      ],
+      "hasFakeLiveRisk": false,
+      "hasLogin": false,
+      "hasReadiness": false,
+      "horizontalOverflow": false,
+      "offscreenX": [],
+      "scrollWidth": 1440,
+      "secretRiskText": false,
+      "title": "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+      "tooSmall": [
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 43,
+          "href": null,
+          "offscreenX": false,
+          "tag": "INPUT",
+          "text": "חפש גן ילדים, עיר או שכונה...",
+          "tooSmall": true,
+          "visible": true,
+          "w": 26
+        },
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 21,
+          "href": null,
+          "offscreenX": false,
+          "tag": "INPUT",
+          "text": "עיר",
+          "tooSmall": true,
+          "visible": true,
+          "w": 120
+        },
+        {
+          "bottomRisk": false,
+          "disabled": false,
+          "h": 21,
+          "href": null,
+          "offscreenX": false,
+          "tag": "INPUT",
+          "text": "קבוצת גיל",
+          "tooSmall": true,
+          "visible": true,
+          "w": 120
+        }
+      ],
+      "visibleActionCount": 42
+    }
+  }
+]
