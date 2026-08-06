@@ -26,7 +26,7 @@ export async function getParentFamilyContext(userSupabase: SupabaseClient<any, a
   const childByParent = parentIds.length
     ? await supabase
       .from("children" as any)
-      .select("id, garden_id, kindergarten_id, permanent_child_file_id, primary_parent_id, full_name, birth_date, photo_url, face_image_url, status, allergies, hmo, medical_notes, age_group, classroom, payment_group_id, monthly_fee, custom_monthly_fee, payment_status, last_payment_date, next_payment_due, valid_until, debt_amount, payments_paused, pickup_status, approval_notes, manager_response")
+      .select("id, garden_id, permanent_child_file_id, primary_parent_id, full_name, birth_date, photo_url, face_image_url, status, allergies, hmo, medical_notes, age_group, classroom, payment_group_id, monthly_fee, custom_monthly_fee, payment_status, last_payment_date, next_payment_due, valid_until, debt_amount, payments_paused, pickup_status, approval_notes, manager_response")
       .in("primary_parent_id", parentIds)
       .limit(100)
     : { data: [], error: null };

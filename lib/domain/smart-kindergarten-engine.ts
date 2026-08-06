@@ -83,12 +83,12 @@ async function getParentChildIds(supabase: SupabaseClient<any, any, any>, profil
   const parentByUser = parentByProfile.data ? { data: null } : await supabase.from("parents" as any).select("id, garden_id, kindergarten_id").eq("user_id", profileId).maybeSingle();
   const parent = (parentByProfile.data as any) ?? (parentByUser.data as any);
   if (!parent?.id) return { parentId: null, childIds: [] as string[], gardenIds: [parent?.garden_id, parent?.kindergarten_id].filter(Boolean) as string[] };
-  const children = await supabase.from("children" as any).select("id, garden_id, kindergarten_id, status").eq("primary_parent_id", parent.id);
+  const children = await supabase.from("children" as any).select("id, garden_id, status").eq("primary_parent_id", parent.id);
   const rows = (children.data ?? []) as any[];
   return {
     parentId: parent.id as string,
     childIds: rows.map((row) => row.id).filter(Boolean),
-    gardenIds: Array.from(new Set([...rows.map((row) => row.garden_id ?? row.kindergarten_id), parent.garden_id, parent.kindergarten_id].filter(Boolean)))
+    gardenIds: Array.from(new Set([...rows.map((row) => row.garden_id), parent.garden_id, parent.kindergarten_id].filter(Boolean)))
   };
 }
 

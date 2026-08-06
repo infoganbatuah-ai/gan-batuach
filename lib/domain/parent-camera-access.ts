@@ -89,16 +89,16 @@ export async function resolveParentCameraScope(supabase: SupabaseClient<any, any
 
   const childQueries: any[] = [];
   if (relationIds.length) {
-    childQueries.push(...await safeQuery("children.primary_parent_id", () => supabase.from("children" as any).select("id, full_name, garden_id, kindergarten_id, primary_parent_id, gardens(id, name, city)").in("primary_parent_id", relationIds)));
-    childQueries.push(...await safeQuery("children.parent_id", () => supabase.from("children" as any).select("id, full_name, garden_id, kindergarten_id, parent_id, gardens(id, name, city)").in("parent_id", relationIds)));
-    const childParentLinks = await safeQuery("child_parent_links", () => supabase.from("child_parent_links" as any).select("child_id, parent_id, children(id, full_name, garden_id, kindergarten_id, gardens(id, name, city))").in("parent_id", relationIds));
+    childQueries.push(...await safeQuery("children.primary_parent_id", () => supabase.from("children" as any).select("id, full_name, garden_id, primary_parent_id, gardens(id, name, city)").in("primary_parent_id", relationIds)));
+    childQueries.push(...await safeQuery("children.parent_id", () => supabase.from("children" as any).select("id, full_name, garden_id, parent_id, gardens(id, name, city)").in("parent_id", relationIds)));
+    const childParentLinks = await safeQuery("child_parent_links", () => supabase.from("child_parent_links" as any).select("child_id, parent_id, children(id, full_name, garden_id, gardens(id, name, city))").in("parent_id", relationIds));
     childQueries.push(...childParentLinks.map((link: any) => link.children).filter(Boolean));
-    const parentChildLinks = await safeQuery("parent_child_relations", () => supabase.from("parent_child_relations" as any).select("child_id, parent_id, children(id, full_name, garden_id, kindergarten_id, gardens(id, name, city))").in("parent_id", relationIds));
+    const parentChildLinks = await safeQuery("parent_child_relations", () => supabase.from("parent_child_relations" as any).select("child_id, parent_id, children(id, full_name, garden_id, gardens(id, name, city))").in("parent_id", relationIds));
     childQueries.push(...parentChildLinks.map((link: any) => link.children).filter(Boolean));
   }
 
   const children = childQueries.filter((child, index, all) => child?.id && all.findIndex((item) => item?.id === child.id) === index);
-  const childGardenIds = uniq(children.map((child) => child.garden_id ?? child.kindergarten_id));
+  const childGardenIds = uniq(children.map((child) => child.garden_id));
   const directParentGardenIds = uniq(parentRows.flatMap((parent) => [parent.garden_id, parent.kindergarten_id]));
   const linkedGardenIds = uniq(parentKindergartenLinks.flatMap((link: any) => [link.garden_id, link.kindergarten_id]));
   const profileGardenIds = uniq([profile.garden_id, (profile as ParentProfile).kindergarten_id, ...profileKindergarten.map((row: any) => row.kindergarten_id)]);

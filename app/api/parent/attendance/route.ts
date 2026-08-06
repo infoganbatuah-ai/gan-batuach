@@ -63,7 +63,7 @@ export async function POST(request: Request) {
   const supabase = await createClient();
   const childRes = await supabase
     .from("children" as any)
-    .select("id, full_name, garden_id, kindergarten_id, primary_parent_id, parents!children_primary_parent_id_fkey(id,profile_id,user_id)")
+    .select("id, full_name, garden_id, primary_parent_id, parents!children_primary_parent_id_fkey(id,profile_id,user_id)")
     .eq("id", payload.child_id)
     .maybeSingle();
   if (childRes.error || !childRes.data) return NextResponse.json({ error: "Child not found" }, { status: 404 });
@@ -73,7 +73,7 @@ export async function POST(request: Request) {
     return NextResponse.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  const gardenId = child.garden_id ?? child.kindergarten_id;
+  const gardenId = child.garden_id;
   const gardenRes = await supabase.from("gardens" as any).select("id,name,gps_lat,gps_lng").eq("id", gardenId).maybeSingle();
   if (gardenRes.error || !gardenRes.data?.gps_lat || !gardenRes.data?.gps_lng) {
     return NextResponse.json({ error: "Kindergarten location is not configured" }, { status: 400 });
