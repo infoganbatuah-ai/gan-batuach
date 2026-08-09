@@ -4,6 +4,7 @@ node_modules/
 .env
 .env.local
 .env.*
+!.env.qa-demo.example
 .vercel/
 __MACOSX/
 .DS_Store

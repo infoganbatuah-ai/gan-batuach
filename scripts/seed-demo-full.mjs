@@ -347,12 +347,12 @@ async function seed() {
   await supabase.from("audit_logs").insert(demoRow({ actor_id: ids["admin-demo@demo.ganbatuach.com"], actor_role: "admin", entity_type: "demo_seed", action: "seed_demo_full", after_data: { gardens: insertedGardens.length, children: children.length, users: users.length, demo_batch_id: demoBatchId }, performed_by_user: ids["admin-demo@demo.ganbatuach.com"], performed_by_role: "admin" }));
   console.log(`Demo seed completed. Batch: ${demoBatchId}`);
   console.table([
-    ["Admin", "admin-demo@demo.ganbatuach.com", "AdminDemo123!"],
-    ["Inspector", "inspector.yael@demo.ganbatuach.com", "InspectorDemo123!"],
-    ["Manager", "manager.rakefet@demo.ganbatuach.com", "ManagerDemo123!"],
-    ["Owner", "owner.rakefet@demo.ganbatuach.com", "OwnerDemo123!"],
-    ["Staff", "staff.1@demo.ganbatuach.com", "StaffDemo123!"],
-    ["Parent", "parent.1@demo.ganbatuach.com", "ParentDemo123!"]
+    ["Admin", "admin-demo@demo.ganbatuach.com", "password not printed"],
+    ["Inspector", "inspector.yael@demo.ganbatuach.com", "password not printed"],
+    ["Manager", "manager.rakefet@demo.ganbatuach.com", "password not printed"],
+    ["Owner", "owner.rakefet@demo.ganbatuach.com", "password not printed"],
+    ["Staff", "staff.1@demo.ganbatuach.com", "password not printed"],
+    ["Parent", "parent.1@demo.ganbatuach.com", "password not printed"]
   ]);
 }
 

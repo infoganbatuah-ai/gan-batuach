@@ -13,6 +13,7 @@
     "export:clean": "node scripts/create-clean-export.mjs",
     "seed:test-users": "node scripts/seed-test-users.mjs",
     "seed:demo-full": "node scripts/seed-demo-full.mjs",
+    "qa:create-demo-role-users": "node scripts/qa/create-demo-role-users.mjs",
     "demo:reset": "node scripts/seed-demo-full.mjs --reset",
     "compliance:permit-scan": "node scripts/scan-permit-expirations.mjs",
     "privacy:forget-family": "node scripts/right-to-be-forgotten.mjs",
