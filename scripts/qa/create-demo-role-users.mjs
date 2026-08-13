@@ -52,13 +52,24 @@ const supabase = createClient(supabaseUrl, serviceRoleKey, {
 
 const accounts = [
   {
-    key: "parent",
-    email: process.env.QA_DEMO_PARENT_EMAIL || "parent.1@demo.ganbatuach.com",
-    passwordEnv: "QA_DEMO_PARENT_PASSWORD",
+    key: "parent_assigned",
+    email: process.env.QA_DEMO_PARENT_ASSIGNED_EMAIL || process.env.QA_DEMO_PARENT_EMAIL || "parent.1@demo.ganbatuach.com",
+    passwordEnv: process.env.QA_DEMO_PARENT_ASSIGNED_PASSWORD ? "QA_DEMO_PARENT_ASSIGNED_PASSWORD" : "QA_DEMO_PARENT_PASSWORD",
     role: "parent",
-    fullName: "[DEMO] הורה QA",
+    fullName: "[DEMO] הורה משויך QA",
     active: true,
-    note: "Existing full demo seed normally provides linked child data."
+    assignmentMode: "preserve",
+    note: "Assigned parent. Existing full demo seed normally links this user to Child A in Gan Rakefet."
+  },
+  {
+    key: "parent_unassigned",
+    email: process.env.QA_DEMO_PARENT_UNASSIGNED_EMAIL || "qa.parent.unassigned@demo.ganbatuach.com",
+    passwordEnv: "QA_DEMO_PARENT_UNASSIGNED_PASSWORD",
+    role: "parent",
+    fullName: "[DEMO] הורה לא משויך QA",
+    active: true,
+    assignmentMode: "unassigned",
+    note: "Unassigned parent. Must have no child/garden link for no-child/no-enrollment QA."
   },
   {
     key: "manager",
@@ -67,6 +78,7 @@ const accounts = [
     role: "manager",
     fullName: "[DEMO] מנהלת QA",
     active: true,
+    assignmentMode: "preserve",
     note: "Existing full demo seed normally provides Kindergarten A assignment."
   },
   {
@@ -76,7 +88,8 @@ const accounts = [
     role: "staff",
     fullName: "[DEMO] צוות משויך QA",
     active: true,
-    note: "Existing full demo seed normally provides Kindergarten A assignment."
+    assignmentMode: "preserve",
+    note: "Assigned staff. Existing full demo seed normally assigns this user to Gan Rakefet."
   },
   {
     key: "staff_unassigned",
@@ -85,6 +98,7 @@ const accounts = [
     role: "staff",
     fullName: "[DEMO] צוות לא משויך QA",
     active: true,
+    assignmentMode: "unassigned",
     note: "Profile-only user. Must have no garden assignment for unassigned-state QA."
   },
   {
@@ -94,7 +108,8 @@ const accounts = [
     role: "inspector",
     fullName: "[DEMO] מפקחת משויכת QA",
     active: true,
-    note: "Existing full demo seed normally provides assigned gardens."
+    assignmentMode: "preserve",
+    note: "Assigned inspector. Existing full demo seed normally assigns this user to Gan Rakefet and Gan Oranim."
   },
   {
     key: "inspector_unassigned",
@@ -103,6 +118,7 @@ const accounts = [
     role: "inspector",
     fullName: "[DEMO] מפקחת לא משויכת QA",
     active: false,
+    assignmentMode: "unassigned",
     note: "Profile-only user. Expected to reach pending/apply inspector state."
   },
   {
@@ -112,6 +128,7 @@ const accounts = [
     role: "admin",
     fullName: "[DEMO] אדמין QA",
     active: true,
+    assignmentMode: "preserve",
     note: "Existing full demo seed normally provides admin access."
   },
   {
@@ -121,6 +138,7 @@ const accounts = [
     role: "network_manager",
     fullName: "[DEMO] Digital Observer QA",
     active: true,
+    assignmentMode: "observer",
     note: "Creates a standalone observer site and owner membership when possible."
   }
 ];
@@ -158,19 +176,40 @@ async function upsertAccount(account) {
   if (error) throw error;
   const user = data.user;
 
-  const { error: profileError } = await supabase.from("profiles").upsert({
+  const { data: existingProfile, error: existingProfileError } = await supabase
+    .from("profiles")
+    .select("id, garden_id, role, full_name, username, email, active, must_change_password, is_demo, demo_batch_id")
+    .eq("id", user.id)
+    .maybeSingle();
+  if (existingProfileError) throw existingProfileError;
+
+  const profilePatch = {
+    ...(existingProfile ?? {}),
     id: user.id,
     role: account.role,
-    full_name: account.fullName,
-    username: account.email,
-    email: account.email,
+    full_name: existingProfile?.full_name || account.fullName,
+    username: existingProfile?.username || account.email,
+    email: existingProfile?.email || account.email,
     active: account.active,
     must_change_password: false,
     is_demo: true,
-    garden_id: null,
     demo_batch_id: "qa-demo-role-access"
-  }, { onConflict: "id" });
+  };
+
+  if (account.assignmentMode === "unassigned" || account.assignmentMode === "observer") {
+    profilePatch.garden_id = null;
+  }
+
+  const { error: profileError } = await supabase.from("profiles").upsert(profilePatch, { onConflict: "id" });
   if (profileError) throw profileError;
+
+  if (account.key === "staff_unassigned") {
+    await supabase.from("staff").delete().eq("profile_id", user.id);
+  }
+
+  if (account.key === "inspector_unassigned") {
+    await supabase.from("inspectors").delete().eq("id", user.id);
+  }
 
   if (account.key === "digital_observer") {
     await ensureDigitalObserverSite(user.id);
