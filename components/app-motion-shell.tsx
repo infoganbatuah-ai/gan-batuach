@@ -100,5 +100,14 @@ function PwaInstallPrompt() {
 }
 
 export function MobilePublicTabs() {
+  const pathname = usePathname();
+  const isPublicMarketingRoute =
+    pathname === "/" ||
+    pathname === "/parents-demand" ||
+    pathname === "/book-demo" ||
+    pathname === "/kindergarten-directory";
+
+  if (!isPublicMarketingRoute) return null;
+
   return <nav className="mobile-public-tabs" aria-label="ניווט מהיר"><Link href="/"><Home size={19} /><span>בית</span></Link><Link href="/parents-demand"><Search size={19} /><span>הורים</span></Link><Link href="/book-demo"><ShieldCheck size={19} /><span>הדגמה</span></Link><Link href="/app"><Bell size={19} /><span>מערכת</span></Link></nav>;
 }
