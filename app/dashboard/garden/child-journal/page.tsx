@@ -1,4 +1,5 @@
 import { Bell, BookOpenCheck, Moon, Utensils, UsersRound } from "lucide-react";
+import { israelTodayDateKey } from "@/lib/domain/israel-date";
 import { ChildDailyJournalManager } from "@/components/child-daily-journal-manager";
 import { DashboardFilterChip } from "@/components/dashboard-filter-chip";
 import {
@@ -18,7 +19,7 @@ export default async function GardenChildJournalPage({ searchParams }: { searchP
   const params = await searchParams;
   const supabase = await createClient();
   const gardenId = profile.garden_id ?? "";
-  const today = new Date().toISOString().slice(0, 10);
+  const today = israelTodayDateKey();
   const [childrenRes, journalsRes] = await Promise.all([
     supabase.from("children" as any).select("id, full_name, photo_url, allergies, regular_medications").eq("garden_id", gardenId).in("status", ["active", "approved"]).order("full_name"),
     supabase.from("child_daily_journals" as any).select("*").eq("garden_id", gardenId).eq("journal_date", today)
@@ -43,7 +44,7 @@ export default async function GardenChildJournalPage({ searchParams }: { searchP
     return !journal?.sleep_summary;
   }).length;
   return (
-    <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "רונית"}`} subtitle="יומן יומי לילדים" avatarUrl={(profile as any).avatar_url ?? null} active="calendar">
+    <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.replace(/\[DEMO\]/gi, "").trim().split(" ")[0] || "מנהלת הגן"}`} subtitle="יומן יומי לילדים" avatarUrl={(profile as any).profile_image_url ?? null} active="calendar">
       <TeacherPageTitle icon={BookOpenCheck} title="יומן ילד יומי" subtitle="ארוחות, שינה, מצב רוח, תרופות ועדכונים להורים" />
       <TeacherStatsGrid>
         <TeacherStatCard title="ילדים" value={children.length} hint="לפי הסינון" icon={UsersRound} tone="blue" />

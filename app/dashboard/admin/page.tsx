@@ -16,18 +16,21 @@ import {
 } from "@/components/gan-batuach-design-system";
 import { requireRole } from "@/lib/auth";
 import { logSupabaseError, safeAdminData } from "@/lib/admin-safe";
+import { cleanSyntheticLabel } from "@/lib/domain/display-label";
 import { createClient } from "@/lib/supabase/server";
 
 async function countRows(supabase: Awaited<ReturnType<typeof createClient>>, table: string) {
   const { count, error } = await supabase.from(table as any).select("*", { count: "exact", head: true });
   logSupabaseError(`count ${table}`, error);
-  return error ? 0 : count ?? 0;
+  if (error) throw new Error(`Admin data source unavailable: ${table}`);
+  return count ?? 0;
 }
 
 async function countFiltered(supabase: Awaited<ReturnType<typeof createClient>>, table: string, apply: (query: any) => any) {
   const { count, error } = await apply(supabase.from(table as any).select("*", { count: "exact", head: true }));
   logSupabaseError(`count ${table}`, error);
-  return error ? 0 : count ?? 0;
+  if (error) throw new Error(`Admin data source unavailable: ${table}`);
+  return count ?? 0;
 }
 
 function money(value: number) {
@@ -207,7 +210,7 @@ export default async function AdminDashboard() {
       inspectorRows: (inspectorRowsRes.data ?? []) as any[],
       recentComplaints: (recentComplaintsRes.data ?? []) as any[],
       recentAiEvents: (recentAiEventsRes.data ?? []) as any[],
-      queryError: [gardenRowsRes.error, inspectorRowsRes.error].some(Boolean) ? "חלק מנתוני מרכז השליטה לא נטענו" : null
+      queryError: [subscriptionRowsRes, gardenRowsRes, inspectorRowsRes, recentComplaintsRes, recentAiEventsRes, launchScoresRes].some((query) => query.error) ? "חלק מנתוני מרכז השליטה לא נטענו" : null
     };
   }, {
     gardens: 0,
@@ -251,12 +254,13 @@ export default async function AdminDashboard() {
   });
 
   const data = result.data;
-  const staffReadiness = data.staff ? Math.round((data.activeStaff / data.staff) * 100) : 100;
-  const inspectionCompletion = data.requiredInspections + data.completedInspections ? Math.round((data.completedInspections / (data.requiredInspections + data.completedInspections)) * 100) : 100;
-  const communicationHealth = data.deliveryLogs ? clamp(100 - (data.communicationFailures / Math.max(data.deliveryLogs, 1)) * 100) : 100;
-  const cameraHealth = data.cameras ? clamp(100 - ((data.offlineCameras + data.unhealthyCameras) / Math.max(data.cameras, 1)) * 100) : 100;
+  const dataAvailable = !result.error && !data.queryError;
+  const staffReadiness = dataAvailable && data.staff ? Math.round((data.activeStaff / data.staff) * 100) : null;
+  const inspectionCompletion = dataAvailable && data.requiredInspections + data.completedInspections ? Math.round((data.completedInspections / (data.requiredInspections + data.completedInspections)) * 100) : null;
+  const communicationHealth = dataAvailable && data.deliveryLogs ? clamp(100 - (data.communicationFailures / Math.max(data.deliveryLogs, 1)) * 100) : null;
+  const cameraHealth = dataAvailable && data.cameras ? clamp(100 - ((data.offlineCameras + data.unhealthyCameras) / Math.max(data.cameras, 1)) * 100) : null;
   const safetyPressure = data.criticalComplaints + data.activeIncidents + data.violations + data.observerAlerts;
-  const systemHealth = clamp(
+  const systemHealth = dataAvailable ? clamp(
     100 -
     data.overdueInspections * 7 -
     data.criticalComplaints * 6 -
@@ -264,9 +268,9 @@ export default async function AdminDashboard() {
     data.offlineCameras * 3 -
     data.launchBlockers * 6 -
     data.securityFindings * 4 -
-    Math.max(0, 90 - staffReadiness) / 2
-  );
-  const tone = healthTone(systemHealth);
+    Math.max(0, 90 - (staffReadiness ?? 0)) / 2
+  ) : null;
+  const tone = systemHealth === null ? "warning" : healthTone(systemHealth);
   const activeCustomers = data.activeGardens + data.onboardingGardens;
   const growthRate = data.gardens ? Math.round((data.newThisWeek / Math.max(data.gardens, 1)) * 100) : 0;
   const churnRisk = data.activeSubscriptions ? Math.round(((data.expiringSubscriptions + data.overdueAccounts) / Math.max(data.activeSubscriptions, 1)) * 100) : 0;
@@ -317,45 +321,45 @@ export default async function AdminDashboard() {
       profile={profile}
       title="דשבורד אדמין ראשי"
       subtitle="שליטה מלאה על גנים, פיקוח, מנויים, ספקים ובטיחות."
-      badge="🌐 מרכז שליטה ארצי"
+      badge="מרכז שליטה ארצי"
     >
       {result.error || data.queryError ? <AdminDataError message={result.error ?? data.queryError ?? undefined} /> : null}
 
       <PremiumCard className="admin-command-hero" size="lg">
-        <div className={`admin-health-orb gb-tone-${tone}`} style={{ "--score": systemHealth } as CSSProperties}>
+        <div className={`admin-health-orb gb-tone-${tone}`} style={{ "--score": systemHealth ?? 0 } as CSSProperties}>
           <span>בריאות מערכת</span>
-          <strong>{systemHealth}</strong>
-          <small>מתוך 100</small>
+          <strong>{systemHealth ?? "—"}</strong>
+          <small>{systemHealth === null ? "נתונים טרם נטענו" : "מתוך 100"}</small>
         </div>
         <div className="admin-command-copy">
           <span>מבט מנהלים</span>
           <h2>כל גן בטוח במקום אחד.</h2>
-          <p>{data.activeGardens} גנים פעילים, {data.inspectors} מפקחים, {data.children} ילדים, {data.staff} אנשי צוות ו-{safetyPressure} נושאי בטיחות פתוחים.</p>
+          <p>{dataAvailable ? `${data.activeGardens} גנים פעילים, ${data.inspectors} מפקחים, ${data.children} ילדים, ${data.staff} אנשי צוות ו-${safetyPressure} נושאי בטיחות פתוחים.` : "מקור הנתונים אינו זמין במלואו. לא מוצגים כאן מספרי ברירת מחדל או מצב ירוק מדומה."}</p>
           <div className="admin-chip-row">
-            <StatusChip tone={tone}>{tone === "success" ? "מערכת יציבה" : tone === "warning" ? "דורש תשומת לב" : "חריגים פתוחים"}</StatusChip>
-            <StatusChip tone={data.launchBlockers ? "danger" : "success"}>{data.launchBlockers} חסמי השקה</StatusChip>
-            <StatusChip tone={data.securityFindings ? "warning" : "success"}>{data.securityFindings} ממצאי אבטחה</StatusChip>
+            <StatusChip tone={tone}>{systemHealth === null ? "נתונים חלקיים" : tone === "success" ? "מערכת יציבה" : tone === "warning" ? "דורש תשומת לב" : "חריגים פתוחים"}</StatusChip>
+            <StatusChip tone={!dataAvailable || data.launchBlockers ? "danger" : "success"}>{dataAvailable ? data.launchBlockers : "—"} חסמי השקה</StatusChip>
+            <StatusChip tone={!dataAvailable || data.securityFindings ? "warning" : "success"}>{dataAvailable ? data.securityFindings : "—"} ממצאי אבטחה</StatusChip>
           </div>
         </div>
         <Link className="admin-primary-button" href="/dashboard/admin/users"><Search size={18} /> חיפוש ארצי</Link>
       </PremiumCard>
 
       <DashboardGrid className="admin-kpi-grid" columns={3}>
-        <MetricCard label="גנים פעילים" value={data.activeGardens} hint={`${data.gardens} סה״כ`} tone="success" href="/dashboard/admin/kindergartens" icon={ShieldCheck} />
-        <MetricCard label="מפקחים" value={data.inspectors} hint="שיבוץ וביצוע" tone="primary" href="/dashboard/admin/inspectors" icon={UsersRound} />
-        <MetricCard label="ילדים" value={data.children} hint={`${data.parents} הורים`} tone="primary" href="/dashboard/admin/users" icon={UsersRound} />
-        <MetricCard label="צוות פעיל" value={`${data.activeStaff}/${data.staff}`} hint={`${staffReadiness}% מוכנות`} tone={staffReadiness >= 80 ? "success" : "warning"} href="/dashboard/admin/users" icon={UsersRound} />
-        <MetricCard label="מנויים" value={data.activeSubscriptions} hint={`${data.overdueAccounts} בסיכון`} tone={data.overdueAccounts ? "warning" : "success"} href="/dashboard/admin/subscriptions" icon={CreditCard} />
-        <MetricCard label="בריאות" value={`${systemHealth}%`} hint="פלטפורמה" tone={tone} href="/dashboard/admin/system-health" icon={HeartPulse} />
+        <MetricCard label="גנים פעילים" value={dataAvailable ? data.activeGardens : "—"} hint={dataAvailable ? `${data.gardens} סה״כ` : "מקור נתונים חסר"} tone={dataAvailable ? "success" : "muted"} href="/dashboard/admin/kindergartens" icon={ShieldCheck} />
+        <MetricCard label="מפקחים" value={dataAvailable ? data.inspectors : "—"} hint={dataAvailable ? "שיבוץ וביצוע" : "מקור נתונים חסר"} tone={dataAvailable ? "primary" : "muted"} href="/dashboard/admin/inspectors" icon={UsersRound} />
+        <MetricCard label="ילדים" value={dataAvailable ? data.children : "—"} hint={dataAvailable ? `${data.parents} הורים` : "מקור נתונים חסר"} tone={dataAvailable ? "primary" : "muted"} href="/dashboard/admin/users" icon={UsersRound} />
+        <MetricCard label="צוות פעיל" value={dataAvailable ? `${data.activeStaff}/${data.staff}` : "—"} hint={staffReadiness === null ? "טרם נצבר" : `${staffReadiness}% מוכנות`} tone={staffReadiness !== null && staffReadiness >= 80 ? "success" : "warning"} href="/dashboard/admin/users" icon={UsersRound} />
+        <MetricCard label="מנויים" value={dataAvailable ? data.activeSubscriptions : "—"} hint={dataAvailable ? `${data.overdueAccounts} בסיכון` : "מקור נתונים חסר"} tone={!dataAvailable ? "muted" : data.overdueAccounts ? "warning" : "success"} href="/dashboard/admin/subscriptions" icon={CreditCard} />
+        <MetricCard label="בריאות" value={systemHealth === null ? "—" : `${systemHealth}%`} hint={systemHealth === null ? "מקור נתונים חסר" : "פלטפורמה"} tone={tone} href="/dashboard/admin/system-health" icon={HeartPulse} />
       </DashboardGrid>
 
       <DashboardGrid className="admin-report-grid" columns={3}>
-        <ReportCard title="MRR" value={money(data.mrr)} subtitle={`ARR ${money(data.arr)}`} icon={CreditCard} tone="primary" href="/dashboard/admin/subscriptions" />
-        <ReportCard title="לקוחות פעילים" value={activeCustomers} subtitle="כולל גנים בקליטה" icon={UsersRound} tone="success" href="/dashboard/admin/kindergartens" />
-        <ReportCard title="צמיחה שבועית" value={`${growthRate}%`} subtitle={`${data.newThisWeek} גנים חדשים`} icon={BarChart3} tone={growthRate ? "success" : "muted"} href="/dashboard/admin/analytics-center" />
-        <ReportCard title="סיכון נטישה" value={`${churnRisk}%`} subtitle="מנויים באיחור/לקראת סיום" icon={AlertTriangle} tone={churnRisk ? "warning" : "success"} href="/dashboard/admin/subscriptions" />
-        <ReportCard title="מוכנות השקה" value={`${data.launchReadiness}%`} subtitle="Readiness center" icon={Rocket} tone={data.launchReadiness >= 80 ? "success" : "warning"} href="/dashboard/admin/launch-readiness" />
-        <ReportCard title="פיקוח" value={`${inspectionCompletion}%`} subtitle={`${data.overdueInspections} באיחור`} icon={ShieldCheck} tone={data.overdueInspections ? "warning" : "success"} href="/dashboard/admin/national-inspections" />
+        <ReportCard title="MRR" value={dataAvailable ? money(data.mrr) : "—"} subtitle={dataAvailable ? `ARR ${money(data.arr)}` : "מקור נתונים חסר"} icon={CreditCard} tone={dataAvailable ? "primary" : "muted"} href="/dashboard/admin/subscriptions" />
+        <ReportCard title="לקוחות פעילים" value={dataAvailable ? activeCustomers : "—"} subtitle={dataAvailable ? "כולל גנים בקליטה" : "מקור נתונים חסר"} icon={UsersRound} tone={dataAvailable ? "success" : "muted"} href="/dashboard/admin/kindergartens" />
+        <ReportCard title="צמיחה שבועית" value={dataAvailable ? `${growthRate}%` : "—"} subtitle={dataAvailable ? `${data.newThisWeek} גנים חדשים` : "מקור נתונים חסר"} icon={BarChart3} tone={!dataAvailable ? "muted" : growthRate ? "success" : "muted"} href="/dashboard/admin/analytics-center" />
+        <ReportCard title="סיכון נטישה" value={dataAvailable ? `${churnRisk}%` : "—"} subtitle={dataAvailable ? "מנויים באיחור/לקראת סיום" : "מקור נתונים חסר"} icon={AlertTriangle} tone={!dataAvailable ? "muted" : churnRisk ? "warning" : "success"} href="/dashboard/admin/subscriptions" />
+        <ReportCard title="מוכנות השקה" value={dataAvailable ? `${data.launchReadiness}%` : "—"} subtitle={dataAvailable ? "מרכז מוכנות" : "מקור נתונים חסר"} icon={Rocket} tone={!dataAvailable ? "muted" : data.launchReadiness >= 80 ? "success" : "warning"} href="/dashboard/admin/launch-readiness" />
+        <ReportCard title="פיקוח" value={inspectionCompletion === null ? "—" : `${inspectionCompletion}%`} subtitle={inspectionCompletion === null ? "טרם נצבר" : `${data.overdueInspections} באיחור`} icon={ShieldCheck} tone={inspectionCompletion === null || data.overdueInspections ? "warning" : "success"} href="/dashboard/admin/national-inspections" />
       </DashboardGrid>
 
       <DashboardGrid className="admin-two-column" columns={2}>
@@ -363,7 +367,7 @@ export default async function AdminDashboard() {
           <SectionHeader title="בטיחות ארצית" subtitle="תלונות, אירועים, פיקוח ותצפיתן לפי חומרה." icon={ShieldAlert} />
           <DashboardGrid className="admin-alert-grid" columns={4}>
             {safetyItems.map((item) => (
-              <ReportCard key={item.label} title={item.label} value={item.value} tone={item.tone} href={item.href} />
+              <ReportCard key={item.label} title={item.label} value={dataAvailable ? item.value : "—"} tone={dataAvailable ? item.tone : "warning"} href={item.href} />
             ))}
           </DashboardGrid>
           <div className="admin-list-stack">
@@ -377,7 +381,7 @@ export default async function AdminDashboard() {
                 status={<StatusChip tone={["critical", "high", "urgent"].includes(String(item.severity)) ? "danger" : "warning"}>{adminStatusLabel(item.severity ?? item.status)}</StatusChip>}
               />
             ))}
-            {[...data.recentComplaints, ...data.recentAiEvents].length === 0 ? <EmptyState title="אין התראות חריגות" text="אירועים ותלונות שייווצרו יופיעו כאן." icon={ShieldCheck} /> : null}
+            {[...data.recentComplaints, ...data.recentAiEvents].length === 0 ? <EmptyState title={dataAvailable ? "אין התראות חריגות" : "נתוני התראות לא נטענו"} text={dataAvailable ? "אירועים ותלונות שייווצרו יופיעו כאן." : "יש לבדוק את חיבור מסד הנתונים לפני הסקת מצב בטיחות."} icon={ShieldCheck} /> : null}
           </div>
         </PremiumCard>
 
@@ -387,10 +391,10 @@ export default async function AdminDashboard() {
             {executiveQuestions.map((question) => <Link href={question.href} key={question.label}>{question.label}</Link>)}
           </div>
           <div className="admin-health-list">
-            <span>מצלמות תקינות <b>{cameraHealth}%</b></span>
-            <span>תקשורת תקינה <b>{communicationHealth}%</b></span>
-            <span>מוכנות צוות <b>{staffReadiness}%</b></span>
-            <span>פיקוח החודש <b>{data.completedInspections}</b></span>
+            <span>מצלמות תקינות <b>{cameraHealth === null ? "—" : `${cameraHealth}%`}</b></span>
+            <span>תקשורת תקינה <b>{communicationHealth === null ? "—" : `${communicationHealth}%`}</b></span>
+            <span>מוכנות צוות <b>{staffReadiness === null ? "—" : `${staffReadiness}%`}</b></span>
+            <span>פיקוח החודש <b>{dataAvailable ? data.completedInspections : "—"}</b></span>
           </div>
         </PremiumCard>
       </DashboardGrid>
@@ -400,7 +404,7 @@ export default async function AdminDashboard() {
         <details className="admin-management-drawer">
           <summary>הצג את כל מרכזי הניהול</summary>
           <DashboardGrid className="admin-management-grid" columns={4}>
-            {managementModules.map((module) => <ActionCard key={module.href} {...module} />)}
+            {managementModules.map((module) => <ActionCard key={module.href} {...module} tone={dataAvailable ? module.tone : "muted"} />)}
           </DashboardGrid>
         </details>
       </PremiumCard>
@@ -409,14 +413,14 @@ export default async function AdminDashboard() {
         <PremiumCard className="admin-section-card" size="lg">
           <SectionHeader title="מרכז גנים" subtitle="סטטוס, בטיחות ופיקוח הבא." icon={ShieldCheck} action={<Link className="admin-link-button" href="/dashboard/admin/kindergartens">ניהול מלא</Link>} />
           <div className="admin-list-stack">
-            {data.gardenRows.length === 0 ? <EmptyState title="אין גנים להצגה" text="גנים שייווצרו יופיעו כאן." icon={ShieldCheck} /> : data.gardenRows.map((garden: any) => (
+            {data.gardenRows.length === 0 ? <EmptyState title={dataAvailable ? "אין גנים להצגה" : "נתוני הגנים לא נטענו"} text={dataAvailable ? "גנים שייווצרו יופיעו כאן." : "לא מוצגים גנים מדומים במקום נתונים חסרים."} icon={ShieldCheck} /> : data.gardenRows.map((garden: any) => (
               <ListRowCard
                 key={garden.id}
                 href={`/dashboard/admin/gardens/${garden.id}`}
-                title={garden.name}
+                title={cleanSyntheticLabel(garden.name, "גן")}
                 subtitle={`${garden.city ?? "עיר לא צוינה"} · ${adminStatusLabel(garden.status)}`}
                 meta={garden.next_inspection_at ? `פיקוח הבא: ${new Date(garden.next_inspection_at).toLocaleDateString("he-IL")}` : "פיקוח הבא לא נקבע"}
-                status={<StatusChip tone={Number(garden.last_inspection_score ?? 100) < 70 ? "danger" : garden.safe_status === "safe" ? "success" : "warning"}>{garden.last_inspection_score ?? adminStatusLabel(garden.safe_status)}</StatusChip>}
+                status={<StatusChip tone={garden.last_inspection_score != null && Number(garden.last_inspection_score) < 70 ? "danger" : garden.safe_status === "safe" ? "success" : "warning"}>{garden.last_inspection_score ?? adminStatusLabel(garden.safe_status)}</StatusChip>}
               />
             ))}
           </div>
@@ -425,14 +429,14 @@ export default async function AdminDashboard() {
         <PremiumCard className="admin-section-card" size="lg">
           <SectionHeader title="מפקחים ועומס" subtitle="שיבוץ ומוכנות פיקוח." icon={UsersRound} action={<Link className="admin-link-button" href="/dashboard/admin/inspectors">ניהול מלא</Link>} />
           <div className="admin-list-stack">
-            {data.inspectorRows.length === 0 ? <EmptyState title="אין מפקחים להצגה" text="מפקחים שייווצרו יופיעו כאן." icon={UsersRound} /> : data.inspectorRows.map((inspector: any) => (
+            {data.inspectorRows.length === 0 ? <EmptyState title={dataAvailable ? "אין מפקחים להצגה" : "נתוני המפקחים לא נטענו"} text={dataAvailable ? "מפקחים שייווצרו יופיעו כאן." : "לא מוצג סטטוס פעיל ללא מקור נתונים."} icon={UsersRound} /> : data.inspectorRows.map((inspector: any) => (
               <ListRowCard
                 key={inspector.id}
                 href="/dashboard/admin/inspectors"
-                title={inspector.full_name ?? "מפקח"}
+                title={cleanSyntheticLabel(inspector.full_name, "מפקח")}
                 subtitle={Array.isArray(inspector.assigned_cities) ? inspector.assigned_cities.join(", ") : inspector.city ?? "אזור לא צוין"}
                 meta="בדיקת עומס ושיוך"
-                status={<StatusChip tone="success">{adminStatusLabel(inspector.status ?? "active")}</StatusChip>}
+                status={<StatusChip tone={inspector.status === "active" ? "success" : "warning"}>{inspector.status ? adminStatusLabel(inspector.status) : "סטטוס לא ידוע"}</StatusChip>}
               />
             ))}
           </div>
@@ -440,11 +444,11 @@ export default async function AdminDashboard() {
       </DashboardGrid>
 
       <PremiumCard className="admin-ops-strip">
-        <span><ShieldCheck /> גנים פעילים <b>{data.activeGardens}</b></span>
-        <span><HeartPulse /> בטיחות פתוחה <b>{safetyPressure}</b></span>
-        <span><Camera /> מצלמות לא תקינות <b>{data.offlineCameras + data.unhealthyCameras}</b></span>
-        <span><BellRing /> כשלי תקשורת <b>{data.communicationFailures}</b></span>
-        <span><Rocket /> פיילוטים פעילים <b>{data.pilotPrograms}</b></span>
+        <span><ShieldCheck /> גנים פעילים <b>{dataAvailable ? data.activeGardens : "—"}</b></span>
+        <span><HeartPulse /> בטיחות פתוחה <b>{dataAvailable ? safetyPressure : "—"}</b></span>
+        <span><Camera /> מצלמות לא תקינות <b>{dataAvailable ? data.offlineCameras + data.unhealthyCameras : "—"}</b></span>
+        <span><BellRing /> כשלי תקשורת <b>{dataAvailable ? data.communicationFailures : "—"}</b></span>
+        <span><Rocket /> פיילוטים פעילים <b>{dataAvailable ? data.pilotPrograms : "—"}</b></span>
       </PremiumCard>
     </AdminAppFrame>
   );

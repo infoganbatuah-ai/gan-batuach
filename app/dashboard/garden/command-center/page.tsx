@@ -1,4 +1,5 @@
 import { redirect } from "next/navigation";
+import { israelTodayDateKey } from "@/lib/domain/israel-date";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
@@ -37,7 +38,7 @@ export default async function ManagerCommandCenterPage() {
   if (!gardenId) redirect("/onboarding/kindergarten");
 
   const supabase = await createClient();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = israelTodayDateKey();
   const [childrenRes, attendanceRes, staffRes, requestsRes, camerasRes, messagesRes] = await Promise.all([
     supabase.from("children" as any).select("id, payment_status", { count: "exact" }).eq("garden_id", gardenId),
     supabase.from("attendance" as any).select("child_id,status").eq("garden_id", gardenId).eq("attendance_date", today),
@@ -57,9 +58,9 @@ export default async function ManagerCommandCenterPage() {
   return (
     <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="ניהול הגן" appHome>
       <TeacherAppFrame
-        title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "רונית"}`}
+        title={`בוקר טוב, ${profile.full_name?.replace(/\[DEMO\]/gi, "").trim().split(" ")[0] || "מנהלת הגן"}`}
         subtitle="מרכז פעולות הגן"
-        avatarUrl={(profile as any).avatar_url ?? null}
+        avatarUrl={(profile as any).profile_image_url ?? null}
         active="more"
       >
         <TeacherPageTitle icon={ShieldCheck} title="ניהול הגן" subtitle="כל הפעולות החשובות במקום אחד, באותה חוויית אפליקציה" />

@@ -143,6 +143,16 @@ const accounts = [
   }
 ];
 
+const emailOwners = new Map();
+for (const account of accounts) {
+  const normalizedEmail = account.email.trim().toLowerCase();
+  const existingOwner = emailOwners.get(normalizedEmail);
+  if (existingOwner) {
+    fail(`Duplicate demo email configured for ${existingOwner} and ${account.key}. Every QA role must use a distinct account.`);
+  }
+  emailOwners.set(normalizedEmail, account.key);
+}
+
 async function findUserByEmail(email) {
   let page = 1;
   const perPage = 1000;
@@ -203,8 +213,21 @@ async function upsertAccount(account) {
   const { error: profileError } = await supabase.from("profiles").upsert(profilePatch, { onConflict: "id" });
   if (profileError) throw profileError;
 
+  if (account.key === "staff_assigned") {
+    await ensureAssignedStaff(user.id, account.email, account.fullName);
+  }
+
   if (account.key === "staff_unassigned") {
     await supabase.from("staff").delete().eq("profile_id", user.id);
+  }
+
+  if (account.key === "inspector_assigned") {
+    const { error: inspectorError } = await supabase.from("inspectors").upsert({
+      id: user.id,
+      service_cities: ["רמת גן", "כפר סבא"],
+      certification_notes: "Synthetic QA inspector account"
+    }, { onConflict: "id" });
+    if (inspectorError) throw inspectorError;
   }
 
   if (account.key === "inspector_unassigned") {
@@ -216,6 +239,54 @@ async function upsertAccount(account) {
   }
 
   return { ...account, status: existing ? "UPDATED" : "CREATED", userId: user.id };
+}
+
+async function findRakefetGarden() {
+  const { data, error } = await supabase
+    .from("gardens")
+    .select("id")
+    .eq("is_demo", true)
+    .ilike("name", "%רקפת%")
+    .limit(1)
+    .maybeSingle();
+  if (error) throw error;
+  if (!data?.id) fail("Synthetic Gan Rakefet was not found. Run the full demo seed before linking assigned QA roles.");
+  return data.id;
+}
+
+async function ensureAssignedStaff(profileId, email, fullName) {
+  const gardenId = await findRakefetGarden();
+  const { error: profileError } = await supabase.from("profiles").update({ garden_id: gardenId }).eq("id", profileId);
+  if (profileError) throw profileError;
+
+  const { data: existingStaff, error: existingStaffError } = await supabase
+    .from("staff")
+    .select("id")
+    .eq("profile_id", profileId)
+    .limit(1)
+    .maybeSingle();
+  if (existingStaffError) throw existingStaffError;
+
+  const staffPatch = {
+    profile_id: profileId,
+    garden_id: gardenId,
+    full_name: fullName,
+    role_title: "איש/ת צוות QA",
+    email,
+    approved_to_work: true,
+    onboarding_status: "active",
+    background_check_status: "valid",
+    police_clearance_status: "valid",
+    role_assignment_confirmed: true,
+    policy_acknowledged: true,
+    is_demo: true,
+    demo_batch_id: "qa-demo-role-access"
+  };
+  const query = existingStaff?.id
+    ? supabase.from("staff").update(staffPatch).eq("id", existingStaff.id)
+    : supabase.from("staff").insert(staffPatch);
+  const { error: staffError } = await query;
+  if (staffError) throw staffError;
 }
 
 async function ensureDigitalObserverSite(profileId) {

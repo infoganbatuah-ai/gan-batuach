@@ -67,9 +67,9 @@ export default async function GardenObserverPilotPage() {
   return (
     <DashboardShell role="manager" title="פיילוט תצפיתן" appHome>
       <TeacherAppFrame
-        title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "רונית"}`}
+        title={`בוקר טוב, ${profile.full_name?.replace(/\[DEMO\]/gi, "").trim().split(" ")[0] || "מנהלת הגן"}`}
         subtitle="פיילוט תצפיתן"
-        avatarUrl={(profile as any).avatar_url ?? null}
+        avatarUrl={(profile as any).profile_image_url ?? null}
         active="more"
       >
         <TeacherPageTitle

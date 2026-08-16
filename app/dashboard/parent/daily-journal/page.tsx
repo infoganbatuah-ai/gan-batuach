@@ -15,7 +15,7 @@ export default async function ParentDailyJournalPage() {
   const journalsRes = childIds.length ? await supabase.from("child_daily_journals" as any).select("*, children(full_name, photo_url)").in("child_id", childIds).order("journal_date", { ascending: false }).limit(30) : { data: [] };
   return (
     <DashboardShell role="parent" title="יומן יומי" appHome>
-      <ParentAppFrame active="calendar" avatarUrl={(profile as any).profile_image_url ?? null}>
+      <ParentAppFrame active="calendar" profileName={profile.full_name} avatarUrl={(profile as any).profile_image_url ?? null}>
         <ParentHero title="היום של הילד" subtitle="ארוחות, שינה, מצב רוח, תמונות והערות צוות" />
         <ParentSection title="עדכונים מהגן" subtitle="המידע מוצג בשפה פשוטה ומרגיעה." action={<span className="pill good"><BookHeart size={15} /> עדכונים מאושרים</span>}>
           {(journalsRes.data ?? []).length === 0 ? <ParentEmptyState title="אין עדכונים יומיים עדיין" text="כאשר הגן יעדכן יומן יומי, הוא יופיע כאן עם תמונות והערות." /> : (

@@ -28,7 +28,7 @@ export default async function SettingsPage() {
 
   return (
     <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="פרופיל הגן" appHome>
-      <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "רונית"}`} subtitle={gardenData?.name ?? "פרופיל הגן"} avatarUrl={(profile as any).avatar_url ?? null} active="more">
+      <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.replace(/\[DEMO\]/gi, "").trim().split(" ")[0] || "מנהלת הגן"}`} subtitle={gardenData?.name ?? "פרופיל הגן"} avatarUrl={(profile as any).profile_image_url ?? null} active="more">
         <TeacherPageTitle icon={Settings} title="פרופיל והגדרות הגן" subtitle={needsCorrection ? gardenData?.admin_correction_note ?? "האדמין ביקש השלמה לפני אישור." : "עדכון פרטי גן, תמונות, קשר והגשה לאישור"} action={<a className="button primary" href="#profile-settings">עריכה מלאה</a>} />
 
         <TeacherStatsGrid>

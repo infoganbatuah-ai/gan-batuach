@@ -44,9 +44,9 @@ export function AppMotionShell({ children }: { children: React.ReactNode }) {
         <motion.div
           key={pathname}
           className="app-page-transition"
-          initial={reduceMotion ? false : { opacity: 0, y: 12, filter: "blur(6px)" }}
-          animate={{ opacity: 1, y: 0, filter: "blur(0px)" }}
-          exit={reduceMotion ? undefined : { opacity: 0, y: -8, filter: "blur(4px)" }}
+          initial={reduceMotion ? false : { opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          exit={reduceMotion ? undefined : { opacity: 0, y: -8 }}
           transition={{ duration: 0.24, ease: "easeOut" }}
           data-view-mode={mobilePreview ? "mobile-preview" : "responsive"}
         >

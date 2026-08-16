@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { israelTodayDateKey } from "@/lib/domain/israel-date";
 import { redirect } from "next/navigation";
 import {
   Activity,
@@ -28,6 +29,7 @@ import {
   TeacherStatsGrid
 } from "@/components/teacher-app-ui";
 import { requireRole } from "@/lib/auth";
+import { cleanSyntheticLabel, isSyntheticLabel } from "@/lib/domain/display-label";
 import { createClient } from "@/lib/supabase/server";
 import {
   buildOperationalHealthScore,
@@ -40,7 +42,7 @@ import {
 } from "@/lib/domain/kindergarten-operating-system";
 
 function pct(part: number, total: number) {
-  if (!total) return 100;
+  if (!total) return 0;
   return Math.max(0, Math.min(100, Math.round((part / total) * 100)));
 }
 
@@ -76,7 +78,7 @@ export default async function GardenOperationsPage() {
   if (!gardenId) redirect("/dashboard/garden");
 
   const supabase = await createClient();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = israelTodayDateKey();
 
   const [
     gardenRes,
@@ -169,13 +171,14 @@ export default async function GardenOperationsPage() {
   const childUpdatesCompletion = safeScore((mealCompletion + sleepCompletion + healthCompletion) / 3);
   const staffReady = staff.filter((row) => row.approved_to_work).length;
   const staffPresent = ((shiftsRes.data ?? []) as any[]).filter((row) => row.clock_in_at && !row.clock_out_at).length;
-  const staffReadiness = staffCount ? pct(staffReady, staffCount) : 100;
+  const staffReadiness = staffCount ? pct(staffReady, staffCount) : 0;
   const cameraIssues = cameras.filter((camera) => camera.active === false || ["offline", "failed", "error", "disabled", "pending_gateway"].includes(String(camera.status))).length;
   const complianceIssues = docs.length + complianceActions.length;
   const openIncidents = incidents.length + complaints.length;
   const communicationItems = (messagesRes.count ?? 0) + unreadNotifications.length;
   const observerIssues = observerSignals.length + preventionActions.length + cameraIssues;
   const paymentIssues = payments.length;
+  const syntheticSession = [profile.full_name, garden?.name].some(isSyntheticLabel);
 
   const liveHealth = buildOperationalHealthScore({
     attendanceCompletion,
@@ -253,15 +256,16 @@ export default async function GardenOperationsPage() {
   return (
     <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="מערכת הפעלה" appHome>
       <TeacherAppFrame
-        title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "רונית"}`}
-        subtitle="מערכת ההפעלה של הגן"
-        avatarUrl={(profile as any).avatar_url ?? null}
-        active="more"
+        title={`שלום, ${profile.full_name?.replace(/\[DEMO\]/gi, "").trim().split(" ")[0] || "מנהלת הגן"}`}
+        subtitle={`${garden?.name ?? "הגן"} · נתונים חיים ומצבי מוכנות`}
+        avatarUrl={(profile as any).profile_image_url ?? null}
+        active="home"
       >
+        {syntheticSession ? <div className="dashboard-environment-notice" role="status">סביבת בדיקה עם נתונים סינתטיים בלבד. ערכים חסרים אינם מוחלפים במספרי דמו.</div> : null}
         <TeacherPageTitle
           icon={Bot}
-          title="מערכת הפעלה"
-          subtitle="כל מה שדורש טיפול היום: ילדים, צוות, הורים, פיקוח, תשלומים ותצפיתן."
+          title="דשבורד הגן"
+          subtitle="נתונים מהגן ומצבי מוכנות אמיתיים. ערך חסר מוצג כחסר, לא כמספר דמו."
           action={<Link className="teacher-soft-button purple" href="/dashboard/garden/tasks">משימות</Link>}
         />
 
@@ -293,7 +297,7 @@ export default async function GardenOperationsPage() {
               {unifiedTasks.slice(0, 8).map((task) => (
                 <TeacherCompactItem
                   key={`${task.source}-${task.id}`}
-                  title={task.title}
+                  title={cleanSyntheticLabel(task.title, "משימה")}
                   subtitle={`${sourceLabel(task.source)} · ${statusLabel(task.status)} · ${dateText(task.due)}`}
                   tone={task.priority === "high" ? "red" : "purple"}
                   href={task.href}

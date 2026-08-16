@@ -63,7 +63,7 @@ export default async function GardenChildProfilePage({ params }: { params: Promi
   if (!child) {
     return (
       <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="כרטיס ילד" appHome>
-        <TeacherAppFrame title="כרטיס ילד" subtitle="לא נמצא" avatarUrl={(profile as any).avatar_url ?? null} active="children">
+        <TeacherAppFrame title="כרטיס ילד" subtitle="לא נמצא" avatarUrl={(profile as any).profile_image_url ?? null} active="children">
           <TeacherEmptyState title="לא נמצא כרטיס ילד" text="ייתכן שהילד לא שייך לגן שלך או שהכרטיס נמחק." action={<Link className="button primary" href="/dashboard/garden/children">חזרה לילדים</Link>} />
         </TeacherAppFrame>
       </DashboardShell>
@@ -95,7 +95,7 @@ export default async function GardenChildProfilePage({ params }: { params: Promi
 
   return (
     <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="כרטיס ילד" appHome>
-      <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "מאיה"}`} subtitle="כרטיס ילד מלא" avatarUrl={(profile as any).avatar_url ?? null} active="children">
+      <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.replace(/\[DEMO\]/gi, "").trim().split(" ")[0] || "מנהלת הגן"}`} subtitle="כרטיס ילד מלא" avatarUrl={(profile as any).profile_image_url ?? null} active="children">
         <TeacherPageTitle icon={Baby} title="כרטיס ילד מלא" subtitle={`ילדי הקבוצה › ${child.full_name}`} action={<Link className="button secondary" href="/dashboard/garden/children">חזרה לילדים</Link>} />
 
         <section className="teacher-child-profile-hero">

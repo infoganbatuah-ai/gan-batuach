@@ -1,4 +1,5 @@
 import { ClipboardList } from "lucide-react";
+import { israelTodayDateKey } from "@/lib/domain/israel-date";
 import { DailyTaskJournal } from "@/components/daily-task-journal";
 import { StatusChip } from "@/components/gan-batuach-design-system";
 import { StaffAppFrame, StaffPageHero, StaffSection } from "@/components/staff-app-ui";
@@ -8,7 +9,7 @@ import { createClient } from "@/lib/supabase/server";
 export default async function StaffDailyJournalPage() {
   const { profile } = await requireRole(["staff"]);
   const supabase = await createClient();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = israelTodayDateKey();
   const [tasksRes, completionsRes] = await Promise.all([
     supabase.from("daily_operational_tasks" as any).select("*").eq("active", true).contains("role_scope", ["staff"]),
     supabase.from("daily_task_completions" as any).select("*").eq("completed_for_date", today).eq("completed_by", profile.id)

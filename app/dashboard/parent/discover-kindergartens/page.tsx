@@ -3,7 +3,6 @@ import { DashboardShell } from "@/components/dashboard-shell";
 import { EnrollmentRequestButton } from "@/components/self-service-forms";
 import { ParentAppFrame, ParentEmptyState, ParentHero, ParentSection } from "@/components/parent-app-ui";
 import { requireRole } from "@/lib/auth";
-import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function DiscoverKindergartensPage({ searchParams }: { searchParams?: Promise<{ city?: string; age?: string; q?: string }> }) {
@@ -16,12 +15,11 @@ export default async function DiscoverKindergartensPage({ searchParams }: { sear
     .order("created_at", { ascending: false })
     .limit(20);
 
-  const admin = isAdminClientConfigured() ? createAdminClient() : null;
   let gardens: any[] = [];
   let feeGroupsByGarden = new Map<string, any[]>();
-  if (admin) {
-    let query = admin.from("gardens" as any)
-      .select("id,name,city,address,ages,framework_type,status,safe_status,public_profile_enabled,eligible_for_safe_status,last_inspection_score")
+  {
+    let query = userSupabase.from("gardens" as any)
+      .select("id,name,city,address,image_url,ages,framework_type,status,safe_status,public_profile_enabled,eligible_for_safe_status,last_inspection_score")
       .eq("status", "active")
       .eq("public_profile_enabled", true)
       .order("city")
@@ -32,7 +30,7 @@ export default async function DiscoverKindergartensPage({ searchParams }: { sear
     gardens = (gardenRes.data ?? []) as any[];
     const gardenIds = gardens.map((garden) => garden.id);
     if (gardenIds.length) {
-      const groups = await admin.from("kindergarten_fee_groups" as any)
+      const groups = await userSupabase.from("kindergarten_fee_groups" as any)
         .select("id,garden_id,group_name,age_range,monthly_fee,show_price_public,active,capacity")
         .in("garden_id", gardenIds)
         .eq("active", true)
@@ -47,7 +45,7 @@ export default async function DiscoverKindergartensPage({ searchParams }: { sear
 
   return (
     <DashboardShell role="parent" title="גילוי גנים" appHome>
-      <ParentAppFrame active="dashboard" avatarUrl={(profile as any).profile_image_url ?? null}>
+      <ParentAppFrame active="dashboard" profileName={profile.full_name} avatarUrl={(profile as any).profile_image_url ?? null}>
         <ParentHero title="גני ילדים בטוחים באזור שלי" subtitle="מצא/י את הגן המתאים ביותר עבור הילד/ה שלך" />
 
         <form className="parent-discovery-search" action="/dashboard/parent/discover-kindergartens">
@@ -68,8 +66,6 @@ export default async function DiscoverKindergartensPage({ searchParams }: { sear
           <span><ShieldCheck size={18} /> מומלץ</span>
         </nav>
 
-        {!admin ? <div className="error-banner">Service Role לא מוגדר, ולכן גילוי הגנים הציבורי אינו זמין כרגע.</div> : null}
-
         <ParentSection title="גני ילדים בטוחים באזור שלך" subtitle="מוצגים רק גנים עם פרופיל ציבורי פעיל">
           <div className="parent-garden-list">
             {gardens.map((garden, index) => {
@@ -79,6 +75,14 @@ export default async function DiscoverKindergartensPage({ searchParams }: { sear
               return (
                 <article className={`parent-garden-card ${index === 0 ? "featured" : ""}`} key={garden.id}>
                   <div className="parent-garden-image">
+                    {garden.image_url ? (
+                      <img src={garden.image_url} alt={`תמונת ${garden.name}`} />
+                    ) : (
+                      <div className="parent-garden-image-empty">
+                        <Building2 size={38} />
+                        <small>הגן טרם העלה תמונה ציבורית</small>
+                      </div>
+                    )}
                     <span>{index === 0 ? "פרופיל ציבורי" : garden.city ?? "גן ציבורי"}</span>
                   </div>
                   <div className="parent-garden-content">

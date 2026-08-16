@@ -69,7 +69,7 @@ export default async function GardenCameraSetupPage({ searchParams }: { searchPa
   const parentAllowed = cameras.filter((camera) => camera.parent_view_allowed || camera.parent_viewing_allowed).length;
   return (
     <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="מצלמות" appHome>
-      <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "מאיה"}`} subtitle="אזור מצלמות גננת" avatarUrl={(profile as any).avatar_url ?? null} active="more">
+      <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.replace(/\[DEMO\]/gi, "").trim().split(" ")[0] || "מנהלת הגן"}`} subtitle="אזור מצלמות גננת" avatarUrl={(profile as any).profile_image_url ?? null} active="more">
         <TeacherPageTitle icon={Camera} title="אזור מצלמות" subtitle="צפייה, חיבור והרשאות צפייה בטוחות" action={<a className="button primary" href="/dashboard/garden/cameras?add=1#camera-management"><Plus size={18} /> הוספת מצלמה</a>} />
         <TeacherStatsGrid>
           <TeacherStatCard title="מצלמות" value={cameras.length} hint="בגן" icon={Video} tone="blue" />

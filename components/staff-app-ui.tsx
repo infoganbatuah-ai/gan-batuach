@@ -14,6 +14,7 @@ import {
   MetricCard,
   SectionHeader
 } from "@/components/gan-batuach-design-system";
+import { RoleAppShell } from "@/components/role-app-shell";
 
 type Tone = "blue" | "purple" | "green" | "orange" | "red" | "neutral";
 type IconType = ComponentType<LucideProps>;
@@ -22,35 +23,29 @@ export function StaffAppFrame({
   children,
   active = "home",
   avatarUrl,
+  profileName,
   mode = "assigned"
 }: {
   children: ReactNode;
   active?: "profile" | "shifts" | "home" | "messages" | "more" | "jobs" | "applications" | "documents";
   avatarUrl?: string | null;
+  profileName?: string | null;
   mode?: "assigned" | "candidate";
 }) {
+  const activeHref = mode === "candidate"
+    ? active === "jobs" ? "/dashboard/staff/job-market" : active === "applications" ? "/dashboard/staff/job-market#applications" : active === "documents" ? "/dashboard/staff/documents" : active === "profile" ? "/dashboard/staff/settings" : "/dashboard/staff"
+    : active === "shifts" ? "/dashboard/staff/shifts" : active === "messages" ? "/dashboard/staff/messages" : active === "profile" ? "/dashboard/staff/settings" : active === "more" ? "/dashboard/staff/tasks" : "/dashboard/staff";
   return (
-    <AppShell
-      className="staff-app-frame staff-gb-frame"
-      header={
-        <AppHeader
-          className="staff-gb-header"
-          logo={
-            <div className="staff-brand">
-              <Image src="/assets/company-symbol.png" alt="" width={80} height={80} />
-              <Image src="/assets/company-name.png" alt="גן בטוח" width={220} height={70} />
-            </div>
-          }
-          title="צוות גן"
-          subtitle="עובדים. שומרים. אכפתיים."
-          notification={<Link className="staff-bell" href="/dashboard/staff/notifications" aria-label="התראות"><Bell size={26} /><span /></Link>}
-          avatar={<Link className="staff-avatar" href="/dashboard/staff/settings" aria-label="פרופיל צוות">{avatarUrl ? <img src={avatarUrl} alt="" /> : <span>צ</span>}<i /></Link>}
-        />
-      }
-      bottomNav={<StaffBottomNav active={active} mode={mode} />}
+    <RoleAppShell
+      role="staff"
+      activeHref={activeHref}
+      title={mode === "candidate" ? "מרכז מועמדות לצוות" : "דשבורד צוות"}
+      subtitle={mode === "candidate" ? "פרופיל, מסמכים וחיפוש גן" : "משמרות, משימות ותקשורת"}
+      profile={{ full_name: profileName ?? "צוות", profile_image_url: avatarUrl }}
+      className="staff-runtime-shell"
     >
-      <main className="staff-app-main">{children}</main>
-    </AppShell>
+      <main className="staff-app-main dashboard-runtime-content">{children}</main>
+    </RoleAppShell>
   );
 }
 

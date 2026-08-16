@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { israelTodayDateKey } from "@/lib/domain/israel-date";
 import { Activity, AlertTriangle, Baby, FileText, HeartPulse, MessageCircle, ShieldCheck, Sparkles } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { AdminDataError } from "@/components/admin-data-state";
@@ -53,7 +54,7 @@ export default async function GardenChildTimelinePage({ params }: { params: Prom
   const parentVisible = data.timeline.filter((item) => item.parent_visible && !item.internal_only);
   const incidents = data.timeline.filter((item) => item.event_category === "incidents" || item.safety_relevance === "incident");
   const health = data.timeline.filter((item) => item.event_category === "health");
-  const today = data.timeline.filter((item) => dayKey(item.event_time) === new Date().toISOString().slice(0, 10));
+  const today = data.timeline.filter((item) => dayKey(item.event_time) === israelTodayDateKey());
   const grouped = data.timeline.reduce((map: Map<string, any[]>, item: any) => {
     const key = dayKey(item.event_time);
     map.set(key, [...(map.get(key) ?? []), item]);
@@ -63,9 +64,9 @@ export default async function GardenChildTimelinePage({ params }: { params: Prom
   return (
     <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="ציר בטיחות ילד" appHome>
       <TeacherAppFrame
-        title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "רונית"}`}
+        title={`בוקר טוב, ${profile.full_name?.replace(/\[DEMO\]/gi, "").trim().split(" ")[0] || "מנהלת הגן"}`}
         subtitle={`ציר בטיחות של ${data.child.full_name}`}
-        avatarUrl={(profile as any).avatar_url ?? null}
+        avatarUrl={(profile as any).profile_image_url ?? null}
         active="children"
       >
         <TeacherPageTitle

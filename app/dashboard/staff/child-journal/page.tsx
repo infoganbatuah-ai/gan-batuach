@@ -1,4 +1,5 @@
 import { BookOpenCheck } from "lucide-react";
+import { israelTodayDateKey } from "@/lib/domain/israel-date";
 import { ChildDailyJournalManager } from "@/components/child-daily-journal-manager";
 import { StatusChip } from "@/components/gan-batuach-design-system";
 import { StaffAppFrame, StaffPageHero, StaffSection } from "@/components/staff-app-ui";
@@ -10,7 +11,7 @@ export default async function StaffChildJournalPage({ searchParams }: { searchPa
   const { profile } = await requireRole(["staff"]);
   const supabase = await createClient();
   const gardenId = profile.garden_id ?? "";
-  const today = new Date().toISOString().slice(0, 10);
+  const today = israelTodayDateKey();
   const [childrenRes, journalsRes] = await Promise.all([
     supabase.from("children" as any).select("id, full_name, photo_url, allergies, regular_medications").eq("garden_id", gardenId).in("status", ["active", "approved"]).order("full_name"),
     supabase.from("child_daily_journals" as any).select("*").eq("garden_id", gardenId).eq("journal_date", today)

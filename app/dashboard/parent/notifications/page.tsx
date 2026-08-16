@@ -28,7 +28,7 @@ export default async function ParentNotificationsPage() {
   const pushCategoryPreferences = Object.fromEntries((pushPreferencesRes.data ?? []).map((row: any) => [row.category, row.enabled]));
   return (
     <DashboardShell role="parent" title="התראות" appHome>
-      <ParentAppFrame active="alerts" avatarUrl={(profile as any).profile_image_url ?? null}>
+      <ParentAppFrame active="alerts" profileName={profile.full_name} avatarUrl={(profile as any).profile_image_url ?? null}>
         <ParentHero title="מרכז עדכונים" subtitle="מה צריך את תשומת הלב שלך היום?" />
         <section className="parent-notification-categories">{categories.map((category) => <span key={category.label}>{category.label}<b>{category.count}</b></span>)}</section>
         <ParentSection title="העדפות התראות" subtitle="בחירה אילו עדכונים לקבל ובאיזה ערוץ.">

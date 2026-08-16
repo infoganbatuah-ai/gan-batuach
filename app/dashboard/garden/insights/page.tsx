@@ -28,7 +28,7 @@ export default async function GardenInsightsPage() {
   const warnings = insights.filter((item) => item.severity === "warning").length;
 
   return (
-    <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "רונית"}`} subtitle="תובנות חכמות לגן" avatarUrl={(profile as any).avatar_url ?? null} active="more">
+    <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.replace(/\[DEMO\]/gi, "").trim().split(" ")[0] || "מנהלת הגן"}`} subtitle="תובנות חכמות לגן" avatarUrl={(profile as any).profile_image_url ?? null} active="more">
       <TeacherPageTitle icon={Bot} title="תובנות חכמות" subtitle="מה דורש פעולה מתוך נוכחות, יומן, מסמכים, אירועים ופיקוח" />
       <TeacherStatsGrid>
         <TeacherStatCard title="דחוף" value={urgent} hint="לטיפול מיידי" icon={AlertTriangle} tone={urgent ? "red" : "green"} />

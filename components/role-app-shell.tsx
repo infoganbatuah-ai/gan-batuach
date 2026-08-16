@@ -26,6 +26,7 @@ import {
   SidebarNav
 } from "@/components/gan-batuach-design-system";
 import { LogoutButton } from "@/components/logout-button";
+import { cleanSyntheticLabel } from "@/lib/domain/display-label";
 
 type IconType = ComponentType<LucideProps>;
 
@@ -54,60 +55,72 @@ export type RoleAppShellProfile = {
 export const roleAppShellConfig: Record<RoleAppShellRole, {
   label: string;
   homeHref: string;
+  settingsHref: string;
+  notificationsHref: string;
   subtitle: string;
   nav: RoleAppNavItem[];
 }> = {
   admin: {
     label: "אדמין",
     homeHref: "/dashboard/admin",
+    settingsHref: "/dashboard/admin/settings",
+    notificationsHref: "/dashboard/admin/notifications",
     subtitle: "תפעול, אבטחה, מנויים ומוכנות השקה",
     nav: [
       { href: "/dashboard/admin", label: "ראשי", icon: ShieldCheck },
       { href: "/dashboard/admin/kindergartens", label: "גנים", icon: Home },
       { href: "/dashboard/admin/subscriptions", label: "מנויים", icon: WalletCards },
-      { href: "/dashboard/admin/notifications", label: "התראות", icon: Bell, badge: "2" },
+      { href: "/dashboard/admin/notifications", label: "התראות", icon: Bell },
       { href: "/dashboard/admin/settings", label: "עוד", icon: Menu }
     ]
   },
   manager: {
     label: "גננת",
-    homeHref: "/dashboard/garden",
+    homeHref: "/dashboard/garden/operations",
+    settingsHref: "/dashboard/garden/settings",
+    notificationsHref: "/dashboard/garden/notifications",
     subtitle: "ניהול גן, ילדים, צוות, תשלומים ומסמכים",
     nav: [
-      { href: "/dashboard/garden", label: "בית", icon: Home },
+      { href: "/dashboard/garden/operations", label: "בית", icon: Home },
       { href: "/dashboard/garden/attendance", label: "נוכחות", icon: ClipboardCheck },
       { href: "/dashboard/garden/cameras", label: "מצלמות", icon: Camera },
-      { href: "/dashboard/garden/notifications", label: "התראות", icon: Bell, badge: "2" },
+      { href: "/dashboard/garden/notifications", label: "התראות", icon: Bell },
       { href: "/dashboard/garden/settings", label: "עוד", icon: Menu }
     ]
   },
   owner: {
     label: "בעלים",
-    homeHref: "/dashboard/garden",
+    homeHref: "/dashboard/garden/operations",
+    settingsHref: "/dashboard/garden/settings",
+    notificationsHref: "/dashboard/garden/notifications",
     subtitle: "ניהול גן, ילדים, צוות, תשלומים ומסמכים",
     nav: [
-      { href: "/dashboard/garden", label: "בית", icon: Home },
+      { href: "/dashboard/garden/operations", label: "בית", icon: Home },
       { href: "/dashboard/garden/payments", label: "תשלומים", icon: WalletCards },
       { href: "/dashboard/garden/reports", label: "דוחות", icon: BarChart3 },
-      { href: "/dashboard/garden/notifications", label: "התראות", icon: Bell, badge: "2" },
+      { href: "/dashboard/garden/notifications", label: "התראות", icon: Bell },
       { href: "/dashboard/garden/settings", label: "עוד", icon: Menu }
     ]
   },
   parent: {
     label: "הורה",
     homeHref: "/dashboard/parent",
+    settingsHref: "/dashboard/parent/settings",
+    notificationsHref: "/dashboard/parent/notifications",
     subtitle: "ילדים, גנים, הודעות, תשלומים ומעקב",
     nav: [
       { href: "/dashboard/parent", label: "בית", icon: Home },
       { href: "/dashboard/parent/discover-kindergartens", label: "גנים", icon: Search },
       { href: "/dashboard/parent/messages", label: "הודעות", icon: MessageCircle },
-      { href: "/dashboard/parent/notifications", label: "התראות", icon: Bell, badge: "2" },
+      { href: "/dashboard/parent/notifications", label: "התראות", icon: Bell },
       { href: "/dashboard/parent/settings", label: "עוד", icon: Menu }
     ]
   },
   staff: {
     label: "צוות",
     homeHref: "/dashboard/staff",
+    settingsHref: "/dashboard/staff/settings",
+    notificationsHref: "/dashboard/staff/notifications",
     subtitle: "משמרות, משימות, מסמכים ותקשורת",
     nav: [
       { href: "/dashboard/staff", label: "ראשי", icon: Home },
@@ -120,25 +133,29 @@ export const roleAppShellConfig: Record<RoleAppShellRole, {
   inspector: {
     label: "מפקח",
     homeHref: "/dashboard/inspector",
+    settingsHref: "/dashboard/inspector/settings",
+    notificationsHref: "/dashboard/inspector/notifications",
     subtitle: "גנים משויכים, ביקורות, ליקויים ודוחות",
     nav: [
       { href: "/dashboard/inspector", label: "ראשי", icon: Home },
       { href: "/dashboard/inspector/inspections", label: "ביקורות", icon: ClipboardCheck },
       { href: "/dashboard/inspector/reports", label: "דוחות", icon: FileText },
-      { href: "/dashboard/inspector/notifications", label: "התראות", icon: Bell, badge: "2" },
+      { href: "/dashboard/inspector/notifications", label: "התראות", icon: Bell },
       { href: "/dashboard/inspector/settings", label: "פרופיל", icon: UserRound }
     ]
   },
   "digital-observer": {
     label: "Digital Observer",
     homeHref: "/digital-observer/dashboard",
+    settingsHref: "/digital-observer/settings",
+    notificationsHref: "/digital-observer/alerts",
     subtitle: "אתרים, מצלמות, התראות, תצפיתן וחיוב",
     nav: [
       { href: "/digital-observer/dashboard", label: "ראשי", icon: Home },
       { href: "/digital-observer/onboarding", label: "הקמה", icon: Camera },
       { href: "/digital-observer/billing", label: "חיוב", icon: WalletCards },
-      { href: "/digital-observer/dashboard#alerts", label: "התראות", icon: Bell, badge: "2" },
-      { href: "/digital-observer/dashboard#more", label: "עוד", icon: Menu }
+      { href: "/digital-observer/alerts", label: "התראות", icon: Bell },
+      { href: "/digital-observer/settings", label: "הגדרות", icon: Menu }
     ]
   }
 };
@@ -166,7 +183,7 @@ export function RoleAppShell({
 }) {
   const config = roleAppShellConfig[role];
   const resolvedActive = activeHref ?? config.homeHref;
-  const displayName = profile?.full_name ?? config.label;
+  const displayName = cleanSyntheticLabel(profile?.full_name, config.label);
   const firstLetter = String(displayName).trim().slice(0, 1) || "ג";
   const header = (
     <header className="role-app-header">
@@ -186,13 +203,11 @@ export function RoleAppShell({
             <ChevronLeft size={24} />
           </Link>
         ) : null}
-        <Link className="role-app-avatar" href={`${config.homeHref}/settings`} aria-label="פרופיל">
+        <Link className="role-app-avatar" href={config.settingsHref} aria-label="פרופיל">
           {profile?.profile_image_url ? <img src={profile.profile_image_url} alt="" /> : <span>{firstLetter}</span>}
-          <i />
         </Link>
-        <Link className="role-app-icon-button" href={`${config.homeHref}/notifications`} aria-label="התראות">
+        <Link className="role-app-icon-button" href={config.notificationsHref} aria-label="התראות">
           <Bell size={23} />
-          <i />
         </Link>
         {actions}
         <LogoutButton />
@@ -251,4 +266,3 @@ export const StaffRoleAppShell = createRoleAppShellAdapter("staff");
 export const InspectorRoleAppShell = createRoleAppShellAdapter("inspector");
 export const AdminRoleAppShell = createRoleAppShellAdapter("admin");
 export const DigitalObserverRoleAppShell = createRoleAppShellAdapter("digital-observer");
-

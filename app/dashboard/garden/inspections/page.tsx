@@ -36,7 +36,7 @@ export default async function GardenInspectionsPage({ searchParams }: { searchPa
 
   return (
     <DashboardShell role="manager" title="פיקוח" appHome>
-      <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "מאיה"}`} subtitle="פיקוח ובטיחות גן" avatarUrl={(profile as any).avatar_url ?? null} active="more">
+      <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.replace(/\[DEMO\]/gi, "").trim().split(" ")[0] || "מנהלת הגן"}`} subtitle="פיקוח ובטיחות גן" avatarUrl={(profile as any).profile_image_url ?? null} active="more">
         <TeacherPageTitle icon={ShieldCheck} title="פיקוחים ודוחות" subtitle="ביקורת חודשית, ציון אחרון וליקויים לתיקון" />
         <DashboardFilterChip label={showDueOnly ? "פיקוח קרוב" : null} clearHref="/dashboard/garden/inspections" isEmpty={showDueOnly && !dueSoon} emptyTitle="אין כרגע פיקוח קרוב" emptyText="לא נמצא מועד פיקוח בטווח הקרוב לגן הזה." />
 

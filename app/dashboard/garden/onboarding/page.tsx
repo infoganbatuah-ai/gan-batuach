@@ -26,7 +26,7 @@ export default async function GardenOnboardingPage() {
   const pendingStaff = (staff.data ?? []) as any[];
 
   return (
-    <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "רונית"}`} subtitle="קליטת משתמשים לגן" avatarUrl={(profile as any).avatar_url ?? null} active="children">
+    <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.replace(/\[DEMO\]/gi, "").trim().split(" ")[0] || "מנהלת הגן"}`} subtitle="קליטת משתמשים לגן" avatarUrl={(profile as any).profile_image_url ?? null} active="children">
       <TeacherPageTitle icon={UserRoundPlus} title="קליטת משתמשים" subtitle="הורים, ילדים וצוות נכנסים בתהליך ברור ומבוקר" />
       <TeacherStatsGrid>
         <TeacherStatCard title="ילדים ממתינים" value={pendingChildren.length} hint="לאישור מנהלת" icon={Baby} tone="purple" />

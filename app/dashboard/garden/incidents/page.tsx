@@ -32,7 +32,7 @@ export default async function GardenIncidentsPage({ searchParams }: { searchPara
   });
   return (
     <DashboardShell role="manager" title="אירועים חריגים" appHome>
-      <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "מאיה"}`} subtitle="דיווחים גננת" avatarUrl={(profile as any).avatar_url ?? null} active="more">
+      <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.replace(/\[DEMO\]/gi, "").trim().split(" ")[0] || "מנהלת הגן"}`} subtitle="דיווחים גננת" avatarUrl={(profile as any).profile_image_url ?? null} active="more">
       <TeacherPageTitle icon={Siren} title="דיווחים גננת" subtitle="תיעוד, טיפול ומעקב אירועים" />
       <TeacherStatsGrid>
         <TeacherStatCard title="פתוחים" value={incidents.length} hint="לטיפול" icon={AlertTriangle} tone={incidents.length ? "red" : "green"} />

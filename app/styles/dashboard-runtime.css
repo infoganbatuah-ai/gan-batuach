@@ -1,0 +1,567 @@
+/* Final dashboard runtime contract.
+   Dashboard pages use one CSS-first shell; no viewport JavaScript is required. */
+
+:root {
+  --dashboard-max: 1480px;
+  --dashboard-sidebar: 264px;
+  --dashboard-gap: clamp(16px, 2vw, 28px);
+  --dashboard-pad: clamp(16px, 2.4vw, 36px);
+  --dashboard-nav-height: 78px;
+  --dashboard-safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Retire the old reference-phone wrapper for the real role dashboards.
+   That wrapper capped authenticated screens at 460px even on desktop. */
+.dashboard-layout.app-home-layout {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  padding: 0 !important;
+}
+
+.dashboard-layout.app-home-layout::before {
+  display: none !important;
+  content: none !important;
+}
+
+.dashboard-layout.app-home-layout .dashboard-main {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.dashboard-layout.app-home-layout .app-dashboard-stage.native-app-stage {
+  width: 100% !important;
+  max-width: none !important;
+  min-width: 0 !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  background: transparent !important;
+  box-shadow: none !important;
+}
+
+.role-app-shell {
+  width: 100%;
+  min-width: 0;
+  min-height: 100dvh;
+  margin: 0;
+  background: #f4f7fb;
+  overflow-x: clip;
+}
+
+.role-app-shell .gb-app-shell-main,
+.role-app-shell .role-app-page,
+.role-app-shell .dashboard-runtime-content,
+.role-app-shell .app-home-shell,
+.role-app-shell .digital-observer-dashboard-app {
+  width: 100%;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.role-app-shell .role-app-header {
+  width: 100%;
+  max-width: none;
+  margin: 0;
+  padding: clamp(18px, 2.2vw, 30px) var(--dashboard-pad) 14px;
+  border-bottom: 1px solid #dfe7f2;
+  background: rgb(255 255 255 / 94%);
+  backdrop-filter: blur(16px);
+}
+
+.role-app-shell .role-app-brand {
+  min-width: 0;
+  justify-content: flex-end;
+}
+
+.role-app-shell .role-app-logo {
+  flex: 0 0 auto;
+}
+
+.role-app-shell .role-app-logo img:first-child {
+  width: 44px;
+  height: 44px;
+}
+
+.role-app-shell .role-app-logo img:nth-child(2) {
+  width: min(142px, 24vw);
+  height: auto;
+}
+
+.role-app-shell .role-app-title {
+  min-width: 0;
+}
+
+.role-app-shell .role-app-title h1 {
+  font-size: 1.75rem;
+  line-height: 1.2;
+  letter-spacing: 0;
+}
+
+.role-app-shell .role-app-title p {
+  max-width: 68ch;
+  font-size: 0.92rem;
+  line-height: 1.55;
+}
+
+.role-app-shell .role-app-actions {
+  align-self: center;
+  flex-wrap: wrap;
+}
+
+.role-app-shell .role-app-icon-button,
+.role-app-shell .role-app-avatar {
+  width: 46px;
+  height: 46px;
+  flex: 0 0 46px;
+}
+
+.role-app-shell .logout-form,
+.role-app-shell .logout-button {
+  min-width: 0;
+}
+
+.role-app-shell .role-app-page {
+  margin: 0;
+  padding: var(--dashboard-pad);
+  padding-bottom: var(--dashboard-pad) !important;
+}
+
+.dashboard-runtime-content {
+  display: grid;
+  gap: var(--dashboard-gap);
+}
+
+.dashboard-current-date {
+  display: inline-flex;
+  align-items: center;
+  justify-self: start;
+  gap: 10px;
+  min-height: 48px;
+  padding: 8px 14px;
+  border: 1px solid #dbe4f1;
+  border-radius: 8px;
+  background: #fff;
+  color: #17376f;
+}
+
+.dashboard-current-date > span {
+  display: grid;
+  gap: 2px;
+}
+
+.dashboard-current-date small {
+  color: #66758f;
+}
+
+.dashboard-header-badge {
+  display: inline-flex;
+  align-items: center;
+  min-height: 36px;
+  padding: 6px 10px;
+  border: 1px solid #dce5f2;
+  border-radius: 999px;
+  background: #f7f9fc;
+  color: #334a72;
+  font-size: 0.82rem;
+  font-weight: 800;
+}
+
+.dashboard-source-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  min-width: 0;
+  padding: 14px 16px;
+  border: 1px solid #f1cf89;
+  border-radius: 8px;
+  background: #fff9e9;
+  color: #6c4b0b;
+}
+
+.dashboard-source-notice > svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+}
+
+.dashboard-source-notice > div {
+  display: grid;
+  gap: 3px;
+  min-width: 0;
+}
+
+.dashboard-source-notice span {
+  line-height: 1.55;
+}
+
+.dashboard-environment-notice {
+  width: fit-content;
+  max-width: 100%;
+  min-height: 36px;
+  padding: 8px 12px;
+  border: 1px solid #d6e1ef;
+  border-radius: 8px;
+  background: #f7f9fc;
+  color: #55647c;
+  font-size: 0.84rem;
+  font-weight: 750;
+  line-height: 1.5;
+}
+
+.role-app-shell .parent-garden-image,
+.role-app-shell .parent-live-thumb,
+.role-app-shell .parent-camera-preview {
+  display: grid;
+  place-items: center;
+  gap: 8px;
+  background-image: none !important;
+  background-color: #edf3fa;
+  color: #526783;
+  text-align: center;
+}
+
+.role-app-shell .parent-garden-image > img {
+  width: 100%;
+  height: 100%;
+  min-height: 178px;
+  object-fit: cover;
+}
+
+.role-app-shell .parent-garden-image-empty {
+  display: grid;
+  place-items: center;
+  gap: 8px;
+  min-height: 178px;
+  padding: 24px;
+}
+
+.role-app-shell .parent-live-thumb,
+.role-app-shell .parent-camera-preview {
+  align-content: center;
+  padding: 28px 18px 52px;
+}
+
+.role-app-shell .parent-live-thumb > strong,
+.role-app-shell .parent-camera-preview > strong {
+  max-width: 28ch;
+  font-size: 0.92rem;
+}
+
+.role-app-shell .parent-hero {
+  padding: 22px 8px 4px;
+}
+
+.role-app-shell .parent-hero h1 {
+  font-size: 2.7rem;
+  line-height: 1.12;
+}
+
+.role-app-shell .parent-hero p {
+  font-size: 1.1rem;
+}
+
+.role-app-shell .parent-child-card-link {
+  color: inherit;
+  text-decoration: none;
+}
+
+.role-app-shell :where(
+  .parent-child-card,
+  .parent-metric-card,
+  .parent-section-card,
+  .parent-action-tile,
+  .parent-camera-preview,
+  .parent-live-camera-card,
+  .parent-live-thumb,
+  .staff-section-ref,
+  .staff-unassigned-card,
+  .staff-shift-card-ref,
+  .inspector-hero-card,
+  .admin-command-hero,
+  .gb-premium-card,
+  .gb-action-card,
+  .gb-list-row-card,
+  .app-home-hero,
+  .app-status-card,
+  .app-quick-action,
+  .app-home-section,
+  .card
+) {
+  border-radius: 8px !important;
+}
+
+.dashboard-page-intro,
+.dashboard-action-panel,
+.dashboard-section-panel,
+.dashboard-readiness-card {
+  display: grid;
+  gap: 16px;
+  min-width: 0;
+}
+
+.dashboard-list-stack {
+  display: grid;
+  gap: 10px;
+  min-width: 0;
+}
+
+.dashboard-list-avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 44px;
+  height: 44px;
+  overflow: hidden;
+  border-radius: 50%;
+  background: #eaf0ff;
+  color: #264a9b;
+  font-weight: 900;
+}
+
+.dashboard-list-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.dashboard-text-link {
+  display: inline-flex;
+  align-items: center;
+  min-height: 40px;
+  color: #234895;
+  font-weight: 850;
+  text-decoration: none;
+}
+
+.role-app-shell .gb-dashboard-grid {
+  display: grid;
+  gap: clamp(12px, 1.5vw, 20px);
+  min-width: 0;
+}
+
+.role-app-shell .gb-dashboard-grid > * {
+  min-width: 0;
+}
+
+.role-app-shell .gb-grid-1 { grid-template-columns: minmax(0, 1fr); }
+.role-app-shell .gb-grid-2 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.role-app-shell .gb-grid-3 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.role-app-shell .gb-grid-4 { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+.role-app-shell .gb-grid-5 { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+
+.role-app-shell :where(.gb-premium-card, .gb-action-card, .gb-list-row-card, .card, .dashboard-section, .action-panel) {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.role-app-shell :where(.gb-action-card, .gb-list-row-card, a.gb-premium-card) {
+  text-decoration: none;
+}
+
+.role-app-shell :where(button, a, input, select, textarea, summary) {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.role-app-shell :where(button, .button, .gb-primary-button, .gb-action-card, .gb-bottom-nav-item) {
+  min-height: 44px;
+}
+
+.role-app-shell :where(table) {
+  width: 100%;
+  max-width: 100%;
+}
+
+.role-app-shell :where(.table-wrap, .data-table-wrap, .responsive-table, .card:has(table), .dashboard-section:has(table)) {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.role-app-shell :where([role="dialog"], .modal, .dialog, .drawer, .sheet) {
+  width: min(680px, calc(100vw - 24px));
+  max-height: calc(100dvh - 24px);
+  overflow: auto;
+}
+
+.digital-observer-runtime-shell .digital-observer-dashboard-app,
+.digital-observer-runtime-shell .app-home-shell {
+  padding: 0;
+}
+
+@media (min-width: 1025px) {
+  .role-app-shell.gb-app-shell {
+    display: grid;
+    grid-template-columns: var(--dashboard-sidebar) minmax(0, 1fr);
+    gap: 0;
+    width: min(100%, var(--dashboard-max));
+    margin-inline: auto;
+    padding: 0;
+  }
+
+  .role-app-shell .gb-app-shell-sidebar {
+    display: block !important;
+    position: sticky;
+    top: 0;
+    align-self: start;
+    height: 100dvh;
+    max-height: 100dvh;
+    padding: 24px 16px;
+    overflow-y: auto;
+    border-inline-end: 1px solid #dfe7f2;
+    background: #fff;
+  }
+
+  .role-app-shell .gb-app-shell-main {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .role-app-shell .role-app-header,
+  .role-app-shell .role-app-page {
+    width: 100% !important;
+    max-width: none !important;
+  }
+
+  .role-app-shell .role-app-bottom-nav {
+    display: none !important;
+  }
+}
+
+@media (min-width: 721px) and (max-width: 1024px) {
+  .role-app-shell .gb-app-shell-sidebar {
+    display: none !important;
+  }
+
+  .role-app-shell .role-app-page {
+    padding: 24px;
+    padding-bottom: calc(var(--dashboard-nav-height) + var(--dashboard-safe-bottom) + 30px) !important;
+  }
+
+  .role-app-shell .gb-grid-3,
+  .role-app-shell .gb-grid-4,
+  .role-app-shell .gb-grid-5 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .role-app-shell .role-app-bottom-nav {
+    display: grid !important;
+  }
+}
+
+@media (max-width: 720px) {
+  .role-app-shell .gb-app-shell-sidebar {
+    display: none !important;
+  }
+
+  .role-app-shell .role-app-header {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    padding: max(14px, env(safe-area-inset-top, 0px)) 14px 12px;
+  }
+
+  .role-app-shell .role-app-brand {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    direction: rtl;
+  }
+
+  .role-app-shell .role-app-logo img:nth-child(2) {
+    display: none;
+  }
+
+  .role-app-shell .role-app-actions {
+    order: 2;
+    justify-content: flex-start;
+  }
+
+  .role-app-shell .role-app-title h1 {
+    font-size: 1.35rem;
+  }
+
+  .role-app-shell .parent-hero h1 {
+    font-size: 2rem;
+  }
+
+  .role-app-shell .parent-hero p {
+    font-size: 1rem;
+  }
+
+  .role-app-shell .role-app-page {
+    padding: 14px;
+    padding-bottom: calc(var(--dashboard-nav-height) + var(--dashboard-safe-bottom) + 28px) !important;
+  }
+
+  .role-app-shell .gb-dashboard-grid,
+  .role-app-shell .gb-grid-2,
+  .role-app-shell .gb-grid-3,
+  .role-app-shell .gb-grid-4,
+  .role-app-shell .gb-grid-5,
+  .role-app-shell :where(.grid.cols-2, .grid.cols-3, .grid.cols-4, .dashboard-panels, .parent-two-columns, .staff-dashboard-columns-ref, .admin-two-column) {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  .role-app-shell :where(.gb-section-header, .section-heading, .app-home-section-head, .parent-section-head) {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .role-app-shell :where(.gb-section-header > *, .section-heading > *, .app-home-section-head > *, .parent-section-head > *) {
+    max-width: 100%;
+  }
+
+  .role-app-shell .role-app-bottom-nav {
+    display: grid !important;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    position: fixed !important;
+    right: max(8px, env(safe-area-inset-right, 0px)) !important;
+    left: max(8px, env(safe-area-inset-left, 0px)) !important;
+    bottom: max(8px, var(--dashboard-safe-bottom)) !important;
+    width: auto !important;
+    min-height: 68px;
+    max-width: none !important;
+    z-index: 100;
+  }
+
+  .role-app-shell .gb-bottom-nav-item {
+    gap: 2px;
+    padding: 6px 2px;
+    font-size: 0.72rem;
+  }
+
+  .role-app-shell .gb-bottom-nav-icon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .role-app-shell :where(.gb-list-row-card, .procedure-card) {
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .role-app-shell :where(.gb-list-status, .gb-list-actions, .procedure-meta) {
+    grid-column: 1 / -1;
+    justify-self: stretch;
+  }
+}
+
+@media (max-width: 390px) {
+  .role-app-shell .role-app-title p {
+    font-size: 0.82rem;
+  }
+
+  .role-app-shell .role-app-actions {
+    gap: 6px;
+  }
+
+  .role-app-shell .role-app-icon-button,
+  .role-app-shell .role-app-avatar {
+    width: 42px;
+    height: 42px;
+    flex-basis: 42px;
+  }
+}

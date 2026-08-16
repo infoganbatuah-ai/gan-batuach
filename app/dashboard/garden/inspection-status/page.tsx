@@ -36,7 +36,7 @@ export default async function Page() {
 
   return (
     <DashboardShell role="manager" title="סטטוס פיקוח" appHome>
-      <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "מאיה"}`} subtitle={garden?.name ?? "סטטוס פיקוח גן"} avatarUrl={(profile as any).avatar_url ?? null} active="more">
+      <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.replace(/\[DEMO\]/gi, "").trim().split(" ")[0] || "מנהלת הגן"}`} subtitle={garden?.name ?? "סטטוס פיקוח גן"} avatarUrl={(profile as any).profile_image_url ?? null} active="more">
         <TeacherPageTitle icon={ShieldCheck} title="מצב הפיקוח" subtitle="תמונה נקייה של הפיקוח, הציון והפעולות הנדרשות" />
 
         <TeacherStatsGrid>

@@ -24,7 +24,7 @@ export default async function GardenPickupFacePage() {
   const resultRows = (results.data ?? []) as any[];
 
   return (
-    <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "רונית"}`} subtitle="בדיקת איסוף מבוקרת" avatarUrl={(profile as any).avatar_url ?? null} active="children">
+    <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.replace(/\[DEMO\]/gi, "").trim().split(" ")[0] || "מנהלת הגן"}`} subtitle="בדיקת איסוף מבוקרת" avatarUrl={(profile as any).profile_image_url ?? null} active="children">
       <TeacherPageTitle icon={ScanFace} title="בדיקת התאמה באיסוף" subtitle="תשתית בדיקה בלבד. אין החלטה ביומטרית ואין שחרור אוטומטי" />
       <TeacherStatsGrid>
         <TeacherStatCard title="מורשי איסוף" value={contactRows.length} hint="פעילים" icon={UsersRound} tone="blue" />

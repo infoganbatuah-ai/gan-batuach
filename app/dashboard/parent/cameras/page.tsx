@@ -1,4 +1,4 @@
-import { Eye, ShieldCheck } from "lucide-react";
+import { Camera, Eye, ShieldCheck } from "lucide-react";
 import { CameraPlaybackCard } from "@/components/camera-playback-card";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { ParentAppFrame, ParentEmptyState, ParentHero, ParentSection } from "@/components/parent-app-ui";
@@ -48,7 +48,7 @@ export default async function Page() {
 
   return (
     <DashboardShell role="parent" title="מצלמות הגן" appHome>
-      <ParentAppFrame active="dashboard" avatarUrl={(profile as any).profile_image_url ?? null}>
+      <ParentAppFrame active="dashboard" profileName={profile.full_name} avatarUrl={(profile as any).profile_image_url ?? null}>
         <ParentHero title="מצלמות הגן" subtitle="צפייה מאובטחת רק כאשר הגן, המדיניות והשער הטכני מאפשרים זאת" />
 
         <ParentSection title="מצלמות גן" subtitle={groups.length ? "מצלמות שאושרו לצפיית הורים" : "ממתין לאישור הגן"} className="parent-camera-reference-section">
@@ -59,6 +59,8 @@ export default async function Page() {
               {groups.flatMap((group) => group.cameras.slice(0, 3).map((camera) => (
                 <article className="parent-live-camera-card" key={camera.id}>
                   <div className="parent-live-thumb">
+                    <Camera size={40} />
+                    <strong>נגן מאובטח נפתח רק לאחר אימות</strong>
                     <span>{camera.status === "online" || camera.health_status === "healthy" ? "זמין" : "בדיקה"}</span>
                   </div>
                   <h3>{camera.name ?? camera.area ?? "מצלמה"}</h3>

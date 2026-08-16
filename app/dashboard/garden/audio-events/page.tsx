@@ -24,7 +24,7 @@ export default async function GardenAudioEventsPage() {
   const cameraRows = (cameras.data ?? []) as any[];
 
   return (
-    <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "רונית"}`} subtitle="תצפיתן דיגיטלי" avatarUrl={(profile as any).avatar_url ?? null} active="more">
+    <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.replace(/\[DEMO\]/gi, "").trim().split(" ")[0] || "מנהלת הגן"}`} subtitle="תצפיתן דיגיטלי" avatarUrl={(profile as any).profile_image_url ?? null} active="more">
       <TeacherPageTitle icon={Ear} title="אינדיקציות שמע" subtitle="אין תמלול שיחות ואין זיהוי קולי. כל סימן דורש בדיקת אדם" />
       <TeacherStatsGrid>
         <TeacherStatCard title="אינדיקציות" value={rows.length} hint="לסקירה" icon={Ear} tone="purple" />

@@ -10,6 +10,7 @@ import {
 import { DashboardShell } from "@/components/dashboard-shell";
 import { ReportsCenter } from "@/components/reports-center";
 import { requireRole } from "@/lib/auth";
+import { israelTodayDateKey } from "@/lib/domain/israel-date";
 import { createClient } from "@/lib/supabase/server";
 import {
   TeacherActionTile,
@@ -29,7 +30,7 @@ export default async function GardenReportsPage({ searchParams }: { searchParams
   const params = await searchParams;
   const supabase = await createClient();
   const gardenId = profile.garden_id ?? "";
-  const today = new Date().toISOString().slice(0, 10);
+  const today = israelTodayDateKey();
 
   const [childrenRes, attendanceRes, incidentsRes, messagesRes, inspectionsRes] = await Promise.all([
     supabase.from("children" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId).in("status", ["active", "approved"]),
@@ -49,9 +50,9 @@ export default async function GardenReportsPage({ searchParams }: { searchParams
   return (
     <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="דוחות" appHome>
       <TeacherAppFrame
-        title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "מאיה"}`}
+        title={`בוקר טוב, ${profile.full_name?.replace(/\[DEMO\]/gi, "").trim().split(" ")[0] || "מנהלת הגן"}`}
         subtitle="דיווחים ודוחות גננת"
-        avatarUrl={(profile as any).avatar_url ?? null}
+        avatarUrl={(profile as any).profile_image_url ?? null}
         active="more"
       >
         <TeacherPageTitle icon={BarChart3} title="דיווחים ודוחות" subtitle="תמונת מצב יומית מהנתונים הקיימים בגן" />

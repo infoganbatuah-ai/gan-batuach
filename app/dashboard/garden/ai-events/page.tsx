@@ -21,7 +21,7 @@ export default async function GardenAiCameraEventsPage() {
   const rows = (events.data ?? []) as any[];
   const open = rows.filter((event) => ["new", "pending", "review"].includes(event.status ?? "")).length;
   return (
-    <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "רונית"}`} subtitle="אירועי תצפיתן לבדיקה" avatarUrl={(profile as any).avatar_url ?? null} active="more">
+    <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.replace(/\[DEMO\]/gi, "").trim().split(" ")[0] || "מנהלת הגן"}`} subtitle="אירועי תצפיתן לבדיקה" avatarUrl={(profile as any).profile_image_url ?? null} active="more">
       <TeacherPageTitle icon={Bot} title="אירועי תצפיתן" subtitle="אינדיקציות לבדיקה אנושית בלבד, בלי מסקנות אוטומטיות" />
       <TeacherStatsGrid>
         <TeacherStatCard title="ממתינים לבדיקה" value={open} hint="דורשים review" icon={Eye} tone={open ? "orange" : "green"} />

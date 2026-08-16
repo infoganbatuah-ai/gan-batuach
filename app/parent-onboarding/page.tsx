@@ -62,7 +62,7 @@ export default async function ParentOnboardingPage({ searchParams }: { searchPar
 
   return (
     <DashboardShell role="parent" title="השלמת פרטי ילד" appHome>
-      <ParentAppFrame active="home" avatarUrl={(profile as any).profile_image_url ?? null}>
+      <ParentAppFrame active="home" profileName={profile.full_name} avatarUrl={(profile as any).profile_image_url ?? null}>
         <div className="page-header-row">
           <DashboardBackButton fallbackHref="/dashboard/parent" />
           <Link className="button secondary" href="/dashboard/parent">חזרה לדשבורד ההורה</Link>

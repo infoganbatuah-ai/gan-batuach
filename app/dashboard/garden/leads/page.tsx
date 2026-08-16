@@ -88,7 +88,7 @@ export default async function GardenLeadsPage({ searchParams }: { searchParams: 
 
   return (
     <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="לידים / בקשות הצטרפות" appHome>
-      <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "רונית"}`} subtitle="בקשות הורים וקליטה" avatarUrl={(profile as any).avatar_url ?? null} active="children">
+      <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.replace(/\[DEMO\]/gi, "").trim().split(" ")[0] || "מנהלת הגן"}`} subtitle="בקשות הורים וקליטה" avatarUrl={(profile as any).profile_image_url ?? null} active="children">
         <TeacherPageTitle icon={UserRoundPlus} title="בקשות הצטרפות ולידים" subtitle="בודקים בקשה, מאשרים, וההורה משלים את פרטי הילד" action={<a className="button primary" href="#leads-full"><Bell size={18} /> ניהול מלא</a>} />
 
         <TeacherStatsGrid>

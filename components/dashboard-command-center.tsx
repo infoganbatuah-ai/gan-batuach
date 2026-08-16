@@ -127,12 +127,12 @@ export function DashboardCommandCenter({ role, title }: { role: UserRole; title:
             <div className="widget-controls" onClick={(event) => event.preventDefault()}>
               <button type="button" title="נעיצה" onClick={() => persist(hidden, pinned.includes(card.title) ? pinned.filter((item) => item !== card.title) : [card.title, ...pinned])}><Pin size={13} /></button>
               <button type="button" title="הסתרה" onClick={() => persist([...hidden, card.title], pinned)}><EyeOff size={13} /></button>
-              <button type="button" title="סימון העדפה"><Grip size={13} /></button>
+              <button type="button" title="סידור ידני טרם זמין" disabled aria-label="סידור ידני טרם זמין"><Grip size={13} /></button>
             </div>
           </Link>)}</div>}
         </article>
         <article className="command-panel">
-          <div className="command-panel-head"><div><span className="pill warn"><Activity size={14} /> Live</span><h3>פעילות אחרונה</h3></div><ArrowUpDown size={16} /></div>
+          <div className="command-panel-head"><div><span className="pill warn"><Activity size={14} /> עדכונים</span><h3>פעילות אחרונה</h3></div><ArrowUpDown size={16} /></div>
           <div className="live-widget-grid">{(summary?.activity ?? []).map((item) => <Link className={`live-widget ${item.tone}`} href={item.href} key={item.title}><span>{item.title}</span><strong>{item.count}</strong></Link>)}</div>
         </article>
         <article className="command-panel continue-panel">

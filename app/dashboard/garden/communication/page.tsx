@@ -43,7 +43,7 @@ export default async function GardenCommunicationPage() {
 
   return (
     <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="תקשורת" appHome>
-      <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "רונית"}`} subtitle="הודעות להורים ולצוות" avatarUrl={(profile as any).avatar_url ?? null} active="messages">
+      <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.replace(/\[DEMO\]/gi, "").trim().split(" ")[0] || "מנהלת הגן"}`} subtitle="הודעות להורים ולצוות" avatarUrl={(profile as any).profile_image_url ?? null} active="messages">
         <TeacherPageTitle icon={MessageCircle} title="מרכז תקשורת" subtitle="הודעות מערכת, תבניות וערוצי שליחה במקום אחד" action={<a className="button primary" href="#communication-manager"><Send size={18} /> ניהול מלא</a>} />
 
         <TeacherStatsGrid>

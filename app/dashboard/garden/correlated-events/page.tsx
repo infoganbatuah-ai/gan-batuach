@@ -28,7 +28,7 @@ export default async function GardenCorrelatedEventsPage() {
   const zoneRows = (zones.data ?? []) as any[];
 
   return (
-    <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "רונית"}`} subtitle="צירי זמן תצפיתן" avatarUrl={(profile as any).avatar_url ?? null} active="more">
+    <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.replace(/\[DEMO\]/gi, "").trim().split(" ")[0] || "מנהלת הגן"}`} subtitle="צירי זמן תצפיתן" avatarUrl={(profile as any).profile_image_url ?? null} active="more">
       <TeacherPageTitle icon={GitBranch} title="צירי זמן" subtitle="קישור אירועים בין מצלמות ואזורים לבדיקה אנושית" />
       <TeacherStatsGrid>
         <TeacherStatCard title="אירועים" value={eventRows.length} hint="מקושרים" icon={GitBranch} tone="purple" />

@@ -44,7 +44,7 @@ export default async function GardenMessagesPage({ searchParams }: { searchParam
   const preselectedRecipientId = preselectedChild?.parents?.profile_id;
   return (
     <DashboardShell role="manager" title="הודעות" appHome>
-      <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "מאיה"}`} subtitle="הודעות ותקשורת גננת" avatarUrl={(profile as any).avatar_url ?? null} active="messages">
+      <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.replace(/\[DEMO\]/gi, "").trim().split(" ")[0] || "מנהלת הגן"}`} subtitle="הודעות ותקשורת גננת" avatarUrl={(profile as any).profile_image_url ?? null} active="messages">
       <TeacherPageTitle icon={MessageSquareText} title="הודעות ותקשורת" subtitle="הורים, צוות, פיקוח ואדמין במקום אחד" />
       <TeacherStatsGrid>
         <TeacherStatCard title="הודעות" value={messages.length} hint="אחרונות" icon={MessageCircle} tone="blue" />

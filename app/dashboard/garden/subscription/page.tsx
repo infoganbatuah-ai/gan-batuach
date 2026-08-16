@@ -75,7 +75,7 @@ export default async function GardenSubscriptionPage() {
 
   return (
     <DashboardShell role={role} title="מנוי גן בטוח" appHome>
-      <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "מאיה"}`} subtitle="סיכום ותשלום מנוי" avatarUrl={(profile as any).avatar_url ?? null} active="more">
+      <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.replace(/\[DEMO\]/gi, "").trim().split(" ")[0] || "מנהלת הגן"}`} subtitle="סיכום ותשלום מנוי" avatarUrl={(profile as any).profile_image_url ?? null} active="more">
       <TeacherPageTitle icon={WalletCards} title="סיכום ותשלום" subtitle="מנוי גן בטוח בלבד — לא תשלומי הורים" />
       <AdminDataError message={data.errors.length ? "חלק מנתוני המנוי לא נטענו" : null} />
 

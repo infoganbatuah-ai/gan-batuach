@@ -1,5 +1,4 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
 import {
   evaluateParentCameraAccess,
   resolveParentCameraScope,
@@ -48,8 +47,7 @@ export type ParentCameraListResult = {
   decisions: ParentCameraAccessDecision[];
   scope: Awaited<ReturnType<typeof resolveParentCameraScope>>;
   debug: {
-    serviceRoleConfigured: boolean;
-    dataSource: "service_role" | "user_rls";
+    dataSource: "user_rls";
     allowedKindergartenIds: string[];
     gardenIdQueryCount: number;
     kindergartenIdQueryCount: number;
@@ -65,8 +63,7 @@ export type ParentCameraListResult = {
 };
 
 export async function getParentCameraListForProfile(userSupabase: SupabaseClient<any, any, any>, profile: any): Promise<ParentCameraListResult> {
-  const serviceRoleConfigured = isAdminClientConfigured();
-  const dataSupabase = serviceRoleConfigured ? createAdminClient() : userSupabase;
+  const dataSupabase = userSupabase;
   const scope = await resolveParentCameraScope(dataSupabase as any, profile);
   const queryErrors: Array<{ query: string; message: string }> = [];
 
@@ -76,8 +73,7 @@ export async function getParentCameraListForProfile(userSupabase: SupabaseClient
       decisions: [],
       scope,
       debug: {
-        serviceRoleConfigured,
-        dataSource: serviceRoleConfigured ? "service_role" : "user_rls",
+        dataSource: "user_rls",
         allowedKindergartenIds: [],
         gardenIdQueryCount: 0,
         kindergartenIdQueryCount: 0,
@@ -119,7 +115,7 @@ export async function getParentCameraListForProfile(userSupabase: SupabaseClient
   if (cameraDebugLogsEnabled()) {
     console.info("Parent cameras secure list result", {
       parentProfileId: profile.id,
-      dataSource: serviceRoleConfigured ? "service_role" : "user_rls",
+      dataSource: "user_rls",
       allowedKindergartenIds: scope.kindergartenIds,
       gardenIdQueryCount: gardenRows.length,
       kindergartenIdQueryCount: kindergartenRows.length,
@@ -137,8 +133,7 @@ export async function getParentCameraListForProfile(userSupabase: SupabaseClient
     decisions,
     scope,
     debug: {
-      serviceRoleConfigured,
-      dataSource: serviceRoleConfigured ? "service_role" : "user_rls",
+      dataSource: "user_rls",
       allowedKindergartenIds: scope.kindergartenIds,
       gardenIdQueryCount: gardenRows.length,
       kindergartenIdQueryCount: kindergartenRows.length,

@@ -15,7 +15,7 @@ export default async function ParentSchedulePage() {
   const rows = (data ?? []) as any[];
   return (
     <DashboardShell role="parent" title="לו״ז ותפריט" appHome>
-      <ParentAppFrame active="calendar" avatarUrl={(profile as any).profile_image_url ?? null}>
+      <ParentAppFrame active="calendar" profileName={profile.full_name} avatarUrl={(profile as any).profile_image_url ?? null}>
         <ParentHero title="היום של הילד" subtitle="סדר יום, אוכל, פעילויות ואירועים שהגן פרסם" />
         <ParentSection title="לו״ז, תפריט ופעילויות" subtitle="מה שהגן פרסם להורים מופיע כאן בצורה פשוטה וברורה.">
           {rows.length === 0 ? <ParentEmptyState title="אין לו״ז מפורסם כרגע" text="כאשר הגן יפרסם פעילות, תפריט או אירוע להורים, הם יופיעו כאן." /> : rows.map((item) => (

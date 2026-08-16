@@ -35,7 +35,7 @@ export default async function GardenDocumentsPage({ searchParams }: { searchPara
   const ready = rows.filter((doc: any) => ["approved", "valid"].includes(doc.status)).length;
   return (
     <DashboardShell role="manager" title="מסמכים" appHome>
-      <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "מאיה"}`} subtitle="מסמכים ואישורים" avatarUrl={(profile as any).avatar_url ?? null} active="more">
+      <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.replace(/\[DEMO\]/gi, "").trim().split(" ")[0] || "מנהלת הגן"}`} subtitle="מסמכים ואישורים" avatarUrl={(profile as any).profile_image_url ?? null} active="more">
         <TeacherPageTitle icon={FileText} title="מסמכים ואישורים" subtitle="מסמכי גן, צוות, ילדים, אישורי מצלמות ובטיחות" />
         <TeacherStatsGrid>
           <TeacherStatCard title="מסמכים" value={rows.length} hint="במערכת" icon={FileText} tone="blue" />

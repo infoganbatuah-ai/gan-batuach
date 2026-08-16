@@ -40,7 +40,7 @@ export default async function GardenStaffApplicationsPage() {
 
   return (
     <DashboardShell role="manager" title="מועמדויות צוות" appHome>
-      <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "מאיה"}`} subtitle="ניהול מועמדויות וצוות" avatarUrl={(profile as any).avatar_url ?? null} active="more">
+      <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.replace(/\[DEMO\]/gi, "").trim().split(" ")[0] || "מנהלת הגן"}`} subtitle="ניהול מועמדויות וצוות" avatarUrl={(profile as any).profile_image_url ?? null} active="more">
         <TeacherPageTitle icon={UsersRound} title="מועמדויות צוות" subtitle="אישור צוות חדש בלי לפתוח גישה לפני החלטה" action={<a className="button primary" href="#staff-opening"><Plus size={18} /> פתיחת משרה</a>} />
 
         <TeacherStatsGrid>

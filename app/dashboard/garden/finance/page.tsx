@@ -151,7 +151,7 @@ export default async function GardenFinancePage({ searchParams }: { searchParams
 
     return (
       <DashboardShell role={role} title="מרכז כספים" appHome>
-        <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "מאיה"}`} subtitle="כספים ותשלומים של הגן" avatarUrl={(profile as any).avatar_url ?? null} active="more">
+        <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.replace(/\[DEMO\]/gi, "").trim().split(" ")[0] || "מנהלת הגן"}`} subtitle="כספים ותשלומים של הגן" avatarUrl={(profile as any).profile_image_url ?? null} active="more">
         <TeacherPageTitle icon={CreditCard} title="עמוד כספים גננת" subtitle="גבייה חודשית פשוטה וברורה" action={<Link className="button primary" href="/dashboard/garden/finance?payout=1#payout-settings"><Landmark size={18} /> הגדרת יעד תשלום</Link>} />
 
         {criticalFinanceFailure ? <div className="warning-banner">חלק מנתוני הכספים לא נטענו</div> : null}
