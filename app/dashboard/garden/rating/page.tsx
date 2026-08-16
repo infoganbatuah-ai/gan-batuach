@@ -48,7 +48,7 @@ export default async function GardenRatingPage() {
 
   return (
     <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="דירוג הגן" appHome>
-      <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "רונית"}`} subtitle="דירוג איכות ובטיחות" avatarUrl={(profile as any).avatar_url ?? null} active="more">
+      <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.replace(/\[DEMO\]/gi, "").trim().split(" ")[0] || "מנהלת הגן"}`} subtitle="דירוג איכות ובטיחות" avatarUrl={(profile as any).profile_image_url ?? null} active="more">
         <TeacherPageTitle icon={Star} title="דירוג איכות ובטיחות הגן" subtitle="הציון מחושב לפי בטיחות, ציות, פיקוח, שביעות רצון ותצפיתן" action={<Link className="button primary" href="/dashboard/garden/compliance">שיפור ציות</Link>} />
         <AdminDataError message={result.error ?? data.queryError} />
 

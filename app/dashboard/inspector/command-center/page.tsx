@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { CalendarCheck, Home, MapPin, ShieldCheck } from "lucide-react";
-import { Avatar } from "@/components/avatar";
 import { requireRole } from "@/lib/auth";
+import { cleanSyntheticLabel } from "@/lib/domain/display-label";
 import { createClient } from "@/lib/supabase/server";
 import {
   InspectorAppFrame,
@@ -42,6 +42,16 @@ function inspectionTypeLabel(value?: string | null) {
   return labels[String(value ?? "").toLowerCase()] ?? "ביקורת";
 }
 
+function inspectionDateLabel(value?: string | null) {
+  if (!value) return "טרם נקבעה ביקורת";
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) return "מועד הביקורת אינו תקין";
+  const formatted = date.toLocaleDateString("he-IL", { timeZone: "Asia/Jerusalem" });
+  return date.getTime() < Date.now()
+    ? `המועד ${formatted} עבר - נדרש תזמון מחדש`
+    : `ביקורת הבאה: ${formatted}`;
+}
+
 export default async function InspectorCommandCenterPage() {
   const { profile } = await requireRole(["inspector"]);
   const supabase = await createClient();
@@ -57,15 +67,22 @@ export default async function InspectorCommandCenterPage() {
   const active = gardens.filter((garden) => garden.safe_status !== "suspended").length;
   const scoreValues = gardens.map((garden) => Number(garden.last_inspection_score)).filter((score) => Number.isFinite(score));
   const avgScore = scoreValues.length ? Math.round(scoreValues.reduce((sum, score) => sum + score, 0) / scoreValues.length) : null;
-  const next = required[0];
+  const next = required.find((item) => item.due_at && new Date(item.due_at).getTime() >= Date.now());
+  const overdueCount = required.filter((item) => item.due_at && new Date(item.due_at).getTime() < Date.now()).length;
 
   return (
-    <InspectorAppFrame profile={profileForUi} activeHref="/dashboard/inspector/control-center" title="גנים מוקצים" subtitle="יומן ביקורות · בוקר טוב, מפקח" badge="💜">
+    <InspectorAppFrame profile={profileForUi} activeHref="/dashboard/inspector/control-center" title="גנים מוקצים" subtitle="יומן ביקורות · בוקר טוב, מפקח">
       <InspectorMetricGrid columns={4}>
         <InspectorMetricCard label="עיר" value={gardens[0]?.city ?? "לא הוגדר"} hint="אזור פעילות" icon={MapPin} />
         <InspectorMetricCard label="ציון בטיחות" value={avgScore ?? "—"} hint={avgScore === null ? "טרם חושב" : "ממוצע גנים"} icon={ShieldCheck} tone={avgScore === null ? "muted" : avgScore >= 85 ? "success" : avgScore < 70 ? "warning" : "primary"} />
         <InspectorMetricCard label="גנים פעילים" value={active} hint="מתוך הגנים המוקצים" icon={Home} tone="success" />
-        <InspectorMetricCard label="ביקורת הבאה" value={next?.due_at ? new Date(next.due_at).toLocaleDateString("he-IL") : "לא נקבע"} hint={next?.gardens?.name ?? "יופיע לאחר שיבוץ"} icon={CalendarCheck} tone="primary" />
+        <InspectorMetricCard
+          label="ביקורת הבאה"
+          value={next?.due_at ? new Date(next.due_at).toLocaleDateString("he-IL", { timeZone: "Asia/Jerusalem" }) : "לא נקבע"}
+          hint={next?.gardens?.name ? cleanSyntheticLabel(next.gardens.name, "גן") : overdueCount ? `${overdueCount} מועדים עברו ודורשים תזמון` : "יופיע לאחר שיבוץ"}
+          icon={CalendarCheck}
+          tone={next ? "primary" : overdueCount ? "warning" : "muted"}
+        />
       </InspectorMetricGrid>
 
       <InspectorHero
@@ -82,10 +99,10 @@ export default async function InspectorCommandCenterPage() {
             <InspectorRow
               key={garden.id}
               href={`/dashboard/inspector/inspections?garden=${garden.id}`}
-              avatar={<InspectorGardenThumb src={garden.logo_url} name={garden.name} />}
-              title={garden.name}
+              avatar={<InspectorGardenThumb src={garden.logo_url} name={cleanSyntheticLabel(garden.name, "גן")} />}
+              title={cleanSyntheticLabel(garden.name, "גן")}
               subtitle={`${garden.city ?? ""} · ${garden.address ?? ""}`}
-              meta={garden.next_inspection_at ? `ביקורת הבאה: ${new Date(garden.next_inspection_at).toLocaleDateString("he-IL")}` : "טרם נקבעה ביקורת"}
+              meta={inspectionDateLabel(garden.next_inspection_at)}
               status={<><InspectorScoreRing value={garden.last_inspection_score ?? "—"} label="בטיחות" /><InspectorStatus tone={Number.isFinite(Number(garden.last_inspection_score)) && Number(garden.last_inspection_score) < 80 ? "warning" : "success"}>{safeStatusLabel(garden.safe_status)}</InspectorStatus></>}
             />
           ))}
@@ -99,7 +116,7 @@ export default async function InspectorCommandCenterPage() {
             <InspectorRow
               key={item.id}
               href={`/dashboard/inspector/inspections?required=${item.id}`}
-              title={item.gardens?.name ?? "גן"}
+              title={cleanSyntheticLabel(item.gardens?.name, "גן")}
               subtitle={item.gardens?.city ?? ""}
               meta={item.due_at ? new Date(item.due_at).toLocaleString("he-IL") : "ללא תאריך"}
               status={<InspectorStatus tone="primary">{inspectionTypeLabel(item.inspection_type)}</InspectorStatus>}

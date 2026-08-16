@@ -29,7 +29,7 @@ export default async function GardenPickupPage({ searchParams }: { searchParams:
   const events = params.filter === "pending" ? [] : ((eventsRes.data ?? []) as any[]);
   const pendingPickup = ((childrenRes.data ?? []) as any[]).filter((child) => !pickedChildIds.has(child.id)).length;
   return (
-    <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "רונית"}`} subtitle="איסוף והחזרה בטוחים" avatarUrl={(profile as any).avatar_url ?? null} active="children">
+    <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.replace(/\[DEMO\]/gi, "").trim().split(" ")[0] || "מנהלת הגן"}`} subtitle="איסוף והחזרה בטוחים" avatarUrl={(profile as any).profile_image_url ?? null} active="children">
       <TeacherPageTitle icon={MapPinned} title="איסוף והחזרה" subtitle="מי רשאי לאסוף ומי נאסף בפועל, בלי שחרור אוטומטי" />
       <TeacherStatsGrid>
         <TeacherStatCard title="ילדים להצגה" value={children.length} hint="לפי הסינון" icon={UsersRound} tone="blue" />

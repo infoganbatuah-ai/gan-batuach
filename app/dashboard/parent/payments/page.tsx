@@ -41,7 +41,7 @@ export default async function ParentPaymentsPage() {
 
   return (
     <DashboardShell role="parent" title="תשלומים" appHome>
-      <ParentAppFrame active="dashboard" avatarUrl={(profile as any).profile_image_url ?? null}>
+      <ParentAppFrame active="dashboard" profileName={profile.full_name} avatarUrl={(profile as any).profile_image_url ?? null}>
         <ParentHero title="תשלומים וחיובים" subtitle="תמונה פשוטה וברורה של התשלומים לגן" />
 
         <section className="parent-metrics-grid">

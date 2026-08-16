@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { israelTodayDateKey } from "@/lib/domain/israel-date";
 import { redirect } from "next/navigation";
 import { AlertTriangle, Baby, Bell, BriefcaseBusiness, Building2, CalendarDays, ClipboardList, Fingerprint, HeartPulse, LogIn, LogOut, MapPin, MessageSquare, ShieldAlert, Siren, UserRound, UsersRound } from "lucide-react";
 import { Avatar } from "@/components/avatar";
@@ -16,6 +17,7 @@ import {
   StaffTaskRow
 } from "@/components/staff-app-ui";
 import { requireRole } from "@/lib/auth";
+import { cleanSyntheticLabel } from "@/lib/domain/display-label";
 import { createClient } from "@/lib/supabase/server";
 
 function percent(done: number, total: number) {
@@ -46,10 +48,10 @@ function formatStatus(status?: string | null) {
 export default async function StaffDashboard() {
   const { profile } = await requireRole(["staff"]);
   const supabase = await createClient();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = israelTodayDateKey();
 
   const [staffRes, gardenRes] = await Promise.all([
-    supabase.from("staff" as any).select("id, full_name, role, role_title, class_group, preferred_city, preferred_area, profile_photo_url, approved_to_work, onboarding_status").eq("profile_id", profile.id).maybeSingle(),
+    supabase.from("staff" as any).select("id, full_name, role_title, class_group, profile_photo_url, approved_to_work, onboarding_status").eq("profile_id", profile.id).maybeSingle(),
     profile.garden_id ? supabase.from("gardens" as any).select("id, name, logo_url, image_url, address, gps_lat, gps_lng").eq("id", profile.garden_id).maybeSingle() : { data: null, error: null }
   ]);
   const staff = staffRes.data as any;
@@ -61,7 +63,7 @@ export default async function StaffDashboard() {
       .limit(20);
     const applications = (applicationsRes.data ?? []) as any[];
     return (
-      <StaffAppFrame avatarUrl={(profile as any).profile_image_url ?? null} mode="candidate">
+      <StaffAppFrame profileName={profile.full_name} avatarUrl={(profile as any).profile_image_url ?? null} mode="candidate">
           <section className="staff-unassigned-card">
             <div className="staff-search-art" aria-hidden="true" />
             <div>
@@ -73,7 +75,7 @@ export default async function StaffDashboard() {
           <StaffSection title="העדפות העבודה שלי" action={<Link href="/dashboard/staff/settings">עריכה</Link>}>
             <div className="staff-preference-grid">
               <StaffInfoPill title="תפקיד" value={staff?.role_title ?? staff?.role ?? "טרם הוגדר"} icon={UsersRound} />
-              <StaffInfoPill title="אזור" value={staff?.preferred_area ?? staff?.preferred_city ?? profile.city ?? "טרם הוגדר"} icon={MapPin} />
+              <StaffInfoPill title="אזור" value={profile.city ?? "טרם הוגדר"} icon={MapPin} />
               <StaffInfoPill title="סטטוס" value={formatStatus(staff?.onboarding_status ?? "pending_affiliation")} icon={BriefcaseBusiness} />
             </div>
           </StaffSection>
@@ -93,7 +95,7 @@ export default async function StaffDashboard() {
               <div className="staff-application-list" id="applications">
                 {applications.map((application) => (
                   <Link href="/dashboard/staff/job-market" key={application.id}>
-                    <strong>{application.gardens?.name ?? "גן"} · {formatStatus(application.status)}</strong>
+                    <strong>{cleanSyntheticLabel(application.gardens?.name, "גן")} · {formatStatus(application.status)}</strong>
                     <span>{application.gardens?.city ?? ""} · {application.kindergarten_staff_openings?.role_needed ?? "צוות"}</span>
                   </Link>
                 ))}
@@ -130,7 +132,7 @@ export default async function StaffDashboard() {
   ]);
 
   const garden = gardenRes.data as any;
-  const staffName = staff?.full_name ?? profile.full_name ?? "איש/ת צוות";
+  const staffName = cleanSyntheticLabel(staff?.full_name ?? profile.full_name, "איש/ת צוות");
   const staffRole = staff?.role_title ?? staff?.role ?? "צוות גן";
   const children = (childrenRes.data ?? []) as any[];
   const journals = (journalsRes.data ?? []) as any[];
@@ -154,10 +156,10 @@ export default async function StaffDashboard() {
   const taskRows = openTasks.slice(0, 7);
 
   return (
-      <StaffAppFrame avatarUrl={staff?.profile_photo_url ?? profile.profile_image_url}>
+      <StaffAppFrame profileName={staffName} avatarUrl={staff?.profile_photo_url ?? profile.profile_image_url}>
         <StaffShiftHero name={staffName.split(" ")[0] ?? staffName} subtitle="אנחנו שמחים שאת איתנו היום!">
           <div className="staff-side-info">
-            <StaffInfoPill title="הגן שלי" value={garden?.name ?? "גן"} icon={Building2} />
+            <StaffInfoPill title="הגן שלי" value={cleanSyntheticLabel(garden?.name, "גן")} icon={Building2} />
             <StaffInfoPill title="תפקיד" value={staffRole} icon={UsersRound} />
           </div>
         </StaffShiftHero>
@@ -171,7 +173,7 @@ export default async function StaffDashboard() {
         </StaffShiftCard>
 
         <section className="staff-metric-grid-ref">
-          <StaffMetricCard title="השלמת משימות" value={`${updatedChildren}/${Math.max(children.length, 1)}`} hint={`${shiftProgress}% הושלם`} icon={ClipboardList} tone={shiftProgress >= 80 ? "green" : "purple"} href="/dashboard/staff/tasks" />
+          <StaffMetricCard title="השלמת משימות" value={children.length ? `${updatedChildren}/${children.length}` : "טרם הוגדר"} hint={children.length ? `${shiftProgress}% הושלם` : "אין ילדים משויכים"} icon={ClipboardList} tone={shiftProgress >= 80 ? "green" : "purple"} href="/dashboard/staff/tasks" />
           <StaffMetricCard title="ילדים בקבוצה" value={children.length} hint="בקבוצת הגן" icon={UsersRound} tone="purple" href="/dashboard/staff/child-journal" />
           <StaffMetricCard title="עדכוני צוות" value={notificationsRes.count ?? 0} hint="הודעות חדשות" icon={Bell} tone={urgentAlerts ? "orange" : "blue"} href="/dashboard/staff/notifications" />
           <StaffMetricCard title="הודעות" value={messages.length} hint="אחרונות" icon={MessageSquare} tone="purple" href="/dashboard/staff/messages" />

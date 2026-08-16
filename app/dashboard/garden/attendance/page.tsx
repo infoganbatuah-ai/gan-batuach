@@ -1,4 +1,5 @@
 import Image from "next/image";
+import { israelTodayDateKey } from "@/lib/domain/israel-date";
 import Link from "next/link";
 import {
   BarChart3,
@@ -68,7 +69,7 @@ export default async function GardenAttendancePage({ searchParams }: { searchPar
   const { profile } = await requireRole(["manager", "owner"]);
   const params = await searchParams;
   const supabase = await createClient();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = israelTodayDateKey();
   const gardenId = profile.garden_id ?? "";
 
   const [attendanceRes, childrenRes, gardenRes] = await Promise.all([
@@ -139,8 +140,8 @@ export default async function GardenAttendancePage({ searchParams }: { searchPar
   const cleanProfileName = cleanDemoText(profile.full_name, "מנהלת");
   const teacherFirstName = cleanProfileName.split(" ").filter(Boolean)[0] || "מנהלת";
   const gardenName = cleanDemoText((gardenRes.data as any)?.name, "הגן") || "הגן";
-  const avatarUrl = typeof (profile as any).avatar_url === "string" && (profile as any).avatar_url.trim()
-    ? (profile as any).avatar_url
+  const avatarUrl = typeof (profile as any).profile_image_url === "string" && (profile as any).profile_image_url.trim()
+    ? (profile as any).profile_image_url
     : "/assets/teacher-avatar.svg";
   const activeNavHref = "/dashboard/garden/attendance";
   const summaryStats: Array<{ label: string; value: number; hint: string; icon: LucideIcon; tone: string }> = [

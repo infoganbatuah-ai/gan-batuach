@@ -20,7 +20,7 @@ export default async function ParentPickupPage() {
 
   return (
     <DashboardShell role="parent" title="איסוף הילד" appHome>
-      <ParentAppFrame active="more" avatarUrl={(profile as any).profile_image_url ?? null}>
+      <ParentAppFrame active="more" profileName={profile.full_name} avatarUrl={(profile as any).profile_image_url ?? null}>
         <ParentHero title="איסוף הילד" subtitle="מורשי איסוף, הרשאות זמניות והיסטוריה" />
         <ParentSection title="מרכז איסוף" subtitle="הגן תמיד מבצע בדיקה אנושית לפני שחרור ילד." action={<span className="pill good"><ShieldCheck size={15} /> בדיקה אנושית בלבד</span>}>
           <ParentPickupCenter children={family.children as any[]} contacts={(contactsRes.data ?? []) as any[]} events={(eventsRes.data ?? []) as any[]} />

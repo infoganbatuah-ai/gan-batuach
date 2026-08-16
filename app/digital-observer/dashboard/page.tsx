@@ -1,22 +1,37 @@
 import Link from "next/link";
 import { AlertTriangle, BarChart3, Bell, Camera, CheckCircle2, CreditCard, HeartPulse, PackageCheck, Radar, ShieldCheck, UserRound } from "lucide-react";
-import { BrandHeader } from "@/components/brand-header";
 import { AppHomeGrid, AppHomeHero, AppHomeShell, AppQuickAction, AppStatusCard } from "@/components/premium-dashboard";
+import { RoleAppShell } from "@/components/role-app-shell";
 import { requireUser } from "@/lib/auth";
-import { logSupabaseError } from "@/lib/admin-safe";
+import { cleanSyntheticLabel } from "@/lib/domain/display-label";
 import { createClient } from "@/lib/supabase/server";
-import { DIGITAL_OBSERVER_ADMIN_OVERVIEW, DIGITAL_OBSERVER_NAVIGATION, DIGITAL_OBSERVER_SETUP_ACTIONS } from "@/lib/domain/digital-observer-product";
+import { DIGITAL_OBSERVER_ADMIN_OVERVIEW, DIGITAL_OBSERVER_SETUP_ACTIONS } from "@/lib/domain/digital-observer-product";
 
 type Row = Record<string, any>;
 
-async function safeQuery<T>(label: string, run: () => any) {
+type QueryResult<T> = {
+  data: T[];
+  count: number;
+  available: boolean;
+  issue?: "rls_policy_update_required" | "data_source_unavailable";
+};
+
+async function safeQuery<T>(label: string, run: () => any): Promise<QueryResult<T>> {
   try {
     const result = (await run()) as { data: T[] | null; error: any; count?: number | null };
-    logSupabaseError(label, result.error);
-    return result.error ? { data: [] as T[], count: 0 } : { data: result.data ?? [], count: result.count ?? result.data?.length ?? 0 };
+    if (result.error) {
+      console.warn("Digital Observer data source unavailable:", label);
+      return {
+        data: [],
+        count: 0,
+        available: false,
+        issue: result.error.code === "42P17" ? "rls_policy_update_required" : "data_source_unavailable"
+      };
+    }
+    return { data: result.data ?? [], count: result.count ?? result.data?.length ?? 0, available: true };
   } catch (error) {
-    logSupabaseError(label, error);
-    return { data: [] as T[], count: 0 };
+    console.warn("Digital Observer data source unavailable:", label);
+    return { data: [], count: 0, available: false, issue: "data_source_unavailable" };
   }
 }
 
@@ -53,6 +68,19 @@ function statusLabel(status?: string | null) {
   return map[String(status)] ?? String(status);
 }
 
+function siteTypeLabel(siteType?: string | null) {
+  const map: Record<string, string> = {
+    home: "בית",
+    office: "משרד",
+    business: "עסק",
+    warehouse: "מחסן",
+    store: "חנות",
+    parking_lot: "חניון",
+    custom: "אתר מותאם"
+  };
+  return map[String(siteType)] ?? "אתר";
+}
+
 export default async function DigitalObserverOwnerDashboardPage() {
   const { profile } = await requireUser();
   const supabase = await createClient();
@@ -77,7 +105,13 @@ export default async function DigitalObserverOwnerDashboardPage() {
         safeQuery<Row>("observer usage", () => supabase.from("observer_site_usage_snapshots" as any).select("id, observer_site_id, active_cameras, ai_events_count, playback_sessions, alerts_sent, users_invited, failed_camera_checks, period_start, period_end").in("observer_site_id", siteIds).order("period_start", { ascending: false }).limit(80)),
         safeQuery<Row>("observer billing usage", () => supabase.from("observer_usage_tracking" as any).select("id, observer_site_id, active_cameras, ai_events_count, storage_used_mb, monitoring_hours_used, alerts_sent, playback_sessions, users_invited, failed_camera_checks, package_limit_status, period_start, period_end").in("observer_site_id", siteIds).order("period_start", { ascending: false }).limit(80))
       ])
-    : [{ data: [], count: 0 }, { data: [], count: 0 }, { data: [], count: 0 }, { data: [], count: 0 }, { data: [], count: 0 }];
+    : [
+        { data: [], count: 0, available: true },
+        { data: [], count: 0, available: true },
+        { data: [], count: 0, available: true },
+        { data: [], count: 0, available: true },
+        { data: [], count: 0, available: true }
+      ];
 
   const activeSites = sites.filter((site) => site.active).length;
   const cameras = camerasRes.data;
@@ -94,37 +128,48 @@ export default async function DigitalObserverOwnerDashboardPage() {
     safeQuery<Row>("digital observer analytics readiness", () => supabase.from("digital_observer_analytics_events" as any).select("event_type, count_value, status, source, site_type, package_key").order("occurred_at", { ascending: false }).limit(40)),
     safeQuery<Row>("digital observer leads readiness", () => supabase.from("digital_observer_leads" as any).select("source, status, site_type, package_interest, estimated_cameras").order("created_at", { ascending: false }).limit(40))
   ]);
+  const dataSourcesReady = [ownedSitesRes, membershipsRes, packagesRes, analyticsRes, leadsRes].every((result) => result.available);
+  const operationalDataReady = dataSourcesReady && [camerasRes, signalsRes, subscriptionsRes, usageRes, billingUsageRes].every((result) => result.available);
+  const accessPolicyUpdateRequired = [ownedSitesRes, membershipsRes].some((result) => result.issue === "rls_policy_update_required");
+  const displayName = cleanSyntheticLabel(profile.full_name, "בעל האתר");
 
   return (
-    <>
-      <BrandHeader />
-      <main className="public-page digital-observer-app digital-observer-dashboard-app">
-        <nav className="product-switcher" aria-label="Digital Observer application navigation">
-          <strong>Digital Observer</strong>
-          <div>
-            {DIGITAL_OBSERVER_NAVIGATION.map((item) => (
-              <Link key={item.href} href={item.href}>{item.label}</Link>
-            ))}
-          </div>
-        </nav>
-
+    <RoleAppShell
+      role="digital-observer"
+      activeHref="/digital-observer/dashboard"
+      title="Digital Observer"
+      subtitle="אתרים, מצלמות ואירועים בבדיקה אנושית"
+      profile={profile}
+      className="digital-observer-runtime-shell"
+    >
+      <main className="digital-observer-app digital-observer-dashboard-app dashboard-runtime-content">
         <AppHomeShell className="observer-app-home">
           <AppHomeHero
             eyebrow="Digital Observer App"
-            title={`שלום, ${profile.full_name ?? "בעל האתר"}`}
+            title={`שלום, ${displayName}`}
             subtitle="מסך בית לאתרים, מצלמות והתראות. נתוני Gan Batuach נשארים בנפרד, והחלטות AI דורשות בדיקה אנושית."
-            badge={activeSites ? "פעיל" : "בהקמה"}
-            badgeTone={activeSites ? "good" : "warn"}
+            badge={operationalDataReady ? (activeSites ? "פעיל" : "נתוני בדיקה") : "מקור נתונים בהגדרה"}
+            badgeTone={operationalDataReady && activeSites ? "good" : "warn"}
             actions={<><Link className="button primary" href="/digital-observer/onboarding">יצירת אתר תצפית</Link><Link className="button secondary" href="/dashboard/security-settings">הגדרות אבטחה</Link></>}
           />
 
+          {!operationalDataReady ? (
+            <div className="dashboard-source-notice" role="status">
+              <AlertTriangle size={20} />
+              <div>
+                <strong>{accessPolicyUpdateRequired ? "מדיניות הגישה של Digital Observer דורשת עדכון" : "מקור הנתונים של Digital Observer עדיין לא הוגדר במלואו"}</strong>
+                <span>{accessPolicyUpdateRequired ? "לא מוצגים נתונים חלופיים. לאחר החלת עדכון ה-RLS המוכן ב-Supabase, הכרטיסים ייטענו לפי המשתמש והאתר המשויך." : "לא מוצגים נתונים חיים או מספרי דמו חלופיים. לאחר החלת סכמת התצפיתן וחיבור משתמש בדיקה, הכרטיסים יתעדכנו אוטומטית."}</span>
+              </div>
+            </div>
+          ) : null}
+
           <AppHomeGrid compact>
-            <AppStatusCard label="אתרים" value={sites.length} hint="אתרי Digital Observer" tone={sites.length ? "good" : "warn"} href="#sites" />
-            <AppStatusCard label="מצלמות" value={cameras.length} hint={`${unhealthyCameras.length} דורשות בדיקה`} tone={unhealthyCameras.length ? "warn" : cameras.length ? "good" : "default"} href="#cameras" />
-            <AppStatusCard label="התראות פתוחות" value={openSignals.length} hint="בדיקה אנושית" tone={openSignals.length ? "warn" : "good"} href="#alerts" />
-            <AppStatusCard label="חיוב" value={billingIssues ? "לטיפול" : "תקין"} hint={`${activeSubscriptions} מנויים פעילים/ניסיון`} tone={billingIssues ? "warn" : "good"} href="/digital-observer/billing" />
-            <AppStatusCard label="הגדרה" value={`${setupProgress}%`} hint="אתר, מצלמות ומנוי" tone={setupProgress >= 80 ? "good" : "warn"} href="#setup" />
-            <AppStatusCard label="AI החודש" value={latestBillingUsage.ai_events_count ?? 0} hint="ללא החלטה אוטומטית" tone="default" />
+            <AppStatusCard label="אתרים" value={operationalDataReady ? sites.length : "—"} hint={operationalDataReady ? "אתרי Digital Observer" : "ממתין לחיבור נתונים"} tone={operationalDataReady && sites.length ? "good" : "warn"} href="#sites" />
+            <AppStatusCard label="מצלמות" value={operationalDataReady ? cameras.length : "—"} hint={operationalDataReady ? `${unhealthyCameras.length} דורשות בדיקה` : "ממתין לחיבור נתונים"} tone={!operationalDataReady || unhealthyCameras.length ? "warn" : cameras.length ? "good" : "default"} href="#cameras" />
+            <AppStatusCard label="התראות פתוחות" value={operationalDataReady ? openSignals.length : "—"} hint={operationalDataReady ? "בדיקה אנושית" : "ממתין לחיבור נתונים"} tone={!operationalDataReady || openSignals.length ? "warn" : "good"} href="#alerts" />
+            <AppStatusCard label="חיוב" value={operationalDataReady ? (billingIssues ? "לטיפול" : "תקין") : "—"} hint={operationalDataReady ? `${activeSubscriptions} מנויים פעילים/ניסיון` : "ממתין לחיבור ספק"} tone={!operationalDataReady || billingIssues ? "warn" : "good"} href="/digital-observer/billing" />
+            <AppStatusCard label="הגדרה" value={operationalDataReady ? `${setupProgress}%` : "—"} hint={operationalDataReady ? "אתר, מצלמות ומנוי" : "ממתין לחיבור נתונים"} tone={operationalDataReady && setupProgress >= 80 ? "good" : "warn"} href="#setup" />
+            <AppStatusCard label="AI החודש" value={operationalDataReady ? (latestBillingUsage.ai_events_count ?? 0) : "—"} hint={operationalDataReady ? "ללא החלטה אוטומטית" : "Shadow אינו מחובר"} tone="default" />
           </AppHomeGrid>
 
           <section className="app-home-section">
@@ -164,12 +209,12 @@ export default async function DigitalObserverOwnerDashboardPage() {
               <p>מבוסס על נתוני Digital Observer לאתרים עצמיים בלבד.</p>
             </div>
             <div className="setup-checklist">
-              <span>{subscriptions.length} רשומות מנוי</span>
-              <span>{unhealthyCameras.length} מצלמות דורשות בדיקה</span>
-              <span>{signals.length} אותות אחרונים</span>
-              <span>{latestBillingUsage.active_cameras ?? latestUsage?.active_cameras ?? 0} מצלמות פעילות החודש</span>
-              <span>{latestBillingUsage.monitoring_hours_used ?? 0} שעות ניטור בשימוש</span>
-              <span>{latestBillingUsage.alerts_sent ?? 0} התראות שנשלחו</span>
+              <span>{operationalDataReady ? subscriptions.length : "—"} רשומות מנוי</span>
+              <span>{operationalDataReady ? unhealthyCameras.length : "—"} מצלמות דורשות בדיקה</span>
+              <span>{operationalDataReady ? signals.length : "—"} אותות אחרונים</span>
+              <span>{operationalDataReady ? (latestBillingUsage.active_cameras ?? latestUsage?.active_cameras ?? 0) : "—"} מצלמות פעילות החודש</span>
+              <span>{operationalDataReady ? (latestBillingUsage.monitoring_hours_used ?? 0) : "—"} שעות ניטור בשימוש</span>
+              <span>{operationalDataReady ? (latestBillingUsage.alerts_sent ?? 0) : "—"} התראות שנשלחו</span>
               <span>נדרשת בדיקה אנושית</span>
               <span>אין זרימות הורים/ילדים</span>
             </div>
@@ -197,8 +242,8 @@ export default async function DigitalObserverOwnerDashboardPage() {
                   <article className="card procedure-card" key={site.id}>
                     <div>
                     <span className={statusTone(site.active ? "active" : "inactive")}>{site.active ? "פעיל" : "לא פעיל"}</span>
-                    <span className="pill">{site.site_type}</span>
-                    <h3>{site.name}</h3>
+                    <span className="pill">{siteTypeLabel(site.site_type)}</span>
+                    <h3>{cleanSyntheticLabel(site.name, "אתר תצפית")}</h3>
                     <p>{site.monitoring_enabled ? "ניטור פעיל" : "ניטור ממתין להגדרה"} · סטטוס מנוי: {statusLabel(subscription?.subscription_status ?? subscription?.status ?? site.observer_subscription_status) || "ניסיוני"}</p>
                     <Link className="button secondary" href={`/digital-observer/sites/${site.id}`}>כניסה לאתר</Link>
                   </div>
@@ -344,6 +389,6 @@ export default async function DigitalObserverOwnerDashboardPage() {
         </section>
         </AppHomeShell>
       </main>
-    </>
+    </RoleAppShell>
   );
 }

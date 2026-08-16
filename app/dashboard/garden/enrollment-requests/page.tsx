@@ -47,7 +47,7 @@ export default async function GardenEnrollmentRequestsPage() {
 
   return (
     <DashboardShell role="manager" title="בקשות הצטרפות" appHome>
-      <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "מנהלת"}`} subtitle={(gardenRes.data as any)?.name ?? "בקשות הורים וקליטה"} avatarUrl={(profile as any).avatar_url ?? null} active="children">
+      <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.replace(/\[DEMO\]/gi, "").trim().split(" ")[0] || "מנהלת"}`} subtitle={(gardenRes.data as any)?.name ?? "בקשות הורים וקליטה"} avatarUrl={(profile as any).profile_image_url ?? null} active="children">
         <TeacherPageTitle icon={UserPlus} title="בקשות הצטרפות חדשות" subtitle="בקשות מהאתר הציבורי להצטרפות לגן" />
 
         <TeacherStatsGrid>

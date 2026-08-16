@@ -138,7 +138,7 @@ export function AiCameraEventsReview({ events, gardens = [], cameras = [], role 
             {rows.map((event) => (
               <article className="card procedure-card" key={event.id}>
                 <div>
-                  {event.snapshot_url ? <img className="snapshot-image" src={event.snapshot_url} alt="תמונת אירוע לבדיקה" /> : <div className="snapshot-placeholder">review</div>}
+                  {event.snapshot_url ? <img className="snapshot-image" src={event.snapshot_url} alt="תמונת אירוע לבדיקה" /> : <div className="snapshot-placeholder">אין תמונת ראיה לאירוע זה</div>}
                   <span className={`pill ${severityTone(event.severity)}`}>{event.severity}</span>
                   {event.safety_category ? <span className="pill warn">{categoryLabel(event.safety_category)}</span> : null}
                   {event.review_priority ? <span className="pill">Priority {event.review_priority}</span> : null}

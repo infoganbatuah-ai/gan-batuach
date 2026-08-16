@@ -1,4 +1,5 @@
 import { Fingerprint, MapPin, ShieldCheck, TimerReset } from "lucide-react";
+import { israelTodayDateKey } from "@/lib/domain/israel-date";
 import { StaffAttendanceActions } from "@/components/staff-attendance-actions";
 import { ListRowCard, StatusChip } from "@/components/gan-batuach-design-system";
 import { StaffAppFrame, StaffEmpty, StaffMetricCard, StaffPageHero, StaffSection, StaffStats } from "@/components/staff-app-ui";
@@ -53,7 +54,7 @@ export default async function Page() {
   ]);
   const rows = (shiftsRes.data ?? []) as any[];
   const openShift = rows.find((row) => row.actual_start && !row.actual_end);
-  const todayShift = rows.find((row) => row.shift_date === new Date().toISOString().slice(0, 10)) ?? openShift;
+  const todayShift = rows.find((row) => row.shift_date === israelTodayDateKey()) ?? openShift;
   const monthlyMinutes = rows.filter((row) => String(row.shift_date) >= monthStartText).reduce((sum, row) => sum + Number(row.total_minutes ?? (row.actual_start && row.actual_end ? Math.round((new Date(row.actual_end).getTime() - new Date(row.actual_start).getTime()) / 60000) : 0)), 0);
   const weeklyMinutes = rows.filter((row) => new Date(row.shift_date).getTime() >= Date.now() - 7 * 86400000).reduce((sum, row) => sum + Number(row.total_minutes ?? 0), 0);
   const latestSample = ((samplesRes.data ?? []) as any[])[0];

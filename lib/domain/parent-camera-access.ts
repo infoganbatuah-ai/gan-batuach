@@ -1,7 +1,7 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 
 type QueryResult = { data?: any[] | null; error?: any };
-type ParentProfile = { id: string; garden_id?: string | null; kindergarten_id?: string | null; email?: string | null; role?: string | null };
+type ParentProfile = { id: string; garden_id?: string | null; email?: string | null; role?: string | null };
 
 export type ParentCameraAccessDecision = {
   allowed: boolean;
@@ -72,43 +72,28 @@ async function safeQuery(label: string, run: () => any) {
 export async function resolveParentCameraScope(supabase: SupabaseClient<any, any, any>, profile: { id: string; garden_id?: string | null; email?: string | null }) {
   const parentByProfile = await safeQuery("parents.profile_id", () => supabase.from("parents" as any).select("id, garden_id, profile_id, full_name, email").eq("profile_id", profile.id));
   const parentByUser = await safeQuery("parents.user_id", () => supabase.from("parents" as any).select("id, garden_id, user_id, full_name, email").eq("user_id", profile.id));
-  const parentKindergartenByProfile = await safeQuery("parents.kindergarten_id by profile_id", () => supabase.from("parents" as any).select("id, kindergarten_id").eq("profile_id", profile.id));
-  const parentKindergartenByUser = await safeQuery("parents.kindergarten_id by user_id", () => supabase.from("parents" as any).select("id, kindergarten_id").eq("user_id", profile.id));
-  const profileKindergarten = await safeQuery("profiles.kindergarten_id", () => supabase.from("profiles" as any).select("id, kindergarten_id").eq("id", profile.id));
-  const parentKindergartenById = new Map([...parentKindergartenByProfile, ...parentKindergartenByUser].map((row) => [row.id, row.kindergarten_id]));
   const parentRows = [...parentByProfile, ...parentByUser]
-    .filter((row, index, all) => all.findIndex((item) => item.id === row.id) === index)
-    .map((row) => ({ ...row, kindergarten_id: row.kindergarten_id ?? parentKindergartenById.get(row.id) ?? null }));
+    .filter((row, index, all) => all.findIndex((item) => item.id === row.id) === index);
   const parentIds = uniq(parentRows.map((parent) => parent.id));
-  const relationIds = uniq([...parentIds, profile.id]);
   const parentKindergartenLinks = await safeQuery("parent_kindergarten_links", () => supabase
     .from("parent_kindergarten_links" as any)
     .select("id, parent_id, parent_profile_id, garden_id, kindergarten_id, status")
     .or(`parent_profile_id.eq.${profile.id}${parentIds.length ? `,parent_id.in.(${parentIds.join(",")})` : ""}`)
     .in("status", ["pending", "active"]));
 
-  const childQueries: any[] = [];
-  if (relationIds.length) {
-    childQueries.push(...await safeQuery("children.primary_parent_id", () => supabase.from("children" as any).select("id, full_name, garden_id, primary_parent_id, gardens(id, name, city)").in("primary_parent_id", relationIds)));
-    childQueries.push(...await safeQuery("children.parent_id", () => supabase.from("children" as any).select("id, full_name, garden_id, parent_id, gardens(id, name, city)").in("parent_id", relationIds)));
-    const childParentLinks = await safeQuery("child_parent_links", () => supabase.from("child_parent_links" as any).select("child_id, parent_id, children(id, full_name, garden_id, gardens(id, name, city))").in("parent_id", relationIds));
-    childQueries.push(...childParentLinks.map((link: any) => link.children).filter(Boolean));
-    const parentChildLinks = await safeQuery("parent_child_relations", () => supabase.from("parent_child_relations" as any).select("child_id, parent_id, children(id, full_name, garden_id, gardens(id, name, city))").in("parent_id", relationIds));
-    childQueries.push(...parentChildLinks.map((link: any) => link.children).filter(Boolean));
-  }
-
-  const children = childQueries.filter((child, index, all) => child?.id && all.findIndex((item) => item?.id === child.id) === index);
-  const childGardenIds = uniq(children.map((child) => child.garden_id));
-  const directParentGardenIds = uniq(parentRows.flatMap((parent) => [parent.garden_id, parent.kindergarten_id]));
+  const children = parentIds.length
+    ? await safeQuery("children.primary_parent_id", () => supabase.from("children" as any).select("id, full_name, garden_id, primary_parent_id, gardens(id, name, city)").in("primary_parent_id", parentIds))
+    : [];
+  const childGardenIds = uniq(children.map((child: any) => child.garden_id));
+  const directParentGardenIds = uniq(parentRows.map((parent) => parent.garden_id));
   const linkedGardenIds = uniq(parentKindergartenLinks.flatMap((link: any) => [link.garden_id, link.kindergarten_id]));
-  const profileGardenIds = uniq([profile.garden_id, (profile as ParentProfile).kindergarten_id, ...profileKindergarten.map((row: any) => row.kindergarten_id)]);
+  const profileGardenIds = uniq([profile.garden_id]);
   const kindergartenIds = uniq([...childGardenIds, ...directParentGardenIds, ...linkedGardenIds, ...profileGardenIds]);
 
   log("resolved", {
     parentProfileId: profile.id,
     parentRecordIds: parentIds,
-    relationIds,
-    childIds: children.map((child) => child.id),
+    childIds: children.map((child: any) => child.id),
     childKindergartenIds: childGardenIds,
     directParentGardenIds,
     linkedGardenIds,
@@ -153,7 +138,7 @@ function buildDecision(profile: ParentProfile | null, scope: Awaited<ReturnType<
     direct_parent_garden_ids: scope?.directParentGardenIds ?? [],
     profile_garden_ids: scope?.profileGardenIds ?? [],
     final_allowed_garden_ids: scope?.kindergartenIds ?? [],
-    fallback_parent_garden_ids: scope ? uniq([...(scope.parentRows ?? []).flatMap((parent: any) => [parent.garden_id, parent.kindergarten_id]), profile?.garden_id, profile?.kindergarten_id]) : [],
+    fallback_parent_garden_ids: scope ? uniq([...(scope.parentRows ?? []).map((parent: any) => parent.garden_id), profile?.garden_id]) : [],
     direct_kindergarten_assignment_found: Boolean((scope?.directParentGardenIds?.length ?? 0) || (scope?.profileGardenIds?.length ?? 0)),
     child_relation_found: Boolean(scope?.children?.length),
     camera_found: Boolean(camera),

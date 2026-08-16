@@ -28,6 +28,7 @@ import {
   SidebarNav,
   StatusChip
 } from "@/components/gan-batuach-design-system";
+import { RoleAppShell } from "@/components/role-app-shell";
 
 type Tone = "default" | "primary" | "success" | "warning" | "danger" | "info" | "muted";
 
@@ -61,70 +62,21 @@ export function InspectorAppFrame({
   badge?: ReactNode;
   backHref?: string;
 }) {
-  const firstName = String(profile.full_name ?? "מפקח/ת").split(" ").filter(Boolean)[0] ?? "מפקח/ת";
-  const header = (
-    <header className="inspector-app-header">
-      <div className="inspector-header-actions">
-        <Link className="inspector-avatar-wrap" href="/dashboard/inspector/settings" aria-label="פרופיל מפקח">
-          <Avatar name={profile.full_name ?? firstName} src={profile.profile_image_url} size="lg" />
-          <i />
-        </Link>
-        <Link className="inspector-icon-button" href="/dashboard/inspector/notifications" aria-label="התראות">
-          <Bell size={24} />
-          <i />
-        </Link>
-        {backHref ? (
-          <Link className="inspector-icon-button" href={backHref} aria-label="חזרה">
-            <ChevronLeft size={26} />
-          </Link>
-        ) : null}
-      </div>
-      <div className="inspector-brand-block">
-        <div className="inspector-brand-logo">
-          <Image src="/assets/company-symbol.png" alt="" width={82} height={82} priority />
-          <Image src="/assets/company-name.png" alt="גן בטוח" width={210} height={76} priority />
-        </div>
-        {title ? (
-          <div className="inspector-page-title">
-            {badge ? <span>{badge}</span> : null}
-            <h1>{title}</h1>
-            {subtitle ? <p>{subtitle}</p> : null}
-          </div>
-        ) : (
-          <div className="inspector-page-title">
-            <span>💜 יום פיקוח משמעותי</span>
-            <h1>בוקר טוב, {firstName}</h1>
-            <p>עובדים. שומרים. אכפתיים.</p>
-          </div>
-        )}
-      </div>
-    </header>
-  );
-
-  const sidebar = (
-    <SidebarNav
-      title="מרכז מפקח"
-      activeHref={activeHref}
-      items={[
-        ...navItems,
-        { href: "/dashboard/inspector/inspections/history", label: "היסטוריה", icon: CalendarCheck, hint: "ביקורות עבר" },
-        { href: "/dashboard/inspector/violations", label: "ליקויים", icon: FileText, hint: "מעקב תיקונים" },
-        { href: "/dashboard/inspector/notifications", label: "התראות", icon: Bell, hint: "אירועים ועדכונים" }
-      ]}
-    />
-  );
-
   return (
-    <AppShell
-      className="inspector-app-shell"
-      header={header}
-      sidebar={sidebar}
-      bottomNav={<BottomNav className="inspector-bottom-nav" activeHref={activeHref} items={navItems} />}
+    <RoleAppShell
+      role="inspector"
+      activeHref={activeHref}
+      title={title ?? "מרכז פיקוח"}
+      subtitle={subtitle ?? "גנים משויכים, ביקורות, ליקויים ודוחות"}
+      profile={profile}
+      backHref={backHref}
+      actions={badge ? <span className="dashboard-header-badge">{badge}</span> : undefined}
+      className="inspector-runtime-shell"
     >
-      <ResponsivePage className="inspector-app-page" size="lg">
+      <div className="inspector-app-page dashboard-runtime-content">
         {children}
-      </ResponsivePage>
-    </AppShell>
+      </div>
+    </RoleAppShell>
   );
 }
 

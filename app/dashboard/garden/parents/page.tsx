@@ -64,7 +64,7 @@ export default async function GardenParentsPage() {
 
   return (
     <DashboardShell role="manager" title="הורים" appHome>
-      <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "רונית"}`} subtitle="קשר הורים מסודר" avatarUrl={(profile as any).avatar_url ?? null} active="messages">
+      <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.replace(/\[DEMO\]/gi, "").trim().split(" ")[0] || "מנהלת הגן"}`} subtitle="קשר הורים מסודר" avatarUrl={(profile as any).profile_image_url ?? null} active="messages">
         <TeacherPageTitle icon={UsersRound} title="הורים ומשפחות" subtitle="ילדים משויכים, הודעות, מסמכים ופניות בכרטיס קצר" action={<a className="button primary" href="#parents-full">ניהול מלא</a>} />
 
         <TeacherStatsGrid>

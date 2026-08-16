@@ -5,11 +5,11 @@ export async function safeAdminData<T>(label: string, loader: () => Promise<T>, 
     const data = await loader();
     return { data, error: null };
   } catch (error) {
-    console.error("Admin page data failed:", label, error);
+    console.warn("Admin page data unavailable:", label);
     return { data: fallback, error: "לא ניתן לטעון את הנתונים כרגע" };
   }
 }
 
 export function logSupabaseError(label: string, error: unknown) {
-  if (error) console.error("Admin Supabase query failed:", label, error);
+  if (error) console.warn("Admin Supabase query unavailable:", label);
 }

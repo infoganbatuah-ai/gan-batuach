@@ -1,4 +1,5 @@
 import { DashboardShell } from "@/components/dashboard-shell";
+import { israelTodayDateKey } from "@/lib/domain/israel-date";
 import { DailyTaskJournal } from "@/components/daily-task-journal";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
@@ -20,7 +21,7 @@ export default async function GardenDailyJournalPage({ searchParams }: { searchP
   const { profile } = await requireRole(["manager", "owner"]);
   const params = searchParams ? await searchParams : {};
   const supabase = await createClient();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = israelTodayDateKey();
   const [tasksRes, completionsRes] = await Promise.all([
     supabase.from("daily_operational_tasks" as any).select("*").eq("active", true).or(`garden_id.is.null,garden_id.eq.${profile.garden_id}`),
     supabase.from("daily_task_completions" as any).select("*").eq("completed_for_date", today).eq("garden_id", profile.garden_id ?? "")
@@ -36,7 +37,7 @@ export default async function GardenDailyJournalPage({ searchParams }: { searchP
   });
   return (
     <DashboardShell role={profile.role} title="יומן תפעול" appHome>
-      <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "מאיה"}`} subtitle="לוח יום פעילות גננת" avatarUrl={(profile as any).avatar_url ?? null} active="calendar">
+      <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.replace(/\[DEMO\]/gi, "").trim().split(" ")[0] || "מנהלת הגן"}`} subtitle="לוח יום פעילות גננת" avatarUrl={(profile as any).profile_image_url ?? null} active="calendar">
         <TeacherPageTitle icon={CalendarDays} title="לוח יום פעילות" subtitle="משימות, סדר יום ועדכוני גן" />
         <TeacherStatsGrid>
           <TeacherStatCard title="משימות היום" value={tasks.length} hint="לביצוע" icon={ClipboardCheck} tone="blue" />

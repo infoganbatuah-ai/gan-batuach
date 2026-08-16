@@ -71,7 +71,7 @@ export default async function GardenTrustCenterPage() {
 
   return (
     <DashboardShell role="manager" title="אמון הורים" appHome>
-      <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "רונית"}`} subtitle={trust.gardens?.name ?? "אמון ושקיפות"} avatarUrl={(profile as any).avatar_url ?? null} active="messages">
+      <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.replace(/\[DEMO\]/gi, "").trim().split(" ")[0] || "מנהלת הגן"}`} subtitle={trust.gardens?.name ?? "אמון ושקיפות"} avatarUrl={(profile as any).profile_image_url ?? null} active="messages">
         <TeacherPageTitle icon={ShieldCheck} title="מרכז אמון, שקיפות וקהילה" subtitle="תמונה אחת של אמון ההורים: עדכונים, בקשות, סקרים ואירועי קהילה" action={<Link className="button primary" href="/dashboard/garden/messages">תקשורת הורים</Link>} />
 
         <TeacherStatsGrid>

@@ -1,12 +1,13 @@
 import Link from "next/link";
+import { israelTodayDateKey } from "@/lib/domain/israel-date";
 import { Baby, FileText, HeartPulse, MessageCircle, ShieldCheck, Sparkles } from "lucide-react";
 import { Avatar } from "@/components/avatar";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { ParentAppFrame, ParentEmptyState, ParentHero, ParentMetricCard, ParentSection } from "@/components/parent-app-ui";
 import { requireRole } from "@/lib/auth";
 import { childTimelinePrivacyRules, childTimelineQuestions, eventDateText, eventTimeText, timelineCategoryLabel, timelineTone } from "@/lib/domain/child-safety-timeline";
+import { cleanSyntheticLabel } from "@/lib/domain/display-label";
 import { getParentFamilyContext } from "@/lib/domain/parent-family";
-import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 function dayKey(value?: string | null) {
@@ -23,9 +24,8 @@ function parentTone(tone?: string | null) {
 export default async function ParentChildTimelinePage({ params }: { params: Promise<{ id: string }> }) {
   const { profile } = await requireRole(["parent"]);
   const { id } = await params;
-  const userScopedSupabase = await createClient();
-  const supabase = isAdminClientConfigured() ? createAdminClient() : userScopedSupabase;
-  const family = await getParentFamilyContext(userScopedSupabase as any, profile);
+  const supabase = await createClient();
+  const family = await getParentFamilyContext(supabase as any, profile);
   const familyChild = (family.children as any[]).find((item) => item.id === id || item.permanent_child_file_id === id);
   const familyEnrollment = (family.enrollments as any[]).find((item) => item.child_id === id || item.permanent_child_file_id === id);
   const childId = familyChild?.id ?? familyEnrollment?.child_id ?? null;
@@ -33,7 +33,7 @@ export default async function ParentChildTimelinePage({ params }: { params: Prom
   if (!childId) {
     return (
       <DashboardShell role="parent" title="ציר ילד" appHome>
-        <ParentAppFrame active="calendar" avatarUrl={(profile as any).profile_image_url ?? null}>
+        <ParentAppFrame active="calendar" profileName={profile.full_name} avatarUrl={(profile as any).profile_image_url ?? null}>
           <ParentEmptyState title="לא נמצא כרטיס ילד" text="הילד אינו משויך לחשבון שלך." action={<Link className="button primary" href="/dashboard/parent">חזרה</Link>} />
         </ParentAppFrame>
       </DashboardShell>
@@ -47,9 +47,10 @@ export default async function ParentChildTimelinePage({ params }: { params: Prom
   ]);
 
   const child = (childRes.data as any) ?? familyChild;
+  const childName = cleanSyntheticLabel(child.full_name, "הילד/ה");
   const record = recordRes.data as any;
   const timeline = ((timelineRes.data ?? []) as any[]).filter((event) => event.parent_visible && !event.internal_only && ["parent", "approved_parent"].includes(String(event.visibility)));
-  const today = timeline.filter((item) => dayKey(item.event_time) === new Date().toISOString().slice(0, 10));
+  const today = timeline.filter((item) => dayKey(item.event_time) === israelTodayDateKey());
   const health = timeline.filter((item) => item.event_category === "health");
   const pickup = timeline.filter((item) => item.event_category === "pickup");
   const grouped = timeline.reduce((map: Map<string, any[]>, item: any) => {
@@ -60,12 +61,12 @@ export default async function ParentChildTimelinePage({ params }: { params: Prom
 
   return (
     <DashboardShell role="parent" title="ציר היום" appHome>
-      <ParentAppFrame active="calendar" avatarUrl={(profile as any).profile_image_url ?? null}>
+      <ParentAppFrame active="calendar" profileName={profile.full_name} avatarUrl={(profile as any).profile_image_url ?? null}>
       <div className="parent-experience-shell child-timeline-shell">
-        <ParentHero title={`היום של ${child.full_name}`} subtitle="פעילות, ארוחות, שינה, בריאות, תמונות, הודעות ואיסוף שאושרו להורים" />
+        <ParentHero title={`היום של ${childName}`} subtitle="פעילות, ארוחות, שינה, בריאות, תמונות, הודעות ואיסוף שאושרו להורים" />
         <section className="parent-child-hero compact">
           <div className="child-timeline-hero-card">
-            <Avatar name={child.full_name} src={child.photo_url ?? child.face_image_url} />
+            <Avatar name={childName} src={child.photo_url ?? child.face_image_url} />
             <span>{child.classroom ?? child.age_group ?? "גן"}</span>
           </div>
           <div className="parent-status-row">
@@ -86,7 +87,7 @@ export default async function ParentChildTimelinePage({ params }: { params: Prom
           <article className="parent-ai-card">
             <Sparkles />
             <h2>סיכום היום</h2>
-            <p>{record?.daily_summary ?? `כאשר הגן יעדכן את היום של ${child.full_name}, הסיכום יופיע כאן.`}</p>
+            <p>{record?.daily_summary ?? `כאשר הגן יעדכן את היום של ${childName}, הסיכום יופיע כאן.`}</p>
             <div className="parent-question-list">{childTimelineQuestions.map((question) => <Link href={`/dashboard/parent/children/${child.id}/timeline`} key={question}>{question}</Link>)}</div>
           </article>
           <article className="parent-trust-card">

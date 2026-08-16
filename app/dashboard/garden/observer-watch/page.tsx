@@ -26,7 +26,7 @@ export default async function GardenObserverWatchPage() {
   const zoneRows = (zones.data ?? []) as any[];
 
   return (
-    <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "רונית"}`} subtitle="בקשות מעקב לתצפיתן" avatarUrl={(profile as any).avatar_url ?? null} active="more">
+    <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.replace(/\[DEMO\]/gi, "").trim().split(" ")[0] || "מנהלת הגן"}`} subtitle="בקשות מעקב לתצפיתן" avatarUrl={(profile as any).profile_image_url ?? null} active="more">
       <TeacherPageTitle icon={Eye} title="בקשות מעקב" subtitle="מה התצפיתן צריך לסמן לבדיקה אנושית" />
       <TeacherStatsGrid>
         <TeacherStatCard title="בקשות" value={requestRows.length} hint="פעילות/היסטוריה" icon={Eye} tone="purple" />

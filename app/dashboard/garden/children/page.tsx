@@ -1,4 +1,5 @@
 import { DashboardShell } from "@/components/dashboard-shell";
+import { israelTodayDateKey } from "@/lib/domain/israel-date";
 import { DashboardFilterChip } from "@/components/dashboard-filter-chip";
 import { ChildrenProfileCards } from "@/components/people-profile-cards";
 import { Avatar } from "@/components/avatar";
@@ -33,7 +34,7 @@ export default async function GardenChildrenPage({ searchParams }: { searchParam
   const params = await searchParams;
   const supabase = await createClient();
   const gardenId = profile.garden_id ?? "";
-  const today = new Date().toISOString().slice(0, 10);
+  const today = israelTodayDateKey();
   const [childrenRes, attendanceRes, journalsRes, incidentsRes, feeGroupsRes, requestsRes, gardenRes] = await Promise.all([
     supabase.from("children" as any).select("*").eq("garden_id", gardenId).order("full_name"),
     supabase.from("attendance" as any).select("child_id, status, pickup_authorized, pickup_name, note").eq("garden_id", gardenId).eq("attendance_date", today),
@@ -106,9 +107,9 @@ export default async function GardenChildrenPage({ searchParams }: { searchParam
   return (
     <DashboardShell role="manager" title="ילדים" appHome>
       <TeacherAppFrame
-        title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "מנהלת"}`}
+        title={`בוקר טוב, ${profile.full_name?.replace(/\[DEMO\]/gi, "").trim().split(" ")[0] || "מנהלת"}`}
         subtitle={(gardenRes.data as any)?.name ?? "ניהול ילדי הגן"}
-        avatarUrl={(profile as any).avatar_url ?? null}
+        avatarUrl={(profile as any).profile_image_url ?? null}
         active="children"
       >
         <TeacherPageTitle

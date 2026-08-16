@@ -14,6 +14,7 @@ import {
   parentDefaultActions
 } from "@/components/parent-app-ui";
 import { requireRole } from "@/lib/auth";
+import { cleanSyntheticLabel, isSyntheticLabel } from "@/lib/domain/display-label";
 import { getParentFamilyContext } from "@/lib/domain/parent-family";
 import { createClient } from "@/lib/supabase/server";
 
@@ -65,19 +66,23 @@ export default async function ParentDashboard() {
   const scheduleItems = (scheduleRes.data ?? []) as any[];
   const safetyScore = selectedGarden?.last_inspection_score ?? null;
   const unreadOrPendingCount = pending.length;
+  const syntheticSession = [profile.full_name, selectedChild?.full_name, selectedGarden?.name].some(isSyntheticLabel);
 
   return (
     <DashboardShell role="parent" title="אזור הורה" appHome>
-      <ParentAppFrame active="dashboard" avatarUrl={(profile as any).profile_image_url ?? null}>
+      <ParentAppFrame active="dashboard" profileName={profile.full_name} avatarUrl={(profile as any).profile_image_url ?? null}>
         <ParentHero title="דשבורד הורים" subtitle="מעקב חכם אחר הילד והגן" />
+
+        {syntheticSession ? <div className="dashboard-environment-notice" role="status">סביבת בדיקה עם נתונים סינתטיים בלבד. נתוני ילדים והורים אמיתיים אינם מופעלים כאן.</div> : null}
 
         {selectedChild ? (
           <ParentChildCard
-            name={selectedChild.full_name ?? "הילד שלי"}
-            meta={`${selectedGarden?.name ?? "עדיין לא משויך לגן"} · ${selectedGarden?.city ?? "בקשת הצטרפות"}`}
+            name={cleanSyntheticLabel(selectedChild.full_name, "הילד שלי")}
+            meta={`${cleanSyntheticLabel(selectedGarden?.name, "עדיין לא משויך לגן")} · ${cleanSyntheticLabel(selectedGarden?.city, "בקשת הצטרפות")}`}
             image={(selectedChild as any).photo_url ?? null}
             status={hasActiveKindergarten ? "משויך לגן" : "ממתין לשיוך"}
             secondary={hasActiveKindergarten ? "מידע לפי הרשאה" : "בקשה פתוחה"}
+            href={`/dashboard/parent/children/${selectedChild.child_id ?? selectedChild.permanent_child_file_id ?? selectedChild.id}`}
           />
         ) : (
           <section className="parent-child-card no-child">
@@ -94,20 +99,22 @@ export default async function ParentDashboard() {
 
         <section className="parent-metrics-grid">
           <ParentMetricCard title="עדכונים פתוחים" value={unreadOrPendingCount} hint="בקשות/התראות לטיפול" icon={MessageCircle} tone={unreadOrPendingCount ? "orange" : "green"} href="/dashboard/parent/messages" />
-          <ParentMetricCard title="סטטוס תשלום" value={approvedPendingPayment.length ? "לטיפול" : "סדר"} hint={approvedPendingPayment.length ? "ממתין לתשלום" : "אין חובות"} icon={WalletCards} tone={approvedPendingPayment.length ? "orange" : "green"} href="/dashboard/parent/payments" />
-          <ParentMetricCard title="ציון בטיחות" value={safetyScore ?? "לא פורסם"} hint={safetyScore ? "סיכום שאושר להצגה" : "יופיע אחרי פרסום הגן"} icon={ShieldCheck} tone={safetyScore ? "purple" : "neutral"} href="/dashboard/parent/trust-center" />
+          <ParentMetricCard title="סטטוס תשלום" value={approvedPendingPayment.length ? "לטיפול" : hasActiveKindergarten ? "אין דרישה" : "טרם הוגדר"} hint={approvedPendingPayment.length ? "ממתין לתשלום" : hasActiveKindergarten ? "אין דרישת תשלום פתוחה" : "יופיע לאחר אישור הצטרפות"} icon={WalletCards} tone={approvedPendingPayment.length ? "orange" : hasActiveKindergarten ? "green" : "neutral"} href="/dashboard/parent/payments" />
+          <ParentMetricCard title="ציון בטיחות" value={safetyScore ?? "לא פורסם"} hint={safetyScore !== null ? "סיכום שאושר להצגה" : "יופיע אחרי פרסום הגן"} icon={ShieldCheck} tone={safetyScore !== null ? "purple" : "neutral"} href="/dashboard/parent/trust-center" />
           <ParentMetricCard title="בקשות פתוחות" value={pending.length} hint="ממתינות לגן" icon={FileText} tone={pending.length ? "orange" : "green"} href="#requests" />
         </section>
 
-        <ParentSection title="צפייה במצלמות" subtitle={hasActiveKindergarten ? selectedGarden?.name ?? "גן הילד" : "ייפתח לאחר אישור הגן"} action={<Link href="/dashboard/parent/cameras">בדיקת זמינות</Link>}>
+        <ParentSection title="מצב מצלמות" subtitle={hasActiveKindergarten ? cleanSyntheticLabel(selectedGarden?.name, "גן הילד") : "ייפתח לאחר אישור הגן"} action={<Link href="/dashboard/parent/cameras">בדיקת זמינות</Link>}>
           <div className="parent-camera-card">
             <div className="parent-camera-preview">
-              <span>{hasActiveKindergarten ? "מאובטח" : "ממתין"}</span>
+              <Camera size={44} />
+              <strong>אין שידור חי במסך הבית</strong>
+              <span>{hasActiveKindergarten ? "בדיקת הרשאה נדרשת" : "ממתין לשיוך"}</span>
             </div>
             <div>
               <span className="parent-camera-icon"><Camera size={30} /></span>
-              <h3>{hasActiveKindergarten ? "מצלמות שאושרו להורים" : "מצלמות ייפתחו לאחר אישור"}</h3>
-              <p>{hasActiveKindergarten ? "הצפייה זמינה רק אם הגן פתח מצלמה ושער הצפייה פעיל." : "אין גישה למצלמות לפני שיוך פעיל לגן"}</p>
+              <h3>{hasActiveKindergarten ? "צפיית הורים נעולה עד לבדיקת הרשאה" : "מצלמות ייפתחו רק לאחר אישור"}</h3>
+              <p>{hasActiveKindergarten ? "מסך הסטטוס יבדוק אם הגן, המדיניות והשער המאובטח מאפשרים צפייה. אין כאן תצוגת וידאו מדומה." : "אין גישה למצלמות לפני שיוך פעיל לגן."}</p>
               <Link className="parent-outline-button" href="/dashboard/parent/cameras">בדוק זמינות</Link>
             </div>
           </div>
@@ -137,8 +144,8 @@ export default async function ParentDashboard() {
             {requests.length ? requests.slice(0, 3).map((request) => (
               <ParentListRow
                 key={request.id}
-                title={`${request.gardens?.name ?? "גן"} · ${formatStatus(request.status)}`}
-                subtitle={`${request.gardens?.city ?? ""} · תשלום: ${formatStatus(request.payment_status)}`}
+                title={`${cleanSyntheticLabel(request.gardens?.name, "גן")} · ${formatStatus(request.status)}`}
+                subtitle={`${cleanSyntheticLabel(request.gardens?.city)} · תשלום: ${formatStatus(request.payment_status)}`}
                 time={request.requested_at ? new Date(request.requested_at).toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" }) : undefined}
                 icon={Bell}
                 tone={request.status === "approved" ? "green" : request.status === "rejected" ? "red" : "purple"}
@@ -161,8 +168,8 @@ export default async function ParentDashboard() {
             <div className="parent-request-list">
               {requests.map((request) => (
                 <Link href={request.status === "approved_pending_payment" ? "/dashboard/parent/payments" : "#requests"} key={request.id}>
-                  <strong>{request.gardens?.name ?? "גן"} · {formatStatus(request.status)}</strong>
-                  <span>{request.gardens?.city ?? ""} · תשלום: {formatStatus(request.payment_status)}</span>
+                  <strong>{cleanSyntheticLabel(request.gardens?.name, "גן")} · {formatStatus(request.status)}</strong>
+                  <span>{cleanSyntheticLabel(request.gardens?.city)} · תשלום: {formatStatus(request.payment_status)}</span>
                 </Link>
               ))}
             </div>

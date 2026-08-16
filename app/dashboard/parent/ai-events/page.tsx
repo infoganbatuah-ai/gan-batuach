@@ -34,7 +34,7 @@ export default async function ParentAiEventsPage() {
 
   return (
     <DashboardShell role="parent" title="עדכוני בטיחות" appHome>
-      <ParentAppFrame active="more" avatarUrl={(profile as any).profile_image_url ?? null}>
+      <ParentAppFrame active="more" profileName={profile.full_name} avatarUrl={(profile as any).profile_image_url ?? null}>
         <ParentHero title="עדכוני בטיחות" subtitle="רק מה שהגן בדק ואישר להצגת הורים" />
         <section className="parent-camera-promise">
           <article><Sparkles /><h2>סיכום ברור</h2><p>כל עדכון מוצג בשפה קצרה, בלי מונחים טכניים.</p></article>

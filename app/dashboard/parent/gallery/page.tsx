@@ -31,7 +31,7 @@ export default async function Page() {
   const monthCount = rows.filter((item) => item.created_at && new Date(item.created_at) >= monthStart).length;
   return (
     <DashboardShell role="parent" title="גלריה" appHome>
-      <ParentAppFrame active="dashboard" avatarUrl={(profile as any).profile_image_url ?? null}>
+      <ParentAppFrame active="dashboard" profileName={profile.full_name} avatarUrl={(profile as any).profile_image_url ?? null}>
         <ParentHero title="רגעים מהגן" subtitle="התמונות והסרטונים שהגן שיתף איתך" />
         <section className="parent-gallery-filters">
           <span><SlidersHorizontal size={15} /> כל הרגעים <b>{rows.length}</b></span>

@@ -50,7 +50,7 @@ export default async function GardenCameraHealthPage() {
 
   return (
     <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="בריאות מצלמות" appHome>
-      <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "רונית"}`} subtitle="מצלמות וניטור" avatarUrl={(profile as any).avatar_url ?? null} active="more">
+      <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.replace(/\[DEMO\]/gi, "").trim().split(" ")[0] || "מנהלת הגן"}`} subtitle="מצלמות וניטור" avatarUrl={(profile as any).profile_image_url ?? null} active="more">
         <TeacherPageTitle icon={Camera} title="בריאות מצלמות" subtitle="חיבור, צפייה ומוכנות בלי לחשוף כתובות או סיסמאות" action={<Link className="button primary" href="/dashboard/garden/cameras">ניהול מצלמות</Link>} />
         <AdminDataError message={result.error ?? result.data.queryError} />
 

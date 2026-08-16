@@ -48,7 +48,7 @@ export default async function ParentDocumentsPage() {
 
   return (
     <DashboardShell role="parent" title="מסמכים" appHome>
-      <ParentAppFrame active="more" avatarUrl={(profile as any).profile_image_url ?? null}>
+      <ParentAppFrame active="more" profileName={profile.full_name} avatarUrl={(profile as any).profile_image_url ?? null}>
         <ParentHero title="מסמכים ואישורים" subtitle="כל מה שצריך לאשר או לשמור" />
 
         <section className="parent-metric-strip">

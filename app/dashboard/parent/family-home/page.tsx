@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { israelTodayDateKey } from "@/lib/domain/israel-date";
 import { redirect } from "next/navigation";
 import type { ComponentType, ReactNode } from "react";
 import {
@@ -155,7 +156,7 @@ export default async function ParentFamilyHomePage() {
   const gardensById = new Map((family.gardens as any[]).map((garden) => [garden.id, garden]));
   const primaryChild = children[0] ?? null;
   const primaryGarden = primaryChild ? (gardensById.get(primaryChild.garden_id ?? primaryChild.kindergarten_id) as any) : null;
-  const today = new Date().toISOString().slice(0, 10);
+  const today = israelTodayDateKey();
   const weekStart = new Date();
   weekStart.setDate(weekStart.getDate() - 7);
 
@@ -267,7 +268,7 @@ export default async function ParentFamilyHomePage() {
 
   return (
     <DashboardShell role="parent" title="בית משפחתי" appHome>
-      <ParentAppFrame active="home" avatarUrl={(profile as any).profile_image_url ?? null}>
+      <ParentAppFrame active="home" profileName={profile.full_name} avatarUrl={(profile as any).profile_image_url ?? null}>
       <div className="family-home-2">
         {primaryChild ? (
           <section className="family-home-hero">

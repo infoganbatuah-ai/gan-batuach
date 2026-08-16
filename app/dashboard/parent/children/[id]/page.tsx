@@ -5,8 +5,8 @@ import { ChildPhotoUpload } from "@/components/child-photo-upload";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { ParentAppFrame, ParentEmptyState, ParentHero, ParentSection } from "@/components/parent-app-ui";
 import { requireRole } from "@/lib/auth";
+import { cleanSyntheticLabel } from "@/lib/domain/display-label";
 import { getParentFamilyContext } from "@/lib/domain/parent-family";
-import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
 function dateText(value?: string | null) {
@@ -35,9 +35,8 @@ function parentTone(status?: string | null) {
 export default async function ParentChildProfilePage({ params }: { params: Promise<{ id: string }> }) {
   const { profile } = await requireRole(["parent"]);
   const { id } = await params;
-  const userScopedSupabase = await createClient();
-  const supabase = isAdminClientConfigured() ? createAdminClient() : userScopedSupabase;
-  const family = await getParentFamilyContext(userScopedSupabase as any, profile);
+  const supabase = await createClient();
+  const family = await getParentFamilyContext(supabase as any, profile);
   const familyChild = (family.children as any[]).find((item) => item.id === id || item.permanent_child_file_id === id);
   const familyEnrollment = (family.enrollments as any[]).find((item) => item.child_id === id || item.permanent_child_file_id === id);
   const childId = familyChild?.id ?? familyEnrollment?.child_id ?? null;
@@ -47,7 +46,7 @@ export default async function ParentChildProfilePage({ params }: { params: Promi
   if (!child) {
     return (
       <DashboardShell role="parent" title="כרטיס ילד" appHome>
-        <ParentAppFrame active="home" avatarUrl={(profile as any).profile_image_url ?? null}>
+        <ParentAppFrame active="home" profileName={profile.full_name} avatarUrl={(profile as any).profile_image_url ?? null}>
           <ParentEmptyState
             title="לא נמצא כרטיס ילד"
             text="ייתכן שהילד לא משויך למשתמש שלך או שהרישום עדיין לא אושר."
@@ -58,6 +57,7 @@ export default async function ParentChildProfilePage({ params }: { params: Promi
     );
   }
 
+  const childName = cleanSyntheticLabel(child.full_name, "הילד/ה");
   const [journalsRes, docsRes, requestsRes] = await Promise.all([
     supabase.from("child_daily_journals" as any).select("*").eq("child_id", child.id).order("journal_date", { ascending: false }).limit(6),
     supabase.from("documents" as any).select("id, name, document_type, status, expires_at, created_at").eq("child_id", child.id).limit(12),
@@ -68,14 +68,14 @@ export default async function ParentChildProfilePage({ params }: { params: Promi
 
   return (
     <DashboardShell role="parent" title="כרטיס ילד" appHome>
-      <ParentAppFrame active="home" avatarUrl={(profile as any).profile_image_url ?? null}>
-        <ParentHero title={child.full_name} subtitle="כרטיס הילד, בריאות, מסמכים ועדכונים מהגן" />
+      <ParentAppFrame active="home" profileName={profile.full_name} avatarUrl={(profile as any).profile_image_url ?? null}>
+        <ParentHero title={childName} subtitle="כרטיס הילד, בריאות, מסמכים ועדכונים מהגן" />
       <div className="parent-experience-shell">
         <section className="parent-child-hero compact">
-          <div className="parent-child-photo"><Avatar name={child.full_name} src={child.photo_url ?? child.face_image_url} size="lg" /></div>
+          <div className="parent-child-photo"><Avatar name={childName} src={child.photo_url ?? child.face_image_url} size="lg" /></div>
           <div>
             <p className="eyebrow">כרטיס ילד</p>
-            <h1>{child.full_name}</h1>
+            <h1>{childName}</h1>
             <div className="parent-status-row">
               <span className={`parent-status-chip ${parentTone(child.status)}`}>{statusLabel(child.status)}</span>
               <span className="parent-status-chip green">{age(child.birth_date)}</span>
@@ -111,7 +111,7 @@ export default async function ParentChildProfilePage({ params }: { params: Promi
           <article className="parent-ai-card">
             <Baby />
             <h2>סיכום קצר</h2>
-            <p>{latestJournal?.notes_to_parents ?? `${child.full_name} מחכה לעדכון יומי מהגן. ברגע שהצוות יעדכן, הסיכום יופיע כאן.`}</p>
+            <p>{latestJournal?.notes_to_parents ?? `${childName} מחכה לעדכון יומי מהגן. ברגע שהצוות יעדכן, הסיכום יופיע כאן.`}</p>
             <div className="parent-question-list">
               <Link href="/dashboard/parent/daily-journal">יומן מלא</Link>
               <Link href={`/dashboard/parent/children/${child.id}/timeline`}>ציר היום</Link>
@@ -127,8 +127,8 @@ export default async function ParentChildProfilePage({ params }: { params: Promi
             <h2>מורשי איסוף ומשפחה</h2>
             <div className="parent-trust-list">
               <span>תאריך לידה <b>{dateText(child.birth_date)}</b></span>
-              <span>אם <b>{child.mother_name ?? "לא צוין"}</b></span>
-              <span>אב <b>{child.father_name ?? "לא צוין"}</b></span>
+              <span>אם <b>{cleanSyntheticLabel(child.mother_name, "לא צוין")}</b></span>
+              <span>אב <b>{cleanSyntheticLabel(child.father_name, "לא צוין")}</b></span>
               <span>מורשי איסוף <b>{Array.isArray(child.pickup_authorized) ? child.pickup_authorized.length : 0}</b></span>
             </div>
           </article>

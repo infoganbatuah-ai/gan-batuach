@@ -1,5 +1,4 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
 
 function uniqById(rows: any[]) {
   return rows.filter((row, index, all) => row?.id && all.findIndex((item) => item?.id === row.id) === index);
@@ -10,7 +9,7 @@ function uniq(values: Array<string | null | undefined>) {
 }
 
 export async function getParentFamilyContext(userSupabase: SupabaseClient<any, any, any>, profile: any) {
-  const supabase = isAdminClientConfigured() ? createAdminClient() : userSupabase;
+  const supabase = userSupabase;
   const parentByProfile = await supabase.from("parents" as any).select("*").eq("profile_id", profile.id);
   const parentByUser = await supabase.from("parents" as any).select("*").eq("user_id", profile.id);
   const parents = uniqById([...(parentByProfile.data ?? []), ...(parentByUser.data ?? [])]);

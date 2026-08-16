@@ -58,7 +58,7 @@ export default async function GardenCompliancePage() {
   const data = result.data;
   return (
     <DashboardShell role="manager" title="ציות הגן" appHome>
-      <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "רונית"}`} subtitle="מוכנות ציות ופיקוח" avatarUrl={(profile as any).avatar_url ?? null} active="more">
+      <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.replace(/\[DEMO\]/gi, "").trim().split(" ")[0] || "מנהלת הגן"}`} subtitle="מוכנות ציות ופיקוח" avatarUrl={(profile as any).profile_image_url ?? null} active="more">
         <TeacherPageTitle icon={ShieldCheck} title="מוכנות ציות של הגן" subtitle="מה חסר, מה עומד לפוג ומה צריך תיקון כדי להישאר מוכנים לפיקוח" action={<Link className="button primary" href="/dashboard/garden/documents">מסמכים</Link>} />
         <AdminDataError message={result.error ?? data.queryError} />
 

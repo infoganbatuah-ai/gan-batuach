@@ -33,7 +33,7 @@ export default async function GardenObserverLearningPage() {
   const baselineRows = (baselines.data ?? []) as any[];
 
   return (
-    <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "רונית"}`} subtitle="למידת תצפיתן" avatarUrl={(profile as any).avatar_url ?? null} active="more">
+    <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.replace(/\[DEMO\]/gi, "").trim().split(" ")[0] || "מנהלת הגן"}`} subtitle="למידת תצפיתן" avatarUrl={(profile as any).profile_image_url ?? null} active="more">
       <TeacherPageTitle icon={TrendingUp} title="למידת תצפיתן" subtitle="Baseline תפעולי בלבד. אין פרופיל ילדים ואין החלטות אוטומטיות" />
       <TeacherStatsGrid>
         <TeacherStatCard title="אזורים" value={zoneRows.length} hint="מוגדרים" icon={MapPinned} tone="blue" />

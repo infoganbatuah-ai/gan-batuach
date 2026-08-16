@@ -62,7 +62,7 @@ export default async function ParentTrustCenterPage() {
 
   return (
     <DashboardShell role="parent" title="מרכז אמון" appHome>
-      <ParentAppFrame active="more" avatarUrl={(profile as any).profile_image_url ?? null}>
+      <ParentAppFrame active="more" profileName={profile.full_name} avatarUrl={(profile as any).profile_image_url ?? null}>
       <div className="commercial-dashboard parent-trust-network-shell">
         <ParentHero title="מרכז האמון של הגן" subtitle="שקיפות פשוטה ובטוחה: ציון אמון, ביקורות, ציות, שיפורים ופניות שלך" />
         <ParentSection title="מידע מאושר להורים" subtitle={`${trust.trust_score ?? 0}/100`}>

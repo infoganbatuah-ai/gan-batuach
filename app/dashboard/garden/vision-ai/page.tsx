@@ -49,7 +49,7 @@ export default async function GardenVisionAiPage() {
 
   return (
     <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="זיהוי חזותי" appHome>
-      <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "מאיה"}`} subtitle="זיהוי חזותי בטוח" avatarUrl={(profile as any).avatar_url ?? null} active="more">
+      <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.replace(/\[DEMO\]/gi, "").trim().split(" ")[0] || "מנהלת הגן"}`} subtitle="זיהוי חזותי בטוח" avatarUrl={(profile as any).profile_image_url ?? null} active="more">
       <TeacherPageTitle
         icon={Brain}
         title="זיהוי חזותי"

@@ -53,7 +53,7 @@ export default async function ParentMessagesPage() {
 
   return (
     <DashboardShell role="parent" title="פנייה לגן" appHome>
-      <ParentAppFrame active="alerts" avatarUrl={(profile as any).profile_image_url ?? null}>
+      <ParentAppFrame active="alerts" profileName={profile.full_name} avatarUrl={(profile as any).profile_image_url ?? null}>
         <ParentHero title="הודעות ותקשורת" subtitle="שיחה עם הגן, בקשות ועדכונים במקום אחד" />
 
       <section className="parent-message-layout">

@@ -28,9 +28,9 @@ export default async function GardenObserverIntelligencePage() {
   return (
     <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="סיכומי תצפיתן" appHome>
       <TeacherAppFrame
-        title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "רונית"}`}
+        title={`בוקר טוב, ${profile.full_name?.replace(/\[DEMO\]/gi, "").trim().split(" ")[0] || "מנהלת הגן"}`}
         subtitle="תצפיתן בטיחות"
-        avatarUrl={(profile as any).avatar_url ?? null}
+        avatarUrl={(profile as any).profile_image_url ?? null}
         active="more"
       >
         <TeacherPageTitle

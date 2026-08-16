@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { israelTodayDateKey } from "@/lib/domain/israel-date";
 import { redirect } from "next/navigation";
 import type { ReactNode } from "react";
 import { AlertTriangle, Baby, Bell, CheckCircle2, ClipboardList, HeartPulse, MapPin, MessageSquare, ShieldAlert, Siren, Timer, Utensils } from "lucide-react";
@@ -49,7 +50,7 @@ function ActionCard({ title, text, href, icon, tone: cardTone = "default" }: { t
 export default async function StaffOperationsPage() {
   const { profile } = await requireRole(["staff"]);
   const supabase = await createClient();
-  const today = new Date().toISOString().slice(0, 10);
+  const today = israelTodayDateKey();
 
   const [staffRes, gardenRes] = await Promise.all([
     supabase.from("staff" as any).select("id,garden_id,full_name,role,role_title,profile_photo_url,approved_to_work,onboarding_status").eq("profile_id", profile.id).maybeSingle(),
@@ -131,7 +132,7 @@ export default async function StaffOperationsPage() {
   ];
 
   return (
-    <StaffAppFrame active="home" avatarUrl={staff?.profile_photo_url ?? profile.profile_image_url}>
+    <StaffAppFrame active="home" profileName={staff?.full_name ?? profile.full_name} avatarUrl={staff?.profile_photo_url ?? profile.profile_image_url}>
       <div className="staff-workspace-shell staff-operations-2">
         <section className="staff-shift-hero">
           <div className="staff-shift-status">

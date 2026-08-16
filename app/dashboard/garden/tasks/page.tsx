@@ -31,7 +31,7 @@ export default async function GardenTasksPage() {
 
   return (
     <DashboardShell role="manager" title="משימות" appHome>
-      <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "רונית"}`} subtitle="ניהול משימות הגן" avatarUrl={(profile as any).avatar_url ?? null} active="more">
+      <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.replace(/\[DEMO\]/gi, "").trim().split(" ")[0] || "מנהלת הגן"}`} subtitle="ניהול משימות הגן" avatarUrl={(profile as any).profile_image_url ?? null} active="more">
         <TeacherPageTitle icon={ClipboardCheck} title="משימות להיום" subtitle="מעקב ביצוע, דדליין ועדיפות במקום אחד" action={<a className="button primary" href="#full-task-workbench"><Plus size={18} /> ניהול מלא</a>} />
 
         <TeacherStatsGrid>

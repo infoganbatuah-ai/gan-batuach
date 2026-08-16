@@ -17,7 +17,7 @@ export default async function ParentInspectionsPage() {
   const latestScore = rows[0]?.weighted_score ?? "-";
   return (
     <DashboardShell role="parent" title="סיכום פיקוח" appHome>
-      <ParentAppFrame active="more" avatarUrl={(profile as any).profile_image_url ?? null}>
+      <ParentAppFrame active="more" profileName={profile.full_name} avatarUrl={(profile as any).profile_image_url ?? null}>
         <ParentHero title="דוח בטיחות ופעילות" subtitle="סיכומי ביקורת שאושרו להצגת הורים" />
         <section className="parent-metrics-grid">
           <ParentMetricCard title="דוחות" value={rows.length} hint="מאושרים" icon={ClipboardCheck} tone="purple" />

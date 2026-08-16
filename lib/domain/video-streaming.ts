@@ -1,10 +1,10 @@
 import crypto from "node:crypto";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
 import { canParentViewCamera, getCameraGardenId } from "@/lib/domain/parent-camera-access";
 import { assertCapabilityEnabled } from "@/lib/domain/capability-policy-engine";
 import { getGatewayProvider, getPlaybackUrls } from "@/lib/domain/video-gateway-client";
+import { israelTodayDateKey } from "@/lib/domain/israel-date";
 import type { UserRole } from "@/lib/roles";
 import { getMfaGateStatus } from "@/lib/security/identity-security";
 
@@ -106,7 +106,7 @@ export async function createCameraPlaybackSession(cameraStreamId: string, payloa
   const { data: profile, error: profileError } = await supabase.from("profiles").select("id, role, garden_id, full_name, phone, email").eq("id", user.id).single();
   if (profileError || !profile) throw new Error(profileError?.message ?? "Profile not found");
 
-  const dataSupabase = isAdminClientConfigured() ? createAdminClient() : supabase;
+  const dataSupabase = supabase;
   const { data: camera, error: cameraError } = await dataSupabase.from("camera_streams").select("*").eq("id", cameraStreamId).single();
   if (cameraError || !camera) throw new Error(cameraError?.message ?? "Camera not found");
 
@@ -188,7 +188,7 @@ export async function createCameraPlaybackSession(cameraStreamId: string, payloa
       .select("child_id,status,check_in_at,check_out_at")
       .eq("garden_id", cameraGardenId)
       .in("child_id", linkedChildIds)
-      .eq("attendance_date", new Date().toISOString().slice(0, 10))
+      .eq("attendance_date", israelTodayDateKey())
       .order("updated_at", { ascending: false })
       .limit(20);
     if (attendanceResult.error) throw new Error(attendanceResult.error.message);

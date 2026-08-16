@@ -3,6 +3,7 @@ import Link from "next/link";
 import type { ComponentType, ReactNode } from "react";
 import { Bell, CalendarDays, Camera, FileText, Home, Menu, MessageCircle, ShieldCheck, WalletCards } from "lucide-react";
 import type { LucideProps } from "lucide-react";
+import { RoleAppShell } from "@/components/role-app-shell";
 
 type Tone = "blue" | "purple" | "green" | "orange" | "red" | "neutral";
 type IconType = ComponentType<LucideProps>;
@@ -10,39 +11,33 @@ type IconType = ComponentType<LucideProps>;
 export function ParentAppFrame({
   children,
   active = "home",
-  avatarUrl
+  avatarUrl,
+  profileName
 }: {
   children: ReactNode;
   active?: "home" | "dashboard" | "calendar" | "alerts" | "more";
   avatarUrl?: string | null;
+  profileName?: string | null;
 }) {
-  const today = new Date().toLocaleDateString("he-IL", {
+  const today = new Intl.DateTimeFormat("he-IL", {
     weekday: "long",
     day: "numeric",
     month: "long",
-    year: "numeric"
-  });
+    year: "numeric",
+    timeZone: "Asia/Jerusalem"
+  }).format(new Date());
 
   return (
-    <div className="parent-app-frame" dir="rtl">
-      <header className="parent-app-topbar">
-        <div className="parent-brand-lockup">
-          <Image src="/assets/company-name.png" alt="גן בטוח" width={230} height={72} />
-          <Image src="/assets/company-symbol.png" alt="" width={72} height={72} />
-        </div>
-        <div className="parent-date-pill">
-          <CalendarDays size={26} />
-          <span>{today}</span>
-        </div>
-        <Link className="parent-icon-button" href="/dashboard/parent/notifications" aria-label="התראות">
-          <Bell size={26} />
-          <span />
-        </Link>
-        <Link className="parent-avatar" href="/dashboard/parent/settings" aria-label="פרופיל הורה">{avatarUrl ? <img src={avatarUrl} alt="" /> : <span>ה</span>}</Link>
-      </header>
-      <main className="parent-app-main">{children}</main>
-      <ParentBottomNav active={active} />
-    </div>
+    <RoleAppShell
+      role="parent"
+      activeHref={active === "calendar" ? "/dashboard/parent/schedule" : active === "alerts" ? "/dashboard/parent/notifications" : active === "more" ? "/dashboard/parent/settings" : active === "home" ? "/dashboard/parent/family-home" : "/dashboard/parent"}
+      title="אזור הורים"
+      subtitle={today}
+      profile={{ full_name: profileName ?? "הורה", profile_image_url: avatarUrl }}
+      className="parent-runtime-shell"
+    >
+      <div className="parent-app-main dashboard-runtime-content">{children}</div>
+    </RoleAppShell>
   );
 }
 
@@ -61,20 +56,20 @@ export function ParentChildCard({
   meta,
   image,
   status = "הכל תקין",
-  secondary = "נוכחת"
+  secondary = "נוכחת",
+  href
 }: {
   name: string;
   meta?: string;
   image?: string | null;
   status?: string;
   secondary?: string;
+  href?: string;
 }) {
-  return (
-    <section className="parent-child-card">
-      <span className="parent-child-back">‹</span>
+  const content = (
+    <>
       <div className="parent-child-photo">
         {image ? <img src={image} alt="" /> : <span>{name.slice(0, 1)}</span>}
-        <i><Camera size={22} /></i>
       </div>
       <div>
         <h2>{name}</h2>
@@ -84,8 +79,10 @@ export function ParentChildCard({
           <span className="blue"><ShieldCheck size={18} /> {secondary}</span>
         </div>
       </div>
-    </section>
+    </>
   );
+  if (href) return <Link className="parent-child-card parent-child-card-link" href={href}>{content}</Link>;
+  return <section className="parent-child-card">{content}</section>;
 }
 
 export function ParentMetricCard({ title, value, hint, icon: Icon, tone = "purple", href }: { title: string; value: ReactNode; hint?: string; icon: IconType; tone?: Tone; href?: string }) {

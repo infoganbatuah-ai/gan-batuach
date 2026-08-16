@@ -33,7 +33,7 @@ export default async function GardenHealthPage() {
 
   return (
     <DashboardShell role="manager" title="בריאות ותרופות" appHome>
-      <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "רונית"}`} subtitle="בריאות ותרופות בגן" avatarUrl={(profile as any).avatar_url ?? null} active="children">
+      <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.replace(/\[DEMO\]/gi, "").trim().split(" ")[0] || "מנהלת הגן"}`} subtitle="בריאות ותרופות בגן" avatarUrl={(profile as any).profile_image_url ?? null} active="children">
         <TeacherPageTitle icon={HeartPulse} title="בריאות ותרופות" subtitle="מידע רפואי קריטי, מוצג רק למורשים" action={<a className="button primary" href="#health-manager">ניהול מלא</a>} />
 
         <TeacherStatsGrid>

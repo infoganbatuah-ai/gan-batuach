@@ -25,7 +25,7 @@ export default async function GardenNotificationsPage() {
   const unread = notifications.filter((item) => !item.read_at).length;
   const urgent = notifications.filter((item) => ["urgent", "critical"].includes(item.severity ?? "")).length;
   return (
-    <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.split(" ")[0] ?? "רונית"}`} subtitle="מרכז התראות הגן" avatarUrl={(profile as any).avatar_url ?? null} active="messages">
+    <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.replace(/\[DEMO\]/gi, "").trim().split(" ")[0] || "מנהלת הגן"}`} subtitle="מרכז התראות הגן" avatarUrl={(profile as any).profile_image_url ?? null} active="messages">
       <TeacherPageTitle icon={Bell} title="מרכז ההתראות" subtitle="כל מה שדורש תשומת לב במקום אחד" />
       <TeacherStatsGrid>
         <TeacherStatCard title="התראות חדשות" value={unread} hint="ממתינות לקריאה" icon={Bell} tone="purple" />

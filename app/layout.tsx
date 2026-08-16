@@ -4,6 +4,7 @@ import "./globals.css";
 import "./styles/app-shell.css";
 import "./styles/responsive-contract.css";
 import "./styles/ux-ui-rescue.css";
+import "./styles/dashboard-runtime.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://gan-batuach.vercel.app"),
