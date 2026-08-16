@@ -4,6 +4,7 @@ import type { ComponentType, ReactNode } from "react";
 import { Bell, CalendarDays, Camera, FileText, Home, Menu, MessageCircle, ShieldCheck, WalletCards } from "lucide-react";
 import type { LucideProps } from "lucide-react";
 import { RoleAppShell } from "@/components/role-app-shell";
+import { cleanSyntheticLabel } from "@/lib/domain/display-label";
 
 type Tone = "blue" | "purple" | "green" | "orange" | "red" | "neutral";
 type IconType = ComponentType<LucideProps>;
@@ -19,21 +20,15 @@ export function ParentAppFrame({
   avatarUrl?: string | null;
   profileName?: string | null;
 }) {
-  const today = new Intl.DateTimeFormat("he-IL", {
-    weekday: "long",
-    day: "numeric",
-    month: "long",
-    year: "numeric",
-    timeZone: "Asia/Jerusalem"
-  }).format(new Date());
+  const displayName = cleanSyntheticLabel(profileName, "הורה");
 
   return (
     <RoleAppShell
       role="parent"
       activeHref={active === "calendar" ? "/dashboard/parent/schedule" : active === "alerts" ? "/dashboard/parent/notifications" : active === "more" ? "/dashboard/parent/settings" : active === "home" ? "/dashboard/parent/family-home" : "/dashboard/parent"}
-      title="אזור הורים"
-      subtitle={today}
-      profile={{ full_name: profileName ?? "הורה", profile_image_url: avatarUrl }}
+      title="דשבורד הורים"
+      subtitle="מעקב חכם אחר הילד והגן"
+      profile={{ full_name: displayName, profile_image_url: avatarUrl }}
       className="parent-runtime-shell"
     >
       <div className="parent-app-main dashboard-runtime-content">{children}</div>

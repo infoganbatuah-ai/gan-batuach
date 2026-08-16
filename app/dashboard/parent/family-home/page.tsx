@@ -24,6 +24,7 @@ import { requireRole } from "@/lib/auth";
 import { eventDateText, eventTimeText, timelineCategoryLabel, timelineTone } from "@/lib/domain/child-safety-timeline";
 import { getParentCameraListForProfile } from "@/lib/domain/parent-camera-list";
 import { getParentFamilyContext } from "@/lib/domain/parent-family";
+import { cleanSyntheticLabel } from "@/lib/domain/display-label";
 import { createClient } from "@/lib/supabase/server";
 
 function childStatusLabel(status?: string | null) {
@@ -134,7 +135,7 @@ export default async function ParentFamilyHomePage() {
     permanent_child_file_id: enrollment.permanent_child_file_id,
     garden_id: enrollment.garden_id ?? enrollment.kindergarten_id,
     kindergarten_id: enrollment.garden_id ?? enrollment.kindergarten_id,
-    full_name: enrollment.full_name,
+    full_name: cleanSyntheticLabel(enrollment.full_name, "ילד/ה"),
     birth_date: enrollment.birth_date,
     photo_url: enrollment.photo_url,
     status: enrollment.status,
@@ -153,7 +154,10 @@ export default async function ParentFamilyHomePage() {
   }
   const children = Array.from(childrenById.values());
   const childIds = children.map((child) => child.id).filter(Boolean);
-  const gardensById = new Map((family.gardens as any[]).map((garden) => [garden.id, garden]));
+  const gardensById = new Map((family.gardens as any[]).map((garden) => [garden.id, {
+    ...garden,
+    name: cleanSyntheticLabel(garden.name, "גן משויך")
+  }]));
   const primaryChild = children[0] ?? null;
   const primaryGarden = primaryChild ? (gardensById.get(primaryChild.garden_id ?? primaryChild.kindergarten_id) as any) : null;
   const today = israelTodayDateKey();
@@ -218,7 +222,10 @@ export default async function ParentFamilyHomePage() {
   const unavailableCameras = cameraResult.debug.missingPlaybackSourceCount + cameraResult.debug.hiddenBecauseStatus + cameraResult.debug.hiddenBecauseParentViewingFlag;
   const safetyScore = inspectionRes.data?.weighted_score ?? primaryGarden?.last_inspection_score ?? null;
   const latestUpdate = timeline[0]?.event_time ?? primaryJournal?.created_at ?? record?.last_timeline_event_at;
-  const dailySummary = record?.parent_visible_summary ?? record?.daily_summary ?? parentDailySummary(primaryChild?.full_name ?? "הילד/ה", primaryJournal, timeline);
+  const dailySummary = cleanSyntheticLabel(
+    record?.parent_visible_summary ?? record?.daily_summary ?? parentDailySummary(primaryChild?.full_name ?? "הילד/ה", primaryJournal, timeline),
+    "עדכון יומי יופיע כאן לאחר שיתוף מאושר מהגן."
+  );
   const weeklySummary = record?.weekly_summary ?? `${timeline.filter((event) => event.event_time && new Date(event.event_time) >= weekStart).length} עדכוני ציר נצפו השבוע. סיכום מלא יופיע כאשר הגן ישתף מספיק עדכונים.`;
   const photoCount = gallery.filter((item) => item.media_type === "image").length + journals.reduce((sum, journal) => sum + (Array.isArray(journal.photo_urls) ? journal.photo_urls.length : 0), 0);
   const notificationCategories = [
@@ -248,7 +255,7 @@ export default async function ParentFamilyHomePage() {
     })),
     ...gallery.slice(0, 4).map((item) => ({
       id: `gallery-${item.id}`,
-      title: item.title ?? "תמונה חדשה מהגן",
+      title: cleanSyntheticLabel(item.title, "תמונה חדשה מהגן"),
       text: "רגע משפחתי שהגן שיתף",
       href: "/dashboard/parent/gallery",
       time: item.created_at,
@@ -257,8 +264,8 @@ export default async function ParentFamilyHomePage() {
     })),
     ...notifications.slice(0, 5).map((item) => ({
       id: `notification-${item.id}`,
-      title: item.title ?? "עדכון חדש",
-      text: item.body ?? item.message ?? "עדכון שמחכה לך",
+      title: cleanSyntheticLabel(item.title, "עדכון חדש"),
+      text: cleanSyntheticLabel(item.body ?? item.message, "עדכון שמחכה לך"),
       href: "/dashboard/parent/notifications",
       time: item.created_at,
       kind: categoryLabelForFeed(item),
@@ -328,8 +335,8 @@ export default async function ParentFamilyHomePage() {
                 <Link className={`parent-feed-item ${timelineTone(item.event_category, item.safety_relevance)}`} href={`/dashboard/parent/children/${primaryChild.id}/timeline`} key={item.id}>
                   <time>{eventTimeText(item.event_time)}</time>
                   <div>
-                    <strong>{item.title}</strong>
-                    <span>{item.summary_safe ?? item.description ?? "עדכון מהגן"}</span>
+                    <strong>{cleanSyntheticLabel(item.title, "עדכון מהגן")}</strong>
+                    <span>{cleanSyntheticLabel(item.summary_safe ?? item.description, "עדכון מהגן")}</span>
                     <small>{timelineCategoryLabel(item.event_category)}</small>
                   </div>
                 </Link>
@@ -386,7 +393,7 @@ export default async function ParentFamilyHomePage() {
               {notificationCategories.map((category) => <Link href="/dashboard/parent/notifications" key={category.label}>{category.label}<b>{category.count}</b></Link>)}
             </div>
             <div className="family-mini-list">
-              {notifications.slice(0, 4).map((item) => <Link href="/dashboard/parent/notifications" key={item.id}><strong>{item.title ?? "עדכון"}</strong><span>{item.body ?? item.message ?? "עדכון חדש מהמערכת"}</span></Link>)}
+              {notifications.slice(0, 4).map((item) => <Link href="/dashboard/parent/notifications" key={item.id}><strong>{cleanSyntheticLabel(item.title, "עדכון")}</strong><span>{cleanSyntheticLabel(item.body ?? item.message, "עדכון חדש מהמערכת")}</span></Link>)}
               {!notifications.length ? <span className="empty-inline">אין התראות חדשות.</span> : null}
             </div>
           </article>

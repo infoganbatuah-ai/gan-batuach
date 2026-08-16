@@ -4,7 +4,6 @@ import { redirect } from "next/navigation";
 import {
   Activity,
   Baby,
-  Bot,
   Camera,
   ClipboardCheck,
   FileText,
@@ -22,7 +21,6 @@ import {
   TeacherCompactItem,
   TeacherCompactList,
   TeacherEmptyState,
-  TeacherPageTitle,
   TeacherQuickActions,
   TeacherSection,
   TeacherStatCard,
@@ -256,19 +254,12 @@ export default async function GardenOperationsPage() {
   return (
     <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="מערכת הפעלה" appHome>
       <TeacherAppFrame
-        title={`שלום, ${profile.full_name?.replace(/\[DEMO\]/gi, "").trim().split(" ")[0] || "מנהלת הגן"}`}
-        subtitle={`${garden?.name ?? "הגן"} · נתונים חיים ומצבי מוכנות`}
+        title={`בוקר טוב, ${profile.full_name?.replace(/\[DEMO\]/gi, "").trim().split(" ")[0] || "מנהלת הגן"}`}
+        subtitle={`ברוכה הבאה ל${cleanSyntheticLabel(garden?.name, "הגן")}`}
         avatarUrl={(profile as any).profile_image_url ?? null}
         active="home"
       >
         {syntheticSession ? <div className="dashboard-environment-notice" role="status">סביבת בדיקה עם נתונים סינתטיים בלבד. ערכים חסרים אינם מוחלפים במספרי דמו.</div> : null}
-        <TeacherPageTitle
-          icon={Bot}
-          title="דשבורד הגן"
-          subtitle="נתונים מהגן ומצבי מוכנות אמיתיים. ערך חסר מוצג כחסר, לא כמספר דמו."
-          action={<Link className="teacher-soft-button purple" href="/dashboard/garden/tasks">משימות</Link>}
-        />
-
         <TeacherStatsGrid>
           <TeacherStatCard title="בריאות תפעולית" value={`${healthScore}/100`} hint={statusText(operationStatus)} icon={ShieldCheck} tone={healthScore >= 85 ? "green" : healthScore >= 65 ? "orange" : "red"} />
           <TeacherStatCard title="נוכחות ילדים" value={`${presentChildren}/${childCount}`} hint={`${attendanceCompletion}% הושלם`} icon={Baby} tone={attendanceCompletion >= 90 ? "green" : "orange"} href="/dashboard/garden/attendance" />
