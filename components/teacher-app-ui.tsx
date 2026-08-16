@@ -17,7 +17,6 @@ import {
   UsersRound
 } from "lucide-react";
 import type { LucideProps } from "lucide-react";
-import { israelTodayDateLine } from "@/lib/domain/israel-date";
 import { RoleAppShell } from "@/components/role-app-shell";
 import {
   ActionCard,
@@ -48,7 +47,6 @@ export function TeacherAppFrame({
 }) {
   const firstTitleWord = title.replace(/\[DEMO\]/g, "").trim();
   const profileName = firstTitleWord.replace(/^(?:בוקר טוב|שלום),\s*/u, "").trim() || "מנהלת הגן";
-  const todayLine = israelTodayDateLine();
   const activeMap = {
     home: { href: "/dashboard/garden/operations", label: "דשבורד", icon: Home },
     children: { href: "/dashboard/garden/children", label: "ילדים", icon: UsersRound },
@@ -65,10 +63,6 @@ export function TeacherAppFrame({
       profile={{ full_name: profileName, profile_image_url: avatarUrl }}
       className="teacher-runtime-shell"
     >
-      <div className="dashboard-current-date" aria-label="התאריך היום">
-        <CalendarDays size={32} />
-        <span><b>{todayLine.top}</b><small>{todayLine.bottom}</small></span>
-      </div>
       <div className="dashboard-runtime-content">{children}</div>
     </RoleAppShell>
   );

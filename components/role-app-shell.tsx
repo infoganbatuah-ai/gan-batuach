@@ -11,6 +11,7 @@ import {
   ClipboardCheck,
   FileText,
   Home,
+  LayoutDashboard,
   Menu,
   MessageCircle,
   Search,
@@ -27,6 +28,7 @@ import {
 } from "@/components/gan-batuach-design-system";
 import { LogoutButton } from "@/components/logout-button";
 import { cleanSyntheticLabel } from "@/lib/domain/display-label";
+import { israelTodayDateLine } from "@/lib/domain/israel-date";
 
 type IconType = ComponentType<LucideProps>;
 
@@ -67,9 +69,9 @@ export const roleAppShellConfig: Record<RoleAppShellRole, {
     notificationsHref: "/dashboard/admin/notifications",
     subtitle: "תפעול, אבטחה, מנויים ומוכנות השקה",
     nav: [
-      { href: "/dashboard/admin", label: "ראשי", icon: ShieldCheck },
-      { href: "/dashboard/admin/kindergartens", label: "גנים", icon: Home },
-      { href: "/dashboard/admin/subscriptions", label: "מנויים", icon: WalletCards },
+      { href: "/dashboard/admin", label: "בית", icon: Home },
+      { href: "/dashboard/admin/kindergarten-applications", label: "יומן", icon: CalendarDays },
+      { href: "/dashboard/admin/users", label: "אדמין", icon: ShieldCheck },
       { href: "/dashboard/admin/notifications", label: "התראות", icon: Bell },
       { href: "/dashboard/admin/settings", label: "עוד", icon: Menu }
     ]
@@ -81,9 +83,9 @@ export const roleAppShellConfig: Record<RoleAppShellRole, {
     notificationsHref: "/dashboard/garden/notifications",
     subtitle: "ניהול גן, ילדים, צוות, תשלומים ומסמכים",
     nav: [
-      { href: "/dashboard/garden/operations", label: "בית", icon: Home },
-      { href: "/dashboard/garden/attendance", label: "נוכחות", icon: ClipboardCheck },
-      { href: "/dashboard/garden/cameras", label: "מצלמות", icon: Camera },
+      { href: "/dashboard/garden", label: "בית", icon: Home },
+      { href: "/dashboard/garden/daily-journal", label: "יומן", icon: CalendarDays },
+      { href: "/dashboard/garden/operations", label: "דשבורד", icon: LayoutDashboard },
       { href: "/dashboard/garden/notifications", label: "התראות", icon: Bell },
       { href: "/dashboard/garden/settings", label: "עוד", icon: Menu }
     ]
@@ -95,9 +97,9 @@ export const roleAppShellConfig: Record<RoleAppShellRole, {
     notificationsHref: "/dashboard/garden/notifications",
     subtitle: "ניהול גן, ילדים, צוות, תשלומים ומסמכים",
     nav: [
-      { href: "/dashboard/garden/operations", label: "בית", icon: Home },
-      { href: "/dashboard/garden/payments", label: "תשלומים", icon: WalletCards },
-      { href: "/dashboard/garden/reports", label: "דוחות", icon: BarChart3 },
+      { href: "/dashboard/garden", label: "בית", icon: Home },
+      { href: "/dashboard/garden/daily-journal", label: "יומן", icon: CalendarDays },
+      { href: "/dashboard/garden/operations", label: "דשבורד", icon: LayoutDashboard },
       { href: "/dashboard/garden/notifications", label: "התראות", icon: Bell },
       { href: "/dashboard/garden/settings", label: "עוד", icon: Menu }
     ]
@@ -109,9 +111,9 @@ export const roleAppShellConfig: Record<RoleAppShellRole, {
     notificationsHref: "/dashboard/parent/notifications",
     subtitle: "ילדים, גנים, הודעות, תשלומים ומעקב",
     nav: [
-      { href: "/dashboard/parent", label: "בית", icon: Home },
-      { href: "/dashboard/parent/discover-kindergartens", label: "גנים", icon: Search },
-      { href: "/dashboard/parent/messages", label: "הודעות", icon: MessageCircle },
+      { href: "/dashboard/parent/family-home", label: "בית", icon: Home },
+      { href: "/dashboard/parent/schedule", label: "יומן", icon: CalendarDays },
+      { href: "/dashboard/parent", label: "דשבורד", icon: LayoutDashboard },
       { href: "/dashboard/parent/notifications", label: "התראות", icon: Bell },
       { href: "/dashboard/parent/settings", label: "עוד", icon: Menu }
     ]
@@ -123,10 +125,10 @@ export const roleAppShellConfig: Record<RoleAppShellRole, {
     notificationsHref: "/dashboard/staff/notifications",
     subtitle: "משמרות, משימות, מסמכים ותקשורת",
     nav: [
-      { href: "/dashboard/staff", label: "ראשי", icon: Home },
-      { href: "/dashboard/staff/shifts", label: "משמרות", icon: CalendarDays },
-      { href: "/dashboard/staff/messages", label: "הודעות", icon: MessageCircle },
       { href: "/dashboard/staff/settings", label: "פרופיל", icon: UserRound },
+      { href: "/dashboard/staff/shifts", label: "משמרות", icon: CalendarDays },
+      { href: "/dashboard/staff", label: "ראשי", icon: Home },
+      { href: "/dashboard/staff/messages", label: "הודעות", icon: MessageCircle },
       { href: "/dashboard/staff/tasks", label: "עוד", icon: Menu }
     ]
   },
@@ -139,8 +141,8 @@ export const roleAppShellConfig: Record<RoleAppShellRole, {
     nav: [
       { href: "/dashboard/inspector", label: "ראשי", icon: Home },
       { href: "/dashboard/inspector/inspections", label: "ביקורות", icon: ClipboardCheck },
-      { href: "/dashboard/inspector/reports", label: "דוחות", icon: FileText },
-      { href: "/dashboard/inspector/notifications", label: "התראות", icon: Bell },
+      { href: "/dashboard/inspector/control-center", label: "גנים", icon: Home },
+      { href: "/dashboard/inspector/reports", label: "דוחות", icon: BarChart3 },
       { href: "/dashboard/inspector/settings", label: "פרופיל", icon: UserRound }
     ]
   },
@@ -185,6 +187,7 @@ export function RoleAppShell({
   const resolvedActive = activeHref ?? config.homeHref;
   const displayName = cleanSyntheticLabel(profile?.full_name, config.label);
   const firstLetter = String(displayName).trim().slice(0, 1) || "ג";
+  const todayLine = israelTodayDateLine();
   const header = (
     <header className="role-app-header">
       <div className="role-app-brand">
@@ -192,9 +195,15 @@ export function RoleAppShell({
           <Image src="/assets/company-symbol.png" alt="" width={54} height={54} priority />
           <Image src="/assets/company-name.png" alt="גן בטוח" width={174} height={60} priority />
         </Link>
+      </div>
+      <div className="role-app-header-meta">
         <div className="role-app-title">
           <h1>{title ?? config.label}</h1>
           <p>{subtitle ?? config.subtitle}</p>
+        </div>
+        <div className="role-app-live-date" aria-label="התאריך היום">
+          <CalendarDays size={27} />
+          <span><b>{todayLine.top}</b><small>{todayLine.bottom}</small></span>
         </div>
       </div>
       <div className="role-app-actions">
@@ -210,7 +219,7 @@ export function RoleAppShell({
           <Bell size={23} />
         </Link>
         {actions}
-        <LogoutButton />
+        <LogoutButton compact />
       </div>
     </header>
   );
