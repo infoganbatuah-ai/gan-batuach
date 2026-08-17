@@ -1,0 +1,182 @@
+[
+  {
+    "name": "dashboard",
+    "clipped": [],
+    "error": false,
+    "h1": "בוקר טוב, [DEMO]",
+    "loading": false,
+    "sw": 1440,
+    "url": "/dashboard/inspector",
+    "vw": 1440
+  },
+  {
+    "name": "control-center",
+    "clipped": [],
+    "error": false,
+    "h1": "גנים מוקצים",
+    "loading": false,
+    "sw": 1440,
+    "url": "/dashboard/inspector/control-center",
+    "vw": 1440
+  },
+  {
+    "name": "command-center",
+    "clipped": [],
+    "error": false,
+    "h1": "גנים מוקצים",
+    "loading": false,
+    "sw": 1440,
+    "url": "/dashboard/inspector/command-center",
+    "vw": 1440
+  },
+  {
+    "name": "inspections",
+    "clipped": [],
+    "error": false,
+    "h1": "טופס ביקורת חודשית",
+    "loading": false,
+    "sw": 1440,
+    "url": "/dashboard/inspector/inspections",
+    "vw": 1440
+  },
+  {
+    "name": "due",
+    "clipped": [],
+    "error": false,
+    "h1": "יומן ביקורות",
+    "loading": false,
+    "sw": 1440,
+    "url": "/dashboard/inspector/inspections/due",
+    "vw": 1440
+  },
+  {
+    "name": "history",
+    "clipped": [],
+    "error": false,
+    "h1": "היסטוריית ביקורות",
+    "loading": false,
+    "sw": 1440,
+    "url": "/dashboard/inspector/inspections/history",
+    "vw": 1440
+  },
+  {
+    "name": "reports",
+    "clipped": [],
+    "error": false,
+    "h1": "דיווחים ופניות",
+    "loading": false,
+    "sw": 1440,
+    "url": "/dashboard/inspector/reports",
+    "vw": 1440
+  },
+  {
+    "name": "compliance",
+    "clipped": [],
+    "error": false,
+    "h1": "ציות ובקרה",
+    "loading": false,
+    "sw": 1440,
+    "url": "/dashboard/inspector/compliance",
+    "vw": 1440
+  },
+  {
+    "name": "ratings",
+    "clipped": [],
+    "error": false,
+    "h1": "דירוג גנים",
+    "loading": false,
+    "sw": 1440,
+    "url": "/dashboard/inspector/ratings",
+    "vw": 1440
+  },
+  {
+    "name": "risk",
+    "clipped": [],
+    "error": false,
+    "h1": "מודיעין סיכון",
+    "loading": false,
+    "sw": 1440,
+    "url": "/dashboard/inspector/risk",
+    "vw": 1440
+  },
+  {
+    "name": "violations",
+    "clipped": [],
+    "error": false,
+    "h1": "ליקויים ותיקונים",
+    "loading": false,
+    "sw": 1440,
+    "url": "/dashboard/inspector/violations",
+    "vw": 1440
+  },
+  {
+    "name": "tasks",
+    "clipped": [],
+    "error": false,
+    "h1": "משימות פקח",
+    "loading": false,
+    "sw": 1440,
+    "url": "/dashboard/inspector/tasks",
+    "vw": 1440
+  },
+  {
+    "name": "notifications",
+    "clipped": [],
+    "error": false,
+    "h1": "התראות מפקח",
+    "loading": false,
+    "sw": 1440,
+    "url": "/dashboard/inspector/notifications",
+    "vw": 1440
+  },
+  {
+    "name": "cameras",
+    "clipped": [],
+    "error": false,
+    "h1": "מצלמות גנים",
+    "loading": false,
+    "sw": 1440,
+    "url": "/dashboard/inspector/cameras",
+    "vw": 1440
+  },
+  {
+    "name": "ai-events",
+    "clipped": [],
+    "error": false,
+    "h1": "התראות תצפיתן",
+    "loading": false,
+    "sw": 1440,
+    "url": "/dashboard/inspector/ai-events",
+    "vw": 1440
+  },
+  {
+    "name": "settings",
+    "clipped": [],
+    "error": false,
+    "h1": "פרופיל מפקח",
+    "loading": false,
+    "sw": 1440,
+    "url": "/dashboard/inspector/settings",
+    "vw": 1440
+  },
+  {
+    "name": "observer-network",
+    "clipped": [],
+    "error": false,
+    "h1": "רשת תצפיתן",
+    "loading": false,
+    "sw": 1440,
+    "url": "/dashboard/inspector/observer-network",
+    "vw": 1440
+  },
+  {
+    "name": "observer-pilot",
+    "clipped": [],
+    "error": false,
+    "h1": "פיילוט תצפיתן",
+    "loading": false,
+    "sw": 1440,
+    "url": "/dashboard/inspector/observer-pilot",
+    "vw": 1440
+  }
+]

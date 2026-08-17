@@ -1,5 +1,4 @@
 import Link from "next/link";
-import { BrandHeader } from "@/components/brand-header";
 import type { UserRole } from "@/lib/roles";
 import { PasskeyEnrollmentPrompt } from "@/components/passkey-enrollment-prompt";
 import { LogoutButton } from "@/components/logout-button";
@@ -374,7 +373,6 @@ export function DashboardShell({
   const isAppHome = appHome || role === "manager" || role === "owner";
   return (
     <>
-      {isAppHome ? null : <BrandHeader />}
       <div className={`dashboard-layout responsive-dashboard-shell dashboard-role-${role}${isAppHome ? " app-home-layout" : ""}`}>
         {isAppHome ? null : (
           <aside className="sidebar">

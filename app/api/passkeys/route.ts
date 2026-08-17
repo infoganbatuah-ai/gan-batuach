@@ -16,8 +16,19 @@ export async function GET() {
     .order("created_at", { ascending: false });
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    const storageUnavailable = error.code === "42P01"
+      || error.code === "PGRST205"
+      || /passkey_credentials|schema cache/i.test(error.message);
+
+    if (storageUnavailable) {
+      return NextResponse.json({ data: [], available: false });
+    }
+
+    return NextResponse.json(
+      { error: "לא ניתן לבדוק כרגע את זמינות הכניסה המהירה." },
+      { status: 503 }
+    );
   }
 
-  return NextResponse.json({ data: data ?? [] });
+  return NextResponse.json({ data: data ?? [], available: true });
 }

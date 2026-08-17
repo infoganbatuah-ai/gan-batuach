@@ -1,0 +1,155 @@
+[
+  {
+    "role": "staff",
+    "name": "dashboard",
+    "clipped": 0,
+    "error": false,
+    "h1": "דשבורד צוות",
+    "sw": 768,
+    "vw": 768
+  },
+  {
+    "role": "staff",
+    "name": "child-journal",
+    "clipped": 0,
+    "error": false,
+    "h1": "דשבורד צוות",
+    "sw": 768,
+    "vw": 768
+  },
+  {
+    "role": "staff",
+    "name": "daily-journal",
+    "clipped": 0,
+    "error": false,
+    "h1": "דשבורד צוות",
+    "sw": 768,
+    "vw": 768
+  },
+  {
+    "role": "staff",
+    "name": "incidents",
+    "clipped": 0,
+    "error": false,
+    "h1": "דשבורד צוות",
+    "sw": 768,
+    "vw": 768
+  },
+  {
+    "role": "staff",
+    "name": "job-market",
+    "clipped": 0,
+    "error": false,
+    "h1": "דשבורד צוות",
+    "sw": 768,
+    "vw": 768
+  },
+  {
+    "role": "staff",
+    "name": "messages",
+    "clipped": 0,
+    "error": false,
+    "h1": "דשבורד צוות",
+    "sw": 768,
+    "vw": 768
+  },
+  {
+    "role": "inspector",
+    "name": "dashboard",
+    "clipped": 0,
+    "error": false,
+    "h1": "בוקר טוב, [DEMO]",
+    "sw": 768,
+    "vw": 768
+  },
+  {
+    "role": "inspector",
+    "name": "control-center",
+    "clipped": 0,
+    "error": false,
+    "h1": "גנים מוקצים",
+    "sw": 768,
+    "vw": 768
+  },
+  {
+    "role": "inspector",
+    "name": "inspections",
+    "clipped": 0,
+    "error": false,
+    "h1": "טופס ביקורת חודשית",
+    "sw": 768,
+    "vw": 768
+  },
+  {
+    "role": "inspector",
+    "name": "history",
+    "clipped": 0,
+    "error": false,
+    "h1": "היסטוריית ביקורות",
+    "sw": 768,
+    "vw": 768
+  },
+  {
+    "role": "inspector",
+    "name": "reports",
+    "clipped": 0,
+    "error": false,
+    "h1": "דיווחים ופניות",
+    "sw": 768,
+    "vw": 768
+  },
+  {
+    "role": "admin",
+    "name": "dashboard",
+    "clipped": 0,
+    "error": false,
+    "h1": "דשבורד אדמין ראשי",
+    "sw": 768,
+    "vw": 768
+  },
+  {
+    "role": "admin",
+    "name": "applications",
+    "clipped": 0,
+    "error": false,
+    "h1": "אישורי גנים חדשים",
+    "sw": 768,
+    "vw": 768
+  },
+  {
+    "role": "admin",
+    "name": "reports",
+    "clipped": 0,
+    "error": false,
+    "h1": "דוחות וניתוח נתונים",
+    "sw": 768,
+    "vw": 768
+  },
+  {
+    "role": "admin",
+    "name": "subscriptions",
+    "clipped": 0,
+    "error": false,
+    "h1": "מנויים ותשלומים",
+    "sw": 768,
+    "vw": 768
+  },
+  {
+    "role": "admin",
+    "name": "users",
+    "clipped": 0,
+    "error": false,
+    "h1": "ניהול משתמשים",
+    "sw": 768,
+    "vw": 768
+  },
+  {
+    "role": "admin",
+    "name": "notifications",
+    "clipped": 0,
+    "error": false,
+    "h1": "מרכז התראות",
+    "sw": 768,
+    "vw": 768
+  }
+]

@@ -1,0 +1,101 @@
+[
+  {
+    "name": "home",
+    "path": "/",
+    "bodyHeight": 5681,
+    "errors": false,
+    "scrollWidth": 390,
+    "title": "הפטנט הישראלי לניהול גני ילדים מקצה לקצה",
+    "url": "/",
+    "visibleButtons": 22,
+    "width": 390
+  },
+  {
+    "name": "app-entry",
+    "path": "/app",
+    "bodyHeight": 1506,
+    "errors": false,
+    "scrollWidth": 390,
+    "title": "ברוכים הבאים לגן בטוח",
+    "url": "/app",
+    "visibleButtons": 6,
+    "width": 390
+  },
+  {
+    "name": "login",
+    "path": "/app/login",
+    "bodyHeight": 920,
+    "errors": false,
+    "scrollWidth": 390,
+    "title": "",
+    "url": "/app/login",
+    "visibleButtons": 0,
+    "width": 390
+  },
+  {
+    "name": "register",
+    "path": "/app/register",
+    "bodyHeight": 2167,
+    "errors": false,
+    "scrollWidth": 390,
+    "title": "מה סוג המשתמש שלך?",
+    "url": "/app/register",
+    "visibleButtons": 6,
+    "width": 390
+  },
+  {
+    "name": "manager-info",
+    "path": "/join-kindergarten",
+    "bodyHeight": 8301,
+    "errors": false,
+    "scrollWidth": 390,
+    "title": "הופכים את הגן לגן בטוח, שקוף ומוכן לפיקוח.",
+    "url": "/join-kindergarten",
+    "visibleButtons": 8,
+    "width": 390
+  },
+  {
+    "name": "parent-info",
+    "path": "/parents",
+    "bodyHeight": 5058,
+    "errors": false,
+    "scrollWidth": 390,
+    "title": "הגן שלי עדיין לא בגן בטוח.",
+    "url": "/parents",
+    "visibleButtons": 6,
+    "width": 390
+  },
+  {
+    "name": "staff-info",
+    "path": "/staff",
+    "bodyHeight": 2458,
+    "errors": false,
+    "scrollWidth": 390,
+    "title": "דרך נקייה להצטרף לגן ולעבוד מסודר.",
+    "url": "/staff",
+    "visibleButtons": 12,
+    "width": 390
+  },
+  {
+    "name": "inspector-info",
+    "path": "/join-inspector",
+    "bodyHeight": 2122,
+    "errors": false,
+    "scrollWidth": 390,
+    "title": "הצטרפות למערך המפקחים של גן בטוח.",
+    "url": "/join-inspector",
+    "visibleButtons": 4,
+    "width": 390
+  },
+  {
+    "name": "directory",
+    "path": "/kindergarten-directory",
+    "bodyHeight": 920,
+    "errors": false,
+    "scrollWidth": 390,
+    "title": "",
+    "url": "/gardens",
+    "visibleButtons": 0,
+    "width": 390
+  }
+]

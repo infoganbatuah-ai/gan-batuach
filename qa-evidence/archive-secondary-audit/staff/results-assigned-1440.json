@@ -1,0 +1,146 @@
+[
+  {
+    "name": "dashboard",
+    "clipped": [],
+    "error": false,
+    "h1": "דשבורד צוות",
+    "sw": 1440,
+    "url": "/dashboard/staff",
+    "vw": 1440
+  },
+  {
+    "name": "attendance",
+    "clipped": [],
+    "error": false,
+    "h1": "דשבורד צוות",
+    "sw": 1440,
+    "url": "/dashboard/staff/attendance",
+    "vw": 1440
+  },
+  {
+    "name": "background",
+    "clipped": [],
+    "error": false,
+    "h1": "דשבורד צוות",
+    "sw": 1440,
+    "url": "/dashboard/staff/background",
+    "vw": 1440
+  },
+  {
+    "name": "cameras",
+    "clipped": [],
+    "error": false,
+    "h1": "דשבורד צוות",
+    "sw": 1440,
+    "url": "/dashboard/staff/cameras",
+    "vw": 1440
+  },
+  {
+    "name": "certificates",
+    "clipped": [],
+    "error": false,
+    "h1": "דשבורד צוות",
+    "sw": 1440,
+    "url": "/dashboard/staff/certificates",
+    "vw": 1440
+  },
+  {
+    "name": "child-journal",
+    "clipped": [],
+    "error": false,
+    "h1": "דשבורד צוות",
+    "sw": 1440,
+    "url": "/dashboard/staff/child-journal",
+    "vw": 1440
+  },
+  {
+    "name": "daily-journal",
+    "clipped": [],
+    "error": false,
+    "h1": "דשבורד צוות",
+    "sw": 1440,
+    "url": "/dashboard/staff/daily-journal",
+    "vw": 1440
+  },
+  {
+    "name": "documents",
+    "clipped": [],
+    "error": false,
+    "h1": "דשבורד צוות",
+    "sw": 1440,
+    "url": "/dashboard/staff/documents",
+    "vw": 1440
+  },
+  {
+    "name": "incidents",
+    "clipped": [],
+    "error": false,
+    "h1": "דשבורד צוות",
+    "sw": 1440,
+    "url": "/dashboard/staff/incidents",
+    "vw": 1440
+  },
+  {
+    "name": "job-market",
+    "clipped": [],
+    "error": false,
+    "h1": "דשבורד צוות",
+    "sw": 1440,
+    "url": "/dashboard/staff/job-market",
+    "vw": 1440
+  },
+  {
+    "name": "messages",
+    "clipped": [],
+    "error": false,
+    "h1": "דשבורד צוות",
+    "sw": 1440,
+    "url": "/dashboard/staff/messages",
+    "vw": 1440
+  },
+  {
+    "name": "notifications",
+    "clipped": [],
+    "error": false,
+    "h1": "דשבורד צוות",
+    "sw": 1440,
+    "url": "/dashboard/staff/notifications",
+    "vw": 1440
+  },
+  {
+    "name": "operations",
+    "clipped": [],
+    "error": false,
+    "h1": "דשבורד צוות",
+    "sw": 1440,
+    "url": "/dashboard/staff/operations",
+    "vw": 1440
+  },
+  {
+    "name": "settings",
+    "clipped": [],
+    "error": false,
+    "h1": "דשבורד צוות",
+    "sw": 1440,
+    "url": "/dashboard/staff/settings",
+    "vw": 1440
+  },
+  {
+    "name": "shifts",
+    "clipped": [],
+    "error": false,
+    "h1": "דשבורד צוות",
+    "sw": 1440,
+    "url": "/dashboard/staff/shifts",
+    "vw": 1440
+  },
+  {
+    "name": "tasks",
+    "clipped": [],
+    "error": false,
+    "h1": "דשבורד צוות",
+    "sw": 1440,
+    "url": "/dashboard/staff/tasks",
+    "vw": 1440
+  }
+]

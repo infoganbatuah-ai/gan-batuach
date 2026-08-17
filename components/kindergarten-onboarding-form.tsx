@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useMemo, useState, type FormEvent } from "react";
 import { Bell, CheckCircle2, CreditCard, Lock, Rocket, Save, ShieldCheck, WalletCards } from "lucide-react";
 import { UploadImageField } from "@/components/upload-image-field";
@@ -160,7 +161,7 @@ export function KindergartenSubscriptionActivationPanel({ gardenName, managerNam
     <main className="teacher-payment-complete-page" dir="rtl">
       <section className="teacher-payment-phone">
         <header className="teacher-payment-header">
-          <button className="teacher-icon-button" type="button" aria-label="התראות"><Bell size={24} /><span /></button>
+          <Link className="teacher-icon-button" href="/dashboard/garden/notifications" aria-label="התראות"><Bell size={24} /><span /></Link>
           <div className="teacher-app-greeting">
             <div className="teacher-avatar"><span>{managerName?.slice(0, 1) ?? "מ"}</span><i /></div>
             <div>
@@ -221,7 +222,7 @@ export function KindergartenSubscriptionActivationPanel({ gardenName, managerNam
           <article className="teacher-payment-card method-card">
             <h3><Lock size={18} /> אמצעי תשלום</h3>
             <div className="payment-method-tabs">
-              <button className="active" type="button"><CreditCard size={20} /> תשלום מנוי</button>
+              <span className="active"><CreditCard size={20} /> תשלום מנוי</span>
             </div>
             <div className="gateway-setup-state">
               <strong>פרטי כרטיס לא נשמרים במערכת</strong>
@@ -254,7 +255,7 @@ export function KindergartenSubscriptionActivationPanel({ gardenName, managerNam
           <button className="teacher-pay-button" disabled={busy} onClick={requestPayment} type="button">
             <Rocket size={24} /> {busy ? "שולח..." : "שלם והפעל מנוי"}
           </button>
-          <button className="teacher-save-button" type="button"><Save size={22} /> שמור לטיוטה</button>
+          <Link className="teacher-save-button" href="/dashboard/garden/subscription"><Save size={22} /> חזרה למסך המנוי</Link>
           {message ? <span className={message.includes("לא ") ? "error-text" : "payment-action-message"}>{message}</span> : null}
           <small>אם ספק תשלומים חי לא מוגדר, הבקשה תישלח לאדמין במצב ידני/מוכנות ולא תתבצע גבייה חיה.</small>
         </div>
