@@ -5,8 +5,8 @@ export function BrandHeader() {
   return (
     <header className="gb-public-header">
       <Link href="/" className="gb-public-brand" aria-label="גן בטוח">
-        <Image src="/assets/company-symbol.png" alt="" width={48} height={48} priority />
-        <Image src="/assets/company-name.png" alt="גן בטוח" width={146} height={46} priority />
+        <Image src="/assets/company-symbol.png" alt="" width={48} height={48} style={{ height: "auto" }} priority />
+        <Image src="/assets/company-name.png" alt="גן בטוח" width={146} height={46} style={{ height: "auto" }} priority />
       </Link>
       <nav aria-label="ניווט ציבורי">
         <Link href="/">ראשי</Link>

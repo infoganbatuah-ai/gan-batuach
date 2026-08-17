@@ -15,6 +15,7 @@ import {
   SectionHeader
 } from "@/components/gan-batuach-design-system";
 import { RoleAppShell } from "@/components/role-app-shell";
+import { israelTodayDateParts } from "@/lib/domain/israel-date";
 
 type Tone = "blue" | "purple" | "green" | "orange" | "red" | "neutral";
 type IconType = ComponentType<LucideProps>;
@@ -72,9 +73,16 @@ export function StaffInfoPill({ title, value, icon: Icon }: { title: string; val
 }
 
 export function StaffShiftCard({ status, hours, children }: { status: string; hours: string; children?: ReactNode }) {
+  const today = israelTodayDateParts();
+  const [day = "", month = ""] = today.gregorianDate.split(" ");
+
   return (
     <section className="staff-shift-card-ref">
-      <div className="staff-calendar-art" aria-hidden="true" />
+      <div className="staff-calendar-art" aria-label={`${today.weekday}, ${today.gregorianDate}`}>
+        <span className="staff-calendar-month">{month}</span>
+        <strong className="staff-calendar-day">{day}</strong>
+        <span className="staff-calendar-weekday">{today.weekday}</span>
+      </div>
       <div>
         <h2>המשמרת שלי</h2>
         <strong>{hours}</strong>

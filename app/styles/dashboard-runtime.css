@@ -241,6 +241,504 @@
   gap: var(--dashboard-gap);
 }
 
+/* Final manager overview, reconstructed from the approved design archive. */
+.manager-reference-dashboard {
+  display: grid;
+  gap: 22px;
+  width: 100%;
+  min-width: 0;
+}
+
+.manager-reference-card {
+  min-width: 0;
+  overflow: hidden;
+  border: 1px solid #e1e6f2;
+  border-radius: 24px;
+  background: rgb(255 255 255 / 96%);
+  color: var(--reference-navy);
+  box-shadow: 0 14px 35px rgb(49 63 123 / 9%);
+  text-decoration: none;
+}
+
+.manager-reference-kpis {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 18px;
+}
+
+.manager-reference-kpis > .manager-reference-card {
+  display: flex;
+  min-height: 278px;
+  padding: 22px;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.manager-card-heading {
+  display: inline-flex;
+  width: 100%;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 9px;
+  margin-bottom: auto;
+  color: #12276c;
+  font-size: 1.04rem;
+  font-style: normal;
+  font-weight: 900;
+}
+
+.manager-card-heading > svg {
+  padding: 7px;
+  overflow: visible;
+  border: 1px solid #e1defe;
+  border-radius: 999px;
+  color: #6658f4;
+  background: #f5f2ff;
+  box-sizing: content-box;
+}
+
+.manager-safety-shield {
+  display: grid;
+  width: 108px;
+  height: 116px;
+  margin: 12px auto 8px;
+  place-items: center;
+  color: #fff;
+  clip-path: polygon(50% 0, 92% 15%, 88% 68%, 72% 88%, 50% 100%, 28% 88%, 12% 68%, 8% 15%);
+  background: linear-gradient(145deg, #49d995, #1fbe73);
+  filter: drop-shadow(0 14px 15px rgb(28 187 111 / 25%));
+}
+
+.manager-safety-card > strong {
+  color: #25b96f;
+  font-size: 1.35rem;
+  font-weight: 950;
+}
+
+.manager-safety-card > small,
+.manager-reference-kpis > .manager-reference-card > small,
+.manager-reference-kpis > .manager-reference-card > em {
+  color: #7c87a4;
+  font-size: 0.85rem;
+  font-style: normal;
+  font-weight: 700;
+}
+
+.manager-safety-score {
+  margin-top: 7px;
+  color: #4f5fd7;
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.manager-staff-card > b {
+  margin-top: 10px;
+  color: #101f63;
+  font-size: 3rem;
+  line-height: 1;
+}
+
+.manager-avatar-stack {
+  display: flex;
+  justify-content: center;
+  margin: 17px 0 13px;
+  direction: ltr;
+}
+
+.manager-avatar-stack i {
+  display: grid;
+  width: 42px;
+  height: 42px;
+  margin-inline-start: -8px;
+  place-items: center;
+  border: 3px solid #fff;
+  border-radius: 999px;
+  background: linear-gradient(145deg, #e6e3ff, #f6f4ff);
+  color: #4f47ca;
+  box-shadow: 0 5px 14px rgb(42 51 111 / 13%);
+  font-style: normal;
+  font-weight: 900;
+}
+
+.manager-avatar-stack i:nth-child(2n) { background: linear-gradient(145deg, #e2f8ed, #f4fff9); color: #21885d; }
+.manager-avatar-stack i:nth-child(3n) { background: linear-gradient(145deg, #fff0df, #fff9f1); color: #bb732d; }
+.manager-avatar-stack i.more { background: #f6f7fb; color: #6f7894; }
+
+.manager-attendance-content {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 26px;
+  width: 100%;
+  margin: 8px 0 14px;
+}
+
+.manager-progress-ring {
+  position: relative;
+  display: grid;
+  width: 132px;
+  height: 132px;
+  flex: 0 0 132px;
+  place-content: center;
+  border-radius: 50%;
+  background: conic-gradient(#6459f4 var(--manager-progress), #e8eafb 0);
+  text-align: center;
+}
+
+.manager-progress-ring::before {
+  position: absolute;
+  inset: 12px;
+  border-radius: inherit;
+  background: #fff;
+  content: "";
+}
+
+.manager-progress-ring > * { position: relative; z-index: 1; }
+.manager-progress-ring b { color: #111f65; font-size: 2.3rem; line-height: 1; }
+.manager-progress-ring small { margin-top: 5px; color: #687594; font-size: 0.78rem; }
+
+.manager-attendance-legend {
+  display: grid;
+  gap: 13px;
+  min-width: 102px;
+  color: #596784;
+  text-align: right;
+}
+
+.manager-attendance-legend > span {
+  display: grid;
+  grid-template-columns: 8px 1fr auto;
+  align-items: center;
+  gap: 7px;
+  font-size: 0.8rem;
+}
+
+.manager-attendance-legend i { width: 8px; height: 8px; border-radius: 99px; background: #655bf4; }
+.manager-attendance-legend i.missing { background: #ec5790; }
+.manager-attendance-legend b { color: #5b50ed; font-size: 1.2rem; }
+
+.manager-reference-split,
+.manager-reference-lower {
+  display: grid;
+  gap: 18px;
+}
+
+.manager-reference-split { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+.manager-reference-lower { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+
+.manager-reference-panel {
+  display: flex;
+  min-height: 310px;
+  flex-direction: column;
+}
+
+.manager-reference-panel > header,
+.manager-reference-quick > header {
+  display: flex;
+  min-height: 66px;
+  align-items: center;
+  padding: 16px 20px;
+  border-bottom: 1px solid #e8ebf3;
+}
+
+.manager-reference-panel > header > span,
+.manager-reference-quick > header > span {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  font-size: 1.08rem;
+  font-weight: 950;
+}
+
+.manager-reference-panel > header svg,
+.manager-reference-quick > header svg { color: #6257ef; }
+
+.manager-reference-panel-body {
+  display: flex;
+  min-height: 0;
+  padding: 8px 16px;
+  flex: 1;
+  flex-direction: column;
+}
+
+.manager-schedule-list,
+.manager-update-list,
+.manager-task-list {
+  display: grid;
+  width: 100%;
+}
+
+.manager-schedule-list article {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 49px;
+  border-bottom: 1px solid #e9ecf4;
+}
+
+.manager-schedule-list article:last-child { border-bottom: 0; }
+.manager-schedule-list svg { color: #705cf5; }
+.manager-schedule-list strong { min-width: 0; overflow: hidden; color: #172867; font-size: 0.88rem; text-overflow: ellipsis; white-space: nowrap; }
+.manager-schedule-list time { color: #66738f; font-size: 0.78rem; direction: ltr; }
+
+.manager-update-list article {
+  display: grid;
+  grid-template-columns: 8px minmax(0, 1fr) auto auto;
+  align-items: center;
+  gap: 10px;
+  min-height: 64px;
+  border-bottom: 1px solid #e9ecf4;
+}
+
+.manager-update-list article > span { width: 8px; height: 8px; border-radius: 50%; background: #7952ee; }
+.manager-update-list article.green > span { background: #2dc27a; }
+.manager-update-list article.blue > span { background: #3b91e9; }
+.manager-update-list article.orange > span { background: #f0a33d; }
+.manager-update-list article > div { display: grid; min-width: 0; gap: 2px; }
+.manager-update-list strong { overflow: hidden; color: #172867; font-size: 0.88rem; text-overflow: ellipsis; white-space: nowrap; }
+.manager-update-list small { overflow: hidden; color: #7b86a0; font-size: 0.76rem; text-overflow: ellipsis; white-space: nowrap; }
+.manager-update-list time { color: #6d7892; font-size: 0.75rem; direction: ltr; }
+.manager-update-list svg { color: #7884a0; }
+
+.manager-panel-link {
+  display: flex;
+  min-height: 52px;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  margin-top: auto;
+  border-top: 1px solid #e8ebf3;
+  color: #6659ef;
+  font-size: 0.87rem;
+  font-weight: 900;
+  text-decoration: none;
+}
+
+.manager-reference-empty {
+  display: grid;
+  min-height: 154px;
+  place-content: center;
+  justify-items: center;
+  gap: 10px;
+  color: #8790a8;
+  text-align: center;
+}
+
+.manager-reference-quick > div {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 16px;
+  padding: 18px 22px 22px;
+}
+
+.manager-reference-quick > div > a {
+  display: grid;
+  min-height: 112px;
+  place-content: center;
+  justify-items: center;
+  gap: 11px;
+  border: 1px solid #e3e5f2;
+  border-radius: 17px;
+  color: #5c52e9;
+  background: linear-gradient(145deg, #fff, #f8f7ff);
+  box-shadow: 0 9px 20px rgb(66 62 141 / 7%);
+  text-align: center;
+  text-decoration: none;
+}
+
+.manager-reference-quick > div > a > span {
+  display: grid;
+  width: 49px;
+  height: 49px;
+  place-items: center;
+  border-radius: 15px;
+  background: #f0edff;
+}
+
+.manager-reference-quick b { font-size: 0.83rem; }
+
+.manager-shortcut-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  padding: 10px 0;
+}
+
+.manager-shortcut-grid a {
+  display: grid;
+  min-height: 76px;
+  place-content: center;
+  justify-items: center;
+  gap: 7px;
+  border: 1px solid #e4e7f1;
+  border-radius: 14px;
+  color: #4453d4;
+  background: #fff;
+  text-align: center;
+  text-decoration: none;
+}
+
+.manager-shortcut-grid b { color: #172867; font-size: 0.76rem; }
+
+.manager-task-list a {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 9px;
+  min-height: 64px;
+  border-bottom: 1px solid #e9ecf4;
+  color: inherit;
+  text-decoration: none;
+}
+
+.manager-task-list a > span { width: 17px; height: 17px; border: 2px solid #9fa7bd; border-radius: 50%; }
+.manager-task-list a > div { display: grid; gap: 2px; min-width: 0; }
+.manager-task-list strong { overflow: hidden; color: #172867; font-size: 0.84rem; text-overflow: ellipsis; white-space: nowrap; }
+.manager-task-list small { color: #818ba2; font-size: 0.72rem; }
+.manager-task-list svg { color: #7884a0; }
+
+.manager-message-summary {
+  display: grid;
+  min-height: 220px;
+  place-content: center;
+  justify-items: center;
+  gap: 6px;
+  text-align: center;
+}
+
+.manager-message-summary > span { display: grid; width: 58px; height: 58px; place-items: center; border-radius: 18px; color: #6559ef; background: #f0edff; }
+.manager-message-summary > b { color: #101f63; font-size: 2.5rem; line-height: 1; }
+.manager-message-summary > strong { color: #172867; font-size: 0.86rem; }
+.manager-message-summary > small { max-width: 24ch; color: #7b86a0; font-size: 0.75rem; }
+.manager-message-summary > a { margin-top: 7px; color: #6559ef; font-size: 0.8rem; font-weight: 900; text-decoration: none; }
+
+.manager-demo-notice { justify-self: start; margin-bottom: -6px; }
+
+@media (max-width: 1100px) {
+  .manager-reference-lower { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .manager-reference-lower > :first-child { grid-column: 1 / -1; }
+  .manager-shortcut-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
+
+@media (max-width: 720px) {
+  .manager-reference-dashboard { gap: 14px; }
+  .manager-reference-kpis { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .manager-reference-kpis > .manager-reference-card { min-height: 208px; padding: 14px 12px; }
+  .manager-reference-kpis > .manager-safety-card { grid-column: 1 / -1; min-height: 196px; }
+  .manager-card-heading { font-size: 0.81rem; }
+  .manager-card-heading > svg { width: 18px; height: 18px; padding: 5px; }
+  .manager-safety-shield { width: 72px; height: 78px; margin: 5px auto 3px; }
+  .manager-safety-shield svg { width: 30px; }
+  .manager-safety-card > strong { font-size: 1.1rem; }
+  .manager-staff-card > b { font-size: 2.15rem; }
+  .manager-avatar-stack { margin: 10px 0 8px; }
+  .manager-avatar-stack i { width: 31px; height: 31px; font-size: 0.72rem; }
+  .manager-attendance-content { gap: 10px; margin: 7px 0 10px; }
+  .manager-progress-ring { width: 88px; height: 88px; flex-basis: 88px; }
+  .manager-progress-ring::before { inset: 8px; }
+  .manager-progress-ring b { font-size: 1.55rem; }
+  .manager-progress-ring small { font-size: 0.62rem; }
+  .manager-attendance-legend { min-width: 0; gap: 8px; }
+  .manager-attendance-legend > span { grid-template-columns: 6px 1fr; gap: 4px; font-size: 0.65rem; }
+  .manager-attendance-legend > span b { grid-column: 2; font-size: 0.94rem; }
+  .manager-reference-split,
+  .manager-reference-lower { grid-template-columns: minmax(0, 1fr); gap: 14px; }
+  .manager-reference-lower > :first-child { grid-column: auto; }
+  .manager-reference-panel { min-height: 260px; }
+  .manager-reference-panel > header,
+  .manager-reference-quick > header { min-height: 56px; padding: 13px 15px; }
+  .manager-reference-panel > header > span,
+  .manager-reference-quick > header > span { font-size: 0.94rem; }
+  .manager-reference-quick > div { grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; padding: 14px; }
+  .manager-reference-quick > div > a { min-height: 90px; border-radius: 14px; }
+  .manager-reference-quick > div > a > span { width: 40px; height: 40px; }
+  .manager-reference-quick > div > a > span svg { width: 23px; }
+  .manager-reference-quick b { font-size: 0.72rem; }
+  .manager-shortcut-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* Inspector dashboard follows the field-work reference: personal greeting,
+   next inspection, four KPIs, two working lists and four direct actions. */
+.role-app-shell.inspector-runtime-shell .role-app-title h1 {
+  font-size: clamp(1.8rem, 4vw, 2.65rem);
+}
+
+.role-app-shell.inspector-runtime-shell .inspector-hero-card {
+  grid-template-columns: minmax(190px, 0.7fr) minmax(0, 1.3fr);
+  min-height: 286px;
+}
+
+.role-app-shell.inspector-runtime-shell .inspector-metric-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+}
+
+.role-app-shell.inspector-runtime-shell .inspector-actions-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+}
+
+@media (max-width: 720px) {
+  .role-app-shell.inspector-runtime-shell .role-app-header-meta {
+    align-items: flex-start;
+  }
+
+  .role-app-shell.inspector-runtime-shell .role-app-title h1 {
+    font-size: 1.75rem;
+  }
+
+  .role-app-shell.inspector-runtime-shell .role-app-title p {
+    font-size: 0.83rem;
+  }
+
+  .role-app-shell.inspector-runtime-shell .inspector-hero-card {
+    grid-template-columns: 112px minmax(0, 1fr) !important;
+    min-height: 226px;
+    padding: 18px 15px !important;
+  }
+
+  .role-app-shell.inspector-runtime-shell .inspector-hero-art {
+    min-height: 150px;
+  }
+
+  .role-app-shell.inspector-runtime-shell .inspector-hero-copy h2 {
+    font-size: 1.8rem;
+  }
+
+  .role-app-shell.inspector-runtime-shell .inspector-hero-actions {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .role-app-shell.inspector-runtime-shell .inspector-action-button {
+    min-width: 0;
+    padding-inline: 9px;
+    font-size: 0.76rem;
+  }
+
+  .role-app-shell.inspector-runtime-shell .inspector-metric-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .role-app-shell.inspector-runtime-shell .inspector-actions-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 8px;
+  }
+
+  .role-app-shell.inspector-runtime-shell .inspector-actions-grid .gb-action-card {
+    min-height: 102px;
+    padding: 12px 6px;
+  }
+
+  .role-app-shell.inspector-runtime-shell .inspector-actions-grid .gb-action-card h3 {
+    font-size: 0.76rem;
+  }
+
+  .role-app-shell.inspector-runtime-shell .inspector-actions-grid .gb-action-card p {
+    display: none;
+  }
+}
+
 .dashboard-current-date {
   justify-self: start;
 }
@@ -892,5 +1390,478 @@
   .role-app-shell .role-app-live-date {
     width: 100%;
     justify-content: center;
+  }
+}
+
+/* Parent reference uses the product header for brand/date only; the page hero
+   owns the dashboard title. This also removes the duplicated mobile heading. */
+.role-app-shell.parent-runtime-shell .role-app-title {
+  display: none;
+}
+
+.role-app-shell.parent-runtime-shell .role-app-header-meta {
+  justify-content: flex-start;
+}
+
+/* The staff page owns its greeting and role context. Keep the global shell
+   focused on brand and session actions instead of repeating a dashboard title. */
+.role-app-shell.staff-runtime-shell .role-app-header-meta {
+  display: none;
+}
+
+.role-app-shell.staff-runtime-shell .role-app-header {
+  grid-template-columns: auto minmax(0, 1fr);
+  grid-template-areas: "actions brand";
+}
+
+.role-app-shell.staff-runtime-shell .role-app-brand {
+  justify-self: end;
+}
+
+.role-app-shell.staff-runtime-shell .role-app-actions {
+  justify-self: start;
+}
+
+@media (max-width: 820px) {
+  .role-app-shell.parent-runtime-shell .role-app-header {
+    gap: 10px 8px;
+    padding-bottom: 12px;
+  }
+
+  .role-app-shell.parent-runtime-shell .role-app-header-meta {
+    display: flex;
+    justify-content: flex-start;
+  }
+
+  .role-app-shell.parent-runtime-shell .role-app-live-date {
+    width: min(100%, 300px);
+    min-height: 46px;
+    margin-inline: auto 0;
+  }
+
+  .role-app-shell.parent-runtime-shell .parent-hero {
+    padding-top: 10px;
+  }
+
+  .role-app-shell.parent-runtime-shell .parent-child-card {
+    grid-template-columns: 92px minmax(0, 1fr) !important;
+    gap: 15px;
+    min-height: 150px;
+    padding: 16px;
+    text-align: right;
+  }
+
+  .role-app-shell.parent-runtime-shell .parent-child-photo {
+    width: 92px;
+    height: 92px;
+    margin: 0;
+    border-width: 5px;
+  }
+
+  .role-app-shell.parent-runtime-shell .parent-child-photo > span {
+    font-size: 1.9rem;
+  }
+
+  .role-app-shell.parent-runtime-shell .parent-child-card h2 {
+    font-size: 1.55rem;
+  }
+
+  .role-app-shell.parent-runtime-shell .parent-child-card p {
+    margin: 4px 0 10px;
+    font-size: 0.78rem;
+  }
+
+  .role-app-shell.parent-runtime-shell .parent-child-badges {
+    justify-content: flex-start;
+    gap: 6px;
+  }
+
+  .role-app-shell.parent-runtime-shell .parent-child-badges span,
+  .role-app-shell.parent-runtime-shell .parent-child-badges a {
+    gap: 5px;
+    padding: 6px 9px;
+    font-size: 0.7rem;
+  }
+
+  .role-app-shell.parent-runtime-shell .parent-child-badges svg {
+    width: 14px;
+    height: 14px;
+  }
+
+  .role-app-shell.parent-runtime-shell .parent-metrics-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .role-app-shell.staff-runtime-shell .role-app-header {
+    gap: 8px;
+    padding-bottom: 12px;
+  }
+
+  .role-app-shell.staff-runtime-shell .staff-reference-hero {
+    grid-template-columns: minmax(0, 1fr) minmax(112px, 132px) !important;
+    align-items: end;
+    gap: 12px;
+  }
+
+  .role-app-shell.staff-runtime-shell .staff-reference-hero h1 {
+    margin: 0;
+    font-size: clamp(1.55rem, 7vw, 2rem);
+  }
+
+  .role-app-shell.staff-runtime-shell .staff-reference-hero p {
+    font-size: 0.9rem;
+  }
+
+  .role-app-shell.staff-runtime-shell .staff-side-info {
+    display: grid !important;
+    min-width: 0;
+    gap: 7px;
+  }
+
+  .role-app-shell.staff-runtime-shell .staff-info-pill {
+    grid-template-columns: 30px minmax(0, 1fr);
+    gap: 7px;
+    min-width: 0;
+    padding: 8px;
+  }
+
+  .role-app-shell.staff-runtime-shell .staff-info-pill > div {
+    min-width: 0;
+  }
+
+  .role-app-shell.staff-runtime-shell .staff-info-pill strong,
+  .role-app-shell.staff-runtime-shell .staff-info-pill span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .role-app-shell.staff-runtime-shell .staff-info-pill strong {
+    font-size: 0.68rem;
+  }
+
+  .role-app-shell.staff-runtime-shell .staff-info-pill span {
+    font-size: 0.74rem;
+  }
+
+  .role-app-shell.staff-runtime-shell .staff-shift-card-ref {
+    grid-template-columns: 88px minmax(0, 1fr) !important;
+    gap: 14px;
+    padding: 16px;
+  }
+
+  .role-app-shell.staff-runtime-shell .staff-calendar-art {
+    display: block !important;
+    width: 88px;
+    min-height: 104px;
+    height: 104px;
+    align-self: stretch;
+  }
+
+  .role-app-shell.staff-runtime-shell .staff-shift-card-ref h2 {
+    font-size: 0.82rem;
+  }
+
+  .role-app-shell.staff-runtime-shell .staff-shift-card-ref strong {
+    font-size: 1.22rem;
+  }
+
+  .role-app-shell.staff-runtime-shell .staff-shift-buttons {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 7px;
+  }
+
+  .role-app-shell.staff-runtime-shell .staff-shift-buttons a {
+    min-width: 0;
+    min-height: 46px;
+    padding: 7px 4px;
+    font-size: 0.7rem;
+  }
+
+  .role-app-shell.staff-runtime-shell .staff-metric-grid-ref,
+  .role-app-shell.staff-runtime-shell .staff-stats-grid-ref {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .role-app-shell.staff-runtime-shell .staff-action-grid-ref {
+    grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+    gap: 8px;
+  }
+
+  .role-app-shell.staff-runtime-shell .staff-action-tile-ref {
+    min-width: 0;
+    min-height: 92px;
+    padding: 12px 6px;
+    font-size: 0.74rem;
+  }
+}
+
+@media (max-width: 420px) {
+  .role-app-shell.staff-runtime-shell .role-app-page {
+    padding-inline: 12px;
+  }
+
+  .role-app-shell.staff-runtime-shell .staff-shift-card-ref {
+    grid-template-columns: 76px minmax(0, 1fr) !important;
+    gap: 10px;
+    padding: 14px 12px;
+  }
+
+  .role-app-shell.staff-runtime-shell .staff-calendar-art {
+    width: 76px;
+  }
+}
+
+/* Admin reference: the header owns brand/date/session controls while the page
+   owns the dashboard heading and operational hierarchy. */
+.role-app-shell.admin-runtime-shell .role-app-title {
+  display: none;
+}
+
+.role-app-shell.admin-runtime-shell .role-app-header-meta {
+  justify-content: flex-start;
+}
+
+.role-app-shell.admin-runtime-shell .admin-app-page {
+  gap: 22px;
+}
+
+.admin-reference-title {
+  padding: 8px 4px 0;
+  text-align: right;
+}
+
+.admin-reference-title h1 {
+  color: var(--gb-ink);
+  font-size: clamp(2rem, 5vw, 3.2rem);
+  font-weight: 950;
+  line-height: 1.04;
+  margin: 0;
+}
+
+.admin-reference-title p {
+  color: var(--gb-muted);
+  font-size: 1.1rem;
+  font-weight: 760;
+  margin: 8px 0 0;
+}
+
+.role-app-shell.admin-runtime-shell .error-banner {
+  min-height: 46px;
+  margin: 0;
+  padding: 12px 16px;
+  border-radius: 14px;
+  font-size: 0.88rem;
+}
+
+.role-app-shell.admin-runtime-shell .admin-reference-kpis {
+  grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
+}
+
+.role-app-shell.admin-runtime-shell .admin-reference-kpis .gb-metric-card {
+  min-height: 176px;
+  padding: 20px 16px;
+}
+
+.admin-system-status-card {
+  align-items: center;
+  display: grid;
+  gap: 24px;
+  grid-template-columns: minmax(260px, 0.9fr) minmax(0, 1.4fr);
+}
+
+.admin-system-status-copy {
+  align-items: flex-start;
+  display: grid;
+  gap: 12px;
+  grid-template-columns: 14px minmax(0, 1fr);
+}
+
+.admin-system-dot {
+  background: var(--gb-warning, #f5a524);
+  border-radius: 999px;
+  box-shadow: 0 0 0 7px rgb(245 165 36 / 12%);
+  height: 12px;
+  margin-top: 8px;
+  width: 12px;
+}
+
+.admin-system-dot.gb-tone-success {
+  background: #20b866;
+  box-shadow: 0 0 0 7px rgb(32 184 102 / 12%);
+}
+
+.admin-system-dot.gb-tone-danger {
+  background: #ef405e;
+  box-shadow: 0 0 0 7px rgb(239 64 94 / 12%);
+}
+
+.admin-system-status-copy h2,
+.admin-system-status-copy strong,
+.admin-system-status-copy p {
+  margin: 0;
+}
+
+.admin-system-status-copy h2 {
+  color: var(--gb-ink);
+  font-size: 1.35rem;
+}
+
+.admin-system-status-copy strong {
+  color: #179b51;
+  display: block;
+  font-size: 1.05rem;
+  margin-top: 6px;
+}
+
+.admin-system-status-copy p {
+  color: var(--gb-muted);
+  font-size: 0.88rem;
+  line-height: 1.55;
+  margin-top: 5px;
+}
+
+.admin-system-services {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+
+.admin-system-services span {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+  padding: 8px 14px;
+  text-align: center;
+}
+
+.admin-system-services span + span {
+  border-inline-start: 1px solid var(--gb-line);
+}
+
+.admin-system-services b {
+  color: var(--gb-muted);
+  font-size: 0.78rem;
+}
+
+.admin-system-services small {
+  color: var(--gb-ink);
+  font-size: 0.83rem;
+  font-weight: 900;
+}
+
+.admin-reference-actions {
+  display: grid;
+  gap: 13px;
+}
+
+.role-app-shell.admin-runtime-shell .admin-quick-action-grid {
+  grid-template-columns: repeat(6, minmax(0, 1fr)) !important;
+}
+
+.role-app-shell.admin-runtime-shell .admin-quick-action-grid .gb-action-card {
+  min-height: 142px;
+  padding: 16px 10px;
+  text-align: center;
+}
+
+.role-app-shell.admin-runtime-shell .admin-quick-action-grid .gb-action-card p {
+  font-size: 0.72rem;
+}
+
+.admin-business-summary {
+  border: 1px solid var(--gb-line);
+  border-radius: 18px;
+  background: rgb(255 255 255 / 72%);
+  padding: 12px;
+}
+
+.admin-business-summary > summary {
+  color: var(--gb-primary);
+  cursor: pointer;
+  font-weight: 900;
+  padding: 8px 10px;
+}
+
+.admin-business-summary[open] > summary {
+  margin-bottom: 12px;
+}
+
+@media (max-width: 900px) {
+  .admin-system-status-card {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .role-app-shell.admin-runtime-shell .admin-quick-action-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+  }
+}
+
+@media (max-width: 720px) {
+  .role-app-shell.admin-runtime-shell .role-app-header {
+    padding-bottom: 12px;
+  }
+
+  .role-app-shell.admin-runtime-shell .role-app-live-date {
+    min-height: 46px;
+  }
+
+  .role-app-shell.admin-runtime-shell .admin-app-page {
+    gap: 16px;
+  }
+
+  .admin-reference-title {
+    padding-top: 2px;
+  }
+
+  .admin-reference-title h1 {
+    font-size: 2rem;
+  }
+
+  .admin-reference-title p {
+    font-size: 0.94rem;
+  }
+
+  .role-app-shell.admin-runtime-shell .admin-reference-kpis {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  }
+
+  .role-app-shell.admin-runtime-shell .admin-reference-kpis .gb-metric-card {
+    min-height: 138px;
+    padding: 14px 10px;
+  }
+
+  .admin-system-status-card {
+    padding: 18px 14px !important;
+  }
+
+  .admin-system-services {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .admin-system-services span:nth-child(3) {
+    border-inline-start: 0;
+    border-top: 1px solid var(--gb-line);
+  }
+
+  .admin-system-services span:nth-child(4) {
+    border-top: 1px solid var(--gb-line);
+  }
+
+  .role-app-shell.admin-runtime-shell .admin-quick-action-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr)) !important;
+    gap: 8px;
+  }
+
+  .role-app-shell.admin-runtime-shell .admin-quick-action-grid .gb-action-card {
+    min-height: 116px;
+    padding: 12px 6px;
+  }
+
+  .role-app-shell.admin-runtime-shell .admin-quick-action-grid .gb-action-card h3 {
+    font-size: 0.76rem;
+  }
+
+  .role-app-shell.admin-runtime-shell .admin-quick-action-grid .gb-action-card p {
+    display: none;
   }
 }

@@ -1004,6 +1004,45 @@
   }
 }
 
+@media (max-width: 600px) {
+  .gb-public-header {
+    grid-template-columns: minmax(0, 1fr);
+    gap: 10px;
+    padding: max(12px, env(safe-area-inset-top, 0px)) 14px 12px;
+  }
+
+  .gb-public-brand {
+    justify-content: center;
+    width: 100%;
+  }
+
+  .gb-public-brand img:first-child {
+    width: 40px;
+    height: auto;
+  }
+
+  .gb-public-brand img:nth-child(2) {
+    width: 124px;
+    height: auto;
+  }
+
+  .gb-public-header-actions {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    width: 100%;
+  }
+
+  .gb-public-header-actions .gb-public-button {
+    min-width: 0;
+    width: 100%;
+    padding-inline: 10px;
+  }
+
+  .gb-public-header-actions .nav-system-entry {
+    display: none;
+  }
+}
+
 .gb-app-shell,
 .gb-mobile-app-shell,
 .gb-desktop-dashboard-shell,
@@ -15592,20 +15631,38 @@ textarea {
 }
 
 .staff-calendar-art {
+  align-items: center;
   background: linear-gradient(135deg, #fff, #ded7ff);
   border-radius: 34px;
+  display: flex;
+  flex-direction: column;
   height: 150px;
+  justify-content: center;
+  overflow: hidden;
   position: relative;
 }
 
-.staff-calendar-art::before {
-  color: #8a6aff;
-  content: "📅";
-  font-size: 4.5rem;
-  left: 50%;
-  position: absolute;
-  top: 50%;
-  transform: translate(-50%, -50%);
+.staff-calendar-month {
+  align-self: stretch;
+  background: #8a6aff;
+  color: #fff;
+  font-size: 0.72rem;
+  font-weight: 900;
+  padding: 6px;
+  text-align: center;
+}
+
+.staff-calendar-day {
+  color: #17346b;
+  font-size: 2.25rem;
+  line-height: 1;
+  margin: 10px 0 4px;
+}
+
+.staff-calendar-weekday {
+  color: #6d7792;
+  font-size: 0.68rem;
+  font-weight: 850;
 }
 
 .staff-shift-card-ref h2 {

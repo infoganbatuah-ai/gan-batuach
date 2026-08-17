@@ -192,8 +192,8 @@ export function RoleAppShell({
     <header className="role-app-header">
       <div className="role-app-brand">
         <Link className="role-app-logo" href={config.homeHref} aria-label="גן בטוח">
-          <Image src="/assets/company-symbol.png" alt="" width={54} height={54} priority />
-          <Image src="/assets/company-name.png" alt="גן בטוח" width={174} height={60} priority />
+          <Image src="/assets/company-symbol.png" alt="" width={54} height={54} style={{ height: "auto" }} priority />
+          <Image src="/assets/company-name.png" alt="גן בטוח" width={174} height={60} style={{ height: "auto" }} priority />
         </Link>
       </div>
       <div className="role-app-header-meta">
