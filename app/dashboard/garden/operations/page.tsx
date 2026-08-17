@@ -1,43 +1,12 @@
-import Link from "next/link";
 import { israelTodayDateKey } from "@/lib/domain/israel-date";
 import { redirect } from "next/navigation";
-import {
-  Activity,
-  Baby,
-  Camera,
-  ClipboardCheck,
-  FileText,
-  HeartPulse,
-  MessageSquare,
-  ShieldCheck,
-  Sparkles,
-  UsersRound,
-  WalletCards
-} from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
-import {
-  TeacherActionTile,
-  TeacherAppFrame,
-  TeacherCompactItem,
-  TeacherCompactList,
-  TeacherEmptyState,
-  TeacherQuickActions,
-  TeacherSection,
-  TeacherStatCard,
-  TeacherStatsGrid
-} from "@/components/teacher-app-ui";
+import { ManagerOverviewDashboard } from "@/components/manager-overview-dashboard";
+import { TeacherAppFrame } from "@/components/teacher-app-ui";
 import { requireRole } from "@/lib/auth";
 import { cleanSyntheticLabel, isSyntheticLabel } from "@/lib/domain/display-label";
 import { createClient } from "@/lib/supabase/server";
-import {
-  buildOperationalHealthScore,
-  countTone,
-  kosAssistantQuestions,
-  kosTone,
-  kosWorkflowExamples,
-  sourceLabel,
-  statusLabel
-} from "@/lib/domain/kindergarten-operating-system";
+import { buildOperationalHealthScore } from "@/lib/domain/kindergarten-operating-system";
 
 function pct(part: number, total: number) {
   if (!total) return 0;
@@ -65,9 +34,9 @@ function statusText(value: string) {
   return map[value] ?? "דורש תשומת לב";
 }
 
-function dateText(value?: string | null) {
-  if (!value) return "לא נקבע";
-  return new Intl.DateTimeFormat("he-IL", { day: "2-digit", month: "2-digit" }).format(new Date(value));
+function timeText(value?: string | null) {
+  if (!value) return "";
+  return new Intl.DateTimeFormat("he-IL", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jerusalem" }).format(new Date(value));
 }
 
 export default async function GardenOperationsPage() {
@@ -77,6 +46,10 @@ export default async function GardenOperationsPage() {
 
   const supabase = await createClient();
   const today = israelTodayDateKey();
+  const dayStart = new Date();
+  dayStart.setHours(0, 0, 0, 0);
+  const dayEnd = new Date(dayStart);
+  dayEnd.setDate(dayEnd.getDate() + 1);
 
   const [
     gardenRes,
@@ -85,6 +58,7 @@ export default async function GardenOperationsPage() {
     journalsRes,
     staffRes,
     shiftsRes,
+    scheduleRes,
     tasksRes,
     notificationsRes,
     messagesRes,
@@ -108,6 +82,7 @@ export default async function GardenOperationsPage() {
     supabase.from("child_daily_journals" as any).select("child_id,meals,sleep_summary,health_notes,mood").eq("garden_id", gardenId).eq("journal_date", today),
     supabase.from("staff" as any).select("id,full_name,role_title,approved_to_work,onboarding_status", { count: "exact" }).eq("garden_id", gardenId),
     supabase.from("staff_shifts" as any).select("staff_id,clock_in_at,clock_out_at", { count: "exact" }).eq("garden_id", gardenId).eq("shift_date", today),
+    supabase.from("schedule_items" as any).select("id,title,description,starts_at,ends_at").eq("garden_id", gardenId).gte("starts_at", dayStart.toISOString()).lt("starts_at", dayEnd.toISOString()).order("starts_at", { ascending: true }).limit(8),
     supabase.from("tasks" as any).select("id,title,status,task_type,due_at,source_entity_type,source_entity_id", { count: "exact" }).eq("garden_id", gardenId).neq("status", "done").order("created_at", { ascending: false }).limit(12),
     supabase.from("notifications" as any).select("id,title,body,status,entity_type,created_at", { count: "exact" }).eq("garden_id", gardenId).in("status", ["pending", "sent"]).is("read_at", null).order("created_at", { ascending: false }).limit(10),
     supabase.from("messages" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId).is("read_at", null),
@@ -148,6 +123,7 @@ export default async function GardenOperationsPage() {
   const journals = (journalsRes.data ?? []) as any[];
   const cameras = (camerasRes.data ?? []) as any[];
   const tasks = (tasksRes.data ?? []) as any[];
+  const schedule = (scheduleRes.data ?? []) as any[];
   const workflows = (workflowRes.data ?? []) as any[];
   const docs = (documentsRes.data ?? []) as any[];
   const inspections = (inspectionsRes.data ?? []) as any[];
@@ -189,17 +165,7 @@ export default async function GardenOperationsPage() {
 
   const savedHealth = healthScoreRes.data as any;
   const healthScore = Number(savedHealth?.kindergarten_operational_health_score ?? liveHealth.score);
-  const healthTone = kosTone(healthScore);
   const operationStatus = String((dailyOpsRes.data as any)?.operational_status ?? statusFromScore(healthScore));
-
-  const attentionItems = [
-    { label: "ילדים בלי נוכחות", value: Math.max(0, childCount - attendance.length), href: "/dashboard/garden/attendance", source: "children" },
-    { label: "עדכוני ילד חסרים", value: Math.max(0, childCount - journals.length), href: "/dashboard/garden/child-journal", source: "children" },
-    { label: "משימות פתוחות", value: tasksRes.count ?? tasks.length, href: "/dashboard/garden/tasks", source: "communications" },
-    { label: "ציות ומסמכים", value: complianceIssues, href: "/dashboard/garden/compliance", source: "compliance" },
-    { label: "פיקוח קרוב", value: inspections.length, href: "/dashboard/garden/inspections", source: "inspections" },
-    { label: "תצפיתן ומצלמות", value: observerIssues, href: "/dashboard/garden/observer-intelligence", source: "observer" }
-  ];
 
   const unifiedTasks = [
     ...workflows.map((item) => ({
@@ -208,8 +174,7 @@ export default async function GardenOperationsPage() {
       source: item.source_type,
       status: item.event_status,
       href: item.task_id ? "/dashboard/garden/tasks" : "/dashboard/garden/operations",
-      due: item.due_at,
-      priority: item.metadata?.priority
+      due: item.due_at
     })),
     ...tasks.map((item) => ({
       id: item.id,
@@ -217,8 +182,7 @@ export default async function GardenOperationsPage() {
       source: item.source_entity_type ?? item.task_type ?? "communications",
       status: item.status,
       href: "/dashboard/garden/tasks",
-      due: item.due_at,
-      priority: null
+      due: item.due_at
     })),
     ...complianceActions.map((item) => ({
       id: item.id,
@@ -226,8 +190,7 @@ export default async function GardenOperationsPage() {
       source: "compliance",
       status: item.status,
       href: "/dashboard/garden/compliance",
-      due: item.due_date,
-      priority: item.priority
+      due: item.due_date
     })),
     ...preventionActions.map((item) => ({
       id: item.id,
@@ -235,21 +198,9 @@ export default async function GardenOperationsPage() {
       source: "observer",
       status: item.status,
       href: "/dashboard/garden/risk",
-      due: null,
-      priority: item.priority
+      due: null
     }))
   ].slice(0, 12);
-
-  const operationalAreas = [
-    { title: "ילדים", text: "נוכחות, אוכל, שינה, בריאות וציר יום", href: "/dashboard/garden/children", icon: Baby, tone: countTone(Math.max(0, childCount - journals.length)) },
-    { title: "צוות", text: "נוכחות GPS, אישורים, משימות ותעודות", href: "/dashboard/garden/staff", icon: UsersRound, tone: staffReadiness >= 80 ? "good" as const : "warn" as const },
-    { title: "הורים", text: "הודעות, אישורים, תשלומים ומצלמות", href: "/dashboard/garden/parents", icon: MessageSquare, tone: communicationItems ? "warn" as const : "good" as const },
-    { title: "פיקוח", text: "ביקורות, ליקויים ופעולות תיקון", href: "/dashboard/garden/inspections", icon: ClipboardCheck, tone: inspections.length ? "warn" as const : "good" as const },
-    { title: "ציות", text: "מסמכים, תעודות, נהלים ותוקף", href: "/dashboard/garden/compliance", icon: FileText, tone: complianceIssues ? "warn" as const : "good" as const },
-    { title: "תצפיתן", text: "מצלמות, שמע, AI וסיכון", href: "/dashboard/garden/observer-intelligence", icon: Camera, tone: observerIssues ? "warn" as const : "good" as const },
-    { title: "כספים", text: "גבייה, חובות ותשלומים", href: "/dashboard/garden/finance", icon: WalletCards, tone: paymentIssues ? "warn" as const : "good" as const },
-    { title: "התראות", text: "כל מה שממתין לטיפול", href: "/dashboard/garden/notifications", icon: Activity, tone: unreadNotifications.length ? "warn" as const : "good" as const }
-  ];
 
   return (
     <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="מערכת הפעלה" appHome>
@@ -259,75 +210,16 @@ export default async function GardenOperationsPage() {
         avatarUrl={(profile as any).profile_image_url ?? null}
         active="home"
       >
-        {syntheticSession ? <div className="dashboard-environment-notice" role="status">סביבת בדיקה עם נתונים סינתטיים בלבד. ערכים חסרים אינם מוחלפים במספרי דמו.</div> : null}
-        <TeacherStatsGrid>
-          <TeacherStatCard title="בריאות תפעולית" value={`${healthScore}/100`} hint={statusText(operationStatus)} icon={ShieldCheck} tone={healthScore >= 85 ? "green" : healthScore >= 65 ? "orange" : "red"} />
-          <TeacherStatCard title="נוכחות ילדים" value={`${presentChildren}/${childCount}`} hint={`${attendanceCompletion}% הושלם`} icon={Baby} tone={attendanceCompletion >= 90 ? "green" : "orange"} href="/dashboard/garden/attendance" />
-          <TeacherStatCard title="צוות מוכן" value={`${staffReady}/${staffCount}`} hint={`${staffPresent} במשמרת`} icon={UsersRound} tone={staffReadiness >= 80 ? "green" : "orange"} href="/dashboard/garden/staff" />
-          <TeacherStatCard title="התראות" value={communicationItems + observerIssues} hint="תקשורת ובטיחות" icon={Activity} tone={communicationItems + observerIssues ? "orange" : "green"} href="/dashboard/garden/notifications" />
-        </TeacherStatsGrid>
-
-        <TeacherSection title="מה דורש טיפול עכשיו" subtitle="תמונה אחת של היום, בלי לקפוץ בין מסכים.">
-          <TeacherCompactList>
-            {attentionItems.map((item) => (
-              <TeacherCompactItem
-                key={item.label}
-                title={item.label}
-                subtitle={sourceLabel(item.source)}
-                meta={item.value}
-                tone={item.value ? "orange" : "green"}
-                href={item.href}
-              />
-            ))}
-          </TeacherCompactList>
-        </TeacherSection>
-
-        <TeacherSection title="משימות מכל המערכת" subtitle="פיקוח, ציות, מסמכים, תקשורת ואירועים בתור אחד.">
-          {unifiedTasks.length ? (
-            <TeacherCompactList>
-              {unifiedTasks.slice(0, 8).map((task) => (
-                <TeacherCompactItem
-                  key={`${task.source}-${task.id}`}
-                  title={cleanSyntheticLabel(task.title, "משימה")}
-                  subtitle={`${sourceLabel(task.source)} · ${statusLabel(task.status)} · ${dateText(task.due)}`}
-                  tone={task.priority === "high" ? "red" : "purple"}
-                  href={task.href}
-                />
-              ))}
-            </TeacherCompactList>
-          ) : (
-            <TeacherEmptyState title="אין משימות פתוחות" text="היום נראה מסודר. אם יעלה משהו חדש, הוא יופיע כאן." />
-          )}
-        </TeacherSection>
-
-        <TeacherQuickActions title="מרכזי פעולה">
-          {operationalAreas.slice(0, 5).map((area) => (
-            <TeacherActionTile key={area.title} title={area.title} href={area.href} icon={area.icon} tone={area.tone === "warn" ? "orange" : area.tone === "bad" ? "red" : "purple"} />
-          ))}
-        </TeacherQuickActions>
-
-        <TeacherSection title="קיצורי חיפוש" subtitle="גישה מהירה לכל אזורי הגן.">
-          <div className="ganenet-shortcut-grid">
-            {operationalAreas.slice(5).map((area) => {
-              const AreaIcon = area.icon;
-              return (
-                <Link className="ganenet-shortcut-tile" href={area.href} key={area.title}>
-                  <AreaIcon size={26} />
-                  <b>{area.title}</b>
-                  <small>{area.text}</small>
-                </Link>
-              );
-            })}
-          </div>
-        </TeacherSection>
-
-        <TeacherSection title="עוזר תפעולי" subtitle="שאלות מוכנות למנהלת, מבוססות על נתוני הגן בלבד.">
-          <TeacherCompactList>
-            {kosAssistantQuestions.slice(0, 4).map((question) => (
-              <TeacherCompactItem key={question} title={question} subtitle="פתיחה בתובנות" tone="blue" href="/dashboard/garden/insights" />
-            ))}
-          </TeacherCompactList>
-        </TeacherSection>
+        {syntheticSession ? <div className="dashboard-environment-notice manager-demo-notice" role="status">סביבת בדיקה · נתונים סינתטיים בלבד</div> : null}
+        <ManagerOverviewDashboard
+          attendance={{ present: presentChildren, total: childCount, completion: attendanceCompletion }}
+          staff={{ ready: staffReady, total: staffCount, present: staffPresent, names: staff.map((row) => cleanSyntheticLabel(row.full_name, "צוות")) }}
+          safety={{ score: healthScore, label: statusText(operationStatus), detail: complianceIssues || openIncidents ? `${complianceIssues + openIncidents} פריטים דורשים טיפול` : "אין התראות פעילות" }}
+          schedule={schedule.map((item) => ({ id: item.id, title: cleanSyntheticLabel(item.title, "פעילות"), time: `${timeText(item.starts_at)}${item.ends_at ? ` – ${timeText(item.ends_at)}` : ""}` }))}
+          updates={unreadNotifications.map((item) => ({ id: item.id, title: cleanSyntheticLabel(item.title, "עדכון"), subtitle: cleanSyntheticLabel(item.body), time: timeText(item.created_at), tone: item.entity_type === "incident" ? "orange" as const : "purple" as const }))}
+          tasks={unifiedTasks.map((task) => ({ id: `${task.source}-${task.id}`, title: cleanSyntheticLabel(task.title, "משימה"), subtitle: task.due ? `לביצוע עד ${timeText(task.due)}` : "ממתינה לטיפול", href: task.href }))}
+          unreadMessages={messagesRes.count ?? 0}
+        />
       </TeacherAppFrame>
     </DashboardShell>
   );

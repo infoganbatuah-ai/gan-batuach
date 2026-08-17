@@ -51,7 +51,7 @@ export function InspectorAppFrame({
   children,
   title,
   subtitle,
-  badge,
+  badge = "מפקח אזורי",
   backHref
 }: {
   profile: InspectorProfile;
@@ -62,12 +62,14 @@ export function InspectorAppFrame({
   badge?: ReactNode;
   backHref?: string;
 }) {
+  const firstName = String(profile.full_name ?? "מפקח").trim().split(/\s+/)[0] || "מפקח";
+
   return (
     <RoleAppShell
       role="inspector"
       activeHref={activeHref}
-      title={title ?? "מרכז פיקוח"}
-      subtitle={subtitle ?? "גנים משויכים, ביקורות, ליקויים ודוחות"}
+      title={title ?? `בוקר טוב, ${firstName}`}
+      subtitle={subtitle ?? "יש לך יום ביקורות משמעותי"}
       profile={profile}
       backHref={backHref}
       actions={badge ? <span className="dashboard-header-badge">{badge}</span> : undefined}
