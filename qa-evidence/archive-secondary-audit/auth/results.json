@@ -1,0 +1,142 @@
+[
+  {
+    "size": "390",
+    "name": "register",
+    "clipped": [],
+    "error": false,
+    "h1": "מה סוג המשתמש שלך?",
+    "sw": 390,
+    "url": "/app/register",
+    "vw": 390
+  },
+  {
+    "size": "390",
+    "name": "parent",
+    "clipped": [],
+    "error": false,
+    "h1": "הרשמה כהורה",
+    "sw": 390,
+    "url": "/app/register/parent",
+    "vw": 390
+  },
+  {
+    "size": "390",
+    "name": "manager",
+    "clipped": [],
+    "error": false,
+    "h1": "רישום גן",
+    "sw": 390,
+    "url": "/app/register/kindergarten",
+    "vw": 390
+  },
+  {
+    "size": "390",
+    "name": "staff",
+    "clipped": [],
+    "error": false,
+    "h1": "הרשמה כאיש צוות",
+    "sw": 390,
+    "url": "/app/register/staff",
+    "vw": 390
+  },
+  {
+    "size": "390",
+    "name": "inspector",
+    "clipped": [],
+    "error": false,
+    "h1": "הרשמה כמפקח",
+    "sw": 390,
+    "url": "/app/register/inspector",
+    "vw": 390
+  },
+  {
+    "size": "390",
+    "name": "login",
+    "clipped": [],
+    "error": false,
+    "h1": "התחברות למערכת",
+    "sw": 390,
+    "url": "/app/login",
+    "vw": 390
+  },
+  {
+    "size": "390",
+    "name": "directory",
+    "clipped": [],
+    "error": false,
+    "h1": "מצאו גן ילדים בטוח באזור שלכם",
+    "sw": 390,
+    "url": "/gardens",
+    "vw": 390
+  },
+  {
+    "size": "1440",
+    "name": "register",
+    "clipped": [],
+    "error": false,
+    "h1": "מה סוג המשתמש שלך?",
+    "sw": 1440,
+    "url": "/app/register",
+    "vw": 1440
+  },
+  {
+    "size": "1440",
+    "name": "parent",
+    "clipped": [],
+    "error": false,
+    "h1": "הרשמה כהורה",
+    "sw": 1440,
+    "url": "/app/register/parent",
+    "vw": 1440
+  },
+  {
+    "size": "1440",
+    "name": "manager",
+    "clipped": [],
+    "error": false,
+    "h1": "רישום גן",
+    "sw": 1440,
+    "url": "/app/register/kindergarten",
+    "vw": 1440
+  },
+  {
+    "size": "1440",
+    "name": "staff",
+    "clipped": [],
+    "error": false,
+    "h1": "הרשמה כאיש צוות",
+    "sw": 1440,
+    "url": "/app/register/staff",
+    "vw": 1440
+  },
+  {
+    "size": "1440",
+    "name": "inspector",
+    "clipped": [],
+    "error": false,
+    "h1": "הרשמה כמפקח",
+    "sw": 1440,
+    "url": "/app/register/inspector",
+    "vw": 1440
+  },
+  {
+    "size": "1440",
+    "name": "login",
+    "clipped": [],
+    "error": false,
+    "h1": "התחברות למערכת",
+    "sw": 1440,
+    "url": "/app/login",
+    "vw": 1440
+  },
+  {
+    "size": "1440",
+    "name": "directory",
+    "clipped": [],
+    "error": false,
+    "h1": "מצאו גן ילדים בטוח באזור שלכם",
+    "sw": 1440,
+    "url": "/gardens",
+    "vw": 1440
+  }
+]

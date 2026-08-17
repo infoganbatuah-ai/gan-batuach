@@ -31,10 +31,10 @@ function KindergartenOnboardingShell({
           <Image src="/assets/company-symbol.png" alt="" width={74} height={74} />
         </div>
         <header className="kindergarten-app-onboarding-header">
-          <button className="teacher-icon-button" type="button" aria-label="התראות">
+          <span className="teacher-icon-button" aria-label="התראות זמינות לאחר אישור הגן" role="img">
             <Bell size={24} />
             <span />
-          </button>
+          </span>
           <div className="teacher-app-greeting">
             <div className="teacher-avatar"><span>{managerName?.slice(0, 1) ?? "מ"}</span><i /></div>
             <div>

@@ -1,0 +1,182 @@
+[
+  {
+    "name": "dashboard",
+    "clipped": [],
+    "error": false,
+    "h1": "דשבורד הורים",
+    "sw": 1440,
+    "url": "/dashboard/parent",
+    "vw": 1440
+  },
+  {
+    "name": "family-home",
+    "clipped": [],
+    "error": false,
+    "h1": "דשבורד הורים",
+    "sw": 1440,
+    "url": "/dashboard/parent/family-home",
+    "vw": 1440
+  },
+  {
+    "name": "settings",
+    "clipped": [],
+    "error": false,
+    "h1": "דשבורד הורים",
+    "sw": 1440,
+    "url": "/dashboard/parent/settings",
+    "vw": 1440
+  },
+  {
+    "name": "payments",
+    "clipped": [],
+    "error": false,
+    "h1": "דשבורד הורים",
+    "sw": 1440,
+    "url": "/dashboard/parent/payments",
+    "vw": 1440
+  },
+  {
+    "name": "complaints",
+    "clipped": [],
+    "error": false,
+    "h1": "דשבורד הורים",
+    "sw": 1440,
+    "url": "/dashboard/parent/complaints",
+    "vw": 1440
+  },
+  {
+    "name": "schedule",
+    "clipped": [],
+    "error": false,
+    "h1": "דשבורד הורים",
+    "sw": 1440,
+    "url": "/dashboard/parent/schedule",
+    "vw": 1440
+  },
+  {
+    "name": "messages",
+    "clipped": [],
+    "error": false,
+    "h1": "דשבורד הורים",
+    "sw": 1440,
+    "url": "/dashboard/parent/messages",
+    "vw": 1440
+  },
+  {
+    "name": "gallery",
+    "clipped": [],
+    "error": false,
+    "h1": "דשבורד הורים",
+    "sw": 1440,
+    "url": "/dashboard/parent/gallery",
+    "vw": 1440
+  },
+  {
+    "name": "daily-journal",
+    "clipped": [],
+    "error": false,
+    "h1": "דשבורד הורים",
+    "sw": 1440,
+    "url": "/dashboard/parent/daily-journal",
+    "vw": 1440
+  },
+  {
+    "name": "cameras",
+    "clipped": [],
+    "error": false,
+    "h1": "דשבורד הורים",
+    "sw": 1440,
+    "url": "/dashboard/parent/cameras",
+    "vw": 1440
+  },
+  {
+    "name": "pickup",
+    "clipped": [],
+    "error": false,
+    "h1": "דשבורד הורים",
+    "sw": 1440,
+    "url": "/dashboard/parent/pickup",
+    "vw": 1440
+  },
+  {
+    "name": "inspections",
+    "clipped": [],
+    "error": false,
+    "h1": "דשבורד הורים",
+    "sw": 1440,
+    "url": "/dashboard/parent/inspections",
+    "vw": 1440
+  },
+  {
+    "name": "trust",
+    "clipped": [],
+    "error": false,
+    "h1": "דשבורד הורים",
+    "sw": 1440,
+    "url": "/dashboard/parent/trust",
+    "vw": 1440
+  },
+  {
+    "name": "documents",
+    "clipped": [],
+    "error": false,
+    "h1": "דשבורד הורים",
+    "sw": 1440,
+    "url": "/dashboard/parent/documents",
+    "vw": 1440
+  },
+  {
+    "name": "child",
+    "clipped": [],
+    "error": false,
+    "h1": "דשבורד הורים",
+    "sw": 1440,
+    "url": "/dashboard/parent/children/71606e31-4775-44da-9328-08f42bd88cae",
+    "vw": 1440
+  },
+  {
+    "name": "child-timeline",
+    "clipped": [],
+    "error": false,
+    "h1": "דשבורד הורים",
+    "sw": 1440,
+    "url": "/dashboard/parent/children/71606e31-4775-44da-9328-08f42bd88cae/timeline",
+    "vw": 1440
+  },
+  {
+    "name": "trust-center",
+    "clipped": [],
+    "error": false,
+    "h1": "דשבורד הורים",
+    "sw": 1440,
+    "url": "/dashboard/parent/trust-center",
+    "vw": 1440
+  },
+  {
+    "name": "ai-events",
+    "clipped": [],
+    "error": false,
+    "h1": "דשבורד הורים",
+    "sw": 1440,
+    "url": "/dashboard/parent/ai-events",
+    "vw": 1440
+  },
+  {
+    "name": "notifications",
+    "clipped": [],
+    "error": false,
+    "h1": "דשבורד הורים",
+    "sw": 1440,
+    "url": "/dashboard/parent/notifications",
+    "vw": 1440
+  },
+  {
+    "name": "discover",
+    "clipped": [],
+    "error": false,
+    "h1": "דשבורד הורים",
+    "sw": 1440,
+    "url": "/dashboard/parent/discover-kindergartens",
+    "vw": 1440
+  }
+]

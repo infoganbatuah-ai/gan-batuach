@@ -1,16 +1,8 @@
 import { AlertTriangle, CheckCircle2, ClipboardList, MessageSquareText, Rocket, TrendingUp, Users } from "lucide-react";
-import { DashboardShell } from "@/components/dashboard-shell";
+import { AdminAppFrame } from "@/components/admin-app-ui";
 import { StatCard } from "@/components/stat-card";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-
-const readinessCards = [
-  { key: "onboarding", title: "מוכנות קליטה", description: "כמה משתמשים השלימו צעדי התחלה.", score: 76 },
-  { key: "usability", title: "מוכנות שימוש", description: "כמה משובים חיוביים מול מבלבלים.", score: 72 },
-  { key: "mobile", title: "מוכנות מובייל", description: "בדיקה ידנית ב־360/390/414px.", score: 84 },
-  { key: "observer", title: "מוכנות תצפיתן", description: "מצלמות, אירועים לבדיקה ושפה רגועה.", score: 68 },
-  { key: "operations", title: "מוכנות תפעולית", description: "ילדים, צוות, כספים ופיקוח.", score: 79 }
-];
 
 const frictionPoints = [
   "קליטה שלא הושלמה אחרי כניסה ראשונה",
@@ -20,14 +12,15 @@ const frictionPoints = [
   "פיצ׳רים חשובים שלא נפתחו בשבוע הראשון"
 ];
 
-function tone(score: number): "good" | "warn" | "bad" {
+function tone(score: number | null): "good" | "warn" | "bad" {
+  if (score === null) return "warn";
   if (score >= 80) return "good";
   if (score >= 60) return "warn";
   return "bad";
 }
 
 export default async function PilotReadinessPage() {
-  await requireRole(["admin"]);
+  const { profile } = await requireRole(["admin"]);
   const supabase = await createClient();
   const [feedbackRes, openFeedbackRes, onboardingRes, activeUsersRes] = await Promise.all([
     supabase.from("pilot_feedback" as any).select("id, user_role, category, sentiment, rating, status, severity, comment, page_path, created_at").order("created_at", { ascending: false }).limit(40),
@@ -46,17 +39,28 @@ export default async function PilotReadinessPage() {
   const completedOnboarding = ((onboardingRes.data ?? []) as any[]).filter((row) => row.setup_completed || Number(row.progress_percent ?? 0) >= 100).length;
   const onboardingTotal = onboardingRes.count ?? ((onboardingRes.data ?? []) as any[]).length;
   const onboardingPercent = onboardingTotal ? Math.round((completedOnboarding / onboardingTotal) * 100) : 0;
-  const averageReadiness = Math.round(readinessCards.reduce((sum, item) => sum + item.score, 0) / readinessCards.length);
+  const usabilityScore = feedbackRows.length
+    ? Math.round((feedbackRows.reduce((sum, item) => sum + Number(item.rating ?? 0), 0) / feedbackRows.length) * 20)
+    : null;
+  const readinessCards = [
+    { key: "onboarding", title: "מוכנות קליטה", description: "אחוז המשתמשים שהשלימו צעדי התחלה בפועל.", score: onboardingPercent },
+    { key: "usability", title: "מוכנות שימוש", description: feedbackRows.length ? "ממוצע דירוג ממשובי פיילוט שנאספו." : "אין עדיין משוב מדורג לחישוב.", score: usabilityScore },
+    { key: "mobile", title: "מוכנות מובייל", description: "נדרשת בדיקה חזותית מתועדת במכשירים וב־WebView.", score: null },
+    { key: "observer", title: "מוכנות תצפיתן", description: "לא מחושב עד חיבור מקור מצלמה ותהליך בדיקה אנושי.", score: null },
+    { key: "operations", title: "מוכנות תפעולית", description: "נדרשת חתימת תפעול על ילדים, צוות, כספים ופיקוח.", score: null }
+  ];
+  const measuredScores = readinessCards.map((item) => item.score).filter((score): score is number => score !== null);
+  const averageReadiness = measuredScores.length ? Math.round(measuredScores.reduce((sum, score) => sum + score, 0) / measuredScores.length) : null;
 
   return (
-    <DashboardShell role="admin" title="מוכנות פיילוט">
+    <AdminAppFrame profile={profile} activeHref="/dashboard/admin" title="מוכנות פיילוט" subtitle="מדדים חיים, בדיקות ידניות וחסמים לפני הרחבת שימוש." badge="הכנה מבוקרת">
       <div className="dashboard-hero-card admin-hero-card">
         <div>
           <p className="eyebrow">מוכנות פיילוט</p>
           <h1>מוכנות לפיילוט אמיתי.</h1>
           <p>מעקב פנימי אחרי קליטה, שימוש, משוב, חסמים וחוויית מובייל לפני פתיחה רחבה יותר.</p>
         </div>
-        <span className={averageReadiness >= 80 ? "pill good" : "pill warn"}><Rocket size={16} /> ציון מוכנות {averageReadiness}%</span>
+        <span className={averageReadiness !== null && averageReadiness >= 80 ? "pill good" : "pill warn"}><Rocket size={16} /> {averageReadiness === null ? "טרם חושב ציון" : `ציון מדדים זמינים ${averageReadiness}%`}</span>
       </div>
 
       <div className="grid cols-4 dashboard-kpis">
@@ -71,10 +75,10 @@ export default async function PilotReadinessPage() {
         <div className="grid cols-5 pilot-readiness-grid">
           {readinessCards.map((item) => (
             <article className={`card pilot-score-card ${tone(item.score)}`} key={item.key}>
-              <strong>{item.score}%</strong>
+              <strong>{item.score === null ? "נדרש אימות" : `${item.score}%`}</strong>
               <h3>{item.title}</h3>
               <p>{item.description}</p>
-              <i><b style={{ width: `${item.score}%` }} /></i>
+              <i><b style={{ width: `${item.score ?? 0}%` }} /></i>
             </article>
           ))}
         </div>
@@ -114,6 +118,6 @@ export default async function PilotReadinessPage() {
         <article className="card action-panel"><TrendingUp /><h2>אימוץ שימוש</h2><p>המעקב יתמקד בכניסה ראשונה, פעולות יומיות, מצלמות, הודעות וקליטת ילדים.</p></article>
         <article className="card action-panel"><MessageSquareText /><h2>משוב איכותני</h2><p>כל תפקיד יכול לשלוח משוב קצר בלי לצאת מהמסך.</p></article>
       </section>
-    </DashboardShell>
+    </AdminAppFrame>
   );
 }

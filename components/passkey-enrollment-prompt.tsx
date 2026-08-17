@@ -8,6 +8,7 @@ type ApiResponse<T> = T & { error?: string };
 
 type PasskeyListResponse = {
   data: Array<{ id: string; label?: string | null; created_at?: string | null }>;
+  available?: boolean;
 };
 
 type RegistrationOptionsResponse = {
@@ -26,6 +27,7 @@ export function PasskeyEnrollmentPrompt() {
       .then(async (response) => {
         if (!response.ok) return;
         const body = (await response.json()) as PasskeyListResponse;
+        if (body.available === false) return;
         setHasPasskey((body.data ?? []).length > 0);
       })
       .catch(() => undefined);

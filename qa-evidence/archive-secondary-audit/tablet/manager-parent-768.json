@@ -1,0 +1,200 @@
+[
+  {
+    "role": "manager",
+    "name": "overview",
+    "clipped": 0,
+    "error": false,
+    "h1": "בוקר טוב, רקפת",
+    "sw": 768,
+    "vw": 768
+  },
+  {
+    "role": "manager",
+    "name": "enrollment",
+    "clipped": 0,
+    "error": false,
+    "h1": "בוקר טוב, רקפת",
+    "sw": 768,
+    "vw": 768
+  },
+  {
+    "role": "manager",
+    "name": "reports",
+    "clipped": 0,
+    "error": false,
+    "h1": "בוקר טוב, רקפת",
+    "sw": 768,
+    "vw": 768
+  },
+  {
+    "role": "manager",
+    "name": "messages",
+    "clipped": 0,
+    "error": false,
+    "h1": "בוקר טוב, רקפת",
+    "sw": 768,
+    "vw": 768
+  },
+  {
+    "role": "manager",
+    "name": "children",
+    "clipped": 0,
+    "error": false,
+    "h1": "בוקר טוב, רקפת",
+    "sw": 768,
+    "vw": 768
+  },
+  {
+    "role": "manager",
+    "name": "daily-journal",
+    "clipped": 0,
+    "error": false,
+    "h1": "בוקר טוב, רקפת",
+    "sw": 768,
+    "vw": 768
+  },
+  {
+    "role": "manager",
+    "name": "attendance",
+    "clipped": 0,
+    "error": false,
+    "h1": "נוכחות וצ׳ק אין",
+    "sw": 768,
+    "vw": 768
+  },
+  {
+    "role": "manager",
+    "name": "finance",
+    "clipped": 0,
+    "error": false,
+    "h1": "בוקר טוב, רקפת",
+    "sw": 768,
+    "vw": 768
+  },
+  {
+    "role": "manager",
+    "name": "staff",
+    "clipped": 0,
+    "error": false,
+    "h1": "בוקר טוב, רקפת",
+    "sw": 768,
+    "vw": 768
+  },
+  {
+    "role": "manager",
+    "name": "cameras",
+    "clipped": 0,
+    "error": false,
+    "h1": "בוקר טוב, רקפת",
+    "sw": 768,
+    "vw": 768
+  },
+  {
+    "role": "manager",
+    "name": "parents",
+    "clipped": 0,
+    "error": false,
+    "h1": "בוקר טוב, רקפת",
+    "sw": 768,
+    "vw": 768
+  },
+  {
+    "role": "manager",
+    "name": "settings",
+    "clipped": 0,
+    "error": false,
+    "h1": "בוקר טוב, רקפת",
+    "sw": 768,
+    "vw": 768
+  },
+  {
+    "role": "parent",
+    "name": "dashboard",
+    "clipped": 0,
+    "error": false,
+    "h1": "דשבורד הורים",
+    "sw": 768,
+    "vw": 768
+  },
+  {
+    "role": "parent",
+    "name": "settings",
+    "clipped": 0,
+    "error": false,
+    "h1": "דשבורד הורים",
+    "sw": 768,
+    "vw": 768
+  },
+  {
+    "role": "parent",
+    "name": "payments",
+    "clipped": 0,
+    "error": false,
+    "h1": "דשבורד הורים",
+    "sw": 768,
+    "vw": 768
+  },
+  {
+    "role": "parent",
+    "name": "schedule",
+    "clipped": 0,
+    "error": false,
+    "h1": "דשבורד הורים",
+    "sw": 768,
+    "vw": 768
+  },
+  {
+    "role": "parent",
+    "name": "messages",
+    "clipped": 0,
+    "error": false,
+    "h1": "דשבורד הורים",
+    "sw": 768,
+    "vw": 768
+  },
+  {
+    "role": "parent",
+    "name": "daily-journal",
+    "clipped": 0,
+    "error": false,
+    "h1": "דשבורד הורים",
+    "sw": 768,
+    "vw": 768
+  },
+  {
+    "role": "parent",
+    "name": "cameras",
+    "clipped": 0,
+    "error": false,
+    "h1": "דשבורד הורים",
+    "sw": 768,
+    "vw": 768
+  },
+  {
+    "role": "parent",
+    "name": "inspections",
+    "clipped": 0,
+    "error": false,
+    "h1": "דשבורד הורים",
+    "sw": 768,
+    "vw": 768
+  },
+  {
+    "role": "parent",
+    "name": "child",
+    "clipped": 0,
+    "error": false,
+    "h1": "דשבורד הורים",
+    "sw": 768,
+    "vw": 768
+  },
+  {
+    "role": "parent",
+    "name": "discover",
+    "clipped": 0,
+    "error": false,
+    "h1": "דשבורד הורים",
+    "sw": 768,
+    "vw": 768
+  }
+]

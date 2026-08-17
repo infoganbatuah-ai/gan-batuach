@@ -21,6 +21,21 @@ function parentTone(tone?: string | null) {
   return "purple";
 }
 
+function trendText(value: unknown, fallback = "במעקב") {
+  if (typeof value === "string" || typeof value === "number") return String(value);
+  if (!value || typeof value !== "object" || Array.isArray(value)) return fallback;
+
+  const trend = value as Record<string, unknown>;
+  const present = typeof trend.present_days_30d === "number" ? trend.present_days_30d : null;
+  const missing = typeof trend.missing_days_30d === "number" ? trend.missing_days_30d : null;
+
+  if (present !== null || missing !== null) {
+    return `${present ?? 0} ימי נוכחות · ${missing ?? 0} חיסורים`;
+  }
+
+  return fallback;
+}
+
 export default async function ParentChildTimelinePage({ params }: { params: Promise<{ id: string }> }) {
   const { profile } = await requireRole(["parent"]);
   const { id } = await params;
@@ -109,8 +124,8 @@ export default async function ParentChildTimelinePage({ params }: { params: Prom
             <p>{record?.weekly_summary ?? "סיכום שבועי יופיע כאן לאחר שיצטברו מספיק עדכונים מאושרים: נוכחות, פעילות, ארוחות, שינה והערות חשובות."}</p>
           </div>
           <div className="parent-engagement-grid">
-            <span>נוכחות <b>{record?.attendance_trend ?? "במעקב"}</b></span>
-            <span>בריאות <b>{record?.health_trend ?? "במעקב"}</b></span>
+            <span>נוכחות <b>{trendText(record?.attendance_trend)}</b></span>
+            <span>בריאות <b>{trendText(record?.health_trend)}</b></span>
             <span>עדכונים <b>{record?.parent_visible_event_count ?? timeline.length}</b></span>
             <span>שפה <b>רגועה</b></span>
           </div>

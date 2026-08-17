@@ -1,0 +1,2459 @@
+[
+  {
+    "name": "overview",
+    "route": "/dashboard/garden/operations",
+    "clipped": [],
+    "h1": "בוקר טוב, רקפת",
+    "primary": [
+      {
+        "disabled": false,
+        "href": "/dashboard/garden",
+        "label": "בית",
+        "rect": {
+          "h": 58,
+          "w": 189
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/daily-journal",
+        "label": "יומן",
+        "rect": {
+          "h": 58,
+          "w": 189
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/operations",
+        "label": "דשבורד",
+        "rect": {
+          "h": 58,
+          "w": 189
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/notifications",
+        "label": "התראות",
+        "rect": {
+          "h": 58,
+          "w": 189
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/settings",
+        "label": "עוד",
+        "rect": {
+          "h": 58,
+          "w": 189
+        }
+      },
+      {
+        "disabled": false,
+        "href": null,
+        "label": "התנתקות",
+        "rect": {
+          "h": 44,
+          "w": 44
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/trust-center",
+        "label": "סטטוס בטיחותסיכון תפעולי1 פריטים דורשים טיפול60/100",
+        "rect": {
+          "h": 283,
+          "w": 344
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/staff",
+        "label": "צוות נוכח היום0מתוך 2צל2 מאושרים לעבודה",
+        "rect": {
+          "h": 283,
+          "w": 344
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/attendance",
+        "label": "נוכחות ילדים0מתוך 8 נוכחים 0 חסרים 80% מהילדים עודכנו היום",
+        "rect": {
+          "h": 283,
+          "w": 344
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/daily-journal",
+        "label": "לכל לוח הזמנים",
+        "rect": {
+          "h": 52,
+          "w": 523
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/notifications",
+        "label": "לכל העדכונים",
+        "rect": {
+          "h": 52,
+          "w": 523
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/children",
+        "label": "קבלת ילד",
+        "rect": {
+          "h": 112,
+          "w": 192
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/attendance",
+        "label": "ספירת נוכחות",
+        "rect": {
+          "h": 112,
+          "w": 192
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/incidents",
+        "label": "דיווח אירוע",
+        "rect": {
+          "h": 112,
+          "w": 192
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/messages",
+        "label": "הודעה להורים",
+        "rect": {
+          "h": 112,
+          "w": 192
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/daily-journal",
+        "label": "הוספת עדכון",
+        "rect": {
+          "h": 112,
+          "w": 192
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/children",
+        "label": "ילדים",
+        "rect": {
+          "h": 76,
+          "w": 150
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/staff",
+        "label": "צוות",
+        "rect": {
+          "h": 76,
+          "w": 150
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/finance",
+        "label": "תשלומים",
+        "rect": {
+          "h": 76,
+          "w": 150
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/cameras",
+        "label": "מצלמות",
+        "rect": {
+          "h": 76,
+          "w": 150
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/enrollment-requests",
+        "label": "בקשות הצטרפות",
+        "rect": {
+          "h": 76,
+          "w": 150
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/reports",
+        "label": "דוחות",
+        "rect": {
+          "h": 76,
+          "w": 150
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/tasks",
+        "label": "בדיקת בוקר יומיתלביצוע עד 23:25",
+        "rect": {
+          "h": 64,
+          "w": 310
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/tasks",
+        "label": "בדיקת בוקר יומיתלביצוע עד 23:25",
+        "rect": {
+          "h": 64,
+          "w": 310
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/risk",
+        "label": "להגביר השגחה ולבדוק מצלמותממתינה לטיפול",
+        "rect": {
+          "h": 64,
+          "w": 310
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/tasks",
+        "label": "לכל המשימות",
+        "rect": {
+          "h": 52,
+          "w": 342
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/messages",
+        "label": "פתיחת הודעות",
+        "rect": {
+          "h": 44,
+          "w": 77
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/messages",
+        "label": "לכל ההודעות",
+        "rect": {
+          "h": 52,
+          "w": 342
+        }
+      }
+    ],
+    "sh": 1623,
+    "sw": 1440,
+    "url": "/dashboard/garden/operations",
+    "vw": 1440
+  },
+  {
+    "name": "enrollment",
+    "route": "/dashboard/garden/enrollment-requests",
+    "clipped": [],
+    "h1": "בוקר טוב, רקפת",
+    "primary": [
+      {
+        "disabled": false,
+        "href": "/dashboard/garden",
+        "label": "בית",
+        "rect": {
+          "h": 58,
+          "w": 189
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/daily-journal",
+        "label": "יומן",
+        "rect": {
+          "h": 58,
+          "w": 189
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/operations",
+        "label": "דשבורד",
+        "rect": {
+          "h": 58,
+          "w": 189
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/notifications",
+        "label": "התראות",
+        "rect": {
+          "h": 58,
+          "w": 189
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/settings",
+        "label": "עוד",
+        "rect": {
+          "h": 58,
+          "w": 189
+        }
+      },
+      {
+        "disabled": false,
+        "href": null,
+        "label": "התנתקות",
+        "rect": {
+          "h": 44,
+          "w": 44
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/enrollment-requests",
+        "label": "היום",
+        "rect": {
+          "h": 42,
+          "w": 61
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/enrollment-requests",
+        "label": "השבוע",
+        "rect": {
+          "h": 42,
+          "w": 75
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/enrollment-requests",
+        "label": "הכל",
+        "rect": {
+          "h": 42,
+          "w": 58
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/enrollment-requests",
+        "label": "קבוצת גיל",
+        "rect": {
+          "h": 42,
+          "w": 96
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/enrollment-requests",
+        "label": "סטטוס",
+        "rect": {
+          "h": 42,
+          "w": 75
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/enrollment-requests",
+        "label": "הצג עוד בקשות",
+        "rect": {
+          "h": 44,
+          "w": 96
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/insights",
+        "label": "פתיחת התובנות",
+        "rect": {
+          "h": 40,
+          "w": 1018
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/command-center",
+        "label": "כל הפעולות",
+        "rect": {
+          "h": 40,
+          "w": 76
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/enrollment-requests",
+        "label": "אשר המשך טיפול",
+        "rect": {
+          "h": 133,
+          "w": 240
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/enrollment-requests",
+        "label": "בקשת פרטים נוספים",
+        "rect": {
+          "h": 133,
+          "w": 240
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/messages",
+        "label": "קבע פגישה",
+        "rect": {
+          "h": 133,
+          "w": 240
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/messages",
+        "label": "צור קשר",
+        "rect": {
+          "h": 133,
+          "w": 240
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/command-center",
+        "label": "כל הפעולות",
+        "rect": {
+          "h": 40,
+          "w": 76
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/finance",
+        "label": "כספים",
+        "rect": {
+          "h": 133,
+          "w": 240
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/children",
+        "label": "ילדי הגן",
+        "rect": {
+          "h": 133,
+          "w": 240
+        }
+      }
+    ],
+    "sh": 2053,
+    "sw": 1440,
+    "url": "/dashboard/garden/enrollment-requests",
+    "vw": 1440
+  },
+  {
+    "name": "reports",
+    "route": "/dashboard/garden/reports",
+    "clipped": [],
+    "h1": "בוקר טוב, רקפת",
+    "primary": [
+      {
+        "disabled": false,
+        "href": "/dashboard/garden",
+        "label": "בית",
+        "rect": {
+          "h": 58,
+          "w": 189
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/daily-journal",
+        "label": "יומן",
+        "rect": {
+          "h": 58,
+          "w": 189
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/operations",
+        "label": "דשבורד",
+        "rect": {
+          "h": 58,
+          "w": 189
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/notifications",
+        "label": "התראות",
+        "rect": {
+          "h": 58,
+          "w": 189
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/settings",
+        "label": "עוד",
+        "rect": {
+          "h": 58,
+          "w": 189
+        }
+      },
+      {
+        "disabled": false,
+        "href": null,
+        "label": "התנתקות",
+        "rect": {
+          "h": 44,
+          "w": 44
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/attendance",
+        "label": "נוכחות היום0%0 נוכחים",
+        "rect": {
+          "h": 235,
+          "w": 252
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/incidents",
+        "label": "אירועים0דיווחים",
+        "rect": {
+          "h": 235,
+          "w": 252
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/messages",
+        "label": "הודעות2תקשורת",
+        "rect": {
+          "h": 235,
+          "w": 252
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/inspections",
+        "label": "פיקוחים0משימות",
+        "rect": {
+          "h": 235,
+          "w": 252
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/attendance",
+        "label": "דדוח נוכחות יומיסיכום הגעה, איחורים וחוסרים0%",
+        "rect": {
+          "h": 108,
+          "w": 476
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/incidents",
+        "label": "דדוח אירועיםאירועים פתוחים וסגורים",
+        "rect": {
+          "h": 108,
+          "w": 476
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/messages",
+        "label": "דדוח תקשורתהודעות ופניות הורים2",
+        "rect": {
+          "h": 108,
+          "w": 476
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/command-center",
+        "label": "כל הפעולות",
+        "rect": {
+          "h": 40,
+          "w": 76
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/attendance",
+        "label": "דוח נוכחות",
+        "rect": {
+          "h": 133,
+          "w": 240
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/daily-journal",
+        "label": "לוח יום",
+        "rect": {
+          "h": 133,
+          "w": 240
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/incidents",
+        "label": "אירועים",
+        "rect": {
+          "h": 133,
+          "w": 240
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/reports?manage=1#reports-workbench",
+        "label": "ייצוא וניהול",
+        "rect": {
+          "h": 133,
+          "w": 240
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/admin/reports?type=child_attendance",
+        "label": "תצוגה",
+        "rect": {
+          "h": 42,
+          "w": 59
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/admin/reports?download=child_attendance",
+        "label": "הכנת הורדה",
+        "rect": {
+          "h": 42,
+          "w": 91
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/admin/reports?type=staff_hours",
+        "label": "תצוגה",
+        "rect": {
+          "h": 42,
+          "w": 59
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/admin/reports?download=staff_hours",
+        "label": "הכנת הורדה",
+        "rect": {
+          "h": 42,
+          "w": 91
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/admin/reports?type=inspections",
+        "label": "תצוגה",
+        "rect": {
+          "h": 42,
+          "w": 59
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/admin/reports?download=inspections",
+        "label": "הכנת הורדה",
+        "rect": {
+          "h": 42,
+          "w": 91
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/admin/reports?type=incidents",
+        "label": "תצוגה",
+        "rect": {
+          "h": 42,
+          "w": 59
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/admin/reports?download=incidents",
+        "label": "הכנת הורדה",
+        "rect": {
+          "h": 42,
+          "w": 91
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/admin/reports?type=complaints",
+        "label": "תצוגה",
+        "rect": {
+          "h": 42,
+          "w": 59
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/admin/reports?download=complaints",
+        "label": "הכנת הורדה",
+        "rect": {
+          "h": 42,
+          "w": 91
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/admin/reports?type=camera_issues",
+        "label": "תצוגה",
+        "rect": {
+          "h": 42,
+          "w": 59
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/admin/reports?download=camera_issues",
+        "label": "הכנת הורדה",
+        "rect": {
+          "h": 42,
+          "w": 91
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/admin/reports?type=task_completion",
+        "label": "תצוגה",
+        "rect": {
+          "h": 42,
+          "w": 59
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/admin/reports?download=task_completion",
+        "label": "הכנת הורדה",
+        "rect": {
+          "h": 42,
+          "w": 91
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/admin/reports?type=monthly_summary",
+        "label": "תצוגה",
+        "rect": {
+          "h": 42,
+          "w": 59
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/admin/reports?download=monthly_summary",
+        "label": "הכנת הורדה",
+        "rect": {
+          "h": 42,
+          "w": 91
+        }
+      }
+    ],
+    "sh": 1576,
+    "sw": 1440,
+    "url": "/dashboard/garden/reports",
+    "vw": 1440
+  },
+  {
+    "name": "messages",
+    "route": "/dashboard/garden/messages",
+    "clipped": [],
+    "h1": "בוקר טוב, רקפת",
+    "primary": [
+      {
+        "disabled": false,
+        "href": "/dashboard/garden",
+        "label": "בית",
+        "rect": {
+          "h": 58,
+          "w": 189
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/daily-journal",
+        "label": "יומן",
+        "rect": {
+          "h": 58,
+          "w": 189
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/operations",
+        "label": "דשבורד",
+        "rect": {
+          "h": 58,
+          "w": 189
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/notifications",
+        "label": "התראות",
+        "rect": {
+          "h": 58,
+          "w": 189
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/settings",
+        "label": "עוד",
+        "rect": {
+          "h": 58,
+          "w": 189
+        }
+      },
+      {
+        "disabled": false,
+        "href": null,
+        "label": "התנתקות",
+        "rect": {
+          "h": 44,
+          "w": 44
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/messages?status=open",
+        "label": "פתוחות",
+        "rect": {
+          "h": 44,
+          "w": 47
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/command-center",
+        "label": "כל הפעולות",
+        "rect": {
+          "h": 40,
+          "w": 76
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/messages?compose=1#message-workbench",
+        "label": "שליחת הודעה",
+        "rect": {
+          "h": 155,
+          "w": 104
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/messages?status=open",
+        "label": "פניות פתוחות",
+        "rect": {
+          "h": 155,
+          "w": 104
+        }
+      },
+      {
+        "disabled": false,
+        "href": null,
+        "label": "יצירת הודעה חדשה",
+        "rect": {
+          "h": 76,
+          "w": 88
+        }
+      }
+    ],
+    "sh": 1459,
+    "sw": 1440,
+    "url": "/dashboard/garden/messages",
+    "vw": 1440
+  },
+  {
+    "name": "children",
+    "route": "/dashboard/garden/children",
+    "clipped": [],
+    "h1": "בוקר טוב, רקפת",
+    "primary": [
+      {
+        "disabled": false,
+        "href": "/dashboard/garden",
+        "label": "בית",
+        "rect": {
+          "h": 58,
+          "w": 189
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/daily-journal",
+        "label": "יומן",
+        "rect": {
+          "h": 58,
+          "w": 189
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/operations",
+        "label": "דשבורד",
+        "rect": {
+          "h": 58,
+          "w": 189
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/notifications",
+        "label": "התראות",
+        "rect": {
+          "h": 58,
+          "w": 189
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/settings",
+        "label": "עוד",
+        "rect": {
+          "h": 58,
+          "w": 189
+        }
+      },
+      {
+        "disabled": false,
+        "href": null,
+        "label": "התנתקות",
+        "rect": {
+          "h": 44,
+          "w": 44
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/children?new=1",
+        "label": "הוסף ילד/ה",
+        "rect": {
+          "h": 42,
+          "w": 127
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/attendance",
+        "label": "נוכחים היום08 סך הכל",
+        "rect": {
+          "h": 235,
+          "w": 252
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/children",
+        "label": "סינון",
+        "rect": {
+          "h": 42,
+          "w": 61
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/children",
+        "label": "סטטוס: הכל",
+        "rect": {
+          "h": 42,
+          "w": 108
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/children",
+        "label": "קבוצת גיל: הכל",
+        "rect": {
+          "h": 42,
+          "w": 129
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/children",
+        "label": "קבוצה: כל הגן",
+        "rect": {
+          "h": 42,
+          "w": 121
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/children?view=attention",
+        "label": "דורש תשומת לב",
+        "rect": {
+          "h": 42,
+          "w": 134
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/children",
+        "label": "צפייה בכל הילדים",
+        "rect": {
+          "h": 44,
+          "w": 109
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/children/f443598c-0033-45df-a429-96cab4e62575",
+        "label": "[DEMO] אורי רוזן2023-12-07 · קבוצה לא הוגדרהלא עודכן",
+        "rect": {
+          "h": 108,
+          "w": 476
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/children/9b044d75-c7da-4302-83dc-fe61168a811d",
+        "label": "[DEMO] איתן פרץ2023-05-01 · קבוצה לא הוגדרהלא עודכן",
+        "rect": {
+          "h": 108,
+          "w": 476
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/children/b5f71bbf-d7fd-406e-8c7f-69db801442e3",
+        "label": "[DEMO] הלל רוזן2023-11-15 · קבוצה לא הוגדרהלא עודכן",
+        "rect": {
+          "h": 108,
+          "w": 476
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/children/3512db37-2f4b-4af6-ad8a-a0461571ee1f",
+        "label": "[DEMO] מאיה כהן2023-07-28 · קבוצה לא הוגדרהלא עודכן",
+        "rect": {
+          "h": 108,
+          "w": 476
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/children/71986200-61c7-48de-a4ec-484e168e714e",
+        "label": "[DEMO] שירה סלע2023-02-02 · קבוצה לא הוגדרהלא עודכן",
+        "rect": {
+          "h": 108,
+          "w": 476
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/children/156c29dd-f99c-4b2b-b9a7-c443676a2480",
+        "label": "ממאור2024-12-12 · גילאי 3–4לא עודכן",
+        "rect": {
+          "h": 108,
+          "w": 476
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/children/f5c2fccc-77a4-4ef1-8410-163bd251a6a3",
+        "label": "ננהוראיגיל לא צוין · קבוצה לא הוגדרהלא עודכן",
+        "rect": {
+          "h": 108,
+          "w": 476
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/children/f443598c-0033-45df-a429-96cab4e62575",
+        "label": "צפייה בפרופיל המלא",
+        "rect": {
+          "h": 42,
+          "w": 171
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/insights",
+        "label": "פתיחת התובנות",
+        "rect": {
+          "h": 40,
+          "w": 1018
+        }
+      },
+      {
+        "disabled": false,
+        "href": null,
+        "label": "כרטיסים",
+        "rect": {
+          "h": 44,
+          "w": 69
+        }
+      },
+      {
+        "disabled": false,
+        "href": null,
+        "label": "רשימה קומפקטית",
+        "rect": {
+          "h": 44,
+          "w": 130
+        }
+      },
+      {
+        "disabled": false,
+        "href": null,
+        "label": "דורשים תשומת לב",
+        "rect": {
+          "h": 44,
+          "w": 135
+        }
+      },
+      {
+        "disabled": false,
+        "href": null,
+        "label": "הגיע",
+        "rect": {
+          "h": 37,
+          "w": 72
+        }
+      },
+      {
+        "disabled": false,
+        "href": null,
+        "label": "נעדר",
+        "rect": {
+          "h": 37,
+          "w": 54
+        }
+      },
+      {
+        "disabled": false,
+        "href": null,
+        "label": "אכל הכל",
+        "rect": {
+          "h": 37,
+          "w": 97
+        }
+      },
+      {
+        "disabled": false,
+        "href": null,
+        "label": "לא אכל",
+        "rect": {
+          "h": 37,
+          "w": 89
+        }
+      },
+      {
+        "disabled": false,
+        "href": null,
+        "label": "ישן טוב",
+        "rect": {
+          "h": 37,
+          "w": 90
+        }
+      },
+      {
+        "disabled": false,
+        "href": null,
+        "label": "לא ישן",
+        "rect": {
+          "h": 37,
+          "w": 84
+        }
+      },
+      {
+        "disabled": false,
+        "href": null,
+        "label": "שמח",
+        "rect": {
+          "h": 37,
+          "w": 73
+        }
+      },
+      {
+        "disabled": false,
+        "href": null,
+        "label": "עייף",
+        "rect": {
+          "h": 37,
+          "w": 69
+        }
+      },
+      {
+        "disabled": false,
+        "href": null,
+        "label": "חסר בגדים",
+        "rect": {
+          "h": 37,
+          "w": 114
+        }
+      }
+    ],
+    "sh": 2094,
+    "sw": 1440,
+    "url": "/dashboard/garden/children",
+    "vw": 1440
+  },
+  {
+    "name": "daily-journal",
+    "route": "/dashboard/garden/daily-journal",
+    "clipped": [],
+    "h1": "בוקר טוב, רקפת",
+    "primary": [
+      {
+        "disabled": false,
+        "href": "/dashboard/garden",
+        "label": "בית",
+        "rect": {
+          "h": 58,
+          "w": 189
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/daily-journal",
+        "label": "יומן",
+        "rect": {
+          "h": 58,
+          "w": 189
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/operations",
+        "label": "דשבורד",
+        "rect": {
+          "h": 58,
+          "w": 189
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/notifications",
+        "label": "התראות",
+        "rect": {
+          "h": 58,
+          "w": 189
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/settings",
+        "label": "עוד",
+        "rect": {
+          "h": 58,
+          "w": 189
+        }
+      },
+      {
+        "disabled": false,
+        "href": null,
+        "label": "התנתקות",
+        "rect": {
+          "h": 44,
+          "w": 44
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/command-center",
+        "label": "כל הפעולות",
+        "rect": {
+          "h": 40,
+          "w": 76
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/daily-journal?workbench=1#daily-journal-workbench",
+        "label": "עדכון פעילות",
+        "rect": {
+          "h": 133,
+          "w": 240
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/attendance",
+        "label": "נוכחות",
+        "rect": {
+          "h": 133,
+          "w": 240
+        }
+      }
+    ],
+    "sh": 1442,
+    "sw": 1440,
+    "url": "/dashboard/garden/daily-journal",
+    "vw": 1440
+  },
+  {
+    "name": "attendance",
+    "route": "/dashboard/garden/attendance",
+    "clipped": [],
+    "h1": "נוכחות וצ׳ק אין",
+    "primary": [
+      {
+        "disabled": false,
+        "href": "/dashboard/garden",
+        "label": "בית",
+        "rect": {
+          "h": 58,
+          "w": 189
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/daily-journal",
+        "label": "יומן",
+        "rect": {
+          "h": 58,
+          "w": 189
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/operations",
+        "label": "דשבורד",
+        "rect": {
+          "h": 58,
+          "w": 189
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/notifications",
+        "label": "התראות",
+        "rect": {
+          "h": 58,
+          "w": 189
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/settings",
+        "label": "עוד",
+        "rect": {
+          "h": 58,
+          "w": 189
+        }
+      },
+      {
+        "disabled": false,
+        "href": null,
+        "label": "התנתקות",
+        "rect": {
+          "h": 44,
+          "w": 44
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/attendance?filter=missing",
+        "label": "טרם סומנו",
+        "rect": {
+          "h": 40,
+          "w": 67
+        }
+      },
+      {
+        "disabled": false,
+        "href": null,
+        "label": "צ׳ק אין",
+        "rect": {
+          "h": 42,
+          "w": 88
+        }
+      },
+      {
+        "disabled": false,
+        "href": null,
+        "label": "צ׳ק אין",
+        "rect": {
+          "h": 42,
+          "w": 88
+        }
+      },
+      {
+        "disabled": false,
+        "href": null,
+        "label": "צ׳ק אין",
+        "rect": {
+          "h": 42,
+          "w": 88
+        }
+      },
+      {
+        "disabled": false,
+        "href": null,
+        "label": "צ׳ק אין",
+        "rect": {
+          "h": 42,
+          "w": 88
+        }
+      },
+      {
+        "disabled": false,
+        "href": null,
+        "label": "צ׳ק אין",
+        "rect": {
+          "h": 42,
+          "w": 88
+        }
+      },
+      {
+        "disabled": false,
+        "href": null,
+        "label": "צ׳ק אין",
+        "rect": {
+          "h": 42,
+          "w": 88
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/command-center",
+        "label": "כל הפעולות",
+        "rect": {
+          "h": 40,
+          "w": 76
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/messages?compose=1#message-workbench",
+        "label": "הודעה להורים",
+        "rect": {
+          "h": 133,
+          "w": 240
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/attendance",
+        "label": "ספירת נוכחות",
+        "rect": {
+          "h": 133,
+          "w": 240
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/reports?manage=1#reports-workbench",
+        "label": "דוח נוכחות יומי",
+        "rect": {
+          "h": 133,
+          "w": 240
+        }
+      }
+    ],
+    "sh": 1713,
+    "sw": 1440,
+    "url": "/dashboard/garden/attendance",
+    "vw": 1440
+  },
+  {
+    "name": "finance",
+    "route": "/dashboard/garden/finance",
+    "clipped": [],
+    "h1": "בוקר טוב, רקפת",
+    "primary": [
+      {
+        "disabled": false,
+        "href": "/dashboard/garden",
+        "label": "בית",
+        "rect": {
+          "h": 58,
+          "w": 189
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/daily-journal",
+        "label": "יומן",
+        "rect": {
+          "h": 58,
+          "w": 189
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/operations",
+        "label": "דשבורד",
+        "rect": {
+          "h": 58,
+          "w": 189
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/notifications",
+        "label": "התראות",
+        "rect": {
+          "h": 58,
+          "w": 189
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/settings",
+        "label": "עוד",
+        "rect": {
+          "h": 58,
+          "w": 189
+        }
+      },
+      {
+        "disabled": false,
+        "href": null,
+        "label": "התנתקות",
+        "rect": {
+          "h": 44,
+          "w": 44
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/finance?payout=1#payout-settings",
+        "label": "הגדרת יעד תשלום",
+        "rect": {
+          "h": 42,
+          "w": 174
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/finance",
+        "label": "הכל",
+        "rect": {
+          "h": 42,
+          "w": 58
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/finance?filter=failed",
+        "label": "תשלום לא עבר",
+        "rect": {
+          "h": 42,
+          "w": 125
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/finance?filter=overdue",
+        "label": "באיחור",
+        "rect": {
+          "h": 42,
+          "w": 77
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/finance?filter=due",
+        "label": "דורש טיפול",
+        "rect": {
+          "h": 42,
+          "w": 103
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/finance?filter=partial",
+        "label": "חלקי",
+        "rect": {
+          "h": 42,
+          "w": 63
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/finance?filter=paused",
+        "label": "נעצר",
+        "rect": {
+          "h": 42,
+          "w": 63
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/finance?filter=not_transferred",
+        "label": "לא הועבר",
+        "rect": {
+          "h": 42,
+          "w": 92
+        }
+      },
+      {
+        "disabled": false,
+        "href": null,
+        "label": "הגדרת יעד תשלום",
+        "rect": {
+          "h": 42,
+          "w": 958
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/subscription",
+        "label": "חידוש",
+        "rect": {
+          "h": 44,
+          "w": 34
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/insights",
+        "label": "פתיחת התובנות",
+        "rect": {
+          "h": 40,
+          "w": 1018
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/finance",
+        "label": "הכל",
+        "rect": {
+          "h": 42,
+          "w": 62
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/finance?filter=failed",
+        "label": "תשלום לא עבר",
+        "rect": {
+          "h": 42,
+          "w": 135
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/finance?filter=overdue",
+        "label": "באיחור",
+        "rect": {
+          "h": 42,
+          "w": 83
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/finance?filter=due",
+        "label": "דורש טיפול",
+        "rect": {
+          "h": 42,
+          "w": 111
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/finance?filter=partial",
+        "label": "חלקי",
+        "rect": {
+          "h": 42,
+          "w": 69
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/finance?filter=paused",
+        "label": "נעצר",
+        "rect": {
+          "h": 42,
+          "w": 69
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/finance?filter=not_transferred",
+        "label": "לא הועבר",
+        "rect": {
+          "h": 42,
+          "w": 100
+        }
+      }
+    ],
+    "sh": 2813,
+    "sw": 1440,
+    "url": "/dashboard/garden/finance",
+    "vw": 1440
+  },
+  {
+    "name": "staff",
+    "route": "/dashboard/garden/staff",
+    "clipped": [],
+    "h1": "בוקר טוב, רקפת",
+    "primary": [
+      {
+        "disabled": false,
+        "href": "/dashboard/garden",
+        "label": "בית",
+        "rect": {
+          "h": 58,
+          "w": 189
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/daily-journal",
+        "label": "יומן",
+        "rect": {
+          "h": 58,
+          "w": 189
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/operations",
+        "label": "דשבורד",
+        "rect": {
+          "h": 58,
+          "w": 189
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/notifications",
+        "label": "התראות",
+        "rect": {
+          "h": 58,
+          "w": 189
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/settings",
+        "label": "עוד",
+        "rect": {
+          "h": 58,
+          "w": 189
+        }
+      },
+      {
+        "disabled": false,
+        "href": null,
+        "label": "התנתקות",
+        "rect": {
+          "h": 44,
+          "w": 44
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/staff-applications",
+        "label": "מועמדויות",
+        "rect": {
+          "h": 44,
+          "w": 62
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/tasks",
+        "label": "משימה",
+        "rect": {
+          "h": 42,
+          "w": 77
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/messages",
+        "label": "הודעה",
+        "rect": {
+          "h": 42,
+          "w": 74
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/documents",
+        "label": "מסמכים",
+        "rect": {
+          "h": 42,
+          "w": 82
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/staff?staff=1fde6943-e17e-4343-b8b2-dffddee42232",
+        "label": "פרופיל",
+        "rect": {
+          "h": 42,
+          "w": 62
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/tasks",
+        "label": "משימה",
+        "rect": {
+          "h": 42,
+          "w": 77
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/messages",
+        "label": "הודעה",
+        "rect": {
+          "h": 42,
+          "w": 74
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/documents",
+        "label": "מסמכים",
+        "rect": {
+          "h": 42,
+          "w": 82
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/staff?staff=48cf4c43-fe89-4642-b9a4-50f39273dec0",
+        "label": "פרופיל",
+        "rect": {
+          "h": 42,
+          "w": 62
+        }
+      }
+    ],
+    "sh": 1303,
+    "sw": 1440,
+    "url": "/dashboard/garden/staff",
+    "vw": 1440
+  },
+  {
+    "name": "cameras",
+    "route": "/dashboard/garden/cameras",
+    "clipped": [],
+    "h1": "בוקר טוב, רקפת",
+    "primary": [
+      {
+        "disabled": false,
+        "href": "/dashboard/garden",
+        "label": "בית",
+        "rect": {
+          "h": 58,
+          "w": 189
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/daily-journal",
+        "label": "יומן",
+        "rect": {
+          "h": 58,
+          "w": 189
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/operations",
+        "label": "דשבורד",
+        "rect": {
+          "h": 58,
+          "w": 189
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/notifications",
+        "label": "התראות",
+        "rect": {
+          "h": 58,
+          "w": 189
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/settings",
+        "label": "עוד",
+        "rect": {
+          "h": 58,
+          "w": 189
+        }
+      },
+      {
+        "disabled": false,
+        "href": null,
+        "label": "התנתקות",
+        "rect": {
+          "h": 44,
+          "w": 44
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/cameras?add=1#camera-management",
+        "label": "הוספת מצלמה",
+        "rect": {
+          "h": 42,
+          "w": 149
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/cameras?filter=issues",
+        "label": "דורשות טיפול2בדיקה",
+        "rect": {
+          "h": 235,
+          "w": 252
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/cameras?camera=3ec4b1c5-c4e7-4aee-b22b-58a9534c4c8a#camera-management",
+        "label": "ניהול וצפייה",
+        "rect": {
+          "h": 46,
+          "w": 78
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/camera-health",
+        "label": "בדיקת חיבור",
+        "rect": {
+          "h": 46,
+          "w": 78
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/cameras?camera=88777390-76b2-4828-959c-9b31835ab1d2#camera-management",
+        "label": "ניהול וצפייה",
+        "rect": {
+          "h": 46,
+          "w": 78
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/camera-health",
+        "label": "בדיקת חיבור",
+        "rect": {
+          "h": 46,
+          "w": 78
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/cameras?camera=f0b63dff-f60a-4116-b58f-a6846c11b299#camera-management",
+        "label": "ניהול וצפייה",
+        "rect": {
+          "h": 46,
+          "w": 78
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/camera-health",
+        "label": "בדיקת חיבור",
+        "rect": {
+          "h": 46,
+          "w": 78
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/cameras?camera=559cdaa0-b4f9-4512-be65-7d540cd6427f#camera-management",
+        "label": "ניהול וצפייה",
+        "rect": {
+          "h": 46,
+          "w": 78
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/camera-health",
+        "label": "בדיקת חיבור",
+        "rect": {
+          "h": 46,
+          "w": 78
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/command-center",
+        "label": "כל הפעולות",
+        "rect": {
+          "h": 40,
+          "w": 76
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/cameras?add=1#camera-management",
+        "label": "הוספת מצלמה",
+        "rect": {
+          "h": 133,
+          "w": 240
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/cameras?filter=issues",
+        "label": "מצלמות תקולות",
+        "rect": {
+          "h": 133,
+          "w": 240
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/camera-health",
+        "label": "הרשאות צפייה",
+        "rect": {
+          "h": 133,
+          "w": 240
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/insights",
+        "label": "פתיחת התובנות",
+        "rect": {
+          "h": 40,
+          "w": 1018
+        }
+      },
+      {
+        "disabled": false,
+        "href": null,
+        "label": "הוספת מצלמה",
+        "rect": {
+          "h": 42,
+          "w": 147
+        }
+      }
+    ],
+    "sh": 1910,
+    "sw": 1440,
+    "url": "/dashboard/garden/cameras",
+    "vw": 1440
+  },
+  {
+    "name": "parents",
+    "route": "/dashboard/garden/parents",
+    "clipped": [],
+    "h1": "בוקר טוב, רקפת",
+    "primary": [
+      {
+        "disabled": false,
+        "href": "/dashboard/garden",
+        "label": "בית",
+        "rect": {
+          "h": 58,
+          "w": 189
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/daily-journal",
+        "label": "יומן",
+        "rect": {
+          "h": 58,
+          "w": 189
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/operations",
+        "label": "דשבורד",
+        "rect": {
+          "h": 58,
+          "w": 189
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/notifications",
+        "label": "התראות",
+        "rect": {
+          "h": 58,
+          "w": 189
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/settings",
+        "label": "עוד",
+        "rect": {
+          "h": 58,
+          "w": 189
+        }
+      },
+      {
+        "disabled": false,
+        "href": null,
+        "label": "התנתקות",
+        "rect": {
+          "h": 44,
+          "w": 44
+        }
+      },
+      {
+        "disabled": false,
+        "href": "#parents-full",
+        "label": "ניהול מלא",
+        "rect": {
+          "h": 42,
+          "w": 100
+        }
+      },
+      {
+        "disabled": false,
+        "href": "#parents-full",
+        "label": "לכל ההורים ›",
+        "rect": {
+          "h": 44,
+          "w": 81
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/insights",
+        "label": "פתיחת התובנות",
+        "rect": {
+          "h": 40,
+          "w": 1018
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/command-center",
+        "label": "כל הפעולות",
+        "rect": {
+          "h": 40,
+          "w": 76
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/messages",
+        "label": "הודעות",
+        "rect": {
+          "h": 133,
+          "w": 240
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/enrollment-requests",
+        "label": "בקשות הצטרפות",
+        "rect": {
+          "h": 133,
+          "w": 240
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/children",
+        "label": "ילדי הגן",
+        "rect": {
+          "h": 133,
+          "w": 240
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/messages",
+        "label": "הודעה",
+        "rect": {
+          "h": 42,
+          "w": 74
+        }
+      },
+      {
+        "disabled": false,
+        "href": "tel:0526500988",
+        "label": "שיחה",
+        "rect": {
+          "h": 42,
+          "w": 69
+        }
+      },
+      {
+        "disabled": true,
+        "href": null,
+        "label": "איפוס סיסמה לא זמין כאן",
+        "rect": {
+          "h": 42,
+          "w": 159
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/parents?parent=d1a64127-5403-4637-9a71-70b25cf6d00d",
+        "label": "פרופיל",
+        "rect": {
+          "h": 42,
+          "w": 62
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/messages",
+        "label": "הודעה",
+        "rect": {
+          "h": 42,
+          "w": 74
+        }
+      },
+      {
+        "disabled": false,
+        "href": "tel:050-7122001",
+        "label": "שיחה",
+        "rect": {
+          "h": 42,
+          "w": 69
+        }
+      },
+      {
+        "disabled": true,
+        "href": null,
+        "label": "איפוס סיסמה לא זמין כאן",
+        "rect": {
+          "h": 42,
+          "w": 159
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/parents?parent=0543b967-1d75-4621-983b-ea890f108d25",
+        "label": "פרופיל",
+        "rect": {
+          "h": 42,
+          "w": 62
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/messages",
+        "label": "הודעה",
+        "rect": {
+          "h": 42,
+          "w": 74
+        }
+      },
+      {
+        "disabled": false,
+        "href": "tel:050-7322001",
+        "label": "שיחה",
+        "rect": {
+          "h": 42,
+          "w": 69
+        }
+      },
+      {
+        "disabled": true,
+        "href": null,
+        "label": "איפוס סיסמה לא זמין כאן",
+        "rect": {
+          "h": 42,
+          "w": 159
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/parents?parent=b766c3d8-1ebb-4bad-9cd2-547cace0f16c",
+        "label": "פרופיל",
+        "rect": {
+          "h": 42,
+          "w": 62
+        }
+      }
+    ],
+    "sh": 1803,
+    "sw": 1440,
+    "url": "/dashboard/garden/parents",
+    "vw": 1440
+  },
+  {
+    "name": "settings",
+    "route": "/dashboard/garden/settings",
+    "clipped": [],
+    "h1": "בוקר טוב, רקפת",
+    "primary": [
+      {
+        "disabled": false,
+        "href": "/dashboard/garden",
+        "label": "בית",
+        "rect": {
+          "h": 58,
+          "w": 189
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/daily-journal",
+        "label": "יומן",
+        "rect": {
+          "h": 58,
+          "w": 189
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/operations",
+        "label": "דשבורד",
+        "rect": {
+          "h": 58,
+          "w": 189
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/notifications",
+        "label": "התראות",
+        "rect": {
+          "h": 58,
+          "w": 189
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/settings",
+        "label": "עוד",
+        "rect": {
+          "h": 58,
+          "w": 189
+        }
+      },
+      {
+        "disabled": false,
+        "href": null,
+        "label": "התנתקות",
+        "rect": {
+          "h": 44,
+          "w": 44
+        }
+      },
+      {
+        "disabled": false,
+        "href": "#profile-settings",
+        "label": "עריכה מלאה",
+        "rect": {
+          "h": 42,
+          "w": 117
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/insights",
+        "label": "פתיחת התובנות",
+        "rect": {
+          "h": 40,
+          "w": 1018
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/command-center",
+        "label": "כל הפעולות",
+        "rect": {
+          "h": 40,
+          "w": 76
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/documents",
+        "label": "מסמכים",
+        "rect": {
+          "h": 133,
+          "w": 240
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/enrollment-requests",
+        "label": "בקשות הצטרפות",
+        "rect": {
+          "h": 133,
+          "w": 240
+        }
+      },
+      {
+        "disabled": false,
+        "href": "/dashboard/garden/reports",
+        "label": "דוחות",
+        "rect": {
+          "h": 133,
+          "w": 240
+        }
+      },
+      {
+        "disabled": false,
+        "href": null,
+        "label": "הסרה",
+        "rect": {
+          "h": 78,
+          "w": 293
+        }
+      },
+      {
+        "disabled": false,
+        "href": null,
+        "label": "הסרה",
+        "rect": {
+          "h": 42,
+          "w": 293
+        }
+      },
+      {
+        "disabled": false,
+        "href": null,
+        "label": "שמירת טיוטה",
+        "rect": {
+          "h": 42,
+          "w": 134
+        }
+      },
+      {
+        "disabled": false,
+        "href": null,
+        "label": "שליחה לאישור סופי",
+        "rect": {
+          "h": 42,
+          "w": 170
+        }
+      }
+    ],
+    "sh": 1799,
+    "sw": 1440,
+    "url": "/dashboard/garden/settings",
+    "vw": 1440
+  }
+]

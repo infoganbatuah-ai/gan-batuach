@@ -74,7 +74,9 @@ export default async function InspectorDashboard() {
   const inspector = inspectorRes.data as any;
   const profileForUi = { ...profile, profile_image_url: inspector?.profile_photo_url ?? profile.profile_image_url };
 
-  if (!inspector || profile.active === false) {
+  const assignedGardens = (gardensRes.data ?? []) as any[];
+
+  if ((!inspector && assignedGardens.length === 0) || profile.active === false) {
     return (
       <InspectorAppFrame profile={profileForUi} activeHref="/dashboard/inspector" title="בקשת מפקח" subtitle="הגישה תיפתח לאחר אישור אדמין ושיוך גנים" badge="ממתין לאישור">
         <InspectorHero
@@ -93,7 +95,7 @@ export default async function InspectorDashboard() {
     );
   }
 
-  const gardens = (gardensRes.data ?? []) as any[];
+  const gardens = assignedGardens;
   const gardenIds = gardens.map((garden) => garden.id).filter(Boolean);
   const [requiredRes, inspectionsRes, violationsRes, complaintsRes, tasksRes] = await Promise.all([
     gardenIds.length ? supabase.from("required_inspections" as any).select("id, garden_id, due_at, status, inspection_type, gardens(id, name, city, address, logo_url, last_inspection_score)").in("garden_id", gardenIds).neq("status", "done").order("due_at", { ascending: true }).limit(20) : Promise.resolve({ data: [] }),

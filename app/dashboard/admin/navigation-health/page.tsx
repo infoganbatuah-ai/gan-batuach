@@ -21,30 +21,37 @@ export default async function AdminNavigationHealthPage() {
   await requireRole(["admin"]);
   const result = await safeAdminData("admin navigation health", async () => {
     const supabase = await createClient();
-    const rows: HealthRow[] = [];
-    for (const check of dashboardRouteChecks) {
-      const exists = dashboardRouteExists(check.route);
-      let count: number | null = null;
-      let error: string | null = null;
-      if (check.dataTable) {
-        const query = supabase.from(check.dataTable as any).select("*", { count: "exact", head: true });
-        const response = await query;
-        count = response.count ?? 0;
+    const tableResults = new Map<string, { count: number; error: string | null }>();
+    const tables = Array.from(new Set(dashboardRouteChecks.flatMap((check) => check.dataTable ? [check.dataTable] : [])));
+
+    // Keep the diagnostics responsive without flooding Supabase with every table at once.
+    for (let index = 0; index < tables.length; index += 8) {
+      const batch = tables.slice(index, index + 8);
+      await Promise.all(batch.map(async (table) => {
+        const response = await supabase.from(table as any).select("*", { count: "exact", head: true });
         if (response.error) {
-          logSupabaseError(`navigation health ${check.route}`, response.error);
-          error = "שגיאת נתונים בטבלה";
+          logSupabaseError(`navigation health table ${table}`, response.error);
+          tableResults.set(table, { count: 0, error: "שגיאת נתונים בטבלה" });
+          return;
         }
-      }
-      rows.push({
+        tableResults.set(table, { count: response.count ?? 0, error: null });
+      }));
+    }
+
+    const rows: HealthRow[] = dashboardRouteChecks.map((check) => {
+      const tableResult = check.dataTable ? tableResults.get(check.dataTable) : null;
+      const count = check.dataTable ? tableResult?.count ?? 0 : null;
+      const error = check.dataTable ? tableResult?.error ?? null : null;
+      return {
         route: check.route,
         label: check.label,
-        exists,
+        exists: dashboardRouteExists(check.route),
         permission: check.roles.join(", "),
         dataStatus: error ? "שגיאה" : count === null ? "לא נדרש" : count > 0 ? `${count} רשומות` : "אין מידע זמין כרגע",
         error,
         count
-      });
-    }
+      };
+    });
     return { rows };
   }, { rows: [] as HealthRow[] });
 
@@ -80,7 +87,8 @@ export default async function AdminNavigationHealthPage() {
               <span className={row.error ? "pill bad" : row.count === 0 ? "pill warn" : "pill good"}>{row.dataStatus}</span>
             </div>
             <div className="profile-actions">
-              {row.exists ? <Link className="button secondary tiny" href={row.route}>פתיחת עמוד</Link> : null}
+              {row.exists && !row.route.includes("[") ? <Link className="button secondary tiny" href={row.route}>פתיחת עמוד</Link> : null}
+              {row.exists && row.route.includes("[") ? <span className="pill">נפתח מתוך רשומת מקור</span> : null}
               {row.error ? <span className="pill bad">נרשם בלוג שרת</span> : null}
             </div>
           </article>)}

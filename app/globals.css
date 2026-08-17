@@ -5099,7 +5099,8 @@ body:has(.gb-reference-login) .teacher-bottom-nav {
   grid-template-columns: repeat(3, 1fr);
 }
 
-.payment-method-tabs button {
+.payment-method-tabs button,
+.payment-method-tabs span {
   align-items: center;
   background: #fff;
   border: 1px solid #e1eaf7;
@@ -5112,7 +5113,8 @@ body:has(.gb-reference-login) .teacher-bottom-nav {
   min-height: 72px;
 }
 
-.payment-method-tabs button.active {
+.payment-method-tabs button.active,
+.payment-method-tabs span.active {
   border-color: #8758ff;
   box-shadow: inset 0 0 0 1px #8758ff;
   color: #7b4cf2;
@@ -5192,6 +5194,7 @@ body:has(.gb-reference-login) .teacher-bottom-nav {
   background: #fff;
   border: 2px solid #8758ff;
   color: #7b4cf2;
+  text-decoration: none;
 }
 
 @media (max-width: 760px) {
