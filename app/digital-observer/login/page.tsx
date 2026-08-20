@@ -3,10 +3,18 @@ import { LockKeyhole, ShieldCheck } from "lucide-react";
 import { ObserverMark } from "@/components/digital-observer/observer-app-shell";
 import { signIn } from "@/app/login/actions";
 
+function shouldSkipDigitalObserverEmailConfirmation() {
+  return (
+    process.env.DIGITAL_OBSERVER_SKIP_EMAIL_CONFIRMATION === "true" &&
+    process.env.NODE_ENV !== "production"
+  ) || process.env.NEXT_PUBLIC_SANDBOX_MODE === "true" || process.env.APP_ENV === "demo" || process.env.APP_ENV === "local";
+}
+
 type PageProps = { searchParams?: Promise<{ error?: string; registered?: string; next?: string }> };
 
 export default async function DigitalObserverLoginPage({ searchParams }: PageProps) {
   const params = await searchParams;
+  const skipEmailConfirmation = shouldSkipDigitalObserverEmailConfirmation();
   return (
     <main className="do-auth-page" dir="rtl">
       <section className="do-auth-visual">
@@ -19,7 +27,12 @@ export default async function DigitalObserverLoginPage({ searchParams }: PagePro
           <ObserverMark compact />
           <h2>ברוכים הבאים</h2>
           <p>היכנסו לחשבון התצפיתן הדיגיטלי שלכם</p>
-          {params?.registered === "check_email" ? <div className="do-notice good"><ShieldCheck /><span>ההרשמה נקלטה. יש לאשר את כתובת הדוא״ל ואז להתחבר.</span></div> : null}
+          {params?.registered === "check_email" && !skipEmailConfirmation ? (
+            <div className="do-notice good">
+              <ShieldCheck />
+              <span>ההרשמה נקלטה. יש לאשר את כתובת הדוא״ל ואז להתחבר.</span>
+            </div>
+          ) : null}
           {params?.error ? <div className="do-notice bad" role="alert"><LockKeyhole /><span>לא הצלחנו להתחבר. בדקו את הפרטים ונסו שוב.</span></div> : null}
           <input type="hidden" name="auth_source" value="observer" />
           <input type="hidden" name="next" value={params?.next ?? "/digital-observer/dashboard"} />
