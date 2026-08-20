@@ -22,11 +22,11 @@ const safeCameraColumns = [
   "active",
   "parent_view_allowed",
   "parent_viewing_allowed",
-  "hls_playback_url",
-  "sample_hls_url",
-  "webrtc_playback_url",
   "video_gateway_stream_id",
   "gateway_stream_id",
+  "live_preview_status",
+  "playback_hls_ready",
+  "playback_webrtc_ready",
   "viewing_hours",
   "operating_hours",
   "parent_visibility_status",
@@ -114,17 +114,14 @@ export async function getParentCameraListForProfile(userSupabase: SupabaseClient
 
   if (cameraDebugLogsEnabled()) {
     console.info("Parent cameras secure list result", {
-      parentProfileId: profile.id,
       dataSource: "user_rls",
-      allowedKindergartenIds: scope.kindergartenIds,
+      allowedKindergartenCount: scope.kindergartenIds.length,
       gardenIdQueryCount: gardenRows.length,
       kindergartenIdQueryCount: kindergartenRows.length,
       candidateCamerasCount: candidateCameras.length,
-      candidateCameraIds: candidateCameras.map((camera) => camera.id),
       allowedCamerasCount: allowedCameras.length,
-      allowedCameraIds: allowedCameras.map((camera) => camera.id),
       missingPlaybackSourceCount,
-      queryErrors
+      queryErrorCount: queryErrors.length
     });
   }
 

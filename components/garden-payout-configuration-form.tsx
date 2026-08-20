@@ -1,9 +1,11 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import { Landmark, Save } from "lucide-react";
 
 export function GardenPayoutConfigurationForm({ defaultOpen = false }: { defaultOpen?: boolean }) {
+  const router = useRouter();
   const [open, setOpen] = useState(defaultOpen);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -35,7 +37,7 @@ export function GardenPayoutConfigurationForm({ defaultOpen = false }: { default
       const body = await response.json();
       if (!response.ok) throw new Error(body.error || "לא ניתן לשמור יעד תשלום כרגע");
       setMessage(body.data?.message ?? "יעד התשלום נשמר.");
-      window.setTimeout(() => window.location.reload(), 700);
+      router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "לא ניתן לשמור יעד תשלום כרגע");
     } finally {

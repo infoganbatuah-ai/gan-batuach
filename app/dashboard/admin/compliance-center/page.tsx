@@ -11,13 +11,13 @@ import { buildComplianceScore, complianceCategories, complianceTone, expirationB
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
 
 async function countRows(supabase: SupabaseServerClient, table: string) {
-  const { count, error } = await supabase.from(table as any).select("*", { count: "exact", head: true });
+  const { count, error } = await supabase.from(table as any).select("id", { count: "exact", head: true });
   logSupabaseError(`compliance count ${table}`, error);
   return error ? 0 : count ?? 0;
 }
 
 async function countFiltered(supabase: SupabaseServerClient, table: string, apply: (query: any) => any) {
-  const { count, error } = await apply(supabase.from(table as any).select("*", { count: "exact", head: true }));
+  const { count, error } = await apply(supabase.from(table as any).select("id", { count: "exact", head: true }));
   logSupabaseError(`compliance count ${table}`, error);
   return error ? 0 : count ?? 0;
 }

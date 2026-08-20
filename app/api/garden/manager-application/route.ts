@@ -88,18 +88,19 @@ export async function POST(request: Request) {
         garden_id: garden.id,
         full_name: payload.manager_full_name,
         phone: clean(payload.manager_phone) ?? profile.phone ?? null,
-        self_service_status: "pending_approval",
+        active: true,
+        self_service_status: "profile_incomplete",
         updated_at: now
       }).eq("id", profile.id),
       admin.from("self_service_user_profiles" as any).upsert({
         profile_id: profile.id,
         requested_role: "kindergarten_manager",
-        status: "pending_approval",
+        status: "profile_incomplete",
         full_name: payload.manager_full_name,
         phone: clean(payload.manager_phone) ?? profile.phone ?? null,
         email: clean(payload.manager_email) ?? (profile as any).email ?? null,
         city: payload.city,
-        metadata: { garden_id: garden.id, application_stage: "draft_created" },
+        metadata: { garden_id: garden.id, application_stage: "continuous_onboarding", admin_approval_required: false },
         updated_at: now
       }, { onConflict: "profile_id" }),
       admin.from("kindergarten_onboarding_records" as any).upsert({
@@ -108,7 +109,7 @@ export async function POST(request: Request) {
         lifecycle_status: "activation_in_progress",
         progress_percent: 10,
         completed_steps: ["manager_profile"],
-        missing_fields: ["logo", "profile_image", "age_group_pricing", "class_capacity_setup", "documents", "payment"],
+        missing_fields: ["logo", "profile_image", "age_group_pricing", "class_capacity_setup", "documents"],
         profile_data: profileData,
         activation_steps: ["manager_self_service_registration"],
         payment_status: "not_started",
@@ -136,7 +137,7 @@ export async function POST(request: Request) {
         actor_id: profile.id,
         event_type: "registration_submitted",
         status: "recorded",
-        metadata: { source: "manager_self_service", active_access_granted: false }
+        metadata: { source: "manager_self_service", active_access_granted: true, admin_approval_required: false }
       }),
       admin.from("audit_logs" as any).insert({
         actor_id: profile.id,
@@ -147,7 +148,7 @@ export async function POST(request: Request) {
         entity_type: "gardens",
         entity_id: garden.id,
         action: "manager_self_service_kindergarten_application_created",
-        after_data: { garden_id: garden.id, status: "pending", approval_flow_status: "activation_in_progress" }
+        after_data: { garden_id: garden.id, status: "pending", approval_flow_status: "activation_in_progress", admin_approval_required: false }
       })
     ]);
 

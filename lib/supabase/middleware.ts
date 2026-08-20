@@ -22,24 +22,13 @@ export async function updateSession(request: NextRequest) {
     }
   );
 
-  await supabase.auth.getUser();
-    // --- ISO 27001 / 27701 COMPLIANCE AUDIT LOG MIDDLEWARE ---
-  try {
-    const { data: { user } } = await supabase.auth.getUser();
-    const logEntry = {
-      timestamp: new Date().toISOString(),
-      user_uuid: user?.id || 'UNAUTHENTICATED_GUEST',
-      user_role: user?.role || 'GUEST',
-      action: `${request.method} ${request.nextUrl.pathname}`,
-      source_ip: request.headers.get('x-forwarded-for') || 'UNKNOWN_IP',
-      device_fingerprint: request.headers.get('user-agent') || 'UNKNOWN_DEVICE',
-      status_code: response.status
-    };
-    console.log('⚠️ [ISO COMPLIANCE AUDIT LOG]:', JSON.stringify(logEntry));
-  } catch (logError) {
-    console.error('Audit logging failed:', logError);
+  const authResult = await supabase.auth.getUser();
+  if (process.env.NODE_ENV !== "production" && authResult.error) {
+    console.info("Session refresh completed without an authenticated user.", {
+      route: request.nextUrl.pathname,
+      code: authResult.error.code ?? "auth_session_missing"
+    });
   }
-  // ---------------------------------------------------------
 
   return response;
 }

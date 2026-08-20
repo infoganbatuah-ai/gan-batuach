@@ -2,14 +2,14 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { motion } from "framer-motion";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { Bell, Home, Search, ShieldCheck, Smartphone } from "lucide-react";
+import { Bell, Eye, Home, Search, ShieldCheck, Smartphone } from "lucide-react";
 
 export function AppMotionShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const reduceMotion = useReducedMotion();
+  const isDigitalObserver = pathname.startsWith("/digital-observer");
   const [ready, setReady] = useState(false);
   const [mobilePreview, setMobilePreview] = useState(false);
 
@@ -38,26 +38,16 @@ export function AppMotionShell({ children }: { children: React.ReactNode }) {
 
   return (
     <>
-      <BrandedSplash ready={ready} />
-      <PwaInstallPrompt />
-      <AnimatePresence mode="wait" initial={false}>
-        <motion.div
-          key={pathname}
-          className="app-page-transition"
-          initial={reduceMotion ? false : { opacity: 0, y: 12 }}
-          animate={{ opacity: 1, y: 0 }}
-          exit={reduceMotion ? undefined : { opacity: 0, y: -8 }}
-          transition={{ duration: 0.24, ease: "easeOut" }}
-          data-view-mode={mobilePreview ? "mobile-preview" : "responsive"}
-        >
-          {children}
-        </motion.div>
-      </AnimatePresence>
+      <BrandedSplash ready={ready} observer={isDigitalObserver} />
+      <PwaInstallPrompt observer={isDigitalObserver} />
+      <motion.div className="app-page-transition" initial={false} animate={{ opacity: 1 }} data-view-mode={mobilePreview ? "mobile-preview" : "responsive"}>
+        {children}
+      </motion.div>
     </>
   );
 }
 
-function BrandedSplash({ ready }: { ready: boolean }) {
+function BrandedSplash({ ready, observer }: { ready: boolean; observer: boolean }) {
   const [mounted, setMounted] = useState(true);
 
   useEffect(() => {
@@ -73,10 +63,17 @@ function BrandedSplash({ ready }: { ready: boolean }) {
 
   return (
     <motion.div className="branded-splash" initial={{ opacity: 1 }} animate={{ opacity: ready ? 0 : 1, pointerEvents: ready ? "none" : "auto" }} transition={{ delay: 0.2, duration: 0.45 }} aria-hidden="true">
-      <motion.div className="splash-logo" initial={{ scale: 0.86, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.5, ease: "easeOut" }}>
-        <Image src="/assets/company-symbol.png" alt="" width={88} height={88} priority />
-        <Image src="/assets/company-name.png" alt="גן בטוח" width={150} height={42} priority />
-      </motion.div>
+      {observer ? (
+        <motion.div className="splash-logo digital-observer-splash-logo" initial={{ scale: 0.86, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.5, ease: "easeOut" }}>
+          <span><ShieldCheck /><Eye /></span>
+          <strong>תצפיתן דיגיטלי</strong>
+        </motion.div>
+      ) : (
+        <motion.div className="splash-logo" initial={{ scale: 0.86, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} transition={{ duration: 0.5, ease: "easeOut" }}>
+          <Image src="/assets/company-symbol.png" alt="" width={88} height={88} priority />
+          <Image src="/assets/company-name.png" alt="גן בטוח" width={150} height={42} priority />
+        </motion.div>
+      )}
       <div className="splash-shimmer" />
     </motion.div>
   );
@@ -84,7 +81,7 @@ function BrandedSplash({ ready }: { ready: boolean }) {
 
 type BeforeInstallPromptEvent = Event & { prompt: () => Promise<void>; userChoice: Promise<{ outcome: string }> };
 
-function PwaInstallPrompt() {
+function PwaInstallPrompt({ observer }: { observer: boolean }) {
   const [installEvent, setInstallEvent] = useState<BeforeInstallPromptEvent | null>(null);
   const [hidden, setHidden] = useState(false);
   const isStandalone = useMemo(() => typeof window !== "undefined" && (window.matchMedia("(display-mode: standalone)").matches || (navigator as Navigator & { standalone?: boolean }).standalone), []);
@@ -96,7 +93,7 @@ function PwaInstallPrompt() {
   }, []);
 
   if (hidden || isStandalone || !installEvent) return null;
-  return <motion.div className="install-prompt" initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }}><Smartphone size={18} /><span>התקינו את גן בטוח כאפליקציה</span><button type="button" onClick={async () => { await installEvent.prompt(); setHidden(true); }}>התקנה</button><button type="button" className="ghost-install" onClick={() => setHidden(true)}>לא עכשיו</button></motion.div>;
+  return <motion.div className="install-prompt" initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }}><Smartphone size={18} /><span>התקינו את {observer ? "התצפיתן הדיגיטלי" : "גן בטוח"} כאפליקציה</span><button type="button" onClick={async () => { await installEvent.prompt(); setHidden(true); }}>התקנה</button><button type="button" className="ghost-install" onClick={() => setHidden(true)}>לא עכשיו</button></motion.div>;
 }
 
 export function MobilePublicTabs() {

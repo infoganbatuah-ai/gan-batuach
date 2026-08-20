@@ -1,0 +1,32 @@
+{
+  "generatedAt": "2026-08-20T00:04:13.635Z",
+  "method": "Static migration-order safety check. Remote Supabase policy verification is still required after applying the migration.",
+  "migration": "20260820000100_camera_snapshot_storage_privacy_hardening.sql",
+  "assertions": [
+    {
+      "name": "camera_snapshot_hardening_migration_exists",
+      "status": "PASS"
+    },
+    {
+      "name": "broad_authenticated_read_policy_is_dropped",
+      "status": "PASS"
+    },
+    {
+      "name": "broad_authenticated_insert_policy_is_dropped",
+      "status": "PASS"
+    },
+    {
+      "name": "camera_snapshot_bucket_is_forced_private",
+      "status": "PASS"
+    },
+    {
+      "name": "storage_audit_uses_valid_fixed_status",
+      "status": "PASS"
+    },
+    {
+      "name": "no_later_migration_reopens_camera_snapshot_browser_access",
+      "status": "PASS"
+    }
+  ],
+  "result": "STATIC_PASS_REMOTE_APPLY_REQUIRED"
+}

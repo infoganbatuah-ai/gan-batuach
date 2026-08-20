@@ -11,15 +11,24 @@ type ObserverPackage = {
   description?: string | null;
   package_type: string;
   camera_limit?: number | null;
+  site_limit?: number | null;
+  user_limit?: number | null;
   monitoring_mode: string;
   monitoring_hours?: Record<string, unknown>;
   event_retention_days: number;
-  recording_retention_days: number;
+  recording_retention_hours?: number | null;
   ai_event_types_enabled?: string[] | unknown;
   feature_flags?: Record<string, boolean>;
   sms_alerts_enabled: boolean;
   whatsapp_alerts_enabled: boolean;
   human_review_required: boolean;
+  alert_channels?: string[] | unknown;
+  sms_quota?: number;
+  voice_call_quota?: number;
+  support_tier?: string;
+  add_ons?: string[] | unknown;
+  trial_days?: number;
+  annual_discount_percent?: number;
   monthly_price: number;
   annual_price: number;
   active: boolean;
@@ -129,15 +138,24 @@ export function ObserverPackagesAdmin({
         description: formData.get("description"),
         package_type: formData.get("package_type"),
         camera_limit: formData.get("camera_limit") || null,
+        site_limit: formData.get("site_limit") || null,
+        user_limit: formData.get("user_limit") || null,
         monitoring_mode: formData.get("monitoring_mode"),
         monitoring_hours: parseJson(String(formData.get("monitoring_hours") ?? "{}"), {}),
         event_retention_days: formData.get("event_retention_days"),
-        recording_retention_days: formData.get("recording_retention_days"),
+        recording_retention_hours: formData.get("recording_retention_hours"),
         ai_event_types_enabled: parseList(String(formData.get("ai_event_types_enabled") ?? "")),
         feature_flags: parseJson(String(formData.get("feature_flags") ?? "{}"), {}),
         sms_alerts_enabled: formData.get("sms_alerts_enabled") === "on",
         whatsapp_alerts_enabled: formData.get("whatsapp_alerts_enabled") === "on",
         human_review_required: true,
+        alert_channels: parseList(String(formData.get("alert_channels") ?? "in_app")),
+        sms_quota: formData.get("sms_quota") || 0,
+        voice_call_quota: formData.get("voice_call_quota") || 0,
+        support_tier: formData.get("support_tier") || "standard",
+        add_ons: parseList(String(formData.get("add_ons") ?? "")),
+        trial_days: formData.get("trial_days") || 14,
+        annual_discount_percent: formData.get("annual_discount_percent") || 0,
         monthly_price: formData.get("monthly_price"),
         annual_price: formData.get("annual_price"),
         active: formData.get("active") === "on",
@@ -177,8 +195,8 @@ export function ObserverPackagesAdmin({
       <section className="grid cols-4 dashboard-panels">
         <article className="metric-card"><PackageCheck /><strong>{packages.length}</strong><span>חבילות</span></article>
         <article className="metric-card"><ShieldCheck /><strong>{packageStats.active}</strong><span>פעילות</span></article>
-        <article className="metric-card"><Bot /><strong>{standaloneSites.length}</strong><span>Standalone sites</span></article>
-        <article className="metric-card"><Gauge /><strong>{usage.length}</strong><span>Usage snapshots</span></article>
+        <article className="metric-card"><Bot /><strong>{standaloneSites.length}</strong><span>אתרים עצמאיים</span></article>
+        <article className="metric-card"><Gauge /><strong>{usage.length}</strong><span>דוחות שימוש</span></article>
       </section>
 
       {message ? <div className={message.includes("נכשלה") || message.includes("לא ") ? "notice warning" : "notice success"}>{message}</div> : null}
@@ -187,7 +205,7 @@ export function ObserverPackagesAdmin({
         <article className="card action-panel">
           <div className="section-heading">
             <h2>חבילת Digital Observer</h2>
-            <p>Standalone future product בלבד. בגני ילדים התצפיתן הדיגיטלי כלול במנוי גן בטוח.</p>
+            <p>מוצר עצמאי בלבד. בגני ילדים התצפיתן הדיגיטלי כלול במנוי גן בטוח.</p>
           </div>
           <label className="form-field">
             <span>עריכת חבילה קיימת</span>
@@ -199,20 +217,29 @@ export function ObserverPackagesAdmin({
           <form key={selectedPackage?.id ?? "new-package"} action={savePackage} className="form-grid compact-form">
             <input type="hidden" name="id" value={selectedPackage?.id ?? ""} />
             <label className="form-field"><span>שם חבילה</span><input name="name" defaultValue={selectedPackage?.name ?? ""} required /></label>
-            <label className="form-field"><span>Package key</span><input name="package_key" defaultValue={selectedPackage?.package_key ?? ""} placeholder="home_basic" required /></label>
-            <label className="form-field"><span>סוג</span><select name="package_type" defaultValue={selectedPackage?.package_type ?? "home"}><option value="home">Home</option><option value="business">Business</option><option value="enterprise">Enterprise</option><option value="custom">Custom</option></select></label>
+            <label className="form-field"><span>מפתח חבילה</span><input name="package_key" defaultValue={selectedPackage?.package_key ?? ""} placeholder="home_basic" required /></label>
+            <label className="form-field"><span>סוג</span><select name="package_type" defaultValue={selectedPackage?.package_type ?? "home"}><option value="home">ביתי</option><option value="business">עסקי</option><option value="enterprise">ארגוני</option><option value="custom">מותאם</option></select></label>
             <label className="form-field"><span>מגבלת מצלמות</span><input name="camera_limit" type="number" min="0" defaultValue={selectedPackage?.camera_limit ?? ""} /></label>
-            <label className="form-field"><span>מצב ניטור</span><select name="monitoring_mode" defaultValue={selectedPackage?.monitoring_mode ?? "event_only"}><option value="always_on">24/7</option><option value="custom_schedule">Custom schedule</option><option value="night_only">Night only</option><option value="business_hours">Business hours</option><option value="event_only">Event only</option></select></label>
-            <label className="form-field"><span>Retention אירועים</span><input name="event_retention_days" type="number" min="1" defaultValue={selectedPackage?.event_retention_days ?? 30} /></label>
-            <label className="form-field"><span>Retention הקלטות</span><input name="recording_retention_days" type="number" min="0" defaultValue={selectedPackage?.recording_retention_days ?? 0} /></label>
+            <label className="form-field"><span>מגבלת אתרים</span><input name="site_limit" type="number" min="0" defaultValue={selectedPackage?.site_limit ?? ""} /></label>
+            <label className="form-field"><span>מגבלת משתמשים</span><input name="user_limit" type="number" min="0" defaultValue={selectedPackage?.user_limit ?? ""} /></label>
+            <label className="form-field"><span>מצב ניטור</span><select name="monitoring_mode" defaultValue={selectedPackage?.monitoring_mode ?? "event_only"}><option value="always_on">24/7 לאחר אישור</option><option value="custom_schedule">לוח מותאם</option><option value="night_only">לילה</option><option value="business_hours">שעות פעילות</option><option value="event_only">סביב אירועים</option></select></label>
+            <label className="form-field"><span>שמירת אירועים בימים</span><input name="event_retention_days" type="number" min="1" defaultValue={selectedPackage?.event_retention_days ?? 30} /></label>
+            <label className="form-field"><span>שמירת מקטעי וידאו בשעות</span><input name="recording_retention_hours" type="number" min="0" max="48" defaultValue={selectedPackage?.recording_retention_hours ?? 0} /></label>
             <label className="form-field"><span>מחיר חודשי</span><input name="monthly_price" type="number" min="0" defaultValue={selectedPackage?.monthly_price ?? 0} /></label>
             <label className="form-field"><span>מחיר שנתי</span><input name="annual_price" type="number" min="0" defaultValue={selectedPackage?.annual_price ?? 0} /></label>
+            <label className="form-field"><span>הנחה שנתית באחוזים</span><input name="annual_discount_percent" type="number" min="0" max="100" defaultValue={selectedPackage?.annual_discount_percent ?? 0} /></label>
+            <label className="form-field"><span>ימי ניסיון</span><input name="trial_days" type="number" min="0" max="90" defaultValue={selectedPackage?.trial_days ?? 14} /></label>
+            <label className="form-field"><span>מכסת SMS</span><input name="sms_quota" type="number" min="0" defaultValue={selectedPackage?.sms_quota ?? 0} /></label>
+            <label className="form-field"><span>מכסת שיחות</span><input name="voice_call_quota" type="number" min="0" defaultValue={selectedPackage?.voice_call_quota ?? 0} /></label>
+            <label className="form-field"><span>רמת תמיכה</span><select name="support_tier" defaultValue={selectedPackage?.support_tier ?? "standard"}><option value="standard">רגילה</option><option value="business">עסקית</option><option value="priority">מועדפת</option><option value="managed">מנוהלת</option></select></label>
             <label className="form-field full"><span>תיאור</span><textarea name="description" defaultValue={selectedPackage?.description ?? ""} rows={2} /></label>
-            <label className="form-field full"><span>AI event types</span><textarea name="ai_event_types_enabled" defaultValue={Array.isArray(selectedPackage?.ai_event_types_enabled) ? selectedPackage?.ai_event_types_enabled.join(", ") : ""} rows={2} /></label>
-            <label className="form-field full"><span>Monitoring hours JSON</span><textarea name="monitoring_hours" defaultValue={JSON.stringify(selectedPackage?.monitoring_hours ?? {}, null, 2)} rows={3} /></label>
-            <label className="form-field full"><span>Feature flags JSON</span><textarea name="feature_flags" defaultValue={JSON.stringify(selectedPackage?.feature_flags ?? {}, null, 2)} rows={3} /></label>
-            <label className="check-row"><input name="sms_alerts_enabled" type="checkbox" defaultChecked={selectedPackage?.sms_alerts_enabled ?? false} /> SMS alerts</label>
-            <label className="check-row"><input name="whatsapp_alerts_enabled" type="checkbox" defaultChecked={selectedPackage?.whatsapp_alerts_enabled ?? false} /> WhatsApp alerts</label>
+            <label className="form-field full"><span>סוגי אירועי AI</span><textarea name="ai_event_types_enabled" defaultValue={Array.isArray(selectedPackage?.ai_event_types_enabled) ? selectedPackage?.ai_event_types_enabled.join(", ") : ""} rows={2} /></label>
+            <label className="form-field full"><span>ערוצי התראה</span><input name="alert_channels" defaultValue={Array.isArray(selectedPackage?.alert_channels) ? selectedPackage.alert_channels.join(", ") : "in_app"} placeholder="in_app, push, email" /></label>
+            <label className="form-field full"><span>תוספים זמינים</span><input name="add_ons" defaultValue={Array.isArray(selectedPackage?.add_ons) ? selectedPackage.add_ons.join(", ") : ""} placeholder="extra_camera, extra_site, sms_pack" /></label>
+            <label className="form-field full"><span>שעות ניטור (JSON מתקדם)</span><textarea name="monitoring_hours" defaultValue={JSON.stringify(selectedPackage?.monitoring_hours ?? {}, null, 2)} rows={3} /></label>
+            <label className="form-field full"><span>דגלי יכולת (JSON מתקדם)</span><textarea name="feature_flags" defaultValue={JSON.stringify(selectedPackage?.feature_flags ?? {}, null, 2)} rows={3} /></label>
+            <label className="check-row"><input name="sms_alerts_enabled" type="checkbox" defaultChecked={selectedPackage?.sms_alerts_enabled ?? false} /> SMS כלול בחבילה</label>
+            <label className="check-row"><input name="whatsapp_alerts_enabled" type="checkbox" defaultChecked={selectedPackage?.whatsapp_alerts_enabled ?? false} /> WhatsApp כלול בחבילה</label>
             <label className="check-row"><input name="active" type="checkbox" defaultChecked={selectedPackage?.active ?? true} /> פעילה</label>
             <input type="hidden" name="sort_order" value="100" />
             <button className="button primary full" type="submit" disabled={isPending}><Save size={18} /> שמירת חבילה</button>
@@ -221,21 +248,21 @@ export function ObserverPackagesAdmin({
 
         <article className="card action-panel">
           <div className="section-heading">
-            <h2>שיוך לאתר standalone</h2>
-            <p>אתרי גן ילדים חסומים לשיוך חבילת standalone כדי לא לפגוע במנוי גן בטוח.</p>
+            <h2>שיוך לאתר עצמאי</h2>
+            <p>אתרי גן ילדים חסומים לשיוך חבילת תצפיתן עצמאית כדי לא לפגוע במנוי גן בטוח.</p>
           </div>
           <form action={assignPackage} className="form-grid compact-form">
             <label className="form-field full"><span>אתר</span><select name="observer_site_id" value={selectedSiteId} onChange={(event) => setSelectedSiteId(event.target.value)} required>{sites.map((site) => <option key={site.id} value={site.id}>{site.name} · {siteTypeLabel(site.site_type)}</option>)}</select></label>
             <label className="form-field"><span>חבילה</span><select name="package_id" required>{packages.map((item) => <option key={item.id} value={item.id}>{item.name}</option>)}</select></label>
-            <label className="form-field"><span>סטטוס</span><select name="status" defaultValue="trial"><option value="trial">trial</option><option value="active">active</option><option value="pending_payment">pending_payment</option><option value="expired">expired</option><option value="suspended">suspended</option><option value="cancelled">cancelled</option></select></label>
-            <label className="form-field"><span>Trial start</span><input name="trial_start" type="datetime-local" /></label>
-            <label className="form-field"><span>Trial end</span><input name="trial_end" type="datetime-local" /></label>
-            <label className="form-field"><span>Renewal date</span><input name="renewal_date" type="date" /></label>
-            <label className="form-field"><span>Timezone</span><input name="timezone" defaultValue="Asia/Jerusalem" /></label>
-            <label className="form-field full"><span>Active days</span><input name="active_days" placeholder="sun, mon, tue" /></label>
-            <label className="form-field full"><span>Monitoring schedule JSON</span><textarea name="monitoring_schedule" defaultValue={'{"mode":"event_only"}'} rows={3} /></label>
-            <label className="form-field full"><span>Active hours JSON</span><textarea name="active_hours" defaultValue="{}" rows={3} /></label>
-            <label className="form-field full"><span>Override limits JSON</span><textarea name="override_limits" defaultValue="{}" rows={3} /></label>
+            <label className="form-field"><span>סטטוס</span><select name="status" defaultValue="trial"><option value="trial">ניסיון</option><option value="pending_payment">ממתין לתשלום</option><option value="expired">פג תוקף</option><option value="suspended">מושהה</option><option value="cancelled">בוטל</option></select></label>
+            <label className="form-field"><span>תחילת ניסיון</span><input name="trial_start" type="datetime-local" /></label>
+            <label className="form-field"><span>סיום ניסיון</span><input name="trial_end" type="datetime-local" /></label>
+            <label className="form-field"><span>תאריך חידוש</span><input name="renewal_date" type="date" /></label>
+            <label className="form-field"><span>אזור זמן</span><input name="timezone" defaultValue="Asia/Jerusalem" /></label>
+            <label className="form-field full"><span>ימי פעילות</span><input name="active_days" placeholder="sun, mon, tue" /></label>
+            <label className="form-field full"><span>תזמון ניטור (JSON מתקדם)</span><textarea name="monitoring_schedule" defaultValue={'{"mode":"event_only"}'} rows={3} /></label>
+            <label className="form-field full"><span>שעות פעילות (JSON מתקדם)</span><textarea name="active_hours" defaultValue="{}" rows={3} /></label>
+            <label className="form-field full"><span>חריגות ממגבלות (JSON מתקדם)</span><textarea name="override_limits" defaultValue="{}" rows={3} /></label>
             <button className="button primary full" type="submit" disabled={isPending}>שיוך חבילה</button>
           </form>
           <button className="button secondary full" type="button" onClick={snapshotUsage} disabled={isPending || !selectedSiteId}>חישוב שימוש חודשי</button>
@@ -243,21 +270,21 @@ export function ObserverPackagesAdmin({
       </section>
 
       <section className="dashboard-section">
-        <div className="section-heading"><h2>חבילות קיימות</h2><p>מחירים הם placeholders למוצר standalone עתידי, לא למחיר גן בטוח.</p></div>
+        <div className="section-heading"><h2>חבילות קיימות</h2><p>חבילות התצפיתן העצמאי בלבד; המחירים אינם משנים את מנוי גן בטוח.</p></div>
         <div className="procedure-list">
           {packages.map((item) => (
             <article className="card procedure-card" key={item.id}>
               <div>
-                <span className={item.active ? "pill good" : "pill bad"}>{item.active ? "active" : "disabled"}</span>
+                <span className={item.active ? "pill good" : "pill bad"}>{item.active ? "פעילה" : "מושבתת"}</span>
                 <span className="pill">{item.package_type}</span>
                 <h3>{item.name}</h3>
                 <p>{item.description}</p>
-                <small>מצלמות: {item.camera_limit ?? "ללא הגבלה"} · ניטור: {item.monitoring_mode} · Human review required</small>
+                <small>מצלמות: {item.camera_limit ?? "מותאם"} · אתרים: {item.site_limit ?? "מותאם"} · משתמשים: {item.user_limit ?? "מותאם"} · ביקורת אנושית חובה</small>
               </div>
               <div className="procedure-meta">
-                <span>{item.monthly_price} {item.monthly_price ? "ILS/month" : "custom/placeholder"}</span>
-                <span>{item.event_retention_days} days event retention</span>
-                <span>{item.recording_retention_days} days recording</span>
+                <span>{item.monthly_price ? `${item.monthly_price} ₪ לחודש` : "תמחור מותאם"}</span>
+                <span>{item.event_retention_days} ימי אירועים</span>
+                <span>{item.recording_retention_hours ?? 0} שעות מקטעי וידאו</span>
               </div>
             </article>
           ))}
@@ -266,9 +293,9 @@ export function ObserverPackagesAdmin({
 
       <section className="grid cols-2 dashboard-panels">
         <article className="card action-panel">
-          <div className="section-heading"><h2>מנויי אתרים</h2><p>Standalone only.</p></div>
+          <div className="section-heading"><h2>מנויי אתרים</h2><p>אתרי התצפיתן העצמאי בלבד.</p></div>
           <div className="risk-list">
-            {subscriptions.length === 0 ? <div>אין שיוכים עדיין <b>future only</b></div> : subscriptions.map((item) => (
+            {subscriptions.length === 0 ? <div>אין שיוכים עדיין <b>מוכן להגדרה</b></div> : subscriptions.map((item) => (
               <div key={item.id}>{item.observer_sites?.name ?? "אתר"} · {item.observer_monitoring_packages?.name ?? "חבילה"} <b>{item.status}</b></div>
             ))}
           </div>

@@ -1,0 +1,13 @@
+import { Download, FileVideo2, HardDrive, LockKeyhole, TimerReset } from "lucide-react";
+import { ObserverAppShell } from "@/components/digital-observer/observer-app-shell";
+import { requireUser } from "@/lib/auth";
+import { formatObserverDate, loadObserverRuntime, observerModeForSite, observerStatusLabel } from "@/lib/domain/digital-observer/runtime";
+
+export default async function DigitalObserverRecordingsPage() {
+  const { profile } = await requireUser("/digital-observer/login?next=/digital-observer/recordings"); const runtime = await loadObserverRuntime(profile.id); const site = runtime.sites[0] ?? null; const mode = observerModeForSite(site); const clips = site ? runtime.clips.filter((item) => item.observer_site_id === site.id) : [];
+  return <ObserverAppShell profile={profile} mode={mode} activeHref="/digital-observer/recordings" title={mode === "home" ? "הקלטות" : "קליפים מאירועים"} statusLabel="שמירה עד 48 שעות"><div className="do-page-stack">
+    <div className="do-notice info"><TimerReset /><span>המוצר שומר מקטעים סביב אירועים בלבד, לפי חבילה ולכל היותר 48 שעות. הורדה זמינה רק לקובץ אמיתי עם הרשאה חתומה.</span></div>
+    <section className="do-panel"><div className="do-section-head"><div><h2>מקטעים אחרונים</h2><p>אין קובץ דמה או כפתור הורדה מזויף.</p></div><span className="do-badge info">{clips.length} מקטעים</span></div>{clips.length ? <div className="do-table-wrap"><table className="do-table"><thead><tr><th>אירוע</th><th>מצב</th><th>זמן</th><th>אורך</th><th>מחיקה אוטומטית</th><th>פעולה</th></tr></thead><tbody>{clips.map((clip) => <tr key={clip.id}><td><strong>{clip.title}</strong></td><td><span className="do-badge info">{observerStatusLabel(clip.clip_status)}</span></td><td>{formatObserverDate(clip.captured_at)}</td><td>{clip.duration_seconds ? `${clip.duration_seconds} שניות` : "לא זמין"}</td><td>{formatObserverDate(clip.delete_after)}</td><td><span className="do-badge warn">{clip.clip_status === "available" && clip.downloadable ? "דורש URL חתום" : "לא זמין"}</span></td></tr>)}</tbody></table></div> : <div className="do-empty"><FileVideo2 /><strong>אין מקטעים שמורים</strong><span>מקטע ייווצר רק כאשר Pipeline אמיתי או תרחיש QA סינתטי יצר קובץ, מסלול אחסון ומועד מחיקה.</span></div>}</section>
+    <section className="do-grid cols-3"><article className="do-panel"><HardDrive /><h3>מדיניות שמירה</h3><p>1, 6, 24 או 48 שעות בלבד. מקור האמת הוא השרת.</p></article><article className="do-panel"><LockKeyhole /><h3>גישה פרטית</h3><p>Storage פרטי וכתובות חתומות קצרות; אין מסלול ציבורי לקבצים.</p></article><article className="do-panel"><Download /><h3>אחריות הורדה</h3><p>מחיקה מהשרת אינה מוחקת עותק שכבר נשמר במכשיר המשתמש.</p></article></section>
+  </div></ObserverAppShell>;
+}

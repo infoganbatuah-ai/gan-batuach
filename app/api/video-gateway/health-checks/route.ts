@@ -4,7 +4,8 @@ import { assertRateLimit } from "@/lib/security/rate-limit";
 
 export async function POST(request: Request) {
   try {
-    if (request.headers.get("x-video-gateway-secret") !== process.env.VIDEO_GATEWAY_SIGNING_SECRET) {
+    const expectedSecret = process.env.VIDEO_GATEWAY_SIGNING_SECRET;
+    if (!expectedSecret || request.headers.get("x-video-gateway-secret") !== expectedSecret) {
       return fail("Unauthorized video gateway request", 401);
     }
     await assertRateLimit(request.headers.get("x-forwarded-for") ?? "video-gateway", "/api/video-gateway/health-checks", 1200, 60);

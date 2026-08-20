@@ -103,13 +103,13 @@ export default async function AdminKindergartenApplicationsPage() {
   const avgProgress = rows.length ? Math.round(rows.reduce((sum, row) => sum + Number(row.onboarding?.progress_percent ?? 0), 0) / rows.length) : 0;
 
   return (
-    <AdminAppFrame profile={profile} activeHref="/dashboard/admin/kindergarten-applications" title="אישורי גנים חדשים" subtitle="בדיקת מנהלת, פרופיל גן, מסמכים, מחירי הורים ומנוי הפעלה." badge="אישורים">
+    <AdminAppFrame profile={profile} activeHref="/dashboard/admin/kindergarten-applications" title="קליטת גנים ומעקב ניסיון" subtitle="מעקב תפעולי אחר הקמה, מסמכים, מחירי הורים ותקופת ניסיון — ללא שער אישור אדמין ברישום." badge="קליטה">
       <div className="commercial-dashboard">
         <PremiumCard size="lg" className="admin-section-card">
           <SectionHeader
             eyebrow="בקשות גנים"
-            title="אישור מנהלות, פרופיל גן ומנוי הפעלה"
-            subtitle="מסלול רישום עצמי מוגבל: טיוטה, אשף, אישור אדמין, מנוי גן בטוח ואז הפעלה מלאה."
+            title="הקמת גנים, תקופת ניסיון ומוכנות תפעולית"
+            subtitle="המנהלת משלימה רישום רציף ומתחילה 14 ימי ניסיון. האדמין מנטר, מסייע ויכול לחסום במקרה חריג — אינו שער חובה להפעלה."
             icon={ClipboardCheck}
             action={<><Link className="admin-link-button" href="/dashboard/admin/kindergarten-activation">מרכז הפעלה</Link><Link className="admin-link-button" href="/dashboard/admin/billing">חיוב</Link></>}
           />
@@ -118,14 +118,14 @@ export default async function AdminKindergartenApplicationsPage() {
         <AdminDataError message={result.error ?? result.data.queryError} />
 
         <DashboardGrid columns={4}>
-          <MetricCard label="ממתינות לאישור" value={pendingReview} hint="פרופיל נשלח לאדמין" tone={pendingReview ? "warning" : "success"} icon={ClipboardCheck} />
-          <MetricCard label="ממתינות למנוי" value={paymentPending} hint="אושרו אך לא פעילות" tone={paymentPending ? "warning" : "success"} icon={CreditCard} />
-          <MetricCard label="פעילות" value={active} hint="תשלום/override תועד" tone="success" icon={ShieldCheck} />
+          <MetricCard label="רישומים ישנים לבדיקה" value={pendingReview} hint="Legacy בלבד; לא שער בזרימה החדשה" tone={pendingReview ? "warning" : "success"} icon={ClipboardCheck} />
+          <MetricCard label="לקראת הסדרת מנוי" value={paymentPending} hint="Trial / ספק תשלום" tone={paymentPending ? "warning" : "success"} icon={CreditCard} />
+          <MetricCard label="פעילות או בניסיון" value={active} hint="סטטוס הגן פעיל" tone="success" icon={ShieldCheck} />
           <MetricCard label="התקדמות ממוצעת" value={`${avgProgress}%`} hint="אשף מנהלת" tone={progressTone(avgProgress)} icon={ClipboardCheck} />
         </DashboardGrid>
 
         <PremiumCard className="admin-section-card" size="lg">
-          <SectionHeader title="בקשות גן" subtitle="מנהלת pending אינה מקבלת גישה מלאה. הורים רואים רק גנים פעילים ו-public-safe." icon={ClipboardCheck} />
+          <SectionHeader title="גנים בתהליך קליטה" subtitle="הורים רואים רק גנים פעילים שהמנהלת בחרה לפרסם. סטטוס ניסיון אינו נספר כהכנסה פעילה." icon={ClipboardCheck} />
           {rows.length === 0 ? <EmptyState title="אין בקשות גנים" text="בקשות מרישום עצמי או המרת ליד יופיעו כאן." /> : (
             <div className="procedure-list">
               {rows.map((row) => {
@@ -138,10 +138,10 @@ export default async function AdminKindergartenApplicationsPage() {
                       <p>{row.city ?? "עיר לא צוינה"} · {row.address ?? "כתובת לא צוינה"} · נוצר {dateText(row.created_at)}</p>
                       <div className="lead-conversion-meta">
                         <span>מנהלת: {row.manager?.full_name ?? row.owner_name ?? "לא צוינה"}</span>
-                        <span>חשבון מנהלת: {row.manager?.active ? "פעיל" : "מוגבל/ממתין"}</span>
+                        <span>חשבון מנהלת: {row.manager?.active ? "פעיל" : "דורש טיפול"}</span>
                       <span>מסמכים: {row.documents.length}</span>
                         <span>מנוי: {formatApprovalStatus(row.subscription?.status) ?? "לא נוצר"}</span>
-                        <span>מחיר גן בטוח: {money(row.onboarding?.subscription_monthly_amount ?? row.subscription?.metadata?.monthly_amount_nis ?? 800)}/חודש</span>
+                        <span>מחיר גן בטוח לאחר ניסיון: {money(row.onboarding?.subscription_monthly_amount ?? row.subscription?.metadata?.monthly_amount_nis ?? 700)}/חודש</span>
                       </div>
                       <div className="grid cols-2 dashboard-panels">
                         <article className="card action-panel">

@@ -48,7 +48,7 @@ async function canAccessRequest(supabase: any, profile: any, request: any) {
 
 export async function POST(request: Request) {
   try {
-    const { profile } = await requireRole(["admin", "manager", "owner"]);
+    const { profile } = await requireRole(["admin", "manager", "owner", "network_manager"]);
     const payload = payloadSchema.parse(await request.json());
     const supabase = await createClient();
 

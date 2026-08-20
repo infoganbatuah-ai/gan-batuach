@@ -9,7 +9,7 @@ export default async function Page() {
   await requireRole(["admin"]);
   const result = await safeAdminData("admin inspections overview", async () => {
     const supabase = await createClient();
-    const { data, error } = await supabase.from("inspections" as any).select("id, garden_id, inspector_id, status, completed_at, scheduled_for, weighted_score, violation_count, critical_failures, gps_verified, gardens(name, city), inspectors:inspector_id(full_name)").order("created_at", { ascending: false }).limit(120);
+    const { data, error } = await supabase.from("inspections" as any).select("id, garden_id, inspector_id, status, completed_at, weighted_score, violation_count, critical_failures, gps_verified, gardens(name, city), inspectors:inspector_id(full_name)").order("created_at", { ascending: false }).limit(120);
     logSupabaseError("admin inspections overview", error);
     return { rows: data ?? [], queryError: error ? "לא ניתן לטעון את הנתונים כרגע" : null };
   }, { rows: [] as any[], queryError: null as string | null });

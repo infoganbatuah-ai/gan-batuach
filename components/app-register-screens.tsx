@@ -16,7 +16,7 @@ export function AppRegisterEntryScreen() {
     <AppAuthShell
       eyebrow="משתמש חדש"
       title="מה סוג המשתמש שלך?"
-      subtitle="בחרו מסלול אחד. כל חשבון חדש נפתח במצב מוגבל עד אישור מתאים."
+      subtitle="בחרו מסלול אחד. הורים, צוות ומפקחים מקבלים גישה לפי שיוך; מנהלת ממשיכה ישירות להקמת הגן ולתקופת ניסיון."
       footer={<span>כבר יש לך חשבון? <Link href="/app/login">התחברות</Link></span>}
     >
       <DashboardGrid columns={2} className="app-role-choice-grid gb-auth-role-grid">
@@ -34,7 +34,9 @@ export function AppRoleRegisterScreen({ role }: { role: SelfServiceAccountType }
     <AppAuthShell
       eyebrow="הרשמה ממוקדת"
       title={active.cta}
-      subtitle="מלאו רק את הפרטים הדרושים למסלול הזה. גישה רגישה תיפתח רק אחרי אישור ושיוך מתאים."
+      subtitle={role === "kindergarten_manager"
+        ? "פותחים חשבון, משלימים את הקמת הגן ברצף ומתחילים 14 ימי ניסיון ללא שער אישור אדמין."
+        : "מלאו רק את הפרטים הדרושים. גישה רגישה תיפתח לפי שיוך ואישור התפקיד המתאים."}
       footer={<span>בחרתם מסלול לא נכון? <Link href="/app/register">חזרה לבחירת תפקיד</Link></span>}
     >
       <SelfServiceRegisterForm fixedAccountType={role} appMode />

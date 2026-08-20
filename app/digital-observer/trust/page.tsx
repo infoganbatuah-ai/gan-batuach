@@ -1,64 +1,50 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { BadgeCheck, Eye, LockKeyhole, Radar, ShieldCheck, UserCheck } from "lucide-react";
-import { BrandHeader } from "@/components/brand-header";
-import { DIGITAL_OBSERVER_SAFE_COPY_RULES } from "@/lib/domain/digital-observer-product";
+import { BellRing, Eye, FileText, Headphones, LockKeyhole, ShieldCheck, Trash2, UserCheck } from "lucide-react";
+import { ObserverMark } from "@/components/digital-observer/observer-app-shell";
 
 export const metadata: Metadata = {
-  title: "Digital Observer Trust & Privacy",
-  description: "Digital Observer trust, privacy and control readiness: secure camera tokens, audit logs, permissions, data separation and ISO readiness.",
-  alternates: { canonical: "/digital-observer/trust" },
-  openGraph: {
-    title: "Digital Observer Trust & Privacy",
-    description: "Privacy controls, secure camera access and audit readiness for Digital Observer.",
-    url: "/digital-observer/trust"
-  }
+  title: { absolute: "פרטיות, אמון ותמיכה | תצפיתן דיגיטלי" },
+  description: "כללי הגישה למצלמות, שמירת אירועים, AI, מחיקת מידע ותמיכת התצפיתן הדיגיטלי."
 };
 
 export default function DigitalObserverTrustPage() {
   return (
-    <>
-      <BrandHeader />
-      <main className="public-page digital-observer-public">
-        <section className="hero-section digital-observer-hero">
-          <div className="hero-content">
-            <p className="eyebrow">Trust and privacy</p>
-            <h1>Monitoring with control, separation and review.</h1>
-            <p>Digital Observer is prepared with camera access controls, short-lived tokens, audit logs, user permissions and ISO readiness language. It does not claim certification until external certification exists.</p>
-            <div className="hero-actions">
-              <Link className="button primary" href="/digital-observer/request-demo?source=trust">Request demo</Link>
-              <Link className="button secondary" href="/digital-observer/pricing">Packages</Link>
-            </div>
-          </div>
-          <div className="observer-live-card">
-            <strong>Trust copy</strong>
-            <span>ISO readiness, not ISO certified</span>
-            <span>secure tokens, not public camera URLs</span>
-            <span>review support, not automatic conclusions</span>
-          </div>
-        </section>
+    <main className="do-public do-trust-page" dir="rtl">
+      <header className="do-public-header">
+        <Link className="do-auth-brand dark" href="/digital-observer"><ObserverMark /><span><b>תצפיתן דיגיטלי</b><small>פרטיות, שליטה ואחריות</small></span></Link>
+        <nav><Link href="#privacy">פרטיות</Link><Link href="#terms">תנאי שימוש</Link><Link href="#support">תמיכה</Link></nav>
+        <div><Link className="do-button secondary" href="/digital-observer/login">התחברות</Link><Link className="do-button primary" href="/digital-observer/register">יצירת חשבון</Link></div>
+      </header>
 
-        <section className="grid cols-3 dashboard-panels">
-          <article className="card action-panel"><LockKeyhole /><h2>Camera access controls</h2><p>Playback should use scoped, short-lived tokens. RTSP URLs and credentials stay out of the browser.</p></article>
-          <article className="card action-panel"><UserCheck /><h2>User permissions</h2><p>Site owners, admins, viewers and reviewers receive scoped access. Gan Batuach parent and child flows stay separate.</p></article>
-          <article className="card action-panel"><Eye /><h2>Audit logs</h2><p>Viewing, configuration and sensitive actions are designed to be logged for review.</p></article>
-          <article className="card action-panel"><Radar /><h2>Capability policy</h2><p>Face, audio, gait and other sensitive capabilities are not marketed as active unless approved for a vertical.</p></article>
-          <article className="card action-panel"><ShieldCheck /><h2>Data separation</h2><p>Standalone observer sites use observer_site_id and do not create kindergarten, child or parent records.</p></article>
-          <article className="card action-panel"><BadgeCheck /><h2>ISO readiness</h2><p>The platform can show ISO readiness evidence, but must not claim ISO certification without an external certificate.</p></article>
-        </section>
+      <section className="do-pricing-head">
+        <span className="do-badge info">שליטה לפני אוטומציה</span>
+        <h1>המצלמות והמידע נשארים בשליטת המשתמש</h1>
+        <p>התצפיתן מציג זיהויים כהערכות לבדיקה. הוא אינו מבטיח מניעת אירועים, אינו מוקד חירום ואינו מפעיל יכולות רגישות בלי הגדרה והסכמה מתאימות.</p>
+      </section>
 
-        <section className="dashboard-section">
-          <div className="section-heading">
-            <h2>Safe wording</h2>
-            <p>Public copy avoids exaggerated security or AI claims.</p>
-          </div>
-          <div className="risk-list">
-            {DIGITAL_OBSERVER_SAFE_COPY_RULES.map((rule) => (
-              <div key={rule.avoid}>Avoid "{rule.avoid}" <b>Use "{rule.use}"</b></div>
-            ))}
-          </div>
-        </section>
-      </main>
-    </>
+      <section className="do-public-use" id="privacy">
+        <div><LockKeyhole /><span>גישה מאובטחת</span><h2>סודות אינם מגיעים לדפדפן</h2><p>כתובות RTSP, סיסמאות מצלמה ומפתחות ספק נשמרים בשכבת שרת מאובטחת. צפייה עתידית תשתמש באסימון קצר-חיים ובתיעוד גישה.</p><ul><li><ShieldCheck /> הפרדת משתמשים ואתרים ב-RLS</li><li><Eye /> הרשאה לפי אתר ותפקיד</li><li><FileText /> audit לפעולות רגישות</li></ul></div>
+        <div><UserCheck /><span>AI אחראי</span><h2>זיהוי אינו קביעה מוחלטת</h2><p>אירוע כולל רמת ביטחון ודורש בדיקה אנושית כאשר הוא רגיש. זיהוי פנים מחייב הסכמה ואינו משותף בין לקוחות.</p><ul><li><BellRing /> אין האשמה אוטומטית</li><li><UserCheck /> אנשים מוכרים רק בהסכמה</li><li><Trash2 /> מחיקה ושמירה לפי מדיניות</li></ul></div>
+      </section>
+
+      <section className="do-panel do-trust-panel" id="terms">
+        <div className="do-section-head"><div><h2>כללי שימוש ושמירת מידע</h2><p>המסמכים המלאים עדיין דורשים סקירה משפטית חיצונית לפני הפעלה ציבורית.</p></div><span className="do-badge warn">טיוטה לבדיקה משפטית</span></div>
+        <div className="do-trust-grid">
+          <article><strong>שמירת אירועים</strong><p>מקטעים נשמרים לפי החבילה ועד 48 שעות במוצר זה. עותק שהורד למכשיר נשאר באחריות המשתמש.</p></article>
+          <article><strong>מחיקת חשבון</strong><p>בקשת מחיקה צריכה להסיר הרשאות, מקורות מצלמה, אירועים ומדיה לפי תהליך מבוקר ומתועד.</p></article>
+          <article><strong>התראות</strong><p>Push, Email, SMS, WhatsApp ושיחות מופעלים רק דרך ספק מאושר והסכמה מתאימה. בדמו אין שליחה אמיתית.</p></article>
+          <article><strong>חירום</strong><p>התצפיתן הדיגיטלי אינו מוקד חירום. במקרה חירום יש לפנות מיד לגורמי החירום הרלוונטיים.</p></article>
+        </div>
+      </section>
+
+      <section className="do-public-trust" id="support">
+        <Headphones />
+        <div><h2>עזרה ותמיכה</h2><p>לפני חיבור מצלמה אמיתית יש לתאם סביבת Sandbox, בעל תפקיד לתמיכה ובעל תפקיד לאירועי פרטיות ואבטחה. אין להעלות סיסמה או כתובת מצלמה בטופס ציבורי.</p></div>
+        <Link className="do-button secondary light" href="/digital-observer/dashboard">פתיחת מרכז המוצר</Link>
+      </section>
+
+      <footer className="do-public-footer"><ObserverMark compact /><strong>תצפיתן דיגיטלי</strong><span>מוצר עצמאי לבית ולעסק</span><nav><Link href="/digital-observer">בית</Link><Link href="/digital-observer/pricing">חבילות</Link><Link href="/digital-observer/login">התחברות</Link></nav></footer>
+    </main>
   );
 }

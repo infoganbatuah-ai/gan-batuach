@@ -29,7 +29,8 @@ const accounts = [
   ["מפקחת משויכת", process.env.QA_DEMO_INSPECTOR_ASSIGNED_EMAIL || "inspector.yael@demo.ganbatuach.com", "inspector", "גנים סינתטיים"],
   ["מפקחת לא משויכת", process.env.QA_DEMO_INSPECTOR_UNASSIGNED_EMAIL || "qa.inspector.unassigned@demo.ganbatuach.com", "inspector", "ללא גן"],
   ["אדמין", process.env.QA_DEMO_ADMIN_EMAIL || "admin-demo@demo.ganbatuach.com", "admin", "גישה תפעולית לסביבת הדמו"],
-  ["Digital Observer", process.env.QA_DEMO_DIGITAL_OBSERVER_EMAIL || "qa.digital.observer@demo.ganbatuach.com", "network_manager", "אתר תצפית סינתטי נפרד"]
+  ["Digital Observer Home", process.env.QA_DEMO_DIGITAL_OBSERVER_HOME_EMAIL || "qa.digital.observer.home@demo.ganbatuach.com", "network_manager", "בית סינתטי נפרד"],
+  ["Digital Observer Business", process.env.QA_DEMO_DIGITAL_OBSERVER_BUSINESS_EMAIL || process.env.QA_DEMO_DIGITAL_OBSERVER_EMAIL || "qa.digital.observer@demo.ganbatuach.com", "network_manager", "עסק סינתטי נפרד"]
 ];
 
 const authUsers = [];
@@ -42,20 +43,22 @@ for (let page = 1; ; page += 1) {
 const userByEmail = new Map(authUsers.map((user) => [String(user.email ?? "").toLowerCase(), user]));
 const userIds = accounts.map(([, email]) => userByEmail.get(email.toLowerCase())?.id).filter(Boolean);
 
-const [profilesRes, gardensRes, staffRes, parentsRes, sitesRes] = await Promise.all([
+const [profilesRes, gardensRes, staffRes, parentsRes, sitesRes, inspectorsRes] = await Promise.all([
   supabase.from("profiles").select("id, email, full_name, role, garden_id, active").in("id", userIds),
   supabase.from("gardens").select("id, name, city, manager_id, owner_profile_id, inspector_id, is_demo").eq("is_demo", true),
   supabase.from("staff").select("profile_id, garden_id, approved_to_work, onboarding_status").in("profile_id", userIds),
   supabase.from("parents").select("id, profile_id, user_id, garden_id").or(`profile_id.in.(${userIds.join(",")}),user_id.in.(${userIds.join(",")})`),
-  supabase.from("observer_sites").select("id, name, site_type, owner_profile_id, active, monitoring_enabled").in("owner_profile_id", userIds)
+  supabase.from("observer_sites").select("id, name, site_type, owner_profile_id, active, monitoring_enabled").in("owner_profile_id", userIds),
+  supabase.from("inspectors").select("id, service_cities").in("id", userIds)
 ]);
-for (const result of [profilesRes, gardensRes, staffRes, parentsRes, sitesRes]) if (result.error) throw result.error;
+for (const result of [profilesRes, gardensRes, staffRes, parentsRes, sitesRes, inspectorsRes]) if (result.error) throw result.error;
 
 const profiles = profilesRes.data ?? [];
 const gardens = gardensRes.data ?? [];
 const staff = staffRes.data ?? [];
 const parents = parentsRes.data ?? [];
 const sites = sitesRes.data ?? [];
+const inspectors = inspectorsRes.data ?? [];
 const parentIds = parents.map((parent) => parent.id);
 const { data: children, error: childrenError } = parentIds.length
   ? await supabase.from("children").select("id, full_name, primary_parent_id, garden_id, is_demo").in("primary_parent_id", parentIds)
@@ -78,6 +81,7 @@ function assignmentsFor(userId, role) {
     return rows.length ? rows.map((garden) => `${clean(garden.name, "גן")} (${garden.city ?? "עיר לא הוגדרה"})`).join(", ") : "לא משויך";
   }
   if (role === "inspector") {
+    if (!inspectors.some((row) => row.id === userId)) return "לא משויך";
     const rows = gardens.filter((garden) => garden.inspector_id === userId);
     return rows.length ? rows.map((garden) => `${clean(garden.name, "גן")} (${garden.city ?? "עיר לא הוגדרה"})`).join(", ") : "לא משויך";
   }

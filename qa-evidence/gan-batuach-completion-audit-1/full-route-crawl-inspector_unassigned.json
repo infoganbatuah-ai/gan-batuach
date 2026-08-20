@@ -1,0 +1,325 @@
+[
+  {
+    "key": "inspector_unassigned",
+    "route": "/dashboard/inspector",
+    "actualUrl": "http://localhost:3004/dashboard/inspector",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "בקשת מפקח"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "inspector_unassigned",
+    "route": "/dashboard/inspector/ai-events",
+    "actualUrl": "http://localhost:3004/dashboard/inspector/ai-events",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "התראות תצפיתן"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "inspector_unassigned",
+    "route": "/dashboard/inspector/apply",
+    "actualUrl": "http://localhost:3004/dashboard/inspector/apply",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "בקשת מפקח"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "inspector_unassigned",
+    "route": "/dashboard/inspector/cameras",
+    "actualUrl": "http://localhost:3004/dashboard/inspector/cameras",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "מצלמות גנים"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "inspector_unassigned",
+    "route": "/dashboard/inspector/command-center",
+    "actualUrl": "http://localhost:3004/dashboard/inspector/command-center",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "גנים מוקצים"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "inspector_unassigned",
+    "route": "/dashboard/inspector/compliance",
+    "actualUrl": "http://localhost:3004/dashboard/inspector/compliance",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "ציות ובקרה"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "inspector_unassigned",
+    "route": "/dashboard/inspector/control-center",
+    "actualUrl": "http://localhost:3004/dashboard/inspector/control-center",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "גנים מוקצים"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "inspector_unassigned",
+    "route": "/dashboard/inspector/inspections",
+    "actualUrl": "http://localhost:3004/dashboard/inspector/inspections",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "טופס ביקורת חודשית"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "inspector_unassigned",
+    "route": "/dashboard/inspector/inspections/due",
+    "actualUrl": "http://localhost:3004/dashboard/inspector/inspections/due",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "יומן ביקורות"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "inspector_unassigned",
+    "route": "/dashboard/inspector/inspections/history",
+    "actualUrl": "http://localhost:3004/dashboard/inspector/inspections/history",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "היסטוריית ביקורות"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "inspector_unassigned",
+    "route": "/dashboard/inspector/notifications",
+    "actualUrl": "http://localhost:3004/dashboard/inspector/notifications",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "התראות מפקח"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "inspector_unassigned",
+    "route": "/dashboard/inspector/observer-network",
+    "actualUrl": "http://localhost:3004/dashboard/inspector/observer-network",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "רשת תצפיתן"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "inspector_unassigned",
+    "route": "/dashboard/inspector/observer-pilot",
+    "actualUrl": "http://localhost:3004/dashboard/inspector/observer-pilot",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "פיילוט תצפיתן"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "inspector_unassigned",
+    "route": "/dashboard/inspector/ratings",
+    "actualUrl": "http://localhost:3004/dashboard/inspector/ratings",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "דירוג גנים"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "inspector_unassigned",
+    "route": "/dashboard/inspector/reports",
+    "actualUrl": "http://localhost:3004/dashboard/inspector/reports",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "דיווחים ופניות"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "inspector_unassigned",
+    "route": "/dashboard/inspector/risk",
+    "actualUrl": "http://localhost:3004/dashboard/inspector/risk",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "מודיעין סיכון"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "inspector_unassigned",
+    "route": "/dashboard/inspector/settings",
+    "actualUrl": "http://localhost:3004/dashboard/inspector/settings",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "פרופיל מפקח"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "inspector_unassigned",
+    "route": "/dashboard/inspector/tasks",
+    "actualUrl": "http://localhost:3004/dashboard/inspector/tasks",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "משימות פקח"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "inspector_unassigned",
+    "route": "/dashboard/inspector/violations",
+    "actualUrl": "http://localhost:3004/dashboard/inspector/violations",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "ליקויים ותיקונים"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  }
+]

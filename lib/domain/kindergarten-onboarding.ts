@@ -83,19 +83,22 @@ export const regulatoryAcceptanceItems = [
 ] as const;
 
 export const activationWizardSteps = [
-  "financial_setup",
-  "age_group_pricing",
-  "class_capacity_setup",
-  "staff_setup",
-  "children_setup",
-  "parent_invitations",
-  "vacation_calendar",
-  "weekly_schedule",
-  "manager_profile",
-  "documents",
-  "payment",
+  "garden_details",
+  "groups_and_staff",
+  "trial_and_payment_readiness",
+  "children_and_parent_invitations_optional",
   "activation_confirmation"
 ] as const;
+
+export const managerRegistrationSteps = [
+  { key: "garden_details", label: "פרטי הגן" },
+  { key: "groups_and_staff", label: "קבוצות וצוות" },
+  { key: "trial_and_payment_readiness", label: "סיכום ותשלום" },
+  { key: "children_and_parent_invitations_optional", label: "ילדים והורים" },
+  { key: "activation_confirmation", label: "השלמת הקמה" }
+] as const;
+
+export const ganBatuachTrialDays = 14;
 
 export const requiredKindergartenDocumentCategories = [
   "ownership_legal_entity",
@@ -131,5 +134,5 @@ export function validateClassCapacity(ageGroupKey: string, childCount: number) {
 
 export function calculateGanBatuachMonthlyPrice(classCount: number) {
   if (classCount <= 0) return 0;
-  return 800 + Math.max(0, classCount - 1) * 200;
+  return 700 + Math.max(0, classCount - 1) * 200;
 }

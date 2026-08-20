@@ -1,0 +1,531 @@
+{
+  "generatedAt": "2026-08-20T00:21:15.992Z",
+  "method": "Normal Supabase password authentication with the public browser key. A server-only service client creates and removes one synthetic storage sentinel; browser-role probes never receive that key.",
+  "privacy": "Only role/status/count/error metadata is stored. Emails, passwords, row identifiers and row contents are omitted.",
+  "storageSentinel": {
+    "setup": "PASS",
+    "cleanup": "PASS",
+    "cleanupError": null
+  },
+  "results": [
+    {
+      "account": "parent_assigned",
+      "configured": true,
+      "login": "PASS",
+      "profile": {
+        "role": "parent",
+        "active": true,
+        "hasGardenAssignment": true
+      },
+      "probes": {
+        "gardens": {
+          "rows": 7,
+          "error": null
+        },
+        "children": {
+          "rows": 4,
+          "error": null
+        },
+        "providerHealth": {
+          "rows": 0,
+          "error": null
+        },
+        "rawAiEvents": {
+          "rows": 0,
+          "error": null
+        },
+        "cameraSnapshotStorage": {
+          "accessStatus": "PASS_DENIED",
+          "listedSentinel": false,
+          "downloadedSentinel": false,
+          "listError": null,
+          "downloadError": {
+            "code": "UNKNOWN",
+            "message": "Object not found"
+          }
+        },
+        "cameraCredentialColumns": {
+          "rows": 0,
+          "containsSensitiveValue": false,
+          "populatedColumns": [],
+          "accessStatus": "PASS_DENIED",
+          "error": {
+            "code": "42501",
+            "message": "permission denied for table camera_streams"
+          }
+        },
+        "parentRows": {
+          "rows": 1,
+          "error": null
+        }
+      }
+    },
+    {
+      "account": "parent_unassigned",
+      "configured": true,
+      "login": "PASS",
+      "profile": {
+        "role": "parent",
+        "active": true,
+        "hasGardenAssignment": false
+      },
+      "probes": {
+        "gardens": {
+          "rows": 7,
+          "error": null
+        },
+        "children": {
+          "rows": 0,
+          "error": null
+        },
+        "providerHealth": {
+          "rows": 0,
+          "error": null
+        },
+        "rawAiEvents": {
+          "rows": 0,
+          "error": null
+        },
+        "cameraSnapshotStorage": {
+          "accessStatus": "PASS_DENIED",
+          "listedSentinel": false,
+          "downloadedSentinel": false,
+          "listError": null,
+          "downloadError": {
+            "code": "UNKNOWN",
+            "message": "Object not found"
+          }
+        },
+        "cameraCredentialColumns": {
+          "rows": 0,
+          "containsSensitiveValue": false,
+          "populatedColumns": [],
+          "accessStatus": "PASS_DENIED",
+          "error": {
+            "code": "42501",
+            "message": "permission denied for table camera_streams"
+          }
+        },
+        "parentRows": {
+          "rows": 0,
+          "error": null
+        }
+      }
+    },
+    {
+      "account": "manager",
+      "configured": true,
+      "login": "PASS",
+      "profile": {
+        "role": "manager",
+        "active": true,
+        "hasGardenAssignment": true
+      },
+      "probes": {
+        "gardens": {
+          "rows": 7,
+          "error": null
+        },
+        "children": {
+          "rows": 8,
+          "error": null
+        },
+        "providerHealth": {
+          "rows": 0,
+          "error": null
+        },
+        "rawAiEvents": {
+          "rows": 1,
+          "error": null
+        },
+        "cameraSnapshotStorage": {
+          "accessStatus": "PASS_DENIED",
+          "listedSentinel": false,
+          "downloadedSentinel": false,
+          "listError": null,
+          "downloadError": {
+            "code": "UNKNOWN",
+            "message": "Object not found"
+          }
+        },
+        "cameraCredentialColumns": {
+          "rows": 0,
+          "containsSensitiveValue": false,
+          "populatedColumns": [],
+          "accessStatus": "PASS_DENIED",
+          "error": {
+            "code": "42501",
+            "message": "permission denied for table camera_streams"
+          }
+        }
+      }
+    },
+    {
+      "account": "staff_assigned",
+      "configured": true,
+      "login": "PASS",
+      "profile": {
+        "role": "staff",
+        "active": true,
+        "hasGardenAssignment": true
+      },
+      "probes": {
+        "gardens": {
+          "rows": 7,
+          "error": null
+        },
+        "children": {
+          "rows": 8,
+          "error": null
+        },
+        "providerHealth": {
+          "rows": 0,
+          "error": null
+        },
+        "rawAiEvents": {
+          "rows": 1,
+          "error": null
+        },
+        "cameraSnapshotStorage": {
+          "accessStatus": "PASS_DENIED",
+          "listedSentinel": false,
+          "downloadedSentinel": false,
+          "listError": null,
+          "downloadError": {
+            "code": "UNKNOWN",
+            "message": "Object not found"
+          }
+        },
+        "cameraCredentialColumns": {
+          "rows": 0,
+          "containsSensitiveValue": false,
+          "populatedColumns": [],
+          "accessStatus": "PASS_DENIED",
+          "error": {
+            "code": "42501",
+            "message": "permission denied for table camera_streams"
+          }
+        },
+        "staffRows": {
+          "rows": 2,
+          "error": null
+        }
+      }
+    },
+    {
+      "account": "staff_unassigned",
+      "configured": true,
+      "login": "PASS",
+      "profile": {
+        "role": "staff",
+        "active": true,
+        "hasGardenAssignment": false
+      },
+      "probes": {
+        "gardens": {
+          "rows": 7,
+          "error": null
+        },
+        "children": {
+          "rows": 0,
+          "error": null
+        },
+        "providerHealth": {
+          "rows": 0,
+          "error": null
+        },
+        "rawAiEvents": {
+          "rows": 0,
+          "error": null
+        },
+        "cameraSnapshotStorage": {
+          "accessStatus": "PASS_DENIED",
+          "listedSentinel": false,
+          "downloadedSentinel": false,
+          "listError": null,
+          "downloadError": {
+            "code": "UNKNOWN",
+            "message": "Object not found"
+          }
+        },
+        "cameraCredentialColumns": {
+          "rows": 0,
+          "containsSensitiveValue": false,
+          "populatedColumns": [],
+          "accessStatus": "PASS_DENIED",
+          "error": {
+            "code": "42501",
+            "message": "permission denied for table camera_streams"
+          }
+        },
+        "staffRows": {
+          "rows": 0,
+          "error": null
+        }
+      }
+    },
+    {
+      "account": "inspector_assigned",
+      "configured": true,
+      "login": "PASS",
+      "profile": {
+        "role": "inspector",
+        "active": true,
+        "hasGardenAssignment": false
+      },
+      "probes": {
+        "gardens": {
+          "rows": 7,
+          "error": null
+        },
+        "children": {
+          "rows": 14,
+          "error": null
+        },
+        "providerHealth": {
+          "rows": 0,
+          "error": null
+        },
+        "rawAiEvents": {
+          "rows": 3,
+          "error": null
+        },
+        "cameraSnapshotStorage": {
+          "accessStatus": "PASS_DENIED",
+          "listedSentinel": false,
+          "downloadedSentinel": false,
+          "listError": null,
+          "downloadError": {
+            "code": "UNKNOWN",
+            "message": "Object not found"
+          }
+        },
+        "cameraCredentialColumns": {
+          "rows": 0,
+          "containsSensitiveValue": false,
+          "populatedColumns": [],
+          "accessStatus": "PASS_DENIED",
+          "error": {
+            "code": "42501",
+            "message": "permission denied for table camera_streams"
+          }
+        },
+        "inspectorRows": {
+          "rows": 0,
+          "error": null
+        },
+        "inspectorGardenAssignments": {
+          "rows": 2,
+          "error": null
+        }
+      }
+    },
+    {
+      "account": "inspector_unassigned",
+      "configured": true,
+      "login": "PASS",
+      "profile": {
+        "role": "inspector",
+        "active": false,
+        "hasGardenAssignment": false
+      },
+      "probes": {
+        "gardens": {
+          "rows": 7,
+          "error": null
+        },
+        "children": {
+          "rows": 0,
+          "error": null
+        },
+        "providerHealth": {
+          "rows": 0,
+          "error": null
+        },
+        "rawAiEvents": {
+          "rows": 0,
+          "error": null
+        },
+        "cameraSnapshotStorage": {
+          "accessStatus": "PASS_DENIED",
+          "listedSentinel": false,
+          "downloadedSentinel": false,
+          "listError": null,
+          "downloadError": {
+            "code": "UNKNOWN",
+            "message": "Object not found"
+          }
+        },
+        "cameraCredentialColumns": {
+          "rows": 0,
+          "containsSensitiveValue": false,
+          "populatedColumns": [],
+          "accessStatus": "PASS_DENIED",
+          "error": {
+            "code": "42501",
+            "message": "permission denied for table camera_streams"
+          }
+        },
+        "inspectorRows": {
+          "rows": 0,
+          "error": null
+        },
+        "inspectorGardenAssignments": {
+          "rows": 0,
+          "error": null
+        }
+      }
+    },
+    {
+      "account": "admin",
+      "configured": true,
+      "login": "PASS",
+      "profile": {
+        "role": "admin",
+        "active": true,
+        "hasGardenAssignment": false
+      },
+      "probes": {
+        "gardens": {
+          "rows": 7,
+          "error": null
+        },
+        "children": {
+          "rows": 23,
+          "error": null
+        },
+        "providerHealth": {
+          "rows": 25,
+          "error": null
+        },
+        "rawAiEvents": {
+          "rows": 5,
+          "error": null
+        },
+        "cameraSnapshotStorage": {
+          "accessStatus": "PASS_DENIED",
+          "listedSentinel": false,
+          "downloadedSentinel": false,
+          "listError": null,
+          "downloadError": {
+            "code": "UNKNOWN",
+            "message": "Object not found"
+          }
+        },
+        "cameraCredentialColumns": {
+          "rows": 0,
+          "containsSensitiveValue": false,
+          "populatedColumns": [],
+          "accessStatus": "PASS_DENIED",
+          "error": {
+            "code": "42501",
+            "message": "permission denied for table camera_streams"
+          }
+        }
+      }
+    },
+    {
+      "account": "digital_observer",
+      "configured": true,
+      "login": "PASS",
+      "profile": {
+        "role": "network_manager",
+        "active": true,
+        "hasGardenAssignment": false
+      },
+      "probes": {
+        "gardens": {
+          "rows": 7,
+          "error": null
+        },
+        "children": {
+          "rows": 0,
+          "error": null
+        },
+        "providerHealth": {
+          "rows": 0,
+          "error": null
+        },
+        "rawAiEvents": {
+          "rows": 0,
+          "error": null
+        },
+        "cameraSnapshotStorage": {
+          "accessStatus": "PASS_DENIED",
+          "listedSentinel": false,
+          "downloadedSentinel": false,
+          "listError": null,
+          "downloadError": {
+            "code": "UNKNOWN",
+            "message": "Object not found"
+          }
+        },
+        "cameraCredentialColumns": {
+          "rows": 0,
+          "containsSensitiveValue": false,
+          "populatedColumns": [],
+          "accessStatus": "PASS_DENIED",
+          "error": {
+            "code": "42501",
+            "message": "permission denied for table camera_streams"
+          }
+        },
+        "observerSitesOwned": {
+          "rows": 1,
+          "error": null
+        },
+        "observerMemberships": {
+          "rows": 1,
+          "error": null
+        }
+      }
+    }
+  ],
+  "assertions": [
+    {
+      "name": "all_demo_roles_login",
+      "status": "PASS",
+      "evidence": "9/9"
+    },
+    {
+      "name": "camera_credentials_denied",
+      "status": "PASS",
+      "evidence": "parent_assigned:PASS_DENIED,parent_unassigned:PASS_DENIED,manager:PASS_DENIED,staff_assigned:PASS_DENIED,staff_unassigned:PASS_DENIED,inspector_assigned:PASS_DENIED,inspector_unassigned:PASS_DENIED,admin:PASS_DENIED,digital_observer:PASS_DENIED"
+    },
+    {
+      "name": "camera_snapshot_storage_browser_access_denied",
+      "status": "PASS",
+      "evidence": "parent_assigned:PASS_DENIED,parent_unassigned:PASS_DENIED,manager:PASS_DENIED,staff_assigned:PASS_DENIED,staff_unassigned:PASS_DENIED,inspector_assigned:PASS_DENIED,inspector_unassigned:PASS_DENIED,admin:PASS_DENIED,digital_observer:PASS_DENIED"
+    },
+    {
+      "name": "parent_raw_ai_denied",
+      "status": "PASS",
+      "evidence": "assigned/unassigned parent raw AI rows must both be zero"
+    },
+    {
+      "name": "unassigned_sensitive_rows_empty",
+      "status": "PASS",
+      "evidence": "unassigned parent/staff/inspector child rows must be zero"
+    },
+    {
+      "name": "normal_roles_provider_health_denied",
+      "status": "PASS",
+      "evidence": "provider health rows must be zero outside admin"
+    },
+    {
+      "name": "assigned_role_fixtures_visible",
+      "status": "PASS",
+      "evidence": "assigned fixtures must have scoped synthetic child rows"
+    },
+    {
+      "name": "inspector_assignment_states",
+      "status": "PASS",
+      "evidence": "assigned inspector has garden; unassigned inspector has none"
+    },
+    {
+      "name": "digital_observer_rls_non_recursive",
+      "status": "PASS",
+      "evidence": "observer site/membership reads complete without policy recursion"
+    }
+  ]
+}

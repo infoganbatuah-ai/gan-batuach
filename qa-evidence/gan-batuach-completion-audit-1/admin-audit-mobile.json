@@ -1,0 +1,263 @@
+[
+  {
+    "key": "admin",
+    "route": "/dashboard/admin",
+    "actualUrl": "http://localhost:3002/dashboard/admin",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "דשבורד אדמין ראשי",
+      "דשבורד אדמין ראשי"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": true,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/admin-dashboard-admin-390x844.png"
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/users",
+    "actualUrl": "http://localhost:3002/dashboard/admin/users",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "טוען מרכז אדמין"
+    ],
+    "loading": true,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/admin-dashboard-admin-users-390x844.png"
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/kindergartens",
+    "actualUrl": "http://localhost:3002/dashboard/admin/kindergartens",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "deadLinks": [],
+    "h1": [
+      "גנים",
+      "ספריית גני הילדים המלאה."
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/admin-dashboard-admin-kindergartens-390x844.png"
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/subscriptions",
+    "actualUrl": "http://localhost:3002/dashboard/admin/subscriptions",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "מנויים ותשלומים"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/admin-dashboard-admin-subscriptions-390x844.png"
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/integrations",
+    "actualUrl": "http://localhost:3002/dashboard/admin/integrations",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "deadLinks": [],
+    "h1": [
+      "Production Integrations",
+      "הפעלה מבוקרת של ספקי ייצור"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/admin-dashboard-admin-integrations-390x844.png"
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/provider-production",
+    "actualUrl": "http://localhost:3002/dashboard/admin/provider-production",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "בריאות ספקים",
+      "הפעלת ספקי Production בצורה מבוקרת"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/admin-dashboard-admin-provider-production-390x844.png"
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/cameras",
+    "actualUrl": "http://localhost:3002/dashboard/admin/cameras",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "תפעול מצלמות ו-AI",
+      "מרכז תשתיות מצלמות ותצפיתן"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/admin-dashboard-admin-cameras-390x844.png"
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/ai-observer",
+    "actualUrl": "http://localhost:3002/dashboard/admin/ai-observer",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "deadLinks": [],
+    "h1": [
+      "תצפיתן AI",
+      "תשתית Worker לתצפיתן הדיגיטלי."
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/admin-dashboard-admin-ai-observer-390x844.png"
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/whatsapp",
+    "actualUrl": "http://localhost:3002/dashboard/admin/whatsapp",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "deadLinks": [],
+    "h1": [
+      "WhatsApp",
+      "תשתית WhatsApp מוכנה לבדיקה."
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/admin-dashboard-admin-whatsapp-390x844.png"
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/sms",
+    "actualUrl": "http://localhost:3002/dashboard/admin/sms",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "deadLinks": [],
+    "h1": [
+      "SMS",
+      "תשתית SMS מוכנה לבדיקה."
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/admin-dashboard-admin-sms-390x844.png"
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/push-production",
+    "actualUrl": "http://localhost:3002/dashboard/admin/push-production",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "deadLinks": [],
+    "h1": [
+      "Push Production",
+      "תשתית Push מוכנה לייצור מבוקר."
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/admin-dashboard-admin-push-production-390x844.png"
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/pilot-readiness",
+    "actualUrl": "http://localhost:3002/dashboard/admin/pilot-readiness",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "מוכנות פיילוט",
+      "מוכנות לפיילוט אמיתי."
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/admin-dashboard-admin-pilot-readiness-390x844.png"
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/system-health",
+    "actualUrl": "http://localhost:3002/dashboard/admin/system-health",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "בריאות מערכת",
+      "מה חסר כדי שהמערכת תהיה מוכנה להפעלה מלאה?"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/admin-dashboard-admin-system-health-390x844.png"
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/navigation-health",
+    "actualUrl": "http://localhost:3002/dashboard/admin/navigation-health",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "טוען מרכז אדמין"
+    ],
+    "loading": true,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/admin-dashboard-admin-navigation-health-390x844.png"
+  }
+]

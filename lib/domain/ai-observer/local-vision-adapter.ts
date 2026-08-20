@@ -182,6 +182,7 @@ class PlaceholderLocalVisionAdapter implements LocalVisionAdapter {
 
   async analyzeFrame(input: FrameAnalyzerInput, context: VisionContext = {}): Promise<FrameAnalyzerResult> {
     const started = Date.now();
+    const hadFrameInput = Boolean(input.frame_url || input.frame_buffer?.length);
     const scenario = normalizeScenario(input.motion_metadata?.mock_scenario) ?? inferScenario(input, context);
     const confidence = confidenceForScenario(scenario, input.motion_metadata?.motion_score);
     const objectLabels = labelsForScenario(scenario);
@@ -218,7 +219,7 @@ class PlaceholderLocalVisionAdapter implements LocalVisionAdapter {
       bounding_boxes: boundingBoxes,
       skeleton_keypoints: skeletonKeypoints,
       setup_required: setupRequired,
-      gateway_snapshot_status: input.frame_url ? "available" : "mock",
+      gateway_snapshot_status: hadFrameInput ? "available" : "mock",
       metadata: {
         requested_provider: this.provider,
         active_provider: setupRequired ? "local_mock" : this.provider,

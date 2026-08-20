@@ -14,6 +14,7 @@ import {
   FileText,
   Megaphone,
   MessageCircle,
+  ScanEye,
   ShieldCheck,
   UserRoundPlus,
   UsersRound,
@@ -74,6 +75,7 @@ export function ManagerOverviewDashboard({
     { title: "צוות", href: "/dashboard/garden/staff", icon: UsersRound },
     { title: "תשלומים", href: "/dashboard/garden/finance", icon: WalletCards },
     { title: "מצלמות", href: "/dashboard/garden/cameras", icon: Camera },
+    { title: "תצפיתן כלול", href: "/dashboard/garden/observer-pilot", icon: ScanEye },
     { title: "בקשות הצטרפות", href: "/dashboard/garden/enrollment-requests", icon: UserRoundPlus },
     { title: "דוחות", href: "/dashboard/garden/reports", icon: BarChart3 }
   ];

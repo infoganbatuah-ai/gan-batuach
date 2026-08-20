@@ -1,0 +1,376 @@
+[
+  {
+    "key": "inspector_assigned",
+    "route": "/dashboard/inspector/control-center",
+    "actualUrl": "http://localhost:3002/dashboard/inspector/control-center",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "גנים מוקצים"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/inspector_assigned-dashboard-inspector-control-center-390x844.png"
+  },
+  {
+    "key": "inspector_assigned",
+    "route": "/dashboard/inspector/inspections",
+    "actualUrl": "http://localhost:3002/dashboard/inspector/inspections",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "טופס ביקורת חודשית"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/inspector_assigned-dashboard-inspector-inspections-390x844.png"
+  },
+  {
+    "key": "inspector_assigned",
+    "route": "/dashboard/inspector/inspections/due",
+    "actualUrl": "http://localhost:3002/dashboard/inspector/inspections/due",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "יומן ביקורות"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/inspector_assigned-dashboard-inspector-inspections-due-390x844.png"
+  },
+  {
+    "key": "inspector_assigned",
+    "route": "/dashboard/inspector/inspections/history",
+    "actualUrl": "http://localhost:3002/dashboard/inspector/inspections/history",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "היסטוריית ביקורות"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/inspector_assigned-dashboard-inspector-inspections-history-390x844.png"
+  },
+  {
+    "key": "inspector_assigned",
+    "route": "/dashboard/inspector/reports",
+    "actualUrl": "http://localhost:3002/dashboard/inspector/reports",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "דיווחים ופניות"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/inspector_assigned-dashboard-inspector-reports-390x844.png"
+  },
+  {
+    "key": "inspector_assigned",
+    "route": "/dashboard/inspector/cameras",
+    "actualUrl": "http://localhost:3002/dashboard/inspector/cameras",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "מצלמות גנים"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/inspector_assigned-dashboard-inspector-cameras-390x844.png"
+  },
+  {
+    "key": "inspector_assigned",
+    "route": "/dashboard/inspector/tasks",
+    "actualUrl": "http://localhost:3002/dashboard/inspector/tasks",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "משימות פקח"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/inspector_assigned-dashboard-inspector-tasks-390x844.png"
+  },
+  {
+    "key": "inspector_assigned",
+    "route": "/dashboard/inspector/notifications",
+    "actualUrl": "http://localhost:3002/dashboard/inspector/notifications",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "התראות מפקח"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/inspector_assigned-dashboard-inspector-notifications-390x844.png"
+  },
+  {
+    "key": "inspector_assigned",
+    "route": "/dashboard/inspector/control-center",
+    "actualUrl": "http://localhost:3002/dashboard/inspector/control-center",
+    "width": 1440,
+    "height": 900,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "גנים מוקצים"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/inspector_assigned-dashboard-inspector-control-center-1440x900.png"
+  },
+  {
+    "key": "inspector_assigned",
+    "route": "/dashboard/inspector/inspections",
+    "actualUrl": "http://localhost:3002/dashboard/inspector/inspections",
+    "width": 1440,
+    "height": 900,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "טופס ביקורת חודשית"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/inspector_assigned-dashboard-inspector-inspections-1440x900.png"
+  },
+  {
+    "key": "inspector_assigned",
+    "route": "/dashboard/inspector/inspections/due",
+    "actualUrl": "http://localhost:3002/dashboard/inspector/inspections/due",
+    "width": 1440,
+    "height": 900,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "יומן ביקורות"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/inspector_assigned-dashboard-inspector-inspections-due-1440x900.png"
+  },
+  {
+    "key": "inspector_assigned",
+    "route": "/dashboard/inspector/inspections/history",
+    "actualUrl": "http://localhost:3002/dashboard/inspector/inspections/history",
+    "width": 1440,
+    "height": 900,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "היסטוריית ביקורות"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/inspector_assigned-dashboard-inspector-inspections-history-1440x900.png"
+  },
+  {
+    "key": "inspector_assigned",
+    "route": "/dashboard/inspector/reports",
+    "actualUrl": "http://localhost:3002/dashboard/inspector/reports",
+    "width": 1440,
+    "height": 900,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "דיווחים ופניות"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/inspector_assigned-dashboard-inspector-reports-1440x900.png"
+  },
+  {
+    "key": "inspector_assigned",
+    "route": "/dashboard/inspector/cameras",
+    "actualUrl": "http://localhost:3002/dashboard/inspector/cameras",
+    "width": 1440,
+    "height": 900,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "מצלמות גנים"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/inspector_assigned-dashboard-inspector-cameras-1440x900.png"
+  },
+  {
+    "key": "inspector_assigned",
+    "route": "/dashboard/inspector/tasks",
+    "actualUrl": "http://localhost:3002/dashboard/inspector/tasks",
+    "width": 1440,
+    "height": 900,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "משימות פקח"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/inspector_assigned-dashboard-inspector-tasks-1440x900.png"
+  },
+  {
+    "key": "inspector_assigned",
+    "route": "/dashboard/inspector/notifications",
+    "actualUrl": "http://localhost:3002/dashboard/inspector/notifications",
+    "width": 1440,
+    "height": 900,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "התראות מפקח"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/inspector_assigned-dashboard-inspector-notifications-1440x900.png"
+  },
+  {
+    "key": "inspector_unassigned",
+    "route": "/dashboard/inspector/control-center",
+    "actualUrl": "http://localhost:3002/dashboard/inspector/control-center",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "גנים מוקצים"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/inspector_unassigned-dashboard-inspector-control-center-390x844.png"
+  },
+  {
+    "key": "inspector_unassigned",
+    "route": "/dashboard/inspector/apply",
+    "actualUrl": "http://localhost:3002/dashboard/inspector/apply",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "בקשת מפקח"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/inspector_unassigned-dashboard-inspector-apply-390x844.png"
+  },
+  {
+    "key": "inspector_unassigned",
+    "route": "/dashboard/inspector/settings",
+    "actualUrl": "http://localhost:3002/dashboard/inspector/settings",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "פרופיל מפקח"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/inspector_unassigned-dashboard-inspector-settings-390x844.png"
+  },
+  {
+    "key": "inspector_unassigned",
+    "route": "/dashboard/inspector/control-center",
+    "actualUrl": "http://localhost:3002/dashboard/inspector/control-center",
+    "width": 1440,
+    "height": 900,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "גנים מוקצים"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/inspector_unassigned-dashboard-inspector-control-center-1440x900.png"
+  },
+  {
+    "key": "inspector_unassigned",
+    "route": "/dashboard/inspector/apply",
+    "actualUrl": "http://localhost:3002/dashboard/inspector/apply",
+    "width": 1440,
+    "height": 900,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "בקשת מפקח"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/inspector_unassigned-dashboard-inspector-apply-1440x900.png"
+  },
+  {
+    "key": "inspector_unassigned",
+    "route": "/dashboard/inspector/settings",
+    "actualUrl": "http://localhost:3002/dashboard/inspector/settings",
+    "width": 1440,
+    "height": 900,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "פרופיל מפקח"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/inspector_unassigned-dashboard-inspector-settings-1440x900.png"
+  }
+]

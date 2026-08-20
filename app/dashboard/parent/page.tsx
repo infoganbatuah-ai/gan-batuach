@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Baby, Bell, Building2, CalendarDays, Camera, FileText, MessageCircle, ShieldCheck, WalletCards } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { ParentChildProfileForm } from "@/components/self-service-forms";
+import { ParentKindergartenInvitationsPanel } from "@/components/parent-kindergarten-invitations-panel";
 import {
   ParentActionTile,
   ParentAppFrame,
@@ -74,6 +75,8 @@ export default async function ParentDashboard() {
         <ParentHero title="דשבורד הורים" subtitle="מעקב חכם אחר הילד והגן" />
 
         {syntheticSession ? <div className="dashboard-environment-notice" role="status">סביבת בדיקה עם נתונים סינתטיים בלבד. נתוני ילדים והורים אמיתיים אינם מופעלים כאן.</div> : null}
+
+        <ParentKindergartenInvitationsPanel />
 
         {selectedChild ? (
           <ParentChildCard

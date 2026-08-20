@@ -14,15 +14,24 @@ const packageSchema = z.object({
   description: z.string().trim().optional().nullable(),
   package_type: z.enum(["home", "business", "enterprise", "custom"]),
   camera_limit: z.coerce.number().int().min(0).optional().nullable(),
+  site_limit: z.coerce.number().int().min(0).optional().nullable(),
+  user_limit: z.coerce.number().int().min(0).optional().nullable(),
   monitoring_mode: z.enum(monitoringModes),
   monitoring_hours: z.record(z.string(), z.unknown()).default({}),
   event_retention_days: z.coerce.number().int().min(1).default(30),
-  recording_retention_days: z.coerce.number().int().min(0).default(0),
+  recording_retention_hours: z.coerce.number().int().min(0).max(48).default(0),
   ai_event_types_enabled: z.array(z.string().trim()).default([]),
   feature_flags: z.record(z.string(), z.boolean()).default({}),
   sms_alerts_enabled: z.coerce.boolean().default(false),
   whatsapp_alerts_enabled: z.coerce.boolean().default(false),
   human_review_required: z.coerce.boolean().default(true),
+  alert_channels: z.array(z.enum(["in_app", "push", "email", "sms", "whatsapp", "voice"])).default(["in_app"]),
+  sms_quota: z.coerce.number().int().min(0).default(0),
+  voice_call_quota: z.coerce.number().int().min(0).default(0),
+  support_tier: z.enum(["standard", "business", "priority", "managed"]).default("standard"),
+  add_ons: z.array(z.string().trim().min(1).max(80)).max(30).default([]),
+  trial_days: z.coerce.number().int().min(0).max(90).default(14),
+  annual_discount_percent: z.coerce.number().min(0).max(100).default(0),
   monthly_price: z.coerce.number().min(0).default(0),
   annual_price: z.coerce.number().min(0).default(0),
   currency: z.string().trim().default("ILS"),
@@ -107,21 +116,33 @@ export async function POST(request: Request) {
         description: payload.description,
         package_type: payload.package_type,
         camera_limit: payload.camera_limit,
+        site_limit: payload.site_limit,
+        user_limit: payload.user_limit,
         monitoring_mode: payload.monitoring_mode,
         monitoring_hours: payload.monitoring_hours,
         event_retention_days: payload.event_retention_days,
-        recording_retention_days: payload.recording_retention_days,
+        recording_retention_days: payload.recording_retention_hours === 0 ? 0 : Math.ceil(payload.recording_retention_hours / 24),
+        recording_retention_hours: payload.recording_retention_hours,
         ai_event_types_enabled: payload.ai_event_types_enabled,
         feature_flags: payload.feature_flags,
         sms_alerts_enabled: payload.sms_alerts_enabled,
         whatsapp_alerts_enabled: payload.whatsapp_alerts_enabled,
         human_review_required: true,
+        alert_channels: payload.alert_channels,
+        sms_quota: payload.sms_quota,
+        voice_call_quota: payload.voice_call_quota,
+        support_tier: payload.support_tier,
+        add_ons: payload.add_ons,
+        trial_days: payload.trial_days,
+        annual_discount_percent: payload.annual_discount_percent,
+        live_view_enabled: false,
+        payment_provider_mode: "readiness_only",
         monthly_price: payload.monthly_price,
         annual_price: payload.annual_price,
         currency: payload.currency,
         active: payload.active,
         sort_order: payload.sort_order,
-        metadata: { future_standalone_product: true },
+        metadata: { product: "digital_observer", live_activation_disabled: true },
         updated_at: new Date().toISOString()
       };
       const result = payload.id
@@ -148,11 +169,19 @@ export async function POST(request: Request) {
       if (site.data.site_type === "kindergarten") {
         return fail("בגני ילדים התצפיתן הדיגיטלי כלול במנוי גן בטוח. אין לשייך חבילת standalone לגן.", 409);
       }
+      if (payload.status === "active" && (process.env.DIGITAL_OBSERVER_COMMERCIAL_LAUNCH !== "true" || process.env.PRODUCTION_ACTIVATION_APPROVED !== "true")) {
+        return fail("לא ניתן להפעיל מנוי חי לפני אישור מסחרי מפורש וחיבור ספק תשלום.", 409);
+      }
       const existing = await supabase.from("observer_site_subscriptions" as any).select("id").eq("observer_site_id", payload.observer_site_id).order("created_at", { ascending: false }).limit(1).maybeSingle();
       const subscriptionRow = {
         observer_site_id: payload.observer_site_id,
         package_id: payload.package_id,
         status: payload.status,
+        subscription_status: payload.status,
+        entitlement_status: "readiness",
+        purchase_channel: "manual",
+        payment_provider: "mock",
+        billing_separation_key: "digital_observer",
         trial_start: payload.trial_start,
         trial_end: payload.trial_end,
         renewal_date: payload.renewal_date,
@@ -161,7 +190,7 @@ export async function POST(request: Request) {
         timezone: payload.timezone,
         active_days: payload.active_days,
         active_hours: payload.active_hours,
-        metadata: { future_standalone_product: true },
+        metadata: { product: "digital_observer", no_charge_performed: true, server_is_source_of_truth: true },
         updated_at: new Date().toISOString()
       };
       const saved = existing.data?.id

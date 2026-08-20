@@ -54,20 +54,18 @@ export default async function MasterQaPage() {
   await requireRole(["admin"]);
   const result = await safeAdminData("master qa", async () => {
     const supabase = await createClient();
-    const [testCases, bugReports, workflowRuns, routeChecks, launchBlockers, finalGaps] = await Promise.all([
+    const [testCases, bugReports, workflowRuns, launchBlockers, finalGaps] = await Promise.all([
       safeQuery<Row>("qa test cases", () => supabase.from("qa_test_cases" as any).select("*").order("severity").order("test_area").limit(500)),
       safeQuery<Row>("qa bug reports", () => supabase.from("qa_bug_reports" as any).select("*").order("severity").order("created_at", { ascending: false }).limit(250)),
       safeQuery<Row>("qa workflow runs", () => supabase.from("qa_workflow_runs" as any).select("*").order("workflow_area").limit(120)),
-      safeQuery<Row>("navigation checks", () => supabase.from("navigation_health_checks" as any).select("*").limit(120)),
       safeQuery<Row>("launch blockers", () => supabase.from("launch_blockers" as any).select("*").order("created_at", { ascending: false }).limit(120)),
       safeQuery<Row>("final compliance gaps", () => supabase.from("final_compliance_gaps" as any).select("*").order("severity").limit(120))
     ]);
-    return { testCases, bugReports, workflowRuns, routeChecks, launchBlockers, finalGaps };
+    return { testCases, bugReports, workflowRuns, launchBlockers, finalGaps };
   }, {
     testCases: [] as Row[],
     bugReports: [] as Row[],
     workflowRuns: [] as Row[],
-    routeChecks: [] as Row[],
     launchBlockers: [] as Row[],
     finalGaps: [] as Row[]
   });

@@ -2,6 +2,7 @@ import type { ObserverDetection } from "@/lib/domain/ai-observer/detection-engin
 import { createLocalDetector } from "@/lib/domain/ai-observer/local-detector";
 import { evaluateObserverRule } from "@/lib/domain/ai-observer/rule-engine";
 import { loadActiveWatchRequests, translateWatchRequestToRuleInput } from "@/lib/domain/observer-watch-request-engine";
+import { CAMERA_BROWSER_SAFE_SELECT } from "@/lib/domain/camera-safe-columns";
 
 type SupabaseLike = any;
 
@@ -25,11 +26,11 @@ export async function enqueueObserverJob(supabase: SupabaseLike, payload: { kind
   const worker = await getMockWorker(supabase);
   let camera: Record<string, any> | null = null;
   if (payload.camera_id) {
-    const { data, error } = await supabase.from("camera_streams" as any).select("*").eq("id", payload.camera_id).maybeSingle();
+    const { data, error } = await supabase.from("camera_streams" as any).select(CAMERA_BROWSER_SAFE_SELECT).eq("id", payload.camera_id).maybeSingle();
     if (error) throw new Error(error.message);
     camera = data;
   } else {
-    let query = supabase.from("camera_streams" as any).select("*").order("created_at", { ascending: false }).limit(1);
+    let query = supabase.from("camera_streams" as any).select(CAMERA_BROWSER_SAFE_SELECT).order("created_at", { ascending: false }).limit(1);
     if (payload.kindergarten_id) query = query.eq("garden_id", payload.kindergarten_id);
     const { data, error } = await query.maybeSingle();
     if (error) throw new Error(error.message);
@@ -119,7 +120,7 @@ export async function processObserverJobMock(supabase: SupabaseLike, inputJob: R
   try {
     await logJob(supabase, { job_id: job.id, worker_id: job.worker_id, kindergarten_id: job.kindergarten_id, camera_id: job.camera_id, level: "info", message: "Local shadow sampler started", metadata: { real_video_processing: false, shadow_mode: true } });
     const [{ data: camera }, { data: zone }, { data: rules }, { data: routine }, { data: learningProfile }] = await Promise.all([
-      job.camera_id ? supabase.from("camera_streams" as any).select("*").eq("id", job.camera_id).maybeSingle() : Promise.resolve({ data: null }),
+      job.camera_id ? supabase.from("camera_streams" as any).select(CAMERA_BROWSER_SAFE_SELECT).eq("id", job.camera_id).maybeSingle() : Promise.resolve({ data: null }),
       job.zone_id ? supabase.from("camera_zones" as any).select("*").eq("id", job.zone_id).maybeSingle() : Promise.resolve({ data: null }),
       supabase.from("observer_rules" as any).select("*").or(`kindergarten_id.is.null,kindergarten_id.eq.${job.kindergarten_id}` as any).limit(200),
       supabase.from("kindergarten_routine_configs" as any).select("*").eq("kindergarten_id", job.kindergarten_id).maybeSingle(),

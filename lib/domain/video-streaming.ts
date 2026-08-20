@@ -7,6 +7,8 @@ import { getGatewayProvider, getPlaybackUrls } from "@/lib/domain/video-gateway-
 import { israelTodayDateKey } from "@/lib/domain/israel-date";
 import type { UserRole } from "@/lib/roles";
 import { getMfaGateStatus } from "@/lib/security/identity-security";
+import { CAMERA_BROWSER_SAFE_SELECT, CAMERA_PRIVATE_PLAYBACK_SELECT } from "@/lib/domain/camera-safe-columns";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export const playbackTokenSchema = z.object({
   parent_id: z.string().uuid().optional(),
@@ -107,7 +109,7 @@ export async function createCameraPlaybackSession(cameraStreamId: string, payloa
   if (profileError || !profile) throw new Error(profileError?.message ?? "Profile not found");
 
   const dataSupabase = supabase;
-  const { data: camera, error: cameraError } = await dataSupabase.from("camera_streams").select("*").eq("id", cameraStreamId).single();
+  const { data: camera, error: cameraError } = await dataSupabase.from("camera_streams").select(CAMERA_BROWSER_SAFE_SELECT).eq("id", cameraStreamId).single();
   if (cameraError || !camera) throw new Error(cameraError?.message ?? "Camera not found");
 
   const profileRow = profile as any;
@@ -169,7 +171,12 @@ export async function createCameraPlaybackSession(cameraStreamId: string, payloa
     const decision = await canParentViewCamera(dataSupabase as any, profileRow.id, cameraStreamId);
     const requestedParentIsCurrentUser = parsed.parent_id ? decision.diagnostics.parent_records_found.some((parent: any) => parent.id === parsed.parent_id) : true;
     if (cameraDebugLogsEnabled()) {
-      console.info("Parent playback permission check", { cameraStreamId, requestedParentId: parsed.parent_id ?? null, allowed: decision.allowed && requestedParentIsCurrentUser, reason: decision.reason, diagnostics: decision.diagnostics });
+      console.info("Parent playback permission check", {
+        allowed: decision.allowed && requestedParentIsCurrentUser,
+        reason: decision.reason,
+        linkedChildCount: decision.diagnostics.linked_children_found.length,
+        allowedGardenCount: decision.diagnostics.final_allowed_garden_ids.length
+      });
     }
     if (!decision.allowed || !requestedParentIsCurrentUser) throw new Error("אין הרשאת צפייה למצלמה זו");
     await recordCameraAuthorizationCheck(supabase, { garden_id: cameraGardenId, camera_id: cameraStreamId, profile_id: user.id, parent_id: parsed.parent_id ?? null, check_type: "parent_verified", status: "passed" });
@@ -231,7 +238,17 @@ export async function createCameraPlaybackSession(cameraStreamId: string, payloa
   const token = createToken();
   const ttlSeconds = cameraTokenTtlSeconds(role, parentPolicy, cameraRow);
   const expiresAt = new Date(Date.now() + ttlSeconds * 1000).toISOString();
-  const baseUrl = parsed.protocol === "WebRTC" ? cameraRow.webrtc_playback_url : (cameraRow.hls_playback_url ?? cameraRow.sample_hls_url);
+  // Private playback endpoints are fetched server-side only after the user's scoped RLS and role checks pass.
+  const privateClient = createAdminClient();
+  const { data: privatePlayback, error: privatePlaybackError } = await privateClient
+    .from("camera_streams")
+    .select(CAMERA_PRIVATE_PLAYBACK_SELECT)
+    .eq("id", cameraStreamId)
+    .single();
+  if (privatePlaybackError || !privatePlayback) throw new Error("Secure camera playback source is unavailable");
+  const baseUrl = parsed.protocol === "WebRTC"
+    ? (privatePlayback as any).webrtc_playback_url
+    : ((privatePlayback as any).hls_playback_url ?? (privatePlayback as any).sample_hls_url);
   const gatewayStreamId = cameraRow.gateway_stream_id ?? cameraRow.video_gateway_stream_id ?? cameraStreamId;
   const gatewayPublicBase = process.env.CAMERA_GATEWAY_PUBLIC_BASE_URL ?? process.env.CAMERA_GATEWAY_PUBLIC_URL ?? process.env.VIDEO_GATEWAY_PUBLIC_URL;
   if (!baseUrl && !gatewayPublicBase) throw new Error("Video gateway public playback endpoint is not configured yet");

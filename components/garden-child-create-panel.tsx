@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import { Baby, CheckCircle2, Save } from "lucide-react";
 
 type Props = {
@@ -9,6 +10,7 @@ type Props = {
 };
 
 export function GardenChildCreatePanel({ gardenId, defaultOpen = false }: Props) {
+  const router = useRouter();
   const [open, setOpen] = useState(defaultOpen);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -42,9 +44,9 @@ export function GardenChildCreatePanel({ gardenId, defaultOpen = false }: Props)
       if (!response.ok) throw new Error(body.error || "לא ניתן להוסיף ילד כרגע");
       setMessage("הילד נוסף לגן. אפשר להשלים פרטים נוספים מכרטיס הילד.");
       form.reset();
-      window.setTimeout(() => {
-        window.location.href = `/dashboard/garden/children/${body.data?.id ?? ""}`;
-      }, 700);
+      const childId = String(body.data?.id ?? "");
+      if (childId) router.push(`/dashboard/garden/children/${childId}`);
+      else router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "לא ניתן להוסיף ילד כרגע");
     } finally {

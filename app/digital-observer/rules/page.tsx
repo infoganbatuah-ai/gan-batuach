@@ -1,0 +1,14 @@
+import { Bell, BrainCircuit, Clock3, Radar, ShieldCheck } from "lucide-react";
+import { ObserverQuickAction, ObserverRuleForm } from "@/components/digital-observer/observer-action-forms";
+import { ObserverAppShell } from "@/components/digital-observer/observer-app-shell";
+import { requireUser } from "@/lib/auth";
+import { loadObserverRuntime, observerModeForSite, observerStatusLabel } from "@/lib/domain/digital-observer/runtime";
+
+export default async function DigitalObserverRulesPage() {
+  const { profile } = await requireUser("/digital-observer/login?next=/digital-observer/rules"); const runtime = await loadObserverRuntime(profile.id); const site = runtime.sites[0] ?? null; const mode = observerModeForSite(site); const rules = site ? runtime.watchRequests.filter((item) => item.observer_site_id === site.id) : [];
+  return <ObserverAppShell profile={profile} mode={mode} activeHref="/digital-observer/rules" title={mode === "home" ? "התצפיתן שלי" : "כללי ניטור"} statusLabel="למידה מבוקרת"><div className="do-page-stack">
+    <header className="do-intro"><span className="do-badge info">“שים לב ל...”</span><h1>מה חשוב לכם שהתצפיתן יבדוק?</h1><p>הנחיה נשמרת ככלל מובנה עם אתר, מצלמה, שעות, דחיפות ונמען. ביצוע AI חי עדיין כבוי.</p></header>
+    {site ? <section className="do-grid cols-2"><ObserverRuleForm siteId={site.id} cameras={runtime.cameras.filter((item) => item.observer_site_id === site.id)} /><article className="do-panel"><div className="do-section-head"><div><h2>הכללים שלי</h2><p>כללים פעילים ומושבתים.</p></div><span className="do-badge info">{rules.length}</span></div>{rules.length ? <div className="do-row-list">{rules.map((rule) => <div className="do-row" key={rule.id}><Radar /><span className="do-row-main"><strong>{rule.title}</strong><small>{rule.description || observerStatusLabel(rule.watch_type)}</small></span><span className="do-row-meta"><b className={rule.active ? "do-badge good" : "do-badge warn"}>{rule.active ? "פעיל במוכנות" : "מושבת"}</b>{rule.active ? <ObserverQuickAction endpoint="/api/observer-watch-requests" body={{ action: "disable", id: rule.id }}>השבתה</ObserverQuickAction> : null}</span></div>)}</div> : <div className="do-empty"><Radar /><strong>אין כללי ניטור</strong><span>צרו את הכלל הראשון כדי להגדיר מה יהיה חשוב לבדוק.</span></div>}</article></section> : <div className="do-empty"><ShieldCheck /><strong>תחילה יש להקים אתר</strong></div>}
+    <section className="do-grid cols-3"><article className="do-panel"><BrainCircuit /><h3>טקסט לכלל מובנה</h3><p>הבקשה נשמרת, אך אינה נשלחת אוטומטית למודל חיצוני.</p></article><article className="do-panel"><Clock3 /><h3>שעות ותנאים</h3><p>אפשר להתאים שעות פעילות, לילה או ניטור סביב אירוע.</p></article><article className="do-panel"><Bell /><h3>נמענים וערוצים</h3><p>In-app מוכן; SMS, WhatsApp ושיחות נשארים כבויים עד ספק מאושר.</p></article></section>
+  </div></ObserverAppShell>;
+}

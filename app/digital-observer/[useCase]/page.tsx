@@ -1,13 +1,11 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ArrowLeft, Bell, Camera, PackageCheck, Radar, ShieldCheck } from "lucide-react";
-import { BrandHeader } from "@/components/brand-header";
+import { ArrowLeft, Bell, Camera, Check, Radar, ShieldCheck } from "lucide-react";
+import { ObserverMark } from "@/components/digital-observer/observer-app-shell";
 import { DIGITAL_OBSERVER_USE_CASES } from "@/lib/domain/digital-observer-product";
 
-type PageProps = {
-  params: Promise<{ useCase: string }>;
-};
+type PageProps = { params: Promise<{ useCase: string }> };
 
 function findUseCase(key: string) {
   return DIGITAL_OBSERVER_USE_CASES.find((item) => item.key === key);
@@ -18,98 +16,18 @@ export function generateStaticParams() {
 }
 
 export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { useCase } = await params;
-  const item = findUseCase(useCase);
-  if (!item) return {};
-  return {
-    title: `${item.title} – Digital Observer`,
-    description: item.solution,
-    alternates: { canonical: item.path },
-    openGraph: {
-      title: `${item.title} – Digital Observer`,
-      description: item.solution,
-      url: item.path
-    }
-  };
+  const item = findUseCase((await params).useCase);
+  return item ? { title: { absolute: `${item.title} | תצפיתן דיגיטלי` }, description: item.solution, alternates: { canonical: item.path } } : {};
 }
 
 export default async function DigitalObserverUseCasePage({ params }: PageProps) {
-  const { useCase } = await params;
-  const item = findUseCase(useCase);
+  const item = findUseCase((await params).useCase);
   if (!item) notFound();
 
-  return (
-    <>
-      <BrandHeader />
-      <main className="public-page digital-observer-public">
-        <section className="hero-section digital-observer-hero">
-          <div className="hero-content">
-            <p className="eyebrow">Digital Observer use case</p>
-            <h1>{item.title}</h1>
-            <p>{item.solution}</p>
-            <div className="hero-actions">
-              <Link className="button primary" href={`/digital-observer/start?site_type=${item.key}`}>Start monitoring <ArrowLeft size={18} /></Link>
-              <Link className="button secondary" href={`/digital-observer/request-demo?site_type=${item.key}`}>Request demo</Link>
-              <Link className="button secondary" href="/digital-observer">Digital Observer home</Link>
-            </div>
-          </div>
-          <div className="observer-live-card">
-            <strong>{item.packageSuggestion}</strong>
-            <span>{item.audience}</span>
-            <span>test mode first</span>
-            <span>policy-gated capabilities</span>
-          </div>
-        </section>
-
-        <section className="grid cols-2 dashboard-panels">
-          <article className="card action-panel">
-            <Radar />
-            <h2>Problem</h2>
-            <p>{item.problem}</p>
-          </article>
-          <article className="card action-panel">
-            <ShieldCheck />
-            <h2>Solution</h2>
-            <p>{item.solution}</p>
-          </article>
-        </section>
-
-        <section className="grid cols-3 dashboard-panels">
-          <article className="card compact-card">
-            <Camera />
-            <h3>Camera setup</h3>
-            <p>{item.cameraSetup}</p>
-          </article>
-          <article className="card compact-card">
-            <Bell />
-            <h3>Alerts</h3>
-            <p>{item.alerts}</p>
-          </article>
-          <article className="card compact-card">
-            <PackageCheck />
-            <h3>Package suggestion</h3>
-            <p>{item.packageSuggestion}</p>
-          </article>
-        </section>
-
-        <section className="dashboard-section">
-          <div className="section-heading">
-            <h2>Monitoring benefits</h2>
-            <p>Careful launch wording: visibility, alerts and review support without unsupported guarantees.</p>
-          </div>
-          <div className="setup-checklist">
-            {item.benefits.map((benefit) => <span key={benefit}>{benefit}</span>)}
-          </div>
-        </section>
-
-        <section className="dashboard-section">
-          <div className="hero-actions">
-            <Link className="button primary" href={`/digital-observer/request-demo?site_type=${item.key}`}>Request demo</Link>
-            <Link className="button secondary" href={`/digital-observer/start?site_type=${item.key}`}>Create observer site</Link>
-            <Link className="button secondary" href="/digital-observer/pricing">Compare packages</Link>
-          </div>
-        </section>
-      </main>
-    </>
-  );
+  return <main className="do-public" dir="rtl">
+    <header className="do-public-header"><Link className="do-auth-brand dark" href="/digital-observer"><ObserverMark /><span><b>תצפיתן דיגיטלי</b><small>{item.title}</small></span></Link><nav><Link href="/digital-observer">המוצר</Link><Link href="/digital-observer/pricing">חבילות</Link><Link href="/digital-observer/trust">פרטיות ואמון</Link></nav><div><Link className="do-button secondary" href="/digital-observer/login">התחברות</Link><Link className="do-button primary" href={`/digital-observer/register?type=${item.key === "home" ? "home" : "business"}`}>התחלה</Link></div></header>
+    <section className="do-pricing-head"><span className="do-badge info">{item.audience}</span><h1>{item.title}</h1><p>{item.solution}</p><div className="do-button-row"><Link className="do-button primary" href={`/digital-observer/register?type=${item.key === "home" ? "home" : "business"}`}>יצירת חשבון <ArrowLeft /></Link><Link className="do-button secondary" href={`/digital-observer/request-demo?site_type=${item.key}`}>בקשת הדגמה</Link></div></section>
+    <section className="do-public-use"><div><Radar /><span>הצורך</span><h2>מה המערכת פותרת</h2><p>{item.problem}</p><ul>{item.benefits.map((benefit) => <li key={benefit}><Check /> {benefit}</li>)}</ul></div><div><ShieldCheck /><span>הפתרון</span><h2>{item.packageSuggestion}</h2><p>{item.solution}</p><ul><li><Camera /> {item.cameraSetup}</li><li><Bell /> {item.alerts}</li></ul></div></section>
+    <section className="do-public-trust"><ShieldCheck /><div><h2>מתחילים במצב בדיקה</h2><p>אין הפעלה של מצלמה, AI, הודעה או חיוב אמיתי לפני חיבור ספק מאושר ובדיקת הרשאות.</p></div><Link className="do-button secondary light" href="/digital-observer/trust">פרטיות ואמון</Link></section>
+  </main>;
 }

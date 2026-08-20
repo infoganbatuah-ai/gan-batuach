@@ -1,0 +1,207 @@
+[
+  {
+    "key": "digital_observer",
+    "route": "/digital-observer",
+    "actualUrl": "http://localhost:3004/digital-observer",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "התצפיתן הדיגיטלי לניטור מצלמות חכם וזהיר."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "digital_observer",
+    "route": "/digital-observer/alerts",
+    "actualUrl": "http://localhost:3004/digital-observer/alerts",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Review-first observer alerts."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "digital_observer",
+    "route": "/digital-observer/billing",
+    "actualUrl": "http://localhost:3004/digital-observer/billing",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Standalone subscription and usage readiness."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "digital_observer",
+    "route": "/digital-observer/cameras",
+    "actualUrl": "http://localhost:3004/digital-observer/cameras",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Secure camera setup readiness."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "digital_observer",
+    "route": "/digital-observer/dashboard",
+    "actualUrl": "http://localhost:3004/digital-observer/dashboard",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Digital Observer",
+      "שלום, Digital Observer QA"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "digital_observer",
+    "route": "/digital-observer/onboarding",
+    "actualUrl": "http://localhost:3004/digital-observer/onboarding",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Create a standalone observer site."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "digital_observer",
+    "route": "/digital-observer/pricing",
+    "actualUrl": "http://localhost:3004/digital-observer/pricing",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Choose the monitoring package that fits your site."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "digital_observer",
+    "route": "/digital-observer/request-demo",
+    "actualUrl": "http://localhost:3004/digital-observer/request-demo",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "See how Digital Observer can monitor your site."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "digital_observer",
+    "route": "/digital-observer/settings",
+    "actualUrl": "http://localhost:3004/digital-observer/settings",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Digital Observer settings readiness."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "digital_observer",
+    "route": "/digital-observer/sites",
+    "actualUrl": "http://localhost:3004/digital-observer/sites",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Observer site readiness."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "digital_observer",
+    "route": "/digital-observer/start",
+    "actualUrl": "http://localhost:3004/digital-observer/start",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Create a standalone Digital Observer site."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "digital_observer",
+    "route": "/digital-observer/trust",
+    "actualUrl": "http://localhost:3004/digital-observer/trust",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Monitoring with control, separation and review."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  }
+]

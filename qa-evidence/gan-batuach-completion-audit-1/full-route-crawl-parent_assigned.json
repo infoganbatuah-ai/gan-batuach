@@ -1,0 +1,326 @@
+[
+  {
+    "key": "parent_assigned",
+    "route": "/dashboard/parent",
+    "actualUrl": "http://localhost:3004/dashboard/parent",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "דשבורד הורים",
+      "דשבורד הורים"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "parent_assigned",
+    "route": "/dashboard/parent/ai-events",
+    "actualUrl": "http://localhost:3004/dashboard/parent/ai-events",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "דשבורד הורים",
+      "עדכוני בטיחות"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "parent_assigned",
+    "route": "/dashboard/parent/cameras",
+    "actualUrl": "http://localhost:3004/dashboard/parent/cameras",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "דשבורד הורים",
+      "מצלמות הגן"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "parent_assigned",
+    "route": "/dashboard/parent/complaints",
+    "actualUrl": "http://localhost:3004/dashboard/parent/complaints",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "דשבורד הורים",
+      "פניות הורים"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "parent_assigned",
+    "route": "/dashboard/parent/daily-journal",
+    "actualUrl": "http://localhost:3004/dashboard/parent/daily-journal",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "דשבורד הורים",
+      "היום של הילד"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "parent_assigned",
+    "route": "/dashboard/parent/discover-kindergartens",
+    "actualUrl": "http://localhost:3004/dashboard/parent/discover-kindergartens",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "דשבורד הורים",
+      "גני ילדים בטוחים באזור שלי"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "parent_assigned",
+    "route": "/dashboard/parent/documents",
+    "actualUrl": "http://localhost:3004/dashboard/parent/documents",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "דשבורד הורים",
+      "מסמכים ואישורים"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "parent_assigned",
+    "route": "/dashboard/parent/family-home",
+    "actualUrl": "http://localhost:3004/dashboard/parent/family-home",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "דשבורד הורים",
+      "ליה דגן השתתף/ה בפעילות היום."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "parent_assigned",
+    "route": "/dashboard/parent/gallery",
+    "actualUrl": "http://localhost:3004/dashboard/parent/gallery",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "דשבורד הורים",
+      "רגעים מהגן"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "parent_assigned",
+    "route": "/dashboard/parent/inspections",
+    "actualUrl": "http://localhost:3004/dashboard/parent/inspections",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "דשבורד הורים",
+      "דוח בטיחות ופעילות"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "parent_assigned",
+    "route": "/dashboard/parent/messages",
+    "actualUrl": "http://localhost:3004/dashboard/parent/messages",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "דשבורד הורים",
+      "הודעות ותקשורת"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "parent_assigned",
+    "route": "/dashboard/parent/notifications",
+    "actualUrl": "http://localhost:3004/dashboard/parent/notifications",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "דשבורד הורים",
+      "מרכז עדכונים"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "parent_assigned",
+    "route": "/dashboard/parent/payments",
+    "actualUrl": "http://localhost:3004/dashboard/parent/payments",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "דשבורד הורים",
+      "תשלומים וחיובים"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "parent_assigned",
+    "route": "/dashboard/parent/pickup",
+    "actualUrl": "http://localhost:3004/dashboard/parent/pickup",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "דשבורד הורים",
+      "איסוף הילד"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "parent_assigned",
+    "route": "/dashboard/parent/schedule",
+    "actualUrl": "http://localhost:3004/dashboard/parent/schedule",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "דשבורד הורים",
+      "היום של הילד"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "parent_assigned",
+    "route": "/dashboard/parent/settings",
+    "actualUrl": "http://localhost:3004/dashboard/parent/settings",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "דשבורד הורים",
+      "שלום, [DEMO] אפרת רוזן"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "parent_assigned",
+    "route": "/dashboard/parent/trust",
+    "actualUrl": "http://localhost:3004/dashboard/parent/trust",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "דשבורד הורים",
+      "מרכז האמון של הגן"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "parent_assigned",
+    "route": "/dashboard/parent/trust-center",
+    "actualUrl": "http://localhost:3004/dashboard/parent/trust-center",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "דשבורד הורים",
+      "אמון, שקיפות וקהילה"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  }
+]

@@ -26,12 +26,12 @@ export default async function AdminObserverPackagesPage() {
   }, { packages: [] as any[], sites: [] as any[], subscriptions: [] as any[], usage: [] as any[], queryError: null as string | null });
 
   return (
-    <DashboardShell role="admin" title="Observer Packages">
+    <DashboardShell role="admin" title="חבילות התצפיתן">
       <div className="dashboard-hero-card admin-hero-card">
         <div>
-          <p className="eyebrow">Future standalone product</p>
-          <h1>חבילות Digital Observer למוצר העצמאי העתידי.</h1>
-          <p>גן בטוח נשאר במחיר קבוע של 700 ש״ח לחודש לגן, כולל תצפיתן דיגיטלי. החבילות כאן מיועדות לבתים, עסקים, משרדים, מחסנים וחניונים בעתיד.</p>
+          <p className="eyebrow">מוצר עצמאי</p>
+          <h1>חבילות התצפיתן הדיגיטלי.</h1>
+          <p>גן בטוח נשאר בזרם חיוב נפרד וכולל את מנוע התצפיתן לגן. החבילות כאן מיועדות רק ללקוחות הביתיים והעסקיים של התצפיתן העצמאי.</p>
         </div>
         <span className="pill warn">לא מיועד ל-upsell בגני ילדים</span>
       </div>

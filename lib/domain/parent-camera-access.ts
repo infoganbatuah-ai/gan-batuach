@@ -91,14 +91,13 @@ export async function resolveParentCameraScope(supabase: SupabaseClient<any, any
   const kindergartenIds = uniq([...childGardenIds, ...directParentGardenIds, ...linkedGardenIds, ...profileGardenIds]);
 
   log("resolved", {
-    parentProfileId: profile.id,
-    parentRecordIds: parentIds,
-    childIds: children.map((child: any) => child.id),
-    childKindergartenIds: childGardenIds,
-    directParentGardenIds,
-    linkedGardenIds,
-    profileGardenIds,
-    finalAllowedGardenIds: kindergartenIds
+    parentRecordCount: parentIds.length,
+    linkedChildCount: children.length,
+    childKindergartenCount: childGardenIds.length,
+    directParentGardenCount: directParentGardenIds.length,
+    linkedGardenCount: linkedGardenIds.length,
+    profileGardenCount: profileGardenIds.length,
+    finalAllowedGardenCount: kindergartenIds.length
   });
 
   return { parentRows, parentIds, children, childGardenIds, directParentGardenIds, profileGardenIds, kindergartenIds };
@@ -113,7 +112,7 @@ export function cameraParentViewingAllowed(camera: any) {
 }
 
 export function cameraHasParentPlayableSource(camera: any) {
-  return Boolean(camera?.sample_hls_url || camera?.hls_playback_url || camera?.webrtc_playback_url || camera?.gateway_stream_id || camera?.video_gateway_stream_id);
+  return Boolean(camera?.playback_hls_ready || camera?.playback_webrtc_ready || camera?.live_preview_status === "ready" || camera?.gateway_stream_id || camera?.video_gateway_stream_id);
 }
 
 export function cameraStatusAllowsParent(camera: any) {
@@ -154,9 +153,9 @@ function buildDecision(profile: ParentProfile | null, scope: Awaited<ReturnType<
     parent_viewing_enabled: cameraParentViewingAllowed(camera),
     active: camera?.active ?? null,
     status: camera?.status ?? null,
-    sample_hls_url_exists: Boolean(camera?.sample_hls_url),
-    hls_playback_url_exists: Boolean(camera?.hls_playback_url),
-    webrtc_playback_url_exists: Boolean(camera?.webrtc_playback_url),
+    sample_hls_url_exists: Boolean(camera?.playback_hls_ready),
+    hls_playback_url_exists: Boolean(camera?.playback_hls_ready),
+    webrtc_playback_url_exists: Boolean(camera?.playback_webrtc_ready),
     gateway_stream_id_exists: Boolean(camera?.gateway_stream_id || camera?.video_gateway_stream_id),
     final_allow: allowed,
     deny_reason: allowed ? null : reason
@@ -182,7 +181,7 @@ export function evaluateParentCameraAccess(profile: ParentProfile, scope: Awaite
 export async function canParentViewCamera(supabase: SupabaseClient<any, any, any>, parentProfileId: string, cameraId: string) {
   const profileResult = await supabase.from("profiles" as any).select("id, email, garden_id, role").eq("id", parentProfileId).maybeSingle();
   if (profileResult.error) {
-    if (cameraDebugLogsEnabled()) console.info("Parent camera access profile query failed", { parentProfileId, error: profileResult.error });
+    if (cameraDebugLogsEnabled()) console.info("Parent camera access profile query failed", { code: profileResult.error.code ?? null });
     return buildDecision(null, null, null, "parent_profile_query_failed");
   }
   const profile = profileResult.data as ParentProfile | null;
@@ -190,11 +189,11 @@ export async function canParentViewCamera(supabase: SupabaseClient<any, any, any
 
   const cameraResult = await supabase
     .from("camera_streams" as any)
-    .select("id, garden_id, kindergarten_id, name, area, status, active, parent_view_allowed, parent_viewing_allowed, sample_hls_url, hls_playback_url, webrtc_playback_url, gateway_stream_id, video_gateway_stream_id")
+    .select("id, garden_id, kindergarten_id, name, area, status, active, parent_view_allowed, parent_viewing_allowed, live_preview_status, playback_hls_ready, playback_webrtc_ready, gateway_stream_id, video_gateway_stream_id")
     .eq("id", cameraId)
     .maybeSingle();
   if (cameraResult.error) {
-    if (cameraDebugLogsEnabled()) console.info("Parent camera access camera query failed", { parentProfileId, cameraId, error: cameraResult.error });
+    if (cameraDebugLogsEnabled()) console.info("Parent camera access camera query failed", { code: cameraResult.error.code ?? null });
     return buildDecision(profile, null, null, "camera_query_failed");
   }
   if (!cameraResult.data) return buildDecision(profile, null, null, "camera_not_found");
@@ -203,17 +202,11 @@ export async function canParentViewCamera(supabase: SupabaseClient<any, any, any
   const decision = evaluateParentCameraAccess(profile, scope, cameraResult.data);
   if (cameraDebugLogsEnabled()) {
     console.info("Parent camera access decision", {
-      parentProfileId,
-      cameraId,
       allowed: decision.allowed,
       reason: decision.reason,
-      parentRecordIds: decision.diagnostics.parent_records_found.map((parent: any) => parent.id),
-      childIds: decision.diagnostics.linked_children_found.map((child: any) => child.id),
-      childGardenIds: decision.diagnostics.child_garden_ids,
-      directParentGardenIds: decision.diagnostics.direct_parent_garden_ids,
-      profileGardenIds: decision.diagnostics.profile_garden_ids,
-      finalAllowedGardenIds: decision.diagnostics.final_allowed_garden_ids,
-      cameraGardenId: decision.diagnostics.camera_garden_id
+      parentRecordCount: decision.diagnostics.parent_records_found.length,
+      linkedChildCount: decision.diagnostics.linked_children_found.length,
+      allowedGardenCount: decision.diagnostics.final_allowed_garden_ids.length
     });
   }
   return decision;

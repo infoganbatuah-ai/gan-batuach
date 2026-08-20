@@ -4,6 +4,8 @@ import { requireRole } from "@/lib/auth";
 import { sanitizeCameraForAdminResponse } from "@/lib/domain/camera-diagnostics";
 import { checkGatewayHealth, disableCameraSource, getGatewayProvider, registerCameraSource, testCameraSource } from "@/lib/domain/video-gateway-client";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { CAMERA_BROWSER_SAFE_SELECT } from "@/lib/domain/camera-safe-columns";
 
 const actionSchema = z.object({
   action: z.enum(["health", "register", "retest", "disable"]),
@@ -33,7 +35,8 @@ export async function POST(request: Request) {
       return ok({ health });
     }
     if (!payload.camera_id) return fail("חסרה מצלמה לפעולת Gateway.", 422);
-    const { data: camera, error: cameraError } = await supabase.from("camera_streams" as any).select("*").eq("id", payload.camera_id).single();
+    const privateSupabase = createAdminClient();
+    const { data: camera, error: cameraError } = await privateSupabase.from("camera_streams" as any).select("*").eq("id", payload.camera_id).single();
     if (cameraError || !camera) return fail(cameraError?.message ?? "מצלמה לא נמצאה", 404);
     const cameraGardenId = (camera as any).garden_id ?? (camera as any).kindergarten_id;
     const now = new Date().toISOString();
@@ -41,7 +44,7 @@ export async function POST(request: Request) {
     if (payload.action === "disable") {
       const streamId = (camera as any).gateway_source_id ?? (camera as any).gateway_stream_id ?? (camera as any).video_gateway_stream_id ?? payload.camera_id;
       const result = await disableCameraSource(streamId);
-      const { data, error } = await supabase.from("camera_streams" as any).update({
+      const { data, error } = await privateSupabase.from("camera_streams" as any).update({
         active: false,
         status: "disabled",
         stream_status: "disabled",
@@ -51,12 +54,12 @@ export async function POST(request: Request) {
         gateway_last_error: result.status === "error" ? result.message : null,
         disabled_at: now,
         disabled_by: profile.id
-      }).eq("id", payload.camera_id).select("*").single();
+      }).eq("id", payload.camera_id).select(CAMERA_BROWSER_SAFE_SELECT).single();
       if (error) return fail(error.message, 400);
       return ok({ camera: sanitizeCameraForAdminResponse(data as any), gateway: result, message: "המקור הושבת ב-Gateway." });
     }
 
-    await supabase.from("camera_streams" as any).update({
+    await privateSupabase.from("camera_streams" as any).update({
       gateway_registration_status: payload.action === "register" ? "registering" : (camera as any).gateway_registration_status,
       status: payload.action === "register" ? "pending_gateway" : (camera as any).status,
       gateway_provider: getGatewayProvider(),
@@ -94,7 +97,7 @@ export async function POST(request: Request) {
       retention_days: (camera as any).retention_days ?? null,
       storage_location: (camera as any).storage_location ?? null
     };
-    const { data, error } = await supabase.from("camera_streams" as any).update(patch).eq("id", payload.camera_id).select("*").single();
+    const { data, error } = await privateSupabase.from("camera_streams" as any).update(patch).eq("id", payload.camera_id).select(CAMERA_BROWSER_SAFE_SELECT).single();
     if (error) return fail(error.message, 400);
     await supabase.from("audit_logs" as any).insert({
       actor_id: profile.id,

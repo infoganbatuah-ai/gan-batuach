@@ -1,0 +1,290 @@
+[
+  {
+    "key": "staff_assigned",
+    "route": "/dashboard/staff",
+    "actualUrl": "http://localhost:3004/dashboard/staff",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "דשבורד צוות",
+      "בוקר טוב, צוות"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "staff_assigned",
+    "route": "/dashboard/staff/attendance",
+    "actualUrl": "http://localhost:3004/dashboard/staff/attendance",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "דשבורד צוות",
+      "המערכת מזהה שאת/ה בגן"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "staff_assigned",
+    "route": "/dashboard/staff/background",
+    "actualUrl": "http://localhost:3004/dashboard/staff/background",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "דשבורד צוות",
+      "תעודת יושר ובדיקות רקע"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "staff_assigned",
+    "route": "/dashboard/staff/cameras",
+    "actualUrl": "http://localhost:3004/dashboard/staff/cameras",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "דשבורד צוות",
+      "צפייה במצלמות המאושרות לצוות"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "staff_assigned",
+    "route": "/dashboard/staff/certificates",
+    "actualUrl": "http://localhost:3004/dashboard/staff/certificates",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "דשבורד צוות",
+      "תעודות, הכשרות ותוקף מסמכים"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "staff_assigned",
+    "route": "/dashboard/staff/child-journal",
+    "actualUrl": "http://localhost:3004/dashboard/staff/child-journal",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "דשבורד צוות",
+      "ארוחה, שינה, שירותים ומצב רוח"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "staff_assigned",
+    "route": "/dashboard/staff/daily-journal",
+    "actualUrl": "http://localhost:3004/dashboard/staff/daily-journal",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "דשבורד צוות",
+      "משימות תפעול לצוות"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "staff_assigned",
+    "route": "/dashboard/staff/documents",
+    "actualUrl": "http://localhost:3004/dashboard/staff/documents",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "דשבורד צוות",
+      "מסמכי עובד ותעודות"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "staff_assigned",
+    "route": "/dashboard/staff/incidents",
+    "actualUrl": "http://localhost:3004/dashboard/staff/incidents",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "דשבורד צוות",
+      "קרה משהו? מתעדים מיד"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "staff_assigned",
+    "route": "/dashboard/staff/job-market",
+    "actualUrl": "http://localhost:3004/dashboard/staff/job-market",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "דשבורד צוות",
+      "מצאו גן שמחפש עובדים"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "staff_assigned",
+    "route": "/dashboard/staff/messages",
+    "actualUrl": "http://localhost:3004/dashboard/staff/messages",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "דשבורד צוות",
+      "מנהלת, צוות ועדכונים דחופים"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "staff_assigned",
+    "route": "/dashboard/staff/notifications",
+    "actualUrl": "http://localhost:3004/dashboard/staff/notifications",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "דשבורד צוות",
+      "מה חדש במשמרת?"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "staff_assigned",
+    "route": "/dashboard/staff/operations",
+    "actualUrl": "http://localhost:3004/dashboard/staff/operations",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "דשבורד צוות",
+      "[DEMO] נועה פרץ, המשמרת שלך במקום אחד."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "staff_assigned",
+    "route": "/dashboard/staff/settings",
+    "actualUrl": "http://localhost:3004/dashboard/staff/settings",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "דשבורד צוות",
+      "שלום, [DEMO] נועה פרץ"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "staff_assigned",
+    "route": "/dashboard/staff/shifts",
+    "actualUrl": "http://localhost:3004/dashboard/staff/shifts",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "דשבורד צוות",
+      "שעות עבודה, איחורים וחוסרים"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "staff_assigned",
+    "route": "/dashboard/staff/tasks",
+    "actualUrl": "http://localhost:3004/dashboard/staff/tasks",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "דשבורד צוות",
+      "מה נשאר למשמרת?"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  }
+]

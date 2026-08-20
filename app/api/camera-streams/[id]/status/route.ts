@@ -6,6 +6,8 @@ import { sanitizeCameraForAdminResponse } from "@/lib/domain/camera-diagnostics"
 import { hasPlaybackSource } from "@/lib/domain/video-gateway";
 import { getGatewayProvider, registerCameraSource, testCameraSource } from "@/lib/domain/video-gateway-client";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
+import { CAMERA_BROWSER_SAFE_SELECT, CAMERA_PRIVATE_PLAYBACK_SELECT } from "@/lib/domain/camera-safe-columns";
 
 const actionSchema = z.object({
   action: z.enum(["enable", "disable", "test_connection", "register_gateway", "mark_offline", "mark_connected"]),
@@ -18,11 +20,18 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     const { id } = await context.params;
     const body = actionSchema.parse(await request.json());
     const supabase = await createClient();
-    const { data: camera, error: cameraError } = await supabase.from("camera_streams" as any).select("*").eq("id", id).single();
+    const { data: camera, error: cameraError } = await supabase.from("camera_streams" as any).select(CAMERA_BROWSER_SAFE_SELECT).eq("id", id).single();
     if (cameraError || !camera) return fail(cameraError?.message ?? "Camera not found", 404);
 
     const cameraGardenId = (camera as any).garden_id ?? (camera as any).kindergarten_id;
     if (profile.role !== "admin" && profile.garden_id !== cameraGardenId) return fail("Forbidden", 403);
+
+    let privateCamera = camera as any;
+    if (body.action === "test_connection" || body.action === "register_gateway") {
+      const privateResult = await createAdminClient().from("camera_streams" as any).select(CAMERA_PRIVATE_PLAYBACK_SELECT).eq("id", id).single();
+      if (privateResult.error || !privateResult.data) return fail("פרטי החיבור הפרטיים אינם זמינים בשרת", 503);
+      privateCamera = { ...(camera as any), ...(privateResult.data as any) };
+    }
 
     let update: Record<string, unknown> = {};
     const now = new Date().toISOString();
@@ -42,11 +51,11 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     }
     if (body.action === "test_connection") {
       const gatewayTest = await testCameraSource({
-        system_type: ((camera as any).system_type as any) || "manual_rtsp",
-        host: (camera as any).connection_host ?? (camera as any).host ?? undefined,
-        port: (camera as any).connection_port ?? (camera as any).port ?? undefined,
-        channel: (camera as any).connection_channel ?? (camera as any).channel ?? undefined,
-        stream_quality: (camera as any).stream_quality === "main" ? "main" : "sub"
+        system_type: (privateCamera.system_type as any) || "manual_rtsp",
+        host: privateCamera.connection_host ?? privateCamera.host ?? undefined,
+        port: privateCamera.connection_port ?? privateCamera.port ?? undefined,
+        channel: privateCamera.connection_channel ?? privateCamera.channel ?? undefined,
+        stream_quality: privateCamera.stream_quality === "main" ? "main" : "sub"
       });
       update = hasPlaybackSource(camera as any) && gatewayTest.status !== "gateway_required"
         ? { status: "connected", stream_status: "connected", health_status: "healthy", last_seen: now, last_stream_activity_at: now, last_successful_connection_at: now, health_summary: { ...((camera as any).health_summary ?? {}), last_manual_test_at: now, playback_source_found: true } }
@@ -54,12 +63,12 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     }
     if (body.action === "register_gateway") {
       const gateway = await registerCameraSource(id, {
-        system_type: ((camera as any).system_type as any) || "manual_rtsp",
-        host: (camera as any).connection_host ?? (camera as any).host ?? undefined,
-        port: (camera as any).connection_port ?? (camera as any).port ?? undefined,
-        channel: (camera as any).connection_channel ?? (camera as any).channel ?? undefined,
-        stream_quality: (camera as any).stream_quality === "main" ? "main" : "sub",
-        manual_rtsp_url: (camera as any).source_url && !String((camera as any).source_url).includes("@") ? (camera as any).source_url : undefined
+        system_type: (privateCamera.system_type as any) || "manual_rtsp",
+        host: privateCamera.connection_host ?? privateCamera.host ?? undefined,
+        port: privateCamera.connection_port ?? privateCamera.port ?? undefined,
+        channel: privateCamera.connection_channel ?? privateCamera.channel ?? undefined,
+        stream_quality: privateCamera.stream_quality === "main" ? "main" : "sub",
+        manual_rtsp_url: privateCamera.source_url && !String(privateCamera.source_url).includes("@") ? privateCamera.source_url : undefined
       });
       const registered = gateway.status === "healthy";
       update = {
@@ -76,19 +85,19 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
         gateway_health_status: gateway.status,
         gateway_latency_ms: gateway.latencyMs ?? null,
         gateway_last_error: registered ? null : gateway.message,
-        hls_playback_url: gateway.playback?.hls_url ?? (camera as any).hls_playback_url,
-        webrtc_playback_url: gateway.playback?.webrtc_url ?? (camera as any).webrtc_playback_url,
+        hls_playback_url: gateway.playback?.hls_url ?? privateCamera.hls_playback_url,
+        webrtc_playback_url: gateway.playback?.webrtc_url ?? privateCamera.webrtc_playback_url,
         last_test_status: gateway.status,
         last_test_message: gateway.message,
         last_test_at: now
       };
     }
 
-    let { data, error } = await supabase.from("camera_streams" as any).update(update).eq("id", id).select("*").single();
+    let { data, error } = await supabase.from("camera_streams" as any).update(update).eq("id", id).select(CAMERA_BROWSER_SAFE_SELECT).single();
     if (error && /column .* does not exist|schema cache/i.test(error.message ?? "")) {
       const legacyUpdate = { ...update };
       ["stream_status", "health_status", "last_seen", "last_stream_activity_at", "last_successful_connection_at", "health_summary", "disabled_at", "disabled_by"].forEach((key) => delete legacyUpdate[key]);
-      const fallback = await supabase.from("camera_streams" as any).update(legacyUpdate).eq("id", id).select("*").single();
+      const fallback = await supabase.from("camera_streams" as any).update(legacyUpdate).eq("id", id).select(CAMERA_BROWSER_SAFE_SELECT).single();
       data = fallback.data;
       error = fallback.error;
     }

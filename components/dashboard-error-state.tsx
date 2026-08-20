@@ -1,8 +1,11 @@
 "use client";
 
 import { RotateCcw } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export function DashboardErrorState({ reset }: { reset?: () => void }) {
+  const router = useRouter();
+
   return (
     <main className="dashboard-safe-state" dir="rtl">
       <div className="safe-state-card error">
@@ -17,8 +20,8 @@ export function DashboardErrorState({ reset }: { reset?: () => void }) {
             <RotateCcw size={16} />
             טעינה מחדש
           </button>
-          <button className="button secondary" type="button" onClick={() => window.location.reload()}>
-            רענון מלא
+          <button className="button secondary" type="button" onClick={() => router.refresh()}>
+            רענון נתונים
           </button>
         </div>
       </div>

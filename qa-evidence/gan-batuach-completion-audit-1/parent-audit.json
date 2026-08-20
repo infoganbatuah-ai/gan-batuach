@@ -1,0 +1,504 @@
+[
+  {
+    "key": "parent_assigned",
+    "route": "/dashboard/parent",
+    "actualUrl": "http://localhost:3002/dashboard/parent",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "דשבורד הורים",
+      "דשבורד הורים"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/parent_assigned-dashboard-parent-390x844.png"
+  },
+  {
+    "key": "parent_assigned",
+    "route": "/dashboard/parent/family-home",
+    "actualUrl": "http://localhost:3002/dashboard/parent/family-home",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "דשבורד הורים",
+      "ליה דגן השתתף/ה בפעילות היום."
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/parent_assigned-dashboard-parent-family-home-390x844.png"
+  },
+  {
+    "key": "parent_assigned",
+    "route": "/dashboard/parent/messages",
+    "actualUrl": "http://localhost:3002/dashboard/parent/messages",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "דשבורד הורים",
+      "הודעות ותקשורת"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/parent_assigned-dashboard-parent-messages-390x844.png"
+  },
+  {
+    "key": "parent_assigned",
+    "route": "/dashboard/parent/payments",
+    "actualUrl": "http://localhost:3002/dashboard/parent/payments",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "דשבורד הורים",
+      "תשלומים וחיובים"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/parent_assigned-dashboard-parent-payments-390x844.png"
+  },
+  {
+    "key": "parent_assigned",
+    "route": "/dashboard/parent/cameras",
+    "actualUrl": "http://localhost:3002/dashboard/parent/cameras",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "דשבורד הורים",
+      "מצלמות הגן"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/parent_assigned-dashboard-parent-cameras-390x844.png"
+  },
+  {
+    "key": "parent_assigned",
+    "route": "/dashboard/parent/schedule",
+    "actualUrl": "http://localhost:3002/dashboard/parent/schedule",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "דשבורד הורים",
+      "היום של הילד"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/parent_assigned-dashboard-parent-schedule-390x844.png"
+  },
+  {
+    "key": "parent_assigned",
+    "route": "/dashboard/parent/documents",
+    "actualUrl": "http://localhost:3002/dashboard/parent/documents",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "דשבורד הורים",
+      "מסמכים ואישורים"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/parent_assigned-dashboard-parent-documents-390x844.png"
+  },
+  {
+    "key": "parent_assigned",
+    "route": "/dashboard/parent/notifications",
+    "actualUrl": "http://localhost:3002/dashboard/parent/notifications",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "דשבורד הורים",
+      "מרכז עדכונים"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/parent_assigned-dashboard-parent-notifications-390x844.png"
+  },
+  {
+    "key": "parent_assigned",
+    "route": "/dashboard/parent/trust-center",
+    "actualUrl": "http://localhost:3002/dashboard/parent/trust-center",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "דשבורד הורים",
+      "אמון, שקיפות וקהילה"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/parent_assigned-dashboard-parent-trust-center-390x844.png"
+  },
+  {
+    "key": "parent_assigned",
+    "route": "/dashboard/parent",
+    "actualUrl": "http://localhost:3002/dashboard/parent",
+    "width": 1440,
+    "height": 900,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "דשבורד הורים",
+      "דשבורד הורים"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/parent_assigned-dashboard-parent-1440x900.png"
+  },
+  {
+    "key": "parent_assigned",
+    "route": "/dashboard/parent/family-home",
+    "actualUrl": "http://localhost:3002/dashboard/parent/family-home",
+    "width": 1440,
+    "height": 900,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "דשבורד הורים",
+      "ליה דגן השתתף/ה בפעילות היום."
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/parent_assigned-dashboard-parent-family-home-1440x900.png"
+  },
+  {
+    "key": "parent_assigned",
+    "route": "/dashboard/parent/messages",
+    "actualUrl": "http://localhost:3002/dashboard/parent/messages",
+    "width": 1440,
+    "height": 900,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "דשבורד הורים",
+      "הודעות ותקשורת"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/parent_assigned-dashboard-parent-messages-1440x900.png"
+  },
+  {
+    "key": "parent_assigned",
+    "route": "/dashboard/parent/payments",
+    "actualUrl": "http://localhost:3002/dashboard/parent/payments",
+    "width": 1440,
+    "height": 900,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "דשבורד הורים",
+      "תשלומים וחיובים"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/parent_assigned-dashboard-parent-payments-1440x900.png"
+  },
+  {
+    "key": "parent_assigned",
+    "route": "/dashboard/parent/cameras",
+    "actualUrl": "http://localhost:3002/dashboard/parent/cameras",
+    "width": 1440,
+    "height": 900,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "דשבורד הורים",
+      "מצלמות הגן"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/parent_assigned-dashboard-parent-cameras-1440x900.png"
+  },
+  {
+    "key": "parent_assigned",
+    "route": "/dashboard/parent/schedule",
+    "actualUrl": "http://localhost:3002/dashboard/parent/schedule",
+    "width": 1440,
+    "height": 900,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "דשבורד הורים",
+      "היום של הילד"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/parent_assigned-dashboard-parent-schedule-1440x900.png"
+  },
+  {
+    "key": "parent_assigned",
+    "route": "/dashboard/parent/documents",
+    "actualUrl": "http://localhost:3002/dashboard/parent/documents",
+    "width": 1440,
+    "height": 900,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "דשבורד הורים",
+      "מסמכים ואישורים"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/parent_assigned-dashboard-parent-documents-1440x900.png"
+  },
+  {
+    "key": "parent_assigned",
+    "route": "/dashboard/parent/notifications",
+    "actualUrl": "http://localhost:3002/dashboard/parent/notifications",
+    "width": 1440,
+    "height": 900,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "דשבורד הורים",
+      "מרכז עדכונים"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/parent_assigned-dashboard-parent-notifications-1440x900.png"
+  },
+  {
+    "key": "parent_assigned",
+    "route": "/dashboard/parent/trust-center",
+    "actualUrl": "http://localhost:3002/dashboard/parent/trust-center",
+    "width": 1440,
+    "height": 900,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "דשבורד הורים",
+      "אמון, שקיפות וקהילה"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/parent_assigned-dashboard-parent-trust-center-1440x900.png"
+  },
+  {
+    "key": "parent_unassigned",
+    "route": "/dashboard/parent",
+    "actualUrl": "http://localhost:3002/dashboard/parent",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "דשבורד הורים",
+      "דשבורד הורים"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/parent_unassigned-dashboard-parent-390x844.png"
+  },
+  {
+    "key": "parent_unassigned",
+    "route": "/dashboard/parent/family-home",
+    "actualUrl": "http://localhost:3002/dashboard/parent/family-home",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "דשבורד הורים"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/parent_unassigned-dashboard-parent-family-home-390x844.png"
+  },
+  {
+    "key": "parent_unassigned",
+    "route": "/dashboard/parent/discover-kindergartens",
+    "actualUrl": "http://localhost:3002/dashboard/parent/discover-kindergartens",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "דשבורד הורים",
+      "גני ילדים בטוחים באזור שלי"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/parent_unassigned-dashboard-parent-discover-kindergartens-390x844.png"
+  },
+  {
+    "key": "parent_unassigned",
+    "route": "/dashboard/parent/settings",
+    "actualUrl": "http://localhost:3002/dashboard/parent/settings",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "דשבורד הורים",
+      "שלום, [DEMO] הורה לא משויך QA"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/parent_unassigned-dashboard-parent-settings-390x844.png"
+  },
+  {
+    "key": "parent_unassigned",
+    "route": "/dashboard/parent/cameras",
+    "actualUrl": "http://localhost:3002/dashboard/parent/cameras",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "דשבורד הורים",
+      "מצלמות הגן"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/parent_unassigned-dashboard-parent-cameras-390x844.png"
+  },
+  {
+    "key": "parent_unassigned",
+    "route": "/dashboard/parent",
+    "actualUrl": "http://localhost:3002/dashboard/parent",
+    "width": 1440,
+    "height": 900,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "דשבורד הורים",
+      "דשבורד הורים"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/parent_unassigned-dashboard-parent-1440x900.png"
+  },
+  {
+    "key": "parent_unassigned",
+    "route": "/dashboard/parent/family-home",
+    "actualUrl": "http://localhost:3002/dashboard/parent/family-home",
+    "width": 1440,
+    "height": 900,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "דשבורד הורים"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/parent_unassigned-dashboard-parent-family-home-1440x900.png"
+  },
+  {
+    "key": "parent_unassigned",
+    "route": "/dashboard/parent/discover-kindergartens",
+    "actualUrl": "http://localhost:3002/dashboard/parent/discover-kindergartens",
+    "width": 1440,
+    "height": 900,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "דשבורד הורים",
+      "גני ילדים בטוחים באזור שלי"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/parent_unassigned-dashboard-parent-discover-kindergartens-1440x900.png"
+  },
+  {
+    "key": "parent_unassigned",
+    "route": "/dashboard/parent/settings",
+    "actualUrl": "http://localhost:3002/dashboard/parent/settings",
+    "width": 1440,
+    "height": 900,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "דשבורד הורים",
+      "שלום, [DEMO] הורה לא משויך QA"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/parent_unassigned-dashboard-parent-settings-1440x900.png"
+  },
+  {
+    "key": "parent_unassigned",
+    "route": "/dashboard/parent/cameras",
+    "actualUrl": "http://localhost:3002/dashboard/parent/cameras",
+    "width": 1440,
+    "height": 900,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "דשבורד הורים",
+      "מצלמות הגן"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/parent_unassigned-dashboard-parent-cameras-1440x900.png"
+  }
+]

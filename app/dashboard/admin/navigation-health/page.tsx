@@ -28,7 +28,7 @@ export default async function AdminNavigationHealthPage() {
     for (let index = 0; index < tables.length; index += 8) {
       const batch = tables.slice(index, index + 8);
       await Promise.all(batch.map(async (table) => {
-        const response = await supabase.from(table as any).select("*", { count: "exact", head: true });
+        const response = await supabase.from(table as any).select("id", { count: "exact", head: true });
         if (response.error) {
           logSupabaseError(`navigation health table ${table}`, response.error);
           tableResults.set(table, { count: 0, error: "שגיאת נתונים בטבלה" });

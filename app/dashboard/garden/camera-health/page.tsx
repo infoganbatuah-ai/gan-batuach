@@ -6,6 +6,7 @@ import { requireRole } from "@/lib/auth";
 import { safeAdminData, logSupabaseError } from "@/lib/admin-safe";
 import { createClient } from "@/lib/supabase/server";
 import { buildCameraInfrastructureSummary, cameraDiagnosticsFor } from "@/lib/domain/real-camera-infrastructure";
+import { CAMERA_BROWSER_SAFE_SELECT } from "@/lib/domain/camera-safe-columns";
 import {
   TeacherActionTile,
   TeacherAiInsight,
@@ -26,7 +27,7 @@ export default async function GardenCameraHealthPage() {
   const result = await safeAdminData("garden camera health", async () => {
     const supabase = await createClient();
     const [camerasRes, validationsRes, healthRes, recordingRes, storageRes] = await Promise.all([
-      supabase.from("camera_streams" as any).select("*").eq("garden_id", gardenId).order("created_at", { ascending: false }).limit(200),
+      supabase.from("camera_streams" as any).select(CAMERA_BROWSER_SAFE_SELECT).eq("garden_id", gardenId).order("created_at", { ascending: false }).limit(200),
       supabase.from("camera_stream_validations" as any).select("*").eq("garden_id", gardenId).order("created_at", { ascending: false }).limit(100),
       supabase.from("camera_health_history" as any).select("*").eq("garden_id", gardenId).order("checked_at", { ascending: false }).limit(100),
       supabase.from("camera_recording_readiness" as any).select("*").eq("garden_id", gardenId).order("updated_at", { ascending: false }).limit(100),

@@ -3,6 +3,7 @@ import { DashboardShell } from "@/components/dashboard-shell";
 import { GardenSubscriptionActions } from "@/components/subscription-admin-manager";
 import { requireRole } from "@/lib/auth";
 import { evaluateSubscriptionAccess, loadGardenSubscriptionData } from "@/lib/domain/billing";
+import { calculateGanBatuachMonthlyPrice, ganBatuachTrialDays } from "@/lib/domain/kindergarten-onboarding";
 import { getIntegrationSafetyModes, getSafeIntegrationStatus } from "@/lib/domain/provider-integration-safety";
 import { createClient } from "@/lib/supabase/server";
 import { CheckCircle2, CreditCard, ShieldCheck, WalletCards } from "lucide-react";
@@ -70,7 +71,7 @@ export default async function GardenSubscriptionPage() {
   const providerModes = getIntegrationSafetyModes();
   const paymentProviderStatus = getSafeIntegrationStatus("payment", process.env.PAYMENT_PROVIDER);
   const classCount = Number(subscription?.metadata?.class_count ?? subscription?.metadata?.age_group_count ?? 1);
-  const expectedMonthly = 800 + Math.max(0, classCount - 1) * 200;
+  const expectedMonthly = calculateGanBatuachMonthlyPrice(classCount);
   const daysLeft = demoDaysLeft(subscription);
 
   return (
@@ -80,10 +81,10 @@ export default async function GardenSubscriptionPage() {
       <AdminDataError message={data.errors.length ? "חלק מנתוני המנוי לא נטענו" : null} />
 
       {subscription?.status !== "active" ? (
-        <TeacherSection title="נדרש להשלים מנוי" subtitle="תשלום מנוי גן בטוח נדרש להפעלת המערכת המלאה.">
+        <TeacherSection title={subscription?.status === "trial" ? "תקופת ניסיון פעילה" : "נדרש להשלים מנוי"} subtitle={subscription?.status === "trial" ? "אין חיוב היום. לקראת סיום הניסיון יידרש ספק תשלום מאושר או טיפול ידני." : "תשלום מנוי גן בטוח נדרש להפעלת המערכת המלאה."}>
           <span className="pill warn">
-            {subscription?.status === "demo_active" && daysLeft !== null
-              ? `הגן בדמו — נותרו ${daysLeft} ימים`
+            {["demo_active", "trial"].includes(String(subscription?.status)) && daysLeft !== null
+              ? `הגן בתקופת ניסיון — נותרו ${daysLeft} ימים`
               : subscription?.status === "payment_failed"
                 ? "התשלום נכשל — ניתן לנסות שוב"
                 : subscription?.status === "frozen"
@@ -110,17 +111,18 @@ export default async function GardenSubscriptionPage() {
           <section className="teacher-dashboard-grid">
             <TeacherSection title="פרטי המנוי" subtitle="התוכנית שנבחרה">
               <TeacherCompactList>
-                <TeacherCompactItem title="מנוי שנתי בתשלום חודשי" subtitle="התחייבות ל-12 חודשים" tone="purple" meta={money(subscription?.metadata?.monthly_amount_nis ?? expectedMonthly)} />
+                <TeacherCompactItem title="מנוי שנתי בתשלום חודשי" subtitle="החיוב מתחיל רק לאחר תקופת הניסיון וחיבור ספק מאושר" tone="purple" meta={money(subscription?.metadata?.monthly_amount_nis ?? expectedMonthly)} />
                 <TeacherCompactItem title="סה״כ לשנה" subtitle="חישוב לפי קבוצות / כיתות" tone="blue" meta={money((Number(subscription?.metadata?.monthly_amount_nis ?? expectedMonthly)) * 12)} />
+                <TeacherCompactItem title="התצפיתן הדיגיטלי" subtitle="כלול בתוך דשבורד גן בטוח; אין צורך בחשבון חיצוני למנהלת" tone="green" meta="כלול" />
                 <TeacherCompactItem title="מצב ספק תשלום" subtitle={paymentProviderStatus === "production_ready" ? "ספק מוכן לפי env" : "אין להניח חיוב חי ללא הגדרה חיצונית"} tone={providerModes.payment === "live" ? "green" : "orange"} meta={providerModes.payment === "live" ? "Live" : providerModes.payment === "sandbox" ? "Sandbox" : "כבוי"} />
               </TeacherCompactList>
             </TeacherSection>
 
             <TeacherSection title="פירוט חיוב" subtitle="מנוי גן בטוח נפרד מתשלומי הורים">
               <TeacherCompactList>
-                <TeacherCompactItem title="בסיס" subtitle="כיתה / קבוצת גיל ראשונה" tone="green" meta="₪800" />
+                <TeacherCompactItem title="בסיס" subtitle="כיתה / קבוצת גיל ראשונה" tone="green" meta="₪700" />
                 <TeacherCompactItem title="תוספת" subtitle="כל כיתה / קבוצת גיל נוספת" tone="blue" meta="+₪200" />
-                <TeacherCompactItem title="דמו" subtitle="אם הופעל דמו, יש להסדיר תשלום לפני סיום התקופה" tone="orange" meta="3 ימים" />
+                <TeacherCompactItem title="תקופת ניסיון" subtitle="יש להסדיר תשלום לפני סיום התקופה; לא נגבה דבר ביום ההפעלה" tone="orange" meta={`${ganBatuachTrialDays} ימים`} />
               </TeacherCompactList>
             </TeacherSection>
           </section>

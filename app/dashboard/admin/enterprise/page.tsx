@@ -58,9 +58,9 @@ export default async function EnterpriseAdministrationPage() {
     ] = await Promise.all([
       supabase.from("kindergarten_networks" as any).select("*").order("created_at", { ascending: false }).limit(200),
       supabase.from("network_kindergartens" as any).select("*, kindergarten_networks(network_name,network_type), gardens(id,name,city,region,municipality,status,safe_status)").order("created_at", { ascending: false }).limit(1000),
-      supabase.from("network_manager_assignments" as any).select("*, kindergarten_networks(network_name), profiles(full_name,email,phone)").eq("active", true).order("created_at", { ascending: false }).limit(300),
+      supabase.from("network_manager_assignments" as any).select("*, kindergarten_networks(network_name), profiles!network_manager_assignments_profile_id_fkey(full_name,email,phone)").eq("active", true).order("created_at", { ascending: false }).limit(300),
       supabase.from("enterprise_regions" as any).select("*, kindergarten_networks(network_name), profiles:supervisor_profile_id(full_name)").order("region_name").limit(300),
-      supabase.from("enterprise_supervisor_assignments" as any).select("*, kindergarten_networks(network_name), gardens(name,city), profiles(full_name)").eq("active", true).order("created_at", { ascending: false }).limit(300),
+      supabase.from("enterprise_supervisor_assignments" as any).select("*, kindergarten_networks(network_name), gardens(name,city), profiles!enterprise_supervisor_assignments_profile_id_fkey(full_name)").eq("active", true).order("created_at", { ascending: false }).limit(300),
       supabase.from("gardens" as any).select("id,name,city,region,municipality,network_id,status,safe_status,current_children_count,staff_count,last_inspection_score").limit(1500),
       supabase.from("enterprise_operational_metrics" as any).select("*, kindergarten_networks(network_name), enterprise_regions(region_name,city)").order("snapshot_date", { ascending: false }).limit(200),
       supabase.from("kindergarten_rating_profiles" as any).select("garden_id,overall_score,safety_score,compliance_score,inspection_score,parent_satisfaction_score,observer_score").limit(1500),
@@ -68,7 +68,7 @@ export default async function EnterpriseAdministrationPage() {
       supabase.from("inspections" as any).select("id,garden_id,status,completed_at,created_at,weighted_score").limit(3000),
       supabase.from("national_compliance_findings" as any).select("id,garden_id,severity,resolution_status,due_at").limit(3000),
       supabase.from("incident_cases" as any).select("id,garden_id,severity,status,created_at").limit(2000),
-      supabase.from("kindergarten_subscriptions" as any).select("id,garden_id,billing_status,renewal_date,annual_amount,monthly_amount").limit(1500),
+      supabase.from("kindergarten_subscriptions" as any).select("id,garden_id,billing_status,renewal_date,current_period_end,status").limit(1500),
       supabase.from("enterprise_communication_notices" as any).select("*, kindergarten_networks(network_name)").order("created_at", { ascending: false }).limit(100),
       supabase.from("enterprise_task_rollups" as any).select("*, kindergarten_networks(network_name)").order("snapshot_date", { ascending: false }).limit(100),
       supabase.from("enterprise_audit_logs" as any).select("*, kindergarten_networks(network_name), gardens(name)").order("created_at", { ascending: false }).limit(80)

@@ -16,7 +16,7 @@ export default async function InspectorCamerasPage() {
   const camerasRes = gardenIds.length
     ? await supabase
         .from("camera_streams" as any)
-        .select("id, garden_id, kindergarten_id, name, area, status, active, inspector_view_allowed, inspector_access_policy, hls_playback_url, sample_hls_url, webrtc_playback_url, gateway_stream_id, video_gateway_stream_id, gardens(name, city)")
+        .select("id, garden_id, kindergarten_id, name, area, status, active, inspector_view_allowed, inspector_access_policy, live_preview_status, playback_hls_ready, playback_webrtc_ready, gateway_stream_id, video_gateway_stream_id, gardens(name, city)")
         .or(`garden_id.in.(${gardenIds.join(",")}),kindergarten_id.in.(${gardenIds.join(",")})`)
     : { data: [] };
   const seen = new Set<string>();

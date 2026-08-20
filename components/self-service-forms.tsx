@@ -20,7 +20,7 @@ const roleNotice: Record<SelfServiceAccountType, string> = {
   parent: "פרטי ההורה והילד ישמשו רק להפעלת בקשות רישום ושירותי הגן לאחר אישור.",
   staff_candidate: "פרטי מועמדות ומסמכים ישמשו לבדיקה על ידי מנהלת הגן שאליו תגישו מועמדות.",
   inspector_candidate: "פרטי בקשת המפקח ישמשו לבדיקת התאמה ושיוך אזורים על ידי אדמין.",
-  kindergarten_manager: "פרטי הגן והמנוי ישמשו לפתיחת בקשת גן, אישור אדמין והפעלת מנוי גן בטוח."
+  kindergarten_manager: "לאחר יצירת החשבון תמשיכי ברצף להקמת הגן ול־14 ימי ניסיון. אין שער אישור אדמין ברישום החדש."
 };
 
 async function postJson(url: string, payload: Record<string, unknown>) {
@@ -73,7 +73,7 @@ export function SelfServiceRegisterForm({ fixedAccountType, appMode = false }: {
         previous_experience: formValue(form, "previous_experience") || undefined,
         preferred_regions: formValue(form, "preferred_regions") || undefined
       });
-      setState({ ok: true, message: "החשבון נוצר במצב מוגבל. אפשר להתחבר ולהגיש בקשת שיוך.", href: data.next_path });
+      setState({ ok: true, message: accountType === "kindergarten_manager" ? "החשבון נוצר. התחברי והמשיכי מיד להקמת הגן ולתקופת הניסיון." : "החשבון נוצר במצב מוגבל. אפשר להתחבר ולהגיש בקשת שיוך.", href: data.next_path });
       form.reset();
     } catch (error) {
       setState({ ok: false, message: error instanceof Error ? error.message : "ההרשמה נכשלה" });
@@ -138,7 +138,7 @@ export function SelfServiceRegisterForm({ fixedAccountType, appMode = false }: {
           <Link href="/trust">מדיניות פרטיות ואמון</Link>
           <Link href="/service-charter">תנאי שירות</Link>
         </div>
-        <button className="button primary large" disabled={busy} type="submit"><Send size={16} /> {busy ? "יוצר חשבון..." : "יצירת חשבון מוגבל"}</button>
+        <button className="button primary large" disabled={busy} type="submit"><Send size={16} /> {busy ? "יוצר חשבון..." : accountType === "kindergarten_manager" ? "יצירת חשבון והמשך להקמת הגן" : "יצירת חשבון מוגבל"}</button>
         {state ? <div className={state.ok ? "success-screen" : "error-banner"}><strong>{state.message}</strong>{state.href ? <Link className="button secondary tiny" href="/app/login">כניסה לחשבון</Link> : null}</div> : null}
         <p className="auth-switch-line">כבר יש לך חשבון? <Link href="/app/login">התחברות</Link></p>
       </form>

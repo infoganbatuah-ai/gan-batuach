@@ -19,17 +19,21 @@ import { cleanSyntheticLabel } from "@/lib/domain/display-label";
 import { createClient } from "@/lib/supabase/server";
 
 async function countRows(supabase: Awaited<ReturnType<typeof createClient>>, table: string) {
-  const { count, error } = await supabase.from(table as any).select("*", { count: "exact", head: true });
+  const { count, error } = await supabase.from(table as any).select("id", { count: "exact", head: true });
   logSupabaseError(`count ${table}`, error);
-  if (error) throw new Error(`Admin data source unavailable: ${table}`);
+  if (error) return Number.NaN;
   return count ?? 0;
 }
 
 async function countFiltered(supabase: Awaited<ReturnType<typeof createClient>>, table: string, apply: (query: any) => any) {
-  const { count, error } = await apply(supabase.from(table as any).select("*", { count: "exact", head: true }));
+  const { count, error } = await apply(supabase.from(table as any).select("id", { count: "exact", head: true }));
   logSupabaseError(`count ${table}`, error);
-  if (error) throw new Error(`Admin data source unavailable: ${table}`);
+  if (error) return Number.NaN;
   return count ?? 0;
+}
+
+function normalizeCount(value: number) {
+  return Number.isFinite(value) ? value : 0;
 }
 
 function money(value: number) {
@@ -118,23 +122,23 @@ export default async function AdminDashboard() {
       launchScoresRes
     ] = await Promise.all([
       countRows(supabase, "gardens"),
-      countFiltered(supabase, "gardens", (query) => query.in("status", ["active", "safe", "approved"])),
+      countFiltered(supabase, "gardens", (query) => query.eq("status", "active")),
       countFiltered(supabase, "gardens", (query) => query.in("approval_flow_status", ["lead_submitted", "credentials_sent", "onboarding_in_progress", "pending_final_approval", "correction_required"])),
-      countFiltered(supabase, "gardens", (query) => query.in("status", ["suspended", "archived"])),
+      countFiltered(supabase, "gardens", (query) => query.in("status", ["blocked", "archived"])),
       countRows(supabase, "children"),
       countRows(supabase, "staff"),
       countFiltered(supabase, "staff", (query) => query.eq("approved_to_work", true)),
       countRows(supabase, "inspectors"),
       countFiltered(supabase, "profiles", (query) => query.eq("role", "parent")),
-      countFiltered(supabase, "subscriptions", (query) => query.in("status", ["active", "trialing"])),
-      countFiltered(supabase, "subscriptions", (query) => query.lte("current_period_end", new Date(Date.now() + 14 * 86400000).toISOString()).in("status", ["active", "trialing"])),
-      countFiltered(supabase, "subscriptions", (query) => query.in("status", ["past_due", "unpaid", "payment_failed"])),
+      countFiltered(supabase, "kindergarten_subscriptions", (query) => query.in("status", ["active", "trial", "demo_active"])),
+      countFiltered(supabase, "kindergarten_subscriptions", (query) => query.lte("current_period_end", new Date(Date.now() + 14 * 86400000).toISOString()).in("status", ["active", "trial", "demo_active"])),
+      countFiltered(supabase, "kindergarten_subscriptions", (query) => query.in("status", ["pending_payment", "payment_failed", "frozen"])),
       countFiltered(supabase, "required_inspections", (query) => query.neq("status", "done")),
       countFiltered(supabase, "required_inspections", (query) => query.lt("due_at", nowIso).neq("status", "done")),
-      countFiltered(supabase, "inspections", (query) => query.gte("completed_at", monthStart).in("status", ["done", "completed"])),
-      countFiltered(supabase, "violations", (query) => query.in("status", ["open", "new", "in_progress", "overdue"])),
-      countFiltered(supabase, "complaints", (query) => query.in("status", ["new", "open", "in_progress", "waiting_user"])),
-      countFiltered(supabase, "complaints", (query) => query.in("severity", ["critical", "high", "urgent"]).in("status", ["new", "open", "in_progress", "waiting_user"])),
+      countFiltered(supabase, "inspections", (query) => query.gte("completed_at", monthStart).eq("status", "done")),
+      countFiltered(supabase, "violations", (query) => query.in("status", ["open", "in_progress", "overdue"])),
+      countFiltered(supabase, "complaints", (query) => query.in("status", ["new", "assigned", "in_progress", "waiting_garden"])),
+      countFiltered(supabase, "complaints", (query) => query.in("severity", ["critical", "high"]).in("status", ["new", "assigned", "in_progress", "waiting_garden"])),
       countRows(supabase, "incident_reports"),
       countFiltered(supabase, "incident_reports", (query) => query.in("status", ["new", "open", "in_progress"])),
       countFiltered(supabase, "ai_events", (query) => query.in("status", ["open", "in_progress"]).in("severity", ["high", "critical"])),
@@ -146,9 +150,9 @@ export default async function AdminDashboard() {
       countFiltered(supabase, "launch_blockers", (query) => query.not("status", "in", "(verified,accepted_risk)")),
       countFiltered(supabase, "security_findings", (query) => query.not("status", "in", "(resolved,false_positive,accepted_risk)")),
       countFiltered(supabase, "pilot_programs", (query) => query.in("pilot_status", ["active", "in_progress", "onboarding"])),
-      supabase.from("subscriptions" as any).select("id,status,monthly_amount,amount,price,created_at,current_period_end").limit(500),
+      supabase.from("kindergarten_subscriptions" as any).select("id,status,created_at,current_period_end,subscription_plans(price_amount)").limit(500),
       supabase.from("gardens" as any).select("id,name,city,safe_status,status,last_inspection_score,next_inspection_at,inspection_required_status,created_at").order("created_at", { ascending: false }).limit(10),
-      supabase.from("inspectors" as any).select("id,full_name,city,assigned_cities,status").limit(10),
+      supabase.from("inspectors" as any).select("id,service_cities,certification_notes,created_at,profiles!inspectors_id_fkey(full_name,active)").limit(10),
       supabase.from("complaints" as any).select("id,subject,severity,status,created_at,gardens(name,city)").order("created_at", { ascending: false }).limit(6),
       supabase.from("ai_events" as any).select("id,event_type,severity,status,detected_at,gardens(name,city)").order("detected_at", { ascending: false }).limit(6),
       supabase.from("launch_readiness_scores" as any).select("category,score,status").limit(20)
@@ -163,15 +167,7 @@ export default async function AdminDashboard() {
       launchScoresRes
     ].forEach((query, index) => logSupabaseError(`national dashboard query ${index}`, (query as any).error));
 
-    const subscriptionRows = (subscriptionRowsRes.data ?? []) as any[];
-    const mrr = subscriptionRows
-      .filter((row) => ["active", "trialing"].includes(String(row.status)))
-      .reduce((sum, row) => sum + Number(row.monthly_amount ?? row.amount ?? row.price ?? 0), 0);
-    const newThisWeek = await countFiltered(supabase, "gardens", (query) => query.gte("created_at", weekStartIso));
-    const launchScores = (launchScoresRes.data ?? []) as any[];
-    const launchReadiness = launchScores.length ? Math.round(launchScores.reduce((sum, row) => sum + Number(row.score ?? 0), 0) / launchScores.length) : 0;
-
-    return {
+    const countEntries = Object.entries({
       gardens,
       activeGardens,
       onboardingGardens,
@@ -200,16 +196,64 @@ export default async function AdminDashboard() {
       deliveryLogs,
       launchBlockers,
       securityFindings,
-      pilotPrograms,
+      pilotPrograms
+    });
+    const unavailableCountSources = countEntries.filter(([, value]) => !Number.isFinite(value)).map(([name]) => name);
+
+    const subscriptionRows = (subscriptionRowsRes.data ?? []) as any[];
+    const mrr = subscriptionRows
+      .filter((row) => String(row.status) === "active")
+      .reduce((sum, row) => sum + Number(row.subscription_plans?.price_amount ?? 0), 0);
+    const newThisWeek = await countFiltered(supabase, "gardens", (query) => query.gte("created_at", weekStartIso));
+    const launchScores = (launchScoresRes.data ?? []) as any[];
+    const launchReadiness = launchScores.length ? Math.round(launchScores.reduce((sum, row) => sum + Number(row.score ?? 0), 0) / launchScores.length) : 0;
+
+    return {
+      gardens: normalizeCount(gardens),
+      activeGardens: normalizeCount(activeGardens),
+      onboardingGardens: normalizeCount(onboardingGardens),
+      suspendedGardens: normalizeCount(suspendedGardens),
+      children: normalizeCount(children),
+      staff: normalizeCount(staff),
+      activeStaff: normalizeCount(activeStaff),
+      inspectors: normalizeCount(inspectors),
+      parents: normalizeCount(parents),
+      activeSubscriptions: normalizeCount(activeSubscriptions),
+      expiringSubscriptions: normalizeCount(expiringSubscriptions),
+      overdueAccounts: normalizeCount(overdueAccounts),
+      requiredInspections: normalizeCount(requiredInspections),
+      overdueInspections: normalizeCount(overdueInspections),
+      completedInspections: normalizeCount(completedInspections),
+      violations: normalizeCount(violations),
+      complaints: normalizeCount(complaints),
+      criticalComplaints: normalizeCount(criticalComplaints),
+      incidents: normalizeCount(incidents),
+      activeIncidents: normalizeCount(activeIncidents),
+      observerAlerts: normalizeCount(observerAlerts),
+      cameras: normalizeCount(cameras),
+      offlineCameras: normalizeCount(offlineCameras),
+      unhealthyCameras: normalizeCount(unhealthyCameras),
+      communicationFailures: normalizeCount(communicationFailures),
+      deliveryLogs: normalizeCount(deliveryLogs),
+      launchBlockers: normalizeCount(launchBlockers),
+      securityFindings: normalizeCount(securityFindings),
+      pilotPrograms: normalizeCount(pilotPrograms),
       mrr,
       arr: mrr * 12,
       newThisWeek,
       launchReadiness,
       gardenRows: (gardenRowsRes.data ?? []) as any[],
-      inspectorRows: (inspectorRowsRes.data ?? []) as any[],
+      inspectorRows: ((inspectorRowsRes.data ?? []) as any[]).map((row) => ({
+        id: row.id,
+        full_name: row.profiles?.full_name ?? null,
+        assigned_cities: row.service_cities ?? [],
+        status: row.profiles?.active === true ? "active" : "inactive"
+      })),
       recentComplaints: (recentComplaintsRes.data ?? []) as any[],
       recentAiEvents: (recentAiEventsRes.data ?? []) as any[],
-      queryError: [subscriptionRowsRes, gardenRowsRes, inspectorRowsRes, recentComplaintsRes, recentAiEventsRes, launchScoresRes].some((query) => query.error) ? "חלק מנתוני מרכז השליטה לא נטענו" : null
+      queryError: [subscriptionRowsRes, gardenRowsRes, inspectorRowsRes, recentComplaintsRes, recentAiEventsRes, launchScoresRes].some((query) => query.error) || unavailableCountSources.length
+        ? `חלק מנתוני מרכז השליטה לא נטענו${unavailableCountSources.length ? `: ${unavailableCountSources.join(", ")}` : ""}`
+        : null
     };
   }, {
     gardens: 0,
@@ -253,7 +297,7 @@ export default async function AdminDashboard() {
   });
 
   const data = result.data;
-  const dataAvailable = !result.error && !data.queryError;
+  const dataAvailable = !result.error;
   const staffReadiness = dataAvailable && data.staff ? Math.round((data.activeStaff / data.staff) * 100) : null;
   const inspectionCompletion = dataAvailable && data.requiredInspections + data.completedInspections ? Math.round((data.completedInspections / (data.requiredInspections + data.completedInspections)) * 100) : null;
   const communicationHealth = dataAvailable && data.deliveryLogs ? clamp(100 - (data.communicationFailures / Math.max(data.deliveryLogs, 1)) * 100) : null;

@@ -26,6 +26,39 @@ const schema = z.object({
   }).optional()
 });
 
+const roleLabels: Record<string, string> = {
+  admin: "אדמין",
+  network_manager: "מנהל/ת רשת",
+  inspector: "מפקח/ת",
+  manager: "מנהלת גן",
+  owner: "בעלות גן",
+  staff: "צוות גן",
+  parent: "הורה"
+};
+
+export async function GET() {
+  try {
+    const { user, profile } = await requireUser();
+    const supabase = await createClient();
+    const garden = profile.garden_id
+      ? await supabase.from("gardens" as any).select("id,name").eq("id", profile.garden_id).maybeSingle()
+      : { data: null };
+    return ok({
+      profile: {
+        full_name: profile.full_name,
+        phone: profile.phone,
+        address: profile.address,
+        email: profile.email ?? user.email ?? null,
+        profile_image_url: profile.profile_image_url,
+        role_label: roleLabels[String(profile.role)] ?? "חשבון גן בטוח",
+        garden_name: (garden.data as any)?.name ?? null
+      }
+    });
+  } catch (error) {
+    return handleRouteError(error);
+  }
+}
+
 export async function PATCH(request: Request) {
   try {
     const { profile } = await requireUser();
@@ -50,10 +83,11 @@ export async function PATCH(request: Request) {
         if (payload.garden[key] !== undefined) gardenPatch[key] = payload.garden[key] === "" ? null : payload.garden[key];
       }
       if (payload.garden.submit_for_final_approval) {
-        gardenPatch.status = "pending";
-        gardenPatch.approval_flow_status = "pending_final_admin_approval";
-        gardenPatch.final_approval_status = "pending_final_admin_approval";
-        gardenPatch.onboarding_status = "profile_submitted";
+        gardenPatch.status = "active";
+        gardenPatch.approval_flow_status = "active";
+        gardenPatch.final_approval_status = "active";
+        gardenPatch.onboarding_status = "active";
+        gardenPatch.public_profile_enabled = true;
         gardenPatch.profile_submitted_at = new Date().toISOString();
         gardenPatch.onboarding_completed_at = new Date().toISOString();
       }

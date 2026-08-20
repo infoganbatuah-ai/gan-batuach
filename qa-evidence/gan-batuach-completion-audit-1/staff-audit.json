@@ -1,0 +1,374 @@
+[
+  {
+    "key": "staff_assigned",
+    "route": "/dashboard/staff",
+    "actualUrl": "http://localhost:3002/dashboard/staff",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "דשבורד צוות",
+      "בוקר טוב, צוות"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/staff_assigned-dashboard-staff-390x844.png"
+  },
+  {
+    "key": "staff_assigned",
+    "route": "/dashboard/staff/attendance",
+    "actualUrl": "http://localhost:3002/dashboard/staff/attendance",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "דשבורד צוות",
+      "המערכת מזהה שאת/ה בגן"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/staff_assigned-dashboard-staff-attendance-390x844.png"
+  },
+  {
+    "key": "staff_assigned",
+    "route": "/dashboard/staff/shifts",
+    "actualUrl": "http://localhost:3002/dashboard/staff/shifts",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "דשבורד צוות",
+      "שעות עבודה, איחורים וחוסרים"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/staff_assigned-dashboard-staff-shifts-390x844.png"
+  },
+  {
+    "key": "staff_assigned",
+    "route": "/dashboard/staff/tasks",
+    "actualUrl": "http://localhost:3002/dashboard/staff/tasks",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "דשבורד צוות",
+      "מה נשאר למשמרת?"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/staff_assigned-dashboard-staff-tasks-390x844.png"
+  },
+  {
+    "key": "staff_assigned",
+    "route": "/dashboard/staff/messages",
+    "actualUrl": "http://localhost:3002/dashboard/staff/messages",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "דשבורד צוות",
+      "מנהלת, צוות ועדכונים דחופים"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/staff_assigned-dashboard-staff-messages-390x844.png"
+  },
+  {
+    "key": "staff_assigned",
+    "route": "/dashboard/staff/documents",
+    "actualUrl": "http://localhost:3002/dashboard/staff/documents",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "דשבורד צוות",
+      "מסמכי עובד ותעודות"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/staff_assigned-dashboard-staff-documents-390x844.png"
+  },
+  {
+    "key": "staff_assigned",
+    "route": "/dashboard/staff/cameras",
+    "actualUrl": "http://localhost:3002/dashboard/staff/cameras",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "דשבורד צוות",
+      "צפייה במצלמות המאושרות לצוות"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/staff_assigned-dashboard-staff-cameras-390x844.png"
+  },
+  {
+    "key": "staff_assigned",
+    "route": "/dashboard/staff/daily-journal",
+    "actualUrl": "http://localhost:3002/dashboard/staff/daily-journal",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "דשבורד צוות",
+      "משימות תפעול לצוות"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/staff_assigned-dashboard-staff-daily-journal-390x844.png"
+  },
+  {
+    "key": "staff_assigned",
+    "route": "/dashboard/staff",
+    "actualUrl": "http://localhost:3002/dashboard/staff",
+    "width": 1440,
+    "height": 900,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "דשבורד צוות",
+      "בוקר טוב, צוות"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/staff_assigned-dashboard-staff-1440x900.png"
+  },
+  {
+    "key": "staff_assigned",
+    "route": "/dashboard/staff/attendance",
+    "actualUrl": "http://localhost:3002/dashboard/staff/attendance",
+    "width": 1440,
+    "height": 900,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "דשבורד צוות",
+      "המערכת מזהה שאת/ה בגן"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/staff_assigned-dashboard-staff-attendance-1440x900.png"
+  },
+  {
+    "key": "staff_assigned",
+    "route": "/dashboard/staff/shifts",
+    "actualUrl": "http://localhost:3002/dashboard/staff/shifts",
+    "width": 1440,
+    "height": 900,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "דשבורד צוות",
+      "שעות עבודה, איחורים וחוסרים"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/staff_assigned-dashboard-staff-shifts-1440x900.png"
+  },
+  {
+    "key": "staff_assigned",
+    "route": "/dashboard/staff/tasks",
+    "actualUrl": "http://localhost:3002/dashboard/staff/tasks",
+    "width": 1440,
+    "height": 900,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "דשבורד צוות",
+      "מה נשאר למשמרת?"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/staff_assigned-dashboard-staff-tasks-1440x900.png"
+  },
+  {
+    "key": "staff_assigned",
+    "route": "/dashboard/staff/messages",
+    "actualUrl": "http://localhost:3002/dashboard/staff/messages",
+    "width": 1440,
+    "height": 900,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "דשבורד צוות",
+      "מנהלת, צוות ועדכונים דחופים"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/staff_assigned-dashboard-staff-messages-1440x900.png"
+  },
+  {
+    "key": "staff_assigned",
+    "route": "/dashboard/staff/documents",
+    "actualUrl": "http://localhost:3002/dashboard/staff/documents",
+    "width": 1440,
+    "height": 900,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "דשבורד צוות",
+      "מסמכי עובד ותעודות"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/staff_assigned-dashboard-staff-documents-1440x900.png"
+  },
+  {
+    "key": "staff_assigned",
+    "route": "/dashboard/staff/cameras",
+    "actualUrl": "http://localhost:3002/dashboard/staff/cameras",
+    "width": 1440,
+    "height": 900,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "דשבורד צוות",
+      "צפייה במצלמות המאושרות לצוות"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/staff_assigned-dashboard-staff-cameras-1440x900.png"
+  },
+  {
+    "key": "staff_assigned",
+    "route": "/dashboard/staff/daily-journal",
+    "actualUrl": "http://localhost:3002/dashboard/staff/daily-journal",
+    "width": 1440,
+    "height": 900,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "דשבורד צוות",
+      "משימות תפעול לצוות"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/staff_assigned-dashboard-staff-daily-journal-1440x900.png"
+  },
+  {
+    "key": "staff_unassigned",
+    "route": "/dashboard/staff",
+    "actualUrl": "http://localhost:3002/dashboard/staff",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "מרכז מועמדות לצוות",
+      "עדיין לא שובצת לגן"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/staff_unassigned-dashboard-staff-390x844.png"
+  },
+  {
+    "key": "staff_unassigned",
+    "route": "/dashboard/staff/job-market",
+    "actualUrl": "http://localhost:3002/dashboard/staff/job-market",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "מרכז מועמדות לצוות",
+      "מצאו גן שמחפש עובדים"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/staff_unassigned-dashboard-staff-job-market-390x844.png"
+  },
+  {
+    "key": "staff_unassigned",
+    "route": "/dashboard/staff/settings",
+    "actualUrl": "http://localhost:3002/dashboard/staff/settings",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "דשבורד צוות",
+      "שלום, [DEMO] צוות לא משויך QA"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/staff_unassigned-dashboard-staff-settings-390x844.png"
+  },
+  {
+    "key": "staff_unassigned",
+    "width": 1440,
+    "height": 900,
+    "login": {
+      "key": "staff_unassigned",
+      "ok": false,
+      "url": "http://localhost:3002/login"
+    }
+  },
+  {
+    "key": "staff_unassigned",
+    "width": 1440,
+    "height": 900,
+    "login": {
+      "key": "staff_unassigned",
+      "ok": false,
+      "url": "http://localhost:3002/login"
+    }
+  },
+  {
+    "key": "staff_unassigned",
+    "width": 1440,
+    "height": 900,
+    "login": {
+      "key": "staff_unassigned",
+      "ok": false,
+      "url": "http://localhost:3002/login"
+    }
+  }
+]

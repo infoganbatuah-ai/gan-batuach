@@ -14,16 +14,16 @@ export async function getSessionProfile() {
   return { user, profile };
 }
 
-export async function requireUser() {
+export async function requireUser(loginPath = "/login") {
   const session = await getSessionProfile();
-  if (!session.user || !session.profile) redirect("/login");
+  if (!session.user || !session.profile) redirect(loginPath);
   return { user: session.user, profile: session.profile };
 }
 
-export async function requireRole(allowed: UserRole[]) {
-  const session = await requireUser();
+export async function requireRole(allowed: UserRole[], loginPath = "/login", deniedPath = "/dashboard") {
+  const session = await requireUser(loginPath);
   const role = session.profile.role;
-  if (!isRole(role) || !allowed.includes(role)) redirect("/dashboard");
+  if (!isRole(role) || !allowed.includes(role)) redirect(deniedPath);
   return session;
 }
 
@@ -91,13 +91,18 @@ export async function dashboardPathForProfile(profile: { id?: string | null; rol
     }
   }
   if (profile.role === "inspector" && profile.id) {
+    if (profile.active === false) return "/dashboard/inspector/apply";
     const supabase = await createClient();
-    const { data: inspector } = await supabase
-      .from("inspectors" as any)
+    // Inspector rows are RLS-protected and legacy environments may not expose
+    // a self-read policy. Assigned gardens are the authoritative access scope
+    // and can be checked through the existing can_access_garden policy.
+    const { data: assignedGarden } = await supabase
+      .from("gardens" as any)
       .select("id")
-      .eq("id", profile.id)
+      .eq("inspector_id", profile.id)
+      .limit(1)
       .maybeSingle();
-    if (!inspector || profile.active === false) return "/dashboard/inspector/apply";
+    if (!assignedGarden) return "/dashboard/inspector/apply";
   }
   return dashboardPathForRole(profile.role);
 }

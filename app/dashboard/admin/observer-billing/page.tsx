@@ -26,7 +26,7 @@ export default async function AdminObserverBillingPage() {
     const supabase = await createClient();
     const [subscriptions, events, usage, packages] = await Promise.all([
       supabase
-        .from("observer_subscriptions" as any)
+        .from("observer_site_subscriptions" as any)
         .select("*, observer_sites(name, site_type), observer_monitoring_packages(name, package_type, monthly_price, annual_price, currency)")
         .order("created_at", { ascending: false })
         .limit(300),
@@ -74,33 +74,33 @@ export default async function AdminObserverBillingPage() {
     <DashboardShell role="admin" title="Observer Billing">
       <div className="dashboard-hero-card admin-hero-card">
         <div>
-          <p className="eyebrow">Future standalone product</p>
-          <h1>Billing automation ל-Digital Observer העצמאי.</h1>
-          <p>מסך readiness בלבד למנויי בתים, עסקים, מחסנים, משרדים וחניונים. חיוב Digital Observer נפרד ממנויי Gan Batuach ומתשלומי הורים לגנים.</p>
+          <p className="eyebrow">מוצר עצמאי</p>
+          <h1>ניהול חיוב ומנויים לתצפיתן הדיגיטלי.</h1>
+          <p>מצב מוכנות בלבד למנויי בתים ועסקים. חיוב התצפיתן נפרד ממנויי גן בטוח ומתשלומי הורים לגנים.</p>
         </div>
-        <span className="pill warn">Mock billing only</span>
+        <span className="pill warn">חיוב מדומה בלבד</span>
       </div>
       <AdminDataError message={result.error ?? data.queryError} />
 
       <section className="grid cols-4 dashboard-panels">
         <article className="metric-card"><PackageCheck /><strong>{active}</strong><span>מנויים פעילים</span></article>
-        <article className="metric-card"><CalendarClock /><strong>{trials}</strong><span>Trials</span></article>
-        <article className="metric-card"><AlertTriangle /><strong>{overdue}</strong><span>Pending / overdue</span></article>
-        <article className="metric-card"><CreditCard /><strong>{money(revenueReady)}</strong><span>Revenue readiness</span></article>
+        <article className="metric-card"><CalendarClock /><strong>{trials}</strong><span>תקופות ניסיון</span></article>
+        <article className="metric-card"><AlertTriangle /><strong>{overdue}</strong><span>ממתינים להסדרה</span></article>
+        <article className="metric-card"><CreditCard /><strong>{money(revenueReady)}</strong><span>הכנסה במוכנות</span></article>
       </section>
 
       <section className="grid cols-2 dashboard-panels">
         <article className="card action-panel">
-          <div className="section-heading"><h2>Lifecycle readiness</h2><p>Trial → Active → Pending payment → Overdue → Suspended → Cancelled.</p></div>
+          <div className="section-heading"><h2>מחזור חיי מנוי</h2><p>ניסיון, פעיל, ממתין לתשלום, באיחור, מושהה או מבוטל.</p></div>
           <div className="risk-list">
-            <div>Active <b>{active}</b></div>
-            <div>Trial <b>{trials}</b></div>
-            <div>Overdue / pending <b>{overdue}</b></div>
-            <div>Suspended <b>{suspended}</b></div>
+            <div>פעילים <b>{active}</b></div>
+            <div>בניסיון <b>{trials}</b></div>
+            <div>ממתינים להסדרה <b>{overdue}</b></div>
+            <div>מושהים <b>{suspended}</b></div>
           </div>
         </article>
         <article className="card action-panel">
-          <div className="section-heading"><h2>Package distribution</h2><p>Future standalone packages only.</p></div>
+          <div className="section-heading"><h2>התפלגות חבילות</h2><p>חבילות המוצר העצמאי בלבד.</p></div>
           <div className="risk-list">
             {Object.keys(packageDistribution).length === 0 ? <div>אין מנויי standalone עדיין <b>mock</b></div> : Object.entries(packageDistribution).map(([name, count]) => <div key={name}>{name} <b>{count}</b></div>)}
           </div>
@@ -109,7 +109,7 @@ export default async function AdminObserverBillingPage() {
 
       <section className="dashboard-section">
         <div className="section-heading">
-          <h2>Standalone subscriptions</h2>
+          <h2>מנויי התצפיתן העצמאי</h2>
           <p>אין כאן מנויי Gan Batuach, ואין כאן תשלומי הורים לגנים. זהו זרם מסחרי נפרד של Digital Observer.</p>
         </div>
         {data.subscriptions.length === 0 ? (
@@ -123,12 +123,12 @@ export default async function AdminObserverBillingPage() {
                   <span className="pill">{subscription.billing_cycle}</span>
                   <h3>{subscription.observer_sites?.name ?? "אתר Digital Observer"}</h3>
                   <p>{subscription.observer_monitoring_packages?.name ?? "ללא חבילה"} · חידוש {date(subscription.renewal_date)}</p>
-                  <small>{subscription.provider} · {subscription.payment_method_summary ?? "אמצעי תשלום יוגדר בעתיד"}</small>
+                  <small>{subscription.payment_provider ?? "mock"} · {subscription.purchase_channel ?? "אמצעי תשלום טרם הוגדר"}</small>
                 </div>
                 <div className="procedure-meta">
-                  <span>Trial ends: {date(subscription.trial_ends_at)}</span>
-                  <span>Period: {date(subscription.current_period_start)} - {date(subscription.current_period_end)}</span>
-                  <span>{subscription.admin_override ? "Admin override" : "Observe only"}</span>
+                  <span>סיום ניסיון: {date(subscription.trial_end)}</span>
+                  <span>חידוש: {date(subscription.renewal_date)}</span>
+                  <span>{subscription.entitlement_status === "active" ? "הרשאות פעילות" : "מוכנות בלבד"}</span>
                 </div>
               </article>
             ))}
@@ -138,7 +138,7 @@ export default async function AdminObserverBillingPage() {
 
       <section className="grid cols-2 dashboard-panels">
         <article className="card action-panel">
-          <div className="section-heading"><h2>Billing automation events</h2><p>Mock reminders and payment lifecycle events.</p></div>
+          <div className="section-heading"><h2>אירועי אוטומציית חיוב</h2><p>תזכורות מדומות ואירועי מחזור חיי התשלום.</p></div>
           <div className="risk-list">
             {data.events.length === 0 ? <div>אין אירועי billing עדיין <b>mock</b></div> : data.events.slice(0, 10).map((event: any) => (
               <div key={event.id}>{event.event_type} · {event.observer_sites?.name ?? "אתר"} <b>{event.status}</b></div>
@@ -146,7 +146,7 @@ export default async function AdminObserverBillingPage() {
           </div>
         </article>
         <article className="card action-panel">
-          <div className="section-heading"><h2>Usage and limits</h2><p>Camera, AI, storage and alert usage for future package enforcement.</p></div>
+          <div className="section-heading"><h2>שימוש ומגבלות</h2><p>מצלמות, AI, אחסון והתראות לצורך אכיפת החבילה בשרת.</p></div>
           <div className="risk-list">
             {data.usage.length === 0 ? <div>אין usage tracking עדיין <b>observe only</b></div> : data.usage.slice(0, 10).map((item: any) => (
               <div key={item.id}>{item.observer_sites?.name ?? "אתר"} · {item.period_start} <b>{item.active_cameras} מצלמות · {item.ai_events_count} אירועים</b></div>
@@ -158,12 +158,12 @@ export default async function AdminObserverBillingPage() {
       <section className="grid cols-2 dashboard-panels">
         <article className="card action-panel">
           <RotateCw />
-          <h2>Retry schedule readiness</h2>
+          <h2>מוכנות לניסיונות חיוב חוזרים</h2>
           <p>התשתית כוללת retry schedule, renewal reminders, failed payment alerts וערוצי email/SMS/WhatsApp/Push. אין שליחת חיוב אמיתי בשלב הזה.</p>
         </article>
         <article className="card action-panel">
           <CreditCard />
-          <h2>Payment provider readiness</h2>
+          <h2>מוכנות ספק תשלום</h2>
           <p>מוכן לארכיטקטורת provider עתידית: credit card, recurring billing, invoice generation ו-payment failure handling.</p>
         </article>
       </section>

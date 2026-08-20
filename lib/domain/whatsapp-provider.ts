@@ -117,13 +117,19 @@ const metaWhatsAppProvider: WhatsAppProvider = {
   checkReadiness: getMetaReadiness,
   async sendTemplate(message) {
     const readiness = getMetaReadiness();
-    const payload = buildMetaWhatsAppTemplatePayload(message);
     return {
       status: readiness.configured ? "queued" : "failed",
       provider: "meta_whatsapp_business",
       providerMessageId: readiness.configured ? `dry_run_meta_wa_${Date.now()}` : null,
       failureReason: readiness.configured ? null : `Missing ${readiness.missing.join(", ")}`,
-      dryRunPayload: payload
+      dryRunPayload: {
+        provider: "meta_whatsapp_business",
+        to: maskPhone(message.to),
+        templateName: message.templateName,
+        language: message.language,
+        variableCount: Object.keys(message.variables ?? {}).length,
+        eventType: message.eventType
+      }
     };
   }
 };
