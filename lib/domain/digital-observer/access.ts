@@ -62,3 +62,30 @@ export async function requireDigitalObserverUser(loginPath = "/digital-observer/
   if (!isObserver) redirect("/digital-observer/login?error=not_observer_account");
   return { ...session, observerAccount: account.data ?? null };
 }
+
+export async function getDigitalObserverApiUser() {
+  const supabase = await createClient();
+  const {
+    data: { user }
+  } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const { data: profile } = await supabase
+    .from("profiles")
+    .select("id,role,garden_id,active,full_name")
+    .eq("id", user.id)
+    .maybeSingle();
+  if (!profile || profile.active === false) return null;
+
+  const [account, ownedSite, membership] = await Promise.all([
+    supabase.from("digital_observer_accounts" as any).select("profile_id,account_type,status,onboarding_step,trial_start,trial_end").eq("profile_id", user.id).maybeSingle(),
+    supabase.from("observer_sites" as any).select("id").eq("owner_profile_id", user.id).is("garden_id", null).neq("site_type", "kindergarten").limit(1).maybeSingle(),
+    supabase.from("observer_site_memberships" as any).select("observer_site_id").eq("profile_id", user.id).eq("active", true).limit(1).maybeSingle()
+  ]);
+  const isObserver = user.user_metadata?.product === "digital_observer"
+    || Boolean(account.data || ownedSite.data || membership.data)
+    || profile.role === "admin";
+  if (!isObserver) return null;
+
+  return { user, profile, observerAccount: account.data ?? null };
+}

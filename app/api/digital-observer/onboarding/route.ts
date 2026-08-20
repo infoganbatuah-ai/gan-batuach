@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
-import { getObserverSiteAccess, requireDigitalObserverUser } from "@/lib/domain/digital-observer/access";
+import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
 import { createClient } from "@/lib/supabase/server";
 
 const siteTypes = ["home", "office", "business", "warehouse", "store", "parking_lot", "custom"] as const;
@@ -19,7 +19,9 @@ const schema = z.object({
 
 export async function POST(request: Request) {
   try {
-    const { profile, observerAccount } = await requireDigitalObserverUser();
+    const session = await getDigitalObserverApiUser();
+    if (!session) return fail("נדרשת התחברות מחדש לתצפיתן הדיגיטלי.", 401);
+    const { profile, observerAccount } = session;
     const payload = schema.parse(await request.json());
     const supabase = await createClient();
     if (!observerAccount) return fail("חשבון התצפיתן טרם הוכן. יש להחיל את מיגרציית ההפרדה ולהתחבר מחדש.", 409);

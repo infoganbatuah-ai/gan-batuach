@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
-import { getObserverSiteAccess, requireDigitalObserverUser } from "@/lib/domain/digital-observer/access";
+import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
 import { buildDigitalObserverCameraReadiness, digitalObserverConnectorTypes } from "@/lib/domain/digital-observer/connectors";
 import { createClient } from "@/lib/supabase/server";
 
@@ -31,7 +31,9 @@ const schema = z.discriminatedUnion("action", [createSchema, testSchema, disable
 
 export async function POST(request: Request) {
   try {
-    const { profile } = await requireDigitalObserverUser();
+    const session = await getDigitalObserverApiUser();
+    if (!session) return fail("נדרשת התחברות מחדש לתצפיתן הדיגיטלי.", 401);
+    const { profile } = session;
     const payload = schema.parse(await request.json());
     const supabase = await createClient();
 
