@@ -2,7 +2,6 @@ import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
 import { buildDigitalObserverCameraReadiness, digitalObserverConnectorTypes } from "@/lib/domain/digital-observer/connectors";
-import { createClient } from "@/lib/supabase/server";
 
 const targets = ["person", "unknown_person", "animal", "entry_exit", "after_hours", "camera_obstruction", "restricted_area", "crowding", "door_left_open"] as const;
 
@@ -31,11 +30,11 @@ const schema = z.discriminatedUnion("action", [createSchema, testSchema, disable
 
 export async function POST(request: Request) {
   try {
-    const session = await getDigitalObserverApiUser();
+    const session = await getDigitalObserverApiUser(request);
     if (!session) return fail("נדרשת התחברות מחדש לתצפיתן הדיגיטלי.", 401);
-    const { profile } = session;
+    const { profile, supabase: sessionSupabase } = session;
+    const supabase = sessionSupabase as any;
     const payload = schema.parse(await request.json());
-    const supabase = await createClient();
 
     if (payload.action === "create") {
       const site = await getObserverSiteAccess(supabase, profile, payload.observer_site_id, { manage: true });
@@ -58,7 +57,14 @@ export async function POST(request: Request) {
         metadata: readiness.metadata
       }).select("id,observer_site_id,display_name,location_label,connector_type,source_mode,status,health_status,monitoring_targets").single();
       if (error || !data) return fail("לא ניתן לשמור את מקור המצלמה. יש לוודא שהמיגרציה הוחלה.", 400);
-      return ok({ camera: data, message: payload.connector_type === "demo" ? "מצלמת ההדמיה מוכנה לבדיקה." : "המקור נשמר במצב מוכנות. פרטי החיבור יוגדרו ב-Gateway המאובטח." }, 201);
+      const learningResult = await supabase.rpc("initialize_digital_observer_learning" as any, { requested_site_id: payload.observer_site_id });
+      return ok({
+        camera: data,
+        learning_initialized: !learningResult.error,
+        message: payload.connector_type === "demo"
+          ? "מצלמת ההדמיה מוכנה והופעל מסלול למידת שגרה בטוח. אין עיבוד וידאו חי."
+          : "המקור נשמר והאתר מוכן ללמידה. עיבוד וידאו יתחיל רק לאחר חיבור Gateway מאובטח."
+      }, 201);
     }
 
     const { data: source } = await supabase.from("digital_observer_camera_sources" as any)

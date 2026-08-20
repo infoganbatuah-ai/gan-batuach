@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
-import { createClient } from "@/lib/supabase/server";
 
 const schema = z.object({
   observer_site_id: z.string().uuid(),
@@ -17,11 +16,11 @@ const schema = z.object({
 
 export async function POST(request: Request) {
   try {
-    const session = await getDigitalObserverApiUser();
+    const session = await getDigitalObserverApiUser(request);
     if (!session) return fail("נדרשת התחברות מחדש לתצפיתן הדיגיטלי.", 401);
-    const { profile } = session;
+    const { profile, supabase: sessionSupabase } = session;
+    const supabase = sessionSupabase as any;
     const payload = schema.parse(await request.json());
-    const supabase = await createClient();
     const site = await getObserverSiteAccess(supabase, profile, payload.observer_site_id, { manage: true });
     if (!site) return fail("אין הרשאה לעדכן את הגדרות האתר.", 403);
     const now = new Date().toISOString();

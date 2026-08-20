@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
-import { createClient } from "@/lib/supabase/server";
 
 const schema = z.object({
   signal_id: z.string().uuid(),
@@ -11,11 +10,11 @@ const schema = z.object({
 
 export async function POST(request: Request) {
   try {
-    const session = await getDigitalObserverApiUser();
+    const session = await getDigitalObserverApiUser(request);
     if (!session) return fail("נדרשת התחברות מחדש לתצפיתן הדיגיטלי.", 401);
-    const { profile } = session;
+    const { profile, supabase: sessionSupabase } = session;
+    const supabase = sessionSupabase as any;
     const payload = schema.parse(await request.json());
-    const supabase = await createClient();
     const { data: signal } = await supabase.from("observer_intelligence_signals" as any)
       .select("id,observer_site_id,review_status,metadata")
       .eq("id", payload.signal_id)
@@ -43,7 +42,19 @@ export async function POST(request: Request) {
       metadata: { ...(signal.metadata ?? {}), reviewed_in_digital_observer: true }
     }).eq("id", signal.id).select("id,review_status,reviewed_at,resolved_at").single();
     if (error) return fail("הביקורת נשמרה אך סטטוס האירוע לא עודכן.", 409);
-    return ok({ review, signal: updated });
+    const feedbackResult = await supabase.rpc("record_digital_observer_feedback" as any, {
+      requested_signal_id: signal.id,
+      requested_outcome: payload.review_status,
+      requested_note: payload.note || null
+    });
+    return ok({
+      review,
+      signal: updated,
+      feedback_recorded: !feedbackResult.error,
+      message: payload.review_status === "dismissed"
+        ? "האירוע סומן כתקין עבור דפוס זה. הוא לא הוגדר כמותר באופן גורף."
+        : "הביקורת נשמרה ותשמש לכיול מבוקר של התצפיתן."
+    });
   } catch (error) {
     return handleRouteError(error);
   }

@@ -112,7 +112,7 @@ export default async function DigitalObserverDashboardPage({ searchParams }: Pag
                 <div className="do-camera-grid">
                   {siteCameras.slice(0, 4).map((camera, index) => (
                     <Link href={`/digital-observer/cameras?camera=${camera.id}`} key={camera.id}>
-                      <ObserverCameraMedia name={camera.display_name ?? "מצלמה"} mode="home" scene={camera.preview_scene ?? sceneFor(index, "home")} status={camera.status ?? camera.health_status} />
+                      <ObserverCameraMedia name={camera.display_name ?? "מצלמה"} mode="home" scene={camera.preview_scene ?? sceneFor(index, "home")} status={camera.status ?? camera.health_status} sourceMode={camera.source_mode} />
                     </Link>
                   ))}
                 </div>
@@ -165,7 +165,7 @@ export default async function DigitalObserverDashboardPage({ searchParams }: Pag
 
             <section className="do-section">
               <div className="do-section-head"><div><h2>מצלמות פעילות</h2><p>סטטוס אמיתי או מצב חיבור גלוי, ללא תווית LIVE מזויפת.</p></div><Link className="do-link" href="/digital-observer/cameras">כל המצלמות</Link></div>
-              {siteCameras.length ? <div className="do-camera-grid">{siteCameras.slice(0, 6).map((camera, index) => <Link href={`/digital-observer/cameras?camera=${camera.id}`} key={camera.id}><ObserverCameraMedia name={camera.display_name ?? "מצלמה"} mode="business" scene={camera.preview_scene ?? sceneFor(index, "business")} status={camera.status ?? camera.health_status} /></Link>)}</div> : <div className="do-empty"><CameraOff /><strong>אין מקורות מצלמה באתר</strong><span>הוסף מקור IP, NVR/DVR, ONVIF, ספק ענן או Gateway. אין צורך לחשוף סיסמה ללקוח.</span><Link className="do-button primary" href="/digital-observer/cameras/add">הוספת מצלמה</Link></div>}
+              {siteCameras.length ? <div className="do-camera-grid">{siteCameras.slice(0, 6).map((camera, index) => <Link href={`/digital-observer/cameras?camera=${camera.id}`} key={camera.id}><ObserverCameraMedia name={camera.display_name ?? "מצלמה"} mode="business" scene={camera.preview_scene ?? sceneFor(index, "business")} status={camera.status ?? camera.health_status} sourceMode={camera.source_mode} /></Link>)}</div> : <div className="do-empty"><CameraOff /><strong>אין מקורות מצלמה באתר</strong><span>הוסף מקור IP, NVR/DVR, ONVIF, ספק ענן או Gateway. אין צורך לחשוף סיסמה ללקוח.</span><Link className="do-button primary" href="/digital-observer/cameras/add">הוספת מצלמה</Link></div>}
             </section>
           </>
         )}

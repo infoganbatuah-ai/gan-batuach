@@ -189,8 +189,8 @@ async function upsertAccount(account) {
     email: account.email,
     password,
     email_confirm: true,
-    app_metadata: { role: account.role, is_demo: true, qa_demo: true },
-    user_metadata: { full_name: account.fullName, qa_demo: true }
+    app_metadata: { role: account.role, is_demo: true, qa_demo: true, ...(account.assignmentMode === "observer" ? { product: "digital_observer" } : {}) },
+    user_metadata: { full_name: account.fullName, qa_demo: true, ...(account.assignmentMode === "observer" ? { product: "digital_observer", observer_account_type: account.observerMode } : {}) }
   };
   const { data, error } = existing
     ? await supabase.auth.admin.updateUserById(existing.id, attributes)
