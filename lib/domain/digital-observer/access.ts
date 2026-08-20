@@ -54,7 +54,6 @@ export function safeObserverReturnPath(value?: string | null) {
 export async function requireDigitalObserverUser(loginPath = "/digital-observer/login") {
   const session = await requireUser(loginPath);
   const supabase = await createClient();
-  const authSession = await supabase.auth.getSession();
   const [account, ownedSite, membership] = await Promise.all([
     supabase.from("digital_observer_accounts" as any).select("profile_id,account_type,status,onboarding_step,trial_start,trial_end").eq("profile_id", session.user.id).maybeSingle(),
     supabase.from("observer_sites" as any).select("id").eq("owner_profile_id", session.user.id).is("garden_id", null).neq("site_type", "kindergarten").limit(1).maybeSingle(),
@@ -64,10 +63,7 @@ export async function requireDigitalObserverUser(loginPath = "/digital-observer/
     || Boolean(account.data || ownedSite.data || membership.data)
     || session.profile.role === "admin";
   if (!isObserver) redirect("/digital-observer/login?error=not_observer_account");
-  const accessToken = authSession.data.session?.user.id === session.user.id
-    ? authSession.data.session.access_token
-    : null;
-  return { ...session, observerAccount: account.data ?? null, accessToken };
+  return { ...session, observerAccount: account.data ?? null };
 }
 
 export async function getDigitalObserverApiUser(request?: Request) {

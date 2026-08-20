@@ -15,6 +15,7 @@ export function LogoutButton({
   const router = useRouter();
   async function logout() {
     await fetch("/api/auth/logout", { method: "POST" });
+    window.sessionStorage.removeItem("digital_observer_session_access");
     router.replace(redirectTo);
     router.refresh();
   }
