@@ -66,16 +66,29 @@ export async function requireDigitalObserverUser(loginPath = "/digital-observer/
 export async function getDigitalObserverApiUser() {
   const supabase = await createClient();
   const {
-    data: { user }
+    data: { user },
+    error: userError
   } = await supabase.auth.getUser();
-  if (!user) return null;
+  if (!user) {
+    console.warn("Digital Observer API session rejected", {
+      reason: "missing_authenticated_user",
+      authCode: userError?.code ?? "auth_session_missing"
+    });
+    return null;
+  }
 
-  const { data: profile } = await supabase
+  const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select("id,role,garden_id,active,full_name")
     .eq("id", user.id)
     .maybeSingle();
-  if (!profile || profile.active === false) return null;
+  if (!profile || profile.active === false) {
+    console.warn("Digital Observer API session rejected", {
+      reason: profile?.active === false ? "inactive_profile" : "profile_not_available",
+      databaseCode: profileError?.code ?? null
+    });
+    return null;
+  }
 
   const [account, ownedSite, membership] = await Promise.all([
     supabase.from("digital_observer_accounts" as any).select("profile_id,account_type,status,onboarding_step,trial_start,trial_end").eq("profile_id", user.id).maybeSingle(),
@@ -85,7 +98,15 @@ export async function getDigitalObserverApiUser() {
   const isObserver = user.user_metadata?.product === "digital_observer"
     || Boolean(account.data || ownedSite.data || membership.data)
     || profile.role === "admin";
-  if (!isObserver) return null;
+  if (!isObserver) {
+    console.warn("Digital Observer API session rejected", {
+      reason: "observer_scope_not_available",
+      accountCode: account.error?.code ?? null,
+      siteCode: ownedSite.error?.code ?? null,
+      membershipCode: membership.error?.code ?? null
+    });
+    return null;
+  }
 
   return { user, profile, observerAccount: account.data ?? null };
 }
