@@ -36,6 +36,7 @@ export default async function DigitalObserverRegisterPage({ searchParams }: Page
           <label className="do-check"><input type="checkbox" required /><span>קראתי את תנאי השימוש ומדיניות הפרטיות הזמניים. זיהוי פנים והתראות חיצוניות דורשים הסכמה נפרדת.</span></label>
           <button className="do-button primary full" type="submit">יצירת חשבון ושליחת קוד אימות</button>
           <p className="do-auth-switch">כבר רשומים? <Link href="/digital-observer/login">התחברות</Link></p>
+          <p className="do-auth-switch">הכתובת כבר משמשת בגן בטוח? <Link href={`/digital-observer/login?type=${initialType}`}>התחברו איתה כאן</Link> וחשבון התצפיתן יישמר בנפרד.</p>
         </form>
       </section>
     </main>
