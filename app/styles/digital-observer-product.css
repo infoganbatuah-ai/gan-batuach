@@ -752,6 +752,32 @@
 .do-intro h1 { margin: 10px 0 8px; font-size: 34px; letter-spacing: 0; line-height: 1.2; }
 .do-intro p { margin: 0; color: var(--do-muted); line-height: 1.7; }
 .do-wizard { max-width: 1080px; width: 100%; margin-inline: auto; }
+.do-onboarding-page {
+  min-height: 100dvh;
+  color: var(--do-ink);
+  background: #f7f9fa;
+}
+.do-onboarding-page *, .do-onboarding-page *::before, .do-onboarding-page *::after { box-sizing: border-box; }
+.do-onboarding-page a { color: inherit; text-decoration: none; }
+.do-onboarding-header {
+  min-height: 72px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 10px max(22px, calc((100vw - 1180px) / 2));
+  background: #fff;
+  border-bottom: 1px solid var(--do-line);
+}
+.do-onboarding-content {
+  width: min(100% - 36px, 980px);
+  display: grid;
+  gap: 26px;
+  margin: 0 auto;
+  padding: 54px 0 72px;
+}
+.do-onboarding-content .do-intro { max-width: 720px; margin-inline: auto; text-align: center; }
+.do-onboarding-content .do-panel { box-shadow: 0 12px 34px rgba(6, 29, 58, 0.06); }
 .do-form-section { display: grid; gap: 16px; }
 .do-form-section h2,
 .do-form-section p { margin: 0; }
@@ -875,7 +901,8 @@
 .do-plan li svg { width: 15px; height: 15px; color: var(--do-teal-dark); }
 
 .do-public,
-.do-auth-page {
+.do-auth-page,
+.do-onboarding-page {
   --do-navy: #061d3a;
   --do-navy-2: #0b3159;
   --do-teal: #08a99d;
@@ -974,9 +1001,18 @@
 .do-auth-card > h1,
 .do-auth-card > h2,
 .do-auth-card > p { margin: 0; }
+.do-auth-card > h1 { font-size: clamp(30px, 4vw, 42px); line-height: 1.18; letter-spacing: 0; }
+.do-auth-card > h2 { font-size: 28px; line-height: 1.25; letter-spacing: 0; }
 .do-auth-card > p { color: var(--do-muted); }
 .do-auth-switch { text-align: center; }
 .do-auth-switch a { color: var(--do-teal-dark); font-weight: 800; }
+.do-verify-card { text-align: center; }
+.do-verify-card .do-auth-brand { text-align: start; }
+.do-verify-icon { width: 58px; height: 58px; margin: 4px auto 0; padding: 12px; color: var(--do-teal-dark); background: #e8f7f4; border-radius: 50%; }
+.do-verify-form { display: grid; gap: 16px; }
+.do-verify-card form { display: grid; gap: 12px; }
+.do-verify-card .do-field { text-align: start; }
+.do-field .do-otp-input { direction: ltr; text-align: center; font-size: 28px; font-weight: 800; letter-spacing: 8px; font-variant-numeric: tabular-nums; }
 
 .digital-observer-splash-logo { color: #fff; }
 .digital-observer-splash-logo > span {
@@ -1148,6 +1184,10 @@
   .do-auth-form-wrap { min-height: calc(100dvh - 260px); padding: 20px 14px; }
   .do-auth-page.light .do-auth-form-wrap { min-height: 100dvh; }
   .do-auth-card { padding: 24px 18px; }
+  .do-auth-card > h1 { font-size: 30px; }
+  .do-auth-card > h2 { font-size: 26px; }
+  .do-onboarding-header { min-height: 62px; padding-inline: 16px; }
+  .do-onboarding-content { width: min(100% - 24px, 680px); padding: 30px 0 48px; }
 }
 
 @media (max-width: 430px) {
@@ -1178,6 +1218,8 @@
   .do-camera-controls { display: grid; grid-template-columns: repeat(3, 1fr); }
   .do-camera-controls button { min-width: 0; font-size: 11px; }
   .do-intro h1 { font-size: 27px; }
+  .do-onboarding-content { width: calc(100% - 20px); gap: 18px; padding-top: 22px; }
+  .do-onboarding-header .do-auth-brand small { display: none; }
   .do-public-header .do-auth-brand small { display: none; }
   .do-public-header .do-auth-brand b { font-size: 14px; }
   .do-public-header .do-mark { width: 38px; height: 38px; flex-basis: 38px; }

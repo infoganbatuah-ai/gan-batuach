@@ -3,12 +3,12 @@ import { Bell, CreditCard, KeyRound, LifeBuoy, LockKeyhole, ShieldCheck, UserRou
 import { ObserverQuickAction, ObserverSettingsForm } from "@/components/digital-observer/observer-action-forms";
 import { ObserverAppShell } from "@/components/digital-observer/observer-app-shell";
 import { LogoutButton } from "@/components/logout-button";
-import { requireUser } from "@/lib/auth";
+import { requireDigitalObserverUser } from "@/lib/domain/digital-observer/access";
 import { cleanSyntheticLabel } from "@/lib/domain/display-label";
 import { loadObserverRuntime, observerModeForSite } from "@/lib/domain/digital-observer/runtime";
 
 export default async function DigitalObserverSettingsPage() {
-  const { profile, user } = await requireUser("/digital-observer/login?next=/digital-observer/settings"); const runtime = await loadObserverRuntime(profile.id); const site = runtime.sites[0] ?? null; const mode = observerModeForSite(site); const schedule = site ? runtime.schedules.find((item) => item.observer_site_id === site.id) : null; const channels = site ? runtime.alertSettings.filter((item) => item.observer_site_id === site.id) : [];
+  const { profile, user } = await requireDigitalObserverUser("/digital-observer/login?next=/digital-observer/settings"); const runtime = await loadObserverRuntime(profile.id); const site = runtime.sites[0] ?? null; const mode = observerModeForSite(site); const schedule = site ? runtime.schedules.find((item) => item.observer_site_id === site.id) : null; const channels = site ? runtime.alertSettings.filter((item) => item.observer_site_id === site.id) : [];
   return <ObserverAppShell profile={profile} mode={mode} activeHref="/digital-observer/settings" title="הגדרות ופרופיל" statusLabel="שליטה פרטית"><div className="do-page-stack">
     <section className="do-profile-banner"><span className="do-person-avatar large">{cleanSyntheticLabel(profile.full_name,"מ").slice(0,1)}</span><div><h2>{cleanSyntheticLabel(profile.full_name,"משתמש התצפיתן")}</h2><p>{user.email}</p><span className="do-badge info">{mode === "home" ? "חשבון ביתי" : "חשבון עסקי"}</span></div></section>
     {site ? <ObserverSettingsForm siteId={site.id} schedule={schedule} channels={channels} /> : <div className="do-empty"><ShieldCheck /><strong>יש להקים אתר לפני הגדרת ניטור</strong><Link className="do-button primary" href="/digital-observer/onboarding">הקמת אתר</Link></div>}

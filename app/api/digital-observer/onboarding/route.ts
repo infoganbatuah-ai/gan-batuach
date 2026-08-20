@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
-import { requireUser } from "@/lib/auth";
-import { getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
+import { getObserverSiteAccess, requireDigitalObserverUser } from "@/lib/domain/digital-observer/access";
 import { createClient } from "@/lib/supabase/server";
 
 const siteTypes = ["home", "office", "business", "warehouse", "store", "parking_lot", "custom"] as const;
@@ -20,9 +19,10 @@ const schema = z.object({
 
 export async function POST(request: Request) {
   try {
-    const { profile } = await requireUser();
+    const { profile, observerAccount } = await requireDigitalObserverUser();
     const payload = schema.parse(await request.json());
     const supabase = await createClient();
+    if (!observerAccount) return fail("חשבון התצפיתן טרם הוכן. יש להחיל את מיגרציית ההפרדה ולהתחבר מחדש.", 409);
     const ownerType = payload.site_type === "home" ? "home_owner" : "business_owner";
     const sitePatch = {
       name: payload.name,
@@ -113,7 +113,15 @@ export async function POST(request: Request) {
       updated_at: new Date().toISOString()
     }, { onConflict: "observer_site_id" });
 
-    return ok({ site, next: `/digital-observer/cameras/add?site=${site.id}` }, payload.observer_site_id ? 200 : 201);
+    if (!payload.package_id) return fail("יש לבחור חבילה כדי להתחיל את תקופת הניסיון.", 400);
+    const trialResult = await supabase.rpc("start_digital_observer_trial" as any, {
+      requested_site_id: site.id,
+      requested_package_id: payload.package_id,
+      requested_billing_cycle: "monthly"
+    });
+    if (trialResult.error) return fail("האתר נשמר, אך לא ניתן היה להפעיל את תקופת הניסיון. יש להחיל את מיגרציית התצפיתן האחרונה.", 400);
+
+    return ok({ site, trial: trialResult.data, charged: false, next: `/digital-observer/cameras/add?site=${site.id}` }, payload.observer_site_id ? 200 : 201);
   } catch (error) {
     return handleRouteError(error);
   }

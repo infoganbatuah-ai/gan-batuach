@@ -1,14 +1,13 @@
 import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
-import { requireUser } from "@/lib/auth";
-import { getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
+import { getObserverSiteAccess, requireDigitalObserverUser } from "@/lib/domain/digital-observer/access";
 import { createClient } from "@/lib/supabase/server";
 
 const schema = z.object({ observer_site_id: z.string().uuid(), channel: z.enum(["in_app", "push", "email", "sms", "whatsapp", "voice"]) });
 
 export async function POST(request: Request) {
   try {
-    const { profile } = await requireUser();
+    const { profile } = await requireDigitalObserverUser();
     const payload = schema.parse(await request.json());
     const supabase = await createClient();
     const site = await getObserverSiteAccess(supabase, profile, payload.observer_site_id, { manage: true });

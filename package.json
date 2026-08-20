@@ -21,6 +21,7 @@
     "qa:environment-safety": "node scripts/validate-environment-safety.mjs",
     "qa:manager-parent-live-contract": "node scripts/qa/check-manager-parent-live-contract.mjs",
     "qa:digital-observer-product": "node scripts/qa/check-digital-observer-product.mjs",
+    "qa:delete-digital-observer-test-user": "node scripts/qa/delete-digital-observer-test-user.mjs",
     "demo:reset": "node scripts/seed-demo-full.mjs --reset",
     "compliance:permit-scan": "node scripts/scan-permit-expirations.mjs",
     "privacy:forget-family": "node scripts/right-to-be-forgotten.mjs",

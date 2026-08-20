@@ -1,4 +1,6 @@
-import type { createClient } from "@/lib/supabase/server";
+import { createClient } from "@/lib/supabase/server";
+import { redirect } from "next/navigation";
+import { requireUser } from "@/lib/auth";
 
 type SupabaseClient = Awaited<ReturnType<typeof createClient>>;
 
@@ -44,4 +46,19 @@ export function safeObserverReturnPath(value?: string | null) {
     return "/digital-observer/dashboard";
   }
   return value;
+}
+
+export async function requireDigitalObserverUser(loginPath = "/digital-observer/login") {
+  const session = await requireUser(loginPath);
+  const supabase = await createClient();
+  const [account, ownedSite, membership] = await Promise.all([
+    supabase.from("digital_observer_accounts" as any).select("profile_id,account_type,status,onboarding_step,trial_start,trial_end").eq("profile_id", session.user.id).maybeSingle(),
+    supabase.from("observer_sites" as any).select("id").eq("owner_profile_id", session.user.id).is("garden_id", null).neq("site_type", "kindergarten").limit(1).maybeSingle(),
+    supabase.from("observer_site_memberships" as any).select("observer_site_id").eq("profile_id", session.user.id).eq("active", true).limit(1).maybeSingle()
+  ]);
+  const isObserver = session.user.user_metadata?.product === "digital_observer"
+    || Boolean(account.data || ownedSite.data || membership.data)
+    || session.profile.role === "admin";
+  if (!isObserver) redirect("/digital-observer/login?error=not_observer_account");
+  return { ...session, observerAccount: account.data ?? null };
 }

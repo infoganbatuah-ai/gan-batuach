@@ -1,5 +1,6 @@
 "use server";
 
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { dashboardPathForProfile } from "@/lib/auth";
@@ -25,17 +26,55 @@ export async function signIn(formData: FormData) {
 
   // dashboardPathForProfile needs the identity and active state to resolve
   // parent onboarding and assigned/unassigned inspector routes correctly.
-  let { data: profile } = await supabase.from("profiles").select("id, role, garden_id, active").eq("id", user?.id ?? "").single();
-  if (observerLogin && profile?.role === "parent" && !profile.garden_id) {
-    const claim = await supabase.rpc("claim_digital_observer_profile" as any, { requested_name: null });
-    if (!claim.error && claim.data === true) {
-      const refreshed = await supabase.from("profiles").select("id, role, garden_id, active").eq("id", user?.id ?? "").single();
-      profile = refreshed.data;
+  const { data: profile } = await supabase.from("profiles").select("id, role, garden_id, active").eq("id", user?.id ?? "").single();
+  const cookieStore = await cookies();
+  if (observerLogin && (!user || !profile)) {
+    await supabase.auth.signOut();
+    redirect("/digital-observer/login?error=observer_setup_required");
+  }
+  if (observerLogin && user && profile) {
+    const metadataProduct = String(user.user_metadata?.product ?? "");
+    const [accountResult, ownedSiteResult, membershipResult] = await Promise.all([
+      supabase.from("digital_observer_accounts" as any).select("profile_id,account_type,onboarding_step,status").eq("profile_id", user.id).maybeSingle(),
+      supabase.from("observer_sites" as any).select("id").eq("owner_profile_id", user.id).is("garden_id", null).neq("site_type", "kindergarten").limit(1).maybeSingle(),
+      supabase.from("observer_site_memberships" as any).select("observer_site_id").eq("profile_id", user.id).eq("active", true).limit(1).maybeSingle()
+    ]);
+    const hasObserverIdentity = metadataProduct === "digital_observer" || Boolean(accountResult.data || ownedSiteResult.data || membershipResult.data) || profile.role === "admin";
+    if (!hasObserverIdentity) {
+      await supabase.auth.signOut();
+      redirect("/digital-observer/login?error=not_observer_account");
     }
+
+    if (metadataProduct === "digital_observer" && !accountResult.data) {
+      const account = await supabase.rpc("ensure_digital_observer_account" as any, {
+        requested_name: user.user_metadata?.full_name ?? null,
+        requested_account_type: user.user_metadata?.account_type ?? "home"
+      });
+      if (account.error || account.data !== true) {
+        await supabase.auth.signOut();
+        redirect("/digital-observer/login?error=observer_setup_required");
+      }
+    }
+
+    cookieStore.set("gb_active_product", "digital_observer", {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      path: "/"
+    });
+    const requestedObserverPath = safeObserverReturnPath(requestedNext);
+    const hasSite = Boolean(ownedSiteResult.data || membershipResult.data);
+    const destination = !hasSite && requestedObserverPath === "/digital-observer/dashboard"
+      ? `/digital-observer/onboarding?type=${user.user_metadata?.account_type === "business" ? "business" : "home"}`
+      : requestedObserverPath;
+    redirect(destination);
   }
-  if (observerLogin && profile && ["network_manager", "admin"].includes(String(profile.role))) {
-    redirect(safeObserverReturnPath(requestedNext));
-  }
+  cookieStore.set("gb_active_product", "gan_batuach", {
+    httpOnly: true,
+    sameSite: "lax",
+    secure: process.env.NODE_ENV === "production",
+    path: "/"
+  });
   const role = profile?.role;
   const path = isRole(role) && profile ? await dashboardPathForProfile(profile) : "/dashboard";
   redirect(gardenId ? `${path}?gardenId=${encodeURIComponent(gardenId)}` : path);
