@@ -13,12 +13,24 @@ function emailRedirectTo() {
   return `${appOrigin()}/auth/callback?product=digital_observer&next=${encodeURIComponent("/digital-observer/login?verified=1")}`;
 }
 
-function authEmailErrorCode(error: { code?: string; message?: string } | null) {
+type AuthEmailError = { code?: string; message?: string; status?: number } | null;
+
+function authEmailErrorCode(error: AuthEmailError) {
   const code = String(error?.code ?? "").toLowerCase();
   const message = String(error?.message ?? "").toLowerCase();
   if (code.includes("rate_limit") || message.includes("rate limit")) return "email_rate_limited";
-  if (code.includes("email_address_not_authorized") || message.includes("email address not authorized")) return "email_not_authorized";
+  if (code.includes("email_address_not_authorized") || message.includes("not authorized")) return "email_not_authorized";
+  if (code.includes("invalid_api_key") || message.includes("unregistered api key")) return "supabase_configuration_error";
   return "email_delivery_failed";
+}
+
+function reportAuthEmailFailure(action: "signup" | "resend", error: AuthEmailError) {
+  console.error("Digital Observer authentication email failed", {
+    action,
+    category: authEmailErrorCode(error),
+    code: error?.code ?? "unknown",
+    status: error?.status ?? null
+  });
 }
 
 async function rememberPendingEmail(email: string) {
@@ -54,7 +66,10 @@ export async function registerDigitalObserver(formData: FormData) {
       emailRedirectTo: emailRedirectTo()
     }
   });
-  if (error) redirect(`/digital-observer/register?error=${authEmailErrorCode(error)}`);
+  if (error) {
+    reportAuthEmailFailure("signup", error);
+    redirect(`/digital-observer/register?error=${authEmailErrorCode(error)}`);
+  }
   await rememberPendingEmail(email);
 
   if (data.session && data.user) {
@@ -113,7 +128,10 @@ export async function resendDigitalObserverVerification(formData: FormData) {
     email,
     options: { emailRedirectTo: emailRedirectTo() }
   });
-  if (error) redirect(`/digital-observer/verify?error=${authEmailErrorCode(error)}`);
+  if (error) {
+    reportAuthEmailFailure("resend", error);
+    redirect(`/digital-observer/verify?error=${authEmailErrorCode(error)}`);
+  }
   await rememberPendingEmail(email);
   redirect("/digital-observer/verify?resent=1");
 }

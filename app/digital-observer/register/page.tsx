@@ -7,9 +7,10 @@ type PageProps = { searchParams?: Promise<{ error?: string; type?: string }> };
 
 const registrationErrors: Record<string, string> = {
   invalid: "יש להשלים שם, כתובת דוא״ל וסיסמה בת 8 תווים לפחות.",
-  email_not_authorized: "Supabase חסם את כתובת הנמען. יש לחבר SMTP מותאם או לבדוק עם כתובת של חבר צוות בפרויקט.",
+  email_not_authorized: "שירות המייל המובנה של Supabase אינו מורשה לשלוח לכתובת הזו. יש לחבר SMTP מותאם לפני רישום משתמשים חדשים.",
   email_rate_limited: "הגענו למגבלת שליחת המיילים של Supabase. המתינו לפני ניסיון נוסף או חברו SMTP מותאם.",
-  email_delivery_failed: "Supabase לא הצליח להתחיל את שליחת האימות. יש לבדוק את יומן Auth ואת הגדרת ה-SMTP.",
+  supabase_configuration_error: "מפתח החיבור של Supabase בסביבת האתר אינו תקין. יש לעדכן את משתני הסביבה לפני ניסיון נוסף.",
+  email_delivery_failed: "Supabase קיבל את בקשת הרישום, אך ספק המייל לא הצליח לשלוח את קוד האימות. יש להשלים חיבור SMTP ולנסות שוב.",
   existing_or_unavailable: "לא נוצר אימות חדש. אם הכתובת כבר רשומה, עברו להתחברות; אחרת בדקו את הגדרת הדוא״ל."
 };
 

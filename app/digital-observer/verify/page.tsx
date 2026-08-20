@@ -9,9 +9,10 @@ type PageProps = { searchParams?: Promise<{ error?: string; resent?: string }> }
 const errorMessages: Record<string, string> = {
   missing_email: "לא נמצאה כתובת הדוא״ל של ההרשמה. יש להירשם מחדש.",
   invalid_code: "קוד האימות אינו תקין או שפג תוקפו. בדקו את הקוד או בקשו קוד חדש.",
-  email_not_authorized: "Supabase חסם את כתובת הנמען. יש לחבר SMTP מותאם או לבדוק עם כתובת של חבר צוות בפרויקט.",
+  email_not_authorized: "שירות המייל המובנה של Supabase אינו מורשה לשלוח לכתובת הזו. יש לחבר SMTP מותאם לפני שליחה חוזרת.",
   email_rate_limited: "הגענו למגבלת השליחה. המתינו לפני ניסיון נוסף או חברו SMTP מותאם.",
-  email_delivery_failed: "Supabase לא הצליח להתחיל שליחה חוזרת. יש לבדוק את יומן Auth ואת הגדרת ה-SMTP.",
+  supabase_configuration_error: "מפתח החיבור של Supabase בסביבת האתר אינו תקין. יש לעדכן את משתני הסביבה לפני ניסיון נוסף.",
+  email_delivery_failed: "Supabase קיבל את הבקשה, אך ספק המייל לא הצליח לשלוח את הקוד. יש להשלים חיבור SMTP ולנסות שוב.",
   account_setup_failed: "המייל אומת, אך הכנת חשבון התצפיתן לא הושלמה. נסו להתחבר שוב."
 };
 

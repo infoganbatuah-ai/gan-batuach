@@ -23,11 +23,13 @@ export async function GET() {
   }
 
   try {
-    const response = await fetch(`${supabaseUrl.replace(/\/$/, "")}/rest/v1/`, {
+    // A publishable key can use Auth while the PostgREST schema root requires a
+    // secret key. Probe the same public Auth surface used by login and signup.
+    const response = await fetch(`${supabaseUrl.replace(/\/$/, "")}/auth/v1/settings`, {
       headers: { apikey: publishableKey },
       cache: "no-store"
     });
-    const supabaseOk = response.ok || response.status === 404;
+    const supabaseOk = response.ok;
 
     return NextResponse.json({
       ok: supabaseOk,
