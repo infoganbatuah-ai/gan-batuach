@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { NextResponse } from "next/server";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
 import { createClient } from "@/lib/supabase/server";
@@ -18,13 +19,38 @@ const schema = z.object({
 });
 
 export async function POST(request: Request) {
+  const contentType = request.headers.get("content-type") ?? "";
+  const navigationSubmission = contentType.includes("application/x-www-form-urlencoded") || contentType.includes("multipart/form-data");
+  const navigationFailure = (message: string, type: string = "home") => {
+    const url = new URL("/digital-observer/onboarding", request.url);
+    url.searchParams.set("type", type === "business" ? "business" : "home");
+    url.searchParams.set("error", message);
+    return NextResponse.redirect(url, 303);
+  };
+
   try {
     const session = await getDigitalObserverApiUser();
-    if (!session) return fail("נדרשת התחברות מחדש לתצפיתן הדיגיטלי.", 401);
+    if (!session) {
+      if (navigationSubmission) return NextResponse.redirect(new URL("/digital-observer/login?next=/digital-observer/onboarding", request.url), 303);
+      return fail("נדרשת התחברות מחדש לתצפיתן הדיגיטלי.", 401);
+    }
     const { profile, observerAccount } = session;
-    const payload = schema.parse(await request.json());
+    const rawPayload = navigationSubmission
+      ? await request.formData().then((formData) => ({
+        observer_site_id: String(formData.get("observer_site_id") ?? "") || undefined,
+        name: String(formData.get("name") ?? ""),
+        site_type: String(formData.get("site_type") ?? "home"),
+        address: String(formData.get("address") ?? ""),
+        camera_count: formData.get("camera_count") ?? 1,
+        schedule_mode: String(formData.get("schedule_mode") ?? "event_only"),
+        package_id: String(formData.get("package_id") ?? "") || null,
+        monitoring_targets: formData.getAll("monitoring_targets").map(String)
+      }))
+      : await request.json();
+    const payload = schema.parse(rawPayload);
     const supabase = await createClient();
-    if (!observerAccount) return fail("חשבון התצפיתן טרם הוכן. יש להחיל את מיגרציית ההפרדה ולהתחבר מחדש.", 409);
+    const respondFail = (message: string, status: number) => navigationSubmission ? navigationFailure(message, payload.site_type) : fail(message, status);
+    if (!observerAccount) return respondFail("חשבון התצפיתן טרם הוכן. יש להתחבר מחדש ולנסות שוב.", 409);
     const ownerType = payload.site_type === "home" ? "home_owner" : "business_owner";
     const sitePatch = {
       name: payload.name,
@@ -49,14 +75,14 @@ export async function POST(request: Request) {
     let site: any = null;
     if (payload.observer_site_id) {
       const allowedSite = await getObserverSiteAccess(supabase, profile, payload.observer_site_id, { manage: true });
-      if (!allowedSite) return fail("אין הרשאה לעדכן את האתר הזה.", 403);
+      if (!allowedSite) return respondFail("אין הרשאה לעדכן את האתר הזה.", 403);
       const result = await supabase
         .from("observer_sites" as any)
         .update({ ...sitePatch, updated_at: new Date().toISOString() })
         .eq("id", payload.observer_site_id)
         .select("id,name,site_type,address,monitoring_enabled")
         .single();
-      if (result.error) return fail("לא ניתן לשמור את פרטי האתר כרגע.", 400);
+      if (result.error) return respondFail("לא ניתן לשמור את פרטי האתר כרגע.", 400);
       site = result.data;
     } else {
       const result = await supabase
@@ -64,7 +90,7 @@ export async function POST(request: Request) {
         .insert({ ...sitePatch, owner_profile_id: profile.id, garden_id: null })
         .select("id,name,site_type,address,monitoring_enabled")
         .single();
-      if (result.error || !result.data) return fail("לא ניתן ליצור את האתר. יש לוודא שהמיגרציה החדשה הוחלה.", 400);
+      if (result.error || !result.data) return respondFail("לא ניתן ליצור את האתר כרגע. נסו שוב או פנו לתמיכה.", 400);
       site = result.data;
       await supabase.from("observer_site_memberships" as any).upsert({
         observer_site_id: site.id,
@@ -115,16 +141,22 @@ export async function POST(request: Request) {
       updated_at: new Date().toISOString()
     }, { onConflict: "observer_site_id" });
 
-    if (!payload.package_id) return fail("יש לבחור חבילה כדי להתחיל את תקופת הניסיון.", 400);
+    if (!payload.package_id) return respondFail("יש לבחור חבילה כדי להתחיל את תקופת הניסיון.", 400);
     const trialResult = await supabase.rpc("start_digital_observer_trial" as any, {
       requested_site_id: site.id,
       requested_package_id: payload.package_id,
       requested_billing_cycle: "monthly"
     });
-    if (trialResult.error) return fail("האתר נשמר, אך לא ניתן היה להפעיל את תקופת הניסיון. יש להחיל את מיגרציית התצפיתן האחרונה.", 400);
+    if (trialResult.error) return respondFail("האתר נשמר, אך לא ניתן היה להפעיל את תקופת הניסיון. נסו שוב או פנו לתמיכה.", 400);
 
-    return ok({ site, trial: trialResult.data, charged: false, next: `/digital-observer/cameras/add?site=${site.id}` }, payload.observer_site_id ? 200 : 201);
+    const next = `/digital-observer/cameras/add?site=${site.id}`;
+    if (navigationSubmission) return NextResponse.redirect(new URL(next, request.url), 303);
+    return ok({ site, trial: trialResult.data, charged: false, next }, payload.observer_site_id ? 200 : 201);
   } catch (error) {
+    if (navigationSubmission) {
+      console.error("Digital Observer onboarding form failed", error);
+      return navigationFailure("לא ניתן להשלים את ההקמה. בדקו את הפרטים ונסו שוב.");
+    }
     return handleRouteError(error);
   }
 }
