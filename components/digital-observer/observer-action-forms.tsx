@@ -4,15 +4,17 @@ import { useState, type FormEvent, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { AlertTriangle, Bell, Camera, Check, ChevronLeft, LoaderCircle, Radar, ShieldCheck, Trash2 } from "lucide-react";
 import { digitalObserverConnectorTypes, getDigitalObserverConnector } from "@/lib/domain/digital-observer/connectors";
-import { createClient } from "@/lib/supabase/browser";
 
 type ActionState = { busy: boolean; error: string; message: string };
 
-async function postJson(path: string, body: unknown) {
+async function postJson(path: string, body: unknown, accessToken?: string | null) {
   const response = await fetch(path, {
     method: "POST",
     credentials: "same-origin",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {})
+    },
     body: JSON.stringify(body)
   });
   const payload = await response.json().catch(() => ({}));
@@ -27,7 +29,7 @@ function ResultMessage({ state }: { state: ActionState }) {
   return null;
 }
 
-export function ObserverOnboardingWizard({ packages, defaultType = "home" }: { packages: any[]; defaultType?: "home" | "business" }) {
+export function ObserverOnboardingWizard({ packages, defaultType = "home", accessToken }: { packages: any[]; defaultType?: "home" | "business"; accessToken?: string | null }) {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [state, setState] = useState<ActionState>({ busy: false, error: "", message: "" });
@@ -37,96 +39,14 @@ export function ObserverOnboardingWizard({ packages, defaultType = "home" }: { p
   async function submit() {
     setState({ busy: true, error: "", message: "" });
     try {
-      const supabase = createClient();
-      const { data: userResult, error: userError } = await supabase.auth.getUser();
-      if (userError || !userResult.user) throw new Error("נדרשת התחברות מחדש לתצפיתן הדיגיטלי.");
-      const profileId = userResult.user.id;
-      const { data: observerAccount } = await supabase
-        .from("digital_observer_accounts" as any)
-        .select("profile_id")
-        .eq("profile_id", profileId)
-        .maybeSingle();
-      if (!observerAccount) throw new Error("חשבון התצפיתן טרם הוכן. יש להתחבר מחדש ולנסות שוב.");
-
-      const now = new Date().toISOString();
-      const siteResult = await supabase
-        .from("observer_sites" as any)
-        .insert({
-          name: form.name.trim(),
-          site_type: form.site_type,
-          address: form.address.trim() || null,
-          timezone: "Asia/Jerusalem",
-          active: true,
-          monitoring_enabled: false,
-          camera_limit: form.camera_count,
-          monitoring_hours: { mode: form.schedule_mode },
-          event_retention_days: 2,
-          ai_features: { mode: "readiness", targets: form.monitoring_targets, human_review_required: true },
-          owner_profile_id: profileId,
-          garden_id: null,
-          metadata: {
-            product: "digital_observer",
-            environment_mode: "demo_readiness",
-            live_camera_disabled: true,
-            live_ai_disabled: true,
-            synthetic_data_only: true
-          }
-        })
-        .select("id")
-        .single();
-      const createdSite = siteResult.data as { id?: string } | null;
-      if (siteResult.error || !createdSite?.id) throw new Error("לא ניתן ליצור את האתר כרגע. נסו שוב או פנו לתמיכה.");
-      const siteId = createdSite.id;
-
-      const membershipResult = await supabase.from("observer_site_memberships" as any).upsert({
-        observer_site_id: siteId,
-        profile_id: profileId,
-        member_role: "owner",
-        active: true,
-        accepted_at: now,
-        metadata: { source: "digital_observer_self_service" }
-      }, { onConflict: "observer_site_id,profile_id" });
-      if (membershipResult.error) throw new Error("האתר נוצר, אך לא ניתן היה להשלים את הרשאת הבעלים.");
-
-      const draftResult = await supabase
-        .from("observer_site_onboarding_drafts" as any)
-        .insert({
-          profile_id: profileId,
-          status: "activated",
-          site_name: form.name.trim(),
-          site_type: form.site_type,
-          owner_type: form.site_type === "home" ? "home_owner" : "business_owner",
-          address: form.address.trim() || null,
-          timezone: "Asia/Jerusalem",
-          monitoring_schedule: { mode: form.schedule_mode },
-          camera_count_estimate: form.camera_count,
-          desired_package_id: form.package_id,
-          activated_observer_site_id: siteId,
-          submitted_at: now,
-          metadata: { monitoring_targets: form.monitoring_targets, safe_readiness_only: true },
-          updated_at: now
-        });
-      if (draftResult.error) throw new Error("האתר נוצר, אך סיכום ההקמה לא נשמר.");
-
-      const scheduleResult = await supabase.from("observer_monitoring_schedules" as any).upsert({
-        observer_site_id: siteId,
-        schedule_mode: form.schedule_mode,
-        timezone: "Asia/Jerusalem",
-        status: "draft",
-        schedule: { mode: form.schedule_mode, readiness_only: true },
-        updated_at: now
-      }, { onConflict: "observer_site_id" });
-      if (scheduleResult.error) throw new Error("האתר נוצר, אך לוח הניטור לא נשמר.");
-
-      const trialResult = await supabase.rpc("start_digital_observer_trial" as any, {
-        requested_site_id: siteId,
-        requested_package_id: form.package_id,
-        requested_billing_cycle: "monthly"
-      });
-      if (trialResult.error) throw new Error("האתר נשמר, אך לא ניתן היה להפעיל את תקופת הניסיון.");
-
+      if (!accessToken) throw new Error("נדרשת התחברות מחדש לתצפיתן הדיגיטלי.");
+      const data = await postJson(
+        "/api/digital-observer/onboarding",
+        { ...form, package_id: form.package_id || null },
+        accessToken
+      );
       setState({ busy: false, error: "", message: "האתר הוקם ותקופת ניסיון של 14 יום נפתחה ללא חיוב." });
-      router.push(`/digital-observer/cameras/add?site=${siteId}`);
+      router.push(data.next);
       router.refresh();
     } catch (error) {
       setState({ busy: false, error: error instanceof Error ? error.message : "לא ניתן להשלים את ההקמה", message: "" });
