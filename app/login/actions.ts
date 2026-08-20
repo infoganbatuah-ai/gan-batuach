@@ -25,6 +25,21 @@ export async function signIn(formData: FormData) {
     data: { user }
   } = await supabase.auth.getUser();
 
+  if (observerLogin && !user) {
+    await supabase.auth.signOut();
+    redirect("/digital-observer/login?error=observer_setup_required");
+  }
+  if (observerLogin && user) {
+    const preparedAccount = await supabase.rpc("ensure_digital_observer_account" as any, {
+      requested_name: user.user_metadata?.full_name ?? null,
+      requested_account_type: user.user_metadata?.account_type ?? requestedObserverAccountType
+    });
+    if (preparedAccount.error || preparedAccount.data !== true) {
+      await supabase.auth.signOut();
+      redirect("/digital-observer/login?error=observer_setup_required");
+    }
+  }
+
   // dashboardPathForProfile needs the identity and active state to resolve
   // parent onboarding and assigned/unassigned inspector routes correctly.
   const { data: profile } = await supabase.from("profiles").select("id, role, garden_id, active").eq("id", user?.id ?? "").single();

@@ -18,11 +18,19 @@ export async function GET(request: NextRequest) {
   const { data, error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type: typeValue });
   if (error || !data.user) return observerFailure(request);
 
-  const isObserver = product === "digital_observer" || data.user.user_metadata?.product === "digital_observer";
+  const pendingEmail = request.cookies.get("do_pending_email")?.value?.trim().toLowerCase();
+  const pendingName = request.cookies.get("do_pending_name")?.value ?? null;
+  const pendingAccountTypeValue = request.cookies.get("do_pending_account_type")?.value;
+  const pendingAccountType = pendingAccountTypeValue === "business" || pendingAccountTypeValue === "home"
+    ? pendingAccountTypeValue
+    : null;
+  const isObserver = product === "digital_observer"
+    || data.user.user_metadata?.product === "digital_observer"
+    || (Boolean(pendingEmail) && pendingEmail === data.user.email?.toLowerCase());
   if (isObserver) {
     const account = await supabase.rpc("ensure_digital_observer_account" as any, {
-      requested_name: data.user.user_metadata?.full_name ?? null,
-      requested_account_type: data.user.user_metadata?.account_type ?? "home"
+      requested_name: pendingName ?? data.user.user_metadata?.full_name ?? null,
+      requested_account_type: pendingAccountType ?? data.user.user_metadata?.account_type ?? "home"
     });
     if (account.error || account.data !== true) {
       console.error("Digital Observer account preparation failed after email-link verification", {
@@ -34,6 +42,8 @@ export async function GET(request: NextRequest) {
     await supabase.auth.signOut();
     const response = NextResponse.redirect(new URL("/digital-observer/login?verified=1", request.url));
     response.cookies.delete("do_pending_email");
+    response.cookies.delete("do_pending_name");
+    response.cookies.delete("do_pending_account_type");
     return response;
   }
 
