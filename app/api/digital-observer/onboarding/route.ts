@@ -2,7 +2,6 @@ import { z } from "zod";
 import { NextResponse } from "next/server";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
-import { createClient } from "@/lib/supabase/server";
 
 const siteTypes = ["home", "office", "business", "warehouse", "store", "parking_lot", "custom"] as const;
 const scheduleModes = ["24_7", "night_only", "business_hours", "custom_schedule", "event_only"] as const;
@@ -29,12 +28,12 @@ export async function POST(request: Request) {
   };
 
   try {
-    const session = await getDigitalObserverApiUser();
+    const session = await getDigitalObserverApiUser(request);
     if (!session) {
       if (navigationSubmission) return NextResponse.redirect(new URL("/digital-observer/login?next=/digital-observer/onboarding", request.url), 303);
       return fail("נדרשת התחברות מחדש לתצפיתן הדיגיטלי.", 401);
     }
-    const { profile, observerAccount } = session;
+    const { profile, observerAccount, supabase } = session;
     const rawPayload = navigationSubmission
       ? await request.formData().then((formData) => ({
         observer_site_id: String(formData.get("observer_site_id") ?? "") || undefined,
@@ -48,7 +47,6 @@ export async function POST(request: Request) {
       }))
       : await request.json();
     const payload = schema.parse(rawPayload);
-    const supabase = await createClient();
     const respondFail = (message: string, status: number) => navigationSubmission ? navigationFailure(message, payload.site_type) : fail(message, status);
     if (!observerAccount) return respondFail("חשבון התצפיתן טרם הוכן. יש להתחבר מחדש ולנסות שוב.", 409);
     const ownerType = payload.site_type === "home" ? "home_owner" : "business_owner";
@@ -110,6 +108,7 @@ export async function POST(request: Request) {
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
+    const existingDraft = draftResult.data as { id?: string } | null;
     const draftPatch = {
       profile_id: profile.id,
       status: "activated",
@@ -126,8 +125,8 @@ export async function POST(request: Request) {
       metadata: { monitoring_targets: payload.monitoring_targets, safe_readiness_only: true },
       updated_at: new Date().toISOString()
     };
-    if (draftResult.data?.id) {
-      await supabase.from("observer_site_onboarding_drafts" as any).update(draftPatch).eq("id", draftResult.data.id);
+    if (existingDraft?.id) {
+      await supabase.from("observer_site_onboarding_drafts" as any).update(draftPatch).eq("id", existingDraft.id);
     } else {
       await supabase.from("observer_site_onboarding_drafts" as any).insert(draftPatch);
     }

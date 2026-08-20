@@ -8,7 +8,7 @@ type PageProps = { searchParams?: Promise<{ type?: string; error?: string }> };
 
 export default async function DigitalObserverOnboardingPage({ searchParams }: PageProps) {
   const params = await searchParams;
-  const { profile } = await requireDigitalObserverUser("/digital-observer/login?next=/digital-observer/onboarding");
+  const { profile, accessToken } = await requireDigitalObserverUser("/digital-observer/login?next=/digital-observer/onboarding");
   const runtime = await loadObserverRuntime(profile.id);
   const defaultType: ObserverMode = params?.type === "business" ? "business" : "home";
   return (
@@ -20,7 +20,7 @@ export default async function DigitalObserverOnboardingPage({ searchParams }: Pa
       <div className="do-onboarding-content">
         <header className="do-intro"><span className="do-badge info">4 שלבים פשוטים</span><h1>הגדרת {defaultType === "home" ? "הבית" : "העסק"} שלך</h1><p>מגדירים את המקום, המצלמות, מטרות הניטור והחבילה. זהו חשבון תצפיתן עצמאי שאינו מחובר למסלול גננת או לגן בטוח.</p></header>
         {params?.error ? <div className="do-notice bad" role="alert"><span>{params.error}</span></div> : null}
-        <ObserverOnboardingWizard packages={runtime.packages} defaultType={defaultType} />
+        <ObserverOnboardingWizard packages={runtime.packages} defaultType={defaultType} accessToken={accessToken} />
       </div>
     </main>
   );
