@@ -85,7 +85,15 @@ export function observerStatusLabel(value?: unknown) {
     night_only: "לילה",
     business_hours: "שעות פעילות",
     custom_schedule: "לוח מותאם",
-    "24_7": "24/7"
+    "24_7": "24/7",
+    collecting_baseline: "אוסף שגרה",
+    baseline_ready: "קו בסיס מוכן",
+    not_started: "טרם התחיל",
+    paused: "מושהה",
+    new: "חדש",
+    learning: "בתהליך למידה",
+    calibrated: "מכויל",
+    mature: "בשל"
   };
   return labels[String(value ?? "")] ?? String(value ?? "לא הוגדר");
 }
@@ -152,8 +160,8 @@ export function formatObserverDate(value?: string | null, options: Intl.DateTime
 export async function loadObserverRuntime(profileId: string) {
   const supabase = await createClient();
   const [owned, memberships, packages] = await Promise.all([
-    safeList<ObserverRow>("owned sites", () => supabase.from("observer_sites" as any).select("id,name,site_type,address,timezone,active,monitoring_enabled,camera_limit,monitoring_hours,event_retention_days,observer_subscription_status,owner_profile_id,metadata,created_at").eq("owner_profile_id", profileId).neq("site_type", "kindergarten").order("created_at", { ascending: false })),
-    safeList<ObserverRow>("site memberships", () => supabase.from("observer_site_memberships" as any).select("observer_site_id,member_role,observer_sites(id,name,site_type,address,timezone,active,monitoring_enabled,camera_limit,monitoring_hours,event_retention_days,observer_subscription_status,owner_profile_id,metadata,created_at)").eq("profile_id", profileId).eq("active", true)),
+    safeList<ObserverRow>("owned sites", () => supabase.from("observer_sites" as any).select("id,name,site_type,address,city,street,building_number,apartment_number,floor_kind,floor_number,postal_code,country_code,formatted_address,address_provider,address_place_id,latitude,longitude,address_verification_status,address_verified_at,business_handles_children,vision_privacy_mode,observer_runtime_status,learning_started_at,learning_target_days,timezone,active,monitoring_enabled,camera_limit,monitoring_hours,event_retention_days,observer_subscription_status,owner_profile_id,metadata,created_at").eq("owner_profile_id", profileId).neq("site_type", "kindergarten").order("created_at", { ascending: false })),
+    safeList<ObserverRow>("site memberships", () => supabase.from("observer_site_memberships" as any).select("observer_site_id,member_role,observer_sites(id,name,site_type,address,city,street,building_number,apartment_number,floor_kind,floor_number,postal_code,country_code,formatted_address,address_provider,address_place_id,latitude,longitude,address_verification_status,address_verified_at,business_handles_children,vision_privacy_mode,observer_runtime_status,learning_started_at,learning_target_days,timezone,active,monitoring_enabled,camera_limit,monitoring_hours,event_retention_days,observer_subscription_status,owner_profile_id,metadata,created_at)").eq("profile_id", profileId).eq("active", true)),
     safeList<ObserverRow>("packages", () => supabase.from("observer_monitoring_packages" as any).select("id,name,package_key,package_type,camera_limit,site_limit,user_limit,monitoring_mode,event_retention_days,recording_retention_hours,live_view_enabled,alert_channels,multi_user_access,advanced_analytics,human_review_required,sms_quota,voice_call_quota,support_tier,add_ons,trial_days,monthly_price,annual_price,annual_discount_percent,currency,active,sort_order").eq("active", true).order("sort_order"))
   ]);
 
@@ -165,21 +173,26 @@ export async function loadObserverRuntime(profileId: string) {
   const siteIds = sites.map((site) => site.id);
   const empty = { data: [], available: true } as SafeResult<ObserverRow>;
 
-  const [cameraSources, legacyCameras, signals, subscriptions, schedules, watchRequests, knownPeople, clips, deliveries, alertSettings, invoices] = siteIds.length
+  const [cameraSources, legacyCameras, signals, subscriptions, schedules, watchRequests, knownPeople, clips, deliveries, alertSettings, invoices, learningProfiles, baselines, feedback, recipients, deviceSlots] = siteIds.length
     ? await Promise.all([
         safeList<ObserverRow>("camera sources", () => supabase.from("digital_observer_camera_sources" as any).select("id,observer_site_id,camera_stream_id,display_name,location_label,connector_type,connector_provider,source_mode,status,health_status,stream_protocol,gateway_provider,preview_scene,capabilities,monitoring_targets,last_health_check_at,last_seen_at,last_error_code,last_error_message,metadata,created_at").in("observer_site_id", siteIds).order("created_at")),
         safeList<ObserverRow>("legacy camera readiness", () => supabase.from("camera_streams" as any).select("id,observer_site_id,name,area,status,health_status,stream_status,gateway_registration_status,digital_observer_pilot_mode,ai_enabled,last_health_check_at,last_seen").in("observer_site_id", siteIds).order("created_at")),
         safeList<ObserverRow>("signals", () => supabase.from("observer_intelligence_signals" as any).select("id,observer_site_id,camera_id,signal_type,source_type,severity,confidence,review_status,recommended_action,risk_score,human_review_required,parent_visible,metadata,created_at,reviewed_at,resolved_at").in("observer_site_id", siteIds).order("created_at", { ascending: false }).limit(200)),
         safeList<ObserverRow>("subscriptions", () => supabase.from("observer_site_subscriptions" as any).select("id,observer_site_id,package_id,status,subscription_status,entitlement_status,trial_start,trial_end,renewal_date,billing_cycle,monthly_price,annual_price,payment_provider,purchase_channel,billing_separation_key,grace_period_ends_at,pending_package_id,pending_change_effective_at").in("observer_site_id", siteIds)),
         safeList<ObserverRow>("monitoring schedules", () => supabase.from("observer_monitoring_schedules" as any).select("id,observer_site_id,schedule_mode,timezone,active_days,active_hours,status").in("observer_site_id", siteIds)),
-        safeList<ObserverRow>("watch requests", () => supabase.from("observer_watch_requests" as any).select("id,observer_site_id,camera_id,title,description,watch_type,priority,schedule,notification_channels,active,requires_human_review,created_at").in("observer_site_id", siteIds).order("created_at", { ascending: false })),
+        safeList<ObserverRow>("watch requests", () => supabase.from("observer_watch_requests" as any).select("id,observer_site_id,camera_id,camera_source_id,title,description,watch_type,priority,schedule,notification_channels,active,requires_human_review,metadata,created_at").in("observer_site_id", siteIds).order("created_at", { ascending: false })),
         safeList<ObserverRow>("known people", () => supabase.from("digital_observer_known_people" as any).select("id,observer_site_id,display_name,relationship_label,consent_status,recognition_status,camera_scope,notify_on_detection,confidence_threshold,last_confirmed_at,metadata,created_at").in("observer_site_id", siteIds).order("created_at")),
         safeList<ObserverRow>("event clips", () => supabase.from("digital_observer_event_clips" as any).select("id,observer_site_id,camera_source_id,signal_id,title,clip_status,captured_at,duration_seconds,retention_hours,delete_after,downloadable,metadata,created_at").in("observer_site_id", siteIds).order("created_at", { ascending: false })),
         safeList<ObserverRow>("notification deliveries", () => supabase.from("digital_observer_notification_deliveries" as any).select("id,observer_site_id,signal_id,channel,severity,provider_mode,delivery_status,attempt_count,sent_at,acknowledged_at,failure_reason,created_at").in("observer_site_id", siteIds).order("created_at", { ascending: false }).limit(100)),
         safeList<ObserverRow>("alert settings", () => supabase.from("observer_alert_channel_settings" as any).select("id,observer_site_id,member_profile_id,recipient_name,channel,severity_levels,enabled,package_allowed,provider_mode").in("observer_site_id", siteIds)),
-        safeList<ObserverRow>("invoices", () => supabase.from("observer_invoices" as any).select("id,observer_site_id,invoice_number,amount,currency,billing_cycle,status,pdf_ready,invoice_provider,issued_at,due_at,paid_at").in("observer_site_id", siteIds).order("created_at", { ascending: false }))
+        safeList<ObserverRow>("invoices", () => supabase.from("observer_invoices" as any).select("id,observer_site_id,invoice_number,amount,currency,billing_cycle,status,pdf_ready,invoice_provider,issued_at,due_at,paid_at").in("observer_site_id", siteIds).order("created_at", { ascending: false })),
+        safeList<ObserverRow>("learning profiles", () => supabase.from("observer_site_learning_profiles" as any).select("observer_site_id,learning_status,learning_maturity,baseline_version,confidence_level,anomaly_readiness_score,routine_confidence,confidence_trends,metadata,created_at,updated_at").in("observer_site_id", siteIds)),
+        safeList<ObserverRow>("behavior baselines", () => supabase.from("site_behavior_baselines" as any).select("id,observer_site_id,baseline_type,baseline_value,confidence_level,learning_maturity,anomaly_readiness_score,source_summary,metadata,last_calibrated_at,updated_at").in("observer_site_id", siteIds)),
+        safeList<ObserverRow>("learning feedback", () => supabase.from("learning_feedback_signals" as any).select("id,observer_site_id,camera_id,source_type,source_id,event_type,review_outcome,confidence_delta,confidence_after,maturity_after,anomaly_readiness_after,metadata,created_at").in("observer_site_id", siteIds).order("created_at", { ascending: false }).limit(100)),
+        safeList<ObserverRow>("authorized recipients", () => supabase.from("digital_observer_authorized_recipients" as any).select("id,observer_site_id,recipient_profile_id,display_name,relationship_label,channels,destination_hint,receives_critical_alerts,active,metadata,created_at").in("observer_site_id", siteIds).order("created_at")),
+        safeList<ObserverRow>("device slots", () => supabase.from("digital_observer_device_slots" as any).select("id,observer_site_id,profile_id,device_label,platform,active,last_seen_at,metadata,created_at").in("observer_site_id", siteIds).order("last_seen_at", { ascending: false }))
       ])
-    : [empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty];
+    : [empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty];
 
   const normalizedCameras: ObserverRow[] = cameraSources.data.length
     ? cameraSources.data
@@ -205,7 +218,13 @@ export async function loadObserverRuntime(profileId: string) {
     deliveries: deliveries.data,
     alertSettings: alertSettings.data,
     invoices: invoices.data,
+    learningProfiles: learningProfiles.data,
+    baselines: baselines.data,
+    feedback: feedback.data,
+    recipients: recipients.data,
+    deviceSlots: deviceSlots.data,
     dataAvailable: owned.available && memberships.available,
-    runtimeMigrationApplied: cameraSources.available && knownPeople.available && clips.available
+    runtimeMigrationApplied: cameraSources.available && knownPeople.available && clips.available,
+    locationLearningMigrationApplied: learningProfiles.available && baselines.available && recipients.available && deviceSlots.available
   };
 }

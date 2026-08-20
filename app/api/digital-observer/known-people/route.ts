@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
-import { createClient } from "@/lib/supabase/server";
 
 const createSchema = z.object({
   action: z.literal("create"),
@@ -16,15 +15,18 @@ const schema = z.discriminatedUnion("action", [createSchema, deleteSchema]);
 
 export async function POST(request: Request) {
   try {
-    const session = await getDigitalObserverApiUser();
+    const session = await getDigitalObserverApiUser(request);
     if (!session) return fail("נדרשת התחברות מחדש לתצפיתן הדיגיטלי.", 401);
-    const { profile } = session;
+    const { profile, supabase: sessionSupabase } = session;
+    const supabase = sessionSupabase as any;
     const payload = schema.parse(await request.json());
-    const supabase = await createClient();
 
     if (payload.action === "create") {
       const site = await getObserverSiteAccess(supabase, profile, payload.observer_site_id, { manage: true });
       if (!site) return fail("אין הרשאה להוסיף אדם לאתר.", 403);
+      if ((site as any).vision_privacy_mode === "skeleton_only" || (site as any).business_handles_children) {
+        return fail("זיהוי פנים חסום באתר המטפל בילדים. באתר זה נעשה שימוש בניתוח שלד ותנועה בלבד.", 403);
+      }
       const { data, error } = await supabase.from("digital_observer_known_people" as any).insert({
         observer_site_id: payload.observer_site_id,
         display_name: payload.display_name,

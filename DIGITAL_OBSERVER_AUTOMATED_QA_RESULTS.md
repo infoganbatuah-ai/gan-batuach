@@ -1,6 +1,6 @@
 # DIGITAL OBSERVER AUTOMATED QA RESULTS
 
-Date: 2026-08-20T22:00:17.982Z
+Date: 2026-08-20T23:43:13.345Z
 Environment: synthetic demo
 Passwords or tokens printed: no
 Service role used in browser/client QA: no
@@ -9,24 +9,24 @@ Service role used in browser/client QA: no
 |---|---|---|
 | Home user login | PASS | Normal Supabase auth session created |
 | Home user standalone identity | PASS | Digital Observer membership exists independently from the Gan Batuach role |
-| Home user product metadata | FAIL | Legacy test user is missing product=digital_observer metadata |
+| Home user product metadata | PASS | Auth metadata identifies the standalone product |
 | Business user login | PASS | Normal Supabase auth session created |
 | Business user standalone identity | PASS | Digital Observer membership exists independently from the Gan Batuach role |
-| Business user product metadata | FAIL | Legacy test user is missing product=digital_observer metadata |
+| Business user product metadata | PASS | Auth metadata identifies the standalone product |
 | Home user synthetic site | PASS | home site visible through user-scoped query |
 | Business user synthetic site | PASS | business site visible through user-scoped query |
-| Home user camera source binding | FAIL | No synthetic camera source is linked to this site |
-| Home user event binding | FAIL | No synthetic AI event is linked to this site |
-| Home user billing readiness | FAIL | No trial or subscription row is linked to this site |
-| Home user known people privacy | FAIL | No synthetic known-person readiness row is linked to this site |
-| Home user event clip retention | FAIL | No synthetic event clip is linked to this site |
-| Home user notification isolation | FAIL | No synthetic notification delivery is linked to this site |
-| Business user camera source binding | FAIL | No synthetic camera source is linked to this site |
-| Business user event binding | FAIL | No synthetic AI event is linked to this site |
-| Business user billing readiness | FAIL | No trial or subscription row is linked to this site |
-| Business user known people privacy | FAIL | No synthetic known-person readiness row is linked to this site |
-| Business user event clip retention | FAIL | No synthetic event clip is linked to this site |
-| Business user notification isolation | FAIL | No synthetic notification delivery is linked to this site |
+| Home user camera source binding | PASS | User can read only safe camera source columns |
+| Home user event binding | PASS | Synthetic AI events are data-bound |
+| Home user billing readiness | PASS | Subscription exists without live billing provider |
+| Home user known people privacy | PASS | Synthetic known people are visible without biometric fields |
+| Home user event clip retention | PASS | Readiness clips are capped at 48 hours and have no download claim |
+| Home user notification isolation | PASS | Only scoped mock notification delivery is visible |
+| Business user camera source binding | PASS | User can read only safe camera source columns |
+| Business user event binding | PASS | Synthetic AI events are data-bound |
+| Business user billing readiness | PASS | Subscription exists without live billing provider |
+| Business user known people privacy | PASS | Synthetic known people are visible without biometric fields |
+| Business user event clip retention | PASS | Readiness clips are capped at 48 hours and have no download claim |
+| Business user notification isolation | PASS | Only scoped mock notification delivery is visible |
 | Home user cannot read foreign site | PASS | RLS returned no foreign site rows |
 | Home user cannot read foreign cameras | PASS | RLS returned no foreign camera rows |
 | Home user cannot read foreign events | PASS | RLS returned no foreign event rows |
@@ -43,7 +43,7 @@ Service role used in browser/client QA: no
 | No package activates live providers | PASS | Package provider modes remain mock/sandbox/readiness |
 | Commercial package matrix is complete | PASS | Home, business and multi-site package rows are present |
 
-Final result: FAIL
-Passed: 21/35
+Final result: PASS
+Passed: 35/35
 
 > This runtime QA uses normal Supabase authentication and RLS. It does not validate a real camera gateway, AI provider, billing provider or production notification provider.
