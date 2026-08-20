@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { LockKeyhole, ShieldCheck } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 import { ObserverMark } from "@/components/digital-observer/observer-app-shell";
+import { ObserverLoginForm } from "@/components/digital-observer/observer-login-form";
 
 type PageProps = { searchParams?: Promise<{ error?: string; registered?: string; verified?: string; next?: string; type?: string }> };
 
@@ -23,28 +24,13 @@ export default async function DigitalObserverLoginPage({ searchParams }: PagePro
         <ul><li>פרטי מצלמה נשארים בצד השרת</li><li>אין חיוב או שליחה חיצונית בסביבת הדמו</li><li>כל אתר מופרד בהרשאות</li></ul>
       </section>
       <section className="do-auth-form-wrap">
-        <form action="/api/digital-observer/auth/login" method="post" className="do-auth-card">
-          <ObserverMark compact />
-          <h2>ברוכים הבאים</h2>
-          <p>היכנסו לחשבון התצפיתן הדיגיטלי שלכם</p>
-          {params?.registered === "check_email" ? (
-            <div className="do-notice good">
-              <ShieldCheck />
-              <span>ההרשמה נקלטה. יש לאשר את כתובת הדוא״ל ואז להתחבר.</span>
-            </div>
-          ) : null}
-          {params?.verified === "1" ? <div className="do-notice good" role="status"><ShieldCheck /><span>כתובת המייל אומתה בהצלחה. אפשר להתחבר ולהמשיך את הקמת התצפיתן.</span></div> : null}
-          {params?.error ? <div className="do-notice bad" role="alert"><LockKeyhole /><span>{loginErrors[params.error] ?? "לא הצלחנו להתחבר. בדקו את הפרטים ונסו שוב."}</span></div> : null}
-          <input type="hidden" name="auth_source" value="observer" />
-          <input type="hidden" name="next" value={params?.next ?? "/digital-observer/dashboard"} />
-          <label className="do-field"><span>דוא״ל</span><input name="email" type="email" autoComplete="email" required /></label>
-          <label className="do-field"><span>סיסמה</span><input name="password" type="password" autoComplete="current-password" required /></label>
-          <label className="do-field"><span>סוג חשבון התצפיתן</span><select name="observer_account_type" defaultValue={initialType}><option value="home">ביתי</option><option value="business">עסקי</option></select><small>אם זה חשבון קיים של גן בטוח, תיווצר עבורו סביבת תצפיתן נפרדת בלי לשנות את התפקיד הקיים.</small></label>
-          <button className="do-button primary full" type="submit">התחברות</button>
-          <Link className="do-button secondary full" href="/digital-observer/verify">אימות קוד או שליחה חוזרת</Link>
-          <p className="do-auth-switch">אין לכם חשבון? <Link href="/digital-observer/register">יצירת חשבון</Link></p>
-          <Link className="do-link" href="/digital-observer">חזרה לאתר התצפיתן</Link>
-        </form>
+        <ObserverLoginForm
+          initialType={initialType}
+          nextPath={params?.next ?? "/digital-observer/dashboard"}
+          registered={params?.registered === "check_email"}
+          verified={params?.verified === "1"}
+          initialError={params?.error ? loginErrors[params.error] ?? "לא הצלחנו להתחבר. בדקו את הפרטים ונסו שוב." : undefined}
+        />
       </section>
     </main>
   );
