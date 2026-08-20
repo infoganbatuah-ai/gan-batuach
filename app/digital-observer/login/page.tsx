@@ -7,7 +7,7 @@ type PageProps = { searchParams?: Promise<{ error?: string; registered?: string;
 
 const loginErrors: Record<string, string> = {
   not_observer_account: "החשבון הזה אינו רשום למוצר התצפיתן הדיגיטלי.",
-  observer_setup_required: "אימות המייל הצליח, אך יש להחיל את מיגרציית חשבון התצפיתן לפני ההתחברות.",
+  observer_setup_required: "אימות המייל הצליח, אך הכנת חשבון התצפיתן טרם הושלמה. נסו להתחבר שוב; אם התקלה חוזרת, פנו לתמיכה.",
   confirmation_failed: "אימות המייל נכשל או שפג תוקף הקישור. בקשו קוד חדש."
 };
 

@@ -25,8 +25,11 @@ export async function GET(request: NextRequest) {
       requested_account_type: data.user.user_metadata?.account_type ?? "home"
     });
     if (account.error || account.data !== true) {
-      await supabase.auth.signOut();
-      return NextResponse.redirect(new URL("/digital-observer/verify?error=account_setup_failed", request.url));
+      console.error("Digital Observer account preparation failed after email-link verification", {
+        code: account.error?.code ?? "unknown",
+        message: account.error?.message ?? "No database error returned",
+        returnedTrue: account.data === true
+      });
     }
     await supabase.auth.signOut();
     const response = NextResponse.redirect(new URL("/digital-observer/login?verified=1", request.url));
