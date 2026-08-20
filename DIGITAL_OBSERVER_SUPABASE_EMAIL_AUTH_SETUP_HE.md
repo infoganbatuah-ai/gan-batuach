@@ -1,0 +1,60 @@
+# הגדרת אימות מייל לתצפיתן הדיגיטלי
+
+הקוד במערכת תומך כעת בשתי דרכי אימות של Supabase: קוד חד-פעמי שמוזן במסך האימות, וקישור אימות שמגיע ישירות לנתיב שרת מאובטח.
+
+## 1. כתובות Supabase
+
+ב-Supabase Dashboard פתחו **Authentication -> URL Configuration** והגדירו:
+
+- Site URL: `https://gan-batuach.vercel.app`
+- Redirect URL: `https://gan-batuach.vercel.app/auth/confirm`
+- Redirect URL: `https://gan-batuach.vercel.app/auth/callback`
+- לפיתוח מקומי בלבד: `http://localhost:3000/auth/confirm`
+- לפיתוח מקומי בלבד: `http://localhost:3000/auth/callback`
+
+## 2. תבנית Confirm signup
+
+פתחו **Authentication -> Email Templates -> Confirm signup**. התבנית צריכה להציג גם קוד וגם קישור:
+
+```html
+<h2>אימות חשבון</h2>
+<p>קוד האימות שלך:</p>
+<p style="font-size:28px;font-weight:700;letter-spacing:6px">{{ .Token }}</p>
+<p>אפשר גם לאמת בלחיצה:</p>
+<p><a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=email">אימות החשבון</a></p>
+```
+
+תבנית `Confirm signup` משותפת כרגע לשני המוצרים, ולכן הכותרת נשארת כללית. נתיב האימות מזהה את המוצר מתוך החשבון שאומת: חשבון תצפיתן חוזר להתחברות של התצפיתן, וחשבון גן בטוח אינו נשלח אליו. יש להשבית link tracking אצל ספק המייל כדי שספק חיצוני לא ישכתב את קישור האימות.
+
+## 3. ספק מייל
+
+הדרך הפשוטה היא Resend:
+
+1. צרו חשבון Resend והוסיפו דומיין שבבעלותכם.
+2. הוסיפו ב-DNS את הרשומות ש-Resend מציג והמתינו לאימות הדומיין.
+3. ב-Resend פתחו Integrations, בחרו Supabase וחברו את הפרויקט `gan-batuah`.
+4. ב-Supabase ודאו תחת Authentication -> Email/SMTP שהספק הפעיל הוא Resend ושהשולח משתמש בדומיין המאומת.
+5. תחת Authentication -> Rate Limits הגדירו מכסה מתאימה לפיילוט מצומצם.
+
+אין להכניס API key למסמך, לקוד או למשתנה שמתחיל ב-`NEXT_PUBLIC_`.
+
+## 4. בדיקת קבלה
+
+1. מחקו רק את משתמש הבדיקה המדויק שבו רוצים להשתמש מחדש.
+2. פתחו `/digital-observer/register` בחלון פרטי.
+3. הרשמו עם כתובת בדיקה חדשה.
+4. ודאו שמגיע מייל ושמופיע בו קוד בן 6-8 ספרות וקישור.
+5. הזינו את הקוד ב-`/digital-observer/verify`.
+6. ודאו שהמערכת עוברת ל-`/digital-observer/login?verified=1`.
+7. התחברו ובדקו שהיעד הוא `/digital-observer/onboarding`, ולא מסלול גננת.
+8. בחרו בית/עסק וחבילה. המערכת יוצרת ניסיון של 14 יום ללא חיוב אמיתי עד חיבור ספק תשלום.
+
+## 5. מחיקת משתמש בדיקה קיים
+
+יש למחוק ב-Supabase רק לפי כתובת מייל מדויקת: **Authentication -> Users -> חיפוש המייל -> Delete user**. מחיקת Auth user מוחקת גם את פרופיל הבדיקה והנתונים המקושרים בהתאם ליחסי המחיקה במסד. לפני מחיקה יש לוודא שאין זה משתמש אמיתי או משתמש של גן בטוח.
+
+קיים גם כלי מקומי שמסרב לפעול ב-production ומוחק רק חשבון שמזוהה כתצפיתן. הוא דורש כתובת מדויקת ואישור מפורש; אין להריץ אותו על כתובת שלא נבדקה ידנית.
+
+לפני בדיקת הרישום יש להחיל ב-Supabase SQL Editor את המיגרציה:
+
+`supabase/migrations/20260820020000_digital_observer_auth_trial_separation.sql`

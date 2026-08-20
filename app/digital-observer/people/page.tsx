@@ -1,11 +1,11 @@
 import { Bell, Fingerprint, ShieldCheck, UserRoundCheck, UsersRound } from "lucide-react";
 import { ObserverDeletePersonButton, ObserverKnownPersonForm } from "@/components/digital-observer/observer-action-forms";
 import { ObserverAppShell } from "@/components/digital-observer/observer-app-shell";
-import { requireUser } from "@/lib/auth";
+import { requireDigitalObserverUser } from "@/lib/domain/digital-observer/access";
 import { loadObserverRuntime, observerModeForSite, observerStatusLabel } from "@/lib/domain/digital-observer/runtime";
 
 export default async function DigitalObserverPeoplePage() {
-  const { profile } = await requireUser("/digital-observer/login?next=/digital-observer/people"); const runtime = await loadObserverRuntime(profile.id); const site = runtime.sites[0] ?? null; const mode = observerModeForSite(site); const people = site ? runtime.knownPeople.filter((item) => item.observer_site_id === site.id) : [];
+  const { profile } = await requireDigitalObserverUser("/digital-observer/login?next=/digital-observer/people"); const runtime = await loadObserverRuntime(profile.id); const site = runtime.sites[0] ?? null; const mode = observerModeForSite(site); const people = site ? runtime.knownPeople.filter((item) => item.observer_site_id === site.id) : [];
   return <ObserverAppShell profile={profile} mode={mode} activeHref="/digital-observer/people" title={mode === "home" ? "אנשים מוכרים" : "צוות והרשאות"} statusLabel="הסכמה מפורשת"><div className="do-page-stack">
     <div className="do-notice warn"><Fingerprint /><span>זיהוי פנים אינו מופעל בסתר. כל אדם דורש הסכמה, תמונה פרטית והפעלה נפרדת. כרגע הרשומות נשמרות במצב מוכנות בלבד.</span></div>
     {site ? <section className="do-grid cols-2"><ObserverKnownPersonForm siteId={site.id} /><article className="do-panel"><div className="do-section-head"><div><h2>אנשים באתר</h2><p>סטטוס הרשאה וזיהוי לכל אדם.</p></div><span className="do-badge info">{people.length}</span></div>{people.length ? <div className="do-people-grid">{people.map((person) => <article className="do-person" key={person.id}><span className="do-person-avatar">{String(person.display_name).slice(0,1)}</span><strong>{person.display_name}</strong><small>{person.relationship_label || "ללא תיאור"}</small><span className="do-badge info">הסכמה: {observerStatusLabel(person.consent_status)}</span><span className="do-badge warn">זיהוי: {observerStatusLabel(person.recognition_status)}</span><ObserverDeletePersonButton id={person.id} /></article>)}</div> : <div className="do-empty"><UsersRound /><strong>עדיין לא הוגדרו אנשים</strong><span>אפשר לשמור רשומת מוכנות בלי תמונה ובלי להפעיל זיהוי.</span></div>}</article></section> : <div className="do-empty"><ShieldCheck /><strong>תחילה יש להקים אתר</strong></div>}

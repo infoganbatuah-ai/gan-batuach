@@ -3,7 +3,7 @@ import { AlertTriangle, Bell, CheckCircle2, Clock3, Radar, ShieldAlert, ShieldCh
 import { ObserverQuickAction } from "@/components/digital-observer/observer-action-forms";
 import { ObserverAppShell } from "@/components/digital-observer/observer-app-shell";
 import { ObserverCameraMedia } from "@/components/digital-observer/observer-camera-media";
-import { requireUser } from "@/lib/auth";
+import { requireDigitalObserverUser } from "@/lib/domain/digital-observer/access";
 import { formatObserverDate, loadObserverRuntime, observerEventLabel, observerModeForSite, observerStatusLabel } from "@/lib/domain/digital-observer/runtime";
 
 type PageProps = { searchParams?: Promise<{ event?: string; site?: string; severity?: string }> };
@@ -11,7 +11,7 @@ const severityClass = (value?: string) => ["critical", "urgent", "high"].include
 
 export default async function DigitalObserverAlertsPage({ searchParams }: PageProps) {
   const params = await searchParams;
-  const { profile } = await requireUser("/digital-observer/login?next=/digital-observer/alerts");
+  const { profile } = await requireDigitalObserverUser("/digital-observer/login?next=/digital-observer/alerts");
   const runtime = await loadObserverRuntime(profile.id);
   const site = runtime.sites.find((item) => item.id === params?.site) ?? runtime.sites[0] ?? null;
   const mode = observerModeForSite(site);

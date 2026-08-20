@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { Bell, Camera, Clock3, MapPin, Plus, Radar, Settings2, ShieldCheck } from "lucide-react";
 import { ObserverAppShell } from "@/components/digital-observer/observer-app-shell";
 import { ObserverCameraMedia } from "@/components/digital-observer/observer-camera-media";
-import { requireUser } from "@/lib/auth";
+import { requireDigitalObserverUser } from "@/lib/domain/digital-observer/access";
 import { cleanSyntheticLabel } from "@/lib/domain/display-label";
 import {
   formatObserverDate,
@@ -24,7 +24,7 @@ function sceneFor(index: number, mode: "home" | "business") {
 
 export default async function DigitalObserverSitePage({ params }: PageProps) {
   const { id } = await params;
-  const { profile } = await requireUser("/digital-observer/login?next=/digital-observer/sites");
+  const { profile } = await requireDigitalObserverUser("/digital-observer/login?next=/digital-observer/sites");
   const runtime = await loadObserverRuntime(profile.id);
   const site = runtime.sites.find((item) => item.id === id);
   if (!site) notFound();

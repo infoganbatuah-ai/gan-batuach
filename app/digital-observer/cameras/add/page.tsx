@@ -1,13 +1,13 @@
 import { ObserverCameraWizard } from "@/components/digital-observer/observer-action-forms";
 import { ObserverAppShell } from "@/components/digital-observer/observer-app-shell";
-import { requireUser } from "@/lib/auth";
+import { requireDigitalObserverUser } from "@/lib/domain/digital-observer/access";
 import { loadObserverRuntime, observerModeForSite } from "@/lib/domain/digital-observer/runtime";
 
 type PageProps = { searchParams?: Promise<{ site?: string }> };
 
 export default async function DigitalObserverAddCameraPage({ searchParams }: PageProps) {
   const params = await searchParams;
-  const { profile } = await requireUser("/digital-observer/login?next=/digital-observer/cameras/add");
+  const { profile } = await requireDigitalObserverUser("/digital-observer/login?next=/digital-observer/cameras/add");
   const runtime = await loadObserverRuntime(profile.id);
   const selected = runtime.sites.find((site) => site.id === params?.site) ?? runtime.sites[0];
   const mode = observerModeForSite(selected);

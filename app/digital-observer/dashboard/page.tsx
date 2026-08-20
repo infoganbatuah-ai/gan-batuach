@@ -14,14 +14,15 @@ import {
 } from "lucide-react";
 import { ObserverAppShell } from "@/components/digital-observer/observer-app-shell";
 import { ObserverCameraMedia } from "@/components/digital-observer/observer-camera-media";
-import { requireUser } from "@/lib/auth";
+import { requireDigitalObserverUser } from "@/lib/domain/digital-observer/access";
 import { cleanSyntheticLabel } from "@/lib/domain/display-label";
 import {
   formatObserverDate,
   loadObserverRuntime,
   observerEventLabel,
   observerModeForSite,
-  observerStatusLabel
+  observerStatusLabel,
+  resolveObserverEntitlement
 } from "@/lib/domain/digital-observer/runtime";
 
 type PageProps = { searchParams?: Promise<{ site?: string }> };
@@ -42,7 +43,7 @@ function badgeTone(status?: string | null) {
 
 export default async function DigitalObserverDashboardPage({ searchParams }: PageProps) {
   const params = await searchParams;
-  const { profile } = await requireUser("/digital-observer/login?next=/digital-observer/dashboard");
+  const { profile } = await requireDigitalObserverUser("/digital-observer/login?next=/digital-observer/dashboard");
   const runtime = await loadObserverRuntime(profile.id);
   const selectedSite = runtime.sites.find((site) => site.id === params?.site) ?? runtime.sites[0] ?? null;
   const mode = observerModeForSite(selectedSite);
@@ -51,6 +52,7 @@ export default async function DigitalObserverDashboardPage({ searchParams }: Pag
   const openSignals = siteSignals.filter((signal) => ["needs_review", "reviewing", "escalated"].includes(String(signal.review_status)));
   const activeCameras = siteCameras.filter((camera) => ["connected", "healthy", "online", "active"].includes(String(camera.status ?? camera.health_status))).length;
   const currentSubscription = selectedSite ? runtime.subscriptions.find((item) => item.observer_site_id === selectedSite.id) : null;
+  const entitlement = resolveObserverEntitlement(currentSubscription);
   const currentPackage = runtime.packages.find((item) => item.id === currentSubscription?.package_id);
   const firstName = cleanSyntheticLabel(profile.full_name, mode === "home" ? "הבית שלך" : "העסק שלך").split(" ")[0];
   const isSynthetic = Boolean(selectedSite?.metadata?.qa_demo || selectedSite?.metadata?.is_demo || (profile as any).is_demo);
@@ -69,6 +71,20 @@ export default async function DigitalObserverDashboardPage({ searchParams }: Pag
           <div className="do-notice warn" role="status">
             <AlertTriangle />
             <div><strong>שכבת המוצר החדשה מוכנה בקוד וממתינה למיגרציה</strong><small>אין ערכי מצלמה חלופיים או סטטוס חי מזויף. לאחר החלת המיגרציה, מקורות המצלמה, הקלטות ואנשים מוכרים ייקשרו ישירות לאתר.</small></div>
+          </div>
+        ) : null}
+
+        {selectedSite && entitlement.status === "trial" ? (
+          <div className="do-notice info" role="status">
+            <ShieldCheck />
+            <div><strong>תקופת הניסיון פעילה עד {formatObserverDate(entitlement.trialEndsAt, { hour: undefined, minute: undefined })}</strong><small>אפשר להגדיר ולבדוק חיבור מצלמות. ניטור חי, AI והתראות חיצוניות יופעלו רק לאחר מנוי פעיל וחיבור ספקים מאושרים.</small></div>
+          </div>
+        ) : null}
+
+        {selectedSite && entitlement.status === "suspended" ? (
+          <div className="do-notice warn" role="status">
+            <AlertTriangle />
+            <div><strong>תקופת הניסיון הסתיימה והשירות מושהה</strong><small>בדיקת חיבור המצלמות והגדרות המוכנות נשארות זמינות. צפייה חיה, ניטור AI והתראות חיצוניות אינם פעילים עד הסדרת מנוי.</small></div>
           </div>
         ) : null}
 

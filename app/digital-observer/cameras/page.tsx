@@ -3,7 +3,7 @@ import { Camera, CameraOff, CircleDot, LockKeyhole, Plus, ServerCog, ShieldCheck
 import { ObserverQuickAction } from "@/components/digital-observer/observer-action-forms";
 import { ObserverAppShell } from "@/components/digital-observer/observer-app-shell";
 import { ObserverCameraMedia } from "@/components/digital-observer/observer-camera-media";
-import { requireUser } from "@/lib/auth";
+import { requireDigitalObserverUser } from "@/lib/domain/digital-observer/access";
 import { formatObserverDate, loadObserverRuntime, observerModeForSite, observerStatusLabel } from "@/lib/domain/digital-observer/runtime";
 
 type PageProps = { searchParams?: Promise<{ camera?: string; site?: string }> };
@@ -15,7 +15,7 @@ function sceneFor(index: number, mode: "home" | "business") {
 
 export default async function DigitalObserverCamerasPage({ searchParams }: PageProps) {
   const params = await searchParams;
-  const { profile } = await requireUser("/digital-observer/login?next=/digital-observer/cameras");
+  const { profile } = await requireDigitalObserverUser("/digital-observer/login?next=/digital-observer/cameras");
   const runtime = await loadObserverRuntime(profile.id);
   const site = runtime.sites.find((item) => item.id === params?.site) ?? runtime.sites[0] ?? null;
   const mode = observerModeForSite(site);
