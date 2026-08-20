@@ -1,0 +1,3 @@
+{
+  "/api/video-stream-sessions/route": "app/api/video-stream-sessions/route.js"
+}

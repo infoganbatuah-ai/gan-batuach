@@ -1,0 +1,218 @@
+/* [project]/app/styles/ux-ui-rescue.css [app-client] (css) */
+:root {
+  --ux-rescue-safe-bottom: env(safe-area-inset-bottom, 0px);
+  --ux-rescue-bottom-nav: 96px;
+  --ux-rescue-touch: 44px;
+  --ux-rescue-panel-radius: 18px;
+}
+
+*, :before, :after {
+  box-sizing: border-box;
+}
+
+html, body {
+  min-width: 0;
+  overflow-x: clip;
+}
+
+body {
+  background: var(--gb-page, #f3f7ff);
+}
+
+:where(main, section, article, aside, header, nav, form, div) {
+  min-width: 0;
+}
+
+:where(a, button, input, select, textarea, summary, [role="button"]) {
+  touch-action: manipulation;
+}
+
+:where(a, button, .button, .gb-primary-button, .gb-action-card, .premium-action-card, .app-quick-action, .parent-action-tile, .inspector-action-button) {
+  min-height: var(--ux-rescue-touch);
+}
+
+:where(button, .button, .gb-primary-button, .gb-action-card, .premium-action-card, .app-quick-action, .parent-outline-button, .inspector-action-button, .quick-action) {
+  white-space: normal;
+  text-align: center;
+  justify-content: center;
+  align-items: center;
+  line-height: 1.25;
+  overflow: visible;
+}
+
+:where(button, .button, .gb-primary-button, .parent-outline-button, .inspector-action-button, .quick-action):disabled, :where([aria-disabled="true"], .is-disabled, .disabled, .gb-upload-box.disabled, .gb-payment-method-card.disabled) {
+  cursor: not-allowed;
+  filter: saturate(.82);
+  opacity: .68;
+}
+
+:where(button, .button, .gb-primary-button, .parent-outline-button, .inspector-action-button, .quick-action):disabled {
+  box-shadow: none;
+}
+
+:where(.gb-premium-card, .gb-action-card, .premium-action-card, .app-status-card, .app-quick-action, .parent-metric-card, .parent-action-tile, .staff-info-pill, .staff-shift-card-ref, .inspector-section-card, .inspector-hero-card, .card, .dashboard-section, .action-panel) {
+  overflow: visible;
+}
+
+:where(.procedure-card, .gb-list-row-card, .parent-list-row, .staff-message-row, .staff-task-row, .mini-row) {
+  min-width: 0;
+  overflow: visible;
+}
+
+:where(.procedure-meta, .profile-actions, .parent-child-badges, .staff-shift-buttons, .inspector-hero-actions, .app-home-actions, .premium-hero-actions, .gb-list-actions) {
+  flex-wrap: wrap;
+  gap: 8px;
+  min-width: 0;
+  display: flex;
+}
+
+:where(.procedure-meta > *, .profile-actions > *, .parent-child-badges > *, .staff-shift-buttons > *, .inspector-hero-actions > *, .app-home-actions > *, .premium-hero-actions > *, .gb-list-actions > *) {
+  max-width: 100%;
+}
+
+:where(.dashboard-layout.app-home-layout) {
+  background: var(--gb-page-gradient, #f3f7ff);
+  min-height: 100dvh;
+  display: block;
+}
+
+:where(.dashboard-layout.app-home-layout .dashboard-main) {
+  width: 100%;
+  min-height: 100dvh;
+  padding: 0;
+}
+
+:where(.dashboard-layout.app-home-layout .app-dashboard-stage) {
+  width: 100%;
+  max-width: 100%;
+  padding: 0;
+  overflow: visible;
+}
+
+:where(.dashboard-layout.app-home-layout .native-app-stage) {
+  padding-bottom: 0 !important;
+}
+
+:where(.parent-app-frame, .staff-app-frame, .inspector-app-shell, .admin-app-shell, .ganenet-reference-phone, .digital-observer-app) {
+  width: 100%;
+  max-width: 100%;
+  min-height: 100dvh;
+}
+
+:where(.parent-app-main, .staff-app-main, .inspector-app-page, .admin-app-page, .ganenet-reference-phone, .app-home-shell, .digital-observer-dashboard-app) {
+  max-width: 100%;
+  overflow-x: clip;
+}
+
+:where(.parent-app-main, .staff-app-main) {
+  padding-bottom: calc(var(--ux-rescue-bottom-nav) + var(--ux-rescue-safe-bottom) + 24px);
+}
+
+:where(.parent-bottom-nav, .ganenet-bottom-nav, .staff-bottom-nav-ref, .inspector-bottom-nav, .admin-bottom-nav, .gb-bottom-nav) {
+  max-width: min(520px, 100vw - 20px);
+}
+
+:where(.gb-empty-state, .parent-empty-state, .premium-empty-state, .empty-state) {
+  border-radius: var(--ux-rescue-panel-radius);
+  background: #ffffffdb;
+  border: 1px solid #123b8f24;
+}
+
+:where(.gb-empty-state, .parent-empty-state, .premium-empty-state, .empty-state) :where(strong, b, h2, h3) {
+  color: var(--gb-ink, #071f5c);
+}
+
+:where(.gb-reference-register-line a, .gb-reference-login-options a, .app-auth-footer a, .register-helper-row a) {
+  align-items: center;
+  min-height: 36px;
+  padding-inline: 6px;
+  display: inline-flex;
+}
+
+:where(.readiness-state, .pilot-readiness-banner, .ux-reality-banner) {
+  border-radius: var(--ux-rescue-panel-radius);
+  color: #6b4a10;
+  background: #fff8e7;
+  border: 1px solid #9a661238;
+  padding: 14px 16px;
+}
+
+@media (min-width: 980px) {
+  :where(.dashboard-layout.app-home-layout .dashboard-main) {
+    margin: 0 auto;
+  }
+
+  :where(.parent-app-frame, .staff-app-frame, .ganenet-reference-phone) {
+    margin-inline: auto;
+  }
+
+  :where(.parent-app-frame, .staff-app-frame) {
+    max-width: 1180px;
+  }
+
+  :where(.ganenet-reference-phone) {
+    max-width: 1240px;
+  }
+
+  :where(.parent-bottom-nav, .ganenet-bottom-nav, .staff-bottom-nav-ref) {
+    display: none !important;
+  }
+
+  :where(.parent-app-main, .staff-app-main) {
+    padding-bottom: clamp(24px, 3vw, 44px);
+  }
+}
+
+@media (max-width: 979px) {
+  :where(.dashboard-layout.app-home-layout .dashboard-main) {
+    padding-bottom: 0;
+  }
+
+  :where(.gb-app-shell-sidebar, .sidebar) {
+    display: none !important;
+  }
+}
+
+@media (max-width: 760px) {
+  :where(.parent-app-topbar, .staff-gb-header, .inspector-app-header, .admin-app-header, .role-app-header, .app-home-hero, .premium-dashboard-hero) {
+    gap: 12px;
+  }
+
+  :where(.parent-metrics-grid, .parent-action-grid, .parent-two-columns, .staff-dashboard-columns-ref, .staff-action-grid-ref, .staff-metric-grid-ref, .inspector-metric-grid, .inspector-actions-grid, .admin-kpi-grid, .app-home-grid, .dashboard-panels, .grid.cols-2, .grid.cols-3, .grid.cols-4), :where(.procedure-card, .gb-list-row-card, .parent-child-card, .staff-shift-card-ref, .inspector-hero-card, .app-home-hero) {
+    grid-template-columns: minmax(0, 1fr) !important;
+  }
+
+  :where(.procedure-meta, .gb-list-status, .gb-list-actions) {
+    justify-content: flex-start;
+  }
+
+  :where(.parent-app-frame, .staff-app-frame, .inspector-app-shell, .admin-app-shell, .ganenet-reference-phone) {
+    border-radius: 0;
+  }
+
+  :where(.parent-app-main, .staff-app-main, .inspector-app-page, .admin-app-page, .gb-responsive-page) {
+    padding-inline: clamp(14px, 4vw, 18px);
+  }
+
+  :where(.gb-auth-screen, .gb-reference-login, .app-auth-page) {
+    padding-bottom: calc(var(--ux-rescue-bottom-nav) + var(--ux-rescue-safe-bottom) + 18px);
+  }
+
+  :where(.modal, .dialog, .drawer, .sheet, [role="dialog"], .policy-modal) {
+    width: min(100%, 100vw - 20px);
+    max-height: calc(100dvh - 20px - var(--ux-rescue-safe-bottom));
+    overflow: auto;
+  }
+}
+
+@media (max-width: 430px) {
+  :where(.button, .gb-primary-button, .parent-outline-button, .inspector-action-button, .quick-action) {
+    width: 100%;
+  }
+
+  :where(.parent-child-badges > *, .staff-shift-buttons > *, .inspector-hero-actions > *, .profile-actions > *) {
+    flex: 100%;
+  }
+}
+
+/*# sourceMappingURL=app_styles_ux-ui-rescue_css_0w3-wzy._.single.css.map*/

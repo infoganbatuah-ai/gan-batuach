@@ -1,0 +1,12 @@
+var R=require("../../../../chunks/[turbopack]_runtime.js")("server/app/api/video-gateway/onvif-discovery/route.js")
+R.c("server/chunks/_0t-.sc9._.js")
+R.c("server/chunks/node_modules_zod_v4_classic_errors_0gyvpql.js")
+R.c("server/chunks/node_modules_next_11synfn._.js")
+R.c("server/chunks/[root-of-the-server]__0.9qy~a._.js")
+R.c("server/chunks/_0fwqa_u._.js")
+R.c("server/chunks/node_modules_zod_v4_classic_external_131y~ke.js")
+R.c("server/chunks/node_modules_0oyba0e._.js")
+R.c("server/chunks/[root-of-the-server]__0t95ft_._.js")
+R.c("server/chunks/0zjb_server_app_api_video-gateway_onvif-discovery_route_actions_08n7~0g.js")
+R.m(833376)
+module.exports=R.m(833376).exports

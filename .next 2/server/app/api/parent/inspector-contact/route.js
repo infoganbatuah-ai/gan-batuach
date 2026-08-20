@@ -1,0 +1,11 @@
+var R=require("../../../../chunks/[turbopack]_runtime.js")("server/app/api/parent/inspector-contact/route.js")
+R.c("server/chunks/[root-of-the-server]__0qqs19v._.js")
+R.c("server/chunks/node_modules_next_11synfn._.js")
+R.c("server/chunks/_0t-.sc9._.js")
+R.c("server/chunks/node_modules_0oyba0e._.js")
+R.c("server/chunks/[root-of-the-server]__0t95ft_._.js")
+R.c("server/chunks/_0fwqa_u._.js")
+R.c("server/chunks/node_modules_zod_v4_classic_errors_0gyvpql.js")
+R.c("server/chunks/_next-internal_server_app_api_parent_inspector-contact_route_actions_09xew8a.js")
+R.m(884851)
+module.exports=R.m(884851).exports

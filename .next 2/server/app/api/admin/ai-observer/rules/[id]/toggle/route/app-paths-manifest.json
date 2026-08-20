@@ -1,0 +1,3 @@
+{
+  "/api/admin/ai-observer/rules/[id]/toggle/route": "app/api/admin/ai-observer/rules/[id]/toggle/route.js"
+}

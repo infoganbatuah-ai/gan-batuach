@@ -1,0 +1,3 @@
+{
+  "/api/camera-streams/[id]/view-logs/route": "app/api/camera-streams/[id]/view-logs/route.js"
+}

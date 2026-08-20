@@ -1,0 +1,15 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/ai-observer/layout,_N_T_/ai-observer/page,_N_T_/ai-observer"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/ai-observer/__PAGE__",
+    "/ai-observer",
+    "/_index",
+    "/_head"
+  ]
+}

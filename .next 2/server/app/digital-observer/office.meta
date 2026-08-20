@@ -1,0 +1,16 @@
+{
+  "headers": {
+    "x-nextjs-stale-time": "300",
+    "x-nextjs-prerender": "1",
+    "x-next-cache-tags": "_N_T_/layout,_N_T_/digital-observer/layout,_N_T_/digital-observer/[useCase]/layout,_N_T_/digital-observer/[useCase]/page,_N_T_/digital-observer/office"
+  },
+  "segmentPaths": [
+    "/_tree",
+    "/_full",
+    "/digital-observer/$d$useCase/__PAGE__",
+    "/digital-observer/$d$useCase",
+    "/digital-observer",
+    "/_index",
+    "/_head"
+  ]
+}

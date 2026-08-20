@@ -1,0 +1,3 @@
+:root{--role-shell-max-width:1180px;--role-shell-page-padding:clamp(16px, 2.6vw, 28px);--role-shell-bottom-nav-height:92px;--role-shell-safe-bottom:max(10px, env(safe-area-inset-bottom));--role-shell-header-gap:clamp(14px, 2vw, 22px);--role-shell-content-gap:clamp(16px, 2.1vw, 24px)}
+.public-surface{background:var(--surface,#fff)}
+.auth-surface{background:var(--gb-page-gradient,#f3f7ff)}

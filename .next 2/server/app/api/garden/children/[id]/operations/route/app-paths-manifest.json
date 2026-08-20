@@ -1,0 +1,3 @@
+{
+  "/api/garden/children/[id]/operations/route": "app/api/garden/children/[id]/operations/route.js"
+}

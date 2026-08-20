@@ -1,0 +1,3 @@
+module.exports=[753507,a=>{"use strict";a.s(["default",0,function({children:a}){return a},"metadata",0,{title:{absolute:"תצפיתן דיגיטלי"},description:"מערכת עצמאית לניטור מצלמות, אירועים, התראות וכללי בקרה לבית ולעסק.",applicationName:"תצפיתן דיגיטלי",manifest:"/digital-observer/manifest.webmanifest",openGraph:{type:"website",locale:"he_IL",siteName:"תצפיתן דיגיטלי",title:"תצפיתן דיגיטלי",description:"חברו מצלמות, הגדירו למה לשים לב וקבלו אירועים שימושיים לבדיקה."}},"viewport",0,{themeColor:"#061d3a",viewportFit:"cover",width:"device-width",initialScale:1,maximumScale:1}])},5985,a=>{a.n(a.i(753507))}];
+
+//# sourceMappingURL=app_digital-observer_layout_tsx_07hrfxl._.js.map

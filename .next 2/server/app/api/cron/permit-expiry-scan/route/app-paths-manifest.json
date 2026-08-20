@@ -1,0 +1,3 @@
+{
+  "/api/cron/permit-expiry-scan/route": "app/api/cron/permit-expiry-scan/route.js"
+}

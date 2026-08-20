@@ -1,0 +1,41 @@
+{
+  "node": {
+    "40568d78397e5b582c0319eae18999a4b5b1952f8d": {
+      "workers": {
+        "app/dashboard/admin/privacy-rights/page": {
+          "moduleId": 929937,
+          "async": false,
+          "exportedName": "$$RSC_SERVER_ACTION_2",
+          "filename": "app/dashboard/admin/privacy-rights/page.tsx"
+        }
+      },
+      "exportedName": "$$RSC_SERVER_ACTION_2",
+      "filename": "app/dashboard/admin/privacy-rights/page.tsx"
+    },
+    "4082169ef8891162646e9a5459ee21866b09fa84fe": {
+      "workers": {
+        "app/dashboard/admin/privacy-rights/page": {
+          "moduleId": 929937,
+          "async": false,
+          "exportedName": "$$RSC_SERVER_ACTION_0",
+          "filename": "app/dashboard/admin/privacy-rights/page.tsx"
+        }
+      },
+      "exportedName": "$$RSC_SERVER_ACTION_0",
+      "filename": "app/dashboard/admin/privacy-rights/page.tsx"
+    },
+    "40d68f5f86c1f55a2a5440cef88af0d9fc916a6589": {
+      "workers": {
+        "app/dashboard/admin/privacy-rights/page": {
+          "moduleId": 929937,
+          "async": false,
+          "exportedName": "$$RSC_SERVER_ACTION_1",
+          "filename": "app/dashboard/admin/privacy-rights/page.tsx"
+        }
+      },
+      "exportedName": "$$RSC_SERVER_ACTION_1",
+      "filename": "app/dashboard/admin/privacy-rights/page.tsx"
+    }
+  },
+  "edge": {}
+}

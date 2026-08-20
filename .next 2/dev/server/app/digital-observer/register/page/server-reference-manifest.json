@@ -1,0 +1,41 @@
+{
+  "node": {
+    "4037496a8cdc161175737f48b767c59d0fe9397757": {
+      "workers": {
+        "app/digital-observer/register/page": {
+          "moduleId": "[project]/.next-internal/server/app/digital-observer/register/page/actions.js { ACTIONS_MODULE0 => \"[project]/app/digital-observer/auth-actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "registerDigitalObserver",
+          "filename": "app/digital-observer/auth-actions.ts"
+        }
+      },
+      "exportedName": "registerDigitalObserver",
+      "filename": "app/digital-observer/auth-actions.ts"
+    },
+    "4038c865f57b7a9c9803ad5b508f6b769d6100a415": {
+      "workers": {
+        "app/digital-observer/register/page": {
+          "moduleId": "[project]/.next-internal/server/app/digital-observer/register/page/actions.js { ACTIONS_MODULE0 => \"[project]/app/digital-observer/auth-actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "resendDigitalObserverVerification",
+          "filename": "app/digital-observer/auth-actions.ts"
+        }
+      },
+      "exportedName": "resendDigitalObserverVerification",
+      "filename": "app/digital-observer/auth-actions.ts"
+    },
+    "40706d44cf515c89e8f20ad6abe5f859182fb74aed": {
+      "workers": {
+        "app/digital-observer/register/page": {
+          "moduleId": "[project]/.next-internal/server/app/digital-observer/register/page/actions.js { ACTIONS_MODULE0 => \"[project]/app/digital-observer/auth-actions.ts [app-rsc] (ecmascript)\" } [app-rsc] (server actions loader, ecmascript)",
+          "async": false,
+          "exportedName": "verifyDigitalObserverEmailCode",
+          "filename": "app/digital-observer/auth-actions.ts"
+        }
+      },
+      "exportedName": "verifyDigitalObserverEmailCode",
+      "filename": "app/digital-observer/auth-actions.ts"
+    }
+  },
+  "edge": {}
+}

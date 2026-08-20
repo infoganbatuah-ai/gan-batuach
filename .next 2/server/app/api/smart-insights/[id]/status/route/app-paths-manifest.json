@@ -1,0 +1,3 @@
+{
+  "/api/smart-insights/[id]/status/route": "app/api/smart-insights/[id]/status/route.js"
+}

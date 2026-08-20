@@ -1,0 +1,17 @@
+{
+  "node": {
+    "40cde3b263ae4607e2d42fa1477f9f8fe00a35085c": {
+      "workers": {
+        "app/dashboard/privacy/page": {
+          "moduleId": 167043,
+          "async": false,
+          "exportedName": "$$RSC_SERVER_ACTION_0",
+          "filename": "app/dashboard/privacy/page.tsx"
+        }
+      },
+      "exportedName": "$$RSC_SERVER_ACTION_0",
+      "filename": "app/dashboard/privacy/page.tsx"
+    }
+  },
+  "edge": {}
+}

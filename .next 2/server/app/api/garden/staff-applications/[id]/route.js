@@ -1,0 +1,12 @@
+var R=require("../../../../../chunks/[turbopack]_runtime.js")("server/app/api/garden/staff-applications/[id]/route.js")
+R.c("server/chunks/[root-of-the-server]__0q508dy._.js")
+R.c("server/chunks/_0t-.sc9._.js")
+R.c("server/chunks/node_modules_zod_v4_classic_errors_0gyvpql.js")
+R.c("server/chunks/node_modules_next_11synfn._.js")
+R.c("server/chunks/node_modules_zod_v4_classic_external_131y~ke.js")
+R.c("server/chunks/[root-of-the-server]__0p3fo6l._.js")
+R.c("server/chunks/node_modules_0oyba0e._.js")
+R.c("server/chunks/_0fwqa_u._.js")
+R.c("server/chunks/0zjb_server_app_api_garden_staff-applications_[id]_route_actions_077vwil.js")
+R.m(549794)
+module.exports=R.m(549794).exports

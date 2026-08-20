@@ -1,0 +1,13 @@
+var R=require("../../../chunks/[turbopack]_runtime.js")("server/app/api/observer-learning-advanced/route.js")
+R.c("server/chunks/[root-of-the-server]__00n6eit._.js")
+R.c("server/chunks/_0t-.sc9._.js")
+R.c("server/chunks/node_modules_zod_v4_classic_errors_0gyvpql.js")
+R.c("server/chunks/node_modules_next_dist_esm_build_templates_app-route_04xv9sg.js")
+R.c("server/chunks/node_modules_zod_v4_classic_external_131y~ke.js")
+R.c("server/chunks/[root-of-the-server]__0p3fo6l._.js")
+R.c("server/chunks/_0fwqa_u._.js")
+R.c("server/chunks/node_modules_0oyba0e._.js")
+R.c("server/chunks/node_modules_next_11synfn._.js")
+R.c("server/chunks/_next-internal_server_app_api_observer-learning-advanced_route_actions_11bj._7.js")
+R.m(818906)
+module.exports=R.m(818906).exports

@@ -1,0 +1,3 @@
+{
+  "/api/cron/monthly-inspections/route": "app/api/cron/monthly-inspections/route.js"
+}

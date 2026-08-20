@@ -1,0 +1,4 @@
+:HL["/_next/static/chunks/0~rddj0z98-xy.css","style"]
+:HL["/_next/static/chunks/166rs0moupgqx.css","style"]
+:HL["/_next/static/chunks/04h~es_~2hp7r.css","style"]
+0:{"tree":{"name":"","param":null,"prefetchHints":20,"slots":{"children":{"name":"digital-observer","param":null,"prefetchHints":0,"slots":{"children":{"name":"useCase","param":{"type":"d","key":"home","siblings":null},"prefetchHints":0,"slots":{"children":{"name":"__PAGE__","param":null,"prefetchHints":0,"slots":null}}}}}}},"staleTime":300,"buildId":"OH9raO9xgfdMeGZewNZAC"}

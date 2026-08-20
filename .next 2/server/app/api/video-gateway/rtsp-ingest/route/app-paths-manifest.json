@@ -1,0 +1,3 @@
+{
+  "/api/video-gateway/rtsp-ingest/route": "app/api/video-gateway/rtsp-ingest/route.js"
+}

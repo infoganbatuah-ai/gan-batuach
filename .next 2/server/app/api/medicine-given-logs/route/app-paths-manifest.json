@@ -1,0 +1,3 @@
+{
+  "/api/medicine-given-logs/route": "app/api/medicine-given-logs/route.js"
+}

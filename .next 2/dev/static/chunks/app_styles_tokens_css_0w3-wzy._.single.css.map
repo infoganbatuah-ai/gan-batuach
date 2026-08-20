@@ -1,0 +1,6 @@
+{
+  "version": 3,
+  "sources": [],
+  "sections": [
+    {"offset": {"line": 1, "column": 0}, "map": {"version":3,"sources":["turbopack:///[project]/app/styles/tokens.css"],"sourcesContent":[":root {\n  --role-shell-max-width: 1180px;\n  --role-shell-page-padding: clamp(16px, 2.6vw, 28px);\n  --role-shell-bottom-nav-height: 92px;\n  --role-shell-safe-bottom: max(10px, env(safe-area-inset-bottom));\n  --role-shell-header-gap: clamp(14px, 2vw, 22px);\n  --role-shell-content-gap: clamp(16px, 2.1vw, 24px);\n}\n\n"],"names":[],"mappings":"AAAA"}}]
+}
