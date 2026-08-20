@@ -3,17 +3,19 @@
 import { useState, type FormEvent, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { AlertTriangle, Bell, Camera, Check, ChevronLeft, LoaderCircle, Radar, ShieldCheck, Trash2 } from "lucide-react";
+import { readObserverAccessToken } from "@/lib/domain/digital-observer/client-session";
 import { digitalObserverConnectorTypes, getDigitalObserverConnector } from "@/lib/domain/digital-observer/connectors";
 
 type ActionState = { busy: boolean; error: string; message: string };
 
 async function postJson(path: string, body: unknown, accessToken?: string | null) {
+  const authenticatedToken = accessToken || readObserverAccessToken();
   const response = await fetch(path, {
     method: "POST",
     credentials: "same-origin",
     headers: {
       "Content-Type": "application/json",
-      ...(accessToken ? { Authorization: `Bearer ${accessToken}` } : {})
+      ...(authenticatedToken ? { Authorization: `Bearer ${authenticatedToken}` } : {})
     },
     body: JSON.stringify(body)
   });
@@ -29,7 +31,7 @@ function ResultMessage({ state }: { state: ActionState }) {
   return null;
 }
 
-export function ObserverOnboardingWizard({ packages, defaultType = "home", accessToken }: { packages: any[]; defaultType?: "home" | "business"; accessToken?: string | null }) {
+export function ObserverOnboardingWizard({ packages, defaultType = "home" }: { packages: any[]; defaultType?: "home" | "business" }) {
   const router = useRouter();
   const [step, setStep] = useState(1);
   const [state, setState] = useState<ActionState>({ busy: false, error: "", message: "" });
@@ -39,11 +41,9 @@ export function ObserverOnboardingWizard({ packages, defaultType = "home", acces
   async function submit() {
     setState({ busy: true, error: "", message: "" });
     try {
-      if (!accessToken) throw new Error("נדרשת התחברות מחדש לתצפיתן הדיגיטלי.");
       const data = await postJson(
         "/api/digital-observer/onboarding",
-        { ...form, package_id: form.package_id || null },
-        accessToken
+        { ...form, package_id: form.package_id || null }
       );
       setState({ busy: false, error: "", message: "האתר הוקם ותקופת ניסיון של 14 יום נפתחה ללא חיוב." });
       router.push(data.next);

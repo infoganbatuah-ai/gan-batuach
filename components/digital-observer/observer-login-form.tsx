@@ -4,6 +4,7 @@ import Link from "next/link";
 import { useState, type FormEvent } from "react";
 import { LoaderCircle, LockKeyhole, ShieldCheck } from "lucide-react";
 import { ObserverMark } from "@/components/digital-observer/observer-app-shell";
+import { rememberObserverAccessToken } from "@/lib/domain/digital-observer/client-session";
 import { createClient } from "@/lib/supabase/browser";
 
 function safeReturnPath(value: string) {
@@ -85,6 +86,7 @@ export function ObserverLoginForm({
     const destination = !hasSite && requestedDestination === "/digital-observer/dashboard"
       ? `/digital-observer/onboarding?type=${accountType}`
       : requestedDestination;
+    rememberObserverAccessToken(loginResult.data.session?.access_token);
     window.location.assign(destination);
   }
 
