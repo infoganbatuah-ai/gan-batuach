@@ -20,9 +20,20 @@ function text(value: unknown) {
   return String(value ?? "").trim();
 }
 
+function limitedText(value: unknown, maxLength: number) {
+  return text(value).slice(0, maxLength);
+}
+
 function number(value: unknown) {
   const parsed = Number(text(value));
-  return Number.isFinite(parsed) && parsed > 0 ? Math.round(parsed) : 0;
+  return Number.isFinite(parsed) && parsed > 0 ? Math.min(10_000, Math.round(parsed)) : 0;
+}
+
+function safeRedirectTarget(value: unknown) {
+  const target = text(value);
+  return target.startsWith("/digital-observer") && !target.startsWith("//")
+    ? target
+    : "/digital-observer/request-demo";
 }
 
 function normalizeSiteType(value: string) {
@@ -53,7 +64,13 @@ async function parsePayload(request: NextRequest) {
 
 export async function POST(request: NextRequest) {
   const { payload, isForm } = await parsePayload(request);
-  const redirectTo = text(payload.redirect_to) || "/digital-observer/request-demo";
+  const redirectTo = safeRedirectTarget(payload.redirect_to);
+
+  // Low-friction spam guard; production rate limiting remains an edge/provider concern.
+  if (text(payload.website)) {
+    if (isForm) return redirect(request, redirectTo, { submitted: "1" });
+    return NextResponse.json({ status: "accepted" }, { status: 202 });
+  }
 
   if (!isAdminClientConfigured()) {
     if (isForm) return redirect(request, redirectTo, { error: "config" });
@@ -64,10 +81,13 @@ export async function POST(request: NextRequest) {
   const sourceCandidate = text(payload.source) || sourceFromSiteType(siteType);
   const source = allowedSources.has(sourceCandidate) ? sourceCandidate : sourceFromSiteType(siteType);
   const cameraCount = number(payload.camera_count || payload.number_of_cameras || payload.estimated_cameras);
-  const packageInterest = text(payload.package_interest || payload.package);
-  const monitoringGoals = Array.isArray(payload.monitoring_goals) ? payload.monitoring_goals.map(text).filter(Boolean) : text(payload.monitoring_goals).split(",").map((item) => item.trim()).filter(Boolean);
+  const packageInterest = limitedText(payload.package_interest || payload.package, 80);
+  const monitoringGoals = (Array.isArray(payload.monitoring_goals)
+    ? payload.monitoring_goals.map((item: unknown) => limitedText(item, 120)).filter(Boolean)
+    : limitedText(payload.monitoring_goals, 1_000).split(",").map((item) => item.trim()).filter(Boolean)
+  ).slice(0, 20);
   const interestScore = Math.min(100, Math.max(10, 35 + (cameraCount > 0 ? 15 : 0) + (packageInterest ? 20 : 0) + (source === "digital_observer_demo" ? 20 : 0)));
-  const formRoute = text(payload.form_route) || request.nextUrl.pathname;
+  const formRoute = safeRedirectTarget(payload.form_route || request.nextUrl.pathname);
   const userAgent = request.headers.get("user-agent") ?? "";
 
   const leadRow = {
@@ -77,26 +97,28 @@ export async function POST(request: NextRequest) {
     status: "new",
     lead_status: "new",
     conversion_status: "new",
-    contact_name: text(payload.contact_name || payload.name),
-    contact_email: text(payload.contact_email || payload.email),
-    contact_phone: text(payload.contact_phone || payload.phone),
-    company_name: text(payload.company_name || payload.business_name),
-    business_name: text(payload.business_name || payload.company_name),
+    contact_name: limitedText(payload.contact_name || payload.name, 120),
+    contact_email: limitedText(payload.contact_email || payload.email, 254),
+    contact_phone: limitedText(payload.contact_phone || payload.phone, 40),
+    company_name: limitedText(payload.company_name || payload.business_name, 160),
+    business_name: limitedText(payload.business_name || payload.company_name, 160),
     site_type: siteType,
-    city: text(payload.city),
+    city: limitedText(payload.city, 120),
     estimated_cameras: cameraCount,
     camera_count: cameraCount,
     package_interest: packageInterest || null,
-    preferred_contact_method: text(payload.preferred_contact_method) || null,
-    current_camera_system: text(payload.current_camera_system) || null,
-    notes: text(payload.notes) || null,
+    preferred_contact_method: ["phone", "email", "whatsapp", "sms", "any"].includes(text(payload.preferred_contact_method))
+      ? text(payload.preferred_contact_method)
+      : null,
+    current_camera_system: limitedText(payload.current_camera_system, 240) || null,
+    notes: limitedText(payload.notes, 2_000) || null,
     interest_score: interestScore,
     form_route: formRoute,
-    utm_source: text(payload.utm_source) || null,
-    utm_medium: text(payload.utm_medium) || null,
-    utm_campaign: text(payload.utm_campaign) || null,
-    utm_term: text(payload.utm_term) || null,
-    utm_content: text(payload.utm_content) || null,
+    utm_source: limitedText(payload.utm_source, 120) || null,
+    utm_medium: limitedText(payload.utm_medium, 120) || null,
+    utm_campaign: limitedText(payload.utm_campaign, 160) || null,
+    utm_term: limitedText(payload.utm_term, 160) || null,
+    utm_content: limitedText(payload.utm_content, 160) || null,
     metadata: {
       product: "digital_observer",
       monitoring_goals: monitoringGoals,

@@ -7,6 +7,7 @@ import type { Permission } from "@/lib/roles";
 import { encryptField, getCurrentKeyVersion, hashForLookup } from "@/lib/security/field-encryption";
 import { buildMaskedConnectionSummary } from "@/lib/domain/camera-connection-builder";
 import { writeCameraAccessEvent } from "@/lib/security/audit-log-service";
+import { CAMERA_BROWSER_SAFE_SELECT } from "@/lib/domain/camera-safe-columns";
 
 type CrudConfig = {
   table: string;
@@ -38,7 +39,7 @@ export function createCrudHandlers(config: CrudConfig) {
         const gardenId = searchParams.get("garden_id");
         const selectColumns =
           config.table === "camera_streams"
-            ? "id,garden_id,kindergarten_id,name,area,age_group,class_group,camera_type,source_type,source_category,camera_zone_label,system_type,deployment_scope,test_site_type,camera_provider_key,gateway_provider_preference,live_preview_status,clip_readiness_status,snapshot_readiness_status,permission_model,stream_status,health_status,last_seen,connection_method,protocol,host,port,channel,connection_host,connection_port,connection_channel,stream_quality,last_test_status,last_test_message,last_test_at,gateway_registration_status,gateway_last_error,masked_connection_summary,hls_playback_url,sample_hls_url,webrtc_playback_url,video_gateway_stream_id,gateway_stream_id,viewing_hours,operating_hours,parent_view_allowed,parent_viewing_allowed,parent_visibility_status,parent_blocked_reason,staff_view_allowed,inspector_view_allowed,inspector_access_policy,status,active,ai_enabled,observer_enabled,observer_review_required,observer_confidence_threshold,last_health_check_at,last_successful_connection_at,last_stream_activity_at,uptime_seconds,failure_count,reconnect_attempts,recording_enabled,retention_days,archive_policy,created_at,updated_at"
+            ? CAMERA_BROWSER_SAFE_SELECT
             : "*";
         let query = (supabase as any).from(config.table).select(selectColumns).limit(Math.min(limit, 200));
         if (gardenId) query = query.eq("garden_id", gardenId);
@@ -46,7 +47,7 @@ export function createCrudHandlers(config: CrudConfig) {
         let { data, error } = await query;
         if (error && config.table === "camera_streams") {
           console.error("Camera streams safe list query failed, retrying fallback:", error);
-          const fallbackColumns = "id,garden_id,name,area,camera_type,protocol,status,active,parent_view_allowed,last_health_check_at,hls_playback_url,webrtc_playback_url,video_gateway_stream_id,viewing_hours,created_at,updated_at";
+          const fallbackColumns = "id,garden_id,name,area,camera_type,protocol,status,active,parent_view_allowed,last_health_check_at,video_gateway_stream_id,gateway_stream_id,live_preview_status,playback_hls_ready,playback_webrtc_ready,viewing_hours,created_at,updated_at";
           let fallbackQuery = (supabase as any).from(config.table).select(fallbackColumns).limit(Math.min(limit, 200));
           if (gardenId) fallbackQuery = fallbackQuery.eq("garden_id", gardenId);
           if (config.defaultOrder) fallbackQuery = fallbackQuery.order(config.defaultOrder, { ascending: false });
@@ -173,7 +174,8 @@ export function createCrudHandlers(config: CrudConfig) {
           insertPayload = cameraPayload;
         }
         const supabase = await createClient();
-        let { data, error } = await (supabase as any).from(config.table).insert(insertPayload).select("*").single();
+        const responseColumns = config.table === "camera_streams" ? CAMERA_BROWSER_SAFE_SELECT : "*";
+        let { data, error } = await (supabase as any).from(config.table).insert(insertPayload).select(responseColumns).single();
         if (error && config.table === "camera_streams" && /column .* does not exist|schema cache/i.test(error.message ?? "")) {
           console.error("Camera stream insert with readiness fields failed, retrying legacy-safe payload:", error);
           const legacyPayload = { ...(insertPayload as Record<string, unknown>) };
@@ -232,7 +234,7 @@ export function createCrudHandlers(config: CrudConfig) {
             "permission_model",
             "security_review"
           ].forEach((key) => delete legacyPayload[key]);
-          const legacyInsert = await (supabase as any).from(config.table).insert(legacyPayload).select("*").single();
+          const legacyInsert = await (supabase as any).from(config.table).insert(legacyPayload).select(responseColumns).single();
           data = legacyInsert.data;
           error = legacyInsert.error;
         }
@@ -325,7 +327,7 @@ export function createCrudHandlers(config: CrudConfig) {
             id: data.id,
             kindergarten_id: data.kindergarten_id ?? data.garden_id,
             status: data.status,
-            sample_hls_url_exists: Boolean(data.sample_hls_url ?? data.hls_playback_url)
+            playback_source_ready: Boolean(data.playback_hls_ready || data.playback_webrtc_ready || data.live_preview_status === "ready" || data.gateway_stream_id || data.video_gateway_stream_id)
           });
         }
         if (config.table === "camera_streams" && data && "session" in permission) {

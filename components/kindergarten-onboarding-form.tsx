@@ -1,12 +1,39 @@
 "use client";
 
-import Link from "next/link";
-import { useMemo, useState, type FormEvent } from "react";
-import { Bell, CheckCircle2, CreditCard, Lock, Rocket, Save, ShieldCheck, WalletCards } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useMemo, useRef, useState, type FormEvent } from "react";
+import {
+  Baby,
+  Building2,
+  CalendarDays,
+  Check,
+  CheckCircle2,
+  ChevronLeft,
+  ChevronRight,
+  CreditCard,
+  FileCheck2,
+  LoaderCircle,
+  Save,
+  ShieldCheck,
+  Sparkles,
+  UsersRound,
+  WalletCards
+} from "lucide-react";
+import { ManagerParentInvitationPanel } from "@/components/manager-parent-invitation-panel";
 import { UploadImageField } from "@/components/upload-image-field";
-import { calculateGanBatuachMonthlyPrice, calculateRequiredStaff, kindergartenAgeGroups, knownKindergartenCities, operationalDistrictForCity, requiredKindergartenDocumentCategories } from "@/lib/domain/kindergarten-onboarding";
+import {
+  calculateGanBatuachMonthlyPrice,
+  calculateRequiredStaff,
+  ganBatuachTrialDays,
+  kindergartenAgeGroups,
+  knownKindergartenCities,
+  managerRegistrationSteps,
+  operationalDistrictForCity,
+  requiredKindergartenDocumentCategories
+} from "@/lib/domain/kindergarten-onboarding";
 
 type Garden = {
+  id?: string | null;
   name?: string | null;
   logo_url?: string | null;
   image_url?: string | null;
@@ -25,11 +52,7 @@ type Onboarding = {
   correction_note?: string | null;
 };
 
-type Props = {
-  garden: Garden;
-  onboarding: Onboarding;
-  managerName?: string | null;
-};
+type Props = { garden: Garden; onboarding: Onboarding; managerName?: string | null };
 
 const fieldLabels: Record<string, string> = {
   kindergarten_name: "שם הגן",
@@ -43,15 +66,25 @@ const fieldLabels: Record<string, string> = {
   subscription_details: "מסלול תשלום",
   age_group_pricing: "מחירי קבוצות גיל",
   class_capacity_setup: "קיבולת כיתות",
-  staff_setup: "הזמנת צוות",
-  children_setup: "הוספת ילדים",
-  parent_invitations: "הזמנת הורים",
-  vacation_calendar: "לוח חופשות",
-  weekly_schedule: "תוכנית שבועית",
   manager_profile: "פרופיל מנהלת",
   documents: "מסמכים",
-  payment: "תשלום מנוי",
-  camera_readiness: "מצלמות"
+  camera_readiness: "מצב מצלמות"
+};
+
+const documentLabels: Record<string, string> = {
+  ownership_legal_entity: "בעלות / ישות משפטית",
+  legal_management_authorization: "הרשאת ניהול",
+  first_aid_22_hours: "עזרה ראשונה",
+  safe_conduct_course: "התנהלות בטוחה",
+  educational_mentor_agreement: "ליווי חינוכי",
+  building_yard_safety_report: "בטיחות מבנה וחצר",
+  minimum_space_confirmation: "אישור שטח",
+  local_authority_operating_permit: "רישיון רשות מקומית",
+  fire_department_approval: "אישור כבאות",
+  shelter_approval: "אישור מרחב מוגן",
+  cctv_installation_declaration: "הצהרת התקנת מצלמות",
+  no_audio_declaration: "הצהרת ללא שמע",
+  camera_coverage_declaration: "הצהרת כיסוי מצלמות"
 };
 
 function text(value: FormDataEntryValue | null) {
@@ -63,6 +96,7 @@ function checked(form: FormData, name: string) {
 }
 
 export function ManagerKindergartenApplicationForm({ managerName, managerPhone, managerEmail }: { managerName?: string | null; managerPhone?: string | null; managerEmail?: string | null }) {
+  const router = useRouter();
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -71,7 +105,6 @@ export function ManagerKindergartenApplicationForm({ managerName, managerPhone, 
     setBusy(true);
     setMessage("");
     const form = new FormData(event.currentTarget);
-    const city = text(form.get("city"));
     try {
       const response = await fetch("/api/garden/manager-application", {
         method: "POST",
@@ -84,7 +117,7 @@ export function ManagerKindergartenApplicationForm({ managerName, managerPhone, 
           manager_id_number: text(form.get("manager_id_number")),
           manager_phone: text(form.get("manager_phone")),
           manager_email: text(form.get("manager_email")),
-          city,
+          city: text(form.get("city")),
           street: text(form.get("street")),
           address_details: text(form.get("address_details")),
           public_description: text(form.get("public_description")),
@@ -94,210 +127,89 @@ export function ManagerKindergartenApplicationForm({ managerName, managerPhone, 
         })
       });
       const body = await response.json();
-      if (!response.ok) throw new Error(body.error || "לא ניתן ליצור בקשת גן כרגע");
-      setMessage("טיוטת הגן נוצרה. אפשר להמשיך לאשף ההפעלה.");
-      window.location.reload();
+      if (!response.ok) throw new Error(body.error || "לא ניתן לפתוח את הגן כרגע");
+      setMessage("פרטי הבסיס נשמרו. ממשיכים מיד להשלמת הגן.");
+      router.refresh();
     } catch (error) {
-      setMessage(error instanceof Error ? error.message : "לא ניתן ליצור בקשת גן כרגע");
+      setMessage(error instanceof Error ? error.message : "לא ניתן לפתוח את הגן כרגע");
     } finally {
       setBusy(false);
     }
   }
 
-  const cities = knownKindergartenCities();
-
   return (
-    <form className="card form wizard-form premium-step-form" onSubmit={submit}>
-      <h2>פתיחת בקשת גן</h2>
-      <p>הבקשה יוצרת טיוטת גן מוגבלת בלבד. הגן לא פעיל, לא ציבורי, ולא פתוח להורים עד אישור אדמין ותשלום מנוי.</p>
-      <div className="form-grid">
-        <label>שם הגן *<input name="kindergarten_name" required minLength={2} /></label>
-        <label>שם משפטי / עוסק<input name="legal_entity_name" /></label>
-        <label>ח.פ / עוסק / מזהה עסק<input name="business_id" /></label>
-        <label>שם מנהלת *<input name="manager_full_name" required minLength={2} defaultValue={managerName ?? ""} /></label>
-        <label>תעודת זהות מנהלת<input name="manager_id_number" /></label>
-        <label>טלפון מנהלת<input name="manager_phone" defaultValue={managerPhone ?? ""} /></label>
-        <label>אימייל מנהלת<input name="manager_email" type="email" defaultValue={managerEmail ?? ""} /></label>
-        <label>עיר *<select name="city" required defaultValue=""><option value="">בחרי עיר</option>{cities.map((city) => <option value={city} key={city}>{city}</option>)}<option value="אחר">אחר</option></select></label>
-        <label>רחוב<input name="street" required /></label>
-        <label>פרטי כתובת<input name="address_details" /></label>
-        <label>מחוז תפעולי<input value="נגזר לפי העיר באדמין" readOnly /></label>
-        <label>טלפון לפרסום<input name="contact_phone" defaultValue={managerPhone ?? ""} /></label>
-        <label>אימייל לפרסום<input name="contact_email" type="email" defaultValue={managerEmail ?? ""} /></label>
-        <label className="wide">שעות פעילות<textarea name="opening_hours" rows={3} /></label>
-        <label className="wide">תיאור ציבורי קצר<textarea name="public_description" rows={3} /></label>
+    <form className="manager-registration-entry" onSubmit={submit}>
+      <section className="manager-registration-intro">
+        <div>
+          <span className="manager-registration-icon"><ShieldCheck /></span>
+          <p className="eyebrow">רישום מנהלת</p>
+          <h2>ברוכה הבאה לגן בטוח</h2>
+          <p>ממלאים את פרטי המנהלת והגן, ממשיכים ברצף לחמשת שלבי ההקמה ומתחילים תקופת ניסיון ללא המתנה לאישור אדמין.</p>
+        </div>
+        <div className="manager-registration-visual" aria-hidden="true"><Building2 /><Sparkles /></div>
+      </section>
+
+      <section className="manager-registration-card">
+        <div className="section-heading"><h3>פרטים אישיים</h3><p>הפרטים ישמשו לזיהוי החשבון ולניהול הגן.</p></div>
+        <div className="form-grid">
+          <label>שם מלא *<input name="manager_full_name" required minLength={2} defaultValue={managerName ?? ""} /></label>
+          <label>תעודת זהות<input name="manager_id_number" inputMode="numeric" /></label>
+          <label>טלפון נייד<input name="manager_phone" inputMode="tel" defaultValue={managerPhone ?? ""} /></label>
+          <label>אימייל<input name="manager_email" type="email" defaultValue={managerEmail ?? ""} /></label>
+        </div>
+      </section>
+
+      <section className="manager-registration-card">
+        <div className="section-heading"><h3>פרטי הגן</h3><p>אפשר לעדכן ולהרחיב את כל הפרטים בהמשך האשף.</p></div>
+        <div className="form-grid">
+          <label>שם הגן *<input name="kindergarten_name" required minLength={2} /></label>
+          <label>עיר *<select name="city" required defaultValue=""><option value="">בחרי עיר</option>{knownKindergartenCities().map((city) => <option value={city} key={city}>{city}</option>)}<option value="אחר">אחר</option></select></label>
+          <label>רחוב *<input name="street" required /></label>
+          <label>מספר / פרטי כתובת<input name="address_details" /></label>
+          <label>שם משפטי / עוסק<input name="legal_entity_name" /></label>
+          <label>ח.פ / עוסק<input name="business_id" /></label>
+          <label>טלפון הגן<input name="contact_phone" defaultValue={managerPhone ?? ""} /></label>
+          <label>אימייל הגן<input name="contact_email" type="email" defaultValue={managerEmail ?? ""} /></label>
+          <label className="wide">שעות פעילות<textarea name="opening_hours" rows={3} /></label>
+          <label className="wide">תיאור הגן<textarea name="public_description" rows={3} /></label>
+        </div>
+      </section>
+
+      <label className="manager-registration-consent"><input type="checkbox" required /> קראתי את תנאי השימוש ומדיניות הפרטיות הזמניים ואני מאשרת להמשיך בהקמת סביבת ניסיון.</label>
+      <div className="manager-registration-actions">
+        <button className="button primary large" disabled={busy} type="submit">{busy ? <><LoaderCircle className="spin" /> שומרים...</> : <>התחלת הקמת הגן <ChevronLeft /></>}</button>
+        <span>אין חיוב ואין הפעלת תשלום חי בשלב זה.</span>
       </div>
-      <div className="warning-banner">גישה מלאה לדשבורד, ילדים, צוות, מסמכים פנימיים ותשלומים תיפתח רק אחרי אישור אדמין ותשלום מנוי גן בטוח.</div>
-      <button className="button primary large" disabled={busy} type="submit">{busy ? "יוצר..." : "יצירת טיוטת גן"}</button>
-      {message ? <span className={message.includes("לא ") ? "error-text" : "payment-action-message"}>{message}</span> : null}
+      {message ? <p className={message.includes("לא ניתן") ? "error-text" : "payment-action-message"}>{message}</p> : null}
     </form>
   );
 }
 
-export function KindergartenSubscriptionActivationPanel({ gardenName, managerName, monthlyAmount }: { gardenName?: string | null; managerName?: string | null; monthlyAmount?: number | null }) {
-  const [message, setMessage] = useState("");
-  const [busy, setBusy] = useState(false);
-  const monthly = Number(monthlyAmount ?? 800);
-  const annual = monthly * 12;
-  async function requestPayment() {
-    setBusy(true);
-    setMessage("");
-    try {
-      const response = await fetch("/api/garden/subscription", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: "request_renewal", notes: "Manager approved application subscription activation request" })
-      });
-      const body = await response.json();
-      if (!response.ok) throw new Error(body.error || "לא ניתן לפתוח בקשת תשלום כרגע");
-      setMessage(body.data?.message ?? "בקשת התשלום נשלחה לאדמין.");
-    } catch (error) {
-      setMessage(error instanceof Error ? error.message : "לא ניתן לפתוח בקשת תשלום כרגע");
-    } finally {
-      setBusy(false);
-    }
-  }
-  return (
-    <main className="teacher-payment-complete-page" dir="rtl">
-      <section className="teacher-payment-phone">
-        <header className="teacher-payment-header">
-          <Link className="teacher-icon-button" href="/dashboard/garden/notifications" aria-label="התראות"><Bell size={24} /><span /></Link>
-          <div className="teacher-app-greeting">
-            <div className="teacher-avatar"><span>{managerName?.slice(0, 1) ?? "מ"}</span><i /></div>
-            <div>
-              <h1>בוקר טוב, {managerName?.split(" ")[0] ?? "מאיה"}</h1>
-              <p>{gardenName ?? "גן חמודים"}, תל אביב</p>
-            </div>
-            <b aria-hidden="true">☀️</b>
-          </div>
-        </header>
-
-        <section className="teacher-payment-title">
-          <WalletCards size={40} />
-          <h2>סיכום ותשלום</h2>
-          <p>שלב 5 מתוך 5 · סיכום, מנוי ותשלום</p>
-        </section>
-
-        <ol className="teacher-payment-steps" aria-label="שלבי רישום">
-          <li><span>1</span><b>אישור</b></li>
-          <li><span>2</span><b>פרטי הגן</b></li>
-          <li className="done"><span><CheckCircle2 size={18} /></span><b>צוות</b></li>
-          <li className="done"><span><CheckCircle2 size={18} /></span><b>ילדים והורים</b></li>
-          <li className="active"><span>5</span><b>סיכום ותשלום</b></li>
-        </ol>
-
-        <section className="teacher-payment-grid">
-          <article className="teacher-payment-card ready-card">
-            <div className="ready-ring"><strong>100%</strong><span>הקמה הושלמה</span></div>
-            <div>
-              <h3>הכל מוכן להפעלה</h3>
-              {["פרטי הגן הושלמו", "אנשי צוות נוספו", "ילדים והורים הוזנו", "מצלמות וחיבורים הוגדרו", "אמצעי דיווח וניטור מוכנים"].map((item) => (
-                <p key={item}><CheckCircle2 size={20} /> {item}</p>
-              ))}
-            </div>
-          </article>
-
-          <article className="teacher-payment-card plan-card">
-            <span className="teacher-green-pill">התוכנית שנבחרה</span>
-            <h3>פרטי המנוי</h3>
-            <div className="plan-badge"><ShieldCheck size={54} /></div>
-            <p>מנוי שנתי בתשלום חודשי</p>
-            <strong>{monthly.toLocaleString("he-IL")} ₪ לחודש</strong>
-            <small>התחייבות ל־12 חודשים</small>
-            <em>סה״כ לשנה: {annual.toLocaleString("he-IL")} ₪</em>
-            <p>כולל גישה מלאה למערכת, מצלמות להורים, דוחות, נוכחות, התראות ותקשורת.</p>
-          </article>
-
-          <article className="teacher-payment-card billing-card">
-            <h3>פירוט חיוב</h3>
-            <dl>
-              <div><dt>מנוי חודשי</dt><dd>{monthly.toLocaleString("he-IL")} ₪</dd></div>
-              <div><dt>כמות משתמשים</dt><dd>ללא הגבלה</dd></div>
-              <div><dt>תקופת התחייבות</dt><dd>12 חודשים</dd></div>
-              <div><dt>חיוב הבא</dt><dd>ייקבע לאחר הפעלת ספק תשלום</dd></div>
-              <div className="total"><dt>סה״כ לחיוב היום</dt><dd>{monthly.toLocaleString("he-IL")} ₪</dd></div>
-            </dl>
-          </article>
-
-          <article className="teacher-payment-card method-card">
-            <h3><Lock size={18} /> אמצעי תשלום</h3>
-            <div className="payment-method-tabs">
-              <span className="active"><CreditCard size={20} /> תשלום מנוי</span>
-            </div>
-            <div className="gateway-setup-state">
-              <strong>פרטי כרטיס לא נשמרים במערכת</strong>
-              <p>כאשר ספק תשלומים חי יחובר, התשלום יתבצע בעמוד מאובטח של הספק. כרגע ניתן לשלוח בקשת הפעלת מנוי לאדמין.</p>
-            </div>
-            <p className="safe-payment-note"><ShieldCheck size={18} /> ללא הצגת Apple Pay / Google Pay עד חיבור ספק שתומך בכך בפועל</p>
-          </article>
-
-          <article className="teacher-payment-card ai-after-payment">
-            <div className="teacher-ai-bot" aria-hidden="true"><span /></div>
-            <div>
-              <h3>לאחר השלמת התשלום</h3>
-              <p>ניתן יהיה להפעיל את המערכת ולפתוח גישת הורים.</p>
-            </div>
-          </article>
-
-          <article className="teacher-payment-card confirmations-card">
-            <h3>אישורים ותנאים</h3>
-            {[
-              "אני מאשרת את תנאי המנוי והתשלום החודשי",
-              `אני מאשרת חיוב חודשי של ${monthly.toLocaleString("he-IL")} ₪ למשך 12 חודשים`,
-              "אני מאשרת קבלת חשבונית למייל"
-            ].map((item) => (
-              <label key={item}><input defaultChecked type="checkbox" /> {item}</label>
-            ))}
-          </article>
-        </section>
-
-        <div className="teacher-payment-actions">
-          <button className="teacher-pay-button" disabled={busy} onClick={requestPayment} type="button">
-            <Rocket size={24} /> {busy ? "שולח..." : "שלם והפעל מנוי"}
-          </button>
-          <Link className="teacher-save-button" href="/dashboard/garden/subscription"><Save size={22} /> חזרה למסך המנוי</Link>
-          {message ? <span className={message.includes("לא ") ? "error-text" : "payment-action-message"}>{message}</span> : null}
-          <small>אם ספק תשלומים חי לא מוגדר, הבקשה תישלח לאדמין במצב ידני/מוכנות ולא תתבצע גבייה חיה.</small>
-        </div>
-      </section>
-    </main>
-  );
-}
-
 export function KindergartenOnboardingForm({ garden, onboarding, managerName }: Props) {
+  const router = useRouter();
+  const formRef = useRef<HTMLFormElement>(null);
   const profileData = onboarding.profile_data ?? {};
-  const galleryUrls = Array.isArray(profileData.gallery_urls) ? profileData.gallery_urls : [];
+  const initialStep = Math.min(5, Math.max(1, Number(profileData.registration_step ?? 1)));
+  const [step, setStep] = useState(initialStep);
   const [logoUrl, setLogoUrl] = useState(String(garden.logo_url ?? profileData.logo_url ?? ""));
   const [imageUrl, setImageUrl] = useState(String(garden.image_url ?? profileData.image_url ?? ""));
   const [message, setMessage] = useState("");
-  const [missing, setMissing] = useState<string[]>((onboarding.missing_fields ?? []).map((field) => fieldLabels[field] ?? field));
-  const [busy, setBusy] = useState<"draft" | "submit" | "">("");
-  const progress = Number(onboarding.progress_percent ?? 0);
-  const correctionNote = onboarding.correction_note || "";
-  const selectedAgeGroups = Array.isArray(profileData.selected_age_groups) ? profileData.selected_age_groups : [];
-  const classCapacity = (profileData.class_capacity ?? {}) as Record<string, number>;
-  const staffCount = Number(profileData.staff_count ?? 0);
-  const requiredStaff = kindergartenAgeGroups.reduce((sum, group) => selectedAgeGroups.includes(group.key) ? sum + calculateRequiredStaff(group.key, Number(classCapacity[group.key] ?? 0)) : sum, 0);
-  const missingStaff = Math.max(0, requiredStaff - staffCount);
-  const classCount = selectedAgeGroups.filter((groupKey) => Number(classCapacity[groupKey] ?? 0) > 0).length || selectedAgeGroups.length;
-  const ganBatuachMonthlyPrice = calculateGanBatuachMonthlyPrice(classCount);
+  const [missing, setMissing] = useState<string[]>((onboarding.missing_fields ?? []).filter((field) => fieldLabels[field]).map((field) => fieldLabels[field]));
+  const [busy, setBusy] = useState<"draft" | "finish" | "">("");
+  const [confirmed, setConfirmed] = useState(false);
+  const [selectedAgeGroups, setSelectedAgeGroups] = useState<string[]>(Array.isArray(profileData.selected_age_groups) ? profileData.selected_age_groups : []);
+  const [classCapacity, setClassCapacity] = useState<Record<string, number>>((profileData.class_capacity ?? {}) as Record<string, number>);
+  const [staffCount, setStaffCount] = useState(Number(profileData.staff_count ?? 0));
+  const galleryUrls = Array.isArray(profileData.gallery_urls) ? profileData.gallery_urls : [];
+  const uploadedCategories = Array.isArray(profileData.uploaded_document_categories) ? profileData.uploaded_document_categories : [];
+  const classCount = selectedAgeGroups.filter((key) => Number(classCapacity[key] ?? 0) > 0).length || selectedAgeGroups.length || 1;
+  const monthlyPrice = calculateGanBatuachMonthlyPrice(classCount);
+  const requiredStaff = selectedAgeGroups.reduce((sum, key) => sum + calculateRequiredStaff(key, Number(classCapacity[key] ?? 0)), 0);
+  const trialEnd = useMemo(() => new Date(Date.now() + ganBatuachTrialDays * 86400000).toLocaleDateString("he-IL"), []);
   const cityFromAddress = String(profileData.city ?? "").trim();
-  const districtLabel = operationalDistrictForCity(cityFromAddress);
 
-  const statusLabel = useMemo(() => {
-    const status = onboarding.lifecycle_status ?? "credentials_sent";
-    if (status === "correction_required") return "נדרש תיקון";
-    if (status === "pending_final_approval") return "נשלח לאישור";
-    if (status === "active") return "פעיל";
-    return "בהשלמה";
-  }, [onboarding.lifecycle_status]);
-
-  async function submitForm(formElement: HTMLFormElement, submitForApproval: boolean) {
-    setBusy(submitForApproval ? "submit" : "draft");
-    setMessage("");
+  function buildPayload(formElement: HTMLFormElement, finish: boolean, registrationStep: number) {
     const form = new FormData(formElement);
-    const selectedGroups = form.getAll("selected_age_groups").map((item) => String(item));
-    const nextClassCapacity = Object.fromEntries(kindergartenAgeGroups.map((group) => [group.key, Number(text(form.get(`capacity_${group.key}`)) || 0)]));
     const ageGroupPricing = Object.fromEntries(kindergartenAgeGroups.map((group) => [group.key, {
       monthly_price: Number(text(form.get(`monthly_price_${group.key}`)) || 0),
       annual_price: Number(text(form.get(`annual_price_${group.key}`)) || 0),
@@ -305,188 +217,222 @@ export function KindergartenOnboardingForm({ garden, onboarding, managerName }: 
       billing_cycle: text(form.get(`billing_cycle_${group.key}`)) === "annual" ? "annual" : "monthly",
       show_price_public: checked(form, `show_price_public_${group.key}`)
     }]));
+    return {
+      submit: finish,
+      garden: {
+        name: text(form.get("name")),
+        logo_url: logoUrl,
+        image_url: imageUrl,
+        gallery_urls: text(form.get("gallery_urls")).split("\n").map((item) => item.trim()).filter(Boolean),
+        address: text(form.get("address")),
+        phone: text(form.get("phone")),
+        email: text(form.get("email")),
+        owner_name: text(form.get("owner_name")),
+        city: text(form.get("city")),
+        street: text(form.get("street")),
+        operational_district: operationalDistrictForCity(text(form.get("city"))),
+        manager_name: text(form.get("manager_name")),
+        manager_phone: text(form.get("manager_phone")),
+        business_id: text(form.get("business_id")),
+        business_name: text(form.get("business_name")),
+        operating_hours: text(form.get("operating_hours")),
+        subscription_plan: "annual_monthly_charge_after_trial",
+        selected_age_groups: selectedAgeGroups,
+        age_group_pricing: ageGroupPricing,
+        class_capacity: classCapacity,
+        staff_count: staffCount,
+        staff_initialized: checked(form, "staff_initialized"),
+        children_initialized: checked(form, "children_initialized"),
+        parents_invited: checked(form, "parents_invited"),
+        vacation_calendar_ready: checked(form, "vacation_calendar_ready"),
+        weekly_schedule_ready: checked(form, "weekly_schedule_ready"),
+        manager_profile_completed: true,
+        uploaded_document_categories: form.getAll("uploaded_document_categories").map(String),
+        payment_status: finish ? "payment_pending" : "not_started",
+        payment_method_preference: text(form.get("payment_method_preference")) || "not_selected",
+        documents_summary: text(form.get("documents_summary")),
+        camera_readiness: text(form.get("camera_readiness")),
+        public_description: text(form.get("public_description")),
+        registration_step: registrationStep
+      }
+    };
+  }
+
+  async function save(finish: boolean, nextStep = step) {
+    if (!formRef.current) return false;
+    setBusy(finish ? "finish" : "draft");
+    setMessage("");
     try {
       const response = await fetch("/api/kindergarten-onboarding", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          submit: submitForApproval,
-          garden: {
-            name: text(form.get("name")),
-            logo_url: logoUrl,
-            image_url: imageUrl,
-            gallery_urls: text(form.get("gallery_urls")).split("\n").map((item) => item.trim()).filter(Boolean),
-            address: text(form.get("address")),
-            phone: text(form.get("phone")),
-            email: text(form.get("email")),
-            owner_name: text(form.get("owner_name")),
-            city: text(form.get("city")),
-            street: text(form.get("street")),
-            operational_district: operationalDistrictForCity(text(form.get("city"))),
-            manager_name: text(form.get("manager_name")),
-            manager_phone: text(form.get("manager_phone")),
-            business_id: text(form.get("business_id")),
-            business_name: text(form.get("business_name")),
-            operating_hours: text(form.get("operating_hours")),
-            subscription_plan: text(form.get("subscription_plan")),
-            selected_age_groups: selectedGroups,
-            age_group_pricing: ageGroupPricing,
-            class_capacity: nextClassCapacity,
-            staff_count: Number(text(form.get("staff_count")) || 0),
-            staff_initialized: checked(form, "staff_initialized"),
-            children_initialized: checked(form, "children_initialized"),
-            parents_invited: checked(form, "parents_invited"),
-            vacation_calendar_ready: checked(form, "vacation_calendar_ready"),
-            weekly_schedule_ready: checked(form, "weekly_schedule_ready"),
-            manager_profile_completed: checked(form, "manager_profile_completed"),
-            uploaded_document_categories: form.getAll("uploaded_document_categories").map((item) => String(item)),
-            payment_status: "not_started",
-            documents_summary: text(form.get("documents_summary")),
-            camera_readiness: text(form.get("camera_readiness")),
-            public_description: text(form.get("public_description"))
-          }
-        })
+        body: JSON.stringify(buildPayload(formRef.current, finish, nextStep))
       });
       const body = await response.json();
       if (!response.ok) throw new Error(body.error || "לא ניתן לשמור כרגע");
       setMissing(body.data?.missing ?? []);
-      setMessage(submitForApproval ? "נשלח לאישור האדמין" : "הטיוטה נשמרה");
+      if (finish) {
+        router.replace(body.data?.next_path ?? "/dashboard/garden");
+        router.refresh();
+      } else {
+        setMessage("הפרטים נשמרו ברקע");
+      }
+      return true;
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "לא ניתן לשמור כרגע");
+      return false;
     } finally {
       setBusy("");
     }
   }
 
+  async function move(next: number) {
+    if (next < step) {
+      setStep(next);
+      return;
+    }
+    if (await save(false, next)) setStep(next);
+  }
+
   return (
-    <form className="kindergarten-onboarding-form" onSubmit={(event) => {
-      event.preventDefault();
-      void submitForm(event.currentTarget, false);
-    }}>
-      <section className="onboarding-progress-panel">
-        <div>
-          <p className="eyebrow">סטטוס</p>
-          <h2>{statusLabel}</h2>
-          <p>{correctionNote || "משלימים את הפרטים ושולחים לאישור סופי."}</p>
-          <div className="status-chip-row">
-            <span className={missingStaff ? "pill warn" : "pill good"}>צוות נדרש: {requiredStaff}</span>
-            <span className="pill">צוות שהוזן: {staffCount}</span>
-            <span className="pill">מנוי משוער: ₪{ganBatuachMonthlyPrice}/חודש</span>
-          </div>
-        </div>
-        <div className="onboarding-progress-ring">
-          <strong>{progress}%</strong>
-          <span><i style={{ width: `${progress}%` }} /></span>
+    <form ref={formRef} className="manager-live-onboarding" onSubmit={(event) => { event.preventDefault(); void save(false); }}>
+      <nav className="manager-onboarding-steps" aria-label="שלבי רישום">
+        {managerRegistrationSteps.map((item, index) => {
+          const number = index + 1;
+          return <button type="button" onClick={() => void move(number)} className={number === step ? "active" : number < step ? "done" : ""} key={item.key}><span>{number < step ? <Check size={18} /> : number}</span><b>{item.label}</b></button>;
+        })}
+      </nav>
+
+      <section className="manager-onboarding-overview">
+        <div><p className="eyebrow">התקדמות הקמה</p><h2>שלב {step} מתוך 5</h2><p>המידע נשמר בין השלבים. הזמנת הורים, ילדים וצוות היא אופציונלית ואפשר להשלים גם מהדשבורד.</p></div>
+        <div className="manager-progress-value"><strong>{step * 20}%</strong><span><i style={{ width: `${step * 20}%` }} /></span></div>
+      </section>
+
+      {missing.length && step === 5 ? <div className="manager-missing-state"><strong>נדרש להשלים לפני ההפעלה:</strong>{missing.map((item) => <span key={item}>{item}</span>)}</div> : null}
+
+      <section className={`manager-wizard-stage ${step === 1 ? "is-active" : ""}`} aria-hidden={step !== 1}>
+        <div className="manager-stage-heading"><Building2 /><div><h2>פרטי הגן</h2><p>המידע שיופיע בכרטיס הגן ולצוות הניהול.</p></div></div>
+        <div className="manager-stage-grid">
+          <article className="manager-registration-card">
+            <h3>פרטי קשר וכתובת</h3>
+            <div className="form-grid">
+              <label>שם הגן<input name="name" defaultValue={garden.name ?? ""} /></label>
+              <label>עיר<select name="city" defaultValue={cityFromAddress}><option value="">בחרי עיר</option>{knownKindergartenCities().map((city) => <option value={city} key={city}>{city}</option>)}<option value="אחר">אחר</option></select></label>
+              <label>רחוב<input name="street" defaultValue={profileData.street ?? ""} /></label>
+              <label>כתובת מלאה<input name="address" defaultValue={garden.address ?? ""} /></label>
+              <label>טלפון<input name="phone" defaultValue={garden.phone ?? ""} /></label>
+              <label>אימייל<input name="email" type="email" defaultValue={garden.email ?? ""} /></label>
+              <label>שם בעלים<input name="owner_name" defaultValue={garden.owner_name ?? ""} /></label>
+              <label>שם מנהלת<input name="manager_name" defaultValue={profileData.manager_name ?? managerName ?? ""} /></label>
+              <label>טלפון מנהלת<input name="manager_phone" defaultValue={profileData.manager_phone ?? garden.phone ?? ""} /></label>
+              <label>שם עסק<input name="business_name" defaultValue={profileData.business_name ?? ""} /></label>
+              <label>מספר עסק<input name="business_id" defaultValue={profileData.business_id ?? ""} /></label>
+              <label className="wide">שעות פעילות<textarea name="operating_hours" rows={3} defaultValue={profileData.operating_hours ?? ""} /></label>
+              <label className="wide">תיאור ציבורי<textarea name="public_description" rows={3} defaultValue={garden.public_description ?? ""} /></label>
+            </div>
+          </article>
+
+          <article className="manager-registration-card manager-media-card">
+            <h3>תמונות וכרטיס ציבורי</h3>
+            <div className="manager-media-grid">
+              <div className="upload-card-field"><strong>לוגו הגן</strong>{logoUrl ? <img className="profile-preview-image" src={logoUrl} alt="לוגו גן" /> : <div className="empty-mini">טרם הועלה לוגו</div>}<UploadImageField label={logoUrl ? "החלפת לוגו" : "העלאת לוגו"} bucket="kindergarten-logos" prefix="kindergarten-onboarding/logos" onUploaded={setLogoUrl} /></div>
+              <div className="upload-card-field"><strong>תמונת הגן</strong>{imageUrl ? <img className="profile-preview-image" src={imageUrl} alt="תמונת גן" /> : <div className="empty-mini">טרם הועלתה תמונה</div>}<UploadImageField label={imageUrl ? "החלפת תמונה" : "העלאת תמונה"} bucket="kindergarten-logos" prefix="kindergarten-onboarding/images" onUploaded={setImageUrl} /></div>
+            </div>
+            <label>קישורי גלריה<textarea name="gallery_urls" rows={3} placeholder="קישור אחד בכל שורה" defaultValue={galleryUrls.join("\n")} /></label>
+          </article>
+
+          <article className="manager-registration-card manager-docs-card">
+            <h3><FileCheck2 /> מסמכים והצהרות</h3>
+            <p>סמני רק מסמכים שקיימים בפועל. קבצים עצמם מועלים במרכז המסמכים המוגן לאחר הכניסה לדשבורד.</p>
+            <div className="manager-document-checks">{requiredKindergartenDocumentCategories.map((category) => <label key={category}><input type="checkbox" name="uploaded_document_categories" value={category} defaultChecked={uploadedCategories.includes(category)} /> {documentLabels[category] ?? category}</label>)}</div>
+            <label>סיכום מצב מסמכים<textarea name="documents_summary" rows={3} defaultValue={profileData.documents_summary ?? ""} placeholder="אילו מסמכים קיימים ומה יושלם בהמשך" /></label>
+          </article>
         </div>
       </section>
 
-      {missing.length ? (
-        <section className="card onboarding-missing-card">
-          <h3>חסר לפני שליחה</h3>
-          <div className="status-chip-row">{missing.map((item) => <span className="pill warn" key={item}>{item}</span>)}</div>
-        </section>
-      ) : null}
-
-      <section className="clean-card-grid">
-        <article className="card action-panel">
-          <h2>פרטי הגן</h2>
-          <div className="form-grid">
-            <label>שם הגן<input name="name" required defaultValue={garden.name ?? ""} /></label>
-            <label>כתובת<input name="address" required defaultValue={garden.address ?? ""} /></label>
-            <label>עיר<select name="city" required defaultValue={cityFromAddress}><option value="">בחרי עיר</option>{knownKindergartenCities().map((city) => <option value={city} key={city}>{city}</option>)}<option value="אחר">אחר</option></select></label>
-            <label>רחוב<input name="street" required defaultValue={profileData.street ?? ""} /></label>
-            <label>מחוז תפעולי<input value={districtLabel} readOnly /></label>
-            <label>טלפון<input name="phone" required defaultValue={garden.phone ?? ""} /></label>
-            <label>מייל<input name="email" type="email" defaultValue={garden.email ?? ""} /></label>
-            <label className="wide">תיאור קצר<textarea name="public_description" rows={3} defaultValue={garden.public_description ?? ""} /></label>
-          </div>
-        </article>
-
-        <article className="card action-panel">
-          <h2>תמונות</h2>
-          <div className="upload-card-field">
-            <strong>לוגו</strong>
-            {logoUrl ? <img className="profile-preview-image" src={logoUrl} alt="לוגו גן" /> : <div className="empty-mini">נדרש לוגו</div>}
-            <UploadImageField label={logoUrl ? "החלפת לוגו" : "העלאת לוגו"} bucket="kindergarten-logos" prefix="kindergarten-onboarding/logos" onUploaded={setLogoUrl} />
-          </div>
-          <div className="upload-card-field">
-            <strong>תמונת גן</strong>
-            {imageUrl ? <img className="profile-preview-image" src={imageUrl} alt="תמונת גן" /> : <div className="empty-mini">נדרשת תמונת גן</div>}
-            <UploadImageField label={imageUrl ? "החלפת תמונה" : "העלאת תמונה"} bucket="kindergarten-logos" prefix="kindergarten-onboarding/images" onUploaded={setImageUrl} />
-          </div>
-          <label>גלריה<textarea name="gallery_urls" rows={3} placeholder="קישור אחד בכל שורה" defaultValue={galleryUrls.join("\n")} /></label>
-        </article>
-
-        <article className="card action-panel">
-          <h2>בעלים ועסק</h2>
-          <div className="form-grid">
-            <label>שם בעלים<input name="owner_name" required defaultValue={garden.owner_name ?? ""} /></label>
-            <label>שם מנהלת<input name="manager_name" required defaultValue={profileData.manager_name ?? managerName ?? ""} /></label>
-            <label>טלפון מנהלת<input name="manager_phone" defaultValue={profileData.manager_phone ?? garden.phone ?? ""} /></label>
-            <label>שם עסק<input name="business_name" defaultValue={profileData.business_name ?? ""} /></label>
-            <label>מספר עסק<input name="business_id" defaultValue={profileData.business_id ?? ""} /></label>
-          </div>
-        </article>
-
-        <article className="card action-panel">
-          <h2>תמחור וקיבולת</h2>
-          <div className="procedure-list">
-            {kindergartenAgeGroups.map((group) => (
-              <div className="card action-panel" key={group.key}>
-                <label><input type="checkbox" name="selected_age_groups" value={group.key} defaultChecked={selectedAgeGroups.includes(group.key)} /> {group.label} · {group.range}</label>
-                <small>מקסימום {group.maxChildrenPerClass} ילדים · {group.rule}</small>
-                <div className="form-grid">
-                  <label>ילדים בכיתה<input name={`capacity_${group.key}`} type="number" min="0" max={group.maxChildrenPerClass} defaultValue={classCapacity[group.key] ?? 0} /></label>
-                  <label>מחיר חודשי לילד<input name={`monthly_price_${group.key}`} type="number" min="0" defaultValue={profileData.age_group_pricing?.[group.key]?.monthly_price ?? ""} /></label>
-                  <label>מחיר שנתי לילד<input name={`annual_price_${group.key}`} type="number" min="0" defaultValue={profileData.age_group_pricing?.[group.key]?.annual_price ?? ""} /></label>
-                  <label>יום חיוב<input name={`billing_day_${group.key}`} type="number" min="1" max="28" defaultValue={profileData.age_group_pricing?.[group.key]?.billing_day ?? 1} /></label>
-                  <label>מחזור חיוב<select name={`billing_cycle_${group.key}`} defaultValue={profileData.age_group_pricing?.[group.key]?.billing_cycle ?? "monthly"}><option value="monthly">חודשי</option><option value="annual">שנתי</option></select></label>
-                  <label><input name={`show_price_public_${group.key}`} type="checkbox" defaultChecked={Boolean(profileData.age_group_pricing?.[group.key]?.show_price_public)} /> הצגת מחיר להורים בחיפוש</label>
-                </div>
+      <section className={`manager-wizard-stage ${step === 2 ? "is-active" : ""}`} aria-hidden={step !== 2}>
+        <div className="manager-stage-heading"><UsersRound /><div><h2>קבוצות גיל וצוות</h2><p>המחיר להורה, הקיבולת ויחס הצוות נשמרים לכל קבוצה בנפרד.</p></div></div>
+        <div className="manager-age-groups">
+          {kindergartenAgeGroups.map((group) => {
+            const selected = selectedAgeGroups.includes(group.key);
+            return <article className={selected ? "selected" : ""} key={group.key}>
+              <label className="manager-group-choice"><input type="checkbox" checked={selected} onChange={(event) => setSelectedAgeGroups((current) => event.target.checked ? [...current, group.key] : current.filter((key) => key !== group.key))} /><span><b>{group.label}</b><small>{group.range}</small></span></label>
+              <p>עד {group.maxChildrenPerClass} ילדים · {group.rule}</p>
+              <div className="form-grid">
+                <label>מספר ילדים<input type="number" min="0" max={group.maxChildrenPerClass} value={classCapacity[group.key] ?? 0} onChange={(event) => setClassCapacity((current) => ({ ...current, [group.key]: Number(event.target.value) }))} /></label>
+                <label>תשלום חודשי לילד<input name={`monthly_price_${group.key}`} type="number" min="0" defaultValue={profileData.age_group_pricing?.[group.key]?.monthly_price ?? ""} /></label>
+                <label>יום חיוב<input name={`billing_day_${group.key}`} type="number" min="1" max="28" defaultValue={profileData.age_group_pricing?.[group.key]?.billing_day ?? 1} /></label>
+                <label>מחזור<select name={`billing_cycle_${group.key}`} defaultValue={profileData.age_group_pricing?.[group.key]?.billing_cycle ?? "monthly"}><option value="monthly">חודשי</option><option value="annual">שנתי</option></select></label>
+                <input name={`annual_price_${group.key}`} type="hidden" defaultValue={profileData.age_group_pricing?.[group.key]?.annual_price ?? ""} />
+                <label className="wide"><input name={`show_price_public_${group.key}`} type="checkbox" defaultChecked={Boolean(profileData.age_group_pricing?.[group.key]?.show_price_public)} /> הצגת המחיר להורים לפני בקשת הצטרפות</label>
               </div>
-            ))}
-          </div>
-        </article>
-
-        <article className="card action-panel">
-          <h2>הפעלה יומית</h2>
-          <div className="form-grid">
-            <label className="wide">שעות פעילות<textarea name="operating_hours" rows={3} required defaultValue={profileData.operating_hours ?? ""} /></label>
-            <label>מסלול תשלום<input name="subscription_plan" required defaultValue={profileData.subscription_plan ?? "מנוי שנתי בתשלום חודשי"} /></label>
-            <label>מספר אנשי צוות שהוזנו<input name="staff_count" type="number" min="0" defaultValue={profileData.staff_count ?? 0} /></label>
-            <label>מצלמות<select name="camera_readiness" required defaultValue={profileData.camera_readiness ?? ""}><option value="">בחרי</option><option value="ready">יש מצלמות מוכנות</option><option value="needs_setup">צריך חיבור</option><option value="not_now">לא עכשיו</option></select></label>
-            <label className="wide">לוח חופשות<textarea name="vacation_calendar" rows={3} defaultValue={profileData.vacation_calendar ?? ""} placeholder="ימים סגורים / חופשות / חגים" /></label>
-            <label className="wide">תוכנית שבועית<textarea name="weekly_schedule" rows={3} defaultValue={profileData.weekly_schedule ?? ""} placeholder="נושאי לימוד, פעילויות, חוגים ואירועים" /></label>
-          </div>
-          <div className="choice-grid detection-grid">
-            <label><input name="staff_initialized" type="checkbox" defaultChecked={Boolean(profileData.staff_initialized)} /> צוות הוזמן</label>
-            <label><input name="children_initialized" type="checkbox" defaultChecked={Boolean(profileData.children_initialized)} /> ילדים הוזנו</label>
-            <label><input name="parents_invited" type="checkbox" defaultChecked={Boolean(profileData.parents_invited)} /> הורים הוזמנו</label>
-            <label><input name="vacation_calendar_ready" type="checkbox" defaultChecked={Boolean(profileData.vacation_calendar_ready)} /> לוח חופשות מוכן</label>
-            <label><input name="weekly_schedule_ready" type="checkbox" defaultChecked={Boolean(profileData.weekly_schedule_ready)} /> תוכנית שבועית מוכנה</label>
-            <label><input name="manager_profile_completed" type="checkbox" defaultChecked={Boolean(profileData.manager_profile_completed)} /> פרופיל מנהלת הושלם</label>
-          </div>
-        </article>
-
-        <article className="card action-panel">
-          <h2>מסמכים ותשלום</h2>
-          <div className="choice-grid detection-grid">
-            {requiredKindergartenDocumentCategories.map((category) => <label key={category}><input type="checkbox" name="uploaded_document_categories" value={category} defaultChecked={Array.isArray(profileData.uploaded_document_categories) && profileData.uploaded_document_categories.includes(category)} /> {category.replaceAll("_", " ")}</label>)}
-          </div>
-          <div className="form-grid">
-            <label className="wide">סיכום מסמכים<textarea name="documents_summary" rows={3} required defaultValue={profileData.documents_summary ?? ""} placeholder="מה הועלה ומה חסר" /></label>
-            <div className="notice">תשלום מנוי גן בטוח ייפתח רק אחרי אישור אדמין. מנהלת לא יכולה לסמן תשלום בעצמה מתוך אשף הפרופיל.</div>
-          </div>
+            </article>;
+          })}
+        </div>
+        <article className="manager-registration-card manager-staff-summary">
+          <div><strong>{requiredStaff}</strong><span>אנשי צוות נדרשים לפי הקיבולת</span></div>
+          <label>אנשי צוות שכבר הוגדרו<input type="number" min="0" value={staffCount} onChange={(event) => setStaffCount(Number(event.target.value))} /></label>
+          <label><input name="staff_initialized" type="checkbox" defaultChecked={Boolean(profileData.staff_initialized)} /> הוזמן לפחות איש צוות אחד</label>
+          <label>מצב מצלמות<select name="camera_readiness" defaultValue={profileData.camera_readiness ?? "not_now"}><option value="ready">יש מצלמות, נדרש חיבור Gateway</option><option value="needs_setup">נדרש תכנון וחיבור</option><option value="not_now">לא בשלב זה</option></select></label>
+          <input name="vacation_calendar_ready" type="hidden" value={profileData.vacation_calendar_ready ? "on" : ""} />
+          <input name="weekly_schedule_ready" type="hidden" value={profileData.weekly_schedule_ready ? "on" : ""} />
         </article>
       </section>
 
-      <div className="onboarding-form-actions">
-        <button className="button secondary large" disabled={Boolean(busy)} type="submit">שמירת טיוטה</button>
-        <button className="button primary large" disabled={Boolean(busy)} type="button" onClick={(event) => {
-          if (event.currentTarget.form) void submitForm(event.currentTarget.form, true);
-        }}>שליחה לאישור</button>
-        {message ? <span className={message.includes("לא ") || message.includes("חסר") ? "error-text" : "payment-action-message"}>{message}</span> : null}
-      </div>
+      <section className={`manager-wizard-stage ${step === 3 ? "is-active" : ""}`} aria-hidden={step !== 3}>
+        <div className="manager-stage-heading"><WalletCards /><div><h2>סיכום ותשלום עתידי</h2><p>14 ימי ניסיון ללא חיוב. אמצעי תשלום יחובר רק דרך ספק מאושר.</p></div></div>
+        <div className="manager-payment-layout">
+          <article className="manager-registration-card manager-selected-plan">
+            <span className="pill good">התוכנית שנבחרה</span>
+            <ShieldCheck />
+            <h3>מנוי גן בטוח שנתי</h3>
+            <strong>{monthlyPrice.toLocaleString("he-IL")} ₪ <small>לחודש לאחר הניסיון</small></strong>
+            <p>כולל את יכולות התצפיתן הדיגיטלי בתוך דשבורד הגן. אין צורך בחשבון נפרד למנהלת.</p>
+          </article>
+          <article className="manager-registration-card manager-trial-summary">
+            <h3><CalendarDays /> תקופת ניסיון</h3>
+            <dl><div><dt>חיוב היום</dt><dd>0 ₪</dd></div><div><dt>משך הניסיון</dt><dd>{ganBatuachTrialDays} ימים</dd></div><div><dt>מועד הסדרה משוער</dt><dd>{trialEnd}</dd></div><div><dt>אופן גבייה</dt><dd>רק לאחר חיבור ספק ואישור</dd></div></dl>
+          </article>
+          <article className="manager-registration-card manager-payment-methods">
+            <h3><CreditCard /> אמצעי תשלום מועדף</h3>
+            <p>הבחירה נשמרת כהעדפה בלבד. לא נאספים כאן פרטי כרטיס ולא מתבצע חיוב.</p>
+            <label><input type="radio" name="payment_method_preference" value="card" defaultChecked={profileData.payment_method_preference === "card"} /> כרטיס אשראי דרך ספק מאובטח</label>
+            <label><input type="radio" name="payment_method_preference" value="apple_pay" defaultChecked={profileData.payment_method_preference === "apple_pay"} /> Apple Pay — לאחר חיבור ספק תומך</label>
+            <label><input type="radio" name="payment_method_preference" value="google_pay" defaultChecked={profileData.payment_method_preference === "google_pay"} /> Google Pay — לאחר חיבור ספק תומך</label>
+            <label><input type="radio" name="payment_method_preference" value="not_selected" defaultChecked={!profileData.payment_method_preference || profileData.payment_method_preference === "not_selected"} /> אבחר לקראת סוף תקופת הניסיון</label>
+          </article>
+        </div>
+      </section>
+
+      <section className={`manager-wizard-stage ${step === 4 ? "is-active" : ""}`} aria-hidden={step !== 4}>
+        <div className="manager-stage-heading"><Baby /><div><h2>ילדי הגן והזמנת הורים</h2><p>אפשר להזמין הורה רשום או חדש עכשיו, או לדלג ולהמשיך מהדשבורד.</p></div></div>
+        {garden.id ? <ManagerParentInvitationPanel gardenId={garden.id} /> : <div className="notice">פרטי הגן נשמרים. לאחר השמירה ניתן יהיה לשלוח הזמנות.</div>}
+        <div className="manager-optional-setup">
+          <label><input name="children_initialized" type="checkbox" defaultChecked={Boolean(profileData.children_initialized)} /> הוגדרו ילדים או כרטיסי ילד ראשוניים</label>
+          <label><input name="parents_invited" type="checkbox" defaultChecked={Boolean(profileData.parents_invited)} /> נשלחה לפחות הזמנת הורה אחת</label>
+          <div className="manager-onboarding-readiness-actions" aria-label="פעולות שייפתחו לאחר ההפעלה">
+            <span className="pill">ניהול ילדים מלא זמין מיד לאחר תחילת הניסיון</span>
+            <span className="pill">הזמנת צוות זמינה מיד לאחר תחילת הניסיון</span>
+          </div>
+        </div>
+      </section>
+
+      <section className={`manager-wizard-stage ${step === 5 ? "is-active" : ""}`} aria-hidden={step !== 5}>
+        <div className="manager-stage-heading"><CheckCircle2 /><div><h2>השלמת הקמה</h2><p>כניסה לדשבורד ותחילת תקופת ניסיון מבוקרת.</p></div></div>
+        <div className="manager-finish-grid">
+          <article className="manager-registration-card"><h3>מה יופעל עכשיו</h3>{["דשבורד ניהול הגן", "ילדים, הורים, צוות ומסמכים", "14 ימי ניסיון ללא חיוב היום", "תצפיתן דיגיטלי במצב מוכנות בתוך גן בטוח"].map((item) => <p key={item}><CheckCircle2 /> {item}</p>)}</article>
+          <article className="manager-registration-card"><h3>מה נשאר חסום בכוונה</h3>{["תשלום חי עד חיבור ספק ואישור", "צפיית הורים במצלמות עד Gateway, הרשאות ואישור", "AI חי והודעות חיצוניות עד אישור מפורש"].map((item) => <p key={item}><ShieldCheck /> {item}</p>)}</article>
+        </div>
+        <label className="manager-registration-consent"><input type="checkbox" checked={confirmed} onChange={(event) => setConfirmed(event.target.checked)} /> אני מאשרת שהפרטים נכונים ומבקשת להתחיל 14 ימי ניסיון ללא חיוב היום.</label>
+      </section>
+
+      <footer className="manager-wizard-actions">
+        <button type="button" className="button secondary" disabled={step === 1 || Boolean(busy)} onClick={() => void move(step - 1)}><ChevronRight /> חזרה</button>
+        <button type="submit" className="button secondary" disabled={Boolean(busy)}><Save /> {busy === "draft" ? "שומר..." : "שמירת טיוטה"}</button>
+        {step < 5 ? <button type="button" className="button primary" disabled={Boolean(busy)} onClick={() => void move(step + 1)}>{busy === "draft" ? <LoaderCircle className="spin" /> : null} שמירה והמשך <ChevronLeft /></button> : <button type="button" className="button primary" disabled={!confirmed || Boolean(busy)} onClick={() => void save(true, 5)}>{busy === "finish" ? <LoaderCircle className="spin" /> : <CheckCircle2 />} התחלת ניסיון וכניסה לדשבורד</button>}
+        {step === 4 ? <button type="button" className="button text-button" disabled={Boolean(busy)} onClick={() => void move(5)}>דלגי לעת עתה</button> : null}
+        {message ? <span className={message.includes("לא ניתן") || message.includes("חסרים") || message.includes("נכשלה") ? "error-text" : "payment-action-message"}>{message}</span> : null}
+      </footer>
     </form>
   );
 }

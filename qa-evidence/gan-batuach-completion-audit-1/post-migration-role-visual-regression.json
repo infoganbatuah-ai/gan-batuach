@@ -1,0 +1,616 @@
+[
+  {
+    "key": "parent_assigned-post-migration",
+    "route": "/dashboard/parent",
+    "actualUrl": "http://localhost:3004/dashboard/parent",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "דשבורד הורים",
+      "דשבורד הורים"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/parent_assigned-post-migration-dashboard-parent-390x844.png"
+  },
+  {
+    "key": "parent_assigned-post-migration",
+    "route": "/dashboard/parent/cameras",
+    "actualUrl": "http://localhost:3004/dashboard/parent/cameras",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "דשבורד הורים",
+      "מצלמות הגן"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/parent_assigned-post-migration-dashboard-parent-cameras-390x844.png"
+  },
+  {
+    "key": "parent_unassigned-post-migration",
+    "route": "/dashboard/parent",
+    "actualUrl": "http://localhost:3004/dashboard/parent",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "דשבורד הורים",
+      "דשבורד הורים"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/parent_unassigned-post-migration-dashboard-parent-390x844.png"
+  },
+  {
+    "key": "parent_unassigned-post-migration",
+    "route": "/dashboard/parent/family-home",
+    "actualUrl": "http://localhost:3004/dashboard/parent/family-home",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "דשבורד הורים"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/parent_unassigned-post-migration-dashboard-parent-family-home-390x844.png"
+  },
+  {
+    "key": "manager-post-migration",
+    "route": "/dashboard/garden",
+    "actualUrl": "http://localhost:3004/dashboard",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/manager-post-migration-dashboard-garden-390x844.png"
+  },
+  {
+    "key": "manager-post-migration",
+    "route": "/dashboard/garden/cameras",
+    "actualUrl": "http://localhost:3004/dashboard",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/manager-post-migration-dashboard-garden-cameras-390x844.png"
+  },
+  {
+    "key": "staff_assigned-post-migration",
+    "route": "/dashboard/staff",
+    "actualUrl": "http://localhost:3004/dashboard/staff",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "דשבורד צוות",
+      "בוקר טוב, צוות"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/staff_assigned-post-migration-dashboard-staff-390x844.png"
+  },
+  {
+    "key": "staff_assigned-post-migration",
+    "route": "/dashboard/staff/attendance",
+    "actualUrl": "http://localhost:3004/dashboard/staff/attendance",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "דשבורד צוות",
+      "המערכת מזהה שאת/ה בגן"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/staff_assigned-post-migration-dashboard-staff-attendance-390x844.png"
+  },
+  {
+    "key": "staff_unassigned-post-migration",
+    "route": "/dashboard/staff",
+    "actualUrl": "http://localhost:3004/dashboard",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/staff_unassigned-post-migration-dashboard-staff-390x844.png"
+  },
+  {
+    "key": "staff_unassigned-post-migration",
+    "route": "/dashboard/staff/job-market",
+    "actualUrl": "http://localhost:3004/dashboard",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/staff_unassigned-post-migration-dashboard-staff-job-market-390x844.png"
+  },
+  {
+    "key": "inspector_assigned-post-migration",
+    "route": "/dashboard/inspector/control-center",
+    "actualUrl": "http://localhost:3004/dashboard/inspector/control-center",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "גנים מוקצים"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/inspector_assigned-post-migration-dashboard-inspector-control-center-390x844.png"
+  },
+  {
+    "key": "inspector_assigned-post-migration",
+    "route": "/dashboard/inspector/inspections",
+    "actualUrl": "http://localhost:3004/dashboard/inspector/inspections",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "טופס ביקורת חודשית"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/inspector_assigned-post-migration-dashboard-inspector-inspections-390x844.png"
+  },
+  {
+    "key": "inspector_unassigned-post-migration",
+    "route": "/dashboard/inspector/control-center",
+    "actualUrl": "http://localhost:3004/dashboard/inspector/control-center",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "גנים מוקצים"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/inspector_unassigned-post-migration-dashboard-inspector-control-center-390x844.png"
+  },
+  {
+    "key": "inspector_unassigned-post-migration",
+    "route": "/dashboard/inspector/apply",
+    "actualUrl": "http://localhost:3004/dashboard/inspector/apply",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "בקשת מפקח"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/inspector_unassigned-post-migration-dashboard-inspector-apply-390x844.png"
+  },
+  {
+    "key": "admin-post-migration",
+    "route": "/dashboard/admin",
+    "actualUrl": "http://localhost:3004/dashboard/admin",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "דשבורד אדמין ראשי",
+      "דשבורד אדמין ראשי"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": true,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/admin-post-migration-dashboard-admin-390x844.png"
+  },
+  {
+    "key": "admin-post-migration",
+    "route": "/dashboard/admin/provider-production",
+    "actualUrl": "http://localhost:3004/dashboard/admin/provider-production",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "בריאות ספקים",
+      "הפעלת ספקי Production בצורה מבוקרת"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/admin-post-migration-dashboard-admin-provider-production-390x844.png"
+  },
+  {
+    "key": "digital_observer-post-migration",
+    "route": "/digital-observer/dashboard",
+    "actualUrl": "http://localhost:3004/digital-observer/dashboard",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "Digital Observer",
+      "שלום, Digital Observer QA"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/digital_observer-post-migration-digital-observer-dashboard-390x844.png"
+  },
+  {
+    "key": "digital_observer-post-migration",
+    "route": "/digital-observer/sites",
+    "actualUrl": "http://localhost:3004/digital-observer/sites",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "Observer site readiness."
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/digital_observer-post-migration-digital-observer-sites-390x844.png"
+  },
+  {
+    "key": "parent_assigned-post-migration",
+    "route": "/dashboard/parent",
+    "actualUrl": "http://localhost:3004/dashboard/parent",
+    "width": 1440,
+    "height": 900,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "דשבורד הורים",
+      "דשבורד הורים"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/parent_assigned-post-migration-dashboard-parent-1440x900.png"
+  },
+  {
+    "key": "parent_assigned-post-migration",
+    "route": "/dashboard/parent/cameras",
+    "actualUrl": "http://localhost:3004/dashboard/parent/cameras",
+    "width": 1440,
+    "height": 900,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "דשבורד הורים",
+      "מצלמות הגן"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/parent_assigned-post-migration-dashboard-parent-cameras-1440x900.png"
+  },
+  {
+    "key": "parent_unassigned-post-migration",
+    "route": "/dashboard/parent",
+    "actualUrl": "http://localhost:3004/dashboard/parent",
+    "width": 1440,
+    "height": 900,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "דשבורד הורים",
+      "דשבורד הורים"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/parent_unassigned-post-migration-dashboard-parent-1440x900.png"
+  },
+  {
+    "key": "parent_unassigned-post-migration",
+    "route": "/dashboard/parent/family-home",
+    "actualUrl": "http://localhost:3004/dashboard/parent/family-home",
+    "width": 1440,
+    "height": 900,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "דשבורד הורים"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/parent_unassigned-post-migration-dashboard-parent-family-home-1440x900.png"
+  },
+  {
+    "key": "manager-post-migration",
+    "route": "/dashboard/garden",
+    "actualUrl": "http://localhost:3004/dashboard/garden",
+    "width": 1440,
+    "height": 900,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/manager-post-migration-dashboard-garden-1440x900.png"
+  },
+  {
+    "key": "manager-post-migration",
+    "route": "/dashboard/garden/cameras",
+    "actualUrl": "http://localhost:3004/dashboard/garden/cameras",
+    "width": 1440,
+    "height": 900,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "בוקר טוב, רקפת"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/manager-post-migration-dashboard-garden-cameras-1440x900.png"
+  },
+  {
+    "key": "staff_assigned-post-migration",
+    "route": "/dashboard/staff",
+    "actualUrl": "http://localhost:3004/dashboard/staff",
+    "width": 1440,
+    "height": 900,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "דשבורד צוות",
+      "בוקר טוב, צוות"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/staff_assigned-post-migration-dashboard-staff-1440x900.png"
+  },
+  {
+    "key": "staff_assigned-post-migration",
+    "route": "/dashboard/staff/attendance",
+    "actualUrl": "http://localhost:3004/dashboard/staff/attendance",
+    "width": 1440,
+    "height": 900,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "דשבורד צוות",
+      "המערכת מזהה שאת/ה בגן"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/staff_assigned-post-migration-dashboard-staff-attendance-1440x900.png"
+  },
+  {
+    "key": "staff_unassigned-post-migration",
+    "route": "/dashboard/staff",
+    "actualUrl": "http://localhost:3004/dashboard",
+    "width": 1440,
+    "height": 900,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/staff_unassigned-post-migration-dashboard-staff-1440x900.png"
+  },
+  {
+    "key": "staff_unassigned-post-migration",
+    "route": "/dashboard/staff/job-market",
+    "actualUrl": "http://localhost:3004/dashboard",
+    "width": 1440,
+    "height": 900,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/staff_unassigned-post-migration-dashboard-staff-job-market-1440x900.png"
+  },
+  {
+    "key": "inspector_assigned-post-migration",
+    "route": "/dashboard/inspector/control-center",
+    "actualUrl": "http://localhost:3004/dashboard/inspector/control-center",
+    "width": 1440,
+    "height": 900,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "גנים מוקצים"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/inspector_assigned-post-migration-dashboard-inspector-control-center-1440x900.png"
+  },
+  {
+    "key": "inspector_assigned-post-migration",
+    "route": "/dashboard/inspector/inspections",
+    "actualUrl": "http://localhost:3004/dashboard/inspector/inspections",
+    "width": 1440,
+    "height": 900,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "טופס ביקורת חודשית"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/inspector_assigned-post-migration-dashboard-inspector-inspections-1440x900.png"
+  },
+  {
+    "key": "inspector_unassigned-post-migration",
+    "route": "/dashboard/inspector/control-center",
+    "actualUrl": "http://localhost:3004/dashboard/inspector/control-center",
+    "width": 1440,
+    "height": 900,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "גנים מוקצים"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/inspector_unassigned-post-migration-dashboard-inspector-control-center-1440x900.png"
+  },
+  {
+    "key": "inspector_unassigned-post-migration",
+    "route": "/dashboard/inspector/apply",
+    "actualUrl": "http://localhost:3004/dashboard/inspector/apply",
+    "width": 1440,
+    "height": 900,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "בקשת מפקח"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/inspector_unassigned-post-migration-dashboard-inspector-apply-1440x900.png"
+  },
+  {
+    "key": "admin-post-migration",
+    "route": "/dashboard/admin",
+    "actualUrl": "http://localhost:3004/dashboard/admin",
+    "width": 1440,
+    "height": 900,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "דשבורד אדמין ראשי",
+      "דשבורד אדמין ראשי"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": true,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/admin-post-migration-dashboard-admin-1440x900.png"
+  },
+  {
+    "key": "admin-post-migration",
+    "route": "/dashboard/admin/provider-production",
+    "actualUrl": "http://localhost:3004/dashboard/admin/provider-production",
+    "width": 1440,
+    "height": 900,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "בריאות ספקים",
+      "הפעלת ספקי Production בצורה מבוקרת"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/admin-post-migration-dashboard-admin-provider-production-1440x900.png"
+  },
+  {
+    "key": "digital_observer-post-migration",
+    "route": "/digital-observer/dashboard",
+    "actualUrl": "http://localhost:3004/digital-observer/dashboard",
+    "width": 1440,
+    "height": 900,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "Digital Observer",
+      "שלום, מפקחת לא משויכת QA"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/digital_observer-post-migration-digital-observer-dashboard-1440x900.png"
+  },
+  {
+    "key": "digital_observer-post-migration",
+    "route": "/digital-observer/sites",
+    "actualUrl": "http://localhost:3004/digital-observer/sites",
+    "width": 1440,
+    "height": 900,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "Observer site readiness."
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/digital_observer-post-migration-digital-observer-sites-1440x900.png"
+  }
+]

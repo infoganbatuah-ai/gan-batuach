@@ -1,0 +1,2706 @@
+[
+  {
+    "key": "admin",
+    "route": "/dashboard/admin",
+    "actualUrl": "http://localhost:3004/dashboard/admin",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "דשבורד אדמין ראשי",
+      "דשבורד אדמין ראשי"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/ai-events",
+    "actualUrl": "http://localhost:3004/dashboard/admin/ai-events",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "אירועי תצפיתן",
+      "אירועי תצפיתן לבדיקה אנושית."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/ai-governance",
+    "actualUrl": "http://localhost:3004/dashboard/admin/ai-governance",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "AI Governance",
+      "מרכז AI Governance, DPIA ו-Privacy-by-Design"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/ai-observer",
+    "actualUrl": "http://localhost:3004/dashboard/admin/ai-observer",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "תצפיתן AI",
+      "תשתית Worker לתצפיתן הדיגיטלי."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/ai-platform",
+    "actualUrl": "http://localhost:3004/dashboard/admin/ai-platform",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "פלטפורמת AI",
+      "ניהול מודלים, כיול, אימון ובקרה"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/analytics-center",
+    "actualUrl": "http://localhost:3004/dashboard/admin/analytics-center",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "מרכז אנליטיקה",
+      "מרכז אנליטיקה ומודיעין ארצי"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/attendance-compliance",
+    "actualUrl": "http://localhost:3004/dashboard/admin/attendance-compliance",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "ציות נוכחות ואיסוף",
+      "מרכז ציות לנוכחות, זהות הורים ואיסוף ילדים"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/audio-events",
+    "actualUrl": "http://localhost:3004/dashboard/admin/audio-events",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "אינדיקציות שמע",
+      "אינדיקציות שמע לבדיקה."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/audit-logs",
+    "actualUrl": "http://localhost:3004/dashboard/admin/audit-logs",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "טוען מרכז אדמין"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/billing",
+    "actualUrl": "http://localhost:3004/dashboard/admin/billing",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "חיוב והכנסות",
+      "מנוע הכנסות, מנויים שנתיים וחשבוניות"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/business-continuity",
+    "actualUrl": "http://localhost:3004/dashboard/admin/business-continuity",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "המשכיות עסקית",
+      "המערכת נשארת זמינה גם כשמשהו מתקלקל"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/camera-ai",
+    "actualUrl": "http://localhost:3004/dashboard/admin/camera-ai",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "מצלמות ותצפיתן",
+      "מרכז מעבר למצלמות ולתצפיתן הדיגיטלי."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/camera-audit",
+    "actualUrl": "http://localhost:3004/dashboard/admin/camera-audit",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Camera Audit",
+      "אודיט תשתית מצלמות."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/camera-compliance",
+    "actualUrl": "http://localhost:3004/dashboard/admin/camera-compliance",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "ציות מצלמות",
+      "מרכז ציות לצפיית הורים במצלמות"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/camera-deployment",
+    "actualUrl": "http://localhost:3004/dashboard/admin/camera-deployment",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "פריסת מצלמות",
+      "פריסת מצלמות ו-Gateway"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/camera-gateway",
+    "actualUrl": "http://localhost:3004/dashboard/admin/camera-gateway",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Camera Gateway",
+      "מרכז חיבור מצלמות אמיתי"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/camera-infrastructure",
+    "actualUrl": "http://localhost:3004/dashboard/admin/camera-infrastructure",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Camera Infrastructure",
+      "תשתית מצלמות מוכנה לייצור."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/camera-permissions",
+    "actualUrl": "http://localhost:3004/dashboard/admin/camera-permissions",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "הרשאות מצלמה",
+      "הרשאות צפיית הורים במצלמות."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/cameras",
+    "actualUrl": "http://localhost:3004/dashboard/admin/cameras",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "תפעול מצלמות ו-AI",
+      "מרכז תשתיות מצלמות ותצפיתן"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/capability-legal-review",
+    "actualUrl": "http://localhost:3004/dashboard/admin/capability-legal-review",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Capability Legal Review",
+      "מטריצת יכולות משפטית והחלטת השקה לוורטיקלים"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/commercial-launch",
+    "actualUrl": "http://localhost:3004/dashboard/admin/commercial-launch",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Commercial Launch",
+      "מוכנות מסחרית ומכירות"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/commercial-rollout",
+    "actualUrl": "http://localhost:3004/dashboard/admin/commercial-rollout",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Commercial Rollout",
+      "רולאאוט מסחרי מבוקר ל־10–25 גנים"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/communication",
+    "actualUrl": "http://localhost:3004/dashboard/admin/communication",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "תקשורת מערכת",
+      "SMS, WhatsApp ו-Email במצב בדיקה."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/communications",
+    "actualUrl": "http://localhost:3004/dashboard/admin/communications",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "מרכז תקשורת",
+      "כל השיחות והערוצים במקום אחד"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/company-operations",
+    "actualUrl": "http://localhost:3004/dashboard/admin/company-operations",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Company Operations",
+      "מערכת ההפעלה של החברה אחרי Phase 190"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/complaints",
+    "actualUrl": "http://localhost:3004/dashboard/admin/complaints",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "דיווחים ופניות",
+      "דיווחים, תלונות ופניות מכל המערכת."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/compliance-center",
+    "actualUrl": "http://localhost:3004/dashboard/admin/compliance-center",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Compliance Center",
+      "מרכז ציות חכם"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/correlated-events",
+    "actualUrl": "http://localhost:3004/dashboard/admin/correlated-events",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "צירי זמן",
+      "צירי זמן בין מצלמות וחיישנים."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/customer-success",
+    "actualUrl": "http://localhost:3004/dashboard/admin/customer-success",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Customer Success",
+      "מרכז הצלחת לקוחות, תמיכה והדרכה"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/database-integrity",
+    "actualUrl": "http://localhost:3004/dashboard/admin/database-integrity",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Database Integrity",
+      "מרכז יציבות מיגרציות ושלמות בסיס הנתונים"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/demo-control",
+    "actualUrl": "http://localhost:3004/dashboard/admin/demo-control",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Demo Control",
+      "מרכז שליטה לנתוני דמו ובדיקות תפעוליות."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/digital-observer",
+    "actualUrl": "http://localhost:3004/dashboard/admin/digital-observer",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Digital Observer",
+      "Digital Observer admin overview."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/digital-observer-beta-analytics",
+    "actualUrl": "http://localhost:3004/dashboard/admin/digital-observer-beta-analytics",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Digital Observer Beta Analytics",
+      "Revenue, setup, alert value and product-market fit."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/digital-observer-core",
+    "actualUrl": "http://localhost:3004/dashboard/admin/digital-observer-core",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Digital Observer Core",
+      "מרכז הפרדת תצפיתן דיגיטלי לוורטיקלים"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/digital-observer-growth",
+    "actualUrl": "http://localhost:3004/dashboard/admin/digital-observer-growth",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Digital Observer Growth",
+      "Digital Observer acquisition and conversion readiness."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/digital-observer-launch",
+    "actualUrl": "http://localhost:3004/dashboard/admin/digital-observer-launch",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Digital Observer Launch",
+      "Digital Observer launch command center."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/digital-observer-leads",
+    "actualUrl": "http://localhost:3004/dashboard/admin/digital-observer-leads",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Digital Observer Leads",
+      "Digital Observer lead funnel."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/digital-observer-paid-beta",
+    "actualUrl": "http://localhost:3004/dashboard/admin/digital-observer-paid-beta",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Digital Observer Paid Beta",
+      "Digital Observer paid beta command center."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/digital-observer-pilot",
+    "actualUrl": "http://localhost:3004/dashboard/admin/digital-observer-pilot",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Digital Observer Pilot",
+      "First home / business Digital Observer pilot."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/digital-observer-production-setup",
+    "actualUrl": "http://localhost:3004/dashboard/admin/digital-observer-production-setup",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Digital Observer Production Setup",
+      "Digital Observer production separation readiness."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/digital-observer-separation",
+    "actualUrl": "http://localhost:3004/dashboard/admin/digital-observer-separation",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Digital Observer Separation",
+      "Digital Observer separation readiness."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/digital-observer-stabilization",
+    "actualUrl": "http://localhost:3004/dashboard/admin/digital-observer-stabilization",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Digital Observer Stabilization",
+      "Digital Observer launch decision center."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/document-center",
+    "actualUrl": "http://localhost:3004/dashboard/admin/document-center",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "מרכז מסמכים",
+      "כל המסמכים, הראיות והדוחות במקום אחד"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/documents",
+    "actualUrl": "http://localhost:3004/dashboard/admin/documents",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "מסמכים",
+      "מרכז מסמכים מלא."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/duplicates",
+    "actualUrl": "http://localhost:3004/dashboard/admin/duplicates",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "איתור כפילויות",
+      "איתור כפילויות לפי תעודת זהות."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/email-production",
+    "actualUrl": "http://localhost:3004/dashboard/admin/email-production",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Email Production",
+      "תשתית אימייל מוכנה להפעלה מבוקרת."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/enterprise",
+    "actualUrl": "http://localhost:3004/dashboard/admin/enterprise",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "ניהול ארגוני",
+      "ניהול רשתות, אזורים ופעילות ארגונית"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/external-validation",
+    "actualUrl": "http://localhost:3004/dashboard/admin/external-validation",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "External Validation",
+      "אימות חיצוני לפני Production מלא"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/final-compliance-review",
+    "actualUrl": "http://localhost:3004/dashboard/admin/final-compliance-review",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Final Compliance Review",
+      "סקירת רגולציה, פרטיות, אבטחה והשקה סופית"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/final-production-launch",
+    "actualUrl": "http://localhost:3004/dashboard/admin/final-production-launch",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Final Production Launch",
+      "מרכז החלטת Go-Live סופי"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/first-pilot",
+    "actualUrl": "http://localhost:3004/dashboard/admin/first-pilot",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "First Pilot",
+      "פיילוט גן ראשון"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/gardens",
+    "actualUrl": "http://localhost:3004/dashboard/admin/gardens",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "גנים",
+      "ספריית גנים נקייה."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/growth",
+    "actualUrl": "http://localhost:3004/dashboard/admin/growth",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Growth",
+      "צמיחה, ביקוש הורים והמרת גנים."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/identity-security",
+    "actualUrl": "http://localhost:3004/dashboard/admin/identity-security",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Identity Security",
+      "מרכז אבטחת זהות ו-MFA."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/incident-center",
+    "actualUrl": "http://localhost:3004/dashboard/admin/incident-center",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Incident Center",
+      "מרכז תיקי אירוע"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/inspection-forms",
+    "actualUrl": "http://localhost:3004/dashboard/admin/inspection-forms",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "ניהול טפסי פיקוח",
+      "בונה טפסי פיקוח ברור, דינמי ומוכן לשימוש פקחים."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/inspection-workforce",
+    "actualUrl": "http://localhost:3004/dashboard/admin/inspection-workforce",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Inspection Workforce",
+      "תפעול כוח אדם ארצי למפקחים"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/inspections",
+    "actualUrl": "http://localhost:3004/dashboard/admin/inspections",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "ביקורות",
+      "כל ביקורות הפיקוח במערכת."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": true
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/inspections/due",
+    "actualUrl": "http://localhost:3004/dashboard/admin/inspections/due",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "פיקוח בקרוב",
+      "גנים שצריכים לבצע פיקוח בקרוב."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/inspections/late",
+    "actualUrl": "http://localhost:3004/dashboard/admin/inspections/late",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "פיקוח באיחור",
+      "גנים שמאחרים בביצוע פיקוח."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/inspector-applications",
+    "actualUrl": "http://localhost:3004/dashboard/admin/inspector-applications",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "בקשות מפקחים",
+      "אישור מועמדים למערך המפקחים."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/inspectors",
+    "actualUrl": "http://localhost:3004/dashboard/admin/inspectors",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "ניהול מפקחים"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": true
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/integrations",
+    "actualUrl": "http://localhost:3004/dashboard/admin/integrations",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Production Integrations",
+      "הפעלה מבוקרת של ספקי ייצור"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/iso-certification-handoff",
+    "actualUrl": "http://localhost:3004/dashboard/admin/iso-certification-handoff",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "ISO Certification Handoff",
+      "מסירת ISO ליועץ, מבקר וגוף הסמכה"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/iso-evidence",
+    "actualUrl": "http://localhost:3004/dashboard/admin/iso-evidence",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "ISO Evidence",
+      "מרכז ראיות, מדיניות ותיק ביקורת ISO"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/iso-readiness",
+    "actualUrl": "http://localhost:3004/dashboard/admin/iso-readiness",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "ISO Readiness",
+      "מרכז מוכנות ISO 27001, 27017 ו-27701"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/join-requests",
+    "actualUrl": "http://localhost:3004/dashboard/admin/join-requests",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "בקשות הצטרפות",
+      "לידים מגנים, מפקחים והורים עם המרה למשתמש פעיל."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/kindergarten-activation",
+    "actualUrl": "http://localhost:3004/dashboard/admin/kindergarten-activation",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "הפעלת גנים",
+      "אישור, אונבורדינג ותשלום עד הפעלה מלאה"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/kindergarten-analytics",
+    "actualUrl": "http://localhost:3004/dashboard/admin/kindergarten-analytics",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "אנליטיקת גנים",
+      "גנים לפי עיר ומחוז תפעולי"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/kindergarten-applications",
+    "actualUrl": "http://localhost:3004/dashboard/admin/kindergarten-applications",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "אישורי גנים חדשים"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/kindergartens",
+    "actualUrl": "http://localhost:3004/dashboard/admin/kindergartens",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "גנים",
+      "ספריית גני הילדים המלאה."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/launch-readiness",
+    "actualUrl": "http://localhost:3004/dashboard/admin/launch-readiness",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Launch Readiness",
+      "מוכנות לפיילוט והשקה."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/leads",
+    "actualUrl": "http://localhost:3004/dashboard/admin/leads",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "לידים והמרות",
+      "בקשה, כניסה, פרופיל, אישור."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/legal-review",
+    "actualUrl": "http://localhost:3004/dashboard/admin/legal-review",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Legal Review",
+      "חבילת סקירה משפטית, פרטיות ורגולציה"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/master-qa",
+    "actualUrl": "http://localhost:3004/dashboard/admin/master-qa",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Master QA",
+      "מרכז QA מקצה לקצה וייצוב באגים"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/migrations",
+    "actualUrl": "http://localhost:3004/dashboard/admin/migrations",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "מרכז מיגרציות",
+      "מעבר מהיר ובטוח לגן בטוח"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/mobile-audit",
+    "actualUrl": "http://localhost:3004/dashboard/admin/mobile-audit",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Mobile Audit",
+      "בדיקת חוויית מובייל."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/mobile-platform",
+    "actualUrl": "http://localhost:3004/dashboard/admin/mobile-platform",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "אפליקציות מובייל",
+      "מוכנות iOS, Android, Push וחנויות"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/mobile-release",
+    "actualUrl": "http://localhost:3004/dashboard/admin/mobile-release",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Mobile Release",
+      "מוכנות הגשה לאפל וגוגל"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/mobile-submission",
+    "actualUrl": "http://localhost:3004/dashboard/admin/mobile-submission",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Mobile Submission",
+      "הגשה מבוקרת ל-App Store ול-Google Play"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/national-inspections",
+    "actualUrl": "http://localhost:3004/dashboard/admin/national-inspections",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "National Inspections",
+      "רשת פיקוח ארצית"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/navigation-health",
+    "actualUrl": "http://localhost:3004/dashboard/admin/navigation-health",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "טוען מרכז אדמין"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/notices",
+    "actualUrl": "http://localhost:3004/dashboard/admin/notices",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "הודעות וקמפיינים",
+      "פרסום הודעות, קמפיינים והתראות חירום."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/notifications",
+    "actualUrl": "http://localhost:3004/dashboard/admin/notifications",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "מרכז התראות"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/observer-billing",
+    "actualUrl": "http://localhost:3004/dashboard/admin/observer-billing",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Observer Billing",
+      "Billing automation ל-Digital Observer העצמאי."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/observer-calibration",
+    "actualUrl": "http://localhost:3004/dashboard/admin/observer-calibration",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "כיול תצפיתן",
+      "כיול, מדידה ואימון תצפיתן"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/observer-intelligence",
+    "actualUrl": "http://localhost:3004/dashboard/admin/observer-intelligence",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "סיכומי תצפיתן",
+      "כל סיכומי התצפיתן במקום אחד."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/observer-learning",
+    "actualUrl": "http://localhost:3004/dashboard/admin/observer-learning",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "למידת תצפיתן",
+      "פרופילי למידה, אזורים ושגרות גן."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/observer-learning-advanced",
+    "actualUrl": "http://localhost:3004/dashboard/admin/observer-learning-advanced",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Advanced Learning",
+      "Baselines, maturity, anomaly readiness."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/observer-network",
+    "actualUrl": "http://localhost:3004/dashboard/admin/observer-network",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Observer Network",
+      "רשת מודיעין בטיחות מאוחדת"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/observer-packages",
+    "actualUrl": "http://localhost:3004/dashboard/admin/observer-packages",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Observer Packages",
+      "חבילות Digital Observer למוצר העצמאי העתידי."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/observer-pilot",
+    "actualUrl": "http://localhost:3004/dashboard/admin/observer-pilot",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "AI Observer Pilot",
+      "פיילוט תצפיתן AI במצב Shadow"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/observer-platform",
+    "actualUrl": "http://localhost:3004/dashboard/admin/observer-platform",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Observer Platform",
+      "תשתית multi-site לתצפיתן הדיגיטלי."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/observer-replay",
+    "actualUrl": "http://localhost:3004/dashboard/admin/observer-replay",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Replay תצפיתן",
+      "Replay והבנת אירועים"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/observer-test-center",
+    "actualUrl": "http://localhost:3004/dashboard/admin/observer-test-center",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Observer Test Center",
+      "בדיקה וכיול לתצפיתן"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/observer-watch",
+    "actualUrl": "http://localhost:3004/dashboard/admin/observer-watch",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Observer Watch",
+      "בקשות מעקב מותאמות לתצפיתן."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/onboarding",
+    "actualUrl": "http://localhost:3004/dashboard/admin/onboarding",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "פתיחת משתמשים",
+      "פתיחת גנים, מנהלות ופקחים בתהליך קצר וברור."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/pilot-center",
+    "actualUrl": "http://localhost:3004/dashboard/admin/pilot-center",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Pilot Center",
+      "מרכז ניהול פיילוט."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/pilot-health",
+    "actualUrl": "http://localhost:3004/dashboard/admin/pilot-health",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Pilot Health",
+      "בריאות פיילוט ראשון"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/pilot-readiness",
+    "actualUrl": "http://localhost:3004/dashboard/admin/pilot-readiness",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "מוכנות פיילוט",
+      "מוכנות לפיילוט אמיתי."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/policies",
+    "actualUrl": "http://localhost:3004/dashboard/admin/policies",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "תקנונים",
+      "ניהול תקנונים ואישורי משתמשים."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/predictive-safety",
+    "actualUrl": "http://localhost:3004/dashboard/admin/predictive-safety",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "בטיחות חזויה",
+      "מרכז בטיחות ומניעה חזויה"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/privacy-rights",
+    "actualUrl": "http://localhost:3004/dashboard/admin/privacy-rights",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Privacy Rights",
+      "מרכז זכויות פרטיות, שימור ומחיקה."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/procedures",
+    "actualUrl": "http://localhost:3004/dashboard/admin/procedures",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "ניהול נהלים",
+      "מסך ניהול נהלים אמיתי, לא JSON."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/provider-production",
+    "actualUrl": "http://localhost:3004/dashboard/admin/provider-production",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "בריאות ספקים",
+      "הפעלת ספקי Production בצורה מבוקרת"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/push",
+    "actualUrl": "http://localhost:3004/dashboard/admin/push",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Push Notifications",
+      "אבחון Push ל-Web, Android ו-iOS."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/push-production",
+    "actualUrl": "http://localhost:3004/dashboard/admin/push-production",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Push Production",
+      "תשתית Push מוכנה לייצור מבוקר."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/qa-checklist",
+    "actualUrl": "http://localhost:3004/dashboard/admin/qa-checklist",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "QA Checklist",
+      "רשימת בדיקה לסביבת דמו מלאה."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/rating-system",
+    "actualUrl": "http://localhost:3004/dashboard/admin/rating-system",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "מערכת דירוג",
+      "מערכת הדירוג הרשמית של גן בטוח"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/regional-scale-up",
+    "actualUrl": "http://localhost:3004/dashboard/admin/regional-scale-up",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Regional Scale-Up",
+      "סקייל אזורי מבוקר ל־50–100 גנים"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/regulatory",
+    "actualUrl": "http://localhost:3004/dashboard/admin/regulatory",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "רגולציה",
+      "מרכז רגולציה, פרטיות והפעלת יכולות"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/reports",
+    "actualUrl": "http://localhost:3004/dashboard/admin/reports",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "דוחות וניתוח נתונים"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/requests",
+    "actualUrl": "http://localhost:3004/dashboard/admin/requests",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "בקשות משתמשים",
+      "מרכז בקשות הרשמה ושיוך."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/risk-intelligence",
+    "actualUrl": "http://localhost:3004/dashboard/admin/risk-intelligence",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Risk Intelligence",
+      "מרכז מודיעין סיכונים"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/scale-100",
+    "actualUrl": "http://localhost:3004/dashboard/admin/scale-100",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "100 Kindergarten Scale",
+      "תוכנית סקייל מבוקרת ל־100 גנים"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/scale-validation",
+    "actualUrl": "http://localhost:3004/dashboard/admin/scale-validation",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Scale Validation",
+      "מוכנות הרחבה לריבוי גנים"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/security",
+    "actualUrl": "http://localhost:3004/dashboard/admin/security",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Security Center",
+      "מרכז אבטחה, פרטיות ותאימות גבוהה."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/security-center",
+    "actualUrl": "http://localhost:3004/dashboard/admin/security-center",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Security Command Center",
+      "מרכז פיקוד אבטחה"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/security-pipeline",
+    "actualUrl": "http://localhost:3004/dashboard/admin/security-pipeline",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Security Pipeline",
+      "מרכז Security Pipeline."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/security-review",
+    "actualUrl": "http://localhost:3004/dashboard/admin/security-review",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Security Review",
+      "מרכז הכנה לבדיקת חדירה חיצונית"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/service-charter",
+    "actualUrl": "http://localhost:3004/dashboard/admin/service-charter",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "אמנת השירות",
+      "אמנת השירות של גן בטוח"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/settings",
+    "actualUrl": "http://localhost:3004/dashboard/admin/settings",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "הגדרות אדמין",
+      "שלום, מנהל המערכת [DEMO] אדמין הדגמה גן בטוח"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/simplicity-audit",
+    "actualUrl": "http://localhost:3004/dashboard/admin/simplicity-audit",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Simplicity Audit",
+      "בדיקת פשטות שימוש למנהלת, צוות והורים."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/skeleton-analytics",
+    "actualUrl": "http://localhost:3004/dashboard/admin/skeleton-analytics",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Skeleton Analytics",
+      "מרכז Skeleton Analytics ותנועת תצפיתן אנונימית"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/smart-engine-audit",
+    "actualUrl": "http://localhost:3004/dashboard/admin/smart-engine-audit",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Smart Engine Audit",
+      "אודיט מנוע תובנות חכמות."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/sms",
+    "actualUrl": "http://localhost:3004/dashboard/admin/sms",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "SMS",
+      "תשתית SMS מוכנה לבדיקה."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/subscriptions",
+    "actualUrl": "http://localhost:3004/dashboard/admin/subscriptions",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "מנויים ותשלומים"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/system-health",
+    "actualUrl": "http://localhost:3004/dashboard/admin/system-health",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "בריאות מערכת",
+      "מה חסר כדי שהמערכת תהיה מוכנה להפעלה מלאה?"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/tasks",
+    "actualUrl": "http://localhost:3004/dashboard/admin/tasks",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "משימות",
+      "יצירת משימות ומעקב ביצוע."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/user-journey-audit",
+    "actualUrl": "http://localhost:3004/dashboard/admin/user-journey-audit",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "User Journey Audit",
+      "בדיקת מסעות משתמש מרכזיים."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/users",
+    "actualUrl": "http://localhost:3004/dashboard/admin/users",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "ניהול משתמשים"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/users/new-inspector",
+    "actualUrl": "http://localhost:3004/dashboard/admin/users/new-inspector",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "הוספת מפקח",
+      "השלמת פרטים לפני יצירת פקח פעיל."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/users/new-kindergarten",
+    "actualUrl": "http://localhost:3004/dashboard/admin/users/new-kindergarten",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "הוספת גן ילדים",
+      "השלמת פרטים לפני המרה לגן פעיל."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/video-gateway",
+    "actualUrl": "http://localhost:3004/dashboard/admin/video-gateway",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Video Gateway",
+      "תשתית Live Video Gateway."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/vision-ai",
+    "actualUrl": "http://localhost:3004/dashboard/admin/vision-ai",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Vision AI",
+      "זיהוי חזותי מוכן לייצור במצב בטוח."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/whatsapp",
+    "actualUrl": "http://localhost:3004/dashboard/admin/whatsapp",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "WhatsApp",
+      "תשתית WhatsApp מוכנה לבדיקה."
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "admin",
+    "route": "/dashboard/admin/workflows",
+    "actualUrl": "http://localhost:3004/dashboard/admin/workflows",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [
+      "סגירה"
+    ],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "Workflows",
+      "כל המשימות והתהליכים במקום אחד"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  }
+]

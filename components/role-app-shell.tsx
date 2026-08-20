@@ -193,7 +193,7 @@ export function RoleAppShell({
       <div className="role-app-brand">
         <Link className="role-app-logo" href={config.homeHref} aria-label="גן בטוח">
           <Image src="/assets/company-symbol.png" alt="" width={54} height={54} style={{ height: "auto" }} priority />
-          <Image src="/assets/company-name.png" alt="גן בטוח" width={174} height={60} style={{ height: "auto" }} priority />
+          <Image src="/assets/company-name.png" alt="גן בטוח" width={620} height={210} style={{ height: "auto" }} priority />
         </Link>
       </div>
       <div className="role-app-header-meta">
@@ -212,7 +212,7 @@ export function RoleAppShell({
             <ChevronLeft size={24} />
           </Link>
         ) : null}
-        <Link className="role-app-avatar" href={config.settingsHref} aria-label="פרופיל">
+        <Link className="role-app-avatar" href={config.settingsHref} aria-label="פתיחת הפרופיל בתוך המסך" data-live-panel="profile">
           {profile?.profile_image_url ? <img src={profile.profile_image_url} alt="" /> : <span>{firstLetter}</span>}
         </Link>
         <Link className="role-app-icon-button" href={config.notificationsHref} aria-label="התראות">

@@ -1,0 +1,33 @@
+{
+  "date": "2026-08-20",
+  "environment": "demo-synthetic",
+  "assignedInspectorDesktop": {
+    "route": "/dashboard/inspector/control-center",
+    "viewportWidth": 1440,
+    "documentWidth": 1440,
+    "clippedControls": 0,
+    "result": "PASS"
+  },
+  "assignedInspectorMobile": {
+    "route": "/dashboard/inspector/control-center",
+    "viewportWidth": 390,
+    "documentWidth": 390,
+    "clippedControls": 0,
+    "result": "PASS"
+  },
+  "unassignedInspectorMobile": {
+    "route": "/dashboard/inspector/apply",
+    "viewportWidth": 390,
+    "documentWidth": 390,
+    "clippedControls": 0,
+    "result": "PASS"
+  },
+  "assignedParentDesktop": {
+    "route": "/dashboard/parent/family-home",
+    "viewportWidth": 1440,
+    "documentWidth": 1440,
+    "clippedControls": 0,
+    "stuckLoadingState": false,
+    "result": "PASS"
+  }
+}

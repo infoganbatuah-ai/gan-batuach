@@ -115,6 +115,9 @@ export async function registerAiObservation(payload: z.infer<typeof aiObservatio
 
   let snapshotId: string | null = null;
   if (parsed.snapshot_storage_path) {
+    if (process.env.CAMERA_SNAPSHOT_STORAGE_RLS_VERIFIED !== "true") {
+      throw new Error("Camera snapshot ingestion is locked until the private storage policy migration is applied and verified.");
+    }
     const { data: snapshot, error: snapshotError } = await supabase
       .from("camera_snapshots")
       .insert({

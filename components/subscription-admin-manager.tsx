@@ -1,6 +1,7 @@
 "use client";
 
 import { useMemo, useState, type FormEvent } from "react";
+import { useRouter } from "next/navigation";
 import { CreditCard, RefreshCw, Save } from "lucide-react";
 import { CollapsibleActionPanel } from "@/components/collapsible-action-panel";
 
@@ -35,9 +36,11 @@ async function postJson(url: string, payload: Record<string, unknown>) {
 }
 
 export function SubscriptionAdminManager({ plans, subscriptions, gardens, payments }: { plans: any[]; subscriptions: any[]; gardens: any[]; payments: any[] }) {
+  const router = useRouter();
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  const activeCount = subscriptions.filter((item) => ["active", "trial", "demo_active"].includes(item.status)).length;
+  const activeCount = subscriptions.filter((item) => item.status === "active").length;
+  const trialCount = subscriptions.filter((item) => ["trial", "demo_active"].includes(item.status)).length;
   const failedCount = payments.filter((item) => item.billing_status === "failed").length;
   const expiredCount = subscriptions.filter((item) => ["expired", "suspended", "frozen", "payment_failed"].includes(item.status)).length;
   const defaultPlan = plans[0];
@@ -70,7 +73,7 @@ export function SubscriptionAdminManager({ plans, subscriptions, gardens, paymen
       });
       setMessage("תוכנית המנוי נשמרה");
       close();
-      window.location.reload();
+      router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "לא ניתן לשמור תוכנית");
     }
@@ -101,7 +104,7 @@ export function SubscriptionAdminManager({ plans, subscriptions, gardens, paymen
       });
       setMessage("מנוי הגן נשמר");
       close();
-      window.location.reload();
+      router.refresh();
     } catch (err) {
       setError(err instanceof Error ? err.message : "לא ניתן לשמור מנוי");
     }
@@ -112,10 +115,10 @@ export function SubscriptionAdminManager({ plans, subscriptions, gardens, paymen
       {message ? <div className="success-banner">{message}</div> : null}
       {error ? <div className="error-banner">{error}</div> : null}
       <section className="grid cols-4 dashboard-panels">
-        <article className="card metric-card"><span>מנויים פעילים/דמו</span><strong>{activeCount}</strong></article>
+        <article className="card metric-card"><span>מנויים משלמים פעילים</span><strong>{activeCount}</strong></article>
+        <article className="card metric-card"><span>ניסיון / דמו</span><strong>{trialCount}</strong></article>
         <article className="card metric-card"><span>מוקפאים/כשלים</span><strong>{expiredCount}</strong></article>
         <article className="card metric-card"><span>תשלומים שנכשלו</span><strong>{failedCount}</strong></article>
-        <article className="card metric-card"><span>תוכניות</span><strong>{plans.length}</strong></article>
       </section>
 
       <CollapsibleActionPanel title="יצירת תוכנית מנוי" buttonLabel="תוכנית חדשה" description="מודל Gan Batuach הוא מנוי שנתי לגן. Enterprise מיועד לרשתות גדולות בעתיד.">

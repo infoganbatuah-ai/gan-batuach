@@ -176,8 +176,8 @@ export function GardenProvisioningPanel({ pendingChildren, parentLeads, pendingS
     event.preventDefault(); const form = event.currentTarget; setBusy(true); setError(null);
     try {
       const data = jsonFromForm(form);
-      const response = await postJson("/api/garden/create-parent", { full_name: String(data.full_name), email: String(data.email), phone: String(data.phone || ""), identity_number: String(data.identity_number || ""), address: String(data.address || ""), lead_id: String(data.lead_id || "") || undefined });
-      setResult({ title: "הורה נוצר בהצלחה", message: "ההורה יכול להתחבר ומיד למלא את אשף רישום הילד.", credentials: response.credentials });
+      const response = await postJson("/api/garden/parent-invitations", { full_name: String(data.full_name), email: String(data.email), phone: String(data.phone || "") });
+      setResult({ title: "הזמנת הורה נוצרה", message: response.account_created ? "נוצר חשבון הזמנה. ההורה חייב להתחבר, ליצור כרטיס ילד ולאשר את השיוך." : "ההזמנה מחכה לאישור בחשבון ההורה הקיים." });
       form.reset();
     } catch (err) { setError(err instanceof Error ? err.message : "הפעולה נכשלה"); } finally { setBusy(false); }
   }
@@ -215,9 +215,9 @@ export function GardenProvisioningPanel({ pendingChildren, parentLeads, pendingS
       <CredentialSuccess result={result} /><ErrorBox error={error} />
       <section className="grid cols-2 dashboard-panels">
         <form className="card form wizard-form" onSubmit={submitParent}>
-          <h2>יצירת הורה</h2><p>לאחר היצירה ההורה יתחבר ויועבר לאשף רישום הילד.</p>
-          <div className="form-grid"><label>שם מלא<input name="full_name" required /></label><label>מייל<input name="email" type="email" required /></label><label>טלפון<input name="phone" required /></label><label>תעודת זהות<input name="identity_number" /></label><label className="wide">כתובת<input name="address" /></label><label className="wide">חיבור לליד קיים<select name="lead_id"><option value="">ללא ליד</option>{parentLeads.map((lead) => <option key={lead.id} value={lead.id}>{lead.parent_name ?? "הורה"} · {lead.phone ?? ""}</option>)}</select></label></div>
-          <button className="button primary large" disabled={busy}>יצירת משתמש הורה</button>
+          <h2>הזמנת הורה</h2><p>הורה קיים יקבל הזמנה בחשבון. להורה חדש ייווצר חשבון סינתטי/מוזמן, אך השיוך לגן יקרה רק לאחר אישורו ובחירת ילד.</p>
+          <div className="form-grid"><label>שם מלא<input name="full_name" required /></label><label>מייל<input name="email" type="email" required /></label><label>טלפון<input name="phone" required /></label><label className="wide">ליד מקור<select name="lead_id"><option value="">ללא ליד</option>{parentLeads.map((lead) => <option key={lead.id} value={lead.id}>{lead.parent_name ?? "הורה"} · {lead.phone ?? ""}</option>)}</select></label></div>
+          <button className="button primary large" disabled={busy}>שליחת הזמנה לאישור ההורה</button>
         </form>
         <form className="card form wizard-form" onSubmit={submitStaff}>
           <h2>יצירת צוות</h2><p>המשתמש יישאר בתהליך אישור עד תעודת יושר ובדיקת רקע תקפות.</p>

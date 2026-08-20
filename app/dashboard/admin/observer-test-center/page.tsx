@@ -135,6 +135,7 @@ export default async function ObserverTestCenterPage() {
           <ObserverTestCenterReviewPanel events={allEvents.slice(0, 40)} />
         </div>
 
+        <div id="models">
         <CleanSection title="Future model readiness" subtitle="מוכן לתשתית, לא מופעל בפרודקשן." action={<StatusBadge tone="warn">Shadow only</StatusBadge>}>
           <div className="procedure-list">
             {result.data.providers.length === 0 ? <div className="empty-state"><strong>אין ספקי מודלים</strong><span>מיגרציות vision מוסיפות ספקי mock/local.</span></div> : result.data.providers.map((provider: any) => (
@@ -145,6 +146,7 @@ export default async function ObserverTestCenterPage() {
             ))}
           </div>
         </CleanSection>
+        </div>
       </div>
     </DashboardShell>
   );

@@ -28,12 +28,12 @@ export default async function StaffCamerasPage() {
   }
   const camerasRes = await supabase
     .from("camera_streams" as any)
-    .select("id, garden_id, kindergarten_id, name, area, camera_type, source_type, protocol, status, active, staff_view_allowed, hls_playback_url, sample_hls_url, webrtc_playback_url, gateway_stream_id, video_gateway_stream_id, last_health_check_at, gardens(name, city)")
+    .select("id, garden_id, kindergarten_id, name, area, camera_type, source_type, protocol, status, active, staff_view_allowed, gateway_stream_id, video_gateway_stream_id, live_preview_status, playback_hls_ready, playback_webrtc_ready, last_health_check_at, gardens(name, city)")
     .eq("garden_id", gardenId)
     .eq("active", true)
     .eq("staff_view_allowed", true);
   const cameras = (camerasRes.data ?? []) as any[];
-  const hasPlaybackSource = (camera: any) => Boolean(camera.hls_playback_url || camera.sample_hls_url || camera.webrtc_playback_url || camera.gateway_stream_id || camera.video_gateway_stream_id);
+  const hasPlaybackSource = (camera: any) => Boolean(camera.playback_hls_ready || camera.playback_webrtc_ready || camera.live_preview_status === "ready" || camera.gateway_stream_id || camera.video_gateway_stream_id);
   const statusLabel: Record<string, string> = {
     online: "זמינה",
     connected: "זמינה",

@@ -25,7 +25,7 @@ export default async function AdminInspectorsPage() {
   const result = await safeAdminData("מפקחים", async () => {
     const supabase = await createClient();
     const [inspectorsRes, gardensRes, inspectionsRes, tasksRes] = await Promise.all([
-      supabase.from("inspectors" as any).select("id, service_cities, certification_notes, created_at, profiles:id(full_name, phone, email, active, profile_image_url)"),
+      supabase.from("inspectors" as any).select("id, service_cities, certification_notes, created_at, profiles!inspectors_id_fkey(full_name, phone, email, active, profile_image_url)"),
       supabase.from("gardens" as any).select("id, name, city, inspector_id"),
       supabase.from("inspections" as any).select("id, inspector_id, garden_id, completed_at, weighted_score, status, gardens:garden_id(name,city)").order("completed_at", { ascending: false }),
       supabase.from("tasks" as any).select("id, assigned_to, status").neq("status", "done")

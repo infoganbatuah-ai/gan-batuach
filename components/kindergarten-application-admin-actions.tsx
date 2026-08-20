@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
 
 const labels: Record<string, string> = {
   activation_in_progress: "טיוטה / בהשלמה",
@@ -25,6 +26,7 @@ async function postAction(payload: Record<string, unknown>) {
 }
 
 export function KindergartenApplicationAdminActions({ gardenId, status }: { gardenId: string; status?: string | null }) {
+  const router = useRouter();
   const [busy, setBusy] = useState("");
   const [note, setNote] = useState("");
   const [message, setMessage] = useState("");
@@ -36,7 +38,7 @@ export function KindergartenApplicationAdminActions({ gardenId, status }: { gard
     try {
       await postAction({ action, garden_id: gardenId, note });
       setMessage(success);
-      window.location.reload();
+      router.refresh();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "הפעולה נכשלה");
     } finally {

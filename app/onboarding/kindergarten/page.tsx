@@ -3,7 +3,7 @@ import Image from "next/image";
 import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
 import { Bell, ClipboardCheck, ShieldCheck } from "lucide-react";
-import { KindergartenOnboardingForm, KindergartenSubscriptionActivationPanel, ManagerKindergartenApplicationForm } from "@/components/kindergarten-onboarding-form";
+import { KindergartenOnboardingForm, ManagerKindergartenApplicationForm } from "@/components/kindergarten-onboarding-form";
 import { requireRole } from "@/lib/auth";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -31,7 +31,7 @@ function KindergartenOnboardingShell({
           <Image src="/assets/company-symbol.png" alt="" width={74} height={74} />
         </div>
         <header className="kindergarten-app-onboarding-header">
-          <span className="teacher-icon-button" aria-label="התראות זמינות לאחר אישור הגן" role="img">
+          <span className="teacher-icon-button" aria-label="התראות הקמת הגן" role="img">
             <Bell size={24} />
             <span />
           </span>
@@ -63,10 +63,10 @@ export default async function KindergartenOnboardingPage() {
   if (!profile.garden_id) {
     return (
       <KindergartenOnboardingShell
-        title="פותחים בקשת גן מוגבלת"
-        subtitle="השלב הראשון יוצר טיוטת גן בלבד. אין גישה לנתוני ילדים, צוות, הורים או מסמכים פנימיים עד אישור ותשלום."
-        badge="חשבון מוגבל"
-        badgeTone="orange"
+        title="רישום גן ילדים"
+        subtitle="משלימים את פרטי הגן ברצף, מתחילים 14 ימי ניסיון ונכנסים לדשבורד — ללא המתנה לאישור אדמין."
+        badge="רישום רציף"
+        badgeTone="green"
         managerName={profile.full_name}
       >
         <ManagerKindergartenApplicationForm managerName={profile.full_name} managerPhone={profile.phone} managerEmail={(profile as any).email} />
@@ -97,31 +97,15 @@ export default async function KindergartenOnboardingPage() {
   if (onboarding.lifecycle_status === "active" || garden?.approval_flow_status === "active") {
     redirect("/dashboard/garden");
   }
-  const isWaitingForAdmin = ["onboarding_submitted", "pending_final_approval"].includes(String(onboarding.lifecycle_status ?? garden?.approval_flow_status ?? ""));
-  const isPaymentPending = String(onboarding.lifecycle_status ?? garden?.approval_flow_status ?? "") === "payment_pending";
-
-  if (isPaymentPending) {
-    return <KindergartenSubscriptionActivationPanel gardenName={garden?.name} managerName={profile.full_name} monthlyAmount={Number(onboarding.subscription_monthly_amount ?? onboarding.profile_data?.subscription_monthly_amount ?? 800)} />;
-  }
-
   return (
     <KindergartenOnboardingShell
-      title="מכינים את הגן לאישור"
-      subtitle="ממלאים פרטים, מוסיפים תמונות ושולחים לבדיקה קצרה."
+      title="משלימים את הקמת הגן"
+      subtitle="חמישה שלבים רציפים. אפשר לדלג על הזמנת הורים וילדים ולחזור אליה מהדשבורד."
       badge={onboarding.lifecycle_status === "correction_required" ? "נדרש תיקון" : "בתהליך"}
       badgeTone={onboarding.lifecycle_status === "correction_required" ? "orange" : "green"}
       managerName={profile.full_name}
     >
-        {isWaitingForAdmin ? (
-          <section className="card onboarding-waiting-card">
-            <p className="eyebrow">נשלח לאישור</p>
-            <h2>הפרופיל אצל האדמין.</h2>
-            <p>נעדכן אותך כאן ברגע שהגן יאושר או אם יהיה צורך בתיקון.</p>
-            <div className="onboarding-progress-ring"><strong>{Number(onboarding.progress_percent ?? 100)}%</strong><span><i style={{ width: `${Number(onboarding.progress_percent ?? 100)}%` }} /></span></div>
-          </section>
-        ) : (
-          <KindergartenOnboardingForm garden={(garden ?? {}) as any} onboarding={onboarding} managerName={profile.full_name} />
-        )}
+        <KindergartenOnboardingForm garden={(garden ?? {}) as any} onboarding={onboarding} managerName={profile.full_name} />
         <Link className="kindergarten-app-logout" href="/api/auth/logout">יציאה</Link>
     </KindergartenOnboardingShell>
   );

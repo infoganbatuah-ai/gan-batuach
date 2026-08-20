@@ -1,4 +1,5 @@
 import { Building2, MapPin, Search, ShieldCheck, SlidersHorizontal, Star, UsersRound } from "lucide-react";
+import Link from "next/link";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { EnrollmentRequestButton } from "@/components/self-service-forms";
 import { ParentAppFrame, ParentEmptyState, ParentHero, ParentSection } from "@/components/parent-app-ui";
@@ -100,7 +101,10 @@ export default async function DiscoverKindergartensPage({ searchParams }: { sear
                     <div className="parent-garden-groups">
                       {visibleGroups.slice(0, 3).map((group) => <span key={group.id}>{group.group_name}: {group.show_price_public ? `${group.monthly_fee} ₪ לחודש` : "מחיר לא פורסם"}</span>)}
                     </div>
-                    <EnrollmentRequestButton gardenId={garden.id} childProfiles={(childProfiles.data ?? []) as any[]} feeGroups={visibleGroups} />
+                    <div className="parent-garden-actions">
+                      <Link className="button secondary" href={`/gardens/${garden.id}`}>צפייה בפרטי הגן</Link>
+                      <EnrollmentRequestButton gardenId={garden.id} childProfiles={(childProfiles.data ?? []) as any[]} feeGroups={visibleGroups} />
+                    </div>
                   </div>
                 </article>
               );

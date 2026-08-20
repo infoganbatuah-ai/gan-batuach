@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-labelledby="title">
+  <title id="title">תצפיתן דיגיטלי</title>
+  <rect width="512" height="512" rx="112" fill="#061d3a"/>
+  <path d="M256 70 408 126v112c0 98-61 168-152 204C165 406 104 336 104 238V126L256 70Z" fill="#15b8a6"/>
+  <path d="M256 108 372 151v87c0 75-44 130-116 163-72-33-116-88-116-163v-87l116-43Z" fill="#f5fbfb"/>
+  <path d="M152 253c26-45 62-68 104-68s78 23 104 68c-26 45-62 68-104 68s-78-23-104-68Z" fill="#061d3a"/>
+  <circle cx="256" cy="253" r="40" fill="#15b8a6"/>
+  <circle cx="256" cy="253" r="17" fill="#f5fbfb"/>
+</svg>

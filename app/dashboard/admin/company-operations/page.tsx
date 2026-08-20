@@ -87,11 +87,11 @@ export default async function CompanyOperationsPage() {
       safeQuery<Row>("final production readiness scores", () => supabase.from("final_production_readiness_scores" as any).select("*").order("calculated_at", { ascending: false }).limit(1)),
       safeQuery<Row>("final launch blockers", () => supabase.from("final_launch_blockers" as any).select("*").order("severity").limit(30)),
       safeQuery<Row>("provider production health metrics", () => supabase.from("provider_production_health_metrics" as any).select("*").order("integration_type").limit(50)),
-      safeCount("support tickets open", () => supabase.from("support_tickets" as any).select("*", { count: "exact", head: true }).not("status", "in", "(resolved,closed)")),
-      safeCount("required inspections due", () => supabase.from("required_inspections" as any).select("*", { count: "exact", head: true }).neq("status", "done")),
-      safeCount("required inspections overdue", () => supabase.from("required_inspections" as any).select("*", { count: "exact", head: true }).lt("due_at", new Date().toISOString()).neq("status", "done")),
-      safeCount("active gardens", () => supabase.from("gardens" as any).select("*", { count: "exact", head: true }).in("status", ["active", "safe", "approved"])),
-      safeCount("observer sites", () => supabase.from("observer_sites" as any).select("*", { count: "exact", head: true })),
+      safeCount("support tickets open", () => supabase.from("support_tickets" as any).select("id", { count: "exact", head: true }).not("status", "in", "(resolved,closed)")),
+      safeCount("required inspections due", () => supabase.from("required_inspections" as any).select("id", { count: "exact", head: true }).neq("status", "done")),
+      safeCount("required inspections overdue", () => supabase.from("required_inspections" as any).select("id", { count: "exact", head: true }).lt("due_at", new Date().toISOString()).neq("status", "done")),
+      safeCount("active gardens", () => supabase.from("gardens" as any).select("id", { count: "exact", head: true }).in("status", ["active", "safe", "approved"])),
+      safeCount("observer sites", () => supabase.from("observer_sites" as any).select("id", { count: "exact", head: true })),
       safeQuery<Row>("subscriptions", () => supabase.from("subscriptions" as any).select("status,monthly_amount,amount,price").limit(500)),
       safeQuery<Row>("observer site subscriptions", () => supabase.from("observer_site_subscriptions" as any).select("subscription_status,monthly_price,annual_price").limit(500))
     ]);

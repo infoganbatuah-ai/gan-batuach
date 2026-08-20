@@ -29,7 +29,8 @@ export default async function AdminSubscriptionsPage() {
     };
   }, { subscriptions: [] as any[], plans: [] as any[], gardens: [] as any[], payments: [] as any[], queryError: null as string | null });
 
-  const active = result.data.subscriptions.filter((item) => ["active", "trial", "demo_active"].includes(String(item.status))).length;
+  const active = result.data.subscriptions.filter((item) => String(item.status) === "active").length;
+  const trials = result.data.subscriptions.filter((item) => ["trial", "demo_active"].includes(String(item.status))).length;
   const failed = result.data.payments.filter((item) => String(item.billing_status) === "failed").length;
   const suspended = result.data.subscriptions.filter((item) => ["expired", "suspended", "frozen", "payment_failed"].includes(String(item.status))).length;
 
@@ -40,10 +41,10 @@ export default async function AdminSubscriptionsPage() {
         <StatusChip tone="success" icon={ShieldCheck}>ללא חשיפת פרטי כרטיס</StatusChip>
       </PremiumCard>
       <DashboardGrid columns={4}>
-        <MetricCard label="מנויים פעילים" value={active} hint="כולל דמו מבוקר" tone="success" icon={CreditCard} />
+        <MetricCard label="גנים משלמים" value={active} hint="לא כולל Trial / דמו" tone="success" icon={CreditCard} />
+        <MetricCard label="בתקופת ניסיון" value={trials} hint="14 יום, ללא חיוב היום" tone="primary" icon={ShieldCheck} />
         <MetricCard label="תשלומים שנכשלו" value={failed} hint="דורש טיפול" tone={failed ? "warning" : "success"} icon={CreditCard} />
         <MetricCard label="מוקפאים/כשלים" value={suspended} hint="Lifecycle" tone={suspended ? "warning" : "success"} icon={ShieldCheck} />
-        <MetricCard label="תוכניות" value={result.data.plans.length} hint="מחירון פעיל" tone="primary" icon={CreditCard} />
       </DashboardGrid>
       <AdminDataError message={result.error ?? result.data.queryError} />
       <SubscriptionAdminManager plans={result.data.plans} subscriptions={result.data.subscriptions} gardens={result.data.gardens} payments={result.data.payments} />

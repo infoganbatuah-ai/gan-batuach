@@ -31,7 +31,7 @@ export async function insertInvitationDeliveryLogs(admin: AdminClient, input: {
   const roleLabel = input.role === "parent" ? "הורה" : "צוות";
   const title = `פרטי כניסה לגן בטוח - ${roleLabel}`;
   const preview = `שלום ${input.recipientName}, נוצרו לך פרטי כניסה לגן בטוח. יש להתחבר ולהשלים תהליך קצר.`;
-  const href = input.role === "parent" ? "/parent-onboarding" : "/onboarding/staff";
+  const href = input.role === "parent" ? "/dashboard/parent" : "/onboarding/staff";
   const passwordVariables = credentialVariables(input.temporaryPassword);
 
   await Promise.all([

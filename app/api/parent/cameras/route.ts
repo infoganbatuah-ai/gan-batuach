@@ -18,14 +18,15 @@ export async function GET(request: Request) {
       }
     };
     if (allowDebug) {
-      payload.debug = result.debug;
+      payload.debug = {
+        candidateCameraCount: result.debug.candidateCamerasCount,
+        allowedCameraCount: result.debug.allowedCamerasCount,
+        deniedCameraCount: Math.max(0, result.debug.candidateCamerasCount - result.debug.allowedCamerasCount)
+      };
       payload.scope = {
-        parentRecordIds: result.scope.parentIds,
-        childIds: result.scope.children.map((child: any) => child.id),
-        childGardenIds: result.scope.childGardenIds,
-        directParentGardenIds: result.scope.directParentGardenIds,
-        profileGardenIds: result.scope.profileGardenIds,
-        allowedKindergartenIds: result.scope.kindergartenIds
+        parentRecordCount: result.scope.parentIds.length,
+        childCount: result.scope.children.length,
+        allowedKindergartenCount: result.scope.kindergartenIds.length
       };
     }
     return ok(payload);

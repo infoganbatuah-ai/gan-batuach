@@ -10,7 +10,7 @@ export default async function AdminCameraAuditPage() {
   await requireRole(["admin"]);
   const result = await safeAdminData("camera audit", async () => {
     const supabase = await createClient();
-    const columns = "id, garden_id, kindergarten_id, name, area, source_type, camera_type, protocol, status, stream_status, health_status, active, parent_view_allowed, parent_viewing_allowed, sample_hls_url, hls_playback_url, webrtc_playback_url, gateway_stream_id, video_gateway_stream_id, last_seen, last_successful_connection_at, last_stream_activity_at, failure_count, reconnect_attempts, recording_enabled, retention_days, archive_policy, is_demo, demo_batch_id, gardens(name, city)";
+    const columns = "id, garden_id, kindergarten_id, name, area, source_type, camera_type, protocol, status, stream_status, health_status, active, parent_view_allowed, parent_viewing_allowed, live_preview_status, playback_hls_ready, playback_webrtc_ready, gateway_stream_id, video_gateway_stream_id, last_seen, last_successful_connection_at, last_stream_activity_at, failure_count, reconnect_attempts, recording_enabled, retention_days, archive_policy, is_demo, demo_batch_id, gardens(name, city)";
     const cameras = await supabase.from("camera_streams" as any).select(columns).limit(500);
     logSupabaseError("camera audit camera_streams", cameras.error);
     const rows = (cameras.data ?? []) as any[];

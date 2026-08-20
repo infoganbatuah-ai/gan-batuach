@@ -1,0 +1,751 @@
+[
+  {
+    "key": "manager",
+    "route": "/dashboard/garden",
+    "actualUrl": "http://localhost:3004/dashboard/garden/operations",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "טוען ממשק גן"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "manager",
+    "route": "/dashboard/garden/ai-events",
+    "actualUrl": "http://localhost:3004/dashboard/garden/ai-events",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "בוקר טוב, רקפת"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "manager",
+    "route": "/dashboard/garden/attendance",
+    "actualUrl": "http://localhost:3004/dashboard/garden/attendance",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "נוכחות וצ׳ק אין"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "manager",
+    "route": "/dashboard/garden/audio-events",
+    "actualUrl": "http://localhost:3004/dashboard/garden/audio-events",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "בוקר טוב, רקפת"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "manager",
+    "route": "/dashboard/garden/camera-health",
+    "actualUrl": "http://localhost:3004/dashboard/garden/camera-health",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "בוקר טוב, רקפת"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "manager",
+    "route": "/dashboard/garden/cameras",
+    "actualUrl": "http://localhost:3004/dashboard/garden/cameras",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "בוקר טוב, רקפת"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "manager",
+    "route": "/dashboard/garden/child-journal",
+    "actualUrl": "http://localhost:3004/dashboard/garden/child-journal",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "בוקר טוב, רקפת"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "manager",
+    "route": "/dashboard/garden/children",
+    "actualUrl": "http://localhost:3004/dashboard/garden/children",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "בוקר טוב, רקפת"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "manager",
+    "route": "/dashboard/garden/command-center",
+    "actualUrl": "http://localhost:3004/dashboard/garden/command-center",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "בוקר טוב, רקפת"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "manager",
+    "route": "/dashboard/garden/communication",
+    "actualUrl": "http://localhost:3004/dashboard/garden/communication",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "בוקר טוב, רקפת"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "manager",
+    "route": "/dashboard/garden/compliance",
+    "actualUrl": "http://localhost:3004/dashboard/garden/compliance",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "בוקר טוב, רקפת"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "manager",
+    "route": "/dashboard/garden/correlated-events",
+    "actualUrl": "http://localhost:3004/dashboard/garden/correlated-events",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "בוקר טוב, רקפת"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "manager",
+    "route": "/dashboard/garden/daily-journal",
+    "actualUrl": "http://localhost:3004/dashboard/garden/daily-journal",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "בוקר טוב, רקפת"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "manager",
+    "route": "/dashboard/garden/documents",
+    "actualUrl": "http://localhost:3004/dashboard/garden/documents",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "בוקר טוב, רקפת",
+      "מרכז מסמכי גן"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "manager",
+    "route": "/dashboard/garden/enrollment-requests",
+    "actualUrl": "http://localhost:3004/dashboard/garden/enrollment-requests",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "בוקר טוב, רקפת"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "manager",
+    "route": "/dashboard/garden/finance",
+    "actualUrl": "http://localhost:3004/dashboard/garden/finance",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "בוקר טוב, רקפת"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "manager",
+    "route": "/dashboard/garden/health",
+    "actualUrl": "http://localhost:3004/dashboard/garden/health",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "בוקר טוב, רקפת"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "manager",
+    "route": "/dashboard/garden/incidents",
+    "actualUrl": "http://localhost:3004/dashboard/garden/incidents",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "בוקר טוב, רקפת"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "manager",
+    "route": "/dashboard/garden/insights",
+    "actualUrl": "http://localhost:3004/dashboard/garden/insights",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "טוען ממשק גן"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "manager",
+    "route": "/dashboard/garden/inspection-status",
+    "actualUrl": "http://localhost:3004/dashboard/garden/inspection-status",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "בוקר טוב, רקפת"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "manager",
+    "route": "/dashboard/garden/inspections",
+    "actualUrl": "http://localhost:3004/dashboard/garden/inspections",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "בוקר טוב, רקפת"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "manager",
+    "route": "/dashboard/garden/leads",
+    "actualUrl": "http://localhost:3004/dashboard/garden/leads",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "בוקר טוב, רקפת"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "manager",
+    "route": "/dashboard/garden/messages",
+    "actualUrl": "http://localhost:3004/dashboard/garden/messages",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "בוקר טוב, רקפת"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "manager",
+    "route": "/dashboard/garden/notifications",
+    "actualUrl": "http://localhost:3004/dashboard/garden/notifications",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "בוקר טוב, רקפת"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "manager",
+    "route": "/dashboard/garden/observer-intelligence",
+    "actualUrl": "http://localhost:3004/dashboard/garden/observer-intelligence",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "בוקר טוב, רקפת"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "manager",
+    "route": "/dashboard/garden/observer-learning",
+    "actualUrl": "http://localhost:3004/dashboard/garden/observer-learning",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "בוקר טוב, רקפת"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "manager",
+    "route": "/dashboard/garden/observer-network",
+    "actualUrl": "http://localhost:3004/dashboard/garden/observer-network",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "בוקר טוב, רקפת"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "manager",
+    "route": "/dashboard/garden/observer-pilot",
+    "actualUrl": "http://localhost:3004/dashboard/garden/observer-pilot",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "בוקר טוב, רקפת"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "manager",
+    "route": "/dashboard/garden/observer-watch",
+    "actualUrl": "http://localhost:3004/dashboard/garden/observer-watch",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "בוקר טוב, רקפת"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "manager",
+    "route": "/dashboard/garden/onboarding",
+    "actualUrl": "http://localhost:3004/dashboard/garden/onboarding",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "בוקר טוב, רקפת"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "manager",
+    "route": "/dashboard/garden/operations",
+    "actualUrl": "http://localhost:3004/dashboard/garden/operations",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "בוקר טוב, רקפת"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "manager",
+    "route": "/dashboard/garden/parents",
+    "actualUrl": "http://localhost:3004/dashboard/garden/parents",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "בוקר טוב, רקפת"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "manager",
+    "route": "/dashboard/garden/pickup",
+    "actualUrl": "http://localhost:3004/dashboard/garden/pickup",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "בוקר טוב, רקפת"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "manager",
+    "route": "/dashboard/garden/pickup-face",
+    "actualUrl": "http://localhost:3004/dashboard/garden/pickup-face",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "בוקר טוב, רקפת"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "manager",
+    "route": "/dashboard/garden/rating",
+    "actualUrl": "http://localhost:3004/dashboard/garden/rating",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "בוקר טוב, רקפת"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "manager",
+    "route": "/dashboard/garden/reports",
+    "actualUrl": "http://localhost:3004/dashboard/garden/reports",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "בוקר טוב, רקפת"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "manager",
+    "route": "/dashboard/garden/risk",
+    "actualUrl": "http://localhost:3004/dashboard/garden/risk",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "בוקר טוב, רקפת"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "manager",
+    "route": "/dashboard/garden/settings",
+    "actualUrl": "http://localhost:3004/dashboard/garden/settings",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "בוקר טוב, רקפת"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "manager",
+    "route": "/dashboard/garden/staff",
+    "actualUrl": "http://localhost:3004/dashboard/garden/staff",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "בוקר טוב, רקפת"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "manager",
+    "route": "/dashboard/garden/staff-applications",
+    "actualUrl": "http://localhost:3004/dashboard/garden/staff-applications",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "בוקר טוב, רקפת"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "manager",
+    "route": "/dashboard/garden/subscription",
+    "actualUrl": "http://localhost:3004/dashboard/garden/subscription",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "בוקר טוב, רקפת"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "manager",
+    "route": "/dashboard/garden/tasks",
+    "actualUrl": "http://localhost:3004/dashboard/garden/tasks",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "בוקר טוב, רקפת"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "manager",
+    "route": "/dashboard/garden/trust-center",
+    "actualUrl": "http://localhost:3004/dashboard/garden/trust-center",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "בוקר טוב, רקפת"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  },
+  {
+    "key": "manager",
+    "route": "/dashboard/garden/vision-ai",
+    "actualUrl": "http://localhost:3004/dashboard/garden/vision-ai",
+    "authRedirect": false,
+    "overflow": false,
+    "clipped": [],
+    "cw": 1440,
+    "dead": [],
+    "fatal": false,
+    "h1": [
+      "בוקר טוב, רקפת"
+    ],
+    "notFound": false,
+    "sw": 1440,
+    "unavailable": false
+  }
+]

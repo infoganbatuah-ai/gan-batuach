@@ -35,11 +35,10 @@ export function CameraPlaybackCard({
   const [watermark, setWatermark] = useState<string | null>(null);
   const [message, setMessage] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const hlsUrl = camera.hls_playback_url ?? camera.sample_hls_url;
   const sourceType = safeDetails ? "חיבור מאובטח" : (camera.source_type ?? camera.camera_type ?? camera.protocol ?? "RTSP");
   const playbackSourceAvailable = camera.playback_source_available !== undefined
     ? Boolean(camera.playback_source_available)
-    : Boolean(hlsUrl || camera.webrtc_playback_url || camera.gateway_stream_id || camera.video_gateway_stream_id);
+    : Boolean(camera.playback_hls_ready || camera.playback_webrtc_ready || camera.live_preview_status === "ready" || camera.gateway_stream_id || camera.video_gateway_stream_id);
   const connected = ["connected", "online"].includes(camera.status);
   const blockedReason = camera.parent_blocked_reason ?? (!playbackSourceAvailable ? "המצלמה לא זמינה כרגע" : null);
   const canOpenPlayback = canRequestPlayback && playbackSourceAvailable && (!parentView || !blockedReason);
@@ -76,10 +75,10 @@ export function CameraPlaybackCard({
         <p>{parentView || safeDetails ? `${camera.area ?? "אזור לא הוגדר"}` : `${camera.gardens?.name ?? camera.garden_name ?? ""} · ${camera.area ?? "אזור לא הוגדר"} · ${sourceType}`}</p>
         {blockedReason ? <small className="gateway-setup-state">{blockedReason}</small> : !playbackSourceAvailable ? <small className="gateway-setup-state">המצלמה ממתינה לחיבור שידור</small> : null}
         <small><ShieldCheck size={13} /> הצפייה מאובטחת, זמנית ומסומנת ב-Watermark. פרטי החיבור של המצלמה אינם נשלחים לדפדפן.</small>
-        {!parentView && !safeDetails && camera.expected_parent_count !== undefined ? <div className="camera-admin-verification"><span>מזהה מצלמה: {camera.id}</span><span>שם מצלמה: {camera.name ?? "-"}</span><span>זמינה: {camera.active === false ? "לא" : "כן"}</span><span>מצב: {statusText[camera.status] ?? camera.status ?? "-"}</span><span>צפיית הורים: {camera.parent_view_allowed || camera.parent_viewing_allowed ? "מאושרת" : "לא מאושרת"}</span><span>גן: {camera.garden_id ?? camera.kindergarten_id ?? "-"}</span><span>מקור בדיקה: {camera.sample_hls_url ? "קיים" : "חסר"}</span><span>חיבור שידור: {(camera.gateway_stream_id || camera.video_gateway_stream_id) ? "קיים" : "חסר"}</span><span>הורים צפויים: {camera.expected_parent_count}</span><span>{camera.visibility_status ?? "בדיקת חשיפה"}</span><ParentCameraAccessDebug cameraId={camera.id} /></div> : null}
+        {!parentView && !safeDetails && camera.expected_parent_count !== undefined ? <div className="camera-admin-verification"><span>מזהה מצלמה: {camera.id}</span><span>שם מצלמה: {camera.name ?? "-"}</span><span>זמינה: {camera.active === false ? "לא" : "כן"}</span><span>מצב: {statusText[camera.status] ?? camera.status ?? "-"}</span><span>צפיית הורים: {camera.parent_view_allowed || camera.parent_viewing_allowed ? "מאושרת" : "לא מאושרת"}</span><span>גן: {camera.garden_id ?? camera.kindergarten_id ?? "-"}</span><span>מקור בדיקה: {camera.playback_hls_ready || camera.live_preview_status === "ready" ? "קיים" : "חסר"}</span><span>חיבור שידור: {(camera.gateway_stream_id || camera.video_gateway_stream_id) ? "קיים" : "חסר"}</span><span>הורים צפויים: {camera.expected_parent_count}</span><span>{camera.visibility_status ?? "בדיקת חשיפה"}</span><ParentCameraAccessDebug cameraId={camera.id} /></div> : null}
         <div className="profile-actions">
           <button className="button primary tiny" disabled={busy || !canOpenPlayback} type="button" onClick={() => start("HLS")}><Play size={14} /> {parentView || safeDetails ? "פתיחת צפייה" : "צפייה HLS"}</button>
-          {!parentView && !safeDetails ? <button className="button secondary tiny" disabled={busy || !canOpenPlayback || !camera.webrtc_playback_url} type="button" onClick={() => start("WebRTC")}>WebRTC</button> : null}
+          {!parentView && !safeDetails ? <button className="button secondary tiny" disabled={busy || !canOpenPlayback || !camera.playback_webrtc_ready} type="button" onClick={() => start("WebRTC")}>WebRTC</button> : null}
         </div>
         {message ? <small className={message.includes("נפתח") || message.includes("נפתחה") ? "payment-action-message" : "error-text"}>{message}</small> : null}
       </div>

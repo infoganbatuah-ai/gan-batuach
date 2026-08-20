@@ -1,27 +1,38 @@
 import Link from "next/link";
-import { Camera, EyeOff, ShieldCheck } from "lucide-react";
-import { BrandHeader } from "@/components/brand-header";
-import { DIGITAL_OBSERVER_NAVIGATION } from "@/lib/domain/digital-observer-product";
+import { Camera, CameraOff, CircleDot, LockKeyhole, Plus, ServerCog, ShieldCheck, Wifi } from "lucide-react";
+import { ObserverQuickAction } from "@/components/digital-observer/observer-action-forms";
+import { ObserverAppShell } from "@/components/digital-observer/observer-app-shell";
+import { ObserverCameraMedia } from "@/components/digital-observer/observer-camera-media";
+import { requireUser } from "@/lib/auth";
+import { formatObserverDate, loadObserverRuntime, observerModeForSite, observerStatusLabel } from "@/lib/domain/digital-observer/runtime";
 
-export default function DigitalObserverCamerasPage() {
-  return (
-    <>
-      <BrandHeader />
-      <main className="public-page digital-observer-app">
-        <nav className="product-switcher" aria-label="Digital Observer camera navigation">
-          <strong>Digital Observer</strong>
-          <div>{DIGITAL_OBSERVER_NAVIGATION.map((item) => <Link key={item.href} href={item.href}>{item.label}</Link>)}</div>
-        </nav>
-        <section className="dashboard-hero-card observer-dashboard-hero">
-          <div><p className="eyebrow">Cameras</p><h1>Secure camera setup readiness.</h1><p>Prepare RTSP, DVR/NVR, ONVIF and demo camera setup without exposing credentials or raw RTSP URLs.</p></div>
-          <Link className="button primary" href="/digital-observer/onboarding">Add camera</Link>
-        </section>
-        <section className="grid cols-3 dashboard-panels">
-          <article className="card action-panel"><Camera /><h2>Gateway first</h2><p>Playback should use gateway and short-lived tokens.</p></article>
-          <article className="card action-panel"><EyeOff /><h2>No secret exposure</h2><p>RTSP URLs, usernames, passwords and gateway secrets stay server-side.</p></article>
-          <article className="card action-panel"><ShieldCheck /><h2>Audit ready</h2><p>Viewing and setup actions should be logged before production cutover.</p></article>
-        </section>
-      </main>
-    </>
-  );
+type PageProps = { searchParams?: Promise<{ camera?: string; site?: string }> };
+
+function sceneFor(index: number, mode: "home" | "business") {
+  const scenes = mode === "home" ? ["home-entry", "home-living", "home-nursery", "home-yard"] : ["business-entry", "business-store", "business-warehouse", "business-office", "business-parking", "business-loading"];
+  return scenes[index % scenes.length];
+}
+
+export default async function DigitalObserverCamerasPage({ searchParams }: PageProps) {
+  const params = await searchParams;
+  const { profile } = await requireUser("/digital-observer/login?next=/digital-observer/cameras");
+  const runtime = await loadObserverRuntime(profile.id);
+  const site = runtime.sites.find((item) => item.id === params?.site) ?? runtime.sites[0] ?? null;
+  const mode = observerModeForSite(site);
+  const cameras = site ? runtime.cameras.filter((item) => item.observer_site_id === site.id) : [];
+  const selected = cameras.find((item) => item.id === params?.camera) ?? cameras[0] ?? null;
+  return <ObserverAppShell profile={profile} mode={mode} activeHref="/digital-observer/cameras" title={mode === "home" ? "צפייה ומצלמות" : "מצלמות"} statusLabel="ללא חשיפת RTSP" actions={<Link className="do-button primary" href={site ? `/digital-observer/cameras/add?site=${site.id}` : "/digital-observer/onboarding"}><Plus /> הוספת מצלמה</Link>}>
+    <div className="do-page-stack">
+      {!runtime.runtimeMigrationApplied ? <div className="do-notice warn"><ServerCog /><span>טבלת מקורות המצלמה החדשה עדיין אינה זמינה בסביבה. אין אפשרות ליצור חיבור עד החלת המיגרציה.</span></div> : null}
+      <section className="do-section">
+        <div className="do-section-head"><div><h2>{site?.name ?? "המצלמות שלי"}</h2><p>תמונה מוצגת כתצוגת הדגמה רק כשהמקור מסומן כך. וידאו חי דורש Gateway וטוקן קצר.</p></div>{site ? <span className="do-badge info">{cameras.length} מקורות</span> : null}</div>
+        {cameras.length ? <div className="do-camera-grid">{cameras.map((camera, index) => <Link href={`/digital-observer/cameras?site=${site?.id}&camera=${camera.id}`} key={camera.id}><ObserverCameraMedia name={camera.display_name || "מצלמה"} mode={mode} scene={camera.preview_scene || sceneFor(index, mode)} status={camera.status || camera.health_status} /></Link>)}</div> : <div className="do-empty"><CameraOff /><strong>אין מצלמות מחוברות</strong><span>הוסיפו מקור הדמיה או הגדירו מקור שממתין ל-Gateway. אין צורך להזין סודות בדפדפן.</span><Link className="do-button primary" href={site ? `/digital-observer/cameras/add?site=${site.id}` : "/digital-observer/onboarding"}>הוספת מצלמה</Link></div>}
+      </section>
+      {selected ? <section className="do-grid cols-2">
+        <article className="do-panel"><ObserverCameraMedia large name={selected.display_name} mode={mode} scene={selected.preview_scene || sceneFor(cameras.indexOf(selected), mode)} status={selected.status || selected.health_status} /><div className="do-camera-controls"><button type="button" disabled title="זמין רק לאחר Gateway"><CircleDot /> צפייה חיה</button><button type="button" disabled title="זמין רק לאחר חיבור וידאו"><Camera /> צילום תמונה</button><button type="button" disabled title="שמע אינו פעיל בסביבת ההכנה"><Wifi /> שמע</button></div></article>
+        <article className="do-panel do-form-section"><h2>פרטי מקור</h2><div className="do-summary-list"><div><span>סוג חיבור</span><strong>{observerStatusLabel(selected.connector_type)}</strong></div><div><span>מצב</span><strong>{observerStatusLabel(selected.status)}</strong></div><div><span>בריאות</span><strong>{observerStatusLabel(selected.health_status)}</strong></div><div><span>בדיקה אחרונה</span><strong>{formatObserverDate(selected.last_health_check_at)}</strong></div><div><span>מיקום</span><strong>{selected.location_label || "טרם הוגדר"}</strong></div><div><span>וידאו חי</span><strong>{selected.source_mode === "live" ? "דורש אימות Gateway" : "לא פעיל"}</strong></div></div><div className="do-notice info"><LockKeyhole /><span>כתובת המקור, שם המשתמש, הסיסמה ו-secret reference אינם נשלחים לדפדפן.</span></div><div className="do-button-row"><ObserverQuickAction endpoint="/api/digital-observer/cameras" body={{ action: "test_readiness", id: selected.id }}><ShieldCheck /> בדיקת מוכנות</ObserverQuickAction><ObserverQuickAction endpoint="/api/digital-observer/cameras" body={{ action: "disable", id: selected.id }} confirmText="להשבית את מקור המצלמה?"><CameraOff /> השבתה</ObserverQuickAction></div></article>
+      </section> : null}
+      <section className="do-grid cols-3"><article className="do-panel"><Camera /><h3>IP / ONVIF</h3><p>המחבר מוכן; איתור וחיבור אמיתי דורשים Gateway ברשת המקומית.</p></article><article className="do-panel"><ServerCog /><h3>NVR / DVR</h3><p>מקור אחד יכול לייצג מערכת ולהתרחב לערוצי מצלמה לאחר בדיקת תאימות.</p></article><article className="do-panel"><ShieldCheck /><h3>ענן / Edge</h3><p>ספקים מתווספים דרך מחבר נפרד, ללא קוד קשיח בממשק.</p></article></section>
+    </div>
+  </ObserverAppShell>;
 }

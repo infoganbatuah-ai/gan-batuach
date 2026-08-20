@@ -1,0 +1,25 @@
+[
+  {
+    "route": "/dashboard/admin/users",
+    "url": "http://localhost:3002/dashboard/admin/users",
+    "loading": false,
+    "fatal": false,
+    "overflow": false,
+    "h1": [
+      "ניהול משתמשים"
+    ],
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/retest--dashboard-admin-users-390x844.png"
+  },
+  {
+    "route": "/dashboard/admin/navigation-health",
+    "url": "http://localhost:3002/dashboard/admin/navigation-health",
+    "loading": false,
+    "fatal": false,
+    "overflow": false,
+    "h1": [
+      "בריאות ניווט",
+      "בדיקת בריאות לכל קישורי הדשבורד."
+    ],
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/retest--dashboard-admin-navigation-health-390x844.png"
+  }
+]

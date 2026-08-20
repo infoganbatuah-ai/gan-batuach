@@ -1,97 +1,11 @@
-import type { Metadata } from "next";
 import Link from "next/link";
-import { ArrowLeft, Bell, Camera, CheckCircle2, PackageCheck, ShieldCheck } from "lucide-react";
-import { BrandHeader } from "@/components/brand-header";
-import { DIGITAL_OBSERVER_PACKAGES, DIGITAL_OBSERVER_SAFE_COPY_RULES } from "@/lib/domain/digital-observer-product";
+import { Check, ShieldCheck } from "lucide-react";
+import { ObserverMark } from "@/components/digital-observer/observer-app-shell";
+import { createClient } from "@/lib/supabase/server";
 
-export const metadata: Metadata = {
-  title: "Digital Observer Pricing – AI Camera Monitoring Packages",
-  description: "Compare Digital Observer packages for homes, businesses, warehouses, offices, stores and parking lots. Pricing readiness only; production billing requires provider setup.",
-  alternates: { canonical: "/digital-observer/pricing" },
-  openGraph: {
-    title: "Digital Observer Pricing",
-    description: "Home, business and enterprise AI camera monitoring package readiness.",
-    url: "/digital-observer/pricing"
-  }
-};
+async function loadPackages() { try { const supabase = await createClient(); const result = await supabase.from("observer_monitoring_packages" as any).select("id,name,package_key,package_type,camera_limit,site_limit,user_limit,recording_retention_hours,monthly_price,annual_price,annual_discount_percent,alert_channels,human_review_required,support_tier,active,sort_order").eq("active",true).order("sort_order"); return result.error ? [] : result.data ?? []; } catch { return []; } }
 
-export default function DigitalObserverPricingPage() {
-  return (
-    <>
-      <BrandHeader />
-      <main className="public-page digital-observer-public">
-        <section className="hero-section digital-observer-hero">
-          <div className="hero-content">
-            <p className="eyebrow">Digital Observer packages</p>
-            <h1>Choose the monitoring package that fits your site.</h1>
-            <p>Packages define camera limits, monitoring hours, retention readiness, alert channels and AI goals. Live billing stays off until a real provider mode is configured.</p>
-            <div className="hero-actions">
-              <Link className="button primary" href="/digital-observer/start?source=pricing">Start monitoring <ArrowLeft size={18} /></Link>
-              <Link className="button secondary" href="/digital-observer/request-demo?source=pricing">Request demo</Link>
-              <Link className="button secondary" href="/digital-observer/trust">Trust controls</Link>
-            </div>
-          </div>
-          <div className="observer-live-card">
-            <strong>Billing separation</strong>
-            <span>Digital Observer customer → Digital Observer account</span>
-            <span>Gan Batuach kindergarten billing remains separate</span>
-            <span>Parent tuition never mixes here</span>
-          </div>
-        </section>
-
-        <section className="dashboard-section">
-          <div className="section-heading">
-            <h2>Packages</h2>
-            <p>Prices are readiness values and can be finalized from the admin package center.</p>
-          </div>
-          <div className="grid cols-3 dashboard-panels">
-            {DIGITAL_OBSERVER_PACKAGES.map((pkg) => (
-              <article className="card action-panel" key={pkg.key}>
-                <PackageCheck />
-                <span className="pill">{pkg.type}</span>
-                <h3>{pkg.name}</h3>
-                <p>{pkg.cameras} cameras · {pkg.hours} · {pkg.retention}</p>
-                <div className="setup-checklist">
-                  <span><Camera size={14} /> {pkg.recordingRetention}</span>
-                  <span><Bell size={14} /> {pkg.channels}</span>
-                  <span><ShieldCheck size={14} /> human review required</span>
-                </div>
-                <div className="procedure-meta">
-                  <strong>{pkg.monthlyPrice}</strong>
-                  <span>{pkg.annualPrice}</span>
-                </div>
-                <div className="hero-actions">
-                  <Link className="button primary" href={`/digital-observer/start?package=${pkg.key}&source=pricing`}>Choose package</Link>
-                  <Link className="button secondary" href={`/digital-observer/request-demo?package=${pkg.key}&source=pricing`}>Ask about it</Link>
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        <section className="grid cols-2 dashboard-panels">
-          <article className="card action-panel">
-            <CheckCircle2 />
-            <h2>What is included</h2>
-            <div className="risk-list">
-              <div>Camera health readiness <b>included</b></div>
-              <div>Monitoring schedule <b>included</b></div>
-              <div>Alert channel readiness <b>included</b></div>
-              <div>Package limits <b>prepared</b></div>
-              <div>Real payment charging <b>provider-gated</b></div>
-            </div>
-          </article>
-          <article className="card action-panel">
-            <ShieldCheck />
-            <h2>Copy guardrails</h2>
-            <div className="risk-list">
-              {DIGITAL_OBSERVER_SAFE_COPY_RULES.slice(0, 5).map((rule) => (
-                <div key={rule.avoid}>{rule.avoid} <b>{rule.use}</b></div>
-              ))}
-            </div>
-          </article>
-        </section>
-      </main>
-    </>
-  );
+export default async function DigitalObserverPricingPage() {
+  const packages = await loadPackages();
+  return <main className="do-public do-pricing-page" dir="rtl"><header className="do-public-header"><Link className="do-auth-brand dark" href="/digital-observer"><ObserverMark /><span><b>תצפיתן דיגיטלי</b><small>חבילות גמישות מהאדמין</small></span></Link><nav><Link href="/digital-observer">המוצר</Link><Link href="/digital-observer/trust">פרטיות ואמון</Link></nav><div><Link className="do-button secondary" href="/digital-observer/login">התחברות</Link></div></header><section className="do-pricing-head"><span className="do-badge info">ללא חיוב בסביבת הדמו</span><h1>חבילה שמתאימה למספר המצלמות ולמקום שלכם</h1><p>כל המחירים והגבולות מגיעים ממסד הנתונים וניתנים לשינוי באדמין. חיוב אמיתי דורש ספק מאושר.</p></section>{packages.length ? <section className="do-plan-grid public">{packages.map((item: any) => <article className="do-plan" key={item.id}><span>{item.package_type === "home" ? "לבית" : item.package_type === "business" ? "לעסק" : "מותאם"}</span><h2>{item.name}</h2><strong>{item.monthly_price ? `${Number(item.monthly_price).toLocaleString("he-IL")} ₪` : "בהתאמה"}<small> / חודש</small></strong><ul><li><Check /> עד {item.camera_limit ?? "לפי הסכם"} מצלמות</li><li><Check /> עד {item.site_limit ?? "לפי הסכם"} אתרים</li><li><Check /> עד {item.user_limit ?? "לפי הסכם"} משתמשים</li><li><Check /> מקטעי אירוע עד {item.recording_retention_hours ?? 0} שעות</li><li><Check /> ביקורת אנושית {item.human_review_required ? "חובה" : "בהגדרה"}</li></ul><Link className="do-button primary full" href={`/digital-observer/register?type=${item.package_type === "home" ? "home" : "business"}`}>בחירת מסלול</Link></article>)}</section> : <section className="do-empty"><ShieldCheck /><strong>החבילות ממתינות למיגרציה</strong><span>לא מוצגים מחירים קשיחים כתחליף לנתוני האדמין.</span></section>}<div className="do-notice info pricing"><ShieldCheck /><span>השרת הוא מקור האמת למנוי ולהרשאות החבילה. Apple, Google ותשלום אשראי יתחברו דרך מתאם חיוב נפרד.</span></div></main>;
 }

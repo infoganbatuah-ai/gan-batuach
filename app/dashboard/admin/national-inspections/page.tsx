@@ -11,13 +11,13 @@ import { buildInspectionRiskScore, buildNationalInspectionReadiness, inspectionT
 type SupabaseServerClient = Awaited<ReturnType<typeof createClient>>;
 
 async function countRows(supabase: SupabaseServerClient, table: string) {
-  const { count, error } = await supabase.from(table as any).select("*", { count: "exact", head: true });
+  const { count, error } = await supabase.from(table as any).select("id", { count: "exact", head: true });
   logSupabaseError(`national inspection count ${table}`, error);
   return error ? 0 : count ?? 0;
 }
 
 async function countFiltered(supabase: SupabaseServerClient, table: string, apply: (query: any) => any) {
-  const { count, error } = await apply(supabase.from(table as any).select("*", { count: "exact", head: true }));
+  const { count, error } = await apply(supabase.from(table as any).select("id", { count: "exact", head: true }));
   logSupabaseError(`national inspection count ${table}`, error);
   return error ? 0 : count ?? 0;
 }
@@ -72,20 +72,20 @@ export default async function NationalInspectionsPage() {
       followUpsRes
     ] = await Promise.all([
       countRows(supabase, "inspections"),
-      countFiltered(supabase, "inspections", (query) => query.gte("completed_at", monthStart).in("status", ["done", "completed"])),
+      countFiltered(supabase, "inspections", (query) => query.gte("completed_at", monthStart).eq("status", "done")),
       countFiltered(supabase, "required_inspections", (query) => query.lt("due_at", nowIso).neq("status", "done")),
       countFiltered(supabase, "required_inspections", (query) => query.gte("due_at", nowIso).lte("due_at", nextMonthIso).neq("status", "done")),
       countFiltered(supabase, "profiles", (query) => query.eq("role", "inspector").eq("active", true)),
-      countFiltered(supabase, "violations", (query) => query.not("status", "in", "(done,completed)")),
+      countFiltered(supabase, "violations", (query) => query.neq("status", "done")),
       countFiltered(supabase, "national_compliance_findings", (query) => query.in("resolution_status", ["open", "in_progress"])),
       countFiltered(supabase, "complaints", (query) => query.not("status", "eq", "closed")),
       countFiltered(supabase, "observer_inspection_recommendations", (query) => query.in("status", ["new", "reviewing", "planned"])),
       countFiltered(supabase, "observer_inspection_recommendations", (query) => query.gte("risk_score", 75).in("status", ["new", "reviewing", "planned"])),
       supabase.from("inspections" as any).select("id,garden_id,inspector_id,status,completed_at,created_at,weighted_score,violation_count,critical_failures,gps_verified,gardens(name,city),inspectors:inspector_id(full_name)").order("created_at", { ascending: false }).limit(250),
       supabase.from("required_inspections" as any).select("id,garden_id,inspector_id,due_at,status,gardens(name,city,last_inspection_score,safe_status)").neq("status", "done").order("due_at", { ascending: true }).limit(250),
-      supabase.from("inspectors" as any).select("id,service_cities,created_at,profiles:id(full_name,phone,email,active)").limit(250),
+      supabase.from("inspectors" as any).select("id,service_cities,created_at,profiles!inspectors_id_fkey(full_name,phone,email,active)").limit(250),
       supabase.from("gardens" as any).select("id,name,city,status,safe_status,inspector_id,last_inspection_score,next_inspection_at").limit(500),
-      supabase.from("violations" as any).select("id,garden_id,title,severity,status,correction_due_at,gardens(name,city)").not("status", "in", "(done,completed)").order("created_at", { ascending: false }).limit(250),
+      supabase.from("violations" as any).select("id,garden_id,title,severity,status,correction_due_at,gardens(name,city)").neq("status", "done").order("created_at", { ascending: false }).limit(250),
       supabase.from("national_compliance_findings" as any).select("id,garden_id,title,severity,resolution_status,due_at,responsible_party,gardens(name,city)").order("created_at", { ascending: false }).limit(250),
       supabase.from("complaints" as any).select("id,garden_id,subject,severity,status,urgent,assigned_inspector_id,created_at,gardens(name,city)").not("status", "eq", "closed").order("created_at", { ascending: false }).limit(250),
       supabase.from("observer_inspection_recommendations" as any).select("id,garden_id,recommendation_type,risk_reason,risk_score,status,created_at,gardens(name,city)").order("risk_score", { ascending: false }).limit(100),

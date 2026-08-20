@@ -98,7 +98,7 @@ function dryRunProvider(name: Exclude<SmsProviderName, "mock_sms" | "custom">, r
         dryRunPayload: {
           provider: name,
           to: maskPhone(message.to),
-          body: message.body,
+          bodyLength: message.body.length,
           eventType: message.eventType
         }
       };

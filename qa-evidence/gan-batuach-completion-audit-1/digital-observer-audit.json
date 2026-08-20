@@ -1,0 +1,242 @@
+[
+  {
+    "key": "digital_observer",
+    "route": "/digital-observer/dashboard",
+    "actualUrl": "http://localhost:3002/digital-observer/dashboard",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "Digital Observer",
+      "שלום, Digital Observer QA"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/digital_observer-digital-observer-dashboard-390x844.png"
+  },
+  {
+    "key": "digital_observer",
+    "route": "/digital-observer/onboarding",
+    "actualUrl": "http://localhost:3002/digital-observer/onboarding",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "Create a standalone observer site."
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/digital_observer-digital-observer-onboarding-390x844.png"
+  },
+  {
+    "key": "digital_observer",
+    "route": "/digital-observer/sites",
+    "actualUrl": "http://localhost:3002/digital-observer/sites",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "Observer site readiness."
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/digital_observer-digital-observer-sites-390x844.png"
+  },
+  {
+    "key": "digital_observer",
+    "route": "/digital-observer/cameras",
+    "actualUrl": "http://localhost:3002/digital-observer/cameras",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "Secure camera setup readiness."
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/digital_observer-digital-observer-cameras-390x844.png"
+  },
+  {
+    "key": "digital_observer",
+    "route": "/digital-observer/alerts",
+    "actualUrl": "http://localhost:3002/digital-observer/alerts",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "Review-first observer alerts."
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/digital_observer-digital-observer-alerts-390x844.png"
+  },
+  {
+    "key": "digital_observer",
+    "route": "/digital-observer/billing",
+    "actualUrl": "http://localhost:3002/digital-observer/billing",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "Standalone subscription and usage readiness."
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/digital_observer-digital-observer-billing-390x844.png"
+  },
+  {
+    "key": "digital_observer",
+    "route": "/digital-observer/settings",
+    "actualUrl": "http://localhost:3002/digital-observer/settings",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "Digital Observer settings readiness."
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/digital_observer-digital-observer-settings-390x844.png"
+  },
+  {
+    "key": "digital_observer",
+    "route": "/digital-observer/dashboard",
+    "actualUrl": "http://localhost:3002/digital-observer/dashboard",
+    "width": 1440,
+    "height": 900,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "Digital Observer",
+      "שלום, Digital Observer QA"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/digital_observer-digital-observer-dashboard-1440x900.png"
+  },
+  {
+    "key": "digital_observer",
+    "route": "/digital-observer/onboarding",
+    "actualUrl": "http://localhost:3002/digital-observer/onboarding",
+    "width": 1440,
+    "height": 900,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "Create a standalone observer site."
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/digital_observer-digital-observer-onboarding-1440x900.png"
+  },
+  {
+    "key": "digital_observer",
+    "route": "/digital-observer/sites",
+    "actualUrl": "http://localhost:3002/digital-observer/sites",
+    "width": 1440,
+    "height": 900,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "Observer site readiness."
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/digital_observer-digital-observer-sites-1440x900.png"
+  },
+  {
+    "key": "digital_observer",
+    "route": "/digital-observer/cameras",
+    "actualUrl": "http://localhost:3002/digital-observer/cameras",
+    "width": 1440,
+    "height": 900,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "Secure camera setup readiness."
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/digital_observer-digital-observer-cameras-1440x900.png"
+  },
+  {
+    "key": "digital_observer",
+    "route": "/digital-observer/alerts",
+    "actualUrl": "http://localhost:3002/digital-observer/alerts",
+    "width": 1440,
+    "height": 900,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "Review-first observer alerts."
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/digital_observer-digital-observer-alerts-1440x900.png"
+  },
+  {
+    "key": "digital_observer",
+    "route": "/digital-observer/billing",
+    "actualUrl": "http://localhost:3002/digital-observer/billing",
+    "width": 1440,
+    "height": 900,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "Standalone subscription and usage readiness."
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/digital_observer-digital-observer-billing-1440x900.png"
+  },
+  {
+    "key": "digital_observer",
+    "route": "/digital-observer/settings",
+    "actualUrl": "http://localhost:3002/digital-observer/settings",
+    "width": 1440,
+    "height": 900,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "Digital Observer settings readiness."
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/digital_observer-digital-observer-settings-1440x900.png"
+  }
+]

@@ -29,10 +29,10 @@ export default async function SettingsPage() {
   return (
     <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="פרופיל הגן" appHome>
       <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.replace(/\[DEMO\]/gi, "").trim().split(" ")[0] || "מנהלת הגן"}`} subtitle={gardenData?.name ?? "פרופיל הגן"} avatarUrl={(profile as any).profile_image_url ?? null} active="more">
-        <TeacherPageTitle icon={Settings} title="פרופיל והגדרות הגן" subtitle={needsCorrection ? gardenData?.admin_correction_note ?? "האדמין ביקש השלמה לפני אישור." : "עדכון פרטי גן, תמונות, קשר והגשה לאישור"} action={<a className="button primary" href="#profile-settings">עריכה מלאה</a>} />
+        <TeacherPageTitle icon={Settings} title="פרופיל והגדרות הגן" subtitle={needsCorrection ? gardenData?.admin_correction_note ?? "נדרשת השלמת מידע בפרופיל הגן." : "עדכון פרטי גן, תמונות, קשר ופרסום להורים"} action={<a className="button primary" href="#profile-settings">עריכה מלאה</a>} />
 
         <TeacherStatsGrid>
-          <TeacherStatCard title="סטטוס אישור" value={gardenData?.final_approval_status ?? "טיוטה"} hint={needsCorrection ? "נדרש תיקון" : "מעקב"} icon={CheckCircle2} tone={needsCorrection ? "orange" : "green"} />
+          <TeacherStatCard title="מצב הגן" value={gardenData?.approval_flow_status === "active" ? "פעיל" : gardenData?.approval_flow_status ?? "טיוטה"} hint={needsCorrection ? "נדרש תיקון" : "הקמה ופרסום"} icon={CheckCircle2} tone={needsCorrection ? "orange" : "green"} />
           <TeacherStatCard title="פרופיל ציבורי" value={isPublic ? "פעיל" : "כבוי"} hint="רשימת גנים" icon={Store} tone={isPublic ? "green" : "blue"} />
           <TeacherStatCard title="תמונה/לוגו" value={hasLogo ? "קיים" : "חסר"} hint="מיתוג" icon={ImageIcon} tone={hasLogo ? "green" : "orange"} />
           <TeacherStatCard title="פרטי קשר" value={hasContact ? "מלא" : "חסר"} hint="טלפון ואימייל" icon={FileText} tone={hasContact ? "green" : "orange"} />

@@ -1,0 +1,352 @@
+[
+  {
+    "key": "manager",
+    "route": "/dashboard/garden",
+    "actualUrl": "http://localhost:3002/dashboard/garden/operations",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/manager-dashboard-garden-390x844.png"
+  },
+  {
+    "key": "manager",
+    "route": "/dashboard/garden/children",
+    "actualUrl": "http://localhost:3002/dashboard/garden/children",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "בוקר טוב, רקפת"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/manager-dashboard-garden-children-390x844.png"
+  },
+  {
+    "key": "manager",
+    "route": "/dashboard/garden/enrollment-requests",
+    "actualUrl": "http://localhost:3002/dashboard/garden/enrollment-requests",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "בוקר טוב, רקפת"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/manager-dashboard-garden-enrollment-requests-390x844.png"
+  },
+  {
+    "key": "manager",
+    "route": "/dashboard/garden/staff",
+    "actualUrl": "http://localhost:3002/dashboard/garden/staff",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "בוקר טוב, רקפת"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/manager-dashboard-garden-staff-390x844.png"
+  },
+  {
+    "key": "manager",
+    "route": "/dashboard/garden/attendance",
+    "actualUrl": "http://localhost:3002/dashboard/garden/attendance",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "נוכחות וצ׳ק אין"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/manager-dashboard-garden-attendance-390x844.png"
+  },
+  {
+    "key": "manager",
+    "route": "/dashboard/garden/finance",
+    "actualUrl": "http://localhost:3002/dashboard/garden/finance",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "בוקר טוב, רקפת"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/manager-dashboard-garden-finance-390x844.png"
+  },
+  {
+    "key": "manager",
+    "route": "/dashboard/garden/documents",
+    "actualUrl": "http://localhost:3002/dashboard/garden/documents",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "בוקר טוב, רקפת",
+      "מרכז מסמכי גן"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/manager-dashboard-garden-documents-390x844.png"
+  },
+  {
+    "key": "manager",
+    "route": "/dashboard/garden/cameras",
+    "actualUrl": "http://localhost:3002/dashboard/garden/cameras",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "בוקר טוב, רקפת"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/manager-dashboard-garden-cameras-390x844.png"
+  },
+  {
+    "key": "manager",
+    "route": "/dashboard/garden/reports",
+    "actualUrl": "http://localhost:3002/dashboard/garden/reports",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "בוקר טוב, רקפת"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/manager-dashboard-garden-reports-390x844.png"
+  },
+  {
+    "key": "manager",
+    "route": "/dashboard/garden/tasks",
+    "actualUrl": "http://localhost:3002/dashboard/garden/tasks",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "בוקר טוב, רקפת"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/manager-dashboard-garden-tasks-390x844.png"
+  },
+  {
+    "key": "manager",
+    "route": "/dashboard/garden/messages",
+    "actualUrl": "http://localhost:3002/dashboard/garden/messages",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "בוקר טוב, רקפת"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/manager-dashboard-garden-messages-390x844.png"
+  },
+  {
+    "key": "manager",
+    "route": "/dashboard/garden/subscription",
+    "actualUrl": "http://localhost:3002/dashboard/garden/subscription",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "בוקר טוב, רקפת"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/manager-dashboard-garden-subscription-390x844.png"
+  },
+  {
+    "key": "manager",
+    "route": "/dashboard/garden/settings",
+    "actualUrl": "http://localhost:3002/dashboard/garden/settings",
+    "width": 390,
+    "height": 844,
+    "overflow": false,
+    "clipped": [],
+    "deadLinks": [],
+    "h1": [
+      "בוקר טוב, רקפת"
+    ],
+    "loading": false,
+    "fatal": false,
+    "dataUnavailable": false,
+    "screenshot": "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/qa-evidence/gan-batuach-completion-audit-1/manager-dashboard-garden-settings-390x844.png"
+  },
+  {
+    "key": "manager",
+    "width": 1440,
+    "height": 900,
+    "login": {
+      "key": "manager",
+      "ok": false,
+      "url": "http://localhost:3002/login"
+    }
+  },
+  {
+    "key": "manager",
+    "width": 1440,
+    "height": 900,
+    "login": {
+      "key": "manager",
+      "ok": false,
+      "url": "http://localhost:3002/login"
+    }
+  },
+  {
+    "key": "manager",
+    "width": 1440,
+    "height": 900,
+    "login": {
+      "key": "manager",
+      "ok": false,
+      "url": "http://localhost:3002/login"
+    }
+  },
+  {
+    "key": "manager",
+    "width": 1440,
+    "height": 900,
+    "login": {
+      "key": "manager",
+      "ok": false,
+      "url": "http://localhost:3002/login"
+    }
+  },
+  {
+    "key": "manager",
+    "width": 1440,
+    "height": 900,
+    "login": {
+      "key": "manager",
+      "ok": false,
+      "url": "http://localhost:3002/login"
+    }
+  },
+  {
+    "key": "manager",
+    "width": 1440,
+    "height": 900,
+    "login": {
+      "key": "manager",
+      "ok": false,
+      "url": "http://localhost:3002/login"
+    }
+  },
+  {
+    "key": "manager",
+    "width": 1440,
+    "height": 900,
+    "login": {
+      "key": "manager",
+      "ok": false,
+      "url": "http://localhost:3002/login"
+    }
+  },
+  {
+    "key": "manager",
+    "width": 1440,
+    "height": 900,
+    "login": {
+      "key": "manager",
+      "ok": false,
+      "url": "http://localhost:3002/login"
+    }
+  },
+  {
+    "key": "manager",
+    "width": 1440,
+    "height": 900,
+    "login": {
+      "key": "manager",
+      "ok": false,
+      "url": "http://localhost:3002/login"
+    }
+  },
+  {
+    "key": "manager",
+    "width": 1440,
+    "height": 900,
+    "login": {
+      "key": "manager",
+      "ok": false,
+      "url": "http://localhost:3002/login"
+    }
+  },
+  {
+    "key": "manager",
+    "width": 1440,
+    "height": 900,
+    "login": {
+      "key": "manager",
+      "ok": false,
+      "url": "http://localhost:3002/login"
+    }
+  },
+  {
+    "key": "manager",
+    "width": 1440,
+    "height": 900,
+    "login": {
+      "key": "manager",
+      "ok": false,
+      "url": "http://localhost:3002/login"
+    }
+  },
+  {
+    "key": "manager",
+    "width": 1440,
+    "height": 900,
+    "login": {
+      "key": "manager",
+      "ok": false,
+      "url": "http://localhost:3002/login"
+    }
+  }
+]

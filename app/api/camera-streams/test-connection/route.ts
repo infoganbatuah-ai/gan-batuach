@@ -4,6 +4,7 @@ import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { buildMaskedConnectionSummary, cameraConnectionInputSchema } from "@/lib/domain/camera-connection-builder";
 import { testCameraSource } from "@/lib/domain/video-gateway-client";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 const schema = cameraConnectionInputSchema.extend({
   garden_id: z.string().uuid().optional(),
@@ -38,7 +39,9 @@ export async function POST(request: Request) {
         checks: { required_fields: "failed", gateway_reachable: "not_checked", source_reachable: "not_checked", streaming_readiness: "not_checked" }
       });
     }
-    const duplicateQuery = gardenId && payload.host ? await supabase
+    // The host is intentionally not selectable by browser sessions. The server performs
+    // duplicate detection only after the caller's garden scope has been verified.
+    const duplicateQuery = gardenId && payload.host ? await createAdminClient()
       .from("camera_streams" as any)
       .select("id,name")
       .eq("garden_id", gardenId)

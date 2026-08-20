@@ -54,10 +54,6 @@ function missingEnv(names: string[]) {
   return names.filter((name) => !process.env[name]);
 }
 
-function realPushEnabled() {
-  return process.env.PUSH_REAL_SEND_ENABLED === "true";
-}
-
 function dryRunResult(provider: PushProviderName, payload: PushPayload, configured: boolean): PushProviderResult {
   const now = new Date().toISOString();
   return {
@@ -82,11 +78,10 @@ function createProvider(name: PushProviderName, requiredEnv: string[]): PushProv
     getReadiness() {
       const missing = missingEnv(requiredEnv);
       const configured = missing.length === 0;
-      const realEnabled = realPushEnabled();
       return {
         provider: name,
         configured,
-        canSendRealMessages: configured && realEnabled,
+        canSendRealMessages: false,
         mode: name === "mock_push" ? "mock" : "dry_run",
         missing,
         supportedPlatforms: providerPlatforms[name],
@@ -127,9 +122,9 @@ export function getPushProductionReadiness() {
   return {
     providers: readiness,
     configured: configuredProviders.length > 0,
-    realSendEnabled: realPushEnabled(),
+    realSendEnabled: false,
     summary: configuredProviders.length
-      ? "קיימת תשתית ספק Push, אבל שליחה אמיתית כבויה בכוונה."
+      ? "קיימת תצורת ספק Push, אך adapter השליחה עדיין במצב dry-run ואין שליחה אמיתית."
       : "Push פועל במצב mock בלבד. אין שליחה אמיתית.",
     missingByProvider: readiness.reduce<Record<string, string[]>>((acc, provider) => {
       acc[provider.provider] = provider.missing;

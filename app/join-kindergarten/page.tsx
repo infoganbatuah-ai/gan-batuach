@@ -8,8 +8,8 @@ import { israeliCityStreetMap, kindergartenAgeGroups, regulatoryAcceptanceItems 
 const benefits = [
   { icon: ShieldCheck, title: "בטיחות ושקיפות", text: "תיעוד, פיקוח, מסמכים והתראות במקום אחד." },
   { icon: UsersRound, title: "הורים וצוות", text: "הזמנות הורים, צוות, הרשאות ועדכונים יומיים." },
-  { icon: ClipboardList, title: "הפעלה מודרכת", text: "תהליך ברור עד אישור, תשלום והפעלה מלאה." },
-  { icon: FileCheck2, title: "אמנה ומסמכים", text: "אישור תנאים, העלאת מסמכים ובדיקת אדמין." }
+  { icon: ClipboardList, title: "הפעלה מודרכת", text: "תהליך רציף עד 14 ימי ניסיון ודשבורד פעיל." },
+  { icon: FileCheck2, title: "אמנה ומסמכים", text: "אישור תנאים, מסמכים ומעקב תפעולי במקום אחד." }
 ];
 
 const managerValueBlocks = [
@@ -24,10 +24,10 @@ const managerValueBlocks = [
 ];
 
 const faq = [
-  ["האם הרישום מפעיל את הגן מיד?", "לא. הגן הופך פעיל רק אחרי אישור אדמין, השלמת אשף הפעלה, מסמכים ותשלום."],
+  ["האם הרישום מפעיל את הגן מיד?", "לאחר השלמת אשף ההקמה הגן נכנס ל־14 ימי ניסיון ללא חיוב ביום הראשון. אין המתנה לאישור אדמין."],
   ["האם צריך מצלמות כדי להתחיל?", "לא. אפשר להתחיל בהפעלה תפעולית ולחבר מצלמות בהמשך לפי מדיניות הגן."],
   ["האם AI שולח התרעות להורים לבד?", "לא. אירועים רגישים דורשים בדיקה ואישור אנושי לפני חשיפה כלשהי."],
-  ["מה קורה אחרי שליחת הרישום?", "הליד נכנס למרכז הלידים, האדמין מאשר, ואז המנהלת מקבלת פרטי כניסה חד-פעמיים להמשך Phase 139."]
+  ["מה קורה אחרי יצירת החשבון?", "המנהלת ממשיכה מיד לפרטי הגן, קבוצות, תמחור, הזמנות אופציונליות וסיכום תקופת הניסיון."]
 ];
 
 export default async function JoinKindergartenPage({ searchParams }: { searchParams: Promise<{ lead?: string; error?: string }> }) {
@@ -45,7 +45,7 @@ export default async function JoinKindergartenPage({ searchParams }: { searchPar
             <h1>הופכים את הגן לגן בטוח, שקוף ומוכן לפיקוח.</h1>
             <p>מערכת אחת לניהול בטיחות, פיקוח, מסמכים, צוות, הורים, מצלמות, תשלומים ותפעול יומי. לא עוד עודף מסכים, אלא סטנדרט אמון שמבדל את הגן.</p>
             <div className="hero-actions">
-              <Link className="button primary large" href="#kindergarten-registration">רישום גן למערכת גן בטוח</Link>
+              <Link className="button primary large" href="/app/register/kindergarten">רישום גן למערכת גן בטוח</Link>
               <Link className="button secondary large" href="/book-demo">קבע הדגמה</Link>
               <Link className="button secondary large" href="/service-charter">אמנת השירות</Link>
             </div>
@@ -118,8 +118,8 @@ export default async function JoinKindergartenPage({ searchParams }: { searchPar
             <input type="hidden" name="conversion_goal" value="registration_to_activation" />
             <input type="hidden" name="requested_plan" value="annual" />
             <input type="hidden" name="regulatory_terms_version" value="2026-06-13" />
-            <h2>פרטי רישום ראשוניים</h2>
-            <p>הגן לא יהיה פעיל עד אישור אדמין, השלמת אשף ההפעלה, הזמנת צוות והורים, מסמכים ותשלום.</p>
+            <h2>בקשת ליווי לרישום</h2>
+            <p>אפשר למלא פרטים לקבלת ליווי, או לפתוח חשבון ולהשלים את כל הרישום באופן עצמאי ללא המתנה לאישור אדמין.</p>
 
             <div className="form-grid">
               <label>שם מנהלת מלא *<input name="manager_name" required /></label>
@@ -158,7 +158,7 @@ export default async function JoinKindergartenPage({ searchParams }: { searchPar
             </section>
 
             <label className="wide">הערות ראשוניות<textarea name="notes" rows={3} placeholder="שעות פעילות, מספר ילדים משוער, מסמכים קיימים או כל פרט חשוב" /></label>
-            <button className="button primary large" type="submit">שליחת רישום לאישור</button>
+            <button className="button primary large" type="submit">שליחת פרטים לקבלת ליווי</button>
           </form>
         </section>
       </main>

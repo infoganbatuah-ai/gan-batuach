@@ -1,0 +1,85 @@
+name: Role boundary QA
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  role-boundaries:
+    name: Supabase synthetic role boundary probes
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: qa-demo
+    env:
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.QA_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: ${{ secrets.QA_SUPABASE_PUBLISHABLE_KEY }}
+      QA_DEMO_PARENT_ASSIGNED_EMAIL: ${{ secrets.QA_DEMO_PARENT_ASSIGNED_EMAIL }}
+      QA_DEMO_PARENT_ASSIGNED_PASSWORD: ${{ secrets.QA_DEMO_PARENT_ASSIGNED_PASSWORD }}
+      QA_DEMO_PARENT_UNASSIGNED_EMAIL: ${{ secrets.QA_DEMO_PARENT_UNASSIGNED_EMAIL }}
+      QA_DEMO_PARENT_UNASSIGNED_PASSWORD: ${{ secrets.QA_DEMO_PARENT_UNASSIGNED_PASSWORD }}
+      QA_DEMO_MANAGER_EMAIL: ${{ secrets.QA_DEMO_MANAGER_EMAIL }}
+      QA_DEMO_MANAGER_PASSWORD: ${{ secrets.QA_DEMO_MANAGER_PASSWORD }}
+      QA_DEMO_STAFF_ASSIGNED_EMAIL: ${{ secrets.QA_DEMO_STAFF_ASSIGNED_EMAIL }}
+      QA_DEMO_STAFF_ASSIGNED_PASSWORD: ${{ secrets.QA_DEMO_STAFF_ASSIGNED_PASSWORD }}
+      QA_DEMO_STAFF_UNASSIGNED_EMAIL: ${{ secrets.QA_DEMO_STAFF_UNASSIGNED_EMAIL }}
+      QA_DEMO_STAFF_UNASSIGNED_PASSWORD: ${{ secrets.QA_DEMO_STAFF_UNASSIGNED_PASSWORD }}
+      QA_DEMO_INSPECTOR_ASSIGNED_EMAIL: ${{ secrets.QA_DEMO_INSPECTOR_ASSIGNED_EMAIL }}
+      QA_DEMO_INSPECTOR_ASSIGNED_PASSWORD: ${{ secrets.QA_DEMO_INSPECTOR_ASSIGNED_PASSWORD }}
+      QA_DEMO_INSPECTOR_UNASSIGNED_EMAIL: ${{ secrets.QA_DEMO_INSPECTOR_UNASSIGNED_EMAIL }}
+      QA_DEMO_INSPECTOR_UNASSIGNED_PASSWORD: ${{ secrets.QA_DEMO_INSPECTOR_UNASSIGNED_PASSWORD }}
+      QA_DEMO_ADMIN_EMAIL: ${{ secrets.QA_DEMO_ADMIN_EMAIL }}
+      QA_DEMO_ADMIN_PASSWORD: ${{ secrets.QA_DEMO_ADMIN_PASSWORD }}
+      QA_DEMO_DIGITAL_OBSERVER_EMAIL: ${{ secrets.QA_DEMO_DIGITAL_OBSERVER_EMAIL }}
+      QA_DEMO_DIGITAL_OBSERVER_PASSWORD: ${{ secrets.QA_DEMO_DIGITAL_OBSERVER_PASSWORD }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Validate required QA secrets are configured
+        shell: bash
+        run: |
+          set -euo pipefail
+          required=(
+            NEXT_PUBLIC_SUPABASE_URL NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY
+            QA_DEMO_PARENT_ASSIGNED_EMAIL QA_DEMO_PARENT_ASSIGNED_PASSWORD
+            QA_DEMO_PARENT_UNASSIGNED_EMAIL QA_DEMO_PARENT_UNASSIGNED_PASSWORD
+            QA_DEMO_MANAGER_EMAIL QA_DEMO_MANAGER_PASSWORD
+            QA_DEMO_STAFF_ASSIGNED_EMAIL QA_DEMO_STAFF_ASSIGNED_PASSWORD
+            QA_DEMO_STAFF_UNASSIGNED_EMAIL QA_DEMO_STAFF_UNASSIGNED_PASSWORD
+            QA_DEMO_INSPECTOR_ASSIGNED_EMAIL QA_DEMO_INSPECTOR_ASSIGNED_PASSWORD
+            QA_DEMO_INSPECTOR_UNASSIGNED_EMAIL QA_DEMO_INSPECTOR_UNASSIGNED_PASSWORD
+            QA_DEMO_ADMIN_EMAIL QA_DEMO_ADMIN_PASSWORD
+            QA_DEMO_DIGITAL_OBSERVER_EMAIL QA_DEMO_DIGITAL_OBSERVER_PASSWORD
+          )
+          for name in "${required[@]}"; do
+            if [ -z "${!name:-}" ]; then
+              echo "::error::Missing required qa-demo environment secret: ${name}"
+              exit 1
+            fi
+          done
+
+      - name: Run static storage policy safety gate
+        run: npm run qa:storage-policy-safety
+
+      - name: Run authenticated role boundary probes
+        run: npm run qa:probe-role-boundaries
+
+      - name: Upload sanitized QA evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: role-boundary-qa-evidence
+          path: qa-evidence/gan-batuach-completion-audit-1/*.json
+          if-no-files-found: error
+          retention-days: 30

@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { normalizeCameraStatus } from "@/lib/domain/video-gateway";
+import { CAMERA_BROWSER_SAFE_SELECT } from "@/lib/domain/camera-safe-columns";
 
 export type CameraHealthSummary = {
   total: number;
@@ -56,7 +57,7 @@ export async function recordCameraHealthCheck(
     .from("camera_streams" as any)
     .update(updates)
     .eq("id", camera.id)
-    .select("*")
+    .select(CAMERA_BROWSER_SAFE_SELECT)
     .single();
   if (error) throw new Error(error.message);
   return data;

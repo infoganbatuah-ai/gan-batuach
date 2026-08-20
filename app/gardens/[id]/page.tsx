@@ -69,7 +69,7 @@ export default async function PublicGardenProfilePage({ params }: { params: Prom
       <>
         <PublicGardenHeader />
         <ResponsivePage className="gb-public-page" size="md">
-          <EmptyState icon={Building2} title="פרופיל הגן לא זמין לציבור" text="ייתכן שהגן עדיין ממתין לאישור אדמין או שלא אישר הצגה ציבורית." action={<Link className="gb-public-button primary" href="/gardens">חזרה לרשימת הגנים</Link>} />
+          <EmptyState icon={Building2} title="פרופיל הגן לא זמין לציבור" text="הגן טרם הפעיל פרופיל ציבורי או נמצא עדיין בהשלמת פרטים." action={<Link className="gb-public-button primary" href="/gardens">חזרה לרשימת הגנים</Link>} />
         </ResponsivePage>
       </>
     );

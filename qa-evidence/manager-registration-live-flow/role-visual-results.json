@@ -1,0 +1,320 @@
+{
+  "generatedAt": "2026-08-20T00:13:30.495Z",
+  "results": [
+    {
+      "role": "parent-assigned",
+      "status": "PASS_LOGIN",
+      "path": "/dashboard/parent/family-home",
+      "desktop": {
+        "clippedControls": 0,
+        "hasOldHardcodedDate": false,
+        "hasRawSecretLabel": false,
+        "headings": [
+          "טוען אזור הורים"
+        ],
+        "height": 900,
+        "overflow": false,
+        "scrollWidth": 1440,
+        "width": 1440
+      },
+      "mobile": {
+        "clippedControls": 0,
+        "hasOldHardcodedDate": false,
+        "hasRawSecretLabel": false,
+        "headings": [
+          "דשבורד הורים",
+          "ליה דגן השתתף/ה בפעילות היום.",
+          "המערכת מרכזת עבורך את החשוב.",
+          "ציר היום",
+          "סיכום שבועי למשפחה"
+        ],
+        "height": 844,
+        "overflow": false,
+        "scrollWidth": 390,
+        "width": 390
+      }
+    },
+    {
+      "role": "parent-unassigned",
+      "status": "PASS_LOGIN",
+      "path": "/dashboard/parent",
+      "desktop": {
+        "clippedControls": 0,
+        "hasOldHardcodedDate": false,
+        "hasRawSecretLabel": false,
+        "headings": [
+          "דשבורד הורים",
+          "דשבורד הורים",
+          "עדיין לא נוסף ילד לחשבון שלך",
+          "כרטיס ילד פרטי"
+        ],
+        "height": 900,
+        "overflow": false,
+        "scrollWidth": 1440,
+        "width": 1440
+      },
+      "mobile": {
+        "clippedControls": 0,
+        "hasOldHardcodedDate": false,
+        "hasRawSecretLabel": false,
+        "headings": [
+          "דשבורד הורים",
+          "דשבורד הורים",
+          "עדיין לא נוסף ילד לחשבון שלך",
+          "כרטיס ילד פרטי"
+        ],
+        "height": 844,
+        "overflow": false,
+        "scrollWidth": 390,
+        "width": 390
+      }
+    },
+    {
+      "role": "manager",
+      "status": "PASS_LOGIN",
+      "path": "/dashboard/garden/operations",
+      "desktop": {
+        "clippedControls": 0,
+        "hasOldHardcodedDate": false,
+        "hasRawSecretLabel": false,
+        "headings": [
+          "בוקר טוב, רקפת"
+        ],
+        "height": 900,
+        "overflow": false,
+        "scrollWidth": 1440,
+        "width": 1440
+      },
+      "mobile": {
+        "clippedControls": 0,
+        "hasOldHardcodedDate": false,
+        "hasRawSecretLabel": false,
+        "headings": [
+          "בוקר טוב, רקפת"
+        ],
+        "height": 844,
+        "overflow": false,
+        "scrollWidth": 390,
+        "width": 390
+      }
+    },
+    {
+      "role": "staff-assigned",
+      "status": "PASS_LOGIN",
+      "path": "/dashboard/staff",
+      "desktop": {
+        "clippedControls": 0,
+        "hasOldHardcodedDate": false,
+        "hasRawSecretLabel": false,
+        "headings": [
+          "דשבורד צוות",
+          "בוקר טוב, צוות",
+          "המשמרת שלי",
+          "המשימות שלי היום",
+          "הודעות"
+        ],
+        "height": 900,
+        "overflow": false,
+        "scrollWidth": 1440,
+        "width": 1440
+      },
+      "mobile": {
+        "clippedControls": 0,
+        "hasOldHardcodedDate": false,
+        "hasRawSecretLabel": false,
+        "headings": [
+          "דשבורד צוות",
+          "בוקר טוב, צוות",
+          "המשמרת שלי",
+          "המשימות שלי היום",
+          "הודעות"
+        ],
+        "height": 844,
+        "overflow": false,
+        "scrollWidth": 390,
+        "width": 390
+      }
+    },
+    {
+      "role": "staff-unassigned",
+      "status": "PASS_LOGIN",
+      "path": "/dashboard/staff",
+      "desktop": {
+        "clippedControls": 0,
+        "hasOldHardcodedDate": false,
+        "hasRawSecretLabel": false,
+        "headings": [
+          "מרכז מועמדות לצוות",
+          "עדיין לא שובצת לגן",
+          "העדפות העבודה שלי",
+          "חיפוש גנים באזור",
+          "מועמדויות שהוגשו"
+        ],
+        "height": 900,
+        "overflow": false,
+        "scrollWidth": 1440,
+        "width": 1440
+      },
+      "mobile": {
+        "clippedControls": 0,
+        "hasOldHardcodedDate": false,
+        "hasRawSecretLabel": false,
+        "headings": [
+          "מרכז מועמדות לצוות",
+          "עדיין לא שובצת לגן",
+          "העדפות העבודה שלי",
+          "חיפוש גנים באזור",
+          "מועמדויות שהוגשו"
+        ],
+        "height": 844,
+        "overflow": false,
+        "scrollWidth": 390,
+        "width": 390
+      }
+    },
+    {
+      "role": "inspector-assigned",
+      "status": "PASS_LOGIN",
+      "path": "/dashboard/inspector/apply",
+      "desktop": {
+        "clippedControls": 0,
+        "hasOldHardcodedDate": false,
+        "hasRawSecretLabel": false,
+        "headings": [
+          "בקשת מפקח",
+          "הצטרפות למערך המפקחים של גן בטוח",
+          "טופס בקשה",
+          "בקשת הצטרפות למערך המפקחים"
+        ],
+        "height": 900,
+        "overflow": false,
+        "scrollWidth": 1440,
+        "width": 1440
+      },
+      "mobile": {
+        "clippedControls": 0,
+        "hasOldHardcodedDate": false,
+        "hasRawSecretLabel": false,
+        "headings": [
+          "בקשת מפקח",
+          "הצטרפות למערך המפקחים של גן בטוח",
+          "טופס בקשה",
+          "בקשת הצטרפות למערך המפקחים"
+        ],
+        "height": 844,
+        "overflow": false,
+        "scrollWidth": 390,
+        "width": 390
+      }
+    },
+    {
+      "role": "inspector-unassigned",
+      "status": "PASS_LOGIN",
+      "path": "/dashboard/inspector/apply",
+      "desktop": {
+        "clippedControls": 0,
+        "hasOldHardcodedDate": false,
+        "hasRawSecretLabel": false,
+        "headings": [
+          "בקשת מפקח",
+          "הצטרפות למערך המפקחים של גן בטוח",
+          "טופס בקשה",
+          "בקשת הצטרפות למערך המפקחים"
+        ],
+        "height": 900,
+        "overflow": false,
+        "scrollWidth": 1440,
+        "width": 1440
+      },
+      "mobile": {
+        "clippedControls": 0,
+        "hasOldHardcodedDate": false,
+        "hasRawSecretLabel": false,
+        "headings": [
+          "בקשת מפקח",
+          "הצטרפות למערך המפקחים של גן בטוח",
+          "טופס בקשה",
+          "בקשת הצטרפות למערך המפקחים"
+        ],
+        "height": 844,
+        "overflow": false,
+        "scrollWidth": 390,
+        "width": 390
+      }
+    },
+    {
+      "role": "admin",
+      "status": "PASS_LOGIN",
+      "path": "/dashboard/admin",
+      "desktop": {
+        "clippedControls": 0,
+        "hasOldHardcodedDate": false,
+        "hasRawSecretLabel": false,
+        "headings": [
+          "דשבורד אדמין ראשי",
+          "דשבורד אדמין ראשי",
+          "מצב מערכת",
+          "פעולות מהירות",
+          "בטיחות ארצית"
+        ],
+        "height": 900,
+        "overflow": false,
+        "scrollWidth": 1440,
+        "width": 1440
+      },
+      "mobile": {
+        "clippedControls": 0,
+        "hasOldHardcodedDate": false,
+        "hasRawSecretLabel": false,
+        "headings": [
+          "דשבורד אדמין ראשי",
+          "דשבורד אדמין ראשי",
+          "מצב מערכת",
+          "פעולות מהירות",
+          "בטיחות ארצית"
+        ],
+        "height": 844,
+        "overflow": false,
+        "scrollWidth": 390,
+        "width": 390
+      }
+    },
+    {
+      "role": "digital-observer",
+      "status": "PASS_LOGIN",
+      "path": "/digital-observer/dashboard",
+      "desktop": {
+        "clippedControls": 0,
+        "hasOldHardcodedDate": false,
+        "hasRawSecretLabel": false,
+        "headings": [
+          "Digital Observer",
+          "שלום, Digital Observer QA",
+          "פעולות מהירות",
+          "פעולות הגדרה",
+          "מצב מוכנות"
+        ],
+        "height": 900,
+        "overflow": false,
+        "scrollWidth": 1440,
+        "width": 1440
+      },
+      "mobile": {
+        "clippedControls": 0,
+        "hasOldHardcodedDate": false,
+        "hasRawSecretLabel": false,
+        "headings": [
+          "Digital Observer",
+          "שלום, Digital Observer QA",
+          "פעולות מהירות",
+          "פעולות הגדרה",
+          "מצב מוכנות"
+        ],
+        "height": 844,
+        "overflow": false,
+        "scrollWidth": 390,
+        "width": 390
+      }
+    }
+  ]
+}

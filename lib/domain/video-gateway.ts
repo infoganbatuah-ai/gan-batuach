@@ -31,7 +31,7 @@ export function normalizeCameraStatus(value?: string | null, active = true): Cam
 }
 
 export function isVideoGatewayConfigured() {
-  return Boolean(process.env.VIDEO_GATEWAY_URL);
+  return Boolean(process.env.VIDEO_GATEWAY_URL && process.env.VIDEO_GATEWAY_SIGNING_SECRET);
 }
 
 export function hasPlaybackSource(camera: Record<string, unknown>) {
@@ -102,8 +102,8 @@ async function gatewayRequest(path: string, payload: unknown) {
   // responsible for RTSP/ONVIF ingestion, HLS/WebRTC conversion, stream health
   // checks and secure playback sessions. Until configured, callers receive a
   // pending gateway response and the current Vercel/Supabase runtime is unchanged.
-  if (!process.env.VIDEO_GATEWAY_URL) {
-    return { gateway_unconfigured: true, path, payload };
+  if (!isVideoGatewayConfigured()) {
+    return { gateway_unconfigured: true, path, status: "pending_gateway" };
   }
 
   const response = await fetch(`${process.env.VIDEO_GATEWAY_URL}${path}`, {
@@ -150,11 +150,30 @@ function sanitizeCameraRow(camera: Record<string, unknown>) {
     username_encrypted,
     password_encrypted,
     encrypted_password,
+    secret_ref,
+    source_secret_reference,
     connection_username_encrypted,
     connection_password_encrypted,
+    host,
+    connection_host,
+    source_url,
+    rtsp_template,
+    hls_playback_url,
+    sample_hls_url,
+    webrtc_playback_url,
     ...safeCamera
   } = camera;
   return safeCamera;
+}
+
+function sanitizeGatewayResult(gateway: Record<string, unknown>) {
+  return {
+    configured: !gateway.gateway_unconfigured,
+    status: gateway.status ?? (gateway.gateway_unconfigured ? "pending_gateway" : "connected"),
+    stream_id: gateway.stream_id ?? gateway.id ?? null,
+    message: gateway.message ?? null,
+    candidate_count: Array.isArray(gateway.candidates) ? gateway.candidates.length : undefined
+  };
 }
 
 export async function discoverOnvif(payload: z.infer<typeof onvifDiscoverySchema>) {
@@ -204,13 +223,15 @@ export async function ingestRtsp(payload: z.infer<typeof rtspIngestSchema>) {
     .select("*")
     .single();
   if (error) throw new Error(error.message);
-  return { camera: sanitizeCameraRow(camera as any), gateway };
+  return { camera: sanitizeCameraRow(camera as any), gateway: sanitizeGatewayResult(gateway) };
 }
 
 export async function createDvrConnection(payload: z.infer<typeof dvrConnectionSchema>) {
   const parsed = dvrConnectionSchema.parse(payload);
   const supabase = createAdminClient();
   const gateway = await gatewayRequest("/dvr/connect", parsed);
+  const gatewayStreamId = (gateway as any).stream_id ?? (gateway as any).id ?? null;
+  const connectionStatus = gatewayStreamId ? "connected" : "pending_gateway";
   const { data, error } = await supabase
     .from("video_gateway_connections")
     .insert({
@@ -220,14 +241,29 @@ export async function createDvrConnection(payload: z.infer<typeof dvrConnectionS
       port: parsed.port,
       username_encrypted: encryptField(parsed.username),
       password_encrypted: encryptField(parsed.password),
-      gateway_stream_id: (gateway as any).stream_id,
-      status: "connected",
-      metadata: parsed.metadata
+      gateway_stream_id: gatewayStreamId,
+      status: connectionStatus,
+      metadata: {
+        ...parsed.metadata,
+        gateway_configured: isVideoGatewayConfigured(),
+        live_connection_verified: Boolean(gatewayStreamId)
+      }
     } as any)
     .select("*")
     .single();
   if (error) throw new Error(error.message);
-  return { connection: data, gateway };
+  return {
+    connection: {
+      id: (data as any)?.id ?? null,
+      garden_id: (data as any)?.garden_id ?? parsed.garden_id,
+      connection_type: (data as any)?.connection_type ?? parsed.connection_type,
+      gateway_stream_id: (data as any)?.gateway_stream_id ?? null,
+      status: (data as any)?.status ?? connectionStatus,
+      created_at: (data as any)?.created_at ?? null,
+      updated_at: (data as any)?.updated_at ?? null
+    },
+    gateway: sanitizeGatewayResult(gateway)
+  };
 }
 
 export async function recordStreamHealth(payload: z.infer<typeof streamHealthSchema>) {

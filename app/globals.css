@@ -9361,10 +9361,14 @@ body::before {
   padding: 18px;
   transform: translateX(calc(-100% - 40px));
   transition: transform .24s ease;
+  visibility: hidden;
+  pointer-events: none;
 }
 
 .ai-assistant-panel.open {
   transform: translateX(0);
+  visibility: visible;
+  pointer-events: auto;
 }
 
 .assistant-header {
