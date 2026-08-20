@@ -31,8 +31,11 @@ export async function GET(request: Request) {
         requested_account_type: data.user?.user_metadata?.account_type ?? "home"
       });
       if (account.error || account.data !== true) {
-        await supabase.auth.signOut();
-        return NextResponse.redirect(new URL("/digital-observer/login?error=observer_setup_required", requestUrl.origin));
+        console.error("Digital Observer account preparation failed after auth callback", {
+          code: account.error?.code ?? "unknown",
+          message: account.error?.message ?? "No database error returned",
+          returnedTrue: account.data === true
+        });
       }
       await supabase.auth.signOut();
     }

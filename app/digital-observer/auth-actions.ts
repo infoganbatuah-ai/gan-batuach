@@ -5,7 +5,11 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 
 function appOrigin() {
-  const configured = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || process.env.VERCEL_URL || "http://localhost:3000";
+  const configured = process.env.NEXT_PUBLIC_APP_URL
+    || process.env.APP_URL
+    || process.env.VERCEL_PROJECT_PRODUCTION_URL
+    || process.env.VERCEL_URL
+    || "http://localhost:3000";
   return configured.startsWith("http://") || configured.startsWith("https://") ? configured.replace(/\/$/, "") : `https://${configured.replace(/\/$/, "")}`;
 }
 
@@ -30,6 +34,19 @@ function reportAuthEmailFailure(action: "signup" | "resend", error: AuthEmailErr
     category: authEmailErrorCode(error),
     code: error?.code ?? "unknown",
     status: error?.status ?? null
+  });
+}
+
+function reportObserverAccountSetupFailure(
+  action: "signup" | "code_verification",
+  error: { code?: string; message?: string } | null,
+  result: unknown
+) {
+  console.error("Digital Observer account preparation failed after successful authentication", {
+    action,
+    code: error?.code ?? "unknown",
+    message: error?.message ?? "No database error returned",
+    returnedTrue: result === true
   });
 }
 
@@ -77,7 +94,11 @@ export async function registerDigitalObserver(formData: FormData) {
       requested_name: fullName,
       requested_account_type: accountType
     });
-    if (account.error || account.data !== true) redirect("/digital-observer/verify?error=account_setup_failed");
+    if (account.error || account.data !== true) {
+      reportObserverAccountSetupFailure("signup", account.error, account.data);
+      await supabase.auth.signOut();
+      redirect("/digital-observer/login?error=observer_setup_required");
+    }
     await supabase.auth.signOut();
     const cookieStore = await cookies();
     cookieStore.delete("do_pending_email");
@@ -108,8 +129,7 @@ export async function verifyDigitalObserverEmailCode(formData: FormData) {
     requested_account_type: data.user.user_metadata?.account_type ?? "home"
   });
   if (account.error || account.data !== true) {
-    await supabase.auth.signOut();
-    redirect("/digital-observer/verify?error=account_setup_failed");
+    reportObserverAccountSetupFailure("code_verification", account.error, account.data);
   }
 
   await supabase.auth.signOut();

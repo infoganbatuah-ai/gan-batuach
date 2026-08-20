@@ -8,7 +8,7 @@ type PageProps = { searchParams?: Promise<{ error?: string; resent?: string }> }
 
 const errorMessages: Record<string, string> = {
   missing_email: "לא נמצאה כתובת הדוא״ל של ההרשמה. יש להירשם מחדש.",
-  invalid_code: "קוד האימות אינו תקין או שפג תוקפו. בדקו את הקוד או בקשו קוד חדש.",
+  invalid_code: "קוד האימות אינו תקין, פג תוקפו או שכבר נוצל. אם כבר לחצתם על קישור האימות במייל, עברו להתחברות במקום להזין שוב את הקוד.",
   email_not_authorized: "שירות המייל המובנה של Supabase אינו מורשה לשלוח לכתובת הזו. יש לחבר SMTP מותאם לפני שליחה חוזרת.",
   email_rate_limited: "הגענו למגבלת השליחה. המתינו לפני ניסיון נוסף או חברו SMTP מותאם.",
   supabase_configuration_error: "מפתח החיבור של Supabase בסביבת האתר אינו תקין. יש לעדכן את משתני הסביבה לפני ניסיון נוסף.",
