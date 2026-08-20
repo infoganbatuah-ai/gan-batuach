@@ -1,6 +1,6 @@
 # DIGITAL OBSERVER AUTOMATED QA RESULTS
 
-Date: 2026-08-20T13:28:44.764Z
+Date: 2026-08-20T22:00:17.982Z
 Environment: synthetic demo
 Passwords or tokens printed: no
 Service role used in browser/client QA: no
@@ -8,10 +8,10 @@ Service role used in browser/client QA: no
 | Area | Result | Evidence |
 |---|---|---|
 | Home user login | PASS | Normal Supabase auth session created |
-| Home user standalone identity | FAIL | Database error PGRST205 |
+| Home user standalone identity | PASS | Digital Observer membership exists independently from the Gan Batuach role |
 | Home user product metadata | FAIL | Legacy test user is missing product=digital_observer metadata |
 | Business user login | PASS | Normal Supabase auth session created |
-| Business user standalone identity | FAIL | Database error PGRST205 |
+| Business user standalone identity | PASS | Digital Observer membership exists independently from the Gan Batuach role |
 | Business user product metadata | FAIL | Legacy test user is missing product=digital_observer metadata |
 | Home user synthetic site | PASS | home site visible through user-scoped query |
 | Business user synthetic site | PASS | business site visible through user-scoped query |
@@ -44,6 +44,6 @@ Service role used in browser/client QA: no
 | Commercial package matrix is complete | PASS | Home, business and multi-site package rows are present |
 
 Final result: FAIL
-Passed: 19/35
+Passed: 21/35
 
 > This runtime QA uses normal Supabase authentication and RLS. It does not validate a real camera gateway, AI provider, billing provider or production notification provider.

@@ -50,7 +50,7 @@ function reportObserverAccountSetupFailure(
   });
 }
 
-async function rememberPendingEmail(email: string) {
+async function rememberPendingRegistration(email: string, fullName?: string, accountType?: string) {
   const cookieStore = await cookies();
   cookieStore.set("do_pending_email", email, {
     httpOnly: true,
@@ -59,6 +59,48 @@ async function rememberPendingEmail(email: string) {
     maxAge: 60 * 60,
     path: "/"
   });
+  if (fullName) {
+    cookieStore.set("do_pending_name", fullName, {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 60 * 60,
+      path: "/"
+    });
+  }
+  if (accountType) {
+    cookieStore.set("do_pending_account_type", accountType === "business" ? "business" : "home", {
+      httpOnly: true,
+      sameSite: "lax",
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 60 * 60,
+      path: "/"
+    });
+  }
+}
+
+async function clearPendingRegistration() {
+  const cookieStore = await cookies();
+  cookieStore.delete("do_pending_email");
+  cookieStore.delete("do_pending_name");
+  cookieStore.delete("do_pending_account_type");
+}
+
+async function sendObserverAccessEmail(
+  supabase: Awaited<ReturnType<typeof createClient>>,
+  email: string
+) {
+  return supabase.auth.signInWithOtp({
+    email,
+    options: {
+      shouldCreateUser: false,
+      emailRedirectTo: emailRedirectTo()
+    }
+  });
+}
+
+function isExistingIdentityResult(data: { user?: { identities?: unknown[] | null } | null }) {
+  return !data.user || (Array.isArray(data.user.identities) && data.user.identities.length === 0);
 }
 
 export async function registerDigitalObserver(formData: FormData) {
@@ -84,10 +126,30 @@ export async function registerDigitalObserver(formData: FormData) {
     }
   });
   if (error) {
+    const existingAccount = error.code === "user_already_exists"
+      || error.message.toLowerCase().includes("already registered");
+    if (existingAccount) {
+      await rememberPendingRegistration(email, fullName, accountType);
+      const accessEmail = await sendObserverAccessEmail(supabase, email);
+      if (accessEmail.error) {
+        reportAuthEmailFailure("resend", accessEmail.error);
+        redirect(`/digital-observer/register?error=${authEmailErrorCode(accessEmail.error)}`);
+      }
+      redirect("/digital-observer/verify?resent=1&existing=1");
+    }
     reportAuthEmailFailure("signup", error);
     redirect(`/digital-observer/register?error=${authEmailErrorCode(error)}`);
   }
-  await rememberPendingEmail(email);
+  await rememberPendingRegistration(email, fullName, accountType);
+
+  if (isExistingIdentityResult(data)) {
+    const accessEmail = await sendObserverAccessEmail(supabase, email);
+    if (accessEmail.error) {
+      reportAuthEmailFailure("resend", accessEmail.error);
+      redirect(`/digital-observer/register?error=${authEmailErrorCode(accessEmail.error)}`);
+    }
+    redirect("/digital-observer/verify?resent=1&existing=1");
+  }
 
   if (data.session && data.user) {
     const account = await supabase.rpc("ensure_digital_observer_account" as any, {
@@ -100,8 +162,7 @@ export async function registerDigitalObserver(formData: FormData) {
       redirect("/digital-observer/login?error=observer_setup_required");
     }
     await supabase.auth.signOut();
-    const cookieStore = await cookies();
-    cookieStore.delete("do_pending_email");
+    await clearPendingRegistration();
     redirect("/digital-observer/login?verified=1");
   }
 
@@ -111,6 +172,11 @@ export async function registerDigitalObserver(formData: FormData) {
 export async function verifyDigitalObserverEmailCode(formData: FormData) {
   const cookieStore = await cookies();
   const email = String(formData.get("email") || cookieStore.get("do_pending_email")?.value || "").trim().toLowerCase();
+  const pendingName = cookieStore.get("do_pending_name")?.value ?? null;
+  const pendingAccountTypeValue = cookieStore.get("do_pending_account_type")?.value;
+  const pendingAccountType = pendingAccountTypeValue === "business" || pendingAccountTypeValue === "home"
+    ? pendingAccountTypeValue
+    : null;
   const token = String(formData.get("code") || "").replace(/\s/g, "");
   if (!email) redirect("/digital-observer/verify?error=missing_email");
   if (!/^\d{6,8}$/.test(token)) redirect("/digital-observer/verify?error=invalid_code");
@@ -119,21 +185,16 @@ export async function verifyDigitalObserverEmailCode(formData: FormData) {
   const { data, error } = await supabase.auth.verifyOtp({ email, token, type: "email" });
   if (error || !data.user) redirect("/digital-observer/verify?error=invalid_code");
 
-  const product = data.user.user_metadata?.product;
-  if (product !== "digital_observer") {
-    await supabase.auth.signOut();
-    redirect("/digital-observer/verify?error=account_setup_failed");
-  }
   const account = await supabase.rpc("ensure_digital_observer_account" as any, {
-    requested_name: data.user.user_metadata?.full_name ?? null,
-    requested_account_type: data.user.user_metadata?.account_type ?? "home"
+    requested_name: pendingName ?? data.user.user_metadata?.full_name ?? null,
+    requested_account_type: pendingAccountType ?? data.user.user_metadata?.account_type ?? "home"
   });
   if (account.error || account.data !== true) {
     reportObserverAccountSetupFailure("code_verification", account.error, account.data);
   }
 
   await supabase.auth.signOut();
-  cookieStore.delete("do_pending_email");
+  await clearPendingRegistration();
   redirect("/digital-observer/login?verified=1");
 }
 
@@ -143,15 +204,11 @@ export async function resendDigitalObserverVerification(formData: FormData) {
   if (!email) redirect("/digital-observer/verify?error=missing_email");
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.resend({
-    type: "signup",
-    email,
-    options: { emailRedirectTo: emailRedirectTo() }
-  });
+  const { error } = await sendObserverAccessEmail(supabase, email);
   if (error) {
     reportAuthEmailFailure("resend", error);
     redirect(`/digital-observer/verify?error=${authEmailErrorCode(error)}`);
   }
-  await rememberPendingEmail(email);
-  redirect("/digital-observer/verify?resent=1");
+  await rememberPendingRegistration(email);
+  redirect("/digital-observer/verify?resent=1&existing=1");
 }
