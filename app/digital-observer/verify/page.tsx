@@ -9,7 +9,9 @@ type PageProps = { searchParams?: Promise<{ error?: string; resent?: string }> }
 const errorMessages: Record<string, string> = {
   missing_email: "לא נמצאה כתובת הדוא״ל של ההרשמה. יש להירשם מחדש.",
   invalid_code: "קוד האימות אינו תקין או שפג תוקפו. בדקו את הקוד או בקשו קוד חדש.",
-  resend_failed: "לא הצלחנו לשלוח קוד חדש. בדקו את הגדרת הדוא״ל ב-Supabase ונסו שוב.",
+  email_not_authorized: "Supabase חסם את כתובת הנמען. יש לחבר SMTP מותאם או לבדוק עם כתובת של חבר צוות בפרויקט.",
+  email_rate_limited: "הגענו למגבלת השליחה. המתינו לפני ניסיון נוסף או חברו SMTP מותאם.",
+  email_delivery_failed: "Supabase לא הצליח להתחיל שליחה חוזרת. יש לבדוק את יומן Auth ואת הגדרת ה-SMTP.",
   account_setup_failed: "המייל אומת, אך הכנת חשבון התצפיתן לא הושלמה. נסו להתחבר שוב."
 };
 
@@ -30,10 +32,10 @@ export default async function DigitalObserverVerifyPage({ searchParams }: PagePr
         <div className="do-auth-card do-verify-card">
           <Link className="do-auth-brand dark" href="/digital-observer"><ObserverMark /><span><b>תצפיתן דיגיטלי</b><small>אימות חשבון עצמאי</small></span></Link>
           <MailCheck className="do-verify-icon" aria-hidden="true" />
-          <h1>קוד האימות נשלח למייל</h1>
-          <p>{pendingEmail ? <>שלחנו קוד לכתובת <strong dir="ltr">{maskEmail(pendingEmail)}</strong>.</> : "הזינו את כתובת המייל ואת קוד האימות שקיבלתם."}</p>
+          <h1>אימות כתובת הדוא״ל</h1>
+          <p>{pendingEmail ? <>בקשת אימות נקלטה עבור <strong dir="ltr">{maskEmail(pendingEmail)}</strong>. הקוד יישלח רק אם זו כתובת חדשה, SMTP זמין ולא נחסמה מגבלת שליחה.</> : "הזינו את כתובת המייל ואת קוד האימות שקיבלתם."}</p>
           {params?.error ? <div className="do-notice bad" role="alert"><ShieldCheck /><span>{errorMessages[params.error] ?? errorMessages.invalid_code}</span></div> : null}
-          {params?.resent === "1" ? <div className="do-notice good" role="status"><MailCheck /><span>קוד חדש נשלח. השתמשו בקוד האחרון שהתקבל.</span></div> : null}
+          {params?.resent === "1" ? <div className="do-notice good" role="status"><MailCheck /><span>בקשת שליחה חוזרת נקלטה. אם החשבון עדיין ממתין לאימות, השתמשו בקוד האחרון שיגיע.</span></div> : null}
           <form action={verifyDigitalObserverEmailCode} className="do-verify-form">
             {!pendingEmail ? <label className="do-field"><span>דוא״ל</span><input name="email" type="email" autoComplete="email" required /></label> : <input type="hidden" name="email" value={pendingEmail} />}
             <label className="do-field"><span>קוד אימות</span><input className="do-otp-input" name="code" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]{6,8}" minLength={6} maxLength={8} placeholder="000000" required /></label>
