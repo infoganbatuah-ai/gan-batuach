@@ -8,7 +8,12 @@ import { digitalObserverConnectorTypes, getDigitalObserverConnector } from "@/li
 type ActionState = { busy: boolean; error: string; message: string };
 
 async function postJson(path: string, body: unknown) {
-  const response = await fetch(path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  const response = await fetch(path, {
+    method: "POST",
+    credentials: "same-origin",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body)
+  });
   const payload = await response.json().catch(() => ({}));
   if (!response.ok) throw new Error(payload.error || "הפעולה נכשלה");
   return payload.data;
