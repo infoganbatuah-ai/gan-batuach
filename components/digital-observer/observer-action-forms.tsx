@@ -4,6 +4,7 @@ import { useState, type FormEvent, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { AlertTriangle, Bell, Camera, Check, ChevronLeft, LoaderCircle, Radar, ShieldCheck, Trash2 } from "lucide-react";
 import { digitalObserverConnectorTypes, getDigitalObserverConnector } from "@/lib/domain/digital-observer/connectors";
+import { createClient } from "@/lib/supabase/browser";
 
 type ActionState = { busy: boolean; error: string; message: string };
 
@@ -27,10 +28,110 @@ function ResultMessage({ state }: { state: ActionState }) {
 }
 
 export function ObserverOnboardingWizard({ packages, defaultType = "home" }: { packages: any[]; defaultType?: "home" | "business" }) {
+  const router = useRouter();
   const [step, setStep] = useState(1);
+  const [state, setState] = useState<ActionState>({ busy: false, error: "", message: "" });
   const [form, setForm] = useState({ name: "", site_type: defaultType, address: "", camera_count: 1, schedule_mode: defaultType === "home" ? "event_only" : "business_hours", package_id: "", monitoring_targets: ["person"] });
   const update = (key: string, value: any) => setForm((current) => ({ ...current, [key]: value }));
   const toggleTarget = (value: string) => update("monitoring_targets", form.monitoring_targets.includes(value) ? form.monitoring_targets.filter((item) => item !== value) : [...form.monitoring_targets, value]);
+  async function submit() {
+    setState({ busy: true, error: "", message: "" });
+    try {
+      const supabase = createClient();
+      const { data: userResult, error: userError } = await supabase.auth.getUser();
+      if (userError || !userResult.user) throw new Error("נדרשת התחברות מחדש לתצפיתן הדיגיטלי.");
+      const profileId = userResult.user.id;
+      const { data: observerAccount } = await supabase
+        .from("digital_observer_accounts" as any)
+        .select("profile_id")
+        .eq("profile_id", profileId)
+        .maybeSingle();
+      if (!observerAccount) throw new Error("חשבון התצפיתן טרם הוכן. יש להתחבר מחדש ולנסות שוב.");
+
+      const now = new Date().toISOString();
+      const siteResult = await supabase
+        .from("observer_sites" as any)
+        .insert({
+          name: form.name.trim(),
+          site_type: form.site_type,
+          address: form.address.trim() || null,
+          timezone: "Asia/Jerusalem",
+          active: true,
+          monitoring_enabled: false,
+          camera_limit: form.camera_count,
+          monitoring_hours: { mode: form.schedule_mode },
+          event_retention_days: 2,
+          ai_features: { mode: "readiness", targets: form.monitoring_targets, human_review_required: true },
+          owner_profile_id: profileId,
+          garden_id: null,
+          metadata: {
+            product: "digital_observer",
+            environment_mode: "demo_readiness",
+            live_camera_disabled: true,
+            live_ai_disabled: true,
+            synthetic_data_only: true
+          }
+        })
+        .select("id")
+        .single();
+      const createdSite = siteResult.data as { id?: string } | null;
+      if (siteResult.error || !createdSite?.id) throw new Error("לא ניתן ליצור את האתר כרגע. נסו שוב או פנו לתמיכה.");
+      const siteId = createdSite.id;
+
+      const membershipResult = await supabase.from("observer_site_memberships" as any).upsert({
+        observer_site_id: siteId,
+        profile_id: profileId,
+        member_role: "owner",
+        active: true,
+        accepted_at: now,
+        metadata: { source: "digital_observer_self_service" }
+      }, { onConflict: "observer_site_id,profile_id" });
+      if (membershipResult.error) throw new Error("האתר נוצר, אך לא ניתן היה להשלים את הרשאת הבעלים.");
+
+      const draftResult = await supabase
+        .from("observer_site_onboarding_drafts" as any)
+        .insert({
+          profile_id: profileId,
+          status: "activated",
+          site_name: form.name.trim(),
+          site_type: form.site_type,
+          owner_type: form.site_type === "home" ? "home_owner" : "business_owner",
+          address: form.address.trim() || null,
+          timezone: "Asia/Jerusalem",
+          monitoring_schedule: { mode: form.schedule_mode },
+          camera_count_estimate: form.camera_count,
+          desired_package_id: form.package_id,
+          activated_observer_site_id: siteId,
+          submitted_at: now,
+          metadata: { monitoring_targets: form.monitoring_targets, safe_readiness_only: true },
+          updated_at: now
+        });
+      if (draftResult.error) throw new Error("האתר נוצר, אך סיכום ההקמה לא נשמר.");
+
+      const scheduleResult = await supabase.from("observer_monitoring_schedules" as any).upsert({
+        observer_site_id: siteId,
+        schedule_mode: form.schedule_mode,
+        timezone: "Asia/Jerusalem",
+        status: "draft",
+        schedule: { mode: form.schedule_mode, readiness_only: true },
+        updated_at: now
+      }, { onConflict: "observer_site_id" });
+      if (scheduleResult.error) throw new Error("האתר נוצר, אך לוח הניטור לא נשמר.");
+
+      const trialResult = await supabase.rpc("start_digital_observer_trial" as any, {
+        requested_site_id: siteId,
+        requested_package_id: form.package_id,
+        requested_billing_cycle: "monthly"
+      });
+      if (trialResult.error) throw new Error("האתר נשמר, אך לא ניתן היה להפעיל את תקופת הניסיון.");
+
+      setState({ busy: false, error: "", message: "האתר הוקם ותקופת ניסיון של 14 יום נפתחה ללא חיוב." });
+      router.push(`/digital-observer/cameras/add?site=${siteId}`);
+      router.refresh();
+    } catch (error) {
+      setState({ busy: false, error: error instanceof Error ? error.message : "לא ניתן להשלים את ההקמה", message: "" });
+    }
+  }
   const validStep = step === 1 ? form.name.trim().length >= 2 : step === 2 ? form.camera_count > 0 : true;
   return (
     <div className="do-wizard">
@@ -39,7 +140,8 @@ export function ObserverOnboardingWizard({ packages, defaultType = "home" }: { p
       {step === 2 ? <section className="do-panel do-form-section"><h2>כמה מצלמות יחוברו?</h2><p>המספר משמש להתאמת חבילה בלבד. אין כאן חיבור חי.</p><div className="do-counter"><button type="button" aria-label="הפחתה" onClick={() => update("camera_count", Math.max(1, form.camera_count - 1))}>−</button><strong>{form.camera_count}</strong><button type="button" aria-label="הוספה" onClick={() => update("camera_count", Math.min(500, form.camera_count + 1))}>+</button></div><label className="do-field"><span>מתי לנטר?</span><select value={form.schedule_mode} onChange={(event) => update("schedule_mode", event.target.value)}><option value="event_only">רק סביב אירועים</option><option value="night_only">לילה</option><option value="business_hours">שעות פעילות</option><option value="24_7">24/7 לאחר הפעלה מאושרת</option><option value="custom_schedule">לוח מותאם</option></select></label></section> : null}
       {step === 3 ? <section className="do-panel do-form-section"><h2>למה התצפיתן ישים לב?</h2><p>הבחירה יוצרת מטרות מוכנות. AI חי אינו מופעל בשלב הזה.</p><div className="do-toggle-grid">{[["person","אדם"],["unknown_person","אדם לא מוכר"],["animal","בעל חיים"],["entry_exit","כניסה ויציאה"],["after_hours","פעילות מחוץ לשעות"],["camera_obstruction","מצלמה מכוסה"],["restricted_area","אזור מוגבל"],["door_left_open","דלת שנשארה פתוחה"]].map(([value,label]) => <button type="button" className={form.monitoring_targets.includes(value) ? "selected" : ""} onClick={() => toggleTarget(value)} key={value}><Radar /><span>{label}</span>{form.monitoring_targets.includes(value) ? <Check /> : null}</button>)}</div></section> : null}
       {step === 4 ? <section className="do-panel do-form-section"><h2>בחירת חבילה והתחלת ניסיון</h2><p>החבילה קובעת את מגבלות המצלמות והשמירה. תקופת הניסיון נמשכת 14 יום.</p><div className="do-plan-grid">{packages.filter((item) => item.package_type === form.site_type || item.package_type === "enterprise").map((item) => <label className={form.package_id === item.id ? "do-plan selected" : "do-plan"} key={item.id}><input type="radio" name="package_id" value={item.id} checked={form.package_id === item.id} onChange={() => update("package_id", item.id)} /><strong>{item.name}</strong><b>{Number(item.monthly_price || 0).toLocaleString("he-IL")} ₪</b><span>14 ימי ניסיון</span><span>עד {item.camera_limit ?? "לפי הסכם"} מצלמות</span><span>שמירת מקטעים עד {item.recording_retention_hours ?? 0} שעות</span></label>)}</div><div className="do-notice info"><ShieldCheck /><span>ספק התשלום עדיין אינו מחובר, לכן לא ייאסף כרטיס ולא יתבצע חיוב. בתקופת הפיילוט ניתן להגדיר ולבדוק מצלמות; ניטור חי ו-AI יופעלו רק לאחר חיבור ואישור הספקים.</span></div></section> : null}
-      <div className="do-wizard-actions">{step > 1 ? <button className="do-button secondary" type="button" onClick={() => setStep((value) => value - 1)}>חזרה</button> : <span />}{step < 4 ? <button className="do-button primary" type="button" disabled={!validStep} onClick={() => setStep((value) => value + 1)}>המשך <ChevronLeft /></button> : <form action="/api/digital-observer/onboarding" method="post"><input type="hidden" name="name" value={form.name} /><input type="hidden" name="site_type" value={form.site_type} /><input type="hidden" name="address" value={form.address} /><input type="hidden" name="camera_count" value={form.camera_count} /><input type="hidden" name="schedule_mode" value={form.schedule_mode} /><input type="hidden" name="package_id" value={form.package_id} />{form.monitoring_targets.map((target) => <input key={target} type="hidden" name="monitoring_targets" value={target} />)}<button className="do-button primary" type="submit" disabled={!form.package_id}>התחלת 14 ימי ניסיון והמשך <ChevronLeft /></button></form>}</div>
+      <ResultMessage state={state} />
+      <div className="do-wizard-actions">{step > 1 ? <button className="do-button secondary" type="button" onClick={() => setStep((value) => value - 1)}>חזרה</button> : <span />}{step < 4 ? <button className="do-button primary" type="button" disabled={!validStep} onClick={() => setStep((value) => value + 1)}>המשך <ChevronLeft /></button> : <button className="do-button primary" type="button" disabled={state.busy || !form.package_id} onClick={submit}>{state.busy ? <LoaderCircle className="do-spin" /> : null}התחלת 14 ימי ניסיון והמשך <ChevronLeft /></button>}</div>
     </div>
   );
 }
