@@ -14,6 +14,7 @@ export async function signIn(formData: FormData) {
   const authSource = String(formData.get("auth_source") || "");
   const requestedNext = String(formData.get("next") || "");
   const observerLogin = authSource === "observer";
+  const requestedObserverAccountType = String(formData.get("observer_account_type") || "home") === "business" ? "business" : "home";
   const loginPath = observerLogin ? "/digital-observer/login" : authSource === "app" ? "/app/login" : "/login";
   const supabase = await createClient();
 
@@ -39,21 +40,28 @@ export async function signIn(formData: FormData) {
       supabase.from("observer_sites" as any).select("id").eq("owner_profile_id", user.id).is("garden_id", null).neq("site_type", "kindergarten").limit(1).maybeSingle(),
       supabase.from("observer_site_memberships" as any).select("observer_site_id").eq("profile_id", user.id).eq("active", true).limit(1).maybeSingle()
     ]);
-    const hasObserverIdentity = metadataProduct === "digital_observer" || Boolean(accountResult.data || ownedSiteResult.data || membershipResult.data) || profile.role === "admin";
-    if (!hasObserverIdentity) {
-      await supabase.auth.signOut();
-      redirect("/digital-observer/login?error=not_observer_account");
-    }
-
-    if (metadataProduct === "digital_observer" && !accountResult.data) {
+    let observerAccount = accountResult.data;
+    if (!observerAccount) {
       const account = await supabase.rpc("ensure_digital_observer_account" as any, {
         requested_name: user.user_metadata?.full_name ?? null,
-        requested_account_type: user.user_metadata?.account_type ?? "home"
+        requested_account_type: metadataProduct === "digital_observer"
+          ? user.user_metadata?.account_type ?? requestedObserverAccountType
+          : requestedObserverAccountType
       });
       if (account.error || account.data !== true) {
         await supabase.auth.signOut();
         redirect("/digital-observer/login?error=observer_setup_required");
       }
+      const refreshedAccount = await supabase
+        .from("digital_observer_accounts" as any)
+        .select("profile_id,account_type,onboarding_step,status")
+        .eq("profile_id", user.id)
+        .maybeSingle();
+      if (refreshedAccount.error || !refreshedAccount.data) {
+        await supabase.auth.signOut();
+        redirect("/digital-observer/login?error=observer_setup_required");
+      }
+      observerAccount = refreshedAccount.data;
     }
 
     cookieStore.set("gb_active_product", "digital_observer", {
@@ -65,7 +73,7 @@ export async function signIn(formData: FormData) {
     const requestedObserverPath = safeObserverReturnPath(requestedNext);
     const hasSite = Boolean(ownedSiteResult.data || membershipResult.data);
     const destination = !hasSite && requestedObserverPath === "/digital-observer/dashboard"
-      ? `/digital-observer/onboarding?type=${user.user_metadata?.account_type === "business" ? "business" : "home"}`
+      ? `/digital-observer/onboarding?type=${observerAccount?.account_type === "business" ? "business" : "home"}`
       : requestedObserverPath;
     redirect(destination);
   }

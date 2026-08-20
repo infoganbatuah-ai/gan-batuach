@@ -3,7 +3,7 @@ import { LockKeyhole, ShieldCheck } from "lucide-react";
 import { ObserverMark } from "@/components/digital-observer/observer-app-shell";
 import { signIn } from "@/app/login/actions";
 
-type PageProps = { searchParams?: Promise<{ error?: string; registered?: string; verified?: string; next?: string }> };
+type PageProps = { searchParams?: Promise<{ error?: string; registered?: string; verified?: string; next?: string; type?: string }> };
 
 const loginErrors: Record<string, string> = {
   not_observer_account: "החשבון הזה אינו רשום למוצר התצפיתן הדיגיטלי.",
@@ -13,6 +13,7 @@ const loginErrors: Record<string, string> = {
 
 export default async function DigitalObserverLoginPage({ searchParams }: PageProps) {
   const params = await searchParams;
+  const initialType = params?.type === "business" ? "business" : "home";
   return (
     <main className="do-auth-page" dir="rtl">
       <section className="do-auth-visual">
@@ -37,6 +38,7 @@ export default async function DigitalObserverLoginPage({ searchParams }: PagePro
           <input type="hidden" name="next" value={params?.next ?? "/digital-observer/dashboard"} />
           <label className="do-field"><span>דוא״ל</span><input name="email" type="email" autoComplete="email" required /></label>
           <label className="do-field"><span>סיסמה</span><input name="password" type="password" autoComplete="current-password" required /></label>
+          <label className="do-field"><span>סוג חשבון התצפיתן</span><select name="observer_account_type" defaultValue={initialType}><option value="home">ביתי</option><option value="business">עסקי</option></select><small>אם זה חשבון קיים של גן בטוח, תיווצר עבורו סביבת תצפיתן נפרדת בלי לשנות את התפקיד הקיים.</small></label>
           <button className="do-button primary full" type="submit">התחברות</button>
           <Link className="do-button secondary full" href="/digital-observer/verify">אימות קוד או שליחה חוזרת</Link>
           <p className="do-auth-switch">אין לכם חשבון? <Link href="/digital-observer/register">יצירת חשבון</Link></p>
