@@ -18,8 +18,7 @@ export const viewport: Viewport = {
   themeColor: "#061d3a",
   viewportFit: "cover",
   width: "device-width",
-  initialScale: 1,
-  maximumScale: 1
+  initialScale: 1
 };
 
 export default function DigitalObserverLayout({ children }: { children: React.ReactNode }) {

@@ -14,8 +14,10 @@ import {
 } from "lucide-react";
 import { ObserverAppShell } from "@/components/digital-observer/observer-app-shell";
 import { ObserverCameraMedia } from "@/components/digital-observer/observer-camera-media";
+import { ObserverConversationPanel } from "@/components/digital-observer/observer-intelligence-experience";
 import { requireDigitalObserverUser } from "@/lib/domain/digital-observer/access";
 import { cleanSyntheticLabel } from "@/lib/domain/display-label";
+import { observerSiteTemplateLabel } from "@/lib/domain/digital-observer/site-templates";
 import {
   formatObserverDate,
   loadObserverRuntime,
@@ -50,12 +52,18 @@ export default async function DigitalObserverDashboardPage({ searchParams }: Pag
   const siteCameras = selectedSite ? runtime.cameras.filter((camera) => camera.observer_site_id === selectedSite.id) : [];
   const siteSignals = selectedSite ? runtime.signals.filter((signal) => signal.observer_site_id === selectedSite.id) : [];
   const openSignals = siteSignals.filter((signal) => ["needs_review", "reviewing", "escalated"].includes(String(signal.review_status)));
+  const signalType = (signal: any) => String(signal.metadata?.event_type ?? signal.signal_type ?? "");
+  const movementEvents = siteSignals.filter((signal) => /entry|exit|entered|exited|movement|perimeter|room/.test(signalType(signal))).length;
+  const vehicleEvents = siteSignals.filter((signal) => /vehicle|car|parking/.test(signalType(signal))).length;
+  const unknownPeople = siteSignals.filter((signal) => /unknown_person|unknown_face/.test(signalType(signal))).length;
+  const unusualEvents = siteSignals.filter((signal) => ["medium", "high", "urgent", "critical"].includes(String(signal.severity))).length;
   const activeCameras = siteCameras.filter((camera) => ["connected", "healthy", "online", "active"].includes(String(camera.status ?? camera.health_status))).length;
   const currentSubscription = selectedSite ? runtime.subscriptions.find((item) => item.observer_site_id === selectedSite.id) : null;
   const entitlement = resolveObserverEntitlement(currentSubscription);
   const currentPackage = runtime.packages.find((item) => item.id === currentSubscription?.package_id);
   const firstName = cleanSyntheticLabel(profile.full_name, mode === "home" ? "הבית שלך" : "העסק שלך").split(" ")[0];
   const isSynthetic = Boolean(selectedSite?.metadata?.qa_demo || selectedSite?.metadata?.is_demo || (profile as any).is_demo);
+  const siteTemplateLabel = observerSiteTemplateLabel(selectedSite?.metadata?.site_template ?? (mode === "home" ? "home" : "custom"));
 
   return (
     <ObserverAppShell
@@ -99,11 +107,19 @@ export default async function DigitalObserverDashboardPage({ searchParams }: Pag
           <>
             <section className="do-home-hero">
               <div>
-                <h2>הכול שקט בבית</h2>
+                <h2>{openSignals.length ? "יש אירועים שמחכים לבדיקה" : siteCameras.length ? "הכול שקט לפי המידע שנקלט" : "מוכנים לחבר את הבית"}</h2>
                 <p>{siteCameras.length ? `${activeCameras} מתוך ${siteCameras.length} מצלמות מחוברות` : "עדיין לא חוברה מצלמה"}. {openSignals.length ? `${openSignals.length} אירועים ממתינים לבדיקה.` : "אין אירוע חדש."}</p>
                 {isSynthetic ? <span className="do-badge info">סביבה סינתטית לבדיקות</span> : null}
               </div>
               <div className="do-hero-shield"><ShieldCheck /></div>
+            </section>
+
+            <section className="do-live-intelligence">
+              <div className="do-live-intelligence-summary">
+                <div className="do-section-head"><div><span className="do-badge info"><Sparkles /> התצפיתן שלי</span><h2>מה קורה בבית</h2><p>סיכום שנבנה מהאירועים ומהשגרה שנלמדה.</p></div><Link className="do-link" href="/digital-observer/rules">פתיחת מרכז התצפיתן</Link></div>
+                <div className="do-intelligence-kpis"><span><strong>{movementEvents}</strong> כניסות, יציאות ותנועות</span><span><strong>{unknownPeople}</strong> אנשים לא מוכרים</span><span><strong>{vehicleEvents}</strong> אירועי רכב וחניה</span><span className={unusualEvents ? "attention" : ""}><strong>{unusualEvents}</strong> אירועים חריגים</span></div>
+              </div>
+              <ObserverConversationPanel siteId={selectedSite.id} initialPrompt={siteSignals.length ? "אפשר לשאול אותי מה קרה היום, מי נכנס או יצא, ומה דורש בדיקה." : "עדיין אין אירוע שמור. לא אמציא פעילות; אפשר להכין אותי למה לשים לב לאחר חיבור המצלמה."} />
             </section>
 
             <section className="do-section">
@@ -144,6 +160,14 @@ export default async function DigitalObserverDashboardPage({ searchParams }: Pag
               <article className="do-metric"><CameraOff /><strong>{Math.max(0, siteCameras.length - activeCameras)}</strong><span>מצלמות לא פעילות</span></article>
               <article className="do-metric alert"><Bell /><strong>{openSignals.length}</strong><span>אירועים פתוחים</span></article>
               <article className="do-metric"><Moon /><strong>{selectedSite.monitoring_enabled ? "פעיל" : "הכנה"}</strong><span>ניטור מחוץ לשעות</span></article>
+            </section>
+
+            <section className="do-live-intelligence business">
+              <div className="do-live-intelligence-summary">
+                <div className="do-section-head"><div><span className="do-badge info"><Sparkles /> תבנית {siteTemplateLabel}</span><h2>מה השתנה בעסק</h2><p>תנועה, כניסה ויציאה, רכב, חריגות ומצלמות לפי נתוני האתר והענף.</p></div><Link className="do-link" href="/digital-observer/rules">שיחה מלאה</Link></div>
+                <div className="do-intelligence-kpis"><span><strong>{movementEvents}</strong> תנועות וכניסות</span><span><strong>{unknownPeople}</strong> אנשים לא מוכרים</span><span><strong>{vehicleEvents}</strong> רכב וחניה</span><span className={unusualEvents ? "attention" : ""}><strong>{unusualEvents}</strong> חריגות</span></div>
+              </div>
+              <ObserverConversationPanel siteId={selectedSite.id} initialPrompt={siteSignals.length ? "שאלו מה קרה באתר, מחוץ לשעות, בחניה או באזור מסוים." : "אין עדיין אירועים להצגה. אפשר להכין הנחיה בשפה טבעית, והיא תמתין לחיבור Gateway ו-AI."} />
             </section>
 
             <section className="do-grid cols-2">

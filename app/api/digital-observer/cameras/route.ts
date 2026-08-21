@@ -2,8 +2,9 @@ import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
 import { buildDigitalObserverCameraReadiness, digitalObserverConnectorTypes } from "@/lib/domain/digital-observer/connectors";
+import { observerCameraPairingMethods } from "@/lib/domain/digital-observer/camera-connection-methods";
 
-const targets = ["person", "unknown_person", "animal", "entry_exit", "after_hours", "camera_obstruction", "restricted_area", "crowding", "door_left_open"] as const;
+const targets = ["person", "unknown_person", "animal", "entry_exit", "vehicle", "vehicle_tampering", "distress", "room_entry_exit", "after_hours", "camera_obstruction", "restricted_area", "crowding", "door_left_open"] as const;
 
 const createSchema = z.object({
   action: z.literal("create"),
@@ -12,7 +13,9 @@ const createSchema = z.object({
   location_label: z.string().trim().max(100).optional().default(""),
   connector_type: z.enum(digitalObserverConnectorTypes),
   connector_provider: z.string().trim().max(80).optional().default("generic"),
-  monitoring_targets: z.array(z.enum(targets)).max(9).default([]),
+  pairing_method: z.enum(observerCameraPairingMethods).optional().default("manual_network"),
+  pairing_payload_kind: z.enum(["rtsp", "onvif", "web_link", "vendor_code", "unknown"]).optional().default("unknown"),
+  monitoring_targets: z.array(z.enum(targets)).max(13).default([]),
   preview_scene: z.string().trim().max(80).optional().nullable()
 });
 
@@ -54,7 +57,13 @@ export async function POST(request: Request) {
         monitoring_targets: payload.monitoring_targets,
         capabilities: readiness.capabilities,
         created_by: profile.id,
-        metadata: readiness.metadata
+        metadata: {
+          ...readiness.metadata,
+          pairing_method: payload.pairing_method,
+          pairing_payload_kind: payload.pairing_payload_kind,
+          qr_payload_stored: false,
+          connection_instructions_ready: true
+        }
       }).select("id,observer_site_id,display_name,location_label,connector_type,source_mode,status,health_status,monitoring_targets").single();
       if (error || !data) return fail("לא ניתן לשמור את מקור המצלמה. יש לוודא שהמיגרציה הוחלה.", 400);
       const learningResult = await supabase.rpc("initialize_digital_observer_learning" as any, { requested_site_id: payload.observer_site_id });
