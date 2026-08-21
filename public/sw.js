@@ -1,8 +1,8 @@
-const CACHE_NAME = 'gan-batuach-v1';
-const APP_SHELL = ['/', '/login', '/gardens', '/join-kindergarten', '/assets/company-symbol.png', '/assets/company-name.png'];
+const CACHE_NAME = 'gan-batuach-static-v2';
+const STATIC_ASSETS = ['/assets/company-symbol.png', '/assets/company-name.png'];
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL)).then(() => self.skipWaiting()));
+  event.waitUntil(caches.open(CACHE_NAME).then((cache) => cache.addAll(STATIC_ASSETS)).then(() => self.skipWaiting()));
 });
 
 self.addEventListener('activate', (event) => {
@@ -13,16 +13,32 @@ self.addEventListener('fetch', (event) => {
   const request = event.request;
   if (request.method !== 'GET') return;
   const url = new URL(request.url);
-  if (url.pathname.startsWith('/api/')) return;
+  if (url.origin !== self.location.origin || url.pathname.startsWith('/api/')) return;
+
+  if (request.mode === 'navigate') {
+    event.respondWith(fetch(request).catch(() => {
+      const observer = url.pathname.startsWith('/digital-observer');
+      const product = observer ? 'תצפיתן דיגיטלי' : 'גן בטוח';
+      return new Response(`<!doctype html><html lang="he" dir="rtl"><meta name="viewport" content="width=device-width,initial-scale=1"><title>${product}</title><body style="font-family:system-ui;padding:32px;text-align:center"><h1>${product}</h1><p>אין כרגע חיבור לרשת. התחברו מחדש ונסו שוב.</p></body></html>`, {
+        status: 503,
+        headers: { 'Content-Type': 'text/html; charset=utf-8', 'Cache-Control': 'no-store' }
+      });
+    }));
+    return;
+  }
+
+  const cacheable =
+    url.pathname.startsWith('/_next/static/') ||
+    url.pathname.startsWith('/assets/') ||
+    ['style', 'script', 'image', 'font'].includes(request.destination);
+  if (!cacheable || url.pathname === '/sw.js') return;
+
   event.respondWith(fetch(request).then((response) => {
-    const copy = response.clone();
-    if (response.ok && url.origin === self.location.origin) caches.open(CACHE_NAME).then((cache) => cache.put(request, copy));
+    if (response.ok) caches.open(CACHE_NAME).then((cache) => cache.put(request, response.clone()));
     return response;
   }).catch(async () => {
     const cached = await caches.match(request);
-    if (cached) return cached;
-    if (request.mode === 'navigate') return caches.match('/') || new Response('גן בטוח במצב לא מקוון', { status: 200, headers: { 'Content-Type': 'text/plain; charset=utf-8' } });
-    return new Response('', { status: 204 });
+    return cached || new Response('', { status: 504 });
   }));
 });
 

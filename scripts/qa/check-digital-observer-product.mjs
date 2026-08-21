@@ -135,9 +135,17 @@ record("Commercial package matrix is complete", !packageError && ["home_basic","
 const rootLayoutSource = readFileSync("app/layout.tsx", "utf8");
 const observerLayoutSource = readFileSync("app/digital-observer/layout.tsx", "utf8");
 const templateSource = readFileSync("lib/domain/digital-observer/site-templates.ts", "utf8");
+const observerDashboardSource = readFileSync("app/digital-observer/dashboard/page.tsx", "utf8");
+const observerShellSource = readFileSync("components/digital-observer/observer-app-shell.tsx", "utf8");
+const observerStylesSource = readFileSync("app/styles/digital-observer-product.css", "utf8");
+const serviceWorkerSource = readFileSync("public/sw.js", "utf8");
 record("Mobile zoom remains accessible", !/maximumScale\s*:\s*1/.test(`${rootLayoutSource}\n${observerLayoutSource}`), "Viewport metadata does not disable pinch zoom");
 record("Observer routes have loading and error states", existsSync("app/digital-observer/loading.tsx") && existsSync("app/digital-observer/error.tsx"), "Dedicated route-level loading and recovery UI exists");
 record("Multi-industry templates keep high-risk review guarded", ["kiosk", "retail", "office", "warehouse", "clinic", "restaurant", "child_education", "custom"].every((key) => templateSource.includes(`key: \"${key}\"`)) && templateSource.includes("automaticEmergencyAction: false") && templateSource.includes("highRiskEventsAreSuspicions: true"), "Site templates are reusable and never enable automatic emergency action");
+record("Home dashboard exposes core product actions", ["הוספת מצלמה", "המצלמות שלי", "התצפיתן שלי", "המנוי שלי"].every((label) => observerDashboardSource.includes(label)), "Camera, Observer, subscription and monitoring entry points are present in the authenticated dashboard");
+record("Home navigation exposes subscription management", observerShellSource.includes('{ href: "/digital-observer/billing", label: "מנוי וחיוב"'), "Home users can reach billing without using a business-only menu");
+record("Mobile header keeps primary actions visible", observerStylesSource.includes(".do-top-actions > .do-button") && !observerStylesSource.includes(".do-top-actions > .do-button,\n  .do-top-actions .logout-button { display: none; }"), "Primary page action is rendered as an icon button instead of being hidden on mobile");
+record("Service worker never caches authenticated navigation", serviceWorkerSource.includes("if (request.mode === 'navigate')") && !serviceWorkerSource.includes("cache.put(request, copy)") && !serviceWorkerSource.includes("caches.match('/')"), "Navigation is network-only and the offline response is product-aware; only static assets are cached");
 
 await home.client.auth.signOut();
 await business.client.auth.signOut();
