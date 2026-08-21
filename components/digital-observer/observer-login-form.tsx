@@ -27,12 +27,14 @@ export function ObserverLoginForm({
   nextPath,
   registered,
   verified,
+  passwordUpdated,
   initialError
 }: {
   initialType: "home" | "business";
   nextPath: string;
   registered: boolean;
   verified: boolean;
+  passwordUpdated: boolean;
   initialError?: string;
 }) {
   const [busy, setBusy] = useState(false);
@@ -100,6 +102,7 @@ export function ObserverLoginForm({
       <p>היכנסו לחשבון התצפיתן הדיגיטלי שלכם</p>
       {registered ? <div className="do-notice good"><ShieldCheck /><span>ההרשמה נקלטה. יש לאשר את כתובת הדוא״ל ואז להתחבר.</span></div> : null}
       {verified ? <div className="do-notice good" role="status"><ShieldCheck /><span>כתובת המייל אומתה בהצלחה. אפשר להתחבר ולהמשיך את הקמת התצפיתן.</span></div> : null}
+      {passwordUpdated ? <div className="do-notice good" role="status"><ShieldCheck /><span>הסיסמה עודכנה. התחברו עם הסיסמה החדשה.</span></div> : null}
       {error ? <div className="do-notice bad" role="alert"><LockKeyhole /><span>{error}</span></div> : null}
       <input type="hidden" name="auth_source" value="observer" />
       <input type="hidden" name="next" value={nextPath} />
@@ -107,6 +110,7 @@ export function ObserverLoginForm({
       <label className="do-field"><span>סיסמה</span><input name="password" type="password" autoComplete="current-password" required disabled={busy} /></label>
       <label className="do-field"><span>סוג חשבון התצפיתן</span><select name="observer_account_type" defaultValue={initialType} disabled={busy}><option value="home">ביתי</option><option value="business">עסקי</option></select><small>אם זה חשבון קיים של גן בטוח, תיווצר עבורו סביבת תצפיתן נפרדת בלי לשנות את התפקיד הקיים.</small></label>
       <button className="do-button primary full" type="submit" disabled={busy}>{busy ? <LoaderCircle className="do-spin" /> : null}{busy ? "מתחברים..." : "התחברות"}</button>
+      <Link className="do-link" href="/digital-observer/forgot-password">שכחתי סיסמה</Link>
       <Link className="do-button secondary full" href="/digital-observer/verify">אימות קוד או שליחה חוזרת</Link>
       <p className="do-auth-switch">אין לכם חשבון? <Link href="/digital-observer/register">יצירת חשבון</Link></p>
       <Link className="do-link" href="/digital-observer">חזרה לאתר התצפיתן</Link>

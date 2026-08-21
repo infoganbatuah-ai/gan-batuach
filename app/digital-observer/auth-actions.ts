@@ -3,18 +3,14 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-
-function appOrigin() {
-  const configured = process.env.NEXT_PUBLIC_APP_URL
-    || process.env.APP_URL
-    || process.env.VERCEL_PROJECT_PRODUCTION_URL
-    || process.env.VERCEL_URL
-    || "http://localhost:3000";
-  return configured.startsWith("http://") || configured.startsWith("https://") ? configured.replace(/\/$/, "") : `https://${configured.replace(/\/$/, "")}`;
-}
+import { authCallbackUrl } from "@/lib/domain/auth-flow";
 
 function emailRedirectTo() {
-  return `${appOrigin()}/auth/callback?product=digital_observer&next=${encodeURIComponent("/digital-observer/login?verified=1")}`;
+  return authCallbackUrl("digital_observer", "/digital-observer/login?verified=1", "verify");
+}
+
+function recoveryRedirectTo() {
+  return authCallbackUrl("digital_observer", "/digital-observer/set-password", "recovery");
 }
 
 type AuthEmailError = { code?: string; message?: string; status?: number } | null;
@@ -135,7 +131,7 @@ export async function registerDigitalObserver(formData: FormData) {
         reportAuthEmailFailure("resend", accessEmail.error);
         redirect(`/digital-observer/register?error=${authEmailErrorCode(accessEmail.error)}`);
       }
-      redirect("/digital-observer/verify?resent=1&existing=1");
+      redirect("/digital-observer/verify?resent=1");
     }
     reportAuthEmailFailure("signup", error);
     redirect(`/digital-observer/register?error=${authEmailErrorCode(error)}`);
@@ -148,7 +144,7 @@ export async function registerDigitalObserver(formData: FormData) {
       reportAuthEmailFailure("resend", accessEmail.error);
       redirect(`/digital-observer/register?error=${authEmailErrorCode(accessEmail.error)}`);
     }
-    redirect("/digital-observer/verify?resent=1&existing=1");
+    redirect("/digital-observer/verify?resent=1");
   }
 
   if (data.session && data.user) {
@@ -182,7 +178,11 @@ export async function verifyDigitalObserverEmailCode(formData: FormData) {
   if (!/^\d{6,8}$/.test(token)) redirect("/digital-observer/verify?error=invalid_code");
 
   const supabase = await createClient();
-  const { data, error } = await supabase.auth.verifyOtp({ email, token, type: "email" });
+  let verification = await supabase.auth.verifyOtp({ email, token, type: "email" });
+  if (verification.error || !verification.data.user) {
+    verification = await supabase.auth.verifyOtp({ email, token, type: "signup" });
+  }
+  const { data, error } = verification;
   if (error || !data.user) redirect("/digital-observer/verify?error=invalid_code");
 
   const account = await supabase.rpc("ensure_digital_observer_account" as any, {
@@ -210,5 +210,25 @@ export async function resendDigitalObserverVerification(formData: FormData) {
     redirect(`/digital-observer/verify?error=${authEmailErrorCode(error)}`);
   }
   await rememberPendingRegistration(email);
-  redirect("/digital-observer/verify?resent=1&existing=1");
+  redirect("/digital-observer/verify?resent=1");
+}
+
+export async function requestDigitalObserverPasswordReset(formData: FormData) {
+  const email = String(formData.get("email") || "").trim().toLowerCase();
+  if (email.includes("@")) {
+    const cookieStore = await cookies();
+    const cookieOptions = {
+      httpOnly: false,
+      sameSite: "lax" as const,
+      secure: process.env.NODE_ENV === "production",
+      maxAge: 60 * 30,
+      path: "/"
+    };
+    cookieStore.set("auth_callback_product", "digital_observer", cookieOptions);
+    cookieStore.set("auth_callback_flow", "recovery", cookieOptions);
+    const supabase = await createClient();
+    const { error } = await supabase.auth.resetPasswordForEmail(email, { redirectTo: recoveryRedirectTo() });
+    if (error) reportAuthEmailFailure("resend", error);
+  }
+  redirect("/digital-observer/forgot-password?sent=1");
 }

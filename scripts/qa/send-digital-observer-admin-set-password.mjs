@@ -18,7 +18,7 @@ const appUrl = String(process.env.NEXT_PUBLIC_APP_URL || "https://gan-batuach.ve
 if (!url || !key || !email) throw new Error("Supabase public configuration and observer admin email are required.");
 
 const supabase = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });
-const redirectTo = `${appUrl}/auth/callback?product=digital_observer&next=${encodeURIComponent("/digital-observer/set-password")}`;
+const redirectTo = `${appUrl}/auth/callback`;
 const result = await supabase.auth.resetPasswordForEmail(email, { redirectTo });
 if (result.error) throw result.error;
 process.stdout.write("One-time Digital Observer admin password setup email requested. No credential was printed.\n");

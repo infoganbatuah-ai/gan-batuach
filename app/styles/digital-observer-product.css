@@ -1112,6 +1112,10 @@
 .do-verify-form { display: grid; gap: 16px; }
 .do-verify-card form { display: grid; gap: 12px; }
 .do-verify-card .do-field { text-align: start; }
+.do-password-field { position: relative; display: block; }
+.do-password-field input { padding-inline-end: 48px; }
+.do-password-toggle { position: absolute; inset-inline-end: 7px; top: 50%; width: 36px; height: 36px; transform: translateY(-50%); border: 0; background: transparent; color: var(--do-muted); display: grid; place-items: center; cursor: pointer; }
+.do-password-toggle svg { width: 18px; height: 18px; }
 .do-field .do-otp-input { direction: ltr; text-align: center; font-size: 28px; font-weight: 800; letter-spacing: 8px; font-variant-numeric: tabular-nums; }
 
 .digital-observer-splash-logo { color: #fff; }

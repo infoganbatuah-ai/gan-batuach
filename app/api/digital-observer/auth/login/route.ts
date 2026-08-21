@@ -103,7 +103,10 @@ export async function POST(request: NextRequest) {
 
   const hasSite = Boolean(ownedSiteResult.data || membershipResult.data);
   const accountType = observerAccount.account_type === "business" ? "business" : "home";
-  const destination = !hasSite && requestedNext === "/digital-observer/dashboard"
+  const observerAdmin = user.app_metadata?.digital_observer_admin === true;
+  const destination = observerAdmin && requestedNext === "/digital-observer/dashboard"
+    ? "/digital-observer/admin"
+    : !hasSite && requestedNext === "/digital-observer/dashboard"
     ? `/digital-observer/onboarding?type=${accountType}`
     : requestedNext;
 

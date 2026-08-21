@@ -60,8 +60,8 @@ export async function requireDigitalObserverUser(loginPath = "/digital-observer/
     supabase.from("observer_site_memberships" as any).select("observer_site_id").eq("profile_id", session.user.id).eq("active", true).limit(1).maybeSingle()
   ]);
   const isObserver = session.user.user_metadata?.product === "digital_observer"
-    || Boolean(account.data || ownedSite.data || membership.data)
-    || session.profile.role === "admin";
+    || session.user.app_metadata?.digital_observer_admin === true
+    || Boolean(account.data || ownedSite.data || membership.data);
   if (!isObserver) redirect("/digital-observer/login?error=not_observer_account");
   return { ...session, observerAccount: account.data ?? null };
 }
@@ -114,8 +114,8 @@ export async function getDigitalObserverApiUser(request?: Request) {
     supabase.from("observer_site_memberships" as any).select("observer_site_id").eq("profile_id", user.id).eq("active", true).limit(1).maybeSingle()
   ]);
   const isObserver = user.user_metadata?.product === "digital_observer"
-    || Boolean(account.data || ownedSite.data || membership.data)
-    || profile.role === "admin";
+    || user.app_metadata?.digital_observer_admin === true
+    || Boolean(account.data || ownedSite.data || membership.data);
   if (!isObserver) {
     console.warn("Digital Observer API session rejected", {
       reason: "observer_scope_not_available",
