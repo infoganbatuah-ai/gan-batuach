@@ -81,9 +81,12 @@ export function ObserverLoginForm({
     }
 
     const requestedDestination = safeReturnPath(nextPath);
+    const observerAdmin = user.app_metadata?.digital_observer_admin === true;
     const hasSite = Boolean(ownedSiteResult.data || membershipResult.data);
     const accountType = account.account_type === "business" ? "business" : "home";
-    const destination = !hasSite && requestedDestination === "/digital-observer/dashboard"
+    const destination = observerAdmin && requestedDestination === "/digital-observer/dashboard"
+      ? "/digital-observer/admin"
+      : !hasSite && requestedDestination === "/digital-observer/dashboard"
       ? `/digital-observer/onboarding?type=${accountType}`
       : requestedDestination;
     rememberObserverAccessToken(loginResult.data.session?.access_token);

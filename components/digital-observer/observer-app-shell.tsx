@@ -49,6 +49,14 @@ const businessNav = [
   { href: "/digital-observer/settings", label: "הגדרות", icon: Settings }
 ] as const;
 
+const adminNav = [
+  { href: "/digital-observer/admin", label: "מרכז בקרה", icon: ShieldCheck },
+  { href: "/digital-observer/admin/access", label: "לקוחות ואתרים", icon: UsersRound },
+  { href: "/digital-observer/admin/operations", label: "מנוע ותפעול", icon: Radar },
+  { href: "/digital-observer/admin/billing", label: "מנויים וחיוב", icon: CreditCard },
+  { href: "/digital-observer/admin/packages", label: "חבילות", icon: Settings }
+] as const;
+
 export function ObserverMark({ compact = false }: { compact?: boolean }) {
   return (
     <span className={compact ? "do-mark compact" : "do-mark"} aria-hidden="true">
@@ -68,27 +76,29 @@ export function ObserverAppShell({
   actions
 }: {
   profile?: ObserverShellProfile | null;
-  mode: ObserverMode;
+  mode: ObserverMode | "admin";
   activeHref: string;
   title: string;
   statusLabel?: string;
   children: ReactNode;
   actions?: ReactNode;
 }) {
-  const baseNav = mode === "home" ? homeNav : businessNav;
-  const nav = profile?.role === "admin"
+  const baseNav = mode === "admin" ? adminNav : mode === "home" ? homeNav : businessNav;
+  const nav = mode !== "admin" && profile?.role === "admin"
     ? [...baseNav, { href: "/digital-observer/admin", label: "ניהול מערכת", icon: ShieldCheck }]
     : [...baseNav];
-  const displayName = cleanSyntheticLabel(profile?.full_name, mode === "home" ? "הבית שלי" : "העסק שלי");
+  const displayName = cleanSyntheticLabel(profile?.full_name, mode === "home" ? "הבית שלי" : mode === "admin" ? "מנהל התצפיתן" : "העסק שלי");
   const initial = displayName.trim().slice(0, 1) || "צ";
-  const mobileNav = [nav[0], nav.find((item) => item.href === "/digital-observer/cameras")!, nav.find((item) => item.href === "/digital-observer/rules")!, nav.find((item) => item.href === "/digital-observer/alerts")!, nav.find((item) => item.href === "/digital-observer/settings")!];
+  const mobileNav = mode === "admin"
+    ? adminNav
+    : [nav[0], nav.find((item) => item.href === "/digital-observer/cameras")!, nav.find((item) => item.href === "/digital-observer/rules")!, nav.find((item) => item.href === "/digital-observer/alerts")!, nav.find((item) => item.href === "/digital-observer/settings")!];
 
   return (
     <div className={`do-shell do-mode-${mode}`} dir="rtl">
       <aside className="do-sidebar">
-        <Link className="do-sidebar-brand" href="/digital-observer/dashboard">
+        <Link className="do-sidebar-brand" href={mode === "admin" ? "/digital-observer/admin" : "/digital-observer/dashboard"}>
           <ObserverMark />
-          <span><b>תצפיתן דיגיטלי</b><small>{mode === "home" ? "הבית שלך, בשליטה מלאה" : "בקרה חכמה לעסק"}</small></span>
+          <span><b>תצפיתן דיגיטלי</b><small>{mode === "home" ? "הבית שלך, בשליטה מלאה" : mode === "admin" ? "מרכז בקרה עצמאי" : "בקרה חכמה לעסק"}</small></span>
         </Link>
         <nav aria-label="ניווט התצפיתן הדיגיטלי">
           {nav.map((item) => {
@@ -106,8 +116,8 @@ export function ObserverAppShell({
           <div className="do-page-title"><h1>{title}</h1>{statusLabel ? <span className="do-live-dot">{statusLabel}</span> : null}</div>
           <div className="do-top-actions">
             {actions}
-            <Link className="do-icon-button" href="/digital-observer/alerts" aria-label="התראות"><Bell /></Link>
-            <Link className="do-avatar" href="/digital-observer/settings" aria-label="פרופיל והגדרות">
+            <Link className="do-icon-button" href={mode === "admin" ? "/digital-observer/admin/operations#queues" : "/digital-observer/alerts"} aria-label="התראות"><Bell /></Link>
+            <Link className="do-avatar" href={mode === "admin" ? "/digital-observer/admin/access" : "/digital-observer/settings"} aria-label="פרופיל והגדרות">
               {profile?.profile_image_url ? <img src={profile.profile_image_url} alt="" /> : <span>{initial}</span>}
             </Link>
             <LogoutButton compact redirectTo="/digital-observer/login" />

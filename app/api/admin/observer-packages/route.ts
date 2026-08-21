@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
-import { requireRole } from "@/lib/auth";
-import { createClient } from "@/lib/supabase/server";
+import { createDigitalObserverAdminDataClient, requireDigitalObserverAdmin } from "@/lib/domain/digital-observer/admin-access";
 
 const monitoringModes = ["always_on", "custom_schedule", "night_only", "business_hours", "event_only"] as const;
 const subscriptionStatuses = ["trial", "active", "pending_payment", "expired", "suspended", "cancelled"] as const;
@@ -63,7 +62,7 @@ const usageSchema = z.object({
 
 const payloadSchema = z.discriminatedUnion("action", [packageSchema, assignmentSchema, usageSchema]);
 
-async function countRows(supabase: Awaited<ReturnType<typeof createClient>>, table: string, filters: Array<[string, string, unknown]>) {
+async function countRows(supabase: ReturnType<typeof createDigitalObserverAdminDataClient>, table: string, filters: Array<[string, string, unknown]>) {
   try {
     let query = supabase.from(table as any).select("id", { count: "exact", head: true });
     filters.forEach(([column, operator, value]) => {
@@ -79,11 +78,11 @@ async function countRows(supabase: Awaited<ReturnType<typeof createClient>>, tab
 
 export async function GET() {
   try {
-    await requireRole(["admin"]);
-    const supabase = await createClient();
+    await requireDigitalObserverAdmin("/digital-observer/admin/packages");
+    const supabase = createDigitalObserverAdminDataClient();
     const [packages, sites, subscriptions, usage] = await Promise.all([
       supabase.from("observer_monitoring_packages" as any).select("*").order("sort_order", { ascending: true }),
-      supabase.from("observer_sites" as any).select("id, name, site_type, active, observer_package_id, observer_subscription_status").order("name", { ascending: true }).limit(500),
+      supabase.from("observer_sites" as any).select("id, name, site_type, active, observer_package_id, observer_subscription_status").is("garden_id", null).neq("site_type", "kindergarten").order("name", { ascending: true }).limit(500),
       supabase.from("observer_site_subscriptions" as any).select("*, observer_sites(name, site_type), observer_monitoring_packages(name, package_type)").order("created_at", { ascending: false }).limit(300),
       supabase.from("observer_site_usage_snapshots" as any).select("*, observer_sites(name, site_type)").order("period_start", { ascending: false }).limit(300)
     ]);
@@ -105,9 +104,9 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const { profile } = await requireRole(["admin"]);
+    const { profile } = await requireDigitalObserverAdmin("/digital-observer/admin/packages");
     const payload = payloadSchema.parse(await request.json());
-    const supabase = await createClient();
+    const supabase = createDigitalObserverAdminDataClient();
 
     if (payload.action === "save_package") {
       const row = {
@@ -154,11 +153,11 @@ export async function POST(request: Request) {
       }
       await supabase.from("audit_logs" as any).insert({
         actor_id: profile.id,
-        actor_role: "admin",
+        actor_role: profile.role,
         entity_type: "observer_monitoring_packages",
         entity_id: result.data.id,
         action: payload.id ? "update_observer_package" : "create_observer_package",
-        after_data: result.data
+        after_data: { ...result.data, audit_scope: "digital_observer_admin" }
       });
       return ok({ package: result.data });
     }
@@ -214,11 +213,11 @@ export async function POST(request: Request) {
       }
       await supabase.from("audit_logs" as any).insert({
         actor_id: profile.id,
-        actor_role: "admin",
+        actor_role: profile.role,
         entity_type: "observer_site_subscriptions",
         entity_id: saved.data.id,
         action: "assign_observer_package",
-        after_data: saved.data
+        after_data: { ...saved.data, audit_scope: "digital_observer_admin" }
       });
       return ok({ subscription: saved.data });
     }
