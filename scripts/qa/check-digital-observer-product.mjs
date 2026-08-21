@@ -185,11 +185,15 @@ record(
 record(
   "Email token-hash links preserve product routing after verification",
   authConfirmRouteSource.includes("verifyOtp({ token_hash: tokenHash")
+    && authConfirmRouteSource.includes('typeValue === "email"')
+    && authConfirmRouteSource.includes('type: "signup"')
+    && authCallbackSource.includes('typeValue === "email"')
+    && authCallbackSource.includes('type: "signup"')
     && authConfirmRouteSource.includes('request.cookies.get("auth_callback_product")')
     && authConfirmRouteSource.includes('data.user.user_metadata?.product === "digital_observer"')
     && authConfirmRouteSource.includes('data.user.app_metadata?.digital_observer_admin === true')
     && authConfirmRouteSource.includes('response.cookies.delete("auth_callback_product")'),
-  "Direct signup/recovery links are verified server-side, route by the signed identity plus the requesting product, then clear the short-lived routing hint"
+  "Direct signup/recovery links are verified server-side, legacy email-type signup links retry only as signup, route by signed identity plus the requesting product, then clear the short-lived routing hint"
 );
 record(
   "Supabase redirect uses the exact allow-listed callback",

@@ -1,6 +1,6 @@
 # DIGITAL OBSERVER AUTOMATED QA RESULTS
 
-Date: 2026-08-21T22:02:59.823Z
+Date: 2026-08-21T22:26:42.752Z
 Environment: synthetic demo
 Passwords or tokens printed: no
 Service role used in browser/client QA: no
@@ -62,7 +62,7 @@ Service role used in browser/client QA: no
 | Observer admin mobile navigation is complete | PASS | All five admin destinations are exposed through a dedicated responsive shell |
 | Observer admin password setup uses normal Supabase recovery | PASS | No password is embedded in source; the shared form requires an authenticated recovery session, updates through Supabase and signs the local session out |
 | Recovery callback supports PKCE and implicit email links | PASS | The browser callback accepts PKCE or fragment tokens and removes sensitive URL material before continuing |
-| Email token-hash links preserve product routing after verification | PASS | Direct signup/recovery links are verified server-side, route by the signed identity plus the requesting product, then clear the short-lived routing hint |
+| Email token-hash links preserve product routing after verification | PASS | Direct signup/recovery links are verified server-side, legacy email-type signup links retry only as signup, route by signed identity plus the requesting product, then clear the short-lived routing hint |
 | Supabase redirect uses the exact allow-listed callback | PASS | Email requests do not append query parameters that would make Supabase fall back to the site root |
 | Password reset request prevents account enumeration | PASS | The user receives the same confirmation path whether or not an account exists |
 | Home and business onboarding stay account-scoped | PASS | A query string cannot switch the account track, and package choices are filtered by the persisted home/business type |
