@@ -1,6 +1,6 @@
 # DIGITAL OBSERVER AUTOMATED QA RESULTS
 
-Date: 2026-08-21T14:16:25.061Z
+Date: 2026-08-21T18:08:00.009Z
 Environment: synthetic demo
 Passwords or tokens printed: no
 Service role used in browser/client QA: no
@@ -55,8 +55,15 @@ Service role used in browser/client QA: no
 | Home navigation exposes subscription management | PASS | Home users can reach billing without using a business-only menu |
 | Mobile header keeps primary actions visible | PASS | Primary page action is rendered as an icon button instead of being hidden on mobile |
 | Service worker never caches authenticated navigation | PASS | Navigation is network-only and the offline response is product-aware; only static assets are cached |
+| Observer admin uses a product-scoped signed claim | PASS | Dedicated Digital Observer admin access is granted by signed app metadata and does not imply media or secret access |
+| Observer admin has a complete control center | PASS | System state, authorized locations, trends, services, queues and source records are visible in the admin center |
+| Observer admin reads safe metadata only | PASS | Admin runtime explicitly selects non-secret observer metadata and excludes Gan Batuach kindergarten sites |
+| Observer admin routes have dedicated loading and recovery states | PASS | The control center has honest loading and retry UI |
+| Observer admin mobile navigation is complete | PASS | All five admin destinations are exposed through a dedicated responsive shell |
+| Observer admin password setup uses normal Supabase recovery | PASS | No password is embedded in source and the one-time flow uses the authenticated Supabase recovery session |
+| Observer admin package actions keep audit logs schema-compatible | PASS | Audit rows use the existing app-role enum while retaining the dedicated observer-admin scope in audit data |
 
 Final result: PASS
-Passed: 48/48
+Passed: 55/55
 
 > This runtime QA uses normal Supabase authentication and RLS. It does not validate a real camera gateway, AI provider, billing provider or production notification provider.

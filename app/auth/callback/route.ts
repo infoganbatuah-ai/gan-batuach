@@ -37,7 +37,7 @@ export async function GET(request: Request) {
           returnedTrue: account.data === true
         });
       }
-      await supabase.auth.signOut();
+      if (next !== "/digital-observer/set-password") await supabase.auth.signOut();
     }
   }
 

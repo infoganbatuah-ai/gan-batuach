@@ -1,13 +1,12 @@
 import Link from "next/link";
 import { AlertTriangle, CalendarClock, CreditCard, PackageCheck, ShieldCheck } from "lucide-react";
 import { ObserverAppShell } from "@/components/digital-observer/observer-app-shell";
-import { requireRole } from "@/lib/auth";
+import { createDigitalObserverAdminDataClient, requireDigitalObserverAdmin } from "@/lib/domain/digital-observer/admin-access";
 import { formatObserverDate, observerStatusLabel } from "@/lib/domain/digital-observer/runtime";
-import { createClient } from "@/lib/supabase/server";
 
 export default async function DigitalObserverAdminBillingPage() {
-  const { profile } = await requireRole(["admin"], "/digital-observer/login?next=/digital-observer/admin/billing", "/digital-observer/dashboard");
-  const supabase = await createClient();
+  const { profile } = await requireDigitalObserverAdmin("/digital-observer/admin/billing");
+  const supabase = createDigitalObserverAdminDataClient();
   const [subscriptions, providers, events] = await Promise.all([
     supabase.from("observer_site_subscriptions" as any).select("id,observer_site_id,status,subscription_status,entitlement_status,payment_provider,purchase_channel,trial_end,renewal_date,observer_sites(name,site_type),observer_monitoring_packages(name,monthly_price,currency)").order("created_at", { ascending: false }).limit(300),
     supabase.from("observer_payment_provider_readiness" as any).select("id,provider_key,provider_name,status,mode,missing_configuration").limit(50),
@@ -17,7 +16,7 @@ export default async function DigitalObserverAdminBillingPage() {
   const trials = rows.filter((item: any) => item.status === "trial" || item.subscription_status === "trial").length;
   const pending = rows.filter((item: any) => ["pending_payment", "overdue", "suspended"].includes(String(item.status ?? item.subscription_status))).length;
 
-  return <ObserverAppShell profile={profile} mode="business" activeHref="/digital-observer/admin/billing" title="מנויים וחיוב" statusLabel="Mock / Sandbox בלבד">
+  return <ObserverAppShell profile={profile} mode="admin" activeHref="/digital-observer/admin/billing" title="מנויים וחיוב" statusLabel="Mock / Sandbox בלבד">
     <div className="do-page-stack">
       <section className="do-business-summary"><article className="do-metric"><PackageCheck /><strong>{rows.length}</strong><span>מנויים</span></article><article className="do-metric"><CalendarClock /><strong>{trials}</strong><span>תקופות ניסיון</span></article><article className="do-metric alert"><AlertTriangle /><strong>{pending}</strong><span>דורשים טיפול</span></article><article className="do-metric"><CreditCard /><strong>0</strong><span>חיובים חיים שבוצעו</span></article></section>
       <div className="do-notice warn"><ShieldCheck /><span>אין גביית כרטיס, חשבונית או receipt אמיתי בסביבה זו. השרת שומר entitlement במצב מוכנות בלבד.</span></div>
