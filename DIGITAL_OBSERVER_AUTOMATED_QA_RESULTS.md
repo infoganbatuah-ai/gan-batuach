@@ -1,6 +1,6 @@
 # DIGITAL OBSERVER AUTOMATED QA RESULTS
 
-Date: 2026-08-21T02:08:33.370Z
+Date: 2026-08-21T14:16:25.061Z
 Environment: synthetic demo
 Passwords or tokens printed: no
 Service role used in browser/client QA: no
@@ -51,8 +51,12 @@ Service role used in browser/client QA: no
 | Mobile zoom remains accessible | PASS | Viewport metadata does not disable pinch zoom |
 | Observer routes have loading and error states | PASS | Dedicated route-level loading and recovery UI exists |
 | Multi-industry templates keep high-risk review guarded | PASS | Site templates are reusable and never enable automatic emergency action |
+| Home dashboard exposes core product actions | PASS | Camera, Observer, subscription and monitoring entry points are present in the authenticated dashboard |
+| Home navigation exposes subscription management | PASS | Home users can reach billing without using a business-only menu |
+| Mobile header keeps primary actions visible | PASS | Primary page action is rendered as an icon button instead of being hidden on mobile |
+| Service worker never caches authenticated navigation | PASS | Navigation is network-only and the offline response is product-aware; only static assets are cached |
 
 Final result: PASS
-Passed: 44/44
+Passed: 48/48
 
 > This runtime QA uses normal Supabase authentication and RLS. It does not validate a real camera gateway, AI provider, billing provider or production notification provider.

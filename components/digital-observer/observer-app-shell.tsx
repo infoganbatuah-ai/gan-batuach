@@ -33,6 +33,7 @@ const homeNav = [
   { href: "/digital-observer/rules", label: "התצפיתן שלי", icon: Radar },
   { href: "/digital-observer/recordings", label: "הקלטות", icon: FileVideo2 },
   { href: "/digital-observer/people", label: "אנשים מוכרים", icon: UsersRound },
+  { href: "/digital-observer/billing", label: "מנוי וחיוב", icon: CreditCard },
   { href: "/digital-observer/settings", label: "הגדרות", icon: Settings }
 ] as const;
 

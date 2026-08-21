@@ -24,7 +24,7 @@ for (const candidate of playwrightCandidates) {
 if (!playwright) throw new Error("Playwright runtime is unavailable.");
 
 const baseUrl = process.env.VISUAL_BASE_URL || "http://127.0.0.1:3000";
-const outputDir = resolve(process.cwd(), "qa-evidence/digital-observer-ai-experience-1");
+const outputDir = resolve(process.cwd(), process.env.VISUAL_OUTPUT_DIR || "qa-evidence/digital-observer-ai-experience-1");
 mkdirSync(outputDir, { recursive: true });
 
 const genericPassword = process.env.QA_DEMO_DIGITAL_OBSERVER_PASSWORD;
@@ -47,8 +47,12 @@ if (accounts.some((account) => !account.password)) throw new Error("Local Digita
 const routes = [
   ["dashboard", "/digital-observer/dashboard"],
   ["observer", "/digital-observer/rules"],
+  ["cameras", "/digital-observer/cameras"],
   ["people", "/digital-observer/people"],
   ["camera-add", "/digital-observer/cameras/add"],
+  ["alerts", "/digital-observer/alerts"],
+  ["billing", "/digital-observer/billing"],
+  ["settings", "/digital-observer/settings"],
   ["onboarding", "/digital-observer/onboarding?type=business"]
 ];
 const viewports = [
@@ -111,7 +115,13 @@ try {
             horizontalOverflow: document.documentElement.scrollWidth > viewportWidth + 1,
             overflowNodes,
             visibleMain: Boolean(document.querySelector("main")),
-            visibleBottomNav: getComputedStyle(document.querySelector(".do-bottom-nav") || document.body).display !== "none"
+            visibleBottomNav: getComputedStyle(document.querySelector(".do-bottom-nav") || document.body).display !== "none",
+            visibleCoreActions: [
+              "/digital-observer/cameras/add",
+              "/digital-observer/cameras",
+              "/digital-observer/rules",
+              "/digital-observer/billing"
+            ].every((href) => Array.from(document.querySelectorAll(".do-command-center a")).some((link) => link.getAttribute("href")?.startsWith(href) && link.getBoundingClientRect().width > 0 && link.getBoundingClientRect().height > 0))
           };
         });
         const file = `${account.key}-${routeKey}-${viewportKey}.png`;
@@ -132,16 +142,16 @@ const lines = [
   "Credentials printed: no",
   "Data scope: synthetic demo accounts",
   "",
-  "| Account | Route | Viewport | Overflow | Main | Mobile nav | Screenshot |",
-  "|---|---|---:|---|---|---|---|",
-  ...results.map((item) => `| ${item.account} | ${item.route} | ${item.viewport} | ${item.horizontalOverflow ? "FAIL" : "PASS"} | ${item.visibleMain ? "PASS" : "FAIL"} | ${item.viewport.startsWith("390") ? (item.visibleBottomNav ? "PASS" : "FAIL") : "N/A"} | ${item.file} |`),
+  "| Account | Route | Viewport | Overflow | Main | Mobile nav | Dashboard actions | Screenshot |",
+  "|---|---|---:|---|---|---|---|---|",
+  ...results.map((item) => `| ${item.account} | ${item.route} | ${item.viewport} | ${item.horizontalOverflow ? "FAIL" : "PASS"} | ${item.visibleMain ? "PASS" : "FAIL"} | ${item.viewport.startsWith("390") ? (item.visibleBottomNav ? "PASS" : "FAIL") : "N/A"} | ${item.route === "/digital-observer/dashboard" ? (item.visibleCoreActions ? "PASS" : "FAIL") : "N/A"} | ${item.file} |`),
   "",
   ...results.filter((item) => item.horizontalOverflow).flatMap((item) => [
     `Overflow detail: ${item.account} ${item.route} ${item.viewport} viewport=${item.viewportWidth}px document=${item.scrollWidth}px`,
     ...item.overflowNodes.map((node) => `- ${node.selector}: left=${node.left}, right=${node.right}, width=${node.width}`)
   ]),
   "",
-  `Final result: ${results.every((item) => !item.horizontalOverflow && item.visibleMain && (!item.viewport.startsWith("390") || item.visibleBottomNav)) ? "PASS" : "FAIL"}`,
+  `Final result: ${results.every((item) => !item.horizontalOverflow && item.visibleMain && (!item.viewport.startsWith("390") || item.visibleBottomNav) && (item.route !== "/digital-observer/dashboard" || item.visibleCoreActions)) ? "PASS" : "FAIL"}`,
   "",
   "> Screenshots prove layout rendering for synthetic authenticated home and business accounts. They do not prove live camera, biometric, billing, notification, or emergency-provider operation."
 ];
