@@ -143,6 +143,17 @@ const observerAdminSource = readFileSync("app/digital-observer/admin/page.tsx", 
 const observerAdminAccessSource = readFileSync("lib/domain/digital-observer/admin-access.ts", "utf8");
 const observerAdminRuntimeSource = readFileSync("lib/domain/digital-observer/admin-runtime.ts", "utf8");
 const observerPackageRouteSource = readFileSync("app/api/admin/observer-packages/route.ts", "utf8");
+const authCallbackSource = readFileSync("components/auth/auth-callback-client.tsx", "utf8");
+const passwordUpdateSource = readFileSync("components/auth/password-update-form.tsx", "utf8");
+const observerPasswordWrapperSource = readFileSync("components/digital-observer/observer-set-password-form.tsx", "utf8");
+const observerAuthActionsSource = readFileSync("app/digital-observer/auth-actions.ts", "utf8");
+const observerOnboardingSource = readFileSync("app/digital-observer/onboarding/page.tsx", "utf8");
+const observerActionFormsSource = readFileSync("components/digital-observer/observer-action-forms.tsx", "utf8");
+const observerBillingRouteSource = readFileSync("app/api/digital-observer/billing/route.ts", "utf8");
+const observerBillingPageSource = readFileSync("app/digital-observer/billing/page.tsx", "utf8");
+const authConfirmRouteSource = readFileSync("app/auth/confirm/route.ts", "utf8");
+const authFlowSource = readFileSync("lib/domain/auth-flow.ts", "utf8");
+const logoutRouteSource = readFileSync("app/api/auth/logout/route.ts", "utf8");
 record("Mobile zoom remains accessible", !/maximumScale\s*:\s*1/.test(`${rootLayoutSource}\n${observerLayoutSource}`), "Viewport metadata does not disable pinch zoom");
 record("Observer routes have loading and error states", existsSync("app/digital-observer/loading.tsx") && existsSync("app/digital-observer/error.tsx"), "Dedicated route-level loading and recovery UI exists");
 record("Multi-industry templates keep high-risk review guarded", ["kiosk", "retail", "office", "warehouse", "clinic", "restaurant", "child_education", "custom"].every((key) => templateSource.includes(`key: \"${key}\"`)) && templateSource.includes("automaticEmergencyAction: false") && templateSource.includes("highRiskEventsAreSuspicions: true"), "Site templates are reusable and never enable automatic emergency action");
@@ -155,7 +166,81 @@ record("Observer admin has a complete control center", ["תמונת מצב מע�
 record("Observer admin reads safe metadata only", !/(rtsp|password|secret|credential|stream_url|access_token)/i.test(observerAdminRuntimeSource) && observerAdminRuntimeSource.includes('is("garden_id", null)') && observerAdminRuntimeSource.includes('neq("site_type", "kindergarten")'), "Admin runtime explicitly selects non-secret observer metadata and excludes Gan Batuach kindergarten sites");
 record("Observer admin routes have dedicated loading and recovery states", existsSync("app/digital-observer/admin/loading.tsx") && existsSync("app/digital-observer/admin/error.tsx"), "The control center has honest loading and retry UI");
 record("Observer admin mobile navigation is complete", ["מרכז בקרה", "לקוחות ואתרים", "מנוע ותפעול", "מנויים וחיוב", "חבילות"].every((label) => observerShellSource.includes(label)) && observerStylesSource.includes(".do-mode-admin .do-bottom-nav"), "All five admin destinations are exposed through a dedicated responsive shell");
-record("Observer admin password setup uses normal Supabase recovery", existsSync("app/digital-observer/set-password/page.tsx") && readFileSync("components/digital-observer/observer-set-password-form.tsx", "utf8").includes("supabase.auth.updateUser"), "No password is embedded in source and the one-time flow uses the authenticated Supabase recovery session");
+record(
+  "Observer admin password setup uses normal Supabase recovery",
+  existsSync("app/digital-observer/set-password/page.tsx")
+    && observerPasswordWrapperSource.includes('product="digital_observer"')
+    && passwordUpdateSource.includes("supabase.auth.updateUser")
+    && passwordUpdateSource.includes('supabase.auth.signOut({ scope: "local" })'),
+  "No password is embedded in source; the shared form requires an authenticated recovery session, updates through Supabase and signs the local session out"
+);
+record(
+  "Recovery callback supports PKCE and implicit email links",
+  authCallbackSource.includes("exchangeCodeForSession")
+    && authCallbackSource.includes("hash.get(\"access_token\")")
+    && authCallbackSource.includes("supabase.auth.setSession")
+    && authCallbackSource.includes("window.history.replaceState"),
+  "The browser callback accepts PKCE or fragment tokens and removes sensitive URL material before continuing"
+);
+record(
+  "Email token-hash links preserve product routing after verification",
+  authConfirmRouteSource.includes("verifyOtp({ token_hash: tokenHash")
+    && authConfirmRouteSource.includes('request.cookies.get("auth_callback_product")')
+    && authConfirmRouteSource.includes('data.user.user_metadata?.product === "digital_observer"')
+    && authConfirmRouteSource.includes('data.user.app_metadata?.digital_observer_admin === true')
+    && authConfirmRouteSource.includes('response.cookies.delete("auth_callback_product")'),
+  "Direct signup/recovery links are verified server-side, route by the signed identity plus the requesting product, then clear the short-lived routing hint"
+);
+record(
+  "Supabase redirect uses the exact allow-listed callback",
+  authFlowSource.includes('return `${appOrigin()}/auth/callback`')
+    && !authFlowSource.includes('/auth/callback?'),
+  "Email requests do not append query parameters that would make Supabase fall back to the site root"
+);
+record(
+  "Password reset request prevents account enumeration",
+  observerAuthActionsSource.includes('redirect("/digital-observer/forgot-password?sent=1")')
+    && !observerAuthActionsSource.includes("reset_user_not_found")
+    && !observerAuthActionsSource.includes("existing=1"),
+  "The user receives the same confirmation path whether or not an account exists"
+);
+record(
+  "Home and business onboarding stay account-scoped",
+  observerOnboardingSource.includes("observerAccount?.account_type")
+    && !observerOnboardingSource.includes('params?.type === "business"')
+    && observerActionFormsSource.includes("packages.filter((item) => item.package_type === form.site_type"),
+  "A query string cannot switch the account track, and package choices are filtered by the persisted home/business type"
+);
+record(
+  "Subscription changes remain no-charge readiness requests",
+  observerBillingRouteSource.includes("charged: false")
+    && observerBillingRouteSource.includes('provider_mode: "mock"')
+    && observerBillingRouteSource.includes("getObserverSiteAccess"),
+  "The authenticated site access is checked before a server-only request record is created; no payment provider is invoked"
+);
+record(
+  "Home and business package catalogues are isolated",
+  observerBillingPageSource.includes('item.package_type === mode || (mode === "business" && item.package_type === "enterprise")')
+    && observerBillingRouteSource.includes('allowedPackageType === "business" && requestedPackage.package_type === "enterprise"')
+    && observerBillingRouteSource.includes("החבילה אינה מתאימה לסוג האתר הזה"),
+  "Home accounts receive home packages only; business accounts receive business and enterprise packages, and the API enforces the same rule"
+);
+record(
+  "Logout redirect remains product-scoped",
+  logoutRouteSource.includes('requested?.startsWith("/digital-observer")')
+    && logoutRouteSource.includes('!requested.startsWith("//")')
+    && logoutRouteSource.includes(': "/login"'),
+  "Logout may return to an internal Digital Observer path only and rejects protocol-relative redirects"
+);
+record(
+  "Duplicate page routes are absent",
+  !existsSync("app/digital-observer/[useCase]/page 2.tsx")
+    && !existsSync("app/digital-observer/dashboard/page 2.tsx")
+    && !existsSync("app/digital-observer/pricing/page 2.tsx")
+    && !existsSync("app/digital-observer/sites/page 2.tsx")
+    && !existsSync("app/digital-observer/start/page 2.tsx"),
+  "Only the canonical App Router page files remain active"
+);
 record("Observer admin package actions keep audit logs schema-compatible", observerPackageRouteSource.includes("actor_role: profile.role") && observerPackageRouteSource.includes('audit_scope: "digital_observer_admin"') && !observerPackageRouteSource.includes('actor_role: "digital_observer_admin"'), "Audit rows use the existing app-role enum while retaining the dedicated observer-admin scope in audit data");
 
 await home.client.auth.signOut();

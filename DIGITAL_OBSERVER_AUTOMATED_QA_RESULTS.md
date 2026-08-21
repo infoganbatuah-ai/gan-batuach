@@ -1,6 +1,6 @@
 # DIGITAL OBSERVER AUTOMATED QA RESULTS
 
-Date: 2026-08-21T18:08:00.009Z
+Date: 2026-08-21T22:02:59.823Z
 Environment: synthetic demo
 Passwords or tokens printed: no
 Service role used in browser/client QA: no
@@ -60,10 +60,19 @@ Service role used in browser/client QA: no
 | Observer admin reads safe metadata only | PASS | Admin runtime explicitly selects non-secret observer metadata and excludes Gan Batuach kindergarten sites |
 | Observer admin routes have dedicated loading and recovery states | PASS | The control center has honest loading and retry UI |
 | Observer admin mobile navigation is complete | PASS | All five admin destinations are exposed through a dedicated responsive shell |
-| Observer admin password setup uses normal Supabase recovery | PASS | No password is embedded in source and the one-time flow uses the authenticated Supabase recovery session |
+| Observer admin password setup uses normal Supabase recovery | PASS | No password is embedded in source; the shared form requires an authenticated recovery session, updates through Supabase and signs the local session out |
+| Recovery callback supports PKCE and implicit email links | PASS | The browser callback accepts PKCE or fragment tokens and removes sensitive URL material before continuing |
+| Email token-hash links preserve product routing after verification | PASS | Direct signup/recovery links are verified server-side, route by the signed identity plus the requesting product, then clear the short-lived routing hint |
+| Supabase redirect uses the exact allow-listed callback | PASS | Email requests do not append query parameters that would make Supabase fall back to the site root |
+| Password reset request prevents account enumeration | PASS | The user receives the same confirmation path whether or not an account exists |
+| Home and business onboarding stay account-scoped | PASS | A query string cannot switch the account track, and package choices are filtered by the persisted home/business type |
+| Subscription changes remain no-charge readiness requests | PASS | The authenticated site access is checked before a server-only request record is created; no payment provider is invoked |
+| Home and business package catalogues are isolated | PASS | Home accounts receive home packages only; business accounts receive business and enterprise packages, and the API enforces the same rule |
+| Logout redirect remains product-scoped | PASS | Logout may return to an internal Digital Observer path only and rejects protocol-relative redirects |
+| Duplicate page routes are absent | PASS | Only the canonical App Router page files remain active |
 | Observer admin package actions keep audit logs schema-compatible | PASS | Audit rows use the existing app-role enum while retaining the dedicated observer-admin scope in audit data |
 
 Final result: PASS
-Passed: 55/55
+Passed: 64/64
 
 > This runtime QA uses normal Supabase authentication and RLS. It does not validate a real camera gateway, AI provider, billing provider or production notification provider.

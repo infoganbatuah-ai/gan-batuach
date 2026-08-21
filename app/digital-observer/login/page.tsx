@@ -3,7 +3,7 @@ import { ShieldCheck } from "lucide-react";
 import { ObserverMark } from "@/components/digital-observer/observer-app-shell";
 import { ObserverLoginForm } from "@/components/digital-observer/observer-login-form";
 
-type PageProps = { searchParams?: Promise<{ error?: string; registered?: string; verified?: string; next?: string; type?: string }> };
+type PageProps = { searchParams?: Promise<{ error?: string; registered?: string; verified?: string; password_updated?: string; next?: string; type?: string }> };
 
 const loginErrors: Record<string, string> = {
   not_observer_account: "החשבון הזה אינו רשום למוצר התצפיתן הדיגיטלי.",
@@ -29,6 +29,7 @@ export default async function DigitalObserverLoginPage({ searchParams }: PagePro
           nextPath={params?.next ?? "/digital-observer/dashboard"}
           registered={params?.registered === "check_email"}
           verified={params?.verified === "1"}
+          passwordUpdated={params?.password_updated === "1"}
           initialError={params?.error ? loginErrors[params.error] ?? "לא הצלחנו להתחבר. בדקו את הפרטים ונסו שוב." : undefined}
         />
       </section>
