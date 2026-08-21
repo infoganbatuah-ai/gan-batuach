@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
 import { resolveObserverAddress } from "@/lib/domain/digital-observer/address-provider";
+import { getObserverSiteTemplate, observerSiteTemplateKeys } from "@/lib/domain/digital-observer/site-templates";
 
 const siteTypes = ["home", "office", "business", "warehouse", "store", "parking_lot", "custom"] as const;
 const scheduleModes = ["24_7", "night_only", "business_hours", "custom_schedule", "event_only"] as const;
@@ -11,6 +12,7 @@ const schema = z.object({
   observer_site_id: z.string().uuid().optional(),
   name: z.string().trim().min(2).max(100),
   site_type: z.enum(siteTypes),
+  site_template: z.enum(observerSiteTemplateKeys).default("custom"),
   address_query: z.string().trim().max(240).optional().default(""),
   city: z.string().trim().min(2).max(100),
   street: z.string().trim().min(2).max(140),
@@ -27,7 +29,7 @@ const schema = z.object({
   camera_count: z.coerce.number().int().min(1).max(500).default(1),
   schedule_mode: z.enum(scheduleModes).default("event_only"),
   package_id: z.string().uuid().optional().nullable(),
-  monitoring_targets: z.array(z.string().trim().min(2).max(80)).max(12).default([])
+  monitoring_targets: z.array(z.string().trim().min(2).max(80)).max(20).default([])
 });
 
 export async function POST(request: Request) {
@@ -52,6 +54,7 @@ export async function POST(request: Request) {
         observer_site_id: String(formData.get("observer_site_id") ?? "") || undefined,
         name: String(formData.get("name") ?? ""),
         site_type: String(formData.get("site_type") ?? "home"),
+        site_template: String(formData.get("site_template") ?? "custom"),
         address_query: String(formData.get("address_query") ?? ""),
         city: String(formData.get("city") ?? ""),
         street: String(formData.get("street") ?? ""),
@@ -76,7 +79,9 @@ export async function POST(request: Request) {
     if (!observerAccount) return respondFail("חשבון התצפיתן טרם הוכן. יש להתחבר מחדש ולנסות שוב.", 409);
     const ownerType = payload.site_type === "home" ? "home_owner" : "business_owner";
     if (payload.site_type === "home" && payload.business_handles_children) return respondFail("מצב עסק המטפל בילדים זמין רק בחשבון עסקי.", 422);
-    const privacyMode = payload.site_type !== "home" && payload.business_handles_children ? "skeleton_only" : "standard_consent";
+    const siteTemplate = getObserverSiteTemplate(payload.site_type === "home" ? "home" : payload.site_template);
+    const businessHandlesChildren = payload.site_type !== "home" && (payload.business_handles_children || siteTemplate.childPrivacyRequired);
+    const privacyMode = businessHandlesChildren ? "skeleton_only" : "standard_consent";
     const resolvedAddress = payload.address_place_id
       ? await resolveObserverAddress(payload.address_place_id, payload.address_session_token || null)
       : null;
@@ -104,7 +109,7 @@ export async function POST(request: Request) {
       longitude: resolvedAddress?.longitude ?? null,
       address_verification_status: resolvedAddress ? "verified" : "unverified",
       address_verified_at: resolvedAddress ? new Date().toISOString() : null,
-      business_handles_children: payload.site_type !== "home" && payload.business_handles_children,
+      business_handles_children: businessHandlesChildren,
       vision_privacy_mode: privacyMode,
       timezone: "Asia/Jerusalem",
       active: true,
@@ -112,9 +117,12 @@ export async function POST(request: Request) {
       camera_limit: payload.camera_count,
       monitoring_hours: { mode: payload.schedule_mode },
       event_retention_days: 2,
-      ai_features: { mode: "readiness", targets: payload.monitoring_targets, human_review_required: true, vision_privacy_mode: privacyMode, face_recognition_enabled: false },
+      ai_features: { mode: "readiness", targets: payload.monitoring_targets, site_template: siteTemplate.key, human_review_required: true, high_risk_events_are_suspicions: true, automatic_emergency_action: false, vision_privacy_mode: privacyMode, face_recognition_enabled: false },
       metadata: {
         product: "digital_observer",
+        site_template: siteTemplate.key,
+        site_template_label: siteTemplate.label,
+        policy_template: siteTemplate.policy,
         environment_mode: "demo_readiness",
         live_camera_disabled: true,
         live_ai_disabled: true,
@@ -178,7 +186,7 @@ export async function POST(request: Request) {
       desired_package_id: payload.package_id ?? null,
       activated_observer_site_id: site.id,
       submitted_at: new Date().toISOString(),
-      metadata: { monitoring_targets: payload.monitoring_targets, safe_readiness_only: true, address_verified: Boolean(resolvedAddress), vision_privacy_mode: privacyMode },
+      metadata: { monitoring_targets: payload.monitoring_targets, site_template: siteTemplate.key, high_risk_events_are_suspicions: true, automatic_emergency_action: false, safe_readiness_only: true, address_verified: Boolean(resolvedAddress), vision_privacy_mode: privacyMode },
       updated_at: new Date().toISOString()
     };
     if (existingDraft?.id) {

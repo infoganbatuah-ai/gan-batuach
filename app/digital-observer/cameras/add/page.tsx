@@ -13,7 +13,7 @@ export default async function DigitalObserverAddCameraPage({ searchParams }: Pag
   const mode = observerModeForSite(selected);
   return <ObserverAppShell profile={profile} mode={mode} activeHref="/digital-observer/cameras" title="הוספת מצלמה" statusLabel="Gateway מאובטח">
     <div className="do-page-stack">
-      <header className="do-intro"><span className="do-badge info">ארכיטקטורת מחברים</span><h1>חיבור מצלמה בלי לחשוף פרטי גישה</h1><p>בחרו את סוג המקור. כתובות, משתמשים וסיסמאות יוגדרו בעתיד ב-Gateway בצד השרת בלבד.</p></header>
+      <header className="do-intro"><span className="do-badge info">חיבור מודרך</span><h1>בואו נחבר מצלמה</h1><p>אפשר לסרוק QR, לבחור את אפליקציית היצרן, לחבר NVR/DVR או להשתמש ב-Gateway מקומי. בכל מסלול תקבלו הוראות ברורות, בלי לחשוף סיסמה בדפדפן.</p></header>
       {runtime.sites.length ? <ObserverCameraWizard sites={runtime.sites} initialSiteId={selected?.id} /> : <section className="do-empty"><strong>תחילה יש להקים בית או עסק</strong><a className="do-button primary" href="/digital-observer/onboarding">הקמת אתר</a></section>}
     </div>
   </ObserverAppShell>;
