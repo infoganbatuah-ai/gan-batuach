@@ -1,6 +1,6 @@
 # DIGITAL OBSERVER AUTOMATED QA RESULTS
 
-Date: 2026-08-21T22:53:05.435Z
+Date: 2026-08-21T23:28:55.253Z
 Environment: synthetic demo
 Passwords or tokens printed: no
 Service role used in browser/client QA: no
@@ -54,6 +54,9 @@ Service role used in browser/client QA: no
 | Home dashboard exposes core product actions | PASS | Camera, Observer, subscription and monitoring entry points are present in the authenticated dashboard |
 | Home navigation exposes subscription management | PASS | Home users can reach billing without using a business-only menu |
 | Mobile header keeps primary actions visible | PASS | Primary page action is rendered as an icon button instead of being hidden on mobile |
+| Mobile shell exposes every role destination | PASS | The compact bottom navigation is paired with a full mobile drawer; no destination is available only on desktop |
+| Business activity chart is data-bound | PASS | The 24-hour graph is derived from timestamped site signals rather than hardcoded chart values |
+| Recordings use a responsive truthful list | PASS | Clip rows adapt to mobile and never expose a download action without a signed file URL |
 | Service worker never caches authenticated navigation | PASS | Navigation is network-only and the offline response is product-aware; only static assets are cached |
 | Observer admin uses a product-scoped signed claim | PASS | Dedicated Digital Observer admin access is granted by signed app metadata and does not imply media or secret access |
 | Observer admin has a complete control center | PASS | System state, authorized locations, trends, services, queues and source records are visible in the admin center |
@@ -68,11 +71,12 @@ Service role used in browser/client QA: no
 | Home and business onboarding stay account-scoped | PASS | A query string cannot switch the account track, and package choices are filtered by the persisted home/business type |
 | Subscription changes remain no-charge readiness requests | PASS | The authenticated site access is checked before a server-only request record is created; no payment provider is invoked |
 | Home and business package catalogues are isolated | PASS | Home accounts receive home packages only; business accounts receive business and enterprise packages, and the API enforces the same rule |
+| Monthly and annual plan selection uses server prices | PASS | Users can compare monthly and annual database prices while plan changes remain no-charge mock requests |
 | Logout redirect remains product-scoped | PASS | Logout may return to an internal Digital Observer path only and rejects protocol-relative redirects |
 | Duplicate page routes are absent | PASS | Only the canonical App Router page files remain active |
 | Observer admin package actions keep audit logs schema-compatible | PASS | Audit rows use the existing app-role enum while retaining the dedicated observer-admin scope in audit data |
 
 Final result: PASS
-Passed: 64/64
+Passed: 68/68
 
 > This runtime QA uses normal Supabase authentication and RLS. It does not validate a real camera gateway, AI provider, billing provider or production notification provider.

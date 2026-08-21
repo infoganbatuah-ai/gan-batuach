@@ -13,7 +13,8 @@ import {
   Radar,
   Settings,
   ShieldCheck,
-  UsersRound
+  UsersRound,
+  X
 } from "lucide-react";
 import { LogoutButton } from "@/components/logout-button";
 import { cleanSyntheticLabel } from "@/lib/domain/display-label";
@@ -94,7 +95,7 @@ export function ObserverAppShell({
     : [nav[0], nav.find((item) => item.href === "/digital-observer/cameras")!, nav.find((item) => item.href === "/digital-observer/rules")!, nav.find((item) => item.href === "/digital-observer/alerts")!, nav.find((item) => item.href === "/digital-observer/settings")!];
 
   return (
-    <div className={`do-shell do-mode-${mode}`} dir="rtl">
+    <div className={`do-shell do-mode-${mode}`} data-observer-mode={mode} dir="rtl">
       <aside className="do-sidebar">
         <Link className="do-sidebar-brand" href={mode === "admin" ? "/digital-observer/admin" : "/digital-observer/dashboard"}>
           <ObserverMark />
@@ -112,7 +113,28 @@ export function ObserverAppShell({
 
       <div className="do-workspace">
         <header className="do-topbar">
-          <div className="do-mobile-brand"><ObserverMark compact /><b>תצפיתן דיגיטלי</b></div>
+          <div className="do-mobile-brand">
+            <details className="do-mobile-menu">
+              <summary aria-label="פתיחת תפריט"><Menu className="do-menu-open-icon" /><X className="do-menu-close-icon" /></summary>
+              <div className="do-mobile-menu-sheet">
+                <header>
+                  <ObserverMark />
+                  <span><b>תצפיתן דיגיטלי</b><small>{mode === "home" ? "הבית שלי" : mode === "admin" ? "מרכז הבקרה" : "העסק שלי"}</small></span>
+                </header>
+                <nav aria-label="כל מסכי התצפיתן">
+                  {nav.map((item) => {
+                    const Icon = item.icon;
+                    const active = activeHref === item.href || (item.href !== "/digital-observer/dashboard" && activeHref.startsWith(item.href));
+                    return <Link className={active ? "active" : ""} href={item.href} key={item.href}><Icon /><span>{item.label}</span></Link>;
+                  })}
+                </nav>
+                <footer>
+                  <Link href="/digital-observer/trust"><CircleHelp /><span>עזרה, פרטיות ואמון</span></Link>
+                  <LogoutButton className="do-mobile-logout" redirectTo="/digital-observer/login" />
+                </footer>
+              </div>
+            </details>
+          </div>
           <div className="do-page-title"><h1>{title}</h1>{statusLabel ? <span className="do-live-dot">{statusLabel}</span> : null}</div>
           <div className="do-top-actions">
             {actions}

@@ -151,6 +151,7 @@ const observerOnboardingSource = readFileSync("app/digital-observer/onboarding/p
 const observerActionFormsSource = readFileSync("components/digital-observer/observer-action-forms.tsx", "utf8");
 const observerBillingRouteSource = readFileSync("app/api/digital-observer/billing/route.ts", "utf8");
 const observerBillingPageSource = readFileSync("app/digital-observer/billing/page.tsx", "utf8");
+const observerRecordingsSource = readFileSync("app/digital-observer/recordings/page.tsx", "utf8");
 const authConfirmRouteSource = readFileSync("app/auth/confirm/route.ts", "utf8");
 const authFlowSource = readFileSync("lib/domain/auth-flow.ts", "utf8");
 const logoutRouteSource = readFileSync("app/api/auth/logout/route.ts", "utf8");
@@ -160,6 +161,28 @@ record("Multi-industry templates keep high-risk review guarded", ["kiosk", "reta
 record("Home dashboard exposes core product actions", ["הוספת מצלמה", "המצלמות שלי", "התצפיתן שלי", "המנוי שלי"].every((label) => observerDashboardSource.includes(label)), "Camera, Observer, subscription and monitoring entry points are present in the authenticated dashboard");
 record("Home navigation exposes subscription management", observerShellSource.includes('{ href: "/digital-observer/billing", label: "מנוי וחיוב"'), "Home users can reach billing without using a business-only menu");
 record("Mobile header keeps primary actions visible", observerStylesSource.includes(".do-top-actions > .do-button") && !observerStylesSource.includes(".do-top-actions > .do-button,\n  .do-top-actions .logout-button { display: none; }"), "Primary page action is rendered as an icon button instead of being hidden on mobile");
+record(
+  "Mobile shell exposes every role destination",
+  observerShellSource.includes("do-mobile-menu-sheet")
+    && observerShellSource.includes("כל מסכי התצפיתן")
+    && observerStylesSource.includes(".do-mobile-menu-sheet")
+    && observerStylesSource.includes(".do-bottom-nav"),
+  "The compact bottom navigation is paired with a full mobile drawer; no destination is available only on desktop"
+);
+record(
+  "Business activity chart is data-bound",
+  observerDashboardSource.includes("activityBuckets(siteSignals)")
+    && observerDashboardSource.includes("businessActivity.map")
+    && !observerDashboardSource.includes("24, 48"),
+  "The 24-hour graph is derived from timestamped site signals rather than hardcoded chart values"
+);
+record(
+  "Recordings use a responsive truthful list",
+  observerRecordingsSource.includes("do-recording-list")
+    && observerRecordingsSource.includes("הורדה לא זמינה")
+    && !observerRecordingsSource.includes("href={clip"),
+  "Clip rows adapt to mobile and never expose a download action without a signed file URL"
+);
 record("Service worker never caches authenticated navigation", serviceWorkerSource.includes("if (request.mode === 'navigate')") && !serviceWorkerSource.includes("cache.put(request, copy)") && !serviceWorkerSource.includes("caches.match('/')"), "Navigation is network-only and the offline response is product-aware; only static assets are cached");
 record("Observer admin uses a product-scoped signed claim", observerAdminAccessSource.includes('DIGITAL_OBSERVER_ADMIN_METADATA_KEY = "digital_observer_admin"') && observerAdminAccessSource.includes("session.user.app_metadata") && observerAdminAccessSource.includes('mediaAccess: false') && observerAdminAccessSource.includes('secretAccess: false'), "Dedicated Digital Observer admin access is granted by signed app metadata and does not imply media or secret access");
 record("Observer admin has a complete control center", ["תמונת מצב מערכת", "מפת לקוחות ואתרים מורשים", "אירועים ומגמה", "בריאות מנוע ושירותים", "תורים ובקרות תצפיתן", "אתרים, מצלמות ומנויים"].every((label) => observerAdminSource.includes(label)), "System state, authorized locations, trends, services, queues and source records are visible in the admin center");
@@ -228,6 +251,14 @@ record(
     && observerBillingRouteSource.includes('allowedPackageType === "business" && requestedPackage.package_type === "enterprise"')
     && observerBillingRouteSource.includes("החבילה אינה מתאימה לסוג האתר הזה"),
   "Home accounts receive home packages only; business accounts receive business and enterprise packages, and the API enforces the same rule"
+);
+record(
+  "Monthly and annual plan selection uses server prices",
+  observerBillingPageSource.includes('cycle === "annual"')
+    && observerBillingPageSource.includes("annual_price")
+    && observerBillingPageSource.includes("billingCycle={cycle}")
+    && observerBillingPageSource.includes("do-billing-cycle"),
+  "Users can compare monthly and annual database prices while plan changes remain no-charge mock requests"
 );
 record(
   "Logout redirect remains product-scoped",
