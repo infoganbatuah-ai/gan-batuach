@@ -1,4 +1,5 @@
-import { Bell, BrainCircuit, Fingerprint, LockKeyhole, ShieldCheck, UserRoundCheck, UsersRound } from "lucide-react";
+import Link from "next/link";
+import { Bell, BrainCircuit, Check, Fingerprint, LockKeyhole, ShieldCheck, UserRoundCheck, UsersRound, X } from "lucide-react";
 import { ObserverDeletePersonButton, ObserverKnownPersonForm } from "@/components/digital-observer/observer-action-forms";
 import { ObserverIdentityCandidateReview } from "@/components/digital-observer/observer-intelligence-experience";
 import { ObserverAppShell } from "@/components/digital-observer/observer-app-shell";
@@ -15,6 +16,7 @@ export default async function DigitalObserverPeoplePage() {
     ? runtime.identityCandidates.filter((item) => item.observer_site_id === site.id && ["observing", "ready_for_review"].includes(String(item.candidate_status)))
     : [];
   const cameras = site ? runtime.cameras.filter((item) => item.observer_site_id === site.id) : [];
+  const recipients = site ? runtime.recipients.filter((item) => item.observer_site_id === site.id && item.active !== false) : [];
   const childPrivacy = Boolean(site?.business_handles_children || site?.vision_privacy_mode === "skeleton_only");
   const reviewCount = candidates.filter((item) => item.candidate_status === "ready_for_review").length;
 
@@ -41,6 +43,31 @@ export default async function DigitalObserverPeoplePage() {
         ) : (
           <div className="do-notice warn"><Fingerprint /><span><strong>אין זיהוי פנים נסתר.</strong> תמונת מועמד זמינה לזמן קצר ורק לבעלי הרשאה. שמירה כאדם מוכר מחייבת הסכמה מפורשת ואינה מפעילה ביומטריה חיה.</span></div>
         )}
+
+        {mode === "business" && site ? (
+          <section className="do-panel do-business-access-panel">
+            <div className="do-section-head">
+              <div><h2>צוות והרשאות</h2><p>גישה למערכת ומורשי עדכונים הם שני דברים שונים. המטריצה מציגה רק הרשאה שניתנה בפועל.</p></div>
+              <Link className="do-button secondary" href="/digital-observer/settings">ניהול מורשי עדכונים</Link>
+            </div>
+            <div className="do-permission-matrix" role="table" aria-label="הרשאות צוות ומורשי עדכונים">
+              <div className="do-permission-head" role="row"><span>אדם</span><span>מצלמות</span><span>אירועים</span><span>דוחות</span><span>חיוב</span><span>התראות</span></div>
+              <div className="do-permission-row" role="row">
+                <span><b>{profile.full_name || "בעל החשבון"}</b><small>בעלים · משתמש מערכת מאומת</small></span>
+                {["מצלמות", "אירועים", "דוחות", "חיוב", "התראות"].map((label) => <i className="allowed" data-label={label} aria-label={`${label}: מורשה`} key={label}><Check /></i>)}
+              </div>
+              {recipients.map((recipient) => (
+                <div className="do-permission-row" role="row" key={recipient.id}>
+                  <span><b>{recipient.display_name}</b><small>{recipient.relationship_label || "מורשה עדכונים"} · ללא כניסה למערכת</small></span>
+                  {["מצלמות", "אירועים", "דוחות", "חיוב"].map((label) => <i data-label={label} aria-label={`${label}: אין הרשאת מערכת`} key={label}><X /></i>)}
+                  <i className="allowed" data-label="התראות" aria-label="התראות: לפי ערוצים מאושרים"><Check /></i>
+                </div>
+              ))}
+            </div>
+            {!recipients.length ? <div className="do-empty compact"><UsersRound /><strong>טרם הוגדרו מורשי עדכונים</strong><span>אפשר להוסיף אנשי קשר מוצפנים מההגדרות. הוספה אינה מעניקה להם כניסה למצלמות.</span></div> : null}
+            <div className="do-notice info"><ShieldCheck /><span>הזמנת משתמש צוות עם כניסה עצמאית עדיין דורשת מסלול הזמנה מאובטח. המסך אינו מציג איש קשר כאילו קיבל גישה למערכת.</span></div>
+          </section>
+        ) : null}
 
         {site && !childPrivacy ? (
           <section className="do-section">

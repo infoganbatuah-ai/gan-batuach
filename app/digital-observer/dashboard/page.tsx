@@ -1,5 +1,6 @@
 import Link from "next/link";
 import {
+  Activity,
   AlertTriangle,
   Bell,
   Camera,
@@ -44,6 +45,24 @@ function badgeTone(status?: string | null) {
   return "do-badge info";
 }
 
+function activityBuckets(signals: any[]) {
+  const bucketHours = 4;
+  const bucketCount = 6;
+  const now = Date.now();
+  const start = now - bucketHours * bucketCount * 60 * 60 * 1000;
+  const buckets = Array.from({ length: bucketCount }, (_, index) => ({
+    count: 0,
+    label: new Intl.DateTimeFormat("he-IL", { hour: "2-digit", minute: "2-digit", timeZone: "Asia/Jerusalem" }).format(new Date(start + index * bucketHours * 60 * 60 * 1000))
+  }));
+  for (const signal of signals) {
+    const timestamp = new Date(signal.created_at).getTime();
+    const index = Math.floor((timestamp - start) / (bucketHours * 60 * 60 * 1000));
+    if (Number.isFinite(timestamp) && index >= 0 && index < bucketCount) buckets[index].count += 1;
+  }
+  const maximum = Math.max(1, ...buckets.map((bucket) => bucket.count));
+  return buckets.map((bucket) => ({ ...bucket, percent: Math.max(bucket.count ? 12 : 3, Math.round((bucket.count / maximum) * 100)) }));
+}
+
 export default async function DigitalObserverDashboardPage({ searchParams }: PageProps) {
   const params = await searchParams;
   const { profile } = await requireDigitalObserverUser("/digital-observer/login?next=/digital-observer/dashboard");
@@ -65,6 +84,7 @@ export default async function DigitalObserverDashboardPage({ searchParams }: Pag
   const firstName = cleanSyntheticLabel(profile.full_name, mode === "home" ? "הבית שלך" : "העסק שלך").split(" ")[0];
   const isSynthetic = Boolean(selectedSite?.metadata?.qa_demo || selectedSite?.metadata?.is_demo || (profile as any).is_demo);
   const siteTemplateLabel = observerSiteTemplateLabel(selectedSite?.metadata?.site_template ?? (mode === "home" ? "home" : "custom"));
+  const businessActivity = activityBuckets(siteSignals);
 
   return (
     <ObserverAppShell
@@ -186,8 +206,12 @@ export default async function DigitalObserverDashboardPage({ searchParams }: Pag
             </section>
 
             <section className="do-grid cols-2">
-              <article className="do-panel">
+              <article className="do-panel do-activity-panel">
                 <div className="do-section-head"><div><h2>פעילות אחרונה</h2><p>אירועים לפי זמן ורמת דחיפות.</p></div><Link className="do-link" href="/digital-observer/alerts">מרכז האירועים</Link></div>
+                <div className="do-activity-chart" aria-label="פעילות ב-24 השעות האחרונות">
+                  <div className="do-activity-chart-head"><span><Activity /> פעילות ב-24 השעות האחרונות</span><strong>{businessActivity.reduce((sum, bucket) => sum + bucket.count, 0)} אירועים</strong></div>
+                  <div className="do-activity-bars">{businessActivity.map((bucket) => <span key={bucket.label}><i style={{ height: `${bucket.percent}%` }} /><b>{bucket.count}</b><small>{bucket.label}</small></span>)}</div>
+                </div>
                 {siteSignals.length ? <div className="do-row-list">{siteSignals.slice(0, 6).map((signal) => <Link className="do-row" href={`/digital-observer/alerts?event=${signal.id}`} key={signal.id}><Radar /><span className="do-row-main"><strong>{observerEventLabel(signal.metadata?.event_type ?? signal.signal_type)}</strong><small>{signal.recommended_action ?? "בדיקה אנושית מומלצת"}</small></span><span className="do-row-meta"><b className={badgeTone(signal.severity)}>{observerStatusLabel(signal.severity)}</b><time>{formatObserverDate(signal.created_at, { year: undefined, month: undefined, day: undefined })}</time></span></Link>)}</div> : <div className="do-empty"><Sparkles /><strong>אין אירועים להצגה</strong><span>המערכת לא ממציאה אירועים. הם יופיעו לאחר חיבור מצלמה וכלל ניטור.</span></div>}
               </article>
               <article className="do-panel">

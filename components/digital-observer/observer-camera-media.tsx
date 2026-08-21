@@ -25,7 +25,7 @@ export function ObserverCameraMedia({
       </span>
       <span className="do-camera-name">{name}</span>
       {demo
-        ? <span className="do-camera-lock"><Camera /><small>תמונת הדמיה בלבד, לא שידור חי</small></span>
+        ? <span className="do-camera-footnote"><Camera /><small>תרחיש הדגמה בלבד · לא שידור חי</small></span>
         : connected
           ? <span className="do-camera-lock"><Camera /><small>המקור מחובר; הצפייה דורשת stream token מאובטח</small></span>
           : <span className="do-camera-lock"><CameraOff /><small>אין שידור חי עד חיבור Gateway</small></span>}
