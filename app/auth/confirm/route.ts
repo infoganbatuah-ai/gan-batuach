@@ -30,7 +30,13 @@ export async function GET(request: NextRequest) {
   if (!tokenHash || !typeValue || !allowedOtpTypes.has(typeValue)) return authFailure(request, recovery, observerRequest);
 
   const supabase = await createClient();
-  const { data, error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type: typeValue });
+  let { data, error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type: typeValue });
+
+  // Older signup templates used `type=email`, while Supabase issues a signup
+  // confirmation token. Retry only that narrow, equivalent verification type.
+  if ((error || !data.user) && typeValue === "email") {
+    ({ data, error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type: "signup" }));
+  }
   if (error || !data.user) return authFailure(request, recovery, observerRequest);
 
   const confirmedObserver = observerRequest

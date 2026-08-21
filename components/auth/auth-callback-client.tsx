@@ -72,7 +72,10 @@ export function AuthCallbackClient({
         authenticationError = result.error;
         user = result.data.user;
       } else if (tokenHash && typeValue && otpTypes.has(typeValue)) {
-        const result = await supabase.auth.verifyOtp({ token_hash: tokenHash, type: typeValue });
+        let result = await supabase.auth.verifyOtp({ token_hash: tokenHash, type: typeValue });
+        if ((result.error || !result.data.user) && typeValue === "email") {
+          result = await supabase.auth.verifyOtp({ token_hash: tokenHash, type: "signup" });
+        }
         authenticationError = result.error;
         user = result.data.user;
       } else if (accessToken && refreshToken) {
