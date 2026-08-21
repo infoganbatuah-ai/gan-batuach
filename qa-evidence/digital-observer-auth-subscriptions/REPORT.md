@@ -6,7 +6,7 @@ Data: synthetic QA accounts only
 
 ## Acceptance Result
 
-`PASS_WITH_SIGNUP_EMAIL_RATE_LIMIT_BLOCKER`
+`PASS_AUTH_AND_SUBSCRIPTIONS_NO_LIVE_BILLING`
 
 The captured screens render without horizontal overflow at the tested widths. The home, business and Digital Observer Admin sessions use separate signed-in accounts and distinct dashboard experiences. The screenshots do not contain passwords, access tokens, provider secrets or real customer data.
 
@@ -38,7 +38,9 @@ The replacement recovery screenshots were captured after route loading completed
 - Home accounts saw home plans only. Business accounts saw business and enterprise plans only.
 - Subscription changes remain server-side readiness requests and do not invoke a payment provider.
 - The automated Digital Observer suite passed 64/64 checks against Supabase and RLS.
+- A fresh synthetic home signup produced a real confirmation email after the Supabase template was repaired and Auth was restarted to clear its stale configuration.
+- The latest one-time confirmation link returned to `/digital-observer/login`; a real login then issued session cookies and redirected to `/digital-observer/onboarding?type=home`.
 
-## Open Evidence Gap
+## Remaining Scope Boundary
 
-A fresh signup email and a fresh resend could not be generated during the final run because the Supabase rolling email bucket returned `over_email_send_rate_limit`. The templates and callback handlers were checked, and the UI reports this condition clearly, but a new signup message must be retried after the bucket resets. This report does not mark that external delivery step as passed.
+The final signup E2E used the one-time confirmation link. The numeric OTP path remains implemented with `email` to `signup` fallback but was not separately entered in the final browser run. Live billing, cameras, AI, external messaging and emergency actions remain intentionally disabled and were not accepted by this report.
