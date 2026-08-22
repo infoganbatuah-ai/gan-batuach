@@ -99,13 +99,15 @@ try {
 
       await page.goto(`${baseUrl}/digital-observer/cameras/add`, { waitUntil: "networkidle" });
       await capture(page, account.key, "camera", 1, viewportKey);
-      await page.getByRole("button", { name: /המשך/ }).click();
+      const mobileCameraStart = page.locator(".do-camera-mobile-first:visible .do-button.navy");
+      if (await mobileCameraStart.count()) await mobileCameraStart.click();
+      else await page.locator(".do-wizard-actions .do-button.primary").click();
       await page.getByLabel("שם המצלמה").fill(account.type === "home" ? "כניסה ראשית" : "כניסת העסק");
       await page.getByLabel("מיקום").fill(account.type === "home" ? "מבואת הבית" : "כניסה ראשית");
       await capture(page, account.key, "camera", 2, viewportKey);
-      await page.getByRole("button", { name: /המשך/ }).click();
+      await page.locator(".do-wizard-actions .do-button.primary").click();
       await capture(page, account.key, "camera", 3, viewportKey);
-      await page.getByRole("button", { name: /המשך/ }).click();
+      await page.locator(".do-wizard-actions .do-button.primary").click();
       await capture(page, account.key, "camera", 4, viewportKey);
 
       await context.close();
