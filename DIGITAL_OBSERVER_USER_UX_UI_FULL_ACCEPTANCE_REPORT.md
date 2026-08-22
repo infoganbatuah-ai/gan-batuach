@@ -83,6 +83,6 @@ These are not hidden UX items and were not activated:
 4. Connect and validate billing Sandbox before any real charge.
 5. Connect Push/email/SMS/WhatsApp providers with approved recipients and delivery/retry tests.
 6. Complete legal/privacy review before live biometrics, child data or emergency escalation.
-7. Run native Capacitor sync and real-device QA before store submission.
+7. Capacitor sync passed after the UX changes; real-device native QA is still required before store submission.
 
 No visual clipping or responsive runtime blocker remains in the automated evidence. Manual stakeholder review remains appropriate because visual equivalence is partly subjective and live integrations are intentionally excluded.
