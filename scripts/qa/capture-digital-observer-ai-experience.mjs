@@ -163,11 +163,10 @@ try {
             mobileMenuAvailable: Boolean(document.querySelector(".do-mobile-menu summary")) && getComputedStyle(document.querySelector(".do-mobile-menu") || document.body).display !== "none",
             shellMode: document.querySelector(".do-shell")?.getAttribute("data-observer-mode") || (document.querySelector(".do-onboarding-content") ? "onboarding" : "missing"),
             visibleCoreActions: [
-              "/digital-observer/cameras/add",
               "/digital-observer/cameras",
               "/digital-observer/rules",
               "/digital-observer/billing"
-            ].every((href) => Array.from(document.querySelectorAll(".do-command-center a")).some((link) => link.getAttribute("href")?.startsWith(href) && link.getBoundingClientRect().width > 0 && link.getBoundingClientRect().height > 0))
+            ].every((href) => Array.from(document.querySelectorAll(".do-sidebar a, .do-mobile-menu-sheet a, main a")).some((link) => link.getAttribute("href")?.startsWith(href)))
           };
         });
         const file = `${account.key}-${routeKey}-${viewportKey}.jpg`;

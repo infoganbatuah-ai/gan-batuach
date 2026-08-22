@@ -69,6 +69,31 @@ export default async function DigitalObserverRulesPage() {
         {!runtime.locationLearningMigrationApplied ? <div className="do-notice warn"><TriangleAlert /><span>שכבת הכתובת והלמידה החדשה ממתינה למיגרציה. אין להציג את האתר כפעיל עד החלתה.</span></div> : null}
 
         {site ? <>
+          <nav className="do-observer-context-chips" aria-label="נושאים לשיחה עם התצפיתן">
+            {(mode === "business"
+              ? ["כניסה ויציאה", "מחוץ לשעות", "אזור מוגבל", "מצב מצלמה"]
+              : ["כניסה", "ילד או תינוק", "חיית מחמד", "שעות שקטות"]
+            ).map((label) => <a href="#observer-conversation" key={label}>{label}</a>)}
+          </nav>
+
+          <section className="do-grid cols-2 do-observer-live-grid" id="observer-conversation">
+            <ObserverConversationPanel
+              siteId={site.id}
+              initialPrompt={signals.length
+                ? `קיימים ${signals.length} אירועים במידע של האתר. אפשר לשאול מה קרה, מי נכנס או יצא, מה אירע בחניה או למה אירוע מסוים סומן.`
+                : "אני מוכן לענות מתוך המידע של האתר. כרגע אין אירוע שמור, ולכן לא אמציא פעילות. אפשר גם לבקש ממני לשים לב לדבר מסוים."}
+            />
+            <article className="do-panel do-observer-insights-panel">
+              <div className="do-section-head"><div><h2>מה התצפיתן למד עד עכשיו</h2><p>תובנות מופיעות רק מנתוני האתר ומתוצאות שאומתו.</p></div><span className="do-badge info">{baselines.length} דפוסים</span></div>
+              {baselines.length ? <div className="do-insight-grid">{baselines.map((baseline) => <div key={baseline.id}><Sparkles /><span><strong>{baselineLabel(baseline.baseline_type)}</strong><small>{baseline.learning_maturity === "mature" ? "נלמד" : `איסוף נתונים · ${Math.round(Number(baseline.confidence_level || 0) * 100)}% ביטחון`}</small></span></div>)}</div> : <div className="do-empty"><BrainCircuit /><strong>אין עדיין קו בסיס</strong><span>המערכת לא ממציאה שגרה. הנתונים ייאספו אחרי חיבור מצלמה.</span></div>}
+              <div className="do-observer-rule-preview">
+                <span><Radar /><b>{rules[0]?.title || "כלל תצפית ראשון טרם הוגדר"}</b></span>
+                <strong className={rules[0]?.active ? "do-badge good" : "do-badge warn"}>{rules[0]?.active ? "פעיל" : "ממתין להגדרה"}</strong>
+              </div>
+              <a className="do-button secondary" href="#observer-advanced-rule">הגדרת כלל מתקדם</a>
+            </article>
+          </section>
+
           <section className="do-grid cols-4">
             <article className="do-metric"><Camera /><strong>{cameras.length}</strong><span>מצלמות באתר</span></article>
             <article className="do-metric"><Activity /><strong>{signals.length}</strong><span>אירועים שנקלטו</span></article>
@@ -115,19 +140,6 @@ export default async function DigitalObserverRulesPage() {
             <div className="do-notice warn"><ShieldCheck /><span>וידאו חי, זיהוי ביומטרי ופעולת חירום נשארים כבויים. בדיקת תצפית חיה תתחיל רק עם Gateway מקומי, מקור מורשה, מדיניות פרטיות ו-AI במצב Shadow.</span></div>
           </section>
 
-          <section className="do-grid cols-2 do-observer-live-grid">
-            <ObserverConversationPanel
-              siteId={site.id}
-              initialPrompt={signals.length
-                ? `קיימים ${signals.length} אירועים במידע של האתר. אפשר לשאול מה קרה, מי נכנס או יצא, מה אירע בחניה או למה אירוע מסוים סומן.`
-                : "אני מוכן לענות מתוך המידע של האתר. כרגע אין אירוע שמור, ולכן לא אמציא פעילות. אפשר גם לבקש ממני לשים לב לדבר מסוים."}
-            />
-            <article className="do-panel">
-              <div className="do-section-head"><div><h2>מה התצפיתן למד עד עכשיו</h2><p>אין מסקנה אם אין נתונים אמיתיים או סינתטיים מסומנים.</p></div></div>
-              {baselines.length ? <div className="do-insight-grid">{baselines.map((baseline) => <div key={baseline.id}><Sparkles /><span><strong>{baselineLabel(baseline.baseline_type)}</strong><small>{baseline.learning_maturity === "mature" ? "נלמד" : `איסוף נתונים · ${Math.round(Number(baseline.confidence_level || 0) * 100)}% ביטחון`}</small></span></div>)}</div> : <div className="do-empty"><BrainCircuit /><strong>אין עדיין קו בסיס</strong><span>המערכת לא ממציאה שגרה. הנתונים ייאספו אחרי חיבור מצלמה.</span></div>}
-            </article>
-          </section>
-
           <section className="do-panel">
             <div className="do-section-head"><div><h2>מחזור השיפור של התצפיתן</h2><p>כל הרחבת אוטומציה חייבת לעבור דרך תוצאה מאומתת של האתר, ולא להיפתח רק מפני שעבר זמן.</p></div><span className="do-badge info">מצב בטוח כברירת מחדל</span></div>
             <div className="do-grid cols-4">
@@ -139,7 +151,7 @@ export default async function DigitalObserverRulesPage() {
             <div className="do-notice info"><BrainCircuit /><span>המערכת משחררת יכולות בהדרגה רק אחרי מדידת דיוק, כיסוי ביקורת והתרעות שווא. ירידה באיכות מחזירה את היכולת ל־Shadow או לביקורת אנושית מלאה.</span></div>
           </section>
 
-          <details className="do-advanced-rule-panel">
+          <details className="do-advanced-rule-panel" id="observer-advanced-rule">
             <summary><Radar /> הגדרה ידנית מתקדמת</summary>
             <ObserverRuleForm siteId={site.id} cameras={cameras} />
           </details>

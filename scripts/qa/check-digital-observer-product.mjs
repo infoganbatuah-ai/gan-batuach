@@ -158,7 +158,12 @@ const logoutRouteSource = readFileSync("app/api/auth/logout/route.ts", "utf8");
 record("Mobile zoom remains accessible", !/maximumScale\s*:\s*1/.test(`${rootLayoutSource}\n${observerLayoutSource}`), "Viewport metadata does not disable pinch zoom");
 record("Observer routes have loading and error states", existsSync("app/digital-observer/loading.tsx") && existsSync("app/digital-observer/error.tsx"), "Dedicated route-level loading and recovery UI exists");
 record("Multi-industry templates keep high-risk review guarded", ["kiosk", "retail", "office", "warehouse", "clinic", "restaurant", "child_education", "custom"].every((key) => templateSource.includes(`key: \"${key}\"`)) && templateSource.includes("automaticEmergencyAction: false") && templateSource.includes("highRiskEventsAreSuspicions: true"), "Site templates are reusable and never enable automatic emergency action");
-record("Home dashboard exposes core product actions", ["הוספת מצלמה", "המצלמות שלי", "התצפיתן שלי", "המנוי שלי"].every((label) => observerDashboardSource.includes(label)), "Camera, Observer, subscription and monitoring entry points are present in the authenticated dashboard");
+record(
+  "Home dashboard exposes core product actions",
+  ["/digital-observer/cameras/add", "/digital-observer/cameras", "/digital-observer/alerts"].every((href) => observerDashboardSource.includes(href))
+    && ["/digital-observer/rules", "/digital-observer/billing"].every((href) => observerShellSource.includes(href)),
+  "Dashboard actions and the responsive authenticated navigation expose cameras, events, Observer conversation and subscription management"
+);
 record("Home navigation exposes subscription management", observerShellSource.includes('{ href: "/digital-observer/billing", label: "מנוי וחיוב"'), "Home users can reach billing without using a business-only menu");
 record("Mobile header keeps primary actions visible", observerStylesSource.includes(".do-top-actions > .do-button") && !observerStylesSource.includes(".do-top-actions > .do-button,\n  .do-top-actions .logout-button { display: none; }"), "Primary page action is rendered as an icon button instead of being hidden on mobile");
 record(

@@ -1,6 +1,6 @@
 # DIGITAL OBSERVER AUTOMATED QA RESULTS
 
-Date: 2026-08-21T23:28:55.253Z
+Date: 2026-08-22T01:26:14.062Z
 Environment: synthetic demo
 Passwords or tokens printed: no
 Service role used in browser/client QA: no
@@ -51,7 +51,7 @@ Service role used in browser/client QA: no
 | Mobile zoom remains accessible | PASS | Viewport metadata does not disable pinch zoom |
 | Observer routes have loading and error states | PASS | Dedicated route-level loading and recovery UI exists |
 | Multi-industry templates keep high-risk review guarded | PASS | Site templates are reusable and never enable automatic emergency action |
-| Home dashboard exposes core product actions | PASS | Camera, Observer, subscription and monitoring entry points are present in the authenticated dashboard |
+| Home dashboard exposes core product actions | PASS | Dashboard actions and the responsive authenticated navigation expose cameras, events, Observer conversation and subscription management |
 | Home navigation exposes subscription management | PASS | Home users can reach billing without using a business-only menu |
 | Mobile header keeps primary actions visible | PASS | Primary page action is rendered as an icon button instead of being hidden on mobile |
 | Mobile shell exposes every role destination | PASS | The compact bottom navigation is paired with a full mobile drawer; no destination is available only on desktop |
