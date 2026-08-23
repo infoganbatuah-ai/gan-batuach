@@ -1,6 +1,6 @@
 # DIGITAL OBSERVER AI EXPERIENCE VISUAL QA
 
-Generated: 2026-08-22T01:35:41.260Z
+Generated: 2026-08-22T13:03:56.208Z
 Credentials printed: no
 Data scope: synthetic demo accounts
 
@@ -44,11 +44,17 @@ Data scope: synthetic demo accounts
 | home | /digital-observer/rules | 1366x768 | home | PASS | PASS | PASS | N/A | home-observer-desktop-1366.jpg |
 | home | /digital-observer/rules | 1440x900 | home | PASS | PASS | PASS | N/A | home-observer-desktop-1440.jpg |
 | home | /digital-observer/cameras | 390x844 | home | PASS | PASS | PASS | N/A | home-cameras-mobile-390.jpg |
+| home | /digital-observer/cameras?camera=selected | 390x844 | home | PASS | PASS | PASS | N/A | home-camera-detail-mobile-390.jpg |
 | home | /digital-observer/cameras | 430x932 | home | PASS | PASS | PASS | N/A | home-cameras-mobile-430.jpg |
+| home | /digital-observer/cameras?camera=selected | 430x932 | home | PASS | PASS | PASS | N/A | home-camera-detail-mobile-430.jpg |
 | home | /digital-observer/cameras | 768x1024 | home | PASS | PASS | PASS | N/A | home-cameras-tablet-768.jpg |
+| home | /digital-observer/cameras?camera=selected | 768x1024 | home | PASS | PASS | PASS | N/A | home-camera-detail-tablet-768.jpg |
 | home | /digital-observer/cameras | 1024x768 | home | PASS | PASS | PASS | N/A | home-cameras-tablet-1024.jpg |
+| home | /digital-observer/cameras?camera=selected | 1024x768 | home | PASS | PASS | PASS | N/A | home-camera-detail-tablet-1024.jpg |
 | home | /digital-observer/cameras | 1366x768 | home | PASS | PASS | PASS | N/A | home-cameras-desktop-1366.jpg |
+| home | /digital-observer/cameras?camera=selected | 1366x768 | home | PASS | PASS | PASS | N/A | home-camera-detail-desktop-1366.jpg |
 | home | /digital-observer/cameras | 1440x900 | home | PASS | PASS | PASS | N/A | home-cameras-desktop-1440.jpg |
+| home | /digital-observer/cameras?camera=selected | 1440x900 | home | PASS | PASS | PASS | N/A | home-camera-detail-desktop-1440.jpg |
 | home | /digital-observer/people | 390x844 | home | PASS | PASS | PASS | N/A | home-people-mobile-390.jpg |
 | home | /digital-observer/people | 430x932 | home | PASS | PASS | PASS | N/A | home-people-mobile-430.jpg |
 | home | /digital-observer/people | 768x1024 | home | PASS | PASS | PASS | N/A | home-people-tablet-768.jpg |
@@ -62,11 +68,17 @@ Data scope: synthetic demo accounts
 | home | /digital-observer/cameras/add | 1366x768 | home | PASS | PASS | PASS | N/A | home-camera-add-desktop-1366.jpg |
 | home | /digital-observer/cameras/add | 1440x900 | home | PASS | PASS | PASS | N/A | home-camera-add-desktop-1440.jpg |
 | home | /digital-observer/alerts | 390x844 | home | PASS | PASS | PASS | N/A | home-alerts-mobile-390.jpg |
+| home | /digital-observer/alerts?event=selected | 390x844 | home | PASS | PASS | PASS | N/A | home-alert-detail-mobile-390.jpg |
 | home | /digital-observer/alerts | 430x932 | home | PASS | PASS | PASS | N/A | home-alerts-mobile-430.jpg |
+| home | /digital-observer/alerts?event=selected | 430x932 | home | PASS | PASS | PASS | N/A | home-alert-detail-mobile-430.jpg |
 | home | /digital-observer/alerts | 768x1024 | home | PASS | PASS | PASS | N/A | home-alerts-tablet-768.jpg |
+| home | /digital-observer/alerts?event=selected | 768x1024 | home | PASS | PASS | PASS | N/A | home-alert-detail-tablet-768.jpg |
 | home | /digital-observer/alerts | 1024x768 | home | PASS | PASS | PASS | N/A | home-alerts-tablet-1024.jpg |
+| home | /digital-observer/alerts?event=selected | 1024x768 | home | PASS | PASS | PASS | N/A | home-alert-detail-tablet-1024.jpg |
 | home | /digital-observer/alerts | 1366x768 | home | PASS | PASS | PASS | N/A | home-alerts-desktop-1366.jpg |
+| home | /digital-observer/alerts?event=selected | 1366x768 | home | PASS | PASS | PASS | N/A | home-alert-detail-desktop-1366.jpg |
 | home | /digital-observer/alerts | 1440x900 | home | PASS | PASS | PASS | N/A | home-alerts-desktop-1440.jpg |
+| home | /digital-observer/alerts?event=selected | 1440x900 | home | PASS | PASS | PASS | N/A | home-alert-detail-desktop-1440.jpg |
 | home | /digital-observer/recordings | 390x844 | home | PASS | PASS | PASS | N/A | home-recordings-mobile-390.jpg |
 | home | /digital-observer/recordings | 430x932 | home | PASS | PASS | PASS | N/A | home-recordings-mobile-430.jpg |
 | home | /digital-observer/recordings | 768x1024 | home | PASS | PASS | PASS | N/A | home-recordings-tablet-768.jpg |
@@ -111,11 +123,17 @@ Data scope: synthetic demo accounts
 | business | /digital-observer/rules | 1366x768 | business | PASS | PASS | PASS | N/A | business-observer-desktop-1366.jpg |
 | business | /digital-observer/rules | 1440x900 | business | PASS | PASS | PASS | N/A | business-observer-desktop-1440.jpg |
 | business | /digital-observer/cameras | 390x844 | business | PASS | PASS | PASS | N/A | business-cameras-mobile-390.jpg |
+| business | /digital-observer/cameras?camera=selected | 390x844 | business | PASS | PASS | PASS | N/A | business-camera-detail-mobile-390.jpg |
 | business | /digital-observer/cameras | 430x932 | business | PASS | PASS | PASS | N/A | business-cameras-mobile-430.jpg |
+| business | /digital-observer/cameras?camera=selected | 430x932 | business | PASS | PASS | PASS | N/A | business-camera-detail-mobile-430.jpg |
 | business | /digital-observer/cameras | 768x1024 | business | PASS | PASS | PASS | N/A | business-cameras-tablet-768.jpg |
+| business | /digital-observer/cameras?camera=selected | 768x1024 | business | PASS | PASS | PASS | N/A | business-camera-detail-tablet-768.jpg |
 | business | /digital-observer/cameras | 1024x768 | business | PASS | PASS | PASS | N/A | business-cameras-tablet-1024.jpg |
+| business | /digital-observer/cameras?camera=selected | 1024x768 | business | PASS | PASS | PASS | N/A | business-camera-detail-tablet-1024.jpg |
 | business | /digital-observer/cameras | 1366x768 | business | PASS | PASS | PASS | N/A | business-cameras-desktop-1366.jpg |
+| business | /digital-observer/cameras?camera=selected | 1366x768 | business | PASS | PASS | PASS | N/A | business-camera-detail-desktop-1366.jpg |
 | business | /digital-observer/cameras | 1440x900 | business | PASS | PASS | PASS | N/A | business-cameras-desktop-1440.jpg |
+| business | /digital-observer/cameras?camera=selected | 1440x900 | business | PASS | PASS | PASS | N/A | business-camera-detail-desktop-1440.jpg |
 | business | /digital-observer/people | 390x844 | business | PASS | PASS | PASS | N/A | business-people-mobile-390.jpg |
 | business | /digital-observer/people | 430x932 | business | PASS | PASS | PASS | N/A | business-people-mobile-430.jpg |
 | business | /digital-observer/people | 768x1024 | business | PASS | PASS | PASS | N/A | business-people-tablet-768.jpg |
@@ -129,11 +147,17 @@ Data scope: synthetic demo accounts
 | business | /digital-observer/cameras/add | 1366x768 | business | PASS | PASS | PASS | N/A | business-camera-add-desktop-1366.jpg |
 | business | /digital-observer/cameras/add | 1440x900 | business | PASS | PASS | PASS | N/A | business-camera-add-desktop-1440.jpg |
 | business | /digital-observer/alerts | 390x844 | business | PASS | PASS | PASS | N/A | business-alerts-mobile-390.jpg |
+| business | /digital-observer/alerts?event=selected | 390x844 | business | PASS | PASS | PASS | N/A | business-alert-detail-mobile-390.jpg |
 | business | /digital-observer/alerts | 430x932 | business | PASS | PASS | PASS | N/A | business-alerts-mobile-430.jpg |
+| business | /digital-observer/alerts?event=selected | 430x932 | business | PASS | PASS | PASS | N/A | business-alert-detail-mobile-430.jpg |
 | business | /digital-observer/alerts | 768x1024 | business | PASS | PASS | PASS | N/A | business-alerts-tablet-768.jpg |
+| business | /digital-observer/alerts?event=selected | 768x1024 | business | PASS | PASS | PASS | N/A | business-alert-detail-tablet-768.jpg |
 | business | /digital-observer/alerts | 1024x768 | business | PASS | PASS | PASS | N/A | business-alerts-tablet-1024.jpg |
+| business | /digital-observer/alerts?event=selected | 1024x768 | business | PASS | PASS | PASS | N/A | business-alert-detail-tablet-1024.jpg |
 | business | /digital-observer/alerts | 1366x768 | business | PASS | PASS | PASS | N/A | business-alerts-desktop-1366.jpg |
+| business | /digital-observer/alerts?event=selected | 1366x768 | business | PASS | PASS | PASS | N/A | business-alert-detail-desktop-1366.jpg |
 | business | /digital-observer/alerts | 1440x900 | business | PASS | PASS | PASS | N/A | business-alerts-desktop-1440.jpg |
+| business | /digital-observer/alerts?event=selected | 1440x900 | business | PASS | PASS | PASS | N/A | business-alert-detail-desktop-1440.jpg |
 | business | /digital-observer/recordings | 390x844 | business | PASS | PASS | PASS | N/A | business-recordings-mobile-390.jpg |
 | business | /digital-observer/recordings | 430x932 | business | PASS | PASS | PASS | N/A | business-recordings-mobile-430.jpg |
 | business | /digital-observer/recordings | 768x1024 | business | PASS | PASS | PASS | N/A | business-recordings-tablet-768.jpg |
