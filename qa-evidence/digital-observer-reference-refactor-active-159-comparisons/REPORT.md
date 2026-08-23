@@ -1,0 +1,19 @@
+# Digital Observer reference comparison boards
+
+Generated: 2026-08-23T09:12:59.184Z
+Source: seven user-provided reference images
+Implementation: clean local production screenshots
+Targeted screenshot overrides: qa-evidence/digital-observer-reference-refactor-active-158-onboarding-scale,qa-evidence/digital-observer-reference-refactor-active-155-density,qa-evidence/digital-observer-reference-refactor-active-156-auth-scale,qa-evidence/digital-observer-reference-refactor-active-152-auth-density,qa-evidence/digital-observer-reference-refactor-active-150-camera-actions,qa-evidence/digital-observer-reference-refactor-active-146-auth-preview,qa-evidence/digital-observer-reference-refactor-active-141-density-payment,qa-evidence/digital-observer-reference-refactor-active-139-canvas-mobile,qa-evidence/digital-observer-reference-refactor-active-137-shell,qa-evidence/digital-observer-reference-refactor-active-134-payment,qa-evidence/digital-observer-reference-refactor-active-133-mobile,qa-evidence/digital-observer-reference-refactor-active-129,qa-evidence/digital-observer-reference-refactor-active-128,qa-evidence/digital-observer-reference-refactor-active-123,qa-evidence/digital-observer-reference-refactor-active-119,qa-evidence/digital-observer-reference-refactor-active-118,qa-evidence/digital-observer-reference-refactor-active-115,qa-evidence/digital-observer-reference-refactor-active-111,qa-evidence/digital-observer-reference-refactor-active-106-auth-flows,qa-evidence/digital-observer-reference-refactor-active-105,qa-evidence/digital-observer-reference-refactor-active-101,qa-evidence/digital-observer-reference-refactor-active-97,qa-evidence/digital-observer-reference-refactor-active-86,qa-evidence/digital-observer-reference-refactor-active-84-reference-canvas,qa-evidence/digital-observer-reference-refactor-active-83-reference-canvas,qa-evidence/digital-observer-admin-reference-active-85,qa-evidence/digital-observer-admin-reference-active-84,qa-evidence/digital-observer-reference-refactor-active-80,qa-evidence/digital-observer-reference-refactor-active-79
+Live camera, AI, biometric, notification, emergency or billing service activated: no
+
+| Reference | Implementation screens | Overview board | Panel-by-panel board |
+|---|---:|---|---|
+| 01-business-product | 4 | 01-business-product.png | 01-business-product-detail.png |
+| 02-camera-onboarding | 4 | 02-camera-onboarding.png | 02-camera-onboarding-detail.png |
+| 03-home-product | 4 | 03-home-product.png | 03-home-product-detail.png |
+| 04-events-people-recordings | 4 | 04-events-people-recordings.png | 04-events-people-recordings-detail.png |
+| 05-mobile-product | 6 | 05-mobile-product.png | 05-mobile-product-detail.png |
+| 06-billing-settings-admin | 4 | 06-billing-settings-admin.png | 06-billing-settings-admin-detail.png |
+| 07-auth-onboarding | 4 | 07-auth-onboarding.png | 07-auth-onboarding-detail.png |
+
+> These boards support direct manual comparison. They do not assert pixel identity or prove unavailable live integrations.
