@@ -59,6 +59,7 @@ export default async function DigitalObserverAdminPage() {
   const openSignals = runtime.signals.filter((signal) => ["needs_review", "reviewing", "escalated"].includes(String(signal.review_status)));
   const highSignals = openSignals.filter((signal) => ["high", "urgent", "critical"].includes(String(signal.severity)));
   const activeSubscriptions = runtime.subscriptions.filter((subscription) => ["trial", "active"].includes(String(subscription.status ?? subscription.subscription_status)));
+  const activePackages = runtime.packages.filter((item) => item.active !== false);
   const trends = latestSevenDays(runtime.signals);
   const maxTrend = Math.max(1, ...trends.map((item) => item.count));
   const frequentTypes = Object.entries(runtime.signals.reduce<Record<string, number>>((summary, signal) => {
@@ -68,21 +69,19 @@ export default async function DigitalObserverAdminPage() {
   }, {})).sort((a, b) => b[1] - a[1]).slice(0, 5);
   const locatedSites = runtime.sites.filter((site) => site.city || site.formatted_address || (site.latitude && site.longitude)).slice(0, 10);
   const mappedSites = locatedSites.filter((site) => Number.isFinite(Number(site.latitude)) && Number.isFinite(Number(site.longitude)));
+  const deliveredNotifications = runtime.deliveries.filter((delivery) => ["sent", "delivered", "success"].includes(String(delivery.delivery_status ?? delivery.status))).length;
+  const failedNotifications = runtime.deliveries.filter((delivery) => ["failed", "rejected", "error"].includes(String(delivery.delivery_status ?? delivery.status))).length;
+  const pendingNotifications = Math.max(0, runtime.deliveries.length - deliveredNotifications - failedNotifications);
+  const deliveredPercent = percentage(deliveredNotifications, runtime.deliveries.length);
+  const pendingPercent = percentage(pendingNotifications, runtime.deliveries.length);
 
   return (
     <ObserverAppShell profile={profile} mode="admin" activeHref="/digital-observer/admin" title="מרכז בקרה" statusLabel="בקרת תצפיתן עצמאית">
       <div className="do-page-stack do-admin-control-center">
-        <section className="do-admin-hero">
-          <div>
-            <span className="do-eyebrow">תמונת מצב מערכת</span>
-            <h2>התצפיתן מנוהל ממקום אחד</h2>
-            <p>אתרים, מצלמות, אירועים, תורים ומנויים מוצגים מנתוני המערכת. שירות שאינו חי מסומן כמוכנות או הדמיה.</p>
-          </div>
-          <div className="do-admin-engine-state"><BrainCircuit /><strong>{readiness.ai.live ? "פעיל" : "Shadow"}</strong><span>מנוע תצפיתן</span><small>ביקורת אנושית נדרשת</small></div>
+        <section className="do-admin-system-strip">
+          <div><span className="do-eyebrow">תמונת מצב מערכת</span><h2>ניהול מערכת</h2><p>מדדים, שירותים ומקורות מידע מתוך מערכת התצפיתן בלבד.</p></div>
+          <div className="do-admin-engine-state"><BrainCircuit /><strong>{readiness.ai.live ? "פעיל" : "Shadow"}</strong><span>בריאות ספק AI</span><small>ביקורת אנושית נדרשת</small></div>
         </section>
-
-        {!runtime.dataAvailable ? <div className="do-notice warn" role="status"><ServerCog /><span>חלק ממקורות הנתונים אינם זמינים. לא מוצגים מספרים חלופיים או הצלחה מזויפת.</span></div> : null}
-        <div className="do-notice info"><ShieldCheck /><span>הרשאה: {observerAdmin.scope === "digital_observer_only" ? "Admin תצפיתן בלבד" : "Admin ותיק לצורכי מעבר"}. אין גישה אוטומטית למדיה פרטית, פרטי מצלמה סודיים או פרטי תשלום.</span></div>
 
         <section className="do-admin-kpis" aria-label="מדדי מערכת">
           <article><UsersRound /><span>לקוחות ואתרים</span><strong>{runtime.sites.length}</strong><small>{homes.length} ביתי · {businesses.length} עסקי</small></article>
@@ -91,7 +90,62 @@ export default async function DigitalObserverAdminPage() {
           <article><CircleDollarSign /><span>מנויים פעילים/ניסיון</span><strong>{activeSubscriptions.length}</strong><small>חיוב חי: כבוי</small></article>
         </section>
 
-        <section className="do-admin-dashboard-grid">
+        <details className="do-admin-safety-disclosure">
+          <summary><ShieldCheck /><span><strong>אבטחה ומוכנות שירותים</strong><small>הרשאות, מקורות חסרים והגבלות הפעלה</small></span></summary>
+          <div>
+            {!runtime.dataAvailable ? <div className="do-notice warn" role="status"><ServerCog /><span>חלק ממקורות הנתונים אינם זמינים. לא מוצגים מספרים חלופיים או הצלחה מזויפת.</span></div> : null}
+            <div className="do-notice info"><ShieldCheck /><span>הרשאה: {observerAdmin.scope === "digital_observer_only" ? "Admin תצפיתן בלבד" : "Admin ותיק לצורכי מעבר"}. אין גישה אוטומטית למדיה פרטית, פרטי מצלמה סודיים או פרטי תשלום.</span></div>
+          </div>
+        </details>
+
+        <section className="do-admin-reference-widgets" aria-label="ניהול מסלולים וקיצורי פעולה">
+          <article className="do-panel">
+            <div className="do-section-head"><div><h2>ניהול מסלולים</h2><p>מחירים, מגבלות ומצב החבילות מתוך המסד.</p></div><CircleDollarSign /></div>
+            <div className="do-summary-list">
+              <div><span>חבילות פעילות</span><strong>{activePackages.length}</strong></div>
+              <div><span>מנויים פעילים או בניסיון</span><strong>{activeSubscriptions.length}</strong></div>
+              <div><span>חיוב production</span><strong>כבוי</strong></div>
+            </div>
+            <Link className="do-button secondary full" href="/digital-observer/admin/packages">עריכת חבילות ומחירים</Link>
+          </article>
+
+          <article className="do-panel">
+            <div className="do-section-head"><div><h2>התראות מערכת</h2><p>מצבי מוכנות שמחייבים טיפול לפני הפעלה.</p></div><BellRing /></div>
+            <div className="do-admin-status-list">
+              <div><span>Gateway מצלמות</span><b className="do-badge warn">{observerStatusLabel(readiness.cameraGateway.state)}</b></div>
+              <div><span>מנוע AI</span><b className="do-badge info">{observerStatusLabel(readiness.ai.state)}</b></div>
+              <div><span>חיוב</span><b className="do-badge info">{observerStatusLabel(readiness.billing.state)}</b></div>
+            </div>
+            <Link className="do-button secondary full" href="/digital-observer/admin/operations">פתיחת מרכז התפעול</Link>
+          </article>
+
+          <article className="do-panel do-admin-delivery-panel">
+            <div className="do-section-head"><div><h2>מסירת התראות</h2><p>התפלגות מתועדת בלבד, ללא שליחה מדומה.</p></div><BellRing /></div>
+            <div className="do-admin-delivery-breakdown">
+              <i style={{ background: runtime.deliveries.length ? `conic-gradient(var(--do-teal-dark) 0 ${deliveredPercent}%, #f2b657 ${deliveredPercent}% ${deliveredPercent + pendingPercent}%, #de5f5f ${deliveredPercent + pendingPercent}% 100%)` : "#e8eef1" }}><strong>{runtime.deliveries.length}</strong><small>מסירות</small></i>
+              <div><span><b className="good" />נמסרו <strong>{deliveredNotifications}</strong></span><span><b className="pending" />ממתינות <strong>{pendingNotifications}</strong></span><span><b className="failed" />נכשלו <strong>{failedNotifications}</strong></span></div>
+            </div>
+            <Link className="do-button secondary full" href="/digital-observer/admin/operations#notifications">צפייה ביומן המסירות</Link>
+          </article>
+        </section>
+
+        <section className="do-admin-activity-row">
+          <article className="do-panel do-admin-trend-panel">
+            <div className="do-section-head"><div><h2>פעילות מערכת</h2><p>אירועים מתועדים בשבעת הימים האחרונים לפי זמן ישראל.</p></div><TrendingUp /></div>
+            <div className="do-admin-trend" aria-label="מגמת אירועים בשבעה ימים">{trends.map((item) => <div key={item.key}><span style={{ height: `${Math.max(5, (item.count / maxTrend) * 100)}%` }} /><strong>{item.count}</strong><small>{item.label}</small></div>)}</div>
+          </article>
+
+          <article className="do-panel do-admin-shortcuts-panel">
+            <div className="do-section-head"><div><h2>קיצורים מהירים</h2><p>ניווט לכלי ניהול; אין הפעלה חיה אוטומטית.</p></div><Gauge /></div>
+            <div className="do-admin-quick-links">
+              <Link href="/digital-observer/admin/access"><UsersRound />לקוחות ואתרים</Link>
+              <Link href="/digital-observer/admin/packages"><CircleDollarSign />חבילות ותמחור</Link>
+              <Link href="/digital-observer/admin/operations"><ServerCog />ספקים ותפעול</Link>
+            </div>
+          </article>
+        </section>
+
+        <section className="do-admin-dashboard-grid do-admin-location-insights">
           <article className="do-panel do-admin-map-panel">
             <div className="do-section-head"><div><h2>מפת לקוחות ואתרים מורשים</h2><p>כתובות מאומתות ומטא-דאטה מיקומי בלבד; אין הצגת וידאו.</p></div><Link className="do-link" href="/digital-observer/admin/access">ניהול אתרים</Link></div>
             {locatedSites.length ? <>
@@ -105,9 +159,8 @@ export default async function DigitalObserverAdminPage() {
             </> : <div className="do-empty"><MapPinned /><strong>אין עדיין מיקומים מאומתים להצגה</strong><span>המערכת לא ממציאה נקודות מפה.</span></div>}
           </article>
 
-          <article className="do-panel do-admin-trend-panel">
+          <article className="do-panel do-admin-trend-panel do-admin-type-trends">
             <div className="do-section-head"><div><h2>אירועים ומגמה</h2><p>שבעת הימים האחרונים לפי זמן ישראל.</p></div><TrendingUp /></div>
-            <div className="do-admin-trend" aria-label="מגמת אירועים בשבעה ימים">{trends.map((item) => <div key={item.key}><span style={{ height: `${Math.max(5, (item.count / maxTrend) * 100)}%` }} /><strong>{item.count}</strong><small>{item.label}</small></div>)}</div>
             <div className="do-admin-type-list">{frequentTypes.length ? frequentTypes.map(([type, count]) => <div key={type}><span>{observerStatusLabel(type)}</span><i><b style={{ width: `${percentage(count, Math.max(1, runtime.signals.length))}%` }} /></i><strong>{count}</strong></div>) : <div className="do-empty compact"><Activity /><strong>אין אירועים מתועדים</strong></div>}</div>
           </article>
         </section>

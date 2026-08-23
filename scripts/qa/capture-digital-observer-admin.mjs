@@ -23,9 +23,9 @@ for (const candidate of playwrightCandidates) {
 }
 if (!playwright) throw new Error("Playwright runtime is unavailable.");
 
-const email = process.env.QA_DEMO_ADMIN_EMAIL;
-const password = process.env.QA_DEMO_ADMIN_PASSWORD;
-if (!email || !password) throw new Error("Local global-admin QA credentials are required for the legacy transition visual check.");
+const email = process.env.QA_DEMO_DIGITAL_OBSERVER_ADMIN_EMAIL;
+const password = process.env.QA_DEMO_DIGITAL_OBSERVER_ADMIN_PASSWORD;
+if (!email || !password) throw new Error("Local Digital Observer-only admin QA credentials are required.");
 if (String(process.env.QA_DEMO_ENVIRONMENT).toLowerCase() === "production") throw new Error("Refusing admin visual QA against production.");
 
 const baseUrl = process.env.VISUAL_BASE_URL || "http://127.0.0.1:3000";
@@ -36,6 +36,7 @@ const centerViewports = [
   ["mobile-390", { width: 390, height: 844 }],
   ["mobile-430", { width: 430, height: 932 }],
   ["tablet-768", { width: 768, height: 1024 }],
+  ["reference-1024", { width: 1024, height: 630 }],
   ["tablet-landscape", { width: 1024, height: 768 }],
   ["desktop-1366", { width: 1366, height: 768 }],
   ["desktop-1440", { width: 1440, height: 900 }]
@@ -98,11 +99,14 @@ const browser = await playwright.chromium.launch({
 try {
   const context = await browser.newContext({ locale: "he-IL", timezoneId: "Asia/Jerusalem" });
   const page = await context.newPage();
-  await page.goto(`${baseUrl}/login`, { waitUntil: "domcontentloaded", timeout: 90000 });
+  await page.goto(`${baseUrl}/digital-observer/login`, { waitUntil: "networkidle", timeout: 90000 });
+  await page.locator("form.do-auth-card[data-hydrated='true']").waitFor({ state: "visible", timeout: 30000 });
   await page.locator('input[name="email"]').fill(email);
   await page.locator('input[name="password"]').fill(password);
-  await page.getByRole("button", { name: /התחבר/ }).click();
-  await page.waitForURL((url) => !url.pathname.endsWith("/login"), { timeout: 25000 });
+  const accountTypeSelect = page.locator('select[name="observer_account_type"]');
+  if (await accountTypeSelect.count()) await accountTypeSelect.selectOption("business");
+  await page.getByRole("button", { name: "התחברות" }).click();
+  await page.locator(".do-mode-admin").waitFor({ state: "visible", timeout: 25000 });
 
   for (const [key, viewport] of centerViewports) {
     await page.setViewportSize(viewport);
@@ -131,7 +135,7 @@ const lines = [
   "# DIGITAL OBSERVER ADMIN CONTROL CENTER VISUAL QA",
   "",
   `Generated: ${new Date().toISOString()}`,
-  "Authentication: normal Supabase login with an existing legacy admin for transition-only visual verification",
+  "Authentication: normal Supabase login with the dedicated Digital Observer-only QA admin identity",
   "Credentials printed: no",
   "Live camera, AI, notification, emergency or billing service activated: no",
   "",

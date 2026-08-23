@@ -37,7 +37,7 @@ async function addressPost(path: string, body: unknown) {
   return payload.data;
 }
 
-export function ObserverAddressFields({ value, onChange }: { value: ObserverAddressFormValue; onChange: (next: ObserverAddressFormValue) => void }) {
+export function ObserverAddressFields({ value, onChange, collapsibleDetails = false }: { value: ObserverAddressFormValue; onChange: (next: ObserverAddressFormValue) => void; collapsibleDetails?: boolean }) {
   const [suggestions, setSuggestions] = useState<Suggestion[]>([]);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
@@ -100,6 +100,21 @@ export function ObserverAddressFields({ value, onChange }: { value: ObserverAddr
     }
   }
 
+  const manualFields = <>
+    <div className="do-form-grid">
+      <label className="do-field"><span>עיר</span><input required value={value.city} onChange={(event) => updateAddressPart({ city: event.target.value })} /></label>
+      <label className="do-field"><span>רחוב</span><input required value={value.street} onChange={(event) => updateAddressPart({ street: event.target.value })} /></label>
+      <label className="do-field"><span>מספר בניין</span><input required inputMode="numeric" value={value.building_number} onChange={(event) => updateAddressPart({ building_number: event.target.value })} /></label>
+      <label className="do-field"><span>מספר דירה</span><input inputMode="numeric" value={value.apartment_number} onChange={(event) => update({ apartment_number: event.target.value })} placeholder="אופציונלי" /></label>
+      <label className="do-field"><span>סוג קומה</span><select value={value.floor_kind} onChange={(event) => update({ floor_kind: event.target.value as "ground" | "floor", floor_number: event.target.value === "ground" ? "0" : value.floor_number })}><option value="ground">קומת קרקע</option><option value="floor">קומה</option></select></label>
+      <label className="do-field"><span>מספר קומה</span><input type="number" min={-5} max={120} disabled={value.floor_kind === "ground"} value={value.floor_kind === "ground" ? "0" : value.floor_number} onChange={(event) => update({ floor_number: event.target.value })} /></label>
+    </div>
+    <div className={value.address_place_id ? "do-notice good" : "do-notice warn"}>
+      <MapPin />
+      <span>{value.address_place_id ? "המיקום נקשר לכתובת אמיתית. הכתובת המדויקת לדיווח חירום דורשת אישור סופי לפני הפעלה." : "הכתובת עדיין לא אומתה מול ספק מפות. אפשר להקים את החשבון, אך דיווחי חירום ומפה יישארו חסומים עד אימות."}</span>
+    </div>
+  </>;
+
   return (
     <div className="do-address-block">
       <label className="do-field full">
@@ -117,18 +132,7 @@ export function ObserverAddressFields({ value, onChange }: { value: ObserverAddr
       </label>
       {suggestions.length ? <div className="do-address-suggestions" role="listbox" aria-label="כתובות מוצעות">{suggestions.map((suggestion) => <button type="button" role="option" key={suggestion.placeId} onClick={() => selectAddress(suggestion)}><MapPin /><span>{suggestion.label}</span></button>)}</div> : null}
       {message ? <p className={value.address_place_id ? "do-address-message verified" : "do-address-message"}>{value.address_place_id ? <CheckCircle2 /> : <MapPin />}{message}</p> : null}
-      <div className="do-form-grid">
-        <label className="do-field"><span>עיר</span><input required value={value.city} onChange={(event) => updateAddressPart({ city: event.target.value })} /></label>
-        <label className="do-field"><span>רחוב</span><input required value={value.street} onChange={(event) => updateAddressPart({ street: event.target.value })} /></label>
-        <label className="do-field"><span>מספר בניין</span><input required inputMode="numeric" value={value.building_number} onChange={(event) => updateAddressPart({ building_number: event.target.value })} /></label>
-        <label className="do-field"><span>מספר דירה</span><input inputMode="numeric" value={value.apartment_number} onChange={(event) => update({ apartment_number: event.target.value })} placeholder="אופציונלי" /></label>
-        <label className="do-field"><span>סוג קומה</span><select value={value.floor_kind} onChange={(event) => update({ floor_kind: event.target.value as "ground" | "floor", floor_number: event.target.value === "ground" ? "0" : value.floor_number })}><option value="ground">קומת קרקע</option><option value="floor">קומה</option></select></label>
-        <label className="do-field"><span>מספר קומה</span><input type="number" min={-5} max={120} disabled={value.floor_kind === "ground"} value={value.floor_kind === "ground" ? "0" : value.floor_number} onChange={(event) => update({ floor_number: event.target.value })} /></label>
-      </div>
-      <div className={value.address_place_id ? "do-notice good" : "do-notice warn"}>
-        <MapPin />
-        <span>{value.address_place_id ? "המיקום נקשר לכתובת אמיתית. הכתובת המדויקת לדיווח חירום דורשת אישור סופי לפני הפעלה." : "הכתובת עדיין לא אומתה מול ספק מפות. אפשר להקים את החשבון, אך דיווחי חירום ומפה יישארו חסומים עד אימות."}</span>
-      </div>
+      {collapsibleDetails ? <details className="do-address-details"><summary><MapPin /> השלמת עיר, רחוב, מספר, דירה וקומה</summary>{manualFields}</details> : manualFields}
     </div>
   );
 }

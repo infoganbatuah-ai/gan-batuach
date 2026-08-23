@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import {
+  ArrowRight,
   Bell,
   Building2,
   Camera,
@@ -11,6 +12,7 @@ import {
   Home,
   Menu,
   Radar,
+  Search,
   Settings,
   ShieldCheck,
   UsersRound,
@@ -74,7 +76,11 @@ export function ObserverAppShell({
   title,
   statusLabel,
   children,
-  actions
+  actions,
+  flowBackHref,
+  mobileBackHref,
+  desktopTitle,
+  desktopSearch
 }: {
   profile?: ObserverShellProfile | null;
   mode: ObserverMode | "admin";
@@ -83,6 +89,10 @@ export function ObserverAppShell({
   statusLabel?: string;
   children: ReactNode;
   actions?: ReactNode;
+  flowBackHref?: string;
+  mobileBackHref?: string;
+  desktopTitle?: string;
+  desktopSearch?: { action: string; placeholder: string; name?: string };
 }) {
   const baseNav = mode === "admin" ? adminNav : mode === "home" ? homeNav : businessNav;
   const nav = mode !== "admin" && profile?.role === "admin"
@@ -90,12 +100,22 @@ export function ObserverAppShell({
     : [...baseNav];
   const displayName = cleanSyntheticLabel(profile?.full_name, mode === "home" ? "הבית שלי" : mode === "admin" ? "מנהל התצפיתן" : "העסק שלי");
   const initial = displayName.trim().slice(0, 1) || "צ";
+  const darkDesktopTopbar = mode === "business"
+    || mode === "admin"
+    || activeHref === "/digital-observer/billing"
+    || activeHref === "/digital-observer/settings";
   const mobileNav = mode === "admin"
     ? adminNav
-    : [nav[0], nav.find((item) => item.href === "/digital-observer/cameras")!, nav.find((item) => item.href === "/digital-observer/rules")!, nav.find((item) => item.href === "/digital-observer/alerts")!, nav.find((item) => item.href === "/digital-observer/settings")!];
+    : [
+        nav[0],
+        nav.find((item) => item.href === "/digital-observer/cameras")!,
+        nav.find((item) => item.href === "/digital-observer/rules")!,
+        nav.find((item) => item.href === "/digital-observer/alerts")!,
+        { ...nav.find((item) => item.href === "/digital-observer/settings")!, label: "עוד" }
+      ];
 
   return (
-    <div className={`do-shell do-mode-${mode}`} data-observer-mode={mode} dir="rtl">
+    <div className={`do-shell do-mode-${mode}${darkDesktopTopbar ? " do-dark-desktop-topbar" : ""}${flowBackHref ? " do-flow-shell" : ""}`} data-observer-mode={mode} dir="rtl">
       <aside className="do-sidebar">
         <Link className="do-sidebar-brand" href={mode === "admin" ? "/digital-observer/admin" : "/digital-observer/dashboard"}>
           <ObserverMark />
@@ -114,7 +134,7 @@ export function ObserverAppShell({
       <div className="do-workspace">
         <header className="do-topbar">
           <div className="do-mobile-brand">
-            <details className="do-mobile-menu">
+            {flowBackHref || mobileBackHref ? <Link className="do-flow-back" href={flowBackHref || mobileBackHref || "/digital-observer/dashboard"} aria-label="חזרה"><ArrowRight /></Link> : <details className="do-mobile-menu">
               <summary aria-label="פתיחת תפריט"><Menu className="do-menu-open-icon" /><X className="do-menu-close-icon" /></summary>
               <div className="do-mobile-menu-sheet">
                 <header>
@@ -133,11 +153,16 @@ export function ObserverAppShell({
                   <LogoutButton className="do-mobile-logout" redirectTo="/digital-observer/login" />
                 </footer>
               </div>
-            </details>
+            </details>}
           </div>
-          <div className="do-page-title"><h1>{title}</h1>{statusLabel ? <span className="do-live-dot">{statusLabel}</span> : null}</div>
+          <div className={`do-page-title${desktopSearch ? " has-search" : ""}`}>
+            {desktopSearch ? <form className="do-top-search" action={desktopSearch.action} method="get"><Search /><input type="search" name={desktopSearch.name || "q"} placeholder={desktopSearch.placeholder} aria-label={desktopSearch.placeholder} /></form> : null}
+            <h1><span className={desktopSearch ? "do-title-search-desktop" : "do-title-desktop"}>{desktopSearch ? "" : desktopTitle || title}</span><span className="do-title-mobile">{title}</span></h1>
+            {!desktopSearch && statusLabel ? <span className="do-live-dot">{statusLabel}</span> : null}
+          </div>
           <div className="do-top-actions">
             {actions}
+            {mode !== "home" || flowBackHref ? <Link className="do-icon-button do-top-help" href="/digital-observer/trust" aria-label="עזרה"><CircleHelp /></Link> : null}
             <Link className="do-icon-button" href={mode === "admin" ? "/digital-observer/admin/operations#queues" : "/digital-observer/alerts"} aria-label="התראות"><Bell /></Link>
             <Link className="do-avatar" href={mode === "admin" ? "/digital-observer/admin/access" : "/digital-observer/settings"} aria-label="פרופיל והגדרות">
               {profile?.profile_image_url ? <img src={profile.profile_image_url} alt="" /> : <span>{initial}</span>}
