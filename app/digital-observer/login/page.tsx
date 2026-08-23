@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { ShieldCheck } from "lucide-react";
+import { LockKeyhole, MapPinned, ShieldCheck } from "lucide-react";
 import { ObserverMark } from "@/components/digital-observer/observer-app-shell";
+import { ObserverAuthDevicePreview } from "@/components/digital-observer/observer-auth-device-preview";
 import { ObserverLoginForm } from "@/components/digital-observer/observer-login-form";
 
 type PageProps = { searchParams?: Promise<{ error?: string; registered?: string; verified?: string; password_updated?: string; next?: string; type?: string }> };
@@ -19,9 +20,11 @@ export default async function DigitalObserverLoginPage({ searchParams }: PagePro
   return (
     <main className="do-auth-page" dir="rtl">
       <section className="do-auth-visual">
-        <Link className="do-auth-brand" href="/digital-observer"><ObserverMark /><span><b>תצפיתן דיגיטלי</b><small>שקט נפשי, ברגעים החשובים</small></span></Link>
-        <div><ShieldCheck /><h1>המצלמות שלך. התובנות שלך.</h1><p>חיבור מאובטח, התראות מדורגות וביקורת אנושית לפני קביעה.</p></div>
-        <ul><li>פרטי מצלמה נשארים בצד השרת</li><li>אין חיוב או שליחה חיצונית בסביבת הדמו</li><li>כל אתר מופרד בהרשאות</li></ul>
+        <header className="do-auth-site-head">
+          <Link className="do-auth-brand" href="/digital-observer"><ObserverMark /><span><b>תצפיתן דיגיטלי</b><small>שקט נפשי, ברגעים החשובים</small></span></Link>
+          <nav aria-label="ניווט כניסה"><Link href="/digital-observer/pricing">מחיר ודוגמה</Link><Link href="/digital-observer/trust">אודות</Link><Link href="/digital-observer/trust#support">מרכז עזרה</Link></nav>
+        </header>
+        <div className="do-auth-hero-copy"><ObserverMark /><h1>תצפיתן דיגיטלי</h1><h2>שקט נפשי, בכל רגע</h2><p><span className="do-auth-copy-desktop">פלטפורמת מצלמות חכמה עם בינה מלאכותית להגנה על הבית והעסק.</span><span className="do-auth-copy-mobile">הבית שלכם, בשליטה מלאה.</span></p></div>
       </section>
       <section className="do-auth-form-wrap">
         <ObserverLoginForm
@@ -30,9 +33,13 @@ export default async function DigitalObserverLoginPage({ searchParams }: PagePro
           registered={params?.registered === "check_email"}
           verified={params?.verified === "1"}
           passwordUpdated={params?.password_updated === "1"}
+          verificationRequired={params?.registered === "check_email" || params?.error === "email_not_confirmed" || params?.error === "confirmation_failed"}
           initialError={params?.error ? loginErrors[params.error] ?? "לא הצלחנו להתחבר. בדקו את הפרטים ונסו שוב." : undefined}
         />
       </section>
+      <section className="do-auth-benefits" aria-label="עקרונות המוצר"><span><MapPinned /><b>שליטה מכל מקום</b><small>גישה מאובטחת מכל מכשיר</small></span><span><LockKeyhole /><b>פרטיות מלאה</b><small>המידע נשאר בשליטתכם</small></span><span><ShieldCheck /><b>הגנה חכמה</b><small>ביקורת אנושית לפני החלטה</small></span></section>
+      <footer className="do-auth-security-footer"><ShieldCheck /><span><b>האבטחה והפרטיות שלכם בראש סדר העדיפויות שלנו</b><small>פרטי חיבור רגישים אינם נשמרים בדפדפן, ושירותים חיים מופעלים רק לאחר חיבור מאושר.</small></span></footer>
+      <ObserverAuthDevicePreview screen="login" />
     </main>
   );
 }

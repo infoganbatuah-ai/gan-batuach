@@ -7,6 +7,7 @@ import { getObserverSiteTemplate, observerSiteTemplateKeys } from "@/lib/domain/
 
 const siteTypes = ["home", "office", "business", "warehouse", "store", "parking_lot", "custom"] as const;
 const scheduleModes = ["24_7", "night_only", "business_hours", "custom_schedule", "event_only"] as const;
+const weekdayKeys = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"] as const;
 
 const schema = z.object({
   observer_site_id: z.string().uuid().optional(),
@@ -27,6 +28,10 @@ const schema = z.object({
   business_handles_children: z.boolean().default(false),
   vision_privacy_mode: z.enum(["standard_consent", "skeleton_only"]).default("standard_consent"),
   camera_count: z.coerce.number().int().min(1).max(500).default(1),
+  branch_count: z.coerce.number().int().min(1).max(100).default(1),
+  active_days: z.array(z.enum(weekdayKeys)).min(1).max(7).default(["sun", "mon", "tue", "wed", "thu"]),
+  opening_time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).default("08:00"),
+  closing_time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).default("18:00"),
   schedule_mode: z.enum(scheduleModes).default("event_only"),
   package_id: z.string().uuid().optional().nullable(),
   monitoring_targets: z.array(z.string().trim().min(2).max(80)).max(20).default([])
@@ -69,6 +74,10 @@ export async function POST(request: Request) {
         business_handles_children: formData.get("business_handles_children") === "true",
         vision_privacy_mode: String(formData.get("vision_privacy_mode") ?? "standard_consent"),
         camera_count: formData.get("camera_count") ?? 1,
+        branch_count: formData.get("branch_count") ?? 1,
+        active_days: formData.getAll("active_days").map(String),
+        opening_time: String(formData.get("opening_time") ?? "08:00"),
+        closing_time: String(formData.get("closing_time") ?? "18:00"),
         schedule_mode: String(formData.get("schedule_mode") ?? "event_only"),
         package_id: String(formData.get("package_id") ?? "") || null,
         monitoring_targets: formData.getAll("monitoring_targets").map(String)
@@ -115,13 +124,14 @@ export async function POST(request: Request) {
       active: true,
       monitoring_enabled: false,
       camera_limit: payload.camera_count,
-      monitoring_hours: { mode: payload.schedule_mode },
+      monitoring_hours: { mode: payload.schedule_mode, active_days: payload.active_days, opening_time: payload.opening_time, closing_time: payload.closing_time },
       event_retention_days: 2,
       ai_features: { mode: "readiness", targets: payload.monitoring_targets, site_template: siteTemplate.key, human_review_required: true, high_risk_events_are_suspicions: true, automatic_emergency_action: false, vision_privacy_mode: privacyMode, face_recognition_enabled: false },
       metadata: {
         product: "digital_observer",
         site_template: siteTemplate.key,
         site_template_label: siteTemplate.label,
+        branch_count: payload.site_type === "home" ? 1 : payload.branch_count,
         policy_template: siteTemplate.policy,
         environment_mode: "demo_readiness",
         live_camera_disabled: true,
@@ -181,12 +191,12 @@ export async function POST(request: Request) {
       owner_type: ownerType,
       address: fullAddress,
       timezone: "Asia/Jerusalem",
-      monitoring_schedule: { mode: payload.schedule_mode },
+      monitoring_schedule: { mode: payload.schedule_mode, active_days: payload.active_days, opening_time: payload.opening_time, closing_time: payload.closing_time },
       camera_count_estimate: payload.camera_count,
       desired_package_id: payload.package_id ?? null,
       activated_observer_site_id: site.id,
       submitted_at: new Date().toISOString(),
-      metadata: { monitoring_targets: payload.monitoring_targets, site_template: siteTemplate.key, high_risk_events_are_suspicions: true, automatic_emergency_action: false, safe_readiness_only: true, address_verified: Boolean(resolvedAddress), vision_privacy_mode: privacyMode },
+      metadata: { monitoring_targets: payload.monitoring_targets, site_template: siteTemplate.key, branch_count: payload.site_type === "home" ? 1 : payload.branch_count, high_risk_events_are_suspicions: true, automatic_emergency_action: false, safe_readiness_only: true, address_verified: Boolean(resolvedAddress), vision_privacy_mode: privacyMode },
       updated_at: new Date().toISOString()
     };
     if (existingDraft?.id) {
@@ -200,7 +210,7 @@ export async function POST(request: Request) {
       schedule_mode: payload.schedule_mode,
       timezone: "Asia/Jerusalem",
       status: "draft",
-      schedule: { mode: payload.schedule_mode, readiness_only: true },
+      schedule: { mode: payload.schedule_mode, active_days: payload.active_days, opening_time: payload.opening_time, closing_time: payload.closing_time, readiness_only: true },
       updated_at: new Date().toISOString()
     }, { onConflict: "observer_site_id" });
 

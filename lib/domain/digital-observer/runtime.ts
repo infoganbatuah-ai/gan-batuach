@@ -34,6 +34,16 @@ export function observerModeForSite(site?: ObserverRow | null): ObserverMode {
   return site?.site_type === "home" ? "home" : "business";
 }
 
+export function observerCameraForSignal(signal: ObserverRow | null | undefined, cameras: ObserverRow[]) {
+  const cameraReference = signal?.camera_id ?? signal?.metadata?.camera_source_id;
+  if (!cameraReference) return null;
+  return cameras.find((camera) => camera.id === cameraReference || camera.camera_stream_id === cameraReference) ?? null;
+}
+
+export function observerSignalMatchesCamera(signal: ObserverRow, cameraReference: string) {
+  return signal.camera_id === cameraReference || signal.metadata?.camera_source_id === cameraReference;
+}
+
 export function observerStatusLabel(value?: unknown) {
   const labels: Record<string, string> = {
     active: "פעיל",
