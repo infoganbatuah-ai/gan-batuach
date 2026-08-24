@@ -106,7 +106,8 @@ export default async function InspectionWorkforcePage() {
   const openRisks = data.risks.filter((risk) => !["mitigated", "accepted_risk", "closed"].includes(String(risk.status)));
   const highAlerts = data.alerts.filter((alert) => ["high", "critical"].includes(String(alert.severity)) && !["resolved", "skipped"].includes(String(alert.status)));
   const forecast100 = data.forecasts.find((item) => Number(item.scenario_kindergartens) === 100) ?? data.forecasts[0] ?? {};
-  const capacity100 = data.capacity.find((item) => item.model_key === ["capacity", "100", "kindergartens"].join("-")) ?? data.capacity[0] ?? {};
+  const capacity100ModelKey = ["capacity", "100", "kindergartens"].join("-");
+  const capacity100 = data.capacity.find((item) => item.model_key === capacity100ModelKey) ?? data.capacity[0] ?? {};
 
   return (
     <DashboardShell role="admin" title="Inspection Workforce">
