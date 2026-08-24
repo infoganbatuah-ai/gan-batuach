@@ -200,7 +200,7 @@ export async function loadObserverRuntime(profileId: string) {
   const [cameraSources, legacyCameras, signals, subscriptions, schedules, watchRequests, knownPeople, identityCandidates, clips, deliveries, alertSettings, invoices, learningProfiles, baselines, feedback, recipients, deviceSlots] = siteIds.length
     ? await Promise.all([
         safeList<ObserverRow>("camera sources", () => supabase.from("digital_observer_camera_sources" as any).select("id,observer_site_id,camera_stream_id,display_name,location_label,connector_type,connector_provider,source_mode,status,health_status,stream_protocol,gateway_provider,preview_scene,capabilities,monitoring_targets,last_health_check_at,last_seen_at,last_error_code,last_error_message,metadata,created_at").in("observer_site_id", siteIds).order("created_at")),
-        safeList<ObserverRow>("legacy camera readiness", () => supabase.from("camera_streams" as any).select("id,observer_site_id,name,area,status,health_status,stream_status,gateway_registration_status,digital_observer_pilot_mode,ai_enabled,last_health_check_at,last_seen").in("observer_site_id", siteIds).order("created_at")),
+        safeList<ObserverRow>("legacy camera readiness", () => supabase.from("camera_streams" as any).select("id,observer_site_id,name,area,camera_type,source_type,status,health_status,stream_status,gateway_registration_status,digital_observer_pilot_mode,ai_enabled,last_health_check_at,last_seen").in("observer_site_id", siteIds).order("created_at")),
         safeList<ObserverRow>("signals", () => supabase.from("observer_intelligence_signals" as any).select("id,observer_site_id,camera_id,signal_type,source_type,severity,confidence,review_status,recommended_action,risk_score,human_review_required,parent_visible,metadata,created_at,reviewed_at,resolved_at").in("observer_site_id", siteIds).order("created_at", { ascending: false }).limit(200)),
         safeList<ObserverRow>("subscriptions", () => supabase.from("observer_site_subscriptions" as any).select("id,observer_site_id,package_id,status,subscription_status,entitlement_status,trial_start,trial_end,renewal_date,billing_cycle,monthly_price,annual_price,payment_provider,purchase_channel,billing_separation_key,grace_period_ends_at,pending_package_id,pending_change_effective_at").in("observer_site_id", siteIds)),
         safeList<ObserverRow>("monitoring schedules", () => supabase.from("observer_monitoring_schedules" as any).select("id,observer_site_id,schedule_mode,timezone,active_days,active_hours,status").in("observer_site_id", siteIds)),
@@ -219,16 +219,19 @@ export async function loadObserverRuntime(profileId: string) {
       ])
     : [empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty];
 
-  const normalizedCameras: ObserverRow[] = cameraSources.data.length
-    ? cameraSources.data
-    : legacyCameras.data.map((camera) => ({
-        ...camera,
-        display_name: camera.name,
-        location_label: camera.area,
-        source_mode: camera.digital_observer_pilot_mode ? "demo" : "readiness",
-        connector_type: "gateway",
-        last_seen_at: camera.last_seen
-      }));
+  const cameraSourceStreamIds = new Set(cameraSources.data.map((camera) => camera.camera_stream_id).filter(Boolean));
+  const legacyObserverCameras = legacyCameras.data
+    .filter((camera) => !cameraSourceStreamIds.has(camera.id))
+    .map((camera) => ({
+      ...camera,
+      camera_stream_id: camera.id,
+      display_name: camera.name,
+      location_label: camera.area,
+      source_mode: camera.digital_observer_pilot_mode ? "demo" : ["connected", "healthy", "online", "registered"].includes(String(camera.status ?? camera.stream_status ?? camera.health_status ?? camera.gateway_registration_status)) ? "gateway_test" : "readiness",
+      connector_type: String(camera.source_type ?? camera.camera_type ?? "gateway").toLowerCase().includes("dvr") ? "dvr" : String(camera.source_type ?? camera.camera_type ?? "gateway").toLowerCase().includes("nvr") ? "nvr" : "edge_gateway",
+      last_seen_at: camera.last_seen
+    }));
+  const normalizedCameras: ObserverRow[] = [...cameraSources.data, ...legacyObserverCameras];
 
   return {
     sites,

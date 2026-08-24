@@ -1,6 +1,28 @@
 name: gan-batuach
 
 services:
+  video-gateway:
+    build:
+      context: ./services/video-gateway
+      dockerfile: Dockerfile
+    image: gan-batuach-video-gateway:local
+    profiles: ["gateway"]
+    ports:
+      - "127.0.0.1:8080:8080"
+    env_file:
+      - .env.production.local
+    environment:
+      NODE_ENV: production
+      PORT: "8080"
+      DVR_EXPECTED_CHANNEL_COUNT: "16"
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/health"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+
   web:
     build:
       context: .

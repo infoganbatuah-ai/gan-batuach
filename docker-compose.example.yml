@@ -23,11 +23,16 @@ services:
       - pdf-service
 
   video-gateway:
-    image: gan-batuach/video-gateway:future-placeholder
+    build:
+      context: ./services/video-gateway
+      dockerfile: Dockerfile
+    image: gan-batuach-video-gateway:local
     profiles: ["future"]
     ports:
       - "8080:8080"
-    command: ["sh", "-c", "echo 'Future RTSP/ONVIF to HLS/WebRTC service placeholder' && sleep infinity"]
+    environment:
+      PORT: "8080"
+      DVR_EXPECTED_CHANNEL_COUNT: "16"
 
   ai-gateway:
     image: gan-batuach/ai-gateway:future-placeholder
