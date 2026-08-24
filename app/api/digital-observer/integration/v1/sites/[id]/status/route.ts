@@ -69,9 +69,13 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
     return noStore({ error: "site_not_available", request_id: requestId }, 404);
   }
 
-  const [cameraResult, eventResult] = await Promise.all([
+  const [cameraResult, cameraSourceResult, eventResult] = await Promise.all([
     supabase.from("camera_streams" as any)
       .select("id,name,area,status,health_status,stream_status,gateway_registration_status,last_health_check_at,last_seen")
+      .eq("observer_site_id", site.id)
+      .limit(200),
+    supabase.from("digital_observer_camera_sources" as any)
+      .select("id,camera_stream_id,display_name,location_label,status,health_status,source_mode,last_health_check_at,last_seen_at")
       .eq("observer_site_id", site.id)
       .limit(200),
     supabase.from("observer_intelligence_signals" as any)
@@ -81,16 +85,32 @@ export async function GET(request: NextRequest, context: { params: Promise<{ id:
       .order("created_at", { ascending: false })
       .limit(50)
   ]);
-  if (cameraResult.error || eventResult.error) {
+  if (cameraResult.error || cameraSourceResult.error || eventResult.error) {
     await writeAudit(supabase, { integration_client_id: client.id, observer_site_id: site.id, request_id: requestId, requested_scope: requiredScopes.join(" "), action: "site_status", result_status: "failed", metadata: { reason: "data_unavailable" } });
     return noStore({ error: "integration_data_unavailable", request_id: requestId }, 503);
   }
+  const sourceCameraStreamIds = new Set((cameraSourceResult.data ?? []).map((camera: any) => camera.camera_stream_id).filter(Boolean));
+  const cameras = [
+    ...(cameraSourceResult.data ?? []).map((camera: any) => ({
+      id: camera.id,
+      camera_stream_id: camera.camera_stream_id,
+      name: camera.display_name,
+      area: camera.location_label,
+      status: camera.status,
+      health_status: camera.health_status,
+      stream_status: camera.source_mode,
+      gateway_registration_status: camera.source_mode === "gateway_test" ? "registered" : "pending_gateway",
+      last_health_check_at: camera.last_health_check_at,
+      last_seen: camera.last_seen_at
+    })),
+    ...(cameraResult.data ?? []).filter((camera: any) => !sourceCameraStreamIds.has(camera.id))
+  ];
 
-  await writeAudit(supabase, { integration_client_id: client.id, observer_site_id: site.id, request_id: requestId, requested_scope: requiredScopes.join(" "), action: "site_status", result_status: "allowed", metadata: { camera_count: cameraResult.data?.length ?? 0, reviewed_event_count: eventResult.data?.length ?? 0 } });
+  await writeAudit(supabase, { integration_client_id: client.id, observer_site_id: site.id, request_id: requestId, requested_scope: requiredScopes.join(" "), action: "site_status", result_status: "allowed", metadata: { camera_count: cameras.length, reviewed_event_count: eventResult.data?.length ?? 0 } });
   return noStore({
     request_id: requestId,
     site: { id: site.id, garden_id: site.garden_id, name: site.name, active: site.active, monitoring_enabled: site.monitoring_enabled },
-    cameras: cameraResult.data ?? [],
+    cameras,
     reviewed_events: eventResult.data ?? [],
     media: { snapshots: "signed_endpoint_required", clips: "signed_endpoint_required" },
     parent_camera_access_implied: false
