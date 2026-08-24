@@ -63,7 +63,7 @@ function page() {
     <form id="dvr-form" autocomplete="off">
       <div class="grid">
         <label class="full">כתובת DVR
-          <input name="endpoint" required autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="לדוגמה: כתובת מקומית או שם מארח" />
+          <input id="endpoint" name="endpoint" required autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="לדוגמה: 192.168.1.10 או שם מארח" />
         </label>
         <label>פורט RTSP
           <input name="port" inputmode="numeric" value="554" />
@@ -95,11 +95,36 @@ function page() {
     const form = document.getElementById("dvr-form");
     const button = document.getElementById("connect");
     const status = document.getElementById("status");
+    const endpoint = document.getElementById("endpoint");
+    const formState = { endpoint: "" };
+
+    const rememberEndpoint = () => {
+      formState.endpoint = endpoint.value;
+    };
+
+    const keepEndpointVisible = () => {
+      if (endpoint.value === "" && formState.endpoint !== "") {
+        endpoint.value = formState.endpoint;
+      }
+    };
+
+    endpoint.addEventListener("input", rememberEndpoint);
+    endpoint.addEventListener("change", rememberEndpoint);
+    endpoint.addEventListener("keyup", rememberEndpoint);
+    endpoint.addEventListener("paste", () => setTimeout(rememberEndpoint, 0));
+    endpoint.addEventListener("blur", () => {
+      rememberEndpoint();
+      setTimeout(keepEndpointVisible, 0);
+    });
+
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
+      rememberEndpoint();
+      keepEndpointVisible();
       button.disabled = true;
       status.textContent = "מתחיל בדיקה מקומית לקריאה בלבד...";
       const body = Object.fromEntries(new FormData(form).entries());
+      body.endpoint = formState.endpoint;
       try {
         const response = await fetch("/connect", {
           method: "POST",
