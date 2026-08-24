@@ -78,17 +78,23 @@ function candidateUrls(input, channel) {
   const quality = input.stream_quality === "main" ? "main" : "sub";
   const subtype = quality === "main" ? 0 : 1;
   const auth = rtspAuth(input.username, input.password);
+  const privateNvrAuth = `user=${encodeCredential(input.username)}&password=${encodeCredential(input.password)}&channel=${channel}&stream=${subtype}.sdp?`;
   const vendor = String(input.metadata?.vendor || input.metadata?.provider || input.connection_type || "").toLowerCase();
   const all = [
     { vendor: "hikvision", template: "hikvision_streaming_channels", url: `rtsp://${auth}${host}:${port}/Streaming/Channels/${channelSuffix(channel, quality)}` },
     { vendor: "dahua", template: "dahua_realmonitor", url: `rtsp://${auth}${host}:${port}/cam/realmonitor?channel=${channel}&subtype=${subtype}` },
     { vendor: "uniview", template: "uniview_unicast", url: `rtsp://${auth}${host}:${port}/unicast/c${channel}/s${quality === "main" ? 0 : 1}` },
+    // Private-protocol recorders frequently expose their RTSP relay through
+    // this XMEye-compatible path even when their cameras themselves are not
+    // ONVIF/RTSP devices. Credentials stay in this local process only.
+    { vendor: "private_nvr", template: "private_nvr_rtsp_relay", url: `rtsp://${host}:${port}/${privateNvrAuth}` },
     { vendor: "generic", template: "generic_channel_quality", url: `rtsp://${auth}${host}:${port}/ch${channel}/${quality}` },
     { vendor: "generic", template: "generic_stream", url: `rtsp://${auth}${host}:${port}/stream${channel}` }
   ];
   if (vendor.includes("hikvision")) return all.filter((item) => item.vendor === "hikvision");
   if (vendor.includes("dahua")) return all.filter((item) => item.vendor === "dahua");
   if (vendor.includes("uniview")) return all.filter((item) => item.vendor === "uniview");
+  if (vendor.includes("private") || vendor.includes("xm")) return all.filter((item) => item.vendor === "private_nvr");
   return all;
 }
 

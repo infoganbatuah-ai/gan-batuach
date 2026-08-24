@@ -74,6 +74,7 @@ function page() {
             <option value="hikvision">Hikvision</option>
             <option value="dahua">Dahua</option>
             <option value="uniview">Uniview</option>
+            <option value="private_nvr">Private NVR (ER)</option>
           </select>
         </label>
         <label>שם משתמש
