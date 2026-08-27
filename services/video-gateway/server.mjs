@@ -196,8 +196,9 @@ async function privateNvrLogin(input) {
   }
   if (!response?.ok) return null;
   const token = String(response.headers.get("x-csrftoken") || "").split(",")[0].trim();
+  const cookie = String(response.headers.get("set-cookie") || "").split(";")[0].trim();
   if (!token) return null;
-  return { baseUrl, token };
+  return { baseUrl, token, cookie };
 }
 
 function privateNvrLiveUrl(session, channel, quality = "sub") {
@@ -205,9 +206,13 @@ function privateNvrLiveUrl(session, channel, quality = "sub") {
   return `${session.baseUrl}/live.mp4?channel=${Math.max(0, channel - 1)}&type=${streamType}&chrome=1`;
 }
 
-async function privateNvrStreamResponse(url, token, signal) {
+async function privateNvrStreamResponse(url, token, cookie, signal) {
   const response = await fetch(url, {
-    headers: { "X-csrftoken": token, "cache-control": "no-cache" },
+    headers: {
+      "X-csrftoken": token,
+      "cache-control": "no-cache",
+      ...(cookie ? { cookie } : {})
+    },
     signal
   }).catch(() => null);
   if (!response || (response.status !== 200 && response.status !== 400) || !response.body) return null;
@@ -228,9 +233,9 @@ async function pipeWebStreamToWritable(stream, writable) {
   }
 }
 
-async function probePrivateNvrStream(url, token) {
+async function probePrivateNvrStream(url, token, cookie) {
   const controller = new AbortController();
-  const response = await privateNvrStreamResponse(url, token, controller.signal);
+  const response = await privateNvrStreamResponse(url, token, cookie, controller.signal);
   if (!response) return { ok: false };
   return new Promise((resolve) => {
     const args = [
@@ -275,13 +280,14 @@ async function discoverPrivateNvr(payload, channelCount) {
   const channels = [];
   for (let channel = 1; channel <= channelCount; channel += 1) {
     const url = privateNvrLiveUrl(session, channel, payload.stream_quality);
-    const result = await probePrivateNvrStream(url, session.token);
+    const result = await probePrivateNvrStream(url, session.token, session.cookie);
     const streamId = streamIdFor(payload, channel);
     if (result.ok) {
       streamSources.set(streamId, {
         kind: "private_nvr_http_mp4",
         url,
         token: session.token,
+        cookie: session.cookie,
         input: { ...payload, password: String(payload.password || "") },
         channel
       });
@@ -418,6 +424,7 @@ async function refreshPrivateNvrSource(source) {
   const session = await privateNvrLogin(source.input);
   if (!session) return source;
   source.token = session.token;
+  source.cookie = session.cookie;
   source.url = privateNvrLiveUrl(session, source.channel, source.input.stream_quality);
   return source;
 }
@@ -450,7 +457,7 @@ async function ensureRelay(streamId) {
     playlist
   ];
   const controller = new AbortController();
-  const response = await privateNvrStreamResponse(source.url, source.token, controller.signal);
+  const response = await privateNvrStreamResponse(source.url, source.token, source.cookie, controller.signal);
   if (!response) return null;
   const child = spawn("ffmpeg", args, { stdio: ["pipe", "ignore", "ignore"] });
   const relay = { process: child, playlist, startedAt: Date.now(), controller };
