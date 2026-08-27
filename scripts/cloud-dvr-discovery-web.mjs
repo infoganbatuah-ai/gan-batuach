@@ -134,7 +134,10 @@ function page() {
         });
         const data = await response.json().catch(() => ({}));
         if (!response.ok) throw new Error(data.error || "החיבור נכשל");
-        status.textContent = "החיבור הושלם. ערוצים שמופו: " + data.channel_count + ", ערוצים מחוברים: " + data.connected_channel_count + ".";
+        const detail = data.connected_channel_count > 0 || !data.diagnostic
+          ? ""
+          : " סיבת הבדיקה: " + data.diagnostic + ".";
+        status.textContent = "החיבור הושלם. ערוצים שמופו: " + data.channel_count + ", ערוצים מחוברים: " + data.connected_channel_count + "." + detail;
         form.reset();
       } catch (error) {
         status.textContent = error instanceof Error ? error.message : "החיבור נכשל";
@@ -268,6 +271,8 @@ async function connect(input) {
   });
   const discovery = await discoveryResponse.json();
   if (!discoveryResponse.ok) throw new Error("בדיקת ה-DVR המקומית נכשלה.");
+  const failureReasons = [...new Set((Array.isArray(discovery.channels) ? discovery.channels : [])
+    .flatMap((channel) => Array.isArray(channel.failure_reasons) ? channel.failure_reasons : []))];
 
   const payload = sanitizeDiscovery(discovery, { gatewayId, gardenId, observerSiteId, vendor, channelCount });
   const body = JSON.stringify(payload);
@@ -288,7 +293,8 @@ async function connect(input) {
   if (!cloudResponse.ok) throw new Error(cloudResult.error || "מיפוי הערוצים לענן נכשל.");
   return {
     channel_count: cloudResult.data?.channel_count ?? payload.channels.length,
-    connected_channel_count: cloudResult.data?.connected_channel_count ?? payload.connected_channel_count
+    connected_channel_count: cloudResult.data?.connected_channel_count ?? payload.connected_channel_count,
+    diagnostic: failureReasons.length === 1 ? failureReasons[0] : failureReasons.length ? "multiple_probe_failures" : null
   };
 }
 

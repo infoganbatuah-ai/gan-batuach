@@ -88,6 +88,10 @@ function candidateUrls(input, channel) {
     // this XMEye-compatible path even when their cameras themselves are not
     // ONVIF/RTSP devices. Credentials stay in this local process only.
     { vendor: "private_nvr", template: "private_nvr_rtsp_relay", url: `rtsp://${host}:${port}/${privateNvrAuth}` },
+    { vendor: "private_nvr", template: "private_nvr_rtsp_streaming", url: `rtsp://${auth}${host}:${port}/rtsp/streaming?channel=${String(channel).padStart(2, "0")}&subtype=${subtype}` },
+    { vendor: "private_nvr", template: "private_nvr_streaming_channels", url: `rtsp://${auth}${host}:${port}/Streaming/Channels/${channelSuffix(channel, quality)}` },
+    { vendor: "private_nvr", template: "private_nvr_realmonitor", url: `rtsp://${auth}${host}:${port}/cam/realmonitor?channel=${channel}&subtype=${subtype}` },
+    { vendor: "private_nvr", template: "private_nvr_channel_stream_type", url: `rtsp://${auth}${host}:${port}/chID=${channel}&streamType=${quality === "main" ? "main" : "sub"}` },
     { vendor: "generic", template: "generic_channel_quality", url: `rtsp://${auth}${host}:${port}/ch${channel}/${quality}` },
     { vendor: "generic", template: "generic_stream", url: `rtsp://${auth}${host}:${port}/stream${channel}` }
   ];
@@ -117,32 +121,50 @@ function probeRtsp(url) {
       "-of", "json",
       url
     ];
-    const child = spawn("ffprobe", args, { stdio: ["ignore", "pipe", "ignore"] });
+    const child = spawn("ffprobe", args, { stdio: ["ignore", "pipe", "pipe"] });
     let output = "";
+    let diagnostic = "";
+    let settled = false;
+    const finish = (result) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeout);
+      resolve(result);
+    };
+    const safeFailureReason = (message) => {
+      const value = String(message || "").toLowerCase();
+      if (/401|unauthorized|authentication failed|invalid username|invalid password/.test(value)) return "authentication_rejected";
+      if (/404|not found|no such file/.test(value)) return "stream_path_not_found";
+      if (/connection refused|timed out|timeout|network is unreachable|no route to host/.test(value)) return "connection_failed";
+      if (/invalid data|protocol not found|method not allowed|server returned 4\d\d/.test(value)) return "not_rtsp_service";
+      return "probe_failed";
+    };
     const timeout = setTimeout(() => {
       child.kill("SIGKILL");
-      resolve({ ok: false, reason: "timeout" });
+      finish({ ok: false, reason: "timeout" });
     }, PROBE_TIMEOUT_MS + 500);
     child.stdout.on("data", (chunk) => {
       output += chunk.toString("utf8");
       if (output.length > 20000) output = output.slice(-20000);
     });
+    child.stderr.on("data", (chunk) => {
+      diagnostic += chunk.toString("utf8");
+      if (diagnostic.length > 20000) diagnostic = diagnostic.slice(-20000);
+    });
     child.on("error", () => {
-      clearTimeout(timeout);
-      resolve({ ok: false, reason: "probe_unavailable" });
+      finish({ ok: false, reason: "probe_unavailable" });
     });
     child.on("close", (code) => {
-      clearTimeout(timeout);
       if (code !== 0) {
-        resolve({ ok: false, reason: "unreachable" });
+        finish({ ok: false, reason: safeFailureReason(diagnostic) });
         return;
       }
       try {
         const parsed = JSON.parse(output || "{}");
         const stream = Array.isArray(parsed.streams) ? parsed.streams.find((item) => item.codec_type === "video") : null;
-        resolve({ ok: Boolean(stream), reason: stream ? "video_stream_found" : "no_video_stream", width: stream?.width ?? null, height: stream?.height ?? null });
+        finish({ ok: Boolean(stream), reason: stream ? "video_stream_found" : "no_video_stream", width: stream?.width ?? null, height: stream?.height ?? null });
       } catch {
-        resolve({ ok: true, reason: "probe_completed" });
+        finish({ ok: true, reason: "probe_completed" });
       }
     });
   });
@@ -153,6 +175,7 @@ async function probeChannel(input, channel) {
   if (!candidates.length) {
     return { channel, status: "pending", reason: "missing_endpoint", candidates_tried: 0 };
   }
+  const failureReasons = new Set();
   for (const candidate of candidates) {
     const result = await probeRtsp(candidate.url);
     if (result.ok) {
@@ -169,6 +192,7 @@ async function probeChannel(input, channel) {
         height: result.height
       };
     }
+    failureReasons.add(result.reason);
   }
   return {
     channel,
@@ -178,7 +202,8 @@ async function probeChannel(input, channel) {
     status: "offline",
     health_status: "failed",
     reason: "no_candidate_connected",
-    candidates_tried: candidates.length
+    candidates_tried: candidates.length,
+    failure_reasons: [...failureReasons].sort()
   };
 }
 
