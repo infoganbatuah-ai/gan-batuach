@@ -1,6 +1,7 @@
 import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
+import { observerEventNarrative } from "@/lib/domain/digital-observer/event-narrative";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
@@ -30,6 +31,8 @@ const metadataSchema = z.object({
   controls_supported: z.literal(false),
   no_dvr_credentials_returned: z.literal(true),
   no_rtsp_returned: z.literal(true),
+  event_summary: z.string().trim().min(2).max(500).optional(),
+  event_context: z.enum(["entry", "exit", "presence", "safety", "device_health", "routine", "other"]).optional(),
   metadata: z.record(z.string(), z.unknown()).optional().default({})
 }).strict();
 
@@ -73,6 +76,21 @@ function safeMetadata(value: Record<string, unknown>) {
     throw new Error("unsafe_media_metadata");
   }
   return value;
+}
+
+function safeNarrative(value: string | undefined) {
+  if (!value) return null;
+  const normalized = value.replace(/\s+/g, " ").trim();
+  if (/(password|credential|secret|rtsp:\/\/|rtsps:\/\/|private_endpoint|stream_url|cookie|authorization)/i.test(normalized)) {
+    throw new Error("unsafe_event_summary");
+  }
+  return normalized;
+}
+
+function retentionHoursForSite(eventRetentionDays: unknown) {
+  const requested = Number(eventRetentionDays);
+  if (!Number.isFinite(requested)) return 48;
+  return requested <= 1 ? 24 : 48;
 }
 
 async function readPart(formData: FormData, name: string, maxBytes: number, allowedTypes: string[]) {
@@ -132,6 +150,17 @@ export async function POST(request: Request) {
     if (!camera) return fail("Camera source is not linked to this site.", 403);
     const cameraMetadata = camera.metadata && typeof camera.metadata === "object" ? camera.metadata : {};
     if (String(cameraMetadata.gateway_stream_id ?? "") !== metadata.stream_id) return fail("Camera source does not match gateway stream.", 403);
+    const { data: observerSite } = await supabase
+      .from("observer_sites")
+      .select("event_retention_days")
+      .eq("id", metadata.observer_site_id)
+      .maybeSingle();
+    const retentionHours = retentionHoursForSite(observerSite?.event_retention_days);
+    const eventSummary = safeNarrative(metadata.event_summary);
+    const narrative = observerEventNarrative({
+      signal_type: metadata.event_type,
+      metadata: { event_type: metadata.event_type, event_summary: eventSummary }
+    });
 
     const event = await supabase.from("provider_webhook_events").insert({
       webhook_key: "video_gateway_cloud_event_media",
@@ -169,11 +198,14 @@ export async function POST(request: Request) {
       severity: metadata.severity,
       confidence: metadata.confidence,
       review_status: "needs_review",
-      recommended_action: "נוצר תיעוד מדיה מאומת מה-Gateway. יש לבדוק את הראיה לפני כל פעולה.",
+      recommended_action: metadata.severity === "info"
+        ? "נוצר תיעוד מדיה מאומת מה-Gateway. יש לבדוק את הראיה לפני כל פעולה."
+        : narrative.action,
       risk_score: metadata.severity === "critical" ? 90 : metadata.severity === "urgent" ? 78 : metadata.severity === "high" ? 62 : metadata.severity === "medium" ? 35 : 8,
       human_review_required: true,
       parent_visible: false,
       metadata: {
+        ...safeMetadata(metadata.metadata),
         event_type: metadata.event_type,
         camera_source_id: metadata.camera_source_id,
         gateway_stream_id_present: true,
@@ -181,7 +213,8 @@ export async function POST(request: Request) {
         no_dvr_credentials_received: true,
         no_rtsp_received: true,
         media_evidence_required: true,
-        ...safeMetadata(metadata.metadata)
+        event_summary: narrative.summary,
+        event_context: metadata.event_context ?? "other"
       }
     };
     const existingSignal = await supabase
@@ -195,21 +228,27 @@ export async function POST(request: Request) {
       : await supabase.from("observer_intelligence_signals").insert(signalPayload).select("id").single();
     if (signalResult.error) throw new Error(signalResult.error.message);
 
-    const deleteAfter = new Date(Date.parse(metadata.captured_at) + 24 * 60 * 60 * 1000).toISOString();
+    const deleteAfter = new Date(Date.parse(metadata.captured_at) + retentionHours * 60 * 60 * 1000).toISOString();
     const clipPayload = {
       observer_site_id: metadata.observer_site_id,
       camera_source_id: metadata.camera_source_id,
       signal_id: signalResult.data.id,
-      title: "תיעוד אירוע מהמצלמה",
+      title: narrative.label,
       clip_status: "available",
       storage_bucket: MEDIA_BUCKET,
       storage_path: clipPath,
       snapshot_storage_path: thumbnailPath,
       captured_at: metadata.captured_at,
       duration_seconds: metadata.duration_seconds,
-      retention_hours: 24,
+      retention_hours: retentionHours,
       delete_after: deleteAfter,
       downloadable: true,
+      media_status: "available",
+      media_missing_reason: null,
+      retry_count: metadata.retry_count,
+      window_seconds_before: metadata.window_seconds_before,
+      window_seconds_after: metadata.window_seconds_after,
+      last_media_attempt_at: new Date().toISOString(),
       metadata: {
         clip_sha256: clipHash,
         thumbnail_sha256: thumbnailHash,

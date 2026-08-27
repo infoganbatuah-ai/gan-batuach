@@ -7,6 +7,8 @@ const player = readFileSync(new URL("../../components/digital-observer/observer-
 const migration = readFileSync(new URL("../../supabase/migrations/20260827000400_remove_digital_observer_demo_bundle.sql", import.meta.url), "utf8");
 const edgePolicy = readFileSync(new URL("../../lib/domain/digital-observer/edge-ai-policy.ts", import.meta.url), "utf8");
 const cameraRoute = readFileSync(new URL("../../app/api/digital-observer/cameras/route.ts", import.meta.url), "utf8");
+const cameraControls = readFileSync(new URL("../../components/digital-observer/observer-camera-controls.tsx", import.meta.url), "utf8");
+const cameraPresence = readFileSync(new URL("../../components/digital-observer/observer-camera-presence.tsx", import.meta.url), "utf8");
 
 for (const required of [
   "const privateNvrSessions = new Map()",
@@ -37,6 +39,10 @@ for (const required of ["ONLY_SYNTHETIC_DEMO_CAMERA_CAN_BE_REMOVED", "source_row
 for (const required of ["structured_insights_only", "פריימים לדגימה", "Push חיצוני טרם הוגדר", "זיהוי ביומטרי כבוי"]) {
   if (!edgePolicy.includes(required)) throw new Error(`Missing truthful local AI policy: ${required}`);
 }
+for (const required of ["אירועים בלבד", "PTZ", "תאורה", "סירנה", "חסום במדיניות"]) {
+  if (!cameraControls.includes(required)) throw new Error(`Missing event-only or read-only camera control status: ${required}`);
+}
+if (!cameraPresence.includes("תצפיתן כבוי")) throw new Error("Inactive cameras must show that the Digital Observer is off");
 for (const required of ["removeSyntheticDemoBundleFallback", "hasGatewayBinding", "secret_reference", "capabilities?.live_view", "DEMO_CAMERA_HAS_STORED_MEDIA", 'eq("source_mode", "demo")']) {
   if (!cameraRoute.includes(required)) throw new Error(`Missing production demo cleanup boundary: ${required}`);
 }

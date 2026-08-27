@@ -115,6 +115,8 @@ async function submitReadinessEvidence() {
     controls_supported: false,
     no_dvr_credentials_returned: true,
     no_rtsp_returned: true,
+    event_summary: "נוצר תיעוד מדיה מאומת מה-Gateway לצורך בדיקת חיבור ושמירה סביב אירוע בלבד.",
+    event_context: "device_health",
     metadata: { source: "persistent_home_gateway", channel: channel.channel, ai_shadow_only: true }
   };
   const metadataText = JSON.stringify(metadata);

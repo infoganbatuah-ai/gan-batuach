@@ -1,4 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
+import { observerEventNarrative } from "@/lib/domain/digital-observer/event-narrative";
 
 export type ObserverRow = Record<string, any>;
 export type ObserverMode = "home" | "business";
@@ -133,40 +134,7 @@ export function observerStatusLabel(value?: unknown) {
 }
 
 export function observerEventLabel(value?: unknown) {
-  const labels: Record<string, string> = {
-    ai_camera: "אירוע מצלמה",
-    camera_health: "בריאות מצלמה",
-    person_detected: "זוהה אדם",
-    known_person_detected: "זוהה אדם מוכר",
-    unknown_person_detected: "זוהה אדם לא מוכר",
-    person_entered: "אדם נכנס",
-    person_exited: "אדם יצא",
-    vehicle_entered: "רכב נכנס",
-    vehicle_exited: "רכב יצא",
-    vehicle_tampering: "חשד לפגיעה או פריצה לרכב",
-    unknown_person_near_vehicle: "אדם לא מוכר ליד רכב",
-    vehicle_started_by_unknown_person: "הנעת רכב דורשת בדיקה",
-    suspected_theft: "חשד לגניבה - נדרשת בדיקה",
-    suspected_violence: "חשד לעימות או אלימות - נדרשת בדיקה",
-    suspected_robbery: "חשד לשוד - נדרשת בדיקה",
-    animal_detected: "זוהה בעל חיים",
-    distress_detected: "סימן מצוקה דורש בדיקה",
-    child_distress_detected: "סימן מצוקה של ילד דורש בדיקה",
-    animal_distress_detected: "סימן מצוקה של בעל חיים דורש בדיקה",
-    room_entry: "כניסה לחדר",
-    room_exit: "יציאה מחדר",
-    perimeter_entry: "כניסה לשטח",
-    perimeter_exit: "יציאה מהשטח",
-    door_left_open: "דלת נשארה פתוחה",
-    motion_after_hours: "תנועה מחוץ לשעות",
-    restricted_area: "תנועה באזור מוגבל",
-    camera_offline: "מצלמה נותקה",
-    camera_obstruction: "ייתכן שהמצלמה מכוסה",
-    camera_media_readiness: "בדיקת מדיית מצלמה",
-    pattern: "דפוס חריג",
-    system: "אירוע מערכת",
-  };
-  return labels[String(value ?? "")] ?? "אירוע לבדיקה";
+  return observerEventNarrative({ signal_type: value }).label;
 }
 
 export function resolveObserverEntitlement(subscription?: ObserverRow | null, now = new Date()): ObserverEntitlement {

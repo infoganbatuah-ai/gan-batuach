@@ -4,6 +4,7 @@ import { ObserverQuickAction } from "@/components/digital-observer/observer-acti
 import { ObserverAppShell } from "@/components/digital-observer/observer-app-shell";
 import { ObserverCameraMedia } from "@/components/digital-observer/observer-camera-media";
 import { requireDigitalObserverUser } from "@/lib/domain/digital-observer/access";
+import { observerEventNarrative } from "@/lib/domain/digital-observer/event-narrative";
 import { formatObserverDate, loadObserverRuntime, observerCameraForSignal, observerClipForSignal, observerClipHasRequiredMedia, observerEventLabel, observerModeForSite, observerSignalHasRequiredEvidence, observerSignalMatchesCamera, observerStatusLabel } from "@/lib/domain/digital-observer/runtime";
 
 type PageProps = { searchParams?: Promise<{ event?: string; site?: string; severity?: string; q?: string; camera?: string; view?: string; preview?: string }> };
@@ -32,6 +33,7 @@ export default async function DigitalObserverAlertsPage({ searchParams }: PagePr
   const selectedClip = observerClipForSignal(selected, runtime.clips);
   const selectedHasMedia = observerClipHasRequiredMedia(selectedClip);
   const selectedClipMetadata = selectedClip?.metadata && typeof selectedClip.metadata === "object" ? selectedClip.metadata : {};
+  const selectedNarrative = observerEventNarrative(selected);
   const timeline = params?.view === "timeline";
   const notificationPreview = params?.preview === "notification";
   const timelineSelected = signals[0] ?? null;
@@ -94,7 +96,7 @@ export default async function DigitalObserverAlertsPage({ searchParams }: PagePr
           <div className={`do-mobile-urgent-alert ${severityClass(selected.severity)}`}><ShieldAlert /><span><strong>{observerEventLabel(selected.metadata?.event_type ?? selected.signal_type)}</strong><small>{camera?.display_name || "ללא מקור מצלמה משויך"} · {formatObserverDate(selected.created_at)}</small></span><b>{observerStatusLabel(selected.severity)}</b></div>
           <div className="do-event-detail-grid" id="event-evidence">
             <article className="do-panel do-event-evidence">
-              <div className="do-section-head"><div><span className={`do-badge ${severityClass(selected.severity)}`}>{observerStatusLabel(selected.severity)}</span><h1>{observerEventLabel(selected.metadata?.event_type ?? selected.signal_type)}</h1><p>{formatObserverDate(selected.created_at)}</p></div></div>
+              <div className="do-section-head"><div><span className={`do-badge ${severityClass(selected.severity)}`}>{observerStatusLabel(selected.severity)}</span><h1>{selectedNarrative.label}</h1><p>{selectedNarrative.summary}</p><p>{formatObserverDate(selected.created_at)}</p></div></div>
               {camera && selectedHasMedia ? <div className="do-event-media-stage">
                 <video className="do-event-video" controls preload="metadata" poster={`/api/digital-observer/event-clips/${selectedClip?.id}/media?kind=thumbnail`}>
                   <source src={`/api/digital-observer/event-clips/${selectedClip?.id}/media?kind=clip`} type="video/mp4" />
@@ -108,10 +110,11 @@ export default async function DigitalObserverAlertsPage({ searchParams }: PagePr
             </article>
             <aside className="do-panel do-event-review-panel">
               <span className={`do-badge ${severityClass(selected.severity)}`}>{observerStatusLabel(selected.severity)}</span>
-              <h2>{observerEventLabel(selected.metadata?.event_type ?? selected.signal_type)}</h2>
+              <h2>{selectedNarrative.label}</h2>
+              <p>{selectedNarrative.summary}</p>
               <p>{camera?.display_name || "ללא מקור מצלמה משויך"}</p>
               <div className="do-confidence"><span>רמת ביטחון בזיהוי</span><strong>{selected.confidence == null ? "לא נמסרה" : `${Math.round(Number(selected.confidence) * 100)}%`}</strong></div>
-              <div className="do-notice info"><UserCheck /><span>{selected.recommended_action || "מומלץ לבצע בדיקה אנושית לפני פעולה."}</span></div>
+              <div className="do-notice info"><UserCheck /><span>{selected.recommended_action || selectedNarrative.action}</span></div>
             </aside>
             <div className="do-event-detail-actions do-button-row"><Link className="do-button secondary full" href={`/digital-observer/alerts?event=${selected.id}&preview=notification`}><Bell /> תצוגת התראה לנייד</Link>{selectedHasMedia ? <a className="do-button secondary full" href={`/api/digital-observer/event-clips/${selectedClip?.id}/media?kind=clip&download=1`}><ArrowDownToLine /> הורדת וידאו</a> : null}{selectedHasMedia ? <ObserverQuickAction endpoint="/api/digital-observer/events/review" body={{ signal_id: selected.id, review_status: "confirmed", note: "אושר בביקורת אנושית" }}><CheckCircle2 /> אישור אירוע</ObserverQuickAction> : null}{selectedHasMedia ? <ObserverQuickAction endpoint="/api/digital-observer/events/review" body={{ signal_id: selected.id, review_status: "dismissed", note: "נדחה בביקורת אנושית" }}><ShieldCheck /> הכול בסדר, כיול האירוע</ObserverQuickAction> : null}<ObserverQuickAction endpoint="/api/digital-observer/events/review" body={{ signal_id: selected.id, review_status: "escalated", note: selectedHasMedia ? "הועבר להמשך בדיקה" : "מדיית האירוע חסרה - תקלה טכנית" }}><AlertTriangle /> {selectedHasMedia ? "העברה לבדיקה אנושית" : "סימון תקלה טכנית"}</ObserverQuickAction></div>
           </div>
