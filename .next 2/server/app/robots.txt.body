@@ -1,6 +1,0 @@
-User-Agent: *
-Allow: /
-Disallow: /dashboard
-Disallow: /api
-
-Sitemap: https://gan-batuach.vercel.app/sitemap.xml

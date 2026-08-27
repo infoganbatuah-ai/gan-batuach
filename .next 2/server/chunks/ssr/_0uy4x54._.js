@@ -1,3 +1,0 @@
-module.exports=[474896,a=>{"use strict";let b=(0,a.i(164831).default)("log-in",[["path",{d:"m10 17 5-5-5-5",key:"1bsop3"}],["path",{d:"M15 12H3",key:"6jk70r"}],["path",{d:"M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4",key:"u53s6r"}]]);a.s(["LogIn",0,b],474896)},652466,a=>{"use strict";var b=a.i(187924),c=a.i(935112),d=a.i(474896);a.s(["LoginSubmitButton",0,function(){let{pending:a}=(0,c.useFormStatus)();return(0,b.jsxs)("button",{className:"button primary large",disabled:a,type:"submit",children:[(0,b.jsx)(d.LogIn,{size:16})," ",a?"מתחבר...":"התחברות"]})}])}];
-
-//# sourceMappingURL=_0uy4x54._.js.map

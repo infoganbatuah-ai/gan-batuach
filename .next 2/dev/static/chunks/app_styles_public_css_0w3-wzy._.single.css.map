@@ -1,6 +1,0 @@
-{
-  "version": 3,
-  "sources": [],
-  "sections": [
-    {"offset": {"line": 1, "column": 0}, "map": {"version":3,"sources":["turbopack:///[project]/app/styles/public.css"],"sourcesContent":["/* Public website surface. Kept intentionally small in RESCUE 1; existing public styles remain active. */\n.public-surface {\n  background: var(--surface, #fff);\n}\n\n"],"names":[],"mappings":"AACA"}}]
-}

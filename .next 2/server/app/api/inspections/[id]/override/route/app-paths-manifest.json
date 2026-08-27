@@ -1,3 +1,0 @@
-{
-  "/api/inspections/[id]/override/route": "app/api/inspections/[id]/override/route.js"
-}
