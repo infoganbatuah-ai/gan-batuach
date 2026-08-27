@@ -4,6 +4,7 @@ import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import http from "node:http";
 import { tmpdir } from "node:os";
 import { extname, join, normalize } from "node:path";
+import { computeActivityMetrics } from "./activity-insights.mjs";
 
 const PORT = Number(process.env.PORT || process.env.VIDEO_GATEWAY_PORT || 8080);
 const HOST = process.env.HOST || process.env.VIDEO_GATEWAY_HOST || "0.0.0.0";
@@ -15,6 +16,8 @@ const PLAYBACK_TOKEN_TTL_MS = 5 * 60 * 1000;
 const streamSources = new Map();
 const relays = new Map();
 const playbackTokens = new Map();
+const FRAME_WIDTH = 32;
+const FRAME_HEIGHT = 18;
 
 mkdirSync(HLS_ROOT, { recursive: true });
 
@@ -470,6 +473,48 @@ async function ensureRelay(streamId) {
   return relay;
 }
 
+async function waitForFile(file, timeoutMs = 5000) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    if (existsSync(file)) return true;
+    await new Promise((resolve) => setTimeout(resolve, 150));
+  }
+  return false;
+}
+
+async function analyzeRelayActivity(streamId) {
+  const relay = await ensureRelay(streamId);
+  if (!relay || !(await waitForFile(relay.playlist))) return null;
+  const frameBytes = FRAME_WIDTH * FRAME_HEIGHT;
+  const args = [
+    "-hide_banner", "-loglevel", "error",
+    "-i", relay.playlist,
+    "-vf", `fps=1,scale=${FRAME_WIDTH}:${FRAME_HEIGHT},format=gray`,
+    "-frames:v", "2",
+    "-f", "rawvideo",
+    "pipe:1"
+  ];
+  return await new Promise((resolve) => {
+    const child = spawn("ffmpeg", args, { stdio: ["ignore", "pipe", "ignore"] });
+    const chunks = [];
+    let size = 0;
+    const timeout = setTimeout(() => child.kill("SIGKILL"), 7000);
+    child.stdout.on("data", (chunk) => {
+      if (size < frameBytes * 2) {
+        chunks.push(chunk);
+        size += chunk.length;
+      }
+    });
+    child.on("close", () => {
+      clearTimeout(timeout);
+      const pixels = Buffer.concat(chunks).subarray(0, frameBytes * 2);
+      if (pixels.length < frameBytes) return resolve(null);
+      const metrics = computeActivityMetrics(pixels, FRAME_WIDTH, FRAME_HEIGHT);
+      resolve(metrics ? { ...metrics, sampled_at: new Date().toISOString() } : null);
+    });
+  });
+}
+
 function publicGatewayBase(request) {
   const configured = String(process.env.VIDEO_GATEWAY_EXTERNAL_BASE_URL || "").replace(/\/$/, "");
   if (configured) return configured;
@@ -571,6 +616,23 @@ async function handle(request, response) {
         provider: "custom",
         playback: { hls_url: `${base}/hls/${encodeURIComponent(streamId)}/index.m3u8?token=${encodeURIComponent(token)}`, webrtc_url: "" },
         expires_in_seconds: Math.floor(PLAYBACK_TOKEN_TTL_MS / 1000)
+      });
+      return;
+    }
+    const insightsMatch = request.url?.match(/^\/camera\/([^/]+)\/insights$/);
+    if (insightsMatch && request.method === "GET") {
+      const streamId = decodeURIComponent(insightsMatch[1]);
+      const insight = await analyzeRelayActivity(streamId);
+      if (!insight) {
+        json(response, 503, { error: "sample_not_ready" });
+        return;
+      }
+      json(response, 200, {
+        status: "sampled",
+        stream_id: streamId,
+        insight,
+        local_processing: true,
+        no_raw_video_returned: true
       });
       return;
     }

@@ -100,7 +100,7 @@ async function gatewayFetch(path: string, payload?: unknown, methodOverride?: st
   let timeout: ReturnType<typeof setTimeout> | null = null;
   try {
     const controller = new AbortController();
-    timeout = setTimeout(() => controller.abort(), 5000);
+    timeout = setTimeout(() => controller.abort(), path.endsWith("/insights") ? 10000 : 5000);
     const response = await fetch(`${gatewayUrl()}${path}`, {
       method: methodOverride ?? (payload ? "POST" : "GET"),
       headers: {
@@ -167,6 +167,14 @@ export async function getPlaybackUrls(gatewayStreamId: string, token?: string) {
       webrtc_url: publicPlaybackUrl(gatewayPlayback?.webrtc_url) || fallback.webrtc_url
     }
   };
+}
+
+export async function getStreamActivityInsight(gatewayStreamId: string) {
+  const provider = getGatewayProvider();
+  if (provider !== "custom") {
+    return { configured: isGatewayConfigured(), status: "error" as const, message: "Activity insights require the custom gateway", provider };
+  }
+  return gatewayFetch(`/camera/${encodeURIComponent(gatewayStreamId)}/insights`);
 }
 
 export async function disableCameraSource(gatewayStreamId: string) {
