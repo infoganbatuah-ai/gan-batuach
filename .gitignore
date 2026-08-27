@@ -19,3 +19,5 @@ temp/
 *.zip
 *.tar
 *.tar.gz
+.vercel
+.env*
