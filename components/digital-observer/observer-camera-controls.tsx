@@ -41,12 +41,16 @@ export function ObserverCameraControls({ cameraSourceId, name, talkSupported = f
   function toggleRecording() {
     if (recorderRef.current && recording) {
       recorderRef.current.stop();
+      setRecording(false);
       return;
     }
     const video = liveVideo(cameraSourceId);
     const captureStream = video && (video as HTMLVideoElement & { captureStream?: () => MediaStream }).captureStream;
     if (!video || !captureStream || typeof MediaRecorder === "undefined") return;
-    const recorder = new MediaRecorder(captureStream.call(video), { mimeType: "video/webm" });
+    const preferredType = MediaRecorder.isTypeSupported?.("video/webm") ? "video/webm" : "";
+    const recorder = preferredType
+      ? new MediaRecorder(captureStream.call(video), { mimeType: preferredType })
+      : new MediaRecorder(captureStream.call(video));
     chunksRef.current = [];
     recorder.ondataavailable = (event) => { if (event.data.size) chunksRef.current.push(event.data); };
     recorder.onstop = () => {
@@ -59,6 +63,11 @@ export function ObserverCameraControls({ cameraSourceId, name, talkSupported = f
       setTimeout(() => URL.revokeObjectURL(url), 1_000);
       setRecording(false);
       recorderRef.current = null;
+    };
+    recorder.onerror = () => {
+      setRecording(false);
+      recorderRef.current = null;
+      chunksRef.current = [];
     };
     recorder.start(1_000);
     recorderRef.current = recorder;
