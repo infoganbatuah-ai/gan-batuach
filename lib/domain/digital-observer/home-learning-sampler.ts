@@ -135,6 +135,14 @@ export async function recordHomeActivityMetrics(supabase: SupabaseLike, observer
   if (profileResult.error) throw new Error(profileResult.error.message);
   await supabase.from("observer_sites").update({ observer_runtime_status: nextCount >= 288 ? "learning_shadow" : "learning_readiness", updated_at: now }).eq("id", observerSiteId);
 
+  await recordLearningUpdate(supabase, observerSiteId, {
+    patternKey: `home_learning_active:${observerSiteId}`,
+    eventType: "home_learning_started",
+    confidence,
+    recommendedAction: "אין צורך בפעולה. התצפיתן התחיל ללמוד את שגרת הבית ממדדי פעילות מקומיים בלבד.",
+    metadata: { sample_count: nextCount, active_camera_count: samples.length, baseline_status: nextCount >= 288 ? "baseline_ready" : "collecting" }
+  });
+
   const milestone = [1, 12, 72, 144, 288].includes(nextCount) ? nextCount : null;
   if (milestone) {
     await recordLearningUpdate(supabase, observerSiteId, {
