@@ -1848,6 +1848,9 @@
 .do-toggle-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 9px; }
 .do-toggle-grid.do-home-priority-grid { width: min(100%, 640px); grid-template-columns: 1fr; margin-inline: auto; }
 .do-home-priority-grid button { min-height: 66px; }
+.do-home-priority-grid .do-priority-copy { display: grid; gap: 3px; }
+.do-home-priority-grid .do-priority-copy strong { color: var(--do-ink); font-size: inherit; }
+.do-home-priority-grid .do-priority-copy small { color: var(--do-muted); font-size: 11px; font-weight: 500; line-height: 1.35; }
 .do-home-priority-grid .do-option-check { width: 18px; height: 18px; display: grid; place-items: center; border: 1px solid #c9d4dc; border-radius: 4px; }
 .do-home-priority-grid .do-option-check svg { width: 14px; height: 14px; }
 .do-home-priority-grid button.selected .do-option-check { color: #fff; background: var(--do-teal); border-color: var(--do-teal); }
@@ -5508,8 +5511,12 @@
    not phone layouts. Give their controls the same readable visual weight while
    leaving the regular laptop, tablet and native-phone contracts untouched. */
 @media (min-width: 821px) and (max-width: 900px) and (min-height: 1200px) {
+  .do-shell:has(.do-camera-add-page) {
+    grid-template-columns: minmax(0, 1fr) 168px;
+  }
+
   .do-camera-add-page {
-    width: calc(100% - 28px);
+    width: calc(100% - 24px);
     max-width: none;
   }
 
@@ -5523,7 +5530,7 @@
   .do-camera-wizard > .do-stepper,
   .do-camera-wizard > .do-form-section {
     width: 100%;
-    max-width: none;
+    max-width: 610px;
   }
 
   .do-shell:has(.do-camera-add-page) .do-topbar {
@@ -5570,25 +5577,29 @@
   }
 
   .do-camera-connector-selection .do-primary-pairing-grid {
-    gap: 16px;
+    gap: 22px;
   }
 
   .do-camera-connector-selection .do-primary-pairing-grid button {
-    min-height: 218px;
-    padding: 22px 24px;
+    min-height: 152px;
+    padding: 18px 22px;
   }
 
   .do-camera-connector-selection .do-primary-pairing-grid button > svg:first-child {
-    width: 38px;
-    height: 38px;
+    width: 48px;
+    height: 48px;
+    padding: 9px;
+    background: #f1f6f7;
+    border: 1px solid #dbe5e9;
+    border-radius: 8px;
   }
 
   .do-camera-connector-selection .do-primary-pairing-grid button strong {
-    font-size: 21px;
+    font-size: 20px;
   }
 
   .do-camera-connector-selection .do-primary-pairing-grid button span {
-    font-size: 15px;
+    font-size: 14px;
   }
 
   .do-camera-connector-selection .do-additional-pairing > summary {
@@ -5764,10 +5775,18 @@
   }
 
   .do-onboarding-content > .do-wizard:not(.do-camera-wizard) .do-home-priority-grid button {
-    min-height: 104px;
+    min-height: 112px;
     grid-template-columns: 58px minmax(0, 1fr) 24px;
     padding-inline: 24px;
     font-size: 19px;
+  }
+
+  .do-onboarding-content > .do-wizard:not(.do-camera-wizard) .do-home-priority-grid .do-priority-copy {
+    gap: 6px;
+  }
+
+  .do-onboarding-content > .do-wizard:not(.do-camera-wizard) .do-home-priority-grid .do-priority-copy small {
+    font-size: 14px;
   }
 
   .do-onboarding-content > .do-wizard:not(.do-camera-wizard) .do-home-priority-grid button > svg:first-child {
@@ -5813,7 +5832,7 @@
   .do-onboarding-content > .do-auth-device-preview {
     width: 220px;
     height: 442px;
-    margin: clamp(64px, 7vh, 156px) auto 0;
+    margin: clamp(420px, 21vh, 500px) auto 0;
   }
 
   .do-auth-device-onboarding {

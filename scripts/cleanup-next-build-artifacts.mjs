@@ -1,4 +1,4 @@
-import { readdirSync } from "node:fs";
+import { existsSync, readdirSync, rmSync } from "node:fs";
 
 const generatedBuildPattern = /^\.next-build-stale-\d+$/;
 const generatedBuildDirs = readdirSync(process.cwd(), { withFileTypes: true })
@@ -6,4 +6,8 @@ const generatedBuildDirs = readdirSync(process.cwd(), { withFileTypes: true })
   .map((entry) => entry.name)
   .sort();
 
-console.log(`[build] ${generatedBuildDirs.length} generated stale build director${generatedBuildDirs.length === 1 ? "y is" : "ies are"} deferred so cleanup cannot stall the verified build.`);
+for (const directory of [".next", ...generatedBuildDirs]) {
+  if (existsSync(directory)) rmSync(directory, { recursive: true, force: true });
+}
+
+console.log(`[build] removed ${generatedBuildDirs.length + 1} generated build director${generatedBuildDirs.length === 0 ? "y" : "ies"} before security scanning.`);

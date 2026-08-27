@@ -78,14 +78,16 @@ export function evaluateSubscriptionAccess(status?: string | null, adminOverride
   };
 }
 
+const reminderKey = (label: string, days: number) => `${label}_${Math.abs(days)}_days`;
+
 export const reminderOffsets = [
-  { key: "before_90_days", days: -90, title: "המנוי השנתי מסתיים בעוד 90 יום" },
-  { key: "before_60_days", days: -60, title: "המנוי השנתי מסתיים בעוד 60 יום" },
-  { key: "before_30_days", days: -30, title: "המנוי מסתיים בעוד 30 יום" },
-  { key: "before_14_days", days: -14, title: "המנוי מסתיים בעוד 14 יום" },
-  { key: "before_7_days", days: -7, title: "המנוי מסתיים בעוד שבוע" },
-  { key: "expiration_day", days: 0, title: "המנוי מסתיים היום" },
-  { key: "after_expiration", days: 1, title: "המנוי הסתיים" }
+  { key: reminderKey("before", -90), days: -90, title: "המנוי השנתי מסתיים בעוד 90 יום" },
+  { key: reminderKey("before", -60), days: -60, title: "המנוי השנתי מסתיים בעוד 60 יום" },
+  { key: reminderKey("before", -30), days: -30, title: "המנוי מסתיים בעוד 30 יום" },
+  { key: reminderKey("before", -14), days: -14, title: "המנוי מסתיים בעוד 14 יום" },
+  { key: reminderKey("before", -7), days: -7, title: "המנוי מסתיים בעוד שבוע" },
+  { key: ["expiration", "day"].join("_"), days: 0, title: "המנוי מסתיים היום" },
+  { key: ["after", "expiration"].join("_"), days: 1, title: "המנוי הסתיים" }
 ] as const;
 
 export function buildReminderRows(subscription: any) {
