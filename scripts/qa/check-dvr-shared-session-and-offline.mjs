@@ -13,6 +13,9 @@ for (const required of [
   "rememberPrivateNvrSession",
   "refreshPrivateNvrSession",
   "failedToken && current.token !== failedToken",
+  "if (session.refreshPromise) session = await session.refreshPromise",
+  "relay.sessionToken",
+  "requestMetrics",
   "await waitForFile(relay.playlist, 8000)",
   '["-c:v", "copy"]'
 ]) {

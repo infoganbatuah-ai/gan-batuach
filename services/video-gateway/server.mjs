@@ -21,6 +21,7 @@ const privateNvrSessions = new Map();
 const relays = new Map();
 const playbackTokens = new Map();
 let lastDiscoverySummary = { channelCount: 0, connectedCount: 0, checkedAt: null };
+const requestMetrics = { playbackRequests: 0, playbackReady: 0, playbackUnavailable: 0, hlsRequests: 0 };
 const FRAME_WIDTH = 32;
 const FRAME_HEIGHT = 18;
 
@@ -489,19 +490,20 @@ function relayDirectory(streamId) {
 }
 
 async function privateNvrRelayResponse(source) {
-  const session = privateNvrSessions.get(source.sessionKey);
+  let session = privateNvrSessions.get(source.sessionKey);
   if (!session) return null;
+  if (session.refreshPromise) session = await session.refreshPromise;
   const url = privateNvrLiveUrl(session, source.channel, session.input.stream_quality);
   const controller = new AbortController();
   let response = await privateNvrStreamResponse(url, session.token, session.cookie, controller.signal);
-  if (response) return { response, controller };
+  if (response) return { response, controller, sessionToken: session.token };
   controller.abort();
   const refreshed = await refreshPrivateNvrSession(source.sessionKey, session.token);
   if (!refreshed) return null;
   const retryController = new AbortController();
   const retryUrl = privateNvrLiveUrl(refreshed, source.channel, refreshed.input.stream_quality);
   response = await privateNvrStreamResponse(retryUrl, refreshed.token, refreshed.cookie, retryController.signal);
-  return response ? { response, controller: retryController } : null;
+  return response ? { response, controller: retryController, sessionToken: refreshed.token } : null;
 }
 
 async function ensureRelay(streamId) {
@@ -538,9 +540,9 @@ async function ensureRelay(streamId) {
   ];
   const relaySource = source.kind === "private_nvr_http_mp4" ? await privateNvrRelayResponse(source) : null;
   if (!relaySource) return null;
-  const { response, controller } = relaySource;
+  const { response, controller, sessionToken } = relaySource;
   const child = spawn("ffmpeg", args, { stdio: ["pipe", "ignore", "pipe"] });
-  const relay = { process: child, playlist, startedAt: Date.now(), controller, errorSummary: "" };
+  const relay = { process: child, playlist, startedAt: Date.now(), controller, errorSummary: "", sessionToken };
   relays.set(streamId, relay);
   void pipeWebStreamToWritable(response.body, child.stdin).catch(() => child.kill("SIGKILL"));
   child.stderr.on("data", (chunk) => {
@@ -551,6 +553,9 @@ async function ensureRelay(streamId) {
     if (code && relay.errorSummary) {
       const safeSummary = relay.errorSummary.replace(/(?:https?|rtsp):\/\/\S+/gi, "[private-source]").trim().split("\n").slice(-3).join(" | ");
       console.error(`video relay exited (${code}): ${safeSummary}`);
+    }
+    if (code && source.kind === "private_nvr_http_mp4") {
+      void refreshPrivateNvrSession(source.sessionKey, relay.sessionToken);
     }
     if (relays.get(streamId)?.process === child) relays.delete(streamId);
   });
@@ -687,6 +692,7 @@ function validatePlaybackToken(token, streamId) {
 }
 
 function serveHls(request, response) {
+  requestMetrics.hlsRequests += 1;
   const url = new URL(request.url, "http://gateway.local");
   const match = url.pathname.match(/^\/hls\/([a-zA-Z0-9_-]+)\/(index\.m3u8|segment-\d+\.ts)$/);
   if (!match || !validatePlaybackToken(url.searchParams.get("token"), match[1])) {
@@ -739,6 +745,7 @@ async function handle(request, response) {
       streamCount: streamSources.size,
       failedStreamCount: Math.max(0, lastDiscoverySummary.channelCount - lastDiscoverySummary.connectedCount),
       lastDiscovery: lastDiscoverySummary,
+      requestMetrics,
       capabilities: {
         live: true,
         playback: true,
@@ -774,17 +781,21 @@ async function handle(request, response) {
     }
     const playbackMatch = request.url?.match(/^\/camera\/([^/]+)\/playback$/);
     if (playbackMatch && request.method === "GET") {
+      requestMetrics.playbackRequests += 1;
       const streamId = decodeURIComponent(playbackMatch[1]);
       const relay = await ensureRelay(streamId);
       if (!relay) {
+        requestMetrics.playbackUnavailable += 1;
         json(response, 404, { error: "stream_not_registered" });
         return;
       }
       if (!(await waitForFile(relay.playlist, 8000))) {
+        requestMetrics.playbackUnavailable += 1;
         json(response, 503, { error: "stream_starting", retryable: true });
         return;
       }
       const token = issuePlaybackToken(streamId);
+      requestMetrics.playbackReady += 1;
       const base = publicGatewayBase(request);
       json(response, 200, {
         status: "starting",
