@@ -21,6 +21,7 @@ import { ObserverCameraMedia } from "@/components/digital-observer/observer-came
 import { ObserverCameraPresence } from "@/components/digital-observer/observer-camera-presence";
 import { ObserverLivePlayer } from "@/components/digital-observer/observer-live-player";
 import { requireDigitalObserverUser } from "@/lib/domain/digital-observer/access";
+import { digitalObserverCameraHasLiveGateway } from "@/lib/domain/digital-observer/camera-live-status";
 import {
   formatObserverDate,
   loadObserverRuntime,
@@ -43,11 +44,6 @@ function badgeTone(status?: string | null) {
   if (["degraded", "testing", "needs_review", "reviewing"].includes(String(status))) return "do-badge warn";
   if (["offline", "failed", "blocked", "critical"].includes(String(status))) return "do-badge bad";
   return "do-badge info";
-}
-
-function liveGatewayStreamId(camera: Record<string, any>) {
-  const value = camera.metadata?.gateway_stream_id ?? camera.gateway_stream_id ?? camera.video_gateway_stream_id;
-  return typeof value === "string" && value.trim() ? value.trim() : null;
 }
 
 function activityBuckets(signals: any[]) {
@@ -136,12 +132,12 @@ export default async function DigitalObserverDashboardPage({ searchParams }: Pag
               {siteCameras.length ? (
                 <div className="do-camera-grid">
                   {siteCameras.slice(0, 4).map((camera, index) => {
-                    const hasLiveGateway = Boolean(liveGatewayStreamId(camera));
+                    const hasLiveGateway = digitalObserverCameraHasLiveGateway(camera);
                     return (
                       <Link className="do-dashboard-camera-card" href={`/digital-observer/cameras?camera=${camera.id}`} key={camera.id}>
                         {hasLiveGateway ? <ObserverLivePlayer compact observerSiteId={selectedSite.id} cameraSourceId={camera.id} name={camera.display_name ?? "מצלמה"} /> : <ObserverCameraMedia name={camera.display_name ?? "מצלמה"} mode="home" scene={camera.preview_scene ?? sceneFor(index, "home")} status={camera.status ?? camera.health_status} sourceMode={camera.source_mode} />}
                         <ObserverCameraPresence active={hasLiveGateway} />
-                        <span className="do-dashboard-camera-copy"><strong>{camera.display_name ?? "מצלמה"}</strong><small>{hasLiveGateway ? "שידור חי דרך Gateway" : ["connected", "healthy", "online", "active"].includes(String(camera.status ?? camera.health_status)) ? "מקור מחובר" : camera.source_mode === "demo" ? "תרחיש הדגמה" : "מוכן לחיבור"}</small></span>
+                        <span className="do-dashboard-camera-copy"><strong>{camera.display_name ?? "מצלמה"}</strong><small>{hasLiveGateway ? "שידור חי דרך Gateway" : ["offline", "failed", "error"].includes(String(camera.status ?? camera.health_status)) ? "Offline · אין שידור מה-DVR" : camera.source_mode === "demo" ? "תרחיש הדגמה" : "מוכן לחיבור"}</small></span>
                       </Link>
                     );
                   })}
@@ -198,8 +194,8 @@ export default async function DigitalObserverDashboardPage({ searchParams }: Pag
             <section className="do-section do-business-camera-strip">
               <div className="do-section-head"><div><h2>מצלמות ומקורות</h2><p>{liveCameras ? `${liveCameras} מקורות חיים מאושרים` : "המקורות מוצגים במצב הדגמה/מוכנות; אין שידור חי פעיל."}</p></div><Link className="do-link" href="/digital-observer/cameras">הצג הכל <ArrowLeft /></Link></div>
               {siteCameras.length ? <div className="do-camera-grid">{siteCameras.slice(0, 5).map((camera, index) => {
-                const hasLiveGateway = Boolean(liveGatewayStreamId(camera));
-                return <Link className="do-dashboard-camera-card" href={`/digital-observer/cameras?camera=${camera.id}`} key={camera.id}>{hasLiveGateway ? <ObserverLivePlayer compact observerSiteId={selectedSite.id} cameraSourceId={camera.id} name={camera.display_name ?? "מצלמה"} /> : <ObserverCameraMedia name={camera.display_name ?? "מצלמה"} mode="business" scene={camera.preview_scene ?? sceneFor(index, "business")} status={camera.status ?? camera.health_status} sourceMode={camera.source_mode} />}<ObserverCameraPresence active={hasLiveGateway} /><span className="do-dashboard-camera-copy"><strong>{camera.display_name ?? "מצלמה"}</strong><small>{hasLiveGateway ? "שידור חי דרך Gateway" : ["connected", "healthy", "online", "active"].includes(String(camera.status ?? camera.health_status)) ? "מקור מחובר" : camera.source_mode === "demo" ? "תרחיש הדגמה" : "מוכן לחיבור"}</small></span></Link>;
+                const hasLiveGateway = digitalObserverCameraHasLiveGateway(camera);
+                return <Link className="do-dashboard-camera-card" href={`/digital-observer/cameras?camera=${camera.id}`} key={camera.id}>{hasLiveGateway ? <ObserverLivePlayer compact observerSiteId={selectedSite.id} cameraSourceId={camera.id} name={camera.display_name ?? "מצלמה"} /> : <ObserverCameraMedia name={camera.display_name ?? "מצלמה"} mode="business" scene={camera.preview_scene ?? sceneFor(index, "business")} status={camera.status ?? camera.health_status} sourceMode={camera.source_mode} />}<ObserverCameraPresence active={hasLiveGateway} /><span className="do-dashboard-camera-copy"><strong>{camera.display_name ?? "מצלמה"}</strong><small>{hasLiveGateway ? "שידור חי דרך Gateway" : ["offline", "failed", "error"].includes(String(camera.status ?? camera.health_status)) ? "Offline · אין שידור מה-DVR" : camera.source_mode === "demo" ? "תרחיש הדגמה" : "מוכן לחיבור"}</small></span></Link>;
               })}</div> : <div className="do-empty"><CameraOff /><strong>אין מקורות מצלמה באתר</strong><span>הוסף מקור IP, NVR/DVR, ONVIF, ספק ענן או Gateway.</span><Link className="do-button primary" href="/digital-observer/cameras/add">הוספת מצלמה</Link></div>}
             </section>
           </>

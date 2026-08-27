@@ -16,19 +16,20 @@ export function ObserverCameraMedia({
   large?: boolean;
 }) {
   const connected = ["connected", "healthy", "online", "active"].includes(String(status));
+  const offline = ["offline", "failed", "error", "disabled", "blocked"].includes(String(status));
   const demo = sourceMode === "demo";
   const position = scene || (mode === "home" ? "home-living" : "business-entry");
   return (
     <div className={`do-camera-media ${large ? "large" : ""} ${demo ? `is-demo scene-${position}` : "is-readiness"}`}>
       <span className={connected ? "do-camera-status active" : "do-camera-status readiness"}>
-        {connected ? <CircleDot /> : <ShieldCheck />}{connected ? "מקור מחובר" : demo ? "הדמיה" : "מצב בדיקה"}
+        {connected ? <CircleDot /> : offline ? <CameraOff /> : <ShieldCheck />}{connected ? "מקור מחובר" : demo ? "הדמיה" : offline ? "Offline" : "מצב בדיקה"}
       </span>
       <span className="do-camera-name">{name}</span>
       {demo
         ? <span className="do-camera-footnote"><Camera /><small>תרחיש הדגמה בלבד · לא שידור חי</small></span>
         : connected
           ? <span className="do-camera-lock"><Camera /><small>המקור מחובר; הצפייה דורשת stream token מאובטח</small></span>
-          : <span className="do-camera-lock"><CameraOff /><small>אין שידור חי עד חיבור Gateway</small></span>}
+          : <span className="do-camera-lock"><CameraOff /><small>{offline ? "ה-DVR לא החזיר וידאו בערוץ זה" : "אין שידור חי עד חיבור Gateway"}</small></span>}
     </div>
   );
 }

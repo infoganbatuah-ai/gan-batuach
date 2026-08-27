@@ -344,9 +344,10 @@ async function upsertDigitalObserverCameraSource(
         .maybeSingle()
       : { data: null };
   const now = new Date().toISOString();
+  const unavailable = ["offline", "failed", "error"].includes(String(values.statusHint ?? "").toLowerCase());
   const sourceMode = values.connected ? "gateway_test" : "readiness";
-  const sourceStatus = values.connected ? "connected" : "ready_to_test";
-  const healthStatus = values.connected ? "healthy" : "unknown";
+  const sourceStatus = values.connected ? "connected" : unavailable ? "offline" : "ready_to_test";
+  const healthStatus = values.connected ? "healthy" : unavailable ? "failed" : "unknown";
   const payload = {
     observer_site_id: values.observerSiteId,
     camera_stream_id: values.cameraStreamId,
@@ -363,6 +364,8 @@ async function upsertDigitalObserverCameraSource(
       preview: values.connected,
       live_view: values.connected,
       event_clips: values.connected,
+      local_event_insights: values.connected,
+      local_activity_sampling: values.connected,
       credentials_saved: true,
       gateway_required: !values.connected,
       connector_transport: "gateway"
@@ -370,8 +373,8 @@ async function upsertDigitalObserverCameraSource(
     monitoring_targets: ["person", "entry_exit", "camera_obstruction", "after_hours"],
     last_health_check_at: now,
     last_seen_at: values.connected ? now : null,
-    last_error_code: values.connected ? null : "GATEWAY_CHANNELS_PENDING",
-    last_error_message: values.connected ? null : "חיבור DVR נשמר; ערוץ ממתין לאישור Gateway.",
+    last_error_code: values.connected ? null : unavailable ? "DVR_CHANNEL_OFFLINE" : "GATEWAY_CHANNELS_PENDING",
+    last_error_message: values.connected ? null : unavailable ? "ערוץ ה-DVR לא החזיר וידאו בבדיקת הקריאה האחרונה." : "חיבור DVR נשמר; ערוץ ממתין לאישור Gateway.",
     secret_reference: values.connectionId ? `video_gateway_connections:${values.connectionId}` : null,
     metadata: {
       product: "digital_observer",
@@ -383,7 +386,8 @@ async function upsertDigitalObserverCameraSource(
       gateway_configured: values.gatewayConfigured,
       status_hint: values.statusHint,
       no_rtsp_exposed: true,
-      credentials_server_side: true
+      credentials_server_side: true,
+      edge_inference_policy: "local-insights-v1"
     }
   };
   if ((existing as any)?.data?.id) {
@@ -496,7 +500,9 @@ export async function createDvrConnection(payload: z.infer<typeof dvrConnectionS
 
   for (const channel of channels) {
     const channelStreamId = channel.streamId ?? (gatewayStreamId ? `${gatewayStreamId}_${channel.channel}` : null);
-    const connected = Boolean(channelStreamId && !["offline", "failed", "error"].includes(String(channel.status ?? "").toLowerCase()));
+    const channelStatus = String(channel.status ?? "pending").toLowerCase();
+    const connected = Boolean(channelStreamId && channelStatus === "connected");
+    const unavailable = ["offline", "failed", "error"].includes(channelStatus);
     const cameraPayload = {
       garden_id: parsed.garden_id,
       observer_site_id: observerSiteId,
@@ -507,9 +513,9 @@ export async function createDvrConnection(payload: z.infer<typeof dvrConnectionS
       source_category: parsed.connection_type === "rtsp" ? "rtsp_direct" : parsed.connection_type === "onvif" ? "onvif" : "dvr_nvr",
       system_type: parsed.connection_type,
       protocol: "RTSP",
-      status: connected ? "connected" : "pending_gateway",
-      stream_status: connected ? "connected" : "pending",
-      health_status: connected ? "healthy" : "pending",
+      status: connected ? "connected" : unavailable ? "offline" : "pending_gateway",
+      stream_status: connected ? "connected" : unavailable ? "offline" : "pending",
+      health_status: connected ? "healthy" : unavailable ? "offline" : "pending",
       active: true,
       dvr_host_encrypted: encryptField(parsed.endpoint),
       dvr_port: parsed.port,
@@ -519,14 +525,14 @@ export async function createDvrConnection(payload: z.infer<typeof dvrConnectionS
       connection_channel: channel.channel,
       connection_port: parsed.port,
       connection_method: gatewayConfigured ? "video_gateway" : "pending_gateway",
-      gateway_registration_status: connected ? "registered" : "pending_gateway",
+      gateway_registration_status: connected ? "registered" : unavailable ? "offline" : "pending_gateway",
       gateway_stream_id: channelStreamId,
       video_gateway_stream_id: channelStreamId,
       hls_playback_url: channel.hlsUrl,
       webrtc_playback_url: channel.webrtcUrl,
       playback_hls_ready: Boolean(channel.hlsUrl || channelStreamId),
       playback_webrtc_ready: Boolean(channel.webrtcUrl || channelStreamId),
-      live_preview_status: connected ? "ready" : "pending_gateway",
+      live_preview_status: connected ? "ready" : unavailable ? "offline" : "pending_gateway",
       observer_enabled: true,
       observer_shadow_mode: true,
       observer_review_required: true,
@@ -644,9 +650,9 @@ export async function materializeCloudDvrDiscovery(payload: z.infer<typeof cloud
       source_category: "dvr_nvr",
       system_type: parsed.connection_type,
       protocol: "RTSP",
-      status: connected ? "connected" : "pending_gateway",
-      stream_status: connected ? "connected" : "pending",
-      health_status: connected ? "healthy" : "pending",
+      status: connected ? "connected" : "offline",
+      stream_status: connected ? "connected" : "offline",
+      health_status: connected ? "healthy" : "offline",
       active: true,
       dvr_host_encrypted: null,
       dvr_port: null,
@@ -657,14 +663,14 @@ export async function materializeCloudDvrDiscovery(payload: z.infer<typeof cloud
       connection_port: null,
       connection_method: "cloud_video_gateway",
       gateway_provider: "custom",
-      gateway_registration_status: connected ? "registered" : "pending_gateway",
+      gateway_registration_status: connected ? "registered" : "offline",
       gateway_stream_id: gatewayStreamId,
       video_gateway_stream_id: gatewayStreamId,
       hls_playback_url: null,
       webrtc_playback_url: null,
       playback_hls_ready: false,
       playback_webrtc_ready: false,
-      live_preview_status: connected ? "ready" : "pending_gateway",
+      live_preview_status: connected ? "ready" : "offline",
       observer_enabled: true,
       observer_shadow_mode: true,
       observer_review_required: true,
@@ -675,8 +681,8 @@ export async function materializeCloudDvrDiscovery(payload: z.infer<typeof cloud
       last_seen: connected ? now : null,
       last_successful_connection_at: connected ? now : null,
       last_health_check_at: now,
-      last_test_status: connected ? "healthy" : "pending_gateway",
-      last_test_message: connected ? "חיבור DVR אומת דרך Gateway מקומי מסונן" : "ערוץ DVR דווח אך לא אומת כמחובר",
+      last_test_status: connected ? "healthy" : "failed",
+      last_test_message: connected ? "חיבור DVR אומת דרך Gateway מקומי מסונן" : "ערוץ DVR דווח כ-Offline לאחר בדיקת קריאה",
       last_test_at: now,
       gateway_latency_ms: parsed.latency_ms ?? null,
       gateway_failed_stream_count: parsed.failed_channel_count ?? null,
@@ -694,6 +700,9 @@ export async function materializeCloudDvrDiscovery(payload: z.infer<typeof cloud
         no_rtsp_exposed: true,
         no_credentials_received: true,
         ai_shadow_only: true,
+        local_event_insights: connected,
+        local_activity_sampling: connected,
+        raw_frames_uploaded: false,
         read_only: true
       }
     };

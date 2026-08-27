@@ -37,7 +37,12 @@ const renameSchema = z.object({
   name_origin: z.enum(["user_edit", "ai_visual_review"]).optional().default("user_edit")
 });
 
-const schema = z.discriminatedUnion("action", [createSchema, testSchema, disableSchema, renameSchema]);
+const removeDemoSchema = z.object({
+  action: z.literal("remove_demo_bundle"),
+  id: z.string().uuid()
+});
+
+const schema = z.discriminatedUnion("action", [createSchema, testSchema, disableSchema, renameSchema, removeDemoSchema]);
 
 export async function POST(request: Request) {
   try {
@@ -91,6 +96,14 @@ export async function POST(request: Request) {
     if (!source) return fail("מקור המצלמה לא נמצא.", 404);
     const site = await getObserverSiteAccess(supabase, profile, source.observer_site_id, { manage: true });
     if (!site) return fail("אין הרשאה לעדכן את מקור המצלמה.", 403);
+
+    if (payload.action === "remove_demo_bundle") {
+      const { data, error } = await supabase.rpc("remove_digital_observer_demo_camera_bundle", {
+        requested_camera_source_id: payload.id
+      });
+      if (error) return fail("לא ניתן להסיר את מצלמת ההדמיה. הפעולה מותרת רק למקור דמו סינתטי ללא מדיה שמורה.", 400);
+      return ok({ result: data, message: "מצלמת ההדמיה והנתונים הסינתטיים המשויכים אליה הוסרו." });
+    }
 
     if (payload.action === "disable") {
       const { data, error } = await supabase.from("digital_observer_camera_sources" as any)

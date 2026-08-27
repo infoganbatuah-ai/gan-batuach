@@ -2,6 +2,7 @@ import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
 import { buildDvrGatewayStatus, createDvrPlaybackSession, type DvrGatewayEventRow } from "@/lib/domain/digital-observer/dvr-gateway";
+import { digitalObserverCameraIsConnected } from "@/lib/domain/digital-observer/camera-live-status";
 import { getPlaybackUrls } from "@/lib/domain/video-gateway-client";
 
 export const runtime = "nodejs";
@@ -65,6 +66,7 @@ export async function POST(request: Request) {
         .eq("observer_site_id", payload.observer_site_id)
         .single();
       if (error || !source) return fail("מקור המצלמה אינו זמין באתר הזה.", 404);
+      if (!digitalObserverCameraIsConnected(source)) return fail("ערוץ ה-DVR אינו מחובר כרגע.", 409);
       const gatewayStreamId = String(source.metadata?.gateway_stream_id || "").trim();
       if (!gatewayStreamId) return fail("למקור המצלמה עדיין אין מזהה Gateway.", 409);
       const gateway = await getPlaybackUrls(gatewayStreamId, payload.token);

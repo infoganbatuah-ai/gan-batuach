@@ -17,8 +17,10 @@ const EVENT_CLIP_MAX_SECONDS = 30;
 const EVENT_THUMBNAIL_MAX_BYTES = 512 * 1024;
 const EVENT_CLIP_MAX_BYTES = 8 * 1024 * 1024;
 const streamSources = new Map();
+const privateNvrSessions = new Map();
 const relays = new Map();
 const playbackTokens = new Map();
+let lastDiscoverySummary = { channelCount: 0, connectedCount: 0, checkedAt: null };
 const FRAME_WIDTH = 32;
 const FRAME_HEIGHT = 18;
 
@@ -146,6 +148,13 @@ function privateNvrBaseUrl(input) {
   return host ? `http://${host}:${port}` : "";
 }
 
+function privateNvrSessionKey(input) {
+  return createHash("sha256")
+    .update([privateNvrBaseUrl(input), String(input.username || "")].join(":"))
+    .digest("hex")
+    .slice(0, 24);
+}
+
 function parseDigestChallenge(value) {
   const challenge = String(value || "").replace(/^Digest\s+/i, "");
   const fields = {};
@@ -207,6 +216,36 @@ async function privateNvrLogin(input) {
   return { baseUrl, token, cookie };
 }
 
+function rememberPrivateNvrSession(input, session) {
+  const key = privateNvrSessionKey(input);
+  privateNvrSessions.set(key, {
+    ...session,
+    input,
+    updatedAt: Date.now(),
+    refreshPromise: null
+  });
+  return key;
+}
+
+async function refreshPrivateNvrSession(sessionKey, failedToken = null) {
+  const current = privateNvrSessions.get(sessionKey);
+  if (!current) return null;
+  if (failedToken && current.token !== failedToken) return current;
+  if (current.refreshPromise) return current.refreshPromise;
+  const refreshPromise = (async () => {
+    const session = await privateNvrLogin(current.input);
+    if (!session) return current;
+    const refreshed = { ...current, ...session, updatedAt: Date.now(), refreshPromise: null };
+    privateNvrSessions.set(sessionKey, refreshed);
+    return refreshed;
+  })().finally(() => {
+    const latest = privateNvrSessions.get(sessionKey);
+    if (latest?.refreshPromise === refreshPromise) latest.refreshPromise = null;
+  });
+  current.refreshPromise = refreshPromise;
+  return refreshPromise;
+}
+
 function privateNvrLiveUrl(session, channel, quality = "sub") {
   const streamType = quality === "main" ? 0 : 1;
   return `${session.baseUrl}/live.mp4?channel=${Math.max(0, channel - 1)}&type=${streamType}&chrome=1`;
@@ -227,14 +266,27 @@ async function privateNvrStreamResponse(url, token, cookie, signal) {
 
 async function pipeWebStreamToWritable(stream, writable) {
   const reader = stream.getReader();
+  const ignorePipeClosure = () => {};
+  writable.on("error", ignorePipeClosure);
   try {
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
-      if (!writable.write(Buffer.from(value))) await new Promise((resolve) => writable.once("drain", resolve));
+      if (writable.destroyed || !writable.writable) break;
+      try {
+        if (!writable.write(Buffer.from(value))) {
+          await new Promise((resolve) => {
+            writable.once("drain", resolve);
+            writable.once("close", resolve);
+            writable.once("error", resolve);
+          });
+        }
+      } catch {
+        break;
+      }
     }
   } finally {
-    writable.end();
+    if (!writable.destroyed && writable.writable) writable.end();
     reader.releaseLock();
   }
 }
@@ -283,19 +335,21 @@ async function discoverPrivateNvr(payload, channelCount) {
   if (!vendor.includes("private") && !vendor.includes("er")) return null;
   const session = await privateNvrLogin(payload);
   if (!session) return null;
+  const sessionKey = rememberPrivateNvrSession(payload, session);
   const channels = [];
   for (let channel = 1; channel <= channelCount; channel += 1) {
     const url = privateNvrLiveUrl(session, channel, payload.stream_quality);
     const result = await probePrivateNvrStream(url, session.token, session.cookie);
     const streamId = streamIdFor(payload, channel);
+    const previousRelay = relays.get(streamId);
+    if (previousRelay?.process) previousRelay.process.kill("SIGTERM");
+    streamSources.delete(streamId);
     if (result.ok) {
       streamSources.set(streamId, {
         kind: "private_nvr_http_mp4",
-        url,
-        token: session.token,
-        cookie: session.cookie,
-        input: { ...payload, password: String(payload.password || "") },
-        channel
+        sessionKey,
+        channel,
+        codec: result.codec ?? null
       });
     }
     channels.push({
@@ -313,6 +367,9 @@ async function discoverPrivateNvr(payload, channelCount) {
       height: result.height ?? null
     });
   }
+  // Recorder discovery consumes the native live response sequence. Establish
+  // one fresh playback session after all probes, then share it across relays.
+  await refreshPrivateNvrSession(sessionKey, session.token);
   return channels;
 }
 
@@ -409,6 +466,11 @@ async function dvrConnect(payload) {
     }
   }
   const connected = channels.filter((item) => item.status === "connected");
+  lastDiscoverySummary = {
+    channelCount: channels.length,
+    connectedCount: connected.length,
+    checkedAt: new Date().toISOString()
+  };
   return {
     status: connected.length ? "connected" : "pending_gateway",
     channel_count: channelCount,
@@ -426,35 +488,47 @@ function relayDirectory(streamId) {
   return join(HLS_ROOT, streamId.replace(/[^a-z0-9_-]/gi, "_"));
 }
 
-async function refreshPrivateNvrSource(source) {
-  const session = await privateNvrLogin(source.input);
-  if (!session) return source;
-  source.token = session.token;
-  source.cookie = session.cookie;
-  source.url = privateNvrLiveUrl(session, source.channel, source.input.stream_quality);
-  return source;
+async function privateNvrRelayResponse(source) {
+  const session = privateNvrSessions.get(source.sessionKey);
+  if (!session) return null;
+  const url = privateNvrLiveUrl(session, source.channel, session.input.stream_quality);
+  const controller = new AbortController();
+  let response = await privateNvrStreamResponse(url, session.token, session.cookie, controller.signal);
+  if (response) return { response, controller };
+  controller.abort();
+  const refreshed = await refreshPrivateNvrSession(source.sessionKey, session.token);
+  if (!refreshed) return null;
+  const retryController = new AbortController();
+  const retryUrl = privateNvrLiveUrl(refreshed, source.channel, refreshed.input.stream_quality);
+  response = await privateNvrStreamResponse(retryUrl, refreshed.token, refreshed.cookie, retryController.signal);
+  return response ? { response, controller: retryController } : null;
 }
 
 async function ensureRelay(streamId) {
   const existing = relays.get(streamId);
   if (existing?.process && !existing.process.killed) return existing;
-  let source = streamSources.get(streamId);
+  const source = streamSources.get(streamId);
   if (!source) return null;
-  if (source.kind === "private_nvr_http_mp4") source = await refreshPrivateNvrSource(source);
   const directory = relayDirectory(streamId);
+  rmSync(directory, { recursive: true, force: true });
   mkdirSync(directory, { recursive: true });
   const playlist = join(directory, "index.m3u8");
+  const copyVideo = source.codec === "h264" && process.env.VIDEO_GATEWAY_FORCE_TRANSCODE !== "1";
   const args = [
     "-hide_banner", "-loglevel", "error",
     "-i", "pipe:0",
     "-map", "0:v:0",
     "-an",
-    "-c:v", "libx264",
-    "-preset", process.env.VIDEO_GATEWAY_X264_PRESET || "veryfast",
-    "-tune", "zerolatency",
-    "-pix_fmt", "yuv420p",
-    "-g", "30",
-    "-sc_threshold", "0",
+    ...(copyVideo
+      ? ["-c:v", "copy"]
+      : [
+        "-c:v", "libx264",
+        "-preset", process.env.VIDEO_GATEWAY_X264_PRESET || "veryfast",
+        "-tune", "zerolatency",
+        "-pix_fmt", "yuv420p",
+        "-g", "30",
+        "-sc_threshold", "0"
+      ]),
     "-f", "hls",
     "-hls_time", "1",
     "-hls_list_size", "5",
@@ -462,15 +536,22 @@ async function ensureRelay(streamId) {
     "-hls_segment_filename", join(directory, "segment-%06d.ts"),
     playlist
   ];
-  const controller = new AbortController();
-  const response = await privateNvrStreamResponse(source.url, source.token, source.cookie, controller.signal);
-  if (!response) return null;
-  const child = spawn("ffmpeg", args, { stdio: ["pipe", "ignore", "ignore"] });
-  const relay = { process: child, playlist, startedAt: Date.now(), controller };
+  const relaySource = source.kind === "private_nvr_http_mp4" ? await privateNvrRelayResponse(source) : null;
+  if (!relaySource) return null;
+  const { response, controller } = relaySource;
+  const child = spawn("ffmpeg", args, { stdio: ["pipe", "ignore", "pipe"] });
+  const relay = { process: child, playlist, startedAt: Date.now(), controller, errorSummary: "" };
   relays.set(streamId, relay);
   void pipeWebStreamToWritable(response.body, child.stdin).catch(() => child.kill("SIGKILL"));
-  child.on("close", () => {
+  child.stderr.on("data", (chunk) => {
+    relay.errorSummary = `${relay.errorSummary}${chunk.toString("utf8")}`.slice(-2000);
+  });
+  child.on("close", (code) => {
     controller.abort();
+    if (code && relay.errorSummary) {
+      const safeSummary = relay.errorSummary.replace(/(?:https?|rtsp):\/\/\S+/gi, "[private-source]").trim().split("\n").slice(-3).join(" | ");
+      console.error(`video relay exited (${code}): ${safeSummary}`);
+    }
     if (relays.get(streamId)?.process === child) relays.delete(streamId);
   });
   return relay;
@@ -656,7 +737,8 @@ async function handle(request, response) {
       provider: "custom",
       read_only: true,
       streamCount: streamSources.size,
-      failedStreamCount: 0,
+      failedStreamCount: Math.max(0, lastDiscoverySummary.channelCount - lastDiscoverySummary.connectedCount),
+      lastDiscovery: lastDiscoverySummary,
       capabilities: {
         live: true,
         playback: true,
@@ -696,6 +778,10 @@ async function handle(request, response) {
       const relay = await ensureRelay(streamId);
       if (!relay) {
         json(response, 404, { error: "stream_not_registered" });
+        return;
+      }
+      if (!(await waitForFile(relay.playlist, 8000))) {
+        json(response, 503, { error: "stream_starting", retryable: true });
         return;
       }
       const token = issuePlaybackToken(streamId);

@@ -32,14 +32,23 @@ export function ObserverLivePlayer({
 
     async function connect() {
       setState("loading");
-      const response = await fetch("/api/digital-observer/dvr-gateway", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ observer_site_id: observerSiteId, camera_source_id: cameraSourceId, mode: "live" })
-      });
-      const payload = await response.json().catch(() => ({}));
-      const playbackUrl = payload?.data?.playback?.hls_url;
-      if (!response.ok || typeof playbackUrl !== "string" || !playbackUrl) throw new Error("playback_unavailable");
+      let playbackUrl = "";
+      for (let attempt = 0; attempt < 3 && !cancelled; attempt += 1) {
+        const response = await fetch("/api/digital-observer/dvr-gateway", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ observer_site_id: observerSiteId, camera_source_id: cameraSourceId, mode: "live" })
+        });
+        const payload = await response.json().catch(() => ({}));
+        const candidate = payload?.data?.playback?.hls_url;
+        if (response.ok && typeof candidate === "string" && candidate) {
+          playbackUrl = candidate;
+          break;
+        }
+        if (response.status !== 503 || attempt === 2) throw new Error("playback_unavailable");
+        await new Promise((resolve) => setTimeout(resolve, 1200 * (attempt + 1)));
+      }
+      if (!playbackUrl) throw new Error("playback_unavailable");
       if (cancelled) return;
 
       if (videoElement.canPlayType("application/vnd.apple.mpegurl")) {

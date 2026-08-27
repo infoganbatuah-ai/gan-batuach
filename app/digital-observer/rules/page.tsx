@@ -6,6 +6,7 @@ import { ObserverConversationPanel } from "@/components/digital-observer/observe
 import { ObserverAppShell } from "@/components/digital-observer/observer-app-shell";
 import { ObserverCameraMedia } from "@/components/digital-observer/observer-camera-media";
 import { requireDigitalObserverUser } from "@/lib/domain/digital-observer/access";
+import { cameraReportsLocalEventInsights, digitalObserverEdgeAiPolicy } from "@/lib/domain/digital-observer/edge-ai-policy";
 import { getDigitalObserverServiceReadiness } from "@/lib/domain/digital-observer/service-readiness";
 import { formatObserverDate, loadObserverRuntime, observerEventLabel, observerModeForSite, observerSignalMatchesCamera, observerStatusLabel } from "@/lib/domain/digital-observer/runtime";
 
@@ -62,6 +63,7 @@ export default async function DigitalObserverRulesPage() {
   const sourceReady = cameras.some((camera) => ["connected", "healthy", "online", "active"].includes(String(camera.status ?? camera.health_status)));
   const demoOnly = cameras.length > 0 && cameras.every((camera) => camera.source_mode === "demo");
   const localLearningActive = sourceReady && Boolean(learning) && baselines.some((baseline) => baseline.baseline_type === "normal_camera_activity");
+  const localGatewayActive = sourceReady && (localLearningActive || cameras.some(cameraReportsLocalEventInsights));
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
   const todaySignals = signals.filter((signal) => new Date(signal.created_at).getTime() >= todayStart.getTime());
@@ -70,8 +72,8 @@ export default async function DigitalObserverRulesPage() {
     : "לא נקלט היום אירוע עם ראיה תקינה. התצפיתן ממשיך ללמוד מדדי פעילות מהמצלמות המחוברות.";
   const runtimeText = !cameras.length
     ? "ממתין למצלמה הראשונה"
-    : localLearningActive
-      ? "למידת הבית פעילה"
+    : localGatewayActive
+      ? "AI מקומי / Gateway פעיל"
       : sourceReady && readiness.ai.configured
       ? "מוכן ללמידת Shadow מבוקרת"
       : demoOnly
@@ -169,7 +171,9 @@ export default async function DigitalObserverRulesPage() {
                   <div className="do-summary-list">
                     <div><span>פרופיל למידה</span><strong>{learning ? observerStatusLabel(learning.learning_status) : "יתחיל לאחר הוספת מצלמה"}</strong></div>
                     <div><span>בשלות</span><strong>{learning?.learning_maturity === "mature" ? "בשל" : learning?.learning_maturity === "calibrated" ? "מכויל" : learning ? "בתהליך למידה" : "טרם התחיל"}</strong></div>
-                    <div><span>ניתוח וידאו</span><strong>{readiness.ai.configured ? "Shadow בלבד, עם ביקורת" : localLearningActive ? "מדדי פעילות מקומיים פעילים" : "ספק AI טרם חובר"}</strong></div>
+                    <div><span>ניתוח וידאו</span><strong>{readiness.ai.configured ? "Shadow בלבד, עם ביקורת" : localGatewayActive ? "Local Event Insights פעיל" : "מנוע Edge טרם הופעל"}</strong></div>
+                    <div><span>Push</span><strong>טרם הוגדר ספק מסירה</strong></div>
+                    <div><span>Voice</span><strong>כבוי · אין חיוג אוטומטי</strong></div>
                     <div><span>פרטיות</span><strong>{site.vision_privacy_mode === "skeleton_only" ? "שלד ותנועה בלבד" : "זיהוי ביומטרי כבוי עד הסכמה"}</strong></div>
                   </div>
                 </article>
@@ -184,6 +188,16 @@ export default async function DigitalObserverRulesPage() {
                   <div className="do-emergency-centers" aria-label="מוקדי חירום קבועים"><span><PhoneCall /><b>100</b><small>משטרה</small></span><span><PhoneCall /><b>101</b><small>מד״א</small></span><span><PhoneCall /><b>102</b><small>כבאות והצלה</small></span></div>
                   <div className="do-notice warn"><ShieldCheck /><span>שיחה אוטומטית למוקד חירום אינה פעילה. היא תדרוש ספק טלפוניה, אישור משפטי, כתובת מאומתת וביקורת תפעולית.</span></div>
                 </article>
+              </section>
+
+              <section className="do-panel">
+                <div className="do-section-head"><div><h2>AI מקומי ופרטיות מדיה</h2><p>סטטוס יכולות אמיתי ומדיניות Edge ללא ספק AI חיצוני.</p></div><span className={localGatewayActive ? "do-badge good" : "do-badge warn"}>{localGatewayActive ? "Local Event Insights פעיל" : "ממתין ל-Edge"}</span></div>
+                <div className="do-grid cols-3">
+                  <article><ShieldCheck /><h3>פעיל מקומית</h3>{digitalObserverEdgeAiPolicy.activeCapabilities.map((item) => <p key={item}>{item}</p>)}</article>
+                  <article><TriangleAlert /><h3>טרם הוגדר</h3>{digitalObserverEdgeAiPolicy.unavailableCapabilities.map((item) => <p key={item}>{item}</p>)}</article>
+                  <article><Clock3 /><h3>מחיקה והסכמה</h3><p>{digitalObserverEdgeAiPolicy.retention.frames}</p><p>{digitalObserverEdgeAiPolicy.retention.clips}</p><p>{digitalObserverEdgeAiPolicy.retention.insights}</p></article>
+                </div>
+                <div className="do-notice info"><ShieldCheck /><span>{digitalObserverEdgeAiPolicy.consent.monitoring}. {digitalObserverEdgeAiPolicy.consent.biometrics}.</span></div>
               </section>
 
           <section className="do-section">
