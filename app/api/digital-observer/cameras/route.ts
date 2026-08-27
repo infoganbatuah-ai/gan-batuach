@@ -3,6 +3,7 @@ import { fail, handleRouteError, ok } from "@/lib/api";
 import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
 import { buildDigitalObserverCameraReadiness, digitalObserverConnectorTypes } from "@/lib/domain/digital-observer/connectors";
 import { observerCameraPairingMethods } from "@/lib/domain/digital-observer/camera-connection-methods";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 const targets = ["person", "unknown_person", "animal", "entry_exit", "vehicle", "vehicle_tampering", "distress", "room_entry_exit", "after_hours", "camera_obstruction", "restricted_area", "crowding", "door_left_open"] as const;
 
@@ -43,6 +44,47 @@ const removeDemoSchema = z.object({
 });
 
 const schema = z.discriminatedUnion("action", [createSchema, testSchema, disableSchema, renameSchema, removeDemoSchema]);
+
+async function removeSyntheticDemoBundleFallback(sourceId: string, observerSiteId: string) {
+  const admin = createAdminClient() as any;
+  const sourceResult = await admin.from("digital_observer_camera_sources")
+    .select("id,observer_site_id,camera_stream_id,connector_type,connector_provider,source_mode,metadata")
+    .eq("id", sourceId)
+    .eq("observer_site_id", observerSiteId)
+    .single();
+  if (sourceResult.error || !sourceResult.data) throw new Error("DEMO_SOURCE_NOT_FOUND");
+  const source = sourceResult.data;
+  if (source.connector_type !== "demo" || source.connector_provider !== "synthetic_qa" || source.source_mode !== "demo" || (source.metadata?.qa_demo !== true && source.metadata?.synthetic !== true)) {
+    throw new Error("ONLY_SYNTHETIC_DEMO_CAMERA_CAN_BE_REMOVED");
+  }
+
+  const clips = await admin.from("digital_observer_event_clips")
+    .select("id,signal_id,storage_path,snapshot_storage_path")
+    .eq("camera_source_id", sourceId);
+  if (clips.error) throw new Error("DEMO_CLIP_PREFLIGHT_FAILED");
+  if ((clips.data ?? []).some((clip: any) => clip.storage_path || clip.snapshot_storage_path)) throw new Error("DEMO_CAMERA_HAS_STORED_MEDIA");
+
+  const signals = await admin.from("observer_intelligence_signals")
+    .select("id")
+    .eq("observer_site_id", observerSiteId)
+    .contains("metadata", { camera_source_id: sourceId });
+  if (signals.error) throw new Error("DEMO_SIGNAL_PREFLIGHT_FAILED");
+  const signalIds = (signals.data ?? []).map((item: any) => item.id);
+  const ensure = (scope: string, error: any) => {
+    if (error) throw new Error(scope);
+  };
+
+  if (signalIds.length) {
+    ensure("DEMO_DELIVERY_DELETE_FAILED", (await admin.from("digital_observer_notification_deliveries").delete().in("signal_id", signalIds)).error);
+    ensure("DEMO_SIGNAL_CLIP_DELETE_FAILED", (await admin.from("digital_observer_event_clips").delete().in("signal_id", signalIds)).error);
+  }
+  ensure("DEMO_CAMERA_CLIP_DELETE_FAILED", (await admin.from("digital_observer_event_clips").delete().eq("camera_source_id", sourceId)).error);
+  ensure("DEMO_IDENTITY_DELETE_FAILED", (await admin.from("digital_observer_identity_candidates").delete().eq("camera_source_id", sourceId)).error);
+  ensure("DEMO_RULE_DELETE_FAILED", (await admin.from("observer_watch_requests").delete().eq("camera_source_id", sourceId)).error);
+  if (signalIds.length) ensure("DEMO_SIGNAL_DELETE_FAILED", (await admin.from("observer_intelligence_signals").delete().in("id", signalIds)).error);
+  ensure("DEMO_SOURCE_DELETE_FAILED", (await admin.from("digital_observer_camera_sources").delete().eq("id", sourceId).eq("connector_type", "demo").eq("connector_provider", "synthetic_qa").eq("source_mode", "demo")).error);
+  return { camera_removed: true, signals_removed: signalIds.length, clips_removed: (clips.data ?? []).length, fallback: "server_scoped_idempotent" };
+}
 
 export async function POST(request: Request) {
   try {
@@ -101,8 +143,10 @@ export async function POST(request: Request) {
       const { data, error } = await supabase.rpc("remove_digital_observer_demo_camera_bundle", {
         requested_camera_source_id: payload.id
       });
-      if (error) return fail("לא ניתן להסיר את מצלמת ההדמיה. הפעולה מותרת רק למקור דמו סינתטי ללא מדיה שמורה.", 400);
-      return ok({ result: data, message: "מצלמת ההדמיה והנתונים הסינתטיים המשויכים אליה הוסרו." });
+      if (!error) return ok({ result: data, message: "מצלמת ההדמיה והנתונים הסינתטיים המשויכים אליה הוסרו." });
+      if (!["PGRST202", "42883"].includes(String(error.code || ""))) return fail("לא ניתן להסיר את מצלמת ההדמיה. הפעולה מותרת רק למקור דמו סינתטי ללא מדיה שמורה.", 400);
+      const result = await removeSyntheticDemoBundleFallback(payload.id, source.observer_site_id);
+      return ok({ result, message: "מצלמת ההדמיה והנתונים הסינתטיים המשויכים אליה הוסרו." });
     }
 
     if (payload.action === "disable") {

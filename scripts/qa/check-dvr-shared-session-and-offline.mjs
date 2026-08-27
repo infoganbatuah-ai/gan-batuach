@@ -6,6 +6,7 @@ const liveStatus = readFileSync(new URL("../../lib/domain/digital-observer/camer
 const player = readFileSync(new URL("../../components/digital-observer/observer-live-player.tsx", import.meta.url), "utf8");
 const migration = readFileSync(new URL("../../supabase/migrations/20260827000400_remove_digital_observer_demo_bundle.sql", import.meta.url), "utf8");
 const edgePolicy = readFileSync(new URL("../../lib/domain/digital-observer/edge-ai-policy.ts", import.meta.url), "utf8");
+const cameraRoute = readFileSync(new URL("../../app/api/digital-observer/cameras/route.ts", import.meta.url), "utf8");
 
 for (const required of [
   "const privateNvrSessions = new Map()",
@@ -32,6 +33,9 @@ for (const required of ["ONLY_SYNTHETIC_DEMO_CAMERA_CAN_BE_REMOVED", "connector_
 }
 for (const required of ["structured_insights_only", "פריימים לדגימה", "Push חיצוני טרם הוגדר", "זיהוי ביומטרי כבוי"]) {
   if (!edgePolicy.includes(required)) throw new Error(`Missing truthful local AI policy: ${required}`);
+}
+for (const required of ["removeSyntheticDemoBundleFallback", 'connector_provider !== "synthetic_qa"', "DEMO_CAMERA_HAS_STORED_MEDIA", 'eq("source_mode", "demo")']) {
+  if (!cameraRoute.includes(required)) throw new Error(`Missing production demo cleanup boundary: ${required}`);
 }
 
 console.log("DVR shared session, offline status and local AI policy PASS");
