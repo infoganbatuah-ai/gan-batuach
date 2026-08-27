@@ -100,17 +100,17 @@ type GatewayRequestOptions = {
 
 export const cloudDvrDiscoveryChannelSchema = z.object({
   channel: z.number().int().min(1).max(128),
-  name: z.string().trim().min(1).max(120).optional(),
-  area: z.string().trim().min(1).max(120).optional(),
-  stream_id: z.string().trim().min(1).max(160).optional(),
-  gateway_stream_id: z.string().trim().min(1).max(160).optional(),
+  name: z.string().trim().min(1).max(120).nullable().optional(),
+  area: z.string().trim().min(1).max(120).nullable().optional(),
+  stream_id: z.string().trim().min(1).max(160).nullable().optional(),
+  gateway_stream_id: z.string().trim().min(1).max(160).nullable().optional(),
   status: z.enum(["connected", "pending", "offline", "failed", "error"]).default("pending"),
-  health_status: z.enum(["healthy", "pending", "unknown", "failed", "offline", "error"]).optional(),
+  health_status: z.enum(["healthy", "pending", "unknown", "failed", "offline", "error"]).nullable().optional(),
   width: z.number().int().positive().max(10000).nullable().optional(),
   height: z.number().int().positive().max(10000).nullable().optional(),
   candidates_tried: z.number().int().min(0).max(20).optional(),
-  template: z.string().trim().max(80).optional(),
-  reason: z.string().trim().max(120).optional()
+  template: z.string().trim().max(80).nullable().optional(),
+  reason: z.string().trim().max(120).nullable().optional()
 }).strict();
 
 export const cloudDvrDiscoverySchema = z.object({
