@@ -7,6 +7,7 @@ const gatewayId = process.argv[3] || "home-mac-gateway";
 if (!observerSiteId) throw new Error("observer site id is required");
 
 const secret = crypto.randomBytes(48).toString("base64url");
+const gatewaySecret = crypto.randomBytes(48).toString("base64url");
 const allowlist = `${gatewayId}:${observerSiteId}`;
 
 function vercel(args, input) {
@@ -19,17 +20,19 @@ function vercel(args, input) {
   if (result.status !== 0) throw new Error(result.stderr || result.stdout || `Vercel command failed: ${args.join(" ")}`);
 }
 
-for (const name of ["VIDEO_GATEWAY_CLOUD_DISCOVERY_SECRET", "VIDEO_GATEWAY_CLOUD_ALLOWED_GATEWAYS"]) {
+for (const name of ["VIDEO_GATEWAY_CLOUD_DISCOVERY_SECRET", "VIDEO_GATEWAY_CLOUD_ALLOWED_GATEWAYS", "VIDEO_GATEWAY_SIGNING_SECRET"]) {
   try { vercel(["env", "rm", name, "production", "--yes"]); } catch { /* Variable may not exist yet. */ }
 }
 vercel(["env", "add", "VIDEO_GATEWAY_CLOUD_DISCOVERY_SECRET", "production", "--sensitive"], `${secret}\n`);
 vercel(["env", "add", "VIDEO_GATEWAY_CLOUD_ALLOWED_GATEWAYS", "production", "--sensitive"], `${allowlist}\n`);
+vercel(["env", "add", "VIDEO_GATEWAY_SIGNING_SECRET", "production", "--sensitive"], `${gatewaySecret}\n`);
 
 writeFileSync(".env.video-gateway.local", [
   "VIDEO_GATEWAY_CLOUD_BASE_URL=https://gan-batuach.vercel.app",
   `VIDEO_GATEWAY_CLOUD_GATEWAY_ID=${gatewayId}`,
   `VIDEO_GATEWAY_CLOUD_OBSERVER_SITE_ID=${observerSiteId}`,
   `VIDEO_GATEWAY_CLOUD_DISCOVERY_SECRET=${secret}`,
+  `VIDEO_GATEWAY_SIGNING_SECRET=${gatewaySecret}`,
   ""
 ].join("\n"), { mode: 0o600 });
 chmodSync(".env.video-gateway.local", 0o600);
