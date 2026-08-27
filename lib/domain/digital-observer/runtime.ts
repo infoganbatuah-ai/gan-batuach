@@ -44,6 +44,26 @@ export function observerSignalMatchesCamera(signal: ObserverRow, cameraReference
   return signal.camera_id === cameraReference || signal.metadata?.camera_source_id === cameraReference;
 }
 
+export function observerClipForSignal(signal: ObserverRow | null | undefined, clips: ObserverRow[]) {
+  if (!signal?.id) return null;
+  return clips.find((clip) => clip.signal_id === signal.id) ?? null;
+}
+
+export function observerClipHasRequiredMedia(clip: ObserverRow | null | undefined) {
+  const metadata = clip?.metadata && typeof clip.metadata === "object" ? clip.metadata : {};
+  return Boolean(
+    clip
+    && clip.clip_status === "available"
+    && (clip.storage_path || metadata.clip_available === true)
+    && (clip.snapshot_storage_path || metadata.thumbnail_available === true)
+    && clip.camera_source_id
+  );
+}
+
+export function observerSignalHasRequiredEvidence(signal: ObserverRow, cameras: ObserverRow[], clips: ObserverRow[]) {
+  return Boolean(observerCameraForSignal(signal, cameras) && observerClipHasRequiredMedia(observerClipForSignal(signal, clips)));
+}
+
 export function observerStatusLabel(value?: unknown) {
   const labels: Record<string, string> = {
     active: "פעיל",
@@ -142,8 +162,9 @@ export function observerEventLabel(value?: unknown) {
     restricted_area: "תנועה באזור מוגבל",
     camera_offline: "מצלמה נותקה",
     camera_obstruction: "ייתכן שהמצלמה מכוסה",
+    camera_media_readiness: "בדיקת מדיית מצלמה",
     pattern: "דפוס חריג",
-    system: "אירוע מערכת"
+    system: "אירוע מערכת",
   };
   return labels[String(value ?? "")] ?? "אירוע לבדיקה";
 }

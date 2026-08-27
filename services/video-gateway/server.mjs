@@ -1,6 +1,6 @@
 import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
 import { spawn } from "node:child_process";
-import { existsSync, mkdirSync, readFileSync } from "node:fs";
+import { existsSync, mkdirSync, readFileSync, rmSync, statSync } from "node:fs";
 import http from "node:http";
 import { tmpdir } from "node:os";
 import { extname, join, normalize } from "node:path";
@@ -13,6 +13,9 @@ const DEFAULT_CHANNEL_COUNT = Number(process.env.DVR_EXPECTED_CHANNEL_COUNT || 1
 const MAX_CHANNEL_COUNT = 64;
 const HLS_ROOT = join(tmpdir(), "gan-batuach-video-gateway-hls");
 const PLAYBACK_TOKEN_TTL_MS = 5 * 60 * 1000;
+const EVENT_CLIP_MAX_SECONDS = 30;
+const EVENT_THUMBNAIL_MAX_BYTES = 512 * 1024;
+const EVENT_CLIP_MAX_BYTES = 8 * 1024 * 1024;
 const streamSources = new Map();
 const relays = new Map();
 const playbackTokens = new Map();
@@ -515,6 +518,74 @@ async function analyzeRelayActivity(streamId) {
   });
 }
 
+async function runFfmpeg(args, timeoutMs = 15000) {
+  return await new Promise((resolve) => {
+    const child = spawn("ffmpeg", args, { stdio: ["ignore", "ignore", "ignore"] });
+    const timeout = setTimeout(() => child.kill("SIGKILL"), timeoutMs);
+    child.on("error", () => {
+      clearTimeout(timeout);
+      resolve(false);
+    });
+    child.on("close", (code) => {
+      clearTimeout(timeout);
+      resolve(code === 0);
+    });
+  });
+}
+
+async function captureEventMedia(streamId, input = {}) {
+  const relay = await ensureRelay(streamId);
+  if (!relay || !(await waitForFile(relay.playlist))) return { status: "failed", reason: "relay_not_ready", retryable: true };
+  const before = Math.max(0, Math.min(15, Number(input.window_seconds_before ?? 3)));
+  const after = Math.max(0, Math.min(15, Number(input.window_seconds_after ?? 5)));
+  const duration = Math.max(1, Math.min(EVENT_CLIP_MAX_SECONDS, before + after));
+  if (after > 0) await new Promise((resolve) => setTimeout(resolve, after * 1000));
+  const directory = join(tmpdir(), `gan-batuach-event-${randomBytes(8).toString("hex")}`);
+  mkdirSync(directory, { recursive: true });
+  const clipPath = join(directory, "clip.mp4");
+  const thumbnailPath = join(directory, "thumbnail.jpg");
+  const clipOk = await runFfmpeg([
+    "-hide_banner", "-loglevel", "error",
+    "-i", relay.playlist,
+    "-t", String(duration),
+    "-map", "0:v:0",
+    "-an",
+    "-c:v", "libx264",
+    "-preset", process.env.VIDEO_GATEWAY_X264_PRESET || "veryfast",
+    "-pix_fmt", "yuv420p",
+    "-movflags", "+faststart",
+    clipPath
+  ], Math.max(12000, (duration + 8) * 1000));
+  const thumbnailOk = clipOk && await runFfmpeg([
+    "-hide_banner", "-loglevel", "error",
+    "-i", clipPath,
+    "-frames:v", "1",
+    "-vf", "scale=640:-2",
+    thumbnailPath
+  ], 8000);
+  try {
+    if (!clipOk || !thumbnailOk || !existsSync(clipPath) || !existsSync(thumbnailPath)) return { status: "failed", reason: "ffmpeg_capture_failed", retryable: true };
+    const clipSize = statSync(clipPath).size;
+    const thumbnailSize = statSync(thumbnailPath).size;
+    if (clipSize < 1 || clipSize > EVENT_CLIP_MAX_BYTES) return { status: "failed", reason: "clip_size_not_allowed", retryable: true };
+    if (thumbnailSize < 1 || thumbnailSize > EVENT_THUMBNAIL_MAX_BYTES) return { status: "failed", reason: "thumbnail_size_not_allowed", retryable: true };
+    return {
+      status: "available",
+      captured_at: new Date().toISOString(),
+      duration_seconds: duration,
+      window_seconds_before: before,
+      window_seconds_after: after,
+      clip: { content_type: "video/mp4", base64: readFileSync(clipPath).toString("base64"), size: clipSize },
+      thumbnail: { content_type: "image/jpeg", base64: readFileSync(thumbnailPath).toString("base64"), size: thumbnailSize },
+      read_only: true,
+      controls_supported: false,
+      no_secrets_returned: true
+    };
+  } finally {
+    rmSync(directory, { recursive: true, force: true });
+  }
+}
+
 function publicGatewayBase(request) {
   const configured = String(process.env.VIDEO_GATEWAY_EXTERNAL_BASE_URL || "").replace(/\/$/, "");
   if (configured) return configured;
@@ -652,6 +723,16 @@ async function handle(request, response) {
         local_processing: true,
         no_raw_video_returned: true
       });
+      return;
+    }
+    const eventMediaMatch = request.url?.match(/^\/camera\/([^/]+)\/event-media$/);
+    if (eventMediaMatch && request.method === "POST") {
+      const streamId = decodeURIComponent(eventMediaMatch[1]);
+      if (!streamSources.has(streamId)) {
+        json(response, 404, { error: "stream_not_registered" });
+        return;
+      }
+      json(response, 200, await captureEventMedia(streamId, await readJson(request)));
       return;
     }
     json(response, 404, { error: "not_found" });

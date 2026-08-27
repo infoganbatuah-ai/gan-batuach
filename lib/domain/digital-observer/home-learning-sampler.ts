@@ -30,14 +30,24 @@ async function recordLearningUpdate(supabase: SupabaseLike, observerSiteId: stri
   recommendedAction: string;
   metadata: Record<string, unknown>;
   severity?: "info" | "low" | "medium";
+  cameraSourceId?: string | null;
 }) {
   const existing = await supabase
     .from("observer_intelligence_signals")
-    .select("id")
+    .select("id,metadata")
     .eq("observer_site_id", observerSiteId)
     .eq("pattern_key", input.patternKey)
     .maybeSingle();
-  if (existing.data?.id) return;
+  if (existing.data?.id) {
+    const existingMetadata = objectValue(existing.data.metadata);
+    if (input.cameraSourceId && !existingMetadata.camera_source_id) {
+      await supabase
+        .from("observer_intelligence_signals")
+        .update({ metadata: { ...existingMetadata, camera_source_id: input.cameraSourceId, evidence_repair: "linked_first_active_camera_source" } })
+        .eq("id", existing.data.id);
+    }
+    return;
+  }
   const result = await supabase.from("observer_intelligence_signals").insert({
     signal_type: "pattern",
     source_type: "system",
@@ -54,6 +64,7 @@ async function recordLearningUpdate(supabase: SupabaseLike, observerSiteId: stri
       event_type: input.eventType,
       local_metrics_only: true,
       no_raw_video_received: true,
+      camera_source_id: input.cameraSourceId ?? input.metadata.camera_source_id ?? null,
       no_automatic_physical_action: true,
       ...input.metadata
     }
@@ -61,7 +72,7 @@ async function recordLearningUpdate(supabase: SupabaseLike, observerSiteId: stri
   if (result.error) throw new Error(result.error.message);
 }
 
-export async function recordHomeActivityMetrics(supabase: SupabaseLike, observerSiteId: string, samples: Array<{ motion_score: number; luminance_score: number; sampled_at: string }>) {
+export async function recordHomeActivityMetrics(supabase: SupabaseLike, observerSiteId: string, samples: Array<{ stream_id?: string; motion_score: number; luminance_score: number; sampled_at: string }>) {
   const { data: site, error: siteError } = await supabase
     .from("observer_sites")
     .select("id,metadata,monitoring_enabled")
@@ -71,6 +82,20 @@ export async function recordHomeActivityMetrics(supabase: SupabaseLike, observer
   const siteMetadata = objectValue(site.metadata);
   if (site.monitoring_enabled !== true || siteMetadata.observer_monitoring_consent !== true) throw new Error("Observer monitoring consent is required");
   if (!samples.length) return { observer_site_id: observerSiteId, sampled: 0, confidence: 0 };
+  const streamIds = [...new Set(samples.map((sample) => String(sample.stream_id ?? "").trim()).filter(Boolean))];
+  const { data: cameraSources } = streamIds.length
+    ? await supabase
+      .from("digital_observer_camera_sources")
+      .select("id,metadata")
+      .eq("observer_site_id", observerSiteId)
+    : { data: [] };
+  const cameraByStream = new Map<string, string>();
+  for (const source of cameraSources ?? []) {
+    const metadata = objectValue(source.metadata);
+    const streamId = String(metadata.gateway_stream_id ?? "").trim();
+    if (streamId) cameraByStream.set(streamId, source.id);
+  }
+  const primaryCameraSourceId = streamIds.map((streamId) => cameraByStream.get(streamId)).find(Boolean) ?? null;
 
   const motion = samples.reduce((sum, item) => sum + boundedScore(item.motion_score), 0) / samples.length;
   const luminance = samples.reduce((sum, item) => sum + boundedScore(item.luminance_score), 0) / samples.length;
@@ -140,6 +165,7 @@ export async function recordHomeActivityMetrics(supabase: SupabaseLike, observer
     eventType: "home_learning_started",
     confidence,
     recommendedAction: "אין צורך בפעולה. התצפיתן התחיל ללמוד את שגרת הבית ממדדי פעילות מקומיים בלבד.",
+    cameraSourceId: primaryCameraSourceId,
     metadata: { sample_count: nextCount, active_camera_count: samples.length, baseline_status: nextCount >= 288 ? "baseline_ready" : "collecting" }
   });
 
@@ -152,6 +178,7 @@ export async function recordHomeActivityMetrics(supabase: SupabaseLike, observer
       recommendedAction: milestone === 288
         ? "קו הבסיס הראשוני הושלם. מומלץ לעבור על התובנות ולאשר שהן מתאימות לשגרת הבית."
         : "אין צורך בפעולה. התצפיתן ממשיך לאסוף מדדי פעילות מקומיים לבניית שגרת הבית.",
+      cameraSourceId: primaryCameraSourceId,
       metadata: { sample_count: nextCount, active_camera_count: samples.length, baseline_status: nextCount >= 288 ? "baseline_ready" : "collecting" }
     });
   }
@@ -168,6 +195,7 @@ export async function recordHomeActivityMetrics(supabase: SupabaseLike, observer
       confidence: Math.max(motionDeviation, luminanceDeviation),
       severity: motionDeviation >= 0.55 || luminanceDeviation >= 0.65 ? "medium" : "low",
       recommendedAction: "נמדד שינוי ביחס לשגרה שנאספה. מומלץ לבדוק את המצלמות הפעילות לפני כל פעולה נוספת.",
+      cameraSourceId: primaryCameraSourceId,
       metadata: {
         sample_count: nextCount,
         active_camera_count: samples.length,

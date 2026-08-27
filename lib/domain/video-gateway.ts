@@ -734,7 +734,7 @@ export async function materializeCloudDvrDiscovery(payload: z.infer<typeof cloud
       connected,
       statusHint: channel.status
     });
-    results.push({ camera: camera ? sanitizeCameraRow(camera as any) : null, observer_source: observerSource });
+    results.push({ camera: camera ? sanitizeCameraRow(camera as any) : null, observer_source: observerSource, gateway_stream_id: gatewayStreamId });
   }
 
   if (observerSiteId && connectedCount > 0) {

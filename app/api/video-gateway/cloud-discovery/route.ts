@@ -142,7 +142,13 @@ export async function POST(request: Request) {
       status: "mapped",
       channel_count: result.channel_count,
       connected_channel_count: result.connected_channel_count,
-      observer_site_id: result.observer_site_id
+      observer_site_id: result.observer_site_id,
+      channels: result.channels.map((item: any) => ({
+        camera_source_id: item.observer_source?.id ?? null,
+        gateway_stream_id: item.gateway_stream_id ?? null,
+        status: item.observer_source?.status ?? null,
+        health_status: item.observer_source?.health_status ?? null
+      }))
     }, 201);
   } catch (error) {
     await markEventProcessed(eventId, "failed", { error: error instanceof Error ? error.message : "unknown" });

@@ -31,6 +31,12 @@ function sign(timestamp, nonce, body) {
   return `sha256=${crypto.createHmac("sha256", cloudSecret).update(`${timestamp}.${nonce}.${body}`).digest("hex")}`;
 }
 
+function signEventMedia(timestamp, nonce, metadataText, clipBytes, thumbnailBytes) {
+  const clipHash = crypto.createHash("sha256").update(clipBytes).digest("hex");
+  const thumbnailHash = crypto.createHash("sha256").update(thumbnailBytes).digest("hex");
+  return `sha256=${crypto.createHmac("sha256", cloudSecret).update(`${timestamp}.${nonce}.${metadataText}.${clipHash}.${thumbnailHash}`).digest("hex")}`;
+}
+
 async function signedPost(path, payload) {
   const body = JSON.stringify(payload);
   const timestamp = new Date().toISOString();
@@ -56,7 +62,12 @@ async function discover() {
   const result = await response.json();
   if (!response.ok) throw new Error("DVR discovery failed");
   channels = (result.channels || []).map((channel, index) => Object.fromEntries(Object.entries({ channel: Number(channel.channel || index + 1), name: channel.name, area: channel.area, stream_id: channel.stream_id, gateway_stream_id: channel.gateway_stream_id || channel.stream_id, status: channel.status, health_status: channel.health_status, width: channel.width ?? null, height: channel.height ?? null, candidates_tried: channel.candidates_tried, template: channel.template, reason: channel.reason }).filter(([, value]) => value !== undefined && value !== null)));
-  await signedPost("/api/video-gateway/cloud-discovery", { gateway_id: gatewayId, observer_site_id: observerSiteId, connection_type: "dvr", vendor: config.vendor, discovery_id: crypto.randomUUID(), discovered_at: new Date().toISOString(), channel_count: channels.length, connected_channel_count: channels.filter((channel) => channel.status === "connected").length, failed_channel_count: channels.filter((channel) => channel.status !== "connected").length, latency_ms: Number(result.latency_ms || 0), read_only: true, controls_supported: false, no_secrets_returned: true, channels, metadata: { source: "persistent_home_gateway", ai_shadow_only: true, read_only: true } });
+  const mapped = await signedPost("/api/video-gateway/cloud-discovery", { gateway_id: gatewayId, observer_site_id: observerSiteId, connection_type: "dvr", vendor: config.vendor, discovery_id: crypto.randomUUID(), discovered_at: new Date().toISOString(), channel_count: channels.length, connected_channel_count: channels.filter((channel) => channel.status === "connected").length, failed_channel_count: channels.filter((channel) => channel.status !== "connected").length, latency_ms: Number(result.latency_ms || 0), read_only: true, controls_supported: false, no_secrets_returned: true, channels, metadata: { source: "persistent_home_gateway", ai_shadow_only: true, read_only: true } });
+  const mappedChannels = Array.isArray(mapped.channels) ? mapped.channels : [];
+  channels = channels.map((channel) => {
+    const mappedChannel = mappedChannels.find((item) => item?.gateway_stream_id === channel.gateway_stream_id);
+    return { ...channel, camera_source_id: mappedChannel?.camera_source_id ?? channel.camera_source_id ?? null };
+  });
 }
 
 async function learn() {
@@ -71,9 +82,67 @@ async function learn() {
   if (samples.length) await signedPost("/api/video-gateway/cloud-learning", { gateway_id: gatewayId, observer_site_id: observerSiteId, sample_id: crypto.randomUUID(), sampled_at: new Date().toISOString(), local_processing: true, no_raw_video_returned: true, samples });
 }
 
+async function submitReadinessEvidence() {
+  const channel = channels.find((item) => item.status === "connected" && item.gateway_stream_id && item.camera_source_id);
+  if (!channel) return { submitted: false, reason: "no_connected_mapped_channel" };
+  const response = await fetch(`${gatewayUrl}/camera/${encodeURIComponent(channel.gateway_stream_id)}/event-media`, {
+    method: "POST",
+    headers: { "content-type": "application/json", "x-video-gateway-secret": gatewaySecret },
+    body: JSON.stringify({ window_seconds_before: 3, window_seconds_after: 5 })
+  });
+  const media = await response.json();
+  if (!response.ok || media.status !== "available") return { submitted: false, reason: media.reason || "media_capture_failed" };
+  const clipBytes = Buffer.from(String(media.clip?.base64 || ""), "base64");
+  const thumbnailBytes = Buffer.from(String(media.thumbnail?.base64 || ""), "base64");
+  if (!clipBytes.length || !thumbnailBytes.length) return { submitted: false, reason: "media_bytes_missing" };
+  const metadata = {
+    gateway_id: gatewayId,
+    observer_site_id: observerSiteId,
+    event_id: crypto.randomUUID(),
+    camera_source_id: channel.camera_source_id,
+    stream_id: channel.gateway_stream_id,
+    event_type: "camera_media_readiness",
+    severity: "info",
+    confidence: 1,
+    captured_at: media.captured_at || new Date().toISOString(),
+    duration_seconds: Number(media.duration_seconds || 8),
+    window_seconds_before: Number(media.window_seconds_before || 3),
+    window_seconds_after: Number(media.window_seconds_after || 5),
+    retry_count: 0,
+    local_capture: true,
+    read_only: true,
+    controls_supported: false,
+    no_dvr_credentials_returned: true,
+    no_rtsp_returned: true,
+    metadata: { source: "persistent_home_gateway", channel: channel.channel, ai_shadow_only: true }
+  };
+  const metadataText = JSON.stringify(metadata);
+  const timestamp = new Date().toISOString();
+  const nonce = crypto.randomUUID();
+  const form = new FormData();
+  form.set("metadata", metadataText);
+  form.set("clip", new Blob([clipBytes], { type: "video/mp4" }), "clip.mp4");
+  form.set("thumbnail", new Blob([thumbnailBytes], { type: "image/jpeg" }), "thumbnail.jpg");
+  const upload = await fetch(`${productionBaseUrl.replace(/\/$/, "")}/api/video-gateway/cloud-event-media`, {
+    method: "POST",
+    headers: {
+      "x-video-gateway-id": gatewayId,
+      "x-video-gateway-timestamp": timestamp,
+      "x-video-gateway-nonce": nonce,
+      "x-video-gateway-signature": signEventMedia(timestamp, nonce, metadataText, clipBytes, thumbnailBytes)
+    },
+    body: form
+  });
+  if (!upload.ok) throw new Error(`Cloud event media failed (${upload.status})`);
+  return { submitted: true };
+}
+
 await waitForGateway();
 await discover();
 await learn();
+void submitReadinessEvidence().then((result) => {
+  if (!result.submitted) console.error(`event media skipped: ${result.reason}`);
+}).catch((error) => console.error(error.message));
 setInterval(() => void learn().catch((error) => console.error(error.message)), 5 * 60 * 1000).unref();
 setInterval(() => void discover().catch((error) => console.error(error.message)), 60 * 60 * 1000).unref();
 
