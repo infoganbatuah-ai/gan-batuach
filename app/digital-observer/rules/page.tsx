@@ -47,9 +47,12 @@ export default async function DigitalObserverRulesPage() {
   const readiness = getDigitalObserverServiceReadiness();
   const sourceReady = cameras.some((camera) => ["connected", "healthy", "online", "active"].includes(String(camera.status ?? camera.health_status)));
   const demoOnly = cameras.length > 0 && cameras.every((camera) => camera.source_mode === "demo");
+  const localLearningActive = sourceReady && Boolean(learning) && baselines.some((baseline) => baseline.baseline_type === "normal_camera_activity");
   const runtimeText = !cameras.length
     ? "ממתין למצלמה הראשונה"
-    : sourceReady && readiness.ai.configured
+    : localLearningActive
+      ? "למידת הבית פעילה"
+      : sourceReady && readiness.ai.configured
       ? "מוכן ללמידת Shadow מבוקרת"
       : demoOnly
         ? "לומד מתרחישי הדמיה בלבד"
@@ -134,7 +137,7 @@ export default async function DigitalObserverRulesPage() {
                   <div className="do-summary-list">
                     <div><span>פרופיל למידה</span><strong>{learning ? observerStatusLabel(learning.learning_status) : "יתחיל לאחר הוספת מצלמה"}</strong></div>
                     <div><span>בשלות</span><strong>{learning?.learning_maturity === "mature" ? "בשל" : learning?.learning_maturity === "calibrated" ? "מכויל" : learning ? "בתהליך למידה" : "טרם התחיל"}</strong></div>
-                    <div><span>ניתוח וידאו</span><strong>{readiness.ai.configured ? "Shadow בלבד, עם ביקורת" : "ספק AI טרם חובר"}</strong></div>
+                    <div><span>ניתוח וידאו</span><strong>{readiness.ai.configured ? "Shadow בלבד, עם ביקורת" : localLearningActive ? "מדדי פעילות מקומיים פעילים" : "ספק AI טרם חובר"}</strong></div>
                     <div><span>פרטיות</span><strong>{site.vision_privacy_mode === "skeleton_only" ? "שלד ותנועה בלבד" : "זיהוי ביומטרי כבוי עד הסכמה"}</strong></div>
                   </div>
                 </article>
@@ -156,14 +159,14 @@ export default async function DigitalObserverRulesPage() {
           </section>
 
           <section className="do-panel">
-            <div className="do-section-head"><div><h2>מסלול תצפית חיה</h2><p>כך אירוע מורשה אמור לעבור מהמצלמה אל הסבר שימושי, בלי לחשוף כתובת RTSP או להציג פעולה שלא הופעלה.</p></div><span className={sourceReady && readiness.ai.configured && !demoOnly ? "do-badge good" : "do-badge warn"}>{sourceReady && readiness.ai.configured && !demoOnly ? "מוכן ל-Shadow מבוקר" : "מוכנות בלבד"}</span></div>
+            <div className="do-section-head"><div><h2>מסלול תצפית חיה</h2><p>כך אירוע מורשה עובר מהמצלמה אל הסבר שימושי, בלי לחשוף כתובת מקור או להציג פעולה שלא הופעלה.</p></div><span className={sourceReady && (readiness.ai.configured || localLearningActive) && !demoOnly ? "do-badge good" : "do-badge warn"}>{sourceReady && (readiness.ai.configured || localLearningActive) && !demoOnly ? "למידה מבוקרת פעילה" : "מוכנות בלבד"}</span></div>
             <div className="do-grid cols-4">
               <article className="do-metric"><Camera /><strong>{demoOnly ? "דמו" : sourceReady ? "מוכן" : "ממתין"}</strong><span>Gateway ומקור מורשה</span></article>
-              <article className="do-metric"><Radar /><strong>{readiness.ai.configured ? "Shadow" : "כבוי"}</strong><span>זיהוי אירוע או שינוי</span></article>
+              <article className="do-metric"><Radar /><strong>{readiness.ai.configured ? "Shadow" : localLearningActive ? "מקומי" : "כבוי"}</strong><span>זיהוי אירוע או שינוי</span></article>
               <article className="do-metric"><Activity /><strong>{signals.length}</strong><span>אירועים מובנים באתר</span></article>
               <article className="do-metric"><BrainCircuit /><strong>{reviewedSignals.length}</strong><span>הסברים עם תוצאה מאומתת</span></article>
             </div>
-            <div className="do-notice warn"><ShieldCheck /><span>וידאו חי, זיהוי ביומטרי ופעולת חירום נשארים כבויים. בדיקת תצפית חיה תתחיל רק עם Gateway מקומי, מקור מורשה, מדיניות פרטיות ו-AI במצב Shadow.</span></div>
+            <div className="do-notice warn"><ShieldCheck /><span>{localLearningActive ? "הלמידה המקומית פעילה על מדדי תנועה ותאורה בלבד. וידאו גולמי, זיהוי ביומטרי ופעולת חירום אינם נשלחים או מופעלים אוטומטית." : "זיהוי ביומטרי ופעולת חירום נשארים כבויים עד חיבור ספק מאושר ואישור מפורש."}</span></div>
           </section>
 
           <section className="do-panel">

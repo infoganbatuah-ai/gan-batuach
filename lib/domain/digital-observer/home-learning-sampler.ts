@@ -23,6 +23,44 @@ function rollingAverage(previous: number, count: number, next: number) {
   return Number((((previous * count) + next) / (count + 1)).toFixed(4));
 }
 
+async function recordLearningUpdate(supabase: SupabaseLike, observerSiteId: string, input: {
+  patternKey: string;
+  eventType: string;
+  confidence: number;
+  recommendedAction: string;
+  metadata: Record<string, unknown>;
+  severity?: "info" | "low" | "medium";
+}) {
+  const existing = await supabase
+    .from("observer_intelligence_signals")
+    .select("id")
+    .eq("observer_site_id", observerSiteId)
+    .eq("pattern_key", input.patternKey)
+    .maybeSingle();
+  if (existing.data?.id) return;
+  const result = await supabase.from("observer_intelligence_signals").insert({
+    signal_type: "pattern",
+    source_type: "system",
+    observer_site_id: observerSiteId,
+    severity: input.severity ?? "info",
+    confidence: boundedScore(input.confidence),
+    review_status: "needs_review",
+    recommended_action: input.recommendedAction,
+    risk_score: input.severity === "medium" ? 35 : input.severity === "low" ? 18 : 5,
+    pattern_key: input.patternKey,
+    human_review_required: true,
+    parent_visible: false,
+    metadata: {
+      event_type: input.eventType,
+      local_metrics_only: true,
+      no_raw_video_received: true,
+      no_automatic_physical_action: true,
+      ...input.metadata
+    }
+  });
+  if (result.error) throw new Error(result.error.message);
+}
+
 export async function recordHomeActivityMetrics(supabase: SupabaseLike, observerSiteId: string, samples: Array<{ motion_score: number; luminance_score: number; sampled_at: string }>) {
   const { data: site, error: siteError } = await supabase
     .from("observer_sites")
@@ -96,6 +134,40 @@ export async function recordHomeActivityMetrics(supabase: SupabaseLike, observer
   }, { onConflict: "observer_site_id" });
   if (profileResult.error) throw new Error(profileResult.error.message);
   await supabase.from("observer_sites").update({ observer_runtime_status: nextCount >= 288 ? "learning_shadow" : "learning_readiness", updated_at: now }).eq("id", observerSiteId);
+
+  const milestone = [1, 12, 72, 144, 288].includes(nextCount) ? nextCount : null;
+  if (milestone) {
+    await recordLearningUpdate(supabase, observerSiteId, {
+      patternKey: `home_learning_progress:${observerSiteId}:${milestone}`,
+      eventType: milestone === 1 ? "home_learning_started" : "home_learning_progress",
+      confidence,
+      recommendedAction: milestone === 288
+        ? "קו הבסיס הראשוני הושלם. מומלץ לעבור על התובנות ולאשר שהן מתאימות לשגרת הבית."
+        : "אין צורך בפעולה. התצפיתן ממשיך לאסוף מדדי פעילות מקומיים לבניית שגרת הבית.",
+      metadata: { sample_count: nextCount, active_camera_count: samples.length, baseline_status: nextCount >= 288 ? "baseline_ready" : "collecting" }
+    });
+  }
+
+  const priorMotion = boundedScore(prior.average_motion_score);
+  const priorLuminance = boundedScore(prior.average_luminance_score);
+  const motionDeviation = Math.abs(motion - priorMotion);
+  const luminanceDeviation = Math.abs(luminance - priorLuminance);
+  if (sampleCount >= 24 && (motionDeviation >= 0.35 || luminanceDeviation >= 0.45)) {
+    const hourKey = now.slice(0, 13);
+    await recordLearningUpdate(supabase, observerSiteId, {
+      patternKey: `home_activity_change:${observerSiteId}:${hourKey}`,
+      eventType: "home_activity_change",
+      confidence: Math.max(motionDeviation, luminanceDeviation),
+      severity: motionDeviation >= 0.55 || luminanceDeviation >= 0.65 ? "medium" : "low",
+      recommendedAction: "נמדד שינוי ביחס לשגרה שנאספה. מומלץ לבדוק את המצלמות הפעילות לפני כל פעולה נוספת.",
+      metadata: {
+        sample_count: nextCount,
+        active_camera_count: samples.length,
+        motion_deviation: Number(motionDeviation.toFixed(4)),
+        luminance_deviation: Number(luminanceDeviation.toFixed(4))
+      }
+    });
+  }
   return { observer_site_id: observerSiteId, sampled: samples.length, confidence, sample_count: nextCount };
 }
 
