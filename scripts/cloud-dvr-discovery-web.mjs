@@ -185,7 +185,7 @@ function sanitizeDiscovery(discovery, inputData) {
     read_only: true,
     controls_supported: false,
     no_secrets_returned: true,
-    channels: channels.map((channel, index) => ({
+    channels: channels.map((channel, index) => Object.fromEntries(Object.entries({
       channel: Number(channel.channel || index + 1),
       name: channel.name,
       area: channel.area,
@@ -198,7 +198,7 @@ function sanitizeDiscovery(discovery, inputData) {
       candidates_tried: channel.candidates_tried,
       template: channel.template,
       reason: channel.reason
-    })),
+    }).filter(([, value]) => value !== undefined && value !== null))),
     metadata: {
       source: "local_gateway_cloud_discovery_web",
       ai_shadow_only: true,
