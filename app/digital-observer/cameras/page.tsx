@@ -4,6 +4,7 @@ import { ObserverQuickAction } from "@/components/digital-observer/observer-acti
 import { ObserverAppShell } from "@/components/digital-observer/observer-app-shell";
 import { ObserverCameraMedia } from "@/components/digital-observer/observer-camera-media";
 import { ObserverLivePlayer } from "@/components/digital-observer/observer-live-player";
+import { ObserverCameraControls } from "@/components/digital-observer/observer-camera-controls";
 import { requireDigitalObserverUser } from "@/lib/domain/digital-observer/access";
 import { formatObserverDate, loadObserverRuntime, observerEventLabel, observerModeForSite, observerSignalMatchesCamera, observerStatusLabel } from "@/lib/domain/digital-observer/runtime";
 
@@ -68,12 +69,7 @@ export default async function DigitalObserverCamerasPage({ searchParams }: PageP
         <article className="do-panel do-camera-player-panel">
           <div className="do-camera-detail-head"><div><h1>{selected.display_name || "מצלמה"}</h1><span className="do-status-dot good">{observerStatusLabel(selected.status || selected.health_status)}</span></div><button type="button" disabled title="מסך מלא יתאפשר כשנגן וידאו מאובטח יחובר"><Maximize2 /></button></div>
           {selectedHasLiveGateway && site ? <ObserverLivePlayer large observerSiteId={site.id} cameraSourceId={selected.id} name={selected.display_name || "מצלמה"} /> : <ObserverCameraMedia large name={selected.display_name} mode={mode} scene={selected.preview_scene || sceneFor(cameras.indexOf(selected), mode)} status={selected.status || selected.health_status} sourceMode={selected.source_mode} />}
-          <div className="do-camera-live-controls" aria-label="פעולות צפייה חיה">
-            <button type="button" disabled title="שמע יתאפשר לאחר חיבור Gateway מאושר"><Volume2 /><strong>שמע</strong><small>ממתין לחיבור</small></button>
-            <button type="button" disabled title="צילום תמונה יתאפשר ממקור וידאו מחובר"><Camera /><strong>צילום</strong><small>ממתין לחיבור</small></button>
-            <button type="button" disabled title="דיבור דו-כיווני דורש מקור תומך והרשאה"><Mic /><strong>דבר</strong><small>דורש הרשאה</small></button>
-            <button type="button" disabled title="הקלטה תתאפשר לאחר חיבור Gateway ומדיניות שמירה"><Video /><strong>הקלטה</strong><small>ממתין לחיבור</small></button>
-          </div>
+          {selectedHasLiveGateway ? <ObserverCameraControls name={selected.display_name || "מצלמה"} talkSupported={Boolean(selected.metadata?.talk_supported)} /> : <div className="do-camera-live-controls" aria-label="פעולות צפייה חיה"><button type="button" disabled><Volume2 /><strong>שמע</strong><small>ממתין לחיבור</small></button><button type="button" disabled><Camera /><strong>צילום</strong><small>ממתין לחיבור</small></button><button type="button" disabled><Mic /><strong>דבר</strong><small>לא נתמך</small></button><button type="button" disabled><Video /><strong>הקלטה</strong><small>ממתין לחיבור</small></button></div>}
           <div className="do-camera-quick-actions" aria-label="פעולות מהירות">
             <button type="button" disabled title="חיבור לבית חכם עדיין אינו פעיל"><Lightbulb /><span><strong>אור חכם</strong><small>מוכן להגדרה</small></span></button>
             <button type="button" disabled title="הפעלת אזעקה חיה אינה זמינה בשלב ההכנה"><Siren /><span><strong>אזעקה</strong><small>לא פעיל בפיילוט</small></span></button>

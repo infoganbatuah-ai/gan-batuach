@@ -737,6 +737,15 @@ export async function materializeCloudDvrDiscovery(payload: z.infer<typeof cloud
     results.push({ camera: camera ? sanitizeCameraRow(camera as any) : null, observer_source: observerSource });
   }
 
+  if (observerSiteId && connectedCount > 0) {
+    const consent = await supabase.from("observer_sites" as any).select("monitoring_enabled,metadata").eq("id", observerSiteId).maybeSingle();
+    const metadata = consent.data?.metadata && typeof consent.data.metadata === "object" ? consent.data.metadata : {};
+    if (consent.data?.monitoring_enabled === true && metadata.observer_monitoring_consent === true) {
+      const learning = await supabase.rpc("initialize_digital_observer_learning" as any, { requested_site_id: observerSiteId });
+      if (learning.error) console.warn("[video-gateway] observer learning initialization unavailable", { code: learning.error.code });
+    }
+  }
+
   return {
     connection_id: connectionId,
     observer_site_id: observerSiteId,

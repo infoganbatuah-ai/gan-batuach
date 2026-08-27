@@ -104,9 +104,12 @@ export async function registerDigitalObserver(formData: FormData) {
   const email = String(formData.get("email") || "").trim().toLowerCase();
   const password = String(formData.get("password") || "");
   const accountType = String(formData.get("account_type") || "home");
+  const termsConsent = formData.get("terms_consent") === "on";
+  const modelImprovementConsent = formData.get("model_improvement_consent") === "on";
   if (fullName.length < 2 || !email.includes("@") || password.length < 8 || !["home", "business"].includes(accountType)) {
     redirect("/digital-observer/register?error=invalid");
   }
+  if (!termsConsent || !modelImprovementConsent) redirect("/digital-observer/register?error=consent_required");
   const supabase = await createClient();
   const { data, error } = await supabase.auth.signUp({
     email,
@@ -116,7 +119,13 @@ export async function registerDigitalObserver(formData: FormData) {
         full_name: fullName,
         product: "digital_observer",
         account_type: accountType,
-        onboarding_source: "digital_observer_standalone"
+        onboarding_source: "digital_observer_standalone",
+        terms_consent_version: "digital-observer-2026-08",
+        terms_consent_at: new Date().toISOString(),
+        model_improvement_consent: true,
+        model_improvement_consent_version: "deidentified-insights-v1",
+        model_improvement_consent_at: new Date().toISOString(),
+        model_improvement_scope: "deidentified_insights_only"
       },
       emailRedirectTo: emailRedirectTo()
     }

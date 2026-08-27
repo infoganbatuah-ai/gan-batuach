@@ -8,6 +8,7 @@ type PageProps = { searchParams?: Promise<{ error?: string; type?: string }> };
 
 const registrationErrors: Record<string, string> = {
   invalid: "יש להשלים שם, כתובת דוא״ל וסיסמה בת 8 תווים לפחות.",
+  consent_required: "יש לאשר בנפרד את תנאי השירות ואת השימוש בתובנות מצומצמות לשיפור המודל הכללי.",
   email_not_authorized: "שירות המייל המובנה של Supabase אינו מורשה לשלוח לכתובת הזו. יש לחבר SMTP מותאם לפני רישום משתמשים חדשים.",
   email_rate_limited: "הגענו זמנית למגבלת שליחת המיילים. המתינו מספר דקות ונסו דרך 'קוד חדש והמשך הרשמה' במסך האימות.",
   supabase_configuration_error: "מפתח החיבור של Supabase בסביבת האתר אינו תקין. יש לעדכן את משתני הסביבה לפני ניסיון נוסף.",
@@ -33,7 +34,8 @@ export default async function DigitalObserverRegisterPage({ searchParams }: Page
             <label className="do-field"><span>דוא״ל</span><input name="email" type="email" autoComplete="email" required /></label>
             <label className="do-field full"><span>סיסמה</span><input name="password" type="password" autoComplete="new-password" required minLength={8} /><small>לפחות 8 תווים. הסיסמה אינה נשמרת בקוד או בדוחות.</small></label>
           </div>
-          <label className="do-check"><input type="checkbox" required /><span>קראתי את תנאי השימוש ומדיניות הפרטיות הזמניים. זיהוי פנים והתראות חיצוניות דורשים הסכמה נפרדת.</span></label>
+          <label className="do-check"><input name="terms_consent" type="checkbox" required /><span>קראתי ואישרתי את תנאי השימוש ומדיניות הפרטיות. זיהוי פנים והתראות חיצוניות דורשים הסכמה נפרדת.</span></label>
+          <label className="do-check"><input name="model_improvement_consent" type="checkbox" required /><span><strong>שיפור המודל הכללי:</strong> אני מאשר/ת שימוש בתובנות מצומצמות ומנותקות מזהות לצורך שיפור המערכת לכלל המשתמשים. לא יועברו סיסמאות, כתובות מקור או וידאו גולמי במסגרת הסכמה זו.</span></label>
           <button className="do-button primary full" type="submit">יצירת חשבון ושליחת קוד אימות</button>
           <p className="do-auth-switch">כבר ניסיתם להירשם והמייל לא אושר? <Link href="/digital-observer/verify">שליחת קוד חדש והמשך הרשמה</Link></p>
           <p className="do-auth-switch">כבר רשומים? <Link href="/digital-observer/login">התחברות</Link></p>

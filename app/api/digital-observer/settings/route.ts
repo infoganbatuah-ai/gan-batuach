@@ -11,7 +11,10 @@ const schema = z.object({
   email: z.boolean().default(false),
   push: z.boolean().default(false),
   sms: z.boolean().default(false),
-  whatsapp: z.boolean().default(false)
+  whatsapp: z.boolean().default(false),
+  monitoring_consent: z.boolean().default(false),
+  safe_action_consent: z.boolean().default(false),
+  model_improvement_consent: z.boolean().default(false)
 });
 
 export async function POST(request: Request) {
@@ -24,6 +27,28 @@ export async function POST(request: Request) {
     const site = await getObserverSiteAccess(supabase, profile, payload.observer_site_id, { manage: true });
     if (!site) return fail("אין הרשאה לעדכן את הגדרות האתר.", 403);
     const now = new Date().toISOString();
+    const existingMetadata = site.metadata && typeof site.metadata === "object" ? site.metadata : {};
+    const { error: consentError } = await supabase.from("observer_sites" as any).update({
+      monitoring_enabled: payload.monitoring_consent,
+      observer_runtime_status: payload.monitoring_consent ? "learning" : "consent_required",
+      learning_started_at: payload.monitoring_consent ? (site.learning_started_at ?? now) : null,
+      metadata: {
+        ...existingMetadata,
+        observer_monitoring_consent: payload.monitoring_consent,
+        observer_monitoring_consent_at: payload.monitoring_consent ? now : null,
+        observer_safe_action_consent: payload.safe_action_consent,
+        observer_safe_action_consent_at: payload.safe_action_consent ? now : null,
+        model_improvement_consent: payload.model_improvement_consent,
+        model_improvement_consent_at: payload.model_improvement_consent ? now : null,
+        model_improvement_consent_version: "deidentified-insights-v1",
+        model_improvement_scope: "deidentified_insights_only",
+        raw_video_model_training_allowed: false,
+        physical_actions_require_confirmation: true
+      },
+      updated_at: now
+    }).eq("id", payload.observer_site_id);
+    if (consentError) return fail("לא ניתן לשמור את הרשאות התצפיתן.", 400);
+    if (payload.monitoring_consent) await supabase.rpc("initialize_digital_observer_learning" as any, { requested_site_id: payload.observer_site_id });
     const { error: scheduleError } = await supabase.from("observer_monitoring_schedules" as any).upsert({
       observer_site_id: payload.observer_site_id,
       schedule_mode: payload.schedule_mode,
@@ -63,7 +88,7 @@ export async function POST(request: Request) {
       if (existing.data?.id) await supabase.from("observer_alert_channel_settings" as any).update(row).eq("id", existing.data.id);
       else await supabase.from("observer_alert_channel_settings" as any).insert(row);
     }
-    return ok({ saved: true, production_send_enabled: false, message: "ההגדרות נשמרו. ערוצי חוץ נשארו כבויים עד חיבור ספק מאושר." });
+    return ok({ saved: true, monitoring_enabled: payload.monitoring_consent, safe_actions_enabled: payload.safe_action_consent, model_improvement_enabled: payload.model_improvement_consent, production_send_enabled: false, message: "ההגדרות וההסכמות נשמרו. פעולות פיזיות עדיין דורשות אישור מיידי." });
   } catch (error) {
     return handleRouteError(error);
   }
