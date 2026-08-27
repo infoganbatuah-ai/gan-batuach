@@ -10,6 +10,7 @@ import {
   FileVideo2,
   Home,
   Menu,
+  PhoneOff,
   Radar,
   Settings,
   ShieldCheck,
@@ -31,6 +32,7 @@ const homeNav = [
   { href: "/digital-observer/cameras", label: "צפייה חיה", icon: Camera },
   { href: "/digital-observer/alerts", label: "אירועים", icon: Bell },
   { href: "/digital-observer/rules", label: "התצפיתן שלי", icon: Radar },
+  { href: "/digital-observer/readiness", label: "ספקים וחירום", icon: PhoneOff },
   { href: "/digital-observer/recordings", label: "הקלטות", icon: FileVideo2 },
   { href: "/digital-observer/people", label: "אנשים מוכרים", icon: UsersRound },
   { href: "/digital-observer/settings", label: "הגדרות", icon: Settings }
@@ -43,6 +45,7 @@ const businessNav = [
   { href: "/digital-observer/alerts", label: "אירועים פתוחים", icon: Bell },
   { href: "/digital-observer/recordings", label: "קליפים", icon: FileVideo2 },
   { href: "/digital-observer/rules", label: "כללי ניטור", icon: Radar },
+  { href: "/digital-observer/readiness", label: "ספקים וחירום", icon: PhoneOff },
   { href: "/digital-observer/people", label: "צוות והרשאות", icon: UsersRound },
   { href: "/digital-observer/billing", label: "מנוי וחיוב", icon: CreditCard },
   { href: "/digital-observer/settings", label: "הגדרות", icon: Settings }

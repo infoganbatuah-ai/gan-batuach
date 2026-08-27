@@ -40,11 +40,11 @@ This phase audited and advanced the existing standalone Digital Observer product
 
 ### High external/production blockers: 6
 
-1. Real Camera Gateway and representative hardware compatibility tests.
-2. AI shadow provider, calibration and human-review acceptance.
-3. Push/email/SMS/WhatsApp/voice sandbox providers and delivery webhooks.
-4. Billing and invoice sandbox providers, idempotency and entitlement reconciliation.
-5. External legal/privacy/biometric/retention review and operational owners.
+1. Real DVR/Gateway and representative hardware compatibility tests.
+2. Provider phase, started only after DVR/Gateway completion: AI shadow provider, calibration and human-review acceptance.
+3. Provider phase: Push/email/SMS/WhatsApp/voice sandbox providers and delivery webhooks.
+4. Provider phase: Billing and invoice sandbox providers, idempotency and entitlement reconciliation.
+5. Provider phase: emergency escalation policy, contacts, confirmation/cancel flow and false-alarm handling. No automatic emergency-services dialing.
 6. Android/iOS real-device, release signing and store-policy QA.
 
 ## Live capability status
@@ -53,4 +53,4 @@ No live payment, invoice, camera viewing, AI decision, production message, phone
 
 ## Next action
 
-Apply the single runtime migration in Supabase project `gan-batuah`, then rerun `npm run qa:digital-observer-product`. Do not begin real camera/provider onboarding until the result is 33/33 and the remaining provider steps are executed in sandbox.
+Apply the single runtime migration in Supabase project `gan-batuah`, then rerun `npm run qa:digital-observer-product`. After that, begin DVR/Gateway first. Do not begin AI, notification, billing, subscription or emergency provider onboarding until the DVR/Gateway step is complete, unless Daniel gives a new explicit request. All external providers then move together under a single "Providers" phase and only in sandbox/readiness modes until separately approved.

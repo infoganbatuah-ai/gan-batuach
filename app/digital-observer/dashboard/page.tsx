@@ -174,6 +174,7 @@ export default async function DigitalObserverDashboardPage({ searchParams }: Pag
           <section className="do-grid cols-4">
             <Link className="do-panel" href="/digital-observer/cameras"><Camera /><h3>צפייה ומצלמות</h3><p>רשימת מקורות, בריאות וחיבור מאובטח.</p></Link>
             <Link className="do-panel" href="/digital-observer/rules"><Radar /><h3>מה חשוב לך?</h3><p>יצירת כלל ניטור מובנה עם שעות ונמענים.</p></Link>
+            <Link className="do-panel" href="/digital-observer/readiness"><Bell /><h3>ספקים וחירום</h3><p>AI Shadow, התראות, חיוב ונוהל הסלמה במצב מוכנות בלבד.</p></Link>
             <Link className="do-panel" href="/digital-observer/billing"><ShieldCheck /><h3>{currentPackage?.name ?? "חבילה טרם נבחרה"}</h3><p>{currentSubscription ? observerStatusLabel(currentSubscription.subscription_status ?? currentSubscription.status) : "מוכן לבחירה"}</p></Link>
             <Link className="do-panel" href="/digital-observer/people"><UsersRound /><h3>אנשים והרשאות</h3><p>שיתוף מבוקר והסכמה נפרדת לזיהוי.</p></Link>
           </section>

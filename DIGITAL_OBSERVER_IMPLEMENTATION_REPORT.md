@@ -8,6 +8,7 @@ Date: 2026-08-20
 - Data aggregation and honest fallbacks: `lib/domain/digital-observer/runtime.ts`.
 - Universal connector catalogue: `lib/domain/digital-observer/connectors.ts`.
 - Provider readiness contract: `lib/domain/digital-observer/service-readiness.ts`.
+- Product provider-readiness contract: `lib/domain/digital-observer/provider-readiness.ts`.
 - Gan Batuach service contract: `lib/domain/digital-observer/integration-contract.ts`.
 - Product/pricing/use-case definitions: `lib/domain/digital-observer-product.ts`.
 
@@ -33,6 +34,7 @@ The screens are real React/HTML controls. Reference images are visual source mat
 - Recordings use a 48-hour maximum product contract.
 - Plans are loaded from the database and edited through admin; prices are not the source of truth in UI components.
 - Payment, AI, camera, SMS, WhatsApp, push and voice states are labelled mock, sandbox, disabled or readiness.
+- Current operating order is DVR/Gateway first. AI Shadow, Push/SMS/WhatsApp/voice, billing/subscriptions and emergency escalation remain grouped under a later Providers phase and must not be activated before DVR/Gateway completion without a new explicit request.
 
 ## Database changes
 
@@ -55,6 +57,7 @@ Adds or extends:
 
 - No camera secret, RTSP URL, token or biometric reference is accepted from a browser grant.
 - Live camera mode, live payment and production notifications cannot be activated by current user APIs.
+- No AI provider, notification provider, billing provider or emergency voice provider is activated before the DVR/Gateway step. Emergency flow never automatically calls emergency authorities.
 - Gan Batuach integration is off unless two server environment gates, a token hash, an active DB client and required scopes all match.
 - The integration endpoint returns health and reviewed-event metadata only, never credentials, raw AI or media URLs.
 - Digital Observer admin routes remain under `/digital-observer/admin`; they do not link into Gan Batuach admin.
