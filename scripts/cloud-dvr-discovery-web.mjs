@@ -11,6 +11,7 @@ const localCloudConfigPath = ".env.video-gateway.local";
 let running = false;
 let lastResult = null;
 let gatewayProcess = null;
+let learningTimer = null;
 
 function loadLocalCloudConfig() {
   if (!existsSync(localCloudConfigPath)) return {};
@@ -211,6 +212,63 @@ function signBody(timestamp, nonce, body, secret) {
   return `sha256=${crypto.createHmac("sha256", secret).update(`${timestamp}.${nonce}.${body}`).digest("hex")}`;
 }
 
+async function pushLearningSample({ productionBaseUrl, gatewayId, cloudSecret, observerSiteId, channels }) {
+  if (!observerSiteId) return { sampled: 0 };
+  const samples = (await Promise.all(channels
+    .filter((channel) => channel.status === "connected" && channel.gateway_stream_id)
+    .map(async (channel) => {
+      try {
+        const response = await fetch(`${gatewayUrl}/camera/${encodeURIComponent(channel.gateway_stream_id)}/insights`, {
+          headers: { "x-video-gateway-secret": gatewaySecret }
+        });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || data.local_processing !== true || data.no_raw_video_returned !== true) return null;
+        return {
+          stream_id: channel.gateway_stream_id,
+          motion_score: Number(data.insight?.motion_score ?? 0),
+          luminance_score: Number(data.insight?.luminance_score ?? 0),
+          sampled_at: String(data.insight?.sampled_at ?? new Date().toISOString()),
+          sample_frames: Number(data.insight?.sample_frames ?? 1)
+        };
+      } catch {
+        return null;
+      }
+    }))).filter(Boolean);
+  if (!samples.length) return { sampled: 0 };
+  const payload = {
+    gateway_id: gatewayId,
+    observer_site_id: observerSiteId,
+    sample_id: crypto.randomUUID(),
+    sampled_at: new Date().toISOString(),
+    local_processing: true,
+    no_raw_video_returned: true,
+    samples
+  };
+  const body = JSON.stringify(payload);
+  const timestamp = new Date().toISOString();
+  const nonce = crypto.randomUUID();
+  const response = await fetch(`${productionBaseUrl.replace(/\/$/, "")}/api/video-gateway/cloud-learning`, {
+    method: "POST",
+    headers: {
+      "content-type": "application/json",
+      "x-video-gateway-id": gatewayId,
+      "x-video-gateway-timestamp": timestamp,
+      "x-video-gateway-nonce": nonce,
+      "x-video-gateway-signature": signBody(timestamp, nonce, body, cloudSecret)
+    },
+    body
+  });
+  if (!response.ok) return { sampled: 0 };
+  return { sampled: samples.length };
+}
+
+function startLearningLoop(config) {
+  if (learningTimer) clearInterval(learningTimer);
+  void pushLearningSample(config);
+  learningTimer = setInterval(() => void pushLearningSample(config), 5 * 60 * 1000);
+  learningTimer.unref?.();
+}
+
 async function connect(input) {
   const cloudConfig = loadLocalCloudConfig();
   const productionBaseUrl = process.env.VIDEO_GATEWAY_CLOUD_BASE_URL || cloudConfig.VIDEO_GATEWAY_CLOUD_BASE_URL || "https://gan-batuach.vercel.app";
@@ -261,6 +319,7 @@ async function connect(input) {
   });
   const cloudResult = await cloudResponse.json().catch(() => ({}));
   if (!cloudResponse.ok) throw new Error(cloudResult.error || "מיפוי הערוצים לענן נכשל.");
+  startLearningLoop({ productionBaseUrl, gatewayId, cloudSecret, observerSiteId, channels: payload.channels });
   return {
     channel_count: cloudResult.data?.channel_count ?? payload.channels.length,
     connected_channel_count: cloudResult.data?.connected_channel_count ?? payload.connected_channel_count
@@ -304,6 +363,7 @@ server.listen(webPort, "127.0.0.1", () => {
 });
 
 function shutdown() {
+  if (learningTimer) clearInterval(learningTimer);
   if (gatewayProcess && !gatewayProcess.killed) gatewayProcess.kill("SIGTERM");
   server.close(() => process.exit(0));
 }

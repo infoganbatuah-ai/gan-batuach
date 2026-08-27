@@ -34,10 +34,6 @@
     {
       "path": "/api/cron/permit-expiry-scan",
       "schedule": "0 5 * * *"
-    },
-    {
-      "path": "/api/cron/observer-home-learning",
-      "schedule": "*/5 * * * *"
     }
   ]
 }

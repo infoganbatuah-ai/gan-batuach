@@ -1,0 +1,92 @@
+import { createHmac, timingSafeEqual } from "node:crypto";
+import { z } from "zod";
+import { fail, handleRouteError, ok } from "@/lib/api";
+import { recordHomeActivityMetrics } from "@/lib/domain/digital-observer/home-learning-sampler";
+import { createAdminClient } from "@/lib/supabase/admin";
+
+export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
+
+const MAX_CLOCK_SKEW_MS = 5 * 60 * 1000;
+const payloadSchema = z.object({
+  gateway_id: z.string().min(1).max(128),
+  observer_site_id: z.string().uuid(),
+  sample_id: z.string().uuid(),
+  sampled_at: z.string().datetime(),
+  local_processing: z.literal(true),
+  no_raw_video_returned: z.literal(true),
+  samples: z.array(z.object({
+    stream_id: z.string().min(1).max(160),
+    motion_score: z.number().min(0).max(1),
+    luminance_score: z.number().min(0).max(1),
+    sampled_at: z.string().datetime(),
+    sample_frames: z.number().int().min(1).max(2)
+  }).strict()).min(1).max(64)
+}).strict();
+
+function header(request: Request, name: string) {
+  return request.headers.get(name)?.trim() || "";
+}
+
+function safeEqual(left: string, right: string) {
+  if (!left || !right) return false;
+  const a = Buffer.from(left, "utf8");
+  const b = Buffer.from(right, "utf8");
+  return a.length === b.length && timingSafeEqual(a, b);
+}
+
+function verifySignature(body: string, signature: string, secret: string) {
+  const expected = createHmac("sha256", secret).update(body).digest("hex");
+  return safeEqual(expected, signature.replace(/^sha256=/, ""));
+}
+
+function allowed(gatewayId: string, observerSiteId: string) {
+  return String(process.env.VIDEO_GATEWAY_CLOUD_ALLOWED_GATEWAYS ?? "")
+    .split(",")
+    .map((item) => item.trim())
+    .includes(`${gatewayId}:${observerSiteId}`);
+}
+
+export async function POST(request: Request) {
+  try {
+    const secret = process.env.VIDEO_GATEWAY_CLOUD_DISCOVERY_SECRET;
+    if (!secret) return fail("Cloud learning endpoint is not configured.", 404);
+    const gatewayId = header(request, "x-video-gateway-id");
+    const timestamp = header(request, "x-video-gateway-timestamp");
+    const nonce = header(request, "x-video-gateway-nonce");
+    const signature = header(request, "x-video-gateway-signature");
+    const parsedTimestamp = Date.parse(timestamp);
+    if (!gatewayId || !nonce || !signature || !Number.isFinite(parsedTimestamp) || Math.abs(Date.now() - parsedTimestamp) > MAX_CLOCK_SKEW_MS) return fail("Invalid gateway authentication.", 401);
+    const body = await request.text();
+    if (!verifySignature(`${timestamp}.${nonce}.${body}`, signature, secret)) return fail("Invalid signature.", 401);
+    const payload = payloadSchema.parse(JSON.parse(body));
+    if (payload.gateway_id !== gatewayId || !allowed(gatewayId, payload.observer_site_id)) return fail("Gateway is not allowed for this site.", 403);
+
+    const supabase = createAdminClient() as any;
+    const idempotencyKey = `${gatewayId}:${nonce}`;
+    const existing = await supabase.from("provider_webhook_events").select("id").eq("webhook_key", "video_gateway_cloud_learning").eq("idempotency_key", idempotencyKey).maybeSingle();
+    if (existing.data?.id) return fail("Replay detected.", 409);
+    const event = await supabase.from("provider_webhook_events").insert({
+      webhook_key: "video_gateway_cloud_learning",
+      integration_type: "camera_gateway",
+      provider: gatewayId,
+      event_type: "activity_metrics",
+      event_id: payload.sample_id,
+      idempotency_key: idempotencyKey,
+      signature_valid: true,
+      replay_detected: false,
+      status: "verified",
+      related_entity_type: "observer_sites",
+      related_entity_id: payload.observer_site_id,
+      raw_payload_reference: null,
+      metadata: { sample_count: payload.samples.length, no_raw_payload_stored: true, raw_video_received: false }
+    }).select("id").single();
+    if (event.error) throw new Error(event.error.message);
+
+    const result = await recordHomeActivityMetrics(supabase, payload.observer_site_id, payload.samples);
+    await supabase.from("provider_webhook_events").update({ status: "processed", processed_at: new Date().toISOString() }).eq("id", event.data.id);
+    return ok({ status: "learned", ...result, raw_video_received: false }, 201);
+  } catch (error) {
+    return handleRouteError(error);
+  }
+}
