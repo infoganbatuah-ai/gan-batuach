@@ -17,6 +17,36 @@ const schema = z.object({
   model_improvement_consent: z.boolean().default(false)
 });
 
+export async function GET(request: Request) {
+  try {
+    const session = await getDigitalObserverApiUser(request);
+    if (!session) return fail("נדרשת התחברות מחדש לתצפיתן הדיגיטלי.", 401);
+    const observerSiteId = new URL(request.url).searchParams.get("observer_site_id");
+    if (!observerSiteId) return fail("חסר מזהה אתר.", 422);
+    const site = await getObserverSiteAccess(session.supabase as any, session.profile, observerSiteId);
+    if (!site) return fail("אין הרשאה לצפות בהגדרות האתר.", 403);
+    const [profileResult, baselineResult] = await Promise.all([
+      (session.supabase as any).from("observer_site_learning_profiles").select("learning_status,learning_maturity,baseline_version,confidence_level,anomaly_readiness_score,routine_confidence,updated_at").eq("observer_site_id", observerSiteId).maybeSingle(),
+      (session.supabase as any).from("site_behavior_baselines").select("baseline_value,confidence_level,learning_maturity,anomaly_readiness_score,last_calibrated_at,updated_at").eq("observer_site_id", observerSiteId).eq("baseline_type", "normal_camera_activity").maybeSingle()
+    ]);
+    return ok({
+      monitoring_enabled: site.monitoring_enabled === true,
+      observer_runtime_status: site.observer_runtime_status ?? "setup",
+      consents: {
+        monitoring: site.metadata?.observer_monitoring_consent === true,
+        safe_actions: site.metadata?.observer_safe_action_consent === true,
+        model_improvement: site.metadata?.model_improvement_consent === true,
+        model_improvement_scope: site.metadata?.model_improvement_scope ?? null,
+        raw_video_model_training_allowed: false
+      },
+      learning_profile: profileResult.data ?? null,
+      camera_activity_baseline: baselineResult.data ?? null
+    });
+  } catch (error) {
+    return handleRouteError(error);
+  }
+}
+
 export async function POST(request: Request) {
   try {
     const session = await getDigitalObserverApiUser(request);
