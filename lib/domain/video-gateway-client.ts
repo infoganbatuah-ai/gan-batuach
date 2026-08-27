@@ -149,11 +149,22 @@ export async function getPlaybackUrls(gatewayStreamId: string, token?: string) {
     ? (result.data.playback as { hls_url?: string; webrtc_url?: string })
     : null;
   const fallback = playbackUrlsFor(provider, gatewayStreamId, token);
+  const publicBase = gatewayPublicBaseUrl().replace(/\/$/, "");
+  const publicPlaybackUrl = (value?: string) => {
+    if (!value) return "";
+    if (!publicBase) return value;
+    try {
+      const parsed = new URL(value);
+      return `${publicBase}${parsed.pathname}${parsed.search}`;
+    } catch {
+      return value;
+    }
+  };
   return {
     ...result,
     playback: {
-      hls_url: gatewayPlayback?.hls_url || fallback.hls_url,
-      webrtc_url: gatewayPlayback?.webrtc_url || fallback.webrtc_url
+      hls_url: publicPlaybackUrl(gatewayPlayback?.hls_url) || fallback.hls_url,
+      webrtc_url: publicPlaybackUrl(gatewayPlayback?.webrtc_url) || fallback.webrtc_url
     }
   };
 }
