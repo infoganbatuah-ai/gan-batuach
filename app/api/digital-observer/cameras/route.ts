@@ -48,15 +48,14 @@ const schema = z.discriminatedUnion("action", [createSchema, testSchema, disable
 async function removeSyntheticDemoBundleFallback(sourceId: string, observerSiteId: string) {
   const admin = createAdminClient() as any;
   const sourceResult = await admin.from("digital_observer_camera_sources")
-    .select("id,observer_site_id,camera_stream_id,connector_type,connector_provider,source_mode,metadata")
+    .select("id,observer_site_id,camera_stream_id,connector_type,connector_provider,source_mode,secret_reference,capabilities,metadata")
     .eq("id", sourceId)
     .eq("observer_site_id", observerSiteId)
     .single();
   if (sourceResult.error || !sourceResult.data) throw new Error("DEMO_SOURCE_NOT_FOUND");
   const source = sourceResult.data;
-  const syntheticMarker = source.metadata?.qa_demo === true || source.metadata?.synthetic === true || source.metadata?.no_real_camera === true;
-  const hasGatewayBinding = Boolean(source.camera_stream_id || source.metadata?.gateway_stream_id || source.metadata?.video_gateway_stream_id);
-  if (source.connector_type !== "demo" || source.source_mode !== "demo" || !syntheticMarker || hasGatewayBinding) {
+  const hasGatewayBinding = Boolean(source.camera_stream_id || source.secret_reference || source.metadata?.gateway_stream_id || source.metadata?.video_gateway_stream_id);
+  if (source.connector_type !== "demo" || source.source_mode !== "demo" || source.capabilities?.live_view === true || hasGatewayBinding) {
     throw new Error("ONLY_SYNTHETIC_DEMO_CAMERA_CAN_BE_REMOVED");
   }
 

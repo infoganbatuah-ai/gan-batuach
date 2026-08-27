@@ -31,13 +31,13 @@ for (const required of ["unavailableStatuses", "digitalObserverCameraIsConnected
 for (const required of ["response.status !== 503", "attempt < 3", "1200 * (attempt + 1)"]) {
   if (!player.includes(required)) throw new Error(`Missing playback recovery: ${required}`);
 }
-for (const required of ["ONLY_SYNTHETIC_DEMO_CAMERA_CAN_BE_REMOVED", "source_row.camera_stream_id is not null", "no_real_camera", "DEMO_CAMERA_HAS_STORED_MEDIA", "can_manage_observer_site"]) {
+for (const required of ["ONLY_SYNTHETIC_DEMO_CAMERA_CAN_BE_REMOVED", "source_row.camera_stream_id is not null", "source_row.secret_reference is not null", "capabilities @> '{\"live_view\":true}'", "DEMO_CAMERA_HAS_STORED_MEDIA", "can_manage_observer_site"]) {
   if (!migration.includes(required)) throw new Error(`Missing demo deletion boundary: ${required}`);
 }
 for (const required of ["structured_insights_only", "פריימים לדגימה", "Push חיצוני טרם הוגדר", "זיהוי ביומטרי כבוי"]) {
   if (!edgePolicy.includes(required)) throw new Error(`Missing truthful local AI policy: ${required}`);
 }
-for (const required of ["removeSyntheticDemoBundleFallback", "hasGatewayBinding", "no_real_camera", "DEMO_CAMERA_HAS_STORED_MEDIA", 'eq("source_mode", "demo")']) {
+for (const required of ["removeSyntheticDemoBundleFallback", "hasGatewayBinding", "secret_reference", "capabilities?.live_view", "DEMO_CAMERA_HAS_STORED_MEDIA", 'eq("source_mode", "demo")']) {
   if (!cameraRoute.includes(required)) throw new Error(`Missing production demo cleanup boundary: ${required}`);
 }
 

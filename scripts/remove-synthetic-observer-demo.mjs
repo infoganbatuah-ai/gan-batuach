@@ -23,16 +23,15 @@ const fail = (scope, error) => {
 };
 
 const sourceResult = await supabase.from("digital_observer_camera_sources")
-  .select("id,observer_site_id,camera_stream_id,connector_type,connector_provider,source_mode,metadata")
+  .select("id,observer_site_id,camera_stream_id,connector_type,connector_provider,source_mode,secret_reference,capabilities,metadata")
   .eq("display_name", targetName)
   .eq("connector_type", "demo")
   .eq("source_mode", "demo");
 fail("source lookup", sourceResult.error);
 if ((sourceResult.data || []).length !== 1) throw new Error("Cleanup requires exactly one matching synthetic demo source");
 const source = sourceResult.data[0];
-const syntheticMarker = source.metadata?.qa_demo === true || source.metadata?.synthetic === true || source.metadata?.no_real_camera === true;
-const hasGatewayBinding = Boolean(source.camera_stream_id || source.metadata?.gateway_stream_id || source.metadata?.video_gateway_stream_id);
-if (!syntheticMarker || hasGatewayBinding) throw new Error("The matching source is not an isolated synthetic demo");
+const hasGatewayBinding = Boolean(source.camera_stream_id || source.secret_reference || source.metadata?.gateway_stream_id || source.metadata?.video_gateway_stream_id);
+if (source.capabilities?.live_view === true || hasGatewayBinding) throw new Error("The matching source is not an isolated synthetic demo");
 
 const clipResult = await supabase.from("digital_observer_event_clips")
   .select("id,signal_id,storage_path,snapshot_storage_path")
