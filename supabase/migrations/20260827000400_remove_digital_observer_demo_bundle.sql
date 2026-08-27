@@ -35,10 +35,13 @@ begin
   end if;
   if source_row.connector_type <> 'demo'
     or source_row.source_mode <> 'demo'
-    or source_row.connector_provider <> 'synthetic_qa'
+    or source_row.camera_stream_id is not null
+    or coalesce(source_row.metadata ->> 'gateway_stream_id', '') <> ''
+    or coalesce(source_row.metadata ->> 'video_gateway_stream_id', '') <> ''
     or not (
       source_row.metadata @> '{"qa_demo":true}'::jsonb
       or source_row.metadata @> '{"synthetic":true}'::jsonb
+      or source_row.metadata @> '{"no_real_camera":true}'::jsonb
     ) then
     raise exception 'ONLY_SYNTHETIC_DEMO_CAMERA_CAN_BE_REMOVED';
   end if;

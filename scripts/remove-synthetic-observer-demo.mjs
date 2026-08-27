@@ -26,12 +26,13 @@ const sourceResult = await supabase.from("digital_observer_camera_sources")
   .select("id,observer_site_id,camera_stream_id,connector_type,connector_provider,source_mode,metadata")
   .eq("display_name", targetName)
   .eq("connector_type", "demo")
-  .eq("connector_provider", "synthetic_qa")
   .eq("source_mode", "demo");
 fail("source lookup", sourceResult.error);
 if ((sourceResult.data || []).length !== 1) throw new Error("Cleanup requires exactly one matching synthetic demo source");
 const source = sourceResult.data[0];
-if (source.metadata?.qa_demo !== true && source.metadata?.synthetic !== true) throw new Error("The matching source is not marked synthetic");
+const syntheticMarker = source.metadata?.qa_demo === true || source.metadata?.synthetic === true || source.metadata?.no_real_camera === true;
+const hasGatewayBinding = Boolean(source.camera_stream_id || source.metadata?.gateway_stream_id || source.metadata?.video_gateway_stream_id);
+if (!syntheticMarker || hasGatewayBinding) throw new Error("The matching source is not an isolated synthetic demo");
 
 const clipResult = await supabase.from("digital_observer_event_clips")
   .select("id,signal_id,storage_path,snapshot_storage_path")
@@ -66,7 +67,7 @@ fail("camera clip deletion", (await supabase.from("digital_observer_event_clips"
 fail("identity candidate deletion", (await supabase.from("digital_observer_identity_candidates").delete().eq("camera_source_id", source.id)).error);
 fail("watch request deletion", (await supabase.from("observer_watch_requests").delete().eq("camera_source_id", source.id)).error);
 if (signalIds.length) fail("signal deletion", (await supabase.from("observer_intelligence_signals").delete().in("id", signalIds)).error);
-fail("camera source deletion", (await supabase.from("digital_observer_camera_sources").delete().eq("id", source.id).eq("connector_type", "demo").eq("connector_provider", "synthetic_qa").eq("source_mode", "demo")).error);
+fail("camera source deletion", (await supabase.from("digital_observer_camera_sources").delete().eq("id", source.id).eq("connector_type", "demo").eq("source_mode", "demo")).error);
 
 const verify = await supabase.from("digital_observer_camera_sources").select("id", { count: "exact", head: true }).eq("id", source.id);
 fail("verification", verify.error);
