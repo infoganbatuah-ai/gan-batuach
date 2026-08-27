@@ -88,6 +88,15 @@ function candidateUrls(input, channel) {
     // this XMEye-compatible path even when their cameras themselves are not
     // ONVIF/RTSP devices. Credentials stay in this local process only.
     { vendor: "private_nvr", template: "private_nvr_rtsp_relay", url: `rtsp://${host}:${port}/${privateNvrAuth}` },
+    // Recorder-native RTSP service exposed by the ER private NVR. The
+    // recorder uses its combined HTTP/HTTPS/RTSP service port, not 554.
+    { vendor: "private_nvr", template: "private_nvr_rtsp_streaming", url: `rtsp://${auth}${host}:${port}/rtsp/streaming?channel=${String(channel).padStart(2, "0")}&subtype=${subtype}` },
+    // Some private-protocol recorders expose an RTSP relay using a standard
+    // vendor-compatible path. Probe these only in the local gateway, in a
+    // fixed order, so a selected Private NVR is not limited to one dialect.
+    { vendor: "private_nvr", template: "private_nvr_streaming_channels", url: `rtsp://${auth}${host}:${port}/Streaming/Channels/${channelSuffix(channel, quality)}` },
+    { vendor: "private_nvr", template: "private_nvr_realmonitor", url: `rtsp://${auth}${host}:${port}/cam/realmonitor?channel=${channel}&subtype=${subtype}` },
+    { vendor: "private_nvr", template: "private_nvr_channel_stream_type", url: `rtsp://${auth}${host}:${port}/chID=${channel}&streamType=${quality === "main" ? "main" : "sub"}` },
     { vendor: "generic", template: "generic_channel_quality", url: `rtsp://${auth}${host}:${port}/ch${channel}/${quality}` },
     { vendor: "generic", template: "generic_stream", url: `rtsp://${auth}${host}:${port}/stream${channel}` }
   ];
