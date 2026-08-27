@@ -205,31 +205,63 @@ function privateNvrLiveUrl(session, channel, quality = "sub") {
   return `${session.baseUrl}/live.mp4?channel=${Math.max(0, channel - 1)}&type=${streamType}&chrome=1`;
 }
 
-function probePrivateNvrStream(url, token) {
+async function privateNvrStreamResponse(url, token, signal) {
+  const response = await fetch(url, {
+    headers: { "X-csrftoken": token, "cache-control": "no-cache" },
+    signal
+  }).catch(() => null);
+  if (!response || (response.status !== 200 && response.status !== 400) || !response.body) return null;
+  return response;
+}
+
+async function pipeWebStreamToWritable(stream, writable) {
+  const reader = stream.getReader();
+  try {
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      if (!writable.write(Buffer.from(value))) await new Promise((resolve) => writable.once("drain", resolve));
+    }
+  } finally {
+    writable.end();
+    reader.releaseLock();
+  }
+}
+
+async function probePrivateNvrStream(url, token) {
+  const controller = new AbortController();
+  const response = await privateNvrStreamResponse(url, token, controller.signal);
+  if (!response) return { ok: false };
   return new Promise((resolve) => {
     const args = [
       "-v", "error",
-      "-headers", `X-csrftoken: ${token}\r\n`,
-      "-rw_timeout", String(Math.max(1000, PROBE_TIMEOUT_MS) * 1000),
       "-select_streams", "v:0",
       "-show_entries", "stream=codec_name,codec_type,width,height",
       "-of", "json",
-      url
+      "-i", "pipe:0"
     ];
-    const child = spawn("ffprobe", args, { stdio: ["ignore", "pipe", "ignore"] });
+    const child = spawn("ffprobe", args, { stdio: ["pipe", "pipe", "ignore"] });
     let output = "";
-    const timeout = setTimeout(() => child.kill("SIGKILL"), PROBE_TIMEOUT_MS + 750);
+    let settled = false;
+    const finish = (result) => {
+      if (settled) return;
+      settled = true;
+      controller.abort();
+      resolve(result);
+    };
+    const timeout = setTimeout(() => child.kill("SIGKILL"), PROBE_TIMEOUT_MS + 1500);
+    void pipeWebStreamToWritable(response.body, child.stdin).catch(() => child.kill("SIGKILL"));
     child.stdout.on("data", (chunk) => { output += chunk.toString("utf8"); });
-    child.on("error", () => resolve({ ok: false }));
+    child.on("error", () => finish({ ok: false }));
     child.on("close", (code) => {
       clearTimeout(timeout);
-      if (code !== 0) return resolve({ ok: false });
+      if (code !== 0) return finish({ ok: false });
       try {
         const parsed = JSON.parse(output || "{}");
         const stream = parsed.streams?.find((item) => item.codec_type === "video");
-        resolve({ ok: Boolean(stream), codec: stream?.codec_name ?? null, width: stream?.width ?? null, height: stream?.height ?? null });
+        finish({ ok: Boolean(stream), codec: stream?.codec_name ?? null, width: stream?.width ?? null, height: stream?.height ?? null });
       } catch {
-        resolve({ ok: false });
+        finish({ ok: false });
       }
     });
   });
@@ -401,8 +433,7 @@ async function ensureRelay(streamId) {
   const playlist = join(directory, "index.m3u8");
   const args = [
     "-hide_banner", "-loglevel", "error",
-    "-headers", `X-csrftoken: ${source.token}\r\n`,
-    "-i", source.url,
+    "-i", "pipe:0",
     "-map", "0:v:0",
     "-an",
     "-c:v", "libx264",
@@ -418,10 +449,15 @@ async function ensureRelay(streamId) {
     "-hls_segment_filename", join(directory, "segment-%06d.ts"),
     playlist
   ];
-  const child = spawn("ffmpeg", args, { stdio: ["ignore", "ignore", "ignore"] });
-  const relay = { process: child, playlist, startedAt: Date.now() };
+  const controller = new AbortController();
+  const response = await privateNvrStreamResponse(source.url, source.token, controller.signal);
+  if (!response) return null;
+  const child = spawn("ffmpeg", args, { stdio: ["pipe", "ignore", "ignore"] });
+  const relay = { process: child, playlist, startedAt: Date.now(), controller };
   relays.set(streamId, relay);
+  void pipeWebStreamToWritable(response.body, child.stdin).catch(() => child.kill("SIGKILL"));
   child.on("close", () => {
+    controller.abort();
     if (relays.get(streamId)?.process === child) relays.delete(streamId);
   });
   return relay;
