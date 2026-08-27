@@ -6,7 +6,7 @@ import http from "node:http";
 const gatewayPort = Number(process.env.LOCAL_DVR_GATEWAY_PORT || 18080);
 const webPort = Number(process.env.LOCAL_DVR_ONBOARDING_PORT || 18180);
 const gatewayUrl = `http://127.0.0.1:${gatewayPort}`;
-const gatewaySecret = crypto.randomBytes(48).toString("base64url");
+const gatewaySecret = process.env.VIDEO_GATEWAY_SIGNING_SECRET || crypto.randomBytes(48).toString("base64url");
 const localCloudConfigPath = ".env.video-gateway.local";
 let running = false;
 let lastResult = null;
@@ -78,10 +78,10 @@ function page() {
           </select>
         </label>
         <label>שם משתמש
-          <input name="username" required autocomplete="off" autocapitalize="none" spellcheck="false" />
+          <input name="username" required autocomplete="username" autocapitalize="none" spellcheck="false" />
         </label>
         <label>סיסמה
-          <input name="password" required type="password" autocomplete="new-password" />
+          <input name="password" required type="password" autocomplete="current-password" />
         </label>
         <label>מספר ערוצים צפוי
           <input name="channelCount" inputmode="numeric" value="16" />
