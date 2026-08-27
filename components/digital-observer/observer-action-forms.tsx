@@ -250,6 +250,39 @@ export function ObserverQuickAction({ endpoint, body, children, confirmText, onD
   return <div className="do-inline-action"><button className="do-button secondary" type="button" onClick={run} disabled={state.busy}>{state.busy ? <LoaderCircle className="do-spin" /> : null}{children}</button><ResultMessage state={state} /></div>;
 }
 
+export function ObserverCameraNameForm({ camera }: { camera: any }) {
+  const router = useRouter();
+  const [name, setName] = useState(camera.display_name || "");
+  const [location, setLocation] = useState(camera.location_label || "");
+  const [state, setState] = useState<ActionState>({ busy: false, error: "", message: "" });
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    setState({ busy: true, error: "", message: "" });
+    try {
+      const result = await postJson("/api/digital-observer/cameras", {
+        action: "rename",
+        id: camera.id,
+        display_name: name,
+        location_label: location
+      });
+      setState({ busy: false, error: "", message: result.message });
+      router.refresh();
+    } catch (error) {
+      setState({ busy: false, error: error instanceof Error ? error.message : "לא ניתן לעדכן את שם המצלמה", message: "" });
+    }
+  }
+  const suggestedName = typeof camera.metadata?.ai_suggested_name === "string" ? camera.metadata.ai_suggested_name : null;
+  return <form className="do-camera-name-form" onSubmit={submit}>
+    <div className="do-form-grid">
+      <label className="do-field"><span>שם המצלמה</span><input value={name} onChange={(event) => setName(event.target.value)} minLength={2} maxLength={100} required /></label>
+      <label className="do-field"><span>חלל או מיקום</span><input value={location} onChange={(event) => setLocation(event.target.value)} maxLength={100} placeholder="למשל: כניסה, סלון או חניה" /></label>
+    </div>
+    {suggestedName && suggestedName !== camera.display_name ? <button className="do-camera-name-suggestion" type="button" onClick={() => setName(suggestedName)}>הצעת התצפיתן: {suggestedName}</button> : null}
+    <button className="do-button primary" type="submit" disabled={state.busy || name.trim().length < 2}>{state.busy ? <LoaderCircle className="do-spin" /> : <Check />} שמירת שם</button>
+    <ResultMessage state={state} />
+  </form>;
+}
+
 export function ObserverRuleForm({ siteId, cameras }: { siteId: string; cameras: any[] }) {
   const router = useRouter();
   const [state, setState] = useState<ActionState>({ busy: false, error: "", message: "" });

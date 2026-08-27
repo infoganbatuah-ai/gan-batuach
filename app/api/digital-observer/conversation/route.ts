@@ -5,11 +5,13 @@ import { formatObserverDate, observerEventLabel } from "@/lib/domain/digital-obs
 
 const schema = z.object({
   observer_site_id: z.string().uuid(),
+  camera_source_id: z.string().uuid().optional(),
   message: z.string().trim().min(2).max(1200)
 });
 
 type SignalRow = {
   id: string;
+  camera_id: string | null;
   signal_type: string | null;
   severity: string | null;
   confidence: number | null;
@@ -94,7 +96,7 @@ export async function POST(request: Request) {
 
     const [signalResult, cameraResult, baselineResult] = await Promise.all([
       supabase.from("observer_intelligence_signals" as any)
-        .select("id,signal_type,severity,confidence,review_status,recommended_action,metadata,created_at")
+        .select("id,camera_id,signal_type,severity,confidence,review_status,recommended_action,metadata,created_at")
         .eq("observer_site_id", payload.observer_site_id)
         .order("created_at", { ascending: false })
         .limit(100),
@@ -107,6 +109,15 @@ export async function POST(request: Request) {
     ]);
 
     if (signalResult.error || cameraResult.error) return fail("לא ניתן לקרוא כרגע את נתוני התצפיתן.", 503);
+    const selectedCamera = payload.camera_source_id
+      ? (cameraResult.data ?? []).find((camera: any) => camera.id === payload.camera_source_id)
+      : null;
+    if (payload.camera_source_id && !selectedCamera) return fail("המצלמה שנבחרה אינה שייכת לאתר הזה.", 403);
+    const scopedSignals = payload.camera_source_id
+      ? (signalResult.data ?? []).filter((signal: any) => signal.camera_id === payload.camera_source_id || signal.metadata?.camera_source_id === payload.camera_source_id)
+      : signalResult.data ?? [];
+    const scopedCameras = selectedCamera ? [selectedCamera] : cameraResult.data ?? [];
+    const connectedSourceAvailable = scopedCameras.some((camera: any) => ["connected", "healthy", "online", "active"].includes(String(camera.status ?? camera.health_status)));
     const message = payload.message.toLowerCase();
     const instruction = matchesAny(message, ["שים לב", "תעקוב", "תתריע", "תבדוק מעכשיו"]);
     let requestRecord: any = null;
@@ -117,7 +128,7 @@ export async function POST(request: Request) {
         observer_site_id: payload.observer_site_id,
         kindergarten_id: null,
         camera_id: null,
-        camera_source_id: null,
+        camera_source_id: payload.camera_source_id ?? null,
         created_by: profile.id,
         title: payload.message.slice(0, 120),
         description: payload.message,
@@ -130,7 +141,7 @@ export async function POST(request: Request) {
         metadata: {
           product: "digital_observer",
           created_from_conversation: true,
-          execution_state: "provider_readiness",
+          execution_state: connectedSourceAvailable ? "shadow_active" : "source_readiness",
           no_automatic_emergency_call: true,
           no_automatic_accusation: true
         }
@@ -141,17 +152,19 @@ export async function POST(request: Request) {
 
     const summary = buildAnswer(
       message,
-      (signalResult.data ?? []) as SignalRow[],
-      cameraResult.data ?? [],
+      scopedSignals as SignalRow[],
+      scopedCameras,
       baselineResult.data ?? []
     );
     return ok({
       answer: instruction
-        ? `שמרתי את ההנחיה. היא תופעל על וידאו רק לאחר חיבור Gateway ו-AI מאושרים. עד אז היא במצב מוכנות.\n\n${summary.answer}`
+        ? connectedSourceAvailable
+          ? `שמרתי את ההנחיה והיא פעילה במצב Shadow על ${selectedCamera?.display_name || "המקורות המחוברים"}. כל זיהוי יוצג כהערכה עם ראיה ויישאר כפוף לבדיקה אנושית.\n\n${summary.answer}`
+          : `שמרתי את ההנחיה. מקור המצלמה עדיין אינו מחובר, ולכן היא תתחיל לפעול אוטומטית לאחר חיבור מאומת.\n\n${summary.answer}`
         : summary.answer,
       signal_ids: summary.signalIds,
       request: requestRecord,
-      answer_source: "site_scoped_runtime_data",
+      answer_source: payload.camera_source_id ? "camera_scoped_runtime_data" : "site_scoped_runtime_data",
       live_ai_used: false,
       emergency_action_triggered: false
     });

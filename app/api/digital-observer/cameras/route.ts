@@ -29,7 +29,15 @@ const disableSchema = z.object({
   id: z.string().uuid()
 });
 
-const schema = z.discriminatedUnion("action", [createSchema, testSchema, disableSchema]);
+const renameSchema = z.object({
+  action: z.literal("rename"),
+  id: z.string().uuid(),
+  display_name: z.string().trim().min(2).max(100),
+  location_label: z.string().trim().max(100).optional().default(""),
+  name_origin: z.enum(["user_edit", "ai_visual_review"]).optional().default("user_edit")
+});
+
+const schema = z.discriminatedUnion("action", [createSchema, testSchema, disableSchema, renameSchema]);
 
 export async function POST(request: Request) {
   try {
@@ -77,7 +85,7 @@ export async function POST(request: Request) {
     }
 
     const { data: source } = await supabase.from("digital_observer_camera_sources" as any)
-      .select("id,observer_site_id,connector_type,status,metadata")
+      .select("id,observer_site_id,display_name,location_label,connector_type,status,health_status,metadata")
       .eq("id", payload.id)
       .maybeSingle();
     if (!source) return fail("מקור המצלמה לא נמצא.", 404);
@@ -92,6 +100,28 @@ export async function POST(request: Request) {
         .single();
       if (error) return fail("לא ניתן להשבית את מקור המצלמה.", 400);
       return ok({ camera: data });
+    }
+
+    if (payload.action === "rename") {
+      const { data, error } = await supabase.from("digital_observer_camera_sources" as any)
+        .update({
+          display_name: payload.display_name,
+          location_label: payload.location_label || null,
+          metadata: {
+            ...(source.metadata ?? {}),
+            ...(payload.name_origin === "user_edit"
+              ? { user_assigned_name: payload.display_name, user_assigned_location: payload.location_label || null }
+              : { ai_suggested_name: payload.display_name, ai_suggested_location: payload.location_label || null }),
+            ai_context_updated_at: new Date().toISOString(),
+            ai_context_source: payload.name_origin === "user_edit" ? "verified_user_edit" : "ai_visual_review"
+          },
+          updated_at: new Date().toISOString()
+        })
+        .eq("id", payload.id)
+        .select("id,display_name,location_label,status,health_status,metadata")
+        .single();
+      if (error || !data) return fail("לא ניתן לעדכן את שם המצלמה.", 400);
+      return ok({ camera: data, message: "שם המצלמה נשמר ומשמש מעכשיו כהקשר לתצפיתן." });
     }
 
     const demo = source.connector_type === "demo";

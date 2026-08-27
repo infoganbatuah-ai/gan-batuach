@@ -1,13 +1,13 @@
 import Image from "next/image";
 import Link from "next/link";
-import { Activity, Bell, BrainCircuit, Camera, CheckCircle2, Clock3, MapPin, Radar, ShieldCheck, Sparkles, TriangleAlert } from "lucide-react";
+import { Activity, Bell, BrainCircuit, Camera, CheckCircle2, Clock3, MapPin, PhoneCall, Radar, ShieldCheck, Sparkles, TriangleAlert } from "lucide-react";
 import { ObserverQuickAction, ObserverRuleForm } from "@/components/digital-observer/observer-action-forms";
 import { ObserverConversationPanel } from "@/components/digital-observer/observer-intelligence-experience";
 import { ObserverAppShell } from "@/components/digital-observer/observer-app-shell";
 import { ObserverCameraMedia } from "@/components/digital-observer/observer-camera-media";
 import { requireDigitalObserverUser } from "@/lib/domain/digital-observer/access";
 import { getDigitalObserverServiceReadiness } from "@/lib/domain/digital-observer/service-readiness";
-import { formatObserverDate, loadObserverRuntime, observerEventLabel, observerModeForSite, observerStatusLabel } from "@/lib/domain/digital-observer/runtime";
+import { formatObserverDate, loadObserverRuntime, observerEventLabel, observerModeForSite, observerSignalMatchesCamera, observerStatusLabel } from "@/lib/domain/digital-observer/runtime";
 
 function learningProgress(startedAt?: string | null, targetDays = 30) {
   if (!startedAt) return { days: 0, percent: 0 };
@@ -29,6 +29,20 @@ function baselineLabel(value: string) {
   return labels[value] ?? value;
 }
 
+function baselineSummary(baseline: Record<string, any>) {
+  const value = baseline.baseline_value && typeof baseline.baseline_value === "object" ? baseline.baseline_value : {};
+  if (baseline.baseline_type === "normal_camera_activity") {
+    const samples = Number(value.sample_count || 0);
+    const cameras = Number(value.last_active_camera_count || baseline.source_summary?.active_camera_count || 0);
+    const motion = Number(value.average_motion_score || 0);
+    const light = Number(value.average_luminance_score || 0);
+    const motionText = motion >= 0.55 ? "פעילות גבוהה יחסית" : motion >= 0.22 ? "פעילות בינונית" : "פעילות נמוכה";
+    const lightText = light >= 0.62 ? "תאורה חזקה" : light >= 0.28 ? "תאורה רגילה" : "תאורה חלשה";
+    return `נאספו ${samples} דגימות מקומיות מ-${cameras} מצלמות פעילות. כרגע נמדדות ${motionText} ו${lightText}.`;
+  }
+  return "הדפוס נבנה מאירועים שנקלטו ומשוב שאומת באתר.";
+}
+
 export default async function DigitalObserverRulesPage() {
   const { profile } = await requireDigitalObserverUser("/digital-observer/login?next=/digital-observer/rules");
   const runtime = await loadObserverRuntime(profile.id);
@@ -48,6 +62,12 @@ export default async function DigitalObserverRulesPage() {
   const sourceReady = cameras.some((camera) => ["connected", "healthy", "online", "active"].includes(String(camera.status ?? camera.health_status)));
   const demoOnly = cameras.length > 0 && cameras.every((camera) => camera.source_mode === "demo");
   const localLearningActive = sourceReady && Boolean(learning) && baselines.some((baseline) => baseline.baseline_type === "normal_camera_activity");
+  const todayStart = new Date();
+  todayStart.setHours(0, 0, 0, 0);
+  const todaySignals = signals.filter((signal) => new Date(signal.created_at).getTime() >= todayStart.getTime());
+  const dailySummary = todaySignals.length
+    ? `היום נקלטו ${todaySignals.length} עדכונים מ-${new Set(todaySignals.map((signal) => signal.camera_id ?? signal.metadata?.camera_source_id).filter(Boolean)).size || 1} מצלמות. ${todaySignals.filter((signal) => ["medium", "high", "urgent", "critical"].includes(String(signal.severity))).length ? "יש אירועים שמומלץ לבדוק במרכז ההתראות." : "לא נקלט אירוע ברמת דחיפות גבוהה."}`
+    : "לא נקלט היום אירוע עם ראיה תקינה. התצפיתן ממשיך ללמוד מדדי פעילות מהמצלמות המחוברות.";
   const runtimeText = !cameras.length
     ? "ממתין למצלמה הראשונה"
     : localLearningActive
@@ -103,7 +123,7 @@ export default async function DigitalObserverRulesPage() {
               <strong className="do-badge info">{baselines.length} דפוסים</strong>
             </summary>
             <div className="do-observer-insight-content">
-              {baselines.length ? <div className="do-insight-grid">{baselines.map((baseline) => <div key={baseline.id}><Sparkles /><span><strong>{baselineLabel(baseline.baseline_type)}</strong><small>{baseline.learning_maturity === "mature" ? "נלמד" : `איסוף נתונים · ${Math.round(Number(baseline.confidence_level || 0) * 100)}% ביטחון`}</small></span></div>)}</div> : <div className="do-empty"><BrainCircuit /><strong>אין עדיין קו בסיס</strong><span>המערכת לא ממציאה שגרה. הנתונים ייאספו אחרי חיבור מצלמה.</span></div>}
+              {baselines.length ? <div className="do-insight-grid">{baselines.map((baseline) => <div key={baseline.id}><Sparkles /><span><strong>{baselineLabel(baseline.baseline_type)}</strong><small>{baselineSummary(baseline)}</small><small>{baseline.learning_maturity === "mature" ? "נלמד" : `איסוף נתונים · ${Math.round(Number(baseline.confidence_level || 0) * 100)}% ביטחון`}</small></span></div>)}</div> : <div className="do-empty"><BrainCircuit /><strong>אין עדיין קו בסיס</strong><span>המערכת לא ממציאה שגרה. הנתונים ייאספו אחרי חיבור מצלמה.</span></div>}
               <div className="do-observer-rule-preview">
                 <span><Radar /><b>{rules[0]?.title || "כלל תצפית ראשון טרם הוגדר"}</b></span>
                 <strong className={rules[0]?.active ? "do-badge good" : "do-badge warn"}>{rules[0]?.active ? "פעיל" : "ממתין להגדרה"}</strong>
@@ -111,6 +131,18 @@ export default async function DigitalObserverRulesPage() {
               <a className="do-button secondary" href="#observer-advanced-rule">הגדרת כלל מתקדם</a>
             </div>
           </details>
+
+          <section className="do-observer-camera-insights">
+            <div className="do-section-head"><div><h2>מה התצפיתן רואה בכל מצלמה</h2><p>סיכום טקסטואלי לפי מקור, אירועים ומדדי למידה שנקלטו בפועל.</p></div><span className={localLearningActive ? "do-badge good" : "do-badge warn"}>{localLearningActive ? "למידה פעילה" : "אוסף נתונים"}</span></div>
+            <div className="do-observer-camera-insight-grid">{cameras.map((camera) => {
+              const cameraSignals = signals.filter((signal) => observerSignalMatchesCamera(signal, camera.id));
+              const latest = cameraSignals[0];
+              const connected = ["connected", "healthy", "online", "active"].includes(String(camera.status ?? camera.health_status));
+              return <article key={camera.id}><Camera /><span><strong>{camera.display_name || "מצלמה"}</strong><small>{camera.location_label || "החלל עדיין לא קיבל שם"}</small><p>{latest ? `העדכון האחרון: ${observerEventLabel(latest.metadata?.event_type ?? latest.signal_type)} (${formatObserverDate(latest.created_at)}).` : connected ? "המקור מחובר ונאספים ממנו מדדי פעילות; עדיין אין אירוע עם ראיה להצגה." : "המקור אינו פעיל כרגע, ולכן לא נאספות ממנו תובנות."}</p></span><b className={connected ? "do-badge good" : "do-badge warn"}>{connected ? "פעילה" : "לא זמינה"}</b></article>;
+            })}</div>
+          </section>
+
+          <section className="do-panel do-daily-observer-summary"><div className="do-section-head"><div><h2>סיכום היום</h2><p>מתעדכן מאירועים אמיתיים בלבד.</p></div><Clock3 /></div><p>{dailySummary}</p><Link className="do-link" href="/digital-observer/alerts">פתיחת יומן האירועים המלא</Link></section>
 
           <details className="do-advanced-rule-panel" id="observer-advanced-rule">
             <summary><Radar /> הגדרה ידנית מתקדמת</summary>
@@ -149,6 +181,7 @@ export default async function DigitalObserverRulesPage() {
                     : readiness.address.configured
                       ? "הכתובת עדיין דורשת בחירה ואימות מול ספק המפות לפני דיווח חירום."
                       : "ספק המפות טרם חובר, ולכן הכתובת נשמרת ידנית ואינה מוכנה לדיווח חירום."}</p>
+                  <div className="do-emergency-centers" aria-label="מוקדי חירום קבועים"><span><PhoneCall /><b>100</b><small>משטרה</small></span><span><PhoneCall /><b>101</b><small>מד״א</small></span><span><PhoneCall /><b>102</b><small>כבאות והצלה</small></span></div>
                   <div className="do-notice warn"><ShieldCheck /><span>שיחה אוטומטית למוקד חירום אינה פעילה. היא תדרוש ספק טלפוניה, אישור משפטי, כתובת מאומתת וביקורת תפעולית.</span></div>
                 </article>
               </section>

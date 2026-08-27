@@ -43,10 +43,14 @@ type ConversationMessage = {
 
 export function ObserverConversationPanel({
   siteId,
+  cameraSourceId,
+  cameraName,
   initialPrompt,
   ruleSummary
 }: {
   siteId: string;
+  cameraSourceId?: string;
+  cameraName?: string;
   initialPrompt?: string;
   ruleSummary?: {
     title: string;
@@ -77,6 +81,7 @@ export function ObserverConversationPanel({
     try {
       const data = await postJson("/api/digital-observer/conversation", {
         observer_site_id: siteId,
+        camera_source_id: cameraSourceId,
         message
       });
       setMessages((current) => [...current, {
@@ -97,13 +102,15 @@ export function ObserverConversationPanel({
     void ask(text);
   }
 
-  const suggestions = ["מה קרה היום?", "מי נכנס או יצא?", "האם היה משהו חריג?", "שים לב לאדם ליד הרכב"];
+  const suggestions = cameraName
+    ? ["מה קרה כאן היום?", "האם הייתה תנועה חריגה?", "מי נכנס או יצא?", "שים לב לכל שינוי במצלמה"]
+    : ["מה קרה היום?", "מי נכנס או יצא?", "האם היה משהו חריג?", "שים לב לאדם ליד הרכב"];
 
   return (
     <section className="do-panel do-conversation-panel">
       <div className="do-conversation-head">
         <span className="do-observer-presence"><BrainCircuit /><i /></span>
-        <div><h2>שיחה עם התצפיתן</h2><p>שאלות ותובנות מהמידע של האתר שלכם בלבד</p></div>
+        <div><h2>{cameraName ? `שיחה על ${cameraName}` : "שיחה עם התצפיתן"}</h2><p>{cameraName ? "התשובות וההנחיות מוגבלות למצלמה הזאת" : "שאלות ותובנות מהמידע של האתר שלכם בלבד"}</p></div>
         <span className="do-badge info">ביקורת אנושית</span>
       </div>
       <div className="do-conversation-messages" aria-live="polite">

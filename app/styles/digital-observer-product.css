@@ -772,6 +772,7 @@
 .do-camera-activity-panel > .do-link { font-size: 10px; }
 .do-camera-live-tile {
   min-width: 0;
+  position: relative;
   overflow: hidden;
   color: inherit;
   background: #fff;
@@ -786,6 +787,28 @@
 .do-camera-tile-meta { display: grid; gap: 2px; padding: 9px 11px; }
 .do-camera-tile-meta strong { color: var(--do-ink); font-size: 13px; }
 .do-camera-tile-meta small { color: var(--do-muted); font-size: 10px; }
+.do-camera-observer-presence {
+  min-width: 70px;
+  height: 42px;
+  position: absolute;
+  inset-inline-start: 9px;
+  inset-block-end: 50px;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+  padding: 2px 7px 2px 3px;
+  color: #fff;
+  background: rgba(6, 29, 58, 0.86);
+  border: 1px solid rgba(255,255,255,0.45);
+  border-radius: 7px;
+  box-shadow: 0 5px 14px rgba(6,29,58,0.2);
+  pointer-events: none;
+}
+.do-camera-observer-presence img { width: 38px; height: 38px; object-fit: contain; }
+.do-camera-observer-presence small { font-size: 8px; font-weight: 850; white-space: nowrap; }
+.do-camera-observer-presence i { width: 7px; height: 7px; position: absolute; inset-inline-start: 3px; inset-block-start: 4px; background: #aeb9c0; border: 1px solid #fff; border-radius: 50%; }
+.do-camera-observer-presence.active i { background: #20bf8f; }
 .do-camera-live-add {
   min-height: 210px;
   display: grid;
@@ -834,7 +857,8 @@
 .do-camera-connection-note span { font-size: 10px; }
 .do-camera-detail-grid { display: grid; grid-template-columns: minmax(0, 1.55fr) minmax(300px, 0.65fr); gap: 12px; align-items: start; }
 .do-camera-detail-side { min-width: 0; display: grid; gap: 12px; }
-.do-camera-player-panel { padding: 12px; }
+.do-camera-player-panel { position: relative; padding: 12px; }
+.do-camera-player-panel > .do-camera-observer-presence { inset-block-start: 68px; inset-block-end: auto; inset-inline-start: 20px; }
 .do-camera-detail-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 2px 2px 11px; }
 .do-camera-detail-head > div { display: flex; align-items: center; gap: 10px; }
 .do-camera-detail-head h1 { margin: 0; font-size: 22px; }
@@ -903,6 +927,10 @@
 .do-camera-readiness-strip small { font-size: 9px; }
 .do-camera-recent-events .do-row { min-height: 54px; padding: 8px 10px; }
 .do-camera-recent-events time { color: var(--do-muted); font-size: 10px; }
+.do-camera-name-form { display: grid; gap: 8px; padding-bottom: 12px; border-bottom: 1px solid var(--do-line); }
+.do-camera-name-form .do-form-grid { grid-template-columns: 1fr; gap: 7px; }
+.do-camera-name-form .do-button { justify-self: start; min-height: 36px; }
+.do-camera-name-suggestion { width: fit-content; padding: 4px 8px; color: var(--do-teal-dark); background: var(--do-mint); border: 1px solid #b9e5df; border-radius: 5px; cursor: pointer; font: inherit; font-size: 10px; font-weight: 800; }
 
 .do-dashboard .do-camera-grid {
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -910,8 +938,10 @@
 
 .do-dashboard-camera-card {
   min-width: 0;
+  position: relative;
   display: grid;
 }
+.do-dashboard-camera-card > .do-camera-observer-presence { inset-block-end: 8px; }
 
 .do-dashboard-camera-copy { display: none; }
 
@@ -2511,6 +2541,20 @@
 .do-insight-grid svg { width: 20px; height: 20px; color: var(--do-teal-dark); }
 .do-insight-grid span { display: grid; gap: 3px; }
 .do-insight-grid small { color: var(--do-muted); }
+.do-observer-camera-insights { display: grid; gap: 11px; padding: 14px; background: #fff; border: 1px solid var(--do-line); border-radius: 8px; box-shadow: var(--do-shadow-soft); }
+.do-observer-camera-insight-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; }
+.do-observer-camera-insight-grid article { min-width: 0; min-height: 112px; display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: start; gap: 9px; padding: 11px; background: #f8fafb; border: 1px solid var(--do-line); border-radius: 7px; }
+.do-observer-camera-insight-grid article > svg { width: 20px; height: 20px; color: var(--do-teal-dark); }
+.do-observer-camera-insight-grid article > span { min-width: 0; display: grid; gap: 2px; }
+.do-observer-camera-insight-grid article small { color: var(--do-muted); font-size: 10px; }
+.do-observer-camera-insight-grid article p { margin: 7px 0 0; color: var(--do-ink); font-size: 11px; line-height: 1.55; }
+.do-daily-observer-summary { display: grid; gap: 8px; }
+.do-daily-observer-summary > p { margin: 0; color: var(--do-ink); font-size: 13px; line-height: 1.65; }
+.do-emergency-centers { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 6px; }
+.do-emergency-centers span { min-height: 58px; display: grid; grid-template-columns: auto auto; place-content: center; align-items: center; gap: 1px 6px; background: #f8fafb; border: 1px solid var(--do-line); border-radius: 6px; }
+.do-emergency-centers svg { width: 15px; height: 15px; color: var(--do-danger); }
+.do-emergency-centers b { font-size: 14px; }
+.do-emergency-centers small { grid-column: 1 / -1; color: var(--do-muted); text-align: center; font-size: 9px; }
 .do-observer-chat { background: linear-gradient(180deg, #fff, #f7fbfb); }
 .do-channel-inline { display: flex; flex-wrap: wrap; gap: 8px; }
 .do-channel-inline label { min-height: 38px; display: inline-flex; align-items: center; gap: 6px; padding: 0 10px; color: var(--do-muted); background: #f7f9fb; border: 1px solid var(--do-line); border-radius: 6px; font-size: 12px; }
@@ -3073,6 +3117,7 @@
   .do-plan-grid,
   .do-event-layout { grid-template-columns: 1fr; }
   .do-camera-grid { grid-template-columns: 1fr; }
+  .do-observer-camera-insight-grid { grid-template-columns: 1fr; }
   .do-dashboard .do-camera-grid,
   .do-dashboard-business .do-camera-grid { grid-template-columns: 1fr; }
   .do-dashboard-camera-card {
@@ -3124,6 +3169,10 @@
   .do-camera-live-tile .do-camera-footnote { display: none; }
   .do-camera-tile-meta { grid-column: 1; grid-row: 1; align-content: center; padding: 13px; }
   .do-camera-tile-meta strong { font-size: 14px; }
+  .do-camera-live-tile > .do-camera-observer-presence { inset-inline-start: auto; inset-inline-end: 8px; inset-block-end: 8px; min-width: 42px; width: 42px; padding: 1px; }
+  .do-camera-live-tile > .do-camera-observer-presence small { display: none; }
+  .do-dashboard-camera-card > .do-camera-observer-presence { inset-inline-start: auto; inset-inline-end: 6px; inset-block-end: 6px; min-width: 38px; width: 38px; height: 38px; padding: 0; }
+  .do-dashboard-camera-card > .do-camera-observer-presence small { display: none; }
   .do-camera-live-add,
   .do-camera-live-grid.business .do-camera-live-add { min-height: 90px; grid-template-columns: auto minmax(0, 1fr); place-content: center; justify-items: start; text-align: start; }
   .do-camera-live-add svg { grid-row: 1 / 3; }

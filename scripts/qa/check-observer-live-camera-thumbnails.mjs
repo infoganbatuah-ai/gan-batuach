@@ -6,6 +6,9 @@ const dashboardPage = readFileSync("app/digital-observer/dashboard/page.tsx", "u
 const livePlayer = readFileSync("components/digital-observer/observer-live-player.tsx", "utf8");
 const runtime = readFileSync("lib/domain/digital-observer/runtime.ts", "utf8");
 const css = readFileSync("app/styles/digital-observer-product.css", "utf8");
+const cameraRoute = readFileSync("app/api/digital-observer/cameras/route.ts", "utf8");
+const conversationRoute = readFileSync("app/api/digital-observer/conversation/route.ts", "utf8");
+const presence = readFileSync("components/digital-observer/observer-camera-presence.tsx", "utf8");
 
 for (const source of [camerasPage, dashboardPage]) {
   assert.match(source, /function liveGatewayStreamId/, "camera surfaces must detect gateway streams");
@@ -17,6 +20,12 @@ assert.match(livePlayer, /!\s*compact\s*\? <button/, "compact live thumbnails mu
 assert.match(runtime, /gateway_stream_id,video_gateway_stream_id/, "legacy observer camera loading must select gateway stream ids");
 assert.match(runtime, /gateway_stream_id_present/, "legacy observer cameras must expose safe gateway metadata to the dashboard");
 assert.match(css, /\.do-camera-live-tile \.do-live-player/, "camera tiles must size live player thumbnails");
+assert.match(camerasPage + dashboardPage, /ObserverCameraPresence/, "every camera surface must show the Digital Observer presence badge");
+assert.match(presence, /observer-robot-v1\.png/, "camera presence must reuse the product robot asset");
+assert.match(cameraRoute, /action: z\.literal\("rename"\)/, "camera names must be editable through the authenticated camera API");
+assert.match(cameraRoute, /ai_context_source/, "verified camera names must feed the observer context");
+assert.match(conversationRoute, /camera_source_id/, "camera conversation must stay scoped to the selected source");
+assert.match(conversationRoute, /shadow_active/, "instructions for connected sources must not be left in generic readiness");
 assert.doesNotMatch(camerasPage + dashboardPage + livePlayer, /rtsp:\/\/|password|credential/i, "browser camera thumbnail code must not expose raw stream credentials");
 
 console.log("Observer live camera thumbnail checks passed.");
