@@ -75,6 +75,8 @@ export function ObserverLivePlayer({
     <div className={`do-live-player ${large ? "large" : ""}`}>
       <video
         ref={videoRef}
+        data-camera-source-id={cameraSourceId}
+        crossOrigin="anonymous"
         autoPlay
         playsInline
         muted={muted}
@@ -82,6 +84,7 @@ export function ObserverLivePlayer({
         onPlaying={() => setState("playing")}
         onWaiting={() => setState("loading")}
         onError={() => setState("error")}
+        onVolumeChange={(event) => setMuted(event.currentTarget.muted)}
       />
       <span className={`do-live-player-status ${state}`}>
         {state === "playing" ? "LIVE" : state === "loading" ? <><LoaderCircle /> מתחבר…</> : <><CameraOff /> השידור אינו זמין</>}

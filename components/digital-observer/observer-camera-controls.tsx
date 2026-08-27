@@ -3,25 +3,25 @@
 import { Camera, Mic, Square, Video, Volume2, VolumeX } from "lucide-react";
 import { useRef, useState } from "react";
 
-function liveVideo(name: string) {
-  return document.querySelector<HTMLVideoElement>(`video[aria-label="שידור חי — ${CSS.escape(name)}"]`);
+function liveVideo(cameraSourceId: string) {
+  return document.querySelector<HTMLVideoElement>(`video[data-camera-source-id="${CSS.escape(cameraSourceId)}"]`);
 }
 
-export function ObserverCameraControls({ name, talkSupported = false }: { name: string; talkSupported?: boolean }) {
+export function ObserverCameraControls({ cameraSourceId, name, talkSupported = false }: { cameraSourceId: string; name: string; talkSupported?: boolean }) {
   const [muted, setMuted] = useState(true);
   const [recording, setRecording] = useState(false);
   const recorderRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
 
   function toggleAudio() {
-    const video = liveVideo(name);
+    const video = liveVideo(cameraSourceId);
     if (!video) return;
     video.muted = !video.muted;
     setMuted(video.muted);
   }
 
   function snapshot() {
-    const video = liveVideo(name);
+    const video = liveVideo(cameraSourceId);
     if (!video || !video.videoWidth || !video.videoHeight) return;
     const canvas = document.createElement("canvas");
     canvas.width = video.videoWidth;
@@ -43,7 +43,7 @@ export function ObserverCameraControls({ name, talkSupported = false }: { name: 
       recorderRef.current.stop();
       return;
     }
-    const video = liveVideo(name);
+    const video = liveVideo(cameraSourceId);
     const captureStream = video && (video as HTMLVideoElement & { captureStream?: () => MediaStream }).captureStream;
     if (!video || !captureStream || typeof MediaRecorder === "undefined") return;
     const recorder = new MediaRecorder(captureStream.call(video), { mimeType: "video/webm" });
