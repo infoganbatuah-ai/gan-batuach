@@ -579,7 +579,25 @@ async function handle(request, response) {
     return;
   }
   if (request.url === "/health" && request.method === "GET") {
-    json(response, 200, { ok: true, status: "healthy", provider: "custom", read_only: true });
+    json(response, 200, {
+      ok: true,
+      status: "healthy",
+      provider: "custom",
+      read_only: true,
+      streamCount: streamSources.size,
+      failedStreamCount: 0,
+      capabilities: {
+        live: true,
+        playback: true,
+        event_insights: true,
+        local_activity_sampling: true,
+        audio: false,
+        ptz: false,
+        siren: false,
+        light: false,
+        remote_settings: false
+      }
+    });
     return;
   }
   if (!authorized(request)) {

@@ -15,6 +15,11 @@ function sceneFor(index: number, mode: "home" | "business") {
   return scenes[index % scenes.length];
 }
 
+function liveGatewayStreamId(camera: Record<string, any>) {
+  const value = camera.metadata?.gateway_stream_id ?? camera.gateway_stream_id ?? camera.video_gateway_stream_id;
+  return typeof value === "string" && value.trim() ? value.trim() : null;
+}
+
 export default async function DigitalObserverCamerasPage({ searchParams }: PageProps) {
   const params = await searchParams;
   const { profile } = await requireDigitalObserverUser("/digital-observer/login?next=/digital-observer/cameras");
@@ -32,7 +37,7 @@ export default async function DigitalObserverCamerasPage({ searchParams }: PageP
     return matchesQuery && matchesStatus && matchesLocation;
   });
   const selected = params?.camera ? cameras.find((item) => item.id === params.camera) ?? null : null;
-  const selectedHasLiveGateway = Boolean(site && selected?.metadata?.gateway_stream_id);
+  const selectedHasLiveGateway = Boolean(site && selected && liveGatewayStreamId(selected));
   const cameraSignals = selected ? runtime.signals.filter((signal) => observerSignalMatchesCamera(signal, selected.id)).slice(0, 4) : [];
   const recentSiteSignals = site ? runtime.signals.filter((signal) => signal.observer_site_id === site.id).slice(0, 5) : [];
   const connectedCount = cameras.filter((camera) => ["connected", "healthy", "online"].includes(String(camera.status || camera.health_status))).length;
@@ -57,7 +62,8 @@ export default async function DigitalObserverCamerasPage({ searchParams }: PageP
           {mode === "business" ? <aside className="do-camera-filter-panel do-panel"><strong>סינון חכם</strong><span>מצב מצלמה</span><nav><Link className={!params?.status || params.status === "all" ? "active" : ""} href={`/digital-observer/cameras?site=${site?.id ?? ""}`}>הכול <b>{cameras.length}</b></Link><Link className={params?.status === "active" ? "active" : ""} href={`/digital-observer/cameras?site=${site?.id ?? ""}&status=active`}>מוכנות <b>{connectedCount}</b></Link><Link className={params?.status === "readiness" ? "active" : ""} href={`/digital-observer/cameras?site=${site?.id ?? ""}&status=readiness`}>ממתינות <b>{Math.max(0, cameras.length - connectedCount)}</b></Link></nav>{locations.length ? <><span>מיקום</span><nav>{locations.map((location) => <Link className={params?.q === location ? "active" : ""} href={`/digital-observer/cameras?site=${site?.id ?? ""}&q=${encodeURIComponent(location)}`} key={location}>{location}</Link>)}</nav></> : null}<Link className="do-button secondary full" href={`/digital-observer/cameras?site=${site?.id ?? ""}`}>ניקוי סינונים</Link></aside> : null}
           <div className={`do-camera-live-grid ${mode}`}>{filteredCameras.map((camera) => {
           const originalIndex = Math.max(0, cameras.findIndex((item) => item.id === camera.id));
-          return <Link className="do-camera-live-tile" href={`/digital-observer/cameras?site=${site?.id}&camera=${camera.id}`} key={camera.id}><ObserverCameraMedia name={camera.display_name || "מצלמה"} mode={mode} scene={camera.preview_scene || sceneFor(originalIndex, mode)} status={camera.status || camera.health_status} sourceMode={camera.source_mode} /><span className="do-camera-tile-meta"><strong>{camera.display_name || "מצלמה"}</strong><small>{camera.location_label || observerStatusLabel(camera.connector_type)}</small></span></Link>;
+          const hasLiveGateway = Boolean(site && liveGatewayStreamId(camera));
+          return <Link className="do-camera-live-tile" href={`/digital-observer/cameras?site=${site?.id}&camera=${camera.id}`} key={camera.id}>{hasLiveGateway ? <ObserverLivePlayer compact observerSiteId={site!.id} cameraSourceId={camera.id} name={camera.display_name || "מצלמה"} /> : <ObserverCameraMedia name={camera.display_name || "מצלמה"} mode={mode} scene={camera.preview_scene || sceneFor(originalIndex, mode)} status={camera.status || camera.health_status} sourceMode={camera.source_mode} />}<span className="do-camera-tile-meta"><strong>{camera.display_name || "מצלמה"}</strong><small>{hasLiveGateway ? "שידור חי דרך Gateway" : camera.location_label || observerStatusLabel(camera.connector_type)}</small></span></Link>;
         })}</div>
           {mode === "business" ? <aside className="do-camera-activity-panel do-panel"><div><strong>פעילות שנקלטה</strong><small>אירועים קיימים בלבד</small></div>{recentSiteSignals.length ? <nav>{recentSiteSignals.map((signal) => <Link href={`/digital-observer/alerts?event=${signal.id}`} key={signal.id}><CircleDot /><span><b>{observerEventLabel(signal.metadata?.event_type ?? signal.signal_type)}</b><small>{signal.recommended_action || "ממתין לבדיקה"}</small></span></Link>)}</nav> : <div className="do-empty compact"><ShieldCheck /><strong>אין פעילות</strong><span>לא מוצגים אירועים מזויפים.</span></div>}<Link className="do-link" href="/digital-observer/alerts">צפייה בכל האירועים</Link></aside> : null}
         </div> : <div className="do-empty"><CameraOff /><strong>{cameras.length ? "לא נמצאו מצלמות בסינון" : "אין מצלמות מחוברות"}</strong><span>{cameras.length ? "שנו את החיפוש או הסינון." : "הוסיפו מקור הדמיה או מקור שממתין ל-Gateway. אין צורך להזין סודות בדפדפן."}</span>{!cameras.length ? <Link className="do-button primary" href={site ? `/digital-observer/cameras/add?site=${site.id}` : "/digital-observer/onboarding"}>הוספת מצלמה</Link> : null}</div>}

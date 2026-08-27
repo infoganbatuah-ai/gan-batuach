@@ -10,12 +10,14 @@ export function ObserverLivePlayer({
   observerSiteId,
   cameraSourceId,
   name,
-  large = false
+  large = false,
+  compact = false
 }: {
   observerSiteId: string;
   cameraSourceId: string;
   name: string;
   large?: boolean;
+  compact?: boolean;
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const [state, setState] = useState<PlayerState>("loading");
@@ -72,7 +74,7 @@ export function ObserverLivePlayer({
   }, [cameraSourceId, observerSiteId]);
 
   return (
-    <div className={`do-live-player ${large ? "large" : ""}`}>
+    <div className={`do-live-player ${large ? "large" : ""} ${compact ? "compact" : ""}`}>
       <video
         ref={videoRef}
         data-camera-source-id={cameraSourceId}
@@ -89,9 +91,9 @@ export function ObserverLivePlayer({
       <span className={`do-live-player-status ${state}`}>
         {state === "playing" ? "LIVE" : state === "loading" ? <><LoaderCircle /> מתחבר…</> : <><CameraOff /> השידור אינו זמין</>}
       </span>
-      <button type="button" className="do-live-player-audio" onClick={() => setMuted((value) => !value)} aria-label={muted ? "הפעלת שמע" : "השתקת שמע"}>
+      {!compact ? <button type="button" className="do-live-player-audio" onClick={() => setMuted((value) => !value)} aria-label={muted ? "הפעלת שמע" : "השתקת שמע"}>
         {muted ? <VolumeX /> : <Volume2 />}
-      </button>
+      </button> : null}
       <span className="do-live-player-name">{name}</span>
     </div>
   );

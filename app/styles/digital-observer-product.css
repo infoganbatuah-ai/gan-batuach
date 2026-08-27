@@ -779,8 +779,10 @@
   border-radius: 7px;
   text-decoration: none;
 }
-.do-camera-live-tile .do-camera-media { min-height: 210px; border-radius: 0; }
-.do-camera-live-grid.business .do-camera-live-tile .do-camera-media { min-height: 154px; }
+.do-camera-live-tile .do-camera-media,
+.do-camera-live-tile .do-live-player { min-height: 210px; border-radius: 0; }
+.do-camera-live-grid.business .do-camera-live-tile .do-camera-media,
+.do-camera-live-grid.business .do-camera-live-tile .do-live-player { min-height: 154px; }
 .do-camera-tile-meta { display: grid; gap: 2px; padding: 9px 11px; }
 .do-camera-tile-meta strong { color: var(--do-ink); font-size: 13px; }
 .do-camera-tile-meta small { color: var(--do-muted); font-size: 10px; }
@@ -3108,7 +3110,9 @@
   .do-camera-live-grid.business { grid-template-columns: 1fr; }
   .do-camera-live-tile { display: grid; grid-template-columns: minmax(0, 1fr) minmax(130px, 44%); min-height: 108px; }
   .do-camera-live-tile .do-camera-media,
-  .do-camera-live-grid.business .do-camera-live-tile .do-camera-media { grid-column: 2; grid-row: 1; min-height: 108px; border-radius: 0; }
+  .do-camera-live-tile .do-live-player,
+  .do-camera-live-grid.business .do-camera-live-tile .do-camera-media,
+  .do-camera-live-grid.business .do-camera-live-tile .do-live-player { grid-column: 2; grid-row: 1; min-height: 108px; border-radius: 0; }
   .do-camera-live-tile .do-camera-status,
   .do-camera-live-tile .do-camera-name,
   .do-camera-live-tile .do-camera-lock,
@@ -6060,6 +6064,7 @@
 }
 
 .do-live-player.large { min-height: clamp(300px, 45vw, 650px); }
+.do-live-player.compact { min-height: inherit; }
 .do-live-player video { width: 100%; height: 100%; min-height: inherit; display: block; object-fit: cover; background: #07111f; }
 .do-live-player-status,
 .do-live-player-name,
@@ -6071,6 +6076,8 @@
 .do-live-player-name { inset-inline-start: 12px; bottom: 12px; padding: 7px 10px; border-radius: 8px; background: rgba(6, 18, 32, .72); font-weight: 700; }
 .do-live-player-audio { inset-inline-end: 12px; bottom: 12px; width: 38px; height: 38px; display: grid; place-items: center; border: 0; border-radius: 50%; background: rgba(6, 18, 32, .78); color: #fff; cursor: pointer; }
 .do-live-player-audio svg { width: 18px; height: 18px; }
+.do-live-player.compact .do-live-player-status { top: 8px; inset-inline-start: 8px; padding: 5px 8px; font-size: 10px; }
+.do-live-player.compact .do-live-player-name { inset-inline-start: 8px; bottom: 8px; max-width: calc(100% - 16px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; }
 @keyframes do-live-spin { to { transform: rotate(360deg); } }
 
 @media (prefers-reduced-motion: reduce) {
