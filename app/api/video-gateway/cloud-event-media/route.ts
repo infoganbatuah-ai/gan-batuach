@@ -161,7 +161,7 @@ export async function POST(request: Request) {
     if (clipUpload.error) throw new Error(clipUpload.error.message);
     if (thumbnailUpload.error) throw new Error(thumbnailUpload.error.message);
 
-    const signalResult = await supabase.from("observer_intelligence_signals").upsert({
+    const signalPayload = {
       signal_type: "ai_camera",
       source_type: "system",
       source_id: metadata.event_id,
@@ -183,7 +183,16 @@ export async function POST(request: Request) {
         media_evidence_required: true,
         ...safeMetadata(metadata.metadata)
       }
-    }, { onConflict: "source_type,source_id" }).select("id").single();
+    };
+    const existingSignal = await supabase
+      .from("observer_intelligence_signals")
+      .select("id")
+      .eq("source_type", "system")
+      .eq("source_id", metadata.event_id)
+      .maybeSingle();
+    const signalResult = existingSignal.data?.id
+      ? await supabase.from("observer_intelligence_signals").update(signalPayload).eq("id", existingSignal.data.id).select("id").single()
+      : await supabase.from("observer_intelligence_signals").insert(signalPayload).select("id").single();
     if (signalResult.error) throw new Error(signalResult.error.message);
 
     const deleteAfter = new Date(Date.parse(metadata.captured_at) + 24 * 60 * 60 * 1000).toISOString();
