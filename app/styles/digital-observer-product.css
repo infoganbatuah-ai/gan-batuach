@@ -6050,6 +6050,29 @@
   }
 }
 
+.do-live-player {
+  position: relative;
+  min-height: 190px;
+  overflow: hidden;
+  border-radius: inherit;
+  background: #07111f;
+  color: #fff;
+}
+
+.do-live-player.large { min-height: clamp(300px, 45vw, 650px); }
+.do-live-player video { width: 100%; height: 100%; min-height: inherit; display: block; object-fit: cover; background: #07111f; }
+.do-live-player-status,
+.do-live-player-name,
+.do-live-player-audio { position: absolute; z-index: 2; }
+.do-live-player-status { top: 12px; inset-inline-start: 12px; display: inline-flex; align-items: center; gap: 6px; padding: 6px 10px; border-radius: 999px; background: rgba(6, 18, 32, .76); font-size: 12px; font-weight: 800; }
+.do-live-player-status.playing { background: #d92d20; }
+.do-live-player-status svg { width: 14px; height: 14px; }
+.do-live-player-status.loading svg { animation: do-live-spin 1s linear infinite; }
+.do-live-player-name { inset-inline-start: 12px; bottom: 12px; padding: 7px 10px; border-radius: 8px; background: rgba(6, 18, 32, .72); font-weight: 700; }
+.do-live-player-audio { inset-inline-end: 12px; bottom: 12px; width: 38px; height: 38px; display: grid; place-items: center; border: 0; border-radius: 50%; background: rgba(6, 18, 32, .78); color: #fff; cursor: pointer; }
+.do-live-player-audio svg { width: 18px; height: 18px; }
+@keyframes do-live-spin { to { transform: rotate(360deg); } }
+
 @media (prefers-reduced-motion: reduce) {
   .do-shell * { scroll-behavior: auto !important; transition: none !important; animation: none !important; }
 }

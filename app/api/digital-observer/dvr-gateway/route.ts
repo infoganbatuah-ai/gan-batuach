@@ -2,13 +2,15 @@ import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
 import { buildDvrGatewayStatus, createDvrPlaybackSession, type DvrGatewayEventRow } from "@/lib/domain/digital-observer/dvr-gateway";
+import { getPlaybackUrls } from "@/lib/domain/video-gateway-client";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 
 const sessionSchema = z.object({
   observer_site_id: z.string().uuid(),
-  channel: z.coerce.number().int().min(1).max(64),
+  camera_source_id: z.string().uuid().optional(),
+  channel: z.coerce.number().int().min(1).max(64).optional(),
   mode: z.enum(["live", "playback"]).default("live"),
   token: z.string().trim().max(512).optional()
 });
@@ -54,6 +56,32 @@ export async function POST(request: Request) {
     const payload = sessionSchema.parse(await request.json());
     const access = await requireSiteAccess(request, payload.observer_site_id);
     if (access.error) return access.error;
+
+    if (payload.camera_source_id) {
+      const { data: source, error } = await (access.session as any).supabase
+        .from("digital_observer_camera_sources")
+        .select("id,observer_site_id,status,health_status,metadata")
+        .eq("id", payload.camera_source_id)
+        .eq("observer_site_id", payload.observer_site_id)
+        .single();
+      if (error || !source) return fail("מקור המצלמה אינו זמין באתר הזה.", 404);
+      const gatewayStreamId = String(source.metadata?.gateway_stream_id || "").trim();
+      if (!gatewayStreamId) return fail("למקור המצלמה עדיין אין מזהה Gateway.", 409);
+      const gateway = await getPlaybackUrls(gatewayStreamId, payload.token);
+      if (gateway.status !== "healthy" || !gateway.playback.hls_url) return fail("שידור הווידאו עדיין אינו מוכן.", 503);
+      return ok({
+        camera_source_id: source.id,
+        mode: payload.mode,
+        gateway_stream_id: gatewayStreamId,
+        provider: gateway.provider ?? null,
+        status: gateway.status,
+        playback: gateway.playback,
+        expires_in_seconds: 300,
+        private_source_hidden: true
+      });
+    }
+
+    if (!payload.channel) return fail("חסר ערוץ או מקור מצלמה.", 422);
 
     return ok(await createDvrPlaybackSession({
       observerSiteId: payload.observer_site_id,

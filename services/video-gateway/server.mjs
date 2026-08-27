@@ -1,12 +1,22 @@
-import { createHash, timingSafeEqual } from "node:crypto";
+import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
 import { spawn } from "node:child_process";
+import { existsSync, mkdirSync, readFileSync } from "node:fs";
 import http from "node:http";
+import { tmpdir } from "node:os";
+import { extname, join, normalize } from "node:path";
 
 const PORT = Number(process.env.PORT || process.env.VIDEO_GATEWAY_PORT || 8080);
 const HOST = process.env.HOST || process.env.VIDEO_GATEWAY_HOST || "0.0.0.0";
 const PROBE_TIMEOUT_MS = Number(process.env.DVR_PROBE_TIMEOUT_MS || 3500);
 const DEFAULT_CHANNEL_COUNT = Number(process.env.DVR_EXPECTED_CHANNEL_COUNT || 16);
 const MAX_CHANNEL_COUNT = 64;
+const HLS_ROOT = join(tmpdir(), "gan-batuach-video-gateway-hls");
+const PLAYBACK_TOKEN_TTL_MS = 5 * 60 * 1000;
+const streamSources = new Map();
+const relays = new Map();
+const playbackTokens = new Map();
+
+mkdirSync(HLS_ROOT, { recursive: true });
 
 function json(response, status, body) {
   response.writeHead(status, {
@@ -14,6 +24,15 @@ function json(response, status, body) {
     "cache-control": "private, no-store, max-age=0"
   });
   response.end(JSON.stringify(body));
+}
+
+function browserHeaders(contentType) {
+  return {
+    "content-type": contentType,
+    "cache-control": "private, no-store, max-age=0",
+    "access-control-allow-origin": process.env.VIDEO_GATEWAY_BROWSER_ORIGIN || "https://gan-batuach.vercel.app",
+    "access-control-allow-methods": "GET, OPTIONS"
+  };
 }
 
 function safeEqual(left, right) {
@@ -115,6 +134,144 @@ function streamIdFor(input, channel) {
   return `dvr_${fingerprint}_${channel}`;
 }
 
+function privateNvrBaseUrl(input) {
+  const host = cleanHost(input.endpoint || input.host);
+  const port = Number(input.port || 80);
+  return host ? `http://${host}:${port}` : "";
+}
+
+function parseDigestChallenge(value) {
+  const challenge = String(value || "").replace(/^Digest\s+/i, "");
+  const fields = {};
+  for (const match of challenge.matchAll(/([a-z0-9_-]+)=(?:"([^"]*)"|([^,\s]+))/gi)) {
+    fields[match[1].toLowerCase()] = match[2] ?? match[3] ?? "";
+  }
+  return fields;
+}
+
+function digestHex(algorithm, value) {
+  const normalized = String(algorithm || "MD5").toUpperCase() === "SHA-256" ? "sha256" : "md5";
+  return createHash(normalized).update(value, "utf8").digest("hex");
+}
+
+async function privateNvrLogin(input) {
+  const baseUrl = privateNvrBaseUrl(input);
+  if (!baseUrl || !input.username || !input.password) return null;
+  const uri = "/API/Web/Login";
+  const body = JSON.stringify({ data: { remote_terminal_info: "GATEWAY" } });
+  const common = {
+    method: "POST",
+    headers: { "content-type": "application/json", "x-requested-with": "XMLHttpRequest" },
+    body,
+    signal: AbortSignal.timeout(Math.max(2000, PROBE_TIMEOUT_MS))
+  };
+  const first = await fetch(`${baseUrl}${uri}`, common).catch(() => null);
+  if (!first) return null;
+  let response = first;
+  if (first.status === 401) {
+    const challenge = parseDigestChallenge(first.headers.get("www-authenticate"));
+    if (!challenge.realm || !challenge.nonce) return null;
+    const qop = String(challenge.qop || "auth").split(",")[0].trim();
+    const nc = "00000001";
+    const cnonce = randomBytes(8).toString("hex");
+    const ha1 = digestHex(challenge.algorithm, `${input.username}:${challenge.realm}:${input.password}`);
+    const ha2 = digestHex(challenge.algorithm, `POST:${uri}`);
+    const digestResponse = digestHex(challenge.algorithm, `${ha1}:${challenge.nonce}:${nc}:${cnonce}:${qop}:${ha2}`);
+    const authorization = [
+      `Digest username="${String(input.username).replaceAll('"', "")}"`,
+      `realm="${challenge.realm}"`,
+      `nonce="${challenge.nonce}"`,
+      `uri="${uri}"`,
+      `response="${digestResponse}"`,
+      `opaque="${challenge.opaque || ""}"`,
+      `qop=${qop}`,
+      `nc=${nc}`,
+      `cnonce="${cnonce}"`,
+      challenge.algorithm ? `algorithm="${challenge.algorithm}"` : ""
+    ].filter(Boolean).join(", ");
+    response = await fetch(`${baseUrl}${uri}`, {
+      ...common,
+      headers: { ...common.headers, authorization }
+    }).catch(() => null);
+  }
+  if (!response?.ok) return null;
+  const token = String(response.headers.get("x-csrftoken") || "").split(",")[0].trim();
+  if (!token) return null;
+  return { baseUrl, token };
+}
+
+function privateNvrLiveUrl(session, channel, quality = "sub") {
+  const streamType = quality === "main" ? 0 : 1;
+  return `${session.baseUrl}/live.mp4?channel=${Math.max(0, channel - 1)}&type=${streamType}&chrome=1`;
+}
+
+function probePrivateNvrStream(url, token) {
+  return new Promise((resolve) => {
+    const args = [
+      "-v", "error",
+      "-headers", `X-csrftoken: ${token}\r\n`,
+      "-rw_timeout", String(Math.max(1000, PROBE_TIMEOUT_MS) * 1000),
+      "-select_streams", "v:0",
+      "-show_entries", "stream=codec_name,codec_type,width,height",
+      "-of", "json",
+      url
+    ];
+    const child = spawn("ffprobe", args, { stdio: ["ignore", "pipe", "ignore"] });
+    let output = "";
+    const timeout = setTimeout(() => child.kill("SIGKILL"), PROBE_TIMEOUT_MS + 750);
+    child.stdout.on("data", (chunk) => { output += chunk.toString("utf8"); });
+    child.on("error", () => resolve({ ok: false }));
+    child.on("close", (code) => {
+      clearTimeout(timeout);
+      if (code !== 0) return resolve({ ok: false });
+      try {
+        const parsed = JSON.parse(output || "{}");
+        const stream = parsed.streams?.find((item) => item.codec_type === "video");
+        resolve({ ok: Boolean(stream), codec: stream?.codec_name ?? null, width: stream?.width ?? null, height: stream?.height ?? null });
+      } catch {
+        resolve({ ok: false });
+      }
+    });
+  });
+}
+
+async function discoverPrivateNvr(payload, channelCount) {
+  const vendor = String(payload.metadata?.vendor || payload.metadata?.provider || "").toLowerCase();
+  if (!vendor.includes("private") && !vendor.includes("er")) return null;
+  const session = await privateNvrLogin(payload);
+  if (!session) return null;
+  const channels = [];
+  for (let channel = 1; channel <= channelCount; channel += 1) {
+    const url = privateNvrLiveUrl(session, channel, payload.stream_quality);
+    const result = await probePrivateNvrStream(url, session.token);
+    const streamId = streamIdFor(payload, channel);
+    if (result.ok) {
+      streamSources.set(streamId, {
+        kind: "private_nvr_http_mp4",
+        url,
+        token: session.token,
+        input: { ...payload, password: String(payload.password || "") },
+        channel
+      });
+    }
+    channels.push({
+      channel,
+      name: `DVR ערוץ ${channel}`,
+      area: `ערוץ ${channel}`,
+      stream_id: streamId,
+      status: result.ok ? "connected" : "offline",
+      health_status: result.ok ? "healthy" : "failed",
+      reason: result.ok ? "private_stream_found" : "private_stream_unreachable",
+      template: result.ok ? "er_private_http_mp4" : null,
+      candidates_tried: 1,
+      codec: result.codec ?? null,
+      width: result.width ?? null,
+      height: result.height ?? null
+    });
+  }
+  return channels;
+}
+
 function probeRtsp(url) {
   return new Promise((resolve) => {
     const args = [
@@ -200,9 +357,12 @@ function requestedChannelCount(input) {
 async function dvrConnect(payload) {
   const channelCount = requestedChannelCount(payload);
   const started = Date.now();
-  const channels = [];
-  for (let channel = 1; channel <= channelCount; channel += 1) {
-    channels.push(await probeChannel(payload, channel));
+  let channels = await discoverPrivateNvr(payload, channelCount);
+  if (!channels) {
+    channels = [];
+    for (let channel = 1; channel <= channelCount; channel += 1) {
+      channels.push(await probeChannel(payload, channel));
+    }
   }
   const connected = channels.filter((item) => item.status === "connected");
   return {
@@ -218,6 +378,98 @@ async function dvrConnect(payload) {
   };
 }
 
+function relayDirectory(streamId) {
+  return join(HLS_ROOT, streamId.replace(/[^a-z0-9_-]/gi, "_"));
+}
+
+async function refreshPrivateNvrSource(source) {
+  const session = await privateNvrLogin(source.input);
+  if (!session) return source;
+  source.token = session.token;
+  source.url = privateNvrLiveUrl(session, source.channel, source.input.stream_quality);
+  return source;
+}
+
+async function ensureRelay(streamId) {
+  const existing = relays.get(streamId);
+  if (existing?.process && !existing.process.killed) return existing;
+  let source = streamSources.get(streamId);
+  if (!source) return null;
+  if (source.kind === "private_nvr_http_mp4") source = await refreshPrivateNvrSource(source);
+  const directory = relayDirectory(streamId);
+  mkdirSync(directory, { recursive: true });
+  const playlist = join(directory, "index.m3u8");
+  const args = [
+    "-hide_banner", "-loglevel", "error",
+    "-headers", `X-csrftoken: ${source.token}\r\n`,
+    "-i", source.url,
+    "-map", "0:v:0",
+    "-an",
+    "-c:v", "libx264",
+    "-preset", process.env.VIDEO_GATEWAY_X264_PRESET || "veryfast",
+    "-tune", "zerolatency",
+    "-pix_fmt", "yuv420p",
+    "-g", "30",
+    "-sc_threshold", "0",
+    "-f", "hls",
+    "-hls_time", "1",
+    "-hls_list_size", "5",
+    "-hls_flags", "delete_segments+append_list+omit_endlist+independent_segments",
+    "-hls_segment_filename", join(directory, "segment-%06d.ts"),
+    playlist
+  ];
+  const child = spawn("ffmpeg", args, { stdio: ["ignore", "ignore", "ignore"] });
+  const relay = { process: child, playlist, startedAt: Date.now() };
+  relays.set(streamId, relay);
+  child.on("close", () => {
+    if (relays.get(streamId)?.process === child) relays.delete(streamId);
+  });
+  return relay;
+}
+
+function publicGatewayBase(request) {
+  const configured = String(process.env.VIDEO_GATEWAY_EXTERNAL_BASE_URL || "").replace(/\/$/, "");
+  if (configured) return configured;
+  const forwarded = String(request.headers["x-forwarded-proto"] || "http").split(",")[0];
+  return `${forwarded}://${request.headers.host}`;
+}
+
+function issuePlaybackToken(streamId) {
+  const token = randomBytes(24).toString("base64url");
+  playbackTokens.set(token, { streamId, expiresAt: Date.now() + PLAYBACK_TOKEN_TTL_MS });
+  return token;
+}
+
+function validatePlaybackToken(token, streamId) {
+  const record = playbackTokens.get(String(token || ""));
+  if (!record || record.streamId !== streamId || record.expiresAt < Date.now()) return false;
+  return true;
+}
+
+function serveHls(request, response) {
+  const url = new URL(request.url, "http://gateway.local");
+  const match = url.pathname.match(/^\/hls\/([a-zA-Z0-9_-]+)\/(index\.m3u8|segment-\d+\.ts)$/);
+  if (!match || !validatePlaybackToken(url.searchParams.get("token"), match[1])) {
+    json(response, 401, { error: "unauthorized" });
+    return;
+  }
+  const file = normalize(join(relayDirectory(match[1]), match[2]));
+  if (!file.startsWith(relayDirectory(match[1])) || !existsSync(file)) {
+    json(response, 404, { error: "not_ready" });
+    return;
+  }
+  const extension = extname(file);
+  if (extension === ".m3u8") {
+    const token = encodeURIComponent(url.searchParams.get("token"));
+    const playlist = readFileSync(file, "utf8").replace(/^(segment-\d+\.ts)$/gm, `$1?token=${token}`);
+    response.writeHead(200, browserHeaders("application/vnd.apple.mpegurl"));
+    response.end(playlist);
+    return;
+  }
+  response.writeHead(200, browserHeaders("video/mp2t"));
+  response.end(readFileSync(file));
+}
+
 async function cameraTest(payload) {
   const candidates = Array.isArray(payload.candidates) ? payload.candidates : [];
   for (const candidate of candidates) {
@@ -229,6 +481,15 @@ async function cameraTest(payload) {
 }
 
 async function handle(request, response) {
+  if (request.method === "OPTIONS" && request.url?.startsWith("/hls/")) {
+    response.writeHead(204, browserHeaders("text/plain"));
+    response.end();
+    return;
+  }
+  if (request.method === "GET" && request.url?.startsWith("/hls/")) {
+    serveHls(request, response);
+    return;
+  }
   if (request.url === "/health" && request.method === "GET") {
     json(response, 200, { ok: true, status: "healthy", provider: "custom", read_only: true });
     return;
@@ -250,6 +511,24 @@ async function handle(request, response) {
       const payload = await readJson(request);
       const result = await cameraTest(payload);
       json(response, 200, { ...result, stream_id: payload.camera_id || payload.stream_id || null });
+      return;
+    }
+    const playbackMatch = request.url?.match(/^\/camera\/([^/]+)\/playback$/);
+    if (playbackMatch && request.method === "GET") {
+      const streamId = decodeURIComponent(playbackMatch[1]);
+      const relay = await ensureRelay(streamId);
+      if (!relay) {
+        json(response, 404, { error: "stream_not_registered" });
+        return;
+      }
+      const token = issuePlaybackToken(streamId);
+      const base = publicGatewayBase(request);
+      json(response, 200, {
+        status: "starting",
+        provider: "custom",
+        playback: { hls_url: `${base}/hls/${encodeURIComponent(streamId)}/index.m3u8?token=${encodeURIComponent(token)}`, webrtc_url: "" },
+        expires_in_seconds: Math.floor(PLAYBACK_TOKEN_TTL_MS / 1000)
+      });
       return;
     }
     json(response, 404, { error: "not_found" });

@@ -145,7 +145,17 @@ export async function registerCameraSource(cameraId: string, input: CameraConnec
 export async function getPlaybackUrls(gatewayStreamId: string, token?: string) {
   const provider = getGatewayProvider();
   const result = await gatewayFetch(providerPath(provider, "playback", gatewayStreamId));
-  return { ...result, playback: playbackUrlsFor(provider, gatewayStreamId, token) };
+  const gatewayPlayback = result.data && typeof result.data === "object" && "playback" in result.data
+    ? (result.data.playback as { hls_url?: string; webrtc_url?: string })
+    : null;
+  const fallback = playbackUrlsFor(provider, gatewayStreamId, token);
+  return {
+    ...result,
+    playback: {
+      hls_url: gatewayPlayback?.hls_url || fallback.hls_url,
+      webrtc_url: gatewayPlayback?.webrtc_url || fallback.webrtc_url
+    }
+  };
 }
 
 export async function disableCameraSource(gatewayStreamId: string) {
