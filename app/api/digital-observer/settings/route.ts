@@ -30,7 +30,7 @@ export async function POST(request: Request) {
     const existingMetadata = site.metadata && typeof site.metadata === "object" ? site.metadata : {};
     const { error: consentError } = await supabase.from("observer_sites" as any).update({
       monitoring_enabled: payload.monitoring_consent,
-      observer_runtime_status: payload.monitoring_consent ? "learning" : "consent_required",
+      observer_runtime_status: payload.monitoring_consent ? "learning_readiness" : "setup",
       learning_started_at: payload.monitoring_consent ? (site.learning_started_at ?? now) : null,
       metadata: {
         ...existingMetadata,
