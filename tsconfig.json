@@ -37,6 +37,7 @@
   ],
   "exclude": [
     "node_modules",
+    ".next 2",
     ".next-build-stale-*",
     ".vercel",
     "build",

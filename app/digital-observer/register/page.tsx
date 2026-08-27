@@ -1,5 +1,6 @@
+import Image from "next/image";
 import Link from "next/link";
-import { Building2, Home, ShieldCheck } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 import { ObserverMark } from "@/components/digital-observer/observer-app-shell";
 import { registerDigitalObserver } from "@/app/digital-observer/auth-actions";
 
@@ -22,13 +23,11 @@ export default async function DigitalObserverRegisterPage({ searchParams }: Page
       <section className="do-auth-form-wrap wide">
         <form action={registerDigitalObserver} className="do-auth-card">
           <Link className="do-auth-brand dark" href="/digital-observer"><ObserverMark /><span><b>תצפיתן דיגיטלי</b><small>יצירת חשבון חדש</small></span></Link>
-          <h1>איזה מקום תרצו לנטר?</h1>
-          <p>בחרו מסלול פשוט לבית או ניהול מתקדם לעסק.</p>
+          <h1>יצירת חשבון</h1>
+          <p>השלימו את הפרטים ונשלח קוד אימות חד־פעמי למייל.</p>
           {params?.error ? <div className="do-notice bad" role="alert"><ShieldCheck /><span>{registrationErrors[params.error] ?? registrationErrors.email_delivery_failed}</span></div> : null}
-          <div className="do-choice-grid">
-            <label className="do-choice"><input type="radio" name="account_type" value="home" defaultChecked={initialType === "home"} /><Home /><strong>בית פרטי</strong><span>ממשק רגוע למשפחה, ילדים, בעלי חיים וכניסה לבית</span></label>
-            <label className="do-choice"><input type="radio" name="account_type" value="business" defaultChecked={initialType === "business"} /><Building2 /><strong>עסק</strong><span>אתרים, מצלמות, צוות, כללים ודוחות</span></label>
-          </div>
+          <input type="hidden" name="account_type" value={initialType} />
+          <div className={`do-registration-route ${initialType}`}><span className="do-account-type-visual" aria-hidden="true"><Image src={initialType === "home" ? "/assets/digital-observer/account-home-v1.png" : "/assets/digital-observer/account-business-v1.png"} alt="" width={700} height={700} /></span><span><strong>{initialType === "home" ? "מסלול ביתי" : "מסלול עסקי"}</strong><small>{initialType === "home" ? "בית, משפחה, כניסות ובעלי חיים" : "אתרים, מצלמות, צוות והרשאות"}</small></span><Link href="/digital-observer/start">שינוי</Link></div>
           <div className="do-form-grid">
             <label className="do-field"><span>שם מלא</span><input name="full_name" autoComplete="name" required minLength={2} /></label>
             <label className="do-field"><span>דוא״ל</span><input name="email" type="email" autoComplete="email" required /></label>

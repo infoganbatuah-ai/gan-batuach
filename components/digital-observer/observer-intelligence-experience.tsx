@@ -9,6 +9,7 @@ import {
   CircleHelp,
   LoaderCircle,
   MessageCircle,
+  Radar,
   Send,
   ShieldCheck,
   Sparkles,
@@ -42,10 +43,16 @@ type ConversationMessage = {
 
 export function ObserverConversationPanel({
   siteId,
-  initialPrompt
+  initialPrompt,
+  ruleSummary
 }: {
   siteId: string;
   initialPrompt?: string;
+  ruleSummary?: {
+    title: string;
+    description?: string | null;
+    active: boolean;
+  } | null;
 }) {
   const [messages, setMessages] = useState<ConversationMessage[]>([
     {
@@ -107,6 +114,15 @@ export function ObserverConversationPanel({
           </article>
         ))}
         {busy ? <article className="do-chat-message observer is-typing"><LoaderCircle className="do-spin" /><div><p>בודק את האירועים, המצלמות ודפוסי השגרה...</p></div></article> : null}
+      </div>
+      <div className="do-conversation-rule-state">
+        <Radar />
+        <span>
+          <small>{ruleSummary ? "כלל תצפית מהאתר" : "כלל תצפית"}</small>
+          <strong>{ruleSummary?.title || "עדיין לא הוגדר כלל תצפית"}</strong>
+          <p>{ruleSummary?.description || "אפשר לכתוב לתצפיתן מה חשוב לבדוק והוא יכין כלל לאישור."}</p>
+        </span>
+        <b className={ruleSummary?.active ? "do-badge good" : "do-badge warn"}>{ruleSummary?.active ? "פעיל" : "מוכן להגדרה"}</b>
       </div>
       <div className="do-conversation-suggestions">
         {suggestions.map((suggestion) => <button type="button" onClick={() => void ask(suggestion)} disabled={busy} key={suggestion}>{suggestion}</button>)}
