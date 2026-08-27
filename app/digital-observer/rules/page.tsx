@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { Activity, Bell, BrainCircuit, Camera, CheckCircle2, Clock3, MapPin, Radar, ShieldCheck, Sparkles, TriangleAlert } from "lucide-react";
 import { ObserverQuickAction, ObserverRuleForm } from "@/components/digital-observer/observer-action-forms";
+import { ObserverConversationPanel } from "@/components/digital-observer/observer-intelligence-experience";
 import { ObserverAppShell } from "@/components/digital-observer/observer-app-shell";
 import { ObserverCameraMedia } from "@/components/digital-observer/observer-camera-media";
 import { requireDigitalObserverUser } from "@/lib/domain/digital-observer/access";
@@ -35,6 +36,9 @@ export default async function DigitalObserverRulesPage() {
   const cameras = site ? runtime.cameras.filter((item) => item.observer_site_id === site.id) : [];
   const rules = site ? runtime.watchRequests.filter((item) => item.observer_site_id === site.id) : [];
   const signals = site ? runtime.signals.filter((item) => item.observer_site_id === site.id) : [];
+  const reviewedSignals = signals.filter((signal) => ["confirmed", "resolved", "dismissed"].includes(String(signal.review_status)));
+  const dismissedSignals = signals.filter((signal) => signal.review_status === "dismissed");
+  const reviewCoverage = signals.length ? Math.round((reviewedSignals.length / signals.length) * 100) : 0;
   const baselines = site ? runtime.baselines.filter((item) => item.observer_site_id === site.id) : [];
   const learning = site ? runtime.learningProfiles.find((item) => item.observer_site_id === site.id) : null;
   const targetDays = Number(site?.learning_target_days || 30);
@@ -57,9 +61,9 @@ export default async function DigitalObserverRulesPage() {
           <div>
             <span className="do-badge info">מנוע למידה אישי</span>
             <h1>התצפיתן עובד בשבילכם, בלי להמציא פעילות</h1>
-            <p>המערכת אוספת רק אירועים ונתוני שגרה מאושרים של האתר שלכם. לאחר 30 ימי למידה היא יכולה להציע חריגות, וכל מסקנה עדיין דורשת בדיקה אנושית.</p>
+            <p>המערכת אוספת רק אירועים ונתוני שגרה מאושרים של האתר שלכם. חלון של 30 יום עוזר לבנות הקשר, אך זמן לבדו אינו מוכיח אמינות: רק תוצאות מאומתות, דיוק והתרעות שווא מאפשרים להרחיב יכולות.</p>
           </div>
-          <div className="do-observer-orbit" aria-label={runtimeText}><Radar /><span>{progress.percent}%</span><small>למידת שגרה</small></div>
+          <div className="do-observer-orbit" aria-label={runtimeText}><Radar /><span>{progress.percent}%</span><small>חלון איסוף</small></div>
         </section>
 
         {!runtime.locationLearningMigrationApplied ? <div className="do-notice warn"><TriangleAlert /><span>שכבת הכתובת והלמידה החדשה ממתינה למיגרציה. אין להציג את האתר כפעיל עד החלתה.</span></div> : null}
@@ -100,20 +104,52 @@ export default async function DigitalObserverRulesPage() {
             {cameras.length ? <div className="do-camera-grid">{cameras.slice(0, 4).map((camera) => <Link href={`/digital-observer/cameras?camera=${camera.id}`} key={camera.id}><ObserverCameraMedia name={camera.display_name} mode={mode} scene={camera.preview_scene} status={camera.status ?? camera.health_status} sourceMode={camera.source_mode} /></Link>)}</div> : <div className="do-empty"><Camera /><strong>טרם חוברה מצלמה</strong><span>לא תתחיל למידה בלי מקור מצלמה בטוח.</span><Link className="do-button primary" href="/digital-observer/cameras/add">הוספת מצלמה</Link></div>}
           </section>
 
-          <section className="do-grid cols-2">
-            <ObserverRuleForm siteId={site.id} cameras={cameras} />
+          <section className="do-panel">
+            <div className="do-section-head"><div><h2>מסלול תצפית חיה</h2><p>כך אירוע מורשה אמור לעבור מהמצלמה אל הסבר שימושי, בלי לחשוף כתובת RTSP או להציג פעולה שלא הופעלה.</p></div><span className={sourceReady && readiness.ai.configured && !demoOnly ? "do-badge good" : "do-badge warn"}>{sourceReady && readiness.ai.configured && !demoOnly ? "מוכן ל-Shadow מבוקר" : "מוכנות בלבד"}</span></div>
+            <div className="do-grid cols-4">
+              <article className="do-metric"><Camera /><strong>{demoOnly ? "דמו" : sourceReady ? "מוכן" : "ממתין"}</strong><span>Gateway ומקור מורשה</span></article>
+              <article className="do-metric"><Radar /><strong>{readiness.ai.configured ? "Shadow" : "כבוי"}</strong><span>זיהוי אירוע או שינוי</span></article>
+              <article className="do-metric"><Activity /><strong>{signals.length}</strong><span>אירועים מובנים באתר</span></article>
+              <article className="do-metric"><BrainCircuit /><strong>{reviewedSignals.length}</strong><span>הסברים עם תוצאה מאומתת</span></article>
+            </div>
+            <div className="do-notice warn"><ShieldCheck /><span>וידאו חי, זיהוי ביומטרי ופעולת חירום נשארים כבויים. בדיקת תצפית חיה תתחיל רק עם Gateway מקומי, מקור מורשה, מדיניות פרטיות ו-AI במצב Shadow.</span></div>
+          </section>
+
+          <section className="do-grid cols-2 do-observer-live-grid">
+            <ObserverConversationPanel
+              siteId={site.id}
+              initialPrompt={signals.length
+                ? `קיימים ${signals.length} אירועים במידע של האתר. אפשר לשאול מה קרה, מי נכנס או יצא, מה אירע בחניה או למה אירוע מסוים סומן.`
+                : "אני מוכן לענות מתוך המידע של האתר. כרגע אין אירוע שמור, ולכן לא אמציא פעילות. אפשר גם לבקש ממני לשים לב לדבר מסוים."}
+            />
             <article className="do-panel">
               <div className="do-section-head"><div><h2>מה התצפיתן למד עד עכשיו</h2><p>אין מסקנה אם אין נתונים אמיתיים או סינתטיים מסומנים.</p></div></div>
               {baselines.length ? <div className="do-insight-grid">{baselines.map((baseline) => <div key={baseline.id}><Sparkles /><span><strong>{baselineLabel(baseline.baseline_type)}</strong><small>{baseline.learning_maturity === "mature" ? "נלמד" : `איסוף נתונים · ${Math.round(Number(baseline.confidence_level || 0) * 100)}% ביטחון`}</small></span></div>)}</div> : <div className="do-empty"><BrainCircuit /><strong>אין עדיין קו בסיס</strong><span>המערכת לא ממציאה שגרה. הנתונים ייאספו אחרי חיבור מצלמה.</span></div>}
             </article>
           </section>
 
+          <section className="do-panel">
+            <div className="do-section-head"><div><h2>מחזור השיפור של התצפיתן</h2><p>כל הרחבת אוטומציה חייבת לעבור דרך תוצאה מאומתת של האתר, ולא להיפתח רק מפני שעבר זמן.</p></div><span className="do-badge info">מצב בטוח כברירת מחדל</span></div>
+            <div className="do-grid cols-4">
+              <article className="do-metric"><Activity /><strong>{signals.length}</strong><span>אירועים נקלטו והוסברו</span></article>
+              <article className="do-metric"><CheckCircle2 /><strong>{reviewedSignals.length}</strong><span>תוצאות אומתו במשוב</span></article>
+              <article className="do-metric"><ShieldCheck /><strong>{reviewCoverage}%</strong><span>כיסוי ביקורת באתר</span></article>
+              <article className="do-metric alert"><TriangleAlert /><strong>{dismissedSignals.length}</strong><span>התרעות שווא שסומנו</span></article>
+            </div>
+            <div className="do-notice info"><BrainCircuit /><span>המערכת משחררת יכולות בהדרגה רק אחרי מדידת דיוק, כיסוי ביקורת והתרעות שווא. ירידה באיכות מחזירה את היכולת ל־Shadow או לביקורת אנושית מלאה.</span></div>
+          </section>
+
+          <details className="do-advanced-rule-panel">
+            <summary><Radar /> הגדרה ידנית מתקדמת</summary>
+            <ObserverRuleForm siteId={site.id} cameras={cameras} />
+          </details>
+
           <section className="do-grid cols-2">
             <article className="do-panel"><div className="do-section-head"><div><h2>הבקשות שלי</h2><p>כללים פעילים ומושבתים.</p></div><span className="do-badge info">{rules.length}</span></div>{rules.length ? <div className="do-row-list">{rules.map((rule) => <div className="do-row" key={rule.id}><Radar /><span className="do-row-main"><strong>{rule.title}</strong><small>{rule.description || observerStatusLabel(rule.watch_type)}</small></span><span className="do-row-meta"><b className={rule.active ? "do-badge good" : "do-badge warn"}>{rule.active ? "מוכן להפעלה" : "מושבת"}</b>{rule.active ? <ObserverQuickAction endpoint="/api/digital-observer/watch-requests" body={{ action: "disable", id: rule.id }}>השבתה</ObserverQuickAction> : null}</span></div>)}</div> : <div className="do-empty"><Radar /><strong>אין בקשות ניטור</strong><span>כתבו לתצפיתן מה חשוב לבדוק.</span></div>}</article>
             <article className="do-panel"><div className="do-section-head"><div><h2>עדכונים ותובנות אחרונות</h2><p>כל אירוע מוצג כהערכה ולא כעובדה.</p></div><Link className="do-link" href="/digital-observer/alerts">מרכז ההתראות</Link></div>{signals.length ? <div className="do-row-list">{signals.slice(0, 5).map((signal) => <Link className="do-row" href={`/digital-observer/alerts?event=${signal.id}`} key={signal.id}><Activity /><span className="do-row-main"><strong>{observerEventLabel(signal.metadata?.event_type ?? signal.signal_type)}</strong><small>{signal.recommended_action || "ממתין לבדיקה אנושית"}</small></span><span className="do-row-meta"><b className="do-badge info">{signal.confidence == null ? "ללא ציון" : `${Math.round(Number(signal.confidence) * 100)}%`}</b><time>{formatObserverDate(signal.created_at)}</time></span></Link>)}</div> : <div className="do-empty"><CheckCircle2 /><strong>אין עדכון חדש</strong><span>לא נוצר סיכום יומי מזויף כשאין אירועים.</span></div>}</article>
           </section>
 
-          <section className="do-grid cols-3"><article className="do-panel"><Clock3 /><h3>למידה בת 30 יום</h3><p>דפוסי שגרה נבנים ברמת האתר והמצלמה, ללא העברת זהויות בין לקוחות.</p></article><article className="do-panel"><ShieldCheck /><h3>משוב בטוח</h3><p>סימון ״הכול בסדר״ מכייל את סוג האירוע וההקשר בלבד ואינו הופך התנהגות למותרת תמיד.</p></article><article className="do-panel"><Bell /><h3>ערוצי עדכון</h3><p>In-app מוכן. Push, דוא״ל, SMS, WhatsApp ושיחה יופעלו רק לאחר חיבור ספק ובדיקת מסירה.</p></article></section>
+          <section className="do-grid cols-3"><article className="do-panel"><Clock3 /><h3>חלון איסוף בן 30 יום</h3><p>דפוסי שגרה נבנים ברמת האתר והמצלמה. הזמן מספק הקשר אך אינו ציון אמינות.</p></article><article className="do-panel"><ShieldCheck /><h3>משוב בטוח</h3><p>סימון ״הכול בסדר״ מכייל את סוג האירוע וההקשר בלבד ואינו הופך התנהגות למותרת תמיד.</p></article><article className="do-panel"><Bell /><h3>ערוצי עדכון</h3><p>In-app מוכן. Push, דוא״ל, SMS, WhatsApp ושיחה יופעלו רק לאחר חיבור ספק ובדיקת מסירה.</p></article></section>
         </> : <div className="do-empty"><ShieldCheck /><strong>תחילה יש להקים אתר</strong><Link className="do-button primary" href="/digital-observer/onboarding">תחילת הקמה</Link></div>}
       </div>
     </ObserverAppShell>

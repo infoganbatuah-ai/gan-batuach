@@ -93,7 +93,11 @@ export function observerStatusLabel(value?: unknown) {
     new: "חדש",
     learning: "בתהליך למידה",
     calibrated: "מכויל",
-    mature: "בשל"
+    mature: "בשל",
+    observing: "אוסף תצפיות",
+    ready_for_review: "מוכן לזיהוי",
+    known: "אדם מוכר",
+    unknown_person: "אדם לא מוכר"
   };
   return labels[String(value ?? "")] ?? String(value ?? "לא הוגדר");
 }
@@ -103,7 +107,24 @@ export function observerEventLabel(value?: unknown) {
     ai_camera: "אירוע מצלמה",
     camera_health: "בריאות מצלמה",
     person_detected: "זוהה אדם",
+    known_person_detected: "זוהה אדם מוכר",
+    unknown_person_detected: "זוהה אדם לא מוכר",
+    person_entered: "אדם נכנס",
+    person_exited: "אדם יצא",
+    vehicle_entered: "רכב נכנס",
+    vehicle_exited: "רכב יצא",
+    vehicle_tampering: "חשד לפגיעה או פריצה לרכב",
+    unknown_person_near_vehicle: "אדם לא מוכר ליד רכב",
+    vehicle_started_by_unknown_person: "הנעת רכב דורשת בדיקה",
     animal_detected: "זוהה בעל חיים",
+    distress_detected: "סימן מצוקה דורש בדיקה",
+    child_distress_detected: "סימן מצוקה של ילד דורש בדיקה",
+    animal_distress_detected: "סימן מצוקה של בעל חיים דורש בדיקה",
+    room_entry: "כניסה לחדר",
+    room_exit: "יציאה מחדר",
+    perimeter_entry: "כניסה לשטח",
+    perimeter_exit: "יציאה מהשטח",
+    door_left_open: "דלת נשארה פתוחה",
     motion_after_hours: "תנועה מחוץ לשעות",
     restricted_area: "תנועה באזור מוגבל",
     camera_offline: "מצלמה נותקה",
@@ -173,7 +194,7 @@ export async function loadObserverRuntime(profileId: string) {
   const siteIds = sites.map((site) => site.id);
   const empty = { data: [], available: true } as SafeResult<ObserverRow>;
 
-  const [cameraSources, legacyCameras, signals, subscriptions, schedules, watchRequests, knownPeople, clips, deliveries, alertSettings, invoices, learningProfiles, baselines, feedback, recipients, deviceSlots] = siteIds.length
+  const [cameraSources, legacyCameras, signals, subscriptions, schedules, watchRequests, knownPeople, identityCandidates, clips, deliveries, alertSettings, invoices, learningProfiles, baselines, feedback, recipients, deviceSlots] = siteIds.length
     ? await Promise.all([
         safeList<ObserverRow>("camera sources", () => supabase.from("digital_observer_camera_sources" as any).select("id,observer_site_id,camera_stream_id,display_name,location_label,connector_type,connector_provider,source_mode,status,health_status,stream_protocol,gateway_provider,preview_scene,capabilities,monitoring_targets,last_health_check_at,last_seen_at,last_error_code,last_error_message,metadata,created_at").in("observer_site_id", siteIds).order("created_at")),
         safeList<ObserverRow>("legacy camera readiness", () => supabase.from("camera_streams" as any).select("id,observer_site_id,name,area,status,health_status,stream_status,gateway_registration_status,digital_observer_pilot_mode,ai_enabled,last_health_check_at,last_seen").in("observer_site_id", siteIds).order("created_at")),
@@ -182,6 +203,7 @@ export async function loadObserverRuntime(profileId: string) {
         safeList<ObserverRow>("monitoring schedules", () => supabase.from("observer_monitoring_schedules" as any).select("id,observer_site_id,schedule_mode,timezone,active_days,active_hours,status").in("observer_site_id", siteIds)),
         safeList<ObserverRow>("watch requests", () => supabase.from("observer_watch_requests" as any).select("id,observer_site_id,camera_id,camera_source_id,title,description,watch_type,priority,schedule,notification_channels,active,requires_human_review,metadata,created_at").in("observer_site_id", siteIds).order("created_at", { ascending: false })),
         safeList<ObserverRow>("known people", () => supabase.from("digital_observer_known_people" as any).select("id,observer_site_id,display_name,relationship_label,consent_status,recognition_status,camera_scope,notify_on_detection,confidence_threshold,last_confirmed_at,metadata,created_at").in("observer_site_id", siteIds).order("created_at")),
+        safeList<ObserverRow>("identity candidates", () => supabase.from("digital_observer_identity_candidates" as any).select("id,observer_site_id,camera_source_id,assigned_known_person_id,candidate_status,suggested_label,first_seen_at,last_seen_at,observation_count,average_confidence,preview_available,metadata,reviewed_at,created_at").in("observer_site_id", siteIds).order("last_seen_at", { ascending: false })),
         safeList<ObserverRow>("event clips", () => supabase.from("digital_observer_event_clips" as any).select("id,observer_site_id,camera_source_id,signal_id,title,clip_status,captured_at,duration_seconds,retention_hours,delete_after,downloadable,metadata,created_at").in("observer_site_id", siteIds).order("created_at", { ascending: false })),
         safeList<ObserverRow>("notification deliveries", () => supabase.from("digital_observer_notification_deliveries" as any).select("id,observer_site_id,signal_id,channel,severity,provider_mode,delivery_status,attempt_count,sent_at,acknowledged_at,failure_reason,created_at").in("observer_site_id", siteIds).order("created_at", { ascending: false }).limit(100)),
         safeList<ObserverRow>("alert settings", () => supabase.from("observer_alert_channel_settings" as any).select("id,observer_site_id,member_profile_id,recipient_name,channel,severity_levels,enabled,package_allowed,provider_mode").in("observer_site_id", siteIds)),
@@ -192,7 +214,7 @@ export async function loadObserverRuntime(profileId: string) {
         safeList<ObserverRow>("authorized recipients", () => supabase.from("digital_observer_authorized_recipients" as any).select("id,observer_site_id,recipient_profile_id,display_name,relationship_label,channels,destination_hint,receives_critical_alerts,active,metadata,created_at").in("observer_site_id", siteIds).order("created_at")),
         safeList<ObserverRow>("device slots", () => supabase.from("digital_observer_device_slots" as any).select("id,observer_site_id,profile_id,device_label,platform,active,last_seen_at,metadata,created_at").in("observer_site_id", siteIds).order("last_seen_at", { ascending: false }))
       ])
-    : [empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty];
+    : [empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty, empty];
 
   const normalizedCameras: ObserverRow[] = cameraSources.data.length
     ? cameraSources.data
@@ -214,6 +236,7 @@ export async function loadObserverRuntime(profileId: string) {
     schedules: schedules.data,
     watchRequests: watchRequests.data,
     knownPeople: knownPeople.data,
+    identityCandidates: identityCandidates.data,
     clips: clips.data,
     deliveries: deliveries.data,
     alertSettings: alertSettings.data,
@@ -225,6 +248,7 @@ export async function loadObserverRuntime(profileId: string) {
     deviceSlots: deviceSlots.data,
     dataAvailable: owned.available && memberships.available,
     runtimeMigrationApplied: cameraSources.available && knownPeople.available && clips.available,
+    identityCandidateMigrationApplied: identityCandidates.available,
     locationLearningMigrationApplied: learningProfiles.available && baselines.available && recipients.available && deviceSlots.available
   };
 }

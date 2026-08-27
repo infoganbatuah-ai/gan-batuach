@@ -73,11 +73,13 @@ async function ownedSite(session, expectedType, label) {
 }
 
 async function ownRuntimeChecks(session, site, label) {
-  const [cameraResult, signalResult, subscriptionResult, peopleResult, clipsResult, deliveriesResult] = await Promise.all([
+  const [cameraResult, signalResult, subscriptionResult, peopleResult, candidateResult, privateCandidateResult, clipsResult, deliveriesResult] = await Promise.all([
     session.client.from("digital_observer_camera_sources").select("id,observer_site_id,display_name,source_mode,status,health_status,connector_type").eq("observer_site_id", site.id),
     session.client.from("observer_intelligence_signals").select("id,observer_site_id,severity,review_status,confidence").eq("observer_site_id", site.id),
     session.client.from("observer_site_subscriptions").select("id,observer_site_id,status,subscription_status,payment_provider,entitlement_status,purchase_channel").eq("observer_site_id", site.id),
     session.client.from("digital_observer_known_people").select("id,observer_site_id,display_name,consent_status,recognition_status").eq("observer_site_id", site.id),
+    session.client.from("digital_observer_identity_candidates").select("id,observer_site_id,candidate_status,observation_count,average_confidence,preview_available").eq("observer_site_id", site.id),
+    session.client.from("digital_observer_identity_candidates").select("id,cluster_reference").eq("observer_site_id", site.id).limit(1),
     session.client.from("digital_observer_event_clips").select("id,observer_site_id,title,clip_status,retention_hours,downloadable").eq("observer_site_id", site.id),
     session.client.from("digital_observer_notification_deliveries").select("id,observer_site_id,channel,provider_mode,delivery_status").eq("observer_site_id", site.id)
   ]);
@@ -88,16 +90,19 @@ async function ownRuntimeChecks(session, site, label) {
   record(`${label} event binding`, !signalResult.error && (signalResult.data?.length ?? 0) > 0, evidence(signalResult, "Synthetic AI events are data-bound", "No synthetic AI event is linked to this site"));
   record(`${label} billing readiness`, !subscriptionResult.error && (subscriptionResult.data?.length ?? 0) > 0 && subscriptionResult.data.every((item) => item.payment_provider !== "live"), evidence(subscriptionResult, "Subscription exists without live billing provider", "No trial or subscription row is linked to this site"));
   record(`${label} known people privacy`, !peopleResult.error && (peopleResult.data?.length ?? 0) > 0 && peopleResult.data.every((item) => item.recognition_status !== "active"), evidence(peopleResult, "Synthetic known people are visible without biometric fields", "No synthetic known-person readiness row is linked to this site"));
+  record(`${label} identity candidate workflow`, !candidateResult.error, candidateResult.error ? `Database error ${candidateResult.error.code || "unknown"}` : "Candidate review metadata is site-scoped and available even when no AI candidate exists");
+  record(`${label} identity candidate private columns`, Boolean(privateCandidateResult.error), privateCandidateResult.error ? "Raw cluster references are not selectable by the browser role" : "Private cluster reference was unexpectedly selectable");
   record(`${label} event clip retention`, !clipsResult.error && (clipsResult.data?.length ?? 0) > 0 && clipsResult.data.every((item) => Number(item.retention_hours) <= 48 && item.downloadable === false), evidence(clipsResult, "Readiness clips are capped at 48 hours and have no download claim", "No synthetic event clip is linked to this site"));
   record(`${label} notification isolation`, !deliveriesResult.error && (deliveriesResult.data?.length ?? 0) > 0 && deliveriesResult.data.every((item) => item.provider_mode !== "live"), evidence(deliveriesResult, "Only scoped mock notification delivery is visible", "No synthetic notification delivery is linked to this site"));
 }
 
 async function crossTenantChecks(session, foreignSite, label) {
-  const [siteResult, cameraResult, signalResult, peopleResult, clipsResult, deliveriesResult] = await Promise.all([
+  const [siteResult, cameraResult, signalResult, peopleResult, candidateResult, clipsResult, deliveriesResult] = await Promise.all([
     session.client.from("observer_sites").select("id").eq("id", foreignSite.id),
     session.client.from("digital_observer_camera_sources").select("id").eq("observer_site_id", foreignSite.id),
     session.client.from("observer_intelligence_signals").select("id").eq("observer_site_id", foreignSite.id),
     session.client.from("digital_observer_known_people").select("id").eq("observer_site_id", foreignSite.id),
+    session.client.from("digital_observer_identity_candidates").select("id").eq("observer_site_id", foreignSite.id),
     session.client.from("digital_observer_event_clips").select("id").eq("observer_site_id", foreignSite.id),
     session.client.from("digital_observer_notification_deliveries").select("id").eq("observer_site_id", foreignSite.id)
   ]);
@@ -105,6 +110,7 @@ async function crossTenantChecks(session, foreignSite, label) {
   record(`${label} cannot read foreign cameras`, !cameraResult.error && cameraResult.data?.length === 0, cameraResult.error ? `Database error ${cameraResult.error.code || "unknown"}` : "RLS returned no foreign camera rows");
   record(`${label} cannot read foreign events`, !signalResult.error && signalResult.data?.length === 0, "RLS returned no foreign event rows");
   record(`${label} cannot read foreign known people`, !peopleResult.error && peopleResult.data?.length === 0, peopleResult.error ? `Database error ${peopleResult.error.code || "unknown"}` : "RLS returned no foreign known-person rows");
+  record(`${label} cannot read foreign identity candidates`, !candidateResult.error && candidateResult.data?.length === 0, candidateResult.error ? `Database error ${candidateResult.error.code || "unknown"}` : "RLS returned no foreign identity-candidate rows");
   record(`${label} cannot read foreign clips`, !clipsResult.error && clipsResult.data?.length === 0, clipsResult.error ? `Database error ${clipsResult.error.code || "unknown"}` : "RLS returned no foreign clip rows");
   record(`${label} cannot read foreign deliveries`, !deliveriesResult.error && deliveriesResult.data?.length === 0, deliveriesResult.error ? `Database error ${deliveriesResult.error.code || "unknown"}` : "RLS returned no foreign notification rows");
 }

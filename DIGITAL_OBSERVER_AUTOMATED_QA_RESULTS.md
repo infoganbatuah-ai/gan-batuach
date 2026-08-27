@@ -1,6 +1,6 @@
 # DIGITAL OBSERVER AUTOMATED QA RESULTS
 
-Date: 2026-08-20T23:43:13.345Z
+Date: 2026-08-21T01:46:50.096Z
 Environment: synthetic demo
 Passwords or tokens printed: no
 Service role used in browser/client QA: no
@@ -19,24 +19,30 @@ Service role used in browser/client QA: no
 | Home user event binding | PASS | Synthetic AI events are data-bound |
 | Home user billing readiness | PASS | Subscription exists without live billing provider |
 | Home user known people privacy | PASS | Synthetic known people are visible without biometric fields |
+| Home user identity candidate workflow | PASS | Candidate review metadata is site-scoped and available even when no AI candidate exists |
+| Home user identity candidate private columns | PASS | Raw cluster references are not selectable by the browser role |
 | Home user event clip retention | PASS | Readiness clips are capped at 48 hours and have no download claim |
 | Home user notification isolation | PASS | Only scoped mock notification delivery is visible |
 | Business user camera source binding | PASS | User can read only safe camera source columns |
 | Business user event binding | PASS | Synthetic AI events are data-bound |
 | Business user billing readiness | PASS | Subscription exists without live billing provider |
 | Business user known people privacy | PASS | Synthetic known people are visible without biometric fields |
+| Business user identity candidate workflow | PASS | Candidate review metadata is site-scoped and available even when no AI candidate exists |
+| Business user identity candidate private columns | PASS | Raw cluster references are not selectable by the browser role |
 | Business user event clip retention | PASS | Readiness clips are capped at 48 hours and have no download claim |
 | Business user notification isolation | PASS | Only scoped mock notification delivery is visible |
 | Home user cannot read foreign site | PASS | RLS returned no foreign site rows |
 | Home user cannot read foreign cameras | PASS | RLS returned no foreign camera rows |
 | Home user cannot read foreign events | PASS | RLS returned no foreign event rows |
 | Home user cannot read foreign known people | PASS | RLS returned no foreign known-person rows |
+| Home user cannot read foreign identity candidates | PASS | RLS returned no foreign identity-candidate rows |
 | Home user cannot read foreign clips | PASS | RLS returned no foreign clip rows |
 | Home user cannot read foreign deliveries | PASS | RLS returned no foreign notification rows |
 | Business user cannot read foreign site | PASS | RLS returned no foreign site rows |
 | Business user cannot read foreign cameras | PASS | RLS returned no foreign camera rows |
 | Business user cannot read foreign events | PASS | RLS returned no foreign event rows |
 | Business user cannot read foreign known people | PASS | RLS returned no foreign known-person rows |
+| Business user cannot read foreign identity candidates | PASS | RLS returned no foreign identity-candidate rows |
 | Business user cannot read foreign clips | PASS | RLS returned no foreign clip rows |
 | Business user cannot read foreign deliveries | PASS | RLS returned no foreign notification rows |
 | Retention is capped for Digital Observer | PASS | All active packages are 48 hours or less |
@@ -44,6 +50,6 @@ Service role used in browser/client QA: no
 | Commercial package matrix is complete | PASS | Home, business and multi-site package rows are present |
 
 Final result: PASS
-Passed: 35/35
+Passed: 41/41
 
 > This runtime QA uses normal Supabase authentication and RLS. It does not validate a real camera gateway, AI provider, billing provider or production notification provider.

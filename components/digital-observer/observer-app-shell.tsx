@@ -80,7 +80,7 @@ export function ObserverAppShell({
     : [...baseNav];
   const displayName = cleanSyntheticLabel(profile?.full_name, mode === "home" ? "הבית שלי" : "העסק שלי");
   const initial = displayName.trim().slice(0, 1) || "צ";
-  const mobileNav = [nav[0], nav.find((item) => item.href === "/digital-observer/cameras")!, nav.find((item) => item.href === "/digital-observer/alerts")!, nav.find((item) => item.href === "/digital-observer/rules")!, nav.find((item) => item.href === "/digital-observer/settings")!];
+  const mobileNav = [nav[0], nav.find((item) => item.href === "/digital-observer/cameras")!, nav.find((item) => item.href === "/digital-observer/rules")!, nav.find((item) => item.href === "/digital-observer/alerts")!, nav.find((item) => item.href === "/digital-observer/settings")!];
 
   return (
     <div className={`do-shell do-mode-${mode}`} dir="rtl">
