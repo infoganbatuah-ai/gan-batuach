@@ -9,9 +9,10 @@ const css = readFileSync("app/styles/digital-observer-product.css", "utf8");
 const cameraRoute = readFileSync("app/api/digital-observer/cameras/route.ts", "utf8");
 const conversationRoute = readFileSync("app/api/digital-observer/conversation/route.ts", "utf8");
 const presence = readFileSync("components/digital-observer/observer-camera-presence.tsx", "utf8");
+const actionForms = readFileSync("components/digital-observer/observer-action-forms.tsx", "utf8");
 
 for (const source of [camerasPage, dashboardPage]) {
-  assert.match(source, /function liveGatewayStreamId/, "camera surfaces must detect gateway streams");
+  assert.match(source, /digitalObserverCameraHasLiveGateway/, "camera surfaces must use the shared verified gateway status guard");
   assert.match(source, /<ObserverLivePlayer compact/, "camera list tiles must render compact live thumbnails when a gateway stream exists");
 }
 
@@ -24,6 +25,9 @@ assert.match(camerasPage + dashboardPage, /ObserverCameraPresence/, "every camer
 assert.match(presence, /observer-robot-v1\.png/, "camera presence must reuse the product robot asset");
 assert.match(cameraRoute, /action: z\.literal\("rename"\)/, "camera names must be editable through the authenticated camera API");
 assert.match(cameraRoute, /ai_context_source/, "verified camera names must feed the observer context");
+assert.match(camerasPage, /ObserverCameraInlineRename/, "every camera tile must expose an inline rename control");
+assert.match(actionForms, /do-camera-rename-trigger/, "inline camera rename must use an explicit edit icon control");
+assert.match(actionForms, /action: "rename"/, "inline camera rename must use the authenticated camera rename action");
 assert.match(conversationRoute, /camera_source_id/, "camera conversation must stay scoped to the selected source");
 assert.match(conversationRoute, /shadow_active/, "instructions for connected sources must not be left in generic readiness");
 assert.doesNotMatch(camerasPage + dashboardPage + livePlayer, /rtsp:\/\/|password|credential/i, "browser camera thumbnail code must not expose raw stream credentials");

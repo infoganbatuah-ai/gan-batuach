@@ -2,7 +2,7 @@
 
 import { useState, type FormEvent, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, Baby, Bell, BrainCircuit, Cable, Camera, CameraOff, CarFront, Check, ChevronLeft, Cloud, DoorOpen, HardDrive, Heart, HeartPulse, Image, Lightbulb, LoaderCircle, LockKeyhole, Mic, Moon, PawPrint, QrCode, Radar, Router, ShieldCheck, Smartphone, Trash2, UserPlus, UsersRound } from "lucide-react";
+import { AlertTriangle, Baby, Bell, BrainCircuit, Cable, Camera, CameraOff, CarFront, Check, ChevronLeft, Cloud, DoorOpen, HardDrive, Heart, HeartPulse, Image, Lightbulb, LoaderCircle, LockKeyhole, Mic, Moon, PawPrint, Pencil, QrCode, Radar, Router, ShieldCheck, Smartphone, Trash2, UserPlus, UsersRound, X } from "lucide-react";
 import { readObserverAccessToken } from "@/lib/domain/digital-observer/client-session";
 import {
   classifyObserverPairingPayload,
@@ -281,6 +281,41 @@ export function ObserverCameraNameForm({ camera }: { camera: any }) {
     <button className="do-button primary" type="submit" disabled={state.busy || name.trim().length < 2}>{state.busy ? <LoaderCircle className="do-spin" /> : <Check />} שמירת שם</button>
     <ResultMessage state={state} />
   </form>;
+}
+
+export function ObserverCameraInlineRename({ camera }: { camera: any }) {
+  const router = useRouter();
+  const [editing, setEditing] = useState(false);
+  const [name, setName] = useState(camera.display_name || "");
+  const [state, setState] = useState<ActionState>({ busy: false, error: "", message: "" });
+
+  async function submit(event: FormEvent<HTMLFormElement>) {
+    event.preventDefault();
+    event.stopPropagation();
+    setState({ busy: true, error: "", message: "" });
+    try {
+      await postJson("/api/digital-observer/cameras", {
+        action: "rename",
+        id: camera.id,
+        display_name: name,
+        location_label: camera.location_label || ""
+      });
+      setEditing(false);
+      setState({ busy: false, error: "", message: "" });
+      router.refresh();
+    } catch (error) {
+      setState({ busy: false, error: error instanceof Error ? error.message : "לא ניתן לעדכן את שם המצלמה", message: "" });
+    }
+  }
+
+  if (editing) return <form className="do-camera-inline-rename" onSubmit={submit} onClick={(event) => event.stopPropagation()}>
+    <input value={name} onChange={(event) => setName(event.target.value)} minLength={2} maxLength={100} required autoFocus aria-label="שם המצלמה" />
+    <button type="submit" disabled={state.busy || name.trim().length < 2} aria-label="שמירת שם המצלמה" title="שמירת שם">{state.busy ? <LoaderCircle className="do-spin" /> : <Check />}</button>
+    <button type="button" onClick={() => { setName(camera.display_name || ""); setEditing(false); setState({ busy: false, error: "", message: "" }); }} aria-label="ביטול שינוי שם" title="ביטול"><X /></button>
+    {state.error ? <span role="alert">{state.error}</span> : null}
+  </form>;
+
+  return <button className="do-camera-rename-trigger" type="button" onClick={(event) => { event.preventDefault(); event.stopPropagation(); setEditing(true); }} aria-label={`עריכת השם ${camera.display_name || "מצלמה"}`} title="עריכת שם מצלמה"><Pencil /></button>;
 }
 
 export function ObserverRuleForm({ siteId, cameras }: { siteId: string; cameras: any[] }) {

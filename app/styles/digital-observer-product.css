@@ -780,13 +780,22 @@
   border-radius: 7px;
   text-decoration: none;
 }
+.do-camera-live-open { display: block; color: inherit; text-decoration: none; }
 .do-camera-live-tile .do-camera-media,
 .do-camera-live-tile .do-live-player { min-height: 210px; border-radius: 0; }
 .do-camera-live-grid.business .do-camera-live-tile .do-camera-media,
 .do-camera-live-grid.business .do-camera-live-tile .do-live-player { min-height: 154px; }
 .do-camera-tile-meta { display: grid; gap: 2px; padding: 9px 11px; }
-.do-camera-tile-meta strong { color: var(--do-ink); font-size: 13px; }
+.do-camera-tile-title { min-width: 0; display: flex; align-items: center; gap: 5px; }
+.do-camera-tile-title > a { min-width: 0; overflow: hidden; color: var(--do-ink); font-size: 13px; font-weight: 800; text-decoration: none; text-overflow: ellipsis; white-space: nowrap; }
 .do-camera-tile-meta small { color: var(--do-muted); font-size: 10px; }
+.do-camera-rename-trigger,
+.do-camera-inline-rename button { width: 28px; height: 28px; min-width: 28px; display: grid; place-items: center; padding: 0; color: var(--do-teal-dark); background: #f2f8f8; border: 1px solid #cfe3e1; border-radius: 5px; }
+.do-camera-rename-trigger svg,
+.do-camera-inline-rename button svg { width: 14px; height: 14px; }
+.do-camera-inline-rename { min-width: 0; display: grid; grid-template-columns: minmax(88px, 1fr) auto auto; align-items: center; gap: 4px; }
+.do-camera-inline-rename input { width: 100%; min-width: 0; min-height: 28px; padding: 4px 6px; color: var(--do-ink); background: #fff; border: 1px solid var(--do-teal-dark); border-radius: 5px; font: inherit; font-size: 12px; }
+.do-camera-inline-rename > span { grid-column: 1 / -1; color: #a92323; font-size: 10px; }
 .do-camera-observer-presence {
   min-width: 70px;
   height: 42px;
@@ -3159,16 +3168,17 @@
   .do-camera-live-grid,
   .do-camera-live-grid.business { grid-template-columns: 1fr; }
   .do-camera-live-tile { display: grid; grid-template-columns: minmax(0, 1fr) minmax(130px, 44%); min-height: 108px; }
-  .do-camera-live-tile .do-camera-media,
-  .do-camera-live-tile .do-live-player,
-  .do-camera-live-grid.business .do-camera-live-tile .do-camera-media,
-  .do-camera-live-grid.business .do-camera-live-tile .do-live-player { grid-column: 2; grid-row: 1; min-height: 108px; border-radius: 0; }
+  .do-camera-live-tile > .do-camera-live-open { grid-column: 2; grid-row: 1; }
+  .do-camera-live-tile .do-camera-live-open .do-camera-media,
+  .do-camera-live-tile .do-camera-live-open .do-live-player,
+  .do-camera-live-grid.business .do-camera-live-tile .do-camera-live-open .do-camera-media,
+  .do-camera-live-grid.business .do-camera-live-tile .do-camera-live-open .do-live-player { min-height: 108px; border-radius: 0; }
   .do-camera-live-tile .do-camera-status,
   .do-camera-live-tile .do-camera-name,
   .do-camera-live-tile .do-camera-lock,
   .do-camera-live-tile .do-camera-footnote { display: none; }
   .do-camera-tile-meta { grid-column: 1; grid-row: 1; align-content: center; padding: 13px; }
-  .do-camera-tile-meta strong { font-size: 14px; }
+  .do-camera-tile-title > a { font-size: 14px; }
   .do-camera-live-tile > .do-camera-observer-presence { inset-inline-start: auto; inset-inline-end: 8px; inset-block-end: 8px; min-width: 42px; width: 42px; padding: 1px; }
   .do-camera-live-tile > .do-camera-observer-presence small { display: none; }
   .do-dashboard-camera-card > .do-camera-observer-presence { inset-inline-start: auto; inset-inline-end: 6px; inset-block-end: 6px; min-width: 38px; width: 38px; height: 38px; padding: 0; }
