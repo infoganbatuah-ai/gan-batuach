@@ -6,16 +6,23 @@ const workdir = process.cwd();
 const runtimeConfigPath = process.env.GAN_BATUACH_GATEWAY_CONFIG || `${process.env.HOME}/.config/gan-batuach/home-gateway.json`;
 const gatewayUrl = "http://127.0.0.1:18082";
 const gatewayKeychainService = process.env.GAN_BATUACH_GATEWAY_KEYCHAIN_SERVICE || "com.ganbatuach.video-gateway.runtime";
+const discoveryEnabled = process.env.GAN_BATUACH_GATEWAY_DISCOVERY === "1";
 
-const config = JSON.parse(readFileSync(runtimeConfigPath, "utf8"));
 function keychainSecret(account) {
   const result = spawnSync("/usr/bin/security", ["find-generic-password", "-s", gatewayKeychainService, "-a", account, "-w"], { encoding: "utf8" });
   return result.status === 0 ? result.stdout.trim() : "";
 }
-const passwordResult = spawnSync("/usr/bin/security", ["find-generic-password", "-s", config.keychain_service, "-a", config.username, "-w"], { encoding: "utf8" });
-if (passwordResult.status !== 0 || !passwordResult.stdout.trim()) throw new Error("DVR credential is not available in macOS Keychain");
-const password = passwordResult.stdout.trim();
-const gatewaySecret = keychainSecret("gateway_signing_secret");
+
+function storeKeychainSecret(account, value) {
+  const result = spawnSync("/usr/bin/security", ["add-generic-password", "-U", "-s", gatewayKeychainService, "-a", account, "-w", value], { encoding: "utf8" });
+  if (result.status !== 0) throw new Error("Unable to store Gateway Keychain material");
+}
+
+let gatewaySecret = keychainSecret("gateway_signing_secret");
+if (!gatewaySecret) {
+  gatewaySecret = crypto.randomBytes(32).toString("base64url");
+  storeKeychainSecret("gateway_signing_secret", gatewaySecret);
+}
 const cloudSecret = keychainSecret("cloud_discovery_secret");
 const deviceGatewayId = keychainSecret("device_gateway_id");
 const deviceObserverSiteId = keychainSecret("device_observer_site_id");
@@ -25,9 +32,13 @@ const observerSiteId = deviceObserverSiteId || keychainSecret("cloud_observer_si
 const productionBaseUrl = keychainSecret("device_cloud_base_url") || keychainSecret("cloud_base_url") || "https://ganbatuach.com";
 if (!gatewaySecret || !gatewayId || !observerSiteId || (!deviceRefreshToken && !cloudSecret)) throw new Error("Persistent gateway cloud configuration is incomplete");
 
-function storeKeychainSecret(account, value) {
-  const result = spawnSync("/usr/bin/security", ["add-generic-password", "-U", "-s", gatewayKeychainService, "-a", account, "-w", value], { encoding: "utf8" });
-  if (result.status !== 0) throw new Error("Unable to rotate Gateway Keychain material");
+let config = null;
+let password = "";
+if (discoveryEnabled) {
+  config = JSON.parse(readFileSync(runtimeConfigPath, "utf8"));
+  const passwordResult = spawnSync("/usr/bin/security", ["find-generic-password", "-s", config.keychain_service, "-a", config.username, "-w"], { encoding: "utf8" });
+  if (passwordResult.status !== 0 || !passwordResult.stdout.trim()) throw new Error("DVR credential is not available in macOS Keychain");
+  password = passwordResult.stdout.trim();
 }
 
 async function refreshDeviceAccess() {
@@ -65,7 +76,7 @@ async function signedPost(path, payload, options = {}) {
   return response.json();
 }
 
-const child = spawn(process.execPath, ["services/video-gateway/server.mjs"], { cwd: workdir, env: { ...process.env, HOST: "127.0.0.1", PORT: "18082", VIDEO_GATEWAY_SIGNING_SECRET: gatewaySecret, DVR_EXPECTED_CHANNEL_COUNT: String(config.channel_count) }, stdio: "inherit" });
+const child = spawn(process.execPath, ["services/video-gateway/server.mjs"], { cwd: workdir, env: { ...process.env, HOST: "127.0.0.1", PORT: "18082", VIDEO_GATEWAY_SIGNING_SECRET: gatewaySecret, DVR_EXPECTED_CHANNEL_COUNT: String(config?.channel_count || 0) }, stdio: "inherit" });
 
 async function waitForGateway() {
   for (let attempt = 0; attempt < 60; attempt += 1) {
@@ -161,15 +172,17 @@ async function submitReadinessEvidence() {
 }
 
 await waitForGateway();
-await discover();
-if (cloudSecret) {
-  await learn();
-  void submitReadinessEvidence().then((result) => {
-    if (!result.submitted) console.error(`event media skipped: ${result.reason}`);
-  }).catch((error) => console.error(error.message));
-  setInterval(() => void learn().catch((error) => console.error(error.message)), 5 * 60 * 1000).unref();
+if (discoveryEnabled) {
+  await discover();
+  if (cloudSecret) {
+    await learn();
+    void submitReadinessEvidence().then((result) => {
+      if (!result.submitted) console.error(`event media skipped: ${result.reason}`);
+    }).catch((error) => console.error(error.message));
+    setInterval(() => void learn().catch((error) => console.error(error.message)), 5 * 60 * 1000).unref();
+  }
+  setInterval(() => void discover().catch((error) => console.error(error.message)), 60 * 60 * 1000).unref();
 }
-setInterval(() => void discover().catch((error) => console.error(error.message)), 60 * 60 * 1000).unref();
 
 function shutdown() { child.kill("SIGTERM"); process.exit(0); }
 process.on("SIGINT", shutdown);
