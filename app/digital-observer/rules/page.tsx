@@ -63,7 +63,7 @@ export default async function DigitalObserverRulesPage() {
   const sourceReady = cameras.some((camera) => ["connected", "healthy", "online", "active"].includes(String(camera.status ?? camera.health_status)));
   const demoOnly = cameras.length > 0 && cameras.every((camera) => camera.source_mode === "demo");
   const localLearningActive = sourceReady && Boolean(learning) && baselines.some((baseline) => baseline.baseline_type === "normal_camera_activity");
-  const localGatewayActive = sourceReady && (localLearningActive || cameras.some(cameraReportsLocalEventInsights));
+  const edgeInferenceActive = sourceReady && cameras.some(cameraReportsLocalEventInsights);
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
   const todaySignals = signals.filter((signal) => new Date(signal.created_at).getTime() >= todayStart.getTime());
@@ -72,9 +72,11 @@ export default async function DigitalObserverRulesPage() {
     : "לא נקלט היום אירוע עם ראיה תקינה. התצפיתן ממשיך ללמוד מדדי פעילות מהמצלמות המחוברות.";
   const runtimeText = !cameras.length
     ? "ממתין למצלמה הראשונה"
-    : localGatewayActive
-      ? "AI מקומי / Gateway פעיל"
-      : sourceReady && readiness.ai.configured
+    : edgeInferenceActive
+      ? "AI Edge מאומת פעיל"
+      : sourceReady
+        ? "Gateway פעיל · Edge AI כבוי"
+      : readiness.ai.configured
       ? "מוכן ללמידת Shadow מבוקרת"
       : demoOnly
         ? "לומד מתרחישי הדמיה בלבד"
@@ -171,7 +173,7 @@ export default async function DigitalObserverRulesPage() {
                   <div className="do-summary-list">
                     <div><span>פרופיל למידה</span><strong>{learning ? observerStatusLabel(learning.learning_status) : "יתחיל לאחר הוספת מצלמה"}</strong></div>
                     <div><span>בשלות</span><strong>{learning?.learning_maturity === "mature" ? "בשל" : learning?.learning_maturity === "calibrated" ? "מכויל" : learning ? "בתהליך למידה" : "טרם התחיל"}</strong></div>
-                    <div><span>ניתוח וידאו</span><strong>{readiness.ai.configured ? "Shadow בלבד, עם ביקורת" : localGatewayActive ? "Local Event Insights פעיל" : "מנוע Edge טרם הופעל"}</strong></div>
+                    <div><span>ניתוח וידאו</span><strong>{edgeInferenceActive ? "AI Edge מאומת" : "מנוע Edge טרם הופעל"}</strong></div>
                     <div><span>Push</span><strong>טרם הוגדר ספק מסירה</strong></div>
                     <div><span>Voice</span><strong>כבוי · אין חיוג אוטומטי</strong></div>
                     <div><span>פרטיות</span><strong>{site.vision_privacy_mode === "skeleton_only" ? "שלד ותנועה בלבד" : "זיהוי ביומטרי כבוי עד הסכמה"}</strong></div>
@@ -191,7 +193,7 @@ export default async function DigitalObserverRulesPage() {
               </section>
 
               <section className="do-panel">
-                <div className="do-section-head"><div><h2>AI מקומי ופרטיות מדיה</h2><p>סטטוס יכולות אמיתי ומדיניות Edge ללא ספק AI חיצוני.</p></div><span className={localGatewayActive ? "do-badge good" : "do-badge warn"}>{localGatewayActive ? "Local Event Insights פעיל" : "ממתין ל-Edge"}</span></div>
+                <div className="do-section-head"><div><h2>AI מקומי ופרטיות מדיה</h2><p>סטטוס יכולות אמיתי ומדיניות Edge ללא ספק AI חיצוני.</p></div><span className={edgeInferenceActive ? "do-badge good" : "do-badge warn"}>{edgeInferenceActive ? "AI Edge מאומת" : "ממתין ל-Edge"}</span></div>
                 <div className="do-grid cols-3">
                   <article><ShieldCheck /><h3>פעיל מקומית</h3>{digitalObserverEdgeAiPolicy.activeCapabilities.map((item) => <p key={item}>{item}</p>)}</article>
                   <article><TriangleAlert /><h3>טרם הוגדר</h3>{digitalObserverEdgeAiPolicy.unavailableCapabilities.map((item) => <p key={item}>{item}</p>)}</article>
@@ -206,14 +208,14 @@ export default async function DigitalObserverRulesPage() {
           </section>
 
           <section className="do-panel">
-            <div className="do-section-head"><div><h2>מסלול תצפית חיה</h2><p>כך אירוע מורשה עובר מהמצלמה אל הסבר שימושי, בלי לחשוף כתובת מקור או להציג פעולה שלא הופעלה.</p></div><span className={sourceReady && (readiness.ai.configured || localLearningActive) && !demoOnly ? "do-badge good" : "do-badge warn"}>{sourceReady && (readiness.ai.configured || localLearningActive) && !demoOnly ? "למידה מבוקרת פעילה" : "מוכנות בלבד"}</span></div>
+            <div className="do-section-head"><div><h2>מסלול תצפית חיה</h2><p>כך אירוע מורשה עובר מהמצלמה אל הסבר שימושי, בלי לחשוף כתובת מקור או להציג פעולה שלא הופעלה.</p></div><span className={sourceReady && edgeInferenceActive && !demoOnly ? "do-badge good" : "do-badge warn"}>{sourceReady && edgeInferenceActive && !demoOnly ? "AI Edge מאומת" : "מוכנות בלבד"}</span></div>
             <div className="do-grid cols-4">
               <article className="do-metric"><Camera /><strong>{demoOnly ? "דמו" : sourceReady ? "מוכן" : "ממתין"}</strong><span>Gateway ומקור מורשה</span></article>
-              <article className="do-metric"><Radar /><strong>{readiness.ai.configured ? "Shadow" : localLearningActive ? "מקומי" : "כבוי"}</strong><span>זיהוי אירוע או שינוי</span></article>
+              <article className="do-metric"><Radar /><strong>{edgeInferenceActive ? "AI Edge" : localLearningActive ? "מדדי פעילות" : "כבוי"}</strong><span>זיהוי אירוע או שינוי</span></article>
               <article className="do-metric"><Activity /><strong>{signals.length}</strong><span>אירועים מובנים באתר</span></article>
               <article className="do-metric"><BrainCircuit /><strong>{reviewedSignals.length}</strong><span>הסברים עם תוצאה מאומתת</span></article>
             </div>
-            <div className="do-notice warn"><ShieldCheck /><span>{localLearningActive ? "הלמידה המקומית פעילה על מדדי תנועה ותאורה בלבד. וידאו גולמי, זיהוי ביומטרי ופעולת חירום אינם נשלחים או מופעלים אוטומטית." : "זיהוי ביומטרי ופעולת חירום נשארים כבויים עד חיבור ספק מאושר ואישור מפורש."}</span></div>
+            <div className="do-notice warn"><ShieldCheck /><span>{localLearningActive ? "מדדי תנועה ותאורה מקומיים עשויים להיאסף; הם אינם מודל AI. זיהוי פנים, ביומטריה, קול ועצמים נשארים כבויים עד runtime, מודל מאושר וטעון, בדיקת יכולת והסכמה." : "זיהוי ביומטרי ופעולת חירום נשארים כבויים עד חיבור ספק מאושר ואישור מפורש."}</span></div>
           </section>
 
           <section className="do-panel">

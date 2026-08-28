@@ -11,6 +11,7 @@ const weekdayKeys = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"] as const;
 
 const schema = z.object({
   observer_site_id: z.string().uuid().optional(),
+  create_new_site: z.boolean().default(false),
   name: z.string().trim().min(2).max(100),
   site_type: z.enum(siteTypes),
   site_template: z.enum(observerSiteTemplateKeys).default("custom"),
@@ -57,6 +58,7 @@ export async function POST(request: Request) {
     const rawPayload = navigationSubmission
       ? await request.formData().then((formData) => ({
         observer_site_id: String(formData.get("observer_site_id") ?? "") || undefined,
+        create_new_site: formData.get("create_new_site") === "true",
         name: String(formData.get("name") ?? ""),
         site_type: String(formData.get("site_type") ?? "home"),
         site_template: String(formData.get("site_template") ?? "custom"),
@@ -99,7 +101,7 @@ export async function POST(request: Request) {
     const normalizedFloorNumber = Number.isInteger(floorNumber) ? floorNumber : null;
     const baseAddress = resolvedAddress?.formattedAddress || `${payload.street} ${payload.building_number}, ${payload.city}`;
     const fullAddress = [baseAddress, payload.apartment_number ? `דירה ${payload.apartment_number}` : "", payload.floor_kind === "ground" ? "קומת קרקע" : normalizedFloorNumber == null ? "" : `קומה ${normalizedFloorNumber}`].filter(Boolean).join(", ");
-    const sitePatch = {
+    const sharedSitePatch = {
       name: payload.name,
       site_type: payload.site_type,
       address: fullAddress,
@@ -122,44 +124,61 @@ export async function POST(request: Request) {
       vision_privacy_mode: privacyMode,
       timezone: "Asia/Jerusalem",
       active: true,
-      monitoring_enabled: false,
       camera_limit: payload.camera_count,
       monitoring_hours: { mode: payload.schedule_mode, active_days: payload.active_days, opening_time: payload.opening_time, closing_time: payload.closing_time },
-      event_retention_days: 2,
-      ai_features: { mode: "readiness", targets: payload.monitoring_targets, site_template: siteTemplate.key, human_review_required: true, high_risk_events_are_suspicions: true, automatic_emergency_action: false, vision_privacy_mode: privacyMode, face_recognition_enabled: false },
-      metadata: {
+    };
+    const onboardingMetadata = {
         product: "digital_observer",
         site_template: siteTemplate.key,
         site_template_label: siteTemplate.label,
         branch_count: payload.site_type === "home" ? 1 : payload.branch_count,
         policy_template: siteTemplate.policy,
-        environment_mode: "demo_readiness",
-        live_camera_disabled: true,
-        live_ai_disabled: true,
-        synthetic_data_only: true,
         address_ready_for_map: Boolean(resolvedAddress),
-        emergency_dispatch_enabled: false,
-        external_emergency_call_enabled: false,
         video_private_to_tenant: true
-      }
     };
 
     let site: any = null;
     if (payload.observer_site_id) {
       const allowedSite = await getObserverSiteAccess(supabase, profile, payload.observer_site_id, { manage: true });
       if (!allowedSite) return respondFail("אין הרשאה לעדכן את האתר הזה.", 403);
+      const existingMetadata = allowedSite.metadata && typeof allowedSite.metadata === "object" ? allowedSite.metadata : {};
       const result = await supabase
         .from("observer_sites" as any)
-        .update({ ...sitePatch, updated_at: new Date().toISOString() })
+        // An edit must never reset a live site to readiness or replace consent/runtime metadata.
+        .update({
+          ...sharedSitePatch,
+          monitoring_enabled: allowedSite.monitoring_enabled,
+          event_retention_days: allowedSite.event_retention_days ?? 2,
+          ai_features: allowedSite.ai_features ?? { mode: "readiness", targets: payload.monitoring_targets, site_template: siteTemplate.key, human_review_required: true, high_risk_events_are_suspicions: true, automatic_emergency_action: false, vision_privacy_mode: privacyMode, face_recognition_enabled: false },
+          metadata: { ...existingMetadata, ...onboardingMetadata },
+          updated_at: new Date().toISOString()
+        })
         .eq("id", payload.observer_site_id)
         .select("id,name,site_type,address,monitoring_enabled")
         .single();
       if (result.error) return respondFail("לא ניתן לשמור את פרטי האתר כרגע.", 400);
       site = result.data;
     } else {
+      if (!payload.create_new_site) return respondFail("יצירת אתר חדש דורשת בחירה ואישור מפורשים.", 422);
       const result = await supabase
         .from("observer_sites" as any)
-        .insert({ ...sitePatch, owner_profile_id: profile.id, garden_id: null })
+        .insert({
+          ...sharedSitePatch,
+          owner_profile_id: profile.id,
+          garden_id: null,
+          monitoring_enabled: false,
+          event_retention_days: 2,
+          ai_features: { mode: "readiness", targets: payload.monitoring_targets, site_template: siteTemplate.key, human_review_required: true, high_risk_events_are_suspicions: true, automatic_emergency_action: false, vision_privacy_mode: privacyMode, face_recognition_enabled: false },
+          metadata: {
+            ...onboardingMetadata,
+            environment_mode: "demo_readiness",
+            live_camera_disabled: true,
+            live_ai_disabled: true,
+            synthetic_data_only: true,
+            emergency_dispatch_enabled: false,
+            external_emergency_call_enabled: false
+          }
+        })
         .select("id,name,site_type,address,monitoring_enabled")
         .single();
       if (result.error || !result.data) return respondFail("לא ניתן ליצור את האתר כרגע. נסו שוב או פנו לתמיכה.", 400);
@@ -174,11 +193,13 @@ export async function POST(request: Request) {
       }, { onConflict: "observer_site_id,profile_id" });
     }
 
-    const draftResult = await supabase
+    let draftQuery = supabase
       .from("observer_site_onboarding_drafts" as any)
       .select("id")
-      .eq("profile_id", profile.id)
-      .in("status", ["draft", "submitted", "ready_for_review"])
+      .eq("profile_id", profile.id);
+    if (payload.observer_site_id) draftQuery = draftQuery.eq("activated_observer_site_id", site.id);
+    const draftResult = await draftQuery
+      .in("status", ["draft", "submitted", "ready_for_review", "activated"])
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
@@ -214,17 +235,21 @@ export async function POST(request: Request) {
       updated_at: new Date().toISOString()
     }, { onConflict: "observer_site_id" });
 
-    if (!payload.package_id) return respondFail("יש לבחור חבילה כדי להתחיל את תקופת הניסיון.", 400);
-    const trialResult = await supabase.rpc("start_digital_observer_trial" as any, {
-      requested_site_id: site.id,
-      requested_package_id: payload.package_id,
-      requested_billing_cycle: "monthly"
-    });
-    if (trialResult.error) return respondFail("האתר נשמר, אך לא ניתן היה להפעיל את תקופת הניסיון. נסו שוב או פנו לתמיכה.", 400);
+    let trial: unknown = null;
+    if (!payload.observer_site_id) {
+      if (!payload.package_id) return respondFail("יש לבחור חבילה כדי להתחיל את תקופת הניסיון.", 400);
+      const trialResult = await supabase.rpc("start_digital_observer_trial" as any, {
+        requested_site_id: site.id,
+        requested_package_id: payload.package_id,
+        requested_billing_cycle: "monthly"
+      });
+      if (trialResult.error) return respondFail("האתר נשמר, אך לא ניתן היה להפעיל את תקופת הניסיון. נסו שוב או פנו לתמיכה.", 400);
+      trial = trialResult.data;
+    }
 
     const next = `/digital-observer/cameras/add?site=${site.id}`;
     if (navigationSubmission) return NextResponse.redirect(new URL(next, request.url), 303);
-    return ok({ site, trial: trialResult.data, charged: false, next }, payload.observer_site_id ? 200 : 201);
+    return ok({ site, trial, charged: false, next }, payload.observer_site_id ? 200 : 201);
   } catch (error) {
     if (navigationSubmission) {
       console.error("Digital Observer onboarding form failed", error);

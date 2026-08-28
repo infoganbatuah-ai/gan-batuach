@@ -9,6 +9,7 @@ const edgePolicy = readFileSync(new URL("../../lib/domain/digital-observer/edge-
 const cameraRoute = readFileSync(new URL("../../app/api/digital-observer/cameras/route.ts", import.meta.url), "utf8");
 const cameraControls = readFileSync(new URL("../../components/digital-observer/observer-camera-controls.tsx", import.meta.url), "utf8");
 const cameraPresence = readFileSync(new URL("../../components/digital-observer/observer-camera-presence.tsx", import.meta.url), "utf8");
+const edgeReadiness = readFileSync(new URL("../../services/video-gateway/edge-readiness.mjs", import.meta.url), "utf8");
 
 for (const required of [
   "const privateNvrSessions = new Map()",
@@ -24,7 +25,7 @@ for (const required of [
   if (!gateway.includes(required)) throw new Error(`Missing shared DVR session safeguard: ${required}`);
 }
 if (gateway.includes("refreshPrivateNvrSource")) throw new Error("Each relay must not create a new DVR login");
-for (const required of ['status: connected ? "connected" : "offline"', 'health_status: connected ? "healthy" : "offline"', "local_event_insights: connected", "raw_frames_uploaded: false"]) {
+for (const required of ['status: connected ? "connected" : "offline"', 'health_status: connected ? "healthy" : "offline"', "local_event_insights: false", "edge_capability_contract", "raw_frames_uploaded: false"]) {
   if (!mapping.includes(required)) throw new Error(`Missing cloud offline/edge mapping: ${required}`);
 }
 for (const required of ["unavailableStatuses", "digitalObserverCameraIsConnected", "digitalObserverCameraHasLiveGateway"]) {
@@ -43,6 +44,9 @@ for (const required of ["אירועים בלבד", "PTZ", "תאורה", "סיר�
   if (!cameraControls.includes(required)) throw new Error(`Missing event-only or read-only camera control status: ${required}`);
 }
 if (!cameraPresence.includes("תצפיתן כבוי")) throw new Error("Inactive cameras must show that the Digital Observer is off");
+for (const required of ["apple_vision_runtime_available", "approved_edge_model_not_installed", "model_present_but_runtime_load_and_capability_test_required", "self_test_passed: false", "face_recognition: false", "raw_frames_retained: false"]) {
+  if (!edgeReadiness.includes(required)) throw new Error(`Missing truthful Edge readiness guard: ${required}`);
+}
 for (const required of ["removeSyntheticDemoBundleFallback", "hasGatewayBinding", "secret_reference", "capabilities?.live_view", "DEMO_CAMERA_HAS_STORED_MEDIA", 'eq("source_mode", "demo")']) {
   if (!cameraRoute.includes(required)) throw new Error(`Missing production demo cleanup boundary: ${required}`);
 }

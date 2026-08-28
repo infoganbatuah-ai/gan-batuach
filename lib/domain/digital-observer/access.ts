@@ -19,7 +19,7 @@ export async function getObserverSiteAccess(
 ) {
   const { data: siteResult } = await supabase
     .from("observer_sites" as any)
-    .select("id,name,site_type,owner_profile_id,garden_id,monitoring_enabled,business_handles_children,vision_privacy_mode,metadata")
+    .select("id,name,site_type,owner_profile_id,garden_id,monitoring_enabled,business_handles_children,vision_privacy_mode,camera_limit,monitoring_hours,event_retention_days,ai_features,metadata")
     .eq("id", observerSiteId)
     .maybeSingle();
   const site = siteResult as any;
