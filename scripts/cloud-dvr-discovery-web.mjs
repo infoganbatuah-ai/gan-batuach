@@ -215,7 +215,7 @@ function page() {
         const data = await response.json().catch(() => ({}));
         if (!response.ok || !data.claim_session_id) throw new Error(data.error || "Pairing נכשל או פג תוקף.");
         claimSessionId = data.claim_session_id;
-        pairingStatus.textContent = "Pairing אומת. עכשיו אפשר להזין פרטי DVR מקומית, ורק CONNECT יתחיל discovery.";
+        pairingStatus.textContent = "Pairing אומת. בודק את מצב המקליט המקומי...";
         pairingForm.hidden = true;
         await showNextStepAfterPairing();
       } catch (error) {
