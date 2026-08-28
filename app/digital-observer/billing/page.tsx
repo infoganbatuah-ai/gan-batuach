@@ -8,7 +8,8 @@ import {
   loadObserverRuntime,
   observerModeForSite,
   observerStatusLabel,
-  resolveObserverEntitlement
+  resolveObserverEntitlement,
+  selectObserverSite
 } from "@/lib/domain/digital-observer/runtime";
 
 type BillingCycle = "monthly" | "annual";
@@ -43,7 +44,7 @@ export default async function DigitalObserverBillingPage({
   const paymentView = params.view === "payment";
   const { profile } = await requireDigitalObserverUser("/digital-observer/login?next=/digital-observer/billing");
   const runtime = await loadObserverRuntime(profile.id);
-  const site = runtime.sites[0] ?? null;
+  const site = selectObserverSite(runtime.sites, runtime.cameras);
   const mode = observerModeForSite(site);
   const subscription = site ? runtime.subscriptions.find((item) => item.observer_site_id === site.id) : null;
   const entitlement = resolveObserverEntitlement(subscription);

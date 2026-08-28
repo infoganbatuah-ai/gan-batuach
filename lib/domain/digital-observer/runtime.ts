@@ -35,6 +35,31 @@ export function observerModeForSite(site?: ObserverRow | null): ObserverMode {
   return site?.site_type === "home" ? "home" : "business";
 }
 
+/**
+ * Never infer ownership across sites. This only chooses a default from sites
+ * already returned through the current user's owner/membership RLS scope.
+ */
+export function selectObserverSite(
+  sites: ObserverRow[],
+  cameras: ObserverRow[],
+  requestedSiteId?: string | null
+) {
+  const requested = requestedSiteId ? sites.find((site) => site.id === requestedSiteId) : null;
+  if (requested) return requested;
+
+  const cameraCountBySite = new Map<string, number>();
+  for (const camera of cameras) {
+    if (!camera?.observer_site_id) continue;
+    cameraCountBySite.set(camera.observer_site_id, (cameraCountBySite.get(camera.observer_site_id) ?? 0) + 1);
+  }
+
+  return [...sites].sort((left, right) => {
+    const countDifference = (cameraCountBySite.get(right.id) ?? 0) - (cameraCountBySite.get(left.id) ?? 0);
+    if (countDifference) return countDifference;
+    return String(right.created_at ?? "").localeCompare(String(left.created_at ?? ""));
+  })[0] ?? null;
+}
+
 export function observerCameraForSignal(signal: ObserverRow | null | undefined, cameras: ObserverRow[]) {
   const cameraReference = signal?.camera_id ?? signal?.metadata?.camera_source_id;
   if (!cameraReference) return null;

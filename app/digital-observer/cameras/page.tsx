@@ -10,7 +10,7 @@ import { ObserverConversationPanel } from "@/components/digital-observer/observe
 import { requireDigitalObserverUser } from "@/lib/domain/digital-observer/access";
 import { digitalObserverCameraHasLiveGateway } from "@/lib/domain/digital-observer/camera-live-status";
 import { observerEventNarrative } from "@/lib/domain/digital-observer/event-narrative";
-import { formatObserverDate, loadObserverRuntime, observerEventLabel, observerModeForSite, observerSignalMatchesCamera, observerStatusLabel } from "@/lib/domain/digital-observer/runtime";
+import { formatObserverDate, loadObserverRuntime, observerEventLabel, observerModeForSite, observerSignalMatchesCamera, observerStatusLabel, selectObserverSite } from "@/lib/domain/digital-observer/runtime";
 
 type PageProps = { searchParams?: Promise<{ camera?: string; site?: string; q?: string; status?: string; location?: string }> };
 
@@ -36,7 +36,7 @@ export default async function DigitalObserverCamerasPage({ searchParams }: PageP
   const params = await searchParams;
   const { profile } = await requireDigitalObserverUser("/digital-observer/login?next=/digital-observer/cameras");
   const runtime = await loadObserverRuntime(profile.id);
-  const site = runtime.sites.find((item) => item.id === params?.site) ?? runtime.sites[0] ?? null;
+  const site = selectObserverSite(runtime.sites, runtime.cameras, params?.site);
   const mode = observerModeForSite(site);
   const cameras = site ? runtime.cameras.filter((item) => item.observer_site_id === site.id) : [];
   const query = params?.q?.trim().toLocaleLowerCase("he-IL") ?? "";
