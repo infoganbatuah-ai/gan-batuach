@@ -30,6 +30,7 @@
     "compliance:permit-scan": "node scripts/scan-permit-expirations.mjs",
     "privacy:forget-family": "node scripts/right-to-be-forgotten.mjs",
     "gateway:local": "bash scripts/run-video-gateway-local.sh",
+    "gateway:build-vision-edge-worker": "node scripts/build-vision-edge-worker.mjs",
     "gateway:install-persistent": "node scripts/install-persistent-home-gateway.mjs",
     "dvr:onboarding-app": "bash scripts/run-local-app-dvr-onboarding.sh",
     "dvr:connect-local": "node scripts/connect-local-dvr.mjs",
