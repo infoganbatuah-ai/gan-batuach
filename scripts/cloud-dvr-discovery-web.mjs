@@ -1,42 +1,32 @@
 import crypto from "node:crypto";
 import { spawn } from "node:child_process";
 import { spawnSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
 import http from "node:http";
 
 const gatewayPort = Number(process.env.LOCAL_DVR_GATEWAY_PORT || 18080);
 const webPort = Number(process.env.LOCAL_DVR_ONBOARDING_PORT || 18180);
 const gatewayUrl = `http://127.0.0.1:${gatewayPort}`;
-const localCloudConfigPath = ".env.video-gateway.local";
+const productionBaseUrl = process.env.VIDEO_GATEWAY_CLOUD_BASE_URL || "https://gan-batuach.vercel.app";
+const pairingClaimTtlMs = 14 * 60 * 1000;
 let running = false;
 let lastResult = null;
 let gatewayProcess = null;
 let learningTimer = null;
+const pendingClaims = new Map();
 
-function loadLocalCloudConfig() {
-  if (!existsSync(localCloudConfigPath)) return {};
-  const config = {};
-  const content = readFileSync(localCloudConfigPath, "utf8");
-  for (const line of content.split(/\r?\n/)) {
-    const trimmed = line.trim();
-    if (!trimmed || trimmed.startsWith("#")) continue;
-    const separator = trimmed.indexOf("=");
-    if (separator <= 0) continue;
-    const key = trimmed.slice(0, separator).trim();
-    const raw = trimmed.slice(separator + 1).trim();
-    config[key] = raw.replace(/^["']|["']$/g, "");
-  }
-  return config;
-}
+const gatewaySecret = process.env.VIDEO_GATEWAY_SIGNING_SECRET || readRuntimeKeychainSecret("gateway_signing_secret") || crypto.randomBytes(48).toString("base64url");
 
-const gatewaySecret = process.env.VIDEO_GATEWAY_SIGNING_SECRET || loadLocalCloudConfig().VIDEO_GATEWAY_SIGNING_SECRET || readKeychainSecret("gateway_signing_secret") || crypto.randomBytes(48).toString("base64url");
-
-function readKeychainSecret(account) {
-  const config = loadLocalCloudConfig();
-  const service = config.VIDEO_GATEWAY_KEYCHAIN_SERVICE;
-  if (!service) return "";
+function readRuntimeKeychainSecret(account) {
+  const service = process.env.GAN_BATUACH_GATEWAY_KEYCHAIN_SERVICE || "com.ganbatuach.video-gateway.runtime";
   const result = spawnSync("/usr/bin/security", ["find-generic-password", "-s", service, "-a", account, "-w"], { encoding: "utf8" });
   return result.status === 0 ? result.stdout.trim() : "";
+}
+
+function purgeExpiredClaims() {
+  const now = Date.now();
+  for (const [id, claim] of pendingClaims.entries()) {
+    if (!claim || claim.expiresAtMs <= now) pendingClaims.delete(id);
+  }
 }
 
 function page() {
@@ -70,8 +60,16 @@ function page() {
   <main>
     <h1>חיבור מצלמות הבית ל-DVR</h1>
     <p>הפרטים נשארים בתהליך המקומי על המקבוק ומשמשים רק לבדיקת discovery בקריאה בלבד. לא מתבצעת שליטה במצלמות, PTZ, סירנה, אור או שינוי הגדרות.</p>
-    <div class="notice">לחיצה על CONNECT היא האישור הסופי להתחיל בדיקה לקריאה בלבד. עד הלחיצה לא נשלחת בקשה ל-DVR.</div>
-    <form id="dvr-form" autocomplete="off">
+    <div class="notice">קודם מאשרים Pairing מול הדשבורד. לחיצה על CONNECT בשלב הבא היא האישור הסופי להתחיל בדיקה לקריאה בלבד. עד הלחיצה לא נשלחת בקשה ל-DVR.</div>
+    <form id="pairing-form" autocomplete="off" novalidate>
+      <label>קוד pairing מהדשבורד
+        <input id="pairing-code" name="pairingCode" required type="password" autocomplete="one-time-code" autocapitalize="none" spellcheck="false" />
+      </label>
+      <div class="notice warn">הדביקו כאן את הקוד החד־פעמי. פרטי DVR אינם מוצגים או נשלחים לפני שלב זה.</div>
+      <button id="pairing-submit" class="primary" type="submit">אישור pairing והמשך</button>
+      <div id="pairing-status" role="status"></div>
+    </form>
+    <form id="dvr-form" autocomplete="off" hidden>
       <div class="grid">
         <label class="full">כתובת DVR
           <input name="endpoint" required autocomplete="off" autocapitalize="none" spellcheck="false" placeholder="לדוגמה: כתובת מקומית או שם מארח" />
@@ -94,9 +92,6 @@ function page() {
         <label>סיסמה
           <input name="password" required type="password" autocomplete="current-password" />
         </label>
-        <label class="full">קוד pairing מהדשבורד
-          <input name="pairingCode" required type="password" autocomplete="one-time-code" autocapitalize="none" spellcheck="false" />
-        </label>
         <label>מספר ערוצים צפוי
           <input name="channelCount" inputmode="numeric" value="16" />
         </label>
@@ -107,14 +102,52 @@ function page() {
     </form>
   </main>
   <script>
+    const pairingForm = document.getElementById("pairing-form");
+    const pairingButton = document.getElementById("pairing-submit");
+    const pairingStatus = document.getElementById("pairing-status");
     const form = document.getElementById("dvr-form");
     const button = document.getElementById("connect");
     const status = document.getElementById("status");
+    let claimSessionId = "";
+    pairingForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      const pairingInput = document.getElementById("pairing-code");
+      const pairingCode = pairingInput.value.trim();
+      if (!pairingCode) {
+        pairingStatus.textContent = "יש להדביק קוד pairing לפני ההמשך.";
+        return;
+      }
+      pairingButton.disabled = true;
+      pairingStatus.textContent = "מאמת pairing מול הדשבורד המאושר...";
+      try {
+        const response = await fetch("/pairing/claim", {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ pairingCode })
+        });
+        pairingInput.value = "";
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok || !data.claim_session_id) throw new Error(data.error || "Pairing נכשל או פג תוקף.");
+        claimSessionId = data.claim_session_id;
+        pairingStatus.textContent = "Pairing אומת. עכשיו אפשר להזין פרטי DVR מקומית, ורק CONNECT יתחיל discovery.";
+        pairingForm.hidden = true;
+        form.hidden = false;
+        status.textContent = "ה-Pairing פעיל לזמן קצר בזיכרון המקומי. הזינו פרטי DVR ולחצו CONNECT רק כשמאשרים התחלת בדיקה.";
+      } catch (error) {
+        pairingStatus.textContent = error instanceof Error ? error.message : "Pairing נכשל.";
+        pairingButton.disabled = false;
+      }
+    });
     form.addEventListener("submit", async (event) => {
       event.preventDefault();
       button.disabled = true;
       status.textContent = "מתחיל בדיקה מקומית לקריאה בלבד...";
-      const body = Object.fromEntries(new FormData(form).entries());
+      if (!claimSessionId) {
+        status.textContent = "יש להשלים Pairing מאומת לפני CONNECT.";
+        button.disabled = false;
+        return;
+      }
+      const body = { ...Object.fromEntries(new FormData(form).entries()), claimSessionId };
       try {
         const response = await fetch("/connect", {
           method: "POST",
@@ -225,6 +258,41 @@ function signBody(timestamp, nonce, body, secret) {
   return `sha256=${crypto.createHmac("sha256", secret).update(`${timestamp}.${nonce}.${body}`).digest("hex")}`;
 }
 
+async function claimPairing(input) {
+  purgeExpiredClaims();
+  const [pairingId, pairingCode] = String(input.pairingCode || "").trim().split(".");
+  if (!pairingId || !pairingCode) throw new Error("קוד pairing לא תקין או חסר.");
+
+  const gatewayId = crypto.randomUUID();
+  const claimResponse = await fetch(`${productionBaseUrl.replace(/\/$/, "")}/api/digital-observer/gateway-pairing`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ action: "claim", pairing_id: pairingId, pairing_code: pairingCode, gateway_id: gatewayId })
+  });
+  const claim = await claimResponse.json().catch(() => ({}));
+  if (!claimResponse.ok || !claim.data?.discovery_token || !claim.data?.observer_site_id) throw new Error(claim.error || "קוד pairing אינו תקף או שפג תוקפו.");
+
+  const sessionId = crypto.randomUUID();
+  const expiresAtMs = Math.min(Date.parse(String(claim.data.expires_at || "")) || Date.now() + pairingClaimTtlMs, Date.now() + pairingClaimTtlMs);
+  pendingClaims.set(sessionId, {
+    gatewayId,
+    observerSiteId: String(claim.data.observer_site_id),
+    discoveryToken: String(claim.data.discovery_token),
+    expiresAtMs
+  });
+  return { claim_session_id: sessionId, expires_at: new Date(expiresAtMs).toISOString(), status: "paired" };
+}
+
+function consumePairingClaim(claimSessionId) {
+  purgeExpiredClaims();
+  const sessionId = String(claimSessionId || "").trim();
+  const claim = pendingClaims.get(sessionId);
+  if (!claim) throw new Error("ה-Pairing המקומי חסר או פג תוקף. יש ליצור קוד חדש בדשבורד ולבצע Pairing מחדש.");
+  pendingClaims.delete(sessionId);
+  if (claim.expiresAtMs <= Date.now()) throw new Error("ה-Pairing המקומי פג תוקף. יש ליצור קוד חדש בדשבורד ולבצע Pairing מחדש.");
+  return claim;
+}
+
 async function pushLearningSample({ productionBaseUrl, gatewayId, cloudSecret, observerSiteId, channels }) {
   if (!observerSiteId) return { sampled: 0 };
   const samples = (await Promise.all(channels
@@ -283,19 +351,8 @@ function startLearningLoop(config) {
 }
 
 async function connect(input) {
-  const productionBaseUrl = process.env.VIDEO_GATEWAY_CLOUD_BASE_URL || "https://gan-batuach.vercel.app";
-  const gatewayId = crypto.randomUUID();
-  // Claim pairing before any DVR request. The resulting token never reaches disk.
-  const [pairingId, pairingCode] = String(input.pairingCode || "").trim().split(".");
-  const claimResponse = await fetch(`${productionBaseUrl.replace(/\/$/, "")}/api/digital-observer/gateway-pairing`, {
-    method: "POST",
-    headers: { "content-type": "application/json" },
-    body: JSON.stringify({ action: "claim", pairing_id: pairingId || "", pairing_code: pairingCode || "", gateway_id: gatewayId })
-  });
-  const claim = await claimResponse.json().catch(() => ({}));
-  if (!claimResponse.ok || !claim.data?.discovery_token || !claim.data?.observer_site_id) throw new Error(claim.error || "קוד pairing אינו תקף או שפג תוקפו.");
-  const discoveryToken = String(claim.data.discovery_token);
-  const observerSiteId = String(claim.data.observer_site_id);
+  // The pairing claim is consumed before any DVR request. Its token stays in local process memory only.
+  const { gatewayId, observerSiteId, discoveryToken } = consumePairingClaim(input.claimSessionId);
 
   startGateway();
   await waitForGateway();
@@ -349,7 +406,13 @@ const server = http.createServer(async (request, response) => {
       return;
     }
     if (request.method === "GET" && request.url === "/status") {
-      send(response, 200, JSON.stringify({ running, lastResult }));
+      purgeExpiredClaims();
+      send(response, 200, JSON.stringify({ running, lastResult, pairing: { pending_claims: pendingClaims.size, token_storage: "memory_only", keychain_runtime_service: "com.ganbatuach.video-gateway.runtime" } }));
+      return;
+    }
+    if (request.method === "POST" && request.url === "/pairing/claim") {
+      const result = await claimPairing(await readJson(request));
+      send(response, 200, JSON.stringify(result));
       return;
     }
     if (request.method === "POST" && request.url === "/connect") {

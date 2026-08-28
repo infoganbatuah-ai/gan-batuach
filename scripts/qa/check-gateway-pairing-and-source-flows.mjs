@@ -21,9 +21,12 @@ for (const required of ["x-video-gateway-pairing-token", "verifyGatewayDiscovery
 for (const forbidden of ["VIDEO_GATEWAY_CLOUD_DISCOVERY_SECRET || cloudConfig", "חסרה הגדרת ענן מקומית ל-Gateway"]) {
   if (localOnboarding.includes(forbidden)) throw new Error(`Local onboarding still depends on a cloud secret/config: ${forbidden}`);
 }
-for (const required of ["pairingCode", "action: \"claim\"", "x-video-gateway-pairing-token", "before any DVR request"]) {
+for (const required of ["/pairing/claim", "action: \"claim\"", "pendingClaims", "consumePairingClaim", "claim_session_id", "x-video-gateway-pairing-token", "before any DVR request"]) {
   if (!localOnboarding.includes(required)) throw new Error(`Missing local pairing handoff: ${required}`);
 }
+const connectBodyMatch = localOnboarding.match(/const body = \{ \.\.\.Object\.fromEntries\(new FormData\(form\)\.entries\(\)\), ([^}]+) \};/);
+if (!connectBodyMatch || connectBodyMatch[1] !== "claimSessionId") throw new Error("CONNECT must receive only the local claim session id after pairing claim");
+if (localOnboarding.includes(".env.video-gateway.local")) throw new Error("Local pairing must not depend on disk cloud configuration");
 for (const required of ["NVR/DVR מוסיף מקליט אחד", "recorderFlow && step === 2", "הצגת ערוצים לאחר discovery", "IP/ONVIF/RTSP מוסיפים מקור יחיד"]) {
   if (!cameraWizard.includes(required)) throw new Error(`Missing source-flow distinction: ${required}`);
 }
