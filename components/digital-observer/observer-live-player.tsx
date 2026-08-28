@@ -72,8 +72,17 @@ export function ObserverLivePlayer({
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const hasStartedRef = useRef(false);
+  const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [state, setState] = useState<PlayerState>("loading");
   const [muted, setMuted] = useState(true);
+  const [retryNonce, setRetryNonce] = useState(0);
+
+  function requestRetry() {
+    const key = playbackKey(observerSiteId, cameraSourceId);
+    playbackSessions.delete(key);
+    if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
+    retryTimerRef.current = setTimeout(() => setRetryNonce((value) => value + 1), 5000);
+  }
 
   useEffect(() => {
     let cancelled = false;
@@ -82,6 +91,7 @@ export function ObserverLivePlayer({
     if (!currentVideoElement) return;
     const videoElement: HTMLVideoElement = currentVideoElement;
     hasStartedRef.current = false;
+    const retry = () => { if (!cancelled) requestRetry(); };
 
     async function connect() {
       setState("loading");
@@ -100,7 +110,10 @@ export function ObserverLivePlayer({
         hls.loadSource(playbackUrl);
         hls.attachMedia(videoElement);
         hls.on(Hls.Events.ERROR, (_event, data) => {
-          if (data.fatal && !cancelled) setState("error");
+          if (data.fatal && !cancelled) {
+            setState("error");
+            retry();
+          }
         });
       } else {
         throw new Error("hls_not_supported");
@@ -109,15 +122,19 @@ export function ObserverLivePlayer({
     }
 
     void connect().catch(() => {
-      if (!cancelled) setState("error");
+      if (!cancelled) {
+        setState("error");
+        retry();
+      }
     });
     return () => {
       cancelled = true;
+      if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
       hls?.destroy();
       videoElement.removeAttribute("src");
       videoElement.load();
     };
-  }, [cameraSourceId, observerSiteId]);
+  }, [cameraSourceId, observerSiteId, retryNonce]);
 
   return (
     <div className={`do-live-player ${large ? "large" : ""} ${compact ? "compact" : ""}`}>
@@ -138,7 +155,12 @@ export function ObserverLivePlayer({
           // presenting that normal wait as a disconnect makes the thumbnail flicker.
           if (!hasStartedRef.current) setState("loading");
         }}
-        onError={() => setState("error")}
+        onError={() => {
+          if (!hasStartedRef.current) {
+            setState("error");
+            requestRetry();
+          }
+        }}
         onVolumeChange={(event) => setMuted(event.currentTarget.muted)}
       />
       <span className={`do-live-player-status ${state}`}>

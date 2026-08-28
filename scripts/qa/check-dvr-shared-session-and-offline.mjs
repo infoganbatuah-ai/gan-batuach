@@ -19,6 +19,9 @@ for (const required of [
   "if (session.refreshPromise) session = await session.refreshPromise",
   "relay.sessionToken",
   "requestMetrics",
+  "allowedBrowserOrigins",
+  '"https://ganbatuach.com"',
+  '"vary": "Origin"',
   "await waitForFile(relay.playlist, 8000)",
   '["-c:v", "copy"]'
 ]) {
@@ -31,7 +34,7 @@ for (const required of ['status: connected ? "connected" : "offline"', 'health_s
 for (const required of ["unavailableStatuses", "digitalObserverCameraIsConnected", "digitalObserverCameraHasLiveGateway"]) {
   if (!liveStatus.includes(required)) throw new Error(`Missing truthful live status guard: ${required}`);
 }
-for (const required of ["response.status !== 503", "attempt < 3", "1200 * (attempt + 1)"]) {
+for (const required of ["response.status !== 503", "attempt < 3", "1200 * (attempt + 1)", "playbackSessions.delete(key)", "setRetryNonce"]) {
   if (!player.includes(required)) throw new Error(`Missing playback recovery: ${required}`);
 }
 for (const required of ["ONLY_SYNTHETIC_DEMO_CAMERA_CAN_BE_REMOVED", "source_row.camera_stream_id is not null", "source_row.secret_reference is not null", "capabilities @> '{\"live_view\":true}'", "DEMO_CAMERA_HAS_STORED_MEDIA", "can_manage_observer_site"]) {

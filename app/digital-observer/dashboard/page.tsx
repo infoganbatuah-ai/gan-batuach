@@ -103,7 +103,9 @@ export default async function DigitalObserverDashboardPage({ searchParams }: Pag
   const openSignals = siteSignals.filter((signal) => ["needs_review", "reviewing", "escalated"].includes(String(signal.review_status)));
   const reviewableOpenSignals = openSignals.filter((signal) => observerClipHasRequiredMedia(observerClipForSignal(signal, runtime.clips)) && Boolean(observerCameraForSignal(signal, siteCameras)));
   const urgentSignals = openSignals.filter((signal) => ["critical", "urgent", "high"].includes(String(signal.severity)));
-  const liveCameras = siteCameras.filter((camera) => camera.source_mode === "live" && ["connected", "online", "active"].includes(String(camera.status))).length;
+  // Database connectivity is not proof that a browser has started receiving media.
+  // The player alone marks LIVE after its playback clock begins advancing.
+  const connectedCameras = siteCameras.filter((camera) => digitalObserverCameraHasLiveGateway(camera)).length;
   const readyCameras = siteCameras.filter((camera) => ["connected", "healthy", "online", "active", "ready_to_test", "testing"].includes(String(camera.status)) || camera.health_status === "healthy").length;
   const businessActivity = activityBuckets(siteSignals);
   const businessActivityTotal = businessActivity.reduce((sum, bucket) => sum + bucket.count, 0);
@@ -142,7 +144,7 @@ export default async function DigitalObserverDashboardPage({ searchParams }: Pag
                 <div>
                   <h2>{urgentSignals.length ? "יש אירוע דחוף שמחכה לבדיקה" : siteCameras.length ? <><span className="do-home-calm-desktop">הכול שקט בבית</span><span className="do-home-calm-mobile">הכול שקט</span></> : "מוכנים לחבר את הבית"}</h2>
                   <p>{siteCameras.length ? `הבית שלך מוגן לפי ${siteCameras.length} מקורות שהוגדרו.` : "חברו מצלמה ראשונה כדי להתחיל."} {urgentSignals.length ? `${urgentSignals.length} אירועים דחופים ממתינים לבדיקה.` : "אין אירועים דחופים."}</p>
-                  <ObserverRuntimePulse observerSiteId={selectedSite.id} initial={{ checked_at: new Date().toISOString(), camera_count: siteCameras.length, connected_camera_count: liveCameras, open_event_count: openSignals.length, last_event_at: latestSignalAt, last_learning_at: latestLearningAt }} compact />
+                  <ObserverRuntimePulse observerSiteId={selectedSite.id} initial={{ checked_at: new Date().toISOString(), camera_count: siteCameras.length, connected_camera_count: connectedCameras, open_event_count: openSignals.length, last_event_at: latestSignalAt, last_learning_at: latestLearningAt }} compact />
                 </div>
               </div>
 
@@ -180,7 +182,7 @@ export default async function DigitalObserverDashboardPage({ searchParams }: Pag
               <article className="do-panel do-home-status-panel">
                 <div className="do-section-head"><div><h2>מצב הבית</h2><p>סיכום שנגזר מהנתונים המחוברים.</p></div></div>
                 <div className="do-row-list">
-                  <div className="do-row"><Camera /><span className="do-row-main"><strong>מקורות מצלמה</strong><small>{siteCameras.length ? `${readyCameras} מתוך ${siteCameras.length} מוכנים לבדיקה · ${liveCameras} חיים` : "טרם חוברו"}</small></span><span className={readyCameras === siteCameras.length && siteCameras.length ? "do-status-dot good" : "do-status-dot warn"}>{siteCameras.length ? observerStatusLabel(readyCameras === siteCameras.length ? "ready_to_test" : "degraded") : "מוכן להגדרה"}</span></div>
+                  <div className="do-row"><Camera /><span className="do-row-main"><strong>מקורות מצלמה</strong><small>{siteCameras.length ? `${connectedCameras} מתוך ${siteCameras.length} מחוברים ל-Gateway · LIVE מופיע רק לאחר תחילת ניגון` : "טרם חוברו"}</small></span><span className={readyCameras === siteCameras.length && siteCameras.length ? "do-status-dot good" : "do-status-dot warn"}>{siteCameras.length ? observerStatusLabel(readyCameras === siteCameras.length ? "ready_to_test" : "degraded") : "מוכן להגדרה"}</span></div>
                   <div className="do-row"><Bell /><span className="do-row-main"><strong>התראות פתוחות</strong><small>{openSignals.length ? `${openSignals.length} לבדיקה` : "אין"}</small></span><span className={openSignals.length ? "do-status-dot warn" : "do-status-dot good"}>{openSignals.length ? "דורש תשומת לב" : "שקט"}</span></div>
                   <div className="do-row"><Moon /><span className="do-row-main"><strong>שעות שקטות</strong><small>{runtime.schedules.find((item) => item.observer_site_id === selectedSite.id)?.schedule_mode ? observerStatusLabel(runtime.schedules.find((item) => item.observer_site_id === selectedSite.id)?.schedule_mode) : "טרם הוגדרו"}</small></span><Link className="do-link" href="/digital-observer/settings">עריכה</Link></div>
                 </div>
@@ -216,7 +218,7 @@ export default async function DigitalObserverDashboardPage({ searchParams }: Pag
             </section>
 
             <section className="do-section do-business-camera-strip">
-              <div className="do-section-head"><div><h2>מצלמות ומקורות</h2><p>{liveCameras ? `${liveCameras} מקורות חיים מאושרים` : "המקורות מוצגים במצב הדגמה/מוכנות; אין שידור חי פעיל."}</p></div><Link className="do-link" href="/digital-observer/cameras">הצג הכל <ArrowLeft /></Link></div>
+              <div className="do-section-head"><div><h2>מצלמות ומקורות</h2><p>{connectedCameras ? `${connectedCameras} מקורות מחוברים ל-Gateway; LIVE מאומת בתוך הנגן` : "המקורות מוצגים במצב הדגמה/מוכנות; אין שידור חי פעיל."}</p></div><Link className="do-link" href="/digital-observer/cameras">הצג הכל <ArrowLeft /></Link></div>
               {siteCameras.length ? <div className="do-camera-grid">{siteCameras.slice(0, 5).map((camera, index) => {
                 const hasLiveGateway = digitalObserverCameraHasLiveGateway(camera);
                 return <Link className="do-dashboard-camera-card" href={`/digital-observer/cameras?camera=${camera.id}`} key={camera.id}>{hasLiveGateway ? <ObserverLivePlayer compact observerSiteId={selectedSite.id} cameraSourceId={camera.id} name={camera.display_name ?? "מצלמה"} /> : <ObserverCameraMedia name={camera.display_name ?? "מצלמה"} mode="business" scene={camera.preview_scene ?? sceneFor(index, "business")} status={camera.status ?? camera.health_status} sourceMode={camera.source_mode} />}<ObserverCameraPresence active={hasLiveGateway} /><span className="do-dashboard-camera-copy"><strong>{camera.display_name ?? "מצלמה"}</strong><small>{hasLiveGateway ? "שידור חי דרך Gateway" : ["offline", "failed", "error"].includes(String(camera.status ?? camera.health_status)) ? "Offline · אין שידור מה-DVR" : camera.source_mode === "demo" ? "תרחיש הדגמה" : "מוכן לחיבור"}</small></span></Link>;

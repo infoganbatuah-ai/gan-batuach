@@ -36,12 +36,22 @@ function json(response, status, body) {
   response.end(JSON.stringify(body));
 }
 
-function browserHeaders(contentType) {
+function allowedBrowserOrigins() {
+  const configured = String(process.env.VIDEO_GATEWAY_BROWSER_ORIGIN || "").split(",").map((value) => value.trim()).filter(Boolean);
+  return new Set(["https://ganbatuach.com", "https://www.ganbatuach.com", "https://gan-batuach.vercel.app", ...configured]);
+}
+
+function browserHeaders(request, contentType) {
+  const requestedOrigin = String(request.headers.origin || "").replace(/\/$/, "");
+  const allowedOrigin = allowedBrowserOrigins().has(requestedOrigin)
+    ? requestedOrigin
+    : "https://ganbatuach.com";
   return {
     "content-type": contentType,
     "cache-control": "private, no-store, max-age=0",
-    "access-control-allow-origin": process.env.VIDEO_GATEWAY_BROWSER_ORIGIN || "https://gan-batuach.vercel.app",
-    "access-control-allow-methods": "GET, OPTIONS"
+    "access-control-allow-origin": allowedOrigin,
+    "access-control-allow-methods": "GET, OPTIONS",
+    "vary": "Origin"
   };
 }
 
@@ -731,11 +741,11 @@ function serveHls(request, response) {
   if (extension === ".m3u8") {
     const token = encodeURIComponent(url.searchParams.get("token"));
     const playlist = readFileSync(file, "utf8").replace(/^(segment-\d+\.ts)$/gm, `$1?token=${token}`);
-    response.writeHead(200, browserHeaders("application/vnd.apple.mpegurl"));
+    response.writeHead(200, browserHeaders(request, "application/vnd.apple.mpegurl"));
     response.end(playlist);
     return;
   }
-  response.writeHead(200, browserHeaders("video/mp2t"));
+  response.writeHead(200, browserHeaders(request, "video/mp2t"));
   response.end(readFileSync(file));
 }
 
@@ -751,7 +761,7 @@ async function cameraTest(payload) {
 
 async function handle(request, response) {
   if (request.method === "OPTIONS" && request.url?.startsWith("/hls/")) {
-    response.writeHead(204, browserHeaders("text/plain"));
+    response.writeHead(204, browserHeaders(request, "text/plain"));
     response.end();
     return;
   }
