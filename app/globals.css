@@ -7063,6 +7063,7 @@ body::before {
 }
 
 .install-prompt span { flex: 1; font-weight: 800; }
+.install-prompt span svg { display: inline-block; vertical-align: -2px; margin-inline: 3px; }
 .install-prompt button {
   border: 0;
   border-radius: 12px;
@@ -7072,6 +7073,18 @@ body::before {
   color: var(--blue-dark);
 }
 .install-prompt .ghost-install { background: transparent; color: white; border: 1px solid rgb(255 255 255 / 28%); }
+
+@media (max-width: 640px) {
+  .install-prompt {
+    bottom: calc(16px + var(--safe-bottom));
+    align-items: flex-start;
+    gap: 8px;
+    padding: 12px;
+    border-radius: 8px;
+  }
+  .install-prompt span { min-width: 0; font-size: 13px; line-height: 1.35; }
+  .install-prompt button { flex: 0 0 auto; padding: 8px 10px; font-size: 13px; }
+}
 
 .mobile-public-tabs,
 .mobile-tabbar,

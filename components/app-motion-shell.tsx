@@ -5,7 +5,7 @@ import Link from "next/link";
 import { motion } from "framer-motion";
 import { usePathname } from "next/navigation";
 import { useEffect, useMemo, useState } from "react";
-import { Bell, Eye, Home, Search, ShieldCheck, Smartphone } from "lucide-react";
+import { Bell, Eye, Home, Search, Share, ShieldCheck, Smartphone } from "lucide-react";
 
 export function AppMotionShell({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
@@ -87,7 +87,13 @@ type BeforeInstallPromptEvent = Event & { prompt: () => Promise<void>; userChoic
 function PwaInstallPrompt({ observer }: { observer: boolean }) {
   const [installEvent, setInstallEvent] = useState<BeforeInstallPromptEvent | null>(null);
   const [hidden, setHidden] = useState(false);
+  const [iosInstallHelp, setIosInstallHelp] = useState(false);
   const isStandalone = useMemo(() => typeof window !== "undefined" && (window.matchMedia("(display-mode: standalone)").matches || (navigator as Navigator & { standalone?: boolean }).standalone), []);
+  const isIosMobile = useMemo(() => {
+    if (typeof window === "undefined") return false;
+    const platform = navigator.userAgent;
+    return /iPhone|iPad|iPod/i.test(platform) || (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+  }, []);
 
   useEffect(() => {
     const handler = (event: Event) => { event.preventDefault(); setInstallEvent(event as BeforeInstallPromptEvent); };
@@ -95,8 +101,14 @@ function PwaInstallPrompt({ observer }: { observer: boolean }) {
     return () => window.removeEventListener("beforeinstallprompt", handler);
   }, []);
 
-  if (hidden || isStandalone || !installEvent) return null;
-  return <motion.div className="install-prompt" initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }}><Smartphone size={18} /><span>התקינו את {observer ? "התצפיתן הדיגיטלי" : "גן בטוח"} כאפליקציה</span><button type="button" onClick={async () => { await installEvent.prompt(); setHidden(true); }}>התקנה</button><button type="button" className="ghost-install" onClick={() => setHidden(true)}>לא עכשיו</button></motion.div>;
+  if (hidden || isStandalone || (!installEvent && !isIosMobile)) return null;
+  const appName = observer ? "התצפיתן הדיגיטלי" : "גן בטוח";
+  return <motion.div className="install-prompt" initial={{ y: 40, opacity: 0 }} animate={{ y: 0, opacity: 1 }}>
+    <Smartphone size={18} />
+    <span>{iosInstallHelp ? <>בחרו <Share size={15} aria-hidden="true" /> שיתוף ואז ״הוספה למסך הבית״</> : <>התקינו את {appName} כאפליקציה</>}</span>
+    {installEvent ? <button type="button" onClick={async () => { await installEvent.prompt(); setHidden(true); }}>התקנה</button> : <button type="button" onClick={() => setIosInstallHelp(true)}>{iosInstallHelp ? "הבנתי" : "הוספה"}</button>}
+    <button type="button" className="ghost-install" onClick={() => setHidden(true)} aria-label="סגירת הצעת התקנה">לא עכשיו</button>
+  </motion.div>;
 }
 
 export function MobilePublicTabs() {
