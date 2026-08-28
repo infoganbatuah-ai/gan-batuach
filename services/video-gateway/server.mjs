@@ -1,10 +1,11 @@
-import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
+import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
 import { spawn } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, rmSync, statSync } from "node:fs";
 import http from "node:http";
 import { tmpdir } from "node:os";
 import { extname, join, normalize } from "node:path";
 import { computeActivityMetrics } from "./activity-insights.mjs";
+import { localEdgeReadiness } from "./edge-readiness.mjs";
 
 const PORT = Number(process.env.PORT || process.env.VIDEO_GATEWAY_PORT || 8080);
 const HOST = process.env.HOST || process.env.VIDEO_GATEWAY_HOST || "0.0.0.0";
@@ -56,6 +57,28 @@ function expectedSecret() {
     || process.env.VIDEO_GATEWAY_API_KEY
     || process.env.CAMERA_GATEWAY_SECRET
     || "";
+}
+
+function edgeCapabilityContract(edge) {
+  const contract = {
+    version: 1,
+    issued_at: new Date().toISOString(),
+    gateway: { connected: true, version: edge.gateway_version, read_only: true },
+    runtime: edge.runtime,
+    hardware: edge.hardware,
+    models: edge.models,
+    capability_test: edge.capability_test,
+    consent_verified: false,
+    capabilities: {
+      local_activity_sampling: Boolean(edge.ffprobe_available),
+      object_detection: Boolean(edge.object_detection),
+      audio_event_detection: Boolean(edge.audio_event_detection),
+      face_recognition: false,
+      biometric_matching: false
+    }
+  };
+  const secret = expectedSecret();
+  return { ...contract, signature: secret ? `sha256=${createHmac("sha256", secret).update(JSON.stringify(contract)).digest("hex")}` : "" };
 }
 
 function authorized(request) {
@@ -737,6 +760,7 @@ async function handle(request, response) {
     return;
   }
   if (request.url === "/health" && request.method === "GET") {
+    const edge = localEdgeReadiness();
     json(response, 200, {
       ok: true,
       status: "healthy",
@@ -746,11 +770,16 @@ async function handle(request, response) {
       failedStreamCount: Math.max(0, lastDiscoverySummary.channelCount - lastDiscoverySummary.connectedCount),
       lastDiscovery: lastDiscoverySummary,
       requestMetrics,
+      edge,
+      edge_capability_contract: edgeCapabilityContract(edge),
       capabilities: {
         live: true,
         playback: true,
-        event_insights: true,
-        local_activity_sampling: true,
+        event_insights: Boolean(edge.ffprobe_available),
+        local_activity_sampling: Boolean(edge.ffprobe_available),
+        object_detection: edge.object_detection,
+        audio_event_detection: edge.audio_event_detection,
+        face_recognition: false,
         audio: false,
         ptz: false,
         siren: false,

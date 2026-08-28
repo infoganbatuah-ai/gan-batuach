@@ -26,7 +26,10 @@ export const digitalObserverEdgeAiPolicy = {
 } as const;
 
 export function cameraReportsLocalEventInsights(camera: Record<string, any>) {
-  return camera.capabilities?.local_event_insights === true
-    || camera.metadata?.local_event_insights === true
-    || camera.metadata?.edge_inference_policy === digitalObserverEdgeAiPolicy.version;
+  const contract = camera.metadata?.edge_capability_contract;
+  if (!contract || contract.version !== 1 || contract.gateway?.connected !== true) return false;
+  if (contract.runtime?.available !== true || contract.models?.loaded !== true) return false;
+  if (contract.hardware?.acceleration_available !== true || contract.capability_test?.passed !== true) return false;
+  if (contract.consent_verified !== true) return false;
+  return contract.capabilities?.object_detection === true || contract.capabilities?.audio_event_detection === true;
 }

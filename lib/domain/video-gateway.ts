@@ -326,6 +326,7 @@ async function upsertDigitalObserverCameraSource(
     gatewayConfigured: boolean;
     connected: boolean;
     statusHint: string | null;
+    edgeCapabilityContract?: Record<string, unknown> | null;
   }
 ) {
   if (!values.observerSiteId) return null;
@@ -364,7 +365,7 @@ async function upsertDigitalObserverCameraSource(
       preview: values.connected,
       live_view: values.connected,
       event_clips: values.connected,
-      local_event_insights: values.connected,
+      local_event_insights: false,
       local_activity_sampling: values.connected,
       credentials_saved: true,
       gateway_required: !values.connected,
@@ -387,7 +388,8 @@ async function upsertDigitalObserverCameraSource(
       status_hint: values.statusHint,
       no_rtsp_exposed: true,
       credentials_server_side: true,
-      edge_inference_policy: "local-insights-v1"
+      edge_inference_policy: "local-insights-v1",
+      edge_capability_contract: values.edgeCapabilityContract ?? null
     }
   };
   if ((existing as any)?.data?.id) {
@@ -700,8 +702,9 @@ export async function materializeCloudDvrDiscovery(payload: z.infer<typeof cloud
         no_rtsp_exposed: true,
         no_credentials_received: true,
         ai_shadow_only: true,
-        local_event_insights: connected,
+        local_event_insights: false,
         local_activity_sampling: connected,
+        edge_capability_contract: parsed.metadata?.edge_capability_contract ?? null,
         raw_frames_uploaded: false,
         read_only: true
       }
@@ -741,7 +744,8 @@ export async function materializeCloudDvrDiscovery(payload: z.infer<typeof cloud
       gatewayStreamId,
       gatewayConfigured: true,
       connected,
-      statusHint: channel.status
+      statusHint: channel.status,
+      edgeCapabilityContract: parsed.metadata?.edge_capability_contract as Record<string, unknown> | null
     });
     results.push({ camera: camera ? sanitizeCameraRow(camera as any) : null, observer_source: observerSource, gateway_stream_id: gatewayStreamId });
   }

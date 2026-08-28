@@ -24,6 +24,7 @@
     "qa:digital-observer-event-media": "node scripts/qa/check-digital-observer-event-media.mjs",
     "qa:digital-observer-privacy": "node scripts/qa/check-digital-observer-privacy-boundaries.mjs",
     "qa:dvr-shared-session": "node scripts/qa/check-dvr-shared-session-and-offline.mjs",
+    "qa:observer-site-edit": "node scripts/qa/check-observer-site-edit-preservation.mjs",
     "qa:delete-digital-observer-test-user": "node scripts/qa/delete-digital-observer-test-user.mjs",
     "demo:reset": "node scripts/seed-demo-full.mjs --reset",
     "compliance:permit-scan": "node scripts/scan-permit-expirations.mjs",
