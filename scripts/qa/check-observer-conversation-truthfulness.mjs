@@ -8,7 +8,8 @@ for (const required of [
   "מצב החיבור הנוכחי",
   "איני מסיק מה קרה בעבר",
   "awaiting_edge_capability",
-  "איני מציג אותו כ-AI פעיל",
+  "מנוע Edge עדיין לא דיווח",
+  "הוספת מצלמות › DVR/NVR",
   "source_label"
 ]) {
   if (!route.includes(required)) throw new Error(`Conversation truthfulness guard missing: ${required}`);

@@ -1,5 +1,4 @@
 import { ObserverCameraWizard } from "@/components/digital-observer/observer-action-forms";
-import { ObserverGatewayPairing } from "@/components/digital-observer/observer-gateway-pairing";
 import { ObserverAppShell } from "@/components/digital-observer/observer-app-shell";
 import { requireDigitalObserverUser } from "@/lib/domain/digital-observer/access";
 import { loadObserverRuntime, observerModeForSite, selectObserverSite } from "@/lib/domain/digital-observer/runtime";
@@ -14,7 +13,7 @@ export default async function DigitalObserverAddCameraPage({ searchParams }: Pag
   const mode = observerModeForSite(selected);
   return <ObserverAppShell profile={profile} mode={mode} activeHref="/digital-observer/cameras" title="הוספת מצלמה" desktopTitle="תצפיתן דיגיטלי" statusLabel="Gateway מאובטח" flowBackHref="/digital-observer/cameras">
     <div className="do-page-stack do-camera-add-page">
-      {runtime.sites.length ? <>{selected ? <ObserverGatewayPairing observerSiteId={selected.id} /> : null}<ObserverCameraWizard sites={runtime.sites} initialSiteId={selected?.id} /></> : <section className="do-empty"><strong>תחילה יש להקים בית או עסק</strong><a className="do-button primary" href="/digital-observer/onboarding">הקמת אתר</a></section>}
+      {runtime.sites.length ? <ObserverCameraWizard sites={runtime.sites} initialSiteId={selected?.id} /> : <section className="do-empty"><strong>תחילה יש להקים בית או עסק</strong><a className="do-button primary" href="/digital-observer/onboarding">הקמת אתר</a></section>}
     </div>
   </ObserverAppShell>;
 }

@@ -163,7 +163,7 @@ export async function POST(request: Request) {
     return ok({
       answer: instruction
         ? connectedSourceAvailable
-          ? `שמרתי את ההנחיה עבור ${selectedCamera?.display_name || "המקורות המחוברים"}. החיבור קיים, והכלל יתחיל להיבדק רק אחרי שה-Gateway ידווח על יכולת Edge מאומתת; עד אז איני מציג אותו כ-AI פעיל. כל זיהוי יוצג כהערכה עם ראיה ויישאר כפוף לבדיקה אנושית.\n\n${summary.answer}`
+          ? `שמרתי את ההנחיה עבור ${selectedCamera?.display_name || "המקורות המחוברים"}. ה-Gateway מחובר, אך מנוע Edge עדיין לא דיווח על runtime, מודל טעון ובדיקת יכולת שעברו. לכן הכלל נשמר במצב מוכנות ולא ינותח כ-AI פעיל עד שהבדיקה תושלם. אפשר להשלים את חיבור המקליט מתוך הוספת מצלמות › DVR/NVR; פרטי המקליט נשארים ברכיב המקומי. כל זיהוי יוצג כהערכה עם ראיה ויישאר כפוף לבדיקה אנושית.\n\n${summary.answer}`
           : `שמרתי את ההנחיה. מקור המצלמה עדיין אינו מחובר, ולכן היא תתחיל לפעול אוטומטית לאחר חיבור מאומת.\n\n${summary.answer}`
         : summary.answer,
       signal_ids: summary.signalIds,

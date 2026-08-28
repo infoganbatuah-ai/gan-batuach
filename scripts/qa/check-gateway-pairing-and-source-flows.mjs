@@ -5,6 +5,8 @@ const pairingRoute = readFileSync(new URL("../../app/api/digital-observer/gatewa
 const discoveryRoute = readFileSync(new URL("../../app/api/video-gateway/cloud-discovery/route.ts", import.meta.url), "utf8");
 const localOnboarding = readFileSync(new URL("../cloud-dvr-discovery-web.mjs", import.meta.url), "utf8");
 const cameraWizard = readFileSync(new URL("../../components/digital-observer/observer-action-forms.tsx", import.meta.url), "utf8");
+const addCameraPage = readFileSync(new URL("../../app/digital-observer/cameras/add/page.tsx", import.meta.url), "utf8");
+const pairingPanel = readFileSync(new URL("../../components/digital-observer/observer-gateway-pairing.tsx", import.meta.url), "utf8");
 const pairing = readFileSync(new URL("../../lib/domain/video-gateway-pairing.ts", import.meta.url), "utf8");
 
 for (const required of ["gatewayPairingCodeTtlMs", "gatewayDiscoveryTokenTtlMs", "hashGatewayPairingCode", "verifyGatewayDiscoveryToken", "scope: \"cloud_discovery\""]) {
@@ -38,6 +40,13 @@ for (const required of ["קוד pairing קצר־חיים נשאר fallback בל�
   if (!cameraWizard.includes(required) && !pairing.includes(required) && !readFileSync(new URL("../../lib/domain/digital-observer/camera-connection-methods.ts", import.meta.url), "utf8").includes(required)) throw new Error(`Missing normal gateway onboarding wording: ${required}`);
 }
 if (cameraWizard.includes('href="http://127.0.0.1:18180"')) throw new Error("Dashboard flow must not depend on direct localhost navigation");
+for (const required of ["step === 2 && recorderFlow", "<ObserverGatewayPairing observerSiteId={form.observer_site_id} />", "step === 2 && !recorderFlow", "לא יוצרים כאן מצלמה בודדת"]) {
+  if (!cameraWizard.includes(required)) throw new Error(`Recorder flow must keep pairing inside Add cameras: ${required}`);
+}
+if (addCameraPage.includes("ObserverGatewayPairing")) throw new Error("Gateway pairing must be part of the DVR/NVR wizard, not a separate Add cameras screen");
+for (const required of ["פתיחת רכיב החיבור במחשב זה", "gatewayUrl", "פרטי DVR במחשב בלבד"]) {
+  if (!pairingPanel.includes(required)) throw new Error(`Gateway pairing must offer a clear local handoff: ${required}`);
+}
 
 const browserScript = localOnboarding.match(/<script>([\s\S]*?)<\/script>/)?.[1];
 if (!browserScript?.includes("async function showNextStepAfterPairing")) throw new Error("Pairing next-step handler must be available to the local browser");
