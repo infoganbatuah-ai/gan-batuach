@@ -94,11 +94,14 @@ function page() {
         <label>סיסמה
           <input name="password" required type="password" autocomplete="current-password" />
         </label>
+        <label class="full">קוד pairing מהדשבורד
+          <input name="pairingCode" required type="password" autocomplete="one-time-code" autocapitalize="none" spellcheck="false" />
+        </label>
         <label>מספר ערוצים צפוי
           <input name="channelCount" inputmode="numeric" value="16" />
         </label>
       </div>
-      <div class="notice warn">לא להדביק כאן cookies, קישורי דפדפן או כתובות stream. רק פרטי החיבור הרגילים של ה-DVR.</div>
+    <div class="notice warn">קודם יוצרים קוד pairing חד־פעמי בדשבורד המחובר. לא להדביק כאן cookies, קישורי דפדפן או כתובות stream.</div>
       <button id="connect" class="primary" type="submit">CONNECT - התחלת בדיקת קריאה בלבד</button>
       <div id="status" role="status"></div>
     </form>
@@ -280,15 +283,19 @@ function startLearningLoop(config) {
 }
 
 async function connect(input) {
-  const cloudConfig = loadLocalCloudConfig();
-  const productionBaseUrl = process.env.VIDEO_GATEWAY_CLOUD_BASE_URL || cloudConfig.VIDEO_GATEWAY_CLOUD_BASE_URL || "https://gan-batuach.vercel.app";
-  const gatewayId = process.env.VIDEO_GATEWAY_CLOUD_GATEWAY_ID || cloudConfig.VIDEO_GATEWAY_CLOUD_GATEWAY_ID;
-  const cloudSecret = process.env.VIDEO_GATEWAY_CLOUD_DISCOVERY_SECRET || cloudConfig.VIDEO_GATEWAY_CLOUD_DISCOVERY_SECRET || readKeychainSecret("cloud_discovery_secret");
-  const gardenId = process.env.VIDEO_GATEWAY_CLOUD_GARDEN_ID || cloudConfig.VIDEO_GATEWAY_CLOUD_GARDEN_ID || "";
-  const observerSiteId = process.env.VIDEO_GATEWAY_CLOUD_OBSERVER_SITE_ID || cloudConfig.VIDEO_GATEWAY_CLOUD_OBSERVER_SITE_ID || "";
-  if (!gatewayId || !cloudSecret || (!gardenId && !observerSiteId)) {
-    throw new Error("חסרה הגדרת ענן מקומית ל-Gateway.");
-  }
+  const productionBaseUrl = process.env.VIDEO_GATEWAY_CLOUD_BASE_URL || "https://gan-batuach.vercel.app";
+  const gatewayId = crypto.randomUUID();
+  // Claim pairing before any DVR request. The resulting token never reaches disk.
+  const [pairingId, pairingCode] = String(input.pairingCode || "").trim().split(".");
+  const claimResponse = await fetch(`${productionBaseUrl.replace(/\/$/, "")}/api/digital-observer/gateway-pairing`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ action: "claim", pairing_id: pairingId || "", pairing_code: pairingCode || "", gateway_id: gatewayId })
+  });
+  const claim = await claimResponse.json().catch(() => ({}));
+  if (!claimResponse.ok || !claim.data?.discovery_token || !claim.data?.observer_site_id) throw new Error(claim.error || "קוד pairing אינו תקף או שפג תוקפו.");
+  const discoveryToken = String(claim.data.discovery_token);
+  const observerSiteId = String(claim.data.observer_site_id);
 
   startGateway();
   await waitForGateway();
@@ -312,7 +319,7 @@ async function connect(input) {
   const discovery = await discoveryResponse.json();
   if (!discoveryResponse.ok) throw new Error("בדיקת ה-DVR המקומית נכשלה.");
 
-  const payload = sanitizeDiscovery(discovery, { gatewayId, gardenId, observerSiteId, vendor, channelCount });
+  const payload = sanitizeDiscovery(discovery, { gatewayId, gardenId: "", observerSiteId, vendor, channelCount });
   const body = JSON.stringify(payload);
   const timestamp = new Date().toISOString();
   const nonce = crypto.randomUUID();
@@ -323,13 +330,12 @@ async function connect(input) {
       "x-video-gateway-id": gatewayId,
       "x-video-gateway-timestamp": timestamp,
       "x-video-gateway-nonce": nonce,
-      "x-video-gateway-signature": signBody(timestamp, nonce, body, cloudSecret)
+      "x-video-gateway-pairing-token": discoveryToken
     },
     body
   });
   const cloudResult = await cloudResponse.json().catch(() => ({}));
   if (!cloudResponse.ok) throw new Error(cloudResult.error || "מיפוי הערוצים לענן נכשל.");
-  startLearningLoop({ productionBaseUrl, gatewayId, cloudSecret, observerSiteId, channels: payload.channels });
   return {
     channel_count: cloudResult.data?.channel_count ?? payload.channels.length,
     connected_channel_count: cloudResult.data?.connected_channel_count ?? payload.connected_channel_count
