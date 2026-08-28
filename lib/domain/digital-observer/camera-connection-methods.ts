@@ -78,11 +78,12 @@ export const observerCameraConnectionMethods: readonly ObserverCameraConnectionM
     requiresGateway: true,
     steps: [
       "מזהים יצרן ודגם של ה-NVR או ה-DVR.",
-      "מחברים Gateway לאותה רשת ומגדירים משתמש צפייה מוגבל.",
-      "בודקים את המערכת ובוחרים את ערוצי המצלמות הרצויים.",
-      "כל ערוץ נשמר כמצלמה נפרדת עם סטטוס משלו."
+      "מאמתים את רכיב החיבור המקומי פעם אחת דרך חשבון המשתמש או QR מאובטח.",
+      "מזינים הרשאת צפייה מוגבלת ברכיב המקומי בלבד, ללא שליחת פרטי DVR לענן.",
+      "מבצעים discovery ושומרים כל ערוץ שהתגלה כמצלמה נפרדת עם סטטוס משלו.",
+      "הדשבורד מקבל רק סטטוס, HLS/WebRTC מאובטח ותובנות מסוננות."
     ],
-    requiredItems: ["יצרן ודגם המקליט", "מספר ערוץ", "Gateway באותה רשת"]
+    requiredItems: ["יצרן ודגם המקליט", "רכיב חיבור מקומי באותה רשת", "משתמש צפייה מוגבל"]
   },
   {
     key: "manual_network",
@@ -108,9 +109,9 @@ export const observerCameraConnectionMethods: readonly ObserverCameraConnectionM
     requiresGateway: true,
     steps: [
       "מתקינים את רכיב ה-Gateway במחשב או יחידת Edge ברשת המקומית.",
-      "מזווגים אותו לאתר באמצעות קוד קצר וחולף.",
+      "מאמתים את חשבון המשתמש פעם אחת או סורקים QR מאובטח.",
       "ה-Gateway מאתר ומאמת את מקורות הווידאו בתוך הרשת.",
-      "רק HLS/WebRTC מאובטח וסטטוס בריאות יוצאים החוצה."
+      "קוד pairing קצר וחולף נשאר fallback בלבד למכשיר אחר, headless או recovery."
     ],
     requiredItems: ["מחשב או יחידת Edge פעילה", "גישה לרשת המקומית", "הרשאת מנהל האתר"]
   },

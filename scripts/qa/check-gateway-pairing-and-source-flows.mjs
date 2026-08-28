@@ -24,11 +24,19 @@ for (const forbidden of ["VIDEO_GATEWAY_CLOUD_DISCOVERY_SECRET || cloudConfig", 
 for (const required of ["/pairing/claim", "action: \"claim\"", "pendingClaims", "consumePairingClaim", "claim_session_id", "x-video-gateway-pairing-token", "before any DVR request"]) {
   if (!localOnboarding.includes(required)) throw new Error(`Missing local pairing handoff: ${required}`);
 }
+for (const required of ["/dvr-profile/status", "המקליט הקיים מוכן", "useExistingProfile", "find-generic-password", "values_returned: false"]) {
+  if (!localOnboarding.includes(required)) throw new Error(`Missing secure existing DVR profile flow: ${required}`);
+}
 const connectBodyMatch = localOnboarding.match(/const body = \{ \.\.\.Object\.fromEntries\(new FormData\(form\)\.entries\(\)\), ([^}]+) \};/);
 if (!connectBodyMatch || connectBodyMatch[1] !== "claimSessionId") throw new Error("CONNECT must receive only the local claim session id after pairing claim");
 if (localOnboarding.includes(".env.video-gateway.local")) throw new Error("Local pairing must not depend on disk cloud configuration");
+if (/dvr-profile\/status[\s\S]{0,400}(endpoint|username|password)/.test(localOnboarding)) throw new Error("DVR profile status must not return DVR address, username, or password");
 for (const required of ["NVR/DVR מוסיף מקליט אחד", "recorderFlow && step === 2", "הצגת ערוצים לאחר discovery", "IP/ONVIF/RTSP מוסיפים מקור יחיד"]) {
   if (!cameraWizard.includes(required)) throw new Error(`Missing source-flow distinction: ${required}`);
 }
+for (const required of ["קוד pairing קצר־חיים נשאר fallback בלבד", "מאמתים את החשבון פעם אחת", "רכיב מקומי מאומת", "אפשרויות נוספות: QR ומצלמת הדמיה"]) {
+  if (!cameraWizard.includes(required) && !pairing.includes(required) && !readFileSync(new URL("../../lib/domain/digital-observer/camera-connection-methods.ts", import.meta.url), "utf8").includes(required)) throw new Error(`Missing normal gateway onboarding wording: ${required}`);
+}
+if (cameraWizard.includes('href="http://127.0.0.1:18180"')) throw new Error("Dashboard flow must not depend on direct localhost navigation");
 
 console.log("Gateway pairing and DVR/IP source flow checks passed.");

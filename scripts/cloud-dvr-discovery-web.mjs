@@ -1,12 +1,14 @@
 import crypto from "node:crypto";
 import { spawn } from "node:child_process";
 import { spawnSync } from "node:child_process";
+import { existsSync, readFileSync } from "node:fs";
 import http from "node:http";
 
 const gatewayPort = Number(process.env.LOCAL_DVR_GATEWAY_PORT || 18080);
 const webPort = Number(process.env.LOCAL_DVR_ONBOARDING_PORT || 18180);
 const gatewayUrl = `http://127.0.0.1:${gatewayPort}`;
 const productionBaseUrl = process.env.VIDEO_GATEWAY_CLOUD_BASE_URL || "https://gan-batuach.vercel.app";
+const runtimeConfigPath = process.env.GAN_BATUACH_GATEWAY_CONFIG || `${process.env.HOME}/.config/gan-batuach/home-gateway.json`;
 const pairingClaimTtlMs = 14 * 60 * 1000;
 let running = false;
 let lastResult = null;
@@ -27,6 +29,48 @@ function purgeExpiredClaims() {
   for (const [id, claim] of pendingClaims.entries()) {
     if (!claim || claim.expiresAtMs <= now) pendingClaims.delete(id);
   }
+}
+
+function readDvrProfileConfig() {
+  if (!existsSync(runtimeConfigPath)) return { configured: false, reason: "missing_local_profile" };
+  try {
+    const config = JSON.parse(readFileSync(runtimeConfigPath, "utf8"));
+    const required = ["endpoint", "port", "username", "vendor", "channel_count", "keychain_service"];
+    const missing = required.filter((key) => !config?.[key]);
+    if (missing.length) return { configured: false, reason: "incomplete_local_profile" };
+    return { configured: true, config };
+  } catch {
+    return { configured: false, reason: "invalid_local_profile" };
+  }
+}
+
+function hasDvrPasswordInKeychain(config) {
+  if (!config?.keychain_service || !config?.username) return false;
+  const result = spawnSync("/usr/bin/security", ["find-generic-password", "-s", String(config.keychain_service), "-a", String(config.username)], { encoding: "utf8" });
+  return result.status === 0;
+}
+
+function dvrProfileStatus() {
+  const profile = readDvrProfileConfig();
+  if (!profile.configured) return { configured: false, reason: profile.reason, password_storage: "keychain" };
+  if (!hasDvrPasswordInKeychain(profile.config)) return { configured: false, reason: "missing_keychain_password", password_storage: "keychain" };
+  return { configured: true, status: "ready", profile_storage: "secure_local_config", password_storage: "keychain", values_returned: false };
+}
+
+function loadExistingDvrProfileForConnect() {
+  const profile = readDvrProfileConfig();
+  if (!profile.configured) throw new Error("פרופיל DVR מקומי לא נמצא. נדרשת הזנה חד־פעמית במסך המקומי.");
+  const config = profile.config;
+  const passwordResult = spawnSync("/usr/bin/security", ["find-generic-password", "-s", String(config.keychain_service), "-a", String(config.username), "-w"], { encoding: "utf8" });
+  if (passwordResult.status !== 0 || !passwordResult.stdout.trim()) throw new Error("סיסמת DVR אינה זמינה ב-Keychain המקומי. נדרשת הזנה חד־פעמית במסך המקומי.");
+  return {
+    endpoint: String(config.endpoint || ""),
+    port: Number(config.port || 554),
+    username: String(config.username || ""),
+    password: passwordResult.stdout.trim(),
+    vendor: String(config.vendor || "generic"),
+    channelCount: Number(config.channel_count || 16)
+  };
 }
 
 function page() {
@@ -69,6 +113,13 @@ function page() {
       <button id="pairing-submit" class="primary" type="submit">אישור pairing והמשך</button>
       <div id="pairing-status" role="status"></div>
     </form>
+    <section id="existing-profile" hidden>
+      <div class="notice">המקליט הקיים מוכן. פרטי ה-DVR נשארים במקבוק: פרופיל מקומי מאובטח וסיסמה ב-Keychain. הדשבורד לא מקבל סיסמה או כתובת stream.</div>
+      <form id="existing-profile-form" autocomplete="off">
+        <button id="existing-connect" class="primary" type="submit">CONNECT / DISCOVER מהמקליט הקיים</button>
+        <button id="manual-entry" type="button">הזנה חד־פעמית מחדש</button>
+      </form>
+    </section>
     <form id="dvr-form" autocomplete="off" hidden>
       <div class="grid">
         <label class="full">כתובת DVR
@@ -105,6 +156,10 @@ function page() {
     const pairingForm = document.getElementById("pairing-form");
     const pairingButton = document.getElementById("pairing-submit");
     const pairingStatus = document.getElementById("pairing-status");
+    const existingProfile = document.getElementById("existing-profile");
+    const existingProfileForm = document.getElementById("existing-profile-form");
+    const existingConnect = document.getElementById("existing-connect");
+    const manualEntry = document.getElementById("manual-entry");
     const form = document.getElementById("dvr-form");
     const button = document.getElementById("connect");
     const status = document.getElementById("status");
@@ -131,11 +186,31 @@ function page() {
         claimSessionId = data.claim_session_id;
         pairingStatus.textContent = "Pairing אומת. עכשיו אפשר להזין פרטי DVR מקומית, ורק CONNECT יתחיל discovery.";
         pairingForm.hidden = true;
-        form.hidden = false;
-        status.textContent = "ה-Pairing פעיל לזמן קצר בזיכרון המקומי. הזינו פרטי DVR ולחצו CONNECT רק כשמאשרים התחלת בדיקה.";
+        await showNextStepAfterPairing();
       } catch (error) {
         pairingStatus.textContent = error instanceof Error ? error.message : "Pairing נכשל.";
         pairingButton.disabled = false;
+      }
+    });
+    manualEntry.addEventListener("click", () => {
+      existingProfile.hidden = true;
+      form.hidden = false;
+      status.textContent = "הזינו פרטי DVR חד־פעמית במסך המקומי בלבד. הסיסמה אינה נשלחת לדשבורד.";
+    });
+    existingProfileForm.addEventListener("submit", async (event) => {
+      event.preventDefault();
+      existingConnect.disabled = true;
+      status.textContent = "מתחיל discovery מהמקליט הקיים בקריאה בלבד...";
+      if (!claimSessionId) {
+        status.textContent = "יש להשלים Pairing מאומת לפני CONNECT.";
+        existingConnect.disabled = false;
+        return;
+      }
+      try {
+        await connectWithBody({ claimSessionId, useExistingProfile: true });
+      } catch (error) {
+        status.textContent = error instanceof Error ? error.message : "החיבור נכשל";
+        existingConnect.disabled = false;
       }
     });
     form.addEventListener("submit", async (event) => {
@@ -149,14 +224,7 @@ function page() {
       }
       const body = { ...Object.fromEntries(new FormData(form).entries()), claimSessionId };
       try {
-        const response = await fetch("/connect", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify(body)
-        });
-        const data = await response.json().catch(() => ({}));
-        if (!response.ok) throw new Error(data.error || "החיבור נכשל");
-        status.textContent = "החיבור הושלם. ערוצים שמופו: " + data.channel_count + ", ערוצים מחוברים: " + data.connected_channel_count + ".";
+        await connectWithBody(body);
         form.reset();
       } catch (error) {
         status.textContent = error instanceof Error ? error.message : "החיבור נכשל";
@@ -353,11 +421,19 @@ function startLearningLoop(config) {
 async function connect(input) {
   // The pairing claim is consumed before any DVR request. Its token stays in local process memory only.
   const { gatewayId, observerSiteId, discoveryToken } = consumePairingClaim(input.claimSessionId);
+  const connection = input.useExistingProfile ? loadExistingDvrProfileForConnect() : {
+    endpoint: String(input.endpoint || ""),
+    port: Number(input.port || 554),
+    username: String(input.username || ""),
+    password: String(input.password || ""),
+    vendor: String(input.vendor || "generic"),
+    channelCount: Number(input.channelCount || 16)
+  };
 
   startGateway();
   await waitForGateway();
-  const channelCount = Number(input.channelCount || 16);
-  const vendor = String(input.vendor || "generic");
+  const channelCount = Number(connection.channelCount || 16);
+  const vendor = String(connection.vendor || "generic");
   const discoveryResponse = await fetch(`${gatewayUrl}/dvr/connect`, {
     method: "POST",
     headers: {
@@ -366,10 +442,10 @@ async function connect(input) {
     },
     body: JSON.stringify({
       connection_type: "dvr",
-      endpoint: String(input.endpoint || ""),
-      port: Number(input.port || 554),
-      username: String(input.username || ""),
-      password: String(input.password || ""),
+      endpoint: connection.endpoint,
+      port: connection.port,
+      username: connection.username,
+      password: connection.password,
       metadata: { vendor, expected_channel_count: channelCount, read_only_requested: true }
     })
   });
@@ -408,6 +484,10 @@ const server = http.createServer(async (request, response) => {
     if (request.method === "GET" && request.url === "/status") {
       purgeExpiredClaims();
       send(response, 200, JSON.stringify({ running, lastResult, pairing: { pending_claims: pendingClaims.size, token_storage: "memory_only", keychain_runtime_service: "com.ganbatuach.video-gateway.runtime" } }));
+      return;
+    }
+    if (request.method === "GET" && request.url === "/dvr-profile/status") {
+      send(response, 200, JSON.stringify(dvrProfileStatus()));
       return;
     }
     if (request.method === "POST" && request.url === "/pairing/claim") {
@@ -449,3 +529,28 @@ function shutdown() {
 
 process.on("SIGINT", shutdown);
 process.on("SIGTERM", shutdown);
+    async function connectWithBody(body) {
+      const response = await fetch("/connect", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(body)
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || "החיבור נכשל");
+      status.textContent = "החיבור הושלם. ערוצים שמופו: " + data.channel_count + ", ערוצים מחוברים: " + data.connected_channel_count + ".";
+      return data;
+    }
+    async function showNextStepAfterPairing() {
+      const response = await fetch("/dvr-profile/status", { cache: "no-store" });
+      const data = await response.json().catch(() => ({}));
+      if (response.ok && data.configured === true) {
+        existingProfile.hidden = false;
+        form.hidden = true;
+        status.textContent = "המקליט הקיים מוכן. לחיצה על CONNECT / DISCOVER תתחיל discovery בקריאה בלבד.";
+        return;
+      }
+      existingProfile.hidden = true;
+      form.hidden = false;
+      const reason = data.reason === "missing_keychain_password" ? "סיסמת ה-DVR לא נמצאה ב-Keychain." : "לא נמצא פרופיל DVR מקומי מלא.";
+      status.textContent = reason + " הזינו פרטי DVR חד־פעמית במסך המקומי בלבד, ואז לחצו CONNECT.";
+    }
