@@ -1,36 +1,25 @@
 import crypto from "node:crypto";
 import { spawn, spawnSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 
 const workdir = process.cwd();
 const runtimeConfigPath = process.env.GAN_BATUACH_GATEWAY_CONFIG || `${process.env.HOME}/.config/gan-batuach/home-gateway.json`;
-const cloudConfigPath = `${workdir}/.env.video-gateway.local`;
 const gatewayUrl = "http://127.0.0.1:18082";
+const gatewayKeychainService = process.env.GAN_BATUACH_GATEWAY_KEYCHAIN_SERVICE || "com.ganbatuach.video-gateway.runtime";
 
-function envFile(path) {
-  if (!existsSync(path)) return {};
-  return Object.fromEntries(readFileSync(path, "utf8").split(/\r?\n/).map((line) => line.trim()).filter((line) => line && !line.startsWith("#") && line.includes("=")).map((line) => {
-    const index = line.indexOf("=");
-    return [line.slice(0, index).trim(), line.slice(index + 1).trim().replace(/^["']|["']$/g, "")];
-  }));
-}
-
-const cloud = { ...envFile(cloudConfigPath), ...process.env };
 const config = JSON.parse(readFileSync(runtimeConfigPath, "utf8"));
 function keychainSecret(account) {
-  const service = cloud.VIDEO_GATEWAY_KEYCHAIN_SERVICE;
-  if (!service) return "";
-  const result = spawnSync("/usr/bin/security", ["find-generic-password", "-s", service, "-a", account, "-w"], { encoding: "utf8" });
+  const result = spawnSync("/usr/bin/security", ["find-generic-password", "-s", gatewayKeychainService, "-a", account, "-w"], { encoding: "utf8" });
   return result.status === 0 ? result.stdout.trim() : "";
 }
 const passwordResult = spawnSync("/usr/bin/security", ["find-generic-password", "-s", config.keychain_service, "-a", config.username, "-w"], { encoding: "utf8" });
 if (passwordResult.status !== 0 || !passwordResult.stdout.trim()) throw new Error("DVR credential is not available in macOS Keychain");
 const password = passwordResult.stdout.trim();
-const gatewaySecret = cloud.VIDEO_GATEWAY_SIGNING_SECRET || keychainSecret("gateway_signing_secret");
-const cloudSecret = cloud.VIDEO_GATEWAY_CLOUD_DISCOVERY_SECRET || keychainSecret("cloud_discovery_secret");
-const gatewayId = cloud.VIDEO_GATEWAY_CLOUD_GATEWAY_ID;
-const observerSiteId = cloud.VIDEO_GATEWAY_CLOUD_OBSERVER_SITE_ID;
-const productionBaseUrl = cloud.VIDEO_GATEWAY_CLOUD_BASE_URL || "https://ganbatuach.com";
+const gatewaySecret = keychainSecret("gateway_signing_secret");
+const cloudSecret = keychainSecret("cloud_discovery_secret");
+const gatewayId = keychainSecret("cloud_gateway_id");
+const observerSiteId = keychainSecret("cloud_observer_site_id");
+const productionBaseUrl = keychainSecret("cloud_base_url") || "https://ganbatuach.com";
 if (!gatewaySecret || !cloudSecret || !gatewayId || !observerSiteId) throw new Error("Persistent gateway cloud configuration is incomplete");
 
 function sign(timestamp, nonce, body) {

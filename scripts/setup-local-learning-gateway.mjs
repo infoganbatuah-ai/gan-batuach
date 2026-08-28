@@ -1,5 +1,4 @@
 import crypto from "node:crypto";
-import { chmodSync, writeFileSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 
 const observerSiteId = process.argv[2];
@@ -9,7 +8,7 @@ if (!observerSiteId) throw new Error("observer site id is required");
 const secret = crypto.randomBytes(48).toString("base64url");
 const gatewaySecret = crypto.randomBytes(48).toString("base64url");
 const allowlist = `${gatewayId}:${observerSiteId}`;
-const keychainService = `gan-batuach.video-gateway.${gatewayId}`;
+const keychainService = "com.ganbatuach.video-gateway.runtime";
 
 function vercel(args, input) {
   const result = spawnSync("npx", ["--yes", "vercel@latest", ...args], {
@@ -34,13 +33,7 @@ vercel(["env", "add", "VIDEO_GATEWAY_CLOUD_ALLOWED_GATEWAYS", "production", "--s
 vercel(["env", "add", "VIDEO_GATEWAY_SIGNING_SECRET", "production", "--sensitive"], `${gatewaySecret}\n`);
 storeKeychainSecret("cloud_discovery_secret", secret);
 storeKeychainSecret("gateway_signing_secret", gatewaySecret);
-
-writeFileSync(".env.video-gateway.local", [
-  "VIDEO_GATEWAY_CLOUD_BASE_URL=https://gan-batuach.vercel.app",
-  `VIDEO_GATEWAY_CLOUD_GATEWAY_ID=${gatewayId}`,
-  `VIDEO_GATEWAY_CLOUD_OBSERVER_SITE_ID=${observerSiteId}`,
-  `VIDEO_GATEWAY_KEYCHAIN_SERVICE=${keychainService}`,
-  ""
-].join("\n"), { mode: 0o600 });
-chmodSync(".env.video-gateway.local", 0o600);
-console.log("Local Gateway pairing configuration created. Secrets were stored in macOS Keychain and were not printed or written to disk.");
+storeKeychainSecret("cloud_gateway_id", gatewayId);
+storeKeychainSecret("cloud_observer_site_id", observerSiteId);
+storeKeychainSecret("cloud_base_url", "https://ganbatuach.com");
+console.log("Local Gateway pairing configuration was stored in macOS Keychain only.");
