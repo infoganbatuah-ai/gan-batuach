@@ -531,6 +531,22 @@
 }
 .do-home-dashboard-lower > * { direction: rtl; }
 .do-home-events-panel { grid-column: 1; }
+.do-home-address { display: flex; align-items: center; gap: 8px; margin: 0 18px 18px; padding: 10px 11px; color: var(--do-ink); background: #f4f8fb; border: 1px solid #dce7ee; border-radius: 7px; }
+.do-home-address > svg { width: 18px; color: var(--do-teal-dark); }
+.do-home-address span { min-width: 0; display: grid; gap: 2px; }
+.do-home-address strong { font-size: 11px; }
+.do-home-address small { overflow: hidden; color: var(--do-muted); font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+.do-home-event-cards { display: grid; gap: 8px; }
+.do-home-event-card { min-width: 0; display: grid; grid-template-columns: 104px minmax(0, 1fr); gap: 9px; padding: 8px; color: var(--do-ink); background: #fff; border: 1px solid var(--do-line); border-radius: 7px; text-decoration: none; }
+.do-home-event-card > img { width: 104px; height: 74px; object-fit: cover; background: var(--do-navy); border-radius: 5px; }
+.do-home-event-card > span { min-width: 0; display: grid; align-content: center; gap: 3px; }
+.do-home-event-card b { justify-self: start; font-size: 9px; }
+.do-home-event-card strong,
+.do-home-event-card p,
+.do-home-event-card small { overflow: hidden; margin: 0; text-overflow: ellipsis; white-space: nowrap; }
+.do-home-event-card strong { font-size: 12px; }
+.do-home-event-card p { color: var(--do-muted); font-size: 10px; }
+.do-home-event-card small { color: var(--do-muted); font-size: 9px; }
 .do-home-status-panel { grid-column: 2; }
 
 .do-business-dashboard-core {

@@ -11,6 +11,7 @@ import {
   CheckCircle2,
   LayoutGrid,
   List,
+  MapPin,
   Moon,
   Plus,
   Radar,
@@ -22,9 +23,13 @@ import { ObserverCameraPresence } from "@/components/digital-observer/observer-c
 import { ObserverLivePlayer } from "@/components/digital-observer/observer-live-player";
 import { requireDigitalObserverUser } from "@/lib/domain/digital-observer/access";
 import { digitalObserverCameraHasLiveGateway } from "@/lib/domain/digital-observer/camera-live-status";
+import { observerEventNarrative } from "@/lib/domain/digital-observer/event-narrative";
 import {
   formatObserverDate,
   loadObserverRuntime,
+  observerCameraForSignal,
+  observerClipForSignal,
+  observerClipHasRequiredMedia,
   observerEventLabel,
   observerModeForSite,
   observerStatusLabel
@@ -78,6 +83,13 @@ function chartPoints(values: number[]) {
   return values.map((value, index) => `${Math.round((index / Math.max(1, values.length - 1)) * width)},${height - Math.round((value / 100) * height)}`).join(" ");
 }
 
+function siteAddressLabel(site: Record<string, any> | null) {
+  if (!site) return "כתובת טרם הוגדרה";
+  const base = site.formatted_address || site.address || [site.street, site.building_number, site.city].filter(Boolean).join(" ");
+  const level = site.floor_kind === "ground" ? "קומת קרקע" : Number.isInteger(site.floor_number) ? `קומה ${site.floor_number}` : "";
+  return [base, site.apartment_number ? `דירה ${site.apartment_number}` : "", level].filter(Boolean).join(" · ") || "כתובת טרם הושלמה";
+}
+
 export default async function DigitalObserverDashboardPage({ searchParams }: PageProps) {
   const params = await searchParams;
   const { profile } = await requireDigitalObserverUser("/digital-observer/login?next=/digital-observer/dashboard");
@@ -87,6 +99,7 @@ export default async function DigitalObserverDashboardPage({ searchParams }: Pag
   const siteCameras = selectedSite ? runtime.cameras.filter((camera) => camera.observer_site_id === selectedSite.id) : [];
   const siteSignals = selectedSite ? runtime.signals.filter((signal) => signal.observer_site_id === selectedSite.id) : [];
   const openSignals = siteSignals.filter((signal) => ["needs_review", "reviewing", "escalated"].includes(String(signal.review_status)));
+  const reviewableOpenSignals = openSignals.filter((signal) => observerClipHasRequiredMedia(observerClipForSignal(signal, runtime.clips)) && Boolean(observerCameraForSignal(signal, siteCameras)));
   const urgentSignals = openSignals.filter((signal) => ["critical", "urgent", "high"].includes(String(signal.severity)));
   const liveCameras = siteCameras.filter((camera) => camera.source_mode === "live" && ["connected", "online", "active"].includes(String(camera.status))).length;
   const readyCameras = siteCameras.filter((camera) => ["connected", "healthy", "online", "active", "ready_to_test", "testing"].includes(String(camera.status)) || camera.health_status === "healthy").length;
@@ -146,12 +159,18 @@ export default async function DigitalObserverDashboardPage({ searchParams }: Pag
               ) : (
                 <Link className="do-camera-add-empty" href={`/digital-observer/cameras/add?site=${selectedSite.id}`}><Plus /><strong>הוספת מצלמה ראשונה</strong><span>החיבור נשמר באופן מאובטח ואינו מופעל כחי לפני Gateway.</span></Link>
               )}
+              <div className="do-home-address" aria-label="כתובת האתר"><MapPin /><span><strong>כתובת האתר</strong><small>{siteAddressLabel(selectedSite)}</small></span></div>
             </section>
 
             <section className="do-home-dashboard-lower">
               <article className="do-panel do-home-events-panel">
-                <div className="do-section-head"><div><h2>אירועים אחרונים</h2><p>כל זיהוי הוא המלצה לבדיקה, לא עובדה מוחלטת.</p></div><Link className="do-link" href="/digital-observer/alerts">הצג הכל</Link></div>
-                {siteSignals.length ? <div className="do-row-list do-home-event-list">{siteSignals.slice(0, 4).map((signal) => <Link className="do-row" href={`/digital-observer/alerts?event=${signal.id}`} key={signal.id}><Radar /><span className="do-row-main"><strong>{observerEventLabel(signal.metadata?.event_type ?? signal.signal_type)}</strong><small>{signal.recommended_action ?? "בדיקה אנושית מומלצת"}</small></span><span className="do-row-meta"><b className={badgeTone(signal.review_status)}>{observerStatusLabel(signal.review_status)}</b><time>{formatObserverDate(signal.created_at, { year: undefined, month: undefined, day: undefined })}</time></span></Link>)}</div> : <div className="do-empty compact"><CheckCircle2 /><strong>אין אירועים חדשים</strong><span>אירועים יופיעו לאחר חיבור מקור והפעלת כלל ניטור.</span></div>}
+                <div className="do-section-head"><div><h2>אירועים ממתינים לבדיקה</h2><p>כל כרטיס כולל מקור מצלמה, תמונה וקטע וידאו מאומתים.</p></div><Link className="do-link" href="/digital-observer/alerts">הצג הכל</Link></div>
+                {reviewableOpenSignals.length ? <div className="do-home-event-cards">{reviewableOpenSignals.slice(0, 4).map((signal) => {
+                  const clip = observerClipForSignal(signal, runtime.clips);
+                  const camera = observerCameraForSignal(signal, siteCameras);
+                  const narrative = observerEventNarrative(signal);
+                  return <Link className="do-home-event-card" href={`/digital-observer/alerts?event=${signal.id}`} key={signal.id}><img src={`/api/digital-observer/event-clips/${clip?.id}/media?kind=thumbnail`} alt={`תמונה מאירוע: ${narrative.label}`} /><span><b className={badgeTone(signal.severity)}>{observerStatusLabel(signal.severity)}</b><strong>{narrative.label}</strong><p>{narrative.summary}</p><small>{camera?.display_name || "מצלמה"} · {formatObserverDate(signal.created_at)}</small></span></Link>;
+                })}</div> : <div className="do-empty compact"><CheckCircle2 /><strong>אין אירועים תקינים שממתינים לבדיקה</strong><span>אירוע יוצג כאן רק לאחר שנקלטו מקור מצלמה, תמונה וקטע וידאו.</span></div>}
               </article>
               <article className="do-panel do-home-status-panel">
                 <div className="do-section-head"><div><h2>מצב הבית</h2><p>סיכום שנגזר מהנתונים המחוברים.</p></div></div>

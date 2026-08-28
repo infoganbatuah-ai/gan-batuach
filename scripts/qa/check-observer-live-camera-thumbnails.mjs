@@ -28,6 +28,10 @@ assert.match(cameraRoute, /ai_context_source/, "verified camera names must feed 
 assert.match(camerasPage, /ObserverCameraInlineRename/, "every camera tile must expose an inline rename control");
 assert.match(actionForms, /do-camera-rename-trigger/, "inline camera rename must use an explicit edit icon control");
 assert.match(actionForms, /action: "rename"/, "inline camera rename must use the authenticated camera rename action");
+assert.match(dashboardPage, /reviewableOpenSignals/, "home must only list events with complete media evidence for review");
+assert.match(dashboardPage, /do-home-event-cards/, "home must expose event review cards");
+assert.match(dashboardPage, /event-clips.*kind=thumbnail/, "home event cards must load the authenticated event thumbnail");
+assert.match(dashboardPage, /siteAddressLabel/, "home must display the configured site address context");
 assert.match(conversationRoute, /camera_source_id/, "camera conversation must stay scoped to the selected source");
 assert.match(conversationRoute, /shadow_active/, "instructions for connected sources must not be left in generic readiness");
 assert.doesNotMatch(camerasPage + dashboardPage + livePlayer, /rtsp:\/\/|password|credential/i, "browser camera thumbnail code must not expose raw stream credentials");
