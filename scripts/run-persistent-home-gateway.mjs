@@ -17,10 +17,32 @@ if (passwordResult.status !== 0 || !passwordResult.stdout.trim()) throw new Erro
 const password = passwordResult.stdout.trim();
 const gatewaySecret = keychainSecret("gateway_signing_secret");
 const cloudSecret = keychainSecret("cloud_discovery_secret");
-const gatewayId = keychainSecret("cloud_gateway_id");
-const observerSiteId = keychainSecret("cloud_observer_site_id");
-const productionBaseUrl = keychainSecret("cloud_base_url") || "https://ganbatuach.com";
-if (!gatewaySecret || !cloudSecret || !gatewayId || !observerSiteId) throw new Error("Persistent gateway cloud configuration is incomplete");
+const deviceGatewayId = keychainSecret("device_gateway_id");
+const deviceObserverSiteId = keychainSecret("device_observer_site_id");
+let deviceRefreshToken = keychainSecret("device_refresh_token");
+const gatewayId = deviceGatewayId || keychainSecret("cloud_gateway_id");
+const observerSiteId = deviceObserverSiteId || keychainSecret("cloud_observer_site_id");
+const productionBaseUrl = keychainSecret("device_cloud_base_url") || keychainSecret("cloud_base_url") || "https://ganbatuach.com";
+if (!gatewaySecret || !gatewayId || !observerSiteId || (!deviceRefreshToken && !cloudSecret)) throw new Error("Persistent gateway cloud configuration is incomplete");
+
+function storeKeychainSecret(account, value) {
+  const result = spawnSync("/usr/bin/security", ["add-generic-password", "-U", "-s", gatewayKeychainService, "-a", account, "-w", value], { encoding: "utf8" });
+  if (result.status !== 0) throw new Error("Unable to rotate Gateway Keychain material");
+}
+
+async function refreshDeviceAccess() {
+  if (!deviceRefreshToken || !deviceGatewayId || !deviceObserverSiteId) return null;
+  const response = await fetch(`${productionBaseUrl.replace(/\/$/, "")}/api/digital-observer/gateway-enrollment`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ action: "refresh", gateway_id: deviceGatewayId, refresh_token: deviceRefreshToken })
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok || !payload.data?.access_token || !payload.data?.refresh_token) throw new Error("Gateway device identity refresh failed");
+  deviceRefreshToken = String(payload.data.refresh_token);
+  storeKeychainSecret("device_refresh_token", deviceRefreshToken);
+  return String(payload.data.access_token);
+}
 
 function sign(timestamp, nonce, body) {
   return `sha256=${crypto.createHmac("sha256", cloudSecret).update(`${timestamp}.${nonce}.${body}`).digest("hex")}`;
@@ -32,11 +54,13 @@ function signEventMedia(timestamp, nonce, metadataText, clipBytes, thumbnailByte
   return `sha256=${crypto.createHmac("sha256", cloudSecret).update(`${timestamp}.${nonce}.${metadataText}.${clipHash}.${thumbnailHash}`).digest("hex")}`;
 }
 
-async function signedPost(path, payload) {
+async function signedPost(path, payload, options = {}) {
   const body = JSON.stringify(payload);
+  const deviceAccessToken = options.deviceAccess ? await refreshDeviceAccess() : null;
   const timestamp = new Date().toISOString();
   const nonce = crypto.randomUUID();
-  const response = await fetch(`${productionBaseUrl.replace(/\/$/, "")}${path}`, { method: "POST", headers: { "content-type": "application/json", "x-video-gateway-id": gatewayId, "x-video-gateway-timestamp": timestamp, "x-video-gateway-nonce": nonce, "x-video-gateway-signature": sign(timestamp, nonce, body) }, body });
+  const headers = { "content-type": "application/json", "x-video-gateway-id": gatewayId, "x-video-gateway-timestamp": timestamp, "x-video-gateway-nonce": nonce, ...(deviceAccessToken ? { "x-video-gateway-device-token": deviceAccessToken } : { "x-video-gateway-signature": sign(timestamp, nonce, body) }) };
+  const response = await fetch(`${productionBaseUrl.replace(/\/$/, "")}${path}`, { method: "POST", headers, body });
   if (!response.ok) throw new Error(`Cloud request failed (${response.status})`);
   return response.json();
 }
@@ -58,7 +82,7 @@ async function discover() {
   const result = await response.json();
   if (!response.ok) throw new Error("DVR discovery failed");
   channels = (result.channels || []).map((channel, index) => Object.fromEntries(Object.entries({ channel: Number(channel.channel || index + 1), name: channel.name, area: channel.area, stream_id: channel.stream_id, gateway_stream_id: channel.gateway_stream_id || channel.stream_id, status: channel.status, health_status: channel.health_status, width: channel.width ?? null, height: channel.height ?? null, candidates_tried: channel.candidates_tried, template: channel.template, reason: channel.reason }).filter(([, value]) => value !== undefined && value !== null)));
-  const mapped = await signedPost("/api/video-gateway/cloud-discovery", { gateway_id: gatewayId, observer_site_id: observerSiteId, connection_type: "dvr", vendor: config.vendor, discovery_id: crypto.randomUUID(), discovered_at: new Date().toISOString(), channel_count: channels.length, connected_channel_count: channels.filter((channel) => channel.status === "connected").length, failed_channel_count: channels.filter((channel) => channel.status !== "connected").length, latency_ms: Number(result.latency_ms || 0), read_only: true, controls_supported: false, no_secrets_returned: true, channels, metadata: { source: "persistent_home_gateway", ai_shadow_only: true, read_only: true, edge_capability_contract: health.edge_capability_contract ?? null } });
+  const mapped = await signedPost("/api/video-gateway/cloud-discovery", { gateway_id: gatewayId, observer_site_id: observerSiteId, connection_type: "dvr", vendor: config.vendor, discovery_id: crypto.randomUUID(), discovered_at: new Date().toISOString(), channel_count: channels.length, connected_channel_count: channels.filter((channel) => channel.status === "connected").length, failed_channel_count: channels.filter((channel) => channel.status !== "connected").length, latency_ms: Number(result.latency_ms || 0), read_only: true, controls_supported: false, no_secrets_returned: true, channels, metadata: { source: "persistent_home_gateway", ai_shadow_only: true, read_only: true, edge_capability_contract: health.edge_capability_contract ?? null } }, { deviceAccess: true });
   const mappedPayload = mapped?.data && typeof mapped.data === "object" ? mapped.data : mapped;
   const mappedChannels = Array.isArray(mappedPayload?.channels) ? mappedPayload.channels : [];
   channels = channels.map((channel) => {
@@ -138,11 +162,13 @@ async function submitReadinessEvidence() {
 
 await waitForGateway();
 await discover();
-await learn();
-void submitReadinessEvidence().then((result) => {
-  if (!result.submitted) console.error(`event media skipped: ${result.reason}`);
-}).catch((error) => console.error(error.message));
-setInterval(() => void learn().catch((error) => console.error(error.message)), 5 * 60 * 1000).unref();
+if (cloudSecret) {
+  await learn();
+  void submitReadinessEvidence().then((result) => {
+    if (!result.submitted) console.error(`event media skipped: ${result.reason}`);
+  }).catch((error) => console.error(error.message));
+  setInterval(() => void learn().catch((error) => console.error(error.message)), 5 * 60 * 1000).unref();
+}
 setInterval(() => void discover().catch((error) => console.error(error.message)), 60 * 60 * 1000).unref();
 
 function shutdown() { child.kill("SIGTERM"); process.exit(0); }
