@@ -20,6 +20,7 @@ for (const path of requiredFiles) {
 
 mkdirSync(join(runtimeRoot, "scripts"), { recursive: true, mode: 0o700 });
 mkdirSync(join(runtimeRoot, "services", "video-gateway"), { recursive: true, mode: 0o700 });
+mkdirSync(join(runtimeRoot, "node_modules"), { recursive: true, mode: 0o700 });
 mkdirSync(dirname(launchAgentPath), { recursive: true });
 mkdirSync(logRoot, { recursive: true });
 
@@ -28,6 +29,11 @@ cpSync(join(projectRoot, "services", "video-gateway"), join(runtimeRoot, "servic
   recursive: true,
   force: true
 });
+for (const packageName of ["onnxruntime-node", "onnxruntime-common"]) {
+  const packagePath = join(projectRoot, "node_modules", packageName);
+  if (!existsSync(packagePath)) throw new Error(`Gateway Edge runtime package is missing: ${packageName}`);
+  cpSync(packagePath, join(runtimeRoot, "node_modules", packageName), { recursive: true, force: true });
+}
 
 const escaped = (value) => value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
 const nodePath = process.execPath;

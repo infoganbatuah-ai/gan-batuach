@@ -1,9 +1,11 @@
 import crypto from "node:crypto";
 import { spawn, spawnSync } from "node:child_process";
 import { readFileSync } from "node:fs";
+import { homedir } from "node:os";
 
 const workdir = process.cwd();
-const runtimeConfigPath = process.env.GAN_BATUACH_GATEWAY_CONFIG || `${process.env.HOME}/.config/gan-batuach/home-gateway.json`;
+const userHome = process.env.HOME || homedir();
+const runtimeConfigPath = process.env.GAN_BATUACH_GATEWAY_CONFIG || `${userHome}/.config/gan-batuach/home-gateway.json`;
 const gatewayUrl = "http://127.0.0.1:18082";
 const gatewayKeychainService = process.env.GAN_BATUACH_GATEWAY_KEYCHAIN_SERVICE || "com.ganbatuach.video-gateway.runtime";
 const discoveryEnabled = process.env.GAN_BATUACH_GATEWAY_DISCOVERY === "1";
@@ -30,7 +32,13 @@ let deviceRefreshToken = keychainSecret("device_refresh_token");
 const gatewayId = deviceGatewayId || keychainSecret("cloud_gateway_id");
 const observerSiteId = deviceObserverSiteId || keychainSecret("cloud_observer_site_id");
 const productionBaseUrl = keychainSecret("device_cloud_base_url") || keychainSecret("cloud_base_url") || "https://ganbatuach.com";
-if (!gatewaySecret || !gatewayId || !observerSiteId || (!deviceRefreshToken && !cloudSecret)) throw new Error("Persistent gateway cloud configuration is incomplete");
+const missingCloudConfiguration = [
+  !gatewaySecret && "gateway_signing_secret",
+  !gatewayId && "device_gateway_id",
+  !observerSiteId && "device_observer_site_id",
+  !deviceRefreshToken && !cloudSecret && "device_refresh_token_or_cloud_discovery_secret"
+].filter(Boolean);
+if (missingCloudConfiguration.length) throw new Error(`Persistent gateway cloud configuration is incomplete: ${missingCloudConfiguration.join(",")}`);
 
 let config = null;
 let password = "";
