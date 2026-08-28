@@ -35,18 +35,27 @@ export function observerModeForSite(site?: ObserverRow | null): ObserverMode {
   return site?.site_type === "home" ? "home" : "business";
 }
 
-/** Prefer an existing source-bearing site when no explicit selection was made. */
-export function selectObserverSite(sites: ObserverRow[], cameras: ObserverRow[], requestedSiteId?: string | null) {
+/**
+ * Never infer ownership across sites. This only chooses a default from sites
+ * already returned through the current user's owner/membership RLS scope.
+ */
+export function selectObserverSite(
+  sites: ObserverRow[],
+  cameras: ObserverRow[],
+  requestedSiteId?: string | null
+) {
   const requested = requestedSiteId ? sites.find((site) => site.id === requestedSiteId) : null;
   if (requested) return requested;
-  const sourceCountBySite = new Map<string, number>();
+
+  const cameraCountBySite = new Map<string, number>();
   for (const camera of cameras) {
-    const siteId = typeof camera.observer_site_id === "string" ? camera.observer_site_id : null;
-    if (siteId) sourceCountBySite.set(siteId, (sourceCountBySite.get(siteId) ?? 0) + 1);
+    if (!camera?.observer_site_id) continue;
+    cameraCountBySite.set(camera.observer_site_id, (cameraCountBySite.get(camera.observer_site_id) ?? 0) + 1);
   }
+
   return [...sites].sort((left, right) => {
-    const sourceDifference = (sourceCountBySite.get(right.id) ?? 0) - (sourceCountBySite.get(left.id) ?? 0);
-    if (sourceDifference) return sourceDifference;
+    const countDifference = (cameraCountBySite.get(right.id) ?? 0) - (cameraCountBySite.get(left.id) ?? 0);
+    if (countDifference) return countDifference;
     return String(right.created_at ?? "").localeCompare(String(left.created_at ?? ""));
   })[0] ?? null;
 }

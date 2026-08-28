@@ -32,7 +32,7 @@ export default function DigitalObserverTrustPage() {
         <div className="do-section-head"><div><h2>כללי שימוש ושמירת מידע</h2><p>המסמכים המלאים עדיין דורשים סקירה משפטית חיצונית לפני הפעלה ציבורית.</p></div><span className="do-badge warn">טיוטה לבדיקה משפטית</span></div>
         <div className="do-trust-grid">
           <article><strong>שמירת אירועים</strong><p>מקטעים נשמרים לפי החבילה ועד 48 שעות במוצר זה. עותק שהורד למכשיר נשאר באחריות המשתמש.</p></article>
-          <article><strong>מחיקת חשבון</strong><p>בקשת מחיקה צריכה להסיר הרשאות, מקורות מצלמה, אירועים ומדיה לפי תהליך מבוקר ומתועד.</p></article>
+          <article><strong>מחיקת חשבון</strong><p>בקשת מחיקה, ייצוא או הגבלת עיבוד זמינה מתוך ההגדרות ונבדקת בתהליך מבוקר ומתועד.</p></article>
           <article><strong>התראות</strong><p>Push, Email, SMS, WhatsApp ושיחות מופעלים רק דרך ספק מאושר והסכמה מתאימה. בדמו אין שליחה אמיתית.</p></article>
           <article><strong>חירום</strong><p>התצפיתן הדיגיטלי אינו מוקד חירום. במקרה חירום יש לפנות מיד לגורמי החירום הרלוונטיים.</p></article>
         </div>
