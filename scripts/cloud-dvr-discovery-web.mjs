@@ -164,6 +164,37 @@ function page() {
     const button = document.getElementById("connect");
     const status = document.getElementById("status");
     let claimSessionId = "";
+    async function connectWithBody(body) {
+      const response = await fetch("/connect", {
+        method: "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(body)
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || "החיבור נכשל");
+      status.textContent = "החיבור הושלם. ערוצים שמופו: " + data.channel_count + ", ערוצים מחוברים: " + data.connected_channel_count + ".";
+      return data;
+    }
+    async function showNextStepAfterPairing() {
+      try {
+        const response = await fetch("/dvr-profile/status", { cache: "no-store" });
+        const data = await response.json().catch(() => ({}));
+        if (response.ok && data.configured === true) {
+          existingProfile.hidden = false;
+          form.hidden = true;
+          status.textContent = "המקליט הקיים מוכן. לחיצה על CONNECT / DISCOVER תתחיל discovery בקריאה בלבד.";
+          return;
+        }
+        existingProfile.hidden = true;
+        form.hidden = false;
+        const reason = data.reason === "missing_keychain_password" ? "סיסמת ה-DVR לא נמצאה ב-Keychain." : "לא נמצא פרופיל DVR מקומי מלא.";
+        status.textContent = reason + " הזינו פרטי DVR חד־פעמית במסך המקומי בלבד, ואז לחצו CONNECT.";
+      } catch {
+        existingProfile.hidden = true;
+        form.hidden = false;
+        status.textContent = "ה-Pairing אומת, אך לא ניתן כרגע לבדוק פרופיל מקומי. אפשר להזין פרטי DVR חד־פעמית במסך זה בלבד.";
+      }
+    }
     pairingForm.addEventListener("submit", async (event) => {
       event.preventDefault();
       const pairingInput = document.getElementById("pairing-code");
@@ -529,28 +560,3 @@ function shutdown() {
 
 process.on("SIGINT", shutdown);
 process.on("SIGTERM", shutdown);
-    async function connectWithBody(body) {
-      const response = await fetch("/connect", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify(body)
-      });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data.error || "החיבור נכשל");
-      status.textContent = "החיבור הושלם. ערוצים שמופו: " + data.channel_count + ", ערוצים מחוברים: " + data.connected_channel_count + ".";
-      return data;
-    }
-    async function showNextStepAfterPairing() {
-      const response = await fetch("/dvr-profile/status", { cache: "no-store" });
-      const data = await response.json().catch(() => ({}));
-      if (response.ok && data.configured === true) {
-        existingProfile.hidden = false;
-        form.hidden = true;
-        status.textContent = "המקליט הקיים מוכן. לחיצה על CONNECT / DISCOVER תתחיל discovery בקריאה בלבד.";
-        return;
-      }
-      existingProfile.hidden = true;
-      form.hidden = false;
-      const reason = data.reason === "missing_keychain_password" ? "סיסמת ה-DVR לא נמצאה ב-Keychain." : "לא נמצא פרופיל DVR מקומי מלא.";
-      status.textContent = reason + " הזינו פרטי DVR חד־פעמית במסך המקומי בלבד, ואז לחצו CONNECT.";
-    }

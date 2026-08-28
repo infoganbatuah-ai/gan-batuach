@@ -39,4 +39,32 @@ for (const required of ["קוד pairing קצר־חיים נשאר fallback בל�
 }
 if (cameraWizard.includes('href="http://127.0.0.1:18180"')) throw new Error("Dashboard flow must not depend on direct localhost navigation");
 
+const browserScript = localOnboarding.match(/<script>([\s\S]*?)<\/script>/)?.[1];
+if (!browserScript?.includes("async function showNextStepAfterPairing")) throw new Error("Pairing next-step handler must be available to the local browser");
+if (localOnboarding.lastIndexOf("async function showNextStepAfterPairing") > localOnboarding.indexOf("</script>")) throw new Error("Pairing next-step handler must not be emitted outside the browser script");
+
+const elements = new Map();
+for (const id of ["pairing-form", "pairing-submit", "pairing-status", "existing-profile", "existing-profile-form", "existing-connect", "manual-entry", "dvr-form", "connect", "status", "pairing-code"]) {
+  elements.set(id, {
+    hidden: false,
+    disabled: false,
+    textContent: "",
+    value: id === "pairing-code" ? "pairing.code" : "",
+    listeners: {},
+    addEventListener(type, handler) { this.listeners[type] = handler; },
+    reset() {}
+  });
+}
+const browserDocument = { getElementById: (id) => elements.get(id) };
+const browserFetch = async (url) => {
+  if (url === "/pairing/claim") return { ok: true, json: async () => ({ claim_session_id: "safe-local-session" }) };
+  if (url === "/dvr-profile/status") return { ok: true, json: async () => ({ configured: true }) };
+  throw new Error(`Unexpected local browser request: ${url}`);
+};
+new Function("document", "fetch", "FormData", `${browserScript}\nreturn true;`)(browserDocument, browserFetch, class FormData {});
+await elements.get("pairing-form").listeners.submit({ preventDefault() {} });
+if (!elements.get("pairing-form").hidden || elements.get("existing-profile").hidden || !elements.get("dvr-form").hidden) {
+  throw new Error("Successful local pairing must show the existing-recorder CONNECT step without a browser ReferenceError");
+}
+
 console.log("Gateway pairing and DVR/IP source flow checks passed.");
