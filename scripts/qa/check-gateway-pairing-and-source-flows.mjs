@@ -8,6 +8,7 @@ const cameraWizard = readFileSync(new URL("../../components/digital-observer/obs
 const addCameraPage = readFileSync(new URL("../../app/digital-observer/cameras/add/page.tsx", import.meta.url), "utf8");
 const pairingPanel = readFileSync(new URL("../../components/digital-observer/observer-gateway-pairing.tsx", import.meta.url), "utf8");
 const pairing = readFileSync(new URL("../../lib/domain/video-gateway-pairing.ts", import.meta.url), "utf8");
+const observerStyles = readFileSync(new URL("../../app/styles/digital-observer-product.css", import.meta.url), "utf8");
 
 for (const required of ["gatewayPairingCodeTtlMs", "gatewayDiscoveryTokenTtlMs", "hashGatewayPairingCode", "verifyGatewayDiscoveryToken", "scope: \"cloud_discovery\""]) {
   if (!pairing.includes(required)) throw new Error(`Missing short-lived pairing control: ${required}`);
@@ -46,6 +47,12 @@ for (const required of ["step === 2 && recorderFlow", "<ObserverGatewayPairing o
 if (addCameraPage.includes("ObserverGatewayPairing")) throw new Error("Gateway pairing must be part of the DVR/NVR wizard, not a separate Add cameras screen");
 for (const required of ["פתיחת רכיב החיבור במחשב זה", "gatewayUrl", "פרטי DVR במחשב בלבד"]) {
   if (!pairingPanel.includes(required)) throw new Error(`Gateway pairing must offer a clear local handoff: ${required}`);
+}
+for (const required of ["/api/digital-observer/runtime-status", "מצב המקליט והחיבור המקומי", "חיבור מחדש או החלפת מחשב", "רענון אוטומטי כל דקה"]) {
+  if (!pairingPanel.includes(required)) throw new Error(`Gateway pairing must foreground current connection state: ${required}`);
+}
+for (const required of [".do-gateway-pairing-actions", "grid-template-columns: 1fr", "overflow-wrap: anywhere", "min-height: 48px"]) {
+  if (!observerStyles.includes(required)) throw new Error(`Gateway pairing controls must remain readable on mobile: ${required}`);
 }
 
 const browserScript = localOnboarding.match(/<script>([\s\S]*?)<\/script>/)?.[1];
