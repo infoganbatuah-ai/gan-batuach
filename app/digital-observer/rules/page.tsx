@@ -5,8 +5,10 @@ import { ObserverQuickAction, ObserverRuleForm } from "@/components/digital-obse
 import { ObserverConversationPanel } from "@/components/digital-observer/observer-intelligence-experience";
 import { ObserverAppShell } from "@/components/digital-observer/observer-app-shell";
 import { ObserverCameraMedia } from "@/components/digital-observer/observer-camera-media";
+import { ObserverLivePlayer } from "@/components/digital-observer/observer-live-player";
 import { ObserverRuntimePulse } from "@/components/digital-observer/observer-runtime-pulse";
 import { requireDigitalObserverUser } from "@/lib/domain/digital-observer/access";
+import { digitalObserverCameraHasLiveGateway } from "@/lib/domain/digital-observer/camera-live-status";
 import { cameraReportsLocalEventInsights, digitalObserverEdgeAiPolicy } from "@/lib/domain/digital-observer/edge-ai-policy";
 import { getDigitalObserverServiceReadiness } from "@/lib/domain/digital-observer/service-readiness";
 import { formatObserverDate, loadObserverRuntime, observerEventLabel, observerModeForSite, observerSignalMatchesCamera, observerStatusLabel, selectObserverSite } from "@/lib/domain/digital-observer/runtime";
@@ -205,8 +207,11 @@ export default async function DigitalObserverRulesPage() {
               </section>
 
           <section className="do-section">
-            <div className="do-section-head"><div><h2>המצלמות שהתצפיתן מכיר</h2><p>תמונה מוצגת כהדמיה רק למקור דמו; מקור אמיתי אינו מוצג כ-LIVE בלי stream מאובטח.</p></div><Link className="do-link" href="/digital-observer/cameras">ניהול מצלמות</Link></div>
-            {cameras.length ? <div className="do-camera-grid">{cameras.slice(0, 4).map((camera) => <Link href={`/digital-observer/cameras?camera=${camera.id}`} key={camera.id}><ObserverCameraMedia name={camera.display_name} mode={mode} scene={camera.preview_scene} status={camera.status ?? camera.health_status} sourceMode={camera.source_mode} /></Link>)}</div> : <div className="do-empty"><Camera /><strong>טרם חוברה מצלמה</strong><span>לא תתחיל למידה בלי מקור מצלמה בטוח.</span><Link className="do-button primary" href="/digital-observer/cameras/add">הוספת מצלמה</Link></div>}
+            <div className="do-section-head"><div><h2>המצלמות שהתצפיתן מכיר</h2><p>כל המקורות של האתר מוצגים כאן. LIVE מסומן רק לאחר שהנגן מקבל מדיה.</p></div><Link className="do-link" href="/digital-observer/cameras">ניהול מצלמות</Link></div>
+            {cameras.length ? <div className="do-camera-grid">{cameras.map((camera, index) => {
+              const hasLiveGateway = digitalObserverCameraHasLiveGateway(camera);
+              return <Link href={`/digital-observer/cameras?site=${site.id}&camera=${camera.id}`} key={camera.id}>{hasLiveGateway ? <ObserverLivePlayer compact observerSiteId={site.id} cameraSourceId={camera.id} name={camera.display_name || "מצלמה"} /> : <ObserverCameraMedia name={camera.display_name} mode={mode} scene={camera.preview_scene} status={camera.status ?? camera.health_status} sourceMode={camera.source_mode} />}</Link>;
+            })}</div> : <div className="do-empty"><Camera /><strong>טרם חוברה מצלמה</strong><span>לא תתחיל למידה בלי מקור מצלמה בטוח.</span><Link className="do-button primary" href="/digital-observer/cameras/add">הוספת מצלמות</Link></div>}
           </section>
 
           <section className="do-panel">

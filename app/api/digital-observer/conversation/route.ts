@@ -68,8 +68,10 @@ function buildAnswer(message: string, signals: SignalRow[], cameras: any[], base
   }
 
   if (!relevant.length) {
+    const unavailable = cameras.length - online;
+    const cameraScope = cameras.length === 1 ? `במצלמה הזו` : `ב-${cameras.length} מקורות המצלמה שנבחרו`;
     return {
-      answer: "לא מצאתי במידע השמור אירוע שמתאים לשאלה. איני ממציא פעילות שלא נקלטה. אחרי חיבור Gateway ו-AI Shadow אוכל לענות מתוך אירועי המצלמות בפועל.",
+      answer: `לא נמצא עדיין אירוע מאומת שמתאים לשאלה ${cameraScope}. מצב החיבור הנוכחי: ${online} מחוברים${unavailable ? ` ו-${unavailable} אינם זמינים` : ""}. איני מסיק מה קרה בעבר בלי אירוע או תובנה שנקלטו. אפשר לכתוב לי מה חשוב לעקוב אחריו מעכשיו, ואשמור כלל תצפית למקור המתאים.`,
       signalIds: []
     };
   }
@@ -141,7 +143,9 @@ export async function POST(request: Request) {
         metadata: {
           product: "digital_observer",
           created_from_conversation: true,
-          execution_state: connectedSourceAvailable ? "shadow_active" : "source_readiness",
+          // A watch request can be stored now, but it becomes actively evaluated
+          // only when the gateway reports a tested local inference capability.
+          execution_state: connectedSourceAvailable ? "awaiting_edge_capability" : "source_readiness",
           no_automatic_emergency_call: true,
           no_automatic_accusation: true
         }
@@ -159,12 +163,13 @@ export async function POST(request: Request) {
     return ok({
       answer: instruction
         ? connectedSourceAvailable
-          ? `שמרתי את ההנחיה והיא פעילה במצב Shadow על ${selectedCamera?.display_name || "המקורות המחוברים"}. כל זיהוי יוצג כהערכה עם ראיה ויישאר כפוף לבדיקה אנושית.\n\n${summary.answer}`
+          ? `שמרתי את ההנחיה עבור ${selectedCamera?.display_name || "המקורות המחוברים"}. החיבור קיים, והכלל יתחיל להיבדק רק אחרי שה-Gateway ידווח על יכולת Edge מאומתת; עד אז איני מציג אותו כ-AI פעיל. כל זיהוי יוצג כהערכה עם ראיה ויישאר כפוף לבדיקה אנושית.\n\n${summary.answer}`
           : `שמרתי את ההנחיה. מקור המצלמה עדיין אינו מחובר, ולכן היא תתחיל לפעול אוטומטית לאחר חיבור מאומת.\n\n${summary.answer}`
         : summary.answer,
       signal_ids: summary.signalIds,
       request: requestRecord,
       answer_source: payload.camera_source_id ? "camera_scoped_runtime_data" : "site_scoped_runtime_data",
+      source_label: "אירועים מאומתים וסטטוס חיבור נוכחי",
       live_ai_used: false,
       emergency_action_triggered: false
     });

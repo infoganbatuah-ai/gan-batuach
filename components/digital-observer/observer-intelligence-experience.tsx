@@ -88,7 +88,7 @@ export function ObserverConversationPanel({
         id: crypto.randomUUID(),
         role: "observer",
         text: data.answer,
-        source: data.live_ai_used ? "AI חי" : "המידע השמור באתר"
+        source: data.live_ai_used ? "AI מקומי מאומת" : (data.source_label || "אירועים מאומתים וסטטוס חיבור")
       }]);
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "לא ניתן לקבל תשובה כרגע");
