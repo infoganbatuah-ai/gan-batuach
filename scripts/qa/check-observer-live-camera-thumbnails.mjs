@@ -18,6 +18,9 @@ for (const source of [camerasPage, dashboardPage]) {
 
 assert.match(livePlayer, /compact = false/, "live player must expose a compact thumbnail mode");
 assert.match(livePlayer, /!\s*compact\s*\? <button/, "compact live thumbnails must not render an interactive audio button inside camera links");
+assert.match(livePlayer, /playbackSessions/, "live thumbnails must reuse short-lived playback sessions instead of opening duplicate gateway sessions");
+assert.match(livePlayer, /onWaiting[\s\S]*hasStartedRef/, "normal HLS segment waits must not be presented as disconnects after playback begins");
+assert.match(livePlayer, /lowLatencyMode: false/, "DVR HLS thumbnails must favor stable playback over low-latency reconnect churn");
 assert.match(runtime, /gateway_stream_id,video_gateway_stream_id/, "legacy observer camera loading must select gateway stream ids");
 assert.match(runtime, /gateway_stream_id_present/, "legacy observer cameras must expose safe gateway metadata to the dashboard");
 assert.match(css, /\.do-camera-live-tile \.do-live-player/, "camera tiles must size live player thumbnails");
@@ -26,6 +29,8 @@ assert.match(presence, /observer-robot-v1\.png/, "camera presence must reuse the
 assert.match(cameraRoute, /action: z\.literal\("rename"\)/, "camera names must be editable through the authenticated camera API");
 assert.match(cameraRoute, /ai_context_source/, "verified camera names must feed the observer context");
 assert.match(camerasPage, /ObserverCameraInlineRename/, "every camera tile must expose an inline rename control");
+assert.match(camerasPage, /סביבת המצלמה/, "camera detail must expose the camera space and current context");
+assert.match(camerasPage, /תובנה אחרונה/, "camera detail must expose the latest verified insight");
 assert.match(actionForms, /do-camera-rename-trigger/, "inline camera rename must use an explicit edit icon control");
 assert.match(actionForms, /action: "rename"/, "inline camera rename must use the authenticated camera rename action");
 assert.match(dashboardPage, /reviewableOpenSignals/, "home must only list events with complete media evidence for review");
@@ -34,6 +39,8 @@ assert.match(dashboardPage, /event-clips.*kind=thumbnail/, "home event cards mus
 assert.match(dashboardPage, /siteAddressLabel/, "home must display the configured site address context");
 assert.match(conversationRoute, /camera_source_id/, "camera conversation must stay scoped to the selected source");
 assert.match(conversationRoute, /shadow_active/, "instructions for connected sources must not be left in generic readiness");
+assert.match(css, /do-camera-context-panel/, "camera context panel must have a responsive layout");
+assert.match(css, /font-size: 16px/, "mobile input controls must avoid browser zoom while keeping readable text");
 assert.doesNotMatch(camerasPage + dashboardPage + livePlayer, /rtsp:\/\/|password|credential/i, "browser camera thumbnail code must not expose raw stream credentials");
 
 console.log("Observer live camera thumbnail checks passed.");

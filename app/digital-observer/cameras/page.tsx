@@ -9,6 +9,7 @@ import { ObserverCameraControls } from "@/components/digital-observer/observer-c
 import { ObserverConversationPanel } from "@/components/digital-observer/observer-intelligence-experience";
 import { requireDigitalObserverUser } from "@/lib/domain/digital-observer/access";
 import { digitalObserverCameraHasLiveGateway } from "@/lib/domain/digital-observer/camera-live-status";
+import { observerEventNarrative } from "@/lib/domain/digital-observer/event-narrative";
 import { formatObserverDate, loadObserverRuntime, observerEventLabel, observerModeForSite, observerSignalMatchesCamera, observerStatusLabel } from "@/lib/domain/digital-observer/runtime";
 
 type PageProps = { searchParams?: Promise<{ camera?: string; site?: string; q?: string; status?: string; location?: string }> };
@@ -16,6 +17,19 @@ type PageProps = { searchParams?: Promise<{ camera?: string; site?: string; q?: 
 function sceneFor(index: number, mode: "home" | "business") {
   const scenes = mode === "home" ? ["home-entry", "home-living", "home-nursery", "home-yard"] : ["business-entry", "business-store", "business-warehouse", "business-office", "business-parking", "business-loading"];
   return scenes[index % scenes.length];
+}
+
+function monitoringTargetLabel(value: unknown) {
+  const labels: Record<string, string> = {
+    person: "אנשים",
+    children: "ילדים",
+    animal: "בעלי חיים",
+    known_faces: "אנשים מוכרים",
+    entry_exit: "כניסה ויציאה",
+    after_hours: "תנועה מחוץ לשעות",
+    camera_obstruction: "תקינות וכיסוי מצלמה"
+  };
+  return labels[String(value)] ?? null;
 }
 
 export default async function DigitalObserverCamerasPage({ searchParams }: PageProps) {
@@ -37,6 +51,11 @@ export default async function DigitalObserverCamerasPage({ searchParams }: PageP
   const selected = params?.camera ? cameras.find((item) => item.id === params.camera) ?? null : null;
   const selectedHasLiveGateway = Boolean(site && selected && digitalObserverCameraHasLiveGateway(selected));
   const cameraSignals = selected ? runtime.signals.filter((signal) => observerSignalMatchesCamera(signal, selected.id)).slice(0, 4) : [];
+  const latestCameraSignal = cameraSignals[0] ?? null;
+  const latestCameraNarrative = latestCameraSignal ? observerEventNarrative(latestCameraSignal) : null;
+  const monitoringTargets = selected && Array.isArray(selected.monitoring_targets)
+    ? selected.monitoring_targets.map(monitoringTargetLabel).filter((value): value is string => Boolean(value)).slice(0, 4)
+    : [];
   const cameraRule = selected ? runtime.watchRequests.find((rule) => rule.camera_source_id === selected.id) ?? null : null;
   const recentSiteSignals = site ? runtime.signals.filter((signal) => signal.observer_site_id === site.id).slice(0, 5) : [];
   const connectedCount = cameras.filter((camera) => ["connected", "healthy", "online"].includes(String(camera.status || camera.health_status))).length;
@@ -87,7 +106,8 @@ export default async function DigitalObserverCamerasPage({ searchParams }: PageP
         </article>
         <aside className="do-camera-detail-side"><article className="do-panel do-form-section"><div className="do-section-head"><div><h2>פרטי המצלמה</h2><p>השם והחלל משמשים כהקשר לתצפיתן.</p></div><Settings2 /></div><ObserverCameraNameForm camera={selected} /><div className="do-summary-list"><div><span>סוג חיבור</span><strong>{observerStatusLabel(selected.connector_type)}</strong></div><div><span>מצב</span><strong>{observerStatusLabel(selected.status)}</strong></div><div><span>בריאות</span><strong>{observerStatusLabel(selected.health_status)}</strong></div><div><span>בדיקה אחרונה</span><strong>{formatObserverDate(selected.last_health_check_at)}</strong></div><div><span>מיקום</span><strong>{selected.location_label || "טרם הוגדר"}</strong></div><div><span>וידאו חי</span><strong>{selectedHasLiveGateway ? "מחובר דרך Gateway" : "לא פעיל"}</strong></div></div><div className="do-notice info"><LockKeyhole /><span>כתובת המקור, שם המשתמש, הסיסמה ו-secret reference אינם נשלחים לדפדפן.</span></div><div className="do-button-row"><ObserverQuickAction endpoint="/api/digital-observer/cameras" body={{ action: "test_readiness", id: selected.id }}><ShieldCheck /> בדיקת מוכנות</ObserverQuickAction><ObserverQuickAction endpoint="/api/digital-observer/cameras" body={{ action: "disable", id: selected.id }} confirmText="להשבית את מקור המצלמה?"><CameraOff /> השבתה</ObserverQuickAction></div></article>
         {selected.connector_type === "demo" && selected.source_mode === "demo" ? <article className="do-panel do-form-section"><div className="do-section-head"><div><h2>מקור הדמיה</h2><p>הפעולה מסירה רק מצלמה סינתטית ואת נתוני הדמו המשויכים אליה.</p></div><CameraOff /></div><ObserverQuickAction endpoint="/api/digital-observer/cameras" body={{ action: "remove_demo_bundle", id: selected.id }} confirmText="להסיר את מצלמת ההדמיה ואת נתוני הדמו המשויכים אליה?"><CameraOff /> הסרת דמו</ObserverQuickAction></article> : null}
-        <article className="do-panel do-camera-recent-events"><div className="do-section-head"><div><h2>אירועים אחרונים</h2><p>רק אירועים שנקלטו בפועל במקור זה.</p></div></div>{cameraSignals.length ? <div className="do-row-list">{cameraSignals.map((signal) => <Link className="do-row" href={`/digital-observer/alerts?event=${signal.id}`} key={signal.id}><CircleDot /><span className="do-row-main"><strong>{observerEventLabel(signal.metadata?.event_type ?? signal.signal_type)}</strong><small>{signal.recommended_action || "ממתין לבדיקה"}</small></span><time>{formatObserverDate(signal.created_at, { year: undefined, month: undefined, day: undefined })}</time></Link>)}</div> : <div className="do-empty compact"><ShieldCheck /><strong>אין אירועים להצגה</strong><span>לא מוצגת פעילות מדומה.</span></div>}</article></aside>
+        <article className="do-panel do-camera-recent-events"><div className="do-section-head"><div><h2>אירועים אחרונים</h2><p>רק אירועים שנקלטו בפועל במקור זה.</p></div></div>{cameraSignals.length ? <div className="do-row-list">{cameraSignals.map((signal) => <Link className="do-row" href={`/digital-observer/alerts?event=${signal.id}`} key={signal.id}><CircleDot /><span className="do-row-main"><strong>{observerEventLabel(signal.metadata?.event_type ?? signal.signal_type)}</strong><small>{signal.recommended_action || "ממתין לבדיקה"}</small></span><time>{formatObserverDate(signal.created_at, { year: undefined, month: undefined, day: undefined })}</time></Link>)}</div> : <div className="do-empty compact"><ShieldCheck /><strong>אין אירועים להצגה</strong><span>לא מוצגת פעילות מדומה.</span></div>}</article>
+        <article className="do-panel do-camera-context-panel"><div className="do-section-head"><div><h2>סביבת המצלמה</h2><p>הקשר שקובע אילו תובנות יוצגו עבור המקור הזה.</p></div><CircleDot /></div><dl><div><dt>תיאור החלל</dt><dd>{selected.location_label || "טרם הוגדר תיאור חלל"}</dd></div><div><dt>דגשים</dt><dd>{monitoringTargets.length ? monitoringTargets.join(" · ") : "טרם נבחרו דגשי ניטור"}</dd></div><div><dt>אירוע אחרון</dt><dd>{latestCameraNarrative ? <Link href={`/digital-observer/alerts?event=${latestCameraSignal?.id}`}>{latestCameraNarrative.label} · {formatObserverDate(latestCameraSignal?.created_at)}</Link> : "לא נקלט אירוע מאומת"}</dd></div><div><dt>תובנה אחרונה</dt><dd>{latestCameraNarrative ? latestCameraNarrative.summary : selectedHasLiveGateway ? "השידור החי פעיל; תובנות יופיעו רק לאחר אירוע מאומת." : "התצפיתן כבוי עד שהשידור החי יחזור."}</dd></div></dl></article></aside>
         </div>
         {site ? <ObserverConversationPanel siteId={site.id} cameraSourceId={selected.id} cameraName={selected.display_name || "המצלמה"} ruleSummary={cameraRule ? { title: cameraRule.title, description: cameraRule.description, active: Boolean(cameraRule.active) } : null} initialPrompt={cameraSignals.length ? `מצאתי ${cameraSignals.length} אירועים אחרונים מהמצלמה הזאת. אפשר לשאול מה קרה או לבקש ממני לשים לב למשהו מעכשיו.` : selectedHasLiveGateway ? "המצלמה מחוברת. אפשר לשאול מה קרה בה או להגדיר דבר שחשוב שאבדוק." : "המצלמה אינה זמינה כרגע. אפשר לעיין במידע שכבר נשמר או לבקש שאבדוק דבר מסוים כשהחיבור יחזור."} /> : null}
       </section> : null}

@@ -952,6 +952,13 @@
 .do-camera-readiness-strip small { font-size: 9px; }
 .do-camera-recent-events .do-row { min-height: 54px; padding: 8px 10px; }
 .do-camera-recent-events time { color: var(--do-muted); font-size: 10px; }
+.do-camera-context-panel { display: grid; gap: 10px; }
+.do-camera-context-panel > dl { display: grid; margin: 0; border-block: 1px solid var(--do-line); }
+.do-camera-context-panel > dl > div { display: grid; gap: 3px; padding: 9px 0; border-bottom: 1px solid var(--do-line); }
+.do-camera-context-panel > dl > div:last-child { border-bottom: 0; }
+.do-camera-context-panel dt { color: var(--do-muted); font-size: 10px; font-weight: 750; }
+.do-camera-context-panel dd { margin: 0; color: var(--do-ink); font-size: 12px; line-height: 1.5; }
+.do-camera-context-panel dd a { color: var(--do-teal-dark); font-weight: 800; text-decoration: none; }
 .do-camera-name-form { display: grid; gap: 8px; padding-bottom: 12px; border-bottom: 1px solid var(--do-line); }
 .do-camera-name-form .do-form-grid { grid-template-columns: 1fr; gap: 7px; }
 .do-camera-name-form .do-button { justify-self: start; min-height: 36px; }
@@ -6158,6 +6165,31 @@
 .do-live-player-audio svg { width: 18px; height: 18px; }
 .do-live-player.compact .do-live-player-status { top: 8px; inset-inline-start: 8px; padding: 5px 8px; font-size: 10px; }
 .do-live-player.compact .do-live-player-name { inset-inline-start: 8px; bottom: 8px; max-width: calc(100% - 16px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; font-size: 11px; }
+
+/* Keep the camera workspace legible at every portrait and desktop width.
+   Dense short-screen rules may reduce spacing, but never remove the context needed to operate a camera. */
+@media (min-width: 821px) and (max-width: 1180px) {
+  .do-camera-workspace-home .do-camera-browser-head { display: flex; }
+  .do-camera-workspace-home .do-camera-tile-meta { display: grid; }
+  .do-camera-workspace-home + .do-camera-connection-note,
+  .do-camera-workspace-home .do-camera-connection-note { display: grid; }
+}
+
+@media (max-width: 820px) {
+  .do-home-address { margin: 0 12px 12px; }
+  .do-home-address small { overflow: visible; text-overflow: clip; white-space: normal; line-height: 1.4; }
+  .do-home-event-card { grid-template-columns: 92px minmax(0, 1fr); }
+  .do-home-event-card > img { width: 92px; height: 68px; }
+  .do-camera-context-panel { order: 4; }
+  .do-camera-inline-rename input,
+  .do-camera-filter-strip input,
+  .do-camera-filter-strip select,
+  .do-conversation-composer input,
+  .do-field input,
+  .do-field select,
+  .do-field textarea { font-size: 16px; }
+}
+
 @keyframes do-live-spin { to { transform: rotate(360deg); } }
 
 @media (prefers-reduced-motion: reduce) {
