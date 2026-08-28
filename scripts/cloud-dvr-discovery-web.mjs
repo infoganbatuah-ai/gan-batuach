@@ -3,6 +3,7 @@ import { spawn } from "node:child_process";
 import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import http from "node:http";
+import { hostname } from "node:os";
 
 const gatewayPort = Number(process.env.LOCAL_DVR_GATEWAY_PORT || 18080);
 const webPort = Number(process.env.LOCAL_DVR_ONBOARDING_PORT || 18180);
@@ -15,6 +16,7 @@ let lastResult = null;
 let gatewayProcess = null;
 let learningTimer = null;
 const pendingClaims = new Map();
+let deviceEnrollment = null;
 
 const gatewaySecret = process.env.VIDEO_GATEWAY_SIGNING_SECRET || readRuntimeKeychainSecret("gateway_signing_secret") || crypto.randomBytes(48).toString("base64url");
 
@@ -22,6 +24,63 @@ function readRuntimeKeychainSecret(account) {
   const service = process.env.GAN_BATUACH_GATEWAY_KEYCHAIN_SERVICE || "com.ganbatuach.video-gateway.runtime";
   const result = spawnSync("/usr/bin/security", ["find-generic-password", "-s", service, "-a", account, "-w"], { encoding: "utf8" });
   return result.status === 0 ? result.stdout.trim() : "";
+}
+
+function writeRuntimeKeychainSecret(account, value) {
+  const service = process.env.GAN_BATUACH_GATEWAY_KEYCHAIN_SERVICE || "com.ganbatuach.video-gateway.runtime";
+  const result = spawnSync("/usr/bin/security", ["add-generic-password", "-U", "-s", service, "-a", account, "-w", value], { encoding: "utf8" });
+  if (result.status !== 0) throw new Error("לא ניתן לשמור את זהות ה-Gateway ב-Keychain המקומי.");
+}
+
+function safeDeviceName() {
+  return `Gateway on ${hostname().replace(/[^a-zA-Z0-9 ._-]/g, "").slice(0, 56) || "Mac"}`;
+}
+
+function deviceEnrollmentStatus() {
+  return {
+    linked: Boolean(readRuntimeKeychainSecret("device_gateway_id") && readRuntimeKeychainSecret("device_observer_site_id") && readRuntimeKeychainSecret("device_refresh_token")),
+    pending: Boolean(deviceEnrollment),
+    expires_at: deviceEnrollment?.expiresAt ?? null,
+    keychain_only: true,
+    values_returned: false
+  };
+}
+
+async function beginDeviceEnrollment() {
+  if (deviceEnrollment && Date.parse(deviceEnrollment.expiresAt) > Date.now()) return { status: "pending", verification_url: deviceEnrollment.verificationUrl, expires_at: deviceEnrollment.expiresAt };
+  const response = await fetch(`${productionBaseUrl.replace(/\/$/, "")}/api/digital-observer/gateway-enrollment`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ action: "create_request", device_name: safeDeviceName(), device_platform: `macOS / Node ${process.version}` })
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok || !payload.data?.enrollment_request_id || !payload.data?.poll_token) throw new Error(payload.error || "לא ניתן להתחיל קישור מחשב.");
+  deviceEnrollment = {
+    requestId: String(payload.data.enrollment_request_id),
+    pollToken: String(payload.data.poll_token),
+    expiresAt: String(payload.data.expires_at),
+    verificationUrl: `${productionBaseUrl.replace(/\/$/, "")}${String(payload.data.verification_path || "")}`
+  };
+  return { status: "pending", verification_url: deviceEnrollment.verificationUrl, expires_at: deviceEnrollment.expiresAt };
+}
+
+async function pollDeviceEnrollment() {
+  if (!deviceEnrollment) return { status: "not_started" };
+  if (Date.parse(deviceEnrollment.expiresAt) <= Date.now()) { deviceEnrollment = null; return { status: "expired" }; }
+  const response = await fetch(`${productionBaseUrl.replace(/\/$/, "")}/api/digital-observer/gateway-enrollment`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ action: "poll", enrollment_request_id: deviceEnrollment.requestId, poll_token: deviceEnrollment.pollToken })
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(payload.error || "לא ניתן לבדוק את אישור המחשב.");
+  if (payload.data?.status !== "linked") return { status: payload.data?.status || "pending" };
+  writeRuntimeKeychainSecret("device_gateway_id", String(payload.data.gateway_id));
+  writeRuntimeKeychainSecret("device_observer_site_id", String(payload.data.observer_site_id));
+  writeRuntimeKeychainSecret("device_refresh_token", String(payload.data.refresh_token));
+  writeRuntimeKeychainSecret("device_cloud_base_url", productionBaseUrl);
+  deviceEnrollment = null;
+  return { status: "linked", keychain_only: true, values_returned: false };
 }
 
 function purgeExpiredClaims() {
@@ -104,7 +163,16 @@ function page() {
   <main>
     <h1>חיבור מצלמות הבית ל-DVR</h1>
     <p>הפרטים נשארים בתהליך המקומי על המקבוק ומשמשים רק לבדיקת discovery בקריאה בלבד. לא מתבצעת שליטה במצלמות, PTZ, סירנה, אור או שינוי הגדרות.</p>
-    <div class="notice">קודם מאשרים Pairing מול הדשבורד. לחיצה על CONNECT בשלב הבא היא האישור הסופי להתחיל בדיקה לקריאה בלבד. עד הלחיצה לא נשלחת בקשה ל-DVR.</div>
+    <div class="notice">אשרו את המחשב פעם אחת בדשבורד. לחיצה על CONNECT בשלב הבא היא האישור הסופי להתחיל בדיקה לקריאה בלבד. עד הלחיצה לא נשלחת בקשה ל-DVR.</div>
+    <section id="enrollment-panel" class="notice">
+      <strong>חיבור אוטומטי של המחשב</strong>
+      <p>לחצו כדי לפתוח אישור חד־פעמי בדשבורד. אין קוד להעתקה ואין פרטי DVR בדפדפן.</p>
+      <button id="enrollment-start" class="primary" type="button">פתיחת אישור חיבור בדשבורד</button>
+      <a id="enrollment-link" hidden target="_blank" rel="noreferrer">פתיחת האישור בדשבורד</a>
+      <div id="enrollment-status" role="status"></div>
+    </section>
+    <details id="manual-pairing" class="notice warn">
+      <summary>קישור ידני במקרה של מחשב אחר או תקלה</summary>
     <form id="pairing-form" autocomplete="off" novalidate>
       <label>קוד pairing מהדשבורד
         <input id="pairing-code" name="pairingCode" required type="password" autocomplete="one-time-code" autocapitalize="none" spellcheck="false" />
@@ -113,6 +181,7 @@ function page() {
       <button id="pairing-submit" class="primary" type="submit">אישור pairing והמשך</button>
       <div id="pairing-status" role="status"></div>
     </form>
+    </details>
     <section id="existing-profile" hidden>
       <div class="notice">המקליט הקיים מוכן. פרטי ה-DVR נשארים במקבוק: פרופיל מקומי מאובטח וסיסמה ב-Keychain. הדשבורד לא מקבל סיסמה או כתובת stream.</div>
       <form id="existing-profile-form" autocomplete="off">
@@ -154,6 +223,9 @@ function page() {
   </main>
   <script>
     const pairingForm = document.getElementById("pairing-form");
+    const enrollmentStart = document.getElementById("enrollment-start");
+    const enrollmentLink = document.getElementById("enrollment-link");
+    const enrollmentStatus = document.getElementById("enrollment-status");
     const pairingButton = document.getElementById("pairing-submit");
     const pairingStatus = document.getElementById("pairing-status");
     const existingProfile = document.getElementById("existing-profile");
@@ -164,6 +236,40 @@ function page() {
     const button = document.getElementById("connect");
     const status = document.getElementById("status");
     let claimSessionId = "";
+    let enrollmentTimer = null;
+    async function pollEnrollment() {
+      const response = await fetch("/enrollment/poll", { method: "POST" });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || "לא ניתן לבדוק את אישור המחשב.");
+      if (data.status === "linked") {
+        enrollmentStatus.textContent = "המחשב קושר בהצלחה. אפשר להמשיך ל-CONNECT כאשר מוכנים.";
+        enrollmentStart.disabled = true;
+        if (enrollmentTimer) clearInterval(enrollmentTimer);
+        return;
+      }
+      if (data.status === "expired") {
+        enrollmentStatus.textContent = "בקשת האישור פגה. ניתן להתחיל בקשה חדשה.";
+        enrollmentStart.disabled = false;
+        if (enrollmentTimer) clearInterval(enrollmentTimer);
+      }
+    }
+    enrollmentStart.addEventListener("click", async () => {
+      enrollmentStart.disabled = true;
+      enrollmentStatus.textContent = "יוצר בקשת אישור מאובטחת...";
+      try {
+        const response = await fetch("/enrollment/start", { method: "POST" });
+        const data = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(data.error || "לא ניתן לפתוח אישור חיבור.");
+        enrollmentLink.href = data.verification_url;
+        enrollmentLink.hidden = false;
+        enrollmentStatus.textContent = "פתחו את האישור בדשבורד. המחשב בודק את האישור אוטומטית.";
+        window.open(data.verification_url, "_blank", "noopener,noreferrer");
+        enrollmentTimer = window.setInterval(() => void pollEnrollment().catch((error) => { enrollmentStatus.textContent = error.message; }), 3000);
+      } catch (error) {
+        enrollmentStatus.textContent = error instanceof Error ? error.message : "לא ניתן לפתוח אישור חיבור.";
+        enrollmentStart.disabled = false;
+      }
+    });
     async function connectWithBody(body) {
       const response = await fetch("/connect", {
         method: "POST",
@@ -519,6 +625,20 @@ const server = http.createServer(async (request, response) => {
     }
     if (request.method === "GET" && request.url === "/dvr-profile/status") {
       send(response, 200, JSON.stringify(dvrProfileStatus()));
+      return;
+    }
+    if (request.method === "GET" && request.url === "/enrollment/status") {
+      send(response, 200, JSON.stringify(deviceEnrollmentStatus()));
+      return;
+    }
+    if (request.method === "POST" && request.url === "/enrollment/start") {
+      const result = await beginDeviceEnrollment();
+      send(response, 200, JSON.stringify(result));
+      return;
+    }
+    if (request.method === "POST" && request.url === "/enrollment/poll") {
+      const result = await pollDeviceEnrollment();
+      send(response, 200, JSON.stringify(result));
       return;
     }
     if (request.method === "POST" && request.url === "/pairing/claim") {

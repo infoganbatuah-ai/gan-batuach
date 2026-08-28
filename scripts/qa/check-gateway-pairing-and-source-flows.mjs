@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { issueGatewayDiscoveryToken, verifyGatewayDiscoveryToken } from "../../lib/domain/video-gateway-pairing.ts";
+import { issueGatewayDeviceAccessToken, verifyGatewayDeviceAccessToken } from "../../lib/domain/gateway-device-enrollment.ts";
 
 const pairingRoute = readFileSync(new URL("../../app/api/digital-observer/gateway-pairing/route.ts", import.meta.url), "utf8");
 const discoveryRoute = readFileSync(new URL("../../app/api/video-gateway/cloud-discovery/route.ts", import.meta.url), "utf8");
@@ -9,12 +10,26 @@ const addCameraPage = readFileSync(new URL("../../app/digital-observer/cameras/a
 const pairingPanel = readFileSync(new URL("../../components/digital-observer/observer-gateway-pairing.tsx", import.meta.url), "utf8");
 const pairing = readFileSync(new URL("../../lib/domain/video-gateway-pairing.ts", import.meta.url), "utf8");
 const observerStyles = readFileSync(new URL("../../app/styles/digital-observer-product.css", import.meta.url), "utf8");
+const enrollmentRoute = readFileSync(new URL("../../app/api/digital-observer/gateway-enrollment/route.ts", import.meta.url), "utf8");
+const deviceEnrollment = readFileSync(new URL("../../lib/domain/gateway-device-enrollment.ts", import.meta.url), "utf8");
+const enrollmentMigration = readFileSync(new URL("../../supabase/migrations/20260829010000_gateway_device_enrollment.sql", import.meta.url), "utf8");
 
 for (const required of ["gatewayPairingCodeTtlMs", "gatewayDiscoveryTokenTtlMs", "hashGatewayPairingCode", "verifyGatewayDiscoveryToken", "scope: \"cloud_discovery\""]) {
   if (!pairing.includes(required)) throw new Error(`Missing short-lived pairing control: ${required}`);
 }
 const testToken = issueGatewayDiscoveryToken({ pairing_id: "pairing", gateway_id: "gateway", observer_site_id: "site" }, "qa-secret");
 if (verifyGatewayDiscoveryToken(testToken, "qa-secret")?.gateway_id !== "gateway" || verifyGatewayDiscoveryToken(`${testToken}x`, "qa-secret")) throw new Error("Pairing token signature verification failed");
+const deviceToken = issueGatewayDeviceAccessToken({ device_id: "device", gateway_id: "gateway", observer_site_id: "site" }, "qa-secret");
+if (verifyGatewayDeviceAccessToken(deviceToken, "qa-secret")?.device_id !== "device" || verifyGatewayDeviceAccessToken(`${deviceToken}x`, "qa-secret")) throw new Error("Device enrollment access token verification failed");
+for (const required of ["gatewayEnrollmentTtlMs", "gatewayDeviceAccessTtlMs", "newGatewayRefreshToken", "hashGatewayEnrollmentToken"]) {
+  if (!deviceEnrollment.includes(required)) throw new Error(`Missing device enrollment token boundary: ${required}`);
+}
+for (const required of ["create_request", "approve", "poll", "refresh", "revoke", "getObserverSiteAccess", "refresh_token_hash", "gateway_enrollment_revoked"]) {
+  if (!enrollmentRoute.includes(required)) throw new Error(`Missing device enrollment lifecycle control: ${required}`);
+}
+for (const required of ["video_gateway_device_enrollments", "poll_token_hash", "refresh_token_hash", "status in ('pending','approved','delivered','expired','revoked')", "enable row level security"]) {
+  if (!enrollmentMigration.includes(required)) throw new Error(`Missing enrollment migration boundary: ${required}`);
+}
 for (const required of ["action: z.literal(\"create\")", "action: z.literal(\"claim\")", "getObserverSiteAccess", "one_time: true", "status: \"received\"", "status: \"processed\""]) {
   if (!pairingRoute.includes(required)) throw new Error(`Missing pairing endpoint boundary: ${required}`);
 }
@@ -26,6 +41,12 @@ for (const forbidden of ["VIDEO_GATEWAY_CLOUD_DISCOVERY_SECRET || cloudConfig", 
 }
 for (const required of ["/pairing/claim", "action: \"claim\"", "pendingClaims", "consumePairingClaim", "claim_session_id", "x-video-gateway-pairing-token", "before any DVR request"]) {
   if (!localOnboarding.includes(required)) throw new Error(`Missing local pairing handoff: ${required}`);
+}
+for (const required of ["/enrollment/start", "/enrollment/poll", "device_refresh_token", "add-generic-password", "keychain_only: true", "create_request"]) {
+  if (!localOnboarding.includes(required)) throw new Error(`Missing Keychain-only device enrollment handoff: ${required}`);
+}
+for (const forbidden of ["writeFileSync", "appendFileSync", "device_refresh_token="]) {
+  if (localOnboarding.includes(forbidden)) throw new Error(`Device enrollment must not persist credentials to disk: ${forbidden}`);
 }
 for (const required of ["/dvr-profile/status", "המקליט הקיים מוכן", "useExistingProfile", "find-generic-password", "values_returned: false"]) {
   if (!localOnboarding.includes(required)) throw new Error(`Missing secure existing DVR profile flow: ${required}`);
@@ -60,7 +81,7 @@ if (!browserScript?.includes("async function showNextStepAfterPairing")) throw n
 if (localOnboarding.lastIndexOf("async function showNextStepAfterPairing") > localOnboarding.indexOf("</script>")) throw new Error("Pairing next-step handler must not be emitted outside the browser script");
 
 const elements = new Map();
-for (const id of ["pairing-form", "pairing-submit", "pairing-status", "existing-profile", "existing-profile-form", "existing-connect", "manual-entry", "dvr-form", "connect", "status", "pairing-code"]) {
+for (const id of ["pairing-form", "pairing-submit", "pairing-status", "existing-profile", "existing-profile-form", "existing-connect", "manual-entry", "dvr-form", "connect", "status", "pairing-code", "enrollment-start", "enrollment-link", "enrollment-status"]) {
   elements.set(id, {
     hidden: false,
     disabled: false,
