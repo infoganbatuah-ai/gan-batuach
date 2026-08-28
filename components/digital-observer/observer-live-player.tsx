@@ -6,6 +6,9 @@ import { useEffect, useRef, useState } from "react";
 
 type PlayerState = "loading" | "playing" | "error";
 
+const mediaStartTimeoutMs = 12_000;
+const mediaProgressTimeoutMs = 8_000;
+
 type PlaybackSession = {
   url: string;
   expiresAt: number;
@@ -72,29 +75,55 @@ export function ObserverLivePlayer({
 }) {
   const videoRef = useRef<HTMLVideoElement>(null);
   const hasStartedRef = useRef(false);
+  const lastCurrentTimeRef = useRef(0);
+  const lastProgressAtRef = useRef(0);
+  const recoveryScheduledRef = useRef(false);
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [state, setState] = useState<PlayerState>("loading");
+  const [unavailableReason, setUnavailableReason] = useState("");
   const [muted, setMuted] = useState(true);
   const [retryNonce, setRetryNonce] = useState(0);
 
   function requestRetry() {
     const key = playbackKey(observerSiteId, cameraSourceId);
     playbackSessions.delete(key);
-    if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
-    retryTimerRef.current = setTimeout(() => setRetryNonce((value) => value + 1), 5000);
+    if (retryTimerRef.current) return;
+    retryTimerRef.current = setTimeout(() => {
+      retryTimerRef.current = null;
+      setRetryNonce((value) => value + 1);
+    }, 5000);
   }
 
   useEffect(() => {
     let cancelled = false;
     let hls: Hls | null = null;
+    let mediaHeartbeat: ReturnType<typeof setInterval> | null = null;
     const currentVideoElement = videoRef.current;
     if (!currentVideoElement) return;
     const videoElement: HTMLVideoElement = currentVideoElement;
     hasStartedRef.current = false;
+    lastCurrentTimeRef.current = 0;
+    lastProgressAtRef.current = Date.now();
+    recoveryScheduledRef.current = false;
     const retry = () => { if (!cancelled) requestRetry(); };
+    const markUnavailable = (reason: string) => {
+      if (cancelled || recoveryScheduledRef.current) return;
+      recoveryScheduledRef.current = true;
+      setUnavailableReason(reason);
+      setState("error");
+      retry();
+    };
+
+    mediaHeartbeat = setInterval(() => {
+      if (cancelled) return;
+      const elapsedWithoutProgress = Date.now() - lastProgressAtRef.current;
+      const timeout = hasStartedRef.current ? mediaProgressTimeoutMs : mediaStartTimeoutMs;
+      if (elapsedWithoutProgress >= timeout) markUnavailable(hasStartedRef.current ? "המדיה הפסיקה להתקדם" : "לא התקבלה מדיה מה־Gateway");
+    }, 2_000);
 
     async function connect() {
       setState("loading");
+      setUnavailableReason("");
       const playbackUrl = await requestPlaybackSession(observerSiteId, cameraSourceId);
       if (cancelled) return;
 
@@ -111,8 +140,7 @@ export function ObserverLivePlayer({
         hls.attachMedia(videoElement);
         hls.on(Hls.Events.ERROR, (_event, data) => {
           if (data.fatal && !cancelled) {
-            setState("error");
-            retry();
+            markUnavailable("נגן הווידאו לא הצליח לקרוא את השידור");
           }
         });
       } else {
@@ -123,12 +151,12 @@ export function ObserverLivePlayer({
 
     void connect().catch(() => {
       if (!cancelled) {
-        setState("error");
-        retry();
+        markUnavailable("לא התקבל שידור זמין מה־Gateway");
       }
     });
     return () => {
       cancelled = true;
+      if (mediaHeartbeat) clearInterval(mediaHeartbeat);
       if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
       hls?.destroy();
       videoElement.removeAttribute("src");
@@ -146,7 +174,11 @@ export function ObserverLivePlayer({
         playsInline
         muted={muted}
         aria-label={`שידור חי — ${name}`}
-        onPlaying={() => {
+        onTimeUpdate={(event) => {
+          const currentTime = event.currentTarget.currentTime;
+          if (currentTime <= lastCurrentTimeRef.current + 0.05) return;
+          lastCurrentTimeRef.current = currentTime;
+          lastProgressAtRef.current = Date.now();
           hasStartedRef.current = true;
           setState("playing");
         }}
@@ -156,16 +188,16 @@ export function ObserverLivePlayer({
           if (!hasStartedRef.current) setState("loading");
         }}
         onError={() => {
-          if (!hasStartedRef.current) {
-            setState("error");
-            requestRetry();
-          }
+          setUnavailableReason("נגן הווידאו דיווח על שגיאה");
+          setState("error");
+          requestRetry();
         }}
         onVolumeChange={(event) => setMuted(event.currentTarget.muted)}
       />
       <span className={`do-live-player-status ${state}`}>
-        {state === "playing" ? "LIVE" : state === "loading" ? <><LoaderCircle /> מתחבר…</> : <><CameraOff /> השידור אינו זמין</>}
+        {state === "playing" ? "LIVE" : state === "loading" ? <><LoaderCircle /> מתחבר…</> : <><CameraOff /> השידור אינו זמין כרגע</>}
       </span>
+      {state === "error" && !compact ? <span className="do-live-player-reason">{unavailableReason} · ניסיון חוזר אוטומטי</span> : null}
       {!compact ? <button type="button" className="do-live-player-audio" onClick={() => setMuted((value) => !value)} aria-label={muted ? "הפעלת שמע" : "השתקת שמע"}>
         {muted ? <VolumeX /> : <Volume2 />}
       </button> : null}

@@ -6178,6 +6178,7 @@
 .do-live-player-status.playing { background: #d92d20; }
 .do-live-player-status svg { width: 14px; height: 14px; }
 .do-live-player-status.loading svg { animation: do-live-spin 1s linear infinite; }
+.do-live-player-reason { position: absolute; z-index: 2; top: 46px; inset-inline-start: 12px; max-width: calc(100% - 24px); padding: 5px 8px; border-radius: 6px; background: rgba(6, 18, 32, .8); color: #f7d0cd; font-size: 11px; font-weight: 700; }
 .do-live-player-name { inset-inline-start: 12px; bottom: 12px; padding: 7px 10px; border-radius: 8px; background: rgba(6, 18, 32, .72); font-weight: 700; }
 .do-live-player-audio { inset-inline-end: 12px; bottom: 12px; width: 38px; height: 38px; display: grid; place-items: center; border: 0; border-radius: 50%; background: rgba(6, 18, 32, .78); color: #fff; cursor: pointer; }
 .do-live-player-audio svg { width: 18px; height: 18px; }

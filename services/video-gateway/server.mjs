@@ -295,25 +295,37 @@ async function privateNvrStreamResponse(url, token, cookie, signal) {
     signal
   }).catch(() => null);
   if (!response || (response.status !== 200 && response.status !== 400) || !response.body) return null;
+  // Some recorders return 400 while still streaming media, but an HTML or JSON
+  // error response must never be passed to ffmpeg as if it were an MP4 stream.
+  const contentType = String(response.headers.get("content-type") || "").toLowerCase();
+  if (contentType && !contentType.includes("video/") && !contentType.includes("application/octet-stream")) return null;
   return response;
 }
 
 async function pipeWebStreamToWritable(stream, writable) {
   const reader = stream.getReader();
-  const ignorePipeClosure = () => {};
-  writable.on("error", ignorePipeClosure);
+  let pipeError = null;
+  const onPipeError = (error) => { pipeError = error; };
+  writable.on("error", onPipeError);
+  const waitForDrain = () => new Promise((resolve) => {
+    const finish = () => {
+      writable.removeListener("drain", finish);
+      writable.removeListener("close", finish);
+      writable.removeListener("error", finish);
+      resolve();
+    };
+    writable.once("drain", finish);
+    writable.once("close", finish);
+    writable.once("error", finish);
+  });
   try {
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
-      if (writable.destroyed || !writable.writable) break;
+      if (pipeError || writable.destroyed || !writable.writable) break;
       try {
         if (!writable.write(Buffer.from(value))) {
-          await new Promise((resolve) => {
-            writable.once("drain", resolve);
-            writable.once("close", resolve);
-            writable.once("error", resolve);
-          });
+          await waitForDrain();
         }
       } catch {
         break;
@@ -322,6 +334,7 @@ async function pipeWebStreamToWritable(stream, writable) {
   } finally {
     if (!writable.destroyed && writable.writable) writable.end();
     reader.releaseLock();
+    writable.removeListener("error", onPipeError);
   }
 }
 

@@ -34,8 +34,11 @@ for (const required of ['status: connected ? "connected" : "offline"', 'health_s
 for (const required of ["unavailableStatuses", "digitalObserverCameraIsConnected", "digitalObserverCameraHasLiveGateway"]) {
   if (!liveStatus.includes(required)) throw new Error(`Missing truthful live status guard: ${required}`);
 }
-for (const required of ["response.status !== 503", "attempt < 3", "1200 * (attempt + 1)", "playbackSessions.delete(key)", "setRetryNonce"]) {
+for (const required of ["response.status !== 503", "attempt < 3", "1200 * (attempt + 1)", "playbackSessions.delete(key)", "setRetryNonce", "onTimeUpdate", "mediaProgressTimeoutMs", "המדיה הפסיקה להתקדם", "השידור אינו זמין כרגע"]) {
   if (!player.includes(required)) throw new Error(`Missing playback recovery: ${required}`);
+}
+for (const required of ["content-type", "application/octet-stream", "removeListener(\"drain\", finish)", "removeListener(\"error\", onPipeError)"]) {
+  if (!gateway.includes(required)) throw new Error(`Missing relay input or listener cleanup: ${required}`);
 }
 for (const required of ["ONLY_SYNTHETIC_DEMO_CAMERA_CAN_BE_REMOVED", "source_row.camera_stream_id is not null", "source_row.secret_reference is not null", "capabilities @> '{\"live_view\":true}'", "DEMO_CAMERA_HAS_STORED_MEDIA", "can_manage_observer_site"]) {
   if (!migration.includes(required)) throw new Error(`Missing demo deletion boundary: ${required}`);
