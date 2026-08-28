@@ -327,6 +327,8 @@ async function upsertDigitalObserverCameraSource(
     connected: boolean;
     statusHint: string | null;
     edgeCapabilityContract?: Record<string, unknown> | null;
+    localEventInsightsEnabled: boolean;
+    edgePolicy: Record<string, unknown>;
   }
 ) {
   if (!values.observerSiteId) return null;
@@ -365,7 +367,7 @@ async function upsertDigitalObserverCameraSource(
       preview: values.connected,
       live_view: values.connected,
       event_clips: values.connected,
-      local_event_insights: false,
+      local_event_insights: values.localEventInsightsEnabled,
       local_activity_sampling: values.connected,
       credentials_saved: true,
       gateway_required: !values.connected,
@@ -389,7 +391,8 @@ async function upsertDigitalObserverCameraSource(
       no_rtsp_exposed: true,
       credentials_server_side: true,
       edge_inference_policy: "local-insights-v1",
-      edge_capability_contract: values.edgeCapabilityContract ?? null
+      edge_capability_contract: values.edgeCapabilityContract ?? null,
+      edge_policy: values.edgePolicy
     }
   };
   if ((existing as any)?.data?.id) {
@@ -589,7 +592,17 @@ export async function createDvrConnection(payload: z.infer<typeof dvrConnectionS
       gatewayStreamId: channelStreamId,
       gatewayConfigured,
       connected,
-      statusHint: channel.status
+      statusHint: channel.status,
+      edgeCapabilityContract: null,
+      localEventInsightsEnabled: false,
+      edgePolicy: {
+        version: "local-insights-v1",
+        monitoring_consent_verified: false,
+        object_detection_enabled: false,
+        biometric_recognition_enabled: false,
+        biometric_matching_enabled: false,
+        reason: "gateway_edge_contract_not_supplied"
+      }
     });
     channelResults.push({ camera: sanitizeCameraRow(camera as any), observer_source: observerSource });
   }
@@ -636,6 +649,40 @@ export async function materializeCloudDvrDiscovery(payload: z.infer<typeof cloud
   const scopeId = cloudDiscoveryScopeId(parsed);
   const connectionId = null;
   const results = [];
+  const siteConsent = observerSiteId
+    ? await supabase
+      .from("observer_sites" as any)
+      .select("monitoring_enabled,vision_privacy_mode,business_handles_children,metadata")
+      .eq("id", observerSiteId)
+      .maybeSingle()
+    : { data: null };
+  const siteMetadata = siteConsent.data?.metadata && typeof siteConsent.data.metadata === "object" ? siteConsent.data.metadata as Record<string, unknown> : {};
+  const monitoringConsentVerified = siteConsent.data?.monitoring_enabled === true
+    && siteMetadata.observer_monitoring_consent === true
+    && siteConsent.data?.vision_privacy_mode !== "skeleton_only"
+    && siteConsent.data?.business_handles_children !== true;
+  const edgeCapabilityContract = parsed.metadata?.edge_capability_contract && typeof parsed.metadata.edge_capability_contract === "object"
+    ? parsed.metadata.edge_capability_contract as Record<string, any>
+    : null;
+  const verifiedObjectInference = edgeCapabilityContract?.gateway?.connected === true
+    && edgeCapabilityContract?.runtime?.available === true
+    && edgeCapabilityContract?.models?.loaded === true
+    && edgeCapabilityContract?.capability_test?.passed === true
+    && edgeCapabilityContract?.capabilities?.object_detection === true;
+  const localEventInsightsEnabled = Boolean(monitoringConsentVerified && verifiedObjectInference);
+  const edgePolicy = {
+    version: "local-insights-v1",
+    evaluated_at: now,
+    monitoring_consent_verified: monitoringConsentVerified,
+    object_detection_enabled: localEventInsightsEnabled,
+    biometric_recognition_enabled: false,
+    biometric_matching_enabled: false,
+    reason: localEventInsightsEnabled
+      ? "verified_gateway_contract_and_site_monitoring_consent"
+      : monitoringConsentVerified
+        ? "gateway_edge_contract_not_ready"
+        : "site_monitoring_consent_required"
+  };
 
   for (const channel of parsed.channels) {
     const gatewayStreamId = channel.gateway_stream_id ?? channel.stream_id ?? stableGatewayStreamId(parsed.gateway_id, scopeId, channel.channel);
@@ -702,9 +749,10 @@ export async function materializeCloudDvrDiscovery(payload: z.infer<typeof cloud
         no_rtsp_exposed: true,
         no_credentials_received: true,
         ai_shadow_only: true,
-        local_event_insights: false,
+        local_event_insights: localEventInsightsEnabled,
         local_activity_sampling: connected,
-        edge_capability_contract: parsed.metadata?.edge_capability_contract ?? null,
+        edge_capability_contract: edgeCapabilityContract,
+        edge_policy: edgePolicy,
         raw_frames_uploaded: false,
         read_only: true
       }
@@ -745,7 +793,9 @@ export async function materializeCloudDvrDiscovery(payload: z.infer<typeof cloud
       gatewayConfigured: true,
       connected,
       statusHint: channel.status,
-      edgeCapabilityContract: parsed.metadata?.edge_capability_contract as Record<string, unknown> | null
+      edgeCapabilityContract,
+      localEventInsightsEnabled,
+      edgePolicy
     });
     results.push({ camera: camera ? sanitizeCameraRow(camera as any) : null, observer_source: observerSource, gateway_stream_id: gatewayStreamId });
   }

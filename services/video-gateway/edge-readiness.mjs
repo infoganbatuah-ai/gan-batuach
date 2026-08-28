@@ -2,6 +2,10 @@ import { existsSync } from "node:fs";
 import { spawnSync } from "node:child_process";
 import { homedir } from "node:os";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const objectWorkerPath = fileURLToPath(new URL("./onnx-object-worker.mjs", import.meta.url));
+let objectWorkerCache = { checkedAt: 0, value: null };
 
 function executableAvailable(command) {
   const candidates = command === "ffprobe"
@@ -27,19 +31,43 @@ function visionWorkerSelfTest() {
   }
 }
 
+function objectWorkerSelfTest() {
+  const now = Date.now();
+  if (objectWorkerCache.value && now - objectWorkerCache.checkedAt < 60_000) return objectWorkerCache.value;
+  const result = spawnSync(process.execPath, [objectWorkerPath, "--self-test"], {
+    encoding: "utf8",
+    timeout: 20_000,
+    stdio: ["ignore", "pipe", "ignore"]
+  });
+  let value = { available: false, reason: "object_worker_self_test_failed", provenance: null };
+  if (result.error?.code === "ETIMEDOUT") {
+    value = { available: false, reason: "object_worker_self_test_timeout", provenance: null };
+  } else {
+    try {
+      const parsed = JSON.parse(result.stdout || "{}");
+      if (result.status === 0 && parsed.ok === true && parsed.capabilities?.object_detection === true) {
+        value = { available: true, reason: null, provenance: parsed.provenance ?? null };
+      } else {
+        value = { available: false, reason: String(parsed.reason || "object_worker_self_test_failed"), provenance: parsed.provenance ?? null };
+      }
+    } catch {}
+  }
+  objectWorkerCache = { checkedAt: now, value };
+  return value;
+}
+
 export function localEdgeReadiness() {
   const modelDir = process.env.VIDEO_GATEWAY_EDGE_MODEL_DIR || "";
-  const visionModel = modelDir ? join(modelDir, "object-detector.mlmodelc") : "";
   const audioModel = modelDir ? join(modelDir, "audio-event-detector.mlmodelc") : "";
   const visionRuntime = process.platform === "darwin" && executableAvailable("swift");
   const visionWorker = visionRuntime ? visionWorkerSelfTest() : { available: false, reason: "apple_vision_runtime_unavailable", capabilities: {} };
+  const objectWorker = objectWorkerSelfTest();
   const ffprobe = executableAvailable("ffprobe");
   const hardwareAcceleration = process.platform === "darwin" && process.arch === "arm64";
-  const objectModelPresent = Boolean(visionModel && existsSync(visionModel));
   const audioModelPresent = Boolean(audioModel && existsSync(audioModel));
   // An artifact on disk is not inference. A loaded worker and a capability
   // self-test are required before any model capability can become active.
-  const objectDetection = false;
+  const objectDetection = objectWorker.available;
   const audioDetection = false;
 
   return {
@@ -51,10 +79,10 @@ export function localEdgeReadiness() {
     hardware: { platform: process.platform, architecture: process.arch, acceleration_available: hardwareAcceleration },
     models: {
       approved_inventory: [
-        { capability: "object_detection", present: objectModelPresent, loaded: false, self_test_passed: false },
+        { capability: "object_detection", present: objectWorker.available, loaded: objectWorker.available, self_test_passed: objectWorker.available, execution_provider: objectWorker.available ? "cpu" : null, provenance: objectWorker.provenance },
         { capability: "audio_event_detection", present: audioModelPresent, loaded: false, self_test_passed: false }
       ],
-      loaded: false
+      loaded: objectWorker.available
     },
     apple_vision_runtime_available: visionRuntime,
     face_detection: visionWorker.capabilities.face_detection === true,
@@ -64,15 +92,17 @@ export function localEdgeReadiness() {
     audio_event_detection: audioDetection,
     face_recognition: false,
     biometric_matching: false,
-    active: false,
-    reason: visionRuntime && !visionWorker.available
+    active: objectWorker.available,
+    reason: objectWorker.available
+      ? "object_detection_ready"
+      : visionRuntime && !visionWorker.available
       ? visionWorker.reason
-      : visionRuntime && (objectModelPresent || audioModelPresent)
-      ? "model_present_but_runtime_load_and_capability_test_required"
+      : visionRuntime && audioModelPresent
+        ? "model_present_but_runtime_load_and_capability_test_required"
       : !visionRuntime
         ? "apple_vision_runtime_unavailable"
         : "approved_edge_model_not_installed",
-    capability_test: { passed: false, reason: "no_loaded_model_worker" },
+    capability_test: objectWorker.available ? { passed: true, reason: "object_model_loaded" } : { passed: false, reason: objectWorker.reason },
     consent_verified: false,
     cloud_video_upload: false,
     raw_frames_retained: false

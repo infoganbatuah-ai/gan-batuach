@@ -4,6 +4,7 @@ import { existsSync, mkdirSync, readFileSync, rmSync, statSync } from "node:fs";
 import http from "node:http";
 import { tmpdir } from "node:os";
 import { extname, join, normalize } from "node:path";
+import { fileURLToPath } from "node:url";
 import { computeActivityMetrics } from "./activity-insights.mjs";
 import { localEdgeReadiness } from "./edge-readiness.mjs";
 
@@ -25,6 +26,7 @@ let lastDiscoverySummary = { channelCount: 0, connectedCount: 0, checkedAt: null
 const requestMetrics = { playbackRequests: 0, playbackReady: 0, playbackUnavailable: 0, hlsRequests: 0 };
 const FRAME_WIDTH = 32;
 const FRAME_HEIGHT = 18;
+const OBJECT_WORKER_PATH = fileURLToPath(new URL("./onnx-object-worker.mjs", import.meta.url));
 
 mkdirSync(HLS_ROOT, { recursive: true });
 
@@ -653,6 +655,50 @@ async function analyzeRelayActivity(streamId) {
   });
 }
 
+async function analyzeRelayObjects(streamId) {
+  const relay = await ensureRelay(streamId);
+  if (!relay || !(await waitForFile(relay.playlist))) return null;
+  const ffmpeg = spawn("ffmpeg", [
+    "-hide_banner", "-loglevel", "error",
+    "-i", relay.playlist,
+    "-frames:v", "1",
+    "-vf", "scale=300:300,format=rgb24",
+    "-f", "rawvideo",
+    "pipe:1"
+  ], { stdio: ["ignore", "pipe", "ignore"] });
+  const worker = spawn(process.execPath, [OBJECT_WORKER_PATH, "--infer-rgb"], { stdio: ["pipe", "pipe", "ignore"] });
+  return await new Promise((resolve) => {
+    const chunks = [];
+    let outputSize = 0;
+    const timeout = setTimeout(() => {
+      ffmpeg.kill("SIGKILL");
+      worker.kill("SIGKILL");
+      resolve(null);
+    }, 20_000);
+    ffmpeg.stdout.pipe(worker.stdin);
+    worker.stdout.on("data", (chunk) => {
+      if (outputSize < 32_768) {
+        chunks.push(chunk);
+        outputSize += chunk.length;
+      }
+    });
+    worker.on("close", (code) => {
+      clearTimeout(timeout);
+      if (code !== 0) return resolve(null);
+      try {
+        const result = JSON.parse(Buffer.concat(chunks).toString("utf8"));
+        if (result.ok !== true || result.no_raw_frame_returned !== true || !Array.isArray(result.detections)) return resolve(null);
+        resolve(result.detections.slice(0, 10));
+      } catch {
+        resolve(null);
+      }
+    });
+    ffmpeg.on("close", () => {
+      if (ffmpeg.stdout.readable) ffmpeg.stdout.destroy();
+    });
+  });
+}
+
 async function runFfmpeg(args, timeoutMs = 15000) {
   return await new Promise((resolve) => {
     const child = spawn("ffmpeg", args, { stdio: ["ignore", "ignore", "ignore"] });
@@ -871,10 +917,12 @@ async function handle(request, response) {
         json(response, 503, { error: "sample_not_ready" });
         return;
       }
+      const edge = localEdgeReadiness();
+      const detectedObjects = edge.object_detection ? await analyzeRelayObjects(streamId) : null;
       json(response, 200, {
         status: "sampled",
         stream_id: streamId,
-        insight,
+        insight: { ...insight, object_detection: detectedObjects ? { status: "sampled", detections: detectedObjects } : { status: "unavailable", detections: [] } },
         local_processing: true,
         no_raw_video_returned: true
       });

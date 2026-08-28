@@ -6,10 +6,12 @@ export const digitalObserverEdgeAiPolicy = {
     "שידור ו-Playback דרך Gateway מקומי",
     "דגימת תנועה ותאורה מקומית",
     "יצירת thumbnail וקליפ לאירוע מאומת",
+    "זיהוי עצמים מקומי רק לאחר חוזה Gateway והסכמת ניטור מאומתים",
     "AI Shadow עם ביקורת אנושית"
   ],
   unavailableCapabilities: [
-    "זיהוי עצמים, פנים וקול מלא טרם הותקן ב-Edge",
+    "זיהוי זהות פנים והתאמה ביומטרית כבויים עד מודל ייעודי, הסכמה לכל אדם וביקורת",
+    "זיהוי שמע טרם הותקן או אומת ב-Edge",
     "Push חיצוני טרם הוגדר",
     "Voice וחיוג חירום אינם פעילים"
   ],
@@ -30,6 +32,7 @@ export function cameraReportsLocalEventInsights(camera: Record<string, any>) {
   if (!contract || contract.version !== 1 || contract.gateway?.connected !== true) return false;
   if (contract.runtime?.available !== true || contract.models?.loaded !== true) return false;
   if (contract.hardware?.acceleration_available !== true || contract.capability_test?.passed !== true) return false;
-  if (contract.consent_verified !== true) return false;
-  return contract.capabilities?.object_detection === true || contract.capabilities?.audio_event_detection === true;
+  const policy = camera.metadata?.edge_policy;
+  if (policy?.monitoring_consent_verified !== true || policy?.object_detection_enabled !== true) return false;
+  return contract.capabilities?.object_detection === true;
 }
