@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { chmodSync, copyFileSync, cpSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { chmodSync, copyFileSync, cpSync, existsSync, mkdirSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
 
@@ -8,16 +8,6 @@ const projectRoot = process.cwd();
 const runtimeRoot = join(homedir(), ".local", "share", "gan-batuach", "video-gateway");
 const launchAgentPath = join(homedir(), "Library", "LaunchAgents", `${label}.plist`);
 const logRoot = join(homedir(), "Library", "Logs");
-const cloudConfigTarget = join(runtimeRoot, ".env.video-gateway.local");
-const cloudConfigCandidates = [
-  join(projectRoot, ".env.video-gateway.local"),
-  "/private/tmp/gan-batuach-live-session/.env.video-gateway.local"
-];
-const cloudConfigSource = cloudConfigCandidates.find((path) => existsSync(path));
-
-if (!cloudConfigSource) {
-  throw new Error("Secure cloud gateway configuration is not available");
-}
 
 const requiredFiles = [
   join(projectRoot, "scripts", "run-persistent-home-gateway.mjs"),
@@ -38,8 +28,6 @@ cpSync(join(projectRoot, "services", "video-gateway"), join(runtimeRoot, "servic
   recursive: true,
   force: true
 });
-copyFileSync(cloudConfigSource, cloudConfigTarget);
-chmodSync(cloudConfigTarget, 0o600);
 
 const escaped = (value) => value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
 const nodePath = process.execPath;
@@ -55,7 +43,7 @@ const plist = `<?xml version="1.0" encoding="UTF-8"?>
   </array>
   <key>WorkingDirectory</key><string>${escaped(runtimeRoot)}</string>
   <key>EnvironmentVariables</key>
-  <dict><key>PATH</key><string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string></dict>
+  <dict><key>PATH</key><string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string><key>GAN_BATUACH_GATEWAY_KEYCHAIN_SERVICE</key><string>com.ganbatuach.video-gateway.runtime</string></dict>
   <key>RunAtLoad</key><true/>
   <key>KeepAlive</key><true/>
   <key>ThrottleInterval</key><integer>10</integer>

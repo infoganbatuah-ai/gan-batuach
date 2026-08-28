@@ -3,6 +3,7 @@ import { readFileSync } from "node:fs";
 const source = readFileSync(new URL("../run-persistent-home-gateway.mjs", import.meta.url), "utf8");
 const server = readFileSync(new URL("../../services/video-gateway/server.mjs", import.meta.url), "utf8");
 const installer = readFileSync(new URL("../install-persistent-home-gateway.mjs", import.meta.url), "utf8");
+const setup = readFileSync(new URL("../setup-local-learning-gateway.mjs", import.meta.url), "utf8");
 for (const required of ["find-generic-password", "cloud-discovery", "cloud-learning", "no_raw_video_returned", "read_only_requested"]) {
   if (!source.includes(required)) throw new Error(`Missing persistent gateway safety control: ${required}`);
 }
@@ -10,8 +11,11 @@ for (const required of ["streamCount", "capabilities", "ptz: false", "siren: fal
   if (!server.includes(required)) throw new Error(`Missing gateway capability discovery control: ${required}`);
 }
 if (/console\.log\([^)]*password|JSON\.stringify\([^)]*password[^)]*\)\s*\)/.test(source)) throw new Error("Persistent gateway may log DVR credentials");
-for (const required of ["process.execPath", "0o600", "KeepAlive", "kickstart", ".local", ".env.video-gateway.local"]) {
+for (const required of ["process.execPath", "0o600", "KeepAlive", "kickstart", ".local", "GAN_BATUACH_GATEWAY_KEYCHAIN_SERVICE"]) {
   if (!installer.includes(required)) throw new Error(`Missing persistent installer safety control: ${required}`);
 }
-if (/readFileSync\([^)]*cloudConfig[^)]*\).*console/s.test(installer)) throw new Error("Installer may print cloud configuration");
+for (const forbidden of [".env.video-gateway.local", "cloudConfig", "copyFileSync(cloudConfig", "VIDEO_GATEWAY_SIGNING_SECRET ||"]) {
+  if (installer.includes(forbidden) || source.includes(forbidden)) throw new Error(`Persistent Gateway may read or write sensitive disk config: ${forbidden}`);
+}
+if (setup.includes("writeFileSync") || setup.includes(".env.video-gateway.local")) throw new Error("Gateway setup may not write pairing configuration to disk");
 console.log("Persistent home gateway safety PASS");
