@@ -21,6 +21,7 @@ import { ObserverAppShell } from "@/components/digital-observer/observer-app-she
 import { ObserverCameraMedia } from "@/components/digital-observer/observer-camera-media";
 import { ObserverCameraPresence } from "@/components/digital-observer/observer-camera-presence";
 import { ObserverLivePlayer } from "@/components/digital-observer/observer-live-player";
+import { ObserverRuntimePulse } from "@/components/digital-observer/observer-runtime-pulse";
 import { requireDigitalObserverUser } from "@/lib/domain/digital-observer/access";
 import { digitalObserverCameraHasLiveGateway } from "@/lib/domain/digital-observer/camera-live-status";
 import { observerEventNarrative } from "@/lib/domain/digital-observer/event-narrative";
@@ -105,6 +106,8 @@ export default async function DigitalObserverDashboardPage({ searchParams }: Pag
   const readyCameras = siteCameras.filter((camera) => ["connected", "healthy", "online", "active", "ready_to_test", "testing"].includes(String(camera.status)) || camera.health_status === "healthy").length;
   const businessActivity = activityBuckets(siteSignals);
   const businessActivityTotal = businessActivity.reduce((sum, bucket) => sum + bucket.count, 0);
+  const latestSignalAt = siteSignals[0]?.created_at ?? null;
+  const latestLearningAt = selectedSite ? runtime.baselines.filter((baseline) => baseline.observer_site_id === selectedSite.id).map((baseline) => baseline.updated_at).filter(Boolean).sort().at(-1) ?? null : null;
 
   return (
     <ObserverAppShell
@@ -138,6 +141,7 @@ export default async function DigitalObserverDashboardPage({ searchParams }: Pag
                 <div>
                   <h2>{urgentSignals.length ? "יש אירוע דחוף שמחכה לבדיקה" : siteCameras.length ? <><span className="do-home-calm-desktop">הכול שקט בבית</span><span className="do-home-calm-mobile">הכול שקט</span></> : "מוכנים לחבר את הבית"}</h2>
                   <p>{siteCameras.length ? `הבית שלך מוגן לפי ${siteCameras.length} מקורות שהוגדרו.` : "חברו מצלמה ראשונה כדי להתחיל."} {urgentSignals.length ? `${urgentSignals.length} אירועים דחופים ממתינים לבדיקה.` : "אין אירועים דחופים."}</p>
+                  <ObserverRuntimePulse observerSiteId={selectedSite.id} initial={{ checked_at: new Date().toISOString(), camera_count: siteCameras.length, connected_camera_count: liveCameras, open_event_count: openSignals.length, last_event_at: latestSignalAt, last_learning_at: latestLearningAt }} compact />
                 </div>
               </div>
 

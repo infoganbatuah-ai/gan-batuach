@@ -5,6 +5,7 @@ import { ObserverQuickAction, ObserverRuleForm } from "@/components/digital-obse
 import { ObserverConversationPanel } from "@/components/digital-observer/observer-intelligence-experience";
 import { ObserverAppShell } from "@/components/digital-observer/observer-app-shell";
 import { ObserverCameraMedia } from "@/components/digital-observer/observer-camera-media";
+import { ObserverRuntimePulse } from "@/components/digital-observer/observer-runtime-pulse";
 import { requireDigitalObserverUser } from "@/lib/domain/digital-observer/access";
 import { cameraReportsLocalEventInsights, digitalObserverEdgeAiPolicy } from "@/lib/domain/digital-observer/edge-ai-policy";
 import { getDigitalObserverServiceReadiness } from "@/lib/domain/digital-observer/service-readiness";
@@ -92,6 +93,7 @@ export default async function DigitalObserverRulesPage() {
             <span className="do-observer-runtime-state"><i />{runtimeText}</span>
             <h1>{mode === "business" ? "שלום! מה חשוב שאבדוק בעסק?" : "שלום! במה תרצו שאצפה עבורכם?"}</h1>
             <p>שאלו מה קרה, בקשו לשים לב לדבר מסוים או בדקו מה השתנה בשגרה. המענה מבוסס רק על אירועי האתר ותוצאות שאומתו; זמן לבדו אינו מוכיח אמינות.</p>
+            {site ? <ObserverRuntimePulse observerSiteId={site.id} initial={{ checked_at: new Date().toISOString(), camera_count: cameras.length, connected_camera_count: cameras.filter((camera) => ["connected", "healthy", "online", "active"].includes(String(camera.status ?? camera.health_status))).length, open_event_count: signals.filter((signal) => ["needs_review", "reviewing", "escalated"].includes(String(signal.review_status))).length, last_event_at: signals[0]?.created_at ?? null, last_learning_at: baselines.map((baseline) => baseline.updated_at).filter(Boolean).sort().at(-1) ?? null }} /> : null}
           </div>
         </section>
 
