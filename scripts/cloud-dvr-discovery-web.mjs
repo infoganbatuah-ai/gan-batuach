@@ -83,6 +83,28 @@ async function pollDeviceEnrollment() {
   return { status: "linked", keychain_only: true, values_returned: false };
 }
 
+async function refreshDeviceEnrollmentAccess() {
+  const gatewayId = readRuntimeKeychainSecret("device_gateway_id");
+  const observerSiteId = readRuntimeKeychainSecret("device_observer_site_id");
+  const refreshToken = readRuntimeKeychainSecret("device_refresh_token");
+  const cloudBaseUrl = readRuntimeKeychainSecret("device_cloud_base_url");
+  if (!gatewayId || !observerSiteId || !refreshToken || !cloudBaseUrl) {
+    throw new Error("המחשב אינו מקושר לדשבורד. יש להשלים אישור מחשב לפני CONNECT.");
+  }
+
+  const response = await fetch(`${cloudBaseUrl.replace(/\/$/, "")}/api/digital-observer/gateway-enrollment`, {
+    method: "POST",
+    headers: { "content-type": "application/json" },
+    body: JSON.stringify({ action: "refresh", gateway_id: gatewayId, refresh_token: refreshToken })
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok || !payload.data?.access_token || !payload.data?.refresh_token) {
+    throw new Error(payload.error || "זהות ה-Gateway אינה זמינה. יש לקשר את המחשב מחדש.");
+  }
+  writeRuntimeKeychainSecret("device_refresh_token", String(payload.data.refresh_token));
+  return { gatewayId, observerSiteId, deviceAccessToken: String(payload.data.access_token), cloudBaseUrl };
+}
+
 function purgeExpiredClaims() {
   const now = Date.now();
   for (const [id, claim] of pendingClaims.entries()) {
@@ -338,13 +360,8 @@ function page() {
       event.preventDefault();
       existingConnect.disabled = true;
       status.textContent = "מתחיל discovery מהמקליט הקיים בקריאה בלבד...";
-      if (!claimSessionId) {
-        status.textContent = "יש להשלים Pairing מאומת לפני CONNECT.";
-        existingConnect.disabled = false;
-        return;
-      }
       try {
-        await connectWithBody({ claimSessionId, useExistingProfile: true });
+        await connectWithBody({ ...(claimSessionId ? { claimSessionId } : {}), useExistingProfile: true });
       } catch (error) {
         status.textContent = error instanceof Error ? error.message : "החיבור נכשל";
         existingConnect.disabled = false;
@@ -354,12 +371,7 @@ function page() {
       event.preventDefault();
       button.disabled = true;
       status.textContent = "מתחיל בדיקה מקומית לקריאה בלבד...";
-      if (!claimSessionId) {
-        status.textContent = "יש להשלים Pairing מאומת לפני CONNECT.";
-        button.disabled = false;
-        return;
-      }
-      const body = { ...Object.fromEntries(new FormData(form).entries()), claimSessionId };
+      const body = { ...Object.fromEntries(new FormData(form).entries()), ...(claimSessionId ? { claimSessionId } : {}) };
       try {
         await connectWithBody(body);
         form.reset();
@@ -556,8 +568,12 @@ function startLearningLoop(config) {
 }
 
 async function connect(input) {
-  // The pairing claim is consumed before any DVR request. Its token stays in local process memory only.
-  const { gatewayId, observerSiteId, discoveryToken } = consumePairingClaim(input.claimSessionId);
+  // Device enrollment is the normal path. Pairing remains a short-lived fallback before any DVR request.
+  const pairing = input.claimSessionId ? consumePairingClaim(input.claimSessionId) : null;
+  const device = pairing ? null : await refreshDeviceEnrollmentAccess();
+  const gatewayId = pairing?.gatewayId || device?.gatewayId || "";
+  const observerSiteId = pairing?.observerSiteId || device?.observerSiteId || "";
+  const cloudBaseUrl = device?.cloudBaseUrl || productionBaseUrl;
   const connection = input.useExistingProfile ? loadExistingDvrProfileForConnect() : {
     endpoint: String(input.endpoint || ""),
     port: Number(input.port || 554),
@@ -593,14 +609,14 @@ async function connect(input) {
   const body = JSON.stringify(payload);
   const timestamp = new Date().toISOString();
   const nonce = crypto.randomUUID();
-  const cloudResponse = await fetch(`${productionBaseUrl.replace(/\/$/, "")}/api/video-gateway/cloud-discovery`, {
+  const cloudResponse = await fetch(`${cloudBaseUrl.replace(/\/$/, "")}/api/video-gateway/cloud-discovery`, {
     method: "POST",
     headers: {
       "content-type": "application/json",
       "x-video-gateway-id": gatewayId,
       "x-video-gateway-timestamp": timestamp,
       "x-video-gateway-nonce": nonce,
-      "x-video-gateway-pairing-token": discoveryToken
+      ...(pairing ? { "x-video-gateway-pairing-token": pairing.discoveryToken } : { "x-video-gateway-device-token": device?.deviceAccessToken || "" })
     },
     body
   });

@@ -42,7 +42,7 @@ for (const forbidden of ["VIDEO_GATEWAY_CLOUD_DISCOVERY_SECRET || cloudConfig", 
 for (const required of ["/pairing/claim", "action: \"claim\"", "pendingClaims", "consumePairingClaim", "claim_session_id", "x-video-gateway-pairing-token", "before any DVR request"]) {
   if (!localOnboarding.includes(required)) throw new Error(`Missing local pairing handoff: ${required}`);
 }
-for (const required of ["/enrollment/start", "/enrollment/poll", "device_refresh_token", "add-generic-password", "keychain_only: true", "create_request"]) {
+for (const required of ["/enrollment/start", "/enrollment/poll", "device_refresh_token", "refreshDeviceEnrollmentAccess", "x-video-gateway-device-token", "add-generic-password", "keychain_only: true", "create_request"]) {
   if (!localOnboarding.includes(required)) throw new Error(`Missing Keychain-only device enrollment handoff: ${required}`);
 }
 for (const forbidden of ["writeFileSync", "appendFileSync", "device_refresh_token="]) {
@@ -51,8 +51,7 @@ for (const forbidden of ["writeFileSync", "appendFileSync", "device_refresh_toke
 for (const required of ["/dvr-profile/status", "המקליט הקיים מוכן", "useExistingProfile", "find-generic-password", "values_returned: false"]) {
   if (!localOnboarding.includes(required)) throw new Error(`Missing secure existing DVR profile flow: ${required}`);
 }
-const connectBodyMatch = localOnboarding.match(/const body = \{ \.\.\.Object\.fromEntries\(new FormData\(form\)\.entries\(\)\), ([^}]+) \};/);
-if (!connectBodyMatch || connectBodyMatch[1] !== "claimSessionId") throw new Error("CONNECT must receive only the local claim session id after pairing claim");
+if (!localOnboarding.includes("...(claimSessionId ? { claimSessionId } : {})")) throw new Error("CONNECT must support enrolled devices without a pairing code");
 if (localOnboarding.includes(".env.video-gateway.local")) throw new Error("Local pairing must not depend on disk cloud configuration");
 if (/dvr-profile\/status[\s\S]{0,400}(endpoint|username|password)/.test(localOnboarding)) throw new Error("DVR profile status must not return DVR address, username, or password");
 for (const required of ["NVR/DVR מוסיף מקליט אחד", "recorderFlow && step === 2", "הצגת ערוצים לאחר discovery", "IP/ONVIF/RTSP מוסיפים מקור יחיד"]) {
