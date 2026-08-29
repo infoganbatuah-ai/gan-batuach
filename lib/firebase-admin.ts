@@ -9,9 +9,11 @@ function app() {
 }
 
 export async function sendFcmMessage(token: string, payload: { title: string; body?: string | null; actionUrl?: string | null }) {
+  const configuredBase = process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || (process.env.VERCEL_PROJECT_PRODUCTION_URL ? `https://${process.env.VERCEL_PROJECT_PRODUCTION_URL}` : "https://ganbatuach.com");
+  const link = new URL(payload.actionUrl ?? "/dashboard", configuredBase).toString();
   return getMessaging(app()).send({
     token,
     notification: { title: payload.title, body: payload.body ?? undefined },
-    webpush: { fcmOptions: { link: payload.actionUrl ?? "/dashboard" } }
+    webpush: { fcmOptions: { link } }
   });
 }

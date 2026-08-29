@@ -72,6 +72,8 @@ export async function POST(request: Request) {
     }
 
     if (payload.action === "register_device") {
+      const tokenLookup = await supabase.from("push_device_tokens" as any).select("id", { count: "exact", head: true }).eq("profile_id", profile.id).eq("is_active", true);
+      const pushTokenRegistered = !tokenLookup.error && (tokenLookup.count ?? 0) > 0;
       const result = await supabase.from("digital_observer_device_slots" as any).upsert({
         observer_site_id: payload.observer_site_id,
         profile_id: profile.id,
@@ -80,11 +82,11 @@ export async function POST(request: Request) {
         device_reference_hash: deviceHash(payload.device_reference),
         active: true,
         last_seen_at: new Date().toISOString(),
-        metadata: { push_token_registered: false, provider_activation_required: true }
+        metadata: { push_token_registered: pushTokenRegistered, provider_activation_required: !pushTokenRegistered }
       }, { onConflict: "observer_site_id,device_reference_hash" }).select("id,device_label,platform,active,last_seen_at").single();
       if (result.error?.message?.includes("DIGITAL_OBSERVER_DEVICE_LIMIT_REACHED")) return fail("אפשר לחבר עד שני מכשירים. יש להסיר מכשיר קיים לפני הוספת מכשיר נוסף.", 409);
       if (result.error) return fail("לא ניתן לרשום את המכשיר.", 400);
-      return ok({ device: result.data, message: "המכשיר נשמר כחריץ מאושר. Push אמיתי עדיין דורש ספק וטוקן אפליקציה." });
+      return ok({ device: result.data, message: pushTokenRegistered ? "המכשיר נרשם עם טוקן Push פעיל." : "המכשיר נשמר, אך לא נמצא עבורו טוקן Push פעיל." });
     }
 
     const table = payload.action === "delete_recipient" ? "digital_observer_authorized_recipients" : "digital_observer_device_slots";

@@ -130,12 +130,15 @@ export function getPushProviderForPlatform(platform: PushPlatform): PushProvider
 export function getPushProductionReadiness() {
   const readiness = Object.values(providers).map((provider) => provider.getReadiness());
   const configuredProviders = readiness.filter((provider) => provider.configured && provider.provider !== "mock_push");
+  const realSendEnabled = configuredProviders.some((provider) => provider.canSendRealMessages);
   return {
     providers: readiness,
     configured: configuredProviders.length > 0,
-    realSendEnabled: false,
-    summary: configuredProviders.length
-      ? "קיימת תצורת ספק Push, אך adapter השליחה עדיין במצב dry-run ואין שליחה אמיתית."
+    realSendEnabled,
+    summary: realSendEnabled
+      ? "ספק Push מוגדר ושליחה אמיתית פעילה."
+      : configuredProviders.length
+      ? "קיימת תצורת ספק Push, אך השליחה האמיתית עדיין כבויה."
       : "Push פועל במצב mock בלבד. אין שליחה אמיתית.",
     missingByProvider: readiness.reduce<Record<string, string[]>>((acc, provider) => {
       acc[provider.provider] = provider.missing;
