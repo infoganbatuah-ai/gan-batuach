@@ -3,6 +3,7 @@ import { fail, handleRouteError, ok } from "@/lib/api";
 import { requireUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { registerPushDevice } from "@/lib/domain/push-service";
+import { getDigitalObserverApiUser } from "@/lib/domain/digital-observer/access";
 
 const schema = z.object({
   platform: z.enum(["web", "android", "ios"]),
@@ -14,9 +15,13 @@ const schema = z.object({
 
 export async function POST(request: Request) {
   try {
-    const { profile } = await requireUser();
+    const bearerSession = request.headers.get("authorization")?.startsWith("Bearer ")
+      ? await getDigitalObserverApiUser(request)
+      : null;
+    const cookieSession = bearerSession ? null : await requireUser();
+    const profile = bearerSession?.profile ?? cookieSession!.profile;
     const payload = schema.parse(await request.json());
-    const supabase = await createClient();
+    const supabase = bearerSession?.supabase ?? await createClient();
     const result = await registerPushDevice(supabase as any, {
       profileId: profile.id,
       role: profile.role,

@@ -14,6 +14,7 @@ import {
 import { getObserverSiteTemplate, observerSiteTemplates, type ObserverSiteTemplateKey } from "@/lib/domain/digital-observer/site-templates";
 import { ObserverAddressFields, type ObserverAddressFormValue } from "@/components/digital-observer/observer-address-fields";
 import { ObserverCameraMedia } from "@/components/digital-observer/observer-camera-media";
+import { ObserverFcmPushRegistration } from "@/components/digital-observer/observer-fcm-push-registration";
 
 type ActionState = { busy: boolean; error: string; message: string };
 
@@ -344,7 +345,7 @@ export function ObserverSettingsForm({ siteId, schedule, channels, consent = {} 
   return <form className="do-panel do-form-section" onSubmit={submit}>
     <h2>ניטור והתראות</h2>
     <div className="do-form-grid"><label className="do-field"><span>מצב ניטור</span><select name="schedule_mode" defaultValue={schedule?.schedule_mode || "event_only"}><option value="event_only">סביב אירועים בלבד</option><option value="night_only">לילה</option><option value="business_hours">שעות פעילות</option><option value="custom_schedule">לוח מותאם</option><option value="24_7">24/7 לאחר אישור הפעלה</option></select></label><label className="do-field"><span>שעות שקטות</span><span className="do-time-fields"><input aria-label="התחלה" name="quiet_start" type="time" defaultValue={quiet.start || "23:00"} /><input aria-label="סיום" name="quiet_end" type="time" defaultValue={quiet.end || "06:00"} /></span></label></div>
-    <div className="do-channel-grid"><label><input name="in_app" type="checkbox" defaultChecked={enabled("in_app") || !channels.length} /><Bell /><span><strong>בתוך האפליקציה</strong><small>פעיל במצב הדגמה</small></span></label><label><input name="email" type="checkbox" defaultChecked={enabled("email")} /><Bell /><span><strong>דוא״ל</strong><small>מצב mock עד ספק</small></span></label><label><input name="push" type="checkbox" defaultChecked={enabled("push")} /><Bell /><span><strong>Push</strong><small>דורש הגדרת אפליקציה</small></span></label><label><input name="sms" type="checkbox" defaultChecked={enabled("sms")} /><Bell /><span><strong>SMS</strong><small>כבוי ללא ספק</small></span></label><label><input name="whatsapp" type="checkbox" defaultChecked={enabled("whatsapp")} /><Bell /><span><strong>WhatsApp</strong><small>כבוי ללא ספק מאושר</small></span></label></div>
+    <div className="do-channel-grid"><label><input name="in_app" type="checkbox" defaultChecked={enabled("in_app") || !channels.length} /><Bell /><span><strong>בתוך האפליקציה</strong><small>פעיל במצב הדגמה</small></span></label><label><input name="email" type="checkbox" defaultChecked={enabled("email")} /><Bell /><span><strong>דוא״ל</strong><small>מצב mock עד ספק</small></span></label><label><input name="push" type="checkbox" defaultChecked={enabled("push")} /><Bell /><span><strong>Push</strong><small>מחובר דרך Firebase לאחר רישום מכשיר</small></span></label><label><input name="sms" type="checkbox" defaultChecked={enabled("sms")} /><Bell /><span><strong>SMS</strong><small>כבוי ללא ספק</small></span></label><label><input name="whatsapp" type="checkbox" defaultChecked={enabled("whatsapp")} /><Bell /><span><strong>WhatsApp</strong><small>כבוי ללא ספק מאושר</small></span></label></div>
     <div className="do-consent-grid"><label className="do-check"><input name="monitoring_consent" type="checkbox" defaultChecked={consent.observer_monitoring_consent === true} /><span><strong>ניטור ולמידת שגרת המקום</strong><small>ניתוח אירועים מהמצלמות הפעילות ובניית קו בסיס מקומי.</small></span></label><label className="do-check"><input name="safe_action_consent" type="checkbox" defaultChecked={consent.observer_safe_action_consent === true} /><span><strong>פעולות בטוחות שאושרו מראש</strong><small>צילום, הקלטה והתראות. פעולות פיזיות דורשות אישור בכל הפעלה.</small></span></label><label className="do-check"><input name="model_improvement_consent" type="checkbox" defaultChecked={consent.model_improvement_consent === true} /><span><strong>שיפור המודל הכללי</strong><small>תובנות מנותקות מזהות בלבד, ללא וידאו גולמי, כתובות או סיסמאות.</small></span></label></div>
     <button className="do-button primary" type="submit" disabled={state.busy}>שמירת הגדרות והסכמות</button><ResultMessage state={state} />
   </form>;
@@ -353,7 +354,6 @@ export function ObserverSettingsForm({ siteId, schedule, channels, consent = {} 
 export function ObserverRecipientsDevicesForm({ siteId, recipients, devices }: { siteId: string; recipients: any[]; devices: any[] }) {
   const router = useRouter();
   const [recipientState, setRecipientState] = useState<ActionState>({ busy: false, error: "", message: "" });
-  const [deviceState, setDeviceState] = useState<ActionState>({ busy: false, error: "", message: "" });
 
   async function addRecipient(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -379,27 +379,6 @@ export function ObserverRecipientsDevicesForm({ siteId, recipients, devices }: {
     }
   }
 
-  async function registerDevice() {
-    setDeviceState({ busy: true, error: "", message: "" });
-    try {
-      const storageKey = "digital_observer_device_reference";
-      const existing = window.localStorage.getItem(storageKey);
-      const reference = existing || crypto.randomUUID();
-      if (!existing) window.localStorage.setItem(storageKey, reference);
-      const result = await postJson("/api/digital-observer/access-settings", {
-        action: "register_device",
-        observer_site_id: siteId,
-        device_label: /Mobi|Android/i.test(navigator.userAgent) ? "המכשיר הנייד שלי" : "הדפדפן שלי",
-        platform: "web",
-        device_reference: reference
-      });
-      setDeviceState({ busy: false, error: "", message: result.message });
-      router.refresh();
-    } catch (error) {
-      setDeviceState({ busy: false, error: error instanceof Error ? error.message : "לא ניתן לרשום מכשיר", message: "" });
-    }
-  }
-
   return <section className="do-grid cols-2">
     <form className="do-panel do-form-section" onSubmit={addRecipient}>
       <div className="do-section-head"><div><h2>מורשי עדכונים</h2><p>פרטי הקשר מוצפנים ואינם מוצגים מחדש.</p></div><UserPlus /></div>
@@ -413,9 +392,8 @@ export function ObserverRecipientsDevicesForm({ siteId, recipients, devices }: {
     <article className="do-panel do-form-section">
       <div className="do-section-head"><div><h2>מכשירים מחוברים</h2><p>עד שני מכשירים פעילים לכל אתר.</p></div><Smartphone /></div>
       <div className="do-device-limit"><strong>{devices.filter((device) => device.active).length}/2</strong><span>חריצי מכשיר בשימוש</span></div>
-      <button className="do-button secondary" type="button" onClick={registerDevice} disabled={deviceState.busy}>{deviceState.busy ? <LoaderCircle className="do-spin" /> : <Smartphone />} רישום המכשיר הזה</button>
-      <ResultMessage state={deviceState} />
-      {devices.length ? <div className="do-row-list">{devices.map((device) => <div className="do-row" key={device.id}><Smartphone /><span className="do-row-main"><strong>{device.device_label}</strong><small>{device.platform} · {device.active ? "פעיל" : "נותק"}</small></span>{device.active ? <ObserverQuickAction endpoint="/api/digital-observer/access-settings" body={{ action: "revoke_device", id: device.id }} confirmText="לנתק את המכשיר?"><Trash2 /> ניתוק</ObserverQuickAction> : <span className="do-badge warn">נותק</span>}</div>)}</div> : <div className="do-empty"><Smartphone /><strong>אין מכשיר רשום</strong><span>Push אינו פעיל עד חיבור FCM/APNs/Web Push.</span></div>}
+      <ObserverFcmPushRegistration siteId={siteId} />
+      {devices.length ? <div className="do-row-list">{devices.map((device) => <div className="do-row" key={device.id}><Smartphone /><span className="do-row-main"><strong>{device.device_label}</strong><small>{device.platform} · {device.active ? "פעיל" : "נותק"}</small></span>{device.active ? <ObserverQuickAction endpoint="/api/digital-observer/access-settings" body={{ action: "revoke_device", id: device.id }} confirmText="לנתק את המכשיר?"><Trash2 /> ניתוק</ObserverQuickAction> : <span className="do-badge warn">נותק</span>}</div>)}</div> : <div className="do-empty"><Smartphone /><strong>אין מכשיר רשום</strong><span>לחצו על הפעלת Push כדי לרשום את המכשיר ב־Firebase.</span></div>}
     </article>
   </section>;
 }

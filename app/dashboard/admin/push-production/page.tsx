@@ -77,9 +77,9 @@ export default async function AdminPushProductionPage() {
         <div>
           <p className="eyebrow">Push Production Readiness</p>
           <h1>תשתית Push מוכנה לייצור מבוקר.</h1>
-          <p>תבניות, מכשירים, מסירה, פתיחה, Deep Links והעדפות לפי קטגוריה מוכנים. שליחה אמיתית כבויה בכוונה.</p>
+          <p>תבניות, מכשירים, מסירה, פתיחה, Deep Links והעדפות לפי קטגוריה מוכנים. מצב השליחה מוצג לפי תצורת השרת בפועל.</p>
         </div>
-        <span className={readiness.configured ? "pill warn" : "pill good"}><Bell size={16} /> {readiness.realSendEnabled ? "Real send enabled" : "Mock / dry-run בלבד"}</span>
+        <span className={readiness.realSendEnabled ? "pill good" : "pill warn"}><Bell size={16} /> {readiness.realSendEnabled ? "Real send enabled" : "Mock / dry-run בלבד"}</span>
       </div>
 
       <section className="status-banner sms-readiness-banner">
@@ -87,7 +87,7 @@ export default async function AdminPushProductionPage() {
           <strong>{readiness.summary}</strong>
           <span>FCM, APNs ו-Web Push מנוהלים דרך שכבת ספק אחת. מפתחות נשארים בצד שרת בלבד.</span>
         </div>
-        <span className="pill warn">Real push disabled</span>
+        <span className={readiness.realSendEnabled ? "pill good" : "pill warn"}>{readiness.realSendEnabled ? "Real push enabled" : "Real push disabled"}</span>
       </section>
 
       <div className="grid cols-4 dashboard-kpis">
@@ -103,7 +103,7 @@ export default async function AdminPushProductionPage() {
 
       <section className="grid cols-2 dashboard-panels">
         <article className="card action-panel">
-          <div className="section-heading"><h2><ShieldCheck size={20} /> מצב ספקים</h2><p>מוכנות ספקי Push בלי שליחה אמיתית.</p></div>
+          <div className="section-heading"><h2><ShieldCheck size={20} /> מצב ספקים</h2><p>מוכנות ספקי Push לפי תצורת השרת.</p></div>
           <div className="risk-list">
             {readiness.providers.map((provider) => (
               <div key={provider.provider}>
@@ -158,13 +158,13 @@ export default async function AdminPushProductionPage() {
             <div><CheckCircle2 /> העדפות קטגוריה <b>{preferencesRes.count ?? 0}</b></div>
             <div><RefreshCw /> Retry מתוזמן <b>{retryScheduled}</b></div>
             <div><CheckCircle2 /> ספקים במסד <b>{providers.length}</b></div>
-            <div><TriangleAlert /> שליחה אמיתית <b>כבויה בכוונה</b></div>
+            <div>{readiness.realSendEnabled ? <CheckCircle2 /> : <TriangleAlert />} שליחה אמיתית <b>{readiness.realSendEnabled ? "פעילה" : "כבויה"}</b></div>
           </div>
         </article>
       </section>
 
       <section className="dashboard-section">
-        <div className="section-heading"><h2>לוג Push</h2><p>queued / sent / delivered / opened / failed נשמרים כאן. כרגע mock / dry-run בלבד.</p></div>
+        <div className="section-heading"><h2>לוג Push</h2><p>queued / sent / delivered / opened / failed נשמרים כאן, בהתאם למצב הספק הפעיל.</p></div>
         {logs.length === 0 ? <div className="empty-state"><strong>אין לוגים עדיין</strong><span>כאשר התראה תכין Push, הלוג יופיע כאן.</span></div> : <div className="procedure-list">{logs.map((log) => (
           <article className="card procedure-card" key={log.id}>
             <div>
