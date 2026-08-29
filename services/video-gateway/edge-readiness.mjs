@@ -6,6 +6,7 @@ import { fileURLToPath } from "node:url";
 
 const objectWorkerPath = fileURLToPath(new URL("./onnx-object-worker.mjs", import.meta.url));
 let objectWorkerCache = { checkedAt: 0, value: null };
+const OBJECT_WORKER_SELF_TEST_TIMEOUT_MS = 60_000;
 
 function executableAvailable(command) {
   const candidates = command === "ffprobe"
@@ -36,7 +37,9 @@ function objectWorkerSelfTest() {
   if (objectWorkerCache.value && now - objectWorkerCache.checkedAt < 60_000) return objectWorkerCache.value;
   const result = spawnSync(process.execPath, [objectWorkerPath, "--self-test"], {
     encoding: "utf8",
-    timeout: 20_000,
+    // ONNX can take longer on a cold start while macOS maps the model and
+    // native runtime. Treat only a completed inference self-test as readiness.
+    timeout: OBJECT_WORKER_SELF_TEST_TIMEOUT_MS,
     stdio: ["ignore", "pipe", "ignore"]
   });
   let value = { available: false, reason: "object_worker_self_test_failed", provenance: null };
@@ -59,8 +62,10 @@ function objectWorkerSelfTest() {
 export function localEdgeReadiness() {
   const modelDir = process.env.VIDEO_GATEWAY_EDGE_MODEL_DIR || "";
   const audioModel = modelDir ? join(modelDir, "audio-event-detector.mlmodelc") : "";
-  const visionRuntime = process.platform === "darwin" && executableAvailable("swift");
-  const visionWorker = visionRuntime ? visionWorkerSelfTest() : { available: false, reason: "apple_vision_runtime_unavailable", capabilities: {} };
+  // The compiled worker is the runtime artifact. Requiring `swift` here would
+  // incorrectly disable Vision when the compiler is not on the LaunchAgent PATH.
+  const appleVisionPlatform = process.platform === "darwin";
+  const visionWorker = appleVisionPlatform ? visionWorkerSelfTest() : { available: false, reason: "apple_vision_runtime_unavailable", capabilities: {} };
   const objectWorker = objectWorkerSelfTest();
   const ffprobe = executableAvailable("ffprobe");
   const hardwareAcceleration = process.platform === "darwin" && process.arch === "arm64";
@@ -75,7 +80,7 @@ export function localEdgeReadiness() {
     ffprobe_available: ffprobe,
     gateway_connectivity: "healthy",
     gateway_version: process.env.VIDEO_GATEWAY_VERSION || "local-gateway",
-    runtime: { available: visionRuntime && visionWorker.available, kind: visionWorker.available ? "apple_vision" : visionRuntime ? "apple_swift_unverified" : "not_available", self_test_reason: visionWorker.reason },
+    runtime: { available: visionWorker.available, kind: visionWorker.available ? "apple_vision" : appleVisionPlatform ? "apple_vision_unverified" : "not_available", self_test_reason: visionWorker.reason },
     hardware: { platform: process.platform, architecture: process.arch, acceleration_available: hardwareAcceleration },
     models: {
       approved_inventory: [
@@ -84,7 +89,7 @@ export function localEdgeReadiness() {
       ],
       loaded: objectWorker.available
     },
-    apple_vision_runtime_available: visionRuntime,
+    apple_vision_runtime_available: visionWorker.available,
     face_detection: visionWorker.capabilities.face_detection === true,
     human_detection: visionWorker.capabilities.human_detection === true,
     image_classification: visionWorker.capabilities.image_classification === true,
@@ -95,11 +100,11 @@ export function localEdgeReadiness() {
     active: objectWorker.available,
     reason: objectWorker.available
       ? "object_detection_ready"
-      : visionRuntime && !visionWorker.available
+      : appleVisionPlatform && !visionWorker.available
       ? visionWorker.reason
-      : visionRuntime && audioModelPresent
+      : appleVisionPlatform && audioModelPresent
         ? "model_present_but_runtime_load_and_capability_test_required"
-      : !visionRuntime
+      : !appleVisionPlatform
         ? "apple_vision_runtime_unavailable"
         : "approved_edge_model_not_installed",
     capability_test: objectWorker.available ? { passed: true, reason: "object_model_loaded" } : { passed: false, reason: objectWorker.reason },

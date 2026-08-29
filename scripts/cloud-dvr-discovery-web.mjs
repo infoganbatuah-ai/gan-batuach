@@ -466,7 +466,50 @@ function sanitizeDiscovery(discovery, inputData) {
     metadata: {
       source: "local_gateway_cloud_discovery_web",
       ai_shadow_only: true,
+      read_only: true,
+      edge_capability_contract: inputData.edgeCapabilityContract
+    }
+  };
+}
+
+function sanitizeEdgeCapabilityContract(value) {
+  if (!value || typeof value !== "object") return null;
+  const source = value;
+  const capabilities = source.capabilities && typeof source.capabilities === "object" ? source.capabilities : {};
+  const modelInventory = Array.isArray(source.models?.approved_inventory) ? source.models.approved_inventory : [];
+  return {
+    version: Number(source.version) === 1 ? 1 : 0,
+    gateway: {
+      connected: source.gateway?.connected === true,
       read_only: true
+    },
+    runtime: {
+      available: source.runtime?.available === true,
+      kind: source.runtime?.kind === "apple_vision" ? "apple_vision" : "unverified"
+    },
+    hardware: {
+      acceleration_available: source.hardware?.acceleration_available === true
+    },
+    models: {
+      loaded: source.models?.loaded === true,
+      approved_inventory: modelInventory.slice(0, 8).map((model) => ({
+        capability: typeof model?.capability === "string" ? model.capability.slice(0, 80) : "unknown",
+        present: model?.present === true,
+        loaded: model?.loaded === true,
+        self_test_passed: model?.self_test_passed === true,
+        execution_provider: model?.execution_provider === "cpu" ? "cpu" : null
+      }))
+    },
+    capability_test: { passed: source.capability_test?.passed === true },
+    capabilities: {
+      local_activity_sampling: capabilities.local_activity_sampling === true,
+      face_detection: capabilities.face_detection === true,
+      human_detection: capabilities.human_detection === true,
+      image_classification: capabilities.image_classification === true,
+      object_detection: capabilities.object_detection === true,
+      audio_event_detection: false,
+      face_recognition: false,
+      biometric_matching: false
     }
   };
 }
@@ -585,6 +628,9 @@ async function connect(input) {
 
   startGateway();
   await waitForGateway();
+  const gatewayHealth = await fetch(`${gatewayUrl}/health`)
+    .then((response) => response.ok ? response.json() : null)
+    .catch(() => null);
   const channelCount = Number(connection.channelCount || 16);
   const vendor = String(connection.vendor || "generic");
   const discoveryResponse = await fetch(`${gatewayUrl}/dvr/connect`, {
@@ -605,7 +651,14 @@ async function connect(input) {
   const discovery = await discoveryResponse.json();
   if (!discoveryResponse.ok) throw new Error("בדיקת ה-DVR המקומית נכשלה.");
 
-  const payload = sanitizeDiscovery(discovery, { gatewayId, gardenId: "", observerSiteId, vendor, channelCount });
+  const payload = sanitizeDiscovery(discovery, {
+    gatewayId,
+    gardenId: "",
+    observerSiteId,
+    vendor,
+    channelCount,
+    edgeCapabilityContract: sanitizeEdgeCapabilityContract(gatewayHealth?.edge_capability_contract)
+  });
   const body = JSON.stringify(payload);
   const timestamp = new Date().toISOString();
   const nonce = crypto.randomUUID();

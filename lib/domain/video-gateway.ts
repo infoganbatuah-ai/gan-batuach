@@ -687,6 +687,14 @@ export async function materializeCloudDvrDiscovery(payload: z.infer<typeof cloud
   for (const channel of parsed.channels) {
     const gatewayStreamId = channel.gateway_stream_id ?? channel.stream_id ?? stableGatewayStreamId(parsed.gateway_id, scopeId, channel.channel);
     const connected = channel.status === "connected";
+    const channelLocalEventInsightsEnabled = Boolean(localEventInsightsEnabled && connected);
+    const channelEdgePolicy = connected
+      ? edgePolicy
+      : {
+        ...edgePolicy,
+        object_detection_enabled: false,
+        reason: "channel_offline"
+      };
     const name = channel.name ?? `DVR ערוץ ${channel.channel}`;
     const area = channel.area ?? `ערוץ ${channel.channel}`;
     const cameraPayload = {
@@ -749,10 +757,10 @@ export async function materializeCloudDvrDiscovery(payload: z.infer<typeof cloud
         no_rtsp_exposed: true,
         no_credentials_received: true,
         ai_shadow_only: true,
-        local_event_insights: localEventInsightsEnabled,
+        local_event_insights: channelLocalEventInsightsEnabled,
         local_activity_sampling: connected,
         edge_capability_contract: edgeCapabilityContract,
-        edge_policy: edgePolicy,
+        edge_policy: channelEdgePolicy,
         raw_frames_uploaded: false,
         read_only: true
       }
@@ -794,8 +802,8 @@ export async function materializeCloudDvrDiscovery(payload: z.infer<typeof cloud
       connected,
       statusHint: channel.status,
       edgeCapabilityContract,
-      localEventInsightsEnabled,
-      edgePolicy
+      localEventInsightsEnabled: channelLocalEventInsightsEnabled,
+      edgePolicy: channelEdgePolicy
     });
     results.push({ camera: camera ? sanitizeCameraRow(camera as any) : null, observer_source: observerSource, gateway_stream_id: gatewayStreamId });
   }
