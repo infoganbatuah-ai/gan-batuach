@@ -3,6 +3,7 @@ import { Bell, Brain, Camera, CheckCircle2, Cloud, CreditCard, Database, FileTex
 import { DashboardShell } from "@/components/dashboard-shell";
 import { ActionCard, CleanSection, EmptyState, PremiumDashboardHero, RoleMetricCard, StatusBadge } from "@/components/premium-dashboard";
 import { AdminIntegrationsTestPanel } from "@/components/admin-integrations-test-panel";
+import { SentryLiveTestButton } from "@/components/sentry-live-test-button";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { getEmailProductionReadiness } from "@/lib/domain/email-provider";
@@ -336,6 +337,7 @@ export default async function AdminIntegrationsPage() {
 
         <div id="integration-test-center">
           <AdminIntegrationsTestPanel integrations={integrations.map((item) => ({ integration_type: item.integration_type, provider: item.provider, status: item.status }))} />
+          <SentryLiveTestButton />
         </div>
 
         <CleanSection title="Webhook readiness" subtitle="נקודות קצה עתידיות חייבות חתימה ולא ייפתחו בלי סוד שרת.">

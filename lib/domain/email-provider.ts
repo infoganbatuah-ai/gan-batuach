@@ -1,3 +1,5 @@
+import { Resend } from "resend";
+
 export type EmailProviderName = "mock_email" | "resend" | "sendgrid" | "amazon_ses" | "custom";
 export type EmailDeliveryStatus = "queued" | "sent" | "delivered" | "opened" | "clicked" | "failed" | "dead_letter";
 
@@ -21,10 +23,10 @@ export type EmailProviderResult = {
 
 export type EmailProviderReadiness = {
   configured: boolean;
-  mode: "mock" | "dry_run" | "real_disabled";
+  mode: "mock" | "dry_run" | "real_disabled" | "production";
   provider: EmailProviderName;
   missing: string[];
-  canSendRealMessages: false;
+  canSendRealMessages: boolean;
   summary: string;
 };
 
@@ -56,6 +58,98 @@ function baseReadiness(provider: EmailProviderName, required: Array<[string, str
       : `${provider} is not fully configured. Mock email mode is active.`
   };
 }
+
+function resendReadiness(): EmailProviderReadiness {
+  const required: Array<[string, string | undefined]> = [
+    ["RESEND_API_KEY", process.env.RESEND_API_KEY || process.env.EMAIL_API_KEY],
+    ["EMAIL_FROM_ADDRESS", process.env.EMAIL_FROM_ADDRESS]
+  ];
+  const missing = required.filter(([, value]) => !value).map(([key]) => key);
+  const configured = missing.length === 0;
+  const activationMissing = [
+    process.env.COMMUNICATIONS_SEND_MODE !== "production" ? "COMMUNICATIONS_SEND_MODE=production" : null,
+    process.env.EMAIL_MODE !== "production" ? "EMAIL_MODE=production" : null,
+    process.env.EMAIL_REAL_SEND_ENABLED !== "true" ? "EMAIL_REAL_SEND_ENABLED=true" : null,
+    process.env.PRODUCTION_ACTIVATION_APPROVED !== "true" ? "PRODUCTION_ACTIVATION_APPROVED=true" : null
+  ].filter((value): value is string => Boolean(value));
+  const canSendRealMessages = configured && activationMissing.length === 0;
+
+  return {
+    configured,
+    mode: canSendRealMessages ? "production" : configured ? "real_disabled" : "mock",
+    provider: "resend",
+    missing: [...missing, ...activationMissing],
+    canSendRealMessages,
+    summary: canSendRealMessages
+      ? "Resend is configured and production email sending is enabled."
+      : configured
+        ? "Resend credentials are configured, but one or more production safety gates are disabled."
+        : "Resend is not fully configured. Mock email mode is active."
+  };
+}
+
+function safeTagValue(value: string) {
+  return value.replace(/[^a-zA-Z0-9_-]/g, "_").slice(0, 256) || "general";
+}
+
+const resendEmailProvider: EmailProvider = {
+  name: "resend",
+  checkReadiness: resendReadiness,
+  async send(message) {
+    const readiness = resendReadiness();
+    if (!readiness.canSendRealMessages) {
+      return {
+        status: readiness.configured ? "queued" : "failed",
+        provider: "resend",
+        providerMessageId: readiness.configured ? `dry_run_resend_${Date.now()}` : null,
+        providerReference: readiness.configured ? `dry_run_${message.category}` : null,
+        failureReason: readiness.configured ? null : `Missing ${readiness.missing.join(", ")}`,
+        dryRunPayload: {
+          provider: "resend",
+          to: maskEmail(message.to),
+          subject: message.subject,
+          category: message.category,
+          realSend: false
+        }
+      };
+    }
+
+    const apiKey = process.env.RESEND_API_KEY || process.env.EMAIL_API_KEY;
+    const fromAddress = process.env.EMAIL_FROM_ADDRESS!;
+    const fromName = process.env.EMAIL_FROM_NAME?.trim();
+    const from = fromAddress.includes("<") || !fromName ? fromAddress : `${fromName} <${fromAddress}>`;
+    const resend = new Resend(apiKey);
+    const response = await resend.emails.send({
+      from,
+      to: message.to,
+      replyTo: process.env.EMAIL_REPLY_TO || undefined,
+      subject: message.subject,
+      text: message.text,
+      html: message.html || undefined,
+      tags: [
+        { name: "category", value: safeTagValue(message.category) },
+        { name: "application", value: "gan_batuach" }
+      ]
+    });
+
+    if (response.error || !response.data?.id) {
+      return {
+        status: "failed",
+        provider: "resend",
+        providerMessageId: null,
+        providerReference: "resend_api_error",
+        failureReason: response.error?.message || "Resend did not return a message id."
+      };
+    }
+
+    return {
+      status: "sent",
+      provider: "resend",
+      providerMessageId: response.data.id,
+      providerReference: `resend_${message.category}`
+    };
+  }
+};
 
 const mockEmailProvider: EmailProvider = {
   name: "mock_email",
@@ -111,10 +205,7 @@ function dryRunProvider(name: Exclude<EmailProviderName, "mock_email" | "custom"
 
 export function getEmailProvider(provider = process.env.EMAIL_PROVIDER): EmailProvider {
   if (provider === "resend") {
-    return dryRunProvider("resend", [
-      ["RESEND_API_KEY", process.env.RESEND_API_KEY || process.env.EMAIL_API_KEY],
-      ["EMAIL_FROM_ADDRESS", process.env.EMAIL_FROM_ADDRESS]
-    ]);
+    return resendEmailProvider;
   }
   if (provider === "sendgrid") {
     return dryRunProvider("sendgrid", [

@@ -1,5 +1,6 @@
 import { AlertTriangle, CheckCircle2, Mail, MousePointerClick, RefreshCw, ShieldCheck } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
+import { ResendLiveTestButton } from "@/components/resend-live-test-button";
 import { StatCard } from "@/components/stat-card";
 import { requireRole } from "@/lib/auth";
 import { getEmailProductionReadiness } from "@/lib/domain/email-provider";
@@ -72,18 +73,20 @@ export default async function AdminEmailProductionPage() {
         <div>
           <p className="eyebrow">Email Production Readiness</p>
           <h1>תשתית אימייל מוכנה להפעלה מבוקרת.</h1>
-          <p>תבניות, תור שליחה, סטטוסי מסירה, פתיחות, לחיצות וכשלונות מוכנים. שליחת אימייל אמיתית עדיין כבויה בכוונה.</p>
+          <p>תבניות, תור שליחה, סטטוסי מסירה, פתיחות, לחיצות וכשלונות מחוברים לספק הפעיל.</p>
         </div>
-        <span className={readiness.configured ? "pill warn" : "pill good"}><Mail size={16} /> {readiness.mode === "dry_run" ? "Dry-run בלבד" : "Mock בלבד"}</span>
+        <span className={readiness.canSendRealMessages ? "pill good" : "pill warn"}><Mail size={16} /> {readiness.canSendRealMessages ? "Production פעיל" : readiness.configured ? "ממתין להפעלה" : "Mock בלבד"}</span>
       </div>
 
       <section className="status-banner sms-readiness-banner">
         <div>
           <strong>{readiness.summary}</strong>
-          <span>{readiness.missing.length ? `חסר: ${readiness.missing.join(", ")}` : "הגדרות ספק קיימות, אבל שליחה אמיתית אינה פעילה."}</span>
+          <span>{readiness.missing.length ? `חסר: ${readiness.missing.join(", ")}` : "הספק מוגדר ומאושר לשליחה חיה."}</span>
         </div>
-        <span className="pill warn">Real email disabled</span>
+        <span className={readiness.canSendRealMessages ? "pill good" : "pill warn"}>{readiness.canSendRealMessages ? "Real email enabled" : "Real email disabled"}</span>
       </section>
+
+      <ResendLiveTestButton enabled={readiness.canSendRealMessages} />
 
       <div className="grid cols-4 dashboard-kpis">
         <StatCard label="תבניות" value={templates.length} tone={templates.length ? "good" : "warn"} />
@@ -104,7 +107,7 @@ export default async function AdminEmailProductionPage() {
             <div><CheckCircle2 /> תור שליחה <b>מוכן</b></div>
             <div><RefreshCw /> Retry / Dead letter <b>מוכן</b></div>
             <div><MousePointerClick /> Open / Click tracking <b>מוכן במודל</b></div>
-            <div><AlertTriangle /> Real send <b>כבוי בכוונה</b></div>
+            <div>{readiness.canSendRealMessages ? <CheckCircle2 /> : <AlertTriangle />} Real send <b>{readiness.canSendRealMessages ? "פעיל" : "ממתין להפעלה"}</b></div>
           </div>
         </article>
         <article className="card action-panel">
@@ -133,7 +136,7 @@ export default async function AdminEmailProductionPage() {
       </section>
 
       <section className="dashboard-section">
-        <div className="section-heading"><h2>לוג אימייל</h2><p>queued / sent / delivered / opened / clicked / failed נשמרים כאן. כרגע mock / dry-run בלבד.</p></div>
+        <div className="section-heading"><h2>לוג אימייל</h2><p>queued / sent / delivered / opened / clicked / failed נשמרים כאן ומעודכנים מ-webhook חתום.</p></div>
         {logs.length === 0 ? <div className="empty-state"><strong>אין אימיילים בתור עדיין</strong><span>כאשר הודעת אימייל תיווצר במצב בדיקה, היא תופיע כאן.</span></div> : <div className="procedure-list">{logs.map((log) => (
           <article className="card procedure-card" key={log.id}>
             <div>
