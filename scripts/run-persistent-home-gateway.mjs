@@ -5,6 +5,10 @@ const workdir = process.cwd();
 const gatewayUrl = "http://127.0.0.1:18082";
 const gatewayKeychainService = process.env.GAN_BATUACH_GATEWAY_KEYCHAIN_SERVICE || "com.ganbatuach.video-gateway.runtime";
 const discoveryEnabled = process.env.GAN_BATUACH_GATEWAY_DISCOVERY === "1";
+const DISCOVERY_RETRY_DELAY_MS = 20_000;
+const DISCOVERY_RETRY_ATTEMPTS = 2;
+const EMPTY_DISCOVERY_CONFIRMATIONS = 3;
+const VERIFIED_CONNECTED_COUNT_KEY = "last_verified_connected_channel_count";
 
 function keychainSecret(account) {
   const result = spawnSync("/usr/bin/security", ["find-generic-password", "-s", gatewayKeychainService, "-a", account, "-w"], { encoding: "utf8" });
@@ -93,12 +97,27 @@ async function waitForGateway() {
 }
 
 let channels = [];
+let consecutiveEmptyDiscoveries = 0;
 async function discover() {
   const health = await fetch(`${gatewayUrl}/health`).then((response) => response.ok ? response.json() : {}).catch(() => ({}));
   const response = await fetch(`${gatewayUrl}/dvr/connect`, { method: "POST", headers: { "content-type": "application/json", "x-video-gateway-secret": gatewaySecret }, body: JSON.stringify({ connection_type: "dvr", endpoint: config.endpoint, port: config.port, username: config.username, password, metadata: { vendor: config.vendor, expected_channel_count: config.channel_count, read_only_requested: true } }) });
   const result = await response.json();
   if (!response.ok) throw new Error("DVR discovery failed");
   channels = (result.channels || []).map((channel, index) => Object.fromEntries(Object.entries({ channel: Number(channel.channel || index + 1), name: channel.name, area: channel.area, stream_id: channel.stream_id, gateway_stream_id: channel.gateway_stream_id || channel.stream_id, status: channel.status, health_status: channel.health_status, width: channel.width ?? null, height: channel.height ?? null, candidates_tried: channel.candidates_tried, template: channel.template, reason: channel.reason }).filter(([, value]) => value !== undefined && value !== null)));
+  const connectedChannels = channels.filter((channel) => channel.status === "connected");
+  const previouslyVerified = Number(keychainSecret(VERIFIED_CONNECTED_COUNT_KEY) || 0);
+  const hasUnconfirmedRegression = channels.length
+    && (connectedChannels.length === 0 || (previouslyVerified > 0 && connectedChannels.length < previouslyVerified));
+  if (hasUnconfirmedRegression) {
+    consecutiveEmptyDiscoveries += 1;
+    // A recorder can briefly reject all streams during session recovery. Do not
+    // overwrite the dashboard's last known-good mapping until this is repeated.
+    if (consecutiveEmptyDiscoveries < EMPTY_DISCOVERY_CONFIRMATIONS) {
+      throw new Error("channel_regression_pending_confirmation");
+    }
+  } else {
+    consecutiveEmptyDiscoveries = 0;
+  }
   const mapped = await signedPost("/api/video-gateway/cloud-discovery", { gateway_id: gatewayId, observer_site_id: observerSiteId, connection_type: "dvr", vendor: config.vendor, discovery_id: crypto.randomUUID(), discovered_at: new Date().toISOString(), channel_count: channels.length, connected_channel_count: channels.filter((channel) => channel.status === "connected").length, failed_channel_count: channels.filter((channel) => channel.status !== "connected").length, latency_ms: Number(result.latency_ms || 0), read_only: true, controls_supported: false, no_secrets_returned: true, channels, metadata: { source: "persistent_home_gateway", ai_shadow_only: true, read_only: true, edge_capability_contract: health.edge_capability_contract ?? null } }, { deviceAccess: true });
   const mappedPayload = mapped?.data && typeof mapped.data === "object" ? mapped.data : mapped;
   const mappedChannels = Array.isArray(mappedPayload?.channels) ? mappedPayload.channels : [];
@@ -106,6 +125,23 @@ async function discover() {
     const mappedChannel = mappedChannels.find((item) => item?.gateway_stream_id === channel.gateway_stream_id);
     return { ...channel, camera_source_id: mappedChannel?.camera_source_id ?? channel.camera_source_id ?? null };
   });
+  if (connectedChannels.length > 0) storeKeychainSecret(VERIFIED_CONNECTED_COUNT_KEY, String(connectedChannels.length));
+}
+
+async function discoverWithRetry(context, attempt = 0) {
+  try {
+    await discover();
+    return true;
+  } catch (error) {
+    const message = error instanceof Error ? error.message : "discovery_failed";
+    if (attempt >= DISCOVERY_RETRY_ATTEMPTS) {
+      console.error(`${context} DVR discovery unavailable; retry scheduled: ${message}`);
+      return false;
+    }
+    console.error(`${context} DVR discovery retrying: ${message}`);
+    await new Promise((resolve) => setTimeout(resolve, DISCOVERY_RETRY_DELAY_MS));
+    return discoverWithRetry(context, attempt + 1);
+  }
 }
 
 async function learn() {
@@ -179,11 +215,7 @@ async function submitReadinessEvidence() {
 
 await waitForGateway();
 if (discoveryEnabled) {
-  try {
-    await discover();
-  } catch (error) {
-    console.error(`initial DVR discovery unavailable; retry scheduled: ${error.message}`);
-  }
+  await discoverWithRetry("initial");
   if (cloudSecret) {
     await learn();
     void submitReadinessEvidence().then((result) => {
@@ -191,7 +223,7 @@ if (discoveryEnabled) {
     }).catch((error) => console.error(error.message));
     setInterval(() => void learn().catch((error) => console.error(error.message)), 5 * 60 * 1000).unref();
   }
-  setInterval(() => void discover().catch((error) => console.error(`DVR discovery retry failed: ${error.message}`)), 15 * 60 * 1000).unref();
+  setInterval(() => void discoverWithRetry("scheduled"), 15 * 60 * 1000).unref();
 }
 
 function shutdown() { child.kill("SIGTERM"); process.exit(0); }

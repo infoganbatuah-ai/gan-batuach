@@ -7,7 +7,7 @@ const objectWorker = readFileSync(new URL("../../services/video-gateway/onnx-obj
 const builder = readFileSync(new URL("../build-vision-edge-worker.mjs", import.meta.url), "utf8");
 const installer = readFileSync(new URL("../install-persistent-home-gateway.mjs", import.meta.url), "utf8");
 
-for (const required of ["visionWorkerSelfTest", "vision_worker_not_built", "vision_worker_self_test_timeout", "OBJECT_WORKER_SELF_TEST_TIMEOUT_MS = 60_000", "face_detection", "human_detection", "image_classification", "compiled worker is the runtime artifact"]) {
+for (const required of ["visionWorkerSelfTest", "vision_worker_not_built", "vision_worker_self_test_timeout", "OBJECT_WORKER_SELF_TEST_TIMEOUT_MS = 120_000", "face_detection", "human_detection", "image_classification", "compiled worker is the runtime artifact"]) {
   if (!readiness.includes(required)) throw new Error(`Missing Edge Vision readiness control: ${required}`);
 }
 for (const required of ["VNDetectFaceRectanglesRequest", "VNDetectHumanRectanglesRequest", "VNClassifyImageRequest", "biometric_matching\": false", "face_recognition\": false"]) {
