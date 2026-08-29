@@ -5,7 +5,7 @@ import { ObserverAppShell } from "@/components/digital-observer/observer-app-she
 import { ObserverCameraMedia } from "@/components/digital-observer/observer-camera-media";
 import { requireDigitalObserverUser } from "@/lib/domain/digital-observer/access";
 import { observerEventNarrative } from "@/lib/domain/digital-observer/event-narrative";
-import { formatObserverDate, loadObserverRuntime, observerCameraForSignal, observerClipForSignal, observerClipHasRequiredMedia, observerEventLabel, observerModeForSite, observerSignalHasRequiredEvidence, observerSignalMatchesCamera, observerStatusLabel } from "@/lib/domain/digital-observer/runtime";
+import { formatObserverDate, loadObserverRuntime, observerCameraForSignal, observerClipForSignal, observerClipHasRequiredMedia, observerEventLabel, observerModeForSite, observerSignalHasRequiredEvidence, observerSignalMatchesCamera, observerStatusLabel, selectObserverSite } from "@/lib/domain/digital-observer/runtime";
 
 type PageProps = { searchParams?: Promise<{ event?: string; site?: string; severity?: string; q?: string; camera?: string; view?: string; preview?: string }> };
 const severityClass = (value?: string) => ["critical", "urgent", "high"].includes(String(value)) ? "bad" : value === "medium" ? "warn" : "info";
@@ -14,7 +14,7 @@ export default async function DigitalObserverAlertsPage({ searchParams }: PagePr
   const params = await searchParams;
   const { profile } = await requireDigitalObserverUser("/digital-observer/login?next=/digital-observer/alerts");
   const runtime = await loadObserverRuntime(profile.id);
-  const site = runtime.sites.find((item) => item.id === params?.site) ?? runtime.sites[0] ?? null;
+  const site = selectObserverSite(runtime.sites, runtime.cameras, params?.site);
   const mode = observerModeForSite(site);
   const allSignals = site ? runtime.signals.filter((item) => item.observer_site_id === site.id) : [];
   const siteCameras = site ? runtime.cameras.filter((item) => item.observer_site_id === site.id) : [];

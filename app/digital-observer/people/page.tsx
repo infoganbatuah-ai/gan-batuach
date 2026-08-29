@@ -4,7 +4,7 @@ import { ObserverDeletePersonButton, ObserverKnownPersonForm } from "@/component
 import { ObserverIdentityCandidateReview } from "@/components/digital-observer/observer-intelligence-experience";
 import { ObserverAppShell } from "@/components/digital-observer/observer-app-shell";
 import { requireDigitalObserverUser } from "@/lib/domain/digital-observer/access";
-import { formatObserverDate, loadObserverRuntime, observerModeForSite, observerStatusLabel } from "@/lib/domain/digital-observer/runtime";
+import { formatObserverDate, loadObserverRuntime, observerModeForSite, observerStatusLabel, selectObserverSite } from "@/lib/domain/digital-observer/runtime";
 
 type PageProps = { searchParams?: Promise<{ tab?: string }> };
 
@@ -12,7 +12,7 @@ export default async function DigitalObserverPeoplePage({ searchParams }: PagePr
   const params = await searchParams;
   const { profile } = await requireDigitalObserverUser("/digital-observer/login?next=/digital-observer/people");
   const runtime = await loadObserverRuntime(profile.id);
-  const site = runtime.sites[0] ?? null;
+  const site = selectObserverSite(runtime.sites, runtime.cameras);
   const mode = observerModeForSite(site);
   const people = site ? runtime.knownPeople.filter((item) => item.observer_site_id === site.id) : [];
   const candidates = site

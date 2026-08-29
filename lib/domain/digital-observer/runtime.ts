@@ -35,6 +35,22 @@ export function observerModeForSite(site?: ObserverRow | null): ObserverMode {
   return site?.site_type === "home" ? "home" : "business";
 }
 
+/** Prefer an existing source-bearing site when no explicit selection was made. */
+export function selectObserverSite(sites: ObserverRow[], cameras: ObserverRow[], requestedSiteId?: string | null) {
+  const requested = requestedSiteId ? sites.find((site) => site.id === requestedSiteId) : null;
+  if (requested) return requested;
+  const sourceCountBySite = new Map<string, number>();
+  for (const camera of cameras) {
+    const siteId = typeof camera.observer_site_id === "string" ? camera.observer_site_id : null;
+    if (siteId) sourceCountBySite.set(siteId, (sourceCountBySite.get(siteId) ?? 0) + 1);
+  }
+  return [...sites].sort((left, right) => {
+    const sourceDifference = (sourceCountBySite.get(right.id) ?? 0) - (sourceCountBySite.get(left.id) ?? 0);
+    if (sourceDifference) return sourceDifference;
+    return String(right.created_at ?? "").localeCompare(String(left.created_at ?? ""));
+  })[0] ?? null;
+}
+
 export function observerCameraForSignal(signal: ObserverRow | null | undefined, cameras: ObserverRow[]) {
   const cameraReference = signal?.camera_id ?? signal?.metadata?.camera_source_id;
   if (!cameraReference) return null;
