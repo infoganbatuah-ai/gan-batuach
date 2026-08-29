@@ -15,12 +15,14 @@ const DEFAULT_CHANNEL_COUNT = Number(process.env.DVR_EXPECTED_CHANNEL_COUNT || 1
 const MAX_CHANNEL_COUNT = 64;
 const HLS_ROOT = join(tmpdir(), "gan-batuach-video-gateway-hls");
 const PLAYBACK_TOKEN_TTL_MS = 5 * 60 * 1000;
+const RELAY_STALE_MS = 8 * 1000;
 const EVENT_CLIP_MAX_SECONDS = 30;
 const EVENT_THUMBNAIL_MAX_BYTES = 512 * 1024;
 const EVENT_CLIP_MAX_BYTES = 8 * 1024 * 1024;
 const streamSources = new Map();
 const privateNvrSessions = new Map();
 const relays = new Map();
+const relayStarts = new Map();
 const playbackTokens = new Map();
 let lastDiscoverySummary = { channelCount: 0, connectedCount: 0, checkedAt: null };
 const requestMetrics = { playbackRequests: 0, playbackReady: 0, playbackUnavailable: 0, hlsRequests: 0 };
@@ -307,7 +309,7 @@ async function privateNvrStreamResponse(url, token, cookie, signal) {
   return response;
 }
 
-async function pipeWebStreamToWritable(stream, writable) {
+async function pipeWebStreamToWritable(stream, writable, onChunk = null) {
   const reader = stream.getReader();
   let pipeError = null;
   const onPipeError = (error) => { pipeError = error; };
@@ -329,6 +331,7 @@ async function pipeWebStreamToWritable(stream, writable) {
       if (done) break;
       if (pipeError || writable.destroyed || !writable.writable) break;
       try {
+        onChunk?.(value.byteLength);
         if (!writable.write(Buffer.from(value))) {
           await waitForDrain();
         }
@@ -394,7 +397,7 @@ async function discoverPrivateNvr(payload, channelCount) {
     const result = await probePrivateNvrStream(url, session.token, session.cookie);
     const streamId = streamIdFor(payload, channel);
     const previousRelay = relays.get(streamId);
-    if (previousRelay?.process) previousRelay.process.kill("SIGTERM");
+    if (previousRelay) stopRelay(streamId, previousRelay);
     streamSources.delete(streamId);
     if (result.ok) {
       streamSources.set(streamId, {
@@ -559,7 +562,32 @@ async function privateNvrRelayResponse(source) {
 
 async function ensureRelay(streamId) {
   const existing = relays.get(streamId);
-  if (existing?.process && !existing.process.killed) return existing;
+  if (existing && relayIsProgressing(existing)) return existing;
+  if (existing) stopRelay(streamId, existing);
+  if (relayStarts.has(streamId)) return relayStarts.get(streamId);
+  const start = startRelay(streamId).finally(() => relayStarts.delete(streamId));
+  relayStarts.set(streamId, start);
+  return start;
+}
+
+function relayIsProgressing(relay) {
+  if (!relay?.process || relay.process.exitCode !== null || relay.process.killed) return false;
+  if (!existsSync(relay.playlist)) return Date.now() - relay.startedAt < RELAY_STALE_MS;
+  try {
+    return Date.now() - statSync(relay.playlist).mtimeMs < RELAY_STALE_MS;
+  } catch {
+    return false;
+  }
+}
+
+function stopRelay(streamId, relay) {
+  relay.monitor && clearInterval(relay.monitor);
+  relay.controller?.abort();
+  if (relay.process?.exitCode === null && !relay.process.killed) relay.process.kill("SIGKILL");
+  if (relays.get(streamId) === relay) relays.delete(streamId);
+}
+
+async function startRelay(streamId) {
   const source = streamSources.get(streamId);
   if (!source) return null;
   const directory = relayDirectory(streamId);
@@ -593,13 +621,22 @@ async function ensureRelay(streamId) {
   if (!relaySource) return null;
   const { response, controller, sessionToken } = relaySource;
   const child = spawn("ffmpeg", args, { stdio: ["pipe", "ignore", "pipe"] });
-  const relay = { process: child, playlist, startedAt: Date.now(), controller, errorSummary: "", sessionToken };
+  const relay = { process: child, playlist, startedAt: Date.now(), lastInputAt: Date.now(), inputBytes: 0, controller, errorSummary: "", sessionToken, monitor: null };
   relays.set(streamId, relay);
-  void pipeWebStreamToWritable(response.body, child.stdin).catch(() => child.kill("SIGKILL"));
+  void pipeWebStreamToWritable(response.body, child.stdin, (byteLength) => {
+    relay.lastInputAt = Date.now();
+    relay.inputBytes += byteLength;
+  }).catch(() => child.kill("SIGKILL"));
+  relay.monitor = setInterval(() => {
+    if (relays.get(streamId) !== relay) return clearInterval(relay.monitor);
+    if (!relayIsProgressing(relay) || Date.now() - relay.lastInputAt >= RELAY_STALE_MS) stopRelay(streamId, relay);
+  }, 2000);
+  relay.monitor.unref();
   child.stderr.on("data", (chunk) => {
     relay.errorSummary = `${relay.errorSummary}${chunk.toString("utf8")}`.slice(-2000);
   });
   child.on("close", (code) => {
+    clearInterval(relay.monitor);
     controller.abort();
     if (code && relay.errorSummary) {
       const safeSummary = relay.errorSummary.replace(/(?:https?|rtsp):\/\/\S+/gi, "[private-source]").trim().split("\n").slice(-3).join(" | ");
@@ -608,7 +645,7 @@ async function ensureRelay(streamId) {
     if (code && source.kind === "private_nvr_http_mp4") {
       void refreshPrivateNvrSession(source.sessionKey, relay.sessionToken);
     }
-    if (relays.get(streamId)?.process === child) relays.delete(streamId);
+    if (relays.get(streamId) === relay) relays.delete(streamId);
   });
   return relay;
 }
@@ -786,13 +823,20 @@ function validatePlaybackToken(token, streamId) {
   return true;
 }
 
-function serveHls(request, response) {
+async function serveHls(request, response) {
   requestMetrics.hlsRequests += 1;
   const url = new URL(request.url, "http://gateway.local");
   const match = url.pathname.match(/^\/hls\/([a-zA-Z0-9_-]+)\/(index\.m3u8|segment-\d+\.ts)$/);
   if (!match || !validatePlaybackToken(url.searchParams.get("token"), match[1])) {
     json(response, 401, { error: "unauthorized" });
     return;
+  }
+  if (match[2] === "index.m3u8") {
+    const relay = await ensureRelay(match[1]);
+    if (!relay || !(await waitForFile(relay.playlist, 8000))) {
+      json(response, 503, { error: "stream_starting", retryable: true });
+      return;
+    }
   }
   const file = normalize(join(relayDirectory(match[1]), match[2]));
   if (!file.startsWith(relayDirectory(match[1])) || !existsSync(file)) {
@@ -828,7 +872,7 @@ async function handle(request, response) {
     return;
   }
   if (request.method === "GET" && request.url?.startsWith("/hls/")) {
-    serveHls(request, response);
+    await serveHls(request, response);
     return;
   }
   if (request.url === "/health" && request.method === "GET") {
@@ -842,6 +886,11 @@ async function handle(request, response) {
       failedStreamCount: Math.max(0, lastDiscoverySummary.channelCount - lastDiscoverySummary.connectedCount),
       lastDiscovery: lastDiscoverySummary,
       requestMetrics,
+      mediaHeartbeat: {
+        activeRelays: relays.size,
+        progressingRelays: [...relays.values()].filter(relayIsProgressing).length,
+        stalledRelays: [...relays.values()].filter((relay) => !relayIsProgressing(relay)).length
+      },
       edge,
       edge_capability_contract: edgeCapabilityContract(edge),
       capabilities: {

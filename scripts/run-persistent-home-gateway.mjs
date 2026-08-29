@@ -1,11 +1,7 @@
 import crypto from "node:crypto";
 import { spawn, spawnSync } from "node:child_process";
-import { readFileSync } from "node:fs";
-import { homedir } from "node:os";
 
 const workdir = process.cwd();
-const userHome = process.env.HOME || homedir();
-const runtimeConfigPath = process.env.GAN_BATUACH_GATEWAY_CONFIG || `${userHome}/.config/gan-batuach/home-gateway.json`;
 const gatewayUrl = "http://127.0.0.1:18082";
 const gatewayKeychainService = process.env.GAN_BATUACH_GATEWAY_KEYCHAIN_SERVICE || "com.ganbatuach.video-gateway.runtime";
 const discoveryEnabled = process.env.GAN_BATUACH_GATEWAY_DISCOVERY === "1";
@@ -43,10 +39,11 @@ if (missingCloudConfiguration.length) throw new Error(`Persistent gateway cloud 
 let config = null;
 let password = "";
 if (discoveryEnabled) {
-  config = JSON.parse(readFileSync(runtimeConfigPath, "utf8"));
-  const passwordResult = spawnSync("/usr/bin/security", ["find-generic-password", "-s", config.keychain_service, "-a", config.username, "-w"], { encoding: "utf8" });
-  if (passwordResult.status !== 0 || !passwordResult.stdout.trim()) throw new Error("DVR credential is not available in macOS Keychain");
-  password = passwordResult.stdout.trim();
+  const profileJson = keychainSecret("dvr_profile_json");
+  if (!profileJson) throw new Error("DVR profile is not available in macOS Keychain");
+  config = JSON.parse(profileJson);
+  password = keychainSecret("dvr_password");
+  if (!password) throw new Error("DVR credential is not available in macOS Keychain");
 }
 
 async function refreshDeviceAccess() {
@@ -181,7 +178,11 @@ async function submitReadinessEvidence() {
 
 await waitForGateway();
 if (discoveryEnabled) {
-  await discover();
+  try {
+    await discover();
+  } catch (error) {
+    console.error(`initial DVR discovery unavailable; retry scheduled: ${error.message}`);
+  }
   if (cloudSecret) {
     await learn();
     void submitReadinessEvidence().then((result) => {
@@ -189,7 +190,7 @@ if (discoveryEnabled) {
     }).catch((error) => console.error(error.message));
     setInterval(() => void learn().catch((error) => console.error(error.message)), 5 * 60 * 1000).unref();
   }
-  setInterval(() => void discover().catch((error) => console.error(error.message)), 60 * 60 * 1000).unref();
+  setInterval(() => void discover().catch((error) => console.error(`DVR discovery retry failed: ${error.message}`)), 15 * 60 * 1000).unref();
 }
 
 function shutdown() { child.kill("SIGTERM"); process.exit(0); }
