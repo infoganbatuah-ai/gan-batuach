@@ -3,6 +3,7 @@ import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { recordHomeActivityMetrics } from "@/lib/domain/digital-observer/home-learning-sampler";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { verifyGatewayDeviceAccessToken } from "@/lib/domain/gateway-device-enrollment";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -55,12 +56,26 @@ export async function POST(request: Request) {
     const timestamp = header(request, "x-video-gateway-timestamp");
     const nonce = header(request, "x-video-gateway-nonce");
     const signature = header(request, "x-video-gateway-signature");
+    const deviceToken = header(request, "x-video-gateway-device-token");
     const parsedTimestamp = Date.parse(timestamp);
-    if (!gatewayId || !nonce || !signature || !Number.isFinite(parsedTimestamp) || Math.abs(Date.now() - parsedTimestamp) > MAX_CLOCK_SKEW_MS) return fail("Invalid gateway authentication.", 401);
+    if (!gatewayId || !nonce || (!signature && !deviceToken) || !Number.isFinite(parsedTimestamp) || Math.abs(Date.now() - parsedTimestamp) > MAX_CLOCK_SKEW_MS) return fail("Invalid gateway authentication.", 401);
     const body = await request.text();
-    if (!verifySignature(`${timestamp}.${nonce}.${body}`, signature, secret)) return fail("Invalid signature.", 401);
     const payload = payloadSchema.parse(JSON.parse(body));
-    if (payload.gateway_id !== gatewayId || !allowed(gatewayId, payload.observer_site_id)) return fail("Gateway is not allowed for this site.", 403);
+    const device = deviceToken ? verifyGatewayDeviceAccessToken(deviceToken, secret) : null;
+    if (device) {
+      if (device.gateway_id !== gatewayId || device.observer_site_id !== payload.observer_site_id || payload.gateway_id !== gatewayId) return fail("Gateway device is not authorized for this site.", 403);
+      const enrollment = await createAdminClient().from("video_gateway_device_enrollments" as any)
+        .select("id")
+        .eq("id", device.device_id)
+        .eq("gateway_id", device.gateway_id)
+        .eq("observer_site_id", device.observer_site_id)
+        .eq("status", "delivered")
+        .maybeSingle();
+      if (!enrollment.data) return fail("Gateway device access was revoked.", 401);
+    } else {
+      if (!verifySignature(`${timestamp}.${nonce}.${body}`, signature, secret)) return fail("Invalid signature.", 401);
+      if (payload.gateway_id !== gatewayId || !allowed(gatewayId, payload.observer_site_id)) return fail("Gateway is not allowed for this site.", 403);
+    }
 
     const supabase = createAdminClient() as any;
     const idempotencyKey = `${gatewayId}:${nonce}`;

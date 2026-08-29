@@ -9,6 +9,7 @@ import {
   Camera,
   CameraOff,
   CheckCircle2,
+  Fingerprint,
   LayoutGrid,
   List,
   MapPin,
@@ -106,6 +107,10 @@ export default async function DigitalObserverDashboardPage({ searchParams }: Pag
   const readyCameras = siteCameras.filter((camera) => ["connected", "healthy", "online", "active", "ready_to_test", "testing"].includes(String(camera.status)) || camera.health_status === "healthy").length;
   const businessActivity = activityBuckets(siteSignals);
   const businessActivityTotal = businessActivity.reduce((sum, bucket) => sum + bucket.count, 0);
+  const latestSignalAt = siteSignals[0]?.created_at ?? null;
+  const latestLearningAt = selectedSite ? runtime.baselines.filter((baseline) => baseline.observer_site_id === selectedSite.id).map((baseline) => baseline.updated_at).filter(Boolean).sort().at(-1) ?? null : null;
+  const approvedKnownPeople = selectedSite ? runtime.knownPeople.filter((person) => person.observer_site_id === selectedSite.id && person.consent_status === "approved") : [];
+  const biometricMatchingReady = siteCameras.some((camera) => camera.metadata?.edge_policy?.biometric_matching_enabled === true && camera.metadata?.edge_capability_contract?.capabilities?.biometric_matching === true);
 
   return (
     <ObserverAppShell
@@ -178,6 +183,7 @@ export default async function DigitalObserverDashboardPage({ searchParams }: Pag
                 <div className="do-row-list">
                   <div className="do-row"><Camera /><span className="do-row-main"><strong>מקורות מצלמה</strong><small>{siteCameras.length ? `${readyCameras} מתוך ${siteCameras.length} מוכנים לבדיקה · ${liveCameras} חיים` : "טרם חוברו"}</small></span><span className={readyCameras === siteCameras.length && siteCameras.length ? "do-status-dot good" : "do-status-dot warn"}>{siteCameras.length ? observerStatusLabel(readyCameras === siteCameras.length ? "ready_to_test" : "degraded") : "מוכן להגדרה"}</span></div>
                   <div className="do-row"><Bell /><span className="do-row-main"><strong>התראות פתוחות</strong><small>{openSignals.length ? `${openSignals.length} לבדיקה` : "אין"}</small></span><span className={openSignals.length ? "do-status-dot warn" : "do-status-dot good"}>{openSignals.length ? "דורש תשומת לב" : "שקט"}</span></div>
+                  <div className="do-row"><Fingerprint /><span className="do-row-main"><strong>זיהוי אנשים בהסכמה</strong><small>{biometricMatchingReady ? `${approvedKnownPeople.length} פרופילים מאושרים זמינים להתאמה מקומית` : approvedKnownPeople.length ? `${approvedKnownPeople.length} הסכמות נשמרו; מודל ההתאמה עדיין לא אומת` : "נדרשת הסכמה נפרדת מכל אדם"}</small></span><Link className="do-link" href="/digital-observer/people#add-known-person">{biometricMatchingReady ? "ניהול" : "הגדרה"}</Link></div>
                   <div className="do-row"><Moon /><span className="do-row-main"><strong>שעות שקטות</strong><small>{runtime.schedules.find((item) => item.observer_site_id === selectedSite.id)?.schedule_mode ? observerStatusLabel(runtime.schedules.find((item) => item.observer_site_id === selectedSite.id)?.schedule_mode) : "טרם הוגדרו"}</small></span><Link className="do-link" href="/digital-observer/settings">עריכה</Link></div>
                 </div>
               </article>

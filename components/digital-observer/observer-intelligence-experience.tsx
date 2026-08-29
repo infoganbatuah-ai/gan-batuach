@@ -39,6 +39,14 @@ type ConversationMessage = {
   role: "user" | "observer";
   text: string;
   source?: string;
+  actionOffer?: {
+    available: boolean;
+    reason?: string;
+    action_type?: string;
+    label?: string;
+    parameters?: Record<string, string | number | boolean>;
+    camera_source_id?: string;
+  } | null;
 };
 
 export function ObserverConversationPanel({
@@ -69,6 +77,33 @@ export function ObserverConversationPanel({
   const [text, setText] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
+  const [actionBusy, setActionBusy] = useState(false);
+
+  async function approveAction(offer: NonNullable<ConversationMessage["actionOffer"]>) {
+    if (!offer.available || !offer.action_type || !offer.camera_source_id || !cameraName) return;
+    setActionBusy(true);
+    setError("");
+    try {
+      const prepared = await postJson("/api/digital-observer/camera-actions", {
+        action: "request",
+        observer_site_id: siteId,
+        camera_source_id: offer.camera_source_id,
+        action_type: offer.action_type,
+        request_origin: "observer_chat",
+        parameters: offer.parameters ?? {}
+      });
+      if (!window.confirm(`לאשר עכשיו ${offer.label || "את הפעולה"} במצלמה ${cameraName}?`)) {
+        await postJson("/api/digital-observer/camera-actions", { action: "cancel", request_id: prepared.request.id });
+        return;
+      }
+      const approved = await postJson("/api/digital-observer/camera-actions", { action: "confirm", request_id: prepared.request.id, confirmation: true });
+      setMessages((current) => [...current, { id: crypto.randomUUID(), role: "observer", text: approved.message, source: "אישור פעולה מתועד" }]);
+    } catch (requestError) {
+      setError(requestError instanceof Error ? requestError.message : "לא ניתן לאשר את הפעולה");
+    } finally {
+      setActionBusy(false);
+    }
+  }
 
   async function ask(value: string) {
     const message = value.trim();
@@ -88,7 +123,8 @@ export function ObserverConversationPanel({
         id: crypto.randomUUID(),
         role: "observer",
         text: data.answer,
-        source: data.live_ai_used ? "AI חי" : "המידע השמור באתר"
+        source: data.live_ai_used ? "AI מקומי מאומת" : (data.source_label || "אירועים מאומתים וסטטוס חיבור"),
+        actionOffer: data.suggested_camera_action
       }]);
     } catch (requestError) {
       setError(requestError instanceof Error ? requestError.message : "לא ניתן לקבל תשובה כרגע");
@@ -117,7 +153,7 @@ export function ObserverConversationPanel({
         {messages.map((message) => (
           <article className={`do-chat-message ${message.role}`} key={message.id}>
             {message.role === "observer" ? <Sparkles /> : null}
-            <div><p>{message.text}</p>{message.source ? <small>מקור: {message.source}</small> : null}</div>
+            <div><p>{message.text}</p>{message.source ? <small>מקור: {message.source}</small> : null}{message.actionOffer ? message.actionOffer.available ? <button className="do-button primary" type="button" disabled={actionBusy} onClick={() => void approveAction(message.actionOffer!)}>{actionBusy ? <LoaderCircle className="do-spin" /> : <ShieldCheck />} {message.actionOffer.label} באישור</button> : <small>{message.actionOffer.reason}</small> : null}</div>
           </article>
         ))}
         {busy ? <article className="do-chat-message observer is-typing"><LoaderCircle className="do-spin" /><div><p>בודק את האירועים, המצלמות ודפוסי השגרה...</p></div></article> : null}

@@ -110,7 +110,14 @@ export const cloudDvrDiscoveryChannelSchema = z.object({
   height: z.number().int().positive().max(10000).nullable().optional(),
   candidates_tried: z.number().int().min(0).max(20).optional(),
   template: z.string().trim().max(80).nullable().optional(),
-  reason: z.string().trim().max(120).nullable().optional()
+  reason: z.string().trim().max(120).nullable().optional(),
+  capabilities: z.record(z.string(), z.object({
+    supported: z.boolean(),
+    method: z.enum(["media_probe", "onvif_get_capabilities", "vendor_read_only_api", "not_tested"]),
+    tested_at: z.string().datetime(),
+    adapter: z.string().trim().max(80).nullable().optional(),
+    reason: z.string().trim().max(160).nullable().optional()
+  }).strict()).default({})
 }).strict();
 
 export const cloudDvrDiscoverySchema = z.object({
@@ -126,7 +133,7 @@ export const cloudDvrDiscoverySchema = z.object({
   failed_channel_count: z.number().int().min(0).max(128).optional(),
   latency_ms: z.number().int().min(0).max(600000).optional(),
   read_only: z.literal(true),
-  controls_supported: z.literal(false),
+  controls_supported: z.boolean(),
   no_secrets_returned: z.literal(true),
   channels: z.array(cloudDvrDiscoveryChannelSchema).min(1).max(128),
   metadata: z.record(z.string(), z.unknown()).default({})
@@ -328,6 +335,7 @@ async function upsertDigitalObserverCameraSource(
     statusHint: string | null;
     gatewayId?: string | null;
     edgeCapabilityContract?: Record<string, unknown> | null;
+    channelCapabilities?: Record<string, unknown>;
     localEventInsightsEnabled: boolean;
     edgePolicy: Record<string, unknown>;
   }
@@ -372,7 +380,8 @@ async function upsertDigitalObserverCameraSource(
       local_activity_sampling: values.connected,
       credentials_saved: true,
       gateway_required: !values.connected,
-      connector_transport: "gateway"
+      connector_transport: "gateway",
+      capability_evidence: values.channelCapabilities ?? {}
     },
     monitoring_targets: ["person", "entry_exit", "camera_obstruction", "after_hours"],
     last_health_check_at: now,
@@ -394,7 +403,8 @@ async function upsertDigitalObserverCameraSource(
       credentials_server_side: true,
       edge_inference_policy: "local-insights-v1",
       edge_capability_contract: values.edgeCapabilityContract ?? null,
-      edge_policy: values.edgePolicy
+      edge_policy: values.edgePolicy,
+      channel_capabilities: values.channelCapabilities ?? {}
     }
   };
   if ((existing as any)?.data?.id) {
@@ -805,6 +815,7 @@ export async function materializeCloudDvrDiscovery(payload: z.infer<typeof cloud
       connected,
       statusHint: channel.status,
       edgeCapabilityContract,
+      channelCapabilities: channel.capabilities,
       localEventInsightsEnabled: channelLocalEventInsightsEnabled,
       edgePolicy: channelEdgePolicy
     });

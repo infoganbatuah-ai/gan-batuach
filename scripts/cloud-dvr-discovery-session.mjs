@@ -111,7 +111,7 @@ function sanitizeDiscovery(discovery, inputData) {
     failed_channel_count: Number(discovery.failed_channel_count || channels.filter((channel) => channel.status !== "connected").length),
     latency_ms: Number(discovery.latency_ms || 0),
     read_only: true,
-    controls_supported: false,
+    controls_supported: discovery.controls_supported === true,
     no_secrets_returned: true,
     channels: channels.map((channel, index) => ({
       channel: Number(channel.channel || index + 1),
@@ -125,7 +125,8 @@ function sanitizeDiscovery(discovery, inputData) {
       height: channel.height ?? null,
       candidates_tried: channel.candidates_tried,
       template: channel.template,
-      reason: channel.reason
+      reason: channel.reason,
+      capabilities: channel.capabilities && typeof channel.capabilities === "object" ? channel.capabilities : {}
     })),
     metadata: {
       source: "local_gateway_cloud_discovery",

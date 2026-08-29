@@ -8,6 +8,16 @@ import { formatObserverDate, loadObserverRuntime, observerModeForSite, observerS
 
 type PageProps = { searchParams?: Promise<{ tab?: string }> };
 
+function accessClassLabel(person: Record<string, any>) {
+  const labels: Record<string, string> = {
+    household_resident: "דייר/ת הבית",
+    authorized_visitor: "מאושר/ת כניסה",
+    service_provider: "נותן/ת שירות",
+    other: "אחר"
+  };
+  return labels[String(person.metadata?.access_class ?? "")] || person.relationship_label || "ללא סיווג";
+}
+
 export default async function DigitalObserverPeoplePage({ searchParams }: PageProps) {
   const params = await searchParams;
   const { profile } = await requireDigitalObserverUser("/digital-observer/login?next=/digital-observer/people");
@@ -81,7 +91,7 @@ export default async function DigitalObserverPeoplePage({ searchParams }: PagePr
                   {featuredPeople.map((person) => (
                     <article className="do-person" key={person.id}>
                       <span className="do-person-avatar">{String(person.display_name).slice(0, 1)}</span>
-                      <div className="do-person-copy"><strong>{person.display_name}</strong><small>{person.relationship_label || "ללא תיאור"}</small></div>
+                      <div className="do-person-copy"><strong>{person.display_name}</strong><small>{accessClassLabel(person)}{person.relationship_label ? ` · ${person.relationship_label}` : ""}</small></div>
                       <div className="do-person-statuses"><span className="do-badge info">הסכמה: {observerStatusLabel(person.consent_status)}</span><span className="do-badge warn">זיהוי: {observerStatusLabel(person.recognition_status)}</span></div>
                       <small>עדכון אחרון: {formatObserverDate(person.last_confirmed_at || person.created_at)}</small>
                       {person.consent_status === "approved" ? <ObserverRevokePersonConsentButton id={person.id} /> : null}
@@ -90,7 +100,7 @@ export default async function DigitalObserverPeoplePage({ searchParams }: PagePr
                   ))}
                 </div>
               ) : <div className="do-empty"><UsersRound /><strong>טרם הוגדר אדם מוכר</strong><span>המלצה מהמצלמה תופיע לאחר מספיק תצפיות. אפשר גם להכין אדם ידנית.</span></div>}
-              {additionalPeople.length ? <details className="do-people-extra-list"><summary>{additionalPeople.length} אנשים נוספים</summary><div className="do-people-grid">{additionalPeople.map((person) => <article className="do-person" key={person.id}><span className="do-person-avatar">{String(person.display_name).slice(0, 1)}</span><div className="do-person-copy"><strong>{person.display_name}</strong><small>{person.relationship_label || "ללא תיאור"}</small></div><div className="do-person-statuses"><span className="do-badge info">הסכמה: {observerStatusLabel(person.consent_status)}</span><span className="do-badge warn">זיהוי: {observerStatusLabel(person.recognition_status)}</span></div>{person.consent_status === "approved" ? <ObserverRevokePersonConsentButton id={person.id} /> : null}<ObserverDeletePersonButton id={person.id} /></article>)}</div></details> : null}
+              {additionalPeople.length ? <details className="do-people-extra-list"><summary>{additionalPeople.length} אנשים נוספים</summary><div className="do-people-grid">{additionalPeople.map((person) => <article className="do-person" key={person.id}><span className="do-person-avatar">{String(person.display_name).slice(0, 1)}</span><div className="do-person-copy"><strong>{person.display_name}</strong><small>{accessClassLabel(person)}{person.relationship_label ? ` · ${person.relationship_label}` : ""}</small></div><div className="do-person-statuses"><span className="do-badge info">הסכמה: {observerStatusLabel(person.consent_status)}</span><span className="do-badge warn">זיהוי: {observerStatusLabel(person.recognition_status)}</span></div>{person.consent_status === "approved" ? <ObserverRevokePersonConsentButton id={person.id} /> : null}<ObserverDeletePersonButton id={person.id} /></article>)}</div></details> : null}
             </article>
             <aside className="do-people-consent-column do-people-privacy-rail">
               {childPrivacy ? (

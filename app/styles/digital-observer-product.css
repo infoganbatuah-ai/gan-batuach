@@ -912,7 +912,11 @@
 .do-camera-live-controls button strong { color: var(--do-ink); font-size: 12px; }
 .do-camera-live-controls button small { font-size: 9px; }
 .do-camera-live-controls button:disabled { cursor: not-allowed; opacity: 0.8; }
-.do-camera-quick-actions { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; margin-top: 8px; }
+.do-camera-ptz-controls { display: flex; flex-wrap: wrap; gap: 6px; padding-top: 8px; }
+.do-camera-ptz-controls button { width: 40px; height: 40px; display: grid; place-items: center; color: var(--do-teal-dark); background: #fff; border: 1px solid var(--do-line); border-radius: 6px; }
+.do-camera-ptz-controls button:disabled { opacity: 0.55; }
+.do-camera-action-result { margin: 8px 0 0; padding: 9px 11px; color: var(--do-ink); background: var(--do-mint); border: 1px solid #b8e2d9; border-radius: 6px; font-size: 11px; }
+.do-camera-quick-actions { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px; margin-top: 8px; }
 .do-camera-quick-actions > button,
 .do-camera-quick-actions > a {
   min-height: 76px;
