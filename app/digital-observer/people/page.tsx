@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Bell, BrainCircuit, CameraOff, Check, DoorOpen, Fingerprint, Footprints, LockKeyhole, ScanLine, ShieldCheck, UserRoundCheck, UsersRound, WifiOff, X } from "lucide-react";
-import { ObserverDeletePersonButton, ObserverKnownPersonForm } from "@/components/digital-observer/observer-action-forms";
+import { ObserverDeletePersonButton, ObserverKnownPersonForm, ObserverRevokePersonConsentButton } from "@/components/digital-observer/observer-action-forms";
 import { ObserverIdentityCandidateReview } from "@/components/digital-observer/observer-intelligence-experience";
 import { ObserverAppShell } from "@/components/digital-observer/observer-app-shell";
 import { requireDigitalObserverUser } from "@/lib/domain/digital-observer/access";
@@ -84,12 +84,13 @@ export default async function DigitalObserverPeoplePage({ searchParams }: PagePr
                       <div className="do-person-copy"><strong>{person.display_name}</strong><small>{person.relationship_label || "ללא תיאור"}</small></div>
                       <div className="do-person-statuses"><span className="do-badge info">הסכמה: {observerStatusLabel(person.consent_status)}</span><span className="do-badge warn">זיהוי: {observerStatusLabel(person.recognition_status)}</span></div>
                       <small>עדכון אחרון: {formatObserverDate(person.last_confirmed_at || person.created_at)}</small>
+                      {person.consent_status === "approved" ? <ObserverRevokePersonConsentButton id={person.id} /> : null}
                       <ObserverDeletePersonButton id={person.id} />
                     </article>
                   ))}
                 </div>
               ) : <div className="do-empty"><UsersRound /><strong>טרם הוגדר אדם מוכר</strong><span>המלצה מהמצלמה תופיע לאחר מספיק תצפיות. אפשר גם להכין אדם ידנית.</span></div>}
-              {additionalPeople.length ? <details className="do-people-extra-list"><summary>{additionalPeople.length} אנשים נוספים</summary><div className="do-people-grid">{additionalPeople.map((person) => <article className="do-person" key={person.id}><span className="do-person-avatar">{String(person.display_name).slice(0, 1)}</span><div className="do-person-copy"><strong>{person.display_name}</strong><small>{person.relationship_label || "ללא תיאור"}</small></div><div className="do-person-statuses"><span className="do-badge info">הסכמה: {observerStatusLabel(person.consent_status)}</span><span className="do-badge warn">זיהוי: {observerStatusLabel(person.recognition_status)}</span></div><ObserverDeletePersonButton id={person.id} /></article>)}</div></details> : null}
+              {additionalPeople.length ? <details className="do-people-extra-list"><summary>{additionalPeople.length} אנשים נוספים</summary><div className="do-people-grid">{additionalPeople.map((person) => <article className="do-person" key={person.id}><span className="do-person-avatar">{String(person.display_name).slice(0, 1)}</span><div className="do-person-copy"><strong>{person.display_name}</strong><small>{person.relationship_label || "ללא תיאור"}</small></div><div className="do-person-statuses"><span className="do-badge info">הסכמה: {observerStatusLabel(person.consent_status)}</span><span className="do-badge warn">זיהוי: {observerStatusLabel(person.recognition_status)}</span></div>{person.consent_status === "approved" ? <ObserverRevokePersonConsentButton id={person.id} /> : null}<ObserverDeletePersonButton id={person.id} /></article>)}</div></details> : null}
             </article>
             <aside className="do-people-consent-column do-people-privacy-rail">
               {childPrivacy ? (
