@@ -7,6 +7,9 @@ const setup = readFileSync(new URL("../setup-local-learning-gateway.mjs", import
 for (const required of ["find-generic-password", "cloud-discovery", "cloud-learning", "no_raw_video_returned", "read_only_requested"]) {
   if (!source.includes(required)) throw new Error(`Missing persistent gateway safety control: ${required}`);
 }
+for (const required of ["initial cloud learning unavailable; live remains active", "Keep relays available and retry learning on schedule"]) {
+  if (!source.includes(required)) throw new Error(`Missing live isolation from cloud learning failure: ${required}`);
+}
 for (const required of ["streamCount", "capabilities", "ptz: false", "siren: false", "light: false", "remote_settings: false"]) {
   if (!server.includes(required)) throw new Error(`Missing gateway capability discovery control: ${required}`);
 }

@@ -262,7 +262,11 @@ async function submitReadinessEvidence() {
 await waitForGateway();
 if (discoveryEnabled) {
   await discoverWithRetry("initial");
-  await learn();
+  await learn().catch((error) => {
+    // Cloud identity rotation or learning upload must never own the local live
+    // process lifecycle. Keep relays available and retry learning on schedule.
+    console.error(`initial cloud learning unavailable; live remains active: ${error instanceof Error ? error.message : "learning_failed"}`);
+  });
   void submitReadinessEvidence().then((result) => {
     if (!result.submitted) console.error(`event media skipped: ${result.reason}`);
   }).catch((error) => console.error(error.message));
