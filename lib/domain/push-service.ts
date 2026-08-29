@@ -136,7 +136,7 @@ export async function preparePushForNotification(supabase: SupabaseLike, input: 
   const categoryPreference = await categoryPreferencesAllowPush(supabase, input.profileId, category, input.critical);
   const { data: tokens, error: tokensError } = await supabase
     .from("push_device_tokens")
-    .select("id, platform, is_active")
+    .select("id, platform, device_token, is_active")
     .eq("profile_id", input.profileId)
     .eq("is_active", true);
 
@@ -178,7 +178,7 @@ export async function preparePushForNotification(supabase: SupabaseLike, input: 
     return { ok: !skipped.error, logs: [], error: skipped.error?.message ?? null };
   }
 
-  const activeTokens = (tokens ?? []) as Array<{ id: string; platform: PushPlatform }>;
+  const activeTokens = (tokens ?? []) as Array<{ id: string; platform: PushPlatform; device_token: string }>;
   if (!activeTokens.length) {
     const noDevice = await supabase.from("push_notification_logs").insert({
       notification_id: input.notificationId ?? null,
@@ -203,6 +203,7 @@ export async function preparePushForNotification(supabase: SupabaseLike, input: 
     const providerResult = await provider.send({
       profileId: input.profileId,
       deviceTokenId: token.id,
+      deviceToken: token.device_token,
       platform: token.platform,
       title: input.title,
       body: input.body ?? null,

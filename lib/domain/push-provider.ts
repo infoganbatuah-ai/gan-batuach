@@ -1,4 +1,5 @@
 import type { PushPlatform } from "./push-service";
+import { sendFcmMessage } from "@/lib/firebase-admin";
 
 export type PushProviderName = "mock_push" | "fcm" | "apns" | "web_push" | "custom";
 export type PushDeliveryStatus = "queued" | "sent" | "delivered" | "opened" | "failed" | "dead_letter" | "sent_mock" | "queued_mock";
@@ -6,6 +7,7 @@ export type PushDeliveryStatus = "queued" | "sent" | "delivered" | "opened" | "f
 export type PushPayload = {
   profileId: string;
   deviceTokenId?: string | null;
+  deviceToken?: string | null;
   platform: PushPlatform;
   title: string;
   body?: string | null;
@@ -99,7 +101,16 @@ function createProvider(name: PushProviderName, requiredEnv: string[]): PushProv
 
 const providers: Record<PushProviderName, PushProvider> = {
   mock_push: createProvider("mock_push", []),
-  fcm: createProvider("fcm", ["FCM_PROJECT_ID", "FCM_SERVER_KEY"]),
+  fcm: {
+    name: "fcm",
+    getReadiness: () => ({ provider: "fcm", configured: Boolean(process.env.FCM_PROJECT_ID && process.env.FCM_SERVICE_ACCOUNT_JSON), canSendRealMessages: process.env.PUSH_MODE === "production" && process.env.PUSH_REAL_SEND_ENABLED === "true", mode: process.env.PUSH_MODE === "production" && process.env.PUSH_REAL_SEND_ENABLED === "true" ? "real" : "dry_run", missing: ["FCM_PROJECT_ID", "FCM_SERVICE_ACCOUNT_JSON"].filter((key) => !process.env[key]), supportedPlatforms: providerPlatforms.fcm, summary: "FCM is configured; real send requires the production safety flags." }),
+    async send(payload) {
+      const readiness = this.getReadiness();
+      if (!readiness.configured || !readiness.canSendRealMessages) return dryRunResult("fcm", payload, readiness.configured);
+      if (!payload.deviceToken) return { ok: false, status: "failed", provider: "fcm", failureReason: "Missing FCM device token." };
+      return { ok: true, status: "sent", provider: "fcm", providerMessageId: await sendFcmMessage(payload.deviceToken, payload), sentAt: new Date().toISOString() };
+    }
+  },
   apns: createProvider("apns", ["APNS_KEY_ID", "APNS_TEAM_ID", "APNS_BUNDLE_ID"]),
   web_push: createProvider("web_push", ["VAPID_PUBLIC_KEY", "VAPID_PRIVATE_KEY"]),
   custom: createProvider("custom", ["PUSH_PROVIDER_ENDPOINT", "PUSH_PROVIDER_API_KEY"])
