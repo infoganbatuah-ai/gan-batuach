@@ -4,13 +4,13 @@ import { ObserverAppShell } from "@/components/digital-observer/observer-app-she
 import { ObserverCameraMedia } from "@/components/digital-observer/observer-camera-media";
 import { requireDigitalObserverUser } from "@/lib/domain/digital-observer/access";
 import { cleanSyntheticLabel } from "@/lib/domain/display-label";
-import { loadObserverRuntime, observerModeForSite } from "@/lib/domain/digital-observer/runtime";
+import { loadObserverRuntime, observerModeForSite, selectObserverSite } from "@/lib/domain/digital-observer/runtime";
 
 type PageProps = { searchParams?: Promise<{ q?: string; page?: string }> };
 
 export default async function DigitalObserverSitesPage({ searchParams }: PageProps) {
   const params = await searchParams;
-  const { profile } = await requireDigitalObserverUser("/digital-observer/login?next=/digital-observer/sites"); const runtime = await loadObserverRuntime(profile.id); const primary = runtime.sites[0] ?? null; const mode = observerModeForSite(primary);
+  const { profile } = await requireDigitalObserverUser("/digital-observer/login?next=/digital-observer/sites"); const runtime = await loadObserverRuntime(profile.id); const primary = selectObserverSite(runtime.sites, runtime.cameras); const mode = observerModeForSite(primary);
   const query = params?.q?.trim().toLocaleLowerCase("he-IL") ?? "";
   const sites = query ? runtime.sites.filter((site) => [site.name, site.address, site.city].some((value) => String(value ?? "").toLocaleLowerCase("he-IL").includes(query))) : runtime.sites;
   const pageSize = 2;

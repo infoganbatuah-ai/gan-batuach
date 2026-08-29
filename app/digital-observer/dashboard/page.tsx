@@ -32,6 +32,7 @@ import {
   observerClipHasRequiredMedia,
   observerEventLabel,
   observerModeForSite,
+  selectObserverSite,
   observerStatusLabel
 } from "@/lib/domain/digital-observer/runtime";
 
@@ -94,7 +95,7 @@ export default async function DigitalObserverDashboardPage({ searchParams }: Pag
   const params = await searchParams;
   const { profile } = await requireDigitalObserverUser("/digital-observer/login?next=/digital-observer/dashboard");
   const runtime = await loadObserverRuntime(profile.id);
-  const selectedSite = runtime.sites.find((site) => site.id === params?.site) ?? runtime.sites[0] ?? null;
+  const selectedSite = selectObserverSite(runtime.sites, runtime.cameras, params?.site);
   const mode = observerModeForSite(selectedSite);
   const siteCameras = selectedSite ? runtime.cameras.filter((camera) => camera.observer_site_id === selectedSite.id) : [];
   const siteSignals = selectedSite ? runtime.signals.filter((signal) => signal.observer_site_id === selectedSite.id) : [];

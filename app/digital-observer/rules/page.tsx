@@ -8,7 +8,7 @@ import { ObserverCameraMedia } from "@/components/digital-observer/observer-came
 import { requireDigitalObserverUser } from "@/lib/domain/digital-observer/access";
 import { cameraReportsLocalEventInsights, digitalObserverEdgeAiPolicy } from "@/lib/domain/digital-observer/edge-ai-policy";
 import { getDigitalObserverServiceReadiness } from "@/lib/domain/digital-observer/service-readiness";
-import { formatObserverDate, loadObserverRuntime, observerEventLabel, observerModeForSite, observerSignalMatchesCamera, observerStatusLabel } from "@/lib/domain/digital-observer/runtime";
+import { formatObserverDate, loadObserverRuntime, observerEventLabel, observerModeForSite, observerSignalMatchesCamera, observerStatusLabel, selectObserverSite } from "@/lib/domain/digital-observer/runtime";
 
 function learningProgress(startedAt?: string | null, targetDays = 30) {
   if (!startedAt) return { days: 0, percent: 0 };
@@ -47,7 +47,7 @@ function baselineSummary(baseline: Record<string, any>) {
 export default async function DigitalObserverRulesPage() {
   const { profile } = await requireDigitalObserverUser("/digital-observer/login?next=/digital-observer/rules");
   const runtime = await loadObserverRuntime(profile.id);
-  const site = runtime.sites[0] ?? null;
+  const site = selectObserverSite(runtime.sites, runtime.cameras);
   const mode = observerModeForSite(site);
   const cameras = site ? runtime.cameras.filter((item) => item.observer_site_id === site.id) : [];
   const rules = site ? runtime.watchRequests.filter((item) => item.observer_site_id === site.id) : [];
