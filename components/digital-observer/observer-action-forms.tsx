@@ -2,7 +2,7 @@
 
 import { useState, type FormEvent, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, Baby, Bell, BrainCircuit, Cable, Camera, CameraOff, CarFront, Check, ChevronLeft, Cloud, DoorOpen, HardDrive, Heart, HeartPulse, Image, Lightbulb, LoaderCircle, LockKeyhole, Mic, Moon, PawPrint, Pencil, QrCode, Radar, Router, ShieldCheck, Smartphone, Trash2, UserPlus, UsersRound, X } from "lucide-react";
+import { AlertTriangle, Baby, Bell, BrainCircuit, Cable, Camera, CameraOff, CarFront, Check, ChevronLeft, Cloud, DoorOpen, HardDrive, Heart, HeartPulse, Image, Lightbulb, LoaderCircle, LockKeyhole, Mic, Moon, PawPrint, Pencil, QrCode, Radar, Router, ShieldCheck, ShieldOff, Smartphone, Trash2, UserPlus, UsersRound, X } from "lucide-react";
 import { readObserverAccessToken } from "@/lib/domain/digital-observer/client-session";
 import {
   classifyObserverPairingPayload,
@@ -410,4 +410,8 @@ export function ObserverPlanButton({ siteId, packageId, billingCycle = "monthly"
 
 export function ObserverDeletePersonButton({ id }: { id: string }) {
   return <ObserverQuickAction endpoint="/api/digital-observer/known-people" body={{ action: "delete", id }} confirmText="למחוק את רשומת האדם המוכר?"><Trash2 /> מחיקה</ObserverQuickAction>;
+}
+
+export function ObserverRevokePersonConsentButton({ id }: { id: string }) {
+  return <ObserverQuickAction endpoint="/api/digital-observer/known-people" body={{ action: "revoke_consent", id }} confirmText="לבטל את ההסכמה? זיהוי יישאר כבוי והפניות ביומטריות יוסרו."><ShieldOff /> ביטול הסכמה</ObserverQuickAction>;
 }
