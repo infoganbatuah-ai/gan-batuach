@@ -21,6 +21,7 @@ const gateway = readFileSync("services/video-gateway/server.mjs", "utf8");
 const player = readFileSync("components/digital-observer/observer-live-player.tsx", "utf8");
 const mapping = readFileSync("lib/domain/video-gateway.ts", "utf8");
 const vercel = readFileSync("vercel.json", "utf8");
+const vercelConfig = JSON.parse(vercel);
 for (const required of ["verifyGatewayDeviceAccessToken", "verifyGatewayPlaybackGrant", "gateway_playback_grant_redeemed", "23505", "no_credentials_received"]) {
   if (!cloudRoute.includes(required)) throw new Error(`Missing cloud playback grant control: ${required}`);
 }
@@ -39,8 +40,10 @@ for (const forbidden of ["endpoint", "username", "password", "rtsp"]) {
 for (const required of ["gatewayId: parsed.gateway_id", "gateway_id: values.gatewayId ?? null"]) {
   if (!mapping.includes(required)) throw new Error(`Observer source is not bound to enrolled Gateway identity: ${required}`);
 }
-const loopbackMatches = vercel.match(/http:\/\/127\.0\.0\.1:18082/g) || [];
-if (loopbackMatches.length !== 2 || vercel.includes("http://192.168.") || vercel.includes("http://10.")) {
+const observerCsp = vercelConfig.headers
+  .filter((entry) => entry.source === "/digital-observer" || entry.source === "/digital-observer/:path*")
+  .map((entry) => entry.headers.find((header) => header.key === "Content-Security-Policy")?.value || "");
+if (observerCsp.length !== 2 || observerCsp.some((value) => (value.match(/http:\/\/127\.0\.0\.1:18082/g) || []).length !== 2 || value.includes("upgrade-insecure-requests")) || vercel.includes("http://192.168.") || vercel.includes("http://10.")) {
   throw new Error("Production CSP must allow only the fixed local Gateway loopback for connect and media");
 }
 
