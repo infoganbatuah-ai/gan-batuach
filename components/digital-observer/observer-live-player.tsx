@@ -14,6 +14,25 @@ type PlaybackSession = {
   expiresAt: number;
 };
 
+class PlaybackFlowError extends Error {
+  constructor(readonly flowCode: string) {
+    super(flowCode);
+  }
+}
+
+function playbackFailureReason(error: unknown) {
+  const code = error instanceof PlaybackFlowError ? error.flowCode : "unknown";
+  if (code === "cloud_401") return "נדרשת התחברות מחדש לפני צפייה";
+  if (code === "cloud_403") return "אין הרשאת צפייה במקור הזה";
+  if (code === "cloud_409") return "מיפוי המצלמה ל־Gateway אינו תואם";
+  if (code === "cloud_503") return "זהות ה־Gateway עדיין לא סונכרנה למקור";
+  if (code === "local_unreachable") return "הדפדפן לא הצליח להגיע ל־Gateway המקומי";
+  if (code === "local_claim_401") return "אימות המכשיר המקומי פג";
+  if (code === "local_claim_409") return "הרשאת הצפייה החד־פעמית כבר נוצלה";
+  if (code === "local_claim_503") return "ה־Gateway המקומי לא הצליח לאשר את הצפייה";
+  return "לא התקבל שידור זמין מה־Gateway";
+}
+
 const playbackSessions = new Map<string, PlaybackSession>();
 const pendingPlaybackSessions = new Map<string, Promise<string>>();
 const playbackSessionTtlMs = 4 * 60 * 1000;
@@ -39,24 +58,36 @@ async function requestPlaybackSession(observerSiteId: string, cameraSourceId: st
         body: JSON.stringify({ observer_site_id: observerSiteId, camera_source_id: cameraSourceId, mode: "live" })
       });
       const payload = await response.json().catch(() => ({}));
+      if (!response.ok) {
+        if (response.status === 503 && attempt < 2) {
+          await new Promise((resolve) => setTimeout(resolve, 1200 * (attempt + 1)));
+          continue;
+        }
+        throw new PlaybackFlowError(`cloud_${response.status}`);
+      }
       let candidate = payload?.data?.playback?.hls_url;
       const claimUrl = payload?.data?.playback?.claim_url;
       const grant = payload?.data?.playback?.grant;
-      if (response.ok && typeof claimUrl === "string" && typeof grant === "string") {
-        const claimResponse = await fetch(claimUrl, {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify({ grant })
-        });
+      if (typeof claimUrl === "string" && typeof grant === "string") {
+        let claimResponse: Response;
+        try {
+          claimResponse = await fetch(claimUrl, {
+            method: "POST",
+            headers: { "content-type": "application/json" },
+            body: JSON.stringify({ grant })
+          });
+        } catch {
+          throw new PlaybackFlowError("local_unreachable");
+        }
         const claimPayload = await claimResponse.json().catch(() => ({}));
+        if (!claimResponse.ok) throw new PlaybackFlowError(`local_claim_${claimResponse.status}`);
         candidate = claimPayload?.playback?.hls_url;
       }
-      if (response.ok && typeof candidate === "string" && candidate) {
+      if (typeof candidate === "string" && candidate) {
         playbackUrl = candidate;
         break;
       }
-      if (response.status !== 503 || attempt === 2) throw new Error("playback_unavailable");
-      await new Promise((resolve) => setTimeout(resolve, 1200 * (attempt + 1)));
+      throw new PlaybackFlowError("playback_missing");
     }
     if (!playbackUrl) throw new Error("playback_unavailable");
     playbackSessions.set(key, { url: playbackUrl, expiresAt: Date.now() + playbackSessionTtlMs });
@@ -160,9 +191,9 @@ export function ObserverLivePlayer({
       await videoElement.play().catch(() => undefined);
     }
 
-    void connect().catch(() => {
+    void connect().catch((error) => {
       if (!cancelled) {
-        markUnavailable("לא התקבל שידור זמין מה־Gateway");
+        markUnavailable(playbackFailureReason(error));
       }
     });
     return () => {

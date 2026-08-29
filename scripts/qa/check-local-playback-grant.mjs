@@ -30,7 +30,7 @@ for (const required of ["issueGatewayPlaybackGrant", "claim_url", "127.0.0.1:180
 for (const required of ["/playback/claim", "refreshGatewayDeviceAccess", "device_refresh_token", "streamSources.has(streamId)", "browserJson", "access-control-allow-private-network", "playbackClaimReady"]) {
   if (!gateway.includes(required)) throw new Error(`Missing local playback claim control: ${required}`);
 }
-for (const required of ["claim_url", "claimResponse", "JSON.stringify({ grant })"]) {
+for (const required of ["claim_url", "claimResponse", "JSON.stringify({ grant })", "playbackFailureReason", "local_unreachable", "cloud_503"]) {
   if (!player.includes(required)) throw new Error(`Missing browser playback claim flow: ${required}`);
 }
 for (const forbidden of ["endpoint", "username", "password", "rtsp"]) {
