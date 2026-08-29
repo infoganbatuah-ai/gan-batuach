@@ -12,6 +12,7 @@ import { DashboardBackButton } from "@/components/dashboard-back-button";
 import { NotificationBell } from "@/components/notification-bell";
 import { PilotFeedbackWidget } from "@/components/pilot-feedback-widget";
 import { FloatingActionCenter } from "@/components/floating-action-center";
+import { FcmPushRegistration } from "@/components/fcm-push-registration";
 
 const roleLabels: Record<UserRole, string> = {
   admin: "אדמין",
@@ -411,6 +412,7 @@ export function DashboardShell({
                 <p>{roleLabels[role]} · סביבת עבודה מאובטחת לפי תפקיד</p>
               </div>
               <div className="app-workspace-actions">
+                <FcmPushRegistration />
                 <span className="pill good">גישה לפי תפקיד</span>
                 <Link className="app-shell-quick-link" href={dashboardHomeByRole[role]}>בית</Link>
                 <Link className="app-shell-quick-link" href={profileHrefByRole[role]}>פרופיל</Link>
