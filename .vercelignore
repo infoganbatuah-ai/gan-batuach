@@ -1,0 +1,3 @@
+# The DVR Gateway is a Keychain-backed local service. It must never be built
+# or deployed as a Vercel Node service; cloud routes remain Next API routes.
+services/video-gateway
