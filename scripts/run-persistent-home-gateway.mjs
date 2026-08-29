@@ -30,10 +30,7 @@ if (!gatewaySecret) {
 const cloudSecret = keychainSecret("cloud_discovery_secret");
 const deviceGatewayId = keychainSecret("device_gateway_id");
 const deviceObserverSiteId = keychainSecret("device_observer_site_id");
-let deviceRefreshToken = keychainSecret("device_refresh_token");
-let cachedDeviceAccessToken = "";
-let cachedDeviceAccessExpiresAt = 0;
-let deviceAccessRefreshPromise = null;
+const deviceRefreshToken = keychainSecret("device_refresh_token");
 const gatewayId = deviceGatewayId || keychainSecret("cloud_gateway_id");
 const observerSiteId = deviceObserverSiteId || keychainSecret("cloud_observer_site_id");
 const productionBaseUrl = keychainSecret("device_cloud_base_url") || keychainSecret("cloud_base_url") || "https://ganbatuach.com";
@@ -55,50 +52,22 @@ if (discoveryEnabled) {
   if (!password) throw new Error("DVR credential is not available in macOS Keychain");
 }
 
-async function refreshDeviceAccess() {
-  if (cachedDeviceAccessToken && cachedDeviceAccessExpiresAt > Date.now() + 30_000) return cachedDeviceAccessToken;
-  if (deviceAccessRefreshPromise) return deviceAccessRefreshPromise;
-  deviceAccessRefreshPromise = (async () => {
-    if (!deviceGatewayId || !deviceObserverSiteId) return null;
-    for (let attempt = 0; attempt < 2; attempt += 1) {
-      const currentRefreshToken = keychainSecret("device_refresh_token");
-      if (!currentRefreshToken) return null;
-      const response = await fetch(`${productionBaseUrl.replace(/\/$/, "")}/api/digital-observer/gateway-enrollment`, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ action: "refresh", gateway_id: deviceGatewayId, refresh_token: currentRefreshToken })
-      });
-      const payload = await response.json().catch(() => ({}));
-      if (response.ok && payload.data?.access_token && payload.data?.refresh_token) {
-        deviceRefreshToken = String(payload.data.refresh_token);
-        storeKeychainSecret("device_refresh_token", deviceRefreshToken);
-        cachedDeviceAccessToken = String(payload.data.access_token);
-        cachedDeviceAccessExpiresAt = Date.parse(String(payload.data.access_expires_at || "")) || Date.now() + 9 * 60 * 1000;
-        return cachedDeviceAccessToken;
-      }
-    }
-    throw new Error("Gateway device identity refresh failed");
-  })().finally(() => { deviceAccessRefreshPromise = null; });
-  return deviceAccessRefreshPromise;
-}
-
-function sign(timestamp, nonce, body) {
-  return `sha256=${crypto.createHmac("sha256", cloudSecret).update(`${timestamp}.${nonce}.${body}`).digest("hex")}`;
-}
-
-function signEventMedia(timestamp, nonce, metadataText, clipBytes, thumbnailBytes) {
-  const clipHash = crypto.createHash("sha256").update(clipBytes).digest("hex");
-  const thumbnailHash = crypto.createHash("sha256").update(thumbnailBytes).digest("hex");
-  return `sha256=${crypto.createHmac("sha256", cloudSecret).update(`${timestamp}.${nonce}.${metadataText}.${clipHash}.${thumbnailHash}`).digest("hex")}`;
-}
-
 async function signedPost(path, payload, options = {}) {
   const body = JSON.stringify(payload);
-  const deviceAccessToken = options.deviceAccess ? await refreshDeviceAccess() : null;
-  const timestamp = new Date().toISOString();
-  const nonce = crypto.randomUUID();
-  const headers = { "content-type": "application/json", "x-video-gateway-id": gatewayId, "x-video-gateway-timestamp": timestamp, "x-video-gateway-nonce": nonce, ...(deviceAccessToken ? { "x-video-gateway-device-token": deviceAccessToken } : { "x-video-gateway-signature": sign(timestamp, nonce, body) }) };
-  const response = await fetch(`${productionBaseUrl.replace(/\/$/, "")}${path}`, { method: "POST", headers, body });
+  const localPath = path.endsWith("/cloud-discovery")
+    ? "/cloud/discovery"
+    : path.endsWith("/cloud-learning")
+      ? "/cloud/learning"
+      : null;
+  if (!localPath || options.deviceAccess !== true) throw new Error("Unsupported persistent Gateway cloud operation");
+  // The child Gateway is the only owner of rotating device identity. The
+  // runner sends a fixed, authenticated operation over loopback and never
+  // receives an access or refresh token.
+  const response = await fetch(`${gatewayUrl}${localPath}`, {
+    method: "POST",
+    headers: { "content-type": "application/json", "x-video-gateway-secret": gatewaySecret },
+    body
+  });
   if (!response.ok) throw new Error(`Cloud request failed (${response.status})`);
   return response.json();
 }
@@ -227,20 +196,14 @@ async function submitEventEvidence(channel, event) {
     metadata: { source: "persistent_home_gateway", channel: channel.channel, ai_shadow_only: true, identity_recognition_used: false }
   };
   const metadataText = JSON.stringify(metadata);
-  const timestamp = new Date().toISOString();
-  const nonce = crypto.randomUUID();
   const form = new FormData();
   form.set("metadata", metadataText);
   form.set("clip", new Blob([clipBytes], { type: "video/mp4" }), "clip.mp4");
   form.set("thumbnail", new Blob([thumbnailBytes], { type: "image/jpeg" }), "thumbnail.jpg");
-  const deviceAccessToken = deviceRefreshToken ? await refreshDeviceAccess() : null;
-  const upload = await fetch(`${productionBaseUrl.replace(/\/$/, "")}/api/video-gateway/cloud-event-media`, {
+  const upload = await fetch(`${gatewayUrl}/cloud/event-media`, {
     method: "POST",
     headers: {
-      "x-video-gateway-id": gatewayId,
-      "x-video-gateway-timestamp": timestamp,
-      "x-video-gateway-nonce": nonce,
-      ...(deviceAccessToken ? { "x-video-gateway-device-token": deviceAccessToken } : { "x-video-gateway-signature": signEventMedia(timestamp, nonce, metadataText, clipBytes, thumbnailBytes) })
+      "x-video-gateway-secret": gatewaySecret
     },
     body: form
   });
