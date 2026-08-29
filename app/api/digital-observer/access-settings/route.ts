@@ -3,6 +3,7 @@ import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
 import { encryptField } from "@/lib/security/encryption";
+import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
 
 const createRecipientSchema = z.object({
   action: z.literal("create_recipient"),
@@ -72,9 +73,14 @@ export async function POST(request: Request) {
     }
 
     if (payload.action === "register_device") {
-      const tokenLookup = await supabase.from("push_device_tokens" as any).select("id", { count: "exact", head: true }).eq("profile_id", profile.id).eq("is_active", true);
+      if (!isAdminClientConfigured()) return fail("חסרה תצורת שרת מאובטחת לרישום המכשיר.", 503);
+      // Access to the observer site was verified above with the caller's session.
+      // Perform the write with the server-only client so an upsert can update the
+      // conflict key without being blocked by the intentionally narrow RLS grants.
+      const admin = createAdminClient() as any;
+      const tokenLookup = await admin.from("push_device_tokens" as any).select("id", { count: "exact", head: true }).eq("profile_id", profile.id).eq("is_active", true);
       const pushTokenRegistered = !tokenLookup.error && (tokenLookup.count ?? 0) > 0;
-      const result = await supabase.from("digital_observer_device_slots" as any).upsert({
+      const result = await admin.from("digital_observer_device_slots" as any).upsert({
         observer_site_id: payload.observer_site_id,
         profile_id: profile.id,
         device_label: payload.device_label,
@@ -85,7 +91,10 @@ export async function POST(request: Request) {
         metadata: { push_token_registered: pushTokenRegistered, provider_activation_required: !pushTokenRegistered }
       }, { onConflict: "observer_site_id,device_reference_hash" }).select("id,device_label,platform,active,last_seen_at").single();
       if (result.error?.message?.includes("DIGITAL_OBSERVER_DEVICE_LIMIT_REACHED")) return fail("אפשר לחבר עד שני מכשירים. יש להסיר מכשיר קיים לפני הוספת מכשיר נוסף.", 409);
-      if (result.error) return fail("לא ניתן לרשום את המכשיר.", 400);
+      if (result.error) {
+        console.error("Digital Observer device registration failed", { code: result.error.code });
+        return fail("לא ניתן לרשום את המכשיר.", 400);
+      }
       return ok({ device: result.data, message: pushTokenRegistered ? "המכשיר נרשם עם טוקן Push פעיל." : "המכשיר נשמר, אך לא נמצא עבורו טוקן Push פעיל." });
     }
 
