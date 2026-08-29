@@ -2,6 +2,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { assertNoForbiddenDiscoveryFields } from "@/lib/domain/video-gateway-discovery-safety";
 import { cloudDvrDiscoverySchema, materializeCloudDvrDiscovery } from "@/lib/domain/video-gateway";
+import { verifyGatewayDeviceAccessToken } from "@/lib/domain/gateway-device-enrollment";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const MAX_CLOCK_SKEW_MS = 5 * 60 * 1000;
@@ -102,7 +103,8 @@ export async function POST(request: Request) {
     const timestamp = header(request, "x-video-gateway-timestamp");
     const nonce = header(request, "x-video-gateway-nonce");
     const signature = header(request, "x-video-gateway-signature");
-    if (!gatewayId || !timestamp || !nonce || !signature) return fail("Missing gateway authentication headers.", 401);
+    const deviceToken = header(request, "x-video-gateway-device-token");
+    if (!gatewayId || !timestamp || !nonce) return fail("Missing gateway authentication headers.", 401);
 
     const parsedTimestamp = Date.parse(timestamp);
     if (!Number.isFinite(parsedTimestamp) || Math.abs(Date.now() - parsedTimestamp) > MAX_CLOCK_SKEW_MS) {
@@ -110,11 +112,17 @@ export async function POST(request: Request) {
     }
 
     const body = await request.text();
-    if (!verifySignature(`${timestamp}.${nonce}.${body}`, signature, secret)) return fail("Invalid signature.", 401);
+    const device = deviceToken ? verifyGatewayDeviceAccessToken(deviceToken, secret) : null;
+    const legacySignatureValid = Boolean(signature) && verifySignature(`${timestamp}.${nonce}.${body}`, signature, secret);
+    if (!device && !legacySignatureValid) return fail("Invalid gateway authentication.", 401);
 
     const payload = cloudDvrDiscoverySchema.parse(JSON.parse(body));
     if (payload.gateway_id !== gatewayId) return fail("Gateway mismatch.", 403);
-    if (!isAllowedGateway(payload.gateway_id, payload.garden_id, payload.observer_site_id)) return fail("Gateway is not allowed for this site.", 403);
+    if (device) {
+      if (payload.gateway_id !== device.gateway_id || payload.observer_site_id !== device.observer_site_id || payload.garden_id) return fail("Gateway device token is not authorized for this site.", 403);
+      const enrolled = await createAdminClient().from("video_gateway_device_enrollments" as any).select("id").eq("id", device.device_id).eq("gateway_id", device.gateway_id).eq("observer_site_id", device.observer_site_id).eq("status", "delivered").maybeSingle();
+      if (enrolled.error || !enrolled.data) return fail("Gateway device access was revoked.", 401);
+    } else if (!isAllowedGateway(payload.gateway_id, payload.garden_id, payload.observer_site_id)) return fail("Gateway is not allowed for this site.", 403);
     assertNoForbiddenDiscoveryFields(payload);
 
     const replay = await assertFreshNonce({

@@ -326,6 +326,7 @@ async function upsertDigitalObserverCameraSource(
     gatewayConfigured: boolean;
     connected: boolean;
     statusHint: string | null;
+    gatewayId?: string | null;
   }
 ) {
   if (!values.observerSiteId) return null;
@@ -383,6 +384,7 @@ async function upsertDigitalObserverCameraSource(
       dvr_channel: values.channel,
       gateway_stream_id: values.gatewayStreamId,
       gateway_stream_id_present: Boolean(values.gatewayStreamId),
+      gateway_id: values.gatewayId ?? null,
       gateway_configured: values.gatewayConfigured,
       status_hint: values.statusHint,
       no_rtsp_exposed: true,
@@ -739,6 +741,7 @@ export async function materializeCloudDvrDiscovery(payload: z.infer<typeof cloud
       area,
       connectorType: parsed.connection_type,
       gatewayStreamId,
+      gatewayId: parsed.gateway_id,
       gatewayConfigured: true,
       connected,
       statusHint: channel.status
