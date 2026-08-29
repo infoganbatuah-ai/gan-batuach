@@ -8,7 +8,8 @@ const createSchema = z.object({
   display_name: z.string().trim().min(2).max(100),
   relationship_label: z.string().trim().max(80).optional().default(""),
   consent_confirmed: z.boolean().default(false),
-  notify_on_detection: z.boolean().default(false)
+  notify_on_detection: z.boolean().default(false),
+  camera_source_ids: z.array(z.string().uuid()).min(1).max(64).default([])
 });
 const deleteSchema = z.object({ action: z.literal("delete"), id: z.string().uuid() });
 const revokeSchema = z.object({ action: z.literal("revoke_consent"), id: z.string().uuid() });
@@ -19,6 +20,7 @@ async function writeBiometricAudit(supabase: any, input: {
   profileId: string;
   observerSiteId: string;
   personId: string;
+  cameraSourceIds?: string[];
   reason: string;
 }) {
   const now = new Date().toISOString();
@@ -33,6 +35,7 @@ async function writeBiometricAudit(supabase: any, input: {
     metadata: {
       observer_site_id: input.observerSiteId,
       known_person_id: input.personId,
+      camera_source_ids: input.cameraSourceIds ?? [],
       biometric_processing_active: false,
       no_biometric_reference_returned: true
     }
@@ -54,26 +57,43 @@ export async function POST(request: Request) {
       if ((site as any).vision_privacy_mode === "skeleton_only" || (site as any).business_handles_children) {
         return fail("זיהוי פנים חסום באתר המטפל בילדים. באתר זה נעשה שימוש בניתוח שלד ותנועה בלבד.", 403);
       }
+      if (!payload.consent_confirmed) return fail("נדרשת הסכמה מפורשת של האדם לפני קישורו למצלמות.", 422);
+
+      const cameraSourceIds = [...new Set(payload.camera_source_ids)];
+      const { data: scopedSources, error: scopedSourcesError } = await supabase
+        .from("digital_observer_camera_sources" as any)
+        .select("id")
+        .eq("observer_site_id", site.id)
+        .in("id", cameraSourceIds);
+      if (scopedSourcesError || (scopedSources?.length ?? 0) !== cameraSourceIds.length) {
+        return fail("אחת המצלמות שנבחרו אינה שייכת לאתר הזה.", 403);
+      }
+
       const { data, error } = await supabase.from("digital_observer_known_people" as any).insert({
         observer_site_id: payload.observer_site_id,
         display_name: payload.display_name,
         relationship_label: payload.relationship_label || null,
-        consent_status: payload.consent_confirmed ? "approved" : "pending",
+        consent_status: "approved",
         recognition_status: "readiness",
+        camera_scope: cameraSourceIds,
         notify_on_detection: payload.notify_on_detection,
         created_by: profile.id,
-        metadata: { image_pending: true, biometric_processing_active: false, explicit_consent_recorded: payload.consent_confirmed }
+        metadata: {
+          image_pending: true,
+          biometric_processing_active: false,
+          explicit_consent_recorded: true,
+          camera_scope_confirmed: true
+        }
       }).select("id,display_name,relationship_label,consent_status,recognition_status,notify_on_detection").single();
       if (error) return fail("לא ניתן לשמור את האדם המוכר.", 400);
-      if (payload.consent_confirmed) {
-        await writeBiometricAudit(supabase, {
-          eventType: "consent_recorded",
-          profileId: profile.id,
-          observerSiteId: payload.observer_site_id,
-          personId: data.id,
-          reason: "Explicit consent recorded; biometric recognition remains disabled until a verified runtime is separately provisioned."
-        });
-      }
+      await writeBiometricAudit(supabase, {
+        eventType: "consent_recorded",
+        profileId: profile.id,
+        observerSiteId: payload.observer_site_id,
+        personId: data.id,
+        cameraSourceIds,
+        reason: "Explicit consent recorded for the selected camera scope; biometric recognition remains disabled until a verified runtime is separately provisioned."
+      });
       return ok({ person: data, message: "האדם נשמר במצב מוכנות. זיהוי פנים אינו פעיל ללא תמונה, הסכמה וחיבור AI מאושר." }, 201);
     }
 
