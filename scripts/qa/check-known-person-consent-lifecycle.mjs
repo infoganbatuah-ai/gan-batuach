@@ -11,9 +11,22 @@ for (const required of [
   "biometric_reference: null",
   'eventType: "consent_revoked"',
   'eventType: "biometric_reference_deleted"',
-  "biometric_processing_active: false"
+  "biometric_processing_active: false",
+  "camera_source_ids: z.array(z.string().uuid()).min(1)",
+  '.eq("observer_site_id", site.id)',
+  "camera_scope: cameraSourceIds",
+  "camera_scope_confirmed: true"
 ]) {
   if (!route.includes(required)) throw new Error(`Missing known-person consent safety control: ${required}`);
+}
+
+const form = readFileSync("components/digital-observer/observer-action-forms.tsx", "utf8");
+for (const required of [
+  "camera_source_ids",
+  "מצלמות מורשות לתצפיות על האדם",
+  "יש בידי הסכמה מפורשת של האדם להגדרה זו ולמצלמות שנבחרו"
+]) {
+  if (!form.includes(required)) throw new Error(`Missing known-person camera scope UI: ${required}`);
 }
 
 for (const required of ["consent_recorded", "consent_revoked", "biometric_reference_deleted"]) {
