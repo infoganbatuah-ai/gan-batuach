@@ -34,6 +34,11 @@ for (const required of ["/playback/claim", "refreshGatewayDeviceAccess", "device
 for (const required of ["claim_url", "claimResponse", "JSON.stringify({ grant })", "playbackFailureReason", "local_unreachable", "cloud_503", "MEDIA_ATTACHED", "MANIFEST_PARSED", "enableWorker: false"]) {
   if (!player.includes(required)) throw new Error(`Missing browser playback claim flow: ${required}`);
 }
+const startTimeout = Number(player.match(/mediaStartTimeoutMs\s*=\s*([\d_]+)/)?.[1]?.replaceAll("_", ""));
+const progressTimeout = Number(player.match(/mediaProgressTimeoutMs\s*=\s*([\d_]+)/)?.[1]?.replaceAll("_", ""));
+if (startTimeout < 30_000 || progressTimeout < 20_000) {
+  throw new Error("Browser media heartbeat is shorter than the verified recorder startup/jitter window");
+}
 for (const forbidden of ["endpoint", "username", "password", "rtsp"]) {
   if (cloudRoute.includes(`payload.${forbidden}`)) throw new Error(`Cloud playback grant accepts forbidden DVR field: ${forbidden}`);
 }

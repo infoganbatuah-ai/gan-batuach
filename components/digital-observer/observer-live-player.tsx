@@ -6,8 +6,11 @@ import { useEffect, useRef, useState } from "react";
 
 type PlayerState = "loading" | "playing" | "error";
 
-const mediaStartTimeoutMs = 12_000;
-const mediaProgressTimeoutMs = 8_000;
+// Starting several recorder relays at once can take more than one HLS window.
+// Keep the player alive long enough for a verified local relay to produce its
+// first segment, then use the same recorder-jitter window as the Gateway.
+const mediaStartTimeoutMs = 30_000;
+const mediaProgressTimeoutMs = 20_000;
 
 type PlaybackSession = {
   url: string;
