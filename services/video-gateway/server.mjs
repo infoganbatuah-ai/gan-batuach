@@ -134,6 +134,40 @@ async function claimCloudPlaybackGrant(grant) {
   return String(payload.data.gateway_stream_id);
 }
 
+async function reportCameraActionResult(cloudBaseUrl, accessToken, requestId, outcome, resultCode) {
+  await fetch(`${cloudBaseUrl}/api/video-gateway/camera-actions`, {
+    method: "POST",
+    headers: { "content-type": "application/json", "x-video-gateway-device-token": accessToken },
+    body: JSON.stringify({ action: "result", request_id: requestId, outcome, result_code: resultCode })
+  }).catch(() => null);
+}
+
+async function pollCloudCameraActions() {
+  const cloudBaseUrl = keychainSecret("device_cloud_base_url").replace(/\/$/, "");
+  if (!cloudBaseUrl || !GATEWAY_KEYCHAIN_SERVICE) return;
+  try {
+    const accessToken = await refreshGatewayDeviceAccess();
+    const response = await fetch(`${cloudBaseUrl}/api/video-gateway/camera-actions`, {
+      method: "POST",
+      headers: { "content-type": "application/json", "x-video-gateway-device-token": accessToken },
+      body: JSON.stringify({ action: "poll" })
+    });
+    const payload = await response.json().catch(() => ({}));
+    const action = payload.data?.action_request;
+    if (!response.ok || !action?.id) return;
+    // An executor is added only together with a read-only capability probe for
+    // that exact adapter. Unknown adapters fail closed and cannot reach the DVR.
+    await reportCameraActionResult(cloudBaseUrl, accessToken, String(action.id), "failed", "adapter_executor_not_installed");
+  } catch {
+    // Device enrollment may be unavailable during startup or rotation. Health
+    // and live relays must remain independent from command polling.
+  }
+}
+
+if (GATEWAY_KEYCHAIN_SERVICE) {
+  setInterval(() => { void pollCloudCameraActions(); }, 5_000).unref();
+}
+
 function safeEqual(left, right) {
   if (!left || !right) return false;
   const a = Buffer.from(String(left), "utf8");
@@ -367,6 +401,31 @@ function privateNvrLiveUrl(session, channel, quality = "sub") {
   return `${session.baseUrl}/live.mp4?channel=${Math.max(0, channel - 1)}&type=${streamType}&chrome=1`;
 }
 
+function capabilityEvidence(supported, method, reason, adapter = null) {
+  return {
+    supported: Boolean(supported),
+    method,
+    tested_at: new Date().toISOString(),
+    adapter,
+    reason
+  };
+}
+
+function mediaCapabilities(result, adapter) {
+  const tested = Boolean(result.ok);
+  return {
+    live: capabilityEvidence(tested, "media_probe", tested ? "video_stream_verified" : "video_stream_unavailable", adapter),
+    playback: capabilityEvidence(false, "not_tested", "playback_endpoint_not_discovered", adapter),
+    audio_input: capabilityEvidence(Boolean(result.audio), "media_probe", result.audio ? "audio_track_verified" : "audio_track_not_present", adapter),
+    audio_output: capabilityEvidence(false, "not_tested", "audio_output_not_discovered", adapter),
+    talkback: capabilityEvidence(false, "not_tested", "talkback_not_discovered", adapter),
+    ptz: capabilityEvidence(false, "not_tested", "ptz_not_discovered", adapter),
+    relay: capabilityEvidence(false, "not_tested", "relay_not_discovered", adapter),
+    siren: capabilityEvidence(false, "not_tested", "siren_not_discovered", adapter),
+    light: capabilityEvidence(false, "not_tested", "light_not_discovered", adapter)
+  };
+}
+
 async function privateNvrStreamResponse(url, token, cookie, signal) {
   const response = await fetch(url, {
     headers: {
@@ -437,7 +496,6 @@ async function probePrivateNvrStream(url, token, cookie) {
   return new Promise((resolve) => {
     const args = [
       "-v", "error",
-      "-select_streams", "v:0",
       "-show_entries", "stream=codec_name,codec_type,width,height",
       "-of", "json",
       "-i", "pipe:0"
@@ -461,7 +519,8 @@ async function probePrivateNvrStream(url, token, cookie) {
       try {
         const parsed = JSON.parse(output || "{}");
         const stream = parsed.streams?.find((item) => item.codec_type === "video");
-        finish({ ok: Boolean(stream), codec: stream?.codec_name ?? null, width: stream?.width ?? null, height: stream?.height ?? null });
+        const audio = parsed.streams?.find((item) => item.codec_type === "audio");
+        finish({ ok: Boolean(stream), codec: stream?.codec_name ?? null, audio: Boolean(audio), audio_codec: audio?.codec_name ?? null, width: stream?.width ?? null, height: stream?.height ?? null });
       } catch {
         finish({ ok: false });
       }
@@ -503,7 +562,8 @@ async function discoverPrivateNvr(payload, channelCount) {
       candidates_tried: 1,
       codec: result.codec ?? null,
       width: result.width ?? null,
-      height: result.height ?? null
+      height: result.height ?? null,
+      capabilities: mediaCapabilities(result, "private_nvr_http_mp4")
     });
   }
   // Recorder discovery consumes the native live response sequence. Establish
@@ -518,8 +578,7 @@ function probeRtsp(url) {
       "-v", "error",
       "-rtsp_transport", "tcp",
       "-stimeout", String(Math.max(1000, PROBE_TIMEOUT_MS) * 1000),
-      "-select_streams", "v:0",
-      "-show_entries", "stream=codec_type,width,height",
+      "-show_entries", "stream=codec_name,codec_type,width,height",
       "-of", "json",
       url
     ];
@@ -545,8 +604,10 @@ function probeRtsp(url) {
       }
       try {
         const parsed = JSON.parse(output || "{}");
-        const stream = Array.isArray(parsed.streams) ? parsed.streams.find((item) => item.codec_type === "video") : null;
-        resolve({ ok: Boolean(stream), reason: stream ? "video_stream_found" : "no_video_stream", width: stream?.width ?? null, height: stream?.height ?? null });
+        const streams = Array.isArray(parsed.streams) ? parsed.streams : [];
+        const stream = streams.find((item) => item.codec_type === "video");
+        const audio = streams.find((item) => item.codec_type === "audio");
+        resolve({ ok: Boolean(stream), reason: stream ? "video_stream_found" : "no_video_stream", audio: Boolean(audio), audio_codec: audio?.codec_name ?? null, width: stream?.width ?? null, height: stream?.height ?? null });
       } catch {
         resolve({ ok: true, reason: "probe_completed" });
       }
@@ -557,7 +618,7 @@ function probeRtsp(url) {
 async function probeChannel(input, channel) {
   const candidates = candidateUrls(input, channel);
   if (!candidates.length) {
-    return { channel, status: "pending", reason: "missing_endpoint", candidates_tried: 0 };
+    return { channel, status: "pending", reason: "missing_endpoint", candidates_tried: 0, capabilities: mediaCapabilities({ ok: false, audio: false }, "generic_rtsp") };
   }
   for (const candidate of candidates) {
     const result = await probeRtsp(candidate.url);
@@ -572,7 +633,8 @@ async function probeChannel(input, channel) {
         template: candidate.template,
         candidates_tried: candidates.indexOf(candidate) + 1,
         width: result.width,
-        height: result.height
+        height: result.height,
+        capabilities: mediaCapabilities(result, candidate.vendor)
       };
     }
   }
@@ -584,7 +646,8 @@ async function probeChannel(input, channel) {
     status: "offline",
     health_status: "failed",
     reason: "no_candidate_connected",
-    candidates_tried: candidates.length
+    candidates_tried: candidates.length,
+    capabilities: mediaCapabilities({ ok: false, audio: false }, "generic_rtsp")
   };
 }
 
@@ -618,7 +681,7 @@ async function dvrConnect(payload) {
     latency_ms: Date.now() - started,
     channels,
     read_only: true,
-    controls_supported: false,
+    controls_supported: channels.some((channel) => Object.entries(channel.capabilities || {}).some(([key, evidence]) => !["live", "playback", "audio_input"].includes(key) && evidence?.supported === true)),
     no_secrets_returned: true
   };
 }

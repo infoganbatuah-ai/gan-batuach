@@ -21,6 +21,30 @@ type SignalRow = {
   created_at: string;
 };
 
+const physicalActionPatterns = [
+  { tokens: ["סירנה", "אזעקה"], action_type: "siren_on", capability: "siren", label: "הפעלת סירנה ל-5 שניות", parameters: { duration_seconds: 5 } },
+  { tokens: ["אור", "תאורה"], action_type: "light_on", capability: "light", label: "הפעלת תאורה", parameters: {} },
+  { tokens: ["דבר", "דיבור", "כריזה"], action_type: "talkback", capability: "talkback", label: "פתיחת דיבור דו-כיווני", parameters: {} },
+  { tokens: ["הזז", "ptz", "סובב"], action_type: "ptz_pan", capability: "ptz", label: "הזזת המצלמה שמאלה", parameters: { direction: "left", duration_ms: 350 } }
+] as const;
+
+function physicalActionFromMessage(message: string) {
+  return physicalActionPatterns.find((item) => matchesAny(message, [...item.tokens])) ?? null;
+}
+
+function verifiedActionEvidence(camera: any, capability: string) {
+  const evidence = camera?.capabilities?.capability_evidence?.[capability] ?? camera?.metadata?.channel_capabilities?.[capability];
+  const testedAt = Date.parse(String(evidence?.tested_at ?? ""));
+  return evidence?.supported === true
+    && Boolean(evidence?.adapter)
+    && Boolean(evidence?.method)
+    && evidence?.method !== "not_tested"
+    && Number.isFinite(testedAt)
+    && Date.now() - testedAt <= 24 * 60 * 60 * 1000
+      ? evidence
+      : null;
+}
+
 function eventType(signal: SignalRow) {
   return String(signal.metadata?.event_type || signal.signal_type || "system");
 }
@@ -103,7 +127,7 @@ export async function POST(request: Request) {
         .order("created_at", { ascending: false })
         .limit(100),
       supabase.from("digital_observer_camera_sources" as any)
-        .select("id,display_name,status,health_status,source_mode")
+        .select("id,display_name,status,health_status,source_mode,capabilities,metadata")
         .eq("observer_site_id", payload.observer_site_id),
       supabase.from("site_behavior_baselines" as any)
         .select("id,baseline_type,learning_maturity,confidence_level")
@@ -122,6 +146,10 @@ export async function POST(request: Request) {
     const connectedSourceAvailable = scopedCameras.some((camera: any) => ["connected", "healthy", "online", "active"].includes(String(camera.status ?? camera.health_status)));
     const message = payload.message.toLowerCase();
     const instruction = matchesAny(message, ["שים לב", "תעקוב", "תתריע", "תבדוק מעכשיו"]);
+    const requestedPhysicalAction = physicalActionFromMessage(message);
+    const actionEvidence = selectedCamera && requestedPhysicalAction
+      ? verifiedActionEvidence(selectedCamera, requestedPhysicalAction.capability)
+      : null;
     let requestRecord: any = null;
 
     if (instruction) {
@@ -171,7 +199,14 @@ export async function POST(request: Request) {
       answer_source: payload.camera_source_id ? "camera_scoped_runtime_data" : "site_scoped_runtime_data",
       source_label: "אירועים מאומתים וסטטוס חיבור נוכחי",
       live_ai_used: false,
-      emergency_action_triggered: false
+      emergency_action_triggered: false,
+      suggested_camera_action: requestedPhysicalAction
+        ? !selectedCamera
+          ? { available: false, reason: "יש לפתוח תחילה מצלמה מסוימת כדי להכין פעולה." }
+          : actionEvidence
+            ? { available: true, action_type: requestedPhysicalAction.action_type, label: requestedPhysicalAction.label, parameters: requestedPhysicalAction.parameters, camera_source_id: selectedCamera.id }
+            : { available: false, reason: "הפעולה לא הוצעה משום שאין capability עדכנית ומתאם מאומת למצלמה הזאת." }
+        : null
     });
   } catch (error) {
     return handleRouteError(error);

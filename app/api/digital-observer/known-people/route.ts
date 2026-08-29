@@ -7,6 +7,7 @@ const createSchema = z.object({
   observer_site_id: z.string().uuid(),
   display_name: z.string().trim().min(2).max(100),
   relationship_label: z.string().trim().max(80).optional().default(""),
+  access_class: z.enum(["household_resident", "authorized_visitor", "service_provider", "other"]).default("authorized_visitor"),
   consent_confirmed: z.boolean().default(false),
   notify_on_detection: z.boolean().default(false),
   camera_source_ids: z.array(z.string().uuid()).min(1).max(64).default([])
@@ -80,6 +81,7 @@ export async function POST(request: Request) {
         created_by: profile.id,
         metadata: {
           image_pending: true,
+          access_class: payload.access_class,
           biometric_processing_active: false,
           explicit_consent_recorded: true,
           camera_scope_confirmed: true

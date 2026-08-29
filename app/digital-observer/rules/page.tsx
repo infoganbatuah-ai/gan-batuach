@@ -203,7 +203,7 @@ export default async function DigitalObserverRulesPage() {
                   <article><TriangleAlert /><h3>טרם הוגדר</h3>{digitalObserverEdgeAiPolicy.unavailableCapabilities.map((item) => <p key={item}>{item}</p>)}</article>
                   <article><Clock3 /><h3>מחיקה והסכמה</h3><p>{digitalObserverEdgeAiPolicy.retention.frames}</p><p>{digitalObserverEdgeAiPolicy.retention.clips}</p><p>{digitalObserverEdgeAiPolicy.retention.insights}</p></article>
                 </div>
-                <div className="do-notice info"><ShieldCheck /><span>{digitalObserverEdgeAiPolicy.consent.monitoring}. {digitalObserverEdgeAiPolicy.consent.biometrics}.</span></div>
+                <div className="do-notice info"><ShieldCheck /><span>{digitalObserverEdgeAiPolicy.consent.monitoring}. {digitalObserverEdgeAiPolicy.consent.biometrics}.</span><Link className="do-button secondary" href="/digital-observer/people#add-known-person">הגדרת אנשים בהסכמה</Link></div>
               </section>
 
           <section className="do-section">
