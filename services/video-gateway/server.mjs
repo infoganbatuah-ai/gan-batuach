@@ -15,6 +15,12 @@ const DEFAULT_CHANNEL_COUNT = Number(process.env.DVR_EXPECTED_CHANNEL_COUNT || 1
 const MAX_CHANNEL_COUNT = 64;
 const HLS_ROOT = join(tmpdir(), "gan-batuach-video-gateway-hls");
 const PLAYBACK_TOKEN_TTL_MS = 5 * 60 * 1000;
+// Some recorders deliver an HLS source in short bursts. Eight seconds caused
+// healthy streams to be torn down between segments, producing a retry loop in
+// the dashboard. A failed source is still detected, but only after a window
+// large enough for normal recorder jitter and a full HLS refresh.
+const RELAY_STALE_MS = Number(process.env.VIDEO_GATEWAY_RELAY_STALE_MS || 20_000);
+const PRIVATE_NVR_PROBE_ATTEMPTS = Math.max(1, Math.min(3, Number(process.env.PRIVATE_NVR_PROBE_ATTEMPTS || 2)));
 const EVENT_CLIP_MAX_SECONDS = 30;
 const EVENT_THUMBNAIL_MAX_BYTES = 512 * 1024;
 const EVENT_CLIP_MAX_BYTES = 8 * 1024 * 1024;
@@ -496,11 +502,22 @@ async function discoverPrivateNvr(payload, channelCount) {
   const channels = [];
   for (let channel = 1; channel <= channelCount; channel += 1) {
     const url = privateNvrLiveUrl(session, channel, payload.stream_quality);
-    const result = await probePrivateNvrStream(url, session.token, session.cookie);
+    let result = { ok: false };
+    let probeAttempts = 0;
+    while (!result.ok && probeAttempts < PRIVATE_NVR_PROBE_ATTEMPTS) {
+      probeAttempts += 1;
+      result = await probePrivateNvrStream(url, session.token, session.cookie);
+      if (!result.ok && probeAttempts < PRIVATE_NVR_PROBE_ATTEMPTS) {
+        await new Promise((resolve) => setTimeout(resolve, 250));
+      }
+    }
     const streamId = streamIdFor(payload, channel);
     const previousRelay = relays.get(streamId);
-    if (previousRelay?.process) previousRelay.process.kill("SIGTERM");
-    streamSources.delete(streamId);
+    // Discovery runs periodically while users may be watching. A transient
+    // probe failure must not tear down a healthy relay or unregister its stable
+    // source. The next playback request can retry the retained source, while
+    // cloud status still reports offline unless media is currently progressing.
+    const retainedLiveEvidence = !result.ok && relayIsProgressing(previousRelay);
     if (result.ok) {
       streamSources.set(streamId, {
         kind: "private_nvr_http_mp4",
@@ -514,15 +531,15 @@ async function discoverPrivateNvr(payload, channelCount) {
       name: `DVR ערוץ ${channel}`,
       area: `ערוץ ${channel}`,
       stream_id: streamId,
-      status: result.ok ? "connected" : "offline",
-      health_status: result.ok ? "healthy" : "failed",
-      reason: result.ok ? "private_stream_found" : "private_stream_unreachable",
-      template: result.ok ? "er_private_http_mp4" : null,
-      candidates_tried: 1,
-      codec: result.codec ?? null,
+      status: result.ok || retainedLiveEvidence ? "connected" : "offline",
+      health_status: result.ok || retainedLiveEvidence ? "healthy" : "failed",
+      reason: result.ok ? "private_stream_found" : retainedLiveEvidence ? "active_relay_verified" : "private_stream_unreachable",
+      template: result.ok || streamSources.has(streamId) ? "er_private_http_mp4" : null,
+      candidates_tried: probeAttempts,
+      codec: result.codec ?? streamSources.get(streamId)?.codec ?? null,
       width: result.width ?? null,
       height: result.height ?? null,
-      capabilities: mediaCapabilities(result, "private_nvr_http_mp4")
+      capabilities: mediaCapabilities(result.ok || retainedLiveEvidence ? { ...result, ok: true } : result, "private_nvr_http_mp4")
     });
   }
   // Recorder discovery consumes the native live response sequence. Establish
@@ -784,6 +801,16 @@ async function analyzeRelayObjects(streamId) {
       worker.kill("SIGKILL");
       resolve(null);
     }, 20_000);
+    // A short/invalid frame can make the inference worker exit before ffmpeg.
+    // Isolate that normal pipeline shutdown so an EPIPE on the child stdin can
+    // never terminate the persistent Gateway or unrelated live relays.
+    const closeInferencePipe = () => {
+      if (ffmpeg.stdout.readable) ffmpeg.stdout.destroy();
+    };
+    worker.stdin.on("error", closeInferencePipe);
+    ffmpeg.stdout.on("error", () => {
+      if (!worker.stdin.destroyed) worker.stdin.destroy();
+    });
     ffmpeg.stdout.pipe(worker.stdin);
     worker.stdout.on("data", (chunk) => {
       if (outputSize < 32_768) {
@@ -793,6 +820,7 @@ async function analyzeRelayObjects(streamId) {
     });
     worker.on("close", (code) => {
       clearTimeout(timeout);
+      closeInferencePipe();
       if (code !== 0) return resolve(null);
       try {
         const result = JSON.parse(Buffer.concat(chunks).toString("utf8"));

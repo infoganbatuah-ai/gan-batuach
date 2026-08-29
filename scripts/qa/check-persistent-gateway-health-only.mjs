@@ -9,7 +9,7 @@ for (const required of ["GAN_BATUACH_GATEWAY_DISCOVERY", "crypto.randomBytes(32)
 if (!installer.includes('GAN_BATUACH_GATEWAY_DISCOVERY</key><string>0')) {
   throw new Error("Persistent Gateway must default to health-only mode");
 }
-if (runner.indexOf("await waitForGateway();") > runner.lastIndexOf("await discover();")) {
+if (runner.indexOf("await waitForGateway();") > runner.indexOf('await discoverWithRetry("initial")')) {
   throw new Error("Gateway discovery must not run before health readiness");
 }
 
