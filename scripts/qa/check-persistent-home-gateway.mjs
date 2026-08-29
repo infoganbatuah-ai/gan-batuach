@@ -10,6 +10,12 @@ for (const required of ["find-generic-password", "cloud-discovery", "cloud-learn
 for (const required of ["initial cloud learning unavailable; live remains active", "Keep relays available and retry learning on schedule"]) {
   if (!source.includes(required)) throw new Error(`Missing live isolation from cloud learning failure: ${required}`);
 }
+for (const required of ["/cloud/discovery", "/cloud/learning", "/cloud/event-media", "never", "access or refresh token"]) {
+  if (!source.includes(required)) throw new Error(`Missing token-free local cloud proxy use: ${required}`);
+}
+for (const required of ["forwardDeviceCloudRequest", "authorized(request)", "device_gateway_id", "x-video-gateway-device-token", "invalid_media_content_type"]) {
+  if (!server.includes(required)) throw new Error(`Missing authenticated fixed-route cloud proxy: ${required}`);
+}
 for (const required of ["streamCount", "capabilities", "ptz: false", "siren: false", "light: false", "remote_settings: false"]) {
   if (!server.includes(required)) throw new Error(`Missing gateway capability discovery control: ${required}`);
 }

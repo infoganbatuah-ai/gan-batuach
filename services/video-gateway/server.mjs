@@ -1,4 +1,4 @@
-import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
+import { createHash, createHmac, randomBytes, randomUUID, timingSafeEqual } from "node:crypto";
 import { spawn, spawnSync } from "node:child_process";
 import { createReadStream, existsSync, mkdirSync, readFileSync, rmSync, statSync } from "node:fs";
 import http from "node:http";
@@ -223,6 +223,36 @@ async function readJson(request) {
     if (raw.length > 65536) throw new Error("payload_too_large");
   }
   return raw ? JSON.parse(raw) : {};
+}
+
+async function readBuffer(request, maxBytes = 10 * 1024 * 1024) {
+  const chunks = [];
+  let size = 0;
+  for await (const chunk of request) {
+    size += chunk.length;
+    if (size > maxBytes) throw new Error("payload_too_large");
+    chunks.push(chunk);
+  }
+  return Buffer.concat(chunks);
+}
+
+async function forwardDeviceCloudRequest(path, body, contentType) {
+  const cloudBaseUrl = keychainSecret("device_cloud_base_url").replace(/\/$/, "");
+  const gatewayId = keychainSecret("device_gateway_id");
+  if (!cloudBaseUrl || !gatewayId) throw new Error("Gateway cloud identity is unavailable");
+  const accessToken = await refreshGatewayDeviceAccess();
+  const response = await fetch(`${cloudBaseUrl}${path}`, {
+    method: "POST",
+    headers: {
+      "content-type": contentType,
+      "x-video-gateway-id": gatewayId,
+      "x-video-gateway-timestamp": new Date().toISOString(),
+      "x-video-gateway-nonce": randomUUID(),
+      "x-video-gateway-device-token": accessToken
+    },
+    body
+  });
+  return { status: response.status, contentType: response.headers.get("content-type") || "application/json; charset=utf-8", body: Buffer.from(await response.arrayBuffer()) };
 }
 
 function cleanHost(value) {
@@ -1134,6 +1164,25 @@ async function handle(request, response) {
     return;
   }
   try {
+    const cloudJsonPath = request.url === "/cloud/discovery"
+      ? "/api/video-gateway/cloud-discovery"
+      : request.url === "/cloud/learning"
+        ? "/api/video-gateway/cloud-learning"
+        : null;
+    if (cloudJsonPath && request.method === "POST" && authorized(request)) {
+      const upstream = await forwardDeviceCloudRequest(cloudJsonPath, Buffer.from(JSON.stringify(await readJson(request))), "application/json");
+      response.writeHead(upstream.status, { "content-type": upstream.contentType, "cache-control": "private, no-store" });
+      response.end(upstream.body);
+      return;
+    }
+    if (request.url === "/cloud/event-media" && request.method === "POST" && authorized(request)) {
+      const contentType = String(request.headers["content-type"] || "");
+      if (!contentType.startsWith("multipart/form-data;")) throw new Error("invalid_media_content_type");
+      const upstream = await forwardDeviceCloudRequest("/api/video-gateway/cloud-event-media", await readBuffer(request), contentType);
+      response.writeHead(upstream.status, { "content-type": upstream.contentType, "cache-control": "private, no-store" });
+      response.end(upstream.body);
+      return;
+    }
     if (request.url === "/dvr/connect" && request.method === "POST") {
       json(response, 200, await dvrConnect(await readJson(request)));
       return;
