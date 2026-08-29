@@ -2,6 +2,14 @@
 
 Status: production activation readiness completed. Production modes remain disabled unless explicitly configured.
 
+## Verified Production Integrations — 2026-08-30
+
+- Sentry is connected to the production Next.js application. The public DSN and the CI-only source-map token are stored in Vercel Production; no secret values are committed to Git.
+- Resend is connected as the production email provider. The API key and webhook signing secret are stored as Vercel Production secrets.
+- The dedicated sender domain `mail.ganbatuach.com` is verified in Resend. DKIM, SPF and MX records were confirmed through public DNS.
+- The Resend webhook is enabled at `/api/webhooks/email/resend` for email delivery events, with signature verification handled by the application.
+- Live Sentry telemetry and a single-recipient email delivery test still require an explicit action-time approval before transmission.
+
 ## Completed
 
 - Created the admin provider production command center at `/dashboard/admin/provider-production`.
@@ -23,7 +31,7 @@ Readiness is intentionally not marked complete because real external provider se
 
 | Provider area | Readiness state |
 | --- | --- |
-| Email | test mode readiness |
+| Email | production configuration complete; live send pending controlled test approval |
 | WhatsApp | test mode readiness |
 | SMS | test mode readiness |
 | Push | test mode readiness |
@@ -89,8 +97,8 @@ Rollback preserves logs, invoice records, payment records, delivery records and 
 
 ## Remaining Manual Provider Setup
 
-- Add real provider secrets to deployment environment.
-- Verify email SPF/DKIM/DMARC and sender domains.
+- Add real provider secrets for providers that are not yet activated. Sentry and Resend secrets are already stored in Vercel Production.
+- DMARC policy hardening remains optional for the verified Resend subdomain; DKIM, SPF and MX are active.
 - Approve WhatsApp templates and opt-in processes.
 - Configure SMS sender IDs and rate limits.
 - Configure FCM/APNs/Web Push credentials.
