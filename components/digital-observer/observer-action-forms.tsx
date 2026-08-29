@@ -354,6 +354,7 @@ export function ObserverSettingsForm({ siteId, schedule, channels, consent = {} 
 export function ObserverRecipientsDevicesForm({ siteId, recipients, devices }: { siteId: string; recipients: any[]; devices: any[] }) {
   const router = useRouter();
   const [recipientState, setRecipientState] = useState<ActionState>({ busy: false, error: "", message: "" });
+  const hasActivePushDevice = devices.some((device) => device.active && device.platform === "web");
 
   async function addRecipient(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -392,7 +393,7 @@ export function ObserverRecipientsDevicesForm({ siteId, recipients, devices }: {
     <article className="do-panel do-form-section">
       <div className="do-section-head"><div><h2>מכשירים מחוברים</h2><p>עד שני מכשירים פעילים לכל אתר.</p></div><Smartphone /></div>
       <div className="do-device-limit"><strong>{devices.filter((device) => device.active).length}/2</strong><span>חריצי מכשיר בשימוש</span></div>
-      <ObserverFcmPushRegistration siteId={siteId} />
+      <ObserverFcmPushRegistration siteId={siteId} initialRegistered={hasActivePushDevice} />
       {devices.length ? <div className="do-row-list">{devices.map((device) => <div className="do-row" key={device.id}><Smartphone /><span className="do-row-main"><strong>{device.device_label}</strong><small>{device.platform} · {device.active ? "פעיל" : "נותק"}</small></span>{device.active ? <ObserverQuickAction endpoint="/api/digital-observer/access-settings" body={{ action: "revoke_device", id: device.id }} confirmText="לנתק את המכשיר?"><Trash2 /> ניתוק</ObserverQuickAction> : <span className="do-badge warn">נותק</span>}</div>)}</div> : <div className="do-empty"><Smartphone /><strong>אין מכשיר רשום</strong><span>לחצו על הפעלת Push כדי לרשום את המכשיר ב־Firebase.</span></div>}
     </article>
   </section>;
