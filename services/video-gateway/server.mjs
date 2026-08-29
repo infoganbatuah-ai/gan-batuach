@@ -25,7 +25,7 @@ const relays = new Map();
 const relayStarts = new Map();
 const playbackTokens = new Map();
 let lastDiscoverySummary = { channelCount: 0, connectedCount: 0, checkedAt: null };
-const requestMetrics = { playbackRequests: 0, playbackReady: 0, playbackUnavailable: 0, hlsRequests: 0 };
+const requestMetrics = { playbackRequests: 0, playbackReady: 0, playbackUnavailable: 0, playbackClaimRequests: 0, playbackClaimReady: 0, playbackClaimUnavailable: 0, hlsRequests: 0 };
 const FRAME_WIDTH = 32;
 const FRAME_HEIGHT = 18;
 const OBJECT_WORKER_PATH = fileURLToPath(new URL("./onnx-object-worker.mjs", import.meta.url));
@@ -60,6 +60,7 @@ function browserHeaders(request, contentType) {
     "access-control-allow-origin": allowedOrigin,
     "access-control-allow-methods": "GET, POST, OPTIONS",
     "access-control-allow-headers": "content-type",
+    "access-control-allow-private-network": "true",
     "vary": "Origin"
   };
 }
@@ -977,6 +978,7 @@ async function handle(request, response) {
     return;
   }
   if (request.url === "/playback/claim" && request.method === "POST") {
+    requestMetrics.playbackClaimRequests += 1;
     try {
       const payload = await readJson(request);
       const grant = String(payload.grant || "");
@@ -987,9 +989,11 @@ async function handle(request, response) {
       if (!relay || !(await waitForFile(relay.playlist, 8000))) throw new Error("Playback relay is not ready");
       const token = issuePlaybackToken(streamId);
       const base = publicGatewayBase(request);
+      requestMetrics.playbackClaimReady += 1;
       response.writeHead(200, browserHeaders(request, "application/json"));
       response.end(JSON.stringify({ status: "starting", playback: { hls_url: `${base}/hls/${encodeURIComponent(streamId)}/index.m3u8?token=${encodeURIComponent(token)}` }, expires_in_seconds: Math.floor(PLAYBACK_TOKEN_TTL_MS / 1000), private_source_hidden: true }));
     } catch {
+      requestMetrics.playbackClaimUnavailable += 1;
       response.writeHead(503, browserHeaders(request, "application/json"));
       response.end(JSON.stringify({ error: "playback_unavailable", retryable: true }));
     }
