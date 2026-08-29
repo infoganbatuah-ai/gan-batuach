@@ -39,8 +39,8 @@ async function postJson(url: string, body: Record<string, unknown>) {
   return result?.data ?? result;
 }
 
-export function ObserverFcmPushRegistration({ siteId }: { siteId: string }) {
-  const [state, setState] = useState<ActionState>(initialState);
+export function ObserverFcmPushRegistration({ siteId, initialRegistered = false }: { siteId: string; initialRegistered?: boolean }) {
+  const [state, setState] = useState<ActionState>({ ...initialState, registered: initialRegistered });
   const [testing, setTesting] = useState(false);
 
   async function register() {
