@@ -3,7 +3,7 @@ import { fail, handleRouteError, ok } from "@/lib/api";
 import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
 import { buildDvrGatewayStatus, createDvrPlaybackSession, type DvrGatewayEventRow } from "@/lib/domain/digital-observer/dvr-gateway";
 import { digitalObserverCameraIsConnected } from "@/lib/domain/digital-observer/camera-live-status";
-import { getPlaybackUrls } from "@/lib/domain/video-gateway-client";
+import { issueGatewayPlaybackGrant } from "@/lib/domain/gateway-device-enrollment";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -24,7 +24,6 @@ async function requireSiteAccess(request: Request, observerSiteId: string) {
   if (!site) return { error: fail("אין הרשאה לצפות באתר הזה.", 403) };
   return { session, site };
 }
-
 async function loadReviewedEvents(supabase: any, observerSiteId: string): Promise<DvrGatewayEventRow[]> {
   const { data, error } = await supabase
     .from("observer_intelligence_signals" as any)
@@ -69,16 +68,25 @@ export async function POST(request: Request) {
       if (!digitalObserverCameraIsConnected(source)) return fail("ערוץ ה-DVR אינו מחובר כרגע.", 409);
       const gatewayStreamId = String(source.metadata?.gateway_stream_id || "").trim();
       if (!gatewayStreamId) return fail("למקור המצלמה עדיין אין מזהה Gateway.", 409);
-      const gateway = await getPlaybackUrls(gatewayStreamId, payload.token);
-      if (gateway.status !== "healthy" || !gateway.playback.hls_url) return fail("שידור הווידאו עדיין אינו מוכן.", 503);
+      const gatewayId = String(source.metadata?.gateway_id || "").trim();
+      const secret = process.env.VIDEO_GATEWAY_CLOUD_DISCOVERY_SECRET || "";
+      if (!gatewayId || !secret) return fail("זהות ה-Gateway המקומי אינה זמינה.", 503);
+      const grant = issueGatewayPlaybackGrant({
+        gateway_id: gatewayId,
+        observer_site_id: payload.observer_site_id,
+        camera_source_id: source.id,
+        gateway_stream_id: gatewayStreamId
+      }, secret);
       return ok({
         camera_source_id: source.id,
         mode: payload.mode,
-        gateway_stream_id: gatewayStreamId,
-        provider: gateway.provider ?? null,
-        status: gateway.status,
-        playback: gateway.playback,
-        expires_in_seconds: 300,
+        provider: "custom",
+        status: "authorized",
+        playback: {
+          claim_url: "http://127.0.0.1:18082/playback/claim",
+          grant
+        },
+        expires_in_seconds: 45,
         private_source_hidden: true
       });
     }

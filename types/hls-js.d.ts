@@ -11,7 +11,11 @@ declare module "hls.js" {
   };
 
   export default class Hls {
-    static Events: { ERROR: string };
+    static Events: {
+      ERROR: string;
+      MEDIA_ATTACHED: string;
+      MANIFEST_PARSED: string;
+    };
     static isSupported(): boolean;
     constructor(config?: HlsConfig);
     loadSource(source: string): void;
