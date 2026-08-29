@@ -1,12 +1,12 @@
 import { createHash, createHmac, randomBytes, randomUUID, timingSafeEqual } from "node:crypto";
 import { spawn, spawnSync } from "node:child_process";
-import { existsSync, mkdirSync, readFileSync, rmSync, statSync } from "node:fs";
+import { createReadStream, existsSync, mkdirSync, readFileSync, rmSync, statSync } from "node:fs";
 import http from "node:http";
 import { tmpdir } from "node:os";
 import { extname, join, normalize } from "node:path";
 import { fileURLToPath } from "node:url";
 import { computeActivityMetrics } from "./activity-insights.mjs";
-import { localEdgeReadiness } from "./edge-readiness.mjs";
+import { localEdgeReadiness, warmLocalEdgeReadiness } from "./edge-readiness.mjs";
 
 const PORT = Number(process.env.PORT || process.env.VIDEO_GATEWAY_PORT || 8080);
 const HOST = process.env.HOST || process.env.VIDEO_GATEWAY_HOST || "0.0.0.0";
@@ -39,6 +39,10 @@ let deviceAccessRefreshPromise = null;
 const OBJECT_WORKER_PATH = fileURLToPath(new URL("./onnx-object-worker.mjs", import.meta.url));
 
 mkdirSync(HLS_ROOT, { recursive: true });
+
+// Start expensive self-tests in the background. The contract stays false until
+// they complete, while health and live playback remain responsive.
+warmLocalEdgeReadiness();
 
 function json(response, status, body) {
   response.writeHead(status, {
@@ -88,6 +92,9 @@ async function refreshGatewayDeviceAccess() {
     const gatewayId = keychainSecret("device_gateway_id");
     const cloudBaseUrl = keychainSecret("device_cloud_base_url").replace(/\/$/, "");
     if (!gatewayId || !cloudBaseUrl) throw new Error("Gateway device identity is unavailable");
+    // Discovery and playback are separate local processes but share the same
+    // rotating Keychain refresh material. If one rotates it first, re-read and
+    // retry once rather than dropping every concurrent browser playback claim.
     for (let attempt = 0; attempt < 2; attempt += 1) {
       const refreshToken = keychainSecret("device_refresh_token");
       if (!refreshToken) throw new Error("Gateway device identity is unavailable");
@@ -459,21 +466,38 @@ async function privateNvrStreamResponse(url, token, cookie, signal) {
 
 async function pipeWebStreamToWritable(stream, writable) {
   const reader = stream.getReader();
-  const ignorePipeClosure = () => {};
-  writable.on("error", ignorePipeClosure);
+  let pipeError = null;
+  const onPipeError = (error) => { pipeError = error; };
+  const removePipeErrorListener = () => writable.removeListener("error", onPipeError);
+  writable.on("error", onPipeError);
+  // ffmpeg's stdin can report EPIPE after end() has returned. Keep the error
+  // listener through close so a normal recorder/client disconnect cannot crash
+  // the persistent Gateway process.
+  writable.once("close", removePipeErrorListener);
+  const waitForDrain = () => new Promise((resolve) => {
+    const finish = () => {
+      writable.removeListener("drain", finish);
+      writable.removeListener("close", finish);
+      writable.removeListener("error", finish);
+      resolve();
+    };
+    writable.once("drain", finish);
+    writable.once("close", finish);
+    writable.once("error", finish);
+  });
   try {
     while (true) {
       const { done, value } = await reader.read();
       if (done) break;
-      if (writable.destroyed || !writable.writable) break;
+      if (pipeError || writable.destroyed || !writable.writable) break;
       try {
         if (!writable.write(Buffer.from(value))) {
-          await new Promise((resolve) => {
-            writable.once("drain", resolve);
-            writable.once("close", resolve);
-            writable.once("error", resolve);
-          });
+          await waitForDrain();
         }
+        // A recorder can keep a fetch ReadableStream continuously fulfilled.
+        // Yield periodically so HTTP health, claims and HLS requests are not
+        // starved while multiple relays are active.
+        await new Promise((resolve) => setImmediate(resolve));
       } catch {
         break;
       }
@@ -481,6 +505,7 @@ async function pipeWebStreamToWritable(stream, writable) {
   } finally {
     if (!writable.destroyed && writable.writable) writable.end();
     reader.releaseLock();
+    if (writable.destroyed) removePipeErrorListener();
   }
 }
 
@@ -975,7 +1000,26 @@ function serveHls(request, response) {
     return;
   }
   response.writeHead(200, browserHeaders(request, "video/mp2t"));
-  response.end(readFileSync(file));
+  const media = createReadStream(file);
+  const closeMedia = () => media.destroy();
+  const closeResponse = () => media.destroy();
+  const cleanup = () => {
+    request.removeListener("close", closeMedia);
+    response.removeListener("error", closeResponse);
+  };
+  request.once("close", closeMedia);
+  // Browser HLS clients frequently abandon an old segment when seeking or
+  // recovering. Treat that socket close as a normal per-request condition,
+  // never as a Gateway process failure.
+  response.once("error", closeResponse);
+  media.once("error", () => {
+    cleanup();
+    if (!response.headersSent) browserJson(request, response, 404, { error: "not_ready" });
+    else response.end();
+  });
+  media.once("close", cleanup);
+  media.once("end", cleanup);
+  media.pipe(response);
 }
 
 async function cameraTest(payload) {
@@ -1155,8 +1199,20 @@ async function handle(request, response) {
   }
 }
 
-http.createServer((request, response) => {
-  void handle(request, response);
-}).listen(PORT, HOST, () => {
+const gatewayServer = http.createServer((request, response) => {
+  // A closed HLS request must remain isolated to that request. Without this
+  // listener, a client-side EPIPE can terminate the persistent Gateway.
+  response.once("error", () => {
+    if (!response.writableEnded) response.destroy();
+  });
+  void handle(request, response).catch(() => {
+    if (!response.headersSent) json(response, 500, { error: "gateway_error" });
+    else response.destroy();
+  });
+});
+
+gatewayServer.on("clientError", (_error, socket) => socket.destroy());
+
+gatewayServer.listen(PORT, HOST, () => {
   console.log(`video-gateway listening on ${HOST}:${PORT}`);
 });

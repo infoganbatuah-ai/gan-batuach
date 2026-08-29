@@ -1,12 +1,16 @@
 import { existsSync } from "node:fs";
-import { spawnSync } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { homedir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const objectWorkerPath = fileURLToPath(new URL("./onnx-object-worker.mjs", import.meta.url));
-let objectWorkerCache = { checkedAt: 0, value: null };
-const OBJECT_WORKER_SELF_TEST_TIMEOUT_MS = 60_000;
+let objectWorkerCache = null;
+let objectWorkerSelfTestPromise = null;
+let objectWorkerRetryAt = 0;
+let baseReadinessCache = null;
+const OBJECT_WORKER_SELF_TEST_TIMEOUT_MS = 120_000;
+const OBJECT_WORKER_SELF_TEST_RETRY_MS = 60_000;
 
 function executableAvailable(command) {
   const candidates = command === "ffprobe"
@@ -33,66 +37,94 @@ function visionWorkerSelfTest() {
 }
 
 function objectWorkerSelfTest() {
-  const now = Date.now();
-  if (objectWorkerCache.value && now - objectWorkerCache.checkedAt < 60_000) return objectWorkerCache.value;
-  const result = spawnSync(process.execPath, [objectWorkerPath, "--self-test"], {
-    encoding: "utf8",
-    // ONNX can take longer on a cold start while macOS maps the model and
-    // native runtime. Treat only a completed inference self-test as readiness.
-    timeout: OBJECT_WORKER_SELF_TEST_TIMEOUT_MS,
-    stdio: ["ignore", "pipe", "ignore"]
-  });
-  let value = { available: false, reason: "object_worker_self_test_failed", provenance: null };
-  if (result.error?.code === "ETIMEDOUT") {
-    value = { available: false, reason: "object_worker_self_test_timeout", provenance: null };
-  } else {
-    try {
-      const parsed = JSON.parse(result.stdout || "{}");
-      if (result.status === 0 && parsed.ok === true && parsed.capabilities?.object_detection === true) {
-        value = { available: true, reason: null, provenance: parsed.provenance ?? null };
-      } else {
-        value = { available: false, reason: String(parsed.reason || "object_worker_self_test_failed"), provenance: parsed.provenance ?? null };
-      }
-    } catch {}
+  if (objectWorkerCache?.available) return objectWorkerCache;
+  if (objectWorkerCache && Date.now() < objectWorkerRetryAt) return objectWorkerCache;
+  if (!objectWorkerSelfTestPromise) {
+    // Never run model initialization synchronously on Gateway request paths.
+    // Until this background test completes, the contract remains truthfully off.
+    objectWorkerSelfTestPromise = new Promise((resolve) => {
+      const child = spawn(process.execPath, [objectWorkerPath, "--self-test"], { stdio: ["ignore", "pipe", "ignore"] });
+      let output = "";
+      let settled = false;
+      const finish = (value) => {
+        if (settled) return;
+        settled = true;
+        clearTimeout(timeout);
+        objectWorkerCache = value;
+        objectWorkerRetryAt = value.available ? 0 : Date.now() + OBJECT_WORKER_SELF_TEST_RETRY_MS;
+        objectWorkerSelfTestPromise = null;
+        resolve(value);
+      };
+      const timeout = setTimeout(() => {
+        child.kill("SIGKILL");
+        finish({ available: false, reason: "object_worker_self_test_timeout", provenance: null });
+      }, OBJECT_WORKER_SELF_TEST_TIMEOUT_MS);
+      child.stdout.on("data", (chunk) => { output += chunk.toString("utf8"); });
+      child.on("error", () => finish({ available: false, reason: "object_worker_self_test_failed", provenance: null }));
+      child.on("close", (status) => {
+        try {
+          const parsed = JSON.parse(output || "{}");
+          if (status === 0 && parsed.ok === true && parsed.capabilities?.object_detection === true) {
+            finish({ available: true, reason: null, provenance: parsed.provenance ?? null });
+            return;
+          }
+          finish({ available: false, reason: String(parsed.reason || "object_worker_self_test_failed"), provenance: parsed.provenance ?? null });
+        } catch {
+          finish({ available: false, reason: "object_worker_self_test_failed", provenance: null });
+        }
+      });
+    });
   }
-  objectWorkerCache = { checkedAt: now, value };
-  return value;
+  return objectWorkerSelfTestPromise
+    ? { available: false, reason: "object_worker_self_test_pending", provenance: null }
+    : objectWorkerCache || { available: false, reason: "object_worker_self_test_pending", provenance: null };
 }
 
-export function localEdgeReadiness() {
+function baseReadiness() {
+  if (baseReadinessCache) return baseReadinessCache;
   const modelDir = process.env.VIDEO_GATEWAY_EDGE_MODEL_DIR || "";
   const audioModel = modelDir ? join(modelDir, "audio-event-detector.mlmodelc") : "";
   // The compiled worker is the runtime artifact. Requiring `swift` here would
   // incorrectly disable Vision when the compiler is not on the LaunchAgent PATH.
   const appleVisionPlatform = process.platform === "darwin";
   const visionWorker = appleVisionPlatform ? visionWorkerSelfTest() : { available: false, reason: "apple_vision_runtime_unavailable", capabilities: {} };
-  const objectWorker = objectWorkerSelfTest();
   const ffprobe = executableAvailable("ffprobe");
   const hardwareAcceleration = process.platform === "darwin" && process.arch === "arm64";
   const audioModelPresent = Boolean(audioModel && existsSync(audioModel));
-  // An artifact on disk is not inference. A loaded worker and a capability
-  // self-test are required before any model capability can become active.
+  baseReadinessCache = {
+    visionWorker,
+    ffprobe,
+    hardwareAcceleration,
+    audioModelPresent,
+    appleVisionPlatform
+  };
+  return baseReadinessCache;
+}
+
+export function localEdgeReadiness() {
+  const base = baseReadiness();
+  const objectWorker = objectWorkerSelfTest();
   const objectDetection = objectWorker.available;
   const audioDetection = false;
 
   return {
     processing: "local_gateway",
-    ffprobe_available: ffprobe,
+    ffprobe_available: base.ffprobe,
     gateway_connectivity: "healthy",
     gateway_version: process.env.VIDEO_GATEWAY_VERSION || "local-gateway",
-    runtime: { available: visionWorker.available, kind: visionWorker.available ? "apple_vision" : appleVisionPlatform ? "apple_vision_unverified" : "not_available", self_test_reason: visionWorker.reason },
-    hardware: { platform: process.platform, architecture: process.arch, acceleration_available: hardwareAcceleration },
+    runtime: { available: base.visionWorker.available, kind: base.visionWorker.available ? "apple_vision" : base.appleVisionPlatform ? "apple_vision_unverified" : "not_available", self_test_reason: base.visionWorker.reason },
+    hardware: { platform: process.platform, architecture: process.arch, acceleration_available: base.hardwareAcceleration },
     models: {
       approved_inventory: [
         { capability: "object_detection", present: objectWorker.available, loaded: objectWorker.available, self_test_passed: objectWorker.available, execution_provider: objectWorker.available ? "cpu" : null, provenance: objectWorker.provenance },
-        { capability: "audio_event_detection", present: audioModelPresent, loaded: false, self_test_passed: false }
+        { capability: "audio_event_detection", present: base.audioModelPresent, loaded: false, self_test_passed: false }
       ],
       loaded: objectWorker.available
     },
-    apple_vision_runtime_available: visionWorker.available,
-    face_detection: visionWorker.capabilities.face_detection === true,
-    human_detection: visionWorker.capabilities.human_detection === true,
-    image_classification: visionWorker.capabilities.image_classification === true,
+    apple_vision_runtime_available: base.visionWorker.available,
+    face_detection: base.visionWorker.capabilities.face_detection === true,
+    human_detection: base.visionWorker.capabilities.human_detection === true,
+    image_classification: base.visionWorker.capabilities.image_classification === true,
     object_detection: objectDetection,
     audio_event_detection: audioDetection,
     face_recognition: false,
@@ -100,16 +132,26 @@ export function localEdgeReadiness() {
     active: objectWorker.available,
     reason: objectWorker.available
       ? "object_detection_ready"
-      : appleVisionPlatform && !visionWorker.available
-      ? visionWorker.reason
-      : appleVisionPlatform && audioModelPresent
+      : base.appleVisionPlatform && !base.visionWorker.available
+      ? base.visionWorker.reason
+      : base.appleVisionPlatform && base.audioModelPresent
         ? "model_present_but_runtime_load_and_capability_test_required"
-      : !appleVisionPlatform
+      : !base.appleVisionPlatform
         ? "apple_vision_runtime_unavailable"
-        : "approved_edge_model_not_installed",
+        : objectWorker.reason || "approved_edge_model_not_installed",
     capability_test: objectWorker.available ? { passed: true, reason: "object_model_loaded" } : { passed: false, reason: objectWorker.reason },
     consent_verified: false,
     cloud_video_upload: false,
     raw_frames_retained: false
   };
+}
+
+export function warmLocalEdgeReadiness() {
+  // Let the read-only recorder discovery finish its initial network burst.
+  // The readiness contract remains disabled until this real self-test passes.
+  const warmup = setTimeout(() => {
+    baseReadiness();
+    objectWorkerSelfTest();
+  }, 30_000);
+  warmup.unref();
 }
