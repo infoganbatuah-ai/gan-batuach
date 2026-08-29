@@ -39,7 +39,18 @@ async function requestPlaybackSession(observerSiteId: string, cameraSourceId: st
         body: JSON.stringify({ observer_site_id: observerSiteId, camera_source_id: cameraSourceId, mode: "live" })
       });
       const payload = await response.json().catch(() => ({}));
-      const candidate = payload?.data?.playback?.hls_url;
+      let candidate = payload?.data?.playback?.hls_url;
+      const claimUrl = payload?.data?.playback?.claim_url;
+      const grant = payload?.data?.playback?.grant;
+      if (response.ok && typeof claimUrl === "string" && typeof grant === "string") {
+        const claimResponse = await fetch(claimUrl, {
+          method: "POST",
+          headers: { "content-type": "application/json" },
+          body: JSON.stringify({ grant })
+        });
+        const claimPayload = await claimResponse.json().catch(() => ({}));
+        candidate = claimPayload?.playback?.hls_url;
+      }
       if (response.ok && typeof candidate === "string" && candidate) {
         playbackUrl = candidate;
         break;

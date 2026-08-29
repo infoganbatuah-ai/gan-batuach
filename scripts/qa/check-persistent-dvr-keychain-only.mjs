@@ -12,6 +12,9 @@ for (const required of ['keychainSecret("dvr_profile_json")', 'keychainSecret("d
 for (const required of ["initial DVR discovery unavailable; retry scheduled", "15 * 60 * 1000"]) {
   if (!runner.includes(required)) throw new Error(`Missing persistent discovery resilience control: ${required}`);
 }
+if (!runner.includes('const currentRefreshToken = keychainSecret("device_refresh_token")')) {
+  throw new Error("Persistent Gateway must reload rotated device identity from Keychain");
+}
 for (const required of ['writeSecret("dvr_profile_json"', 'writeSecret("dvr_password"', "rmSync(profilePath", "original profile was not removed"]) {
   if (!migration.includes(required)) throw new Error(`Missing fail-safe DVR migration control: ${required}`);
 }

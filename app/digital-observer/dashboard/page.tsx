@@ -151,7 +151,7 @@ export default async function DigitalObserverDashboardPage({ searchParams }: Pag
               <div className="do-home-cameras-head"><h2>מצלמות</h2><div className="do-section-actions do-home-camera-view-actions"><Link className="do-link" href="/digital-observer/cameras">צפייה חיה</Link><span className="do-home-camera-view-toggle" aria-label="אפשרויות תצוגה"><Link href="/digital-observer/cameras?view=grid" aria-label="תצוגת גריד"><LayoutGrid /></Link><Link href="/digital-observer/cameras?view=list" aria-label="תצוגת רשימה"><List /></Link></span><Link className="do-icon-button accent do-home-camera-add" href={`/digital-observer/cameras/add?site=${selectedSite.id}`} aria-label="הוספת מצלמה"><Plus /></Link></div></div>
               {siteCameras.length ? (
                 <div className="do-camera-grid">
-                  {siteCameras.slice(0, 4).map((camera, index) => {
+                  {siteCameras.map((camera, index) => {
                     const hasLiveGateway = digitalObserverCameraHasLiveGateway(camera);
                     return (
                       <Link className="do-dashboard-camera-card" href={`/digital-observer/cameras?camera=${camera.id}`} key={camera.id}>

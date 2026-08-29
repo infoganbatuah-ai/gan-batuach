@@ -1,5 +1,5 @@
 import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypto";
-import { spawn } from "node:child_process";
+import { spawn, spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, readFileSync, rmSync, statSync } from "node:fs";
 import http from "node:http";
 import { tmpdir } from "node:os";
@@ -29,6 +29,10 @@ const requestMetrics = { playbackRequests: 0, playbackReady: 0, playbackUnavaila
 const FRAME_WIDTH = 32;
 const FRAME_HEIGHT = 18;
 const OBJECT_WORKER_PATH = fileURLToPath(new URL("./onnx-object-worker.mjs", import.meta.url));
+const GATEWAY_KEYCHAIN_SERVICE = process.env.GAN_BATUACH_GATEWAY_KEYCHAIN_SERVICE || "";
+let deviceAccessToken = "";
+let deviceAccessExpiresAt = 0;
+let deviceAccessRefreshPromise = null;
 
 mkdirSync(HLS_ROOT, { recursive: true });
 
@@ -54,9 +58,63 @@ function browserHeaders(request, contentType) {
     "content-type": contentType,
     "cache-control": "private, no-store, max-age=0",
     "access-control-allow-origin": allowedOrigin,
-    "access-control-allow-methods": "GET, OPTIONS",
+    "access-control-allow-methods": "GET, POST, OPTIONS",
+    "access-control-allow-headers": "content-type",
     "vary": "Origin"
   };
+}
+
+function browserJson(request, response, status, body) {
+  response.writeHead(status, browserHeaders(request, "application/json; charset=utf-8"));
+  response.end(JSON.stringify(body));
+}
+
+function keychainSecret(account) {
+  if (!GATEWAY_KEYCHAIN_SERVICE) return "";
+  const result = spawnSync("/usr/bin/security", ["find-generic-password", "-s", GATEWAY_KEYCHAIN_SERVICE, "-a", account, "-w"], { encoding: "utf8" });
+  return result.status === 0 ? result.stdout.trim() : "";
+}
+
+function storeKeychainSecret(account, value) {
+  if (!GATEWAY_KEYCHAIN_SERVICE) throw new Error("Gateway Keychain service is unavailable");
+  const result = spawnSync("/usr/bin/security", ["add-generic-password", "-U", "-s", GATEWAY_KEYCHAIN_SERVICE, "-a", account, "-w", value], { encoding: "utf8" });
+  if (result.status !== 0) throw new Error("Gateway Keychain update failed");
+}
+
+async function refreshGatewayDeviceAccess() {
+  if (deviceAccessToken && deviceAccessExpiresAt > Date.now() + 30_000) return deviceAccessToken;
+  if (deviceAccessRefreshPromise) return deviceAccessRefreshPromise;
+  deviceAccessRefreshPromise = (async () => {
+    const gatewayId = keychainSecret("device_gateway_id");
+    const refreshToken = keychainSecret("device_refresh_token");
+    const cloudBaseUrl = keychainSecret("device_cloud_base_url").replace(/\/$/, "");
+    if (!gatewayId || !refreshToken || !cloudBaseUrl) throw new Error("Gateway device identity is unavailable");
+    const response = await fetch(`${cloudBaseUrl}/api/digital-observer/gateway-enrollment`, {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ action: "refresh", gateway_id: gatewayId, refresh_token: refreshToken })
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok || !payload.data?.access_token || !payload.data?.refresh_token) throw new Error("Gateway device refresh failed");
+    storeKeychainSecret("device_refresh_token", String(payload.data.refresh_token));
+    deviceAccessToken = String(payload.data.access_token);
+    deviceAccessExpiresAt = Date.parse(String(payload.data.access_expires_at || "")) || Date.now() + 9 * 60 * 1000;
+    return deviceAccessToken;
+  })().finally(() => { deviceAccessRefreshPromise = null; });
+  return deviceAccessRefreshPromise;
+}
+
+async function claimCloudPlaybackGrant(grant) {
+  const cloudBaseUrl = keychainSecret("device_cloud_base_url").replace(/\/$/, "");
+  const accessToken = await refreshGatewayDeviceAccess();
+  const response = await fetch(`${cloudBaseUrl}/api/video-gateway/playback-grant`, {
+    method: "POST",
+    headers: { "content-type": "application/json", "x-video-gateway-device-token": accessToken },
+    body: JSON.stringify({ grant })
+  });
+  const payload = await response.json().catch(() => ({}));
+  if (!response.ok || !payload.data?.gateway_stream_id) throw new Error("Playback grant claim failed");
+  return String(payload.data.gateway_stream_id);
 }
 
 function safeEqual(left, right) {
@@ -828,19 +886,19 @@ async function serveHls(request, response) {
   const url = new URL(request.url, "http://gateway.local");
   const match = url.pathname.match(/^\/hls\/([a-zA-Z0-9_-]+)\/(index\.m3u8|segment-\d+\.ts)$/);
   if (!match || !validatePlaybackToken(url.searchParams.get("token"), match[1])) {
-    json(response, 401, { error: "unauthorized" });
+    browserJson(request, response, 401, { error: "unauthorized" });
     return;
   }
   if (match[2] === "index.m3u8") {
     const relay = await ensureRelay(match[1]);
     if (!relay || !(await waitForFile(relay.playlist, 8000))) {
-      json(response, 503, { error: "stream_starting", retryable: true });
+      browserJson(request, response, 503, { error: "stream_starting", retryable: true });
       return;
     }
   }
   const file = normalize(join(relayDirectory(match[1]), match[2]));
   if (!file.startsWith(relayDirectory(match[1])) || !existsSync(file)) {
-    json(response, 404, { error: "not_ready" });
+    browserJson(request, response, 404, { error: "not_ready" });
     return;
   }
   const extension = extname(file);
@@ -868,6 +926,11 @@ async function cameraTest(payload) {
 async function handle(request, response) {
   if (request.method === "OPTIONS" && request.url?.startsWith("/hls/")) {
     response.writeHead(204, browserHeaders(request, "text/plain"));
+    response.end();
+    return;
+  }
+  if (request.method === "OPTIONS" && request.url === "/playback/claim") {
+    response.writeHead(204, browserHeaders(request, "application/json"));
     response.end();
     return;
   }
@@ -911,6 +974,25 @@ async function handle(request, response) {
         remote_settings: false
       }
     });
+    return;
+  }
+  if (request.url === "/playback/claim" && request.method === "POST") {
+    try {
+      const payload = await readJson(request);
+      const grant = String(payload.grant || "");
+      if (grant.length < 32 || grant.length > 4096) throw new Error("Playback grant is invalid");
+      const streamId = await claimCloudPlaybackGrant(grant);
+      if (!streamSources.has(streamId)) throw new Error("Playback source is unavailable on this Gateway");
+      const relay = await ensureRelay(streamId);
+      if (!relay || !(await waitForFile(relay.playlist, 8000))) throw new Error("Playback relay is not ready");
+      const token = issuePlaybackToken(streamId);
+      const base = publicGatewayBase(request);
+      response.writeHead(200, browserHeaders(request, "application/json"));
+      response.end(JSON.stringify({ status: "starting", playback: { hls_url: `${base}/hls/${encodeURIComponent(streamId)}/index.m3u8?token=${encodeURIComponent(token)}` }, expires_in_seconds: Math.floor(PLAYBACK_TOKEN_TTL_MS / 1000), private_source_hidden: true }));
+    } catch {
+      response.writeHead(503, browserHeaders(request, "application/json"));
+      response.end(JSON.stringify({ error: "playback_unavailable", retryable: true }));
+    }
     return;
   }
   if (!authorized(request)) {

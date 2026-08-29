@@ -47,11 +47,12 @@ if (discoveryEnabled) {
 }
 
 async function refreshDeviceAccess() {
-  if (!deviceRefreshToken || !deviceGatewayId || !deviceObserverSiteId) return null;
+  const currentRefreshToken = keychainSecret("device_refresh_token");
+  if (!currentRefreshToken || !deviceGatewayId || !deviceObserverSiteId) return null;
   const response = await fetch(`${productionBaseUrl.replace(/\/$/, "")}/api/digital-observer/gateway-enrollment`, {
     method: "POST",
     headers: { "content-type": "application/json" },
-    body: JSON.stringify({ action: "refresh", gateway_id: deviceGatewayId, refresh_token: deviceRefreshToken })
+    body: JSON.stringify({ action: "refresh", gateway_id: deviceGatewayId, refresh_token: currentRefreshToken })
   });
   const payload = await response.json().catch(() => ({}));
   if (!response.ok || !payload.data?.access_token || !payload.data?.refresh_token) throw new Error("Gateway device identity refresh failed");
