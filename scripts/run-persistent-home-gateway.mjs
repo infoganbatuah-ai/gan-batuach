@@ -10,6 +10,10 @@ const DISCOVERY_RETRY_ATTEMPTS = 2;
 const EMPTY_DISCOVERY_CONFIRMATIONS = 3;
 const VERIFIED_CONNECTED_COUNT_KEY = "last_verified_connected_channel_count";
 const EVENT_COOLDOWN_MS = 10 * 60 * 1000;
+const CLOUD_REQUEST_TIMEOUT_MS = 30_000;
+const DISCOVERY_REQUEST_TIMEOUT_MS = 3 * 60 * 1000;
+const INSIGHT_REQUEST_TIMEOUT_MS = 20_000;
+const EVENT_MEDIA_REQUEST_TIMEOUT_MS = 30_000;
 const eventCooldowns = new Map();
 
 function keychainSecret(account) {
@@ -66,7 +70,8 @@ async function signedPost(path, payload, options = {}) {
   const response = await fetch(`${gatewayUrl}${localPath}`, {
     method: "POST",
     headers: { "content-type": "application/json", "x-video-gateway-secret": gatewaySecret },
-    body
+    body,
+    signal: AbortSignal.timeout(CLOUD_REQUEST_TIMEOUT_MS)
   });
   if (!response.ok) throw new Error(`Cloud request failed (${response.status})`);
   return response.json();
@@ -76,7 +81,7 @@ const child = spawn(process.execPath, ["services/video-gateway/server.mjs"], { c
 
 async function waitForGateway() {
   for (let attempt = 0; attempt < 60; attempt += 1) {
-    try { if ((await fetch(`${gatewayUrl}/health`)).ok) return; } catch {}
+    try { if ((await fetch(`${gatewayUrl}/health`, { signal: AbortSignal.timeout(3_000) })).ok) return; } catch {}
     await new Promise((resolve) => setTimeout(resolve, 1000));
   }
   throw new Error("Local gateway did not start");
@@ -85,8 +90,8 @@ async function waitForGateway() {
 let channels = [];
 let consecutiveEmptyDiscoveries = 0;
 async function discover() {
-  const health = await fetch(`${gatewayUrl}/health`).then((response) => response.ok ? response.json() : {}).catch(() => ({}));
-  const response = await fetch(`${gatewayUrl}/dvr/connect`, { method: "POST", headers: { "content-type": "application/json", "x-video-gateway-secret": gatewaySecret }, body: JSON.stringify({ connection_type: "dvr", endpoint: config.endpoint, port: config.port, username: config.username, password, metadata: { vendor: config.vendor, expected_channel_count: config.channel_count, read_only_requested: true } }) });
+  const health = await fetch(`${gatewayUrl}/health`, { signal: AbortSignal.timeout(10_000) }).then((response) => response.ok ? response.json() : {}).catch(() => ({}));
+  const response = await fetch(`${gatewayUrl}/dvr/connect`, { method: "POST", headers: { "content-type": "application/json", "x-video-gateway-secret": gatewaySecret }, body: JSON.stringify({ connection_type: "dvr", endpoint: config.endpoint, port: config.port, username: config.username, password, metadata: { vendor: config.vendor, expected_channel_count: config.channel_count, read_only_requested: true } }), signal: AbortSignal.timeout(DISCOVERY_REQUEST_TIMEOUT_MS) });
   const result = await response.json();
   if (!response.ok) throw new Error("DVR discovery failed");
   channels = (result.channels || []).map((channel, index) => Object.fromEntries(Object.entries({ channel: Number(channel.channel || index + 1), name: channel.name, area: channel.area, stream_id: channel.stream_id, gateway_stream_id: channel.gateway_stream_id || channel.stream_id, status: channel.status, health_status: channel.health_status, width: channel.width ?? null, height: channel.height ?? null, candidates_tried: channel.candidates_tried, template: channel.template, reason: channel.reason, capabilities: channel.capabilities && typeof channel.capabilities === "object" ? channel.capabilities : {} }).filter(([, value]) => value !== undefined && value !== null)));
@@ -114,7 +119,7 @@ async function discover() {
   if (connectedChannels.length > 0) storeKeychainSecret(VERIFIED_CONNECTED_COUNT_KEY, String(connectedChannels.length));
 }
 
-async function discoverWithRetry(context, attempt = 0) {
+async function runDiscoveryWithRetry(context, attempt = 0) {
   try {
     await discover();
     return true;
@@ -126,14 +131,21 @@ async function discoverWithRetry(context, attempt = 0) {
     }
     console.error(`${context} DVR discovery retrying: ${message}`);
     await new Promise((resolve) => setTimeout(resolve, DISCOVERY_RETRY_DELAY_MS));
-    return discoverWithRetry(context, attempt + 1);
+    return runDiscoveryWithRetry(context, attempt + 1);
   }
+}
+
+let discoveryRun = null;
+function discoverWithRetry(context) {
+  if (discoveryRun) return discoveryRun;
+  discoveryRun = runDiscoveryWithRetry(context).finally(() => { discoveryRun = null; });
+  return discoveryRun;
 }
 
 async function learn() {
   const samples = (await Promise.all(channels.filter((channel) => channel.status === "connected" && channel.gateway_stream_id).map(async (channel) => {
     try {
-      const response = await fetch(`${gatewayUrl}/camera/${encodeURIComponent(channel.gateway_stream_id)}/insights`, { headers: { "x-video-gateway-secret": gatewaySecret } });
+      const response = await fetch(`${gatewayUrl}/camera/${encodeURIComponent(channel.gateway_stream_id)}/insights`, { headers: { "x-video-gateway-secret": gatewaySecret }, signal: AbortSignal.timeout(INSIGHT_REQUEST_TIMEOUT_MS) });
       const data = await response.json();
       if (!response.ok || data.local_processing !== true || data.no_raw_video_returned !== true) return null;
       const detections = Array.isArray(data.insight?.object_detection?.detections) ? data.insight.object_detection.detections.filter((item) => item && typeof item.label === "string" && Number(item.confidence) >= 0.55).slice(0, 10) : [];
@@ -165,7 +177,8 @@ async function submitEventEvidence(channel, event) {
   const response = await fetch(`${gatewayUrl}/camera/${encodeURIComponent(channel.gateway_stream_id)}/event-media`, {
     method: "POST",
     headers: { "content-type": "application/json", "x-video-gateway-secret": gatewaySecret },
-    body: JSON.stringify({ window_seconds_before: 3, window_seconds_after: 5 })
+    body: JSON.stringify({ window_seconds_before: 3, window_seconds_after: 5 }),
+    signal: AbortSignal.timeout(EVENT_MEDIA_REQUEST_TIMEOUT_MS)
   });
   const media = await response.json();
   if (!response.ok || media.status !== "available") return { submitted: false, reason: media.reason || "media_capture_failed" };
@@ -205,7 +218,8 @@ async function submitEventEvidence(channel, event) {
     headers: {
       "x-video-gateway-secret": gatewaySecret
     },
-    body: form
+    body: form,
+    signal: AbortSignal.timeout(CLOUD_REQUEST_TIMEOUT_MS)
   });
   if (!upload.ok) throw new Error(`Cloud event media failed (${upload.status})`);
   return { submitted: true };

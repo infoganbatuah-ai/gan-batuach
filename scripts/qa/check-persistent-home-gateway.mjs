@@ -10,6 +10,9 @@ for (const required of ["find-generic-password", "cloud-discovery", "cloud-learn
 for (const required of ["initial cloud learning unavailable; live remains active", "Keep relays available and retry learning on schedule"]) {
   if (!source.includes(required)) throw new Error(`Missing live isolation from cloud learning failure: ${required}`);
 }
+for (const required of ["CLOUD_REQUEST_TIMEOUT_MS", "DISCOVERY_REQUEST_TIMEOUT_MS", "INSIGHT_REQUEST_TIMEOUT_MS", "EVENT_MEDIA_REQUEST_TIMEOUT_MS", "AbortSignal.timeout", "let discoveryRun = null", "if (discoveryRun) return discoveryRun"]) {
+  if (!source.includes(required)) throw new Error(`Missing bounded persistent Gateway request: ${required}`);
+}
 for (const required of ["/cloud/discovery", "/cloud/learning", "/cloud/event-media", "never", "access or refresh token"]) {
   if (!source.includes(required)) throw new Error(`Missing token-free local cloud proxy use: ${required}`);
 }

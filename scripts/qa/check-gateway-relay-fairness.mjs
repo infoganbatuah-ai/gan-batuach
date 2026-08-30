@@ -10,6 +10,7 @@ for (const required of [
   "writable.once(\"close\", removePipeErrorListener)",
   "VIDEO_GATEWAY_RELAY_STALE_MS || 20_000",
   "PRIVATE_NVR_PROBE_ATTEMPTS",
+  "finish({ ok: false, reason: \"probe_timeout\" })",
   "probe failure must not tear down a healthy relay",
   "active_relay_verified",
   "healthy streams to be torn down between segments",

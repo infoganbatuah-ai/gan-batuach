@@ -534,18 +534,22 @@ async function probePrivateNvrStream(url, token, cookie) {
     const child = spawn("ffprobe", args, { stdio: ["pipe", "pipe", "ignore"] });
     let output = "";
     let settled = false;
+    let timeout = null;
     const finish = (result) => {
       if (settled) return;
       settled = true;
+      if (timeout) clearTimeout(timeout);
       controller.abort();
       resolve(result);
     };
-    const timeout = setTimeout(() => child.kill("SIGKILL"), PROBE_TIMEOUT_MS + 1500);
+    timeout = setTimeout(() => {
+      child.kill("SIGKILL");
+      finish({ ok: false, reason: "probe_timeout" });
+    }, PROBE_TIMEOUT_MS + 1500);
     void pipeWebStreamToWritable(response.body, child.stdin).catch(() => child.kill("SIGKILL"));
     child.stdout.on("data", (chunk) => { output += chunk.toString("utf8"); });
-    child.on("error", () => finish({ ok: false }));
+    child.on("error", () => finish({ ok: false, reason: "probe_error" }));
     child.on("close", (code) => {
-      clearTimeout(timeout);
       if (code !== 0) return finish({ ok: false });
       try {
         const parsed = JSON.parse(output || "{}");
