@@ -12,7 +12,7 @@ export default async function DigitalObserverAddCameraPage({ searchParams }: Pag
   const runtime = await loadObserverRuntime(profile.id);
   const selected = selectObserverSite(runtime.sites, runtime.cameras, params?.site);
   const mode = observerModeForSite(selected);
-  return <ObserverAppShell profile={profile} mode={mode} activeHref="/digital-observer/cameras" title="הוספת מצלמה" desktopTitle="תצפיתן דיגיטלי" statusLabel="Gateway מאובטח" flowBackHref="/digital-observer/cameras">
+  return <ObserverAppShell profile={profile} mode={mode} activeHref="/digital-observer/cameras" title="הוספת מצלמות" desktopTitle="תצפיתן דיגיטלי" statusLabel="חיבור מקור מאובטח" flowBackHref="/digital-observer/cameras">
     <div className="do-page-stack do-camera-add-page">
       <ObserverGatewayEnrollmentApproval enrollmentRequestId={params?.gateway_enrollment} observerSiteId={selected?.id} />
       {runtime.sites.length ? <ObserverCameraWizard sites={runtime.sites} initialSiteId={selected?.id} /> : <section className="do-empty"><strong>תחילה יש להקים בית או עסק</strong><a className="do-button primary" href="/digital-observer/onboarding">הקמת אתר</a></section>}

@@ -55,9 +55,10 @@ const connectBodyMatch = localOnboarding.match(/const body = \{ \.\.\.Object\.fr
 if (!connectBodyMatch || connectBodyMatch[1] !== "claimSessionId") throw new Error("CONNECT must receive only the local claim session id after pairing claim");
 if (localOnboarding.includes(".env.video-gateway.local")) throw new Error("Local pairing must not depend on disk cloud configuration");
 if (/dvr-profile\/status[\s\S]{0,400}(endpoint|username|password)/.test(localOnboarding)) throw new Error("DVR profile status must not return DVR address, username, or password");
-for (const required of ["מוסיפים DVR/NVR אחד", "if (recorderFlow && step === 2)", "הצגת ערוצים לאחר discovery", "לא יוצרים כאן מצלמה בודדת"]) {
+for (const required of ["מוסיפים DVR/NVR אחד", "if (recorderFlow && step === 2)", "הצגת ערוצים לאחר discovery", "לא יוצרים כאן מצלמה בודדת", "איזה מקור תרצו לחבר?", "הוספת מקליט DVR / NVR", "חיבור אחד, discovery מאובטח והוספת כל הערוצים שהתגלו"]) {
   if (!cameraWizard.includes(required)) throw new Error(`Missing source-flow distinction: ${required}`);
 }
+if (!addCameraPage.includes('title="הוספת מצלמות"') || addCameraPage.includes('title="הוספת מצלמה"')) throw new Error("Add-source page must use the plural cameras title");
 for (const required of ["בשימוש רגיל אין קוד", "gateway_enrolled", "שחזור, מחשב אחר או התקנה ללא מסך"]) {
   if (!pairingPanel.includes(required)) throw new Error(`Missing normal gateway onboarding wording: ${required}`);
 }
