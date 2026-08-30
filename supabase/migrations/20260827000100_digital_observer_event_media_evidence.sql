@@ -72,21 +72,23 @@ create unique index if not exists digital_observer_event_clips_signal_unique
 create index if not exists digital_observer_event_clips_media_status_idx
   on public.digital_observer_event_clips(observer_site_id, media_status, captured_at desc);
 
+with first_active_camera as (
+  select distinct on (cs.observer_site_id)
+    cs.observer_site_id,
+    cs.id
+  from public.digital_observer_camera_sources cs
+  where coalesce(cs.status, '') in ('connected','active','ready')
+    and coalesce(cs.health_status, '') in ('healthy','unknown')
+  order by cs.observer_site_id, cs.created_at asc
+)
 update public.observer_intelligence_signals s
 set metadata = coalesce(s.metadata, '{}'::jsonb) || jsonb_build_object(
   'camera_source_id', c.id,
   'evidence_repair', 'linked_first_active_camera_source'
 )
-from lateral (
-  select cs.id
-  from public.digital_observer_camera_sources cs
-  where cs.observer_site_id = s.observer_site_id
-    and coalesce(cs.status, '') in ('connected','active','ready')
-    and coalesce(cs.health_status, '') in ('healthy','unknown')
-  order by cs.created_at asc
-  limit 1
-) c
+from first_active_camera c
 where s.observer_site_id is not null
+  and c.observer_site_id = s.observer_site_id
   and s.source_type = 'system'
   and coalesce(s.metadata, '{}'::jsonb) ? 'event_type'
   and coalesce(s.metadata, '{}'::jsonb)->>'event_type' in ('home_learning_started','home_learning_progress','home_activity_change')

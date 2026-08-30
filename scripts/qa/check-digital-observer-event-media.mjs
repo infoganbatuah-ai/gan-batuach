@@ -30,6 +30,8 @@ assert.match(gateway, /controls_supported: false/, "event media capture must rem
 assert.match(persistentGateway, /submitReadinessEvidence/, "persistent gateway must submit real event evidence after discovery mapping");
 assert.match(migration, /digital-observer-event-media/, "migration must create or harden the private Digital Observer event media bucket");
 assert.match(migration, /media_missing_reason/, "migration must persist precise missing-media reasons");
+assert.match(migration, /with first_active_camera as \(/, "migration must repair legacy evidence with a PostgreSQL-safe CTE");
+assert.doesNotMatch(migration, /from lateral \([\s\S]*s\.observer_site_id/, "migration must not reference the update target from an invalid lateral FROM item");
 assert.doesNotMatch(alertsPage + runtime + mediaRoute + cloudRoute + retentionCron, /rtsp:\/\/|rtsps:\/\/|password\s*[:=]|credential\s*[:=]/i, "browser and cloud event media code must not expose camera credentials or RTSP URLs");
 
 console.log("Digital Observer event media checks passed.");
