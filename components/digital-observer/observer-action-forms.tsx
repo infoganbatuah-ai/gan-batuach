@@ -2,7 +2,7 @@
 
 import { useState, type FormEvent, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
-import { AlertTriangle, Baby, Bell, BrainCircuit, Cable, Camera, CameraOff, CarFront, Check, ChevronLeft, Cloud, DoorOpen, HardDrive, Heart, HeartPulse, Image, Lightbulb, LoaderCircle, LockKeyhole, Mic, Moon, PawPrint, Pencil, QrCode, Radar, Router, ShieldCheck, ShieldOff, Smartphone, Trash2, UserPlus, UsersRound, X } from "lucide-react";
+import { AlertTriangle, Baby, Bell, BrainCircuit, Cable, Camera, CameraOff, CarFront, Check, ChevronLeft, Cloud, DoorOpen, Fingerprint, HardDrive, Heart, HeartPulse, Image, Lightbulb, LoaderCircle, LockKeyhole, Mic, Moon, PawPrint, Pencil, QrCode, Radar, Router, ShieldCheck, ShieldOff, Smartphone, Trash2, UserPlus, UsersRound, X } from "lucide-react";
 import { readObserverAccessToken } from "@/lib/domain/digital-observer/client-session";
 import {
   classifyObserverPairingPayload,
@@ -430,4 +430,16 @@ export function ObserverDeletePersonButton({ id }: { id: string }) {
 
 export function ObserverRevokePersonConsentButton({ id }: { id: string }) {
   return <ObserverQuickAction endpoint="/api/digital-observer/known-people" body={{ action: "revoke_consent", id }} confirmText="לבטל את ההסכמה? זיהוי יישאר כבוי והפניות ביומטריות יוסרו."><ShieldOff /> ביטול הסכמה</ObserverQuickAction>;
+}
+
+export function ObserverBiometricSetupAction({ siteId, enabled }: { siteId: string; enabled: boolean }) {
+  return <ObserverQuickAction
+    endpoint="/api/digital-observer/biometric-settings"
+    body={{ observer_site_id: siteId, action: enabled ? "disable_setup" : "enable_setup", explicit_consent: !enabled }}
+    confirmText={enabled
+      ? "לכבות את הכנת הביומטריה באתר? התאמת זהות תישאר כבויה וכל הפרופילים יעברו למצב מושבת."
+      : "אני מאשר/ת להפעיל הכנת ביומטריה באתר. כל אדם יתווסף רק בהסכמתו, וההתאמה תישאר כבויה עד אימות מודל מקומי."}
+  >
+    {enabled ? <ShieldOff /> : <Fingerprint />} {enabled ? "כיבוי ביומטריה" : "הפעלת ביומטריה"}
+  </ObserverQuickAction>;
 }

@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { Bell, BrainCircuit, CameraOff, Check, DoorOpen, Fingerprint, Footprints, LockKeyhole, ScanLine, ShieldCheck, UserRoundCheck, UsersRound, WifiOff, X } from "lucide-react";
-import { ObserverDeletePersonButton, ObserverKnownPersonForm, ObserverRevokePersonConsentButton } from "@/components/digital-observer/observer-action-forms";
+import { ObserverBiometricSetupAction, ObserverDeletePersonButton, ObserverKnownPersonForm, ObserverRevokePersonConsentButton } from "@/components/digital-observer/observer-action-forms";
 import { ObserverIdentityCandidateReview } from "@/components/digital-observer/observer-intelligence-experience";
 import { ObserverAppShell } from "@/components/digital-observer/observer-app-shell";
 import { requireDigitalObserverUser } from "@/lib/domain/digital-observer/access";
@@ -29,6 +29,7 @@ export default async function DigitalObserverPeoplePage({ searchParams }: PagePr
     ? runtime.identityCandidates.filter((item) => item.observer_site_id === site.id && ["observing", "ready_for_review"].includes(String(item.candidate_status)))
     : [];
   const cameras = site ? runtime.cameras.filter((item) => item.observer_site_id === site.id) : [];
+  const biometricSetupEnabled = site?.metadata?.biometric_setup_consent === true;
   const recipients = site ? runtime.recipients.filter((item) => item.observer_site_id === site.id && item.active !== false) : [];
   const childPrivacy = Boolean(site?.business_handles_children || site?.vision_privacy_mode === "skeleton_only");
   const reviewCount = candidates.filter((item) => item.candidate_status === "ready_for_review").length;
@@ -106,7 +107,7 @@ export default async function DigitalObserverPeoplePage({ searchParams }: PagePr
               {childPrivacy ? (
                 <div className="do-notice good"><ShieldCheck /><span><strong>זיהוי פנים כבוי במקום המטפל בילדים.</strong> התצפיתן משתמש בזיהוי שלד, גודל, תנועה ודפוסים ללא יצירת מאגר פנים של ילדים.</span></div>
               ) : (
-                <article className="do-panel do-people-consent-card"><Fingerprint /><h2>הסכמה וזמינות</h2><p>שמירה כאדם מוכר מחייבת הסכמה מפורשת. ביומטריה חיה אינה פעילה.</p><span className="do-badge warn">מוכן להגדרה בלבד</span></article>
+                <article className="do-panel do-people-consent-card"><Fingerprint /><h2>הסכמה וזמינות</h2><p>{biometricSetupEnabled ? "הרשאת האתר נשמרה. כל אדם עדיין מחייב הסכמה מפורשת ומודל התאמה מקומי מאומת." : "הפעלת ביומטריה מתחילה מדף הבית או מהתצפיתן שלי, ולאחריה נדרשת הסכמה נפרדת לכל אדם."}</p><span className="do-badge warn">{biometricSetupEnabled ? "הכנה פעילה · התאמה ממתינה" : "כבוי עד הסכמה"}</span>{biometricSetupEnabled ? <ObserverBiometricSetupAction siteId={site.id} enabled /> : null}</article>
               )}
               <article className="do-panel do-people-policy-list">
                 <div><ShieldCheck /><span><strong>הרשאה לפי אדם</strong><small>גישה נשמרת לפי האתר בלבד</small></span><b>פעיל</b></div>
@@ -123,7 +124,7 @@ export default async function DigitalObserverPeoplePage({ searchParams }: PagePr
           {cameraAssignments.length ? <div className="do-people-camera-table" role="table" aria-label="שיוך אנשים למצלמות"><div className="do-people-camera-table-head" role="row"><span>מצלמה</span><span>אזור</span><span>אנשים ששויכו</span></div>{cameraAssignments.map(({ camera, people: scopedPeople }) => <div className="do-people-camera-table-row" role="row" key={camera.id}><strong>{camera.display_name}</strong><span>{camera.location_label || "ללא אזור מוגדר"}</span><span>{scopedPeople.length ? scopedPeople.map((person) => person.display_name).join(", ") : "לא שויך"}</span></div>)}</div> : <div className="do-empty compact"><UsersRound /><strong>אין מצלמות לשיוך</strong><span>לא יוצגו שיוכים לפני שמירת מקור מצלמה.</span></div>}
         </section> : null}
 
-        {site && !childPrivacy && peopleTab ? <details className="do-panel do-people-add-disclosure" id="add-known-person"><summary>הוספת אדם מוכר באופן ידני</summary><p>אפשר להוסיף אדם לאחר הסכמה ולבחור בדיוק את המצלמות הרלוונטיות. הצעות אוטומטיות יגיעו רק ממנוע Shadow מחובר ומאושר.</p><ObserverKnownPersonForm siteId={site.id} cameras={cameras.filter((camera) => typeof camera.id === "string").map((camera) => ({ id: camera.id as string, display_name: typeof camera.display_name === "string" ? camera.display_name : null, location_label: typeof camera.location_label === "string" ? camera.location_label : null }))} /></details> : null}
+        {site && !childPrivacy && peopleTab ? <details className="do-panel do-people-add-disclosure" id="add-known-person"><summary>הוספת אדם מוכר באופן ידני</summary>{biometricSetupEnabled ? <><p>אפשר להוסיף אדם לאחר הסכמה ולבחור בדיוק את המצלמות הרלוונטיות. הצעות אוטומטיות יגיעו רק ממנוע Shadow מחובר ומאושר.</p><ObserverKnownPersonForm siteId={site.id} cameras={cameras.filter((camera) => typeof camera.id === "string").map((camera) => ({ id: camera.id as string, display_name: typeof camera.display_name === "string" ? camera.display_name : null, location_label: typeof camera.location_label === "string" ? camera.location_label : null }))} /></> : <div className="do-notice warn"><ShieldCheck /><span>הרשאת הביומטריה באתר עדיין כבויה. הפעילו אותה תחילה מדף הבית או מ״התצפיתן שלי״.</span></div>}</details> : null}
 
         {site && !childPrivacy && peopleTab ? (
           <section className="do-section do-people-candidates">

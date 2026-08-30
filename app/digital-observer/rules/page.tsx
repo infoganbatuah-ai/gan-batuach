@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Activity, Bell, BrainCircuit, Camera, CheckCircle2, Clock3, MapPin, PhoneCall, Radar, ShieldCheck, Sparkles, TriangleAlert } from "lucide-react";
-import { ObserverQuickAction, ObserverRuleForm } from "@/components/digital-observer/observer-action-forms";
+import { ObserverBiometricSetupAction, ObserverQuickAction, ObserverRuleForm } from "@/components/digital-observer/observer-action-forms";
 import { ObserverConversationPanel } from "@/components/digital-observer/observer-intelligence-experience";
 import { ObserverAppShell } from "@/components/digital-observer/observer-app-shell";
 import { ObserverLivePlayer } from "@/components/digital-observer/observer-live-player";
@@ -68,6 +68,8 @@ export default async function DigitalObserverRulesPage() {
   const demoOnly = cameras.length > 0 && cameras.every((camera) => camera.source_mode === "demo");
   const localLearningActive = sourceReady && Boolean(learning) && baselines.some((baseline) => baseline.baseline_type === "normal_camera_activity");
   const edgeInferenceActive = sourceReady && activeCameras.some(cameraReportsLocalEventInsights);
+  const biometricSetupEnabled = site?.metadata?.biometric_setup_consent === true;
+  const biometricMatchingReady = biometricSetupEnabled && activeCameras.some((camera) => camera.metadata?.edge_policy?.biometric_matching_enabled === true && camera.metadata?.edge_capability_contract?.capabilities?.biometric_matching === true);
   const dailySummary = buildObserverDailySummary(signals);
   const runtimeText = !cameras.length
     ? "ממתין למצלמה הראשונה"
@@ -176,7 +178,7 @@ export default async function DigitalObserverRulesPage() {
                     <div><span>ניתוח וידאו</span><strong>{edgeInferenceActive ? "AI Edge מאומת" : "מנוע Edge טרם הופעל"}</strong></div>
                     <div><span>Push</span><strong>טרם הוגדר ספק מסירה</strong></div>
                     <div><span>Voice</span><strong>כבוי · אין חיוג אוטומטי</strong></div>
-                    <div><span>פרטיות</span><strong>{site.vision_privacy_mode === "skeleton_only" ? "שלד ותנועה בלבד" : "זיהוי ביומטרי כבוי עד הסכמה"}</strong></div>
+                    <div><span>פרטיות</span><strong>{site.vision_privacy_mode === "skeleton_only" ? "שלד ותנועה בלבד" : biometricMatchingReady ? "ביומטריה מקומית מאומתת" : biometricSetupEnabled ? "הסכמה נשמרה · מודל התאמה ממתין" : "זיהוי ביומטרי כבוי עד הסכמה"}</strong></div>
                   </div>
                 </article>
                 <article className="do-panel">
@@ -199,7 +201,7 @@ export default async function DigitalObserverRulesPage() {
                   <article><TriangleAlert /><h3>טרם הוגדר</h3>{digitalObserverEdgeAiPolicy.unavailableCapabilities.map((item) => <p key={item}>{item}</p>)}</article>
                   <article><Clock3 /><h3>מחיקה והסכמה</h3><p>{digitalObserverEdgeAiPolicy.retention.frames}</p><p>{digitalObserverEdgeAiPolicy.retention.clips}</p><p>{digitalObserverEdgeAiPolicy.retention.insights}</p></article>
                 </div>
-                <div className="do-notice info"><ShieldCheck /><span>{digitalObserverEdgeAiPolicy.consent.monitoring}. {digitalObserverEdgeAiPolicy.consent.biometrics}.</span><Link className="do-button secondary" href="/digital-observer/people#add-known-person">הגדרת אנשים בהסכמה</Link></div>
+                <div className="do-notice info"><ShieldCheck /><span>{digitalObserverEdgeAiPolicy.consent.monitoring}. {biometricSetupEnabled ? "הכנת הביומטריה אושרה באתר; התאמה דורשת גם הסכמה פר אדם ומודל מקומי מאומת" : digitalObserverEdgeAiPolicy.consent.biometrics}.</span>{biometricSetupEnabled ? <Link className="do-button secondary" href="/digital-observer/people#add-known-person">הגדרת אנשים בהסכמה</Link> : <ObserverBiometricSetupAction siteId={site.id} enabled={false} />}</div>
               </section>
 
           <section className="do-section">

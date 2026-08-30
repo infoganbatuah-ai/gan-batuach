@@ -24,6 +24,7 @@ import {
   Waves
 } from "lucide-react";
 import { ObserverAppShell } from "@/components/digital-observer/observer-app-shell";
+import { ObserverBiometricSetupAction } from "@/components/digital-observer/observer-action-forms";
 import { ObserverCameraMedia } from "@/components/digital-observer/observer-camera-media";
 import { ObserverCameraPresence } from "@/components/digital-observer/observer-camera-presence";
 import { ObserverLivePlayer } from "@/components/digital-observer/observer-live-player";
@@ -118,6 +119,7 @@ export default async function DigitalObserverDashboardPage({ searchParams }: Pag
   const latestSignalAt = siteSignals[0]?.created_at ?? null;
   const latestLearningAt = selectedSite ? runtime.baselines.filter((baseline) => baseline.observer_site_id === selectedSite.id).map((baseline) => baseline.updated_at).filter(Boolean).sort().at(-1) ?? null : null;
   const approvedKnownPeople = selectedSite ? runtime.knownPeople.filter((person) => person.observer_site_id === selectedSite.id && person.consent_status === "approved") : [];
+  const biometricSetupEnabled = selectedSite?.metadata?.biometric_setup_consent === true;
   const biometricMatchingReady = siteCameras.some((camera) => camera.metadata?.edge_policy?.biometric_matching_enabled === true && camera.metadata?.edge_capability_contract?.capabilities?.biometric_matching === true);
   const dashboardSummaries = buildObserverDashboardSummaries(activeSiteCameras, siteSignals);
   const dailySummary = buildObserverDailySummary(siteSignals);
@@ -196,7 +198,7 @@ export default async function DigitalObserverDashboardPage({ searchParams }: Pag
                   <div className="do-row"><Camera /><span className="do-row-main"><strong>מצלמות פעילות</strong><small>{siteCameras.length ? `${liveCameras} משדרות · ${disconnectedSiteCameras.length} מנותקות` : "טרם חוברו"}</small></span><span className={liveCameras ? "do-status-dot good" : "do-status-dot warn"}>{liveCameras ? "וידאו זמין" : "אין שידור"}</span></div>
                   <div className="do-row"><Bell /><span className="do-row-main"><strong>התראות פתוחות</strong><small>{openSignals.length ? `${openSignals.length} לבדיקה` : "אין"}</small></span><span className={openSignals.length ? "do-status-dot warn" : "do-status-dot good"}>{openSignals.length ? "דורש תשומת לב" : "שקט"}</span></div>
                   <div className="do-row"><Lightbulb /><span className="do-row-main"><strong>סיכום היום</strong><small>{dailySummary.text}</small></span><Link className="do-link" href="/digital-observer/rules">פירוט</Link></div>
-                  <div className="do-row"><Fingerprint /><span className="do-row-main"><strong>זיהוי אנשים בהסכמה</strong><small>{biometricMatchingReady ? `${approvedKnownPeople.length} פרופילים מאושרים זמינים להתאמה מקומית` : approvedKnownPeople.length ? `${approvedKnownPeople.length} הסכמות נשמרו; מודל ההתאמה עדיין לא אומת` : "נדרשת הסכמה נפרדת מכל אדם"}</small></span><Link className="do-link" href="/digital-observer/people#add-known-person">{biometricMatchingReady ? "ניהול" : "הגדרה"}</Link></div>
+                  <div className="do-row"><Fingerprint /><span className="do-row-main"><strong>זיהוי אנשים בהסכמה</strong><small>{biometricMatchingReady && biometricSetupEnabled ? `${approvedKnownPeople.length} פרופילים מאושרים זמינים להתאמה מקומית` : biometricSetupEnabled ? approvedKnownPeople.length ? `${approvedKnownPeople.length} הסכמות נשמרו; מודל ההתאמה עדיין לא אומת` : "ההכנה פעילה; יש להוסיף כל אדם בהסכמתו" : "כבוי עד הסכמה מפורשת באתר ולכל אדם"}</small></span>{biometricSetupEnabled ? <Link className="do-link" href="/digital-observer/people#add-known-person">ניהול אנשים</Link> : <ObserverBiometricSetupAction siteId={selectedSite.id} enabled={false} />}</div>
                   <div className="do-row"><Moon /><span className="do-row-main"><strong>שעות שקטות</strong><small>{runtime.schedules.find((item) => item.observer_site_id === selectedSite.id)?.schedule_mode ? observerStatusLabel(runtime.schedules.find((item) => item.observer_site_id === selectedSite.id)?.schedule_mode) : "טרם הוגדרו"}</small></span><Link className="do-link" href="/digital-observer/settings">עריכה</Link></div>
                 </div>
               </article>

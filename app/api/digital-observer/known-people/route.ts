@@ -58,6 +58,9 @@ export async function POST(request: Request) {
       if ((site as any).vision_privacy_mode === "skeleton_only" || (site as any).business_handles_children) {
         return fail("זיהוי פנים חסום באתר המטפל בילדים. באתר זה נעשה שימוש בניתוח שלד ותנועה בלבד.", 403);
       }
+      if ((site as any).metadata?.biometric_setup_consent !== true) {
+        return fail("יש להפעיל תחילה את הרשאת הביומטריה באתר לפני הוספת אדם מוכר.", 412);
+      }
       if (!payload.consent_confirmed) return fail("נדרשת הסכמה מפורשת של האדם לפני קישורו למצלמות.", 422);
 
       const cameraSourceIds = [...new Set(payload.camera_source_ids)];
