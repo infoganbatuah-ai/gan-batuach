@@ -7,6 +7,7 @@ const schema = z.object({
   outcome: z.enum(["known", "unknown", "dismissed"]),
   display_name: z.string().trim().max(100).optional().default(""),
   relationship_label: z.string().trim().max(80).optional().default(""),
+  access_class: z.enum(["household_resident", "authorized_visitor"]).default("authorized_visitor"),
   explicit_consent: z.boolean().default(false)
 });
 
@@ -39,6 +40,7 @@ export async function POST(request: Request) {
       requested_outcome: payload.outcome,
       requested_display_name: payload.display_name || null,
       requested_relationship_label: payload.relationship_label || null,
+      requested_access_class: payload.access_class,
       requested_explicit_consent: payload.explicit_consent
     });
     if (error) {

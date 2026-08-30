@@ -444,6 +444,36 @@
 .do-home-hero p { margin-top: 6px; color: #3f6472; }
 .do-home-calm-mobile { display: none; }
 
+.do-home-context-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(118px, 1fr));
+  gap: 1px;
+  margin: 0 18px 4px;
+  overflow: hidden;
+  background: var(--do-line);
+  border: 1px solid var(--do-line);
+  border-radius: 7px;
+}
+.do-home-context-summary > a {
+  min-width: 0;
+  min-height: 58px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 11px;
+  color: var(--do-ink);
+  background: #fff;
+  text-decoration: none;
+}
+.do-home-context-summary svg { width: 19px; height: 19px; flex: 0 0 auto; color: var(--do-teal-dark); }
+.do-home-context-summary span { min-width: 0; display: grid; gap: 2px; }
+.do-home-context-summary strong { font-size: 18px; line-height: 1; }
+.do-home-context-summary small { overflow: hidden; color: var(--do-muted); font-size: 10px; text-overflow: ellipsis; white-space: nowrap; }
+
+.do-segmented-control { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 2px; padding: 2px; background: #edf3f5; border: 1px solid var(--do-line); border-radius: 7px; }
+.do-segmented-control button { min-height: 40px; padding: 7px 9px; color: var(--do-muted); background: transparent; border: 0; border-radius: 5px; font: inherit; font-size: 11px; font-weight: 800; cursor: pointer; }
+.do-segmented-control button.active { color: var(--do-ink); background: #fff; box-shadow: 0 1px 3px rgba(7, 31, 47, 0.12); }
+
 .do-hero-shield {
   width: 64px;
   height: 64px;
@@ -480,6 +510,8 @@
   padding: 14px 18px 10px;
 }
 .do-home-cameras-head h2 { margin: 0; font-size: 18px; }
+.do-home-cameras-head .do-link { display: inline-flex; align-items: center; gap: 4px; }
+.do-home-cameras-head .do-link svg { width: 15px; height: 15px; }
 .do-home-camera-view-toggle { display: none; }
 .do-home-dashboard-frame > .do-camera-grid { padding: 0 18px 18px; }
 
@@ -6180,6 +6212,8 @@
 }
 
 @media (max-width: 820px) {
+  .do-home-context-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); margin-inline: 12px; }
+  .do-home-context-summary > a { min-height: 54px; padding: 8px; }
   .do-home-address { margin: 0 12px 12px; }
   .do-home-address small { overflow: visible; text-overflow: clip; white-space: normal; line-height: 1.4; }
   .do-home-event-card { grid-template-columns: 92px minmax(0, 1fr); }
@@ -6192,6 +6226,11 @@
   .do-field input,
   .do-field select,
   .do-field textarea { font-size: 16px; }
+}
+
+@media (max-width: 390px) {
+  .do-home-context-summary { grid-template-columns: 1fr; }
+  .do-home-context-summary > a { min-height: 48px; }
 }
 
 @keyframes do-live-spin { to { transform: rotate(360deg); } }

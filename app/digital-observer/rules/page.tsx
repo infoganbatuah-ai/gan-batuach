@@ -4,8 +4,10 @@ import { Activity, Bell, BrainCircuit, Camera, CheckCircle2, Clock3, MapPin, Pho
 import { ObserverQuickAction, ObserverRuleForm } from "@/components/digital-observer/observer-action-forms";
 import { ObserverConversationPanel } from "@/components/digital-observer/observer-intelligence-experience";
 import { ObserverAppShell } from "@/components/digital-observer/observer-app-shell";
-import { ObserverCameraMedia } from "@/components/digital-observer/observer-camera-media";
+import { ObserverLivePlayer } from "@/components/digital-observer/observer-live-player";
 import { requireDigitalObserverUser } from "@/lib/domain/digital-observer/access";
+import { digitalObserverCameraHasLiveGateway } from "@/lib/domain/digital-observer/camera-live-status";
+import { buildObserverDailySummary } from "@/lib/domain/digital-observer/dashboard-summary";
 import { cameraReportsLocalEventInsights, digitalObserverEdgeAiPolicy } from "@/lib/domain/digital-observer/edge-ai-policy";
 import { getDigitalObserverServiceReadiness } from "@/lib/domain/digital-observer/service-readiness";
 import { formatObserverDate, loadObserverRuntime, observerEventLabel, observerModeForSite, observerSignalMatchesCamera, observerStatusLabel, selectObserverSite } from "@/lib/domain/digital-observer/runtime";
@@ -50,6 +52,8 @@ export default async function DigitalObserverRulesPage() {
   const site = selectObserverSite(runtime.sites, runtime.cameras);
   const mode = observerModeForSite(site);
   const cameras = site ? runtime.cameras.filter((item) => item.observer_site_id === site.id) : [];
+  const activeCameras = cameras.filter(digitalObserverCameraHasLiveGateway);
+  const offlineCameraCount = cameras.length - activeCameras.length;
   const rules = site ? runtime.watchRequests.filter((item) => item.observer_site_id === site.id) : [];
   const signals = site ? runtime.signals.filter((item) => item.observer_site_id === site.id) : [];
   const reviewedSignals = signals.filter((signal) => ["confirmed", "resolved", "dismissed"].includes(String(signal.review_status)));
@@ -60,16 +64,11 @@ export default async function DigitalObserverRulesPage() {
   const targetDays = Number(site?.learning_target_days || 30);
   const progress = learningProgress(site?.learning_started_at, targetDays);
   const readiness = getDigitalObserverServiceReadiness();
-  const sourceReady = cameras.some((camera) => ["connected", "healthy", "online", "active"].includes(String(camera.status ?? camera.health_status)));
+  const sourceReady = activeCameras.length > 0;
   const demoOnly = cameras.length > 0 && cameras.every((camera) => camera.source_mode === "demo");
   const localLearningActive = sourceReady && Boolean(learning) && baselines.some((baseline) => baseline.baseline_type === "normal_camera_activity");
-  const edgeInferenceActive = sourceReady && cameras.some(cameraReportsLocalEventInsights);
-  const todayStart = new Date();
-  todayStart.setHours(0, 0, 0, 0);
-  const todaySignals = signals.filter((signal) => new Date(signal.created_at).getTime() >= todayStart.getTime());
-  const dailySummary = todaySignals.length
-    ? `היום נקלטו ${todaySignals.length} עדכונים מ-${new Set(todaySignals.map((signal) => signal.camera_id ?? signal.metadata?.camera_source_id).filter(Boolean)).size || 1} מצלמות. ${todaySignals.filter((signal) => ["medium", "high", "urgent", "critical"].includes(String(signal.severity))).length ? "יש אירועים שמומלץ לבדוק במרכז ההתראות." : "לא נקלט אירוע ברמת דחיפות גבוהה."}`
-    : "לא נקלט היום אירוע עם ראיה תקינה. התצפיתן ממשיך ללמוד מדדי פעילות מהמצלמות המחוברות.";
+  const edgeInferenceActive = sourceReady && activeCameras.some(cameraReportsLocalEventInsights);
+  const dailySummary = buildObserverDailySummary(signals);
   const runtimeText = !cameras.length
     ? "ממתין למצלמה הראשונה"
     : edgeInferenceActive
@@ -138,15 +137,16 @@ export default async function DigitalObserverRulesPage() {
 
           <section className="do-observer-camera-insights">
             <div className="do-section-head"><div><h2>מה התצפיתן רואה בכל מצלמה</h2><p>סיכום טקסטואלי לפי מקור, אירועים ומדדי למידה שנקלטו בפועל.</p></div><span className={localLearningActive ? "do-badge good" : "do-badge warn"}>{localLearningActive ? "למידה פעילה" : "אוסף נתונים"}</span></div>
-            <div className="do-observer-camera-insight-grid">{cameras.map((camera) => {
+            <div className="do-observer-camera-insight-grid">{activeCameras.map((camera) => {
               const cameraSignals = signals.filter((signal) => observerSignalMatchesCamera(signal, camera.id));
               const latest = cameraSignals[0];
-              const connected = ["connected", "healthy", "online", "active"].includes(String(camera.status ?? camera.health_status));
+              const connected = digitalObserverCameraHasLiveGateway(camera);
               return <article key={camera.id}><Camera /><span><strong>{camera.display_name || "מצלמה"}</strong><small>{camera.location_label || "החלל עדיין לא קיבל שם"}</small><p>{latest ? `העדכון האחרון: ${observerEventLabel(latest.metadata?.event_type ?? latest.signal_type)} (${formatObserverDate(latest.created_at)}).` : connected ? "המקור מחובר ונאספים ממנו מדדי פעילות; עדיין אין אירוע עם ראיה להצגה." : "המקור אינו פעיל כרגע, ולכן לא נאספות ממנו תובנות."}</p></span><b className={connected ? "do-badge good" : "do-badge warn"}>{connected ? "פעילה" : "לא זמינה"}</b></article>;
             })}</div>
+            {!activeCameras.length ? <div className="do-empty compact"><Camera /><strong>אין מצלמה פעילה לניתוח</strong><span>התובנות יחזרו אוטומטית לאחר קבלת וידאו חי.</span></div> : null}
           </section>
 
-          <section className="do-panel do-daily-observer-summary"><div className="do-section-head"><div><h2>סיכום היום</h2><p>מתעדכן מאירועים אמיתיים בלבד.</p></div><Clock3 /></div><p>{dailySummary}</p><Link className="do-link" href="/digital-observer/alerts">פתיחת יומן האירועים המלא</Link></section>
+          <section className="do-panel do-daily-observer-summary"><div className="do-section-head"><div><h2>סיכום היום</h2><p>מתעדכן מאירועים אמיתיים בלבד.</p></div><Clock3 /></div><p>{dailySummary.text}</p><Link className="do-link" href="/digital-observer/alerts">פתיחת יומן האירועים המלא</Link></section>
 
           <details className="do-advanced-rule-panel" id="observer-advanced-rule">
             <summary><Radar /> הגדרה ידנית מתקדמת</summary>
@@ -160,7 +160,7 @@ export default async function DigitalObserverRulesPage() {
             </summary>
             <div className="do-observer-operations-content">
               <section className="do-grid cols-4">
-                <article className="do-metric"><Camera /><strong>{cameras.length}</strong><span>מצלמות באתר</span></article>
+                <article className="do-metric"><Camera /><strong>{activeCameras.length}</strong><span>מצלמות פעילות</span></article>
                 <article className="do-metric"><Activity /><strong>{signals.length}</strong><span>אירועים שנקלטו</span></article>
                 <article className="do-metric"><BrainCircuit /><strong>{progress.days}/{targetDays}</strong><span>ימי למידה</span></article>
                 <article className="do-metric"><Bell /><strong>{rules.filter((rule) => rule.active).length}</strong><span>בקשות פעילות</span></article>
@@ -203,8 +203,8 @@ export default async function DigitalObserverRulesPage() {
               </section>
 
           <section className="do-section">
-            <div className="do-section-head"><div><h2>המצלמות שהתצפיתן מכיר</h2><p>תמונה מוצגת כהדמיה רק למקור דמו; מקור אמיתי אינו מוצג כ-LIVE בלי stream מאובטח.</p></div><Link className="do-link" href="/digital-observer/cameras">ניהול מצלמות</Link></div>
-            {cameras.length ? <div className="do-camera-grid">{cameras.slice(0, 4).map((camera) => <Link href={`/digital-observer/cameras?camera=${camera.id}`} key={camera.id}><ObserverCameraMedia name={camera.display_name} mode={mode} scene={camera.preview_scene} status={camera.status ?? camera.health_status} sourceMode={camera.source_mode} /></Link>)}</div> : <div className="do-empty"><Camera /><strong>טרם חוברה מצלמה</strong><span>לא תתחיל למידה בלי מקור מצלמה בטוח.</span><Link className="do-button primary" href="/digital-observer/cameras/add">הוספת מצלמה</Link></div>}
+            <div className="do-section-head"><div><h2>המצלמות שהתצפיתן מכיר</h2><p>מוצגים רק מקורות שמחזירים וידאו חי; כל נגן מקבל טוקן מאובטח נפרד.</p></div><span className="do-section-actions">{offlineCameraCount ? <Link className="do-link" href={`/digital-observer/cameras?site=${site.id}&status=offline`}>{offlineCameraCount} מנותקות</Link> : null}<Link className="do-link" href="/digital-observer/cameras">ניהול מצלמות</Link></span></div>
+            {activeCameras.length ? <div className="do-camera-grid">{activeCameras.map((camera) => <Link className="do-dashboard-camera-card" href={`/digital-observer/cameras?site=${site.id}&camera=${camera.id}`} key={camera.id}><ObserverLivePlayer compact observerSiteId={site.id} cameraSourceId={camera.id} name={camera.display_name || "מצלמה"} /><span className="do-dashboard-camera-copy"><strong>{camera.display_name || "מצלמה"}</strong><small>שידור חי דרך Gateway</small></span></Link>)}</div> : <div className="do-empty"><Camera /><strong>{cameras.length ? "אין מצלמה שמשדרת כרגע" : "טרם חוברה מצלמה"}</strong><span>{cameras.length ? "המקורות נשמרו, אך התצפיתן כבוי עליהם עד שווידאו חי יחזור." : "לא תתחיל למידה בלי מקור מצלמה בטוח."}</span><Link className="do-button primary" href={cameras.length ? `/digital-observer/cameras?site=${site.id}&status=offline` : "/digital-observer/cameras/add"}>{cameras.length ? "מצלמות מנותקות" : "הוספת מצלמות"}</Link></div>}
           </section>
 
           <section className="do-panel">

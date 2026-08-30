@@ -3,6 +3,7 @@
 import Hls from "hls.js";
 import { CameraOff, LoaderCircle, Volume2, VolumeX } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { ObserverCameraPresence } from "@/components/digital-observer/observer-camera-presence";
 
 type PlayerState = "loading" | "playing" | "error";
 
@@ -254,6 +255,7 @@ export function ObserverLivePlayer({
       {!compact ? <button type="button" className="do-live-player-audio" onClick={() => setMuted((value) => !value)} aria-label={muted ? "הפעלת שמע" : "השתקת שמע"}>
         {muted ? <VolumeX /> : <Volume2 />}
       </button> : null}
+      <ObserverCameraPresence active={state === "playing"} />
       <span className="do-live-player-name">{name}</span>
     </div>
   );

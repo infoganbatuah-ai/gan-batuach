@@ -5,9 +5,10 @@ import { ObserverAppShell } from "@/components/digital-observer/observer-app-she
 import { ObserverCameraMedia } from "@/components/digital-observer/observer-camera-media";
 import { requireDigitalObserverUser } from "@/lib/domain/digital-observer/access";
 import { observerEventNarrative } from "@/lib/domain/digital-observer/event-narrative";
+import { observerDashboardSignalMatchesCategory } from "@/lib/domain/digital-observer/dashboard-summary";
 import { formatObserverDate, loadObserverRuntime, observerCameraForSignal, observerClipForSignal, observerClipHasRequiredMedia, observerEventLabel, observerModeForSite, observerSignalHasRequiredEvidence, observerSignalMatchesCamera, observerStatusLabel, selectObserverSite } from "@/lib/domain/digital-observer/runtime";
 
-type PageProps = { searchParams?: Promise<{ event?: string; site?: string; severity?: string; q?: string; camera?: string; view?: string; preview?: string }> };
+type PageProps = { searchParams?: Promise<{ event?: string; site?: string; severity?: string; q?: string; camera?: string; view?: string; preview?: string; category?: string }> };
 const severityClass = (value?: string) => ["critical", "urgent", "high"].includes(String(value)) ? "bad" : value === "medium" ? "warn" : "info";
 
 export default async function DigitalObserverAlertsPage({ searchParams }: PageProps) {
@@ -24,6 +25,7 @@ export default async function DigitalObserverAlertsPage({ searchParams }: PagePr
   const signals = displayableSignals.filter((item) => {
     if (params?.severity && item.severity !== params.severity) return false;
     if (params?.camera && !observerSignalMatchesCamera(item, params.camera)) return false;
+    if (params?.category && !observerDashboardSignalMatchesCategory(item, params.category, siteCameras)) return false;
     if (!query) return true;
     const linkedCamera = observerCameraForSignal(item, siteCameras);
     return [observerEventLabel(item.metadata?.event_type ?? item.signal_type), item.recommended_action, linkedCamera?.display_name].some((value) => String(value ?? "").toLocaleLowerCase("he-IL").includes(query));

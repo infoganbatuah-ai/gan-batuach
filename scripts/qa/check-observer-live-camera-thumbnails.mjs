@@ -21,10 +21,12 @@ assert.match(livePlayer, /!\s*compact\s*\? <button/, "compact live thumbnails mu
 assert.match(livePlayer, /playbackSessions/, "live thumbnails must reuse short-lived playback sessions instead of opening duplicate gateway sessions");
 assert.match(livePlayer, /onWaiting[\s\S]*hasStartedRef/, "normal HLS segment waits must not be presented as disconnects after playback begins");
 assert.match(livePlayer, /lowLatencyMode: false/, "DVR HLS thumbnails must favor stable playback over low-latency reconnect churn");
+assert.match(livePlayer, /ObserverCameraPresence active=\{state === "playing"\}/, "observer presence must follow measured media progress instead of persisted camera status");
 assert.match(runtime, /gateway_stream_id,video_gateway_stream_id/, "legacy observer camera loading must select gateway stream ids");
 assert.match(runtime, /gateway_stream_id_present/, "legacy observer cameras must expose safe gateway metadata to the dashboard");
 assert.match(css, /\.do-camera-live-tile \.do-live-player/, "camera tiles must size live player thumbnails");
 assert.match(camerasPage + dashboardPage, /ObserverCameraPresence/, "every camera surface must show the Digital Observer presence badge");
+assert.doesNotMatch(camerasPage + dashboardPage, /ObserverCameraPresence active=\{hasLiveGateway\}/, "persisted gateway readiness must not show the observer as active before media progresses");
 assert.match(presence, /observer-robot-v1\.png/, "camera presence must reuse the product robot asset");
 assert.match(cameraRoute, /action: z\.literal\("rename"\)/, "camera names must be editable through the authenticated camera API");
 assert.match(cameraRoute, /ai_context_source/, "verified camera names must feed the observer context");

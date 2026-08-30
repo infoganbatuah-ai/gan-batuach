@@ -191,6 +191,7 @@ export function ObserverIdentityCandidateReview({
   const [expanded, setExpanded] = useState(false);
   const [name, setName] = useState("");
   const [relationship, setRelationship] = useState("");
+  const [accessClass, setAccessClass] = useState<"household_resident" | "authorized_visitor">("authorized_visitor");
   const [consent, setConsent] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState("");
@@ -207,6 +208,7 @@ export function ObserverIdentityCandidateReview({
         outcome,
         display_name: name,
         relationship_label: relationship,
+        access_class: accessClass,
         explicit_consent: consent
       });
       setMessage(data.message);
@@ -232,6 +234,7 @@ export function ObserverIdentityCandidateReview({
           <div className="do-candidate-form">
             <label><span>שם האדם</span><input value={name} onChange={(event) => setName(event.target.value)} placeholder="למשל: דניאל" /></label>
             <label><span>קשר למקום</span><input value={relationship} onChange={(event) => setRelationship(event.target.value)} placeholder="בן משפחה / עובד / בעל גישה" /></label>
+            <fieldset className="do-field"><legend>סוג הרשאת כניסה</legend><div className="do-segmented-control"><button className={accessClass === "household_resident" ? "active" : ""} type="button" onClick={() => setAccessClass("household_resident")}>דייר/ת הבית</button><button className={accessClass === "authorized_visitor" ? "active" : ""} type="button" onClick={() => setAccessClass("authorized_visitor")}>מאושר/ת כניסה</button></div></fieldset>
             <label className="do-check"><input type="checkbox" checked={consent} onChange={(event) => setConsent(event.target.checked)} /><span>קיימת הסכמה מפורשת להגדרת האדם כמוכר</span></label>
             <div className="do-button-row">
               <button className="do-button primary" type="button" onClick={() => void review("known")} disabled={busy || name.trim().length < 2 || !consent}>{busy ? <LoaderCircle className="do-spin" /> : <UserRoundCheck />} שמירה כאדם מוכר</button>
