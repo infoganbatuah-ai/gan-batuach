@@ -45,10 +45,10 @@ for (const required of ["/pairing/claim", "action: \"claim\"", "pendingClaims", 
 for (const required of ["/enrollment/start", "/enrollment/poll", "device_refresh_token", "add-generic-password", "keychain_only: true", "create_request"]) {
   if (!localOnboarding.includes(required)) throw new Error(`Missing Keychain-only device enrollment handoff: ${required}`);
 }
-for (const forbidden of ["writeFileSync", "appendFileSync", "device_refresh_token="]) {
+for (const forbidden of ["writeFileSync", "appendFileSync", "readFileSync", "GAN_BATUACH_GATEWAY_CONFIG", "device_refresh_token="]) {
   if (localOnboarding.includes(forbidden)) throw new Error(`Device enrollment must not persist credentials to disk: ${forbidden}`);
 }
-for (const required of ["/dvr-profile/status", "המקליט הקיים מוכן", "useExistingProfile", "find-generic-password", "values_returned: false"]) {
+for (const required of ["/dvr-profile/status", "המקליט הקיים מוכן", "useExistingProfile", "dvr_profile_json", "dvr_password", "values_returned: false"]) {
   if (!localOnboarding.includes(required)) throw new Error(`Missing secure existing DVR profile flow: ${required}`);
 }
 const connectBodyMatch = localOnboarding.match(/const body = \{ \.\.\.Object\.fromEntries\(new FormData\(form\)\.entries\(\)\), ([^}]+) \};/);

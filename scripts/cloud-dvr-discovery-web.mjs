@@ -1,7 +1,6 @@
 import crypto from "node:crypto";
 import { spawn } from "node:child_process";
 import { spawnSync } from "node:child_process";
-import { existsSync, readFileSync } from "node:fs";
 import http from "node:http";
 import { hostname } from "node:os";
 
@@ -9,7 +8,6 @@ const gatewayPort = Number(process.env.LOCAL_DVR_GATEWAY_PORT || 18080);
 const webPort = Number(process.env.LOCAL_DVR_ONBOARDING_PORT || 18180);
 const gatewayUrl = `http://127.0.0.1:${gatewayPort}`;
 const productionBaseUrl = process.env.VIDEO_GATEWAY_CLOUD_BASE_URL || "https://gan-batuach.vercel.app";
-const runtimeConfigPath = process.env.GAN_BATUACH_GATEWAY_CONFIG || `${process.env.HOME}/.config/gan-batuach/home-gateway.json`;
 const pairingClaimTtlMs = 14 * 60 * 1000;
 let running = false;
 let lastResult = null;
@@ -91,10 +89,11 @@ function purgeExpiredClaims() {
 }
 
 function readDvrProfileConfig() {
-  if (!existsSync(runtimeConfigPath)) return { configured: false, reason: "missing_local_profile" };
+  const raw = readRuntimeKeychainSecret("dvr_profile_json");
+  if (!raw) return { configured: false, reason: "missing_local_profile" };
   try {
-    const config = JSON.parse(readFileSync(runtimeConfigPath, "utf8"));
-    const required = ["endpoint", "port", "username", "vendor", "channel_count", "keychain_service"];
+    const config = JSON.parse(raw);
+    const required = ["endpoint", "port", "username", "vendor", "channel_count"];
     const missing = required.filter((key) => !config?.[key]);
     if (missing.length) return { configured: false, reason: "incomplete_local_profile" };
     return { configured: true, config };
@@ -103,30 +102,28 @@ function readDvrProfileConfig() {
   }
 }
 
-function hasDvrPasswordInKeychain(config) {
-  if (!config?.keychain_service || !config?.username) return false;
-  const result = spawnSync("/usr/bin/security", ["find-generic-password", "-s", String(config.keychain_service), "-a", String(config.username)], { encoding: "utf8" });
-  return result.status === 0;
+function hasDvrPasswordInKeychain() {
+  return Boolean(readRuntimeKeychainSecret("dvr_password"));
 }
 
 function dvrProfileStatus() {
   const profile = readDvrProfileConfig();
   if (!profile.configured) return { configured: false, reason: profile.reason, password_storage: "keychain" };
-  if (!hasDvrPasswordInKeychain(profile.config)) return { configured: false, reason: "missing_keychain_password", password_storage: "keychain" };
-  return { configured: true, status: "ready", profile_storage: "secure_local_config", password_storage: "keychain", values_returned: false };
+  if (!hasDvrPasswordInKeychain()) return { configured: false, reason: "missing_keychain_password", password_storage: "keychain" };
+  return { configured: true, status: "ready", profile_storage: "keychain", password_storage: "keychain", values_returned: false };
 }
 
 function loadExistingDvrProfileForConnect() {
   const profile = readDvrProfileConfig();
   if (!profile.configured) throw new Error("פרופיל DVR מקומי לא נמצא. נדרשת הזנה חד־פעמית במסך המקומי.");
   const config = profile.config;
-  const passwordResult = spawnSync("/usr/bin/security", ["find-generic-password", "-s", String(config.keychain_service), "-a", String(config.username), "-w"], { encoding: "utf8" });
-  if (passwordResult.status !== 0 || !passwordResult.stdout.trim()) throw new Error("סיסמת DVR אינה זמינה ב-Keychain המקומי. נדרשת הזנה חד־פעמית במסך המקומי.");
+  const password = readRuntimeKeychainSecret("dvr_password");
+  if (!password) throw new Error("סיסמת DVR אינה זמינה ב-Keychain המקומי. נדרשת הזנה חד־פעמית במסך המקומי.");
   return {
     endpoint: String(config.endpoint || ""),
     port: Number(config.port || 554),
     username: String(config.username || ""),
-    password: passwordResult.stdout.trim(),
+    password,
     vendor: String(config.vendor || "generic"),
     channelCount: Number(config.channel_count || 16)
   };
