@@ -20,6 +20,7 @@ const schema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("refresh"), gateway_id: z.string().uuid(), refresh_token: z.string().min(32).max(160) }),
   z.object({ action: z.literal("revoke"), gateway_id: z.string().uuid(), observer_site_id: z.string().uuid() })
 ]);
+const refreshRecoveryGraceMs = 60 * 1000;
 
 function cloudSecret() { return process.env.VIDEO_GATEWAY_CLOUD_DISCOVERY_SECRET || ""; }
 function enrollmentUrl(id: string) { return `/digital-observer/cameras/add?gateway_enrollment=${encodeURIComponent(id)}`; }
@@ -118,13 +119,27 @@ export async function POST(request: Request) {
       return ok({ status: "linked", gateway_id: enrollment.data.gateway_id, observer_site_id: enrollment.data.observer_site_id, refresh_token: refreshToken, access_token: accessToken, access_expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString() });
     }
 
-    const enrollment = await admin.from("video_gateway_device_enrollments").select("id,status,observer_site_id,refresh_token_hash").eq("gateway_id", payload.gateway_id).maybeSingle();
-    if (enrollment.error || !enrollment.data || enrollment.data.status !== "delivered" || enrollment.data.refresh_token_hash !== hashGatewayEnrollmentToken(payload.refresh_token) || !enrollment.data.observer_site_id) return fail("זהות Gateway אינה תקפה או בוטלה.", 401);
+    const enrollment = await admin.from("video_gateway_device_enrollments").select("id,status,observer_site_id,refresh_token_hash,metadata").eq("gateway_id", payload.gateway_id).maybeSingle();
+    const presentedHash = hashGatewayEnrollmentToken(payload.refresh_token);
+    const enrollmentMetadata = enrollment.data?.metadata && typeof enrollment.data.metadata === "object" ? enrollment.data.metadata : {};
+    const currentTokenMatches = enrollment.data?.refresh_token_hash === presentedHash;
+    const previousTokenRecoversInterruptedRotation = enrollmentMetadata.previous_refresh_token_hash === presentedHash
+      && Date.parse(String(enrollmentMetadata.previous_refresh_valid_until || "")) > Date.now();
+    if (enrollment.error || !enrollment.data || enrollment.data.status !== "delivered" || (!currentTokenMatches && !previousTokenRecoversInterruptedRotation) || !enrollment.data.observer_site_id) return fail("זהות Gateway אינה תקפה או בוטלה.", 401);
     const nextRefreshToken = newGatewayRefreshToken();
-    const rotated = await admin.from("video_gateway_device_enrollments").update({ refresh_token_hash: hashGatewayEnrollmentToken(nextRefreshToken), updated_at: new Date().toISOString() }).eq("id", enrollment.data.id).eq("status", "delivered").eq("refresh_token_hash", enrollment.data.refresh_token_hash).select("id").maybeSingle();
+    const rotated = await admin.from("video_gateway_device_enrollments").update({
+      refresh_token_hash: hashGatewayEnrollmentToken(nextRefreshToken),
+      metadata: {
+        ...enrollmentMetadata,
+        previous_refresh_token_hash: enrollment.data.refresh_token_hash,
+        previous_refresh_valid_until: new Date(Date.now() + refreshRecoveryGraceMs).toISOString(),
+        refresh_recovery_used: previousTokenRecoversInterruptedRotation
+      },
+      updated_at: new Date().toISOString()
+    }).eq("id", enrollment.data.id).eq("status", "delivered").eq("refresh_token_hash", enrollment.data.refresh_token_hash).select("id").maybeSingle();
     if (rotated.error || !rotated.data) return fail("זהות Gateway השתנתה. יש לבצע קישור מחדש.", 409);
     const accessToken = issueGatewayDeviceAccessToken({ device_id: enrollment.data.id, gateway_id: payload.gateway_id, observer_site_id: enrollment.data.observer_site_id }, cloudSecret());
-    await audit(admin, "gateway_device_access_rotated", { gateway_id: payload.gateway_id, observer_site_id: enrollment.data.observer_site_id });
+    await audit(admin, "gateway_device_access_rotated", { gateway_id: payload.gateway_id, observer_site_id: enrollment.data.observer_site_id, interrupted_rotation_recovered: previousTokenRecoversInterruptedRotation });
     return ok({ gateway_id: payload.gateway_id, observer_site_id: enrollment.data.observer_site_id, refresh_token: nextRefreshToken, access_token: accessToken, access_expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString() });
   } catch (error) {
     return handleRouteError(error);

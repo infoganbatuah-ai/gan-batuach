@@ -24,7 +24,7 @@ if (verifyGatewayDeviceAccessToken(deviceToken, "qa-secret")?.device_id !== "dev
 for (const required of ["gatewayEnrollmentTtlMs", "gatewayDeviceAccessTtlMs", "newGatewayRefreshToken", "hashGatewayEnrollmentToken"]) {
   if (!deviceEnrollment.includes(required)) throw new Error(`Missing device enrollment token boundary: ${required}`);
 }
-for (const required of ["create_request", "approve", "poll", "refresh", "revoke", "getObserverSiteAccess", "refresh_token_hash", "gateway_enrollment_revoked"]) {
+for (const required of ["create_request", "approve", "poll", "refresh", "revoke", "getObserverSiteAccess", "refresh_token_hash", "gateway_enrollment_revoked", "refreshRecoveryGraceMs", "previous_refresh_token_hash", "previous_refresh_valid_until", "interrupted_rotation_recovered"]) {
   if (!enrollmentRoute.includes(required)) throw new Error(`Missing device enrollment lifecycle control: ${required}`);
 }
 for (const required of ["video_gateway_device_enrollments", "poll_token_hash", "refresh_token_hash", "status in ('pending','approved','delivered','expired','revoked')", "enable row level security"]) {
