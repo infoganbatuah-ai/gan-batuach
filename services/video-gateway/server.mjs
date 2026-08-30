@@ -7,6 +7,7 @@ import { extname, join, normalize } from "node:path";
 import { fileURLToPath } from "node:url";
 import { computeActivityMetrics } from "./activity-insights.mjs";
 import { localEdgeReadiness, warmLocalEdgeReadiness } from "./edge-readiness.mjs";
+import { discoverPrivateNvrCapabilities } from "./private-nvr-capabilities.mjs";
 
 const PORT = Number(process.env.PORT || process.env.VIDEO_GATEWAY_PORT || 8080);
 const HOST = process.env.HOST || process.env.VIDEO_GATEWAY_HOST || "0.0.0.0";
@@ -457,6 +458,18 @@ function mediaCapabilities(result, adapter) {
   };
 }
 
+function mergePrivateNvrCapabilityEvidence(media, discovered) {
+  if (!discovered) return media;
+  return Object.fromEntries(Object.entries({ ...media, ...Object.fromEntries(
+    Object.entries(discovered).filter(([key]) => key !== "adapter").map(([key, value]) => [key, capabilityEvidence(
+      value?.supported === true,
+      value?.tested ? "vendor_read_only_api" : "not_tested",
+      String(value?.reason || `${key}_not_reported`),
+      discovered.adapter || "private_nvr_http_api_v1"
+    )])
+  ) }));
+}
+
 async function privateNvrStreamResponse(url, token, cookie, signal) {
   const response = await fetch(url, {
     headers: {
@@ -611,6 +624,15 @@ async function discoverPrivateNvr(payload, channelCount) {
       height: result.height ?? null,
       capabilities: mediaCapabilities(result.ok || retainedLiveEvidence ? { ...result, ok: true } : result, "private_nvr_http_mp4")
     });
+  }
+  const connectedChannelNumbers = channels.filter((channel) => channel.status === "connected").map((channel) => channel.channel);
+  const controlEvidence = await discoverPrivateNvrCapabilities({
+    session,
+    channels: connectedChannelNumbers,
+    timeoutMs: Math.max(2_000, PROBE_TIMEOUT_MS)
+  }).catch(() => new Map());
+  for (const channel of channels) {
+    channel.capabilities = mergePrivateNvrCapabilityEvidence(channel.capabilities, controlEvidence.get(channel.channel));
   }
   // Recorder discovery consumes the native live response sequence. Establish
   // one fresh playback session after all probes, then share it across relays.

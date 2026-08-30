@@ -11,6 +11,7 @@ const conversation = read("app/api/digital-observer/conversation/route.ts");
 const migration = read("supabase/migrations/20260829030000_digital_observer_camera_action_approvals.sql");
 const persistentGateway = read("scripts/run-persistent-home-gateway.mjs");
 const eventMediaRoute = read("app/api/video-gateway/cloud-event-media/route.ts");
+const privateNvrCapabilities = read("services/video-gateway/private-nvr-capabilities.mjs");
 
 for (const capability of ["live", "playback", "audio_input", "audio_output", "talkback", "ptz", "relay", "siren", "light"]) {
   assert.match(gateway, new RegExp(`\\b${capability}:`), `Gateway must report ${capability} evidence`);
@@ -28,6 +29,8 @@ assert.match(migration, /capability_evidence ->> 'supported' = 'true'/, "Databas
 assert.match(gatewayActionRoute, /verifyGatewayDeviceAccessToken/, "Gateway polling must require enrolled device authentication");
 assert.match(gatewayActionRoute, /action_status: "delivered"/, "Gateway claims must be single-delivery state transitions");
 assert.match(gateway, /adapter_executor_not_installed/, "Unknown physical adapters must fail closed");
+assert.match(gateway, /discoverPrivateNvrCapabilities/, "Private recorder controls must be discovered through a read-only adapter");
+assert.doesNotMatch(privateNvrCapabilities, /\/Set\b|\/Control\b/, "Capability discovery must not contain physical mutation endpoints");
 assert.match(controls, /window\.confirm/, "Dashboard controls must require immediate confirmation");
 assert.match(conversation, /suggested_camera_action/, "Observer conversation must expose only a gated action offer");
 assert.doesNotMatch(controls, /capabilities\.ptz === true/, "A bare capability boolean must not enable a physical control");
