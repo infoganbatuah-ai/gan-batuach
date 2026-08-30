@@ -15,6 +15,7 @@ import { getObserverSiteTemplate, observerSiteTemplates, type ObserverSiteTempla
 import { ObserverAddressFields, type ObserverAddressFormValue } from "@/components/digital-observer/observer-address-fields";
 import { ObserverCameraMedia } from "@/components/digital-observer/observer-camera-media";
 import { ObserverFcmPushRegistration } from "@/components/digital-observer/observer-fcm-push-registration";
+import { ObserverGatewayPairing } from "@/components/digital-observer/observer-gateway-pairing";
 
 type ActionState = { busy: boolean; error: string; message: string };
 
@@ -141,6 +142,7 @@ export function ObserverCameraWizard({ sites, initialSiteId }: { sites: any[]; i
   }
   const selectedMethod = observerCameraConnectionMethods.find((item) => item.key === form.pairing_method) ?? observerCameraConnectionMethods[0];
   const requiresLocalDvrGateway = form.pairing_method === "recorder" || form.pairing_method === "secure_gateway";
+  const recorderFlow = form.pairing_method === "recorder";
   const primaryPairingLabels: Partial<Record<ObserverCameraPairingMethod, string>> = { network_discovery: "מצלמת IP", recorder: "NVR / DVR", manufacturer_app: "ספק ענן", manual_network: "חיבור ידני" };
   const primaryPairingIcons: Partial<Record<ObserverCameraPairingMethod, typeof Camera>> = { network_discovery: Camera, recorder: HardDrive, manufacturer_app: Cloud, manual_network: Cable, qr_scan: QrCode, secure_gateway: Router };
   const targetIcons: Record<string, typeof Radar> = { person: UsersRound, children: Baby, animal: PawPrint, known_faces: UserPlus, entry_exit: DoorOpen, after_hours: Moon, camera_obstruction: CameraOff };
@@ -149,11 +151,11 @@ export function ObserverCameraWizard({ sites, initialSiteId }: { sites: any[]; i
   const selectedSite = sites.find((site) => site.id === form.observer_site_id) ?? sites[0];
   const previewName = form.display_name.trim() || "מצלמת כניסה";
   const previewMode = selectedSite?.site_type === "business" ? "business" : "home";
-  const stepHeading = step === 1 ? "הוספת מצלמה" : step === 2 ? "בדיקת חיבור" : step === 3 ? "מה חשוב לך שנזהה?" : previewName;
+  const stepHeading = step === 1 ? "הוספת מצלמות" : step === 2 ? recorderFlow ? "חיבור מקליט" : "בדיקת חיבור" : step === 3 ? "מה חשוב לך שנזהה?" : previewName;
   const stepDescription = step === 1
     ? "בחרו את סוג החיבור המתאים לכם"
     : step === 2
-      ? "נבדוק את החיבור למצלמה"
+      ? recorderFlow ? "המקליט יגלה ויוסיף את כל הערוצים הפעילים" : "נבדוק את החיבור למצלמה"
       : step === 3
         ? "בחרו במה התצפיתן יתמקד לאחר החיבור"
         : `${form.location_label || "כניסה ראשית"} · מקור מצלמה במצב מוכנות`;
@@ -186,6 +188,20 @@ export function ObserverCameraWizard({ sites, initialSiteId }: { sites: any[]; i
     } catch {
       setScanState("לא ניתן לקרוא את הקוד. תוכן התמונה לא הועלה ולא נשמר.");
     }
+  }
+  if (recorderFlow && step === 2) {
+    return <div className="do-wizard do-camera-wizard">
+      <header className="do-intro do-camera-flow-heading"><h1>חיבור מקליט</h1><p>מוסיפים DVR/NVR אחד ומגלים את כל הערוצים בפועל.</p></header>
+      <div className="do-stepper do-stepper-desktop">{["סוג מקור", "חיבור מקליט", "תוצאות"].map((label,index) => <div className={index < 2 ? "active" : ""} key={label}><b>{index + 1}</b><span>{label}</span></div>)}</div>
+      <section className="do-panel do-form-section do-camera-test-step do-recorder-gateway-step">
+        <div className="do-section-head"><div><h2>חיבור DVR / NVR</h2><p>הרכיב המקומי מגלה את מספר הערוצים האמיתי ומוסיף אותם יחד לאתר הנבחר.</p></div><span className="do-badge info">מקליט רב־ערוצי</span></div>
+        <label className="do-field"><span>לאיזה בית או עסק לחבר את המקליט?</span><select value={form.observer_site_id} onChange={(event) => update("observer_site_id", event.target.value)}>{sites.map((site) => <option key={site.id} value={site.id}>{site.name}</option>)}</select></label>
+        <div className="do-notice info"><HardDrive /><span>לא יוצרים כאן מצלמה בודדת ולא מזינים כתובת, שם משתמש או סיסמה בדשבורד. פרטי המקליט נשארים ברכיב המקומי בלבד.</span></div>
+        <ObserverGatewayPairing observerSiteId={form.observer_site_id} />
+        <div className="do-connection-check-result"><span><Check /></span><div><strong>לאחר CONNECT יתגלה מספר הערוצים האמיתי</strong><small>רק ערוצים עם וידאו חי יופיעו במצלמות הפעילות; היתר יישמרו ברשימת המנותקות.</small></div><b>Discovery לקריאה בלבד</b></div>
+      </section>
+      <div className="do-wizard-actions"><button className="do-button primary" type="button" onClick={() => router.push(`/digital-observer/cameras?site=${form.observer_site_id}`)}>הצגת ערוצים לאחר discovery</button><button className="do-button secondary" type="button" onClick={() => setStep(1)}>חזרה</button></div>
+    </div>;
   }
   const mobileStep = step === 1 ? 1 : step === 4 ? 3 : 2;
   return <div className="do-wizard do-camera-wizard">

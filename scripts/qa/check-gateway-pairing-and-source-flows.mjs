@@ -55,21 +55,21 @@ const connectBodyMatch = localOnboarding.match(/const body = \{ \.\.\.Object\.fr
 if (!connectBodyMatch || connectBodyMatch[1] !== "claimSessionId") throw new Error("CONNECT must receive only the local claim session id after pairing claim");
 if (localOnboarding.includes(".env.video-gateway.local")) throw new Error("Local pairing must not depend on disk cloud configuration");
 if (/dvr-profile\/status[\s\S]{0,400}(endpoint|username|password)/.test(localOnboarding)) throw new Error("DVR profile status must not return DVR address, username, or password");
-for (const required of ["NVR/DVR מוסיף מקליט אחד", "recorderFlow && step === 2", "הצגת ערוצים לאחר discovery", "IP/ONVIF/RTSP מוסיפים מקור יחיד"]) {
+for (const required of ["מוסיפים DVR/NVR אחד", "if (recorderFlow && step === 2)", "הצגת ערוצים לאחר discovery", "לא יוצרים כאן מצלמה בודדת"]) {
   if (!cameraWizard.includes(required)) throw new Error(`Missing source-flow distinction: ${required}`);
 }
-for (const required of ["קוד pairing קצר־חיים נשאר fallback בלבד", "מאמתים את החשבון פעם אחת", "רכיב מקומי מאומת", "אפשרויות נוספות: QR ומצלמת הדמיה"]) {
-  if (!cameraWizard.includes(required) && !pairing.includes(required) && !readFileSync(new URL("../../lib/domain/digital-observer/camera-connection-methods.ts", import.meta.url), "utf8").includes(required)) throw new Error(`Missing normal gateway onboarding wording: ${required}`);
+for (const required of ["בשימוש רגיל אין קוד", "gateway_enrolled", "שחזור, מחשב אחר או התקנה ללא מסך"]) {
+  if (!pairingPanel.includes(required)) throw new Error(`Missing normal gateway onboarding wording: ${required}`);
 }
-if (cameraWizard.includes('href="http://127.0.0.1:18180"')) throw new Error("Dashboard flow must not depend on direct localhost navigation");
-for (const required of ["step === 2 && recorderFlow", "<ObserverGatewayPairing observerSiteId={form.observer_site_id} />", "step === 2 && !recorderFlow", "לא יוצרים כאן מצלמה בודדת"]) {
+if (/127\.0\.0\.1:18180[^\n]*(observer_site_id|token|code)=/i.test(pairingPanel)) throw new Error("Local handoff must not place site identifiers or tokens in the URL");
+for (const required of ["recorderFlow && step === 2", "<ObserverGatewayPairing observerSiteId={form.observer_site_id} />", "מקליט רב־ערוצי", "לא יוצרים כאן מצלמה בודדת"]) {
   if (!cameraWizard.includes(required)) throw new Error(`Recorder flow must keep pairing inside Add cameras: ${required}`);
 }
 if (addCameraPage.includes("ObserverGatewayPairing")) throw new Error("Gateway pairing must be part of the DVR/NVR wizard, not a separate Add cameras screen");
-for (const required of ["פתיחת רכיב החיבור במחשב זה", "gatewayUrl", "פרטי DVR במחשב בלבד"]) {
+for (const required of ["פתיחת חיבור המקליט", "http://127.0.0.1:18180", "פרטי המקליט אינם נשלחים לדשבורד"]) {
   if (!pairingPanel.includes(required)) throw new Error(`Gateway pairing must offer a clear local handoff: ${required}`);
 }
-for (const required of ["/api/digital-observer/runtime-status", "מצב המקליט והחיבור המקומי", "חיבור מחדש או החלפת מחשב", "רענון אוטומטי כל דקה"]) {
+for (const required of ["/api/digital-observer/runtime-status", "connected_camera_count", "gateway_enrolled", "60_000"]) {
   if (!pairingPanel.includes(required)) throw new Error(`Gateway pairing must foreground current connection state: ${required}`);
 }
 for (const required of [".do-gateway-pairing-actions", "grid-template-columns: 1fr", "overflow-wrap: anywhere", "min-height: 48px"]) {
