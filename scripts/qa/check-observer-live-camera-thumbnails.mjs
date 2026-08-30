@@ -10,6 +10,8 @@ const cameraRoute = readFileSync("app/api/digital-observer/cameras/route.ts", "u
 const conversationRoute = readFileSync("app/api/digital-observer/conversation/route.ts", "utf8");
 const presence = readFileSync("components/digital-observer/observer-camera-presence.tsx", "utf8");
 const actionForms = readFileSync("components/digital-observer/observer-action-forms.tsx", "utf8");
+const runtimePulse = readFileSync("components/digital-observer/observer-runtime-pulse.tsx", "utf8");
+const runtimeStatusRoute = readFileSync("app/api/digital-observer/runtime-status/route.ts", "utf8");
 
 for (const source of [camerasPage, dashboardPage]) {
   assert.match(source, /digitalObserverCameraHasLiveGateway/, "camera surfaces must use the shared verified gateway status guard");
@@ -41,6 +43,11 @@ assert.match(conversationRoute, /camera_source_id/, "camera conversation must st
 assert.match(conversationRoute, /shadow_active/, "instructions for connected sources must not be left in generic readiness");
 assert.match(css, /do-camera-context-panel/, "camera context panel must have a responsive layout");
 assert.match(css, /font-size: 16px/, "mobile input controls must avoid browser zoom while keeping readable text");
+assert.match(dashboardPage, /ObserverRuntimePulse/, "home dashboard must show a current verified runtime pulse");
+assert.match(runtimePulse, /setInterval/, "runtime pulse must keep the displayed clock current");
+assert.match(runtimePulse, /30_000/, "runtime pulse must refresh verified server status at a bounded interval");
+assert.match(runtimeStatusRoute, /getObserverSiteAccess/, "runtime status must enforce per-site access");
+assert.match(runtimeStatusRoute, /connected_camera_count/, "runtime status must expose truthful connected-camera state");
 assert.doesNotMatch(camerasPage + dashboardPage + livePlayer, /rtsp:\/\/|password|credential/i, "browser camera thumbnail code must not expose raw stream credentials");
 
 console.log("Observer live camera thumbnail checks passed.");

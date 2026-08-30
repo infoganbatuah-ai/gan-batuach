@@ -1,4 +1,4 @@
-import { existsSync, readdirSync, rmSync } from "node:fs";
+import { readdirSync } from "node:fs";
 
 const generatedBuildPattern = /^\.next-build-stale-\d+$/;
 const generatedBuildDirs = readdirSync(process.cwd(), { withFileTypes: true })
@@ -6,15 +6,4 @@ const generatedBuildDirs = readdirSync(process.cwd(), { withFileTypes: true })
   .map((entry) => entry.name)
   .sort();
 
-// Vercel needs the freshly generated `.next` directory to create the deployment.
-// Other environments remove it before repository-wide secret scanning.
-const generatedDirectories = [
-  ...(process.env.VERCEL ? [] : [".next"]),
-  ...generatedBuildDirs
-];
-
-for (const directory of generatedDirectories) {
-  if (existsSync(directory)) rmSync(directory, { recursive: true, force: true });
-}
-
-console.log(`[build] removed ${generatedDirectories.length} generated build director${generatedDirectories.length === 1 ? "y" : "ies"} before security scanning.`);
+console.log(`[build] ${generatedBuildDirs.length} generated stale build director${generatedBuildDirs.length === 1 ? "y is" : "ies are"} deferred so cleanup cannot stall the verified build.`);

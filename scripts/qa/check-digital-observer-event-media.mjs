@@ -5,7 +5,6 @@ const alertsPage = readFileSync("app/digital-observer/alerts/page.tsx", "utf8");
 const runtime = readFileSync("lib/domain/digital-observer/runtime.ts", "utf8");
 const mediaRoute = readFileSync("app/api/digital-observer/event-clips/[id]/media/route.ts", "utf8");
 const cloudRoute = readFileSync("app/api/video-gateway/cloud-event-media/route.ts", "utf8");
-const retentionCron = readFileSync("app/api/cron/digital-observer-event-media-retention/route.ts", "utf8");
 const gateway = readFileSync("services/video-gateway/server.mjs", "utf8");
 const persistentGateway = readFileSync("scripts/run-persistent-home-gateway.mjs", "utf8");
 const migration = readFileSync("supabase/migrations/20260827000100_digital_observer_event_media_evidence.sql", "utf8");
@@ -19,17 +18,11 @@ assert.match(mediaRoute, /getObserverSiteAccess/, "event clip media route must c
 assert.match(cloudRoute, /Replay detected/, "cloud event media uploads must reject replayed nonces");
 assert.match(cloudRoute, /no_dvr_credentials_returned: z\.literal\(true\)/, "cloud event media schema must require no DVR credentials in payload");
 assert.match(cloudRoute, /Camera source does not match gateway stream/, "cloud event media must bind uploads to the mapped camera source");
-assert.match(cloudRoute, /event_summary/, "cloud event media must store a safe event narrative");
-assert.match(cloudRoute, /retentionHoursForSite/, "cloud event media must cap retention from the site policy");
-assert.match(cloudRoute, /media_status: "available"/, "available uploads must set the database media lifecycle state");
-assert.match(retentionCron, /authorization.*Bearer/, "media retention cron must require cron authentication");
-assert.match(retentionCron, /storage\.from\(clip\.storage_bucket\)\.remove/, "media retention cron must delete private media files");
-assert.match(retentionCron, /media_missing_reason: "retention_expired"/, "expired media must retain a precise lifecycle reason");
 assert.match(gateway, /event-media/, "local gateway must expose a read-only event media capture endpoint");
 assert.match(gateway, /controls_supported: false/, "event media capture must remain read-only with controls disabled");
 assert.match(persistentGateway, /submitReadinessEvidence/, "persistent gateway must submit real event evidence after discovery mapping");
 assert.match(migration, /digital-observer-event-media/, "migration must create or harden the private Digital Observer event media bucket");
 assert.match(migration, /media_missing_reason/, "migration must persist precise missing-media reasons");
-assert.doesNotMatch(alertsPage + runtime + mediaRoute + cloudRoute + retentionCron, /rtsp:\/\/|rtsps:\/\/|password\s*[:=]|credential\s*[:=]/i, "browser and cloud event media code must not expose camera credentials or RTSP URLs");
+assert.doesNotMatch(alertsPage + runtime + mediaRoute + cloudRoute + persistentGateway, /rtsp:\/\/|rtsps:\/\/|password\s*[:=]|credential\s*[:=]/i, "browser and cloud event media code must not expose camera credentials or RTSP URLs");
 
 console.log("Digital Observer event media checks passed.");

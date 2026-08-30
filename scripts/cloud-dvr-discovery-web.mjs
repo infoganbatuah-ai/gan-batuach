@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 import { spawn } from "node:child_process";
+import { spawnSync } from "node:child_process";
 import { existsSync, readFileSync } from "node:fs";
 import http from "node:http";
 
@@ -28,7 +29,15 @@ function loadLocalCloudConfig() {
   return config;
 }
 
-const gatewaySecret = process.env.VIDEO_GATEWAY_SIGNING_SECRET || loadLocalCloudConfig().VIDEO_GATEWAY_SIGNING_SECRET || crypto.randomBytes(48).toString("base64url");
+const gatewaySecret = process.env.VIDEO_GATEWAY_SIGNING_SECRET || loadLocalCloudConfig().VIDEO_GATEWAY_SIGNING_SECRET || readKeychainSecret("gateway_signing_secret") || crypto.randomBytes(48).toString("base64url");
+
+function readKeychainSecret(account) {
+  const config = loadLocalCloudConfig();
+  const service = config.VIDEO_GATEWAY_KEYCHAIN_SERVICE;
+  if (!service) return "";
+  const result = spawnSync("/usr/bin/security", ["find-generic-password", "-s", service, "-a", account, "-w"], { encoding: "utf8" });
+  return result.status === 0 ? result.stdout.trim() : "";
+}
 
 function page() {
   return `<!doctype html>
@@ -274,7 +283,7 @@ async function connect(input) {
   const cloudConfig = loadLocalCloudConfig();
   const productionBaseUrl = process.env.VIDEO_GATEWAY_CLOUD_BASE_URL || cloudConfig.VIDEO_GATEWAY_CLOUD_BASE_URL || "https://gan-batuach.vercel.app";
   const gatewayId = process.env.VIDEO_GATEWAY_CLOUD_GATEWAY_ID || cloudConfig.VIDEO_GATEWAY_CLOUD_GATEWAY_ID;
-  const cloudSecret = process.env.VIDEO_GATEWAY_CLOUD_DISCOVERY_SECRET || cloudConfig.VIDEO_GATEWAY_CLOUD_DISCOVERY_SECRET;
+  const cloudSecret = process.env.VIDEO_GATEWAY_CLOUD_DISCOVERY_SECRET || cloudConfig.VIDEO_GATEWAY_CLOUD_DISCOVERY_SECRET || readKeychainSecret("cloud_discovery_secret");
   const gardenId = process.env.VIDEO_GATEWAY_CLOUD_GARDEN_ID || cloudConfig.VIDEO_GATEWAY_CLOUD_GARDEN_ID || "";
   const observerSiteId = process.env.VIDEO_GATEWAY_CLOUD_OBSERVER_SITE_ID || cloudConfig.VIDEO_GATEWAY_CLOUD_OBSERVER_SITE_ID || "";
   if (!gatewayId || !cloudSecret || (!gardenId && !observerSiteId)) {
