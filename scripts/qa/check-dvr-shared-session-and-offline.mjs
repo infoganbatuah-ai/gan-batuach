@@ -31,7 +31,7 @@ for (const required of ['status: connected ? "connected" : "offline"', 'health_s
 for (const required of ["unavailableStatuses", "digitalObserverCameraIsConnected", "digitalObserverCameraHasLiveGateway"]) {
   if (!liveStatus.includes(required)) throw new Error(`Missing truthful live status guard: ${required}`);
 }
-for (const required of ["response.status !== 503", "attempt < 3", "1200 * (attempt + 1)"]) {
+for (const required of ["response.status === 503", "attempt < 3", "attempt < 2", "1200 * (attempt + 1)"]) {
   if (!player.includes(required)) throw new Error(`Missing playback recovery: ${required}`);
 }
 for (const required of ["ONLY_SYNTHETIC_DEMO_CAMERA_CAN_BE_REMOVED", "source_row.camera_stream_id is not null", "source_row.secret_reference is not null", "capabilities @> '{\"live_view\":true}'", "DEMO_CAMERA_HAS_STORED_MEDIA", "can_manage_observer_site"]) {
@@ -40,7 +40,7 @@ for (const required of ["ONLY_SYNTHETIC_DEMO_CAMERA_CAN_BE_REMOVED", "source_row
 for (const required of ["structured_insights_only", "פריימים לדגימה", "Push חיצוני טרם הוגדר", "זיהוי ביומטרי כבוי"]) {
   if (!edgePolicy.includes(required)) throw new Error(`Missing truthful local AI policy: ${required}`);
 }
-for (const required of ["אירועים בלבד", "PTZ", "תאורה", "סירנה", "חסום במדיניות"]) {
+for (const required of ["אירועים בלבד", "PTZ", "תאורה", "סירנה", "לא אומת", "אישור בכל הפעלה"]) {
   if (!cameraControls.includes(required)) throw new Error(`Missing event-only or read-only camera control status: ${required}`);
 }
 if (!cameraPresence.includes("תצפיתן כבוי")) throw new Error("Inactive cameras must show that the Digital Observer is off");
