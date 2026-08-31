@@ -12,7 +12,7 @@ const hardwareTranscoder = createHardwareTranscoder({ platform: "darwin", run: a
 const spawned = [], relays = new Map();
 const context = vm.createContext({
   hardwareTranscoder, hardwareDecodeArgs, hardwareEncodeArgs, createRelayInputMetrics,
-  streamSources: new Map(["a", "b", "c"].map(id=>[id,{kind:"private_nvr_http_mp4",codec:"hevc"}])),
+  streamSources: new Map(["a", "b", "c", "d"].map(id=>[id,{kind:"private_nvr_http_mp4",codec:"hevc"}])),
   relays, relayDirectory: () => "/synthetic", mkdirSync() {}, join,
   process: {env:{}}, Date, RELAY_STALE_MS:20_000,
   relayLifecycle: {starts:0,upstreamFailed:0,upstreamEnded:0},
@@ -25,7 +25,7 @@ const context = vm.createContext({
   },
   pipeWebStreamToWritable: async()=>{},
   setInterval: callback=>({callback,unref(){}}), clearInterval(){},
-  setTimeout: ()=>({unref(){}}),
+  setTimeout: (callback, delay)=>({callback,delay,unref(){}}), clearTimeout(timer) { timer.cleared = true; },
   playbackTokens:new Map(), ensureRelay:async()=>{}, relayIsProgressing:()=>true,
   stopRelay:(_id,relay)=>relay.process.kill(), console:{error() {}}
 });
@@ -47,4 +47,14 @@ stalled.process.stdin.writableNeedDrain = true;
 stalled.monitor.callback();
 await context.start("c");
 assert.ok(spawned.at(-1).args.includes("libx264"), "A stuck encoder pipe must recover through the bounded software path");
+context.pipeWebStreamToWritable = async () => { throw Object.assign(new Error("synthetic"), {cause:{code:"UND_ERR_SOCKET"}}); };
+const draining = await context.start("d");
+await new Promise(resolve => setImmediate(resolve));
+assert.equal(draining.process.killed, undefined, "Do not discard the buffered tail immediately");
+assert.equal(draining.drainTimer.delay, 1500, "A stuck drain has a finite recovery deadline");
+draining.drainTimer.callback();
+assert.equal(draining.process.killed, true);
+draining.process.emit("close", 1);
+assert.equal(draining.drainTimer.cleared, true);
+assert.equal(hardwareTranscoder.canUse("d", "hevc"), true, "Truncated upstream data does not disprove hardware capability");
 console.log("PASS: actual relay lifecycle selects verified hardware, isolates failures and restores software without mistaking upstream closure for hardware failure");

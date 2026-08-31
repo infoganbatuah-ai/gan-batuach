@@ -886,6 +886,7 @@ function relayIsProgressing(relay) {
 
 function stopRelay(streamId, relay) {
   relay.monitor && clearInterval(relay.monitor);
+  relay.drainTimer && clearTimeout(relay.drainTimer);
   relay.controller?.abort();
   if (relay.process?.exitCode === null && !relay.process.killed) relay.process.kill("SIGKILL");
   if (relays.get(streamId) === relay) relays.delete(streamId);
@@ -944,7 +945,12 @@ async function startRelay(streamId) {
   }).catch((error) => {
     const code = error?.cause?.code || error?.code;
     relayLifecycle[code === "UND_ERR_SOCKET" || code === "ECONNRESET" ? "inputSocketError" : error?.name === "AbortError" ? "inputAborted" : "inputOtherError"] += 1;
-    child.kill("SIGKILL");
+    if (child.exitCode !== null || child.killed) return;
+    // The pipe's finally block ended stdin. Allow the decoder/muxer to flush
+    // its buffered tail, but never let a broken encoder block reconnection.
+    relay.inputFailed = true;
+    relay.drainTimer = setTimeout(() => child.kill("SIGKILL"), 1500);
+    relay.drainTimer.unref();
   });
   relay.monitor = setInterval(() => {
     if (relays.get(streamId) !== relay) return clearInterval(relay.monitor);
@@ -960,7 +966,8 @@ async function startRelay(streamId) {
     relay.errorSummary = `${relay.errorSummary}${chunk.toString("utf8")}`.slice(-2000);
   });
   child.on("close", (code) => {
-    if (hardwareVideo && code !== null && code !== 0) hardwareTranscoder.failed(streamId);
+    relay.drainTimer && clearTimeout(relay.drainTimer);
+    if (hardwareVideo && code !== null && code !== 0 && !relay.inputFailed) hardwareTranscoder.failed(streamId);
     if (code === 0) relayLifecycle.upstreamEnded += 1;
     else if (code !== null) relayLifecycle.upstreamFailed += 1;
     clearInterval(relay.monitor);
