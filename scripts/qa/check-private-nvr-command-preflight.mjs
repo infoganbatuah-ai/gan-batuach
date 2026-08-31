@@ -27,6 +27,8 @@ assert.equal(preflight.outcome_payload.executed, false);
 assert.equal(preflight.outcome_payload.ack_kind, "preflight_only");
 assert.equal(preflight.outcome_payload.requires_immediate_confirmation, true);
 assert.equal(preflight.outcome_payload.executor_installed, false);
+assert.equal(preflight.outcome_payload.stream_id, "fixture-stream");
+assert.equal(preflight.outcome_payload.channel, 4);
 const untestedAction = await driver(request({ task_kind: "command_preflight", action: "talk", payload_digest: "a".repeat(64) }), identity);
 assert.equal(untestedAction.result_code, "unavailable", "Evidence for a different action must not verify this one");
 assert.equal(untestedAction.outcome_payload.verified_at, null);

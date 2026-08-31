@@ -35,6 +35,8 @@ until request expiry. A transient result-delivery failure retries the same ACK
 without repeating the device probe. The cloud result endpoint must accept typed
 snapshot/preflight outcomes idempotently; they must never count as a succeeded
 physical action or enable physical controls while the executor flag is false.
+Both result types retain the source UUID, site UUID, stream ID and channel so
+the cloud can revalidate the exact mapping when an ACK arrives.
 
 ## Rollout Gate
 

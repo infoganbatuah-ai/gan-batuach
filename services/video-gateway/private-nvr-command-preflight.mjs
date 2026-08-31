@@ -52,10 +52,10 @@ export function createPrivateNvrPreflightDriver({ resolveSource, probe, now = Da
       }
       const capabilities = Object.fromEntries(Object.entries(details).map(([name, value]) => [name, value.supported]));
       const tested = Object.values(details).some(value => value.method !== "not_tested");
-      const common = { camera_id: request.camera_id, site_id: request.site_id, executor_installed: false, evidence_id: randomUUID(), verified_at: tested ? verifiedAt : null };
+      const common = { camera_id: request.camera_id, site_id: request.site_id, stream_id: request.stream_id, channel: request.channel, executor_installed: false, evidence_id: randomUUID(), verified_at: tested ? verifiedAt : null };
       if (request.task_kind === "capability_snapshot") return {
         outcome: "capability_snapshot", result_code: !tested ? "unavailable" : Object.values(capabilities).some(Boolean) ? "verified" : "unsupported",
-        outcome_payload: { ...common, stream_id: request.stream_id, channel: request.channel, driver: DRIVER, provider: DRIVER, capabilities, details }
+        outcome_payload: { ...common, driver: DRIVER, provider: DRIVER, capabilities, details }
       };
       const actionEvidence = details[ACTIONS[request.action]];
       const actionTested = actionEvidence.method !== "not_tested";
