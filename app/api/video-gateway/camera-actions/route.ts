@@ -1,15 +1,13 @@
-import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { verifyGatewayDeviceAccessToken } from "@/lib/domain/gateway-device-enrollment";
 import { createAdminClient } from "@/lib/supabase/admin";
+import {
+  cameraQueueKinds, cameraQueueRequestSchema, cameraQueueSelect, cameraQueueSourceSelect,
+  queueBindingMatches, queueResultDigest, queueTask, validateQueueResult,
+  type CameraQueueRow, type QueueSource
+} from "@/lib/domain/digital-observer/camera-queue-contract";
 
-const pollSchema = z.object({ action: z.literal("poll") });
-const resultSchema = z.object({
-  action: z.literal("result"), request_id: z.string().uuid(),
-  outcome: z.enum(["succeeded", "failed", "capability_snapshot", "command_preflight"]),
-  result_code: z.string().trim().min(2).max(80), outcome_payload: z.record(z.string(), z.unknown()).optional()
-});
-const schema = z.discriminatedUnion("action", [pollSchema, resultSchema]);
+export const runtime = "nodejs";
 
 async function authenticatedDevice(request: Request) {
   const secret = process.env.VIDEO_GATEWAY_CLOUD_DISCOVERY_SECRET;
@@ -17,70 +15,120 @@ async function authenticatedDevice(request: Request) {
   if (!secret || !token) return null;
   const claims = verifyGatewayDeviceAccessToken(token, secret);
   if (!claims) return null;
-  const supabase = createAdminClient();
-  const enrollment = await supabase.from("video_gateway_device_enrollments" as any).select("id")
-    .eq("id", claims.device_id).eq("gateway_id", claims.gateway_id).eq("observer_site_id", claims.observer_site_id).eq("status", "delivered").maybeSingle();
-  return enrollment.data ? { claims, supabase: supabase as any } : null;
+  const supabase = createAdminClient() as any;
+  const enrollment = await supabase.from("video_gateway_device_enrollments").select("id")
+    .eq("id", claims.device_id).eq("gateway_id", claims.gateway_id)
+    .eq("observer_site_id", claims.observer_site_id).eq("status", "delivered").maybeSingle();
+  if (enrollment.error) throw new Error("CAMERA_QUEUE_DATABASE_UNAVAILABLE");
+  return enrollment.data ? { claims, supabase } : null;
 }
 
-function scoped(source: any, claims: any) {
-  return source?.id && source.observer_site_id === claims.observer_site_id
-    && source.metadata?.gateway_id === claims.gateway_id && Boolean(source.metadata?.gateway_stream_id);
-}
+type JoinedRow = CameraQueueRow & { source: QueueSource };
 
 export async function POST(request: Request) {
   try {
     const device = await authenticatedDevice(request);
     if (!device) return fail("Gateway device authentication failed.", 401);
-    const payload = schema.parse(await request.json());
+    const payload = cameraQueueRequestSchema.parse(await request.json());
     const { claims, supabase } = device;
+    const scopedQueue = () => supabase.from("digital_observer_camera_action_requests")
+      .select(`${cameraQueueSelect},${cameraQueueSourceSelect}`)
+      .eq("observer_site_id", claims.observer_site_id).eq("gateway_id", claims.gateway_id);
+
     if (payload.action === "poll") {
       const now = new Date().toISOString();
-      await supabase.from("digital_observer_camera_action_requests" as any).update({ action_status: "expired", updated_at: now })
-        .eq("observer_site_id", claims.observer_site_id).eq("action_status", "approved").lte("expires_at", now);
-      const candidates: any[] = [];
-      for (let offset = 0; offset < 5000 && candidates.length === offset; offset += 100) {
-        const page = await supabase.from("digital_observer_camera_action_requests" as any)
-          .select("id,camera_source_id,action_type,parameters,capability_evidence,expires_at,created_at")
-          .eq("observer_site_id", claims.observer_site_id).eq("action_status", "approved").gt("expires_at", now).order("created_at").range(offset, offset + 99);
-        candidates.push(...(page.data ?? []));
-        if ((page.data ?? []).length < 100) break;
-      }
-      for (const candidate of candidates) {
-        const source = await supabase.from("digital_observer_camera_sources" as any).select("id,observer_site_id,metadata")
-          .eq("id", candidate.camera_source_id).eq("observer_site_id", claims.observer_site_id).maybeSingle();
-        if (!scoped(source.data, claims)) continue;
+      const expired = await supabase.from("digital_observer_camera_action_requests")
+        .update({ action_status: "expired", updated_at: now })
+        .eq("observer_site_id", claims.observer_site_id).eq("gateway_id", claims.gateway_id)
+        .in("task_kind", cameraQueueKinds).eq("action_status", "approved").lte("expires_at", now);
+      if (expired.error) return fail("Camera queue is unavailable.", 503);
+
+      // Postgres filters by tenant and Gateway BEFORE LIMIT. The join removes
+      // per-row lookups; legacy physical commands are not reinterpreted.
+      const candidates = await scopedQueue().in("task_kind", cameraQueueKinds)
+        .eq("action_status", "approved").gt("expires_at", now)
+        .order("created_at").order("id").limit(25);
+      if (candidates.error) return fail("Camera queue is unavailable.", 503);
+      for (const row of (candidates.data ?? []) as JoinedRow[]) {
+        let task;
+        try {
+          if (!queueBindingMatches(row, row.source, claims)) throw new Error("CAMERA_QUEUE_BINDING_CHANGED");
+          task = queueTask(row);
+        } catch {
+          const blocked = await supabase.from("digital_observer_camera_action_requests")
+            .update({ action_status: "blocked", updated_at: now, result: { code: "binding_or_contract_invalid", executed: false } })
+            .eq("id", row.id).eq("observer_site_id", claims.observer_site_id).eq("gateway_id", claims.gateway_id).eq("action_status", "approved");
+          if (blocked.error) return fail("Camera queue is unavailable.", 503);
+          continue;
+        }
         const deliveredAt = new Date().toISOString();
-        const delivered = await supabase.from("digital_observer_camera_action_requests" as any).update({ action_status: "delivered", delivered_at: deliveredAt, updated_at: deliveredAt })
-          .eq("id", candidate.id).eq("action_status", "approved").select("id").maybeSingle();
-        if (!delivered.data) continue;
-        return ok({ action_request: { id: candidate.id, task_kind: "command_preflight", camera_id: source.data.id, site_id: claims.observer_site_id,
-          stream_id: source.data.metadata.gateway_stream_id, channel: source.data.metadata.dvr_channel, requested_at: candidate.created_at,
-          action: candidate.action_type, parameters: candidate.parameters, capability_evidence: candidate.capability_evidence, expires_at: candidate.expires_at } });
+        const delivered = await supabase.from("digital_observer_camera_action_requests")
+          .update({ action_status: "delivered", delivered_at: deliveredAt, updated_at: deliveredAt })
+          .eq("id", row.id).eq("observer_site_id", claims.observer_site_id).eq("gateway_id", claims.gateway_id)
+          .eq("action_status", "approved").gt("expires_at", deliveredAt).select("id").maybeSingle();
+        if (delivered.error) return fail("Camera queue delivery could not be recorded.", 503);
+        if (delivered.data) return ok({ action_request: task });
       }
       return ok({ action_request: null });
     }
-    const actionRequest = await supabase.from("digital_observer_camera_action_requests" as any).select("id,camera_source_id,action_type,action_status")
-      .eq("id", payload.request_id).eq("observer_site_id", claims.observer_site_id).maybeSingle();
-    if (!actionRequest.data || actionRequest.data.action_status !== "delivered") return fail("Camera action is unavailable for result reporting.", 409);
-    const source = await supabase.from("digital_observer_camera_sources" as any).select("id,observer_site_id,metadata")
-      .eq("id", actionRequest.data.camera_source_id).eq("observer_site_id", claims.observer_site_id).maybeSingle();
-    if (!scoped(source.data, claims)) return fail("Camera action does not belong to this Gateway.", 403);
-    if (payload.outcome === "succeeded") {
-      const result = payload.outcome_payload;
-      if (!result || result.camera_id !== actionRequest.data.camera_source_id || result.site_id !== claims.observer_site_id
-        || result.executor_installed !== true || result.executed !== true) return fail("Physical success requires verified executor evidence.", 422);
+
+    const legacyResult = () => supabase.from("digital_observer_camera_action_requests")
+      .select(`${cameraQueueSelect},${cameraQueueSourceSelect}`).eq("id", payload.request_id)
+      .eq("observer_site_id", claims.observer_site_id).eq("task_kind", "legacy_command")
+      .is("gateway_id", null).eq("source.metadata->>gateway_id", claims.gateway_id);
+    let found = await scopedQueue().eq("id", payload.request_id).maybeSingle();
+    if (found.error) return fail("Camera queue is unavailable.", 503);
+    // Pre-extension workers may still report a failure for a delivered legacy
+    // row with no persisted binding. Accept only failure, using the source's
+    // authenticated Gateway/site mapping; never backfill approval or capability.
+    if (!found.data && payload.outcome === "failed") found = await legacyResult().maybeSingle();
+    if (found.error) return fail("Camera queue is unavailable.", 503);
+    const row = found.data as JoinedRow | null;
+    if (!row) return fail("Camera action is unavailable for this Gateway.", 409);
+    const legacyFailure = row.task_kind === "legacy_command" && payload.outcome === "failed" && row.gateway_id === null;
+    const validBinding = legacyFailure
+      ? row.observer_site_id === claims.observer_site_id && row.source?.id === row.camera_source_id
+        && row.source.observer_site_id === row.observer_site_id && row.source.metadata?.gateway_id === claims.gateway_id
+        && typeof row.source.metadata.gateway_stream_id === "string" && row.source.metadata.gateway_stream_id.length > 0
+      : queueBindingMatches(row, row.source, claims);
+    if (!validBinding) return fail("Camera source mapping changed or belongs to another Gateway.", 403);
+
+    const resultDigest = queueResultDigest(payload);
+    // An identical retry repairs a lost HTTP response without rewriting the
+    // result or re-executing. Conflicting terminal results are rejected.
+    if (["completed", "failed"].includes(row.action_status)) {
+      return row.result_digest === resultDigest ? ok({ recorded: true, replay: true })
+        : fail("A different result was already recorded.", 409);
     }
-    if (["capability_snapshot", "command_preflight"].includes(payload.outcome)) {
-      const result = payload.outcome_payload;
-      if (!result || result.camera_id !== actionRequest.data.camera_source_id || result.site_id !== claims.observer_site_id
-        || result.executor_installed !== false || result.executed !== false) return fail("Gateway preflight result is invalid.", 422);
+    if (row.action_status !== "delivered") return fail("Camera action is not awaiting a result.", 409);
+    if (Date.parse(row.expires_at) <= Date.now()) return fail("Camera diagnostic request expired.", 410);
+    if (row.task_kind === "legacy_command") {
+      if (payload.outcome !== "failed") return fail("Legacy physical commands have no installed executor.", 422);
+    } else {
+      queueTask(row);
+      validateQueueResult(payload, row);
     }
     const completedAt = new Date().toISOString();
-    const terminalStatus = payload.outcome === "succeeded" ? "succeeded" : payload.outcome === "failed" ? "failed" : "completed";
-    const { data: updated, error: updateError } = await supabase.from("digital_observer_camera_action_requests" as any).update({ action_status: terminalStatus, completed_at: completedAt, updated_at: completedAt,
-      result: { code: payload.result_code, outcome: payload.outcome, outcome_payload: payload.outcome_payload ?? null, reported_by_gateway: true } }).eq("id", payload.request_id).eq("action_status", "delivered").select("id").maybeSingle();
-    if (updateError || !updated) return fail("Camera action result could not be recorded.", 503);
+    let update = supabase.from("digital_observer_camera_action_requests")
+      .update({ action_status: payload.outcome === "failed" ? "failed" : "completed", completed_at: completedAt, updated_at: completedAt,
+        result_digest: resultDigest, result: { ...payload, reported_by_gateway: true } })
+      .eq("id", row.id).eq("observer_site_id", claims.observer_site_id)
+      .eq("action_status", "delivered").gt("expires_at", completedAt);
+    update = legacyFailure ? update.eq("task_kind", "legacy_command").is("gateway_id", null) : update.eq("gateway_id", claims.gateway_id);
+    const updated = await update.select("id").maybeSingle();
+    if (updated.error) return fail("Camera action result could not be recorded.", 503);
+    if (!updated.data) {
+      const replay = await (legacyFailure ? legacyResult() : scopedQueue().eq("id", row.id)).maybeSingle();
+      if (replay.error) return fail("Camera action result could not be recorded.", 503);
+      if (replay.data?.result_digest === resultDigest && ["completed", "failed"].includes(replay.data.action_status)) return ok({ recorded: true, replay: true });
+      return fail("Camera action result lost its delivery claim.", 409);
+    }
     return ok({ recorded: true });
-  } catch (error) { return handleRouteError(error); }
+  } catch (error) {
+    if (error instanceof Error && error.message.startsWith("CAMERA_QUEUE_")) {
+      return fail(error.message === "CAMERA_QUEUE_DATABASE_UNAVAILABLE" ? "Camera queue is unavailable." : "Camera diagnostic contract or evidence is invalid.",
+        error.message === "CAMERA_QUEUE_DATABASE_UNAVAILABLE" ? 503 : 422);
+    }
+    return handleRouteError(error);
+  }
 }
