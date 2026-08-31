@@ -160,9 +160,10 @@ const learningCycle = createPersistentLearningCycle({
     const response = await fetch(`${gatewayUrl}/camera/${encodeURIComponent(channel.gateway_stream_id)}/insights`, {
       headers: { "x-video-gateway-secret": gatewaySecret }, signal
     });
-    if (response.status === 503 || response.status === 404) return { state: "no_media" };
+    const data = await response.json().catch(() => null);
+    if (response.status === 404 || (response.status === 503 && data?.error === "sample_not_ready")) return { state: "no_media" };
     if (!response.ok) throw new Error("analysis_failed");
-    return response.json();
+    return data;
   },
   publishSamples: async (samples) => {
     const result = await signedPost("/api/video-gateway/cloud-learning", {
@@ -244,17 +245,6 @@ async function submitEventEvidence(channel, event, { signal } = {}) {
   return { submitted: true };
 }
 
-async function submitReadinessEvidence() {
-  const channel = channels.find((item) => item.status === "connected" && item.gateway_stream_id && item.camera_source_id);
-  return submitEventEvidence(channel, {
-    event_type: "camera_media_readiness",
-    event_context: "device_health",
-    severity: "info",
-    confidence: 1,
-    summary: "נוצר תיעוד מדיה מאומת מה-Gateway לצורך בדיקת חיבור ושמירה סביב אירוע בלבד."
-  });
-}
-
 await waitForGateway();
 if (discoveryEnabled) {
   await discoverWithRetry("initial");
@@ -263,9 +253,7 @@ if (discoveryEnabled) {
     // process lifecycle. Keep relays available and retry learning on schedule.
     console.error(`initial cloud learning unavailable; live remains active: ${error instanceof Error ? error.message : "learning_failed"}`);
   });
-  void submitReadinessEvidence().then((result) => {
-    if (!result.submitted) console.error(`event media skipped: ${result.reason}`);
-  }).catch((error) => console.error(error.message));
+  // Restart is not a camera event or authorization to capture a diagnostic clip.
   setInterval(() => void learn().catch((error) => console.error(error.message)), 5 * 60 * 1000).unref();
   setInterval(() => void discoverWithRetry("scheduled"), 15 * 60 * 1000).unref();
 }

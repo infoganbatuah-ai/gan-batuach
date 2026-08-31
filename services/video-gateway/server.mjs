@@ -5,9 +5,11 @@ import http from "node:http";
 import { tmpdir } from "node:os";
 import { extname, join, normalize } from "node:path";
 import { fileURLToPath } from "node:url";
+import { setTimeout as delay } from "node:timers/promises";
 import { computeActivityMetrics } from "./activity-insights.mjs";
 import { localEdgeReadiness, warmLocalEdgeReadiness } from "./edge-readiness.mjs";
 import { discoverPrivateNvrCapabilities } from "./private-nvr-capabilities.mjs";
+import { awaitRequestWork, createRequestWorkScope } from "./request-work-scope.mjs";
 
 const PORT = Number(process.env.PORT || process.env.VIDEO_GATEWAY_PORT || 8080);
 const HOST = process.env.HOST || process.env.VIDEO_GATEWAY_HOST || "0.0.0.0";
@@ -49,6 +51,7 @@ mkdirSync(HLS_ROOT, { recursive: true });
 warmLocalEdgeReadiness();
 
 function json(response, status, body) {
+  if (response.destroyed || response.writableEnded) return;
   response.writeHead(status, {
     "content-type": "application/json; charset=utf-8",
     "cache-control": "private, no-store, max-age=0"
@@ -874,18 +877,26 @@ async function startRelay(streamId) {
   return relay;
 }
 
-async function waitForFile(file, timeoutMs = 5000) {
+async function waitForFile(file, timeoutMs = 5000, signal) {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
+    signal?.throwIfAborted();
     if (existsSync(file)) return true;
-    await new Promise((resolve) => setTimeout(resolve, 150));
+    await delay(150, undefined, { signal });
   }
   return false;
 }
 
-async function analyzeRelayActivity(streamId) {
-  const relay = await ensureRelay(streamId);
-  if (!relay || !(await waitForFile(relay.playlist))) return null;
+function stopRequestChild(child) {
+  if (Number.isSafeInteger(child.pid) && child.pid > 0 && child.exitCode === null && child.signalCode === null) child.kill("SIGKILL");
+}
+
+async function analyzeRelayActivity(streamId, signal) {
+  signal?.throwIfAborted();
+  const relay = await awaitRequestWork(ensureRelay(streamId), signal);
+  signal?.throwIfAborted();
+  if (!relay || !(await waitForFile(relay.playlist, 5000, signal))) return null;
+  signal?.throwIfAborted();
   const frameBytes = FRAME_WIDTH * FRAME_HEIGHT;
   const args = [
     "-hide_banner", "-loglevel", "error",
@@ -896,29 +907,42 @@ async function analyzeRelayActivity(streamId) {
     "pipe:1"
   ];
   return await new Promise((resolve) => {
-    const child = spawn("ffmpeg", args, { stdio: ["ignore", "pipe", "ignore"] });
+    const child = spawn("ffmpeg", args, { stdio: ["ignore", "pipe", "ignore"], signal, killSignal: "SIGKILL" });
     const chunks = [];
     let size = 0;
-    const timeout = setTimeout(() => child.kill("SIGKILL"), 7000);
+    let failed = false;
+    const timeout = setTimeout(() => { failed = true; stopRequestChild(child); }, 7000);
+    child.on("error", () => { failed = true; });
+    child.stdout.on("error", () => { failed = true; stopRequestChild(child); });
     child.stdout.on("data", (chunk) => {
       if (size < frameBytes * 2) {
-        chunks.push(chunk);
-        size += chunk.length;
+        const bytes = Buffer.from(chunk.subarray(0, frameBytes * 2 - size));
+        chunks.push(bytes);
+        size += bytes.length;
       }
     });
-    child.on("close", () => {
+    child.on("close", (code) => {
       clearTimeout(timeout);
-      const pixels = Buffer.concat(chunks).subarray(0, frameBytes * 2);
-      if (pixels.length < frameBytes) return resolve(null);
-      const metrics = computeActivityMetrics(pixels, FRAME_WIDTH, FRAME_HEIGHT);
-      resolve(metrics ? { ...metrics, sampled_at: new Date().toISOString() } : null);
+      const pixels = Buffer.concat(chunks);
+      try {
+        const metrics = !failed && code === 0 && !signal?.aborted && pixels.length >= frameBytes
+          ? computeActivityMetrics(pixels, FRAME_WIDTH, FRAME_HEIGHT) : null;
+        resolve(metrics ? { ...metrics, sampled_at: new Date().toISOString() } : null);
+      } finally {
+        pixels.fill(0);
+        for (const chunk of chunks) chunk.fill(0);
+        chunks.length = 0;
+      }
     });
   });
 }
 
-async function analyzeRelayObjects(streamId) {
-  const relay = await ensureRelay(streamId);
-  if (!relay || !(await waitForFile(relay.playlist))) return null;
+async function analyzeRelayObjects(streamId, signal) {
+  signal?.throwIfAborted();
+  const relay = await awaitRequestWork(ensureRelay(streamId), signal);
+  signal?.throwIfAborted();
+  if (!relay || !(await waitForFile(relay.playlist, 5000, signal))) return null;
+  signal?.throwIfAborted();
   const ffmpeg = spawn("ffmpeg", [
     "-hide_banner", "-loglevel", "error",
     "-i", relay.playlist,
@@ -926,97 +950,123 @@ async function analyzeRelayObjects(streamId) {
     "-vf", "scale=300:300,format=rgb24",
     "-f", "rawvideo",
     "pipe:1"
-  ], { stdio: ["ignore", "pipe", "ignore"] });
-  const worker = spawn(process.execPath, [OBJECT_WORKER_PATH, "--infer-rgb"], { stdio: ["pipe", "pipe", "ignore"] });
+  ], { stdio: ["ignore", "pipe", "ignore"], signal, killSignal: "SIGKILL" });
+  const worker = spawn(process.execPath, [OBJECT_WORKER_PATH, "--infer-rgb"], { stdio: ["pipe", "pipe", "ignore"], signal, killSignal: "SIGKILL" });
   return await new Promise((resolve) => {
     const chunks = [];
     let outputSize = 0;
-    const timeout = setTimeout(() => {
-      ffmpeg.kill("SIGKILL");
-      worker.kill("SIGKILL");
-      resolve(null);
-    }, 20_000);
-    // A short/invalid frame can make the inference worker exit before ffmpeg.
-    // Isolate that normal pipeline shutdown so an EPIPE on the child stdin can
-    // never terminate the persistent Gateway or unrelated live relays.
-    const closeInferencePipe = () => {
-      if (ffmpeg.stdout.readable) ffmpeg.stdout.destroy();
+    let failed = false, stopping = false, ffmpegClosed = false, workerClosed = false;
+    const stop = () => {
+      failed = true;
+      if (stopping) return;
+      stopping = true;
+      stopRequestChild(ffmpeg);
+      stopRequestChild(worker);
     };
-    worker.stdin.on("error", closeInferencePipe);
-    ffmpeg.stdout.on("error", () => {
-      if (!worker.stdin.destroyed) worker.stdin.destroy();
-    });
-    ffmpeg.stdout.pipe(worker.stdin);
-    worker.stdout.on("data", (chunk) => {
-      if (outputSize < 32_768) {
-        chunks.push(chunk);
-        outputSize += chunk.length;
-      }
-    });
-    worker.on("close", (code) => {
+    const timeout = setTimeout(stop, 20_000);
+    const finish = () => {
+      // Wait for both children to close before releasing this request's slot.
+      if (!ffmpegClosed || !workerClosed) return;
       clearTimeout(timeout);
-      closeInferencePipe();
-      if (code !== 0) return resolve(null);
       try {
+        if (failed || signal?.aborted) return resolve(null);
         const result = JSON.parse(Buffer.concat(chunks).toString("utf8"));
         if (result.ok !== true || result.no_raw_frame_returned !== true || !Array.isArray(result.detections)) return resolve(null);
         resolve(result.detections.slice(0, 10));
       } catch {
         resolve(null);
+      } finally {
+        for (const chunk of chunks) chunk.fill(0);
+        chunks.length = 0;
       }
-    });
-    ffmpeg.on("close", () => {
+    };
+    ffmpeg.on("error", stop);
+    worker.on("error", stop);
+    worker.stdout.on("error", stop);
+    // A short/invalid frame can make the inference worker exit before ffmpeg.
+    // Isolate that normal pipeline shutdown so an EPIPE on the child stdin can
+    // never terminate the persistent Gateway or unrelated live relays.
+    const closeInferencePipe = () => {
       if (ffmpeg.stdout.readable) ffmpeg.stdout.destroy();
+      stop();
+    };
+    worker.stdin.on("error", closeInferencePipe);
+    ffmpeg.stdout.on("error", () => {
+      if (!worker.stdin.destroyed) worker.stdin.destroy();
+      stop();
+    });
+    ffmpeg.stdout.pipe(worker.stdin);
+    worker.stdout.on("data", (chunk) => {
+      if (outputSize + chunk.length > 32_768) { stop(); return; }
+      const bytes = Buffer.from(chunk);
+      chunks.push(bytes);
+      outputSize += bytes.length;
+    });
+    worker.on("close", (code) => {
+      workerClosed = true;
+      if (code !== 0) stop();
+      finish();
+    });
+    ffmpeg.on("close", (code) => {
+      ffmpegClosed = true;
+      if (ffmpeg.stdout.readable) ffmpeg.stdout.destroy();
+      if (code !== 0) stop();
+      finish();
     });
   });
 }
 
-async function runFfmpeg(args, timeoutMs = 15000) {
+async function runFfmpeg(args, timeoutMs = 15000, signal) {
+  signal?.throwIfAborted();
   return await new Promise((resolve) => {
-    const child = spawn("ffmpeg", args, { stdio: ["ignore", "ignore", "ignore"] });
-    const timeout = setTimeout(() => child.kill("SIGKILL"), timeoutMs);
-    child.on("error", () => {
-      clearTimeout(timeout);
-      resolve(false);
-    });
+    const child = spawn("ffmpeg", args, { stdio: ["ignore", "ignore", "ignore"], signal, killSignal: "SIGKILL" });
+    let failed = false;
+    const timeout = setTimeout(() => { failed = true; stopRequestChild(child); }, timeoutMs);
+    child.on("error", () => { failed = true; });
     child.on("close", (code) => {
       clearTimeout(timeout);
-      resolve(code === 0);
+      resolve(!failed && code === 0 && !signal?.aborted);
     });
   });
 }
 
-async function captureEventMedia(streamId, input = {}) {
-  const relay = await ensureRelay(streamId);
-  if (!relay || !(await waitForFile(relay.playlist))) return { status: "failed", reason: "relay_not_ready", retryable: true };
+async function captureEventMedia(streamId, input = {}, signal) {
+  signal?.throwIfAborted();
+  const relay = await awaitRequestWork(ensureRelay(streamId), signal);
+  signal?.throwIfAborted();
+  if (!relay || !(await waitForFile(relay.playlist, 5000, signal))) return { status: "failed", reason: "relay_not_ready", retryable: true };
   const before = Math.max(0, Math.min(15, Number(input.window_seconds_before ?? 3)));
   const after = Math.max(0, Math.min(15, Number(input.window_seconds_after ?? 5)));
   const duration = Math.max(1, Math.min(EVENT_CLIP_MAX_SECONDS, before + after));
-  if (after > 0) await new Promise((resolve) => setTimeout(resolve, after * 1000));
+  if (!Number.isFinite(duration)) return { status: "failed", reason: "invalid_capture_window", retryable: false };
+  if (after > 0) await delay(after * 1000, undefined, { signal });
+  signal?.throwIfAborted();
   const directory = join(tmpdir(), `gan-batuach-event-${randomBytes(8).toString("hex")}`);
-  mkdirSync(directory, { recursive: true });
+  mkdirSync(directory, { recursive: true, mode: 0o700 });
   const clipPath = join(directory, "clip.mp4");
   const thumbnailPath = join(directory, "thumbnail.jpg");
-  const clipOk = await runFfmpeg([
-    "-hide_banner", "-loglevel", "error",
-    "-i", relay.playlist,
-    "-t", String(duration),
-    "-map", "0:v:0",
-    "-an",
-    "-c:v", "libx264",
-    "-preset", process.env.VIDEO_GATEWAY_X264_PRESET || "veryfast",
-    "-pix_fmt", "yuv420p",
-    "-movflags", "+faststart",
-    clipPath
-  ], Math.max(12000, (duration + 8) * 1000));
-  const thumbnailOk = clipOk && await runFfmpeg([
-    "-hide_banner", "-loglevel", "error",
-    "-i", clipPath,
-    "-frames:v", "1",
-    "-vf", "scale=640:-2",
-    thumbnailPath
-  ], 8000);
   try {
+    const clipOk = await runFfmpeg([
+      "-hide_banner", "-loglevel", "error",
+      "-i", relay.playlist,
+      "-t", String(duration),
+      "-map", "0:v:0",
+      "-an",
+      "-c:v", "libx264",
+      "-preset", process.env.VIDEO_GATEWAY_X264_PRESET || "veryfast",
+      "-pix_fmt", "yuv420p",
+      "-movflags", "+faststart",
+      clipPath
+    ], Math.max(12000, (duration + 8) * 1000), signal);
+    signal?.throwIfAborted();
+    const thumbnailOk = clipOk && await runFfmpeg([
+      "-hide_banner", "-loglevel", "error",
+      "-i", clipPath,
+      "-frames:v", "1",
+      "-vf", "scale=640:-2",
+      thumbnailPath
+    ], 8000, signal);
+    signal?.throwIfAborted();
     if (!clipOk || !thumbnailOk || !existsSync(clipPath) || !existsSync(thumbnailPath)) return { status: "failed", reason: "ffmpeg_capture_failed", retryable: true };
     const clipSize = statSync(clipPath).size;
     const thumbnailSize = statSync(thumbnailPath).size;
@@ -1260,21 +1310,29 @@ async function handle(request, response) {
     }
     const insightsMatch = request.url?.match(/^\/camera\/([^/]+)\/insights$/);
     if (insightsMatch && request.method === "GET") {
-      const streamId = decodeURIComponent(insightsMatch[1]);
-      const insight = await analyzeRelayActivity(streamId);
-      if (!insight) {
-        json(response, 503, { error: "sample_not_ready" });
-        return;
-      }
-      const edge = localEdgeReadiness();
-      const detectedObjects = edge.object_detection ? await analyzeRelayObjects(streamId) : null;
-      json(response, 200, {
-        status: "sampled",
-        stream_id: streamId,
-        insight: { ...insight, object_detection: detectedObjects ? { status: "sampled", detections: detectedObjects } : { status: "unavailable", detections: [] } },
-        local_processing: true,
-        no_raw_video_returned: true
-      });
+      const work = createRequestWorkScope(request, response, 30_000);
+      try {
+        const streamId = decodeURIComponent(insightsMatch[1]);
+        const insight = await analyzeRelayActivity(streamId, work.signal);
+        work.signal.throwIfAborted();
+        if (!insight) {
+          json(response, 503, { error: "sample_not_ready" });
+          return;
+        }
+        const edge = localEdgeReadiness();
+        const detectedObjects = edge.object_detection ? await analyzeRelayObjects(streamId, work.signal) : null;
+        work.signal.throwIfAborted();
+        json(response, 200, {
+          status: "sampled",
+          stream_id: streamId,
+          insight: { ...insight, object_detection: detectedObjects ? { status: "sampled", detections: detectedObjects } : { status: "unavailable", detections: [] } },
+          local_processing: true,
+          no_raw_video_returned: true
+        });
+      } catch (error) {
+        if (!work.signal.aborted) throw error;
+        json(response, 503, { error: "analysis_cancelled", retryable: true });
+      } finally { work.dispose(); }
       return;
     }
     const eventMediaMatch = request.url?.match(/^\/camera\/([^/]+)\/event-media$/);
@@ -1284,7 +1342,15 @@ async function handle(request, response) {
         json(response, 404, { error: "stream_not_registered" });
         return;
       }
-      json(response, 200, await captureEventMedia(streamId, await readJson(request)));
+      const work = createRequestWorkScope(request, response, 60_000);
+      try {
+        const media = await captureEventMedia(streamId, await readJson(request), work.signal);
+        work.signal.throwIfAborted();
+        json(response, 200, media);
+      } catch (error) {
+        if (!work.signal.aborted) throw error;
+        json(response, 503, { error: "capture_cancelled", retryable: true });
+      } finally { work.dispose(); }
       return;
     }
     json(response, 404, { error: "not_found" });

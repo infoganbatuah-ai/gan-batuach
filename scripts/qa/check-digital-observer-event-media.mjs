@@ -27,7 +27,8 @@ assert.match(retentionCron, /storage\.from\(clip\.storage_bucket\)\.remove/, "me
 assert.match(retentionCron, /media_missing_reason: "retention_expired"/, "expired media must retain a precise lifecycle reason");
 assert.match(gateway, /event-media/, "local gateway must expose a read-only event media capture endpoint");
 assert.match(gateway, /controls_supported: false/, "event media capture must remain read-only with controls disabled");
-assert.match(persistentGateway, /submitReadinessEvidence/, "persistent gateway must submit real event evidence after discovery mapping");
+assert.ok(persistentGateway.includes("publishEvent:") && persistentGateway.includes("return submitEventEvidence("), "verified detections must retain the event evidence path");
+assert.equal(persistentGateway.includes("submitReadinessEvidence"), false, "restart must not automatically record a diagnostic clip");
 assert.match(migration, /digital-observer-event-media/, "migration must create or harden the private Digital Observer event media bucket");
 assert.match(migration, /media_missing_reason/, "migration must persist precise missing-media reasons");
 assert.match(migration, /with first_active_camera as \(/, "migration must repair legacy evidence with a PostgreSQL-safe CTE");

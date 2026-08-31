@@ -46,7 +46,7 @@ Owner names below describe accountable workstreams, not external approvals.
 | --- | --- | --- | --- | --- |
 | Local live, thumbnails, fullscreen and offline isolation | Gateway + Web | Partial | Prior nine-stream samples advanced but four reconnected during a longer sample; seven disconnected sources stayed isolated | Fresh sustained media-time/fullscreen E2E after the live fix; Chat/media-check acceptance does not close this gap |
 | HTTPS cross-device relay | Gateway + Infrastructure | Blocked / implementation partial | Scoped relay fixture and fail-closed Realtime bootstrap QA pass; owned DNS zone verified | Cloudflare Worker creation denied Authentication error 10000; no Worker/SFU created; grant flow, publisher/subscriber, quota and cross-device media test still required |
-| Event-only media, no new face capture | Edge + Privacy | Not accepted | Event-media regression QA passes, no live identity work done | Prove 48-hour deletion/download enforcement, no continuous archive and no new live/event face capture in code + production audit |
+| Event-only media, no new face capture | Edge + Privacy | Not accepted | Local startup diagnostic capture removed; request cancellation/temp-media cleanup and event-media QA pass; no live identity work done | Approved Gateway rollout and live evidence, 48-hour deletion/download enforcement, no continuous archive and no new live/event face capture in production audit |
 | Per-person biometric enrollment, consent, revocation and deletion | Identity + Privacy | Disabled pending proof | Consent/audit scaffolding; local health reports recognition false | Confirm migration/RLS; user-driven profile enrollment only, approved matching model and consent/revocation E2E |
 | Resident / authorized visitor / unrecognized classification | Identity + Events | Not accepted | Required states defined above; no matching evidence | Tenant-safe profile lookup and uncertain/unknown fallback; never assert physical access denial |
 | Entry/exit events and review notifications | Edge + Events | Not accepted | General event route exists, no current full workflow proof | Tested entry/exit model/rule with evidence, consented lookup, delivery and user review E2E |
@@ -454,11 +454,42 @@ passed in production; rule execution and sustained live inference remain unprove
   Typecheck, syntax/diff checks and the full 481-page production build pass.
 - Remaining gates: scoped web release must precede the persistent Gateway
   upgrade (the older endpoint rejects the new operation, so analysis fails
-  closed). The existing startup media-readiness check is a separate path, not
-  covered by this analysis-round authorization. It requires separate review
-  before service rollout. Inference cancellation inside the server after a
-  disconnected HTTP request also needs end-to-end proof. No running service,
+  closed). The startup diagnostic capture and disconnected-request work gaps
+  have since been addressed locally as detailed below, not installed or verified
+  on the actual Gateway. No running service,
   consent, Keychain item or DVR state was changed during these local checks.
 - Per-source telemetry persistence, genuine baseline calibration rather than
   sample-count heuristics, sustained live fairness and production event evidence
   remain open. This change does not establish continuous monitoring or learning.
+
+## Request Cancellation And Startup Media
+
+- Local-only follow-on to `58744e95`: persistent startup no longer creates a
+  camera-media-readiness clip simply because the service restarted. The explicit
+  diagnostic API remains available; verified detections still use the existing
+  consent-gated event-evidence path. No monitoring/biometric consent changed.
+- Insights and event-capture requests now own a bounded cancellation scope.
+  Disconnect, request abort or deadline stops only their temporary producer/
+  inference processes and waits for close. Shared live relays are not killed;
+  a cancelled caller stops waiting for a shared relay without sampling it later.
+  Normal POST-body completion does not count as disconnect. Listeners/timers
+  are removed at completion. Child cleanup requires a valid positive PID and
+  is idempotent, including a missing-executable failure.
+- Event post-window waiting and encoding observe cancellation. Private 0700
+  temporary event directories are removed on success, failure, thrown error
+  and cancellation. No thumbnail step or returned media follows cancellation.
+  Activity pixel buffers are bounded and cleared after computation; malformed,
+  timed-out or failed process output cannot become a successful analysis.
+  Cancelled analysis is processing failure, not falsely reported as no media.
+- Verified locally: selected real Gateway function declarations loaded without
+  startup/Keychain/model access; actual synthetic Node child termination; a real
+  loopback HTTP aborted inference alongside a successful second request; normal
+  POST handling, unauthorized rejection, missing executable/pipe failure,
+  in-memory filesystem cleanup fixtures and listener removal. All 13 targeted
+  QA scripts, typecheck and syntax/diff checks pass. No camera frames, actual
+  model inference, recorder requests, physical commands or secrets were used.
+- Next gates remain open: approved scoped web policy release followed by staged
+  persistent Gateway installation/health, actual cancellation/media/live E2E,
+  per-source telemetry and defensible baseline calibration. The running service
+  was not restarted or updated. Production remains at the previously approved
+  scoped release; no new deployed or household-pilot acceptance is claimed.
