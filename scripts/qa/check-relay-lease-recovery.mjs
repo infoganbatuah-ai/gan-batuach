@@ -3,6 +3,7 @@ import { EventEmitter } from "node:events";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { runInNewContext } from "node:vm";
+import { createRelayInputMetrics } from "../../services/video-gateway/relay-input-metrics.mjs";
 
 const code = readFileSync(new URL("../../services/video-gateway/server.mjs", import.meta.url), "utf8");
 let now = 100_000, playlistTime = 0;
@@ -11,11 +12,13 @@ const pending = [], monitors = new Set(), relays = new Map(), tokens = new Map()
 const lifecycle = { starts: 0, upstreamEnded: 0, upstreamFailed: 0, staleInput: 0, stalePlaylist: 0, staleOnRequest: 0, inputSocketError: 0, inputAborted: 0, inputOtherError: 0 };
 const context = {
   Date: { now: () => now }, process: { env: {} }, console: { error: () => {} }, join,
+  createRelayInputMetrics,
+  hardwareTranscoder: { test: () => { throw new Error("H264 copy must not run hardware provisioning"); } },
   relays, relayStarts: new Map(), streamSources: new Map([["one", { kind: "private_nvr_http_mp4", codec: "h264" }], ["two", { kind: "private_nvr_http_mp4", codec: "h264" }]]),
   playbackTokens: tokens, relayLifecycle: lifecycle, RELAY_STALE_MS: 20_000,
   relayDirectory: (id) => `/synthetic/${id}`, mkdirSync: () => {}, existsSync: () => playlistTime > 0, statSync: () => ({ mtimeMs: playlistTime }),
   privateNvrRelayResponse: async () => ({ response: { body: {} }, controller: new AbortController(), sessionToken: "synthetic" }),
-  refreshPrivateNvrSession: async () => {}, pipeWebStreamToWritable: async (_body, _writable, chunk) => chunk(1024),
+  refreshPrivateNvrSession: async () => {}, pipeWebStreamToWritable: async (_body, _writable, chunk) => chunk(1024, Buffer.alloc(1024)),
   spawn: () => {
     launched++;
     const child = new EventEmitter();

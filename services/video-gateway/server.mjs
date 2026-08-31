@@ -13,6 +13,7 @@ import { createKeychainStore } from "./keychain-store.mjs";
 import { createPrivateNvrPreflightDriver } from "./private-nvr-command-preflight.mjs";
 import { createPrivateNvrHeartbeat } from "./private-nvr-heartbeat.mjs";
 import { createRelayInputMetrics } from "./relay-input-metrics.mjs";
+import { createHardwareTranscoder, hardwareDecodeArgs, hardwareEncodeArgs } from "./hardware-transcoder.mjs";
 
 const PORT = Number(process.env.PORT || process.env.VIDEO_GATEWAY_PORT || 8080);
 const HOST = process.env.HOST || process.env.VIDEO_GATEWAY_HOST || "0.0.0.0";
@@ -33,6 +34,7 @@ const EVENT_CLIP_MAX_BYTES = 8 * 1024 * 1024;
 const streamSources = new Map();
 const privateNvrSessions = new Map();
 const privateNvrHeartbeat = createPrivateNvrHeartbeat({ sessions: () => privateNvrSessions.values() });
+const hardwareTranscoder = createHardwareTranscoder();
 setInterval(() => { void privateNvrHeartbeat.tick(); }, 10_000).unref();
 const relays = new Map();
 const relayStarts = new Map();
@@ -898,17 +900,20 @@ async function startRelay(streamId) {
   mkdirSync(directory, { recursive: true, mode: 0o700 });
   const playlist = join(directory, "index.m3u8");
   const copyVideo = source.codec === "h264" && process.env.VIDEO_GATEWAY_FORCE_TRANSCODE !== "1";
+  if (!copyVideo && source.codec === "hevc") await hardwareTranscoder.test();
+  const hardwareVideo = !copyVideo && hardwareTranscoder.canUse(streamId, source.codec);
   const args = [
     "-hide_banner", "-loglevel", "error",
     // Bound each channel's decoder/filter pools; ten automatic CPU-sized
     // pools otherwise compete with the browser and local inference runtime.
     "-threads", "1", "-filter_threads", "1",
+    ...(hardwareVideo ? hardwareDecodeArgs : []),
     "-i", "pipe:0",
     "-map", "0:v:0",
     "-an",
     ...(copyVideo
       ? ["-c:v", "copy"]
-      : [
+      : hardwareVideo ? hardwareEncodeArgs : [
         "-c:v", "libx264",
         "-threads", "2",
         "-preset", process.env.VIDEO_GATEWAY_X264_PRESET || "veryfast",
@@ -929,7 +934,7 @@ async function startRelay(streamId) {
   if (!relaySource) return null;
   const { response, controller, sessionToken } = relaySource;
   const child = spawn("ffmpeg", args, { stdio: ["pipe", "ignore", "pipe"] });
-  const relay = { process: child, playlist, startedAt: Date.now(), lastInputAt: Date.now(), inputBytes: 0, inputMetrics: createRelayInputMetrics(), controller, errorSummary: "", sessionToken, monitor: null };
+  const relay = { process: child, playlist, startedAt: Date.now(), lastInputAt: Date.now(), inputBytes: 0, inputMetrics: createRelayInputMetrics(), encoder: copyVideo ? "copy" : hardwareVideo ? "videotoolbox" : "libx264", controller, errorSummary: "", sessionToken, monitor: null };
   relayLifecycle.starts += 1;
   relays.set(streamId, relay);
   void pipeWebStreamToWritable(response.body, child.stdin, (byteLength, value) => {
@@ -945,6 +950,7 @@ async function startRelay(streamId) {
     if (relays.get(streamId) !== relay) return clearInterval(relay.monitor);
     if (Date.now() - relay.startedAt < RELAY_STALE_MS) return;
     if (!relayIsProgressing(relay) || Date.now() - relay.lastInputAt >= RELAY_STALE_MS) {
+      if (hardwareVideo && (!relayIsProgressing(relay) && Date.now() - relay.lastInputAt < RELAY_STALE_MS || child.stdin.writableNeedDrain)) hardwareTranscoder.failed(streamId);
       relayLifecycle[Date.now() - relay.lastInputAt >= RELAY_STALE_MS ? "staleInput" : "stalePlaylist"] += 1;
       stopRelay(streamId, relay);
     }
@@ -954,6 +960,7 @@ async function startRelay(streamId) {
     relay.errorSummary = `${relay.errorSummary}${chunk.toString("utf8")}`.slice(-2000);
   });
   child.on("close", (code) => {
+    if (hardwareVideo && code !== null && code !== 0) hardwareTranscoder.failed(streamId);
     if (code === 0) relayLifecycle.upstreamEnded += 1;
     else if (code !== null) relayLifecycle.upstreamFailed += 1;
     clearInterval(relay.monitor);
@@ -992,9 +999,11 @@ async function analyzeRelayActivity(streamId) {
   const frameBytes = FRAME_WIDTH * FRAME_HEIGHT;
   const args = [
     "-hide_banner", "-loglevel", "error",
+    "-threads", "1", "-filter_threads", "1",
     "-i", relay.playlist,
     "-vf", `fps=1,scale=${FRAME_WIDTH}:${FRAME_HEIGHT},format=gray`,
     "-frames:v", "2",
+    "-threads", "1",
     "-f", "rawvideo",
     "pipe:1"
   ];
@@ -1024,8 +1033,10 @@ async function analyzeRelayObjects(streamId) {
   if (!relay || !(await waitForFile(relay.playlist))) return null;
   const ffmpeg = spawn("ffmpeg", [
     "-hide_banner", "-loglevel", "error",
+    "-threads", "1", "-filter_threads", "1",
     "-i", relay.playlist,
     "-frames:v", "1",
+    "-threads", "1",
     "-vf", "scale=300:300,format=rgb24",
     "-f", "rawvideo",
     "pipe:1"
@@ -1102,11 +1113,13 @@ async function captureEventMedia(streamId, input = {}) {
   const thumbnailPath = join(directory, "thumbnail.jpg");
   const clipOk = await runFfmpeg([
     "-hide_banner", "-loglevel", "error",
+    "-threads", "1", "-filter_threads", "1",
     "-i", relay.playlist,
     "-t", String(duration),
     "-map", "0:v:0",
     "-an",
     "-c:v", "libx264",
+    "-threads", "2",
     "-preset", process.env.VIDEO_GATEWAY_X264_PRESET || "veryfast",
     "-pix_fmt", "yuv420p",
     "-movflags", "+faststart",
@@ -1114,8 +1127,10 @@ async function captureEventMedia(streamId, input = {}) {
   ], Math.max(12000, (duration + 8) * 1000));
   const thumbnailOk = clipOk && await runFfmpeg([
     "-hide_banner", "-loglevel", "error",
+    "-threads", "1", "-filter_threads", "1",
     "-i", clipPath,
     "-frames:v", "1",
+    "-threads", "1",
     "-vf", "scale=640:-2",
     thumbnailPath
   ], 8000);
@@ -1263,12 +1278,13 @@ async function handle(request, response) {
       lastDiscovery: lastDiscoverySummary,
       requestMetrics,
       recorderSessionHeartbeat: privateNvrHeartbeat.status(),
+      hardwareTranscoding: hardwareTranscoder.status(),
       deviceAuthorization: { status: deviceAuthorizationState === "ready" && deviceAccessExpiresAt <= Date.now() ? "unavailable" : deviceAuthorizationState },
       mediaHeartbeat: {
         activeRelays: relays.size,
         progressingRelays: [...relays.values()].filter(relayIsProgressing).length,
         stalledRelays: [...relays.values()].filter((relay) => !relayIsProgressing(relay)).length,
-        inputs: [...relays.entries()].map(([streamId, relay]) => ({ channel: streamSources.get(streamId)?.channel, input_codec: ["h264", "hevc", "mjpeg", "mpeg4"].includes(streamSources.get(streamId)?.codec) ? streamSources.get(streamId).codec : "unknown", ...relay.inputMetrics.snapshot(), stdin_backpressure: relay.process.stdin.writableNeedDrain, stdin_queued_bytes: relay.process.stdin.writableLength })),
+        inputs: [...relays.entries()].map(([streamId, relay]) => ({ channel: streamSources.get(streamId)?.channel, input_codec: ["h264", "hevc", "mjpeg", "mpeg4"].includes(streamSources.get(streamId)?.codec) ? streamSources.get(streamId).codec : "unknown", encoder: relay.encoder, ...relay.inputMetrics.snapshot(), stdin_backpressure: relay.process.stdin.writableNeedDrain, stdin_queued_bytes: relay.process.stdin.writableLength })),
         lifecycle: relayLifecycle
       },
       edge,

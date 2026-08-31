@@ -15,7 +15,7 @@ const root = mkdtempSync(join(tmpdir(), "relay-budget-qa-"));
 try {
   for (const copyVideo of [true, false]) {
     const directory = mkdtempSync(join(root, "mode-")), playlist = join(directory, "index.m3u8");
-    const args = vm.runInNewContext(`${argsCode}\nargs`, { copyVideo, directory, playlist, process: { env: {} }, join });
+    const args = vm.runInNewContext(`${argsCode}\nargs`, { copyVideo, hardwareVideo: false, directory, playlist, process: { env: {} }, join });
     const input = args.indexOf("-i"), codec = args.indexOf("-c:v");
     assert.equal(args[args.indexOf("-threads") + 1], "1");
     assert.ok(args.indexOf("-threads") < input, "Decoder budget must precede input");
