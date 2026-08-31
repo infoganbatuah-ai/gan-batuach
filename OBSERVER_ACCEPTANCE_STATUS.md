@@ -202,6 +202,12 @@ Owner names below describe accountable workstreams, not external approvals.
   TypeScript validation, all 481 pages and generated-artifact cleanup. It uses
   a local environment without private env files or live activation. The final
   TypeScript stage took 19 minutes; interrupted earlier runs are not passes.
+- Subsequent read-only cloud verification: GitHub's Vercel check for this exact
+  release is successful. The authenticated `gan-batuach` project reports preview
+  deployment `dpl_y2G2KZCNEjLStSZimn4TyazjPg1W` READY at `09b959e8`.
+  The production target remains READY at `16ef30fa`
+  (`dpl_55p3KKCMbnbupmNVuVBVEgBqgt4z`); no promotion or migration was performed.
+  Preview build success does not establish applied schema or signed-in camera E2E.
 - An optional Webpack attempt failed with `UnhandledSchemeError: node:crypto`
   through `video-gateway.ts` -> `camera-health.ts` -> the client component
   `camera-ai-admin-modules.tsx`. Those files are unchanged from deployed `16ef30fa`.
@@ -220,7 +226,7 @@ Owner names below describe accountable workstreams, not external approvals.
   authenticated project and production base, apply only the reviewed migration,
   deploy exact tested SHA and verify READY plus signed-in UI. Then separately
   approve a staged Gateway rollout and live per-source analysis evidence.
-  Deployment, migration, sustained live, learning and product acceptance remain open.
+  Production deployment, migration, sustained live, learning and product acceptance remain open.
 
 ## Historical Release Evidence
 
