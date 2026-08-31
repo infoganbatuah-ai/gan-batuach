@@ -56,7 +56,7 @@ Owner names below describe accountable workstreams, not external approvals.
 | Observer decisions, permissions and human fallback | Policy + Assistant | Partial | Approval/audit route exists | Full detect-to-decision-to-review workflow, uncertainty fallback and no chat-to-action bypass |
 | Professional evidence-grounded event narrative | Events + Policy | Deployed / media-check report and audit read verified | 9fa7b769 signed-in linked report, thumbnail, played clip and persisted review history verified | Real AI anomaly/identity evidence and the complete event decision workflow remain required |
 | Chat action interface | Assistant + Policy | Scoped hotfix accepted; broader action workflow partial | 9fa7b769 production READY; signed-in stored-status query, neutral saved-instruction label and nine same-site links passed; portrait/tablet/desktop visual QA passed | Real rule execution, duplicate-request handling, richer consented context and direct restrictive-policy audit proof remain separate gates |
-| Fair coverage of every source | Edge + Events + Web | Web 16ef30fa READY; source telemetry tested locally, not activated | Synthetic 5/20/64-source fairness, scoped authorization, round receipts, in-memory PostgreSQL/RLS and truthful stale/error rendering pass | Approved telemetry migration/web release, restore Chrome UI verification, staged Gateway update; exact full-window aggregation remains required |
+| Fair coverage of every source | Edge + Events + Web | Web 16ef30fa READY; telemetry release 09b959e8 built/pushed, not activated | Synthetic 5/20/64-source fairness, scoped authorization, round receipts, in-memory PostgreSQL/RLS, truthful rendering and complete 481-page release build pass | Approve telemetry migration/web release, restore Chrome UI verification, staged Gateway update; exact full-window aggregation remains required |
 | Privacy-safe continuous learning and semantic zones | Edge + Privacy + Assistant | Descriptive metric correction deployed; semantic learning not accepted | 16ef30fa READY; per-source metric ingestion, no sample-count calibration, no metric-only events and concurrent-write QA pass | Signed-in UI and live per-source evidence; historical metric-profile/signal audit, genuine per-zone calibration, consented adaptation/corrections/reset/forget/export still required |
 | Push/email/WhatsApp/emergency delivery | Notifications + Operations | Blocked pending provisioning/authority | No provider delivery acceptance; no emergency calls placed | Verified accounts/consents/address/escalation, sandbox tests, explicit operational authority, budget enforcement |
 | Site-preserving onboarding and source mapping | Web + Gateway | Partial | Source-scoped playback validation tested | Same-site edits/resume, multi-channel recorder vs single IP camera, cross-device enrollment E2E |
@@ -179,13 +179,48 @@ Owner names below describe accountable workstreams, not external approvals.
 - Focused TypeScript verification of changed web files and their dependency graph
   passes. The older full-project typecheck for this task was stopped after changes
   superseded it and concurrent checks in other worktrees caused resource pressure;
-  those other processes were not touched. No full Next build or browser E2E is
-  claimed for this telemetry candidate. Run the exact scoped release build before
-  any new deployment.
+  those other processes were not touched. The later exact web-only release build
+  is recorded below; no browser E2E or full Gateway rollout is claimed.
 - NEXT GATE: approve/apply the migration and scoped web release, verify READY and
   signed-in coverage UI, then approve the staged local Gateway rollout and real
   telemetry evidence. No migration, deployment, Keychain read, service restart,
   DVR request, live biometric processing or physical action occurred in this step.
+
+## Telemetry Release Preparation: Deployment Approval Required
+
+- Release `09b959e816cff31148f6eb6dcfa1ceb493a61ad9` is pushed on
+  `codex/observer-analysis-telemetry-release`, based on deployed `16ef30fa`.
+  It contains twelve scoped files: seven application files, three QA files,
+  the additive migration and the release runbook. No Gateway runtime/installer,
+  package, routing, environment, credentials or unrelated diagnostic changes.
+- Ten ported files match the tested `7b4d08f1` source byte-for-byte. The PostgreSQL
+  regression is stronger: rejected batches carry a newer report timestamp, so
+  an invalid later source must roll back a valid earlier update, not merely
+  leave an already-stale no-op unchanged. This test passes in both workspaces.
+- All ten focused web QA checks and in-memory PostgreSQL/RLS tests pass on the
+  exact release. Normal `npm run build` completes Turbopack compilation, full
+  TypeScript validation, all 481 pages and generated-artifact cleanup. It uses
+  a local environment without private env files or live activation. The final
+  TypeScript stage took 19 minutes; interrupted earlier runs are not passes.
+- An optional Webpack attempt failed with `UnhandledSchemeError: node:crypto`
+  through `video-gateway.ts` -> `camera-health.ts` -> the client component
+  `camera-ai-admin-modules.tsx`. Those files are unchanged from deployed `16ef30fa`.
+  The successful normal build does not establish Webpack compatibility; no
+  unrelated bundler/configuration fix is included in this release.
+- Chrome initially listed and claimed the existing Observer rules tab, but
+  read-only DOM inspection timed out after 20 seconds. A later reconnect also
+  timed out before visual inspection. No new signed-in coverage/live acceptance,
+  browser configuration repair, consent change or camera action occurred.
+- Local health initially timed out after eight seconds. A bounded direct HTTP
+  retry returned 200 in 325ms with read-only true: ten registered streams, cached
+  discovery five connected of sixteen, zero progressing/stalled relays, identity
+  recognition false. This proves service response, not current live playback.
+  No Keychain access, restart, discovery, media capture or physical command ran.
+- NEXT: explicit approval for this migration/scoped web deployment; verify the
+  authenticated project and production base, apply only the reviewed migration,
+  deploy exact tested SHA and verify READY plus signed-in UI. Then separately
+  approve a staged Gateway rollout and live per-source analysis evidence.
+  Deployment, migration, sustained live, learning and product acceptance remain open.
 
 ## Historical Release Evidence
 

@@ -74,7 +74,8 @@ try {
   ];
   for (const [metadata, input] of failures) {
     const invalid = await authorization(metadata);
-    await assert.rejects(record(invalid, input));
+    // A newer report would update valid earlier rows, so a later rejection must roll them back.
+    await assert.rejects(record(invalid, input, iso(-500)));
     assert.deepEqual(await snapshot(), before, "Rejected batch cannot partially update sources");
     assert.equal((await db.query("select metadata ? 'telemetry_received_at' as consumed from provider_webhook_events where id=$1", [invalid])).rows[0].consumed, false);
   }
