@@ -228,6 +228,32 @@ Owner names below describe accountable workstreams, not external approvals.
   approve a staged Gateway rollout and live per-source analysis evidence.
   Production deployment, migration, sustained live, learning and product acceptance remain open.
 
+## Camera Health Browser Boundary: Follow-On, Not Deployed
+
+- The Webpack failure above exposed a shared UI helper importing the server-side
+  Gateway module. Moved only operational-status normalization and its type/list
+  into dependency-free `camera-status.ts`; `camera-health.ts` now imports that
+  module. Existing server exports remain compatible through re-exports, and the
+  status algorithm is unchanged. Stored status still does not prove live media.
+- A focused browser-target Webpack build of the real health/status modules passes
+  without Node polyfills, externals, server admin/crypto or credential helpers.
+  Synthetic status/summary compatibility and negative dependency controls pass.
+- Focused TypeScript validation of the changed modules, their server exports and
+  the admin UI consumer passes. Eight relevant QA checks pass, including current
+  playback recovery/deadlines, Edge gates, capability approval, playback grants,
+  persistence, truthful status and source coverage. No full application build or
+  browser E2E is claimed for this follow-on change.
+- The unchanged legacy `check-dvr-shared-session-and-offline.mjs` fails because it
+  searches `observer-live-player.tsx` for the old inline `response.status === 503`
+  retry implementation. Retry handling now resides in `playback-session.ts` and
+  its behavioral `check-playback-session-recovery.mjs` passes. The failing script,
+  player and session module were not edited here. Refresh this obsolete structural
+  check separately; do not hide the failure or weaken the recovery requirements.
+- This follow-on is separate from prepared telemetry release `09b959e8`,
+  which remains unchanged. Production/deployment approval, migration and signed-in
+  live acceptance gates remain open. No Gateway restart, Keychain access, consent
+  change, DVR discovery, media capture or physical command occurred.
+
 ## Historical Release Evidence
 
 - Current narrative/audit production: `edb589218d99e7246eb1f51d4b12cfb10f7f6cad`,

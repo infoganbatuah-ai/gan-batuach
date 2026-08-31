@@ -2,12 +2,13 @@ import { createHash } from "node:crypto";
 import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { encryptField } from "@/lib/security/encryption";
+import { normalizeCameraStatus } from "@/lib/domain/camera-status";
+
+export { cameraOperationalStatuses, normalizeCameraStatus } from "@/lib/domain/camera-status";
+export type { CameraOperationalStatus } from "@/lib/domain/camera-status";
 
 export const cameraSourceTypes = ["RTSP", "ONVIF", "DVR", "NVR", "HLS", "WebRTC", "Sample HLS"] as const;
 export type CameraSourceType = (typeof cameraSourceTypes)[number];
-
-export const cameraOperationalStatuses = ["connected", "connecting", "pending", "offline", "error", "disabled"] as const;
-export type CameraOperationalStatus = (typeof cameraOperationalStatuses)[number];
 
 export function normalizeCameraSourceType(value?: string | null): CameraSourceType {
   const normalized = String(value ?? "RTSP").trim().toLowerCase();
@@ -18,17 +19,6 @@ export function normalizeCameraSourceType(value?: string | null): CameraSourceTy
   if (normalized === "dvr") return "DVR";
   if (normalized === "nvr") return "NVR";
   return "RTSP";
-}
-
-export function normalizeCameraStatus(value?: string | null, active = true): CameraOperationalStatus {
-  if (!active) return "disabled";
-  const normalized = String(value ?? "pending").trim().toLowerCase();
-  if (["connected", "online"].includes(normalized)) return "connected";
-  if (["connecting"].includes(normalized)) return "connecting";
-  if (["offline", "failed"].includes(normalized)) return "offline";
-  if (["error"].includes(normalized)) return "error";
-  if (["disabled"].includes(normalized)) return "disabled";
-  return "pending";
 }
 
 export function hasPlaybackSource(camera: Record<string, unknown>) {
