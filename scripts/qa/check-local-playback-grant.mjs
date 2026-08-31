@@ -19,6 +19,7 @@ const cloudRoute = readFileSync("app/api/video-gateway/playback-grant/route.ts",
 const observerRoute = readFileSync("app/api/digital-observer/dvr-gateway/route.ts", "utf8");
 const gateway = readFileSync("services/video-gateway/server.mjs", "utf8");
 const player = readFileSync("components/digital-observer/observer-live-player.tsx", "utf8");
+const sessions = readFileSync("lib/domain/digital-observer/playback-session.ts", "utf8");
 const mapping = readFileSync("lib/domain/video-gateway.ts", "utf8");
 const vercel = readFileSync("vercel.json", "utf8");
 const vercelConfig = JSON.parse(vercel);
@@ -31,8 +32,8 @@ for (const required of ["issueGatewayPlaybackGrant", "claim_url", "127.0.0.1:180
 for (const required of ["/playback/claim", "refreshGatewayDeviceAccess", "device_refresh_token", "streamSources.has(streamId)", "browserJson", "access-control-allow-private-network", "playbackClaimReady"]) {
   if (!gateway.includes(required)) throw new Error(`Missing local playback claim control: ${required}`);
 }
-for (const required of ["claim_url", "claimResponse", "JSON.stringify({ grant })", "playbackFailureReason", "local_unreachable", "cloud_503", "MEDIA_ATTACHED", "MANIFEST_PARSED", "enableWorker: false"]) {
-  if (!player.includes(required)) throw new Error(`Missing browser playback claim flow: ${required}`);
+for (const required of ["claim_url", 'fetchJson(claimUrl, { grant }, "local")', "playbackFailureReason", "local_unreachable", "cloud_503", "MEDIA_ATTACHED", "MANIFEST_PARSED", "enableWorker: false"]) {
+  if (!(player + sessions).includes(required)) throw new Error(`Missing browser playback claim flow: ${required}`);
 }
 const startTimeout = Number(player.match(/mediaStartTimeoutMs\s*=\s*([\d_]+)/)?.[1]?.replaceAll("_", ""));
 const progressTimeout = Number(player.match(/mediaProgressTimeoutMs\s*=\s*([\d_]+)/)?.[1]?.replaceAll("_", ""));

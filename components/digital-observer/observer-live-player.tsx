@@ -4,6 +4,7 @@ import Hls from "hls.js";
 import { CameraOff, LoaderCircle, Volume2, VolumeX } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import { ObserverCameraPresence } from "@/components/digital-observer/observer-camera-presence";
+import { createPlaybackSessionClient, playbackFailureReason } from "@/lib/domain/digital-observer/playback-session";
 
 type PlayerState = "loading" | "playing" | "error";
 
@@ -13,98 +14,7 @@ type PlayerState = "loading" | "playing" | "error";
 const mediaStartTimeoutMs = 30_000;
 const mediaProgressTimeoutMs = 20_000;
 
-type PlaybackSession = {
-  url: string;
-  expiresAt: number;
-};
-
-class PlaybackFlowError extends Error {
-  constructor(readonly flowCode: string) {
-    super(flowCode);
-  }
-}
-
-function playbackFailureReason(error: unknown) {
-  const code = error instanceof PlaybackFlowError ? error.flowCode : "unknown";
-  if (code === "cloud_401") return "נדרשת התחברות מחדש לפני צפייה";
-  if (code === "cloud_403") return "אין הרשאת צפייה במקור הזה";
-  if (code === "cloud_409") return "מיפוי המצלמה ל־Gateway אינו תואם";
-  if (code === "cloud_503") return "זהות ה־Gateway עדיין לא סונכרנה למקור";
-  if (code === "local_unreachable") return "הדפדפן לא הצליח להגיע ל־Gateway המקומי";
-  if (code === "local_claim_401") return "אימות המכשיר המקומי פג";
-  if (code === "local_claim_409") return "הרשאת הצפייה החד־פעמית כבר נוצלה";
-  if (code === "local_claim_503") return "ה־Gateway המקומי לא הצליח לאשר את הצפייה";
-  return "לא התקבל שידור זמין מה־Gateway";
-}
-
-const playbackSessions = new Map<string, PlaybackSession>();
-const pendingPlaybackSessions = new Map<string, Promise<string>>();
-const playbackSessionTtlMs = 4 * 60 * 1000;
-
-function playbackKey(observerSiteId: string, cameraSourceId: string) {
-  return `${observerSiteId}:${cameraSourceId}`;
-}
-
-async function requestPlaybackSession(observerSiteId: string, cameraSourceId: string) {
-  const key = playbackKey(observerSiteId, cameraSourceId);
-  const cached = playbackSessions.get(key);
-  if (cached && cached.expiresAt > Date.now()) return cached.url;
-
-  const pending = pendingPlaybackSessions.get(key);
-  if (pending) return pending;
-
-  const request = (async () => {
-    let playbackUrl = "";
-    for (let attempt = 0; attempt < 3; attempt += 1) {
-      const response = await fetch("/api/digital-observer/dvr-gateway", {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ observer_site_id: observerSiteId, camera_source_id: cameraSourceId, mode: "live" })
-      });
-      const payload = await response.json().catch(() => ({}));
-      if (!response.ok) {
-        if (response.status === 503 && attempt < 2) {
-          await new Promise((resolve) => setTimeout(resolve, 1200 * (attempt + 1)));
-          continue;
-        }
-        throw new PlaybackFlowError(`cloud_${response.status}`);
-      }
-      let candidate = payload?.data?.playback?.hls_url;
-      const claimUrl = payload?.data?.playback?.claim_url;
-      const grant = payload?.data?.playback?.grant;
-      if (typeof claimUrl === "string" && typeof grant === "string") {
-        let claimResponse: Response;
-        try {
-          claimResponse = await fetch(claimUrl, {
-            method: "POST",
-            headers: { "content-type": "application/json" },
-            body: JSON.stringify({ grant })
-          });
-        } catch {
-          throw new PlaybackFlowError("local_unreachable");
-        }
-        const claimPayload = await claimResponse.json().catch(() => ({}));
-        if (!claimResponse.ok) throw new PlaybackFlowError(`local_claim_${claimResponse.status}`);
-        candidate = claimPayload?.playback?.hls_url;
-      }
-      if (typeof candidate === "string" && candidate) {
-        playbackUrl = candidate;
-        break;
-      }
-      throw new PlaybackFlowError("playback_missing");
-    }
-    if (!playbackUrl) throw new Error("playback_unavailable");
-    playbackSessions.set(key, { url: playbackUrl, expiresAt: Date.now() + playbackSessionTtlMs });
-    return playbackUrl;
-  })();
-
-  pendingPlaybackSessions.set(key, request);
-  try {
-    return await request;
-  } finally {
-    pendingPlaybackSessions.delete(key);
-  }
-}
+const playbackSessions = createPlaybackSessionClient();
 
 export function ObserverLivePlayer({
   observerSiteId,
@@ -131,8 +41,7 @@ export function ObserverLivePlayer({
   const [retryNonce, setRetryNonce] = useState(0);
 
   function requestRetry() {
-    const key = playbackKey(observerSiteId, cameraSourceId);
-    playbackSessions.delete(key);
+    playbackSessions.invalidate(observerSiteId, cameraSourceId);
     if (retryTimerRef.current) return;
     retryTimerRef.current = setTimeout(() => {
       retryTimerRef.current = null;
@@ -144,6 +53,7 @@ export function ObserverLivePlayer({
     let cancelled = false;
     let hls: Hls | null = null;
     let mediaHeartbeat: ReturnType<typeof setInterval> | null = null;
+    let awaitingMedia = false;
     const currentVideoElement = videoRef.current;
     if (!currentVideoElement) return;
     const videoElement: HTMLVideoElement = currentVideoElement;
@@ -161,7 +71,7 @@ export function ObserverLivePlayer({
     };
 
     mediaHeartbeat = setInterval(() => {
-      if (cancelled) return;
+      if (cancelled || !awaitingMedia) return;
       const elapsedWithoutProgress = Date.now() - lastProgressAtRef.current;
       const timeout = hasStartedRef.current ? mediaProgressTimeoutMs : mediaStartTimeoutMs;
       if (elapsedWithoutProgress >= timeout) markUnavailable(hasStartedRef.current ? "המדיה הפסיקה להתקדם" : "לא התקבלה מדיה מה־Gateway");
@@ -170,8 +80,10 @@ export function ObserverLivePlayer({
     async function connect() {
       setState("loading");
       setUnavailableReason("");
-      const playbackUrl = await requestPlaybackSession(observerSiteId, cameraSourceId);
+      const playbackUrl = await playbackSessions.request(observerSiteId, cameraSourceId);
       if (cancelled) return;
+      awaitingMedia = true;
+      lastProgressAtRef.current = Date.now();
 
       if (videoElement.canPlayType("application/vnd.apple.mpegurl")) {
         videoElement.src = playbackUrl;
@@ -212,6 +124,7 @@ export function ObserverLivePlayer({
       cancelled = true;
       if (mediaHeartbeat) clearInterval(mediaHeartbeat);
       if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
+      retryTimerRef.current = null;
       hls?.destroy();
       videoElement.removeAttribute("src");
       videoElement.load();
@@ -229,11 +142,18 @@ export function ObserverLivePlayer({
         muted={muted}
         aria-label={`שידור חי — ${name}`}
         onTimeUpdate={(event) => {
-          const currentTime = event.currentTarget.currentTime;
+          const media = event.currentTarget;
+          if (media.paused || media.readyState < 2 || media.seeking || media.error) return;
+          const currentTime = media.currentTime;
           if (currentTime <= lastCurrentTimeRef.current + 0.05) return;
           lastCurrentTimeRef.current = currentTime;
           lastProgressAtRef.current = Date.now();
           hasStartedRef.current = true;
+          // A bursty recorder may recover before the retry timer fires. Keep
+          // its working player instead of interrupting it with a new claim.
+          if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
+          retryTimerRef.current = null;
+          recoveryScheduledRef.current = false;
           setState("playing");
         }}
         onWaiting={() => {
@@ -248,7 +168,7 @@ export function ObserverLivePlayer({
         }}
         onVolumeChange={(event) => setMuted(event.currentTarget.muted)}
       />
-      <span className={`do-live-player-status ${state}`}>
+      <span className={`do-live-player-status ${state}`} title={state === "error" ? unavailableReason : undefined}>
         {state === "playing" ? "LIVE" : state === "loading" ? <><LoaderCircle /> מתחבר…</> : <><CameraOff /> השידור אינו זמין כרגע</>}
       </span>
       {state === "error" && !compact ? <span className="do-live-player-reason">{unavailableReason} · ניסיון חוזר אוטומטי</span> : null}

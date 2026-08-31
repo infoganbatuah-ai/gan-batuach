@@ -39,6 +39,8 @@ const GATEWAY_KEYCHAIN_SERVICE = process.env.GAN_BATUACH_GATEWAY_KEYCHAIN_SERVIC
 let deviceAccessToken = "";
 let deviceAccessExpiresAt = 0;
 let deviceAccessRefreshPromise = null;
+let cameraActionPollPromise = null;
+const CLOUD_AUTH_TIMEOUT_MS = 10_000;
 
 mkdirSync(HLS_ROOT, { recursive: true });
 
@@ -108,7 +110,8 @@ async function refreshGatewayDeviceAccess() {
       const response = await fetch(`${cloudBaseUrl}/api/digital-observer/gateway-enrollment`, {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ action: "refresh", gateway_id: gatewayId, refresh_token: refreshToken })
+        body: JSON.stringify({ action: "refresh", gateway_id: gatewayId, refresh_token: refreshToken }),
+        signal: AbortSignal.timeout(CLOUD_AUTH_TIMEOUT_MS)
       });
       const payload = await response.json().catch(() => ({}));
       if (response.ok && payload.data?.access_token && payload.data?.refresh_token) {
@@ -129,7 +132,8 @@ async function claimCloudPlaybackGrant(grant) {
   const response = await fetch(`${cloudBaseUrl}/api/video-gateway/playback-grant`, {
     method: "POST",
     headers: { "content-type": "application/json", "x-video-gateway-device-token": accessToken },
-    body: JSON.stringify({ grant })
+    body: JSON.stringify({ grant }),
+    signal: AbortSignal.timeout(CLOUD_AUTH_TIMEOUT_MS)
   });
   const payload = await response.json().catch(() => ({}));
   if (!response.ok || !payload.data?.gateway_stream_id) throw new Error("Playback grant claim failed");
@@ -140,7 +144,8 @@ async function reportCameraActionResult(cloudBaseUrl, accessToken, requestId, ou
   await fetch(`${cloudBaseUrl}/api/video-gateway/camera-actions`, {
     method: "POST",
     headers: { "content-type": "application/json", "x-video-gateway-device-token": accessToken },
-    body: JSON.stringify({ action: "result", request_id: requestId, outcome, result_code: resultCode })
+    body: JSON.stringify({ action: "result", request_id: requestId, outcome, result_code: resultCode }),
+    signal: AbortSignal.timeout(CLOUD_AUTH_TIMEOUT_MS)
   }).catch(() => null);
 }
 
@@ -152,7 +157,8 @@ async function pollCloudCameraActions() {
     const response = await fetch(`${cloudBaseUrl}/api/video-gateway/camera-actions`, {
       method: "POST",
       headers: { "content-type": "application/json", "x-video-gateway-device-token": accessToken },
-      body: JSON.stringify({ action: "poll" })
+      body: JSON.stringify({ action: "poll" }),
+      signal: AbortSignal.timeout(CLOUD_AUTH_TIMEOUT_MS)
     });
     const payload = await response.json().catch(() => ({}));
     const action = payload.data?.action_request;
@@ -167,7 +173,10 @@ async function pollCloudCameraActions() {
 }
 
 if (GATEWAY_KEYCHAIN_SERVICE) {
-  setInterval(() => { void pollCloudCameraActions(); }, 5_000).unref();
+  setInterval(() => {
+    if (cameraActionPollPromise) return;
+    cameraActionPollPromise = pollCloudCameraActions().finally(() => { cameraActionPollPromise = null; });
+  }, 5_000).unref();
 }
 
 function safeEqual(left, right) {

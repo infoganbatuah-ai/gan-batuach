@@ -1,20 +1,12 @@
-import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
-import { buildDvrGatewayStatus, createDvrPlaybackSession, type DvrGatewayEventRow } from "@/lib/domain/digital-observer/dvr-gateway";
+import { buildDvrGatewayStatus, type DvrGatewayEventRow } from "@/lib/domain/digital-observer/dvr-gateway";
+import { playbackRequestSchema } from "@/lib/domain/digital-observer/playback-request";
 import { digitalObserverCameraIsConnected } from "@/lib/domain/digital-observer/camera-live-status";
 import { issueGatewayPlaybackGrant } from "@/lib/domain/gateway-device-enrollment";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
-
-const sessionSchema = z.object({
-  observer_site_id: z.string().uuid(),
-  camera_source_id: z.string().uuid().optional(),
-  channel: z.coerce.number().int().min(1).max(64).optional(),
-  mode: z.enum(["live", "playback"]).default("live"),
-  token: z.string().trim().max(512).optional()
-});
 
 async function requireSiteAccess(request: Request, observerSiteId: string) {
   const session = await getDigitalObserverApiUser(request);
@@ -53,7 +45,7 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const payload = sessionSchema.parse(await request.json());
+    const payload = playbackRequestSchema.parse(await request.json());
     const access = await requireSiteAccess(request, payload.observer_site_id);
     if (access.error) return access.error;
 
@@ -84,6 +76,8 @@ export async function POST(request: Request) {
         status: "authorized",
         playback: {
           claim_url: "http://127.0.0.1:18082/playback/claim",
+          transport: "local_gateway",
+          remote_route_configured: false,
           grant
         },
         expires_in_seconds: 45,
@@ -91,14 +85,7 @@ export async function POST(request: Request) {
       });
     }
 
-    if (!payload.channel) return fail("חסר ערוץ או מקור מצלמה.", 422);
-
-    return ok(await createDvrPlaybackSession({
-      observerSiteId: payload.observer_site_id,
-      channel: payload.channel,
-      mode: payload.mode,
-      token: payload.token
-    }));
+    return fail("חסר מקור מצלמה מאומת.", 422);
   } catch (error) {
     return handleRouteError(error);
   }
