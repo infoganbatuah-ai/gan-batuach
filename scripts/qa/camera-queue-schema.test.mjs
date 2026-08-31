@@ -219,6 +219,23 @@ test("both task kinds round-trip through the actual SQL schema; snapshot needs n
   } finally {await f.db.close();}
 });
 
+test("same-site swapped camera result is rejected before persistence or any recorder path",async()=>{
+  const f=await fixture();try{
+    const value=row();await insert(f.db,value);
+    const delivered=await f.post({action:"poll"});
+    assert.equal(delivered.status,200,JSON.stringify(delivered.body));
+    assert.equal(delivered.body.data.action_request.camera_id,cameraId);
+    const ack=result(value);
+    const swapped={...ack,outcome_payload:{...ack.outcome_payload,camera_id:otherCameraId}};
+    const rejected=await f.post(swapped);
+    assert.equal(rejected.status,422,JSON.stringify(rejected.body));
+    const stored=(await f.db.query("select action_status,result,result_digest from digital_observer_camera_action_requests where id=$1",[value.id])).rows[0];
+    assert.equal(stored.action_status,"delivered");
+    assert.equal(stored.result,null);
+    assert.equal(stored.result_digest,null);
+  }finally{await f.db.close();}
+});
+
 test("DB failures never look like an empty queue or successful delivery",async()=>{
   for(const failure of ["GET:video_gateway_device_enrollments","PATCH:digital_observer_camera_action_requests","GET:digital_observer_camera_action_requests"]) {
     const f=await fixture();try{await insert(f.db,row());f.failures.add(failure);assert.equal((await f.post({action:"poll"})).status,503,failure);}finally{await f.db.close();}
