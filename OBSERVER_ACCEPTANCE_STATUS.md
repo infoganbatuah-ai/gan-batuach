@@ -38,6 +38,24 @@ follow-on workstream. Completing a scoped release or handing over an external
 blocker is not completion of the product or of the household pilot. No unresolved
 item may disappear from the checklist because another release was completed.
 
+## Retention Worker Guard Preparation
+
+- Source audit on 2026-08-31 found a daily 05:15 schedule and a 100-row batch.
+  This does not prove physical deletion within 48 hours or capacity for 10,000
+  users. The existing download route separately enforces a hard media deadline.
+- Prepared, not deployed: fail-closed scheduler authentication, exact private
+  bucket/site-path checks before removal, effective 1/6/24/48-hour expiry even
+  when delete_after is delayed, isolated storage failures, and compare-on-update
+  guards so changed database paths are not cleared after a stale scan.
+- Synthetic route tests cover authentication, foreign buckets/sites, traversal,
+  delayed deadlines, future/invalid rows, storage failure/throw, concurrent
+  metadata changes and preservation of journal context. No real media was deleted.
+- Remaining release gates: scheduler capacity/frequency and budget approval,
+  backlog draining and retry observability, orphan-media inventory, and object
+  immutability/coordination with concurrent upload retries. The database update
+  guard is not an atomic storage/database transaction. Production deployment and
+  a controlled lifecycle test are required before accepting retention.
+
 ## Ownership and Acceptance Gates
 
 Owner names below describe accountable workstreams, not external approvals.
