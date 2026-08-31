@@ -56,8 +56,8 @@ Owner names below describe accountable workstreams, not external approvals.
 | Observer decisions, permissions and human fallback | Policy + Assistant | Partial | Approval/audit route exists | Full detect-to-decision-to-review workflow, uncertainty fallback and no chat-to-action bypass |
 | Professional evidence-grounded event narrative | Events + Policy | Deployed / media-check report and audit read verified | 9fa7b769 signed-in linked report, thumbnail, played clip and persisted review history verified | Real AI anomaly/identity evidence and the complete event decision workflow remain required |
 | Chat action interface | Assistant + Policy | Scoped hotfix accepted; broader action workflow partial | 9fa7b769 production READY; signed-in stored-status query, neutral saved-instruction label and nine same-site links passed; portrait/tablet/desktop visual QA passed | Real rule execution, duplicate-request handling, richer consented context and direct restrictive-policy audit proof remain separate gates |
-| Fair coverage of every source | Edge + Events + Web | Local policy/runtime/UI QA partial, not deployed or installed | Synthetic 5/20/64-source fairness, fresh scoped authorization before sampling, whole-cycle single-flight and failure isolation pass; saved-report UI rejects cross-site/old/future attribution | Approved web deployment before staged Gateway update; per-source telemetry, exact full-window aggregation and production E2E still required |
-| Privacy-safe continuous learning and semantic zones | Edge + Privacy + Assistant | Local descriptive metrics corrected; semantic learning not accepted | Per-source metric ingestion, no sample-count calibration, no metric-only events and concurrent-write QA pass locally | Approved release and live per-source evidence; historical metric-profile/signal audit, genuine per-zone calibration, consented adaptation/corrections/reset/forget/export still required |
+| Fair coverage of every source | Edge + Events + Web | Web 16ef30fa READY; UI proof and local rollout open | Synthetic 5/20/64-source fairness, fresh scoped authorization before sampling, whole-cycle single-flight and failure isolation pass; saved-report UI rejects cross-site/old/future attribution | Restore Chrome UI verification before staged Gateway update; per-source telemetry and exact full-window aggregation remain required |
+| Privacy-safe continuous learning and semantic zones | Edge + Privacy + Assistant | Descriptive metric correction deployed; semantic learning not accepted | 16ef30fa READY; per-source metric ingestion, no sample-count calibration, no metric-only events and concurrent-write QA pass | Signed-in UI and live per-source evidence; historical metric-profile/signal audit, genuine per-zone calibration, consented adaptation/corrections/reset/forget/export still required |
 | Push/email/WhatsApp/emergency delivery | Notifications + Operations | Blocked pending provisioning/authority | No provider delivery acceptance; no emergency calls placed | Verified accounts/consents/address/escalation, sandbox tests, explicit operational authority, budget enforcement |
 | Site-preserving onboarding and source mapping | Web + Gateway | Partial | Source-scoped playback validation tested | Same-site edits/resume, multi-channel recorder vs single IP camera, cross-device enrollment E2E |
 | Mobile portrait/PWA/install identity | Web + Mobile | Partial | Chat 9fa7b769 passed 360/390/768/1280px without overflow, with 44px chat controls/links; prior event layout QA passed | Remaining screens and signed-in installed-app/PWA identity QA without hidden features |
@@ -90,6 +90,53 @@ Owner names below describe accountable workstreams, not external approvals.
   biometric identity, long-running live stability or retention deletion.
 - This deployment-and-Chat-E2E task is complete. The overall Observer product
   and household pilot remain open under every gate in the table above.
+
+## Scoped Policy And Metrics Release: UI Verification Open
+
+- Release commit `16ef30fa` on `codex/observer-event-evidence-release`
+  contains the web parts of `58744e95` and `cbd9a67a`, including required
+  source-coverage UI dependencies. All 14 release files were verified against
+  the tested source revision. No local Gateway runtime, installer, scheduler,
+  environment files, package changes or Vercel configuration changes are included.
+- Ten focused web checks pass: analysis policy, source metrics, truthful status,
+  coverage, conversation actions, event evidence, biometric consent gates,
+  site selection, site-edit preservation and privacy boundaries. The exact
+  release passed compilation, TypeScript and the complete 481-page build.
+  The release branch is clean and matches its pushed remote revision.
+- Four additional local synthetic/static preparation checks pass: persistent
+  Keychain-only configuration, health-before-discovery ordering, fair source
+  scheduling and consent-gated learning cycles. These tests do NOT prove live
+  readiness and did not read Keychain values, contact the DVR or restart services.
+- Push was initially rejected by the safety reviewer because ownership/trust of
+  the GitHub destination was not established. After the user's explicit ownership
+  and private-code upload approval, the same branch-scoped push was allowed and
+  succeeded. No force push, alternate upload or approval bypass was used.
+- Production deployment `dpl_55p3KKCMbnbupmNVuVBVEgBqgt4z` is READY with exact
+  release SHA `16ef30faee651c62dbaeead62499cf13b031e785`. Project/repository and
+  unchanged prior production target were checked before creation, and the
+  authenticated project production target was verified afterward. Both public
+  domains return health HTTP 200 with app/Supabase OK; anonymous analysis-policy
+  requests return 401. No migration, consent or local service was changed.
+- The new policy/coverage UI has NOT been browser-accepted. Chrome navigation
+  timed out after 60 seconds; a restored session's existing-tab claim also timed
+  out. Official diagnostics confirm Chrome is running, the extension is installed
+  and enabled, and native-host checks pass. The user has been asked to approve a
+  new window in the signed-in profile. Do not substitute API health for UI proof.
+- Verify the signed-in policy/coverage/learning UI, then stage the local Gateway update.
+  Per-source analysis telemetry and actual calibration remain open; do not infer
+  continuous analysis or learned routines from saved event/activity counts.
+- Read-only local `/health` preparation returned HTTP 200 and read-only true.
+  Runtime/model/hardware/self-test and object detection report available;
+  identity recognition and biometric matching remain false. This health surface
+  does not establish site consent or sustained inference. Its cached discovery
+  reports 6 connected of 16, while the registered stream map contains 10 and the
+  failed counter is 10. Six active relays report progress, none report stalled.
+  Source inspection explains the distinction: `discoverPrivateNvr` deliberately
+  retains previously registered sources after transient probe failures, while
+  `lastDiscoverySummary` records the latest probe/relay evidence. These are not
+  disjoint sets. Do not add the counters or present 10 as proven live; clarify
+  registered/discovered/media-progress semantics in the next Gateway stage.
+  No discovery, Keychain access, service restart or physical command was used.
 
 ## Historical Release Evidence
 
