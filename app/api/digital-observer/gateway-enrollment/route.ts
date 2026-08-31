@@ -17,7 +17,7 @@ const schema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("create_request"), ...deviceSchema.shape }),
   z.object({ action: z.literal("approve"), enrollment_request_id: z.string().uuid(), observer_site_id: z.string().uuid() }),
   z.object({ action: z.literal("poll"), enrollment_request_id: z.string().uuid(), poll_token: z.string().min(32).max(160) }),
-  z.object({ action: z.literal("refresh"), gateway_id: z.string().uuid(), refresh_token: z.string().min(32).max(160) }),
+  z.object({ action: z.literal("refresh"), gateway_id: z.string().uuid(), refresh_token: z.string().min(32).max(160), next_refresh_token: z.string().min(32).max(160).optional() }),
   z.object({ action: z.literal("revoke"), gateway_id: z.string().uuid(), observer_site_id: z.string().uuid() })
 ]);
 const refreshRecoveryGraceMs = 60 * 1000;
@@ -126,10 +126,14 @@ export async function POST(request: Request) {
     const previousTokenRecoversInterruptedRotation = enrollmentMetadata.previous_refresh_token_hash === presentedHash
       && Date.parse(String(enrollmentMetadata.previous_refresh_valid_until || "")) > Date.now();
     if (enrollment.error || !enrollment.data || enrollment.data.status !== "delivered" || (!currentTokenMatches && !previousTokenRecoversInterruptedRotation) || !enrollment.data.observer_site_id) return fail("זהות Gateway אינה תקפה או בוטלה.", 401);
-    const nextRefreshToken = newGatewayRefreshToken();
+    // New Gateways persist this candidate in Keychain before sending. If the
+    // response is lost, the candidate itself authenticates recovery even after
+    // the previous-key grace expires. Legacy clients keep server-side rotation.
+    const nextRefreshToken = payload.next_refresh_token ?? newGatewayRefreshToken();
+    const preparedRotationAlreadyApplied = hashGatewayEnrollmentToken(nextRefreshToken) === enrollment.data.refresh_token_hash;
     const rotated = await admin.from("video_gateway_device_enrollments").update({
       refresh_token_hash: hashGatewayEnrollmentToken(nextRefreshToken),
-      metadata: {
+      metadata: preparedRotationAlreadyApplied ? enrollmentMetadata : {
         ...enrollmentMetadata,
         previous_refresh_token_hash: enrollment.data.refresh_token_hash,
         previous_refresh_valid_until: new Date(Date.now() + refreshRecoveryGraceMs).toISOString(),
@@ -140,7 +144,7 @@ export async function POST(request: Request) {
     if (rotated.error || !rotated.data) return fail("זהות Gateway השתנתה. יש לבצע קישור מחדש.", 409);
     const accessToken = issueGatewayDeviceAccessToken({ device_id: enrollment.data.id, gateway_id: payload.gateway_id, observer_site_id: enrollment.data.observer_site_id }, cloudSecret());
     await audit(admin, "gateway_device_access_rotated", { gateway_id: payload.gateway_id, observer_site_id: enrollment.data.observer_site_id, interrupted_rotation_recovered: previousTokenRecoversInterruptedRotation });
-    return ok({ gateway_id: payload.gateway_id, observer_site_id: enrollment.data.observer_site_id, refresh_token: nextRefreshToken, access_token: accessToken, access_expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString() });
+    return ok({ gateway_id: payload.gateway_id, observer_site_id: enrollment.data.observer_site_id, refresh_token: nextRefreshToken, rotation_protocol: payload.next_refresh_token ? 2 : 1, access_token: accessToken, access_expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString() });
   } catch (error) {
     return handleRouteError(error);
   }

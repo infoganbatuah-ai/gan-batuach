@@ -18,6 +18,7 @@ if (verifyGatewayPlaybackGrant(`${grant}tampered`, secret)) throw new Error("Tam
 const cloudRoute = readFileSync("app/api/video-gateway/playback-grant/route.ts", "utf8");
 const observerRoute = readFileSync("app/api/digital-observer/dvr-gateway/route.ts", "utf8");
 const gateway = readFileSync("services/video-gateway/server.mjs", "utf8");
+const deviceRefresh = readFileSync("services/video-gateway/device-refresh.mjs", "utf8");
 const player = readFileSync("components/digital-observer/observer-live-player.tsx", "utf8");
 const sessions = readFileSync("lib/domain/digital-observer/playback-session.ts", "utf8");
 const mapping = readFileSync("lib/domain/video-gateway.ts", "utf8");
@@ -29,8 +30,11 @@ for (const required of ["verifyGatewayDeviceAccessToken", "verifyGatewayPlayback
 for (const required of ["issueGatewayPlaybackGrant", "claim_url", "127.0.0.1:18082/playback/claim"]) {
   if (!observerRoute.includes(required)) throw new Error(`Missing observer playback grant handoff: ${required}`);
 }
-for (const required of ["/playback/claim", "refreshGatewayDeviceAccess", "device_refresh_token", "streamSources.has(streamId)", "browserJson", "access-control-allow-private-network", "playbackClaimReady"]) {
+for (const required of ["/playback/claim", "refreshGatewayDeviceAccess", "refreshDeviceCredentials", "streamSources.has(streamId)", "browserJson", "access-control-allow-private-network", "playbackClaimReady"]) {
   if (!gateway.includes(required)) throw new Error(`Missing local playback claim control: ${required}`);
+}
+for (const required of ["device_refresh_token", "device_refresh_pending", "next_refresh_token"]) {
+  if (!deviceRefresh.includes(required)) throw new Error(`Missing durable device refresh control: ${required}`);
 }
 for (const required of ["claim_url", 'fetchJson(claimUrl, { grant,', "playbackFailureReason", "local_unreachable", "cloud_503", "MEDIA_ATTACHED", "MANIFEST_PARSED", "enableWorker: false"]) {
   if (!(player + sessions).includes(required)) throw new Error(`Missing browser playback claim flow: ${required}`);
