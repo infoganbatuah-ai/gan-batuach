@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 import { runInNewContext } from "node:vm";
 import ts from "typescript";
 import { z } from "zod";
+import { AnalysisTelemetryStorageError, analysisTelemetrySchema, recordAnalysisTelemetry } from "../../lib/domain/digital-observer/analysis-telemetry.ts";
 import { cameraReportsLocalEventInsights } from "../../lib/domain/digital-observer/edge-ai-policy.ts";
 import { issueGatewayDeviceAccessToken, verifyGatewayDeviceAccessToken } from "../../lib/domain/gateway-device-enrollment.ts";
 
@@ -50,7 +51,14 @@ for (const c of [
 const secret = randomBytes(32).toString("hex");
 const token = issueGatewayDeviceAccessToken({ device_id: deviceId, gateway_id: gatewayId, observer_site_id: siteId }, secret);
 let revoked = false, consent = true, auditFailed = false, completionFailed = false, queryFailed = false, policyQueryFailed = false, duplicate = false, writes = [], reads = [], metricsCalls = 0;
-const db = { from(table) {
+let telemetryCalls = 0, telemetryError = null;
+const db = { rpc: async (name, args) => {
+  assert.equal(name, "record_observer_analysis_telemetry");
+  assert.equal(args.p_observer_site_id, siteId); assert.equal(args.p_gateway_id, gatewayId);
+  assert.ok(args.p_receipt_id); assert.ok(args.p_authorization_id);
+  telemetryCalls++;
+  return { data: { stored: args.p_reports.length, reported_at: args.p_completed_at }, error: telemetryError };
+}, from(table) {
   const q = { table, filters: [], write: null, action: null }; reads.push(q);
   const result = () => {
     if (q.write) return { data: { id: randomUUID() }, error: auditFailed || (completionFailed && q.action === "update") ? { code: "synthetic_failure" } : duplicate && q.action === "insert" ? { code: "23505" } : null };
@@ -75,6 +83,7 @@ const route = load("app/api/video-gateway/cloud-learning/route.ts", {
   "@/lib/supabase/admin": { createAdminClient: () => db },
   "@/lib/domain/gateway-device-enrollment": { verifyGatewayDeviceAccessToken },
   "@/lib/domain/digital-observer/analysis-round-policy": { observerAnalysisRoundPolicy },
+  "@/lib/domain/digital-observer/analysis-telemetry": { AnalysisTelemetryStorageError, analysisTelemetrySchema, recordAnalysisTelemetry },
   "@/lib/domain/digital-observer/home-learning-sampler": { recordHomeActivityMetrics: async (_db, metricSite, _samples, metricGateway) => {
     assert.equal(metricSite, siteId); assert.equal(metricGateway, gatewayId); metricsCalls++; return { sampled: 1 };
   } }
@@ -114,4 +123,17 @@ queryFailed = true; assert.equal((await ask()).status, 503); queryFailed = false
 duplicate = true; assert.equal((await ask()).status, 409); duplicate = false;
 result = await ask({ operation: undefined, source_ids: undefined, samples: [{ stream_id: "synthetic-stream", motion_score: 0.1, luminance_score: 0.2, sampled_at: new Date().toISOString(), sample_frames: 2 }] });
 assert.equal(result.status, 201); assert.equal(metricsCalls, 1, "Legacy metrics envelope remains compatible");
+const telemetryPayload = { operation: "record_round_report", source_ids: undefined, telemetry: {
+  authorization_id: randomUUID(), completed_at: new Date(Date.now()-1000).toISOString(),
+  reports: [{ source_id: sourceId, state: "offline", last_attempt_at: null, last_analyzed_at: null, detection_count: null }]
+} };
+assert.equal((await ask(telemetryPayload)).status, 201); assert.equal(telemetryCalls, 1);
+assert.equal((await ask({ ...telemetryPayload, observer_site_id: randomUUID() })).status, 403); assert.equal(telemetryCalls, 1);
+revoked = true; assert.equal((await ask(telemetryPayload)).status, 401); assert.equal(telemetryCalls, 1); revoked = false;
+assert.equal((await ask({ ...telemetryPayload, telemetry: { ...telemetryPayload.telemetry, password: "synthetic" } })).status, 400);
+telemetryError = { code: "PGRST202", message: "SYNTHETIC_PRIVATE_VALUE" };
+assert.equal((await ask(telemetryPayload)).status, 503);
+telemetryError = { code: "P0001", message: "SYNTHETIC_PRIVATE_VALUE" };
+const rejectedReport = await ask(telemetryPayload); assert.equal(rejectedReport.status, 409);
+assert.equal(JSON.stringify(rejectedReport).includes("PRIVATE"), false);
 console.log("PASS: fresh site/source policy, device/site isolation, revocation/replay/audit failure, no private metadata and legacy metric compatibility (synthetic only)");

@@ -134,7 +134,7 @@ export default async function DigitalObserverDashboardPage({ searchParams }: Pag
       statusLabel={selectedSite?.monitoring_enabled ? "מצב ניטור פעיל" : "מצב הכנה בטוח"}
     >
       <div className={`do-page-stack do-dashboard do-dashboard-${mode}`}>
-        {selectedSite ? <ObserverSourceCoverage siteId={selectedSite.id} cameras={runtime.cameras} signals={runtime.signals} available={runtime.signalDataAvailable} limited={runtime.signalLimitReached} /> : null}
+        {selectedSite ? <ObserverSourceCoverage siteId={selectedSite.id} cameras={runtime.cameras} signals={runtime.signals} available={runtime.signalDataAvailable} limited={runtime.signalLimitReached} analysisReports={runtime.analysisReports} analysisAvailable={runtime.analysisReportsAvailable} /> : null}
         {!runtime.runtimeMigrationApplied ? (
           <div className="do-notice warn" role="status">
             <AlertTriangle />

@@ -5,6 +5,7 @@ import { recordHomeActivityMetrics } from "@/lib/domain/digital-observer/home-le
 import { createAdminClient } from "@/lib/supabase/admin";
 import { verifyGatewayDeviceAccessToken } from "@/lib/domain/gateway-device-enrollment";
 import { observerAnalysisRoundPolicy } from "@/lib/domain/digital-observer/analysis-round-policy";
+import { AnalysisTelemetryStorageError, analysisTelemetrySchema, recordAnalysisTelemetry } from "@/lib/domain/digital-observer/analysis-telemetry";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -32,6 +33,10 @@ const payloadSchema = z.union([z.object({
     sampled_at: z.string().datetime(),
     sample_frames: z.number().int().min(1).max(2)
   }).strict()).min(1).max(64)
+}).strict(), z.object({
+  ...envelope,
+  operation: z.literal("record_round_report"),
+  telemetry: analysisTelemetrySchema
 }).strict()]);
 
 function header(request: Request, name: string) {
@@ -97,7 +102,7 @@ export async function POST(request: Request) {
       webhook_key: "video_gateway_cloud_learning",
       integration_type: "camera_gateway",
       provider: gatewayId,
-      event_type: payload.operation === "authorize_round" ? "analysis_policy" : "activity_metrics",
+      event_type: payload.operation === "authorize_round" ? "analysis_policy" : payload.operation === "record_round_report" ? "analysis_telemetry" : "activity_metrics",
       event_id: payload.sample_id,
       idempotency_key: idempotencyKey,
       signature_valid: true,
@@ -106,7 +111,7 @@ export async function POST(request: Request) {
       related_entity_type: "observer_sites",
       related_entity_id: payload.observer_site_id,
       raw_payload_reference: null,
-      metadata: { sample_count: payload.operation === "authorize_round" ? 0 : payload.samples.length, no_raw_payload_stored: true, raw_video_received: false }
+      metadata: { sample_count: payload.operation === "record_samples" ? payload.samples.length : 0, no_raw_payload_stored: true, raw_video_received: false }
     }).select("id").single();
     if (event.error) return fail("Unable to register gateway request.", event.error.code === "23505" ? 409 : 503);
 
@@ -116,21 +121,31 @@ export async function POST(request: Request) {
       const sources = await supabase.from("digital_observer_camera_sources").select("id,observer_site_id,status,health_status,metadata")
         .eq("observer_site_id", payload.observer_site_id).in("id", payload.source_ids);
       if (site.error || schedule.error || sources.error) return fail("Analysis policy verification unavailable.", 503);
-      const policy = observerAnalysisRoundPolicy(site.data, schedule.data, sources.data ?? [], gatewayId, payload.source_ids, payload.sample_id);
+      const issuedAt = Date.now();
+      const policy = { ...observerAnalysisRoundPolicy(site.data, schedule.data, sources.data ?? [], gatewayId, payload.source_ids, payload.sample_id, issuedAt), authorization_id: event.data.id };
       const completed = await supabase.from("provider_webhook_events").update({
         status: "processed", processed_at: new Date().toISOString(),
         metadata: { sample_count: 0, no_raw_payload_stored: true, raw_video_received: false,
           authorized_source_count: policy.sourceIds.length, consent_verified: policy.consentVerified,
-          policy_reason: policy.reason, expires_at: new Date(policy.expiresAt).toISOString() }
+          policy_reason: policy.reason, expires_at: new Date(policy.expiresAt).toISOString(),
+          telemetry_version: 1, issued_at: new Date(issuedAt).toISOString(),
+          requested_source_ids: (sources.data ?? []).filter((source: any) => source.metadata?.gateway_id === gatewayId).map((source: any) => source.id),
+          authorized_source_ids: policy.sourceIds }
       }).eq("id", event.data.id);
       if (completed.error) return fail("Analysis policy audit unavailable.", 503);
       return ok({ status: "analysis_policy", policy, raw_video_received: false });
+    }
+
+    if (payload.operation === "record_round_report") {
+      const result = await recordAnalysisTelemetry(supabase, payload.observer_site_id, gatewayId, event.data.id, payload.telemetry);
+      return ok({ status: "analysis_report_recorded", ...result, raw_video_received: false }, 201);
     }
 
     const result = await recordHomeActivityMetrics(supabase, payload.observer_site_id, payload.samples, gatewayId);
     await supabase.from("provider_webhook_events").update({ status: "processed", processed_at: new Date().toISOString() }).eq("id", event.data.id);
     return ok({ status: "learned", ...result, raw_video_received: false }, 201);
   } catch (error) {
+    if (error instanceof AnalysisTelemetryStorageError) return fail(error.message, error.status);
     return handleRouteError(error);
   }
 }
