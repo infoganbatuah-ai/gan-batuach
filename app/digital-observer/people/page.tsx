@@ -6,7 +6,7 @@ import { ObserverAppShell } from "@/components/digital-observer/observer-app-she
 import { requireDigitalObserverUser } from "@/lib/domain/digital-observer/access";
 import { formatObserverDate, loadObserverRuntime, observerModeForSite, observerStatusLabel, selectObserverSite } from "@/lib/domain/digital-observer/runtime";
 
-type PageProps = { searchParams?: Promise<{ tab?: string }> };
+type PageProps = { searchParams?: Promise<{ tab?: string; site?: string }> };
 
 function accessClassLabel(person: Record<string, any>) {
   const labels: Record<string, string> = {
@@ -22,7 +22,8 @@ export default async function DigitalObserverPeoplePage({ searchParams }: PagePr
   const params = await searchParams;
   const { profile } = await requireDigitalObserverUser("/digital-observer/login?next=/digital-observer/people");
   const runtime = await loadObserverRuntime(profile.id);
-  const site = selectObserverSite(runtime.sites, runtime.cameras);
+  const selectedSite = selectObserverSite(runtime.sites, runtime.cameras, params?.site);
+  const site = params?.site && selectedSite?.id !== params.site ? null : selectedSite;
   const mode = observerModeForSite(site);
   const people = site ? runtime.knownPeople.filter((item) => item.observer_site_id === site.id) : [];
   const candidates = site
