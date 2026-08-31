@@ -41,7 +41,7 @@ function baselineSummary(baseline: Record<string, any>) {
     const light = Number(value.average_luminance_score || 0);
     const motionText = motion >= 0.55 ? "פעילות גבוהה יחסית" : motion >= 0.22 ? "פעילות בינונית" : "פעילות נמוכה";
     const lightText = light >= 0.62 ? "תאורה חזקה" : light >= 0.28 ? "תאורה רגילה" : "תאורה חלשה";
-    return `נאספו ${samples} דגימות מקומיות מ-${cameras} מצלמות פעילות. כרגע נמדדות ${motionText} ו${lightText}.`;
+    return `ברשומה השמורה: ${samples} דגימות מ-${cameras} מצלמות; נמדדו ${motionText} ו${lightText}. הרשומה אינה מעידה על ניתוח נוכחי.`;
   }
   return "הדפוס נבנה מאירועים שנקלטו ומשוב שאומת באתר.";
 }
@@ -69,16 +69,25 @@ export default async function DigitalObserverRulesPage({ searchParams }: { searc
   const sourceReady = activeCameras.length > 0;
   const demoOnly = cameras.length > 0 && cameras.every((camera) => camera.source_mode === "demo");
   const localLearningActive = sourceReady && Boolean(learning) && baselines.some((baseline) => baseline.baseline_type === "normal_camera_activity");
-  const edgeInferenceActive = sourceReady && activeCameras.some(cameraReportsLocalEventInsights);
+  const edgeInferenceActive = site?.monitoring_enabled === true
+    && site?.metadata?.observer_monitoring_consent === true
+    && activeCameras.some((camera) => {
+      const contract = camera.metadata?.edge_capability_contract;
+      const issued = Date.parse(String(contract?.issued_at ?? ""));
+      const inventory = contract?.models?.approved_inventory;
+      return cameraReportsLocalEventInsights(camera)
+        && Number.isFinite(issued) && issued <= Date.now() && Date.now() - issued <= 20 * 60 * 1000
+        && Array.isArray(inventory) && inventory.some((model: Record<string, any>) => model.capability === "object_detection" && model.loaded === true && model.self_test_passed === true);
+    });
   const biometricSetupEnabled = site?.metadata?.biometric_setup_consent === true;
   const biometricMatchingReady = biometricSetupEnabled && activeCameras.some((camera) => camera.metadata?.edge_policy?.biometric_matching_enabled === true && camera.metadata?.edge_capability_contract?.capabilities?.biometric_matching === true);
   const dailySummary = buildObserverDailySummary(signals);
   const runtimeText = !cameras.length
     ? "ממתין למצלמה הראשונה"
     : edgeInferenceActive
-      ? "AI Edge מאומת פעיל"
+      ? "יכולת Edge דווחה לאחרונה"
       : sourceReady
-        ? "Gateway פעיל · Edge AI כבוי"
+        ? "חיבור Gateway מדווח · Edge טרם אומת"
       : readiness.ai.configured
       ? "מוכן ללמידת Shadow מבוקרת"
       : demoOnly
@@ -133,19 +142,19 @@ export default async function DigitalObserverRulesPage({ searchParams }: { searc
               {baselines.length ? <div className="do-insight-grid">{baselines.map((baseline) => <div key={baseline.id}><Sparkles /><span><strong>{baselineLabel(baseline.baseline_type)}</strong><small>{baselineSummary(baseline)}</small><small>{baseline.learning_maturity === "mature" ? "נלמד" : `איסוף נתונים · ${Math.round(Number(baseline.confidence_level || 0) * 100)}% ביטחון`}</small></span></div>)}</div> : <div className="do-empty"><BrainCircuit /><strong>אין עדיין קו בסיס</strong><span>המערכת לא ממציאה שגרה. הנתונים ייאספו אחרי חיבור מצלמה.</span></div>}
               <div className="do-observer-rule-preview">
                 <span><Radar /><b>{rules[0]?.title || "כלל תצפית ראשון טרם הוגדר"}</b></span>
-                <strong className={rules[0]?.active ? "do-badge good" : "do-badge warn"}>{rules[0]?.active ? "פעיל" : "ממתין להגדרה"}</strong>
+                <strong className="do-badge info">{rules[0] ? "הנחיה שמורה" : "ממתין להגדרה"}</strong>
               </div>
               <a className="do-button secondary" href="#observer-advanced-rule">הגדרת כלל מתקדם</a>
             </div>
           </details>
 
           <section className="do-observer-camera-insights">
-            <div className="do-section-head"><div><h2>מה התצפיתן רואה בכל מצלמה</h2><p>סיכום טקסטואלי לפי מקור, אירועים ומדדי למידה שנקלטו בפועל.</p></div><span className={localLearningActive ? "do-badge good" : "do-badge warn"}>{localLearningActive ? "למידה פעילה" : "אוסף נתונים"}</span></div>
+            <div className="do-section-head"><div><h2>דיווחים לפי מצלמה</h2><p>אירועים ומדדים שנשמרו, לא הוכחה לכיסוי ניתוח רציף.</p></div><span className="do-badge info">{localLearningActive ? "מדדים שמורים" : "אין מדדים מאומתים"}</span></div>
             <div className="do-observer-camera-insight-grid">{activeCameras.map((camera) => {
               const cameraSignals = signals.filter((signal) => observerSignalMatchesCamera(signal, camera.id));
               const latest = cameraSignals[0];
               const connected = digitalObserverCameraHasLiveGateway(camera);
-              return <article key={camera.id}><Camera /><span><strong>{camera.display_name || "מצלמה"}</strong><small>{camera.location_label || "החלל עדיין לא קיבל שם"}</small><p>{latest ? `העדכון האחרון: ${observerEventLabel(latest.metadata?.event_type ?? latest.signal_type)} (${formatObserverDate(latest.created_at)}).` : connected ? "המקור מחובר ונאספים ממנו מדדי פעילות; עדיין אין אירוע עם ראיה להצגה." : "המקור אינו פעיל כרגע, ולכן לא נאספות ממנו תובנות."}</p></span><b className={connected ? "do-badge good" : "do-badge warn"}>{connected ? "פעילה" : "לא זמינה"}</b></article>;
+              return <article key={camera.id}><Camera /><span><strong>{camera.display_name || "מצלמה"}</strong><small>{camera.location_label || "החלל עדיין לא קיבל שם"}</small><p>{latest ? `הדיווח האחרון: ${observerEventLabel(latest.metadata?.event_type ?? latest.signal_type)} (${formatObserverDate(latest.created_at)}).` : "אין דיווח שמור למקור הזה; מצב הניתוח טרם אומת."}</p></span><b className="do-badge info">{connected ? "חיבור מדווח" : "לא זמינה"}</b></article>;
             })}</div>
             {!activeCameras.length ? <div className="do-empty compact"><Camera /><strong>אין מצלמה פעילה לניתוח</strong><span>התובנות יחזרו אוטומטית לאחר קבלת וידאו חי.</span></div> : null}
           </section>
@@ -164,20 +173,20 @@ export default async function DigitalObserverRulesPage({ searchParams }: { searc
             </summary>
             <div className="do-observer-operations-content">
               <section className="do-grid cols-4">
-                <article className="do-metric"><Camera /><strong>{activeCameras.length}</strong><span>מצלמות פעילות</span></article>
+                <article className="do-metric"><Camera /><strong>{activeCameras.length}</strong><span>מקורות עם חיבור מדווח</span></article>
                 <article className="do-metric"><Activity /><strong>{signals.length}</strong><span>אירועים שנקלטו</span></article>
-                <article className="do-metric"><BrainCircuit /><strong>{progress.days}/{targetDays}</strong><span>ימי למידה</span></article>
-                <article className="do-metric"><Bell /><strong>{rules.filter((rule) => rule.active).length}</strong><span>בקשות פעילות</span></article>
+                <article className="do-metric"><BrainCircuit /><strong>{progress.days}/{targetDays}</strong><span>ימים בחלון האיסוף</span></article>
+                <article className="do-metric"><Bell /><strong>{rules.length}</strong><span>הנחיות שמורות</span></article>
               </section>
 
               <section className="do-grid cols-2 do-observer-command-grid">
                 <article className="do-panel">
-                  <div className="do-section-head"><div><h2>מצב המנוע</h2><p>סטטוס שנגזר מהחיבורים והנתונים הקיימים.</p></div><span className={sourceReady ? "do-badge good" : "do-badge warn"}>{runtimeText}</span></div>
+                  <div className="do-section-head"><div><h2>מצב המנוע</h2><p>דיווחים שמורים אינם מעידים על עיבוד רציף ברגע זה.</p></div><span className="do-badge info">{runtimeText}</span></div>
                   <div className="do-learning-track" aria-label={`התקדמות למידה ${progress.percent}%`}><span style={{ width: `${progress.percent}%` }} /></div>
                   <div className="do-summary-list">
                     <div><span>פרופיל למידה</span><strong>{learning ? observerStatusLabel(learning.learning_status) : "יתחיל לאחר הוספת מצלמה"}</strong></div>
                     <div><span>בשלות</span><strong>{learning?.learning_maturity === "mature" ? "בשל" : learning?.learning_maturity === "calibrated" ? "מכויל" : learning ? "בתהליך למידה" : "טרם התחיל"}</strong></div>
-                    <div><span>ניתוח וידאו</span><strong>{edgeInferenceActive ? "AI Edge מאומת" : "מנוע Edge טרם הופעל"}</strong></div>
+                    <div><span>יכולת ניתוח וידאו</span><strong>{edgeInferenceActive ? "יכולת Edge דווחה לאחרונה" : "אין דיווח Edge עדכני ומאומת"}</strong></div>
                     <div><span>Push</span><strong>טרם הוגדר ספק מסירה</strong></div>
                     <div><span>Voice</span><strong>כבוי · אין חיוג אוטומטי</strong></div>
                     <div><span>פרטיות</span><strong>{site.vision_privacy_mode === "skeleton_only" ? "שלד ותנועה בלבד" : biometricMatchingReady ? "ביומטריה מקומית מאומתת" : biometricSetupEnabled ? "הסכמה נשמרה · מודל התאמה ממתין" : "זיהוי ביומטרי כבוי עד הסכמה"}</strong></div>
@@ -197,9 +206,9 @@ export default async function DigitalObserverRulesPage({ searchParams }: { searc
               </section>
 
               <section className="do-panel">
-                <div className="do-section-head"><div><h2>AI מקומי ופרטיות מדיה</h2><p>סטטוס יכולות אמיתי ומדיניות Edge ללא ספק AI חיצוני.</p></div><span className={edgeInferenceActive ? "do-badge good" : "do-badge warn"}>{edgeInferenceActive ? "AI Edge מאומת" : "ממתין ל-Edge"}</span></div>
+                <div className="do-section-head"><div><h2>AI מקומי ופרטיות מדיה</h2><p>יכולת מדווחת אינה הוכחה שכל הנחיה נבדקת או שכל מקור מנותח.</p></div><span className="do-badge info">{edgeInferenceActive ? "יכולת Edge דווחה לאחרונה" : "ממתין לאימות Edge"}</span></div>
                 <div className="do-grid cols-3">
-                  <article><ShieldCheck /><h3>פעיל מקומית</h3>{digitalObserverEdgeAiPolicy.activeCapabilities.map((item) => <p key={item}>{item}</p>)}</article>
+                  <article><ShieldCheck /><h3>יכולות בכפוף לאימות</h3>{digitalObserverEdgeAiPolicy.activeCapabilities.map((item) => <p key={item}>{item}</p>)}</article>
                   <article><TriangleAlert /><h3>טרם הוגדר</h3>{digitalObserverEdgeAiPolicy.unavailableCapabilities.map((item) => <p key={item}>{item}</p>)}</article>
                   <article><Clock3 /><h3>מחיקה והסכמה</h3><p>{digitalObserverEdgeAiPolicy.retention.frames}</p><p>{digitalObserverEdgeAiPolicy.retention.clips}</p><p>{digitalObserverEdgeAiPolicy.retention.insights}</p></article>
                 </div>
@@ -212,10 +221,10 @@ export default async function DigitalObserverRulesPage({ searchParams }: { searc
           </section>
 
           <section className="do-panel">
-            <div className="do-section-head"><div><h2>מסלול תצפית חיה</h2><p>כך אירוע מורשה עובר מהמצלמה אל הסבר שימושי, בלי לחשוף כתובת מקור או להציג פעולה שלא הופעלה.</p></div><span className={sourceReady && edgeInferenceActive && !demoOnly ? "do-badge good" : "do-badge warn"}>{sourceReady && edgeInferenceActive && !demoOnly ? "AI Edge מאומת" : "מוכנות בלבד"}</span></div>
+            <div className="do-section-head"><div><h2>מסלול תצפית חיה</h2><p>מצב הרכיבים לפי הדיווח האחרון; ביצוע כלל דורש ראיה נפרדת.</p></div><span className="do-badge info">{sourceReady && edgeInferenceActive && !demoOnly ? "יכולת Edge דווחה לאחרונה" : "מוכנות בלבד"}</span></div>
             <div className="do-grid cols-4">
               <article className="do-metric"><Camera /><strong>{demoOnly ? "דמו" : sourceReady ? "מוכן" : "ממתין"}</strong><span>Gateway ומקור מורשה</span></article>
-              <article className="do-metric"><Radar /><strong>{edgeInferenceActive ? "AI Edge" : localLearningActive ? "מדדי פעילות" : "כבוי"}</strong><span>זיהוי אירוע או שינוי</span></article>
+              <article className="do-metric"><Radar /><strong>{edgeInferenceActive ? "יכולת מדווחת" : localLearningActive ? "מדדים שמורים" : "טרם אומת"}</strong><span>מצב ניתוח מדווח</span></article>
               <article className="do-metric"><Activity /><strong>{signals.length}</strong><span>אירועים מובנים באתר</span></article>
               <article className="do-metric"><BrainCircuit /><strong>{reviewedSignals.length}</strong><span>הסברים עם תוצאה מאומתת</span></article>
             </div>

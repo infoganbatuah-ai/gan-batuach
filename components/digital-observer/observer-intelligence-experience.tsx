@@ -170,7 +170,7 @@ export function ObserverConversationPanel({
           <strong>{ruleSummary?.title || "עדיין לא הוגדר כלל תצפית"}</strong>
           <p>{ruleSummary?.description || "אפשר לכתוב לתצפיתן מה חשוב לבדוק והוא יכין כלל לאישור."}</p>
         </span>
-        <b className={ruleSummary?.active ? "do-badge good" : "do-badge warn"}>{ruleSummary?.active ? "פעיל" : "מוכן להגדרה"}</b>
+        <b className="do-badge info">{ruleSummary ? "הנחיה שמורה" : "מוכן להגדרה"}</b>
       </div>
       <div className="do-conversation-suggestions">
         {suggestions.map((suggestion) => <button type="button" onClick={() => void ask(suggestion)} disabled={busy} key={suggestion}>{suggestion}</button>)}
