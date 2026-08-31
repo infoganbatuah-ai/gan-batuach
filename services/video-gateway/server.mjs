@@ -11,6 +11,7 @@ import { discoverPrivateNvrCapabilities } from "./private-nvr-capabilities.mjs";
 import { refreshDeviceCredentials } from "./device-refresh.mjs";
 import { createKeychainStore } from "./keychain-store.mjs";
 import { createPrivateNvrPreflightDriver } from "./private-nvr-command-preflight.mjs";
+import { createPrivateNvrHeartbeat } from "./private-nvr-heartbeat.mjs";
 
 const PORT = Number(process.env.PORT || process.env.VIDEO_GATEWAY_PORT || 8080);
 const HOST = process.env.HOST || process.env.VIDEO_GATEWAY_HOST || "0.0.0.0";
@@ -30,6 +31,8 @@ const EVENT_THUMBNAIL_MAX_BYTES = 512 * 1024;
 const EVENT_CLIP_MAX_BYTES = 8 * 1024 * 1024;
 const streamSources = new Map();
 const privateNvrSessions = new Map();
+const privateNvrHeartbeat = createPrivateNvrHeartbeat({ sessions: () => privateNvrSessions.values() });
+setInterval(() => { void privateNvrHeartbeat.tick(); }, 10_000).unref();
 const relays = new Map();
 const relayStarts = new Map();
 const playbackTokens = new Map();
@@ -1253,6 +1256,7 @@ async function handle(request, response) {
       failedStreamCount: Math.max(0, lastDiscoverySummary.channelCount - lastDiscoverySummary.connectedCount),
       lastDiscovery: lastDiscoverySummary,
       requestMetrics,
+      recorderSessionHeartbeat: privateNvrHeartbeat.status(),
       deviceAuthorization: { status: deviceAuthorizationState === "ready" && deviceAccessExpiresAt <= Date.now() ? "unavailable" : deviceAuthorizationState },
       mediaHeartbeat: {
         activeRelays: relays.size,
