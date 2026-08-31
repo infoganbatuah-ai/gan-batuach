@@ -1,6 +1,7 @@
 export type ObserverEventLike = {
   signal_type?: unknown;
   recommended_action?: unknown;
+  confidence?: unknown;
   metadata?: unknown;
 };
 
@@ -28,6 +29,7 @@ const eventDescriptors: Record<string, EventDescriptor> = {
   vehicle_started_by_unknown_person: { label: "הנעת רכב דורשת בדיקה", summary: "זוהתה פעילות שעשויה להתאים להנעת רכב על ידי אדם לא מוכר; נדרשת בדיקה אנושית." },
   suspected_theft: { label: "חשד לגניבה", summary: "זוהה דפוס שעשוי להתאים לגניבה; אין לקבוע עובדה ללא בדיקה אנושית." },
   animal_detected: { label: "זוהה בעל חיים", summary: "זוהתה נוכחות של בעל חיים באזור המצולם." },
+  vehicle_detected: { label: "זוהה רכב", summary: "דווחה נוכחות רכב באזור המצולם; אין בכך זיהוי בעלות או כוונה." },
   distress_detected: { label: "סימן מצוקה דורש בדיקה", summary: "זוהה דפוס שעשוי להצביע על מצוקה; נדרשת בדיקה אנושית מיידית של הראיה." },
   child_distress_detected: { label: "סימן מצוקה של ילד", summary: "זוהה דפוס שעשוי להצביע על מצוקה; נדרשת בדיקה אנושית מיידית של הראיה." },
   animal_distress_detected: { label: "סימן מצוקה של בעל חיים", summary: "זוהה דפוס שעשוי להצביע על מצוקה של בעל חיים; נדרשת בדיקה אנושית." },
@@ -52,6 +54,13 @@ const eventDescriptors: Record<string, EventDescriptor> = {
   system: { label: "אירוע מערכת", summary: "נרשמה פעילות תפעולית במערכת." }
 };
 
+// Event names/metadata are not proof of consent, enrollment or an identity match.
+// Until a trusted matching result is joined server-side, never name/authorize a person.
+const identityDependentEvents = new Set([
+  "known_person_detected", "unknown_person_detected", "authorized_entry", "unauthorized_entry",
+  "unknown_person_near_vehicle", "vehicle_started_by_unknown_person"
+]);
+
 function metadataOf(value: unknown) {
   return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
 }
@@ -69,11 +78,24 @@ export function observerEventType(event: ObserverEventLike | null | undefined) {
 
 export function observerEventNarrative(event: ObserverEventLike | null | undefined) {
   const metadata = metadataOf(event?.metadata);
-  const descriptor = eventDescriptors[observerEventType(event)] ?? { label: "אירוע לבדיקה", summary: "נקלט אירוע שממתין לבדיקה אנושית." };
-  const summary = conciseText(metadata.event_summary)
+  const type = observerEventType(event);
+  const identityUnverified = identityDependentEvents.has(type) || metadata.identity_recognition_used === true;
+  const descriptor = identityUnverified
+    ? { label: "נוכחות אדם לבדיקה", summary: "דווחה נוכחות אדם. אין התאמת זהות מאומתת, ולכן לא נקבע אם הוא דייר או מורשה כניסה." }
+    : eventDescriptors[type] ?? { label: "אירוע לבדיקה", summary: "נקלט אירוע שממתין לבדיקה אנושית." };
+  const summary = (identityUnverified ? null : conciseText(metadata.event_summary)
     || conciseText(metadata.event_description)
-    || conciseText(metadata.summary)
+    || conciseText(metadata.summary))
     || descriptor.summary;
-  const action = conciseText(event?.recommended_action) || "מומלץ לבדוק את הראיה לפני פעולה.";
-  return { label: descriptor.label, summary, action };
+  const action = (identityUnverified ? null : conciseText(event?.recommended_action)) || "מומלץ לבדוק את הראיה לפני פעולה.";
+  const reason = (identityUnverified ? null : conciseText(metadata.event_reason)) || summary;
+  const confidence = typeof event?.confidence === "number" && Number.isFinite(event.confidence)
+    && event.confidence >= 0 && event.confidence <= 1 ? event.confidence : null;
+  const conclusion = identityUnverified
+    ? "יש לבדוק את האירוע. אדם שלא זוהה אינו בהכרח אדם שאסור לו להיכנס."
+    : ["person_detected", "vehicle_detected", "animal_detected"].includes(type)
+      ? "דווחה נוכחות בלבד. אין בכך הוכחה לכניסה, יציאה, כוונה או סכנה."
+      : "האירוע דורש אימות מול הראיה. לא הופעלה פעולה פיזית או קריאת חירום.";
+  return { label: descriptor.label, summary, action, reason, conclusion, confidence,
+    identityStatus: "not_verified" as const, identityLabel: "זהות והרשאת כניסה לא אומתו" };
 }

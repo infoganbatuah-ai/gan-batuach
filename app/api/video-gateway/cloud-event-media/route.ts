@@ -4,6 +4,7 @@ import { fail, handleRouteError, ok } from "@/lib/api";
 import { observerEventNarrative } from "@/lib/domain/digital-observer/event-narrative";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { verifyGatewayDeviceAccessToken } from "@/lib/domain/gateway-device-enrollment";
+import { cameraReportsLocalEventInsights } from "@/lib/domain/digital-observer/edge-ai-policy";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -76,7 +77,11 @@ function safeMetadata(value: Record<string, unknown>) {
   if (/(password|credential|secret|rtsp:\/\/|rtsps:\/\/|private_endpoint|stream_url|cookie|authorization)/i.test(text)) {
     throw new Error("unsafe_media_metadata");
   }
-  return value;
+  return {
+    source: typeof value.source === "string" ? value.source.slice(0, 100) : "local_gateway",
+    ...(Number.isInteger(value.channel) && Number(value.channel) > 0 && Number(value.channel) <= 256 ? { channel: value.channel } : {}),
+    ai_shadow_only: true
+  };
 }
 
 function safeNarrative(value: string | undefined) {
@@ -163,13 +168,26 @@ export async function POST(request: Request) {
       .maybeSingle();
     if (!camera) return fail("Camera source is not linked to this site.", 403);
     const cameraMetadata = camera.metadata && typeof camera.metadata === "object" ? camera.metadata : {};
-    if (String(cameraMetadata.gateway_stream_id ?? "") !== metadata.stream_id) return fail("Camera source does not match gateway stream.", 403);
+    if (String(cameraMetadata.gateway_stream_id ?? "") !== metadata.stream_id
+      || cameraMetadata.gateway_id !== gatewayId) return fail("Camera source does not match gateway stream.", 403);
     const { data: observerSite } = await supabase
       .from("observer_sites")
-      .select("event_retention_days")
+      .select("event_retention_days,monitoring_enabled,vision_privacy_mode,business_handles_children,metadata")
       .eq("id", metadata.observer_site_id)
       .maybeSingle();
+    if (!observerSite || observerSite.monitoring_enabled !== true || observerSite.metadata?.observer_monitoring_consent !== true) {
+      return fail("Site monitoring consent is required before storing event media.", 403);
+    }
+    const objectEvent = ["person_detected", "vehicle_detected", "animal_detected"].includes(metadata.event_type);
+    if (metadata.event_type !== "camera_media_readiness" && !objectEvent) {
+      return fail("This event classification requires a separately verified capability.", 422);
+    }
+    if (objectEvent && (observerSite.vision_privacy_mode === "skeleton_only" || observerSite.business_handles_children === true
+      || !cameraReportsLocalEventInsights(camera))) return fail("Local event inference is not verified for this source.", 412);
     const retentionHours = retentionHoursForSite(observerSite?.event_retention_days);
+    const capturedAt = Date.parse(metadata.captured_at);
+    if (capturedAt > Date.now() + 60_000) return fail("Event capture timestamp is in the future.", 422);
+    if (capturedAt + retentionHours * 60 * 60 * 1000 <= Date.now()) return fail("Event media retention has expired.", 410);
     const eventSummary = safeNarrative(metadata.event_summary);
     const narrative = observerEventNarrative({
       signal_type: metadata.event_type,
@@ -228,7 +246,13 @@ export async function POST(request: Request) {
         no_rtsp_received: true,
         media_evidence_required: true,
         event_summary: narrative.summary,
-        event_context: metadata.event_context ?? "other"
+        event_reason: narrative.reason,
+        event_context: objectEvent ? "presence" : "device_health",
+        identity_recognition_used: false,
+        identity_status: "not_verified",
+        human_review_required: true,
+        decision_policy_version: "evidence-review-v1",
+        automatic_physical_action: false
       }
     };
     const existingSignal = await supabase
@@ -236,9 +260,10 @@ export async function POST(request: Request) {
       .select("id")
       .eq("source_type", "system")
       .eq("source_id", metadata.event_id)
+      .eq("observer_site_id", metadata.observer_site_id)
       .maybeSingle();
     const signalResult = existingSignal.data?.id
-      ? await supabase.from("observer_intelligence_signals").update(signalPayload).eq("id", existingSignal.data.id).select("id").single()
+      ? await supabase.from("observer_intelligence_signals").update(signalPayload).eq("id", existingSignal.data.id).eq("observer_site_id", metadata.observer_site_id).select("id").single()
       : await supabase.from("observer_intelligence_signals").insert(signalPayload).select("id").single();
     if (signalResult.error) throw new Error(signalResult.error.message);
 
@@ -283,9 +308,10 @@ export async function POST(request: Request) {
       .from("digital_observer_event_clips")
       .select("id")
       .eq("signal_id", signalResult.data.id)
+      .eq("observer_site_id", metadata.observer_site_id)
       .maybeSingle();
     const clipResult = existingClip.data?.id
-      ? await supabase.from("digital_observer_event_clips").update(clipPayload).eq("id", existingClip.data.id).select("id").single()
+      ? await supabase.from("digital_observer_event_clips").update(clipPayload).eq("id", existingClip.data.id).eq("observer_site_id", metadata.observer_site_id).select("id").single()
       : await supabase.from("digital_observer_event_clips").insert(clipPayload).select("id").single();
     if (clipResult.error) throw new Error(clipResult.error.message);
 

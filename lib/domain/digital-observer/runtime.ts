@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { observerEventNarrative } from "@/lib/domain/digital-observer/event-narrative";
+import { observerEventMediaState } from "@/lib/domain/digital-observer/event-evidence";
 
 export type ObserverRow = Record<string, any>;
 export type ObserverMode = "home" | "business";
@@ -63,7 +64,8 @@ export function selectObserverSite(
 export function observerCameraForSignal(signal: ObserverRow | null | undefined, cameras: ObserverRow[]) {
   const cameraReference = signal?.camera_id ?? signal?.metadata?.camera_source_id;
   if (!cameraReference) return null;
-  return cameras.find((camera) => camera.id === cameraReference || camera.camera_stream_id === cameraReference) ?? null;
+  return cameras.find((camera) => camera.observer_site_id === signal?.observer_site_id
+    && (camera.id === cameraReference || camera.camera_stream_id === cameraReference)) ?? null;
 }
 
 export function observerSignalMatchesCamera(signal: ObserverRow, cameraReference: string) {
@@ -72,22 +74,17 @@ export function observerSignalMatchesCamera(signal: ObserverRow, cameraReference
 
 export function observerClipForSignal(signal: ObserverRow | null | undefined, clips: ObserverRow[]) {
   if (!signal?.id) return null;
-  return clips.find((clip) => clip.signal_id === signal.id) ?? null;
+  return clips.find((clip) => clip.signal_id === signal.id && clip.observer_site_id === signal.observer_site_id) ?? null;
 }
 
 export function observerClipHasRequiredMedia(clip: ObserverRow | null | undefined) {
-  const metadata = clip?.metadata && typeof clip.metadata === "object" ? clip.metadata : {};
-  return Boolean(
-    clip
-    && clip.clip_status === "available"
-    && (clip.storage_path || metadata.clip_available === true)
-    && (clip.snapshot_storage_path || metadata.thumbnail_available === true)
-    && clip.camera_source_id
-  );
+  return observerEventMediaState(clip) === "available";
 }
 
 export function observerSignalHasRequiredEvidence(signal: ObserverRow, cameras: ObserverRow[], clips: ObserverRow[]) {
-  return Boolean(observerCameraForSignal(signal, cameras) && observerClipHasRequiredMedia(observerClipForSignal(signal, clips)));
+  const camera = observerCameraForSignal(signal, cameras);
+  const clip = observerClipForSignal(signal, clips);
+  return Boolean(camera && clip?.camera_source_id === camera.id && observerClipHasRequiredMedia(clip));
 }
 
 export function observerStatusLabel(value?: unknown) {
