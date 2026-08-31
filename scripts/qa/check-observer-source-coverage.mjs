@@ -47,6 +47,13 @@ assert.match(html,/ניתוח אחרון: לא דווח/);
 assert.equal(render({siteId:"other"}),"");
 assert.match(render({available:false}),/דיווחי האירועים לא נטענו/);
 assert.doesNotMatch(render({available:false}),/2 דיווחים שנטענו/);
+const reportingCameras = [{ ...cameras[0], metadata: { gateway_id: "synthetic-gateway" } }];
+const analysis = { camera_source_id: cameras[0].id, observer_site_id: site, gateway_id: "synthetic-gateway",
+  state: "no_event", last_attempt_at: new Date(now-2000).toISOString(), last_analyzed_at: new Date(now-1000).toISOString(),
+  detection_count: 0, reported_at: new Date(now).toISOString() };
+assert.match(render({ cameras: reportingCameras, analysisReports: [analysis], analysisAvailable: true }), /הסבב הסתיים ללא ממצא/);
+assert.doesNotMatch(render({ cameras: reportingCameras, analysisReports: [analysis], analysisAvailable: false }), /הסבב הסתיים ללא ממצא/);
+assert.match(render({ cameras: reportingCameras, analysisReports: [{ ...analysis, state: "processing_failed", last_analyzed_at: null, detection_count: null }], analysisAvailable: true }), /הניתוח נכשל/);
 console.log("PASS: all-source event coverage, offline inclusion, names/zones, tenant and time boundaries; no invented analysis or identity");
 
 if (process.argv.includes("--serve")) {

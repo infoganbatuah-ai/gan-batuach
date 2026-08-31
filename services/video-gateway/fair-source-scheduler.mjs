@@ -22,12 +22,14 @@ export function createFairSourceScheduler({ concurrency = 2, maxSourcesPerRound 
     const ordered = [...unique.values()].sort((a, b) => a.id.localeCompare(b.id));
     const offset = Math.max(0, ordered.findIndex((source) => source.id === nextSource));
     const queue = [...ordered.slice(offset), ...ordered.slice(0, offset)];
+    const allowed = new Set(Array.isArray(policy?.sourceIds) ? policy.sourceIds : []);
     const reports = new Map(ordered.map((source) => [source.id, {
       source_id: source.id,
-      state: source.connected === true ? "deferred_budget" : "offline",
+      state: source.connected !== true ? "offline"
+        : policy?.consentVerified !== true || !Number.isFinite(policy.expiresAt) || policy.expiresAt <= started || !allowed.has(source.id)
+          ? "consent_unavailable" : "deferred_budget",
       last_attempt_at: null, last_analyzed_at: null, event_count: null
     }]));
-    const allowed = new Set(Array.isArray(policy?.sourceIds) ? policy.sourceIds : []);
     let cursor = 0, attempted = 0;
     const worker = async () => {
       while (cursor < queue.length && attempted < maxSourcesPerRound && now() - started < roundBudgetMs) {

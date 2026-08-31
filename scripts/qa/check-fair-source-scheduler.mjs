@@ -45,6 +45,10 @@ for (const denied of [{...policy,consentVerified:false},{...policy,expiresAt:Dat
   assert.equal(result.reports.find(r=>r.source_id==="good").state,"consent_unavailable");
 }
 assert.equal(called,0);
+let budgetClock = 0;
+const noBudgetConsent = createFairSourceScheduler({ now: () => (budgetClock += 100), timeoutMs: 10, roundBudgetMs: 10 });
+const deniedBeforeWorker = await noBudgetConsent.run([sources[1]], { consentVerified: false, sourceIds: [], expiresAt: 0 }, async () => assert.fail("Denied source sampled"));
+assert.equal(deniedBeforeWorker.reports[0].state, "consent_unavailable", "Exhausted budget cannot hide missing consent");
 for (const response of [{state:"no_media"},{state:"no_event",eventCount:0,analyzedAt:new Date(Date.now()+60000).toISOString()},{state:"no_event",eventCount:1,analyzedAt:new Date().toISOString()}]) {
   result=await scheduler.run([sources[1]],policy,async()=>response);
   assert.equal(result.reports[0].state,response.state==="no_media"?"no_media":"processing_failed");

@@ -1,8 +1,9 @@
 import { createFairSourceScheduler } from "./fair-source-scheduler.mjs";
+import { createAnalysisRoundReport } from "./analysis-round-report.mjs";
 
 const eventLabels = new Set(["person", "car", "motorcycle", "truck", "dog", "cat"]);
 
-export function createPersistentLearningCycle({ authorize, analyze, publishSamples, publishEvent, now = Date.now, cooldownMs = 600_000, schedulerOptions = {} }) {
+export function createPersistentLearningCycle({ authorize, analyze, publishSamples, publishEvent, publishReport, now = Date.now, cooldownMs = 600_000, schedulerOptions = {} }) {
   const scheduler = createFairSourceScheduler({ ...schedulerOptions, now });
   const cooldowns = new Map();
   let current = null;
@@ -18,7 +19,7 @@ export function createPersistentLearningCycle({ authorize, analyze, publishSampl
         || policy.expiresAt > now() + 90_000 || policy.physical_actions_allowed !== false || policy.biometric_matching_allowed !== false
         || policy.sourceIds.some(id => !sources.some(source => source.id === id))) throw new Error("invalid_policy");
     } catch {
-      policy = { consentVerified: false, sourceIds: [], expiresAt: now() };
+      policy = { consentVerified: false, sourceIds: [], expiresAt: now(), authorization_id: policy?.authorization_id };
     }
     const samples = new Map();
     const round = await scheduler.run(sources, policy, async (source, signal) => {
@@ -70,8 +71,15 @@ export function createPersistentLearningCycle({ authorize, analyze, publishSampl
     }
     for (const [key, recordedAt] of cooldowns) if (recordedAt + cooldownMs <= now()) cooldowns.delete(key);
     samples.clear();
+    let reportSubmitted = false;
+    const report = createAnalysisRoundReport(policy, round, now());
+    if (report && publishReport) {
+      try { reportSubmitted = (await publishReport(report))?.submitted === true; }
+      catch { /* Reporting failure is not an empty successful analysis round. */ }
+    }
     return { ...round, state: policy.consentVerified === true ? "finished" : "policy_unavailable",
-      metrics_submitted: metricsSubmitted, events_submitted: eventsSubmitted, event_failures: eventFailures, events_deferred: eventsDeferred };
+      metrics_submitted: metricsSubmitted, events_submitted: eventsSubmitted, event_failures: eventFailures, events_deferred: eventsDeferred,
+      report_submitted: reportSubmitted };
   }
   return {
     run(channels) {

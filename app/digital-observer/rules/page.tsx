@@ -121,7 +121,7 @@ export default async function DigitalObserverRulesPage({ searchParams }: { searc
         {!runtime.locationLearningMigrationApplied ? <div className="do-notice warn"><TriangleAlert /><span>שכבת הכתובת והלמידה החדשה ממתינה למיגרציה. אין להציג את האתר כפעיל עד החלתה.</span></div> : null}
 
         {site ? <>
-          <ObserverSourceCoverage siteId={site.id} cameras={runtime.cameras} signals={runtime.signals} available={runtime.signalDataAvailable} limited={runtime.signalLimitReached} />
+          <ObserverSourceCoverage siteId={site.id} cameras={runtime.cameras} signals={runtime.signals} available={runtime.signalDataAvailable} limited={runtime.signalLimitReached} analysisReports={runtime.analysisReports} analysisAvailable={runtime.analysisReportsAvailable} />
           <nav className="do-observer-context-chips" aria-label="נושאים לשיחה עם התצפיתן">
             {(mode === "business"
               ? ["כניסה ויציאה", "מחוץ לשעות", "אזור מוגבל", "מצב מצלמה"]

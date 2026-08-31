@@ -172,6 +172,14 @@ const learningCycle = createPersistentLearningCycle({
     }, { deviceAccess: true });
     return { submitted: (result?.data ?? result)?.status === "learned" };
   },
+  publishReport: async (telemetry) => {
+    const result = await signedPost("/api/video-gateway/cloud-learning", {
+      operation: "record_round_report", gateway_id: gatewayId, observer_site_id: observerSiteId,
+      sample_id: crypto.randomUUID(), sampled_at: new Date().toISOString(),
+      local_processing: true, no_raw_video_returned: true, telemetry
+    }, { deviceAccess: true });
+    return { submitted: (result?.data ?? result)?.status === "analysis_report_recorded" };
+  },
   publishEvent: (channel, primary, signal) => {
     const eventType = primary.label === "person" ? "person_detected" : ["car", "motorcycle", "truck"].includes(primary.label) ? "vehicle_detected" : "animal_detected";
     const label = primary.label === "person" ? "אדם" : primary.label === "motorcycle" ? "אופנוע" : primary.label === "dog" || primary.label === "cat" ? "בעל חיים" : "רכב";
@@ -188,6 +196,7 @@ const learningCycle = createPersistentLearningCycle({
 async function learn() {
   const result = await learningCycle.run(channels);
   console.log(JSON.stringify({ operation: "analysis_round", state: result.state, attempted: result.attempted ?? 0,
+    report_submitted: result.report_submitted === true,
     events_submitted: result.events_submitted ?? 0, event_failures: result.event_failures ?? 0, events_deferred: result.events_deferred ?? 0 }));
 }
 

@@ -56,14 +56,14 @@ Owner names below describe accountable workstreams, not external approvals.
 | Observer decisions, permissions and human fallback | Policy + Assistant | Partial | Approval/audit route exists | Full detect-to-decision-to-review workflow, uncertainty fallback and no chat-to-action bypass |
 | Professional evidence-grounded event narrative | Events + Policy | Deployed / media-check report and audit read verified | 9fa7b769 signed-in linked report, thumbnail, played clip and persisted review history verified | Real AI anomaly/identity evidence and the complete event decision workflow remain required |
 | Chat action interface | Assistant + Policy | Scoped hotfix accepted; broader action workflow partial | 9fa7b769 production READY; signed-in stored-status query, neutral saved-instruction label and nine same-site links passed; portrait/tablet/desktop visual QA passed | Real rule execution, duplicate-request handling, richer consented context and direct restrictive-policy audit proof remain separate gates |
-| Fair coverage of every source | Edge + Events + Web | Web 16ef30fa READY; UI proof and local rollout open | Synthetic 5/20/64-source fairness, fresh scoped authorization before sampling, whole-cycle single-flight and failure isolation pass; saved-report UI rejects cross-site/old/future attribution | Restore Chrome UI verification before staged Gateway update; per-source telemetry and exact full-window aggregation remain required |
+| Fair coverage of every source | Edge + Events + Web | Web 16ef30fa READY; source telemetry tested locally, not activated | Synthetic 5/20/64-source fairness, scoped authorization, round receipts, in-memory PostgreSQL/RLS and truthful stale/error rendering pass | Approved telemetry migration/web release, restore Chrome UI verification, staged Gateway update; exact full-window aggregation remains required |
 | Privacy-safe continuous learning and semantic zones | Edge + Privacy + Assistant | Descriptive metric correction deployed; semantic learning not accepted | 16ef30fa READY; per-source metric ingestion, no sample-count calibration, no metric-only events and concurrent-write QA pass | Signed-in UI and live per-source evidence; historical metric-profile/signal audit, genuine per-zone calibration, consented adaptation/corrections/reset/forget/export still required |
 | Push/email/WhatsApp/emergency delivery | Notifications + Operations | Blocked pending provisioning/authority | No provider delivery acceptance; no emergency calls placed | Verified accounts/consents/address/escalation, sandbox tests, explicit operational authority, budget enforcement |
 | Site-preserving onboarding and source mapping | Web + Gateway | Partial | Source-scoped playback validation tested | Same-site edits/resume, multi-channel recorder vs single IP camera, cross-device enrollment E2E |
 | Mobile portrait/PWA/install identity | Web + Mobile | Partial | Chat 9fa7b769 passed 360/390/768/1280px without overflow, with 44px chat controls/links; prior event layout QA passed | Remaining screens and signed-in installed-app/PWA identity QA without hidden features |
-| Production release, scale/security/cost | Release + Infrastructure | Scoped release passed; product acceptance open | 9fa7b769 READY production target; build/typecheck, health and signed-in Chat/media-link E2E pass | Remaining scoped work + audit evidence; 10,000-user load test and <= NIS 15/customer total provider budget |
+| Production release, scale/security/cost | Release + Infrastructure | Web 16ef30fa READY; product acceptance open | Exact production target and health verified; prior 9fa7b769 Chat/media-link E2E passed, 16ef30fa UI proof remains blocked | Remaining scoped work + audit evidence; 10,000-user load test and <= NIS 15/customer total provider budget |
 
-## Current Scoped Release
+## Prior Accepted Chat Release
 
 - User directly approved production release `9fa7b769`. Deployment
   `dpl_Dzpu7eNUf5EN9L95Gaxj11uLebb3` is READY and the authenticated project
@@ -137,6 +137,55 @@ Owner names below describe accountable workstreams, not external approvals.
   disjoint sets. Do not add the counters or present 10 as proven live; clarify
   registered/discovered/media-progress semantics in the next Gateway stage.
   No discovery, Keychain access, service restart or physical command was used.
+
+## Source Analysis Telemetry: Local Verification Only
+
+- Added an allowlisted local round report and authenticated `record_round_report`
+  operation. Reports contain source IDs, fixed outcome states, attempt/analysis
+  timestamps and detection counts only. Detection counts are not journal-event
+  counts. No frames, clips, private endpoints, person names or identity data are
+  included; the runner still uses the existing Keychain-owned cloud transport.
+- Authorization now issues an opaque audit receipt scoped to the authenticated
+  site/Gateway and requested/authorized sources. The telemetry RPC locks and
+  consumes it once, verifies source ownership and authorization time windows,
+  and writes the complete batch atomically. Older reports cannot overwrite newer
+  ones. Malformed, stale, foreign-scope or replayed reports do not become empty
+  successful rounds. Telemetry failure does not suppress valid event delivery.
+- Prepared migration `20260831020000_observer_source_analysis_telemetry.sql`.
+  It adds one latest-state row per source, authenticated site-scoped SELECT only,
+  service-role-only writes/RPC, current-Gateway read checks and source-deletion
+  cascade. It does not modify consent, camera mapping, events or model readiness.
+  Existing webhook audit receipts are still produced per round: retention and
+  high-volume storage cost for that audit stream require a separate reviewed
+  policy; the bounded latest-state table does not establish an overall cost bound.
+- Dashboard/My Observer read through the existing session/RLS client. Missing
+  migration or failed reads remain unavailable, not zero activity. Old reports
+  become stale after ten minutes on page evaluation; timestamps describe the
+  reported round, never continuous coverage, identity or calibrated learning.
+  This is a server-rendered snapshot, not a claim of live push updates.
+- Fixed a scheduler edge case found under resource contention: a denied source
+  is classified as consent-unavailable even when the round budget expires before
+  the worker starts, instead of being incorrectly labeled deferred for load.
+- Fifteen focused JS/route/render/privacy/scheduling checks pass. PostgreSQL
+  migration/RPC tests pass using an in-memory PGlite database: transaction rollback
+  on partial batch failure, receipt replay, foreign site/Gateway rejection, stale
+  ordering, denied rounds, authenticated/anonymous privileges, current-Gateway
+  visibility and deletion cascade. These tests do not simulate multi-connection
+  database contention or establish production schema state.
+- The test engine was installed only in a temporary QA directory from npm:
+  `@electric-sql/pglite@0.5.8`, Apache-2.0. The cached artifact SHA-512 was verified
+  against `n9tsbUOhwx2epK1V0ZG9Ar4SHWUju04dhmzZXiSBXwBoleOvIfals33NAaWgagQVAL4Rbvx/Ptsu3P+pA09f6Q==`.
+  Lifecycle scripts were disabled; application dependency files did not change.
+- Focused TypeScript verification of changed web files and their dependency graph
+  passes. The older full-project typecheck for this task was stopped after changes
+  superseded it and concurrent checks in other worktrees caused resource pressure;
+  those other processes were not touched. No full Next build or browser E2E is
+  claimed for this telemetry candidate. Run the exact scoped release build before
+  any new deployment.
+- NEXT GATE: approve/apply the migration and scoped web release, verify READY and
+  signed-in coverage UI, then approve the staged local Gateway rollout and real
+  telemetry evidence. No migration, deployment, Keychain read, service restart,
+  DVR request, live biometric processing or physical action occurred in this step.
 
 ## Historical Release Evidence
 

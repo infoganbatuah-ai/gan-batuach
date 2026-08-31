@@ -269,6 +269,10 @@ export async function loadObserverRuntime(profileId: string) {
       }
     }));
   const normalizedCameras: ObserverRow[] = [...cameraSources.data, ...legacyObserverCameras];
+  const analysisReports = siteIds.length ? await safeList<ObserverRow>("source analysis reports", () =>
+    supabase.from("observer_source_analysis_status" as any)
+      .select("camera_source_id,observer_site_id,gateway_id,state,last_attempt_at,last_analyzed_at,detection_count,reported_at")
+      .in("observer_site_id", siteIds).order("reported_at", { ascending: false }).limit(1000)) : empty;
 
   return {
     sites,
@@ -277,6 +281,8 @@ export async function loadObserverRuntime(profileId: string) {
     signals: signals.data,
     signalDataAvailable: signals.available,
     signalLimitReached: signals.data.length >= 200,
+    analysisReports: analysisReports.data,
+    analysisReportsAvailable: analysisReports.available,
     subscriptions: subscriptions.data,
     schedules: schedules.data,
     watchRequests: watchRequests.data,
