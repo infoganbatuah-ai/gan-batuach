@@ -32,6 +32,30 @@ These are verified code-level failure paths, not proof that every outage had the
 
 Initial repair `0b21625c` is Production READY and was installed locally. Startup diagnostic capture was removed without installing the newer AI runner. No schema migration was needed. Live verification in the user's signed-in Codex browser showed ten advancing players, then nine decoder resets within about two minutes. That verification FAILED; do not call the initial repair stable. The response-lifetime/window/EOF follow-up still needs rollout and repeat verification.
 
+Follow-up `fd226298` is Production READY and was installed locally. A bounded
+11-minute local observation saw all ten playlists advance in every 30-second
+sample, zero missing/stalled windows and zero health failures. Browser acceptance
+still FAILED: cloud authorization requests timed out, six players reset, and all
+eventually recovered without user refresh when cloud health returned. Brief
+buffering remained. This is not sustained end-to-end acceptance.
+
+After a diagnostic-only restart (`4a072232`), the mapped sources remained intact
+(16 discovered / 10 connected), but cloud device refresh returned HTTP 401 (27
+observed requests); no new playback claim succeeded. The existing rotation
+updates the server key before the response arrives and permits the old key for
+only 60 seconds. A lost response can therefore strand the device. This failure
+path is now reproduced in a synthetic route/client regression: prepare the next
+key in Keychain before sending, store only its hash in the cloud, and recover by
+proof of the prepared current key after a lost response/restart. No old-key grace
+or authorization lifetime is extended. Legacy clients remain supported. This
+fix requires web-first rollout and authenticated device approval to recover the
+already-invalid identity; no source ownership or DVR credentials are changed.
+
+Native browser samples also showed currentTime advancing beyond every buffered
+range after local media was unavailable. The player now requires buffered media
+at the current time before accepting that clock as progress. A green label and
+currentTime alone are insufficient evidence on this native player.
+
 Prepare an exact release from the current production baseline, excluding unrelated telemetry/model/runner changes. Obtain production/local restart approval, preserve Keychain identity and mappings, and verify rollback before restart. Check that startup does not introduce diagnostic event capture or broaden monitoring consent.
 
 After release, observe each authorized player for at least two five-minute lease windows, fullscreen and grid, including paused/background recovery. Verify currentTime progression, no periodic lease reconnects, bounded offline-source retries, and event evidence separately. Do not mark camera stability or Observer continuous analysis accepted until those checks pass. Power loss, a sleeping host, recorder/network failure and cross-device loopback limitations remain distinct availability constraints.

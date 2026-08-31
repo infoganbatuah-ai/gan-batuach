@@ -8,6 +8,7 @@ import { fileURLToPath } from "node:url";
 import { computeActivityMetrics } from "./activity-insights.mjs";
 import { localEdgeReadiness, warmLocalEdgeReadiness } from "./edge-readiness.mjs";
 import { discoverPrivateNvrCapabilities } from "./private-nvr-capabilities.mjs";
+import { refreshDeviceCredentials } from "./device-refresh.mjs";
 
 const PORT = Number(process.env.PORT || process.env.VIDEO_GATEWAY_PORT || 8080);
 const HOST = process.env.HOST || process.env.VIDEO_GATEWAY_HOST || "0.0.0.0";
@@ -40,6 +41,8 @@ const GATEWAY_KEYCHAIN_SERVICE = process.env.GAN_BATUACH_GATEWAY_KEYCHAIN_SERVIC
 let deviceAccessToken = "";
 let deviceAccessExpiresAt = 0;
 let deviceAccessRefreshPromise = null;
+let deviceAuthorizationState = "unknown";
+let rejectedDeviceIdentity = "";
 let cameraActionPollPromise = null;
 const CLOUD_AUTH_TIMEOUT_MS = 10_000;
 
@@ -102,28 +105,28 @@ async function refreshGatewayDeviceAccess() {
     const gatewayId = keychainSecret("device_gateway_id");
     const cloudBaseUrl = keychainSecret("device_cloud_base_url").replace(/\/$/, "");
     if (!gatewayId || !cloudBaseUrl) throw new Error("Gateway device identity is unavailable");
-    // Discovery and playback are separate local processes but share the same
-    // rotating Keychain refresh material. If one rotates it first, re-read and
-    // retry once rather than dropping every concurrent browser playback claim.
-    for (let attempt = 0; attempt < 2; attempt += 1) {
-      const refreshToken = keychainSecret("device_refresh_token");
-      if (!refreshToken) throw new Error("Gateway device identity is unavailable");
-      const response = await fetch(`${cloudBaseUrl}/api/digital-observer/gateway-enrollment`, {
-        method: "POST",
-        headers: { "content-type": "application/json" },
-        body: JSON.stringify({ action: "refresh", gateway_id: gatewayId, refresh_token: refreshToken }),
-        signal: AbortSignal.timeout(CLOUD_AUTH_TIMEOUT_MS)
-      });
-      const payload = await response.json().catch(() => ({}));
-      if (response.ok && payload.data?.access_token && payload.data?.refresh_token) {
-        storeKeychainSecret("device_refresh_token", String(payload.data.refresh_token));
-        deviceAccessToken = String(payload.data.access_token);
-        deviceAccessExpiresAt = Date.parse(String(payload.data.access_expires_at || "")) || Date.now() + 9 * 60 * 1000;
-        return deviceAccessToken;
-      }
-    }
-    throw new Error("Gateway device refresh failed");
-  })().finally(() => { deviceAccessRefreshPromise = null; });
+    const identity = createHash("sha256").update(`${gatewayId}:${keychainSecret("device_refresh_token")}`).digest("hex");
+    if (rejectedDeviceIdentity === identity) throw Object.assign(new Error("Gateway device identity requires approval"), { code: "device_relink_required" });
+    const credentials = await refreshDeviceCredentials({
+      gatewayId, cloudBaseUrl, readSecret: keychainSecret, writeSecret: storeKeychainSecret,
+      removeSecret: (account) => {
+        const result = spawnSync("/usr/bin/security", ["delete-generic-password", "-s", GATEWAY_KEYCHAIN_SERVICE, "-a", account], { stdio: "ignore" });
+        if (result.status !== 0 && result.status !== 44) throw new Error("Gateway Keychain cleanup failed");
+      },
+      timeoutMs: CLOUD_AUTH_TIMEOUT_MS
+    }).catch((error) => {
+      if (error?.code === "device_relink_required") rejectedDeviceIdentity = identity;
+      throw error;
+    });
+    rejectedDeviceIdentity = "";
+    deviceAuthorizationState = "ready";
+    deviceAccessToken = credentials.accessToken;
+    deviceAccessExpiresAt = credentials.expiresAt;
+    return deviceAccessToken;
+  })().catch((error) => {
+    deviceAuthorizationState = error?.code === "device_relink_required" ? "approval_required" : "unavailable";
+    throw error;
+  }).finally(() => { deviceAccessRefreshPromise = null; });
   return deviceAccessRefreshPromise;
 }
 
@@ -1198,6 +1201,7 @@ async function handle(request, response) {
       failedStreamCount: Math.max(0, lastDiscoverySummary.channelCount - lastDiscoverySummary.connectedCount),
       lastDiscovery: lastDiscoverySummary,
       requestMetrics,
+      deviceAuthorization: { status: deviceAuthorizationState === "ready" && deviceAccessExpiresAt <= Date.now() ? "unavailable" : deviceAuthorizationState },
       mediaHeartbeat: {
         activeRelays: relays.size,
         progressingRelays: [...relays.values()].filter(relayIsProgressing).length,
@@ -1242,10 +1246,11 @@ async function handle(request, response) {
       requestMetrics.playbackClaimReady += 1;
       response.writeHead(200, browserHeaders(request, "application/json"));
       response.end(JSON.stringify({ status: "starting", playback: { hls_url: `${base}/hls/${encodeURIComponent(streamId)}/index.m3u8?token=${encodeURIComponent(token)}` }, expires_in_seconds: Math.floor(PLAYBACK_TOKEN_TTL_MS / 1000), private_source_hidden: true }));
-    } catch {
+    } catch (error) {
       requestMetrics.playbackClaimUnavailable += 1;
-      response.writeHead(503, browserHeaders(request, "application/json"));
-      response.end(JSON.stringify({ error: "playback_unavailable", retryable: true }));
+      const approvalRequired = error?.code === "device_relink_required";
+      response.writeHead(approvalRequired ? 401 : 503, browserHeaders(request, "application/json"));
+      response.end(JSON.stringify({ error: approvalRequired ? "device_approval_required" : "playback_unavailable", retryable: !approvalRequired }));
     }
     return;
   }

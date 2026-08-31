@@ -24,7 +24,7 @@ export function playbackFailureReason(error: unknown) {
   if (code === "cloud_timeout") return "שרת הרשאות הצפייה לא השיב בזמן";
   if (code === "local_unreachable") return "ה־Gateway אינו נגיש מהמכשיר הזה. צפייה ממכשיר אחר דורשת מסלול מדיה מרוחק מאובטח";
   if (code === "local_timeout") return "ה־Gateway לא השיב בזמן לבקשת הצפייה";
-  if (code === "local_claim_401") return "אימות המכשיר המקומי פג";
+  if (code === "local_claim_401") return "נדרש אישור מחדש למחשב המחובר דרך הוספת מצלמות. המקורות נשמרו";
   if (code === "local_claim_409") return "הרשאת הצפייה החד־פעמית כבר נוצלה";
   if (code === "local_claim_503") return "ה־Gateway לא הצליח לאשר את הצפייה";
   return "לא התקבל שידור זמין מה־Gateway";

@@ -205,7 +205,12 @@ assert.equal(timers.size, 1, "Changing cameras after a pending retry must not di
 stateUpdates = [];
 rendered.video.props.onTimeUpdate({ currentTarget: { currentTime: 2, paused: true, readyState: 4, seeking: false, error: null } });
 assert.equal(stateUpdates.includes("playing"), false, "Paused media must never be marked LIVE");
-rendered.video.props.onTimeUpdate({ currentTarget: { currentTime: 2, paused: false, readyState: 4, seeking: false, error: null } });
+const buffered = { length: 1, start: () => 0, end: () => 3 };
+rendered.video.props.onTimeUpdate({ currentTarget: { currentTime: 500, paused: false, readyState: 4, seeking: false, error: null, buffered } });
+assert.equal(stateUpdates.includes("playing"), false, "A native clock beyond buffered media is not LIVE");
+rendered.video.props.onTimeUpdate({ currentTarget: { currentTime: 2, paused: false, readyState: 4, seeking: false, error: null, buffered: { length: 0 } } });
+assert.equal(stateUpdates.includes("playing"), false, "An empty media buffer cannot establish LIVE");
+rendered.video.props.onTimeUpdate({ currentTarget: { currentTime: 2, paused: false, readyState: 4, seeking: false, error: null, buffered } });
 assert.equal(timers.size, 0, "Recovered media must cancel the scheduled destructive reconnect");
 assert.equal(stateUpdates.includes("playing"), true);
 rendered.cleanup();

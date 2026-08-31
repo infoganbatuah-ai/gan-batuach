@@ -160,6 +160,13 @@ export function ObserverLivePlayer({
           const media = event.currentTarget;
           if (media.paused || media.readyState < 2 || media.seeking || media.error) return;
           const currentTime = media.currentTime;
+          // Native HLS can keep its clock running after it has exhausted media.
+          // A clock beyond every buffered range is not evidence of live frames.
+          let hasBufferedMedia = false;
+          for (let index = 0; index < media.buffered.length; index += 1) {
+            if (currentTime >= media.buffered.start(index) - 0.25 && currentTime <= media.buffered.end(index) + 0.25) hasBufferedMedia = true;
+          }
+          if (!hasBufferedMedia) return;
           if (currentTime <= lastCurrentTimeRef.current + 0.05) return;
           lastCurrentTimeRef.current = currentTime;
           lastProgressAtRef.current = Date.now();
