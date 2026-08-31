@@ -29,6 +29,15 @@ Digital Observer is not accepted as a live dashboard alone. The required flow is
 No general monitoring consent grants biometric enrollment, shared-model training,
 emergency-call authority or unrestricted physical control.
 
+## Overall Closure Rule
+
+The overall Observer task stays open until every required item has current,
+deployed end-to-end evidence. A partial, blocked or untested item must remain in
+this ledger with its owner, status, evidence and next gate, and continue as a
+follow-on workstream. Completing a scoped release or handing over an external
+blocker is not completion of the product or of the household pilot. No unresolved
+item may disappear from the checklist because another release was completed.
+
 ## Ownership and Acceptance Gates
 
 Owner names below describe accountable workstreams, not external approvals.
@@ -47,7 +56,7 @@ Owner names below describe accountable workstreams, not external approvals.
 | Observer decisions, permissions and human fallback | Policy + Assistant | Partial | Approval/audit route exists | Full detect-to-decision-to-review workflow, uncertainty fallback and no chat-to-action bypass |
 | Professional evidence-grounded event narrative | Events + Policy | Deployed / report and audit read verified | edb58921 READY; signed-in media-check report shows facts, uncertainty, baseline unknown, risk and persisted review history | Repeat post-release clip advancement after browser timeout; not AI anomaly/identity evidence |
 | Chat action interface | Assistant + Policy | Partial / catalog required | Existing watch-request and gated physical-action offers | Explicit intent/action catalog, role/site/consent/capability checks, audited non-physical execution and actionable next conditions; physical confirmation remains separate |
-| Fair coverage of every source | Edge + Events + Web | Not accepted / gaps identified | Runner attempts connected sources, but concurrently and discards failures; site metrics are attached to the first source | Bounded fair single-flight scheduler, per-source last analysis/events and no-event/no-media/offline/failure states; 48-hour existing-event coverage, not a DVR archive scan |
+| Fair coverage of every source | Edge + Events + Web | Local core/UI QA partial, not deployed | Synthetic 5/20/64-source fair scheduler passes; all-source saved-report UI rejects cross-site/old/future attribution | Wire authenticated per-round policy, persistent per-source analysis telemetry and bounded runtime; exact full-window aggregation and production E2E still required |
 | Privacy-safe continuous learning and semantic zones | Edge + Privacy + Assistant | Not accepted | Editable camera names and local aggregate scaffolding exist; no verified per-zone baseline | User-controlled names/zones across chat/events/daily summaries; opt-in bounded warmup/adaptation, corrections, explainability, reset/forget/export/audit and sustained per-camera evidence |
 | Push/email/WhatsApp/emergency delivery | Notifications + Operations | Blocked pending provisioning/authority | No provider delivery acceptance; no emergency calls placed | Verified accounts/consents/address/escalation, sandbox tests, explicit operational authority, budget enforcement |
 | Site-preserving onboarding and source mapping | Web + Gateway | Partial | Source-scoped playback validation tested | Same-site edits/resume, multi-channel recorder vs single IP camera, cross-device enrollment E2E |
@@ -303,8 +312,10 @@ when a camera reports connected. No connection flag is AI execution proof.
 Requested and result states are audited without raw messages. Audit-start failure
 prevents saving; a saved instruction with a failed result-audit is reported as
 saved with an explicit warning, not a retryable failed save. The additive audit
-type migration `20260831010000` is required and has NOT been applied. Chat changes
-are not deployed and do not enable actions, enrollment, consent or learning.
+type migration `20260831010000` was applied by the coordinator through the
+authenticated SQL Editor. Chat is deployed at `4299d166`; it does not enable
+physical actions, enrollment, consent or learning. Restrictive-policy catalog
+proof remains pending separately from the verified constraint and RLS state.
 
 Responses use site-scoped stored events from at most the last 48 hours, retain
 camera scope before the query limit, and disclose missing continuous coverage.
@@ -319,20 +330,64 @@ Current local chat QA passes: real route handler with synthetic scoped data,
 role/source rejection, questions versus commands, ambiguous/conditional actions,
 future/stale/offline evidence, consent, audit failures, inactive saved requests,
 safe source links and no physical execution. Typecheck and existing event,
-async-form and biometric-consent regression checks pass. Migration and production
-deployment of this chat work are still separate gates. Chrome transport checks
-pass (running, extension enabled, native host valid) but subsequent tab control
-times out intermittently; read evidence above is valid, missing playback checks
-remain missing rather than being replaced by a configuration test.
+async-form and biometric-consent regression checks pass. Chrome control recovered
+using a fresh agent tab in the same signed-in profile. A stored-status chat query
+passed in production; rule execution and sustained live inference remain unproven.
 
-- The chat migration/deployment is explicitly approved, but execution is gated
-  on authenticated database access: the installed Supabase CLI returns
-  `login_required`, this worktree is not linked, and Chrome tab control times out.
-  No credentials were requested/copied, and no SQL was run against an unverified
-  project. The existing event release remains production.
+- Historical CLI access returned `login_required`. The approved authenticated
+  SQL Editor path resolved that deployment blocker without exporting credentials.
 - The first full chat build hit a sandbox `binding to a port: Operation not
   permitted` error in Turbopack instrumentation. The permission-corrected rerun
   passed compilation, TypeScript and generation of all 481 pages. Existing event,
   site preservation, privacy, consent and new chat regression checks pass. The
   migration preserves all existing audit types; live database integrity/RLS and
-  signed-in chat E2E remain unverified until authenticated migration/deployment.
+  signed-in chat E2E were subsequently checked as recorded below; restrictive
+  policy proof and actual rule execution remain separate gates.
+
+## Current Follow-On Evidence
+
+- Chat code `c911c49e` and scoped release `4299d166` are committed and pushed.
+  The coordinator applied `20260831010000` in the authenticated Supabase SQL
+  Editor. Read-only catalog evidence: constraint validated, chat audit type
+  allowed and RLS enabled are all true. The separate restrictive-policy query
+  displayed stale UI results; direct policy proof is pending, not claimed.
+  Production deployment `dpl_D8MRyVcadZkhgN24jiNJS7DEkEaJ` is READY and the
+  production target matches `4299d166`. Health/Supabase return OK; anonymous
+  conversation access returns 401. Signed-in Chat reports stored 9/16 sources,
+  distinguishes records from live analysis and offers nine site-scoped links.
+- Fresh event E2E after the Chat release: the real camera-media-readiness event
+  thumbnail loads at 640px; its clip advances from 0 to 8 seconds without error.
+  Two prior human reviews survive reload. This is media-pipeline evidence, NOT
+  entry/identity detection, storage expiry deletion or sustained live proof.
+- Chat E2E exposed legacy false-green labels outside the response. A scoped
+  hotfix replaces saved-rule/metric activity claims with stored/reported states.
+  Edge readiness additionally requires current site consent, a non-future
+  contract at most 20 minutes old, approved loaded model and passing self-test.
+  Synthetic rendering/gate QA and full 481-page build pass. Work commit
+  `c7ec41c6` and release `9fa7b769` are pushed. Deployment was rejected before
+  execution because direct approval for this new hotfix is required; relayed
+  approval did not satisfy the action gate. No deployment or bypass was made.
+  Owner: release authorization. Next gate: direct approval, READY and signed-in
+  Chat/mobile E2E. The prior Chat release remains production.
+- Fair scheduler core and synthetic QA cover 5/20/64 sources, bounded concurrency
+  and sample/round budgets, consent expiry before/during sampling, single-flight
+  rounds, failed/offline-source isolation, and non-cooperative timeout slot
+  retention. Policy timeout is reported as consent unavailable and cached results
+  from before a source's own attempt cannot count as successful analysis.
+  It is NOT wired into or installed on the persistent Gateway yet.
+  Owner: Edge. Next gate: authenticated short-lived per-source policy, runtime
+  integration, telemetry persistence and live fairness proof without new consent.
+- Coverage UI is implemented locally for dashboard/My Observer for every source, including
+  offline sources without players. It uses current names/zones and only loaded
+  stored reports from the last 48 hours; query failure and query-limit truncation
+  are disclosed. Missing analysis telemetry stays "not reported", never no-event
+  or active AI. Synthetic 20-source component QA passes at 360/390/768/1280px
+  without overflow. Owner: Web + Events. Next gate: deploy, authenticated E2E,
+  exact tenant-scoped counts beyond the existing 200-row runtime query and actual
+  per-source analysis heartbeats. This coverage feature does not scan DVR recordings.
+- Source attribution now consistently prioritizes explicit source metadata over
+  conflicting legacy camera references. Coverage recognizes same-site legacy
+  stream references, and the journal filter resolves the same actual source.
+  Unknown explicit sources do not silently fall back to another camera. Synthetic
+  regression coverage includes conflicting IDs, legacy IDs and tenant isolation.
+  This source-resolution correction is local only and not in release 9fa7b769.

@@ -105,6 +105,13 @@ function load(path) {
 }
 const cryptoModule = await import("node:crypto");
 const runtime = load("lib/domain/digital-observer/runtime.ts");
+const conflictingSource = { observer_site_id:siteId,camera_id:"legacy-other",metadata:{camera_source_id:sourceId} };
+assert.equal(runtime.observerCameraForSignal(conflictingSource,[{...camera(),id:"legacy-other"},camera()]).id,sourceId);
+assert.equal(runtime.observerSignalMatchesCamera(conflictingSource,"legacy-other"),false);
+assert.equal(runtime.observerSignalMatchesCamera(conflictingSource,sourceId),true);
+assert.equal(runtime.observerCameraForSignal({observer_site_id:siteId,camera_id:"legacy-stream"},[{...camera(),camera_stream_id:"legacy-stream"}]).id,sourceId);
+assert.equal(runtime.observerCameraForSignal({observer_site_id:siteId,metadata:{camera_source_id:"legacy-stream"}},[{...camera(),camera_stream_id:"legacy-stream"}]),null);
+assert.equal(runtime.observerCameraForSignal({...conflictingSource,metadata:{camera_source_id:"unknown"}},[{...camera(),id:"legacy-other"}]),null);
 assert.equal(runtime.observerCameraForSignal({ observer_site_id: "other", metadata: { camera_source_id: sourceId } }, [camera()]), null);
 assert.equal(runtime.observerSignalHasRequiredEvidence({ id: signalId, observer_site_id: siteId, metadata: { camera_source_id: sourceId } }, [camera()], [{ ...clip, camera_source_id: "other" }]), false);
 await runtime.loadObserverEventReviews({ id: signalId, observer_site_id: siteId });

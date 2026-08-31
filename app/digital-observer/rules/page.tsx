@@ -5,6 +5,7 @@ import { ObserverBiometricSetupAction, ObserverQuickAction, ObserverRuleForm } f
 import { ObserverConversationPanel } from "@/components/digital-observer/observer-intelligence-experience";
 import { ObserverAppShell } from "@/components/digital-observer/observer-app-shell";
 import { ObserverLivePlayer } from "@/components/digital-observer/observer-live-player";
+import { ObserverSourceCoverage } from "@/components/digital-observer/observer-source-coverage";
 import { requireDigitalObserverUser } from "@/lib/domain/digital-observer/access";
 import { digitalObserverCameraHasLiveGateway } from "@/lib/domain/digital-observer/camera-live-status";
 import { buildObserverDailySummary } from "@/lib/domain/digital-observer/dashboard-summary";
@@ -112,6 +113,7 @@ export default async function DigitalObserverRulesPage({ searchParams }: { searc
         {!runtime.locationLearningMigrationApplied ? <div className="do-notice warn"><TriangleAlert /><span>שכבת הכתובת והלמידה החדשה ממתינה למיגרציה. אין להציג את האתר כפעיל עד החלתה.</span></div> : null}
 
         {site ? <>
+          <ObserverSourceCoverage siteId={site.id} cameras={runtime.cameras} signals={runtime.signals} available={runtime.signalDataAvailable} limited={runtime.signalLimitReached} />
           <nav className="do-observer-context-chips" aria-label="נושאים לשיחה עם התצפיתן">
             {(mode === "business"
               ? ["כניסה ויציאה", "מחוץ לשעות", "אזור מוגבל", "מצב מצלמה"]
