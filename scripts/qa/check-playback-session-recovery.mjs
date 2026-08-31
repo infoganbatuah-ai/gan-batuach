@@ -6,7 +6,7 @@ import { createPlaybackSessionClient, PlaybackFlowError } from "../../lib/domain
 import { playbackRequestSchema } from "../../lib/domain/digital-observer/playback-request.ts";
 
 const response = (payload, status = 200) => new Response(JSON.stringify(payload), { status });
-const authorized = () => response({ data: { playback: { claim_url: "http://127.0.0.1:18082/playback/claim", grant: "test-grant" } } });
+const authorized = (grant = "test-grant") => response({ data: { playback: { claim_url: "http://127.0.0.1:18082/playback/claim", grant } } });
 const media = (ttl = 300) => response({ playback: { hls_url: "/synthetic-playlist.m3u8" }, expires_in_seconds: ttl });
 const isFailure = (code) => (error) => error instanceof PlaybackFlowError && error.flowCode === code;
 
@@ -51,9 +51,54 @@ for (const stage of ["cloud", "local", "body"]) {
 }
 
 let retries = 0;
-const bounded = createPlaybackSessionClient({ sleep: async () => {}, fetcher: async () => { retries++; return response({}, 503); } });
+const delays = [];
+const bounded = createPlaybackSessionClient({ sleep: async (delay) => { delays.push(delay); }, fetcher: async () => { retries++; return response({}, 503); } });
 await assert.rejects(bounded.request("site", "source"), isFailure("cloud_503"));
 assert.equal(retries, 3, "Unavailable cloud service must have bounded retries");
+assert.deepEqual(delays, [1200, 2400], "Retries must preserve the bounded increasing backoff");
+
+let eventualCalls = 0;
+const eventualDelays = [];
+const eventual = createPlaybackSessionClient({ sleep: async (delay) => { eventualDelays.push(delay); }, fetcher: async () => {
+  eventualCalls++;
+  return eventualCalls < 3 ? response({}, 503) : response({ data: { playback: { hls_url: "/recovered.m3u8" } } });
+} });
+assert.equal(await eventual.request("site", "source"), "/recovered.m3u8");
+assert.equal(eventualCalls, 3);
+assert.deepEqual(eventualDelays, [1200, 2400]);
+
+for (const status of [401, 403, 409]) {
+  let calls = 0;
+  const denied = createPlaybackSessionClient({ sleep: async () => assert.fail("Authorization/ownership failures must not be retried"),
+    fetcher: async () => { calls++; return response({}, status); }
+  });
+  await assert.rejects(denied.request("site", "source"), isFailure(`cloud_${status}`));
+  assert.equal(calls, 1);
+}
+
+for (const status of [401, 409, 503]) {
+  let grants = 0;
+  let claims = 0;
+  const claimedGrants = [];
+  let failing = true;
+  const claimFailure = createPlaybackSessionClient({ sleep: async () => assert.fail("Never automatically replay a one-time local claim"),
+    fetcher: async (url, init) => {
+      if (url.startsWith("/api/")) { grants++; return authorized(`test-grant-${grants}`); }
+      claims++;
+      claimedGrants.push(JSON.parse(init.body).grant);
+      return failing ? response({}, status) : media();
+    }
+  });
+  await assert.rejects(claimFailure.request("site", "source"), isFailure(`local_claim_${status}`));
+  assert.equal(grants, 1);
+  assert.equal(claims, 1);
+  failing = false;
+  assert.equal(await claimFailure.request("site", "source"), "/synthetic-playlist.m3u8");
+  assert.equal(grants, 2, "Explicit recovery must obtain a fresh cloud grant");
+  assert.equal(claims, 2);
+  assert.deepEqual(claimedGrants, ["test-grant-1", "test-grant-2"], "Recovery must redeem the new grant, not replay the failed one");
+}
+
 const isolated = createPlaybackSessionClient({ fetcher: async (_url, init) => {
   const body = JSON.parse(init.body);
   if (body.camera_source_id === "offline") return response({}, 409);
@@ -86,18 +131,20 @@ for (const payload of [
   { observer_site_id: siteId, camera_source_id: sourceId, token: "untrusted" },
   { observer_site_id: siteId, camera_source_id: sourceId, mode: "playback" }
 ]) assert.equal(playbackRequestSchema.safeParse(payload).success, false, "Neither global channel config nor a live feed may stand in for authorized playback");
-const route = readFileSync("app/api/digital-observer/dvr-gateway/route.ts", "utf8");
+const route = readFileSync(new URL("../../app/api/digital-observer/dvr-gateway/route.ts", import.meta.url), "utf8");
 assert.doesNotMatch(route, /createDvrPlaybackSession|payload\.channel/, "The shared-channel fallback must not bypass site-source ownership");
 assert.match(route, /\.eq\("observer_site_id", payload\.observer_site_id\)/);
 
 // Execute the actual component with deterministic hooks/media/timers. No DVR,
 // browser session or server is involved in these lifecycle regression tests.
-const component = readFileSync("components/digital-observer/observer-live-player.tsx", "utf8");
+const component = readFileSync(new URL("../../components/digital-observer/observer-live-player.tsx", import.meta.url), "utf8");
 const compiled = ts.transpileModule(component, { compilerOptions: { module: ts.ModuleKind.CommonJS, jsx: ts.JsxEmit.ReactJSX } }).outputText;
 let hook = 0;
 let hooks = [];
 let effect;
 let stateUpdates = [];
+const sessionRequests = [];
+const sessionInvalidations = [];
 const timers = new Map();
 let nextTimer = 0;
 const fakeReact = {
@@ -111,7 +158,10 @@ const context = {
     if (name === "react") return fakeReact;
     if (name === "react/jsx-runtime") return { jsx: (type, props) => ({ type, props }), jsxs: (type, props) => ({ type, props }) };
     if (name === "hls.js") return { default: { isSupported: () => false } };
-    if (name.endsWith("playback-session")) return { createPlaybackSessionClient: () => ({ request: async () => "/test.m3u8", invalidate: () => {} }), playbackFailureReason: () => "test" };
+    if (name.endsWith("playback-session")) return { createPlaybackSessionClient: () => ({
+      request: async (site, source) => { sessionRequests.push([site, source]); return "/test.m3u8"; },
+      invalidate: (site, source) => { sessionInvalidations.push([site, source]); }
+    }), playbackFailureReason: () => "test" };
     return {};
   },
   Date, Promise, setInterval: () => 1, clearInterval: () => {},
@@ -129,13 +179,17 @@ function render(source = "source-a") {
 }
 let rendered = render();
 await new Promise((resolve) => setImmediate(resolve));
+assert.deepEqual(sessionRequests, [["site", "source-a"]], "The player must use the shared site-scoped session client");
 rendered.video.props.onError();
+assert.deepEqual(sessionInvalidations, [["site", "source-a"]]);
 assert.equal(timers.size, 1);
 rendered.cleanup();
 assert.equal(timers.size, 0);
 rendered = render("source-b");
 await new Promise((resolve) => setImmediate(resolve));
+assert.deepEqual(sessionRequests, [["site", "source-a"], ["site", "source-b"]]);
 rendered.video.props.onError();
+assert.deepEqual(sessionInvalidations, [["site", "source-a"], ["site", "source-b"]]);
 assert.equal(timers.size, 1, "Changing cameras after a pending retry must not disable retries for the new source");
 stateUpdates = [];
 rendered.video.props.onTimeUpdate({ currentTarget: { currentTime: 2, paused: true, readyState: 4, seeking: false, error: null } });
@@ -145,4 +199,4 @@ assert.equal(timers.size, 0, "Recovered media must cancel the scheduled destruct
 assert.equal(stateUpdates.includes("playing"), true);
 rendered.cleanup();
 
-console.log("Playback recovery, request deadlines, tenant scoping and player lifecycle QA PASS");
+console.log("Playback recovery/backoff, one-time claim safety, request deadlines, tenant scoping and actual player integration QA PASS (synthetic only)");

@@ -243,16 +243,38 @@ Owner names below describe accountable workstreams, not external approvals.
   playback recovery/deadlines, Edge gates, capability approval, playback grants,
   persistence, truthful status and source coverage. No full application build or
   browser E2E is claimed for this follow-on change.
-- The unchanged legacy `check-dvr-shared-session-and-offline.mjs` fails because it
+- At this stage the legacy `check-dvr-shared-session-and-offline.mjs` failed because it
   searches `observer-live-player.tsx` for the old inline `response.status === 503`
   retry implementation. Retry handling now resides in `playback-session.ts` and
   its behavioral `check-playback-session-recovery.mjs` passes. The failing script,
-  player and session module were not edited here. Refresh this obsolete structural
-  check separately; do not hide the failure or weaken the recovery requirements.
+  player and session module were not edited in that fix. The separate QA-only
+  follow-on below replaces the obsolete assertion without weakening recovery.
 - This follow-on is separate from prepared telemetry release `09b959e8`,
   which remains unchanged. Production/deployment approval, migration and signed-in
   live acceptance gates remain open. No Gateway restart, Keychain access, consent
   change, DVR discovery, media capture or physical command occurred.
+
+## Playback Recovery QA: Test-Only Follow-On
+
+- The combined DVR/session QA no longer searches the player for obsolete inline
+  retry text. It executes the actual shared-session and player lifecycle tests.
+  Existing static guards for DVR session sharing, offline mapping, demo deletion,
+  Edge privacy/readiness and physical-action confirmation remain intact.
+- Added behavior checks for exactly three attempts with 1200/2400ms backoff on
+  cloud 503, successful recovery on the third attempt, and no automatic retry on
+  cloud 401/403/409. Local claim 401/409/503 failures cannot replay a one-time
+  grant; an explicit subsequent request obtains and redeems a distinct new grant.
+- The actual player fixture must call the shared client with the current site
+  and source, and invalidate only that source after failure. Existing timeout,
+  cache TTL, offline isolation, paused-media and recovered-media checks still pass.
+- Combined DVR QA passes when invoked by absolute path outside the repository,
+  preserving its previous working-directory independence. Standalone playback,
+  grant, capability approval, Edge gating and browser-boundary checks also pass.
+  All inputs/network responses are synthetic; these are not live camera tests.
+- Only QA scripts and this ledger changed. No application, Gateway, credentials,
+  consent, migration, production deployment, browser session or DVR was changed.
+  Telemetry release `09b959e8` remains unchanged and awaits explicit approval for
+  production/migration rollout and signed-in E2E evidence.
 
 ## Historical Release Evidence
 
