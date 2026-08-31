@@ -7,7 +7,7 @@ This is the live execution checklist. A stage is not complete until its evidence
 | # | Stage | Status | Evidence | Blocker | Next action |
 |---|---|---|---|---|---|
 | 1 | Build / typecheck | TYPECHECK_PASS_BUILD_BLOCKED | `./node_modules/.bin/tsc --noEmit --pretty false` passed with exit code 0; `event-journal-service.ts` row typing fixed; Webpack and Turbopack builds both stall at `Creating an optimized production build...` | production build has no completed exit code after repeated ~90–120s runs | isolate Next build stall and obtain a completed exit code |
-| 2 | Camera adapters / dynamic capabilities | IN_PROGRESS | `guard-engine.ts`, capability API and action policy exist; metadata-only capabilities cannot authorize hardware | real Gateway probe and command adapter/ACK unavailable | connect verified Gateway adapter |
+| 2 | Camera adapters / dynamic capabilities | ADAPTER_READY_GATEWAY_BLOCKED | `camera-gateway-adapter.ts` implements server-side capability probe and command ACK validation; metadata-only capabilities cannot authorize hardware | `DIGITAL_OBSERVER_COMMAND_GATEWAY_URL/SECRET` and a real provider are not configured | configure verified Gateway and run probe/command E2E |
 | 3 | SpatialMap + learning + events | PENDING | `camera-zone-mapper.ts`, `event-validation-pipeline.ts`, `event-journal-service.ts` exist | live frame/event source not connected | run persisted event and baseline E2E |
 | 4 | Guard Chat | PENDING | conversation route returns normalized `event_log` | production E2E unavailable | verify scoped retrieval and commands against live data |
 | 5 | Biometric / LPR consent | PENDING | Standard engine contracts and known-people routes exist | approved biometric/LPR provider and consent evidence unavailable | configure provider, consent, revoke and deletion tests |
@@ -28,3 +28,4 @@ This is the live execution checklist. A stage is not complete until its evidence
 - `npm run qa:digital-observer-event-media` — PASS.
 - `npm run qa:dvr-shared-session` — PASS after the retryable 502/503/504 recovery fix in `observer-live-player.tsx`.
 - `npm run qa:digital-observer-product` — BLOCKED by DNS resolution of the configured Supabase host (`ENOTFOUND`), before login/E2E.
+- `./node_modules/.bin/tsc --noEmit --pretty false` — PASS after the Gateway adapter integration.
