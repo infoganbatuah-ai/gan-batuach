@@ -1,6 +1,8 @@
 import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
+import { createObserverEngine, tenantTypeForCamera } from "@/lib/domain/observer-engine";
+import { assertStandardBiometricConsent } from "@/lib/domain/digital-observer/standard-privacy-policy";
 
 const createSchema = z.object({
   action: z.literal("create"),
@@ -24,9 +26,13 @@ export async function POST(request: Request) {
     if (payload.action === "create") {
       const site = await getObserverSiteAccess(supabase, profile, payload.observer_site_id, { manage: true });
       if (!site) return fail("אין הרשאה להוסיף אדם לאתר.", 403);
+      if (tenantTypeForCamera(site) !== "STANDARD") return fail("מסלול הזיהוי הביומטרי אינו זמין באתר זה.", 403);
+      createObserverEngine("STANDARD");
       if ((site as any).vision_privacy_mode === "skeleton_only" || (site as any).business_handles_children) {
         return fail("זיהוי פנים חסום באתר המטפל בילדים. באתר זה נעשה שימוש בניתוח שלד ותנועה בלבד.", 403);
       }
+      if (!payload.consent_confirmed) return fail("נדרשת הסכמה מפורשת לפני הגדרת אדם ביומטרי.", 422);
+      const consent = assertStandardBiometricConsent({ confirmed: payload.consent_confirmed, subjectId: payload.display_name, purpose: "standard_security_observation" });
       const { data, error } = await supabase.from("digital_observer_known_people" as any).insert({
         observer_site_id: payload.observer_site_id,
         display_name: payload.display_name,
@@ -35,7 +41,7 @@ export async function POST(request: Request) {
         recognition_status: "readiness",
         notify_on_detection: payload.notify_on_detection,
         created_by: profile.id,
-        metadata: { image_pending: true, biometric_processing_active: false, explicit_consent_recorded: payload.consent_confirmed }
+        metadata: { image_pending: true, biometric_processing_active: false, explicit_consent_recorded: true, consent_purpose: consent.purpose, consent_recorded_at: consent.recordedAt, revocable: true }
       }).select("id,display_name,relationship_label,consent_status,recognition_status,notify_on_detection").single();
       if (error) return fail("לא ניתן לשמור את האדם המוכר.", 400);
       return ok({ person: data, message: "האדם נשמר במצב מוכנות. זיהוי פנים אינו פעיל ללא תמונה, הסכמה וחיבור AI מאושר." }, 201);
