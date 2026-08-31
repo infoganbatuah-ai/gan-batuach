@@ -72,14 +72,15 @@ export function selectObserverSite(
 }
 
 export function observerCameraForSignal(signal: ObserverRow | null | undefined, cameras: ObserverRow[]) {
-  const cameraReference = signal?.camera_id ?? signal?.metadata?.camera_source_id;
+  const explicitSource = signal?.metadata?.camera_source_id;
+  const cameraReference = explicitSource ?? signal?.camera_id;
   if (!cameraReference) return null;
   return cameras.find((camera) => camera.observer_site_id === signal?.observer_site_id
-    && (camera.id === cameraReference || camera.camera_stream_id === cameraReference)) ?? null;
+    && (camera.id === cameraReference || (explicitSource == null && camera.camera_stream_id === cameraReference))) ?? null;
 }
 
 export function observerSignalMatchesCamera(signal: ObserverRow, cameraReference: string) {
-  return signal.camera_id === cameraReference || signal.metadata?.camera_source_id === cameraReference;
+  return (signal.metadata?.camera_source_id ?? signal.camera_id) === cameraReference;
 }
 
 export function observerClipForSignal(signal: ObserverRow | null | undefined, clips: ObserverRow[]) {
@@ -274,6 +275,8 @@ export async function loadObserverRuntime(profileId: string) {
     packages: packages.data,
     cameras: normalizedCameras,
     signals: signals.data,
+    signalDataAvailable: signals.available,
+    signalLimitReached: signals.data.length >= 200,
     subscriptions: subscriptions.data,
     schedules: schedules.data,
     watchRequests: watchRequests.data,

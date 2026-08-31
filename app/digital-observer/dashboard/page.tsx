@@ -28,6 +28,7 @@ import { ObserverBiometricSetupAction } from "@/components/digital-observer/obse
 import { ObserverCameraMedia } from "@/components/digital-observer/observer-camera-media";
 import { ObserverCameraPresence } from "@/components/digital-observer/observer-camera-presence";
 import { ObserverLivePlayer } from "@/components/digital-observer/observer-live-player";
+import { ObserverSourceCoverage } from "@/components/digital-observer/observer-source-coverage";
 import { requireDigitalObserverUser } from "@/lib/domain/digital-observer/access";
 import { digitalObserverCameraHasLiveGateway } from "@/lib/domain/digital-observer/camera-live-status";
 import { observerEventNarrative } from "@/lib/domain/digital-observer/event-narrative";
@@ -133,6 +134,7 @@ export default async function DigitalObserverDashboardPage({ searchParams }: Pag
       statusLabel={selectedSite?.monitoring_enabled ? "מצב ניטור פעיל" : "מצב הכנה בטוח"}
     >
       <div className={`do-page-stack do-dashboard do-dashboard-${mode}`}>
+        {selectedSite ? <ObserverSourceCoverage siteId={selectedSite.id} cameras={runtime.cameras} signals={runtime.signals} available={runtime.signalDataAvailable} limited={runtime.signalLimitReached} /> : null}
         {!runtime.runtimeMigrationApplied ? (
           <div className="do-notice warn" role="status">
             <AlertTriangle />

@@ -2701,6 +2701,18 @@
 .do-chat-message small { display: block; margin-top: 5px; color: var(--do-muted); font-size: 10px; }
 .do-conversation-context-links { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 8px; }
 .do-conversation-context-links a { display: inline-flex; align-items: center; min-height: 44px; max-width: 100%; color: var(--do-teal-dark); font-size: 13px; line-height: 1.45; text-decoration: underline; overflow-wrap: anywhere; }
+.do-source-coverage { min-width: 0; padding-block: 12px; }
+.do-source-coverage-notice { color: var(--do-muted); font-size: 13px; line-height: 1.6; }
+.do-source-coverage summary { min-height: 44px; padding-block: 10px; cursor: pointer; font-size: 14px; }
+.do-source-coverage-list { max-height: 390px; overflow: auto; }
+.do-source-coverage-list article { display: grid; grid-template-columns: minmax(150px, 1fr) minmax(140px, 1fr) minmax(130px, 1fr) minmax(180px, 1.5fr); gap: 12px; align-items: center; padding-block: 12px; border-bottom: 1px solid var(--do-border); font-size: 13px; }
+.do-source-coverage-list article > * { min-width: 0; overflow-wrap: anywhere; }
+.do-source-coverage-list a { min-height: 44px; display: flex; align-items: center; gap: 8px; color: var(--do-teal-dark); }
+.do-source-coverage-list svg { width: 16px; height: 16px; flex-shrink: 0; }
+.do-source-coverage-list small { display: block; margin-top: 4px; color: var(--do-muted); }
+@media (max-width: 760px) {
+  .do-source-coverage-list article { grid-template-columns: minmax(0, 1fr); gap: 4px; }
+}
 .do-chat-message.user { justify-self: end; grid-template-columns: minmax(0, 1fr); }
 .do-chat-message.user > div { color: #fff; background: var(--do-navy); border-color: var(--do-navy); }
 .do-chat-message.is-typing { opacity: 0.76; }
