@@ -37,7 +37,7 @@ assert.ok(calls.every((call) => call.body.version === "1.0" && typeof call.body.
 
 // Device-wide advertising and a successful empty/wrong-channel response must
 // never unlock controls. These fixtures issue no real network requests.
-for (const responseData of [{}, { capability: { channel: "CH2", ptz_version: "2", speaker: true } },
+for (const responseData of [{}, { name: "CH2", ptz_version: "2", speaker: true }, { capability: { channel: "CH2", ptz_version: "2", speaker: true } },
   { channel: "CH2", ptz_version: "2", speaker: true, floodlight_switch: false, audioAlarm_switch: false, alarm_out: ["output"] },
   { channel_info: { CH2: { ptz_version: "2", speaker: true, floodlight_switch: true } } }]) {
   const probe = await discoverPrivateNvrCapabilities({ session: { baseUrl: "http://local.invalid", token: "synthetic" }, channels: [1],
@@ -57,5 +57,15 @@ const isolated = await discoverPrivateNvrCapabilities({ session: { baseUrl: "htt
 assert.equal(isolated.get(1).ptz.supported, true);
 assert.equal(isolated.get(2).ptz.supported, false);
 assert.equal(isolated.get(2).siren.supported, false);
+
+const negativeCalls = [];
+const negative = await discoverPrivateNvrCapabilities({ session: { baseUrl: "http://local.invalid", token: "synthetic" }, channels: [1],
+  fetchImpl: async (url) => {
+    const path = new URL(url).pathname; negativeCalls.push(path);
+    return { ok: true, json: async () => ({ result: "success", data: path.endsWith("ChannelInfo/Get")
+      ? { channel_info: { CH1: { ptz: 0, speaker: false, talkback: false } } } : {} }) };
+  } });
+assert.equal(negativeCalls.some((path) => path.startsWith("/API/PreviewChannel/")), false, "Negative advertising must not trigger feature probes");
+assert.equal(negative.get(1).ptz.supported, false);
 
 console.log("Private NVR read-only capability discovery checks passed.");

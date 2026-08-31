@@ -76,7 +76,9 @@ function channelEvidence(value, channel) {
 
 function hasChannelReference(value, depth = 0) {
   if (!value || typeof value !== "object" || depth > 5) return false;
-  return Object.entries(value).some(([key, child]) => key === "channel" || /^(?:CH|IP_CH|WIFI_CH)\d+$/i.test(key)
+  return Object.entries(value).some(([key, child]) => key === "channel"
+    || (key === "name" && /^(?:CH|IP_CH|WIFI_CH)\d+$/i.test(String(child)))
+    || /^(?:CH|IP_CH|WIFI_CH)\d+$/i.test(key)
     || hasChannelReference(child, depth + 1));
 }
 
