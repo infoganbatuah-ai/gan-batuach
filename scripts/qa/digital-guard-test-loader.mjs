@@ -19,7 +19,7 @@ export function loadTs(file, mocks = {}, cache = new Map()) {
     }
     return require(name);
   };
-  const js = ts.transpileModule(readFileSync(file, "utf8"), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 } }).outputText;
+  const js = ts.transpileModule(readFileSync(file, "utf8"), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX } }).outputText;
   const noNetwork = () => { throw new Error("Unexpected network access in unit test"); };
   new Function("require", "module", "exports", "fetch", "process", js)(localRequire, module, module.exports, mocks.fetch ?? noNetwork, mocks.process ?? process);
   return module.exports;
