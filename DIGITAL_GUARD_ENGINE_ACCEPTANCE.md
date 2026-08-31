@@ -1,31 +1,68 @@
-# Digital Guard Engine — Acceptance & Runbook
+# התצפיתן הדיגיטלי — מצב קבלה ויתרת עבודה
 
-Last updated: 2026-08-31
+עודכן: 2026-08-31. אין אישור לשחרור מלא. הצלחת בדיקה נקודתית אינה הוכחת מוכנות של המערכת כולה.
 
-This is the live execution checklist. A stage is not complete until its evidence is recorded.
+## מצב מאומת
 
-| # | Stage | Status | Evidence | Blocker | Next action |
-|---|---|---|---|---|---|
-| 1 | Build / typecheck | TYPECHECK_PASS_BUILD_BLOCKED | `./node_modules/.bin/tsc --noEmit --pretty false` passed with exit code 0; `event-journal-service.ts` row typing fixed; Webpack and Turbopack builds both stall at `Creating an optimized production build...` | production build has no completed exit code after repeated ~90–120s runs | isolate Next build stall and obtain a completed exit code |
-| 2 | Camera adapters / dynamic capabilities | ADAPTER_READY_GATEWAY_BLOCKED | `camera-gateway-adapter.ts` implements server-side capability probe and command ACK validation; metadata-only capabilities cannot authorize hardware; separation/site/DVR QA pass | `DIGITAL_OBSERVER_COMMAND_GATEWAY_URL/SECRET` and a real provider are not configured | configure verified Gateway and run probe/command E2E |
-| 3 | SpatialMap + learning + events | STATIC_VERIFIED_LIVE_BLOCKED | `camera-zone-mapper.ts`, `event-validation-pipeline.ts`, `event-journal-service.ts`, Event Journal API; event-media and site-selection QA pass | live Supabase event/baseline source unavailable (`ENOTFOUND`) | run persisted event and baseline E2E |
-| 4 | Guard Chat | STATIC_VERIFIED_LIVE_BLOCKED | conversation route is site/camera scoped and returns normalized `event_log` | production Supabase E2E unavailable (`ENOTFOUND`) | verify scoped retrieval and commands against live data |
-| 5 | Biometric / LPR consent | PENDING | Standard engine contracts and known-people routes exist | approved biometric/LPR provider and consent evidence unavailable | configure provider, consent, revoke and deletion tests |
-| 6 | Fire / intrusion / pool / alerts | PENDING | event types and alert journal contracts exist | live vision provider unavailable | execute alert E2E with evidence media |
-| 7 | Gateway ACK + physical controls | BLOCKED_EXTERNAL | API deliberately refuses fake execution and requires Gateway evidence | no real command adapter/ACK | connect adapter; keep human confirmation and audit |
-| 8 | Commit / push / deploy / E2E | IN_PROGRESS | commits `eeb919c`, `bc27483`; remote branch verified | deploy credentials and production E2E unavailable | commit/push build fix, deploy after environment access, rerun all gates |
+| תחום | תוצאה | מה נותר |
+|---|---|---|
+| בנייה | שתי בניות מבודדות הסתיימו בקוד 0, כולל TypeScript ויצירת 479 דפים. נפתרה שגיאת node:crypto בדפדפן באמצעות תיקון camera-health/camera-status שהיה בעבודה המקבילה. | בנייה חוזרת של הגרסה המשולבת לאחר יישוב שינויי השליטה המקבילים. אין לייחס את ההצלחה לגרסה מאוחרת שלא נבדקה. |
+| הרשאות ונתוני מוצר | qa:digital-observer-product עבר 68/68 עם התחברות רגילה ו-RLS, בקוד 0. | בדיקות כתיבה וזרימה מלאה של המנוע החדש, ולא רק נתוני הדגמה והרשאות קריאה. |
+| יכולות ופקודות מצלמה | נבנו אימות בוליאני קשיח, בדיקה עדכנית, אישור קצר־תוקף לכל פעולה, פרמטרים מוגבלים, חסימת כפילויות ותיעוד לפני שליחה. ACK מופרד מביצוע; timeout הוא תוצאה לא ידועה ללא retry אוטומטי. רגרסיית ההרשאות תוקנה בתיאום עם בעל מודול היכולות ונבדקה ברמת HTTP: אין מדיניות לקוח, אין עקיפת הרשאות אתר, דמו הוא simulated ו-audit_recorded=false. | בדיקה של הגרסה הפרוסה מול Gateway אמיתי, ובדיקת בנייה מלאה אחרי כל השינויים המקבילים. |
+| למידה לפי מצלמה | חוברו מדדי תנועה/תאורה ל-home-learning-sampler: הפרדה בין מצלמות, אזור זמן מהאתר, סינון דגימות לא תקינות/כפולות, השוואה לבסיס קודם, compare-and-swap ותור אירועים שמור לשחזור כתיבה. נוספה בדיקת כתיבה סגורה ל-Preview עם ניקוי מאומת, ללא הוצאת מפתח השרת. | פריסת קוד הבדיקה והפעלתו מול מסד הנתונים. הבדיקות המקומיות מפעילות את הקוד עם מסד מדומה; הן אינן הוכחת כתיבה ל-Supabase. |
+| דפדפן | בבנייה המבודדת מיפוי ללא Gateway הציג מידע שמור בלבד; כפתורי תאורה, PTZ וסירנה נבדקו ונמצאו חסומים. | בדיקת ממשק מאומת מול ספק שליטה אמיתי, עם אישור מיידי לפעולה הפיזית. |
+| יומן וצ׳אט | יש תשתית משותפת ונעשית אינטגרציה במקביל. בדיקות ההפרדה, המדיה, ה-DVR ובחירת האתר הסתיימו בקוד 0. | אימות שאילתות לפי מצלמה/אזור וטווח זמן, תוצאות ריקות, שגיאות, ופירוש פקודות ללא הרשאה משתמעת. אין לסמן את כל הצ׳אט כמושלם על סמך סיווג מילות מפתח. |
+| ביומטריה ו-LPR במנוע Standard | קיימים חוזים ומסלולי הסכמה. | ספק זיהוי ממשי, מחזור הסכמה/ביטול/מחיקה, שיוך יציב לפרופיל, לוחיות ורישום כניסות/יציאות. בסיס BiometricObserverEngine שנבדק מחזיר מערך ריק. לא שונו מסלולי גן בטוח במשימה זו. |
+| אש, חדירה ובריכה | קיימים סוגי אירועים. | גלאים מאומתים, תרחישי בדיקה עם מדיה, מדידת טעויות והתראות. לא הופעלו שירותי חירום. |
+| שחרור | לא בוצעו commit, push או deploy של השינויים החדשים במשימה זו. | יישוב השינויים המקבילים, commit ממוקד, בניית הגרסה המדויקת, Preview ו-E2E לפני Production. |
 
-## Execution order
+## בדיקות ותוצאות מדויקות
 
-1. Do not advance while the current stage has a failing check.
-2. Do not claim a physical action without provider evidence and ACK.
-3. Do not use demo providers or fake ACKs as acceptance evidence.
-4. Record the command, result, file, blocker, and next action after every run.
+- `node --test scripts/qa/digital-guard-runtime.test.mjs scripts/qa/digital-guard-preview.test.mjs`: **51/51, קוד 0** אחרי התיקון. 37 בדיקות מנוע/API ו-14 בדיקות הפרדת Preview/חשבון QA/גרסת commit/ניקוי וכשל/הרצה מקבילית. הכישלון ההיסטורי 29/30 תוקן; אין להשליך מכך שהחומרה או ה-Preview נבדקו.
+- `npm run qa:digital-observer-product`: **68/68, קוד 0**. כשל DNS בסביבה המוגבלת נפתר בהרצה עם הרשאת רשת; אין לטעון עוד שמסד הנתונים אינו נגיש.
+- `npm run qa:observer-engine-separation`, `qa:digital-observer-event-media`, `qa:dvr-shared-session`, `qa:observer-site-selection`: **קוד 0** בריצות האחרונות. חלקן בדיקות מבנה קוד, לא E2E של ספקים.
+- `./node_modules/.bin/tsc --noEmit --pretty false --incremental false`: **קוד 0** בריצה החדשה, כולל קוד בדיקת Preview ותיקון הרשאות השליטה. שינויי קבצים נוספים אחריה מחייבים בדיקה מחדש.
+- `next build --webpack` בעותק המבודד: **קוד 0**, גם אחרי הוספת מנגנון הפקודות והלמידה המקורי. שיפורי timezone/guardrails מאוחרים ושינויים מקבילים מחייבים בדיקה חדשה.
+- `node scripts/qa/digital-guard-persisted-learning.mjs --run-isolated-fixture`: **נחסם לפני יצירת נתונים**, משום שמפתח השרת המקומי נדחה כ-Unregistered API key. לא נוצרו רשומות בדיקה בריצה זו.
 
-## Latest local evidence
+## שחזור מפתח QA — מצב ולא ערכים
 
-- `npm run qa:observer-engine-separation` — PASS.
-- `npm run qa:digital-observer-event-media` — PASS.
-- `npm run qa:dvr-shared-session` — PASS after the retryable 502/503/504 recovery fix in `observer-live-player.tsx`.
-- `npm run qa:digital-observer-product` — BLOCKED by DNS resolution of the configured Supabase host (`ENOTFOUND`), before login/E2E.
-- `./node_modules/.bin/tsc --noEmit --pretty false` — PASS after the Gateway adapter integration.
+- פרויקט QA שאושר במפורש: `kuaywzvucllxjsxarogb`. מקור: דשבורד Supabase מחובר והגדרות QA תואמות.
+- מפתח חדש בשם `digital_guard_qa_20260831` נוצר בהצלחה בעקבות אישור מפורש ומיידי.
+- הערך לא נשמר בקוד, בקובץ, בלוג או בשיחה.
+- המשימה המתאמת דיווחה שהמפתח **נשמר בהצלחה ב-Vercel**: `SUPABASE_SERVICE_ROLE_KEY`, סביבת Preview, override לענף `codex/digital-guard-engine-eeb919c`, ללא שינוי Production. טרם אומת שימוש מוצלח בסוד בתוך פריסה חדשה.
+- העברה לתהליך QA מקומי נחסמה במדיניות Browser; התהליך נסגר וקוד המסירה הזמני הוסר. לא נוסתה עקיפה.
+- נדרשת פריסה חדשה לענף המאושר. הוכן נתיב בדיקה בתוך השרת, כך שאין צורך למשוך או להעביר את המפתח למחשב. האישור הנוסף לשמירה ב-.env.local לא נוצל במשימה זו; הקובץ נבדק ונמצא מוחרג ואינו מנוהל ב-Git.
+- חשוב: `vercel env run` מתוך תיקיית העבודה נותן להגדרות המקומיות קדימות. בדיקה מבודדת הראתה שסודות Preview אינם ניתנים למשיכה ושהגדרות Development אינן זמינות. לכן 401 מקומי אינו ראיה שהסוד המרוחק ב-Vercel שגוי.
+- בדיקת סודות Production נדחתה בביקורת ההרשאות ולא בוצעה. אין לעקוף את הדחייה.
+
+## רגרסיית השליטה — תוקנה ונוספו בדיקות
+
+בקבצים `camera-command-policy.ts` ו-`camera-actions/route.ts` נכנסו במהלך העבודה שינויים שלא היו בבנייה המבודדת שעברה. לאחר תיאום תוקנו שלוש הנקודות:
+
+1. `automation_policy` ו-`actor=digital_guard` נדחים בסכמה קשיחה. ה-worker מחזיר המלצה לאישור אנושי ואינו שולח פקודה.
+2. כל פקודה דורשת משתמש מחובר ובדיקת ניהול האתר של המצלמה. כותרת סוד פנימי אינה תחליף להזדהות.
+3. דמו מחזיר `simulated=true`, `executed=null`, `audit_recorded=false`; אין טענה לפעולת חומרה או לתיעוד קבוע. הכפילויות בדמו עדיין בזיכרון ומוגבלות לתהליך, ולא ראיה לחסימה קבועה.
+
+בדיקות HTTP מפעילות את ה-handler האמיתי עם גבולות I/O מדומים. הן עברו בלי רשת, מפתחות או חומרה. לא הוחלשו בדיקות ולא נעקפה דחיית בטיחות.
+
+## בדיקת כתיבה מבודדת ב-Preview
+
+- נתיב: `POST /api/digital-observer/qa/learning-fixture`.
+- חסום 404 אלא אם הסביבה Preview, הענף המאושר וכתובת פרויקט QA תואמים בדיוק. נדרש bearer של חשבון home QA בעל אימייל מאומת וללא garden_id.
+- הבקשה מכילה רק אישור בדיקה ו-`expected_commit`; אי-התאמת SHA לפריסה נחסמת לפני יצירת נתונים. אין בחירה של אתר/מצלמה קיימים מצד הלקוח.
+- נוצר אתר סינתטי לא פעיל עם שתי מצלמות demo/sandbox. מפתח אתר שרתי קבוע לכל חשבון מונע הרצות מקבילות; marker אקראי מונע ניקוי של הרצה אחרת.
+- נבדקים 48 מדדי בסיס, דגימת חריגה, replay, הפרדת מצלמות, outbox, קריאה דרך RLS של הבעלים ורישום לבדיקה אנושית בלבד.
+- `finally` מנקה רק לאחר אימות בעלים ו-marker, ומוודא שלא נשארו רשומות. ניקוי שנכשל מסומן ככישלון, עם מזהה אתר מדויק להמשך טיפול.
+- runner: `scripts/qa/run-guard-preview-learning.mjs --run-isolated-fixture --url=<verified-preview-origin> --commit=<verified-full-sha>`; משתמש בהתחברות QA רגילה בלבד, אינו מושך מפתח שרת ואינו מדפיס תשובות גולמיות.
+- טרם הורץ מול Preview חי. אין לסמן בדיקת כתיבה כמושלמת על סמך 14 הבדיקות המדומות שלה.
+
+## סדר ההמשך
+
+1. בדיקות ההרשאה והפרדת הדמו חזרו לירוק; לוודא שהגרסה המדויקת נכללת בפריסה.
+2. לפרוס Preview חדש לענף המאושר, להריץ בדיקת כתיבה מבודדת ולאמת ניקוי. הפריסה מתואמת עם משימת git/deploy.
+3. לחבר Gateway ממשי עם התאמת מזהי פקודות, תוקף, idempotency בצד הספק ואישור ביצוע מפורש.
+4. להשלים שאילתות הצ׳אט, זיהוי Standard והתרעות הבטיחות לפי הספקים שהוגדרו.
+5. לבנות את הגרסה המשולבת המדויקת, לפרוס ל-Preview, לבצע E2E ורק אז לשקול שחרור.
+
+לא בוצעה הפעלה פיזית של מצלמה, סירנה, תאורה או מוקד חירום במסגרת הבדיקות.
