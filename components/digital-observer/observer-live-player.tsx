@@ -62,7 +62,8 @@ async function requestPlaybackSession(observerSiteId: string, cameraSourceId: st
       });
       const payload = await response.json().catch(() => ({}));
       if (!response.ok) {
-        if (response.status === 503 && attempt < 2) {
+        const retryableGatewayFailure = response.status === 503 || (response.status !== 503 && [502, 504].includes(response.status));
+        if (retryableGatewayFailure && attempt < 2) {
           await new Promise((resolve) => setTimeout(resolve, 1200 * (attempt + 1)));
           continue;
         }

@@ -6,6 +6,7 @@ import { ObserverCameraMedia } from "@/components/digital-observer/observer-came
 import { ObserverCameraPresence } from "@/components/digital-observer/observer-camera-presence";
 import { ObserverLivePlayer } from "@/components/digital-observer/observer-live-player";
 import { ObserverCameraControls } from "@/components/digital-observer/observer-camera-controls";
+import { ObserverCapabilityPanel } from "@/components/digital-observer/observer-capability-panel";
 import { ObserverConversationPanel } from "@/components/digital-observer/observer-intelligence-experience";
 import { requireDigitalObserverUser } from "@/lib/domain/digital-observer/access";
 import { digitalObserverCameraHasLiveGateway } from "@/lib/domain/digital-observer/camera-live-status";
@@ -96,6 +97,7 @@ export default async function DigitalObserverCamerasPage({ searchParams }: PageP
           {selectedHasLiveGateway && site ? <ObserverLivePlayer large observerSiteId={site.id} cameraSourceId={selected.id} name={selected.display_name || "מצלמה"} /> : <ObserverCameraMedia large name={selected.display_name} mode={mode} scene={selected.preview_scene || sceneFor(cameras.indexOf(selected), mode)} status={selected.status || selected.health_status} sourceMode={selected.source_mode} />}
           <ObserverCameraPresence active={selectedHasLiveGateway} />
           {selectedHasLiveGateway ? <ObserverCameraControls cameraSourceId={selected.id} name={selected.display_name || "מצלמה"} talkSupported={Boolean(selected.metadata?.talk_supported)} capabilities={selected.capabilities ?? {}} /> : <div className="do-camera-live-controls" aria-label="פעולות צפייה חיה"><button type="button" disabled><Volume2 /><strong>שמע</strong><small>תצפיתן כבוי</small></button><button type="button" disabled><Camera /><strong>צילום</strong><small>ממתין לחיבור</small></button><button type="button" disabled><Mic /><strong>דבר</strong><small>תצפיתן כבוי</small></button><button type="button" disabled><Video /><strong>הקלטה</strong><small>אירועים בלבד</small></button></div>}
+          <ObserverCapabilityPanel cameraSourceId={selected.id} />
           <div className="do-camera-quick-actions" aria-label="פעולות מהירות">
             <button type="button" disabled title="חיבור לבית חכם עדיין אינו פעיל"><Lightbulb /><span><strong>אור חכם</strong><small>מוכן להגדרה</small></span></button>
             <button type="button" disabled title="הפעלת אזעקה חיה אינה זמינה בשלב ההכנה"><Siren /><span><strong>אזעקה</strong><small>לא פעיל בפיילוט</small></span></button>
