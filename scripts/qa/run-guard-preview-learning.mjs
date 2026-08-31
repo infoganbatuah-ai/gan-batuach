@@ -3,7 +3,7 @@ import { readFileSync, existsSync } from "node:fs";
 import { parseEnv } from "node:util";
 import { createClient } from "@supabase/supabase-js";
 
-// Normal QA user authentication only. Never load, pull or transmit a server key.
+// Normal QA user authentication only. Never use, pull or transmit a server key.
 const allowedKeys = new Set(["NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", "NEXT_PUBLIC_SUPABASE_ANON_KEY",
   "QA_DEMO_DIGITAL_OBSERVER_HOME_PASSWORD", "QA_DEMO_DIGITAL_OBSERVER_PASSWORD"]);
 const config = {};
@@ -36,6 +36,14 @@ try {
   console.log(`Preview fixture HTTP: ${response.status}`);
   assert.ok(response.headers.get("content-type")?.includes("application/json"), "Preview endpoint unavailable or deployment protection active");
   const body = await response.json();
+  const safeFailures = new Map([
+    ["Authentication required", "application_authentication_required"],
+    ["QA account required", "wrong_qa_account"],
+    ["Not found", "preview_environment_guard"],
+    ["Preview commit mismatch; no fixture created", "commit_mismatch"],
+    ["Explicit isolated fixture confirmation required", "fixture_confirmation_required"]
+  ]);
+  if (safeFailures.has(body?.error)) console.log(`Guard QA rejection: ${safeFailures.get(body.error)}`);
   // Output allowlist, not the raw response (including on authentication failures).
   const report = body?.data;
   if (report) console.log(JSON.stringify({

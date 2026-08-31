@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { fail, ok } from "@/lib/api";
 import { getDigitalObserverApiUser } from "@/lib/domain/digital-observer/access";
-import { GUARD_QA_EMAIL, guardQaEnvironmentAllowed, runGuardLearningFixture } from "@/lib/domain/digital-observer/qa-learning-fixture";
+import { guardQaUserAllowed, guardQaEnvironmentAllowed, runGuardLearningFixture } from "@/lib/domain/digital-observer/qa-learning-fixture";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
@@ -16,8 +16,7 @@ export async function POST(request: Request) {
   try {
     const session = await getDigitalObserverApiUser(request);
     if (!session) return fail("Authentication required", 401);
-    if (session.user.email?.toLowerCase() !== GUARD_QA_EMAIL || !session.user.email_confirmed_at
-      || session.profile.id !== session.user.id || session.profile.garden_id) return fail("QA account required", 403);
+    if (!guardQaUserAllowed(session)) return fail("QA account required", 403);
     const body = bodySchema.safeParse(await request.json());
     if (!body.success) return fail("Explicit isolated fixture confirmation required", 422);
     if (body.data.expected_commit !== process.env.VERCEL_GIT_COMMIT_SHA) return fail("Preview commit mismatch; no fixture created", 409);

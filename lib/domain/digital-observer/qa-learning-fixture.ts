@@ -11,6 +11,11 @@ export function guardQaEnvironmentAllowed(env: Record<string, string | undefined
     && env.NEXT_PUBLIC_SUPABASE_URL === GUARD_QA_PROJECT_URL;
 }
 
+export function guardQaUserAllowed(session: { user: { id: string; email?: string; email_confirmed_at?: string }; profile: { id: string; garden_id?: string | null } }) {
+  return session.user.email?.toLowerCase() === GUARD_QA_EMAIL && Boolean(session.user.email_confirmed_at)
+    && session.profile.id === session.user.id && !session.profile.garden_id;
+}
+
 type DatabaseClient = any;
 type FixtureReport = {
   passed: boolean; checks: string[]; failed_step: string | null;
