@@ -900,6 +900,9 @@ async function startRelay(streamId) {
   const copyVideo = source.codec === "h264" && process.env.VIDEO_GATEWAY_FORCE_TRANSCODE !== "1";
   const args = [
     "-hide_banner", "-loglevel", "error",
+    // Bound each channel's decoder/filter pools; ten automatic CPU-sized
+    // pools otherwise compete with the browser and local inference runtime.
+    "-threads", "1", "-filter_threads", "1",
     "-i", "pipe:0",
     "-map", "0:v:0",
     "-an",
@@ -907,6 +910,7 @@ async function startRelay(streamId) {
       ? ["-c:v", "copy"]
       : [
         "-c:v", "libx264",
+        "-threads", "2",
         "-preset", process.env.VIDEO_GATEWAY_X264_PRESET || "veryfast",
         "-tune", "zerolatency",
         "-pix_fmt", "yuv420p",
@@ -1264,7 +1268,7 @@ async function handle(request, response) {
         activeRelays: relays.size,
         progressingRelays: [...relays.values()].filter(relayIsProgressing).length,
         stalledRelays: [...relays.values()].filter((relay) => !relayIsProgressing(relay)).length,
-        inputs: [...relays.entries()].map(([streamId, relay]) => ({ channel: streamSources.get(streamId)?.channel, ...relay.inputMetrics.snapshot(), stdin_backpressure: relay.process.stdin.writableNeedDrain, stdin_queued_bytes: relay.process.stdin.writableLength })),
+        inputs: [...relays.entries()].map(([streamId, relay]) => ({ channel: streamSources.get(streamId)?.channel, input_codec: ["h264", "hevc", "mjpeg", "mpeg4"].includes(streamSources.get(streamId)?.codec) ? streamSources.get(streamId).codec : "unknown", ...relay.inputMetrics.snapshot(), stdin_backpressure: relay.process.stdin.writableNeedDrain, stdin_queued_bytes: relay.process.stdin.writableLength })),
         lifecycle: relayLifecycle
       },
       edge,
