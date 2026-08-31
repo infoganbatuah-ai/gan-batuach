@@ -10,6 +10,7 @@ import { localEdgeReadiness, warmLocalEdgeReadiness } from "./edge-readiness.mjs
 import { discoverPrivateNvrCapabilities } from "./private-nvr-capabilities.mjs";
 import { refreshDeviceCredentials } from "./device-refresh.mjs";
 import { createKeychainStore } from "./keychain-store.mjs";
+import { createPrivateNvrPreflightDriver } from "./private-nvr-command-preflight.mjs";
 
 const PORT = Number(process.env.PORT || process.env.VIDEO_GATEWAY_PORT || 8080);
 const HOST = process.env.HOST || process.env.VIDEO_GATEWAY_HOST || "0.0.0.0";
@@ -46,7 +47,17 @@ let deviceAccessRefreshPromise = null;
 let deviceAuthorizationState = "unknown";
 let rejectedDeviceIdentity = "";
 let cameraActionPollPromise = null;
+let pendingCameraActionResult = null;
 const CLOUD_AUTH_TIMEOUT_MS = 10_000;
+const preflightDriver = createPrivateNvrPreflightDriver({
+  resolveSource: (streamId) => streamSources.get(streamId),
+  probe: async (source, timeoutMs) => {
+    const session = privateNvrSessions.get(source.sessionKey);
+    if (!session) return null;
+    const evidence = await discoverPrivateNvrCapabilities({ session, channels: [source.channel], timeoutMs });
+    return evidence.get(source.channel) ?? null;
+  }
+});
 
 mkdirSync(HLS_ROOT, { recursive: true });
 
@@ -134,13 +145,14 @@ async function claimCloudPlaybackGrant(grant) {
   return String(payload.data.gateway_stream_id);
 }
 
-async function reportCameraActionResult(cloudBaseUrl, accessToken, requestId, outcome, resultCode) {
-  await fetch(`${cloudBaseUrl}/api/video-gateway/camera-actions`, {
+async function reportCameraActionResult(cloudBaseUrl, accessToken, requestId, outcome, resultCode, outcomePayload) {
+  const response = await fetch(`${cloudBaseUrl}/api/video-gateway/camera-actions`, {
     method: "POST",
     headers: { "content-type": "application/json", "x-video-gateway-device-token": accessToken },
-    body: JSON.stringify({ action: "result", request_id: requestId, outcome, result_code: resultCode }),
+    body: JSON.stringify({ action: "result", request_id: requestId, outcome, result_code: resultCode, ...(outcomePayload ? { outcome_payload: outcomePayload } : {}) }),
     signal: AbortSignal.timeout(CLOUD_AUTH_TIMEOUT_MS)
   }).catch(() => null);
+  return response?.ok === true;
 }
 
 async function pollCloudCameraActions() {
@@ -148,6 +160,13 @@ async function pollCloudCameraActions() {
   if (!cloudBaseUrl || !GATEWAY_KEYCHAIN_SERVICE) return;
   try {
     const accessToken = await refreshGatewayDeviceAccess();
+    // Retry the same safe ACK after a transient cloud failure. Never repeat a
+    // device probe simply because result delivery was interrupted.
+    if (pendingCameraActionResult) {
+      const pending = pendingCameraActionResult;
+      if (pending.expires <= Date.now() || await reportCameraActionResult(cloudBaseUrl, accessToken, pending.id, pending.outcome, pending.result_code, pending.outcome_payload)) pendingCameraActionResult = null;
+      return;
+    }
     const response = await fetch(`${cloudBaseUrl}/api/video-gateway/camera-actions`, {
       method: "POST",
       headers: { "content-type": "application/json", "x-video-gateway-device-token": accessToken },
@@ -157,6 +176,14 @@ async function pollCloudCameraActions() {
     const payload = await response.json().catch(() => ({}));
     const action = payload.data?.action_request;
     if (!response.ok || !action?.id) return;
+    if (["capability_snapshot", "command_preflight"].includes(action.task_kind)) {
+      const identity = { gatewayId: await keychainSecret("device_gateway_id"), siteId: await keychainSecret("device_observer_site_id") };
+      const result = await preflightDriver(action, identity).catch(() => ({ outcome: "failed", result_code: "preflight_validation_or_expiry_failed" }));
+      const expires = Date.parse(action.expires_at);
+      pendingCameraActionResult = { id: String(action.id), expires: Number.isFinite(expires) ? Math.min(expires, Date.now() + 120_000) : Date.now(), ...result };
+      if (await reportCameraActionResult(cloudBaseUrl, accessToken, String(action.id), result.outcome, result.result_code, result.outcome_payload)) pendingCameraActionResult = null;
+      return;
+    }
     // An executor is added only together with a read-only capability probe for
     // that exact adapter. Unknown adapters fail closed and cannot reach the DVR.
     await reportCameraActionResult(cloudBaseUrl, accessToken, String(action.id), "failed", "adapter_executor_not_installed");
