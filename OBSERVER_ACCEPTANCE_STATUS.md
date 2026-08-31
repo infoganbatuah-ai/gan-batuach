@@ -4,6 +4,43 @@ Updated: 2026-08-31. This is the project acceptance source of truth, NOT a
 completed-product declaration. Every item requires deployed, current evidence.
 Recorder recording schedules/storage administration are outside this task.
 
+## Latest Scoped Evidence: 20:36 UTC
+
+This update supersedes older local counts below, but does not supersede another
+workstream's production release or mark any complete-product gate accepted.
+
+- The installed persistent Gateway and registered sources remain intact. Real
+  discovery at 20:29:39.977 UTC found 16 channels: ten connected and six offline.
+  No source/site was recreated and no recorder setting or physical control changed.
+- Runtime fixes through `108751d8` are installed locally: asynchronous bounded
+  Keychain access, contained poll errors, non-disruptive discovery, session
+  heartbeat, verified hardware conversion, per-channel recovery and bounded final
+  video flush. QA/evidence through `7fca2902` was pushed to the scoped work branch.
+  This was not another Vercel deployment. See
+  [the detailed live evidence](docs/observer-live-stability-2026-08-31.md).
+- Exact local observation over 300.37 seconds measured 297.36-300.8 new media
+  seconds for all ten channels, with no missing sequence numbers or resets.
+  Upstream reconnection still paused sequence advancement for 3.019-4.024 seconds.
+  Browser playback, fullscreen and event-media acceptance remain pending because
+  Chrome control is unavailable; sequence completeness is not uninterrupted video.
+- Post-restart cloud policy permits analysis for ten connected sources only and
+  denies it for all six offline sources. The existing journal loop sampled eight
+  at 20:36:01.735 UTC, with zero pending deliveries/failures. One source lacks a
+  configured crossing line and another requires a specialized detector. Model
+  self-test passed; identity, event accuracy and temporal coverage remain unproven.
+- The next unblocked code check identified RTSP false-positive readiness after
+  malformed probe output, plus an obsolete socket-timeout option. Local-only QA
+  now covers malformed/truncated/oversized output, late completion after failure,
+  video/audio metadata preservation and source isolation. These RTSP changes are
+  NOT installed or live-verified. No new DVR request or restart was used for them.
+- The generic Docker recipe still copies only `server.mjs`, although that server
+  imports several local modules. Container packaging/import validation remains a
+  separate unaccepted gate; this observation does not affect the explicitly
+  guarded Mac installation and is not a Docker build result.
+- The Mac must remain powered, awake and network-connected. The existing AC
+  awake guard was separately verified; this is not off-host availability or
+  cross-device relay acceptance.
+
 ## Required End-to-End Workflow
 
 Digital Observer is not accepted as a live dashboard alone. The required flow is:
@@ -35,26 +72,30 @@ Owner names below describe accountable workstreams, not external approvals.
 
 | Requirement | Owner | Status | Current evidence | Next gate / blocker |
 | --- | --- | --- | --- | --- |
-| Local live, thumbnails, fullscreen and offline isolation | Gateway + Web | Partial | b150f891 production READY; nine streams advanced in pre-release samples, seven disconnected | Fresh post-release sustained Chrome media-time + fullscreen E2E; automation timed out |
+| Local live, thumbnails, fullscreen and offline isolation | Gateway + Web | Partial | Installed runtime: ten local streams progressing, six offline; exact five-minute media measurement and automatic recovery | Current Chrome media-time/fullscreen E2E blocked; upstream recovery still pauses 3-4 seconds |
 | HTTPS cross-device relay | Gateway + Infrastructure | Blocked / implementation partial | Scoped relay fixture and fail-closed Realtime bootstrap QA pass; owned DNS zone verified | Cloudflare Worker creation denied Authentication error 10000; no Worker/SFU created; grant flow, publisher/subscriber, quota and cross-device media test still required |
 | Event-only media, no new face capture | Edge + Privacy | Not accepted | Event-media regression QA passes, no live identity work done | Prove 48-hour deletion/download enforcement, no continuous archive and no new live/event face capture in code + production audit |
 | Per-person biometric enrollment, consent, revocation and deletion | Identity + Privacy | Disabled pending proof | Consent/audit scaffolding; local health reports recognition false | Confirm migration/RLS; user-driven profile enrollment only, approved matching model and consent/revocation E2E |
 | Resident / authorized visitor / unrecognized classification | Identity + Events | Not accepted | Required states defined above; no matching evidence | Tenant-safe profile lookup and uncertain/unknown fallback; never assert physical access denial |
 | Entry/exit events and review notifications | Edge + Events | Not accepted | General event route exists, no current full workflow proof | Tested entry/exit model/rule with evidence, consented lookup, delivery and user review E2E |
 | Reasoned journal, event thumbnail/clip, summaries and audit | Events + Web | Deployed / media E2E partial | edb58921 READY; persisted approved audit read after refresh; thumbnail and 8-second clip loaded; prior release clip played to ended | Renew time-advancement after transport recovery; this is not AI entry/identity evidence; deletion worker and delivery still unverified |
-| Edge / AI Shadow readiness and processing | Edge | Partial | Local runtime object/person/non-identifying face self-tests previously true | Fresh consent + runtime/model/hardware + sustained per-channel inference proof; audio/fire/distress/general learning unproven |
+| Edge / AI Shadow readiness and processing | Edge | Partial | Post-restart model self-test and consent gates verified; analysis allowed for ten connected, eight sampled, six offline denied | Resolve two rule/detector coverage gaps; verify detection accuracy and temporal coverage; identity/audio/fire/distress/general learning unproven |
 | Per-camera capability map and gated controls | Gateway + Web | Partial, physical execution off | Capability/action gate QA passes | Read-only per-channel evidence with freshness; adapter, immediate confirmation and audit before action test |
 | Observer decisions, permissions and human fallback | Policy + Assistant | Partial | Approval/audit route exists | Full detect-to-decision-to-review workflow, uncertainty fallback and no chat-to-action bypass |
 | Professional evidence-grounded event narrative | Events + Policy | Deployed / report and audit read verified | edb58921 READY; signed-in media-check report shows facts, uncertainty, baseline unknown, risk and persisted review history | Repeat post-release clip advancement after browser timeout; not AI anomaly/identity evidence |
 | Chat action interface | Assistant + Policy | Partial / catalog required | Existing watch-request and gated physical-action offers | Explicit intent/action catalog, role/site/consent/capability checks, audited non-physical execution and actionable next conditions; physical confirmation remains separate |
-| Fair coverage of every source | Edge + Events + Web | Not accepted / gaps identified | Runner attempts connected sources, but concurrently and discards failures; site metrics are attached to the first source | Bounded fair single-flight scheduler, per-source last analysis/events and no-event/no-media/offline/failure states; 48-hour existing-event coverage, not a DVR archive scan |
+| Fair coverage of every source | Edge + Events + Web | Not accepted / gaps identified | Current journal attempts sixteen, samples eight and reports eight explicit rule/detector/offline gaps without discarding failures | Verify temporal coverage, per-source UI and larger-set fairness; no-event is not proof that an interval was examined |
 | Privacy-safe continuous learning and semantic zones | Edge + Privacy + Assistant | Not accepted | Editable camera names and local aggregate scaffolding exist; no verified per-zone baseline | User-controlled names/zones across chat/events/daily summaries; opt-in bounded warmup/adaptation, corrections, explainability, reset/forget/export/audit and sustained per-camera evidence |
 | Push/email/WhatsApp/emergency delivery | Notifications + Operations | Blocked pending provisioning/authority | No provider delivery acceptance; no emergency calls placed | Verified accounts/consents/address/escalation, sandbox tests, explicit operational authority, budget enforcement |
-| Site-preserving onboarding and source mapping | Web + Gateway | Partial | Source-scoped playback validation tested | Same-site edits/resume, multi-channel recorder vs single IP camera, cross-device enrollment E2E |
+| Site-preserving onboarding and source mapping | Web + Gateway | Partial | Source-scoped playback validation tested; RTSP probe fail-closed/timeout fixes pass isolated QA, not installed | Same-site edits/resume, real multi-channel vs single IP discovery, cross-device enrollment E2E |
 | Mobile portrait/PWA/install identity | Web + Mobile | Partial | Existing implementation, no renewed visual acceptance | 360/390px, tablet/desktop and signed-in installed-app QA without hidden features |
 | Production release, scale/security/cost | Release + Infrastructure | In progress | edb58921 READY production target; build/typecheck pass | Remaining scoped work + browser/audit evidence; 10,000-user load test and <= NIS 15/customer total provider budget |
 
-## Current Release Evidence
+## Recorded Release Evidence
+
+The following release observations are historical. Use the latest scoped runtime
+evidence above for current local counts; do not infer the current production
+target or current E2E acceptance from an earlier READY deployment.
 
 - Current narrative/audit production: `edb589218d99e7246eb1f51d4b12cfb10f7f6cad`,
   deployment `dpl_GVSgKEAMZZCsX6sf38Y26bqtYJ8c`, READY; authenticated project

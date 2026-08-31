@@ -14,6 +14,7 @@ import { createPrivateNvrPreflightDriver } from "./private-nvr-command-preflight
 import { createPrivateNvrHeartbeat } from "./private-nvr-heartbeat.mjs";
 import { createRelayInputMetrics } from "./relay-input-metrics.mjs";
 import { createHardwareTranscoder, hardwareDecodeArgs, hardwareEncodeArgs } from "./hardware-transcoder.mjs";
+import { parseProbeResult, MAX_PROBE_OUTPUT_BYTES } from "./probe-result.mjs";
 
 const PORT = Number(process.env.PORT || process.env.VIDEO_GATEWAY_PORT || 8080);
 const HOST = process.env.HOST || process.env.VIDEO_GATEWAY_HOST || "0.0.0.0";
@@ -716,43 +717,41 @@ async function discoverPrivateNvr(payload, channelCount) {
 
 function probeRtsp(url) {
   return new Promise((resolve) => {
+    const timeoutMs = Number.isFinite(PROBE_TIMEOUT_MS) ? Math.max(1000, PROBE_TIMEOUT_MS) : 3500;
     const args = [
       "-v", "error",
       "-rtsp_transport", "tcp",
-      "-stimeout", String(Math.max(1000, PROBE_TIMEOUT_MS) * 1000),
+      "-timeout", String(timeoutMs * 1000),
       "-show_entries", "stream=codec_name,codec_type,width,height",
       "-of", "json",
       url
     ];
     const child = spawn("ffprobe", args, { stdio: ["ignore", "pipe", "ignore"] });
     let output = "";
-    const timeout = setTimeout(() => {
-      child.kill("SIGKILL");
-      resolve({ ok: false, reason: "timeout" });
-    }, PROBE_TIMEOUT_MS + 500);
+    let bytes = 0, settled = false;
+    let timeout;
+    const finish = (result, terminate = false) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timeout);
+      output = "";
+      resolve(result);
+      if (terminate && child.exitCode === null && !child.killed) child.kill("SIGKILL");
+    };
+    timeout = setTimeout(() => finish({ ok: false, reason: "timeout" }, true), timeoutMs + 500);
     child.stdout.on("data", (chunk) => {
-      output += chunk.toString("utf8");
-      if (output.length > 20000) output = output.slice(-20000);
-    });
-    child.on("error", () => {
-      clearTimeout(timeout);
-      resolve({ ok: false, reason: "probe_unavailable" });
-    });
-    child.on("close", (code) => {
-      clearTimeout(timeout);
-      if (code !== 0) {
-        resolve({ ok: false, reason: "unreachable" });
+      if (settled) return;
+      bytes += chunk.byteLength;
+      if (bytes > MAX_PROBE_OUTPUT_BYTES) {
+        finish({ ok: false, reason: "probe_response_too_large" }, true);
         return;
       }
-      try {
-        const parsed = JSON.parse(output || "{}");
-        const streams = Array.isArray(parsed.streams) ? parsed.streams : [];
-        const stream = streams.find((item) => item.codec_type === "video");
-        const audio = streams.find((item) => item.codec_type === "audio");
-        resolve({ ok: Boolean(stream), reason: stream ? "video_stream_found" : "no_video_stream", audio: Boolean(audio), audio_codec: audio?.codec_name ?? null, width: stream?.width ?? null, height: stream?.height ?? null });
-      } catch {
-        resolve({ ok: true, reason: "probe_completed" });
-      }
+      output += chunk.toString("utf8");
+    });
+    child.on("error", () => finish({ ok: false, reason: "probe_unavailable" }));
+    child.on("close", (code) => {
+      if (settled) return;
+      finish(code === 0 ? parseProbeResult(output) : { ok: false, reason: "unreachable" });
     });
   });
 }

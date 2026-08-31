@@ -1,4 +1,5 @@
 import { spawnSync } from "node:child_process";
+import { parseProbeResult } from "../../services/video-gateway/probe-result.mjs";
 
 const keychainService = "com.ganbatuach.video-gateway.runtime";
 
@@ -21,7 +22,7 @@ function probe(url) {
   const result = spawnSync("ffprobe", [
     "-v", "error",
     "-rtsp_transport", "tcp",
-    "-stimeout", "4000000",
+    "-timeout", "4000000",
     "-select_streams", "v:0",
     "-show_entries", "stream=codec_type",
     "-of", "json",
@@ -29,11 +30,7 @@ function probe(url) {
   ], { encoding: "utf8", timeout: 5_000, stdio: ["ignore", "pipe", "ignore"] });
   if (result.error?.code === "ETIMEDOUT") return false;
   if (result.status !== 0) return false;
-  try {
-    return JSON.parse(result.stdout || "{}").streams?.some((stream) => stream.codec_type === "video") === true;
-  } catch {
-    return false;
-  }
+  return parseProbeResult(result.stdout || "").ok;
 }
 
 const profile = JSON.parse(keychain("dvr_profile_json"));
