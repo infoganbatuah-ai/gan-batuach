@@ -90,7 +90,6 @@ async function waitForGateway() {
 let channels = [];
 let consecutiveEmptyDiscoveries = 0;
 async function discover() {
-  const health = await fetch(`${gatewayUrl}/health`, { signal: AbortSignal.timeout(10_000) }).then((response) => response.ok ? response.json() : {}).catch(() => ({}));
   const response = await fetch(`${gatewayUrl}/dvr/connect`, { method: "POST", headers: { "content-type": "application/json", "x-video-gateway-secret": gatewaySecret }, body: JSON.stringify({ connection_type: "dvr", endpoint: config.endpoint, port: config.port, username: config.username, password, metadata: { vendor: config.vendor, expected_channel_count: config.channel_count, read_only_requested: true } }), signal: AbortSignal.timeout(DISCOVERY_REQUEST_TIMEOUT_MS) });
   const result = await response.json();
   if (!response.ok) throw new Error("DVR discovery failed");
@@ -109,6 +108,9 @@ async function discover() {
   } else {
     consecutiveEmptyDiscoveries = 0;
   }
+  // Model warmup can finish during recorder discovery. Publish a fresh
+  // capability observation, never the snapshot from before the scan.
+  const health = await fetch(`${gatewayUrl}/health`, { signal: AbortSignal.timeout(10_000) }).then((response) => response.ok ? response.json() : {}).catch(() => ({}));
   const mapped = await signedPost("/api/video-gateway/cloud-discovery", { gateway_id: gatewayId, observer_site_id: observerSiteId, connection_type: "dvr", vendor: config.vendor, discovery_id: crypto.randomUUID(), discovered_at: new Date().toISOString(), channel_count: channels.length, connected_channel_count: channels.filter((channel) => channel.status === "connected").length, failed_channel_count: channels.filter((channel) => channel.status !== "connected").length, latency_ms: Number(result.latency_ms || 0), read_only: true, controls_supported: result.controls_supported === true, no_secrets_returned: true, channels, metadata: { source: "persistent_home_gateway", ai_shadow_only: true, read_only: true, edge_capability_contract: health.edge_capability_contract ?? null } }, { deviceAccess: true });
   const mappedPayload = mapped?.data && typeof mapped.data === "object" ? mapped.data : mapped;
   const mappedChannels = Array.isArray(mappedPayload?.channels) ? mappedPayload.channels : [];
