@@ -2,6 +2,7 @@
 
 import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import {
   AlertTriangle,
   BrainCircuit,
@@ -39,6 +40,8 @@ type ConversationMessage = {
   role: "user" | "observer";
   text: string;
   source?: string;
+  actionState?: string;
+  links?: { label: string; href: string }[];
   actionOffer?: {
     available: boolean;
     reason?: string;
@@ -124,6 +127,8 @@ export function ObserverConversationPanel({
         role: "observer",
         text: data.answer,
         source: data.live_ai_used ? "AI מקומי מאומת" : (data.source_label || "אירועים מאומתים וסטטוס חיבור"),
+        actionState: ({ saved: "הנחיה נשמרה, טרם הופעלה", executed: "המידע השמור נקרא", awaiting_confirmation: "ממתין לאישור פעולה", blocked: "חסרים תנאים להפעלה", needs_clarification: "נדרש פירוט" } as Record<string, string>)[data.action_result?.state],
+        links: data.links,
         actionOffer: data.suggested_camera_action
       }]);
     } catch (requestError) {
@@ -153,7 +158,7 @@ export function ObserverConversationPanel({
         {messages.map((message) => (
           <article className={`do-chat-message ${message.role}`} key={message.id}>
             {message.role === "observer" ? <Sparkles /> : null}
-            <div><p>{message.text}</p>{message.source ? <small>מקור: {message.source}</small> : null}{message.actionOffer ? message.actionOffer.available ? <button className="do-button primary" type="button" disabled={actionBusy} onClick={() => void approveAction(message.actionOffer!)}>{actionBusy ? <LoaderCircle className="do-spin" /> : <ShieldCheck />} {message.actionOffer.label} באישור</button> : <small>{message.actionOffer.reason}</small> : null}</div>
+            <div><p>{message.text}</p>{message.actionState ? <small role="status">{message.actionState}</small> : null}{message.source ? <small>מקור: {message.source}</small> : null}{message.links?.length ? <nav aria-label="מסכים וראיות הקשורים לתשובה" className="do-conversation-context-links">{message.links.map((link) => <Link href={link.href} key={link.href}>{link.label}</Link>)}</nav> : null}{message.actionOffer ? message.actionOffer.available ? <button className="do-button primary" type="button" disabled={actionBusy} onClick={() => void approveAction(message.actionOffer!)}>{actionBusy ? <LoaderCircle className="do-spin" /> : <ShieldCheck />} {message.actionOffer.label} באישור</button> : <small>{message.actionOffer.reason}</small> : null}</div>
           </article>
         ))}
         {busy ? <article className="do-chat-message observer is-typing"><LoaderCircle className="do-spin" /><div><p>בודק את האירועים, המצלמות ודפוסי השגרה...</p></div></article> : null}

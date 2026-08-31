@@ -46,10 +46,12 @@ function baselineSummary(baseline: Record<string, any>) {
   return "הדפוס נבנה מאירועים שנקלטו ומשוב שאומת באתר.";
 }
 
-export default async function DigitalObserverRulesPage() {
+export default async function DigitalObserverRulesPage({ searchParams }: { searchParams?: Promise<{ site?: string }> }) {
+  const params = await searchParams;
   const { profile } = await requireDigitalObserverUser("/digital-observer/login?next=/digital-observer/rules");
   const runtime = await loadObserverRuntime(profile.id);
-  const site = selectObserverSite(runtime.sites, runtime.cameras);
+  const selectedSite = selectObserverSite(runtime.sites, runtime.cameras, params?.site);
+  const site = params?.site && selectedSite?.id !== params.site ? null : selectedSite;
   const mode = observerModeForSite(site);
   const cameras = site ? runtime.cameras.filter((item) => item.observer_site_id === site.id) : [];
   const activeCameras = cameras.filter(digitalObserverCameraHasLiveGateway);

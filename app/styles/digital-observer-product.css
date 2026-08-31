@@ -2699,6 +2699,8 @@
 .do-chat-message > div { padding: 10px 12px; background: #edf8f6; border: 1px solid #c9e9e4; border-radius: 7px; }
 .do-chat-message p { margin: 0; white-space: pre-line; line-height: 1.55; }
 .do-chat-message small { display: block; margin-top: 5px; color: var(--do-muted); font-size: 10px; }
+.do-conversation-context-links { display: flex; flex-wrap: wrap; gap: 4px 12px; margin-top: 8px; }
+.do-conversation-context-links a { display: inline-flex; align-items: center; min-height: 44px; max-width: 100%; color: var(--do-teal-dark); font-size: 13px; line-height: 1.45; text-decoration: underline; overflow-wrap: anywhere; }
 .do-chat-message.user { justify-self: end; grid-template-columns: minmax(0, 1fr); }
 .do-chat-message.user > div { color: #fff; background: var(--do-navy); border-color: var(--do-navy); }
 .do-chat-message.is-typing { opacity: 0.76; }

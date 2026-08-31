@@ -1,7 +1,11 @@
 import { z } from "zod";
+import { randomUUID } from "node:crypto";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
-import { formatObserverDate, observerEventLabel } from "@/lib/domain/digital-observer/runtime";
+import { formatObserverDate } from "@/lib/domain/digital-observer/runtime";
+import { observerEventNarrative } from "@/lib/domain/digital-observer/event-narrative";
+import { observerConversationCatalog, observerConversationLinks, parseObserverConversationIntent, verifiedConversationActionEvidence } from "@/lib/domain/digital-observer/conversation-actions";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 const schema = z.object({
   observer_site_id: z.string().uuid(),
@@ -20,30 +24,6 @@ type SignalRow = {
   metadata: Record<string, unknown> | null;
   created_at: string;
 };
-
-const physicalActionPatterns = [
-  { tokens: ["סירנה", "אזעקה"], action_type: "siren_on", capability: "siren", label: "הפעלת סירנה ל-5 שניות", parameters: { duration_seconds: 5 } },
-  { tokens: ["אור", "תאורה"], action_type: "light_on", capability: "light", label: "הפעלת תאורה", parameters: {} },
-  { tokens: ["דבר", "דיבור", "כריזה"], action_type: "talkback", capability: "talkback", label: "פתיחת דיבור דו-כיווני", parameters: {} },
-  { tokens: ["הזז", "ptz", "סובב"], action_type: "ptz_pan", capability: "ptz", label: "הזזת המצלמה שמאלה", parameters: { direction: "left", duration_ms: 350 } }
-] as const;
-
-function physicalActionFromMessage(message: string) {
-  return physicalActionPatterns.find((item) => matchesAny(message, [...item.tokens])) ?? null;
-}
-
-function verifiedActionEvidence(camera: any, capability: string) {
-  const evidence = camera?.capabilities?.capability_evidence?.[capability] ?? camera?.metadata?.channel_capabilities?.[capability];
-  const testedAt = Date.parse(String(evidence?.tested_at ?? ""));
-  return evidence?.supported === true
-    && Boolean(evidence?.adapter)
-    && Boolean(evidence?.method)
-    && evidence?.method !== "not_tested"
-    && Number.isFinite(testedAt)
-    && Date.now() - testedAt <= 24 * 60 * 60 * 1000
-      ? evidence
-      : null;
-}
 
 function eventType(signal: SignalRow) {
   return String(signal.metadata?.event_type || signal.signal_type || "system");
@@ -86,21 +66,23 @@ function buildAnswer(message: string, signals: SignalRow[], cameras: any[], base
 
   if (matchesAny(message, ["מצב", "סטטוס", "הכול בסדר"]) && !matchesAny(message, ["שים לב", "תעקוב", "תתריע"])) {
     return {
-      answer: `כרגע ${online} מתוך ${cameras.length} מקורות מצלמה מסומנים כמחוברים, ${open} אירועים ממתינים לבדיקה ו-${reviewed} אירועים כבר נבדקו. ${baselines.length ? `נבנים ${baselines.length} דפוסי שגרה.` : "עדיין אין מספיק נתונים לבניית שגרה."}`,
+      answer: `כרגע ${online} מתוך ${cameras.length} מקורות מצלמה מסומנים כמחוברים. במידע שנטען: ${open} אירועים ממתינים לבדיקה ו-${reviewed} אירועים נבדקו. ${baselines.length ? `קיימות ${baselines.length} רשומות מדדי שגרה; עצם קיומן אינו מעיד על מודל מכויל.` : "אין רשומות שגרה זמינות."} סטטוס מקור אינו הוכחה לשידור רציף או לניתוח וידאו.`,
       signalIds: relevant.map((signal) => signal.id)
     };
   }
 
   if (!relevant.length) {
     return {
-      answer: "לא מצאתי במידע השמור אירוע שמתאים לשאלה. איני ממציא פעילות שלא נקלטה. אחרי חיבור Gateway ו-AI Shadow אוכל לענות מתוך אירועי המצלמות בפועל.",
+      answer: "לא נמצאה התאמה באירועים השמורים שנטענו מ-48 השעות האחרונות. זה לא מוכיח שלא הייתה פעילות: לא נסרקו הקלטות DVR, ולא אומת כיסוי ניתוח רציף. אפשר לבחור מצלמה או לפתוח את יומן האירועים לבדיקה.",
       signalIds: []
     };
   }
 
   const lines = relevant.map((signal) => {
-    const confidence = signal.confidence == null ? "ללא ציון ביטחון" : `${Math.round(Number(signal.confidence) * 100)}% ביטחון`;
-    return `${observerEventLabel(eventType(signal))} ב-${formatObserverDate(signal.created_at, { year: undefined, month: undefined, day: undefined })} (${confidence})`;
+    const report = observerEventNarrative(signal);
+    const confidence = report.confidence == null ? "ללא ציון ביטחון" : `${Math.round(report.confidence * 100)}% ביטחון`;
+    const source = cameras.find((camera) => camera.id === signal.metadata?.camera_source_id || camera.id === signal.camera_id);
+    return `${report.label} · ${source?.display_name || "מקור לא מאומת"} · ${formatObserverDate(signal.created_at)} (${confidence}). ${report.conclusion}`;
   });
   return {
     answer: `מצאתי ${relevant.length} אירועים מתאימים במידע השמור:\n${lines.map((line) => `• ${line}`).join("\n")}\nכל זיהוי הוא הערכה ודורש בדיקה אנושית לפני פעולה.`,
@@ -118,10 +100,13 @@ export async function POST(request: Request) {
     const site = await getObserverSiteAccess(supabase, profile, payload.observer_site_id, { manage: true });
     if (!site) return fail("אין הרשאה לשוחח על האתר הזה.", 403);
 
-    const [signalResult, cameraResult, baselineResult] = await Promise.all([
-      supabase.from("observer_intelligence_signals" as any)
+    let signalQuery = supabase.from("observer_intelligence_signals" as any)
         .select("id,camera_id,signal_type,severity,confidence,review_status,recommended_action,metadata,created_at")
         .eq("observer_site_id", payload.observer_site_id)
+        .gte("created_at", new Date(Date.now() - 48 * 60 * 60 * 1000).toISOString());
+    if (payload.camera_source_id) signalQuery = signalQuery.or(`camera_id.eq.${payload.camera_source_id},metadata->>camera_source_id.eq.${payload.camera_source_id}`);
+    const [signalResult, cameraResult, baselineResult] = await Promise.all([
+      signalQuery
         .order("created_at", { ascending: false })
         .limit(100),
       supabase.from("digital_observer_camera_sources" as any)
@@ -141,13 +126,31 @@ export async function POST(request: Request) {
       ? (signalResult.data ?? []).filter((signal: any) => signal.camera_id === payload.camera_source_id || signal.metadata?.camera_source_id === payload.camera_source_id)
       : signalResult.data ?? [];
     const scopedCameras = selectedCamera ? [selectedCamera] : cameraResult.data ?? [];
-    const connectedSourceAvailable = scopedCameras.some((camera: any) => ["connected", "healthy", "online", "active"].includes(String(camera.status ?? camera.health_status)));
     const message = payload.message.toLowerCase();
-    const instruction = matchesAny(message, ["שים לב", "תעקוב", "תתריע", "תבדוק מעכשיו"]);
-    const requestedPhysicalAction = physicalActionFromMessage(message);
+    const parsed = parseObserverConversationIntent(message);
+    const instruction = parsed.intent === "save_watch";
+    const requestedPhysicalAction = parsed.physical;
     const actionEvidence = selectedCamera && requestedPhysicalAction
-      ? verifiedActionEvidence(selectedCamera, requestedPhysicalAction.capability)
+      ? verifiedConversationActionEvidence(selectedCamera, requestedPhysicalAction.capability)
       : null;
+    const monitoringConsent = site.monitoring_enabled === true && site.metadata?.observer_monitoring_consent === true;
+    const safeActionConsent = site.metadata?.observer_safe_action_consent === true;
+    const actionId = randomUUID();
+    const audit = async (state: string, status: string, recordId: string | null = null) => {
+      try {
+      const result = await createAdminClient().from("observer_capability_audit_events" as any).insert({
+        event_key: `observer-chat-${actionId}-${state}`, event_type: "observer_conversation_action",
+        vertical_key: "home_observer", capability_key: parsed.intent, actor_profile_id: profile.id,
+        status, reason: state,
+        metadata: { observer_site_id: payload.observer_site_id, camera_source_id: payload.camera_source_id ?? null,
+          action_id: actionId, state, watch_request_id: recordId, physical_action_executed: false, raw_message_stored: false }
+      });
+      return !result.error;
+      } catch {
+        return false;
+      }
+    };
+    if (!(await audit("requested", "logged"))) return fail("לא ניתן לתעד את הבקשה כרגע. לא נשמרה הנחיה ולא בוצעה פעולה.", 503);
     let requestRecord: any = null;
 
     if (instruction) {
@@ -161,7 +164,7 @@ export async function POST(request: Request) {
         title: payload.message.slice(0, 120),
         description: payload.message,
         watch_type: watchType,
-        active: true,
+        active: false,
         priority: matchesAny(message, ["דחוף", "קריטי", "פריצה", "מצוקה"]) ? 9 : 5,
         schedule: { mode: "always_active", source: "observer_conversation" },
         notification_channels: ["in_app"],
@@ -169,12 +172,18 @@ export async function POST(request: Request) {
         metadata: {
           product: "digital_observer",
           created_from_conversation: true,
-          execution_state: connectedSourceAvailable ? "shadow_active" : "source_readiness",
+          execution_state: monitoringConsent ? "awaiting_rule_evidence" : "awaiting_monitoring_consent",
+          conversation_action_id: actionId,
+          monitoring_consent_verified: monitoringConsent,
+          rule_execution_verified: false,
           no_automatic_emergency_call: true,
           no_automatic_accusation: true
         }
       }).select("id,title,watch_type,active,created_at").single();
-      if (error) return fail("הבנתי את הבקשה, אך לא ניתן לשמור אותה כרגע.", 400);
+      if (error || !data) {
+        await audit("failed", "failed");
+        return fail("הבנתי את הבקשה, אך היא לא נשמרה. אפשר לנסות שוב.", 400);
+      }
       requestRecord = data;
     }
 
@@ -184,24 +193,39 @@ export async function POST(request: Request) {
       scopedCameras,
       baselineResult.data ?? []
     );
+    const offer = requestedPhysicalAction
+      ? !selectedCamera
+        ? { available: false, reason: "יש לפתוח תחילה מצלמה מסוימת כדי להכין פעולה." }
+        : !safeActionConsent
+          ? { available: false, reason: "נדרשת הרשאת פעולות בהגדרות האתר, ולאחריה אישור מיידי לכל פעולה." }
+          : actionEvidence
+            ? { available: true, action_type: requestedPhysicalAction.action_type, label: requestedPhysicalAction.label, parameters: requestedPhysicalAction.parameters, camera_source_id: selectedCamera.id }
+            : { available: false, reason: "נדרשים מקור מחובר, בדיקת יכולת עדכנית ומתאם מאומת למצלמה הזאת." }
+      : null;
+    const state = instruction ? "saved" : parsed.intent === "clarify_action" ? "needs_clarification" : offer ? offer.available ? "awaiting_confirmation" : "blocked" : "executed";
+    const resultAudited = await audit(state, state === "blocked" ? "blocked" : "success", requestRecord?.id ?? null);
+    const answer = instruction
+      ? `שמרתי את ההנחיה עבור ${selectedCamera?.display_name || "מקורות האתר"}, אך לא הפעלתי כלל על הווידאו. ${monitoringConsent ? "הסכמת הניטור קיימת; עדיין נדרש אימות שמנוע הכללים בודק את ההנחיה הזאת בפועל." : "יש לאשר ניטור בהגדרות ולאמת מנוע מתאים להנחיה."}\n\n${summary.answer}`
+      : parsed.intent === "clarify_action"
+        ? "יש לציין פעולה אחת ומצלמה, ובהזזה גם כיוון. לא הוכנה ולא בוצעה פעולה."
+        : parsed.intent === "guide_navigation"
+          ? "הקישורים למטה פותחים את המסכים של האתר שנבחר. שינויים בהסכמות, באנשים ובמצלמות נעשים במסך המתאים ולא בוצעו מהשיחה הזאת."
+        : offer ? offer.available ? "אפשר להכין את הפעולה לאישור מיידי בכפתור למטה. עדיין לא נשלחה פקודה למצלמה." : offer.reason : summary.answer;
     return ok({
       answer: instruction
-        ? connectedSourceAvailable
-          ? `שמרתי את ההנחיה והיא פעילה במצב Shadow על ${selectedCamera?.display_name || "המקורות המחוברים"}. כל זיהוי יוצג כהערכה עם ראיה ויישאר כפוף לבדיקה אנושית.\n\n${summary.answer}`
-          : `שמרתי את ההנחיה. מקור המצלמה עדיין אינו מחובר, ולכן היא תתחיל לפעול אוטומטית לאחר חיבור מאומת.\n\n${summary.answer}`
-        : summary.answer,
+        ? `${answer}${resultAudited ? "" : "\nההנחיה נשמרה אך תיעוד התוצאה נכשל; אין לשלוח אותה שוב."}`
+        : `${answer}${resultAudited ? "" : "\nתיעוד תוצאת הבקשה נכשל; לא בוצעה פעולה פיזית."}`,
+      action_result: { id: actionId, intent: parsed.intent, state, requested_audited: true, result_audited: resultAudited, physical_action_executed: false },
+      action_catalog: observerConversationCatalog,
+      links: observerConversationLinks(payload.observer_site_id, payload.camera_source_id, summary.signalIds),
+      source_label: "אירועים שמורים וסטטוס מדווח; לא ניתוח וידאו חי",
+      coverage: { window_hours: 48, source_count: scopedCameras.length, returned_events: scopedSignals.length, limit_reached: (signalResult.data ?? []).length >= 100, continuous_analysis_verified: false, dvr_archive_scanned: false },
       signal_ids: summary.signalIds,
       request: requestRecord,
       answer_source: payload.camera_source_id ? "camera_scoped_runtime_data" : "site_scoped_runtime_data",
       live_ai_used: false,
       emergency_action_triggered: false,
-      suggested_camera_action: requestedPhysicalAction
-        ? !selectedCamera
-          ? { available: false, reason: "יש לפתוח תחילה מצלמה מסוימת כדי להכין פעולה." }
-          : actionEvidence
-            ? { available: true, action_type: requestedPhysicalAction.action_type, label: requestedPhysicalAction.label, parameters: requestedPhysicalAction.parameters, camera_source_id: selectedCamera.id }
-            : { available: false, reason: "הפעולה לא הוצעה משום שאין capability עדכנית ומתאם מאומת למצלמה הזאת." }
-        : null
+      suggested_camera_action: offer
     });
   } catch (error) {
     return handleRouteError(error);

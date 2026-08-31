@@ -41,20 +41,33 @@ Owner names below describe accountable workstreams, not external approvals.
 | Per-person biometric enrollment, consent, revocation and deletion | Identity + Privacy | Disabled pending proof | Consent/audit scaffolding; local health reports recognition false | Confirm migration/RLS; user-driven profile enrollment only, approved matching model and consent/revocation E2E |
 | Resident / authorized visitor / unrecognized classification | Identity + Events | Not accepted | Required states defined above; no matching evidence | Tenant-safe profile lookup and uncertain/unknown fallback; never assert physical access denial |
 | Entry/exit events and review notifications | Edge + Events | Not accepted | General event route exists, no current full workflow proof | Tested entry/exit model/rule with evidence, consented lookup, delivery and user review E2E |
-| Reasoned journal, event thumbnail/clip, summaries and audit | Events + Web | Deployed / media E2E partial | 789dc86e READY; signed-in real media-check event thumbnail and 8-second clip played to ended; reasoning fields visible | Audit-write approval and E2E; this is not AI entry/identity evidence; deletion worker and delivery still unverified |
+| Reasoned journal, event thumbnail/clip, summaries and audit | Events + Web | Deployed / media E2E partial | edb58921 READY; persisted approved audit read after refresh; thumbnail and 8-second clip loaded; prior release clip played to ended | Renew time-advancement after transport recovery; this is not AI entry/identity evidence; deletion worker and delivery still unverified |
 | Edge / AI Shadow readiness and processing | Edge | Partial | Local runtime object/person/non-identifying face self-tests previously true | Fresh consent + runtime/model/hardware + sustained per-channel inference proof; audio/fire/distress/general learning unproven |
 | Per-camera capability map and gated controls | Gateway + Web | Partial, physical execution off | Capability/action gate QA passes | Read-only per-channel evidence with freshness; adapter, immediate confirmation and audit before action test |
 | Observer decisions, permissions and human fallback | Policy + Assistant | Partial | Approval/audit route exists | Full detect-to-decision-to-review workflow, uncertainty fallback and no chat-to-action bypass |
-| Professional evidence-grounded event narrative | Events + Policy | Implementation / QA in progress | Versioned strict narrative schema; facts, anomaly/unknown context, severity, confidence/uncertainty, risk, suggested human action and follow-up fields | Deploy and signed-in E2E; validated baseline or identity context must never be inferred from metadata alone |
+| Professional evidence-grounded event narrative | Events + Policy | Deployed / report and audit read verified | edb58921 READY; signed-in media-check report shows facts, uncertainty, baseline unknown, risk and persisted review history | Repeat post-release clip advancement after browser timeout; not AI anomaly/identity evidence |
 | Chat action interface | Assistant + Policy | Partial / catalog required | Existing watch-request and gated physical-action offers | Explicit intent/action catalog, role/site/consent/capability checks, audited non-physical execution and actionable next conditions; physical confirmation remains separate |
+| Fair coverage of every source | Edge + Events + Web | Not accepted / gaps identified | Runner attempts connected sources, but concurrently and discards failures; site metrics are attached to the first source | Bounded fair single-flight scheduler, per-source last analysis/events and no-event/no-media/offline/failure states; 48-hour existing-event coverage, not a DVR archive scan |
+| Privacy-safe continuous learning and semantic zones | Edge + Privacy + Assistant | Not accepted | Editable camera names and local aggregate scaffolding exist; no verified per-zone baseline | User-controlled names/zones across chat/events/daily summaries; opt-in bounded warmup/adaptation, corrections, explainability, reset/forget/export/audit and sustained per-camera evidence |
 | Push/email/WhatsApp/emergency delivery | Notifications + Operations | Blocked pending provisioning/authority | No provider delivery acceptance; no emergency calls placed | Verified accounts/consents/address/escalation, sandbox tests, explicit operational authority, budget enforcement |
 | Site-preserving onboarding and source mapping | Web + Gateway | Partial | Source-scoped playback validation tested | Same-site edits/resume, multi-channel recorder vs single IP camera, cross-device enrollment E2E |
 | Mobile portrait/PWA/install identity | Web + Mobile | Partial | Existing implementation, no renewed visual acceptance | 360/390px, tablet/desktop and signed-in installed-app QA without hidden features |
-| Production release, scale/security/cost | Release + Infrastructure | In progress | 789dc86e READY on both production domains; build/typecheck pass | Remaining scoped work + browser/audit evidence; 10,000-user load test and <= NIS 15/customer total provider budget |
+| Production release, scale/security/cost | Release + Infrastructure | In progress | edb58921 READY production target; build/typecheck pass | Remaining scoped work + browser/audit evidence; 10,000-user load test and <= NIS 15/customer total provider budget |
 
 ## Current Release Evidence
 
-- Latest scoped production release: `789dc86e2ac9ebeafe4e271fea10200cc5960690`,
+- Current narrative/audit production: `edb589218d99e7246eb1f51d4b12cfb10f7f6cad`,
+  deployment `dpl_GVSgKEAMZZCsX6sf38Y26bqtYJ8c`, READY; authenticated project
+  production target verified at that SHA. Builds/typecheck and narrative/tenant
+  fixtures passed. Public health is OK; anonymous event-media access returns 401.
+- After production reload, the same signed-in media-check event displayed two
+  persisted review records, including the previously approved single review from
+  this stage. No additional review was written. Narrative fields include reported
+  facts, anomaly assessment, uncertainty, baseline context, risk and human action.
+  Thumbnail loaded at 640px; clip loaded readyState 4, duration 8 seconds, no
+  error. A subsequent keyboard playback/390px test timed out and reset browser
+  automation; renewed post-release time advancement is not yet verified.
+- Previous scoped production release: `789dc86e2ac9ebeafe4e271fea10200cc5960690`,
   deployment `dpl_5urZrAEj29iKZYNHMTqKxZsYbD1V`, READY on 2026-08-31 for
   `gan-batuach.vercel.app` and `ganbatuach.com`. Applies event fix `f883e848` and
   form fix `0d72eaa5` onto the previously deployed `b150f891`; experimental Relay
@@ -236,3 +249,90 @@ Gateway update and authorized read-only evidence collection, not an action test.
 
 No Relay media was transmitted to an unverified host. No DVR credentials, browser
 cookies, cloud service-role keys or private stream URLs are included in this ledger.
+
+## All-Source Learning Acceptance
+
+- Cover every connected source, not just the source attached to a site-wide
+  learning milestone. Use bounded concurrency, fair rotation, explicit budgets,
+  timeouts and single-flight execution; one unavailable source must not starve
+  the others. Prove fairness with 5, 20 and larger synthetic source sets.
+- Each source needs health, last successful analysis, event counts and explicit
+  coverage gaps. No event is not equivalent to no media, offline, failed
+  processing or an unexamined time interval. A 48-hour query covers existing
+  stored events only, never unrequested DVR recordings or unseen footage.
+- Keep names and user-confirmed semantic zones (parking, motorcycle, roof,
+  floor, elevator, entrances/exits and other spaces) consistent in the journal,
+  chat and daily summaries. A zone/name is user context, not proof of an entry,
+  exit, identity or event. Direction requires tested evidence for that zone.
+- Monitoring/learning is opt-in and transparent. Warmup is bounded and must
+  produce high-signal per-source coverage before any calibrated-baseline claim.
+  Subsequent adaptation retains bounded event-derived aggregates/features, not
+  continuous video, new face captures or identity learning without per-person
+  consent. General/shared model training has a separate consent boundary.
+- Provide feedback/corrections, explanation, reset/forget/export and audit.
+  Tests and deployed E2E must verify these controls and their tenant scope before
+  this workstream can be marked accepted.
+
+## Camera Feature And Pilot Journey Gates
+
+Every supported PTZ move/preset, audio/talkback, siren, light, I/O and
+vendor-specific feature needs per-source read-only discovery, fresh evidence and
+safety limits, an actual dashboard/chat control, role/site authorization,
+immediate action-specific confirmation, result/audit and rollback status. Privacy
+and recording controls additionally require their own policy and explicit scope;
+this task does not authorize recorder configuration changes. An untested feature
+is unknown, not a proven unsupported feature. No dummy control is acceptance.
+
+The final household pilot must pass in production: all mapped cameras and honest
+online/offline coverage; source-specific, evidence-grounded narratives; meaningful
+risk/severity alerts; transparent chat outcomes and audit; safe human fallback;
+consent/privacy; verified notification delivery and action authorization; portrait
+mobile and a genuinely different device. A release being READY, local fixtures or
+a single working camera does not pass this persona journey. The journey is still
+open, including the known sustained-playback and cross-device Relay gaps.
+
+## Chat Action Implementation Gate
+
+The new local catalog separates status/event reads, guided navigation, saved
+watch instructions and physical-action offers. Commands are anchored, ambiguous
+or conditional commands ask for clarification, and stale/future/offline capability
+evidence cannot prepare an action. Site roles and safe-action consent are checked.
+Watch instructions are saved inactive until actual rule-executor evidence, even
+when a camera reports connected. No connection flag is AI execution proof.
+
+Requested and result states are audited without raw messages. Audit-start failure
+prevents saving; a saved instruction with a failed result-audit is reported as
+saved with an explicit warning, not a retryable failed save. The additive audit
+type migration `20260831010000` is required and has NOT been applied. Chat changes
+are not deployed and do not enable actions, enrollment, consent or learning.
+
+Responses use site-scoped stored events from at most the last 48 hours, retain
+camera scope before the query limit, and disclose missing continuous coverage.
+Safe relative links point only to implemented camera/event/rule/people/settings/
+add-source screens using authorized IDs. No private addresses or credentials are
+returned. Remaining acceptance: consented preferences/zone/baseline context,
+explain-why/corrections/reset/forget controls, duplicate request handling, deployed
+Hebrew/mobile E2E and the complete household journey. General live reasoning is
+not enabled by this deterministic action catalog.
+
+Current local chat QA passes: real route handler with synthetic scoped data,
+role/source rejection, questions versus commands, ambiguous/conditional actions,
+future/stale/offline evidence, consent, audit failures, inactive saved requests,
+safe source links and no physical execution. Typecheck and existing event,
+async-form and biometric-consent regression checks pass. Migration and production
+deployment of this chat work are still separate gates. Chrome transport checks
+pass (running, extension enabled, native host valid) but subsequent tab control
+times out intermittently; read evidence above is valid, missing playback checks
+remain missing rather than being replaced by a configuration test.
+
+- The chat migration/deployment is explicitly approved, but execution is gated
+  on authenticated database access: the installed Supabase CLI returns
+  `login_required`, this worktree is not linked, and Chrome tab control times out.
+  No credentials were requested/copied, and no SQL was run against an unverified
+  project. The existing event release remains production.
+- The first full chat build hit a sandbox `binding to a port: Operation not
+  permitted` error in Turbopack instrumentation. The permission-corrected rerun
+  passed compilation, TypeScript and generation of all 481 pages. Existing event,
+  site preservation, privacy, consent and new chat regression checks pass. The
+  migration preserves all existing audit types; live database integrity/RLS and
+  signed-in chat E2E remain unverified until authenticated migration/deployment.
