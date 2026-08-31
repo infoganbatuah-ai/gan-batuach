@@ -6,9 +6,15 @@ export function ObserverEventAssessment({ event, mediaState }: { event: Observer
   return <dl className="do-event-assessment" aria-label="מסקנות התצפיתן וראיות האירוע">
     <div><dt>מה דווח</dt><dd>{narrative.summary}</dd></div>
     <div><dt>הסיבה לבדיקה</dt><dd>{narrative.reason}</dd></div>
+    <div><dt>האם נמצאה חריגה</dt><dd>{narrative.anomalyAssessment}</dd></div>
     <div><dt>מסקנה לביקורת</dt><dd>{narrative.conclusion}</dd></div>
     <div><dt>זהות והרשאת כניסה</dt><dd>{narrative.identityLabel}</dd></div>
     <div><dt>רמת ביטחון שדווחה</dt><dd>{narrative.confidence === null ? "לא נמסרה" : `${Math.round(narrative.confidence * 100)}%`}</dd></div>
+    <div><dt>דחיפות לבדיקה</dt><dd>{narrative.urgency}</dd></div>
+    <div><dt>השוואה לשגרת המקום</dt><dd>{narrative.baselineContext}</dd></div>
+    <div><dt>אי-ודאות</dt><dd>{narrative.uncertainty}</dd></div>
+    <div><dt>השפעה וסיכון</dt><dd>{narrative.impactAssessment}</dd></div>
     <div><dt>ראיות</dt><dd>{observerEventMediaReason(mediaState)}</dd></div>
+    <div><dt>פעולה מוצעת לבדיקה אנושית</dt><dd>{narrative.action}</dd></div>
   </dl>;
 }

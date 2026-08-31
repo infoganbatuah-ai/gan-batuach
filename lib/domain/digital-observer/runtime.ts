@@ -32,6 +32,16 @@ async function safeList<T>(label: string, run: () => any): Promise<SafeResult<T>
   }
 }
 
+export async function loadObserverEventReviews(signal: ObserverRow | null | undefined): Promise<SafeResult<ObserverRow>> {
+  if (!signal?.id || !signal.observer_site_id) return { data: [], available: false };
+  const supabase = await createClient();
+  return safeList<ObserverRow>("event review history", () => supabase.from("observer_signal_reviews" as any)
+    .select("id,signal_id,review_status,review_note,created_at,observer_intelligence_signals!inner(observer_site_id)")
+    .eq("signal_id", signal.id)
+    .eq("observer_intelligence_signals.observer_site_id", signal.observer_site_id)
+    .order("created_at", { ascending: false }).limit(20));
+}
+
 export function observerModeForSite(site?: ObserverRow | null): ObserverMode {
   return site?.site_type === "home" ? "home" : "business";
 }

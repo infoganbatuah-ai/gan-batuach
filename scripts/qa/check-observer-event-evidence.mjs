@@ -5,7 +5,7 @@ import { runInNewContext } from "node:vm";
 import ts from "typescript";
 import { z } from "zod";
 import { observerEventMediaDeadline, observerEventMediaState, observerEventMediaReason } from "../../lib/domain/digital-observer/event-evidence.ts";
-import { observerEventNarrative } from "../../lib/domain/digital-observer/event-narrative.ts";
+import { observerEventNarrative, observerEventNarrativeSchema } from "../../lib/domain/digital-observer/event-narrative.ts";
 import { cameraReportsLocalEventInsights } from "../../lib/domain/digital-observer/edge-ai-policy.ts";
 import { issueGatewayDeviceAccessToken, verifyGatewayDeviceAccessToken } from "../../lib/domain/gateway-device-enrollment.ts";
 import React from "react";
@@ -34,10 +34,23 @@ for (const type of ["known_person_detected", "unknown_person_detected", "authori
   assert.equal(result.action.includes("Allow entry"), false);
 }
 assert.match(observerEventNarrative({ signal_type: "person_detected", confidence: 0.8 }).conclusion, /נוכחות בלבד/);
+assert.match(observerEventNarrative({ signal_type: "person_detected" }).anomalyAssessment, /נוכחות בלבד אינה מעידה על חריגה/);
+assert.match(observerEventNarrative({ signal_type: "camera_media_readiness" }).anomalyAssessment, /בדיקת מדיה טכנית/);
+assert.match(observerEventNarrative({ signal_type: "unverified_event" }).anomalyAssessment, /אין די מידע מאומת/);
+const report = observerEventNarrative({ signal_type: "person_detected", severity: "high", review_status: "confirmed", metadata: { baseline_verified: true, known_person_id: "untrusted" } });
+assert.equal(report.baselineStatus, "not_verified");
+assert.equal(report.followUpStatus, "confirmed");
+assert.equal(report.physicalActionExecuted, false);
+assert.equal(observerEventNarrativeSchema.safeParse({ ...report, confidence: 2 }).success, false);
+assert.equal(observerEventNarrativeSchema.safeParse({ ...report, identityStatus: "authorized" }).success, false);
+assert.equal(observerEventNarrativeSchema.safeParse({ ...report, physicalActionExecuted: true }).success, false);
+assert.equal(observerEventNarrative({ signal_type: "person_detected", metadata: { event_summary: "x".repeat(800) } }).summary.length, 500);
 
 const secret = randomBytes(32).toString("hex");
 const claims = { device_id: randomUUID(), gateway_id: "synthetic-gateway", observer_site_id: siteId };
 let consent = true, access = true, identityEvent = false;
+let reviewReadFailed = false;
+const reviewRows = [];
 let privateClip = { ...clip }, sourceGateway = claims.gateway_id, objectReady = true;
 const queries = [], writes = [], uploads = [], signedTtls = [];
 const site = () => ({ id: siteId, monitoring_enabled: consent, metadata: { observer_monitoring_consent: consent }, event_retention_days: 2 });
@@ -49,7 +62,7 @@ const db = {
   from(table) {
     const q = { table, filters: [], action: "select", value: null }; queries.push(q);
     const chain = {
-      select: () => chain, eq: (key, value) => { q.filters.push([key, value]); return chain; },
+      select: () => chain, order: () => chain, limit: () => chain, eq: (key, value) => { q.filters.push([key, value]); return chain; },
       insert: (value) => { q.action = "insert"; q.value = value; writes.push(q); return chain; },
       update: (value) => { q.action = "update"; q.value = value; writes.push(q); return chain; },
       maybeSingle: async () => ({ error: null, data: table === "observer_sites" ? site() : table === "digital_observer_camera_sources" ? camera()
@@ -57,7 +70,8 @@ const db = {
         : table === "digital_observer_event_clips" ? privateClip
         : table === "observer_intelligence_signals" ? { id: signalId, observer_site_id: siteId, metadata: { camera_source_id: sourceId } } : null }),
       single: async () => ({ error: null, data: { id: table === "observer_intelligence_signals" ? signalId : table === "digital_observer_event_clips" ? clipId : randomUUID() } }),
-      then: (resolve) => Promise.resolve({ error: null, data: null }).then(resolve)
+      then: (resolve) => Promise.resolve(table === "observer_signal_reviews" && q.action === "select"
+        ? { error: reviewReadFailed ? { code: "synthetic_unavailable" } : null, data: reviewRows } : { error: null, data: null }).then(resolve)
     };
     return chain;
   },
@@ -93,6 +107,11 @@ const cryptoModule = await import("node:crypto");
 const runtime = load("lib/domain/digital-observer/runtime.ts");
 assert.equal(runtime.observerCameraForSignal({ observer_site_id: "other", metadata: { camera_source_id: sourceId } }, [camera()]), null);
 assert.equal(runtime.observerSignalHasRequiredEvidence({ id: signalId, observer_site_id: siteId, metadata: { camera_source_id: sourceId } }, [camera()], [{ ...clip, camera_source_id: "other" }]), false);
+await runtime.loadObserverEventReviews({ id: signalId, observer_site_id: siteId });
+const reviewQuery = queries.at(-1);
+assert.equal(reviewQuery.table, "observer_signal_reviews");
+assert.ok(reviewQuery.filters.some(([key, value]) => key === "signal_id" && value === signalId));
+assert.ok(reviewQuery.filters.some(([key, value]) => key === "observer_intelligence_signals.observer_site_id" && value === siteId));
 
 const mediaRoute = load("app/api/digital-observer/event-clips/[id]/media/route.ts");
 const media = (download = false) => mediaRoute.GET(new Request(`https://example.invalid/media?kind=clip${download ? "&download=1" : ""}`), { params: Promise.resolve({ id: clipId }) });
@@ -140,12 +159,19 @@ assert.equal((await upload()).status, 403); assert.equal(uploads.length, before)
 sourceGateway = "other-gateway"; assert.equal((await upload()).status, 403); sourceGateway = claims.gateway_id;
 objectReady = false; assert.equal((await upload()).status, 412); objectReady = true;
 identityEvent = true; assert.equal((await upload()).status, 422); identityEvent = false;
-assert.equal((await upload()).status, 201);
+const uploaded = await upload();
+assert.equal(uploaded.status, 201);
+const uploadResult = await uploaded.json();
+assert.equal(uploadResult.data.narrative.narrativeBasis, "reported_evidence_only");
+assert.equal(uploadResult.data.narrative.followUpStatus, "needs_review");
 const stored = writes.findLast((q) => q.table === "observer_intelligence_signals" && q.value.metadata?.decision_policy_version);
 assert.equal(stored.value.metadata.identity_recognition_used, false);
 assert.equal(stored.value.metadata.known_person_id, undefined);
 assert.equal(stored.value.metadata.biometric_matching_active, undefined);
 assert.equal(stored.value.metadata.event_context, "presence", "Presence detection must not invent entry/exit");
+assert.equal(stored.value.metadata.narrative_version, "evidence-narrative-v1");
+assert.match(stored.value.metadata.event_anomaly_assessment, /אינה מעידה על חריגה/);
+assert.equal(stored.value.metadata.suggested_human_action, observerEventNarrative({ signal_type: "person_detected" }).action);
 assert.ok(stored.filters.some(([key, value]) => key === "observer_site_id" && value === siteId));
 assert.ok(writes.filter((q) => q.table === "digital_observer_event_clips" && q.action === "update").every((q) => q.filters.some(([key, value]) => key === "observer_site_id" && value === siteId)));
 
@@ -176,7 +202,17 @@ const timelineHtml = renderToStaticMarkup(await page({ searchParams: Promise.res
 assert.ok(timelineHtml.includes("event=signal-6"), "Timeline must not silently stop at five events");
 const detailHtml = renderToStaticMarkup(await page({ searchParams: Promise.resolve({ site: siteId, event: "signal-0" }) }));
 assert.ok(detailHtml.includes("מסקנה לביקורת") && detailHtml.includes("זהות והרשאת כניסה לא אומתו"));
+assert.ok(detailHtml.includes("האם נמצאה חריגה") && detailHtml.includes("פעולה מוצעת לבדיקה אנושית"));
 assert.ok(detailHtml.includes("אישור אירוע"));
+assert.ok(detailHtml.includes("טרם נשמרה ביקורת לאירוע זה."));
+reviewRows.push({ id: "synthetic-review", review_status: "confirmed", review_note: "SYNTHETIC_REVIEW_NOTE", created_at: new Date(now).toISOString() });
+const reviewedHtml = renderToStaticMarkup(await page({ searchParams: Promise.resolve({ site: siteId, event: "signal-0" }) }));
+assert.ok(reviewedHtml.includes("היסטוריית ביקורת") && reviewedHtml.includes("SYNTHETIC_REVIEW_NOTE"));
+reviewReadFailed = true;
+const failedHistoryHtml = renderToStaticMarkup(await page({ searchParams: Promise.resolve({ site: siteId, event: "signal-0" }) }));
+assert.ok(failedHistoryHtml.includes("לא ניתן לטעון את היסטוריית הביקורת כרגע."));
+assert.ok(!failedHistoryHtml.includes("SYNTHETIC_REVIEW_NOTE"));
+reviewReadFailed = false;
 const expiredHtml = renderToStaticMarkup(await page({ searchParams: Promise.resolve({ site: siteId, event: "signal-1" }) }));
 assert.ok(!expiredHtml.includes("<video") && !expiredHtml.includes("אישור אירוע") && !expiredHtml.includes("download=1"));
 uiClips[0].downloadable = false;

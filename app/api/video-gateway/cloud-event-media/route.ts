@@ -247,6 +247,11 @@ export async function POST(request: Request) {
         media_evidence_required: true,
         event_summary: narrative.summary,
         event_reason: narrative.reason,
+        event_anomaly_assessment: narrative.anomalyAssessment,
+        event_conclusion: narrative.conclusion,
+        suggested_human_action: narrative.action,
+        narrative_version: narrative.narrativeVersion,
+        narrative_basis: narrative.narrativeBasis,
         event_context: objectEvent ? "presence" : "device_health",
         identity_recognition_used: false,
         identity_status: "not_verified",
@@ -316,7 +321,8 @@ export async function POST(request: Request) {
     if (clipResult.error) throw new Error(clipResult.error.message);
 
     await supabase.from("provider_webhook_events").update({ status: "processed", processed_at: new Date().toISOString() }).eq("id", event.data.id);
-    return ok({ status: "stored", signal_id: signalResult.data.id, clip_id: clipResult.data.id, signed_urls_returned: false }, 201);
+    return ok({ status: "stored", signal_id: signalResult.data.id, clip_id: clipResult.data.id,
+      narrative: observerEventNarrative(signalPayload), signed_urls_returned: false }, 201);
   } catch (error) {
     return handleRouteError(error);
   }

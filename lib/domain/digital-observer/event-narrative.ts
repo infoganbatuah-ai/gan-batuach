@@ -1,9 +1,28 @@
+import { z } from "zod";
+
 export type ObserverEventLike = {
   signal_type?: unknown;
   recommended_action?: unknown;
   confidence?: unknown;
+  severity?: unknown;
+  review_status?: unknown;
   metadata?: unknown;
 };
+
+const reportedSeveritySchema = z.enum(["info", "low", "medium", "high", "urgent", "critical", "unknown"]);
+export const observerEventNarrativeSchema = z.object({
+  label: z.string().max(240), summary: z.string().max(500), action: z.string().max(500),
+  reason: z.string().max(500), conclusion: z.string().max(300), anomalyAssessment: z.string().max(300),
+  confidence: z.number().min(0).max(1).nullable(),
+  narrativeVersion: z.literal("evidence-narrative-v1"), narrativeBasis: z.literal("reported_evidence_only"),
+  identityStatus: z.literal("not_verified"), identityLabel: z.string().max(160),
+  executiveSummary: z.string().max(500), observedFacts: z.array(z.string().max(500)).max(5),
+  reportedSeverity: reportedSeveritySchema, urgency: z.string().max(160),
+  baselineStatus: z.literal("not_verified"), baselineContext: z.string().max(300),
+  uncertainty: z.string().max(300), impactAssessment: z.string().max(300),
+  followUpStatus: z.enum(["needs_review", "reviewing", "confirmed", "dismissed", "resolved", "escalated", "unknown"]),
+  physicalActionExecuted: z.literal(false)
+}).strict();
 
 type EventDescriptor = {
   label: string;
@@ -96,6 +115,20 @@ export function observerEventNarrative(event: ObserverEventLike | null | undefin
     : ["person_detected", "vehicle_detected", "animal_detected"].includes(type)
       ? "דווחה נוכחות בלבד. אין בכך הוכחה לכניסה, יציאה, כוונה או סכנה."
       : "האירוע דורש אימות מול הראיה. לא הופעלה פעולה פיזית או קריאת חירום.";
-  return { label: descriptor.label, summary, action, reason, conclusion, confidence,
-    identityStatus: "not_verified" as const, identityLabel: "זהות והרשאת כניסה לא אומתו" };
+  const anomalyAssessment = type === "camera_media_readiness"
+    ? "זו בדיקת מדיה טכנית, לא זיהוי חריגה או סכנה. אין להסיק ממנה מה התרחש במקום."
+    : ["person_detected", "vehicle_detected", "animal_detected"].includes(type)
+      ? "נוכחות בלבד אינה מעידה על חריגה. לא נמסרה ראיה מספקת להפרת כלל, כניסה או סכנה."
+      : "אין די מידע מאומת לקבוע אם זו חריגה. יש להשוות את התיאור לתמונה, לסרטון ולכללי המקום.";
+  const reportedSeverity = reportedSeveritySchema.safeParse(event?.severity);
+  const followUp = observerEventNarrativeSchema.shape.followUpStatus.safeParse(event?.review_status);
+  return observerEventNarrativeSchema.parse({ label: descriptor.label, summary, action, reason, conclusion, anomalyAssessment, confidence,
+    narrativeVersion: "evidence-narrative-v1" as const, narrativeBasis: "reported_evidence_only" as const,
+    identityStatus: "not_verified", identityLabel: "זהות והרשאת כניסה לא אומתו",
+    executiveSummary: summary, observedFacts: [summary], reportedSeverity: reportedSeverity.success ? reportedSeverity.data : "unknown",
+    urgency: ["critical", "urgent", "high"].includes(String(event?.severity)) ? "דווחה דחיפות גבוהה; נדרשת בדיקה אנושית בהקדם" : "בדיקת הראיה לפני פעולה",
+    baselineStatus: "not_verified", baselineContext: "לא צורפה השוואה לשגרת המקום המבוססת על הסכמה ונתונים מאומתים.",
+    uncertainty: confidence === null ? "לא נמסרה רמת ביטחון. אין די מידע לקבוע זהות, כוונה או חריגה." : "רמת הביטחון היא של הדיווח בלבד; היא אינה הוכחה לזהות, כוונה או סכנה.",
+    impactAssessment: "לא אומתו נזק, פגיעה או כוונה. יש לבדוק את הראיה ואת המצב במקום.",
+    followUpStatus: followUp.success ? followUp.data : "unknown", physicalActionExecuted: false });
 }

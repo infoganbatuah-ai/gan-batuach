@@ -45,6 +45,8 @@ Owner names below describe accountable workstreams, not external approvals.
 | Edge / AI Shadow readiness and processing | Edge | Partial | Local runtime object/person/non-identifying face self-tests previously true | Fresh consent + runtime/model/hardware + sustained per-channel inference proof; audio/fire/distress/general learning unproven |
 | Per-camera capability map and gated controls | Gateway + Web | Partial, physical execution off | Capability/action gate QA passes | Read-only per-channel evidence with freshness; adapter, immediate confirmation and audit before action test |
 | Observer decisions, permissions and human fallback | Policy + Assistant | Partial | Approval/audit route exists | Full detect-to-decision-to-review workflow, uncertainty fallback and no chat-to-action bypass |
+| Professional evidence-grounded event narrative | Events + Policy | Implementation / QA in progress | Versioned strict narrative schema; facts, anomaly/unknown context, severity, confidence/uncertainty, risk, suggested human action and follow-up fields | Deploy and signed-in E2E; validated baseline or identity context must never be inferred from metadata alone |
+| Chat action interface | Assistant + Policy | Partial / catalog required | Existing watch-request and gated physical-action offers | Explicit intent/action catalog, role/site/consent/capability checks, audited non-physical execution and actionable next conditions; physical confirmation remains separate |
 | Push/email/WhatsApp/emergency delivery | Notifications + Operations | Blocked pending provisioning/authority | No provider delivery acceptance; no emergency calls placed | Verified accounts/consents/address/escalation, sandbox tests, explicit operational authority, budget enforcement |
 | Site-preserving onboarding and source mapping | Web + Gateway | Partial | Source-scoped playback validation tested | Same-site edits/resume, multi-channel recorder vs single IP camera, cross-device enrollment E2E |
 | Mobile portrait/PWA/install identity | Web + Mobile | Partial | Existing implementation, no renewed visual acceptance | 360/390px, tablet/desktop and signed-in installed-app QA without hidden features |
@@ -68,12 +70,20 @@ Owner names below describe accountable workstreams, not external approvals.
   readiness-check event**, not an AI entry/identity event, loaded its thumbnail
   and 8-second clip. Native playback advanced from 0.011 to 8 seconds/ended with
   no media error. Reason, conclusion, confidence and unverified-identity fields
-  were visible. No review/consent mutation was made; audit-write remains untested.
+  were visible. Exactly one explicitly approved review of this media-check event
+  returned the UI success message. No consent changed. Persistent review history
+  was missing from the UI; its scoped read-only display is being added for E2E
+  after refresh, without making another review write.
 - Event detail layout checks passed at 360, 390, 768 and 1280px: no horizontal
   overflow; assessment/button text fit. The 360px screenshot was inspected;
   review touch targets were 44px high. Viewport override was reset afterward.
 - Signed-in people page correctly withheld enrollment because site biometric
   setup consent is off. No person profile was created and no consent enabled.
+- Sustained live is NOT accepted: all nine players advanced in a 24.6-second
+  sample, but in the next 129.3 seconds only five remained continuous; four reset
+  their media clocks and reconnected. Seven offline sources stayed in the
+  disconnected group. No player media error at the sample instant proves neither
+  uninterrupted playback nor cross-device operation.
 - `b150f8916179fa1b716be3b3e388c5b525e1aa53` committed and pushed to
   `codex/observer-capabilities-completion`; deployed production READY on
   2026-08-31. Both production aliases resolve to that deployment.
@@ -197,6 +207,32 @@ and wrong-channel responses plus isolation when another channel times out.
 These code checks passed; no DVR probe, physical command, Gateway restart or
 deployment of this adapter change has been performed. The next gate is a scoped
 Gateway update and authorized read-only evidence collection, not an action test.
+
+## Narrative And Action-Interface Acceptance
+
+- Every journal/detail report must distinguish reported observations from an
+  anomaly finding. Presence alone is not entry/exit, intent, damage or danger.
+  Media-readiness checks are technical tests, not security incidents.
+- Required report fields: executive summary, observed/reported facts, anomaly
+  and baseline context, reported severity/urgency, confidence and uncertainty,
+  source/capture time and media timeline, identity state, impact/risk, suggested
+  human action/escalation and review history. Unknown context is stated explicitly.
+- The strict `evidence-narrative-v1` schema rejects invalid confidence, claimed
+  identity matches and physical execution. It is a structured evidence report,
+  not a new inference/training model. No face capture or inference capability is
+  enabled by generating a report. Baseline context remains unverified until a
+  consented, tenant-bound baseline result is joined server-side.
+- Review-history reads must join the selected event and site under existing RLS;
+  empty history and failed reads have different states. QA covers query scope,
+  persisted/empty/error rendering and compatibility with long existing summaries.
+- Chat must parse an explicit action catalog, validate role/site/consent/profile
+  and fresh device capability, execute only authorized non-physical actions, or
+  offer immediate confirmation for a supported physical action. Each response
+  must distinguish requested/saved/executed/failed and cite stored evidence.
+- Missing capabilities must return a truthful available path or exact next
+  condition, not a generic refusal or fabricated success. No requested action is
+  evidence that an action actually ran. This workflow remains unaccepted pending
+  catalog implementation, security tests and deployed user-facing E2E.
 
 No Relay media was transmitted to an unverified host. No DVR credentials, browser
 cookies, cloud service-role keys or private stream URLs are included in this ledger.
