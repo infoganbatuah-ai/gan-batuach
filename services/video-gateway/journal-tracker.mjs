@@ -1,0 +1,95 @@
+import { randomUUID } from "node:crypto";
+
+const vehicleLabels = new Set(["car", "truck", "bus", "motorcycle"]);
+function point(box) {
+  if (!Array.isArray(box) || box.length !== 4 || !box.every(v => Number.isFinite(v) && v >= 0 && v <= 1) || box[2] <= box[0] || box[3] <= box[1]) return null;
+  return { x: (box[1] + box[3]) / 2, y: (box[0] + box[2]) / 2 };
+}
+export function validCrossingLine(line) {
+  return line && ["x", "y"].includes(line.axis) && Number.isFinite(line.position) && line.position > 0 && line.position < 1 && ["positive", "negative"].includes(line.inside);
+}
+
+/** Frame disappearance is never a directional exit. Tracks never cross cameras. */
+export class JournalTracker {
+  constructor({ confirmations = 3, maxGapMs = 60_000, cooldownMs = 30_000 } = {}) {
+    this.confirmations = confirmations;
+    this.maxGapMs = maxGapMs;
+    this.cooldownMs = cooldownMs;
+    this.cameras = new Map();
+  }
+  forget(cameraId) { this.cameras.delete(cameraId); }
+  observe(camera, detections, timestamp) {
+    const now = Date.parse(timestamp);
+    if (!Number.isFinite(now) || camera.monitoring_enabled !== true) return [];
+    const line = validCrossingLine(camera.crossing_line) ? camera.crossing_line : null;
+    // Manifest refreshes may replace a source or move its spatial boundary.
+    // Old positions must never become evidence of crossing a new boundary.
+    // Cosmetic names and rule ordering do not invalidate a continuous track.
+    const scope = JSON.stringify([camera.stream_id ?? null, camera.zone_type ?? null,
+      line ? [line.axis, line.position, line.inside] : null,
+      [...new Set((Array.isArray(camera.allowed_event_types) ? camera.allowed_event_types : []).filter(type => typeof type === "string"))].sort()]);
+    const previousState = this.cameras.get(camera.camera_id);
+    const state = previousState?.scope === scope ? previousState : { at: previousState?.at ?? 0, tracks: [], scope };
+    if (now <= state.at) return [];
+    if (now - state.at > this.maxGapMs) state.tracks = [];
+    state.at = now;
+    state.tracks = state.tracks.filter(t => now - t.at <= this.maxGapMs);
+    const used = new Set();
+    const events = [];
+    for (const detection of detections) {
+      const p = point(detection.box);
+      if (!p || !Number.isFinite(detection.confidence) || detection.confidence < 0.65 || detection.confidence > 1) continue;
+      const kind = detection.label === "person" ? "person" : vehicleLabels.has(detection.label) ? "vehicle" : null;
+      if (!kind || (kind === "vehicle" && camera.zone_type !== "PARKING")) continue;
+      // Do not interpret generic object presence as drowning, fence climbing, or fire.
+      if (["POOL", "PERIMETER"].includes(camera.zone_type)) continue;
+      const candidates = state.tracks.filter(t => t.kind === kind && !used.has(t.id))
+        .map(t => ({t, distance: Math.hypot(t.p.x - p.x, t.p.y - p.y)})).filter(c => c.distance < 0.22).sort((a,b) => a.distance - b.distance);
+      // An ambiguous association must not invent a crossing by swapping people.
+      if (candidates.length > 1 && candidates[1].distance - candidates[0].distance < 0.035) continue;
+      let track = candidates[0]?.t;
+      if (!track) {
+        track = { id: randomUUID(), kind, p, at: now, hits: 0, side: 0, nextSide: 0, sideHits: 0, lastEventAt: 0, presence: false };
+        state.tracks.push(track);
+      }
+      used.add(track.id);
+      track.p = p; track.at = now; track.hits++;
+      const emit = (type, evidence) => {
+        if (!camera.allowed_event_types?.includes(type)) return;
+        events.push({event_id:randomUUID(), camera_source_id:camera.camera_id, stream_id:camera.stream_id,
+          event_type:type, severity:"INFO", confidence:detection.confidence, timestamp, track_id:track.id, evidence_kind:evidence});
+      };
+      if (track.hits >= this.confirmations && !track.presence) { if (kind === "person") emit("person_detected", "object_detection"); track.presence = true; }
+      if (!line) continue;
+      const delta = p[line.axis] - line.position;
+      const side = Math.abs(delta) < 0.04 ? 0 : Math.sign(delta);
+      if (!side) { track.nextSide = 0; track.sideHits = 0; continue; }
+      track.sideHits = track.nextSide === side ? track.sideHits + 1 : 1;
+      track.nextSide = side;
+      if (track.sideHits < this.confirmations) continue;
+      const previous = track.side;
+      track.side = side;
+      if (!previous || previous === side || now - track.lastEventAt < this.cooldownMs) continue;
+      track.lastEventAt = now;
+      const entered = side === (line.inside === "positive" ? 1 : -1);
+      emit(`${kind}_${entered ? "entered" : "exited"}`, "line_crossing");
+    }
+    this.cameras.set(camera.camera_id, state);
+    return events;
+  }
+}
+
+/** Bounded parallel work: one failed camera cannot prevent sampling the rest. */
+export async function sampleAllCameras(cameras, sample, consume, concurrency = 2) {
+  const queue = cameras.filter(c => c.monitoring_enabled && c.stream_id);
+  let cursor = 0;
+  const results = [];
+  await Promise.all(Array.from({length: Math.min(Math.max(1, concurrency), queue.length)}, async () => {
+    while (cursor < queue.length) {
+      const camera = queue[cursor++];
+      try { await consume(camera, await sample(camera)); results.push({ camera_id: camera.camera_id, status: "sampled" }); }
+      catch (error) { results.push({ camera_id: camera.camera_id, status: "unavailable", reason: String(error.message).slice(0,80) }); }
+    }
+  }));
+  return results;
+}
