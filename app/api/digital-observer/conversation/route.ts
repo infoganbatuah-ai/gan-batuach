@@ -3,6 +3,7 @@ import { fail, handleRouteError, ok } from "@/lib/api";
 import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
 import { formatObserverDate, observerEventLabel } from "@/lib/domain/digital-observer/runtime";
 import { eventJournalService } from "@/lib/domain/event-engine/event-journal-service";
+import { guardChatHandler } from "@/lib/domain/digital-observer/guard-chat-handler";
 
 const schema = z.object({
   observer_site_id: z.string().uuid(),
@@ -121,6 +122,7 @@ export async function POST(request: Request) {
     const scopedCameras = selectedCamera ? [selectedCamera] : cameraResult.data ?? [];
     const connectedSourceAvailable = scopedCameras.some((camera: any) => ["connected", "healthy", "online", "active"].includes(String(camera.status ?? camera.health_status)));
     const message = payload.message.toLowerCase();
+    const chatIntent = guardChatHandler.classify(payload.message);
     const instruction = matchesAny(message, ["שים לב", "תעקוב", "תתריע", "תבדוק מעכשיו"]);
     let requestRecord: any = null;
 
@@ -166,6 +168,7 @@ export async function POST(request: Request) {
         : summary.answer,
       signal_ids: summary.signalIds,
       event_log: eventLog,
+      intent: chatIntent,
       request: requestRecord,
       answer_source: payload.camera_source_id ? "camera_scoped_runtime_data" : "site_scoped_runtime_data",
       live_ai_used: false,
