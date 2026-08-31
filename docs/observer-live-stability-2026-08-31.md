@@ -26,6 +26,8 @@
 - Background-poll crash and non-disruptive discovery tests exercise actual server functions, not just source matching. A fresh browser acceptance window is required after the guarded local updates.
 - After the discovery fix, process uptime remained continuous and all ten sources were visually inspected across the grid. However, local playlists produced only about 16-22 seconds of media over a 59-second wall-clock window, so smooth real-time acceptance still failed. The session-heartbeat fix is being evaluated against this measured shortfall.
 - The first live session-heartbeat verification returned six successful acknowledgements out of six attempts, with zero authentication rejections. This proves the recorder accepts the session-maintenance request, not that video continuity is solved.
+- Privacy-bounded ingress diagnostics now classify only the first 16 bytes, discard that prefix, and expose format/counters plus encoder backpressure. They never return source bytes, URLs or identity. All ten live inputs were identified as ISO BMFF; the raw Annex-B/default-frame-rate hypothesis is therefore not supported.
+- A planned metrics-only restart preserved all six journal files. In its first measured 60.06-second window, the four initially active relays produced 55.2-57.6 seconds of media without restarting; six additional relays joined during that window. The full ten-channel sustained acceptance remains in progress. `input_idle_ms` measures bytes consumed by the encoder pipe, not necessarily network arrival, so backpressure must be considered before attributing silence to the recorder.
 
 ## Remaining Acceptance Gates
 

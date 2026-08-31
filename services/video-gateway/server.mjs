@@ -12,6 +12,7 @@ import { refreshDeviceCredentials } from "./device-refresh.mjs";
 import { createKeychainStore } from "./keychain-store.mjs";
 import { createPrivateNvrPreflightDriver } from "./private-nvr-command-preflight.mjs";
 import { createPrivateNvrHeartbeat } from "./private-nvr-heartbeat.mjs";
+import { createRelayInputMetrics } from "./relay-input-metrics.mjs";
 
 const PORT = Number(process.env.PORT || process.env.VIDEO_GATEWAY_PORT || 8080);
 const HOST = process.env.HOST || process.env.VIDEO_GATEWAY_HOST || "0.0.0.0";
@@ -561,7 +562,7 @@ async function pipeWebStreamToWritable(stream, writable, onChunk = null) {
       if (done) break;
       if (pipeError || writable.destroyed || !writable.writable) break;
       try {
-        onChunk?.(value.byteLength);
+        onChunk?.(value.byteLength, value);
         if (!writable.write(Buffer.from(value))) {
           await waitForDrain();
         }
@@ -924,12 +925,13 @@ async function startRelay(streamId) {
   if (!relaySource) return null;
   const { response, controller, sessionToken } = relaySource;
   const child = spawn("ffmpeg", args, { stdio: ["pipe", "ignore", "pipe"] });
-  const relay = { process: child, playlist, startedAt: Date.now(), lastInputAt: Date.now(), inputBytes: 0, controller, errorSummary: "", sessionToken, monitor: null };
+  const relay = { process: child, playlist, startedAt: Date.now(), lastInputAt: Date.now(), inputBytes: 0, inputMetrics: createRelayInputMetrics(), controller, errorSummary: "", sessionToken, monitor: null };
   relayLifecycle.starts += 1;
   relays.set(streamId, relay);
-  void pipeWebStreamToWritable(response.body, child.stdin, (byteLength) => {
+  void pipeWebStreamToWritable(response.body, child.stdin, (byteLength, value) => {
     relay.lastInputAt = Date.now();
     relay.inputBytes += byteLength;
+    relay.inputMetrics.observe(value);
   }).catch((error) => {
     const code = error?.cause?.code || error?.code;
     relayLifecycle[code === "UND_ERR_SOCKET" || code === "ECONNRESET" ? "inputSocketError" : error?.name === "AbortError" ? "inputAborted" : "inputOtherError"] += 1;
@@ -1262,6 +1264,7 @@ async function handle(request, response) {
         activeRelays: relays.size,
         progressingRelays: [...relays.values()].filter(relayIsProgressing).length,
         stalledRelays: [...relays.values()].filter((relay) => !relayIsProgressing(relay)).length,
+        inputs: [...relays.entries()].map(([streamId, relay]) => ({ channel: streamSources.get(streamId)?.channel, ...relay.inputMetrics.snapshot(), stdin_backpressure: relay.process.stdin.writableNeedDrain, stdin_queued_bytes: relay.process.stdin.writableLength })),
         lifecycle: relayLifecycle
       },
       edge,
