@@ -35,4 +35,27 @@ for (const capability of ["ptz", "talkback", "audio_output", "light", "siren", "
 assert.ok(calls.every((call) => call.method === "POST" && (call.path.endsWith("/Get") || call.path.endsWith("/Range"))), "Only read-only capability requests may be sent");
 assert.ok(calls.every((call) => call.body.version === "1.0" && typeof call.body.data === "object"), "Vendor requests must use the documented envelope");
 
+// Device-wide advertising and a successful empty/wrong-channel response must
+// never unlock controls. These fixtures issue no real network requests.
+for (const responseData of [{}, { capability: { channel: "CH2", ptz_version: "2", speaker: true } },
+  { channel: "CH2", ptz_version: "2", speaker: true, floodlight_switch: false, audioAlarm_switch: false, alarm_out: ["output"] },
+  { channel_info: { CH2: { ptz_version: "2", speaker: true, floodlight_switch: true } } }]) {
+  const probe = await discoverPrivateNvrCapabilities({ session: { baseUrl: "http://local.invalid", token: "synthetic" }, channels: [1],
+    fetchImpl: async (url) => ({ ok: true, json: async () => new URL(url).pathname.startsWith("/API/PreviewChannel/")
+      ? { result: "success", data: responseData } : payloadByPath[new URL(url).pathname] }) });
+  for (const name of ["ptz", "talkback", "audio_output", "light", "siren", "relay"]) {
+    assert.equal(probe.get(1)[name].supported, false, `${name}: no per-channel evidence must fail closed`);
+  }
+}
+
+const isolated = await discoverPrivateNvrCapabilities({ session: { baseUrl: "http://local.invalid", token: "synthetic" }, channels: [1, 2],
+  fetchImpl: async (url, options) => {
+    const path = new URL(url).pathname;
+    if (path.startsWith("/API/PreviewChannel/") && JSON.parse(options.body).data.channel === "CH2") throw new Error("synthetic_offline");
+    return { ok: true, json: async () => payloadByPath[path] };
+  } });
+assert.equal(isolated.get(1).ptz.supported, true);
+assert.equal(isolated.get(2).ptz.supported, false);
+assert.equal(isolated.get(2).siren.supported, false);
+
 console.log("Private NVR read-only capability discovery checks passed.");

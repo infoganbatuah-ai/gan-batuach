@@ -52,10 +52,32 @@ function findChannelRecord(value, channel) {
 function advertisedChannelCapability(channelInfo, channel, capability) {
   const record = findChannelRecord(channelInfo, channel);
   if (!record) return false;
-  const text = JSON.stringify(record).toLowerCase();
-  if (capability === "ptz") return text.includes("ptz") && !text.includes('"ptz":false');
-  if (capability === "talkback") return text.includes("dualtalk") || text.includes("talkback") || text.includes("speaker");
-  return false;
+  const names = capability === "ptz" ? new Set(["ptz"]) : new Set(["dualtalk", "talkback", "speaker"]);
+  const abilities = Array.isArray(record.ability) ? record.ability : [];
+  return abilities.some((value) => typeof value === "string" && names.has(value.toLowerCase()))
+    || hasField(record, names, truthyField);
+}
+
+function hasField(value, keys, accepts, depth = 0) {
+  if (!value || typeof value !== "object" || depth > 5) return false;
+  return Object.entries(value).some(([key, child]) => (keys.has(key.toLowerCase()) && accepts(child))
+    || hasField(child, keys, accepts, depth + 1));
+}
+
+function channelEvidence(value, channel) {
+  const scoped = findChannelRecord(value, channel);
+  if (scoped) return scoped;
+  const record = objectValue(value);
+  // A successful GET for another channel is not evidence for this one.
+  if (hasChannelReference(record)) return {};
+  if (record.channel_info || record.channel_param) return {};
+  return record;
+}
+
+function hasChannelReference(value, depth = 0) {
+  if (!value || typeof value !== "object" || depth > 5) return false;
+  return Object.entries(value).some(([key, child]) => key === "channel" || /^(?:CH|IP_CH|WIFI_CH)\d+$/i.test(key)
+    || hasChannelReference(child, depth + 1));
 }
 
 async function privateNvrRead(session, path, data, fetchImpl, timeoutMs) {
@@ -72,7 +94,7 @@ async function privateNvrRead(session, path, data, fetchImpl, timeoutMs) {
   }).catch(() => null);
   if (!response?.ok) return { tested: false, data: null };
   const payload = await response.json().catch(() => null);
-  if (!payload || payload.result === "failed") return { tested: false, data: null };
+  if (!payload || ["failed", "error", "unsupported"].includes(String(payload.result || "").toLowerCase())) return { tested: false, data: null };
   return { tested: true, data: objectValue(payload.data || payload) };
 }
 
@@ -133,12 +155,21 @@ export async function discoverPrivateNvrCapabilities({
         : Promise.resolve({ tested: deviceInfoResult.tested, data: null })
     ]);
 
-    const ptzSupported = ptzResult.tested && (ptzAdvertised || containsKey(ptzResult.data, new Set(["ptz_version", "preset_point", "isctl"])));
-    const talkSupported = talkResult.tested && (talkAdvertised || containsKey(talkResult.data, new Set(["dualtalk", "talkback", "speaker", "audio_format"])));
-    const lightSupported = alarmResult.tested && (lightAdvertised || containsKey(alarmResult.data, new Set(["floodlight_switch", "floodlight_value", "redBlueLight_switch"])));
-    const sirenSupported = (alarmResult.tested && containsKey(alarmResult.data, new Set(["audioAlarm_switch", "audioAlarm_value"])))
-      || (voiceAlarmRangeResult.tested && sirenAdvertised);
-    const relaySupported = relayResult.tested && (relayAdvertised || containsKey(relayResult.data, new Set(["alarm_out", "manual_alarm", "alarm_switch"])));
+    const ptzData = channelEvidence(ptzResult.data, channel);
+    const talkData = channelEvidence(talkResult.data, channel);
+    const alarmData = channelEvidence(alarmResult.data, channel);
+    const relayData = channelEvidence(relayResult.data, channel);
+    const nonempty = (value) => typeof value === "string" && value.trim().length > 0;
+    const switchValue = (value) => typeof value === "boolean" || [0, 1, "0", "1"].includes(value);
+    const ptzSupported = ptzResult.tested && (hasField(ptzData, new Set(["ptz_version"]), nonempty)
+      || hasField(ptzData, new Set(["preset_point"]), Array.isArray)
+      || hasField(ptzData, new Set(["isctl"]), truthyField));
+    const talkSupported = talkResult.tested && (hasField(talkData, new Set(["dualtalk", "talkback", "speaker"]), truthyField)
+      || hasField(talkData, new Set(["audio_format"]), nonempty));
+    const lightSupported = alarmResult.tested && hasField(alarmData, new Set(["floodlight_switch", "redbluelight_switch"]), switchValue);
+    const sirenSupported = alarmResult.tested && hasField(alarmData, new Set(["audioalarm_switch"]), switchValue);
+    const relaySupported = relayResult.tested && (hasField(relayData, new Set(["alarm_out"]), (value) => Array.isArray(value) && value.length > 0)
+      || hasField(relayData, new Set(["manual_alarm", "alarm_switch"]), switchValue));
 
     return [channel, {
       adapter: ADAPTER,
@@ -146,7 +177,7 @@ export async function discoverPrivateNvrCapabilities({
       talkback: capability(talkResult.tested, talkSupported, talkSupported ? "dual_talk_get_verified" : "talkback_not_reported"),
       audio_output: capability(talkResult.tested || alarmResult.tested, talkSupported || sirenSupported, talkSupported || sirenSupported ? "camera_audio_output_verified" : "audio_output_not_reported"),
       light: capability(alarmResult.tested, lightSupported, lightSupported ? "floodlight_get_verified" : "light_not_reported"),
-      siren: capability(alarmResult.tested || voiceAlarmRangeResult.tested, sirenSupported, sirenSupported ? "siren_range_verified" : "siren_not_reported"),
+      siren: capability(alarmResult.tested, sirenSupported, sirenSupported ? "siren_get_verified" : "siren_not_reported"),
       relay: capability(relayResult.tested, relaySupported, relaySupported ? "manual_alarm_get_verified" : "relay_not_reported")
     }];
   });

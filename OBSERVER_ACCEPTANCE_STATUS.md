@@ -41,7 +41,7 @@ Owner names below describe accountable workstreams, not external approvals.
 | Per-person biometric enrollment, consent, revocation and deletion | Identity + Privacy | Disabled pending proof | Consent/audit scaffolding; local health reports recognition false | Confirm migration/RLS; user-driven profile enrollment only, approved matching model and consent/revocation E2E |
 | Resident / authorized visitor / unrecognized classification | Identity + Events | Not accepted | Required states defined above; no matching evidence | Tenant-safe profile lookup and uncertain/unknown fallback; never assert physical access denial |
 | Entry/exit events and review notifications | Edge + Events | Not accepted | General event route exists, no current full workflow proof | Tested entry/exit model/rule with evidence, consented lookup, delivery and user review E2E |
-| Reasoned journal, event thumbnail/clip, summaries and audit | Events + Web | Deployed / E2E blocked | 789dc86e READY; real route and server-rendered page fixtures pass tenant/source checks, expiry, review gates, reason/conclusion and truthful identity | Real event thumbnail/clip/review E2E; Chrome control times out; deletion worker and delivery still unverified |
+| Reasoned journal, event thumbnail/clip, summaries and audit | Events + Web | Deployed / media E2E partial | 789dc86e READY; signed-in real media-check event thumbnail and 8-second clip played to ended; reasoning fields visible | Audit-write approval and E2E; this is not AI entry/identity evidence; deletion worker and delivery still unverified |
 | Edge / AI Shadow readiness and processing | Edge | Partial | Local runtime object/person/non-identifying face self-tests previously true | Fresh consent + runtime/model/hardware + sustained per-channel inference proof; audio/fire/distress/general learning unproven |
 | Per-camera capability map and gated controls | Gateway + Web | Partial, physical execution off | Capability/action gate QA passes | Read-only per-channel evidence with freshness; adapter, immediate confirmation and audit before action test |
 | Observer decisions, permissions and human fallback | Policy + Assistant | Partial | Approval/audit route exists | Full detect-to-decision-to-review workflow, uncertainty fallback and no chat-to-action bypass |
@@ -60,10 +60,20 @@ Owner names below describe accountable workstreams, not external approvals.
 - Public production health: HTTP 200, app and Supabase both OK. An unauthenticated
   event-media request returns 401. These checks do not prove private event media
   playback, review persistence or consent changes in a signed-in browser.
-- Chrome discovery listed the signed-in camera tabs, but claim timed out after
-  20 seconds. Official extension/native-host checks passed. An approved new Chrome
-  window opened in the existing profile; the follow-up connection timed out too.
+- Chrome initially timed out despite passing extension/native-host checks. After
+  the user's subsequent recovery, control of the signed-in production tab worked.
   No account/settings changes or browser-cookie extraction were attempted.
+- Signed-in `/digital-observer/alerts`: eight journal rows, four loaded 640px
+  event thumbnails and four separate technical faults. A real **camera media
+  readiness-check event**, not an AI entry/identity event, loaded its thumbnail
+  and 8-second clip. Native playback advanced from 0.011 to 8 seconds/ended with
+  no media error. Reason, conclusion, confidence and unverified-identity fields
+  were visible. No review/consent mutation was made; audit-write remains untested.
+- Event detail layout checks passed at 360, 390, 768 and 1280px: no horizontal
+  overflow; assessment/button text fit. The 360px screenshot was inspected;
+  review touch targets were 44px high. Viewport override was reset afterward.
+- Signed-in people page correctly withheld enrollment because site biometric
+  setup consent is off. No person profile was created and no consent enabled.
 - `b150f8916179fa1b716be3b3e388c5b525e1aa53` committed and pushed to
   `codex/observer-capabilities-completion`; deployed production READY on
   2026-08-31. Both production aliases resolve to that deployment.
@@ -140,8 +150,8 @@ Owner names below describe accountable workstreams, not external approvals.
 
 ## Independent Event And Consent Work
 
-The event/form changes below are deployed in `789dc86e`, but browser acceptance
-remains blocked. Local tests are not production media or consent evidence:
+The event/form changes below are deployed in `789dc86e`. Media-check event
+playback is verified above; consent/audit writes and AI event acceptance are not:
 
 - Event access is bounded by capture time, configured retention and a maximum of
   48 hours. Expired media cannot receive a new viewing/download grant; the journal
@@ -176,6 +186,17 @@ remains blocked. Local tests are not production media or consent evidence:
 No DVR recording/storage diagnostic was performed in this stage. Recorder
 administration remains out of scope; the pre-existing diagnostic-file edit is
 excluded from these changes.
+
+## Per-Channel Capability Hardening
+
+The local adapter now requires a typed capability response for the requested
+channel. Device-wide feature advertising alone, an empty successful response or
+data for a different channel cannot enable a control. False advertising values
+are not parsed as positive capabilities. Synthetic regression checks cover empty
+and wrong-channel responses plus isolation when another channel times out.
+These code checks passed; no DVR probe, physical command, Gateway restart or
+deployment of this adapter change has been performed. The next gate is a scoped
+Gateway update and authorized read-only evidence collection, not an action test.
 
 No Relay media was transmitted to an unverified host. No DVR credentials, browser
 cookies, cloud service-role keys or private stream URLs are included in this ledger.
