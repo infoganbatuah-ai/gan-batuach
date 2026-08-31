@@ -9,9 +9,10 @@ import { runInNewContext } from "node:vm";
 const code = readFileSync(new URL("../../services/video-gateway/server.mjs", import.meta.url), "utf8");
 const payload = Buffer.alloc(256 * 1024, 0x47);
 const streams = [];
+const metrics = { hlsRequests: 0, hlsPlaylists: 0, hlsSegments: 0, hlsUnauthorized: 0, hlsRangeRequests: 0 };
 const serve = runInNewContext(`${code.slice(code.indexOf("async function serveHls("), code.indexOf("async function cameraTest("))}; serveHls`, {
   URL, encodeURIComponent, normalize, join, extname,
-  requestMetrics: { hlsRequests: 0 }, validatePlaybackToken: () => true,
+  requestMetrics: metrics, validatePlaybackToken: () => true,
   relayDirectory: () => "/synthetic", existsSync: () => true, statSync: () => ({ size: payload.length }),
   browserHeaders: (_request, type) => ({ "content-type": type }),
   browserJson: (_request, response, status, body) => { response.writeHead(status); response.end(JSON.stringify(body)); },
@@ -54,6 +55,9 @@ try {
   assert.equal(results.slice(1).every((r) => r.complete && r.bytes === payload.length), true, "An abandoned segment must not interrupt other viewers");
   await delay(20);
   assert.equal(streams.every((stream) => stream.destroyed), true, "All completed/abandoned streams must release their readers");
+  assert.equal(metrics.hlsSegments, 13);
+  assert.equal(metrics.hlsUnauthorized, 0);
+  assert.equal(Object.values(metrics).every(Number.isFinite), true);
   console.log("Actual HTTP HLS response lifetime, completed-request safety and abandoned-client isolation PASS");
 } finally {
   server.closeAllConnections();

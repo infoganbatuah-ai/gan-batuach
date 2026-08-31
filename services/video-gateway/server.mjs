@@ -30,9 +30,9 @@ const privateNvrSessions = new Map();
 const relays = new Map();
 const relayStarts = new Map();
 const playbackTokens = new Map();
-const relayLifecycle = { starts: 0, upstreamEnded: 0, upstreamFailed: 0, staleInput: 0, stalePlaylist: 0 };
+const relayLifecycle = { starts: 0, upstreamEnded: 0, upstreamFailed: 0, staleInput: 0, stalePlaylist: 0, staleOnRequest: 0, inputSocketError: 0, inputAborted: 0, inputOtherError: 0 };
 let lastDiscoverySummary = { channelCount: 0, connectedCount: 0, checkedAt: null };
-const requestMetrics = { playbackRequests: 0, playbackReady: 0, playbackUnavailable: 0, playbackClaimRequests: 0, playbackClaimReady: 0, playbackClaimUnavailable: 0, hlsRequests: 0 };
+const requestMetrics = { playbackRequests: 0, playbackReady: 0, playbackUnavailable: 0, playbackClaimRequests: 0, playbackClaimReady: 0, playbackClaimUnavailable: 0, hlsRequests: 0, hlsPlaylists: 0, hlsSegments: 0, hlsUnauthorized: 0, hlsRangeRequests: 0 };
 const FRAME_WIDTH = 32;
 const FRAME_HEIGHT = 18;
 const OBJECT_WORKER_PATH = fileURLToPath(new URL("./onnx-object-worker.mjs", import.meta.url));
@@ -798,7 +798,10 @@ async function privateNvrRelayResponse(source) {
 async function ensureRelay(streamId) {
   const existing = relays.get(streamId);
   if (existing && relayIsRunning(existing) && (relayIsProgressing(existing) || Date.now() - existing.startedAt < RELAY_STALE_MS)) return existing;
-  if (existing) stopRelay(streamId, existing);
+  if (existing) {
+    relayLifecycle.staleOnRequest += 1;
+    stopRelay(streamId, existing);
+  }
   if (relayStarts.has(streamId)) return relayStarts.get(streamId);
   const start = startRelay(streamId).finally(() => relayStarts.delete(streamId));
   relayStarts.set(streamId, start);
@@ -868,7 +871,11 @@ async function startRelay(streamId) {
   void pipeWebStreamToWritable(response.body, child.stdin, (byteLength) => {
     relay.lastInputAt = Date.now();
     relay.inputBytes += byteLength;
-  }).catch(() => child.kill("SIGKILL"));
+  }).catch((error) => {
+    const code = error?.cause?.code || error?.code;
+    relayLifecycle[code === "UND_ERR_SOCKET" || code === "ECONNRESET" ? "inputSocketError" : error?.name === "AbortError" ? "inputAborted" : "inputOtherError"] += 1;
+    child.kill("SIGKILL");
+  });
   relay.monitor = setInterval(() => {
     if (relays.get(streamId) !== relay) return clearInterval(relay.monitor);
     if (Date.now() - relay.startedAt < RELAY_STALE_MS) return;
@@ -1104,9 +1111,12 @@ async function serveHls(request, response) {
   const url = new URL(request.url, "http://gateway.local");
   const match = url.pathname.match(/^\/hls\/([a-zA-Z0-9_-]+)\/(index\.m3u8|segment-\d+\.ts)$/);
   if (!match || !validatePlaybackToken(url.searchParams.get("token"), match[1])) {
+    requestMetrics.hlsUnauthorized += 1;
     browserJson(request, response, 401, { error: "unauthorized" });
     return;
   }
+  requestMetrics[match[2] === "index.m3u8" ? "hlsPlaylists" : "hlsSegments"] += 1;
+  if (request.headers.range) requestMetrics.hlsRangeRequests += 1;
   if (match[2] === "index.m3u8") {
     const relay = await ensureRelay(match[1]);
     if (!relay || !(await waitForFile(relay.playlist, 8000))) {

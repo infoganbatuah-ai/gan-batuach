@@ -8,7 +8,7 @@ const code = readFileSync(new URL("../../services/video-gateway/server.mjs", imp
 let now = 100_000, playlistTime = 0;
 let launched = 0;
 const pending = [], monitors = new Set(), relays = new Map(), tokens = new Map();
-const lifecycle = { starts: 0, upstreamEnded: 0, upstreamFailed: 0, staleInput: 0, stalePlaylist: 0 };
+const lifecycle = { starts: 0, upstreamEnded: 0, upstreamFailed: 0, staleInput: 0, stalePlaylist: 0, staleOnRequest: 0, inputSocketError: 0, inputAborted: 0, inputOtherError: 0 };
 const context = {
   Date: { now: () => now }, process: { env: {} }, console: { error: () => {} }, join,
   relays, relayStarts: new Map(), streamSources: new Map([["one", { kind: "private_nvr_http_mp4", codec: "h264" }], ["two", { kind: "private_nvr_http_mp4", codec: "h264" }]]),
@@ -58,4 +58,10 @@ tokens.clear();
 for (const run of pending.splice(0)) run();
 await new Promise((resolve) => setImmediate(resolve));
 assert.equal(relays.has("one"), false, "Expired/revoked local leases stop automatic recovery");
+context.pipeWebStreamToWritable = async () => { throw Object.assign(new Error("synthetic"), { cause: { code: "UND_ERR_SOCKET" } }); };
+await api.ensureRelay("one");
+await new Promise((resolve) => setImmediate(resolve));
+assert.equal(lifecycle.inputSocketError, 1, "Socket termination is counted without logging upstream details");
+assert.equal(lifecycle.inputOtherError, 0);
+assert.equal(relays.get("two"), other);
 console.log("Relay single-flight, truthful startup, lease-scoped EOF recovery and stale-source isolation PASS");
