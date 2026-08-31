@@ -91,13 +91,13 @@ export function createPlaybackSessionClient({
     if (pending) pending.cacheable = false;
   }
 
-  async function request(siteId: string, sourceId: string) {
+  async function request(siteId: string, sourceId: string, renewalUrl?: string) {
     const key = keyFor(siteId, sourceId);
     for (const [sessionKey, session] of playbackSessions) {
       if (session.expiresAt <= now()) playbackSessions.delete(sessionKey);
     }
     const cached = playbackSessions.get(key);
-    if (cached) return cached.url;
+    if (cached && (!renewalUrl || cached.expiresAt > now() + 60_000)) return cached.url;
     const existing = pendingSessions.get(key);
     if (existing) return existing.promise;
 
@@ -121,7 +121,19 @@ export function createPlaybackSessionClient({
         const claimUrl = payload.data?.playback?.claim_url;
         const grant = payload.data?.playback?.grant;
         if (typeof claimUrl === "string" && typeof grant === "string") {
-          const claim = await fetchJson(claimUrl, { grant }, "local");
+          // A replacement lease is sent only to the same local media origin,
+          // never to the cloud. The Gateway rechecks the new one-time grant.
+          let playbackToken: string | undefined;
+          if (renewalUrl) {
+            try {
+              const previous = new URL(renewalUrl);
+              const destination = new URL(claimUrl);
+              if (previous.origin === destination.origin && /^\/hls\/[a-zA-Z0-9_-]+\/index\.m3u8$/.test(previous.pathname)) {
+                playbackToken = previous.searchParams.get("token") || undefined;
+              }
+            } catch { /* A non-local provider may not support in-place renewal. */ }
+          }
+          const claim = await fetchJson(claimUrl, { grant, ...(playbackToken ? { playback_token: playbackToken } : {}) }, "local");
           candidate = claim.playback?.hls_url;
           ttl = claim.expires_in_seconds;
         }
@@ -146,5 +158,5 @@ export function createPlaybackSessionClient({
     }
   }
 
-  return { request, invalidate };
+  return { request, invalidate, renew: (siteId: string, sourceId: string, url: string) => request(siteId, sourceId, url) };
 }

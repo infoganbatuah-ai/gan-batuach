@@ -146,6 +146,9 @@ let stateUpdates = [];
 const sessionRequests = [];
 const sessionInvalidations = [];
 const timers = new Map();
+const intervals = new Map();
+let nextInterval = 0;
+const renewals = [];
 let nextTimer = 0;
 const fakeReact = {
   useRef: (initial) => { const index = hook++; return hooks[index] ??= { current: initial }; },
@@ -160,11 +163,12 @@ const context = {
     if (name === "hls.js") return { default: { isSupported: () => false } };
     if (name.endsWith("playback-session")) return { createPlaybackSessionClient: () => ({
       request: async (site, source) => { sessionRequests.push([site, source]); return "/test.m3u8"; },
+      renew: async (site, source, url) => { renewals.push([site, source, url]); return url; },
       invalidate: (site, source) => { sessionInvalidations.push([site, source]); }
     }), playbackFailureReason: () => "test" };
     return {};
   },
-  Date, Promise, setInterval: () => 1, clearInterval: () => {},
+  Date, Promise, setInterval: (run, ms) => { intervals.set(++nextInterval, { run, ms }); return nextInterval; }, clearInterval: (id) => intervals.delete(id),
   setTimeout: (fn) => { timers.set(++nextTimer, fn); return nextTimer; },
   clearTimeout: (id) => timers.delete(id)
 };
@@ -180,11 +184,18 @@ function render(source = "source-a") {
 let rendered = render();
 await new Promise((resolve) => setImmediate(resolve));
 assert.deepEqual(sessionRequests, [["site", "source-a"]], "The player must use the shared site-scoped session client");
+const leaseInterval = [...intervals.values()].find((i) => i.ms === 60_000);
+assert.ok(leaseInterval, "Every active player must renew its media lease before expiry");
+await leaseInterval.run();
+await new Promise((resolve) => setImmediate(resolve));
+assert.deepEqual(renewals, [["site", "source-a", "/test.m3u8"]]);
+assert.equal(timers.size, 0, "In-place lease renewal must not reset the working decoder");
 rendered.video.props.onError();
 assert.deepEqual(sessionInvalidations, [["site", "source-a"]]);
 assert.equal(timers.size, 1);
 rendered.cleanup();
 assert.equal(timers.size, 0);
+assert.equal(intervals.size, 0, "Unmount must release both media and lease heartbeats");
 rendered = render("source-b");
 await new Promise((resolve) => setImmediate(resolve));
 assert.deepEqual(sessionRequests, [["site", "source-a"], ["site", "source-b"]]);
