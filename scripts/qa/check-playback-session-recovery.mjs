@@ -149,6 +149,8 @@ const timers = new Map();
 const intervals = new Map();
 let nextInterval = 0;
 const renewals = [];
+let visibilityCallback;
+let visibilityDisconnected = false;
 let nextTimer = 0;
 const fakeReact = {
   useRef: (initial) => { const index = hook++; return hooks[index] ??= { current: initial }; },
@@ -157,6 +159,7 @@ const fakeReact = {
 };
 const exports = {};
 const context = {
+  IntersectionObserver: class { constructor(callback) { visibilityCallback = callback; } observe() {} disconnect() { visibilityDisconnected = true; } },
   exports, require: (name) => {
     if (name === "react") return fakeReact;
     if (name === "react/jsx-runtime") return { jsx: (type, props) => ({ type, props }), jsxs: (type, props) => ({ type, props }) };
@@ -177,7 +180,7 @@ function render(source = "source-a") {
   hook = 0;
   const tree = exports.ObserverLivePlayer({ observerSiteId: "site", cameraSourceId: source, name: "Test" });
   const video = tree.props.children.find((child) => child?.type === "video");
-  video.props.ref.current = { canPlayType: () => "probably", play: async () => {}, removeAttribute: () => {}, load: () => {} };
+  video.props.ref.current = { currentTime: 0, seekable: { length: 0 }, canPlayType: () => "probably", play: async () => {}, removeAttribute: () => {}, load: () => {} };
   const cleanup = effect();
   return { video, cleanup };
 }
@@ -213,6 +216,18 @@ assert.equal(stateUpdates.includes("playing"), false, "An empty media buffer can
 rendered.video.props.onTimeUpdate({ currentTarget: { currentTime: 2, paused: false, readyState: 4, seeking: false, error: null, buffered } });
 assert.equal(timers.size, 0, "Recovered media must cancel the scheduled destructive reconnect");
 assert.equal(stateUpdates.includes("playing"), true);
+visibilityCallback([{ isIntersecting: false }]);
+assert.equal(stateUpdates.at(-1), "suspended");
+const invalidationsBeforeHiddenError = sessionInvalidations.length;
+rendered.video.props.onError();
+assert.equal(sessionInvalidations.length, invalidationsBeforeHiddenError, "Off-screen browser suspension must not invalidate the camera session");
+assert.equal(timers.size, 0, "Hidden thumbnails must not enter a reconnect storm");
+stateUpdates = [];
+rendered.video.props.onTimeUpdate({ currentTarget: { currentTime: 3, paused: false, readyState: 4, seeking: false, error: null, buffered } });
+assert.equal(stateUpdates.includes("playing"), false, "Suspended previews are not LIVE evidence");
+visibilityCallback([{ isIntersecting: true }]);
+assert.equal(stateUpdates.at(-1), "loading", "Visible again requires new media evidence, not a green label");
 rendered.cleanup();
+assert.equal(visibilityDisconnected, true);
 
 console.log("Playback recovery/backoff, one-time claim safety, request deadlines, tenant scoping and actual player integration QA PASS (synthetic only)");

@@ -1,5 +1,5 @@
 import { createHash, createHmac, randomBytes, randomUUID, timingSafeEqual } from "node:crypto";
-import { spawn, spawnSync } from "node:child_process";
+import { spawn } from "node:child_process";
 import { createReadStream, existsSync, mkdirSync, readFileSync, rmSync, statSync } from "node:fs";
 import http from "node:http";
 import { tmpdir } from "node:os";
@@ -9,6 +9,7 @@ import { computeActivityMetrics } from "./activity-insights.mjs";
 import { localEdgeReadiness, warmLocalEdgeReadiness } from "./edge-readiness.mjs";
 import { discoverPrivateNvrCapabilities } from "./private-nvr-capabilities.mjs";
 import { refreshDeviceCredentials } from "./device-refresh.mjs";
+import { createKeychainStore } from "./keychain-store.mjs";
 
 const PORT = Number(process.env.PORT || process.env.VIDEO_GATEWAY_PORT || 8080);
 const HOST = process.env.HOST || process.env.VIDEO_GATEWAY_HOST || "0.0.0.0";
@@ -38,6 +39,7 @@ const FRAME_WIDTH = 32;
 const FRAME_HEIGHT = 18;
 const OBJECT_WORKER_PATH = fileURLToPath(new URL("./onnx-object-worker.mjs", import.meta.url));
 const GATEWAY_KEYCHAIN_SERVICE = process.env.GAN_BATUACH_GATEWAY_KEYCHAIN_SERVICE || "";
+const keychain = createKeychainStore({ service: GATEWAY_KEYCHAIN_SERVICE });
 let deviceAccessToken = "";
 let deviceAccessExpiresAt = 0;
 let deviceAccessRefreshPromise = null;
@@ -86,33 +88,21 @@ function browserJson(request, response, status, body) {
   response.end(JSON.stringify(body));
 }
 
-function keychainSecret(account) {
-  if (!GATEWAY_KEYCHAIN_SERVICE) return "";
-  const result = spawnSync("/usr/bin/security", ["find-generic-password", "-s", GATEWAY_KEYCHAIN_SERVICE, "-a", account, "-w"], { encoding: "utf8" });
-  return result.status === 0 ? result.stdout.trim() : "";
-}
-
-function storeKeychainSecret(account, value) {
-  if (!GATEWAY_KEYCHAIN_SERVICE) throw new Error("Gateway Keychain service is unavailable");
-  const result = spawnSync("/usr/bin/security", ["add-generic-password", "-U", "-s", GATEWAY_KEYCHAIN_SERVICE, "-a", account, "-w", value], { encoding: "utf8" });
-  if (result.status !== 0) throw new Error("Gateway Keychain update failed");
-}
+const keychainSecret = keychain.read;
+const storeKeychainSecret = keychain.write;
 
 async function refreshGatewayDeviceAccess() {
   if (deviceAccessToken && deviceAccessExpiresAt > Date.now() + 30_000) return deviceAccessToken;
   if (deviceAccessRefreshPromise) return deviceAccessRefreshPromise;
   deviceAccessRefreshPromise = (async () => {
-    const gatewayId = keychainSecret("device_gateway_id");
-    const cloudBaseUrl = keychainSecret("device_cloud_base_url").replace(/\/$/, "");
+    const gatewayId = await keychainSecret("device_gateway_id");
+    const cloudBaseUrl = (await keychainSecret("device_cloud_base_url")).replace(/\/$/, "");
     if (!gatewayId || !cloudBaseUrl) throw new Error("Gateway device identity is unavailable");
-    const identity = createHash("sha256").update(`${gatewayId}:${keychainSecret("device_refresh_token")}`).digest("hex");
+    const identity = createHash("sha256").update(`${gatewayId}:${await keychainSecret("device_refresh_token")}`).digest("hex");
     if (rejectedDeviceIdentity === identity) throw Object.assign(new Error("Gateway device identity requires approval"), { code: "device_relink_required" });
     const credentials = await refreshDeviceCredentials({
       gatewayId, cloudBaseUrl, readSecret: keychainSecret, writeSecret: storeKeychainSecret,
-      removeSecret: (account) => {
-        const result = spawnSync("/usr/bin/security", ["delete-generic-password", "-s", GATEWAY_KEYCHAIN_SERVICE, "-a", account], { stdio: "ignore" });
-        if (result.status !== 0 && result.status !== 44) throw new Error("Gateway Keychain cleanup failed");
-      },
+      removeSecret: keychain.remove,
       timeoutMs: CLOUD_AUTH_TIMEOUT_MS
     }).catch((error) => {
       if (error?.code === "device_relink_required") rejectedDeviceIdentity = identity;
@@ -131,7 +121,7 @@ async function refreshGatewayDeviceAccess() {
 }
 
 async function claimCloudPlaybackGrant(grant) {
-  const cloudBaseUrl = keychainSecret("device_cloud_base_url").replace(/\/$/, "");
+  const cloudBaseUrl = (await keychainSecret("device_cloud_base_url")).replace(/\/$/, "");
   const accessToken = await refreshGatewayDeviceAccess();
   const response = await fetch(`${cloudBaseUrl}/api/video-gateway/playback-grant`, {
     method: "POST",
@@ -154,7 +144,7 @@ async function reportCameraActionResult(cloudBaseUrl, accessToken, requestId, ou
 }
 
 async function pollCloudCameraActions() {
-  const cloudBaseUrl = keychainSecret("device_cloud_base_url").replace(/\/$/, "");
+  const cloudBaseUrl = (await keychainSecret("device_cloud_base_url")).replace(/\/$/, "");
   if (!cloudBaseUrl || !GATEWAY_KEYCHAIN_SERVICE) return;
   try {
     const accessToken = await refreshGatewayDeviceAccess();
@@ -251,8 +241,8 @@ async function readBuffer(request, maxBytes = 10 * 1024 * 1024) {
 }
 
 async function forwardDeviceCloudRequest(path, body, contentType) {
-  const cloudBaseUrl = keychainSecret("device_cloud_base_url").replace(/\/$/, "");
-  const gatewayId = keychainSecret("device_gateway_id");
+  const cloudBaseUrl = (await keychainSecret("device_cloud_base_url")).replace(/\/$/, "");
+  const gatewayId = await keychainSecret("device_gateway_id");
   if (!cloudBaseUrl || !gatewayId) throw new Error("Gateway cloud identity is unavailable");
   const accessToken = await refreshGatewayDeviceAccess();
   const response = await fetch(`${cloudBaseUrl}${path}`, {
@@ -427,6 +417,8 @@ async function refreshPrivateNvrSession(sessionKey, failedToken = null) {
   if (!current) return null;
   if (failedToken && current.token !== failedToken) return current;
   if (current.refreshPromise) return current.refreshPromise;
+  if (Date.now() - (current.lastRefreshAttemptAt || 0) < 30_000) return current;
+  current.lastRefreshAttemptAt = Date.now();
   const refreshPromise = (async () => {
     const session = await privateNvrLogin(current.input);
     if (!session) return current;
@@ -483,7 +475,7 @@ function mergePrivateNvrCapabilityEvidence(media, discovered) {
   ) }));
 }
 
-async function privateNvrStreamResponse(url, token, cookie, signal) {
+async function privateNvrStreamResponse(url, token, cookie, signal, reportFailure = () => {}) {
   // Bound only the response headers, not the lifetime of a healthy live body.
   // An unanswered channel must not poison its shared relay-start promise.
   const headerDeadline = new AbortController();
@@ -497,6 +489,7 @@ async function privateNvrStreamResponse(url, token, cookie, signal) {
     signal: signal ? AbortSignal.any([signal, headerDeadline.signal]) : headerDeadline.signal
   }).catch(() => null).finally(() => clearTimeout(timer));
   if (!response || (response.status !== 200 && response.status !== 400) || !response.body) {
+    reportFailure(response?.status === 401 || response?.status === 403 ? "authentication_rejected" : "source_unavailable");
     headerDeadline.abort();
     return null;
   }
@@ -504,6 +497,7 @@ async function privateNvrStreamResponse(url, token, cookie, signal) {
   // error response must never be passed to ffmpeg as if it were an MP4 stream.
   const contentType = String(response.headers.get("content-type") || "").toLowerCase();
   if (contentType && !contentType.includes("video/") && !contentType.includes("application/octet-stream")) {
+    reportFailure("source_not_media");
     headerDeadline.abort();
     return null;
   }
@@ -787,9 +781,17 @@ async function privateNvrRelayResponse(source) {
   if (session.refreshPromise) session = await session.refreshPromise;
   const url = privateNvrLiveUrl(session, source.channel, session.input.stream_quality);
   const controller = new AbortController();
-  let response = await privateNvrStreamResponse(url, session.token, session.cookie, controller.signal);
+  let failure = "source_unavailable";
+  let response = await privateNvrStreamResponse(url, session.token, session.cookie, controller.signal, (reason) => { failure = reason; });
   if (response) return { response, controller, sessionToken: session.token };
   controller.abort();
+  // A transport/codec failure is not proof that the shared login expired.
+  // Re-authenticating one unavailable channel can disconnect every healthy
+  // stream on recorders that allow only one active session for the account.
+  const anotherStreamIsHealthy = [...relays.entries()].some(([id, relay]) =>
+    streamSources.get(id)?.sessionKey === source.sessionKey && relayIsProgressing(relay)
+      && Date.now() - relay.lastInputAt < RELAY_STALE_MS);
+  if (failure !== "authentication_rejected" && anotherStreamIsHealthy) return null;
   const refreshed = await refreshPrivateNvrSession(source.sessionKey, session.token);
   if (!refreshed) return null;
   const retryController = new AbortController();
@@ -900,9 +902,8 @@ async function startRelay(streamId) {
       const safeSummary = relay.errorSummary.replace(/(?:https?|rtsp):\/\/\S+/gi, "[private-source]").trim().split("\n").slice(-3).join(" | ");
       console.error(`video relay exited (${code}): ${safeSummary}`);
     }
-    if (code && source.kind === "private_nvr_http_mp4") {
-      void refreshPrivateNvrSession(source.sessionKey, relay.sessionToken);
-    }
+    // The next start validates HTTP authentication. A decoder error alone
+    // must never rotate the recorder session shared by unrelated cameras.
     if (relays.get(streamId) === relay) relays.delete(streamId);
     // A recorder may end an otherwise valid native stream. Reopen it while a
     // cloud-authorized viewing lease exists, without waiting for player failure.

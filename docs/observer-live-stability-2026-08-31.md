@@ -1,0 +1,27 @@
+# Live Stability: 2026-08-31
+
+## Verified Findings
+
+- Expired device refresh identity rejected playback claims although site sources remained present. A user-approved enrollment succeeded through the authenticated dashboard; device material stayed in Keychain.
+- The local main thread was sampled blocking in synchronous child-process calls. Cloud playback/manifest requests returned 200 while local health/manifest requests timed out. Keychain reads and writes now use asynchronous bounded processes with per-item in-flight read sharing.
+- Recorder transport/decoder errors previously triggered shared re-authentication. They now preserve healthy sibling channels; explicit authentication rejection remains eligible for recovery, with a 30-second login backoff.
+- Native WebKit pauses off-screen muted videos. Hidden preview timeouts previously caused repeated destructive reconnects. Visibility suspension is now distinct from unavailable media; returning to view requires new buffered-media progress. See [WebKit autoplay policy](https://webkit.org/blog/7734/auto-play-policy-changes-for-macos/).
+- Video intrinsic dimensions changed tile height between loading and playing. Player geometry now uses a stable aspect ratio and absolutely positioned video.
+
+## Validation
+
+- Synthetic HTTP health responds while Keychain remains unresolved; ten concurrent reads share one operation. Timeout errors are redacted and refresh recovery is persisted before network rotation.
+- Lost-response/restart device recovery, site scope, revocation, legacy compatibility and hash-only cloud writes pass.
+- Recorder sibling isolation, explicit-auth recovery, single-flight and login backoff pass.
+- HLS response lifetime, lease renewal, relay recovery, source isolation and real component lifecycle tests pass.
+- Targeted TypeScript check and diff whitespace check pass.
+- Live re-enrollment and guarded local update preserved the six installed journal/runner files and all ten active camera source IDs. Discovery found 16 channels, ten connected.
+- After local session isolation, health measured 97 ms, ten local playlists progressed with none stalled, and the local model reported loaded. These are point-in-time observations, not an uptime guarantee.
+- Authenticated large-view video was visually inspected. The sustained ten-player browser acceptance run has NOT passed yet.
+
+## Remaining Acceptance Gates
+
+- Deploy the two web presentation changes only on a verified current production baseline, with approval. Do not include the separate journal update whose deployment approval is pending.
+- Verify visible native players, scroll/resume, full screen, mobile geometry, six offline sources, and media progress across at least two five-minute lease windows.
+- Verify event thumbnail/clip and fresh consent-gated model contract separately with the journal owner. Model loaded is not proof of active event detection.
+- Do not overwrite journal code, alter recorder settings, trigger physical controls, or store secrets outside Keychain.

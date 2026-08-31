@@ -16,7 +16,9 @@ for (const required of [
   "refreshPrivateNvrSession",
   "failedToken && current.token !== failedToken",
   "if (session.refreshPromise) session = await session.refreshPromise",
-  "relay.sessionToken",
+  "authentication_rejected",
+  "anotherStreamIsHealthy",
+  "lastRefreshAttemptAt",
   "requestMetrics",
   "await waitForFile(relay.playlist, 8000)",
   '["-c:v", "copy"]'
@@ -50,5 +52,6 @@ for (const required of ["removeSyntheticDemoBundleFallback", "hasGatewayBinding"
 // Retry logic lives in the shared session client. Execute its behavior and the
 // consuming player instead of searching the component for old inline code.
 await import("./check-playback-session-recovery.mjs");
+await import("./check-recorder-session-isolation.mjs");
 
 console.log("DVR shared session, offline status, playback recovery and local AI policy PASS (synthetic/static only)");

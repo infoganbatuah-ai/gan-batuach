@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { ObserverCameraPresence } from "@/components/digital-observer/observer-camera-presence";
 import { createPlaybackSessionClient, playbackFailureReason } from "@/lib/domain/digital-observer/playback-session";
 
-type PlayerState = "loading" | "playing" | "error";
+type PlayerState = "loading" | "playing" | "suspended" | "error";
 
 // Starting several recorder relays at once can take more than one HLS window.
 // Keep the player alive long enough for a verified local relay to produce its
@@ -34,6 +34,8 @@ export function ObserverLivePlayer({
   const lastCurrentTimeRef = useRef(0);
   const lastProgressAtRef = useRef(0);
   const recoveryScheduledRef = useRef(false);
+  const visibleRef = useRef(true);
+  const hiddenFailureRef = useRef(false);
   const retryTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const [state, setState] = useState<PlayerState>("loading");
   const [unavailableReason, setUnavailableReason] = useState("");
@@ -41,6 +43,7 @@ export function ObserverLivePlayer({
   const [retryNonce, setRetryNonce] = useState(0);
 
   function requestRetry() {
+    if (!visibleRef.current) return;
     playbackSessions.invalidate(observerSiteId, cameraSourceId);
     if (retryTimerRef.current) return;
     retryTimerRef.current = setTimeout(() => {
@@ -63,9 +66,11 @@ export function ObserverLivePlayer({
     lastCurrentTimeRef.current = 0;
     lastProgressAtRef.current = Date.now();
     recoveryScheduledRef.current = false;
+    visibleRef.current = true;
+    hiddenFailureRef.current = false;
     const retry = () => { if (!cancelled) requestRetry(); };
     const markUnavailable = (reason: string) => {
-      if (cancelled || recoveryScheduledRef.current) return;
+      if (cancelled || !visibleRef.current || recoveryScheduledRef.current) return;
       recoveryScheduledRef.current = true;
       setUnavailableReason(reason);
       setState("error");
@@ -73,11 +78,47 @@ export function ObserverLivePlayer({
     };
 
     mediaHeartbeat = setInterval(() => {
-      if (cancelled || !awaitingMedia) return;
+      if (cancelled || !awaitingMedia || !visibleRef.current) return;
       const elapsedWithoutProgress = Date.now() - lastProgressAtRef.current;
       const timeout = hasStartedRef.current ? mediaProgressTimeoutMs : mediaStartTimeoutMs;
       if (elapsedWithoutProgress >= timeout) markUnavailable(hasStartedRef.current ? "המדיה הפסיקה להתקדם" : "לא התקבלה מדיה מה־Gateway");
     }, 2_000);
+
+    // WebKit can suspend muted off-screen video. That is a browser policy,
+    // not a recorder failure: preserve its lease instead of reconnecting all
+    // hidden thumbnails every media-heartbeat window.
+    let intersecting = true;
+    const updateVisibility = () => {
+      const visible = intersecting && (typeof document === "undefined" || !document.hidden);
+      if (visibleRef.current === visible) return;
+      visibleRef.current = visible;
+      if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
+      retryTimerRef.current = null;
+      recoveryScheduledRef.current = false;
+      if (!visible) { setState("suspended"); return; }
+      lastProgressAtRef.current = Date.now();
+      lastCurrentTimeRef.current = videoElement.currentTime;
+      setState("loading");
+      if (hiddenFailureRef.current) {
+        hiddenFailureRef.current = false;
+        retry();
+        return;
+      }
+      if (videoElement.src) {
+        const ranges = videoElement.seekable;
+        if (ranges.length) {
+          const target = Math.max(ranges.start(ranges.length - 1), ranges.end(ranges.length - 1) - 2);
+          if (videoElement.currentTime < target - 8) videoElement.currentTime = target;
+        }
+        void videoElement.play().catch(() => undefined);
+      }
+    };
+    const visibilityObserver = typeof IntersectionObserver === "undefined" ? null : new IntersectionObserver(([entry]) => {
+      intersecting = entry?.isIntersecting === true;
+      updateVisibility();
+    });
+    visibilityObserver?.observe(videoElement);
+    if (typeof document !== "undefined") document.addEventListener("visibilitychange", updateVisibility);
 
     async function connect() {
       setState("loading");
@@ -131,6 +172,7 @@ export function ObserverLivePlayer({
 
     void connect().catch((error) => {
       if (!cancelled) {
+        if (!visibleRef.current) hiddenFailureRef.current = true;
         markUnavailable(playbackFailureReason(error));
       }
     });
@@ -138,6 +180,8 @@ export function ObserverLivePlayer({
       cancelled = true;
       if (mediaHeartbeat) clearInterval(mediaHeartbeat);
       if (leaseHeartbeat) clearInterval(leaseHeartbeat);
+      visibilityObserver?.disconnect();
+      if (typeof document !== "undefined") document.removeEventListener("visibilitychange", updateVisibility);
       if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
       retryTimerRef.current = null;
       hls?.destroy();
@@ -158,7 +202,7 @@ export function ObserverLivePlayer({
         aria-label={`שידור חי — ${name}`}
         onTimeUpdate={(event) => {
           const media = event.currentTarget;
-          if (media.paused || media.readyState < 2 || media.seeking || media.error) return;
+          if (!visibleRef.current || media.paused || media.readyState < 2 || media.seeking || media.error) return;
           const currentTime = media.currentTime;
           // Native HLS can keep its clock running after it has exhausted media.
           // A clock beyond every buffered range is not evidence of live frames.
@@ -181,9 +225,10 @@ export function ObserverLivePlayer({
         onWaiting={() => {
           // A live playlist waits for its next segment regularly. Once playback began,
           // presenting that normal wait as a disconnect makes the thumbnail flicker.
-          if (!hasStartedRef.current) setState("loading");
+          if (visibleRef.current && !hasStartedRef.current) setState("loading");
         }}
         onError={() => {
+          if (!visibleRef.current) { hiddenFailureRef.current = true; return; }
           setUnavailableReason("נגן הווידאו דיווח על שגיאה");
           setState("error");
           requestRetry();
@@ -191,7 +236,7 @@ export function ObserverLivePlayer({
         onVolumeChange={(event) => setMuted(event.currentTarget.muted)}
       />
       <span className={`do-live-player-status ${state}`} title={state === "error" ? unavailableReason : undefined}>
-        {state === "playing" ? "LIVE" : state === "loading" ? <><LoaderCircle /> מתחבר…</> : <><CameraOff /> השידור אינו זמין כרגע</>}
+        {state === "playing" ? "LIVE" : state === "suspended" ? "הצפייה מושהית" : state === "loading" ? <><LoaderCircle /> מתחבר…</> : <><CameraOff /> השידור אינו זמין כרגע</>}
       </span>
       {state === "error" && !compact ? <span className="do-live-player-reason">{unavailableReason} · ניסיון חוזר אוטומטי</span> : null}
       {!compact ? <button type="button" className="do-live-player-audio" onClick={() => setMuted((value) => !value)} aria-label={muted ? "הפעלת שמע" : "השתקת שמע"}>

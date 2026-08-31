@@ -6245,6 +6245,7 @@
 
 .do-live-player {
   position: relative;
+  aspect-ratio: 16 / 9;
   min-height: 190px;
   overflow: hidden;
   border-radius: inherit;
@@ -6254,7 +6255,7 @@
 
 .do-live-player.large { min-height: clamp(300px, 45vw, 650px); }
 .do-live-player.compact { min-height: inherit; }
-.do-live-player video { width: 100%; height: 100%; min-height: inherit; display: block; object-fit: cover; background: #07111f; }
+.do-live-player video { position: absolute; inset: 0; width: 100%; height: 100%; min-height: inherit; display: block; object-fit: cover; background: #07111f; }
 .do-live-player-status,
 .do-live-player-name,
 .do-live-player-audio { position: absolute; z-index: 2; }
