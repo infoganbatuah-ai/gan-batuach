@@ -7,6 +7,8 @@
 - Recorder transport/decoder errors previously triggered shared re-authentication. They now preserve healthy sibling channels; explicit authentication rejection remains eligible for recovery, with a 30-second login backoff.
 - Native WebKit pauses off-screen muted videos. Hidden preview timeouts previously caused repeated destructive reconnects. Visibility suspension is now distinct from unavailable media; returning to view requires new buffered-media progress. See [WebKit autoplay policy](https://webkit.org/blog/7734/auto-play-policy-changes-for-macos/).
 - Video intrinsic dimensions changed tile height between loading and playing. Player geometry now uses a stable aspect ratio and absolutely positioned video.
+- A later sustained ten-player run exposed a real process crash: a timed-out Keychain read occurred outside the background poll's error boundary. LaunchAgent reported exit 1 and restarted the Gateway. A strict Node subprocess reproduces exit 1 with the installed old code and exit 0 with the fix; polling now contains both expected and unexpected promise failures.
+- Recurring discovery also authenticated again and refreshed the shared recorder session even while sibling relays delivered live media. The corrected discovery reuses only a matching profile with fresh relay evidence, probes unavailable channels separately, and does not rotate a healthy shared session. Changed credentials still require authentication.
 
 ## Validation
 
@@ -18,10 +20,13 @@
 - Live re-enrollment and guarded local update preserved the six installed journal/runner files and all ten active camera source IDs. Discovery found 16 channels, ten connected.
 - After local session isolation, health measured 97 ms, ten local playlists progressed with none stalled, and the local model reported loaded. These are point-in-time observations, not an uptime guarantee.
 - Authenticated large-view video was visually inspected. The sustained ten-player browser acceptance run has NOT passed yet.
+- The single-camera view progressed beyond 20 minutes. After the UI deployment, all ten players received media and advanced for the initial 235-second observation window; a longer run then failed with six visible-player resets and local claim timeouts, exposing the background poll crash. This is a failed acceptance run, not a success claim.
+- The two UI files were deployed to production as `dpl_23RyUyAVpa5QG4v78vvVk4QFTTkQ`, after full TypeScript validation, a Ready build, and verification of all 1,175 uploaded source hashes against the exact production baseline. The separate approved journal deployment subsequently preserved both UI hashes.
+- Background-poll crash and non-disruptive discovery tests exercise actual server functions, not just source matching. A fresh browser acceptance window is required after the guarded local updates.
 
 ## Remaining Acceptance Gates
 
-- Deploy the two web presentation changes only on a verified current production baseline, with approval. Do not include the separate journal update whose deployment approval is pending.
+- The UI-only deployment is complete. Do not overwrite a later approved journal deployment or include unapproved local runtime changes in Vercel.
 - Verify visible native players, scroll/resume, full screen, mobile geometry, six offline sources, and media progress across at least two five-minute lease windows.
 - Verify event thumbnail/clip and fresh consent-gated model contract separately with the journal owner. Model loaded is not proof of active event detection.
 - Do not overwrite journal code, alter recorder settings, trigger physical controls, or store secrets outside Keychain.

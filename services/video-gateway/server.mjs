@@ -620,37 +620,59 @@ async function probePrivateNvrStream(url, token, cookie) {
   });
 }
 
+function privateNvrSessionHasLiveRelay(sessionKey) {
+  return [...relays.entries()].some(([id, relay]) => streamSources.get(id)?.sessionKey === sessionKey
+    && relayIsProgressing(relay) && Date.now() - relay.lastInputAt < RELAY_STALE_MS);
+}
+
 async function discoverPrivateNvr(payload, channelCount) {
   const vendor = String(payload.metadata?.vendor || payload.metadata?.provider || "").toLowerCase();
   if (!vendor.includes("private") && !vendor.includes("er")) return null;
-  const session = await privateNvrLogin(payload);
+  const existingKey = privateNvrSessionKey(payload);
+  const existing = privateNvrSessions.get(existingKey);
+  const reuse = Boolean(existing?.input && existing.input.password === payload.password
+    && (existing.input.stream_quality || "sub") === (payload.stream_quality || "sub")
+    && privateNvrSessionHasLiveRelay(existingKey));
+  const session = reuse ? existing : await privateNvrLogin(payload);
   if (!session) return null;
-  const sessionKey = rememberPrivateNvrSession(payload, session);
+  const sessionKey = reuse ? existingKey : rememberPrivateNvrSession(payload, session);
   const channels = [];
   for (let channel = 1; channel <= channelCount; channel += 1) {
-    const url = privateNvrLiveUrl(session, channel, payload.stream_quality);
-    let result = { ok: false };
+    const streamId = streamIdFor(payload, channel);
+    const currentSource = streamSources.get(streamId);
+    const currentRelay = relays.get(streamId);
+    const liveEvidence = reuse && currentSource?.sessionKey === sessionKey
+      && currentSource.channel === channel && relayIsProgressing(currentRelay)
+      && Date.now() - currentRelay.lastInputAt < RELAY_STALE_MS;
+    const activeSession = privateNvrSessions.get(sessionKey) ?? session;
+    const url = privateNvrLiveUrl(activeSession, channel, payload.stream_quality);
+    let result = liveEvidence ? { ok: true, codec: currentSource.codec, audio: currentSource.audio,
+      width: currentSource.width, height: currentSource.height } : { ok: false };
     let probeAttempts = 0;
     while (!result.ok && probeAttempts < PRIVATE_NVR_PROBE_ATTEMPTS) {
       probeAttempts += 1;
-      result = await probePrivateNvrStream(url, session.token, session.cookie);
+      result = await probePrivateNvrStream(url, activeSession.token, activeSession.cookie);
       if (!result.ok && probeAttempts < PRIVATE_NVR_PROBE_ATTEMPTS) {
         await new Promise((resolve) => setTimeout(resolve, 250));
       }
     }
-    const streamId = streamIdFor(payload, channel);
     const previousRelay = relays.get(streamId);
     // Discovery runs periodically while users may be watching. A transient
     // probe failure must not tear down a healthy relay or unregister its stable
     // source. The next playback request can retry the retained source, while
     // cloud status still reports offline unless media is currently progressing.
-    const retainedLiveEvidence = !result.ok && relayIsProgressing(previousRelay);
+    const retainedLiveEvidence = !result.ok && currentSource?.sessionKey === sessionKey
+      && currentSource.channel === channel && relayIsProgressing(previousRelay)
+      && Date.now() - previousRelay.lastInputAt < RELAY_STALE_MS;
     if (result.ok) {
       streamSources.set(streamId, {
         kind: "private_nvr_http_mp4",
         sessionKey,
         channel,
-        codec: result.codec ?? null
+        codec: result.codec ?? null,
+        audio: result.audio === true,
+        width: result.width ?? null,
+        height: result.height ?? null
       });
     }
     channels.push({
@@ -660,7 +682,7 @@ async function discoverPrivateNvr(payload, channelCount) {
       stream_id: streamId,
       status: result.ok || retainedLiveEvidence ? "connected" : "offline",
       health_status: result.ok || retainedLiveEvidence ? "healthy" : "failed",
-      reason: result.ok ? "private_stream_found" : retainedLiveEvidence ? "active_relay_verified" : "private_stream_unreachable",
+      reason: liveEvidence || retainedLiveEvidence ? "active_relay_verified" : result.ok ? "private_stream_found" : "private_stream_unreachable",
       template: result.ok || streamSources.has(streamId) ? "er_private_http_mp4" : null,
       candidates_tried: probeAttempts,
       codec: result.codec ?? streamSources.get(streamId)?.codec ?? null,
@@ -671,16 +693,18 @@ async function discoverPrivateNvr(payload, channelCount) {
   }
   const connectedChannelNumbers = channels.filter((channel) => channel.status === "connected").map((channel) => channel.channel);
   const controlEvidence = await discoverPrivateNvrCapabilities({
-    session,
+    session: privateNvrSessions.get(sessionKey) ?? session,
     channels: connectedChannelNumbers,
     timeoutMs: Math.max(2_000, PROBE_TIMEOUT_MS)
   }).catch(() => new Map());
   for (const channel of channels) {
     channel.capabilities = mergePrivateNvrCapabilityEvidence(channel.capabilities, controlEvidence.get(channel.channel));
   }
-  // Recorder discovery consumes the native live response sequence. Establish
-  // one fresh playback session after all probes, then share it across relays.
-  await refreshPrivateNvrSession(sessionKey, session.token);
+  // A full probe may consume a recorder's native stream sequence. Never rotate
+  // the shared login while any relay proves it is still delivering live media.
+  if (!privateNvrSessionHasLiveRelay(sessionKey)) {
+    await refreshPrivateNvrSession(sessionKey, (privateNvrSessions.get(sessionKey) ?? session).token);
+  }
   return channels;
 }
 
