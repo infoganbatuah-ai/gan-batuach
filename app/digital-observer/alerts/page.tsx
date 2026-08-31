@@ -7,7 +7,7 @@ import { observerEventNarrative } from "@/lib/domain/digital-observer/event-narr
 import { ObserverEventAssessment } from "@/components/digital-observer/observer-event-assessment";
 import { observerEventMediaReason, observerEventMediaState } from "@/lib/domain/digital-observer/event-evidence";
 import { observerDashboardSignalMatchesCategory } from "@/lib/domain/digital-observer/dashboard-summary";
-import { formatObserverDate, loadObserverRuntime, observerCameraForSignal, observerClipForSignal, observerClipHasRequiredMedia, observerEventLabel, observerModeForSite, observerSignalHasRequiredEvidence, observerSignalMatchesCamera, observerStatusLabel, selectObserverSite } from "@/lib/domain/digital-observer/runtime";
+import { formatObserverDate, loadObserverEventReviews, loadObserverRuntime, observerCameraForSignal, observerClipForSignal, observerClipHasRequiredMedia, observerEventLabel, observerModeForSite, observerSignalHasRequiredEvidence, observerSignalMatchesCamera, observerStatusLabel, selectObserverSite } from "@/lib/domain/digital-observer/runtime";
 
 type PageProps = { searchParams?: Promise<{ event?: string; site?: string; severity?: string; q?: string; camera?: string; view?: string; preview?: string; category?: string }> };
 const severityClass = (value?: string) => ["critical", "urgent", "high"].includes(String(value)) ? "bad" : value === "medium" ? "warn" : "info";
@@ -45,6 +45,7 @@ export default async function DigitalObserverAlertsPage({ searchParams }: PagePr
   const selectedMediaState = !camera || (selectedClip && selectedClip.camera_source_id !== camera.id) ? "missing_source" : observerEventMediaState(selectedClip);
   const selectedClipMetadata = selectedClip?.metadata && typeof selectedClip.metadata === "object" ? selectedClip.metadata : {};
   const selectedNarrative = observerEventNarrative(selected);
+  const reviewHistory = selected ? await loadObserverEventReviews(selected) : { data: [], available: true };
   const timeline = params?.view === "timeline";
   const notificationPreview = params?.preview === "notification";
   const timelineSelected = signals[0] ?? null;
@@ -130,6 +131,14 @@ export default async function DigitalObserverAlertsPage({ searchParams }: PagePr
               <p>{selectedNarrative.summary}</p>
               <p>{camera?.display_name || "ללא מקור מצלמה משויך"}</p>
               <ObserverEventAssessment event={selected} mediaState={selectedMediaState} />
+              <section aria-label="היסטוריית ביקורת" className="do-event-review-history">
+                <h3>ביקורות אחרונות</h3>
+                {!reviewHistory.available ? <p role="alert">לא ניתן לטעון את היסטוריית הביקורת כרגע.</p>
+                  : reviewHistory.data.length ? <dl className="do-event-assessment">{reviewHistory.data.map((review) => <div key={review.id}>
+                    <dt>{observerStatusLabel(review.review_status)} · <time dateTime={review.created_at}>{formatObserverDate(review.created_at)}</time></dt>
+                    <dd>{review.review_note || "לא נוספה הערה"}</dd>
+                  </div>)}</dl> : <p>טרם נשמרה ביקורת לאירוע זה.</p>}
+              </section>
               <div className="do-notice info"><UserCheck /><span>{selectedNarrative.action}</span></div>
             </aside>
             <div className="do-event-detail-actions do-button-row"><Link className="do-button secondary full" href={alertsHref({ event: selected.id, preview: "notification" })}><Bell /> תצוגת התראה לנייד</Link>{selectedHasMedia && selectedClip?.downloadable === true ? <a className="do-button secondary full" href={`/api/digital-observer/event-clips/${selectedClip?.id}/media?kind=clip&download=1`}><ArrowDownToLine /> הורדת וידאו</a> : null}{selectedHasMedia ? <ObserverQuickAction endpoint="/api/digital-observer/events/review" body={{ signal_id: selected.id, review_status: "confirmed", note: "אושר בביקורת אנושית" }}><CheckCircle2 /> אישור אירוע</ObserverQuickAction> : null}{selectedHasMedia ? <ObserverQuickAction endpoint="/api/digital-observer/events/review" body={{ signal_id: selected.id, review_status: "dismissed", note: "נדחה בביקורת אנושית" }}><ShieldCheck /> הכול בסדר, כיול האירוע</ObserverQuickAction> : null}<ObserverQuickAction endpoint="/api/digital-observer/events/review" body={{ signal_id: selected.id, review_status: "escalated", note: selectedHasMedia ? "הועבר להמשך בדיקה" : observerEventMediaReason(selectedMediaState) }}><AlertTriangle /> {selectedHasMedia || selectedMediaState === "expired" ? "העברה לבדיקה אנושית" : "סימון תקלה טכנית"}</ObserverQuickAction></div>
