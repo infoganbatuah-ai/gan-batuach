@@ -30,6 +30,7 @@ const privateNvrSessions = new Map();
 const relays = new Map();
 const relayStarts = new Map();
 const playbackTokens = new Map();
+const relayLifecycle = { starts: 0, upstreamEnded: 0, upstreamFailed: 0, staleInput: 0, stalePlaylist: 0 };
 let lastDiscoverySummary = { channelCount: 0, connectedCount: 0, checkedAt: null };
 const requestMetrics = { playbackRequests: 0, playbackReady: 0, playbackUnavailable: 0, playbackClaimRequests: 0, playbackClaimReady: 0, playbackClaimUnavailable: 0, hlsRequests: 0 };
 const FRAME_WIDTH = 32;
@@ -796,7 +797,7 @@ async function privateNvrRelayResponse(source) {
 
 async function ensureRelay(streamId) {
   const existing = relays.get(streamId);
-  if (existing && relayIsProgressing(existing)) return existing;
+  if (existing && relayIsRunning(existing) && (relayIsProgressing(existing) || Date.now() - existing.startedAt < RELAY_STALE_MS)) return existing;
   if (existing) stopRelay(streamId, existing);
   if (relayStarts.has(streamId)) return relayStarts.get(streamId);
   const start = startRelay(streamId).finally(() => relayStarts.delete(streamId));
@@ -804,11 +805,15 @@ async function ensureRelay(streamId) {
   return start;
 }
 
+function relayIsRunning(relay) {
+  return Boolean(relay?.process && relay.process.exitCode === null && !relay.process.killed);
+}
+
 function relayIsProgressing(relay) {
-  if (!relay?.process || relay.process.exitCode !== null || relay.process.killed) return false;
-  if (!existsSync(relay.playlist)) return Date.now() - relay.startedAt < RELAY_STALE_MS;
+  if (!relayIsRunning(relay) || !existsSync(relay.playlist)) return false;
   try {
-    return Date.now() - statSync(relay.playlist).mtimeMs < RELAY_STALE_MS;
+    const updated = statSync(relay.playlist).mtimeMs;
+    return updated >= relay.startedAt && Date.now() - updated < RELAY_STALE_MS;
   } catch {
     return false;
   }
@@ -825,8 +830,9 @@ async function startRelay(streamId) {
   const source = streamSources.get(streamId);
   if (!source) return null;
   const directory = relayDirectory(streamId);
-  rmSync(directory, { recursive: true, force: true });
-  mkdirSync(directory, { recursive: true });
+  // Keep the bounded HLS window across upstream reconnects. FFmpeg appends new
+  // segments with a discontinuity instead of invalidating the viewer's buffer.
+  mkdirSync(directory, { recursive: true, mode: 0o700 });
   const playlist = join(directory, "index.m3u8");
   const copyVideo = source.codec === "h264" && process.env.VIDEO_GATEWAY_FORCE_TRANSCODE !== "1";
   const args = [
@@ -847,10 +853,8 @@ async function startRelay(streamId) {
     "-f", "hls",
     "-hls_time", "1",
     "-hls_list_size", "5",
-    // Never reuse segment sequence numbers after a failed relay. Native HLS
-    // clients otherwise keep waiting for the old sequence to catch up.
-    "-hls_start_number_source", "epoch_us",
-    "-hls_flags", "delete_segments+omit_endlist+independent_segments+discont_start+temp_file",
+    "-hls_start_number_source", "generic",
+    "-hls_flags", "delete_segments+append_list+omit_endlist+independent_segments+temp_file",
     "-hls_segment_filename", join(directory, "segment-%06d.ts"),
     playlist
   ];
@@ -859,6 +863,7 @@ async function startRelay(streamId) {
   const { response, controller, sessionToken } = relaySource;
   const child = spawn("ffmpeg", args, { stdio: ["pipe", "ignore", "pipe"] });
   const relay = { process: child, playlist, startedAt: Date.now(), lastInputAt: Date.now(), inputBytes: 0, controller, errorSummary: "", sessionToken, monitor: null };
+  relayLifecycle.starts += 1;
   relays.set(streamId, relay);
   void pipeWebStreamToWritable(response.body, child.stdin, (byteLength) => {
     relay.lastInputAt = Date.now();
@@ -866,13 +871,19 @@ async function startRelay(streamId) {
   }).catch(() => child.kill("SIGKILL"));
   relay.monitor = setInterval(() => {
     if (relays.get(streamId) !== relay) return clearInterval(relay.monitor);
-    if (!relayIsProgressing(relay) || Date.now() - relay.lastInputAt >= RELAY_STALE_MS) stopRelay(streamId, relay);
+    if (Date.now() - relay.startedAt < RELAY_STALE_MS) return;
+    if (!relayIsProgressing(relay) || Date.now() - relay.lastInputAt >= RELAY_STALE_MS) {
+      relayLifecycle[Date.now() - relay.lastInputAt >= RELAY_STALE_MS ? "staleInput" : "stalePlaylist"] += 1;
+      stopRelay(streamId, relay);
+    }
   }, 2000);
   relay.monitor.unref();
   child.stderr.on("data", (chunk) => {
     relay.errorSummary = `${relay.errorSummary}${chunk.toString("utf8")}`.slice(-2000);
   });
   child.on("close", (code) => {
+    if (code === 0) relayLifecycle.upstreamEnded += 1;
+    else if (code !== null) relayLifecycle.upstreamFailed += 1;
     clearInterval(relay.monitor);
     controller.abort();
     if (code && relay.errorSummary) {
@@ -883,6 +894,14 @@ async function startRelay(streamId) {
       void refreshPrivateNvrSession(source.sessionKey, relay.sessionToken);
     }
     if (relays.get(streamId) === relay) relays.delete(streamId);
+    // A recorder may end an otherwise valid native stream. Reopen it while a
+    // cloud-authorized viewing lease exists, without waiting for player failure.
+    const resume = setTimeout(() => {
+      if ([...playbackTokens.values()].some((lease) => lease.streamId === streamId && lease.expiresAt > Date.now())) {
+        void ensureRelay(streamId).catch(() => undefined);
+      }
+    }, 500);
+    resume.unref();
   });
   return relay;
 }
@@ -1108,15 +1127,17 @@ async function serveHls(request, response) {
     response.end(playlist);
     return;
   }
-  response.writeHead(200, browserHeaders(request, "video/mp2t"));
+  response.writeHead(200, { ...browserHeaders(request, "video/mp2t"), "content-length": statSync(file).size });
   const media = createReadStream(file);
   const closeMedia = () => media.destroy();
   const closeResponse = () => media.destroy();
   const cleanup = () => {
-    request.removeListener("close", closeMedia);
+    response.removeListener("close", closeMedia);
     response.removeListener("error", closeResponse);
   };
-  request.once("close", closeMedia);
+  // IncomingMessage.close means the GET request was consumed, not that the
+  // downstream response finished. Only the response owns this file reader.
+  response.once("close", closeMedia);
   // Browser HLS clients frequently abandon an old segment when seeking or
   // recovering. Treat that socket close as a normal per-request condition,
   // never as a Gateway process failure.
@@ -1124,7 +1145,7 @@ async function serveHls(request, response) {
   media.once("error", () => {
     cleanup();
     if (!response.headersSent) browserJson(request, response, 404, { error: "not_ready" });
-    else response.end();
+    else response.destroy();
   });
   media.once("close", cleanup);
   media.once("end", cleanup);
@@ -1170,7 +1191,8 @@ async function handle(request, response) {
       mediaHeartbeat: {
         activeRelays: relays.size,
         progressingRelays: [...relays.values()].filter(relayIsProgressing).length,
-        stalledRelays: [...relays.values()].filter((relay) => !relayIsProgressing(relay)).length
+        stalledRelays: [...relays.values()].filter((relay) => !relayIsProgressing(relay)).length,
+        lifecycle: relayLifecycle
       },
       edge,
       edge_capability_contract: edgeCapabilityContract(edge),

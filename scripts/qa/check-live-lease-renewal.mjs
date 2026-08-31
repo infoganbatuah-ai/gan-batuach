@@ -86,16 +86,22 @@ assert.ok(flagMatch);
 const directory = mkdtempSync(join(tmpdir(), "observer-hls-sequence-"));
 try {
   const sequences = [];
+  const windows = [];
   for (let attempt = 0; attempt < 2; attempt++) {
     const result = spawnSync("ffmpeg", ["-hide_banner", "-loglevel", "error", "-y", "-f", "lavfi", "-i", "color=c=black:s=64x64:r=10", "-t", "2.2", "-c:v", "libx264", "-g", "10", "-f", "hls", "-hls_time", "1", "-hls_list_size", "5", "-hls_start_number_source", flagMatch[1], "-hls_flags", flagMatch[2], "-hls_segment_filename", join(directory, "segment-%06d.ts"), join(directory, "index.m3u8")], { encoding: "utf8", timeout: 15_000 });
     assert.equal(result.status, 0, "Synthetic FFmpeg muxing must succeed");
     const playlist = readFileSync(join(directory, "index.m3u8"), "utf8");
     const sequence = Number(playlist.match(/#EXT-X-MEDIA-SEQUENCE:(\d+)/)?.[1]);
-    assert.ok(Number.isSafeInteger(sequence) && sequence > 0);
+    assert.ok(Number.isSafeInteger(sequence) && sequence >= 0);
     assert.match(playlist, /#EXT-X-DISCONTINUITY/);
     for (const segment of playlist.match(/^segment-\d+\.ts$/gm) || []) assert.ok(readFileSync(join(directory, segment)).length > 0);
     sequences.push(sequence);
+    windows.push([...playlist.matchAll(/^segment-(\d+)\.ts$/gm)].map((match) => Number(match[1])));
   }
-  assert.ok(sequences[1] > sequences[0] + 3, "A relay restart must never reuse old sequence numbers");
+  assert.ok(sequences[1] > sequences[0], "The playlist window must advance across relay restarts");
+  assert.ok(windows[1].some((segment) => windows[0].includes(segment)), "Reconnect must preserve the viewer's existing buffer window");
+  const newSegments = windows[1].filter((segment) => !windows[0].includes(segment));
+  assert.equal(newSegments[0], windows[0].at(-1) + 1, "New segments must continue the prior sequence without a huge gap");
+  assert.equal(new Set(windows[1]).size, windows[1].length);
 } finally { rmSync(directory, { recursive: true, force: true }); }
 console.log("Live lease renewal, revocation/source isolation, cloud boundary and real synthetic HLS restart QA PASS");
