@@ -44,26 +44,54 @@ Owner names below describe accountable workstreams, not external approvals.
 
 | Requirement | Owner | Status | Current evidence | Next gate / blocker |
 | --- | --- | --- | --- | --- |
-| Local live, thumbnails, fullscreen and offline isolation | Gateway + Web | Partial | b150f891 production READY; nine streams advanced in pre-release samples, seven disconnected | Fresh post-release sustained Chrome media-time + fullscreen E2E; automation timed out |
+| Local live, thumbnails, fullscreen and offline isolation | Gateway + Web | Partial | Prior nine-stream samples advanced but four reconnected during a longer sample; seven disconnected sources stayed isolated | Fresh sustained media-time/fullscreen E2E after the live fix; Chat/media-check acceptance does not close this gap |
 | HTTPS cross-device relay | Gateway + Infrastructure | Blocked / implementation partial | Scoped relay fixture and fail-closed Realtime bootstrap QA pass; owned DNS zone verified | Cloudflare Worker creation denied Authentication error 10000; no Worker/SFU created; grant flow, publisher/subscriber, quota and cross-device media test still required |
 | Event-only media, no new face capture | Edge + Privacy | Not accepted | Event-media regression QA passes, no live identity work done | Prove 48-hour deletion/download enforcement, no continuous archive and no new live/event face capture in code + production audit |
 | Per-person biometric enrollment, consent, revocation and deletion | Identity + Privacy | Disabled pending proof | Consent/audit scaffolding; local health reports recognition false | Confirm migration/RLS; user-driven profile enrollment only, approved matching model and consent/revocation E2E |
 | Resident / authorized visitor / unrecognized classification | Identity + Events | Not accepted | Required states defined above; no matching evidence | Tenant-safe profile lookup and uncertain/unknown fallback; never assert physical access denial |
 | Entry/exit events and review notifications | Edge + Events | Not accepted | General event route exists, no current full workflow proof | Tested entry/exit model/rule with evidence, consented lookup, delivery and user review E2E |
-| Reasoned journal, event thumbnail/clip, summaries and audit | Events + Web | Deployed / media E2E partial | edb58921 READY; persisted approved audit read after refresh; thumbnail and 8-second clip loaded; prior release clip played to ended | Renew time-advancement after transport recovery; this is not AI entry/identity evidence; deletion worker and delivery still unverified |
+| Reasoned journal, event thumbnail/clip, summaries and audit | Events + Web | Deployed / media-check E2E passed, broader workflow partial | 9fa7b769 READY; Chat evidence link opens 640px thumbnail and clip progressing 0 to 8 seconds/ended; three saved reviews displayed | Actual AI event/entry/identity workflow, 48-hour deletion worker and notification delivery remain unverified |
 | Edge / AI Shadow readiness and processing | Edge | Partial | Local runtime object/person/non-identifying face self-tests previously true | Fresh consent + runtime/model/hardware + sustained per-channel inference proof; audio/fire/distress/general learning unproven |
 | Per-camera capability map and gated controls | Gateway + Web | Partial, physical execution off | Capability/action gate QA passes | Read-only per-channel evidence with freshness; adapter, immediate confirmation and audit before action test |
 | Observer decisions, permissions and human fallback | Policy + Assistant | Partial | Approval/audit route exists | Full detect-to-decision-to-review workflow, uncertainty fallback and no chat-to-action bypass |
-| Professional evidence-grounded event narrative | Events + Policy | Deployed / report and audit read verified | edb58921 READY; signed-in media-check report shows facts, uncertainty, baseline unknown, risk and persisted review history | Repeat post-release clip advancement after browser timeout; not AI anomaly/identity evidence |
-| Chat action interface | Assistant + Policy | Partial / catalog required | Existing watch-request and gated physical-action offers | Explicit intent/action catalog, role/site/consent/capability checks, audited non-physical execution and actionable next conditions; physical confirmation remains separate |
+| Professional evidence-grounded event narrative | Events + Policy | Deployed / media-check report and audit read verified | 9fa7b769 signed-in linked report, thumbnail, played clip and persisted review history verified | Real AI anomaly/identity evidence and the complete event decision workflow remain required |
+| Chat action interface | Assistant + Policy | Scoped hotfix accepted; broader action workflow partial | 9fa7b769 production READY; signed-in stored-status query, neutral saved-instruction label and nine same-site links passed; portrait/tablet/desktop visual QA passed | Real rule execution, duplicate-request handling, richer consented context and direct restrictive-policy audit proof remain separate gates |
 | Fair coverage of every source | Edge + Events + Web | Local core/UI QA partial, not deployed | Synthetic 5/20/64-source fair scheduler passes; all-source saved-report UI rejects cross-site/old/future attribution | Wire authenticated per-round policy, persistent per-source analysis telemetry and bounded runtime; exact full-window aggregation and production E2E still required |
 | Privacy-safe continuous learning and semantic zones | Edge + Privacy + Assistant | Not accepted | Editable camera names and local aggregate scaffolding exist; no verified per-zone baseline | User-controlled names/zones across chat/events/daily summaries; opt-in bounded warmup/adaptation, corrections, explainability, reset/forget/export/audit and sustained per-camera evidence |
 | Push/email/WhatsApp/emergency delivery | Notifications + Operations | Blocked pending provisioning/authority | No provider delivery acceptance; no emergency calls placed | Verified accounts/consents/address/escalation, sandbox tests, explicit operational authority, budget enforcement |
 | Site-preserving onboarding and source mapping | Web + Gateway | Partial | Source-scoped playback validation tested | Same-site edits/resume, multi-channel recorder vs single IP camera, cross-device enrollment E2E |
-| Mobile portrait/PWA/install identity | Web + Mobile | Partial | Existing implementation, no renewed visual acceptance | 360/390px, tablet/desktop and signed-in installed-app QA without hidden features |
-| Production release, scale/security/cost | Release + Infrastructure | In progress | edb58921 READY production target; build/typecheck pass | Remaining scoped work + browser/audit evidence; 10,000-user load test and <= NIS 15/customer total provider budget |
+| Mobile portrait/PWA/install identity | Web + Mobile | Partial | Chat 9fa7b769 passed 360/390/768/1280px without overflow, with 44px chat controls/links; prior event layout QA passed | Remaining screens and signed-in installed-app/PWA identity QA without hidden features |
+| Production release, scale/security/cost | Release + Infrastructure | Scoped release passed; product acceptance open | 9fa7b769 READY production target; build/typecheck, health and signed-in Chat/media-link E2E pass | Remaining scoped work + audit evidence; 10,000-user load test and <= NIS 15/customer total provider budget |
 
-## Current Release Evidence
+## Current Scoped Release
+
+- User directly approved production release `9fa7b769`. Deployment
+  `dpl_Dzpu7eNUf5EN9L95Gaxj11uLebb3` is READY and the authenticated project
+  production target matches `9fa7b7699e3b317e8e7e03474dfb4aa30a94cc0e`.
+  Only the three approved hotfix files were released, not follow-on coverage,
+  scheduler, Relay or Gateway work. No migration or consent was changed.
+- Cloud build completed compilation, TypeScript and all 481 pages. Release QA
+  was rerun: Chat intent/audit gates, truthful status rendering, consent/readiness,
+  event evidence and site selection pass. Health returns 200 with app/Supabase
+  OK; an anonymous conversation POST returns 401.
+- Signed-in Chrome after production reload: the stored instruction is labeled
+  as saved, not active; the former active-AI/learning labels are absent. The
+  current capability is labeled as recently reported, not continuous inference.
+  A read-only status question returns a stored 9/16 source count with explicit
+  coverage limitations, no error or stuck loading, and nine same-origin links
+  retaining the authenticated site's context. No watch rule or consent changed.
+- Chat UI passes at 360, 390, 768 and 1280px with no horizontal overflow; visible
+  chat controls and response links are at least 44px high. The 390px screenshot
+  was visually inspected. The temporary viewport override was reset.
+- The first evidence link opens the same-site media-readiness-check event. Its
+  thumbnail loads at 640px, its real clip advances from 0 to 8 seconds/ended
+  without error, and three existing review records are displayed. No new review
+  was written in this release verification. This does not establish AI detection,
+  biometric identity, long-running live stability or retention deletion.
+- This deployment-and-Chat-E2E task is complete. The overall Observer product
+  and household pilot remain open under every gate in the table above.
+
+## Historical Release Evidence
 
 - Current narrative/audit production: `edb589218d99e7246eb1f51d4b12cfb10f7f6cad`,
   deployment `dpl_GVSgKEAMZZCsX6sf38Y26bqtYJ8c`, READY; authenticated project
@@ -322,8 +350,9 @@ camera scope before the query limit, and disclose missing continuous coverage.
 Safe relative links point only to implemented camera/event/rule/people/settings/
 add-source screens using authorized IDs. No private addresses or credentials are
 returned. Remaining acceptance: consented preferences/zone/baseline context,
-explain-why/corrections/reset/forget controls, duplicate request handling, deployed
-Hebrew/mobile E2E and the complete household journey. General live reasoning is
+explain-why/corrections/reset/forget controls, duplicate request handling and the
+complete household journey. Scoped Hebrew/mobile Chat E2E is now verified.
+General live reasoning is
 not enabled by this deterministic action catalog.
 
 Current local chat QA passes: real route handler with synthetic scoped data,
@@ -364,11 +393,12 @@ passed in production; rule execution and sustained live inference remain unprove
   Edge readiness additionally requires current site consent, a non-future
   contract at most 20 minutes old, approved loaded model and passing self-test.
   Synthetic rendering/gate QA and full 481-page build pass. Work commit
-  `c7ec41c6` and release `9fa7b769` are pushed. Deployment was rejected before
-  execution because direct approval for this new hotfix is required; relayed
-  approval did not satisfy the action gate. No deployment or bypass was made.
-  Owner: release authorization. Next gate: direct approval, READY and signed-in
-  Chat/mobile E2E. The prior Chat release remains production.
+  `c7ec41c6` and release `9fa7b769` are pushed. Earlier requests were rejected
+  before execution because relayed approval did not satisfy the action gate.
+  The user subsequently approved this exact production release directly.
+  Deployment `dpl_Dzpu7eNUf5EN9L95Gaxj11uLebb3` was created for this SHA only;
+  rollout is READY and signed-in Chat/mobile E2E passed as detailed above.
+  No bypass was made.
 - Fair scheduler core and synthetic QA cover 5/20/64 sources, bounded concurrency
   and sample/round budgets, consent expiry before/during sampling, single-flight
   rounds, failed/offline-source isolation, and non-cooperative timeout slot
