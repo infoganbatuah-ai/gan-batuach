@@ -1,5 +1,6 @@
 import crypto from "node:crypto";
 import { spawn, spawnSync } from "node:child_process";
+import { createPersistentLearningCycle } from "../services/video-gateway/persistent-learning-cycle.mjs";
 
 const workdir = process.cwd();
 const gatewayUrl = "http://127.0.0.1:18082";
@@ -14,7 +15,6 @@ const CLOUD_REQUEST_TIMEOUT_MS = 30_000;
 const DISCOVERY_REQUEST_TIMEOUT_MS = 3 * 60 * 1000;
 const INSIGHT_REQUEST_TIMEOUT_MS = 20_000;
 const EVENT_MEDIA_REQUEST_TIMEOUT_MS = 30_000;
-const eventCooldowns = new Map();
 
 function keychainSecret(account) {
   const result = spawnSync("/usr/bin/security", ["find-generic-password", "-s", gatewayKeychainService, "-a", account, "-w"], { encoding: "utf8" });
@@ -142,45 +142,64 @@ function discoverWithRetry(context) {
   return discoveryRun;
 }
 
-async function learn() {
-  const samples = (await Promise.all(channels.filter((channel) => channel.status === "connected" && channel.gateway_stream_id).map(async (channel) => {
-    try {
-      const response = await fetch(`${gatewayUrl}/camera/${encodeURIComponent(channel.gateway_stream_id)}/insights`, { headers: { "x-video-gateway-secret": gatewaySecret }, signal: AbortSignal.timeout(INSIGHT_REQUEST_TIMEOUT_MS) });
-      const data = await response.json();
-      if (!response.ok || data.local_processing !== true || data.no_raw_video_returned !== true) return null;
-      const detections = Array.isArray(data.insight?.object_detection?.detections) ? data.insight.object_detection.detections.filter((item) => item && typeof item.label === "string" && Number(item.confidence) >= 0.55).slice(0, 10) : [];
-      return { channel, stream_id: channel.gateway_stream_id, motion_score: Number(data.insight.motion_score || 0), luminance_score: Number(data.insight.luminance_score || 0), sampled_at: String(data.insight.sampled_at || new Date().toISOString()), sample_frames: Number(data.insight.sample_frames || 1), detections };
-    } catch { return null; }
-  }))).filter(Boolean);
-  if (!samples.length) return;
-  await signedPost("/api/video-gateway/cloud-learning", { gateway_id: gatewayId, observer_site_id: observerSiteId, sample_id: crypto.randomUUID(), sampled_at: new Date().toISOString(), local_processing: true, no_raw_video_returned: true, samples: samples.map(({ stream_id, motion_score, luminance_score, sampled_at, sample_frames }) => ({ stream_id, motion_score, luminance_score, sampled_at, sample_frames })) }, { deviceAccess: true });
-  for (const sample of samples) {
-    const primary = sample.detections.find((item) => ["person", "car", "motorcycle", "truck", "dog", "cat"].includes(item.label));
-    if (!primary || !sample.channel?.camera_source_id) continue;
-    const cooldownKey = `${sample.stream_id}:${primary.label}`;
-    if ((eventCooldowns.get(cooldownKey) || 0) > Date.now() - EVENT_COOLDOWN_MS) continue;
-    eventCooldowns.set(cooldownKey, Date.now());
+const learningCycle = createPersistentLearningCycle({
+  cooldownMs: EVENT_COOLDOWN_MS,
+  schedulerOptions: { concurrency: 2, maxSourcesPerRound: 20, timeoutMs: INSIGHT_REQUEST_TIMEOUT_MS, roundBudgetMs: 60_000 },
+  authorize: async (sourceIds) => {
+    const requestId = crypto.randomUUID();
+    const result = await signedPost("/api/video-gateway/cloud-learning", {
+      operation: "authorize_round", gateway_id: gatewayId, observer_site_id: observerSiteId,
+      sample_id: requestId, sampled_at: new Date().toISOString(), local_processing: true,
+      no_raw_video_returned: true, source_ids: sourceIds
+    }, { deviceAccess: true });
+    const payload = result?.data ?? result;
+    if (payload?.status !== "analysis_policy" || payload.policy?.request_id !== requestId) throw new Error("analysis_policy_unavailable");
+    return payload.policy;
+  },
+  analyze: async (channel, signal) => {
+    const response = await fetch(`${gatewayUrl}/camera/${encodeURIComponent(channel.gateway_stream_id)}/insights`, {
+      headers: { "x-video-gateway-secret": gatewaySecret }, signal
+    });
+    if (response.status === 503 || response.status === 404) return { state: "no_media" };
+    if (!response.ok) throw new Error("analysis_failed");
+    return response.json();
+  },
+  publishSamples: async (samples) => {
+    const result = await signedPost("/api/video-gateway/cloud-learning", {
+      gateway_id: gatewayId, observer_site_id: observerSiteId, sample_id: crypto.randomUUID(),
+      sampled_at: new Date().toISOString(), local_processing: true, no_raw_video_returned: true, samples
+    }, { deviceAccess: true });
+    return { submitted: (result?.data ?? result)?.status === "learned" };
+  },
+  publishEvent: (channel, primary, signal) => {
     const eventType = primary.label === "person" ? "person_detected" : ["car", "motorcycle", "truck"].includes(primary.label) ? "vehicle_detected" : "animal_detected";
     const label = primary.label === "person" ? "אדם" : primary.label === "motorcycle" ? "אופנוע" : primary.label === "dog" || primary.label === "cat" ? "בעל חיים" : "רכב";
-    void submitEventEvidence(sample.channel, {
+    return submitEventEvidence(channel, {
       event_type: eventType,
       event_context: "presence",
       severity: "info",
       confidence: Number(primary.confidence),
       summary: `${label} זוהה מקומית במצלמה. נשמר קליפ סביב האירוע לבדיקה אנושית; לא בוצע זיהוי זהות.`
-    }).catch((error) => console.error(`event media failed: ${error.message}`));
+    }, { signal });
   }
+});
+
+async function learn() {
+  const result = await learningCycle.run(channels);
+  console.log(JSON.stringify({ operation: "analysis_round", state: result.state, attempted: result.attempted ?? 0,
+    events_submitted: result.events_submitted ?? 0, event_failures: result.event_failures ?? 0, events_deferred: result.events_deferred ?? 0 }));
 }
 
-async function submitEventEvidence(channel, event) {
+async function submitEventEvidence(channel, event, { signal } = {}) {
   if (!channel?.gateway_stream_id || !channel?.camera_source_id) return { submitted: false, reason: "no_connected_mapped_channel" };
   const response = await fetch(`${gatewayUrl}/camera/${encodeURIComponent(channel.gateway_stream_id)}/event-media`, {
     method: "POST",
     headers: { "content-type": "application/json", "x-video-gateway-secret": gatewaySecret },
     body: JSON.stringify({ window_seconds_before: 3, window_seconds_after: 5 }),
-    signal: AbortSignal.timeout(EVENT_MEDIA_REQUEST_TIMEOUT_MS)
+    signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(EVENT_MEDIA_REQUEST_TIMEOUT_MS)]) : AbortSignal.timeout(EVENT_MEDIA_REQUEST_TIMEOUT_MS)
   });
   const media = await response.json();
+  signal?.throwIfAborted();
   if (!response.ok || media.status !== "available") return { submitted: false, reason: media.reason || "media_capture_failed" };
   const clipBytes = Buffer.from(String(media.clip?.base64 || ""), "base64");
   const thumbnailBytes = Buffer.from(String(media.thumbnail?.base64 || ""), "base64");
@@ -219,7 +238,7 @@ async function submitEventEvidence(channel, event) {
       "x-video-gateway-secret": gatewaySecret
     },
     body: form,
-    signal: AbortSignal.timeout(CLOUD_REQUEST_TIMEOUT_MS)
+    signal: signal ? AbortSignal.any([signal, AbortSignal.timeout(CLOUD_REQUEST_TIMEOUT_MS)]) : AbortSignal.timeout(CLOUD_REQUEST_TIMEOUT_MS)
   });
   if (!upload.ok) throw new Error(`Cloud event media failed (${upload.status})`);
   return { submitted: true };

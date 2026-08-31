@@ -9,7 +9,7 @@ for (const forbidden of ["runtimeConfigPath", "home-gateway.json\`;", "readFileS
 for (const required of ['keychainSecret("dvr_profile_json")', 'keychainSecret("dvr_password")']) {
   if (!runner.includes(required)) throw new Error(`Missing persistent Keychain DVR profile field: ${required}`);
 }
-for (const required of ["initial DVR discovery unavailable; retry scheduled", "15 * 60 * 1000"]) {
+for (const required of ['discoverWithRetry("initial")', "${context} DVR discovery unavailable; retry scheduled", "attempt >= DISCOVERY_RETRY_ATTEMPTS", "15 * 60 * 1000"]) {
   if (!runner.includes(required)) throw new Error(`Missing persistent discovery resilience control: ${required}`);
 }
 for (const required of ['writeSecret("dvr_profile_json"', 'writeSecret("dvr_password"', "rmSync(profilePath", "original profile was not removed"]) {

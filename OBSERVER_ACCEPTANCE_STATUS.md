@@ -56,7 +56,7 @@ Owner names below describe accountable workstreams, not external approvals.
 | Observer decisions, permissions and human fallback | Policy + Assistant | Partial | Approval/audit route exists | Full detect-to-decision-to-review workflow, uncertainty fallback and no chat-to-action bypass |
 | Professional evidence-grounded event narrative | Events + Policy | Deployed / media-check report and audit read verified | 9fa7b769 signed-in linked report, thumbnail, played clip and persisted review history verified | Real AI anomaly/identity evidence and the complete event decision workflow remain required |
 | Chat action interface | Assistant + Policy | Scoped hotfix accepted; broader action workflow partial | 9fa7b769 production READY; signed-in stored-status query, neutral saved-instruction label and nine same-site links passed; portrait/tablet/desktop visual QA passed | Real rule execution, duplicate-request handling, richer consented context and direct restrictive-policy audit proof remain separate gates |
-| Fair coverage of every source | Edge + Events + Web | Local core/UI QA partial, not deployed | Synthetic 5/20/64-source fair scheduler passes; all-source saved-report UI rejects cross-site/old/future attribution | Wire authenticated per-round policy, persistent per-source analysis telemetry and bounded runtime; exact full-window aggregation and production E2E still required |
+| Fair coverage of every source | Edge + Events + Web | Local policy/runtime/UI QA partial, not deployed or installed | Synthetic 5/20/64-source fairness, fresh scoped authorization before sampling, whole-cycle single-flight and failure isolation pass; saved-report UI rejects cross-site/old/future attribution | Approved web deployment before staged Gateway update; per-source telemetry, exact full-window aggregation and production E2E still required |
 | Privacy-safe continuous learning and semantic zones | Edge + Privacy + Assistant | Not accepted | Editable camera names and local aggregate scaffolding exist; no verified per-zone baseline | User-controlled names/zones across chat/events/daily summaries; opt-in bounded warmup/adaptation, corrections, explainability, reset/forget/export/audit and sustained per-camera evidence |
 | Push/email/WhatsApp/emergency delivery | Notifications + Operations | Blocked pending provisioning/authority | No provider delivery acceptance; no emergency calls placed | Verified accounts/consents/address/escalation, sandbox tests, explicit operational authority, budget enforcement |
 | Site-preserving onboarding and source mapping | Web + Gateway | Partial | Source-scoped playback validation tested | Same-site edits/resume, multi-channel recorder vs single IP camera, cross-device enrollment E2E |
@@ -404,9 +404,10 @@ passed in production; rule execution and sustained live inference remain unprove
   rounds, failed/offline-source isolation, and non-cooperative timeout slot
   retention. Policy timeout is reported as consent unavailable and cached results
   from before a source's own attempt cannot count as successful analysis.
-  It is NOT wired into or installed on the persistent Gateway yet.
-  Owner: Edge. Next gate: authenticated short-lived per-source policy, runtime
-  integration, telemetry persistence and live fairness proof without new consent.
+  It is now wired into the persistent runner locally, but NOT installed on the
+  running Gateway. Authenticated per-round policy and integration QA pass as
+  detailed below. Owner: Edge. Next gate: approved web deployment, staged Gateway
+  update, telemetry persistence and live fairness proof without new consent.
 - Coverage UI is implemented locally for dashboard/My Observer for every source, including
   offline sources without players. It uses current names/zones and only loaded
   stored reports from the last 48 hours; query failure and query-limit truncation
@@ -421,3 +422,43 @@ passed in production; rule execution and sustained live inference remain unprove
   Unknown explicit sources do not silently fall back to another camera. Synthetic
   regression coverage includes conflicting IDs, legacy IDs and tenant isolation.
   This source-resolution correction is local only and not in release 9fa7b769.
+
+## Fresh Analysis Authorization And Bounded Rounds
+
+- Implemented locally, not deployed or installed: the existing authenticated
+  cloud-learning endpoint can authorize a 60-second round for requested sources
+  belonging to the enrolled Gateway and site. It checks current active-site,
+  monitoring-consent, privacy and schedule state, plus a non-future capability
+  contract no older than 20 minutes with runtime/hardware/model self-test proof.
+  Skeleton-only and child-handling sites are denied. Restricted schedule modes
+  fail closed pending a tested time-window evaluator. Simple event-only/24-hour
+  draft schedules remain compatible with the current explicit-consent settings
+  path; draft alone never grants monitoring consent.
+- Authorization uses existing device authentication (legacy signed requests
+  remain compatible), nonce replay protection and required audit completion.
+  Only source IDs, expiry and safe policy status return to the local runner.
+  There are no new credentials, migrations, raw media or private endpoints in
+  this authorization flow. Physical actions and biometric matching are false.
+- The runner now requests permission before analysis, bounds concurrency to two,
+  rotates through at most 20 sources per round and serializes the entire round,
+  including uploads. Wrong-stream, stale, missing-model and malformed results
+  cannot become successful no-event reports. Offline/failed sources stay isolated.
+  Metrics upload failure does not suppress eligible event media; only successful
+  publication starts cooldown. Expired authorization prevents another capture.
+- Synthetic policy/route and cycle QA cover consent/revocation/privacy, tenant
+  and device isolation, model/hardware failure, audit/replay/query failure,
+  payload limits, legacy envelopes, timeouts, retry and no late publication.
+  The existing 5/20/64-source scheduler and privacy/media/site/Keychain regression
+  suites pass. A stale Keychain QA log-string assertion was updated to verify
+  both the current contextual retry message and its initial call/bound.
+  Typecheck, syntax/diff checks and the full 481-page production build pass.
+- Remaining gates: scoped web release must precede the persistent Gateway
+  upgrade (the older endpoint rejects the new operation, so analysis fails
+  closed). The existing startup media-readiness check is a separate path, not
+  covered by this analysis-round authorization. It requires separate review
+  before service rollout. Inference cancellation inside the server after a
+  disconnected HTTP request also needs end-to-end proof. No running service,
+  consent, Keychain item or DVR state was changed during these local checks.
+- Per-source telemetry persistence, genuine baseline calibration rather than
+  sample-count heuristics, sustained live fairness and production event evidence
+  remain open. This change does not establish continuous monitoring or learning.
