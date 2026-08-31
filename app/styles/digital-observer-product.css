@@ -1663,6 +1663,15 @@
 .do-event-review-panel > h2,
 .do-event-review-panel > p { margin: 0; }
 .do-event-review-panel > p { color: var(--do-muted); }
+.do-event-assessment { margin: 0; display: grid; gap: 12px; min-width: 0; }
+.do-event-assessment > div { min-width: 0; padding-block-end: 10px; border-bottom: 1px solid var(--do-line); }
+.do-event-assessment dt { font-size: 13px; font-weight: 700; }
+.do-event-assessment dd { margin: 4px 0 0; font-size: 14px; line-height: 1.6; overflow-wrap: anywhere; }
+.do-alert-preview.do-event-thumbnail { width: 112px; min-height: 0; height: 72px; object-fit: cover; flex-shrink: 0; }
+@media (max-width: 600px) {
+  .do-alert-preview.do-event-thumbnail { width: 72px; height: 54px; }
+  .do-alert-row .do-row-main { min-width: 0; overflow-wrap: anywhere; }
+}
 .do-button-row.stacked { display: grid; align-items: stretch; }
 .do-button-row.stacked .do-button { width: 100%; }
 

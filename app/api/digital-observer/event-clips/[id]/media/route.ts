@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { fail, handleRouteError } from "@/lib/api";
 import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
+import { observerEventMediaDeadline, observerEventMediaReason, observerEventMediaState } from "@/lib/domain/digital-observer/event-evidence";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -30,22 +31,25 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
     const admin = createAdminClient();
     const { data: privateClip } = await admin
       .from("digital_observer_event_clips" as any)
-      .select("id,observer_site_id,camera_source_id,clip_status,storage_bucket,storage_path,snapshot_storage_path,metadata")
+      .select("id,observer_site_id,camera_source_id,clip_status,storage_bucket,storage_path,snapshot_storage_path,captured_at,delete_after,retention_hours,downloadable,metadata")
       .eq("id", publicClip.id)
       .eq("observer_site_id", publicClip.observer_site_id)
       .maybeSingle();
-    const metadata = privateClip?.metadata && typeof privateClip.metadata === "object" ? privateClip.metadata : {};
-    if (!privateClip || privateClip.clip_status !== "available" || metadata.media_status === "failed") {
-      return fail(String(metadata.media_missing_reason || "מדיית האירוע אינה זמינה."), 404);
-    }
+    if (!privateClip || privateClip.camera_source_id !== publicClip.camera_source_id) return fail("מדיית האירוע אינה משויכת למקור המאומת.", 403);
+    const mediaState = observerEventMediaState(privateClip);
+    if (mediaState !== "available") return fail(observerEventMediaReason(mediaState), mediaState === "expired" ? 410 : 404);
+    if (download && privateClip.downloadable !== true) return fail("הורדת מדיה אינה מאושרת לאירוע זה.", 403);
     const path = kind === "thumbnail" ? privateClip.snapshot_storage_path : privateClip.storage_path;
     if (!privateClip.storage_bucket || !path) return fail("מדיית האירוע חסרה.", 404);
+    if (privateClip.storage_bucket !== "digital-observer-event-media" || !path.startsWith(`${publicClip.observer_site_id}/`)) return fail("נתיב המדיה אינו שייך לאתר המאומת.", 403);
+    const remainingSeconds = Math.floor(((observerEventMediaDeadline(privateClip) ?? 0) - Date.now()) / 1000);
+    if (remainingSeconds < 1) return fail(observerEventMediaReason("expired"), 410);
 
     const { data: signed, error } = await admin.storage
       .from(privateClip.storage_bucket)
-      .createSignedUrl(path, 60, download ? { download: kind === "thumbnail" ? "event-thumbnail.jpg" : "event-clip.mp4" } : undefined);
+      .createSignedUrl(path, Math.min(60, remainingSeconds), download ? { download: kind === "thumbnail" ? "event-thumbnail.jpg" : "event-clip.mp4" } : undefined);
     if (error || !signed?.signedUrl) return fail("לא ניתן לפתוח מדיה פרטית.", 503);
-    return NextResponse.redirect(signed.signedUrl, { status: 307 });
+    return NextResponse.redirect(signed.signedUrl, { status: 307, headers: { "cache-control": "private, no-store", "referrer-policy": "no-referrer" } });
   } catch (error) {
     return handleRouteError(error);
   }

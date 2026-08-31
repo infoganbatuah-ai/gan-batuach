@@ -14,7 +14,7 @@ assert.match(runtime, /observerSignalHasRequiredEvidence/, "runtime must expose 
 assert.match(alertsPage, /displayableSignals = allSignals\.filter\(\(item\) => observerSignalHasRequiredEvidence/, "alerts list must filter reviewable events by camera source and media");
 assert.match(alertsPage, /selectedHasMedia \? <ObserverQuickAction[\s\S]*אישור אירוע/, "event confirmation must only render when media is available");
 assert.match(alertsPage, /do-event-technical-faults/, "events missing media must be surfaced as technical faults");
-assert.match(mediaRoute, /createSignedUrl\(path, 60/, "event clip media must use a short-lived signed URL");
+assert.match(mediaRoute, /createSignedUrl\(path, Math\.min\(60, remainingSeconds\)/, "event clip permission must not outlive the 60-second limit or media expiry");
 assert.match(mediaRoute, /getObserverSiteAccess/, "event clip media route must check tenant-scoped observer site access");
 assert.match(cloudRoute, /Replay detected/, "cloud event media uploads must reject replayed nonces");
 assert.match(cloudRoute, /no_dvr_credentials_returned: z\.literal\(true\)/, "cloud event media schema must require no DVR credentials in payload");

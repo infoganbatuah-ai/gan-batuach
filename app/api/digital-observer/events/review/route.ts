@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
+import { observerEventMediaState } from "@/lib/domain/digital-observer/event-evidence";
 
 const schema = z.object({
   signal_id: z.string().uuid(),
@@ -16,12 +17,25 @@ export async function POST(request: Request) {
     const supabase = sessionSupabase as any;
     const payload = schema.parse(await request.json());
     const { data: signal } = await supabase.from("observer_intelligence_signals" as any)
-      .select("id,observer_site_id,review_status,metadata")
+      .select("id,observer_site_id,camera_id,review_status,metadata")
       .eq("id", payload.signal_id)
       .maybeSingle();
     if (!signal?.observer_site_id) return fail("האירוע לא נמצא או אינו שייך למוצר העצמאי.", 404);
     const site = await getObserverSiteAccess(supabase, profile, signal.observer_site_id, { manage: true });
     if (!site) return fail("אין הרשאה לסקור את האירוע.", 403);
+
+    if (["confirmed", "dismissed", "resolved"].includes(payload.review_status)) {
+      const reference = signal.metadata?.camera_source_id ?? signal.camera_id;
+      if (!reference) return fail("לא ניתן לאשר אירוע ללא מקור וראיות. אפשר להעבירו לבדיקה טכנית.", 422);
+      const { data: camera } = await supabase.from("digital_observer_camera_sources")
+        .select("id").eq("id", reference).eq("observer_site_id", signal.observer_site_id).maybeSingle();
+      const { data: clip } = await supabase.from("digital_observer_event_clips")
+        .select("id,camera_source_id,clip_status,captured_at,delete_after,retention_hours,metadata")
+        .eq("signal_id", signal.id).eq("observer_site_id", signal.observer_site_id).maybeSingle();
+      if (!camera || clip?.camera_source_id !== camera.id || observerEventMediaState(clip) !== "available") {
+        return fail("לא ניתן לאשר אירוע ללא תמונה וסרטון בתוקף. אפשר להעבירו לבדיקה אנושית.", 422);
+      }
+    }
 
     const now = new Date().toISOString();
     const { data: review, error: reviewError } = await supabase.from("observer_signal_reviews" as any).insert({
@@ -31,7 +45,7 @@ export async function POST(request: Request) {
       review_status: payload.review_status,
       review_note: payload.note || null,
       recommended_next_step: payload.review_status === "escalated" ? "בדיקה אנושית והסלמה לפי נוהל האתר" : null,
-      metadata: { product: "digital_observer", no_automatic_accusation: true }
+      metadata: { product: "digital_observer", no_automatic_accusation: true, decision_policy_version: "evidence-review-v1", identity_authorization_changed: false, physical_action_executed: false }
     }).select("id,review_status,created_at").single();
     if (reviewError) return fail("לא ניתן לשמור את ביקורת האירוע.", 400);
 

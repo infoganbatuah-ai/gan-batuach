@@ -41,7 +41,7 @@ Owner names below describe accountable workstreams, not external approvals.
 | Per-person biometric enrollment, consent, revocation and deletion | Identity + Privacy | Disabled pending proof | Consent/audit scaffolding; local health reports recognition false | Confirm migration/RLS; user-driven profile enrollment only, approved matching model and consent/revocation E2E |
 | Resident / authorized visitor / unrecognized classification | Identity + Events | Not accepted | Required states defined above; no matching evidence | Tenant-safe profile lookup and uncertain/unknown fallback; never assert physical access denial |
 | Entry/exit events and review notifications | Edge + Events | Not accepted | General event route exists, no current full workflow proof | Tested entry/exit model/rule with evidence, consented lookup, delivery and user review E2E |
-| Reasoned journal, event thumbnail/clip, summaries and audit | Events + Web | Partial | Focused event-media QA passes | Real source, category, reason, confidence, conclusion, thumbnail, clip and audit in production UI; no generic/demo events |
+| Reasoned journal, event thumbnail/clip, summaries and audit | Events + Web | Partial / local changes tested | Real route and server-rendered page fixtures pass tenant/source checks, expiry, review gates, reason/conclusion and truthful identity | Scoped release plus real event thumbnail/clip/review E2E; deletion worker and delivery still unverified |
 | Edge / AI Shadow readiness and processing | Edge | Partial | Local runtime object/person/non-identifying face self-tests previously true | Fresh consent + runtime/model/hardware + sustained per-channel inference proof; audio/fire/distress/general learning unproven |
 | Per-camera capability map and gated controls | Gateway + Web | Partial, physical execution off | Capability/action gate QA passes | Read-only per-channel evidence with freshness; adapter, immediate confirmation and audit before action test |
 | Observer decisions, permissions and human fallback | Policy + Assistant | Partial | Approval/audit route exists | Full detect-to-decision-to-review workflow, uncertainty fallback and no chat-to-action bypass |
@@ -125,6 +125,44 @@ Owner names below describe accountable workstreams, not external approvals.
 - Cloud revocation/site/source mapping, replay, TTL and media-path restrictions.
 - Relay client disabled by default; unapproved destination receives no request.
 - Failed synthetic channel leaves a working synthetic channel available.
+
+## Independent Event And Consent Work
+
+These changes are locally tested, not production acceptance evidence:
+
+- Event access is bounded by capture time, configured retention and a maximum of
+  48 hours. Expired media cannot receive a new viewing/download grant; the journal
+  retains its textual description. This does not prove storage cleanup ran.
+- Event, source and clip must belong to the same site. Terminal review decisions
+  require a source, thumbnail and valid clip. Incomplete evidence can still be
+  escalated for human/technical review, without changing identity permissions.
+- Gateway event uploads recheck current site monitoring consent and source/Gateway
+  ownership. Object presence requires the existing verified capability gate.
+  Identity, entry/exit and other unverified classifications are rejected rather
+  than inferred from object presence. Capability freshness remains a separate gate.
+- The journal uses actual event thumbnails, capture timestamps and explanations;
+  it no longer substitutes the camera's current live image. Expired media remains
+  visible as text, and unavailable media has an explicit reason. Site selection
+  is preserved in journal navigation; download controls follow clip policy.
+- Untrusted event metadata cannot assert that a named person is a resident or an
+  authorized visitor. No biometric matching, new face capture or physical action
+  was enabled. Conclusions are deterministic evidence explanations, not proof of
+  a new trained reasoning model.
+- Known-person and Observer-request forms retain their form reference across an
+  asynchronous save. Regression tests clear the event target before response:
+  success resets once; failure retains input and reports an error.
+- Passed local checks: `check-observer-event-evidence.mjs` (real handlers and page
+  with synthetic fixtures), `check-observer-form-submit.mjs`, existing event media,
+  consent lifecycle, biometric gates and site-edit preservation checks.
+- The production build passed (481 pages). The live Supabase product QA could not
+  start: this isolated worktree has no Supabase URL/publishable-key configuration.
+  No credential was copied in to bypass that prerequisite.
+- Next gates: production approval/release, connected-browser event/consent E2E,
+  storage-deletion audit, and capability freshness/per-channel processing proof.
+
+No DVR recording/storage diagnostic was performed in this stage. Recorder
+administration remains out of scope; the pre-existing diagnostic-file edit is
+excluded from these changes.
 
 No Relay media was transmitted to an unverified host. No DVR credentials, browser
 cookies, cloud service-role keys or private stream URLs are included in this ledger.
