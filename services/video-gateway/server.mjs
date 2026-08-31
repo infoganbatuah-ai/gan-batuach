@@ -480,19 +480,29 @@ function mergePrivateNvrCapabilityEvidence(media, discovered) {
 }
 
 async function privateNvrStreamResponse(url, token, cookie, signal) {
+  // Bound only the response headers, not the lifetime of a healthy live body.
+  // An unanswered channel must not poison its shared relay-start promise.
+  const headerDeadline = new AbortController();
+  const timer = setTimeout(() => headerDeadline.abort(), Math.max(2000, PROBE_TIMEOUT_MS));
   const response = await fetch(url, {
     headers: {
       "X-csrftoken": token,
       "cache-control": "no-cache",
       ...(cookie ? { cookie } : {})
     },
-    signal
-  }).catch(() => null);
-  if (!response || (response.status !== 200 && response.status !== 400) || !response.body) return null;
+    signal: signal ? AbortSignal.any([signal, headerDeadline.signal]) : headerDeadline.signal
+  }).catch(() => null).finally(() => clearTimeout(timer));
+  if (!response || (response.status !== 200 && response.status !== 400) || !response.body) {
+    headerDeadline.abort();
+    return null;
+  }
   // Some recorders return 400 while still streaming media, but an HTML or JSON
   // error response must never be passed to ffmpeg as if it were an MP4 stream.
   const contentType = String(response.headers.get("content-type") || "").toLowerCase();
-  if (contentType && !contentType.includes("video/") && !contentType.includes("application/octet-stream")) return null;
+  if (contentType && !contentType.includes("video/") && !contentType.includes("application/octet-stream")) {
+    headerDeadline.abort();
+    return null;
+  }
   return response;
 }
 
@@ -837,7 +847,10 @@ async function startRelay(streamId) {
     "-f", "hls",
     "-hls_time", "1",
     "-hls_list_size", "5",
-    "-hls_flags", "delete_segments+append_list+omit_endlist+independent_segments",
+    // Never reuse segment sequence numbers after a failed relay. Native HLS
+    // clients otherwise keep waiting for the old sequence to catch up.
+    "-hls_start_number_source", "epoch_us",
+    "-hls_flags", "delete_segments+omit_endlist+independent_segments+discont_start+temp_file",
     "-hls_segment_filename", join(directory, "segment-%06d.ts"),
     playlist
   ];
@@ -1046,7 +1059,16 @@ function publicGatewayBase(request) {
   return `${forwarded}://${request.headers.host}`;
 }
 
-function issuePlaybackToken(streamId) {
+function issuePlaybackToken(streamId, previousToken = null) {
+  for (const [token, record] of playbackTokens) {
+    if (record.expiresAt <= Date.now()) playbackTokens.delete(token);
+  }
+  // This runs only AFTER a new cloud grant has been claimed for this stream.
+  // Do not extend a token bound to another source or an already expired lease.
+  if (previousToken && validatePlaybackToken(previousToken, streamId)) {
+    playbackTokens.get(previousToken).expiresAt = Date.now() + PLAYBACK_TOKEN_TTL_MS;
+    return previousToken;
+  }
   const token = randomBytes(24).toString("base64url");
   playbackTokens.set(token, { streamId, expiresAt: Date.now() + PLAYBACK_TOKEN_TTL_MS });
   return token;
@@ -1054,7 +1076,7 @@ function issuePlaybackToken(streamId) {
 
 function validatePlaybackToken(token, streamId) {
   const record = playbackTokens.get(String(token || ""));
-  if (!record || record.streamId !== streamId || record.expiresAt < Date.now()) return false;
+  if (!record || record.streamId !== streamId || record.expiresAt <= Date.now()) return false;
   return true;
 }
 
@@ -1182,7 +1204,8 @@ async function handle(request, response) {
       if (!streamSources.has(streamId)) throw new Error("Playback source is unavailable on this Gateway");
       const relay = await ensureRelay(streamId);
       if (!relay || !(await waitForFile(relay.playlist, 8000))) throw new Error("Playback relay is not ready");
-      const token = issuePlaybackToken(streamId);
+      const previousToken = typeof payload.playback_token === "string" && /^[A-Za-z0-9_-]{32}$/.test(payload.playback_token) ? payload.playback_token : null;
+      const token = issuePlaybackToken(streamId, previousToken);
       const base = publicGatewayBase(request);
       requestMetrics.playbackClaimReady += 1;
       response.writeHead(200, browserHeaders(request, "application/json"));

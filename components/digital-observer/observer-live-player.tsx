@@ -53,6 +53,8 @@ export function ObserverLivePlayer({
     let cancelled = false;
     let hls: Hls | null = null;
     let mediaHeartbeat: ReturnType<typeof setInterval> | null = null;
+    let leaseHeartbeat: ReturnType<typeof setInterval> | null = null;
+    let renewalPending = false;
     let awaitingMedia = false;
     const currentVideoElement = videoRef.current;
     if (!currentVideoElement) return;
@@ -82,6 +84,18 @@ export function ObserverLivePlayer({
       setUnavailableReason("");
       const playbackUrl = await playbackSessions.request(observerSiteId, cameraSourceId);
       if (cancelled) return;
+      leaseHeartbeat = setInterval(() => {
+        if (cancelled || renewalPending) return;
+        renewalPending = true;
+        void playbackSessions.renew(observerSiteId, cameraSourceId, playbackUrl).then((renewedUrl) => {
+          // Renewing a valid local lease preserves both URL and decoder buffer.
+          // After expiration/restart the Gateway issues a new URL instead.
+          if (!cancelled && renewedUrl !== playbackUrl) setRetryNonce((value) => value + 1);
+        }).catch(() => {
+          // Keep playing while the previous lease is valid. A cloud outage must
+          // not destroy available media; the media heartbeat owns failure UI.
+        }).finally(() => { renewalPending = false; });
+      }, 60_000);
       awaitingMedia = true;
       lastProgressAtRef.current = Date.now();
 
@@ -123,6 +137,7 @@ export function ObserverLivePlayer({
     return () => {
       cancelled = true;
       if (mediaHeartbeat) clearInterval(mediaHeartbeat);
+      if (leaseHeartbeat) clearInterval(leaseHeartbeat);
       if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
       retryTimerRef.current = null;
       hls?.destroy();
