@@ -2,6 +2,7 @@ import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
 import { formatObserverDate, observerEventLabel } from "@/lib/domain/digital-observer/runtime";
+import { eventJournalService } from "@/lib/domain/event-engine/event-journal-service";
 
 const schema = z.object({
   observer_site_id: z.string().uuid(),
@@ -116,6 +117,7 @@ export async function POST(request: Request) {
     const scopedSignals = payload.camera_source_id
       ? (signalResult.data ?? []).filter((signal: any) => signal.camera_id === payload.camera_source_id || signal.metadata?.camera_source_id === payload.camera_source_id)
       : signalResult.data ?? [];
+    const eventLog = eventJournalService.group(scopedSignals as Record<string, any>[]).slice(0, 20);
     const scopedCameras = selectedCamera ? [selectedCamera] : cameraResult.data ?? [];
     const connectedSourceAvailable = scopedCameras.some((camera: any) => ["connected", "healthy", "online", "active"].includes(String(camera.status ?? camera.health_status)));
     const message = payload.message.toLowerCase();
@@ -163,6 +165,7 @@ export async function POST(request: Request) {
           : `שמרתי את ההנחיה. מקור המצלמה עדיין אינו מחובר, ולכן היא תתחיל לפעול אוטומטית לאחר חיבור מאומת.\n\n${summary.answer}`
         : summary.answer,
       signal_ids: summary.signalIds,
+      event_log: eventLog,
       request: requestRecord,
       answer_source: payload.camera_source_id ? "camera_scoped_runtime_data" : "site_scoped_runtime_data",
       live_ai_used: false,
