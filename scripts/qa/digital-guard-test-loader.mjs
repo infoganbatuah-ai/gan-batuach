@@ -8,8 +8,8 @@ const require = createRequire(import.meta.url);
 export function loadTs(file, mocks = {}, cache = new Map()) {
   file = resolve(file);
   if (cache.has(file)) return cache.get(file);
-  const module = { exports: {} };
-  cache.set(file, module.exports);
+  const loadedModule = { exports: {} };
+  cache.set(file, loadedModule.exports);
   const localRequire = (name) => {
     if (Object.hasOwn(mocks, name)) return mocks[name];
     if (name === "server-only") return {};
@@ -21,6 +21,6 @@ export function loadTs(file, mocks = {}, cache = new Map()) {
   };
   const js = ts.transpileModule(readFileSync(file, "utf8"), { compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022, jsx: ts.JsxEmit.ReactJSX } }).outputText;
   const noNetwork = () => { throw new Error("Unexpected network access in unit test"); };
-  new Function("require", "module", "exports", "fetch", "process", js)(localRequire, module, module.exports, mocks.fetch ?? noNetwork, mocks.process ?? process);
-  return module.exports;
+  new Function("require", "module", "exports", "fetch", "process", js)(localRequire, loadedModule, loadedModule.exports, mocks.fetch ?? noNetwork, mocks.process ?? process);
+  return loadedModule.exports;
 }
