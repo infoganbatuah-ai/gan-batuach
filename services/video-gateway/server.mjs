@@ -156,9 +156,9 @@ async function reportCameraActionResult(cloudBaseUrl, accessToken, requestId, ou
 }
 
 async function pollCloudCameraActions() {
-  const cloudBaseUrl = (await keychainSecret("device_cloud_base_url")).replace(/\/$/, "");
-  if (!cloudBaseUrl || !GATEWAY_KEYCHAIN_SERVICE) return;
   try {
+    const cloudBaseUrl = (await keychainSecret("device_cloud_base_url")).replace(/\/$/, "");
+    if (!cloudBaseUrl || !GATEWAY_KEYCHAIN_SERVICE) return;
     const accessToken = await refreshGatewayDeviceAccess();
     // Retry the same safe ACK after a transient cloud failure. Never repeat a
     // device probe simply because result delivery was interrupted.
@@ -196,7 +196,7 @@ async function pollCloudCameraActions() {
 if (GATEWAY_KEYCHAIN_SERVICE) {
   setInterval(() => {
     if (cameraActionPollPromise) return;
-    cameraActionPollPromise = pollCloudCameraActions().finally(() => { cameraActionPollPromise = null; });
+    cameraActionPollPromise = pollCloudCameraActions().catch(() => undefined).finally(() => { cameraActionPollPromise = null; });
   }, 5_000).unref();
 }
 
