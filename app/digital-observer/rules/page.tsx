@@ -37,12 +37,19 @@ function baselineSummary(baseline: Record<string, any>) {
   const value = baseline.baseline_value && typeof baseline.baseline_value === "object" ? baseline.baseline_value : {};
   if (baseline.baseline_type === "normal_camera_activity") {
     const samples = Number(value.sample_count || 0);
+    if (value.version === "per_source_activity_v1") {
+      const sources = Object.keys(value.source_metrics ?? {}).length;
+      return `נשמרו ${samples} מדידות מ-${sources} מקורות בנפרד. מדדי תנועה ותאורה אינם הוכחה לשגרה שנלמדה או לניתוח רציף.`;
+    }
     const cameras = Number(value.last_active_camera_count || baseline.source_summary?.active_camera_count || 0);
-    const motion = Number(value.average_motion_score || 0);
-    const light = Number(value.average_luminance_score || 0);
+    const motion = value.average_motion_score;
+    const light = value.average_luminance_score;
+    if (samples < 1 || [motion, light].some(score => typeof score !== "number" || !Number.isFinite(score) || score < 0 || score > 1)) {
+      return "טרם נשמרו מדדי תנועה ותאורה מאומתים.";
+    }
     const motionText = motion >= 0.55 ? "פעילות גבוהה יחסית" : motion >= 0.22 ? "פעילות בינונית" : "פעילות נמוכה";
     const lightText = light >= 0.62 ? "תאורה חזקה" : light >= 0.28 ? "תאורה רגילה" : "תאורה חלשה";
-    return `ברשומה השמורה: ${samples} דגימות מ-${cameras} מצלמות; נמדדו ${motionText} ו${lightText}. הרשומה אינה מעידה על ניתוח נוכחי.`;
+    return `סיכום היסטורי משולב: ${samples} סבבי מדידה מ-${cameras} מצלמות; נמדדו ${motionText} ו${lightText}. אין שיוך למצלמה מסוימת או הוכחה לשגרה שנלמדה.`;
   }
   return "הדפוס נבנה מאירועים שנקלטו ומשוב שאומת באתר.";
 }
@@ -64,6 +71,7 @@ export default async function DigitalObserverRulesPage({ searchParams }: { searc
   const reviewCoverage = signals.length ? Math.round((reviewedSignals.length / signals.length) * 100) : 0;
   const baselines = site ? runtime.baselines.filter((item) => item.observer_site_id === site.id) : [];
   const learning = site ? runtime.learningProfiles.find((item) => item.observer_site_id === site.id) : null;
+  const metricsOnlyProfile = learning?.baseline_version === "v2_local_activity_metrics";
   const targetDays = Number(site?.learning_target_days || 30);
   const progress = learningProgress(site?.learning_started_at, targetDays);
   const readiness = getDigitalObserverServiceReadiness();
@@ -141,7 +149,7 @@ export default async function DigitalObserverRulesPage({ searchParams }: { searc
               <strong className="do-badge info">{baselines.length} דפוסים</strong>
             </summary>
             <div className="do-observer-insight-content">
-              {baselines.length ? <div className="do-insight-grid">{baselines.map((baseline) => <div key={baseline.id}><Sparkles /><span><strong>{baselineLabel(baseline.baseline_type)}</strong><small>{baselineSummary(baseline)}</small><small>{baseline.learning_maturity === "mature" ? "נלמד" : `איסוף נתונים · ${Math.round(Number(baseline.confidence_level || 0) * 100)}% ביטחון`}</small></span></div>)}</div> : <div className="do-empty"><BrainCircuit /><strong>אין עדיין קו בסיס</strong><span>המערכת לא ממציאה שגרה. הנתונים ייאספו אחרי חיבור מצלמה.</span></div>}
+              {baselines.length ? <div className="do-insight-grid">{baselines.map((baseline) => <div key={baseline.id}><Sparkles /><span><strong>{baselineLabel(baseline.baseline_type)}</strong><small>{baselineSummary(baseline)}</small><small>{baseline.baseline_type === "normal_camera_activity" ? "מדדים בלבד · שגרה טרם אומתה" : baseline.learning_maturity === "mature" ? "נלמד" : `איסוף נתונים · ${Math.round(Number(baseline.confidence_level || 0) * 100)}% ביטחון`}</small></span></div>)}</div> : <div className="do-empty"><BrainCircuit /><strong>אין עדיין קו בסיס</strong><span>המערכת לא ממציאה שגרה. הנתונים ייאספו אחרי חיבור מצלמה.</span></div>}
               <div className="do-observer-rule-preview">
                 <span><Radar /><b>{rules[0]?.title || "כלל תצפית ראשון טרם הוגדר"}</b></span>
                 <strong className="do-badge info">{rules[0] ? "הנחיה שמורה" : "ממתין להגדרה"}</strong>
@@ -184,10 +192,10 @@ export default async function DigitalObserverRulesPage({ searchParams }: { searc
               <section className="do-grid cols-2 do-observer-command-grid">
                 <article className="do-panel">
                   <div className="do-section-head"><div><h2>מצב המנוע</h2><p>דיווחים שמורים אינם מעידים על עיבוד רציף ברגע זה.</p></div><span className="do-badge info">{runtimeText}</span></div>
-                  <div className="do-learning-track" aria-label={`התקדמות למידה ${progress.percent}%`}><span style={{ width: `${progress.percent}%` }} /></div>
+                  <div className="do-learning-track" aria-label={`הזמן שחלף בחלון האיסוף ${progress.percent}%`}><span style={{ width: `${progress.percent}%` }} /></div>
                   <div className="do-summary-list">
-                    <div><span>פרופיל למידה</span><strong>{learning ? observerStatusLabel(learning.learning_status) : "יתחיל לאחר הוספת מצלמה"}</strong></div>
-                    <div><span>בשלות</span><strong>{learning?.learning_maturity === "mature" ? "בשל" : learning?.learning_maturity === "calibrated" ? "מכויל" : learning ? "בתהליך למידה" : "טרם התחיל"}</strong></div>
+                    <div><span>פרופיל למידה</span><strong>{metricsOnlyProfile ? "מדדי פעילות שמורים" : learning ? observerStatusLabel(learning.learning_status) : "יתחיל לאחר הוספת מצלמה"}</strong></div>
+                    <div><span>בשלות</span><strong>{metricsOnlyProfile ? "שגרה טרם אומתה" : learning?.learning_maturity === "mature" ? "בשל" : learning?.learning_maturity === "calibrated" ? "מכויל" : learning ? "בתהליך למידה" : "טרם התחיל"}</strong></div>
                     <div><span>יכולת ניתוח וידאו</span><strong>{edgeInferenceActive ? "יכולת Edge דווחה לאחרונה" : "אין דיווח Edge עדכני ומאומת"}</strong></div>
                     <div><span>Push</span><strong>טרם הוגדר ספק מסירה</strong></div>
                     <div><span>Voice</span><strong>כבוי · אין חיוג אוטומטי</strong></div>

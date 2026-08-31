@@ -75,7 +75,9 @@ const route = load("app/api/video-gateway/cloud-learning/route.ts", {
   "@/lib/supabase/admin": { createAdminClient: () => db },
   "@/lib/domain/gateway-device-enrollment": { verifyGatewayDeviceAccessToken },
   "@/lib/domain/digital-observer/analysis-round-policy": { observerAnalysisRoundPolicy },
-  "@/lib/domain/digital-observer/home-learning-sampler": { recordHomeActivityMetrics: async () => { metricsCalls++; return { sampled: 1 }; } }
+  "@/lib/domain/digital-observer/home-learning-sampler": { recordHomeActivityMetrics: async (_db, metricSite, _samples, metricGateway) => {
+    assert.equal(metricSite, siteId); assert.equal(metricGateway, gatewayId); metricsCalls++; return { sampled: 1 };
+  } }
 }, { process: { env: { VIDEO_GATEWAY_CLOUD_DISCOVERY_SECRET: secret } } });
 async function ask(patch = {}, headers = {}) {
   writes = []; reads = [];

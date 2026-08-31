@@ -127,7 +127,7 @@ export async function POST(request: Request) {
       return ok({ status: "analysis_policy", policy, raw_video_received: false });
     }
 
-    const result = await recordHomeActivityMetrics(supabase, payload.observer_site_id, payload.samples);
+    const result = await recordHomeActivityMetrics(supabase, payload.observer_site_id, payload.samples, gatewayId);
     await supabase.from("provider_webhook_events").update({ status: "processed", processed_at: new Date().toISOString() }).eq("id", event.data.id);
     return ok({ status: "learned", ...result, raw_video_received: false }, 201);
   } catch (error) {

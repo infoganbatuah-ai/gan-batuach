@@ -57,7 +57,7 @@ Owner names below describe accountable workstreams, not external approvals.
 | Professional evidence-grounded event narrative | Events + Policy | Deployed / media-check report and audit read verified | 9fa7b769 signed-in linked report, thumbnail, played clip and persisted review history verified | Real AI anomaly/identity evidence and the complete event decision workflow remain required |
 | Chat action interface | Assistant + Policy | Scoped hotfix accepted; broader action workflow partial | 9fa7b769 production READY; signed-in stored-status query, neutral saved-instruction label and nine same-site links passed; portrait/tablet/desktop visual QA passed | Real rule execution, duplicate-request handling, richer consented context and direct restrictive-policy audit proof remain separate gates |
 | Fair coverage of every source | Edge + Events + Web | Local policy/runtime/UI QA partial, not deployed or installed | Synthetic 5/20/64-source fairness, fresh scoped authorization before sampling, whole-cycle single-flight and failure isolation pass; saved-report UI rejects cross-site/old/future attribution | Approved web deployment before staged Gateway update; per-source telemetry, exact full-window aggregation and production E2E still required |
-| Privacy-safe continuous learning and semantic zones | Edge + Privacy + Assistant | Not accepted | Editable camera names and local aggregate scaffolding exist; no verified per-zone baseline | User-controlled names/zones across chat/events/daily summaries; opt-in bounded warmup/adaptation, corrections, explainability, reset/forget/export/audit and sustained per-camera evidence |
+| Privacy-safe continuous learning and semantic zones | Edge + Privacy + Assistant | Local descriptive metrics corrected; semantic learning not accepted | Per-source metric ingestion, no sample-count calibration, no metric-only events and concurrent-write QA pass locally | Approved release and live per-source evidence; historical metric-profile/signal audit, genuine per-zone calibration, consented adaptation/corrections/reset/forget/export still required |
 | Push/email/WhatsApp/emergency delivery | Notifications + Operations | Blocked pending provisioning/authority | No provider delivery acceptance; no emergency calls placed | Verified accounts/consents/address/escalation, sandbox tests, explicit operational authority, budget enforcement |
 | Site-preserving onboarding and source mapping | Web + Gateway | Partial | Source-scoped playback validation tested | Same-site edits/resume, multi-channel recorder vs single IP camera, cross-device enrollment E2E |
 | Mobile portrait/PWA/install identity | Web + Mobile | Partial | Chat 9fa7b769 passed 360/390/768/1280px without overflow, with 44px chat controls/links; prior event layout QA passed | Remaining screens and signed-in installed-app/PWA identity QA without hidden features |
@@ -493,3 +493,42 @@ passed in production; rule execution and sustained live inference remain unprove
   per-source telemetry and defensible baseline calibration. The running service
   was not restarted or updated. Production remains at the previously approved
   scoped release; no new deployed or household-pilot acceptance is claimed.
+
+## Descriptive Source Metrics, Not Learned Routines
+
+- Local-only follow-on: metric ingestion now requires the authenticated Gateway
+  identity, current site consent/privacy/schedule and verified source mapping.
+  Unknown, ambiguous, foreign-Gateway or foreign-site streams fail before writes.
+  A mapped channel that goes offline or loses capability is skipped without
+  blocking valid channels. Stale/future/duplicate samples cannot increase counts.
+- Scores and averages are retained separately by source ID in the existing
+  camera-activity JSON baseline. No new schema is required. Prior site-wide
+  aggregates remain a bounded, explicitly unattributed historical snapshot;
+  their counts/values are never assigned to the first camera. Other workflows'
+  baselines are not overwritten. Optimistic updated-at matching and the existing
+  unique key reject concurrent lost updates rather than silently merging them.
+- A raw score batch no longer writes reviewable intelligence signals, global
+  learning profiles, site AI state, calibration timestamps or anomaly readiness.
+  Even 288 samples stay descriptive, with calibration_verified false and zero
+  calibration/anomaly confidence. The old unused cloud-initiated polling entry
+  point now rejects calls; only authorized local rounds may request analysis.
+- My Observer distinguishes new per-source statistics from legacy mixed
+  aggregates. Old v2 metric-only profiles are not displayed as calibrated in
+  this view. Calendar-time accessibility text describes elapsed time rather than
+  learning progress. New summaries and profile labels have synthetic QA.
+- Twelve targeted QA scripts and typecheck pass: multi-source separation,
+  same-site/multiple-Gateway concurrency, consent/privacy/source rejection,
+  duplicates/timestamps, offline isolation, legacy preservation, no event/profile/
+  site mutations, readonly legacy-poller rejection and existing chat/media/privacy
+  regressions. These are local fixtures, not production database or camera E2E.
+  The final source revision also passes the full 481-page production build and
+  diff checks. Empty legacy baselines cannot imply low motion or low light.
+- Release must include the per-round policy dependency from `58744e95`, the
+  ingestion route/helper and new summary view together, before the staged local
+  Gateway upgrade. No deployment, database mutation, recording, consent change,
+  biometric processing or physical command occurred in this workstream.
+- Still open: historical v2 learning-profile values and metric-only signals
+  previously given first-camera attribution need an audited repair/review plan.
+  They were not bulk rewritten or deleted. Other consumers of those legacy
+  records, per-round analysis telemetry, calibrated zone/routine models and
+  live rollout/acceptance remain separate gates. No general learning is enabled.
