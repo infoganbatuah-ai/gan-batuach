@@ -41,17 +41,29 @@ Owner names below describe accountable workstreams, not external approvals.
 | Per-person biometric enrollment, consent, revocation and deletion | Identity + Privacy | Disabled pending proof | Consent/audit scaffolding; local health reports recognition false | Confirm migration/RLS; user-driven profile enrollment only, approved matching model and consent/revocation E2E |
 | Resident / authorized visitor / unrecognized classification | Identity + Events | Not accepted | Required states defined above; no matching evidence | Tenant-safe profile lookup and uncertain/unknown fallback; never assert physical access denial |
 | Entry/exit events and review notifications | Edge + Events | Not accepted | General event route exists, no current full workflow proof | Tested entry/exit model/rule with evidence, consented lookup, delivery and user review E2E |
-| Reasoned journal, event thumbnail/clip, summaries and audit | Events + Web | Partial / local changes tested | Real route and server-rendered page fixtures pass tenant/source checks, expiry, review gates, reason/conclusion and truthful identity | Scoped release plus real event thumbnail/clip/review E2E; deletion worker and delivery still unverified |
+| Reasoned journal, event thumbnail/clip, summaries and audit | Events + Web | Deployed / E2E blocked | 789dc86e READY; real route and server-rendered page fixtures pass tenant/source checks, expiry, review gates, reason/conclusion and truthful identity | Real event thumbnail/clip/review E2E; Chrome control times out; deletion worker and delivery still unverified |
 | Edge / AI Shadow readiness and processing | Edge | Partial | Local runtime object/person/non-identifying face self-tests previously true | Fresh consent + runtime/model/hardware + sustained per-channel inference proof; audio/fire/distress/general learning unproven |
 | Per-camera capability map and gated controls | Gateway + Web | Partial, physical execution off | Capability/action gate QA passes | Read-only per-channel evidence with freshness; adapter, immediate confirmation and audit before action test |
 | Observer decisions, permissions and human fallback | Policy + Assistant | Partial | Approval/audit route exists | Full detect-to-decision-to-review workflow, uncertainty fallback and no chat-to-action bypass |
 | Push/email/WhatsApp/emergency delivery | Notifications + Operations | Blocked pending provisioning/authority | No provider delivery acceptance; no emergency calls placed | Verified accounts/consents/address/escalation, sandbox tests, explicit operational authority, budget enforcement |
 | Site-preserving onboarding and source mapping | Web + Gateway | Partial | Source-scoped playback validation tested | Same-site edits/resume, multi-channel recorder vs single IP camera, cross-device enrollment E2E |
 | Mobile portrait/PWA/install identity | Web + Mobile | Partial | Existing implementation, no renewed visual acceptance | 360/390px, tablet/desktop and signed-in installed-app QA without hidden features |
-| Production release, scale/security/cost | Release + Infrastructure | In progress | b150f891 READY on both production domains; build/typecheck pass | Remaining scoped commits + deploy + browser/audit evidence; 10,000-user load test and <= NIS 15/customer total provider budget |
+| Production release, scale/security/cost | Release + Infrastructure | In progress | 789dc86e READY on both production domains; build/typecheck pass | Remaining scoped work + browser/audit evidence; 10,000-user load test and <= NIS 15/customer total provider budget |
 
 ## Current Release Evidence
 
+- Latest scoped production release: `789dc86e2ac9ebeafe4e271fea10200cc5960690`,
+  deployment `dpl_5urZrAEj29iKZYNHMTqKxZsYbD1V`, READY on 2026-08-31 for
+  `gan-batuach.vercel.app` and `ganbatuach.com`. Applies event fix `f883e848` and
+  form fix `0d72eaa5` onto the previously deployed `b150f891`; experimental Relay
+  scaffolding was excluded. The release branch is clean and pushed.
+- Public production health: HTTP 200, app and Supabase both OK. An unauthenticated
+  event-media request returns 401. These checks do not prove private event media
+  playback, review persistence or consent changes in a signed-in browser.
+- Chrome discovery listed the signed-in camera tabs, but claim timed out after
+  20 seconds. Official extension/native-host checks passed. An approved new Chrome
+  window opened in the existing profile; the follow-up connection timed out too.
+  No account/settings changes or browser-cookie extraction were attempted.
 - `b150f8916179fa1b716be3b3e388c5b525e1aa53` committed and pushed to
   `codex/observer-capabilities-completion`; deployed production READY on
   2026-08-31. Both production aliases resolve to that deployment.
@@ -62,7 +74,7 @@ Owner names below describe accountable workstreams, not external approvals.
 - Post-release Chrome automation timed out. Do not replace media-time evidence
   with a LIVE badge, a configured route, a self-test or a successful deployment.
 - Current local health-only read: 16 discovered, 9 connected, 7 offline;
-  9 progressing relays, 0 stalled. Object detection reports available; identity
+  8 progressing relays, 0 stalled. Object detection reports available; identity
   recognition/audio detection remain false. This is not browser playback proof.
 - Current regression checks pass: secure Relay fixture, fail-closed Realtime
   provisioning, known-person consent lifecycle, biometric setup gates, camera
@@ -128,7 +140,8 @@ Owner names below describe accountable workstreams, not external approvals.
 
 ## Independent Event And Consent Work
 
-These changes are locally tested, not production acceptance evidence:
+The event/form changes below are deployed in `789dc86e`, but browser acceptance
+remains blocked. Local tests are not production media or consent evidence:
 
 - Event access is bounded by capture time, configured retention and a maximum of
   48 hours. Expired media cannot receive a new viewing/download grant; the journal
@@ -157,7 +170,7 @@ These changes are locally tested, not production acceptance evidence:
 - The production build passed (481 pages). The live Supabase product QA could not
   start: this isolated worktree has no Supabase URL/publishable-key configuration.
   No credential was copied in to bypass that prerequisite.
-- Next gates: production approval/release, connected-browser event/consent E2E,
+- Next gates: connected-browser event/consent E2E,
   storage-deletion audit, and capability freshness/per-channel processing proof.
 
 No DVR recording/storage diagnostic was performed in this stage. Recorder
