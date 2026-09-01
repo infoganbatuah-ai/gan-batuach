@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { ObserverCameraPresence } from "@/components/digital-observer/observer-camera-presence";
 import { createPlaybackSessionClient, playbackFailureReason } from "@/lib/domain/digital-observer/playback-session";
 
-type PlayerState = "loading" | "playing" | "suspended" | "error";
+type PlayerState = "loading" | "playing" | "error";
 
 // Starting several recorder relays at once can take more than one HLS window.
 // Keep the player alive long enough for a verified local relay to produce its
@@ -15,6 +15,10 @@ const mediaStartTimeoutMs = 30_000;
 const mediaProgressTimeoutMs = 20_000;
 
 const playbackSessions = createPlaybackSessionClient();
+
+export function hasVerifiedMediaProgress(previousTime: number, currentTime: number) {
+  return Number.isFinite(currentTime) && currentTime > previousTime + 0.05;
+}
 
 export function ObserverLivePlayer({
   observerSiteId,
@@ -41,6 +45,30 @@ export function ObserverLivePlayer({
   const [unavailableReason, setUnavailableReason] = useState("");
   const [muted, setMuted] = useState(true);
   const [retryNonce, setRetryNonce] = useState(0);
+
+  function markMediaProgress(media: HTMLVideoElement) {
+    if (media.paused || media.readyState < 2 || media.seeking || media.error) return false;
+    const currentTime = media.currentTime;
+    let hasBufferedMedia = false;
+    for (let index = 0; index < media.buffered.length; index += 1) {
+      if (currentTime >= media.buffered.start(index) - 0.25 && currentTime <= media.buffered.end(index) + 0.25) {
+        hasBufferedMedia = true;
+        break;
+      }
+    }
+    if (!hasBufferedMedia || !hasVerifiedMediaProgress(lastCurrentTimeRef.current, currentTime)) return false;
+    lastCurrentTimeRef.current = currentTime;
+    lastProgressAtRef.current = Date.now();
+    hasStartedRef.current = true;
+    recoveryScheduledRef.current = false;
+    if (retryTimerRef.current) {
+      clearTimeout(retryTimerRef.current);
+      retryTimerRef.current = null;
+    }
+    setUnavailableReason("");
+    setState("playing");
+    return true;
+  }
 
   function requestRetry() {
     if (!visibleRef.current) return;
@@ -78,7 +106,12 @@ export function ObserverLivePlayer({
     };
 
     mediaHeartbeat = setInterval(() => {
-      if (cancelled || !awaitingMedia || !visibleRef.current) return;
+      if (cancelled || !awaitingMedia) return;
+      // Browsers throttle `timeupdate` on multi-camera grids even while the
+      // media clock advances. Repair the visible state from verified buffered
+      // media before deciding that a stream stalled.
+      if (markMediaProgress(videoElement)) return;
+      if (!visibleRef.current) return;
       const elapsedWithoutProgress = Date.now() - lastProgressAtRef.current;
       const timeout = hasStartedRef.current ? mediaProgressTimeoutMs : mediaStartTimeoutMs;
       if (elapsedWithoutProgress >= timeout) markUnavailable(hasStartedRef.current ? "המדיה הפסיקה להתקדם" : "לא התקבלה מדיה מה־Gateway");
@@ -95,10 +128,10 @@ export function ObserverLivePlayer({
       if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
       retryTimerRef.current = null;
       recoveryScheduledRef.current = false;
-      if (!visible) { setState("suspended"); return; }
+      if (!visible) return;
       lastProgressAtRef.current = Date.now();
       lastCurrentTimeRef.current = videoElement.currentTime;
-      setState("loading");
+      if (!hasStartedRef.current) setState("loading");
       if (hiddenFailureRef.current) {
         hiddenFailureRef.current = false;
         retry();
@@ -201,26 +234,7 @@ export function ObserverLivePlayer({
         muted={muted}
         aria-label={`שידור חי — ${name}`}
         onTimeUpdate={(event) => {
-          const media = event.currentTarget;
-          if (!visibleRef.current || media.paused || media.readyState < 2 || media.seeking || media.error) return;
-          const currentTime = media.currentTime;
-          // Native HLS can keep its clock running after it has exhausted media.
-          // A clock beyond every buffered range is not evidence of live frames.
-          let hasBufferedMedia = false;
-          for (let index = 0; index < media.buffered.length; index += 1) {
-            if (currentTime >= media.buffered.start(index) - 0.25 && currentTime <= media.buffered.end(index) + 0.25) hasBufferedMedia = true;
-          }
-          if (!hasBufferedMedia) return;
-          if (currentTime <= lastCurrentTimeRef.current + 0.05) return;
-          lastCurrentTimeRef.current = currentTime;
-          lastProgressAtRef.current = Date.now();
-          hasStartedRef.current = true;
-          // A bursty recorder may recover before the retry timer fires. Keep
-          // its working player instead of interrupting it with a new claim.
-          if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
-          retryTimerRef.current = null;
-          recoveryScheduledRef.current = false;
-          setState("playing");
+          markMediaProgress(event.currentTarget);
         }}
         onWaiting={() => {
           // A live playlist waits for its next segment regularly. Once playback began,
@@ -236,7 +250,7 @@ export function ObserverLivePlayer({
         onVolumeChange={(event) => setMuted(event.currentTarget.muted)}
       />
       <span className={`do-live-player-status ${state}`} title={state === "error" ? unavailableReason : undefined}>
-        {state === "playing" ? "LIVE" : state === "suspended" ? "הצפייה מושהית" : state === "loading" ? <><LoaderCircle /> מתחבר…</> : <><CameraOff /> השידור אינו זמין כרגע</>}
+        {state === "playing" ? "LIVE" : state === "loading" ? <><LoaderCircle /> מתחבר…</> : <><CameraOff /> השידור אינו זמין כרגע</>}
       </span>
       {state === "error" && !compact ? <span className="do-live-player-reason">{unavailableReason} · ניסיון חוזר אוטומטי</span> : null}
       {!compact ? <button type="button" className="do-live-player-audio" onClick={() => setMuted((value) => !value)} aria-label={muted ? "הפעלת שמע" : "השתקת שמע"}>

@@ -1751,6 +1751,7 @@
 .do-recording-action { min-height: 42px; display: inline-flex; align-items: center; justify-content: center; gap: 7px; padding: 8px 10px; color: var(--do-muted); background: #f4f7f8; border: 1px solid var(--do-line); border-radius: 6px; font-size: 10px; font-weight: 800; }
 .do-recording-action.ready { color: var(--do-teal-dark); border-color: #9dd8d4; background: var(--do-teal-soft); }
 .do-recording-action svg { width: 16px; height: 16px; }
+.do-recording-actions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
 .do-recording-row-link { color: inherit; text-decoration: none; }
 .do-recording-row-link:hover { border-color: #9ccfcb; background: #fbfefe; }
 .do-recording-row.is-pending .do-recording-preview { color: #f7c66a; background-color: #18344f; }
@@ -3498,6 +3499,7 @@
   .do-recording-row { grid-template-columns: 112px minmax(0, 1fr); }
   .do-recording-retention,
   .do-recording-action { grid-column: 2; }
+  .do-recording-actions { grid-column: 2; }
   .do-recording-policy { grid-template-columns: 1fr; gap: 11px; padding: 12px; }
   .do-recording-policy nav { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   .do-recording-policy nav a { min-width: 0; padding: 0 5px; }
