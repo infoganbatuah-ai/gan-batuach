@@ -2,9 +2,11 @@ import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { observerEventNarrative } from "@/lib/domain/digital-observer/event-narrative";
+import { eventValidationPipeline } from "@/lib/domain/event-engine/event-validation-pipeline";
+import { authenticateEventGateway } from "@/lib/domain/event-engine/gateway-auth";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { verifyGatewayDeviceAccessToken } from "@/lib/domain/gateway-device-enrollment";
-import { cameraReportsLocalEventInsights } from "@/lib/domain/digital-observer/edge-ai-policy";
+import { resolveMediaFault } from "@/lib/domain/event-engine/media-fault-lifecycle";
+import { writeAuditEvent } from "@/lib/security/audit-log-service";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -72,18 +74,6 @@ function extensionFor(type: string) {
   return "jpg";
 }
 
-function safeMetadata(value: Record<string, unknown>) {
-  const text = JSON.stringify(value);
-  if (/(password|credential|secret|rtsp:\/\/|rtsps:\/\/|private_endpoint|stream_url|cookie|authorization)/i.test(text)) {
-    throw new Error("unsafe_media_metadata");
-  }
-  return {
-    source: typeof value.source === "string" ? value.source.slice(0, 100) : "local_gateway",
-    ...(Number.isInteger(value.channel) && Number(value.channel) > 0 && Number(value.channel) <= 256 ? { channel: value.channel } : {}),
-    ai_shadow_only: true
-  };
-}
-
 function safeNarrative(value: string | undefined) {
   if (!value) return null;
   const normalized = value.replace(/\s+/g, " ").trim();
@@ -128,67 +118,65 @@ export async function POST(request: Request) {
     const timestamp = header(request, "x-video-gateway-timestamp");
     const nonce = header(request, "x-video-gateway-nonce");
     const signature = header(request, "x-video-gateway-signature");
-    const deviceToken = header(request, "x-video-gateway-device-token");
+    const supabase = createAdminClient() as any;
+    const device = header(request, "x-video-gateway-device-token") ? await authenticateEventGateway(request, supabase) : null;
     const parsedTimestamp = Date.parse(timestamp);
-    if (!gatewayId || !nonce || (!signature && !deviceToken) || !Number.isFinite(parsedTimestamp) || Math.abs(Date.now() - parsedTimestamp) > MAX_CLOCK_SKEW_MS) return fail("Invalid gateway authentication.", 401);
+    if (!gatewayId || !nonce || (!signature && !device) || !Number.isFinite(parsedTimestamp) || Math.abs(Date.now() - parsedTimestamp) > MAX_CLOCK_SKEW_MS) return fail("Invalid gateway authentication.", 401);
 
     const formData = await request.formData();
     const metadataText = String(formData.get("metadata") ?? "");
     const metadata = metadataSchema.parse(JSON.parse(metadataText));
-    const device = deviceToken && secret ? verifyGatewayDeviceAccessToken(deviceToken, secret) : null;
-    if (metadata.gateway_id !== gatewayId) return fail("Gateway is not allowed for this site.", 403);
-    if (device) {
-      if (device.gateway_id !== gatewayId || device.observer_site_id !== metadata.observer_site_id) return fail("Gateway device is not authorized for this site.", 403);
-      const enrollment = await createAdminClient().from("video_gateway_device_enrollments" as any)
-        .select("id")
-        .eq("id", device.device_id)
-        .eq("gateway_id", device.gateway_id)
-        .eq("observer_site_id", device.observer_site_id)
-        .eq("status", "delivered")
-        .maybeSingle();
-      if (!enrollment.data) return fail("Gateway device access was revoked.", 401);
-    } else if (!allowed(gatewayId, metadata.observer_site_id)) return fail("Gateway is not allowed for this site.", 403);
+    if (metadata.gateway_id !== gatewayId || (device ? device.gateway_id !== gatewayId || device.observer_site_id !== metadata.observer_site_id : !allowed(gatewayId, metadata.observer_site_id))) return fail("Gateway is not allowed for this site.", 403);
 
     const clip = await readPart(formData, "clip", MAX_CLIP_BYTES, ["video/mp4"]);
     const thumbnail = await readPart(formData, "thumbnail", MAX_THUMBNAIL_BYTES, ["image/jpeg", "image/png", "image/webp"]);
     const clipHash = signableHash(clip.bytes);
     const thumbnailHash = signableHash(thumbnail.bytes);
-    if (!device && (!secret || !verifySignature(`${timestamp}.${nonce}.${metadataText}.${clipHash}.${thumbnailHash}`, signature, secret))) return fail("Invalid signature.", 401);
+    if (!device && !verifySignature(`${timestamp}.${nonce}.${metadataText}.${clipHash}.${thumbnailHash}`, signature, secret)) return fail("Invalid signature.", 401);
 
-    const supabase = createAdminClient() as any;
     const idempotencyKey = `${gatewayId}:${nonce}`;
     const existing = await supabase.from("provider_webhook_events").select("id").eq("webhook_key", "video_gateway_cloud_event_media").eq("idempotency_key", idempotencyKey).maybeSingle();
     if (existing.data?.id) return fail("Replay detected.", 409);
 
     const { data: camera } = await supabase
       .from("digital_observer_camera_sources")
-      .select("id,observer_site_id,status,health_status,metadata")
+      .select("id,observer_site_id,display_name,location_label,status,health_status,source_mode,metadata")
       .eq("id", metadata.camera_source_id)
       .eq("observer_site_id", metadata.observer_site_id)
       .maybeSingle();
     if (!camera) return fail("Camera source is not linked to this site.", 403);
     const cameraMetadata = camera.metadata && typeof camera.metadata === "object" ? camera.metadata : {};
-    if (String(cameraMetadata.gateway_stream_id ?? "") !== metadata.stream_id
-      || cameraMetadata.gateway_id !== gatewayId) return fail("Camera source does not match gateway stream.", 403);
-    const { data: observerSite } = await supabase
+    if (camera.source_mode === "demo" || camera.status === "disabled" || cameraMetadata.monitoring_enabled === false) return fail("Camera monitoring is disabled.", 403);
+    if (device && cameraMetadata.gateway_id !== device.gateway_id) return fail("Camera belongs to a different Gateway.", 403);
+    if (String(cameraMetadata.gateway_stream_id ?? "") !== metadata.stream_id) return fail("Camera source does not match gateway stream.", 403);
+    const spatialValidation = eventValidationPipeline.validate(
+      { event_type: metadata.event_type, severity: metadata.severity, confidence: metadata.confidence, description: metadata.event_summary, metadata: metadata.metadata },
+      { id: camera.id, name: camera.display_name, area: camera.location_label, camera_zone_type: cameraMetadata.zone_type ?? cameraMetadata.camera_zone_type }
+    );
+    if (!spatialValidation.accepted) {
+      // A gateway may report generic motion for every stream. Do not persist
+      // or store media when that event is impossible for this camera's zone.
+      return ok({ status: "suppressed", reason: "spatial_rule_rejected", camera_source_id: camera.id }, 202);
+    }
+    if (!spatialValidation.shouldRecord) {
+      return ok({ status: "suppressed", reason: "passive_event_not_recorded", camera_source_id: camera.id }, 202);
+    }
+    const { data: observerSite, error: siteError } = await supabase
       .from("observer_sites")
-      .select("event_retention_days,monitoring_enabled,vision_privacy_mode,business_handles_children,metadata")
+      .select("event_retention_days,garden_id,site_type,monitoring_enabled,metadata")
       .eq("id", metadata.observer_site_id)
       .maybeSingle();
-    if (!observerSite || observerSite.monitoring_enabled !== true || observerSite.metadata?.observer_monitoring_consent !== true) {
-      return fail("Site monitoring consent is required before storing event media.", 403);
-    }
-    const objectEvent = ["person_detected", "vehicle_detected", "animal_detected"].includes(metadata.event_type);
-    if (metadata.event_type !== "camera_media_readiness" && !objectEvent) {
-      return fail("This event classification requires a separately verified capability.", 422);
-    }
-    if (objectEvent && (observerSite.vision_privacy_mode === "skeleton_only" || observerSite.business_handles_children === true
-      || !cameraReportsLocalEventInsights(camera))) return fail("Local event inference is not verified for this source.", 412);
+    if (siteError) throw new Error("EVENT_SCOPE_UNAVAILABLE");
+    if (!observerSite || observerSite.garden_id || observerSite.site_type === "kindergarten" || !observerSite.monitoring_enabled || observerSite.metadata?.observer_monitoring_consent !== true) return fail("Monitoring consent required.", 403);
+    // Media can only enrich a previously validated event, never originate one.
+    const { data: signal, error: signalError } = await supabase.from("observer_intelligence_signals")
+      .select("id,created_at,severity,metadata").eq("observer_site_id", metadata.observer_site_id)
+      .eq("source_type", "system").eq("source_id", metadata.event_id).maybeSingle();
+    if (signalError) throw new Error("EVENT_READ_FAILED");
+    if (!signal || signal.metadata?.validated_event !== true || signal.metadata?.recording_required !== true || signal.metadata?.camera_source_id !== camera.id || signal.metadata?.event_type !== spatialValidation.event.event_type) return fail("A matching validated event is required before recording.", 409);
+    if (Math.abs(Date.parse(metadata.captured_at) - Date.parse(signal.created_at)) > 60_000 || Date.parse(metadata.captured_at) > Date.now() + 60_000) return fail("Recording is outside the event capture window.", 422);
     const retentionHours = retentionHoursForSite(observerSite?.event_retention_days);
-    const capturedAt = Date.parse(metadata.captured_at);
-    if (capturedAt > Date.now() + 60_000) return fail("Event capture timestamp is in the future.", 422);
-    if (capturedAt + retentionHours * 60 * 60 * 1000 <= Date.now()) return fail("Event media retention has expired.", 410);
-    const eventSummary = safeNarrative(metadata.event_summary);
+    const eventSummary = safeNarrative(signal.metadata.event_summary);
     const narrative = observerEventNarrative({
       signal_type: metadata.event_type,
       metadata: { event_type: metadata.event_type, event_summary: eventSummary }
@@ -222,61 +210,11 @@ export async function POST(request: Request) {
     if (clipUpload.error) throw new Error(clipUpload.error.message);
     if (thumbnailUpload.error) throw new Error(thumbnailUpload.error.message);
 
-    const signalPayload = {
-      signal_type: "ai_camera",
-      source_type: "system",
-      source_id: metadata.event_id,
-      observer_site_id: metadata.observer_site_id,
-      severity: metadata.severity,
-      confidence: metadata.confidence,
-      review_status: "needs_review",
-      recommended_action: metadata.severity === "info"
-        ? "נוצר תיעוד מדיה מאומת מה-Gateway. יש לבדוק את הראיה לפני כל פעולה."
-        : narrative.action,
-      risk_score: metadata.severity === "critical" ? 90 : metadata.severity === "urgent" ? 78 : metadata.severity === "high" ? 62 : metadata.severity === "medium" ? 35 : 8,
-      human_review_required: true,
-      parent_visible: false,
-      metadata: {
-        ...safeMetadata(metadata.metadata),
-        event_type: metadata.event_type,
-        camera_source_id: metadata.camera_source_id,
-        gateway_stream_id_present: true,
-        local_capture: true,
-        no_dvr_credentials_received: true,
-        no_rtsp_received: true,
-        media_evidence_required: true,
-        event_summary: narrative.summary,
-        event_reason: narrative.reason,
-        event_anomaly_assessment: narrative.anomalyAssessment,
-        event_conclusion: narrative.conclusion,
-        suggested_human_action: narrative.action,
-        narrative_version: narrative.narrativeVersion,
-        narrative_basis: narrative.narrativeBasis,
-        event_context: objectEvent ? "presence" : "device_health",
-        identity_recognition_used: false,
-        identity_status: "not_verified",
-        human_review_required: true,
-        decision_policy_version: "evidence-review-v1",
-        automatic_physical_action: false
-      }
-    };
-    const existingSignal = await supabase
-      .from("observer_intelligence_signals")
-      .select("id")
-      .eq("source_type", "system")
-      .eq("source_id", metadata.event_id)
-      .eq("observer_site_id", metadata.observer_site_id)
-      .maybeSingle();
-    const signalResult = existingSignal.data?.id
-      ? await supabase.from("observer_intelligence_signals").update(signalPayload).eq("id", existingSignal.data.id).eq("observer_site_id", metadata.observer_site_id).select("id").single()
-      : await supabase.from("observer_intelligence_signals").insert(signalPayload).select("id").single();
-    if (signalResult.error) throw new Error(signalResult.error.message);
-
     const deleteAfter = new Date(Date.parse(metadata.captured_at) + retentionHours * 60 * 60 * 1000).toISOString();
     const clipPayload = {
       observer_site_id: metadata.observer_site_id,
       camera_source_id: metadata.camera_source_id,
-      signal_id: signalResult.data.id,
+      signal_id: signal.id,
       title: narrative.label,
       clip_status: "available",
       storage_bucket: MEDIA_BUCKET,
@@ -312,17 +250,30 @@ export async function POST(request: Request) {
     const existingClip = await supabase
       .from("digital_observer_event_clips")
       .select("id")
-      .eq("signal_id", signalResult.data.id)
-      .eq("observer_site_id", metadata.observer_site_id)
+      .eq("signal_id", signal.id)
       .maybeSingle();
     const clipResult = existingClip.data?.id
-      ? await supabase.from("digital_observer_event_clips").update(clipPayload).eq("id", existingClip.data.id).eq("observer_site_id", metadata.observer_site_id).select("id").single()
+      ? await supabase.from("digital_observer_event_clips").update(clipPayload).eq("id", existingClip.data.id).select("id").single()
       : await supabase.from("digital_observer_event_clips").insert(clipPayload).select("id").single();
     if (clipResult.error) throw new Error(clipResult.error.message);
 
+    // Preserve original classification, tracking, timestamp and human review.
+    const mediaAvailableAt = new Date().toISOString();
+    const lifecycle = resolveMediaFault(signal.metadata, mediaAvailableAt);
+    const signalUpdate = await supabase.from("observer_intelligence_signals").update({ metadata: {
+      ...lifecycle.metadata, local_capture: true, media_status: "available", media_missing_reason: null,
+      last_media_attempt_at: mediaAvailableAt
+    } }).eq("id", signal.id).eq("observer_site_id", metadata.observer_site_id);
+    if (signalUpdate.error) throw new Error("EVENT_MEDIA_LINK_FAILED");
+
+    if (lifecycle.transition === "resolved") await writeAuditEvent({
+      eventType: "observer_media_fault_resolved", eventCategory: "observer", targetType: "observer_intelligence_signal",
+      targetId: signal.id, cameraId: camera.id, riskLevel: "low",
+      metadata: { observer_site_id: metadata.observer_site_id, status: "resolved", resolution: "media_uploaded", occurred_at: mediaAvailableAt }
+    });
+
     await supabase.from("provider_webhook_events").update({ status: "processed", processed_at: new Date().toISOString() }).eq("id", event.data.id);
-    return ok({ status: "stored", signal_id: signalResult.data.id, clip_id: clipResult.data.id,
-      narrative: observerEventNarrative(signalPayload), signed_urls_returned: false }, 201);
+    return ok({ status: "stored", signal_id: signal.id, clip_id: clipResult.data.id, signed_urls_returned: false }, 201);
   } catch (error) {
     return handleRouteError(error);
   }
