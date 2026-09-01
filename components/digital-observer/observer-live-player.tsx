@@ -6,7 +6,7 @@ import { useEffect, useRef, useState } from "react";
 import { ObserverCameraPresence } from "@/components/digital-observer/observer-camera-presence";
 import { createPlaybackSessionClient, playbackFailureReason } from "@/lib/domain/digital-observer/playback-session";
 
-type PlayerState = "loading" | "playing" | "error";
+type PlayerState = "loading" | "playing" | "suspended" | "error";
 
 // Starting several recorder relays at once can take more than one HLS window.
 // Keep the player alive long enough for a verified local relay to produce its
@@ -128,10 +128,13 @@ export function ObserverLivePlayer({
       if (retryTimerRef.current) clearTimeout(retryTimerRef.current);
       retryTimerRef.current = null;
       recoveryScheduledRef.current = false;
-      if (!visible) return;
+      if (!visible) {
+        if (hasStartedRef.current) setState("suspended");
+        return;
+      }
       lastProgressAtRef.current = Date.now();
       lastCurrentTimeRef.current = videoElement.currentTime;
-      if (!hasStartedRef.current) setState("loading");
+      setState("loading");
       if (hiddenFailureRef.current) {
         hiddenFailureRef.current = false;
         retry();
@@ -250,13 +253,13 @@ export function ObserverLivePlayer({
         onVolumeChange={(event) => setMuted(event.currentTarget.muted)}
       />
       <span className={`do-live-player-status ${state}`} title={state === "error" ? unavailableReason : undefined}>
-        {state === "playing" ? "LIVE" : state === "loading" ? <><LoaderCircle /> מתחבר…</> : <><CameraOff /> השידור אינו זמין כרגע</>}
+        {state === "playing" ? "LIVE" : state === "suspended" ? "תצוגה מושהית" : state === "loading" ? <><LoaderCircle /> מתחבר…</> : <><CameraOff /> השידור אינו זמין כרגע</>}
       </span>
       {state === "error" && !compact ? <span className="do-live-player-reason">{unavailableReason} · ניסיון חוזר אוטומטי</span> : null}
       {!compact ? <button type="button" className="do-live-player-audio" onClick={() => setMuted((value) => !value)} aria-label={muted ? "הפעלת שמע" : "השתקת שמע"}>
         {muted ? <VolumeX /> : <Volume2 />}
       </button> : null}
-      <ObserverCameraPresence active={state === "playing"} />
+      <ObserverCameraPresence active={state === "playing" || state === "suspended"} />
       <span className="do-live-player-name">{name}</span>
     </div>
   );

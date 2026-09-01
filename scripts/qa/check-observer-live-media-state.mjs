@@ -9,10 +9,12 @@ assert.match(player, /if \(markMediaProgress\(videoElement\)\) return;/,
   "heartbeat must repair stale state when currentTime advances without timeupdate");
 assert.match(player, /if \(!visibleRef\.current\) return;[\s\S]*elapsedWithoutProgress/,
   "hidden browser throttling must not become a recorder failure");
-assert.doesNotMatch(player, /setState\("suspended"\)/,
-  "off-screen rendering must not label a progressing camera or Observer as suspended");
-assert.match(player, /active=\{state === "playing"\}/,
-  "Observer presence must follow verified playback rather than server readiness");
+assert.match(player, /if \(hasStartedRef\.current\) setState\("suspended"\)/,
+  "browser rendering may suspend only after playback was verified");
+assert.match(player, /active=\{state === "playing" \|\| state === "suspended"\}/,
+  "off-screen thumbnail suspension must not claim the background Observer stopped");
+assert.match(player, /state === "suspended" \? "תצוגה מושהית"/,
+  "the player must distinguish browser rendering suspension from a stream outage");
 assert.match(player, /clearTimeout\(retryTimerRef\.current\)/,
   "resumed media must cancel a stale reconnect instead of disrupting healthy playback");
 
