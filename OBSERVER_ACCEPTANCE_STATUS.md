@@ -1,8 +1,38 @@
 # Digital Observer Acceptance Status
 
-Updated: 2026-08-31. This is the project acceptance source of truth, NOT a
+Updated: 2026-09-02. This is the project acceptance source of truth, NOT a
 completed-product declaration. Every item requires deployed, current evidence.
 Recorder recording schedules/storage administration are outside this task.
+
+## Latest Production Acceptance: 2026-09-02
+
+This evidence supersedes the older browser and production observations below.
+It accepts the scoped live/event transport repair only; it does not accept the
+overall product, cross-device Relay, biometrics, physical controls or external
+notification/emergency providers.
+
+- Corrective commit `80e5af1` is deployed as production deployment
+  `9HV3w8ME8xkKVhXCHuW8zjxvqRZr`, verified `Ready`, `Production` and `Current`.
+- The production Gateway event-ingestion function exists again. A read-only GET
+  returns 405 and an unauthenticated POST returns 401. The ingestion fixture
+  passes device-token validation/revocation, tenant/source scope, monitoring
+  consent, replay/idempotency, evidence compatibility, media-fault lifecycle and
+  notification retry checks.
+- In the authenticated production camera page, all ten video elements advanced
+  12.07-12.14 seconds during a twelve-second observation. Every player reported
+  `paused=false`, `readyState=4` and no media error; all ten rendered `LIVE`.
+  Six offline channels remained isolated outside the active grid.
+- The authenticated recordings page rendered ten real event thumbnail
+  backgrounds and ten download actions. A signed, authorized eight-second clip
+  loaded with `readyState=4`, no media error and advanced 3.1 seconds during the
+  playback check. Signed media coordinates were not exposed.
+- Entrance person evidence and verified entrance crossing now request bounded
+  event media; configured parking vehicle evidence does the same. Ordinary
+  indoor person presence remains a text insight without recording. Media cannot
+  originate an event: it may only enrich a previously validated, source-bound
+  event inside the capture window.
+- No DVR write, discovery refresh, biometric matching or physical command was
+  used for this acceptance run.
 
 ## Latest Scoped Evidence: 20:36 UTC
 
