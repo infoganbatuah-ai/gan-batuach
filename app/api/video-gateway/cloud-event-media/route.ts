@@ -174,8 +174,14 @@ export async function POST(request: Request) {
       .eq("source_type", "system").eq("source_id", metadata.event_id).maybeSingle();
     if (signalError) throw new Error("EVENT_READ_FAILED");
     if (!signal || signal.metadata?.validated_event !== true || signal.metadata?.recording_required !== true || signal.metadata?.camera_source_id !== camera.id || signal.metadata?.event_type !== spatialValidation.event.event_type) return fail("A matching validated event is required before recording.", 409);
-    if (Math.abs(Date.parse(metadata.captured_at) - Date.parse(signal.created_at)) > 60_000 || Date.parse(metadata.captured_at) > Date.now() + 60_000) return fail("Recording is outside the event capture window.", 422);
+    const capturedAt = Date.parse(metadata.captured_at);
+    const eventAt = Date.parse(signal.created_at);
+    const now = Date.now();
+    if (!Number.isFinite(eventAt) || !Number.isFinite(capturedAt) || Math.abs(capturedAt - eventAt) > 60_000 || capturedAt > now + 60_000) return fail("Recording is outside the event capture window.", 422);
     const retentionHours = retentionHoursForSite(observerSite?.event_retention_days);
+    const expiresAt = capturedAt + retentionHours * 60 * 60 * 1000;
+    // Backlog events retain their text history, but cannot resurrect expired media.
+    if (expiresAt <= now) return fail("Event media retention has expired.", 410);
     const eventSummary = safeNarrative(signal.metadata.event_summary);
     const narrative = observerEventNarrative({
       signal_type: metadata.event_type,
@@ -210,7 +216,7 @@ export async function POST(request: Request) {
     if (clipUpload.error) throw new Error(clipUpload.error.message);
     if (thumbnailUpload.error) throw new Error(thumbnailUpload.error.message);
 
-    const deleteAfter = new Date(Date.parse(metadata.captured_at) + retentionHours * 60 * 60 * 1000).toISOString();
+    const deleteAfter = new Date(expiresAt).toISOString();
     const clipPayload = {
       observer_site_id: metadata.observer_site_id,
       camera_source_id: metadata.camera_source_id,

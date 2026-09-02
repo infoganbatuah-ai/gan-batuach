@@ -135,6 +135,27 @@ async function media(overrides={}) {
 assert.equal((await media({event_id:randomUUID()})).status,409,"Media cannot originate an unvalidated event");
 assert.equal((await media({captured_at:new Date(Date.now()-180000).toISOString()})).status,422,"Unrelated recording is rejected");
 assert.equal(uploads,0,"Rejected media is never stored");
+const retentionNow=Date.now(), realDateNow=Date.now;
+const originalCaptureTime=criticalSignal.created_at;
+const originalRetention= tables.observer_sites[0].event_retention_days;
+const webhookCountBeforeExpiry=tables.provider_webhook_events.length;
+try {
+  Date.now=()=>retentionNow;
+  for (const [days,hours] of [[undefined,48],[1,24],[365,48]]) {
+    tables.observer_sites[0].event_retention_days=days;
+    criticalSignal.created_at=new Date(retentionNow-hours*3600000).toISOString();
+    assert.equal((await media({captured_at:criticalSignal.created_at})).status,410,"Expired media is rejected at the exact site retention boundary, capped at 48 hours");
+  }
+  criticalSignal.created_at="invalid-stored-time";
+  assert.equal((await media()).status,422,"An invalid stored event time cannot bypass the capture window");
+  assert.equal(uploads,0,"Expired or invalid-time clips and thumbnails must never reach storage");
+  assert.equal(tables.digital_observer_event_clips.length,0,"Rejected media must not create clip rows");
+  assert.equal(tables.provider_webhook_events.length,webhookCountBeforeExpiry,"Rejected media must not claim a delivery nonce");
+} finally {
+  Date.now=realDateNow;
+  criticalSignal.created_at=originalCaptureTime;
+  tables.observer_sites[0].event_retention_days=originalRetention;
+}
 criticalSignal.review_status="confirmed";
 assert.equal((await media()).status,201);
 assert.equal(uploads,2);

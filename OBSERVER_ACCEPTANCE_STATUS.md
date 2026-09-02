@@ -4,6 +4,18 @@ Updated: 2026-09-02. This is the project acceptance source of truth, NOT a
 completed-product declaration. Every item requires deployed, current evidence.
 Recorder recording schedules/storage administration are outside this task.
 
+## Local Retention Regression: 2026-09-02
+
+- The deployed `80e5af1` media intake lacked the expired-upload guard. A local
+  synthetic handler regression reproduced HTTP 201 for a clip at the 48-hour
+  expiry boundary. No production event or storage object was written by this test.
+- A focused local fix rejects media at the configured 24/48-hour deadline,
+  caps longer site settings at 48 hours, and rejects invalid stored event times.
+  Tests verify rejection precedes storage uploads, clip inserts and nonce writes;
+  valid media and the existing consent/source-scope tests still pass.
+- This fix is not production-deployed. It does not prove the deletion worker
+  ran, nor remove the requirement for a production deletion/audit acceptance test.
+
 ## Latest Production Acceptance: 2026-09-02
 
 This evidence supersedes the older browser and production observations below.
