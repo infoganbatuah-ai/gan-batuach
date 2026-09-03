@@ -28,7 +28,8 @@ assert.match(cloudRoute, /event_summary/, "cloud event media must store a safe e
 assert.match(cloudRoute, /retentionHoursForSite/, "cloud event media must cap retention from the site policy");
 assert.match(cloudRoute, /media_status: "available"/, "available uploads must set the database media lifecycle state");
 assert.match(retentionCron, /authorization.*Bearer/, "media retention cron must require cron authentication");
-assert.match(retentionCron, /storage\.from\(clip\.storage_bucket\)\.remove/, "media retention cron must delete private media files");
+assert.match(retentionCron, /const MEDIA_BUCKET = "digital-observer-event-media"/, "media retention must restrict deletion to the private event media bucket");
+assert.match(retentionCron, /storage\.from\(MEDIA_BUCKET\)\.remove/, "media retention cron must delete private media files");
 assert.match(retentionCron, /media_missing_reason: "retention_expired"/, "expired media must retain a precise lifecycle reason");
 assert.match(gateway, /event-media/, "local gateway must expose a read-only event media capture endpoint");
 assert.match(gateway, /controls_supported: false/, "event media capture must remain read-only with controls disabled");

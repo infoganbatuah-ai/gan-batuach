@@ -16,6 +16,23 @@ Recorder recording schedules/storage administration are outside this task.
 - This fix is not production-deployed. It does not prove the deletion worker
   ran, nor remove the requirement for a production deletion/audit acceptance test.
 
+## Local Retention Worker QA: 2026-09-03
+
+- The production commit's checked-in schedule runs cleanup daily; its handler
+  scans only 100 expired clips. This cannot establish deletion within 48 hours.
+- A separate local change now pages by stable row ID, skips individual failures
+  within a run, and reports remaining eligible work. Processing is capped at
+  1,000 attempts per run, with a 20-second budget checked between operations.
+  It restricts storage removal to the event bucket and each row's site prefix.
+- Synthetic-handler QA passes 205-row draining, returned/thrown storage and DB
+  failures, retries, preservation of text/review metadata, tenant-path rejection,
+  a 1,002-row two-run backlog, work-budget stops and partial scan failures.
+  No real storage deletion or scheduled task was invoked.
+- Schedule changes, per-operation cancellation, fairness across repeated runs
+  with large permanently failing sets, immutable cleanup audit and live deletion
+  verification remain unaccepted. Neither this local change nor the pending
+  upload-expiry fix constitutes production retention acceptance.
+
 ## Latest Production Acceptance: 2026-09-02
 
 This evidence supersedes the older browser and production observations below.
