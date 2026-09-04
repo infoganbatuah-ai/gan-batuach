@@ -22,10 +22,17 @@ function load(file, cache = new Map()) {
 }
 
 const { eventManifestPolicy } = load("lib/domain/event-engine/event-manifest-policy.ts");
+const { eventEnvironmentFingerprint } = load("lib/domain/event-engine/gateway-auth.ts");
 const manifestRoute = readFileSync("app/api/video-gateway/event-manifest/route.ts", "utf8");
 assert.match(manifestRoute, /verified_event_types: policy\.verified_event_types/, "Manifest route must expose only the bounded policy intersection");
 assert.match(manifestRoute, /schedule\.data\?\.status === "active"/, "Manifest route must require an active cloud schedule");
 assert.match(manifestRoute, /unavailable_event_types: allowed\.filter\(type => !policy\.supported_event_types\.includes\(type\)\)/, "Model- or policy-blocked rules must remain visibly unavailable");
+assert.match(manifestRoute, /environment_fingerprint: environmentFingerprint/, "Authenticated manifests must disclose a non-secret environment fingerprint");
+const fingerprintA = eventEnvironmentFingerprint({ NEXT_PUBLIC_SUPABASE_URL: "https://pilot-a.example" });
+assert.match(fingerprintA, /^env-sha256:[a-f0-9]{16}$/, "Fingerprint is a bounded one-way identifier");
+assert(!fingerprintA.includes("pilot-a.example"), "Fingerprint never exposes the environment URL");
+assert.notEqual(fingerprintA, eventEnvironmentFingerprint({ NEXT_PUBLIC_SUPABASE_URL: "https://pilot-b.example" }), "Distinct environments have distinct fingerprints");
+assert.equal(eventEnvironmentFingerprint({}), null, "Missing environment identity fails closed instead of inventing a fingerprint");
 const base = { zone_type: "POOL", monitoring_enabled: true, off_hours_active: true,
   allowed_event_types: ["person_near_pool_off_hours", "camera_offline"],
   implemented_event_types: ["person_near_pool_off_hours", "camera_offline"] };
