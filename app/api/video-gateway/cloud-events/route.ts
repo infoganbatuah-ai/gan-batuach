@@ -63,7 +63,7 @@ export async function POST(request: Request) {
           zone_type: result.camera.source === "default" ? null : result.camera.zone_type, track_id: event.track_id,
           event_summary: `${narrative.summary} · ${result.camera.camera_name}`, validated_event: true,
           recording_required: result.shouldRecord, media_status: result.shouldRecord ? "pending" : "not_required",
-          evidence_kind: event.evidence_kind, first_seen: event.timestamp, last_seen: event.timestamp,
+          evidence_kind: event.evidence_kind, ...(event.model_provenance ? { model_provenance: event.model_provenance } : {}), first_seen: event.timestamp, last_seen: event.timestamp,
           received_at: new Date().toISOString(), received_late: Date.now() - Date.parse(event.timestamp) > 300_000 }
       }).select("id,severity,metadata").single();
       if (signal.error?.code === "23505") signal = await db.from("observer_intelligence_signals").select("id,severity,metadata").eq("observer_site_id", device.observer_site_id).eq("source_type", "system").eq("source_id", sourceId).single();
