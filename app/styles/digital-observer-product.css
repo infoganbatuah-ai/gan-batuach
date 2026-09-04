@@ -6196,6 +6196,16 @@
   .do-shell * { scroll-behavior: auto !important; transition: none !important; animation: none !important; }
 }
 .do-capability-panel { display: grid; gap: 18px; }
+.do-capability-diagnostics { display: grid; grid-template-columns: auto auto 1fr; align-items: center; gap: 8px 10px; padding: 11px 13px; border: 1px solid var(--do-line, #dbe4ee); border-radius: 12px; background: #f8fafc; }
+.do-capability-diagnostics > span { display: inline-flex; color: var(--do-muted, #65758b); }
+.do-capability-diagnostics strong { color: var(--do-ink, #10233d); font-size: 12px; }
+.do-capability-diagnostics small { color: var(--do-muted, #65758b); min-width: 0; }
+.do-capability-diagnostics.ready { border-color: rgba(21, 150, 110, .3); background: rgba(21, 150, 110, .06); }
+.do-capability-diagnostics.ready > span { color: #15966e; }
+.do-capability-diagnostics.simulated { border-color: rgba(217, 145, 20, .35); background: rgba(217, 145, 20, .07); }
+.do-capability-diagnostics.simulated > span { color: #b66f00; }
+.do-capability-diagnostics.failed { border-color: rgba(190, 60, 60, .35); background: rgba(190, 60, 60, .06); }
+.do-capability-diagnostics.failed > span { color: #b43c3c; }
 .do-capability-panel .do-section-head h2 { display: flex; align-items: center; gap: 8px; }
 .do-capability-panel .do-section-head h2 svg { color: var(--do-teal, #0d9488); }
 .do-capability-empty { display: flex; align-items: center; gap: 14px; padding: 18px; border: 1px dashed var(--do-line, #dbe4ee); border-radius: 14px; color: var(--do-muted, #65758b); }

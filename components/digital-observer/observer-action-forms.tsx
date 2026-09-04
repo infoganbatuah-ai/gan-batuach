@@ -255,6 +255,11 @@ export function ObserverCameraNameForm({ camera }: { camera: any }) {
   const router = useRouter();
   const [name, setName] = useState(camera.display_name || "");
   const [location, setLocation] = useState(camera.location_label || "");
+  const [zone, setZone] = useState(camera.metadata?.zone_type || "");
+  const [lineEnabled, setLineEnabled] = useState(Boolean(camera.metadata?.crossing_line));
+  const [lineAxis, setLineAxis] = useState(camera.metadata?.crossing_line?.axis || "x");
+  const [linePosition, setLinePosition] = useState(Number(camera.metadata?.crossing_line?.position ?? 0.5) * 100);
+  const [lineInside, setLineInside] = useState(camera.metadata?.crossing_line?.inside || "positive");
   const [state, setState] = useState<ActionState>({ busy: false, error: "", message: "" });
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -264,7 +269,9 @@ export function ObserverCameraNameForm({ camera }: { camera: any }) {
         action: "rename",
         id: camera.id,
         display_name: name,
-        location_label: location
+        location_label: location,
+        zone_type: zone || undefined,
+        crossing_line: lineEnabled ? { axis: lineAxis, position: linePosition / 100, inside: lineInside } : null
       });
       setState({ busy: false, error: "", message: result.message });
       router.refresh();
@@ -277,6 +284,9 @@ export function ObserverCameraNameForm({ camera }: { camera: any }) {
     <div className="do-form-grid">
       <label className="do-field"><span>שם המצלמה</span><input value={name} onChange={(event) => setName(event.target.value)} minLength={2} maxLength={100} required /></label>
       <label className="do-field"><span>חלל או מיקום</span><input value={location} onChange={(event) => setLocation(event.target.value)} maxLength={100} placeholder="למשל: כניסה, סלון או חניה" /></label>
+      <label className="do-field"><span>סוג אזור לזיהוי אירועים</span><select value={zone} onChange={event => setZone(event.target.value)}><option value="">לא מופה — פעילות כללית בלבד</option><option value="POOL">בריכה</option><option value="PARKING">חנייה</option><option value="ENTRANCE">כניסה</option><option value="PERIMETER">היקף וגדר</option><option value="INDOOR">חלל פנימי</option></select></label>
+      <label className="do-check"><input type="checkbox" checked={lineEnabled} onChange={event => setLineEnabled(event.target.checked)} /><span>הגדרת קו מעבר לכניסה ויציאה</span></label>
+      {lineEnabled ? <><label className="do-field"><span>כיוון הקו בתמונה</span><select value={lineAxis} onChange={event => setLineAxis(event.target.value)}><option value="x">אנכי</option><option value="y">אופקי</option></select></label><label className="do-field"><span>מיקום הקו באחוזים משמאל / מלמעלה</span><input type="number" min={5} max={95} required value={linePosition} onChange={event => setLinePosition(Number(event.target.value))} /></label><label className="do-field"><span>הצד הפנימי של האזור</span><select value={lineInside} onChange={event => setLineInside(event.target.value)}><option value="positive">ימינה / למטה מהקו</option><option value="negative">שמאלה / למעלה מהקו</option></select></label></> : <p>ללא קו מעבר לא ניתן להסיק כיוון כניסה או יציאה. זיהויי חירום מיוחדים דורשים מודל מתאים ומאומת.</p>}
     </div>
     {suggestedName && suggestedName !== camera.display_name ? <button className="do-camera-name-suggestion" type="button" onClick={() => setName(suggestedName)}>הצעת התצפיתן: {suggestedName}</button> : null}
     <button className="do-button primary" type="submit" disabled={state.busy || name.trim().length < 2}>{state.busy ? <LoaderCircle className="do-spin" /> : <Check />} שמירת שם</button>

@@ -1,6 +1,7 @@
 import { DashboardShell } from "@/components/dashboard-shell";
 import { AdminDataError } from "@/components/admin-data-state";
 import { CameraAdminManager } from "@/components/camera-ai-admin-modules";
+import { GardenCameraCapabilityPanel } from "@/components/garden-camera-capability-panel";
 import { DashboardFilterChip } from "@/components/dashboard-filter-chip";
 import { requireRole } from "@/lib/auth";
 import { safeAdminData, logSupabaseError } from "@/lib/admin-safe";
@@ -107,6 +108,7 @@ export default async function GardenCameraSetupPage({ searchParams }: { searchPa
                         <a href={`/dashboard/garden/cameras?camera=${camera.id}#camera-management`}><PlayCircle size={16} /> ניהול וצפייה</a>
                         <a href="/dashboard/garden/camera-health"><ShieldCheck size={16} /> בדיקת חיבור</a>
                       </div>
+                      <GardenCameraCapabilityPanel cameraId={camera.id} />
                     </div>
                   </article>
                 );

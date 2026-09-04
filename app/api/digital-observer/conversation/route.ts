@@ -4,10 +4,13 @@ import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/d
 import { formatObserverDate, observerEventLabel } from "@/lib/domain/digital-observer/runtime";
 import { eventJournalService } from "@/lib/domain/event-engine/event-journal-service";
 import { guardChatHandler } from "@/lib/domain/digital-observer/guard-chat-handler";
+import { guardJournalQuerySchema, guardQueryClarification } from "@/lib/domain/digital-observer/guard-chat-query";
+import { guardContextForSite, guardHistoryPrivacyRestricted, guardHistoryInput, guardJournalAnswer, searchGuardJournal } from "@/lib/domain/event-engine/guard-journal-search";
 
 const schema = z.object({
   observer_site_id: z.string().uuid(),
   camera_source_id: z.string().uuid().optional(),
+  journal_query: guardJournalQuerySchema.optional(),
   message: z.string().trim().min(2).max(1200)
 });
 
@@ -95,6 +98,30 @@ export async function POST(request: Request) {
     const payload = schema.parse(await request.json());
     const site = await getObserverSiteAccess(supabase, profile, payload.observer_site_id, { manage: true });
     if (!site) return fail("אין הרשאה לשוחח על האתר הזה.", 403);
+    // Gate every path, including free-form summaries that the history parser
+    // does not recognize. The legacy fallback also reads identifying signals.
+    if (guardHistoryPrivacyRestricted(site)) return fail("השיחה אינה זמינה באתר עם ילדים, במצב שלדים בלבד או כאשר סוג האתר אינו מזוהה, עד להתאמת מסנן פרטיות ייעודי. לא נקראו אירועים ולא בוצעה פעולה במצלמות.", 403);
+
+    // Historical requests cannot fall through to watch creation or hardware actions.
+    const historyCameras = await supabase.from("digital_observer_camera_sources")
+      .select("id,observer_site_id,camera_stream_id,display_name,location_label,metadata")
+      .eq("observer_site_id", site.id);
+    if (historyCameras.error) return fail("לא ניתן לקרוא כרגע את מקורות היומן.", 503);
+    const historyContext = guardContextForSite(site, historyCameras.data ?? []);
+    try {
+      const requestedHistory = payload.journal_query ?? guardHistoryInput(payload.message, historyContext, payload.camera_source_id);
+      if (requestedHistory) {
+        if (payload.camera_source_id && requestedHistory.cameraSourceId && requestedHistory.cameraSourceId !== payload.camera_source_id) return fail("בחירת המצלמה אינה תואמת לבקשת היומן.", 422);
+        const result = await searchGuardJournal(supabase, { ...requestedHistory, cameraSourceId: payload.camera_source_id ?? requestedHistory.cameraSourceId }, historyContext, historyCameras.data ?? []);
+        return ok({ answer: guardJournalAnswer(result), event_log: result.events, signal_ids: result.events.map(event => event.id),
+          query: result.query, coverage: result.coverage, intent: "historical_journal", answer_source: "saved_journal", live_ai_used: false,
+          emergency_action_triggered: false, physical_action_executed: false, request: null });
+      }
+    } catch (error) {
+      if (error instanceof Error && error.message === "GUARD_QUERY_PRIVACY_SCOPE_UNSUPPORTED") return fail("חיפוש היסטורי זה אינו זמין באתר עם ילדים או במצב שלדים בלבד, עד להתאמת מסנן פרטיות ייעודי. לא נקראו אירועי זיהוי ולא בוצעה פעולה במצלמות.", 403);
+      if (error instanceof Error && error.message === "GUARD_JOURNAL_UNAVAILABLE") return fail("לא ניתן לקרוא כרגע את יומן האירועים. לא בוצעה פעולה במצלמות.", 503);
+      return fail(guardQueryClarification(error), 422);
+    }
 
     const [signalResult, cameraResult, baselineResult] = await Promise.all([
       supabase.from("observer_intelligence_signals" as any)
@@ -118,7 +145,8 @@ export async function POST(request: Request) {
     const scopedSignals = payload.camera_source_id
       ? (signalResult.data ?? []).filter((signal: any) => signal.camera_id === payload.camera_source_id || signal.metadata?.camera_source_id === payload.camera_source_id)
       : signalResult.data ?? [];
-    const eventLog = eventJournalService.group(scopedSignals as Record<string, any>[]).slice(0, 20);
+    const journalSignals = eventJournalService.groupRows(scopedSignals as Record<string, any>[], cameraResult.data ?? []);
+    const eventLog = journalSignals.slice(0, 20).map(signal => eventJournalService.normalize(signal));
     const scopedCameras = selectedCamera ? [selectedCamera] : cameraResult.data ?? [];
     const connectedSourceAvailable = scopedCameras.some((camera: any) => ["connected", "healthy", "online", "active"].includes(String(camera.status ?? camera.health_status)));
     const message = payload.message.toLowerCase();
@@ -156,7 +184,7 @@ export async function POST(request: Request) {
 
     const summary = buildAnswer(
       message,
-      scopedSignals as SignalRow[],
+      journalSignals as SignalRow[],
       scopedCameras,
       baselineResult.data ?? []
     );

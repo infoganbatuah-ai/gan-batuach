@@ -35,7 +35,9 @@ const renameSchema = z.object({
   id: z.string().uuid(),
   display_name: z.string().trim().min(2).max(100),
   location_label: z.string().trim().max(100).optional().default(""),
-  name_origin: z.enum(["user_edit", "ai_visual_review"]).optional().default("user_edit")
+  name_origin: z.enum(["user_edit", "ai_visual_review"]).optional().default("user_edit"),
+  zone_type: z.enum(["POOL", "PARKING", "ENTRANCE", "PERIMETER", "INDOOR"]).optional(),
+  crossing_line: z.object({ axis: z.enum(["x", "y"]), position: z.number().min(0.05).max(0.95), inside: z.enum(["positive", "negative"]) }).strict().nullable().optional()
 });
 
 const removeDemoSchema = z.object({
@@ -167,6 +169,8 @@ export async function POST(request: Request) {
           location_label: payload.location_label || null,
           metadata: {
             ...(source.metadata ?? {}),
+            ...(payload.zone_type ? { zone_type: payload.zone_type } : {}),
+            ...(payload.crossing_line !== undefined ? { crossing_line: payload.crossing_line } : {}),
             ...(payload.name_origin === "user_edit"
               ? { user_assigned_name: payload.display_name, user_assigned_location: payload.location_label || null }
               : { ai_suggested_name: payload.display_name, ai_suggested_location: payload.location_label || null }),

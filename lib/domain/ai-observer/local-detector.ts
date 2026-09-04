@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { createLocalVisionAdapter, mapFrameAnalysisToShadowDetections } from "@/lib/domain/ai-observer/local-vision-adapter";
+import { assertKindergartenPayload } from "@/lib/domain/observer-engine";
 
 export const localShadowDetectionTypes = [
   "camera_offline",
@@ -49,6 +50,7 @@ export class LocalMockDetector implements LocalDetector {
 
   async analyze(inputValue: FrameSampleInput, context: { camera?: Record<string, any> | null; zone?: Record<string, any> | null; routine?: Record<string, any> | null; learningProfile?: Record<string, any> | null } = {}) {
     const input = frameSampleInputSchema.parse(inputValue);
+    assertKindergartenPayload(input.frame_metadata);
     const adapter = createLocalVisionAdapter();
     const result = await adapter.analyzeFrame({
       camera_id: input.camera_id ?? null,
@@ -66,6 +68,9 @@ export class LocalMockDetector implements LocalDetector {
       },
       frame_metadata: {
         ...input.frame_metadata,
+        privacy_mode: "kindergarten_pose_only",
+        face_processing: false,
+        biometric_processing: false,
         routine_context_present: Boolean(context.routine),
         learning_profile_status: context.learningProfile?.learning_status ?? null
       }

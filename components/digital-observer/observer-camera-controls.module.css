@@ -1,0 +1,146 @@
+.confirmationBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: grid;
+  place-items: center;
+  padding: 20px;
+  background: rgb(8 20 24 / 62%);
+}
+
+.confirmationDialog {
+  width: min(440px, 100%);
+  margin: 0;
+  padding: 20px;
+  border: 1px solid #b9c8c5;
+  border-radius: 8px;
+  background: #fff;
+  color: #172826;
+  box-shadow: 0 20px 50px rgb(0 0 0 / 24%);
+}
+
+.confirmationDialog h2 {
+  margin: 0 0 8px;
+  font-size: 19px;
+  letter-spacing: 0;
+}
+
+.confirmationDialog p {
+  margin: 6px 0;
+  line-height: 1.5;
+}
+
+.confirmationExpiry {
+  color: #9b2c22;
+  font-weight: 700;
+}
+
+.confirmationActions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  margin-top: 18px;
+}
+
+.confirmationActions button {
+  display: inline-flex;
+  min-height: 40px;
+  align-items: center;
+  gap: 6px;
+  justify-content: center;
+  padding: 8px 13px;
+}
+
+.confirmationActions svg {
+  width: 18px;
+  height: 18px;
+}
+
+.status {
+  grid-column: 1 / -1;
+  min-height: 20px;
+  margin: 0;
+  color: #334b48;
+  font-size: 12px;
+}
+
+.warning {
+  display: flex;
+  align-items: flex-start;
+  gap: 6px;
+  color: #8a261d;
+  font-weight: 700;
+}
+
+.warning svg {
+  width: 17px;
+  min-width: 17px;
+  height: 17px;
+}
+
+.ptzGroup {
+  display: contents;
+}
+
+.diagnostics {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 10px;
+  border: 1px solid #b9c8c5;
+  border-radius: 6px;
+  background: #f7faf9;
+  color: #243c39;
+  font-size: 12px;
+}
+
+.diagnostics strong {
+  font-size: 13px;
+}
+
+.diagnosticsWarning {
+  border-color: #d9a39e;
+  background: #fff7f6;
+  color: #7b241c;
+}
+
+.automation {
+  display: flex;
+  min-height: 44px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 8px;
+  padding: 8px 10px;
+  border: 1px solid #9fc8bf;
+  border-radius: 6px;
+  background: #f1faf7;
+  color: #17483f;
+  font-size: 12px;
+}
+
+.automation strong {
+  font-size: 13px;
+}
+
+@media (max-width: 520px) {
+  .diagnostics {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .automation {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .confirmationActions {
+    flex-direction: column-reverse;
+  }
+
+  .confirmationActions button {
+    width: 100%;
+  }
+}

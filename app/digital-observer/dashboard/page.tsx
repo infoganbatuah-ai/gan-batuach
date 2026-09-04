@@ -1,5 +1,6 @@
 import Image from "next/image";
 import Link from "next/link";
+import { ObserverJournalRefresh } from "@/components/digital-observer/observer-journal-refresh";
 import {
   Activity,
   AlertTriangle,
@@ -100,9 +101,9 @@ export default async function DigitalObserverDashboardPage({ searchParams }: Pag
   const siteCameras = selectedSite ? runtime.cameras.filter((camera) => camera.observer_site_id === selectedSite.id) : [];
   const siteSignals = selectedSite ? runtime.signals.filter((signal) => signal.observer_site_id === selectedSite.id) : [];
   const openSignals = siteSignals.filter((signal) => ["needs_review", "reviewing", "escalated"].includes(String(signal.review_status)));
-  const reviewableOpenSignals = openSignals.filter((signal) => observerClipHasRequiredMedia(observerClipForSignal(signal, runtime.clips)) && Boolean(observerCameraForSignal(signal, siteCameras)));
-  const urgentSignals = openSignals.filter((signal) => ["critical", "urgent", "high"].includes(String(signal.severity)));
-  const liveCameras = siteCameras.filter((camera) => camera.source_mode === "live" && ["connected", "online", "active"].includes(String(camera.status))).length;
+  const reviewableOpenSignals = openSignals.filter((signal) => Boolean(observerCameraForSignal(signal, siteCameras)) && (signal.metadata?.validated_event === true || signal.metadata?.recording_required === false || observerClipHasRequiredMedia(observerClipForSignal(signal, runtime.clips))));
+  const urgentSignals = reviewableOpenSignals.filter((signal) => ["critical", "urgent", "high"].includes(String(signal.severity)));
+  const liveCameras = siteCameras.filter((camera) => digitalObserverCameraHasLiveGateway(camera)).length;
   const readyCameras = siteCameras.filter((camera) => ["connected", "healthy", "online", "active", "ready_to_test", "testing"].includes(String(camera.status)) || camera.health_status === "healthy").length;
   const businessActivity = activityBuckets(siteSignals);
   const businessActivityTotal = businessActivity.reduce((sum, bucket) => sum + bucket.count, 0);
@@ -116,6 +117,7 @@ export default async function DigitalObserverDashboardPage({ searchParams }: Pag
       statusLabel={selectedSite?.monitoring_enabled ? "מצב ניטור פעיל" : "מצב הכנה בטוח"}
     >
       <div className={`do-page-stack do-dashboard do-dashboard-${mode}`}>
+        <ObserverJournalRefresh latestId={siteSignals[0]?.id} severity={siteSignals[0]?.severity} />
         {!runtime.runtimeMigrationApplied ? (
           <div className="do-notice warn" role="status">
             <AlertTriangle />
@@ -137,8 +139,8 @@ export default async function DigitalObserverDashboardPage({ searchParams }: Pag
                 <Image className="do-home-hero-illustration" src="/assets/digital-observer/account-home-v1.png" alt="" width={700} height={700} priority />
                 <div className="do-hero-shield"><ShieldCheck /></div>
                 <div>
-                  <h2>{urgentSignals.length ? "יש אירוע דחוף שמחכה לבדיקה" : siteCameras.length ? <><span className="do-home-calm-desktop">הכול שקט בבית</span><span className="do-home-calm-mobile">הכול שקט</span></> : "מוכנים לחבר את הבית"}</h2>
-                  <p>{siteCameras.length ? `הבית שלך מוגן לפי ${siteCameras.length} מקורות שהוגדרו.` : "חברו מצלמה ראשונה כדי להתחיל."} {urgentSignals.length ? `${urgentSignals.length} אירועים דחופים ממתינים לבדיקה.` : "אין אירועים דחופים."}</p>
+                  <h2>{urgentSignals.length ? "יש אירוע דחוף שמחכה לבדיקה" : siteCameras.length ? <><span className="do-home-calm-desktop">לא התקבלו אירועים דחופים</span><span className="do-home-calm-mobile">מצב האירועים</span></> : "מוכנים לחבר את הבית"}</h2>
+                  <p>{siteCameras.length ? `הוגדרו ${siteCameras.length} מקורות; ${readyCameras} דיווחו על חיבור. כיסוי האירועים עדיין דורש אימות.` : "חברו מצלמה ראשונה כדי להתחיל."} {urgentSignals.length ? `${urgentSignals.length} אירועים דחופים ממתינים לבדיקה.` : "אין אירועים דחופים."}</p>
                 </div>
               </div>
 
@@ -165,19 +167,19 @@ export default async function DigitalObserverDashboardPage({ searchParams }: Pag
 
             <section className="do-home-dashboard-lower">
               <article className="do-panel do-home-events-panel">
-                <div className="do-section-head"><div><h2>אירועים ממתינים לבדיקה</h2><p>כל כרטיס כולל מקור מצלמה, תמונה וקטע וידאו מאומתים.</p></div><Link className="do-link" href="/digital-observer/alerts">הצג הכל</Link></div>
+                <div className="do-section-head"><div><h2>אירועים ממתינים לבדיקה</h2><p>אירועים משויכים למצלמה; קליפ מצורף רק כאשר נדרשה הקלטה.</p></div><Link className="do-link" href="/digital-observer/alerts">הצג הכל</Link></div>
                 {reviewableOpenSignals.length ? <div className="do-home-event-cards">{reviewableOpenSignals.slice(0, 4).map((signal) => {
                   const clip = observerClipForSignal(signal, runtime.clips);
                   const camera = observerCameraForSignal(signal, siteCameras);
                   const narrative = observerEventNarrative(signal);
-                  return <Link className="do-home-event-card" href={`/digital-observer/alerts?event=${signal.id}`} key={signal.id}><img src={`/api/digital-observer/event-clips/${clip?.id}/media?kind=thumbnail`} alt={`תמונה מאירוע: ${narrative.label}`} /><span><b className={badgeTone(signal.severity)}>{observerStatusLabel(signal.severity)}</b><strong>{narrative.label}</strong><p>{narrative.summary}</p><small>{camera?.display_name || "מצלמה"} · {formatObserverDate(signal.created_at)}</small></span></Link>;
-                })}</div> : <div className="do-empty compact"><CheckCircle2 /><strong>אין אירועים תקינים שממתינים לבדיקה</strong><span>אירוע יוצג כאן רק לאחר שנקלטו מקור מצלמה, תמונה וקטע וידאו.</span></div>}
+                  return <Link className="do-home-event-card" href={`/digital-observer/alerts?event=${signal.id}`} key={signal.id}>{observerClipHasRequiredMedia(clip) ? <img src={`/api/digital-observer/event-clips/${clip?.id}/media?kind=thumbnail`} alt={`תמונה מאירוע: ${narrative.label}`} /> : <Camera aria-label={signal.metadata?.recording_required === false ? "ללא הקלטה לפי המדיניות" : "מדיה טרם זמינה"} />}<span><b className={badgeTone(signal.severity)}>{observerStatusLabel(signal.severity)}</b><strong>{narrative.label}</strong><p>{narrative.summary}</p><small>{camera?.display_name || "מצלמה"} · {formatObserverDate(signal.created_at)}</small></span></Link>;
+                })}</div> : <div className="do-empty compact"><CheckCircle2 /><strong>אין אירועים תקינים שממתינים לבדיקה</strong><span>אירועים מאומתים יוצגו גם כשאין צורך לשמור קליפ.</span></div>}
               </article>
               <article className="do-panel do-home-status-panel">
                 <div className="do-section-head"><div><h2>מצב הבית</h2><p>סיכום שנגזר מהנתונים המחוברים.</p></div></div>
                 <div className="do-row-list">
                   <div className="do-row"><Camera /><span className="do-row-main"><strong>מקורות מצלמה</strong><small>{siteCameras.length ? `${readyCameras} מתוך ${siteCameras.length} מוכנים לבדיקה · ${liveCameras} חיים` : "טרם חוברו"}</small></span><span className={readyCameras === siteCameras.length && siteCameras.length ? "do-status-dot good" : "do-status-dot warn"}>{siteCameras.length ? observerStatusLabel(readyCameras === siteCameras.length ? "ready_to_test" : "degraded") : "מוכן להגדרה"}</span></div>
-                  <div className="do-row"><Bell /><span className="do-row-main"><strong>התראות פתוחות</strong><small>{openSignals.length ? `${openSignals.length} לבדיקה` : "אין"}</small></span><span className={openSignals.length ? "do-status-dot warn" : "do-status-dot good"}>{openSignals.length ? "דורש תשומת לב" : "שקט"}</span></div>
+                  <div className="do-row"><Bell /><span className="do-row-main"><strong>התראות פתוחות</strong><small>{reviewableOpenSignals.length ? `${reviewableOpenSignals.length} לבדיקה` : "אין"}</small></span><span className={reviewableOpenSignals.length ? "do-status-dot warn" : "do-status-dot good"}>{reviewableOpenSignals.length ? "דורש תשומת לב" : "שקט"}</span></div>
                   <div className="do-row"><Moon /><span className="do-row-main"><strong>שעות שקטות</strong><small>{runtime.schedules.find((item) => item.observer_site_id === selectedSite.id)?.schedule_mode ? observerStatusLabel(runtime.schedules.find((item) => item.observer_site_id === selectedSite.id)?.schedule_mode) : "טרם הוגדרו"}</small></span><Link className="do-link" href="/digital-observer/settings">עריכה</Link></div>
                 </div>
               </article>
@@ -189,7 +191,7 @@ export default async function DigitalObserverDashboardPage({ searchParams }: Pag
               <article className={`do-metric do-business-status-metric ${siteCameras.length && readyCameras === siteCameras.length ? "good" : "alert"}`}><span className="do-business-status-icon"><ShieldCheck /></span><strong>{siteCameras.length && readyCameras === siteCameras.length ? "הכול תקין" : "דורש בדיקה"}</strong><span>סטטוס מקורות המצלמה</span></article>
               <article className="do-metric"><Camera /><strong>{readyCameras}</strong><span>מקורות מוכנים מתוך {siteCameras.length}</span></article>
               <article className="do-metric"><Building2 /><strong>{runtime.sites.length}</strong><span>אתרים בחשבון</span></article>
-              <article className="do-metric alert"><Bell /><strong>{openSignals.length}</strong><span>אירועים פתוחים</span></article>
+              <article className="do-metric alert"><Bell /><strong>{reviewableOpenSignals.length}</strong><span>אירועים פתוחים</span></article>
               <article className="do-metric"><Moon /><strong>{selectedSite.monitoring_enabled ? "פעיל" : "הכנה"}</strong><span>ניטור מחוץ לשעות</span></article>
             </section>
 
@@ -207,7 +209,7 @@ export default async function DigitalObserverDashboardPage({ searchParams }: Pag
               </article>
               <article className="do-panel do-open-events-panel">
                 <div className="do-section-head"><div><h2>אירועים פתוחים</h2><p>אירועים שממתינים לבדיקה אנושית.</p></div><Link className="do-link" href="/digital-observer/alerts">צפו בכל האירועים</Link></div>
-                {openSignals.length ? <div className="do-row-list">{openSignals.slice(0, 6).map((signal) => <Link className="do-row" href={`/digital-observer/alerts?event=${signal.id}`} key={signal.id}><Radar /><span className="do-row-main"><strong>{observerEventLabel(signal.metadata?.event_type ?? signal.signal_type)}</strong><small>{signal.recommended_action ?? "בדיקה אנושית מומלצת"}</small></span><span className="do-row-meta"><b className={badgeTone(signal.severity)}>{observerStatusLabel(signal.severity)}</b><time>{formatObserverDate(signal.created_at, { year: undefined, month: undefined, day: undefined })}</time></span></Link>)}</div> : <div className="do-empty compact"><CheckCircle2 /><strong>אין אירועים פתוחים</strong><span>אירועים שיוגדרו לבדיקה יופיעו כאן.</span></div>}
+                {reviewableOpenSignals.length ? <div className="do-row-list">{reviewableOpenSignals.slice(0, 6).map((signal) => <Link className="do-row" href={`/digital-observer/alerts?event=${signal.id}`} key={signal.id}><Radar /><span className="do-row-main"><strong>{observerEventLabel(signal.metadata?.event_type ?? signal.signal_type)}</strong><small>{signal.recommended_action ?? "בדיקה אנושית מומלצת"}</small></span><span className="do-row-meta"><b className={badgeTone(signal.severity)}>{observerStatusLabel(signal.severity)}</b><time>{formatObserverDate(signal.created_at, { year: undefined, month: undefined, day: undefined })}</time></span></Link>)}</div> : <div className="do-empty compact"><CheckCircle2 /><strong>אין אירועים פתוחים</strong><span>אירועים שיוגדרו לבדיקה יופיעו כאן.</span></div>}
               </article>
             </section>
 

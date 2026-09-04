@@ -1,13 +1,15 @@
 import { createHash } from "node:crypto";
 import { z } from "zod";
+import { preserveCameraDiscoverySettings } from "./event-engine/discovery-settings";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { encryptField } from "@/lib/security/encryption";
+import { normalizeCameraStatus, cameraOperationalStatuses, type CameraOperationalStatus } from "@/lib/domain/camera-status";
+
+export { normalizeCameraStatus, cameraOperationalStatuses } from "@/lib/domain/camera-status";
+export type { CameraOperationalStatus } from "@/lib/domain/camera-status";
 
 export const cameraSourceTypes = ["RTSP", "ONVIF", "DVR", "NVR", "HLS", "WebRTC", "Sample HLS"] as const;
 export type CameraSourceType = (typeof cameraSourceTypes)[number];
-
-export const cameraOperationalStatuses = ["connected", "connecting", "pending", "offline", "error", "disabled"] as const;
-export type CameraOperationalStatus = (typeof cameraOperationalStatuses)[number];
 
 export function normalizeCameraSourceType(value?: string | null): CameraSourceType {
   const normalized = String(value ?? "RTSP").trim().toLowerCase();
@@ -18,17 +20,6 @@ export function normalizeCameraSourceType(value?: string | null): CameraSourceTy
   if (normalized === "dvr") return "DVR";
   if (normalized === "nvr") return "NVR";
   return "RTSP";
-}
-
-export function normalizeCameraStatus(value?: string | null, active = true): CameraOperationalStatus {
-  if (!active) return "disabled";
-  const normalized = String(value ?? "pending").trim().toLowerCase();
-  if (["connected", "online"].includes(normalized)) return "connected";
-  if (["connecting"].includes(normalized)) return "connecting";
-  if (["offline", "failed"].includes(normalized)) return "offline";
-  if (["error"].includes(normalized)) return "error";
-  if (["disabled"].includes(normalized)) return "disabled";
-  return "pending";
 }
 
 export function hasPlaybackSource(camera: Record<string, unknown>) {
@@ -98,6 +89,26 @@ type GatewayRequestOptions = {
   gatewaySecret?: string;
 };
 
+export const cloudDvrCapabilityStateSchema = z.object({
+  supported: z.boolean(),
+  method: z.string().trim().min(1).max(80),
+  tested_at: z.string().datetime(),
+  adapter: z.string().trim().min(1).max(80).nullable(),
+  reason: z.string().trim().min(1).max(120)
+}).strict();
+
+export const cloudDvrHardwareCapabilitiesSchema = z.object({
+  live: cloudDvrCapabilityStateSchema,
+  playback: cloudDvrCapabilityStateSchema,
+  audio_input: cloudDvrCapabilityStateSchema,
+  audio_output: cloudDvrCapabilityStateSchema,
+  talkback: cloudDvrCapabilityStateSchema,
+  ptz: cloudDvrCapabilityStateSchema,
+  relay: cloudDvrCapabilityStateSchema,
+  siren: cloudDvrCapabilityStateSchema,
+  light: cloudDvrCapabilityStateSchema
+}).strict();
+
 export const cloudDvrDiscoveryChannelSchema = z.object({
   channel: z.number().int().min(1).max(128),
   name: z.string().trim().min(1).max(120).nullable().optional(),
@@ -110,7 +121,8 @@ export const cloudDvrDiscoveryChannelSchema = z.object({
   height: z.number().int().positive().max(10000).nullable().optional(),
   candidates_tried: z.number().int().min(0).max(20).optional(),
   template: z.string().trim().max(80).nullable().optional(),
-  reason: z.string().trim().max(120).nullable().optional()
+  reason: z.string().trim().max(120).nullable().optional(),
+  capabilities: cloudDvrHardwareCapabilitiesSchema.optional()
 }).strict();
 
 export const cloudDvrDiscoverySchema = z.object({
@@ -126,7 +138,9 @@ export const cloudDvrDiscoverySchema = z.object({
   failed_channel_count: z.number().int().min(0).max(128).optional(),
   latency_ms: z.number().int().min(0).max(600000).optional(),
   read_only: z.literal(true),
-  controls_supported: z.literal(false),
+  // Capability discovery is still read-only. This flag reports that the
+  // recorder advertises controls; it never authorizes or executes a command.
+  controls_supported: z.boolean(),
   no_secrets_returned: z.literal(true),
   channels: z.array(cloudDvrDiscoveryChannelSchema).min(1).max(128),
   metadata: z.record(z.string(), z.unknown()).default({})
@@ -327,19 +341,21 @@ async function upsertDigitalObserverCameraSource(
     connected: boolean;
     statusHint: string | null;
     gatewayId?: string | null;
+    hardwareCapabilities?: z.infer<typeof cloudDvrHardwareCapabilitiesSchema>;
   }
 ) {
   if (!values.observerSiteId) return null;
   const existing = values.cameraStreamId
     ? await supabase
       .from("digital_observer_camera_sources" as any)
-      .select("id,metadata")
+      .select("id,observer_site_id,display_name,location_label,status,monitoring_targets,capabilities,metadata")
       .eq("camera_stream_id", values.cameraStreamId)
+      .eq("observer_site_id", values.observerSiteId)
       .maybeSingle()
     : values.gatewayStreamId
       ? await supabase
         .from("digital_observer_camera_sources" as any)
-        .select("id,metadata")
+        .select("id,observer_site_id,display_name,location_label,status,monitoring_targets,capabilities,metadata")
         .eq("observer_site_id", values.observerSiteId)
         .contains("metadata", { gateway_stream_id: values.gatewayStreamId })
         .maybeSingle()
@@ -369,7 +385,12 @@ async function upsertDigitalObserverCameraSource(
       local_activity_sampling: values.connected,
       credentials_saved: true,
       gateway_required: !values.connected,
-      connector_transport: "gateway"
+      connector_transport: "gateway",
+      ptz: values.hardwareCapabilities?.ptz.supported === true,
+      two_way_audio: values.hardwareCapabilities?.talkback.supported === true,
+      siren: values.hardwareCapabilities?.siren.supported === true,
+      lighting: values.hardwareCapabilities?.light.supported === true,
+      hardware_evidence: values.hardwareCapabilities ?? null
     },
     monitoring_targets: ["person", "entry_exit", "camera_obstruction", "after_hours"],
     last_health_check_at: now,
@@ -395,7 +416,7 @@ async function upsertDigitalObserverCameraSource(
   if ((existing as any)?.data?.id) {
     const { data, error } = await supabase
       .from("digital_observer_camera_sources" as any)
-      .update({ ...payload, updated_at: now })
+      .update({ ...preserveCameraDiscoverySettings((existing as any).data, payload), updated_at: now })
       .eq("id", (existing as any).data.id)
       .select("id,observer_site_id,camera_stream_id,display_name,status,health_status,source_mode")
       .single();
@@ -744,7 +765,8 @@ export async function materializeCloudDvrDiscovery(payload: z.infer<typeof cloud
       gatewayId: parsed.gateway_id,
       gatewayConfigured: true,
       connected,
-      statusHint: channel.status
+      statusHint: channel.status,
+      hardwareCapabilities: channel.capabilities
     });
     results.push({ camera: camera ? sanitizeCameraRow(camera as any) : null, observer_source: observerSource, gateway_stream_id: gatewayStreamId });
   }

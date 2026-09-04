@@ -16,7 +16,7 @@ const cameraId = "00000000-0000-4000-8000-000000000002";
 const profileId = "00000000-0000-4000-8000-000000000003";
 const deviceId = "00000000-0000-4000-8000-000000000004";
 const otherCameraId = "00000000-0000-4000-8000-000000000005";
-const gatewayId = "synthetic-gateway";
+const gatewayId = "00000000-0000-4000-8000-000000000006";
 const streamId = "synthetic-stream";
 const legacyDDL = `create table public.digital_observer_camera_action_requests (
   id uuid primary key default gen_random_uuid(), observer_site_id uuid not null references observer_sites(id),
@@ -212,10 +212,23 @@ test("both task kinds round-trip through the actual SQL schema; snapshot needs n
     const details=Object.fromEntries(Object.entries(caps).map(([key,supported])=>[key,{supported,method:"vendor_read_only_api",tested_at:at,adapter:contract.CAMERA_QUEUE_DRIVER,reason:supported?"read_only_capability_verified":"capability_not_reported"}]));
     const snapAck={action:"result",request_id:snapshot.id,outcome:"capability_snapshot",result_code:"verified",outcome_payload:{
       camera_id:cameraId,site_id:siteId,stream_id:streamId,channel:1,executor_installed:false,evidence_id:randomUUID(),verified_at:at,
+      gateway_id:gatewayId,source_generation:"1".repeat(64),binding_generation:"2".repeat(64),
+      live:{tested:true,media_progressing:true,verified_at:at},
       driver:contract.CAMERA_QUEUE_DRIVER,provider:contract.CAMERA_QUEUE_DRIVER,capabilities:caps,details}};
+    // Bound runtime evidence must match the queue's authenticated Gateway.
     const stored=await f.post(snapAck);assert.equal(stored.status,200,JSON.stringify(stored.body));
     const data=(await f.db.query("select result from digital_observer_camera_action_requests where id=$1",[snapshot.id])).rows[0].result;
     assert.equal(data.outcome_payload.executed,false);
+    for(const mutation of [
+      {gateway_id:"00000000-0000-4000-8000-000000000007"},
+      {source_generation:undefined},
+      {live:{tested:true,media_progressing:true,verified_at:new Date(Date.now()-300_000).toISOString()}}
+    ]) {
+      const another=row({task_kind:"capability_snapshot",action_type:"capability_snapshot",payload_digest:null});await insert(f.db,another);
+      await f.post({action:"poll"});
+      const invalid={...snapAck,request_id:another.id,outcome_payload:{...snapAck.outcome_payload,...mutation}};
+      assert.equal((await f.post(invalid)).status,422,JSON.stringify(mutation));
+    }
   } finally {await f.db.close();}
 });
 

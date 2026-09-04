@@ -35,7 +35,7 @@ expectPass("safe discovery flags", {
   gateway_id: "test-local-gateway",
   observer_site_id: "00000000-0000-4000-8000-000000000000",
   read_only: true,
-  controls_supported: false,
+  controls_supported: true,
   no_secrets_returned: true,
   metadata: {
     no_credentials_received: true,
@@ -48,7 +48,18 @@ expectPass("safe discovery flags", {
       status: "connected",
       health_status: "healthy",
       stream_id: "dvr_safe_1",
-      reason: "video_stream_found"
+      reason: "video_stream_found",
+      capabilities: {
+        live: { supported: true, method: "media_probe", tested_at: "2026-09-02T00:00:00.000Z", adapter: "private_nvr_http_mp4", reason: "video_stream_verified" },
+        playback: { supported: false, method: "not_tested", tested_at: "2026-09-02T00:00:00.000Z", adapter: "private_nvr_http_mp4", reason: "playback_endpoint_not_discovered" },
+        audio_input: { supported: true, method: "media_probe", tested_at: "2026-09-02T00:00:00.000Z", adapter: "private_nvr_http_mp4", reason: "audio_track_verified" },
+        audio_output: { supported: false, method: "vendor_read_only_api", tested_at: "2026-09-02T00:00:00.000Z", adapter: "private_nvr_http_api_v1", reason: "audio_output_not_reported" },
+        talkback: { supported: false, method: "vendor_read_only_api", tested_at: "2026-09-02T00:00:00.000Z", adapter: "private_nvr_http_api_v1", reason: "talkback_not_reported" },
+        ptz: { supported: true, method: "vendor_read_only_api", tested_at: "2026-09-02T00:00:00.000Z", adapter: "private_nvr_http_api_v1", reason: "ptz_get_verified" },
+        relay: { supported: false, method: "vendor_read_only_api", tested_at: "2026-09-02T00:00:00.000Z", adapter: "private_nvr_http_api_v1", reason: "relay_not_reported" },
+        siren: { supported: true, method: "vendor_read_only_api", tested_at: "2026-09-02T00:00:00.000Z", adapter: "private_nvr_http_api_v1", reason: "siren_range_verified" },
+        light: { supported: true, method: "vendor_read_only_api", tested_at: "2026-09-02T00:00:00.000Z", adapter: "private_nvr_http_api_v1", reason: "floodlight_get_verified" }
+      }
     }
   ]
 });

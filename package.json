@@ -7,7 +7,7 @@
     "dev": "next dev",
     "build": "node scripts/validate-environment-safety.mjs && node scripts/prepare-next-build.mjs && next build && node scripts/cleanup-next-build-artifacts.mjs",
     "start": "next start",
-    "lint": "next lint",
+    "lint": "eslint app components lib services",
     "typecheck": "tsc --noEmit",
     "mobile:sync": "npx cap sync",
     "export:clean": "node scripts/create-clean-export.mjs",
@@ -22,6 +22,8 @@
     "qa:manager-parent-live-contract": "node scripts/qa/check-manager-parent-live-contract.mjs",
     "qa:digital-observer-product": "node scripts/qa/check-digital-observer-product.mjs",
     "qa:digital-observer-event-media": "node scripts/qa/check-digital-observer-event-media.mjs",
+    "qa:event-journal": "node scripts/qa/check-event-journal.mjs && node scripts/qa/check-event-ingest.mjs && node scripts/qa/check-event-outbox.mjs && node scripts/qa/check-object-inference.mjs && node scripts/qa/check-digital-observer-event-media.mjs",
+    "qa:observer-engine-separation": "node scripts/qa/check-observer-engine-separation.mjs",
     "qa:dvr-shared-session": "node scripts/qa/check-dvr-shared-session-and-offline.mjs",
     "qa:observer-site-selection": "node scripts/qa/check-observer-site-selection.mjs",
     "qa:delete-digital-observer-test-user": "node scripts/qa/delete-digital-observer-test-user.mjs",
@@ -70,7 +72,7 @@
     "typescript": "6.0.3"
   },
   "overrides": {
-    "brace-expansion": "^5.0.9",
+    "brace-expansion": "^2.0.1",
     "js-yaml": "^4.3.1",
     "nanoid": "^3.3.18",
     "postcss": "^8.5.23",

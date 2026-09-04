@@ -6,12 +6,9 @@ const generatedBuildDirs = readdirSync(process.cwd(), { withFileTypes: true })
   .map((entry) => entry.name)
   .sort();
 
-// Vercel needs the freshly generated `.next` directory to create the deployment.
-// Other environments remove it before repository-wide secret scanning.
-const generatedDirectories = [
-  ...(process.env.VERCEL ? [] : [".next"]),
-  ...generatedBuildDirs
-];
+// Keep the successful build for next start and deployment in every environment.
+// Security scanning must exclude generated artifacts, not destroy the runnable app.
+const generatedDirectories = generatedBuildDirs;
 
 for (const directory of generatedDirectories) {
   if (existsSync(directory)) rmSync(directory, { recursive: true, force: true });

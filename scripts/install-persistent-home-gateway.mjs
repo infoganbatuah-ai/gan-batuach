@@ -19,6 +19,18 @@ if (!cloudConfigSource) {
   throw new Error("Secure cloud gateway configuration is not available");
 }
 
+let existingKeychainService = "";
+if (existsSync(launchAgentPath)) {
+  try { existingKeychainService = execFileSync("/usr/bin/plutil", ["-extract", "EnvironmentVariables.GAN_BATUACH_GATEWAY_KEYCHAIN_SERVICE", "raw", "-o", "-", launchAgentPath], { encoding: "utf8" }).trim(); } catch {}
+}
+const configuredKeychainService = existingKeychainService || readFileSync(cloudConfigSource, "utf8")
+  .split(/\r?\n/)
+  .map((line) => line.trim())
+  .find((line) => line.startsWith("VIDEO_GATEWAY_KEYCHAIN_SERVICE="))
+  ?.slice("VIDEO_GATEWAY_KEYCHAIN_SERVICE=".length)
+  .trim()
+  .replace(/^['"]|['"]$/g, "") || "com.ganbatuach.video-gateway.runtime";
+
 const requiredFiles = [
   join(projectRoot, "scripts", "run-persistent-home-gateway.mjs"),
   join(projectRoot, "services", "video-gateway", "server.mjs"),
@@ -55,7 +67,7 @@ const plist = `<?xml version="1.0" encoding="UTF-8"?>
   </array>
   <key>WorkingDirectory</key><string>${escaped(runtimeRoot)}</string>
   <key>EnvironmentVariables</key>
-  <dict><key>PATH</key><string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string></dict>
+  <dict><key>PATH</key><string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string><key>GAN_BATUACH_GATEWAY_KEYCHAIN_SERVICE</key><string>${escaped(configuredKeychainService)}</string><key>GAN_BATUACH_GATEWAY_DISCOVERY</key><string>1</string><key>VIDEO_GATEWAY_BROWSER_ORIGIN</key><string>http://127.0.0.1:3000,http://localhost:3000</string></dict>
   <key>RunAtLoad</key><true/>
   <key>KeepAlive</key><true/>
   <key>ThrottleInterval</key><integer>10</integer>

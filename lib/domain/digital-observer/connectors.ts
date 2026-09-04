@@ -47,6 +47,9 @@ export function buildDigitalObserverCameraReadiness(type: DigitalObserverConnect
       preview: synthetic,
       live_view: false,
       event_clips: false,
+      // Demo cameras expose the complete control contract so onboarding and
+      // automated-guard flows can be verified without touching hardware.
+      ...(synthetic ? { ptz: true, twoWayAudio: true, siren: true, lighting: true } : {}),
       credentials_saved: false,
       gateway_required: connector.liveRequiresGateway,
       connector_transport: connector.transport

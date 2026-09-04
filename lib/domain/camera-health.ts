@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { normalizeCameraStatus } from "@/lib/domain/video-gateway";
+import { normalizeCameraStatus } from "@/lib/domain/camera-status";
 import { CAMERA_BROWSER_SAFE_SELECT } from "@/lib/domain/camera-safe-columns";
 
 export type CameraHealthSummary = {

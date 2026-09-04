@@ -3,6 +3,8 @@ import { createLocalDetector } from "@/lib/domain/ai-observer/local-detector";
 import { evaluateObserverRule } from "@/lib/domain/ai-observer/rule-engine";
 import { loadActiveWatchRequests, translateWatchRequestToRuleInput } from "@/lib/domain/observer-watch-request-engine";
 import { CAMERA_BROWSER_SAFE_SELECT } from "@/lib/domain/camera-safe-columns";
+import { assertKindergartenEvent, createObserverEngine } from "@/lib/domain/observer-engine";
+import { eventValidationPipeline } from "@/lib/domain/event-engine/event-validation-pipeline";
 
 type SupabaseLike = any;
 
@@ -118,6 +120,7 @@ export async function processObserverJobMock(supabase: SupabaseLike, inputJob: R
   if (startError) throw new Error(startError.message);
 
   try {
+    const kindergartenEngine = createObserverEngine("KINDERGARTEN");
     await logJob(supabase, { job_id: job.id, worker_id: job.worker_id, kindergarten_id: job.kindergarten_id, camera_id: job.camera_id, level: "info", message: "Local shadow sampler started", metadata: { real_video_processing: false, shadow_mode: true } });
     const [{ data: camera }, { data: zone }, { data: rules }, { data: routine }, { data: learningProfile }] = await Promise.all([
       job.camera_id ? supabase.from("camera_streams" as any).select(CAMERA_BROWSER_SAFE_SELECT).eq("id", job.camera_id).maybeSingle() : Promise.resolve({ data: null }),
@@ -185,9 +188,32 @@ export async function processObserverJobMock(supabase: SupabaseLike, inputJob: R
         metadata: { ...requestedWatchRule.metadata, watch_request_id: requestedWatchRule.watchRequestId, local_dedupe_key: `watch:${requestedWatchRule.watchRequestId}:${new Date().toISOString().slice(0, 10)}` }
       });
     }
+    // Every event produced by this worker is explicitly owned by the
+    // kindergarten skeleton engine before it can enter persistence.
+    for (const detection of detections) {
+      // Spatial validation must happen before engine ownership assertions: an
+      // impossible detection is noise to suppress, not a failed worker job.
+      const validation = eventValidationPipeline.validate(detection, camera ?? { id: job.camera_id, name: "מצלמה" }, zone);
+      if (!validation.accepted) continue;
+      assertKindergartenEvent({
+        engine: kindergartenEngine.name,
+        type: detection.event_type,
+        skeleton_id: detection.metadata?.skeleton_id ?? "temporary-skeleton",
+        pose_data: detection.metadata?.pose_data ?? { keypoints: [] },
+        confidence: detection.confidence,
+        timestamp: new Date().toISOString(),
+        metadata: { privacy_mode: "kindergarten_pose_only", face_processing: false, biometric_processing: false }
+      });
+    }
     await logJob(supabase, { job_id: job.id, worker_id: job.worker_id, kindergarten_id: job.kindergarten_id, camera_id: job.camera_id, level: "info", message: `Local shadow detector returned ${detections.length} detection(s)`, metadata: { provider: detector.provider, mode: detector.mode } });
 
     for (const detection of detections) {
+      const validation = eventValidationPipeline.validate(detection, camera ?? { id: job.camera_id, name: "מצלמה" }, zone);
+      if (!validation.accepted) {
+        await logJob(supabase, { job_id: job.id, worker_id: job.worker_id, kindergarten_id: job.kindergarten_id, camera_id: job.camera_id, level: "warning", message: "Detection suppressed by spatial context", metadata: { event_type: detection.event_type, reason: validation.reason, zone_type: validation.camera.zone_type } });
+        continue;
+      }
+      const contextualDetection = validation.event;
       const selectedRule = rules?.find((rule: any) => rule.rule_key === detection.rule_key);
       const cooldownSince = new Date(Date.now() - Number(selectedRule?.cooldown_seconds ?? 300) * 1000).toISOString();
       const { data: recentEvent } = await supabase
@@ -212,10 +238,10 @@ export async function processObserverJobMock(supabase: SupabaseLike, inputJob: R
           camera_id: job.camera_id,
           zone_id: job.zone_id,
           watch_request_id: detection.metadata?.watch_request_id ?? null,
-          event_type: detection.event_type,
+          event_type: contextualDetection.event_type,
           severity: decision.severity,
-          title: detection.title,
-          description: detection.description,
+          title: contextualDetection.title,
+          description: contextualDetection.description,
           confidence_score: detection.confidence,
           recommended_action: String(detection.metadata?.recommended_action ?? "בדיקה אנושית"),
           detected_entities: [],
@@ -225,7 +251,7 @@ export async function processObserverJobMock(supabase: SupabaseLike, inputJob: R
           parent_visible: false,
           detector_provider: String(detection.metadata?.detector_provider ?? detection.metadata?.provider ?? detector.provider ?? "local_mock"),
           detector_mode: String(detection.metadata?.detector_mode ?? "local_shadow"),
-          metadata: { ...(detection.metadata ?? {}), observer_job_id: job.id, observer_rule_id: decision.rule.id, worker_mode: "local_shadow", shadow_mode: true, requires_human_review: true, parent_visible: false },
+          metadata: { ...(contextualDetection.metadata ?? {}), observer_job_id: job.id, observer_rule_id: decision.rule.id, worker_mode: "local_shadow", engine: "skeleton", zone_type: validation.camera.zone_type, camera_name: validation.camera.camera_name, recording_required: validation.shouldRecord, recording_url: null, privacy_mode: "kindergarten_pose_only", face_processing: false, biometric_processing: false, shadow_mode: true, requires_human_review: true, parent_visible: false },
           is_demo: true
         })
         .select("*")

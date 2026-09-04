@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { observerEventNarrative } from "@/lib/domain/digital-observer/event-narrative";
+import { eventJournalService } from "@/lib/domain/event-engine/event-journal-service";
 
 export type ObserverRow = Record<string, any>;
 export type ObserverMode = "home" | "business";
@@ -78,7 +79,8 @@ export function observerClipHasRequiredMedia(clip: ObserverRow | null | undefine
 }
 
 export function observerSignalHasRequiredEvidence(signal: ObserverRow, cameras: ObserverRow[], clips: ObserverRow[]) {
-  return Boolean(observerCameraForSignal(signal, cameras) && observerClipHasRequiredMedia(observerClipForSignal(signal, clips)));
+  // Intentionally omitted or failed media must not hide validated events.
+  return Boolean(observerCameraForSignal(signal, cameras) && (signal.metadata?.recording_required === false || signal.metadata?.validated_event === true || observerClipHasRequiredMedia(observerClipForSignal(signal, clips))));
 }
 
 export function observerStatusLabel(value?: unknown) {
@@ -218,7 +220,7 @@ export async function loadObserverRuntime(profileId: string) {
         safeList<ObserverRow>("legacy camera readiness", () => supabase.from("camera_streams" as any).select("id,observer_site_id,name,area,camera_type,source_type,status,health_status,stream_status,gateway_registration_status,digital_observer_pilot_mode,ai_enabled,live_preview_status,playback_hls_ready,playback_webrtc_ready,gateway_stream_id,video_gateway_stream_id,last_health_check_at,last_seen,metadata").in("observer_site_id", siteIds).order("created_at")),
         safeList<ObserverRow>("signals", () => supabase.from("observer_intelligence_signals" as any).select("id,observer_site_id,camera_id,signal_type,source_type,severity,confidence,review_status,recommended_action,risk_score,human_review_required,parent_visible,metadata,created_at,reviewed_at,resolved_at").in("observer_site_id", siteIds).order("created_at", { ascending: false }).limit(200)),
         safeList<ObserverRow>("subscriptions", () => supabase.from("observer_site_subscriptions" as any).select("id,observer_site_id,package_id,status,subscription_status,entitlement_status,trial_start,trial_end,renewal_date,billing_cycle,monthly_price,annual_price,payment_provider,purchase_channel,billing_separation_key,grace_period_ends_at,pending_package_id,pending_change_effective_at").in("observer_site_id", siteIds)),
-        safeList<ObserverRow>("monitoring schedules", () => supabase.from("observer_monitoring_schedules" as any).select("id,observer_site_id,schedule_mode,timezone,active_days,active_hours,status").in("observer_site_id", siteIds)),
+        safeList<ObserverRow>("monitoring schedules", () => supabase.from("observer_monitoring_schedules" as any).select("id,observer_site_id,schedule_mode,timezone,active_days,active_hours,schedule,status").in("observer_site_id", siteIds)),
         safeList<ObserverRow>("watch requests", () => supabase.from("observer_watch_requests" as any).select("id,observer_site_id,camera_id,camera_source_id,title,description,watch_type,priority,schedule,notification_channels,active,requires_human_review,metadata,created_at").in("observer_site_id", siteIds).order("created_at", { ascending: false })),
         safeList<ObserverRow>("known people", () => supabase.from("digital_observer_known_people" as any).select("id,observer_site_id,display_name,relationship_label,consent_status,recognition_status,camera_scope,notify_on_detection,confidence_threshold,last_confirmed_at,metadata,created_at").in("observer_site_id", siteIds).order("created_at")),
         safeList<ObserverRow>("identity candidates", () => supabase.from("digital_observer_identity_candidates" as any).select("id,observer_site_id,camera_source_id,assigned_known_person_id,candidate_status,suggested_label,first_seen_at,last_seen_at,observation_count,average_confidence,preview_available,metadata,reviewed_at,created_at").in("observer_site_id", siteIds).order("last_seen_at", { ascending: false })),
@@ -252,12 +254,14 @@ export async function loadObserverRuntime(profileId: string) {
       }
     }));
   const normalizedCameras: ObserverRow[] = [...cameraSources.data, ...legacyObserverCameras];
+  const journal = eventJournalService.partitionRows(signals.data, normalizedCameras, clips.data);
 
   return {
     sites,
     packages: packages.data,
     cameras: normalizedCameras,
-    signals: signals.data,
+    signals: journal.events,
+    spatiallyRejectedSignals: journal.spatialMismatches,
     subscriptions: subscriptions.data,
     schedules: schedules.data,
     watchRequests: watchRequests.data,

@@ -34,9 +34,11 @@ assert.match(camerasPage, /תובנה אחרונה/, "camera detail must expose 
 assert.match(actionForms, /do-camera-rename-trigger/, "inline camera rename must use an explicit edit icon control");
 assert.match(actionForms, /action: "rename"/, "inline camera rename must use the authenticated camera rename action");
 assert.match(dashboardPage, /reviewableOpenSignals/, "home must only list events with complete media evidence for review");
+assert.doesNotMatch(dashboardPage, /<strong>\{openSignals\.length\}<\/strong><span>אירועים פתוחים/, "dashboard metrics must not count hidden technical faults as open journal events");
 assert.match(dashboardPage, /do-home-event-cards/, "home must expose event review cards");
 assert.match(dashboardPage, /event-clips.*kind=thumbnail/, "home event cards must load the authenticated event thumbnail");
 assert.match(dashboardPage, /siteAddressLabel/, "home must display the configured site address context");
+assert.match(dashboardPage, /liveCameras = siteCameras\.filter\(\(camera\) => digitalObserverCameraHasLiveGateway\(camera\)\)/, "dashboard live totals must use the same verified gateway guard as camera tiles");
 assert.match(conversationRoute, /camera_source_id/, "camera conversation must stay scoped to the selected source");
 assert.match(conversationRoute, /shadow_active/, "instructions for connected sources must not be left in generic readiness");
 assert.match(css, /do-camera-context-panel/, "camera context panel must have a responsive layout");

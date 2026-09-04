@@ -17,14 +17,34 @@ const schema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("create_request"), ...deviceSchema.shape }),
   z.object({ action: z.literal("approve"), enrollment_request_id: z.string().uuid(), observer_site_id: z.string().uuid() }),
   z.object({ action: z.literal("poll"), enrollment_request_id: z.string().uuid(), poll_token: z.string().min(32).max(160) }),
-  z.object({ action: z.literal("refresh"), gateway_id: z.string().uuid(), refresh_token: z.string().min(32).max(160) }),
+  z.object({
+    action: z.literal("refresh"),
+    gateway_id: z.string().uuid(),
+    refresh_token: z.string().min(32).max(160),
+    next_refresh_token: z.string().min(32).max(160)
+  }),
   z.object({ action: z.literal("revoke"), gateway_id: z.string().uuid(), observer_site_id: z.string().uuid() })
 ]);
 
 function cloudSecret() { return process.env.VIDEO_GATEWAY_CLOUD_DISCOVERY_SECRET || ""; }
 function enrollmentUrl(id: string) { return `/digital-observer/cameras/add?gateway_enrollment=${encodeURIComponent(id)}`; }
 
-async function audit(admin: any, eventType: string, input: Record<string, unknown>) {
+// Development must create, inspect and approve on the same backend. Never mix
+// a cloud-created request with a local admin client holding unrelated keys.
+async function developmentProxy(request: Request) {
+  const origin = process.env.VIDEO_GATEWAY_CLOUD_BASE_URL || "https://gan-batuach.vercel.app";
+  if (!["https://gan-batuach.vercel.app", "https://ganbatuach.com", "https://www.ganbatuach.com"].includes(origin)) throw new Error("Gateway cloud origin is not trusted");
+  const target = new URL("/api/digital-observer/gateway-enrollment", origin);
+  target.search = new URL(request.url).search;
+  const headers = new Headers({ "content-type": "application/json" });
+  for (const name of ["cookie", "authorization"]) { const value = request.headers.get(name); if (value) headers.set(name, value); }
+  const response = await fetch(target, { method: request.method, headers, body: request.method === "GET" ? undefined : await request.text(), redirect: "error", cache: "no-store", signal: AbortSignal.timeout(15_000) });
+  return new Response(await response.arrayBuffer(), { status: response.status, headers: { "content-type": "application/json", "cache-control": "private, no-store" } });
+}
+
+type AdminClient = ReturnType<typeof createAdminClient>;
+
+async function audit(admin: AdminClient, eventType: string, input: Record<string, unknown>) {
   await admin.from("provider_webhook_events").insert({
     webhook_key: "digital_observer_gateway_device_enrollment",
     integration_type: "camera_gateway",
@@ -43,12 +63,13 @@ async function audit(admin: any, eventType: string, input: Record<string, unknow
 }
 export async function GET(request: Request) {
   try {
+    if (process.env.NODE_ENV === "development") return await developmentProxy(request);
     const query = z.object({ enrollment_request_id: z.string().uuid(), observer_site_id: z.string().uuid() }).parse(Object.fromEntries(new URL(request.url).searchParams));
     const session = await getDigitalObserverApiUser(request);
     if (!session) return fail("נדרשת התחברות מחדש לתצפיתן הדיגיטלי.", 401);
-    const site = await getObserverSiteAccess(session.supabase as any, session.profile, query.observer_site_id, { manage: true });
+    const site = await getObserverSiteAccess(session.supabase, session.profile, query.observer_site_id, { manage: true });
     if (!site) return fail("אין הרשאה לנהל מכשירים באתר הזה.", 403);
-    const enrollment = await (createAdminClient() as any).from("video_gateway_device_enrollments").select("id,status,device_name,device_platform,expires_at").eq("id", query.enrollment_request_id).maybeSingle();
+    const enrollment = await createAdminClient().from("video_gateway_device_enrollments").select("id,status,device_name,device_platform,expires_at").eq("id", query.enrollment_request_id).maybeSingle();
     if (enrollment.error || !enrollment.data) return fail("בקשת קישור המכשיר לא נמצאה.", 404);
     return ok({ enrollment_request_id: enrollment.data.id, status: enrollment.data.status, device_name: enrollment.data.device_name, device_platform: enrollment.data.device_platform, expires_at: enrollment.data.expires_at });
   } catch (error) {
@@ -58,9 +79,11 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    if (!cloudSecret()) return fail("שירות קישור המכשיר אינו מוגדר.", 503);
+    if (process.env.NODE_ENV === "development") return await developmentProxy(request);
     const payload = schema.parse(await request.json());
-    const admin = createAdminClient() as any;
+
+
+    const admin = createAdminClient();
 
     if (payload.action === "create_request") {
       const pollToken = newGatewayEnrollmentPollToken();
@@ -78,10 +101,12 @@ export async function POST(request: Request) {
       return ok({ enrollment_request_id: inserted.data.id, poll_token: pollToken, verification_path: enrollmentUrl(inserted.data.id), expires_at: expiresAt, poll_interval_seconds: 3 }, 201);
     }
 
+    if (!cloudSecret()) return fail("שירות קישור המכשיר אינו מוגדר.", 503);
+
     if (payload.action === "approve" || payload.action === "revoke") {
       const session = await getDigitalObserverApiUser(request);
       if (!session) return fail("נדרשת התחברות מחדש לתצפיתן הדיגיטלי.", 401);
-      const site = await getObserverSiteAccess(session.supabase as any, session.profile, payload.observer_site_id, { manage: true });
+      const site = await getObserverSiteAccess(session.supabase, session.profile, payload.observer_site_id, { manage: true });
       if (!site) return fail("אין הרשאה לנהל את המכשיר באתר הזה.", 403);
 
       if (payload.action === "revoke") {
@@ -120,12 +145,12 @@ export async function POST(request: Request) {
 
     const enrollment = await admin.from("video_gateway_device_enrollments").select("id,status,observer_site_id,refresh_token_hash").eq("gateway_id", payload.gateway_id).maybeSingle();
     if (enrollment.error || !enrollment.data || enrollment.data.status !== "delivered" || enrollment.data.refresh_token_hash !== hashGatewayEnrollmentToken(payload.refresh_token) || !enrollment.data.observer_site_id) return fail("זהות Gateway אינה תקפה או בוטלה.", 401);
-    const nextRefreshToken = newGatewayRefreshToken();
+    const nextRefreshToken = payload.next_refresh_token;
     const rotated = await admin.from("video_gateway_device_enrollments").update({ refresh_token_hash: hashGatewayEnrollmentToken(nextRefreshToken), updated_at: new Date().toISOString() }).eq("id", enrollment.data.id).eq("status", "delivered").eq("refresh_token_hash", enrollment.data.refresh_token_hash).select("id").maybeSingle();
     if (rotated.error || !rotated.data) return fail("זהות Gateway השתנתה. יש לבצע קישור מחדש.", 409);
     const accessToken = issueGatewayDeviceAccessToken({ device_id: enrollment.data.id, gateway_id: payload.gateway_id, observer_site_id: enrollment.data.observer_site_id }, cloudSecret());
     await audit(admin, "gateway_device_access_rotated", { gateway_id: payload.gateway_id, observer_site_id: enrollment.data.observer_site_id });
-    return ok({ gateway_id: payload.gateway_id, observer_site_id: enrollment.data.observer_site_id, refresh_token: nextRefreshToken, access_token: accessToken, access_expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString() });
+    return ok({ rotation_protocol: 2, gateway_id: payload.gateway_id, observer_site_id: enrollment.data.observer_site_id, refresh_token: nextRefreshToken, access_token: accessToken, access_expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString() });
   } catch (error) {
     return handleRouteError(error);
   }

@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { assertKindergartenPayload } from "@/lib/domain/observer-engine";
 
 export const aiDetectionTypes = [
   "violence_detection",
@@ -64,6 +65,9 @@ export async function registerAiObservation(payload: z.infer<typeof aiObservatio
   // candidates. Gan Batuach Israel Mode blocks audio, face recognition and
   // automatic accusations before structured events enter the review workflow.
   const parsed = aiObservationSchema.parse(payload);
+  // This endpoint is the kindergarten-safe observer ingestion path. Keep its
+  // payload contract free of facial and biometric identifiers at the boundary.
+  assertKindergartenPayload(parsed.metadata);
   if (blockedGanBatuachEventTypes.has(parsed.event_type)) {
     throw new Error("This AI event type is restricted in Gan Batuach Israel Mode and requires a separate legal/product workflow.");
   }

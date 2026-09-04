@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
+import { createObserverEngine, tenantTypeForCamera } from "@/lib/domain/observer-engine";
 
 const schema = z.object({
   candidate_id: z.string().uuid(),
@@ -27,6 +28,8 @@ export async function POST(request: Request) {
 
     const site = await getObserverSiteAccess(supabase, profile, candidate.observer_site_id, { manage: true });
     if (!site) return fail("אין הרשאה לסקור את המועמד הזה.", 403);
+    if (tenantTypeForCamera(site) !== "STANDARD") return fail("מסלול הזיהוי הביומטרי אינו זמין באתר זה.", 403);
+    createObserverEngine("STANDARD");
     if ((site as any).vision_privacy_mode === "skeleton_only" || (site as any).business_handles_children) {
       return fail("זיהוי פנים חסום באתר המטפל בילדים. באתר זה התצפיתן משתמש בשלד ובדפוסי תנועה בלבד.", 403);
     }
