@@ -2,6 +2,7 @@ node_modules/
 .next/
 .next*/
 .next-build-stale-*/
+:memory:.ses
 .env
 .env.local
 .env.*
