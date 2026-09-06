@@ -39,8 +39,16 @@ export async function POST(request: Request) {
     // The runtime table is migration-backed and not yet present in the generated Supabase type snapshot.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const supabase = sessionSupabase as any;
-    const site = await getObserverSiteAccess(supabase, profile, payload.observer_site_id, { manage: true });
-    if (!site) return fail("אין הרשאה לבדוק חיבור מצלמות באתר הזה.", 403);
+    const requiresManageAccess = payload.action === "assess_new" || payload.persist;
+    const site = await getObserverSiteAccess(
+      supabase,
+      profile,
+      payload.observer_site_id,
+      requiresManageAccess ? { manage: true } : {}
+    );
+    if (!site) return fail(requiresManageAccess
+      ? "אין הרשאת ניהול לחיבורי המצלמות באתר הזה."
+      : "אין הרשאה לבדוק חיבור מצלמות באתר הזה.", 403);
 
     if (payload.action === "assess_new") {
       const assessment = assessCameraConnection(buildPairingConnectionAssessmentInput({

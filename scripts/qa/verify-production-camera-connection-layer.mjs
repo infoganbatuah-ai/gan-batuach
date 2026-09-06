@@ -15,6 +15,8 @@ const allowed = new Set([
   "NEXT_PUBLIC_SUPABASE_URL",
   "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY",
   "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+  "QA_DEMO_DIGITAL_OBSERVER_EMAIL",
+  "QA_DEMO_DIGITAL_OBSERVER_PASSWORD",
   "QA_DEMO_DIGITAL_OBSERVER_ADMIN_EMAIL",
   "QA_DEMO_DIGITAL_OBSERVER_ADMIN_PASSWORD"
 ]);
@@ -26,18 +28,18 @@ for (const file of [".env.qa-demo.local", ".env.local"]) {
 }
 const publicKey = config.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || config.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 assert.ok(
-  config.NEXT_PUBLIC_SUPABASE_URL && publicKey && config.QA_DEMO_DIGITAL_OBSERVER_ADMIN_EMAIL && config.QA_DEMO_DIGITAL_OBSERVER_ADMIN_PASSWORD,
-  "Authorized Production admin QA configuration is missing"
+  config.NEXT_PUBLIC_SUPABASE_URL && publicKey && config.QA_DEMO_DIGITAL_OBSERVER_EMAIL && config.QA_DEMO_DIGITAL_OBSERVER_PASSWORD,
+  "Authorized Production site-owner QA configuration is missing"
 );
 
 const client = createClient(config.NEXT_PUBLIC_SUPABASE_URL, publicKey, {
   auth: { persistSession: false, autoRefreshToken: false }
 });
 const login = await client.auth.signInWithPassword({
-  email: config.QA_DEMO_DIGITAL_OBSERVER_ADMIN_EMAIL,
-  password: config.QA_DEMO_DIGITAL_OBSERVER_ADMIN_PASSWORD
+  email: config.QA_DEMO_DIGITAL_OBSERVER_EMAIL,
+  password: config.QA_DEMO_DIGITAL_OBSERVER_PASSWORD
 });
-assert.ok(!login.error && login.data.session, "Authorized Production admin authentication failed");
+assert.ok(!login.error && login.data.session, "Authorized Production site-owner authentication failed");
 const token = login.data.session.access_token;
 
 async function api(path, init = {}) {
@@ -68,7 +70,7 @@ try {
       action: "assess_existing",
       observer_site_id: siteId,
       camera_source_id: cameraSourceId,
-      persist: true
+      persist: false
     })
   });
   assert.equal(assessmentResult.response.status, 200, `Connection assessment failed with HTTP ${assessmentResult.response.status}`);
@@ -86,7 +88,7 @@ try {
   assert.ok(assessment?.capabilities?.includes("CHANNEL_DISCOVERY"));
   assert.equal(assessmentResult.body?.data?.source?.id, cameraSourceId);
   assert.equal(assessmentResult.body?.data?.source?.observer_site_id, siteId);
-  assert.equal(assessmentResult.body?.data?.persisted, true);
+  assert.equal(assessmentResult.body?.data?.persisted, false);
   const serializedAssessment = JSON.stringify(assessmentResult.body);
   assert.doesNotMatch(serializedAssessment, /secret_reference|gateway_stream_id|rtsp:\/\//i);
 
