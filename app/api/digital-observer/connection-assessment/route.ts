@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
+import { createDigitalObserverAdminDataClient, hasObserverAdminClaim } from "@/lib/domain/digital-observer/admin-access";
 import { observerCameraPairingMethods } from "@/lib/domain/digital-observer/camera-connection-methods";
 import {
   assertSafeCameraConnectionAssessmentPayload,
@@ -36,16 +37,24 @@ export async function POST(request: Request) {
     const payload = schema.parse(await request.json());
     assertSafeCameraConnectionAssessmentPayload(payload);
     const { profile, supabase: sessionSupabase } = session;
+    const observerAdmin = hasObserverAdminClaim(session.user.app_metadata);
     // The runtime table is migration-backed and not yet present in the generated Supabase type snapshot.
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const supabase = sessionSupabase as any;
+    const supabase = (observerAdmin ? createDigitalObserverAdminDataClient() : sessionSupabase) as any;
     const requiresManageAccess = payload.action === "assess_new" || payload.persist;
-    const site = await getObserverSiteAccess(
-      supabase,
-      profile,
-      payload.observer_site_id,
-      requiresManageAccess ? { manage: true } : {}
-    );
+    const site = observerAdmin
+      ? (await supabase.from("observer_sites")
+        .select("id,site_type,garden_id")
+        .eq("id", payload.observer_site_id)
+        .is("garden_id", null)
+        .neq("site_type", "kindergarten")
+        .maybeSingle()).data
+      : await getObserverSiteAccess(
+        sessionSupabase,
+        profile,
+        payload.observer_site_id,
+        requiresManageAccess ? { manage: true } : {}
+      );
     if (!site) return fail(requiresManageAccess
       ? "אין הרשאת ניהול לחיבורי המצלמות באתר הזה."
       : "אין הרשאה לבדוק חיבור מצלמות באתר הזה.", 403);
