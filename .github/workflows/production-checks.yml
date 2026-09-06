@@ -1,4 +1,4 @@
-name: Production checks
+name: Digital Observer CI
 
 on:
   pull_request:
@@ -6,26 +6,155 @@ on:
     branches:
       - main
       - master
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: digital-observer-ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  APP_ENV: demo
+  NEXT_PUBLIC_APP_ENV: demo
+  PRODUCTION_ACTIVATION_APPROVED: "false"
+  LIVE_ACTIVATION_CONFIRM: ""
 
 jobs:
-  build:
-    name: Typecheck and build
+  static-quality:
+    name: Gate 1 — Static quality
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Setup Node
-        uses: actions/setup-node@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          node-version: 22
+          node-version-file: .nvmrc
           cache: npm
-
-      - name: Install dependencies
+      - name: Install locked dependencies
         run: npm ci
-
       - name: Typecheck
         run: npm run typecheck
+      - name: Full lint baseline and canonical zero-error scope
+        run: npm run lint:ci
 
-      - name: Build
+  build:
+    name: Gate 2 — Production build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Build without live activation
         run: npm run build
+
+  domain-regression:
+    name: Gate 3 — Canonical domain regression
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Run deterministic domain suites
+        run: npm run qa:ci:domain
+
+  security:
+    name: Gate 4 — Security and isolation
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Run deterministic security suites
+        run: npm run qa:ci:security
+      - name: Reject high and critical dependency vulnerabilities
+        run: npm audit --audit-level=high
+      - name: Scan tracked source for secret-shaped values
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git grep -n -I -E "(sk-[A-Za-z0-9_-]{20,}|sb_secret_[A-Za-z0-9_-]+|xox[baprs]-[A-Za-z0-9-]+|AIza[0-9A-Za-z_-]{35}|-----BEGIN ((RSA|OPENSSH|EC) )?PRIVATE KEY-----|eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,})" -- . ':!*.md' ':!.env.example' ':!supabase/migrations/*' ':!package-lock.json' ':!node_modules/*' ':!android/*' ':!ios/*'; then
+            echo "::error::Tracked source contains a potential secret-shaped value."
+            exit 1
+          fi
+          if git grep -n -I -E "NEXT_PUBLIC_[A-Z0-9_]*(SECRET|TOKEN|PRIVATE|SERVICE_ROLE|ENCRYPTION|PASSWORD)[A-Z0-9_]*[[:space:]]*=" -- . ':!*.md' ':!.env.example' ':!node_modules/*'; then
+            echo "::error::A server-only credential name is exposed through NEXT_PUBLIC."
+            exit 1
+          fi
+
+  database:
+    name: Gate 5 — Migration safety
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Check migration ordering and destructive-change policy
+        run: npm run qa:migrations
+
+  release-preflight:
+    name: Gate 6 — Release preflight contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Validate release snapshot fail-closed behavior
+        run: npm run qa:release-contract
+      - name: Validate committed diff formatting
+        run: git diff --check HEAD^ HEAD
+
+  quality-gate:
+    name: Canonical quality gate
+    if: always()
+    needs:
+      - static-quality
+      - build
+      - domain-regression
+      - security
+      - database
+      - release-preflight
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require every deterministic gate
+        env:
+          STATIC_QUALITY: ${{ needs.static-quality.result }}
+          BUILD: ${{ needs.build.result }}
+          DOMAIN_REGRESSION: ${{ needs.domain-regression.result }}
+          SECURITY: ${{ needs.security.result }}
+          DATABASE: ${{ needs.database.result }}
+          RELEASE_PREFLIGHT: ${{ needs.release-preflight.result }}
+        run: |
+          set -euo pipefail
+          for result in "$STATIC_QUALITY" "$BUILD" "$DOMAIN_REGRESSION" "$SECURITY" "$DATABASE" "$RELEASE_PREFLIGHT"; do
+            test "$result" = "success"
+          done
+          echo "All six deterministic Digital Observer gates passed."

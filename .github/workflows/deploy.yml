@@ -1,11 +1,7 @@
-name: Deploy security gates
+name: Legacy security gate (manual only)
 
 on:
-  pull_request:
-  push:
-    branches:
-      - main
-      - master
+  workflow_dispatch:
 
 permissions:
   contents: read

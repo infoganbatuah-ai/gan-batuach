@@ -3,12 +3,22 @@
   "version": "1.0.0",
   "private": true,
   "type": "module",
+  "engines": {
+    "node": ">=22 <25",
+    "npm": ">=10 <12"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "node scripts/validate-environment-safety.mjs && node scripts/prepare-next-build.mjs && next build && node scripts/cleanup-next-build-artifacts.mjs",
     "start": "next start",
     "lint": "eslint app components lib services",
+    "lint:ci": "node scripts/qa/check-eslint-baseline.mjs",
     "typecheck": "tsc --noEmit",
+    "qa:ci:domain": "node scripts/ci/run-gate.mjs domain",
+    "qa:ci:security": "node scripts/ci/run-gate.mjs security",
+    "qa:migrations": "node scripts/qa/check-migration-health.mjs",
+    "qa:release-contract": "node scripts/qa/check-production-release-contract.mjs",
+    "ci:quality": "npm run typecheck && npm run lint:ci && npm run qa:ci:domain && npm run qa:ci:security && npm run qa:migrations && npm run qa:release-contract && npm run build",
     "mobile:sync": "npx cap sync",
     "export:clean": "node scripts/create-clean-export.mjs",
     "seed:test-users": "node scripts/seed-test-users.mjs",

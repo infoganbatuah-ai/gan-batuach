@@ -1,0 +1,1726 @@
+{
+  "version": 1,
+  "generated_at": "2026-09-06T20:38:47.324Z",
+  "scope": [
+    "app",
+    "components",
+    "lib",
+    "services"
+  ],
+  "errors": 5363,
+  "warnings": 213,
+  "files_with_findings": 526,
+  "by_rule": {
+    "error:@typescript-eslint/no-explicit-any": 5215,
+    "warning:@typescript-eslint/no-unused-vars": 159,
+    "error:react-hooks/purity": 31,
+    "warning:jsx-a11y/alt-text": 4,
+    "error:react/no-children-prop": 11,
+    "error:@next/next/no-html-link-for-pages": 4,
+    "warning:@next/next/no-img-element": 44,
+    "error:react-hooks/error-boundaries": 82,
+    "error:prefer-const": 2,
+    "error:react-hooks/set-state-in-effect": 18,
+    "warning:react-hooks/exhaustive-deps": 2,
+    "warning:jsx-a11y/role-has-required-aria-props": 1,
+    "warning:@typescript-eslint/no-unused-expressions": 3
+  },
+  "files": {
+    "app/actions.ts": {
+      "error:@typescript-eslint/no-explicit-any": 25
+    },
+    "app/api/admin/ai-observer/rules/[id]/toggle/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 1
+    },
+    "app/api/admin/communication/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 1
+    },
+    "app/api/admin/communications/test/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 6
+    },
+    "app/api/admin/create-garden-manager/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 1
+    },
+    "app/api/admin/create-inspector/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 3
+    },
+    "app/api/admin/demo-control/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 27
+    },
+    "app/api/admin/emergency-tasks/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 2
+    },
+    "app/api/admin/inspector-applications/[id]/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 7
+    },
+    "app/api/admin/integrations/test/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 7
+    },
+    "app/api/admin/iso-readiness/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 5
+    },
+    "app/api/admin/kindergarten-approval/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 35
+    },
+    "app/api/admin/observer-packages/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 18
+    },
+    "app/api/admin/observer-test-center/feedback/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 3
+    },
+    "app/api/admin/push-notices/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 2
+    },
+    "app/api/admin/search/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 16
+    },
+    "app/api/admin/service-charter/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 2
+    },
+    "app/api/admin/subscription-plans/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 4
+    },
+    "app/api/admin/subscriptions/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 9
+    },
+    "app/api/admin/users/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 3
+    },
+    "app/api/admin/video-gateway/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 28
+    },
+    "app/api/ai-camera-events/[id]/action/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 7
+    },
+    "app/api/ai-camera-events/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 5
+    },
+    "app/api/assistant/summary/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 10
+    },
+    "app/api/audio-observer-events/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 4
+    },
+    "app/api/camera-streams/[id]/commands/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 3,
+      "warning:@typescript-eslint/no-unused-vars": 1
+    },
+    "app/api/camera-streams/[id]/status/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 37
+    },
+    "app/api/camera-streams/[id]/view-logs/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 1
+    },
+    "app/api/camera-streams/test-connection/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 9
+    },
+    "app/api/child-daily-journals/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 6
+    },
+    "app/api/child-health-records/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 2
+    },
+    "app/api/children/[id]/photo/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 5
+    },
+    "app/api/cron/demo-expiration-freeze/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 8
+    },
+    "app/api/cron/digital-observer-event-media-retention/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 1
+    },
+    "app/api/cron/inspection-reminders/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 1
+    },
+    "app/api/cron/permit-expiry-scan/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 1
+    },
+    "app/api/dashboard/interaction-summary/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 33
+    },
+    "app/api/debug/parent-camera-access/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 2
+    },
+    "app/api/digital-observer/auth/login/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 4
+    },
+    "app/api/digital-observer/billing/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 6
+    },
+    "app/api/digital-observer/cameras/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 11
+    },
+    "app/api/digital-observer/dvr-gateway/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 5
+    },
+    "app/api/digital-observer/event-journal/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 3
+    },
+    "app/api/digital-observer/identity-candidates/[id]/preview/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 5
+    },
+    "app/api/digital-observer/identity-candidates/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 5
+    },
+    "app/api/digital-observer/integration/v1/sites/[id]/status/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 10
+    },
+    "app/api/digital-observer/known-people/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 6
+    },
+    "app/api/digital-observer/leads/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 2
+    },
+    "app/api/digital-observer/notifications/mock/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 2
+    },
+    "app/api/digital-observer/notifications/push-test/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 4
+    },
+    "app/api/digital-observer/onboarding/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 9
+    },
+    "app/api/digital-observer/settings/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 10
+    },
+    "app/api/digital-observer/watch-requests/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 3
+    },
+    "app/api/documents/[id]/review/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 4
+    },
+    "app/api/garden/attendance-action/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 5
+    },
+    "app/api/garden/child-payments/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 12
+    },
+    "app/api/garden/child-transfer-requests/[id]/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 13
+    },
+    "app/api/garden/children/[id]/approve/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 3
+    },
+    "app/api/garden/children/[id]/operations/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 12
+    },
+    "app/api/garden/children/[id]/status/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 7
+    },
+    "app/api/garden/communication/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 1
+    },
+    "app/api/garden/create-staff/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 10
+    },
+    "app/api/garden/day-close/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 1
+    },
+    "app/api/garden/enrollment-requests/[id]/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 4
+    },
+    "app/api/garden/face-match-results/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 6
+    },
+    "app/api/garden/fee-groups/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 9
+    },
+    "app/api/garden/leads/[id]/convert/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 18
+    },
+    "app/api/garden/leads/[id]/status/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 2
+    },
+    "app/api/garden/manager-application/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 8
+    },
+    "app/api/garden/parent-invitations/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 11
+    },
+    "app/api/garden/payout-configuration/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 1
+    },
+    "app/api/garden/pickup-events/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 13
+    },
+    "app/api/garden/staff-applications/[id]/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 8
+    },
+    "app/api/garden/staff-openings/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 2
+    },
+    "app/api/garden/staff/[id]/approve/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 3
+    },
+    "app/api/garden/subscription/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 3
+    },
+    "app/api/garden/subscription/sandbox-checkout/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 3
+    },
+    "app/api/health/deep/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 1
+    },
+    "app/api/incident-reports/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 11
+    },
+    "app/api/inspection-form-assignments/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 1
+    },
+    "app/api/inspections/[id]/report/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 14
+    },
+    "app/api/inspections/[id]/submit/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 15
+    },
+    "app/api/inspector/applications/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 4
+    },
+    "app/api/kindergarten-onboarding/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 17
+    },
+    "app/api/medicine-given-logs/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 2
+    },
+    "app/api/notifications/mark-read/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 1
+    },
+    "app/api/notifications/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 2
+    },
+    "app/api/observer-correlated-events/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 6
+    },
+    "app/api/observer-intelligence/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 2
+    },
+    "app/api/observer-learning-advanced/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 11
+    },
+    "app/api/observer-learning/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 4
+    },
+    "app/api/observer-watch-requests/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 8
+    },
+    "app/api/parent/additional-child-request/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 9
+    },
+    "app/api/parent/attendance/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 11
+    },
+    "app/api/parent/cameras/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 1
+    },
+    "app/api/parent/child-profiles/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 5
+    },
+    "app/api/parent/child-registration/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 26
+    },
+    "app/api/parent/child-requests/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 6
+    },
+    "app/api/parent/child-transfer-requests/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 28
+    },
+    "app/api/parent/complaints/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 5
+    },
+    "app/api/parent/enrollment-requests/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 14
+    },
+    "app/api/parent/garden-invitations/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 18
+    },
+    "app/api/parent/pickup-contacts/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 17
+    },
+    "app/api/parent/request-recipients/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 4
+    },
+    "app/api/parent/trust-center/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 5
+    },
+    "app/api/pilot-feedback/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 1
+    },
+    "app/api/policies/required/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 4
+    },
+    "app/api/privacy/requests/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 1
+    },
+    "app/api/profile/communication-preferences/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 7
+    },
+    "app/api/profile/settings/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 8
+    },
+    "app/api/public/validate-contact/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 5
+    },
+    "app/api/push/register/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 1
+    },
+    "app/api/push/unregister/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 1
+    },
+    "app/api/self-service/register/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 3
+    },
+    "app/api/smart-insights/[id]/status/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 3
+    },
+    "app/api/staff/gps-attendance/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 15
+    },
+    "app/api/staff/job-applications/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 9
+    },
+    "app/api/staff/onboarding/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 5
+    },
+    "app/api/tasks/[id]/status/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 6
+    },
+    "app/api/unsafe-gardens/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 1
+    },
+    "app/api/video-gateway/cloud-discovery/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 7
+    },
+    "app/api/video-gateway/cloud-learning/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 1
+    },
+    "app/api/video-gateway/playback-grant/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 1
+    },
+    "app/api/violations/[id]/status/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 4
+    },
+    "app/auth/confirm/route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 1
+    },
+    "app/dashboard/admin/ai-events/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 9
+    },
+    "app/dashboard/admin/ai-governance/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 15
+    },
+    "app/dashboard/admin/ai-observer/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 24
+    },
+    "app/dashboard/admin/ai-platform/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 41
+    },
+    "app/dashboard/admin/analytics-center/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 66,
+      "error:react-hooks/purity": 1
+    },
+    "app/dashboard/admin/attendance-compliance/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 13,
+      "warning:@typescript-eslint/no-unused-vars": 2
+    },
+    "app/dashboard/admin/audio-events/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 6
+    },
+    "app/dashboard/admin/audit-logs/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 28
+    },
+    "app/dashboard/admin/billing/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 68,
+      "error:react-hooks/purity": 2,
+      "warning:@typescript-eslint/no-unused-vars": 1
+    },
+    "app/dashboard/admin/business-continuity/page.tsx": {
+      "warning:@typescript-eslint/no-unused-vars": 2,
+      "error:@typescript-eslint/no-explicit-any": 34
+    },
+    "app/dashboard/admin/camera-audit/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 4
+    },
+    "app/dashboard/admin/camera-compliance/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 11
+    },
+    "app/dashboard/admin/camera-deployment/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 30
+    },
+    "app/dashboard/admin/camera-gateway/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 8
+    },
+    "app/dashboard/admin/camera-infrastructure/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 27
+    },
+    "app/dashboard/admin/camera-permissions/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 3
+    },
+    "app/dashboard/admin/cameras/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 11,
+      "warning:@typescript-eslint/no-unused-vars": 1
+    },
+    "app/dashboard/admin/capability-legal-review/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 9
+    },
+    "app/dashboard/admin/commercial-launch/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 23
+    },
+    "app/dashboard/admin/commercial-rollout/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 17
+    },
+    "app/dashboard/admin/communication/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 4
+    },
+    "app/dashboard/admin/communications/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 20
+    },
+    "app/dashboard/admin/company-operations/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 22
+    },
+    "app/dashboard/admin/complaints/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 6
+    },
+    "app/dashboard/admin/compliance-center/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 36,
+      "error:react-hooks/purity": 1
+    },
+    "app/dashboard/admin/correlated-events/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 10
+    },
+    "app/dashboard/admin/customer-success/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 60
+    },
+    "app/dashboard/admin/database-integrity/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 9,
+      "warning:@typescript-eslint/no-unused-vars": 1
+    },
+    "app/dashboard/admin/digital-observer-beta-analytics/page.tsx": {
+      "warning:@typescript-eslint/no-unused-vars": 2,
+      "error:@typescript-eslint/no-explicit-any": 26
+    },
+    "app/dashboard/admin/digital-observer-core/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 11
+    },
+    "app/dashboard/admin/digital-observer-growth/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 9
+    },
+    "app/dashboard/admin/digital-observer-launch/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 28
+    },
+    "app/dashboard/admin/digital-observer-leads/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 6
+    },
+    "app/dashboard/admin/digital-observer-paid-beta/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 30
+    },
+    "app/dashboard/admin/digital-observer-pilot/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 20,
+      "warning:@typescript-eslint/no-unused-vars": 1
+    },
+    "app/dashboard/admin/digital-observer-production-setup/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 13
+    },
+    "app/dashboard/admin/digital-observer-separation/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 27,
+      "warning:@typescript-eslint/no-unused-vars": 1
+    },
+    "app/dashboard/admin/digital-observer-stabilization/page.tsx": {
+      "warning:@typescript-eslint/no-unused-vars": 1,
+      "error:@typescript-eslint/no-explicit-any": 33
+    },
+    "app/dashboard/admin/document-center/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 21,
+      "warning:@typescript-eslint/no-unused-vars": 1,
+      "error:react-hooks/purity": 1,
+      "warning:jsx-a11y/alt-text": 1
+    },
+    "app/dashboard/admin/documents/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 3,
+      "error:react-hooks/purity": 1
+    },
+    "app/dashboard/admin/duplicates/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 6
+    },
+    "app/dashboard/admin/email-production/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 9
+    },
+    "app/dashboard/admin/enterprise/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 51
+    },
+    "app/dashboard/admin/external-validation/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 16
+    },
+    "app/dashboard/admin/final-compliance-review/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 59
+    },
+    "app/dashboard/admin/final-production-launch/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 12
+    },
+    "app/dashboard/admin/first-pilot/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 15
+    },
+    "app/dashboard/admin/gardens/[id]/page.tsx": {
+      "warning:@typescript-eslint/no-unused-vars": 1,
+      "error:@typescript-eslint/no-explicit-any": 10
+    },
+    "app/dashboard/admin/gardens/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 3
+    },
+    "app/dashboard/admin/growth/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 26
+    },
+    "app/dashboard/admin/identity-security/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 35
+    },
+    "app/dashboard/admin/incident-center/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 18
+    },
+    "app/dashboard/admin/inspection-forms/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 21
+    },
+    "app/dashboard/admin/inspection-workforce/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 21
+    },
+    "app/dashboard/admin/inspections/due/page.tsx": {
+      "error:react-hooks/purity": 2,
+      "error:@typescript-eslint/no-explicit-any": 3
+    },
+    "app/dashboard/admin/inspections/late/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 3,
+      "error:react-hooks/purity": 1
+    },
+    "app/dashboard/admin/inspections/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 3
+    },
+    "app/dashboard/admin/inspector-applications/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 2
+    },
+    "app/dashboard/admin/inspectors/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 16
+    },
+    "app/dashboard/admin/integrations/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 8
+    },
+    "app/dashboard/admin/iso-certification-handoff/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 24
+    },
+    "app/dashboard/admin/iso-evidence/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 40
+    },
+    "app/dashboard/admin/iso-readiness/page.tsx": {
+      "warning:@typescript-eslint/no-unused-vars": 3,
+      "error:@typescript-eslint/no-explicit-any": 28
+    },
+    "app/dashboard/admin/join-requests/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 3
+    },
+    "app/dashboard/admin/kindergarten-activation/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 8
+    },
+    "app/dashboard/admin/kindergarten-analytics/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 8
+    },
+    "app/dashboard/admin/kindergarten-applications/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 22
+    },
+    "app/dashboard/admin/kindergartens/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 15
+    },
+    "app/dashboard/admin/launch-readiness/actions.ts": {
+      "error:@typescript-eslint/no-explicit-any": 6
+    },
+    "app/dashboard/admin/launch-readiness/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 55
+    },
+    "app/dashboard/admin/leads/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 6
+    },
+    "app/dashboard/admin/legal-review/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 9
+    },
+    "app/dashboard/admin/master-qa/page.tsx": {
+      "warning:@typescript-eslint/no-unused-vars": 1,
+      "error:@typescript-eslint/no-explicit-any": 8
+    },
+    "app/dashboard/admin/migrations/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 22
+    },
+    "app/dashboard/admin/mobile-platform/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 35
+    },
+    "app/dashboard/admin/mobile-release/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 25
+    },
+    "app/dashboard/admin/mobile-submission/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 19
+    },
+    "app/dashboard/admin/national-inspections/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 47,
+      "error:react-hooks/purity": 1
+    },
+    "app/dashboard/admin/navigation-health/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 1
+    },
+    "app/dashboard/admin/notices/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 6
+    },
+    "app/dashboard/admin/notifications/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 3
+    },
+    "app/dashboard/admin/observer-billing/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 17
+    },
+    "app/dashboard/admin/observer-calibration/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 34
+    },
+    "app/dashboard/admin/observer-intelligence/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 11
+    },
+    "app/dashboard/admin/observer-learning-advanced/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 12
+    },
+    "app/dashboard/admin/observer-learning/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 18
+    },
+    "app/dashboard/admin/observer-network/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 30
+    },
+    "app/dashboard/admin/observer-packages/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 8
+    },
+    "app/dashboard/admin/observer-pilot/page.tsx": {
+      "warning:@typescript-eslint/no-unused-vars": 2,
+      "error:@typescript-eslint/no-explicit-any": 12
+    },
+    "app/dashboard/admin/observer-platform/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 13
+    },
+    "app/dashboard/admin/observer-replay/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 26
+    },
+    "app/dashboard/admin/observer-test-center/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 34
+    },
+    "app/dashboard/admin/observer-watch/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 11
+    },
+    "app/dashboard/admin/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 24
+    },
+    "app/dashboard/admin/pilot-center/actions.ts": {
+      "error:@typescript-eslint/no-explicit-any": 2
+    },
+    "app/dashboard/admin/pilot-center/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 22
+    },
+    "app/dashboard/admin/pilot-health/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 36
+    },
+    "app/dashboard/admin/pilot-readiness/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 7
+    },
+    "app/dashboard/admin/policies/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 6
+    },
+    "app/dashboard/admin/predictive-safety/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 29
+    },
+    "app/dashboard/admin/privacy-rights/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 37
+    },
+    "app/dashboard/admin/procedures/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 12
+    },
+    "app/dashboard/admin/provider-production/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 15
+    },
+    "app/dashboard/admin/push-production/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 9
+    },
+    "app/dashboard/admin/push/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 4
+    },
+    "app/dashboard/admin/qa-checklist/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 11
+    },
+    "app/dashboard/admin/rating-system/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 21
+    },
+    "app/dashboard/admin/regional-scale-up/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 24
+    },
+    "app/dashboard/admin/regulatory/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 40,
+      "warning:@typescript-eslint/no-unused-vars": 1
+    },
+    "app/dashboard/admin/reports/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 3
+    },
+    "app/dashboard/admin/requests/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 10
+    },
+    "app/dashboard/admin/risk-intelligence/page.tsx": {
+      "warning:@typescript-eslint/no-unused-vars": 1,
+      "error:@typescript-eslint/no-explicit-any": 22
+    },
+    "app/dashboard/admin/scale-100/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 22
+    },
+    "app/dashboard/admin/scale-validation/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 54,
+      "warning:@typescript-eslint/no-unused-vars": 2
+    },
+    "app/dashboard/admin/security-center/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 38
+    },
+    "app/dashboard/admin/security-pipeline/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 21
+    },
+    "app/dashboard/admin/security-review/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 9
+    },
+    "app/dashboard/admin/security/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 70
+    },
+    "app/dashboard/admin/service-charter/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 2
+    },
+    "app/dashboard/admin/skeleton-analytics/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 12,
+      "error:react-hooks/purity": 1
+    },
+    "app/dashboard/admin/smart-engine-audit/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 11
+    },
+    "app/dashboard/admin/sms/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 7
+    },
+    "app/dashboard/admin/subscriptions/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 8
+    },
+    "app/dashboard/admin/system-health/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 11
+    },
+    "app/dashboard/admin/tasks/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 9
+    },
+    "app/dashboard/admin/users/new-inspector/page.tsx": {
+      "warning:@typescript-eslint/no-unused-vars": 2,
+      "error:@typescript-eslint/no-explicit-any": 6
+    },
+    "app/dashboard/admin/users/new-kindergarten/page.tsx": {
+      "warning:@typescript-eslint/no-unused-vars": 2,
+      "error:@typescript-eslint/no-explicit-any": 6
+    },
+    "app/dashboard/admin/users/page.tsx": {
+      "warning:@typescript-eslint/no-unused-vars": 1,
+      "error:@typescript-eslint/no-explicit-any": 9
+    },
+    "app/dashboard/admin/video-gateway/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 8
+    },
+    "app/dashboard/admin/vision-ai/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 19
+    },
+    "app/dashboard/admin/whatsapp/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 7
+    },
+    "app/dashboard/admin/workflows/page.tsx": {
+      "warning:@typescript-eslint/no-unused-vars": 2,
+      "error:@typescript-eslint/no-explicit-any": 10
+    },
+    "app/dashboard/garden/ai-events/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 3
+    },
+    "app/dashboard/garden/attendance/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 9
+    },
+    "app/dashboard/garden/audio-events/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 5
+    },
+    "app/dashboard/garden/camera-health/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 16
+    },
+    "app/dashboard/garden/cameras/page.tsx": {
+      "warning:@typescript-eslint/no-unused-vars": 2,
+      "error:@typescript-eslint/no-explicit-any": 12
+    },
+    "app/dashboard/garden/child-journal/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 11,
+      "error:react/no-children-prop": 1
+    },
+    "app/dashboard/garden/children/[id]/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 29,
+      "error:react-hooks/purity": 1
+    },
+    "app/dashboard/garden/children/[id]/timeline/page.tsx": {
+      "warning:@typescript-eslint/no-unused-vars": 6,
+      "error:@typescript-eslint/no-explicit-any": 19
+    },
+    "app/dashboard/garden/children/page.tsx": {
+      "warning:@typescript-eslint/no-unused-vars": 1,
+      "error:@typescript-eslint/no-explicit-any": 20,
+      "error:react-hooks/purity": 1,
+      "error:@next/next/no-html-link-for-pages": 2,
+      "warning:@next/next/no-img-element": 2,
+      "error:react/no-children-prop": 1
+    },
+    "app/dashboard/garden/command-center/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 9
+    },
+    "app/dashboard/garden/communication/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 7
+    },
+    "app/dashboard/garden/compliance/page.tsx": {
+      "error:react-hooks/purity": 1,
+      "error:@typescript-eslint/no-explicit-any": 23
+    },
+    "app/dashboard/garden/correlated-events/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 9
+    },
+    "app/dashboard/garden/daily-journal/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 9
+    },
+    "app/dashboard/garden/documents/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 9
+    },
+    "app/dashboard/garden/enrollment-requests/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 5,
+      "warning:@typescript-eslint/no-unused-vars": 1
+    },
+    "app/dashboard/garden/finance/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 7,
+      "error:react-hooks/error-boundaries": 82
+    },
+    "app/dashboard/garden/health/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 5,
+      "error:@next/next/no-html-link-for-pages": 1,
+      "error:react/no-children-prop": 1
+    },
+    "app/dashboard/garden/incidents/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 5,
+      "error:react/no-children-prop": 1
+    },
+    "app/dashboard/garden/insights/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 4,
+      "warning:@typescript-eslint/no-unused-vars": 1
+    },
+    "app/dashboard/garden/inspection-status/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 9,
+      "error:react-hooks/purity": 1
+    },
+    "app/dashboard/garden/inspections/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 9,
+      "error:react-hooks/purity": 1
+    },
+    "app/dashboard/garden/leads/page.tsx": {
+      "warning:@typescript-eslint/no-unused-vars": 1,
+      "error:@typescript-eslint/no-explicit-any": 19
+    },
+    "app/dashboard/garden/messages/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 13
+    },
+    "app/dashboard/garden/notifications/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 3
+    },
+    "app/dashboard/garden/observer-intelligence/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 9
+    },
+    "app/dashboard/garden/observer-learning/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 20
+    },
+    "app/dashboard/garden/observer-network/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 15
+    },
+    "app/dashboard/garden/observer-pilot/page.tsx": {
+      "warning:@typescript-eslint/no-unused-vars": 2,
+      "error:@typescript-eslint/no-explicit-any": 6
+    },
+    "app/dashboard/garden/observer-watch/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 7
+    },
+    "app/dashboard/garden/onboarding/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 7
+    },
+    "app/dashboard/garden/operations/page.tsx": {
+      "warning:@typescript-eslint/no-unused-vars": 4,
+      "error:@typescript-eslint/no-explicit-any": 45
+    },
+    "app/dashboard/garden/parents/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 21
+    },
+    "app/dashboard/garden/pickup-face/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 5
+    },
+    "app/dashboard/garden/pickup/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 10,
+      "error:react/no-children-prop": 1
+    },
+    "app/dashboard/garden/rating/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 17
+    },
+    "app/dashboard/garden/reports/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 10
+    },
+    "app/dashboard/garden/risk/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 35
+    },
+    "app/dashboard/garden/settings/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 3
+    },
+    "app/dashboard/garden/staff-applications/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 3
+    },
+    "app/dashboard/garden/staff/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 19,
+      "warning:@typescript-eslint/no-unused-vars": 1
+    },
+    "app/dashboard/garden/subscription/page.tsx": {
+      "warning:@typescript-eslint/no-unused-vars": 1,
+      "error:@typescript-eslint/no-explicit-any": 6
+    },
+    "app/dashboard/garden/tasks/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 3
+    },
+    "app/dashboard/garden/trust-center/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 17
+    },
+    "app/dashboard/garden/vision-ai/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 15
+    },
+    "app/dashboard/inspector/ai-events/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 6
+    },
+    "app/dashboard/inspector/apply/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 2
+    },
+    "app/dashboard/inspector/cameras/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 6
+    },
+    "app/dashboard/inspector/command-center/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 6,
+      "error:react-hooks/purity": 2
+    },
+    "app/dashboard/inspector/compliance/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 20
+    },
+    "app/dashboard/inspector/inspections/due/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 4,
+      "error:react-hooks/purity": 3
+    },
+    "app/dashboard/inspector/inspections/history/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 4
+    },
+    "app/dashboard/inspector/inspections/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 8
+    },
+    "app/dashboard/inspector/notifications/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 4
+    },
+    "app/dashboard/inspector/observer-network/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 21
+    },
+    "app/dashboard/inspector/observer-pilot/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 8
+    },
+    "app/dashboard/inspector/page.tsx": {
+      "warning:@typescript-eslint/no-unused-vars": 3,
+      "error:@typescript-eslint/no-explicit-any": 16
+    },
+    "app/dashboard/inspector/ratings/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 18
+    },
+    "app/dashboard/inspector/reports/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 7
+    },
+    "app/dashboard/inspector/risk/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 23
+    },
+    "app/dashboard/inspector/settings/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 5
+    },
+    "app/dashboard/inspector/tasks/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 6
+    },
+    "app/dashboard/inspector/violations/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 6,
+      "error:react-hooks/purity": 1
+    },
+    "app/dashboard/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 3
+    },
+    "app/dashboard/parent/ai-events/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 5
+    },
+    "app/dashboard/parent/cameras/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 4
+    },
+    "app/dashboard/parent/children/[id]/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 14
+    },
+    "app/dashboard/parent/children/[id]/timeline/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 16
+    },
+    "app/dashboard/parent/complaints/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 4
+    },
+    "app/dashboard/parent/daily-journal/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 8
+    },
+    "app/dashboard/parent/discover-kindergartens/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 9,
+      "error:prefer-const": 1,
+      "warning:@next/next/no-img-element": 1
+    },
+    "app/dashboard/parent/documents/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 6
+    },
+    "app/dashboard/parent/family-home/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 30,
+      "warning:jsx-a11y/alt-text": 1
+    },
+    "app/dashboard/parent/gallery/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 6,
+      "warning:@next/next/no-img-element": 1
+    },
+    "app/dashboard/parent/inspections/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 5
+    },
+    "app/dashboard/parent/messages/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 8,
+      "error:react/no-children-prop": 1
+    },
+    "app/dashboard/parent/notifications/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 8
+    },
+    "app/dashboard/parent/page.tsx": {
+      "warning:@typescript-eslint/no-unused-vars": 1,
+      "error:@typescript-eslint/no-explicit-any": 15
+    },
+    "app/dashboard/parent/payments/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 4
+    },
+    "app/dashboard/parent/pickup/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 8,
+      "error:react/no-children-prop": 1
+    },
+    "app/dashboard/parent/schedule/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 4
+    },
+    "app/dashboard/parent/settings/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 2
+    },
+    "app/dashboard/parent/trust-center/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 29,
+      "error:react-hooks/purity": 1
+    },
+    "app/dashboard/parent/trust/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 15
+    },
+    "app/dashboard/privacy/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 7
+    },
+    "app/dashboard/security-settings/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 8
+    },
+    "app/dashboard/staff/attendance/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 10,
+      "error:react-hooks/purity": 1
+    },
+    "app/dashboard/staff/background/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 4
+    },
+    "app/dashboard/staff/cameras/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 3
+    },
+    "app/dashboard/staff/certificates/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 4,
+      "error:react-hooks/purity": 1
+    },
+    "app/dashboard/staff/child-journal/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 4,
+      "error:react/no-children-prop": 1
+    },
+    "app/dashboard/staff/daily-journal/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 4
+    },
+    "app/dashboard/staff/documents/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 4
+    },
+    "app/dashboard/staff/incidents/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 4,
+      "error:react/no-children-prop": 1
+    },
+    "app/dashboard/staff/job-market/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 4,
+      "error:prefer-const": 1
+    },
+    "app/dashboard/staff/messages/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 6
+    },
+    "app/dashboard/staff/notifications/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 2
+    },
+    "app/dashboard/staff/operations/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 31,
+      "warning:@typescript-eslint/no-unused-vars": 1,
+      "error:react/no-children-prop": 1,
+      "error:react-hooks/purity": 1
+    },
+    "app/dashboard/staff/page.tsx": {
+      "warning:@typescript-eslint/no-unused-vars": 5,
+      "error:@typescript-eslint/no-explicit-any": 28,
+      "error:react/no-children-prop": 1
+    },
+    "app/dashboard/staff/settings/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 3
+    },
+    "app/dashboard/staff/shifts/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 4
+    },
+    "app/dashboard/staff/tasks/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 2,
+      "error:react-hooks/purity": 1
+    },
+    "app/dashboard/tasks/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 3,
+      "error:react-hooks/purity": 1
+    },
+    "app/digital-observer/admin/access/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 5
+    },
+    "app/digital-observer/admin/billing/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 8
+    },
+    "app/digital-observer/admin/operations/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 3
+    },
+    "app/digital-observer/admin/packages/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 4
+    },
+    "app/digital-observer/admin/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 2
+    },
+    "app/digital-observer/alerts/page.tsx": {
+      "warning:@next/next/no-img-element": 2
+    },
+    "app/digital-observer/auth-actions.ts": {
+      "error:@typescript-eslint/no-explicit-any": 2
+    },
+    "app/digital-observer/cameras/add/page.tsx": {
+      "error:@next/next/no-html-link-for-pages": 1
+    },
+    "app/digital-observer/dashboard/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 2,
+      "warning:@next/next/no-img-element": 1
+    },
+    "app/digital-observer/pricing/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 2
+    },
+    "app/gardens/[id]/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 6,
+      "warning:@next/next/no-img-element": 1
+    },
+    "app/gardens/page.tsx": {
+      "warning:@typescript-eslint/no-unused-vars": 1
+    },
+    "app/join-kindergarten/page.tsx": {
+      "warning:@next/next/no-img-element": 1
+    },
+    "app/join-parent/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 4,
+      "warning:@next/next/no-img-element": 1
+    },
+    "app/login/actions.ts": {
+      "error:@typescript-eslint/no-explicit-any": 6
+    },
+    "app/onboarding/kindergarten/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 5
+    },
+    "app/onboarding/staff/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 2
+    },
+    "app/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 2,
+      "warning:@next/next/no-img-element": 1
+    },
+    "app/parent-onboarding/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 12
+    },
+    "app/parents/page.tsx": {
+      "warning:@next/next/no-img-element": 1
+    },
+    "app/service-charter/page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 1
+    },
+    "components/admin-activity-center.tsx": {
+      "error:react-hooks/purity": 1
+    },
+    "components/admin-app-ui.tsx": {
+      "warning:@typescript-eslint/no-unused-vars": 12
+    },
+    "components/admin-global-search.tsx": {
+      "error:react-hooks/set-state-in-effect": 1
+    },
+    "components/admin-reports-center.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 3
+    },
+    "components/admin-task-engine.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 1
+    },
+    "components/admin-user-creation-wizards.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 1,
+      "warning:@next/next/no-img-element": 4
+    },
+    "components/admin-users-management.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 1,
+      "warning:@next/next/no-img-element": 1
+    },
+    "components/advanced-learning-dashboard.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 1
+    },
+    "components/ai-assistant-panel.tsx": {
+      "error:react-hooks/set-state-in-effect": 2
+    },
+    "components/ai-camera-events-review.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 1,
+      "warning:@next/next/no-img-element": 1
+    },
+    "components/ai-observer-worker-dashboard.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 1
+    },
+    "components/app-motion-shell.tsx": {
+      "error:react-hooks/set-state-in-effect": 3
+    },
+    "components/audio-observer-events-panel.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 1
+    },
+    "components/auth/auth-callback-client.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 1,
+      "warning:react-hooks/exhaustive-deps": 1
+    },
+    "components/avatar.tsx": {
+      "warning:@next/next/no-img-element": 1
+    },
+    "components/camera-ai-admin-modules.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 4,
+      "warning:@typescript-eslint/no-unused-vars": 1,
+      "error:react-hooks/set-state-in-effect": 1
+    },
+    "components/camera-playback-card.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 1
+    },
+    "components/child-daily-journal-manager.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 1
+    },
+    "components/child-operations-panel.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 1
+    },
+    "components/child-photo-upload.tsx": {
+      "warning:@next/next/no-img-element": 1
+    },
+    "components/correlated-events-panel.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 1
+    },
+    "components/daily-task-journal.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 1
+    },
+    "components/dashboard-command-center.tsx": {
+      "error:react-hooks/set-state-in-effect": 1
+    },
+    "components/dashboard-intelligence-bar.tsx": {
+      "error:react-hooks/set-state-in-effect": 1
+    },
+    "components/dashboard-live-experience.tsx": {
+      "error:react-hooks/set-state-in-effect": 1,
+      "warning:@next/next/no-img-element": 1
+    },
+    "components/demo-control-panel.tsx": {
+      "error:react-hooks/set-state-in-effect": 1
+    },
+    "components/digital-observer/observer-action-forms.tsx": {
+      "warning:@typescript-eslint/no-unused-vars": 2,
+      "error:@typescript-eslint/no-explicit-any": 12,
+      "warning:jsx-a11y/alt-text": 2
+    },
+    "components/digital-observer/observer-address-fields.tsx": {
+      "error:react-hooks/purity": 1,
+      "warning:jsx-a11y/role-has-required-aria-props": 1
+    },
+    "components/digital-observer/observer-app-shell.tsx": {
+      "warning:@next/next/no-img-element": 1
+    },
+    "components/digital-observer/observer-intelligence-experience.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 1,
+      "warning:@next/next/no-img-element": 1
+    },
+    "components/digital-observer/observer-live-player.tsx": {
+      "warning:react-hooks/exhaustive-deps": 1
+    },
+    "components/digital-observer/observer-login-form.tsx": {
+      "error:react-hooks/set-state-in-effect": 1,
+      "error:@typescript-eslint/no-explicit-any": 4
+    },
+    "components/garden-camera-capability-panel.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 1
+    },
+    "components/garden-child-transfer-requests-panel.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 1,
+      "error:react-hooks/set-state-in-effect": 1
+    },
+    "components/garden-parent-leads-center.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 1,
+      "error:react-hooks/set-state-in-effect": 1
+    },
+    "components/health-medicine-manager.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 2
+    },
+    "components/incident-manager.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 2
+    },
+    "components/inspection-report-view.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 6,
+      "warning:@next/next/no-img-element": 2
+    },
+    "components/inspection-supervision-center.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 1
+    },
+    "components/inspector-app-ui.tsx": {
+      "warning:@typescript-eslint/no-unused-vars": 13,
+      "error:@typescript-eslint/no-explicit-any": 2,
+      "warning:@next/next/no-img-element": 1
+    },
+    "components/internal-messaging-center.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 3
+    },
+    "components/kindergarten-onboarding-form.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 1,
+      "error:react-hooks/purity": 1,
+      "warning:@next/next/no-img-element": 2
+    },
+    "components/live-day-flow.tsx": {
+      "warning:@typescript-eslint/no-unused-vars": 1
+    },
+    "components/module-list-page.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 1
+    },
+    "components/notification-bell.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 1
+    },
+    "components/notification-center.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 2
+    },
+    "components/observer-intelligence-panel.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 1
+    },
+    "components/observer-learning-dashboard.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 1
+    },
+    "components/observer-test-center-review-panel.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 1
+    },
+    "components/parent-app-ui.tsx": {
+      "warning:@typescript-eslint/no-unused-vars": 1,
+      "warning:@next/next/no-img-element": 1
+    },
+    "components/parent-camera-access-debug.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 1
+    },
+    "components/parent-child-request-form.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 1
+    },
+    "components/parent-complaint-center.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 1
+    },
+    "components/parent-kindergarten-invitations-panel.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 5,
+      "error:react-hooks/set-state-in-effect": 1,
+      "warning:@next/next/no-img-element": 1
+    },
+    "components/parent-registration-journey.tsx": {
+      "warning:@next/next/no-img-element": 1
+    },
+    "components/passkey-enrollment-prompt.tsx": {
+      "error:react-hooks/set-state-in-effect": 1
+    },
+    "components/passkey-login.tsx": {
+      "error:react-hooks/set-state-in-effect": 1
+    },
+    "components/people-profile-cards.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 1,
+      "warning:@next/next/no-img-element": 1
+    },
+    "components/pickup-verification-panels.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 1,
+      "warning:@next/next/no-img-element": 1
+    },
+    "components/policies-manager.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 2
+    },
+    "components/profile-settings-form.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 3,
+      "warning:@next/next/no-img-element": 2
+    },
+    "components/provisioning-forms.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 6,
+      "warning:@next/next/no-img-element": 5
+    },
+    "components/reports-center.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 1
+    },
+    "components/role-app-shell.tsx": {
+      "warning:@typescript-eslint/no-unused-vars": 3,
+      "warning:@next/next/no-img-element": 1
+    },
+    "components/role-onboarding-guide.tsx": {
+      "error:react-hooks/set-state-in-effect": 1
+    },
+    "components/self-service-forms.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 4
+    },
+    "components/staff-app-ui.tsx": {
+      "warning:@typescript-eslint/no-unused-vars": 5
+    },
+    "components/staff-onboarding-form.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 2,
+      "warning:@next/next/no-img-element": 1
+    },
+    "components/subscription-admin-manager.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 5
+    },
+    "components/task-workbench.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 1
+    },
+    "components/teacher-app-ui.tsx": {
+      "warning:@typescript-eslint/no-unused-vars": 15,
+      "warning:@next/next/no-img-element": 2
+    },
+    "components/video-gateway-admin-dashboard.tsx": {
+      "error:@typescript-eslint/no-explicit-any": 1
+    },
+    "lib/admin-safe.ts": {
+      "warning:@typescript-eslint/no-unused-vars": 1
+    },
+    "lib/auth.ts": {
+      "error:@typescript-eslint/no-explicit-any": 4
+    },
+    "lib/crud-route.ts": {
+      "error:@typescript-eslint/no-explicit-any": 13,
+      "warning:@typescript-eslint/no-unused-vars": 9
+    },
+    "lib/domain/ai-executive-assistant.ts": {
+      "error:@typescript-eslint/no-explicit-any": 1
+    },
+    "lib/domain/ai-observer.ts": {
+      "error:@typescript-eslint/no-explicit-any": 6
+    },
+    "lib/domain/ai-observer/detection-engine.ts": {
+      "error:@typescript-eslint/no-explicit-any": 5
+    },
+    "lib/domain/ai-observer/local-detector.ts": {
+      "error:@typescript-eslint/no-explicit-any": 8
+    },
+    "lib/domain/ai-observer/local-vision-adapter.ts": {
+      "error:@typescript-eslint/no-explicit-any": 5
+    },
+    "lib/domain/ai-observer/rule-engine.ts": {
+      "error:@typescript-eslint/no-explicit-any": 5
+    },
+    "lib/domain/ai-observer/worker.ts": {
+      "error:@typescript-eslint/no-explicit-any": 34
+    },
+    "lib/domain/auth-flow.ts": {
+      "warning:@typescript-eslint/no-unused-vars": 3
+    },
+    "lib/domain/billing.ts": {
+      "error:@typescript-eslint/no-explicit-any": 11
+    },
+    "lib/domain/camera-deployment-readiness.ts": {
+      "error:@typescript-eslint/no-explicit-any": 7
+    },
+    "lib/domain/camera-diagnostics.ts": {
+      "error:@typescript-eslint/no-explicit-any": 7,
+      "warning:@typescript-eslint/no-unused-vars": 6
+    },
+    "lib/domain/camera-health.ts": {
+      "error:@typescript-eslint/no-explicit-any": 7
+    },
+    "lib/domain/capability-policy-engine.ts": {
+      "error:@typescript-eslint/no-explicit-any": 7
+    },
+    "lib/domain/communication-service.ts": {
+      "error:@typescript-eslint/no-explicit-any": 2
+    },
+    "lib/domain/cross-kindergarten-analytics.ts": {
+      "error:@typescript-eslint/no-explicit-any": 9
+    },
+    "lib/domain/digital-observer-product.ts": {
+      "warning:@typescript-eslint/no-unused-vars": 2
+    },
+    "lib/domain/digital-observer/access.ts": {
+      "error:@typescript-eslint/no-explicit-any": 9
+    },
+    "lib/domain/digital-observer/admin-runtime.ts": {
+      "error:@typescript-eslint/no-explicit-any": 2
+    },
+    "lib/domain/digital-observer/camera-live-status.ts": {
+      "error:@typescript-eslint/no-explicit-any": 3
+    },
+    "lib/domain/digital-observer/edge-ai-policy.ts": {
+      "error:@typescript-eslint/no-explicit-any": 1
+    },
+    "lib/domain/digital-observer/qa-learning-fixture.ts": {
+      "error:@typescript-eslint/no-explicit-any": 3
+    },
+    "lib/domain/digital-observer/runtime.ts": {
+      "error:@typescript-eslint/no-explicit-any": 22
+    },
+    "lib/domain/email-service.ts": {
+      "error:@typescript-eslint/no-explicit-any": 1
+    },
+    "lib/domain/enrollment-activation.ts": {
+      "error:@typescript-eslint/no-explicit-any": 16
+    },
+    "lib/domain/event-engine/camera-zone-mapper.ts": {
+      "error:@typescript-eslint/no-explicit-any": 13
+    },
+    "lib/domain/event-engine/discovery-settings.ts": {
+      "error:@typescript-eslint/no-explicit-any": 1
+    },
+    "lib/domain/event-engine/event-journal-service.ts": {
+      "error:@typescript-eslint/no-explicit-any": 4
+    },
+    "lib/domain/event-engine/guard-journal-search.ts": {
+      "error:@typescript-eslint/no-explicit-any": 3
+    },
+    "lib/domain/event-engine/media-fault-lifecycle.ts": {
+      "error:@typescript-eslint/no-explicit-any": 4
+    },
+    "lib/domain/event-engine/off-hours.ts": {
+      "error:@typescript-eslint/no-explicit-any": 1
+    },
+    "lib/domain/external-security-audit.ts": {
+      "error:@typescript-eslint/no-explicit-any": 1
+    },
+    "lib/domain/final-compliance-review.ts": {
+      "error:@typescript-eslint/no-explicit-any": 1
+    },
+    "lib/domain/garden-finance-loader.ts": {
+      "error:@typescript-eslint/no-explicit-any": 39
+    },
+    "lib/domain/inspection-engine.ts": {
+      "error:@typescript-eslint/no-explicit-any": 2
+    },
+    "lib/domain/iso-evidence.ts": {
+      "error:@typescript-eslint/no-explicit-any": 1
+    },
+    "lib/domain/kindergarten-rating.ts": {
+      "error:@typescript-eslint/no-explicit-any": 1
+    },
+    "lib/domain/launch-readiness.ts": {
+      "error:@typescript-eslint/no-explicit-any": 8
+    },
+    "lib/domain/observer-calibration.ts": {
+      "error:@typescript-eslint/no-explicit-any": 1
+    },
+    "lib/domain/observer-engine/skeleton-journal.ts": {
+      "error:@typescript-eslint/no-explicit-any": 1
+    },
+    "lib/domain/observer-intelligence-engine.ts": {
+      "error:@typescript-eslint/no-explicit-any": 42
+    },
+    "lib/domain/observer-watch-request-engine.ts": {
+      "error:@typescript-eslint/no-explicit-any": 3
+    },
+    "lib/domain/parent-camera-access.ts": {
+      "warning:@typescript-eslint/no-unused-vars": 1,
+      "error:@typescript-eslint/no-explicit-any": 27
+    },
+    "lib/domain/parent-camera-list.ts": {
+      "error:@typescript-eslint/no-explicit-any": 20
+    },
+    "lib/domain/parent-family.ts": {
+      "error:@typescript-eslint/no-explicit-any": 21
+    },
+    "lib/domain/parent-request-routing.ts": {
+      "error:@typescript-eslint/no-explicit-any": 9
+    },
+    "lib/domain/permit-expiry.ts": {
+      "error:@typescript-eslint/no-explicit-any": 5
+    },
+    "lib/domain/pilot-health.ts": {
+      "error:@typescript-eslint/no-explicit-any": 1
+    },
+    "lib/domain/predictive-risk.ts": {
+      "error:@typescript-eslint/no-explicit-any": 1
+    },
+    "lib/domain/predictive-safety-prevention.ts": {
+      "error:@typescript-eslint/no-explicit-any": 3
+    },
+    "lib/domain/provider-webhooks.ts": {
+      "error:@typescript-eslint/no-explicit-any": 10
+    },
+    "lib/domain/push-service.ts": {
+      "error:@typescript-eslint/no-explicit-any": 1
+    },
+    "lib/domain/real-camera-infrastructure.ts": {
+      "error:@typescript-eslint/no-explicit-any": 5
+    },
+    "lib/domain/security-readiness.ts": {
+      "error:@typescript-eslint/no-explicit-any": 8
+    },
+    "lib/domain/smart-kindergarten-engine.ts": {
+      "error:@typescript-eslint/no-explicit-any": 64
+    },
+    "lib/domain/sms-service.ts": {
+      "error:@typescript-eslint/no-explicit-any": 1
+    },
+    "lib/domain/tasks.ts": {
+      "error:@typescript-eslint/no-explicit-any": 3
+    },
+    "lib/domain/video-gateway-client.ts": {
+      "error:@typescript-eslint/no-explicit-any": 6
+    },
+    "lib/domain/video-gateway.ts": {
+      "warning:@typescript-eslint/no-unused-vars": 17,
+      "error:@typescript-eslint/no-explicit-any": 50
+    },
+    "lib/domain/video-streaming.ts": {
+      "error:@typescript-eslint/no-explicit-any": 34
+    },
+    "lib/domain/vision-analysis-pipeline.ts": {
+      "error:@typescript-eslint/no-explicit-any": 4
+    },
+    "lib/domain/whatsapp-service.ts": {
+      "error:@typescript-eslint/no-explicit-any": 1
+    },
+    "lib/kindergarten-age-groups.ts": {
+      "error:@typescript-eslint/no-explicit-any": 4
+    },
+    "lib/onboarding/invitation-delivery.ts": {
+      "error:@typescript-eslint/no-explicit-any": 4
+    },
+    "lib/privacy/data-subject-scope.ts": {
+      "error:@typescript-eslint/no-explicit-any": 2
+    },
+    "lib/security/audit-log-service.ts": {
+      "error:@typescript-eslint/no-explicit-any": 2
+    },
+    "lib/security/identity-security.ts": {
+      "error:@typescript-eslint/no-explicit-any": 10
+    },
+    "lib/security/rate-limit.ts": {
+      "error:@typescript-eslint/no-explicit-any": 7
+    },
+    "services/video-gateway/private-nvr-command-executor.mjs": {
+      "warning:@typescript-eslint/no-unused-vars": 1
+    },
+    "services/video-gateway/private-nvr-command-transport.mjs": {
+      "warning:@typescript-eslint/no-unused-vars": 1
+    },
+    "services/video-gateway/server.mjs": {
+      "warning:@typescript-eslint/no-unused-vars": 2,
+      "warning:@typescript-eslint/no-unused-expressions": 3
+    }
+  }
+}

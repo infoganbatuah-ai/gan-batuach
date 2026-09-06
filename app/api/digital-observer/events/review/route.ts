@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { fail, handleRouteError, ok } from "@/lib/api";
+import { fail, handleSafeRouteError, ok } from "@/lib/api";
 import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
 import { waiveMediaFault } from "@/lib/domain/event-engine/media-fault-lifecycle";
 import { writeAuditEvent } from "@/lib/security/audit-log-service";
@@ -70,6 +70,6 @@ export async function POST(request: Request) {
       message: "סטטוס האירוע נשמר. משוב איכות ו‑Ground Truth נרשמים בנפרד מתוך התקרית הקנונית."
     });
   } catch (error) {
-    return handleRouteError(error);
+    return handleSafeRouteError(error);
   }
 }

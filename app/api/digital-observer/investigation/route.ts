@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { fail, handleRouteError, ok } from "@/lib/api";
+import { fail, handleSafeRouteError, ok } from "@/lib/api";
 import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
 import { createDigitalObserverAdminDataClient, hasObserverAdminClaim } from "@/lib/domain/digital-observer/admin-access";
 import { guardHistoryPrivacyRestricted } from "@/lib/domain/event-engine/guard-journal-search";
@@ -120,6 +120,6 @@ export async function POST(request: Request) {
       } : null
     });
   } catch (error) {
-    return handleRouteError(error);
+    return handleSafeRouteError(error);
   }
 }

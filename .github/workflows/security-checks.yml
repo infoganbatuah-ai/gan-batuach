@@ -1,12 +1,9 @@
-name: Security checks
+name: Deep security checks (manual or scheduled)
 
 on:
-  pull_request:
-  push:
-    branches:
-      - main
-      - master
   workflow_dispatch:
+  schedule:
+    - cron: "17 3 * * 1"
 
 permissions:
   contents: read

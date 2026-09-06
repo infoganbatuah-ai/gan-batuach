@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { fail, handleRouteError, ok } from "@/lib/api";
+import { fail, handleSafeRouteError, ok } from "@/lib/api";
 import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
 import { createDigitalObserverAdminDataClient, hasObserverAdminClaim } from "@/lib/domain/digital-observer/admin-access";
 import {
@@ -144,7 +144,7 @@ export async function GET(request: Request) {
       }
     });
   } catch (error) {
-    return handleRouteError(error);
+    return handleSafeRouteError(error);
   }
 }
 
@@ -239,6 +239,6 @@ export async function POST(request: Request) {
       message: "התיוג אושר כ‑Ground Truth ונוסף לנתוני הכיול. כל שינוי Production עדיין מחייב אישור וגרסה חדשה."
     });
   } catch (error) {
-    return handleRouteError(error);
+    return handleSafeRouteError(error);
   }
 }
