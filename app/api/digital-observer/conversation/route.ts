@@ -8,6 +8,8 @@ import { guardJournalQuerySchema, guardQueryClarification } from "@/lib/domain/d
 import { guardContextForSite, guardHistoryPrivacyRestricted, guardHistoryInput, guardJournalAnswer, searchGuardJournal } from "@/lib/domain/event-engine/guard-journal-search";
 import { compileAuthorizedWatchRule } from "@/lib/domain/digital-observer/watch-rule-service";
 import type { WatchRuleCompileResult } from "@/lib/domain/digital-observer/watch-rule-compiler";
+import { compileInvestigationQuery, isInvestigationQuestion } from "@/lib/domain/digital-observer/investigation-query";
+import { searchDigitalObserverInvestigation } from "@/lib/domain/digital-observer/investigation-search-service";
 
 const schema = z.object({
   observer_site_id: z.string().uuid(),
@@ -123,6 +125,57 @@ export async function POST(request: Request) {
     if (historyCameras.error) return fail("לא ניתן לקרוא כרגע את מקורות היומן.", 503);
     const historyCameraRows = (historyCameras.data ?? []) as unknown as CameraRow[];
     const historyContext = guardContextForSite(site, historyCameraRows);
+    if (!payload.journal_query && isInvestigationQuestion(payload.message)) {
+      const resources = historyCameraRows.map((camera) => {
+        const metadata = camera.metadata && typeof camera.metadata === "object" ? camera.metadata : {};
+        const zoneName = typeof metadata.zone_name === "string" ? metadata.zone_name : camera.location_label;
+        return {
+          id: camera.id,
+          observerSiteId: String(camera.observer_site_id),
+          name: camera.display_name ?? camera.location_label ?? `מצלמה ${camera.id.slice(0, 8)}`,
+          locationLabel: camera.location_label,
+          streamId: camera.camera_stream_id,
+          aliases: Array.isArray(metadata.aliases) ? metadata.aliases.filter((value): value is string => typeof value === "string") : [],
+          zones: zoneName ? [{ name: zoneName }] : []
+        };
+      });
+      const compilation = compileInvestigationQuery({
+        question: payload.message,
+        context: { observerSiteId: site.id, timeZone: String(site.timezone ?? "Asia/Jerusalem"), cameras: resources },
+        explicitCameraSourceId: payload.camera_source_id
+      });
+      if (compilation.status !== "READY" || !compilation.query) {
+        return ok({
+          answer: compilation.clarification?.question ?? compilation.limitation?.explanation ?? "לא ניתן לפרש את בקשת החקירה באופן בטוח.",
+          signal_ids: [], event_log: [], intent: "historical_investigation", request: null,
+          investigation: { status: compilation.status, compilation, result: null }, answer_source: "canonical_investigation_compiler",
+          live_ai_used: false, emergency_action_triggered: false, physical_action_executed: false
+        });
+      }
+      const investigation = await searchDigitalObserverInvestigation({
+        db: supabase,
+        query: compilation.query,
+        sources: historyCameraRows.map((camera) => ({
+          id: camera.id,
+          observer_site_id: String(camera.observer_site_id),
+          display_name: camera.display_name ?? null,
+          location_label: camera.location_label ?? null,
+          camera_stream_id: camera.camera_stream_id ?? null
+        }))
+      });
+      return ok({
+        answer: investigation.answer,
+        signal_ids: investigation.grounding.eventIds,
+        event_log: investigation.events,
+        intent: "historical_investigation",
+        request: null,
+        investigation: { status: "READY", compilation, result: investigation },
+        answer_source: "canonical_investigation_records",
+        live_ai_used: false,
+        emergency_action_triggered: false,
+        physical_action_executed: false
+      });
+    }
     try {
       const requestedHistory = payload.journal_query ?? guardHistoryInput(payload.message, historyContext, payload.camera_source_id);
       if (requestedHistory) {

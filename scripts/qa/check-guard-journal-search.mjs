@@ -9,7 +9,7 @@ const cameras=[{id:cameraId,observer_site_id:siteId,display_name:"דלת ראש�
 const module=loadTs("lib/domain/event-engine/guard-journal-search.ts");
 const context={...module.guardContextForSite(site,cameras),now:new Date("2026-08-31T12:00:00Z")};
 const input={cameraZoneName:"front door",window:{kind:"date",date:"2026-08-31",fromTime:"14:00",toTime:"17:00"},eventTypes:["ENTRY"],reviewStatuses:["needs_review"]};
-function signal(id,time="2026-08-31T12:00:00Z",extra={}) {return {id,observer_site_id:siteId,camera_id:cameraId,created_at:time,severity:"info",review_status:"needs_review",metadata:{camera_source_id:cameraId,event_type:"person_entered",validated_event:true,recording_required:false,first_seen:time,received_at:"2026-09-02T12:00:00Z"},...extra};}
+function signal(id,time="2026-08-31T12:00:00Z",extra={}) {return {id,observer_site_id:siteId,camera_id:cameraId,source_type:"system",created_at:time,severity:"info",review_status:"needs_review",metadata:{camera_source_id:cameraId,event_type:"person_entered",validated_event:true,recording_required:false,first_seen:time,received_at:"2026-09-02T12:00:00Z"},...extra};}
 function fixture(current=[],legacy=[],status=200) {
   const requests=[];
   const db=createClient("http://fixture.invalid","fixture-not-a-real-key",{auth:{persistSession:false,autoRefreshToken:false},global:{fetch:async(resource,options)=>{

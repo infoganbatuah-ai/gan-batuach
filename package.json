@@ -32,6 +32,8 @@
     "qa:digital-observer-feedback-production": "node scripts/qa/verify-production-feedback-calibration.mjs",
     "qa:digital-observer-feedback-ui": "node scripts/qa/verify-production-feedback-ui.mjs",
     "qa:digital-observer-watch-rules": "node scripts/qa/check-digital-observer-watch-rule-compiler.mjs",
+    "qa:digital-observer-investigation": "node --test scripts/qa/check-digital-observer-investigation.mjs",
+    "qa:digital-observer-investigation-production": "node scripts/qa/verify-production-investigation.mjs",
     "release:production:preflight": "node scripts/qa/check-production-release-snapshot.mjs",
     "qa:observer-engine-separation": "node scripts/qa/check-observer-engine-separation.mjs",
     "qa:dvr-shared-session": "node scripts/qa/check-dvr-shared-session-and-offline.mjs",
