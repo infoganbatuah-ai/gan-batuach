@@ -1,6 +1,6 @@
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { authenticateEventGateway } from "@/lib/domain/event-engine/gateway-auth";
+import { authenticateEventGateway, eventEnvironmentFingerprint } from "@/lib/domain/event-engine/gateway-auth";
 import { cameraZoneMapper, validCrossingLine } from "@/lib/domain/event-engine/camera-zone-mapper";
 import { CONTEXT_RULES_MATRIX } from "@/lib/domain/event-engine/event-validation-pipeline";
 import { cameraReportsLocalEventInsights } from "@/lib/domain/digital-observer/edge-ai-policy";
@@ -28,6 +28,8 @@ export async function GET(request: Request) {
     const db = createAdminClient();
     const device = await authenticateEventGateway(request, db);
     if (!device) return fail("Gateway identity is invalid or revoked.", 401);
+    const environmentFingerprint = eventEnvironmentFingerprint();
+    if (!environmentFingerprint) throw new Error("GATEWAY_ENV_FINGERPRINT_UNAVAILABLE");
     const [site, sources, schedule, automationPolicies] = await Promise.all([
       db.from("observer_sites").select("id,garden_id,site_type,monitoring_enabled,vision_privacy_mode,business_handles_children,metadata").eq("id", device.observer_site_id).single(),
       db.from("digital_observer_camera_sources").select("id,display_name,location_label,status,source_mode,metadata").eq("observer_site_id", device.observer_site_id),
@@ -43,7 +45,7 @@ export async function GET(request: Request) {
     const automationRows = (automationPolicies.data ?? []) as unknown as AutomationPolicyRow[];
     const cameraRows = (sources.data ?? []) as unknown as ManifestCamera[];
     const automationByCamera = new Map(automationRows.map((policy) => [String(policy.camera_source_id), policy]));
-    return ok({ gateway_id: device.gateway_id, observer_site_id: device.observer_site_id, monitoring_enabled: enabled, cameras: cameraRows
+    return ok({ gateway_id: device.gateway_id, observer_site_id: device.observer_site_id, environment_fingerprint: environmentFingerprint, monitoring_enabled: enabled, cameras: cameraRows
       .filter((camera) => !["demo", "mock", "local_shadow"].includes(String(camera.source_mode)) && camera.metadata?.gateway_id === device.gateway_id)
       .map((camera) => {
         const zone = cameraZoneMapper.map(camera);
