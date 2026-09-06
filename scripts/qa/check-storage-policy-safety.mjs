@@ -53,7 +53,9 @@ const report = {
 };
 
 mkdirSync(dirname(reportPath), { recursive: true });
-writeFileSync(reportPath, `${JSON.stringify(report, null, 2)}\n`, "utf8");
+if (process.env.QA_EVIDENCE_WRITE === "1") {
+  writeFileSync(reportPath, `${JSON.stringify(report, null, 2)}\n`, "utf8");
+}
 console.log(`Storage policy safety: ${assertions.length - failed.length} PASS, ${failed.length} FAIL.`);
 console.log("Remote Supabase verification remains required after migration apply; no secret values were inspected or printed.");
 if (failed.length) process.exitCode = 1;
