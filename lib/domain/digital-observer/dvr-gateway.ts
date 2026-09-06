@@ -1,6 +1,7 @@
 import { existsSync, readFileSync } from "node:fs";
 import { z } from "zod";
 import { checkGatewayHealth, getPlaybackUrls, isGatewayConfigured } from "@/lib/domain/video-gateway-client";
+import { assessCameraConnection } from "@/lib/domain/digital-observer/camera-connection-layer";
 
 const protocolSchema = z.enum(["onvif", "rtsp", "manufacturer_api"]);
 const manufacturerSchema = z.enum(["hikvision", "dahua", "uniview", "axis", "generic"]);
@@ -154,6 +155,30 @@ export function buildDvrDashboardContract(params: {
   const config = params.config ?? loadLocalDvrGatewayConfig();
   const connection = identifySupportedDvrConnection(config);
   const gatewayConfigured = isGatewayConfigured();
+  const canonicalAssessment = assessCameraConnection({
+    siteId: params.observerSiteId,
+    connectorType: "dvr",
+    provider: config.recorder.manufacturer,
+    onvifAvailable: connection.supported_protocols.includes("onvif"),
+    onvifReachable: false,
+    rtspAvailable: connection.supported_protocols.includes("rtsp"),
+    rtspReachable: false,
+    privateNetworkOnly: true,
+    softwareConnectorAvailable: false,
+    physicalGatewayAvailable: gatewayConfigured,
+    physicalGatewayEnrolled: gatewayConfigured,
+    physicalGatewayOutboundOnly: true,
+    legacySystem: true,
+    credentialReferenceConfigured: gatewayConfigured,
+    endpointReferenceConfigured: gatewayConfigured,
+    discoveredCapabilities: [
+      ...(config.capabilities.live ? ["LIVE_STREAM" as const] : []),
+      "CHANNEL_DISCOVERY" as const,
+      ...(config.capabilities.playback ? ["RECORDING_ACCESS" as const] : []),
+      "HEALTH" as const,
+      ...(config.capabilities.ptz ? ["PTZ" as const] : [])
+    ]
+  });
   const readOnlyDisabled = {
     ptz: false,
     siren: false,
@@ -174,6 +199,13 @@ export function buildDvrDashboardContract(params: {
     },
     connection: {
       ...connection,
+      canonical_contract_version: canonicalAssessment.contractVersion,
+      canonical_method: canonicalAssessment.preferredMethod,
+      canonical_adapter: canonicalAssessment.adapterType,
+      canonical_adapter_version: canonicalAssessment.adapterVersion,
+      recommendation: canonicalAssessment.recommendation,
+      recommendation_reasons: canonicalAssessment.reasonCodes,
+      automatic_fallback_enabled: false,
       gateway_configured: gatewayConfigured,
       status: !config.enabled
         ? "local_config_required"

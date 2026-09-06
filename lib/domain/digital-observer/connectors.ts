@@ -19,17 +19,18 @@ export type DigitalObserverConnectorDescriptor = {
   credentialLocation: "server_secret_store" | "not_required";
   previewRequiresGateway: boolean;
   liveRequiresGateway: boolean;
+  localBridgeMode: "none" | "software_or_gateway" | "physical_gateway";
 };
 
 export const digitalObserverConnectors: Record<DigitalObserverConnectorType, DigitalObserverConnectorDescriptor> = {
-  ip_camera: { type: "ip_camera", label: "מצלמת IP", description: "מצלמה ברשת המקומית דרך Gateway מאובטח", transport: "gateway", credentialLocation: "server_secret_store", previewRequiresGateway: true, liveRequiresGateway: true },
-  nvr: { type: "nvr", label: "NVR", description: "מערכת הקלטה מרובת מצלמות", transport: "gateway", credentialLocation: "server_secret_store", previewRequiresGateway: true, liveRequiresGateway: true },
-  dvr: { type: "dvr", label: "DVR", description: "מערכת הקלטה אנלוגית או היברידית", transport: "gateway", credentialLocation: "server_secret_store", previewRequiresGateway: true, liveRequiresGateway: true },
-  rtsp: { type: "rtsp", label: "RTSP", description: "זרם RTSP שנקלט ומומר בצד השרת", transport: "gateway", credentialLocation: "server_secret_store", previewRequiresGateway: true, liveRequiresGateway: true },
-  onvif: { type: "onvif", label: "ONVIF", description: "איתור ותאימות מצלמות דרך Gateway", transport: "gateway", credentialLocation: "server_secret_store", previewRequiresGateway: true, liveRequiresGateway: true },
-  cloud_provider: { type: "cloud_provider", label: "ספק ענן", description: "חיבור דרך API של ספק מורשה", transport: "provider_api", credentialLocation: "server_secret_store", previewRequiresGateway: true, liveRequiresGateway: true },
-  edge_gateway: { type: "edge_gateway", label: "Edge Gateway", description: "מחבר מקומי לרשת שאינה חשופה לאינטרנט", transport: "gateway", credentialLocation: "server_secret_store", previewRequiresGateway: true, liveRequiresGateway: true },
-  demo: { type: "demo", label: "מצלמת הדמיה", description: "בדיקת ממשק בטוחה ללא מקור וידאו או סיסמה", transport: "synthetic", credentialLocation: "not_required", previewRequiresGateway: false, liveRequiresGateway: false }
+  ip_camera: { type: "ip_camera", label: "מצלמת IP", description: "מצלמה קיימת בחיבור ישיר מאובטח או דרך מחבר מקומי", transport: "gateway", credentialLocation: "server_secret_store", previewRequiresGateway: false, liveRequiresGateway: false, localBridgeMode: "software_or_gateway" },
+  nvr: { type: "nvr", label: "NVR", description: "מערכת הקלטה קיימת; החיבור הדיגיטלי הבטוח נבדק לפני בחירת חומרה", transport: "gateway", credentialLocation: "server_secret_store", previewRequiresGateway: false, liveRequiresGateway: false, localBridgeMode: "software_or_gateway" },
+  dvr: { type: "dvr", label: "DVR", description: "מערכת הקלטה קיימת; Gateway פיזי נבחר רק אם אין מסלול דיגיטלי בטוח", transport: "gateway", credentialLocation: "server_secret_store", previewRequiresGateway: false, liveRequiresGateway: false, localBridgeMode: "software_or_gateway" },
+  rtsp: { type: "rtsp", label: "RTSP", description: "זרם תקני דרך חיבור מאובטח או מחבר תוכנה יוצא", transport: "gateway", credentialLocation: "server_secret_store", previewRequiresGateway: false, liveRequiresGateway: false, localBridgeMode: "software_or_gateway" },
+  onvif: { type: "onvif", label: "ONVIF", description: "איתור תקני ברשת דרך חיבור ישיר או מחבר תוכנה מקומי", transport: "gateway", credentialLocation: "server_secret_store", previewRequiresGateway: false, liveRequiresGateway: false, localBridgeMode: "software_or_gateway" },
+  cloud_provider: { type: "cloud_provider", label: "ספק ענן", description: "חיבור דיגיטלי דרך API מורשה של הספק", transport: "provider_api", credentialLocation: "server_secret_store", previewRequiresGateway: false, liveRequiresGateway: false, localBridgeMode: "none" },
+  edge_gateway: { type: "edge_gateway", label: "Gateway מקומי", description: "חריג מאושר למערכת סגורה, ותיקה או בעלת דרישת עיבוד מקומי", transport: "gateway", credentialLocation: "server_secret_store", previewRequiresGateway: true, liveRequiresGateway: true, localBridgeMode: "physical_gateway" },
+  demo: { type: "demo", label: "מצלמת הדמיה", description: "בדיקת ממשק בטוחה ללא מקור וידאו או סיסמה", transport: "synthetic", credentialLocation: "not_required", previewRequiresGateway: false, liveRequiresGateway: false, localBridgeMode: "none" }
 };
 
 export function getDigitalObserverConnector(type: DigitalObserverConnectorType) {
@@ -52,12 +53,15 @@ export function buildDigitalObserverCameraReadiness(type: DigitalObserverConnect
       ...(synthetic ? { ptz: true, twoWayAudio: true, siren: true, lighting: true } : {}),
       credentials_saved: false,
       gateway_required: connector.liveRequiresGateway,
+      local_bridge_mode: connector.localBridgeMode,
       connector_transport: connector.transport
     },
     metadata: {
       product: "digital_observer",
       synthetic_only: synthetic,
       credentials_required_server_side: connector.credentialLocation === "server_secret_store",
+      digital_first_assessment_required: !synthetic,
+      physical_gateway_is_exception: true,
       no_live_claim: true
     }
   };

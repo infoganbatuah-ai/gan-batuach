@@ -1,6 +1,7 @@
 import { createHash } from "node:crypto";
 import { z } from "zod";
 import { preserveCameraDiscoverySettings } from "./event-engine/discovery-settings";
+import { assessCameraConnection, cameraConnectionMetadataForAssessment, type CameraConnectionCapability } from "@/lib/domain/digital-observer/camera-connection-layer";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { encryptField } from "@/lib/security/encryption";
 import { normalizeCameraStatus, cameraOperationalStatuses, type CameraOperationalStatus } from "@/lib/domain/camera-status";
@@ -365,6 +366,30 @@ async function upsertDigitalObserverCameraSource(
   const sourceMode = values.connected ? "gateway_test" : "readiness";
   const sourceStatus = values.connected ? "connected" : unavailable ? "offline" : "ready_to_test";
   const healthStatus = values.connected ? "healthy" : unavailable ? "failed" : "unknown";
+  const canonicalCapabilities: CameraConnectionCapability[] = [
+    "LIVE_STREAM",
+    "CHANNEL_DISCOVERY",
+    "RECORDING_ACCESS",
+    "HEALTH",
+    ...(values.hardwareCapabilities?.ptz.supported === true ? ["PTZ" as const] : [])
+  ];
+  const connectionAssessment = assessCameraConnection({
+    siteId: values.observerSiteId,
+    connectorType: values.connectorType,
+    rtspAvailable: true,
+    rtspReachable: false,
+    rtspTls: false,
+    rtspInternetExposed: false,
+    privateNetworkOnly: true,
+    softwareConnectorAvailable: false,
+    physicalGatewayAvailable: values.gatewayConfigured,
+    physicalGatewayEnrolled: values.gatewayConfigured && Boolean(values.gatewayId || values.gatewayStreamId),
+    physicalGatewayOutboundOnly: true,
+    legacySystem: values.connectorType === "dvr" || values.connectorType === "nvr",
+    credentialReferenceConfigured: Boolean(values.connectionId) || values.gatewayConfigured,
+    endpointReferenceConfigured: Boolean(values.gatewayStreamId),
+    discoveredCapabilities: canonicalCapabilities
+  });
   const payload = {
     observer_site_id: values.observerSiteId,
     camera_stream_id: values.cameraStreamId,
@@ -390,7 +415,10 @@ async function upsertDigitalObserverCameraSource(
       two_way_audio: values.hardwareCapabilities?.talkback.supported === true,
       siren: values.hardwareCapabilities?.siren.supported === true,
       lighting: values.hardwareCapabilities?.light.supported === true,
-      hardware_evidence: values.hardwareCapabilities ?? null
+      hardware_evidence: values.hardwareCapabilities ?? null,
+      canonical_connection_capabilities: canonicalCapabilities,
+      production_connection_eligible: connectionAssessment.productionEligible,
+      automatic_insecure_fallback: false
     },
     monitoring_targets: ["person", "entry_exit", "camera_obstruction", "after_hours"],
     last_health_check_at: now,
@@ -410,7 +438,11 @@ async function upsertDigitalObserverCameraSource(
       status_hint: values.statusHint,
       no_rtsp_exposed: true,
       credentials_server_side: true,
-      edge_inference_policy: "local-insights-v1"
+      edge_inference_policy: "local-insights-v1",
+      gateway_outbound_only: true,
+      private_network_only: true,
+      legacy_system: values.connectorType === "dvr" || values.connectorType === "nvr",
+      ...cameraConnectionMetadataForAssessment(connectionAssessment)
     }
   };
   if ((existing as any)?.data?.id) {

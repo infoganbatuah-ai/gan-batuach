@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { observerEventNarrative } from "@/lib/domain/digital-observer/event-narrative";
+import { cameraSourceClientView, canonicalCameraSourceFromRow } from "@/lib/domain/digital-observer/camera-connection-layer";
 import { eventJournalService } from "@/lib/domain/event-engine/event-journal-service";
 
 export type ObserverRow = Record<string, any>;
@@ -130,6 +131,24 @@ export function observerStatusLabel(value?: unknown) {
     cloud_provider: "ספק ענן",
     edge_gateway: "Edge Gateway",
     demo: "הדמיה",
+    VENDOR_CLOUD_API: "API של היצרן",
+    DIRECT_SECURE: "חיבור ישיר מאובטח",
+    RTSP: "RTSP",
+    ONVIF: "ONVIF",
+    DVR_NVR: "DVR / NVR",
+    SOFTWARE_CONNECTOR: "מחבר תוכנה",
+    PHYSICAL_GATEWAY: "Gateway פיזי",
+    ENTERPRISE_EDGE: "Enterprise Edge",
+    DEMO: "הדמיה",
+    HEALTHY: "תקין",
+    DEGRADED: "דורש בדיקה",
+    AUTH_FAILED: "האימות נכשל",
+    OFFLINE: "מנותק",
+    NO_FRAMES: "אין תמונות חדשות",
+    HIGH_LATENCY: "השהיה גבוהה",
+    UNSTABLE: "חיבור לא יציב",
+    UNSUPPORTED: "לא נתמך",
+    CONFIG_REQUIRED: "נדרשת הגדרה",
     unknown: "טרם נבדק",
     event_only: "סביב אירועים",
     night_only: "לילה",
@@ -280,7 +299,10 @@ export async function loadObserverRuntime(profileId: string) {
         gateway_stream_id_present: Boolean(camera.gateway_stream_id ?? camera.video_gateway_stream_id ?? camera.metadata?.gateway_stream_id)
       }
     }));
-  const normalizedCameras: ObserverRow[] = [...cameraSources.data, ...legacyObserverCameras];
+  const normalizedCameras: ObserverRow[] = [...cameraSources.data, ...legacyObserverCameras].map((camera) => ({
+    ...camera,
+    connection: cameraSourceClientView(canonicalCameraSourceFromRow(camera))
+  }));
   const journal = eventJournalService.partitionRows(signals.data, normalizedCameras, clips.data);
 
   return {

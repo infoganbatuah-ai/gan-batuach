@@ -57,17 +57,17 @@ export const observerCameraConnectionMethods: readonly ObserverCameraConnectionM
   {
     key: "network_discovery",
     label: "איתור אוטומטי ברשת",
-    shortDescription: "איתור מצלמות IP תואמות ONVIF באותה רשת מקומית.",
+    shortDescription: "איתור מצלמות IP תואמות ONVIF והעדפת חיבור דיגיטלי מאובטח.",
     connectorType: "onvif",
     badge: "מומלץ ל-IP",
-    requiresGateway: true,
+    requiresGateway: false,
     steps: [
-      "מחברים את המצלמה ואת ה-Gateway לאותה רשת.",
-      "מריצים איתור מאובטח מהמכשיר המקומי, לא מהדפדפן הציבורי.",
-      "בוחרים מצלמה מתוצאות האיתור ומזינים הרשאת צפייה ייעודית ב-Gateway.",
+      "מחברים את המצלמה לרשת המקומית.",
+      "המערכת בודקת אם קיים מסלול ישיר מאובטח; אם לא, מוצע מחבר תוכנה יוצא.",
+      "בוחרים מצלמה מתוצאות האיתור ושומרים הרשאת צפייה ייעודית בכספת המקומית או בשרת.",
       "בודקים preview, השהיה ובריאות חיבור."
     ],
-    requiredItems: ["מצלמת IP תואמת ONVIF", "רשת מקומית", "Gateway של התצפיתן"]
+    requiredItems: ["מצלמת IP תואמת ONVIF", "גישה מורשית לרשת המקומית"]
   },
   {
     key: "recorder",
@@ -75,29 +75,30 @@ export const observerCameraConnectionMethods: readonly ObserverCameraConnectionM
     shortDescription: "חיבור מערכת הקלטה ובחירת הערוצים שיופיעו כתצוגות מצלמה.",
     connectorType: "nvr",
     badge: "מספר מצלמות",
-    requiresGateway: true,
+    requiresGateway: false,
     steps: [
       "מזהים יצרן ודגם של ה-NVR או ה-DVR.",
-      "מחברים Gateway לאותה רשת ומגדירים משתמש צפייה מוגבל.",
+      "בודקים קודם API של היצרן, ONVIF ו-RTSP מאובטח.",
+      "אם המקור זמין רק ברשת המקומית, מוצע מחבר תוכנה; Gateway פיזי נבחר רק כשנדרש.",
       "בודקים את המערכת ובוחרים את ערוצי המצלמות הרצויים.",
       "כל ערוץ נשמר כמצלמה נפרדת עם סטטוס משלו."
     ],
-    requiredItems: ["יצרן ודגם המקליט", "מספר ערוץ", "Gateway באותה רשת"]
+    requiredItems: ["יצרן ודגם המקליט", "מספר ערוץ", "משתמש צפייה מוגבל"]
   },
   {
     key: "manual_network",
     label: "חיבור ידני מתקדם",
-    shortDescription: "RTSP, כתובת IP או פרטי חיבור מתקדמים דרך כספת ה-Gateway.",
+    shortDescription: "RTSP או כתובת IP דרך חיבור מאובטח, מחבר תוכנה או Gateway מוצדק.",
     connectorType: "rtsp",
     badge: "לטכנאי",
-    requiresGateway: true,
+    requiresGateway: false,
     steps: [
       "מפיקים כתובת RTSP או כתובת מצלמה מתיעוד היצרן.",
-      "מזינים את הפרטים רק ב-Gateway או בכספת השרת.",
+      "מזינים את הפרטים רק במחבר המקומי או בכספת השרת.",
       "מריצים בדיקת stream ובוחרים איכות ראשית או משנית.",
       "הדפדפן מקבל רק סטטוס וידאו מאובטח, ללא הכתובת או הסיסמה."
     ],
-    requiredItems: ["כתובת IP או RTSP", "משתמש צפייה מוגבל", "Gateway מאובטח"]
+    requiredItems: ["כתובת IP או RTSP", "משתמש צפייה מוגבל"]
   },
   {
     key: "secure_gateway",

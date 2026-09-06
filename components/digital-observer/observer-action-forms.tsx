@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, type FormEvent, type ReactNode } from "react";
+import { useEffect, useState, type FormEvent, type ReactNode } from "react";
 import { useRouter } from "next/navigation";
 import { AlertTriangle, Baby, Bell, BrainCircuit, Cable, Camera, CameraOff, CarFront, Check, ChevronLeft, Cloud, DoorOpen, HardDrive, Heart, HeartPulse, Image, Lightbulb, LoaderCircle, LockKeyhole, Mic, Moon, PawPrint, Pencil, QrCode, Radar, Router, ShieldCheck, Smartphone, Trash2, UserPlus, UsersRound, X } from "lucide-react";
 import { readObserverAccessToken } from "@/lib/domain/digital-observer/client-session";
@@ -17,6 +17,50 @@ import { ObserverCameraMedia } from "@/components/digital-observer/observer-came
 import { ObserverFcmPushRegistration } from "@/components/digital-observer/observer-fcm-push-registration";
 
 type ActionState = { busy: boolean; error: string; message: string };
+
+type CameraConnectionAssessmentView = {
+  recommendation: "DIRECT_CONNECTION_AVAILABLE" | "SOFTWARE_CONNECTOR_REQUIRED" | "PHYSICAL_GATEWAY_REQUIRED" | "ENTERPRISE_EDGE_RECOMMENDED" | "UNSUPPORTED_SYSTEM";
+  preferredMethod: string | null;
+  adapterType: string | null;
+  productionEligible: boolean;
+  reasonCodes: string[];
+  missingRequirements: string[];
+  securityNotes: string[];
+};
+
+const connectionRecommendationLabels: Record<CameraConnectionAssessmentView["recommendation"], string> = {
+  DIRECT_CONNECTION_AVAILABLE: "חיבור דיגיטלי זמין",
+  SOFTWARE_CONNECTOR_REQUIRED: "נדרש מחבר תוכנה",
+  PHYSICAL_GATEWAY_REQUIRED: "נדרש Gateway פיזי",
+  ENTERPRISE_EDGE_RECOMMENDED: "מומלץ Enterprise Edge",
+  UNSUPPORTED_SYSTEM: "נדרשים פרטים נוספים"
+};
+
+const connectionMethodLabels: Record<string, string> = {
+  VENDOR_CLOUD_API: "API מאובטח של היצרן",
+  DIRECT_SECURE: "חיבור דיגיטלי ישיר",
+  RTSP: "RTSP מאובטח",
+  ONVIF: "ONVIF",
+  DVR_NVR: "מערכת DVR / NVR",
+  SOFTWARE_CONNECTOR: "מחבר תוכנה מקומי",
+  PHYSICAL_GATEWAY: "Gateway פיזי",
+  ENTERPRISE_EDGE: "Enterprise Edge",
+  DEMO: "מצב הדמיה"
+};
+
+const connectionReasonLabels: Record<string, string> = {
+  AUTHORIZED_VENDOR_API_AVAILABLE: "קיים API מורשה של היצרן",
+  TLS_TRANSPORT_AVAILABLE: "התקשורת מוצפנת",
+  OUTBOUND_SECURE_DIRECT_PATH_AVAILABLE: "קיים מסלול ישיר, מוצפן ויוצא",
+  STANDARD_PROTOCOL_SECURELY_REACHABLE: "פרוטוקול תקני זמין בצורה מאובטחת",
+  STANDARD_PROTOCOL_IS_LAN_SCOPED: "המקור זמין רק ברשת המקומית",
+  UNDERLYING_PROTOCOL_ONVIF: "החיבור משתמש ב-ONVIF",
+  UNDERLYING_PROTOCOL_RTSP: "החיבור משתמש ב-RTSP",
+  LEGACY_RECORDER_REQUIRES_LOCAL_BRIDGE: "המקליט הוותיק דורש גשר מקומי",
+  OUTBOUND_AUTHENTICATED_GATEWAY_AVAILABLE: "ה-Gateway פועל בחיבור יוצא ומאומת",
+  NO_VERIFIED_SAFE_CONNECTION_PATH: "עדיין לא נמצא מסלול חיבור בטוח ומאומת",
+  EXPLICIT_TEST_DEMO_ONLY: "זהו מקור הדמיה בלבד"
+};
 
 async function postJson(path: string, body: unknown, accessToken?: string | null) {
   const authenticatedToken = accessToken || readObserverAccessToken();
@@ -124,6 +168,9 @@ export function ObserverCameraWizard({ sites, initialSiteId }: { sites: any[]; i
     preview_scene: ""
   });
   const [scanState, setScanState] = useState("");
+  const [connectionAssessment, setConnectionAssessment] = useState<CameraConnectionAssessmentView | null>(null);
+  const [assessmentBusy, setAssessmentBusy] = useState(false);
+  const [assessmentError, setAssessmentError] = useState("");
   const update = (key: string, value: any) => setForm((current) => ({ ...current, [key]: value }));
   const toggleTarget = (value: string) => update("monitoring_targets", form.monitoring_targets.includes(value) ? form.monitoring_targets.filter((item) => item !== value) : [...form.monitoring_targets, value]);
   async function submit() {
@@ -152,10 +199,40 @@ export function ObserverCameraWizard({ sites, initialSiteId }: { sites: any[]; i
       : step === 3
         ? "בחרו במה התצפיתן יתמקד לאחר החיבור"
         : `${form.location_label || "כניסה ראשית"} · מקור מצלמה במצב מוכנות`;
+  useEffect(() => {
+    if (step !== 2 || !form.observer_site_id) return;
+    let cancelled = false;
+    void Promise.resolve().then(async () => {
+      if (cancelled) return;
+      setAssessmentBusy(true);
+      setAssessmentError("");
+      try {
+        const data = await postJson("/api/digital-observer/connection-assessment", {
+          action: "assess_new",
+          observer_site_id: form.observer_site_id,
+          connector_type: form.connector_type,
+          connector_provider: form.connector_provider,
+          pairing_method: form.pairing_method,
+          pairing_payload_kind: form.pairing_payload_kind
+        });
+        if (!cancelled) setConnectionAssessment(data.assessment);
+      } catch (error) {
+        if (!cancelled) {
+          setConnectionAssessment(null);
+          setAssessmentError(error instanceof Error ? error.message : "לא ניתן להעריך את מסלול החיבור");
+        }
+      } finally {
+        if (!cancelled) setAssessmentBusy(false);
+      }
+    });
+    return () => { cancelled = true; };
+  }, [step, form.observer_site_id, form.connector_type, form.connector_provider, form.pairing_method, form.pairing_payload_kind]);
   function chooseMethod(method: ObserverCameraPairingMethod) {
     const descriptor = observerCameraConnectionMethods.find((item) => item.key === method) ?? observerCameraConnectionMethods[0];
     setForm((current) => ({ ...current, pairing_method: method, connector_type: descriptor.connectorType, pairing_payload_kind: "unknown" }));
     setScanState("");
+    setConnectionAssessment(null);
+    setAssessmentError("");
   }
   async function scanQrImage(file?: File) {
     if (!file) return;
@@ -196,7 +273,33 @@ export function ObserverCameraWizard({ sites, initialSiteId }: { sites: any[]; i
       <small>או גללו לבחירת חיבור דרך יצרן, רשת, NVR/DVR או Gateway.</small>
     </section> : null}
     {step === 1 ? <section className="do-panel do-form-section do-camera-connector-selection"><h2>הוספת מצלמה</h2><p>בחרו את סוג החיבור המוכר לכם. התצפיתן יציג רק את הפרטים הנדרשים למסלול הזה.</p><div className="do-connector-grid do-pairing-grid do-primary-pairing-grid">{primaryPairingMethods.map((method) => { const PairingIcon = primaryPairingIcons[method.key] ?? Camera; return <button type="button" className={form.pairing_method === method.key ? "selected" : ""} onClick={() => chooseMethod(method.key)} key={method.key}><PairingIcon /><strong>{primaryPairingLabels[method.key] ?? method.label}</strong><span>{method.shortDescription}</span>{form.pairing_method === method.key ? <Check /> : <ChevronLeft />}</button>; })}</div><details className="do-additional-pairing"><summary>אפשרויות נוספות: QR, ‏Gateway ומצלמת הדמיה</summary><div className="do-connector-grid do-pairing-grid">{additionalPairingMethods.map((method) => { const PairingIcon = primaryPairingIcons[method.key] ?? Camera; return <button type="button" className={form.pairing_method === method.key ? "selected" : ""} onClick={() => chooseMethod(method.key)} key={method.key}><PairingIcon /><strong>{method.label}</strong><span>{method.shortDescription}</span><b className="do-badge info">{method.badge}</b>{form.pairing_method === method.key ? <Check /> : null}</button>; })}</div></details><div className="do-notice info"><ShieldCheck /><span>פרטי חיבור רגישים נשמרים רק ב-Gateway או בכספת השרת, ולא בדפדפן.</span></div></section> : null}
-    {step === 2 ? <section className="do-panel do-form-section do-camera-test-step"><div className="do-section-head"><div><h2>בדיקת חיבור</h2><p>נבדוק את החיבור למצלמה בלי לחשוף סיסמה בדפדפן.</p></div><span className={selectedMethod.requiresGateway ? "do-badge warn" : "do-badge info"}>{selectedMethod.requiresGateway ? "דורש Gateway" : "בדיקה מאובטחת"}</span></div><div className="do-camera-connection-form"><div className="do-form-grid"><label className="do-field"><span>אתר</span><select value={form.observer_site_id} onChange={(event) => update("observer_site_id", event.target.value)}>{sites.map((site) => <option key={site.id} value={site.id}>{site.name}</option>)}</select></label><label className="do-field"><span>שם המצלמה</span><input value={form.display_name} onChange={(event) => update("display_name", event.target.value)} placeholder="מצלמת כניסה" /></label><label className="do-field"><span>מיקום</span><input value={form.location_label} onChange={(event) => update("location_label", event.target.value)} placeholder="כניסה ראשית" /></label><label className="do-field"><span>יצרן / מתאם</span><select value={form.connector_provider} onChange={(event) => update("connector_provider", event.target.value)}>{observerCameraManufacturers.map((manufacturer) => <option key={manufacturer.value} value={manufacturer.value}>{manufacturer.label}</option>)}</select></label></div><dl className="do-connection-facts"><div><dt>סוג חיבור</dt><dd>{primaryPairingLabels[selectedMethod.key] ?? selectedMethod.label}</dd></div><div><dt>מתאם</dt><dd>{selectedMethod.requiresGateway ? "Gateway מקומי" : "ONVIF / ספק מאושר"}</dd></div><div><dt>סטטוס</dt><dd>מוכן לבדיקה</dd></div></dl></div><div className="do-camera-test-preview"><ObserverCameraMedia name={previewName} scene={previewMode === "home" ? "home-entry" : "business-entry"} mode={previewMode} status="readiness" sourceMode={form.connector_type === "demo" ? "demo" : "readiness"} /><div className="do-camera-preview-controls" aria-label="בקרות תצוגה במצב מוכנות"><span>תצוגה מקדימה</span><button type="button" disabled aria-label="השהיה"><Camera /></button><button type="button" disabled aria-label="שמע"><Mic /></button><button type="button" disabled aria-label="צילום"><Image /></button></div></div><div className="do-connection-check-result"><span><Check /></span><div><strong>הפרטים מוכנים לבדיקה</strong><small>החיבור ייבדק בפועל לאחר חיבור Gateway או ספק מאושר.</small></div><b>{selectedMethod.requiresGateway ? "ממתין ל-Gateway" : "ממתין לספק"}</b></div>{form.pairing_method === "qr_scan" ? <div className="do-qr-capture"><label className="do-button secondary"><QrCode /> צילום או בחירת קוד QR<input type="file" accept="image/*" capture="environment" onChange={(event) => void scanQrImage(event.target.files?.[0])} /></label>{scanState ? <p>{scanState}</p> : <span>הסריקה מתבצעת במכשיר. התמונה ותוכן הקוד אינם נשמרים.</span>}</div> : null}<details className="do-camera-test-help"><summary>הוראות חיבור מפורטות</summary><div className="do-pairing-instructions"><div><strong>מה צריך להכין</strong><ul>{selectedMethod.requiredItems.map((item) => <li key={item}>{item}</li>)}</ul></div><ol>{selectedMethod.steps.map((item) => <li key={item}>{item}</li>)}</ol></div></details></section> : null}
+    {step === 2 ? <section className="do-panel do-form-section do-camera-test-step">
+      <div className="do-section-head">
+        <div><h2>בדיקת דרך החיבור</h2><p>נעדיף חיבור דיגיטלי בטוח ונציע חומרה רק כשיש לכך סיבה.</p></div>
+        <span className={connectionAssessment?.recommendation === "PHYSICAL_GATEWAY_REQUIRED" ? "do-badge warn" : "do-badge info"}>
+          {assessmentBusy ? "בודק אפשרויות..." : connectionAssessment ? connectionRecommendationLabels[connectionAssessment.recommendation] : "ממתין לבדיקה"}
+        </span>
+      </div>
+      <div className="do-camera-connection-form">
+        <div className="do-form-grid">
+          <label className="do-field"><span>אתר</span><select value={form.observer_site_id} onChange={(event) => update("observer_site_id", event.target.value)}>{sites.map((site) => <option key={site.id} value={site.id}>{site.name}</option>)}</select></label>
+          <label className="do-field"><span>שם המצלמה</span><input value={form.display_name} onChange={(event) => update("display_name", event.target.value)} placeholder="מצלמת כניסה" /></label>
+          <label className="do-field"><span>מיקום</span><input value={form.location_label} onChange={(event) => update("location_label", event.target.value)} placeholder="כניסה ראשית" /></label>
+          <label className="do-field"><span>יצרן / מערכת</span><select value={form.connector_provider} onChange={(event) => update("connector_provider", event.target.value)}>{observerCameraManufacturers.map((manufacturer) => <option key={manufacturer.value} value={manufacturer.value}>{manufacturer.label}</option>)}</select></label>
+        </div>
+        <dl className="do-connection-facts">
+          <div><dt>מערכת קיימת</dt><dd>{primaryPairingLabels[selectedMethod.key] ?? selectedMethod.label}</dd></div>
+          <div><dt>דרך מומלצת</dt><dd>{connectionAssessment?.preferredMethod ? connectionMethodLabels[connectionAssessment.preferredMethod] ?? connectionAssessment.preferredMethod : "טרם נקבעה"}</dd></div>
+          <div><dt>מתאם</dt><dd>{connectionAssessment?.adapterType ?? "ייקבע לאחר האימות"}</dd></div>
+        </dl>
+      </div>
+      <div className="do-camera-test-preview"><ObserverCameraMedia name={previewName} scene={previewMode === "home" ? "home-entry" : "business-entry"} mode={previewMode} status="readiness" sourceMode={form.connector_type === "demo" ? "demo" : "readiness"} /><div className="do-camera-preview-controls" aria-label="בקרות תצוגה במצב מוכנות"><span>תצוגה מקדימה</span><button type="button" disabled aria-label="השהיה"><Camera /></button><button type="button" disabled aria-label="שמע"><Mic /></button><button type="button" disabled aria-label="צילום"><Image /></button></div></div>
+      {assessmentError ? <div className="do-notice warn"><AlertTriangle /><span>{assessmentError}</span></div> : null}
+      {connectionAssessment ? <div className="do-connection-check-result"><span><Check /></span><div><strong>{connectionRecommendationLabels[connectionAssessment.recommendation]}</strong><small>{connectionAssessment.reasonCodes.map((code) => connectionReasonLabels[code] ?? code).join(" · ")}</small>{connectionAssessment.missingRequirements.length ? <small>להשלמה: {connectionAssessment.missingRequirements.join(" · ")}</small> : null}</div><b>{connectionAssessment.productionEligible ? "מוכן לחיבור מאומת" : "דורש השלמה"}</b></div> : null}
+      <div className="do-notice info"><ShieldCheck /><span>סיסמאות וכתובות מקור נשמרות רק בצד השרת או במחבר המקומי. לא תתבצע ירידה אוטומטית למסלול חלש או חשוף.</span></div>
+      {form.pairing_method === "qr_scan" ? <div className="do-qr-capture"><label className="do-button secondary"><QrCode /> צילום או בחירת קוד QR<input type="file" accept="image/*" capture="environment" onChange={(event) => void scanQrImage(event.target.files?.[0])} /></label>{scanState ? <p>{scanState}</p> : <span>הסריקה מתבצעת במכשיר. התמונה ותוכן הקוד אינם נשמרים.</span>}</div> : null}
+      <details className="do-camera-test-help"><summary>הוראות חיבור מפורטות</summary><div className="do-pairing-instructions"><div><strong>מה צריך להכין</strong><ul>{selectedMethod.requiredItems.map((item) => <li key={item}>{item}</li>)}</ul></div><ol>{selectedMethod.steps.map((item) => <li key={item}>{item}</li>)}</ol></div></details>
+    </section> : null}
     {step === 3 ? <section className="do-panel do-form-section do-camera-target-step"><h2>מה חשוב לך שנזהה?</h2><p>בחרו במה התצפיתן יתמקד לאחר חיבור ואישור. אפשר לשנות בכל עת.</p><div className="do-toggle-grid do-camera-target-grid">{[["person","אדם"],["children","ילד / תינוק"],["animal","חיית מחמד"],["known_faces","פנים מוכרות"],["entry_exit","כניסה / יציאה"],["after_hours","תנועה אחרי שעות"],["camera_obstruction","מצלמה מכוסה"]].map(([value,label]) => { const TargetIcon = targetIcons[value] ?? Radar; return <button type="button" className={form.monitoring_targets.includes(value) ? "selected" : ""} onClick={() => toggleTarget(value)} key={value}><TargetIcon /><span>{label}</span>{form.monitoring_targets.includes(value) ? <Check /> : null}</button>; })}</div><div className="do-notice info"><BrainCircuit /><span>התצפיתן ילמד דפוסים רק לאחר חיבור מאושר ומשוב מאומת. מצב זה אינו מפעיל AI חי או זיהוי ביומטרי.</span></div></section> : null}
     {step === 4 ? <section className="do-panel do-form-section do-camera-connect-summary do-camera-summary-detail">
       <div className="do-camera-summary-head">
@@ -218,7 +321,8 @@ export function ObserverCameraWizard({ sites, initialSiteId }: { sites: any[]; i
             <div className="do-camera-summary-section-head"><div><Camera /><h3 id="camera-facts-title">פרטי המצלמה</h3></div><span className="do-badge info">מוכנות</span></div>
             <div className="do-summary-list">
               <div><span>דרך חיבור</span><strong>{selectedMethod.label}</strong></div>
-              <div><span>מצב</span><strong>{form.connector_type === "demo" ? "הדמיה בטוחה" : selectedMethod.requiresGateway ? "מוכן להגדרת Gateway" : "מוכן לאימות ספק"}</strong></div>
+              <div><span>מצב</span><strong>{form.connector_type === "demo" ? "הדמיה בטוחה" : connectionAssessment ? connectionRecommendationLabels[connectionAssessment.recommendation] : "מוכן להערכת חיבור"}</strong></div>
+              <div><span>דרך מומלצת</span><strong>{connectionAssessment?.preferredMethod ? connectionMethodLabels[connectionAssessment.preferredMethod] ?? connectionAssessment.preferredMethod : "טרם נקבעה"}</strong></div>
               <div><span>מיקום</span><strong>{form.location_label || "כניסה ראשית"}</strong></div>
               <div><span>מטרות ניטור</span><strong>{form.monitoring_targets.length} נבחרו</strong></div>
             </div>
@@ -233,9 +337,9 @@ export function ObserverCameraWizard({ sites, initialSiteId }: { sites: any[]; i
           </section>
         </div>
       </div>
-      <div className="do-notice info"><ShieldCheck /><span>השמירה יוצרת מקור מוכנות בלבד. וידאו, AI והתראות יתחילו רק לאחר חיבור מאובטח והסכמה מתאימה.</span></div>
+      <div className="do-notice info"><ShieldCheck /><span>השמירה יוצרת מקור מוכנות עם המלצת חיבור מתועדת. וידאו, AI והתראות יתחילו רק לאחר חיבור מאובטח והסכמה מתאימה.</span></div>
     </section> : null}
-    <ResultMessage state={state} /><div className="do-wizard-actions">{step < 4 ? <button className="do-button primary" type="button" disabled={step === 2 && form.display_name.trim().length < 2} onClick={() => setStep((value) => value + 1)}>המשך <ChevronLeft /></button> : <button className="do-button primary" type="button" disabled={state.busy || !form.observer_site_id || form.display_name.trim().length < 2} onClick={submit}>שמירת מקור המצלמה</button>}{step > 1 ? <button className="do-button secondary" type="button" onClick={() => setStep((value) => value - 1)}>חזרה</button> : <button className="do-button secondary" type="button" onClick={() => router.push("/digital-observer/cameras")}>ביטול</button>}</div>
+    <ResultMessage state={state} /><div className="do-wizard-actions">{step < 4 ? <button className="do-button primary" type="button" disabled={step === 2 && (form.display_name.trim().length < 2 || assessmentBusy || !connectionAssessment)} onClick={() => setStep((value) => value + 1)}>המשך <ChevronLeft /></button> : <button className="do-button primary" type="button" disabled={state.busy || !form.observer_site_id || form.display_name.trim().length < 2} onClick={submit}>שמירת מקור המצלמה</button>}{step > 1 ? <button className="do-button secondary" type="button" onClick={() => setStep((value) => value - 1)}>חזרה</button> : <button className="do-button secondary" type="button" onClick={() => router.push("/digital-observer/cameras")}>ביטול</button>}</div>
   </div>;
 }
 

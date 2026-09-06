@@ -3,6 +3,12 @@ import { fail, handleRouteError, ok } from "@/lib/api";
 import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
 import { buildDigitalObserverCameraReadiness, digitalObserverConnectorTypes } from "@/lib/domain/digital-observer/connectors";
 import { observerCameraPairingMethods } from "@/lib/domain/digital-observer/camera-connection-methods";
+import {
+  assessCameraConnection,
+  buildExistingSourceAssessmentInput,
+  buildPairingConnectionAssessmentInput,
+  cameraConnectionMetadataForAssessment
+} from "@/lib/domain/digital-observer/camera-connection-layer";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 const targets = ["person", "unknown_person", "animal", "entry_exit", "vehicle", "vehicle_tampering", "distress", "room_entry_exit", "after_hours", "camera_obstruction", "restricted_area", "crowding", "door_left_open"] as const;
@@ -101,6 +107,13 @@ export async function POST(request: Request) {
       const site = await getObserverSiteAccess(supabase, profile, payload.observer_site_id, { manage: true });
       if (!site) return fail("אין הרשאה להוסיף מצלמה לאתר הזה.", 403);
       const readiness = buildDigitalObserverCameraReadiness(payload.connector_type);
+      const assessment = assessCameraConnection(buildPairingConnectionAssessmentInput({
+        siteId: payload.observer_site_id,
+        connectorType: payload.connector_type,
+        provider: payload.connector_provider,
+        pairingMethod: payload.pairing_method,
+        pairingPayloadKind: payload.pairing_payload_kind
+      }));
       const { data, error } = await supabase.from("digital_observer_camera_sources" as any).insert({
         observer_site_id: payload.observer_site_id,
         display_name: payload.display_name,
@@ -113,29 +126,42 @@ export async function POST(request: Request) {
         stream_protocol: payload.connector_type === "rtsp" ? "rtsp_tcp" : null,
         preview_scene: payload.preview_scene ?? null,
         monitoring_targets: payload.monitoring_targets,
-        capabilities: readiness.capabilities,
+        capabilities: {
+          ...readiness.capabilities,
+          canonical_connection_capabilities: assessment.capabilities,
+          production_connection_eligible: assessment.productionEligible,
+          automatic_insecure_fallback: false
+        },
         created_by: profile.id,
         metadata: {
           ...readiness.metadata,
           pairing_method: payload.pairing_method,
           pairing_payload_kind: payload.pairing_payload_kind,
           qr_payload_stored: false,
-          connection_instructions_ready: true
+          connection_instructions_ready: true,
+          ...cameraConnectionMetadataForAssessment(assessment)
         }
       }).select("id,observer_site_id,display_name,location_label,connector_type,source_mode,status,health_status,monitoring_targets").single();
       if (error || !data) return fail("לא ניתן לשמור את מקור המצלמה. יש לוודא שהמיגרציה הוחלה.", 400);
       const learningResult = await supabase.rpc("initialize_digital_observer_learning" as any, { requested_site_id: payload.observer_site_id });
       return ok({
         camera: data,
+        connection_assessment: assessment,
         learning_initialized: !learningResult.error,
         message: payload.connector_type === "demo"
           ? "מצלמת ההדמיה מוכנה והופעל מסלול למידת שגרה בטוח. אין עיבוד וידאו חי."
-          : "המקור נשמר והאתר מוכן ללמידה. עיבוד וידאו יתחיל רק לאחר חיבור Gateway מאובטח."
+          : assessment.recommendation === "DIRECT_CONNECTION_AVAILABLE"
+            ? "המקור נשמר. נמצא מסלול דיגיטלי מועדף והוא יופעל רק לאחר אימות והרשאה."
+            : assessment.recommendation === "SOFTWARE_CONNECTOR_REQUIRED"
+              ? "המקור נשמר. מומלץ מחבר תוכנה מקומי ויוצא; אין צורך להניח מראש חומרת Gateway."
+              : assessment.recommendation === "PHYSICAL_GATEWAY_REQUIRED"
+                ? "המקור נשמר. Gateway פיזי נדרש רק לפי אילוצי המערכת שתועדו."
+                : "המקור נשמר במצב מוכנות. נדרשים פרטי מערכת נוספים לפני בחירת חיבור בטוח."
       }, 201);
     }
 
     const { data: source } = await supabase.from("digital_observer_camera_sources" as any)
-      .select("id,observer_site_id,display_name,location_label,connector_type,status,health_status,metadata")
+      .select("id,observer_site_id,camera_stream_id,display_name,location_label,connector_type,connector_provider,source_mode,status,health_status,stream_protocol,gateway_provider,capabilities,last_health_check_at,last_seen_at,secret_reference,metadata")
       .eq("id", payload.id)
       .maybeSingle();
     if (!source) return fail("מקור המצלמה לא נמצא.", 404);
@@ -187,21 +213,42 @@ export async function POST(request: Request) {
     }
 
     const demo = source.connector_type === "demo";
+    const assessment = assessCameraConnection(buildExistingSourceAssessmentInput(source));
     const { data, error } = await supabase.from("digital_observer_camera_sources" as any)
       .update({
         status: "ready_to_test",
         health_status: demo ? "healthy" : "unknown",
         last_health_check_at: new Date().toISOString(),
-        last_error_code: demo ? null : "GATEWAY_CONFIGURATION_REQUIRED",
-        last_error_message: demo ? null : "נדרש Gateway מאובטח ופרטי חיבור בצד השרת.",
-        metadata: { ...(source.metadata ?? {}), last_readiness_test: new Date().toISOString(), real_stream_tested: false },
+        last_error_code: demo ? null : assessment.missingRequirements[0] ?? "CONNECTION_TEST_REQUIRED",
+        last_error_message: demo ? null : assessment.recommendation === "SOFTWARE_CONNECTOR_REQUIRED"
+          ? "נדרש מחבר תוכנה מקומי ומאומת לפני בדיקת וידאו."
+          : assessment.recommendation === "PHYSICAL_GATEWAY_REQUIRED"
+            ? "נדרש Gateway מאומת בגלל אילוצי המקור המקומי."
+            : "נדרשת השלמת מסלול חיבור מאובטח לפני בדיקת וידאו.",
+        metadata: {
+          ...(source.metadata ?? {}),
+          last_readiness_test: new Date().toISOString(),
+          real_stream_tested: false,
+          ...cameraConnectionMetadataForAssessment(assessment)
+        },
         updated_at: new Date().toISOString()
       })
       .eq("id", payload.id)
       .select("id,status,health_status,last_error_code,last_error_message,last_health_check_at")
       .single();
     if (error) return fail("בדיקת המוכנות נכשלה.", 400);
-    return ok({ camera: data, real_stream_tested: false, message: demo ? "מקור ההדמיה עבר בדיקת מוכנות." : "מבנה המקור תקין. בדיקת וידאו אמיתית ממתינה ל-Gateway." });
+    return ok({
+      camera: data,
+      connection_assessment: assessment,
+      real_stream_tested: false,
+      message: demo
+        ? "מקור ההדמיה עבר בדיקת מוכנות."
+        : assessment.recommendation === "SOFTWARE_CONNECTOR_REQUIRED"
+          ? "מבנה המקור תקין. בדיקת וידאו אמיתית ממתינה למחבר תוכנה מאומת."
+          : assessment.recommendation === "PHYSICAL_GATEWAY_REQUIRED"
+            ? "מבנה המקור תקין. בדיקת וידאו אמיתית ממתינה ל-Gateway המוצדק עבור מקור זה."
+            : "מבנה המקור תקין. נדרש להשלים את מסלול החיבור המומלץ לפני בדיקת וידאו."
+    });
   } catch (error) {
     return handleRouteError(error);
   }
