@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
+import { createDigitalObserverAdminDataClient, hasObserverAdminClaim } from "@/lib/domain/digital-observer/admin-access";
 import { observerCameraPairingMethods } from "@/lib/domain/digital-observer/camera-connection-methods";
 import { digitalObserverConnectorTypes } from "@/lib/domain/digital-observer/connectors";
 import {
@@ -96,9 +97,12 @@ export async function POST(request: Request) {
     if (!session) return fail("נדרשת התחברות מחדש לתצפיתן הדיגיטלי.", 401);
     const payload = schema.parse(await request.json());
     redactUnsafeOnboardingPayload(payload);
-    const site = await getObserverSiteAccess(session.supabase, session.profile, payload.observer_site_id, payload.action === "get" ? {} : { manage: true });
+    const observerAdmin = hasObserverAdminClaim(session.user.app_metadata);
+    const supabase = (observerAdmin ? createDigitalObserverAdminDataClient() : session.supabase) as any;
+    const site = observerAdmin
+      ? (await supabase.from("observer_sites").select("id,name,site_type,timezone,garden_id").eq("id", payload.observer_site_id).is("garden_id", null).neq("site_type", "kindergarten").maybeSingle()).data
+      : await getObserverSiteAccess(session.supabase, session.profile, payload.observer_site_id, payload.action === "get" ? {} : { manage: true });
     if (!site) return fail(payload.action === "get" ? "אין הרשאה לצפות במצב החיבור באתר הזה." : "אין הרשאת ניהול לחיבור באתר הזה.", 403);
-    const supabase = session.supabase as any;
     const draft = await loadDraft(supabase, session.profile.id, site.id);
 
     if (payload.action === "get") {

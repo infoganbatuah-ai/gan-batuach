@@ -37,6 +37,7 @@
     "qa:digital-observer-camera-connections": "node --test scripts/qa/check-digital-observer-camera-connection-layer.mjs",
     "qa:digital-observer-camera-connections-production": "node scripts/qa/verify-production-camera-connection-layer.mjs",
     "qa:digital-observer-camera-onboarding": "node --test scripts/qa/check-digital-observer-camera-onboarding.mjs",
+    "qa:digital-observer-camera-onboarding-production": "node scripts/qa/verify-production-camera-onboarding.mjs",
     "release:production:preflight": "node scripts/qa/check-production-release-snapshot.mjs",
     "qa:observer-engine-separation": "node scripts/qa/check-observer-engine-separation.mjs",
     "qa:dvr-shared-session": "node scripts/qa/check-dvr-shared-session-and-offline.mjs",

@@ -34,6 +34,8 @@ test("discovered, configured and active monitoring remain distinct", () => {
 
 test("server onboarding route is tenant/site scoped, resumable and does not accept secrets", () => {
   assert.match(route, /getObserverSiteAccess\(session\.supabase, session\.profile, payload\.observer_site_id/);
+  assert.match(route, /hasObserverAdminClaim\(session\.user\.app_metadata\)/);
+  assert.match(route, /createDigitalObserverAdminDataClient\(\)/);
   assert.match(route, /camera_connection_onboarding/);
   assert.match(route, /camera_connection_onboarding_audit/);
   assert.match(route, /assertSafeCameraConnectionAssessmentPayload/);
