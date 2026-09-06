@@ -3,15 +3,350 @@ import { createHash } from "node:crypto";
 import { getStreamActivityInsight } from "@/lib/domain/video-gateway-client";
 import { behaviorBaselineSchema, detectBehaviorAnomaly, learningObservationSchema, observationHour, updateBehaviorBaseline, type BehaviorBaseline } from "./learning-engine";
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any -- this project uses dynamic Supabase tables without generated database types.
 type SupabaseLike = any;
 type ActivitySample = { stream_id?: string; motion_score: number; luminance_score: number; sampled_at: string };
+type RealEventRow = {
+  id?: unknown;
+  source_type?: unknown;
+  created_at?: unknown;
+  confidence?: unknown;
+  metadata?: unknown;
+};
+type CameraSourceRow = {
+  id?: unknown;
+  status?: unknown;
+  location_label?: unknown;
+  stream_protocol?: unknown;
+  metadata?: unknown;
+};
+type LearningScheduleRow = {
+  status?: unknown;
+  schedule_mode?: unknown;
+  timezone?: unknown;
+  active_days?: unknown;
+  active_hours?: unknown;
+  schedule?: unknown;
+};
 type LearningUpdate = {
   patternKey: string; eventType: string; confidence: number; recommendedAction: string;
   metadata: Record<string, unknown>; severity?: "info" | "low" | "medium"; cameraSourceId?: string | null;
 };
 
-function objectValue(value: unknown): Record<string, any> {
-  return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, any> : {};
+function objectValue(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
+}
+
+export const REAL_EVENT_CONTEXT_BASELINE_VERSION = "v1_real_camera_event_context";
+
+type ContextMaturity = "NO_DATA" | "LEARNING" | "LOW_CONFIDENCE" | "ESTABLISHED" | "STALE";
+type LocalEventTime = { local_date: string; local_hour: number; local_day_of_week: string };
+type ExpectedHours = { configured: boolean; within_expected_hours: boolean | null; source: "none" | "schedule" };
+type CanonicalRealEvent = {
+  id: string;
+  camera_source_id: string;
+  stream_id: string | null;
+  event_type: string;
+  timestamp: string;
+  confidence: number | null;
+  track_id: string | null;
+  zone: string | null;
+  evidence_status: string | null;
+  recording_required: boolean | null;
+  model_provenance: Record<string, unknown> | null;
+  local: LocalEventTime;
+  expected_hours: ExpectedHours;
+};
+
+function valueObject(value: unknown): Record<string, unknown> {
+  return value && typeof value === "object" && !Array.isArray(value) ? value as Record<string, unknown> : {};
+}
+
+function localEventTime(timestamp: string, timeZone: string): LocalEventTime {
+  const date = new Date(timestamp);
+  if (Number.isNaN(date.getTime())) throw new Error("REAL_EVENT_CONTEXT_TIMESTAMP_INVALID");
+  try {
+    const parts = new Intl.DateTimeFormat("en-CA", {
+      timeZone,
+      year: "numeric",
+      month: "2-digit",
+      day: "2-digit",
+      weekday: "short",
+      hour: "2-digit",
+      hourCycle: "h23"
+    }).formatToParts(date);
+    const part = (type: Intl.DateTimeFormatPartTypes) => parts.find((item) => item.type === type)?.value ?? "";
+    const hour = Number(part("hour"));
+    const year = part("year");
+    const month = part("month");
+    const day = part("day");
+    const weekday = part("weekday").toLowerCase();
+    if (!Number.isInteger(hour) || hour < 0 || hour > 23 || !/^\d{4}$/.test(year) || !/^\d{2}$/.test(month) || !/^\d{2}$/.test(day) || !weekday) {
+      throw new Error("REAL_EVENT_CONTEXT_TIMEZONE_INVALID");
+    }
+    return { local_date: `${year}-${month}-${day}`, local_hour: hour, local_day_of_week: weekday };
+  } catch {
+    throw new Error("REAL_EVENT_CONTEXT_TIMEZONE_INVALID");
+  }
+}
+
+function minutes(value: unknown) {
+  if (typeof value !== "string" || !/^([01]\d|2[0-3]):[0-5]\d$/.test(value)) return null;
+  const [hours, mins] = value.split(":").map(Number);
+  return hours * 60 + mins;
+}
+
+function localMinutes(timestamp: string, timeZone: string) {
+  const date = new Date(timestamp);
+  const parts = new Intl.DateTimeFormat("en-GB", { timeZone, hour: "2-digit", minute: "2-digit", hourCycle: "h23" }).formatToParts(date);
+  const hour = Number(parts.find((part) => part.type === "hour")?.value);
+  const minute = Number(parts.find((part) => part.type === "minute")?.value);
+  return Number.isInteger(hour) && Number.isInteger(minute) ? hour * 60 + minute : null;
+}
+
+function activeOnLocalDay(activeDays: unknown, localDay: string) {
+  if (!Array.isArray(activeDays) || !activeDays.length) return true;
+  const dayNames = ["sun", "mon", "tue", "wed", "thu", "fri", "sat"];
+  const index = dayNames.indexOf(localDay.slice(0, 3));
+  return activeDays.some((value) => value === index || String(value).toLowerCase().slice(0, 3) === localDay.slice(0, 3));
+}
+
+/**
+ * An operating schedule is context, never a threat classification. Only an
+ * active 24/7, business-hours or custom range can yield a boolean; all other
+ * modes deliberately remain unknown instead of treating missing hours as odd.
+ */
+export function expectedHoursAt(schedule: LearningScheduleRow | null | undefined, timestamp: string, timeZone: string): ExpectedHours {
+  if (!schedule || schedule.status !== "active") return { configured: false, within_expected_hours: null, source: "none" };
+  const mode = String(schedule.schedule_mode ?? valueObject(schedule.schedule).mode ?? "");
+  if (mode === "24_7") return { configured: true, within_expected_hours: true, source: "schedule" };
+  if (!(["business_hours", "custom_schedule"].includes(mode))) return { configured: false, within_expected_hours: null, source: "none" };
+  const scheduleValue = valueObject(schedule.schedule);
+  const hourRange = valueObject(scheduleValue.hours);
+  const fallbackRange = valueObject(schedule.active_hours);
+  const start = minutes(hourRange.start ?? fallbackRange.start);
+  const end = minutes(hourRange.end ?? fallbackRange.end);
+  const local = localEventTime(timestamp, timeZone);
+  const now = localMinutes(timestamp, timeZone);
+  if (start === null || end === null || start === end || now === null) return { configured: false, within_expected_hours: null, source: "none" };
+  const inRange = start < end ? now >= start && now < end : now >= start || now < end;
+  return { configured: true, within_expected_hours: activeOnLocalDay(schedule.active_days, local.local_day_of_week) && inRange, source: "schedule" };
+}
+
+export function canonicalRealEventContext(event: RealEventRow, timeZone: string, schedule?: LearningScheduleRow | null): CanonicalRealEvent | null {
+  const metadata = valueObject(event.metadata);
+  const cameraSourceId = typeof metadata.camera_source_id === "string" ? metadata.camera_source_id : "";
+  const eventType = typeof metadata.event_type === "string" ? metadata.event_type : "";
+  const timestamp = typeof event.created_at === "string" ? event.created_at : "";
+  if (event.source_type !== "system" || metadata.observation_provenance !== "REAL_CAMERA_AI" || metadata.validated_event !== true
+    || !cameraSourceId || !eventType || !timestamp || !event.id) return null;
+  const local = localEventTime(timestamp, timeZone);
+  const confidence = typeof event.confidence === "number" && Number.isFinite(event.confidence) ? event.confidence : null;
+  return {
+    id: String(event.id), camera_source_id: cameraSourceId,
+    stream_id: typeof metadata.stream_id === "string" ? metadata.stream_id : null,
+    event_type: eventType, timestamp: new Date(timestamp).toISOString(), confidence,
+    track_id: typeof metadata.track_id === "string" ? metadata.track_id : null,
+    zone: typeof metadata.zone_id === "string" ? metadata.zone_id : typeof metadata.zone_type === "string" ? metadata.zone_type : null,
+    evidence_status: typeof metadata.media_status === "string" ? metadata.media_status : null,
+    recording_required: typeof metadata.recording_required === "boolean" ? metadata.recording_required : null,
+    model_provenance: valueObject(metadata.model_provenance),
+    local,
+    expected_hours: expectedHoursAt(schedule, timestamp, timeZone)
+  };
+}
+
+export function realEventCameraConfigurationFingerprint(source: CameraSourceRow) {
+  const metadata = valueObject(source.metadata);
+  const safeConfiguration = {
+    camera_source_id: String(source.id ?? ""),
+    gateway_stream_id: typeof metadata.gateway_stream_id === "string" ? metadata.gateway_stream_id : null,
+    zone_type: typeof metadata.zone_type === "string" ? metadata.zone_type : null,
+    crossing_line: metadata.crossing_line ?? null,
+    location_label: typeof source.location_label === "string" ? source.location_label : null,
+    stream_protocol: typeof source.stream_protocol === "string" ? source.stream_protocol : null
+  };
+  return createHash("sha256").update(JSON.stringify(safeConfiguration)).digest("hex");
+}
+
+function contextMaturity(eventCount: number, dayCount: number, firstAt: string | null, lastAt: string | null, configurationChanged: boolean): ContextMaturity {
+  if (configurationChanged) return "STALE";
+  if (!eventCount || !firstAt || !lastAt) return "NO_DATA";
+  const windowDays = Math.max(0, (Date.parse(lastAt) - Date.parse(firstAt)) / 86_400_000);
+  if (eventCount < 12 || windowDays < 7) return "LEARNING";
+  if (eventCount < 48 || dayCount < 5 || windowDays < 21) return "LOW_CONFIDENCE";
+  return "ESTABLISHED";
+}
+
+function contextConfidence(maturity: ContextMaturity, eventCount: number) {
+  if (maturity === "ESTABLISHED") return Math.min(0.9, 0.7 + Math.min(0.2, eventCount / 1_000));
+  if (maturity === "LOW_CONFIDENCE") return Math.min(0.69, 0.35 + eventCount / 200);
+  if (maturity === "LEARNING") return Math.min(0.34, eventCount / 36);
+  return 0;
+}
+
+function increment(target: Record<string, number>, key: string | null) {
+  if (!key) return;
+  target[key] = (target[key] ?? 0) + 1;
+}
+
+function trackedDurationSeconds(events: CanonicalRealEvent[]) {
+  const pendingEntries = new Map<string, CanonicalRealEvent>();
+  const durations: number[] = [];
+  for (const event of events) {
+    if (!event.track_id) continue;
+    if (event.event_type === "person_entered") pendingEntries.set(event.track_id, event);
+    if (event.event_type === "person_exited") {
+      const entry = pendingEntries.get(event.track_id);
+      const duration = entry ? Date.parse(event.timestamp) - Date.parse(entry.timestamp) : NaN;
+      if (Number.isFinite(duration) && duration >= 0 && duration <= 30 * 60_000) durations.push(Math.round(duration / 1_000));
+      pendingEntries.delete(event.track_id);
+    }
+  }
+  return { sample_count: durations.length, average_seconds: durations.length ? Math.round(durations.reduce((sum, value) => sum + value, 0) / durations.length) : null };
+}
+
+/**
+ * Deterministic, site- and camera-scoped projection of canonical real events.
+ * It intentionally records context and confidence only; it never assigns risk,
+ * threat labels or autonomous actions.
+ */
+export function buildRealEventContextBaseline(input: {
+  observerSiteId: string;
+  timeZone: string;
+  events: RealEventRow[];
+  sources: CameraSourceRow[];
+  schedule?: LearningScheduleRow | null;
+  previous?: Record<string, unknown> | null;
+  generatedAt?: string;
+}) {
+  const generatedAt = input.generatedAt ?? new Date().toISOString();
+  const sources = new Map(input.sources.filter((source) => typeof source.id === "string").map((source) => [String(source.id), source]));
+  const events = input.events.map((event) => canonicalRealEventContext(event, input.timeZone, input.schedule))
+    .filter((event): event is CanonicalRealEvent => Boolean(event && sources.has(event.camera_source_id)))
+    .sort((left, right) => left.timestamp.localeCompare(right.timestamp));
+  const previous = valueObject(input.previous);
+  const previousCameras = valueObject(previous.cameras);
+  const cameras: Record<string, Record<string, unknown>> = {};
+
+  for (const [cameraId, source] of sources) {
+    const prior = valueObject(previousCameras[cameraId]);
+    const configurationFingerprint = realEventCameraConfigurationFingerprint(source);
+    const configurationChanged = typeof prior.configuration_fingerprint === "string" && prior.configuration_fingerprint !== configurationFingerprint;
+    const sourceEvents = events.filter((event) => event.camera_source_id === cameraId);
+    const latest = sourceEvents.at(-1) ?? null;
+    const baselineStartedAt = configurationChanged
+      ? latest?.timestamp ?? generatedAt
+      : typeof prior.baseline_started_at === "string" ? prior.baseline_started_at : sourceEvents[0]?.timestamp ?? null;
+    const eligible = sourceEvents.filter((event) => !baselineStartedAt || Date.parse(event.timestamp) >= Date.parse(baselineStartedAt));
+    const eventTypes: Record<string, number> = {};
+    const hours: Record<string, number> = {};
+    const days: Record<string, number> = {};
+    const zones: Record<string, number> = {};
+    const directions: Record<string, number> = {};
+    const evidence: Record<string, number> = {};
+    const expectedHours = { configured_events: 0, within_expected_hours: 0, outside_expected_hours: 0, unknown: 0 };
+    for (const event of eligible) {
+      increment(eventTypes, event.event_type);
+      increment(hours, String(event.local.local_hour));
+      increment(days, event.local.local_date);
+      increment(zones, event.zone);
+      increment(evidence, event.evidence_status ?? (event.recording_required === false ? "not_required" : null));
+      if (event.event_type === "person_entered") increment(directions, "entry");
+      if (event.event_type === "person_exited") increment(directions, "exit");
+      if (!event.expected_hours.configured || event.expected_hours.within_expected_hours === null) expectedHours.unknown += 1;
+      else {
+        expectedHours.configured_events += 1;
+        if (event.expected_hours.within_expected_hours) expectedHours.within_expected_hours += 1;
+        else expectedHours.outside_expected_hours += 1;
+      }
+    }
+    const firstAt = eligible[0]?.timestamp ?? null;
+    const lastAt = eligible.at(-1)?.timestamp ?? null;
+    const maturity = contextMaturity(eligible.length, Object.keys(days).length, firstAt, lastAt, configurationChanged);
+    cameras[cameraId] = {
+      configuration_fingerprint: configurationFingerprint,
+      baseline_started_at: baselineStartedAt,
+      baseline_invalidated_at: configurationChanged ? generatedAt : prior.baseline_invalidated_at ?? null,
+      invalidation_reason: configurationChanged ? "CAMERA_OR_ZONE_CONFIGURATION_CHANGED" : prior.invalidation_reason ?? null,
+      maturity,
+      confidence: contextConfidence(maturity, eligible.length),
+      event_count: eligible.length,
+      distinct_local_days: Object.keys(days).length,
+      first_event_at: firstAt,
+      last_event_at: lastAt,
+      event_types: eventTypes,
+      activity_by_local_hour: hours,
+      activity_by_local_date: days,
+      zone_activity: zones,
+      direction_counts: directions,
+      evidence_availability: evidence,
+      tracked_duration: trackedDurationSeconds(eligible),
+      unique_track_count: new Set(eligible.map((event) => event.track_id).filter(Boolean)).size,
+      expected_hours: expectedHours,
+      provenance: "REAL_CAMERA_AI",
+      mock_or_shadow_events_included: false
+    };
+  }
+
+  const maturityOrder: ContextMaturity[] = ["NO_DATA", "STALE", "LEARNING", "LOW_CONFIDENCE", "ESTABLISHED"];
+  // Site-level presentation is derived only from cameras with real history.
+  // A newly added empty camera must not erase another camera's established
+  // baseline, and its own NO_DATA state remains explicit in `cameras`.
+  const states = Object.values(cameras)
+    .filter((camera) => Number(camera.event_count ?? 0) > 0)
+    .map((camera) => String(camera.maturity) as ContextMaturity);
+  const overallMaturity = states.length ? states.sort((left, right) => maturityOrder.indexOf(left) - maturityOrder.indexOf(right))[0] : "NO_DATA";
+  const realEventCount = Object.values(cameras).reduce((sum, camera) => sum + Number(camera.event_count ?? 0), 0);
+  return {
+    version: REAL_EVENT_CONTEXT_BASELINE_VERSION,
+    observer_site_id: input.observerSiteId,
+    time_zone: input.timeZone,
+    generated_at: generatedAt,
+    source: "canonical_real_camera_ai_events",
+    real_data_only: true,
+    baseline_maturity: overallMaturity,
+    confidence: contextConfidence(overallMaturity, realEventCount),
+    real_event_count: realEventCount,
+    cameras,
+    deviation_policy: {
+      enabled: overallMaturity === "ESTABLISHED",
+      insufficient_data_signal: overallMaturity !== "ESTABLISHED" ? "BASELINE_CONFIDENCE_INSUFFICIENT" : null,
+      risk_or_threat_classification: false
+    }
+  };
+}
+
+/** Factual context only. A missing or immature baseline can never become an anomaly claim. */
+export function evaluateRealEventContext(event: CanonicalRealEvent, cameraBaseline: Record<string, unknown> | null | undefined) {
+  const baseline = valueObject(cameraBaseline);
+  if (baseline.maturity !== "ESTABLISHED") {
+    return {
+      baseline_confidence_insufficient: true,
+      expected_pattern_signals: [],
+      deviation_signals: [],
+      reason: "BASELINE_CONFIDENCE_INSUFFICIENT"
+    };
+  }
+  const hourly = valueObject(baseline.activity_by_local_hour);
+  const eventTypes = valueObject(baseline.event_types);
+  const directions = valueObject(baseline.direction_counts);
+  const total = Math.max(1, Number(baseline.event_count ?? 0));
+  const hourCount = Number(hourly[String(event.local.local_hour)] ?? 0);
+  const typeCount = Number(eventTypes[event.event_type] ?? 0);
+  const direction = event.event_type === "person_entered" ? "entry" : event.event_type === "person_exited" ? "exit" : null;
+  const directionCount = direction ? Number(directions[direction] ?? 0) : null;
+  const expected_pattern_signals = [
+    { key: "time_of_day_common", value: hourCount >= Math.max(3, Math.ceil(total * 0.05)), observed_count: hourCount },
+    { key: "event_pattern_common", value: typeCount >= Math.max(3, Math.ceil(total * 0.05)), observed_count: typeCount },
+    ...(direction ? [{ key: "direction_common", value: (directionCount ?? 0) >= 3, observed_count: directionCount ?? 0 }] : [])
+  ];
+  const deviation_signals = expected_pattern_signals.filter((signal) => signal.value === false).map((signal) => ({
+    key: signal.key === "time_of_day_common" ? "unusual_time_of_day" : signal.key === "direction_common" ? "uncommon_direction" : "uncommon_event_pattern",
+    reason: `${signal.key}: insufficient historical frequency for this camera`,
+    observed_count: signal.observed_count
+  }));
+  return { baseline_confidence_insufficient: false, expected_pattern_signals, deviation_signals, reason: null };
 }
 
 function eventId(siteId: string, patternKey: string) {
@@ -34,7 +369,7 @@ async function recordLearningUpdate(supabase: SupabaseLike, observerSiteId: stri
   if (result.error && result.error.code !== "23505") throw new Error(result.error.message);
 }
 
-async function updateLearningProjection(supabase: SupabaseLike, observerSiteId: string, siteMetadata: Record<string, any>, baseline: Record<string, any>, updatedAt: string) {
+async function updateLearningProjection(supabase: SupabaseLike, observerSiteId: string, siteMetadata: Record<string, unknown>, baseline: Record<string, unknown>, updatedAt: string) {
   const ready = baseline.status === "baseline_ready";
   const confidence = Number(baseline.confidence ?? 0);
   const profileResult = await supabase.from("observer_site_learning_profiles").upsert({
@@ -63,7 +398,7 @@ async function recordMetricsAttempt(supabase: SupabaseLike, observerSiteId: stri
   const { data: sources, error: sourceError } = await supabase.from("digital_observer_camera_sources")
     .select("id,display_name,location_label,status,metadata").eq("observer_site_id", observerSiteId);
   if (sourceError) throw new Error(sourceError.message);
-  const cameraByStream = new Map<string, Record<string, any>>();
+  const cameraByStream = new Map<string, Record<string, unknown>>();
   for (const source of sources ?? []) {
     if (source.status === "disabled") continue;
     const streamId = String(objectValue(source.metadata).gateway_stream_id ?? "").trim();
@@ -89,7 +424,7 @@ async function recordMetricsAttempt(supabase: SupabaseLike, observerSiteId: stri
   if (baselineError) throw new Error(baselineError.message);
   const prior = objectValue(existing?.baseline_value);
   const cameraBaselines: Record<string, BehaviorBaseline> = {};
-  const currentCameraIds = new Set((sources ?? []).filter((source: any) => source.status !== "disabled").map((source: any) => source.id));
+  const currentCameraIds = new Set((sources ?? []).filter((source: Record<string, unknown>) => source.status !== "disabled").map((source: Record<string, unknown>) => source.id));
   for (const [id, value] of Object.entries(objectValue(prior.camera_baselines))) {
     if (!currentCameraIds.has(id)) continue;
     const parsed = behaviorBaselineSchema.safeParse(value);
@@ -197,6 +532,75 @@ export async function recordHomeActivityMetrics(supabase: SupabaseLike, observer
   throw new Error("LEARNING_WRITE_CONFLICT");
 }
 
+/**
+ * Rebuild the contextual baseline from authenticated, validated REAL_CAMERA_AI
+ * events. This deliberately lives beside the existing local-metrics sampler:
+ * it writes the existing `normal_movement_patterns` projection and never
+ * mixes synthetic, shadow or unvalidated records into a real site's history.
+ */
+export async function refreshRealEventContextBaseline(supabase: SupabaseLike, observerSiteId: string) {
+  for (let attempt = 0; attempt < 3; attempt++) {
+    const [siteResult, sourcesResult, scheduleResult, eventsResult, baselineResult] = await Promise.all([
+      supabase.from("observer_sites").select("id,timezone").eq("id", observerSiteId).single(),
+      supabase.from("digital_observer_camera_sources").select("id,status,location_label,stream_protocol,metadata").eq("observer_site_id", observerSiteId),
+      supabase.from("observer_monitoring_schedules").select("status,schedule_mode,timezone,active_days,active_hours,schedule").eq("observer_site_id", observerSiteId).maybeSingle(),
+      supabase.from("observer_intelligence_signals").select("id,source_type,created_at,confidence,metadata").eq("observer_site_id", observerSiteId).eq("source_type", "system").order("created_at", { ascending: true }).limit(2_000),
+      supabase.from("site_behavior_baselines").select("id,baseline_value,metadata,updated_at").eq("observer_site_id", observerSiteId).eq("baseline_type", "normal_movement_patterns").maybeSingle()
+    ]);
+    if (siteResult.error || !siteResult.data) throw new Error("REAL_EVENT_CONTEXT_SITE_UNAVAILABLE");
+    if (sourcesResult.error || eventsResult.error || scheduleResult.error || baselineResult.error) throw new Error("REAL_EVENT_CONTEXT_READ_UNAVAILABLE");
+    const timeZone = typeof siteResult.data.timezone === "string" ? siteResult.data.timezone : "Asia/Jerusalem";
+    // Validate the configured IANA timezone before making a baseline write.
+    localEventTime(new Date().toISOString(), timeZone);
+    const previousValue = valueObject(baselineResult.data?.baseline_value);
+    const previousContext = valueObject(previousValue.real_event_context);
+    const nextContext = buildRealEventContextBaseline({
+      observerSiteId,
+      timeZone,
+      events: (eventsResult.data ?? []) as RealEventRow[],
+      sources: (sourcesResult.data ?? []) as CameraSourceRow[],
+      schedule: scheduleResult.data as LearningScheduleRow | null,
+      previous: previousContext
+    });
+    const maturity = String(nextContext.baseline_maturity);
+    const row = {
+      observer_site_id: observerSiteId,
+      baseline_type: "normal_movement_patterns",
+      // `normal_movement_patterns` is the canonical real-event projection.
+      // Do not retain a legacy/demo payload in this row and accidentally make
+      // a real baseline appear to have synthetic source history.
+      baseline_value: { real_event_context: nextContext },
+      confidence_level: nextContext.confidence,
+      learning_maturity: maturity === "ESTABLISHED" ? "calibrated" : maturity === "NO_DATA" ? "new" : "learning",
+      anomaly_readiness_score: 0,
+      source_summary: {
+        source: "canonical_real_camera_ai_events",
+        real_event_count: nextContext.real_event_count,
+        raw_video_received_by_cloud: false,
+        mock_or_shadow_events_included: false
+      },
+      metadata: {
+        baseline_version: REAL_EVENT_CONTEXT_BASELINE_VERSION,
+        real_data_only: true,
+        no_automatic_risk_decision: true,
+        baseline_maturity: maturity
+      },
+      last_calibrated_at: maturity === "ESTABLISHED" ? nextContext.generated_at : null,
+      updated_at: nextContext.generated_at
+    };
+    const write = baselineResult.data?.id
+      ? await supabase.from("site_behavior_baselines").update(row).eq("id", baselineResult.data.id).eq("updated_at", baselineResult.data.updated_at).select("id,updated_at").maybeSingle()
+      : await supabase.from("site_behavior_baselines").insert(row).select("id,updated_at").single();
+    if (write.error) {
+      if (write.error.code === "23505" || write.error.code === "PGRST116") continue;
+      throw new Error("REAL_EVENT_CONTEXT_WRITE_FAILED");
+    }
+    if (!write.data) continue;
+    return { observer_site_id: observerSiteId, real_event_count: nextContext.real_event_count, baseline_maturity: nextContext.baseline_maturity, confidence: nextContext.confidence };
+  }
+  throw new Error("REAL_EVENT_CONTEXT_WRITE_CONFLICT");
+}
+
 export async function sampleConsentedHomeLearning(supabase: SupabaseLike) {
   const { data: sites, error: siteError } = await supabase.from("observer_sites")
     .select("id,metadata,monitoring_enabled").eq("monitoring_enabled", true).limit(50);
@@ -207,14 +611,17 @@ export async function sampleConsentedHomeLearning(supabase: SupabaseLike) {
     const { data: sources, error: sourceError } = await supabase.from("digital_observer_camera_sources")
       .select("id,status,health_status,metadata").eq("observer_site_id", site.id).in("status", ["connected", "active", "ready"]).limit(64);
     if (sourceError) throw new Error(sourceError.message);
-    const sampled = await Promise.allSettled((sources ?? []).map(async (source: Record<string, any>): Promise<ActivitySample | null> => {
+    const sampled = await Promise.allSettled((sources ?? []).map(async (source: Record<string, unknown>): Promise<ActivitySample | null> => {
       const streamId = String(objectValue(source.metadata).gateway_stream_id ?? "").trim();
       if (!streamId) return null;
       const response = await getStreamActivityInsight(streamId);
       const data = objectValue(response.data);
       const insight = objectValue(data.insight);
       if (response.status !== "healthy" || data.local_processing !== true || data.no_raw_video_returned !== true) return null;
-      return { stream_id: streamId, motion_score: insight.motion_score, luminance_score: insight.luminance_score, sampled_at: insight.sampled_at };
+      const motionScore = typeof insight.motion_score === "number" ? insight.motion_score : NaN;
+      const luminanceScore = typeof insight.luminance_score === "number" ? insight.luminance_score : NaN;
+      const sampledAt = typeof insight.sampled_at === "string" ? insight.sampled_at : "";
+      return { stream_id: streamId, motion_score: motionScore, luminance_score: luminanceScore, sampled_at: sampledAt };
     }));
     const valid: ActivitySample[] = [];
     for (const result of sampled) {

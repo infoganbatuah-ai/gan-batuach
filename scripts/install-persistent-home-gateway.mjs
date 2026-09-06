@@ -1,4 +1,4 @@
-import { execFileSync } from "node:child_process";
+import { execFileSync, spawnSync } from "node:child_process";
 import { chmodSync, copyFileSync, cpSync, existsSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
 import { homedir } from "node:os";
 import { dirname, join } from "node:path";
@@ -13,23 +13,59 @@ const cloudConfigCandidates = [
   join(projectRoot, ".env.video-gateway.local"),
   "/private/tmp/gan-batuach-live-session/.env.video-gateway.local"
 ];
-const cloudConfigSource = cloudConfigCandidates.find((path) => existsSync(path));
+const configurationPath = cloudConfigCandidates.find((path) => existsSync(path));
 
-if (!cloudConfigSource) {
+if (!configurationPath) {
   throw new Error("Secure cloud gateway configuration is not available");
+}
+
+function configuredKeychainServiceFromFile(path) {
+  return readFileSync(path, "utf8")
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .find((line) => line.startsWith("VIDEO_GATEWAY_KEYCHAIN_SERVICE="))
+    ?.slice("VIDEO_GATEWAY_KEYCHAIN_SERVICE=".length)
+    .trim()
+    .replace(/^['"]|['"]$/g, "") || "com.ganbatuach.video-gateway.runtime";
 }
 
 let existingKeychainService = "";
 if (existsSync(launchAgentPath)) {
   try { existingKeychainService = execFileSync("/usr/bin/plutil", ["-extract", "EnvironmentVariables.GAN_BATUACH_GATEWAY_KEYCHAIN_SERVICE", "raw", "-o", "-", launchAgentPath], { encoding: "utf8" }).trim(); } catch {}
 }
-const configuredKeychainService = existingKeychainService || readFileSync(cloudConfigSource, "utf8")
-  .split(/\r?\n/)
-  .map((line) => line.trim())
-  .find((line) => line.startsWith("VIDEO_GATEWAY_KEYCHAIN_SERVICE="))
-  ?.slice("VIDEO_GATEWAY_KEYCHAIN_SERVICE=".length)
-  .trim()
-  .replace(/^['"]|['"]$/g, "") || "com.ganbatuach.video-gateway.runtime";
+function hasGatewayDeviceIdentity(service) {
+  if (!service) return false;
+  return ["device_gateway_id", "device_observer_site_id"].every((account) => spawnSync(
+    "/usr/bin/security", ["find-generic-password", "-s", service, "-a", account, "-w"],
+    { stdio: ["ignore", "ignore", "ignore"] }
+  ).status === 0);
+}
+
+function hasDvrCredentials(service) {
+  if (!service) return false;
+  return ["dvr_profile_json", "dvr_password"].every((account) => spawnSync(
+    "/usr/bin/security", ["find-generic-password", "-s", service, "-a", account, "-w"],
+    { stdio: ["ignore", "ignore", "ignore"] }
+  ).status === 0);
+}
+
+// The DVR profile and the enrolled Gateway identity may intentionally live in
+// separate Keychain namespaces. Choose a namespace that has the two required
+// device identity references; never copy their values into the plist or logs.
+const keychainCandidates = [...new Set([
+  existingKeychainService,
+  configuredKeychainServiceFromFile(configurationPath),
+  "com.ganbatuach.video-gateway.runtime"
+].filter(Boolean))];
+const configuredKeychainService = keychainCandidates.find(hasGatewayDeviceIdentity)
+  || existingKeychainService
+  || configuredKeychainServiceFromFile(configurationPath);
+const configuredDvrKeychainService = keychainCandidates.find(hasDvrCredentials)
+  || configuredKeychainService;
+const evidenceTestCameraId = /^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i.test(process.env.GAN_BATUACH_GATEWAY_EVIDENCE_TEST_CAMERA_ID || "")
+  ? process.env.GAN_BATUACH_GATEWAY_EVIDENCE_TEST_CAMERA_ID
+  : "";
+const spatialTraceEnabled = process.env.GAN_BATUACH_GATEWAY_SPATIAL_TRACE === "1";
 
 const requiredFiles = [
   join(projectRoot, "scripts", "run-persistent-home-gateway.mjs"),
@@ -50,7 +86,7 @@ cpSync(join(projectRoot, "services", "video-gateway"), join(runtimeRoot, "servic
   recursive: true,
   force: true
 });
-copyFileSync(cloudConfigSource, cloudConfigTarget);
+copyFileSync(configurationPath, cloudConfigTarget);
 chmodSync(cloudConfigTarget, 0o600);
 
 const escaped = (value) => value.replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
@@ -67,7 +103,7 @@ const plist = `<?xml version="1.0" encoding="UTF-8"?>
   </array>
   <key>WorkingDirectory</key><string>${escaped(runtimeRoot)}</string>
   <key>EnvironmentVariables</key>
-  <dict><key>PATH</key><string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string><key>GAN_BATUACH_GATEWAY_KEYCHAIN_SERVICE</key><string>${escaped(configuredKeychainService)}</string><key>GAN_BATUACH_GATEWAY_DISCOVERY</key><string>1</string><key>VIDEO_GATEWAY_BROWSER_ORIGIN</key><string>http://127.0.0.1:3000,http://localhost:3000</string></dict>
+  <dict><key>PATH</key><string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string><key>GAN_BATUACH_GATEWAY_KEYCHAIN_SERVICE</key><string>${escaped(configuredKeychainService)}</string><key>GAN_BATUACH_GATEWAY_DVR_KEYCHAIN_SERVICE</key><string>${escaped(configuredDvrKeychainService)}</string><key>GAN_BATUACH_GATEWAY_DISCOVERY</key><string>1</string><key>VIDEO_GATEWAY_BROWSER_ORIGIN</key><string>http://127.0.0.1:3000,http://localhost:3000</string>${evidenceTestCameraId ? `<key>GAN_BATUACH_GATEWAY_EVIDENCE_TEST_CAMERA_ID</key><string>${escaped(evidenceTestCameraId)}</string>` : ""}${spatialTraceEnabled ? "<key>GAN_BATUACH_GATEWAY_SPATIAL_TRACE</key><string>1</string>" : ""}</dict>
   <key>RunAtLoad</key><true/>
   <key>KeepAlive</key><true/>
   <key>ThrottleInterval</key><integer>10</integer>

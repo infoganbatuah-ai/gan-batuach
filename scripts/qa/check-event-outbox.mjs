@@ -4,7 +4,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
 import { DatabaseSync } from "node:sqlite";
-import { startJournalLoop, journalCoverage } from "../../services/video-gateway/journal-loop.mjs";
+import { startJournalLoop, journalCoverage, safeEventValidationCategory } from "../../services/video-gateway/journal-loop.mjs";
 
 // Isolated protocol fixture: no DVR, cloud account, saved credentials or live DB.
 const directory=mkdtempSync(join(tmpdir(),"event-outbox-"));
@@ -46,6 +46,9 @@ async function until(predicate) {
   } finally {await stop?.();}
 }
 try {
+  assert.equal(safeEventValidationCategory({details:{fieldErrors:{confidence:["invalid"]}}}),"validation_confidence","Only an allowlisted validation field is retained");
+  assert.equal(safeEventValidationCategory({details:{fieldErrors:{credential:["unexpected"]}}}),"validation_shape","Unexpected upstream fields are never persisted");
+  assert.equal(safeEventValidationCategory({error:"invalid payload"}),"validation_shape","Missing upstream details remain a safe shape category");
   // Sampling now reports while delivery is still in flight. Wait for the
   // healthy events to drain before asserting the durable failed remainder.
   await until(state=>state.status==="delivery_retrying" && state.pending===1 && delivered.size===14);

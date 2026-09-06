@@ -15,6 +15,17 @@ export const cloudCameraEventSchema = z.object({
   event_type: z.string().min(1).max(80), severity: z.enum(["INFO", "WARNING", "CRITICAL"]),
   confidence: z.number().min(0).max(1), timestamp: z.string().datetime(),
   track_id: z.string().max(120).optional(), evidence_kind: eventEvidenceKindSchema,
+  model_provenance: z.object({
+    model: z.string().min(1).max(160), runtime: z.string().min(1).max(160), execution_provider: z.string().min(1).max(80),
+    expected_sha256: z.string().regex(/^[a-f0-9]{64}$/i).optional()
+  }).strict().optional(),
+  verification_evidence: z.object({
+    distinct_source_frames: z.number().int().min(1).max(10_000),
+    directional_confirmations: z.number().int().min(0).max(100),
+    source_sequence: z.number().int().nonnegative().nullable(),
+    source_anchor_verified: z.boolean(),
+    tracking_duration_ms: z.number().int().nonnegative().max(24 * 60 * 60_000)
+  }).strict().optional(),
   media_failure_reason: z.enum(["capture_window_elapsed", "capture_failed"]).optional()
 }).strict();
 

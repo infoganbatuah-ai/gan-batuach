@@ -4,7 +4,8 @@ import { JournalTracker, sampleAllCameras } from "./journal-tracker.mjs";
 
 // The lease is local evidence, not an accepted field in the cloud event schema.
 export function eventForCloud(event) {
-  const { source_anchor, ...cloudEvent } = event;
+  const cloudEvent = { ...event };
+  delete cloudEvent.source_anchor;
   return cloudEvent;
 }
 
@@ -18,10 +19,25 @@ export function journalCoverage(manifest, results) {
   return {status,configured:cameras.length,enabled:enabled.length,attempted:attempted.size,sampled:samples.size,unavailable:enabled.length-samples.size};
 }
 
-export function startJournalLoop({ gatewayUrl, gatewaySecret, databasePath, report = () => {}, pollIntervalMs = 1_000 }) {
+// Upstream validation details may include request-specific data. Retain only a
+// small, non-sensitive category so an authenticated outbox retry can diagnose
+// a contract mismatch without persisting an upstream response body.
+export function safeEventValidationCategory(value) {
+  const fieldErrors = value?.details?.fieldErrors;
+  if (!fieldErrors || typeof fieldErrors !== "object" || Array.isArray(fieldErrors)) return "validation_shape";
+    const allowed = new Set(["event_id", "camera_source_id", "stream_id", "event_type", "severity", "confidence", "timestamp", "track_id", "evidence_kind", "model_provenance", "verification_evidence", "media_failure_reason"]);
+  const field = Object.keys(fieldErrors).find((name) => allowed.has(name));
+  return field ? `validation_${field}` : "validation_shape";
+}
+
+export function startJournalLoop({ gatewayUrl, gatewaySecret, databasePath, report = () => {}, pollIntervalMs = 1_000, personConfirmations = 3, cameraFilter = null, spatialTrace = false }) {
   const db = new DatabaseSync(databasePath);
   db.exec("PRAGMA journal_mode=WAL; CREATE TABLE IF NOT EXISTS outbox(id TEXT PRIMARY KEY, payload TEXT NOT NULL, created_at INTEGER NOT NULL, attempts INTEGER NOT NULL DEFAULT 0, next_attempt_at INTEGER NOT NULL DEFAULT 0); CREATE TABLE IF NOT EXISTS camera_health(camera_id TEXT PRIMARY KEY, misses INTEGER NOT NULL DEFAULT 0, offline INTEGER NOT NULL DEFAULT 0, updated_at INTEGER NOT NULL)");
-  const tracker = new JournalTracker();
+  const spatialTraceEntries = [];
+  const tracker = new JournalTracker({ personConfirmations, trace: spatialTrace ? entry => {
+    spatialTraceEntries.push(entry);
+    if (spatialTraceEntries.length > 240) spatialTraceEntries.splice(0, spatialTraceEntries.length - 240);
+  } : null });
   const health = new Map(db.prepare("SELECT camera_id,misses,offline FROM camera_health").all()
     .map(row => [String(row.camera_id), { misses:Number(row.misses)||0, offline:Number(row.offline)===1 }]));
   let stopped = false;
@@ -32,15 +48,30 @@ export function startJournalLoop({ gatewayUrl, gatewaySecret, databasePath, repo
   let deliveryManifest;
   let deliveryManifestAt = 0;
   const mediaFailures = new Map();
+  const deliveryFailuresByReason = new Map();
   const knownMediaReasons = new Set(["source_anchor_required", "source_anchor_mismatch", "source_anchor_expired", "source_generation_changed",
     "monitoring_not_authorized", "recording_not_authorized", "prebuffer_missing", "postbuffer_gap", "timeline_discontinuous",
     "source_window_unavailable", "media_size_not_allowed", "complete_segment_window_too_large", "capture_failed"]);
-  const failedCapture = reason => ({ ok: false, reason: knownMediaReasons.has(reason) ? reason : "capture_failed" });
-  const request = async (path, body) => {
-    const requestTimeout = path.includes("/detections") ? 60_000 : 30_000;
+  const failedCapture = reason => ({ ok: false, reason: knownMediaReasons.has(reason) || /^event_media_(?:http_(?:400|401|403|409|413|422|429|500|502|503|504)|response_(?:suppressed|pending|unexpected)|failure_(?:validation_failed|EVIDENCE_(?:UPLOAD_IDEMPOTENCY_WRITE_FAILED|STORAGE_UPLOAD_FAILED|METADATA_WRITE_FAILED|PERSISTENCE_UNEXPECTED)|EVENT_(?:MEDIA_LINK_FAILED|READ_FAILED|SCOPE_UNAVAILABLE)|unsafe_event_summary))$/.test(reason) ? reason : "capture_failed" });
+  // Delivery failures are operationally actionable, but raw upstream errors may
+  // contain headers, URLs, or provider diagnostics. Persist only bounded
+  // categories already emitted by this module.
+  const deliveryFailureReason = error => {
+    const reason = String(error?.message || "");
+    return /^(?:journal_http_[0-9]{3}(?:_validation_(?:shape|event_id|camera_source_id|stream_id|event_type|severity|confidence|timestamp|track_id|evidence_kind|model_provenance|media_failure_reason))?|event_capture_unavailable|event_media_upload_failed|media_status_not_acknowledged|notification_retry_pending|event_not_acknowledged)$/.test(reason)
+      ? reason
+      : "delivery_unclassified";
+  };
+  const request = async (path, body, options = {}) => {
+    const requestTimeout = options.timeoutMs ?? (path.includes("/detections") ? 60_000 : 30_000);
     const res = await fetch(gatewayUrl + path, {method: body === undefined ? "GET" : "POST", headers:{"x-video-gateway-secret":gatewaySecret,"content-type":"application/json"}, body:body === undefined ? undefined : JSON.stringify(body),signal:AbortSignal.timeout(requestTimeout)});
     const value = await res.json().catch(()=>({}));
-    if (!res.ok) throw new Error(`journal_http_${res.status}`);
+    if (!res.ok) {
+      const category = path === "/cloud/events" && res.status === 422
+        ? safeEventValidationCategory(value)
+        : null;
+      throw new Error(category ? `journal_http_${res.status}_${category}` : `journal_http_${res.status}`);
+    }
     return value.data ?? value;
   };
   async function releaseUnusedEvidence(streamId, leaseId) {
@@ -84,6 +115,10 @@ export function startJournalLoop({ gatewayUrl, gatewaySecret, databasePath, repo
     form.set("metadata", JSON.stringify({
       gateway_id:manifest.gateway_id, observer_site_id:manifest.observer_site_id, event_id:saved.media_event_id,
       camera_source_id:event.camera_source_id, stream_id:event.stream_id, event_type:event.event_type,
+      // Cloud media validation must receive the same typed evidence that
+      // qualified the persisted Event. In particular, a critical directional
+      // crossing is not interchangeable with a passive person observation.
+      evidence_kind:event.evidence_kind,
       severity:{INFO:"info",WARNING:"medium",CRITICAL:"critical"}[event.severity],confidence:event.confidence,
       captured_at:media.captured_at,duration_seconds:media.duration_seconds,
       window_seconds_before:media.window_seconds_before,window_seconds_after:media.window_seconds_after,
@@ -95,7 +130,16 @@ export function startJournalLoop({ gatewayUrl, gatewaySecret, databasePath, repo
     form.set("thumbnail",new Blob([Buffer.from(media.thumbnail.base64,"base64")],{type:"image/jpeg"}),"thumbnail.jpg");
     const uploaded = await fetch(gatewayUrl+"/cloud/event-media",{method:"POST",headers:{"x-video-gateway-secret":gatewaySecret},body:form,signal:AbortSignal.timeout(30_000)});
     const result = await uploaded.json().catch(()=>({}));
-    if (!uploaded.ok || result.data?.status !== "stored") throw new Error("event_media_upload_failed");
+    // Preserve only a bounded HTTP class for local diagnosis. Never retain an
+    // upstream response body, URL, headers, or credentials in the outbox.
+    if (!uploaded.ok) {
+      const code = typeof result?.details?.code === "string" ? result.details.code : "";
+      return failedCapture(code ? `event_media_failure_${code}` : `event_media_http_${uploaded.status}`);
+    }
+    const uploadStatus = typeof result?.data?.status === "string" ? result.data.status : typeof result?.status === "string" ? result.status : "unexpected";
+    // A 2xx response is not evidence of persistence. Keep just the bounded
+    // lifecycle class locally; do not persist the server response body.
+    if (uploadStatus !== "stored") return failedCapture(`event_media_response_${["suppressed", "pending"].includes(uploadStatus) ? uploadStatus : "unexpected"}`);
     return { ok: true };
   }
   async function deliver(row) {
@@ -125,7 +169,9 @@ export function startJournalLoop({ gatewayUrl, gatewaySecret, databasePath, repo
           if (saved.notifications_pending) throw new Error("notification_retry_pending");
           if (saved.status === "stored" || saved.status === "suppressed") await finishEvent(row.id, event);
           else throw new Error("event_not_acknowledged");
-        } catch {
+        } catch (error) {
+          const reason = deliveryFailureReason(error);
+          deliveryFailuresByReason.set(reason, (deliveryFailuresByReason.get(reason) ?? 0) + 1);
           db.prepare("UPDATE outbox SET attempts=attempts+1,next_attempt_at=? WHERE id=?").run(Date.now()+Math.min(300_000,5_000*2**Math.min(Number(row.attempts),6)),row.id);
         }
   }
@@ -148,15 +194,30 @@ export function startJournalLoop({ gatewayUrl, gatewaySecret, databasePath, repo
   }
   async function cycle() {
     try {
-      // Refresh consent, source list and rules every cycle, not only at startup.
-      const manifest = await request("/cloud/event-manifest");
-      deliveryManifest = manifest;
-      deliveryManifestAt = Date.now();
+      // Refresh consent, source list and rules every cycle, but never let a
+      // slow cloud refresh block local real-camera sampling. Once a manifest
+      // has been accepted, keep using that last-known-good contract while the
+      // bounded refresh retries in the background on later cycles.
+      try {
+        const manifest = await request("/cloud/event-manifest", undefined, { timeoutMs: 2_500 });
+        deliveryManifest = manifest;
+        deliveryManifestAt = Date.now();
+      } catch (error) {
+        if (!deliveryManifest) throw error;
+      }
+      const manifest = deliveryManifest;
       kickDelivery();
       const cameras = Array.isArray(manifest.cameras) && manifest.monitoring_enabled ? manifest.cameras : [];
+      // An explicitly selected, one-camera evidence test gives a slow edge
+      // model enough temporal coverage for a real crossing. It is opt-in,
+      // does not alter event rules or confirmations, and is reported as a
+      // limited diagnostic scope rather than normal all-camera coverage.
+      const sampledCameras = typeof cameraFilter === "string" && cameraFilter
+        ? cameras.filter((camera) => camera.camera_id === cameraFilter)
+        : cameras;
       const active = new Set(cameras.filter(c=>c.monitoring_enabled).map(c=>c.camera_id));
       for (const id of tracker.cameras.keys()) if (!active.has(id)) tracker.forget(id);
-      const results = await sampleAllCameras(cameras, async camera => {
+      const results = await sampleAllCameras(sampledCameras, async camera => {
         if (["offline", "failed", "error"].includes(camera.status)) throw new Error("camera_offline");
         if (camera.object_analysis_enabled === false) throw new Error("analysis_policy_not_verified");
         // Running an object model is pointless when this camera has no enabled
@@ -169,7 +230,7 @@ export function startJournalLoop({ gatewayUrl, gatewaySecret, databasePath, repo
         if (!data.local_processing || data.insight?.object_detection?.status !== "sampled") throw new Error("detector_unavailable");
         return data.insight;
       }, async (camera, insight) => {
-        try { for (const event of tracker.observe(camera, insight.object_detection.detections, insight.sampled_at, insight.source_anchor ?? null)) {
+        try { for (const event of tracker.observe(camera, insight.object_detection.detections, insight.sampled_at, insight.source_anchor ?? null, insight.object_detection.model_provenance ?? null)) {
           if (db.prepare("SELECT count(*) AS n FROM outbox").get().n >= 10000) throw new Error("journal_outbox_full");
           db.prepare("INSERT OR IGNORE INTO outbox(id,payload,created_at) VALUES(?,?,?)").run(event.event_id, JSON.stringify(event), Date.now());
           // Do not wait for a slow/disconnected camera before delivering this event.
@@ -203,7 +264,10 @@ export function startJournalLoop({ gatewayUrl, gatewaySecret, databasePath, repo
       const deliveryFailures = Number(db.prepare("SELECT count(*) AS n FROM outbox WHERE attempts>0").get().n);
       const pending = Number(db.prepare("SELECT count(*) AS n FROM outbox").get().n);
       const coverage=journalCoverage(manifest,results);
-      report({ status: deliveryFailures ? "delivery_retrying" : coverage.status, checked_at: new Date().toISOString(), coverage, cameras: results, delivery_in_progress:pending>0 && deliveries.size>0, delivery_failures:deliveryFailures, media_failures_by_reason:Object.fromEntries(mediaFailures), pending });
+      report({ status: deliveryFailures ? "delivery_retrying" : coverage.status, checked_at: new Date().toISOString(), coverage, cameras: results,
+        ...(typeof cameraFilter === "string" && cameraFilter ? { evidence_test_camera_filter: cameraFilter, coverage_scope: "single_camera_diagnostic" } : {}),
+        ...(spatialTrace ? { spatial_trace_scope:"diagnostic_metadata_only", spatial_trace:[...spatialTraceEntries] } : {}),
+        delivery_in_progress:pending>0 && deliveries.size>0, delivery_failures:deliveryFailures, delivery_failures_by_reason:Object.fromEntries(deliveryFailuresByReason), media_failures_by_reason:Object.fromEntries(mediaFailures), pending });
     } catch (error) { deliveryManifest = null; report({status:"unavailable", reason: error.message, checked_at:new Date().toISOString()}); }
     if (!stopped) timer = setTimeout(run, pollIntervalMs);
   }

@@ -23,6 +23,7 @@ assert.match(mediaRoute, /createSignedUrl\(path, (?:60|Math\.min\(60, remainingS
 assert.match(mediaRoute, /getObserverSiteAccess/, "event clip media route must check tenant-scoped observer site access");
 assert.match(cloudRoute, /Replay detected/, "cloud event media uploads must reject replayed nonces");
 assert.match(cloudRoute, /no_dvr_credentials_returned: z\.literal\(true\)/, "cloud event media schema must require no DVR credentials in payload");
+assert.match(cloudRoute, /evidence_kind: z\.enum\(\["object_detection", "object_detection_off_hours", "line_crossing", "validated_rule", "stream_health"\]\)/, "cloud event media schema must require typed evidence provenance");
 assert.match(cloudRoute, /Camera source does not match gateway stream/, "cloud event media must bind uploads to the mapped camera source");
 assert.match(cloudRoute, /event_summary/, "cloud event media must store a safe event narrative");
 assert.match(cloudRoute, /retentionHoursForSite/, "cloud event media must cap retention from the site policy");
@@ -37,9 +38,16 @@ assert.match(retentionCron, /storage\.from\(clip\.storage_bucket\)\.remove/, "me
 assert.match(retentionCron, /media_missing_reason: "retention_expired"/, "expired media must retain a precise lifecycle reason");
 assert.match(gateway, /event-media/, "local gateway must expose a read-only event media capture endpoint");
 assert.match(gateway, /controls_supported: false/, "event media capture must remain read-only with controls disabled");
-assert.doesNotMatch(persistentGateway, /submitReadinessEvidence/, "readiness probes must never generate saved video clips");
+assert.match(gateway, /"-hls_list_size", "12"/, "the bounded relay buffer must retain enough segments for the 3 s pre-event plus 5 s post-event capture window");
 assert.match(persistentGateway, /startJournalLoop/, "the persistent gateway must run the durable manifest-driven journal");
+const journalLoop = readFileSync("services/video-gateway/journal-loop.mjs", "utf8");
+assert.match(journalLoop, /event_media_(?:http|response)_/, "media upload failures must retain only bounded HTTP or lifecycle diagnostic categories");
+assert.doesNotMatch(persistentGateway, /submitReadinessEvidence/, "readiness probes must never generate saved video clips");
 assert.match(cloudRoute, /matching validated event is required before recording/, "media uploads cannot bypass event validation");
+assert.match(cloudRoute, /EVIDENCE_STORAGE_UPLOAD_FAILED/, "storage upload failures must return a bounded operational code without provider details");
+assert.match(cloudRoute, /EVIDENCE_METADATA_WRITE_FAILED/, "metadata write failures must return a bounded operational code");
+assert.match(journalLoop, /event_media_failure_/, "the Gateway must retain only a bounded cloud-media failure category");
+assert.match(journalLoop, /evidence_kind:event\.evidence_kind/, "the Gateway media request must preserve the Event's typed evidence provenance");
 assert.match(migration, /digital-observer-event-media/, "migration must create or harden the private Digital Observer event media bucket");
 assert.match(migration, /media_missing_reason/, "migration must persist precise missing-media reasons");
 assert.doesNotMatch(alertsPage + runtime + mediaRoute + cloudRoute + retentionCron, /rtsp:\/\/|rtsps:\/\/|password\s*[:=]|credential\s*[:=]/i, "browser and cloud event media code must not expose camera credentials or RTSP URLs");

@@ -2,6 +2,7 @@ import { cameraZoneMapper, normalizeZoneType } from "./camera-zone-mapper";
 import { observerEventNarrative } from "../digital-observer/event-narrative";
 import { canonicalJournalEventType, journalEventMatchesZone, type JournalSeverity } from "./event-validation-pipeline";
 import { mediaFaultLifecycle } from "./media-fault-lifecycle";
+import { isCanonicalProductObservation } from "../digital-observer/observation-provenance";
 
 type Row = Record<string, any>;
 export type JournalEvent = { id?: string; timestamp: string; camera_id: string; camera_name: string; zone_type: string | null; event_type: string; severity: JournalSeverity; description: string; recording_url: string | null; count: number; first_seen: string; last_seen: string };
@@ -35,7 +36,8 @@ export class EventJournalService {
   groupRows(rows: Row[], cameras: Row[] = [], clips: Row[] = [], options: { includeSpatialMismatches?: boolean } = {}): Row[] {
     // Connectivity/media readiness probes are diagnostics, not security events.
     // Their original rows and recordings remain intact in storage.
-    const enriched = rows.filter(row => (row.metadata?.event_type ?? row.event_type ?? row.signal_type) !== "camera_media_readiness").map((row): Row => {
+    const enriched = rows.filter(row => (row.metadata?.event_type ?? row.event_type ?? row.signal_type) !== "camera_media_readiness")
+      .filter(isCanonicalProductObservation).map((row): Row => {
       const m = { ...row.metadata };
       // Always recompute presentation flags; never trust a stored display flag.
       delete m.journal_spatial_mismatch;

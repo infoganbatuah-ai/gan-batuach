@@ -4,8 +4,8 @@ const algorithm = "aes-256-gcm";
 const cbcAlgorithm = "aes-256-cbc";
 
 function key() {
-  const raw = process.env.FIELD_ENCRYPTION_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY || "";
-  if (!raw) throw new Error("FIELD_ENCRYPTION_KEY is required for sensitive field encryption");
+  const raw = process.env.FIELD_ENCRYPTION_KEY_CURRENT || process.env.FIELD_ENCRYPTION_KEY || "";
+  if (!raw) throw new Error("Dedicated field encryption key is required for sensitive field encryption");
   return crypto.createHash("sha256").update(raw).digest();
 }
 

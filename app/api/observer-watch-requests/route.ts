@@ -55,6 +55,7 @@ export async function POST(request: Request) {
     if (payload.action === "create") {
       const kindergartenId = profile.role === "admin" ? payload.kindergarten_id ?? null : profile.garden_id;
       if (!kindergartenId && !payload.observer_site_id) return fail("יש לבחור גן או אתר Digital Observer.", 422);
+      if (payload.observer_site_id) return fail("כלל Digital Observer אמיתי חייב לעבור מהדר מובנה, validation ואישור משתמש. מסלול זה נשאר לכלי Legacy/Test של גנים בלבד.", 409);
       if (profile.role !== "admin" && payload.kindergarten_id && payload.kindergarten_id !== profile.garden_id) {
         return fail("אין הרשאה ליצור בקשת מעקב לגן אחר.", 403);
       }
@@ -98,6 +99,10 @@ export async function POST(request: Request) {
       return ok({ request: data });
     }
 
+    // A real Digital Observer site receives camera truth only through its
+    // authenticated Gateway/Journal path. Mock requests remain a
+    // kindergarten/test utility and cannot create a competing site event.
+    if (existing.data.observer_site_id) return fail("אירועי הדמיה אינם זמינים באתר ניטור אמיתי.", 409);
     const eventPayload = buildMockWatchEventPayload(existing.data, {
       kindergartenId: existing.data.kindergarten_id,
       observerSiteId: existing.data.observer_site_id,

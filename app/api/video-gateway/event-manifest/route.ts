@@ -44,7 +44,7 @@ export async function GET(request: Request) {
     const cameraRows = (sources.data ?? []) as unknown as ManifestCamera[];
     const automationByCamera = new Map(automationRows.map((policy) => [String(policy.camera_source_id), policy]));
     return ok({ gateway_id: device.gateway_id, observer_site_id: device.observer_site_id, monitoring_enabled: enabled, cameras: cameraRows
-      .filter((camera) => camera.source_mode !== "demo" && camera.metadata?.gateway_id === device.gateway_id)
+      .filter((camera) => !["demo", "mock", "local_shadow"].includes(String(camera.source_mode)) && camera.metadata?.gateway_id === device.gateway_id)
       .map((camera) => {
         const zone = cameraZoneMapper.map(camera);
         const allowed = [...new Set([...(zone.source === "default" ? ["person_detected"] : [...CONTEXT_RULES_MATRIX[zone.zone_type]]), "camera_offline", "camera_reconnected"])];
@@ -62,7 +62,7 @@ export async function GET(request: Request) {
         const policy = eventManifestPolicy({ zone_type: zone.zone_type, monitoring_enabled: monitoringEnabled,
           off_hours_active: offHoursActive, allowed_event_types: allowed, implemented_event_types: implemented,
           verified_event_models: camera.metadata?.verified_event_models });
-        return { ...zone, stream_id: camera.metadata?.gateway_stream_id, status: camera.status,
+        return { ...zone, stream_id: camera.metadata?.gateway_stream_id, status: camera.status, source_mode: camera.source_mode,
           monitoring_enabled: monitoringEnabled,
           object_analysis_enabled: site.data.vision_privacy_mode !== "skeleton_only"
             && site.data.business_handles_children !== true

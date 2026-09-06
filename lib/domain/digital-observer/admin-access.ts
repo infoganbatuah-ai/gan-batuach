@@ -4,7 +4,7 @@ import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin
 
 export const DIGITAL_OBSERVER_ADMIN_METADATA_KEY = "digital_observer_admin";
 
-function hasObserverAdminClaim(appMetadata: Record<string, unknown> | null | undefined) {
+export function hasObserverAdminClaim(appMetadata: Record<string, unknown> | null | undefined) {
   return appMetadata?.[DIGITAL_OBSERVER_ADMIN_METADATA_KEY] === true;
 }
 

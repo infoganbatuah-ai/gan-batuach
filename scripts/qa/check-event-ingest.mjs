@@ -55,7 +55,7 @@ const mocks={"@/lib/supabase/admin":{createAdminClient:()=>db},"@/lib/api":{
   const result=await db.from("immutable_audit_events").insert(input);
   if(result.error){immutableAuditFailures++;return;}
   audits.push(input);
-}},"server-only":{}};
+}},"@/lib/domain/digital-observer/risk-decision-service":{evaluateAndPersistIncidentRisk:async()=>({status:"not_applicable"})},"server-only":{}};
 const tokenLib=load("lib/domain/gateway-device-enrollment.ts",mocks);
 const token=tokenLib.issueGatewayDeviceAccessToken({device_id:deviceId,gateway_id:gatewayId,observer_site_id:siteId},secrets.VIDEO_GATEWAY_CLOUD_DISCOVERY_SECRET);
 const route=load("app/api/video-gateway/cloud-events/route.ts",mocks);
@@ -66,6 +66,8 @@ assert.equal((await send({...event,camera_source_id:randomUUID()})).status,403);
 assert.equal((await send({...event,stream_id:"other"})).status,403);
 let response=await send(event);assert.equal(response.status,201);
 let value=(await response.json()).data;assert.equal(value.recording_required,false);assert.equal(tables.observer_intelligence_signals.length,1);
+assert.equal(tables.observer_intelligence_signals[0].metadata.observation_provenance,"REAL_CAMERA_AI","Authenticated Gateway events are explicitly marked as real camera AI");
+assert.equal(tables.observer_intelligence_signals[0].metadata.stream_id,"stream","Authenticated Gateway events retain their source stream binding");
 assert.equal((await send(event)).status,201);assert.equal(tables.observer_intelligence_signals.length,1,"Retries must not insert a second event");
 assert.equal((await send({...event,event_id:randomUUID(),timestamp:new Date(Date.now()-2*86400000).toISOString()})).status,201,"An authenticated backlog older than one day must not be lost");
 assert.equal(tables.observer_intelligence_signals[1].metadata.received_late,true);
@@ -121,7 +123,7 @@ assert.equal(tables.observer_intelligence_signals.find(item=>item.id===auditFail
 const mediaRoute=load("app/api/video-gateway/cloud-event-media/route.ts",mocks);
 async function media(overrides={}) {
   const form=new FormData();
-  form.set("metadata",JSON.stringify({gateway_id:gatewayId,observer_site_id:siteId,event_id:criticalSaved.media_event_id,camera_source_id:cameraId,stream_id:"stream",event_type:"drowning_hazard",severity:"critical",confidence:.9,captured_at:critical.timestamp,duration_seconds:8,local_capture:true,read_only:true,controls_supported:false,no_dvr_credentials_returned:true,no_rtsp_returned:true,...overrides}));
+  form.set("metadata",JSON.stringify({gateway_id:gatewayId,observer_site_id:siteId,event_id:criticalSaved.media_event_id,camera_source_id:cameraId,stream_id:"stream",event_type:"drowning_hazard",evidence_kind:"validated_rule",severity:"critical",confidence:.9,captured_at:critical.timestamp,duration_seconds:8,local_capture:true,read_only:true,controls_supported:false,no_dvr_credentials_returned:true,no_rtsp_returned:true,...overrides}));
   form.set("clip",new Blob(["fixture"],{type:"video/mp4"}),"clip.mp4");form.set("thumbnail",new Blob(["fixture"],{type:"image/jpeg"}),"thumb.jpg");
   return mediaRoute.POST(new Request("http://test.invalid/media",{method:"POST",headers:{"x-video-gateway-device-token":token,"x-video-gateway-id":gatewayId,"x-video-gateway-timestamp":new Date().toISOString(),"x-video-gateway-nonce":randomUUID()},body:form}));
 }
@@ -136,6 +138,15 @@ assert.equal(criticalSignal.metadata.first_seen,critical.timestamp);
 assert.equal(criticalSignal.metadata.media_status,"available");
 assert.equal(criticalSignal.metadata.media_fault.status,"resolved");
 assert.equal(audits.filter(item=>item.eventType==="observer_media_fault_resolved").length,1,"Successful media appends a resolved transition without deleting fault history");
+
+tables.digital_observer_camera_sources[0].metadata={gateway_id:gatewayId,gateway_stream_id:"stream",zone_type:"ENTRANCE",crossing_line:{axis:"y",position:.5,inside:"positive"}};
+const entered={...event,event_id:randomUUID(),event_type:"person_entered",severity:"CRITICAL",evidence_kind:"line_crossing"};
+const enteredSaved=(await (await send(entered)).json()).data;
+assert.equal(enteredSaved.recording_required,true,"A verified critical line crossing remains recording-eligible");
+assert.equal((await media({event_id:enteredSaved.media_event_id,event_type:"person_entered",evidence_kind:"line_crossing",severity:"critical",captured_at:entered.timestamp})).status,201,"Media upload preserves line-crossing evidence provenance so a real entry is not downgraded to passive media");
+assert.equal(uploads,4,"The real-style entry upload persists exactly its clip and thumbnail");
+tables.digital_observer_camera_sources[0].metadata={gateway_id:gatewayId,gateway_stream_id:"stream",zone_type:"POOL",verified_event_models:{drowning_hazard:true}};
+
 assert.equal(pushCalls,0,"Push requires explicit recipient/channel opt-in");
 tables.observer_alert_channel_settings.push({observer_site_id:siteId,member_profile_id:owner,channel:"push",enabled:true,severity_levels:["critical"]});
 await send(critical);
@@ -164,5 +175,5 @@ assert.equal((await send({...offHours,event_id:randomUUID()})).status,403,"Off-h
 tables.digital_observer_camera_sources[0].metadata.monitoring_enabled=true;
 tables.video_gateway_device_enrollments[0].status="revoked";
 assert.equal((await send(event)).status,401);
-assert.equal(tables.observer_intelligence_signals.length,7);
+assert.equal(tables.observer_intelligence_signals.length,8);
 console.log("Event ingestion checks passed: token validation, revocation, scope, consent, event/notification idempotency, spatial and specialized evidence, no-clip events, validated-only media, capture window and review preservation.");

@@ -4,6 +4,7 @@ import { eventJournalService } from "@/lib/domain/event-engine/event-journal-ser
 
 export type ObserverRow = Record<string, any>;
 export type ObserverMode = "home" | "business";
+export type ProductObserverRuntimeStatus = "REAL_MONITORING_ACTIVE" | "REAL_CAMERA_ACTIVE_OBSERVER_DEGRADED" | "CAMERA_ONLINE_AI_NOT_PROCESSING" | "OFFLINE" | "DEMO_SIMULATION";
 
 export type ObserverEntitlement = {
   status: "setup" | "trial" | "active" | "suspended";
@@ -151,6 +152,32 @@ export function observerStatusLabel(value?: unknown) {
   return labels[String(value ?? "")] ?? String(value ?? "לא הוגדר");
 }
 
+/**
+ * A consent flag is not a runtime heartbeat. Keep the product wording honest
+ * until the real Gateway reports an explicit, current monitoring state.
+ */
+export function productObserverRuntimeStatus(site?: ObserverRow | null, cameras: ObserverRow[] = []): ProductObserverRuntimeStatus {
+  if (!site?.monitoring_enabled) return "OFFLINE";
+  const activeCameras = cameras.filter((camera) => camera.status !== "disabled");
+  if (activeCameras.length && activeCameras.every((camera) => ["demo", "mock", "local_shadow", "simulation"].includes(String(camera.source_mode)))) return "DEMO_SIMULATION";
+  const runtimeStatus = String(site.observer_runtime_status ?? "").toLowerCase();
+  if (["real_monitoring_active", "gateway_processing_verified"].includes(runtimeStatus)) return "REAL_MONITORING_ACTIVE";
+  if (["degraded", "offline", "failed", "gateway_unreachable", "observer_degraded"].includes(runtimeStatus)) return "REAL_CAMERA_ACTIVE_OBSERVER_DEGRADED";
+  const online = activeCameras.some((camera) => ["connected", "healthy", "online", "active", "ready_to_test", "testing"].includes(String(camera.status)) || camera.health_status === "healthy");
+  return online ? "CAMERA_ONLINE_AI_NOT_PROCESSING" : "OFFLINE";
+}
+
+export function productObserverRuntimeStatusLabel(status: ProductObserverRuntimeStatus) {
+  const labels: Record<ProductObserverRuntimeStatus, string> = {
+    REAL_MONITORING_ACTIVE: "ניטור אמיתי פעיל",
+    REAL_CAMERA_ACTIVE_OBSERVER_DEGRADED: "המצלמה פעילה, התצפיתן דורש בדיקה",
+    CAMERA_ONLINE_AI_NOT_PROCESSING: "מצלמה מחוברת, עיבוד AI לא אומת",
+    OFFLINE: "ניטור לא פעיל",
+    DEMO_SIMULATION: "הדמיה / סימולציה"
+  };
+  return labels[status];
+}
+
 export function observerEventLabel(value?: unknown) {
   return observerEventNarrative({ signal_type: value }).label;
 }
@@ -221,7 +248,7 @@ export async function loadObserverRuntime(profileId: string) {
         safeList<ObserverRow>("signals", () => supabase.from("observer_intelligence_signals" as any).select("id,observer_site_id,camera_id,signal_type,source_type,severity,confidence,review_status,recommended_action,risk_score,human_review_required,parent_visible,metadata,created_at,reviewed_at,resolved_at").in("observer_site_id", siteIds).order("created_at", { ascending: false }).limit(200)),
         safeList<ObserverRow>("subscriptions", () => supabase.from("observer_site_subscriptions" as any).select("id,observer_site_id,package_id,status,subscription_status,entitlement_status,trial_start,trial_end,renewal_date,billing_cycle,monthly_price,annual_price,payment_provider,purchase_channel,billing_separation_key,grace_period_ends_at,pending_package_id,pending_change_effective_at").in("observer_site_id", siteIds)),
         safeList<ObserverRow>("monitoring schedules", () => supabase.from("observer_monitoring_schedules" as any).select("id,observer_site_id,schedule_mode,timezone,active_days,active_hours,schedule,status").in("observer_site_id", siteIds)),
-        safeList<ObserverRow>("watch requests", () => supabase.from("observer_watch_requests" as any).select("id,observer_site_id,camera_id,camera_source_id,title,description,watch_type,priority,schedule,notification_channels,active,requires_human_review,metadata,created_at").in("observer_site_id", siteIds).order("created_at", { ascending: false })),
+        safeList<ObserverRow>("watch requests", () => supabase.from("observer_watch_requests" as any).select("id,observer_site_id,camera_id,camera_source_id,zone_id,title,description,watch_type,priority,schedule,notification_channels,active,requires_human_review,original_natural_language,structured_rule,validation_status,compiler_version,rule_version,rule_state,confirmed_at,last_matched_at,match_count,archived_at,metadata,created_at,updated_at").in("observer_site_id", siteIds).order("created_at", { ascending: false })),
         safeList<ObserverRow>("known people", () => supabase.from("digital_observer_known_people" as any).select("id,observer_site_id,display_name,relationship_label,consent_status,recognition_status,camera_scope,notify_on_detection,confidence_threshold,last_confirmed_at,metadata,created_at").in("observer_site_id", siteIds).order("created_at")),
         safeList<ObserverRow>("identity candidates", () => supabase.from("digital_observer_identity_candidates" as any).select("id,observer_site_id,camera_source_id,assigned_known_person_id,candidate_status,suggested_label,first_seen_at,last_seen_at,observation_count,average_confidence,preview_available,metadata,reviewed_at,created_at").in("observer_site_id", siteIds).order("last_seen_at", { ascending: false })),
         safeList<ObserverRow>("event clips", () => supabase.from("digital_observer_event_clips" as any).select("id,observer_site_id,camera_source_id,signal_id,title,clip_status,captured_at,duration_seconds,retention_hours,delete_after,downloadable,metadata,created_at").in("observer_site_id", siteIds).order("created_at", { ascending: false })),

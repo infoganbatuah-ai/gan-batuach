@@ -1,10 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import { Activity, Bell, BrainCircuit, Camera, CheckCircle2, Clock3, MapPin, PhoneCall, Radar, ShieldCheck, Sparkles, TriangleAlert } from "lucide-react";
-import { ObserverQuickAction, ObserverRuleForm } from "@/components/digital-observer/observer-action-forms";
 import { ObserverConversationPanel } from "@/components/digital-observer/observer-intelligence-experience";
 import { ObserverAppShell } from "@/components/digital-observer/observer-app-shell";
 import { ObserverCameraMedia } from "@/components/digital-observer/observer-camera-media";
+import { NaturalLanguageWatchRuleBuilder } from "@/components/digital-observer/natural-language-watch-rule-builder";
 import { requireDigitalObserverUser } from "@/lib/domain/digital-observer/access";
 import { cameraReportsLocalEventInsights, digitalObserverEdgeAiPolicy } from "@/lib/domain/digital-observer/edge-ai-policy";
 import { getDigitalObserverServiceReadiness } from "@/lib/domain/digital-observer/service-readiness";
@@ -30,11 +30,21 @@ function baselineLabel(value: string) {
   return labels[value] ?? value;
 }
 
-function baselineSummary(baseline: Record<string, any>) {
-  const value = baseline.baseline_value && typeof baseline.baseline_value === "object" ? baseline.baseline_value : {};
+function baselineSummary(baseline: Record<string, unknown>) {
+  const value = baseline.baseline_value && typeof baseline.baseline_value === "object" ? baseline.baseline_value as Record<string, unknown> : {};
+  const sourceSummary = baseline.source_summary && typeof baseline.source_summary === "object" ? baseline.source_summary as Record<string, unknown> : {};
+  const realContext = value.real_event_context && typeof value.real_event_context === "object" ? value.real_event_context as Record<string, unknown> : null;
+  if (realContext?.source === "canonical_real_camera_ai_events" && realContext?.real_data_only === true) {
+    const eventCount = Number(realContext.real_event_count || 0);
+    const maturity = String(realContext.baseline_maturity || "NO_DATA");
+    if (maturity === "NO_DATA") return "אין עדיין אירועי מצלמה אמיתיים מספיקים לבניית הקשר התנהגותי.";
+    if (maturity === "STALE") return "תצורת המצלמה או האזור השתנתה; קו הבסיס הקודם אינו משמש כהקשר עד ללמידה מחדש.";
+    if (maturity !== "ESTABLISHED") return `נאספו ${eventCount} אירועי מצלמה אמיתיים בלבד. ההקשר עדיין בתהליך למידה ואינו משמש לקביעה חריגה.`;
+    return `קו בסיס עובדתי נבנה מ-${eventCount} אירועי מצלמה אמיתיים בלבד, לפי זמן מקומי, מצלמה, אזור וסוג אירוע.`;
+  }
   if (baseline.baseline_type === "normal_camera_activity") {
     const samples = Number(value.sample_count || 0);
-    const cameras = Number(value.last_active_camera_count || baseline.source_summary?.active_camera_count || 0);
+    const cameras = Number(value.last_active_camera_count || sourceSummary.active_camera_count || 0);
     const motion = Number(value.average_motion_score || 0);
     const light = Number(value.average_luminance_score || 0);
     const motionText = motion >= 0.55 ? "פעילות גבוהה יחסית" : motion >= 0.22 ? "פעילות בינונית" : "פעילות נמוכה";
@@ -51,6 +61,27 @@ export default async function DigitalObserverRulesPage() {
   const mode = observerModeForSite(site);
   const cameras = site ? runtime.cameras.filter((item) => item.observer_site_id === site.id) : [];
   const rules = site ? runtime.watchRequests.filter((item) => item.observer_site_id === site.id) : [];
+  const compiledRules = rules.filter((rule) => Boolean(rule.compiler_version));
+  const legacyRules = rules.filter((rule) => !rule.compiler_version);
+  const compilerCameras = cameras
+    .filter((camera) => typeof camera.id === "string")
+    .map((camera) => ({
+      id: String(camera.id),
+      display_name: typeof camera.display_name === "string" ? camera.display_name : null,
+      location_label: typeof camera.location_label === "string" ? camera.location_label : null
+    }));
+  const compilerRules = compiledRules
+    .filter((rule) => typeof rule.id === "string")
+    .map((rule) => ({
+      id: String(rule.id),
+      title: typeof rule.title === "string" ? rule.title : null,
+      original_natural_language: typeof rule.original_natural_language === "string" ? rule.original_natural_language : null,
+      rule_state: typeof rule.rule_state === "string" ? rule.rule_state : null,
+      rule_version: typeof rule.rule_version === "number" ? rule.rule_version : null,
+      compiler_version: typeof rule.compiler_version === "string" ? rule.compiler_version : null,
+      last_matched_at: typeof rule.last_matched_at === "string" ? rule.last_matched_at : null,
+      match_count: typeof rule.match_count === "number" ? rule.match_count : null
+    }));
   const signals = site ? runtime.signals.filter((item) => item.observer_site_id === site.id) : [];
   const reviewedSignals = signals.filter((signal) => ["confirmed", "resolved", "dismissed"].includes(String(signal.review_status)));
   const dismissedSignals = signals.filter((signal) => signal.review_status === "dismissed");
@@ -130,7 +161,7 @@ export default async function DigitalObserverRulesPage() {
                 <span><Radar /><b>{rules[0]?.title || "כלל תצפית ראשון טרם הוגדר"}</b></span>
                 <strong className={rules[0]?.active ? "do-badge good" : "do-badge warn"}>{rules[0]?.active ? "פעיל" : "ממתין להגדרה"}</strong>
               </div>
-              <a className="do-button secondary" href="#observer-advanced-rule">הגדרת כלל מתקדם</a>
+              <a className="do-button secondary" href="#natural-language-rule-builder">הגדרת כלל בשפה טבעית</a>
             </div>
           </details>
 
@@ -146,10 +177,7 @@ export default async function DigitalObserverRulesPage() {
 
           <section className="do-panel do-daily-observer-summary"><div className="do-section-head"><div><h2>סיכום היום</h2><p>מתעדכן מאירועים אמיתיים בלבד.</p></div><Clock3 /></div><p>{dailySummary}</p><Link className="do-link" href="/digital-observer/alerts">פתיחת יומן האירועים המלא</Link></section>
 
-          <details className="do-advanced-rule-panel" id="observer-advanced-rule">
-            <summary><Radar /> הגדרה ידנית מתקדמת</summary>
-            <ObserverRuleForm siteId={site.id} cameras={cameras} />
-          </details>
+          <NaturalLanguageWatchRuleBuilder siteId={site.id} cameras={compilerCameras} rules={compilerRules} />
 
           <details className="do-observer-operations-disclosure">
             <summary>
@@ -228,7 +256,7 @@ export default async function DigitalObserverRulesPage() {
           </section>
 
               <section className="do-grid cols-2">
-            <article className="do-panel"><div className="do-section-head"><div><h2>הבקשות שלי</h2><p>כללים פעילים ומושבתים.</p></div><span className="do-badge info">{rules.length}</span></div>{rules.length ? <div className="do-row-list">{rules.map((rule) => <div className="do-row" key={rule.id}><Radar /><span className="do-row-main"><strong>{rule.title}</strong><small>{rule.description || observerStatusLabel(rule.watch_type)}</small></span><span className="do-row-meta"><b className={rule.active ? "do-badge good" : "do-badge warn"}>{rule.active ? "מוכן להפעלה" : "מושבת"}</b>{rule.active ? <ObserverQuickAction endpoint="/api/digital-observer/watch-requests" body={{ action: "disable", id: rule.id }}>השבתה</ObserverQuickAction> : null}</span></div>)}</div> : <div className="do-empty"><Radar /><strong>אין בקשות ניטור</strong><span>כתבו לתצפיתן מה חשוב לבדוק.</span></div>}</article>
+            <article className="do-panel"><div className="do-section-head"><div><h2>בקשות ישנות</h2><p>בקשות שנוצרו לפני המהדר נשמרות להיסטוריה, אך אינן כלל Production קנוני עד שיעברו תצוגה מקדימה ואישור.</p></div><span className="do-badge info">{legacyRules.length}</span></div>{legacyRules.length ? <div className="do-row-list">{legacyRules.map((rule) => <div className="do-row" key={rule.id}><Radar /><span className="do-row-main"><strong>{rule.title}</strong><small>{rule.description || observerStatusLabel(rule.watch_type)}</small></span><span className="do-row-meta"><b className="do-badge warn">Legacy · לא מהודר</b></span></div>)}</div> : <div className="do-empty"><Radar /><strong>אין בקשות ישנות</strong></div>}</article>
             <article className="do-panel"><div className="do-section-head"><div><h2>עדכונים ותובנות אחרונות</h2><p>כל אירוע מוצג כהערכה ולא כעובדה.</p></div><Link className="do-link" href="/digital-observer/alerts">מרכז ההתראות</Link></div>{signals.length ? <div className="do-row-list">{signals.slice(0, 5).map((signal) => <Link className="do-row" href={`/digital-observer/alerts?event=${signal.id}`} key={signal.id}><Activity /><span className="do-row-main"><strong>{observerEventLabel(signal.metadata?.event_type ?? signal.signal_type)}</strong><small>{signal.recommended_action || "ממתין לבדיקה אנושית"}</small></span><span className="do-row-meta"><b className="do-badge info">{signal.confidence == null ? "ללא ציון" : `${Math.round(Number(signal.confidence) * 100)}%`}</b><time>{formatObserverDate(signal.created_at)}</time></span></Link>)}</div> : <div className="do-empty"><CheckCircle2 /><strong>אין עדכון חדש</strong><span>לא נוצר סיכום יומי מזויף כשאין אירועים.</span></div>}</article>
               </section>
 

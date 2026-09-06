@@ -738,7 +738,17 @@ async function probePrivateNvrStream(url, token, cookie) {
 
 function privateNvrSessionHasLiveRelay(sessionKey) {
   return [...relays.entries()].some(([id, relay]) => streamSources.get(id)?.sessionKey === sessionKey
+    && relayBelongsToCurrentSession(relay, streamSources.get(id))
     && relayIsProgressing(relay) && Date.now() - relay.lastInputAt < RELAY_STALE_MS);
+}
+
+function relayBelongsToCurrentSession(relay, source) {
+  if (source?.kind !== "private_nvr_http_mp4") return true;
+  const session = source.sessionKey ? privateNvrSessions.get(source.sessionKey) : null;
+  // A relay is bound to the exact recorder login that created its upstream.
+  // Never let a stale relay survive a session replacement or serve another
+  // channel after a shared DVR reconnect.
+  return Boolean(relay?.sessionToken && session?.token && relay.sessionToken === session.token);
 }
 
 async function discoverPrivateNvr(payload, channelCount) {
@@ -967,7 +977,9 @@ async function privateNvrRelayResponse(source) {
 
 async function ensureRelay(streamId) {
   const existing = relays.get(streamId);
-  if (existing && relayIsRunning(existing) && (relayIsProgressing(existing) || Date.now() - existing.startedAt < RELAY_STALE_MS)) return existing;
+  const source = streamSources.get(streamId);
+  if (existing && relayIsRunning(existing) && relayBelongsToCurrentSession(existing, source)
+    && (relayIsProgressing(existing) || Date.now() - existing.startedAt < RELAY_STALE_MS)) return existing;
   if (existing) {
     relayLifecycle.staleOnRequest += 1;
     stopRelay(streamId, existing);
@@ -1037,7 +1049,11 @@ async function startRelay(streamId) {
       ]),
     "-f", "hls",
     "-hls_time", "1",
-    "-hls_list_size", "5",
+    // A recording grant may require a 3 s pre-window plus 5 s post-window.
+    // Keep a bounded margin above that eight-second contract so a normal
+    // scheduling/upload delay cannot evict the first post-event segment and
+    // create a false `postbuffer_gap`.
+    "-hls_list_size", "12",
     "-hls_start_number_source", "generic",
     "-hls_flags", "delete_segments+append_list+omit_endlist+independent_segments+temp_file",
     "-hls_segment_filename", join(directory, "segment-%06d.ts"),
@@ -1186,7 +1202,7 @@ async function analyzeRelayObjectSample(streamId) {
     try { detections = await objectInference.predict(frame.pixels); }
     finally { frame.pixels.fill(0); }
     if (!detections || prepared.signal.aborted || relays.get(streamId) !== relay) return null;
-    const result = { detections, source_anchor: bound.anchor };
+    const result = { detections, source_anchor: bound.anchor, model_provenance: objectInference.status().provenance };
     // No objects means no event can need this sample's prebuffer.
     if (!detections.length) eventEvidence.release(prepared.lease_id);
     prepared = null;
@@ -1419,6 +1435,10 @@ async function handle(request, response) {
         inputs: [...relays.entries()].map(([streamId, relay]) => ({ channel: streamSources.get(streamId)?.channel, input_codec: ["h264", "hevc", "mjpeg", "mpeg4"].includes(streamSources.get(streamId)?.codec) ? streamSources.get(streamId).codec : "unknown", encoder: relay.encoder, ...relay.inputMetrics.snapshot(), stdin_backpressure: relay.process.stdin.writableNeedDrain, stdin_queued_bytes: relay.process.stdin.writableLength })),
         lifecycle: relayLifecycle
       },
+      // Aggregate-only diagnostics for evidence authorization. This makes a
+      // failed capture observable without exposing an anchor, event, token,
+      // camera credential, or private source URL through the health endpoint.
+      eventEvidence: eventEvidence.status(),
       edge,
       edge_capability_contract: edgeCapabilityContract(edge),
       capabilities: {
@@ -1581,7 +1601,7 @@ async function handle(request, response) {
         insight: { sampled_at: sample?.source_anchor.observed_at ?? new Date().toISOString(),
           processed_at: new Date().toISOString(), source_anchor: sample?.source_anchor ?? null,
           timestamp_basis: "local_source_observed_at_not_capture_utc",
-          object_detection: { status: sample === null ? "unavailable" : "sampled", detections: sample?.detections ?? [] } },
+          object_detection: { status: sample === null ? "unavailable" : "sampled", detections: sample?.detections ?? [], model_provenance: sample?.model_provenance ?? null } },
         local_processing: true, no_raw_video_returned: true
       });
       return;

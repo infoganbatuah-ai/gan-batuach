@@ -40,6 +40,7 @@ export async function enqueueObserverJob(supabase: SupabaseLike, payload: { kind
   }
 
   if (!camera && !payload.kindergarten_id) throw new Error("לא נמצאה מצלמה להרצת mock observer.");
+  if (camera?.observer_site_id) throw new Error("MOCK_OBSERVER_REJECTED_FOR_REAL_SITE");
   const kindergartenId = payload.kindergarten_id ?? camera?.garden_id;
   if (!kindergartenId) throw new Error("לא נמצא גן להרצת mock observer.");
 

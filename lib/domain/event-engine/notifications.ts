@@ -1,5 +1,6 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- dynamic Supabase notification tables do not have generated database types. */
 /** Provider acceptance is recorded separately from in-app availability. */
-export async function recordEventNotifications(db: any, siteId: string, signalId: string, severity: string) {
+export async function recordEventNotifications(db: any, siteId: string, signalId: string, severity: string, options: { allowPush?: boolean } = {}) {
   if (["info", "low"].includes(severity)) return { push_pending: false };
   const [site, recipients, settings] = await Promise.all([
     db.from("observer_sites").select("owner_profile_id").eq("id", siteId).single(),
@@ -27,7 +28,7 @@ export async function recordEventNotifications(db: any, siteId: string, signalId
     if (result.error && result.error.code !== "23505") throw new Error("NOTIFICATION_WRITE_FAILED");
   }
   let pending = false;
-  for (const id of recipientsFor("push")) {
+  for (const id of options.allowPush === false ? [] : recipientsFor("push")) {
     if (!enabled(id, "push")) continue;
     pending = await deliverPush(db, siteId, signalId, id, severity) || pending;
   }

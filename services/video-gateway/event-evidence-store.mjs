@@ -28,8 +28,17 @@ export function createEventEvidenceStore({ now = Date.now, leaseMs = 30_000, man
   const leases = new Map();
   const grants = new Map();
   const decisions = new Map();
+  const authorizationFailures = new Map();
   let bindings = new Map(), manifestExpires = 0;
   let retainedBytes = 0;
+  function authorizationFailure(reason) {
+    authorizationFailures.set(reason, (authorizationFailures.get(reason) ?? 0) + 1);
+    return null;
+  }
+  function claimFailure(reason) {
+    authorizationFailures.set(`claim_${reason}`, (authorizationFailures.get(`claim_${reason}`) ?? 0) + 1);
+    return false;
+  }
   function release(id, reason = "evidence_released") {
     const lease = leases.get(id);
     if (!lease) return;
@@ -110,12 +119,19 @@ export function createEventEvidenceStore({ now = Date.now, leaseMs = 30_000, man
         ? namespacedEventId(binding.observer_site_id, event.event_id) : null;
       const decisionId = binding && expectedMediaEventId
         ? JSON.stringify([binding.observer_site_id, event.event_id, expectedMediaEventId]) : "";
-      if (!binding || binding.version !== version || binding.camera_source_id !== event.camera_source_id
-        || binding.specialized_event_type && (event.evidence_kind !== "object_detection_off_hours" || event.event_type !== binding.specialized_event_type)
-        || saved?.status !== "stored" || saved.recording_required !== true || saved.media_status !== "pending"
-        || !expectedMediaEventId || saved.media_event_id !== expectedMediaEventId || decisions.has(decisionId)
-        || !Number.isFinite(eventTime) || eventTime > now() || now() - eventTime >= 60_000) return null;
-      if (grants.size >= 64 || decisions.size >= 64) return null;
+      // Expose only bounded condition categories in health. Never include an
+      // event ID, source anchor, token, URL, or any payload content here.
+      if (!binding) return authorizationFailure("binding_unavailable");
+      if (binding.version !== version) return authorizationFailure("binding_version_changed");
+      if (binding.camera_source_id !== event.camera_source_id) return authorizationFailure("camera_binding_mismatch");
+      if (binding.specialized_event_type && (event.evidence_kind !== "object_detection_off_hours" || event.event_type !== binding.specialized_event_type)) return authorizationFailure("specialized_event_mismatch");
+      if (saved?.status !== "stored") return authorizationFailure("cloud_event_not_stored");
+      if (saved.recording_required !== true) return authorizationFailure("recording_not_required");
+      if (saved.media_status !== "pending") return authorizationFailure("media_not_pending");
+      if (!expectedMediaEventId || saved.media_event_id !== expectedMediaEventId) return authorizationFailure("media_event_identity_mismatch");
+      if (decisions.has(decisionId)) return authorizationFailure("duplicate_recording_decision");
+      if (!Number.isFinite(eventTime) || eventTime > now() || now() - eventTime >= 60_000) return authorizationFailure("event_time_outside_capture_horizon");
+      if (grants.size >= 64 || decisions.size >= 64) return authorizationFailure("recording_capacity_reached");
       const token = randomUUID();
       const decisionExpires = eventTime + 60_000;
       const expires = Math.min(now() + 30_000, decisionExpires);
@@ -128,12 +144,18 @@ export function createEventEvidenceStore({ now = Date.now, leaseMs = 30_000, man
     claimRecording(token, anchor) {
       sweep();
       const grant = grants.get(token), lease = leases.get(anchor?.lease_id);
-      if (!grant || grant.active || !lease?.anchor || grant.streamId !== lease.streamId
-        || grant.version !== lease.binding.version || grant.observedAt !== lease.anchor.observed_at
-        || Object.keys(lease.anchor).some(k => anchor[k] !== lease.anchor[k])) return false;
+      // As above, reasons are bounded operational categories only. They are
+      // intentionally not tied to an event, source, anchor, token or URL.
+      if (!grant) return claimFailure("grant_missing");
+      if (grant.active) return claimFailure("grant_active");
+      if (!lease?.anchor) return claimFailure("anchor_missing");
+      if (grant.streamId !== lease.streamId) return claimFailure("stream_mismatch");
+      if (grant.version !== lease.binding.version) return claimFailure("binding_version_changed");
+      if (grant.observedAt !== lease.anchor.observed_at) return claimFailure("observed_at_mismatch");
+      if (Object.keys(lease.anchor).some(k => anchor[k] !== lease.anchor[k])) return claimFailure("anchor_mismatch");
       grant.active = true;
       const decision = decisions.get(grant.decisionId);
-      if (!decision || decision.state !== "pending") { grant.active = false; return false; }
+      if (!decision || decision.state !== "pending") { grant.active = false; return claimFailure("decision_not_pending"); }
       decision.state = "active";
       return true;
     },
@@ -228,6 +250,13 @@ export function createEventEvidenceStore({ now = Date.now, leaseMs = 30_000, man
     },
     release,
     sweep,
-    status() { sweep(); return { leases: leases.size, retained_bytes: retainedBytes }; }
+    status() {
+      sweep();
+      return {
+        leases: leases.size,
+        retained_bytes: retainedBytes,
+        authorization_failures_by_reason: Object.fromEntries(authorizationFailures)
+      };
+    }
   };
 }

@@ -7,6 +7,7 @@ node_modules/
 .env.*
 !.env.qa-demo.example
 .vercel/
+supabase/.temp/
 __MACOSX/
 .DS_Store
 .git/

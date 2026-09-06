@@ -6,7 +6,7 @@ import { JournalTracker } from "../../services/video-gateway/journal-tracker.mjs
 const base = Date.parse("2026-08-31T12:00:00.000Z");
 const camera = {
   camera_id: "fixture-parking", stream_id: "fixture-stream", monitoring_enabled: true,
-  zone_type: "PARKING", allowed_event_types: ["vehicle_entered", "vehicle_exited"],
+  zone_type: "PARKING", allowed_event_types: ["vehicle_entered", "vehicle_exited"], supported_event_types: ["vehicle_entered", "vehicle_exited"],
   crossing_line: { axis: "x", position: 0.5, inside: "positive" }
 };
 const frame = (x, milliseconds) => ({ timestamp: new Date(base + milliseconds).toISOString(),

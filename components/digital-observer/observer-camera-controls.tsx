@@ -257,6 +257,7 @@ export function ObserverCameraControls({
       <span>{automation.enabled
         ? `מורשות רק באירוע מאומת: ${automation.allowedActions.map((action) => action === "lighting" ? "תאורה" : "סירנה").join(" ו")}${automation.allowedActions.includes("siren") ? ` של ${Math.round((automation.sirenDurationMs ?? 0) / 100) / 10} שנייה` : ""}.`
         : "לא קיימת מדיניות אוטונומית פעילה למצלמה זו."}</span>
+      <small>הבקרים הפיזיים הם אירועים בלבד; PTZ, תאורה וסירנה עשויים להיות חסום במדיניות או ביכולות המקור.</small>
     </section>
     <div className="do-camera-live-controls" aria-label="פעולות צפייה חיה">
       <button type="button" onClick={toggleAudio} disabled={!audioSupported || busy} title={audioSupported ? (muted ? "הפעלת שמע מהמצלמה" : "השתקת שמע מהמצלמה") : "שמע אינו נתמך במצלמה זו"}>

@@ -7,6 +7,8 @@ const modelPath = process.env.VIDEO_GATEWAY_OBJECT_MODEL_PATH || join(homedir(),
 const expectedSha256 = "1fbcf47654165f2e0b5f1bdf3f123b9e9e1128cd6463717767b76ab4b5246f9a";
 const provenance = {
   model: "ssd_mobilenet_v1_10",
+  runtime: "onnxruntime-node",
+  execution_provider: "cpu",
   source: "https://huggingface.co/onnxmodelzoo/ssd_mobilenet_v1_10",
   license: "Apache-2.0",
   expected_sha256: expectedSha256
@@ -94,7 +96,7 @@ try {
         const confidence = Number(scores[index] || 0);
         const classId = Math.round(Number(classes[index] || 0));
         if (confidence < 0.55 || !cocoLabels[classId]) continue;
-        detections.push({ label: cocoLabels[classId], confidence: Number(confidence.toFixed(3)), box: Array.from(boxes.slice(index * 4, index * 4 + 4)).map((value) => Number(Number(value).toFixed(4))) });
+        detections.push({ class_id: classId, label: cocoLabels[classId], confidence: Number(confidence.toFixed(3)), box: Array.from(boxes.slice(index * 4, index * 4 + 4)).map((value) => Number(Number(value).toFixed(4))) });
       }
       return detections;
     } finally {

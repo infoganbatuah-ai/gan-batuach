@@ -6,10 +6,12 @@ import {
   Building2,
   Camera,
   CircleHelp,
+  ClipboardCheck,
   CreditCard,
   Eye,
   FileVideo2,
   Home,
+  ListTree,
   Menu,
   Radar,
   Search,
@@ -32,6 +34,7 @@ type ObserverShellProfile = {
 const homeNav = [
   { href: "/digital-observer/dashboard", label: "בית", icon: Home },
   { href: "/digital-observer/cameras", label: "צפייה חיה", icon: Camera },
+  { href: "/digital-observer/incidents", label: "תקריות", icon: ListTree },
   { href: "/digital-observer/alerts", label: "אירועים", icon: Bell },
   { href: "/digital-observer/rules", label: "התצפיתן שלי", icon: Radar },
   { href: "/digital-observer/recordings", label: "הקלטות", icon: FileVideo2 },
@@ -44,6 +47,7 @@ const businessNav = [
   { href: "/digital-observer/dashboard", label: "סקירת העסק", icon: Home },
   { href: "/digital-observer/sites", label: "אתרים", icon: Building2 },
   { href: "/digital-observer/cameras", label: "מצלמות", icon: Camera },
+  { href: "/digital-observer/incidents", label: "תקריות", icon: ListTree },
   { href: "/digital-observer/alerts", label: "אירועים פתוחים", icon: Bell },
   { href: "/digital-observer/recordings", label: "קליפים", icon: FileVideo2 },
   { href: "/digital-observer/rules", label: "כללי ניטור", icon: Radar },
@@ -56,6 +60,8 @@ const adminNav = [
   { href: "/digital-observer/admin", label: "מרכז בקרה", icon: ShieldCheck },
   { href: "/digital-observer/admin/access", label: "לקוחות ואתרים", icon: UsersRound },
   { href: "/digital-observer/admin/operations", label: "מנוע ותפעול", icon: Radar },
+  { href: "/digital-observer/admin/watch-rules", label: "כללי ניטור", icon: ListTree },
+  { href: "/digital-observer/admin/quality", label: "איכות וכיול", icon: ClipboardCheck },
   { href: "/digital-observer/admin/billing", label: "מנויים וחיוב", icon: CreditCard },
   { href: "/digital-observer/admin/packages", label: "חבילות", icon: Settings }
 ] as const;

@@ -33,6 +33,8 @@ import {
   observerClipHasRequiredMedia,
   observerEventLabel,
   observerModeForSite,
+  productObserverRuntimeStatus,
+  productObserverRuntimeStatusLabel,
   selectObserverSite,
   observerStatusLabel
 } from "@/lib/domain/digital-observer/runtime";
@@ -104,6 +106,7 @@ export default async function DigitalObserverDashboardPage({ searchParams }: Pag
   const reviewableOpenSignals = openSignals.filter((signal) => Boolean(observerCameraForSignal(signal, siteCameras)) && (signal.metadata?.validated_event === true || signal.metadata?.recording_required === false || observerClipHasRequiredMedia(observerClipForSignal(signal, runtime.clips))));
   const urgentSignals = reviewableOpenSignals.filter((signal) => ["critical", "urgent", "high"].includes(String(signal.severity)));
   const liveCameras = siteCameras.filter((camera) => digitalObserverCameraHasLiveGateway(camera)).length;
+  const observerRuntimeStatus = productObserverRuntimeStatus(selectedSite, siteCameras);
   const readyCameras = siteCameras.filter((camera) => ["connected", "healthy", "online", "active", "ready_to_test", "testing"].includes(String(camera.status)) || camera.health_status === "healthy").length;
   const businessActivity = activityBuckets(siteSignals);
   const businessActivityTotal = businessActivity.reduce((sum, bucket) => sum + bucket.count, 0);
@@ -114,7 +117,7 @@ export default async function DigitalObserverDashboardPage({ searchParams }: Pag
       mode={mode}
       activeHref="/digital-observer/dashboard"
       title={mode === "home" ? "תצפיתן דיגיטלי" : "סקירת העסק"}
-      statusLabel={selectedSite?.monitoring_enabled ? "מצב ניטור פעיל" : "מצב הכנה בטוח"}
+      statusLabel={productObserverRuntimeStatusLabel(observerRuntimeStatus)}
     >
       <div className={`do-page-stack do-dashboard do-dashboard-${mode}`}>
         <ObserverJournalRefresh latestId={siteSignals[0]?.id} severity={siteSignals[0]?.severity} />

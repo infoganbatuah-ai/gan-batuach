@@ -1,6 +1,6 @@
 import { createHash, createHmac, timingSafeEqual } from "node:crypto";
 import { z } from "zod";
-import { fail, handleRouteError, ok } from "@/lib/api";
+import { fail, ok } from "@/lib/api";
 import { observerEventNarrative } from "@/lib/domain/digital-observer/event-narrative";
 import { eventValidationPipeline } from "@/lib/domain/event-engine/event-validation-pipeline";
 import { authenticateEventGateway } from "@/lib/domain/event-engine/gateway-auth";
@@ -15,6 +15,15 @@ const MAX_CLOCK_SKEW_MS = 5 * 60 * 1000;
 const MEDIA_BUCKET = "digital-observer-event-media";
 const MAX_CLIP_BYTES = 8 * 1024 * 1024;
 const MAX_THUMBNAIL_BYTES = 512 * 1024;
+const mediaPersistenceFailureCodes = new Set([
+  "EVIDENCE_UPLOAD_IDEMPOTENCY_WRITE_FAILED",
+  "EVIDENCE_STORAGE_UPLOAD_FAILED",
+  "EVIDENCE_METADATA_WRITE_FAILED",
+  "EVENT_MEDIA_LINK_FAILED",
+  "EVENT_READ_FAILED",
+  "EVENT_SCOPE_UNAVAILABLE",
+  "unsafe_event_summary"
+]);
 
 const metadataSchema = z.object({
   gateway_id: z.string().min(1).max(128),
@@ -23,6 +32,7 @@ const metadataSchema = z.object({
   camera_source_id: z.string().uuid(),
   stream_id: z.string().min(1).max(160),
   event_type: z.string().min(1).max(80).default("camera_media_readiness"),
+  evidence_kind: z.enum(["object_detection", "object_detection_off_hours", "line_crossing", "validated_rule", "stream_health"]),
   severity: z.enum(["info", "low", "medium", "high", "urgent", "critical"]).default("info"),
   confidence: z.number().min(0).max(1).default(1),
   captured_at: z.string().datetime(),
@@ -83,6 +93,16 @@ function safeNarrative(value: string | undefined) {
   return normalized;
 }
 
+function mediaPersistenceFailure(error: unknown) {
+  if (error instanceof z.ZodError) return fail("Evidence media payload is invalid.", 422, { code: "validation_failed" });
+  const code = error instanceof Error && mediaPersistenceFailureCodes.has(error.message)
+    ? error.message
+    : "EVIDENCE_PERSISTENCE_UNEXPECTED";
+  // Do not return provider, storage, or SQL messages to the Gateway. The
+  // bounded code is enough for a retry-safe operational diagnosis.
+  return fail("Evidence media persistence failed.", 500, { code });
+}
+
 function retentionHoursForSite(eventRetentionDays: unknown) {
   const requested = Number(eventRetentionDays);
   if (!Number.isFinite(requested)) return 48;
@@ -97,7 +117,7 @@ async function readPart(formData: FormData, name: string, maxBytes: number, allo
   return { file: value, bytes: Buffer.from(await value.arrayBuffer()) };
 }
 
-async function uploadPrivateMedia(supabase: any, path: string, bytes: Buffer, contentType: string) {
+async function uploadPrivateMedia(supabase: ReturnType<typeof createAdminClient>, path: string, bytes: Buffer, contentType: string) {
   let result = await supabase.storage.from(MEDIA_BUCKET).upload(path, bytes, { contentType, upsert: true });
   if (result.error && /bucket/i.test(result.error.message || "")) {
     await supabase.storage.createBucket(MEDIA_BUCKET, {
@@ -118,7 +138,7 @@ export async function POST(request: Request) {
     const timestamp = header(request, "x-video-gateway-timestamp");
     const nonce = header(request, "x-video-gateway-nonce");
     const signature = header(request, "x-video-gateway-signature");
-    const supabase = createAdminClient() as any;
+    const supabase = createAdminClient();
     const device = header(request, "x-video-gateway-device-token") ? await authenticateEventGateway(request, supabase) : null;
     const parsedTimestamp = Date.parse(timestamp);
     if (!gatewayId || !nonce || (!signature && !device) || !Number.isFinite(parsedTimestamp) || Math.abs(Date.now() - parsedTimestamp) > MAX_CLOCK_SKEW_MS) return fail("Invalid gateway authentication.", 401);
@@ -150,7 +170,7 @@ export async function POST(request: Request) {
     if (device && cameraMetadata.gateway_id !== device.gateway_id) return fail("Camera belongs to a different Gateway.", 403);
     if (String(cameraMetadata.gateway_stream_id ?? "") !== metadata.stream_id) return fail("Camera source does not match gateway stream.", 403);
     const spatialValidation = eventValidationPipeline.validate(
-      { event_type: metadata.event_type, severity: metadata.severity, confidence: metadata.confidence, description: metadata.event_summary, metadata: metadata.metadata },
+      { event_type: metadata.event_type, evidence_kind: metadata.evidence_kind, severity: metadata.severity, confidence: metadata.confidence, description: metadata.event_summary, metadata: metadata.metadata },
       { id: camera.id, name: camera.display_name, area: camera.location_label, camera_zone_type: cameraMetadata.zone_type ?? cameraMetadata.camera_zone_type }
     );
     if (!spatialValidation.accepted) {
@@ -197,7 +217,7 @@ export async function POST(request: Request) {
       raw_payload_reference: null,
       metadata: { clip_hash: clipHash, thumbnail_hash: thumbnailHash, no_raw_payload_stored: true, no_credentials_received: true }
     }).select("id").single();
-    if (event.error) throw new Error(event.error.message);
+    if (event.error) throw new Error("EVIDENCE_UPLOAD_IDEMPOTENCY_WRITE_FAILED");
 
     const day = metadata.captured_at.slice(0, 10).replaceAll("-", "/");
     const basePath = `${metadata.observer_site_id}/${day}/${metadata.event_id}`;
@@ -207,8 +227,7 @@ export async function POST(request: Request) {
       uploadPrivateMedia(supabase, clipPath, clip.bytes, clip.file.type),
       uploadPrivateMedia(supabase, thumbnailPath, thumbnail.bytes, thumbnail.file.type)
     ]);
-    if (clipUpload.error) throw new Error(clipUpload.error.message);
-    if (thumbnailUpload.error) throw new Error(thumbnailUpload.error.message);
+    if (clipUpload.error || thumbnailUpload.error) throw new Error("EVIDENCE_STORAGE_UPLOAD_FAILED");
 
     const deleteAfter = new Date(Date.parse(metadata.captured_at) + retentionHours * 60 * 60 * 1000).toISOString();
     const clipPayload = {
@@ -255,7 +274,7 @@ export async function POST(request: Request) {
     const clipResult = existingClip.data?.id
       ? await supabase.from("digital_observer_event_clips").update(clipPayload).eq("id", existingClip.data.id).select("id").single()
       : await supabase.from("digital_observer_event_clips").insert(clipPayload).select("id").single();
-    if (clipResult.error) throw new Error(clipResult.error.message);
+    if (clipResult.error) throw new Error("EVIDENCE_METADATA_WRITE_FAILED");
 
     // Preserve original classification, tracking, timestamp and human review.
     const mediaAvailableAt = new Date().toISOString();
@@ -274,7 +293,5 @@ export async function POST(request: Request) {
 
     await supabase.from("provider_webhook_events").update({ status: "processed", processed_at: new Date().toISOString() }).eq("id", event.data.id);
     return ok({ status: "stored", signal_id: signal.id, clip_id: clipResult.data.id, signed_urls_returned: false }, 201);
-  } catch (error) {
-    return handleRouteError(error);
-  }
+  } catch (error) { return mediaPersistenceFailure(error); }
 }

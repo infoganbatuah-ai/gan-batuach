@@ -52,7 +52,7 @@ assert.equal(eventValidationPipeline.validate({event_type:"person_entered",evide
 assert.equal(eventValidationPipeline.validate({event_type:"drowning_hazard",severity:"critical"},pool).shouldRecord,true);
 
 const at = n=>new Date(Date.UTC(2026,7,31,10,0,n)).toISOString();
-const row = (camera,sec,extra={})=>({id:camera+sec,observer_site_id:"site",created_at:at(sec),signal_type:"ai_camera",severity:"info",metadata:{camera_source_id:camera,event_type:"person_detected",recording_required:false},...extra});
+const row = (camera,sec,extra={})=>({id:camera+sec,observer_site_id:"site",source_type:"system",created_at:at(sec),signal_type:"ai_camera",severity:"info",metadata:{camera_source_id:camera,event_type:"person_detected",recording_required:false,validated_event:true},...extra});
 const grouped=eventJournalService.group([row("a",0),row("b",1),row("a",80),row("a",160)]);
 assert.equal(grouped.length,2,"Continuous activity merges without merging different cameras");
 assert.equal(grouped.find(r=>r.camera_id==="a").count,3);
@@ -127,9 +127,32 @@ positions.forEach((x,i)=>events.push(...tracker.observe(camera,detect(x),at(i*3)
 assert.equal(events.filter(e=>e.event_type==="person_entered").length,1);
 assert.equal(events.find(e=>e.event_type==="person_entered")?.severity,"CRITICAL");
 assert.equal(events.filter(e=>e.event_type==="person_detected").length,1);
+const yLineCrossing={...camera,crossing_line:{axis:"y",position:.5,inside:"positive"}};
+const yBox=center=>[{label:"person",confidence:.92,box:[center-.1,.4,center+.1,.6]}];
+const bridgedCrossing=new JournalTracker({personConfirmations:2});
+const bridgedEvents=[];
+[.30,.31,.32,.68,.69,.70].forEach((center,index)=>bridgedEvents.push(...bridgedCrossing.observe(yLineCrossing,yBox(center),new Date(Date.parse(at(60))+index*500).toISOString())));
+assert.equal(bridgedEvents.filter(event=>event.event_type==="person_entered").length,1,"A confirmed same-person jump across the y-line retains the track and qualifies entry");
+assert.equal(new Set(bridgedEvents.map(event=>event.track_id)).size,1,"Crossing continuity bridge must retain one track ID");
 assert.equal(tracker.observe(camera,[],at(40)).length,0,"Disappearance is not an exit");
 assert.equal(tracker.observe({...camera,camera_id:"b"},detect(.65),at(45)).length,0,"Other cameras cannot reuse tracks");
 assert.equal(tracker.observe(camera,detect(.35),at(15)).length,0,"Out-of-order samples are ignored");
+const exitTracker=new JournalTracker({cooldownMs:10_000});
+const exitEvents=[];
+// Three stable samples per side are required: an approach alone, two samples,
+// or jitter around the dead-band must not manufacture a directional exit.
+[.65,.66,.67,.57,.45,.35,.34,.33].forEach((x,i)=>exitEvents.push(...exitTracker.observe(camera,detect(x),at(100+i*3))));
+assert.equal(exitEvents.filter(event=>event.event_type==="person_entered").length,0,"Starting inside must not create a synthetic entry");
+assert.equal(exitEvents.filter(event=>event.event_type==="person_exited").length,1,"Three unique stable observations on the outward side create one exit");
+assert.equal(exitEvents.find(event=>event.event_type==="person_exited")?.track_id,exitEvents.find(event=>event.event_type==="person_detected")?.track_id,"Presence and exit retain one track");
+const twoSampleExit=new JournalTracker({cooldownMs:10_000});
+const twoSampleEvents=[];
+[.65,.66,.67,.45,.35].forEach((x,i)=>twoSampleEvents.push(...twoSampleExit.observe(camera,detect(x),at(140+i*3))));
+assert.equal(twoSampleEvents.some(event=>event.event_type==="person_exited"),false,"Two outward samples cannot satisfy the exit contract");
+const noCrossExit=new JournalTracker();
+const noCrossEvents=[];
+[.65,.66,.67,.55,.52,.49,.47].forEach((x,i)=>noCrossEvents.push(...noCrossExit.observe(camera,detect(x),at(160+i*3))));
+assert.equal(noCrossEvents.some(event=>event.event_type==="person_exited"),false,"Approaching the line without three outer-side samples is not an exit");
 const stationary=new JournalTracker();
 for(let i=0;i<15;i++) assert.equal(stationary.observe(camera,detect(.49+(i%2)*.02),at(i)).filter(e=>e.event_type.endsWith("entered")||e.event_type.endsWith("exited")).length,0);
 const noLine=new JournalTracker();

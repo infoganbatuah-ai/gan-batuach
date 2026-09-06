@@ -36,6 +36,9 @@ if (!allowedEnvironments.has(appEnvironment)) {
 if (publicSecretNames.length) {
   errors.push(`Server-only credential names must not use NEXT_PUBLIC_: ${publicSecretNames.join(", ")}.`);
 }
+if (appEnvironment === "production" && !process.env.FIELD_ENCRYPTION_KEY_CURRENT && !process.env.FIELD_ENCRYPTION_KEY) {
+  errors.push("Production requires a dedicated FIELD_ENCRYPTION_KEY_CURRENT or FIELD_ENCRYPTION_KEY; SUPABASE_SERVICE_ROLE_KEY is not an encryption key.");
+}
 
 const liveRequested = liveModeChecks.length > 0 || realSendFlags.length > 0;
 if (liveRequested) {

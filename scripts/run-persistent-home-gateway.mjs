@@ -3,10 +3,12 @@ import { spawn, spawnSync } from "node:child_process";
 import { renameSync, writeFileSync } from "node:fs";
 import { startJournalLoop } from "../services/video-gateway/journal-loop.mjs";
 import { createContinuousMonitoringLifecycle } from "../services/video-gateway/continuous-monitor.mjs";
+import { acquireJournalOwnerLock } from "../services/video-gateway/journal-owner-lock.mjs";
 
 const workdir = process.cwd();
 const gatewayUrl = "http://127.0.0.1:18082";
 const gatewayKeychainService = process.env.GAN_BATUACH_GATEWAY_KEYCHAIN_SERVICE || "com.ganbatuach.video-gateway.runtime";
+const dvrKeychainService = process.env.GAN_BATUACH_GATEWAY_DVR_KEYCHAIN_SERVICE || gatewayKeychainService;
 const discoveryEnabled = process.env.GAN_BATUACH_GATEWAY_DISCOVERY === "1";
 const DISCOVERY_RETRY_DELAY_MS = 20_000;
 const DISCOVERY_RETRY_ATTEMPTS = 2;
@@ -15,9 +17,17 @@ const VERIFIED_CONNECTED_COUNT_KEY = "last_verified_connected_channel_count";
 const CLOUD_REQUEST_TIMEOUT_MS = 30_000;
 const DISCOVERY_REQUEST_TIMEOUT_MS = 3 * 60 * 1000;
 const INSIGHT_REQUEST_TIMEOUT_MS = 20_000;
+const evidenceTestCameraId = /^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i.test(process.env.GAN_BATUACH_GATEWAY_EVIDENCE_TEST_CAMERA_ID || "")
+  ? process.env.GAN_BATUACH_GATEWAY_EVIDENCE_TEST_CAMERA_ID
+  : null;
+const spatialTraceEnabled = process.env.GAN_BATUACH_GATEWAY_SPATIAL_TRACE === "1";
+// A one-camera evidence verification may safely sample more often without
+// changing the normal multi-camera monitoring budget or Journal semantics.
+// It remains opt-in and is removed with the diagnostic launchd setting.
+const evidenceTestPollIntervalMs = evidenceTestCameraId ? 350 : undefined;
 
-function keychainSecret(account) {
-  const result = spawnSync("/usr/bin/security", ["find-generic-password", "-s", gatewayKeychainService, "-a", account, "-w"], { encoding: "utf8" });
+function keychainSecret(account, service = gatewayKeychainService) {
+  const result = spawnSync("/usr/bin/security", ["find-generic-password", "-s", service, "-a", account, "-w"], { encoding: "utf8" });
   return result.status === 0 ? result.stdout.trim() : "";
 }
 
@@ -37,7 +47,6 @@ const deviceObserverSiteId = keychainSecret("device_observer_site_id");
 const deviceRefreshToken = keychainSecret("device_refresh_token");
 const gatewayId = deviceGatewayId || keychainSecret("cloud_gateway_id");
 const observerSiteId = deviceObserverSiteId || keychainSecret("cloud_observer_site_id");
-const productionBaseUrl = keychainSecret("device_cloud_base_url") || keychainSecret("cloud_base_url") || "https://ganbatuach.com";
 const missingCloudConfiguration = [
   !gatewaySecret && "gateway_signing_secret",
   !gatewayId && "device_gateway_id",
@@ -49,10 +58,10 @@ if (missingCloudConfiguration.length) throw new Error(`Persistent gateway cloud 
 let config = null;
 let password = "";
 if (discoveryEnabled) {
-  const profileJson = keychainSecret("dvr_profile_json");
+  const profileJson = keychainSecret("dvr_profile_json", dvrKeychainService);
   if (!profileJson) throw new Error("DVR profile is not available in macOS Keychain");
   config = JSON.parse(profileJson);
-  password = keychainSecret("dvr_password");
+  password = keychainSecret("dvr_password", dvrKeychainService);
   if (!password) throw new Error("DVR credential is not available in macOS Keychain");
 }
 
@@ -164,6 +173,7 @@ async function learn() {
 
 await waitForGateway();
 let stopJournal = async () => {};
+let releaseJournalOwner = () => {};
 let continuousMonitor = { start: async () => undefined, stop: async () => undefined };
 if (discoveryEnabled) {
   continuousMonitor = createContinuousMonitoringLifecycle({
@@ -182,7 +192,10 @@ if (discoveryEnabled) {
   // discover() publishes the local channel set before awaiting cloud mapping,
   // so the next monitor cycle acquires leases even when cloud sync is slow.
   await discoverWithRetry("initial");
+  releaseJournalOwner = acquireJournalOwnerLock();
   stopJournal = startJournalLoop({ gatewayUrl, gatewaySecret, databasePath: `${workdir}/journal-outbox.sqlite`,
+    personConfirmations: 2, cameraFilter: evidenceTestCameraId, pollIntervalMs: evidenceTestPollIntervalMs,
+    spatialTrace: spatialTraceEnabled,
     report: (status) => writeFileSync(`${workdir}/journal-status.json`, JSON.stringify(status), { mode: 0o600 }) });
   await learn().catch((error) => {
     // Cloud identity rotation or learning upload must never own the local live
@@ -199,6 +212,7 @@ async function shutdown(exitCode = 0, terminateChild = true) {
   shuttingDown = true;
   await continuousMonitor.stop();
   await stopJournal();
+  releaseJournalOwner();
   if (terminateChild && child.exitCode === null && !child.killed) child.kill("SIGTERM");
   process.exit(exitCode);
 }

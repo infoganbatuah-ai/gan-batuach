@@ -1,5 +1,5 @@
 {
-  "generatedAt": "2026-08-20T00:04:13.635Z",
+  "generatedAt": "2026-09-06T13:43:22.757Z",
   "method": "Static migration-order safety check. Remote Supabase policy verification is still required after applying the migration.",
   "migration": "20260820000100_camera_snapshot_storage_privacy_hardening.sql",
   "assertions": [

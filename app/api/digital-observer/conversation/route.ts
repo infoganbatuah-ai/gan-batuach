@@ -6,6 +6,7 @@ import { eventJournalService } from "@/lib/domain/event-engine/event-journal-ser
 import { guardChatHandler } from "@/lib/domain/digital-observer/guard-chat-handler";
 import { guardJournalQuerySchema, guardQueryClarification } from "@/lib/domain/digital-observer/guard-chat-query";
 import { guardContextForSite, guardHistoryPrivacyRestricted, guardHistoryInput, guardJournalAnswer, searchGuardJournal } from "@/lib/domain/event-engine/guard-journal-search";
+import { compileAuthorizedWatchRule } from "@/lib/domain/digital-observer/watch-rule-service";
 
 const schema = z.object({
   observer_site_id: z.string().uuid(),
@@ -32,15 +33,6 @@ function eventType(signal: SignalRow) {
 
 function matchesAny(value: string, tokens: string[]) {
   return tokens.some((token) => value.includes(token));
-}
-
-function classifyInstruction(message: string) {
-  if (matchesAny(message, ["דלת", "פתוחה"])) return "door_left_open";
-  if (matchesAny(message, ["רכב", "מכונית", "חניה"])) return "person_near_object";
-  if (matchesAny(message, ["אחרי שעות", "בלילה", "מחוץ לשעות"])) return "after_hours_activity";
-  if (matchesAny(message, ["אזור", "חדר", "כניסה", "יציאה"])) return "movement_in_area";
-  if (matchesAny(message, ["מכוסה", "תקולה", "מנותקת"])) return "camera_obstruction";
-  return "custom_text_instruction";
 }
 
 function filteredSignals(message: string, signals: SignalRow[]) {
@@ -148,38 +140,20 @@ export async function POST(request: Request) {
     const journalSignals = eventJournalService.groupRows(scopedSignals as Record<string, any>[], cameraResult.data ?? []);
     const eventLog = journalSignals.slice(0, 20).map(signal => eventJournalService.normalize(signal));
     const scopedCameras = selectedCamera ? [selectedCamera] : cameraResult.data ?? [];
-    const connectedSourceAvailable = scopedCameras.some((camera: any) => ["connected", "healthy", "online", "active"].includes(String(camera.status ?? camera.health_status)));
     const message = payload.message.toLowerCase();
     const chatIntent = guardChatHandler.classify(payload.message);
     const instruction = matchesAny(message, ["שים לב", "תעקוב", "תתריע", "תבדוק מעכשיו"]);
     let requestRecord: any = null;
 
     if (instruction) {
-      const watchType = classifyInstruction(message);
-      const { data, error } = await supabase.from("observer_watch_requests" as any).insert({
-        observer_site_id: payload.observer_site_id,
-        kindergarten_id: null,
-        camera_id: null,
-        camera_source_id: payload.camera_source_id ?? null,
-        created_by: profile.id,
-        title: payload.message.slice(0, 120),
-        description: payload.message,
-        watch_type: watchType,
-        active: true,
-        priority: matchesAny(message, ["דחוף", "קריטי", "פריצה", "מצוקה"]) ? 9 : 5,
-        schedule: { mode: "always_active", source: "observer_conversation" },
-        notification_channels: ["in_app"],
-        requires_human_review: true,
-        metadata: {
-          product: "digital_observer",
-          created_from_conversation: true,
-          execution_state: connectedSourceAvailable ? "shadow_active" : "source_readiness",
-          no_automatic_emergency_call: true,
-          no_automatic_accusation: true
-        }
-      }).select("id,title,watch_type,active,created_at").single();
-      if (error) return fail("הבנתי את הבקשה, אך לא ניתן לשמור אותה כרגע.", 400);
-      requestRecord = data;
+      const { compilation } = await compileAuthorizedWatchRule({
+        db: supabase,
+        observerSiteId: payload.observer_site_id,
+        timezone: String(site.timezone ?? "Asia/Jerusalem"),
+        text: payload.message,
+        explicitCameraSourceId: payload.camera_source_id
+      });
+      requestRecord = { ...compilation, activated: false };
     }
 
     const summary = buildAnswer(
@@ -190,9 +164,11 @@ export async function POST(request: Request) {
     );
     return ok({
       answer: instruction
-        ? connectedSourceAvailable
-          ? `שמרתי את ההנחיה והיא פעילה במצב Shadow על ${selectedCamera?.display_name || "המקורות המחוברים"}. כל זיהוי יוצג כהערכה עם ראיה ויישאר כפוף לבדיקה אנושית.\n\n${summary.answer}`
-          : `שמרתי את ההנחיה. מקור המצלמה עדיין אינו מחובר, ולכן היא תתחיל לפעול אוטומטית לאחר חיבור מאומת.\n\n${summary.answer}`
+        ? requestRecord?.status === "READY_FOR_CONFIRMATION"
+          ? `הכנתי פירוש מובנה לבקשה, אבל לא הפעלתי אותו. יש לעבור לתצוגה המקדימה במסך הכללים ולאשר במפורש: ${requestRecord.preview?.event} · ${requestRecord.preview?.camera} · ${requestRecord.preview?.time}.`
+          : requestRecord?.status === "NEEDS_CLARIFICATION"
+            ? requestRecord.clarification?.question || "נדרשת הבהרה לפני יצירת כלל."
+            : requestRecord?.unsupported?.explanation || "לא ניתן להפוך את הבקשה לכלל נתמך ובטוח."
         : summary.answer,
       signal_ids: summary.signalIds,
       event_log: eventLog,
@@ -200,6 +176,7 @@ export async function POST(request: Request) {
       request: requestRecord,
       answer_source: payload.camera_source_id ? "camera_scoped_runtime_data" : "site_scoped_runtime_data",
       live_ai_used: false,
+      rule_activation_requires_confirmation: instruction,
       emergency_action_triggered: false
     });
   } catch (error) {

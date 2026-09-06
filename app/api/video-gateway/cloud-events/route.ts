@@ -12,6 +12,8 @@ import type { GuardCommandDatabase } from "@/lib/domain/digital-observer/guard-c
 import { recordEventNotifications } from "@/lib/domain/event-engine/notifications";
 import { openMediaFault } from "@/lib/domain/event-engine/media-fault-lifecycle";
 import { writeAuditEvent } from "@/lib/security/audit-log-service";
+import { refreshRealEventContextBaseline } from "@/lib/domain/digital-observer/home-learning-sampler";
+import { evaluateAndPersistIncidentRisk } from "@/lib/domain/digital-observer/risk-decision-service";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 30;
@@ -30,13 +32,13 @@ export async function POST(request: Request) {
     // Duplicate IDs are checked below; old observations must not poison the durable outbox.
     if (Date.parse(event.timestamp) > Date.now() + 60_000) return fail("Future event timestamp.", 422);
     const [site, source] = await Promise.all([
-      db.from("observer_sites").select("id,garden_id,site_type,monitoring_enabled,metadata").eq("id", device.observer_site_id).single(),
+      db.from("observer_sites").select("id,garden_id,site_type,monitoring_enabled,timezone,metadata").eq("id", device.observer_site_id).single(),
       db.from("digital_observer_camera_sources").select("id,observer_site_id,display_name,location_label,metadata,status,health_status,source_mode").eq("id", event.camera_source_id).eq("observer_site_id", device.observer_site_id).maybeSingle()
     ]);
     if (site.error || source.error) throw new Error("EVENT_SCOPE_UNAVAILABLE");
     if (site.data.garden_id || site.data.site_type === "kindergarten" || !site.data.monitoring_enabled || site.data.metadata?.observer_monitoring_consent !== true) return fail("Monitoring consent required.", 403);
     const camera = source.data;
-    if (!camera || camera.source_mode === "demo" || camera.status === "disabled" || camera.metadata?.monitoring_enabled === false || camera.metadata?.gateway_id !== device.gateway_id || camera.metadata?.gateway_stream_id !== event.stream_id) return fail("Camera is not assigned to this Gateway.", 403);
+    if (!camera || ["demo", "mock", "local_shadow"].includes(String(camera.source_mode)) || camera.status === "disabled" || camera.metadata?.monitoring_enabled === false || camera.metadata?.gateway_id !== device.gateway_id || camera.metadata?.gateway_stream_id !== event.stream_id) return fail("Camera is not assigned to this Gateway.", 403);
     const result = eventValidationPipeline.validate(event, camera);
     if (!result.accepted) return ok({ status: "suppressed", reason: result.reason }, 202);
     let offHoursActive = false;
@@ -57,26 +59,34 @@ export async function POST(request: Request) {
     const severity: "info" | "medium" | "critical" = result.event.severity === "CRITICAL"
       ? "critical"
       : result.event.severity === "WARNING" ? "medium" : "info";
-    let signal = await db.from("observer_intelligence_signals").select("id,severity,metadata").eq("observer_site_id", device.observer_site_id).eq("source_type", "system").eq("source_id", sourceId).maybeSingle();
+    let signal = await db.from("observer_intelligence_signals").select("id,observer_site_id,source_type,severity,confidence,created_at,metadata").eq("observer_site_id", device.observer_site_id).eq("source_type", "system").eq("source_id", sourceId).maybeSingle();
     if (signal.error) throw new Error("EVENT_READ_FAILED");
     if (!signal.data) {
       signal = await db.from("observer_intelligence_signals").insert({
         source_type: "system", source_id: sourceId, signal_type: "ai_camera", observer_site_id: device.observer_site_id,
         severity, confidence: event.confidence, created_at: event.timestamp, review_status: "needs_review",
         human_review_required: true, parent_visible: false, recommended_action: result.shouldRecord ? narrative.action : "לידיעה בלבד; לא נדרשה הקלטה.",
-        metadata: { event_type: result.event.event_type, camera_source_id: camera.id, camera_name: result.camera.camera_name,
+        metadata: { event_type: result.event.event_type, camera_source_id: camera.id, stream_id: event.stream_id, camera_name: result.camera.camera_name,
           zone_type: result.camera.source === "default" ? null : result.camera.zone_type, track_id: event.track_id,
           event_summary: `${narrative.summary} · ${result.camera.camera_name}`, validated_event: true,
           recording_required: result.shouldRecord, media_status: result.shouldRecord ? "pending" : "not_required",
-          evidence_kind: event.evidence_kind, first_seen: event.timestamp, last_seen: event.timestamp,
+          evidence_kind: event.evidence_kind, observation_provenance: "REAL_CAMERA_AI", ...(event.model_provenance ? { model_provenance: event.model_provenance } : {}), first_seen: event.timestamp, last_seen: event.timestamp,
+          ...(event.verification_evidence ? { verification_evidence: event.verification_evidence } : {}),
           received_at: new Date().toISOString(), received_late: Date.now() - Date.parse(event.timestamp) > 300_000 }
-      }).select("id,severity,metadata").single();
-      if (signal.error?.code === "23505") signal = await db.from("observer_intelligence_signals").select("id,severity,metadata").eq("observer_site_id", device.observer_site_id).eq("source_type", "system").eq("source_id", sourceId).single();
+      }).select("id,observer_site_id,source_type,severity,confidence,created_at,metadata").single();
+      if (signal.error?.code === "23505") signal = await db.from("observer_intelligence_signals").select("id,observer_site_id,source_type,severity,confidence,created_at,metadata").eq("observer_site_id", device.observer_site_id).eq("source_type", "system").eq("source_id", sourceId).single();
       if (signal.error) throw new Error("EVENT_WRITE_FAILED");
     }
     const persistedSignal = signal.data;
     if (!persistedSignal) throw new Error("EVENT_WRITE_FAILED");
     if (persistedSignal.metadata.camera_source_id !== camera.id || persistedSignal.metadata.event_type !== result.event.event_type || persistedSignal.metadata.first_seen !== event.timestamp) return fail("Event id was already used for a different observation.", 409);
+    // Context learning is best-effort and cannot make a durable, authenticated
+    // camera event fail. The projection itself accepts only REAL_CAMERA_AI rows.
+    await refreshRealEventContextBaseline(db, device.observer_site_id).catch(() => undefined);
+    // The Incident trigger runs in the durable signal write above. Canonical
+    // entry/exit Events must then receive one explainable Incident-level Risk
+    // evaluation before the Gateway delivery is acknowledged.
+    const riskResult = await evaluateAndPersistIncidentRisk({ db, signal: persistedSignal });
     if (event.media_failure_reason && persistedSignal.metadata.recording_required && persistedSignal.metadata.media_status !== "available") {
       const observedAt = new Date().toISOString();
       const lifecycle = openMediaFault(persistedSignal.metadata, event.media_failure_reason, observedAt);
@@ -90,7 +100,19 @@ export async function POST(request: Request) {
         metadata: { observer_site_id: device.observer_site_id, status: "open", reason: lifecycle.fault.reason, occurred_at: observedAt }
       });
     }
-    const notifications = await recordEventNotifications(db, device.observer_site_id, persistedSignal.id, persistedSignal.severity);
+    const notifyFromRisk = riskResult.status === "evaluated"
+      && riskResult.verification.evaluation.finalDecision === "NOTIFY_IN_APP";
+    const notifications = riskResult.status === "evaluated"
+      ? notifyFromRisk
+        ? await recordEventNotifications(
+          db,
+          device.observer_site_id,
+          persistedSignal.id,
+          ["HIGH", "CRITICAL"].includes(riskResult.evaluation.riskBand) ? "critical" : "medium",
+          { allowPush: false }
+        )
+        : { push_pending: false }
+      : await recordEventNotifications(db, device.observer_site_id, persistedSignal.id, persistedSignal.severity);
     const digitalGuard = await dispatchDigitalGuardActionsForValidatedEvent({
       database: db as unknown as GuardCommandDatabase,
       siteId: device.observer_site_id,
@@ -107,6 +129,20 @@ export async function POST(request: Request) {
     // An in-app alert exists as soon as the signal is persisted. External delivery is a separate provider workflow.
     return ok({ status: "stored", signal_id: persistedSignal.id, recording_required: persistedSignal.metadata.recording_required,
       media_event_id: sourceId, media_status: persistedSignal.metadata.media_status, in_app_available: true,
-      notifications_pending: notifications.push_pending, digital_guard: digitalGuard }, 201);
+      notifications_pending: notifications.push_pending,
+      risk: riskResult.status === "evaluated" ? {
+        incident_id: riskResult.evaluation.incidentId,
+        score: riskResult.evaluation.riskScore,
+        band: riskResult.evaluation.riskBand,
+        evaluation_confidence: riskResult.evaluation.evaluationConfidence,
+        decision: riskResult.evaluation.recommendedDecision,
+        evaluation_version: riskResult.evaluation.riskEngineVersion,
+        verification_status: riskResult.verification.evaluation.status,
+        verification_confidence: riskResult.verification.evaluation.verificationConfidence,
+        final_decision: riskResult.verification.evaluation.finalDecision,
+        final_decision_confidence: riskResult.verification.evaluation.finalDecisionConfidence,
+        verification_version: riskResult.verification.evaluation.verificationVersion
+      } : null,
+      digital_guard: digitalGuard }, 201);
   } catch (error) { return handleRouteError(error); }
 }
