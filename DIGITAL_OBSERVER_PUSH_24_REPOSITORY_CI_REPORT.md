@@ -40,7 +40,7 @@ PUSH 24 implementation commits:
 - `91aaf91be4dbe862ad2b90281c40af48382ada36` — bounded release-preflight failure output.
 - `297f10177f0f89a282cc87ce93aa6c7e9a7e688d` — read-only deterministic security QA.
 
-The three pre-existing untracked roadmap documents remain unmodified and uncommitted.
+The three pre-existing untracked roadmap documents were preserved throughout implementation and later committed separately as roadmap documentation in `d9db54e`; they were never included in a PUSH 24 implementation commit.
 
 ## ORIGINAL AUDIT VS CURRENT
 
@@ -196,7 +196,7 @@ Node is pinned to 22 for CI; package engines accept supported Node 22–24 and n
 - Secret-shaped tracked snapshot: rejected.
 - Wrong Vercel project: rejected.
 - Rollback target: Git revision is recorded.
-- Current real worktree preflight: correctly rejected with bounded code `RELEASE_SNAPSHOT_NOT_CLEAN` because three pre-existing user roadmap files remain untracked.
+- Final clean-worktree preflight: PASS for project `gan-batuach`; clean snapshot confirmed, rollback revision recorded, and forbidden-artifact/secret-shaped-value counts both 0.
 - Production deployment count for PUSH 24: 0.
 
 The documented release path requires all six deterministic gates, capability-specific Tier 2/3/4 checks, correct Vercel project, clean full snapshot, Production target, secret/private-artifact scan and a recorded rollback revision. Preview-only code is not an authorized Production release.
