@@ -1,6 +1,6 @@
 # DIGITAL OBSERVER — PUSH 24 REPOSITORY & CI QUALITY GATE
 
-Date: 2026-09-06
+Date: 2026-09-07
 
 ## FINAL STATUS
 
@@ -37,7 +37,8 @@ Baseline captured before PUSH 24 changes:
 PUSH 24 implementation commits:
 
 - `60a964824ab3904c7f00845fda47d5cf60734dfb` — canonical deterministic quality gates.
-- `91aaf91` — bounded release-preflight failure output.
+- `91aaf91be4dbe862ad2b90281c40af48382ada36` — bounded release-preflight failure output.
+- `297f10177f0f89a282cc87ce93aa6c7e9a7e688d` — read-only deterministic security QA.
 
 The three pre-existing untracked roadmap documents remain unmodified and uncommitted.
 
@@ -176,13 +177,14 @@ Known tracked debt: these core routes rely on authentication, bounded schemas/re
 
 ## BUILD REPRODUCIBILITY
 
-An isolated temporary directory was populated only with `git archive 91aaf91`; no working-tree or untracked file was copied. From that snapshot:
+An isolated temporary directory was populated only with `git archive 297f10177f0f89a282cc87ce93aa6c7e9a7e688d`; no working-tree or untracked file was copied. A separate Git repository was initialized around that snapshot so post-CI cleanliness could be verified. From that snapshot:
 
 1. `npm ci` succeeded from `package-lock.json`.
 2. `npm run ci:quality` passed.
 3. Next.js 16.3.2 compiled successfully.
 4. TypeScript passed during build.
 5. All 488 routes were generated/validated.
+6. `git status --porcelain --untracked-files=all` remained empty after the complete run.
 
 Node is pinned to 22 for CI; package engines accept supported Node 22–24 and npm 10–11. The build did not depend on stale `.next`, an untracked module, an absolute developer path, office NAS or camera hardware.
 
