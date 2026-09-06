@@ -111,6 +111,11 @@ for (const required of ["incident_id, triggering_event_id, risk_engine_version",
   assert(idempotencyMigration.includes(required), `idempotency migration missing ${required}`);
 for (const required of ["triggering_event_id", "risk_engine_version", "incident.metadata"])
   assert(service.includes(required), `risk persistence missing ${required}`);
+assert.match(
+  service,
+  /!link\.data\?\.correlated_event_id && eventType === "person_exited"[^\n]+status: "not_applicable"/,
+  "an unpaired exit must remain a durable Event without inventing an Incident or failing Gateway ingestion"
+);
 for (const required of ["evaluateAndPersistIncidentRisk", "allowPush: false", "evaluation_confidence", "riskResult.evaluation.riskBand", "riskResult.verification.evaluation.finalDecision"])
   assert(route.includes(required), `production ingest missing ${required}`);
 assert.match(incidentApi, /hasObserverAdminClaim/, "signed Digital Observer admins need a bounded risk-debug read path");

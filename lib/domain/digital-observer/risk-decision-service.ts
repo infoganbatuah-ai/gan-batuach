@@ -190,7 +190,12 @@ export async function evaluateAndPersistIncidentRisk(input: {
 
   const link = await db.from("observer_correlated_event_links").select("correlated_event_id")
     .eq("source_type", "observer_intelligence_signal").eq("source_id", signal.id).maybeSingle();
-  if (link.error || !link.data?.correlated_event_id) throw new Error("RISK_INCIDENT_UNAVAILABLE");
+  if (link.error) throw new Error("RISK_INCIDENT_UNAVAILABLE");
+  // Canonical correlation intentionally ignores an exit that has no matching
+  // entry. Keep the durable Event, but do not invent an Incident or fail the
+  // Gateway acknowledgement for this valid no-incident outcome.
+  if (!link.data?.correlated_event_id && eventType === "person_exited") return { status: "not_applicable" as const };
+  if (!link.data?.correlated_event_id) throw new Error("RISK_INCIDENT_UNAVAILABLE");
   const incidentResult = await db.from("observer_correlated_events")
     .select("id,observer_site_id,status,provenance,opened_at,last_activity_at,closed_at,primary_camera_source_id,involved_camera_ids,involved_track_ids,related_event_ids,timeline_summary,metadata,current_risk_score,peak_risk_score,current_risk_band,current_decision,latest_risk_evaluation_id")
     .eq("id", link.data.correlated_event_id).eq("observer_site_id", signal.observer_site_id).single();
