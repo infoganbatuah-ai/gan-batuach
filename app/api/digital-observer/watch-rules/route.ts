@@ -158,7 +158,13 @@ export async function POST(request: Request) {
       requested_schedule: persistence.schedule,
       requested_metadata: persistence.metadata
     });
-    if (activated.error || !activated.data) return fail("הכלל עבר validation אך לא ניתן היה להפעיל אותו.", 409);
+    if (activated.error || !activated.data) {
+      console.error("WATCH_RULE_ACTIVATION_RPC_FAILED", {
+        code: activated.error?.code ?? "NO_DATA",
+        message: activated.error?.message ?? "Activation RPC returned no data"
+      });
+      return fail("הכלל עבר validation אך לא ניתן היה להפעיל אותו.", 409);
+    }
     return ok({
       rule: activated.data,
       compilation,

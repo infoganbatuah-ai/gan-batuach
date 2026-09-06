@@ -98,6 +98,14 @@ try {
         candidate_fingerprint: fingerprint, idempotency_key: idempotencyKey
       })
     });
+    if (result.response.status !== 201) {
+      console.error(JSON.stringify({
+        status: "CONFIRM_REJECTED",
+        http_status: result.response.status,
+        error: result.body?.error ?? null,
+        details: result.body?.details ?? null
+      }, null, 2));
+    }
     assert.equal(result.response.status, 201, `Production confirm failed with HTTP ${result.response.status}`);
     assert.equal(result.body?.data?.activated, true);
     console.log(JSON.stringify({ status: "ACTIVE", ...result.body.data.rule, compiler_version: result.body.data.compilation.compilerVersion, external_execution: false }, null, 2));
