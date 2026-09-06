@@ -11,7 +11,11 @@ export const dynamic = "force-dynamic";
 const deviceSchema = z.object({
   device_name: z.string().trim().min(2).max(80),
   device_platform: z.string().trim().min(2).max(40),
-  device_fingerprint: z.string().trim().min(16).max(160).optional()
+  device_fingerprint: z.string().trim().min(16).max(160).optional(),
+  device_type: z.enum(["SOFTWARE_CONNECTOR", "PHYSICAL_GATEWAY"]).default("PHYSICAL_GATEWAY"),
+  installation_id: z.string().trim().min(8).max(160).regex(/^[A-Za-z0-9._:-]+$/).optional(),
+  software_version: z.string().trim().min(1).max(80).optional(),
+  build_sha: z.string().trim().min(1).max(80).optional()
 });
 const schema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("create_request"), ...deviceSchema.shape }),
@@ -69,9 +73,11 @@ export async function GET(request: Request) {
     if (!session) return fail("נדרשת התחברות מחדש לתצפיתן הדיגיטלי.", 401);
     const site = await getObserverSiteAccess(session.supabase, session.profile, query.observer_site_id, { manage: true });
     if (!site) return fail("אין הרשאה לנהל מכשירים באתר הזה.", 403);
-    const enrollment = await createAdminClient().from("video_gateway_device_enrollments").select("id,status,device_name,device_platform,expires_at").eq("id", query.enrollment_request_id).maybeSingle();
+    const enrollment = await createAdminClient().from("video_gateway_device_enrollments").select("id,status,device_name,device_platform,expires_at,observer_site_id,metadata").eq("id", query.enrollment_request_id).maybeSingle();
     if (enrollment.error || !enrollment.data) return fail("בקשת קישור המכשיר לא נמצאה.", 404);
-    return ok({ enrollment_request_id: enrollment.data.id, status: enrollment.data.status, device_name: enrollment.data.device_name, device_platform: enrollment.data.device_platform, expires_at: enrollment.data.expires_at });
+    if (enrollment.data.observer_site_id && enrollment.data.observer_site_id !== site.id) return fail("בקשת קישור המכשיר אינה שייכת לאתר הזה.", 403);
+    const metadata = enrollment.data.metadata && typeof enrollment.data.metadata === "object" ? enrollment.data.metadata : {};
+    return ok({ enrollment_request_id: enrollment.data.id, status: enrollment.data.status, device_name: enrollment.data.device_name, device_platform: enrollment.data.device_platform, device_type: metadata.device_type === "SOFTWARE_CONNECTOR" ? "SOFTWARE_CONNECTOR" : "PHYSICAL_GATEWAY", expires_at: enrollment.data.expires_at });
   } catch (error) {
     return handleRouteError(error);
   }
@@ -94,10 +100,20 @@ export async function POST(request: Request) {
         device_fingerprint: payload.device_fingerprint ?? null,
         poll_token_hash: hashGatewayEnrollmentToken(pollToken),
         expires_at: expiresAt,
-        metadata: { protocol_version: 1, local_only_credentials: true }
+        metadata: {
+          protocol_version: 2,
+          device_type: payload.device_type,
+          installation_id: payload.installation_id ?? null,
+          software_version: payload.software_version ?? null,
+          build_sha: payload.build_sha ?? null,
+          local_only_credentials: true,
+          outbound_only: true,
+          arbitrary_shell_commands: false,
+          connector_config_version: 1
+        }
       }).select("id").single();
       if (inserted.error || !inserted.data) throw new Error(inserted.error?.message || "ENROLLMENT_REQUEST_CREATE_FAILED");
-      await audit(admin, "gateway_enrollment_requested", { enrollment_request_id: inserted.data.id, device_platform: payload.device_platform });
+      await audit(admin, "gateway_enrollment_requested", { enrollment_request_id: inserted.data.id, device_platform: payload.device_platform, device_type: payload.device_type });
       return ok({ enrollment_request_id: inserted.data.id, poll_token: pollToken, verification_path: enrollmentUrl(inserted.data.id), expires_at: expiresAt, poll_interval_seconds: 3 }, 201);
     }
 
@@ -116,7 +132,7 @@ export async function POST(request: Request) {
         return ok({ status: "revoked" });
       }
 
-      const pending = await admin.from("video_gateway_device_enrollments").select("id,status,expires_at,device_name,device_platform").eq("id", payload.enrollment_request_id).maybeSingle();
+      const pending = await admin.from("video_gateway_device_enrollments").select("id,status,expires_at,device_name,device_platform,metadata").eq("id", payload.enrollment_request_id).maybeSingle();
       if (pending.error || !pending.data || pending.data.status !== "pending" || Date.parse(pending.data.expires_at) <= Date.now()) return fail("בקשת קישור המכשיר אינה תקפה או שפג תוקפה.", 409);
       const gatewayId = randomUUID();
       const refreshToken = newGatewayRefreshToken();

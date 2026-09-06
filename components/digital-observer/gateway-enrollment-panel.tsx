@@ -10,6 +10,7 @@ export function GatewayEnrollmentPanel({ enrollmentId, siteId }: Props) {
   const [deviceName, setDeviceName] = useState("");
   const [busy, setBusy] = useState(false);
   const [approved, setApproved] = useState(false);
+  const [deviceType, setDeviceType] = useState<"SOFTWARE_CONNECTOR" | "PHYSICAL_GATEWAY">("PHYSICAL_GATEWAY");
 
   useEffect(() => {
     let active = true;
@@ -21,6 +22,7 @@ export function GatewayEnrollmentPanel({ enrollmentId, siteId }: Props) {
       if (!response.ok) throw new Error(body.error || "בקשת הקישור לא נמצאה");
       if (!active) return;
       setDeviceName(body.data?.device_name || "Gateway מקומי");
+      setDeviceType(body.data?.device_type === "SOFTWARE_CONNECTOR" ? "SOFTWARE_CONNECTOR" : "PHYSICAL_GATEWAY");
       setStatus(body.data?.status === "pending" ? "ממתין לאישור שלך" : `סטטוס: ${body.data?.status || "לא ידוע"}`);
     };
     load().catch((error) => active && setStatus(error instanceof Error ? error.message : "יצירת בקשת הקישור נכשלה"));
@@ -29,7 +31,7 @@ export function GatewayEnrollmentPanel({ enrollmentId, siteId }: Props) {
 
   async function approve() {
     setBusy(true);
-    setStatus("מאשר את ה-Gateway...");
+    setStatus(deviceType === "SOFTWARE_CONNECTOR" ? "מאשר את ה-Connector..." : "מאשר את ה-Gateway...");
     try {
       const response = await fetch("/api/digital-observer/gateway-enrollment", {
         method: "POST",
@@ -49,9 +51,9 @@ export function GatewayEnrollmentPanel({ enrollmentId, siteId }: Props) {
 
   return <section className="do-camera-connection-note" aria-live="polite">
     <div>
-      <strong>קישור Gateway למחשב המקומי</strong>
+      <strong>{deviceType === "SOFTWARE_CONNECTOR" ? "קישור Software Connector למחשב המקומי" : "קישור Gateway למחשב המקומי"}</strong>
       <span>{deviceName ? `${deviceName} · ` : ""}{status}</span>
     </div>
-    {!approved && /ממתין לאישור/.test(status) ? <button className="do-button primary" type="button" onClick={approve} disabled={busy}>אישור וחיבור</button> : null}
+    {!approved && /ממתין לאישור/.test(status) ? <button className="do-button primary" type="button" onClick={approve} disabled={busy}>אישור וחיבור לאתר</button> : null}
   </section>;
 }

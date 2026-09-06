@@ -1,0 +1,25 @@
+[Unit]
+Description=Digital Observer Software Connector
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=observer-connector
+Group=observer-connector
+WorkingDirectory=/opt/observer-connector
+Environment=NODE_ENV=production
+Environment=OBSERVER_EDGE_DEVICE_TYPE=SOFTWARE_CONNECTOR
+Environment=OBSERVER_CONNECTOR_DATA_DIR=/var/lib/observer-connector
+Environment=OBSERVER_CONNECTOR_SECRET_DIR=/var/lib/observer-connector/secrets
+ExecStart=/usr/bin/node /opt/observer-connector/scripts/run-software-connector.mjs
+Restart=on-failure
+RestartSec=10
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/observer-connector
+
+[Install]
+WantedBy=multi-user.target

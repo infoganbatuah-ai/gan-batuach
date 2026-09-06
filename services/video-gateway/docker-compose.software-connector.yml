@@ -1,0 +1,27 @@
+services:
+  observer-connector:
+    build:
+      context: ../..
+      dockerfile: services/video-gateway/Dockerfile
+    image: gan-batuach/observer-connector:local
+    restart: unless-stopped
+    read_only: true
+    cap_drop: ["ALL"]
+    security_opt: ["no-new-privileges:true"]
+    tmpfs:
+      - /tmp:size=512m,mode=1777
+    volumes:
+      - observer_connector_state:/var/lib/observer-connector
+    environment:
+      OBSERVER_CONNECTOR_CLOUD_URL: https://ganbatuach.com
+      OBSERVER_EDGE_VERSION: ${OBSERVER_EDGE_VERSION:-development}
+      OBSERVER_EDGE_BUILD_SHA: ${OBSERVER_EDGE_BUILD_SHA:-unknown}
+      GAN_BATUACH_GATEWAY_DISCOVERY: "1"
+    deploy:
+      resources:
+        limits:
+          cpus: "2.0"
+          memory: 1536M
+
+volumes:
+  observer_connector_state:

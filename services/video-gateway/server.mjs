@@ -20,6 +20,7 @@ import { createPrivateNvrHeartbeat } from "./private-nvr-heartbeat.mjs";
 import { createPrivateNvrCommandRuntime } from "./private-nvr-command-runtime.mjs";
 import { createRelayInputMetrics } from "./relay-input-metrics.mjs";
 import { createHardwareTranscoder, hardwareDecodeArgs, hardwareEncodeArgs } from "./hardware-transcoder.mjs";
+import { connectorRuntimeIdentity, parseConnectorCommand, redactConnectorLog } from "./edge-runtime-contract.mjs";
 
 const PORT = Number(process.env.PORT || process.env.VIDEO_GATEWAY_PORT || 8080);
 const HOST = process.env.HOST || process.env.VIDEO_GATEWAY_HOST || "0.0.0.0";
@@ -58,7 +59,9 @@ const requestMetrics = { playbackRequests: 0, playbackReady: 0, playbackUnavaila
 const FRAME_WIDTH = 32;
 const FRAME_HEIGHT = 18;
 const GATEWAY_KEYCHAIN_SERVICE = process.env.GAN_BATUACH_GATEWAY_KEYCHAIN_SERVICE || "";
-const keychain = createKeychainStore({ service: GATEWAY_KEYCHAIN_SERVICE });
+const GATEWAY_SECRET_DIR = process.env.GAN_BATUACH_GATEWAY_SECRET_DIR || "";
+const keychain = createKeychainStore({ service: GATEWAY_KEYCHAIN_SERVICE, secretDir: GATEWAY_SECRET_DIR });
+const edgeRuntimeIdentity = connectorRuntimeIdentity();
 let deviceAccessToken = "";
 let deviceAccessExpiresAt = 0;
 let deviceAccessRefreshPromise = null;
@@ -262,7 +265,7 @@ function provisionMappedCommandBindings(discoveryPayload, upstream) {
 async function pollCloudCameraActions() {
   try {
     const cloudBaseUrl = (await keychainSecret("device_cloud_base_url")).replace(/\/$/, "");
-    if (!cloudBaseUrl || !GATEWAY_KEYCHAIN_SERVICE) return;
+    if (!cloudBaseUrl || (!GATEWAY_KEYCHAIN_SERVICE && !GATEWAY_SECRET_DIR)) return;
     const accessToken = await refreshGatewayDeviceAccess();
     const submitCommandResult = async (result) => {
       const recorded = await reportCameraActionResult(cloudBaseUrl, accessToken, result.request_id, result.outcome, result.result_code, result.outcome_payload);
@@ -308,7 +311,7 @@ async function pollCloudCameraActions() {
   }
 }
 
-if (GATEWAY_KEYCHAIN_SERVICE) {
+if (GATEWAY_KEYCHAIN_SERVICE || GATEWAY_SECRET_DIR) {
   setInterval(() => {
     if (cameraActionPollPromise) return;
     cameraActionPollPromise = pollCloudCameraActions().catch(() => undefined).finally(() => { cameraActionPollPromise = null; });
@@ -463,8 +466,9 @@ function candidateUrls(input, channel) {
 }
 
 function streamIdFor(input, channel) {
+  const namespace = String(input.metadata?.stream_namespace || "").trim().replace(/[^a-zA-Z0-9._:-]/g, "").slice(0, 80);
   const fingerprint = createHash("sha256")
-    .update([input.connection_type || "dvr", cleanHost(input.endpoint || input.host), channel].join(":"))
+    .update([input.connection_type || "dvr", cleanHost(input.endpoint || input.host), channel, namespace].join(":"))
     .digest("hex")
     .slice(0, 18);
   return `dvr_${fingerprint}_${channel}`;
@@ -763,7 +767,10 @@ async function discoverPrivateNvr(payload, channelCount) {
   if (!session) return null;
   const sessionKey = reuse ? existingKey : rememberPrivateNvrSession(payload, session);
   const channels = [];
-  for (let channel = 1; channel <= channelCount; channel += 1) {
+  const requestedChannels = Array.isArray(payload.metadata?.channel_filter)
+    ? [...new Set(payload.metadata.channel_filter.filter((value) => Number.isInteger(value) && value >= 1 && value <= channelCount))]
+    : Array.from({ length: channelCount }, (_, index) => index + 1);
+  for (const channel of requestedChannels) {
     const streamId = streamIdFor(payload, channel);
     const currentSource = streamSources.get(streamId);
     const currentRelay = relays.get(streamId);
@@ -923,7 +930,10 @@ async function dvrConnect(payload) {
   let channels = await discoverPrivateNvr(payload, channelCount);
   if (!channels) {
     channels = [];
-    for (let channel = 1; channel <= channelCount; channel += 1) {
+    const requestedChannels = Array.isArray(payload.metadata?.channel_filter)
+      ? [...new Set(payload.metadata.channel_filter.filter((value) => Number.isInteger(value) && value >= 1 && value <= channelCount))]
+      : Array.from({ length: channelCount }, (_, index) => index + 1);
+    for (const channel of requestedChannels) {
       channels.push(await probeChannel(payload, channel));
     }
   }
@@ -935,9 +945,9 @@ async function dvrConnect(payload) {
   };
   return {
     status: connected.length ? "connected" : "pending_gateway",
-    channel_count: channelCount,
+    channel_count: channels.length,
     connected_channel_count: connected.length,
-    failed_channel_count: channelCount - connected.length,
+    failed_channel_count: channels.length - connected.length,
     latency_ms: Date.now() - started,
     channels,
     read_only: true,
@@ -1419,6 +1429,7 @@ async function handle(request, response) {
       ok: true,
       status: "healthy",
       provider: "custom",
+      edgeRuntime: edgeRuntimeIdentity,
       read_only: true,
       streamCount: streamSources.size,
       failedStreamCount: Math.max(0, lastDiscoverySummary.channelCount - lastDiscoverySummary.connectedCount),
@@ -1490,6 +1501,21 @@ async function handle(request, response) {
     return;
   }
   try {
+    if (request.url === "/connector/command" && request.method === "POST") {
+      const command = parseConnectorCommand(await readJson(request));
+      if (command.command === "RECONNECT_STREAM") {
+        const relay = relays.get(command.stream_id);
+        if (relay) stopRelay(command.stream_id, relay);
+      }
+      json(response, 200, {
+        status: "accepted",
+        command_id: command.id,
+        command: command.command,
+        executed_without_shell: true,
+        runtime: edgeRuntimeIdentity.contract
+      });
+      return;
+    }
     if (request.url === "/cloud/event-manifest" && request.method === "GET") {
       const revision = ++eventManifestRequestRevision;
       let upstream;
@@ -1512,8 +1538,10 @@ async function handle(request, response) {
       ? "/api/video-gateway/cloud-discovery"
       : request.url === "/cloud/learning"
         ? "/api/video-gateway/cloud-learning"
-        : request.url === "/cloud/events"
+      : request.url === "/cloud/events"
           ? "/api/video-gateway/cloud-events"
+        : request.url === "/cloud/heartbeat"
+          ? "/api/video-gateway/device-heartbeat"
         : null;
     if (cloudJsonPath && request.method === "POST" && authorized(request)) {
       const payload = await readJson(request);
@@ -1656,5 +1684,13 @@ const gatewayServer = http.createServer((request, response) => {
 gatewayServer.on("clientError", (_error, socket) => socket.destroy());
 
 gatewayServer.listen(PORT, HOST, () => {
-  console.log(`video-gateway listening on ${HOST}:${PORT}`);
+  console.log(JSON.stringify(redactConnectorLog({
+    level: "info",
+    event: "edge_runtime_listening",
+    host: HOST,
+    port: PORT,
+    device_type: edgeRuntimeIdentity.device_type,
+    version: edgeRuntimeIdentity.software_version,
+    build_sha: edgeRuntimeIdentity.build_sha
+  })));
 });
