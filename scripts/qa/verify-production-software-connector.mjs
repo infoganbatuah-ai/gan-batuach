@@ -18,10 +18,11 @@ for (const file of [".env.qa-demo.local", ".env.local"]) {
   for (const key of allowed) if (!config[key] && values[key]) config[key] = values[key];
 }
 const publicKey = config.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || config.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const homeEmail = config.QA_DEMO_DIGITAL_OBSERVER_HOME_EMAIL || "qa.digital.observer.home@demo.ganbatuach.com";
 const password = config.QA_DEMO_DIGITAL_OBSERVER_HOME_PASSWORD || config.QA_DEMO_DIGITAL_OBSERVER_PASSWORD;
-assert.ok(config.NEXT_PUBLIC_SUPABASE_URL && publicKey && config.QA_DEMO_DIGITAL_OBSERVER_HOME_EMAIL && password, "Authorized home Production QA configuration is missing");
+assert.ok(config.NEXT_PUBLIC_SUPABASE_URL && publicKey && password, "Authorized home Production QA configuration is missing");
 const client = createClient(config.NEXT_PUBLIC_SUPABASE_URL, publicKey, { auth: { persistSession: false, autoRefreshToken: false } });
-const login = await client.auth.signInWithPassword({ email: config.QA_DEMO_DIGITAL_OBSERVER_HOME_EMAIL, password });
+const login = await client.auth.signInWithPassword({ email: homeEmail, password });
 assert.ok(!login.error && login.data.session, "Authorized home Production authentication failed");
 const authorization = `Bearer ${login.data.session.access_token}`;
 
@@ -57,6 +58,11 @@ try {
   assert.equal(heartbeat.response.status, 200, `Connector heartbeat failed with HTTP ${heartbeat.response.status}`);
   assert.equal(heartbeat.body.data?.device_type, "SOFTWARE_CONNECTOR");
   assert.equal(heartbeat.body.data?.commands?.length, 0);
+  const replay = await call("/api/video-gateway/device-heartbeat", heartbeatPayload, { "x-video-gateway-device-token": accessToken, "x-video-gateway-id": gatewayId });
+  assert.equal(replay.response.status, 200, "Identical Connector heartbeat retry was not idempotent");
+  assert.equal(replay.body.data?.idempotent_replay, true);
+  const identityMismatch = await call("/api/video-gateway/device-heartbeat", { ...heartbeatPayload, heartbeat_id: `heartbeat-${randomUUID()}`, runtime: { ...heartbeatPayload.runtime, device_type: "PHYSICAL_GATEWAY" } }, { "x-video-gateway-device-token": accessToken, "x-video-gateway-id": gatewayId });
+  assert.equal(identityMismatch.response.status, 403, "Connector could change its enrolled device type");
 
   const nextRefreshToken = randomBytes(32).toString("base64url");
   const refreshed = await call("/api/digital-observer/gateway-enrollment", { action: "refresh", gateway_id: gatewayId, refresh_token: refreshToken, next_refresh_token: nextRefreshToken });
@@ -70,7 +76,7 @@ try {
   const afterRevoke = await call("/api/video-gateway/device-heartbeat", { ...heartbeatPayload, heartbeat_id: `heartbeat-${randomUUID()}`, observed_at: new Date().toISOString() }, { "x-video-gateway-device-token": accessToken, "x-video-gateway-id": gatewayId });
   assert.equal(afterRevoke.response.status, 401, "Revoked Connector retained cloud access");
 
-  console.log(JSON.stringify({ status: "PASS", production_origin: origin.origin, device_type: "SOFTWARE_CONNECTOR", enrollment_id: enrollmentId, gateway_id: gatewayId, site_id: siteId, heartbeat: "accepted", rotation_protocol: 2, revoked_access: "denied", secrets_exposed: false }, null, 2));
+  console.log(JSON.stringify({ status: "PASS", production_origin: origin.origin, device_type: "SOFTWARE_CONNECTOR", enrollment_id: enrollmentId, gateway_id: gatewayId, site_id: siteId, heartbeat: "accepted", heartbeat_replay: "idempotent", identity_type_change: "denied", rotation_protocol: 2, revoked_access: "denied", secrets_exposed: false }, null, 2));
 } finally {
   if (gatewayId) await call("/api/digital-observer/gateway-enrollment", { action: "revoke", gateway_id: gatewayId, observer_site_id: siteId }, { authorization }).catch(() => null);
   await client.auth.signOut();
