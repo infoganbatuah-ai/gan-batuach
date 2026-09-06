@@ -7,6 +7,7 @@ import { guardChatHandler } from "@/lib/domain/digital-observer/guard-chat-handl
 import { guardJournalQuerySchema, guardQueryClarification } from "@/lib/domain/digital-observer/guard-chat-query";
 import { guardContextForSite, guardHistoryPrivacyRestricted, guardHistoryInput, guardJournalAnswer, searchGuardJournal } from "@/lib/domain/event-engine/guard-journal-search";
 import { compileAuthorizedWatchRule } from "@/lib/domain/digital-observer/watch-rule-service";
+import type { WatchRuleCompileResult } from "@/lib/domain/digital-observer/watch-rule-compiler";
 
 const schema = z.object({
   observer_site_id: z.string().uuid(),
@@ -26,6 +27,27 @@ type SignalRow = {
   metadata: Record<string, unknown> | null;
   created_at: string;
 };
+
+type CameraRow = {
+  id: string;
+  observer_site_id?: string | null;
+  camera_stream_id?: string | null;
+  display_name?: string | null;
+  location_label?: string | null;
+  status?: string | null;
+  health_status?: string | null;
+  source_mode?: string | null;
+  metadata?: Record<string, unknown> | null;
+};
+
+type BaselineRow = {
+  id: string;
+  baseline_type?: string | null;
+  learning_maturity?: string | null;
+  confidence_level?: number | null;
+};
+
+type PreviewWatchRule = WatchRuleCompileResult & { activated: false };
 
 function eventType(signal: SignalRow) {
   return String(signal.metadata?.event_type || signal.signal_type || "system");
@@ -51,7 +73,7 @@ function filteredSignals(message: string, signals: SignalRow[]) {
   return signals;
 }
 
-function buildAnswer(message: string, signals: SignalRow[], cameras: any[], baselines: any[]) {
+function buildAnswer(message: string, signals: SignalRow[], cameras: CameraRow[], baselines: BaselineRow[]) {
   const relevant = filteredSignals(message, signals).slice(0, 5);
   const reviewed = signals.filter((signal) => ["confirmed", "resolved", "dismissed"].includes(String(signal.review_status))).length;
   const open = signals.filter((signal) => ["needs_review", "reviewing", "escalated"].includes(String(signal.review_status))).length;
@@ -86,7 +108,7 @@ export async function POST(request: Request) {
     const session = await getDigitalObserverApiUser(request);
     if (!session) return fail("נדרשת התחברות מחדש לתצפיתן הדיגיטלי.", 401);
     const { profile, supabase: sessionSupabase } = session;
-    const supabase = sessionSupabase as any;
+    const supabase = sessionSupabase;
     const payload = schema.parse(await request.json());
     const site = await getObserverSiteAccess(supabase, profile, payload.observer_site_id, { manage: true });
     if (!site) return fail("אין הרשאה לשוחח על האתר הזה.", 403);
@@ -95,16 +117,17 @@ export async function POST(request: Request) {
     if (guardHistoryPrivacyRestricted(site)) return fail("השיחה אינה זמינה באתר עם ילדים, במצב שלדים בלבד או כאשר סוג האתר אינו מזוהה, עד להתאמת מסנן פרטיות ייעודי. לא נקראו אירועים ולא בוצעה פעולה במצלמות.", 403);
 
     // Historical requests cannot fall through to watch creation or hardware actions.
-    const historyCameras = await supabase.from("digital_observer_camera_sources")
+    const historyCameras = await supabase.from("digital_observer_camera_sources" as never)
       .select("id,observer_site_id,camera_stream_id,display_name,location_label,metadata")
       .eq("observer_site_id", site.id);
     if (historyCameras.error) return fail("לא ניתן לקרוא כרגע את מקורות היומן.", 503);
-    const historyContext = guardContextForSite(site, historyCameras.data ?? []);
+    const historyCameraRows = (historyCameras.data ?? []) as unknown as CameraRow[];
+    const historyContext = guardContextForSite(site, historyCameraRows);
     try {
       const requestedHistory = payload.journal_query ?? guardHistoryInput(payload.message, historyContext, payload.camera_source_id);
       if (requestedHistory) {
         if (payload.camera_source_id && requestedHistory.cameraSourceId && requestedHistory.cameraSourceId !== payload.camera_source_id) return fail("בחירת המצלמה אינה תואמת לבקשת היומן.", 422);
-        const result = await searchGuardJournal(supabase, { ...requestedHistory, cameraSourceId: payload.camera_source_id ?? requestedHistory.cameraSourceId }, historyContext, historyCameras.data ?? []);
+        const result = await searchGuardJournal(supabase, { ...requestedHistory, cameraSourceId: payload.camera_source_id ?? requestedHistory.cameraSourceId }, historyContext, historyCameraRows);
         return ok({ answer: guardJournalAnswer(result), event_log: result.events, signal_ids: result.events.map(event => event.id),
           query: result.query, coverage: result.coverage, intent: "historical_journal", answer_source: "saved_journal", live_ai_used: false,
           emergency_action_triggered: false, physical_action_executed: false, request: null });
@@ -116,34 +139,37 @@ export async function POST(request: Request) {
     }
 
     const [signalResult, cameraResult, baselineResult] = await Promise.all([
-      supabase.from("observer_intelligence_signals" as any)
+      supabase.from("observer_intelligence_signals" as never)
         .select("id,camera_id,signal_type,severity,confidence,review_status,recommended_action,metadata,created_at")
         .eq("observer_site_id", payload.observer_site_id)
         .order("created_at", { ascending: false })
         .limit(100),
-      supabase.from("digital_observer_camera_sources" as any)
+      supabase.from("digital_observer_camera_sources" as never)
         .select("id,display_name,status,health_status,source_mode")
         .eq("observer_site_id", payload.observer_site_id),
-      supabase.from("site_behavior_baselines" as any)
+      supabase.from("site_behavior_baselines" as never)
         .select("id,baseline_type,learning_maturity,confidence_level")
         .eq("observer_site_id", payload.observer_site_id)
     ]);
 
     if (signalResult.error || cameraResult.error) return fail("לא ניתן לקרוא כרגע את נתוני התצפיתן.", 503);
+    const signals = (signalResult.data ?? []) as unknown as SignalRow[];
+    const cameras = (cameraResult.data ?? []) as unknown as CameraRow[];
+    const baselines = (baselineResult.data ?? []) as unknown as BaselineRow[];
     const selectedCamera = payload.camera_source_id
-      ? (cameraResult.data ?? []).find((camera: any) => camera.id === payload.camera_source_id)
+      ? cameras.find((camera) => camera.id === payload.camera_source_id)
       : null;
     if (payload.camera_source_id && !selectedCamera) return fail("המצלמה שנבחרה אינה שייכת לאתר הזה.", 403);
     const scopedSignals = payload.camera_source_id
-      ? (signalResult.data ?? []).filter((signal: any) => signal.camera_id === payload.camera_source_id || signal.metadata?.camera_source_id === payload.camera_source_id)
-      : signalResult.data ?? [];
-    const journalSignals = eventJournalService.groupRows(scopedSignals as Record<string, any>[], cameraResult.data ?? []);
+      ? signals.filter((signal) => signal.camera_id === payload.camera_source_id || signal.metadata?.camera_source_id === payload.camera_source_id)
+      : signals;
+    const journalSignals = eventJournalService.groupRows(scopedSignals, cameras);
     const eventLog = journalSignals.slice(0, 20).map(signal => eventJournalService.normalize(signal));
-    const scopedCameras = selectedCamera ? [selectedCamera] : cameraResult.data ?? [];
+    const scopedCameras = selectedCamera ? [selectedCamera] : cameras;
     const message = payload.message.toLowerCase();
     const chatIntent = guardChatHandler.classify(payload.message);
     const instruction = matchesAny(message, ["שים לב", "תעקוב", "תתריע", "תבדוק מעכשיו"]);
-    let requestRecord: any = null;
+    let requestRecord: PreviewWatchRule | null = null;
 
     if (instruction) {
       const { compilation } = await compileAuthorizedWatchRule({
@@ -160,7 +186,7 @@ export async function POST(request: Request) {
       message,
       journalSignals as SignalRow[],
       scopedCameras,
-      baselineResult.data ?? []
+      baselines
     );
     return ok({
       answer: instruction
