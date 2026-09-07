@@ -51,6 +51,7 @@ function fixture({ role = "staff", active = true, profile = {}, session, rows = 
       return resolvedSession;
     } },
     "@/lib/roles": {},
+    "@/lib/management/contact-verification": load("lib/management/contact-verification.ts", {}),
     "@/lib/supabase/server": { createClient: async () => ({
       from: query,
       rpc: async (name, params) => {
@@ -131,6 +132,16 @@ for (const [label, rows, reason] of [
 
 test("inactive profile is denied before lifecycle tables are queried", async () => {
   const f = await expectDenied({ active: false }, ["staff"], 403, "inactive");
+  assert.equal(f.calls.length, 0);
+});
+
+test("new accounts missing either verified contact are denied before lifecycle queries", async () => {
+  const f = await expectDenied({
+    session: {
+      user: { id: actorId, app_metadata: { contact_verification_required: true }, email_confirmed_at: "2026-09-08T00:00:00Z", phone_confirmed_at: null },
+      profile: { id: actorId, role: "staff", active: true, garden_id: gardenId, contact_verification_required: true }
+    }
+  }, ["staff"], 403, "contact_verification");
   assert.equal(f.calls.length, 0);
 });
 

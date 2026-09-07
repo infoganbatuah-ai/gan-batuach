@@ -5,6 +5,7 @@ import { requireRole } from "@/lib/auth";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { activationWizardSteps, calculateGanBatuachMonthlyPrice, calculateRequiredStaff, ganBatuachTrialDays, kindergartenAgeGroups, operationalDistrictForCity, requiredKindergartenDocumentCategories, validateClassCapacity } from "@/lib/domain/kindergarten-onboarding";
+import { managementContactVerification } from "@/lib/management/contact-verification";
 
 const onboardingSchema = z.object({
   submit: z.boolean().optional(),
@@ -114,9 +115,12 @@ function calculateProgress(data: Record<string, unknown>) {
 
 export async function PATCH(request: Request) {
   try {
-    const { profile } = await requireRole(["manager", "owner"]);
+    const { user, profile } = await requireRole(["manager", "owner"]);
     if (!profile.garden_id) return fail("לא נמצא גן משויך. יש לפתוח קודם בקשת גן.", 422);
     const payload = onboardingSchema.parse(await request.json());
+    if (payload.submit && !managementContactVerification(user, profile).complete) {
+      return fail("יש להשלים אימות דוא״ל וטלפון לפני הפעלת הגן.", 403);
+    }
     const supabase = isAdminClientConfigured() ? createAdminClient() : await createClient();
     const now = new Date().toISOString();
 

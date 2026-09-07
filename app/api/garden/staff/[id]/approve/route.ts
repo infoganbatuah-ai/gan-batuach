@@ -2,6 +2,7 @@ import { fail, handleRouteError, ok } from "@/lib/api";
 import { getManagementGardenContext } from "@/lib/management/garden-context";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { writeUserCreationAudit } from "@/lib/onboarding/user-provisioning";
+import { adminManagementContactVerification } from "@/lib/management/contact-verification";
 import { z } from "zod";
 
 const schema = z.object({
@@ -29,6 +30,11 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     if (readError || !staff) return fail(readError?.message ?? "Staff member not found", 404);
     if (payload.action === "approve" && (staff.background_check_status !== "valid" || staff.police_clearance_status !== "valid")) {
       return fail("Cannot approve staff before background check and police clearance are valid", 422);
+    }
+    if (payload.action === "approve" && staff.profile_id) {
+      const contact = await adminManagementContactVerification(supabase, staff.profile_id);
+      if (!contact.available) return fail("לא ניתן לבדוק כרגע את אימות פרטי הקשר של איש הצוות.", 503);
+      if (!contact.state.complete) return fail("יש להשלים אימות דוא״ל וטלפון לפני אישור הצוות.", 409);
     }
 
     const now = new Date().toISOString();

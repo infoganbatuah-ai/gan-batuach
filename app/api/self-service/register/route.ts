@@ -1,7 +1,9 @@
 import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
+import { authCallbackUrl } from "@/lib/domain/auth-flow";
 import { checkEmailConflict, normalizeOptionalEmail } from "@/lib/onboarding/user-provisioning";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 
 const schema = z.object({
   account_type: z.enum(["parent", "staff_candidate", "inspector_candidate", "kindergarten_manager"]),
@@ -28,14 +30,24 @@ export async function POST(request: Request) {
     if (conflict) return fail(conflict.message, 409, { field: conflict.field, source: conflict.source });
 
     const role = appRoleFor(payload.account_type);
-    const { data, error } = await admin.auth.admin.createUser({
+    const supabase = await createClient();
+    const { data, error } = await supabase.auth.signUp({
       email: payload.email,
       password: payload.password,
-      email_confirm: false,
-      app_metadata: { role, self_service_role: payload.account_type },
-      user_metadata: { full_name: payload.full_name, phone: payload.phone ?? null, self_service: true }
+      options: {
+        emailRedirectTo: authCallbackUrl("gan_batuach", "/app/verify-contact", "verify"),
+        data: { full_name: payload.full_name, phone: payload.phone ?? null, self_service: true }
+      }
     });
-    if (error || !data.user) return fail(error?.message ?? "לא ניתן ליצור משתמש.", 400);
+    if (error || !data.user || data.user.identities?.length === 0) return fail("לא ניתן להשלים את ההרשמה.", 400);
+
+    const authPolicy = await admin.auth.admin.updateUserById(data.user.id, {
+      app_metadata: { role, self_service_role: payload.account_type, contact_verification_required: true }
+    });
+    if (authPolicy.error) {
+      await admin.auth.admin.deleteUser(data.user.id);
+      return fail("לא ניתן להגדיר את מדיניות אימות החשבון.", 400);
+    }
 
     const status = "pending_affiliation";
     const profileWrite = await admin.from("profiles" as any).upsert({
@@ -50,7 +62,10 @@ export async function POST(request: Request) {
       must_change_password: false,
       self_service_status: status,
       self_service_role: payload.account_type,
-      self_service_registered_at: new Date().toISOString()
+      self_service_registered_at: new Date().toISOString(),
+      contact_verification_required: true,
+      email_verified_at: data.user.email_confirmed_at ?? null,
+      phone_verified_at: data.user.phone_confirmed_at ?? null
     }, { onConflict: "id" });
     if (profileWrite.error) {
       await admin.auth.admin.deleteUser(data.user.id);
@@ -65,7 +80,8 @@ export async function POST(request: Request) {
       phone: payload.phone ?? null,
       email: payload.email,
       city: payload.city ?? null,
-      metadata: { registration_source: "self_service" }
+      verification_status: { email: data.user.email_confirmed_at ? "verified" : "pending", phone: "pending", mfa: "not_required" },
+      metadata: { registration_source: "self_service", contact_verification_required: true }
     }, { onConflict: "profile_id" });
     if (selfServiceWrite.error) {
       await admin.auth.admin.deleteUser(data.user.id);
@@ -85,7 +101,7 @@ export async function POST(request: Request) {
       user_id: data.user.id,
       role,
       status,
-      next_path: role === "parent" ? "/dashboard/parent" : role === "staff" ? "/dashboard/staff" : role === "inspector" ? "/dashboard/inspector/apply" : "/onboarding/kindergarten"
+      next_path: "/app/verify-contact"
     }, 201);
   } catch (error) {
     return handleRouteError(error);

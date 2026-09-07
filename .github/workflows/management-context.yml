@@ -2,7 +2,7 @@ name: Management tenant context
 on:
   pull_request:
   push:
-    branches: [main, master, 'codex/gb-m02-*']
+    branches: [main, master, 'codex/gb-m*-*']
 permissions:
   contents: read
 jobs:
@@ -18,4 +18,5 @@ jobs:
       - run: npm ci
       - run: node --test scripts/qa/check-management-garden-context.mjs
       - run: node --test scripts/qa/check-management-operational-role.mjs
+      - run: node --test scripts/qa/check-management-contact-verification.mjs
       - run: npm run qa:manager-parent-live-contract

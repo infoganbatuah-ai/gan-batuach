@@ -73,7 +73,7 @@ export function SelfServiceRegisterForm({ fixedAccountType, appMode = false }: {
         previous_experience: formValue(form, "previous_experience") || undefined,
         preferred_regions: formValue(form, "preferred_regions") || undefined
       });
-      setState({ ok: true, message: accountType === "kindergarten_manager" ? "החשבון נוצר. התחברי והמשיכי מיד להקמת הגן ולתקופת הניסיון." : "החשבון נוצר במצב מוגבל. אפשר להתחבר ולהגיש בקשת שיוך.", href: data.next_path });
+      setState({ ok: true, message: "החשבון נוצר. שלחנו קישור אימות לדוא״ל; לאחר האימות תתבקשו לאמת גם את מספר הטלפון.", href: data.next_path });
       form.reset();
     } catch (error) {
       setState({ ok: false, message: error instanceof Error ? error.message : "ההרשמה נכשלה" });
@@ -139,7 +139,7 @@ export function SelfServiceRegisterForm({ fixedAccountType, appMode = false }: {
           <Link href="/service-charter">תנאי שירות</Link>
         </div>
         <button className="button primary large" disabled={busy} type="submit"><Send size={16} /> {busy ? "יוצר חשבון..." : accountType === "kindergarten_manager" ? "יצירת חשבון והמשך להקמת הגן" : "יצירת חשבון מוגבל"}</button>
-        {state ? <div className={state.ok ? "success-screen" : "error-banner"}><strong>{state.message}</strong>{state.href ? <Link className="button secondary tiny" href="/app/login">כניסה לחשבון</Link> : null}</div> : null}
+        {state ? <div className={state.ok ? "success-screen" : "error-banner"}><strong>{state.message}</strong>{state.href ? <Link className="button secondary tiny" href={state.href}>המשך לאימות</Link> : null}</div> : null}
         <p className="auth-switch-line">כבר יש לך חשבון? <Link href="/app/login">התחברות</Link></p>
       </form>
       </PremiumCard>

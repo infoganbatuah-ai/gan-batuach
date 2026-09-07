@@ -3,8 +3,9 @@ import { fail } from "@/lib/api";
 import { getSessionProfile } from "@/lib/auth";
 import type { UserRole } from "@/lib/roles";
 import { createClient } from "@/lib/supabase/server";
+import { managementContactVerification } from "@/lib/management/contact-verification";
 
-type OperationalDenial = "session" | "role" | "inactive" | "staff_record" | "staff_employment" | "inspector_approval" | "inspector_assignment" | "authority_unavailable";
+type OperationalDenial = "session" | "role" | "inactive" | "contact_verification" | "staff_record" | "staff_employment" | "inspector_approval" | "inspector_assignment" | "authority_unavailable";
 type QueryResult<T> = { data: T | null; error: unknown };
 type StaffActivation = { id: string; approved_to_work: boolean | null; onboarding_status: string | null };
 type InspectorApplication = { id: string; status: string; activated_at: string | null };
@@ -34,6 +35,7 @@ export async function getOperationalRoleContext(allowedRoles: UserRole[]) {
     const { profile } = session;
     if (!allowedRoles.includes(profile.role as UserRole)) return denied("role");
     if (profile.active !== true) return denied("inactive");
+    if (!managementContactVerification(session.user, profile).complete) return denied("contact_verification");
     const supabase = await createClient();
     if (profile.role === "manager" || profile.role === "owner") {
       if (!profile.garden_id) return denied("role");
@@ -92,6 +94,7 @@ export async function requireOperationalRole(allowedRoles: UserRole[]) {
   const access = await getOperationalRoleContext(allowedRoles);
   if (access.allowed) return access.session;
   if (access.reason === "session") redirect("/login");
+  if (access.reason === "contact_verification") redirect("/app/verify-contact");
   const session = await getSessionProfile().catch(() => ({ user: null, profile: null }));
   if (session.profile?.role === "staff" && access.reason === "staff_employment") redirect("/dashboard/staff/access-pending");
   if (session.profile?.role === "staff") redirect("/onboarding/staff");

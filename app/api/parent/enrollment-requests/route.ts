@@ -2,6 +2,7 @@ import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { requireRole } from "@/lib/auth";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
+import { managementContactVerification } from "@/lib/management/contact-verification";
 
 const schema = z.object({
   child_profile_id: z.string().uuid(),
@@ -13,7 +14,10 @@ const schema = z.object({
 
 export async function POST(request: Request) {
   try {
-    const { profile } = await requireRole(["parent"]);
+    const { user, profile } = await requireRole(["parent"]);
+    if (!managementContactVerification(user, profile).complete) {
+      return fail("יש להשלים אימות דוא״ל וטלפון לפני שליחת בקשת הצטרפות.", 403);
+    }
     if (!isAdminClientConfigured()) return fail("שליחת בקשת הצטרפות דורשת Service Role בצד השרת.", 503);
     const payload = schema.parse(await request.json());
     const admin = createAdminClient();

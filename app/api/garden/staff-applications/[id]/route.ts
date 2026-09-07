@@ -2,6 +2,7 @@ import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { getManagementGardenContext } from "@/lib/management/garden-context";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
+import { adminManagementContactVerification } from "@/lib/management/contact-verification";
 
 const schema = z.object({
   action: z.enum(["under_review", "request_more_information", "approve", "reject"]),
@@ -34,6 +35,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     if (payload.action === "request_more_information") status = "more_information_requested";
     if (payload.action === "reject") status = "rejected";
     if (payload.action === "approve") {
+      const contact = await adminManagementContactVerification(admin, application.data.staff_candidate_id);
+      if (!contact.available) return fail("לא ניתן לבדוק כרגע את אימות פרטי הקשר של המועמד.", 503);
+      if (!contact.state.complete) return fail("המועמד חייב להשלים אימות דוא״ל וטלפון לפני אישור.", 409);
       const candidate = (application.data as any).staff_candidate_profiles;
       const staffWrite = await admin.from("staff" as any).insert({
         profile_id: application.data.staff_candidate_id,
