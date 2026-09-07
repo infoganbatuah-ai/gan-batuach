@@ -890,11 +890,22 @@ async function probeChannel(input, channel) {
   for (const candidate of candidates) {
     const result = await probeRtsp(candidate.url);
     if (result.ok) {
+      const streamId = streamIdFor(input, channel);
+      streamSources.set(streamId, {
+        kind: "rtsp",
+        url: candidate.url,
+        channel,
+        codec: result.codec ?? null,
+        audio: result.audio === true,
+        width: result.width ?? null,
+        height: result.height ?? null,
+        template: candidate.template
+      });
       return {
         channel,
         name: `DVR ערוץ ${channel}`,
         area: `ערוץ ${channel}`,
-        stream_id: streamIdFor(input, channel),
+        stream_id: streamId,
         status: "connected",
         health_status: "healthy",
         template: candidate.template,
@@ -1037,13 +1048,16 @@ async function startRelay(streamId) {
   const copyVideo = source.codec === "h264" && process.env.VIDEO_GATEWAY_FORCE_TRANSCODE !== "1";
   if (!copyVideo && source.codec === "hevc") await hardwareTranscoder.test();
   const hardwareVideo = !copyVideo && hardwareTranscoder.canUse(streamId, source.codec);
+  const directRtsp = source.kind === "rtsp";
   const args = [
     "-hide_banner", "-loglevel", "error",
     // Bound each channel's decoder/filter pools; ten automatic CPU-sized
     // pools otherwise compete with the browser and local inference runtime.
     "-threads", "1", "-filter_threads", "1",
     ...(hardwareVideo ? hardwareDecodeArgs : []),
-    "-i", "pipe:0",
+    ...(directRtsp
+      ? ["-rtsp_transport", "tcp", "-timeout", String(Math.max(1_000, PROBE_TIMEOUT_MS) * 1000), "-i", source.url]
+      : ["-i", "pipe:0"]),
     "-map", "0:v:0",
     "-an",
     ...(copyVideo
@@ -1070,28 +1084,41 @@ async function startRelay(streamId) {
     playlist
   ];
   const relaySource = source.kind === "private_nvr_http_mp4" ? await privateNvrRelayResponse(source) : null;
-  if (!relaySource) return null;
-  const { response, controller, sessionToken } = relaySource;
-  const child = spawn("ffmpeg", args, { stdio: ["pipe", "ignore", "pipe"] });
-  const relay = { process: child, playlist, generation: randomUUID(), firstEvidenceSequence, startedAt: Date.now(), lastInputAt: Date.now(), inputBytes: 0, inputMetrics: createRelayInputMetrics(), encoder: copyVideo ? "copy" : hardwareVideo ? "videotoolbox" : "libx264", controller, errorSummary: "", sessionToken, monitor: null };
+  if (!relaySource && !directRtsp) return null;
+  const response = relaySource?.response;
+  const controller = relaySource?.controller;
+  const sessionToken = relaySource?.sessionToken;
+  const child = spawn("ffmpeg", args, { stdio: [directRtsp ? "ignore" : "pipe", "ignore", "pipe"] });
+  const relay = { process: child, playlist, generation: randomUUID(), firstEvidenceSequence, startedAt: Date.now(), lastInputAt: Date.now(), lastPlaylistMtime: 0, inputBytes: 0, inputMetrics: createRelayInputMetrics(), encoder: copyVideo ? "copy" : hardwareVideo ? "videotoolbox" : "libx264", controller, errorSummary: "", sessionToken, monitor: null };
   relayLifecycle.starts += 1;
   relays.set(streamId, relay);
-  void pipeWebStreamToWritable(response.body, child.stdin, (byteLength, value) => {
-    relay.lastInputAt = Date.now();
-    relay.inputBytes += byteLength;
-    relay.inputMetrics.observe(value);
-  }).catch((error) => {
-    const code = error?.cause?.code || error?.code;
-    relayLifecycle[code === "UND_ERR_SOCKET" || code === "ECONNRESET" ? "inputSocketError" : error?.name === "AbortError" ? "inputAborted" : "inputOtherError"] += 1;
-    if (child.exitCode !== null || child.killed) return;
-    // The pipe's finally block ended stdin. Allow the decoder/muxer to flush
-    // its buffered tail, but never let a broken encoder block reconnection.
-    relay.inputFailed = true;
-    relay.drainTimer = setTimeout(() => child.kill("SIGKILL"), 1500);
-    relay.drainTimer.unref();
-  });
+  if (response?.body && child.stdin) {
+    void pipeWebStreamToWritable(response.body, child.stdin, (byteLength, value) => {
+      relay.lastInputAt = Date.now();
+      relay.inputBytes += byteLength;
+      relay.inputMetrics.observe(value);
+    }).catch((error) => {
+      const code = error?.cause?.code || error?.code;
+      relayLifecycle[code === "UND_ERR_SOCKET" || code === "ECONNRESET" ? "inputSocketError" : error?.name === "AbortError" ? "inputAborted" : "inputOtherError"] += 1;
+      if (child.exitCode !== null || child.killed) return;
+      // The pipe's finally block ended stdin. Allow the decoder/muxer to flush
+      // its buffered tail, but never let a broken encoder block reconnection.
+      relay.inputFailed = true;
+      relay.drainTimer = setTimeout(() => child.kill("SIGKILL"), 1500);
+      relay.drainTimer.unref();
+    });
+  }
   relay.monitor = setInterval(() => {
     if (relays.get(streamId) !== relay) return clearInterval(relay.monitor);
+    if (directRtsp && existsSync(relay.playlist)) {
+      try {
+        const playlistMtime = statSync(relay.playlist).mtimeMs;
+        if (playlistMtime > relay.lastPlaylistMtime) {
+          relay.lastPlaylistMtime = playlistMtime;
+          relay.lastInputAt = Date.now();
+        }
+      } catch {}
+    }
     if (Date.now() - relay.startedAt < RELAY_STALE_MS) return;
     if (!relayIsProgressing(relay) || Date.now() - relay.lastInputAt >= RELAY_STALE_MS) {
       if (hardwareVideo && (!relayIsProgressing(relay) && Date.now() - relay.lastInputAt < RELAY_STALE_MS || child.stdin.writableNeedDrain)) hardwareTranscoder.failed(streamId);
@@ -1109,7 +1136,7 @@ async function startRelay(streamId) {
     if (code === 0) relayLifecycle.upstreamEnded += 1;
     else if (code !== null) relayLifecycle.upstreamFailed += 1;
     clearInterval(relay.monitor);
-    controller.abort();
+    controller?.abort();
     if (code && relay.errorSummary) {
       const safeSummary = relay.errorSummary.replace(/(?:https?|rtsp):\/\/\S+/gi, "[private-source]").trim().split("\n").slice(-3).join(" | ");
       console.error(`video relay exited (${code}): ${safeSummary}`);
@@ -1443,7 +1470,7 @@ async function handle(request, response) {
         activeRelays: relays.size,
         progressingRelays: [...relays.values()].filter(relayIsProgressing).length,
         stalledRelays: [...relays.values()].filter((relay) => !relayIsProgressing(relay)).length,
-        inputs: [...relays.entries()].map(([streamId, relay]) => ({ channel: streamSources.get(streamId)?.channel, input_codec: ["h264", "hevc", "mjpeg", "mpeg4"].includes(streamSources.get(streamId)?.codec) ? streamSources.get(streamId).codec : "unknown", encoder: relay.encoder, ...relay.inputMetrics.snapshot(), stdin_backpressure: relay.process.stdin.writableNeedDrain, stdin_queued_bytes: relay.process.stdin.writableLength })),
+        inputs: [...relays.entries()].map(([streamId, relay]) => ({ channel: streamSources.get(streamId)?.channel, input_codec: ["h264", "hevc", "mjpeg", "mpeg4"].includes(streamSources.get(streamId)?.codec) ? streamSources.get(streamId).codec : "unknown", encoder: relay.encoder, ...relay.inputMetrics.snapshot(), stdin_backpressure: relay.process.stdin?.writableNeedDrain === true, stdin_queued_bytes: relay.process.stdin?.writableLength ?? 0 })),
         lifecycle: relayLifecycle
       },
       // Aggregate-only diagnostics for evidence authorization. This makes a

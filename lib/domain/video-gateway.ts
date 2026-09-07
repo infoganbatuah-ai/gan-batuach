@@ -130,7 +130,7 @@ export const cloudDvrDiscoverySchema = z.object({
   gateway_id: z.string().trim().min(3).max(120),
   observer_site_id: z.string().uuid().optional(),
   garden_id: z.string().uuid().nullable().optional(),
-  connection_type: z.enum(["dvr", "nvr"]).default("dvr"),
+  connection_type: z.enum(["dvr", "nvr", "onvif", "rtsp"]).default("dvr"),
   vendor: z.string().trim().max(80).optional(),
   discovery_id: z.string().trim().min(8).max(160),
   discovered_at: z.string().datetime(),
@@ -342,6 +342,7 @@ async function upsertDigitalObserverCameraSource(
     connected: boolean;
     statusHint: string | null;
     gatewayId?: string | null;
+    edgeDeviceType?: "SOFTWARE_CONNECTOR" | "PHYSICAL_GATEWAY";
     hardwareCapabilities?: z.infer<typeof cloudDvrHardwareCapabilitiesSchema>;
   }
 ) {
@@ -349,14 +350,14 @@ async function upsertDigitalObserverCameraSource(
   const existing = values.cameraStreamId
     ? await supabase
       .from("digital_observer_camera_sources" as any)
-      .select("id,observer_site_id,display_name,location_label,status,monitoring_targets,capabilities,metadata")
+      .select("id,observer_site_id,display_name,location_label,source_mode,status,secret_reference,monitoring_targets,capabilities,metadata")
       .eq("camera_stream_id", values.cameraStreamId)
       .eq("observer_site_id", values.observerSiteId)
       .maybeSingle()
     : values.gatewayStreamId
       ? await supabase
         .from("digital_observer_camera_sources" as any)
-        .select("id,observer_site_id,display_name,location_label,status,monitoring_targets,capabilities,metadata")
+        .select("id,observer_site_id,display_name,location_label,source_mode,status,secret_reference,monitoring_targets,capabilities,metadata")
         .eq("observer_site_id", values.observerSiteId)
         .contains("metadata", { gateway_stream_id: values.gatewayStreamId })
         .maybeSingle()
@@ -366,6 +367,7 @@ async function upsertDigitalObserverCameraSource(
   const sourceMode = values.connected ? "gateway_test" : "readiness";
   const sourceStatus = values.connected ? "connected" : unavailable ? "offline" : "ready_to_test";
   const healthStatus = values.connected ? "healthy" : unavailable ? "failed" : "unknown";
+  const softwareConnector = values.edgeDeviceType === "SOFTWARE_CONNECTOR";
   const canonicalCapabilities: CameraConnectionCapability[] = [
     "LIVE_STREAM",
     "CHANNEL_DISCOVERY",
@@ -381,10 +383,12 @@ async function upsertDigitalObserverCameraSource(
     rtspTls: false,
     rtspInternetExposed: false,
     privateNetworkOnly: true,
-    softwareConnectorAvailable: false,
-    physicalGatewayAvailable: values.gatewayConfigured,
-    physicalGatewayEnrolled: values.gatewayConfigured && Boolean(values.gatewayId || values.gatewayStreamId),
-    physicalGatewayOutboundOnly: true,
+    softwareConnectorAvailable: softwareConnector,
+    softwareConnectorInstalled: softwareConnector,
+    softwareConnectorOutboundOnly: softwareConnector,
+    physicalGatewayAvailable: !softwareConnector && values.gatewayConfigured,
+    physicalGatewayEnrolled: !softwareConnector && values.gatewayConfigured && Boolean(values.gatewayId || values.gatewayStreamId),
+    physicalGatewayOutboundOnly: !softwareConnector,
     legacySystem: values.connectorType === "dvr" || values.connectorType === "nvr",
     credentialReferenceConfigured: Boolean(values.connectionId) || values.gatewayConfigured,
     endpointReferenceConfigured: Boolean(values.gatewayStreamId),
@@ -410,7 +414,7 @@ async function upsertDigitalObserverCameraSource(
       local_activity_sampling: values.connected,
       credentials_saved: true,
       gateway_required: !values.connected,
-      connector_transport: "gateway",
+      connector_transport: softwareConnector ? "software_connector" : "gateway",
       ptz: values.hardwareCapabilities?.ptz.supported === true,
       two_way_audio: values.hardwareCapabilities?.talkback.supported === true,
       siren: values.hardwareCapabilities?.siren.supported === true,
@@ -434,6 +438,7 @@ async function upsertDigitalObserverCameraSource(
       gateway_stream_id: values.gatewayStreamId,
       gateway_stream_id_present: Boolean(values.gatewayStreamId),
       gateway_id: values.gatewayId ?? null,
+      connector_device_type: values.edgeDeviceType ?? "PHYSICAL_GATEWAY",
       gateway_configured: values.gatewayConfigured,
       status_hint: values.statusHint,
       no_rtsp_exposed: true,
@@ -442,6 +447,7 @@ async function upsertDigitalObserverCameraSource(
       gateway_outbound_only: true,
       private_network_only: true,
       legacy_system: values.connectorType === "dvr" || values.connectorType === "nvr",
+      software_connector_verified: softwareConnector,
       ...cameraConnectionMetadataForAssessment(connectionAssessment)
     }
   };
@@ -683,6 +689,7 @@ export async function createDvrConnection(payload: z.infer<typeof dvrConnectionS
 export async function materializeCloudDvrDiscovery(payload: z.infer<typeof cloudDvrDiscoverySchema>) {
   const parsed = cloudDvrDiscoverySchema.parse(payload);
   const supabase = createAdminClient();
+  const edgeDeviceType = parsed.metadata.device_type === "SOFTWARE_CONNECTOR" ? "SOFTWARE_CONNECTOR" as const : "PHYSICAL_GATEWAY" as const;
   const observerSiteId = parsed.observer_site_id ?? (parsed.garden_id ? await observerSiteIdForGarden(supabase, parsed.garden_id) : null);
   const now = new Date().toISOString();
   const connectedCount = parsed.channels.filter((channel) => channel.status === "connected").length;
@@ -795,6 +802,7 @@ export async function materializeCloudDvrDiscovery(payload: z.infer<typeof cloud
       connectorType: parsed.connection_type,
       gatewayStreamId,
       gatewayId: parsed.gateway_id,
+      edgeDeviceType,
       gatewayConfigured: true,
       connected,
       statusHint: channel.status,

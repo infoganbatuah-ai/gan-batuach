@@ -25,7 +25,7 @@ const vercelConfig = JSON.parse(vercel);
 for (const required of ["verifyGatewayDeviceAccessToken", "verifyGatewayPlaybackGrant", "gateway_playback_grant_redeemed", "23505", "no_credentials_received"]) {
   if (!cloudRoute.includes(required)) throw new Error(`Missing cloud playback grant control: ${required}`);
 }
-for (const required of ["issueGatewayPlaybackGrant", "claim_url", "127.0.0.1:18082/playback/claim"]) {
+for (const required of ["issueGatewayPlaybackGrant", "claim_url", "localPlaybackPort", "SOFTWARE_CONNECTOR", "18083", "18082"]) {
   if (!observerRoute.includes(required)) throw new Error(`Missing observer playback grant handoff: ${required}`);
 }
 for (const required of ["/playback/claim", "refreshGatewayDeviceAccess", "device_refresh_token", "streamSources.has(streamId)", "browserJson", "access-control-allow-private-network", "playbackClaimReady"]) {
@@ -48,8 +48,17 @@ for (const required of ["gatewayId: parsed.gateway_id", "gateway_id: values.gate
 const observerCsp = vercelConfig.headers
   .filter((entry) => entry.source === "/digital-observer" || entry.source === "/digital-observer/:path*")
   .map((entry) => entry.headers.find((header) => header.key === "Content-Security-Policy")?.value || "");
-if (observerCsp.length !== 2 || observerCsp.some((value) => (value.match(/http:\/\/127\.0\.0\.1:18082/g) || []).length !== 2 || value.includes("upgrade-insecure-requests")) || vercel.includes("http://192.168.") || vercel.includes("http://10.")) {
-  throw new Error("Production CSP must allow only the fixed local Gateway loopback for connect and media");
+if (
+  observerCsp.length !== 2
+  || observerCsp.some((value) =>
+    (value.match(/http:\/\/127\.0\.0\.1:18082/g) || []).length !== 2
+    || (value.match(/http:\/\/127\.0\.0\.1:18083/g) || []).length !== 2
+    || value.includes("upgrade-insecure-requests")
+  )
+  || vercel.includes("http://192.168.")
+  || vercel.includes("http://10.")
+) {
+  throw new Error("Production CSP must allow only the fixed local Gateway and Software Connector loopbacks for connect and media");
 }
 
 console.log("Local playback grant QA PASS");

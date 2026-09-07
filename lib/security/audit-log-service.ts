@@ -110,9 +110,9 @@ export async function writeAuditEvent(input: AuditInput) {
       metadata: sanitizeAuditMetadata({ ...(input.metadata as Record<string, unknown> ?? {}), raw_target_id: uuidOrNull(input.targetId) ? undefined : input.targetId ?? undefined }),
       risk_level: input.riskLevel ?? "medium"
     });
-    if (error) console.error("[immutable-audit] write failed", { eventType: input.eventType, message: error.message });
+    if (error) console.error("[immutable-audit] write failed", { eventType: input.eventType, code: error.code ?? "AUDIT_WRITE_FAILED" });
   } catch (error) {
-    console.error("[immutable-audit] write crashed", error);
+    console.error("[immutable-audit] write crashed", { errorType: error instanceof Error ? error.name : typeof error });
   }
 }
 
@@ -140,7 +140,7 @@ export async function writeMedicalAccessEvent(input: Omit<AuditInput, "eventCate
       metadata: sanitizeAuditMetadata(input.metadata ?? {})
     });
   } catch (error) {
-    console.error("[medical-audit] compatibility log failed", error);
+    console.error("[medical-audit] compatibility log failed", { errorType: error instanceof Error ? error.name : typeof error });
   }
 }
 

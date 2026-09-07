@@ -8,8 +8,8 @@ const observerSources = ["/digital-observer", "/digital-observer/:path*"];
 
 for (const source of observerSources) {
   const csp = cspFor(source);
-  if (!csp.includes("connect-src 'self' https: wss: http://127.0.0.1:18082")) throw new Error(`Missing exact loopback connect-src for ${source}`);
-  if (!csp.includes("media-src 'self' blob: https: http://127.0.0.1:18082")) throw new Error(`Missing exact loopback media-src for ${source}`);
+  if (!csp.includes("connect-src 'self' https: wss: http://127.0.0.1:18082 http://127.0.0.1:18083 http://127.0.0.1:18084")) throw new Error(`Missing exact loopback connect-src for ${source}`);
+  if (!csp.includes("media-src 'self' blob: https: http://127.0.0.1:18082 http://127.0.0.1:18083 http://127.0.0.1:18084")) throw new Error(`Missing exact loopback media-src for ${source}`);
   if (csp.includes("upgrade-insecure-requests")) throw new Error(`Observer CSP must not rewrite the local Gateway for ${source}`);
   for (const key of requiredSecurityHeaders) if (!headersFor(source).some((header) => header.key.toLowerCase() === key)) throw new Error(`Missing ${key} for ${source}`);
 }
@@ -17,6 +17,8 @@ for (const source of observerSources) {
 const fallbackSource = "/:path((?!digital-observer(?:/|$)).*)";
 const fallbackCsp = cspFor(fallbackSource);
 if (!fallbackCsp.includes("upgrade-insecure-requests")) throw new Error("Non-observer routes must retain HTTPS upgrading");
-if (fallbackCsp.includes("127.0.0.1:18082")) throw new Error("Loopback Gateway access leaked outside Digital Observer routes");
+if (fallbackCsp.includes("127.0.0.1:18082") || fallbackCsp.includes("127.0.0.1:18083") || fallbackCsp.includes("127.0.0.1:18084")) {
+  throw new Error("Loopback Gateway/Connector access leaked outside Digital Observer routes");
+}
 
 console.log("Observer loopback CSP QA PASS");

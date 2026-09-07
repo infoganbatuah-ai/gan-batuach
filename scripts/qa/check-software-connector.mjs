@@ -5,6 +5,7 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { test } from "node:test";
 import { createEdgeSecretStoreSync } from "../../services/video-gateway/edge-secret-store-sync.mjs";
+import { createEventEvidenceStore, evidencePlaylist } from "../../services/video-gateway/event-evidence-store.mjs";
 import {
   connectorRuntimeIdentity,
   createInstallationId,
@@ -73,10 +74,18 @@ test("heartbeat is scoped to the enrolled tenant site and reports version", () =
 
 test("discovery maps through canonical source contract", () => {
   const runner = source("scripts/run-persistent-home-gateway.mjs");
+  const gatewayDomain = source("lib/domain/video-gateway.ts");
   assert.match(runner, /cloud-discovery/);
   assert.match(runner, /camera_source_id/);
   assert.match(runner, /device_type: edgeDeviceType/);
   assert.match(runner, /software_connector/);
+  assert.match(gatewayDomain, /connection_type: z\.enum\(\["dvr", "nvr", "onvif", "rtsp"\]\)\.default\("dvr"\)/);
+  assert.match(gatewayDomain, /edgeDeviceType\?: "SOFTWARE_CONNECTOR" \| "PHYSICAL_GATEWAY"/);
+  assert.match(gatewayDomain, /softwareConnectorAvailable: softwareConnector/);
+  assert.match(gatewayDomain, /physicalGatewayAvailable: !softwareConnector && values\.gatewayConfigured/);
+  assert.match(gatewayDomain, /connector_transport: softwareConnector \? "software_connector" : "gateway"/);
+  assert.match(gatewayDomain, /connector_device_type: values\.edgeDeviceType \?\? "PHYSICAL_GATEWAY"/);
+  assert.match(gatewayDomain, /edgeDeviceType,/);
 });
 
 test("Docker package is non-root, outbound-only and includes the shared core", () => {
@@ -98,9 +107,76 @@ test("installer never prints enrollment or refresh secrets", () => {
 test("onboarding has a real software connector handoff", () => {
   const wizard = source("components/digital-observer/observer-action-forms.tsx");
   const page = source("app/digital-observer/cameras/connector/page.tsx");
+  const productFlow = source("components/digital-observer/software-connector-onboarding.tsx");
+  const route = source("app/api/digital-observer/software-connector/route.ts");
   assert.match(wizard, /cameras\/connector/);
   assert.match(page, /חיבור יוצא בלבד/);
-  assert.match(page, /Windows עדיין אינו מסומן כנתמך/);
+  assert.match(page, /חבילות macOS ו‑Windows/);
+  assert.match(page, /SoftwareConnectorOnboarding/);
+  assert.match(productFlow, /type="password"/);
+  assert.match(productFlow, /פרטי התחברות למצלמות שנבחרו/);
+  assert.match(productFlow, /configure_batch/);
+  assert.match(productFlow, /activate_batch/);
+  assert.match(productFlow, /בחר הכול/);
+  assert.match(productFlow, /autoCapitalize="none"/);
+  assert.match(productFlow, /lang="en"/);
+  assert.match(productFlow, /סיסמת מצלמה/);
+  assert.doesNotMatch(productFlow, /showCredentials/);
+  assert.match(route, /encryptField\(payload\.username\)/);
+  assert.match(route, /encryptField\(payload\.password\)/);
+  assert.match(route, /credentials_local_delivery_pending/);
+  assert.doesNotMatch(route, /console\.(?:log|warn|error)\([^\n]*(?:payload\.password|payload\.username)/);
+});
+
+test("software connector uses an isolated port, owner lock and stream namespace", () => {
+  const wrapper = source("scripts/run-software-connector.mjs");
+  const runner = source("scripts/run-persistent-home-gateway.mjs");
+  assert.match(wrapper, /VIDEO_GATEWAY_PORT \|\|= "18083"/);
+  assert.match(wrapper, /GAN_BATUACH_JOURNAL_OWNER_LOCK_PATH/);
+  assert.match(wrapper, /connector_stream_namespace/);
+  assert.match(runner, /gatewayPort/);
+  assert.match(runner, /connectionType/);
+});
+
+test("generic RTSP discovery registers a relay source instead of probe-only readiness", () => {
+  const gateway = source("services/video-gateway/server.mjs");
+  const inference = source("services/video-gateway/object-inference-client.mjs");
+  assert.match(gateway, /kind: "rtsp"/);
+  assert.match(gateway, /directRtsp/);
+  assert.match(gateway, /-rtsp_transport/);
+  assert.match(gateway, /controller\?\.abort\(\)/);
+  assert.match(gateway, /relay\.process\.stdin\?\.writableNeedDrain/);
+  assert.match(inference, /VIDEO_GATEWAY_OBJECT_WORKER_PATH/);
+});
+
+test("high-bitrate RTSP playback history keeps only the bounded event prebuffer", () => {
+  const segmentBytes = Buffer.alloc(1024 * 1024, 7);
+  const segments = Array.from({ length: 12 }, (_, index) => ({
+    name: `segment-${String(index).padStart(6, "0")}.ts`,
+    sequence: index,
+    discontinuity: 0,
+    duration_seconds: 1
+  }));
+  const store = createEventEvidenceStore();
+  store.updateManifest({ monitoring_enabled: true, observer_site_id: "site-safe", gateway_id: "gateway-safe", cameras: [{
+    stream_id: "rtsp-safe", camera_id: "camera-safe", monitoring_enabled: true, object_analysis_enabled: true,
+    status: "connected", zone_type: "OTHER", supported_event_types: ["person_detected"],
+    allowed_event_types: ["person_detected"], verified_event_types: ["person_detected"]
+  }] });
+  const prepared = store.prepare({ streamId: "rtsp-safe", sourceGeneration: "generation-safe", sequenceFloor: 0,
+    playlistText: evidencePlaylist(segments, false), readSegment: () => segmentBytes });
+  assert.equal(prepared.status, "prepared");
+  assert.equal(store.status().retained_bytes, 4 * 1024 * 1024);
+  store.release(prepared.lease_id);
+});
+
+test("connector cloud handoff keeps camera secrets out of files and logs", () => {
+  const cloud = source("services/video-gateway/software-connector-cloud.mjs");
+  const discovery = source("scripts/discover-software-connector-cameras.mjs");
+  assert.match(cloud, /store\.write\("dvr_profile_json"/);
+  assert.match(cloud, /store\.write\("dvr_password"/);
+  assert.doesNotMatch(cloud + discovery, /console\.log\([^\n]*(?:camera\.password|camera\.username|camera\.endpoint)/);
+  assert.match(discovery, /private_addresses_printed: false/);
 });
 
 test("core has no office, developer-home or localhost cloud dependency", () => {
@@ -120,7 +196,7 @@ test("local software runtime reports its type and rejects arbitrary command", as
   });
   context.after(() => child.kill("SIGTERM"));
   let health;
-  for (let attempt = 0; attempt < 40; attempt += 1) {
+  for (let attempt = 0; attempt < 100; attempt += 1) {
     try { const response = await fetch(`http://127.0.0.1:${port}/health`); if (response.ok) { health = await response.json(); break; } } catch {}
     await new Promise((resolve) => setTimeout(resolve, 100));
   }

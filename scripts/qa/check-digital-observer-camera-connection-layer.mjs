@@ -209,7 +209,8 @@ test("unsafe assessment payload fields and credentialed URLs are rejected", () =
 
 test("assessment route enforces site authorization and source scope", () => {
   const route = readFileSync("app/api/digital-observer/connection-assessment/route.ts", "utf8");
-  assert.match(route, /requiresManageAccess = payload\.action === "assess_new" \|\| payload\.persist/);
+  assert.match(route, /requiresManageAccess = payload\.action !== "assess_existing" \|\| payload\.persist/);
+  assert.match(route, /connectionPlanRequestSchema/);
   assert.match(route, /requiresManageAccess \? \{ manage: true \} : \{\}/);
   assert.match(route, /hasObserverAdminClaim\(session\.user\.app_metadata\)/);
   assert.match(route, /createDigitalObserverAdminDataClient\(\)/);

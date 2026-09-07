@@ -24,7 +24,7 @@ export function evidencePlaylist(segments, ended = true) {
  * readSegment must read only completed local files from this relay's directory.
  * Callers may write a snapshot only AFTER cloud validation requires a clip. */
 export function createEventEvidenceStore({ now = Date.now, leaseMs = 30_000, manifestMs = 30_000, maxBytes = 64 * 1024 * 1024,
-  maxSegmentBytes = 8 * 1024 * 1024, maxLeases = 32, maxLeasesPerStream = 2, maxBytesPerStream = 4 * 1024 * 1024 } = {}) {
+  maxSegmentBytes = 8 * 1024 * 1024, maxLeases = 32, maxLeasesPerStream = 2, maxBytesPerStream = 16 * 1024 * 1024 } = {}) {
   const leases = new Map();
   const grants = new Map();
   const decisions = new Map();
@@ -184,7 +184,19 @@ export function createEventEvidenceStore({ now = Date.now, leaseMs = 30_000, man
       const last = parsed.segments.at(-1);
       if (last.sequence < sequenceFloor) return failure("current_generation_not_ready");
       // Do not pull prebuffer across a reconnect or across discontinuities.
-      const segments = parsed.segments.filter(s => s.sequence >= sequenceFloor && s.discontinuity === last.discontinuity);
+      const generationSegments = parsed.segments.filter(s => s.sequence >= sequenceFloor && s.discontinuity === last.discontinuity);
+      // A live playlist may retain twelve high-bitrate seconds for playback,
+      // while event qualification needs only the current segment plus the
+      // three-second evidence pre-window. Retaining the whole playlist can
+      // reject an otherwise healthy RTSP camera before inference even runs.
+      const requiredDuration = last.duration_seconds + 3;
+      const segments = [];
+      let selectedDuration = 0;
+      for (let index = generationSegments.length - 1; index >= 0; index -= 1) {
+        segments.unshift(generationSegments[index]);
+        selectedDuration += generationSegments[index].duration_seconds;
+        if (selectedDuration >= requiredDuration) break;
+      }
       const id = randomUUID();
       const lease = { streamId, sourceGeneration, binding, controller: new AbortController(), observedAt: new Date(now()).toISOString(), expires: now() + leaseMs,
         segments: new Map(), bytes: 0, anchor: null, last, ended: parsed.ended };

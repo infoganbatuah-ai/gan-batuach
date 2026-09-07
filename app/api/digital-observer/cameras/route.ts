@@ -106,6 +106,11 @@ export async function POST(request: Request) {
     if (payload.action === "create") {
       const site = await getObserverSiteAccess(supabase, profile, payload.observer_site_id, { manage: true });
       if (!site) return fail("אין הרשאה להוסיף מצלמה לאתר הזה.", 403);
+      // Legacy technical creation is support-only. Existing source management,
+      // playback and runtime ingestion remain unchanged.
+      if (payload.connector_type !== "demo" && profile.role !== "admin") {
+        return fail("להוספת מצלמה פתחו הוספת מצלמות ובחרו מצא את המצלמות שלי. לא נדרש לבחור סוג חיבור.", 409);
+      }
       const readiness = buildDigitalObserverCameraReadiness(payload.connector_type);
       const assessment = assessCameraConnection(buildPairingConnectionAssessmentInput({
         siteId: payload.observer_site_id,

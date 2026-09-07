@@ -12,7 +12,9 @@ import { createEdgeSecretStoreSync } from "../services/video-gateway/edge-secret
 const workdir = process.cwd();
 const dataRoot = process.env.OBSERVER_EDGE_DATA_DIR || workdir;
 mkdirSync(dataRoot, { recursive: true, mode: 0o700 });
-const gatewayUrl = "http://127.0.0.1:18082";
+const gatewayPort = Number(process.env.VIDEO_GATEWAY_PORT || (process.env.OBSERVER_EDGE_DEVICE_TYPE === "SOFTWARE_CONNECTOR" ? 18083 : 18082));
+if (!Number.isInteger(gatewayPort) || gatewayPort < 1024 || gatewayPort > 65535) throw new Error("Invalid local Gateway port");
+const gatewayUrl = `http://127.0.0.1:${gatewayPort}`;
 const edgeDeviceType = process.env.OBSERVER_EDGE_DEVICE_TYPE === "SOFTWARE_CONNECTOR" ? "SOFTWARE_CONNECTOR" : "PHYSICAL_GATEWAY";
 const gatewayKeychainService = process.env.GAN_BATUACH_GATEWAY_KEYCHAIN_SERVICE || "com.ganbatuach.video-gateway.runtime";
 const dvrKeychainService = process.env.GAN_BATUACH_GATEWAY_DVR_KEYCHAIN_SERVICE || gatewayKeychainService;
@@ -70,15 +72,29 @@ const missingCloudConfiguration = [
 ].filter(Boolean);
 if (missingCloudConfiguration.length) throw new Error(`Persistent gateway cloud configuration is incomplete: ${missingCloudConfiguration.join(",")}`);
 
-let config = null;
-let password = "";
+let configurations = [];
 if (discoveryEnabled) {
-  const profileJson = keychainSecret("dvr_profile_json", dvrKeychainService);
-  if (!profileJson) throw new Error("DVR profile is not available in the secure local store");
-  config = JSON.parse(profileJson);
-  password = keychainSecret("dvr_password", dvrKeychainService);
-  if (!password) throw new Error("DVR credential is not available in the secure local store");
+  const connectorProfiles = edgeDeviceType === "SOFTWARE_CONNECTOR" ? keychainSecret("connector_profiles_json", dvrKeychainService) : "";
+  if (connectorProfiles) {
+    const parsedProfiles = JSON.parse(connectorProfiles);
+    if (!Array.isArray(parsedProfiles) || !parsedProfiles.length || parsedProfiles.length > 32) throw new Error("Connector camera profile set is invalid");
+    configurations = parsedProfiles.map((profile, index) => {
+      if (!profile || profile.connection_type !== "rtsp" || !profile.endpoint || !profile.username || !profile.password
+        || !profile.stream_namespace || Number(profile.channel_count || 1) < 1 || Number(profile.channel_count || 1) > 64) {
+        throw new Error("Connector camera profile is incomplete");
+      }
+      return { ...profile, profile_index: index + 1 };
+    });
+  } else {
+    const profileJson = keychainSecret("dvr_profile_json", dvrKeychainService);
+    if (!profileJson) throw new Error("DVR profile is not available in the secure local store");
+    const profile = JSON.parse(profileJson);
+    const password = keychainSecret("dvr_password", dvrKeychainService);
+    if (!password) throw new Error("DVR credential is not available in the secure local store");
+    configurations = [{ ...profile, password, stream_namespace: streamNamespace, profile_index: 1 }];
+  }
 }
+const expectedChannelCount = configurations.reduce((total, profile) => total + Number(profile.channel_count || 0), 0);
 
 async function signedPost(path, payload, options = {}) {
   const body = JSON.stringify(payload);
@@ -103,7 +119,7 @@ async function signedPost(path, payload, options = {}) {
   return response.json();
 }
 
-const child = spawn(process.execPath, ["services/video-gateway/server.mjs"], { cwd: workdir, env: { ...process.env, HOST: "127.0.0.1", PORT: "18082", VIDEO_GATEWAY_SIGNING_SECRET: gatewaySecret, DVR_EXPECTED_CHANNEL_COUNT: String(config?.channel_count || 0), OBSERVER_EDGE_DEVICE_TYPE: edgeDeviceType, OBSERVER_EDGE_INSTALLATION_ID: installationId, GAN_BATUACH_GATEWAY_SECRET_DIR: gatewaySecretDir }, stdio: "inherit" });
+const child = spawn(process.execPath, ["services/video-gateway/server.mjs"], { cwd: workdir, env: { ...process.env, HOST: "127.0.0.1", PORT: String(gatewayPort), VIDEO_GATEWAY_SIGNING_SECRET: gatewaySecret, DVR_EXPECTED_CHANNEL_COUNT: String(expectedChannelCount), OBSERVER_EDGE_DEVICE_TYPE: edgeDeviceType, OBSERVER_EDGE_INSTALLATION_ID: installationId, GAN_BATUACH_GATEWAY_SECRET_DIR: gatewaySecretDir }, stdio: "inherit" });
 
 async function waitForGateway() {
   for (let attempt = 0; attempt < 60; attempt += 1) {
@@ -116,10 +132,24 @@ async function waitForGateway() {
 let channels = [];
 let consecutiveEmptyDiscoveries = 0;
 async function discover() {
-  const response = await fetch(`${gatewayUrl}/dvr/connect`, { method: "POST", headers: { "content-type": "application/json", "x-video-gateway-secret": gatewaySecret }, body: JSON.stringify({ connection_type: "dvr", endpoint: config.endpoint, port: config.port, username: config.username, password, metadata: { vendor: config.vendor, expected_channel_count: config.channel_count, read_only_requested: true, ...(connectorChannelFilter.length ? { channel_filter: connectorChannelFilter } : {}), ...(streamNamespace ? { stream_namespace: streamNamespace } : {}) } }), signal: AbortSignal.timeout(DISCOVERY_REQUEST_TIMEOUT_MS) });
-  const result = await response.json();
-  if (!response.ok) throw new Error("DVR discovery failed");
-  channels = (result.channels || []).map((channel, index) => Object.fromEntries(Object.entries({ channel: Number(channel.channel || index + 1), name: channel.name, area: channel.area, stream_id: channel.stream_id, gateway_stream_id: channel.gateway_stream_id || channel.stream_id, status: channel.status, health_status: channel.health_status, width: channel.width ?? null, height: channel.height ?? null, candidates_tried: channel.candidates_tried, template: channel.template, reason: channel.reason, capabilities: channel.capabilities && typeof channel.capabilities === "object" ? channel.capabilities : {} }).filter(([, value]) => value !== undefined && value !== null)));
+  const discovered = [];
+  let latencyMs = 0;
+  for (const profile of configurations) {
+    const connectionType = profile.connection_type === "rtsp" || profile.connection_type === "onvif" ? profile.connection_type : "dvr";
+    const response = await fetch(`${gatewayUrl}/dvr/connect`, { method: "POST", headers: { "content-type": "application/json", "x-video-gateway-secret": gatewaySecret }, body: JSON.stringify({ connection_type: connectionType, endpoint: profile.endpoint, port: profile.port, username: profile.username, password: profile.password, metadata: { vendor: profile.vendor, expected_channel_count: profile.channel_count, read_only_requested: true, ...(edgeDeviceType === "PHYSICAL_GATEWAY" && connectorChannelFilter.length ? { channel_filter: connectorChannelFilter } : {}), ...(profile.stream_namespace ? { stream_namespace: profile.stream_namespace } : {}) } }), signal: AbortSignal.timeout(DISCOVERY_REQUEST_TIMEOUT_MS) });
+    const result = await response.json();
+    if (!response.ok) throw new Error("DVR discovery failed");
+    latencyMs += Number(result.latency_ms || 0);
+    discovered.push(...(result.channels || []).map((channel, index) => Object.fromEntries(Object.entries({
+      channel: edgeDeviceType === "SOFTWARE_CONNECTOR" ? discovered.length + index + 1 : Number(channel.channel || index + 1),
+      name: channel.name, area: channel.area,
+      stream_id: channel.stream_id, gateway_stream_id: channel.gateway_stream_id || channel.stream_id,
+      status: channel.status, health_status: channel.health_status, width: channel.width ?? null,
+      height: channel.height ?? null, candidates_tried: channel.candidates_tried, template: channel.template,
+      reason: channel.reason, capabilities: channel.capabilities && typeof channel.capabilities === "object" ? channel.capabilities : {}
+    }).filter(([, value]) => value !== undefined && value !== null))));
+  }
+  channels = discovered;
   const connectedChannels = channels.filter((channel) => channel.status === "connected");
   const previouslyVerified = Number(keychainSecret(VERIFIED_CONNECTED_COUNT_KEY) || 0);
   const hasUnconfirmedRegression = channels.length
@@ -140,7 +170,9 @@ async function discover() {
   const health = await fetch(`${gatewayUrl}/health`, { signal: AbortSignal.timeout(10_000) })
     .then((healthResponse) => healthResponse.ok ? healthResponse.json() : {})
     .catch(() => ({}));
-  const mapped = await signedPost("/api/video-gateway/cloud-discovery", { gateway_id: gatewayId, observer_site_id: observerSiteId, connection_type: "dvr", vendor: config.vendor, discovery_id: crypto.randomUUID(), discovered_at: new Date().toISOString(), channel_count: channels.length, connected_channel_count: channels.filter((channel) => channel.status === "connected").length, failed_channel_count: channels.filter((channel) => channel.status !== "connected").length, latency_ms: Number(result.latency_ms || 0), read_only: true, controls_supported: result.controls_supported === true, no_secrets_returned: true, channels, metadata: { source: edgeDeviceType === "SOFTWARE_CONNECTOR" ? "software_connector" : "persistent_home_gateway", device_type: edgeDeviceType, installation_id: installationId, runtime_contract: edgeRuntime.contract, ai_shadow_only: true, read_only: true, edge_capability_contract: health.edge_capability_contract ?? null } }, { deviceAccess: true });
+  const connectionType = configurations.length === 1 && ["rtsp", "onvif"].includes(configurations[0]?.connection_type) ? configurations[0].connection_type : "dvr";
+  const vendor = configurations.length === 1 ? configurations[0]?.vendor : "mixed";
+  const mapped = await signedPost("/api/video-gateway/cloud-discovery", { gateway_id: gatewayId, observer_site_id: observerSiteId, connection_type: connectionType, vendor, discovery_id: crypto.randomUUID(), discovered_at: new Date().toISOString(), channel_count: channels.length, connected_channel_count: channels.filter((channel) => channel.status === "connected").length, failed_channel_count: channels.filter((channel) => channel.status !== "connected").length, latency_ms: latencyMs, read_only: true, controls_supported: false, no_secrets_returned: true, channels, metadata: { source: edgeDeviceType === "SOFTWARE_CONNECTOR" ? "software_connector" : "persistent_home_gateway", device_type: edgeDeviceType, installation_id: installationId, runtime_contract: edgeRuntime.contract, ai_shadow_only: true, read_only: true, multi_profile: configurations.length > 1, edge_capability_contract: health.edge_capability_contract ?? null } }, { deviceAccess: true });
   const mappedPayload = mapped?.data && typeof mapped.data === "object" ? mapped.data : mapped;
   const mappedChannels = Array.isArray(mappedPayload?.channels) ? mappedPayload.channels : [];
   channels = channels.map((channel) => {

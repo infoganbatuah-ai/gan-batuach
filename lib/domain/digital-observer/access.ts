@@ -31,7 +31,7 @@ export async function getObserverSiteAccess(
     ? ["owner", "admin", "billing"]
     : options.manage
       ? ["owner", "admin", "operator"]
-      : ["owner", "admin", "operator", "viewer", "billing"];
+      : ["owner", "admin", "operator", "viewer"];
   const { data: membership } = await supabase
     .from("observer_site_memberships" as any)
     .select("id,member_role")

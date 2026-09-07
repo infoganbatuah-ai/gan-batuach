@@ -7,6 +7,18 @@ import { validateSecretAccount } from "./edge-runtime-contract.mjs";
 // Keep Keychain I/O off the media event loop. Concurrent reads of the same
 // item share one bounded process; no secret is cached on disk or logged.
 export function createKeychainStore({ service, secretDir = "", timeoutMs = 5_000, execute = execFile }) {
+  if (!secretDir && process.env.OBSERVER_KEYCHAIN_HELPER) {
+    const helper = process.env.OBSERVER_KEYCHAIN_HELPER;
+    const call = (operation, account, input = "") => new Promise((resolve, reject) => {
+      validateSecretAccount(account);
+      const child = execute(helper, ["--secret", operation, service, account], { encoding: "utf8", timeout: timeoutMs, maxBuffer: 64 * 1024 }, (error, stdout) => {
+        if (error && error.code !== 44) return reject(new Error("CONNECTOR_KEYCHAIN_UNAVAILABLE"));
+        resolve(error ? "" : String(stdout || ""));
+      });
+      child?.stdin?.end(input);
+    });
+    return { read: account => call("read", account), write: (account, value) => call("write", account, String(value)), remove: account => call("remove", account) };
+  }
   const reads = new Map();
   const invoke = (args, allowMissing = false) => new Promise((resolve, reject) => {
     execute("/usr/bin/security", args, { encoding: "utf8", timeout: timeoutMs, maxBuffer: 64 * 1024 }, (error, stdout) => {

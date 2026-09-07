@@ -4,6 +4,7 @@ import { fail, handleRouteError, ok } from "@/lib/api";
 import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
 import { gatewayEnrollmentTtlMs, hashGatewayEnrollmentToken, issueGatewayDeviceAccessToken, newGatewayEnrollmentPollToken, newGatewayRefreshToken } from "@/lib/domain/gateway-device-enrollment";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { assertTrustedMutationOrigin, parseBoundedJson } from "@/lib/security/request-guards";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -20,7 +21,7 @@ const deviceSchema = z.object({
 const schema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("create_request"), ...deviceSchema.shape }),
   z.object({ action: z.literal("approve"), enrollment_request_id: z.string().uuid(), observer_site_id: z.string().uuid() }),
-  z.object({ action: z.literal("poll"), enrollment_request_id: z.string().uuid(), poll_token: z.string().min(32).max(160) }),
+  z.object({ action: z.literal("poll"), enrollment_request_id: z.string().uuid(), poll_token: z.string().min(32).max(160), delivery_refresh_token: z.string().regex(/^[A-Za-z0-9_-]{64}$/).optional() }),
   z.object({
     action: z.literal("refresh"),
     gateway_id: z.string().uuid(),
@@ -86,7 +87,8 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     if (process.env.NODE_ENV === "development") return await developmentProxy(request);
-    const payload = schema.parse(await request.json());
+    const payload = schema.parse(await parseBoundedJson(request, 8192));
+    if (payload.action === "approve" || payload.action === "revoke") assertTrustedMutationOrigin(request);
 
 
     const admin = createAdminClient();
@@ -132,8 +134,14 @@ export async function POST(request: Request) {
         return ok({ status: "revoked" });
       }
 
-      const pending = await admin.from("video_gateway_device_enrollments").select("id,status,expires_at,device_name,device_platform,metadata").eq("id", payload.enrollment_request_id).maybeSingle();
+      const pending = await admin.from("video_gateway_device_enrollments").select("id,status,expires_at,device_name,device_platform,metadata,observer_site_id,created_by_profile_id").eq("id", payload.enrollment_request_id).maybeSingle();
       if (pending.error || !pending.data || pending.data.status !== "pending" || Date.parse(pending.data.expires_at) <= Date.now()) return fail("בקשת קישור המכשיר אינה תקפה או שפג תוקפה.", 409);
+      if (!pending.data.metadata?.install_intent_id && session.profile.role !== "admin") {
+        return fail("התחילו את חיבור המצלמות דרך מצא את המצלמות שלי. קישור טכני ידני זמין לתמיכה בלבד.", 409);
+      }
+      if (pending.data.metadata?.install_intent_id && (pending.data.observer_site_id !== site.id || pending.data.created_by_profile_id !== session.profile.id)) {
+        return fail("יש לאשר את התקנת המחשב מהחשבון ומהבית שבהם החלה ההתקנה.", 403);
+      }
       const gatewayId = randomUUID();
       const refreshToken = newGatewayRefreshToken();
       const approved = await admin.from("video_gateway_device_enrollments").update({ status: "approved", observer_site_id: site.id, gateway_id: gatewayId, refresh_token_hash: hashGatewayEnrollmentToken(refreshToken), approved_at: new Date().toISOString(), created_by_profile_id: session.profile.id }).eq("id", pending.data.id).eq("status", "pending").select("id").maybeSingle();
@@ -143,16 +151,27 @@ export async function POST(request: Request) {
     }
 
     if (payload.action === "poll") {
-      const enrollment = await admin.from("video_gateway_device_enrollments").select("id,status,expires_at,poll_token_hash,gateway_id,observer_site_id,refresh_token_hash").eq("id", payload.enrollment_request_id).maybeSingle();
-      if (enrollment.error || !enrollment.data || enrollment.data.poll_token_hash !== hashGatewayEnrollmentToken(payload.poll_token)) return fail("בקשת קישור המכשיר אינה תקפה.", 401);
+      const enrollment = await admin.from("video_gateway_device_enrollments").select("id,status,expires_at,poll_token_hash,gateway_id,observer_site_id,refresh_token_hash,metadata").eq("id", payload.enrollment_request_id).maybeSingle();
+      if (enrollment.error || !enrollment.data) return fail("בקשת קישור המכשיר אינה תקפה.", 401);
+      const deliveryReceipt = payload.delivery_refresh_token ? hashGatewayEnrollmentToken(`${payload.poll_token}:${payload.delivery_refresh_token}`) : null;
+      if (enrollment.data.status === "delivered" && deliveryReceipt && enrollment.data.metadata?.install_intent_id
+        && Date.parse(enrollment.data.expires_at) > Date.now()
+        && enrollment.data.metadata.delivery_receipt_hash === deliveryReceipt
+        && enrollment.data.refresh_token_hash === hashGatewayEnrollmentToken(payload.delivery_refresh_token!)) {
+        return ok({ status: "linked", gateway_id: enrollment.data.gateway_id, observer_site_id: enrollment.data.observer_site_id,
+          refresh_token: payload.delivery_refresh_token, idempotent_delivery: true });
+      }
+      if (enrollment.data.poll_token_hash !== hashGatewayEnrollmentToken(payload.poll_token)) return fail("בקשת קישור המכשיר אינה תקפה.", 401);
       if (Date.parse(enrollment.data.expires_at) <= Date.now()) {
         await admin.from("video_gateway_device_enrollments").update({ status: "expired" }).eq("id", enrollment.data.id).eq("status", "pending");
         return ok({ status: "expired" });
       }
       if (enrollment.data.status === "pending") return ok({ status: "pending" });
       if (enrollment.data.status !== "approved" || !enrollment.data.gateway_id || !enrollment.data.observer_site_id || !enrollment.data.refresh_token_hash) return fail("בקשת קישור המכשיר אינה זמינה.", 409);
-      const refreshToken = newGatewayRefreshToken();
-      const delivered = await admin.from("video_gateway_device_enrollments").update({ status: "delivered", delivered_at: new Date().toISOString(), refresh_token_hash: hashGatewayEnrollmentToken(refreshToken), poll_token_hash: hashGatewayEnrollmentToken(randomUUID()) }).eq("id", enrollment.data.id).eq("status", "approved").select("id").maybeSingle();
+      const refreshToken = payload.delivery_refresh_token ?? newGatewayRefreshToken();
+      const delivered = await admin.from("video_gateway_device_enrollments").update({ status: "delivered", delivered_at: new Date().toISOString(), refresh_token_hash: hashGatewayEnrollmentToken(refreshToken), poll_token_hash: hashGatewayEnrollmentToken(randomUUID()),
+        ...(enrollment.data.metadata?.install_intent_id && deliveryReceipt ? { metadata: { ...enrollment.data.metadata, delivery_receipt_hash: deliveryReceipt } } : {})
+      }).eq("id", enrollment.data.id).eq("status", "approved").select("id").maybeSingle();
       if (delivered.error || !delivered.data) return fail("בקשת קישור המכשיר כבר נצרכה.", 409);
       const accessToken = issueGatewayDeviceAccessToken({ device_id: enrollment.data.id, gateway_id: enrollment.data.gateway_id, observer_site_id: enrollment.data.observer_site_id }, cloudSecret());
       await audit(admin, "gateway_enrollment_delivered", { enrollment_request_id: enrollment.data.id, gateway_id: enrollment.data.gateway_id, observer_site_id: enrollment.data.observer_site_id });

@@ -11,6 +11,8 @@ export function preserveCameraDiscoverySettings(existing: Source, discovered: So
     ...discovered,
     display_name: namedByUser || discovered.display_name,
     location_label: namedLocation || discovered.location_label,
+    source_mode: existing.source_mode === "live" && discovered.status === "connected" ? "live" : discovered.source_mode,
+    secret_reference: existing.secret_reference || discovered.secret_reference,
     status: existing.status === "disabled" ? "disabled" : discovered.status,
     monitoring_targets: existing.monitoring_targets ?? discovered.monitoring_targets,
     capabilities: { ...existing.capabilities, ...discovered.capabilities },
