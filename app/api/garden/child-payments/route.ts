@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { ok, fail, handleRouteError } from "@/lib/api";
-import { requireRole } from "@/lib/auth";
+import { getManagementGardenContext } from "@/lib/management/garden-context";
 import { createClient } from "@/lib/supabase/server";
 import { sendCommunication } from "@/lib/domain/communication-service";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
@@ -41,7 +41,9 @@ function statusFor(action: string) {
 export async function POST(request: Request) {
   let actionContext: Record<string, unknown> = { action: "child_payment_update" };
   try {
-    const { profile } = await requireRole(["manager", "owner"]);
+    const access = await getManagementGardenContext();
+    if (!access.allowed) return access.response;
+    const { profile } = access.session;
     const payload = schema.parse(await request.json());
     actionContext = { ...actionContext, entity_id: payload.child_id, user_id: profile.id, user_role: profile.role, garden_id: profile.garden_id, requested_action: payload.action };
     const supabase = await createClient();

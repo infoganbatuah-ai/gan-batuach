@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
-import { requireRole } from "@/lib/auth";
+import { getManagementGardenContext } from "@/lib/management/garden-context";
 import { activateKindergartenEnrollment } from "@/lib/domain/enrollment-activation";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
 
@@ -13,7 +13,9 @@ const schema = z.object({
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { profile } = await requireRole(["manager", "owner"]);
+    const access = await getManagementGardenContext();
+    if (!access.allowed) return access.response;
+    const { profile } = access.session;
     if (!profile.garden_id) return fail("המנהל/ת לא משויך/ת לגן.", 422);
     if (!isAdminClientConfigured()) return fail("אישור בקשות דורש Service Role בצד השרת.", 503);
     const { id } = await params;

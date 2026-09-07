@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
-import { requireRole } from "@/lib/auth";
+import { getManagementGardenContext } from "@/lib/management/garden-context";
 import { createClient } from "@/lib/supabase/server";
 
 const pickupEventSchema = z.object({
@@ -32,7 +32,9 @@ function hashSignature(value?: string | null) {
 }
 
 export async function POST(request: Request) {
-  const { profile } = await requireRole(["manager", "owner"]);
+  const access = await getManagementGardenContext();
+  if (!access.allowed) return access.response;
+  const { profile } = access.session;
   const supabase = await createClient();
   const gardenId = profile.garden_id;
   if (!gardenId) return NextResponse.json({ ok: false, error: "לא נמצא גן משויך למשתמש" }, { status: 403 });

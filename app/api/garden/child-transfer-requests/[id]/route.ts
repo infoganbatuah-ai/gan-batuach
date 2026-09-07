@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
-import { requireRole } from "@/lib/auth";
+import { getManagementGardenContext } from "@/lib/management/garden-context";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
 import { writeUserCreationAudit } from "@/lib/onboarding/user-provisioning";
 
@@ -30,7 +30,9 @@ function statusForAction(action: z.infer<typeof schema>["action"]) {
 export async function POST(request: Request, context: { params: Promise<{ id: string }> }) {
   let actionContext: Record<string, unknown> = { action: "child_transfer_update" };
   try {
-    const { profile } = await requireRole(["manager", "owner"]);
+    const access = await getManagementGardenContext();
+    if (!access.allowed) return access.response;
+    const { profile } = access.session;
     if (!profile.garden_id) return fail("המשתמש אינו משויך לגן", 422);
     if (!isAdminClientConfigured()) return fail("ניהול בקשות מעבר דורש הגדרת שירות שרת מאובטח.", 503);
     const { id } = await context.params;

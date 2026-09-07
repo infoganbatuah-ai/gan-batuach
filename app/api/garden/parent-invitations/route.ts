@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
-import { requireRole } from "@/lib/auth";
+import { getManagementGardenContext } from "@/lib/management/garden-context";
 import { insertInvitationDeliveryLogs } from "@/lib/onboarding/invitation-delivery";
 import { normalizeOptionalEmail, provisionAuthUser, writeUserCreationAudit } from "@/lib/onboarding/user-provisioning";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
@@ -16,7 +16,9 @@ const schema = z.object({
 export async function POST(request: Request) {
   let createdUserId: string | null = null;
   try {
-    const { profile } = await requireRole(["manager", "owner"]);
+    const access = await getManagementGardenContext();
+    if (!access.allowed) return access.response;
+    const { profile } = access.session;
     if (!profile.garden_id) return fail("לא נמצא גן משויך.", 422);
     if (!isAdminClientConfigured()) return fail("שליחת הזמנה דורשת שירות שרת מאובטח.", 503);
     const payload = schema.parse(await request.json());

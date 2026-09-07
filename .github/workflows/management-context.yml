@@ -1,0 +1,20 @@
+name: Management tenant context
+on:
+  pull_request:
+  push:
+    branches: [main, master, 'codex/gb-m02-*']
+permissions:
+  contents: read
+jobs:
+  management-context:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: npm ci
+      - run: node --test scripts/qa/check-management-garden-context.mjs
+      - run: npm run qa:manager-parent-live-contract

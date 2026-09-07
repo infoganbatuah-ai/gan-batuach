@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
-import { requireRole } from "@/lib/auth";
+import { getManagementGardenContext } from "@/lib/management/garden-context";
 import { createClient } from "@/lib/supabase/server";
 
 const payoutSchema = z.object({
@@ -17,7 +17,9 @@ const payoutSchema = z.object({
 
 export async function POST(request: Request) {
   try {
-    const { profile } = await requireRole(["manager", "owner"]);
+    const access = await getManagementGardenContext();
+    if (!access.allowed) return access.response;
+    const { profile } = access.session;
     const gardenId = profile.garden_id;
     if (!gardenId) return fail("לא נמצא שיוך לגן", 400);
     const parsed = payoutSchema.parse(await request.json());
