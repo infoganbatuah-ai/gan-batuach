@@ -55,7 +55,9 @@ export async function POST(request: Request) {
         p_id: payload.document.intent_id, p_secret_hash: hashGatewayEnrollmentToken(payload.document.secret),
         p_site: payload.document.observer_site_id, p_enrollment: payload.enrollment_id,
         p_poll_hash: hashGatewayEnrollmentToken(payload.poll_token), p_installation: payload.installation_id,
-        p_platform: payload.platform, p_version: payload.software_version, p_build: payload.build_sha
+        p_platform: payload.platform, p_version: payload.software_version, p_build: payload.build_sha,
+        p_credential_algorithm: payload.credential_algorithm,
+        p_credential_public_key_spki: payload.credential_public_key_spki
       });
       if (claimed.error) return fail("בקשת ההתקנה אינה זמינה או שכבר נוצלה.", 409);
       return privateResponse({ status: "CONFIRM_COMPUTER" });

@@ -15,7 +15,9 @@ export const installIntentRequestSchema = z.discriminatedUnion("action", [
     installation_id: z.string().regex(/^edge-[a-f0-9]{32}$/),
     platform: z.enum(["macos-arm64", "macos-x64", "windows-x64"]),
     software_version: z.string().regex(/^[A-Za-z0-9._-]{1,80}$/),
-    build_sha: z.string().regex(/^[A-Za-z0-9._-]{1,80}$/)
+    build_sha: z.string().regex(/^[A-Za-z0-9._-]{1,80}$/),
+    credential_algorithm: z.literal("Ed25519"),
+    credential_public_key_spki: z.string().regex(/^[A-Za-z0-9_-]{40,256}$/)
   }).strict()
 ]);
 export function installerPlatform(userAgent: string) {

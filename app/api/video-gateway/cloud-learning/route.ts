@@ -2,6 +2,7 @@ import { createHmac, timingSafeEqual } from "node:crypto";
 import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { recordHomeActivityMetrics } from "@/lib/domain/digital-observer/home-learning-sampler";
+import { gatewayDeviceSessionAllows, verifyGatewayDeviceAccessToken } from "@/lib/domain/gateway-device-enrollment";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
@@ -55,14 +56,26 @@ export async function POST(request: Request) {
     const timestamp = header(request, "x-video-gateway-timestamp");
     const nonce = header(request, "x-video-gateway-nonce");
     const signature = header(request, "x-video-gateway-signature");
+    const deviceToken = header(request, "x-video-gateway-device-token");
     const parsedTimestamp = Date.parse(timestamp);
-    if (!gatewayId || !nonce || !signature || !Number.isFinite(parsedTimestamp) || Math.abs(Date.now() - parsedTimestamp) > MAX_CLOCK_SKEW_MS) return fail("Invalid gateway authentication.", 401);
+    if (!gatewayId || !nonce || !Number.isFinite(parsedTimestamp) || Math.abs(Date.now() - parsedTimestamp) > MAX_CLOCK_SKEW_MS) return fail("Invalid gateway authentication.", 401);
     const body = await request.text();
-    if (!verifySignature(`${timestamp}.${nonce}.${body}`, signature, secret)) return fail("Invalid signature.", 401);
+    const candidateDevice = deviceToken ? verifyGatewayDeviceAccessToken(deviceToken, secret) : null;
+    const device = candidateDevice && gatewayDeviceSessionAllows(candidateDevice, "LEARNING_PUBLISH") ? candidateDevice : null;
+    const legacySignatureValid = Boolean(signature) && verifySignature(`${timestamp}.${nonce}.${body}`, signature, secret);
+    if (!device && !legacySignatureValid) return fail("Invalid gateway authentication.", 401);
     const payload = payloadSchema.parse(JSON.parse(body));
-    if (payload.gateway_id !== gatewayId || !allowed(gatewayId, payload.observer_site_id)) return fail("Gateway is not allowed for this site.", 403);
+    if (payload.gateway_id !== gatewayId) return fail("Gateway mismatch.", 403);
 
     const supabase = createAdminClient() as any;
+    if (device) {
+      if (payload.gateway_id !== device.gateway_id || payload.observer_site_id !== device.observer_site_id) return fail("Gateway device token is not authorized for this site.", 403);
+      const enrolled = await supabase.from("video_gateway_device_enrollments").select("id,lifecycle_state,credential_version,deployment_profile")
+        .eq("id", device.device_id).eq("gateway_id", device.gateway_id).eq("observer_site_id", device.observer_site_id).eq("status", "delivered").maybeSingle();
+      if (enrolled.error || !enrolled.data || (enrolled.data.lifecycle_state && enrolled.data.lifecycle_state !== "ACTIVE")
+        || (device.version === 2 && (device.credential_version !== enrolled.data.credential_version
+          || device.deployment_profile !== enrolled.data.deployment_profile))) return fail("Gateway device access was revoked.", 401);
+    } else if (!allowed(gatewayId, payload.observer_site_id)) return fail("Gateway is not allowed for this site.", 403);
     const idempotencyKey = `${gatewayId}:${nonce}`;
     const existing = await supabase.from("provider_webhook_events").select("id").eq("webhook_key", "video_gateway_cloud_learning").eq("idempotency_key", idempotencyKey).maybeSingle();
     if (existing.data?.id) return fail("Replay detected.", 409);

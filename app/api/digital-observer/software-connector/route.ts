@@ -5,7 +5,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { fail, handleSafeRouteError, ok } from "@/lib/api";
 import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
-import { verifyGatewayDeviceAccessToken } from "@/lib/domain/gateway-device-enrollment";
+import { gatewayDeviceSessionAllows, verifyGatewayDeviceAccessToken, type GatewayDeviceAccessClaims } from "@/lib/domain/gateway-device-enrollment";
 import { decryptField, encryptField } from "@/lib/security/encryption";
 import { assertRateLimit } from "@/lib/security/rate-limit";
 import { assertTrustedMutationOrigin, parseBoundedJson, privateRateLimitIdentifier } from "@/lib/security/request-guards";
@@ -84,24 +84,27 @@ function expectedStreamId(host: string, namespace: string) {
   return `dvr_${fingerprint}_1`;
 }
 
-async function enrolledConnector(admin: ReturnType<typeof createAdminClient>, device: { device_id: string; gateway_id: string; observer_site_id: string }) {
+async function enrolledConnector(admin: ReturnType<typeof createAdminClient>, device: GatewayDeviceAccessClaims) {
   const enrollment = await admin.from("video_gateway_device_enrollments" as any)
-    .select("id,status,gateway_id,observer_site_id,device_name,metadata")
+    .select("id,status,gateway_id,observer_site_id,device_name,metadata,lifecycle_state,credential_version,deployment_profile")
     .eq("id", device.device_id)
     .eq("gateway_id", device.gateway_id)
     .eq("observer_site_id", device.observer_site_id)
     .eq("status", "delivered")
     .maybeSingle();
   const metadata = enrollment.data?.metadata && typeof enrollment.data.metadata === "object" ? enrollment.data.metadata : {};
-  if (enrollment.error || !enrollment.data || metadata.device_type !== "SOFTWARE_CONNECTOR") return null;
+  if (enrollment.error || !enrollment.data || metadata.device_type !== "SOFTWARE_CONNECTOR"
+    || (enrollment.data.lifecycle_state && enrollment.data.lifecycle_state !== "ACTIVE")
+    || (device.version === 2 && (device.credential_version !== enrollment.data.credential_version
+      || device.deployment_profile !== enrollment.data.deployment_profile))) return null;
   return { ...enrollment.data, metadata };
 }
 
-async function authenticateDevice(request: Request) {
+async function authenticateDevice(request: Request, operation: "CONFIG_READ" | "DISCOVERY_PUBLISH") {
   const secret = cloudSecret();
   if (!secret) return null;
   const device = verifyGatewayDeviceAccessToken(request.headers.get("x-video-gateway-device-token") || "", secret);
-  if (!device || request.headers.get("x-video-gateway-id") !== device.gateway_id) return null;
+  if (!device || !gatewayDeviceSessionAllows(device, operation) || request.headers.get("x-video-gateway-id") !== device.gateway_id) return null;
   const admin = createAdminClient();
   const enrollment = await enrolledConnector(admin, device);
   return enrollment ? { device, enrollment, admin } : null;
@@ -112,7 +115,7 @@ function noStore<T>(data: T, status = 200) {
 }
 
 async function publishDiscovery(request: Request) {
-  const auth = await authenticateDevice(request);
+  const auth = await authenticateDevice(request, "DISCOVERY_PUBLISH");
   if (!auth) return fail("Connector identity is invalid or revoked.", 401);
   const payload = discoverySchema.parse(await parseBoundedJson(request, 12 * 1024));
   if (payload.gateway_id !== auth.device.gateway_id || payload.observer_site_id !== auth.device.observer_site_id) {
@@ -176,7 +179,7 @@ async function publishDiscovery(request: Request) {
 }
 
 async function deviceConfiguration(request: Request) {
-  const auth = await authenticateDevice(request);
+  const auth = await authenticateDevice(request, "CONFIG_READ");
   if (!auth) return fail("Connector identity is invalid or revoked.", 401);
   const rows = await auth.admin.from("camera_source_registry" as any)
     .select("id,port,username_encrypted,password_encrypted,manual_rtsp_encrypted,registration_status,metadata")

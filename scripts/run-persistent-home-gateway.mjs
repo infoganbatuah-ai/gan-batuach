@@ -1,3 +1,4 @@
+import "../services/video-gateway/http-runtime.mjs";
 import crypto from "node:crypto";
 import { spawn } from "node:child_process";
 import { mkdirSync, readFileSync, renameSync, statfsSync, writeFileSync } from "node:fs";
@@ -62,13 +63,14 @@ const cloudSecret = keychainSecret("cloud_discovery_secret");
 const deviceGatewayId = keychainSecret("device_gateway_id");
 const deviceObserverSiteId = keychainSecret("device_observer_site_id");
 const deviceRefreshToken = keychainSecret("device_refresh_token");
+const devicePrivateKey = keychainSecret("device_private_key_pkcs8");
 const gatewayId = deviceGatewayId || keychainSecret("cloud_gateway_id");
 const observerSiteId = deviceObserverSiteId || keychainSecret("cloud_observer_site_id");
 const missingCloudConfiguration = [
   !gatewaySecret && "gateway_signing_secret",
   !gatewayId && "device_gateway_id",
   !observerSiteId && "device_observer_site_id",
-  !deviceRefreshToken && !cloudSecret && "device_refresh_token_or_cloud_discovery_secret"
+  !devicePrivateKey && !deviceRefreshToken && !cloudSecret && "device_identity_or_cloud_discovery_secret"
 ].filter(Boolean);
 if (missingCloudConfiguration.length) throw new Error(`Persistent gateway cloud configuration is incomplete: ${missingCloudConfiguration.join(",")}`);
 
@@ -115,8 +117,27 @@ async function signedPost(path, payload, options = {}) {
     body,
     signal: AbortSignal.timeout(CLOUD_REQUEST_TIMEOUT_MS)
   });
-  if (!response.ok) throw new Error(`Cloud request failed (${response.status})`);
-  return response.json();
+  const responseText = await response.text();
+  if (!response.ok) {
+    let category = "upstream_error";
+    try {
+      const parsed = JSON.parse(responseText);
+      const fields = parsed.details?.fieldErrors && typeof parsed.details.fieldErrors === "object"
+        ? Object.keys(parsed.details.fieldErrors).slice(0, 12).join(",")
+        : "";
+      const validation = parsed.details?.fieldErrors && typeof parsed.details.fieldErrors === "object"
+        ? Object.values(parsed.details.fieldErrors).flat().map(String).slice(0, 2).join(" ")
+        : "";
+      category = `${String(parsed.error || parsed.code || category)}${fields ? ` fields:${fields}` : ""}${validation ? ` ${validation}` : ""}`
+        .replace(/https?:\/\/\S+/gi, "[redacted-url]")
+        .replace(/[A-Za-z0-9_-]{32,}/g, "[redacted]")
+        .replace(/[^\p{L}\p{N}_.: -]/gu, "")
+        .slice(0, 160) || category;
+    } catch {}
+    console.error(JSON.stringify({ level: "warning", domain: "gateway_cloud", action: localPath.slice(1), status: response.status, category }));
+    throw new Error(`Cloud request failed (${response.status}:${category})`);
+  }
+  return JSON.parse(responseText);
 }
 
 const child = spawn(process.execPath, ["services/video-gateway/server.mjs"], { cwd: workdir, env: { ...process.env, HOST: "127.0.0.1", PORT: String(gatewayPort), VIDEO_GATEWAY_SIGNING_SECRET: gatewaySecret, DVR_EXPECTED_CHANNEL_COUNT: String(expectedChannelCount), OBSERVER_EDGE_DEVICE_TYPE: edgeDeviceType, OBSERVER_EDGE_INSTALLATION_ID: installationId, GAN_BATUACH_GATEWAY_SECRET_DIR: gatewaySecretDir }, stdio: "inherit" });
@@ -172,7 +193,7 @@ async function discover() {
     .catch(() => ({}));
   const connectionType = configurations.length === 1 && ["rtsp", "onvif"].includes(configurations[0]?.connection_type) ? configurations[0].connection_type : "dvr";
   const vendor = configurations.length === 1 ? configurations[0]?.vendor : "mixed";
-  const mapped = await signedPost("/api/video-gateway/cloud-discovery", { gateway_id: gatewayId, observer_site_id: observerSiteId, connection_type: connectionType, vendor, discovery_id: crypto.randomUUID(), discovered_at: new Date().toISOString(), channel_count: channels.length, connected_channel_count: channels.filter((channel) => channel.status === "connected").length, failed_channel_count: channels.filter((channel) => channel.status !== "connected").length, latency_ms: latencyMs, read_only: true, controls_supported: false, no_secrets_returned: true, channels, metadata: { source: edgeDeviceType === "SOFTWARE_CONNECTOR" ? "software_connector" : "persistent_home_gateway", device_type: edgeDeviceType, installation_id: installationId, runtime_contract: edgeRuntime.contract, ai_shadow_only: true, read_only: true, multi_profile: configurations.length > 1, edge_capability_contract: health.edge_capability_contract ?? null } }, { deviceAccess: true });
+  const mapped = await signedPost("/api/video-gateway/cloud-discovery", { gateway_id: gatewayId, observer_site_id: observerSiteId, connection_type: connectionType, vendor, discovery_id: crypto.randomUUID(), discovered_at: new Date().toISOString(), channel_count: channels.length, connected_channel_count: channels.filter((channel) => channel.status === "connected").length, failed_channel_count: channels.filter((channel) => !["connected", "unassigned"].includes(channel.status)).length, unassigned_channel_count: channels.filter((channel) => channel.status === "unassigned").length, latency_ms: latencyMs, read_only: true, controls_supported: false, no_secrets_returned: true, channels, metadata: { source: edgeDeviceType === "SOFTWARE_CONNECTOR" ? "software_connector" : "persistent_home_gateway", device_type: edgeDeviceType, installation_id: installationId, runtime_contract: edgeRuntime.contract, ai_shadow_only: true, read_only: true, multi_profile: configurations.length > 1, edge_capability_contract: health.edge_capability_contract ?? null } }, { deviceAccess: true });
   const mappedPayload = mapped?.data && typeof mapped.data === "object" ? mapped.data : mapped;
   const mappedChannels = Array.isArray(mappedPayload?.channels) ? mappedPayload.channels : [];
   channels = channels.map((channel) => {
@@ -197,7 +218,7 @@ async function heartbeat() {
       status: health.ok === true && (health.mediaHeartbeat?.stalledRelays || 0) === 0 ? "HEALTHY" : "DEGRADED",
       uptime_seconds: Math.floor(uptime()), cpu_percent: Math.max(0, Math.min(100, Math.round((loadavg()[0] || 0) * 100))),
       memory_mb: Math.round((totalmem() - freemem()) / (1024 * 1024)), disk_free_mb: diskFreeMb,
-      camera_count: channels.length, streaming_count: channels.filter((channel) => channel.status === "connected").length,
+      camera_count: channels.filter((channel) => channel.status !== "unassigned").length, streaming_count: channels.filter((channel) => channel.status === "connected").length,
       last_frame_at: Number.isFinite(lastFrameAt) ? new Date(lastFrameAt).toISOString() : null,
       error_codes: []
     }

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
-import { verifyGatewayDeviceAccessToken } from "@/lib/domain/gateway-device-enrollment";
+import { gatewayDeviceSessionAllows, verifyGatewayDeviceAccessToken } from "@/lib/domain/gateway-device-enrollment";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
@@ -43,7 +43,7 @@ export async function POST(request: Request) {
     const secret = cloudSecret();
     if (!secret) return fail("Connector heartbeat is not configured.", 503);
     const device = verifyGatewayDeviceAccessToken(request.headers.get("x-video-gateway-device-token") || "", secret);
-    if (!device) return fail("Connector identity is invalid or expired.", 401);
+    if (!device || !gatewayDeviceSessionAllows(device, "HEARTBEAT")) return fail("Connector identity is invalid, expired or out of scope.", 401);
     const payload = heartbeatSchema.parse(await request.json());
     if (payload.gateway_id !== device.gateway_id || payload.observer_site_id !== device.observer_site_id
       || request.headers.get("x-video-gateway-id") !== device.gateway_id) {
@@ -54,13 +54,16 @@ export async function POST(request: Request) {
 
     const admin = createAdminClient();
     const enrollment = await admin.from("video_gateway_device_enrollments")
-      .select("id,status,observer_site_id,gateway_id,metadata")
+      .select("id,status,observer_site_id,gateway_id,metadata,identity_scheme,lifecycle_state,deployment_profile,credential_version")
       .eq("id", device.device_id).eq("gateway_id", device.gateway_id)
       .eq("observer_site_id", device.observer_site_id).eq("status", "delivered").maybeSingle();
     if (enrollment.error || !enrollment.data) return fail("Connector identity was revoked.", 401);
 
     const previous = enrollment.data.metadata && typeof enrollment.data.metadata === "object" ? enrollment.data.metadata : {};
     const enrolledDeviceType = previous.device_type === "SOFTWARE_CONNECTOR" ? "SOFTWARE_CONNECTOR" : "PHYSICAL_GATEWAY";
+    if (enrollment.data.lifecycle_state && enrollment.data.lifecycle_state !== "ACTIVE") return fail("Connector identity was revoked.", 401);
+    if (device.version === 2 && (device.deployment_profile !== enrollment.data.deployment_profile
+      || device.credential_version !== enrollment.data.credential_version)) return fail("Connector session credential is stale.", 401);
     if (payload.runtime.device_type !== enrolledDeviceType
       || (typeof previous.installation_id === "string" && previous.installation_id !== payload.runtime.installation_id)) {
       return fail("Connector runtime identity does not match enrollment.", 403);
@@ -99,7 +102,8 @@ export async function POST(request: Request) {
       health: payload.health
     };
     const updated = await admin.from("video_gateway_device_enrollments")
-      .update({ metadata, updated_at: new Date().toISOString() })
+      .update({ metadata, last_seen_at: payload.observed_at, runtime_version: payload.runtime.software_version,
+        config_version: configVersion, updated_at: new Date().toISOString() })
       .eq("id", enrollment.data.id).eq("status", "delivered").select("id").maybeSingle();
     if (updated.error || !updated.data) throw new Error("CONNECTOR_HEARTBEAT_WRITE_FAILED");
 

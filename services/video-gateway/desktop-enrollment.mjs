@@ -1,5 +1,6 @@
 import { randomBytes, randomUUID } from "node:crypto";
 import { createInstallationId } from "./edge-runtime-contract.mjs";
+import { generateManagedDeviceKeyPair } from "./managed-device-auth.mjs";
 
 export function validateInstallDocument(input, now = Date.now()) {
   const keys = ["version", "intent_id", "observer_site_id", "secret", "expires_at", "origin"];
@@ -30,9 +31,16 @@ export async function claimDesktopInstallation({ document, store, platform, vers
   }
   const installationId = store.read("device_installation_id") || createInstallationId();
   store.write("device_installation_id", installationId);
+  let publicKeySpki = store.read("device_public_key_spki");
+  if (!publicKeySpki) {
+    const keyPair = generateManagedDeviceKeyPair();
+    store.write("device_private_key_pkcs8", keyPair.privateKeyPkcs8);
+    store.write("device_public_key_spki", keyPair.publicKeySpki);
+    publicKeySpki = keyPair.publicKeySpki;
+  }
   const enrollment = { document, enrollment_id: randomUUID(), poll_token: randomBytes(32).toString("base64url"),
-    delivery_refresh_token: randomBytes(48).toString("base64url"), installation_id: installationId, platform,
-    software_version: version, build_sha: build };
+    installation_id: installationId, platform, software_version: version, build_sha: build,
+    credential_algorithm: "Ed25519", credential_public_key_spki: publicKeySpki };
   // Prepared before transport: restart or lost acknowledgment cannot create
   // another device or discard the proof needed to recover credential delivery.
   store.write("desktop_enrollment_pending", JSON.stringify(enrollment));
@@ -42,14 +50,16 @@ export async function claimDesktopInstallation({ document, store, platform, vers
 
 async function submitPreparedClaim(enrollment, post) {
   const claim = { document: enrollment.document, enrollment_id: enrollment.enrollment_id, poll_token: enrollment.poll_token,
-    installation_id: enrollment.installation_id, platform: enrollment.platform, software_version: enrollment.software_version, build_sha: enrollment.build_sha };
+    installation_id: enrollment.installation_id, platform: enrollment.platform, software_version: enrollment.software_version,
+    build_sha: enrollment.build_sha, credential_algorithm: enrollment.credential_algorithm,
+    credential_public_key_spki: enrollment.credential_public_key_spki };
   try { await post("/api/digital-observer/connector-installation", { action: "claim", ...claim }); }
   catch (error) {
     // A lost claim acknowledgement is recoverable only with the ORIGINAL
     // durable poll proof. Conflict alone never means this computer is enrolled.
     if (error.message !== "INSTALL_REQUEST_409") throw error;
     await post("/api/digital-observer/gateway-enrollment", { action: "poll", enrollment_request_id: enrollment.enrollment_id,
-      poll_token: enrollment.poll_token, delivery_refresh_token: enrollment.delivery_refresh_token });
+      poll_token: enrollment.poll_token });
   }
 }
 
@@ -60,11 +70,11 @@ export async function pollDesktopInstallation({ store, post }) {
   const pending = JSON.parse(raw);
   validateInstallDocument(pending.document);
   const data = await post("/api/digital-observer/gateway-enrollment", { action: "poll", enrollment_request_id: pending.enrollment_id,
-    poll_token: pending.poll_token, delivery_refresh_token: pending.delivery_refresh_token });
+    poll_token: pending.poll_token });
   if (data.status !== "linked") return { status: "WAITING_FOR_APPROVAL" };
-  if (data.observer_site_id !== pending.document.observer_site_id || data.refresh_token !== pending.delivery_refresh_token
-    || !/^[a-f0-9-]{36}$/i.test(data.gateway_id)) throw new Error("INSTALL_SCOPE_MISMATCH");
-  store.write("device_refresh_token", data.refresh_token);
+  if (data.observer_site_id !== pending.document.observer_site_id || data.identity_scheme !== "ED25519_V1"
+    || data.credential_version !== 1 || !/^[a-f0-9-]{36}$/i.test(data.gateway_id)) throw new Error("INSTALL_SCOPE_MISMATCH");
+  store.write("device_credential_version", String(data.credential_version));
   store.write("device_observer_site_id", data.observer_site_id);
   store.write("device_cloud_base_url", pending.document.origin);
   store.write("device_gateway_id", data.gateway_id); // Commit marker last.

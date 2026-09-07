@@ -116,8 +116,8 @@ export const cloudDvrDiscoveryChannelSchema = z.object({
   area: z.string().trim().min(1).max(120).nullable().optional(),
   stream_id: z.string().trim().min(1).max(160).nullable().optional(),
   gateway_stream_id: z.string().trim().min(1).max(160).nullable().optional(),
-  status: z.enum(["connected", "pending", "offline", "failed", "error"]).default("pending"),
-  health_status: z.enum(["healthy", "pending", "unknown", "failed", "offline", "error"]).nullable().optional(),
+  status: z.enum(["connected", "pending", "offline", "failed", "error", "unassigned"]).default("pending"),
+  health_status: z.enum(["healthy", "pending", "unknown", "failed", "offline", "error", "not_applicable"]).nullable().optional(),
   width: z.number().int().positive().max(10000).nullable().optional(),
   height: z.number().int().positive().max(10000).nullable().optional(),
   candidates_tried: z.number().int().min(0).max(20).optional(),
@@ -137,6 +137,7 @@ export const cloudDvrDiscoverySchema = z.object({
   channel_count: z.number().int().min(1).max(128),
   connected_channel_count: z.number().int().min(0).max(128).optional(),
   failed_channel_count: z.number().int().min(0).max(128).optional(),
+  unassigned_channel_count: z.number().int().min(0).max(128).optional(),
   latency_ms: z.number().int().min(0).max(600000).optional(),
   read_only: z.literal(true),
   // Capability discovery is still read-only. This flag reports that the
@@ -340,6 +341,7 @@ async function upsertDigitalObserverCameraSource(
     gatewayStreamId: string | null;
     gatewayConfigured: boolean;
     connected: boolean;
+    assigned?: boolean;
     statusHint: string | null;
     gatewayId?: string | null;
     edgeDeviceType?: "SOFTWARE_CONNECTOR" | "PHYSICAL_GATEWAY";
@@ -363,10 +365,11 @@ async function upsertDigitalObserverCameraSource(
         .maybeSingle()
       : { data: null };
   const now = new Date().toISOString();
-  const unavailable = ["offline", "failed", "error"].includes(String(values.statusHint ?? "").toLowerCase());
+  const assigned = values.assigned !== false;
+  const unavailable = assigned && ["offline", "failed", "error"].includes(String(values.statusHint ?? "").toLowerCase());
   const sourceMode = values.connected ? "gateway_test" : "readiness";
-  const sourceStatus = values.connected ? "connected" : unavailable ? "offline" : "ready_to_test";
-  const healthStatus = values.connected ? "healthy" : unavailable ? "failed" : "unknown";
+  const sourceStatus = !assigned ? "disabled" : values.connected ? "connected" : unavailable ? "offline" : "ready_to_test";
+  const healthStatus = !assigned ? "unknown" : values.connected ? "healthy" : unavailable ? "failed" : "unknown";
   const softwareConnector = values.edgeDeviceType === "SOFTWARE_CONNECTOR";
   const canonicalCapabilities: CameraConnectionCapability[] = [
     "LIVE_STREAM",
@@ -413,7 +416,7 @@ async function upsertDigitalObserverCameraSource(
       local_event_insights: values.connected,
       local_activity_sampling: values.connected,
       credentials_saved: true,
-      gateway_required: !values.connected,
+      gateway_required: assigned && !values.connected,
       connector_transport: softwareConnector ? "software_connector" : "gateway",
       ptz: values.hardwareCapabilities?.ptz.supported === true,
       two_way_audio: values.hardwareCapabilities?.talkback.supported === true,
@@ -424,17 +427,19 @@ async function upsertDigitalObserverCameraSource(
       production_connection_eligible: connectionAssessment.productionEligible,
       automatic_insecure_fallback: false
     },
-    monitoring_targets: ["person", "entry_exit", "camera_obstruction", "after_hours"],
+    monitoring_targets: assigned ? ["person", "entry_exit", "camera_obstruction", "after_hours"] : [],
     last_health_check_at: now,
     last_seen_at: values.connected ? now : null,
-    last_error_code: values.connected ? null : unavailable ? "DVR_CHANNEL_OFFLINE" : "GATEWAY_CHANNELS_PENDING",
-    last_error_message: values.connected ? null : unavailable ? "ערוץ ה-DVR לא החזיר וידאו בבדיקת הקריאה האחרונה." : "חיבור DVR נשמר; ערוץ ממתין לאישור Gateway.",
+    last_error_code: !assigned || values.connected ? null : unavailable ? "DVR_CHANNEL_OFFLINE" : "GATEWAY_CHANNELS_PENDING",
+    last_error_message: !assigned || values.connected ? null : unavailable ? "ערוץ ה-DVR לא החזיר וידאו בבדיקת הקריאה האחרונה." : "חיבור DVR נשמר; ערוץ ממתין לאישור Gateway.",
     secret_reference: values.connectionId ? `video_gateway_connections:${values.connectionId}` : null,
     metadata: {
       product: "digital_observer",
       source: "dvr_connection",
       video_gateway_connection_id: values.connectionId,
       dvr_channel: values.channel,
+      channel_assignment: assigned ? "ASSIGNED" : "CHANNEL_EMPTY",
+      physical_camera_attached: assigned,
       gateway_stream_id: values.gatewayStreamId,
       gateway_stream_id_present: Boolean(values.gatewayStreamId),
       gateway_id: values.gatewayId ?? null,
@@ -700,6 +705,7 @@ export async function materializeCloudDvrDiscovery(payload: z.infer<typeof cloud
   for (const channel of parsed.channels) {
     const gatewayStreamId = channel.gateway_stream_id ?? channel.stream_id ?? stableGatewayStreamId(parsed.gateway_id, scopeId, channel.channel);
     const connected = channel.status === "connected";
+    const assigned = channel.status !== "unassigned";
     const name = channel.name ?? `DVR ערוץ ${channel.channel}`;
     const area = channel.area ?? `ערוץ ${channel.channel}`;
     const cameraPayload = {
@@ -712,10 +718,10 @@ export async function materializeCloudDvrDiscovery(payload: z.infer<typeof cloud
       source_category: "dvr_nvr",
       system_type: parsed.connection_type,
       protocol: "RTSP",
-      status: connected ? "connected" : "offline",
-      stream_status: connected ? "connected" : "offline",
-      health_status: connected ? "healthy" : "offline",
-      active: true,
+      status: !assigned ? "disabled" : connected ? "connected" : "offline",
+      stream_status: !assigned ? "unassigned" : connected ? "connected" : "offline",
+      health_status: !assigned ? "unknown" : connected ? "healthy" : "offline",
+      active: assigned,
       dvr_host_encrypted: null,
       dvr_port: null,
       username_encrypted: null,
@@ -725,7 +731,7 @@ export async function materializeCloudDvrDiscovery(payload: z.infer<typeof cloud
       connection_port: null,
       connection_method: "cloud_video_gateway",
       gateway_provider: "custom",
-      gateway_registration_status: connected ? "registered" : "offline",
+      gateway_registration_status: !assigned ? "disabled" : connected ? "registered" : "offline",
       gateway_stream_id: gatewayStreamId,
       video_gateway_stream_id: gatewayStreamId,
       hls_playback_url: null,
@@ -733,7 +739,7 @@ export async function materializeCloudDvrDiscovery(payload: z.infer<typeof cloud
       playback_hls_ready: false,
       playback_webrtc_ready: false,
       live_preview_status: connected ? "ready" : "offline",
-      observer_enabled: true,
+      observer_enabled: assigned,
       observer_shadow_mode: true,
       observer_review_required: true,
       parent_view_allowed: false,
@@ -743,8 +749,8 @@ export async function materializeCloudDvrDiscovery(payload: z.infer<typeof cloud
       last_seen: connected ? now : null,
       last_successful_connection_at: connected ? now : null,
       last_health_check_at: now,
-      last_test_status: connected ? "healthy" : "failed",
-      last_test_message: connected ? "חיבור DVR אומת דרך Gateway מקומי מסונן" : "ערוץ DVR דווח כ-Offline לאחר בדיקת קריאה",
+      last_test_status: !assigned ? "not_applicable" : connected ? "healthy" : "failed",
+      last_test_message: !assigned ? "חריץ DVR פנוי ללא מצלמה משויכת" : connected ? "חיבור DVR אומת דרך Gateway מקומי מסונן" : "ערוץ DVR דווח כ-Offline לאחר בדיקת קריאה",
       last_test_at: now,
       gateway_latency_ms: parsed.latency_ms ?? null,
       gateway_failed_stream_count: parsed.failed_channel_count ?? null,
@@ -753,6 +759,8 @@ export async function materializeCloudDvrDiscovery(payload: z.infer<typeof cloud
         gateway_id: parsed.gateway_id,
         discovery_id: parsed.discovery_id,
         dvr_channel: channel.channel,
+        channel_assignment: assigned ? "ASSIGNED" : "CHANNEL_EMPTY",
+        physical_camera_attached: assigned,
         vendor: parsed.vendor ?? null,
         template: channel.template ?? null,
         width: channel.width ?? null,
@@ -805,6 +813,7 @@ export async function materializeCloudDvrDiscovery(payload: z.infer<typeof cloud
       edgeDeviceType,
       gatewayConfigured: true,
       connected,
+      assigned,
       statusHint: channel.status,
       hardwareCapabilities: channel.capabilities
     });

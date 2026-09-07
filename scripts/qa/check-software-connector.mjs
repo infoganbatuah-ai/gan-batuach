@@ -62,7 +62,7 @@ test("enrollment binds an explicit software identity and supports revocation", (
   const route = source("app/api/digital-observer/gateway-enrollment/route.ts");
   assert.match(route, /device_type: z\.enum\(\["SOFTWARE_CONNECTOR", "PHYSICAL_GATEWAY"\]\)/);
   assert.match(route, /observer_site_id: site\.id/);
-  assert.match(route, /status: "revoked", revoked_at:/);
+  assert.match(route, /status: "revoked", lifecycle_state: "REVOKED"/);
   assert.match(route, /refresh_token_hash: null/);
 });
 

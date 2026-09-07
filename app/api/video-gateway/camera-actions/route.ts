@@ -1,5 +1,5 @@
 import { fail, handleRouteError, ok } from "@/lib/api";
-import { verifyGatewayDeviceAccessToken } from "@/lib/domain/gateway-device-enrollment";
+import { gatewayDeviceSessionAllows, verifyGatewayDeviceAccessToken } from "@/lib/domain/gateway-device-enrollment";
 import { createAdminClient } from "@/lib/supabase/admin";
 import {
   cameraQueueKinds, cameraQueueRequestSchema, cameraQueueSelect, cameraQueueSourceSelect,
@@ -15,13 +15,16 @@ async function authenticatedDevice(request: Request) {
   const token = request.headers.get("x-video-gateway-device-token")?.trim() ?? "";
   if (!secret || !token) return null;
   const claims = verifyGatewayDeviceAccessToken(token, secret);
-  if (!claims) return null;
+  if (!claims || !gatewayDeviceSessionAllows(claims, "COMMAND_POLL")) return null;
   const supabase = createAdminClient();
-  const enrollment = await supabase.from("video_gateway_device_enrollments").select("id")
+  const enrollment = await supabase.from("video_gateway_device_enrollments").select("id,lifecycle_state,credential_version,deployment_profile")
     .eq("id", claims.device_id).eq("gateway_id", claims.gateway_id)
     .eq("observer_site_id", claims.observer_site_id).eq("status", "delivered").maybeSingle();
   if (enrollment.error) throw new Error("CAMERA_QUEUE_DATABASE_UNAVAILABLE");
-  return enrollment.data ? { claims, supabase } : null;
+  if (!enrollment.data || (enrollment.data.lifecycle_state && enrollment.data.lifecycle_state !== "ACTIVE")) return null;
+  if (claims.version === 2 && (claims.credential_version !== enrollment.data.credential_version
+    || claims.deployment_profile !== enrollment.data.deployment_profile)) return null;
+  return { claims, supabase };
 }
 
 type JoinedRow = CameraQueueRow & { source: QueueSource };

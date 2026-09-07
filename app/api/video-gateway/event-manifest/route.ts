@@ -26,7 +26,7 @@ type AutomationPolicyRow = {
 export async function GET(request: Request) {
   try {
     const db = createAdminClient();
-    const device = await authenticateEventGateway(request, db);
+    const device = await authenticateEventGateway(request, db, "CONFIG_READ");
     if (!device) return fail("Gateway identity is invalid or revoked.", 401);
     const environmentFingerprint = eventEnvironmentFingerprint();
     if (!environmentFingerprint) throw new Error("GATEWAY_ENV_FINGERPRINT_UNAVAILABLE");

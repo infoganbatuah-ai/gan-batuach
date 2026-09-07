@@ -1,3 +1,4 @@
+import "./http-runtime.mjs";
 import { createHash, createHmac, randomBytes, randomUUID, timingSafeEqual } from "node:crypto";
 import { spawn } from "node:child_process";
 import { closeSync, constants as fsConstants, createReadStream, existsSync, fstatSync, mkdirSync, openSync, readFileSync, readSync, statSync, writeFileSync } from "node:fs";
@@ -21,6 +22,7 @@ import { createPrivateNvrCommandRuntime } from "./private-nvr-command-runtime.mj
 import { createRelayInputMetrics } from "./relay-input-metrics.mjs";
 import { createHardwareTranscoder, hardwareDecodeArgs, hardwareEncodeArgs } from "./hardware-transcoder.mjs";
 import { connectorRuntimeIdentity, parseConnectorCommand, redactConnectorLog } from "./edge-runtime-contract.mjs";
+import { edgeHttpRuntimeStatus } from "./http-runtime.mjs";
 
 const PORT = Number(process.env.PORT || process.env.VIDEO_GATEWAY_PORT || 8080);
 const HOST = process.env.HOST || process.env.VIDEO_GATEWAY_HOST || "0.0.0.0";
@@ -54,7 +56,7 @@ let eventManifestRequestRevision = 0;
 const relayStarts = new Map();
 const playbackTokens = new Map();
 const relayLifecycle = { starts: 0, upstreamEnded: 0, upstreamFailed: 0, staleInput: 0, stalePlaylist: 0, staleOnRequest: 0, inputSocketError: 0, inputAborted: 0, inputOtherError: 0 };
-let lastDiscoverySummary = { channelCount: 0, connectedCount: 0, checkedAt: null };
+let lastDiscoverySummary = { channelCount: 0, assignedCount: 0, unassignedCount: 0, connectedCount: 0, failedAssignedCount: 0, checkedAt: null };
 const requestMetrics = { playbackRequests: 0, playbackReady: 0, playbackUnavailable: 0, playbackClaimRequests: 0, playbackClaimReady: 0, playbackClaimUnavailable: 0, hlsRequests: 0, hlsPlaylists: 0, hlsSegments: 0, hlsUnauthorized: 0, hlsRangeRequests: 0 };
 const FRAME_WIDTH = 32;
 const FRAME_HEIGHT = 18;
@@ -948,17 +950,47 @@ async function dvrConnect(payload) {
       channels.push(await probeChannel(payload, channel));
     }
   }
+  const assignedChannels = Array.isArray(payload.metadata?.channel_filter)
+    ? new Set(payload.metadata.channel_filter.filter((value) => Number.isInteger(value) && value >= 1 && value <= channelCount))
+    : null;
+  if (assignedChannels) {
+    const discoveredByChannel = new Map(channels.map((channel) => [channel.channel, channel]));
+    channels = Array.from({ length: channelCount }, (_, index) => {
+      const channel = index + 1;
+      if (assignedChannels.has(channel)) return discoveredByChannel.get(channel);
+      return {
+        channel,
+        name: `DVR ערוץ ${channel}`,
+        area: `ערוץ ${channel}`,
+        stream_id: streamIdFor(payload, channel),
+        status: "unassigned",
+        health_status: "not_applicable",
+        reason: "CHANNEL_EMPTY",
+        template: null,
+        candidates_tried: 0,
+        codec: null,
+        width: null,
+        height: null,
+        capabilities: mediaCapabilities({ ok: false, audio: false }, "unassigned")
+      };
+    }).filter(Boolean);
+  }
   const connected = channels.filter((item) => item.status === "connected");
+  const assigned = channels.filter((item) => item.status !== "unassigned");
   lastDiscoverySummary = {
     channelCount: channels.length,
+    assignedCount: assigned.length,
+    unassignedCount: channels.length - assigned.length,
     connectedCount: connected.length,
+    failedAssignedCount: assigned.length - connected.length,
     checkedAt: new Date().toISOString()
   };
   return {
     status: connected.length ? "connected" : "pending_gateway",
     channel_count: channels.length,
     connected_channel_count: connected.length,
-    failed_channel_count: channels.length - connected.length,
+    failed_channel_count: assigned.length - connected.length,
+    unassigned_channel_count: channels.length - assigned.length,
     latency_ms: Date.now() - started,
     channels,
     read_only: true,
@@ -1457,9 +1489,10 @@ async function handle(request, response) {
       status: "healthy",
       provider: "custom",
       edgeRuntime: edgeRuntimeIdentity,
+      httpRuntime: edgeHttpRuntimeStatus(),
       read_only: true,
       streamCount: streamSources.size,
-      failedStreamCount: Math.max(0, lastDiscoverySummary.channelCount - lastDiscoverySummary.connectedCount),
+      failedStreamCount: lastDiscoverySummary.failedAssignedCount,
       lastDiscovery: lastDiscoverySummary,
       requestMetrics,
       recorderSessionHeartbeat: privateNvrHeartbeat.status(),

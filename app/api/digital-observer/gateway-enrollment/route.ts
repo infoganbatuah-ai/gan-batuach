@@ -1,8 +1,11 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- PUSH 18 migration is intentionally ahead of generated Supabase types. */
 import { randomUUID } from "node:crypto";
 import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
-import { gatewayEnrollmentTtlMs, hashGatewayEnrollmentToken, issueGatewayDeviceAccessToken, newGatewayEnrollmentPollToken, newGatewayRefreshToken } from "@/lib/domain/gateway-device-enrollment";
+import { gatewayEnrollmentTtlMs, hashGatewayEnrollmentToken, issueGatewayDeviceAccessToken, issueManagedDeviceSessionToken, newGatewayEnrollmentPollToken } from "@/lib/domain/gateway-device-enrollment";
+import { authenticateManagedDeviceRequest } from "@/lib/domain/digital-observer/managed-device-auth-service";
+import { managedDevicePermissions, publicKeySpkiSchema } from "@/lib/domain/digital-observer/managed-device-identity";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { assertTrustedMutationOrigin, parseBoundedJson } from "@/lib/security/request-guards";
 
@@ -16,12 +19,15 @@ const deviceSchema = z.object({
   device_type: z.enum(["SOFTWARE_CONNECTOR", "PHYSICAL_GATEWAY"]).default("PHYSICAL_GATEWAY"),
   installation_id: z.string().trim().min(8).max(160).regex(/^[A-Za-z0-9._:-]+$/).optional(),
   software_version: z.string().trim().min(1).max(80).optional(),
-  build_sha: z.string().trim().min(1).max(80).optional()
+  build_sha: z.string().trim().min(1).max(80).optional(),
+  credential_algorithm: z.literal("Ed25519"),
+  credential_public_key_spki: publicKeySpkiSchema
 });
 const schema = z.discriminatedUnion("action", [
   z.object({ action: z.literal("create_request"), ...deviceSchema.shape }),
   z.object({ action: z.literal("approve"), enrollment_request_id: z.string().uuid(), observer_site_id: z.string().uuid() }),
   z.object({ action: z.literal("poll"), enrollment_request_id: z.string().uuid(), poll_token: z.string().min(32).max(160), delivery_refresh_token: z.string().regex(/^[A-Za-z0-9_-]{64}$/).optional() }),
+  z.object({ action: z.literal("authenticate"), gateway_id: z.string().uuid() }),
   z.object({
     action: z.literal("refresh"),
     gateway_id: z.string().uuid(),
@@ -87,6 +93,8 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   try {
     if (process.env.NODE_ENV === "development") return await developmentProxy(request);
+    const requestBody = await request.clone().text();
+    if (Buffer.byteLength(requestBody, "utf8") > 8192) return fail("בקשת זהות המכשיר גדולה מדי.", 413);
     const payload = schema.parse(await parseBoundedJson(request, 8192));
     if (payload.action === "approve" || payload.action === "revoke") assertTrustedMutationOrigin(request);
 
@@ -103,11 +111,13 @@ export async function POST(request: Request) {
         poll_token_hash: hashGatewayEnrollmentToken(pollToken),
         expires_at: expiresAt,
         metadata: {
-          protocol_version: 2,
+          protocol_version: 3,
           device_type: payload.device_type,
           installation_id: payload.installation_id ?? null,
           software_version: payload.software_version ?? null,
           build_sha: payload.build_sha ?? null,
+          credential_algorithm: payload.credential_algorithm,
+          credential_public_key_spki: payload.credential_public_key_spki,
           local_only_credentials: true,
           outbound_only: true,
           arbitrary_shell_commands: false,
@@ -128,8 +138,9 @@ export async function POST(request: Request) {
       if (!site) return fail("אין הרשאה לנהל את המכשיר באתר הזה.", 403);
 
       if (payload.action === "revoke") {
-        const revoked = await admin.from("video_gateway_device_enrollments").update({ status: "revoked", revoked_at: new Date().toISOString(), refresh_token_hash: null }).eq("gateway_id", payload.gateway_id).eq("observer_site_id", site.id).in("status", ["approved", "delivered"]).select("id").maybeSingle();
+        const revoked = await admin.from("video_gateway_device_enrollments").update({ status: "revoked", lifecycle_state: "REVOKED", revocation_reason: "AUTHORIZED_USER_REVOCATION", revoked_at: new Date().toISOString(), refresh_token_hash: null }).eq("gateway_id", payload.gateway_id).eq("observer_site_id", site.id).in("status", ["approved", "delivered"]).select("id").maybeSingle();
         if (revoked.error || !revoked.data) return fail("המכשיר לא נמצא או כבר בוטל.", 404);
+        await admin.from("observer_managed_device_credentials" as any).update({ credential_state: "REVOKED", revoked_at: new Date().toISOString() }).eq("enrollment_id", revoked.data.id).in("credential_state", ["PENDING", "ACTIVE"]);
         await audit(admin, "gateway_enrollment_revoked", { gateway_id: payload.gateway_id, observer_site_id: site.id, actor_profile_id: session.profile.id });
         return ok({ status: "revoked" });
       }
@@ -143,23 +154,24 @@ export async function POST(request: Request) {
         return fail("יש לאשר את התקנת המחשב מהחשבון ומהבית שבהם החלה ההתקנה.", 403);
       }
       const gatewayId = randomUUID();
-      const refreshToken = newGatewayRefreshToken();
-      const approved = await admin.from("video_gateway_device_enrollments").update({ status: "approved", observer_site_id: site.id, gateway_id: gatewayId, refresh_token_hash: hashGatewayEnrollmentToken(refreshToken), approved_at: new Date().toISOString(), created_by_profile_id: session.profile.id }).eq("id", pending.data.id).eq("status", "pending").select("id").maybeSingle();
-      if (approved.error || !approved.data) return fail("בקשת הקישור כבר טופלה.", 409);
+      const approved = await admin.rpc("approve_observer_managed_device_enrollment" as any, {
+        p_enrollment: pending.data.id, p_site: site.id, p_gateway: gatewayId, p_actor: session.profile.id
+      });
+      if (approved.error || approved.data !== true) return fail("בקשת הקישור כבר טופלה או שזהות המכשיר אינה תקפה.", 409);
       await audit(admin, "gateway_enrollment_approved", { enrollment_request_id: pending.data.id, gateway_id: gatewayId, observer_site_id: site.id, actor_profile_id: session.profile.id, device_name: pending.data.device_name, device_platform: pending.data.device_platform });
       return ok({ status: "approved", device_name: pending.data.device_name, device_platform: pending.data.device_platform });
     }
 
     if (payload.action === "poll") {
-      const enrollment = await admin.from("video_gateway_device_enrollments").select("id,status,expires_at,poll_token_hash,gateway_id,observer_site_id,refresh_token_hash,metadata").eq("id", payload.enrollment_request_id).maybeSingle();
+      const enrollment = await admin.from("video_gateway_device_enrollments").select("id,status,expires_at,poll_token_hash,gateway_id,observer_site_id,refresh_token_hash,metadata,identity_scheme,credential_version,deployment_profile").eq("id", payload.enrollment_request_id).maybeSingle();
       if (enrollment.error || !enrollment.data) return fail("בקשת קישור המכשיר אינה תקפה.", 401);
-      const deliveryReceipt = payload.delivery_refresh_token ? hashGatewayEnrollmentToken(`${payload.poll_token}:${payload.delivery_refresh_token}`) : null;
-      if (enrollment.data.status === "delivered" && deliveryReceipt && enrollment.data.metadata?.install_intent_id
+      const deliveryReceipt = hashGatewayEnrollmentToken(payload.poll_token);
+      if (enrollment.data.status === "delivered" && enrollment.data.metadata?.install_intent_id
         && Date.parse(enrollment.data.expires_at) > Date.now()
-        && enrollment.data.metadata.delivery_receipt_hash === deliveryReceipt
-        && enrollment.data.refresh_token_hash === hashGatewayEnrollmentToken(payload.delivery_refresh_token!)) {
+        && enrollment.data.metadata.delivery_receipt_hash === deliveryReceipt) {
         return ok({ status: "linked", gateway_id: enrollment.data.gateway_id, observer_site_id: enrollment.data.observer_site_id,
-          refresh_token: payload.delivery_refresh_token, idempotent_delivery: true });
+          identity_scheme: "ED25519_V1", credential_version: enrollment.data.credential_version,
+          deployment_profile: enrollment.data.deployment_profile, idempotent_delivery: true });
       }
       if (enrollment.data.poll_token_hash !== hashGatewayEnrollmentToken(payload.poll_token)) return fail("בקשת קישור המכשיר אינה תקפה.", 401);
       if (Date.parse(enrollment.data.expires_at) <= Date.now()) {
@@ -167,19 +179,38 @@ export async function POST(request: Request) {
         return ok({ status: "expired" });
       }
       if (enrollment.data.status === "pending") return ok({ status: "pending" });
-      if (enrollment.data.status !== "approved" || !enrollment.data.gateway_id || !enrollment.data.observer_site_id || !enrollment.data.refresh_token_hash) return fail("בקשת קישור המכשיר אינה זמינה.", 409);
-      const refreshToken = payload.delivery_refresh_token ?? newGatewayRefreshToken();
-      const delivered = await admin.from("video_gateway_device_enrollments").update({ status: "delivered", delivered_at: new Date().toISOString(), refresh_token_hash: hashGatewayEnrollmentToken(refreshToken), poll_token_hash: hashGatewayEnrollmentToken(randomUUID()),
-        ...(enrollment.data.metadata?.install_intent_id && deliveryReceipt ? { metadata: { ...enrollment.data.metadata, delivery_receipt_hash: deliveryReceipt } } : {})
+      if (enrollment.data.status !== "approved" || !enrollment.data.gateway_id || !enrollment.data.observer_site_id
+        || enrollment.data.identity_scheme !== "ED25519_V1" || enrollment.data.credential_version !== 1) return fail("בקשת קישור המכשיר אינה זמינה.", 409);
+      const delivered = await admin.from("video_gateway_device_enrollments").update({ status: "delivered", delivered_at: new Date().toISOString(), poll_token_hash: hashGatewayEnrollmentToken(randomUUID()),
+        metadata: { ...enrollment.data.metadata, delivery_receipt_hash: deliveryReceipt }
       }).eq("id", enrollment.data.id).eq("status", "approved").select("id").maybeSingle();
       if (delivered.error || !delivered.data) return fail("בקשת קישור המכשיר כבר נצרכה.", 409);
-      const accessToken = issueGatewayDeviceAccessToken({ device_id: enrollment.data.id, gateway_id: enrollment.data.gateway_id, observer_site_id: enrollment.data.observer_site_id }, cloudSecret());
       await audit(admin, "gateway_enrollment_delivered", { enrollment_request_id: enrollment.data.id, gateway_id: enrollment.data.gateway_id, observer_site_id: enrollment.data.observer_site_id });
-      return ok({ status: "linked", gateway_id: enrollment.data.gateway_id, observer_site_id: enrollment.data.observer_site_id, refresh_token: refreshToken, access_token: accessToken, access_expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString() });
+      return ok({ status: "linked", gateway_id: enrollment.data.gateway_id, observer_site_id: enrollment.data.observer_site_id,
+        identity_scheme: "ED25519_V1", credential_version: 1, deployment_profile: enrollment.data.deployment_profile });
     }
 
-    const enrollment = await admin.from("video_gateway_device_enrollments").select("id,status,observer_site_id,refresh_token_hash").eq("gateway_id", payload.gateway_id).maybeSingle();
-    if (enrollment.error || !enrollment.data || enrollment.data.status !== "delivered" || enrollment.data.refresh_token_hash !== hashGatewayEnrollmentToken(payload.refresh_token) || !enrollment.data.observer_site_id) return fail("זהות Gateway אינה תקפה או בוטלה.", 401);
+    if (payload.action === "authenticate") {
+      const authenticated = await authenticateManagedDeviceRequest({ request, admin, operation: "AUTHENTICATE", bodyText: requestBody });
+      if (!authenticated || authenticated.principal.deviceId !== payload.gateway_id || authenticated.authMode !== "ED25519_V1") {
+        return fail("זהות המכשיר אינה תקפה, בוטלה או אינה תואמת.", 401);
+      }
+      const principal = authenticated.principal;
+      const accessToken = issueManagedDeviceSessionToken({ device_id: principal.enrollmentId, gateway_id: principal.deviceId,
+        observer_site_id: principal.siteId, deployment_profile: principal.profile,
+        credential_version: principal.credentialVersion, operations: [...managedDevicePermissions(principal.profile)] }, cloudSecret());
+      return ok({ authentication_protocol: "ED25519_V1", gateway_id: principal.deviceId, observer_site_id: principal.siteId,
+        deployment_profile: principal.profile, credential_version: principal.credentialVersion,
+        access_token: accessToken, access_expires_at: new Date(Date.now() + 10 * 60 * 1000).toISOString(),
+        session_class: authenticated.sessionClass });
+    }
+
+    const enrollment = await admin.from("video_gateway_device_enrollments").select("id,status,observer_site_id,refresh_token_hash,identity_scheme").eq("gateway_id", payload.gateway_id).maybeSingle();
+    if (enrollment.error) {
+      console.error(JSON.stringify({ level: "error", domain: "managed_device_identity", action: "legacy_refresh_lookup", category: "DATABASE_SCHEMA_OR_QUERY", code: String(enrollment.error.code || "unknown").slice(0, 32) }));
+      return fail("שירות זהות הרכיב אינו זמין כרגע.", 503);
+    }
+    if (!enrollment.data || enrollment.data.identity_scheme !== "LEGACY_HMAC" || enrollment.data.status !== "delivered" || enrollment.data.refresh_token_hash !== hashGatewayEnrollmentToken(payload.refresh_token) || !enrollment.data.observer_site_id) return fail("זהות Gateway ישנה אינה תקפה או בוטלה.", 401);
     const nextRefreshToken = payload.next_refresh_token;
     const rotated = await admin.from("video_gateway_device_enrollments").update({ refresh_token_hash: hashGatewayEnrollmentToken(nextRefreshToken), updated_at: new Date().toISOString() }).eq("id", enrollment.data.id).eq("status", "delivered").eq("refresh_token_hash", enrollment.data.refresh_token_hash).select("id").maybeSingle();
     if (rotated.error || !rotated.data) return fail("זהות Gateway השתנתה. יש לבצע קישור מחדש.", 409);

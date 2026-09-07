@@ -9,7 +9,7 @@ import { ObserverCameraControls } from "@/components/digital-observer/observer-c
 import { GuardDiagnosticsPanel } from "@/components/digital-observer/guard-diagnostics-panel";
 import { ObserverConversationPanel } from "@/components/digital-observer/observer-intelligence-experience";
 import { requireDigitalObserverUser } from "@/lib/domain/digital-observer/access";
-import { digitalObserverCameraHasLiveStream } from "@/lib/domain/digital-observer/camera-live-status";
+import { digitalObserverCameraHasLiveStream, digitalObserverCameraIsAssigned } from "@/lib/domain/digital-observer/camera-live-status";
 import { observerEventNarrative } from "@/lib/domain/digital-observer/event-narrative";
 import { formatObserverDate, loadObserverRuntime, observerEventLabel, observerModeForSite, observerSignalMatchesCamera, observerStatusLabel, selectObserverSite } from "@/lib/domain/digital-observer/runtime";
 
@@ -39,7 +39,8 @@ export default async function DigitalObserverCamerasPage({ searchParams }: PageP
   const runtime = await loadObserverRuntime(profile.id);
   const site = selectObserverSite(runtime.sites, runtime.cameras, params?.site);
   const mode = observerModeForSite(site);
-  const cameras = site ? runtime.cameras.filter((item) => item.observer_site_id === site.id) : [];
+  const cameraSlots = site ? runtime.cameras.filter((item) => item.observer_site_id === site.id) : [];
+  const cameras = cameraSlots.filter(digitalObserverCameraIsAssigned);
   const defaultVisibleCameras = cameras.filter(digitalObserverCameraHasLiveStream);
   const offlineCameras = cameras.filter((camera) => !digitalObserverCameraHasLiveStream(camera));
   const cameraPool = params?.status ? cameras : defaultVisibleCameras;

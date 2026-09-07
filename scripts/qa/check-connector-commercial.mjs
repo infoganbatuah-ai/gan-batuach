@@ -66,8 +66,9 @@ test("wrong-site delivery cannot commit local identity", async () => {
 });
 test("delivery and restart preserve identity, consume pending material once, no second enrollment", async () => {
   const f = fixture(); await claimDesktopInstallation({ ...f, post: async () => ({}) });
-  const prepared = JSON.parse(f.store.read("desktop_enrollment_pending")), gateway = randomUUID();
-  const post = async () => ({ status: "linked", observer_site_id: f.document.observer_site_id, gateway_id: gateway, refresh_token: prepared.delivery_refresh_token });
+  const gateway = randomUUID();
+  const post = async () => ({ status: "linked", observer_site_id: f.document.observer_site_id, gateway_id: gateway,
+    identity_scheme: "ED25519_V1", credential_version: 1, deployment_profile: "SOFTWARE_CONNECTOR" });
   assert.equal((await pollDesktopInstallation({ ...f, post })).status, "ENROLLED");
   assert.equal(f.store.read("desktop_enrollment_pending"), null);
   assert.equal((await pollDesktopInstallation({ ...f, post: async () => assert.fail("restart must not enroll") })).status, "ENROLLED");
@@ -93,11 +94,12 @@ test("Product requests cannot mass-assign actor, gateway or claimed healthy stat
   for (const key of ["actor_profile_id", "gateway_id", "stage", "tenant_id"])
     assert.equal(contract.installIntentRequestSchema.safeParse({ action: "create", observer_site_id: document.observer_site_id, [key]: randomUUID() }).success, false);
 });
-test("server approval locks original account/site and binds delivery recovery to existing refresh hash", () => {
+test("server approval locks original account/site and binds delivery recovery to one-time poll proof", () => {
   const route = readFileSync("app/api/digital-observer/gateway-enrollment/route.ts", "utf8");
   assert.ok(route.includes("pending.data.created_by_profile_id !== session.profile.id"));
   assert.ok(route.includes("pending.data.observer_site_id !== site.id"));
-  assert.ok(route.includes("enrollment.data.refresh_token_hash === hashGatewayEnrollmentToken(payload.delivery_refresh_token!)"));
+  assert.ok(route.includes("enrollment.data.metadata.delivery_receipt_hash === deliveryReceipt"));
+  assert.ok(route.includes('identity_scheme: "ED25519_V1"'));
   assert.ok(route.includes('enrollment.data.status === "delivered"'));
 });
 test("native host pipes secrets and uses isolated fixed service; never arbitrary cloud shell", () => {

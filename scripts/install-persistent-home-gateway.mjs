@@ -30,8 +30,10 @@ function configuredKeychainServiceFromFile(path) {
 }
 
 let existingKeychainService = "";
+let existingAssignedChannels = "";
 if (existsSync(launchAgentPath)) {
   try { existingKeychainService = execFileSync("/usr/bin/plutil", ["-extract", "EnvironmentVariables.GAN_BATUACH_GATEWAY_KEYCHAIN_SERVICE", "raw", "-o", "-", launchAgentPath], { encoding: "utf8" }).trim(); } catch {}
+  try { existingAssignedChannels = execFileSync("/usr/bin/plutil", ["-extract", "EnvironmentVariables.OBSERVER_EDGE_CHANNELS", "raw", "-o", "-", launchAgentPath], { encoding: "utf8" }).trim(); } catch {}
 }
 function hasGatewayDeviceIdentity(service) {
   if (!service) return false;
@@ -66,11 +68,16 @@ const evidenceTestCameraId = /^[0-9a-f]{8}-(?:[0-9a-f]{4}-){3}[0-9a-f]{12}$/i.te
   ? process.env.GAN_BATUACH_GATEWAY_EVIDENCE_TEST_CAMERA_ID
   : "";
 const spatialTraceEnabled = process.env.GAN_BATUACH_GATEWAY_SPATIAL_TRACE === "1";
+const assignedChannels = String(process.env.OBSERVER_EDGE_CHANNELS || existingAssignedChannels || "")
+  .split(",").map((value) => Number(value.trim()))
+  .filter((value, index, values) => Number.isInteger(value) && value >= 1 && value <= 64 && values.indexOf(value) === index)
+  .sort((left, right) => left - right).join(",");
 
 const requiredFiles = [
   join(projectRoot, "scripts", "run-persistent-home-gateway.mjs"),
   join(projectRoot, "services", "video-gateway", "server.mjs"),
-  join(projectRoot, "services", "video-gateway", "activity-insights.mjs")
+  join(projectRoot, "services", "video-gateway", "activity-insights.mjs"),
+  join(projectRoot, "node_modules", "undici", "package.json")
 ];
 for (const path of requiredFiles) {
   if (!existsSync(path)) throw new Error(`Gateway runtime file is missing: ${path}`);
@@ -83,6 +90,15 @@ mkdirSync(logRoot, { recursive: true });
 
 copyFileSync(requiredFiles[0], join(runtimeRoot, "scripts", "run-persistent-home-gateway.mjs"));
 cpSync(join(projectRoot, "services", "video-gateway"), join(runtimeRoot, "services", "video-gateway"), {
+  recursive: true,
+  force: true
+});
+// The managed edge entry points intentionally use the patched package runtime
+// instead of Node 24's vulnerable bundled Undici. Undici has no runtime
+// dependencies, so copying its installed package keeps this repair scoped and
+// avoids a broad dependency reinstall on the live appliance.
+mkdirSync(join(runtimeRoot, "node_modules"), { recursive: true, mode: 0o700 });
+cpSync(join(projectRoot, "node_modules", "undici"), join(runtimeRoot, "node_modules", "undici"), {
   recursive: true,
   force: true
 });
@@ -103,7 +119,7 @@ const plist = `<?xml version="1.0" encoding="UTF-8"?>
   </array>
   <key>WorkingDirectory</key><string>${escaped(runtimeRoot)}</string>
   <key>EnvironmentVariables</key>
-  <dict><key>PATH</key><string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string><key>GAN_BATUACH_GATEWAY_KEYCHAIN_SERVICE</key><string>${escaped(configuredKeychainService)}</string><key>GAN_BATUACH_GATEWAY_DVR_KEYCHAIN_SERVICE</key><string>${escaped(configuredDvrKeychainService)}</string><key>GAN_BATUACH_GATEWAY_DISCOVERY</key><string>1</string><key>VIDEO_GATEWAY_BROWSER_ORIGIN</key><string>http://127.0.0.1:3000,http://localhost:3000</string>${evidenceTestCameraId ? `<key>GAN_BATUACH_GATEWAY_EVIDENCE_TEST_CAMERA_ID</key><string>${escaped(evidenceTestCameraId)}</string>` : ""}${spatialTraceEnabled ? "<key>GAN_BATUACH_GATEWAY_SPATIAL_TRACE</key><string>1</string>" : ""}</dict>
+  <dict><key>PATH</key><string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin</string><key>GAN_BATUACH_GATEWAY_KEYCHAIN_SERVICE</key><string>${escaped(configuredKeychainService)}</string><key>GAN_BATUACH_GATEWAY_DVR_KEYCHAIN_SERVICE</key><string>${escaped(configuredDvrKeychainService)}</string><key>GAN_BATUACH_GATEWAY_DISCOVERY</key><string>1</string><key>VIDEO_GATEWAY_BROWSER_ORIGIN</key><string>http://127.0.0.1:3000,http://localhost:3000</string>${assignedChannels ? `<key>OBSERVER_EDGE_CHANNELS</key><string>${escaped(assignedChannels)}</string>` : ""}${evidenceTestCameraId ? `<key>GAN_BATUACH_GATEWAY_EVIDENCE_TEST_CAMERA_ID</key><string>${escaped(evidenceTestCameraId)}</string>` : ""}${spatialTraceEnabled ? "<key>GAN_BATUACH_GATEWAY_SPATIAL_TRACE</key><string>1</string>" : ""}</dict>
   <key>RunAtLoad</key><true/>
   <key>KeepAlive</key><true/>
   <key>ThrottleInterval</key><integer>10</integer>
