@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { requireRole } from "@/lib/auth";
+import { getOperationalRoleContext } from "@/lib/management/operational-role";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { createClient } from "@/lib/supabase/server";
 
@@ -21,7 +21,8 @@ const journalSchema = z.object({
 
 export async function GET(request: Request) {
   try {
-    await requireRole(["admin", "manager", "owner", "staff", "parent", "inspector"]);
+    const access = await getOperationalRoleContext(["admin", "manager", "owner", "staff", "parent", "inspector"]);
+    if (!access.allowed) return access.response;
     const supabase = await createClient();
     const { searchParams } = new URL(request.url);
     const gardenId = searchParams.get("garden_id");
@@ -42,7 +43,9 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const { profile } = await requireRole(["admin", "manager", "owner", "staff"]);
+    const access = await getOperationalRoleContext(["admin", "manager", "owner", "staff"]);
+    if (!access.allowed) return access.response;
+    const { profile } = access.session;
     const payload = journalSchema.parse(await request.json());
     if (profile.role !== "admin" && profile.garden_id !== payload.garden_id) return fail("אין הרשאה לעדכן יומן של גן אחר", 403);
     const supabase = await createClient();

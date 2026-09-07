@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { AlertTriangle, Camera, ClipboardCheck, Eye, Radar, ShieldCheck } from "lucide-react";
 import { AdminDataError } from "@/components/admin-data-state";
-import { requireRole } from "@/lib/auth";
+import { requireOperationalRole } from "@/lib/management/operational-role";
 import { logSupabaseError, safeAdminData } from "@/lib/admin-safe";
 import { createClient } from "@/lib/supabase/server";
 import { buildObserverReadinessScore, observerNetworkTone, safeObserverRecommendations } from "@/lib/domain/observer-network";
@@ -25,7 +25,7 @@ function toTone(value?: string | number | null) {
 }
 
 export default async function InspectorObserverNetworkPage() {
-  const { profile } = await requireRole(["inspector"]);
+  const { profile } = await requireOperationalRole(["inspector"]);
   const result = await safeAdminData("inspector observer network", async () => {
     const supabase = await createClient();
     const [inspectorRes, gardensRes] = await Promise.all([

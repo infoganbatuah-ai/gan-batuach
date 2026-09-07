@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { AlertTriangle, ShieldCheck, Wrench } from "lucide-react";
 import { ViolationStatusActions } from "@/components/violation-status-actions";
-import { requireRole } from "@/lib/auth";
+import { requireOperationalRole } from "@/lib/management/operational-role";
 import { createClient } from "@/lib/supabase/server";
 import {
   InspectorAppFrame,
@@ -30,7 +30,7 @@ function severityLabel(value?: string | null) {
 }
 
 export default async function InspectorViolationsPage() {
-  const { profile } = await requireRole(["inspector"]);
+  const { profile } = await requireOperationalRole(["inspector"]);
   const supabase = await createClient();
   const [inspectorRes, gardensRes] = await Promise.all([
     supabase.from("inspectors" as any).select("profile_photo_url").eq("id", profile.id).maybeSingle(),

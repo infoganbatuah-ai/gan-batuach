@@ -1,5 +1,5 @@
 import { ok, handleRouteError } from "@/lib/api";
-import { requireUser } from "@/lib/auth";
+import { getOperationalRoleContext } from "@/lib/management/operational-role";
 import {
   createNotificationsForUrgentInsights,
   generateSmartInsights,
@@ -19,7 +19,9 @@ import { createClient } from "@/lib/supabase/server";
 
 export async function GET() {
   try {
-    const { profile } = await requireUser();
+    const access = await getOperationalRoleContext(["admin", "network_manager", "manager", "owner", "staff", "parent", "inspector"]);
+    if (!access.allowed) return access.response;
+    const { profile } = access.session;
     const supabase = await createClient();
     const generated = await generateSmartInsights(supabase as any, profile);
     const persisted = await syncSmartInsights(supabase as any, generated);
@@ -50,7 +52,9 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const { profile } = await requireUser();
+    const access = await getOperationalRoleContext(["admin", "network_manager", "manager", "owner", "staff", "parent", "inspector"]);
+    if (!access.allowed) return access.response;
+    const { profile } = access.session;
     const supabase = await createClient();
     const payload = await request.json().catch(() => ({}));
     const prompt = String(payload.prompt ?? "").trim();

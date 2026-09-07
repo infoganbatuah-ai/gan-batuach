@@ -1,4 +1,4 @@
-import { requireUser } from "@/lib/auth";
+import { getOperationalRoleContext } from "@/lib/management/operational-role";
 import { createClient } from "@/lib/supabase/server";
 
 function esc(value: unknown) {
@@ -11,7 +11,8 @@ function qrSvg(value: string) {
 }
 
 export async function GET(_request: Request, { params }: { params: Promise<{ id: string }> }) {
-  await requireUser();
+  const access = await getOperationalRoleContext(["admin", "network_manager", "manager", "owner", "staff", "parent", "inspector"]);
+  if (!access.allowed) return access.response;
   const { id } = await params;
   const requestUrl = new URL(_request.url);
   const supabase = await createClient();

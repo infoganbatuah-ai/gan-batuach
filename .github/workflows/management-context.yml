@@ -17,4 +17,5 @@ jobs:
           cache: npm
       - run: npm ci
       - run: node --test scripts/qa/check-management-garden-context.mjs
+      - run: node --test scripts/qa/check-management-operational-role.mjs
       - run: npm run qa:manager-parent-live-contract

@@ -55,6 +55,21 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
 
     const { data, error } = await supabase.from("staff").update(patch).eq("id", id).select("*").single();
     if (error) return fail(error.message, 400);
+    const employmentStatus = payload.action === "approve" ? "active" : payload.action === "request_correction" ? "pending_approval" : "suspended";
+    const employment = await supabase.from("staff_kindergarten_employments" as never)
+      .update({
+        status: employmentStatus,
+        approved_at: payload.action === "approve" ? now : null,
+        approved_by: payload.action === "approve" ? profile.id : null,
+        updated_at: now
+      })
+      .eq("staff_id", id)
+      .eq("profile_id", staff.profile_id)
+      .eq("garden_id", profile.garden_id)
+      .select("id") as unknown as { data: Array<{ id: string }> | null; error: { message?: string } | null };
+    if (employment.error || !employment.data?.length) {
+      return fail("כרטיס הצוות עודכן, אך מצב ההעסקה הקנוני לא עודכן. הגישה התפעולית תישאר חסומה עד לתיקון.", 409);
+    }
     await supabase.from("staff_onboarding_records" as any).upsert({
       staff_id: id,
       profile_id: staff.profile_id,

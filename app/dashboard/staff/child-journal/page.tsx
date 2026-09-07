@@ -3,12 +3,12 @@ import { israelTodayDateKey } from "@/lib/domain/israel-date";
 import { ChildDailyJournalManager } from "@/components/child-daily-journal-manager";
 import { StatusChip } from "@/components/gan-batuach-design-system";
 import { StaffAppFrame, StaffPageHero, StaffSection } from "@/components/staff-app-ui";
-import { requireRole } from "@/lib/auth";
+import { requireOperationalRole } from "@/lib/management/operational-role";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function StaffChildJournalPage({ searchParams }: { searchParams?: Promise<{ childId?: string; incident?: string }> }) {
   const params: { childId?: string; incident?: string } = searchParams ? await searchParams.catch(() => ({})) : {};
-  const { profile } = await requireRole(["staff"]);
+  const { profile } = await requireOperationalRole(["staff"]);
   const supabase = await createClient();
   const gardenId = profile.garden_id ?? "";
   const today = israelTodayDateKey();

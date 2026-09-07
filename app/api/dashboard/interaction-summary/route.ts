@@ -1,5 +1,5 @@
 import { ok, handleRouteError } from "@/lib/api";
-import { requireUser } from "@/lib/auth";
+import { getOperationalRoleContext } from "@/lib/management/operational-role";
 import { createClient } from "@/lib/supabase/server";
 
 function card(title: string, count: number, href: string, tone: "good" | "warn" | "bad" = "warn") {
@@ -14,7 +14,9 @@ async function safeCount(query: PromiseLike<{ count: number | null; error: unkno
 
 export async function GET() {
   try {
-    const { profile } = await requireUser();
+    const access = await getOperationalRoleContext(["admin", "network_manager", "manager", "owner", "staff", "parent", "inspector"]);
+    if (!access.allowed) return access.response;
+    const { profile } = access.session;
     const supabase = await createClient();
     const role = profile.role;
     const gardenId = profile.garden_id ?? "";

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Camera, CalendarCheck, ClipboardCheck, FileText, ShieldCheck } from "lucide-react";
 import { InspectorInspectionWizard } from "@/components/inspector-inspection-wizard";
-import { requireRole } from "@/lib/auth";
+import { requireOperationalRole } from "@/lib/management/operational-role";
 import { createClient } from "@/lib/supabase/server";
 import {
   InspectorActionCard,
@@ -15,7 +15,7 @@ import {
 
 export default async function InspectorInspectionsPage({ searchParams }: { searchParams?: Promise<{ required?: string }> }) {
   const params: { required?: string } = searchParams ? await searchParams.catch(() => ({})) : {};
-  const { profile } = await requireRole(["inspector"]);
+  const { profile } = await requireOperationalRole(["inspector"]);
   const supabase = await createClient();
   const [inspectorRes, inspectionsRes, requiredRes] = await Promise.all([
     supabase.from("inspectors" as any).select("profile_photo_url").eq("id", profile.id).maybeSingle(),

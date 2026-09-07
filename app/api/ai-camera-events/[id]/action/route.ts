@@ -1,12 +1,14 @@
 import { fail, handleRouteError, ok } from "@/lib/api";
-import { requireRole } from "@/lib/auth";
+import { getOperationalRoleContext } from "@/lib/management/operational-role";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { aiCameraReviewActionSchema } from "@/lib/domain/ai-digital-observer";
 
 export async function POST(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
-    const { profile } = await requireRole(["admin", "manager", "owner", "inspector"]);
+    const access = await getOperationalRoleContext(["admin", "manager", "owner", "inspector"]);
+    if (!access.allowed) return access.response;
+    const { profile } = access.session;
     const { id } = await context.params;
     const payload = aiCameraReviewActionSchema.parse(await request.json());
     const supabase = isAdminClientConfigured() ? createAdminClient() : await createClient();

@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { requireRole } from "@/lib/auth";
+import { getOperationalRoleContext } from "@/lib/management/operational-role";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { createClient } from "@/lib/supabase/server";
 import { encryptField, getCurrentKeyVersion } from "@/lib/security/field-encryption";
@@ -16,7 +16,9 @@ const medicineLogSchema = z.object({
 
 export async function GET(request: Request) {
   try {
-    const { profile } = await requireRole(["admin", "manager", "owner", "staff", "parent", "inspector"]);
+    const access = await getOperationalRoleContext(["admin", "manager", "owner", "staff", "parent", "inspector"]);
+    if (!access.allowed) return access.response;
+    const { profile } = access.session;
     const supabase = await createClient();
     const { searchParams } = new URL(request.url);
     let query = supabase.from("medicine_given_logs" as any).select("*, children(full_name)").order("given_at", { ascending: false }).limit(100);
@@ -47,7 +49,9 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    const { profile } = await requireRole(["admin", "manager", "owner", "staff"]);
+    const access = await getOperationalRoleContext(["admin", "manager", "owner", "staff"]);
+    if (!access.allowed) return access.response;
+    const { profile } = access.session;
     const payload = medicineLogSchema.parse(await request.json());
     if (profile.role !== "admin" && profile.garden_id !== payload.garden_id) return fail("אין הרשאה לרשום תרופה בגן אחר", 403);
     const supabase = await createClient();

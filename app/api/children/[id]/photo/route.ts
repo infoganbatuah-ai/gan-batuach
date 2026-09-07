@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
-import { requireRole } from "@/lib/auth";
+import { getOperationalRoleContext } from "@/lib/management/operational-role";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
@@ -8,7 +8,9 @@ const schema = z.object({ photo_url: z.string().url(), field: z.enum(["photo_url
 
 export async function PATCH(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
-    const { profile } = await requireRole(["parent", "manager", "owner", "staff"]);
+    const access = await getOperationalRoleContext(["parent", "manager", "owner", "staff"]);
+    if (!access.allowed) return access.response;
+    const { profile } = access.session;
     const { id } = await context.params;
     const payload = schema.parse(await request.json());
     const supabase = isAdminClientConfigured() ? createAdminClient() : await createClient();

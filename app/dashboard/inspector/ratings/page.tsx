@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { AlertTriangle, BarChart3, ClipboardCheck, ShieldCheck, Star, TrendingDown } from "lucide-react";
 import { AdminDataError } from "@/components/admin-data-state";
-import { requireRole } from "@/lib/auth";
+import { requireOperationalRole } from "@/lib/management/operational-role";
 import { logSupabaseError, safeAdminData } from "@/lib/admin-safe";
 import { createClient } from "@/lib/supabase/server";
 import { categoryScoreRows, ratingBandLabel, ratingTone, ratingTrendLabel } from "@/lib/domain/kindergarten-rating";
@@ -48,7 +48,7 @@ function impactTone(value?: string | null) {
 }
 
 export default async function InspectorRatingsPage() {
-  const { profile } = await requireRole(["inspector"]);
+  const { profile } = await requireOperationalRole(["inspector"]);
   const result = await safeAdminData("inspector ratings", async () => {
     const supabase = await createClient();
     const [inspectorRes, gardensRes] = await Promise.all([

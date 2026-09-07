@@ -9,7 +9,7 @@ import { StaffOfflineQueue } from "@/components/staff-offline-queue";
 import { StaffOneHandMode } from "@/components/staff-one-hand-mode";
 import { ActionCard as GBActionCard, MetricCard, StatusChip } from "@/components/gan-batuach-design-system";
 import { StaffAppFrame } from "@/components/staff-app-ui";
-import { requireRole } from "@/lib/auth";
+import { requireOperationalRole } from "@/lib/management/operational-role";
 import { createClient } from "@/lib/supabase/server";
 
 function pct(done: number, total: number) {
@@ -48,7 +48,7 @@ function ActionCard({ title, text, href, icon, tone: cardTone = "default" }: { t
 }
 
 export default async function StaffOperationsPage() {
-  const { profile } = await requireRole(["staff"]);
+  const { profile } = await requireOperationalRole(["staff"]);
   const supabase = await createClient();
   const today = israelTodayDateKey();
 

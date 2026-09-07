@@ -53,7 +53,30 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
       }).select("id").single();
       if (staffWrite.error) return fail(staffWrite.error.message, 400);
       activatedStaffId = staffWrite.data.id as string;
-      await Promise.all([
+      const permanentFile = await admin.from("staff_permanent_files" as never).insert({
+        profile_id: application.data.staff_candidate_id,
+        full_name: candidate?.full_name ?? "איש צוות",
+        phone: candidate?.phone ?? null,
+        email: candidate?.email ?? null,
+        notes: "נוצר בעת אישור מועמדות צוות"
+      }).select("id").single() as unknown as { data: { id: string } | null; error: { message?: string } | null };
+      if (permanentFile.error || !permanentFile.data?.id) {
+        return fail("כרטיס העובד נוצר, אך תיק הצוות הקבוע לא נוצר. החשבון לא הופעל.", 409);
+      }
+      const employment = await admin.from("staff_kindergarten_employments" as never).insert({
+        staff_file_id: permanentFile.data.id,
+        staff_id: activatedStaffId,
+        profile_id: application.data.staff_candidate_id,
+        garden_id: profile.garden_id,
+        status: "pending_approval",
+        role_title: payload.assigned_role ?? application.data.requested_role ?? "צוות",
+        class_group: payload.assigned_class_group ?? null,
+        notes: "העסקה ממתינה להשלמת הפעלת חשבון המועמד"
+      }).select("id").single() as unknown as { data: { id: string } | null; error: { message?: string } | null };
+      if (employment.error || !employment.data?.id) {
+        return fail("כרטיס העובד נוצר, אך ההעסקה הפעילה לא נוצרה. החשבון לא הופעל.", 409);
+      }
+      const [profileActivation, candidateActivation] = await Promise.all([
         admin.from("profiles" as any).update({
           garden_id: profile.garden_id,
           active: true,
@@ -63,6 +86,19 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
         }).eq("id", application.data.staff_candidate_id),
         admin.from("staff_candidate_profiles" as any).update({ status: "active" }).eq("profile_id", application.data.staff_candidate_id)
       ]);
+      if (profileActivation.error || candidateActivation.error) {
+        return fail("ההעסקה נוצרה, אך הפעלת חשבון הצוות לא הושלמה. נדרשת בדיקת מנהל.", 409);
+      }
+      const employmentActivation = await admin.from("staff_kindergarten_employments" as never).update({
+        status: "active",
+        approved_at: now,
+        approved_by: profile.id,
+        notes: "העסקה הופעלה לאחר השלמת הפעלת החשבון",
+        updated_at: now
+      }).eq("id", employment.data.id).eq("status", "pending_approval").select("id").single() as unknown as { data: { id: string } | null; error: { message?: string } | null };
+      if (employmentActivation.error || !employmentActivation.data?.id) {
+        return fail("החשבון אושר, אך ההעסקה לא הופעלה. הגישה התפעולית תישאר חסומה עד לתיקון.", 409);
+      }
       status = "approved";
     }
 

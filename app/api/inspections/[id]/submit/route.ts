@@ -1,4 +1,4 @@
-import { requireRole } from "@/lib/auth";
+import { getOperationalRoleContext } from "@/lib/management/operational-role";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { inspectionSubmitSchema, submitInspection } from "@/lib/domain/inspection-engine";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
@@ -38,7 +38,9 @@ async function uploadSignatureIfPossible(inspectionId: string, signatureImage: s
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { profile } = await requireRole(["admin", "inspector"]);
+    const access = await getOperationalRoleContext(["admin", "inspector"]);
+    if (!access.allowed) return access.response;
+    const { profile } = access.session;
     const { id } = await params;
     const payload = inspectionSubmitSchema.parse(await request.json());
     const supabase = await createClient();

@@ -3,7 +3,7 @@ import { israelTodayDateKey } from "@/lib/domain/israel-date";
 import { StaffAttendanceActions } from "@/components/staff-attendance-actions";
 import { ListRowCard, StatusChip } from "@/components/gan-batuach-design-system";
 import { StaffAppFrame, StaffEmpty, StaffMetricCard, StaffPageHero, StaffSection, StaffStats } from "@/components/staff-app-ui";
-import { requireRole } from "@/lib/auth";
+import { requireOperationalRole } from "@/lib/management/operational-role";
 import { createClient } from "@/lib/supabase/server";
 
 function timeText(value?: string | null) {
@@ -23,7 +23,7 @@ function confidenceTone(value?: string | null) {
 }
 
 export default async function Page() {
-  const { profile } = await requireRole(["staff"]);
+  const { profile } = await requireOperationalRole(["staff"]);
   const supabase = await createClient();
   const staffRes = await supabase.from("staff" as any).select("id, garden_id, full_name, gardens(name, address, gps_lat, gps_lng)").eq("profile_id", profile.id).maybeSingle();
   const staff = staffRes.data as any;

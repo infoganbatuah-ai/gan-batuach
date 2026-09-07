@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { requireUser } from "@/lib/auth";
+import { getOperationalRoleContext } from "@/lib/management/operational-role";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { createClient } from "@/lib/supabase/server";
 
@@ -12,7 +12,9 @@ const schema = z.object({
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { profile } = await requireUser();
+    const access = await getOperationalRoleContext(["admin", "network_manager", "manager", "owner", "staff", "parent", "inspector"]);
+    if (!access.allowed) return access.response;
+    const { profile } = access.session;
     const { id } = await params;
     const payload = schema.parse(await request.json());
     const supabase = await createClient();

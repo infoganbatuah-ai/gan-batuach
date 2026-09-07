@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { CalendarCheck, ClipboardCheck, Search } from "lucide-react";
 import { SearchFilterBar, FormField } from "@/components/gan-batuach-design-system";
-import { requireRole } from "@/lib/auth";
+import { requireOperationalRole } from "@/lib/management/operational-role";
 import { createClient } from "@/lib/supabase/server";
 import {
   InspectorAppFrame,
@@ -28,7 +28,7 @@ function inspectionTypeLabel(value?: string | null) {
 }
 
 export default async function InspectorDueInspectionsPage() {
-  const { profile } = await requireRole(["inspector"]);
+  const { profile } = await requireOperationalRole(["inspector"]);
   const supabase = await createClient();
   const [inspectorRes, rowsRes] = await Promise.all([
     supabase.from("inspectors" as any).select("profile_photo_url").eq("id", profile.id).maybeSingle(),
