@@ -54,3 +54,10 @@ test("cloud discovery and learning accept scoped managed-device operations", () 
   assert.match(learning, /payload\.observer_site_id !== device\.observer_site_id/);
   assert.match(learning, /device\.deployment_profile !== enrolled\.data\.deployment_profile/);
 });
+
+test("cloud rediscovery reuses the stable Site, Gateway and channel source", () => {
+  const domain = read("lib/domain/video-gateway.ts");
+  assert.match(domain, /contains\("metadata", \{ gateway_id: values\.gatewayId, dvr_channel: values\.channel \}\)/);
+  assert.match(domain, /DUPLICATE_GATEWAY_CHANNEL_SOURCE/);
+  assert.match(domain, /if \(byStableChannel\.data\?\.\[0\]\) existing = \{ data: byStableChannel\.data\[0\] \}/);
+});

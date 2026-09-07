@@ -349,7 +349,7 @@ async function upsertDigitalObserverCameraSource(
   }
 ) {
   if (!values.observerSiteId) return null;
-  const existing = values.cameraStreamId
+  let existing = values.cameraStreamId
     ? await supabase
       .from("digital_observer_camera_sources" as any)
       .select("id,observer_site_id,display_name,location_label,source_mode,status,secret_reference,monitoring_targets,capabilities,metadata")
@@ -364,6 +364,18 @@ async function upsertDigitalObserverCameraSource(
         .contains("metadata", { gateway_stream_id: values.gatewayStreamId })
         .maybeSingle()
       : { data: null };
+  if (!(existing as any)?.data?.id && values.gatewayId) {
+    const byStableChannel = await supabase
+      .from("digital_observer_camera_sources" as any)
+      .select("id,observer_site_id,display_name,location_label,source_mode,status,secret_reference,monitoring_targets,capabilities,metadata")
+      .eq("observer_site_id", values.observerSiteId)
+      .contains("metadata", { gateway_id: values.gatewayId, dvr_channel: values.channel })
+      .order("created_at", { ascending: true })
+      .limit(2);
+    if (byStableChannel.error) throw new Error(byStableChannel.error.message);
+    if ((byStableChannel.data?.length ?? 0) > 1) throw new Error("DUPLICATE_GATEWAY_CHANNEL_SOURCE");
+    if (byStableChannel.data?.[0]) existing = { data: byStableChannel.data[0] };
+  }
   const now = new Date().toISOString();
   const assigned = values.assigned !== false;
   const unavailable = assigned && ["offline", "failed", "error"].includes(String(values.statusHint ?? "").toLowerCase());
