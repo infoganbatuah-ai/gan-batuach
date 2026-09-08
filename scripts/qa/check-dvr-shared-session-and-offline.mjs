@@ -24,7 +24,7 @@ for (const required of [
   if (!gateway.includes(required)) throw new Error(`Missing shared DVR session safeguard: ${required}`);
 }
 if (gateway.includes("refreshPrivateNvrSource")) throw new Error("Each relay must not create a new DVR login");
-for (const required of ['status: connected ? "connected" : "offline"', 'health_status: connected ? "healthy" : "offline"', "local_event_insights: connected", "raw_frames_uploaded: false"]) {
+for (const required of ['status: !assigned ? "disabled" : connected ? "connected" : "offline"', 'health_status: !assigned ? "unknown" : connected ? "healthy" : "offline"', 'channel_assignment: assigned ? "ASSIGNED" : "CHANNEL_EMPTY"', "local_event_insights: connected", "raw_frames_uploaded: false"]) {
   if (!mapping.includes(required)) throw new Error(`Missing cloud offline/edge mapping: ${required}`);
 }
 for (const required of ["unavailableStatuses", "digitalObserverCameraIsConnected", "digitalObserverCameraHasLiveGateway"]) {

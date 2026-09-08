@@ -37,7 +37,8 @@ This file is the roadmap-facing index for the capability-level register in `DIGI
 
 - PUSH 1–18: DONE, including post-PUSH 18 Product Live View proof.
 - PUSH 19: DONE — signed isolated OTA and automatic known-good rollback proof.
-- PUSH 20: NEXT, NOT STARTED.
+- PUSH 20: DONE — shared progress-aware supervision, bounded fault recovery and real DVR/Tapo recovery observation.
+- PUSH 21: NEXT, NOT STARTED.
 - PUSH 24/25/27: DONE EARLY, subject to canonical dependency-sensitive revalidation.
 - PUSH 25 billing-role RLS HIGH finding remains open and is not hidden by this mapping.
 - `52/52 PUSHES DONE != PRODUCT COMPLETE`; a future North-Star Completion Audit is mandatory.
@@ -151,7 +152,7 @@ Source confidence: requirement intent `MEDIUM-HIGH` because the current request 
 | Technical/DD 16 | 3 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Connector/Gateway package | Shared deployable edge package | Edge | Camera contracts | PARTIAL | PUSH 16 | E2E PUSH 16; hardening PUSH 17. |
 | Technical/DD 16 | 4 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Device provisioning | Identity, enrollment, certificates and rotation | Device security | Shared package | PARTIAL | PUSH 16 lifecycle proof | PUSH 17–18. |
 | Technical/DD 16 | 5 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] OTA and rollback | Signed remote updates and recovery | Fleet | Identity/package | DONE | PUSH 19 shared Ed25519 OTA, staged canary and isolated automatic rollback | Continue Production key custody and bounded real canary evidence. |
-| Technical/DD 16 | 6 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Self-healing/offline | Watchdog, buffering and resync | Reliability | Device runtime | PARTIAL | Local restart/retry foundations | PUSH 20–21. |
+| Technical/DD 16 | 6 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Self-healing/offline | Watchdog, buffering and resync | Reliability | Device runtime | PARTIAL | PUSH 20 shared supervision and bounded real recovery; buffering/resync intentionally absent | PUSH 21 offline buffering/resync and PUSH 38 soak. |
 | Technical/DD 16 | 7 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Camera health/observability | Health engine, diagnostics and SLO telemetry | Operations | Stable runtime | PARTIAL | Existing health/heartbeat | PUSH 22–23/27. |
 | Technical/DD 16 | 8 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Cheap preprocessing | Native events, motion, scene and adaptive sampling | Efficiency | Health/quality | PARTIAL | Sampling/motion foundations | PUSH 29–30. |
 | Technical/DD 16 | 9 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Queue and hybrid AI | Durable jobs, portable workers and routing | AI infrastructure | Preprocessing/metrics | PARTIAL | Local inference foundations | PUSH 31–33. |
@@ -192,7 +193,7 @@ Source confidence: requirement intent `HIGH` for entries represented explicitly 
 | Digital-First 45 | 19 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Provisioning | Repeatable install/enroll/configure/recover | Device ops | Shared package | PARTIAL | PUSH 16 | PUSH 17–18 real devices. |
 | Digital-First 45 | 20 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Certificates/rotation | Device-bound trust and rotation | Device security | Provisioning | PARTIAL | Token rotation/revocation | Certificate/attestation PUSH 18. |
 | Digital-First 45 | 21 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Camera Health Engine | Unified freshness/uptime/frozen/reconnect | Reliability | Runtime telemetry | PARTIAL | Existing monitor/heartbeat | PUSH 23. |
-| Digital-First 45 | 22 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Watchdog/self-heal | Recover process/stream safely | Reliability | Device identity | PARTIAL | Local restart foundations | PUSH 20. |
+| Digital-First 45 | 22 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Watchdog/self-heal | Recover process/stream safely | Reliability | Device identity | IMPLEMENTED — NEEDS REAL PROOF | PUSH 20 progress-aware supervisor, bounded fault matrix and short real DVR/Tapo recovery observation | Long-duration fault/soak qualification PUSH 38. |
 | Digital-First 45 | 23 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] OTA | Signed remote software updates | Fleet | Identity/package | DONE | PUSH 19 signed isolated Connector/Gateway profile update proof | Bounded Production canary remains operational evidence. |
 | Digital-First 45 | 24 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Rollback | Atomic rollback after bad update | Fleet | OTA | DONE | PUSH 19 controlled bad release restored known-good automatically | Extend proof across signed platform distribution matrix. |
 | Digital-First 45 | 25 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Offline buffering | Bounded offline metadata/evidence queue | Reliability | Storage/policy | PARTIAL | Journal/outbox foundations | PUSH 21. |

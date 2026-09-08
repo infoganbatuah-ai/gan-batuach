@@ -49,6 +49,7 @@ if (process.argv[2] === "--document") {
   } catch { status("ACTION_REQUIRED"); process.exitCode = 1; }
 } else if (process.argv[2] === "--service") {
   let nextDiscoveryAt = 0;
+  let consecutiveCrashes = 0;
   for (;;) {
     try {
       const enrolled = await pollDesktopInstallation({ store, post });
@@ -62,8 +63,20 @@ if (process.argv[2] === "--document") {
             return latest.configured && latest.configVersion > synced.configVersion;
           });
           if (completed.reconfigure) { status("APPLYING_CAMERA_CONFIGURATION"); continue; }
-          status(completed.ok ? "STOPPED" : "ACTION_REQUIRED");
-          break; // the OS service restarts a crashed process; no second core.
+          if (completed.ok) { consecutiveCrashes = 0; status("STOPPED"); break; }
+          consecutiveCrashes += 1;
+          if (consecutiveCrashes >= 4) {
+            status("NEEDS_ATTENTION");
+            // Keep the signed-in service alive but quarantine a repeatedly
+            // crashing child. PUSH 19 receives the release-health signal via
+            // status; this runtime never performs a competing rollback.
+            await new Promise(resolve => setTimeout(resolve, 5 * 60_000));
+          } else {
+            status("RECOVERING");
+            const backoffMs = Math.min(60_000, 2_000 * (2 ** (consecutiveCrashes - 1)));
+            await new Promise(resolve => setTimeout(resolve, backoffMs));
+          }
+          continue;
         }
         await connectorCloudRequest("/api/video-gateway/device-heartbeat", { method: "POST", body: JSON.stringify({
           heartbeat_id: randomUUID(), gateway_id: store.read("device_gateway_id"), observer_site_id: store.read("device_observer_site_id"),

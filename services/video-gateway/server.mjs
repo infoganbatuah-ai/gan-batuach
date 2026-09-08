@@ -23,6 +23,7 @@ import { createRelayInputMetrics } from "./relay-input-metrics.mjs";
 import { createHardwareTranscoder, hardwareDecodeArgs, hardwareEncodeArgs } from "./hardware-transcoder.mjs";
 import { connectorRuntimeIdentity, parseConnectorCommand, redactConnectorLog } from "./edge-runtime-contract.mjs";
 import { edgeHttpRuntimeStatus } from "./http-runtime.mjs";
+import { createEdgeSupervisor, EDGE_RECOVERY_ACTION } from "./edge-supervision.mjs";
 
 const PORT = Number(process.env.PORT || process.env.VIDEO_GATEWAY_PORT || 8080);
 const HOST = process.env.HOST || process.env.VIDEO_GATEWAY_HOST || "0.0.0.0";
@@ -54,8 +55,27 @@ setInterval(() => eventEvidence.sweep(), 5000).unref();
 let activeEventCaptures = 0;
 let eventManifestRequestRevision = 0;
 const relayStarts = new Map();
+const relayRecovery = new Map();
 const playbackTokens = new Map();
 const relayLifecycle = { starts: 0, upstreamEnded: 0, upstreamFailed: 0, staleInput: 0, stalePlaylist: 0, staleOnRequest: 0, inputSocketError: 0, inputAborted: 0, inputOtherError: 0 };
+const edgeSupervisor = createEdgeSupervisor({ adapters: {
+  [EDGE_RECOVERY_ACTION.RECONNECT_SOURCE]: async ({ resourceId }) => {
+    const relay = relays.get(resourceId);
+    if (relay) stopRelay(resourceId, relay);
+    return { healthy: Boolean(await ensureRelay(resourceId)) };
+  },
+  [EDGE_RECOVERY_ACTION.RESTART_RELAY]: async ({ resourceId }) => {
+    const relay = relays.get(resourceId);
+    if (relay) stopRelay(resourceId, relay);
+    return { healthy: Boolean(await ensureRelay(resourceId)) };
+  },
+  [EDGE_RECOVERY_ACTION.RENEW_DVR_SESSION]: async ({ resourceId }) => {
+    const source = streamSources.get(resourceId);
+    const session = source?.sessionKey ? privateNvrSessions.get(source.sessionKey) : null;
+    const refreshed = source?.sessionKey && session ? await refreshPrivateNvrSession(source.sessionKey, session.token) : null;
+    return { healthy: Boolean(refreshed) };
+  }
+} });
 let lastDiscoverySummary = { channelCount: 0, assignedCount: 0, unassignedCount: 0, connectedCount: 0, failedAssignedCount: 0, checkedAt: null };
 const requestMetrics = { playbackRequests: 0, playbackReady: 0, playbackUnavailable: 0, playbackClaimRequests: 0, playbackClaimReady: 0, playbackClaimUnavailable: 0, hlsRequests: 0, hlsPlaylists: 0, hlsSegments: 0, hlsUnauthorized: 0, hlsRangeRequests: 0 };
 const FRAME_WIDTH = 32;
@@ -1178,11 +1198,14 @@ async function startRelay(streamId) {
     if (relays.get(streamId) === relay) relays.delete(streamId);
     // A recorder may end an otherwise valid native stream. Reopen it while a
     // cloud-authorized viewing lease exists, without waiting for player failure.
+    const failures = code === 0 ? 0 : Math.min(8, (relayRecovery.get(streamId)?.failures || 0) + 1);
+    const retryMs = Math.min(60_000, 500 * (2 ** Math.max(0, failures - 1)));
+    relayRecovery.set(streamId, { failures, next_retry_at: Date.now() + retryMs });
     const resume = setTimeout(() => {
       if ([...playbackTokens.values()].some((lease) => lease.streamId === streamId && lease.expiresAt > Date.now())) {
         void ensureRelay(streamId).catch(() => undefined);
       }
-    }, 500);
+    }, retryMs);
     resume.unref();
   });
   return relay;
@@ -1484,9 +1507,21 @@ async function handle(request, response) {
   }
   if (request.url === "/health" && request.method === "GET") {
     const edge = localEdgeReadiness();
+    for (const [streamId, source] of streamSources) {
+      const relay = relays.get(streamId);
+      edgeSupervisor.observe({ resourceId: streamId, assignment: source?.status === "unassigned" ? "CHANNEL_EMPTY" : "ASSIGNED",
+        processRunning: true, auth: deviceAuthorizationState === "rejected" ? "INVALID" : "VALID", cloudConnected: deviceAuthorizationState !== "rejected",
+        sourceAvailable: source?.status !== "unavailable", relayRunning: relay ? relayIsRunning(relay) : false,
+        frameProgressing: relay ? relayIsProgressing(relay) : false, lastFrameAt: relay?.lastInputAt, dimension: "relay" });
+      if (relay && relayIsProgressing(relay)) relayRecovery.delete(streamId);
+    }
+    for (let index = 0; index < lastDiscoverySummary.unassignedCount; index++) {
+      edgeSupervisor.observe({ resourceId: `unassigned-slot-${index + 1}`, assignment: "CHANNEL_EMPTY" });
+    }
+    const supervision = edgeSupervisor.snapshot();
     json(response, 200, {
       ok: true,
-      status: "healthy",
+      status: supervision.state === "HEALTHY" ? "healthy" : supervision.state === "RECOVERING" ? "recovering" : "degraded",
       provider: "custom",
       edgeRuntime: edgeRuntimeIdentity,
       httpRuntime: edgeHttpRuntimeStatus(),
@@ -1504,8 +1539,10 @@ async function handle(request, response) {
         progressingRelays: [...relays.values()].filter(relayIsProgressing).length,
         stalledRelays: [...relays.values()].filter((relay) => !relayIsProgressing(relay)).length,
         inputs: [...relays.entries()].map(([streamId, relay]) => ({ channel: streamSources.get(streamId)?.channel, input_codec: ["h264", "hevc", "mjpeg", "mpeg4"].includes(streamSources.get(streamId)?.codec) ? streamSources.get(streamId).codec : "unknown", encoder: relay.encoder, ...relay.inputMetrics.snapshot(), stdin_backpressure: relay.process.stdin?.writableNeedDrain === true, stdin_queued_bytes: relay.process.stdin?.writableLength ?? 0 })),
-        lifecycle: relayLifecycle
+        lifecycle: relayLifecycle,
+        recovery: [...relayRecovery.entries()].map(([streamId, state]) => ({ channel: streamSources.get(streamId)?.channel, ...state }))
       },
+      supervision,
       // Aggregate-only diagnostics for evidence authorization. This makes a
       // failed capture observable without exposing an anchor, event, token,
       // camera credential, or private source URL through the health endpoint.

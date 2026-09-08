@@ -199,11 +199,11 @@ This register maps every requested North-Star capability to an existing canonica
 |---|---|---|---|---|---|
 | OTA | DONE + REAL PROOF | Shared Ed25519-signed manifest, verified artifact, atomic isolated update on Connector and Gateway profiles | 19 | Production key custody and staged customer rollout operations | Signed isolated update plus future bounded real canary evidence |
 | Rollback | DONE + REAL PROOF | Controlled bad 1.2.0 release automatically restored healthy known-good 1.1.0 and quarantined failure | 19 | Continue platform/customer canary evidence | Induced bad update automatically recovers identity/config/health |
-| Watchdog | NOT STARTED | Launch service recovery is not full watchdog | 20 | Process/stream watchdog | Real fault recovery within target |
-| Self-healing | FOUNDATION | Limited bounded reconnect behavior | 20 | Full policy and duplicate safety | Real fault matrix |
+| Watchdog | IMPLEMENTED — NEEDS REAL PROOF | PUSH 20 shared progress-aware supervisor, bounded backoff and isolated process/stream fault matrix | 20, 38 | Long-duration real fault qualification | Real fault recovery within target |
+| Self-healing | IMPLEMENTED — NEEDS REAL PROOF | PUSH 20 bounded recovery ladder, audit, duplicate safety and isolated fault matrix | 20, 38 | Long-duration real recovery qualification | Real fault matrix plus agreed soak |
 | DVR session recovery | IMPLEMENTED — NEEDS REAL PROOF | PUSH 18B recovered current Gateway | 20, 23, 38 | Automated repeatable qualification | Induced session failure and recovery |
-| Relay recovery | IMPLEMENTED — NEEDS REAL PROOF | Runtime reconnect counters and service restart | 20, 23, 38 | Fault injection | Real relay-loss recovery proof |
-| Stale-frame detection | PARTIAL | Relay progression/stalled state exists | 23, 27 | Canonical freshness SLO and Product state | Frozen-stream fault test |
+| Relay recovery | IMPLEMENTED — NEEDS REAL PROOF | PUSH 20 bounded relay replacement/backoff and isolated relay-kill recovery QA | 20, 23, 38 | Controlled real fault qualification | Real relay-loss recovery proof |
+| Stale-frame detection | IMPLEMENTED — NEEDS REAL PROOF | PUSH 20 detects non-progress despite live process and recovers in isolated QA | 20, 23, 27, 38 | Product SLO and controlled real frozen-stream proof | Frozen-stream fault test |
 | Offline buffering | NOT STARTED | No full durable offline buffer | 21 | Bounded encrypted queue | Real offline interval proof |
 | Resync | NOT STARTED | No full replay/resync qualification | 21 | Ordered idempotent replay | Disconnect/reconnect no-duplicate proof |
 | Camera Health reliability | PARTIAL | Source/processing/playback dimensions now distinct | 23, 27 | Full engine and alert SLO | Real disconnect/freeze/recovery proof |

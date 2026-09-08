@@ -1,6 +1,6 @@
 # DIGITAL OBSERVER — CANONICAL MASTER ROADMAP
 
-Date: 2026-09-09 (PUSH 19 signed OTA and automatic rollback closure; original reconciliation retained below)
+Date: 2026-09-09 (PUSH 20 progress-aware watchdog and self-healing closure; original reconciliation retained below)
 Repository base reviewed: `dc50fca` on `main`; the scoped closure commit is recorded in the final PUSH 17D handoff.
 Purpose: the canonical 52-push roadmap. The user's PUSH 17 authorization expands its product scope; this document does not authorize deployments or future pushes.
 
@@ -10,9 +10,9 @@ Digital Observer has completed the canonical product path from audit through Dig
 
 The canonical roadmap contains **52 pushes**. It preserves the existing numbers 1–16 and continues through production infrastructure, pilots, commercial proof, technical due diligence, and acquisition/exit. Later work may be executed early only when its `EXECUTION MODE` says `CAN EXECUTE EARLY`; its canonical number never changes.
 
-Current sequential position: **PUSH 19 — OTA Update and Atomic Rollback**, `DONE` after Ed25519 release verification, staged canary containment, isolated successful Connector/Gateway-profile update, and controlled bad-release automatic rollback proof.
-Current blocker: none from PUSH 19. Production signing-key configuration and live customer canary rollout remain operational deployment work, not missing internal OTA mechanics.
-PUSH 20 is next but was not started. PUSH 24/25/27 remain DONE EARLY, pending later dependency-sensitive revalidation.
+Current sequential position: **PUSH 20 — Watchdog and Self-Healing Runtime**, `DONE` after shared progress-aware supervision, isolated fault injection and bounded real 10-camera DVR plus Tapo recovery evidence.
+Current blocker: none from PUSH 20. Long-duration 24/7 proof remains explicitly unverified and belongs to PUSH 38 qualification.
+PUSH 21 is next but was not started. PUSH 24/25/27 remain DONE EARLY, pending later dependency-sensitive revalidation.
 
 ## Status semantics
 
@@ -34,7 +34,8 @@ PUSH 16     DONE — independent Tapo reference closed in PUSH 16C
 PUSH 17     DONE — PUSH 17D root-cause implementation closure
 PUSH 18     DONE — identity/security lifecycle plus live-home regression closed in PUSH 18B
 PUSH 19     DONE — signed OTA + isolated automatic rollback proof
-PUSH 20–23  NOT STARTED
+PUSH 20     DONE — progress-aware watchdog/self-healing and bounded real recovery proof
+PUSH 21–23  NOT STARTED
 PUSH 24/25/27 DONE EARLY
 PUSH 50     documentation-only preparation permitted only by separate instruction
 ```
@@ -86,6 +87,12 @@ PUSH 19 applies the shared `observer-edge-update-v1` lifecycle only to Digital O
 Ed25519-authenticated manifests bind version/build/platform/architecture/profile, SHA-256 artifact identity, compatibility and rollout metadata. INTERNAL/CANARY/STABLE channels, deterministic cohorts and canary containment precede broader rollout. Atomic version slots retain the previous trusted runtime until process, PUSH 18 authentication, heartbeat, configuration, cloud and physical-camera progression gates pass. A controlled isolated bad release automatically rolled back to the prior known-good runtime and was quarantined; six unassigned DVR slots were excluded from camera health.
 
 PUSH 19 does not implement generic watchdog/self-healing (PUSH 20), offline buffering/resynchronization (PUSH 21), or full fleet management (PUSH 22). See `DIGITAL_OBSERVER_PUSH_19_OTA_ROLLBACK_REPORT.md`.
+
+# PUSH 20 EDGE SUPERVISION BOUNDARY
+
+PUSH 20 adds one shared `observer-edge-supervision-v1` contract for DO-managed Connector/Gateway/Enterprise Edge profiles. It separates process, authentication, cloud, source, relay, frame/inference and playback health; applies bounded backoff and crash-loop escalation; and excludes six `CHANNEL_EMPTY / UNASSIGNED` DVR slots from recovery and availability.
+
+During a 187.645-second real observation, all 17 health polls succeeded. The DVR recovered one sampled six-relay stale episode back to 10/10 on the next ten-second sample; Tapo recovered intermittent stale/relay-loss behavior to 1/1 without intervention. This is bounded recovery evidence, not 24/7 proof. PUSH 21 remains offline buffering/resync, PUSH 22 fleet, PUSH 23 final Camera Health, and PUSH 38 long-duration reliability qualification.
 
 # POST-PUSH 18 LIVE VIEW AND NORTH-STAR COMPLETION GATE
 
@@ -187,7 +194,7 @@ Source shorthand used below: `52` = Original 52, `S16` = Original 16 — Strateg
 | 17 | Universal Zero-Install Connectivity + Unified Connector/Gateway Provisioning | Enforce ZERO-INSTALL FIRST, universal onboarding, capability knowledge and shared customer-ready fallback. | 52/14–16,38; T16/3–4; DF45/18–20 | PUSH 16 PASS | SEQUENTIAL | DONE | Both physical Gateway and Software Connector install from shared versioned package; provisioning/reprovisioning and customer self-service QA pass on supported hosts; expanded PUSH 17 acceptance applies. OTA/rollback remains PUSH 19. |
 | 18 | Device Identity, Certificates and Rotation | Secure DO-managed local components with device-bound identity, scoped authentication, rotation, revocation, replacement and migration while preserving zero-install. | 52/38,47; T16/4; DF45/19–20 | PUSH 17 | SEQUENTIAL | DONE | Ed25519 lifecycle, tenant/security negatives, live Physical Gateway recovery, 10/10 DVR + 1/1 Tapo progression, six empty-slot semantics, and authorized real Product Live View for both connection strategies pass; live legacy credential conversion remains controlled rollout work. |
 | 19 | OTA Update and Atomic Rollback | Remotely update Connector/Gateway with signed artifacts and automatic rollback. | 52/38; T16/5; DF45/23–24 | PUSH 17–18; connector/Gateway hardening | SEQUENTIAL | DONE | Shared Ed25519 release verification; isolated Connector/Gateway-profile updates; controlled bad release automatically restores known-good runtime while preserving identity/configuration; canary failure pauses propagation. |
-| 20 | Watchdog and Self-Healing Runtime | Detect process/stream failure and recover without unsafe duplicate ownership. | 52/19,38,45; T16/6; DF45/22 | PUSH 17–18; connector/Gateway hardening | SEQUENTIAL | NOT STARTED | Real process, network and stream faults recover within defined SLO; no duplicate Events/actions or credential leak. |
+| 20 | Watchdog and Self-Healing Runtime | Detect process/stream failure and recover without unsafe duplicate ownership. | 52/19,38,45; T16/6; DF45/22 | PUSH 17–19; connector/Gateway hardening | SEQUENTIAL | DONE | Shared progress-aware supervision, bounded recovery/backoff, crash-loop and empty-slot QA pass; real 10-DVR + Tapo observation remains truthful and long-duration soak stays PUSH 38. |
 | 21 | Offline Buffering and Resynchronization | Preserve bounded metadata/evidence during disconnection and replay idempotently. | 52/18,38,45; T16/6; DF45/25–26 | PUSH 17–20; connector/Gateway hardening | SEQUENTIAL | NOT STARTED | Real offline interval buffers within policy, reconnects, resyncs in order and creates no duplicate Event/Incident. |
 | 22 | Fleet Management and Remote Diagnostics | Manage versions, commands, health and diagnostics across devices. | 52/38,42; T16/7; DF45/27–29 | PUSH 18–21; connector/Gateway hardening | SEQUENTIAL | NOT STARTED | Multi-device fleet view, scoped remote command, diagnostic bundle and audit trail work on real devices. |
 | 23 | Camera Health Engine and SLOs | Normalize camera uptime, freshness, frozen stream, reconnect and degradation. | 52/19,42; T16/7; DF45/21 | PUSH 17,20–22; connector/Gateway hardening | SEQUENTIAL | NOT STARTED | Measured real-camera health detects disconnect/freeze/recovery with defined uptime and alert SLOs. |
