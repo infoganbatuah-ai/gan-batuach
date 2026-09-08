@@ -349,16 +349,17 @@ async function upsertDigitalObserverCameraSource(
   }
 ) {
   if (!values.observerSiteId) return null;
+  const observerSourceTable = "digital_observer_camera_sources" as any;
   let existing = values.cameraStreamId
     ? await supabase
-      .from("digital_observer_camera_sources" as any)
+      .from(observerSourceTable)
       .select("id,observer_site_id,display_name,location_label,source_mode,status,secret_reference,monitoring_targets,capabilities,metadata")
       .eq("camera_stream_id", values.cameraStreamId)
       .eq("observer_site_id", values.observerSiteId)
       .maybeSingle()
     : values.gatewayStreamId
       ? await supabase
-        .from("digital_observer_camera_sources" as any)
+        .from(observerSourceTable)
         .select("id,observer_site_id,display_name,location_label,source_mode,status,secret_reference,monitoring_targets,capabilities,metadata")
         .eq("observer_site_id", values.observerSiteId)
         .contains("metadata", { gateway_stream_id: values.gatewayStreamId })
@@ -366,7 +367,7 @@ async function upsertDigitalObserverCameraSource(
       : { data: null };
   if (!(existing as any)?.data?.id && values.gatewayId) {
     const byStableChannel = await supabase
-      .from("digital_observer_camera_sources" as any)
+      .from(observerSourceTable)
       .select("id,observer_site_id,display_name,location_label,source_mode,status,secret_reference,monitoring_targets,capabilities,metadata")
       .eq("observer_site_id", values.observerSiteId)
       .contains("metadata", { gateway_id: values.gatewayId, dvr_channel: values.channel })
@@ -470,7 +471,7 @@ async function upsertDigitalObserverCameraSource(
   };
   if ((existing as any)?.data?.id) {
     const { data, error } = await supabase
-      .from("digital_observer_camera_sources" as any)
+      .from(observerSourceTable)
       .update({ ...preserveCameraDiscoverySettings((existing as any).data, payload), updated_at: now })
       .eq("id", (existing as any).data.id)
       .select("id,observer_site_id,camera_stream_id,display_name,status,health_status,source_mode")
@@ -479,7 +480,7 @@ async function upsertDigitalObserverCameraSource(
     return data;
   }
   const { data, error } = await supabase
-    .from("digital_observer_camera_sources" as any)
+    .from(observerSourceTable)
     .insert(payload as any)
     .select("id,observer_site_id,camera_stream_id,display_name,status,health_status,source_mode")
     .single();
