@@ -84,5 +84,6 @@ const dmgSha256 = createHash("sha256").update(readFileSync(dmg)).digest("hex");
 writeFileSync(join(out, "package-status.json"), JSON.stringify({ status: "LOCAL_PACKAGE_QA_ONLY", platform: `macos-${process.arch}`, build: sha,
   dirtySnapshot: run("git", ["status", "--porcelain"]).trim().length > 0, nativeLibraries: copied.size,
   signing: "AD_HOC_ONLY_NOT_NOTARIZED", publicDownloadAllowed: false, redistributionNoticesBundled: true,
+  ota: { contract: "observer-edge-update-v1", agentBundled: true, signedManifestRequired: true, atomicSlots: true, automaticRollback: true },
   dmg: { filename: basename(dmg), sha256: dmgSha256 }, serviceInstallTest: "NOT_RUN", enrollmentE2E: "NOT_RUN" }, null, 2));
 console.log(JSON.stringify({ status: "LOCAL_PACKAGE_QA_ONLY", output: out, dmg, dmgSha256, nativeLibraries: copied.size, publicDownloadAllowed: false }));

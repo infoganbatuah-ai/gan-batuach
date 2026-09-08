@@ -1,6 +1,6 @@
 # DIGITAL OBSERVER — CANONICAL MASTER ROADMAP
 
-Date: 2026-09-08 (PUSH 18B live-home closure; original reconciliation retained below)
+Date: 2026-09-09 (PUSH 19 signed OTA and automatic rollback closure; original reconciliation retained below)
 Repository base reviewed: `dc50fca` on `main`; the scoped closure commit is recorded in the final PUSH 17D handoff.
 Purpose: the canonical 52-push roadmap. The user's PUSH 17 authorization expands its product scope; this document does not authorize deployments or future pushes.
 
@@ -10,9 +10,9 @@ Digital Observer has completed the canonical product path from audit through Dig
 
 The canonical roadmap contains **52 pushes**. It preserves the existing numbers 1–16 and continues through production infrastructure, pilots, commercial proof, technical due diligence, and acquisition/exit. Later work may be executed early only when its `EXECUTION MODE` says `CAN EXECUTE EARLY`; its canonical number never changes.
 
-Current sequential position: **PUSH 18 — Device Identity / Certificates / Provisioning Security Hardening**, `DONE` after PUSH 18B restored and proved the existing Physical Gateway and all 11 expected physical cameras.
-Current blocker: none from PUSH 18. Live Physical Gateway and Software Connector credential migration remains deliberately deferred for a controlled rollout; this does not reopen the isolated hardened lifecycle proof.
-PUSH 19 is eligible for a separate explicit instruction but was not started. PUSH 24/25/27 remain DONE EARLY, pending later dependency-sensitive revalidation.
+Current sequential position: **PUSH 19 — OTA Update and Atomic Rollback**, `DONE` after Ed25519 release verification, staged canary containment, isolated successful Connector/Gateway-profile update, and controlled bad-release automatic rollback proof.
+Current blocker: none from PUSH 19. Production signing-key configuration and live customer canary rollout remain operational deployment work, not missing internal OTA mechanics.
+PUSH 20 is next but was not started. PUSH 24/25/27 remain DONE EARLY, pending later dependency-sensitive revalidation.
 
 ## Status semantics
 
@@ -33,7 +33,8 @@ PUSH 1–15  DONE
 PUSH 16     DONE — independent Tapo reference closed in PUSH 16C
 PUSH 17     DONE — PUSH 17D root-cause implementation closure
 PUSH 18     DONE — identity/security lifecycle plus live-home regression closed in PUSH 18B
-PUSH 19–23  NOT STARTED
+PUSH 19     DONE — signed OTA + isolated automatic rollback proof
+PUSH 20–23  NOT STARTED
 PUSH 24/25/27 DONE EARLY
 PUSH 50     documentation-only preparation permitted only by separate instruction
 ```
@@ -77,6 +78,24 @@ The implementation uses device-generated Ed25519 request identity, one-use Site/
 PUSH 18B closure: security implementation and deterministic/isolated PostgreSQL lifecycle gates pass. The Physical Gateway runtime was repaired without replacing its identity; 10/10 assigned DVR cameras and 1/1 Tapo progress, while six unused DVR slots are `CHANNEL_EMPTY / UNASSIGNED`. Required database migrations and dependent application code were released in order; live credential conversion remains deferred for a controlled rollout. See `DIGITAL_OBSERVER_PUSH_18_DEVICE_IDENTITY_REPORT.md`.
 
 PUSH 25's HIGH billing RLS finding remains open and separately authorization-gated. It is not silently resolved by PUSH 16 closure or by this document. No new security migration or Production deployment occurred in PUSH 17.
+
+# PUSH 19 MANAGED-EDGE OTA BOUNDARY
+
+PUSH 19 applies the shared `observer-edge-update-v1` lifecycle only to Digital Observer-managed Software Connector, Physical Gateway and future Enterprise Edge runtimes. Genuine zero-install paths have no managed local package and therefore no OTA requirement.
+
+Ed25519-authenticated manifests bind version/build/platform/architecture/profile, SHA-256 artifact identity, compatibility and rollout metadata. INTERNAL/CANARY/STABLE channels, deterministic cohorts and canary containment precede broader rollout. Atomic version slots retain the previous trusted runtime until process, PUSH 18 authentication, heartbeat, configuration, cloud and physical-camera progression gates pass. A controlled isolated bad release automatically rolled back to the prior known-good runtime and was quarantined; six unassigned DVR slots were excluded from camera health.
+
+PUSH 19 does not implement generic watchdog/self-healing (PUSH 20), offline buffering/resynchronization (PUSH 21), or full fleet management (PUSH 22). See `DIGITAL_OBSERVER_PUSH_19_OTA_ROLLBACK_REPORT.md`.
+
+# POST-PUSH 18 LIVE VIEW AND NORTH-STAR COMPLETION GATE
+
+`STREAM PROGRESSING` is not Product Live View proof. Post-PUSH 18 closure used the authorized Product player and established visibly advancing real video for a populated DVR camera and the Tapo C211. All ten populated DVR cameras obtained valid playback claims; the six unassigned DVR slots remain `CHANNEL_EMPTY / UNASSIGNED`. Source/AI processing health and browser playback health are separate dimensions. See `DIGITAL_OBSERVER_POST_PUSH18_LIVE_VIEW_REPORT.md`.
+
+The live regression root cause was the existing Tapo Software Connector runtime being left in temporary storage without persistent service ownership. The same enrolled identity was moved to protected persistent local storage and installed as a restartable macOS LaunchAgent. No Site, source or device identity was duplicated, and PUSH 18 authentication was not weakened.
+
+The capability-level North-Star register is `DIGITAL_OBSERVER_NORTH_STAR_COMPLETION_MATRIX.md`; its roadmap index is `DIGITAL_OBSERVER_ROADMAP_TRACEABILITY_MATRIX.md`. Every registered capability has an owner among PUSH 1–52 and a final proof requirement. No new canonical PUSH was created.
+
+Mandatory completion rule: `52/52 PUSHES DONE != PRODUCT COMPLETE`. A future North-Star Completion Audit must confirm every mandatory capability at its required evidence state before any `PRODUCT COMPLETE` claim.
 
 Current acceptance: see DIGITAL_OBSERVER_PUSH_17_ZERO_INSTALL_CONNECTIVITY_REPORT.md. Earlier reconciliation sections below are historical where they describe the pre-Tapo hardware blocker.
 
@@ -143,7 +162,7 @@ Source shorthand used below: `52` = Original 52, `S16` = Original 16 — Strateg
 | 13 | Natural-Language Investigation | Bounded tenant-safe search, grounded real records and evidence playback | DONE |
 | 14 | Digital-First Camera Layer | Canonical source/adapter/capability model, assessment and resolver | DONE |
 | 15 | Zero-Touch Onboarding | State model, recommendation, reassessment, truthful activation and handoff | DONE |
-| 16 | Software Observer Connector | Deployable connector, shared core, provisioning, heartbeat, rotation, revocation; real separate-source E2E absent | BLOCKED |
+| 16 | Software Observer Connector | Deployable connector, shared core, provisioning, heartbeat, rotation, revocation and real separate-source Tapo E2E | DONE |
 
 # CANONICAL NUMBERED ROADMAP
 
@@ -166,8 +185,8 @@ Source shorthand used below: `52` = Original 52, `S16` = Original 16 — Strateg
 | 15 | Zero-Touch Camera Onboarding | Convert assessment into truthful customer onboarding and connector/Gateway handoff. | 52/8,12,14–15; DF45/11–15 | PUSH 14 | SEQUENTIAL | DONE | Existing/new systems can be assessed, recommended and activated only after verified readiness. |
 | 16 | Software Observer Connector | Provide an outbound deployable connector sharing the canonical edge core. | 52/14,16–19; T16/3–4; DF45/16–17 | PUSH 15; independent physical source | SEQUENTIAL | DONE | Independent physical camera through separate SOFTWARE_CONNECTOR identity produces real frame, canonical Event, backend persistence and authorized UI evidence. |
 | 17 | Universal Zero-Install Connectivity + Unified Connector/Gateway Provisioning | Enforce ZERO-INSTALL FIRST, universal onboarding, capability knowledge and shared customer-ready fallback. | 52/14–16,38; T16/3–4; DF45/18–20 | PUSH 16 PASS | SEQUENTIAL | DONE | Both physical Gateway and Software Connector install from shared versioned package; provisioning/reprovisioning and customer self-service QA pass on supported hosts; expanded PUSH 17 acceptance applies. OTA/rollback remains PUSH 19. |
-| 18 | Device Identity, Certificates and Rotation | Secure DO-managed local components with device-bound identity, scoped authentication, rotation, revocation, replacement and migration while preserving zero-install. | 52/38,47; T16/4; DF45/19–20 | PUSH 17 | SEQUENTIAL | DONE | Ed25519 lifecycle, tenant/security negatives, live Physical Gateway recovery, 10/10 DVR + 1/1 Tapo progression, and six empty-slot semantics pass; live legacy credential conversion remains controlled rollout work. |
-| 19 | OTA Update and Atomic Rollback | Remotely update Connector/Gateway with signed artifacts and automatic rollback. | 52/38; T16/5; DF45/23–24 | PUSH 17–18; connector/Gateway hardening | SEQUENTIAL | NOT STARTED | Real remote device updates to a signed version; induced failure rolls back and preserves identity/configuration. |
+| 18 | Device Identity, Certificates and Rotation | Secure DO-managed local components with device-bound identity, scoped authentication, rotation, revocation, replacement and migration while preserving zero-install. | 52/38,47; T16/4; DF45/19–20 | PUSH 17 | SEQUENTIAL | DONE | Ed25519 lifecycle, tenant/security negatives, live Physical Gateway recovery, 10/10 DVR + 1/1 Tapo progression, six empty-slot semantics, and authorized real Product Live View for both connection strategies pass; live legacy credential conversion remains controlled rollout work. |
+| 19 | OTA Update and Atomic Rollback | Remotely update Connector/Gateway with signed artifacts and automatic rollback. | 52/38; T16/5; DF45/23–24 | PUSH 17–18; connector/Gateway hardening | SEQUENTIAL | DONE | Shared Ed25519 release verification; isolated Connector/Gateway-profile updates; controlled bad release automatically restores known-good runtime while preserving identity/configuration; canary failure pauses propagation. |
 | 20 | Watchdog and Self-Healing Runtime | Detect process/stream failure and recover without unsafe duplicate ownership. | 52/19,38,45; T16/6; DF45/22 | PUSH 17–18; connector/Gateway hardening | SEQUENTIAL | NOT STARTED | Real process, network and stream faults recover within defined SLO; no duplicate Events/actions or credential leak. |
 | 21 | Offline Buffering and Resynchronization | Preserve bounded metadata/evidence during disconnection and replay idempotently. | 52/18,38,45; T16/6; DF45/25–26 | PUSH 17–20; connector/Gateway hardening | SEQUENTIAL | NOT STARTED | Real offline interval buffers within policy, reconnects, resyncs in order and creates no duplicate Event/Incident. |
 | 22 | Fleet Management and Remote Diagnostics | Manage versions, commands, health and diagnostics across devices. | 52/38,42; T16/7; DF45/27–29 | PUSH 18–21; connector/Gateway hardening | SEQUENTIAL | NOT STARTED | Multi-device fleet view, scoped remote command, diagnostic bundle and audit trail work on real devices. |

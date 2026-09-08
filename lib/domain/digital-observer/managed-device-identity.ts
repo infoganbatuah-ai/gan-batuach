@@ -28,7 +28,9 @@ export const managedDeviceOperations = [
   "EVENT_INGEST",
   "MEDIA_UPLOAD",
   "PLAYBACK_GRANT",
-  "CREDENTIAL_ROTATE"
+  "CREDENTIAL_ROTATE",
+  "UPDATE_READ",
+  "UPDATE_STATUS"
 ] as const;
 export type ManagedDeviceOperation = (typeof managedDeviceOperations)[number];
 
@@ -185,7 +187,8 @@ export function managedDeviceProofFromHeaders(headers: Headers): ManagedDevicePr
 
 export function managedDevicePermissions(profile: ManagedDeviceProfile): readonly ManagedDeviceOperation[] {
   const common: ManagedDeviceOperation[] = ["AUTHENTICATE", "HEARTBEAT", "CONFIG_READ",
-    "DISCOVERY_PUBLISH", "LEARNING_PUBLISH", "EVENT_INGEST", "MEDIA_UPLOAD", "PLAYBACK_GRANT", "CREDENTIAL_ROTATE"];
+    "DISCOVERY_PUBLISH", "LEARNING_PUBLISH", "EVENT_INGEST", "MEDIA_UPLOAD", "PLAYBACK_GRANT", "CREDENTIAL_ROTATE",
+    "UPDATE_READ", "UPDATE_STATUS"];
   if (profile === "SOFTWARE_CONNECTOR") return common;
   return [...common, "COMMAND_POLL"];
 }

@@ -2,6 +2,7 @@ import { createHash, randomUUID } from "node:crypto";
 
 export const EDGE_RUNTIME_VERSION = "observer-edge-runtime-v1";
 export const EDGE_DEVICE_TYPES = Object.freeze(["SOFTWARE_CONNECTOR", "PHYSICAL_GATEWAY"]);
+export const EDGE_UPDATE_CONTRACT = "observer-edge-update-v1";
 export const EDGE_COMMANDS = Object.freeze(["HEALTH_PROBE", "REFRESH_CONFIG", "RECONNECT_STREAM"]);
 export const DEFAULT_RESOURCE_LIMITS = Object.freeze({
   max_cameras: 8,
@@ -96,6 +97,12 @@ export function connectorRuntimeIdentity(environment = process.env) {
     installation_id: installationId,
     software_version: String(environment.OBSERVER_EDGE_VERSION || "development").slice(0, 80),
     build_sha: String(environment.OBSERVER_EDGE_BUILD_SHA || "unknown").slice(0, 80),
+    platform: String(environment.OBSERVER_EDGE_PLATFORM || process.platform).slice(0, 40),
+    architecture: String(environment.OBSERVER_EDGE_ARCHITECTURE || process.arch).slice(0, 20),
+    configuration_version: Math.max(1, Number.parseInt(environment.OBSERVER_EDGE_CONFIG_VERSION || "1", 10) || 1),
+    update_contract: EDGE_UPDATE_CONTRACT,
+    update_state: String(environment.OBSERVER_EDGE_UPDATE_STATE || "IDLE").slice(0, 40),
+    known_good_version: String(environment.OBSERVER_EDGE_KNOWN_GOOD_VERSION || environment.OBSERVER_EDGE_VERSION || "development").slice(0, 80),
     outbound_only: true,
     arbitrary_shell_commands: false,
     resource_limits: DEFAULT_RESOURCE_LIMITS
