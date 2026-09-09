@@ -9,6 +9,7 @@ const cloudRoutes = [
 
 assert.match(ignore, /^services\/video-gateway\/\*$/m, "local Gateway runtime must remain excluded");
 assert.match(ignore, /^!services\/video-gateway\/edge-update-contract\.mjs$/m, "pure cloud update verifier must be included");
+assert.match(ignore, /^!services\/video-gateway\/edge-update-contract\.d\.mts$/m, "cloud verifier types must be included");
 assert.doesNotMatch(ignore, /^services\/video-gateway$/m, "parent exclusion prevents a safe child re-include");
 
 for (const route of cloudRoutes) {
@@ -20,8 +21,10 @@ for (const forbidden of ["server.mjs", "journal-loop.mjs", "edge-secret-store-sy
   assert.doesNotMatch(ignore, new RegExp(`!services/video-gateway/${forbidden.replace(".", "\\.")}`));
 }
 
+readFileSync("services/video-gateway/edge-update-contract.d.mts", "utf8");
+
 console.log(JSON.stringify({ status: "PASS", vercel_package: {
-  included: ["services/video-gateway/edge-update-contract.mjs"],
+  included: ["services/video-gateway/edge-update-contract.mjs", "services/video-gateway/edge-update-contract.d.mts"],
   excluded_runtime: "services/video-gateway/*",
   cloud_routes_checked: cloudRoutes.length,
   secrets_included: false
