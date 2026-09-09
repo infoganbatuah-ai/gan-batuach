@@ -1,6 +1,6 @@
 # DIGITAL OBSERVER — ROADMAP TRACEABILITY MATRIX
 
-Date: 2026-09-08
+Date: 2026-09-10
 Canonical roadmap: exactly 52 PUSHES.
 
 This file is the roadmap-facing index for the capability-level register in `DIGITAL_OBSERVER_NORTH_STAR_COMPLETION_MATRIX.md`. Every North-Star row has one or more existing canonical PUSH owners and a final evidence requirement. No PUSH 53+, second roadmap or parallel camera/AI roadmap is created.
@@ -10,7 +10,7 @@ This file is the roadmap-facing index for the capability-level register in `DIGI
 - Total mapped capabilities: **190**.
 - Canonical owner coverage: **190/190**.
 - Without canonical owner: **0**.
-- Evidence states: 24 `DONE + REAL PROOF`; 14 `IMPLEMENTED — NEEDS REAL PROOF`; 70 `FOUNDATION`; 18 `PARTIAL`; 63 `NOT STARTED`; 1 `EXTERNAL COVERAGE GAP`.
+- Evidence states: 24 `DONE + REAL PROOF`; 21 `IMPLEMENTED — NEEDS REAL PROOF`; 69 `FOUNDATION`; 16 `PARTIAL`; 59 `NOT STARTED`; 1 `EXTERNAL COVERAGE GAP`.
 - The matrix is complete as a mapping. The Product is not complete: most rows intentionally retain future implementation or real-proof obligations.
 
 ## OWNERSHIP RANGES
@@ -41,9 +41,11 @@ This file is the roadmap-facing index for the capability-level register in `DIGI
 - PUSH 21: DONE — encrypted durable store-and-forward, bounded resync and isolated outage/restart/idempotency/security proof.
 - PUSH 22: DONE — canonical managed-edge inventory, health, scoped commands, support audit and synthetic scale QA.
 - PUSH 23: DONE — canonical multidimensional camera/source health, truthful expected-camera denominator, tenant-scoped API/UI, common-cause/flapping and deterministic failure QA.
+- PUSH 26: DONE — executable canonical domain ownership, one Product Event/Incident/Risk/Verification/Decision path, explicit compatibility retirement boundaries and no destructive data migration.
 - PUSH 24/25/27: DONE EARLY, subject to canonical dependency-sensitive revalidation.
 - PUSH 25 billing-role RLS HIGH finding remains open and is not hidden by this mapping.
 - `52/52 PUSHES DONE != PRODUCT COMPLETE`; a future North-Star Completion Audit is mandatory.
+- Next sequential canonical work is PUSH 28. PUSH 27 remains valid as DONE EARLY and is not rerun as a new canonical push.
 
 # APPENDIX — LEGACY SOURCE-SLOT TRACEABILITY REGISTER
 
@@ -64,9 +66,9 @@ Source confidence: requirement intent `MEDIUM`; exact original title `LOW/UNRESO
 | Source | No. | Original name | Normalized requirement | Domain | Dependencies | Current status | Current implementation / canonical PUSH | Remaining work |
 |---|---:|---|---|---|---|---|---|---|
 | Original 52 | 1 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Existing-system audit | Audit repository/runtime before development | Audit | None | DONE | PUSH 1 | Maintain report as baseline; re-audit after major releases. |
-| Original 52 | 2 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Current architecture | Document actual frontend/backend/video/AI/storage/deployment | Architecture | 52/1 | DONE | PUSH 1–2 | Consolidate duplicate domains in PUSH 26. |
+| Original 52 | 2 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Current architecture | Document actual frontend/backend/video/AI/storage/deployment | Architecture | 52/1 | DONE | PUSH 1–2 plus PUSH 26 canonical domain map | Continue evidence maintenance; no parallel truth store. |
 | Original 52 | 3 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Product UI | Real authenticated home/business/admin product surfaces | Product | Auth/data | DONE | Existing UI; PUSH 2,4,13,15 | Native production QA remains PUSH 44. |
-| Original 52 | 4 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Backend services | Real APIs and domain services behind UI | Backend | DB/auth | PARTIAL | PUSH 2–15 | Canonical consolidation PUSH 26; API hardening PUSH 42. |
+| Original 52 | 4 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Backend services | Real APIs and domain services behind UI | Backend | DB/auth | PARTIAL | PUSH 2–15 and PUSH 26 ownership consolidation | External API hardening remains PUSH 42. |
 | Original 52 | 5 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Database and migrations | Reproducible schema, migration and rollback state | Database | Environment | PARTIAL | PUSH 2 and release reports | Deterministic CI/migration gate PUSH 24. |
 | Original 52 | 6 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Authentication and users | Secure sessions, users and role routing | Identity | DB | PARTIAL | Supabase auth; PUSH 2/15 | Enterprise SSO/service accounts PUSH 41. |
 | Original 52 | 7 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Organizations/sites/tenants | Organization → site → camera/user hierarchy and isolation | Tenancy | Auth/RLS | PARTIAL | Observer sites/memberships; PUSH 14–15 | Enterprise isolation proof PUSH 41. |
@@ -89,7 +91,7 @@ Source confidence: requirement intent `MEDIUM`; exact original title `LOW/UNRESO
 | Original 52 | 24 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Tracking | Stable IDs, duration and trajectory | Tracking | Person detection | DONE | PUSH 5 | Multi-camera/Re-ID remains separate and consent-gated. |
 | Original 52 | 25 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Zones and line crossing | Entry/exit, restricted zones and direction | Spatial | Tracking/config | DONE | PUSH 5 | Broader site templates/pilot validation. |
 | Original 52 | 26 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Identity/cross-camera | Known/unknown and cross-camera correlation | Identity | Legal/quality | PARTIAL | Incident correlation; identity restrictions | Consent/legal gate and future scoped implementation. |
-| Original 52 | 27 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Event schema | Canonical normalized Event with provenance | Events | Detection | DONE | PUSH 3–4 | Consolidate legacy paths PUSH 26. |
+| Original 52 | 27 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Event schema | Canonical normalized Event with provenance | Events | Detection | DONE | PUSH 3–4 plus PUSH 26 ownership/compatibility boundary | Continue real-event and scale regression. |
 | Original 52 | 28 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Incident engine | Correlation, lifecycle, timeline and idempotency | Incidents | Events | DONE | PUSH 6 | Scale/operations regression PUSH 38. |
 | Original 52 | 29 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Context/time/schedules | Site, zone, time and expected-hours context | Context | Events/site config | DONE | PUSH 8–9 | Validate across external sites. |
 | Original 52 | 30 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Memory/baseline | Per-site/camera baseline and safe learning | Learning | Real history | DONE | PUSH 8/11 | Representative long-run metrics PUSH 28/46–49. |
@@ -150,7 +152,7 @@ Source confidence: requirement intent `MEDIUM-HIGH` because the current request 
 | Source | No. | Original name | Normalized requirement | Domain | Dependencies | Current status | Current implementation / canonical PUSH | Remaining work |
 |---|---:|---|---|---|---|---|---|---|
 | Technical/DD 16 | 1 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Audit and architecture | Evidence-based architecture/repository baseline | DD | None | DONE | PUSH 1–2 | Keep current; CI hardening PUSH 24. |
-| Technical/DD 16 | 2 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Canonical contracts | One source/event/incident/risk contract | Architecture | Audit | PARTIAL | PUSH 4/6/9/14 | Legacy retirement PUSH 26. |
+| Technical/DD 16 | 2 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Canonical contracts | One source/event/incident/risk contract | Architecture | Audit | DONE | PUSH 4/6/9/14 plus PUSH 26 executable owner registry and retirement gates | Maintain compatibility register until separately authorized consumers retire. |
 | Technical/DD 16 | 3 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Connector/Gateway package | Shared deployable edge package | Edge | Camera contracts | PARTIAL | PUSH 16 | E2E PUSH 16; hardening PUSH 17. |
 | Technical/DD 16 | 4 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Device provisioning | Identity, enrollment, certificates and rotation | Device security | Shared package | PARTIAL | PUSH 16 lifecycle proof | PUSH 17–18. |
 | Technical/DD 16 | 5 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] OTA and rollback | Signed remote updates and recovery | Fleet | Identity/package | DONE | PUSH 19 shared Ed25519 OTA, staged canary and isolated automatic rollback | Continue Production key custody and bounded real canary evidence. |

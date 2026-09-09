@@ -47,6 +47,7 @@
     "qa:digital-observer-camera-connections": "node --test scripts/qa/check-digital-observer-camera-connection-layer.mjs",
     "qa:digital-observer-camera-connections-production": "node scripts/qa/verify-production-camera-connection-layer.mjs",
     "qa:digital-observer-camera-onboarding": "node --test scripts/qa/check-digital-observer-camera-onboarding.mjs",
+    "qa:digital-observer-domain-consolidation": "node scripts/qa/check-digital-observer-domain-consolidation.mjs",
     "qa:software-connector": "node --test scripts/qa/check-software-connector.mjs",
     "qa:software-connector-production": "node scripts/qa/verify-production-software-connector.mjs",
     "qa:digital-observer-camera-onboarding-production": "node scripts/qa/verify-production-camera-onboarding.mjs",

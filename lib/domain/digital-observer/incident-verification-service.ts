@@ -8,6 +8,7 @@ import {
   type VerificationStatus
 } from "./incident-verification-engine";
 import type { BaselineMaturity, CanonicalRiskInput, RiskBand, RiskDecision, RiskEvaluation } from "./risk-decision-engine";
+import { DIGITAL_OBSERVER_INCIDENT_VERSION } from "./canonical-domain";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any -- dynamic Supabase tables do not have generated database types in this repository.
 type SupabaseLike = any;
@@ -335,7 +336,7 @@ export async function evaluatePersistedIncidentVerification(input: {
   const { db, observerSiteId, incidentId } = input;
   const incidentResult = await db.from("observer_correlated_events")
     .select("id,observer_site_id,status,provenance,primary_camera_source_id,involved_camera_ids,involved_track_ids,related_event_ids,metadata,latest_risk_evaluation_id")
-    .eq("id", incidentId).eq("observer_site_id", observerSiteId).eq("correlation_version", "do-track-v1").single();
+    .eq("id", incidentId).eq("observer_site_id", observerSiteId).eq("correlation_version", DIGITAL_OBSERVER_INCIDENT_VERSION).single();
   if (incidentResult.error || !incidentResult.data?.latest_risk_evaluation_id) {
     throw new Error("PERSISTED_INCIDENT_RISK_UNAVAILABLE");
   }

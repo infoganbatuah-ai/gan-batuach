@@ -3,6 +3,7 @@ import "server-only";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/lib/supabase/types";
 import type { CanonicalInvestigationQuery } from "./investigation-query";
+import { DIGITAL_OBSERVER_INCIDENT_VERSION } from "./canonical-domain";
 import {
   assembleInvestigationResults,
   type InvestigationClipRow,
@@ -45,7 +46,7 @@ export async function searchDigitalObserverInvestigation(input: {
   let incidents = input.db.from("observer_correlated_events" as never)
     .select("id,observer_site_id,status,title,summary,opened_at,last_activity_at,closed_at,primary_camera_source_id,involved_camera_ids,involved_track_ids,related_event_ids,provenance,correlation_version,timeline_summary,current_risk_score,peak_risk_score,current_risk_band,risk_evaluation_confidence,current_decision,current_verification_status,verification_classification,verification_confidence,final_decision,final_decision_confidence,current_feedback_label,current_ground_truth_label,metadata")
     .eq("observer_site_id", query.observerSiteId)
-    .eq("correlation_version", "do-track-v1")
+    .eq("correlation_version", DIGITAL_OBSERVER_INCIDENT_VERSION)
     .in("provenance", [...query.provenance])
     .lt("opened_at", query.toExclusive)
     .gte("last_activity_at", query.fromInclusive);

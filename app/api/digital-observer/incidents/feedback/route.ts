@@ -2,6 +2,7 @@ import { z } from "zod";
 import { fail, handleSafeRouteError, ok } from "@/lib/api";
 import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
 import { createDigitalObserverAdminDataClient, hasObserverAdminClaim } from "@/lib/domain/digital-observer/admin-access";
+import { DIGITAL_OBSERVER_EVENT_PROVENANCE, DIGITAL_OBSERVER_INCIDENT_VERSION } from "@/lib/domain/digital-observer/canonical-domain";
 import {
   buildFeedbackQualityMetrics,
   DIGITAL_OBSERVER_FEEDBACK_LABELS,
@@ -70,7 +71,7 @@ export async function GET(request: Request) {
 
     const incident = await dataClient.from("observer_correlated_events" as never)
       .select("id,observer_site_id,provenance,current_feedback_label,latest_feedback_revision_id,feedback_updated_at,current_ground_truth_label,latest_ground_truth_review_id,ground_truth_reviewed_at")
-      .eq("id", incidentId).eq("correlation_version", "do-track-v1").maybeSingle();
+      .eq("id", incidentId).eq("correlation_version", DIGITAL_OBSERVER_INCIDENT_VERSION).maybeSingle();
     const incidentRow = incident.data as Row | null;
     if (!incidentRow?.observer_site_id) return fail("התקרית לא נמצאה.", 404);
     const site = await getObserverSiteAccess(dataClient, accessProfile, String(incidentRow.observer_site_id));
@@ -160,12 +161,12 @@ export async function POST(request: Request) {
     if (payload.action === "submit") {
       const incident = await dataClient.from("observer_correlated_events" as never)
         .select("id,observer_site_id,primary_camera_source_id,provenance")
-        .eq("id", payload.incident_id).eq("correlation_version", "do-track-v1").maybeSingle();
+        .eq("id", payload.incident_id).eq("correlation_version", DIGITAL_OBSERVER_INCIDENT_VERSION).maybeSingle();
       const incidentRow = incident.data as Row | null;
       if (!incidentRow?.observer_site_id) return fail("התקרית לא נמצאה.", 404);
       const site = await getObserverSiteAccess(dataClient, accessProfile, String(incidentRow.observer_site_id), { manage: true });
       if (!site) return fail("אין הרשאה לשמור משוב לתקרית הזאת.", 403);
-      if (incidentRow.provenance !== "REAL_CAMERA_AI") return fail("משוב Production נרשם רק לתקרית מצלמה אמיתית.", 409);
+      if (incidentRow.provenance !== DIGITAL_OBSERVER_EVENT_PROVENANCE) return fail("משוב Production נרשם רק לתקרית מצלמה אמיתית.", 409);
 
       const result = await callRpc(session.supabase, "record_digital_observer_incident_feedback", {
         requested_incident_id: payload.incident_id,

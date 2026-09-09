@@ -1,4 +1,5 @@
 import { matchesDailyWindow, type CanonicalInvestigationQuery } from "./investigation-query";
+import { isCanonicalDigitalObserverIncident } from "./canonical-domain";
 
 type UnknownRecord = Record<string, unknown>;
 
@@ -254,7 +255,7 @@ function incidentMatches(row: InvestigationIncidentRow, query: CanonicalInvestig
   const evidenceStates = events.filter((event) => strings(row.related_event_ids).includes(event.id)).map((event) => event.evidence.state);
   return row.observer_site_id === query.observerSiteId
     && query.provenance.includes(String(row.provenance) as CanonicalInvestigationQuery["provenance"][number])
-    && row.correlation_version === "do-track-v1"
+    && isCanonicalDigitalObserverIncident(row)
     && (!query.cameraSourceIds.length || query.cameraSourceIds.some((id) => cameras.includes(id)))
     && (!query.incidentStatuses.length || query.incidentStatuses.includes(String(row.status) as CanonicalInvestigationQuery["incidentStatuses"][number]))
     && (!query.riskBands.length || query.riskBands.includes(String(row.current_risk_band) as CanonicalInvestigationQuery["riskBands"][number]))

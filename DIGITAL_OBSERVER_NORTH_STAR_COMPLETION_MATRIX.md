@@ -1,6 +1,6 @@
 # DIGITAL OBSERVER — NORTH-STAR COMPLETION MATRIX
 
-Date: 2026-09-09
+Date: 2026-09-10
 Roadmap boundary: the existing canonical 52 PUSHES only.
 
 This register maps every requested North-Star capability to an existing canonical owner and a final proof obligation. Status is deliberately evidence-based: code or UI alone is not `DONE + REAL PROOF`.
@@ -13,6 +13,7 @@ This register maps every requested North-Star capability to an existing canonica
 |---|---|---|---|---|
 | Fleet Management count ledger | Reported aggregate: `22 DONE / 15 implemented / 70 foundation / 18 partial / 64 not started / 1 external` | Matrix truth retained: `24 / 20 / 69 / 17 / 59 / 1` | PUSH 23 reconciliation | PUSH 22 report arithmetic did not match its committed 190-row matrix. No row-level transition supported the reported regression, so no capability was silently downgraded. |
 | Camera Health | Previous: PARTIAL | New: IMPLEMENTED — NEEDS REAL PROOF | PUSH 23 canonical health contract | Added bounded dimensions, expiry, expected/capacity denominator, common-cause root cause, flapping, API/UI and nine deterministic failure cases. Real destructive fault proof remains outstanding. |
+| Canonical domain consolidation | No row status transition | No row status transition | PUSH 26 ownership/compatibility closure | Added executable ownership manifest, unified Product Incident discriminator, explicit mock/shared-product provenance, retirement register and regression evidence. This strengthens existing rows without claiming new real-world capability proof. |
 
 ## CAMERA PLATFORM
 
@@ -275,11 +276,11 @@ The counts below are generated from the rows above during closure QA. They descr
 
 | Status | Count |
 |---|---:|
-| `DONE + REAL PROOF` | 22 |
-| `IMPLEMENTED — NEEDS REAL PROOF` | 15 |
-| `FOUNDATION` | 70 |
-| `PARTIAL` | 18 |
-| `NOT STARTED` | 64 |
+| `DONE + REAL PROOF` | 24 |
+| `IMPLEMENTED — NEEDS REAL PROOF` | 21 |
+| `FOUNDATION` | 69 |
+| `PARTIAL` | 16 |
+| `NOT STARTED` | 59 |
 | `EXTERNAL COVERAGE GAP` | 1 |
 | **TOTAL** | **190** |
 
