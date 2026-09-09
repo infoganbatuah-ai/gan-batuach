@@ -14,6 +14,11 @@ This register maps every requested North-Star capability to an existing canonica
 | Fleet Management count ledger | Reported aggregate: `22 DONE / 15 implemented / 70 foundation / 18 partial / 64 not started / 1 external` | Matrix truth retained: `24 / 20 / 69 / 17 / 59 / 1` | PUSH 23 reconciliation | PUSH 22 report arithmetic did not match its committed 190-row matrix. No row-level transition supported the reported regression, so no capability was silently downgraded. |
 | Camera Health | Previous: PARTIAL | New: IMPLEMENTED — NEEDS REAL PROOF | PUSH 23 canonical health contract | Added bounded dimensions, expiry, expected/capacity denominator, common-cause root cause, flapping, API/UI and nine deterministic failure cases. Real destructive fault proof remains outstanding. |
 | Canonical domain consolidation | No row status transition | No row status transition | PUSH 26 ownership/compatibility closure | Added executable ownership manifest, unified Product Incident discriminator, explicit mock/shared-product provenance, retirement register and regression evidence. This strengthens existing rows without claiming new real-world capability proof. |
+| Precision | Previous: FOUNDATION | New: IMPLEMENTED — NEEDS REAL PROOF | PUSH 28 benchmark engine | Added denominator-scoped precision, Wilson 95% interval, dataset/model/camera/Site scope and first reviewed real result; representative volume remains missing. |
+| Recall | Previous: FOUNDATION | New: IMPLEMENTED — NEEDS REAL PROOF | PUSH 28 benchmark engine | Added explicit FN opportunity contract and truthful non-measurable result when missed-event review is incomplete; representative blind review remains missing. |
+| False-positive rate | Previous: FOUNDATION | New: IMPLEMENTED — NEEDS REAL PROOF | PUSH 28 benchmark engine | Added categorized FP ledger and denominator/version scope; current reviewed real sample is only n=1. |
+| False-negative analysis | Previous: NOT STARTED | New: FOUNDATION | PUSH 28 benchmark engine | Expected-but-missing events are representable, but current Product data does not yet enumerate false negatives. |
+| Confidence calibration | Previous: FOUNDATION | New: IMPLEMENTED — NEEDS REAL PROOF | PUSH 28 benchmark engine | Added confidence bins/ECE and insufficiency gate; current real sample is too small for calibration. |
 
 ## CAMERA PLATFORM
 
@@ -241,12 +246,12 @@ This register maps every requested North-Star capability to an existing canonica
 | Feedback | DONE + REAL PROOF | Authorized user feedback path | 11 | External review coverage | Real pilot feedback cohort |
 | Reviewed Ground Truth | DONE + REAL PROOF | Review lifecycle and calibration sample | 11 | Representative volume | Blinded reviewed dataset |
 | Calibration | IMPLEMENTED — NEEDS REAL PROOF | Human-gated calibration metrics | 11, 28 | Statistical sample size and drift | Reproducible real calibration report |
-| Precision | FOUNDATION | Metric contract exists | 28, 49 | Representative labels | Confidence-bounded benchmark |
-| Recall | FOUNDATION | Metric contract exists | 28, 49 | Representative missed-event labels | Confidence-bounded benchmark |
-| False-positive rate | FOUNDATION | Feedback categories and metric foundation | 11, 28, 49 | Sufficient reviewed sample | Cohort rate with denominator and interval |
-| False-negative analysis | NOT STARTED | No systematic missed-event capture | 28, 46, 47, 49 | Sampling/review design | Representative blind-review study |
+| Precision | IMPLEMENTED — NEEDS REAL PROOF | Reproducible PUSH 28 metric with denominator/Wilson interval; first reviewed real result is 1/1 only | 28, 49 | Representative labels | Confidence-bounded benchmark |
+| Recall | IMPLEMENTED — NEEDS REAL PROOF | FN opportunity contract and truthful `NOT MEASURABLE` result | 28, 49 | Representative missed-event labels | Confidence-bounded benchmark |
+| False-positive rate | IMPLEMENTED — NEEDS REAL PROOF | Categorized FP metric with dataset/model scope | 11, 28, 49 | Sufficient reviewed sample | Cohort rate with denominator and interval |
+| False-negative analysis | FOUNDATION | Expected-but-missing records are representable; no systematic missed-event capture yet | 28, 46, 47, 49 | Sampling/review design | Representative blind-review study |
 | Latency quality | PARTIAL | Event/decision/playback timestamps and telemetry | 27, 28, 38, 49 | End-to-end real cohorts | Percentile latency under target load |
-| Confidence calibration | FOUNDATION | Confidence separated from risk/verification | 9, 10, 11, 28 | Reliability diagrams and cohorts | Versioned representative calibration |
+| Confidence calibration | IMPLEMENTED — NEEDS REAL PROOF | Confidence bins/ECE, sample gate and semantic separation implemented | 9, 10, 11, 28 | Representative reliability diagrams and cohorts | Versioned representative calibration |
 | Real pilot datasets | NOT STARTED | Current home is reference, not external pilot dataset | 28, 46, 47, 48 | Consent and data collection | Approved versioned pilot datasets |
 | No misleading metrics | IMPLEMENTED — NEEDS REAL PROOF | Sample-size/status rules in quality and telemetry docs | 11, 27, 28, 49 | Independent reporting audit | Published metrics trace to denominators/evidence |
 
@@ -277,10 +282,10 @@ The counts below are generated from the rows above during closure QA. They descr
 | Status | Count |
 |---|---:|
 | `DONE + REAL PROOF` | 24 |
-| `IMPLEMENTED — NEEDS REAL PROOF` | 21 |
-| `FOUNDATION` | 69 |
+| `IMPLEMENTED — NEEDS REAL PROOF` | 25 |
+| `FOUNDATION` | 66 |
 | `PARTIAL` | 16 |
-| `NOT STARTED` | 59 |
+| `NOT STARTED` | 58 |
 | `EXTERNAL COVERAGE GAP` | 1 |
 | **TOTAL** | **190** |
 

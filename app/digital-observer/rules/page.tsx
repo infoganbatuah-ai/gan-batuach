@@ -8,6 +8,7 @@ import { NaturalLanguageWatchRuleBuilder } from "@/components/digital-observer/n
 import { requireDigitalObserverUser } from "@/lib/domain/digital-observer/access";
 import { cameraReportsLocalEventInsights, digitalObserverEdgeAiPolicy } from "@/lib/domain/digital-observer/edge-ai-policy";
 import { getDigitalObserverServiceReadiness } from "@/lib/domain/digital-observer/service-readiness";
+import { learningCameraCoverage, learningMetricMeaning } from "@/lib/domain/digital-observer/learning-coverage";
 import { formatObserverDate, loadObserverRuntime, observerEventLabel, observerModeForSite, observerSignalMatchesCamera, observerStatusLabel, selectObserverSite } from "@/lib/domain/digital-observer/runtime";
 
 function learningProgress(startedAt?: string | null, targetDays = 30) {
@@ -30,7 +31,7 @@ function baselineLabel(value: string) {
   return labels[value] ?? value;
 }
 
-function baselineSummary(baseline: Record<string, unknown>) {
+function baselineSummary(baseline: Record<string, unknown>, expectedCameraCount: number) {
   const value = baseline.baseline_value && typeof baseline.baseline_value === "object" ? baseline.baseline_value as Record<string, unknown> : {};
   const sourceSummary = baseline.source_summary && typeof baseline.source_summary === "object" ? baseline.source_summary as Record<string, unknown> : {};
   const realContext = value.real_event_context && typeof value.real_event_context === "object" ? value.real_event_context as Record<string, unknown> : null;
@@ -49,7 +50,7 @@ function baselineSummary(baseline: Record<string, unknown>) {
     const light = Number(value.average_luminance_score || 0);
     const motionText = motion >= 0.55 ? "פעילות גבוהה יחסית" : motion >= 0.22 ? "פעילות בינונית" : "פעילות נמוכה";
     const lightText = light >= 0.62 ? "תאורה חזקה" : light >= 0.28 ? "תאורה רגילה" : "תאורה חלשה";
-    return `נאספו ${samples} דגימות מקומיות מ-${cameras} מצלמות פעילות. כרגע נמדדות ${motionText} ו${lightText}.`;
+    return `נאספו ${samples} מחזורי דגימה מקומיים. כיסוי מצלמות: ${cameras}/${expectedCameraCount || 0}. כרגע נמדדות ${motionText} ו${lightText}.`;
   }
   return "הדפוס נבנה מאירועים שנקלטו ומשוב שאומת באתר.";
 }
@@ -87,6 +88,7 @@ export default async function DigitalObserverRulesPage() {
   const dismissedSignals = signals.filter((signal) => signal.review_status === "dismissed");
   const reviewCoverage = signals.length ? Math.round((reviewedSignals.length / signals.length) * 100) : 0;
   const baselines = site ? runtime.baselines.filter((item) => item.observer_site_id === site.id) : [];
+  const cameraCoverage = learningCameraCoverage(cameras, baselines);
   const learning = site ? runtime.learningProfiles.find((item) => item.observer_site_id === site.id) : null;
   const targetDays = Number(site?.learning_target_days || 30);
   const progress = learningProgress(site?.learning_started_at, targetDays);
@@ -156,7 +158,11 @@ export default async function DigitalObserverRulesPage() {
               <strong className="do-badge info">{baselines.length} דפוסים</strong>
             </summary>
             <div className="do-observer-insight-content">
-              {baselines.length ? <div className="do-insight-grid">{baselines.map((baseline) => <div key={baseline.id}><Sparkles /><span><strong>{baselineLabel(baseline.baseline_type)}</strong><small>{baselineSummary(baseline)}</small><small>{baseline.learning_maturity === "mature" ? "נלמד" : `איסוף נתונים · ${Math.round(Number(baseline.confidence_level || 0) * 100)}% ביטחון`}</small></span></div>)}</div> : <div className="do-empty"><BrainCircuit /><strong>אין עדיין קו בסיס</strong><span>המערכת לא ממציאה שגרה. הנתונים ייאספו אחרי חיבור מצלמה.</span></div>}
+              <div className="do-notice info"><Camera /><span><strong>כיסוי למידה: {cameraCoverage.sampledCameraCount}/{cameraCoverage.expectedCameraCount} מצלמות פיזיות צפויות</strong><small>מספר דגימות גדול ממצלמה אחת אינו מעיד על למידה אתרית מלאה.</small></span></div>
+              {baselines.length ? <div className="do-insight-grid">{baselines.map((baseline) => {
+                const meaning = learningMetricMeaning(baseline);
+                return <div key={baseline.id}><Sparkles /><span><strong>{baselineLabel(baseline.baseline_type)}</strong><small>{baselineSummary(baseline, cameraCoverage.expectedCameraCount)}</small><small>{meaning.measurable ? `${meaning.label} · ${Math.round(Number(baseline.confidence_level || 0) * 100)}%` : meaning.label}</small><small>{meaning.explanation}</small></span></div>;
+              })}</div> : <div className="do-empty"><BrainCircuit /><strong>אין עדיין קו בסיס</strong><span>המערכת לא ממציאה שגרה. הנתונים ייאספו אחרי חיבור מצלמה.</span></div>}
               <div className="do-observer-rule-preview">
                 <span><Radar /><b>{rules[0]?.title || "כלל תצפית ראשון טרם הוגדר"}</b></span>
                 <strong className={rules[0]?.active ? "do-badge good" : "do-badge warn"}>{rules[0]?.active ? "פעיל" : "ממתין להגדרה"}</strong>

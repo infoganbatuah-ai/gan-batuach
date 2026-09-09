@@ -9,6 +9,9 @@
     "lib/domain/digital-observer/risk-decision-engine.ts",
     "lib/domain/digital-observer/risk-decision-service.ts",
     "lib/domain/digital-observer/feedback-calibration.ts",
+    "lib/domain/digital-observer/quality-benchmark.ts",
+    "lib/domain/digital-observer/quality-benchmark-data.ts",
+    "lib/domain/digital-observer/learning-coverage.ts",
     "lib/domain/digital-observer/watch-rule-compiler.ts",
     "lib/domain/digital-observer/watch-rule-service.ts",
     "lib/domain/digital-observer/investigation-query.ts",
@@ -21,7 +24,10 @@
     "app/api/digital-observer/investigation/route.ts",
     "app/api/digital-observer/watch-rules/route.ts",
     "app/api/digital-observer/events/review/route.ts",
-    "app/api/digital-observer/event-clips/[id]/media/route.ts"
+    "app/api/digital-observer/event-clips/[id]/media/route.ts",
+    "app/api/digital-observer/admin/quality/route.ts",
+    "app/digital-observer/admin/quality/page.tsx",
+    "app/digital-observer/rules/page.tsx"
   ],
   "domain": [
     { "name": "event-journal", "args": ["scripts/qa/check-event-journal.mjs"] },
@@ -40,6 +46,7 @@
     { "name": "risk-decision", "args": ["scripts/qa/check-digital-observer-risk-decision.mjs"] },
     { "name": "verification", "args": ["scripts/qa/check-digital-observer-incident-verification.mjs"] },
     { "name": "feedback-calibration", "args": ["scripts/qa/check-digital-observer-feedback-calibration.mjs"] },
+    { "name": "quality-benchmark", "args": ["scripts/qa/check-digital-observer-quality-benchmark.mjs"] },
     { "name": "watch-rules", "args": ["scripts/qa/check-digital-observer-watch-rule-compiler.mjs"] },
     { "name": "investigation", "args": ["--test", "scripts/qa/check-digital-observer-investigation.mjs"] }
   ],

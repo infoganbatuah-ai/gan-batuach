@@ -1,6 +1,6 @@
 # DIGITAL OBSERVER — CANONICAL MASTER ROADMAP
 
-Date: 2026-09-10 (PUSH 26 canonical domain consolidation; original reconciliation retained below)
+Date: 2026-09-10 (PUSH 28 quality benchmark implementation; original reconciliation retained below)
 Repository base reviewed: `dc50fca` on `main`; the scoped closure commit is recorded in the final PUSH 17D handoff.
 Purpose: the canonical 52-push roadmap. The user's PUSH 17 authorization expands its product scope; this document does not authorize deployments or future pushes.
 
@@ -10,9 +10,9 @@ Digital Observer has completed the canonical product path from audit through Dig
 
 The canonical roadmap contains **52 pushes**. It preserves the existing numbers 1–16 and continues through production infrastructure, pilots, commercial proof, technical due diligence, and acquisition/exit. Later work may be executed early only when its `EXECUTION MODE` says `CAN EXECUTE EARLY`; its canonical number never changes.
 
-Current sequential position: **PUSH 26 — Canonical Domain Consolidation and Legacy Retirement**, `DONE` after evidence-based ownership mapping, executable canonical contracts, explicit compatibility boundaries and full domain/security regression.
-Current blocker: none from PUSH 26. Historical kindergarten/shared-product compatibility remains bounded by documented retirement gates; no uncertain data was deleted.
-PUSH 24/25/27 remain DONE EARLY and were dependency-revalidated, not rebuilt. The next not-yet-completed sequential item is PUSH 28.
+Current sequential position: **PUSH 28 — Quality Measurement and Benchmark Program**, `DONE`. The implementation adds versioned reviewed datasets, reproducible runs, denominator-scoped metrics, truthful non-measurable states and learning-coverage semantics without changing Production thresholds.
+Current blocker: none for PUSH 28. Representative multi-camera/pilot evidence remains future North-Star proof, not an internal PUSH 28 defect. Historical kindergarten/shared-product compatibility remains bounded by documented retirement gates; no uncertain data was deleted.
+PUSH 24/25/27 remain DONE EARLY and were dependency-revalidated, not rebuilt. PUSH 29 is next and has not started.
 
 ## Status semantics
 
@@ -39,6 +39,8 @@ PUSH 21     DONE — encrypted durable store-and-forward and bounded resync
 PUSH 22–23  DONE
 PUSH 24/25/27 DONE EARLY
 PUSH 26     DONE — canonical domain ownership and bounded legacy compatibility
+PUSH 28     DONE — quality benchmark and Ground Truth measurement program
+PUSH 29     NEXT — not started; requires a separate instruction
 PUSH 50     documentation-only preparation permitted only by separate instruction
 ```
 
@@ -222,7 +224,7 @@ Source shorthand used below: `52` = Original 52, `S16` = Original 16 — Strateg
 | 25 | Security, RLS and Privacy Hardening | Close tenant, secret, signed-media, rate-limit, audit and privacy gaps. | 52/47–48; S16/5,13; T16/12 | None; do not modify frozen connector contracts | CAN EXECUTE EARLY | DONE EARLY | Independent tenant/RLS/storage/secret tests pass; critical/high findings closed or formally accepted; frozen areas untouched. |
 | 26 | Canonical Domain Consolidation and Legacy Retirement | Remove duplicated Event/Incident/observer paths through measured migration. | 52/2–7,27–28; T16/2 | PUSH 16,24–25 | SEQUENTIAL | DONE | One source of truth remains per domain; compatibility paths are explicit and bounded; deterministic domain/security QA and the 11-camera live runtime regression pass. |
 | 27 | Product Observability and Operational Telemetry | Expose end-to-end camera, inference, event, decision, notification and resource telemetry. | 52/42–45; T16/7,15; DF45/44 | Existing metrics; frozen-area adapters only via stable interfaces | CAN EXECUTE EARLY | DONE EARLY | Dashboards/alerts show defined SLOs from current services; telemetry failures do not affect processing; no frozen runtime semantics changed. |
-| 28 | Quality Measurement and Benchmark Program | Measure precision, recall, FP/FN, latency and review coverage by model/site/event. | 52/43; S16/11,15; T16/15 | PUSH 11; representative labeled product/pilot data | SEQUENTIAL | NOT STARTED | Versioned representative dataset and ground truth produce reproducible metrics with confidence intervals and drift gates. |
+| 28 | Quality Measurement and Benchmark Program | Measure precision, recall, FP/FN, latency and review coverage by model/site/event. | 52/43; S16/11,15; T16/15 | PUSH 11; representative labeled product/pilot data | SEQUENTIAL | DONE | Versioned representative dataset and ground truth produce reproducible metrics with confidence intervals and drift gates. |
 | 29 | Native Events and Cheap Preprocessing | Use camera/DVR metadata, motion and scene filters before expensive AI. | 52/39; T16/8; DF45/30–32 | PUSH 23; connector/Gateway hardening; adapter evidence | SEQUENTIAL | NOT STARTED | Real source metadata/preprocessing reduces AI work without reducing measured critical-event recall beyond approved limit. |
 | 30 | Adaptive Sampling and Candidate Events | Generate bounded candidates using freshness, zones, motion and priority. | 52/18,39; T16/8; DF45/33–34 | PUSH 23,28–29; product/pilot metrics | SEQUENTIAL | NOT STARTED | Real workload demonstrates adaptive sampling and candidate recall/latency against fixed baseline. |
 | 31 | Durable AI Job Queue and Portable Workers | Decouple stream handling from prioritized, retryable inference jobs. | 52/40,45; T16/9; DF45/35–36,40 | PUSH 24,29–30; scale foundation | SEQUENTIAL | NOT STARTED | Durable queue survives worker loss, enforces tenant priority/backpressure and runs identical worker contract in two environments. |
