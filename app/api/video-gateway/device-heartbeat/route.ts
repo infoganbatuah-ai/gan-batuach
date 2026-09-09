@@ -100,6 +100,7 @@ export async function POST(request: Request) {
       update_contract: payload.runtime.update_contract,
       update_state: payload.runtime.update_state,
       known_good_version: payload.runtime.known_good_version,
+      offline_buffer: payload.runtime.offline_buffer,
       runtime_contract: payload.runtime.contract,
       outbound_only: true,
       arbitrary_shell_commands: false,

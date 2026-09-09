@@ -209,11 +209,16 @@ try { currentConfigVersion = Number(JSON.parse(readFileSync(configCachePath, "ut
 
 async function heartbeat() {
   const health = await fetch(`${gatewayUrl}/health`, { signal: AbortSignal.timeout(5_000) }).then((response) => response.json());
+  let offlineBuffer = { contract: "observer-offline-buffer-v1", state: "UNKNOWN", queue_depth: null, queue_bytes: null, oldest_item_age_ms: null, retry_count: null, failed_items: null, disk_pressure: "UNKNOWN" };
+  try {
+    const local = JSON.parse(readFileSync(`${dataRoot}/journal-status.json`, "utf8")).offline_buffer;
+    if (local?.contract === "observer-offline-buffer-v1") offlineBuffer = Object.fromEntries(["contract","state","queue_depth","queue_bytes","oldest_item_age_ms","retry_count","failed_items","disk_pressure"].map(key => [key, local[key] ?? null]));
+  } catch {}
   let diskFreeMb = null;
   try { const disk = statfsSync(dataRoot); diskFreeMb = Math.floor((disk.bavail * disk.bsize) / (1024 * 1024)); } catch {}
   const lastFrameAt = channels.map((channel) => Date.parse(channel.last_frame_at || channel.last_seen_at || "")).filter(Number.isFinite).sort((a, b) => b - a)[0];
   const payload = {
-    heartbeat_id: crypto.randomUUID(), gateway_id: gatewayId, observer_site_id: observerSiteId, observed_at: new Date().toISOString(), runtime: edgeRuntime,
+    heartbeat_id: crypto.randomUUID(), gateway_id: gatewayId, observer_site_id: observerSiteId, observed_at: new Date().toISOString(), runtime: { ...edgeRuntime, offline_buffer: offlineBuffer },
     health: {
       status: health.ok === true && (health.mediaHeartbeat?.stalledRelays || 0) === 0 ? "HEALTHY" : "DEGRADED",
       uptime_seconds: Math.floor(uptime()), cpu_percent: Math.max(0, Math.min(100, Math.round((loadavg()[0] || 0) * 100))),
@@ -295,6 +300,7 @@ if (discoveryEnabled) {
   await discoverWithRetry("initial");
   releaseJournalOwner = acquireJournalOwnerLock();
   stopJournal = startJournalLoop({ gatewayUrl, gatewaySecret, databasePath: `${dataRoot}/journal-outbox.sqlite`,
+    observerSiteId, deviceId: gatewayId, tenantId: observerSiteId,
     personConfirmations: 2, cameraFilter: evidenceTestCameraId, pollIntervalMs: evidenceTestPollIntervalMs,
     spatialTrace: spatialTraceEnabled,
     report: (status) => writeFileSync(`${dataRoot}/journal-status.json`, JSON.stringify(status), { mode: 0o600 }) });

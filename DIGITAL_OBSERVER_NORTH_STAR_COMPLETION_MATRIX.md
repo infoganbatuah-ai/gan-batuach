@@ -204,8 +204,8 @@ This register maps every requested North-Star capability to an existing canonica
 | DVR session recovery | IMPLEMENTED — NEEDS REAL PROOF | PUSH 18B recovered current Gateway | 20, 23, 38 | Automated repeatable qualification | Induced session failure and recovery |
 | Relay recovery | IMPLEMENTED — NEEDS REAL PROOF | PUSH 20 bounded relay replacement/backoff and isolated relay-kill recovery QA | 20, 23, 38 | Controlled real fault qualification | Real relay-loss recovery proof |
 | Stale-frame detection | IMPLEMENTED — NEEDS REAL PROOF | PUSH 20 detects non-progress despite live process and recovers in isolated QA | 20, 23, 27, 38 | Product SLO and controlled real frozen-stream proof | Frozen-stream fault test |
-| Offline buffering | NOT STARTED | No full durable offline buffer | 21 | Bounded encrypted queue | Real offline interval proof |
-| Resync | NOT STARTED | No full replay/resync qualification | 21 | Ordered idempotent replay | Disconnect/reconnect no-duplicate proof |
+| Offline buffering | IMPLEMENTED — NEEDS REAL PROOF | PUSH 21 encrypted SQLite/WAL queue survives restart and retains Events, evidence/media work and operational state in isolated outage QA | 21, 38 | Natural real-camera outage Event and longer disk/retention qualification | Real offline interval proof |
+| Resync | IMPLEMENTED — NEEDS REAL PROOF | PUSH 21 bounded per-ordering-key resync, ACK retry, idempotency, tenant/rebind/revocation and backfill-safety QA | 21, 38 | Natural real-camera Event/UI resync proof | Disconnect/reconnect no-duplicate proof |
 | Camera Health reliability | PARTIAL | Source/processing/playback dimensions now distinct | 23, 27 | Full engine and alert SLO | Real disconnect/freeze/recovery proof |
 | Component health | IMPLEMENTED — NEEDS REAL PROOF | Observability model and current edge health | 22, 23, 27 | Fleet coverage and alerting | Multi-component fault exercise |
 | 24/7 stability | NOT STARTED | No qualifying long-duration run | 38 | Soak plan and execution | Agreed-duration real soak |
