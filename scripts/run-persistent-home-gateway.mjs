@@ -204,6 +204,7 @@ async function discover() {
 }
 
 let currentConfigVersion = 0;
+let pendingCommandResults = [];
 const configCachePath = join(dataRoot, "connector-config.json");
 try { currentConfigVersion = Number(JSON.parse(readFileSync(configCachePath, "utf8")).version || 0); } catch {}
 
@@ -226,7 +227,7 @@ async function heartbeat() {
       camera_count: channels.filter((channel) => channel.status !== "unassigned").length, streaming_count: channels.filter((channel) => channel.status === "connected").length,
       last_frame_at: Number.isFinite(lastFrameAt) ? new Date(lastFrameAt).toISOString() : null,
       error_codes: []
-    }
+    }, command_results: pendingCommandResults.splice(0, 20)
   };
   const response = await signedPost("/api/video-gateway/device-heartbeat", payload, { deviceAccess: true });
   const next = response?.data?.config;
@@ -236,6 +237,22 @@ async function heartbeat() {
     writeFileSync(temporary, `${JSON.stringify(snapshot, null, 2)}\n`, { mode: 0o600 });
     renameSync(temporary, configCachePath);
     currentConfigVersion = snapshot.version;
+  }
+  const commands = Array.isArray(response?.data?.commands) ? response.data.commands : [];
+  for (const command of commands.slice(0, 20)) {
+    let resultCategory = "COMMAND_COMPLETED";
+    try {
+      if (Date.parse(command.expires_at || "") <= Date.now()) throw new Error("COMMAND_TTL_EXPIRED");
+      if (command.command === "HEALTH_PROBE") await fetch(`${gatewayUrl}/health`, { signal: AbortSignal.timeout(5_000) }).then(r => { if (!r.ok) throw new Error("HEALTH_PROBE_FAILED"); });
+      else if (command.command === "REDISCOVER_CAMERAS") await discover();
+      else if (command.command === "RECONNECT_CAMERAS") {
+        for (const channel of channels.filter(item => item.status !== "unassigned")) await fetch(`${gatewayUrl}/connector/command`, { method: "POST", headers: { "content-type": "application/json", "x-video-gateway-secret": gatewaySecret }, body: JSON.stringify({ id: `fleet-${crypto.randomUUID()}`, command: "RECONNECT_STREAM", stream_id: channel.gateway_stream_id, issued_at: new Date().toISOString(), expires_at: new Date(Date.now() + 60_000).toISOString() }), signal: AbortSignal.timeout(10_000) }).then(r => { if (!r.ok) throw new Error("RECONNECT_FAILED"); });
+      } else if (!["REFRESH_CONFIGURATION", "ASSIGN_UPDATE_CHANNEL", "INITIATE_APPROVED_UPDATE", "PAUSE_ROLLOUT"].includes(command.command)) throw new Error("COMMAND_REQUIRES_SERVICE_MANAGER");
+      else resultCategory = "COMMAND_ACCEPTED_BY_EXISTING_SUBSYSTEM";
+      pendingCommandResults.push({ command_id: command.id, state: "COMPLETED", result_category: resultCategory });
+    } catch (error) {
+      pendingCommandResults.push({ command_id: command.id, state: "FAILED", result_category: String(error?.message || "COMMAND_FAILED").replace(/[^A-Za-z0-9_.:-]/g, "_").slice(0, 80) });
+    }
   }
 }
 

@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- fleet command tables await generated database types. */
 import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { gatewayDeviceSessionAllows, verifyGatewayDeviceAccessToken } from "@/lib/domain/gateway-device-enrollment";
@@ -14,7 +15,7 @@ const heartbeatSchema = z.object({
   observed_at: z.string().datetime(),
   runtime: z.object({
     contract: z.literal("observer-edge-runtime-v1"),
-    device_type: z.enum(["SOFTWARE_CONNECTOR", "PHYSICAL_GATEWAY"]),
+    device_type: z.enum(["SOFTWARE_CONNECTOR", "PHYSICAL_GATEWAY", "ENTERPRISE_EDGE"]),
     installation_id: identifier,
     software_version: z.string().trim().min(1).max(80),
     build_sha: z.string().trim().min(1).max(80),
@@ -31,7 +32,12 @@ const heartbeatSchema = z.object({
     streaming_count: z.number().int().min(0).max(64),
     last_frame_at: z.string().datetime().nullable(),
     error_codes: z.array(z.string().trim().min(2).max(80).regex(/^[A-Za-z0-9_.:-]+$/)).max(20)
-  })
+  }),
+  command_results: z.array(z.object({
+    command_id: z.string().uuid(),
+    state: z.enum(["ACKNOWLEDGED", "COMPLETED", "FAILED"]),
+    result_category: z.string().trim().min(2).max(80).regex(/^[A-Za-z0-9_.:-]+$/)
+  }).strict()).max(20).default([])
 }).strict();
 
 function cloudSecret() {
@@ -60,7 +66,8 @@ export async function POST(request: Request) {
     if (enrollment.error || !enrollment.data) return fail("Connector identity was revoked.", 401);
 
     const previous = enrollment.data.metadata && typeof enrollment.data.metadata === "object" ? enrollment.data.metadata : {};
-    const enrolledDeviceType = previous.device_type === "SOFTWARE_CONNECTOR" ? "SOFTWARE_CONNECTOR" : "PHYSICAL_GATEWAY";
+    const enrolledDeviceType = ["SOFTWARE_CONNECTOR", "ENTERPRISE_EDGE"].includes(String(previous.device_type))
+      ? previous.device_type as "SOFTWARE_CONNECTOR" | "ENTERPRISE_EDGE" : "PHYSICAL_GATEWAY";
     if (enrollment.data.lifecycle_state && enrollment.data.lifecycle_state !== "ACTIVE") return fail("Connector identity was revoked.", 401);
     if (device.version === 2 && (device.deployment_profile !== enrollment.data.deployment_profile
       || device.credential_version !== enrollment.data.credential_version)) return fail("Connector session credential is stale.", 401);
@@ -88,6 +95,13 @@ export async function POST(request: Request) {
         revoked: false
       });
     }
+    for (const result of payload.command_results) {
+      const timestamps = result.state === "ACKNOWLEDGED" ? { acknowledged_at: payload.observed_at }
+        : result.state === "COMPLETED" ? { acknowledged_at: payload.observed_at, completed_at: payload.observed_at }
+          : { completed_at: payload.observed_at };
+      await admin.from("observer_edge_fleet_commands" as any).update({ state: result.state, result_category: result.result_category, ...timestamps })
+        .eq("id", result.command_id).eq("enrollment_id", enrollment.data.id).in("state", ["DELIVERED", "ACKNOWLEDGED"]);
+    }
     const metadata = {
       ...previous,
       device_type: payload.runtime.device_type,
@@ -114,6 +128,8 @@ export async function POST(request: Request) {
       .eq("id", enrollment.data.id).eq("status", "delivered").select("id").maybeSingle();
     if (updated.error || !updated.data) throw new Error("CONNECTOR_HEARTBEAT_WRITE_FAILED");
 
+    const pendingCommands = await admin.rpc("claim_observer_edge_fleet_commands" as any, { p_enrollment: enrollment.data.id, p_limit: 20 });
+    if (pendingCommands.error) throw new Error("FLEET_COMMAND_CLAIM_FAILED");
     return ok({
       status: "accepted",
       device_type: payload.runtime.device_type,
@@ -124,7 +140,10 @@ export async function POST(request: Request) {
         cameras: [],
         sampling_policy: { mode: "cloud_managed" }
       },
-      commands: [],
+      commands: (pendingCommands.data ?? []).map((command: any) => ({
+        id: command.id, command: command.command, parameters: command.safe_parameters,
+        issued_at: command.requested_at, expires_at: command.expires_at
+      })),
       revoked: false
     });
   } catch (error) {

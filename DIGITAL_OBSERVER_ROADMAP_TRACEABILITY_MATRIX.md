@@ -39,7 +39,8 @@ This file is the roadmap-facing index for the capability-level register in `DIGI
 - PUSH 19: DONE — signed isolated OTA and automatic known-good rollback proof.
 - PUSH 20: DONE — shared progress-aware supervision, bounded fault recovery and real DVR/Tapo recovery observation.
 - PUSH 21: DONE — encrypted durable store-and-forward, bounded resync and isolated outage/restart/idempotency/security proof.
-- PUSH 22: NEXT, NOT STARTED.
+- PUSH 22: DONE — canonical managed-edge inventory, health, scoped commands, support audit and synthetic scale QA.
+- PUSH 23: NEXT, NOT STARTED.
 - PUSH 24/25/27: DONE EARLY, subject to canonical dependency-sensitive revalidation.
 - PUSH 25 billing-role RLS HIGH finding remains open and is not hidden by this mapping.
 - `52/52 PUSHES DONE != PRODUCT COMPLETE`; a future North-Star Completion Audit is mandatory.
@@ -199,9 +200,9 @@ Source confidence: requirement intent `HIGH` for entries represented explicitly 
 | Digital-First 45 | 24 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Rollback | Atomic rollback after bad update | Fleet | OTA | DONE | PUSH 19 controlled bad release restored known-good automatically | Extend proof across signed platform distribution matrix. |
 | Digital-First 45 | 25 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Offline buffering | Bounded offline metadata/evidence queue | Reliability | Storage/policy | IMPLEMENTED — NEEDS REAL PROOF | PUSH 21 encrypted queue and isolated outage/restart/media/disk proof | Natural real-camera outage Event and long-duration qualification. |
 | Digital-First 45 | 26 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Resync | Ordered idempotent cloud reconciliation | Reliability | Offline buffer | IMPLEMENTED — NEEDS REAL PROOF | PUSH 21 bounded ordered ACK/idempotency/backfill/tenant resync proof | Natural real-camera Event/UI resync proof. |
-| Digital-First 45 | 27 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Fleet management | Inventory/version/status at device scale | Fleet | Identity/health | NOT STARTED | Single-device lifecycle | PUSH 22. |
-| Digital-First 45 | 28 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Remote commands | Scoped auditable device actions | Fleet | Fleet security | PARTIAL | Private NVR command contracts | PUSH 22 real fleet proof. |
-| Digital-First 45 | 29 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Diagnostics | Remote safe diagnostic bundles | Operations | Fleet/telemetry | PARTIAL | Heartbeat/diagnostic foundations | PUSH 22/27. |
+| Digital-First 45 | 27 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Fleet management | Inventory/version/status at device scale | Fleet | Identity/health | PARTIAL | PUSH 22 canonical fleet UI/API and 10,000-component synthetic QA | Real multi-site fleet proof. |
+| Digital-First 45 | 28 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Remote commands | Scoped auditable device actions | Fleet | Fleet security | PARTIAL | PUSH 22 preview/confirm/idempotent TTL command lifecycle | Real controlled multi-device operation. |
+| Digital-First 45 | 29 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Diagnostics | Remote safe diagnostic bundles | Operations | Fleet/telemetry | PARTIAL | PUSH 22 component detail/common-cause/backlog/update diagnostics | Real support-access diagnostic exercise. |
 | Digital-First 45 | 30 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Native events | Consume trusted camera/DVR event metadata | Preprocessing | Adapter capability | NOT STARTED | Capability vocabulary only | PUSH 29. |
 | Digital-First 45 | 31 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Motion filter | Gate expensive processing with cheap motion | Preprocessing | Frame sampling | PARTIAL | Motion/activity metrics | PUSH 29 measured impact. |
 | Digital-First 45 | 32 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Scene/zones filter | Use scene change and zones before inference | Preprocessing | Zones | PARTIAL | PUSH 5 zones, activity metrics | PUSH 29. |

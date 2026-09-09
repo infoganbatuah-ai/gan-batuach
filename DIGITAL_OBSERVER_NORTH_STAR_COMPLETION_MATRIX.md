@@ -191,7 +191,7 @@ This register maps every requested North-Star capability to an existing canonica
 | Queues | NOT STARTED | Durable AI queue not built | 31 | Implement priority/backpressure/retry | Worker-loss and tenant-fairness proof |
 | Load balancing | NOT STARTED | No horizontal production proof | 36, 37 | Implement routing and balancing | Measured scale/failover test |
 | Failover | NOT STARTED | No full multi-zone/provider proof | 37 | Implement HA ownership and recovery | RTO/RPO fault injection |
-| Fleet management | NOT STARTED | Only device/telemetry foundations | 22 | Fleet UI, commands and diagnostics | Real multi-device fleet proof |
+| Fleet management | IMPLEMENTED — NEEDS REAL PROOF | Canonical inventory/API/UI, bounded commands and 10,000-component synthetic QA | 22 | Real multi-tenant/multi-site operational deployment | Real multi-device fleet proof |
 
 ## RELIABILITY
 
@@ -269,10 +269,10 @@ The counts below are generated from the rows above during closure QA. They descr
 | Status | Count |
 |---|---:|
 | `DONE + REAL PROOF` | 22 |
-| `IMPLEMENTED — NEEDS REAL PROOF` | 14 |
+| `IMPLEMENTED — NEEDS REAL PROOF` | 15 |
 | `FOUNDATION` | 70 |
 | `PARTIAL` | 18 |
-| `NOT STARTED` | 65 |
+| `NOT STARTED` | 64 |
 | `EXTERNAL COVERAGE GAP` | 1 |
 | **TOTAL** | **190** |
 

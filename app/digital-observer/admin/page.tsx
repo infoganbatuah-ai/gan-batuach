@@ -140,6 +140,7 @@ export default async function DigitalObserverAdminPage() {
             <div className="do-admin-quick-links">
               <Link href="/digital-observer/admin/access"><UsersRound />לקוחות ואתרים</Link>
               <Link href="/digital-observer/admin/packages"><CircleDollarSign />חבילות ותמחור</Link>
+              <Link href="/digital-observer/admin/fleet"><ServerCog />רכיבי חיבור</Link>
               <Link href="/digital-observer/admin/operations"><ServerCog />ספקים ותפעול</Link>
             </div>
           </article>

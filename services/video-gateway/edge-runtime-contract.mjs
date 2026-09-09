@@ -1,7 +1,7 @@
 import { createHash, randomUUID } from "node:crypto";
 
 export const EDGE_RUNTIME_VERSION = "observer-edge-runtime-v1";
-export const EDGE_DEVICE_TYPES = Object.freeze(["SOFTWARE_CONNECTOR", "PHYSICAL_GATEWAY"]);
+export const EDGE_DEVICE_TYPES = Object.freeze(["SOFTWARE_CONNECTOR", "PHYSICAL_GATEWAY", "ENTERPRISE_EDGE"]);
 export const EDGE_UPDATE_CONTRACT = "observer-edge-update-v1";
 export const EDGE_COMMANDS = Object.freeze(["HEALTH_PROBE", "REFRESH_CONFIG", "RECONNECT_STREAM"]);
 export const DEFAULT_RESOURCE_LIMITS = Object.freeze({
