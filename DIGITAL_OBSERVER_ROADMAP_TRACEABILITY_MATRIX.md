@@ -40,7 +40,7 @@ This file is the roadmap-facing index for the capability-level register in `DIGI
 - PUSH 20: DONE — shared progress-aware supervision, bounded fault recovery and real DVR/Tapo recovery observation.
 - PUSH 21: DONE — encrypted durable store-and-forward, bounded resync and isolated outage/restart/idempotency/security proof.
 - PUSH 22: DONE — canonical managed-edge inventory, health, scoped commands, support audit and synthetic scale QA.
-- PUSH 23: NEXT, NOT STARTED.
+- PUSH 23: DONE — canonical multidimensional camera/source health, truthful expected-camera denominator, tenant-scoped API/UI, common-cause/flapping and deterministic failure QA.
 - PUSH 24/25/27: DONE EARLY, subject to canonical dependency-sensitive revalidation.
 - PUSH 25 billing-role RLS HIGH finding remains open and is not hidden by this mapping.
 - `52/52 PUSHES DONE != PRODUCT COMPLETE`; a future North-Star Completion Audit is mandatory.

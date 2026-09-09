@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- fleet tables are migration-backed pending generated database types. */
 import { createAdminClient } from "@/lib/supabase/admin";
 import { classifyFleetHealth, dedupeInfrastructureAlerts, summarizeFleet, type FleetDevice } from "./fleet-control-plane";
+import { isExpectedCamera } from "./camera-health-model";
 
 function object(value:unknown):Record<string,any>{return value&&typeof value==="object"&&!Array.isArray(value)?value as Record<string,any>:{};}
 export async function loadFleetSnapshot(input:{tenantId?:string;siteId?:string;profile?:string;health?:string;cursor?:string;limit?:number}={}) {
@@ -25,7 +26,7 @@ export async function loadFleetSnapshot(input:{tenantId?:string;siteId?:string;p
       configurationVersion:Number(row.config_version||1),desiredConfigurationVersion:Number(metadata.connector_config_version||row.config_version||1),lifecycleState:row.lifecycle_state,
       identityState:row.identity_scheme||"LEGACY_HMAC",credentialState,updateChannel:metadata.update_channel||null,updateState:update?.state||metadata.update_state||null,
       health:fleetHealth,lastSeenAt:row.last_seen_at,supervisionState:supervision.state||null,backlogRecords:Number(offline.depth||0),backlogBytes:Number(offline.bytes||0),
-      resyncState:offline.state||null,dependentPhysicalCameras:dependent.filter((source:any)=>object(source.metadata).channel_state!=="CHANNEL_EMPTY").length,
+      resyncState:offline.state||null,dependentPhysicalCameras:dependent.filter((source:any)=>{const metadata=object(source.metadata);return isExpectedCamera({channelAssignment:metadata.channel_assignment||metadata.channel_state,physicalCameraAttached:metadata.physical_camera_attached});}).length,
       emptyChannels,} as FleetDevice;});
   if(input.health)devices=devices.filter(device=>device.health===input.health);
   return {devices,summary:summarizeFleet(devices),alerts:dedupeInfrastructureAlerts(devices),nextCursor:(enrolled.data||[]).length>limit?rows.at(-1)?.id:null};

@@ -7,6 +7,13 @@ This register maps every requested North-Star capability to an existing canonica
 
 `52/52 PUSHES DONE != PRODUCT COMPLETE` unless a future North-Star Completion Audit confirms that every mandatory row has reached its required final evidence state. No PUSH 53+ is implied or authorized by this matrix.
 
+## STATUS HISTORY
+
+| Capability | Previous Status | New Status | PUSH / reason | Evidence added, removed or reinterpreted |
+|---|---|---|---|---|
+| Fleet Management count ledger | Reported aggregate: `22 DONE / 15 implemented / 70 foundation / 18 partial / 64 not started / 1 external` | Matrix truth retained: `24 / 20 / 69 / 17 / 59 / 1` | PUSH 23 reconciliation | PUSH 22 report arithmetic did not match its committed 190-row matrix. No row-level transition supported the reported regression, so no capability was silently downgraded. |
+| Camera Health | Previous: PARTIAL | New: IMPLEMENTED — NEEDS REAL PROOF | PUSH 23 canonical health contract | Added bounded dimensions, expiry, expected/capacity denominator, common-cause root cause, flapping, API/UI and nine deterministic failure cases. Real destructive fault proof remains outstanding. |
+
 ## CAMERA PLATFORM
 
 | Capability | Current Status | Existing Proof | Owning Canonical PUSH | Remaining Work | Final Proof Required |
@@ -22,7 +29,7 @@ This register maps every requested North-Star capability to an existing canonica
 | Live View | DONE + REAL PROOF | Real DVR and Tapo moved in authorized Product player | 7, 14, 18 | Keep playback regression in release gates | Fresh moving Product video for every supported path |
 | Recordings/playback | IMPLEMENTED — NEEDS REAL PROOF | Private evidence playback and live HLS contracts | 7, 34 | Broader recording-provider and retention coverage | Real retained recording playback across supported storage |
 | Evidence | DONE + REAL PROOF | Real bounded private evidence and authorized playback | 7 | Extend providers and deletion evidence | Real event-to-evidence integrity and policy proof |
-| Camera Health | PARTIAL | Source, relay and playback dimensions exist | 23, 27 | Full freshness, freeze, recovery and SLO engine | Fault injection on real cameras with truthful recovery |
+| Camera Health | IMPLEMENTED — NEEDS REAL PROOF | PUSH 23 canonical source/frame/relay/playback/AI/component/auth/cloud/recording model, tenant-scoped API, customer UI and deterministic fault matrix | 23, 27 | Controlled real source/playback/AI/common-cause fault proof and long-duration qualification | Fault injection on real cameras with truthful recovery |
 | Universal Camera Controls | FOUNDATION | Capability and command allow-list foundations | 14, 22, 39 | Vendor-agnostic control execution and policy | Real authorized controls across two vendors |
 | PTZ | FOUNDATION | Capability representation only | 14, 22, 39 | Implement supported adapter controls | Real pan, tilt and stop with authorization/audit |
 | Zoom | FOUNDATION | Capability representation only | 14, 22, 39 | Implement optical/digital capability mapping | Real supported zoom action and fallback proof |

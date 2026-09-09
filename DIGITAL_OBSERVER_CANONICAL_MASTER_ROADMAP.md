@@ -1,6 +1,6 @@
 # DIGITAL OBSERVER — CANONICAL MASTER ROADMAP
 
-Date: 2026-09-09 (PUSH 21 offline store-and-forward and resynchronization closure; original reconciliation retained below)
+Date: 2026-09-09 (PUSH 23 camera/source health closure; original reconciliation retained below)
 Repository base reviewed: `dc50fca` on `main`; the scoped closure commit is recorded in the final PUSH 17D handoff.
 Purpose: the canonical 52-push roadmap. The user's PUSH 17 authorization expands its product scope; this document does not authorize deployments or future pushes.
 
@@ -10,9 +10,9 @@ Digital Observer has completed the canonical product path from audit through Dig
 
 The canonical roadmap contains **52 pushes**. It preserves the existing numbers 1–16 and continues through production infrastructure, pilots, commercial proof, technical due diligence, and acquisition/exit. Later work may be executed early only when its `EXECUTION MODE` says `CAN EXECUTE EARLY`; its canonical number never changes.
 
-Current sequential position: **PUSH 21 — Offline Buffering and Resynchronization**, `DONE` after encrypted durable queue, bounded resync, restart/ACK/order/media/disk/tenant/update QA and healthy real-home regression.
-Current blocker: none from PUSH 21. A natural real-camera Event during controlled cloud delivery loss was not available and remains an explicit real-proof gap.
-PUSH 22 is next but was not started. PUSH 24/25/27 remain DONE EARLY, pending later dependency-sensitive revalidation.
+Current sequential position: **PUSH 23 — Camera Health Engine and SLOs**, `DONE` after canonical multidimensional health, truthful expected-camera denominator, API/UI, common-cause/flapping and deterministic fault QA.
+Current blocker: none from PUSH 23. Destructive real-camera fault injection and long-duration qualification remain explicit PUSH 38 evidence gaps.
+PUSH 24/25/27 remain DONE EARLY and are not restarted. The next not-yet-completed sequential item is PUSH 26.
 
 ## Status semantics
 
@@ -36,7 +36,7 @@ PUSH 18     DONE — identity/security lifecycle plus live-home regression close
 PUSH 19     DONE — signed OTA + isolated automatic rollback proof
 PUSH 20     DONE — progress-aware watchdog/self-healing and bounded real recovery proof
 PUSH 21     DONE — encrypted durable store-and-forward and bounded resync
-PUSH 22–23  NOT STARTED
+PUSH 22–23  DONE
 PUSH 24/25/27 DONE EARLY
 PUSH 50     documentation-only preparation permitted only by separate instruction
 ```
@@ -106,6 +106,12 @@ Destructive outage/restart/ambiguous-ACK/media/disk/rebind/revocation/update tes
 PUSH 22 adds one `observer-edge-fleet-v1` control plane over the PUSH 18 managed-device principal, PUSH 19 OTA state, PUSH 20 supervision, PUSH 21 backlog and PUSH 27 telemetry. It provides Tenant → Site → component hierarchy, cursor-bounded inventory, version/config drift, common-cause health, scoped support access and allow-listed short-lived commands with preview, confirmation, idempotency and audit.
 
 Deterministic scale QA covers 10 tenants, 1,000 Sites and 10,000 managed components; this is not city-scale production proof. The real Home remains a two-component mixed-profile reference—one Physical Gateway and one Software Connector—not seventeen fleet devices. PUSH 23 remains the owner of the final Camera Health product.
+
+# PUSH 23 CAMERA HEALTH TRUTH BOUNDARY
+
+PUSH 23 establishes `observer-camera-health-v1` as the canonical health truth for expected physical cameras, sources, frame freshness, relays, playback, AI, managed components, authentication, cloud and recording. Customer summary state is explainable from these dimensions; stale evidence expires, recovery and flapping are explicit, and common component failures are deduplicated.
+
+Configured capacity is not the availability denominator. The real Home denominator is eleven expected physical cameras—ten populated DVR channels plus one Tapo—while six DVR slots remain `CHANNEL_EMPTY / UNASSIGNED`. PUSH 23 does not claim long-duration 24/7 proof; PUSH 38 remains responsible for soak and real fault qualification. PUSH 24 remains DONE EARLY and is not restarted.
 
 # POST-PUSH 18 LIVE VIEW AND NORTH-STAR COMPLETION GATE
 
@@ -210,7 +216,7 @@ Source shorthand used below: `52` = Original 52, `S16` = Original 16 — Strateg
 | 20 | Watchdog and Self-Healing Runtime | Detect process/stream failure and recover without unsafe duplicate ownership. | 52/19,38,45; T16/6; DF45/22 | PUSH 17–19; connector/Gateway hardening | SEQUENTIAL | DONE | Shared progress-aware supervision, bounded recovery/backoff, crash-loop and empty-slot QA pass; real 10-DVR + Tapo observation remains truthful and long-duration soak stays PUSH 38. |
 | 21 | Offline Buffering and Resynchronization | Preserve bounded metadata/evidence during disconnection and replay idempotently. | 52/18,38,45; T16/6; DF45/25–26 | PUSH 17–20; connector/Gateway hardening | SEQUENTIAL | DONE | Encrypted restart-safe store-and-forward, bounded authenticated resync, idempotency/order/backfill/media/disk/tenant/update QA pass; natural real Event outage proof remains explicitly pending. |
 | 22 | Fleet Management and Remote Diagnostics | Manage versions, commands, health and diagnostics across devices. | 52/38,42; T16/7; DF45/27–29 | PUSH 18–21; connector/Gateway hardening | SEQUENTIAL | DONE | Shared inventory/UI/API, scoped short-lived commands, support audit, common-cause health and 10,000-component synthetic QA pass; real multi-site fleet proof remains future evidence. |
-| 23 | Camera Health Engine and SLOs | Normalize camera uptime, freshness, frozen stream, reconnect and degradation. | 52/19,42; T16/7; DF45/21 | PUSH 17,20–22; connector/Gateway hardening | SEQUENTIAL | NOT STARTED | Measured real-camera health detects disconnect/freeze/recovery with defined uptime and alert SLOs. |
+| 23 | Camera Health Engine and SLOs | Normalize camera uptime, freshness, frozen stream, reconnect and degradation. | 52/19,42; T16/7; DF45/21 | PUSH 17,20–22; connector/Gateway hardening | SEQUENTIAL | DONE | Canonical dimensions, stale expiry, expected-camera SLO denominator, common-cause/flapping, API/UI and deterministic failure matrix pass; destructive real fault/soak remains PUSH 38. |
 | 24 | Repository and CI Quality Gate | Make typecheck, lint, tests, migration checks and build deterministic. | 52/5,46; T16/1,15 | None; frozen-area exclusion | CAN EXECUTE EARLY | DONE EARLY | Clean CI from fresh checkout runs required checks; zero unexplained failures; no frozen camera runtime changes. |
 | 25 | Security, RLS and Privacy Hardening | Close tenant, secret, signed-media, rate-limit, audit and privacy gaps. | 52/47–48; S16/5,13; T16/12 | None; do not modify frozen connector contracts | CAN EXECUTE EARLY | DONE EARLY | Independent tenant/RLS/storage/secret tests pass; critical/high findings closed or formally accepted; frozen areas untouched. |
 | 26 | Canonical Domain Consolidation and Legacy Retirement | Remove duplicated Event/Incident/observer paths through measured migration. | 52/2–7,27–28; T16/2 | PUSH 16,24–25 | BLOCKED BY PUSH 16 | NOT STARTED | One source of truth remains per domain; compatibility migration and rollback pass; no real pipeline regression. |
