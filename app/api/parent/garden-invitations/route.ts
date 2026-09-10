@@ -3,6 +3,7 @@ import { fail, handleRouteError, ok } from "@/lib/api";
 import { requireRole } from "@/lib/auth";
 import { activateKindergartenEnrollment } from "@/lib/domain/enrollment-activation";
 import { managementContactVerification } from "@/lib/management/contact-verification";
+import { guardianCanAccessChild, guardianChildIds } from "@/lib/management/family-link";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
 
 const actionSchema = z.object({
@@ -19,6 +20,7 @@ export async function GET() {
     const { profile } = await requireRole(["parent"]);
     if (!isAdminClientConfigured()) return fail("טעינת הזמנות דורשת שירות שרת מאובטח.", 503);
     const admin = createAdminClient();
+    const childFileIds = await guardianChildIds(admin, profile.id);
     const [invitationsRes, childrenRes] = await Promise.all([
       admin.from("user_affiliation_requests" as any)
         .select("id,requester_id,target_id,status,metadata,created_at,updated_at")
@@ -27,7 +29,7 @@ export async function GET() {
         .in("status", ["submitted", "under_review"])
         .contains("metadata", { invited_parent_profile_id: profile.id, direction: "kindergarten_to_parent" })
         .order("created_at", { ascending: false }),
-      admin.from("permanent_child_files" as any).select("id,full_name,birth_date,owner_status").eq("primary_parent_profile_id", profile.id).order("created_at", { ascending: false })
+      childFileIds.length ? admin.from("permanent_child_files" as any).select("id,full_name,birth_date,owner_status").in("id", childFileIds).order("created_at", { ascending: false }) : Promise.resolve({ data: [], error: null })
     ]);
     const invitations = (invitationsRes.data ?? []) as any[];
     const gardenIds = invitations.map((row) => row.target_id).filter(Boolean);
@@ -79,7 +81,8 @@ export async function POST(request: Request) {
     }
     if (canonicalInvitation && !managementContactVerification(user, profile).complete) return fail("יש להשלים אימות דוא״ל וטלפון לפני אישור ההזמנה.", 403);
     if (!payload.child_profile_id) return fail("יש לבחור ילד לפני אישור ההצטרפות.", 422);
-    const child = await admin.from("permanent_child_files" as any).select("id,full_name,primary_parent_profile_id,duplicate_flags").eq("id", payload.child_profile_id).eq("primary_parent_profile_id", profile.id).maybeSingle();
+    if (!await guardianCanAccessChild(admin, profile.id, payload.child_profile_id)) return fail("כרטיס הילד לא נמצא או אינו שייך לחשבון שלך.", 403);
+    const child = await admin.from("permanent_child_files" as any).select("id,full_name,duplicate_flags").eq("id", payload.child_profile_id).maybeSingle();
     if (!child.data) return fail("כרטיס הילד לא נמצא או אינו שייך לחשבון שלך.", 403);
     const classId = payload.requested_class_id ?? invitation.metadata?.requested_class_id ?? null;
     let price = invitation.metadata?.published_price_snapshot ?? null;

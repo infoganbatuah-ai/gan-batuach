@@ -3,6 +3,7 @@ import { fail, handleRouteError, ok } from "@/lib/api";
 import { requireRole } from "@/lib/auth";
 import { encryptField, getCurrentKeyVersion, hashForLookup } from "@/lib/security/field-encryption";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
+import { ensurePrimaryGuardianLink } from "@/lib/management/family-link";
 
 const schema = z.object({
   child_first_name: z.string().min(2),
@@ -65,6 +66,7 @@ export async function POST(request: Request) {
       encryption_version: getCurrentKeyVersion()
     }).select("id, full_name, duplicate_flags").single();
     if (write.error) return fail(write.error.message, 400);
+    await ensurePrimaryGuardianLink(admin, { childFileId: write.data.id, guardianProfileId: profile.id, source: "self_service_child_profile" });
 
     await admin.from("self_service_user_profiles" as any).upsert({
       profile_id: profile.id,

@@ -1,6 +1,7 @@
 import { encryptField, getCurrentKeyVersion, hashForLookup } from "@/lib/security/field-encryption";
 import type { createAdminClient } from "@/lib/supabase/admin";
 import { adminManagementContactVerification } from "@/lib/management/contact-verification";
+import { ensurePrimaryGuardianLink } from "@/lib/management/family-link";
 
 type AdminClient = ReturnType<typeof createAdminClient>;
 
@@ -88,6 +89,7 @@ export async function activateKindergartenEnrollment(admin: AdminClient, request
   }
 
   const activationWrites = await Promise.all([
+    ensurePrimaryGuardianLink(admin, { childFileId: childFile.id, guardianProfileId: request.parent_id, source: options.source ?? "enrollment_activation" }),
     admin.from("parent_kindergarten_links" as any).upsert({
       parent_id: parentWrite.data.id,
       parent_profile_id: request.parent_id,

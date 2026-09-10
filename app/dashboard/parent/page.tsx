@@ -39,15 +39,14 @@ function formatStatus(status?: string | null) {
 export default async function ParentDashboard() {
   const { profile } = await requireRole(["parent"]);
   const supabase = await createClient();
-  const [parentRes, childrenRes, requestsRes, selfServiceRes] = await Promise.all([
+  const [parentRes, requestsRes, selfServiceRes] = await Promise.all([
     supabase.from("parents" as any).select("id,status,onboarding_status,completed_profile,garden_id").or(`profile_id.eq.${profile.id},user_id.eq.${profile.id}`).eq("status", "active").limit(1).maybeSingle(),
-    supabase.from("permanent_child_files" as any).select("id,full_name,birth_date,owner_status,duplicate_flags,created_at").eq("primary_parent_profile_id", profile.id).order("created_at", { ascending: false }).limit(20),
     supabase.from("kindergarten_enrollment_requests" as any).select("id,status,payment_status,requested_at,decided_at,published_price_snapshot,gardens(name,city)").eq("parent_id", profile.id).order("created_at", { ascending: false }).limit(20),
     supabase.from("self_service_user_profiles" as any).select("*").eq("profile_id", profile.id).maybeSingle()
   ]);
   const family = await getParentFamilyContext(supabase as any, profile);
   const parent = parentRes.data as any;
-  const childProfiles = (childrenRes.data ?? []) as any[];
+  const childProfiles = (family.childFiles ?? []) as any[];
   const requests = (requestsRes.data ?? []) as any[];
   const pending = requests.filter((request) => !["approved", "rejected", "cancelled", "expired"].includes(String(request.status)));
   const approvedPendingPayment = requests.filter((request) => request.status === "approved_pending_payment");
