@@ -6,6 +6,8 @@ import { guardHistoryPrivacyRestricted } from "@/lib/domain/event-engine/guard-j
 import { compileInvestigationQuery, validateInvestigationQuery, type InvestigationCameraResource } from "@/lib/domain/digital-observer/investigation-query";
 import { searchDigitalObserverInvestigation } from "@/lib/domain/digital-observer/investigation-search-service";
 import type { InvestigationSource } from "@/lib/domain/digital-observer/investigation-results";
+import { assertRateLimit } from "@/lib/security/rate-limit";
+import { assertTrustedMutationOrigin, parseBoundedJson, privateRateLimitIdentifier } from "@/lib/security/request-guards";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -57,9 +59,15 @@ function resourcesFor(rows: CameraRow[]): InvestigationCameraResource[] {
 
 export async function POST(request: Request) {
   try {
+    assertTrustedMutationOrigin(request);
     const session = await getDigitalObserverApiUser(request);
     if (!session) return fail("נדרשת התחברות מחדש לתצפיתן הדיגיטלי.", 401);
-    const payload = requestSchema.parse(await request.json());
+    const payload = requestSchema.parse(await parseBoundedJson(request, 4 * 1024));
+    await assertRateLimit(privateRateLimitIdentifier({
+      userId: session.profile.id,
+      tenantId: payload.observer_site_id,
+      headers: request.headers
+    }), "digital-observer:investigation", 30, 60);
     const observerAdmin = hasObserverAdminClaim(session.user.app_metadata);
     const dataClient = observerAdmin ? createDigitalObserverAdminDataClient() : session.supabase;
     const site = observerAdmin

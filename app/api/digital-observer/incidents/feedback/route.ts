@@ -8,6 +8,8 @@ import {
   type ReviewedCalibrationSample
 } from "@/lib/domain/digital-observer/feedback-calibration";
 import { writeAuditEvent } from "@/lib/security/audit-log-service";
+import { assertRateLimit } from "@/lib/security/rate-limit";
+import { assertTrustedMutationOrigin, parseBoundedJson, privateRateLimitIdentifier } from "@/lib/security/request-guards";
 
 export const dynamic = "force-dynamic";
 
@@ -67,6 +69,7 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     const incidentId = url.searchParams.get("incident_id");
     if (!incidentId || !z.string().uuid().safeParse(incidentId).success) return fail("חסר מזהה תקרית תקין.", 422);
+    await assertRateLimit(privateRateLimitIdentifier({ userId: session.profile.id, headers: request.headers }), "digital-observer:feedback:read", 120, 60);
 
     const incident = await dataClient.from("observer_correlated_events" as never)
       .select("id,observer_site_id,provenance,current_feedback_label,latest_feedback_revision_id,feedback_updated_at,current_ground_truth_label,latest_ground_truth_review_id,ground_truth_reviewed_at")
@@ -150,12 +153,14 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    assertTrustedMutationOrigin(request);
     const session = await getDigitalObserverApiUser(request);
     if (!session) return fail("נדרשת התחברות מחדש לתצפיתן הדיגיטלי.", 401);
     const observerAdmin = session.profile.role === "admin" || hasObserverAdminClaim(session.user.app_metadata);
     const dataClient = observerAdmin ? createDigitalObserverAdminDataClient() : session.supabase;
     const accessProfile = observerAdmin ? { ...session.profile, role: "admin" } : session.profile;
-    const payload = requestSchema.parse(await request.json());
+    const payload = requestSchema.parse(await parseBoundedJson(request, 4 * 1024));
+    await assertRateLimit(privateRateLimitIdentifier({ userId: session.profile.id, headers: request.headers }), "digital-observer:feedback:mutate", 30, 60);
 
     if (payload.action === "submit") {
       const incident = await dataClient.from("observer_correlated_events" as never)

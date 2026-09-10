@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import {
+  Activity,
   ArrowRight,
   Bell,
   Building2,
@@ -62,6 +63,7 @@ const adminNav = [
   { href: "/digital-observer/admin", label: "מרכז בקרה", icon: ShieldCheck },
   { href: "/digital-observer/admin/access", label: "לקוחות ואתרים", icon: UsersRound },
   { href: "/digital-observer/admin/operations", label: "מנוע ותפעול", icon: Radar },
+  { href: "/digital-observer/admin/observability", label: "תצפית תפעולית", icon: Activity },
   { href: "/digital-observer/admin/watch-rules", label: "כללי ניטור", icon: ListTree },
   { href: "/digital-observer/admin/investigation", label: "בקרת חקירה", icon: Search },
   { href: "/digital-observer/admin/quality", label: "איכות וכיול", icon: ClipboardCheck },

@@ -7,6 +7,8 @@ import {
   simulateWatchRuleAgainstRealHistory,
   watchRulePersistenceInput
 } from "@/lib/domain/digital-observer/watch-rule-service";
+import { assertRateLimit } from "@/lib/security/rate-limit";
+import { assertTrustedMutationOrigin, parseBoundedJson, privateRateLimitIdentifier } from "@/lib/security/request-guards";
 
 export const dynamic = "force-dynamic";
 
@@ -58,6 +60,7 @@ export async function GET(request: Request) {
     const url = new URL(request.url);
     const siteId = url.searchParams.get("observer_site_id");
     if (!siteId || !z.string().uuid().safeParse(siteId).success) return fail("חסר מזהה אתר תקין.", 422);
+    await assertRateLimit(privateRateLimitIdentifier({ userId: session.profile.id, tenantId: siteId, headers: request.headers }), "digital-observer:watch-rules:read", 120, 60);
     const { dataClient, site } = await siteContext(session, siteId, false);
     if (!site) return fail("אין הרשאה לכללי האתר הזה.", 403);
     const [rules, versions, evaluations] = await Promise.all([
@@ -93,9 +96,11 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
+    assertTrustedMutationOrigin(request);
     const session = await getDigitalObserverApiUser(request);
     if (!session) return fail("נדרשת התחברות מחדש לתצפיתן הדיגיטלי.", 401);
-    const payload = requestSchema.parse(await request.json());
+    const payload = requestSchema.parse(await parseBoundedJson(request, 8 * 1024));
+    await assertRateLimit(privateRateLimitIdentifier({ userId: session.profile.id, headers: request.headers }), "digital-observer:watch-rules:mutate", 30, 60);
 
     if (payload.action === "set_state") {
       const observerAdmin = session.profile.role === "admin" || hasObserverAdminClaim(session.user.app_metadata);
@@ -160,8 +165,7 @@ export async function POST(request: Request) {
     });
     if (activated.error || !activated.data) {
       console.error("WATCH_RULE_ACTIVATION_RPC_FAILED", {
-        code: activated.error?.code ?? "NO_DATA",
-        message: activated.error?.message ?? "Activation RPC returned no data"
+        code: activated.error?.code ?? "NO_DATA"
       });
       return fail("הכלל עבר validation אך לא ניתן היה להפעיל אותו.", 409);
     }

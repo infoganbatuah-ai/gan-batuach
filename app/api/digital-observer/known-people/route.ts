@@ -1,8 +1,11 @@
 import { z } from "zod";
-import { fail, handleRouteError, ok } from "@/lib/api";
+import { fail, handleSafeRouteError, ok } from "@/lib/api";
 import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
 import { createObserverEngine, tenantTypeForCamera } from "@/lib/domain/observer-engine";
 import { assertStandardBiometricConsent } from "@/lib/domain/digital-observer/standard-privacy-policy";
+import { assertRateLimit } from "@/lib/security/rate-limit";
+import { assertTrustedMutationOrigin, parseBoundedJson, privateRateLimitIdentifier } from "@/lib/security/request-guards";
+import { writeAuditEvent } from "@/lib/security/audit-log-service";
 
 const createSchema = z.object({
   action: z.literal("create"),
@@ -17,11 +20,13 @@ const schema = z.discriminatedUnion("action", [createSchema, deleteSchema]);
 
 export async function POST(request: Request) {
   try {
+    assertTrustedMutationOrigin(request);
     const session = await getDigitalObserverApiUser(request);
     if (!session) return fail("נדרשת התחברות מחדש לתצפיתן הדיגיטלי.", 401);
     const { profile, supabase: sessionSupabase } = session;
     const supabase = sessionSupabase as any;
-    const payload = schema.parse(await request.json());
+    const payload = schema.parse(await parseBoundedJson(request, 4 * 1024));
+    await assertRateLimit(privateRateLimitIdentifier({ userId: profile.id, headers: request.headers }), "digital-observer:known-people", 20, 60);
 
     if (payload.action === "create") {
       const site = await getObserverSiteAccess(supabase, profile, payload.observer_site_id, { manage: true });
@@ -44,6 +49,7 @@ export async function POST(request: Request) {
         metadata: { image_pending: true, biometric_processing_active: false, explicit_consent_recorded: true, consent_purpose: consent.purpose, consent_recorded_at: consent.recordedAt, revocable: true }
       }).select("id,display_name,relationship_label,consent_status,recognition_status,notify_on_detection").single();
       if (error) return fail("לא ניתן לשמור את האדם המוכר.", 400);
+      await writeAuditEvent({ eventType: "observer_known_person_readiness_created", eventCategory: "regulatory", actorProfileId: profile.id, actorRole: profile.role, targetType: "digital_observer_known_person", targetId: data?.id ?? null, metadata: { observer_site_id: site.id, explicit_consent: true, biometric_processing_active: false }, riskLevel: "high" });
       return ok({ person: data, message: "האדם נשמר במצב מוכנות. זיהוי פנים אינו פעיל ללא תמונה, הסכמה וחיבור AI מאושר." }, 201);
     }
 
@@ -56,8 +62,9 @@ export async function POST(request: Request) {
     if (!site) return fail("אין הרשאה למחוק את הרשומה.", 403);
     const { error } = await supabase.from("digital_observer_known_people" as any).delete().eq("id", payload.id);
     if (error) return fail("לא ניתן למחוק את הרשומה.", 400);
+    await writeAuditEvent({ eventType: "observer_known_person_deleted", eventCategory: "regulatory", actorProfileId: profile.id, actorRole: profile.role, targetType: "digital_observer_known_person", targetId: payload.id, metadata: { observer_site_id: site.id }, riskLevel: "high" });
     return ok({ deleted: true });
   } catch (error) {
-    return handleRouteError(error);
+    return handleSafeRouteError(error);
   }
 }

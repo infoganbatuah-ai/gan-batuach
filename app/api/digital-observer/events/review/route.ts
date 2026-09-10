@@ -3,6 +3,8 @@ import { fail, handleSafeRouteError, ok } from "@/lib/api";
 import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
 import { waiveMediaFault } from "@/lib/domain/event-engine/media-fault-lifecycle";
 import { writeAuditEvent } from "@/lib/security/audit-log-service";
+import { assertRateLimit } from "@/lib/security/rate-limit";
+import { assertTrustedMutationOrigin, parseBoundedJson, privateRateLimitIdentifier } from "@/lib/security/request-guards";
 
 const schema = z.object({
   signal_id: z.string().uuid(),
@@ -20,11 +22,13 @@ type SignalRow = {
 
 export async function POST(request: Request) {
   try {
+    assertTrustedMutationOrigin(request);
     const session = await getDigitalObserverApiUser(request);
     if (!session) return fail("נדרשת התחברות מחדש לתצפיתן הדיגיטלי.", 401);
     const { profile, supabase: sessionSupabase } = session;
     const supabase = sessionSupabase;
-    const payload = schema.parse(await request.json());
+    const payload = schema.parse(await parseBoundedJson(request, 4 * 1024));
+    await assertRateLimit(privateRateLimitIdentifier({ userId: profile.id, headers: request.headers }), "digital-observer:event-review", 30, 60);
     const signalResult = await supabase.from("observer_intelligence_signals" as never)
       .select("id,observer_site_id,review_status,metadata")
       .eq("id", payload.signal_id)

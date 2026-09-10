@@ -1,7 +1,10 @@
 import { z } from "zod";
-import { fail, handleRouteError, ok } from "@/lib/api";
+import { fail, handleSafeRouteError, ok } from "@/lib/api";
 import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
 import { createObserverEngine, tenantTypeForCamera } from "@/lib/domain/observer-engine";
+import { assertRateLimit } from "@/lib/security/rate-limit";
+import { assertTrustedMutationOrigin, parseBoundedJson, privateRateLimitIdentifier } from "@/lib/security/request-guards";
+import { writeAuditEvent } from "@/lib/security/audit-log-service";
 
 const schema = z.object({
   candidate_id: z.string().uuid(),
@@ -13,11 +16,13 @@ const schema = z.object({
 
 export async function POST(request: Request) {
   try {
+    assertTrustedMutationOrigin(request);
     const session = await getDigitalObserverApiUser(request);
     if (!session) return fail("נדרשת התחברות מחדש לתצפיתן הדיגיטלי.", 401);
     const { profile, supabase: sessionSupabase } = session;
     const supabase = sessionSupabase as any;
-    const payload = schema.parse(await request.json());
+    const payload = schema.parse(await parseBoundedJson(request, 4 * 1024));
+    await assertRateLimit(privateRateLimitIdentifier({ userId: profile.id, headers: request.headers }), "digital-observer:identity-review", 20, 60);
 
     const { data: candidate, error: candidateError } = await supabase
       .from("digital_observer_identity_candidates" as any)
@@ -52,6 +57,8 @@ export async function POST(request: Request) {
       return fail("לא ניתן לשמור את החלטת הזיהוי.", 400);
     }
 
+    await writeAuditEvent({ eventType: "observer_identity_candidate_reviewed", eventCategory: "regulatory", actorProfileId: profile.id, actorRole: profile.role, targetType: "digital_observer_identity_candidate", targetId: payload.candidate_id, metadata: { observer_site_id: site.id, outcome: payload.outcome, explicit_consent: payload.explicit_consent, biometric_processing_active: false }, riskLevel: "high" });
+
     return ok({
       review: data,
       message: payload.outcome === "known"
@@ -61,6 +68,6 @@ export async function POST(request: Request) {
           : "המועמד הוסר מתור הבדיקה."
     });
   } catch (error) {
-    return handleRouteError(error);
+    return handleSafeRouteError(error);
   }
 }

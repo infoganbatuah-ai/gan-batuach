@@ -1,6 +1,9 @@
 import { z } from "zod";
-import { fail, handleRouteError, ok } from "@/lib/api";
+import { fail, handleSafeRouteError, ok } from "@/lib/api";
 import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
+import { writeAuditEvent } from "@/lib/security/audit-log-service";
+import { assertRateLimit } from "@/lib/security/rate-limit";
+import { assertTrustedMutationOrigin, parseBoundedJson, privateRateLimitIdentifier } from "@/lib/security/request-guards";
 
 const schema = z.object({
   observer_site_id: z.string().uuid(),
@@ -43,17 +46,19 @@ export async function GET(request: Request) {
       camera_activity_baseline: baselineResult.data ?? null
     });
   } catch (error) {
-    return handleRouteError(error);
+    return handleSafeRouteError(error);
   }
 }
 
 export async function POST(request: Request) {
   try {
+    assertTrustedMutationOrigin(request);
     const session = await getDigitalObserverApiUser(request);
     if (!session) return fail("נדרשת התחברות מחדש לתצפיתן הדיגיטלי.", 401);
     const { profile, supabase: sessionSupabase } = session;
     const supabase = sessionSupabase as any;
-    const payload = schema.parse(await request.json());
+    const payload = schema.parse(await parseBoundedJson(request, 8 * 1024));
+    await assertRateLimit(privateRateLimitIdentifier({ userId: profile.id, tenantId: payload.observer_site_id, headers: request.headers }), "digital-observer:settings", 20, 60);
     const site = await getObserverSiteAccess(supabase, profile, payload.observer_site_id, { manage: true });
     if (!site) return fail("אין הרשאה לעדכן את הגדרות האתר.", 403);
     const now = new Date().toISOString();
@@ -118,8 +123,23 @@ export async function POST(request: Request) {
       if (existing.data?.id) await supabase.from("observer_alert_channel_settings" as any).update(row).eq("id", existing.data.id);
       else await supabase.from("observer_alert_channel_settings" as any).insert(row);
     }
+    await writeAuditEvent({
+      eventType: "observer_privacy_settings_updated",
+      eventCategory: "regulatory",
+      actorProfileId: profile.id,
+      actorRole: profile.role,
+      targetType: "observer_site",
+      targetId: payload.observer_site_id,
+      metadata: {
+        monitoring_consent: payload.monitoring_consent,
+        safe_action_consent: payload.safe_action_consent,
+        model_improvement_consent: payload.model_improvement_consent,
+        raw_video_model_training_allowed: false
+      },
+      riskLevel: "high"
+    });
     return ok({ saved: true, monitoring_enabled: payload.monitoring_consent, safe_actions_enabled: payload.safe_action_consent, model_improvement_enabled: payload.model_improvement_consent, production_send_enabled: false, message: "ההגדרות וההסכמות נשמרו. פעולות פיזיות עדיין דורשות אישור מיידי." });
   } catch (error) {
-    return handleRouteError(error);
+    return handleSafeRouteError(error);
   }
 }

@@ -1,6 +1,8 @@
 import { z } from "zod";
-import { fail, handleRouteError, ok } from "@/lib/api";
+import { fail, handleSafeRouteError, ok } from "@/lib/api";
 import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
+import { assertRateLimit } from "@/lib/security/rate-limit";
+import { assertTrustedMutationOrigin, parseBoundedJson, privateRateLimitIdentifier } from "@/lib/security/request-guards";
 
 const watchTypes = ["movement_in_area", "no_movement", "door_left_open", "person_near_object", "restricted_area_entry", "after_hours_activity", "camera_obstruction", "custom_text_instruction"] as const;
 
@@ -20,11 +22,13 @@ const schema = z.discriminatedUnion("action", [createSchema, updateSchema]);
 
 export async function POST(request: Request) {
   try {
+    assertTrustedMutationOrigin(request);
     const session = await getDigitalObserverApiUser(request);
     if (!session) return fail("נדרשת התחברות מחדש לתצפיתן הדיגיטלי.", 401);
     const { profile, supabase: sessionSupabase } = session;
     const supabase = sessionSupabase as any;
-    const payload = schema.parse(await request.json());
+    const payload = schema.parse(await parseBoundedJson(request, 8 * 1024));
+    await assertRateLimit(privateRateLimitIdentifier({ userId: profile.id, headers: request.headers }), "digital-observer:legacy-watch-request", 20, 60);
 
     if (payload.action === "create") {
       const site = await getObserverSiteAccess(supabase, profile, payload.observer_site_id, { manage: true });
@@ -50,6 +54,6 @@ export async function POST(request: Request) {
     if (result.error) return fail("לא ניתן להשבית את בקשת הניטור.", 400);
     return ok({ request: result.data, message: "בקשת הניטור הושבתה." });
   } catch (error) {
-    return handleRouteError(error);
+    return handleSafeRouteError(error);
   }
 }
