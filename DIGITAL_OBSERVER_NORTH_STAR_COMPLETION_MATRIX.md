@@ -298,8 +298,8 @@ The counts below are generated from the rows above during closure QA. They descr
 |---|---:|
 | `DONE + REAL PROOF` | 24 |
 | `IMPLEMENTED — NEEDS REAL PROOF` | 33 |
-| `FOUNDATION` | 64 |
-| `PARTIAL` | 17 |
+| `FOUNDATION` | 63 |
+| `PARTIAL` | 18 |
 | `NOT STARTED` | 51 |
 | `EXTERNAL COVERAGE GAP` | 1 |
 | **TOTAL** | **190** |
