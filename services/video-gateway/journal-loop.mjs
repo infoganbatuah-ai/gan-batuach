@@ -2,6 +2,7 @@ import { DatabaseSync } from "node:sqlite";
 import { randomUUID } from "node:crypto";
 import { JournalTracker, sampleAllCameras } from "./journal-tracker.mjs";
 import { createDurableOfflineQueue } from "./durable-offline-queue.mjs";
+import { createPreprocessingEngine } from "./preprocessing-policy.mjs";
 
 // The lease is local evidence, not an accepted field in the cloud event schema.
 export function eventForCloud(event, queuedAt = Date.now(), deliveredAt = Date.now()) {
@@ -55,6 +56,7 @@ export function startJournalLoop({ gatewayUrl, gatewaySecret, databasePath, obse
     spatialTraceEntries.push(entry);
     if (spatialTraceEntries.length > 240) spatialTraceEntries.splice(0, spatialTraceEntries.length - 240);
   } : null });
+  const preprocessing = createPreprocessingEngine();
   const health = new Map(db.prepare("SELECT camera_id,misses,offline FROM camera_health").all()
     .map(row => [String(row.camera_id), { misses:Number(row.misses)||0, offline:Number(row.offline)===1 }]));
   let stopped = false;
@@ -253,11 +255,35 @@ export function startJournalLoop({ gatewayUrl, gatewaySecret, databasePath, obse
         if (Array.isArray(camera.supported_event_types) && !camera.supported_event_types.some(type=>["person_detected","person_entered","person_exited","vehicle_entered","vehicle_exited","person_near_pool_off_hours","unauthorized_night_motion"].includes(type))) {
           throw new Error(camera.zone_type==="PARKING"?"crossing_line_not_configured":"no_supported_visual_event_rule");
         }
+        const policy = camera.preprocessing?.policy ?? "ALWAYS_ANALYZE";
+        let activity = null;
+        if (policy !== "ALWAYS_ANALYZE") {
+          try { activity = await request(`/camera/${encodeURIComponent(camera.stream_id)}/activity`); }
+          catch { /* Missing/malformed cheap metadata fails safely into periodic/full analysis below. */ }
+        }
+        const decision = preprocessing.evaluate({
+          camera: { camera_id: camera.camera_id, site_id: manifest.observer_site_id, vendor: camera.preprocessing?.vendor,
+            channel_assignment: camera.channel_assignment, physical_camera_attached: camera.physical_camera_attached },
+          policy,
+          active_watch_rule: camera.preprocessing?.active_watch_rule === true,
+          critical_policy: camera.preprocessing?.critical_policy === true,
+          health: { source: camera.status, frame_fresh: activity ? true : null },
+          metadata_available: policy === "ALWAYS_ANALYZE" || Boolean(activity),
+          motion_score: activity?.insight?.motion_score,
+          observed_at: activity?.insight?.sampled_at,
+          motion_threshold: camera.preprocessing?.motion_threshold,
+          coalesce_window_ms: camera.preprocessing?.coalesce_window_ms,
+          max_quiet_interval_ms: camera.preprocessing?.max_quiet_interval_ms
+        });
+        if (!decision.request_ai) return { sampled_at: activity?.insight?.sampled_at ?? new Date().toISOString(),
+          object_detection: { status: "preprocessing_suppressed", detections: [], model_provenance: null }, preprocessing: decision };
         const data = await request(`/camera/${encodeURIComponent(camera.stream_id)}/detections`);
         if (!data.local_processing || data.insight?.object_detection?.status !== "sampled") throw new Error("detector_unavailable");
-        return data.insight;
+        return { ...data.insight, preprocessing: decision };
       }, async (camera, insight) => {
-        try { for (const event of tracker.observe(camera, insight.object_detection.detections, insight.sampled_at, insight.source_anchor ?? null, insight.object_detection.model_provenance ?? null)) {
+        try { const events = tracker.observe(camera, insight.object_detection.detections, insight.sampled_at, insight.source_anchor ?? null, insight.object_detection.model_provenance ?? null);
+        preprocessing.recordCanonicalEvents(events.length);
+        for (const event of events) {
           queue.enqueue({ id: event.event_id, kind: "EVENT", orderingKey: `${observerSiteId}:${camera.camera_id}:${event.track_id || event.stream_id}`,
             sourceId: camera.camera_id, observedAt: event.timestamp, priority: event.severity === "CRITICAL" ? 100 : event.severity === "WARNING" ? 75 : 50, payload: event });
           // Do not wait for a slow/disconnected camera before delivering this event.
@@ -297,6 +323,7 @@ export function startJournalLoop({ gatewayUrl, gatewaySecret, databasePath, obse
         ...(typeof cameraFilter === "string" && cameraFilter ? { evidence_test_camera_filter: cameraFilter, coverage_scope: "single_camera_diagnostic" } : {}),
         ...(spatialTrace ? { spatial_trace_scope:"diagnostic_metadata_only", spatial_trace:[...spatialTraceEntries] } : {}),
         delivery_in_progress:pending>0 && deliveries.size>0, delivery_failures:deliveryFailures, delivery_failures_by_reason:Object.fromEntries(deliveryFailuresByReason), media_failures_by_reason:Object.fromEntries(mediaFailures), pending,
+        preprocessing: preprocessing.snapshot(),
         offline_buffer: queueStatus, local_monitoring_operational: true, cloud_sync_state: queueStatus.state });
     } catch (error) { deliveryManifest = null; report({status:"unavailable", reason: error.message, checked_at:new Date().toISOString()}); }
     if (!stopped) timer = setTimeout(run, pollIntervalMs);

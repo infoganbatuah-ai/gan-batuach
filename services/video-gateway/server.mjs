@@ -12,6 +12,7 @@ import { parseProbeResult, MAX_PROBE_OUTPUT_BYTES } from "./probe-result.mjs";
 import { parseEventClipPlaylist } from "./event-clip-window.mjs";
 import { decodeAnchoredFrame } from "./anchored-frame-decoder.mjs";
 import { computeActivityMetrics } from "./activity-insights.mjs";
+import { PREPROCESSING_CONTRACT } from "./preprocessing-policy.mjs";
 import { localEdgeReadiness, warmLocalEdgeReadiness } from "./edge-readiness.mjs";
 import { discoverPrivateNvrCapabilities } from "./private-nvr-capabilities.mjs";
 import { refreshDeviceCredentials } from "./device-refresh.mjs";
@@ -1728,6 +1729,21 @@ async function handle(request, response) {
           timestamp_basis: "local_source_observed_at_not_capture_utc",
           object_detection: { status: sample === null ? "unavailable" : "sampled", detections: sample?.detections ?? [], model_provenance: sample?.model_provenance ?? null } },
         local_processing: true, no_raw_video_returned: true
+      });
+      return;
+    }
+    const activityMatch = request.url?.match(/^\/camera\/([^/]+)\/activity$/);
+    if (activityMatch && request.method === "GET") {
+      const streamId = decodeURIComponent(activityMatch[1]);
+      const insight = await analyzeRelayActivity(streamId);
+      json(response, insight === null ? 503 : 200, {
+        status: insight === null ? "unavailable" : "sampled",
+        stream_id: streamId,
+        preprocessing_contract: PREPROCESSING_CONTRACT,
+        insight,
+        local_processing: true,
+        expensive_ai_invoked: false,
+        no_raw_video_returned: true
       });
       return;
     }

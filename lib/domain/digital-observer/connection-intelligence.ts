@@ -45,6 +45,48 @@ export const connectivityObservationSchema = z.object({
 });
 export type ConnectivityObservation = z.infer<typeof connectivityObservationSchema>;
 
+export const preprocessingCapabilityObservationSchema = z.object({
+  observationId: z.string().uuid(),
+  siteId: z.string().uuid(),
+  sourceId: z.string().uuid(),
+  family: z.enum(connectivityFamilyIds),
+  signalType: z.enum(["NATIVE_MOTION", "NATIVE_PERSON_EVENT", "NATIVE_VEHICLE_EVENT", "SCENE_CHANGE", "LOCAL_FRAME_DIFF", "NONE"]),
+  technicalCapability: z.enum(["VERIFIED_REAL", "VERIFIED_VENDOR_DOCUMENTATION", "INTEGRATION_TESTED", "INFERRED", "UNKNOWN"]),
+  digitalObserverCoverage: z.enum(["IMPLEMENTED", "INTEGRATION_MISSING", "UNKNOWN"]),
+  outcome: z.enum(["RELIABLE", "UNRELIABLE", "STALE", "MALFORMED", "NOT_OBSERVED"]),
+  firmware: z.string().max(80).nullable(),
+  observedAt: z.string().datetime(),
+  provenance: z.enum(["PRODUCTION", "CONTROLLED_TEST", "VENDOR_DOCUMENTATION"])
+}).strict();
+export type PreprocessingCapabilityObservation = z.infer<typeof preprocessingCapabilityObservationSchema>;
+
+export function aggregatePreprocessingCapabilities(observations: readonly PreprocessingCapabilityObservation[]) {
+  const groups = new Map<string, { family: string; signalType: string; firmware: string | null;
+    technicalCapability: PreprocessingCapabilityObservation["technicalCapability"];
+    digitalObserverCoverage: PreprocessingCapabilityObservation["digitalObserverCoverage"];
+    sampleCount: number; reliable: number; stale: number; malformed: number; lastObservedAt: string }>();
+  const seen = new Set<string>();
+  for (const raw of observations) {
+    const item = preprocessingCapabilityObservationSchema.parse(raw);
+    if (seen.has(item.observationId)) continue;
+    seen.add(item.observationId);
+    const key = JSON.stringify([item.family, item.signalType, item.firmware, item.technicalCapability, item.digitalObserverCoverage]);
+    const group = groups.get(key) ?? { family: item.family, signalType: item.signalType, firmware: item.firmware,
+      technicalCapability: item.technicalCapability, digitalObserverCoverage: item.digitalObserverCoverage,
+      sampleCount: 0, reliable: 0, stale: 0, malformed: 0, lastObservedAt: item.observedAt };
+    group.sampleCount++;
+    group.reliable += Number(item.outcome === "RELIABLE");
+    group.stale += Number(item.outcome === "STALE");
+    group.malformed += Number(item.outcome === "MALFORMED");
+    if (item.observedAt > group.lastObservedAt) group.lastObservedAt = item.observedAt;
+    groups.set(key, group);
+  }
+  // Site/source identifiers never enter cross-customer Connection Intelligence output.
+  return [...groups.values()].map(group => ({ ...group, reliability: group.sampleCount ? group.reliable / group.sampleCount : null,
+    maturity: group.sampleCount >= 20 ? "CANDIDATE_KNOWLEDGE" as const : "INSUFFICIENT_SAMPLES" as const,
+    promotion: "HUMAN_VALIDATION_REQUIRED" as const, securityPolicyMutable: false as const }));
+}
+
 // Only server-side outcome adapters should call this. User reports may contribute
 // friction/failure information; they cannot supply production activation proof.
 export function sanitizeConnectivityObservation(input: unknown, authorizedSiteId: string, proof?: PersistentPathProof): ConnectivityObservation {

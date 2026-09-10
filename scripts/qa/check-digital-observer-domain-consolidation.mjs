@@ -120,14 +120,14 @@ const capabilityRows = northStar.split("\n").filter((line) => {
 });
 assert.equal(capabilityRows.length, 190, "North-Star ledger must remain exactly 190 capabilities");
 const counts = Object.fromEntries(allowedStates.map((state) => [state, capabilityRows.filter((line) => line.split("|")[2]?.trim() === state).length]));
-assert.deepEqual(counts, {
-  "DONE + REAL PROOF": 24,
-  "IMPLEMENTED — NEEDS REAL PROOF": 21,
-  FOUNDATION: 69,
-  PARTIAL: 16,
-  "NOT STARTED": 59,
-  "EXTERNAL COVERAGE GAP": 1
-});
+const declaredCounts = Object.fromEntries(allowedStates.map((state) => {
+  const escaped = state.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+  const match = northStar.match(new RegExp("^\\| `" + escaped + "` \\| (\\d+) \\|$", "m"));
+  assert.ok(match, `North-Star summary is missing ${state}`);
+  return [state, Number(match[1])];
+}));
+assert.deepEqual(counts, declaredCounts, "North-Star row counts must match the audited summary instead of a stale historical snapshot");
+assert.equal(Object.values(counts).reduce((sum, value) => sum + value, 0), 190);
 assert.ok(capabilityRows.every((line) => line.split("|")[4]?.trim()), "every North-Star capability needs a canonical PUSH owner");
 
 const roadmap = read("DIGITAL_OBSERVER_CANONICAL_MASTER_ROADMAP.md");

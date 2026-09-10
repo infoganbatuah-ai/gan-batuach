@@ -19,6 +19,9 @@ This register maps every requested North-Star capability to an existing canonica
 | False-positive rate | Previous: FOUNDATION | New: IMPLEMENTED — NEEDS REAL PROOF | PUSH 28 benchmark engine | Added categorized FP ledger and denominator/version scope; current reviewed real sample is only n=1. |
 | False-negative analysis | Previous: NOT STARTED | New: FOUNDATION | PUSH 28 benchmark engine | Expected-but-missing events are representable, but current Product data does not yet enumerate false negatives. |
 | Confidence calibration | Previous: FOUNDATION | New: IMPLEMENTED — NEEDS REAL PROOF | PUSH 28 benchmark engine | Added confidence bins/ECE and insufficiency gate; current real sample is too small for calibration. |
+| Metadata-first processing | Previous: FOUNDATION | New: PARTIAL | PUSH 29 candidate contract | Added vendor-agnostic native-signal vocabulary, candidate-only provenance and sanitized capability learning; current DVR/Tapo native metadata remains unverified. |
+| Preprocessing | Previous: FOUNDATION | New: IMPLEMENTED — NEEDS REAL PROOF | PUSH 29 cheap preprocessing | Local frame difference now gates ONNX through dedupe/coalescing, never-blind fallback, Watch Rule/critical overrides and exact workload counters; representative FN Ground Truth remains missing. |
+| Sampling | Previous: FOUNDATION | New: PARTIAL | PUSH 29 bounded scheduling | Added human-gated candidate/always/adaptive policy and a 22-sample real-input comparison; full adaptive Candidate Events remain PUSH 30. |
 
 ## CAMERA PLATFORM
 
@@ -140,7 +143,7 @@ This register maps every requested North-Star capability to an existing canonica
 | Enterprise Edge | FOUNDATION | Shared edge profile contract | 17, 18, 22, 35, 41 | Packaging, policy and scale | Customer-hosted real deployment |
 | Customer-hosted video access | FOUNDATION | Source/storage abstraction direction | 34, 35, 42, 47 | Connectors and policy | Real customer-hosted stream authorization proof |
 | Customer-hosted recording access | NOT STARTED | No external recording integration proof | 34, 42, 47 | Recording APIs and retention mapping | Real VMS recording retrieval |
-| Metadata-first processing | FOUNDATION | Event-first architecture and preprocessing roadmap | 29, 31, 32, 47 | Native metadata adapters and QA | Real reduced-video workload with quality proof |
+| Metadata-first processing | PARTIAL | PUSH 29 vendor-agnostic candidate contract and real local-frame-difference path; native DVR/Tapo metadata unverified | 29, 31, 32, 47 | Verified native vendor/VMS adapters and representative quality QA | Real reduced-video workload with quality proof |
 | Federated investigation | NOT STARTED | Investigation is current-platform scoped | 13, 32, 42, 48 | Federated query and authorization | Cross-system external pilot |
 | Image upload search | NOT STARTED | No production image-reference search | 13, 28, 32, 42, 45 | Privacy and matching pipeline | Authorized real benchmark |
 | Video-reference search | NOT STARTED | No production video-reference search | 13, 28, 31, 32, 42 | Feature extraction and policy | Authorized real benchmark |
@@ -229,8 +232,8 @@ This register maps every requested North-Star capability to an existing canonica
 
 | Capability | Current Status | Existing Proof | Owning Canonical PUSH | Remaining Work | Final Proof Required |
 |---|---|---|---|---|---|
-| Preprocessing | FOUNDATION | Existing frame handling and roadmap contract | 29 | Native/motion/scene filters | Real quality-preserving workload reduction |
-| Sampling | FOUNDATION | Existing bounded sampling; adaptive work future | 29, 30 | Adaptive policy and evaluation | Recall/latency comparison on real data |
+| Preprocessing | IMPLEMENTED — NEEDS REAL PROOF | PUSH 29 local frame difference precedes ONNX; candidate-only native contract, dedupe/coalescing, safe fallback and 11/22 real-input jobs avoided | 29 | Representative FN Ground Truth and verified native vendor adapters | Real quality-preserving workload reduction |
+| Sampling | PARTIAL | PUSH 29 human-gated ALWAYS/CANDIDATE/ADAPTIVE policy and bounded 22-sample Home comparison | 29, 30 | Full adaptive Candidate Events and representative evaluation | Recall/latency comparison on real data |
 | AI job queue | NOT STARTED | Explicitly future | 31 | Durable prioritized queue | Worker-loss/backpressure proof |
 | Hybrid routing | NOT STARTED | Only policy foundation | 32 | Multi-provider/edge routing | Real failover with provenance |
 | Model routing | FOUNDATION | Provider/model metadata exists | 32 | Quality/privacy/capability policy | Measured route selection proof |
@@ -282,9 +285,9 @@ The counts below are generated from the rows above during closure QA. They descr
 | Status | Count |
 |---|---:|
 | `DONE + REAL PROOF` | 24 |
-| `IMPLEMENTED — NEEDS REAL PROOF` | 25 |
-| `FOUNDATION` | 66 |
-| `PARTIAL` | 16 |
+| `IMPLEMENTED — NEEDS REAL PROOF` | 26 |
+| `FOUNDATION` | 63 |
+| `PARTIAL` | 18 |
 | `NOT STARTED` | 58 |
 | `EXTERNAL COVERAGE GAP` | 1 |
 | **TOTAL** | **190** |

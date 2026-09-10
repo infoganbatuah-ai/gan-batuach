@@ -12,6 +12,8 @@
     "lib/domain/digital-observer/quality-benchmark.ts",
     "lib/domain/digital-observer/quality-benchmark-data.ts",
     "lib/domain/digital-observer/learning-coverage.ts",
+    "lib/domain/digital-observer/preprocessing-quality.ts",
+    "lib/domain/digital-observer/connection-intelligence.ts",
     "lib/domain/digital-observer/watch-rule-compiler.ts",
     "lib/domain/digital-observer/watch-rule-service.ts",
     "lib/domain/digital-observer/investigation-query.ts",
@@ -27,7 +29,8 @@
     "app/api/digital-observer/event-clips/[id]/media/route.ts",
     "app/api/digital-observer/admin/quality/route.ts",
     "app/digital-observer/admin/quality/page.tsx",
-    "app/digital-observer/rules/page.tsx"
+    "app/digital-observer/rules/page.tsx",
+    "app/api/video-gateway/event-manifest/route.ts"
   ],
   "domain": [
     { "name": "event-journal", "args": ["scripts/qa/check-event-journal.mjs"] },
@@ -47,6 +50,7 @@
     { "name": "verification", "args": ["scripts/qa/check-digital-observer-incident-verification.mjs"] },
     { "name": "feedback-calibration", "args": ["scripts/qa/check-digital-observer-feedback-calibration.mjs"] },
     { "name": "quality-benchmark", "args": ["scripts/qa/check-digital-observer-quality-benchmark.mjs"] },
+    { "name": "native-preprocessing", "args": ["scripts/qa/check-digital-observer-native-preprocessing.mjs"] },
     { "name": "watch-rules", "args": ["scripts/qa/check-digital-observer-watch-rule-compiler.mjs"] },
     { "name": "investigation", "args": ["--test", "scripts/qa/check-digital-observer-investigation.mjs"] }
   ],

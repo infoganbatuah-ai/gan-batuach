@@ -44,6 +44,12 @@ function cloudSecret() {
   return process.env.VIDEO_GATEWAY_CLOUD_DISCOVERY_SECRET || "";
 }
 
+export function isFleetCommandContractUnavailable(error: unknown) {
+  if (!error || typeof error !== "object") return false;
+  const code = String((error as { code?: unknown }).code || "");
+  return code === "PGRST202" || code === "42883";
+}
+
 export async function POST(request: Request) {
   try {
     const secret = cloudSecret();
@@ -129,7 +135,12 @@ export async function POST(request: Request) {
     if (updated.error || !updated.data) throw new Error("CONNECTOR_HEARTBEAT_WRITE_FAILED");
 
     const pendingCommands = await admin.rpc("claim_observer_edge_fleet_commands" as any, { p_enrollment: enrollment.data.id, p_limit: 20 });
-    if (pendingCommands.error) throw new Error("FLEET_COMMAND_CLAIM_FAILED");
+    // Heartbeat/config availability must not fail after the authenticated
+    // health write solely because a rolling deployment has not exposed the
+    // Fleet command RPC yet. Fail closed with zero commands for only the exact
+    // missing-contract codes; every other database/auth failure remains loud.
+    const commandContractUnavailable = isFleetCommandContractUnavailable(pendingCommands.error);
+    if (pendingCommands.error && !commandContractUnavailable) throw new Error("FLEET_COMMAND_CLAIM_FAILED");
     return ok({
       status: "accepted",
       device_type: payload.runtime.device_type,
@@ -140,7 +151,8 @@ export async function POST(request: Request) {
         cameras: [],
         sampling_policy: { mode: "cloud_managed" }
       },
-      commands: (pendingCommands.data ?? []).map((command: any) => ({
+      command_delivery_state: commandContractUnavailable ? "CONTRACT_UNAVAILABLE_NO_COMMANDS" : "READY",
+      commands: (commandContractUnavailable ? [] : pendingCommands.data ?? []).map((command: any) => ({
         id: command.id, command: command.command, parameters: command.safe_parameters,
         issued_at: command.requested_at, expires_at: command.expires_at
       })),

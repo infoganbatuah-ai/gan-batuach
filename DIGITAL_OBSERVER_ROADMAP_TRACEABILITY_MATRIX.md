@@ -10,7 +10,7 @@ This file is the roadmap-facing index for the capability-level register in `DIGI
 - Total mapped capabilities: **190**.
 - Canonical owner coverage: **190/190**.
 - Without canonical owner: **0**.
-- Evidence states: 24 `DONE + REAL PROOF`; 21 `IMPLEMENTED — NEEDS REAL PROOF`; 69 `FOUNDATION`; 16 `PARTIAL`; 59 `NOT STARTED`; 1 `EXTERNAL COVERAGE GAP`.
+- Evidence states: 24 `DONE + REAL PROOF`; 26 `IMPLEMENTED — NEEDS REAL PROOF`; 63 `FOUNDATION`; 18 `PARTIAL`; 58 `NOT STARTED`; 1 `EXTERNAL COVERAGE GAP`.
 - The matrix is complete as a mapping. The Product is not complete: most rows intentionally retain future implementation or real-proof obligations.
 
 ## OWNERSHIP RANGES
@@ -45,7 +45,7 @@ This file is the roadmap-facing index for the capability-level register in `DIGI
 - PUSH 24/25/27: DONE EARLY, subject to canonical dependency-sensitive revalidation.
 - PUSH 25 billing-role RLS HIGH finding remains open and is not hidden by this mapping.
 - `52/52 PUSHES DONE != PRODUCT COMPLETE`; a future North-Star Completion Audit is mandatory.
-- PUSH 28 is DONE. PUSH 27 remains valid as DONE EARLY and was dependency-revalidated rather than rerun. PUSH 29 is NEXT / NOT STARTED and requires a separate instruction.
+- PUSH 28–29 are DONE. PUSH 27 remains valid as DONE EARLY and was dependency-revalidated rather than rerun. PUSH 30 is NEXT / NOT STARTED and requires a separate instruction.
 
 # APPENDIX — LEGACY SOURCE-SLOT TRACEABILITY REGISTER
 
@@ -103,7 +103,7 @@ Source confidence: requirement intent `MEDIUM`; exact original title `LOW/UNRESO
 | Original 52 | 36 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Evidence/clips | Snapshots and bounded pre/post event clips | Evidence | Event/media | DONE | PUSH 7 | Multi-storage portability PUSH 34. |
 | Original 52 | 37 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Storage/retention/deletion | Private storage, signed access and retention | Storage | Evidence/privacy | DONE | PUSH 7 | Provider abstraction/NAS PUSH 34. |
 | Original 52 | 38 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Gateway fleet/OTA | Provisioning, certificates, OTA, rollback, watchdog, fleet | Device ops | Connector | PARTIAL | PUSH 16 lifecycle foundations | PUSH 17–23. |
-| Original 52 | 39 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Cheap preprocessing | Motion/native events/zones/adaptive sampling | Efficiency | Camera health/data | PARTIAL | Sampling/motion foundations | PUSH 29–30. |
+| Original 52 | 39 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Cheap preprocessing | Motion/native events/zones/adaptive sampling | Efficiency | Camera health/data | PARTIAL | PUSH 29 candidate-only native contract, local frame-difference gate and measured workload; full adaptive scheduling remains PUSH 30 | PUSH 30 representative recall/latency proof. |
 | Original 52 | 40 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] AI queue/routing | Durable jobs, priorities, workers and hybrid routes | AI infrastructure | Preprocessing | PARTIAL | Local worker foundations | PUSH 31–33. |
 | Original 52 | 41 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Portable infrastructure | Containers/cloud/dedicated/NAS; no office dependency | Infrastructure | Shared packages/storage | PARTIAL | Docker/service foundations | PUSH 34–37. |
 | Original 52 | 42 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Observability | Camera/stream/inference/event/queue/resource metrics | Operations | Stable interfaces | READY NOW | Existing telemetry fragments | PUSH 27. |
@@ -158,7 +158,7 @@ Source confidence: requirement intent `MEDIUM-HIGH` because the current request 
 | Technical/DD 16 | 5 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] OTA and rollback | Signed remote updates and recovery | Fleet | Identity/package | DONE | PUSH 19 shared Ed25519 OTA, staged canary and isolated automatic rollback | Continue Production key custody and bounded real canary evidence. |
 | Technical/DD 16 | 6 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Self-healing/offline | Watchdog, buffering and resync | Reliability | Device runtime | PARTIAL | PUSH 20 shared supervision and bounded real recovery; buffering/resync intentionally absent | PUSH 21 offline buffering/resync and PUSH 38 soak. |
 | Technical/DD 16 | 7 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Camera health/observability | Health engine, diagnostics and SLO telemetry | Operations | Stable runtime | PARTIAL | Existing health/heartbeat | PUSH 22–23/27. |
-| Technical/DD 16 | 8 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Cheap preprocessing | Native events, motion, scene and adaptive sampling | Efficiency | Health/quality | PARTIAL | Sampling/motion foundations | PUSH 29–30. |
+| Technical/DD 16 | 8 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Cheap preprocessing | Native events, motion, scene and adaptive sampling | Efficiency | Health/quality | PARTIAL | PUSH 29 candidate/local motion implementation and workload counters | PUSH 30 adaptive quality proof. |
 | Technical/DD 16 | 9 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Queue and hybrid AI | Durable jobs, portable workers and routing | AI infrastructure | Preprocessing/metrics | PARTIAL | Local inference foundations | PUSH 31–33. |
 | Technical/DD 16 | 10 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Storage portability | Abstract cloud/local/NAS evidence storage | Storage | Evidence/privacy | PARTIAL | Supabase production evidence | PUSH 34. |
 | Technical/DD 16 | 11 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Portable scale/HA | No-office deployment, horizontal scale and failover | Infrastructure | Queue/storage | NOT STARTED | Containers/readiness only | PUSH 35–38. |
@@ -205,9 +205,9 @@ Source confidence: requirement intent `HIGH` for entries represented explicitly 
 | Digital-First 45 | 27 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Fleet management | Inventory/version/status at device scale | Fleet | Identity/health | PARTIAL | PUSH 22 canonical fleet UI/API and 10,000-component synthetic QA | Real multi-site fleet proof. |
 | Digital-First 45 | 28 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Remote commands | Scoped auditable device actions | Fleet | Fleet security | PARTIAL | PUSH 22 preview/confirm/idempotent TTL command lifecycle | Real controlled multi-device operation. |
 | Digital-First 45 | 29 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Diagnostics | Remote safe diagnostic bundles | Operations | Fleet/telemetry | PARTIAL | PUSH 22 component detail/common-cause/backlog/update diagnostics | Real support-access diagnostic exercise. |
-| Digital-First 45 | 30 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Native events | Consume trusted camera/DVR event metadata | Preprocessing | Adapter capability | NOT STARTED | Capability vocabulary only | PUSH 29. |
-| Digital-First 45 | 31 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Motion filter | Gate expensive processing with cheap motion | Preprocessing | Frame sampling | PARTIAL | Motion/activity metrics | PUSH 29 measured impact. |
-| Digital-First 45 | 32 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Scene/zones filter | Use scene change and zones before inference | Preprocessing | Zones | PARTIAL | PUSH 5 zones, activity metrics | PUSH 29. |
+| Digital-First 45 | 30 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Native events | Consume trusted camera/DVR event metadata | Preprocessing | Adapter capability | PARTIAL | PUSH 29 candidate-only native signal contract; current real vendor metadata unverified | Implement and prove verified vendor adapters. |
+| Digital-First 45 | 31 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Motion filter | Gate expensive processing with cheap motion | Preprocessing | Frame sampling | PARTIAL | PUSH 29 local frame-difference gate avoided 11/22 AI requests in bounded real-input replay | Representative Ground Truth comparison. |
+| Digital-First 45 | 32 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Scene/zones filter | Use scene change and zones before inference | Preprocessing | Zones | PARTIAL | PUSH 5 zones plus PUSH 29 critical/Watch Rule policy and scene-change contract | Verified scene adapter and representative quality proof. |
 | Digital-First 45 | 33 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Adaptive sampling | Change sample rate by risk/activity/freshness | Efficiency | Metrics/quality | NOT STARTED | Fixed/bounded sampling | PUSH 30. |
 | Digital-First 45 | 34 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Candidate Events | Promote cheap signals into bounded candidates | Event infrastructure | Preprocessing | PARTIAL | Journal qualification | PUSH 30. |
 | Digital-First 45 | 35 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] AI Job Queue | Durable prioritized inference queue | AI infrastructure | Candidates | PARTIAL | Local worker/queue concepts | PUSH 31. |
