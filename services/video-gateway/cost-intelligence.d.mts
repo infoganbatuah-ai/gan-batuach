@@ -1,0 +1,15 @@
+export type CostAttributionQuality = "DIRECTLY_METERED" | "PROVIDER_RECONCILED" | "ALLOCATED" | "ESTIMATED" | "UNKNOWN";
+export type CostUsage = Record<string, unknown> & { resource_type: string; provider_id: string; tenant_id: string; site_id: string; source_id: string | null; quantity: number; unit: string; currency: string; calculated_cost: number | null; attribution_quality: CostAttributionQuality; idempotency_key: string };
+export type CostReport = { contract: string; schema_version: number; usage_events: number; duplicate_events_ignored: number; known_cost_events: number; unknown_cost_events: number; totals_by_currency: Record<string, number>; by_category: Record<string, { usage_events: number; known_cost: number; unknown_cost_events: number }>; by_attribution_quality: Record<string, number>; customer_price_included: false };
+export declare const COST_USAGE_CONTRACT: string;
+export declare const COST_RESOURCE_TYPES: readonly string[];
+export declare const COST_ATTRIBUTION_QUALITY: readonly CostAttributionQuality[];
+export declare function createRateCatalog(input: Record<string, unknown>): Record<string, unknown>;
+export declare function createCostUsage(input: Record<string, unknown>, options?: { catalog?: Record<string, unknown> | null }): CostUsage;
+export declare function createInferenceCostUsage(job: Record<string, unknown>, result: Record<string, unknown>, target: Record<string, unknown>, options?: Record<string, unknown>): CostUsage;
+export declare function allocateSharedUsage(input: Record<string, unknown>, sources: Record<string, unknown>[]): CostUsage[];
+export declare function buildCostReport(events: CostUsage[], filters?: Record<string, string>): CostReport;
+export declare function reconcileProviderCost(events: CostUsage[], actual: Record<string, unknown>): Record<string, unknown>;
+export declare function projectUsage(baseline: Record<string, unknown>, cameraCounts?: number[]): Record<string, unknown>[];
+export declare function detectCostAnomalies(current: Record<string, number>, baseline: Record<string, number>, options?: Record<string, number>): Record<string, unknown>[];
+export declare function assertCostOptimizationSafety(input: Record<string, boolean>): true;

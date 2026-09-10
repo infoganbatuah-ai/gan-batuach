@@ -5,6 +5,7 @@ import {
   Bell,
   Building2,
   Camera,
+  CircleDollarSign,
   CircleHelp,
   ClipboardCheck,
   CreditCard,
@@ -65,6 +66,7 @@ const adminNav = [
   { href: "/digital-observer/admin/watch-rules", label: "כללי ניטור", icon: ListTree },
   { href: "/digital-observer/admin/investigation", label: "בקרת חקירה", icon: Search },
   { href: "/digital-observer/admin/quality", label: "איכות וכיול", icon: ClipboardCheck },
+  { href: "/digital-observer/admin/costs", label: "עלות תפעולית", icon: CircleDollarSign },
   { href: "/digital-observer/admin/billing", label: "מנויים וחיוב", icon: CreditCard },
   { href: "/digital-observer/admin/packages", label: "חבילות", icon: Settings }
 ] as const;
