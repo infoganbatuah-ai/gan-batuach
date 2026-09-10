@@ -12,7 +12,7 @@ const presence = readFileSync("components/digital-observer/observer-camera-prese
 const actionForms = readFileSync("components/digital-observer/observer-action-forms.tsx", "utf8");
 
 for (const source of [camerasPage, dashboardPage]) {
-  assert.match(source, /digitalObserverCameraHasLiveGateway/, "camera surfaces must use the shared verified gateway status guard");
+  assert.match(source, /digitalObserverCameraHasLiveStream/, "camera surfaces must use the shared verified live-stream status guard");
   assert.match(source, /<ObserverLivePlayer compact/, "camera list tiles must render compact live thumbnails when a gateway stream exists");
 }
 
@@ -38,9 +38,9 @@ assert.doesNotMatch(dashboardPage, /<strong>\{openSignals\.length\}<\/strong><sp
 assert.match(dashboardPage, /do-home-event-cards/, "home must expose event review cards");
 assert.match(dashboardPage, /event-clips.*kind=thumbnail/, "home event cards must load the authenticated event thumbnail");
 assert.match(dashboardPage, /siteAddressLabel/, "home must display the configured site address context");
-assert.match(dashboardPage, /liveCameras = siteCameras\.filter\(\(camera\) => digitalObserverCameraHasLiveGateway\(camera\)\)/, "dashboard live totals must use the same verified gateway guard as camera tiles");
+assert.match(dashboardPage, /liveCameras = siteCameras\.filter\(\(camera\) => digitalObserverCameraHasLiveStream\(camera\)\)\.length/, "dashboard live totals must use the same verified stream guard as camera tiles");
 assert.match(conversationRoute, /camera_source_id/, "camera conversation must stay scoped to the selected source");
-assert.match(conversationRoute, /shadow_active/, "instructions for connected sources must not be left in generic readiness");
+assert.match(conversationRoute, /camera_scoped_runtime_data/, "connected-camera answers must use canonical scoped runtime data rather than generic readiness");
 assert.match(css, /do-camera-context-panel/, "camera context panel must have a responsive layout");
 assert.match(css, /font-size: 16px/, "mobile input controls must avoid browser zoom while keeping readable text");
 assert.doesNotMatch(camerasPage + dashboardPage + livePlayer, /rtsp:\/\/|password|credential/i, "browser camera thumbnail code must not expose raw stream credentials");
