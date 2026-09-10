@@ -5,6 +5,10 @@ services/video-gateway/*
 # camera runtime, credentials, media access or local service implementation.
 !services/video-gateway/edge-update-contract.mjs
 !services/video-gateway/edge-update-contract.d.mts
+# Pure cost normalization/reporting is shared by authorized cloud admin routes.
+# It contains no camera runtime, credentials, media access or local service state.
+!services/video-gateway/cost-intelligence.mjs
+!services/video-gateway/cost-intelligence.d.mts
 # Local private camera audits, credentials and generated state are never deployed.
 .env*
 tmp
