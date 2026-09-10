@@ -1,6 +1,6 @@
 # DIGITAL OBSERVER — CANONICAL MASTER ROADMAP
 
-Date: 2026-09-10 (PUSH 33 cost-intelligence closure; original reconciliation retained below)
+Date: 2026-09-10 (PUSH 34 storage-portability closure; original reconciliation retained below)
 Repository base reviewed: `dc50fca` on `main`; the scoped closure commit is recorded in the final PUSH 17D handoff.
 Purpose: the canonical 52-push roadmap. The user's PUSH 17 authorization expands its product scope; this document does not authorize deployments or future pushes.
 
@@ -10,9 +10,9 @@ Digital Observer has completed the canonical product path from audit through Dig
 
 The canonical roadmap contains **52 pushes**. It preserves the existing numbers 1–16 and continues through production infrastructure, pilots, commercial proof, technical due diligence, and acquisition/exit. Later work may be executed early only when its `EXECUTION MODE` says `CAN EXECUTE EARLY`; its canonical number never changes.
 
-Current sequential position: **PUSH 33 — AI and Infrastructure Cost Engine**. The implementation and gates are complete; canonical `DONE` requires the scoped PUSH 33 Pull Request to be merged and verified on `origin/main`. One versioned operational-cost contract attributes usage through existing AI job, route, tenant, Site and camera provenance without changing billing or routing.
-Current completion gate: merge and verify the scoped PUSH 33 Pull Request. No authorized provider invoice/rate source was available, so real monetary reconciliation remains explicit future evidence rather than an invented value.
-PUSH 24/25/27 remain DONE EARLY and were dependency-revalidated, not rebuilt. PUSH 34 is next but remains blocked/not started until the PUSH 33 PR merge is verified.
+Current sequential position: **PUSH 34 — Storage Abstraction + NAS + Retention Portability**. `observer-storage-v1` now wraps private Supabase Evidence and a scoped local/NAS filesystem provider, while preserving Event/Evidence/Recording/Investigation boundaries.
+Current completion gate: merge and verify the scoped PUSH 34 Pull Request. Real network-NAS deployment, current Production deletion and customer-hosted DVR/NVR/VMS retrieval remain future evidence; none is fabricated.
+PUSH 24/25/27 remain DONE EARLY and were dependency-revalidated, not rebuilt. PUSH 35 remains not started and requires a separate instruction after PUSH 34 merge verification.
 
 ## Status semantics
 
@@ -43,7 +43,8 @@ PUSH 28     DONE — quality benchmark and Ground Truth measurement program
 PUSH 29–31  DONE — preprocessing, adaptive sampling and durable jobs
 PUSH 32     DONE ON VERIFIED PR MERGE — privacy-safe hybrid routing
 PUSH 33     DONE ON VERIFIED PR MERGE — operational cost intelligence; provider reconciliation remains future evidence
-PUSH 34     NEXT — blocked/not started until PUSH 33 merge verification; requires a separate instruction
+PUSH 34     DONE ON VERIFIED PR MERGE — storage abstraction, local/NAS provider, portable retention and safe migration
+PUSH 35     NEXT — blocked/not started until PUSH 34 merge verification; requires a separate instruction
 PUSH 50     documentation-only preparation permitted only by separate instruction
 ```
 
@@ -116,6 +117,12 @@ Deterministic scale QA covers 10 tenants, 1,000 Sites and 10,000 managed compone
 # PUSH 23 CAMERA HEALTH TRUTH BOUNDARY
 
 PUSH 23 establishes `observer-camera-health-v1` as the canonical health truth for expected physical cameras, sources, frame freshness, relays, playback, AI, managed components, authentication, cloud and recording. Customer summary state is explainable from these dimensions; stale evidence expires, recovery and flapping are explicit, and common component failures are deduplicated.
+
+# PUSH 34 STORAGE PORTABILITY BOUNDARY
+
+PUSH 34 establishes `observer-storage-v1` for Evidence media without changing Event/Incident truth. Private Supabase object storage and a real scoped local/NAS filesystem provider share write/read/stat/integrity/authorized-access/delete QA. Retention is versioned, honors legal hold, deletes backend data before writing a tombstone, and migration retains the prior canonical copy until the destination hash is verified.
+
+Source recordings remain separate customer/DVR/NVR/VMS archive references. Existing pre-contract Evidence retains an explicit compatibility path until copy/hash/access reconciliation authorizes retirement. PUSH 35 remains unstarted.
 
 Configured capacity is not the availability denominator. The real Home denominator is eleven expected physical cameras—ten populated DVR channels plus one Tapo—while six DVR slots remain `CHANNEL_EMPTY / UNASSIGNED`. PUSH 23 does not claim long-duration 24/7 proof; PUSH 38 remains responsible for soak and real fault qualification. PUSH 24 remains DONE EARLY and is not restarted.
 

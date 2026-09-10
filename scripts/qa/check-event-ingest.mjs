@@ -50,6 +50,9 @@ let pushCalls=0, pushStatus="sent";
 const audits=[];
 const mocks={"@/lib/supabase/admin":{createAdminClient:()=>db},"@/lib/api":{
   ok:(data,status=200)=>Response.json({data},{status}),fail:(error,status=400)=>Response.json({error},{status}),handleRouteError:()=>Response.json({error:"route_failure"},{status:500})
+},"@/lib/domain/digital-observer/storage-contract.mjs":{
+  createStorageObjectId:({tenantId,siteId,evidenceId,variant,extension})=>`${tenantId}/${siteId}/${evidenceId}/${variant}.${extension}`,
+  createSupabaseStorageBackend:({client})=>({write:async({objectId,bytes,contentType})=>{const result=await client.storage.from("digital-observer-event-media").upload(objectId,bytes,{contentType,upsert:true});if(result.error)throw new Error("storage_write_failed");return {object_id:objectId};}})
 },"@/lib/domain/push-service":{preparePushForNotification:async()=>{pushCalls++;return {logs:pushStatus?[{status:pushStatus}]:[],error:null};}},
 "@/lib/security/audit-log-service":{writeAuditEvent:async input=>{
   const result=await db.from("immutable_audit_events").insert(input);
