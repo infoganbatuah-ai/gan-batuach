@@ -1,6 +1,7 @@
 import { DashboardShell } from "@/components/dashboard-shell";
 import { israelTodayDateKey } from "@/lib/domain/israel-date";
 import { StaffProfileCards } from "@/components/people-profile-cards";
+import { TeachingAssignmentsPanel } from "@/components/teaching-assignments-panel";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { ClipboardCheck, ShieldCheck, UserCheck, UsersRound } from "lucide-react";
@@ -15,19 +16,24 @@ import {
   TeacherStatsGrid
 } from "@/components/teacher-app-ui";
 
+type TeachingAssignmentRow = { id: string; profile_id: string; staff_id: string | null; assignment_kind: string; title: string; status: string };
+type GardenTeachingRow = { owner_profile_id: string | null; ownership_type: string };
+
 export default async function GardenStaffPage() {
   const { profile } = await requireRole(["manager", "owner"]);
   const supabase = await createClient();
   const gardenId = profile.garden_id ?? "";
   const today = israelTodayDateKey();
-  const [staffRes, docsRes, tasksRes, shiftsRes, certsRes, anomaliesRes, scoresRes] = await Promise.all([
-    supabase.from("staff" as any).select("id, profile_id, full_name, role_title, phone, email, approved_to_work, background_check_status, police_clearance_status, class_group, profile_photo_url, manager_approved_at, inspector_verified_at, created_at").eq("garden_id", gardenId).order("full_name"),
+  const [staffRes, docsRes, tasksRes, shiftsRes, certsRes, anomaliesRes, scoresRes, gardenRes, assignmentsRes] = await Promise.all([
+    supabase.from("staff" as any).select("id, profile_id, full_name, role_title, phone, email, approved_to_work, onboarding_status, background_check_status, police_clearance_status, class_group, profile_photo_url, manager_approved_at, inspector_verified_at, created_at").eq("garden_id", gardenId).order("full_name"),
     supabase.from("documents" as any).select("staff_id, id, status").eq("garden_id", gardenId),
     supabase.from("tasks" as any).select("assigned_to, id, status").eq("garden_id", gardenId).neq("status", "done"),
     supabase.from("staff_shifts" as any).select("staff_id, actual_start, actual_end, shift_date, attendance_confidence, confidence_score, total_minutes, status").eq("garden_id", gardenId).eq("shift_date", today),
     supabase.from("staff_certificates" as any).select("staff_id, id").eq("garden_id", gardenId),
     supabase.from("staff_workforce_anomalies" as any).select("staff_id, id, anomaly_type, severity, status").eq("garden_id", gardenId).in("status", ["requires_review", "reviewing"]),
-    supabase.from("staff_workforce_scores" as any).select("staff_id, readiness_score, attendance_score, document_score, compliance_score").eq("garden_id", gardenId).eq("score_date", today)
+    supabase.from("staff_workforce_scores" as any).select("staff_id, readiness_score, attendance_score, document_score, compliance_score").eq("garden_id", gardenId).eq("score_date", today),
+    supabase.from("gardens" as never).select("owner_profile_id, ownership_type").eq("id", gardenId).maybeSingle(),
+    supabase.from("garden_teaching_assignments" as never).select("id, profile_id, staff_id, assignment_kind, title, status").eq("garden_id", gardenId)
   ]);
   const countBy = (rows: any[], key: string, predicate = (_row: any) => true) => rows.reduce((map, row) => predicate(row) ? map.set(row[key], (map.get(row[key]) ?? 0) + 1) : map, new Map<string, number>());
   const missingDocs = countBy((docsRes.data ?? []) as any[], "staff_id", (row) => ["missing", "expired", "rejected"].includes(row.status));
@@ -55,6 +61,10 @@ export default async function GardenStaffPage() {
   });
   const activeToday = rows.filter((row) => row.shift_today).length;
   const reviewNeeded = rows.reduce((sum, row) => sum + Number(row.anomaly_count ?? 0), 0) + rows.filter((row) => row.attendance_confidence === "requires_review" && row.shift_today).length;
+  const assignments = (assignmentsRes.data ?? []) as unknown as TeachingAssignmentRow[];
+  const ownerAssignment = assignments.find((assignment) => assignment.assignment_kind === "owner_teacher") ?? null;
+  const gardenTeaching = gardenRes.data as unknown as GardenTeachingRow | null;
+  const ownerEligible = profile.role === "owner" && gardenTeaching?.owner_profile_id === profile.id && gardenTeaching?.ownership_type === "teacher_is_owner";
 
   return (
     <DashboardShell role="manager" title="צוות" appHome>
@@ -95,6 +105,8 @@ export default async function GardenStaffPage() {
             </TeacherCompactList>
           </TeacherSection>
         </section>
+
+        <TeachingAssignmentsPanel ownerEligible={ownerEligible} ownerAssignment={ownerAssignment} assignments={assignments} staff={rows} />
 
         <details className="teacher-management-details">
           <summary>ניהול מלא</summary>

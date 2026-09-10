@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { getOperationalRoleContext } from "@/lib/management/operational-role";
+import { requireStaffTeachingScope } from "@/lib/management/teaching-access";
 import { createClient } from "@/lib/supabase/server";
 
 const schema = z.object({
@@ -20,6 +21,8 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     const access = await getOperationalRoleContext(["manager", "owner", "staff"]);
     if (!access.allowed) return access.response;
     const { profile } = access.session;
+    const teaching = await requireStaffTeachingScope(profile, "children");
+    if (!teaching.allowed) return teaching.response;
     actionContext = { action: payload.action, entity_id: id, user_id: profile.id, user_role: profile.role, garden_id: profile.garden_id, new_status: payload.status };
     const supabase = await createClient();
     const child = await supabase.from("children" as any).select("id, garden_id, full_name, primary_parent_id, parents:primary_parent_id(profile_id)").eq("id", id).maybeSingle();

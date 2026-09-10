@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { getOperationalRoleContext } from "@/lib/management/operational-role";
+import { requireStaffTeachingScope } from "@/lib/management/teaching-access";
 import { createClient } from "@/lib/supabase/server";
 
 const schema = z.object({
@@ -14,6 +15,8 @@ export async function POST(request: Request) {
     if (!access.allowed) return access.response;
     const { profile } = access.session;
     if (!profile.garden_id) return fail("לא נמצא גן משויך למשתמש", 422);
+    const teaching = await requireStaffTeachingScope(profile, "attendance");
+    if (!teaching.allowed) return teaching.response;
 
     const payload = schema.parse(await request.json());
     const supabase = await createClient();
