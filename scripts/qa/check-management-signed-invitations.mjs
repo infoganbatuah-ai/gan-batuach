@@ -5,7 +5,7 @@ import test from "node:test";
 const source = file => readFileSync(file, "utf8");
 
 test("canonical invitation storage persists digests and lifecycle state", () => {
-  const migration = source("supabase/migrations/20260910010000_management_signed_invitations.sql");
+  const migration = source("supabase/migrations/20260910011000_management_signed_invitations.sql");
   assert.match(migration, /token_hash text not null unique/);
   assert.match(migration, /recipient_fingerprint text not null/);
   assert.match(migration, /'superseded'/);

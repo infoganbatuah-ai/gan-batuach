@@ -81,7 +81,7 @@ test("activation surfaces fail closed on incomplete contact verification", () =>
 });
 
 test("migration synchronizes Auth truth and does not enroll legacy accounts", () => {
-  const migration = source("supabase/migrations/20260908010000_management_contact_verification.sql");
+  const migration = source("supabase/migrations/20260908020000_management_contact_verification.sql");
   assert.match(migration, /contact_verification_required boolean not null default false/);
   assert.match(migration, /after update of email_confirmed_at, phone_confirmed_at on auth\.users/);
   assert.match(migration, /revoke all on function public\.sync_management_contact_verification\(\)/);
