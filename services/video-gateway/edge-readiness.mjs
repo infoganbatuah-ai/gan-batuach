@@ -1,8 +1,8 @@
 import { existsSync } from "node:fs";
 import { spawnSync } from "node:child_process";
-import { homedir } from "node:os";
 import { join } from "node:path";
 import { objectInference } from "./object-inference-client.mjs";
+import { resolveEdgeRuntimePaths } from "./runtime-paths.mjs";
 
 let baseReadinessCache = null;
 
@@ -16,7 +16,7 @@ function executableAvailable(command) {
 }
 
 function visionWorkerSelfTest() {
-  const workerPath = process.env.VIDEO_GATEWAY_VISION_WORKER_PATH || join(homedir(), ".local", "share", "gan-batuach", "video-gateway", "vision-edge-worker");
+  const workerPath = resolveEdgeRuntimePaths().visionWorkerPath;
   if (!existsSync(workerPath)) return { available: false, reason: "vision_worker_not_built", capabilities: {} };
   const result = spawnSync(workerPath, ["--self-test"], { encoding: "utf8", timeout: 5_000 });
   if (result.error?.code === "ETIMEDOUT") return { available: false, reason: "vision_worker_self_test_timeout", capabilities: {} };
@@ -39,8 +39,8 @@ function objectWorkerSelfTest() {
 
 function baseReadiness() {
   if (baseReadinessCache) return baseReadinessCache;
-  const modelDir = process.env.VIDEO_GATEWAY_EDGE_MODEL_DIR || "";
-  const audioModel = modelDir ? join(modelDir, "audio-event-detector.mlmodelc") : "";
+  const modelDir = resolveEdgeRuntimePaths().modelDir;
+  const audioModel = join(modelDir, "audio-event-detector.mlmodelc");
   // The compiled worker is the runtime artifact. Requiring `swift` here would
   // incorrectly disable Vision when the compiler is not on the LaunchAgent PATH.
   const appleVisionPlatform = process.platform === "darwin";

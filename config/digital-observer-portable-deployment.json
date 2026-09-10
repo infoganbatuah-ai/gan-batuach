@@ -1,0 +1,40 @@
+{
+  "contract": "observer-portable-deployment-v1",
+  "runtime": {
+    "node_major": 22,
+    "npm_supported": ">=10 <12",
+    "package_lock_required": true,
+    "ffmpeg": "required only for camera-bearing Connector/Gateway profiles",
+    "onnxruntime_node": "1.29.0 for packaged object-inference profiles"
+  },
+  "dependencies": [
+    { "name": "Vercel Web runtime", "class": "CLOUD_MANAGED", "required_for": ["WEB"] },
+    { "name": "Supabase Postgres/Auth", "class": "CLOUD_MANAGED", "required_for": ["WEB", "CONTROL_PLANE"] },
+    { "name": "Supabase private object storage", "class": "CLOUD_MANAGED", "required_for": ["DEFAULT_EVIDENCE_BACKEND"] },
+    { "name": "Software Connector", "class": "EDGE_LOCAL_REQUIRED", "required_for": ["CONNECTOR_EXCEPTION_ONLY"] },
+    { "name": "Physical Gateway", "class": "EDGE_LOCAL_REQUIRED", "required_for": ["GATEWAY_LAST_RESORT_ONLY"] },
+    { "name": "Local/NAS evidence provider", "class": "OPTIONAL", "required_for": ["APPROVED_CUSTOMER_STORAGE"] },
+    { "name": "visual comparison/capture scripts", "class": "DEVELOPER_ONLY", "required_for": [] },
+    { "name": "historical staging helpers", "class": "LEGACY", "required_for": [] }
+  ],
+  "configuration": {
+    "web_required": ["APP_ENV", "NEXT_PUBLIC_APP_ENV", "NEXT_PUBLIC_SUPABASE_URL", "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY", "SUPABASE_SERVICE_ROLE_KEY", "APP_URL", "NEXT_PUBLIC_APP_URL", "AUTH_REDIRECT_URL", "CRON_SECRET", "HEALTHCHECK_SECRET", "FIELD_ENCRYPTION_KEY_CURRENT", "FIELD_HASH_PEPPER"],
+    "edge_required_after_enrollment": ["OBSERVER_EDGE_DEVICE_TYPE", "OBSERVER_EDGE_DATA_DIR"],
+    "edge_secret_store_one_of": ["OBSERVER_CONNECTOR_KEYCHAIN_SERVICE", "OBSERVER_CONNECTOR_SECRET_DIR", "GAN_BATUACH_GATEWAY_SECRET_DIR"],
+    "model_override": "VIDEO_GATEWAY_OBJECT_MODEL_PATH",
+    "gateway_config_file": "VIDEO_GATEWAY_CONFIG_FILE"
+  },
+  "secret_classes": ["database credentials", "provider tokens", "field encryption keys", "device private keys", "release-signing private keys", "storage credentials", "camera credentials"],
+  "artifacts": [
+    { "profile": "WEB", "source": "Dockerfile/Vercel", "version_fields": ["package.json", "package-lock.json", "git SHA"] },
+    { "profile": "SOFTWARE_CONNECTOR", "source": "macOS DMG / Windows MSI / container", "ota_contract": "observer-edge-update-v1" },
+    { "profile": "PHYSICAL_GATEWAY", "source": "managed runtime package/container", "ota_contract": "observer-edge-update-v1" },
+    { "profile": "AI_WORKER", "source": "portable worker contract plus verified model manifest", "worker_contract": "observer-ai-job-v1" }
+  ],
+  "portable_paths": {
+    "linux": "$XDG_STATE_HOME/digital-observer/<profile> or ~/.local/state/digital-observer/<profile>",
+    "macos": "$HOME/Library/Application Support/Digital Observer/<profile>",
+    "windows": "%PROGRAMDATA%/DigitalObserver/<profile>",
+    "container": "/var/lib/observer-connector"
+  }
+}

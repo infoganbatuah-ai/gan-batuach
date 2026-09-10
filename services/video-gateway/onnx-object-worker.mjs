@@ -1,9 +1,8 @@
 import { createHash } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
-import { homedir } from "node:os";
-import { join } from "node:path";
+import { resolveEdgeRuntimePaths } from "./runtime-paths.mjs";
 
-const modelPath = process.env.VIDEO_GATEWAY_OBJECT_MODEL_PATH || join(homedir(), ".local", "share", "gan-batuach", "video-gateway", "models", "ssd_mobilenet_v1_10.onnx");
+const modelPath = resolveEdgeRuntimePaths().objectModelPath;
 const expectedSha256 = "1fbcf47654165f2e0b5f1bdf3f123b9e9e1128cd6463717767b76ab4b5246f9a";
 const provenance = {
   model: "ssd_mobilenet_v1_10",

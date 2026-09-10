@@ -2,6 +2,7 @@
   "name": "gan-batuach",
   "version": "1.0.0",
   "private": true,
+  "packageManager": "npm@11.13.0",
   "type": "module",
   "engines": {
     "node": ">=22 <25",
@@ -53,6 +54,9 @@
     "qa:digital-observer-cost-engine-real": "node scripts/qa/measure-real-home-cost-baseline.mjs",
     "qa:digital-observer-storage-portability": "node scripts/qa/check-digital-observer-storage-portability.mjs",
     "qa:digital-observer-storage-evidence-real": "node scripts/qa/verify-production-storage-evidence.mjs https://ganbatuach.com",
+    "qa:digital-observer-portable-deployment": "node scripts/qa/check-digital-observer-portable-deployment.mjs",
+    "qa:digital-observer-clean-environment": "node scripts/qa/run-clean-environment-proof.mjs",
+    "model:fetch:object-detection": "node scripts/fetch-verified-model.mjs --model=ssd_mobilenet_v1_10",
     "qa:digital-observer-watch-rules": "node scripts/qa/check-digital-observer-watch-rule-compiler.mjs",
     "qa:digital-observer-investigation": "node --test scripts/qa/check-digital-observer-investigation.mjs",
     "qa:digital-observer-investigation-production": "node scripts/qa/verify-production-investigation.mjs",

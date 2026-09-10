@@ -1,0 +1,18 @@
+{
+  "contract": "observer-model-artifacts-v1",
+  "models": [
+    {
+      "id": "ssd_mobilenet_v1_10",
+      "version": "onnx-model-zoo-main-sha256-pinned",
+      "filename": "ssd_mobilenet_v1_10.onnx",
+      "source_url": "https://huggingface.co/onnxmodelzoo/ssd_mobilenet_v1_10/resolve/main/ssd_mobilenet_v1_10.onnx",
+      "sha256": "1fbcf47654165f2e0b5f1bdf3f123b9e9e1128cd6463717767b76ab4b5246f9a",
+      "size_bytes": 29275103,
+      "license": "Apache-2.0",
+      "redistribution": "NOTICE_REQUIRED_AND_BUNDLED_IN_CONNECTOR_PACKAGE",
+      "runtime": "onnxruntime-node@1.29.0",
+      "execution_provider": "cpu",
+      "repository_policy": "EXTERNAL_CHECKSUMMED_ARTIFACT_NOT_COMMITTED"
+    }
+  ]
+}
