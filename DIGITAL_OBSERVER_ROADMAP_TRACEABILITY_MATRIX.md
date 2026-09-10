@@ -10,7 +10,7 @@ This file is the roadmap-facing index for the capability-level register in `DIGI
 - Total mapped capabilities: **190**.
 - Canonical owner coverage: **190/190**.
 - Without canonical owner: **0**.
-- Evidence states: 24 `DONE + REAL PROOF`; 29 `IMPLEMENTED — NEEDS REAL PROOF`; 63 `FOUNDATION`; 17 `PARTIAL`; 56 `NOT STARTED`; 1 `EXTERNAL COVERAGE GAP`.
+- Evidence states: 24 `DONE + REAL PROOF`; 31 `IMPLEMENTED — NEEDS REAL PROOF`; 61 `FOUNDATION`; 18 `PARTIAL`; 55 `NOT STARTED`; 1 `EXTERNAL COVERAGE GAP`.
 - The matrix is complete as a mapping. The Product is not complete: most rows intentionally retain future implementation or real-proof obligations.
 
 ## OWNERSHIP RANGES
@@ -45,7 +45,7 @@ This file is the roadmap-facing index for the capability-level register in `DIGI
 - PUSH 24/25/27: DONE EARLY, subject to canonical dependency-sensitive revalidation.
 - PUSH 25 billing-role RLS HIGH finding remains open and is not hidden by this mapping.
 - `52/52 PUSHES DONE != PRODUCT COMPLETE`; a future North-Star Completion Audit is mandatory.
-- PUSH 28–31 are DONE. PUSH 27 remains valid as DONE EARLY and was dependency-revalidated rather than rerun. PUSH 32 is NEXT / NOT STARTED and requires a separate instruction.
+- PUSH 28–32 are DONE. PUSH 27 remains valid as DONE EARLY and was dependency-revalidated rather than rerun. PUSH 33 is NEXT / NOT STARTED and requires a separate instruction.
 
 # APPENDIX — LEGACY SOURCE-SLOT TRACEABILITY REGISTER
 
@@ -159,7 +159,7 @@ Source confidence: requirement intent `MEDIUM-HIGH` because the current request 
 | Technical/DD 16 | 6 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Self-healing/offline | Watchdog, buffering and resync | Reliability | Device runtime | PARTIAL | PUSH 20 shared supervision and bounded real recovery; buffering/resync intentionally absent | PUSH 21 offline buffering/resync and PUSH 38 soak. |
 | Technical/DD 16 | 7 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Camera health/observability | Health engine, diagnostics and SLO telemetry | Operations | Stable runtime | PARTIAL | Existing health/heartbeat | PUSH 22–23/27. |
 | Technical/DD 16 | 8 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Cheap preprocessing | Native events, motion, scene and adaptive sampling | Efficiency | Health/quality | IMPLEMENTED — NEEDS REAL PROOF | PUSH 29/30 local activity, candidate contract, adaptive purpose/priority/fairness and exact workload counters | Representative adaptive quality and native-vendor proof. |
-| Technical/DD 16 | 9 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Queue and hybrid AI | Durable jobs, portable workers and routing | AI infrastructure | Preprocessing/metrics | PARTIAL | Local inference foundations | PUSH 31–33. |
+| Technical/DD 16 | 9 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Queue and hybrid AI | Durable jobs, portable workers and routing | AI infrastructure | Preprocessing/metrics | IMPLEMENTED — NEEDS REAL PROOF | PUSH 31 durable jobs plus PUSH 32 eligibility-first routing, local failover QA and real EDGE_LOCAL sample | Real Cloud/multi-provider operation and PUSH 33 measured economics. |
 | Technical/DD 16 | 10 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Storage portability | Abstract cloud/local/NAS evidence storage | Storage | Evidence/privacy | PARTIAL | Supabase production evidence | PUSH 34. |
 | Technical/DD 16 | 11 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Portable scale/HA | No-office deployment, horizontal scale and failover | Infrastructure | Queue/storage | NOT STARTED | Containers/readiness only | PUSH 35–38. |
 | Technical/DD 16 | 12 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Security/privacy | RLS, secrets, access, retention, compliance | Security | Architecture | READY NOW | Strong controls, incomplete independent proof | PUSH 25/45. |
@@ -212,9 +212,9 @@ Source confidence: requirement intent `HIGH` for entries represented explicitly 
 | Digital-First 45 | 34 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Candidate Events | Promote cheap signals into bounded candidates | Event infrastructure | Preprocessing | IMPLEMENTED — NEEDS REAL PROOF | PUSH 29/30 candidate-only provenance, dedupe, coalescing, expiry, priority and queue-ready contract | Natural real candidate-to-Event and representative quality proof. |
 | Digital-First 45 | 35 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] AI Job Queue | Durable prioritized inference queue | AI infrastructure | Candidates | IMPLEMENTED — NEEDS REAL PROOF | PUSH 31 WAL queue, lease/ACK/retry/dead-letter, expiry, priority/fairness/backpressure and real Tapo job | Production multi-worker/load proof. |
 | Digital-First 45 | 36 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Portable workers | Same worker contract across environments | AI infrastructure | Job queue | IMPLEMENTED — NEEDS REAL PROOF | PUSH 31 identical contract passed EDGE_LOCAL and ISOLATED_PROCESS | Real independently deployed worker environment. |
-| Digital-First 45 | 37 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Local/edge AI | Privacy/cost-aware local inference | AI routing | Portable workers | PARTIAL | Real local ONNX person | PUSH 32 qualification. |
-| Digital-First 45 | 38 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Cloud/dedicated AI | Optional scalable provider inference | AI routing | Provider contracts | NOT STARTED | Readiness only | PUSH 32. |
-| Digital-First 45 | 39 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Hybrid router | Select edge/local/cloud by policy | AI routing | Multiple providers | NOT STARTED | No measured router | PUSH 32. |
+| Digital-First 45 | 37 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Local/edge AI | Privacy/cost-aware local inference | AI routing | Portable workers | IMPLEMENTED — NEEDS REAL PROOF | PUSH 32 real Tapo job routed through EDGE_ONLY policy to local ONNX with decision provenance | Representative deployed multi-target workload. |
+| Digital-First 45 | 38 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Cloud/dedicated AI | Optional scalable provider inference | AI routing | Provider contracts | FOUNDATION | PUSH 32 shared/dedicated target, provider, region and tenant-policy adapter contract; no provider configured | Authorized real Cloud execution. |
+| Digital-First 45 | 39 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Hybrid router | Select edge/local/cloud by policy | AI routing | Multiple providers | IMPLEMENTED — NEEDS REAL PROOF | PUSH 32 hard eligibility, scoring, explanation, no-target and bounded local failover QA | Real Cloud/multi-provider failover with provenance. |
 | Digital-First 45 | 40 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Priority/backpressure | Protect streams/tenants under load | Scale | Durable queue | IMPLEMENTED — NEEDS REAL PROOF | PUSH 31 bounded record/byte admission, priority aging and tenant/Site/camera fairness QA | Production distributed load proof in PUSH 36. |
 | Digital-First 45 | 41 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] GPU/cost control | Measure and optimize inference cost | Economics | Routing/telemetry | NOT STARTED | No reconciled cost engine | PUSH 33. |
 | Digital-First 45 | 42 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Storage abstraction/NAS | Portable evidence/recording storage | Storage | Evidence/privacy | PARTIAL | Supabase production evidence | PUSH 34. |

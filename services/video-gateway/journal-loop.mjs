@@ -7,6 +7,7 @@ import { createAdaptiveSamplingScheduler } from "./adaptive-sampling-scheduler.m
 import { createAiJob } from "./ai-job-contract.mjs";
 import { createDurableAiJobQueue } from "./durable-ai-job-queue.mjs";
 import { createPortableInferenceWorker } from "./portable-inference-worker.mjs";
+import { createExecutionTarget, createHybridAiRouter } from "./ai-routing-policy.mjs";
 
 // The lease is local evidence, not an accepted field in the cloud event schema.
 export function eventForCloud(event, queuedAt = Date.now(), deliveredAt = Date.now()) {
@@ -71,6 +72,8 @@ export function startJournalLoop({ gatewayUrl, gatewaySecret, databasePath, obse
   const localWorkerCapability = Symbol("journal-local-inference-worker");
   const aiQueue = createDurableAiJobQueue({ databasePath, policy: { maxJobs: 20_000, leaseMs: 90_000 },
     workerAuthorizer: worker => worker.identity?.local_capability === localWorkerCapability });
+  const aiRouter = createHybridAiRouter();
+  const localTargetId = `${deviceId}:edge-local`;
   const health = new Map(db.prepare("SELECT camera_id,misses,offline FROM camera_health").all()
     .map(row => [String(row.camera_id), { misses:Number(row.misses)||0, offline:Number(row.offline)===1 }]));
   let stopped = false;
@@ -108,7 +111,7 @@ export function startJournalLoop({ gatewayUrl, gatewaySecret, databasePath, obse
     return value.data ?? value;
   };
   const inferenceWorker = createPortableInferenceWorker({
-    workerId: `${deviceId}:local-inference`, environment: "EDGE_LOCAL", capabilities: ["OBJECT_DETECTION"],
+    workerId: localTargetId, environment: "EDGE_LOCAL", capabilities: ["OBJECT_DETECTION"],
     identity: { authenticated: true, revoked: false, device_id: deviceId, tenant_ids: [tenantId], site_ids: [observerSiteId], local_capability: localWorkerCapability },
     infer: async job => {
       if (job.input_ref.kind !== "GATEWAY_SOURCE_SAMPLE" || !job.input_ref.reference.startsWith("stream:")) {
@@ -123,16 +126,23 @@ export function startJournalLoop({ gatewayUrl, gatewaySecret, databasePath, obse
         model_provenance: data.insight.object_detection.model_provenance ?? null };
     }
   });
-  async function executeAiJob(jobId) {
+  const localTarget = () => createExecutionTarget({ target_id: localTargetId, target_class: "EDGE_LOCAL", environment: "EDGE_LOCAL",
+    supported_capabilities: ["OBJECT_DETECTION"], supported_model_classes: ["GENERAL_OBJECT_DETECTION"], supported_input_kinds: ["GATEWAY_SOURCE_SAMPLE"],
+    health: "HEALTHY", available: true, capacity: { max_concurrency: 1, in_flight: inferenceWorker.snapshot().busy ? 1 : 0, queue_depth: aiQueue.snapshot().queue_depth },
+    tenant_eligibility: { mode: "ALLOWLIST", tenant_ids: [tenantId] }, privacy_eligibility: ["EDGE_ONLY", "LOCAL_ALLOWED", "CLOUD_ALLOWED"],
+    input_access: { locality: ["MANAGED_COMPONENT_ONLY"], source_ids: ["*"] }, latency: { expected_ms: inferenceWorker.snapshot().average_inference_ms ?? 1_000, sample_count: inferenceWorker.snapshot().processed },
+    cost_hook: { measured: false, compute_class: "LOCAL_CPU", bandwidth_class: "NONE" } });
+  async function executeAiJob(job) {
     // Drain bounded ready work so a recovered job is not starved by the newest
     // camera sample. Normal operation completes in one iteration.
     for (let attempt = 0; attempt < 32; attempt += 1) {
-      const ready = aiQueue.result(jobId);
-      if (ready) return aiQueue.result(jobId, { consume: true });
-      const processed = await inferenceWorker.processOne(aiQueue);
+      const ready = aiQueue.result(job.job_id);
+      if (ready) return aiQueue.result(job.job_id, { consume: true });
+      const processed = await aiRouter.execute({ job, queue: aiQueue, targets: [localTarget()], workers: new Map([[localTargetId, inferenceWorker]]) });
+      if (processed.status === "NO_ELIGIBLE_TARGET") throw new Error("no_eligible_ai_target");
       if (processed.status === "IDLE") break;
     }
-    return aiQueue.result(jobId, { consume: true });
+    return aiQueue.result(job.job_id, { consume: true });
   }
   async function releaseUnusedEvidence(streamId, leaseId) {
     if (!leaseId) return;
@@ -347,7 +357,7 @@ export function startJournalLoop({ gatewayUrl, gatewaySecret, databasePath, obse
           privacy_constraints: { raw_media_telemetry: false, tenant_scoped_input: true, retention: "EPHEMERAL_SOURCE_REFERENCE" },
           scheduler_reason: samplingDecision?.reason ?? decision.reason ?? "FIXED_COMPATIBILITY",
           scheduler_version: samplingDecision?.contract ?? "legacy-fixed-sampling", ordering_key: `${observerSiteId}:${camera.camera_id}` }));
-        const result = await executeAiJob(enqueued.job.job_id);
+        const result = await executeAiJob(enqueued.job);
         if (!result) throw new Error("detector_queued_or_unavailable");
         return { sampled_at: result.observation_timestamp, source_anchor: result.source_anchor,
           object_detection: { status: "sampled", detections: result.detections, model_provenance: { model: result.model, expected_sha256: result.model_version, runtime: result.runtime, worker_id: result.worker_id, worker_environment: result.worker_environment } }, preprocessing: decision,
@@ -399,6 +409,7 @@ export function startJournalLoop({ gatewayUrl, gatewaySecret, databasePath, obse
         adaptive_sampling: schedulerPlan ? { ...scheduler.snapshot(), current: schedulerPlan } : { contract: "legacy-fixed-sampling", enabled: false },
         ai_queue: aiQueue.snapshot(),
         ai_worker: inferenceWorker.snapshot(),
+        ai_routing: aiRouter.snapshot(),
         offline_buffer: queueStatus, local_monitoring_operational: true, cloud_sync_state: queueStatus.state });
     } catch (error) { deliveryManifest = null; report({status:"unavailable", reason: error.message, checked_at:new Date().toISOString()}); }
     if (!stopped) timer = setTimeout(run, pollIntervalMs);

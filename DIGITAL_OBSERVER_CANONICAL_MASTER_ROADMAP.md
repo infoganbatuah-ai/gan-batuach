@@ -1,6 +1,6 @@
 # DIGITAL OBSERVER — CANONICAL MASTER ROADMAP
 
-Date: 2026-09-10 (PUSH 31 durable-AI-queue closure; original reconciliation retained below)
+Date: 2026-09-10 (PUSH 32 hybrid-AI-routing closure; original reconciliation retained below)
 Repository base reviewed: `dc50fca` on `main`; the scoped closure commit is recorded in the final PUSH 17D handoff.
 Purpose: the canonical 52-push roadmap. The user's PUSH 17 authorization expands its product scope; this document does not authorize deployments or future pushes.
 
@@ -10,9 +10,9 @@ Digital Observer has completed the canonical product path from audit through Dig
 
 The canonical roadmap contains **52 pushes**. It preserves the existing numbers 1–16 and continues through production infrastructure, pilots, commercial proof, technical due diligence, and acquisition/exit. Later work may be executed early only when its `EXECUTION MODE` says `CAN EXECUTE EARLY`; its canonical number never changes.
 
-Current sequential position: **PUSH 31 — Durable AI Job Queue and Portable Workers**, `DONE`. One versioned queue now preserves jobs through restart/worker loss, enforces scope, priority, fairness, expiry and backpressure, and returns one-time results to the existing Tracker.
-Current blocker: none for PUSH 31. Multi-node Production scale, Cloud/hybrid routing and long-duration load remain explicit later evidence obligations.
-PUSH 24/25/27 remain DONE EARLY and were dependency-revalidated, not rebuilt. PUSH 32 is next and has not started.
+Current sequential position: **PUSH 32 — Hybrid AI Routing**, `DONE`. One versioned policy now separates target eligibility from preference, enforces privacy/tenant/capability/health/capacity constraints, and preserves route/failover provenance on the existing AI job/result path.
+Current blocker: none for PUSH 32. No real Cloud provider is configured; Cloud execution, Production multi-provider failover and representative quality/latency remain explicit evidence obligations.
+PUSH 24/25/27 remain DONE EARLY and were dependency-revalidated, not rebuilt. PUSH 33 is next and has not started.
 
 ## Status semantics
 
@@ -40,8 +40,8 @@ PUSH 22–23  DONE
 PUSH 24/25/27 DONE EARLY
 PUSH 26     DONE — canonical domain ownership and bounded legacy compatibility
 PUSH 28     DONE — quality benchmark and Ground Truth measurement program
-PUSH 29–31  DONE — preprocessing, adaptive sampling and durable portable inference jobs
-PUSH 32     NEXT — not started; requires a separate instruction
+PUSH 29–32  DONE — preprocessing, adaptive sampling, durable jobs and privacy-safe hybrid routing
+PUSH 33     NEXT — not started; requires a separate instruction
 PUSH 50     documentation-only preparation permitted only by separate instruction
 ```
 
@@ -229,7 +229,7 @@ Source shorthand used below: `52` = Original 52, `S16` = Original 16 — Strateg
 | 29 | Native Events and Cheap Preprocessing | Use camera/DVR metadata, motion and scene filters before expensive AI. | 52/39; T16/8; DF45/30–32 | PUSH 23; connector/Gateway hardening; adapter evidence | SEQUENTIAL | DONE | Candidate-only native contract, local frame-difference before ONNX, safe fallback/priority gates, zero empty-slot work, deterministic QA and bounded 22-sample real-input workload comparison. Representative FN/recall proof remains a North-Star obligation. |
 | 30 | Adaptive Sampling and Candidate Events | Generate bounded candidates using freshness, zones, motion and priority. | 52/18,39; T16/8; DF45/33–34 | PUSH 23,28–29; product/pilot metrics | SEQUENTIAL | DONE | Shared purpose/priority scheduler, never-blind floor, Watch/Incident/Track protection, fairness/pressure/expiry QA and bounded 11-camera workload pass; recall remains truthfully unmeasurable. |
 | 31 | Durable AI Job Queue and Portable Workers | Decouple stream handling from prioritized, retryable inference jobs. | 52/40,45; T16/9; DF45/35–36,40 | PUSH 24,29–30; scale foundation | SEQUENTIAL | DONE | Versioned WAL queue survives restart/worker loss; lease/ACK/retry/dead-letter, expiry, scope, priority/fairness/backpressure and two-environment worker QA pass; a real Tapo sample traverses queue→ONNX→Tracker without fabricated Event. |
-| 32 | Hybrid AI Routing | Route tasks among edge, local, cloud and dedicated inference using policy/capability. | 52/20,40; T16/9; DF45/37–39 | PUSH 28,31; scale foundation | SEQUENTIAL | NOT STARTED | Measured policy selects eligible provider, fails over safely, preserves provenance and meets quality/latency/privacy gates. |
+| 32 | Hybrid AI Routing | Route tasks among edge, local, cloud and dedicated inference using policy/capability. | 52/20,40; T16/9; DF45/37–39 | PUSH 28,31; scale foundation | SEQUENTIAL | DONE | Eligibility-first versioned policy enforces privacy, tenant, capability, input, health and capacity; bounded failover preserves identity/provenance; EDGE_LOCAL real-camera and ISOLATED_PROCESS QA pass. Real Cloud remains unconfigured. |
 | 33 | AI and Infrastructure Cost Engine | Attribute GPU/CPU/AI/bandwidth/storage/notification cost per camera and tenant. | 52/44; S16/15; T16/15; DF45/41 | PUSH 27,31–32; scale foundation | SEQUENTIAL | NOT STARTED | Reconciled measured cost per camera/hour/month and tenant matches provider bills within approved tolerance. |
 | 34 | Storage Abstraction, NAS and Retention Portability | Decouple evidence policy from Supabase and support approved object/NAS backends. | 52/36–37,41; T16/10; DF45/42 | PUSH 7,25 | SEQUENTIAL | NOT STARTED | Same retention, signed-access, deletion and evidence-integrity contract passes on two storage providers. |
 | 35 | Portable Deployment and No-Office Dependency | Run core services on reproducible dedicated/cloud infrastructure without office dependency. | 52/41; T16/11; DF45/43 | PUSH 17,24,34; connector/Gateway hardening | SEQUENTIAL | NOT STARTED | Clean environment deploys from documentation, restores backup and operates without developer laptop/office server. |

@@ -47,6 +47,8 @@
     "qa:digital-observer-adaptive-sampling-real": "node scripts/qa/measure-real-home-adaptive-sampling.mjs",
     "qa:digital-observer-ai-job-queue": "node scripts/qa/check-digital-observer-ai-job-queue.mjs",
     "qa:digital-observer-ai-job-queue-real": "node scripts/qa/measure-real-home-ai-job-queue.mjs",
+    "qa:digital-observer-ai-routing": "node scripts/qa/check-digital-observer-ai-routing.mjs",
+    "qa:digital-observer-ai-routing-real": "node scripts/qa/measure-real-home-ai-routing.mjs",
     "qa:digital-observer-watch-rules": "node scripts/qa/check-digital-observer-watch-rule-compiler.mjs",
     "qa:digital-observer-investigation": "node --test scripts/qa/check-digital-observer-investigation.mjs",
     "qa:digital-observer-investigation-production": "node scripts/qa/verify-production-investigation.mjs",

@@ -12,6 +12,8 @@ The Journal no longer invokes expensive inference as an untracked camera-loop si
 
 SQLite WAL with FULL synchronous writes supplies restart durability on managed local components. Jobs use `PENDING → CLAIMED → COMPLETED`, with `RETRY_WAIT`, `EXPIRED` and `DEAD_LETTER` terminal handling. A bounded visibility lease returns abandoned work after worker death. ACK and result insertion are atomic; stable idempotency prevents duplicate processing effects.
 
+PUSH 32 may request a claim for one routed job and may release a retryable failed lease for another eligible target. This does not create another queue: attempts remain bounded by the original job retry policy, expiry remains authoritative and result uniqueness remains unchanged.
+
 Per-source ordering blocks a later observation while an earlier job for the same ordering key is pending or leased. Unrelated cameras remain concurrent-ready. Priority plus bounded aging protects critical work without permanent low-priority starvation. Hierarchical served counters provide tenant/Site and camera fairness.
 
 ## Backpressure and failure

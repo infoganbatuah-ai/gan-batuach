@@ -75,12 +75,15 @@ export function createInferenceResult(job, input, options = {}) {
   const observed = timestamp(input.observation_timestamp ?? job.observation_timestamp, "result_observation_timestamp");
   if (Date.parse(completed) < Date.parse(started)) throw new Error("ai_result_time_invalid");
   if (!Array.isArray(input.detections)) throw new Error("ai_result_detections_invalid");
+  const route = { execution_target_id: text(input.execution_target_id ?? input.worker_id, "execution_target_id"), execution_target_class: text(input.execution_target_class ?? input.worker_environment, "execution_target_class"),
+    route_decision_id: input.route_decision_id ? text(input.route_decision_id, "route_decision_id") : null, routing_policy_version: input.routing_policy_version ? text(input.routing_policy_version, "routing_policy_version") : null,
+    failover_history: secretSafe(input.failover_history ?? []) };
   return Object.freeze({ contract: AI_RESULT_CONTRACT, schema_version: 1, result_id: `air_${digest([job.job_id, input.worker_id, completed]).slice(0, 32)}`,
     job_id: job.job_id, idempotency_key: job.idempotency_key, tenant_id: job.tenant_id, site_id: job.site_id, source_id: job.source_id,
     observation_timestamp: observed, candidate_observation_timestamp: job.observation_timestamp, worker_id: text(input.worker_id, "worker_id"), worker_environment: text(input.worker_environment, "worker_environment"),
     model: text(input.model, "result_model"), model_version: text(input.model_version, "result_model_version"), runtime: text(input.runtime, "result_runtime"),
     detections: secretSafe(input.detections.slice(0, 100)), source_anchor: input.source_anchor ? secretSafe(input.source_anchor) : null,
-    started_at: started, completed_at: completed, queue_wait_ms: Math.max(0, Math.floor(Number(options.queueWaitMs ?? 0))),
+    ...route, started_at: started, completed_at: completed, queue_wait_ms: Math.max(0, Math.floor(Number(options.queueWaitMs ?? 0))),
     inference_ms: Math.max(0, Math.floor(Date.parse(completed) - Date.parse(started))), detector_confidence_only: true, canonical_event: false });
 }
 

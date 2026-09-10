@@ -7,6 +7,8 @@ Contract: `observer-inference-worker-v1`
 
 A worker advertises an authenticated identity, environment, runtime, capacity class, supported capabilities and model classes. It claims one authorized job, resolves only its scoped input reference, performs inference, and returns `observer-inference-result-v1`. It does not know Product UI, Event or Incident tables.
 
+PUSH 32 binds a selected execution-target and routing decision to the claim. The worker still receives the unchanged job contract; its result adds target, policy and failover provenance without changing detector or Product semantics.
+
 Eligibility requires all of:
 
 - authenticated and non-revoked PUSH 18 managed-component identity where applicable;

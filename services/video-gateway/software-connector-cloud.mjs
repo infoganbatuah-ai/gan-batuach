@@ -19,6 +19,11 @@ export function softwareConnectorSecretStore() {
   return createEdgeSecretStoreSync({ secretDir });
 }
 
+export function hasCachedSoftwareConnectorConfiguration(store = softwareConnectorSecretStore()) {
+  if (store.read("connector_profiles_json")) return true;
+  return Boolean(store.read("dvr_profile_json") && store.read("dvr_password"));
+}
+
 export async function softwareConnectorDeviceSession(store = softwareConnectorSecretStore()) {
   const gatewayId = store.read("device_gateway_id");
   const observerSiteId = store.read("device_observer_site_id");

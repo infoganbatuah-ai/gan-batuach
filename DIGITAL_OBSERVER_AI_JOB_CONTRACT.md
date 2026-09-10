@@ -17,7 +17,7 @@ Realtime jobs expire. Expired jobs are never leased or acknowledged and cannot c
 
 ## Result
 
-Each result binds job/idempotency/source scope and records model/version, runtime, worker/environment, detector output, sampled observation time, candidate observation time, queue wait, inference time and safe source anchor. Detector confidence remains model confidence—not Risk, Verification or measured accuracy. Results are consumed once by the canonical Tracker.
+Each result binds job/idempotency/source scope and records model/version, runtime, worker/environment, execution target ID/class, routing decision/policy, bounded failover history, detector output, sampled observation time, candidate observation time, queue wait, inference time and safe source anchor. Detector confidence remains model confidence—not Risk, Verification or measured accuracy. Results are consumed once by the canonical Tracker.
 
 ## Security
 

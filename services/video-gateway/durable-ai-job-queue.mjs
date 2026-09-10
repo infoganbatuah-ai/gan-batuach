@@ -50,9 +50,10 @@ export function createDurableAiJobQueue({ databasePath, now = Date.now, policy =
   }
   function claim(worker, options = {}) {
     if (closed) throw new Error("ai_queue_closed"); expireAndRecover();
-    const capabilities = new Set(worker.capabilities ?? []), modelClasses = new Set(worker.model_classes ?? []), rows = db.prepare(`SELECT * FROM ai_jobs j WHERE j.state IN ('PENDING','RETRY_WAIT') AND j.next_attempt_at<=? AND j.expires_at>?
+    const capabilities = new Set(worker.capabilities ?? []), modelClasses = new Set(worker.model_classes ?? []), jobFilter = options.jobId ? " AND j.job_id=?" : "", parameters = options.jobId ? [now(), now(), options.jobId, limits.candidatePool] : [now(), now(), limits.candidatePool], rows = db.prepare(`SELECT * FROM ai_jobs j WHERE j.state IN ('PENDING','RETRY_WAIT') AND j.next_attempt_at<=? AND j.expires_at>?
+      ${jobFilter}
       AND NOT EXISTS(SELECT 1 FROM ai_jobs prior WHERE prior.ordering_key=j.ordering_key AND prior.observed_at<j.observed_at AND prior.state IN ('PENDING','RETRY_WAIT','CLAIMED'))
-      ORDER BY j.created_at LIMIT ?`).all(now(), now(), limits.candidatePool).filter(row => capabilities.has(row.capability) && modelClasses.has(row.model_class));
+      ORDER BY j.created_at LIMIT ?`).all(...parameters).filter(row => capabilities.has(row.capability) && modelClasses.has(row.model_class));
     const authorized = rows.filter(row => { try { authorize(worker, JSON.parse(row.payload)); return true; } catch { return false; } });
     if (!authorized.length) return null;
     const served = new Map(db.prepare("SELECT scope_key,last_served_at,served FROM ai_queue_fairness").all().map(row => [row.scope_key, { at:Number(row.last_served_at), count:Number(row.served) }]));
@@ -88,8 +89,17 @@ export function createDurableAiJobQueue({ databasePath, now = Date.now, policy =
     if(!retryable||exhausted){db.prepare("UPDATE ai_jobs SET state='DEAD_LETTER',lease_owner=NULL,lease_expires_at=NULL,last_error=? WHERE job_id=?").run(safeReason(reason),jobId);audit("JOB_DEAD_LETTER",jobId,safeReason(reason));return {state:"DEAD_LETTER"};}
     const wait=job.retry_policy.base_backoff_ms*2**Math.min(8,Math.max(0,Number(row.attempts)-1)); db.prepare("UPDATE ai_jobs SET state='RETRY_WAIT',next_attempt_at=?,lease_owner=NULL,lease_expires_at=NULL,last_error=? WHERE job_id=?").run(now()+wait,safeReason(reason),jobId);audit("JOB_RETRY_SCHEDULED",jobId,safeReason(reason));return {state:"RETRY_WAIT",retry_at:new Date(now()+wait).toISOString()};
   }
+  function releaseForFailover(worker, jobId, reason="RETRYABLE_TARGET_FAILURE") {
+    const row=db.prepare("SELECT payload,attempts,lease_owner FROM ai_jobs WHERE job_id=?").get(jobId);
+    if(!row||row.lease_owner!==worker.worker_id)throw new Error("ai_queue_lease_invalid");
+    authorize(worker,JSON.parse(row.payload));
+    const job=JSON.parse(row.payload);
+    if(Number(row.attempts)>=job.retry_policy.max_attempts){db.prepare("UPDATE ai_jobs SET state='DEAD_LETTER',lease_owner=NULL,lease_expires_at=NULL,last_error=? WHERE job_id=?").run(safeReason(reason),jobId);audit("JOB_DEAD_LETTER",jobId,safeReason(reason));return{state:"DEAD_LETTER"};}
+    db.prepare("UPDATE ai_jobs SET state='PENDING',next_attempt_at=?,lease_owner=NULL,lease_expires_at=NULL,last_error=? WHERE job_id=?").run(now(),safeReason(reason),jobId);
+    audit("JOB_FAILOVER_RELEASED",jobId,safeReason(reason));return{state:"PENDING"};
+  }
   function result(jobId,{consume=false}={}){if(!consume){const row=db.prepare("SELECT payload FROM ai_results WHERE job_id=?").get(jobId);return row?JSON.parse(row.payload):null;}db.exec("BEGIN IMMEDIATE");try{const row=db.prepare("SELECT payload,consumed_at FROM ai_results WHERE job_id=?").get(jobId);if(!row||row.consumed_at!=null){db.exec("COMMIT");return null;}const changed=db.prepare("UPDATE ai_results SET consumed_at=? WHERE job_id=? AND consumed_at IS NULL").run(now(),jobId);db.exec("COMMIT");return changed.changes?JSON.parse(row.payload):null;}catch(error){db.exec("ROLLBACK");throw error;}}
   function snapshot(){expireAndRecover();const states=Object.fromEntries(db.prepare("SELECT state,count(*) n FROM ai_jobs GROUP BY state").all().map(r=>[r.state,Number(r.n)]));const age=db.prepare("SELECT MIN(created_at) oldest FROM ai_jobs WHERE state IN ('PENDING','RETRY_WAIT','CLAIMED')").get();const priority_backlog=Object.fromEntries(db.prepare("SELECT priority,count(*) n FROM ai_jobs WHERE state IN ('PENDING','RETRY_WAIT','CLAIMED') GROUP BY priority").all().map(r=>[r.priority,Number(r.n)]));const audits=Object.fromEntries(db.prepare("SELECT category,count(*) n FROM ai_queue_audit GROUP BY category").all().map(r=>[r.category,Number(r.n)]));const completed=states.COMPLETED??0,elapsed=Math.max(1,now()-startedAt);return{contract:"observer-ai-queue-v1",queue_depth:(states.PENDING??0)+(states.RETRY_WAIT??0)+(states.CLAIMED??0),oldest_job_age_ms:age.oldest==null?null:Math.max(0,now()-Number(age.oldest)),priority_backlog,states,completed_jobs:completed,jobs_per_second:Number((completed/(elapsed/1000)).toFixed(3)),retry_count:audits.JOB_RETRY_SCHEDULED??0,lease_claim_count:audits.JOB_CLAIMED??0,dead_letter_count:states.DEAD_LETTER??0,...limits};}
   function close(){closed=true;db.close();}
-  expireAndRecover(); return {enqueue,claim,acknowledge,fail,result,snapshot,recover:expireAndRecover,close};
+  expireAndRecover(); return {enqueue,claim,acknowledge,fail,releaseForFailover,result,snapshot,recover:expireAndRecover,close};
 }

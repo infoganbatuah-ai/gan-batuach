@@ -6,6 +6,7 @@ import { join } from "node:path";
 import { test } from "node:test";
 import { createEdgeSecretStoreSync } from "../../services/video-gateway/edge-secret-store-sync.mjs";
 import { createEventEvidenceStore, evidencePlaylist } from "../../services/video-gateway/event-evidence-store.mjs";
+import { hasCachedSoftwareConnectorConfiguration } from "../../services/video-gateway/software-connector-cloud.mjs";
 import {
   connectorRuntimeIdentity,
   createInstallationId,
@@ -134,8 +135,19 @@ test("software connector uses an isolated port, owner lock and stream namespace"
   assert.match(wrapper, /VIDEO_GATEWAY_PORT \|\|= "18083"/);
   assert.match(wrapper, /GAN_BATUACH_JOURNAL_OWNER_LOCK_PATH/);
   assert.match(wrapper, /connector_stream_namespace/);
+  assert.match(wrapper, /hasCachedSoftwareConnectorConfiguration/);
   assert.match(runner, /gatewayPort/);
   assert.match(runner, /connectionType/);
+});
+
+test("temporary cloud-sync failure preserves an existing secure local camera configuration", () => {
+  const values = new Map([["dvr_profile_json", "profile"], ["dvr_password", "password"]]);
+  const store = { read: key => values.get(key) ?? "" };
+  assert.equal(hasCachedSoftwareConnectorConfiguration(store), true);
+  values.delete("dvr_password");
+  assert.equal(hasCachedSoftwareConnectorConfiguration(store), false);
+  values.set("connector_profiles_json", "profiles");
+  assert.equal(hasCachedSoftwareConnectorConfiguration(store), true);
 });
 
 test("generic RTSP discovery registers a relay source instead of probe-only readiness", () => {
@@ -196,7 +208,10 @@ test("local software runtime reports its type and rejects arbitrary command", as
   });
   context.after(() => child.kill("SIGTERM"));
   let health;
-  for (let attempt = 0; attempt < 100; attempt += 1) {
+  // Cold ONNX/runtime initialization can exceed ten seconds on a busy QA host.
+  // Keep the bounded probe generous enough to test the service contract rather
+  // than host scheduling speed.
+  for (let attempt = 0; attempt < 300; attempt += 1) {
     try { const response = await fetch(`http://127.0.0.1:${port}/health`); if (response.ok) { health = await response.json(); break; } } catch {}
     await new Promise((resolve) => setTimeout(resolve, 100));
   }
