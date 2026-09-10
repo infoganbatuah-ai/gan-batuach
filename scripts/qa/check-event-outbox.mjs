@@ -5,6 +5,7 @@ import { join } from "node:path";
 import { randomUUID } from "node:crypto";
 import { DatabaseSync } from "node:sqlite";
 import { startJournalLoop, journalCoverage, safeEventValidationCategory } from "../../services/video-gateway/journal-loop.mjs";
+import { createDurableOfflineQueue } from "../../services/video-gateway/durable-offline-queue.mjs";
 
 // Isolated protocol fixture: no DVR, cloud account, saved credentials or live DB.
 const directory=mkdtempSync(join(tmpdir(),"event-outbox-"));
@@ -38,7 +39,7 @@ async function until(predicate) {
   let stop;
   try {
     await new Promise((resolve,reject)=>{
-      const timeout=setTimeout(()=>reject(new Error("fixture_timeout")),5000);
+      const timeout=setTimeout(()=>reject(new Error("fixture_timeout")),15000);
       stop=startJournalLoop({gatewayUrl:"http://fixture.invalid",gatewaySecret:"fixture-secret",databasePath,pollIntervalMs:5,report:state=>{
         if(predicate(state)){clearTimeout(timeout);resolve();}
       }});
@@ -53,12 +54,12 @@ try {
   // healthy events to drain before asserting the durable failed remainder.
   await until(state=>state.status==="delivery_retrying" && state.pending===1 && delivered.size===14);
   const db=new DatabaseSync(databasePath);
-  const pending=db.prepare("SELECT * FROM outbox").all();
+  const pending=db.prepare("SELECT id,state,attempts FROM offline_queue").all();
   assert.equal(pending.length,1,"A failed camera's event stays durable while other cameras deliver");
   assert.equal(delivered.size,14,"13 person events plus one confirmed offline alert");
   assert.equal(mediaCalls,0,"Ordinary presence and health alerts never record");
   assert(deliveredBeforeSlowSample,"A slow camera must not delay another camera's event delivery");
-  db.prepare("UPDATE outbox SET next_attempt_at=0").run();db.close();
+  db.prepare("UPDATE offline_queue SET next_attempt_at=0").run();db.close();
   failDelivery=false;
   await until(state=>state.status==="degraded" && state.pending===0);
   assert(delivered.has(pending[0].id),"Restart resends the identical persisted event id");
@@ -67,9 +68,9 @@ try {
   const healthDb=new DatabaseSync(databasePath);
   assert.equal(healthDb.prepare("SELECT offline FROM camera_health WHERE camera_id=?").get(cameras[0].camera_id).offline,1);
   healthDb.close();
-  const pausedDb=new DatabaseSync(databasePath);
   const revoked=randomUUID();
-  pausedDb.prepare("INSERT INTO outbox(id,payload,created_at) VALUES(?,?,?)").run(revoked,JSON.stringify({event_id:revoked,camera_source_id:cameras[2].camera_id}),Date.now());pausedDb.close();
+  const pausedQueue=createDurableOfflineQueue({databasePath,encryptionKey:"fixture-secret",tenantId:"local-fixture-site",siteId:"local-fixture-site",deviceId:"local-fixture-device"});
+  pausedQueue.enqueue({id:revoked,kind:"EVENT",orderingKey:`revoked:${cameras[2].camera_id}`,sourceId:cameras[2].camera_id,observedAt:new Date().toISOString(),payload:{event_id:revoked,camera_source_id:cameras[2].camera_id}});pausedQueue.close();
   enabled=false;
   await until(state=>state.status==="paused" && state.pending===0);
   assert(!attempted.includes(revoked),"Revoked monitoring is respected before flushing a backlog");

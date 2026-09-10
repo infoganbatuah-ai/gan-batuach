@@ -219,7 +219,7 @@ export function ObserverLivePlayer({
   }, [cameraSourceId, observerSiteId, retryNonce]);
 
   return (
-    <div className={`do-live-player ${large ? "large" : ""} ${compact ? "compact" : ""}`}>
+    <div className={`do-live-player ${large ? "large" : ""} ${compact ? "compact" : ""}`} data-playback-state={state}>
       <video
         ref={videoRef}
         data-camera-source-id={cameraSourceId}
@@ -251,7 +251,7 @@ export function ObserverLivePlayer({
       <span className={`do-live-player-status ${state}`}>
         {state === "playing" ? "LIVE" : state === "loading" ? <><LoaderCircle /> מתחבר…</> : <><CameraOff /> השידור אינו זמין כרגע</>}
       </span>
-      {state === "error" && !compact ? <span className="do-live-player-reason">{unavailableReason} · ניסיון חוזר אוטומטי</span> : null}
+      {state === "error" && !compact ? <span className="do-live-player-reason">{unavailableReason} · עיבוד המקור עשוי להמשיך · ניסיון חוזר אוטומטי</span> : null}
       {!compact ? <button type="button" className="do-live-player-audio" onClick={() => setMuted((value) => !value)} aria-label={muted ? "הפעלת שמע" : "השתקת שמע"}>
         {muted ? <VolumeX /> : <Volume2 />}
       </button> : null}

@@ -1,6 +1,10 @@
 # The DVR Gateway is a Keychain-backed local service. It must never be built
 # or deployed as a Vercel Node service; cloud routes remain Next API routes.
-services/video-gateway
+services/video-gateway/*
+# The cloud API imports this pure signed-manifest verifier. It contains no
+# camera runtime, credentials, media access or local service implementation.
+!services/video-gateway/edge-update-contract.mjs
+!services/video-gateway/edge-update-contract.d.mts
 # Local private camera audits, credentials and generated state are never deployed.
 .env*
 tmp

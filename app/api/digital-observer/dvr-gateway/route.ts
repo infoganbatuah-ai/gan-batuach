@@ -77,13 +77,17 @@ export async function POST(request: Request) {
         camera_source_id: source.id,
         gateway_stream_id: gatewayStreamId
       }, secret);
+      const requestedLocalPort = Number(source.metadata?.connector_local_port);
+      const localPlaybackPort = source.metadata?.connector_device_type === "SOFTWARE_CONNECTOR"
+        ? Number.isInteger(requestedLocalPort) && requestedLocalPort >= 1024 && requestedLocalPort <= 65535 ? requestedLocalPort : 18083
+        : 18082;
       return ok({
         camera_source_id: source.id,
         mode: payload.mode,
         provider: "custom",
         status: "authorized",
         playback: {
-          claim_url: "http://127.0.0.1:18082/playback/claim",
+          claim_url: `http://127.0.0.1:${localPlaybackPort}/playback/claim`,
           grant
         },
         expires_in_seconds: 45,

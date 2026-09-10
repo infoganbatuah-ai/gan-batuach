@@ -1,6 +1,7 @@
 import { fail, handleSafeRouteError, ok } from "@/lib/api";
 import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
 import { createDigitalObserverAdminDataClient, hasObserverAdminClaim } from "@/lib/domain/digital-observer/admin-access";
+import { DIGITAL_OBSERVER_INCIDENT_VERSION } from "@/lib/domain/digital-observer/canonical-domain";
 
 export const dynamic = "force-dynamic";
 
@@ -20,7 +21,7 @@ export async function GET(request: Request) {
     if (!site) return fail("אין הרשאה לאתר הזה.", 403);
     const incidents = await dataClient.from("observer_correlated_events" as never)
       .select("id,observer_site_id,status,severity,confidence,title,summary,opened_at,last_activity_at,closed_at,primary_camera_source_id,involved_camera_ids,involved_track_ids,related_event_ids,provenance,correlation_version,timeline_summary,current_risk_score,peak_risk_score,current_risk_band,risk_evaluation_confidence,current_decision,latest_risk_evaluation_id,risk_updated_at,current_verification_status,verification_classification,verification_confidence,final_decision,final_decision_confidence,latest_verification_id,verification_updated_at,current_feedback_label,latest_feedback_revision_id,feedback_updated_at,current_ground_truth_label,latest_ground_truth_review_id,ground_truth_reviewed_at,metadata")
-      .eq("observer_site_id", site.id).eq("correlation_version", "do-track-v1")
+      .eq("observer_site_id", site.id).eq("correlation_version", DIGITAL_OBSERVER_INCIDENT_VERSION)
       .order("last_activity_at", { ascending: false }).limit(100);
     if (incidents.error) throw new Error("INCIDENT_READ_FAILED");
     const incidentRows = (incidents.data ?? []) as unknown as Array<{ id: string }>;

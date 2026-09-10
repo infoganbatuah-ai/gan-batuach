@@ -139,7 +139,7 @@ export async function POST(request: Request) {
     const nonce = header(request, "x-video-gateway-nonce");
     const signature = header(request, "x-video-gateway-signature");
     const supabase = createAdminClient();
-    const device = header(request, "x-video-gateway-device-token") ? await authenticateEventGateway(request, supabase) : null;
+    const device = header(request, "x-video-gateway-device-token") ? await authenticateEventGateway(request, supabase, "MEDIA_UPLOAD") : null;
     const parsedTimestamp = Date.parse(timestamp);
     if (!gatewayId || !nonce || (!signature && !device) || !Number.isFinite(parsedTimestamp) || Math.abs(Date.now() - parsedTimestamp) > MAX_CLOCK_SKEW_MS) return fail("Invalid gateway authentication.", 401);
 

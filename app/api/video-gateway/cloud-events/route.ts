@@ -28,6 +28,8 @@ export async function POST(request: Request) {
     const device = await authenticateEventGateway(request, db);
     if (!device) return fail("Gateway identity is invalid or revoked.", 401);
     const event = cloudCameraEventSchema.parse(await request.json());
+    const deliveryDelayMs = event.delivery?.delivery_delay_ms ?? Math.max(0, Date.now() - Date.parse(event.timestamp));
+    const backfill = event.delivery?.mode === "BACKFILL_RESYNC" || deliveryDelayMs > 60_000;
     // Authenticated backlog delivery after an outage keeps its original event time.
     // Duplicate IDs are checked below; old observations must not poison the durable outbox.
     if (Date.parse(event.timestamp) > Date.now() + 60_000) return fail("Future event timestamp.", 422);
@@ -72,7 +74,8 @@ export async function POST(request: Request) {
           recording_required: result.shouldRecord, media_status: result.shouldRecord ? "pending" : "not_required",
           evidence_kind: event.evidence_kind, observation_provenance: "REAL_CAMERA_AI", ...(event.model_provenance ? { model_provenance: event.model_provenance } : {}), first_seen: event.timestamp, last_seen: event.timestamp,
           ...(event.verification_evidence ? { verification_evidence: event.verification_evidence } : {}),
-          received_at: new Date().toISOString(), received_late: Date.now() - Date.parse(event.timestamp) > 300_000 }
+          received_at: new Date().toISOString(), received_late: backfill, delivery_mode: backfill ? "BACKFILL_RESYNC" : "LIVE", delivery_delay_ms: deliveryDelayMs,
+          queued_at: event.delivery?.queued_at ?? event.timestamp, cloud_ingested_at: new Date().toISOString() }
       }).select("id,observer_site_id,source_type,severity,confidence,created_at,metadata").single();
       if (signal.error?.code === "23505") signal = await db.from("observer_intelligence_signals").select("id,observer_site_id,source_type,severity,confidence,created_at,metadata").eq("observer_site_id", device.observer_site_id).eq("source_type", "system").eq("source_id", sourceId).single();
       if (signal.error) throw new Error("EVENT_WRITE_FAILED");
@@ -100,9 +103,11 @@ export async function POST(request: Request) {
         metadata: { observer_site_id: device.observer_site_id, status: "open", reason: lifecycle.fault.reason, occurred_at: observedAt }
       });
     }
-    const notifyFromRisk = riskResult.status === "evaluated"
+    // Historical resync is persisted and correlated using the original event
+    // time, but never masquerades as a fresh emergency action.
+    const notifyFromRisk = !backfill && riskResult.status === "evaluated"
       && riskResult.verification.evaluation.finalDecision === "NOTIFY_IN_APP";
-    const notifications = riskResult.status === "evaluated"
+    const notifications = backfill ? { push_pending: false } : riskResult.status === "evaluated"
       ? notifyFromRisk
         ? await recordEventNotifications(
           db,
@@ -113,7 +118,7 @@ export async function POST(request: Request) {
         )
         : { push_pending: false }
       : await recordEventNotifications(db, device.observer_site_id, persistedSignal.id, persistedSignal.severity);
-    const digitalGuard = await dispatchDigitalGuardActionsForValidatedEvent({
+    const digitalGuard = backfill ? { status: "suppressed", reason: "historical_backfill" } : await dispatchDigitalGuardActionsForValidatedEvent({
       database: db as unknown as GuardCommandDatabase,
       siteId: device.observer_site_id,
       source: camera,

@@ -3,8 +3,8 @@ import { mkdtempSync, readdirSync, unlinkSync, rmdirSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { randomUUID } from "node:crypto";
-import { DatabaseSync } from "node:sqlite";
 import { startJournalLoop } from "../../services/video-gateway/journal-loop.mjs";
+import { createDurableOfflineQueue } from "../../services/video-gateway/durable-offline-queue.mjs";
 
 // Transport-only fixture: deliberately hold cloud delivery, never use a camera.
 const directory = mkdtempSync(join(tmpdir(), "event-poll-isolation-"));
@@ -13,12 +13,11 @@ const cameras = Array.from({ length: 3 }, (_, index) => ({
   camera_id: randomUUID(), stream_id: String(index), monitoring_enabled: true,
   status: "connected", zone_type: "INDOOR", allowed_event_types: ["person_detected"]
 }));
-const db = new DatabaseSync(databasePath);
-db.exec("CREATE TABLE outbox(id TEXT PRIMARY KEY,payload TEXT NOT NULL,created_at INTEGER NOT NULL,attempts INTEGER NOT NULL DEFAULT 0,next_attempt_at INTEGER NOT NULL DEFAULT 0)");
 const eventId = randomUUID();
-db.prepare("INSERT INTO outbox(id,payload,created_at) VALUES(?,?,?)").run(eventId,
-  JSON.stringify({ event_id: eventId, camera_source_id: cameras[0].camera_id }), Date.now());
-db.close();
+const queue = createDurableOfflineQueue({ databasePath, encryptionKey: "fixture-secret", tenantId: "local-fixture-site", siteId: "local-fixture-site", deviceId: "local-fixture-device" });
+queue.enqueue({ id: eventId, kind: "EVENT", orderingKey: `fixture:${cameras[0].camera_id}`, sourceId: cameras[0].camera_id, observedAt: new Date().toISOString(),
+  payload: { event_id: eventId, camera_source_id: cameras[0].camera_id, stream_id: "0", event_type: "person_detected", severity: "INFO", confidence: 0.9, timestamp: new Date().toISOString(), evidence_kind: "object_detection" } });
+queue.close();
 
 const originalFetch = globalThis.fetch;
 let releaseDelivery;

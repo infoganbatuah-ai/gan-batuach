@@ -1,18 +1,18 @@
 # DIGITAL OBSERVER — CANONICAL MASTER ROADMAP
 
-Date: 2026-09-06
-Repository state reviewed: `395f414` on `codex/push16-software-connector-20260906`
-Purpose: roadmap reconciliation only. This document does not authorize implementation, deployment, refactoring, or PUSH 17.
+Date: 2026-09-10 (PUSH 32 hybrid-AI-routing closure; original reconciliation retained below)
+Repository base reviewed: `dc50fca` on `main`; the scoped closure commit is recorded in the final PUSH 17D handoff.
+Purpose: the canonical 52-push roadmap. The user's PUSH 17 authorization expands its product scope; this document does not authorize deployments or future pushes.
 
 # EXECUTIVE STATE
 
-Digital Observer has completed the canonical product path from audit through Digital-First onboarding: PUSH 1–15 are reconciled as `DONE` by their final closure evidence. PUSH 16 has substantial implementation and production lifecycle proof but remains `BLOCKED` because the required independent physical-camera Software Connector E2E has not happened.
+Digital Observer has completed the canonical product path from audit through Digital-First onboarding: PUSH 1–15 are reconciled as `DONE` by their final closure evidence. PUSH 16 is DONE, with independent Tapo C211 → Software Connector → real AI → Production/UI evidence in `DIGITAL_OBSERVER_PUSH_16C_TAPO_REAL_CONNECTOR_CLOSURE_REPORT.md`. PUSH 17 is DONE after PUSH 17D closed the internal commercial installer, enrollment, same-session discovery and global routing blockers. Distribution/platform/vendor evidence gaps remain explicit.
 
 The canonical roadmap contains **52 pushes**. It preserves the existing numbers 1–16 and continues through production infrastructure, pilots, commercial proof, technical due diligence, and acquisition/exit. Later work may be executed early only when its `EXECUTION MODE` says `CAN EXECUTE EARLY`; its canonical number never changes.
 
-Current sequential position: **PUSH 16**.
-Current blocker: **independent real RTSP/ONVIF camera for a separately enrolled Software Connector**.
-Next sequential push after closure: **PUSH 17 — Unified Connector/Gateway Package + Provisioning Hardening**.
+Current sequential position: **PUSH 32 — Hybrid AI Routing**. The implementation and gates are complete; canonical `DONE` requires the scoped PUSH 32 closure Pull Request to be merged and verified on `origin/main`. One versioned policy separates target eligibility from preference, enforces privacy/tenant/capability/health/capacity constraints, and preserves route/failover provenance on the existing AI job/result path.
+Current completion gate: merge and verify the scoped PUSH 32 Pull Request. No real Cloud provider is configured; Cloud execution, Production multi-provider failover and representative quality/latency remain explicit evidence obligations.
+PUSH 24/25/27 remain DONE EARLY and were dependency-revalidated, not rebuilt. PUSH 33 is next but remains blocked/not started until the PUSH 32 PR merge is verified.
 
 ## Status semantics
 
@@ -30,9 +30,20 @@ Implementation is never equivalent to PASS when a push requires real hardware, p
 
 ```text
 PUSH 1–15  DONE
-PUSH 16     BLOCKED — INDEPENDENT REAL SOURCE REQUIRED
-PUSH 17     next sequential push after PUSH 16 PASS
-PUSH 24/25/27/50  safe candidates for explicit early execution
+PUSH 16     DONE — independent Tapo reference closed in PUSH 16C
+PUSH 17     DONE — PUSH 17D root-cause implementation closure
+PUSH 18     DONE — identity/security lifecycle plus live-home regression closed in PUSH 18B
+PUSH 19     DONE — signed OTA + isolated automatic rollback proof
+PUSH 20     DONE — progress-aware watchdog/self-healing and bounded real recovery proof
+PUSH 21     DONE — encrypted durable store-and-forward and bounded resync
+PUSH 22–23  DONE
+PUSH 24/25/27 DONE EARLY
+PUSH 26     DONE — canonical domain ownership and bounded legacy compatibility
+PUSH 28     DONE — quality benchmark and Ground Truth measurement program
+PUSH 29–31  DONE — preprocessing, adaptive sampling and durable jobs
+PUSH 32     DONE ON VERIFIED PR MERGE — privacy-safe hybrid routing
+PUSH 33     NEXT — blocked/not started until PUSH 32 merge verification; requires a separate instruction
+PUSH 50     documentation-only preparation permitted only by separate instruction
 ```
 
 PUSH 16 PASS requires this exact chain:
@@ -48,6 +59,76 @@ REAL PHYSICAL CAMERA
 ```
 
 No replay, uploaded clip, mock frame, manual Event, reused Physical Gateway identity, or unproven parallel DVR session can substitute for this chain.
+
+# PUSH 17 GOVERNING ARCHITECTURE — ZERO-INSTALL FIRST
+
+PUSH 17D evaluation: canonical PUSH 17 is DONE. Normal camera creation enters the universal orchestrator; Zero-Install First and Gateway-last ordering are executable; macOS graphical install/background restart was locally proven; secure intent/approval/heartbeat/session/discovery/multi-camera activation contracts pass; Windows and mobile internal contracts are present. Apple distribution signing and real Windows/mobile/vendor execution remain external evidence gaps. No PUSH 18 work began. No numbering change or separate connectivity roadmap.
+
+Computer ownership is NOT a normal Product requirement. Future PUSH 18–23 applies device identity, OTA, watchdog, buffering and fleet only where DO-managed components exist; those pushes must not impose such components on genuine zero-install vendor/direct customers.
+
+Historical PUSH 17B closure result: `FAIL — CONNECTOR AUTOMATION`; canonical PUSH 17 remained NOT DONE. Local macOS package/enrollment improvements did not complete the customer installer→same-wizard→discovery→activation journey. PUSH 17C was subsequently explicitly requested by the user; it was not created automatically. PUSH 18 must not start. The separate PUSH 25 billing RLS finding remains open.
+
+PUSH 17B authored (but did not apply) migration `20260907020000_connector_install_intents.sql`. No Production release occurred. Verify both this migration and the prior PUSH 25 ledger before dependent deployment; earlier “no new migration in PUSH 17” notes describe the original 17 run, not this 17B amendment.
+
+Secure persistent vendor/account/direct paths precede mobile-assisted persistent provisioning, then Software Connector as an exception, then Physical Gateway as a justified last resort. Mobile LAN visibility is not persistent monitoring. Missing vendor engineering integration is not proof that hardware is technically required.
+
+This strengthens PUSH 14's Digital-First resolver, PUSH 15's one Add Cameras entry point, and PUSH 16's shared edge fallback. The expanded PUSH 17 includes a provenance/version-aware capability registry, bounded Connection Intelligence, mobile setup foundation, and automated customer provisioning. There is no renumbering and no second roadmap.
+
+Future PUSH 18–23 and all camera/device work MUST preserve ZERO-INSTALL FIRST. PUSH 18 retains identity/certificate hardening; PUSH 19 OTA; PUSH 20 full watchdog; PUSH 21 offline/resync; PUSH 22 fleet; PUSH 23 camera health. Connection Intelligence later consumes PUSH 23 stability, PUSH 27 telemetry, PUSH 38 reliability and PUSH 46–48 real customer evidence. No future work starts here.
+
+# PUSH 18 MANAGED-DEVICE IDENTITY BOUNDARY
+
+PUSH 18 applies only to Digital Observer-managed local components: Software Connector, Physical Gateway, and future Enterprise Edge. It does not create managed-device identities for genuine zero-install vendor/account/direct camera paths and therefore preserves `ZERO-INSTALL FIRST`.
+
+The implementation uses device-generated Ed25519 request identity, one-use Site/tenant-bound enrollment, operation-scoped short sessions, two-phase rotation, revocation/replacement, replay denial, and clone-suspicion evidence. It makes no mTLS, X.509 certificate, hardware-backed key, or remote-attestation claim. Existing live identities remain `LEGACY_HMAC` until a controlled migration proves the new key before retiring legacy material; camera re-onboarding is not required.
+
+PUSH 18B closure: security implementation and deterministic/isolated PostgreSQL lifecycle gates pass. The Physical Gateway runtime was repaired without replacing its identity; 10/10 assigned DVR cameras and 1/1 Tapo progress, while six unused DVR slots are `CHANNEL_EMPTY / UNASSIGNED`. Required database migrations and dependent application code were released in order; live credential conversion remains deferred for a controlled rollout. See `DIGITAL_OBSERVER_PUSH_18_DEVICE_IDENTITY_REPORT.md`.
+
+PUSH 25's HIGH billing RLS finding remains open and separately authorization-gated. It is not silently resolved by PUSH 16 closure or by this document. No new security migration or Production deployment occurred in PUSH 17.
+
+# PUSH 19 MANAGED-EDGE OTA BOUNDARY
+
+PUSH 19 applies the shared `observer-edge-update-v1` lifecycle only to Digital Observer-managed Software Connector, Physical Gateway and future Enterprise Edge runtimes. Genuine zero-install paths have no managed local package and therefore no OTA requirement.
+
+Ed25519-authenticated manifests bind version/build/platform/architecture/profile, SHA-256 artifact identity, compatibility and rollout metadata. INTERNAL/CANARY/STABLE channels, deterministic cohorts and canary containment precede broader rollout. Atomic version slots retain the previous trusted runtime until process, PUSH 18 authentication, heartbeat, configuration, cloud and physical-camera progression gates pass. A controlled isolated bad release automatically rolled back to the prior known-good runtime and was quarantined; six unassigned DVR slots were excluded from camera health.
+
+PUSH 19 does not implement generic watchdog/self-healing (PUSH 20), offline buffering/resynchronization (PUSH 21), or full fleet management (PUSH 22). See `DIGITAL_OBSERVER_PUSH_19_OTA_ROLLBACK_REPORT.md`.
+
+# PUSH 20 EDGE SUPERVISION BOUNDARY
+
+PUSH 20 adds one shared `observer-edge-supervision-v1` contract for DO-managed Connector/Gateway/Enterprise Edge profiles. It separates process, authentication, cloud, source, relay, frame/inference and playback health; applies bounded backoff and crash-loop escalation; and excludes six `CHANNEL_EMPTY / UNASSIGNED` DVR slots from recovery and availability.
+
+During a 187.645-second real observation, all 17 health polls succeeded. The DVR recovered one sampled six-relay stale episode back to 10/10 on the next ten-second sample; Tapo recovered intermittent stale/relay-loss behavior to 1/1 without intervention. This is bounded recovery evidence, not 24/7 proof. PUSH 21 remains offline buffering/resync, PUSH 22 fleet, PUSH 23 final Camera Health, and PUSH 38 long-duration reliability qualification.
+
+# PUSH 21 OFFLINE CONTINUITY BOUNDARY
+
+PUSH 21 extends the existing Journal/outbox with `observer-offline-buffer-v1`: AES-256-GCM encrypted SQLite/WAL storage, stable IDs, tenant/Site/device binding, per-source/track causal order, bounded batches/backoff, explicit ACK, restart/update recovery, pressure/retention policy and sanitized backlog metrics. Historical delivery is marked `BACKFILL_RESYNC`; original time and REAL_CAMERA_AI provenance remain intact while fresh emergency notifications/actions are suppressed.
+
+Destructive outage/restart/ambiguous-ACK/media/disk/rebind/revocation/update tests used isolated identities. A 60.131-second real-home regression remained 10/10 DVR plus 1/1 Tapo progressing with zero stalls; no synthetic Event was created to fake real offline/resync proof. Full Fleet Management remains PUSH 22.
+
+# PUSH 22 EDGE FLEET CONTROL PLANE BOUNDARY
+
+PUSH 22 adds one `observer-edge-fleet-v1` control plane over the PUSH 18 managed-device principal, PUSH 19 OTA state, PUSH 20 supervision, PUSH 21 backlog and PUSH 27 telemetry. It provides Tenant → Site → component hierarchy, cursor-bounded inventory, version/config drift, common-cause health, scoped support access and allow-listed short-lived commands with preview, confirmation, idempotency and audit.
+
+Deterministic scale QA covers 10 tenants, 1,000 Sites and 10,000 managed components; this is not city-scale production proof. The real Home remains a two-component mixed-profile reference—one Physical Gateway and one Software Connector—not seventeen fleet devices. PUSH 23 remains the owner of the final Camera Health product.
+
+# PUSH 23 CAMERA HEALTH TRUTH BOUNDARY
+
+PUSH 23 establishes `observer-camera-health-v1` as the canonical health truth for expected physical cameras, sources, frame freshness, relays, playback, AI, managed components, authentication, cloud and recording. Customer summary state is explainable from these dimensions; stale evidence expires, recovery and flapping are explicit, and common component failures are deduplicated.
+
+Configured capacity is not the availability denominator. The real Home denominator is eleven expected physical cameras—ten populated DVR channels plus one Tapo—while six DVR slots remain `CHANNEL_EMPTY / UNASSIGNED`. PUSH 23 does not claim long-duration 24/7 proof; PUSH 38 remains responsible for soak and real fault qualification. PUSH 24 remains DONE EARLY and is not restarted.
+
+# POST-PUSH 18 LIVE VIEW AND NORTH-STAR COMPLETION GATE
+
+`STREAM PROGRESSING` is not Product Live View proof. Post-PUSH 18 closure used the authorized Product player and established visibly advancing real video for a populated DVR camera and the Tapo C211. All ten populated DVR cameras obtained valid playback claims; the six unassigned DVR slots remain `CHANNEL_EMPTY / UNASSIGNED`. Source/AI processing health and browser playback health are separate dimensions. See `DIGITAL_OBSERVER_POST_PUSH18_LIVE_VIEW_REPORT.md`.
+
+The live regression root cause was the existing Tapo Software Connector runtime being left in temporary storage without persistent service ownership. The same enrolled identity was moved to protected persistent local storage and installed as a restartable macOS LaunchAgent. No Site, source or device identity was duplicated, and PUSH 18 authentication was not weakened.
+
+The capability-level North-Star register is `DIGITAL_OBSERVER_NORTH_STAR_COMPLETION_MATRIX.md`; its roadmap index is `DIGITAL_OBSERVER_ROADMAP_TRACEABILITY_MATRIX.md`. Every registered capability has an owner among PUSH 1–52 and a final proof requirement. No new canonical PUSH was created.
+
+Mandatory completion rule: `52/52 PUSHES DONE != PRODUCT COMPLETE`. A future North-Star Completion Audit must confirm every mandatory capability at its required evidence state before any `PRODUCT COMPLETE` claim.
+
+Current acceptance: see DIGITAL_OBSERVER_PUSH_17_ZERO_INSTALL_CONNECTIVITY_REPORT.md. Earlier reconciliation sections below are historical where they describe the pre-Tapo hardware blocker.
 
 # SOURCE ROADMAPS
 
@@ -112,7 +193,7 @@ Source shorthand used below: `52` = Original 52, `S16` = Original 16 — Strateg
 | 13 | Natural-Language Investigation | Bounded tenant-safe search, grounded real records and evidence playback | DONE |
 | 14 | Digital-First Camera Layer | Canonical source/adapter/capability model, assessment and resolver | DONE |
 | 15 | Zero-Touch Onboarding | State model, recommendation, reassessment, truthful activation and handoff | DONE |
-| 16 | Software Observer Connector | Deployable connector, shared core, provisioning, heartbeat, rotation, revocation; real separate-source E2E absent | BLOCKED |
+| 16 | Software Observer Connector | Deployable connector, shared core, provisioning, heartbeat, rotation, revocation and real separate-source Tapo E2E | DONE |
 
 # CANONICAL NUMBERED ROADMAP
 
@@ -133,23 +214,23 @@ Source shorthand used below: `52` = Original 52, `S16` = Original 16 — Strateg
 | 13 | Natural-Language Investigation | Search authorized real Events/Incidents/Evidence with grounded answers. | 52/34; S16/12 | PUSH 12 | SEQUENTIAL | DONE | Bounded query returns tenant-safe real records and authorized evidence playback; unsupported identity refused. |
 | 14 | Digital-First Universal Camera Layer | Establish vendor-agnostic source/adapter/capability contracts and explainable resolver. | 52/8–15; S16/2; DF45/2–12,15 | PUSH 13 | SEQUENTIAL | DONE | Existing real source maps to canonical model and resolver selects the safest viable path with evidence. |
 | 15 | Zero-Touch Camera Onboarding | Convert assessment into truthful customer onboarding and connector/Gateway handoff. | 52/8,12,14–15; DF45/11–15 | PUSH 14 | SEQUENTIAL | DONE | Existing/new systems can be assessed, recommended and activated only after verified readiness. |
-| 16 | Software Observer Connector | Provide an outbound deployable connector sharing the canonical edge core. | 52/14,16–19; T16/3–4; DF45/16–17 | PUSH 15; independent physical source | BLOCKED BY PUSH 16 | BLOCKED | Independent physical camera through separate SOFTWARE_CONNECTOR identity produces real frame, canonical Event, backend persistence and authorized UI evidence. |
-| 17 | Unified Connector/Gateway Package and Provisioning Hardening | Consolidate shared runtime contracts and production provisioning without forked behavior. | 52/14–16,38; T16/3–4; DF45/18–20 | PUSH 16 PASS | BLOCKED BY PUSH 16 | NOT STARTED | Both physical Gateway and Software Connector install from shared versioned package; provisioning/reprovisioning and rollback QA pass on real devices. |
-| 18 | Device Identity, Certificates and Rotation | Establish device-bound identity, certificate lifecycle, attestation and safe key rotation. | 52/38,47; T16/4; DF45/19–20 | PUSH 17 | SEQUENTIAL | NOT STARTED | Real device enrolls, rotates, expires/revokes, and cannot cross tenant/site or replay credentials. |
-| 19 | OTA Update and Atomic Rollback | Remotely update Connector/Gateway with signed artifacts and automatic rollback. | 52/38; T16/5; DF45/23–24 | PUSH 17–18; connector/Gateway hardening | SEQUENTIAL | NOT STARTED | Real remote device updates to a signed version; induced failure rolls back and preserves identity/configuration. |
-| 20 | Watchdog and Self-Healing Runtime | Detect process/stream failure and recover without unsafe duplicate ownership. | 52/19,38,45; T16/6; DF45/22 | PUSH 17–18; connector/Gateway hardening | SEQUENTIAL | NOT STARTED | Real process, network and stream faults recover within defined SLO; no duplicate Events/actions or credential leak. |
-| 21 | Offline Buffering and Resynchronization | Preserve bounded metadata/evidence during disconnection and replay idempotently. | 52/18,38,45; T16/6; DF45/25–26 | PUSH 17–20; connector/Gateway hardening | SEQUENTIAL | NOT STARTED | Real offline interval buffers within policy, reconnects, resyncs in order and creates no duplicate Event/Incident. |
-| 22 | Fleet Management and Remote Diagnostics | Manage versions, commands, health and diagnostics across devices. | 52/38,42; T16/7; DF45/27–29 | PUSH 18–21; connector/Gateway hardening | SEQUENTIAL | NOT STARTED | Multi-device fleet view, scoped remote command, diagnostic bundle and audit trail work on real devices. |
-| 23 | Camera Health Engine and SLOs | Normalize camera uptime, freshness, frozen stream, reconnect and degradation. | 52/19,42; T16/7; DF45/21 | PUSH 17,20–22; connector/Gateway hardening | SEQUENTIAL | NOT STARTED | Measured real-camera health detects disconnect/freeze/recovery with defined uptime and alert SLOs. |
-| 24 | Repository and CI Quality Gate | Make typecheck, lint, tests, migration checks and build deterministic. | 52/5,46; T16/1,15 | None; frozen-area exclusion | CAN EXECUTE EARLY | READY NOW | Clean CI from fresh checkout runs required checks; zero unexplained failures; no frozen camera runtime changes. |
-| 25 | Security, RLS and Privacy Hardening | Close tenant, secret, signed-media, rate-limit, audit and privacy gaps. | 52/47–48; S16/5,13; T16/12 | None; do not modify frozen connector contracts | CAN EXECUTE EARLY | READY NOW | Independent tenant/RLS/storage/secret tests pass; critical/high findings closed or formally accepted; frozen areas untouched. |
-| 26 | Canonical Domain Consolidation and Legacy Retirement | Remove duplicated Event/Incident/observer paths through measured migration. | 52/2–7,27–28; T16/2 | PUSH 16,24–25 | BLOCKED BY PUSH 16 | NOT STARTED | One source of truth remains per domain; compatibility migration and rollback pass; no real pipeline regression. |
-| 27 | Product Observability and Operational Telemetry | Expose end-to-end camera, inference, event, decision, notification and resource telemetry. | 52/42–45; T16/7,15; DF45/44 | Existing metrics; frozen-area adapters only via stable interfaces | CAN EXECUTE EARLY | READY NOW | Dashboards/alerts show defined SLOs from current services; telemetry failures do not affect processing; no frozen runtime semantics changed. |
-| 28 | Quality Measurement and Benchmark Program | Measure precision, recall, FP/FN, latency and review coverage by model/site/event. | 52/43; S16/11,15; T16/15 | PUSH 11; representative labeled product/pilot data | SEQUENTIAL | NOT STARTED | Versioned representative dataset and ground truth produce reproducible metrics with confidence intervals and drift gates. |
-| 29 | Native Events and Cheap Preprocessing | Use camera/DVR metadata, motion and scene filters before expensive AI. | 52/39; T16/8; DF45/30–32 | PUSH 23; connector/Gateway hardening; adapter evidence | SEQUENTIAL | NOT STARTED | Real source metadata/preprocessing reduces AI work without reducing measured critical-event recall beyond approved limit. |
-| 30 | Adaptive Sampling and Candidate Events | Generate bounded candidates using freshness, zones, motion and priority. | 52/18,39; T16/8; DF45/33–34 | PUSH 23,28–29; product/pilot metrics | SEQUENTIAL | NOT STARTED | Real workload demonstrates adaptive sampling and candidate recall/latency against fixed baseline. |
-| 31 | Durable AI Job Queue and Portable Workers | Decouple stream handling from prioritized, retryable inference jobs. | 52/40,45; T16/9; DF45/35–36,40 | PUSH 24,29–30; scale foundation | SEQUENTIAL | NOT STARTED | Durable queue survives worker loss, enforces tenant priority/backpressure and runs identical worker contract in two environments. |
-| 32 | Hybrid AI Routing | Route tasks among edge, local, cloud and dedicated inference using policy/capability. | 52/20,40; T16/9; DF45/37–39 | PUSH 28,31; scale foundation | SEQUENTIAL | NOT STARTED | Measured policy selects eligible provider, fails over safely, preserves provenance and meets quality/latency/privacy gates. |
+| 16 | Software Observer Connector | Provide an outbound deployable connector sharing the canonical edge core. | 52/14,16–19; T16/3–4; DF45/16–17 | PUSH 15; independent physical source | SEQUENTIAL | DONE | Independent physical camera through separate SOFTWARE_CONNECTOR identity produces real frame, canonical Event, backend persistence and authorized UI evidence. |
+| 17 | Universal Zero-Install Connectivity + Unified Connector/Gateway Provisioning | Enforce ZERO-INSTALL FIRST, universal onboarding, capability knowledge and shared customer-ready fallback. | 52/14–16,38; T16/3–4; DF45/18–20 | PUSH 16 PASS | SEQUENTIAL | DONE | Both physical Gateway and Software Connector install from shared versioned package; provisioning/reprovisioning and customer self-service QA pass on supported hosts; expanded PUSH 17 acceptance applies. OTA/rollback remains PUSH 19. |
+| 18 | Device Identity, Certificates and Rotation | Secure DO-managed local components with device-bound identity, scoped authentication, rotation, revocation, replacement and migration while preserving zero-install. | 52/38,47; T16/4; DF45/19–20 | PUSH 17 | SEQUENTIAL | DONE | Ed25519 lifecycle, tenant/security negatives, live Physical Gateway recovery, 10/10 DVR + 1/1 Tapo progression, six empty-slot semantics, and authorized real Product Live View for both connection strategies pass; live legacy credential conversion remains controlled rollout work. |
+| 19 | OTA Update and Atomic Rollback | Remotely update Connector/Gateway with signed artifacts and automatic rollback. | 52/38; T16/5; DF45/23–24 | PUSH 17–18; connector/Gateway hardening | SEQUENTIAL | DONE | Shared Ed25519 release verification; isolated Connector/Gateway-profile updates; controlled bad release automatically restores known-good runtime while preserving identity/configuration; canary failure pauses propagation. |
+| 20 | Watchdog and Self-Healing Runtime | Detect process/stream failure and recover without unsafe duplicate ownership. | 52/19,38,45; T16/6; DF45/22 | PUSH 17–19; connector/Gateway hardening | SEQUENTIAL | DONE | Shared progress-aware supervision, bounded recovery/backoff, crash-loop and empty-slot QA pass; real 10-DVR + Tapo observation remains truthful and long-duration soak stays PUSH 38. |
+| 21 | Offline Buffering and Resynchronization | Preserve bounded metadata/evidence during disconnection and replay idempotently. | 52/18,38,45; T16/6; DF45/25–26 | PUSH 17–20; connector/Gateway hardening | SEQUENTIAL | DONE | Encrypted restart-safe store-and-forward, bounded authenticated resync, idempotency/order/backfill/media/disk/tenant/update QA pass; natural real Event outage proof remains explicitly pending. |
+| 22 | Fleet Management and Remote Diagnostics | Manage versions, commands, health and diagnostics across devices. | 52/38,42; T16/7; DF45/27–29 | PUSH 18–21; connector/Gateway hardening | SEQUENTIAL | DONE | Shared inventory/UI/API, scoped short-lived commands, support audit, common-cause health and 10,000-component synthetic QA pass; real multi-site fleet proof remains future evidence. |
+| 23 | Camera Health Engine and SLOs | Normalize camera uptime, freshness, frozen stream, reconnect and degradation. | 52/19,42; T16/7; DF45/21 | PUSH 17,20–22; connector/Gateway hardening | SEQUENTIAL | DONE | Canonical dimensions, stale expiry, expected-camera SLO denominator, common-cause/flapping, API/UI and deterministic failure matrix pass; destructive real fault/soak remains PUSH 38. |
+| 24 | Repository and CI Quality Gate | Make typecheck, lint, tests, migration checks and build deterministic. | 52/5,46; T16/1,15 | None; frozen-area exclusion | CAN EXECUTE EARLY | DONE EARLY | Clean CI from fresh checkout runs required checks; zero unexplained failures; no frozen camera runtime changes. |
+| 25 | Security, RLS and Privacy Hardening | Close tenant, secret, signed-media, rate-limit, audit and privacy gaps. | 52/47–48; S16/5,13; T16/12 | None; do not modify frozen connector contracts | CAN EXECUTE EARLY | DONE EARLY | Independent tenant/RLS/storage/secret tests pass; critical/high findings closed or formally accepted; frozen areas untouched. |
+| 26 | Canonical Domain Consolidation and Legacy Retirement | Remove duplicated Event/Incident/observer paths through measured migration. | 52/2–7,27–28; T16/2 | PUSH 16,24–25 | SEQUENTIAL | DONE | One source of truth remains per domain; compatibility paths are explicit and bounded; deterministic domain/security QA and the 11-camera live runtime regression pass. |
+| 27 | Product Observability and Operational Telemetry | Expose end-to-end camera, inference, event, decision, notification and resource telemetry. | 52/42–45; T16/7,15; DF45/44 | Existing metrics; frozen-area adapters only via stable interfaces | CAN EXECUTE EARLY | DONE EARLY | Dashboards/alerts show defined SLOs from current services; telemetry failures do not affect processing; no frozen runtime semantics changed. |
+| 28 | Quality Measurement and Benchmark Program | Measure precision, recall, FP/FN, latency and review coverage by model/site/event. | 52/43; S16/11,15; T16/15 | PUSH 11; representative labeled product/pilot data | SEQUENTIAL | DONE | Versioned representative dataset and ground truth produce reproducible metrics with confidence intervals and drift gates. |
+| 29 | Native Events and Cheap Preprocessing | Use camera/DVR metadata, motion and scene filters before expensive AI. | 52/39; T16/8; DF45/30–32 | PUSH 23; connector/Gateway hardening; adapter evidence | SEQUENTIAL | DONE | Candidate-only native contract, local frame-difference before ONNX, safe fallback/priority gates, zero empty-slot work, deterministic QA and bounded 22-sample real-input workload comparison. Representative FN/recall proof remains a North-Star obligation. |
+| 30 | Adaptive Sampling and Candidate Events | Generate bounded candidates using freshness, zones, motion and priority. | 52/18,39; T16/8; DF45/33–34 | PUSH 23,28–29; product/pilot metrics | SEQUENTIAL | DONE | Shared purpose/priority scheduler, never-blind floor, Watch/Incident/Track protection, fairness/pressure/expiry QA and bounded 11-camera workload pass; recall remains truthfully unmeasurable. |
+| 31 | Durable AI Job Queue and Portable Workers | Decouple stream handling from prioritized, retryable inference jobs. | 52/40,45; T16/9; DF45/35–36,40 | PUSH 24,29–30; scale foundation | SEQUENTIAL | DONE | Versioned WAL queue survives restart/worker loss; lease/ACK/retry/dead-letter, expiry, scope, priority/fairness/backpressure and two-environment worker QA pass; a real Tapo sample traverses queue→ONNX→Tracker without fabricated Event. |
+| 32 | Hybrid AI Routing | Route tasks among edge, local, cloud and dedicated inference using policy/capability. | 52/20,40; T16/9; DF45/37–39 | PUSH 28,31; scale foundation | SEQUENTIAL | DONE ON VERIFIED PR MERGE | Eligibility-first versioned policy enforces privacy, tenant, capability, input, health and capacity; bounded failover preserves identity/provenance; EDGE_LOCAL real-camera and ISOLATED_PROCESS QA pass. The scoped closure PR merge is the authoritative completion event. Real Cloud remains unconfigured. |
 | 33 | AI and Infrastructure Cost Engine | Attribute GPU/CPU/AI/bandwidth/storage/notification cost per camera and tenant. | 52/44; S16/15; T16/15; DF45/41 | PUSH 27,31–32; scale foundation | SEQUENTIAL | NOT STARTED | Reconciled measured cost per camera/hour/month and tenant matches provider bills within approved tolerance. |
 | 34 | Storage Abstraction, NAS and Retention Portability | Decouple evidence policy from Supabase and support approved object/NAS backends. | 52/36–37,41; T16/10; DF45/42 | PUSH 7,25 | SEQUENTIAL | NOT STARTED | Same retention, signed-access, deletion and evidence-integrity contract passes on two storage providers. |
 | 35 | Portable Deployment and No-Office Dependency | Run core services on reproducible dedicated/cloud infrastructure without office dependency. | 52/41; T16/11; DF45/43 | PUSH 17,24,34; connector/Gateway hardening | SEQUENTIAL | NOT STARTED | Clean environment deploys from documentation, restores backup and operates without developer laptop/office server. |
@@ -264,4 +345,4 @@ The roadmap ends only when the technology and business are independently inspect
 - Dependencies and early execution mode explicit: PASS.
 - Frozen area and single resume point defined: PASS.
 - Acquisition/exit included: PASS.
-- Code/deploy/refactor performed: NO.
+- Code/deploy/refactor performed at original reconciliation: NO. Current PUSH 17 implementation status is recorded above.

@@ -1,0 +1,15 @@
+Digital Observer Connector — bundled component notices
+
+This local QA package includes separately licensed software required by the
+Connector runtime. Distribution builds must preserve the complete license files
+from each exact binary/package release and complete legal review before public
+publication. This notice is not a substitute for that review.
+
+Node.js — https://github.com/nodejs/node — MIT and bundled third-party licenses.
+FFmpeg / FFprobe — https://ffmpeg.org — license depends on the exact reviewed build configuration.
+ONNX Runtime — https://github.com/microsoft/onnxruntime — MIT.
+ONNX Runtime JavaScript packages — their package LICENSE files govern use.
+
+The package build fails unless its reviewed ONNX Runtime version and model
+digest match the release contract. Apple signing and notarization are separate
+distribution gates.

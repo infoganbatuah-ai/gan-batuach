@@ -1,4 +1,6 @@
-export const DIGITAL_OBSERVER_INCIDENT_VERSION = "do-track-v1";
+import { DIGITAL_OBSERVER_INCIDENT_VERSION } from "./canonical-domain";
+
+export { DIGITAL_OBSERVER_INCIDENT_VERSION } from "./canonical-domain";
 export const incidentOpeningEventTypes = new Set(["person_entered"]);
 export const incidentClosingEventTypes = new Set(["person_exited"]);
 

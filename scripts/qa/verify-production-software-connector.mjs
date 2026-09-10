@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
-import { randomBytes, randomUUID } from "node:crypto";
+import { createPrivateKey, randomBytes, randomUUID, sign } from "node:crypto";
 import { existsSync, readFileSync } from "node:fs";
 import { hostname } from "node:os";
 import { parseEnv } from "node:util";
 import { createClient } from "@supabase/supabase-js";
+import { createManagedDeviceProofHeaders, generateManagedDeviceKeyPair } from "../../services/video-gateway/managed-device-auth.mjs";
 
 const [originValue, siteId] = process.argv.slice(2);
 const origin = new URL(originValue);
@@ -33,11 +34,11 @@ async function call(path, body, headers = {}) {
 
 let gatewayId = "";
 let accessToken = "";
-let refreshToken = "";
 let enrollmentId = "";
 try {
   const installationId = `edge-prod-qa-${randomUUID()}`;
-  const created = await call("/api/digital-observer/gateway-enrollment", { action: "create_request", device_name: `Push 16 QA ${hostname()}`.slice(0, 80), device_platform: "production-qa", device_fingerprint: randomBytes(32).toString("hex"), device_type: "SOFTWARE_CONNECTOR", installation_id: installationId, software_version: "push16-qa", build_sha: "production-verification" });
+  const keyPair = generateManagedDeviceKeyPair();
+  const created = await call("/api/digital-observer/gateway-enrollment", { action: "create_request", device_name: `Push 18 QA ${hostname()}`.slice(0, 80), device_platform: "production-qa", device_fingerprint: randomBytes(32).toString("hex"), device_type: "SOFTWARE_CONNECTOR", installation_id: installationId, software_version: "push18-qa", build_sha: "production-verification", credential_algorithm: "Ed25519", credential_public_key_spki: keyPair.publicKeySpki });
   assert.equal(created.response.status, 201, `Connector enrollment request failed with HTTP ${created.response.status}`);
   enrollmentId = created.body.data?.enrollment_request_id;
   const pollToken = created.body.data?.poll_token;
@@ -50,8 +51,19 @@ try {
   assert.equal(linked.response.status, 200, `Connector identity delivery failed with HTTP ${linked.response.status}`);
   assert.equal(linked.body.data?.status, "linked");
   gatewayId = linked.body.data.gateway_id;
-  accessToken = linked.body.data.access_token;
-  refreshToken = linked.body.data.refresh_token;
+  assert.equal(linked.body.data.identity_scheme, "ED25519_V1");
+  const runtimeInstanceId = `production-qa:${randomUUID()}`;
+  let sequence = 0;
+  const authenticate = async (pair, version, runtime = runtimeInstanceId) => {
+    const body = { action: "authenticate", gateway_id: gatewayId };
+    const raw = JSON.stringify(body), path = "/api/digital-observer/gateway-enrollment";
+    return call(path, body, createManagedDeviceProofHeaders({ method: "POST", pathname: path, body: raw,
+      deviceId: gatewayId, credentialVersion: version, privateKeyPkcs8: pair.privateKeyPkcs8,
+      runtimeInstanceId: runtime, sequence: ++sequence }));
+  };
+  const authenticated = await authenticate(keyPair, 1);
+  assert.equal(authenticated.response.status, 200, "Ed25519 device authentication failed");
+  accessToken = authenticated.body.data.access_token;
 
   const heartbeatPayload = { heartbeat_id: `heartbeat-${randomUUID()}`, gateway_id: gatewayId, observer_site_id: siteId, observed_at: new Date().toISOString(), runtime: { contract: "observer-edge-runtime-v1", device_type: "SOFTWARE_CONNECTOR", installation_id: installationId, software_version: "push16-qa", build_sha: "production-verification", outbound_only: true, arbitrary_shell_commands: false }, health: { status: "HEALTHY", uptime_seconds: 1, cpu_percent: 1, memory_mb: 64, disk_free_mb: 1024, camera_count: 0, streaming_count: 0, last_frame_at: null, error_codes: [] } };
   const heartbeat = await call("/api/video-gateway/device-heartbeat", heartbeatPayload, { "x-video-gateway-device-token": accessToken, "x-video-gateway-id": gatewayId });
@@ -64,19 +76,31 @@ try {
   const identityMismatch = await call("/api/video-gateway/device-heartbeat", { ...heartbeatPayload, heartbeat_id: `heartbeat-${randomUUID()}`, runtime: { ...heartbeatPayload.runtime, device_type: "PHYSICAL_GATEWAY" } }, { "x-video-gateway-device-token": accessToken, "x-video-gateway-id": gatewayId });
   assert.equal(identityMismatch.response.status, 403, "Connector could change its enrolled device type");
 
-  const nextRefreshToken = randomBytes(32).toString("base64url");
-  const refreshed = await call("/api/digital-observer/gateway-enrollment", { action: "refresh", gateway_id: gatewayId, refresh_token: refreshToken, next_refresh_token: nextRefreshToken });
-  assert.equal(refreshed.response.status, 200, `Connector token rotation failed with HTTP ${refreshed.response.status}`);
-  assert.equal(refreshed.body.data?.rotation_protocol, 2);
+  const replacement = generateManagedDeviceKeyPair();
+  const prepareBody = { action: "rotate_prepare", gateway_id: gatewayId, new_credential_algorithm: "Ed25519", new_public_key_spki: replacement.publicKeySpki };
+  const prepareRaw = JSON.stringify(prepareBody), identityPath = "/api/video-gateway/device-identity";
+  const prepared = await call(identityPath, prepareBody, createManagedDeviceProofHeaders({ method: "POST", pathname: identityPath,
+    body: prepareRaw, deviceId: gatewayId, credentialVersion: 1, privateKeyPkcs8: keyPair.privateKeyPkcs8,
+    runtimeInstanceId, sequence: ++sequence }));
+  assert.equal(prepared.response.status, 200, "Credential rotation prepare failed");
+  const rotation = prepared.body.data;
+  const canonical = ["observer-managed-device-rotation-v1", gatewayId, String(rotation.new_credential_version), rotation.rotation_id, rotation.challenge].join("\n");
+  const confirmation = sign(null, Buffer.from(canonical), createPrivateKey({ key: Buffer.from(replacement.privateKeyPkcs8, "base64url"), format: "der", type: "pkcs8" })).toString("base64url");
+  const confirmed = await call(identityPath, { action: "rotate_confirm", gateway_id: gatewayId, rotation_id: rotation.rotation_id,
+    new_credential_version: rotation.new_credential_version, challenge: rotation.challenge, signature: confirmation });
+  assert.equal(confirmed.response.status, 200, "Credential rotation confirmation failed");
+  assert.equal((await authenticate(keyPair, 1)).response.status, 401, "Old credential remained valid after rotation");
+  sequence = 0;
+  const refreshed = await authenticate(replacement, 2, `production-qa-rotated:${randomUUID()}`);
+  assert.equal(refreshed.response.status, 200, "Replacement credential could not authenticate");
   accessToken = refreshed.body.data.access_token;
-  refreshToken = nextRefreshToken;
 
   const revoked = await call("/api/digital-observer/gateway-enrollment", { action: "revoke", gateway_id: gatewayId, observer_site_id: siteId }, { authorization });
   assert.equal(revoked.response.status, 200, `Connector revocation failed with HTTP ${revoked.response.status}`);
   const afterRevoke = await call("/api/video-gateway/device-heartbeat", { ...heartbeatPayload, heartbeat_id: `heartbeat-${randomUUID()}`, observed_at: new Date().toISOString() }, { "x-video-gateway-device-token": accessToken, "x-video-gateway-id": gatewayId });
   assert.equal(afterRevoke.response.status, 401, "Revoked Connector retained cloud access");
 
-  console.log(JSON.stringify({ status: "PASS", production_origin: origin.origin, device_type: "SOFTWARE_CONNECTOR", enrollment_id: enrollmentId, gateway_id: gatewayId, site_id: siteId, heartbeat: "accepted", heartbeat_replay: "idempotent", identity_type_change: "denied", rotation_protocol: 2, revoked_access: "denied", secrets_exposed: false }, null, 2));
+  console.log(JSON.stringify({ status: "PASS", production_origin: origin.origin, device_type: "SOFTWARE_CONNECTOR", enrollment_id: enrollmentId, gateway_id: gatewayId, site_id: siteId, heartbeat: "accepted", heartbeat_replay: "idempotent", identity_type_change: "denied", identity_scheme: "ED25519_V1", rotation_protocol: "verify-new-then-retire-old", revoked_access: "denied", secrets_exposed: false }, null, 2));
 } finally {
   if (gatewayId) await call("/api/digital-observer/gateway-enrollment", { action: "revoke", gateway_id: gatewayId, observer_site_id: siteId }, { authorization }).catch(() => null);
   await client.auth.signOut();

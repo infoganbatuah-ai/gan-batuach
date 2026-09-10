@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 // One warm CPU session for all cameras, with bounded backpressure. No image
 // bytes are logged, persisted, or returned by this client.
 export function createObjectInferenceClient({
-  workerPath = fileURLToPath(new URL("./onnx-object-worker.mjs", import.meta.url)),
+  workerPath = process.env.VIDEO_GATEWAY_OBJECT_WORKER_PATH || fileURLToPath(new URL("./onnx-object-worker.mjs", import.meta.url)),
   startupMs = 120_000,
   inferenceMs = 45_000,
   retryMs = 10_000,

@@ -98,6 +98,13 @@ export async function POST(request: Request) {
     const payload = schema.parse(await request.json());
     redactUnsafeOnboardingPayload(payload);
     const observerAdmin = hasObserverAdminClaim(session.user.app_metadata);
+    // This migration-era endpoint powers support/admin reassessment only. The
+    // normal Product surface uses UniversalCameraOnboarding and the canonical
+    // Connection Orchestrator. A tenant manager must not be able to bypass
+    // strategy ranking by calling this older technical mutation contract.
+    if (payload.action !== "get" && !observerAdmin) {
+      return fail("חיבור מצלמות חדשות מתחיל דרך 'מצא את המצלמות שלי'.", 403);
+    }
     const supabase = (observerAdmin ? createDigitalObserverAdminDataClient() : session.supabase) as any;
     const site = observerAdmin
       ? (await supabase.from("observer_sites").select("id,name,site_type,timezone,garden_id").eq("id", payload.observer_site_id).is("garden_id", null).neq("site_type", "kindergarten").maybeSingle()).data

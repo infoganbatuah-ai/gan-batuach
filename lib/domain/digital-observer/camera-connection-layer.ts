@@ -24,7 +24,10 @@ export const cameraConnectionCapabilities = [
   "CHANNEL_DISCOVERY",
   "NATIVE_MOTION_EVENTS",
   "NATIVE_PERSON_EVENTS",
+  "NATIVE_VEHICLE_EVENTS",
   "LINE_CROSSING_EVENTS",
+  "SCENE_CHANGE_EVENTS",
+  "LOCAL_FRAME_DIFF",
   "PTZ",
   "RECORDING_ACCESS",
   "HEALTH",
@@ -191,7 +194,7 @@ export const cameraConnectionAdapters: readonly CameraConnectionAdapterDescripto
     status: "PRODUCTION_VERIFIED",
     methods: ["DVR_NVR", "PHYSICAL_GATEWAY"],
     connectorTypes: ["dvr", "nvr"],
-    capabilities: ["LIVE_STREAM", "CHANNEL_DISCOVERY", "RECORDING_ACCESS", "HEALTH"]
+    capabilities: ["LIVE_STREAM", "CHANNEL_DISCOVERY", "RECORDING_ACCESS", "HEALTH", "LOCAL_FRAME_DIFF"]
   },
   {
     type: "rtsp_gateway",
@@ -199,7 +202,7 @@ export const cameraConnectionAdapters: readonly CameraConnectionAdapterDescripto
     status: "REAL_DATA_CAPABLE",
     methods: ["RTSP", "SOFTWARE_CONNECTOR", "PHYSICAL_GATEWAY"],
     connectorTypes: ["rtsp", "ip_camera"],
-    capabilities: ["LIVE_STREAM", "RECORDING_ACCESS", "HEALTH"]
+    capabilities: ["LIVE_STREAM", "RECORDING_ACCESS", "HEALTH", "LOCAL_FRAME_DIFF"]
   },
   {
     type: "video_gateway",
@@ -207,7 +210,7 @@ export const cameraConnectionAdapters: readonly CameraConnectionAdapterDescripto
     status: "REAL_DATA_CAPABLE",
     methods: ["PHYSICAL_GATEWAY"],
     connectorTypes: ["edge_gateway", "ip_camera"],
-    capabilities: ["LIVE_STREAM", "CAMERA_DISCOVERY", "CHANNEL_DISCOVERY", "RECORDING_ACCESS", "HEALTH"]
+    capabilities: ["LIVE_STREAM", "CAMERA_DISCOVERY", "CHANNEL_DISCOVERY", "RECORDING_ACCESS", "HEALTH", "LOCAL_FRAME_DIFF"]
   },
   {
     type: "onvif_gateway",
@@ -500,7 +503,10 @@ function capabilityMapFromRow(row: Record<string, unknown>): CameraConnectionCap
   if (capabilities.ptz === true) values.push("PTZ");
   if (capabilities.native_motion_events === true) values.push("NATIVE_MOTION_EVENTS");
   if (capabilities.native_person_events === true) values.push("NATIVE_PERSON_EVENTS");
+  if (capabilities.native_vehicle_events === true) values.push("NATIVE_VEHICLE_EVENTS");
   if (capabilities.line_crossing_events === true) values.push("LINE_CROSSING_EVENTS");
+  if (capabilities.scene_change_events === true) values.push("SCENE_CHANGE_EVENTS");
+  if (capabilities.local_frame_diff === true) values.push("LOCAL_FRAME_DIFF");
   if (row.health_status || row.status) values.push("HEALTH");
   if (row.connector_type === "dvr" || row.connector_type === "nvr") values.push("CHANNEL_DISCOVERY");
   if (row.connector_type === "onvif") values.push("CAMERA_DISCOVERY");

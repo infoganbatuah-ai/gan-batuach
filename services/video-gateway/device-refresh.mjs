@@ -1,10 +1,31 @@
-import { randomBytes } from "node:crypto";
+import { randomBytes, randomUUID } from "node:crypto";
+import { createManagedDeviceProofHeaders } from "./managed-device-auth.mjs";
 
 export const pendingDeviceRefreshAccount = "device_refresh_pending";
+const runtimeInstanceId = `gateway:${randomUUID()}`;
+let deviceSequence = 0;
 
 // The only rotating-identity owner is the Gateway process. Its caller provides
 // single-flight; all durable material below goes through Keychain callbacks.
 export async function refreshDeviceCredentials({ gatewayId, cloudBaseUrl, readSecret, writeSecret, removeSecret, fetcher = fetch, timeoutMs = 10_000 }) {
+  const privateKeyPkcs8 = await readSecret("device_private_key_pkcs8");
+  const credentialVersion = Number(await readSecret("device_credential_version") || 0);
+  if (privateKeyPkcs8 && credentialVersion > 0) {
+    const body = JSON.stringify({ action: "authenticate", gateway_id: gatewayId });
+    const pathname = "/api/digital-observer/gateway-enrollment";
+    const response = await fetcher(`${cloudBaseUrl}${pathname}`, {
+      method: "POST",
+      headers: { "content-type": "application/json", ...createManagedDeviceProofHeaders({ method: "POST", pathname,
+        body, deviceId: gatewayId, credentialVersion, privateKeyPkcs8, runtimeInstanceId, sequence: ++deviceSequence }) },
+      body,
+      signal: AbortSignal.timeout(timeoutMs)
+    });
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok || payload.data?.authentication_protocol !== "ED25519_V1" || !payload.data?.access_token) {
+      throw Object.assign(new Error("Managed device authentication requires approval"), { code: "device_relink_required" });
+    }
+    return { accessToken: String(payload.data.access_token), expiresAt: Date.parse(String(payload.data.access_expires_at || "")) || Date.now() + 9 * 60 * 1000 };
+  }
   let pending;
   const raw = await readSecret(pendingDeviceRefreshAccount);
   if (raw) {

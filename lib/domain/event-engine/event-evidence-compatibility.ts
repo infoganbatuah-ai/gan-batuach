@@ -26,7 +26,10 @@ export const cloudCameraEventSchema = z.object({
     source_anchor_verified: z.boolean(),
     tracking_duration_ms: z.number().int().nonnegative().max(24 * 60 * 60_000)
   }).strict().optional(),
-  media_failure_reason: z.enum(["capture_window_elapsed", "capture_failed"]).optional()
+  media_failure_reason: z.enum(["capture_window_elapsed", "capture_failed"]).optional(),
+  delivery: z.object({
+    mode: z.enum(["LIVE", "BACKFILL_RESYNC"]), queued_at: z.string().datetime(), delivery_delay_ms: z.number().int().nonnegative().max(30 * 24 * 60 * 60_000), schema_version: z.literal(1)
+  }).strict().optional()
 }).strict();
 
 export type CloudCameraEvent = z.infer<typeof cloudCameraEventSchema>;

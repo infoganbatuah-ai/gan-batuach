@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { observerEventNarrative } from "@/lib/domain/digital-observer/event-narrative";
 import { cameraSourceClientView, canonicalCameraSourceFromRow } from "@/lib/domain/digital-observer/camera-connection-layer";
+import { digitalObserverCameraHealthProjection } from "@/lib/domain/digital-observer/camera-live-status";
 import { eventJournalService } from "@/lib/domain/event-engine/event-journal-service";
 
 export type ObserverRow = Record<string, any>;
@@ -138,6 +139,10 @@ export function observerStatusLabel(value?: unknown) {
     DVR_NVR: "DVR / NVR",
     SOFTWARE_CONNECTOR: "מחבר תוכנה",
     PHYSICAL_GATEWAY: "Gateway פיזי",
+    rtsp_gateway: "מתאם RTSP מאובטח",
+    private_dvr_gateway: "מתאם DVR מאובטח",
+    onvif_gateway: "מתאם ONVIF מאובטח",
+    software_connector: "מחבר תוכנה",
     ENTERPRISE_EDGE: "Enterprise Edge",
     DEMO: "הדמיה",
     HEALTHY: "תקין",
@@ -299,10 +304,24 @@ export async function loadObserverRuntime(profileId: string) {
         gateway_stream_id_present: Boolean(camera.gateway_stream_id ?? camera.video_gateway_stream_id ?? camera.metadata?.gateway_stream_id)
       }
     }));
-  const normalizedCameras: ObserverRow[] = [...cameraSources.data, ...legacyObserverCameras].map((camera) => ({
-    ...camera,
-    connection: cameraSourceClientView(canonicalCameraSourceFromRow(camera))
-  }));
+  const cameraHealthReadAt = Date.now();
+  const normalizedCameras: ObserverRow[] = [...cameraSources.data, ...legacyObserverCameras].map((source) => {
+    const camera: ObserverRow = source;
+    const health = digitalObserverCameraHealthProjection(camera, cameraHealthReadAt);
+    const projected = {
+      ...camera,
+      status: health.status,
+      health_status: health.healthStatus,
+      metadata: {
+        ...(camera.metadata && typeof camera.metadata === "object" ? camera.metadata : {}),
+        reported_status: camera.status ?? null,
+        reported_health_status: camera.health_status ?? null,
+        operational_health_state: health.operationalState,
+        health_freshness_evaluated_at: new Date(cameraHealthReadAt).toISOString()
+      }
+    };
+    return { ...projected, connection: cameraSourceClientView(canonicalCameraSourceFromRow(projected)) };
+  });
   const journal = eventJournalService.partitionRows(signals.data, normalizedCameras, clips.data);
 
   return {

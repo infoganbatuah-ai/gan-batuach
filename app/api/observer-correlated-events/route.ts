@@ -9,6 +9,7 @@ import { fail, handleRouteError, ok } from "@/lib/api";
 import { requireRole } from "@/lib/auth";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { LEGACY_KINDERGARTEN_CORRELATION_VERSION } from "@/lib/domain/digital-observer/canonical-domain";
 
 const sourceTypes = ["ai_camera_event", "audio_observer_event", "safety_incident", "pickup_event", "watch_request_event", "camera_health", "mock"] as const;
 const correlationTypes = ["multi_camera_timeline", "cross_camera_confirmation", "audio_video_correlation", "pickup_path_correlation", "watch_request_correlation", "safety_event_correlation", "camera_health_correlation", "mock_correlation"] as const;
@@ -116,7 +117,10 @@ export async function POST(request: Request) {
         no_child_profiling: true,
         no_staff_profiling: true,
         human_review_required: true
-      }
+      },
+      provenance: "SIMULATION",
+      correlation_version: LEGACY_KINDERGARTEN_CORRELATION_VERSION,
+      created_by_origin: "legacy_kindergarten_mock"
     }).select("*").single();
     if (eventResult.error || !eventResult.data) return fail("יצירת אירוע מקושר נכשלה: " + (eventResult.error?.message ?? ""), 400);
 
@@ -135,7 +139,7 @@ export async function POST(request: Request) {
     }));
     const linkResult = await supabase.from("observer_correlated_event_links" as any).insert(links).select("*");
     if (linkResult.error) return fail("אירוע נוצר אך קישור ה-timeline נכשל: " + linkResult.error.message, 500);
-    return ok({ event: eventResult.data, links: linkResult.data ?? [] });
+    return ok({ event: eventResult.data, links: linkResult.data ?? [], compatibility_contract: LEGACY_KINDERGARTEN_CORRELATION_VERSION });
   } catch (error) {
     return handleRouteError(error);
   }

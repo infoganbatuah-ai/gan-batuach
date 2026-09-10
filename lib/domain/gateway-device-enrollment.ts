@@ -3,12 +3,15 @@ import { createHash, createHmac, randomBytes, timingSafeEqual } from "node:crypt
 export const gatewayEnrollmentTtlMs = 10 * 60 * 1000;
 export const gatewayDeviceAccessTtlMs = 10 * 60 * 1000;
 
-type GatewayDeviceAccessClaims = {
-  version: 1;
-  scope: "cloud_discovery";
+export type GatewayDeviceAccessClaims = {
+  version: 1 | 2;
+  scope: "cloud_discovery" | "managed_device_session";
   device_id: string;
   gateway_id: string;
   observer_site_id: string;
+  deployment_profile?: "SOFTWARE_CONNECTOR" | "PHYSICAL_GATEWAY" | "ENTERPRISE_EDGE";
+  credential_version?: number;
+  operations?: string[];
   exp: number;
 };
 
@@ -50,16 +53,30 @@ export function issueGatewayDeviceAccessToken(input: Omit<GatewayDeviceAccessCla
   return `${encoded}.${signature(encoded, secret)}`;
 }
 
+export function issueManagedDeviceSessionToken(input: Omit<GatewayDeviceAccessClaims, "version" | "scope" | "exp">, secret: string) {
+  const payload: GatewayDeviceAccessClaims = { ...input, version: 2, scope: "managed_device_session", exp: Date.now() + gatewayDeviceAccessTtlMs };
+  const encoded = Buffer.from(JSON.stringify(payload), "utf8").toString("base64url");
+  return `${encoded}.${signature(encoded, secret)}`;
+}
+
 export function verifyGatewayDeviceAccessToken(token: string, secret: string): GatewayDeviceAccessClaims | null {
   const [encoded, receivedSignature, ...rest] = token.split(".");
   if (!encoded || !receivedSignature || rest.length || !safeEqual(signature(encoded, secret), receivedSignature)) return null;
   try {
     const payload = JSON.parse(Buffer.from(encoded, "base64url").toString("utf8")) as GatewayDeviceAccessClaims;
-    if (payload.version !== 1 || payload.scope !== "cloud_discovery" || !payload.device_id || !payload.gateway_id || !payload.observer_site_id || !Number.isFinite(payload.exp) || payload.exp <= Date.now()) return null;
+    const legacy = payload.version === 1 && payload.scope === "cloud_discovery";
+    const hardened = payload.version === 2 && payload.scope === "managed_device_session"
+      && Boolean(payload.deployment_profile) && Number.isInteger(payload.credential_version)
+      && Array.isArray(payload.operations) && payload.operations.length > 0;
+    if ((!legacy && !hardened) || !payload.device_id || !payload.gateway_id || !payload.observer_site_id || !Number.isFinite(payload.exp) || payload.exp <= Date.now()) return null;
     return payload;
   } catch {
     return null;
   }
+}
+
+export function gatewayDeviceSessionAllows(claims: GatewayDeviceAccessClaims, operation: string) {
+  return claims.version === 1 ? true : claims.operations?.includes(operation) === true;
 }
 
 export function issueGatewayPlaybackGrant(input: Omit<GatewayPlaybackGrantClaims, "version" | "scope" | "nonce" | "exp">, secret: string) {

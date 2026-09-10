@@ -1,6 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any -- fleet command tables await generated database types. */
 import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
-import { verifyGatewayDeviceAccessToken } from "@/lib/domain/gateway-device-enrollment";
+import { gatewayDeviceSessionAllows, verifyGatewayDeviceAccessToken } from "@/lib/domain/gateway-device-enrollment";
 import { createAdminClient } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
@@ -14,7 +15,7 @@ const heartbeatSchema = z.object({
   observed_at: z.string().datetime(),
   runtime: z.object({
     contract: z.literal("observer-edge-runtime-v1"),
-    device_type: z.enum(["SOFTWARE_CONNECTOR", "PHYSICAL_GATEWAY"]),
+    device_type: z.enum(["SOFTWARE_CONNECTOR", "PHYSICAL_GATEWAY", "ENTERPRISE_EDGE"]),
     installation_id: identifier,
     software_version: z.string().trim().min(1).max(80),
     build_sha: z.string().trim().min(1).max(80),
@@ -31,11 +32,22 @@ const heartbeatSchema = z.object({
     streaming_count: z.number().int().min(0).max(64),
     last_frame_at: z.string().datetime().nullable(),
     error_codes: z.array(z.string().trim().min(2).max(80).regex(/^[A-Za-z0-9_.:-]+$/)).max(20)
-  })
+  }),
+  command_results: z.array(z.object({
+    command_id: z.string().uuid(),
+    state: z.enum(["ACKNOWLEDGED", "COMPLETED", "FAILED"]),
+    result_category: z.string().trim().min(2).max(80).regex(/^[A-Za-z0-9_.:-]+$/)
+  }).strict()).max(20).default([])
 }).strict();
 
 function cloudSecret() {
   return process.env.VIDEO_GATEWAY_CLOUD_DISCOVERY_SECRET || "";
+}
+
+export function isFleetCommandContractUnavailable(error: unknown) {
+  if (!error || typeof error !== "object") return false;
+  const code = String((error as { code?: unknown }).code || "");
+  return code === "PGRST202" || code === "42883";
 }
 
 export async function POST(request: Request) {
@@ -43,7 +55,7 @@ export async function POST(request: Request) {
     const secret = cloudSecret();
     if (!secret) return fail("Connector heartbeat is not configured.", 503);
     const device = verifyGatewayDeviceAccessToken(request.headers.get("x-video-gateway-device-token") || "", secret);
-    if (!device) return fail("Connector identity is invalid or expired.", 401);
+    if (!device || !gatewayDeviceSessionAllows(device, "HEARTBEAT")) return fail("Connector identity is invalid, expired or out of scope.", 401);
     const payload = heartbeatSchema.parse(await request.json());
     if (payload.gateway_id !== device.gateway_id || payload.observer_site_id !== device.observer_site_id
       || request.headers.get("x-video-gateway-id") !== device.gateway_id) {
@@ -54,13 +66,17 @@ export async function POST(request: Request) {
 
     const admin = createAdminClient();
     const enrollment = await admin.from("video_gateway_device_enrollments")
-      .select("id,status,observer_site_id,gateway_id,metadata")
+      .select("id,status,observer_site_id,gateway_id,metadata,identity_scheme,lifecycle_state,deployment_profile,credential_version")
       .eq("id", device.device_id).eq("gateway_id", device.gateway_id)
       .eq("observer_site_id", device.observer_site_id).eq("status", "delivered").maybeSingle();
     if (enrollment.error || !enrollment.data) return fail("Connector identity was revoked.", 401);
 
     const previous = enrollment.data.metadata && typeof enrollment.data.metadata === "object" ? enrollment.data.metadata : {};
-    const enrolledDeviceType = previous.device_type === "SOFTWARE_CONNECTOR" ? "SOFTWARE_CONNECTOR" : "PHYSICAL_GATEWAY";
+    const enrolledDeviceType = ["SOFTWARE_CONNECTOR", "ENTERPRISE_EDGE"].includes(String(previous.device_type))
+      ? previous.device_type as "SOFTWARE_CONNECTOR" | "ENTERPRISE_EDGE" : "PHYSICAL_GATEWAY";
+    if (enrollment.data.lifecycle_state && enrollment.data.lifecycle_state !== "ACTIVE") return fail("Connector identity was revoked.", 401);
+    if (device.version === 2 && (device.deployment_profile !== enrollment.data.deployment_profile
+      || device.credential_version !== enrollment.data.credential_version)) return fail("Connector session credential is stale.", 401);
     if (payload.runtime.device_type !== enrolledDeviceType
       || (typeof previous.installation_id === "string" && previous.installation_id !== payload.runtime.installation_id)) {
       return fail("Connector runtime identity does not match enrollment.", 403);
@@ -85,12 +101,26 @@ export async function POST(request: Request) {
         revoked: false
       });
     }
+    for (const result of payload.command_results) {
+      const timestamps = result.state === "ACKNOWLEDGED" ? { acknowledged_at: payload.observed_at }
+        : result.state === "COMPLETED" ? { acknowledged_at: payload.observed_at, completed_at: payload.observed_at }
+          : { completed_at: payload.observed_at };
+      await admin.from("observer_edge_fleet_commands" as any).update({ state: result.state, result_category: result.result_category, ...timestamps })
+        .eq("id", result.command_id).eq("enrollment_id", enrollment.data.id).in("state", ["DELIVERED", "ACKNOWLEDGED"]);
+    }
     const metadata = {
       ...previous,
       device_type: payload.runtime.device_type,
       installation_id: payload.runtime.installation_id,
       software_version: payload.runtime.software_version,
       build_sha: payload.runtime.build_sha,
+      platform: payload.runtime.platform,
+      architecture: payload.runtime.architecture,
+      configuration_version: payload.runtime.configuration_version,
+      update_contract: payload.runtime.update_contract,
+      update_state: payload.runtime.update_state,
+      known_good_version: payload.runtime.known_good_version,
+      offline_buffer: payload.runtime.offline_buffer,
       runtime_contract: payload.runtime.contract,
       outbound_only: true,
       arbitrary_shell_commands: false,
@@ -99,10 +129,18 @@ export async function POST(request: Request) {
       health: payload.health
     };
     const updated = await admin.from("video_gateway_device_enrollments")
-      .update({ metadata, updated_at: new Date().toISOString() })
+      .update({ metadata, last_seen_at: payload.observed_at, runtime_version: payload.runtime.software_version,
+        config_version: configVersion, updated_at: new Date().toISOString() })
       .eq("id", enrollment.data.id).eq("status", "delivered").select("id").maybeSingle();
     if (updated.error || !updated.data) throw new Error("CONNECTOR_HEARTBEAT_WRITE_FAILED");
 
+    const pendingCommands = await admin.rpc("claim_observer_edge_fleet_commands" as any, { p_enrollment: enrollment.data.id, p_limit: 20 });
+    // Heartbeat/config availability must not fail after the authenticated
+    // health write solely because a rolling deployment has not exposed the
+    // Fleet command RPC yet. Fail closed with zero commands for only the exact
+    // missing-contract codes; every other database/auth failure remains loud.
+    const commandContractUnavailable = isFleetCommandContractUnavailable(pendingCommands.error);
+    if (pendingCommands.error && !commandContractUnavailable) throw new Error("FLEET_COMMAND_CLAIM_FAILED");
     return ok({
       status: "accepted",
       device_type: payload.runtime.device_type,
@@ -113,7 +151,11 @@ export async function POST(request: Request) {
         cameras: [],
         sampling_policy: { mode: "cloud_managed" }
       },
-      commands: [],
+      command_delivery_state: commandContractUnavailable ? "CONTRACT_UNAVAILABLE_NO_COMMANDS" : "READY",
+      commands: (commandContractUnavailable ? [] : pendingCommands.data ?? []).map((command: any) => ({
+        id: command.id, command: command.command, parameters: command.safe_parameters,
+        issued_at: command.requested_at, expires_at: command.expires_at
+      })),
       revoked: false
     });
   } catch (error) {

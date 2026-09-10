@@ -3,6 +3,7 @@ import { BarChart3, ClipboardCheck, Gauge, ShieldCheck } from "lucide-react";
 import { ObserverAppShell } from "@/components/digital-observer/observer-app-shell";
 import { createDigitalObserverAdminDataClient, requireDigitalObserverAdmin } from "@/lib/domain/digital-observer/admin-access";
 import { buildFeedbackQualityMetrics, type ReviewedCalibrationSample } from "@/lib/domain/digital-observer/feedback-calibration";
+import { loadCurrentQualityBenchmark } from "@/lib/domain/digital-observer/quality-benchmark-data";
 import { formatObserverDate } from "@/lib/domain/digital-observer/runtime";
 
 type Row = Record<string, unknown>;
@@ -26,7 +27,7 @@ const percentage = (value: number | null) => value == null ? "—" : `${Math.rou
 export default async function DigitalObserverAdminQualityPage() {
   const { profile } = await requireDigitalObserverAdmin("/digital-observer/admin/quality");
   const supabase = createDigitalObserverAdminDataClient();
-  const [samplesResult, reviewsResult, feedbackResult, recommendationsResult, incidentsResult] = await Promise.all([
+  const [samplesResult, reviewsResult, feedbackResult, recommendationsResult, incidentsResult, benchmarkResult] = await Promise.all([
     supabase.from("digital_observer_calibration_samples" as never)
       .select("id,observer_site_id,camera_source_id,incident_id,ground_truth_review_id,canonical_label,environment,incident_provenance,decision_snapshot,verification_snapshot,version_snapshot,decision_quality,calibration_signal_type,dataset_version,training_eligible,raw_media_copied,created_at")
       .order("created_at", { ascending: false }).limit(1000),
@@ -41,7 +42,8 @@ export default async function DigitalObserverAdminQualityPage() {
       .order("created_at", { ascending: false }).limit(200),
     supabase.from("observer_correlated_events" as never)
       .select("id,observer_site_id,title,primary_camera_source_id,provenance,current_feedback_label,current_ground_truth_label")
-      .eq("correlation_version", "do-track-v1").order("last_activity_at", { ascending: false }).limit(300)
+      .eq("correlation_version", "do-track-v1").order("last_activity_at", { ascending: false }).limit(300),
+    loadCurrentQualityBenchmark(supabase).catch(() => null)
   ]);
   const failed = [samplesResult, reviewsResult, feedbackResult, recommendationsResult, incidentsResult].some((result) => result.error);
   const samples = (samplesResult.data ?? []) as Row[];
@@ -71,6 +73,7 @@ export default async function DigitalObserverAdminQualityPage() {
   });
   const metrics = buildFeedbackQualityMetrics(mappedSamples);
   const pending = feedback.filter((item) => !reviewedFeedback.has(String(item.id)));
+  const benchmark = benchmarkResult?.benchmark ?? null;
 
   return <ObserverAppShell profile={profile} mode="admin" activeHref="/digital-observer/admin/quality" title="איכות וכיול" statusLabel="Ground Truth מבוקר בלבד">
     <div className="do-page-stack">
@@ -98,6 +101,26 @@ export default async function DigitalObserverAdminQualityPage() {
           <div className="do-section-head"><div><h2>התפלגות Ground Truth</h2><p>פעילות צפויה נשמרת בנפרד מזיהוי שגוי.</p></div><ClipboardCheck /></div>
           <div className="do-summary-list">{Object.entries(metrics.labels).map(([key, count]) => <div key={key}><span>{labelName(key)}</span><strong>{count}</strong></div>)}</div>
         </article>
+      </section>
+
+      <section className="do-panel">
+        <div className="do-section-head"><div><h2>Benchmark ניתן לשחזור</h2><p>אותו Dataset, מודל ותצורה מפיקים Run ID קבוע. נתוני mock וסינתטיקה אינם נכנסים למדדי Production.</p></div><Gauge /></div>
+        {benchmark ? <>
+          <div className="do-summary-list">
+            <div><span>Dataset / version</span><strong>{benchmark.dataset.id} · {benchmark.dataset.version}</strong></div>
+            <div><span>Run ID</span><strong>{benchmark.runId}</strong></div>
+            <div><span>מודל</span><strong>{benchmark.modelVersion}</strong></div>
+            <div><span>Precision מבוקר</span><strong>{percentage(benchmark.precision.value)} ({benchmark.precision.numerator}/{benchmark.precision.denominator})</strong></div>
+            <div><span>Recall</span><strong>{benchmark.recall.measurable ? `${percentage(benchmark.recall.value)} (${benchmark.recall.numerator}/${benchmark.recall.denominator})` : "עדיין לא ניתן למדידה"}</strong></div>
+            <div><span>False positives</span><strong>{benchmark.falsePositives.count}</strong></div>
+            <div><span>False negatives</span><strong>{benchmark.falseNegatives.measurable ? benchmark.falseNegatives.count : "עדיין לא ניתן למדידה"}</strong></div>
+            <div><span>Latency — observation to detection</span><strong>{benchmark.latency.observationToDetection.sampleSize ? `${benchmark.latency.observationToDetection.medianMs}ms median · ${benchmark.latency.observationToDetection.p95Ms}ms p95 · n=${benchmark.latency.observationToDetection.sampleSize}` : "עדיין לא ניתן למדידה"}</strong></div>
+            <div><span>Confidence calibration</span><strong>{benchmark.calibration.measurable ? `ECE ${benchmark.calibration.expectedCalibrationError?.toFixed(3)} · n=${benchmark.calibration.sampleSize}` : `מדגם לא מספיק · n=${benchmark.calibration.sampleSize}`}</strong></div>
+            <div><span>כיסוי ביקורת</span><strong>{benchmark.groundTruth.reviewRate == null ? `${benchmark.groundTruth.reviewed} נבדקו · אוכלוסייה זכאית עדיין לא נמדדה` : percentage(benchmark.groundTruth.reviewRate)}</strong></div>
+            <div><span>כיסוי</span><strong>{benchmark.coverage.cameras} מצלמות · {benchmark.coverage.sites} אתרים · {benchmark.coverage.samples} דגימות</strong></div>
+          </div>
+          <div className="do-notice info"><ShieldCheck /><span><strong>המספרים מוגבלים לראיות שנבדקו.</strong><small>Recall אינו מוצג עד שקיים Ground Truth שמסוגל למנות גם אירועים אמיתיים שלא זוהו. אין כאן ציון ״דיוק מערכת״ כללי.</small></span></div>
+        </> : <div className="do-empty compact"><Gauge /><strong>עדיין אין Dataset אמיתי מבוקר למדידה</strong><span>מדדים חסרים מוצגים כ״עדיין לא ניתן למדידה״ ולא כ־0%.</span></div>}
       </section>
 
       <section className="do-panel">
