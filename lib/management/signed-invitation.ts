@@ -117,7 +117,7 @@ export async function resolveSignedInvitation(admin: AdminClient, token: string)
   const parsed = verifySignedToken(token);
   if (!parsed) return { ok: false as const, reason: "invalid" as const };
   const result = await admin.from("management_invitations")
-    .select("id,invitation_type,intended_role,garden_id,target_profile_id,recipient_email,recipient_phone,status,expires_at,payload,gardens(name)")
+    .select("id,invitation_type,intended_role,garden_id,target_profile_id,recipient_email,recipient_phone,status,expires_at,legacy_affiliation_request_id,payload,gardens(name)")
     .eq("id", parsed.id).eq("token_hash", hashInvitationToken(token)).maybeSingle();
   if (result.error || !result.data) return { ok: false as const, reason: "invalid" as const };
   if (!["pending", "delivered"].includes(result.data.status)) return { ok: false as const, reason: result.data.status as string };

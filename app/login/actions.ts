@@ -102,6 +102,9 @@ export async function signIn(formData: FormData) {
   if (user && profile && !managementContactVerification(user, profile).complete) {
     redirect("/app/verify-contact");
   }
+  if (requestedNext.startsWith("/invite/accept?token=") && !requestedNext.startsWith("//")) {
+    redirect(requestedNext);
+  }
   const role = profile?.role;
   const path = isRole(role) && profile ? await dashboardPathForProfile(profile) : "/dashboard";
   redirect(gardenId ? `${path}?gardenId=${encodeURIComponent(gardenId)}` : path);

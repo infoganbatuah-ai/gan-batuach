@@ -38,7 +38,7 @@ function formValue(form: HTMLFormElement, name: string) {
   return String(new FormData(form).get(name) ?? "").trim();
 }
 
-export function SelfServiceRegisterForm({ fixedAccountType, appMode = false }: { fixedAccountType?: SelfServiceAccountType; appMode?: boolean } = {}) {
+export function SelfServiceRegisterForm({ fixedAccountType, appMode = false, invitationToken }: { fixedAccountType?: SelfServiceAccountType; appMode?: boolean; invitationToken?: string } = {}) {
   const [state, setState] = useState<ApiState | null>(null);
   const [busy, setBusy] = useState(false);
   const [accountType, setAccountType] = useState<SelfServiceAccountType>(fixedAccountType ?? "parent");
@@ -69,11 +69,12 @@ export function SelfServiceRegisterForm({ fixedAccountType, appMode = false }: {
         phone: formValue(form, "phone") || undefined,
         city: formValue(form, "city") || undefined,
         password: formValue(form, "password"),
+        invitation_token: invitationToken || undefined,
         identity_number: formValue(form, "identity_number") || undefined,
         previous_experience: formValue(form, "previous_experience") || undefined,
         preferred_regions: formValue(form, "preferred_regions") || undefined
       });
-      setState({ ok: true, message: "החשבון נוצר. שלחנו קישור אימות לדוא״ל; לאחר האימות תתבקשו לאמת גם את מספר הטלפון.", href: data.next_path });
+      setState({ ok: true, message: invitationToken ? "החשבון נוצר וההזמנה נשמרה. לאחר אימות הדוא״ל והטלפון תוכלו לבחור ילד ולאשר הצטרפות." : "החשבון נוצר. שלחנו קישור אימות לדוא״ל; לאחר האימות תתבקשו לאמת גם את מספר הטלפון.", href: data.next_path });
       form.reset();
     } catch (error) {
       setState({ ok: false, message: error instanceof Error ? error.message : "ההרשמה נכשלה" });

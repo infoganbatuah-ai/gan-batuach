@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { authCallbackUrl } from "@/lib/domain/auth-flow";
+import { normalizeInvitationEmail, resolveSignedInvitation } from "@/lib/management/signed-invitation";
 import { checkEmailConflict, normalizeOptionalEmail } from "@/lib/onboarding/user-provisioning";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
@@ -11,7 +12,8 @@ const schema = z.object({
   email: z.preprocess((value) => normalizeOptionalEmail(value as string | null), z.string().email()),
   phone: z.string().optional(),
   city: z.string().optional(),
-  password: z.string().min(8)
+  password: z.string().min(8),
+  invitation_token: z.string().min(40).max(2048).optional()
 });
 
 function appRoleFor(accountType: z.infer<typeof schema>["account_type"]) {
@@ -26,6 +28,11 @@ export async function POST(request: Request) {
     if (!isAdminClientConfigured()) return fail("הרשמה עצמאית דורשת הגדרת Service Role בצד השרת.", 503);
     const payload = schema.parse(await request.json());
     const admin = createAdminClient();
+    const resolvedInvitation = payload.invitation_token ? await resolveSignedInvitation(admin, payload.invitation_token) : null;
+    if (resolvedInvitation && !resolvedInvitation.ok) return fail("ההזמנה אינה זמינה.", 410);
+    if (resolvedInvitation?.ok && (payload.account_type !== "parent" || resolvedInvitation.invitation.intended_role !== "parent")) return fail("ההזמנה אינה מתאימה למסלול ההרשמה.", 403);
+    if (resolvedInvitation?.ok && normalizeInvitationEmail(resolvedInvitation.invitation.recipient_email) !== normalizeInvitationEmail(payload.email)) return fail("יש להירשם עם כתובת הדוא״ל שאליה נשלחה ההזמנה.", 403);
+    if (resolvedInvitation?.ok && resolvedInvitation.invitation.target_profile_id) return fail("ההזמנה כבר קושרה לחשבון קיים.", 409);
     const conflict = await checkEmailConflict({ supabase: admin, email: payload.email, field: "email" });
     if (conflict) return fail(conflict.message, 409, { field: conflict.field, source: conflict.source });
 
@@ -86,6 +93,19 @@ export async function POST(request: Request) {
     if (selfServiceWrite.error) {
       await admin.auth.admin.deleteUser(data.user.id);
       return fail("הפרופיל המוגבל לא נשמר: " + selfServiceWrite.error.message, 400);
+    }
+
+    if (resolvedInvitation?.ok) {
+      const invitation = resolvedInvitation.invitation;
+      const bound = await admin.from("management_invitations").update({ target_profile_id: data.user.id, updated_at: new Date().toISOString() }).eq("id", invitation.id).is("target_profile_id", null).in("status", ["pending", "delivered"]);
+      if (bound.error) {
+        await admin.auth.admin.deleteUser(data.user.id);
+        return fail("לא ניתן לקשר את החשבון להזמנה.", 409);
+      }
+      if (invitation.legacy_affiliation_request_id) {
+        const legacy = await admin.from("user_affiliation_requests").select("metadata").eq("id", invitation.legacy_affiliation_request_id).maybeSingle();
+        if (legacy.data) await admin.from("user_affiliation_requests").update({ metadata: { ...legacy.data.metadata, invited_parent_profile_id: data.user.id, registered_from_signed_invitation: true }, updated_at: new Date().toISOString() }).eq("id", invitation.legacy_affiliation_request_id);
+      }
     }
 
     await admin.from("audit_logs" as any).insert({
