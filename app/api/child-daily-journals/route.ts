@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { getOperationalRoleContext } from "@/lib/management/operational-role";
+import { requireStaffTeachingScope } from "@/lib/management/teaching-access";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { createClient } from "@/lib/supabase/server";
 
@@ -46,6 +47,8 @@ export async function POST(request: Request) {
     const access = await getOperationalRoleContext(["admin", "manager", "owner", "staff"]);
     if (!access.allowed) return access.response;
     const { profile } = access.session;
+    const teaching = await requireStaffTeachingScope(profile, "journal");
+    if (!teaching.allowed) return teaching.response;
     const payload = journalSchema.parse(await request.json());
     if (profile.role !== "admin" && profile.garden_id !== payload.garden_id) return fail("אין הרשאה לעדכן יומן של גן אחר", 403);
     const supabase = await createClient();
