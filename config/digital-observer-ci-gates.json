@@ -19,6 +19,8 @@
     "services/video-gateway/durable-ai-job-queue.mjs",
     "services/video-gateway/portable-inference-worker.mjs",
     "services/video-gateway/ai-routing-policy.mjs",
+    "services/video-gateway/cost-intelligence.mjs",
+    "lib/domain/digital-observer/cost-intelligence-data.ts",
     "lib/domain/digital-observer/watch-rule-compiler.ts",
     "lib/domain/digital-observer/watch-rule-service.ts",
     "lib/domain/digital-observer/investigation-query.ts",
@@ -33,7 +35,9 @@
     "app/api/digital-observer/events/review/route.ts",
     "app/api/digital-observer/event-clips/[id]/media/route.ts",
     "app/api/digital-observer/admin/quality/route.ts",
+    "app/api/digital-observer/admin/costs/route.ts",
     "app/digital-observer/admin/quality/page.tsx",
+    "app/digital-observer/admin/costs/page.tsx",
     "app/digital-observer/rules/page.tsx",
     "app/api/video-gateway/event-manifest/route.ts"
   ],
@@ -59,6 +63,7 @@
     { "name": "adaptive-sampling", "args": ["scripts/qa/check-digital-observer-adaptive-sampling.mjs"] },
     { "name": "durable-ai-job-queue", "args": ["scripts/qa/check-digital-observer-ai-job-queue.mjs"] },
     { "name": "hybrid-ai-routing", "args": ["scripts/qa/check-digital-observer-ai-routing.mjs"] },
+    { "name": "cost-intelligence", "args": ["scripts/qa/check-digital-observer-cost-engine.mjs"] },
     { "name": "watch-rules", "args": ["scripts/qa/check-digital-observer-watch-rule-compiler.mjs"] },
     { "name": "investigation", "args": ["--test", "scripts/qa/check-digital-observer-investigation.mjs"] }
   ],

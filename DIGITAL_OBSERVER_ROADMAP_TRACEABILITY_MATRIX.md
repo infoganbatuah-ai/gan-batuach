@@ -10,7 +10,7 @@ This file is the roadmap-facing index for the capability-level register in `DIGI
 - Total mapped capabilities: **190**.
 - Canonical owner coverage: **190/190**.
 - Without canonical owner: **0**.
-- Evidence states: 24 `DONE + REAL PROOF`; 31 `IMPLEMENTED — NEEDS REAL PROOF`; 61 `FOUNDATION`; 18 `PARTIAL`; 55 `NOT STARTED`; 1 `EXTERNAL COVERAGE GAP`.
+- Evidence states: 24 `DONE + REAL PROOF`; 32 `IMPLEMENTED — NEEDS REAL PROOF`; 63 `FOUNDATION`; 18 `PARTIAL`; 52 `NOT STARTED`; 1 `EXTERNAL COVERAGE GAP`.
 - The matrix is complete as a mapping. The Product is not complete: most rows intentionally retain future implementation or real-proof obligations.
 
 ## OWNERSHIP RANGES
@@ -45,7 +45,7 @@ This file is the roadmap-facing index for the capability-level register in `DIGI
 - PUSH 24/25/27: DONE EARLY, subject to canonical dependency-sensitive revalidation.
 - PUSH 25 billing-role RLS HIGH finding remains open and is not hidden by this mapping.
 - `52/52 PUSHES DONE != PRODUCT COMPLETE`; a future North-Star Completion Audit is mandatory.
-- PUSH 28–32 are DONE. PUSH 27 remains valid as DONE EARLY and was dependency-revalidated rather than rerun. PUSH 33 is NEXT / NOT STARTED and requires a separate instruction.
+- PUSH 28–32 are DONE. PUSH 33 is DONE ON VERIFIED PR MERGE with operational attribution implemented and provider reconciliation truthfully pending. PUSH 27 remains valid as DONE EARLY and was dependency-revalidated rather than rerun. PUSH 34 is NEXT / NOT STARTED and requires a separate instruction.
 
 # APPENDIX — LEGACY SOURCE-SLOT TRACEABILITY REGISTER
 
@@ -108,7 +108,7 @@ Source confidence: requirement intent `MEDIUM`; exact original title `LOW/UNRESO
 | Original 52 | 41 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Portable infrastructure | Containers/cloud/dedicated/NAS; no office dependency | Infrastructure | Shared packages/storage | PARTIAL | Docker/service foundations | PUSH 34–37. |
 | Original 52 | 42 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Observability | Camera/stream/inference/event/queue/resource metrics | Operations | Stable interfaces | READY NOW | Existing telemetry fragments | PUSH 27. |
 | Original 52 | 43 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Quality metrics | Precision/recall/FP/FN/latency/alerts per camera | Quality | Ground truth | IMPLEMENTED — NEEDS REAL PROOF | PUSH 11 Ground Truth plus PUSH 28 reproducible benchmark engine, truthful recall/FN boundary, latency/calibration/coverage contracts and first n=1 real benchmark | Representative multi-camera/pilot evidence in PUSH 46–49. |
-| Original 52 | 44 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Cost engine | Cost by GPU/AI/CPU/bandwidth/storage/camera/tenant | Economics | Telemetry/scale | NOT STARTED | Usage schema only | PUSH 33/49. |
+| Original 52 | 44 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Cost engine | Cost by GPU/AI/CPU/bandwidth/storage/camera/tenant | Economics | Telemetry/scale | IMPLEMENTED — NEEDS REAL PROOF | PUSH 33 normalized operational usage/rates, AI job/target/camera/Site/tenant attribution and admin reporting | Provider invoices, sustained duration and PUSH 49 unit-economics proof. |
 | Original 52 | 45 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Scale/reliability | 10/100/1,000/10,000 camera architecture | Scale | Queue/HA | PARTIAL | Ten-channel home proof | PUSH 36–38/48. |
 | Original 52 | 46 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Testing/CI | Unit/integration/E2E/camera/AI/security/load/chaos | Quality engineering | Repository | READY NOW | Extensive focused QA | PUSH 24/28/38. |
 | Original 52 | 47 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Security | Encryption, secrets, access, RLS, audit, rate limits | Security | Architecture | READY NOW | Multiple controls and push closures | PUSH 25/41. |
@@ -216,7 +216,7 @@ Source confidence: requirement intent `HIGH` for entries represented explicitly 
 | Digital-First 45 | 38 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Cloud/dedicated AI | Optional scalable provider inference | AI routing | Provider contracts | FOUNDATION | PUSH 32 shared/dedicated target, provider, region and tenant-policy adapter contract; no provider configured | Authorized real Cloud execution. |
 | Digital-First 45 | 39 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Hybrid router | Select edge/local/cloud by policy | AI routing | Multiple providers | IMPLEMENTED — NEEDS REAL PROOF | PUSH 32 hard eligibility, scoring, explanation, no-target and bounded local failover QA | Real Cloud/multi-provider failover with provenance. |
 | Digital-First 45 | 40 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Priority/backpressure | Protect streams/tenants under load | Scale | Durable queue | IMPLEMENTED — NEEDS REAL PROOF | PUSH 31 bounded record/byte admission, priority aging and tenant/Site/camera fairness QA | Production distributed load proof in PUSH 36. |
-| Digital-First 45 | 41 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] GPU/cost control | Measure and optimize inference cost | Economics | Routing/telemetry | NOT STARTED | No reconciled cost engine | PUSH 33. |
+| Digital-First 45 | 41 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] GPU/cost control | Measure and optimize inference cost | Economics | Routing/telemetry | FOUNDATION | PUSH 33 measures target/model inference usage and enforces quality/privacy before cost; automatic route optimization remains disabled | Reconciled target costs and approved quality-constrained optimization experiment. |
 | Digital-First 45 | 42 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Storage abstraction/NAS | Portable evidence/recording storage | Storage | Evidence/privacy | PARTIAL | Supabase production evidence | PUSH 34. |
 | Digital-First 45 | 43 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] No-office portable infra | Dedicated/cloud deployment independent of office | Infrastructure | Package/storage | NOT STARTED | Docker/readiness | PUSH 35. |
 | Digital-First 45 | 44 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Scale/failover/observability | Horizontal operation and measurable reliability | Scale | Queue/HA | PARTIAL | Ten-channel home + telemetry fragments | PUSH 27/36–38. |

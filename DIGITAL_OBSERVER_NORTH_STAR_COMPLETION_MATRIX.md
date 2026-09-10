@@ -28,6 +28,9 @@ This register maps every requested North-Star capability to an existing canonica
 | Hybrid routing | Previous: NOT STARTED | New: IMPLEMENTED — NEEDS REAL PROOF | PUSH 32 eligibility/router | Privacy/tenant/capability/health/capacity policy, target explanations, no-target and bounded failover passed; real Cloud and multi-provider Production proof remain absent. |
 | Model routing | Previous: FOUNDATION | New: IMPLEMENTED — NEEDS REAL PROOF | PUSH 32 target capability and quality policy | Model-class matching and reviewed-quality sample gating are executable; representative multi-model quality evidence remains future work. |
 | Edge/cloud allocation | Previous: FOUNDATION | New: PARTIAL | PUSH 32 execution classes | Real EDGE_LOCAL and isolated LOCAL_DEDICATED routing pass; Cloud classes are contracts only because no provider is configured. |
+| Cost-aware optimization | Previous: NOT STARTED | New: FOUNDATION | PUSH 33 cost inputs and safety gate | Versioned rates, usage provenance and quality/privacy guard are executable; routing remains unchanged until approved cost and quality evidence exists. |
+| Per-camera economics | Previous: NOT STARTED | New: IMPLEMENTED — NEEDS REAL PROOF | PUSH 33 attribution engine | Camera/Site/tenant attribution, shared-cost allocation and empty-slot exclusion pass; real provider reconciliation and sustained duration are absent. |
+| Scale economics | Previous: NOT STARTED | New: FOUNDATION | PUSH 33 labeled projections | 10/100/1,000 resource projections are reproducible and explicitly assumption-bound; no scaled real cohort or reconciled monetary evidence exists. |
 
 ## CAMERA PLATFORM
 
@@ -243,10 +246,10 @@ This register maps every requested North-Star capability to an existing canonica
 | AI job queue | IMPLEMENTED — NEEDS REAL PROOF | PUSH 31 canonical job/result/worker contracts, restart durability, worker-loss recovery, idempotency, priority/fairness/backpressure and real Tapo sample | 31 | Production multi-worker operation and representative load | Real deployed worker-loss/backpressure proof |
 | Hybrid routing | IMPLEMENTED — NEEDS REAL PROOF | PUSH 32 eligibility-first router, policy audit, bounded failover and real EDGE_LOCAL camera job | 32 | Authorized Cloud adapter and real multi-provider operation | Real failover with provenance across deployed providers |
 | Model routing | IMPLEMENTED — NEEDS REAL PROOF | PUSH 32 capability/model matching plus measured-quality sample gate | 32 | Representative multi-model quality evidence | Measured route selection proof |
-| Cost-aware optimization | NOT STARTED | Cost engine not built | 33 | Cost signals in routing | Quality-constrained real savings proof |
+| Cost-aware optimization | FOUNDATION | PUSH 33 normalized usage/rates, execution provenance and fail-closed quality/privacy cost guard; PUSH 32 routing remains unchanged | 33 | Approved reconciled rates and controlled routing experiment | Quality-constrained real savings proof |
 | Edge/cloud allocation | PARTIAL | PUSH 32 real EDGE_LOCAL plus isolated LOCAL_DEDICATED routing; Cloud target classes remain unconfigured | 17, 31, 32 | Authorized Cloud provider and real workload split | Real workload split proof |
-| Per-camera economics | NOT STARTED | No reconciled per-camera cost | 33, 49 | Attribute compute/bandwidth/storage | Provider-bill reconciliation |
-| Scale economics | NOT STARTED | No scaled cohort | 33, 38, 49 | Pilot/scale cost data | Sustained auditable cohort economics |
+| Per-camera economics | IMPLEMENTED — NEEDS REAL PROOF | PUSH 33 AI job/target/camera/Site/tenant attribution, explicit confidence and 11-camera empty-slot-safe allocation QA | 33, 49 | Authorized provider rates, sustained duration and bill reconciliation | Provider-bill reconciliation |
+| Scale economics | FOUNDATION | PUSH 33 assumption-labeled 10/100/1,000-camera resource projections from bounded real workload; no monetary extrapolation | 33, 38, 49 | Pilot/scale cost data | Sustained auditable cohort economics |
 
 ## QUALITY
 
@@ -291,10 +294,10 @@ The counts below are generated from the rows above during closure QA. They descr
 | Status | Count |
 |---|---:|
 | `DONE + REAL PROOF` | 24 |
-| `IMPLEMENTED — NEEDS REAL PROOF` | 31 |
-| `FOUNDATION` | 61 |
+| `IMPLEMENTED — NEEDS REAL PROOF` | 32 |
+| `FOUNDATION` | 63 |
 | `PARTIAL` | 18 |
-| `NOT STARTED` | 55 |
+| `NOT STARTED` | 52 |
 | `EXTERNAL COVERAGE GAP` | 1 |
 | **TOTAL** | **190** |
 
