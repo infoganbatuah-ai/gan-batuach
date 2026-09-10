@@ -10,9 +10,9 @@ Digital Observer has completed the canonical product path from audit through Dig
 
 The canonical roadmap contains **52 pushes**. It preserves the existing numbers 1–16 and continues through production infrastructure, pilots, commercial proof, technical due diligence, and acquisition/exit. Later work may be executed early only when its `EXECUTION MODE` says `CAN EXECUTE EARLY`; its canonical number never changes.
 
-Current sequential position: **PUSH 34 — Storage Abstraction + NAS + Retention Portability**. `observer-storage-v1` now wraps private Supabase Evidence and a scoped local/NAS filesystem provider, while preserving Event/Evidence/Recording/Investigation boundaries.
-Current completion gate: merge and verify the scoped PUSH 34 Pull Request. Real network-NAS deployment, current Production deletion and customer-hosted DVR/NVR/VMS retrieval remain future evidence; none is fabricated.
-PUSH 24/25/27 remain DONE EARLY and were dependency-revalidated, not rebuilt. PUSH 35 remains not started and requires a separate instruction after PUSH 34 merge verification.
+Current sequential completion: **PUSH 34 — Storage Abstraction + NAS + Retention Portability — DONE**. `observer-storage-v1` wraps private Supabase Evidence and a scoped local/NAS filesystem provider while preserving Event/Evidence/Recording/Investigation boundaries.
+Completion gate fulfilled: scoped PR #15 passed required checks, merged, and was verified in `origin/main` at `471c52c5beedb9a6649c3214fa7bab5df871bd47`. Real network-NAS deployment, current Production deletion and customer-hosted DVR/NVR/VMS retrieval remain future evidence; none is fabricated.
+PUSH 24/25/27 remain DONE EARLY and were dependency-revalidated, not rebuilt. PUSH 35 is NEXT / NOT STARTED and requires a separate instruction.
 
 ## Status semantics
 
@@ -44,7 +44,7 @@ PUSH 29–31  DONE — preprocessing, adaptive sampling and durable jobs
 PUSH 32     DONE ON VERIFIED PR MERGE — privacy-safe hybrid routing
 PUSH 33     DONE ON VERIFIED PR MERGE — operational cost intelligence; provider reconciliation remains future evidence
 PUSH 34     DONE ON VERIFIED PR MERGE — storage abstraction, local/NAS provider, portable retention and safe migration
-PUSH 35     NEXT — blocked/not started until PUSH 34 merge verification; requires a separate instruction
+PUSH 35     NEXT / NOT STARTED — requires a separate instruction
 PUSH 50     documentation-only preparation permitted only by separate instruction
 ```
 
