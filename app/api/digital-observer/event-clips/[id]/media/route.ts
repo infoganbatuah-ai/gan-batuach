@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { fail, handleSafeRouteError } from "@/lib/api";
 import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
+import { createSupabaseStorageBackend } from "@/lib/domain/digital-observer/storage-contract.mjs";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -54,12 +55,20 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
     if (!privateClip || privateClip.clip_status !== "available" || metadata.media_status === "failed") {
       return fail(String(metadata.media_missing_reason || "מדיית האירוע אינה זמינה."), 404);
     }
-    const path = kind === "thumbnail" ? privateClip.snapshot_storage_path : privateClip.storage_path;
+    const canonicalPathValue = kind === "thumbnail" ? metadata.thumbnail_object_id : metadata.clip_object_id;
+    const canonicalPath = typeof canonicalPathValue === "string" ? canonicalPathValue : null;
+    const path = canonicalPath || (kind === "thumbnail" ? privateClip.snapshot_storage_path : privateClip.storage_path);
     if (!privateClip.storage_bucket || !path) return fail("מדיית האירוע חסרה.", 404);
-
-    const { data: signed, error } = await admin.storage
-      .from(privateClip.storage_bucket)
-      .createSignedUrl(path, 60, download ? { download: kind === "thumbnail" ? "event-thumbnail.jpg" : "event-clip.mp4" } : undefined);
+    if (canonicalPath && metadata.storage_backend_id === "supabase-private-evidence") {
+      const storage = createSupabaseStorageBackend({ client: admin, bucket: privateClip.storage_bucket });
+      const access = await storage.authorize({ objectId: canonicalPath, tenantId: site.owner_profile_id, siteId: privateClip.observer_site_id,
+        actor: { tenantId: site.owner_profile_id, siteIds: [privateClip.observer_site_id] }, ttlSeconds: 60,
+        downloadName: download ? (kind === "thumbnail" ? "event-thumbnail.jpg" : "event-clip.mp4") : undefined });
+      return NextResponse.redirect(access.url, { status: 307 });
+    }
+    // Bounded compatibility for Evidence written before observer-storage-v1.
+    const { data: signed, error } = await admin.storage.from(privateClip.storage_bucket).createSignedUrl(path, 60,
+      download ? { download: kind === "thumbnail" ? "event-thumbnail.jpg" : "event-clip.mp4" } : undefined);
     if (error || !signed?.signedUrl) return fail("לא ניתן לפתוח מדיה פרטית.", 503);
     return NextResponse.redirect(signed.signedUrl, { status: 307 });
   } catch (error) {

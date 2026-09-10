@@ -7,6 +7,7 @@ import { authenticateEventGateway } from "@/lib/domain/event-engine/gateway-auth
 import { createAdminClient } from "@/lib/supabase/admin";
 import { resolveMediaFault } from "@/lib/domain/event-engine/media-fault-lifecycle";
 import { writeAuditEvent } from "@/lib/security/audit-log-service";
+import { createStorageObjectId, createSupabaseStorageBackend } from "@/lib/domain/digital-observer/storage-contract.mjs";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -117,19 +118,6 @@ async function readPart(formData: FormData, name: string, maxBytes: number, allo
   return { file: value, bytes: Buffer.from(await value.arrayBuffer()) };
 }
 
-async function uploadPrivateMedia(supabase: ReturnType<typeof createAdminClient>, path: string, bytes: Buffer, contentType: string) {
-  let result = await supabase.storage.from(MEDIA_BUCKET).upload(path, bytes, { contentType, upsert: true });
-  if (result.error && /bucket/i.test(result.error.message || "")) {
-    await supabase.storage.createBucket(MEDIA_BUCKET, {
-      public: false,
-      fileSizeLimit: MAX_CLIP_BYTES,
-      allowedMimeTypes: ["video/mp4", "image/jpeg", "image/png", "image/webp"]
-    });
-    result = await supabase.storage.from(MEDIA_BUCKET).upload(path, bytes, { contentType, upsert: true });
-  }
-  return result;
-}
-
 export async function POST(request: Request) {
   try {
     const secret = process.env.VIDEO_GATEWAY_CLOUD_DISCOVERY_SECRET;
@@ -183,11 +171,11 @@ export async function POST(request: Request) {
     }
     const { data: observerSite, error: siteError } = await supabase
       .from("observer_sites")
-      .select("event_retention_days,garden_id,site_type,monitoring_enabled,metadata")
+      .select("event_retention_days,garden_id,site_type,monitoring_enabled,owner_profile_id,metadata")
       .eq("id", metadata.observer_site_id)
       .maybeSingle();
     if (siteError) throw new Error("EVENT_SCOPE_UNAVAILABLE");
-    if (!observerSite || observerSite.garden_id || observerSite.site_type === "kindergarten" || !observerSite.monitoring_enabled || observerSite.metadata?.observer_monitoring_consent !== true) return fail("Monitoring consent required.", 403);
+    if (!observerSite || !observerSite.owner_profile_id || observerSite.garden_id || observerSite.site_type === "kindergarten" || !observerSite.monitoring_enabled || observerSite.metadata?.observer_monitoring_consent !== true) return fail("Monitoring consent required.", 403);
     // Media can only enrich a previously validated event, never originate one.
     const { data: signal, error: signalError } = await supabase.from("observer_intelligence_signals")
       .select("id,created_at,severity,metadata").eq("observer_site_id", metadata.observer_site_id)
@@ -219,15 +207,19 @@ export async function POST(request: Request) {
     }).select("id").single();
     if (event.error) throw new Error("EVIDENCE_UPLOAD_IDEMPOTENCY_WRITE_FAILED");
 
-    const day = metadata.captured_at.slice(0, 10).replaceAll("-", "/");
-    const basePath = `${metadata.observer_site_id}/${day}/${metadata.event_id}`;
-    const clipPath = `${basePath}/clip.${extensionFor(clip.file.type)}`;
-    const thumbnailPath = `${basePath}/thumbnail.${extensionFor(thumbnail.file.type)}`;
-    const [clipUpload, thumbnailUpload] = await Promise.all([
-      uploadPrivateMedia(supabase, clipPath, clip.bytes, clip.file.type),
-      uploadPrivateMedia(supabase, thumbnailPath, thumbnail.bytes, thumbnail.file.type)
-    ]);
-    if (clipUpload.error || thumbnailUpload.error) throw new Error("EVIDENCE_STORAGE_UPLOAD_FAILED");
+    const tenantId = observerSite.owner_profile_id;
+    const storage = createSupabaseStorageBackend({ client: supabase, bucket: MEDIA_BUCKET });
+    const clipPath = createStorageObjectId({ tenantId, siteId: metadata.observer_site_id, evidenceId: metadata.event_id, variant: "clip", extension: extensionFor(clip.file.type) });
+    const thumbnailPath = createStorageObjectId({ tenantId, siteId: metadata.observer_site_id, evidenceId: metadata.event_id, variant: "thumbnail", extension: extensionFor(thumbnail.file.type) });
+    let clipWritten = false;
+    try {
+      await storage.write({ objectId: clipPath, tenantId, siteId: metadata.observer_site_id, evidenceId: metadata.event_id, bytes: clip.bytes, contentType: clip.file.type, upsert: true });
+      clipWritten = true;
+      await storage.write({ objectId: thumbnailPath, tenantId, siteId: metadata.observer_site_id, evidenceId: metadata.event_id, bytes: thumbnail.bytes, contentType: thumbnail.file.type, upsert: true });
+    } catch {
+      if (clipWritten) await storage.delete({ objectId: clipPath, tenantId, siteId: metadata.observer_site_id, evidenceId: metadata.event_id, sizeBytes: clip.bytes.length }).catch(() => undefined);
+      throw new Error("EVIDENCE_STORAGE_UPLOAD_FAILED");
+    }
 
     const deleteAfter = new Date(Date.parse(metadata.captured_at) + retentionHours * 60 * 60 * 1000).toISOString();
     const clipPayload = {
@@ -263,7 +255,16 @@ export async function POST(request: Request) {
         last_media_attempt_at: new Date().toISOString(),
         local_capture: true,
         read_only: true,
-        no_credentials_received: true
+        no_credentials_received: true,
+        storage_contract: "observer-storage-v1",
+        storage_backend_id: "supabase-private-evidence",
+        storage_backend_class: "CLOUD_OBJECT_STORAGE",
+        tenant_id: tenantId,
+        clip_object_id: clipPath,
+        thumbnail_object_id: thumbnailPath,
+        storage_state: "AVAILABLE",
+        retention_policy_version: 1,
+        legal_hold: false
       }
     };
     const existingClip = await supabase

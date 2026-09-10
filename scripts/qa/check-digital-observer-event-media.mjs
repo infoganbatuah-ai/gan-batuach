@@ -19,7 +19,8 @@ assert.match(alertsPage, /selectedHasMedia \|\| selected\.metadata\?\.validated_
 assert.match(runtime, /recording_required === false/, "events intentionally not recorded must remain in the journal");
 assert.match(alertsPage, /do-event-technical-faults/, "events missing media must be surfaced as technical faults");
 assert.match(recordingsPage, /activeSignalIds\.has\(item\.signal_id\)/, "recordings must hide spatially rejected or orphaned event media from the active library");
-assert.match(mediaRoute, /createSignedUrl\(path, (?:60|Math\.min\(60, remainingSeconds\))/, "event clip media must use a signed URL capped at 60 seconds");
+assert.match(mediaRoute, /storage\.authorize[\s\S]*ttlSeconds: 60/, "canonical event clip media access must use a scoped 60-second authorization");
+assert.match(mediaRoute, /Bounded compatibility for Evidence written before observer-storage-v1/, "pre-contract Evidence must retain an explicit bounded compatibility path");
 assert.match(mediaRoute, /getObserverSiteAccess/, "event clip media route must check tenant-scoped observer site access");
 assert.match(cloudRoute, /Replay detected/, "cloud event media uploads must reject replayed nonces");
 assert.match(cloudRoute, /no_dvr_credentials_returned: z\.literal\(true\)/, "cloud event media schema must require no DVR credentials in payload");
@@ -34,7 +35,8 @@ assert.match(reviewRoute, /media_fault_action: z\.enum\(\["waive"\]\)/, "human r
 assert.match(reviewRoute, /observer_media_fault_waived/, "a media waiver must append an immutable audit transition");
 assert.doesNotMatch(reviewRoute, /\.delete\(/, "waiving a media fault must never delete its event or evidence history");
 assert.match(retentionCron, /authorization.*Bearer/, "media retention cron must require cron authentication");
-assert.match(retentionCron, /storage\.from\(clip\.storage_bucket\)\.remove/, "media retention cron must delete private media files");
+assert.match(retentionCron, /executeRetention/, "canonical media retention must delete through the storage abstraction");
+assert.match(retentionCron, /metadata\.legal_hold === true/, "retention must honor legal hold before deletion");
 assert.match(retentionCron, /media_missing_reason: "retention_expired"/, "expired media must retain a precise lifecycle reason");
 assert.match(gateway, /event-media/, "local gateway must expose a read-only event media capture endpoint");
 assert.match(gateway, /controls_supported: false/, "event media capture must remain read-only with controls disabled");

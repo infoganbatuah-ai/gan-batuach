@@ -10,7 +10,7 @@ This file is the roadmap-facing index for the capability-level register in `DIGI
 - Total mapped capabilities: **190**.
 - Canonical owner coverage: **190/190**.
 - Without canonical owner: **0**.
-- Evidence states: 24 `DONE + REAL PROOF`; 32 `IMPLEMENTED — NEEDS REAL PROOF`; 63 `FOUNDATION`; 18 `PARTIAL`; 52 `NOT STARTED`; 1 `EXTERNAL COVERAGE GAP`.
+- Evidence states: 24 `DONE + REAL PROOF`; 33 `IMPLEMENTED — NEEDS REAL PROOF`; 64 `FOUNDATION`; 17 `PARTIAL`; 51 `NOT STARTED`; 1 `EXTERNAL COVERAGE GAP`.
 - The matrix is complete as a mapping. The Product is not complete: most rows intentionally retain future implementation or real-proof obligations.
 
 ## OWNERSHIP RANGES
@@ -45,7 +45,7 @@ This file is the roadmap-facing index for the capability-level register in `DIGI
 - PUSH 24/25/27: DONE EARLY, subject to canonical dependency-sensitive revalidation.
 - PUSH 25 billing-role RLS HIGH finding remains open and is not hidden by this mapping.
 - `52/52 PUSHES DONE != PRODUCT COMPLETE`; a future North-Star Completion Audit is mandatory.
-- PUSH 28–32 are DONE. PUSH 33 is DONE ON VERIFIED PR MERGE with operational attribution implemented and provider reconciliation truthfully pending. PUSH 27 remains valid as DONE EARLY and was dependency-revalidated rather than rerun. PUSH 34 is NEXT / NOT STARTED and requires a separate instruction.
+- PUSH 28–33 are DONE. PUSH 34 is DONE ON VERIFIED PR MERGE with portable Evidence storage, local/NAS QA, legal-hold-aware retention and safe migration; real network NAS and customer archive retrieval remain future proof. PUSH 27 remains valid as DONE EARLY. PUSH 35 is NEXT / NOT STARTED and requires a separate instruction.
 
 # APPENDIX — LEGACY SOURCE-SLOT TRACEABILITY REGISTER
 
@@ -160,7 +160,7 @@ Source confidence: requirement intent `MEDIUM-HIGH` because the current request 
 | Technical/DD 16 | 7 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Camera health/observability | Health engine, diagnostics and SLO telemetry | Operations | Stable runtime | PARTIAL | Existing health/heartbeat | PUSH 22–23/27. |
 | Technical/DD 16 | 8 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Cheap preprocessing | Native events, motion, scene and adaptive sampling | Efficiency | Health/quality | IMPLEMENTED — NEEDS REAL PROOF | PUSH 29/30 local activity, candidate contract, adaptive purpose/priority/fairness and exact workload counters | Representative adaptive quality and native-vendor proof. |
 | Technical/DD 16 | 9 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Queue and hybrid AI | Durable jobs, portable workers and routing | AI infrastructure | Preprocessing/metrics | IMPLEMENTED — NEEDS REAL PROOF | PUSH 31 durable jobs plus PUSH 32 eligibility-first routing, local failover QA and real EDGE_LOCAL sample | Real Cloud/multi-provider operation and PUSH 33 measured economics. |
-| Technical/DD 16 | 10 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Storage portability | Abstract cloud/local/NAS evidence storage | Storage | Evidence/privacy | PARTIAL | Supabase production evidence | PUSH 34. |
+| Technical/DD 16 | 10 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Storage portability | Abstract cloud/local/NAS evidence storage | Storage | Evidence/privacy | IMPLEMENTED — NEEDS REAL PROOF | PUSH 34 Supabase adapter plus real scoped filesystem/NAS contract, retention, migration and security QA | Real network NAS/customer archive deployment and Production migration. |
 | Technical/DD 16 | 11 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Portable scale/HA | No-office deployment, horizontal scale and failover | Infrastructure | Queue/storage | NOT STARTED | Containers/readiness only | PUSH 35–38. |
 | Technical/DD 16 | 12 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Security/privacy | RLS, secrets, access, retention, compliance | Security | Architecture | READY NOW | Strong controls, incomplete independent proof | PUSH 25/45. |
 | Technical/DD 16 | 13 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Enterprise controls | Multi-tenancy, RBAC, SSO and service accounts | Enterprise | Security/scale | PARTIAL | Site memberships and roles | PUSH 41. |
@@ -217,7 +217,7 @@ Source confidence: requirement intent `HIGH` for entries represented explicitly 
 | Digital-First 45 | 39 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Hybrid router | Select edge/local/cloud by policy | AI routing | Multiple providers | IMPLEMENTED — NEEDS REAL PROOF | PUSH 32 hard eligibility, scoring, explanation, no-target and bounded local failover QA | Real Cloud/multi-provider failover with provenance. |
 | Digital-First 45 | 40 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Priority/backpressure | Protect streams/tenants under load | Scale | Durable queue | IMPLEMENTED — NEEDS REAL PROOF | PUSH 31 bounded record/byte admission, priority aging and tenant/Site/camera fairness QA | Production distributed load proof in PUSH 36. |
 | Digital-First 45 | 41 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] GPU/cost control | Measure and optimize inference cost | Economics | Routing/telemetry | FOUNDATION | PUSH 33 measures target/model inference usage and enforces quality/privacy before cost; automatic route optimization remains disabled | Reconciled target costs and approved quality-constrained optimization experiment. |
-| Digital-First 45 | 42 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Storage abstraction/NAS | Portable evidence/recording storage | Storage | Evidence/privacy | PARTIAL | Supabase production evidence | PUSH 34. |
+| Digital-First 45 | 42 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Storage abstraction/NAS | Portable evidence/recording storage | Storage | Evidence/privacy | IMPLEMENTED — NEEDS REAL PROOF | PUSH 34 `observer-storage-v1`, private Supabase adapter, scoped filesystem/NAS provider and safe copy/verify/switch migration | Real network NAS/customer storage deployment. |
 | Digital-First 45 | 43 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] No-office portable infra | Dedicated/cloud deployment independent of office | Infrastructure | Package/storage | NOT STARTED | Docker/readiness | PUSH 35. |
 | Digital-First 45 | 44 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Scale/failover/observability | Horizontal operation and measurable reliability | Scale | Queue/HA | PARTIAL | Ten-channel home + telemetry fragments | PUSH 27/36–38. |
 | Digital-First 45 | 45 | [RECONSTRUCTED — SOURCE TEXT UNRESOLVED] Production/OEM proof | Demonstrate portable platform to customers/partners | Productization | Scale/security/API | NOT STARTED | Internal product only | PUSH 42–49. |

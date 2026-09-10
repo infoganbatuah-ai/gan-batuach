@@ -31,6 +31,8 @@ This register maps every requested North-Star capability to an existing canonica
 | Cost-aware optimization | Previous: NOT STARTED | New: FOUNDATION | PUSH 33 cost inputs and safety gate | Versioned rates, usage provenance and quality/privacy guard are executable; routing remains unchanged until approved cost and quality evidence exists. |
 | Per-camera economics | Previous: NOT STARTED | New: IMPLEMENTED — NEEDS REAL PROOF | PUSH 33 attribution engine | Camera/Site/tenant attribution, shared-cost allocation and empty-slot exclusion pass; real provider reconciliation and sustained duration are absent. |
 | Scale economics | Previous: NOT STARTED | New: FOUNDATION | PUSH 33 labeled projections | 10/100/1,000 resource projections are reproducible and explicitly assumption-bound; no scaled real cohort or reconciled monetary evidence exists. |
+| Customer-hosted recording access | Previous: NOT STARTED | New: FOUNDATION | PUSH 34 source-recording reference | Added tenant/Site/source/time/retrieval-bound references without credentials or copying source media; real DVR/NVR/VMS retrieval remains unimplemented. |
+| Retention | Previous: PARTIAL | New: IMPLEMENTED — NEEDS REAL PROOF | PUSH 34 portable retention executor | Backend-independent eligibility, legal hold, delete-before-tombstone, retry and two-backend QA pass; approved legal periods and Production deletion proof remain. |
 
 ## CAMERA PLATFORM
 
@@ -151,7 +153,7 @@ This register maps every requested North-Star capability to an existing canonica
 | Integration without replacing VMS | FOUNDATION | Intelligence-layer architecture preserves current DVR | 34, 42, 43, 47 | Deep links, APIs and customer-hosted access | Customer VMS remains primary viewer in real pilot |
 | Enterprise Edge | FOUNDATION | Shared edge profile contract | 17, 18, 22, 35, 41 | Packaging, policy and scale | Customer-hosted real deployment |
 | Customer-hosted video access | FOUNDATION | Source/storage abstraction direction | 34, 35, 42, 47 | Connectors and policy | Real customer-hosted stream authorization proof |
-| Customer-hosted recording access | NOT STARTED | No external recording integration proof | 34, 42, 47 | Recording APIs and retention mapping | Real VMS recording retrieval |
+| Customer-hosted recording access | FOUNDATION | `observer-source-recording-reference-v1` safely binds customer-owned archive media without credentials or forced copying | 34, 42, 47 | Implement authorized DVR/NVR/VMS retrieval adapters and retention mapping | Real customer-hosted recording retrieval |
 | Metadata-first processing | PARTIAL | PUSH 29 vendor-agnostic candidate contract and real local-frame-difference path; native DVR/Tapo metadata unverified | 29, 31, 32, 47 | Verified native vendor/VMS adapters and representative quality QA | Real reduced-video workload with quality proof |
 | Federated investigation | NOT STARTED | Investigation is current-platform scoped | 13, 32, 42, 48 | Federated query and authorization | Cross-system external pilot |
 | Image upload search | NOT STARTED | No production image-reference search | 13, 28, 32, 42, 45 | Privacy and matching pipeline | Authorized real benchmark |
@@ -277,7 +279,7 @@ This register maps every requested North-Star capability to an existing canonica
 | Biometrics governance | PARTIAL | Restrictive privacy boundary and non-claim | 25, 45 | Formal jurisdiction/consent program | External legal/privacy approval |
 | Encryption | IMPLEMENTED — NEEDS REAL PROOF | Dedicated field key and encrypted credential path | 2, 25 | Rotation exercise and independent review | Production-like rotation/recovery proof |
 | Audit | PARTIAL | Security-sensitive audit coverage | 18, 25, 41, 42, 45 | Complete enterprise/action/export coverage | Independent traceability exercise |
-| Retention | PARTIAL | Evidence retention/deletion policies exist | 7, 25, 34, 45 | Legal periods and all-domain enforcement | Policy-approved deletion/retention test |
+| Retention | IMPLEMENTED — NEEDS REAL PROOF | PUSH 34 provider-independent retention, legal hold, delete-before-tombstone and backend-failure retry QA | 7, 25, 34, 45 | Approved legal periods, all-domain enforcement and Production deletion evidence | Policy-approved real deletion/retention test |
 | Evidence authorization | DONE + REAL PROOF | Real private signed playback with tenant scope | 7, 25 | External API consumer coverage | Wrong-tenant/expired/deleted real-object proof |
 | Enterprise access control | FOUNDATION | Tenant RBAC baseline | 25, 41 | SSO, service accounts and multi-site roles | External enterprise negative test |
 | Privacy | PARTIAL | Sensitive-data register and minimization controls | 25, 45 | Formal notices, consent, deletion/export | External privacy/legal review |
@@ -294,10 +296,10 @@ The counts below are generated from the rows above during closure QA. They descr
 | Status | Count |
 |---|---:|
 | `DONE + REAL PROOF` | 24 |
-| `IMPLEMENTED — NEEDS REAL PROOF` | 32 |
-| `FOUNDATION` | 63 |
-| `PARTIAL` | 18 |
-| `NOT STARTED` | 52 |
+| `IMPLEMENTED — NEEDS REAL PROOF` | 33 |
+| `FOUNDATION` | 64 |
+| `PARTIAL` | 17 |
+| `NOT STARTED` | 51 |
 | `EXTERNAL COVERAGE GAP` | 1 |
 | **TOTAL** | **190** |
 
