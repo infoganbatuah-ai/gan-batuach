@@ -23,6 +23,8 @@ This register maps every requested North-Star capability to an existing canonica
 | Preprocessing | Previous: FOUNDATION | New: IMPLEMENTED — NEEDS REAL PROOF | PUSH 29 cheap preprocessing | Local frame difference now gates ONNX through dedupe/coalescing, never-blind fallback, Watch Rule/critical overrides and exact workload counters; representative FN Ground Truth remains missing. |
 | Sampling | Previous: FOUNDATION | New: PARTIAL | PUSH 29 bounded scheduling | Added human-gated candidate/always/adaptive policy and a 22-sample real-input comparison; full adaptive Candidate Events remain PUSH 30. |
 | Sampling | Previous: PARTIAL | New: IMPLEMENTED — NEEDS REAL PROOF | PUSH 30 adaptive scheduler | Added explicit purpose/priority, never-blind floor, Watch/Incident/Track protection, deterministic pressure/fairness QA, 11-camera real-input workload and 11/11 learning scheduling. Recall and representative duration remain unproven. |
+| Queues | Previous: NOT STARTED | New: IMPLEMENTED — NEEDS REAL PROOF | PUSH 31 durable AI queue | Added restart-safe WAL jobs, lease/ACK/retry/dead-letter, expiry, priority, hierarchical fairness and backpressure; production horizontal scale remains unproven. |
+| AI job queue | Previous: NOT STARTED | New: IMPLEMENTED — NEEDS REAL PROOF | PUSH 31 queue/worker closure | Worker-loss recovery, duplicate-effect prevention, two-environment portable contract and a real Tapo queue→ONNX→Tracker sample passed; multi-node Production operation remains future proof. |
 
 ## CAMERA PLATFORM
 
@@ -205,7 +207,7 @@ This register maps every requested North-Star capability to an existing canonica
 | Thousands of streams | NOT STARTED | No thousand-stream test | 31, 36, 37, 38 | Queue, workers, storage and cost | Measured 1,000-stream qualification |
 | Distributed processing | FOUNDATION | Edge/cloud and worker contracts | 31, 32, 35, 36 | Portable production implementation | Two-environment failover/load proof |
 | Enterprise Edge scale | FOUNDATION | Shared edge profile contract | 17, 18, 22, 35, 48 | Production packaging and fleet | Multi-edge enterprise pilot |
-| Queues | NOT STARTED | Durable AI queue not built | 31 | Implement priority/backpressure/retry | Worker-loss and tenant-fairness proof |
+| Queues | IMPLEMENTED — NEEDS REAL PROOF | PUSH 31 durable WAL jobs, lease recovery, priority/fairness/backpressure and dead-letter QA | 31, 36, 38 | Multi-node deployment and sustained load | Real horizontal worker-loss and tenant-fairness proof |
 | Load balancing | NOT STARTED | No horizontal production proof | 36, 37 | Implement routing and balancing | Measured scale/failover test |
 | Failover | NOT STARTED | No full multi-zone/provider proof | 37 | Implement HA ownership and recovery | RTO/RPO fault injection |
 | Fleet management | IMPLEMENTED — NEEDS REAL PROOF | Canonical inventory/API/UI, bounded commands and 10,000-component synthetic QA | 22 | Real multi-tenant/multi-site operational deployment | Real multi-device fleet proof |
@@ -235,7 +237,7 @@ This register maps every requested North-Star capability to an existing canonica
 |---|---|---|---|---|---|
 | Preprocessing | IMPLEMENTED — NEEDS REAL PROOF | PUSH 29 local frame difference precedes ONNX; candidate-only native contract, dedupe/coalescing, safe fallback and 11/22 real-input jobs avoided | 29 | Representative FN Ground Truth and verified native vendor adapters | Real quality-preserving workload reduction |
 | Sampling | IMPLEMENTED — NEEDS REAL PROOF | PUSH 30 canonical purpose/priority scheduler, explainable decisions, never-blind floor, fairness and bounded 11-camera real-input comparison | 29, 30 | Representative FN Ground Truth, long-duration and multi-Site evaluation | Recall/latency comparison on representative real data |
-| AI job queue | NOT STARTED | Explicitly future | 31 | Durable prioritized queue | Worker-loss/backpressure proof |
+| AI job queue | IMPLEMENTED — NEEDS REAL PROOF | PUSH 31 canonical job/result/worker contracts, restart durability, worker-loss recovery, idempotency, priority/fairness/backpressure and real Tapo sample | 31 | Production multi-worker operation and representative load | Real deployed worker-loss/backpressure proof |
 | Hybrid routing | NOT STARTED | Only policy foundation | 32 | Multi-provider/edge routing | Real failover with provenance |
 | Model routing | FOUNDATION | Provider/model metadata exists | 32 | Quality/privacy/capability policy | Measured route selection proof |
 | Cost-aware optimization | NOT STARTED | Cost engine not built | 33 | Cost signals in routing | Quality-constrained real savings proof |
@@ -286,10 +288,10 @@ The counts below are generated from the rows above during closure QA. They descr
 | Status | Count |
 |---|---:|
 | `DONE + REAL PROOF` | 24 |
-| `IMPLEMENTED — NEEDS REAL PROOF` | 27 |
+| `IMPLEMENTED — NEEDS REAL PROOF` | 29 |
 | `FOUNDATION` | 63 |
 | `PARTIAL` | 17 |
-| `NOT STARTED` | 58 |
+| `NOT STARTED` | 56 |
 | `EXTERNAL COVERAGE GAP` | 1 |
 | **TOTAL** | **190** |
 

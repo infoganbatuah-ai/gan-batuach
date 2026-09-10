@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { readFileSync } from "node:fs";
 import { createAdaptiveSamplingScheduler, ADAPTIVE_SAMPLING_CONTRACT } from "../../services/video-gateway/adaptive-sampling-scheduler.mjs";
+import { AI_JOB_CONTRACT } from "../../services/video-gateway/ai-job-contract.mjs";
 
 let clock = Date.parse("2026-09-10T12:00:00.000Z");
 const camera = (id, extra = {}) => ({ camera_id: id, site_id: "site-30", status: "ONLINE", channel_assignment: "ASSIGNED", physical_camera_attached: true, ...extra });
@@ -62,10 +63,12 @@ const journal = readFileSync(new URL("../../services/video-gateway/journal-loop.
 const runner = readFileSync(new URL("../../scripts/run-persistent-home-gateway.mjs", import.meta.url), "utf8");
 for (const token of [ADAPTIVE_SAMPLING_CONTRACT, "active_incident", "learning_under_covered", "cycle_budget", "candidate_contract"]) assert.ok(manifest.includes(token));
 for (const token of ["createAdaptiveSamplingScheduler", "active_track", "adaptive_sampling", "resourcePressure()", "scheduler.recordActivity", "preprocessing.evaluate", "tracker.observe"]) assert.ok(journal.includes(token));
+for (const token of ["createDurableAiJobQueue", "createPortableInferenceWorker", "aiQueue.enqueue"]) assert.ok(journal.includes(token));
+assert.equal(AI_JOB_CONTRACT, "observer-ai-job-v1");
 assert.ok(runner.includes("/activity`")); assert.ok(!runner.slice(runner.indexOf("async function learn"), runner.indexOf("await waitForGateway")).includes("/insights`"));
 
 const snapshot = scheduler.snapshot();
 assert.equal(snapshot.contract, ADAPTIVE_SAMPLING_CONTRACT);
 console.log(JSON.stringify({ status: "PASS", adaptive_scheduler: "READY", never_blind_floor: "VERIFIED", watch_rule_priority: "VERIFIED",
   incident_track_priority: "VERIFIED", fairness: "VERIFIED", resource_pressure: "VERIFIED", empty_channel_work: 0,
-  learning_priority: "VERIFIED", candidate_contract: "observer-ai-candidate-v2", push31_queue: "NOT_IMPLEMENTED_CONTRACT_READY", recall: "NOT_MEASURABLE" }));
+  learning_priority: "VERIFIED", candidate_contract: "observer-ai-candidate-v2", push31_queue: AI_JOB_CONTRACT, recall: "NOT_MEASURABLE" }));

@@ -4,6 +4,9 @@ import { JournalTracker, sampleAllCameras } from "./journal-tracker.mjs";
 import { createDurableOfflineQueue } from "./durable-offline-queue.mjs";
 import { createPreprocessingEngine } from "./preprocessing-policy.mjs";
 import { createAdaptiveSamplingScheduler } from "./adaptive-sampling-scheduler.mjs";
+import { createAiJob } from "./ai-job-contract.mjs";
+import { createDurableAiJobQueue } from "./durable-ai-job-queue.mjs";
+import { createPortableInferenceWorker } from "./portable-inference-worker.mjs";
 
 // The lease is local evidence, not an accepted field in the cloud event schema.
 export function eventForCloud(event, queuedAt = Date.now(), deliveredAt = Date.now()) {
@@ -63,6 +66,11 @@ export function startJournalLoop({ gatewayUrl, gatewaySecret, databasePath, obse
   } : null });
   const preprocessing = createPreprocessingEngine();
   const scheduler = createAdaptiveSamplingScheduler();
+  // The AI queue is intentionally separate from PUSH 21's cloud-delivery
+  // outbox. It persists internal inference work; it never stores Product Events.
+  const localWorkerCapability = Symbol("journal-local-inference-worker");
+  const aiQueue = createDurableAiJobQueue({ databasePath, policy: { maxJobs: 20_000, leaseMs: 90_000 },
+    workerAuthorizer: worker => worker.identity?.local_capability === localWorkerCapability });
   const health = new Map(db.prepare("SELECT camera_id,misses,offline FROM camera_health").all()
     .map(row => [String(row.camera_id), { misses:Number(row.misses)||0, offline:Number(row.offline)===1 }]));
   let stopped = false;
@@ -99,6 +107,33 @@ export function startJournalLoop({ gatewayUrl, gatewaySecret, databasePath, obse
     }
     return value.data ?? value;
   };
+  const inferenceWorker = createPortableInferenceWorker({
+    workerId: `${deviceId}:local-inference`, environment: "EDGE_LOCAL", capabilities: ["OBJECT_DETECTION"],
+    identity: { authenticated: true, revoked: false, device_id: deviceId, tenant_ids: [tenantId], site_ids: [observerSiteId], local_capability: localWorkerCapability },
+    infer: async job => {
+      if (job.input_ref.kind !== "GATEWAY_SOURCE_SAMPLE" || !job.input_ref.reference.startsWith("stream:")) {
+        const error = new Error("input_reference_unsupported"); error.retryable = false; error.category = "INPUT_REFERENCE_UNSUPPORTED"; throw error;
+      }
+      const streamId = job.input_ref.reference.slice("stream:".length);
+      const data = await request(`/camera/${encodeURIComponent(streamId)}/detections`);
+      if (!data.local_processing || data.insight?.object_detection?.status !== "sampled") {
+        const error = new Error("detector_unavailable"); error.retryable = true; error.category = "DETECTOR_UNAVAILABLE"; throw error;
+      }
+      return { detections: data.insight.object_detection.detections, source_anchor: data.insight.source_anchor ?? null, observation_timestamp: data.insight.sampled_at,
+        model_provenance: data.insight.object_detection.model_provenance ?? null };
+    }
+  });
+  async function executeAiJob(jobId) {
+    // Drain bounded ready work so a recovered job is not starved by the newest
+    // camera sample. Normal operation completes in one iteration.
+    for (let attempt = 0; attempt < 32; attempt += 1) {
+      const ready = aiQueue.result(jobId);
+      if (ready) return aiQueue.result(jobId, { consume: true });
+      const processed = await inferenceWorker.processOne(aiQueue);
+      if (processed.status === "IDLE") break;
+    }
+    return aiQueue.result(jobId, { consume: true });
+  }
   async function releaseUnusedEvidence(streamId, leaseId) {
     if (!leaseId) return;
     // Cleanup is bounded; the RAM TTL remains the fallback if transport fails.
@@ -252,7 +287,7 @@ export function startJournalLoop({ gatewayUrl, gatewaySecret, databasePath, obse
         : cameras;
       const adaptiveEnabled = manifest.sampling?.contract === "observer-adaptive-sampling-v1";
       const schedulerPlan = adaptiveEnabled ? scheduler.plan(eligibleCameras.map((camera) => ({
-        ...camera,
+        ...camera, site_id: observerSiteId,
         active_watch_rule: camera.sampling?.active_watch_rule === true || camera.preprocessing?.active_watch_rule === true,
         critical_policy: camera.sampling?.critical_policy === true || camera.preprocessing?.critical_policy === true,
         active_incident: camera.sampling?.active_incident === true,
@@ -302,9 +337,21 @@ export function startJournalLoop({ gatewayUrl, gatewaySecret, databasePath, obse
         scheduler.recordActivity(camera.camera_id, activity?.insight?.motion_score, camera.preprocessing?.motion_threshold);
         if (!decision.request_ai) return { sampled_at: activity?.insight?.sampled_at ?? new Date().toISOString(),
           object_detection: { status: "preprocessing_suppressed", detections: [], model_provenance: null }, preprocessing: decision };
-        const data = await request(`/camera/${encodeURIComponent(camera.stream_id)}/detections`);
-        if (!data.local_processing || data.insight?.object_detection?.status !== "sampled") throw new Error("detector_unavailable");
-        return { ...data.insight, preprocessing: decision };
+        const samplingDecision = decisionByCamera.get(camera.camera_id);
+        const observedAt = activity?.insight?.sampled_at ?? new Date().toISOString();
+        const enqueued = aiQueue.enqueue(createAiJob({ tenant_id: tenantId, site_id: observerSiteId, source_id: camera.camera_id,
+          observation_timestamp: observedAt, candidate: samplingDecision?.candidate ?? null, priority: samplingDecision?.priority ?? "NORMAL",
+          purpose: samplingDecision?.purpose ?? "REALTIME_DETECTION", requested_capability: "OBJECT_DETECTION", model_class: "GENERAL_OBJECT_DETECTION",
+          input_ref: { kind: "GATEWAY_SOURCE_SAMPLE", reference: `stream:${camera.stream_id}`, locality: "MANAGED_COMPONENT_ONLY" },
+          expires_at: new Date(Date.now() + 60_000).toISOString(), retry_policy: { max_attempts: 3, base_backoff_ms: 500 },
+          privacy_constraints: { raw_media_telemetry: false, tenant_scoped_input: true, retention: "EPHEMERAL_SOURCE_REFERENCE" },
+          scheduler_reason: samplingDecision?.reason ?? decision.reason ?? "FIXED_COMPATIBILITY",
+          scheduler_version: samplingDecision?.contract ?? "legacy-fixed-sampling", ordering_key: `${observerSiteId}:${camera.camera_id}` }));
+        const result = await executeAiJob(enqueued.job.job_id);
+        if (!result) throw new Error("detector_queued_or_unavailable");
+        return { sampled_at: result.observation_timestamp, source_anchor: result.source_anchor,
+          object_detection: { status: "sampled", detections: result.detections, model_provenance: { model: result.model, expected_sha256: result.model_version, runtime: result.runtime, worker_id: result.worker_id, worker_environment: result.worker_environment } }, preprocessing: decision,
+          ai_job: { job_id: result.job_id, queue_wait_ms: result.queue_wait_ms, inference_ms: result.inference_ms } };
       }, async (camera, insight) => {
         try { const events = tracker.observe(camera, insight.object_detection.detections, insight.sampled_at, insight.source_anchor ?? null, insight.object_detection.model_provenance ?? null);
         preprocessing.recordCanonicalEvents(events.length);
@@ -350,11 +397,13 @@ export function startJournalLoop({ gatewayUrl, gatewaySecret, databasePath, obse
         delivery_in_progress:pending>0 && deliveries.size>0, delivery_failures:deliveryFailures, delivery_failures_by_reason:Object.fromEntries(deliveryFailuresByReason), media_failures_by_reason:Object.fromEntries(mediaFailures), pending,
         preprocessing: preprocessing.snapshot(),
         adaptive_sampling: schedulerPlan ? { ...scheduler.snapshot(), current: schedulerPlan } : { contract: "legacy-fixed-sampling", enabled: false },
+        ai_queue: aiQueue.snapshot(),
+        ai_worker: inferenceWorker.snapshot(),
         offline_buffer: queueStatus, local_monitoring_operational: true, cloud_sync_state: queueStatus.state });
     } catch (error) { deliveryManifest = null; report({status:"unavailable", reason: error.message, checked_at:new Date().toISOString()}); }
     if (!stopped) timer = setTimeout(run, pollIntervalMs);
   }
   function run() { cyclePromise = cycle(); }
   run();
-  return async () => { stopped = true; clearTimeout(timer); await cyclePromise; await Promise.allSettled([...deliveries.values()]); queue.close(); db.close(); };
+  return async () => { stopped = true; clearTimeout(timer); await cyclePromise; await Promise.allSettled([...deliveries.values()]); aiQueue.close(); queue.close(); db.close(); };
 }

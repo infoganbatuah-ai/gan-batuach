@@ -78,9 +78,12 @@ assert.equal(intelligence.length, 1); assert.equal("siteId" in intelligence[0], 
 const journal = readFileSync(new URL("../../services/video-gateway/journal-loop.mjs", import.meta.url), "utf8");
 const manifest = readFileSync(new URL("../../app/api/video-gateway/event-manifest/route.ts", import.meta.url), "utf8");
 const connection = readFileSync(new URL("../../lib/domain/digital-observer/camera-connection-layer.ts", import.meta.url), "utf8");
-const activityRequest = journal.indexOf("/activity`)");
-const detectionRequest = journal.indexOf("/detections`)");
-assert.ok(activityRequest >= 0 && detectionRequest >= 0 && activityRequest < detectionRequest, "cheap activity evaluation must precede expensive inference");
+const sampleStage = journal.indexOf("let activity = null");
+const activityRequest = journal.indexOf("/activity`)", sampleStage);
+const queueRequest = journal.indexOf("aiQueue.enqueue", sampleStage);
+const workerDetectionRequest = journal.indexOf("/detections`)");
+assert.ok(sampleStage >= 0 && activityRequest >= sampleStage && queueRequest > activityRequest && workerDetectionRequest >= 0,
+  "cheap activity evaluation must precede durable expensive-inference scheduling");
 for (const token of ["preprocessing.evaluate", "preprocessing.recordCanonicalEvents", "tracker.observe"]) assert.ok(journal.includes(token));
 for (const token of ["active_watch_rule", "critical_policy", "CHANNEL_EMPTY", "native_events_are_candidates_only", "HUMAN_APPROVAL_REQUIRED", "preprocessing_quality_gate_approved"]) assert.ok(manifest.includes(token));
 for (const token of ["NATIVE_MOTION_EVENTS", "NATIVE_PERSON_EVENTS", "NATIVE_VEHICLE_EVENTS", "SCENE_CHANGE_EVENTS", "LOCAL_FRAME_DIFF"]) assert.ok(connection.includes(token));

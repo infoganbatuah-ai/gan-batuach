@@ -15,6 +15,9 @@
     "lib/domain/digital-observer/preprocessing-quality.ts",
     "lib/domain/digital-observer/connection-intelligence.ts",
     "services/video-gateway/adaptive-sampling-scheduler.mjs",
+    "services/video-gateway/ai-job-contract.mjs",
+    "services/video-gateway/durable-ai-job-queue.mjs",
+    "services/video-gateway/portable-inference-worker.mjs",
     "lib/domain/digital-observer/watch-rule-compiler.ts",
     "lib/domain/digital-observer/watch-rule-service.ts",
     "lib/domain/digital-observer/investigation-query.ts",
@@ -53,6 +56,7 @@
     { "name": "quality-benchmark", "args": ["scripts/qa/check-digital-observer-quality-benchmark.mjs"] },
     { "name": "native-preprocessing", "args": ["scripts/qa/check-digital-observer-native-preprocessing.mjs"] },
     { "name": "adaptive-sampling", "args": ["scripts/qa/check-digital-observer-adaptive-sampling.mjs"] },
+    { "name": "durable-ai-job-queue", "args": ["scripts/qa/check-digital-observer-ai-job-queue.mjs"] },
     { "name": "watch-rules", "args": ["scripts/qa/check-digital-observer-watch-rule-compiler.mjs"] },
     { "name": "investigation", "args": ["--test", "scripts/qa/check-digital-observer-investigation.mjs"] }
   ],
