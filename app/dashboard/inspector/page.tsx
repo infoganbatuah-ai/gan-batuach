@@ -11,7 +11,7 @@ import {
   Navigation,
   ShieldCheck
 } from "lucide-react";
-import { requireRole } from "@/lib/auth";
+import { requireOperationalRole } from "@/lib/management/operational-role";
 import { createClient } from "@/lib/supabase/server";
 import {
   InspectorActionCard,
@@ -64,7 +64,7 @@ function taskStatusLabel(value?: string | null) {
 }
 
 export default async function InspectorDashboard() {
-  const { profile } = await requireRole(["inspector"]);
+  const { profile } = await requireOperationalRole(["inspector"]);
   const supabase = await createClient();
   const [inspectorRes, gardensRes] = await Promise.all([
     supabase.from("inspectors" as any).select("id, service_cities, profile_photo_url").eq("id", profile.id).maybeSingle(),

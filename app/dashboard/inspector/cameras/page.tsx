@@ -1,12 +1,12 @@
 import { Camera, ShieldCheck } from "lucide-react";
 import { CameraPlaybackCard } from "@/components/camera-playback-card";
-import { requireRole } from "@/lib/auth";
+import { requireOperationalRole } from "@/lib/management/operational-role";
 import { sanitizeCameraForPlaybackCard } from "@/lib/domain/camera-diagnostics";
 import { createClient } from "@/lib/supabase/server";
 import { InspectorAppFrame, InspectorEmpty, InspectorHero, InspectorMetricCard, InspectorMetricGrid, InspectorSection } from "@/components/inspector-app-ui";
 
 export default async function InspectorCamerasPage() {
-  const { profile } = await requireRole(["inspector"]);
+  const { profile } = await requireOperationalRole(["inspector"]);
   const supabase = await createClient();
   const [inspectorRes, gardensRes] = await Promise.all([
     supabase.from("inspectors" as any).select("profile_photo_url").eq("id", profile.id).maybeSingle(),

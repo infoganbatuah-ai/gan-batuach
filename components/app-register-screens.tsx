@@ -28,7 +28,7 @@ export function AppRegisterEntryScreen() {
   );
 }
 
-export function AppRoleRegisterScreen({ role }: { role: SelfServiceAccountType }) {
+export function AppRoleRegisterScreen({ role, invitationToken }: { role: SelfServiceAccountType; invitationToken?: string }) {
   const active = roleCards.find((item) => item.type === role) ?? roleCards[0];
   return (
     <AppAuthShell
@@ -39,7 +39,7 @@ export function AppRoleRegisterScreen({ role }: { role: SelfServiceAccountType }
         : "מלאו רק את הפרטים הדרושים. גישה רגישה תיפתח לפי שיוך ואישור התפקיד המתאים."}
       footer={<span>בחרתם מסלול לא נכון? <Link href="/app/register">חזרה לבחירת תפקיד</Link></span>}
     >
-      <SelfServiceRegisterForm fixedAccountType={role} appMode />
+      <SelfServiceRegisterForm fixedAccountType={role} appMode invitationToken={invitationToken} />
     </AppAuthShell>
   );
 }

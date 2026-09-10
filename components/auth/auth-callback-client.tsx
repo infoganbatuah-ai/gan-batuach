@@ -130,7 +130,10 @@ export function AuthCallbackClient({
         await supabase.auth.signOut();
       }
 
-      if (!cancelled) window.location.replace(next);
+      const managementContactPending = product === "gan_batuach"
+        && user.app_metadata?.contact_verification_required === true
+        && !user.phone_confirmed_at;
+      if (!cancelled) window.location.replace(managementContactPending ? "/app/verify-contact" : next);
     }
 
     void complete();

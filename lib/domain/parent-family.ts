@@ -14,6 +14,11 @@ export async function getParentFamilyContext(userSupabase: SupabaseClient<any, a
   const parentByUser = await supabase.from("parents" as any).select("*").eq("user_id", profile.id);
   const parents = uniqById([...(parentByProfile.data ?? []), ...(parentByUser.data ?? [])]);
   const parentIds = parents.map((parent) => parent.id);
+  const guardianLinks = await supabase.from("child_guardian_links")
+    .select("id,permanent_child_file_id,guardian_profile_id,relationship_type,is_primary,legal_authority,access_scope,status")
+    .eq("guardian_profile_id", profile.id).eq("status", "active").eq("legal_authority", true);
+  if (guardianLinks.error) console.error("Canonical guardian links query failed", guardianLinks.error);
+  const canonicalFileIds = uniq((guardianLinks.data ?? []).map(link => link.permanent_child_file_id));
 
   const linkRows = await supabase
     .from("parent_kindergarten_links" as any)
@@ -31,11 +36,11 @@ export async function getParentFamilyContext(userSupabase: SupabaseClient<any, a
     : { data: [], error: null };
   if (childByParent.error) console.error("Parent family children query failed", childByParent.error);
 
-  const fileRows = await supabase
+  const fileRows = canonicalFileIds.length ? await supabase
     .from("permanent_child_files" as any)
     .select("id, primary_parent_profile_id, primary_parent_id, full_name, birth_date, photo_url, face_image_url, allergies, hmo, medical_notes")
-    .eq("primary_parent_profile_id", profile.id)
-    .limit(100);
+    .in("id", canonicalFileIds)
+    .limit(100) : { data: [], error: null };
   if (fileRows.error) console.error("Parent family child files query failed", fileRows.error);
 
   const fileIds = (fileRows.data ?? []).map((file: any) => file.id);
@@ -114,6 +119,7 @@ export async function getParentFamilyContext(userSupabase: SupabaseClient<any, a
   return {
     parents,
     parentIds,
+    guardianLinks: guardianLinks.data ?? [],
     links: linkRows.data ?? [],
     children,
     childFiles: fileRows.data ?? [],

@@ -1,7 +1,8 @@
 import { fail, handleRouteError, ok } from "@/lib/api";
-import { requireRole } from "@/lib/auth";
+import { getManagementGardenContext } from "@/lib/management/garden-context";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { writeUserCreationAudit } from "@/lib/onboarding/user-provisioning";
+import { adminManagementContactVerification } from "@/lib/management/contact-verification";
 import { z } from "zod";
 
 const schema = z.object({
@@ -11,7 +12,9 @@ const schema = z.object({
 
 export async function POST(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
-    const { profile } = await requireRole(["manager", "owner"]);
+    const access = await getManagementGardenContext();
+    if (!access.allowed) return access.response;
+    const { profile } = access.session;
     if (!profile.garden_id) return fail("Manager is not assigned to a garden", 422);
     const { id } = await context.params;
     const payload = schema.parse(await request.json().catch(() => ({})));
@@ -27,6 +30,11 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     if (readError || !staff) return fail(readError?.message ?? "Staff member not found", 404);
     if (payload.action === "approve" && (staff.background_check_status !== "valid" || staff.police_clearance_status !== "valid")) {
       return fail("Cannot approve staff before background check and police clearance are valid", 422);
+    }
+    if (payload.action === "approve" && staff.profile_id) {
+      const contact = await adminManagementContactVerification(supabase, staff.profile_id);
+      if (!contact.available) return fail("לא ניתן לבדוק כרגע את אימות פרטי הקשר של איש הצוות.", 503);
+      if (!contact.state.complete) return fail("יש להשלים אימות דוא״ל וטלפון לפני אישור הצוות.", 409);
     }
 
     const now = new Date().toISOString();
@@ -53,6 +61,21 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
 
     const { data, error } = await supabase.from("staff").update(patch).eq("id", id).select("*").single();
     if (error) return fail(error.message, 400);
+    const employmentStatus = payload.action === "approve" ? "active" : payload.action === "request_correction" ? "pending_approval" : "suspended";
+    const employment = await supabase.from("staff_kindergarten_employments" as never)
+      .update({
+        status: employmentStatus,
+        approved_at: payload.action === "approve" ? now : null,
+        approved_by: payload.action === "approve" ? profile.id : null,
+        updated_at: now
+      })
+      .eq("staff_id", id)
+      .eq("profile_id", staff.profile_id)
+      .eq("garden_id", profile.garden_id)
+      .select("id") as unknown as { data: Array<{ id: string }> | null; error: { message?: string } | null };
+    if (employment.error || !employment.data?.length) {
+      return fail("כרטיס הצוות עודכן, אך מצב ההעסקה הקנוני לא עודכן. הגישה התפעולית תישאר חסומה עד לתיקון.", 409);
+    }
     await supabase.from("staff_onboarding_records" as any).upsert({
       staff_id: id,
       profile_id: staff.profile_id,

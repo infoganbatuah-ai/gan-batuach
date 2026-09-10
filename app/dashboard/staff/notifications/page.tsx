@@ -2,11 +2,11 @@ import { Bell } from "lucide-react";
 import { NotificationCenter } from "@/components/notification-center";
 import { StatusChip } from "@/components/gan-batuach-design-system";
 import { StaffAppFrame, StaffPageHero, StaffSection } from "@/components/staff-app-ui";
-import { requireRole } from "@/lib/auth";
+import { requireOperationalRole } from "@/lib/management/operational-role";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function StaffNotificationsPage() {
-  const { profile } = await requireRole(["staff"]);
+  const { profile } = await requireOperationalRole(["staff"]);
   const supabase = await createClient();
   const { data } = await supabase
     .from("notifications" as any)

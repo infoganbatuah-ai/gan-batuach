@@ -16,7 +16,7 @@ import {
   StaffShiftHero,
   StaffTaskRow
 } from "@/components/staff-app-ui";
-import { requireRole } from "@/lib/auth";
+import { requireOperationalRole } from "@/lib/management/operational-role";
 import { cleanSyntheticLabel } from "@/lib/domain/display-label";
 import { createClient } from "@/lib/supabase/server";
 
@@ -46,7 +46,7 @@ function formatStatus(status?: string | null) {
 }
 
 export default async function StaffDashboard() {
-  const { profile } = await requireRole(["staff"]);
+  const { profile } = await requireOperationalRole(["staff"]);
   const supabase = await createClient();
   const today = israelTodayDateKey();
 

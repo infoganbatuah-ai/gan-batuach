@@ -2,12 +2,12 @@ import { MessageCircle } from "lucide-react";
 import { InternalMessagingCenter } from "@/components/internal-messaging-center";
 import { StatusChip } from "@/components/gan-batuach-design-system";
 import { StaffAppFrame, StaffEmpty, StaffPageHero, StaffSection } from "@/components/staff-app-ui";
-import { requireRole } from "@/lib/auth";
+import { requireOperationalRole } from "@/lib/management/operational-role";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function StaffMessagesPage({ searchParams }: { searchParams?: Promise<{ childId?: string }> }) {
   const params: { childId?: string } = searchParams ? await searchParams.catch(() => ({})) : {};
-  const { profile } = await requireRole(["staff"]);
+  const { profile } = await requireOperationalRole(["staff"]);
   const supabase = await createClient();
   const gardenId = profile.garden_id ?? "";
   if (!gardenId) {

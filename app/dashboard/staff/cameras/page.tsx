@@ -2,12 +2,12 @@ import { CameraPlaybackCard } from "@/components/camera-playback-card";
 import { Camera, ShieldCheck } from "lucide-react";
 import { CameraPreviewCard, StatusChip } from "@/components/gan-batuach-design-system";
 import { StaffAppFrame, StaffEmpty, StaffPageHero, StaffSection } from "@/components/staff-app-ui";
-import { requireRole } from "@/lib/auth";
+import { requireOperationalRole } from "@/lib/management/operational-role";
 import { sanitizeCameraForPlaybackCard } from "@/lib/domain/camera-diagnostics";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function StaffCamerasPage() {
-  const { profile } = await requireRole(["staff"]);
+  const { profile } = await requireOperationalRole(["staff"]);
   const supabase = await createClient();
   const gardenId = profile.garden_id ?? "";
   if (!gardenId) {

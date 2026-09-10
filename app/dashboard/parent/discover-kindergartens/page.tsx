@@ -5,16 +5,18 @@ import { EnrollmentRequestButton } from "@/components/self-service-forms";
 import { ParentAppFrame, ParentEmptyState, ParentHero, ParentSection } from "@/components/parent-app-ui";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { guardianChildIds } from "@/lib/management/family-link";
 
 export default async function DiscoverKindergartensPage({ searchParams }: { searchParams?: Promise<{ city?: string; age?: string; q?: string }> }) {
   const { profile } = await requireRole(["parent"]);
   const params = await searchParams;
   const userSupabase = await createClient();
-  const childProfiles = await userSupabase.from("permanent_child_files" as any)
+  const childFileIds = await guardianChildIds(userSupabase, profile.id);
+  const childProfiles = childFileIds.length ? await userSupabase.from("permanent_child_files" as any)
     .select("id,full_name,birth_date,owner_status")
-    .eq("primary_parent_profile_id", profile.id)
+    .in("id", childFileIds)
     .order("created_at", { ascending: false })
-    .limit(20);
+    .limit(20) : { data: [], error: null };
 
   let gardens: any[] = [];
   let feeGroupsByGarden = new Map<string, any[]>();

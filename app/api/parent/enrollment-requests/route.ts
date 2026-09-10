@@ -2,6 +2,8 @@ import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { requireRole } from "@/lib/auth";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
+import { managementContactVerification } from "@/lib/management/contact-verification";
+import { guardianCanAccessChild } from "@/lib/management/family-link";
 
 const schema = z.object({
   child_profile_id: z.string().uuid(),
@@ -13,16 +15,16 @@ const schema = z.object({
 
 export async function POST(request: Request) {
   try {
-    const { profile } = await requireRole(["parent"]);
+    const { user, profile } = await requireRole(["parent"]);
+    if (!managementContactVerification(user, profile).complete) {
+      return fail("יש להשלים אימות דוא״ל וטלפון לפני שליחת בקשת הצטרפות.", 403);
+    }
     if (!isAdminClientConfigured()) return fail("שליחת בקשת הצטרפות דורשת Service Role בצד השרת.", 503);
     const payload = schema.parse(await request.json());
     const admin = createAdminClient();
-    const child = await admin.from("permanent_child_files" as any)
-      .select("id, primary_parent_profile_id, full_name, duplicate_flags")
-      .eq("id", payload.child_profile_id)
-      .eq("primary_parent_profile_id", profile.id)
-      .maybeSingle();
-    if (child.error || !child.data) return fail("כרטיס הילד לא נמצא או אינו שייך לחשבון שלך.", 403);
+    if (!await guardianCanAccessChild(admin, profile.id, payload.child_profile_id)) return fail("כרטיס הילד לא נמצא או אינו שייך לחשבון שלך.", 403);
+    const child = await admin.from("permanent_child_files" as any).select("id,full_name,duplicate_flags").eq("id", payload.child_profile_id).maybeSingle();
+    if (child.error || !child.data) return fail("כרטיס הילד לא נמצא.", 404);
 
     const garden = await admin.from("gardens" as any)
       .select("id, name, city, status, public_profile_enabled, activation_payment_status, frozen_at")

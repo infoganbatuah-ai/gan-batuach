@@ -3,7 +3,7 @@ import { AlertTriangle, CheckCircle2, Clock3, FileCheck2, ListChecks, Search, Sh
 import { DashboardShell } from "@/components/dashboard-shell";
 import { AdminDataError } from "@/components/admin-data-state";
 import { CleanSection, EmptyState, PremiumDashboardHero, RoleMetricCard, StatusBadge } from "@/components/premium-dashboard";
-import { requireUser } from "@/lib/auth";
+import { requireOperationalRole } from "@/lib/management/operational-role";
 import { createClient } from "@/lib/supabase/server";
 import type { UserRole } from "@/lib/roles";
 
@@ -77,7 +77,7 @@ function roleTitle(role: string) {
 }
 
 export default async function UnifiedTasksPage() {
-  const { profile } = await requireUser();
+  const { profile } = await requireOperationalRole(["admin", "network_manager", "manager", "owner", "staff", "parent", "inspector"]);
   const supabase = await createClient();
   const role = String(profile.role) as UserRole;
   const gardenId = profile.garden_id ?? "";

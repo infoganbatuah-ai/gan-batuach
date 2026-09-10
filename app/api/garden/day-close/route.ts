@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
-import { requireRole } from "@/lib/auth";
+import { getOperationalRoleContext } from "@/lib/management/operational-role";
 import { createClient } from "@/lib/supabase/server";
 
 const schema = z.object({
@@ -13,7 +13,9 @@ const schema = z.object({
 
 export async function POST(request: Request) {
   try {
-    const { profile } = await requireRole(["manager", "owner", "staff"]);
+    const access = await getOperationalRoleContext(["manager", "owner", "staff"]);
+    if (!access.allowed) return access.response;
+    const { profile } = access.session;
     if (!profile.garden_id) return fail("לא נמצא גן משויך למשתמש", 422);
     const payload = schema.parse(await request.json());
     const supabase = await createClient();

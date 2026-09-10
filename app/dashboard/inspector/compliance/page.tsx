@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { AlertTriangle, ClipboardCheck, FileWarning, ShieldCheck } from "lucide-react";
 import { AdminDataError } from "@/components/admin-data-state";
-import { requireRole } from "@/lib/auth";
+import { requireOperationalRole } from "@/lib/management/operational-role";
 import { logSupabaseError, safeAdminData } from "@/lib/admin-safe";
 import { createClient } from "@/lib/supabase/server";
 import { buildComplianceScore, complianceTone } from "@/lib/domain/smart-compliance";
@@ -50,7 +50,7 @@ function severityLabel(value?: string | null) {
 }
 
 export default async function InspectorCompliancePage() {
-  const { profile } = await requireRole(["inspector"]);
+  const { profile } = await requireOperationalRole(["inspector"]);
   const result = await safeAdminData("inspector compliance", async () => {
     const supabase = await createClient();
     const [inspectorRes, gardensRes] = await Promise.all([

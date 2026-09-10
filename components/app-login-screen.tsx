@@ -61,6 +61,7 @@ export async function AppLoginScreen({ searchParams }: { searchParams?: Promise<
             {params?.error ? <p className="error-banner">{params.error}</p> : null}
             <input type="hidden" name="context_garden_id" value={params?.gardenId ?? ""} />
             <input type="hidden" name="auth_source" value="app" />
+            <input type="hidden" name="next" value={params?.next ?? ""} />
 
             <label className="gb-reference-field">
               <span className="sr-only">אימייל או טלפון</span>

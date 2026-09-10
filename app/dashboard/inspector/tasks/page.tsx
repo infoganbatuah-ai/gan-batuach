@@ -1,11 +1,11 @@
 import { CheckSquare, ClipboardCheck } from "lucide-react";
 import { TaskWorkbench } from "@/components/task-workbench";
-import { requireRole } from "@/lib/auth";
+import { requireOperationalRole } from "@/lib/management/operational-role";
 import { createClient } from "@/lib/supabase/server";
 import { InspectorAppFrame, InspectorHero, InspectorMetricCard, InspectorMetricGrid, InspectorSection } from "@/components/inspector-app-ui";
 
 export default async function InspectorTasksPage() {
-  const { profile } = await requireRole(["inspector"]);
+  const { profile } = await requireOperationalRole(["inspector"]);
   const supabase = await createClient();
   const [inspectorRes, gardensRes, tasksRes] = await Promise.all([
     supabase.from("inspectors" as any).select("profile_photo_url").eq("id", profile.id).maybeSingle(),

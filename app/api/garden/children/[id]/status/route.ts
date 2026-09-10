@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
-import { requireRole } from "@/lib/auth";
+import { getManagementGardenContext } from "@/lib/management/garden-context";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
 import { writeUserCreationAudit } from "@/lib/onboarding/user-provisioning";
 import { sendCommunication } from "@/lib/domain/communication-service";
@@ -11,7 +11,9 @@ const schema = z.object({ status: z.enum(["active", "rejected", "missing_info", 
 export async function POST(request: Request, context: { params: Promise<{ id: string }> }) {
   let actionContext: Record<string, unknown> = { action: "child_registration_status_update" };
   try {
-    const { profile } = await requireRole(["manager", "owner"]);
+    const access = await getManagementGardenContext();
+    if (!access.allowed) return access.response;
+    const { profile } = access.session;
     if (!profile.garden_id) return fail("Manager is not assigned to a garden", 422);
     if (!isAdminClientConfigured()) return fail("אישור ילד דורש הגדרת SUPABASE_SERVICE_ROLE_KEY בשרת.", 503);
     const { id } = await context.params;

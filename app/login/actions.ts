@@ -5,6 +5,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { dashboardPathForProfile } from "@/lib/auth";
 import { safeObserverReturnPath } from "@/lib/domain/digital-observer/access";
+import { managementContactVerification } from "@/lib/management/contact-verification";
 import { isRole } from "@/lib/roles";
 
 export async function signIn(formData: FormData) {
@@ -98,6 +99,12 @@ export async function signIn(formData: FormData) {
     secure: process.env.NODE_ENV === "production",
     path: "/"
   });
+  if (user && profile && !managementContactVerification(user, profile).complete) {
+    redirect("/app/verify-contact");
+  }
+  if (requestedNext.startsWith("/invite/accept?token=") && !requestedNext.startsWith("//")) {
+    redirect(requestedNext);
+  }
   const role = profile?.role;
   const path = isRole(role) && profile ? await dashboardPathForProfile(profile) : "/dashboard";
   redirect(gardenId ? `${path}?gardenId=${encodeURIComponent(gardenId)}` : path);

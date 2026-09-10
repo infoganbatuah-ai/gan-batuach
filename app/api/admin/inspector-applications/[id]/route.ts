@@ -2,6 +2,7 @@ import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { requireRole } from "@/lib/auth";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
+import { adminManagementContactVerification } from "@/lib/management/contact-verification";
 
 const schema = z.object({
   action: z.enum(["under_review", "request_more_information", "approve_pending_assignment", "approve", "reject", "suspend"]),
@@ -28,6 +29,9 @@ export async function POST(request: Request, { params }: { params: Promise<{ id:
     if (payload.action === "reject") status = "rejected";
     if (payload.action === "suspend") status = "suspended";
     if (payload.action === "approve") {
+      const contact = await adminManagementContactVerification(admin, application.data.profile_id);
+      if (!contact.available) return fail("לא ניתן לבדוק כרגע את אימות פרטי הקשר של המפקח.", 503);
+      if (!contact.state.complete) return fail("המפקח חייב להשלים אימות דוא״ל וטלפון לפני אישור.", 409);
       status = "approved";
       const inspector = await admin.from("inspectors" as any).upsert({
         id: application.data.profile_id,

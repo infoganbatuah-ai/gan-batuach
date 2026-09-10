@@ -3,11 +3,11 @@ import { israelTodayDateKey } from "@/lib/domain/israel-date";
 import { DailyTaskJournal } from "@/components/daily-task-journal";
 import { StatusChip } from "@/components/gan-batuach-design-system";
 import { StaffAppFrame, StaffPageHero, StaffSection } from "@/components/staff-app-ui";
-import { requireRole } from "@/lib/auth";
+import { requireOperationalRole } from "@/lib/management/operational-role";
 import { createClient } from "@/lib/supabase/server";
 
 export default async function StaffDailyJournalPage() {
-  const { profile } = await requireRole(["staff"]);
+  const { profile } = await requireOperationalRole(["staff"]);
   const supabase = await createClient();
   const today = israelTodayDateKey();
   const [tasksRes, completionsRes] = await Promise.all([
