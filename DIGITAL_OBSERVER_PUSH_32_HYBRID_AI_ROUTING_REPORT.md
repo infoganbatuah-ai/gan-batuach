@@ -4,7 +4,7 @@ Date: 2026-09-10
 
 ## FINAL STATUS
 
-`PASS`
+`PASS ON MERGE OF THE SCOPED PUSH 32 CLOSURE PR`
 
 PUSH 32 adds one policy/eligibility router above the PUSH 31 durable AI queue. It does not create another inference or Event pipeline and does not begin PUSH 33 cost optimization.
 
@@ -66,5 +66,6 @@ Hybrid routing and model routing move to `IMPLEMENTED — NEEDS REAL PROOF`; Edg
 
 ## CANONICAL STATUS
 
-PUSH 32: `DONE` after completion gates.
-PUSH 33: `NOT STARTED`.
+The implementation commit `dfbd604f687711a8675112cc95eddb94f874c094` reached `main` directly. Under the mandatory workflow adopted afterward, that direct push is implementation evidence but is not the canonical completion event. The scoped Pull Request carrying this closure record is authoritative: PUSH 32 becomes `DONE` only when that PR is merged and its merge result is verified on `origin/main`.
+
+PUSH 33 remains `NOT STARTED` until that merge verification succeeds.
