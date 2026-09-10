@@ -23,6 +23,8 @@
     "lib/domain/digital-observer/cost-intelligence-data.ts",
     "lib/domain/digital-observer/storage-contract.mjs",
     "lib/domain/digital-observer/storage-local-nas.mjs",
+    "lib/domain/digital-observer/portable-backup.mjs",
+    "services/video-gateway/runtime-paths.mjs",
     "lib/domain/digital-observer/watch-rule-compiler.ts",
     "lib/domain/digital-observer/watch-rule-service.ts",
     "lib/domain/digital-observer/investigation-query.ts",
@@ -69,6 +71,7 @@
     { "name": "hybrid-ai-routing", "args": ["scripts/qa/check-digital-observer-ai-routing.mjs"] },
     { "name": "cost-intelligence", "args": ["scripts/qa/check-digital-observer-cost-engine.mjs"] },
     { "name": "storage-portability", "args": ["scripts/qa/check-digital-observer-storage-portability.mjs"] },
+    { "name": "portable-deployment", "args": ["scripts/qa/check-digital-observer-portable-deployment.mjs"] },
     { "name": "watch-rules", "args": ["scripts/qa/check-digital-observer-watch-rule-compiler.mjs"] },
     { "name": "investigation", "args": ["--test", "scripts/qa/check-digital-observer-investigation.mjs"] }
   ],

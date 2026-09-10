@@ -1,5 +1,7 @@
 # Gan Batuach Backup And Restore
 
+> Canonical Digital Observer deployment/restore procedure: `DIGITAL_OBSERVER_BACKUP_RESTORE_RUNBOOK.md`. This older cross-product checklist remains compatibility context and must not override the PUSH 35 portable backup contract.
+
 This runbook covers production backup and recovery for Supabase, Storage and application configuration. It contains no credentials.
 
 ## Backup Scope

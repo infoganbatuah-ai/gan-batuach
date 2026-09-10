@@ -10,9 +10,9 @@ import { acquireJournalOwnerLock } from "../services/video-gateway/journal-owner
 import { connectorRuntimeIdentity, createInstallationId, validateConnectorConfigSnapshot } from "../services/video-gateway/edge-runtime-contract.mjs";
 import { createEdgeSecretStoreSync } from "../services/video-gateway/edge-secret-store-sync.mjs";
 import { createAdaptiveSamplingScheduler } from "../services/video-gateway/adaptive-sampling-scheduler.mjs";
+import { resolveEdgeRuntimePaths } from "../services/video-gateway/runtime-paths.mjs";
 
-const workdir = process.cwd();
-const dataRoot = process.env.OBSERVER_EDGE_DATA_DIR || workdir;
+const dataRoot = resolveEdgeRuntimePaths().dataDir;
 mkdirSync(dataRoot, { recursive: true, mode: 0o700 });
 const gatewayPort = Number(process.env.VIDEO_GATEWAY_PORT || (process.env.OBSERVER_EDGE_DEVICE_TYPE === "SOFTWARE_CONNECTOR" ? 18083 : 18082));
 if (!Number.isInteger(gatewayPort) || gatewayPort < 1024 || gatewayPort > 65535) throw new Error("Invalid local Gateway port");

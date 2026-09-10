@@ -1,14 +1,15 @@
 import { mkdirSync } from "node:fs";
-import { resolve } from "node:path";
 import { hasCachedSoftwareConnectorConfiguration, softwareConnectorSecretStore, syncSoftwareConnectorConfiguration } from "../services/video-gateway/software-connector-cloud.mjs";
+import { resolveEdgeRuntimePaths } from "../services/video-gateway/runtime-paths.mjs";
 
-const dataRoot = resolve(process.env.OBSERVER_CONNECTOR_DATA_DIR || ".observer-connector");
+process.env.OBSERVER_EDGE_DEVICE_TYPE = "SOFTWARE_CONNECTOR";
+const paths = resolveEdgeRuntimePaths();
+const dataRoot = paths.dataDir;
 const keychainService = process.env.OBSERVER_CONNECTOR_KEYCHAIN_SERVICE || "";
-const secretDir = keychainService ? "" : resolve(process.env.OBSERVER_CONNECTOR_SECRET_DIR || `${dataRoot}/secrets`);
+const secretDir = keychainService ? "" : paths.secretDir;
 mkdirSync(dataRoot, { recursive: true, mode: 0o700 });
 if (secretDir) mkdirSync(secretDir, { recursive: true, mode: 0o700 });
 
-process.env.OBSERVER_EDGE_DEVICE_TYPE = "SOFTWARE_CONNECTOR";
 process.env.OBSERVER_EDGE_DATA_DIR = dataRoot;
 process.env.GAN_BATUACH_GATEWAY_SECRET_DIR = secretDir;
 if (keychainService) {

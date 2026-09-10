@@ -1,4 +1,5 @@
-FROM node:22-alpine
+ARG NODE_VERSION=22.22.0
+FROM node:${NODE_VERSION}-alpine
 
 RUN apk add --no-cache ffmpeg
 

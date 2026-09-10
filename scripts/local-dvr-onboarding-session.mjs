@@ -34,12 +34,8 @@ function parseEnvFile(filePath) {
 }
 
 function loadLocalEnv() {
-  const candidates = [
-    ".env.local",
-    ".env",
-    "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/.env.local",
-    "/Users/danielderi/Desktop/text-web-ai-1-rtl-2/.env"
-  ];
+  const externalRoot = process.env.DIGITAL_OBSERVER_QA_ENV_ROOT || "";
+  const candidates = [".env.local", ".env", externalRoot && `${externalRoot}/.env.local`, externalRoot && `${externalRoot}/.env`].filter(Boolean);
   return candidates.reduce((env, filePath) => ({ ...env, ...parseEnvFile(filePath) }), {});
 }
 

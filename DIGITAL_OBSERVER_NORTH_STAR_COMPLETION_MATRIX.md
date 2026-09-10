@@ -33,6 +33,7 @@ This register maps every requested North-Star capability to an existing canonica
 | Scale economics | Previous: NOT STARTED | New: FOUNDATION | PUSH 33 labeled projections | 10/100/1,000 resource projections are reproducible and explicitly assumption-bound; no scaled real cohort or reconciled monetary evidence exists. |
 | Customer-hosted recording access | Previous: NOT STARTED | New: FOUNDATION | PUSH 34 source-recording reference | Added tenant/Site/source/time/retrieval-bound references without credentials or copying source media; real DVR/NVR/VMS retrieval remains unimplemented. |
 | Retention | Previous: PARTIAL | New: IMPLEMENTED — NEEDS REAL PROOF | PUSH 34 portable retention executor | Backend-independent eligibility, legal hold, delete-before-tombstone, retry and two-backend QA pass; approved legal periods and Production deletion proof remain. |
+| Distributed processing | Previous: FOUNDATION | New: PARTIAL | PUSH 35 portable deployment | A clean tracked checkout now installs, builds, starts Web health and restores representative state; the same worker/model contract is reproducible without office/developer state. Horizontal multi-node operation remains PUSH 36. |
 
 ## CAMERA PLATFORM
 
@@ -213,7 +214,7 @@ This register maps every requested North-Star capability to an existing canonica
 | Large security operation | NOT STARTED | No monitoring-center proof | 36, 37, 38, 48 | Operator load and escalation | Real monitoring-center pilot |
 | City-scale architecture | FOUNDATION | Horizontal/distributed roadmap ownership | 31, 35, 36, 37, 38 | Architecture, privacy and scale proof | Staged city-scale benchmark and governance |
 | Thousands of streams | NOT STARTED | No thousand-stream test | 31, 36, 37, 38 | Queue, workers, storage and cost | Measured 1,000-stream qualification |
-| Distributed processing | FOUNDATION | Edge/cloud and worker contracts | 31, 32, 35, 36 | Portable production implementation | Two-environment failover/load proof |
+| Distributed processing | PARTIAL | PUSH 31/32 worker/routing contracts plus PUSH 35 clean tracked deployment, verified model acquisition and isolated restore | 31, 32, 35, 36 | Horizontal multi-node Production implementation | Two-environment failover/load proof |
 | Enterprise Edge scale | FOUNDATION | Shared edge profile contract | 17, 18, 22, 35, 48 | Production packaging and fleet | Multi-edge enterprise pilot |
 | Queues | IMPLEMENTED — NEEDS REAL PROOF | PUSH 31 durable WAL jobs, lease recovery, priority/fairness/backpressure and dead-letter QA | 31, 36, 38 | Multi-node deployment and sustained load | Real horizontal worker-loss and tenant-fairness proof |
 | Load balancing | NOT STARTED | No horizontal production proof | 36, 37 | Implement routing and balancing | Measured scale/failover test |

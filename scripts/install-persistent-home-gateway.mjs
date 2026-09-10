@@ -10,13 +10,13 @@ const launchAgentPath = join(homedir(), "Library", "LaunchAgents", `${label}.pli
 const logRoot = join(homedir(), "Library", "Logs");
 const cloudConfigTarget = join(runtimeRoot, ".env.video-gateway.local");
 const cloudConfigCandidates = [
-  join(projectRoot, ".env.video-gateway.local"),
-  "/private/tmp/gan-batuach-live-session/.env.video-gateway.local"
-];
+  process.env.VIDEO_GATEWAY_CONFIG_FILE,
+  join(projectRoot, ".env.video-gateway.local")
+].filter(Boolean);
 const configurationPath = cloudConfigCandidates.find((path) => existsSync(path));
 
 if (!configurationPath) {
-  throw new Error("Secure cloud gateway configuration is not available");
+  throw new Error("Secure cloud gateway configuration is not available; set VIDEO_GATEWAY_CONFIG_FILE or provide .env.video-gateway.local in the release directory");
 }
 
 function configuredKeychainServiceFromFile(path) {
