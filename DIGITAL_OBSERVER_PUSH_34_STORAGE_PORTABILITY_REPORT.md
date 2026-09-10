@@ -4,9 +4,9 @@ Date: 2026-09-10
 
 ## FINAL STATUS
 
-`PASS — SUBJECT TO REQUIRED PR MERGE AND origin/main VERIFICATION`
+`PASS`
 
-Canonical completion becomes DONE only after the scoped PR passes required checks, merges into `main`, and `origin/main` is verified to contain the implementation.
+Canonical PUSH 34 is DONE. Scoped PR #15 passed every required check, merged into `main`, and the implementation was verified in `origin/main` at merge SHA `471c52c5beedb9a6649c3214fa7bab5df871bd47`.
 
 ## AUDIT / REUSE
 
@@ -66,4 +66,11 @@ Two evidence-led transitions: Customer-hosted recording access `NOT STARTED → 
 
 ## GIT / PR COMPLETION
 
-Dedicated branch, implementation SHA, PR, checks, merge SHA and final `origin/main` SHA are reported in the final handoff after verification. PUSH 35 remains not started.
+- Branch: `codex/push-34-storage-portability`
+- Implementation commit: `a95f9f2ed8dcd8d973cc8f1efb6b0fe3ecc1f356`
+- Pull Request: [#15](https://github.com/infoganbatuah-ai/gan-batuach/pull/15)
+- Required checks: canonical quality, static quality, Production build, domain regression, migration safety, security/isolation, release preflight, Snyk and Vercel all passed.
+- Merge/final `origin/main`: `471c52c5beedb9a6649c3214fa7bab5df871bd47`
+- Verification: implementation commit is an ancestor of `origin/main`; the canonical storage contract and this report are present in that tree; the merged-main Vercel deployment completed successfully.
+
+PUSH 35 remains not started and requires a separate instruction.
