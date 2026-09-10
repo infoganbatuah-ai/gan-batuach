@@ -2,13 +2,14 @@ import "../services/video-gateway/http-runtime.mjs";
 import crypto from "node:crypto";
 import { spawn } from "node:child_process";
 import { mkdirSync, readFileSync, renameSync, statfsSync, writeFileSync } from "node:fs";
-import { freemem, loadavg, totalmem, uptime } from "node:os";
+import { cpus, freemem, loadavg, totalmem, uptime } from "node:os";
 import { join } from "node:path";
 import { startJournalLoop } from "../services/video-gateway/journal-loop.mjs";
 import { createContinuousMonitoringLifecycle } from "../services/video-gateway/continuous-monitor.mjs";
 import { acquireJournalOwnerLock } from "../services/video-gateway/journal-owner-lock.mjs";
 import { connectorRuntimeIdentity, createInstallationId, validateConnectorConfigSnapshot } from "../services/video-gateway/edge-runtime-contract.mjs";
 import { createEdgeSecretStoreSync } from "../services/video-gateway/edge-secret-store-sync.mjs";
+import { createAdaptiveSamplingScheduler } from "../services/video-gateway/adaptive-sampling-scheduler.mjs";
 
 const workdir = process.cwd();
 const dataRoot = process.env.OBSERVER_EDGE_DATA_DIR || workdir;
@@ -273,6 +274,7 @@ async function runDiscoveryWithRetry(context, attempt = 0) {
 }
 
 let discoveryRun = null;
+const learningScheduler = createAdaptiveSamplingScheduler({ learningIntervalMs: 5 * 60_000 });
 function discoverWithRetry(context) {
   if (discoveryRun) return discoveryRun;
   discoveryRun = runDiscoveryWithRetry(context).finally(() => { discoveryRun = null; });
@@ -280,15 +282,24 @@ function discoverWithRetry(context) {
 }
 
 async function learn() {
-  const samples = (await Promise.all(channels.filter((channel) => channel.status === "connected" && channel.gateway_stream_id).map(async (channel) => {
+  const eligible = channels.filter((channel) => channel.status === "connected" && channel.gateway_stream_id);
+  const plan = learningScheduler.plan(eligible.map((channel) => ({ camera_id: channel.camera_source_id || channel.id || channel.gateway_stream_id,
+    site_id: observerSiteId, status: channel.status, channel_assignment: "ASSIGNED", physical_camera_attached: true, learning_under_covered: true })),
+  { purpose: "SITE_LEARNING", budget: eligible.length, resourcePressure: "NORMAL" });
+  const selected = new Set(plan.decisions.filter((decision) => decision.request_sample).map((decision) => decision.camera_id));
+  const pending = eligible.filter((channel) => selected.has(channel.camera_source_id || channel.id || channel.gateway_stream_id));
+  const samples = [];
+  // Cheap activity extraction has no ONNX dependency. Bounded sequential work
+  // prevents one shared local runtime from allowing a dominant camera to starve
+  // the rest of the Site learning rotation.
+  for (const channel of pending) {
     try {
-      const response = await fetch(`${gatewayUrl}/camera/${encodeURIComponent(channel.gateway_stream_id)}/insights`, { headers: { "x-video-gateway-secret": gatewaySecret }, signal: AbortSignal.timeout(INSIGHT_REQUEST_TIMEOUT_MS) });
+      const response = await fetch(`${gatewayUrl}/camera/${encodeURIComponent(channel.gateway_stream_id)}/activity`, { headers: { "x-video-gateway-secret": gatewaySecret }, signal: AbortSignal.timeout(INSIGHT_REQUEST_TIMEOUT_MS) });
       const data = await response.json();
-      if (!response.ok || data.local_processing !== true || data.no_raw_video_returned !== true) return null;
-      const detections = Array.isArray(data.insight?.object_detection?.detections) ? data.insight.object_detection.detections.filter((item) => item && typeof item.label === "string" && Number(item.confidence) >= 0.55).slice(0, 10) : [];
-      return { channel, stream_id: channel.gateway_stream_id, motion_score: Number(data.insight.motion_score || 0), luminance_score: Number(data.insight.luminance_score || 0), sampled_at: String(data.insight.sampled_at || new Date().toISOString()), sample_frames: Number(data.insight.sample_frames || 1), detections };
-    } catch { return null; }
-  }))).filter(Boolean);
+      if (!response.ok || data.local_processing !== true || data.no_raw_video_returned !== true) continue;
+      samples.push({ channel, stream_id: channel.gateway_stream_id, motion_score: Number(data.insight?.motion_score || 0), luminance_score: Number(data.insight?.luminance_score || 0), sampled_at: String(data.insight?.sampled_at || new Date().toISOString()), sample_frames: Number(data.insight?.sample_frames || 1) });
+    } catch { /* A failed source remains under-covered and is eligible on the next bounded rotation. */ }
+  }
   if (!samples.length) return;
   await signedPost("/api/video-gateway/cloud-learning", { gateway_id: gatewayId, observer_site_id: observerSiteId, sample_id: crypto.randomUUID(), sampled_at: new Date().toISOString(), local_processing: true, no_raw_video_returned: true, samples: samples.map(({ stream_id, motion_score, luminance_score, sampled_at, sample_frames }) => ({ stream_id, motion_score, luminance_score, sampled_at, sample_frames })) }, { deviceAccess: true });
 }
@@ -320,6 +331,11 @@ if (discoveryEnabled) {
     observerSiteId, deviceId: gatewayId, tenantId: observerSiteId,
     personConfirmations: 2, cameraFilter: evidenceTestCameraId, pollIntervalMs: evidenceTestPollIntervalMs,
     spatialTrace: spatialTraceEnabled,
+    resourcePressure: () => {
+      const freeRatio = freemem() / Math.max(1, totalmem());
+      const loadRatio = loadavg()[0] / Math.max(1, cpus().length);
+      return freeRatio < 0.05 || loadRatio > 1.5 ? "CRITICAL" : freeRatio < 0.12 || loadRatio > 1 ? "CONSTRAINED" : "NORMAL";
+    },
     report: (status) => writeFileSync(`${dataRoot}/journal-status.json`, JSON.stringify(status), { mode: 0o600 }) });
   await learn().catch((error) => {
     // Cloud identity rotation or learning upload must never own the local live

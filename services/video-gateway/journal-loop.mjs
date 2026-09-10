@@ -3,6 +3,7 @@ import { randomUUID } from "node:crypto";
 import { JournalTracker, sampleAllCameras } from "./journal-tracker.mjs";
 import { createDurableOfflineQueue } from "./durable-offline-queue.mjs";
 import { createPreprocessingEngine } from "./preprocessing-policy.mjs";
+import { createAdaptiveSamplingScheduler } from "./adaptive-sampling-scheduler.mjs";
 
 // The lease is local evidence, not an accepted field in the cloud event schema.
 export function eventForCloud(event, queuedAt = Date.now(), deliveredAt = Date.now()) {
@@ -13,14 +14,18 @@ export function eventForCloud(event, queuedAt = Date.now(), deliveredAt = Date.n
   return cloudEvent;
 }
 
-export function journalCoverage(manifest, results) {
+export function journalCoverage(manifest, results, schedulerPlan = null) {
   const cameras=Array.isArray(manifest.cameras)?manifest.cameras:[];
   const enabled=manifest.monitoring_enabled===true?cameras.filter(camera=>camera.monitoring_enabled):[];
   const activeIds=new Set(enabled.map(camera=>camera.camera_id));
   const samples=new Set(results.filter(result=>activeIds.has(result.camera_id)&&result.status==="sampled").map(result=>result.camera_id));
   const attempted=new Set(results.filter(result=>activeIds.has(result.camera_id)).map(result=>result.camera_id));
-  const status=manifest.monitoring_enabled!==true?"paused":!enabled.length?"awaiting_sources":samples.size===enabled.length?"running":"degraded";
-  return {status,configured:cameras.length,enabled:enabled.length,attempted:attempted.size,sampled:samples.size,unavailable:enabled.length-samples.size};
+  const requested = schedulerPlan ? new Set(schedulerPlan.decisions.filter(decision => decision.request_sample).map(decision => decision.camera_id)) : activeIds;
+  const requestedSamples = new Set([...samples].filter(id => requested.has(id)));
+  const unavailable = Math.max(0, requested.size - requestedSamples.size);
+  const status=manifest.monitoring_enabled!==true?"paused":!enabled.length?"awaiting_sources":unavailable===0?"running":"degraded";
+  return {status,configured:cameras.length,enabled:enabled.length,attempted:attempted.size,sampled:samples.size,
+    ...(schedulerPlan ? { scheduled:requested.size,deferred:Math.max(0,enabled.length-requested.size) } : {}), unavailable};
 }
 
 // Upstream validation details may include request-specific data. Retain only a
@@ -34,7 +39,7 @@ export function safeEventValidationCategory(value) {
   return field ? `validation_${field}` : "validation_shape";
 }
 
-export function startJournalLoop({ gatewayUrl, gatewaySecret, databasePath, observerSiteId = "local-fixture-site", deviceId = "local-fixture-device", tenantId = observerSiteId, report = () => {}, pollIntervalMs = 1_000, personConfirmations = 3, cameraFilter = null, spatialTrace = false }) {
+export function startJournalLoop({ gatewayUrl, gatewaySecret, databasePath, observerSiteId = "local-fixture-site", deviceId = "local-fixture-device", tenantId = observerSiteId, report = () => {}, pollIntervalMs = 1_000, personConfirmations = 3, cameraFilter = null, spatialTrace = false, resourcePressure = () => "NORMAL" }) {
   const db = new DatabaseSync(databasePath);
   db.exec("PRAGMA journal_mode=WAL; CREATE TABLE IF NOT EXISTS camera_health(camera_id TEXT PRIMARY KEY, misses INTEGER NOT NULL DEFAULT 0, offline INTEGER NOT NULL DEFAULT 0, updated_at INTEGER NOT NULL)");
   const queue = createDurableOfflineQueue({ databasePath, encryptionKey: gatewaySecret, tenantId, siteId: observerSiteId, deviceId,
@@ -57,6 +62,7 @@ export function startJournalLoop({ gatewayUrl, gatewaySecret, databasePath, obse
     if (spatialTraceEntries.length > 240) spatialTraceEntries.splice(0, spatialTraceEntries.length - 240);
   } : null });
   const preprocessing = createPreprocessingEngine();
+  const scheduler = createAdaptiveSamplingScheduler();
   const health = new Map(db.prepare("SELECT camera_id,misses,offline FROM camera_health").all()
     .map(row => [String(row.camera_id), { misses:Number(row.misses)||0, offline:Number(row.offline)===1 }]));
   let stopped = false;
@@ -241,9 +247,27 @@ export function startJournalLoop({ gatewayUrl, gatewaySecret, databasePath, obse
       // model enough temporal coverage for a real crossing. It is opt-in,
       // does not alter event rules or confirmations, and is reported as a
       // limited diagnostic scope rather than normal all-camera coverage.
-      const sampledCameras = typeof cameraFilter === "string" && cameraFilter
+      const eligibleCameras = typeof cameraFilter === "string" && cameraFilter
         ? cameras.filter((camera) => camera.camera_id === cameraFilter)
         : cameras;
+      const adaptiveEnabled = manifest.sampling?.contract === "observer-adaptive-sampling-v1";
+      const schedulerPlan = adaptiveEnabled ? scheduler.plan(eligibleCameras.map((camera) => ({
+        ...camera,
+        active_watch_rule: camera.sampling?.active_watch_rule === true || camera.preprocessing?.active_watch_rule === true,
+        critical_policy: camera.sampling?.critical_policy === true || camera.preprocessing?.critical_policy === true,
+        active_incident: camera.sampling?.active_incident === true,
+        active_track: (tracker.cameras.get(camera.camera_id)?.tracks ?? []).some((track) => Date.now() - Number(track.at) < 10_000),
+        recovering: camera.sampling?.recovering === true,
+        learning_under_covered: false,
+        health: { summary: camera.status, frame_fresh: camera.sampling?.frame_fresh ?? null }
+      })), { budget: Number(manifest.sampling?.cycle_budget ?? eligibleCameras.length), resourcePressure: resourcePressure() }) : null;
+      const decisionByCamera = new Map((schedulerPlan?.decisions ?? []).map((decision) => [decision.camera_id, decision]));
+      // Manifests predating PUSH 30 retain the fixed path. New manifests use
+      // the one canonical scheduler, with an explicit diagnostic camera filter
+      // still allowed for bounded evidence tests.
+      const sampledCameras = adaptiveEnabled
+        ? eligibleCameras.filter((camera) => decisionByCamera.get(camera.camera_id)?.request_sample)
+        : eligibleCameras;
       const active = new Set(cameras.filter(c=>c.monitoring_enabled).map(c=>c.camera_id));
       for (const id of tracker.cameras.keys()) if (!active.has(id)) tracker.forget(id);
       const results = await sampleAllCameras(sampledCameras, async camera => {
@@ -275,6 +299,7 @@ export function startJournalLoop({ gatewayUrl, gatewaySecret, databasePath, obse
           coalesce_window_ms: camera.preprocessing?.coalesce_window_ms,
           max_quiet_interval_ms: camera.preprocessing?.max_quiet_interval_ms
         });
+        scheduler.recordActivity(camera.camera_id, activity?.insight?.motion_score, camera.preprocessing?.motion_threshold);
         if (!decision.request_ai) return { sampled_at: activity?.insight?.sampled_at ?? new Date().toISOString(),
           object_detection: { status: "preprocessing_suppressed", detections: [], model_provenance: null }, preprocessing: decision };
         const data = await request(`/camera/${encodeURIComponent(camera.stream_id)}/detections`);
@@ -318,12 +343,13 @@ export function startJournalLoop({ gatewayUrl, gatewaySecret, databasePath, obse
       const queueStatus = queue.snapshot();
       const deliveryFailures = queueStatus.retry_count;
       const pending = queueStatus.queue_depth;
-      const coverage=journalCoverage(manifest,results);
+      const coverage=journalCoverage(manifest,results,schedulerPlan);
       report({ status: deliveryFailures ? "delivery_retrying" : coverage.status, checked_at: new Date().toISOString(), coverage, cameras: results,
         ...(typeof cameraFilter === "string" && cameraFilter ? { evidence_test_camera_filter: cameraFilter, coverage_scope: "single_camera_diagnostic" } : {}),
         ...(spatialTrace ? { spatial_trace_scope:"diagnostic_metadata_only", spatial_trace:[...spatialTraceEntries] } : {}),
         delivery_in_progress:pending>0 && deliveries.size>0, delivery_failures:deliveryFailures, delivery_failures_by_reason:Object.fromEntries(deliveryFailuresByReason), media_failures_by_reason:Object.fromEntries(mediaFailures), pending,
         preprocessing: preprocessing.snapshot(),
+        adaptive_sampling: schedulerPlan ? { ...scheduler.snapshot(), current: schedulerPlan } : { contract: "legacy-fixed-sampling", enabled: false },
         offline_buffer: queueStatus, local_monitoring_operational: true, cloud_sync_state: queueStatus.state });
     } catch (error) { deliveryManifest = null; report({status:"unavailable", reason: error.message, checked_at:new Date().toISOString()}); }
     if (!stopped) timer = setTimeout(run, pollIntervalMs);

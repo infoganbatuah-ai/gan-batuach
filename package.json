@@ -43,6 +43,8 @@
     "qa:digital-observer-feedback-ui": "node scripts/qa/verify-production-feedback-ui.mjs",
     "qa:digital-observer-quality-benchmark": "node scripts/qa/check-digital-observer-quality-benchmark.mjs",
     "qa:digital-observer-native-preprocessing": "node scripts/qa/check-digital-observer-native-preprocessing.mjs",
+    "qa:digital-observer-adaptive-sampling": "node scripts/qa/check-digital-observer-adaptive-sampling.mjs",
+    "qa:digital-observer-adaptive-sampling-real": "node scripts/qa/measure-real-home-adaptive-sampling.mjs",
     "qa:digital-observer-watch-rules": "node scripts/qa/check-digital-observer-watch-rule-compiler.mjs",
     "qa:digital-observer-investigation": "node --test scripts/qa/check-digital-observer-investigation.mjs",
     "qa:digital-observer-investigation-production": "node scripts/qa/verify-production-investigation.mjs",

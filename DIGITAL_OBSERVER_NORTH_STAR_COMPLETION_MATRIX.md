@@ -22,6 +22,7 @@ This register maps every requested North-Star capability to an existing canonica
 | Metadata-first processing | Previous: FOUNDATION | New: PARTIAL | PUSH 29 candidate contract | Added vendor-agnostic native-signal vocabulary, candidate-only provenance and sanitized capability learning; current DVR/Tapo native metadata remains unverified. |
 | Preprocessing | Previous: FOUNDATION | New: IMPLEMENTED — NEEDS REAL PROOF | PUSH 29 cheap preprocessing | Local frame difference now gates ONNX through dedupe/coalescing, never-blind fallback, Watch Rule/critical overrides and exact workload counters; representative FN Ground Truth remains missing. |
 | Sampling | Previous: FOUNDATION | New: PARTIAL | PUSH 29 bounded scheduling | Added human-gated candidate/always/adaptive policy and a 22-sample real-input comparison; full adaptive Candidate Events remain PUSH 30. |
+| Sampling | Previous: PARTIAL | New: IMPLEMENTED — NEEDS REAL PROOF | PUSH 30 adaptive scheduler | Added explicit purpose/priority, never-blind floor, Watch/Incident/Track protection, deterministic pressure/fairness QA, 11-camera real-input workload and 11/11 learning scheduling. Recall and representative duration remain unproven. |
 
 ## CAMERA PLATFORM
 
@@ -233,7 +234,7 @@ This register maps every requested North-Star capability to an existing canonica
 | Capability | Current Status | Existing Proof | Owning Canonical PUSH | Remaining Work | Final Proof Required |
 |---|---|---|---|---|---|
 | Preprocessing | IMPLEMENTED — NEEDS REAL PROOF | PUSH 29 local frame difference precedes ONNX; candidate-only native contract, dedupe/coalescing, safe fallback and 11/22 real-input jobs avoided | 29 | Representative FN Ground Truth and verified native vendor adapters | Real quality-preserving workload reduction |
-| Sampling | PARTIAL | PUSH 29 human-gated ALWAYS/CANDIDATE/ADAPTIVE policy and bounded 22-sample Home comparison | 29, 30 | Full adaptive Candidate Events and representative evaluation | Recall/latency comparison on real data |
+| Sampling | IMPLEMENTED — NEEDS REAL PROOF | PUSH 30 canonical purpose/priority scheduler, explainable decisions, never-blind floor, fairness and bounded 11-camera real-input comparison | 29, 30 | Representative FN Ground Truth, long-duration and multi-Site evaluation | Recall/latency comparison on representative real data |
 | AI job queue | NOT STARTED | Explicitly future | 31 | Durable prioritized queue | Worker-loss/backpressure proof |
 | Hybrid routing | NOT STARTED | Only policy foundation | 32 | Multi-provider/edge routing | Real failover with provenance |
 | Model routing | FOUNDATION | Provider/model metadata exists | 32 | Quality/privacy/capability policy | Measured route selection proof |
@@ -285,9 +286,9 @@ The counts below are generated from the rows above during closure QA. They descr
 | Status | Count |
 |---|---:|
 | `DONE + REAL PROOF` | 24 |
-| `IMPLEMENTED — NEEDS REAL PROOF` | 26 |
+| `IMPLEMENTED — NEEDS REAL PROOF` | 27 |
 | `FOUNDATION` | 63 |
-| `PARTIAL` | 18 |
+| `PARTIAL` | 17 |
 | `NOT STARTED` | 58 |
 | `EXTERNAL COVERAGE GAP` | 1 |
 | **TOTAL** | **190** |

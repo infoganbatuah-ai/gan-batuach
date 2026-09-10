@@ -159,6 +159,9 @@ export default async function DigitalObserverRulesPage() {
             </summary>
             <div className="do-observer-insight-content">
               <div className="do-notice info"><Camera /><span><strong>כיסוי למידה: {cameraCoverage.sampledCameraCount}/{cameraCoverage.expectedCameraCount} מצלמות פיזיות צפויות</strong><small>מספר דגימות גדול ממצלמה אחת אינו מעיד על למידה אתרית מלאה.</small></span></div>
+              <details className="do-observer-insight-disclosure"><summary><span><Camera /><b>כיסוי לפי מצלמה</b><small>דגימות, זמן אחרון וסיבת תזמון — ללא הערכת דיוק.</small></span></summary>
+                <div className="do-insight-grid">{cameraCoverage.perCamera.map((item) => <div key={item.cameraId}><Camera /><span><strong>{item.name}</strong><small>{item.samples} דגימות · {item.timeBucketCount} חלונות זמן</small><small>{item.lastSampledAt ? `דגימה אחרונה: ${formatObserverDate(item.lastSampledAt)}` : "טרם נדגמה — קיבלה עדיפות השלמת כיסוי"}</small></span></div>)}</div>
+              </details>
               {baselines.length ? <div className="do-insight-grid">{baselines.map((baseline) => {
                 const meaning = learningMetricMeaning(baseline);
                 return <div key={baseline.id}><Sparkles /><span><strong>{baselineLabel(baseline.baseline_type)}</strong><small>{baselineSummary(baseline, cameraCoverage.expectedCameraCount)}</small><small>{meaning.measurable ? `${meaning.label} · ${Math.round(Number(baseline.confidence_level || 0) * 100)}%` : meaning.label}</small><small>{meaning.explanation}</small></span></div>;

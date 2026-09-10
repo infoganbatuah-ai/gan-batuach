@@ -1,6 +1,6 @@
 # DIGITAL OBSERVER — CANONICAL MASTER ROADMAP
 
-Date: 2026-09-10 (PUSH 29 native-event and cheap-preprocessing closure; original reconciliation retained below)
+Date: 2026-09-10 (PUSH 30 adaptive-sampling closure; original reconciliation retained below)
 Repository base reviewed: `dc50fca` on `main`; the scoped closure commit is recorded in the final PUSH 17D handoff.
 Purpose: the canonical 52-push roadmap. The user's PUSH 17 authorization expands its product scope; this document does not authorize deployments or future pushes.
 
@@ -10,9 +10,9 @@ Digital Observer has completed the canonical product path from audit through Dig
 
 The canonical roadmap contains **52 pushes**. It preserves the existing numbers 1–16 and continues through production infrastructure, pilots, commercial proof, technical due diligence, and acquisition/exit. Later work may be executed early only when its `EXECUTION MODE` says `CAN EXECUTE EARLY`; its canonical number never changes.
 
-Current sequential position: **PUSH 29 — Native Camera Events and Cheap Preprocessing**, `DONE`. The implementation inserts a candidate-only local activity/native-signal gate before ONNX, with Watch Rule/critical overrides, never-blind fallback, empty-slot exclusion and exact cost denominators.
-Current blocker: none for PUSH 29. Native metadata on the current DVR/Tapo is unverified and representative false-negative Ground Truth remains a future evidence obligation; neither is disguised as Product-wide quality proof.
-PUSH 24/25/27 remain DONE EARLY and were dependency-revalidated, not rebuilt. PUSH 30 is next and has not started.
+Current sequential position: **PUSH 30 — Adaptive Sampling and Candidate Events**, `DONE`. One scheduler now explains purpose, priority, interval and expiry; protects Watch Rules, Incidents, Tracks and a never-blind floor; excludes empty slots; and provides fair Site-learning coverage.
+Current blocker: none for PUSH 30. Recall, longer-duration operation and broad package rollout remain explicit evidence obligations and the bounded Home result is not presented as Product-wide savings.
+PUSH 24/25/27 remain DONE EARLY and were dependency-revalidated, not rebuilt. PUSH 31 is next and has not started.
 
 ## Status semantics
 
@@ -40,8 +40,8 @@ PUSH 22–23  DONE
 PUSH 24/25/27 DONE EARLY
 PUSH 26     DONE — canonical domain ownership and bounded legacy compatibility
 PUSH 28     DONE — quality benchmark and Ground Truth measurement program
-PUSH 29     DONE — candidate-only native signals and cheap preprocessing
-PUSH 30     NEXT — not started; requires a separate instruction
+PUSH 29–30  DONE — cheap preprocessing plus canonical adaptive sampling
+PUSH 31     NEXT — not started; requires a separate instruction
 PUSH 50     documentation-only preparation permitted only by separate instruction
 ```
 
@@ -227,7 +227,7 @@ Source shorthand used below: `52` = Original 52, `S16` = Original 16 — Strateg
 | 27 | Product Observability and Operational Telemetry | Expose end-to-end camera, inference, event, decision, notification and resource telemetry. | 52/42–45; T16/7,15; DF45/44 | Existing metrics; frozen-area adapters only via stable interfaces | CAN EXECUTE EARLY | DONE EARLY | Dashboards/alerts show defined SLOs from current services; telemetry failures do not affect processing; no frozen runtime semantics changed. |
 | 28 | Quality Measurement and Benchmark Program | Measure precision, recall, FP/FN, latency and review coverage by model/site/event. | 52/43; S16/11,15; T16/15 | PUSH 11; representative labeled product/pilot data | SEQUENTIAL | DONE | Versioned representative dataset and ground truth produce reproducible metrics with confidence intervals and drift gates. |
 | 29 | Native Events and Cheap Preprocessing | Use camera/DVR metadata, motion and scene filters before expensive AI. | 52/39; T16/8; DF45/30–32 | PUSH 23; connector/Gateway hardening; adapter evidence | SEQUENTIAL | DONE | Candidate-only native contract, local frame-difference before ONNX, safe fallback/priority gates, zero empty-slot work, deterministic QA and bounded 22-sample real-input workload comparison. Representative FN/recall proof remains a North-Star obligation. |
-| 30 | Adaptive Sampling and Candidate Events | Generate bounded candidates using freshness, zones, motion and priority. | 52/18,39; T16/8; DF45/33–34 | PUSH 23,28–29; product/pilot metrics | SEQUENTIAL | NOT STARTED | Real workload demonstrates adaptive sampling and candidate recall/latency against fixed baseline. |
+| 30 | Adaptive Sampling and Candidate Events | Generate bounded candidates using freshness, zones, motion and priority. | 52/18,39; T16/8; DF45/33–34 | PUSH 23,28–29; product/pilot metrics | SEQUENTIAL | DONE | Shared purpose/priority scheduler, never-blind floor, Watch/Incident/Track protection, fairness/pressure/expiry QA and bounded 11-camera workload pass; recall remains truthfully unmeasurable. |
 | 31 | Durable AI Job Queue and Portable Workers | Decouple stream handling from prioritized, retryable inference jobs. | 52/40,45; T16/9; DF45/35–36,40 | PUSH 24,29–30; scale foundation | SEQUENTIAL | NOT STARTED | Durable queue survives worker loss, enforces tenant priority/backpressure and runs identical worker contract in two environments. |
 | 32 | Hybrid AI Routing | Route tasks among edge, local, cloud and dedicated inference using policy/capability. | 52/20,40; T16/9; DF45/37–39 | PUSH 28,31; scale foundation | SEQUENTIAL | NOT STARTED | Measured policy selects eligible provider, fails over safely, preserves provenance and meets quality/latency/privacy gates. |
 | 33 | AI and Infrastructure Cost Engine | Attribute GPU/CPU/AI/bandwidth/storage/notification cost per camera and tenant. | 52/44; S16/15; T16/15; DF45/41 | PUSH 27,31–32; scale foundation | SEQUENTIAL | NOT STARTED | Reconciled measured cost per camera/hour/month and tenant matches provider bills within approved tolerance. |
