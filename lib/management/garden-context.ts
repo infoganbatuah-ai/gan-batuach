@@ -1,6 +1,7 @@
 import { fail } from "@/lib/api";
 import { getSessionProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { resolveManagementGardenContext } from "@/lib/management/active-garden-context";
 
 /**
  * Management operational context. A selected garden is not an access grant.
@@ -17,7 +18,9 @@ export async function getManagementGardenContext() {
     if (!["manager", "owner"].includes(profile.role) || profile.active !== true) {
       return { allowed: false as const, response: fail("אין הרשאה לפעול בניהול הגן.", 403) };
     }
-    const gardenId = profile.garden_id;
+    const context = await resolveManagementGardenContext(profile);
+    if (!context.available) return { allowed: false as const, response: fail("בדיקת הרשאות הגן אינה זמינה כרגע.", 503) };
+    const gardenId = context.activeGarden?.id;
     if (typeof gardenId !== "string" || !gardenId) {
       return { allowed: false as const, response: fail("לא נמצא גן משויך למשתמש.", 403) };
     }
@@ -30,6 +33,7 @@ export async function getManagementGardenContext() {
     if (decision.data !== true) {
       return { allowed: false as const, response: fail("אין הרשאה לפעול בגן שנבחר.", 403) };
     }
+    session.profile.garden_id = gardenId;
     return { allowed: true as const, session, gardenId };
   } catch {
     // Do not expose database/auth errors or proceed on an unavailable authority.

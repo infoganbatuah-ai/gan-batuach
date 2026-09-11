@@ -34,6 +34,7 @@ function fixture(options = {}) {
       if (options.authThrows) throw new Error("private auth detail");
       return session;
     } },
+    "@/lib/management/active-garden-context": { resolveManagementGardenContext: async currentProfile => ({ available: true, gardens: [], activeGarden: currentProfile.garden_id ? { id: currentProfile.garden_id } : null }) },
     "@/lib/supabase/server": { createClient: async () => ({ rpc: async (name, params) => {
       calls.push({ name, garden: params.target_garden_id });
       if (options.rpcThrows) throw new Error("private database detail");

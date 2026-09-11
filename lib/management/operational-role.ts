@@ -4,6 +4,7 @@ import { getSessionProfile } from "@/lib/auth";
 import type { UserRole } from "@/lib/roles";
 import { createClient } from "@/lib/supabase/server";
 import { managementContactVerification } from "@/lib/management/contact-verification";
+import { resolveManagementGardenContext } from "@/lib/management/active-garden-context";
 
 type OperationalDenial = "session" | "role" | "inactive" | "contact_verification" | "staff_record" | "staff_employment" | "inspector_approval" | "inspector_assignment" | "authority_unavailable";
 type QueryResult<T> = { data: T | null; error: unknown };
@@ -38,11 +39,15 @@ export async function getOperationalRoleContext(allowedRoles: UserRole[]) {
     if (!managementContactVerification(session.user, profile).complete) return denied("contact_verification");
     const supabase = await createClient();
     if (profile.role === "manager" || profile.role === "owner") {
-      if (!profile.garden_id) return denied("role");
-      const authority = await supabase.rpc("can_manage_garden", { target_garden_id: profile.garden_id });
+      const gardenContext = await resolveManagementGardenContext(profile);
+      if (!gardenContext.available) return denied("authority_unavailable", 503);
+      const gardenId = gardenContext.activeGarden?.id;
+      if (!gardenId) return denied("role");
+      const authority = await supabase.rpc("can_manage_garden", { target_garden_id: gardenId });
       if (authority.error) return denied("authority_unavailable", 503);
       if (authority.data !== true) return denied("role");
-      return { allowed: true as const, session, gardenIds: [profile.garden_id] };
+      session.profile.garden_id = gardenId;
+      return { allowed: true as const, session, gardenIds: [gardenId] };
     }
     if (profile.role !== "staff" && profile.role !== "inspector") {
       return { allowed: true as const, session };

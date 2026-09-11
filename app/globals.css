@@ -29090,3 +29090,17 @@ body.gb-mobile-preview-mode {
 .gb-mobile-preview-mode .form-grid {
   grid-template-columns: minmax(0, 1fr) !important;
 }
+.garden-context-switcher {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  width: fit-content;
+  margin: 0.75rem 1rem 0;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid var(--border, #dbe4ee);
+  border-radius: 0.85rem;
+  background: var(--surface, #fff);
+}
+
+.garden-context-switcher span { font-size: 0.82rem; font-weight: 700; }
+.garden-context-switcher select { min-width: 10rem; border: 0; background: transparent; font: inherit; }

@@ -51,6 +51,7 @@ function fixture({ role = "staff", active = true, profile = {}, session, rows = 
       return resolvedSession;
     } },
     "@/lib/roles": {},
+    "@/lib/management/active-garden-context": { resolveManagementGardenContext: async currentProfile => ({ available: true, gardens: [], activeGarden: currentProfile.garden_id ? { id: currentProfile.garden_id } : null }) },
     "@/lib/management/contact-verification": load("lib/management/contact-verification.ts", {}),
     "@/lib/supabase/server": { createClient: async () => ({
       from: query,

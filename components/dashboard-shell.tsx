@@ -13,6 +13,9 @@ import { NotificationBell } from "@/components/notification-bell";
 import { PilotFeedbackWidget } from "@/components/pilot-feedback-widget";
 import { FloatingActionCenter } from "@/components/floating-action-center";
 import { FcmPushRegistration } from "@/components/fcm-push-registration";
+import { GardenContextSwitcher } from "@/components/garden-context-switcher";
+import { getSessionProfile } from "@/lib/auth";
+import { resolveManagementGardenContext } from "@/lib/management/active-garden-context";
 
 const roleLabels: Record<UserRole, string> = {
   admin: "אדמין",
@@ -358,7 +361,7 @@ function groupedNav(role: UserRole) {
   return Array.from(groups.entries());
 }
 
-export function DashboardShell({
+export async function DashboardShell({
   role,
   title,
   children,
@@ -372,6 +375,11 @@ export function DashboardShell({
   const mobileNav = mobileNavByRole[role];
   const navGroups = groupedNav(role);
   const isAppHome = appHome || role === "manager" || role === "owner";
+  let gardenContext: Awaited<ReturnType<typeof resolveManagementGardenContext>> | null = null;
+  if (role === "manager" || role === "owner") {
+    const session = await getSessionProfile();
+    if (session.profile) gardenContext = await resolveManagementGardenContext(session.profile);
+  }
   return (
     <>
       <div className={`dashboard-layout responsive-dashboard-shell dashboard-role-${role}${isAppHome ? " app-home-layout" : ""}`}>
@@ -424,6 +432,7 @@ export function DashboardShell({
           )}
           <PolicyAcceptanceGate />
           <SandboxModeBanner />
+          {gardenContext?.available ? <GardenContextSwitcher gardens={gardenContext.gardens} initialActiveId={gardenContext.activeGarden?.id ?? null} /> : null}
           {isAppHome ? null : <OnboardingGuideControls role={role} />}
           {isAppHome ? null : <RoleOnboardingGuide role={role} />}
           {role === "admin" && !isAppHome ? <AdminGlobalSearch /> : null}
