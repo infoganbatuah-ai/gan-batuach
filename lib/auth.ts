@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { hasPermission, isRole, type Permission, type UserRole } from "@/lib/roles";
+import { resolveManagementGardenContext } from "@/lib/management/active-garden-context";
 
 export async function getSessionProfile() {
   const supabase = await createClient();
@@ -24,6 +25,10 @@ export async function requireRole(allowed: UserRole[], loginPath = "/login", den
   const session = await requireUser(loginPath);
   const role = session.profile.role;
   if (!isRole(role) || !allowed.includes(role)) redirect(deniedPath);
+  if (role === "manager" || role === "owner") {
+    const context = await resolveManagementGardenContext(session.profile);
+    if (context.available) session.profile.garden_id = context.activeGarden?.id ?? null;
+  }
   return session;
 }
 
@@ -49,6 +54,10 @@ export function dashboardPathForRole(role: UserRole) {
 
 export async function dashboardPathForProfile(profile: { id?: string | null; role?: string | null; garden_id?: string | null; active?: boolean | null }) {
   if (!isRole(profile.role)) return "/dashboard";
+  if ((profile.role === "manager" || profile.role === "owner") && profile.id) {
+    const context = await resolveManagementGardenContext({ id: profile.id, garden_id: profile.garden_id });
+    if (context.available) profile.garden_id = context.activeGarden?.id ?? null;
+  }
   if ((profile.role === "manager" || profile.role === "owner") && !profile.garden_id) {
     return "/onboarding/kindergarten";
   }
