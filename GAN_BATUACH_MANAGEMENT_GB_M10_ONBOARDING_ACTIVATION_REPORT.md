@@ -78,7 +78,7 @@ Contract tests verify actor-level draft serialization, Garden advisory locking, 
 
 ## Production Verification
 
-To be completed after merge: migration state, Vercel Ready, health/Supabase connectivity and unauthenticated mutation denial. A live create/resume/activate probe is limited to controlled QA identities.
+Migration `20260911020000` was applied and recorded on the linked production database. Read-only verification confirmed the onboarding columns and all four canonical RPCs. The first merged deployment reached Vercel Ready and the production health endpoint returned HTTP 200 with application and Supabase checks healthy. A production smoke test then exposed that unauthenticated onboarding mutations were being converted into HTTP 500 by the route error wrapper; the follow-up correction returns explicit HTTP 401/403 responses and is released through a separate checked PR. A live create/resume/activate and unrelated-user IDOR probe remains blocked because no controlled non-customer QA identities are available.
 
 ## Remaining Debt
 
