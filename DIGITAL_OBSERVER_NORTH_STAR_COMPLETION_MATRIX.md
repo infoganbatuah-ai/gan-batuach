@@ -37,6 +37,9 @@ This register maps every requested North-Star capability to an existing canonica
 | Distributed processing | Previous: PARTIAL | New: IMPLEMENTED — NEEDS REAL PROOF | PUSH 36 horizontal worker pool | Four processes safely share one logical queue, worker loss recovers, and identical-workload throughput rises 3.19×; multi-host and Production operation remain unproven. |
 | Load balancing | Previous: NOT STARTED | New: PARTIAL | PUSH 36 local worker pool | Authenticated capability-matched workers share priority/fair workload without camera rewiring; HA and multi-host balancing remain PUSH 37. |
 | Thousands of streams | Previous: NOT STARTED | New: FOUNDATION | PUSH 36 synthetic queue profile | A 1,000-camera/2,000-job mixed-tenant backlog is generated and sampled with explicit assumptions; no live 1,000-stream execution is claimed. |
+| Load balancing | Previous: PARTIAL | New: IMPLEMENTED — NEEDS REAL PROOF | PUSH 37 health-aware service pool | Three authenticated local API nodes distributed 120 requests, removed a failed node and health-gated its return; multi-host/zone proof remains absent. |
+| Failover | Previous: NOT STARTED | New: IMPLEMENTED — NEEDS REAL PROOF | PUSH 37 failover/fencing | Worker/queue, API, dependency, storage and device-control failover QA passed with zero acknowledged loss or duplicate effects; provider/zone failover is unproven. |
+| Real fault injection | Previous: NOT STARTED | New: PARTIAL | PUSH 37 isolated failure campaign | API, worker, queue restart, DB circuit, storage outage, capacity loss and split-brain faults are deterministic; real multi-host/long-duration campaign remains PUSH 38. |
 
 ## CAMERA PLATFORM
 
@@ -220,8 +223,8 @@ This register maps every requested North-Star capability to an existing canonica
 | Distributed processing | IMPLEMENTED — NEEDS REAL PROOF | PUSH 31/32 contracts, PUSH 35 portability and PUSH 36 four-process shared-queue/load/worker-loss proof | 31, 32, 35, 36 | Multi-host Production queue/deployment and sustained operation | Independent multi-host failover/load proof |
 | Enterprise Edge scale | FOUNDATION | Shared edge profile contract | 17, 18, 22, 35, 48 | Production packaging and fleet | Multi-edge enterprise pilot |
 | Queues | IMPLEMENTED — NEEDS REAL PROOF | PUSH 31 durable WAL semantics plus PUSH 36 four-process lease/fairness/worker-loss and queue-age QA | 31, 36, 38 | Multi-host backend and sustained Production load | Real multi-host worker-loss and tenant-fairness proof |
-| Load balancing | PARTIAL | PUSH 36 authenticated four-worker local pool, capability matching and 3.19× identical-workload throughput | 36, 37 | Multi-host load balancing and HA | Measured multi-host scale/failover test |
-| Failover | NOT STARTED | No full multi-zone/provider proof | 37 | Implement HA ownership and recovery | RTO/RPO fault injection |
+| Load balancing | IMPLEMENTED — NEEDS REAL PROOF | PUSH 36 authenticated worker pool plus PUSH 37 three-node health-aware request distribution, failed-instance removal and gated rejoin | 36, 37 | Multi-host/zone deployment and sustained load | Measured independent-host scale/failover test |
+| Failover | IMPLEMENTED — NEEDS REAL PROOF | PUSH 37 local API/worker/queue/dependency/storage fault campaign, fenced ownership and zero acknowledged loss/duplicate effects | 37 | Deploy shared Postgres backend and prove independent-host/zone/provider recovery | External multi-host RTO/RPO fault injection |
 | Fleet management | IMPLEMENTED — NEEDS REAL PROOF | Canonical inventory/API/UI, bounded commands and 10,000-component synthetic QA | 22 | Real multi-tenant/multi-site operational deployment | Real multi-device fleet proof |
 
 ## RELIABILITY
@@ -240,7 +243,7 @@ This register maps every requested North-Star capability to an existing canonica
 | Camera Health reliability | PARTIAL | Source/processing/playback dimensions now distinct | 23, 27 | Full engine and alert SLO | Real disconnect/freeze/recovery proof |
 | Component health | IMPLEMENTED — NEEDS REAL PROOF | Observability model and current edge health | 22, 23, 27 | Fleet coverage and alerting | Multi-component fault exercise |
 | 24/7 stability | NOT STARTED | No qualifying long-duration run | 38 | Soak plan and execution | Agreed-duration real soak |
-| Real fault injection | NOT STARTED | No canonical fault campaign | 20, 21, 37, 38 | Build safe fault harness | Published recovery results |
+| Real fault injection | PARTIAL | PUSH 37 deterministic isolated API/worker/queue/DB/storage/capacity/split-brain campaign | 20, 21, 37, 38 | Real multi-host, provider and long-duration campaign | Published independent-environment recovery results |
 | Long-duration stability tests | NOT STARTED | No canonical long soak | 38 | Execute staged soak | Sustained SLO evidence |
 
 ## AI INFRASTRUCTURE / ECONOMICS
@@ -300,10 +303,10 @@ The counts below are generated from the rows above during closure QA. They descr
 | Status | Count |
 |---|---:|
 | `DONE + REAL PROOF` | 24 |
-| `IMPLEMENTED — NEEDS REAL PROOF` | 34 |
+| `IMPLEMENTED — NEEDS REAL PROOF` | 36 |
 | `FOUNDATION` | 64 |
 | `PARTIAL` | 18 |
-| `NOT STARTED` | 49 |
+| `NOT STARTED` | 47 |
 | `EXTERNAL COVERAGE GAP` | 1 |
 | **TOTAL** | **190** |
 
