@@ -22,4 +22,7 @@ jobs:
       - run: node --test scripts/qa/check-management-signed-invitations.mjs
       - run: node --test scripts/qa/check-management-parent-invitation-acceptance.mjs
       - run: node --test scripts/qa/check-management-canonical-family-linking.mjs
+      - run: node --test scripts/qa/check-management-owner-teacher-semantics.mjs
+      - run: node --test scripts/qa/check-management-multi-garden-owner-context.mjs
+      - run: node --test scripts/qa/check-management-atomic-onboarding.mjs
       - run: npm run qa:manager-parent-live-contract

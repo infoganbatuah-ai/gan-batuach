@@ -50,6 +50,8 @@ type Onboarding = {
   missing_fields?: string[] | null;
   profile_data?: Record<string, any> | null;
   correction_note?: string | null;
+  activation_key?: string | null;
+  registrant_type?: "teacher_operator" | "owner_teacher" | "owner_only" | null;
 };
 
 type Props = { garden: Garden; onboarding: Onboarding; managerName?: string | null };
@@ -95,7 +97,7 @@ function checked(form: FormData, name: string) {
   return form.get(name) === "on";
 }
 
-export function ManagerKindergartenApplicationForm({ managerName, managerPhone, managerEmail }: { managerName?: string | null; managerPhone?: string | null; managerEmail?: string | null }) {
+export function ManagerKindergartenApplicationForm({ managerName, managerPhone, managerEmail, profileRole }: { managerName?: string | null; managerPhone?: string | null; managerEmail?: string | null; profileRole?: string | null }) {
   const router = useRouter();
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
@@ -123,12 +125,14 @@ export function ManagerKindergartenApplicationForm({ managerName, managerPhone, 
           public_description: text(form.get("public_description")),
           opening_hours: text(form.get("opening_hours")),
           contact_phone: text(form.get("contact_phone")),
-          contact_email: text(form.get("contact_email"))
+          contact_email: text(form.get("contact_email")),
+          registrant_type: text(form.get("registrant_type")) || "teacher_operator"
         })
       });
       const body = await response.json();
       if (!response.ok) throw new Error(body.error || "לא ניתן לפתוח את הגן כרגע");
       setMessage("פרטי הבסיס נשמרו. ממשיכים מיד להשלמת הגן.");
+      router.replace(body.data?.next_path ?? "/onboarding/kindergarten");
       router.refresh();
     } catch (error) {
       setMessage(error instanceof Error ? error.message : "לא ניתן לפתוח את הגן כרגע");
@@ -156,6 +160,7 @@ export function ManagerKindergartenApplicationForm({ managerName, managerPhone, 
           <label>תעודת זהות<input name="manager_id_number" inputMode="numeric" /></label>
           <label>טלפון נייד<input name="manager_phone" inputMode="tel" defaultValue={managerPhone ?? ""} /></label>
           <label>אימייל<input name="manager_email" type="email" defaultValue={managerEmail ?? ""} /></label>
+          <label>התפקיד שלי בגן<select name="registrant_type" defaultValue={profileRole === "owner" ? "owner_teacher" : "teacher_operator"}><option value="teacher_operator">גננת שמפעילה את הגן</option>{profileRole === "owner" ? <><option value="owner_teacher">בעלים וגם גננת</option><option value="owner_only">בעלים, עם גננת נפרדת</option></> : null}</select></label>
         </div>
       </section>
 
@@ -194,6 +199,7 @@ export function KindergartenOnboardingForm({ garden, onboarding, managerName }: 
   const [logoUrl, setLogoUrl] = useState(String(garden.logo_url ?? profileData.logo_url ?? ""));
   const [imageUrl, setImageUrl] = useState(String(garden.image_url ?? profileData.image_url ?? ""));
   const [message, setMessage] = useState("");
+  const [progressPercent, setProgressPercent] = useState(Number(onboarding.progress_percent ?? 0));
   const [missing, setMissing] = useState<string[]>((onboarding.missing_fields ?? []).filter((field) => fieldLabels[field]).map((field) => fieldLabels[field]));
   const [busy, setBusy] = useState<"draft" | "finish" | "">("");
   const [confirmed, setConfirmed] = useState(false);
@@ -219,6 +225,9 @@ export function KindergartenOnboardingForm({ garden, onboarding, managerName }: 
     }]));
     return {
       submit: finish,
+      garden_id: garden.id,
+      activation_key: onboarding.activation_key,
+      consents_accepted: finish && confirmed,
       garden: {
         name: text(form.get("name")),
         logo_url: logoUrl,
@@ -271,8 +280,10 @@ export function KindergartenOnboardingForm({ garden, onboarding, managerName }: 
       const body = await response.json();
       if (!response.ok) throw new Error(body.error || "לא ניתן לשמור כרגע");
       setMissing(body.data?.missing ?? []);
+      setProgressPercent(Number(body.data?.onboarding?.progress_percent ?? (finish ? 100 : progressPercent)));
       if (finish) {
-        router.replace(body.data?.next_path ?? "/dashboard/garden");
+        await fetch("/api/management/gardens", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ gardenId: garden.id }) });
+        router.replace("/dashboard/garden");
         router.refresh();
       } else {
         setMessage("הפרטים נשמרו ברקע");
@@ -305,7 +316,7 @@ export function KindergartenOnboardingForm({ garden, onboarding, managerName }: 
 
       <section className="manager-onboarding-overview">
         <div><p className="eyebrow">התקדמות הקמה</p><h2>שלב {step} מתוך 5</h2><p>המידע נשמר בין השלבים. הזמנת הורים, ילדים וצוות היא אופציונלית ואפשר להשלים גם מהדשבורד.</p></div>
-        <div className="manager-progress-value"><strong>{step * 20}%</strong><span><i style={{ width: `${step * 20}%` }} /></span></div>
+        <div className="manager-progress-value"><strong>{progressPercent}%</strong><span><i style={{ width: `${progressPercent}%` }} /></span></div>
       </section>
 
       {missing.length && step === 5 ? <div className="manager-missing-state"><strong>נדרש להשלים לפני ההפעלה:</strong>{missing.map((item) => <span key={item}>{item}</span>)}</div> : null}

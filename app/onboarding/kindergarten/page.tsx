@@ -57,10 +57,13 @@ function KindergartenOnboardingShell({
   );
 }
 
-export default async function KindergartenOnboardingPage() {
+export default async function KindergartenOnboardingPage({ searchParams }: { searchParams: Promise<{ gardenId?: string; new?: string }> }) {
   const { profile } = await requireRole(["manager", "owner"]);
-  const supabase = !profile.active && isAdminClientConfigured() ? createAdminClient() : await createClient();
-  if (!profile.garden_id) {
+  const query = await searchParams;
+  const sessionClient = await createClient();
+  const targetGardenId = query.gardenId ?? (query.new === "1" ? null : profile.garden_id);
+  const supabase = isAdminClientConfigured() ? createAdminClient() : sessionClient;
+  if (!targetGardenId) {
     return (
       <KindergartenOnboardingShell
         title="רישום גן ילדים"
@@ -69,21 +72,23 @@ export default async function KindergartenOnboardingPage() {
         badgeTone="green"
         managerName={profile.full_name}
       >
-        <ManagerKindergartenApplicationForm managerName={profile.full_name} managerPhone={profile.phone} managerEmail={(profile as any).email} />
+        <ManagerKindergartenApplicationForm managerName={profile.full_name} managerPhone={profile.phone} managerEmail={(profile as any).email} profileRole={profile.role} />
         <Link className="kindergarten-app-logout" href="/api/auth/logout">יציאה</Link>
       </KindergartenOnboardingShell>
     );
   }
+  const authority = await sessionClient.rpc("can_edit_garden_onboarding" as never, { target_garden_id: targetGardenId } as never);
+  if (authority.error || authority.data !== true) redirect("/dashboard/garden");
   const [{ data: garden }, onboardingRes] = await Promise.all([
     supabase
       .from("gardens" as any)
       .select("id, name, logo_url, image_url, address, phone, email, owner_name, public_description, approval_flow_status, admin_correction_note")
-      .eq("id", profile.garden_id)
+      .eq("id", targetGardenId)
       .maybeSingle(),
     supabase
       .from("kindergarten_onboarding_records" as any)
       .select("*")
-      .eq("garden_id", profile.garden_id)
+      .eq("garden_id", targetGardenId)
       .maybeSingle()
   ]);
   const onboarding = (onboardingRes.data ?? {
