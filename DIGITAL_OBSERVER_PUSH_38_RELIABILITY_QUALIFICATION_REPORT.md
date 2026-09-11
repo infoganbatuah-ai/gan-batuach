@@ -10,9 +10,11 @@ The qualification architecture, deterministic scale/chaos harness and real-Home 
 
 ## PRELIMINARY REAL HOME PROOF
 
-A one-minute smoke produced six checkpoints at 100% camera-sample availability: DVR 10/10 and Tapo 1/1 progressing, six empty slots excluded, zero component restarts, one deep playback checkpoint decoding all 11 authorized streams, and one real AI inference in 692 ms. Status remained `NOT_DONE` because elapsed time was only 60,003 ms. This is proof that the harness works, not 24/7 proof.
+A strengthened one-minute smoke produced seven checkpoints at 100% camera-sample availability: DVR 10/10 and Tapo 1/1 progressing, six empty slots excluded, zero supervisor/runtime restarts, one deep playback checkpoint decoding all 11 authorized streams, one real AI inference in 792 ms and learning/activity samples from 11/11 sources. Status remained `NOT_DONE` because elapsed time was only 61,056 ms. This is proof that the harness works, not 24/7 proof.
 
-The baseline exposed large historical relay lifecycle counters. PUSH 38 records only run-relative deltas so old churn cannot be hidden or misattributed. Gateway/Connector memory, process IDs, session counters, relay starts/staleness/errors and log bytes are measured at every checkpoint.
+The baseline exposed large historical relay lifecycle counters. PUSH 38 records only run-relative deltas so old churn cannot be hidden or misattributed. Gateway/Connector supervisor and runtime PIDs, combined CPU/RSS, DVR session counters, relay starts/staleness/errors, health flapping, outage duration, checkpoint gaps, log bytes, cloud 401s, `setTypeOfService EINVAL`, and fatal/uncaught log signals are measured explicitly.
+
+The qualifying v4 run began at `2026-09-11T20:53:02.458Z` and cannot complete before `2026-09-12T20:53:02.458Z`. Its first checkpoint proved 10/10 DVR plus 1/1 Tapo progression, 11/11 authorized playback decodes, real Tapo inference, 11/11 learning/activity sampling, both supervisors and both child runtimes, and zero manual interventions. Earlier v1-v3 attempts are non-qualifying evidence and will not be merged as PASS.
 
 ## PRELIMINARY LOAD / CHAOS
 
