@@ -206,6 +206,7 @@ export function KindergartenOnboardingForm({ garden, onboarding, managerName }: 
   const [selectedAgeGroups, setSelectedAgeGroups] = useState<string[]>(Array.isArray(profileData.selected_age_groups) ? profileData.selected_age_groups : []);
   const [classCapacity, setClassCapacity] = useState<Record<string, number>>((profileData.class_capacity ?? {}) as Record<string, number>);
   const [classroomCounts, setClassroomCounts] = useState<Record<string, number>>((profileData.classroom_counts ?? {}) as Record<string, number>);
+  const [classroomCapacities, setClassroomCapacities] = useState<Record<string, number>>((profileData.classroom_capacities ?? {}) as Record<string, number>);
   const [staffCount, setStaffCount] = useState(Number(profileData.staff_count ?? 0));
   const galleryUrls = Array.isArray(profileData.gallery_urls) ? profileData.gallery_urls : [];
   const uploadedCategories = Array.isArray(profileData.uploaded_document_categories) ? profileData.uploaded_document_categories : [];
@@ -251,6 +252,7 @@ export function KindergartenOnboardingForm({ garden, onboarding, managerName }: 
         age_group_pricing: ageGroupPricing,
         class_capacity: classCapacity,
         classroom_counts: classroomCounts,
+        classroom_capacities: classroomCapacities,
         staff_count: staffCount,
         staff_initialized: checked(form, "staff_initialized"),
         children_initialized: checked(form, "children_initialized"),
@@ -364,16 +366,20 @@ export function KindergartenOnboardingForm({ garden, onboarding, managerName }: 
       </section>
 
       <section className={`manager-wizard-stage ${step === 2 ? "is-active" : ""}`} aria-hidden={step !== 2}>
-        <div className="manager-stage-heading"><UsersRound /><div><h2>קבוצות גיל וצוות</h2><p>המחיר להורה, הקיבולת ויחס הצוות נשמרים לכל קבוצה בנפרד.</p></div></div>
+        <div className="manager-stage-heading"><UsersRound /><div><h2>קבוצות גיל וצוות</h2><p>המחיר נשמר לקבוצת גיל, והקיבולת התפעולית מוגדרת לכל כיתה בנפרד.</p></div></div>
         <div className="manager-age-groups">
           {kindergartenAgeGroups.map((group) => {
             const selected = selectedAgeGroups.includes(group.key);
             return <article className={selected ? "selected" : ""} key={group.key}>
               <label className="manager-group-choice"><input type="checkbox" checked={selected} onChange={(event) => setSelectedAgeGroups((current) => event.target.checked ? [...current, group.key] : current.filter((key) => key !== group.key))} /><span><b>{group.label}</b><small>{group.range}</small></span></label>
-              <p>עד {group.maxChildrenPerClass} ילדים · {group.rule}</p>
+              <p>{group.range} · הקיבולת התפעולית נקבעת לכל כיתה ואינה אישור רגולטורי.</p>
               <div className="form-grid">
-                <label>מספר ילדים<input type="number" min="0" max={group.maxChildrenPerClass} value={classCapacity[group.key] ?? 0} onChange={(event) => setClassCapacity((current) => ({ ...current, [group.key]: Number(event.target.value) }))} /></label>
+                <label>מספר ילדים מתוכנן בקבוצה<input type="number" min="0" value={classCapacity[group.key] ?? 0} onChange={(event) => setClassCapacity((current) => ({ ...current, [group.key]: Number(event.target.value) }))} /></label>
                 <label>מספר כיתות<input type="number" min="1" max="20" value={classroomCounts[group.key] ?? 1} onChange={(event) => setClassroomCounts((current) => ({ ...current, [group.key]: Math.max(1, Number(event.target.value)) }))} /></label>
+                {Array.from({ length: Math.max(1, Number(classroomCounts[group.key] ?? 1)) }, (_, index) => {
+                  const key = `${group.key}_${index + 1}`;
+                  return <label key={key}>קיבולת תפעולית — {group.label} {index + 1}<input type="number" min="1" max="10000" value={classroomCapacities[key] ?? ""} placeholder="לא הוגדרה" onChange={(event) => setClassroomCapacities((current) => event.target.value ? ({ ...current, [key]: Number(event.target.value) }) : Object.fromEntries(Object.entries(current).filter(([item]) => item !== key)))} /></label>;
+                })}
                 <label>תשלום חודשי לילד<input name={`monthly_price_${group.key}`} type="number" min="0" defaultValue={profileData.age_group_pricing?.[group.key]?.monthly_price ?? ""} /></label>
                 <label>יום חיוב<input name={`billing_day_${group.key}`} type="number" min="1" max="28" defaultValue={profileData.age_group_pricing?.[group.key]?.billing_day ?? 1} /></label>
                 <label>מחזור<select name={`billing_cycle_${group.key}`} defaultValue={profileData.age_group_pricing?.[group.key]?.billing_cycle ?? "monthly"}><option value="monthly">חודשי</option><option value="annual">שנתי</option></select></label>
