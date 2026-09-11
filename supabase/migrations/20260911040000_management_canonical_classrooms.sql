@@ -18,7 +18,7 @@ create table if not exists public.classrooms (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now(),
   constraint classrooms_name_check check (length(btrim(name)) between 1 and 120),
-  constraint classrooms_age_bounds_check check (min_age_months is null or min_age_months >= 0) and (max_age_months is null or max_age_months >= coalesce(min_age_months,0)),
+  constraint classrooms_age_bounds_check check ((min_age_months is null or min_age_months >= 0) and (max_age_months is null or max_age_months >= coalesce(min_age_months,0))),
   constraint classrooms_status_check check (status in ('active','inactive','archived')),
   constraint classrooms_garden_name_unique unique (garden_id,name)
 );
