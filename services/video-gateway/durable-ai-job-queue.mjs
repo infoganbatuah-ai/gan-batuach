@@ -13,13 +13,16 @@ export function createDurableAiJobQueue({ databasePath, now = Date.now, policy =
   const db = new DatabaseSync(databasePath);
   const limits = Object.freeze({ maxJobs: bounded(policy.maxJobs, 20_000, 10, 1_000_000), maxPayloadBytes: bounded(policy.maxPayloadBytes, 64 * 1024 * 1024, 1024, 2 * 1024 * 1024 * 1024),
     leaseMs: bounded(policy.leaseMs, 30_000, 100, 10 * 60_000), candidatePool: bounded(policy.candidatePool, 128, 8, 2_000), agingMs: bounded(policy.agingMs, 30_000, 1_000, 3_600_000) });
+  db.exec("PRAGMA busy_timeout=5000;");
   db.exec(`PRAGMA journal_mode=WAL; PRAGMA synchronous=FULL;
-    CREATE TABLE IF NOT EXISTS ai_jobs(job_id TEXT PRIMARY KEY,idempotency_key TEXT NOT NULL UNIQUE,tenant_id TEXT NOT NULL,site_id TEXT NOT NULL,source_id TEXT NOT NULL,ordering_key TEXT NOT NULL,priority TEXT NOT NULL,purpose TEXT NOT NULL,capability TEXT NOT NULL,model_class TEXT NOT NULL,observed_at INTEGER NOT NULL,expires_at INTEGER NOT NULL,created_at INTEGER NOT NULL,payload TEXT NOT NULL,payload_bytes INTEGER NOT NULL,state TEXT NOT NULL,attempts INTEGER NOT NULL DEFAULT 0,next_attempt_at INTEGER NOT NULL DEFAULT 0,lease_owner TEXT,lease_expires_at INTEGER,last_error TEXT,completed_at INTEGER);
+    CREATE TABLE IF NOT EXISTS ai_jobs(job_id TEXT PRIMARY KEY,idempotency_key TEXT NOT NULL UNIQUE,tenant_id TEXT NOT NULL,site_id TEXT NOT NULL,source_id TEXT NOT NULL,ordering_key TEXT NOT NULL,priority TEXT NOT NULL,purpose TEXT NOT NULL,capability TEXT NOT NULL,model_class TEXT NOT NULL,observed_at INTEGER NOT NULL,expires_at INTEGER NOT NULL,created_at INTEGER NOT NULL,payload TEXT NOT NULL,payload_bytes INTEGER NOT NULL,state TEXT NOT NULL,attempts INTEGER NOT NULL DEFAULT 0,next_attempt_at INTEGER NOT NULL DEFAULT 0,lease_owner TEXT,lease_expires_at INTEGER,last_error TEXT,completed_at INTEGER,queue_wait_ms INTEGER);
     CREATE INDEX IF NOT EXISTS ai_jobs_ready ON ai_jobs(state,next_attempt_at,expires_at,priority,created_at);
     CREATE INDEX IF NOT EXISTS ai_jobs_scope ON ai_jobs(tenant_id,site_id,source_id,state);
+    CREATE INDEX IF NOT EXISTS ai_jobs_ordering ON ai_jobs(ordering_key,observed_at,state);
     CREATE TABLE IF NOT EXISTS ai_results(result_id TEXT PRIMARY KEY,job_id TEXT NOT NULL UNIQUE,payload TEXT NOT NULL,created_at INTEGER NOT NULL,consumed_at INTEGER);
     CREATE TABLE IF NOT EXISTS ai_queue_audit(id INTEGER PRIMARY KEY AUTOINCREMENT,at INTEGER NOT NULL,category TEXT NOT NULL,job_id TEXT,detail TEXT);
     CREATE TABLE IF NOT EXISTS ai_queue_fairness(scope_key TEXT PRIMARY KEY,last_served_at INTEGER NOT NULL,served INTEGER NOT NULL DEFAULT 0);`);
+  if (!db.prepare("PRAGMA table_info(ai_jobs)").all().some(column => column.name === "queue_wait_ms")) db.exec("ALTER TABLE ai_jobs ADD COLUMN queue_wait_ms INTEGER");
   try { chmodSync(databasePath, 0o600); } catch {}
   let closed = false;
   const startedAt=now();
@@ -48,6 +51,21 @@ export function createDurableAiJobQueue({ databasePath, now = Date.now, policy =
     const existing = inserted ? job : JSON.parse(db.prepare("SELECT payload FROM ai_jobs WHERE idempotency_key=?").get(job.idempotency_key).payload);
     return { inserted, job: existing };
   }
+  function enqueueMany(values) {
+    if (!Array.isArray(values) || !values.length || values.length > limits.maxJobs) throw new Error("ai_queue_batch_invalid");
+    const jobs = values.map(validateAiJob), payloads = jobs.map(job => JSON.stringify(job));
+    const total = db.prepare("SELECT count(*) jobs,COALESCE(sum(payload_bytes),0) bytes FROM ai_jobs WHERE state IN ('PENDING','RETRY_WAIT','CLAIMED')").get();
+    const uniqueKeys = new Set(jobs.map(job => job.idempotency_key));
+    if (uniqueKeys.size !== jobs.length) throw new Error("ai_queue_batch_idempotency_duplicate");
+    const exists = db.prepare("SELECT 1 present FROM ai_jobs WHERE idempotency_key=?"), newIndexes = jobs.map((job, index) => exists.get(job.idempotency_key) ? null : index).filter(index => index !== null);
+    if (Number(total.jobs) + newIndexes.length > limits.maxJobs || Number(total.bytes) + newIndexes.reduce((sum, index) => sum + Buffer.byteLength(payloads[index]), 0) > limits.maxPayloadBytes) throw new Error("ai_queue_backpressure_capacity_reached");
+    const insert = db.prepare(`INSERT OR IGNORE INTO ai_jobs(job_id,idempotency_key,tenant_id,site_id,source_id,ordering_key,priority,purpose,capability,model_class,observed_at,expires_at,created_at,payload,payload_bytes,state)
+      VALUES(?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,'PENDING')`);
+    let inserted = 0; db.exec("BEGIN IMMEDIATE");
+    try { for (let index = 0; index < jobs.length; index++) { const job = jobs[index], payload = payloads[index]; const changed = insert.run(job.job_id,job.idempotency_key,job.tenant_id,job.site_id,job.source_id,job.ordering_key,job.priority,job.purpose,job.requested_capability,job.model_class,Date.parse(job.observation_timestamp),Date.parse(job.expires_at),Date.parse(job.created_at),payload,Buffer.byteLength(payload)); inserted += Number(changed.changes); } db.exec("COMMIT"); }
+    catch (error) { db.exec("ROLLBACK"); throw error; }
+    audit("JOB_BATCH_ENQUEUED", null, String(inserted)); return { inserted, requested: jobs.length };
+  }
   function claim(worker, options = {}) {
     if (closed) throw new Error("ai_queue_closed"); expireAndRecover();
     const capabilities = new Set(worker.capabilities ?? []), modelClasses = new Set(worker.model_classes ?? []), jobFilter = options.jobId ? " AND j.job_id=?" : "", parameters = options.jobId ? [now(), now(), options.jobId, limits.candidatePool] : [now(), now(), limits.candidatePool], rows = db.prepare(`SELECT * FROM ai_jobs j WHERE j.state IN ('PENDING','RETRY_WAIT') AND j.next_attempt_at<=? AND j.expires_at>?
@@ -66,10 +84,11 @@ export function createDurableAiJobQueue({ databasePath, now = Date.now, policy =
         || (served.get(scopeA)?.at??0)-(served.get(scopeB)?.at??0) || (served.get(sourceA)?.at??0)-(served.get(sourceB)?.at??0) || a.created_at-b.created_at;
     });
     const row=authorized[0], leaseMs=bounded(options.leaseMs,limits.leaseMs,100,10*60_000);
-    const changed=db.prepare("UPDATE ai_jobs SET state='CLAIMED',lease_owner=?,lease_expires_at=?,attempts=attempts+1 WHERE job_id=? AND state IN ('PENDING','RETRY_WAIT')").run(worker.worker_id,now()+leaseMs,row.job_id);
+    const queueWait=Math.max(0,now()-Number(row.created_at));
+    const changed=db.prepare("UPDATE ai_jobs SET state='CLAIMED',lease_owner=?,lease_expires_at=?,queue_wait_ms=?,attempts=attempts+1 WHERE job_id=? AND state IN ('PENDING','RETRY_WAIT')").run(worker.worker_id,now()+leaseMs,queueWait,row.job_id);
     if (!changed.changes) return null;
     for(const scope of [`${row.tenant_id}:${row.site_id}`,`${row.tenant_id}:${row.site_id}:${row.source_id}`]) db.prepare("INSERT INTO ai_queue_fairness(scope_key,last_served_at,served) VALUES(?,?,1) ON CONFLICT(scope_key) DO UPDATE SET last_served_at=excluded.last_served_at,served=served+1").run(scope,now());
-    audit("JOB_CLAIMED",row.job_id,worker.environment); return { job:JSON.parse(row.payload),attempt:Number(row.attempts)+1,leased_at:new Date(now()).toISOString(),lease_expires_at:new Date(now()+leaseMs).toISOString(),queue_wait_ms:Math.max(0,now()-Number(row.created_at)) };
+    audit("JOB_CLAIMED",row.job_id,worker.environment); return { job:JSON.parse(row.payload),attempt:Number(row.attempts)+1,leased_at:new Date(now()).toISOString(),lease_expires_at:new Date(now()+leaseMs).toISOString(),queue_wait_ms:queueWait };
   }
   function acknowledge(worker, jobId, result) {
     if (result?.contract!==AI_RESULT_CONTRACT || result.job_id!==jobId) throw new Error("ai_queue_result_invalid");
@@ -99,7 +118,8 @@ export function createDurableAiJobQueue({ databasePath, now = Date.now, policy =
     audit("JOB_FAILOVER_RELEASED",jobId,safeReason(reason));return{state:"PENDING"};
   }
   function result(jobId,{consume=false}={}){if(!consume){const row=db.prepare("SELECT payload FROM ai_results WHERE job_id=?").get(jobId);return row?JSON.parse(row.payload):null;}db.exec("BEGIN IMMEDIATE");try{const row=db.prepare("SELECT payload,consumed_at FROM ai_results WHERE job_id=?").get(jobId);if(!row||row.consumed_at!=null){db.exec("COMMIT");return null;}const changed=db.prepare("UPDATE ai_results SET consumed_at=? WHERE job_id=? AND consumed_at IS NULL").run(now(),jobId);db.exec("COMMIT");return changed.changes?JSON.parse(row.payload):null;}catch(error){db.exec("ROLLBACK");throw error;}}
-  function snapshot(){expireAndRecover();const states=Object.fromEntries(db.prepare("SELECT state,count(*) n FROM ai_jobs GROUP BY state").all().map(r=>[r.state,Number(r.n)]));const age=db.prepare("SELECT MIN(created_at) oldest FROM ai_jobs WHERE state IN ('PENDING','RETRY_WAIT','CLAIMED')").get();const priority_backlog=Object.fromEntries(db.prepare("SELECT priority,count(*) n FROM ai_jobs WHERE state IN ('PENDING','RETRY_WAIT','CLAIMED') GROUP BY priority").all().map(r=>[r.priority,Number(r.n)]));const audits=Object.fromEntries(db.prepare("SELECT category,count(*) n FROM ai_queue_audit GROUP BY category").all().map(r=>[r.category,Number(r.n)]));const completed=states.COMPLETED??0,elapsed=Math.max(1,now()-startedAt);return{contract:"observer-ai-queue-v1",queue_depth:(states.PENDING??0)+(states.RETRY_WAIT??0)+(states.CLAIMED??0),oldest_job_age_ms:age.oldest==null?null:Math.max(0,now()-Number(age.oldest)),priority_backlog,states,completed_jobs:completed,jobs_per_second:Number((completed/(elapsed/1000)).toFixed(3)),retry_count:audits.JOB_RETRY_SCHEDULED??0,lease_claim_count:audits.JOB_CLAIMED??0,dead_letter_count:states.DEAD_LETTER??0,...limits};}
+  const percentile=(values,p)=>values.length?values[Math.min(values.length-1,Math.ceil(values.length*p)-1)]:null;
+  function snapshot(){expireAndRecover();const states=Object.fromEntries(db.prepare("SELECT state,count(*) n FROM ai_jobs GROUP BY state").all().map(r=>[r.state,Number(r.n)]));const age=db.prepare("SELECT MIN(created_at) oldest FROM ai_jobs WHERE state IN ('PENDING','RETRY_WAIT','CLAIMED')").get();const priority_backlog=Object.fromEntries(db.prepare("SELECT priority,count(*) n FROM ai_jobs WHERE state IN ('PENDING','RETRY_WAIT','CLAIMED') GROUP BY priority").all().map(r=>[r.priority,Number(r.n)]));const audits=Object.fromEntries(db.prepare("SELECT category,count(*) n FROM ai_queue_audit GROUP BY category").all().map(r=>[r.category,Number(r.n)]));const waits=db.prepare("SELECT priority,queue_wait_ms FROM ai_jobs WHERE queue_wait_ms IS NOT NULL ORDER BY queue_wait_ms").all();const waitValues=waits.map(row=>Number(row.queue_wait_ms));const queue_age_ms={median:percentile(waitValues,.5),p95:percentile(waitValues,.95),max:waitValues.at(-1)??null,by_priority:Object.fromEntries([...new Set(waits.map(row=>row.priority))].map(priority=>{const values=waits.filter(row=>row.priority===priority).map(row=>Number(row.queue_wait_ms));return[priority,{median:percentile(values,.5),p95:percentile(values,.95),max:values.at(-1)??null,samples:values.length}]})),samples:waitValues.length};const completed=states.COMPLETED??0,elapsed=Math.max(1,now()-startedAt);return{contract:"observer-ai-queue-v1",backend:"SQLITE_WAL_LOCAL_MULTI_PROCESS",queue_depth:(states.PENDING??0)+(states.RETRY_WAIT??0)+(states.CLAIMED??0),oldest_job_age_ms:age.oldest==null?null:Math.max(0,now()-Number(age.oldest)),queue_age_ms,priority_backlog,states,completed_jobs:completed,jobs_per_second:Number((completed/(elapsed/1000)).toFixed(3)),retry_count:audits.JOB_RETRY_SCHEDULED??0,lease_claim_count:audits.JOB_CLAIMED??0,dead_letter_count:states.DEAD_LETTER??0,...limits};}
   function close(){closed=true;db.close();}
-  expireAndRecover(); return {enqueue,claim,acknowledge,fail,releaseForFailover,result,snapshot,recover:expireAndRecover,close};
+  expireAndRecover(); return {enqueue,enqueueMany,claim,acknowledge,fail,releaseForFailover,result,snapshot,recover:expireAndRecover,close};
 }

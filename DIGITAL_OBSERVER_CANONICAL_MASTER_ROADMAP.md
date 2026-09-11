@@ -10,9 +10,9 @@ Digital Observer has completed the canonical product path from audit through Dig
 
 The canonical roadmap contains **52 pushes**. It preserves the existing numbers 1–16 and continues through production infrastructure, pilots, commercial proof, technical due diligence, and acquisition/exit. Later work may be executed early only when its `EXECUTION MODE` says `CAN EXECUTE EARLY`; its canonical number never changes.
 
-Current sequential scope: **PUSH 35 — Portable Deployment + No-Office Dependency — DONE ON VERIFIED PR MERGE**. The tracked release, explicit configuration, standard Edge paths, checksummed model acquisition and portable backup/restore contract remove critical server-side dependence on the developer laptop or office network.
-Completion requires the scoped PUSH 35 PR to pass, merge and be verified in `origin/main`; the final handoff is the immutable merge record. Provider-native Supabase PITR/Auth restoration remains a continuing operational drill and is not fabricated.
-PUSH 24/25/27 remain DONE EARLY and were dependency-revalidated, not rebuilt. PUSH 36 remains not started and requires a separate instruction.
+Current sequential scope: **PUSH 36 — Horizontal Queue + Worker Scale Foundation — DONE ON VERIFIED PR MERGE**. The existing job contract now runs through an authenticated multi-worker pool with local multi-process lease, throughput, worker-loss and synthetic scale evidence.
+Completion requires the scoped PUSH 36 PR to pass, merge and be verified in `origin/main`. SQLite remains truthfully single-host; multi-host Production queue and HA evidence remain future work.
+PUSH 24/25/27 remain DONE EARLY and dependency-valid. PUSH 37 remains not started.
 
 ## Status semantics
 
@@ -45,7 +45,8 @@ PUSH 32     DONE ON VERIFIED PR MERGE — privacy-safe hybrid routing
 PUSH 33     DONE ON VERIFIED PR MERGE — operational cost intelligence; provider reconciliation remains future evidence
 PUSH 34     DONE ON VERIFIED PR MERGE — storage abstraction, local/NAS provider, portable retention and safe migration
 PUSH 35     DONE ON VERIFIED PR MERGE — clean tracked deployment, portable restore and no-office runtime contract
-PUSH 36     NEXT / NOT STARTED — requires a separate instruction
+PUSH 36     DONE ON VERIFIED PR MERGE — local multi-process horizontal foundation; no multi-host claim
+PUSH 37     NEXT / NOT STARTED — requires a separate instruction
 PUSH 50     documentation-only preparation permitted only by separate instruction
 ```
 
@@ -243,7 +244,7 @@ Source shorthand used below: `52` = Original 52, `S16` = Original 16 — Strateg
 | 33 | AI and Infrastructure Cost Engine | Attribute GPU/CPU/AI/bandwidth/storage/notification cost per camera and tenant. | 52/44; S16/15; T16/15; DF45/41 | PUSH 27,31–32; scale foundation | SEQUENTIAL | DONE ON VERIFIED PR MERGE | Versioned operational usage/rate/attribution engine, admin API/UI/export, empty-slot-safe allocation and real bounded resource baseline pass; provider-bill reconciliation remains required before unit-economics proof. |
 | 34 | Storage Abstraction, NAS and Retention Portability | Decouple evidence policy from Supabase and support approved object/NAS backends. | 52/36–37,41; T16/10; DF45/42 | PUSH 7,25 | SEQUENTIAL | DONE ON VERIFIED PR MERGE | Supabase and scoped local/NAS backends pass the same retention, authorization, deletion, integrity and migration contract; real network NAS remains future proof. |
 | 35 | Portable Deployment and No-Office Dependency | Run core services on reproducible dedicated/cloud infrastructure without office dependency. | 52/41; T16/11; DF45/43 | PUSH 17,24,34; connector/Gateway hardening | SEQUENTIAL | DONE ON VERIFIED PR MERGE | Clean tracked environment installs, builds, restores representative canonical state, verifies the model artifact, starts Web health and contains no critical office/developer-machine runtime dependency. |
-| 36 | Horizontal Queue and Worker Scale Foundation | Partition tenants/cameras and scale stateless processing horizontally. | 52/40,45; T16/11; DF45/40,44 | PUSH 31,35; scale foundation | SEQUENTIAL | NOT STARTED | Load test shows horizontal throughput increase, bounded queue age and tenant fairness with no data crossing. |
+| 36 | Horizontal Queue and Worker Scale Foundation | Partition tenants/cameras and scale stateless processing horizontally. | 52/40,45; T16/11; DF45/40,44 | PUSH 31,35; scale foundation | SEQUENTIAL | DONE ON VERIFIED PR MERGE | Four local processes share one durable queue without duplicate effects; 4 workers improve identical-workload throughput 3.19× with queue-age/fairness/worker-loss evidence. SQLite is explicitly single-host; Production multi-host proof remains PUSH 37–38. |
 | 37 | High Availability, Load Balancing and Failover | Eliminate single points of failure across API, workers, DB, storage and device control. | 52/41,45; T16/11; DF45/44 | PUSH 35–36; scale foundation | SEQUENTIAL | NOT STARTED | Controlled node/zone/provider failures meet RTO/RPO and preserve idempotency and device ownership. |
 | 38 | Reliability, Load, Soak and Chaos Qualification | Prove 24/7 behavior at 10, 100 and 1,000-camera milestones. | 52/45–46; S16/15; T16/15 | PUSH 23,31,36–37; scale foundation | SEQUENTIAL | NOT STARTED | Measured staged tests publish uptime, latency, loss, recovery and capacity; target tier passes agreed SLOs. |
 | 39 | External Notifications, Actions and Escalation | Activate provider-isolated push/email/SMS/WhatsApp/webhook/phone workflows safely. | 52/35; S16/13; DF45/44 | PUSH 10,25,27; provider sandboxes | SEQUENTIAL | NOT STARTED | Each enabled provider passes sandbox retry/dedupe/ack/quiet-hours/failure tests; production activation is explicit and reversible. |
