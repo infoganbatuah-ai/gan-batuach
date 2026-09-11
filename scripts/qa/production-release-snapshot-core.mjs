@@ -1,5 +1,5 @@
 import { execFileSync } from "node:child_process";
-import { readFileSync, statSync } from "node:fs";
+import { existsSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 
 function git(cwd, ...args) {
@@ -7,7 +7,13 @@ function git(cwd, ...args) {
 }
 
 export function validateProductionReleaseSnapshot({ cwd = process.cwd(), expectedProject = "gan-batuach" } = {}) {
-  const project = JSON.parse(readFileSync(join(cwd, ".vercel/project.json"), "utf8"));
+  const localProjectPath = join(cwd, ".vercel/project.json");
+  const portableProjectPath = join(cwd, "config/production-deployment.json");
+  const project = existsSync(localProjectPath)
+    ? { ...JSON.parse(readFileSync(localProjectPath, "utf8")), source: "VERCEL_LOCAL_LINK" }
+    : process.env.VERCEL_PROJECT_ID && process.env.VERCEL_PROJECT_NAME
+      ? { projectId: process.env.VERCEL_PROJECT_ID, projectName: process.env.VERCEL_PROJECT_NAME, source: "VERCEL_ENVIRONMENT" }
+      : { ...JSON.parse(readFileSync(portableProjectPath, "utf8")), source: "TRACKED_DEPLOYMENT_CONTRACT" };
   if (project.projectName !== expectedProject) throw new Error("VERCEL_PROJECT_MISMATCH");
   if (!/^prj_[A-Za-z0-9]+$/.test(project.projectId || "")) throw new Error("VERCEL_PROJECT_ID_UNAVAILABLE");
 
@@ -47,6 +53,7 @@ export function validateProductionReleaseSnapshot({ cwd = process.cwd(), expecte
   return {
     status: "PASS",
     project: expectedProject,
+    project_source: project.source,
     revision,
     branch: git(cwd, "branch", "--show-current"),
     clean_worktree: true,

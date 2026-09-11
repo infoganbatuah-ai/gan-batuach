@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { mkdtempSync, mkdirSync, writeFileSync } from "node:fs";
+import { mkdtempSync, mkdirSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { validateProductionReleaseSnapshot } from "./production-release-snapshot-core.mjs";
@@ -13,6 +13,7 @@ const directory = mkdtempSync(join(tmpdir(), "observer-release-contract-"));
 mkdirSync(join(directory, ".vercel"), { recursive: true });
 writeFileSync(join(directory, ".vercel/project.json"), JSON.stringify({ projectName: "gan-batuach", projectId: "prj_contract123" }));
 writeFileSync(join(directory, "tracked.txt"), "safe release fixture\n");
+writeFileSync(join(directory, ".gitignore"), ".vercel/\n");
 git(directory, "init", "-b", "main");
 git(directory, "config", "user.email", "ci-contract@example.invalid");
 git(directory, "config", "user.name", "CI Contract");
@@ -20,6 +21,15 @@ git(directory, "add", ".");
 git(directory, "commit", "-m", "fixture");
 
 assert.equal(validateProductionReleaseSnapshot({ cwd: directory }).status, "PASS");
+
+mkdirSync(join(directory, "config"), { recursive: true });
+writeFileSync(join(directory, "config/production-deployment.json"), JSON.stringify({ projectName: "gan-batuach", projectId: "prj_contract123" }));
+git(directory, "add", "config/production-deployment.json");
+git(directory, "commit", "-m", "portable deployment contract");
+rmSync(join(directory, ".vercel"), { recursive: true, force: true });
+assert.equal(validateProductionReleaseSnapshot({ cwd: directory }).project_source, "TRACKED_DEPLOYMENT_CONTRACT");
+mkdirSync(join(directory, ".vercel"), { recursive: true });
+writeFileSync(join(directory, ".vercel/project.json"), JSON.stringify({ projectName: "gan-batuach", projectId: "prj_contract123" }));
 
 writeFileSync(join(directory, "untracked.txt"), "dirty\n");
 assert.throws(() => validateProductionReleaseSnapshot({ cwd: directory }), /RELEASE_SNAPSHOT_NOT_CLEAN/);
@@ -42,5 +52,6 @@ console.log(JSON.stringify({
   dirty_snapshot: "rejected",
   secret_snapshot: "rejected",
   wrong_project: "rejected",
+  clean_checkout_without_vercel_link: "accepted",
   production_mutation: false
 }, null, 2));

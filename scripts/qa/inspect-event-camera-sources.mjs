@@ -10,6 +10,7 @@ const service = "com.ganbatuach.video-gateway.runtime";
 const secret = execFileSync("/usr/bin/security", ["find-generic-password", "-s", service, "-a", "gateway_signing_secret", "-w"], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }).trim();
 const profile = JSON.parse(execFileSync("/usr/bin/security", ["find-generic-password", "-s", service, "-a", "dvr_profile_json", "-w"], { encoding: "utf8", stdio: ["ignore", "pipe", "ignore"] }));
 const host = new URL(profile.endpoint.includes("://") ? profile.endpoint : `http://${profile.endpoint}`).hostname;
+const streamNamespace = String(profile.metadata?.stream_namespace || "").trim().replace(/[^a-zA-Z0-9._:-]/g, "").slice(0, 80);
 const count = Math.min(64, Math.max(1, Number(profile.channel_count) || 16));
 const inspectDetections = process.argv.includes("--detector");
 const requested = process.argv.slice(2).filter(value => value !== "--detector").map(Number);
@@ -33,7 +34,7 @@ let cursor=0;
 await Promise.all(Array.from({length:2},async()=>{
   while(cursor<channels.length){
     const channel=channels[cursor++];
-    const hash=createHash("sha256").update(["dvr",host,channel].join(":")).digest("hex").slice(0,18);
+    const hash=createHash("sha256").update([profile.connection_type || "dvr",host,channel,streamNamespace].join(":")).digest("hex").slice(0,18);
     try {
       if(inspectDetections){
         const started=Date.now();
