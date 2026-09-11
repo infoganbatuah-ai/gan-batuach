@@ -4,7 +4,7 @@ import { fail, handleRouteError, ok } from "@/lib/api";
 import { getSessionProfile } from "@/lib/auth";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
-import { activationWizardSteps, calculateGanBatuachMonthlyPrice, calculateRequiredStaff, kindergartenAgeGroups, operationalDistrictForCity, requiredKindergartenDocumentCategories, validateClassCapacity } from "@/lib/domain/kindergarten-onboarding";
+import { activationWizardSteps, calculateGanBatuachMonthlyPrice, kindergartenAgeGroups, operationalDistrictForCity, requiredKindergartenDocumentCategories } from "@/lib/domain/kindergarten-onboarding";
 import { managementContactVerification } from "@/lib/management/contact-verification";
 
 const onboardingSchema = z.object({
@@ -173,13 +173,11 @@ export async function PATCH(request: Request) {
       return fail("יש לבחור לפחות קבוצת גיל אחת לפני תחילת תקופת הניסיון.", 422);
     }
     const classCapacity = (profileData.class_capacity ?? {}) as Record<string, number>;
-    const capacityErrors = selectedAgeGroups
-      .map((groupKey) => validateClassCapacity(String(groupKey), Number(classCapacity[String(groupKey)] ?? 0)))
-      .filter((result) => !result.ok && !result.message.includes("לא מוכרת"));
-    if (capacityErrors.length) return fail(capacityErrors.map((item) => item.message).join(" "), 422);
-    const requiredStaff = selectedAgeGroups.reduce((sum, groupKey) => sum + calculateRequiredStaff(String(groupKey), Number(classCapacity[String(groupKey)] ?? 0)), 0);
+    // GB-M13: legacy age-group constants are not an authoritative legal policy.
+    // Staffing truth is evaluated per canonical Classroom after a reviewed policy is activated.
+    const requiredStaff = null;
     const currentStaff = Number(profileData.staff_count ?? 0);
-    const missingStaff = Math.max(0, requiredStaff - currentStaff);
+    const missingStaff = null;
     const lifecycleStatus = "onboarding_in_progress";
     const classCount = selectedAgeGroups.filter((groupKey) => Number(classCapacity[String(groupKey)] ?? 0) > 0).length || selectedAgeGroups.length;
     const subscriptionAmount = calculateGanBatuachMonthlyPrice(classCount);
@@ -246,21 +244,20 @@ export async function PATCH(request: Request) {
     if (onboardingError) return fail("לא ניתן לשמור את תהליך הקליטה", 400);
 
     const ageGroupRows = selectedAgeGroups.map((groupKey) => {
-      const group = kindergartenAgeGroups.find((item) => item.key === groupKey);
       const childrenCount = Number(classCapacity[String(groupKey)] ?? 0);
       const pricing = ((profileData.age_group_pricing ?? {}) as Record<string, any>)[String(groupKey)] ?? {};
       return {
         garden_id: gardenId,
         age_group: String(groupKey),
         children_count: childrenCount,
-        max_children_per_class: group?.maxChildrenPerClass ?? 0,
-        required_staff: calculateRequiredStaff(String(groupKey), childrenCount),
+        max_children_per_class: 0,
+        required_staff: 0,
         current_staff: currentStaff,
         monthly_child_price: Number(pricing.monthly_price ?? 0),
         annual_child_price: Number(pricing.annual_price ?? 0),
         billing_day: Number(pricing.billing_day ?? 1),
         billing_cycle: pricing.billing_cycle === "annual" ? "annual" : "monthly",
-        ratio_alert: missingStaff > 0 ? `חסרים ${missingStaff} אנשי צוות לפי יחס בסיסי` : null,
+        ratio_alert: "מדיניות כוח האדם ממתינה להגדרה ולאישור",
         updated_at: now
       };
     });
@@ -276,7 +273,7 @@ export async function PATCH(request: Request) {
           age_range: group?.range ?? String(groupKey),
           monthly_fee: Number(pricing.monthly_price ?? 0),
           annual_fee: Number(pricing.annual_price ?? 0) || Number(pricing.monthly_price ?? 0) * 12,
-          capacity: childrenCount || group?.maxChildrenPerClass || null,
+          capacity: childrenCount || null,
           show_price_public: Boolean(pricing.show_price_public),
           active: childrenCount > 0 || Boolean(pricing.monthly_price),
           parent_billing_cycle: pricing.billing_cycle === "annual" ? "annual" : "monthly",
