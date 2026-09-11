@@ -8,7 +8,7 @@ Run with `npm run qa:digital-observer-real-home-soak`. Default checkpoints occur
 
 ## Checkpoints
 
-Each checkpoint captures Gateway/Connector health, authorization, expected/progressing/stalled streams, DVR session counters, relay lifecycle counter deltas, process identity/uptime/CPU/RSS, log sizes and empty-slot truth. Start, hourly and end checkpoints include playback, AI and learning probes. No source configuration or camera credential is changed.
+Each checkpoint captures Gateway/Connector health, authorization, expected/progressing/stalled streams, DVR session counters, relay lifecycle counter deltas, supervisor and child-runtime identity/uptime/CPU/RSS, checkpoint continuity, log sizes and normalized 401/`setTypeOfService EINVAL`/fatal log counters, and empty-slot truth. Start, hourly and end checkpoints include playback, AI and learning probes. No source configuration or camera credential is changed.
 
 ## Gates
 
@@ -18,6 +18,8 @@ Each checkpoint captures Gateway/Connector health, authorization, expected/progr
 - Every deep playback checkpoint verifies eleven current decodable streams.
 - No silent acknowledged loss, duplicate Product effect, cross-tenant leakage or unrecorded intervention.
 - Process/recovery churn, log growth and memory growth are reported even if service self-heals.
+- A checkpoint gap over 2.5 times the configured interval invalidates the run.
+- Missing runtime-process evidence invalidates the run; a stable supervisor cannot hide a replaced child runtime.
 - Final Home state is 10/10 DVR plus 1/1 Tapo, zero stuck streams.
 
 If any mandatory gate fails, fix the cause and begin a new qualifying interval. Earlier failed evidence remains retained; it is not rewritten into PASS.

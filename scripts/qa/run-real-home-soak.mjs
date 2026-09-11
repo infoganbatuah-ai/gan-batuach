@@ -25,8 +25,47 @@ if (!ffmpegCommand) throw new Error("ffmpeg_runtime_unavailable");
 
 function atomicJson(path, value) { const temporary = `${path}.tmp`; writeFileSync(temporary, `${JSON.stringify(value, null, 2)}\n`, { mode: 0o600 }); renameSync(temporary, path); }
 function safeStat(path) { try { return statSync(path).size; } catch { return null; } }
+function logSignals(path) {
+  try {
+    const lines = readFileSync(path, "utf8").split("\n");
+    return {
+      cloud_401: lines.filter(line => /(?:\bHTTP\/?[0-9.]*\s+|\bstatus(?:Code)?[=: ]+|\bresponse[=: ]+)401\b/i.test(line)).length,
+      set_type_of_service_einval: lines.filter(line => /setTypeOfService/i.test(line) && /\bEINVAL\b/.test(line)).length,
+      fatal_or_uncaught: lines.filter(line => /\b(?:uncaught|fatal)\b/i.test(line)).length
+    };
+  } catch { return { cloud_401: null, set_type_of_service_einval: null, fatal_or_uncaught: null }; }
+}
 async function health(port) { const started = Date.now(); try { const response = await fetch(`http://127.0.0.1:${port}/health`, { signal: AbortSignal.timeout(8_000) }); const body = await response.json(); return { ok: response.ok && body.ok === true, latency_ms: Date.now() - started, body }; } catch (error) { return { ok: false, latency_ms: Date.now() - started, error: error?.cause?.code || error?.name || "REQUEST_FAILED" }; } }
-async function processInfo(pattern) { try { const { stdout } = await exec("/usr/bin/pgrep", ["-f", pattern]); const pid = Number(stdout.trim().split("\n").at(-1)); const result = await exec("/bin/ps", ["-o", "pid=,etime=,%cpu=,rss=", "-p", String(pid)]); const [pidText, elapsed, cpu, rss] = result.stdout.trim().split(/\s+/); return { pid: Number(pidText), elapsed, cpu_percent: Number(cpu), rss_mb: Number((Number(rss) / 1024).toFixed(3)) }; } catch { return { pid: null, elapsed: null, cpu_percent: null, rss_mb: null }; } }
+async function processRow(pid) {
+  try {
+    const result = await exec("/bin/ps", ["-o", "pid=,etime=,%cpu=,rss=", "-p", String(pid)]);
+    const [pidText, elapsed, cpu, rss] = result.stdout.trim().split(/\s+/);
+    return { pid: Number(pidText), elapsed, cpu_percent: Number(cpu), rss_mb: Number((Number(rss) / 1024).toFixed(3)) };
+  } catch { return { pid: null, elapsed: null, cpu_percent: null, rss_mb: null }; }
+}
+async function processInfo(pattern) {
+  try {
+    const { stdout } = await exec("/usr/bin/pgrep", ["-f", pattern]);
+    const supervisorPid = Number(stdout.trim().split("\n").at(-1));
+    const supervisor = await processRow(supervisorPid);
+    let runtime = supervisor;
+    try {
+      const children = await exec("/usr/bin/pgrep", ["-P", String(supervisorPid)]);
+      const runtimePid = Number(children.stdout.trim().split("\n").at(-1));
+      if (runtimePid) runtime = await processRow(runtimePid);
+    } catch {}
+    return {
+      ...supervisor,
+      supervisor_pid: supervisor.pid,
+      runtime_pid: runtime.pid,
+      runtime_elapsed: runtime.elapsed,
+      runtime_cpu_percent: runtime.cpu_percent,
+      runtime_rss_mb: runtime.rss_mb,
+      total_cpu_percent: Number(((supervisor.cpu_percent ?? 0) + (runtime.pid === supervisor.pid ? 0 : runtime.cpu_percent ?? 0)).toFixed(3)),
+      total_rss_mb: Number(((supervisor.rss_mb ?? 0) + (runtime.pid === supervisor.pid ? 0 : runtime.rss_mb ?? 0)).toFixed(3))
+    };
+  } catch { return { pid: null, supervisor_pid: null, runtime_pid: null, elapsed: null, cpu_percent: null, rss_mb: null, runtime_rss_mb: null, total_rss_mb: null }; }
+}
 async function keychain(account) { const { stdout } = await exec("/usr/bin/security", ["find-generic-password", "-s", gatewayService, "-a", account, "-w"]); return stdout.trim(); }
 function connectorSecret(name) { return readFileSync(join(connectorSecrets, name), "utf8").trim(); }
 async function sources() {
@@ -54,10 +93,15 @@ const sourceList = await sources();
 while (!stopping && Date.now() - startedAt < durationMs) {
   const sampledAt = Date.now(), [gateway, connector, gatewayResource, connectorResource] = await Promise.all([health(18082), health(18083), processInfo("run-persistent-home-gateway.mjs"), processInfo("run-software-connector.mjs")]);
   const point = { contract: "observer-reliability-checkpoint-v1", run_id: runId, sequence: ++sequence, sampled_at: new Date(sampledAt).toISOString(), elapsed_ms: sampledAt - startedAt,
+    interval_ms: intervalMs,
     expected_physical_cameras: 11, empty_dvr_slots: 6,
     dvr: { health_ok: gateway.ok, expected: 10, progressing: gateway.body?.mediaHeartbeat?.progressingRelays ?? 0, stalled: gateway.body?.mediaHeartbeat?.stalledRelays ?? null, failed: gateway.body?.failedStreamCount ?? null, auth: gateway.body?.deviceAuthorization?.status ?? null, lifecycle: gateway.body?.mediaHeartbeat?.lifecycle ?? null, recorder_session: gateway.body?.recorderSessionHeartbeat ?? null },
     tapo: { health_ok: connector.ok, expected: 1, progressing: connector.body?.mediaHeartbeat?.progressingRelays ?? 0, stalled: connector.body?.mediaHeartbeat?.stalledRelays ?? null, failed: connector.body?.failedStreamCount ?? null, auth: connector.body?.deviceAuthorization?.status ?? null, lifecycle: connector.body?.mediaHeartbeat?.lifecycle ?? null },
-    resources: { gateway: gatewayResource, connector: connectorResource }, logs: { gateway_bytes: safeStat(logPaths.gateway), connector_bytes: safeStat(logPaths.connector) }, manual_interventions: 0 };
+    resources: { gateway: gatewayResource, connector: connectorResource },
+    logs: {
+      gateway_bytes: safeStat(logPaths.gateway), connector_bytes: safeStat(logPaths.connector),
+      gateway_signals: logSignals(logPaths.gateway), connector_signals: logSignals(logPaths.connector)
+    }, manual_interventions: 0 };
   if (sampledAt >= nextDeepProbeAt) { Object.assign(point, await deepProbe(sourceList)); nextDeepProbeAt = sampledAt + deepProbeMs; }
   appendFileSync(checkpointsPath, `${JSON.stringify(point)}\n`, { mode: 0o600 });
   atomicJson(statePath, { contract: "observer-reliability-soak-state-v1", run_id: runId, status: "RUNNING", started_at: new Date(startedAt).toISOString(), started_at_ms: startedAt, target_ended_at: new Date(startedAt + durationMs).toISOString(), duration_ms: durationMs, interval_ms: intervalMs, deep_probe_ms: deepProbeMs, checkpoint_count: sequence, last_checkpoint_at: point.sampled_at, next_deep_probe_at: nextDeepProbeAt, output_root: outputRoot });
