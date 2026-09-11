@@ -32,8 +32,12 @@ export async function GET() {
     const { data, error } = await supabase.from("classrooms" as never).select("*, child_classroom_assignments(id,child_id,is_current), staff_classroom_assignments(id,staff_id,status,responsibility)").eq("garden_id", access.gardenId).order("sort_order").order("name");
     if (error) return fail("לא ניתן לטעון את הכיתות", 503);
     const classrooms = await Promise.all(((data ?? []) as unknown as Array<Record<string, unknown> & { id: string }>).map(async (classroom) => {
-      const status = await supabase.rpc("classroom_capacity_status" as never, { target_classroom_id: classroom.id } as never);
-      return { ...classroom, capacity: status.error ? null : status.data };
+      const [status, staffing, projectedStaffing] = await Promise.all([
+        supabase.rpc("classroom_capacity_status" as never, { target_classroom_id: classroom.id } as never),
+        supabase.rpc("evaluate_classroom_staffing" as never, { target_classroom_id: classroom.id, evaluation_date: new Date().toISOString().slice(0,10), projected_child_delta: 0 } as never),
+        supabase.rpc("evaluate_classroom_staffing" as never, { target_classroom_id: classroom.id, evaluation_date: new Date().toISOString().slice(0,10), projected_child_delta: 1 } as never)
+      ]);
+      return { ...classroom, capacity: status.error ? null : status.data, staffing: staffing.error ? null : staffing.data, projected_staffing_next_child: projectedStaffing.error ? null : projectedStaffing.data };
     }));
     return ok({ classrooms, garden_id: access.gardenId });
   } catch (error) { return handleSafeRouteError(error); }

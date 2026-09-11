@@ -23,7 +23,6 @@ import { ManagerParentInvitationPanel } from "@/components/manager-parent-invita
 import { UploadImageField } from "@/components/upload-image-field";
 import {
   calculateGanBatuachMonthlyPrice,
-  calculateRequiredStaff,
   ganBatuachTrialDays,
   kindergartenAgeGroups,
   knownKindergartenCities,
@@ -212,7 +211,6 @@ export function KindergartenOnboardingForm({ garden, onboarding, managerName }: 
   const uploadedCategories = Array.isArray(profileData.uploaded_document_categories) ? profileData.uploaded_document_categories : [];
   const classCount = selectedAgeGroups.reduce((sum, key) => sum + Math.max(1, Number(classroomCounts[key] ?? 1)), 0) || 1;
   const monthlyPrice = calculateGanBatuachMonthlyPrice(classCount);
-  const requiredStaff = selectedAgeGroups.reduce((sum, key) => sum + calculateRequiredStaff(key, Number(classCapacity[key] ?? 0)), 0);
   const trialEnd = useMemo(() => new Date(Date.now() + ganBatuachTrialDays * 86400000).toLocaleDateString("he-IL"), []);
   const cityFromAddress = String(profileData.city ?? "").trim();
 
@@ -390,7 +388,7 @@ export function KindergartenOnboardingForm({ garden, onboarding, managerName }: 
           })}
         </div>
         <article className="manager-registration-card manager-staff-summary">
-          <div><strong>{requiredStaff}</strong><span>אנשי צוות נדרשים לפי הקיבולת</span></div>
+          <div><strong>ממתין לאישור</strong><span>דרישת כוח האדם תיקבע לפי מדיניות מאומתת ופעילה</span></div>
           <label>אנשי צוות שכבר הוגדרו<input type="number" min="0" value={staffCount} onChange={(event) => setStaffCount(Number(event.target.value))} /></label>
           <label><input name="staff_initialized" type="checkbox" defaultChecked={Boolean(profileData.staff_initialized)} /> הוזמן לפחות איש צוות אחד</label>
           <label>מצב מצלמות<select name="camera_readiness" defaultValue={profileData.camera_readiness ?? "not_now"}><option value="ready">יש מצלמות, נדרש חיבור Gateway</option><option value="needs_setup">נדרש תכנון וחיבור</option><option value="not_now">לא בשלב זה</option></select></label>

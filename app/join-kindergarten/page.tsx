@@ -140,7 +140,7 @@ export default async function JoinKindergartenPage({ searchParams }: { searchPar
                   <label key={group.key}>
                     <input type="checkbox" name="age_groups" value={group.key} />
                     <strong>{group.label}</strong>
-                    <span>{group.range} · עד {group.maxChildrenPerClass} ילדים · {group.rule}</span>
+                    <span>{group.range} · קיבולת ודרישות צוות נקבעות לפי הגדרות ומדיניות מאומתת</span>
                   </label>
                 ))}
               </div>
