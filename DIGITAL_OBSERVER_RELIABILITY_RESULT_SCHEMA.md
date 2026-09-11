@@ -2,7 +2,7 @@
 
 Contract: `observer-reliability-qualification-v1`
 
-Every qualification result records the exact build/runtime, evidence labels, start/end timestamps, elapsed milliseconds, checkpoint count and gap distribution, expected-camera denominator, supervisor and child-runtime state, frame progression, playback probes, AI probes, learning coverage, resources, DVR session behavior, health transitions/outage duration, normalized log signals, queues, fault outcomes, loss, duplicates, tenant leakage and manual intervention.
+Every qualification result records the exact build/runtime, evidence labels, start/end timestamps, elapsed milliseconds, checkpoint count and gap distribution, expected-camera denominator, supervisor and child-runtime state, frame progression, playback probes, AI-eligible probes and policy exclusions, learning coverage, resources/open handles/disk, DVR session behavior, health transitions/outage duration, normalized log signals, local Journal/offline and AI queue state, fault outcomes, loss, duplicates, tenant leakage and manual intervention.
 
 Allowed evidence labels are `REAL_PHYSICAL_CAMERA`, `REAL_HOME`, `LOCAL_MULTI_PROCESS`, `LOCAL_MULTI_NODE`, `ISOLATED_POSTGRES`, `SYNTHETIC_LOAD`, `MULTI_HOST`, `EXTERNAL_PILOT`, and `PRODUCTION`. Labels describe evidence; they are not interchangeable.
 
