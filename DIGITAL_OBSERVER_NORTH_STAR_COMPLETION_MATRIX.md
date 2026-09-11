@@ -34,6 +34,9 @@ This register maps every requested North-Star capability to an existing canonica
 | Customer-hosted recording access | Previous: NOT STARTED | New: FOUNDATION | PUSH 34 source-recording reference | Added tenant/Site/source/time/retrieval-bound references without credentials or copying source media; real DVR/NVR/VMS retrieval remains unimplemented. |
 | Retention | Previous: PARTIAL | New: IMPLEMENTED — NEEDS REAL PROOF | PUSH 34 portable retention executor | Backend-independent eligibility, legal hold, delete-before-tombstone, retry and two-backend QA pass; approved legal periods and Production deletion proof remain. |
 | Distributed processing | Previous: FOUNDATION | New: PARTIAL | PUSH 35 portable deployment | A clean tracked checkout now installs, builds, starts Web health and restores representative state; the same worker/model contract is reproducible without office/developer state. Horizontal multi-node operation remains PUSH 36. |
+| Distributed processing | Previous: PARTIAL | New: IMPLEMENTED — NEEDS REAL PROOF | PUSH 36 horizontal worker pool | Four processes safely share one logical queue, worker loss recovers, and identical-workload throughput rises 3.19×; multi-host and Production operation remain unproven. |
+| Load balancing | Previous: NOT STARTED | New: PARTIAL | PUSH 36 local worker pool | Authenticated capability-matched workers share priority/fair workload without camera rewiring; HA and multi-host balancing remain PUSH 37. |
+| Thousands of streams | Previous: NOT STARTED | New: FOUNDATION | PUSH 36 synthetic queue profile | A 1,000-camera/2,000-job mixed-tenant backlog is generated and sampled with explicit assumptions; no live 1,000-stream execution is claimed. |
 
 ## CAMERA PLATFORM
 
@@ -213,11 +216,11 @@ This register maps every requested North-Star capability to an existing canonica
 | Hospital/industrial | NOT STARTED | No regulated industrial pilot | 37, 38, 45, 48 | Domain safety/compliance | Approved sector pilot |
 | Large security operation | NOT STARTED | No monitoring-center proof | 36, 37, 38, 48 | Operator load and escalation | Real monitoring-center pilot |
 | City-scale architecture | FOUNDATION | Horizontal/distributed roadmap ownership | 31, 35, 36, 37, 38 | Architecture, privacy and scale proof | Staged city-scale benchmark and governance |
-| Thousands of streams | NOT STARTED | No thousand-stream test | 31, 36, 37, 38 | Queue, workers, storage and cost | Measured 1,000-stream qualification |
-| Distributed processing | PARTIAL | PUSH 31/32 worker/routing contracts plus PUSH 35 clean tracked deployment, verified model acquisition and isolated restore | 31, 32, 35, 36 | Horizontal multi-node Production implementation | Two-environment failover/load proof |
+| Thousands of streams | FOUNDATION | PUSH 36 generated a synthetic 1,000-camera/2,000-job, ten-tenant/fifty-Site queue profile and processed a bounded sample | 31, 36, 37, 38 | Real stream execution, multi-host queue and sustained qualification | Measured 1,000-stream qualification |
+| Distributed processing | IMPLEMENTED — NEEDS REAL PROOF | PUSH 31/32 contracts, PUSH 35 portability and PUSH 36 four-process shared-queue/load/worker-loss proof | 31, 32, 35, 36 | Multi-host Production queue/deployment and sustained operation | Independent multi-host failover/load proof |
 | Enterprise Edge scale | FOUNDATION | Shared edge profile contract | 17, 18, 22, 35, 48 | Production packaging and fleet | Multi-edge enterprise pilot |
-| Queues | IMPLEMENTED — NEEDS REAL PROOF | PUSH 31 durable WAL jobs, lease recovery, priority/fairness/backpressure and dead-letter QA | 31, 36, 38 | Multi-node deployment and sustained load | Real horizontal worker-loss and tenant-fairness proof |
-| Load balancing | NOT STARTED | No horizontal production proof | 36, 37 | Implement routing and balancing | Measured scale/failover test |
+| Queues | IMPLEMENTED — NEEDS REAL PROOF | PUSH 31 durable WAL semantics plus PUSH 36 four-process lease/fairness/worker-loss and queue-age QA | 31, 36, 38 | Multi-host backend and sustained Production load | Real multi-host worker-loss and tenant-fairness proof |
+| Load balancing | PARTIAL | PUSH 36 authenticated four-worker local pool, capability matching and 3.19× identical-workload throughput | 36, 37 | Multi-host load balancing and HA | Measured multi-host scale/failover test |
 | Failover | NOT STARTED | No full multi-zone/provider proof | 37 | Implement HA ownership and recovery | RTO/RPO fault injection |
 | Fleet management | IMPLEMENTED — NEEDS REAL PROOF | Canonical inventory/API/UI, bounded commands and 10,000-component synthetic QA | 22 | Real multi-tenant/multi-site operational deployment | Real multi-device fleet proof |
 
@@ -246,7 +249,7 @@ This register maps every requested North-Star capability to an existing canonica
 |---|---|---|---|---|---|
 | Preprocessing | IMPLEMENTED — NEEDS REAL PROOF | PUSH 29 local frame difference precedes ONNX; candidate-only native contract, dedupe/coalescing, safe fallback and 11/22 real-input jobs avoided | 29 | Representative FN Ground Truth and verified native vendor adapters | Real quality-preserving workload reduction |
 | Sampling | IMPLEMENTED — NEEDS REAL PROOF | PUSH 30 canonical purpose/priority scheduler, explainable decisions, never-blind floor, fairness and bounded 11-camera real-input comparison | 29, 30 | Representative FN Ground Truth, long-duration and multi-Site evaluation | Recall/latency comparison on representative real data |
-| AI job queue | IMPLEMENTED — NEEDS REAL PROOF | PUSH 31 canonical job/result/worker contracts, restart durability, worker-loss recovery, idempotency, priority/fairness/backpressure and real Tapo sample | 31 | Production multi-worker operation and representative load | Real deployed worker-loss/backpressure proof |
+| AI job queue | IMPLEMENTED — NEEDS REAL PROOF | PUSH 31 contracts/real Tapo sample plus PUSH 36 local four-process scale, idempotency, worker-loss and backpressure evidence | 31, 36 | Multi-host Production operation and representative sustained load | Real deployed multi-host worker-loss/backpressure proof |
 | Hybrid routing | IMPLEMENTED — NEEDS REAL PROOF | PUSH 32 eligibility-first router, policy audit, bounded failover and real EDGE_LOCAL camera job | 32 | Authorized Cloud adapter and real multi-provider operation | Real failover with provenance across deployed providers |
 | Model routing | IMPLEMENTED — NEEDS REAL PROOF | PUSH 32 capability/model matching plus measured-quality sample gate | 32 | Representative multi-model quality evidence | Measured route selection proof |
 | Cost-aware optimization | FOUNDATION | PUSH 33 normalized usage/rates, execution provenance and fail-closed quality/privacy cost guard; PUSH 32 routing remains unchanged | 33 | Approved reconciled rates and controlled routing experiment | Quality-constrained real savings proof |
@@ -297,10 +300,10 @@ The counts below are generated from the rows above during closure QA. They descr
 | Status | Count |
 |---|---:|
 | `DONE + REAL PROOF` | 24 |
-| `IMPLEMENTED — NEEDS REAL PROOF` | 33 |
-| `FOUNDATION` | 63 |
+| `IMPLEMENTED — NEEDS REAL PROOF` | 34 |
+| `FOUNDATION` | 64 |
 | `PARTIAL` | 18 |
-| `NOT STARTED` | 51 |
+| `NOT STARTED` | 49 |
 | `EXTERNAL COVERAGE GAP` | 1 |
 | **TOTAL** | **190** |
 

@@ -17,6 +17,8 @@
     "services/video-gateway/adaptive-sampling-scheduler.mjs",
     "services/video-gateway/ai-job-contract.mjs",
     "services/video-gateway/durable-ai-job-queue.mjs",
+    "services/video-gateway/ai-queue-backend-contract.mjs",
+    "services/video-gateway/horizontal-inference-pool.mjs",
     "services/video-gateway/portable-inference-worker.mjs",
     "services/video-gateway/ai-routing-policy.mjs",
     "services/video-gateway/cost-intelligence.mjs",
@@ -72,6 +74,7 @@
     { "name": "cost-intelligence", "args": ["scripts/qa/check-digital-observer-cost-engine.mjs"] },
     { "name": "storage-portability", "args": ["scripts/qa/check-digital-observer-storage-portability.mjs"] },
     { "name": "portable-deployment", "args": ["scripts/qa/check-digital-observer-portable-deployment.mjs"] },
+    { "name": "horizontal-ai-scale", "args": ["scripts/qa/check-digital-observer-horizontal-scale.mjs"] },
     { "name": "north-star-ledger", "args": ["scripts/qa/check-north-star-completion-ledger.mjs"] },
     { "name": "watch-rules", "args": ["scripts/qa/check-digital-observer-watch-rule-compiler.mjs"] },
     { "name": "investigation", "args": ["--test", "scripts/qa/check-digital-observer-investigation.mjs"] }
