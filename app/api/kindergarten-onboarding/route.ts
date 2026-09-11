@@ -40,6 +40,7 @@ const onboardingSchema = z.object({
     })).optional(),
     class_capacity: z.record(z.string(), z.coerce.number().min(0)).optional(),
     classroom_counts: z.record(z.string(), z.coerce.number().int().min(1).max(20)).optional(),
+    classroom_capacities: z.record(z.string(), z.coerce.number().int().min(1).max(10000)).optional(),
     staff_count: z.coerce.number().min(0).optional(),
     staff_initialized: z.boolean().optional(),
     children_initialized: z.boolean().optional(),
@@ -299,6 +300,7 @@ export async function PATCH(request: Request) {
       // One classroom is the deterministic default; explicit counts may create
       // several classrooms with the same category without identity collisions.
       const classroomCounts = (profileData.classroom_counts ?? {}) as Record<string, number>;
+      const classroomCapacities = (profileData.classroom_capacities ?? {}) as Record<string, number>;
       const desiredClassrooms = selectedAgeGroups.flatMap((groupKey, categoryIndex) => {
         const group = kindergartenAgeGroups.find((item) => item.key === groupKey);
         const count = Math.min(20, Math.max(1, Number(classroomCounts[groupKey] ?? 1)));
@@ -311,6 +313,7 @@ export async function PATCH(request: Request) {
           min_age_months: bounds[groupKey]?.[0] ?? null,
           max_age_months: bounds[groupKey]?.[1] ?? null,
           status: "active",
+          capacity_limit: classroomCapacities[`${groupKey}_${index + 1}`] ?? null,
           sort_order: categoryIndex * 100 + index,
           source: "onboarding",
           updated_by: profile.id,
