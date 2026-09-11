@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { fail, handleRouteError, ok } from "@/lib/api";
-import { requireRole } from "@/lib/auth";
+import { getSessionProfile } from "@/lib/auth";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 import { activationWizardSteps, calculateGanBatuachMonthlyPrice, calculateRequiredStaff, kindergartenAgeGroups, operationalDistrictForCity, requiredKindergartenDocumentCategories, validateClassCapacity } from "@/lib/domain/kindergarten-onboarding";
@@ -58,7 +58,9 @@ const onboardingSchema = z.object({
 
 export async function GET(request: Request) {
   try {
-    await requireRole(["manager", "owner"]);
+    const session = await getSessionProfile();
+    if (!session.user || !session.profile) return fail("נדרשת התחברות", 401);
+    if (!(["manager", "owner"] as string[]).includes(String(session.profile.role))) return fail("אין הרשאה לתהליך הקליטה", 403);
     const gardenId = new URL(request.url).searchParams.get("gardenId");
     if (!gardenId || !z.string().uuid().safeParse(gardenId).success) return fail("מזהה גן חסר או לא תקין", 400);
     const supabase = await createClient();
@@ -130,7 +132,10 @@ function calculateProgress(data: Record<string, unknown>) {
 
 export async function PATCH(request: Request) {
   try {
-    const { user, profile } = await requireRole(["manager", "owner"]);
+    const session = await getSessionProfile();
+    if (!session.user || !session.profile) return fail("נדרשת התחברות", 401);
+    if (!(["manager", "owner"] as string[]).includes(String(session.profile.role))) return fail("אין הרשאה לתהליך הקליטה", 403);
+    const { user, profile } = session;
     const payload = onboardingSchema.parse(await request.json());
     const gardenId = payload.garden_id ?? profile.garden_id;
     if (!gardenId) return fail("לא נמצא גן משויך. יש לפתוח קודם בקשת גן.", 422);

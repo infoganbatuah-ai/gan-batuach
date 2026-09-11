@@ -1,7 +1,7 @@
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
 import { fail, handleRouteError, ok } from "@/lib/api";
-import { requireRole } from "@/lib/auth";
+import { getSessionProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { operationalDistrictForCity } from "@/lib/domain/kindergarten-onboarding";
 
@@ -17,7 +17,9 @@ const clean = (value?: string | null) => String(value ?? "").trim() || null;
 
 export async function POST(request: Request) {
   try {
-    await requireRole(["manager", "owner"]);
+    const session = await getSessionProfile();
+    if (!session.user || !session.profile) return fail("נדרשת התחברות", 401);
+    if (!(["manager", "owner"] as string[]).includes(String(session.profile.role))) return fail("אין הרשאה לפתוח תהליך קליטה", 403);
     const payload = schema.parse(await request.json());
     const supabase = await createClient();
     const address = [payload.street, payload.address_details].map(clean).filter(Boolean).join(" ");

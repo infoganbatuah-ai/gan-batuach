@@ -57,6 +57,8 @@ test("draft read save and activation enforce server-side ownership", () => {
   assert.match(onboardingRoute, /can_edit_garden_onboarding/);
   assert.match(onboardingRoute, /editAuthority\.data !== true/);
   assert.match(startRoute, /start_garden_onboarding/);
+  assert.match(onboardingRoute, /return fail\("נדרשת התחברות", 401\)/);
+  assert.match(startRoute, /return fail\("נדרשת התחברות", 401\)/);
 });
 
 test("save resume uses server state and explicit draft garden id", () => {
