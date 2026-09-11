@@ -1,39 +1,34 @@
 # DIGITAL OBSERVER — CURRENT EXECUTION QUEUE
 
-Date: 2026-09-10
+Date: 2026-09-11
 Canonical roadmap: `DIGITAL_OBSERVER_CANONICAL_MASTER_ROADMAP.md`
 
 This queue records execution state; it does not authorize the next PUSH.
 
+## CURRENT
+
+**PUSH 38 — Reliability + Load + Soak + Chaos Qualification**
+
+State: `IN PROGRESS — 24-HOUR REAL SOAK REQUIRED`.
+
+The repeatable scale/chaos harness is implemented and preliminary deterministic qualification passes. A real-Home soak must accumulate at least 24 actual elapsed hours and pass every final gate before the scoped PR may merge.
+
 ## COMPLETED
 
-**PUSH 28 — Quality Measurement + Benchmark Program + Ground Truth**
-
-State: `DONE`.
-
-Implemented scope:
-
-- PUSH 11 reviewed Ground Truth remains canonical;
-- versioned/sealed dataset and immutable run ledger;
-- reproducible run identity;
-- precision, FP/FN, latency and calibration contracts;
-- recall only when missed-event Ground Truth exists;
-- dataset-kind/mock isolation;
-- human-gated model/threshold comparisons;
-- truthful Quality API/UI/export;
-- learning maturity and camera-coverage language corrected.
+PUSH 1–37 are complete.
 
 ## EARLY-COMPLETED PUSHES
 
-PUSH 24, PUSH 25 and PUSH 27 remain `DONE EARLY`. PUSH 28 revalidates their dependency-sensitive gates; it does not recreate those pushes. The deferred billing RLS finding remains separately open.
+PUSH 24, PUSH 25 and PUSH 27 remain `DONE EARLY` and dependency-valid. The deferred billing RLS finding remains separately open.
 
 ## NEXT
 
-PUSH 29 — Native Events and Cheap Preprocessing — is `NEXT / NOT STARTED`. It may begin only after a separate user instruction.
+PUSH 39 is `NOT STARTED`. It is not ready until PUSH 38 passes, merges through its dedicated PR, and `origin/main` is verified.
 
 ## BOUNDARIES
 
-- No automatic Production threshold/model change.
-- No invented Recall, false negatives, calibration or Site-wide learning.
-- No synthetic/mock data in real Product quality metrics.
-- No PUSH 29 work in PUSH 28.
+- No fabricated or accelerated 24-hour evidence.
+- Six empty DVR slots remain outside the eleven-camera denominator.
+- Synthetic 100/1,000-camera load is not a real deployment.
+- No multi-host/zone/provider claim without actual proof.
+- No PUSH 39 work in PUSH 38.

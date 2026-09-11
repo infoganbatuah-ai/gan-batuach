@@ -53,6 +53,8 @@
     "qa:digital-observer-horizontal-scale": "node scripts/qa/check-digital-observer-horizontal-scale.mjs",
     "qa:digital-observer-horizontal-scale-real": "node scripts/qa/measure-real-home-horizontal-scale.mjs",
     "qa:digital-observer-high-availability": "node scripts/qa/check-digital-observer-high-availability.mjs",
+    "qa:digital-observer-reliability-qualification": "node scripts/qa/check-digital-observer-reliability-qualification.mjs",
+    "qa:digital-observer-real-home-soak": "node scripts/qa/run-real-home-soak.mjs --duration-ms=86400000 --interval-ms=60000 --deep-probe-ms=3600000",
     "qa:digital-observer-cost-engine": "node scripts/qa/check-digital-observer-cost-engine.mjs",
     "qa:digital-observer-cost-engine-real": "node scripts/qa/measure-real-home-cost-baseline.mjs",
     "qa:digital-observer-storage-portability": "node scripts/qa/check-digital-observer-storage-portability.mjs",
