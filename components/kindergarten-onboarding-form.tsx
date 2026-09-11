@@ -205,10 +205,11 @@ export function KindergartenOnboardingForm({ garden, onboarding, managerName }: 
   const [confirmed, setConfirmed] = useState(false);
   const [selectedAgeGroups, setSelectedAgeGroups] = useState<string[]>(Array.isArray(profileData.selected_age_groups) ? profileData.selected_age_groups : []);
   const [classCapacity, setClassCapacity] = useState<Record<string, number>>((profileData.class_capacity ?? {}) as Record<string, number>);
+  const [classroomCounts, setClassroomCounts] = useState<Record<string, number>>((profileData.classroom_counts ?? {}) as Record<string, number>);
   const [staffCount, setStaffCount] = useState(Number(profileData.staff_count ?? 0));
   const galleryUrls = Array.isArray(profileData.gallery_urls) ? profileData.gallery_urls : [];
   const uploadedCategories = Array.isArray(profileData.uploaded_document_categories) ? profileData.uploaded_document_categories : [];
-  const classCount = selectedAgeGroups.filter((key) => Number(classCapacity[key] ?? 0) > 0).length || selectedAgeGroups.length || 1;
+  const classCount = selectedAgeGroups.reduce((sum, key) => sum + Math.max(1, Number(classroomCounts[key] ?? 1)), 0) || 1;
   const monthlyPrice = calculateGanBatuachMonthlyPrice(classCount);
   const requiredStaff = selectedAgeGroups.reduce((sum, key) => sum + calculateRequiredStaff(key, Number(classCapacity[key] ?? 0)), 0);
   const trialEnd = useMemo(() => new Date(Date.now() + ganBatuachTrialDays * 86400000).toLocaleDateString("he-IL"), []);
@@ -249,6 +250,7 @@ export function KindergartenOnboardingForm({ garden, onboarding, managerName }: 
         selected_age_groups: selectedAgeGroups,
         age_group_pricing: ageGroupPricing,
         class_capacity: classCapacity,
+        classroom_counts: classroomCounts,
         staff_count: staffCount,
         staff_initialized: checked(form, "staff_initialized"),
         children_initialized: checked(form, "children_initialized"),
@@ -371,6 +373,7 @@ export function KindergartenOnboardingForm({ garden, onboarding, managerName }: 
               <p>עד {group.maxChildrenPerClass} ילדים · {group.rule}</p>
               <div className="form-grid">
                 <label>מספר ילדים<input type="number" min="0" max={group.maxChildrenPerClass} value={classCapacity[group.key] ?? 0} onChange={(event) => setClassCapacity((current) => ({ ...current, [group.key]: Number(event.target.value) }))} /></label>
+                <label>מספר כיתות<input type="number" min="1" max="20" value={classroomCounts[group.key] ?? 1} onChange={(event) => setClassroomCounts((current) => ({ ...current, [group.key]: Math.max(1, Number(event.target.value)) }))} /></label>
                 <label>תשלום חודשי לילד<input name={`monthly_price_${group.key}`} type="number" min="0" defaultValue={profileData.age_group_pricing?.[group.key]?.monthly_price ?? ""} /></label>
                 <label>יום חיוב<input name={`billing_day_${group.key}`} type="number" min="1" max="28" defaultValue={profileData.age_group_pricing?.[group.key]?.billing_day ?? 1} /></label>
                 <label>מחזור<select name={`billing_cycle_${group.key}`} defaultValue={profileData.age_group_pricing?.[group.key]?.billing_cycle ?? "monthly"}><option value="monthly">חודשי</option><option value="annual">שנתי</option></select></label>
