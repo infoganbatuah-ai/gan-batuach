@@ -39,6 +39,7 @@ const onboardingSchema = z.object({
       show_price_public: z.boolean().optional()
     })).optional(),
     class_capacity: z.record(z.string(), z.coerce.number().min(0)).optional(),
+    classroom_counts: z.record(z.string(), z.coerce.number().int().min(1).max(20)).optional(),
     staff_count: z.coerce.number().min(0).optional(),
     staff_initialized: z.boolean().optional(),
     children_initialized: z.boolean().optional(),
@@ -293,6 +294,35 @@ export async function PATCH(request: Request) {
         }
         return supabase.from("kindergarten_fee_groups" as any).insert(row);
       }));
+
+      // GB-M11: category selection creates distinct canonical operational units.
+      // One classroom is the deterministic default; explicit counts may create
+      // several classrooms with the same category without identity collisions.
+      const classroomCounts = (profileData.classroom_counts ?? {}) as Record<string, number>;
+      const desiredClassrooms = selectedAgeGroups.flatMap((groupKey, categoryIndex) => {
+        const group = kindergartenAgeGroups.find((item) => item.key === groupKey);
+        const count = Math.min(20, Math.max(1, Number(classroomCounts[groupKey] ?? 1)));
+        const bounds: Record<string, [number | null, number | null]> = { INFANT: [3,15], TODDLER_YOUNG: [16,24], TODDLER_MATURE: [25,36], KINDERGARTEN: [36,null] };
+        return Array.from({ length: count }, (_, index) => ({
+          garden_id: gardenId,
+          name: `${group?.label ?? groupKey} ${index + 1}`,
+          age_group_key: groupKey,
+          age_group_label: group?.label ?? groupKey,
+          min_age_months: bounds[groupKey]?.[0] ?? null,
+          max_age_months: bounds[groupKey]?.[1] ?? null,
+          status: "active",
+          sort_order: categoryIndex * 100 + index,
+          source: "onboarding",
+          updated_by: profile.id,
+          updated_at: now,
+          metadata: { onboarding_managed: true }
+        }));
+      });
+      if (desiredClassrooms.length) {
+        await supabase.from("classrooms" as any).upsert(desiredClassrooms, { onConflict: "garden_id,name" });
+        const desiredNames = desiredClassrooms.map((room) => room.name);
+        await supabase.from("classrooms" as any).update({ status: "inactive", updated_by: profile.id, updated_at: now }).eq("garden_id", gardenId).eq("source", "onboarding").not("name", "in", `(${desiredNames.map((name) => `\"${name.replaceAll('"','')}\"`).join(',')})`);
+      }
     }
 
     if (payload.submit) {

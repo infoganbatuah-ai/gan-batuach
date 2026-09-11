@@ -25,4 +25,5 @@ jobs:
       - run: node --test scripts/qa/check-management-owner-teacher-semantics.mjs
       - run: node --test scripts/qa/check-management-multi-garden-owner-context.mjs
       - run: node --test scripts/qa/check-management-atomic-onboarding.mjs
+      - run: node --test scripts/qa/check-management-canonical-classrooms.mjs
       - run: npm run qa:manager-parent-live-contract

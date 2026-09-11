@@ -36,7 +36,7 @@ export default async function GardenChildrenPage({ searchParams }: { searchParam
   const gardenId = profile.garden_id ?? "";
   const today = israelTodayDateKey();
   const [childrenRes, attendanceRes, journalsRes, incidentsRes, feeGroupsRes, requestsRes, gardenRes] = await Promise.all([
-    supabase.from("children" as any).select("*").eq("garden_id", gardenId).order("full_name"),
+    supabase.from("children" as any).select("*, child_classroom_assignments(classroom_id,is_current,classrooms(name,age_group_label))").eq("garden_id", gardenId).order("full_name"),
     supabase.from("attendance" as any).select("child_id, status, pickup_authorized, pickup_name, note").eq("garden_id", gardenId).eq("attendance_date", today),
     supabase.from("child_daily_journals" as any).select("child_id, meals, sleep_summary, mood, bathroom, incidents, notes_to_parents, photo_urls").eq("garden_id", gardenId).eq("journal_date", today),
     supabase.from("incident_reports" as any).select("child_id, id").eq("garden_id", gardenId).neq("status", "closed"),
@@ -60,6 +60,7 @@ export default async function GardenChildrenPage({ searchParams }: { searchParam
   const requestCount = new Map<string, number>();
   for (const request of (requestsRes.data ?? []) as any[]) requestCount.set(request.child_id, (requestCount.get(request.child_id) ?? 0) + 1);
   const allRows = ((childrenRes.data ?? []) as any[]).map((child) => {
+    const currentClassroom = (child.child_classroom_assignments ?? []).find((assignment: { is_current?: boolean; classrooms?: { name?: string; age_group_label?: string } }) => assignment.is_current)?.classrooms;
     const attendance = attendanceByChild.get(child.id) as any;
     const journal = journalByChild.get(child.id) as any;
     const group = feeById.get(child.payment_group_id) ?? feeGroups.find((item) => item.group_name === child.age_group || item.group_name === child.classroom);
@@ -67,6 +68,8 @@ export default async function GardenChildrenPage({ searchParams }: { searchParam
     const meals = Array.isArray(journal?.meals) ? journal.meals.map((meal: any) => meal.text ?? meal).join(", ") : "";
     return {
       ...child,
+      classroom: currentClassroom?.name ?? child.classroom,
+      classroom_age_group: currentClassroom?.age_group_label ?? child.age_group,
       fee_group_name: group?.group_name ?? child.classroom ?? child.age_group ?? "ללא קבוצת תשלום",
       group_monthly_fee: group?.monthly_fee ?? child.monthly_fee,
       actual_monthly_fee: hasSpecialArrangement ? Number(child.custom_monthly_fee ?? 0) : Number(group?.monthly_fee ?? child.monthly_fee ?? 0),
