@@ -116,7 +116,7 @@ returns boolean language sql stable security definer set search_path = public as
         and membership.relationship_role in ('owner', 'manager')
         and profile.active is true
         and profile.role::text in ('owner', 'manager')
-        and coalesce(garden.status, 'active') not in ('inactive', 'suspended', 'closed', 'rejected')
+        and coalesce(garden.status::text, 'active') not in ('inactive', 'suspended', 'closed', 'rejected')
     )
     or exists (
       select 1 from public.profiles profile
@@ -142,7 +142,7 @@ language sql stable security definer set search_path = public as $$
     where membership.profile_id = auth.uid()
       and membership.status = 'active'
       and profile.active is true
-      and coalesce(garden.status, 'active') not in ('inactive', 'suspended', 'closed', 'rejected')
+      and coalesce(garden.status::text, 'active') not in ('inactive', 'suspended', 'closed', 'rejected')
     group by membership.garden_id, garden.name
   )
   select authorized.garden_id, authorized.name, authorized.relationship_role, authorized.is_default

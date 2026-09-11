@@ -34,7 +34,7 @@ test("can_manage_garden proves an active relationship for every requested garden
   assert.match(body, /membership\.profile_id = auth\.uid\(\)/);
   assert.match(body, /membership\.garden_id = target_garden_id/);
   assert.match(body, /membership\.status = 'active'/);
-  assert.match(body, /garden\.status.*not in \('inactive', 'suspended', 'closed', 'rejected'\)/s);
+  assert.match(body, /garden\.status::text.*not in \('inactive', 'suspended', 'closed', 'rejected'\)/s);
   assert.doesNotMatch(body, /profile\.garden_id = target_garden_id/);
 });
 
