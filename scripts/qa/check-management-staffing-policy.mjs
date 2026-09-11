@@ -43,7 +43,9 @@ test("projection changes child input without mutating assignments", () => {
 });
 
 test("Admin mutates policy while Manager receives read-only current and projected output", () => {
-  assert.match(adminApi,/requireRole\(\["admin"\]\)/);
+  assert.match(adminApi,/session\.profile\.role !== "admin"/);
+  assert.match(adminApi,/fail\("נדרשת התחברות מחדש\.", 401\)/);
+  assert.match(adminApi,/fail\("אין הרשאה לניהול מדיניות כוח אדם\.", 403\)/);
   assert.match(adminApi,/activate_staffing_policy_version/);
   assert.match(managerApi,/getManagementGardenContext/);
   assert.match(managerApi,/current_compliance/);

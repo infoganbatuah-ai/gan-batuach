@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { fail, handleSafeRouteError, ok } from "@/lib/api";
-import { requireRole } from "@/lib/auth";
+import { getSessionProfile } from "@/lib/auth";
 import { writeAdminActionEvent } from "@/lib/security/audit-log-service";
 import { createClient } from "@/lib/supabase/server";
 
@@ -14,9 +14,17 @@ const mutation = z.discriminatedUnion("action", [
   z.object({ action: z.literal("retire"), version_id: z.string().uuid() })
 ]);
 
+async function requireApiAdmin() {
+  const session = await getSessionProfile();
+  if (!session.user || !session.profile) return { response: fail("נדרשת התחברות מחדש.", 401) } as const;
+  if (session.profile.role !== "admin") return { response: fail("אין הרשאה לניהול מדיניות כוח אדם.", 403) } as const;
+  return { session } as const;
+}
+
 export async function GET() {
   try {
-    await requireRole(["admin"]);
+    const authorization = await requireApiAdmin();
+    if ("response" in authorization) return authorization.response;
     const supabase = await createClient();
     const { data, error } = await supabase.from("staffing_policy_sets" as never).select("*, staffing_policy_versions(*, staffing_policy_rules(*))").order("created_at", { ascending: false });
     if (error) return fail("לא ניתן לטעון את מדיניות כוח האדם", 503);
@@ -26,7 +34,9 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const { profile } = await requireRole(["admin"]);
+    const authorization = await requireApiAdmin();
+    if ("response" in authorization) return authorization.response;
+    const { profile } = authorization.session;
     const payload = mutation.parse(await request.json());
     const supabase = await createClient();
     let result: { data: unknown; error: { code?: string; message: string } | null };
