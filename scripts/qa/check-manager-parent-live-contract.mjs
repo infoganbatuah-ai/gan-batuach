@@ -14,6 +14,7 @@ function check(label, pass, evidence) {
 
 const managerApplication = read("app/api/garden/manager-application/route.ts");
 const onboarding = read("app/api/kindergarten-onboarding/route.ts");
+const atomicOnboarding = read("supabase/migrations/20260911020000_management_atomic_garden_onboarding.sql");
 const legacyParent = read("app/api/garden/create-parent/route.ts");
 const managerInvite = read("app/api/garden/parent-invitations/route.ts");
 const parentInvite = read("app/api/parent/garden-invitations/route.ts");
@@ -23,11 +24,11 @@ const parentFamily = read("lib/domain/parent-family.ts");
 const loginAction = read("app/login/actions.ts");
 const authRouting = read("lib/auth.ts");
 
-check("Manager registration has no admin approval gate", managerApplication.includes("admin_approval_required: false"), "manager application metadata");
-check("Manager receives continuous onboarding access", managerApplication.includes('self_service_status: "profile_incomplete"') && managerApplication.includes("active: true"), "manager profile write");
+check("Manager registration has no admin approval gate", atomicOnboarding.includes("'admin_approval_required',false") && !atomicOnboarding.includes("pending_final_approval.*raise"), "atomic onboarding contract");
+check("Manager receives continuous onboarding access", managerApplication.includes("start_garden_onboarding") && atomicOnboarding.includes("can_edit_garden_onboarding") && atomicOnboarding.includes("membership.status='pending'"), "canonical draft authority");
 check("Trial lasts 14 days", read("lib/domain/kindergarten-onboarding.ts").includes("ganBatuachTrialDays = 14"), "central trial constant");
-check("Trial charges zero today", onboarding.includes("charge_today_nis: 0"), "subscription metadata");
-check("Live payment remains manual/sandbox readiness", onboarding.includes('payment_mode: "manual_or_sandbox_until_provider_approval"'), "subscription metadata");
+check("Trial charges zero today", atomicOnboarding.includes("'charge_today_nis',0"), "transactional subscription metadata");
+check("Live payment remains manual/sandbox readiness", atomicOnboarding.includes("'payment_mode','manual_or_sandbox_until_provider_approval'") && atomicOnboarding.includes("'live_collection',false"), "canonical readiness metadata");
 check("At least one age group is required", onboarding.includes("יש לבחור לפחות קבוצת גיל אחת"), "server-side activation validation");
 check("Legacy direct parent creation is blocked", legacyParent.includes("parent_acceptance_required: true") && legacyParent.includes("replacement_endpoint"), "compatibility endpoint");
 check("Manager invitation requires parent acceptance", managerInvite.includes("parent_acceptance_required: true"), "invitation metadata");
