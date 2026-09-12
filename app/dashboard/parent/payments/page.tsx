@@ -5,6 +5,7 @@ import { DashboardShell } from "@/components/dashboard-shell";
 import { ParentAppFrame, ParentEmptyState, ParentHero, ParentMetricCard, ParentSection } from "@/components/parent-app-ui";
 import { requireRole } from "@/lib/auth";
 import { getParentFamilyContext } from "@/lib/domain/parent-family";
+import { guardianChildIds } from "@/lib/management/family-link";
 import { createClient } from "@/lib/supabase/server";
 
 function paymentLabel(status?: string | null) {
@@ -26,10 +27,21 @@ function dateText(value?: string | null) {
   return value ? new Date(value).toLocaleDateString("he-IL") : "לא נקבע";
 }
 
+type PendingEnrollmentRequest = {
+  id: string;
+  status: string;
+  payment_status: string;
+  gardens?: { name?: string | null } | null;
+};
+
 export default async function ParentPaymentsPage() {
   const { profile } = await requireRole(["parent"]);
   const supabase = await createClient();
   const family = await getParentFamilyContext(supabase as any, profile);
+  const authorizedChildIds = await guardianChildIds(supabase, profile.id);
+  const pendingRequests = authorizedChildIds.length ? await supabase.from("kindergarten_enrollment_requests" as never)
+    .select("id,child_profile_id,status,payment_status,gardens(name)" as never).eq("parent_id", profile.id)
+    .in("child_profile_id", authorizedChildIds).in("status", ["awaiting_payment", "payment_reconciliation_required"]) : { data: [] };
   const children = (family.enrollments as any[]).map((child) => ({
     ...child,
     id: child.child_id ?? child.permanent_child_file_id,
@@ -83,6 +95,16 @@ export default async function ParentPaymentsPage() {
                 );
               })}
             </div>
+          )}
+        </ParentSection>
+
+        <ParentSection title="הרשמות לפני הפעלה" subtitle="אישור הגן עדיין אינו הרשמה פעילה">
+          {(pendingRequests.data ?? []).length === 0 ? <ParentEmptyState title="אין הרשמות שממתינות להסדר תשלום" text="בקשה שאושרה תופיע כאן עד להפעלה בפועל." /> : (
+            <div className="parent-payment-list">{((pendingRequests.data ?? []) as unknown as PendingEnrollmentRequest[]).map((request) => <article className="parent-payment-card" key={request.id}>
+              <strong>{request.gardens?.name ?? "גן"}</strong>
+              <span>{request.status === "payment_reconciliation_required" ? "נדרשת בדיקת תשלום ידנית" : "ממתין להסדר תשלום"}</span>
+              <span className={`parent-status-chip ${request.status === "payment_reconciliation_required" ? "orange" : "purple"}`}>{request.payment_status === "reconciliation_required" ? "בעיה בבדיקת התשלום" : "טרם הופעל"}</span>
+            </article>)}</div>
           )}
         </ParentSection>
 

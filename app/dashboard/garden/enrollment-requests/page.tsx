@@ -2,6 +2,7 @@ import { Baby, CalendarDays, CheckCircle2, CreditCard, FileText, Phone, UserPlus
 import { DashboardShell } from "@/components/dashboard-shell";
 import { EnrollmentRequestActionButtons } from "@/components/garden-request-action-buttons";
 import { ApplicationDecisionForm } from "@/components/self-service-forms";
+import { ManualEnrollmentActivationForm } from "@/components/manual-enrollment-activation-form";
 import { requireRole } from "@/lib/auth";
 import { resolveManagementGardenContext } from "@/lib/management/active-garden-context";
 import { createClient } from "@/lib/supabase/server";
@@ -127,6 +128,8 @@ export default async function GardenEnrollmentRequestsPage() {
                 <div className="procedure-meta">
                   <Baby />
                   <ApplicationDecisionForm endpoint={`/api/garden/enrollment-requests/${row.id}`} actions={actions} classrooms={(classroomsRes.data ?? []) as Array<{ id: string; name: string }>} />
+                  {row.status === "awaiting_payment" ? <ManualEnrollmentActivationForm requestId={row.id} suggestedAmount={row.published_price_snapshot} /> : null}
+                  {row.status === "payment_reconciliation_required" ? <span className="pill bad">נדרשת בדיקת תשלום ידנית</span> : null}
                 </div>
               </article>
             ))}
