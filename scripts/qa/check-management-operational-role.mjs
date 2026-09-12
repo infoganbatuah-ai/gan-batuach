@@ -259,7 +259,9 @@ const candidateApiFiles = [
 test("candidate lifecycle APIs remain accessible to the candidate role", () => {
   for (const file of candidateApiFiles) {
     const source = readFileSync(file, "utf8");
-    assert.match(source, /requireRole\(\["(?:staff|inspector)"\]\)/, `${file}: candidate role entry missing`);
+    const hasCandidateRoleEntry = /requireRole\(\["(?:staff|inspector)"\]\)/.test(source)
+      || (/getSessionProfile\(\)/.test(source) && /profile\.role !== "(?:staff|inspector)"/.test(source));
+    assert.ok(hasCandidateRoleEntry, `${file}: candidate role entry missing`);
     assert.doesNotMatch(source, /getOperationalRoleContext/, `${file}: candidate flow was accidentally activation-gated`);
   }
 });
@@ -303,15 +305,15 @@ test("candidate completion and application pages remain role-accessible", () => 
   }
 });
 
-test("staff approval transitions the canonical employment before reporting approval", () => {
+test("staff approval waits for candidate acceptance and atomic employment activation", () => {
   const applicationApproval = readFileSync("app/api/garden/staff-applications/[id]/route.ts", "utf8");
-  assert.match(applicationApproval, /from\("staff_permanent_files"/);
-  assert.match(applicationApproval, /from\("staff_kindergarten_employments"/);
-  const pendingEmployment = applicationApproval.indexOf('status: "pending_approval"');
-  const profileActivation = applicationApproval.indexOf('from("profiles"', pendingEmployment);
-  const activeEmployment = applicationApproval.indexOf('status: "active"', profileActivation);
-  const approvedApplication = applicationApproval.indexOf('status = "approved"', activeEmployment);
-  assert.ok(pendingEmployment >= 0 && profileActivation > pendingEmployment && activeEmployment > profileActivation && approvedApplication > activeEmployment);
+  const hiringMigration = readFileSync("supabase/migrations/20260912070000_management_staff_hiring_lifecycle.sql", "utf8");
+  assert.match(applicationApproval, /decide_staff_job_application/);
+  assert.doesNotMatch(applicationApproval, /from\("staff_permanent_files"/);
+  assert.match(hiringMigration, /awaiting_candidate_acceptance/);
+  assert.match(hiringMigration, /activate_staff_employment/);
+  assert.match(hiringMigration, /staff_kindergarten_employments/);
+  assert.match(hiringMigration, /status='employed'/);
 
   const directApproval = readFileSync("app/api/garden/staff/[id]/approve/route.ts", "utf8");
   assert.match(directApproval, /from\("staff_kindergarten_employments"/);

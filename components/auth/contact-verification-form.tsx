@@ -20,7 +20,7 @@ async function requestJson(url: string, init?: RequestInit) {
   return body.data ?? body;
 }
 
-export function ContactVerificationForm({ initialStatus }: { initialStatus: Status | null }) {
+export function ContactVerificationForm({ initialStatus, nextPath = "/dashboard" }: { initialStatus: Status | null; nextPath?: string }) {
   const [status, setStatus] = useState<Status | null>(initialStatus);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
@@ -84,7 +84,7 @@ export function ContactVerificationForm({ initialStatus }: { initialStatus: Stat
   if (status?.complete) return (
     <div className="do-page-stack">
       <div className="do-notice good"><CheckCircle2 /><span>הדוא״ל והטלפון מאומתים. אפשר להמשיך למערכת.</span></div>
-      <Link className="do-button primary full" href="/dashboard">המשך לדשבורד</Link>
+      <Link className="do-button primary full" href={nextPath}>המשך</Link>
     </div>
   );
 

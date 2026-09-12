@@ -74,7 +74,10 @@ export function SelfServiceRegisterForm({ fixedAccountType, appMode = false, inv
         previous_experience: formValue(form, "previous_experience") || undefined,
         preferred_regions: formValue(form, "preferred_regions") || undefined
       });
-      setState({ ok: true, message: invitationToken ? "החשבון נוצר וההזמנה נשמרה. לאחר אימות הדוא״ל והטלפון תוכלו לבחור ילד ולאשר הצטרפות." : "החשבון נוצר. שלחנו קישור אימות לדוא״ל; לאחר האימות תתבקשו לאמת גם את מספר הטלפון.", href: data.next_path });
+      const invitationMessage = accountType === "staff_candidate"
+        ? "החשבון נוצר והזמנת העבודה נשמרה. לאחר אימות הדוא״ל והטלפון והשלמת הפרופיל תוכלו לחזור להזמנה ולאשר אותה."
+        : "החשבון נוצר וההזמנה נשמרה. לאחר אימות הדוא״ל והטלפון תוכלו לבחור ילד ולאשר הצטרפות.";
+      setState({ ok: true, message: invitationToken ? invitationMessage : "החשבון נוצר. שלחנו קישור אימות לדוא״ל; לאחר האימות תתבקשו לאמת גם את מספר הטלפון.", href: data.next_path });
       form.reset();
     } catch (error) {
       setState({ ok: false, message: error instanceof Error ? error.message : "ההרשמה נכשלה" });

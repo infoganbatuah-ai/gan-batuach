@@ -2,6 +2,7 @@ import { fail } from "@/lib/api";
 import { getSessionProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { resolveManagementGardenContext } from "@/lib/management/active-garden-context";
+import { managementContactVerification } from "@/lib/management/contact-verification";
 
 /**
  * Management operational context. A selected garden is not an access grant.
@@ -15,6 +16,9 @@ export async function getManagementGardenContext() {
       return { allowed: false as const, response: fail("נדרשת התחברות מחדש.", 401) };
     }
     const { profile } = session;
+    if (!managementContactVerification(session.user, profile).complete) {
+      return { allowed: false as const, response: fail("יש להשלים אימות דוא״ל וטלפון לפני פעולה תפעולית.", 403) };
+    }
     if (!["manager", "owner"].includes(profile.role) || profile.active !== true) {
       return { allowed: false as const, response: fail("אין הרשאה לפעול בניהול הגן.", 403) };
     }

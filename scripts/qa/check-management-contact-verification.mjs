@@ -43,7 +43,7 @@ test("self-service registration uses confirmation signup and enrolls only new ac
   assert.match(registration, /emailRedirectTo:/);
   assert.doesNotMatch(registration, /admin\.createUser\(/);
   assert.match(registration, /contact_verification_required: true/);
-  assert.match(registration, /next_path: "\/app\/verify-contact"/);
+  assert.match(registration, /next_path: payload\.invitation_token[\s\S]+"\/app\/verify-contact"/);
 });
 
 test("email resend is non-enumerating and phone confirmation uses phone-change OTP", () => {
@@ -68,6 +68,8 @@ test("password recovery keeps account enumeration closed and consumes the recove
 });
 
 test("activation surfaces fail closed on incomplete contact verification", () => {
+  const managementGardenContext = source("lib/management/garden-context.ts");
+  assert.match(managementGardenContext, /managementContactVerification/);
   for (const file of [
     "app/api/kindergarten-onboarding/route.ts",
     "app/api/parent/enrollment-requests/route.ts",
@@ -76,7 +78,8 @@ test("activation surfaces fail closed on incomplete contact verification", () =>
     "app/api/admin/inspector-applications/[id]/route.ts",
     "lib/domain/enrollment-activation.ts"
   ]) {
-    assert.match(source(file), /(managementContactVerification|adminManagementContactVerification)/, `${file}: missing contact verification gate`);
+    const route = source(file);
+    assert.match(route, /(managementContactVerification|adminManagementContactVerification|getManagementGardenContext)/, `${file}: missing contact verification gate`);
   }
 });
 

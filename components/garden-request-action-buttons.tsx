@@ -79,8 +79,8 @@ export function StaffApplicationActionButtons({ applicationId }: { applicationId
   const endpoint = `/api/garden/staff-applications/${applicationId}`;
   return (
     <div className="teacher-request-actions">
-      <ActionButton endpoint={endpoint} action="approve" label="אישור מועמד/ת" tone="purple" icon={UserRoundCheck} decisionReason="המועמדות אושרה על ידי מנהלת הגן." />
-      <ActionButton endpoint={endpoint} action="request_more_information" label="בקשת מסמכים" tone="orange" icon={FileCheck2} decisionReason="נדרשים מסמכים נוספים להשלמת המועמדות." />
+      <ActionButton endpoint={endpoint} action="approve" label="אישור ושליחה לקבלת המועמד/ת" tone="purple" icon={UserRoundCheck} decisionReason="המועמדות אושרה וממתינה לקבלת ההצעה על ידי המועמד/ת." />
+      <ActionButton endpoint={endpoint} action="request_information" label="בקשת מסמכים" tone="orange" icon={FileCheck2} decisionReason="נדרשים מסמכים נוספים להשלמת המועמדות." />
     </div>
   );
 }
