@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
-import { requireRole } from "@/lib/auth";
+import { getSessionProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
 const schema = z.object({
@@ -16,7 +16,10 @@ const schema = z.object({
 
 export async function GET() {
   try {
-    const { profile } = await requireRole(["staff"]);
+    const session = await getSessionProfile();
+    if (!session.user || !session.profile) return fail("נדרשת התחברות מחדש.", 401);
+    if (session.profile.role !== "staff") return fail("אין הרשאה לפרופיל מועמדות צוות.", 403);
+    const { profile } = session;
     const supabase = await createClient();
     const [candidate, evaluation] = await Promise.all([
       supabase.from("staff_candidate_profiles" as never).select("profile_id,city,professional_role,qualification_keys,availability,preferred_age_groups,employment_preference,professional_summary,matching_paused,profile_completeness,status" as never).eq("profile_id", profile.id).maybeSingle(),
@@ -29,7 +32,9 @@ export async function GET() {
 
 export async function PATCH(request: Request) {
   try {
-    await requireRole(["staff"]);
+    const session = await getSessionProfile();
+    if (!session.user || !session.profile) return fail("נדרשת התחברות מחדש.", 401);
+    if (session.profile.role !== "staff") return fail("אין הרשאה לפרופיל מועמדות צוות.", 403);
     const payload = schema.parse(await request.json());
     const supabase = await createClient();
     const result = await supabase.rpc("save_staff_candidate_profile", {
