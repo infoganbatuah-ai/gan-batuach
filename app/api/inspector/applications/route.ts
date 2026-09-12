@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
-import { requireRole } from "@/lib/auth";
+import { getSessionProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
 const schema = z.object({
@@ -17,7 +17,9 @@ const schema = z.object({
 
 export async function POST(request: Request) {
   try {
-    await requireRole(["inspector"]);
+    const { user, profile } = await getSessionProfile();
+    if (!user || !profile) return fail("נדרשת התחברות.", 401);
+    if (profile.role !== "inspector") return fail("אין הרשאה להגיש בקשת מפקח.", 403);
     const payload = schema.parse(await request.json());
     const supabase = await createClient();
     const { data, error } = await supabase.rpc("submit_inspector_application" as any, { p_payload: payload } as any);
