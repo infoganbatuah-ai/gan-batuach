@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { ClipboardCheck, FileSignature, ListChecks } from "lucide-react";
 import {
   DashboardGrid,
@@ -11,7 +11,7 @@ import {
 } from "@/components/gan-batuach-design-system";
 
 type Inspection = { id: string; garden_id: string; form_id: string; status?: string | null; gardens?: { name?: string | null; city?: string | null } | null };
-type Question = { id: string; form_id: string; category: string; question_text: string; question_type?: string | null; weight?: number | null; critical?: boolean | null; required?: boolean | null };
+type Question = { id: string; form_id: string; category: string; question_text: string; question_type?: string | null; weight?: number | null; critical?: boolean | null; required?: boolean | null; requires_photo?: boolean | null; requires_document?: boolean | null };
 
 type AnswerState = Record<string, { score?: number; boolean_value?: boolean; text_value?: string; note?: string; photo_url?: string; document_url?: string }>;
 
@@ -56,7 +56,7 @@ export function InspectorInspectionWizard({ inspections, questions, initialInspe
   const inspection = rows.find((item) => item.id === selectedInspectionId);
   const formQuestions = useMemo(() => questions.filter((question) => question.form_id === inspection?.form_id), [questions, inspection?.form_id]);
   const categories = [...new Set(formQuestions.map((question) => question.category))];
-  const answered = formQuestions.filter((question) => answers[question.id]?.score || answers[question.id]?.boolean_value !== undefined || answers[question.id]?.text_value).length;
+  const answered = formQuestions.filter((question) => answers[question.id]?.score || answers[question.id]?.boolean_value !== undefined || answers[question.id]?.text_value || answers[question.id]?.photo_url || answers[question.id]?.document_url).length;
   const weighted = formQuestions.reduce((acc, question) => {
     const score = answers[question.id]?.score;
     const weight = Number(question.weight || 1);
@@ -65,8 +65,46 @@ export function InspectorInspectionWizard({ inspections, questions, initialInspe
   const score = weighted.weight ? (weighted.sum / weighted.weight).toFixed(2) : "-";
   const exceptions = formQuestions.filter((question) => Number(answers[question.id]?.score || 10) <= 4);
 
+  useEffect(() => {
+    if (!selectedInspectionId) return;
+    let active = true;
+    fetch(`/api/inspections/${selectedInspectionId}/draft`).then((response) => response.json()).then((body) => {
+      if (!active || !Array.isArray(body.data?.answers)) return;
+      setAnswers(Object.fromEntries(body.data.answers.map((answer: { question_id: string }) => [answer.question_id, answer])));
+    }).catch(() => { if (active) setError("לא ניתן לטעון את הטיוטה השמורה."); });
+    return () => { active = false; };
+  }, [selectedInspectionId]);
+
+  async function saveDraft() {
+    if (!inspection) return;
+    setBusy(true); setError(null); setMessage(null);
+    try {
+      const response = await fetch(`/api/inspections/${inspection.id}/draft`, {
+        method: "PUT", headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ answers: Object.entries(answers).map(([question_id, answer]) => ({ question_id, ...answer })) })
+      });
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.error || "שמירת הטיוטה נכשלה");
+      setMessage("הטיוטה נשמרה. אפשר לחזור ולהמשיך מאותו מקום.");
+    } catch (err) { setError(err instanceof Error ? err.message : "שמירת הטיוטה נכשלה"); }
+    finally { setBusy(false); }
+  }
+
   function update(questionId: string, patch: AnswerState[string]) {
     setAnswers((current) => ({ ...current, [questionId]: { ...current[questionId], ...patch } }));
+  }
+
+  async function uploadEvidence(questionId: string, file: File, kind: "photo_url" | "document_url") {
+    if (!inspection) return;
+    setBusy(true); setError(null);
+    try {
+      const form = new FormData(); form.set("file", file);
+      const response = await fetch(`/api/inspections/${inspection.id}/evidence`, { method: "POST", body: form });
+      const body = await response.json();
+      if (!response.ok) throw new Error(body.error || "שמירת הראיה נכשלה");
+      update(questionId, { [kind]: body.data.path });
+    } catch (err) { setError(err instanceof Error ? err.message : "שמירת הראיה נכשלה"); }
+    finally { setBusy(false); }
   }
 
   function point(event: React.PointerEvent<HTMLCanvasElement>) {
@@ -103,7 +141,7 @@ export function InspectorInspectionWizard({ inspections, questions, initialInspe
   async function submit() {
     setError(null); setMessage(null);
     if (!inspection) return;
-    const missingRequired = formQuestions.filter((question) => question.required && !answers[question.id]?.score && answers[question.id]?.boolean_value === undefined && !answers[question.id]?.text_value);
+    const missingRequired = formQuestions.filter((question) => question.required && !answers[question.id]?.score && answers[question.id]?.boolean_value === undefined && !answers[question.id]?.text_value && !answers[question.id]?.photo_url && !answers[question.id]?.document_url);
     if (missingRequired.length) { setError(`חסרות ${missingRequired.length} שאלות חובה לפני שליחה.`); return; }
     if (!signature) { setError("חובה לחתום על המסך לפני סיום ביקורת."); return; }
     if (!navigator.geolocation) { setError("הדפדפן לא תומך ב-GPS. יש להשתמש במכשיר עם הרשאת מיקום."); return; }
@@ -115,7 +153,7 @@ export function InspectorInspectionWizard({ inspections, questions, initialInspe
           gps_lng: position.coords.longitude,
           gps_radius_meters: 120,
           signature_image: signature,
-          answers: formQuestions.map((question) => ({ question_id: question.id, score: answers[question.id]?.score || (answers[question.id]?.boolean_value === false ? 4 : 10), boolean_value: answers[question.id]?.boolean_value, text_value: answers[question.id]?.text_value, note: answers[question.id]?.note, photo_url: answers[question.id]?.photo_url, document_url: answers[question.id]?.document_url }))
+          answers: Object.entries(answers).filter(([questionId]) => formQuestions.some((question) => question.id === questionId)).map(([question_id, answer]) => ({ question_id, ...answer }))
         };
         const response = await fetch("/api/inspections/" + inspection.id + "/submit", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
         const body = await response.json();
@@ -142,7 +180,7 @@ export function InspectorInspectionWizard({ inspections, questions, initialInspe
           ) : (
             <div className="inspector-list">
               {rows.map((item) => (
-                <button className={item.id === selectedInspectionId ? "gb-list-row-card selected" : "gb-list-row-card"} key={item.id} onClick={() => setSelectedInspectionId(item.id)}>
+                <button className={item.id === selectedInspectionId ? "gb-list-row-card selected" : "gb-list-row-card"} key={item.id} onClick={() => { setAnswers({}); setSelectedInspectionId(item.id); }}>
                   <div className="gb-list-main">
                     <b>{item.gardens?.name || "גן"}</b>
                     <span>{item.gardens?.city || ""} · {statusLabel(item.status)}</span>
@@ -174,10 +212,10 @@ export function InspectorInspectionWizard({ inspections, questions, initialInspe
                 <StatusChip tone={question.critical ? "danger" : "muted"}>{question.critical ? "קריטי" : questionTypeLabel(question.question_type)}</StatusChip>
                 <strong>{question.question_text}</strong>
               </div>
-              {question.question_type === "boolean" ? <select onChange={(event) => update(question.id, { boolean_value: event.target.value === "yes", score: event.target.value === "yes" ? 10 : 4 })}><option value="">בחרו</option><option value="yes">כן</option><option value="no">לא</option></select> : question.question_type === "text_note" ? <textarea placeholder="תשובה / הערה" onChange={(event) => update(question.id, { text_value: event.target.value, score: 10 })} /> : <input type="number" min="1" max="10" placeholder="ציון 1-10" onChange={(event) => update(question.id, { score: Number(event.target.value) })} />}
-              <textarea placeholder="הערת פקח" onChange={(event) => update(question.id, { note: event.target.value })} />
-              {question.question_type === "photo_upload" ? <input placeholder="קישור צילום / נתיב אחסון" onChange={(event) => update(question.id, { photo_url: event.target.value })} /> : null}
-              {question.question_type === "document_upload" || question.question_type === "video_upload" ? <input placeholder={question.question_type === "video_upload" ? "קישור וידאו / ראיה" : "קישור מסמך / נתיב אחסון"} onChange={(event) => update(question.id, { document_url: event.target.value })} /> : null}
+              {question.question_type === "boolean" ? <select value={answers[question.id]?.boolean_value === undefined ? "" : answers[question.id]?.boolean_value ? "yes" : "no"} onChange={(event) => update(question.id, { boolean_value: event.target.value === "yes", score: event.target.value === "yes" ? 10 : 1 })}><option value="">בחרו</option><option value="yes">כן</option><option value="no">לא</option></select> : question.question_type === "text_note" ? <textarea value={answers[question.id]?.text_value ?? ""} placeholder="תשובה / הערה" onChange={(event) => update(question.id, { text_value: event.target.value, score: 10 })} /> : <input type="number" min="1" max="10" value={answers[question.id]?.score ?? ""} placeholder="ציון 1-10" onChange={(event) => update(question.id, { score: Number(event.target.value) })} />}
+              <textarea value={answers[question.id]?.note ?? ""} placeholder="הערת פקח" onChange={(event) => update(question.id, { note: event.target.value })} />
+              {question.question_type === "photo_upload" || question.requires_photo ? <label>צילום פרטי<input type="file" accept="image/jpeg,image/png,image/webp" disabled={busy} onChange={(event) => { const file = event.target.files?.[0]; if (file) void uploadEvidence(question.id, file, "photo_url"); }} />{answers[question.id]?.photo_url ? "הצילום נשמר" : null}</label> : null}
+              {question.question_type === "document_upload" || question.requires_document ? <label>מסמך פרטי<input type="file" accept="application/pdf,image/jpeg,image/png,image/webp" disabled={busy} onChange={(event) => { const file = event.target.files?.[0]; if (file) void uploadEvidence(question.id, file, "document_url"); }} />{answers[question.id]?.document_url ? "המסמך נשמר" : null}</label> : null}
             </div>
           ))}
         </PremiumCard>
@@ -188,6 +226,7 @@ export function InspectorInspectionWizard({ inspections, questions, initialInspe
           <canvas ref={canvasRef} width={620} height={180} className="signature-pad" onPointerDown={startSign} onPointerMove={point} onPointerUp={() => setIsSigning(false)} onPointerLeave={() => setIsSigning(false)} />
           <div className="inspector-hero-actions">
             <button className="inspector-action-button" type="button" disabled={busy} onClick={clearSignature}>ניקוי חתימה</button>
+            <button className="inspector-action-button" type="button" disabled={busy} onClick={saveDraft}>שמור טיוטה</button>
             <button className="inspector-action-button" type="button" disabled={busy} onClick={submit}>{busy ? "שולח..." : "סיים ושלח ביקורת"}</button>
           </div>
         </PremiumCard>

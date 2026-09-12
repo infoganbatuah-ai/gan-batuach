@@ -8,23 +8,23 @@ export const inspectionAnswerSchema = z.object({
   boolean_value: z.boolean().optional(),
   text_value: z.string().optional(),
   note: z.string().optional(),
-  photo_url: z.string().url().optional(),
-  document_url: z.string().url().optional()
+  photo_url: z.string().regex(/^inspection-reports\/[a-zA-Z0-9/_\-.]+$/).optional(),
+  document_url: z.string().regex(/^inspection-reports\/[a-zA-Z0-9/_\-.]+$/).optional()
 });
 
 export const inspectionSubmitSchema = z.object({
   gps_lat: z.number(),
   gps_lng: z.number(),
   gps_radius_meters: z.number().positive().default(120),
-  signature_image: z.string().min(20),
+  signature_image: z.string().regex(/^data:image\/png;base64,[A-Za-z0-9+/=]+$/).max(1_000_000),
   answers: z.array(inspectionAnswerSchema).min(1)
 });
 
 export async function createMonthlyInspectionTasks(month?: string) {
   const supabase = createAdminClient();
-  const { data, error } = await supabase.rpc("create_monthly_inspection_tasks", {
+  const { data, error } = await supabase.rpc("schedule_management_monthly_inspections" as never, {
     p_month: month ?? new Date().toISOString().slice(0, 10)
-  } as any);
+  } as never);
   if (error) throw new Error(error.message);
   return data;
 }

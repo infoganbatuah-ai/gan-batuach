@@ -26,6 +26,7 @@ import { getParentCameraListForProfile } from "@/lib/domain/parent-camera-list";
 import { getParentFamilyContext } from "@/lib/domain/parent-family";
 import { cleanSyntheticLabel } from "@/lib/domain/display-label";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 function childStatusLabel(status?: string | null) {
   if (status === "active" || status === "approved") return "מחובר לגן";
@@ -197,7 +198,7 @@ export default async function ParentFamilyHomePage() {
       ? supabase.from("gallery_items" as any).select("id,title,media_type,file_url,created_at,child_ids").in("garden_id", family.gardenIds).eq("visible_to_parents", true).order("created_at", { ascending: false }).limit(20)
       : Promise.resolve({ data: [] }),
     family.gardenIds.length
-      ? supabase.from("inspections" as any).select("id,completed_at,weighted_score,violation_count,status").in("garden_id", family.gardenIds).eq("status", "done").order("completed_at", { ascending: false }).limit(1).maybeSingle()
+      ? createAdminClient().from("inspections" as any).select("id,completed_at,weighted_score,violation_count,status").in("garden_id", family.gardenIds).eq("status", "done").order("completed_at", { ascending: false }).limit(1).maybeSingle()
       : Promise.resolve({ data: null }),
     getParentCameraListForProfile(supabase as any, profile)
   ]);

@@ -5,13 +5,14 @@ import { ParentAppFrame, ParentEmptyState, ParentHero, ParentMetricCard, ParentS
 import { requireRole } from "@/lib/auth";
 import { getParentFamilyContext } from "@/lib/domain/parent-family";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export default async function ParentInspectionsPage() {
   const { profile } = await requireRole(["parent"]);
   const supabase = await createClient();
   const family = await getParentFamilyContext(supabase as any, profile);
   const { data } = family.gardenIds.length
-    ? await supabase.from("inspections" as any).select("id, completed_at, weighted_score, violation_count, status").in("garden_id", family.gardenIds).eq("status", "done").order("completed_at", { ascending: false }).limit(20)
+    ? await createAdminClient().from("inspections" as any).select("id, completed_at, weighted_score, violation_count, status").in("garden_id", family.gardenIds).eq("status", "done").order("completed_at", { ascending: false }).limit(20)
     : { data: [] };
   const rows = (data ?? []) as any[];
   const latestScore = rows[0]?.weighted_score ?? "-";

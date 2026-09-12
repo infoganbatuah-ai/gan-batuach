@@ -1,15 +1,36 @@
 import Link from "next/link";
 import { PrintButton } from "@/components/print-button";
 import { createClient } from "@/lib/supabase/server";
+import { getSessionProfile } from "@/lib/auth";
+import { getParentFamilyContext } from "@/lib/domain/parent-family";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 type ReportRole = "admin" | "garden" | "parent";
+type ParentInspectionSummary = { gardens?: { name?: string; city?: string } | null; completed_at?: string | null; weighted_score?: number | null; violation_count?: number | null };
 
 function dateText(value?: string | null) {
   return value ? new Date(value).toLocaleString("he-IL") : "לא צוין";
 }
 
+function evidenceHref(inspectionId: string, value: string) {
+  return value.startsWith(`inspection-reports/inspections/${inspectionId}/`)
+    ? `/api/inspections/${inspectionId}/evidence?path=${encodeURIComponent(value)}`
+    : value;
+}
+
 export async function InspectionReportView({ id, role, backHref }: { id: string; role: ReportRole; backHref: string }) {
   const supabase = await createClient();
+  if (role === "parent") {
+    const { profile } = await getSessionProfile();
+    if (!profile || profile.role !== "parent") return null;
+    const family = await getParentFamilyContext(supabase as never, profile);
+    const { data } = family.gardenIds.length
+      ? await createAdminClient().from("inspections" as never).select("id,garden_id,completed_at,weighted_score,violation_count,status,gardens(name,city)").eq("id", id).in("garden_id", family.gardenIds).eq("status", "done").maybeSingle()
+      : { data: null };
+    const summary = data as ParentInspectionSummary | null;
+    if (!summary) return <section className="dashboard-section">אין דוח פיקוח מאושר להצגה.</section>;
+    return <section className="dashboard-section"><h1>סיכום פיקוח — {summary.gardens?.name ?? "גן"}</h1><p>{summary.gardens?.city ?? ""} · {dateText(summary.completed_at)}</p><p>ציון: {summary.weighted_score ?? "טרם חושב"} · ליקויים: {summary.violation_count ?? 0}</p><Link className="button" href={backHref}>חזרה לרשימה</Link></section>;
+  }
   const [inspectionRes, answersRes, signatureRes] = await Promise.all([
     supabase.from("inspections" as any).select("*, gardens(name,city,address), inspectors:inspector_id(full_name, phone)").eq("id", id).maybeSingle(),
     supabase.from("inspection_answers" as any).select("*, inspection_form_questions(question_text, category, weight, critical)").eq("inspection_id", id),
@@ -24,7 +45,7 @@ export async function InspectionReportView({ id, role, backHref }: { id: string;
   const answers = (answersRes.data ?? []) as any[];
   const signature = signatureRes.data as any;
 
-  if (!inspection) {
+  if (!inspection || inspection.status !== "done") {
     return <section className="dashboard-section"><div className="empty-state"><strong>לא ניתן לטעון את דוח הפיקוח</strong><span>ייתכן שהדוח לא קיים או שאין הרשאה לצפות בו.</span><Link className="button secondary" href={backHref}>חזרה</Link></div></section>;
   }
 
@@ -32,7 +53,7 @@ export async function InspectionReportView({ id, role, backHref }: { id: string;
 
   return (
     <section className="dashboard-section printable-report">
-      <div className={`${role === "admin" ? "admin-hero-card" : role === "parent" ? "parent-hero-card" : "garden-hero-card"} dashboard-hero-card`}>
+      <div className={`${role === "admin" ? "admin-hero-card" : "garden-hero-card"} dashboard-hero-card`}>
         <div>
           <p className="eyebrow">דוח ביקורת מאושר</p>
           <h1>{inspection.gardens?.name ?? "גן ילדים"}</h1>
@@ -57,7 +78,7 @@ export async function InspectionReportView({ id, role, backHref }: { id: string;
 
       <article className="card action-panel">
         <h2>שאלות ותשובות</h2>
-        {answers.length === 0 ? <div className="empty-mini">אין תשובות שמורות לדוח זה.</div> : <div className="report-answer-list">{answers.map((answer) => <div className="inspection-answer-card" key={answer.id}><div><span className={Number(answer.score ?? 10) <= 4 ? "pill bad" : "pill good"}>{answer.score ?? answer.boolean_value ?? "טקסט"}</span><strong>{answer.inspection_form_questions?.question_text ?? "שאלה"}</strong><small>{answer.inspection_form_questions?.category ?? ""} · משקל {answer.inspection_form_questions?.weight ?? 1}</small></div>{answer.note ? <p>{answer.note}</p> : null}<div className="actions">{answer.photo_url ? <a className="button tiny secondary" href={answer.photo_url}>צילום</a> : null}{answer.document_url ? <a className="button tiny secondary" href={answer.document_url}>מסמך</a> : null}</div></div>)}</div>}
+        {answers.length === 0 ? <div className="empty-mini">אין תשובות שמורות לדוח זה.</div> : <div className="report-answer-list">{answers.map((answer) => <div className="inspection-answer-card" key={answer.id}><div><span className={Number(answer.score ?? 10) <= 4 ? "pill bad" : "pill good"}>{answer.score ?? answer.boolean_value ?? "טקסט"}</span><strong>{answer.inspection_form_questions?.question_text ?? "שאלה"}</strong><small>{answer.inspection_form_questions?.category ?? ""} · משקל {answer.inspection_form_questions?.weight ?? 1}</small></div>{answer.note ? <p>{answer.note}</p> : null}<div className="actions">{answer.photo_url ? <a className="button tiny secondary" href={evidenceHref(id, answer.photo_url)}>צילום</a> : null}{answer.document_url ? <a className="button tiny secondary" href={evidenceHref(id, answer.document_url)}>מסמך</a> : null}</div></div>)}</div>}
       </article>
 
       <article className="card action-panel">
