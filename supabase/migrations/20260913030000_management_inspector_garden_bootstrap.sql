@@ -1,4 +1,7 @@
 -- GB-M21: Inspector-originated Gardens remain canonical pending Garden drafts.
+-- GB-M10 uses this Garden column, but earlier migrations did not create it.
+alter table public.gardens add column if not exists onboarding_status text not null default 'pending_completion';
+update public.gardens set onboarding_status='active' where status::text='active' and onboarding_status='pending_completion';
 alter table public.profiles drop constraint if exists profiles_self_service_role_check;
 alter table public.profiles add constraint profiles_self_service_role_check
   check (self_service_role in ('parent','staff_candidate','inspector_candidate','kindergarten_manager','kindergarten_owner'));

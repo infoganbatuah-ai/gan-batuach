@@ -12,6 +12,7 @@ const discovery = read("supabase/migrations/20260912030000_management_child_disc
 const enrollment = read("supabase/migrations/20260912040000_management_enrollment_request_lifecycle.sql");
 
 test("preliminary Garden is a pending non-public canonical draft", () => {
+  assert.match(sql, /add column if not exists onboarding_status text/);
   assert.match(sql, /insert into public\.gardens/);
   assert.match(sql, /'pending','activation_in_progress'/);
   assert.match(sql, /'not_started',false,false/);

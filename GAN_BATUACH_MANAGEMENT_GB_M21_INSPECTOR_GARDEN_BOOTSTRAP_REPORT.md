@@ -5,6 +5,7 @@ GB-M20 approved Inspectors separately from Garden assignment. GB-M10 already off
 
 ## Preliminary Garden Model
 An approved Inspector creates a pending `gardens` row and one `kindergarten_onboarding_records` row. `bootstrap_inspector_id` records provenance. The draft is nonpublic, has no operational Inspector assignment, and has no payment or camera activation. A normalized Garden name and city duplicate check returns a review conflict; it never merges records or guesses identity.
+Production schema inspection found that `gardens.onboarding_status`, referenced by the previously deployed GB-M10 activation RPC, was never created by prior migrations. GB-M21 adds the missing column and derives `active` only for Gardens whose canonical status is already active; this is a compatibility repair, not new Garden activation.
 
 ## Inspector Authorization
 The create/cancel RPCs require `is_approved_inspector(auth.uid())`. The list and invitation routes independently check approval and restrict Garden rows to `bootstrap_inspector_id = current profile`. There is no role-only access.
