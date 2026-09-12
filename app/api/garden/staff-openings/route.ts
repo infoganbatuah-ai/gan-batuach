@@ -8,6 +8,8 @@ const schema = z.object({
   age_group: z.string().optional(),
   description: z.string().optional(),
   requirements: z.string().optional(),
+  qualification_keys: z.array(z.string().trim().min(2).max(100)).max(12).optional(),
+  classroom_id: z.string().uuid().optional().nullable(),
   employment_type: z.string().optional(),
   active_status: z.enum(["draft", "published", "paused", "closed"]).default("published")
 });
@@ -17,15 +19,17 @@ export async function POST(request: Request) {
     const access = await getManagementGardenContext();
     if (!access.allowed) return access.response;
     const { profile } = access.session;
-    if (!profile.garden_id) return fail("המנהל/ת לא משויך/ת לגן.", 422);
+    const gardenId = access.gardenId;
     const payload = schema.parse(await request.json());
     const supabase = await createClient();
     const write = await supabase.from("kindergarten_staff_openings" as any).insert({
-      garden_id: profile.garden_id,
+      garden_id: gardenId,
       role_needed: payload.role_needed,
       age_group: payload.age_group ?? null,
       description: payload.description ?? null,
       requirements: payload.requirements ?? null,
+      qualification_keys: payload.qualification_keys ?? [],
+      classroom_id: payload.classroom_id ?? null,
       employment_type: payload.employment_type ?? null,
       active_status: payload.active_status,
       created_by: profile.id
@@ -34,7 +38,7 @@ export async function POST(request: Request) {
     await supabase.from("audit_logs" as any).insert({
       actor_id: profile.id,
       actor_role: profile.role,
-      garden_id: profile.garden_id,
+      garden_id: gardenId,
       entity_type: "kindergarten_staff_openings",
       entity_id: write.data.id,
       action: "staff_opening_created",

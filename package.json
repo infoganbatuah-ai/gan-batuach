@@ -36,6 +36,7 @@
     "qa:management-child-discovery": "node --test scripts/qa/check-management-child-discovery.mjs",
     "qa:management-enrollment-lifecycle": "node --test scripts/qa/check-management-enrollment-lifecycle.mjs",
     "qa:management-enrollment-activation": "node --test scripts/qa/check-management-enrollment-activation.mjs",
+    "qa:management-staff-candidate-job-discovery": "node --test scripts/qa/check-management-staff-candidate-job-discovery.mjs",
     "qa:digital-observer-product": "node scripts/qa/check-digital-observer-product.mjs",
     "qa:digital-observer-event-media": "node scripts/qa/check-digital-observer-event-media.mjs",
     "qa:event-journal": "node scripts/qa/check-event-journal.mjs && node scripts/qa/check-event-ingest.mjs && node scripts/qa/check-event-outbox.mjs && node scripts/qa/check-object-inference.mjs && node scripts/qa/check-digital-observer-event-media.mjs",
