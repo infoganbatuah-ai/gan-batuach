@@ -40,3 +40,7 @@ PR #28 must remain draft and unmerged until successful v8 evidence plus required
 ## PUSH 38E addendum
 
 Restricted code-only baseline candidates were captured and tested for file integrity and isolated legacy health startup. They are **unsigned and unregistered**; the Connector app also fails macOS strict code-signature verification at the original installation. The generic OTA manager cannot safely create known-good from `development`/`unknown` metadata and an empty slot. See `DIGITAL_OBSERVER_PUSH_38_OTA_BOOTSTRAP_REPORT.md` and `DIGITAL_OBSERVER_PUSH_38_KNOWN_GOOD_BASELINES.md`. No live bootstrap or remediation deployment occurred; this pre-soak gate remains failed.
+
+## PUSH 38F addendum
+
+The two candidates are now signed and artifact-verified **in QA only**, and the empty-slot trust bypass was removed from the OTA agent. Full legacy-artifact rollback, an installed-runtime adapter, approved live trust-key distribution, Connector release QA build and remediation artifacts remain gating work. No live bootstrap, runtime deployment, 60-minute pre-soak or v8 occurred. The prior PUSH 38E paragraph describes the historical state at that time, not the current QA-signing status.
