@@ -30,7 +30,10 @@ export async function POST(request: Request) {
     const admin = createAdminClient();
     const resolvedInvitation = payload.invitation_token ? await resolveSignedInvitation(admin, payload.invitation_token) : null;
     if (resolvedInvitation && !resolvedInvitation.ok) return fail("ההזמנה אינה זמינה.", 410);
-    if (resolvedInvitation?.ok && (payload.account_type !== "parent" || resolvedInvitation.invitation.intended_role !== "parent")) return fail("ההזמנה אינה מתאימה למסלול ההרשמה.", 403);
+    if (resolvedInvitation?.ok) {
+      const expectedRole = payload.account_type === "parent" ? "parent" : payload.account_type === "staff_candidate" ? "staff" : null;
+      if (!expectedRole || resolvedInvitation.invitation.intended_role !== expectedRole) return fail("ההזמנה אינה מתאימה למסלול ההרשמה.", 403);
+    }
     if (resolvedInvitation?.ok && normalizeInvitationEmail(resolvedInvitation.invitation.recipient_email) !== normalizeInvitationEmail(payload.email)) return fail("יש להירשם עם כתובת הדוא״ל שאליה נשלחה ההזמנה.", 403);
     if (resolvedInvitation?.ok && resolvedInvitation.invitation.target_profile_id) return fail("ההזמנה כבר קושרה לחשבון קיים.", 409);
     const conflict = await checkEmailConflict({ supabase: admin, email: payload.email, field: "email" });
@@ -57,7 +60,7 @@ export async function POST(request: Request) {
     }
 
     const status = "pending_affiliation";
-    const profileWrite = await admin.from("profiles" as any).upsert({
+    const profileWrite = await admin.from("profiles" as never).upsert({
       id: data.user.id,
       role,
       garden_id: null,
@@ -79,7 +82,7 @@ export async function POST(request: Request) {
       return fail("המשתמש נוצר ב-Auth אך יצירת הפרופיל נכשלה: " + profileWrite.error.message, 400);
     }
 
-    const selfServiceWrite = await admin.from("self_service_user_profiles" as any).upsert({
+    const selfServiceWrite = await admin.from("self_service_user_profiles" as never).upsert({
       profile_id: data.user.id,
       requested_role: payload.account_type,
       status,
@@ -108,7 +111,7 @@ export async function POST(request: Request) {
       }
     }
 
-    await admin.from("audit_logs" as any).insert({
+    await admin.from("audit_logs" as never).insert({
       actor_id: data.user.id,
       actor_role: role,
       entity_type: "self_service_user_profiles",
@@ -121,7 +124,9 @@ export async function POST(request: Request) {
       user_id: data.user.id,
       role,
       status,
-      next_path: "/app/verify-contact"
+      next_path: payload.invitation_token
+        ? `/app/verify-contact?next=${encodeURIComponent(`/invite/accept?token=${payload.invitation_token}`)}`
+        : "/app/verify-contact"
     }, 201);
   } catch (error) {
     return handleRouteError(error);

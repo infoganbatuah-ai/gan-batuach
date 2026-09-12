@@ -39,7 +39,8 @@ test("job mutations use canonical garden authority", () => {
 test("job market uses the canonical matching function and preserves application state", () => {
   assert.match(market, /find_relevant_staff_jobs/);
   assert.match(market, /application_status/);
-  assert.match(market, /הגשה תיפתח ב־GB-M18/);
+  assert.match(market, /StaffApplicationActions/);
+  assert.doesNotMatch(market, /הגשה תיפתח ב־GB-M18/);
   assert.doesNotMatch(market, /StaffApplicationForm/);
 });
 test("candidate discovery stays recruitment-safe", () => {

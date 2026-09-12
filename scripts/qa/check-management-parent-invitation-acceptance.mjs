@@ -9,7 +9,8 @@ test("invitation landing supports login, registration and authenticated claim", 
   assert.match(screen, /api\/invitations\/resolve/);
   assert.match(screen, /api\/invitations\/claim/);
   assert.match(screen, /app\/login\?next=/);
-  assert.match(screen, /app\/register\/parent\?invitation_token=/);
+  assert.match(screen, /registerPath.*app\/register\/parent/);
+  assert.match(screen, /invitation_token=/);
 });
 
 test("claim binds only a verified matching email and rejects cross-account claims", () => {
@@ -20,10 +21,11 @@ test("claim binds only a verified matching email and rejects cross-account claim
   assert.match(claim, /signed_invitation_claimed/);
 });
 
-test("invited registration is parent-only, email-bound and preserves the invitation", () => {
+test("invited registration is role-bound, email-bound and preserves the parent invitation", () => {
   const registration = source("app/api/self-service/register/route.ts");
   assert.match(registration, /resolveSignedInvitation/);
-  assert.match(registration, /payload\.account_type !== "parent"/);
+  assert.match(registration, /payload\.account_type === "parent" \? "parent"/);
+  assert.match(registration, /invitation\.intended_role !== expectedRole/);
   assert.match(registration, /recipient_email.*payload\.email/);
   assert.match(registration, /registered_from_signed_invitation: true/);
 });
