@@ -1,9 +1,10 @@
 import assert from "node:assert/strict";
 import { generateKeyPairSync, sign } from "node:crypto";
-import { mkdtempSync, readFileSync, rmSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { canonicalEdgeTrustRegistry, installEdgeTrustRegistry, loadEdgeTrustRegistry, verifyEdgeTrustRegistry } from "../../services/video-gateway/edge-release-trust.mjs";
+import { canonicalEdgeTrustRegistry, installEdgeTrustRegistry, loadEdgeTrustRegistry, loadPinnedEdgeReleaseKeys, verifyEdgeTrustRegistry } from "../../services/video-gateway/edge-release-trust.mjs";
+import { runEdgeUpdateCycle } from "../../services/video-gateway/edge-update-agent.mjs";
 import { canonicalEdgeUpdateManifest, verifyEdgeUpdateManifest } from "../../services/video-gateway/edge-update-contract.mjs";
 
 const root = generateKeyPairSync("ed25519"), old = generateKeyPairSync("ed25519"), next = generateKeyPairSync("ed25519");
@@ -41,6 +42,17 @@ try {
   assert.equal(verifyEdgeTrustRegistry({ ...revoked, keys: [key("qa-old", old)] }, rootOptions).ok, false);
   assert.throws(() => installEdgeTrustRegistry({ path, registry: first, ...rootOptions }), /EDGE_TRUST_EPOCH_ROLLBACK/);
   assert.equal(JSON.parse(readFileSync(path)).epoch, 3);
+  const rootPinPath = join(home, "root-pin.json");
+  writeFileSync(rootPinPath, JSON.stringify({ protocol: "observer-edge-trust-root-v1",
+    root_key_id: rootOptions.pinnedRootKeyId, root_public_key: rootOptions.pinnedRootPublicKey }), { mode: 0o600 });
+  assert.equal(loadPinnedEdgeReleaseKeys({ registryPath: path, rootPinPath, qaOwnerAllowed: true }).epoch, 3);
+  const attacker = generateKeyPairSync("ed25519");
+  writeFileSync(rootPinPath, JSON.stringify({ protocol: "observer-edge-trust-root-v1",
+    root_key_id: "qa-attacker", root_public_key: pub(attacker) }));
+  assert.throws(() => loadPinnedEdgeReleaseKeys({ registryPath: path, rootPinPath, qaOwnerAllowed: true }), /EDGE_TRUST_ROOT_MISMATCH/);
+  await assert.rejects(runEdgeUpdateCycle({ root: home, trustedPublicKeys: { attacker: pub(attacker) },
+    device: {}, cloudRequest: async () => null }), /EDGE_UPDATE_UNPINNED_KEYS_FORBIDDEN/);
   console.log(JSON.stringify({ status: "PASS", root_pin: "QA_ONLY", epochs: [1, 2, 3], rotation: true,
-    revoked_old_release_rejected: true, unauthorized_root_rejected: true, replay_rejected: true }));
+    revoked_old_release_rejected: true, unauthorized_root_rejected: true, replay_rejected: true,
+    pinned_loader: true, update_agent_unpinned_keys_rejected: true }));
 } finally { rmSync(home, { recursive: true, force: true }); }

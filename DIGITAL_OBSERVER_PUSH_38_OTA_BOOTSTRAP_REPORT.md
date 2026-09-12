@@ -1,5 +1,9 @@
 # PUSH 38E/F — OTA bootstrap report
 
+## PUSH 38G addendum (2026-09-13)
+
+QA-signed remediation releases now exist for both profiles and pass isolated managed launchd slot switching, failed-health rollback, known-good byte-hash verification, and subsequent remediation health-contract upgrade. The invalid original Connector package remains unchanged; a *derived* ad-hoc re-signed QA rollback package passes strict macOS verification. A pinned, signed release-key registry and administrator-only root/registry installers were added, with rotation/revocation and unpinned-key negative QA. The test LaunchAgents run isolated `server.mjs` children, not the complete installed Gateway/Connector supervisors. No live adapter, trust root, OTA pointer, or remediation was installed on Home. QA `qa.invalid` artifact URLs are non-deployable. Full details and unresolved internal/external gates: `DIGITAL_OBSERVER_PUSH_38G_MANAGED_RELEASE_REPORT.md`. **NOT READY FOR LIVE BOOTSTRAP.**
+
 ## PUSH 38F status (2026-09-13)
 
 **NOT READY FOR LIVE BOOTSTRAP.** No Home runtime, LaunchAgent, Device identity or camera configuration was changed. The old live health contracts and absent live OTA pointers remain. No pre-soak or v8 was started.

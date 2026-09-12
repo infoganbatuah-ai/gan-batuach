@@ -1,5 +1,9 @@
 # PUSH 38E — legacy baseline candidates (NOT known-good)
 
+## PUSH 38G isolated managed rollback addendum
+
+The Gateway's original QA-authorized release `qa-legacy-gateway-aa57572e8736` (SHA-256 `aa57572e873662d65faf241fb503eaec070c444bdcbff751dafe0fa4be89d2ae`) passed launchd-managed rollback in isolated QA. The Connector's original captured archive has an invalid strict macOS code seal; a derived QA-only re-signed package `qa-legacy-connector-resigned-6e7988808b05` (SHA-256 `6e7988808b05956d58416a6ce60638f52b19aa732918ac0e1cdafcc5fc9f130a`) passed strict verification and managed rollback. It is not byte-identical to the originally captured `ee82c20a…` artifact; 248 runtime files were compared unchanged, and only signing was reissued. Both remain **isolated QA known-good targets, not live registered KNOWN_GOOD pointers**. Details: `DIGITAL_OBSERVER_PUSH_38G_MANAGED_RELEASE_REPORT.md`.
+
 ## PUSH 38F QA authorization addendum
 
 The exact candidate bytes were copied to restricted QA release storage outside Git at `/Volumes/DIGITAL_OBSERVER/QA-Releases/PUSH-38F/` and signed with QA-only Ed25519 key ID `qa-p38f-ed25519-20260913`. Both PUSH 19 manifests and stored artifacts independently verified. Signed release IDs are `qa-legacy-gateway-aa57572e8736` and `qa-legacy-connector-ee82c20a77ac`; their SHA-256 digests and sizes remain exactly those in the table below. The `build_sha` field in these **legacy** QA manifests is the artifact digest, **not a proven source Git revision**. QA signing establishes explicit authorization for isolated testing, not Apple distribution validity or live Production release trust.

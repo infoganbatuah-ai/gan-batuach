@@ -1,7 +1,7 @@
 // QA-only release authorization. The private signer stays outside Git/devices.
 import { createHash, createPrivateKey, createPublicKey, sign } from "node:crypto";
 import { execFileSync } from "node:child_process";
-import { copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
+import { chmodSync, copyFileSync, existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, statSync, writeFileSync } from "node:fs";
 import { basename, join, resolve } from "node:path";
 import { tmpdir } from "node:os";
 import { canonicalEdgeUpdateManifest, verifyEdgeArtifact, verifyEdgeUpdateManifest } from "../../services/video-gateway/edge-update-contract.mjs";
@@ -49,6 +49,7 @@ const store = resolve(args["--store"]), target = join(store, args["--release-id"
 if (existsSync(target)) throw new Error("QA_RELEASE_IMMUTABLE_EXISTS");
 mkdirSync(target, { recursive: true, mode: 0o700 });
 copyFileSync(artifact, join(target, basename(artifact)));
+chmodSync(join(target, basename(artifact)), 0o600);
 if (!verifyEdgeArtifact(readFileSync(join(target, basename(artifact))), manifest).ok) throw new Error("QA_RELEASE_STORE_COPY_FAILED");
 writeFileSync(join(target, "release.json"), `${JSON.stringify(manifest, null, 2)}\n`, { mode: 0o600, flag: "wx" });
 console.log(JSON.stringify({ status: "QA_RELEASE_SIGNED", release_id: manifest.release_id, version: manifest.version,
