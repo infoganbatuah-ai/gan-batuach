@@ -59,26 +59,32 @@ function logSignals(path) {
   } catch { return { cloud_401: null, set_type_of_service_einval: null, fatal_or_uncaught: null }; }
 }
 async function health(port) { const started = Date.now(); try { const response = await fetch(`http://127.0.0.1:${port}/health`, { signal: AbortSignal.timeout(8_000) }); const body = await response.json(); return { ok: response.ok && body.ok === true, latency_ms: Date.now() - started, body }; } catch (error) { return { ok: false, latency_ms: Date.now() - started, error: error?.cause?.code || error?.name || "REQUEST_FAILED" }; } }
+function classifyCheckpoint(probe, resource, expected) {
+  if (probe.ok && Number(probe.body?.mediaHeartbeat?.progressingRelays) === expected && probe.body?.status === "healthy") return "PASS";
+  if (probe.ok && (Number(probe.body?.mediaHeartbeat?.progressingRelays) < expected || probe.body?.status !== "healthy")) return "PRODUCT_FAILURE";
+  if (!probe.ok && resource?.runtime_pid === null) return "PRODUCT_FAILURE";
+  return "INSUFFICIENT_EVIDENCE";
+}
 async function processRow(pid) {
   try {
-    const result = await exec("/bin/ps", ["-o", "pid=,etime=,%cpu=,rss=", "-p", String(pid)]);
+    const result = await exec("/bin/ps", ["-o", "pid=,etime=,%cpu=,rss=", "-p", String(pid)], { timeout: 2_000 });
     const [pidText, elapsed, cpu, rss] = result.stdout.trim().split(/\s+/);
     return { pid: Number(pidText), elapsed, cpu_percent: Number(cpu), rss_mb: Number((Number(rss) / 1024).toFixed(3)) };
   } catch { return { pid: null, elapsed: null, cpu_percent: null, rss_mb: null }; }
 }
 async function processInfo(pattern) {
   try {
-    const { stdout } = await exec("/usr/bin/pgrep", ["-f", pattern]);
+    const { stdout } = await exec("/usr/bin/pgrep", ["-f", pattern], { timeout: 2_000 });
     const supervisorPid = Number(stdout.trim().split("\n").at(-1));
     const supervisor = await processRow(supervisorPid);
     let runtime = supervisor;
     try {
-      const children = await exec("/usr/bin/pgrep", ["-P", String(supervisorPid)]);
+      const children = await exec("/usr/bin/pgrep", ["-P", String(supervisorPid)], { timeout: 2_000 });
       const runtimePid = Number(children.stdout.trim().split("\n").at(-1));
       if (runtimePid) runtime = await processRow(runtimePid);
     } catch {}
     let openHandles = null;
-    try { const handles = await exec("/usr/sbin/lsof", ["-nP", "-p", String(runtime.pid)], { maxBuffer: 4 * 1024 * 1024 }); openHandles = Math.max(0, handles.stdout.trim().split("\n").length - 1); } catch {}
+    try { const handles = await exec("/usr/sbin/lsof", ["-nP", "-p", String(runtime.pid)], { timeout: 3_000, maxBuffer: 4 * 1024 * 1024 }); openHandles = Math.max(0, handles.stdout.trim().split("\n").length - 1); } catch {}
     return {
       ...supervisor,
       supervisor_pid: supervisor.pid,
@@ -145,17 +151,22 @@ async function deepProbe(sourceList) {
 
 const prior = existsSync(statePath) && args.get("resume") ? JSON.parse(readFileSync(statePath, "utf8")) : null;
 const startedAt = prior?.started_at_ms || Date.now(); let sequence = prior?.checkpoint_count || 0, nextDeepProbeAt = prior?.next_deep_probe_at || startedAt, stopping = false;
+let deepProbeInFlight = false, completedDeepProbe = null;
 process.on("SIGTERM", () => { stopping = true; }); process.on("SIGINT", () => { stopping = true; });
 const sourceList = await sources();
 while (!stopping && Date.now() - startedAt < durationMs) {
+  // Cadence is anchored to the run start, not to the completion of the prior
+  // sample. A slow deep probe must never consume the next minute's checkpoint.
+  await sleep(Math.max(0, startedAt + sequence * intervalMs - Date.now()));
+  if (stopping || Date.now() - startedAt >= durationMs) break;
   const sampledAt = Date.now(), [gateway, connector, gatewayResource, connectorResource] = await Promise.all([health(18082), health(18083), processInfo("run-persistent-home-gateway.mjs"), processInfo("run-software-connector.mjs")]);
   const point = { contract: "observer-reliability-checkpoint-v1", run_id: runId, sequence: ++sequence, sampled_at: new Date(sampledAt).toISOString(), elapsed_ms: sampledAt - startedAt,
     interval_ms: intervalMs,
     expected_physical_cameras: 11, empty_dvr_slots: 6,
-    dvr: { health_ok: gateway.ok, expected: 10, progressing: gateway.body?.mediaHeartbeat?.progressingRelays ?? 0, stalled: gateway.body?.mediaHeartbeat?.stalledRelays ?? null, failed: gateway.body?.failedStreamCount ?? null, auth: gateway.body?.deviceAuthorization?.status ?? null, lifecycle: gateway.body?.mediaHeartbeat?.lifecycle ?? null, recorder_session: gateway.body?.recorderSessionHeartbeat ?? null,
-      inputs: (gateway.body?.mediaHeartbeat?.inputs ?? []).map(value => Object.fromEntries(["channel", "input_codec", "encoder", "format", "bytes", "chunks", "age_ms", "input_idle_ms", "stdin_backpressure", "stdin_queued_bytes"].map(key => [key, value[key] ?? null]))) },
-    tapo: { health_ok: connector.ok, expected: 1, progressing: connector.body?.mediaHeartbeat?.progressingRelays ?? 0, stalled: connector.body?.mediaHeartbeat?.stalledRelays ?? null, failed: connector.body?.failedStreamCount ?? null, auth: connector.body?.deviceAuthorization?.status ?? null, lifecycle: connector.body?.mediaHeartbeat?.lifecycle ?? null,
-      inputs: (connector.body?.mediaHeartbeat?.inputs ?? []).map(value => Object.fromEntries(["channel", "input_codec", "encoder", "format", "bytes", "chunks", "age_ms", "input_idle_ms", "stdin_backpressure", "stdin_queued_bytes"].map(key => [key, value[key] ?? null]))) },
+    dvr: { health_ok: gateway.ok, health_error: gateway.error ?? null, component_status: gateway.body?.status ?? null, classification: classifyCheckpoint(gateway, gatewayResource, 10), health_latency_ms: gateway.latency_ms, expected: 10, progressing: gateway.body?.mediaHeartbeat?.progressingRelays ?? 0, stalled: gateway.body?.mediaHeartbeat?.stalledRelays ?? null, failed: gateway.body?.failedStreamCount ?? null, auth: gateway.body?.deviceAuthorization?.status ?? null, lifecycle: gateway.body?.mediaHeartbeat?.lifecycle ?? null, recorder_session: gateway.body?.recorderSessionHeartbeat ?? null,
+      inputs: (gateway.body?.mediaHeartbeat?.inputs ?? []).map(value => Object.fromEntries(["channel", "progressing", "input_codec", "encoder", "format", "bytes", "chunks", "age_ms", "input_idle_ms", "stdin_backpressure", "stdin_queued_bytes"].map(key => [key, value[key] ?? null]))) },
+    tapo: { health_ok: connector.ok, health_error: connector.error ?? null, component_status: connector.body?.status ?? null, classification: classifyCheckpoint(connector, connectorResource, 1), health_latency_ms: connector.latency_ms, expected: 1, progressing: connector.body?.mediaHeartbeat?.progressingRelays ?? 0, stalled: connector.body?.mediaHeartbeat?.stalledRelays ?? null, failed: connector.body?.failedStreamCount ?? null, auth: connector.body?.deviceAuthorization?.status ?? null, lifecycle: connector.body?.mediaHeartbeat?.lifecycle ?? null,
+      inputs: (connector.body?.mediaHeartbeat?.inputs ?? []).map(value => Object.fromEntries(["channel", "progressing", "input_codec", "encoder", "format", "bytes", "chunks", "age_ms", "input_idle_ms", "stdin_backpressure", "stdin_queued_bytes"].map(key => [key, value[key] ?? null]))) },
     release: { gateway: gateway.body?.edgeRuntime ?? null, connector: connector.body?.edgeRuntime ?? null },
     resources: { gateway: gatewayResource, connector: connectorResource },
     runtime_state: { gateway: runtimeState(dataRoots.gateway), connector: runtimeState(dataRoots.connector) },
@@ -163,10 +174,16 @@ while (!stopping && Date.now() - startedAt < durationMs) {
       gateway_bytes: safeStat(logPaths.gateway), connector_bytes: safeStat(logPaths.connector),
       gateway_signals: logSignals(logPaths.gateway), connector_signals: logSignals(logPaths.connector)
     }, manual_interventions: 0 };
-  if (sampledAt >= nextDeepProbeAt) { Object.assign(point, await deepProbe(sourceList)); nextDeepProbeAt = sampledAt + deepProbeMs; }
+  if (completedDeepProbe) { Object.assign(point, completedDeepProbe); completedDeepProbe = null; }
+  if (sampledAt >= nextDeepProbeAt && !deepProbeInFlight) {
+    deepProbeInFlight = true;
+    nextDeepProbeAt = sampledAt + deepProbeMs;
+    void deepProbe(sourceList).then(result => { completedDeepProbe = result; }).catch(error => {
+      completedDeepProbe = { deep_probe_error: String(error?.code || error?.name || "DEEP_PROBE_FAILED") };
+    }).finally(() => { deepProbeInFlight = false; });
+  }
   appendFileSync(checkpointsPath, `${JSON.stringify(point)}\n`, { mode: 0o600 });
   atomicJson(statePath, { contract: "observer-reliability-soak-state-v1", run_id: runId, status: "RUNNING", started_at: new Date(startedAt).toISOString(), started_at_ms: startedAt, target_ended_at: new Date(startedAt + durationMs).toISOString(), duration_ms: durationMs, interval_ms: intervalMs, deep_probe_ms: deepProbeMs, checkpoint_count: sequence, last_checkpoint_at: point.sampled_at, next_deep_probe_at: nextDeepProbeAt, output_root: outputRoot });
-  await sleep(Math.min(intervalMs, Math.max(0, startedAt + durationMs - Date.now())));
 }
 const checkpoints = readFileSync(checkpointsPath, "utf8").trim().split("\n").filter(Boolean).map(line => JSON.parse(line));
 const result = summarizeRealHomeSoak(checkpoints, { startedAt, endedAt: Date.now(), requiredDurationMs: REAL_SOAK_MINIMUM_MS }); assertQualificationResult(result);

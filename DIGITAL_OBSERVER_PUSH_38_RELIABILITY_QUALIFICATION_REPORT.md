@@ -4,7 +4,9 @@ Date started: 2026-09-11
 
 ## CURRENT STATUS
 
-`NOT DONE — SOAK EVIDENCE INCOMPLETE`
+`NOT DONE — V7 24H SOAK FAILED; V8 NOT READY`
+
+V7 completed 86,400,104 ms but failed camera availability, component health, AI progress and checkpoint coverage gates. See `DIGITAL_OBSERVER_PUSH_38_V7_FAILURE_ANALYSIS.md`, `DIGITAL_OBSERVER_PUSH_38_ROOT_CAUSE_REGISTER.md`, and `DIGITAL_OBSERVER_PUSH_38_V8_READINESS_REPORT.md`. The previous text below describes pre-v7 expectations and is historical, not current qualification status. No 60-minute post-remediation stability gate or v8 run has begun. PR #28 must remain draft/open; PUSH 39 has not started.
 
 The qualification architecture, deterministic scale/chaos harness and real-Home monitor are implemented. Canonical completion remains intentionally blocked until at least 24 actual elapsed hours are recorded, all final gates pass, the dedicated PR merges and `origin/main` is verified. PUSH 39 has not started.
 
@@ -14,7 +16,7 @@ A strengthened one-minute smoke produced seven checkpoints at 100% camera-sample
 
 The baseline exposed large historical relay lifecycle counters. PUSH 38 records only run-relative deltas so old churn cannot be hidden or misattributed. Gateway/Connector supervisor and runtime PIDs, combined CPU/RSS, DVR session counters, relay starts/staleness/errors, health flapping, outage duration, checkpoint gaps, log bytes, cloud 401s, `setTypeOfService EINVAL`, and fatal/uncaught log signals are measured explicitly.
 
-The final qualifying v7 run began at `2026-09-11T21:08:41.574Z` and cannot complete before `2026-09-12T21:08:41.574Z`. Its first checkpoint proved 10/10 DVR plus 1/1 Tapo progression, per-camera frame-input evidence, 11/11 authorized playback decodes, real inference on 10/10 AI-eligible sources, 11/11 learning/activity sampling, both supervisors and both child runtimes, queue depth zero, and zero manual interventions. DVR channel 2 is explicitly excluded only from visual-event inference because its current parking policy has no configured crossing line and therefore advertises no supported visual Event type; it remains included in source, playback, freshness and learning reliability. Earlier v1-v6 attempts are non-qualifying evidence and will not be merged as PASS.
+The v7 run (which ultimately failed) began at `2026-09-11T21:08:41.574Z` and completed after `2026-09-12T21:08:41.574Z`. Its first checkpoint proved 10/10 DVR plus 1/1 Tapo progression, per-camera frame-input evidence, 11/11 authorized playback decodes, real inference on 10/10 AI-eligible sources, 11/11 learning/activity sampling, both supervisors and both child runtimes, queue depth zero, and zero manual interventions. DVR channel 2 is explicitly excluded only from visual-event inference because its current parking policy has no configured crossing line and therefore advertises no supported visual Event type; it remains included in source, playback, freshness and learning reliability. Earlier v1-v6 attempts are non-qualifying evidence and will not be merged as PASS.
 
 Authorized Production Product UI verification at the start checkpoint showed the Live View inventory as eleven transmitting sources, with no empty DVR slots presented as failed cameras. DVR channel 1 and the independent Tapo camera each progressed from `connecting` to `LIVE` in the Product player. This supplements, rather than replaces, the automated eleven-camera playback decode.
 
@@ -26,7 +28,7 @@ The capacity curve identifies local SQLite coordination as the current saturatio
 
 ## OPEN GATES
 
-- Complete the uninterrupted qualifying 24-hour real-Home interval.
+- Complete root-cause closure and the 60-minute pre-soak gate, then begin a new uninterrupted qualifying v8 interval of at least 24 hours.
 - Evaluate memory/log/relay/session/recovery deltas and flapping from the final ledger.
 - Re-check persisted Product learning coverage; local activity sampling alone does not prove Site persistence.
 - Repeat the authorized Product Live View checkpoint at the end in addition to automated local playback decoding.

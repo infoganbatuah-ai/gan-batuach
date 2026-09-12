@@ -9,6 +9,7 @@ import { objectInference } from "./object-inference-client.mjs";
 import { createEventEvidenceStore } from "./event-evidence-store.mjs";
 import { createEventCaptureWorkspace } from "./event-capture-workspace.mjs";
 import { parseProbeResult, MAX_PROBE_OUTPUT_BYTES } from "./probe-result.mjs";
+import { nextRelayRecovery, relayRecoveryIsStable, relayRetryDelayMs } from "./relay-recovery-policy.mjs";
 import { parseEventClipPlaylist } from "./event-clip-window.mjs";
 import { decodeAnchoredFrame } from "./anchored-frame-decoder.mjs";
 import { computeActivityMetrics } from "./activity-insights.mjs";
@@ -1053,7 +1054,13 @@ async function ensureRelay(streamId) {
   const existing = relays.get(streamId);
   const source = streamSources.get(streamId);
   if (existing && relayIsRunning(existing) && relayBelongsToCurrentSession(existing, source)
-    && (relayIsProgressing(existing) || Date.now() - existing.startedAt < RELAY_STALE_MS)) return existing;
+    && (relayIsProgressing(existing) || Date.now() - existing.startedAt < RELAY_STALE_MS)) {
+    if (relayIsProgressing(existing) && relayRecoveryIsStable(existing)) relayRecovery.delete(streamId);
+    return existing;
+  }
+  // Requests, including HLS and AI sampling, may not bypass the bounded
+  // recovery delay set by the child-exit path. Report temporary unavailability.
+  if (relayRetryDelayMs(relayRecovery.get(streamId)) > 0) return null;
   if (existing) {
     relayLifecycle.staleOnRequest += 1;
     stopRelay(streamId, existing);
@@ -1199,9 +1206,8 @@ async function startRelay(streamId) {
     if (relays.get(streamId) === relay) relays.delete(streamId);
     // A recorder may end an otherwise valid native stream. Reopen it while a
     // cloud-authorized viewing lease exists, without waiting for player failure.
-    const failures = code === 0 ? 0 : Math.min(8, (relayRecovery.get(streamId)?.failures || 0) + 1);
-    const retryMs = Math.min(60_000, 500 * (2 ** Math.max(0, failures - 1)));
-    relayRecovery.set(streamId, { failures, next_retry_at: Date.now() + retryMs });
+    const { retry_ms: retryMs, ...recovery } = nextRelayRecovery(relayRecovery.get(streamId));
+    relayRecovery.set(streamId, recovery);
     const resume = setTimeout(() => {
       if ([...playbackTokens.values()].some((lease) => lease.streamId === streamId && lease.expiresAt > Date.now())) {
         void ensureRelay(streamId).catch(() => undefined);
@@ -1514,7 +1520,7 @@ async function handle(request, response) {
         processRunning: true, auth: deviceAuthorizationState === "rejected" ? "INVALID" : "VALID", cloudConnected: deviceAuthorizationState !== "rejected",
         sourceAvailable: source?.status !== "unavailable", relayRunning: relay ? relayIsRunning(relay) : false,
         frameProgressing: relay ? relayIsProgressing(relay) : false, lastFrameAt: relay?.lastInputAt, dimension: "relay" });
-      if (relay && relayIsProgressing(relay)) relayRecovery.delete(streamId);
+      if (relay && relayIsProgressing(relay) && relayRecoveryIsStable(relay)) relayRecovery.delete(streamId);
     }
     for (let index = 0; index < lastDiscoverySummary.unassignedCount; index++) {
       edgeSupervisor.observe({ resourceId: `unassigned-slot-${index + 1}`, assignment: "CHANNEL_EMPTY" });
@@ -1539,7 +1545,7 @@ async function handle(request, response) {
         activeRelays: relays.size,
         progressingRelays: [...relays.values()].filter(relayIsProgressing).length,
         stalledRelays: [...relays.values()].filter((relay) => !relayIsProgressing(relay)).length,
-        inputs: [...relays.entries()].map(([streamId, relay]) => ({ channel: streamSources.get(streamId)?.channel, input_codec: ["h264", "hevc", "mjpeg", "mpeg4"].includes(streamSources.get(streamId)?.codec) ? streamSources.get(streamId).codec : "unknown", encoder: relay.encoder, ...relay.inputMetrics.snapshot(), stdin_backpressure: relay.process.stdin?.writableNeedDrain === true, stdin_queued_bytes: relay.process.stdin?.writableLength ?? 0 })),
+        inputs: [...relays.entries()].map(([streamId, relay]) => ({ channel: streamSources.get(streamId)?.channel, progressing: relayIsProgressing(relay), input_codec: ["h264", "hevc", "mjpeg", "mpeg4"].includes(streamSources.get(streamId)?.codec) ? streamSources.get(streamId).codec : "unknown", encoder: relay.encoder, ...relay.inputMetrics.snapshot(), stdin_backpressure: relay.process.stdin?.writableNeedDrain === true, stdin_queued_bytes: relay.process.stdin?.writableLength ?? 0 })),
         lifecycle: relayLifecycle,
         recovery: [...relayRecovery.entries()].map(([streamId, state]) => ({ channel: streamSources.get(streamId)?.channel, ...state }))
       },
@@ -1696,7 +1702,7 @@ async function handle(request, response) {
       const relay = await ensureRelay(streamId);
       if (!relay) {
         requestMetrics.playbackUnavailable += 1;
-        json(response, 404, { error: "stream_not_registered" });
+        json(response, streamSources.has(streamId) ? 503 : 404, { error: streamSources.has(streamId) ? "stream_recovering" : "stream_not_registered", retryable: streamSources.has(streamId) });
         return;
       }
       if (!(await waitForFile(relay.playlist, 8000))) {
