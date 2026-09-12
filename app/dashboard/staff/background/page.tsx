@@ -7,9 +7,9 @@ import { createClient } from "@/lib/supabase/server";
 export default async function Page() {
   const { profile } = await requireRole(["staff"]);
   const supabase = await createClient();
-  const staffRes = await supabase.from("staff" as any).select("id, full_name, approved_to_work, police_clearance_status, background_check_status, role, created_at").eq("profile_id", profile.id).maybeSingle();
+  const staffRes = profile.garden_id ? await supabase.from("staff" as any).select("id, full_name, approved_to_work, police_clearance_status, background_check_status, role, created_at").eq("profile_id", profile.id).eq("garden_id", profile.garden_id).maybeSingle() : { data: null };
   const staff = staffRes.data as any;
-  const docsRes = staff?.id ? await supabase.from("documents" as any).select("id, name, document_type, status, expires_at, file_url").eq("staff_id", staff.id).in("document_type", ["sexual_offense_clearance", "criminal_clearance", "police_clearance", "background_check"]).limit(20) : { data: [] };
+  const docsRes = staff?.id ? await supabase.from("documents" as any).select("id, name, document_type, status, expires_at, file_url").eq("staff_id", staff.id).eq("garden_id", profile.garden_id).in("document_type", ["sexual_offense_clearance", "criminal_clearance", "police_clearance", "background_check"]).limit(20) : { data: [] };
   const docs = (docsRes.data ?? []) as any[];
   return (
     <StaffAppFrame active="profile">

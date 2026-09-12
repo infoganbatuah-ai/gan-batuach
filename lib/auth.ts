@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { hasPermission, isRole, type Permission, type UserRole } from "@/lib/roles";
 import { resolveManagementGardenContext } from "@/lib/management/active-garden-context";
+import { resolveStaffEmploymentContext } from "@/lib/management/staff-employment-context";
 
 export async function getSessionProfile() {
   const supabase = await createClient();
@@ -28,6 +29,10 @@ export async function requireRole(allowed: UserRole[], loginPath = "/login", den
   if (role === "manager" || role === "owner") {
     const context = await resolveManagementGardenContext(session.profile);
     if (context.available) session.profile.garden_id = context.activeGarden?.id ?? null;
+  }
+  if (role === "staff") {
+    const context = await resolveStaffEmploymentContext(session.profile);
+    if (context.available) session.profile.garden_id = context.activeEmployment?.garden_id ?? null;
   }
   return session;
 }
@@ -88,16 +93,9 @@ export async function dashboardPathForProfile(profile: { id?: string | null; rol
     }
   }
   if (profile.role === "staff") {
-    const supabase = await createClient();
-    const { data: staff } = await supabase
-      .from("staff" as any)
-      .select("id, approved_to_work, onboarding_status")
-      .eq("profile_id", profile.id)
-      .maybeSingle();
-    if (!staff) return "/dashboard/staff";
-    if (staff && (staff.approved_to_work !== true || staff.onboarding_status !== "active")) {
-      return "/onboarding/staff";
-    }
+    const context = await resolveStaffEmploymentContext({ id: profile.id ?? "", garden_id: profile.garden_id });
+    if (context.available && context.employments.length) return "/dashboard/staff";
+    return "/dashboard/staff/job-market";
   }
   if (profile.role === "inspector" && profile.id) {
     if (profile.active === false) return "/dashboard/inspector/apply";

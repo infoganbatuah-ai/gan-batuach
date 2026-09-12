@@ -16,11 +16,14 @@ import {
 } from "@/components/gan-batuach-design-system";
 import { RoleAppShell } from "@/components/role-app-shell";
 import { israelTodayDateParts } from "@/lib/domain/israel-date";
+import { StaffGardenSelector } from "@/components/staff-garden-selector";
+import { getSessionProfile } from "@/lib/auth";
+import { resolveStaffEmploymentContext } from "@/lib/management/staff-employment-context";
 
 type Tone = "blue" | "purple" | "green" | "orange" | "red" | "neutral";
 type IconType = ComponentType<LucideProps>;
 
-export function StaffAppFrame({
+export async function StaffAppFrame({
   children,
   active = "home",
   avatarUrl,
@@ -33,6 +36,9 @@ export function StaffAppFrame({
   profileName?: string | null;
   mode?: "assigned" | "candidate";
 }) {
+  const session = await getSessionProfile();
+  const context = session.profile?.role === "staff"
+    ? await resolveStaffEmploymentContext(session.profile) : null;
   const activeHref = mode === "candidate"
     ? active === "jobs" ? "/dashboard/staff/job-market" : active === "applications" ? "/dashboard/staff/job-market#applications" : active === "documents" ? "/dashboard/staff/documents" : active === "profile" ? "/dashboard/staff/settings" : "/dashboard/staff"
     : active === "shifts" ? "/dashboard/staff/shifts" : active === "messages" ? "/dashboard/staff/messages" : active === "profile" ? "/dashboard/staff/settings" : active === "more" ? "/dashboard/staff/tasks" : "/dashboard/staff";
@@ -45,7 +51,10 @@ export function StaffAppFrame({
       profile={{ full_name: profileName ?? "צוות", profile_image_url: avatarUrl }}
       className="staff-runtime-shell"
     >
-      <main className="staff-app-main dashboard-runtime-content">{children}</main>
+      <main className="staff-app-main dashboard-runtime-content">
+        {context?.available && <StaffGardenSelector employments={context.employments} activeGardenId={context.activeEmployment?.garden_id ?? null} />}
+        {children}
+      </main>
     </RoleAppShell>
   );
 }

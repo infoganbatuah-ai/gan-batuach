@@ -5,20 +5,19 @@ import { FormField, ListRowCard, SearchFilterBar, StatusChip } from "@/component
 import { StaffAppFrame, StaffEmpty, StaffPageHero, StaffSection } from "@/components/staff-app-ui";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { resolveStaffEmploymentContext } from "@/lib/management/staff-employment-context";
 
 type CandidateProfile = { city?: string | null; professional_role?: string | null; qualification_keys?: string[] | null; availability?: { days?: string[]; notes?: string } | null; preferred_age_groups?: string[] | null; employment_preference?: string | null; professional_summary?: string | null; matching_paused?: boolean };
 type Completeness = { percentage?: number; blockers?: string[]; status?: string };
 type JobMatch = { id: string; garden_name?: string | null; city?: string | null; role_needed: string; age_group?: string | null; employment_type?: string | null; match_level?: string | null; match_reasons?: string[] | null; application_status?: string | null };
 type ApplicationRow = { id: string; opening_id: string; status: string };
-type StaffRow = { id: string; garden_id?: string | null; approved_to_work?: boolean | null };
 
 export default async function StaffJobMarketPage({ searchParams }: { searchParams?: Promise<{ city?: string; q?: string }> }) {
   const { profile } = await requireRole(["staff"]);
   const params = await searchParams;
   const supabase = await createClient();
-  const staffRes = await supabase.from("staff" as never).select("id, garden_id, approved_to_work" as never).eq("profile_id", profile.id).maybeSingle();
-  const staff = staffRes.data as unknown as StaffRow | null;
-  const isAssigned = Boolean(staff?.garden_id && staff?.approved_to_work);
+  const employmentContext = await resolveStaffEmploymentContext(profile);
+  const isAssigned = Boolean(employmentContext.available && employmentContext.employments.length);
   const [candidateRes, completenessRes, matchesRes, applicationsRes] = await Promise.all([
     supabase.from("staff_candidate_profiles" as never).select("profile_id,city,professional_role,qualification_keys,availability,preferred_age_groups,employment_preference,professional_summary,matching_paused,profile_completeness,status" as never).eq("profile_id", profile.id).maybeSingle(),
     supabase.rpc("evaluate_staff_candidate_profile", { target_profile_id: profile.id }),

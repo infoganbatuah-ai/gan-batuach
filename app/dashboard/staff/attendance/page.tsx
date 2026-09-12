@@ -23,9 +23,9 @@ function confidenceTone(value?: string | null) {
 }
 
 export default async function Page() {
-  const { profile } = await requireOperationalRole(["staff"]);
+  const { employment } = await requireOperationalRole(["staff"]);
   const supabase = await createClient();
-  const staffRes = await supabase.from("staff" as any).select("id, garden_id, full_name, gardens(name, address, gps_lat, gps_lng)").eq("profile_id", profile.id).maybeSingle();
+  const staffRes = await supabase.from("staff" as any).select("id, garden_id, full_name, gardens(name, address, gps_lat, gps_lng)").eq("id", employment!.staff_id).eq("garden_id", employment!.garden_id).maybeSingle();
   const staff = staffRes.data as any;
   if (!staff?.id || !staff?.garden_id) {
     return (
@@ -47,10 +47,10 @@ export default async function Page() {
   monthStart.setDate(1);
   const monthStartText = monthStart.toISOString().slice(0, 10);
   const [shiftsRes, samplesRes, anomaliesRes, scoreRes] = await Promise.all([
-    staff?.id ? supabase.from("staff_shifts" as any).select("id, shift_date, planned_start, planned_end, actual_start, actual_end, start_gps_verified, end_gps_verified, status, attendance_confidence, confidence_score, total_minutes, overtime_minutes, auto_started, auto_closed, review_reason").eq("staff_id", staff.id).order("shift_date", { ascending: false }).limit(45) : Promise.resolve({ data: [] }),
-    staff?.id ? supabase.from("staff_location_samples" as any).select("id, inside_geofence, distance_meters, gps_accuracy_meters, captured_at").eq("staff_id", staff.id).order("captured_at", { ascending: false }).limit(8) : Promise.resolve({ data: [] }),
-    staff?.id ? supabase.from("staff_workforce_anomalies" as any).select("id, anomaly_type, severity, status, details, created_at").eq("staff_id", staff.id).in("status", ["requires_review", "reviewing"]).order("created_at", { ascending: false }).limit(6) : Promise.resolve({ data: [] }),
-    staff?.id ? supabase.from("staff_workforce_scores" as any).select("*").eq("staff_id", staff.id).order("score_date", { ascending: false }).limit(1).maybeSingle() : Promise.resolve({ data: null })
+    staff?.id ? supabase.from("staff_shifts" as any).select("id, shift_date, planned_start, planned_end, actual_start, actual_end, start_gps_verified, end_gps_verified, status, attendance_confidence, confidence_score, total_minutes, overtime_minutes, auto_started, auto_closed, review_reason").eq("staff_id", staff.id).eq("garden_id", employment!.garden_id).order("shift_date", { ascending: false }).limit(45) : Promise.resolve({ data: [] }),
+    staff?.id ? supabase.from("staff_location_samples" as any).select("id, inside_geofence, distance_meters, gps_accuracy_meters, captured_at").eq("staff_id", staff.id).eq("garden_id", employment!.garden_id).order("captured_at", { ascending: false }).limit(8) : Promise.resolve({ data: [] }),
+    staff?.id ? supabase.from("staff_workforce_anomalies" as any).select("id, anomaly_type, severity, status, details, created_at").eq("staff_id", staff.id).eq("garden_id", employment!.garden_id).in("status", ["requires_review", "reviewing"]).order("created_at", { ascending: false }).limit(6) : Promise.resolve({ data: [] }),
+    staff?.id ? supabase.from("staff_workforce_scores" as any).select("*").eq("staff_id", staff.id).eq("garden_id", employment!.garden_id).order("score_date", { ascending: false }).limit(1).maybeSingle() : Promise.resolve({ data: null })
   ]);
   const rows = (shiftsRes.data ?? []) as any[];
   const openShift = rows.find((row) => row.actual_start && !row.actual_end);
@@ -77,7 +77,7 @@ export default async function Page() {
       </StaffStats>
       <StaffSection title="פעולות נוכחות">
         <div className="staff-ops-grid">
-          <StaffAttendanceActions staffId={staff?.id} gardenId={staff?.garden_id ?? profile.garden_id} hasOpenShift={Boolean(openShift)} />
+          <StaffAttendanceActions staffId={staff?.id} gardenId={employment!.garden_id} hasOpenShift={Boolean(openShift)} />
           <ListRowCard title="מיקום הגן" subtitle={`${staff?.gardens?.name ?? "גן לא משויך"} · ${staff?.gardens?.address ?? "כתובת טרם הוגדרה"}`} meta={latestSample?.distance_meters != null ? `${Math.round(latestSample.distance_meters)} מטר מהגן` : "מרחק יחושב אחרי דגימת GPS"} avatar={<MapPin size={22} />} status={<StatusChip tone={latestSample?.inside_geofence ? "success" : "warning"}>{latestSample?.inside_geofence ? "בתחום הגן" : "מחכה לדגימה"}</StatusChip>} actions={null} />
           <ListRowCard title="שקיפות והוגנות" subtitle="דגימות מיקום נשמרות רק לצורך נוכחות, ובחריגה מתבצעת בדיקה." status={<StatusChip tone={anomalies.length ? "warning" : "success"}>{anomalies.length ? "דורש בדיקה" : "תקין"}</StatusChip>} actions={null} />
         </div>

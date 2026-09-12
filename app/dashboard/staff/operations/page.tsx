@@ -48,12 +48,12 @@ function ActionCard({ title, text, href, icon, tone: cardTone = "default" }: { t
 }
 
 export default async function StaffOperationsPage() {
-  const { profile } = await requireOperationalRole(["staff"]);
+  const { profile, employment } = await requireOperationalRole(["staff"]);
   const supabase = await createClient();
   const today = israelTodayDateKey();
 
   const [staffRes, gardenRes] = await Promise.all([
-    supabase.from("staff" as any).select("id,garden_id,full_name,role,role_title,profile_photo_url,approved_to_work,onboarding_status").eq("profile_id", profile.id).maybeSingle(),
+    supabase.from("staff" as any).select("id,garden_id,full_name,role,role_title,profile_photo_url,approved_to_work,onboarding_status").eq("id", employment!.staff_id).eq("garden_id", employment!.garden_id).maybeSingle(),
     profile.garden_id ? supabase.from("gardens" as any).select("id,name,logo_url,image_url,address,gps_lat,gps_lng").eq("id", profile.garden_id).maybeSingle() : { data: null, error: null }
   ]);
 
@@ -78,7 +78,7 @@ export default async function StaffOperationsPage() {
     supabase.from("children" as any).select("id,garden_id,full_name,photo_url,face_image_url,allergies,medical_notes,regular_medications,status").eq("garden_id", gardenId).in("status", ["active", "approved"]).order("full_name").limit(120),
     supabase.from("child_daily_journals" as any).select("child_id,meals,sleep_summary,mood,bathroom,incidents,notes_to_parents").eq("garden_id", gardenId).eq("journal_date", today),
     supabase.from("attendance" as any).select("child_id,status").eq("garden_id", gardenId).eq("attendance_date", today),
-    staffId ? supabase.from("staff_shifts" as any).select("id,shift_date,planned_start,planned_end,actual_start,actual_end,start_gps_verified,end_gps_verified,status").eq("staff_id", staffId).eq("shift_date", today).order("created_at", { ascending: false }).limit(1) : Promise.resolve({ data: [] }),
+    staffId ? supabase.from("staff_shifts" as any).select("id,shift_date,planned_start,planned_end,actual_start,actual_end,start_gps_verified,end_gps_verified,status").eq("staff_id", staffId).eq("garden_id", gardenId).eq("shift_date", today).order("created_at", { ascending: false }).limit(1) : Promise.resolve({ data: [] }),
     supabase.from("tasks" as any).select("id,title,status,due_at,priority", { count: "exact" }).eq("garden_id", gardenId).or(`assigned_to.eq.${profile.id},assigned_role.eq.staff`).neq("status", "done").order("created_at", { ascending: false }).limit(8),
     supabase.from("tasks" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId).or(`assigned_to.eq.${profile.id},assigned_role.eq.staff`).in("status", ["done", "completed"]),
     supabase.from("incident_reports" as any).select("id,title,severity,status,child_id,created_at", { count: "exact" }).eq("garden_id", gardenId).neq("status", "closed").order("created_at", { ascending: false }).limit(6),

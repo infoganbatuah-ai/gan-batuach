@@ -10,9 +10,9 @@ function hours(start?: string | null, end?: string | null) {
 }
 
 export default async function Page() {
-  const { profile } = await requireOperationalRole(["staff"]);
+  const { employment } = await requireOperationalRole(["staff"]);
   const supabase = await createClient();
-  const staffRes = await supabase.from("staff" as any).select("id, full_name, garden_id").eq("profile_id", profile.id).maybeSingle();
+  const staffRes = await supabase.from("staff" as any).select("id, full_name, garden_id").eq("id", employment!.staff_id).eq("garden_id", employment!.garden_id).maybeSingle();
   const staff = staffRes.data as any;
   if (!staff?.id || !staff?.garden_id) {
     return (
@@ -24,7 +24,7 @@ export default async function Page() {
       </StaffAppFrame>
     );
   }
-  const shiftsRes = staff?.id ? await supabase.from("staff_shifts" as any).select("id, shift_date, planned_start, planned_end, actual_start, actual_end, status").eq("staff_id", staff.id).order("shift_date", { ascending: false }).limit(60) : { data: [] };
+  const shiftsRes = staff?.id ? await supabase.from("staff_shifts" as any).select("id, shift_date, planned_start, planned_end, actual_start, actual_end, status").eq("staff_id", staff.id).eq("garden_id", employment!.garden_id).order("shift_date", { ascending: false }).limit(60) : { data: [] };
   const rows = (shiftsRes.data ?? []) as any[];
   const monthHours = rows.reduce((sum, row) => sum + hours(row.actual_start, row.actual_end), 0);
   const lateCount = rows.filter((row) => row.status === "late").length;

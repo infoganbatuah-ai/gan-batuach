@@ -2,6 +2,8 @@ import { fail, handleRouteError, ok } from "@/lib/api";
 import { requirePermission } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { gpsAttendanceSchema } from "@/lib/validation";
+import { getOperationalRoleContext } from "@/lib/management/operational-role";
+import { getManagementGardenContext } from "@/lib/management/garden-context";
 
 const THRESHOLD_MINUTES = 30;
 
@@ -43,10 +45,11 @@ export async function POST(request: Request) {
       return fail("לא נמצא איש צוות לנוכחות.", 404);
     }
     const staff = staffLookup.data as any;
-    const canWrite =
-      profile.role === "admin" ||
-      (staff.profile_id === profile.id && staff.garden_id === payload.garden_id) ||
-      (["manager", "owner"].includes(profile.role) && profile.garden_id === payload.garden_id);
+    const staffAccess = profile.role === "staff" ? await getOperationalRoleContext(["staff"]) : null;
+    const managementAccess = ["manager", "owner"].includes(profile.role) ? await getManagementGardenContext() : null;
+    const canWrite = profile.role === "staff"
+      ? Boolean(staffAccess?.allowed && staffAccess.employment?.staff_id === staff.id && staffAccess.employment?.garden_id === payload.garden_id)
+      : Boolean(managementAccess?.allowed && managementAccess.gardenId === payload.garden_id);
     if (!canWrite) return fail("אין הרשאה לעדכן נוכחות של איש צוות שאינו משויך אליך.", 403);
 
     const timestamp = payload.captured_at ? new Date(payload.captured_at) : new Date();
@@ -107,13 +110,11 @@ export async function POST(request: Request) {
     const openShift = openShiftRes.data as any;
 
     if (manualAction) {
+      if (profile.role !== "staff") return fail("החתמה ידנית דורשת זהות העובד; למנהל יש מסלול אישור נפרד.", 403);
       const confidence = confidenceStatus(inside, payload.gps_accuracy_meters, 1);
-      const update = payload.action === "check_in"
-        ? { actual_start: iso, gps_start_lat: payload.gps_lat, gps_start_lng: payload.gps_lng, start_gps_verified: inside, status: "started", attendance_confidence: confidence.status, confidence_score: confidence.score, review_reason: confidence.reason }
-        : { actual_end: iso, gps_end_lat: payload.gps_lat, gps_end_lng: payload.gps_lng, end_gps_verified: inside, status: "completed", attendance_confidence: confidence.status, confidence_score: confidence.score, review_reason: confidence.reason };
-      const { data, error } = await supabase.from("staff_shifts").upsert({ staff_id: staff.id, garden_id: payload.garden_id, shift_date: shiftDate, ...update } as any, { onConflict: "staff_id,garden_id,shift_date" }).select("*").single();
+      const { data, error } = await supabase.rpc("staff_attendance_transition" as never, { target_garden_id: payload.garden_id, target_action: payload.action, target_lat: payload.gps_lat, target_lng: payload.gps_lng } as never);
       if (error) return fail(error.message, 400);
-      return ok({ mode: "manual_fallback", shift: data, sample: sampleInsert.data, inside_geofence: inside, distance_meters: distance });
+      return ok({ mode: "manual_fallback", shift: data, sample: sampleInsert.data, inside_geofence: inside, distance_meters: distance, confidence });
     }
 
     const since = new Date(timestamp.getTime() - (THRESHOLD_MINUTES + 6) * 60000).toISOString();
@@ -133,47 +134,16 @@ export async function POST(request: Request) {
     const confidence = confidenceStatus(inside, payload.gps_accuracy_meters, inside ? insideSamples.length : outsideSamples.length);
 
     if (!openShift && inside && oldestInside?.captured_at && oldestInside.captured_at <= threshold && insideSamples.length >= 2) {
-      const { data, error } = await supabase.from("staff_shifts").upsert({
-        staff_id: staff.id,
-        garden_id: payload.garden_id,
-        shift_date: shiftDate,
-        actual_start: oldestInside.captured_at,
-        gps_start_lat: payload.gps_lat,
-        gps_start_lng: payload.gps_lng,
-        start_gps_verified: confidence.status !== "requires_review",
-        status: "started",
-        auto_attendance_enabled: true,
-        auto_started: true,
-        auto_start_detected_at: iso,
-        attendance_confidence: confidence.status,
-        confidence_score: confidence.score,
-        review_reason: confidence.reason
-      } as any, { onConflict: "staff_id,garden_id,shift_date" }).select("*").single();
+      const { data, error } = await supabase.rpc("staff_attendance_transition" as never, { target_garden_id: payload.garden_id, target_action: "check_in", target_lat: payload.gps_lat, target_lng: payload.gps_lng } as never);
       if (error) return fail(error.message, 400);
-      await writeAudit(supabase, { staff_id: staff.id, garden_id: payload.garden_id, actor_profile_id: profile.id, event_type: "auto_shift_started", entity_type: "staff_shift", entity_id: data.id, details: { detected_at: iso, start_time: oldestInside.captured_at, confidence: confidence.status } });
+      await writeAudit(supabase, { staff_id: staff.id, garden_id: payload.garden_id, actor_profile_id: profile.id, event_type: "auto_shift_started", entity_type: "staff_shift", entity_id: (data as any)?.id, details: { detected_at: iso, start_time: oldestInside.captured_at, confidence: confidence.status } });
       return ok({ mode: "automatic", attendance_event: "started", shift: data, sample: sampleInsert.data, inside_geofence: inside, distance_meters: distance, confidence });
     }
 
     if (openShift && !inside && oldestOutside?.captured_at && oldestOutside.captured_at <= threshold && outsideSamples.length >= 2) {
-      const start = new Date(openShift.actual_start).getTime();
-      const end = new Date(oldestOutside.captured_at).getTime();
-      const totalMinutes = Math.max(0, Math.round((end - start) / 60000));
-      const { data, error } = await supabase.from("staff_shifts").update({
-        actual_end: oldestOutside.captured_at,
-        gps_end_lat: payload.gps_lat,
-        gps_end_lng: payload.gps_lng,
-        end_gps_verified: confidence.status !== "requires_review",
-        status: "completed",
-        auto_closed: true,
-        auto_end_detected_at: iso,
-        attendance_confidence: confidence.status,
-        confidence_score: confidence.score,
-        total_minutes: totalMinutes,
-        overtime_minutes: Math.max(0, totalMinutes - 480),
-        review_reason: confidence.reason
-      } as any).eq("id", openShift.id).select("*").single();
+      const { data, error } = await supabase.rpc("staff_attendance_transition" as never, { target_garden_id: payload.garden_id, target_action: "check_out", target_lat: payload.gps_lat, target_lng: payload.gps_lng } as never);
       if (error) return fail(error.message, 400);
-      await writeAudit(supabase, { staff_id: staff.id, garden_id: payload.garden_id, actor_profile_id: profile.id, event_type: "auto_shift_closed", entity_type: "staff_shift", entity_id: data.id, details: { detected_at: iso, end_time: oldestOutside.captured_at, confidence: confidence.status, total_minutes: totalMinutes } });
+      await writeAudit(supabase, { staff_id: staff.id, garden_id: payload.garden_id, actor_profile_id: profile.id, event_type: "auto_shift_closed", entity_type: "staff_shift", entity_id: (data as any)?.id, details: { detected_at: iso, end_time: oldestOutside.captured_at, confidence: confidence.status } });
       return ok({ mode: "automatic", attendance_event: "closed", shift: data, sample: sampleInsert.data, inside_geofence: inside, distance_meters: distance, confidence });
     }
 
