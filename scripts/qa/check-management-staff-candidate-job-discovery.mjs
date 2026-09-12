@@ -15,8 +15,10 @@ test("candidate completeness is server evaluated from structured profile truth",
 });
 test("candidate profile remains self-scoped", () => {
   assert.match(migration, /target_profile_id <> auth\.uid\(\) and not public\.is_admin\(\)/);
-  assert.match(profileApi, /requireRole\(\["staff"\]\)/);
+  assert.match(profileApi, /session\.profile\.role !== "staff"/);
   assert.match(profileApi, /save_staff_candidate_profile/);
+  assert.match(profileApi, /נדרשת התחברות מחדש/);
+  assert.doesNotMatch(profileApi, /requireRole/);
 });
 test("job matches are deterministic and qualification-aware", () => {
   assert.match(migration, /find_relevant_staff_jobs/);
