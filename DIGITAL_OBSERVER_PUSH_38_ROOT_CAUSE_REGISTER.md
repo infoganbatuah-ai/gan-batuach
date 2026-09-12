@@ -11,3 +11,17 @@
 | R7 | MEDIUM dependent | One AI deep-probe failure on Tapo coincided with relay absence; no evidence of independent queue/worker stall. | Preserve eligible-work vs intentionally quiet distinction; probe camera→candidate→job→worker→result on next run. | No unexplained AI progress failures; no false stall for quiet/disabled policy. |
 
 No issue is classified `EXTERNAL/ENVIRONMENTAL` on current evidence. Internal HIGH/CRITICAL **confirmed fixed in code: 1/1 (R1)**; HIGH unresolved **R2–R4**; monitoring HIGH **R5** fixed in code but not live-qualified. These categories must not be conflated with a clean v8 start gate.
+
+## PUSH 38C update (post-v7, pre-soak not run)
+
+| ID | Current classification | New evidence / change | Remaining gate |
+| --- | --- | --- | --- |
+| R1 | RESOLVED IN CODE; live proof pending | Preserved `cc48ba5` bounded backoff and stable-reset behavior; regression QA passed. | Signed live deployment and 60-minute observation. |
+| R2 | UNRESOLVED HIGH | Confirmed internal shared-login churn amplification in discovery and non-auth all-stream-down recovery; fixed both paths and added session epoch/rotation plus per-channel relay reasons. V7 cannot prove whether recorder, transport, host or network originated the simultaneous stream closure. | No shared HIGH recurrence in real pre-soak; attribute any recurrence by session epoch, reason, channel, transport. |
+| R3 | UNRESOLVED HIGH | 146 `upstreamFailed` increments cluster at v7 seq 29–30, not all later :30 windows. Added per-source transport/RTSP/decoder/stale reason codes and event-loop telemetry. External camera/Wi-Fi cause unproven. | 1/1 stable real Tapo, attributable any failure, no recurring unexplained flapping. |
+| R4 | UNRESOLVED HIGH | Historical 40 unusable responses lack cause. Confirmed `/health` side effects (supervisor/recovery mutation and possible ONNX startup) removed; versioned snapshot and liveness endpoint added. Probe now classifies timeout/refused/HTTP/auth/payload/staleness and checks liveness. | Real 60-minute health latency/response evidence; no generic unusable result. |
+| R5 | MONITORING-ONLY RESOLVED IN CODE; live proof pending | Anchored schedule and concurrent bounded probes, expected/actual/drift/duration/outcome recorded, delayed/duplicates fail coverage. | >=60-minute 60/60 valid checkpoint gate. |
+| R6 | MONITORING-ONLY RESOLVED IN CODE; live proof pending | Separate health transport reason, component state, liveness and per-input progression. | No unknown state misreported as camera downtime. |
+| R7 | DEPENDENT, NOT INDEPENDENT AI STALL PROVEN | V7 Tapo AI probe failed when source had zero relays. No count-only quiet-scene stall heuristic added. | Eligible AI path succeeds in pre-soak; no false stall for no work required. |
+
+Internal HIGH/CRITICAL unresolved for the v8 start gate: **3** (R2, R3, R4); R5 also awaits real monitor qualification. This is a conservative qualification count, not a claim that three separate internal faults are confirmed. External/environmental proven: **0**.

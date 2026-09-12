@@ -18,3 +18,7 @@ V7 failed. Do **not** start v8, merge draft PR #28, or start PUSH 39. The 24-hou
 5. PR #28 remains draft/open and must not merge before successful v8 evidence plus required checks. North-Star status does not advance.
 
 Required next safe work: instrument and isolate R2–R4, reproduce/fix each internal cause, validate bounded recovery without duplicate sessions/identity/source changes, then run the 60m pre-soak. Only then decide whether to start v8.
+
+## PUSH 38C update
+
+Session churn amplification and health-endpoint side effects were fixed in the branch, and per-source/session/probe instrumentation added. Local deterministic QA passes; see `DIGITAL_OBSERVER_PUSH_38C_PRE_SOAK_CLOSURE.md`. The deployed Home runtimes have **not** received these changes through the trusted release path, and a post-fix real 60-minute gate has **not** run. R2–R4 remain HIGH unresolved for qualification and R5 is unqualified over 60 minutes. **V8 START = NO**; there is no v8 timestamp. GitHub reports PR #28 open, draft and unmerged.
