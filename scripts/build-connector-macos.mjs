@@ -10,6 +10,10 @@ import { execFileSync } from "node:child_process";
 const args = Object.fromEntries(process.argv.slice(2).map(arg => { const i = arg.indexOf("="); return [arg.slice(0, i), arg.slice(i + 1)]; }));
 for (const name of ["out", "node", "ffmpeg", "ffprobe", "ort", "model"]) if (!args[`--${name}`]) throw new Error(`BUILD_INPUT_REQUIRED_${name}`);
 if (process.platform !== "darwin") throw new Error("MACOS_BUILD_HOST_REQUIRED");
+const releaseClass = args["--release-class"] || "QA";
+const signingIdentity = args["--signing-identity"] || "-";
+if (!["QA", "PRODUCTION"].includes(releaseClass)) throw new Error("SIGNING_RELEASE_CLASS_INVALID");
+if (releaseClass === "PRODUCTION" && signingIdentity === "-") throw new Error("APPLE_DISTRIBUTION_IDENTITY_REQUIRED");
 const out = resolve(args["--out"]);
 if (existsSync(out)) throw new Error("BUILD_OUTPUT_MUST_BE_NEW");
 const model = readFileSync(args["--model"]);
@@ -63,6 +67,9 @@ const plist = { CFBundleIdentifier: "com.digitalobserver.connector", CFBundleNam
   CFBundleDocumentTypes: [{ CFBundleTypeName: "Digital Observer installation request", CFBundleTypeRole: "Viewer", CFBundleTypeExtensions: ["observer-connect"] }] };
 writeFileSync(join(contents, "Info.plist"), JSON.stringify(plist));
 run("/usr/bin/plutil", ["-convert", "xml1", join(contents, "Info.plist")]);
+// install_name_tool mutates Mach-O binaries and invalidates their prior code
+// signatures. Re-sign nested binaries before trying to execute them on arm64.
+for (const binary of binaries.reverse()) run("/usr/bin/codesign", ["--force", "--sign", signingIdentity, binary]);
 run(join(resources, "bin/node"), ["--version"]);
 run(join(resources, "bin/ffmpeg"), ["-version"]);
 run(join(resources, "bin/ffprobe"), ["-version"]);
@@ -71,19 +78,23 @@ execFileSync(join(resources, "bin/node"), ["--input-type=module", "-e", "import 
 // a build-time derivative, not a runtime dependency and must not invalidate the
 // sealed application after signing.
 rmSync(join(resources, "runtime/:memory:.ses"), { force: true });
-for (const binary of binaries.reverse()) run("/usr/bin/codesign", ["--force", "--sign", "-", binary]);
-run("/usr/bin/codesign", ["--force", "--sign", "-", app]);
+run("/usr/bin/codesign", ["--force", "--sign", signingIdentity, app]);
+// Signing must be the final mutation of sealed bundle content. A successful
+// codesign invocation alone does not prove the package still verifies.
+run("/usr/bin/codesign", ["--verify", "--deep", "--strict", app]);
 const staging = mkdtempSync(join(tmpdir(), "digital-observer-connector-dmg-"));
 const dmg = join(out, "Digital Observer Connector.dmg");
 try {
   cpSync(app, join(staging, "Digital Observer.app"), { recursive: true, dereference: true });
+  run("/usr/bin/codesign", ["--verify", "--deep", "--strict", join(staging, "Digital Observer.app")]);
   symlinkSync("/Applications", join(staging, "Applications"));
   run("/usr/bin/hdiutil", ["create", "-quiet", "-fs", "HFS+", "-volname", "Digital Observer Connector", "-srcfolder", staging, dmg]);
 } finally { rmSync(staging, { recursive: true, force: true }); }
 const dmgSha256 = createHash("sha256").update(readFileSync(dmg)).digest("hex");
 writeFileSync(join(out, "package-status.json"), JSON.stringify({ status: "LOCAL_PACKAGE_QA_ONLY", platform: `macos-${process.arch}`, build: sha,
   dirtySnapshot: run("git", ["status", "--porcelain"]).trim().length > 0, nativeLibraries: copied.size,
-  signing: "AD_HOC_ONLY_NOT_NOTARIZED", publicDownloadAllowed: false, redistributionNoticesBundled: true,
+  signing: signingIdentity === "-" ? "AD_HOC_QA_VERIFIED_NOT_NOTARIZED" : "IDENTITY_SIGNED_VERIFIED_NOT_NOTARIZED",
+  releaseClass, signatureVerified: true, notarization: "NOT_VERIFIED", publicDownloadAllowed: false, redistributionNoticesBundled: true,
   ota: { contract: "observer-edge-update-v1", agentBundled: true, signedManifestRequired: true, atomicSlots: true, automaticRollback: true },
   dmg: { filename: basename(dmg), sha256: dmgSha256 }, serviceInstallTest: "NOT_RUN", enrollmentE2E: "NOT_RUN" }, null, 2));
 console.log(JSON.stringify({ status: "LOCAL_PACKAGE_QA_ONLY", output: out, dmg, dmgSha256, nativeLibraries: copied.size, publicDownloadAllowed: false }));

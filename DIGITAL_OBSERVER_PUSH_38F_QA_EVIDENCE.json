@@ -1,0 +1,43 @@
+{
+  "contract": "observer-push38f-qa-evidence-v1",
+  "classification": "ISOLATED_QA_NOT_LIVE_OR_PRODUCTION_RELEASE",
+  "key_id": "qa-p38f-ed25519-20260913",
+  "release_store": "/Volumes/DIGITAL_OBSERVER/QA-Releases/PUSH-38F",
+  "baseline_releases": [
+    {
+      "profile": "PHYSICAL_GATEWAY",
+      "release_id": "qa-legacy-gateway-aa57572e8736",
+      "artifact_sha256": "aa57572e873662d65faf241fb503eaec070c444bdcbff751dafe0fa4be89d2ae",
+      "manifest_verified": true,
+      "artifact_verified": true,
+      "isolated_bootstrap_idempotent": true,
+      "synthetic_bad_update_rollback": "PASS",
+      "service_manager_restart": "NOT_TESTED",
+      "live_known_good": false
+    },
+    {
+      "profile": "SOFTWARE_CONNECTOR",
+      "release_id": "qa-legacy-connector-ee82c20a77ac",
+      "artifact_sha256": "ee82c20a77acb7fd8caf692682569ad53581e9c057b11724845c6d947c5a982a",
+      "manifest_verified": true,
+      "artifact_verified": true,
+      "isolated_bootstrap_idempotent": true,
+      "synthetic_bad_update_rollback": "PASS",
+      "service_manager_restart": "NOT_TESTED",
+      "live_known_good": false
+    }
+  ],
+  "connector_qa_package": {
+    "release_class": "QA_AD_HOC_NOT_NOTARIZED",
+    "dmg_sha256": "d2a2e130348a270277042ea80a3edf105eba20f807b984997d6e5731b02465a1",
+    "strict_signature_verify": "PASS",
+    "stored_at": "/Volumes/DIGITAL_OBSERVER/QA-Releases/PUSH-38F/qa-connector-signature-build",
+    "ed25519_release_manifest": "NOT_CREATED",
+    "live_deployment": false
+  },
+  "remediation_gateway_release": "NOT_BUILT",
+  "remediation_connector_release": "NOT_AUTHORIZED_AS_ED25519_RELEASE",
+  "live_bootstrap": "NOT_ATTEMPTED",
+  "pre_soak": "NOT_STARTED",
+  "v8": "NOT_STARTED"
+}

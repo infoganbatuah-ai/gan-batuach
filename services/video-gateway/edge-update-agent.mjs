@@ -10,7 +10,7 @@ export async function runEdgeUpdateCycle({
 }) {
   if (typeof cloudRequest !== "function") fail("EDGE_UPDATE_CLOUD_CLIENT_REQUIRED");
   const manager = new EdgeUpdateManager({ root, trustedPublicKeys, device, adapter, healthCheck });
-  if (!manager.current().slot) manager.initializeKnownGood(device.currentVersion, device.buildSha);
+  if (!manager.current().slot || !manager.knownGood().length) fail("EDGE_UPDATE_SIGNED_BOOTSTRAP_REQUIRED");
   const plan = await cloudRequest({ method: "GET", path: "/api/video-gateway/edge-updates", operation: "UPDATE_READ",
     query: { platform: device.platform, architecture: device.architecture, profile: device.profile,
       current_version: manager.current().version, config_version: device.configVersion, channel: device.channel } });

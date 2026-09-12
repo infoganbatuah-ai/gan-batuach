@@ -1,5 +1,11 @@
 # PUSH 38E — legacy baseline candidates (NOT known-good)
 
+## PUSH 38F QA authorization addendum
+
+The exact candidate bytes were copied to restricted QA release storage outside Git at `/Volumes/DIGITAL_OBSERVER/QA-Releases/PUSH-38F/` and signed with QA-only Ed25519 key ID `qa-p38f-ed25519-20260913`. Both PUSH 19 manifests and stored artifacts independently verified. Signed release IDs are `qa-legacy-gateway-aa57572e8736` and `qa-legacy-connector-ee82c20a77ac`; their SHA-256 digests and sizes remain exactly those in the table below. The `build_sha` field in these **legacy** QA manifests is the artifact digest, **not a proven source Git revision**. QA signing establishes explicit authorization for isolated testing, not Apple distribution validity or live Production release trust.
+
+The isolated manager contract now requires `verifyInstalled` and `stageBaseline` before committing one atomic installed-bootstrap record. Both captured archives passed the isolated manager/slot rollback drill with synthetic bad updates and fake persistent identity/config/queue/source-map files outside slots. **Service-manager restart and real identity/source compatibility were not tested.** The live components still have no known-good pointer. Do not reclassify these QA archives as live known-good or deploy them. Candidate copies under `/private/tmp` are redundant after the external-volume QA store is verified; preserve until a live-authorization decision or controlled disposal is recorded.
+
 Capture time: 2026-09-12 22:36:55 UTC. Canonical candidate metadata: `DIGITAL_OBSERVER_PUSH_38_LEGACY_BASELINE_CANDIDATES.json`. **Neither artifact is signed, registered, or safe to use as an authorized production rollback target.** No source Git SHA can be proven from installed metadata; the live runtimes report `development` / `unknown`. A file-level Git blob match would not prove the complete package revision.
 
 | Profile | Candidate ID | SHA-256 | Exact compressed bytes | Isolated restore evidence |
