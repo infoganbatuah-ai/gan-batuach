@@ -93,7 +93,7 @@ export default async function InspectorCommandCenterPage() {
         action={<Link className="inspector-action-button" href="/dashboard/inspector/inspections/due">צפה ביומן השבוע</Link>}
       />
 
-      <InspectorSection title="רשימת גנים" subtitle="ציון בטיחות, מנהלת, עיר וביקורת הבאה" icon={Home}>
+      <InspectorSection title="רשימת גנים" subtitle="ציון בטיחות, מנהלת, עיר וביקורת הבאה" icon={Home} action={<Link href="/dashboard/inspector/preliminary-gardens">הקמת גן והזמנת בעלים</Link>}>
         <InspectorList>
           {gardens.map((garden) => (
             <InspectorRow

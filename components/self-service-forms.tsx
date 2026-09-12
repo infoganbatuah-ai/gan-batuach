@@ -7,7 +7,7 @@ import { FormField, PremiumCard, ProgressStepper, StatusChip } from "@/component
 import { knownKindergartenCities } from "@/lib/domain/kindergarten-onboarding";
 
 type ApiState = { ok: boolean; message: string; href?: string };
-export type SelfServiceAccountType = "parent" | "staff_candidate" | "inspector_candidate" | "kindergarten_manager";
+export type SelfServiceAccountType = "parent" | "staff_candidate" | "inspector_candidate" | "kindergarten_manager" | "kindergarten_owner";
 
 const registrationRoles: Array<{ type: SelfServiceAccountType; icon: typeof Baby; title: string; text: string; cta: string }> = [
   { type: "parent", icon: Baby, title: "הורה", text: "צרו כרטיס ילד, מצאו גנים בטוחים והגישו בקשת רישום.", cta: "הרשמה כהורה" },
@@ -20,7 +20,8 @@ const roleNotice: Record<SelfServiceAccountType, string> = {
   parent: "פרטי ההורה והילד ישמשו רק להפעלת בקשות רישום ושירותי הגן לאחר אישור.",
   staff_candidate: "פרטי מועמדות ומסמכים ישמשו לבדיקה על ידי מנהלת הגן שאליו תגישו מועמדות.",
   inspector_candidate: "פרטי בקשת המפקח ישמשו לבדיקת התאמה ושיוך אזורים על ידי אדמין.",
-  kindergarten_manager: "לאחר יצירת החשבון תמשיכי ברצף להקמת הגן ול־14 ימי ניסיון. אין שער אישור אדמין ברישום החדש."
+  kindergarten_manager: "לאחר יצירת החשבון תמשיכי ברצף להקמת הגן ול־14 ימי ניסיון. אין שער אישור אדמין ברישום החדש.",
+  kindergarten_owner: "לאחר אימות החשבון וקבלת ההזמנה תוכלו להשלים את הקמת הגן כבעלים."
 };
 
 async function postJson(url: string, payload: Record<string, unknown>) {
@@ -44,7 +45,7 @@ export function SelfServiceRegisterForm({ fixedAccountType, appMode = false, inv
   const [accountType, setAccountType] = useState<SelfServiceAccountType>(fixedAccountType ?? "parent");
   const isFixedRole = Boolean(fixedAccountType);
   const cities = knownKindergartenCities();
-  const activeRole = registrationRoles.find((role) => role.type === accountType) ?? registrationRoles[0];
+  const activeRole = registrationRoles.find((role) => role.type === accountType) ?? { type: "kindergarten_owner" as const, icon: Building2, title: "בעל/ת גן", text: "", cta: "הרשמה כבעל/ת גן" };
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -74,7 +75,9 @@ export function SelfServiceRegisterForm({ fixedAccountType, appMode = false, inv
         previous_experience: formValue(form, "previous_experience") || undefined,
         preferred_regions: formValue(form, "preferred_regions") || undefined
       });
-      const invitationMessage = accountType === "staff_candidate"
+      const invitationMessage = accountType === "kindergarten_owner" || accountType === "kindergarten_manager"
+        ? "החשבון נוצר וההזמנה נשמרה. לאחר אימות פרטי הקשר תוכלו לקבל אותה ולהמשיך בהקמת הגן."
+        : accountType === "staff_candidate"
         ? "החשבון נוצר והזמנת העבודה נשמרה. לאחר אימות הדוא״ל והטלפון והשלמת הפרופיל תוכלו לחזור להזמנה ולאשר אותה."
         : "החשבון נוצר וההזמנה נשמרה. לאחר אימות הדוא״ל והטלפון תוכלו לבחור ילד ולאשר הצטרפות.";
       setState({ ok: true, message: invitationToken ? invitationMessage : "החשבון נוצר. שלחנו קישור אימות לדוא״ל; לאחר האימות תתבקשו לאמת גם את מספר הטלפון.", href: data.next_path });

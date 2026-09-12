@@ -38,7 +38,7 @@ export async function deliverSignedInvitation(admin: AdminClient, input: {
       category: "invitation",
       recipient_email: input.email,
       subject_preview: `הזמנה ל${input.gardenName}`.slice(0, 200),
-      message_preview: "קישור הזמנה אישי נוצר ונשלח דרך ספק ההודעות.",
+      message_preview: result.status === "sent" ? "קישור הזמנה אישי נשלח דרך ספק ההודעות." : "קישור הזמנה אישי נוצר; מסירה חיצונית טרם אומתה.",
       status: result.status,
       provider: result.provider,
       provider_message_id: result.providerMessageId ?? null,

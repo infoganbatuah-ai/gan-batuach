@@ -30,4 +30,5 @@ jobs:
       - run: node --test scripts/qa/check-management-staff-hiring-lifecycle.mjs
       - run: node --test scripts/qa/check-management-multi-garden-staff.mjs
       - run: node --test scripts/qa/check-management-inspector-approval.mjs
+      - run: node --test scripts/qa/check-management-inspector-garden-bootstrap.mjs
       - run: npm run qa:manager-parent-live-contract

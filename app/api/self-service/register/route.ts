@@ -7,7 +7,7 @@ import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin
 import { createClient } from "@/lib/supabase/server";
 
 const schema = z.object({
-  account_type: z.enum(["parent", "staff_candidate", "inspector_candidate", "kindergarten_manager"]),
+  account_type: z.enum(["parent", "staff_candidate", "inspector_candidate", "kindergarten_manager", "kindergarten_owner"]),
   full_name: z.string().min(2),
   email: z.preprocess((value) => normalizeOptionalEmail(value as string | null), z.string().email()),
   phone: z.string().optional(),
@@ -20,6 +20,7 @@ function appRoleFor(accountType: z.infer<typeof schema>["account_type"]) {
   if (accountType === "staff_candidate") return "staff";
   if (accountType === "inspector_candidate") return "inspector";
   if (accountType === "kindergarten_manager") return "manager";
+  if (accountType === "kindergarten_owner") return "owner";
   return "parent";
 }
 
@@ -31,7 +32,9 @@ export async function POST(request: Request) {
     const resolvedInvitation = payload.invitation_token ? await resolveSignedInvitation(admin, payload.invitation_token) : null;
     if (resolvedInvitation && !resolvedInvitation.ok) return fail("ההזמנה אינה זמינה.", 410);
     if (resolvedInvitation?.ok) {
-      const expectedRole = payload.account_type === "parent" ? "parent" : payload.account_type === "staff_candidate" ? "staff" : null;
+      const expectedRole = payload.account_type === "parent" ? "parent" : payload.account_type === "staff_candidate" ? "staff"
+        : payload.account_type === "kindergarten_owner" ? "kindergarten_owner"
+        : payload.account_type === "kindergarten_manager" ? "kindergarten_manager" : null;
       if (!expectedRole || resolvedInvitation.invitation.intended_role !== expectedRole) return fail("ההזמנה אינה מתאימה למסלול ההרשמה.", 403);
     }
     if (resolvedInvitation?.ok && normalizeInvitationEmail(resolvedInvitation.invitation.recipient_email) !== normalizeInvitationEmail(payload.email)) return fail("יש להירשם עם כתובת הדוא״ל שאליה נשלחה ההזמנה.", 403);
