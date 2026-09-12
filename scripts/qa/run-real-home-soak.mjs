@@ -5,6 +5,7 @@ import { homedir } from "node:os";
 import { join, resolve } from "node:path";
 import { promisify } from "node:util";
 import { REAL_SOAK_MINIMUM_MS, assertQualificationResult, summarizeRealHomeSoak } from "../../lib/domain/digital-observer/reliability-qualification.mjs";
+import { probeLocalHealth } from "./soak-health-probe.mjs";
 
 const exec = promisify(execFile);
 const args = new Map(process.argv.slice(2).map(value => { const [key, ...rest] = value.replace(/^--/, "").split("="); return [key, rest.join("=") || true]; }));
@@ -58,11 +59,12 @@ function logSignals(path) {
     };
   } catch { return { cloud_401: null, set_type_of_service_einval: null, fatal_or_uncaught: null }; }
 }
-async function health(port) { const started = Date.now(); try { const response = await fetch(`http://127.0.0.1:${port}/health`, { signal: AbortSignal.timeout(8_000) }); const body = await response.json(); return { ok: response.ok && body.ok === true, latency_ms: Date.now() - started, body }; } catch (error) { return { ok: false, latency_ms: Date.now() - started, error: error?.cause?.code || error?.name || "REQUEST_FAILED" }; } }
 function classifyCheckpoint(probe, resource, expected) {
-  if (probe.ok && Number(probe.body?.mediaHeartbeat?.progressingRelays) === expected && probe.body?.status === "healthy") return "PASS";
   if (probe.ok && (Number(probe.body?.mediaHeartbeat?.progressingRelays) < expected || probe.body?.status !== "healthy")) return "PRODUCT_FAILURE";
-  if (!probe.ok && resource?.runtime_pid === null) return "PRODUCT_FAILURE";
+  if (resource?.inspection_ok === false && probe.ok) return "MONITOR_FAILURE";
+  if (probe.ok && Number(probe.body?.mediaHeartbeat?.progressingRelays) === expected && probe.body?.status === "healthy") return "PASS";
+  if (!probe.ok && probe.reason === "CONNECTION_REFUSED") return "PRODUCT_FAILURE";
+  if (!probe.ok && resource?.inspection_ok === true && resource?.runtime_pid === null) return "PRODUCT_FAILURE";
   return "INSUFFICIENT_EVIDENCE";
 }
 async function processRow(pid) {
@@ -87,6 +89,7 @@ async function processInfo(pattern) {
     try { const handles = await exec("/usr/sbin/lsof", ["-nP", "-p", String(runtime.pid)], { timeout: 3_000, maxBuffer: 4 * 1024 * 1024 }); openHandles = Math.max(0, handles.stdout.trim().split("\n").length - 1); } catch {}
     return {
       ...supervisor,
+      inspection_ok: true,
       supervisor_pid: supervisor.pid,
       runtime_pid: runtime.pid,
       runtime_elapsed: runtime.elapsed,
@@ -96,7 +99,7 @@ async function processInfo(pattern) {
       total_cpu_percent: Number(((supervisor.cpu_percent ?? 0) + (runtime.pid === supervisor.pid ? 0 : runtime.cpu_percent ?? 0)).toFixed(3)),
       total_rss_mb: Number(((supervisor.rss_mb ?? 0) + (runtime.pid === supervisor.pid ? 0 : runtime.rss_mb ?? 0)).toFixed(3))
     };
-  } catch { return { pid: null, supervisor_pid: null, runtime_pid: null, elapsed: null, cpu_percent: null, rss_mb: null, runtime_rss_mb: null, total_rss_mb: null }; }
+  } catch { return { inspection_ok: false, pid: null, supervisor_pid: null, runtime_pid: null, elapsed: null, cpu_percent: null, rss_mb: null, runtime_rss_mb: null, total_rss_mb: null }; }
 }
 async function keychain(account) { const { stdout } = await exec("/usr/bin/security", ["find-generic-password", "-s", gatewayService, "-a", account, "-w"]); return stdout.trim(); }
 function connectorSecret(name) { return readFileSync(join(connectorSecrets, name), "utf8").trim(); }
@@ -159,13 +162,18 @@ while (!stopping && Date.now() - startedAt < durationMs) {
   // sample. A slow deep probe must never consume the next minute's checkpoint.
   await sleep(Math.max(0, startedAt + sequence * intervalMs - Date.now()));
   if (stopping || Date.now() - startedAt >= durationMs) break;
-  const sampledAt = Date.now(), [gateway, connector, gatewayResource, connectorResource] = await Promise.all([health(18082), health(18083), processInfo("run-persistent-home-gateway.mjs"), processInfo("run-software-connector.mjs")]);
+  const scheduledAt = startedAt + sequence * intervalMs;
+  const sampledAt = Date.now();
+  const [gateway, connector, gatewayResource, connectorResource] = await Promise.all([probeLocalHealth(18082), probeLocalHealth(18083), processInfo("run-persistent-home-gateway.mjs"), processInfo("run-software-connector.mjs")]);
+  const probeCompletedAt = Date.now();
   const point = { contract: "observer-reliability-checkpoint-v1", run_id: runId, sequence: ++sequence, sampled_at: new Date(sampledAt).toISOString(), elapsed_ms: sampledAt - startedAt,
-    interval_ms: intervalMs,
+    scheduled_at: new Date(scheduledAt).toISOString(), drift_ms: sampledAt - scheduledAt, probe_duration_ms: probeCompletedAt - sampledAt, interval_ms: intervalMs,
     expected_physical_cameras: 11, empty_dvr_slots: 6,
-    dvr: { health_ok: gateway.ok, health_error: gateway.error ?? null, component_status: gateway.body?.status ?? null, classification: classifyCheckpoint(gateway, gatewayResource, 10), health_latency_ms: gateway.latency_ms, expected: 10, progressing: gateway.body?.mediaHeartbeat?.progressingRelays ?? 0, stalled: gateway.body?.mediaHeartbeat?.stalledRelays ?? null, failed: gateway.body?.failedStreamCount ?? null, auth: gateway.body?.deviceAuthorization?.status ?? null, lifecycle: gateway.body?.mediaHeartbeat?.lifecycle ?? null, recorder_session: gateway.body?.recorderSessionHeartbeat ?? null,
+    dvr: { health_ok: gateway.ok, health_error: gateway.reason, health_http_status: gateway.http_status, liveness: gateway.liveness ?? null, event_loop: gateway.body?.eventLoop ?? null, component_status: gateway.body?.status ?? null, classification: classifyCheckpoint(gateway, gatewayResource, 10), health_latency_ms: gateway.latency_ms, expected: 10, progressing: gateway.body?.mediaHeartbeat?.progressingRelays ?? 0, stalled: gateway.body?.mediaHeartbeat?.stalledRelays ?? null, failed: gateway.body?.failedStreamCount ?? null, auth: gateway.body?.deviceAuthorization?.status ?? null, lifecycle: gateway.body?.mediaHeartbeat?.lifecycle ?? null, recorder_session: gateway.body?.recorderSessionHeartbeat ?? null,
+      session_lifecycle: gateway.body?.recorderSessionLifecycle ?? null, relay_diagnostics: gateway.body?.mediaHeartbeat?.source_diagnostics ?? null,
       inputs: (gateway.body?.mediaHeartbeat?.inputs ?? []).map(value => Object.fromEntries(["channel", "progressing", "input_codec", "encoder", "format", "bytes", "chunks", "age_ms", "input_idle_ms", "stdin_backpressure", "stdin_queued_bytes"].map(key => [key, value[key] ?? null]))) },
-    tapo: { health_ok: connector.ok, health_error: connector.error ?? null, component_status: connector.body?.status ?? null, classification: classifyCheckpoint(connector, connectorResource, 1), health_latency_ms: connector.latency_ms, expected: 1, progressing: connector.body?.mediaHeartbeat?.progressingRelays ?? 0, stalled: connector.body?.mediaHeartbeat?.stalledRelays ?? null, failed: connector.body?.failedStreamCount ?? null, auth: connector.body?.deviceAuthorization?.status ?? null, lifecycle: connector.body?.mediaHeartbeat?.lifecycle ?? null,
+    tapo: { health_ok: connector.ok, health_error: connector.reason, health_http_status: connector.http_status, liveness: connector.liveness ?? null, event_loop: connector.body?.eventLoop ?? null, component_status: connector.body?.status ?? null, classification: classifyCheckpoint(connector, connectorResource, 1), health_latency_ms: connector.latency_ms, expected: 1, progressing: connector.body?.mediaHeartbeat?.progressingRelays ?? 0, stalled: connector.body?.mediaHeartbeat?.stalledRelays ?? null, failed: connector.body?.failedStreamCount ?? null, auth: connector.body?.deviceAuthorization?.status ?? null, lifecycle: connector.body?.mediaHeartbeat?.lifecycle ?? null,
+      relay_diagnostics: connector.body?.mediaHeartbeat?.source_diagnostics ?? null,
       inputs: (connector.body?.mediaHeartbeat?.inputs ?? []).map(value => Object.fromEntries(["channel", "progressing", "input_codec", "encoder", "format", "bytes", "chunks", "age_ms", "input_idle_ms", "stdin_backpressure", "stdin_queued_bytes"].map(key => [key, value[key] ?? null]))) },
     release: { gateway: gateway.body?.edgeRuntime ?? null, connector: connector.body?.edgeRuntime ?? null },
     resources: { gateway: gatewayResource, connector: connectorResource },
