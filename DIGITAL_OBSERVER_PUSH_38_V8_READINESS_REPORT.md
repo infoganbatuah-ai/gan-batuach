@@ -11,7 +11,7 @@ V7 failed. Do **not** start v8, merge draft PR #28, or start PUSH 39. The 24-hou
 
 ## Blocking start gates
 
-1. R2 DVR common-cause transport/session loss, R3 Tapo source/network loss, and R4 Connector health non-response have **not** been precisely attributed or shown fixed; no external camera/Wi-Fi attribution is justified.
+1. R2 DVR common-cause transport/session loss, R3 Tapo source/network loss, and R4 Connector unusable health checks have **not** been precisely attributed or shown fixed; no external camera/Wi-Fi attribution is justified.
 2. The amended runtime/monitor has **not** been safely deployed and observed on the real Home. Read-only current local endpoints report Gateway 10/10, Connector 1/1 and healthy responses, but this is a point-in-time relay check, not Product playback/AI proof.
 3. The required **at least 60-minute** pre-soak stability gate has **not** run. Do not substitute short smoke or historical v7 time.
 4. V8 qualification must independently run at least 86,400,000 continuous elapsed ms with full per-camera, component, AI, playback and monitor evidence. Its clock starts at zero only after gates 1–3 pass.
