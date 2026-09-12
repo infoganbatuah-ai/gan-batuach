@@ -22,7 +22,6 @@ function formatStatus(status?: string | null) {
 const actions = [
   { value: "under_review", label: "סימון בבדיקה" },
   { value: "request_more_information", label: "בקשת מידע נוסף" },
-  { value: "approve_pending_assignment", label: "אישור ממתין לשיוך" },
   { value: "approve", label: "אישור והפעלת מפקח" },
   { value: "reject", label: "דחייה" },
   { value: "suspend", label: "השעיה" }

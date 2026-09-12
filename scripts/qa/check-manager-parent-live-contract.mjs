@@ -38,7 +38,7 @@ check("Accepted child creates an audit timeline event", enrollment.includes('eve
 check("Profile opens as an in-screen live drawer", liveExperience.includes("gb-live-profile-drawer") && liveExperience.includes("data-live-panel='profile'"), "dashboard runtime");
 check("Known invalid parent fields remain removed", !parentFamily.includes("pickup_status") && !parentFamily.includes("children.kindergarten_id"), "parent family query");
 check("Login routing reads profile identity and active state", loginAction.includes('select("id, role, garden_id, active")'), "login action");
-check("Inspector routing uses assigned garden scope", authRouting.includes('.eq("inspector_id", profile.id)') && authRouting.includes('profile.active === false'), "role redirect helper");
+check("Inspector routing distinguishes approval from Garden assignment", authRouting.includes('application?.status !== "approved"') && authRouting.includes('profile.active === false') && read("supabase/migrations/20260913020000_management_inspector_approval.sql").includes("g.inspector_id=auth.uid()"), "approval and assignment authority");
 
 for (const file of [
   "components/subscription-admin-manager.tsx",

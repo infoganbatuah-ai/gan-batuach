@@ -288,7 +288,7 @@ const operationalInspectorPages = [
 test("operational staff and inspector pages require activated role context", () => {
   for (const file of [...operationalStaffPages, ...operationalInspectorPages, "app/dashboard/inspector/page.tsx", "app/dashboard/tasks/page.tsx"]) {
     const source = readFileSync(file, "utf8");
-    assert.match(source, /await requireOperationalRole\(/, `${file}: missing operational page guard`);
+    assert.match(source, file.includes("command-center") ? /await requireApprovedInspector\(/ : /await requireOperationalRole\(/, `${file}: missing Inspector page guard`);
   }
   assert.match(readFileSync("app/dashboard/inspector/control-center/page.tsx", "utf8"), /export \{ default \} from "\.\.\/command-center\/page"/);
 });

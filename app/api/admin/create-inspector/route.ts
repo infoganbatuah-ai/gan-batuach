@@ -34,6 +34,7 @@ export async function POST(request: Request) {
   try {
     const { profile } = await requireRole(["admin"]);
     const payload = schema.parse(await request.json());
+    if (payload.garden_ids?.length) return fail("יש לאשר את בקשת המפקח לפני שיוך גנים.", 409);
     const admin = createAdminClient();
     const inspectorEmail = normalizeOptionalEmail(payload.email);
     const identityNumber = payload.identity_number.replace(/\D/g, "");
@@ -65,12 +66,20 @@ export async function POST(request: Request) {
       return fail("לא ניתן ליצור רשומת פקח: " + error.message, 400);
     }
 
-    if (payload.garden_ids?.length) {
-      const assignment = await supabase.from("gardens").update({ inspector_id: user.id }).in("id", payload.garden_ids).select("id");
-      if (assignment.error || (assignment.data?.length ?? 0) !== payload.garden_ids.length) {
-        await cleanupProvisionedInspector(user.id);
-        return fail("המפקח נוצר, אך שיוך הגנים לא נשמר במלואו. הפעולה בוטלה כדי למנוע הצלחה שגויה.", 409, { expected: payload.garden_ids.length, assigned: assignment.data?.length ?? 0, error: assignment.error?.message });
-      }
+    const application = await supabase.from("inspector_applications" as never).insert({
+      profile_id: user.id,
+      full_name: payload.full_name,
+      phone: payload.phone ?? null,
+      email: inspectorEmail ?? null,
+      city: payload.service_cities[0],
+      preferred_regions: payload.service_cities,
+      experience_summary: payload.certification_notes ?? null,
+      status: "submitted",
+      submitted_at: new Date().toISOString()
+    });
+    if (application.error) {
+      await cleanupProvisionedInspector(user.id);
+      return fail("לא ניתן לפתוח בקשת מפקח לבדיקה: " + application.error.message, 400);
     }
 
     if (payload.profile_image_url || identityNumber) {

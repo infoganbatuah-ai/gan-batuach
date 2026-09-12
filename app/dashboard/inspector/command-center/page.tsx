@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { CalendarCheck, Home, MapPin, ShieldCheck } from "lucide-react";
-import { requireOperationalRole } from "@/lib/management/operational-role";
+import { requireApprovedInspector } from "@/lib/management/operational-role";
 import { cleanSyntheticLabel } from "@/lib/domain/display-label";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -53,7 +53,7 @@ function inspectionDateLabel(value?: string | null) {
 }
 
 export default async function InspectorCommandCenterPage() {
-  const { profile } = await requireOperationalRole(["inspector"]);
+  const { profile } = await requireApprovedInspector();
   const supabase = await createClient();
   const [inspectorRes, gardensRes, requiredRes] = await Promise.all([
     supabase.from("inspectors" as any).select("profile_photo_url").eq("id", profile.id).maybeSingle(),
