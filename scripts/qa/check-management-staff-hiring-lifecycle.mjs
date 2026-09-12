@@ -54,10 +54,11 @@ test("employment activation is atomic, replay safe and same-Garden scoped", () =
   assert.match(acceptanceApi, /activate_staff_employment/);
 });
 
-test("role alone does not grant operational Garden access", () => {
-  assert.match(operationalRole, /staff_kindergarten_employments/);
-  assert.match(operationalRole, /\.eq\("status", "active"\)/);
-  assert.match(operationalRole, /approved_to_work/);
+test("role alone does not grant operational Garden access", async () => {
+  const employmentContext = await readFile("lib/management/staff-employment-context.ts", "utf8");
+  assert.match(operationalRole, /resolveStaffEmploymentContext/);
+  assert.match(operationalRole, /can_staff_access_garden/);
+  assert.match(employmentContext, /staff_employments_for_current_user/);
 });
 
 test("manager and candidate scopes remain explicit", () => {

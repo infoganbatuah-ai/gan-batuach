@@ -46,12 +46,12 @@ function formatStatus(status?: string | null) {
 }
 
 export default async function StaffDashboard() {
-  const { profile } = await requireOperationalRole(["staff"]);
+  const { profile, employment } = await requireOperationalRole(["staff"]);
   const supabase = await createClient();
   const today = israelTodayDateKey();
 
   const [staffRes, gardenRes] = await Promise.all([
-    supabase.from("staff" as any).select("id, full_name, role_title, class_group, profile_photo_url, approved_to_work, onboarding_status").eq("profile_id", profile.id).maybeSingle(),
+    supabase.from("staff" as any).select("id, full_name, role_title, class_group, profile_photo_url, approved_to_work, onboarding_status").eq("id", employment!.staff_id).eq("garden_id", employment!.garden_id).maybeSingle(),
     profile.garden_id ? supabase.from("gardens" as any).select("id, name, logo_url, image_url, address, gps_lat, gps_lng").eq("id", profile.garden_id).maybeSingle() : { data: null, error: null }
   ]);
   const staff = staffRes.data as any;
@@ -123,7 +123,7 @@ export default async function StaffDashboard() {
     supabase.from("tasks" as any).select("id,title,priority,status,due_at", { count: "exact" }).or(`assigned_to.eq.${profile.id},assigned_role.eq.staff`).eq("garden_id", gardenId).neq("status", "done").order("created_at", { ascending: false }).limit(6),
     supabase.from("children" as any).select("id, garden_id, full_name, photo_url, face_image_url, allergies, medical_notes, regular_medications").eq("garden_id", gardenId).in("status", ["active", "approved"]).order("full_name").limit(80),
     supabase.from("child_daily_journals" as any).select("child_id, meals, sleep_summary, mood, bathroom, incidents, notes_to_parents").eq("garden_id", gardenId).eq("journal_date", today),
-    staffId ? supabase.from("staff_shifts" as any).select("id, shift_date, planned_start, planned_end, actual_start, actual_end, start_gps_verified, end_gps_verified, status").eq("staff_id", staffId).eq("shift_date", today).order("created_at", { ascending: false }).limit(1) : Promise.resolve({ data: [] }),
+    staffId ? supabase.from("staff_shifts" as any).select("id, shift_date, planned_start, planned_end, actual_start, actual_end, start_gps_verified, end_gps_verified, status").eq("staff_id", staffId).eq("garden_id", gardenId).eq("shift_date", today).order("created_at", { ascending: false }).limit(1) : Promise.resolve({ data: [] }),
     supabase.from("incident_reports" as any).select("id,title,severity,status,child_id", { count: "exact" }).eq("garden_id", gardenId).neq("status", "closed").order("created_at", { ascending: false }).limit(5),
     supabase.from("documents" as any).select("id", { count: "exact", head: true }).eq("staff_id", staffId).in("status", ["missing", "expired", "rejected"]),
     supabase.from("messages" as any).select("id, subject, body, content, created_at, sender:sender_id(full_name)").eq("garden_id", gardenId).or(`sender_id.eq.${profile.id},recipient_id.eq.${profile.id}`).order("created_at", { ascending: false }).limit(4),
@@ -133,7 +133,7 @@ export default async function StaffDashboard() {
 
   const garden = gardenRes.data as any;
   const staffName = cleanSyntheticLabel(staff?.full_name ?? profile.full_name, "איש/ת צוות");
-  const staffRole = staff?.role_title ?? staff?.role ?? "צוות גן";
+  const staffRole = employment?.role_title ?? staff?.role_title ?? staff?.role ?? "צוות גן";
   const children = (childrenRes.data ?? []) as any[];
   const journals = (journalsRes.data ?? []) as any[];
   const journalByChild = new Map(journals.map((journal: any) => [journal.child_id, journal]));

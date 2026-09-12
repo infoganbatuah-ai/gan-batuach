@@ -52,6 +52,14 @@ function fixture({ role = "staff", active = true, profile = {}, session, rows = 
     } },
     "@/lib/roles": {},
     "@/lib/management/active-garden-context": { resolveManagementGardenContext: async currentProfile => ({ available: true, gardens: [], activeGarden: currentProfile.garden_id ? { id: currentProfile.garden_id } : null }) },
+    "@/lib/management/staff-employment-context": { resolveStaffEmploymentContext: async currentProfile => {
+      if (rows.staff?.error || rows.staff_kindergarten_employments?.error) return { available: false };
+      const staff = rows.staff?.data;
+      const employment = rows.staff_kindergarten_employments?.data;
+      const activeEmployment = staff?.approved_to_work && staff?.onboarding_status === "active" && employment
+        ? { employment_id: employment.id, staff_id: staff.id, garden_id: currentProfile.garden_id, role_title: "צוות" } : null;
+      return { available: true, employments: activeEmployment ? [activeEmployment] : [], activeEmployment };
+    } },
     "@/lib/management/contact-verification": load("lib/management/contact-verification.ts", {}),
     "@/lib/supabase/server": { createClient: async () => ({
       from: query,
@@ -83,14 +91,14 @@ test("active staff requires approved record and matching active employment", asy
   assert.equal(result.allowed, true);
   assert.equal(result.gardenIds.length, 1);
   assert.equal(result.gardenIds[0], gardenId);
-  assert.ok(f.calls.some(call => call.table === "staff_kindergarten_employments" && call.column === "staff_id" && call.value === "staff-1"));
-  assert.ok(f.calls.some(call => call.table === "staff_kindergarten_employments" && call.column === "status" && call.value === "active"));
+  assert.equal(result.employment.staff_id, "staff-1");
+  assert.ok(f.calls.some(call => call.table === "rpc" && call.column === "can_staff_access_garden" && call.value === gardenId));
 });
 
 for (const [label, staff, reason] of [
-  ["not approved", { id: "staff-1", approved_to_work: false, onboarding_status: "active" }, "staff_record"],
-  ["onboarding pending", { id: "staff-1", approved_to_work: true, onboarding_status: "pending_verification" }, "staff_record"],
-  ["missing staff record", null, "staff_record"]
+  ["not approved", { id: "staff-1", approved_to_work: false, onboarding_status: "active" }, "staff_employment"],
+  ["onboarding pending", { id: "staff-1", approved_to_work: true, onboarding_status: "pending_verification" }, "staff_employment"],
+  ["missing staff record", null, "staff_employment"]
 ]) {
   test(`staff candidate is denied: ${label}`, async () => {
     await expectDenied({ rows: { staff: { data: staff, error: null } } }, ["staff"], 403, reason);
@@ -189,7 +197,7 @@ test("operational pages route candidates to safe lifecycle screens", async () =>
   const pendingStaff = fixture({ rows: { staff: { data: null, error: null } } });
   await assert.rejects(
     pendingStaff.module.requireOperationalRole(["staff"]),
-    /redirect:\/onboarding\/staff/
+    /redirect:\/dashboard\/staff\/job-market/
   );
 
   const missingEmployment = fixture({ rows: {
@@ -198,7 +206,7 @@ test("operational pages route candidates to safe lifecycle screens", async () =>
   } });
   await assert.rejects(
     missingEmployment.module.requireOperationalRole(["staff"]),
-    /redirect:\/dashboard\/staff\/access-pending/
+    /redirect:\/dashboard\/staff\/job-market/
   );
 
   const pendingInspector = fixture({ role: "inspector", profile: { garden_id: null }, rows: {

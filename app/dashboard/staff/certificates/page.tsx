@@ -7,9 +7,9 @@ import { createClient } from "@/lib/supabase/server";
 export default async function Page() {
   const { profile } = await requireRole(["staff"]);
   const supabase = await createClient();
-  const staffRes = await supabase.from("staff" as any).select("id, full_name").eq("profile_id", profile.id).maybeSingle();
+  const staffRes = profile.garden_id ? await supabase.from("staff" as any).select("id, full_name").eq("profile_id", profile.id).eq("garden_id", profile.garden_id).maybeSingle() : { data: null };
   const staff = staffRes.data as any;
-  const certsRes = staff?.id ? await supabase.from("staff_certificates" as any).select("id, certificate_type, file_url, issued_at, expires_at, status, created_at").eq("staff_id", staff.id).order("expires_at", { ascending: true }).limit(50) : { data: [] };
+  const certsRes = staff?.id ? await supabase.from("staff_certificates" as any).select("id, certificate_type, file_url, issued_at, expires_at, status, created_at").eq("staff_id", staff.id).eq("garden_id", profile.garden_id).order("expires_at", { ascending: true }).limit(50) : { data: [] };
   const rows = (certsRes.data ?? []) as any[];
   const expiring = rows.filter((row) => row.expires_at && new Date(row.expires_at).getTime() < Date.now() + 30 * 86400000).length;
   return (

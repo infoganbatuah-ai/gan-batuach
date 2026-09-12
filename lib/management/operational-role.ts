@@ -5,10 +5,10 @@ import type { UserRole } from "@/lib/roles";
 import { createClient } from "@/lib/supabase/server";
 import { managementContactVerification } from "@/lib/management/contact-verification";
 import { resolveManagementGardenContext } from "@/lib/management/active-garden-context";
+import { resolveStaffEmploymentContext } from "@/lib/management/staff-employment-context";
 
 type OperationalDenial = "session" | "role" | "inactive" | "contact_verification" | "staff_record" | "staff_employment" | "inspector_approval" | "inspector_assignment" | "authority_unavailable";
 type QueryResult<T> = { data: T | null; error: unknown };
-type StaffActivation = { id: string; approved_to_work: boolean | null; onboarding_status: string | null };
 type InspectorApplication = { id: string; status: string; activated_at: string | null };
 type IdRow = { id: string };
 
@@ -47,36 +47,22 @@ export async function getOperationalRoleContext(allowedRoles: UserRole[]) {
       if (authority.error) return denied("authority_unavailable", 503);
       if (authority.data !== true) return denied("role");
       session.profile.garden_id = gardenId;
-      return { allowed: true as const, session, gardenIds: [gardenId] };
+      return { allowed: true as const, session, gardenIds: [gardenId], employment: null };
     }
     if (profile.role !== "staff" && profile.role !== "inspector") {
-      return { allowed: true as const, session };
+      return { allowed: true as const, session, employment: null };
     }
 
     if (profile.role === "staff") {
-      if (!profile.garden_id) return denied("staff_employment");
-      const staff = await supabase
-        .from("staff" as never)
-        .select("id, garden_id, approved_to_work, onboarding_status")
-        .eq("profile_id", profile.id)
-        .eq("garden_id", profile.garden_id)
-        .maybeSingle() as unknown as QueryResult<StaffActivation>;
-      if (staff.error) return denied("authority_unavailable", 503);
-      if (!staff.data || staff.data.approved_to_work !== true || staff.data.onboarding_status !== "active") {
-        return denied("staff_record");
-      }
-      const employment = await supabase
-        .from("staff_kindergarten_employments" as never)
-        .select("id")
-        .eq("profile_id", profile.id)
-        .eq("staff_id", staff.data.id)
-        .eq("garden_id", profile.garden_id)
-        .eq("status", "active")
-        .limit(1)
-        .maybeSingle() as unknown as QueryResult<IdRow>;
-      if (employment.error) return denied("authority_unavailable", 503);
-      if (!employment.data) return denied("staff_employment");
-      return { allowed: true as const, session, gardenIds: [profile.garden_id] };
+      const context = await resolveStaffEmploymentContext(profile);
+      if (!context.available) return denied("authority_unavailable", 503);
+      const employment = context.activeEmployment;
+      if (!employment) return denied("staff_employment");
+      const authority = await supabase.rpc("can_staff_access_garden", { target_garden_id: employment.garden_id });
+      if (authority.error) return denied("authority_unavailable", 503);
+      if (authority.data !== true) return denied("staff_employment");
+      session.profile.garden_id = employment.garden_id;
+      return { allowed: true as const, session, gardenIds: [employment.garden_id], employment };
     }
 
     const [application, inspector, assignment] = await Promise.all([
@@ -89,7 +75,7 @@ export async function getOperationalRoleContext(allowedRoles: UserRole[]) {
       return denied("inspector_approval");
     }
     if (!assignment.data) return denied("inspector_assignment");
-    return { allowed: true as const, session, gardenIds: [assignment.data.id] };
+    return { allowed: true as const, session, gardenIds: [assignment.data.id], employment: null };
   } catch {
     return denied("authority_unavailable", 503);
   }
@@ -97,11 +83,11 @@ export async function getOperationalRoleContext(allowedRoles: UserRole[]) {
 
 export async function requireOperationalRole(allowedRoles: UserRole[]) {
   const access = await getOperationalRoleContext(allowedRoles);
-  if (access.allowed) return access.session;
+  if (access.allowed) return { ...access.session, employment: access.employment };
   if (access.reason === "session") redirect("/login");
   if (access.reason === "contact_verification") redirect("/app/verify-contact");
   const session = await getSessionProfile().catch(() => ({ user: null, profile: null }));
-  if (session.profile?.role === "staff" && access.reason === "staff_employment") redirect("/dashboard/staff/access-pending");
+  if (session.profile?.role === "staff" && access.reason === "staff_employment") redirect("/dashboard/staff/job-market");
   if (session.profile?.role === "staff") redirect("/onboarding/staff");
   if (session.profile?.role === "inspector") redirect("/dashboard/inspector/apply");
   redirect("/dashboard");
