@@ -36,3 +36,7 @@ The user explicitly instructed: **do not deploy if rollback target is unavailabl
 4. Capture authorized Product DVR/Tapo playback and AI/queue/worker start gates; then run a fresh >=60-minute anchored-cadence pre-soak with separate v7/v8 evidence locations. Only if every gate passes may a new v8 24-hour clock begin.
 
 PR #28 must remain draft and unmerged until successful v8 evidence plus required checks. Do not start PUSH 39.
+
+## PUSH 38E addendum
+
+Restricted code-only baseline candidates were captured and tested for file integrity and isolated legacy health startup. They are **unsigned and unregistered**; the Connector app also fails macOS strict code-signature verification at the original installation. The generic OTA manager cannot safely create known-good from `development`/`unknown` metadata and an empty slot. See `DIGITAL_OBSERVER_PUSH_38_OTA_BOOTSTRAP_REPORT.md` and `DIGITAL_OBSERVER_PUSH_38_KNOWN_GOOD_BASELINES.md`. No live bootstrap or remediation deployment occurred; this pre-soak gate remains failed.
