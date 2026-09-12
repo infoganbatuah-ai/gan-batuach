@@ -6,8 +6,9 @@ import { ParentAppFrame, ParentEmptyState, ParentHero, ParentSection } from "@/c
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { guardianChildIds } from "@/lib/management/family-link";
+import { findEligibleGardensForChild } from "@/lib/domain/child-garden-discovery";
 
-export default async function DiscoverKindergartensPage({ searchParams }: { searchParams?: Promise<{ city?: string; age?: string; q?: string }> }) {
+export default async function DiscoverKindergartensPage({ searchParams }: { searchParams?: Promise<{ city?: string; age?: string; q?: string; child?: string }> }) {
   const { profile } = await requireRole(["parent"]);
   const params = await searchParams;
   const userSupabase = await createClient();
@@ -18,33 +19,12 @@ export default async function DiscoverKindergartensPage({ searchParams }: { sear
     .order("created_at", { ascending: false })
     .limit(20) : { data: [], error: null };
 
-  let gardens: any[] = [];
-  let feeGroupsByGarden = new Map<string, any[]>();
-  {
-    let query = userSupabase.from("gardens" as any)
-      .select("id,name,city,address,image_url,ages,framework_type,status,safe_status,public_profile_enabled,eligible_for_safe_status,last_inspection_score")
-      .eq("status", "active")
-      .eq("public_profile_enabled", true)
-      .order("city")
-      .limit(120);
-    if (params?.city) query = query.ilike("city", `%${params.city}%`);
-    if (params?.q) query = query.ilike("name", `%${params.q}%`);
-    const gardenRes = await query;
-    gardens = (gardenRes.data ?? []) as any[];
-    const gardenIds = gardens.map((garden) => garden.id);
-    if (gardenIds.length) {
-      const groups = await userSupabase.from("kindergarten_fee_groups" as any)
-        .select("id,garden_id,group_name,age_range,monthly_fee,show_price_public,active,capacity")
-        .in("garden_id", gardenIds)
-        .eq("active", true)
-        .order("group_name");
-      for (const group of (groups.data ?? []) as any[]) {
-        const list = feeGroupsByGarden.get(group.garden_id) ?? [];
-        list.push(group);
-        feeGroupsByGarden.set(group.garden_id, list);
-      }
-    }
-  }
+  const children = (childProfiles.data ?? []) as any[];
+  const selectedChild = children.find((child) => child.id === params?.child) ?? children[0] ?? null;
+  const discovery = selectedChild
+    ? await findEligibleGardensForChild(userSupabase, profile.id, selectedChild.id, { city: params?.city, query: params?.q })
+    : { kind: "ok" as const, matches: [] as any[] };
+  const gardens = discovery.kind === "ok" ? discovery.matches as any[] : [];
 
   return (
     <DashboardShell role="parent" title="גילוי גנים" appHome>
@@ -59,6 +39,9 @@ export default async function DiscoverKindergartensPage({ searchParams }: { sear
           </label>
           <input name="city" placeholder="עיר" defaultValue={params?.city ?? ""} />
           <input name="age" placeholder="קבוצת גיל" defaultValue={params?.age ?? ""} />
+          <select name="child" defaultValue={selectedChild?.id ?? ""} aria-label="בחירת ילד">
+            {children.map((child) => <option key={child.id} value={child.id}>{child.full_name}</option>)}
+          </select>
           <button className="parent-search-submit" type="submit">חיפוש</button>
         </form>
 
@@ -69,12 +52,12 @@ export default async function DiscoverKindergartensPage({ searchParams }: { sear
           <span><ShieldCheck size={18} /> מומלץ</span>
         </nav>
 
-        <ParentSection title="גני ילדים בטוחים באזור שלך" subtitle="מוצגים רק גנים עם פרופיל ציבורי פעיל">
+        <ParentSection title="גני ילדים בטוחים באזור שלך" subtitle={selectedChild ? `התאמות עבור ${selectedChild.full_name}. הזמינות אינה שומרת מקום.` : "יש ליצור או לקשר כרטיס ילד לפני חיפוש גן."}>
           <div className="parent-garden-list">
             {gardens.map((garden, index) => {
-              const feeGroups = feeGroupsByGarden.get(garden.id) ?? [];
-              const visibleGroups = params?.age ? feeGroups.filter((group) => `${group.group_name} ${group.age_range ?? ""}`.includes(params.age ?? "")) : feeGroups;
-              const publicPrice = visibleGroups.find((group) => group.show_price_public)?.monthly_fee;
+              const classrooms = (garden.matching_classrooms ?? []) as any[];
+              const publicPrice = garden.monthly_price;
+              const eligible = garden.match_status === "eligible";
               return (
                 <article className={`parent-garden-card ${index === 0 ? "featured" : ""}`} key={garden.id}>
                   <div className="parent-garden-image">
@@ -86,32 +69,32 @@ export default async function DiscoverKindergartensPage({ searchParams }: { sear
                         <small>הגן טרם העלה תמונה ציבורית</small>
                       </div>
                     )}
-                    <span>{index === 0 ? "פרופיל ציבורי" : garden.city ?? "גן ציבורי"}</span>
+                    <span>{eligible ? "מתאים לילד" : garden.reason_code ?? "פרופיל ציבורי"}</span>
                   </div>
                   <div className="parent-garden-content">
                     <div>
-                      <span className="parent-safe-badge"><ShieldCheck size={18} /> {garden.eligible_for_safe_status ? "גן מאושר" : "פרופיל ציבורי"}</span>
-                      <h3>{garden.name}</h3>
-                      <p><MapPin size={16} /> {garden.city} · {garden.address ?? "כתובת כללית לא פורסמה"}</p>
+                      <span className="parent-safe-badge"><ShieldCheck size={18} /> {garden.match_status === "pending_request" ? "בקשה ממתינה" : eligible ? "מקום זמין" : "פרופיל ציבורי"}</span>
+                      <h3>{garden.garden_name}</h3>
+                      <p><MapPin size={16} /> {garden.city} · {garden.public_address ?? "כתובת כללית לא פורסמה"}</p>
                     </div>
                     <div className="parent-garden-metrics">
-                      <span><b>{publicPrice ? `₪${Number(publicPrice).toLocaleString("he-IL")}` : "לא פורסם"}</b><small>תשלום חודשי</small></span>
-                      <span><b>{visibleGroups.reduce((sum, group) => sum + Number(group.capacity ?? 0), 0) || "לא פורסם"}</b><small>קיבולת שפורסמה</small></span>
-                      <span><b>{garden.last_inspection_score ? `${garden.last_inspection_score}/100` : "לא פורסם"}</b><small>ציון בטיחות</small></span>
-                      <span><b>{garden.safe_status ?? "בבדיקה"}</b><small>סטטוס ציבורי</small></span>
+                      <span><b>{garden.price_status === "configured" ? `₪${Number(publicPrice).toLocaleString("he-IL")}` : "לא הוגדר"}</b><small>תשלום חודשי</small></span>
+                      <span><b>{garden.available_seats ?? "לא הוגדר"}</b><small>מקומות זמינים</small></span>
+                      <span><b>{garden.enrollment_availability}</b><small>הרשמה</small></span>
+                      <span><b>{garden.distance_status === "distance_unavailable" ? "לא זמין" : garden.distance_km}</b><small>מרחק</small></span>
                     </div>
                     <div className="parent-garden-groups">
-                      {visibleGroups.slice(0, 3).map((group) => <span key={group.id}>{group.group_name}: {group.show_price_public ? `${group.monthly_fee} ₪ לחודש` : "מחיר לא פורסם"}</span>)}
+                      {classrooms.slice(0, 3).map((room) => <span key={room.id}>{room.name}: {room.available_seats ?? "זמינות טרם הוגדרה"} מקומות</span>)}
                     </div>
                     <div className="parent-garden-actions">
-                      <Link className="button secondary" href={`/gardens/${garden.id}`}>צפייה בפרטי הגן</Link>
-                      <EnrollmentRequestButton gardenId={garden.id} childProfiles={(childProfiles.data ?? []) as any[]} feeGroups={visibleGroups} />
+                      <Link className="button secondary" href={`/gardens/${garden.garden_id}`}>צפייה בפרטי הגן</Link>
+                      {eligible ? <EnrollmentRequestButton gardenId={garden.garden_id} childProfiles={selectedChild ? [selectedChild] : []} feeGroups={[]} /> : null}
                     </div>
                   </div>
                 </article>
               );
             })}
-            {gardens.length === 0 ? <ParentEmptyState title="לא נמצאו גנים ציבוריים" text="אפשר לשנות סינון או לפנות לגן כדי שיפרסם פרופיל ציבורי." /> : null}
+            {gardens.length === 0 ? <ParentEmptyState title={selectedChild ? "לא נמצאו התאמות" : "נדרש כרטיס ילד"} text={selectedChild ? "אפשר לשנות עיר או חיפוש. גן מלא, סגור או לא תואם מסומן באופן מפורש." : "יש ליצור או לקשר כרטיס ילד מורשה לפני הצגת התאמות."} /> : null}
           </div>
         </ParentSection>
       </ParentAppFrame>
