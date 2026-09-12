@@ -1,7 +1,6 @@
 import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { requireRole } from "@/lib/auth";
-import { activateKindergartenEnrollment } from "@/lib/domain/enrollment-activation";
 import { managementContactVerification } from "@/lib/management/contact-verification";
 import { guardianCanAccessChild, guardianChildIds } from "@/lib/management/family-link";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
@@ -98,7 +97,11 @@ export async function POST(request: Request) {
       if (!claimed.data) return fail("ההזמנה כבר טופלה.", 409);
       processingCanonicalId = canonicalInvitation.id;
     }
-    const enrollment = await admin.from("kindergarten_enrollment_requests" as any).upsert({
+    const activeRequest = await admin.from("kindergarten_enrollment_requests" as any).select("*")
+      .eq("child_profile_id", payload.child_profile_id).eq("garden_id", invitation.target_id)
+      .in("status", ["draft","submitted","under_review","information_required","resubmitted","approved","awaiting_payment","waitlisted"])
+      .order("created_at", { ascending: false }).limit(1).maybeSingle();
+    const enrollment = activeRequest.data ? { data: activeRequest.data, error: null } : await admin.from("kindergarten_enrollment_requests" as any).insert({
       parent_id: profile.id,
       child_profile_id: payload.child_profile_id,
       garden_id: invitation.target_id,
@@ -112,23 +115,16 @@ export async function POST(request: Request) {
       payment_status: "not_requested",
       duplicate_flags: (child.data as any).duplicate_flags ?? [],
       metadata: { source: "kindergarten_invitation", invitation_id: invitation.id, parent_accepted_at: now }
-    }, { onConflict: "parent_id,child_profile_id,garden_id" }).select("*").single();
+    }).select("*").single();
     if (enrollment.error) throw new Error(enrollment.error.message);
-    const childId = await activateKindergartenEnrollment(admin, enrollment.data, { id: invitation.requester_id }, {
-      assigned_age_group: requestedAgeGroup,
-      assigned_class_id: classId,
-      source: "kindergarten_invitation_parent_accepted",
-      invitation_status: "parent_accepted"
-    });
     await Promise.all([
-      admin.from("kindergarten_enrollment_requests" as any).update({ status: "approved", manager_decision: "invited_by_kindergarten", decision_reason: "ההורה אישר הזמנה ישירה מהגן", decided_at: now, activated_at: now, activated_child_id: childId, metadata: { ...(enrollment.data.metadata ?? {}), parent_accepted_at: now } }).eq("id", enrollment.data.id),
-      admin.from("user_affiliation_requests" as any).update({ status: "approved", decision_by: profile.id, decision_at: now, audit_status: "recorded", metadata: { ...(invitation.metadata ?? {}), child_profile_id: payload.child_profile_id, activated_child_id: childId, accepted_at: now }, updated_at: now }).eq("id", invitation.id),
+      admin.from("user_affiliation_requests" as any).update({ status: "approved", decision_by: profile.id, decision_at: now, audit_status: "recorded", metadata: { ...(invitation.metadata ?? {}), child_profile_id: payload.child_profile_id, enrollment_request_id: enrollment.data.id, accepted_at: now }, updated_at: now }).eq("id", invitation.id),
       canonicalInvitation ? admin.from("management_invitations").update({ status: "accepted", accepted_at: now, accepted_by: profile.id, updated_at: now }).eq("id", canonicalInvitation.id).eq("status", "processing") : Promise.resolve(),
-      admin.from("notifications" as any).insert({ garden_id: invitation.target_id, recipient_id: invitation.requester_id, recipient_profile_id: invitation.requester_id, recipient_role: "manager", title: "הורה אישר הצטרפות", body: `${profile.full_name ?? "הורה"} אישר/ה את ההזמנה והילד/ה שויך/ה לגן.`, entity_type: "kindergarten_enrollment_requests", entity_id: enrollment.data.id, severity: "low", action_url: "/dashboard/garden/children", kindergarten_id: invitation.target_id, created_by: profile.id }),
-      admin.from("audit_logs" as any).insert({ actor_id: profile.id, actor_role: "parent", garden_id: invitation.target_id, entity_type: "user_affiliation_requests", entity_id: invitation.id, action: "parent_accepted_kindergarten_invitation", after_data: { child_profile_id: payload.child_profile_id, activated_child_id: childId } })
+      admin.from("notifications" as any).insert({ garden_id: invitation.target_id, recipient_id: invitation.requester_id, recipient_profile_id: invitation.requester_id, recipient_role: "manager", title: "הורה אישר הצטרפות", body: `${profile.full_name ?? "הורה"} אישר/ה את ההזמנה. בקשת הקליטה ממתינה להחלטת הגן.`, entity_type: "kindergarten_enrollment_requests", entity_id: enrollment.data.id, severity: "low", action_url: "/dashboard/garden/enrollment-requests", kindergarten_id: invitation.target_id, created_by: profile.id }),
+      admin.from("audit_logs" as any).insert({ actor_id: profile.id, actor_role: "parent", garden_id: invitation.target_id, entity_type: "user_affiliation_requests", entity_id: invitation.id, action: "parent_accepted_kindergarten_invitation", after_data: { child_profile_id: payload.child_profile_id, enrollment_request_id: enrollment.data.id } })
     ]);
     processingCanonicalId = null;
-    return ok({ status: "approved", child_id: childId, enrollment_request_id: enrollment.data.id });
+    return ok({ status: "submitted", enrollment_request_id: enrollment.data.id });
   } catch (error) {
     if (processingCanonicalId && isAdminClientConfigured()) {
       await createAdminClient().from("management_invitations").update({ status: "pending", updated_at: new Date().toISOString() }).eq("id", processingCanonicalId).eq("status", "processing");
