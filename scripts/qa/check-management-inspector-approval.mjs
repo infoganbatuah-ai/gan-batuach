@@ -28,6 +28,7 @@ test("applicant cannot set privileged status directly", () => {
   assert.match(sql, /if auth\.uid\(\) is null/);
   assert.match(sql, /actor\.role::text <> 'inspector'/);
   assert.match(submit, /submit_inspector_application/);
+  assert.match(submit, /if \(!user \|\| !profile\) return fail\("נדרשת התחברות\."\, 401\)/);
   assert.doesNotMatch(submit, /createAdminClient|\.upsert\(/);
 });
 
@@ -40,6 +41,7 @@ test("Admin decision is a locked atomic state transition", () => {
   assert.match(sql, /insert into public\.audit_logs/);
   assert.match(sql, /insert into public\.notifications/);
   assert.match(review, /decide_inspector_application/);
+  assert.match(review, /if \(!user \|\| !profile\) return fail\("נדרשת התחברות\."\, 401\)/);
 });
 
 test("legacy preservation does not grant unassigned or inactive profiles", () => {
