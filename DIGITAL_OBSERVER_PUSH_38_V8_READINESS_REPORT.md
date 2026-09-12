@@ -22,3 +22,7 @@ Required next safe work: instrument and isolate R2–R4, reproduce/fix each inte
 ## PUSH 38C update
 
 Session churn amplification and health-endpoint side effects were fixed in the branch, and per-source/session/probe instrumentation added. Local deterministic QA passes; see `DIGITAL_OBSERVER_PUSH_38C_PRE_SOAK_CLOSURE.md`. The deployed Home runtimes have **not** received these changes through the trusted release path, and a post-fix real 60-minute gate has **not** run. R2–R4 remain HIGH unresolved for qualification and R5 is unqualified over 60 minutes. **V8 START = NO**; there is no v8 timestamp. GitHub reports PR #28 open, draft and unmerged.
+
+## PUSH 38D deployment gate
+
+Read-only inspection found both live runtimes report software `development`, build SHA `unknown`, old health contract, and no installed OTA agent/current/known-good/update-state record. Historical manual backups do not establish a verified current known-good rollback slot. Per the explicit do-not-deploy-without-rollback requirement, no runtime was modified and the post-fix 60-minute monitor was not started. See `DIGITAL_OBSERVER_PUSH_38D_DEPLOYMENT_GATE_REPORT.md`. **V8 START = NO**.
