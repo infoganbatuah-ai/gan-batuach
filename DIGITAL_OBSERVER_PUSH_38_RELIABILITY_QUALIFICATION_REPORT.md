@@ -10,6 +10,8 @@ PUSH 38C remediation is documented in `DIGITAL_OBSERVER_PUSH_38C_PRE_SOAK_CLOSUR
 
 PUSH 38D's trusted-deployment preflight failed before any live modification: the installed Gateway and Connector lack verified OTA known-good state and still report `development`/`unknown` with the old health contract. The required real pre-soak remains at zero minutes; see `DIGITAL_OBSERVER_PUSH_38D_DEPLOYMENT_GATE_REPORT.md`.
 
+PUSH 38E captured unsigned cryptographic baseline candidates and proved limited isolated runtime restoration without copying live identity/config. This does not establish a trusted known-good or managed rollback; Connector macOS code signing is invalid and the live OTA bootstrap remains unattempted. See `DIGITAL_OBSERVER_PUSH_38_OTA_BOOTSTRAP_REPORT.md`. No live update, pre-soak, or v8 run has started.
+
 V7 completed 86,400,104 ms but failed camera availability, component health, AI progress and checkpoint coverage gates. See `DIGITAL_OBSERVER_PUSH_38_V7_FAILURE_ANALYSIS.md`, `DIGITAL_OBSERVER_PUSH_38_ROOT_CAUSE_REGISTER.md`, and `DIGITAL_OBSERVER_PUSH_38_V8_READINESS_REPORT.md`. The previous text below describes pre-v7 expectations and is historical, not current qualification status. No 60-minute post-remediation stability gate or v8 run has begun. PR #28 must remain draft/open; PUSH 39 has not started.
 
 The qualification architecture, deterministic scale/chaos harness and real-Home monitor are implemented. Canonical completion remains intentionally blocked until at least 24 actual elapsed hours are recorded, all final gates pass, the dedicated PR merges and `origin/main` is verified. PUSH 39 has not started.

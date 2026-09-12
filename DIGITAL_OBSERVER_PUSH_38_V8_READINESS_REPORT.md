@@ -26,3 +26,7 @@ Session churn amplification and health-endpoint side effects were fixed in the b
 ## PUSH 38D deployment gate
 
 Read-only inspection found both live runtimes report software `development`, build SHA `unknown`, old health contract, and no installed OTA agent/current/known-good/update-state record. Historical manual backups do not establish a verified current known-good rollback slot. Per the explicit do-not-deploy-without-rollback requirement, no runtime was modified and the post-fix 60-minute monitor was not started. See `DIGITAL_OBSERVER_PUSH_38D_DEPLOYMENT_GATE_REPORT.md`. **V8 START = NO**.
+
+## PUSH 38E bootstrap gate
+
+Cryptographically identified but **unsigned/unregistered** legacy runtime candidates were captured and briefly started in isolated QA. That did not prove managed rollback, real identity/config compatibility, or trusted release status. The original Connector app fails strict macOS code-signature verification, and the generic OTA `initializeKnownGood()` path cannot safely label an empty slot as the live legacy runtime. No live OTA agent was installed; no remediation package was deployed; no post-fix 60-minute run occurred. See `DIGITAL_OBSERVER_PUSH_38_OTA_BOOTSTRAP_REPORT.md`. **V8 START = NO**.
