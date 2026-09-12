@@ -120,6 +120,9 @@ returns public.staff_shifts language plpgsql security definer set search_path = 
 declare e public.staff_kindergarten_employments; existing public.staff_shifts; result public.staff_shifts;
 begin
   if target_action not in ('check_in','check_out') then raise exception 'attendance_action_invalid' using errcode='23514'; end if;
+  if not exists(select 1 from public.profiles p where p.id=auth.uid() and p.role::text='staff' and p.active) then
+    raise exception 'staff_employment_denied' using errcode='42501';
+  end if;
   perform pg_advisory_xact_lock(hashtextextended(auth.uid()::text, 19));
   select * into e from public.staff_kindergarten_employments
     where profile_id = auth.uid() and garden_id = target_garden_id and status = 'active'
