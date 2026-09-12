@@ -1,4 +1,4 @@
-import { createPublicKey, verify } from "node:crypto";
+import { createHash, createPublicKey, verify } from "node:crypto";
 import { existsSync, lstatSync, mkdirSync, readFileSync, renameSync, writeFileSync } from "node:fs";
 import { dirname, resolve } from "node:path";
 
@@ -38,25 +38,39 @@ export function verifyEdgeTrustRegistry(input, { pinnedRootKeyId, pinnedRootPubl
 export function installEdgeTrustRegistry({ path, registry, pinnedRootKeyId, pinnedRootPublicKey }) {
   const target = resolve(path), directory = dirname(target);
   mkdirSync(directory, { recursive: true, mode: 0o700 });
-  if (lstatSync(directory).isSymbolicLink() || (lstatSync(directory).mode & 0o077)) fail("EDGE_TRUST_STORE_UNSAFE");
+  if (lstatSync(directory).isSymbolicLink() || (lstatSync(directory).mode & 0o022)) fail("EDGE_TRUST_STORE_UNSAFE");
   const prior = existsSync(target) ? JSON.parse(readFileSync(target, "utf8")) : null;
-  if (prior && (lstatSync(target).isSymbolicLink() || (lstatSync(target).mode & 0o077))) fail("EDGE_TRUST_STORE_UNSAFE");
+  if (prior && (lstatSync(target).isSymbolicLink() || (lstatSync(target).mode & 0o022))) fail("EDGE_TRUST_STORE_UNSAFE");
   const previous = prior ? verifyEdgeTrustRegistry(prior, { pinnedRootKeyId, pinnedRootPublicKey }) : null;
   if (prior && !previous?.ok) fail("EDGE_TRUST_PREVIOUS_INVALID");
   const verified = verifyEdgeTrustRegistry(registry, { pinnedRootKeyId, pinnedRootPublicKey, minimumEpoch: prior ? prior.epoch + 1 : 1 });
   if (!verified.ok) fail(verified.reason);
   const temporary = `${target}.${process.pid}.staging`;
-  writeFileSync(temporary, `${JSON.stringify(registry, null, 2)}\n`, { mode: 0o600, flag: "wx" });
+  writeFileSync(temporary, `${JSON.stringify(registry, null, 2)}\n`, { mode: 0o644, flag: "wx" });
   renameSync(temporary, target);
   return { epoch: registry.epoch, trustedPublicKeys: verified.trustedPublicKeys };
 }
 
 export function loadEdgeTrustRegistry({ path, pinnedRootKeyId, pinnedRootPublicKey }) {
   const target = resolve(path);
-  if (!existsSync(target) || lstatSync(dirname(target)).isSymbolicLink() || (lstatSync(dirname(target)).mode & 0o077) ||
-    lstatSync(target).isSymbolicLink() || (lstatSync(target).mode & 0o077)) fail("EDGE_TRUST_STORE_UNSAFE");
+  if (!existsSync(target) || lstatSync(dirname(target)).isSymbolicLink() || (lstatSync(dirname(target)).mode & 0o022) ||
+    lstatSync(target).isSymbolicLink() || (lstatSync(target).mode & 0o022)) fail("EDGE_TRUST_STORE_UNSAFE");
   const registry = JSON.parse(readFileSync(target, "utf8"));
   const verified = verifyEdgeTrustRegistry(registry, { pinnedRootKeyId, pinnedRootPublicKey });
   if (!verified.ok) fail(verified.reason);
   return { epoch: registry.epoch, trustedPublicKeys: verified.trustedPublicKeys };
+}
+
+export const PROTECTED_EDGE_TRUST_ROOT_PATH = "/Library/Application Support/Digital Observer/release-trust/root-pin.json";
+export const PROTECTED_EDGE_TRUST_REGISTRY_PATH = "/Library/Application Support/Digital Observer/release-trust/release-keys.json";
+
+export function loadPinnedEdgeReleaseKeys({ registryPath, rootPinPath = PROTECTED_EDGE_TRUST_ROOT_PATH, qaOwnerAllowed = false }) {
+  const path = resolve(rootPinPath), info = lstatSync(path), parent = lstatSync(dirname(path));
+  if (info.isSymbolicLink() || parent.isSymbolicLink() || (info.mode & 0o022) || (parent.mode & 0o022) ||
+    (!qaOwnerAllowed && (info.uid !== 0 || parent.uid !== 0))) fail("EDGE_TRUST_ROOT_PIN_UNPROTECTED");
+  const pin = JSON.parse(readFileSync(path, "utf8"));
+  if (!pin || Object.keys(pin).sort().join(",") !== ["protocol", "root_key_id", "root_public_key"].sort().join(",") ||
+    pin.protocol !== "observer-edge-trust-root-v1" || !KEY.test(pin.root_key_id) || !B64.test(pin.root_public_key)) fail("EDGE_TRUST_ROOT_PIN_INVALID");
+  const registry = loadEdgeTrustRegistry({ path: registryPath, pinnedRootKeyId: pin.root_key_id, pinnedRootPublicKey: pin.root_public_key });
+  return { ...registry, root_key_id: pin.root_key_id, root_fingerprint_sha256: createHash("sha256").update(Buffer.from(pin.root_public_key, "base64url")).digest("hex") };
 }

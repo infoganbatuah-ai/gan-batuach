@@ -18,11 +18,17 @@ export function createQaLaunchdEdgeAdapter({ root, label, profile, port, persist
   const member = profile === "PHYSICAL_GATEWAY" ? "services/video-gateway/server.mjs"
     : "Digital Observer.app/Contents/Resources/runtime/services/video-gateway/server.mjs";
   let active = false;
-  function unpack({ artifactPath, staging }) {
+  function unpack({ artifactPath, staging, manifest }) {
     const runtime = join(staging, "runtime"); mkdirSync(runtime, { recursive: true, mode: 0o700 });
     run("tar", ["-xzf", artifactPath, "-C", runtime], { timeout: 120_000 });
     if (!existsSync(join(runtime, member))) fail("EDGE_QA_PACKAGE_ENTRY_MISSING");
     if (profile === "SOFTWARE_CONNECTOR") run("/usr/bin/codesign", ["--verify", "--deep", "--strict", join(runtime, "Digital Observer.app")]);
+    const metadataPath = profile === "PHYSICAL_GATEWAY" ? join(runtime, "edge-release-metadata.json")
+      : join(runtime, "Digital Observer.app/Contents/Resources/runtime/edge-release-metadata.json");
+    if (existsSync(metadataPath)) { const metadata = JSON.parse(readFileSync(metadataPath, "utf8"));
+      if (metadata.profile !== profile || metadata.health_contract !== "observer-edge-health-v1" ||
+        metadata.version !== manifest.version || metadata.build_sha !== manifest.build_sha) fail("EDGE_QA_PACKAGE_METADATA_INVALID"); }
+    else if (!manifest.version.includes("legacy")) fail("EDGE_QA_PACKAGE_METADATA_MISSING");
   }
   function stop() { if (!active) return;
     try { run("/bin/launchctl", ["bootout", domain, plistPath]); } catch {}
