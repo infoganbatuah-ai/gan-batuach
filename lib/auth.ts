@@ -98,18 +98,10 @@ export async function dashboardPathForProfile(profile: { id?: string | null; rol
     return "/dashboard/staff/job-market";
   }
   if (profile.role === "inspector" && profile.id) {
-    if (profile.active === false) return "/dashboard/inspector/apply";
     const supabase = await createClient();
-    // Inspector rows are RLS-protected and legacy environments may not expose
-    // a self-read policy. Assigned gardens are the authoritative access scope
-    // and can be checked through the existing can_access_garden policy.
-    const { data: assignedGarden } = await supabase
-      .from("gardens" as any)
-      .select("id")
-      .eq("inspector_id", profile.id)
-      .limit(1)
-      .maybeSingle();
-    if (!assignedGarden) return "/dashboard/inspector/apply";
+    const { data: application } = await supabase.from("inspector_applications" as any)
+      .select("status").eq("profile_id", profile.id).maybeSingle();
+    if (profile.active === false || application?.status !== "approved") return "/dashboard/inspector/apply";
   }
   return dashboardPathForRole(profile.role);
 }

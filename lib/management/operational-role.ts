@@ -92,3 +92,16 @@ export async function requireOperationalRole(allowedRoles: UserRole[]) {
   if (session.profile?.role === "inspector") redirect("/dashboard/inspector/apply");
   redirect("/dashboard");
 }
+
+/** Platform approval allows the Inspector shell; Garden data still needs assignment. */
+export async function requireApprovedInspector() {
+  const session = await getSessionProfile();
+  if (!session.user || !session.profile) redirect("/login");
+  if (session.profile.role !== "inspector") redirect("/dashboard");
+  if (session.profile.active !== true) redirect("/dashboard/inspector/apply");
+  if (!managementContactVerification(session.user, session.profile).complete) redirect("/app/verify-contact");
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("current_inspector_approved" as never);
+  if (error || data !== true) redirect("/dashboard/inspector/apply");
+  return session;
+}

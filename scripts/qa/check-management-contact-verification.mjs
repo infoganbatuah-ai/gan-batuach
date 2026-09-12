@@ -79,7 +79,12 @@ test("activation surfaces fail closed on incomplete contact verification", () =>
     "lib/domain/enrollment-activation.ts"
   ]) {
     const route = source(file);
-    assert.match(route, /(managementContactVerification|adminManagementContactVerification|getManagementGardenContext)/, `${file}: missing contact verification gate`);
+    if (file.includes("inspector-applications")) {
+      assert.match(route, /decide_inspector_application/, `${file}: missing atomic Inspector approval`);
+      assert.match(source("supabase/migrations/20260913020000_management_inspector_approval.sql"), /inspector_contact_unverified/, "Inspector approval RPC must check contact verification");
+    } else {
+      assert.match(route, /(managementContactVerification|adminManagementContactVerification|getManagementGardenContext)/, `${file}: missing contact verification gate`);
+    }
   }
 });
 
