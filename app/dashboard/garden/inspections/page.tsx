@@ -24,7 +24,7 @@ export default async function GardenInspectionsPage({ searchParams }: { searchPa
   const supabase = await createClient();
   const [gardenRes, inspectionsRes, violationsRes] = await Promise.all([
     supabase.from("gardens" as any).select("id, next_inspection_at, last_inspection_score, inspection_required_status, safe_status").eq("id", profile.garden_id ?? "").maybeSingle(),
-    supabase.from("inspections" as any).select("id, completed_at, status, weighted_score, violation_count, inspectors:inspector_id(full_name)").eq("garden_id", profile.garden_id ?? "").order("created_at", { ascending: false }).limit(50),
+    supabase.from("inspections" as any).select("id, completed_at, status, weighted_score, violation_count, inspectors:inspector_id(full_name)").eq("garden_id", profile.garden_id ?? "").eq("status", "done").order("created_at", { ascending: false }).limit(50),
     supabase.from("violations" as any).select("id, title, status, severity, due_at").eq("garden_id", profile.garden_id ?? "").neq("status", "done").limit(50)
   ]);
   const garden = gardenRes.data as any;

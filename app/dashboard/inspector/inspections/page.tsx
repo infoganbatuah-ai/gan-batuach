@@ -25,7 +25,7 @@ export default async function InspectorInspectionsPage({ searchParams }: { searc
   const inspections = (inspectionsRes.data ?? []) as any[];
   const formIds = [...new Set(inspections.map((inspection) => inspection.form_id).filter(Boolean))];
   const { data: questions } = formIds.length
-    ? await supabase.from("inspection_form_questions").select("id, form_id, category, question_text, question_type, weight, critical, required, sort_order").in("form_id", formIds).order("sort_order", { ascending: true })
+    ? await supabase.from("inspection_form_questions").select("id, form_id, category, question_text, question_type, weight, critical, required, requires_photo, requires_document, sort_order").in("form_id", formIds).order("sort_order", { ascending: true })
     : { data: [] };
   const initialInspectionId = (requiredRes.data as any)?.inspection_id ?? "";
   const inspector = inspectorRes.data as any;

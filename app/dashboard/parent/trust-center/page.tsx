@@ -8,6 +8,7 @@ import { requireRole } from "@/lib/auth";
 import { getParentFamilyContext } from "@/lib/domain/parent-family";
 import { complaintParentStatus, parentTrustTone, parentTrustVisibilityRules, trustBadgeLabel, trustFeedLabel } from "@/lib/domain/parent-trust";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 function date(value: unknown) {
   if (!value) return "";
@@ -53,7 +54,7 @@ export default async function ParentTrustCenterV2Page() {
     gardenId ? supabase.from("parent_trust_profiles" as any).select("*, gardens(name,city,safe_status)").eq("garden_id", gardenId).maybeSingle() : Promise.resolve({ data: null }),
     gardenId ? supabase.from("parent_transparency_scores" as any).select("*").eq("garden_id", gardenId).order("calculated_at", { ascending: false }).limit(1).maybeSingle() : Promise.resolve({ data: null }),
     gardenId ? supabase.from("parent_trust_feed" as any).select("*").eq("garden_id", gardenId).eq("approved_for_parents", true).order("occurred_at", { ascending: false }).limit(12) : Promise.resolve({ data: [] }),
-    gardenId ? supabase.from("inspections" as any).select("id,weighted_score,completed_at,violation_count,summary,status").eq("garden_id", gardenId).eq("status", "done").order("completed_at", { ascending: false }).limit(5) : Promise.resolve({ data: [] }),
+    family.gardenIds.includes(gardenId) ? createAdminClient().from("inspections" as any).select("id,weighted_score,completed_at,violation_count,status").eq("garden_id", gardenId).eq("status", "done").order("completed_at", { ascending: false }).limit(5) : Promise.resolve({ data: [] }),
     parentIds.length ? supabase.from("complaints" as any).select("id,subject,severity,status,created_at,closed_at").in("parent_id", parentIds).order("created_at", { ascending: false }).limit(8) : Promise.resolve({ data: [] }),
     supabase.from("parent_trust_education_items" as any).select("*").eq("active", true).order("display_order", { ascending: true }).limit(8),
     gardenId ? supabase.from("community_announcements" as any).select("*").eq("garden_id", gardenId).eq("published", true).order("published_at", { ascending: false }).limit(8) : Promise.resolve({ data: [] }),
