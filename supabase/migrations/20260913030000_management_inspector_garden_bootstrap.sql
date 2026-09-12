@@ -75,7 +75,7 @@ begin
   kind:=invitation.payload->>'registrant_type';
   if kind not in ('owner_only','owner_teacher','teacher_operator') then raise exception 'invitation_role_invalid' using errcode='23514'; end if;
   relationship:=case when kind='teacher_operator' then 'manager' else 'owner' end;
-  if invitation.intended_role<>case when relationship='owner' then 'kindergarten_owner' else 'kindergarten_manager' end
+  if invitation.intended_role<>(case when relationship='owner' then 'kindergarten_owner' else 'kindergarten_manager' end)
     then raise exception 'invitation_role_mismatch' using errcode='42501'; end if;
   if actor.role::text<>relationship then raise exception 'account_role_mismatch' using errcode='42501'; end if;
   select * into onboarding from public.kindergarten_onboarding_records where garden_id=garden.id for update;

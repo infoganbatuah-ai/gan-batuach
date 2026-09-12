@@ -40,7 +40,7 @@ test("signed invitation binds recipient, Garden, source and contextual role", ()
   assert.match(sql, /invitation\.target_profile_id<>actor\.id/);
   assert.match(sql, /actor\.email_verified_at is null/);
   assert.match(sql, /invitation\.expires_at<=now_at/);
-  assert.match(sql, /invitation\.intended_role<>case/);
+  assert.match(sql, /invitation\.intended_role<>\(case/);
   assert.match(sql, /on conflict\(profile_id,garden_id,relationship_role\)/);
 });
 
