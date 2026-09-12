@@ -52,9 +52,8 @@ export async function POST(request: Request) {
       : Boolean(managementAccess?.allowed && managementAccess.gardenId === payload.garden_id);
     if (!canWrite) return fail("אין הרשאה לעדכן נוכחות של איש צוות שאינו משויך אליך.", 403);
 
-    const timestamp = payload.captured_at ? new Date(payload.captured_at) : new Date();
+    const timestamp = new Date();
     const iso = timestamp.toISOString();
-    const shiftDate = iso.slice(0, 10);
     const gardenRes = await supabase
       .from("gardens" as any)
       .select("id, gps_lat, gps_lng, attendance_radius_meters, workforce_auto_attendance_enabled")
@@ -101,7 +100,6 @@ export async function POST(request: Request) {
       .select("*")
       .eq("staff_id", staff.id)
       .eq("garden_id", payload.garden_id)
-      .eq("shift_date", shiftDate)
       .not("actual_start", "is", null)
       .is("actual_end", null)
       .order("created_at", { ascending: false })
@@ -121,11 +119,11 @@ export async function POST(request: Request) {
     const threshold = new Date(timestamp.getTime() - THRESHOLD_MINUTES * 60000).toISOString();
     const sampleWindow = await supabase
       .from("staff_location_samples" as any)
-      .select("id, inside_geofence, captured_at, gps_accuracy_meters, distance_meters")
+      .select("id, inside_geofence, created_at, gps_accuracy_meters, distance_meters")
       .eq("staff_id", staff.id)
       .eq("garden_id", payload.garden_id)
-      .gte("captured_at", since)
-      .order("captured_at", { ascending: true });
+      .gte("created_at", since)
+      .order("created_at", { ascending: true });
     const samples = (sampleWindow.data ?? []) as any[];
     const insideSamples = samples.filter((sample) => sample.inside_geofence);
     const outsideSamples = samples.filter((sample) => !sample.inside_geofence);
@@ -133,17 +131,17 @@ export async function POST(request: Request) {
     const oldestOutside = outsideSamples[0];
     const confidence = confidenceStatus(inside, payload.gps_accuracy_meters, inside ? insideSamples.length : outsideSamples.length);
 
-    if (!openShift && inside && oldestInside?.captured_at && oldestInside.captured_at <= threshold && insideSamples.length >= 2) {
-      const { data, error } = await supabase.rpc("staff_attendance_transition" as never, { target_garden_id: payload.garden_id, target_action: "check_in", target_lat: payload.gps_lat, target_lng: payload.gps_lng } as never);
+    if (!openShift && inside && oldestInside?.created_at && oldestInside.created_at <= threshold && insideSamples.length >= 2 && !samples.some(sample => !sample.inside_geofence && sample.created_at > oldestInside.created_at)) {
+      const { data, error } = await supabase.rpc("staff_attendance_transition" as never, { target_garden_id: payload.garden_id, target_action: "auto_check_in", target_lat: payload.gps_lat, target_lng: payload.gps_lng } as never);
       if (error) return fail(error.message, 400);
-      await writeAudit(supabase, { staff_id: staff.id, garden_id: payload.garden_id, actor_profile_id: profile.id, event_type: "auto_shift_started", entity_type: "staff_shift", entity_id: (data as any)?.id, details: { detected_at: iso, start_time: oldestInside.captured_at, confidence: confidence.status } });
+      await writeAudit(supabase, { staff_id: staff.id, garden_id: payload.garden_id, actor_profile_id: profile.id, event_type: "auto_shift_started", entity_type: "staff_shift", entity_id: (data as any)?.id, details: { detected_at: iso, start_time: oldestInside.created_at, confidence: confidence.status } });
       return ok({ mode: "automatic", attendance_event: "started", shift: data, sample: sampleInsert.data, inside_geofence: inside, distance_meters: distance, confidence });
     }
 
-    if (openShift && !inside && oldestOutside?.captured_at && oldestOutside.captured_at <= threshold && outsideSamples.length >= 2) {
-      const { data, error } = await supabase.rpc("staff_attendance_transition" as never, { target_garden_id: payload.garden_id, target_action: "check_out", target_lat: payload.gps_lat, target_lng: payload.gps_lng } as never);
+    if (openShift && !inside && oldestOutside?.created_at && oldestOutside.created_at <= threshold && outsideSamples.length >= 2 && !samples.some(sample => sample.inside_geofence && sample.created_at > oldestOutside.created_at)) {
+      const { data, error } = await supabase.rpc("staff_attendance_transition" as never, { target_garden_id: payload.garden_id, target_action: "auto_check_out", target_lat: payload.gps_lat, target_lng: payload.gps_lng } as never);
       if (error) return fail(error.message, 400);
-      await writeAudit(supabase, { staff_id: staff.id, garden_id: payload.garden_id, actor_profile_id: profile.id, event_type: "auto_shift_closed", entity_type: "staff_shift", entity_id: (data as any)?.id, details: { detected_at: iso, end_time: oldestOutside.captured_at, confidence: confidence.status } });
+      await writeAudit(supabase, { staff_id: staff.id, garden_id: payload.garden_id, actor_profile_id: profile.id, event_type: "auto_shift_closed", entity_type: "staff_shift", entity_id: (data as any)?.id, details: { detected_at: iso, end_time: oldestOutside.created_at, confidence: confidence.status } });
       return ok({ mode: "automatic", attendance_event: "closed", shift: data, sample: sampleInsert.data, inside_geofence: inside, distance_meters: distance, confidence });
     }
 

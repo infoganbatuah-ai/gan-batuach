@@ -10,6 +10,7 @@ const context = source("lib/management/staff-employment-context.ts");
 const endpoint = source("app/api/staff/employment-context/route.ts");
 const attendance = source("app/api/staff/gps-attendance/route.ts");
 const shiftApi = source("app/api/staff/shifts/route.ts");
+const observedTime = source("supabase/migrations/20260913010000_management_staff_attendance_observed_time.sql");
 
 function selection() {
   const output = ts.transpileModule(context, { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText;
@@ -57,6 +58,21 @@ test("attendance transition binds employment and rejects overlap, wrong Garden a
   assert.match(attendance, /staff_attendance_transition/);
   assert.match(attendance, /staffAccess\.employment\?\.garden_id === payload\.garden_id/);
   assert.doesNotMatch(attendance, /onConflict: "staff_id,garden_id,shift_date"/);
+});
+
+test("automatic attendance uses server-observed continuous presence and preserves overnight open shifts", () => {
+  assert.match(observedTime, /min\(created_at\)/);
+  assert.match(observedTime, /new\.created_at:=now\(\)/);
+  assert.match(observedTime, /new\.created_at:=old\.created_at/);
+  assert.match(observedTime, /created_at>=now\(\)-interval '2 minutes'/);
+  assert.match(observedTime, /inside_geofence<>is_check_in/);
+  assert.match(observedTime, /actual_start=effective_at/);
+  assert.match(observedTime, /actual_end=effective_at/);
+  assert.match(observedTime, /effective_at at time zone 'Asia\/Jerusalem'/);
+  assert.match(attendance, /target_action: "auto_check_in"/);
+  assert.match(attendance, /target_action: "auto_check_out"/);
+  assert.match(attendance, /\.gte\("created_at", since\)/);
+  assert.doesNotMatch(attendance, /\.eq\("shift_date", shiftDate\)/);
 });
 
 test("manager hours and staff shifts remain Garden-scoped", () => {
