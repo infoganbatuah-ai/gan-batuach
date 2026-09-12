@@ -406,7 +406,7 @@ export function InspectorApplicationForm({ application }: { application?: any })
   );
 }
 
-export function ApplicationDecisionForm({ endpoint, actions }: { endpoint: string; actions: Array<{ value: string; label: string }> }) {
+export function ApplicationDecisionForm({ endpoint, actions, classrooms = [] }: { endpoint: string; actions: Array<{ value: string; label: string }>; classrooms?: Array<{ id: string; name: string }> }) {
   const [state, setState] = useState<ApiState | null>(null);
   const [busy, setBusy] = useState(false);
   async function submit(event: FormEvent<HTMLFormElement>) {
@@ -418,6 +418,7 @@ export function ApplicationDecisionForm({ endpoint, actions }: { endpoint: strin
         action: formValue(form, "action"),
         decision_reason: formValue(form, "decision_reason") || undefined,
         assigned_age_group: formValue(form, "assigned_age_group") || undefined,
+        assigned_classroom_id: formValue(form, "assigned_classroom_id") || undefined,
         assigned_role: formValue(form, "assigned_role") || undefined,
         assigned_regions: formValue(form, "assigned_regions").split(",").map((item) => item.trim()).filter(Boolean),
         garden_ids: formValue(form, "garden_ids").split(",").map((item) => item.trim()).filter(Boolean)
@@ -432,10 +433,12 @@ export function ApplicationDecisionForm({ endpoint, actions }: { endpoint: strin
   return (
     <form className="form compact-form" onSubmit={submit}>
       <select name="action" required>{actions.map((action) => <option key={action.value} value={action.value}>{action.label}</option>)}</select>
-      <input name="assigned_age_group" placeholder="קבוצת גיל / כיתה" />
-      <input name="assigned_role" placeholder="תפקיד צוות" />
-      <input name="assigned_regions" placeholder="אזורי מפקח, מופרדים בפסיק" />
-      <input name="garden_ids" placeholder="מזהי גנים לשיוך, מופרדים בפסיק" />
+      {classrooms.length ? <select name="assigned_classroom_id" defaultValue=""><option value="">בחירת כיתה בעת אישור</option>{classrooms.map((classroom) => <option value={classroom.id} key={classroom.id}>{classroom.name}</option>)}</select> : <>
+        <input name="assigned_age_group" placeholder="קבוצת גיל / כיתה" />
+        <input name="assigned_role" placeholder="תפקיד צוות" />
+        <input name="assigned_regions" placeholder="אזורי מפקח, מופרדים בפסיק" />
+        <input name="garden_ids" placeholder="מזהי גנים לשיוך, מופרדים בפסיק" />
+      </>}
       <textarea name="decision_reason" placeholder="הערת החלטה" />
       <button className="button secondary tiny" disabled={busy} type="submit"><BriefcaseBusiness size={14} /> שמירה</button>
       {state ? <small className={state.ok ? "pill good" : "pill bad"}>{state.message}</small> : null}

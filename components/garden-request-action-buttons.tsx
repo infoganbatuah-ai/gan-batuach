@@ -67,8 +67,8 @@ export function EnrollmentRequestActionButtons({ requestId }: { requestId: strin
   const endpoint = `/api/garden/enrollment-requests/${requestId}`;
   return (
     <div className="teacher-request-actions">
-      <ActionButton endpoint={endpoint} action="approve_pending_payment" label="אשר המשך טיפול" tone="purple" icon={CheckCircle2} decisionReason="הבקשה אושרה וממתינה להשלמת תשלום/פרטים." />
-      <ActionButton endpoint={endpoint} action="request_more_information" label="בקשת פרטים נוספים" tone="orange" icon={FileText} decisionReason="נדרשים פרטים נוספים לפני אישור." />
+      <ActionButton endpoint={endpoint} action="review" label="העבר לבדיקה" tone="purple" icon={CheckCircle2} decisionReason="הבקשה נמצאת בבדיקת הגן." />
+      <ActionButton endpoint={endpoint} action="request_information" label="בקשת פרטים נוספים" tone="orange" icon={FileText} decisionReason="נדרשים פרטים נוספים לפני אישור." />
       <a className="teacher-soft-button green" href="/dashboard/garden/messages"><Phone size={18} /> צור קשר</a>
       <ActionButton endpoint={endpoint} action="reject" label="דחה" tone="red" icon={XCircle} decisionReason="הבקשה נדחתה על ידי הגן." />
     </div>

@@ -1,108 +1,68 @@
 import { z } from "zod";
-import { fail, handleRouteError, ok } from "@/lib/api";
-import { requireRole } from "@/lib/auth";
-import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
+import { fail, handleSafeRouteError, ok } from "@/lib/api";
+import { getSessionProfile } from "@/lib/auth";
 import { managementContactVerification } from "@/lib/management/contact-verification";
-import { guardianCanAccessChild } from "@/lib/management/family-link";
+import { guardianChildIds } from "@/lib/management/family-link";
+import { createClient } from "@/lib/supabase/server";
 
-const schema = z.object({
-  child_profile_id: z.string().uuid(),
-  garden_id: z.string().uuid(),
-  requested_age_group: z.string().optional(),
+const submitSchema = z.object({
+  child_profile_id: z.string().uuid(), garden_id: z.string().uuid(),
+  requested_age_group: z.string().trim().max(120).optional(),
+  requested_classroom_id: z.string().uuid().optional(),
   requested_class_id: z.string().uuid().optional(),
-  parent_message: z.string().optional()
+  parent_message: z.string().trim().max(2000).optional()
 });
+const actionSchema = z.discriminatedUnion("action", [
+  z.object({ action: z.literal("respond_information"), request_id: z.string().uuid(), response: z.string().trim().min(1).max(4000) }),
+  z.object({ action: z.literal("cancel"), request_id: z.string().uuid() })
+]);
+
+async function requireParent() {
+  const session = await getSessionProfile();
+  if (!session.user || !session.profile) return { response: fail("נדרשת התחברות מחדש.", 401) } as const;
+  if (session.profile.role !== "parent") return { response: fail("המסלול מיועד להורה מורשה בלבד.", 403) } as const;
+  return { session } as const;
+}
+
+export async function GET() {
+  try {
+    const access = await requireParent(); if ("response" in access) return access.response;
+    const supabase = await createClient();
+    const childIds = await guardianChildIds(supabase, access.session.profile.id);
+    if (!childIds.length) return ok({ requests: [] });
+    const result = await supabase.from("kindergarten_enrollment_requests" as never)
+      .select("id,child_profile_id,garden_id,requested_classroom_id,status,requested_at,reviewed_at,decision_reason,information_request,information_response,information_requested_at,information_responded_at,reservation_id,payment_status,cancelled_at,gardens(name,city),classrooms:requested_classroom_id(name,age_group_label)" as never)
+      .eq("parent_id", access.session.profile.id).in("child_profile_id", childIds).order("created_at", { ascending: false });
+    if (result.error) return fail("לא ניתן לטעון בקשות הצטרפות.", 503);
+    return ok({ requests: result.data ?? [] });
+  } catch (error) { return handleSafeRouteError(error); }
+}
 
 export async function POST(request: Request) {
   try {
-    const { user, profile } = await requireRole(["parent"]);
-    if (!managementContactVerification(user, profile).complete) {
-      return fail("יש להשלים אימות דוא״ל וטלפון לפני שליחת בקשת הצטרפות.", 403);
-    }
-    if (!isAdminClientConfigured()) return fail("שליחת בקשת הצטרפות דורשת Service Role בצד השרת.", 503);
-    const payload = schema.parse(await request.json());
-    const admin = createAdminClient();
-    if (!await guardianCanAccessChild(admin, profile.id, payload.child_profile_id)) return fail("כרטיס הילד לא נמצא או אינו שייך לחשבון שלך.", 403);
-    const child = await admin.from("permanent_child_files" as any).select("id,full_name,duplicate_flags").eq("id", payload.child_profile_id).maybeSingle();
-    if (child.error || !child.data) return fail("כרטיס הילד לא נמצא.", 404);
+    const access = await requireParent(); if ("response" in access) return access.response;
+    const { user, profile } = access.session;
+    if (!managementContactVerification(user, profile).complete) return fail("יש להשלים אימות דוא״ל וטלפון לפני שליחת בקשה.", 403);
+    const payload = submitSchema.parse(await request.json());
+    const result = await (await createClient()).rpc("submit_enrollment_request" as never, {
+      target_child_file_id: payload.child_profile_id,target_garden_id: payload.garden_id,
+      target_classroom_id: payload.requested_classroom_id ?? null,target_age_group: payload.requested_age_group ?? null,
+      target_parent_message: payload.parent_message ?? null
+    } as never);
+    if (result.error) return fail("לא ניתן להגיש את בקשת ההצטרפות במצב הנוכחי.", result.error.code === "42501" ? 403 : 409);
+    return ok({ enrollment_request: result.data }, 201);
+  } catch (error) { return handleSafeRouteError(error); }
+}
 
-    const garden = await admin.from("gardens" as any)
-      .select("id, name, city, status, public_profile_enabled, enrollment_availability, activation_payment_status, frozen_at")
-      .eq("id", payload.garden_id)
-      .maybeSingle();
-    if (garden.error || !garden.data) return fail("הגן לא נמצא.", 404);
-    if ((garden.data as any).status !== "active" || ["frozen", "suspended", "failed"].includes(String((garden.data as any).activation_payment_status))) {
-      return fail("לא ניתן לשלוח בקשת הצטרפות לגן שאינו פעיל או מוקפא להסדרת תשלום.", 409);
-    }
-    if (!(garden.data as any).public_profile_enabled || !["accepting", "waitlist_only"].includes(String((garden.data as any).enrollment_availability ?? "accepting"))) {
-      return fail("הגן אינו מקבל כרגע בקשות הצטרפות.", 409);
-    }
-
-    let price: number | null = null;
-    if (payload.requested_class_id) {
-      const group = await admin.from("kindergarten_fee_groups" as any)
-        .select("id, monthly_fee, active, show_price_public")
-        .eq("id", payload.requested_class_id)
-        .eq("garden_id", payload.garden_id)
-        .maybeSingle();
-      if (group.data?.show_price_public) price = Number(group.data.monthly_fee ?? 0);
-    }
-
-    const now = new Date().toISOString();
-    const requestWrite = await admin.from("kindergarten_enrollment_requests" as any).upsert({
-      parent_id: profile.id,
-      child_profile_id: payload.child_profile_id,
-      garden_id: payload.garden_id,
-      requested_age_group: payload.requested_age_group ?? null,
-      requested_class_id: payload.requested_class_id ?? null,
-      published_price_snapshot: price,
-      parent_message: payload.parent_message ?? null,
-      status: "submitted",
-      requested_at: now,
-      payment_required: true,
-      payment_status: "not_requested",
-      duplicate_flags: (child.data as any).duplicate_flags ?? [],
-      metadata: { source: "parent_self_service" }
-    }, { onConflict: "parent_id,child_profile_id,garden_id" }).select("*").single();
-    if (requestWrite.error) return fail(requestWrite.error.message, 400);
-
-    await Promise.all([
-      admin.from("user_affiliation_requests" as any).insert({
-        requester_id: profile.id,
-        target_type: "kindergarten",
-        target_id: payload.garden_id,
-        request_type: "parent_to_kindergarten",
-        status: "submitted",
-        metadata: { enrollment_request_id: requestWrite.data.id, child_profile_id: payload.child_profile_id }
-      }),
-      admin.from("notifications" as any).insert({
-        garden_id: payload.garden_id,
-        recipient_id: (garden.data as any).manager_id ?? null,
-        recipient_role: "manager",
-        title: "בקשת הצטרפות חדשה",
-        body: `${profile.full_name} הגיש/ה בקשת הצטרפות לילד/ה ${(child.data as any).full_name}.`,
-        message: `${profile.full_name} הגיש/ה בקשת הצטרפות לילד/ה ${(child.data as any).full_name}.`,
-        entity_type: "kindergarten_enrollment_requests",
-        entity_id: requestWrite.data.id,
-        severity: "medium",
-        action_url: "/dashboard/garden/enrollment-requests",
-        recipient_profile_id: (garden.data as any).manager_id ?? null,
-        kindergarten_id: payload.garden_id,
-        created_by: profile.id
-      }),
-      admin.from("audit_logs" as any).insert({
-        actor_id: profile.id,
-        actor_role: "parent",
-        garden_id: payload.garden_id,
-        entity_type: "kindergarten_enrollment_requests",
-        entity_id: requestWrite.data.id,
-        action: "enrollment_request_submitted",
-        after_data: { status: "submitted", payment_required: true }
-      })
-    ]);
-
-    return ok({ enrollment_request: requestWrite.data }, 201);
-  } catch (error) {
-    return handleRouteError(error);
-  }
+export async function PATCH(request: Request) {
+  try {
+    const access = await requireParent(); if ("response" in access) return access.response;
+    const payload = actionSchema.parse(await request.json());
+    const supabase = await createClient();
+    const result = payload.action === "respond_information"
+      ? await supabase.rpc("respond_enrollment_information" as never, { target_request_id: payload.request_id, target_response: payload.response } as never)
+      : await supabase.rpc("cancel_parent_enrollment_request" as never, { target_request_id: payload.request_id } as never);
+    if (result.error) return fail("לא ניתן לעדכן את בקשת ההצטרפות.", result.error.code === "42501" ? 403 : 409);
+    return ok({ enrollment_request: result.data });
+  } catch (error) { return handleSafeRouteError(error); }
 }

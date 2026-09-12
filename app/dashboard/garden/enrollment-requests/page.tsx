@@ -3,6 +3,7 @@ import { DashboardShell } from "@/components/dashboard-shell";
 import { EnrollmentRequestActionButtons } from "@/components/garden-request-action-buttons";
 import { ApplicationDecisionForm } from "@/components/self-service-forms";
 import { requireRole } from "@/lib/auth";
+import { resolveManagementGardenContext } from "@/lib/management/active-garden-context";
 import { createClient } from "@/lib/supabase/server";
 import {
   TeacherActionTile,
@@ -20,29 +21,29 @@ import {
 } from "@/components/teacher-app-ui";
 
 const actions = [
-  { value: "under_review", label: "סימון בבדיקה" },
-  { value: "request_more_information", label: "בקשת מידע נוסף" },
-  { value: "approve_pending_payment", label: "אישור ממתין לתשלום" },
-  { value: "approve_without_payment", label: "אישור והפעלה ללא תשלום" },
-  { value: "mark_payment_paid", label: "תשלום הושלם והפעלה" },
+  { value: "review", label: "סימון בבדיקה" },
+  { value: "request_information", label: "בקשת מידע נוסף" },
+  { value: "approve", label: "אישור ושמירת מקום לפני תשלום" },
+  { value: "waitlist", label: "העברה לרשימת המתנה" },
   { value: "reject", label: "דחייה" }
 ];
 
 export default async function GardenEnrollmentRequestsPage() {
   const { profile } = await requireRole(["manager", "owner"]);
   const supabase = await createClient();
-  const gardenId = profile.garden_id ?? "";
-  const [requestsRes, gardenRes] = await Promise.all([
+  const context = await resolveManagementGardenContext(profile);
+  const gardenId = context.activeGarden?.id ?? "";
+  const [requestsRes, gardenRes, classroomsRes] = await Promise.all([
     supabase.from("kindergarten_enrollment_requests" as any)
-      .select("*, permanent_child_files:child_profile_id(full_name,birth_date,allergies,medical_notes,important_notes,duplicate_flags), profiles:parent_id(full_name,phone,email)")
+      .select("id,parent_id,child_profile_id,garden_id,requested_classroom_id,status,requested_age_group,parent_message,published_price_snapshot,payment_status,decision_reason,information_request,information_response,requested_at,created_at,permanent_child_files:child_profile_id(full_name,birth_date,duplicate_flags),profiles:parent_id(full_name,phone,email)")
       .eq("garden_id", gardenId)
       .order("created_at", { ascending: false })
       .limit(100),
-    supabase.from("gardens" as any).select("name, city").eq("id", gardenId).maybeSingle()
+    supabase.from("gardens" as any).select("name, city").eq("id", gardenId).maybeSingle(),
+    supabase.from("classrooms").select("id,name").eq("garden_id",gardenId).eq("status","active").order("sort_order")
   ]);
   const rows = (requestsRes.data ?? []) as any[];
-  const open = rows.filter((row) => ["submitted", "under_review", "more_information_requested", "approved_pending_payment"].includes(String(row.status)));
-  const paymentPending = rows.filter((row) => row.status === "approved_pending_payment");
+  const open = rows.filter((row) => ["submitted", "resubmitted", "under_review", "information_required", "awaiting_payment", "waitlisted"].includes(String(row.status)));
   const selected = rows[0];
 
   return (
@@ -53,8 +54,8 @@ export default async function GardenEnrollmentRequestsPage() {
         <TeacherStatsGrid>
           <TeacherStatCard title="בקשות חדשות" value={open.length} hint="לטיפול" icon={UserPlus} tone="purple" />
           <TeacherStatCard title="ממתינות לבדיקה" value={rows.filter((row) => row.status === "under_review").length} hint="בדיקה" icon={CalendarDays} tone="blue" />
-          <TeacherStatCard title="פגישה נקבעה" value={rows.filter((row) => row.status === "more_information_requested").length} hint="השלמת מידע" icon={CalendarDays} tone="orange" />
-          <TeacherStatCard title="חסרים מסמכים" value={rows.filter((row) => row.status === "approved_pending_payment").length} hint="תשלום/מסמך" icon={FileText} tone="red" />
+          <TeacherStatCard title="נדרש מידע" value={rows.filter((row) => row.status === "information_required").length} hint="ממתין להורה" icon={CalendarDays} tone="orange" />
+          <TeacherStatCard title="ממתינים לתשלום" value={rows.filter((row) => row.status === "awaiting_payment").length} hint="המקום נשמר" icon={FileText} tone="red" />
         </TeacherStatsGrid>
 
         <TeacherFilterPills
@@ -121,12 +122,11 @@ export default async function GardenEnrollmentRequestsPage() {
                   <h3>{row.permanent_child_files?.full_name ?? "ילד/ה"}</h3>
                   <p>{row.profiles?.full_name ?? "הורה"} · {row.profiles?.phone ?? ""} · תשלום {row.payment_status}</p>
                   <small>קבוצת גיל: {row.requested_age_group ?? "-"} · מחיר שפורסם: {row.published_price_snapshot ? `${row.published_price_snapshot} ₪` : "לא פורסם"}</small>
-                  {row.permanent_child_files?.allergies || row.permanent_child_files?.medical_notes ? <small>מידע רפואי נשלח לבדיקת הגן ונדרש טיפול דיסקרטי.</small> : null}
-                  {Array.isArray(row.duplicate_flags) && row.duplicate_flags.length ? <span className="pill warn">כפילות אפשרית לבדיקה</span> : null}
+                  {Array.isArray(row.permanent_child_files?.duplicate_flags) && row.permanent_child_files.duplicate_flags.length ? <span className="pill warn">כפילות אפשרית לבדיקה</span> : null}
                 </div>
                 <div className="procedure-meta">
                   <Baby />
-                  <ApplicationDecisionForm endpoint={`/api/garden/enrollment-requests/${row.id}`} actions={actions} />
+                  <ApplicationDecisionForm endpoint={`/api/garden/enrollment-requests/${row.id}`} actions={actions} classrooms={(classroomsRes.data ?? []) as Array<{ id: string; name: string }>} />
                 </div>
               </article>
             ))}
