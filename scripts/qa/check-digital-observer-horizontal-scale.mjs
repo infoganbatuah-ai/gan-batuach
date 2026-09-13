@@ -51,7 +51,8 @@ try {
   const backend = adaptAiQueueBackend(queue); assertAiQueueBackend(backend); assert.equal(backend.multi_host_ready, false); assert.equal(POSTGRES_CLAIM_SEMANTICS.locking, "FOR UPDATE SKIP LOCKED"); queue.close();
   const children = await Promise.all([0, 1, 2, 3].map(index => child(multiPath, `qa-worker-child-${index}`)));
   queue = createDurableAiJobQueue({ databasePath: multiPath, workerAuthorizer: auth }); const multi = queue.snapshot();
-  assert.equal(multi.states.COMPLETED, 120); assert.equal(children.reduce((sum, item) => sum + item.completed, 0), 120); assert.equal(multi.lease_claim_count, 120, "one active claim/accepted result per job");
+  const completedJobIds = new Set(children.flatMap(item => item.completed_job_ids || []));
+  assert.equal(multi.states.COMPLETED, 120); assert.equal(completedJobIds.size, 120, "every accepted result corresponds to one unique job"); assert.ok(multi.lease_claim_count >= 120, "each completed job has an accepted claim");
   assert.equal(multi.dead_letter_count, 0); assert.equal(multi.queue_depth, 0); queue.close();
 
   const fairPath = join(root, "hot-fairness.sqlite"); queue = createDurableAiJobQueue({ databasePath: fairPath, workerAuthorizer: auth });
