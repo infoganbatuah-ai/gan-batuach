@@ -7,6 +7,7 @@ import { homedir, tmpdir } from "node:os";
 import { join, relative } from "node:path";
 import { verifyEdgeArtifact, verifyEdgeUpdateManifest } from "../../services/video-gateway/edge-update-contract.mjs";
 import { createMacOSInstalledEdgeAdapter } from "../../services/video-gateway/edge-macos-installed-adapter.mjs";
+import { planInstalledOtaAgent } from "../../services/video-gateway/edge-installed-ota-installer.mjs";
 
 const baselineStore = process.argv[2];
 if (!baselineStore) throw new Error("QA_BASELINE_STORE_REQUIRED");
@@ -60,11 +61,22 @@ for (const item of entries) {
   try { adapterPlan = createMacOSInstalledEdgeAdapter({ profile: item.profile, installedBase: item.live,
     managedRoot: slotRoot, launchAgentPath: plist, label: item.label, port: item.port }).plan(); }
   catch (error) { conflicts.push(error.code || "LIVE_ADAPTER_PLAN_FAILED"); }
+  let agentPlan = null;
+  try {
+    const agentLabel = `${item.label}.ota-agent`;
+    const agentPlistPath = join(home, "Library/LaunchAgents", `${agentLabel}.plist`);
+    agentPlan = planInstalledOtaAgent({ profile: item.profile, managedRoot: slotRoot,
+      agentPlistPath, agentLabel });
+    if (!existsSync(program[0])) conflicts.push("LIVE_AGENT_NODE_MISSING");
+    if (existsSync(agentPlistPath) || existsSync(join(slotRoot, "agent"))) conflicts.push("EXISTING_OTA_AGENT_INSTALLATION");
+  } catch (error) { conflicts.push(error.code || "LIVE_AGENT_PLAN_FAILED"); }
   result.push({ profile: item.profile, service_label: item.label, service_running: service.includes("state = running"),
     expected_runner_match: program[1] === expectedRunner, baseline_release: manifest.release_id,
     baseline_artifact_sha256: manifest.artifact_sha256, live_file_matches: matched,
     live_file_changed: changed, live_file_missing: missing,
-    planned_changes: adapterPlan?.planned_files || [slotRoot, plist, trustPath],
+    planned_changes: [...(adapterPlan?.planned_files || [slotRoot, plist, trustPath]),
+      ...(agentPlan ? [agentPlan.management_code, agentPlan.config, agentPlan.agent_plist] : [])],
+    agent_plan: agentPlan ? { label: agentPlan.agent_label, qa: agentPlan.qa, writes: agentPlan.writes } : null,
     trust_root_present: existsSync(trustPath), conflicts, camera_health: "NOT_CHECKED_BY_FILE_DRY_RUN" });
 }
 console.log(JSON.stringify({ protocol: "observer-live-bootstrap-dry-run-v1", write_operations: 0, results: result,

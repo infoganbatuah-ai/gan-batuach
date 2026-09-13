@@ -1,8 +1,9 @@
-import { realpathSync } from "node:fs";
+import { existsSync, readFileSync, realpathSync, renameSync, writeFileSync } from "node:fs";
+import { randomUUID } from "node:crypto";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { EdgeUpdateManager } from "./edge-update-manager.mjs";
-import { runEdgeUpdateCycle } from "./edge-update-agent.mjs";
+import { reportEdgeUpdateStatus, runEdgeUpdateCycle } from "./edge-update-agent.mjs";
 import { createEdgeCrashLoopGuard } from "./edge-crash-loop-guard.mjs";
 import { loadPinnedEdgeReleaseKeys, PROTECTED_EDGE_TRUST_REGISTRY_PATH } from "./edge-release-trust.mjs";
 
@@ -26,6 +27,17 @@ export function createInstalledEdgeOtaAgent({ root, device, adapter, cloudReques
     ...(qaRootPinPath ? { rootPinPath: qaRootPinPath, qaOwnerAllowed: true } : {}) };
   const load = () => loadPinnedEdgeReleaseKeys(trustArgs).trustedPublicKeys;
   const guardPath = join(root, "crash-guard.json");
+  const reportPath = join(root, "agent-status-report.json");
+  async function reportLateFailure(manager) {
+    const state = manager.status();
+    if (!state.release_id || !["EDGE_UPDATE_CRASH_LOOP", "EDGE_UPDATE_KNOWN_GOOD_CRASH_LOOP"].includes(state.failure_category)) return;
+    const fingerprint = `${state.release_id}:${state.updated_at}:${state.state}`;
+    if (existsSync(reportPath) && JSON.parse(readFileSync(reportPath, "utf8")).fingerprint === fingerprint) return;
+    await reportEdgeUpdateStatus(cloudRequest, state.release_id, state);
+    const temporary = `${reportPath}.${randomUUID()}.staging`;
+    writeFileSync(temporary, JSON.stringify({ fingerprint }), { mode: 0o600, flag: "wx" });
+    renameSync(temporary, reportPath);
+  }
   let stopped = false, running = false;
   async function tick() {
     if (running || stopped) return { state: "SKIPPED" };
@@ -39,8 +51,10 @@ export function createInstalledEdgeOtaAgent({ root, device, adapter, cloudReques
       const crash = await guard.observe({ runtimePid: adapter.runtimePid(), healthy: observed.ok && service.running });
       if (["ROLLED_BACK", "ACTION_REQUIRED"].includes(crash.action)) {
         onEvent({ state: crash.action, reason: manager.status().failure_category || null });
+        await reportLateFailure(manager);
         return manager.status();
       }
+      if (["ROLLED_BACK", "ACTION_REQUIRED"].includes(manager.status().state)) await reportLateFailure(manager);
       if (manager.status().state === "ACTION_REQUIRED") return manager.status();
       if (!observed.ok || !service.running) return { state: "RUNTIME_UNHEALTHY", reason: "HEALTH_PROBE_FAILED" };
       const result = await runEdgeUpdateCycle({ root, device, adapter, cloudRequest, healthCheck,

@@ -6,6 +6,12 @@ import { verifyEdgeUpdateManifest } from "./edge-update-contract.mjs";
 import { loadPinnedEdgeReleaseKeys, PROTECTED_EDGE_TRUST_REGISTRY_PATH } from "./edge-release-trust.mjs";
 
 function fail(code) { throw Object.assign(new Error(code), { code }); }
+export async function reportEdgeUpdateStatus(cloudRequest, releaseId, result) {
+  if (!releaseId || !["HEALTHY", "ROLLED_BACK", "ACTION_REQUIRED"].includes(result.state)) return;
+  await cloudRequest({ method: "POST", path: "/api/video-gateway/edge-updates", operation: "UPDATE_STATUS",
+    body: { release_id: releaseId, state: result.state, current_version: result.current_version,
+      known_good_version: result.known_good_version, failure_category: result.failure_category || null } });
+}
 
 /** Shared outbound-first update cycle for Software Connector, Physical Gateway and future Enterprise Edge. */
 export async function runEdgeUpdateCycle({
@@ -40,8 +46,6 @@ export async function runEdgeUpdateCycle({
   await onTransition({ state: "DOWNLOADING", release_id: manifest.release_id });
   await download({ url: manifest.artifact_url, destination, expectedSize: manifest.artifact_size, expectedSha256: manifest.artifact_sha256 });
   const result = await manager.apply({ manifest, artifactBytes: readFileSync(destination) });
-  await cloudRequest({ method: "POST", path: "/api/video-gateway/edge-updates", operation: "UPDATE_STATUS",
-    body: { release_id: manifest.release_id, state: result.state, current_version: result.current_version,
-      known_good_version: result.known_good_version, failure_category: result.failure_category || null } });
+  await reportEdgeUpdateStatus(cloudRequest, manifest.release_id, result);
   return result;
 }

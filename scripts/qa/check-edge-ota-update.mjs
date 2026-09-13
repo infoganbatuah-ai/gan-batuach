@@ -113,6 +113,19 @@ for (const profile of ["PHYSICAL_GATEWAY", "SOFTWARE_CONNECTOR"]) {
   for (const pid of [202, 203, 204]) { clock += 1_000; await guard.observe({ runtimePid: pid, healthy: false }); }
   assert.equal(test.value.status().state, "ACTION_REQUIRED");
 }
+// A newly promoted process that remains down is not allowed to wait forever
+// for a third PID transition. One transient probe cannot trigger rollback.
+const down = await manager("PHYSICAL_GATEWAY", async () => healthy(10, 6));
+assert.equal((await down.value.apply({ manifest: manifest({ version: "1.1.0", profile: "PHYSICAL_GATEWAY", release: "qa-sustained-down" }), artifactBytes: artifact })).state, "HEALTHY");
+let downClock = 1000;
+const downGuard = createEdgeCrashLoopGuard({ statePath: join(down.root, "sustained-down.json"), manager: down.value,
+  now: () => downClock, sustainedDownMs: 60_000 });
+await downGuard.observe({ runtimePid: 301, healthy: true });
+downClock += 1000;
+assert.equal((await downGuard.observe({ runtimePid: null, healthy: false })).action, "OBSERVING");
+downClock += 60_000;
+assert.equal((await downGuard.observe({ runtimePid: null, healthy: false })).action, "ROLLED_BACK");
+assert.equal(down.value.current().version, "1.0.0");
 for (const profile of ["SOFTWARE_CONNECTOR", "PHYSICAL_GATEWAY"]) {
   const root = mkdtempSync(join(tmpdir(), "observer-edge-bootstrap-negative-"));
   const device = { deviceId: `qa-${profile.toLowerCase()}-device`, profile, platform: "darwin", architecture: "arm64",
@@ -134,8 +147,11 @@ await assert.rejects(connector.value.apply({ manifest: manifest({ version: "1.0.
 const deviceRoute = readFileSync("app/api/video-gateway/edge-updates/route.ts", "utf8");
 const adminRoute = readFileSync("app/api/digital-observer/admin/edge-releases/route.ts", "utf8");
 const migration = readFileSync("supabase/migrations/20260909010000_edge_ota_rollout.sql", "utf8");
+const terminalMigration = readFileSync("supabase/migrations/20260913010000_edge_ota_terminal_recovery.sql", "utf8");
 const mac = readFileSync("scripts/build-connector-macos.mjs", "utf8"), windows = readFileSync("scripts/build-connector-windows.mjs", "utf8");
 for (const token of ["UPDATE_READ", "UPDATE_STATUS", "deployment_profile", "credential_version", "lifecycle_state"]) assert.match(deviceRoute, new RegExp(token));
+assert.match(deviceRoute, /ACTION_REQUIRED/);
+assert.match(terminalMigration, /ACTION_REQUIRED/);
 for (const token of ["hasObserverAdminClaim", "verifyEdgeUpdateManifest", "writeAuditEvent", "CANARY_HEALTH_GATE_FAILED"]) assert.match(adminRoute, new RegExp(token));
 for (const table of ["observer_edge_releases", "observer_edge_rollouts", "observer_edge_device_updates"]) assert.match(migration, new RegExp(`enable row level security;[\\s\\S]*${table}|${table}[\\s\\S]*enable row level security`));
 assert.match(mac, /edge-update-agent|readdirSync\("services\/video-gateway"\)/); assert.match(windows, /edge-update-agent|readdirSync\("services\/video-gateway"\)/);

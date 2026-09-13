@@ -51,7 +51,11 @@ for (const profile of ["PHYSICAL_GATEWAY", "SOFTWARE_CONNECTOR"]) {
       device, adapter, healthCheck: async () => health(profile) });
     await manager.bootstrapInstalled({ manifest: release(profile, "1.0.0"), artifactBytes: bytes });
     const target = release(profile, "1.1.0");
-    const cloudRequest = async ({ method }) => method === "GET" ? { manifest: target } : { accepted: true };
+    const reported = [];
+    const cloudRequest = async ({ method, body }) => {
+      if (method === "GET") return { manifest: target };
+      reported.push(body); return { accepted: true };
+    };
     const options = { root: ota, device, adapter, cloudRequest, healthCheck: async () => health(profile),
       trustRegistryPath: registryPath, qaRootPinPath: rootPinPath, qaIsolationRoot: scope,
       download: async ({ destination }) => { mkdirSync(dirname(destination), { recursive: true }); writeFileSync(destination, bytes); } };
@@ -72,7 +76,10 @@ for (const profile of ["PHYSICAL_GATEWAY", "SOFTWARE_CONNECTOR"]) {
     assert.equal(manager.current().version, "1.0.0");
     assert.equal(createHash("sha256").update(readFileSync(join(manager.current().slot, "artifact.bin"))).digest("hex"), digest);
     assert.equal(manager.quarantine().some(item => item.release_id === target.release_id), true);
+    assert.equal(reported.filter(item => item.state === "ROLLED_BACK" &&
+      item.failure_category === "EDGE_UPDATE_CRASH_LOOP").length, 1);
     assert.equal((await restartedAgent.tick()).state, "ROLLED_BACK");
+    assert.equal(reported.filter(item => item.state === "ROLLED_BACK").length, 1, "late failure report idempotent");
     assert.equal(restarts, 2);
     results.push({ profile, automatic_cycle: "PASS", persistent_crash_rollback: "PASS", quarantine: "PASS", agent_restart: "PASS", predownload_manifest_gate: "PASS" });
   } finally { rmSync(scope, { recursive: true, force: true }); }

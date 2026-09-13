@@ -41,6 +41,10 @@ function assertSingleOwnedRuntime(port, supervisorPid) {
   assert.equal(parent, supervisorPid, `port-${port}:supervisor-owns-runtime`);
   return childPid;
 }
+function launchdPid(label) {
+  const state = execFileSync("/bin/launchctl", ["print", `gui/${process.getuid()}/${label}`], { encoding: "utf8" });
+  return Number(/\bpid = (\d+)/.exec(state)?.[1] || 0);
+}
 function release(root, id, name) { const dir = join(root, id), manifest = JSON.parse(readFileSync(join(dir, "release.json")));
   const bytes = readFileSync(join(dir, name));
   assert.equal(verifyEdgeUpdateManifest(manifest, trusted).ok, true, `${id}:signature`);
@@ -214,7 +218,7 @@ for (const item of profiles) {
         writeFileSync(qaReleasePath, JSON.stringify({ manifest: value.manifest, artifact_name: "artifact.tar.gz" }), { mode: 0o600 }); };
       agentLabel = `com.digitalobserver.qa.push38i.agent.${item.suffix}.${createHash("sha256").update(root).digest("hex").slice(0, 8)}`;
       agentPlist = join(root, "agent.plist");
-      installInstalledOtaAgent({ profile: item.profile, managedRoot: join(root, "ota"),
+      const agentInstall = { profile: item.profile, managedRoot: join(root, "ota"),
         agentPlistPath: agentPlist, agentLabel, nodePath: process.execPath, manifest: remediation.manifest,
         artifactPath: join(args["--release-store"], item.releaseId, item.releaseName),
         baselineReleaseId: baseline.manifest.release_id, qaIsolationRoot: root,
@@ -223,13 +227,24 @@ for (const item of profiles) {
           deviceId: device.deviceId, channel: device.channel, configVersion: 1,
           expectedPhysicalCameras: 0,
           baselineArtifactSha256: baseline.manifest.artifact_sha256, qaIsolationRoot: root,
-          qaRootPinPath, qaTrustRegistryPath, qaReleasePath, intervalMs: 1000 } });
+          qaRootPinPath, qaTrustRegistryPath, qaReleasePath, intervalMs: 1000 } };
+      installInstalledOtaAgent(agentInstall);
+      installInstalledOtaAgent(agentInstall);
       await until(() => execFileSync("/bin/launchctl", ["print", `gui/${process.getuid()}/${agentLabel}`],
         { encoding: "utf8" }).includes("state = running"), 15_000, "AGENT_START");
       publish(remediation);
       await until(() => manager.current().release_id === remediation.manifest.release_id && manager.status().state === "HEALTHY",
         90_000, "AUTOMATIC_REMEDIATION");
-      assertSingleOwnedRuntime(item.port, adapter.status().pid);
+      const supervisorBefore = adapter.status().pid;
+      const runtimeBefore = assertSingleOwnedRuntime(item.port, supervisorBefore);
+      const agentBefore = launchdPid(agentLabel);
+      assert.ok(agentBefore > 1);
+      process.kill(agentBefore, "SIGKILL");
+      await until(() => { const next = launchdPid(agentLabel); return next > 1 && next !== agentBefore; },
+        35_000, "AGENT_RESTART");
+      assert.equal(adapter.status().pid, supervisorBefore, `${item.suffix}:agent-loss-preserves-supervisor`);
+      assert.equal(assertSingleOwnedRuntime(item.port, supervisorBefore), runtimeBefore,
+        `${item.suffix}:agent-loss-preserves-runtime`);
       const crash = makeCrash({ good: remediation, profile: item.profile, temporary: root });
       publish(crash);
       await until(() => manager.current().release_id === crash.manifest.release_id && manager.status().state === "HEALTHY",
@@ -243,11 +258,14 @@ for (const item of profiles) {
       const restored = await adapter.health({ timeoutMs: 20_000 });
       assert.equal(restored.ok && restored.service.running, true);
       assertSingleOwnedRuntime(item.port, restored.service.pid);
+      if (item.profile === "SOFTWARE_CONNECTOR") execFileSync("/usr/bin/codesign", ["--verify", "--deep", "--strict",
+        join(manager.current().slot, "runtime", "Digital Observer.app")]);
       for (const name of ["identity", "config", "durable-queue", "source-map"])
         assert.equal(readFileSync(join(persistent, name), "utf8"), `QA_${item.profile}_${name}`);
       results.push({ profile: item.profile, installed_agent: "launchd", automatic_update: "PASS",
         persistent_crash_rollback: "PASS", known_good_artifact_sha256: remediation.manifest.artifact_sha256,
-        failed_release_quarantined: true, persistent_fixture_preserved: true, live_home_touched: false });
+        failed_release_quarantined: true, agent_restart_preserved_runtime: true, agent_install_idempotent: true,
+        persistent_fixture_preserved: true, live_home_touched: false });
       continue;
     }
     const bad = makeBad({ good: remediation, profile: item.profile, temporary: root });
