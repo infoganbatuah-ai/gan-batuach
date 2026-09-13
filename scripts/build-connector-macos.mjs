@@ -10,6 +10,19 @@ import { execFileSync } from "node:child_process";
 const args = Object.fromEntries(process.argv.slice(2).map(arg => { const i = arg.indexOf("="); return [arg.slice(0, i), arg.slice(i + 1)]; }));
 for (const name of ["out", "node", "ffmpeg", "ffprobe", "ort", "model"]) if (!args[`--${name}`]) throw new Error(`BUILD_INPUT_REQUIRED_${name}`);
 if (process.platform !== "darwin") throw new Error("MACOS_BUILD_HOST_REQUIRED");
+const releaseClass = args["--release-class"] || "QA";
+const otaOnly = args["--ota-only"] === "1";
+const signingIdentity = args["--signing-identity"] || "-";
+if (!["QA", "PRODUCTION"].includes(releaseClass)) throw new Error("SIGNING_RELEASE_CLASS_INVALID");
+if (otaOnly && releaseClass !== "QA") throw new Error("OTA_ARCHIVE_QA_ONLY");
+if (releaseClass === "PRODUCTION" && signingIdentity === "-") throw new Error("APPLE_DISTRIBUTION_IDENTITY_REQUIRED");
+const version = args["--version"] || "0.1.0";
+const buildNumber = args["--build-number"] || "1";
+if (!/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(version) || !/^[1-9]\d*$/.test(buildNumber)) throw new Error("CONNECTOR_RELEASE_VERSION_INVALID");
+if (args["--exact-commit"] === "1") {
+  execFileSync("git", ["diff", "--quiet", "--exit-code"]);
+  execFileSync("git", ["diff", "--cached", "--quiet", "--exit-code"]);
+}
 const out = resolve(args["--out"]);
 if (existsSync(out)) throw new Error("BUILD_OUTPUT_MUST_BE_NEW");
 const model = readFileSync(args["--model"]);
@@ -32,6 +45,9 @@ for (const pkg of ["onnxruntime-node", "onnxruntime-common"]) {
   cpSync(join(source, "dist"), join(destination, "dist"), { recursive: true });
   if (pkg === "onnxruntime-node") cpSync(join(source, "bin/napi-v6/darwin", process.arch), join(destination, "bin/napi-v6/darwin", process.arch), { recursive: true, dereference: true });
 }
+// The Edge HTTP runtime imports the reviewed patched Undici package. Without
+// bundling it, a clean Connector app can pass signing but fail to start.
+cpSync("node_modules/undici", join(resources, "runtime/node_modules/undici"), { recursive: true });
 
 // Relocate each non-system Mach-O dependency into the package; refuse unresolved
 // paths instead of silently relying on a developer's Homebrew installation.
@@ -58,32 +74,59 @@ function bundleBinary(source, destination) {
 }
 for (const name of ["node", "ffmpeg", "ffprobe"]) bundleBinary(args[`--${name}`], join(resources, "bin", name));
 run("/usr/bin/swiftc", ["-O", "-module-cache-path", join(out, "swift-cache"), "services/connector-desktop/macos/DesktopHost.swift", "-o", join(contents, "MacOS/DigitalObserver")]);
-const plist = { CFBundleIdentifier: "com.digitalobserver.connector", CFBundleName: "Digital Observer", CFBundleExecutable: "DigitalObserver", CFBundlePackageType: "APPL", CFBundleShortVersionString: "0.1.0", CFBundleVersion: "1", ObserverBuildSHA: sha,
+const plist = { CFBundleIdentifier: "com.digitalobserver.connector", CFBundleName: "Digital Observer", CFBundleExecutable: "DigitalObserver", CFBundlePackageType: "APPL", CFBundleShortVersionString: version, CFBundleVersion: buildNumber, ObserverBuildSHA: sha,
   NSLocalNetworkUsageDescription: "Digital Observer finds cameras on your network after you authorize setup.",
   CFBundleDocumentTypes: [{ CFBundleTypeName: "Digital Observer installation request", CFBundleTypeRole: "Viewer", CFBundleTypeExtensions: ["observer-connect"] }] };
 writeFileSync(join(contents, "Info.plist"), JSON.stringify(plist));
+writeFileSync(join(resources, "runtime/edge-release-metadata.json"), JSON.stringify({ version, build_sha: sha, health_contract: "observer-edge-health-v1", profile: "SOFTWARE_CONNECTOR" }));
 run("/usr/bin/plutil", ["-convert", "xml1", join(contents, "Info.plist")]);
+// install_name_tool mutates Mach-O binaries and invalidates their prior code
+// signatures. Re-sign nested binaries before trying to execute them on arm64.
+for (const binary of binaries.reverse()) run("/usr/bin/codesign", ["--force", "--sign", signingIdentity, binary]);
 run(join(resources, "bin/node"), ["--version"]);
 run(join(resources, "bin/ffmpeg"), ["-version"]);
 run(join(resources, "bin/ffprobe"), ["-version"]);
 execFileSync(join(resources, "bin/node"), ["--input-type=module", "-e", "import * as ort from 'onnxruntime-node'; await ort.InferenceSession.create(process.argv[1]);" , join(resources, "models/ssd_mobilenet_v1_10.onnx")], { cwd: join(resources, "runtime"), stdio: "pipe", timeout: 60000 });
+execFileSync(join(resources, "bin/node"), ["--input-type=module", "-e", "await import('./services/video-gateway/http-runtime.mjs');"],
+  { cwd: join(resources, "runtime"), stdio: "pipe", timeout: 15000 });
 // ONNX Runtime may emit an optimized-session cache named ':memory:.ses'. It is
 // a build-time derivative, not a runtime dependency and must not invalidate the
 // sealed application after signing.
 rmSync(join(resources, "runtime/:memory:.ses"), { force: true });
-for (const binary of binaries.reverse()) run("/usr/bin/codesign", ["--force", "--sign", "-", binary]);
-run("/usr/bin/codesign", ["--force", "--sign", "-", app]);
+run("/usr/bin/codesign", ["--force", "--sign", signingIdentity, app]);
+// Signing must be the final mutation of sealed bundle content. A successful
+// codesign invocation alone does not prove the package still verifies.
+run("/usr/bin/codesign", ["--verify", "--deep", "--strict", app]);
+if (otaOnly) {
+  const archive = join(out, "connector-remediation.tar.gz");
+  run("tar", ["-czf", archive, "-C", out, "Digital Observer.app"]);
+  const unpack = mkdtempSync(join(tmpdir(), "digital-observer-ota-seal-"));
+  try {
+    run("tar", ["-xzf", archive, "-C", unpack]);
+    run("/usr/bin/codesign", ["--verify", "--deep", "--strict", join(unpack, "Digital Observer.app")]);
+  } finally { rmSync(unpack, { recursive: true, force: true }); }
+  const archiveSha256 = createHash("sha256").update(readFileSync(archive)).digest("hex");
+  writeFileSync(join(out, "package-status.json"), JSON.stringify({ status: "QA_OTA_ARCHIVE_ONLY", releaseClass,
+    version, build: sha, buildNumber, signatureVerified: true, postArchiveSignatureVerified: true,
+    notarization: "NOT_VERIFIED", publicDownloadAllowed: false, archive: { filename: basename(archive), sha256: archiveSha256 } }, null, 2));
+  console.log(JSON.stringify({ status: "QA_OTA_ARCHIVE_ONLY", output: out, archive, archiveSha256,
+    source_commit: sha, publicDownloadAllowed: false }));
+} else {
 const staging = mkdtempSync(join(tmpdir(), "digital-observer-connector-dmg-"));
 const dmg = join(out, "Digital Observer Connector.dmg");
 try {
   cpSync(app, join(staging, "Digital Observer.app"), { recursive: true, dereference: true });
+  run("/usr/bin/codesign", ["--verify", "--deep", "--strict", join(staging, "Digital Observer.app")]);
   symlinkSync("/Applications", join(staging, "Applications"));
   run("/usr/bin/hdiutil", ["create", "-quiet", "-fs", "HFS+", "-volname", "Digital Observer Connector", "-srcfolder", staging, dmg]);
 } finally { rmSync(staging, { recursive: true, force: true }); }
 const dmgSha256 = createHash("sha256").update(readFileSync(dmg)).digest("hex");
 writeFileSync(join(out, "package-status.json"), JSON.stringify({ status: "LOCAL_PACKAGE_QA_ONLY", platform: `macos-${process.arch}`, build: sha,
+  version, buildNumber,
   dirtySnapshot: run("git", ["status", "--porcelain"]).trim().length > 0, nativeLibraries: copied.size,
-  signing: "AD_HOC_ONLY_NOT_NOTARIZED", publicDownloadAllowed: false, redistributionNoticesBundled: true,
+  signing: signingIdentity === "-" ? "AD_HOC_QA_VERIFIED_NOT_NOTARIZED" : "IDENTITY_SIGNED_VERIFIED_NOT_NOTARIZED",
+  releaseClass, signatureVerified: true, notarization: "NOT_VERIFIED", publicDownloadAllowed: false, redistributionNoticesBundled: true,
   ota: { contract: "observer-edge-update-v1", agentBundled: true, signedManifestRequired: true, atomicSlots: true, automaticRollback: true },
   dmg: { filename: basename(dmg), sha256: dmgSha256 }, serviceInstallTest: "NOT_RUN", enrollmentE2E: "NOT_RUN" }, null, 2));
 console.log(JSON.stringify({ status: "LOCAL_PACKAGE_QA_ONLY", output: out, dmg, dmgSha256, nativeLibraries: copied.size, publicDownloadAllowed: false }));
+}
