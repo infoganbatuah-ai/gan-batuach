@@ -26,7 +26,7 @@ const installedAdapter = args["--installed-adapter"] === "1";
 const automaticAgent = args["--automatic-agent"] === "1";
 if (automaticAgent && (!fullSupervisor || !installedAdapter)) throw new Error("QA_AUTOMATIC_AGENT_REQUIRES_FULL_INSTALLED_SUPERVISOR");
 const profiles = [
-  { profile: "PHYSICAL_GATEWAY", baselineId: "qa-legacy-gateway-aa57572e8736", baselineName: "gateway-runtime.tar.gz",
+  { profile: "PHYSICAL_GATEWAY", baselineId: args["--gateway-baseline-id"] || "qa-legacy-gateway-aa57572e8736", baselineName: "gateway-runtime.tar.gz",
     releaseId: args["--gateway-release-id"] || "qa-p38g-gateway-06a65267dffa", releaseName: "gateway-runtime.tar.gz", port: 38191, cloudPort: 38193, suffix: "gateway" },
   { profile: "SOFTWARE_CONNECTOR", baselineId: args["--connector-baseline-id"], baselineName: "connector-legacy-resigned.tar.gz",
     releaseId: args["--connector-release-id"] || "qa-p38g-connector-06a65267dffa", releaseName: "connector-remediation.tar.gz", port: 38192, cloudPort: 38194, suffix: "connector" }
@@ -73,12 +73,12 @@ function makeBad({ good, profile, temporary }) {
   assert.equal(verifyEdgeUpdateManifest(manifest, trusted).ok, true);
   return { manifest, bytes };
 }
-function makeCrash({ good, profile, temporary }) {
-  const directory = join(temporary, "crash-src"); mkdirSync(directory, { mode: 0o700 });
-  const sourcePath = join(temporary, "crash-source.tar.gz"); writeFileSync(sourcePath, good.bytes, { mode: 0o600 });
+function makeCrash({ good, profile, temporary, variant = "remediation" }) {
+  const directory = join(temporary, `crash-src-${variant}`); mkdirSync(directory, { mode: 0o700 });
+  const sourcePath = join(temporary, `crash-source-${variant}.tar.gz`); writeFileSync(sourcePath, good.bytes, { mode: 0o600 });
   execFileSync("tar", ["-xzf", sourcePath, "-C", directory]);
   const prefix = profile === "SOFTWARE_CONNECTOR" ? "Digital Observer.app/Contents/Resources/runtime/" : "";
-  const version = "0.3.1-p38i-crash";
+  const version = variant === "baseline" ? "0.2.9-p38j-crash" : "0.3.1-p38i-crash";
   const metadataPath = join(directory, prefix, "edge-release-metadata.json");
   const metadata = JSON.parse(readFileSync(metadataPath)); metadata.version = version;
   writeFileSync(metadataPath, `${JSON.stringify(metadata)}\n`);
@@ -87,10 +87,10 @@ function makeCrash({ good, profile, temporary }) {
   if (profile === "SOFTWARE_CONNECTOR") { const app = join(directory, "Digital Observer.app");
     execFileSync("/usr/bin/codesign", ["--force", "--sign", "-", app]);
     execFileSync("/usr/bin/codesign", ["--verify", "--deep", "--strict", app]); }
-  const archive = join(temporary, "crash.tar.gz");
+  const archive = join(temporary, `crash-${variant}.tar.gz`);
   execFileSync("tar", ["-czf", archive, "-C", directory, profile === "SOFTWARE_CONNECTOR" ? "Digital Observer.app" : "."]);
   const bytes = readFileSync(archive);
-  const manifest = { ...good.manifest, release_id: `qa-p38i-crash-${profile.toLowerCase()}`, version,
+  const manifest = { ...good.manifest, release_id: `qa-p38i-crash-${variant}-${profile.toLowerCase()}`, version,
     artifact_url: `https://qa.invalid/${profile.toLowerCase()}/crash.tar.gz`,
     artifact_sha256: createHash("sha256").update(bytes).digest("hex"),
     artifact_size: bytes.length, released_at: new Date().toISOString(), signature: "" };
@@ -110,8 +110,11 @@ for (const item of profiles) {
   const root = mkdtempSync(join(tmpdir(), `observer-p38g-launchd-${item.suffix}-`));
   const installedSlot = join(root, "installed"), installedRuntime = join(installedSlot, "runtime");
   mkdirSync(installedRuntime, { recursive: true, mode: 0o700 });
-  const baseline = release(item.baselineId.startsWith("qa-legacy-connector-resigned")
-    ? (args["--connector-baseline-store"] || args["--release-store"]) : args["--baseline-store"], item.baselineId, item.baselineName);
+  const baseline = release(item.profile === "PHYSICAL_GATEWAY"
+    ? (args["--gateway-baseline-store"] || args["--baseline-store"])
+    : item.baselineId.startsWith("qa-legacy-connector-resigned")
+      ? (args["--connector-baseline-store"] || args["--release-store"])
+      : args["--baseline-store"], item.baselineId, item.baselineName);
   const remediation = release(args["--release-store"], item.releaseId, item.releaseName);
   const baselinePath = join(root, "baseline.tar.gz"); writeFileSync(baselinePath, baseline.bytes, { mode: 0o600 });
   execFileSync("tar", ["-xzf", baselinePath, "-C", installedRuntime]);
@@ -238,6 +241,21 @@ for (const item of profiles) {
       installInstalledOtaAgent(agentInstall);
       await until(() => execFileSync("/bin/launchctl", ["print", `gui/${process.getuid()}/${agentLabel}`],
         { encoding: "utf8" }).includes("state = running"), 15_000, "AGENT_START");
+      if (args["--baseline-rollback"] === "1") {
+        const initialCrash = makeCrash({ good: remediation, profile: item.profile, temporary: root, variant: "baseline" });
+        publish(initialCrash);
+        await until(() => manager.current().release_id === initialCrash.manifest.release_id && manager.status().state === "HEALTHY",
+          90_000, "AUTOMATIC_BASELINE_CRASH_RELEASE");
+        await until(() => manager.status().state === "ROLLED_BACK" || manager.status().state === "ACTION_REQUIRED",
+          180_000, "AUTOMATIC_BASELINE_CRASH_ROLLBACK");
+        assert.equal(manager.status().state, "ROLLED_BACK", `${item.suffix}:baseline-crash-loop-rollback`);
+        assert.equal(manager.current().release_id, baseline.manifest.release_id);
+        manager.verifySlot(manager.current());
+        assert.equal(createHash("sha256").update(readFileSync(join(manager.current().slot, "artifact.bin"))).digest("hex"),
+          baseline.manifest.artifact_sha256, `${item.suffix}:exact-baseline-restore`);
+        assert.equal(manager.quarantine().some(entry => entry.release_id === initialCrash.manifest.release_id), true);
+        assert.equal((await adapter.health({ timeoutMs: 20_000 })).ok, true);
+      }
       publish(remediation);
       await until(() => manager.current().release_id === remediation.manifest.release_id && manager.status().state === "HEALTHY",
         90_000, "AUTOMATIC_REMEDIATION");
@@ -270,6 +288,7 @@ for (const item of profiles) {
         assert.equal(readFileSync(join(persistent, name), "utf8"), `QA_${item.profile}_${name}`);
       results.push({ profile: item.profile, installed_agent: "launchd", automatic_update: "PASS",
         persistent_crash_rollback: "PASS", known_good_artifact_sha256: remediation.manifest.artifact_sha256,
+        ...(args["--baseline-rollback"] === "1" ? { baseline_crash_loop_restore_sha256: baseline.manifest.artifact_sha256 } : {}),
         failed_release_quarantined: true, agent_restart_preserved_runtime: true, agent_install_idempotent: true,
         tampered_baseline_install_rejected: true,
         persistent_fixture_preserved: true, live_home_touched: false });

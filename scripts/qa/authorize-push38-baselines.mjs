@@ -11,7 +11,9 @@ for (const required of ["--candidates", "--candidate-root", "--store", "--qa-pri
   if (!args[required]) fail(`REQUIRED_${required}`);
 if (!args["--key-id"].startsWith("qa-")) fail("QA_KEY_ID_REQUIRED");
 const candidates = JSON.parse(readFileSync(resolve(args["--candidates"]), "utf8"));
-if (candidates.contract !== "observer-legacy-baseline-candidate-v1" || candidates.artifacts?.length !== 2) fail("CANDIDATE_REGISTER_INVALID");
+if (candidates.contract !== "observer-legacy-baseline-candidate-v1" ||
+  !Array.isArray(candidates.artifacts) || candidates.artifacts.length < 1 || candidates.artifacts.length > 2 ||
+  new Set(candidates.artifacts.map(item => item.profile)).size !== candidates.artifacts.length) fail("CANDIDATE_REGISTER_INVALID");
 const privateKeyPath = resolve(args["--qa-private-key"]);
 if (statSync(privateKeyPath).mode & 0o077) fail("QA_PRIVATE_KEY_PERMISSIONS_UNSAFE");
 const privateKey = createPrivateKey(readFileSync(privateKeyPath));

@@ -11,12 +11,15 @@ import { planInstalledOtaAgent } from "../../services/video-gateway/edge-install
 
 const baselineStore = process.argv[2];
 if (!baselineStore) throw new Error("QA_BASELINE_STORE_REQUIRED");
+const overrides = Object.fromEntries(process.argv.slice(3).map(value => { const equal = value.indexOf("="); return [value.slice(0, equal), value.slice(equal + 1)]; }));
+const gatewayStore = overrides["--gateway-baseline-store"] || baselineStore;
+const gatewayId = overrides["--gateway-baseline-id"] || "qa-legacy-gateway-aa57572e8736";
 const home = homedir();
 const entries = [
   { profile: "PHYSICAL_GATEWAY", label: "com.ganbatuach.video-gateway",
     live: join(home, ".local/share/gan-batuach/video-gateway"),
-    archive: join(baselineStore, "qa-legacy-gateway-aa57572e8736/gateway-runtime.tar.gz"),
-    release: join(baselineStore, "qa-legacy-gateway-aa57572e8736/release.json"), port: 18082 },
+    archive: join(gatewayStore, gatewayId, "gateway-runtime.tar.gz"),
+    release: join(gatewayStore, gatewayId, "release.json"), port: 18082 },
   { profile: "SOFTWARE_CONNECTOR", label: "com.ganbatuach.software-connector.tapo",
     live: join(home, "Applications"),
     archive: join(baselineStore, "qa-legacy-connector-ee82c20a77ac/connector-app.tar.gz"),
