@@ -6,6 +6,7 @@ import { gatewayDeviceSessionAllows, verifyGatewayDeviceAccessToken } from "@/li
 import { createAdminClient } from "@/lib/supabase/admin";
 import { parseBoundedJson } from "@/lib/security/request-guards";
 import { evaluateEdgeUpdateEligibility, verifyEdgeUpdateManifest, shouldPauseRollout } from "../../../../services/video-gateway/edge-update-contract.mjs";
+import { edgeReleaseScopeAllows } from "../../../../services/video-gateway/edge-release-object.mjs";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -49,6 +50,11 @@ export async function GET(request: Request) {
       if (!release.data) continue;
       const verified = verifyEdgeUpdateManifest(release.data.signed_manifest, trustedKeys());
       if (!verified.ok) continue;
+      if (verified.manifest.rollout.stage !== candidate.stage ||
+        verified.manifest.rollout.cohort_percent !== candidate.cohort_percent) continue;
+      if (candidate.stage === "INTERNAL_QA" && !edgeReleaseScopeAllows(verified.manifest, {
+        deviceId: auth.enrollment.id, profile: query.profile, platform: query.platform,
+        architecture: query.architecture, channel: query.channel })) continue;
       const eligible = evaluateEdgeUpdateEligibility(verified.manifest, { deviceId: auth.enrollment.id, profile: query.profile,
         platform: query.platform, architecture: query.architecture, currentVersion: query.current_version,
         configVersion: query.config_version, channel: query.channel, revoked: false });
