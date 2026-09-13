@@ -2,11 +2,9 @@ import Link from "next/link";
 import { BellRing, Camera, FileText, HeartHandshake, ShieldCheck } from "lucide-react";
 import { BrandHeader } from "@/components/brand-header";
 import { ConversionBand, MarketingCard, MarketingHero, MarketingSection } from "@/components/public-marketing";
+import { publicMetadata } from "@/lib/seo/public-metadata";
 
-export const metadata = {
-  title: "הגן שלכם עדיין לא בגן בטוח?",
-  description: "עמוד להורים שרוצים לבקש מהגן שקיפות, בטיחות ופיקוח ברור."
-};
+export const metadata = publicMetadata("/parents-demand-safety", "הגן שלכם עדיין לא בגן בטוח?", "עמוד להורים שרוצים לבקש מהגן שקיפות, בטיחות ופיקוח ברור.");
 
 export default function ParentsDemandSafetyPage() {
   return (

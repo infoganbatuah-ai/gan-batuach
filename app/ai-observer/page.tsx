@@ -1,8 +1,9 @@
 import { Bot, Camera, Eye, ShieldAlert } from "lucide-react";
 import { BrandHeader } from "@/components/brand-header";
 import { ConversionBand, MarketingCard, MarketingHero, MarketingSection } from "@/components/public-marketing";
+import { publicMetadata } from "@/lib/seo/public-metadata";
 
-export const metadata = { title: "תצפיתן דיגיטלי | גן בטוח", description: "תצפיתן דיגיטלי לזיהוי חריגים והמלצות לבדיקה אנושית בגני ילדים." };
+export const metadata = publicMetadata("/ai-observer", "תצפיתן דיגיטלי לגני ילדים", "תצפיתן דיגיטלי לזיהוי חריגים והמלצות לבדיקה אנושית בגני ילדים.");
 
 export default function AiObserverMarketingPage() {
   return (

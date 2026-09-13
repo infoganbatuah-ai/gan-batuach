@@ -23,7 +23,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/join-kindergarten",
     "/join-parent",
     "/gardens",
-    "/kindergarten-directory",
     "/trust",
     "/digital-observer",
     "/digital-observer/home",

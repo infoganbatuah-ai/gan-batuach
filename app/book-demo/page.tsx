@@ -1,11 +1,9 @@
 import { CalendarCheck, CheckCircle2, ShieldCheck } from "lucide-react";
 import { BrandHeader } from "@/components/brand-header";
 import { createDemoBooking } from "@/app/actions";
+import { publicMetadata } from "@/lib/seo/public-metadata";
 
-export const metadata = {
-  title: "קביעת הדגמה | גן בטוח",
-  description: "קבעו הדגמה לגן בטוח וקבלו תוכנית מעבר לפיילוט, שקיפות ופיקוח."
-};
+export const metadata = publicMetadata("/book-demo", "קביעת הדגמה", "קבעו הדגמה לגן בטוח וקבלו תוכנית מעבר לפיילוט, שקיפות ופיקוח.");
 
 export default async function BookDemoPage({ searchParams }: { searchParams: Promise<{ lead?: string; error?: string }> }) {
   const params = await searchParams;

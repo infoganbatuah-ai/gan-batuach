@@ -1,11 +1,9 @@
 import { BellRing, Camera, CheckCircle2, FileText, HeartHandshake, MessageCircle, ShieldCheck, UsersRound } from "lucide-react";
 import { BrandHeader } from "@/components/brand-header";
 import { createParentDemandLead } from "@/app/actions";
+import { publicMetadata } from "@/lib/seo/public-metadata";
 
-export const metadata = {
-  title: "הורים דורשים גן בטוח | גן בטוח",
-  description: "עמוד להורים שרוצים שקיפות, בטיחות ופיקוח טוב יותר בגן הילדים."
-};
+export const metadata = publicMetadata("/parents-demand", "הורים דורשים גן בטוח", "עמוד להורים שרוצים שקיפות, בטיחות ופיקוח טוב יותר בגן הילדים.");
 
 const trustItems = [
   { icon: ShieldCheck, title: "בטיחות ושקיפות", text: "הורים מקבלים תמונת מצב ברורה על מה שחשוב באמת." },

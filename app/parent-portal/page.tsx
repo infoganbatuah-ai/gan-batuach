@@ -1,8 +1,9 @@
 import { BellRing, Camera, FileText, Image, MessageCircle, ShieldCheck } from "lucide-react";
 import { BrandHeader } from "@/components/brand-header";
 import { ConversionBand, MarketingCard, MarketingHero, MarketingSection } from "@/components/public-marketing";
+import { publicMetadata } from "@/lib/seo/public-metadata";
 
-export const metadata = { title: "פורטל הורים | גן בטוח", description: "פורטל הורים יומי לעדכוני ילד, הודעות, מסמכים, מצלמות ושקיפות." };
+export const metadata = publicMetadata("/parent-portal", "פורטל הורים", "פורטל הורים יומי לעדכוני ילד, הודעות, מסמכים, מצלמות ושקיפות.");
 
 export default function ParentPortalPage() {
   return (

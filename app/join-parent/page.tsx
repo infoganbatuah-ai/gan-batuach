@@ -4,8 +4,10 @@ import { BrandHeader } from "@/components/brand-header";
 import { ParentRegistrationJourney } from "@/components/parent-registration-journey";
 import { formatAgeGroups, getKindergartenAgeGroups } from "@/lib/kindergarten-age-groups";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { publicMetadata } from "@/lib/seo/public-metadata";
 
 export const dynamic = "force-dynamic";
+export const metadata = publicMetadata("/join-parent", "הצטרפות הורים לגן", "מצאו גן ילדים ובדקו את תהליך ההצטרפות, פרטי המסגרת והשקיפות להורים בגן בטוח.");
 
 export default async function JoinParentPage({ searchParams }: { searchParams: Promise<{ gardenId?: string; lead?: string; error?: string }> }) {
   const params = await searchParams;
