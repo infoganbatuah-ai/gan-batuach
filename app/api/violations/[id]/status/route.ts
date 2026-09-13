@@ -4,75 +4,26 @@ import { getOperationalRoleContext } from "@/lib/management/operational-role";
 import { createClient } from "@/lib/supabase/server";
 
 const schema = z.object({
-  status: z.enum(["open", "in_progress", "waiting_approval", "done", "overdue", "rejected"]),
-  note: z.string().max(1000).optional()
+  action: z.enum(["acknowledge", "progress", "submit", "accept", "reject", "reopen", "extend"]),
+  note: z.string().max(2000).optional(),
+  evidencePaths: z.array(z.string().max(300)).max(12).default([]),
+  dueAt: z.string().datetime().optional(),
+  responsibleProfileId: z.string().uuid().optional()
 });
 
 export async function POST(request: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const access = await getOperationalRoleContext(["admin", "inspector", "manager", "owner"]);
     if (!access.allowed) return access.response;
-    const { profile } = access.session;
     const { id } = await params;
+    if (!z.string().uuid().safeParse(id).success) return fail("מזהה ליקוי לא תקין", 422);
     const payload = schema.parse(await request.json());
-    const supabase = await createClient();
-
-    const { data: violation, error: violationError } = await supabase
-      .from("violations" as any)
-      .select("id, garden_id, status, correction_note")
-      .eq("id", id)
-      .maybeSingle();
-
-    if (violationError) return fail("לא ניתן לטעון את הליקוי: " + violationError.message, 400);
-    if (!violation) return fail("הליקוי לא נמצא או שאין הרשאה לצפות בו.", 404);
-
-    let allowed = profile.role === "admin";
-    if ((profile.role === "manager" || profile.role === "owner") && profile.garden_id === violation.garden_id) allowed = true;
-    if (profile.role === "inspector") {
-      const { count, error } = await supabase
-        .from("gardens" as any)
-        .select("id", { count: "exact", head: true })
-        .eq("id", violation.garden_id)
-        .eq("inspector_id", profile.id);
-      if (error) return fail("לא ניתן לבדוק שיוך פקח לגן: " + error.message, 400);
-      allowed = (count ?? 0) > 0;
-    }
-
-    if (!allowed) return fail("אין הרשאה לעדכן ליקוי זה.", 403);
-
-    const patch: Record<string, unknown> = {
-      status: payload.status,
-      correction_note: payload.note ?? violation.correction_note ?? null
-    };
-    if (payload.status === "done") {
-      patch.approved_by = profile.id;
-      patch.approved_at = new Date().toISOString();
-    }
-
-    const { data: updated, error: updateError } = await supabase
-      .from("violations" as any)
-      .update(patch)
-      .eq("id", id)
-      .select("id, status, garden_id, correction_note, approved_at")
-      .single();
-
-    if (updateError || !updated) {
-      return fail("סטטוס הליקוי לא נשמר: " + (updateError?.message ?? "לא התקבלה רשומה מעודכנת"), 400);
-    }
-
-    await supabase.from("audit_logs").insert({
-      actor_id: profile.id,
-      actor_role: profile.role,
-      garden_id: violation.garden_id,
-      entity_type: "violations",
-      entity_id: id,
-      action: "update_violation_status",
-      before_data: { status: violation.status },
-      after_data: { status: updated.status, note: payload.note ?? null }
-    } as any);
-
-    return ok(updated);
-  } catch (error) {
-    return handleRouteError(error);
-  }
+    const { data, error } = await (await createClient()).rpc("transition_corrective_action" as never, {
+      p_violation_id: id, p_action: payload.action, p_note: payload.note ?? null,
+      p_evidence_paths: payload.evidencePaths, p_due_at: payload.dueAt ?? null,
+      p_responsible_profile_id: payload.responsibleProfileId ?? null
+    } as never);
+    if (error) return fail(error.message, error.code === "42501" ? 403 : error.code === "23514" ? 409 : 400);
+    return ok(data);
+  } catch (error) { return handleRouteError(error); }
 }
