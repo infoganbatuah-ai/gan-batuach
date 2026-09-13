@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
-import { requireRole } from "@/lib/auth";
+import { getSessionProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
 const schema = z.object({
@@ -10,9 +10,17 @@ const schema = z.object({
   reason: z.string().trim().max(500).optional().nullable()
 });
 
+async function adminAccess() {
+  const { user, profile } = await getSessionProfile();
+  if (!user) return { error: fail("נדרשת התחברות מחדש.", 401) };
+  if (profile?.role !== "admin" || profile.active !== true) return { error: fail("נדרשת הרשאת מנהל מערכת.", 403) };
+  return { error: null };
+}
+
 export async function GET() {
   try {
-    await requireRole(["admin"]);
+    const access = await adminAccess();
+    if (access.error) return access.error;
     const supabase = await createClient();
     const [subscriptions, plans, gardens] = await Promise.all([
       supabase.from("kindergarten_subscriptions" as any).select("*, gardens(name, city), subscription_plans(name, price_amount, currency)").order("created_at", { ascending: false }).limit(250),
@@ -26,7 +34,8 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    await requireRole(["admin"]);
+    const access = await adminAccess();
+    if (access.error) return access.error;
     const payload = schema.parse(await request.json());
     const supabase = await createClient();
     if (payload.action === "create_pending") {

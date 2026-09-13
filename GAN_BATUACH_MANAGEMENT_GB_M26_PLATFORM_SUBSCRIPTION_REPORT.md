@@ -78,3 +78,6 @@ GB-M28 must provide verified provider event→canonical subscription transition 
 GB-M27 must not read this table as Parent tuition. GB-M28 should use the plan/price snapshot and period fields for verified provider events, never treat manual activation as card-payment proof, and preserve event idempotency.
 
 DIGITAL OBSERVER CORE DIFF: 0
+
+## Post-deployment authorization correction
+Production smoke testing after the initial merge found that unauthenticated requests to the two Admin subscription APIs returned HTTP 500 because a page redirect was caught by their API error handler. The follow-up correction uses explicit session and Admin checks in both routes, returning 401 for unauthenticated callers and 403 for non-Admin callers before reading or changing billing data. The focused contract test covers this boundary. No migration or billing data change is required for the correction.
