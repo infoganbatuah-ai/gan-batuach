@@ -2,6 +2,7 @@ import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { requireRole } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 
 const schema = z.object({
   source: z.enum(["complaint", "incident"]),
@@ -45,15 +46,13 @@ export async function POST(request: Request) {
     if (error) return fail("שמירת הפעולה נכשלה: " + error.message, 400);
 
     if (payload.action === "create_task") {
-      const taskInsert = await supabase.from("tasks").insert({
-        garden_id: current.garden_id,
-        title: `טיפול בדיווח: ${current.subject ?? current.title ?? "דיווח"}`,
-        description: payload.message ?? current.description ?? "משימת טיפול מדיווח",
-        assigned_to: payload.assigned_to ?? current.assigned_to ?? current.assigned_inspector_id ?? null,
-        priority: current.severity ?? "medium",
-        status: "open",
-        task_type: "report_followup"
-      }).select("id").maybeSingle();
+      const userClient = await createClient();
+      const taskInsert = await userClient.rpc("create_task_from_source" as never, {
+        p_source_type: payload.source,
+        p_source_id: payload.id,
+        p_assigned_to: payload.assigned_to ?? current.assigned_inspector_id ?? null,
+        p_note: payload.message ?? null
+      } as never);
       if (taskInsert.error || !taskInsert.data) {
         console.error("[admin-report-create-task-failed]", { source: payload.source, id: payload.id, message: taskInsert.error?.message ?? "task not created" });
         return fail("הדיווח עודכן, אך יצירת משימת ההמשך נכשלה. יש לפתוח משימה ידנית או לנסות שוב.", 409);
