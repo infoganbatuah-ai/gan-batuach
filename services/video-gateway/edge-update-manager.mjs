@@ -109,6 +109,18 @@ export class EdgeUpdateManager {
       return pointer;
     } catch (error) { rmSync(staging, { recursive: true, force: true }); if (!existsSync(this.bootstrapPath)) rmSync(slot, { recursive: true, force: true }); throw error; }
   }
+  abortInstalledBootstrap() {
+    const record = this.readJson(this.bootstrapPath, null);
+    if (!record) return { state: "UNMANAGED", changed: false };
+    const pointer = record.pointer;
+    if (existsSync(this.currentPath) || existsSync(this.knownGoodPath) ||
+      !pointer?.slot?.startsWith(`${join(this.root, "slots")}/`) ||
+      this.status().history?.some(item => item.state === "INSTALLING")) fail("EDGE_UPDATE_BOOTSTRAP_ABORT_UNSAFE");
+    this.verifySlot(pointer);
+    rmSync(this.bootstrapPath);
+    rmSync(pointer.slot, { recursive: true });
+    return { state: "UNMANAGED", changed: true };
+  }
   quarantineRelease(manifest, reason) {
     const current = this.quarantine();
     if (!current.some((item) => item.release_id === manifest.release_id)) current.push({ release_id: manifest.release_id, version: manifest.version, reason, at: new Date(this.now()).toISOString() });
