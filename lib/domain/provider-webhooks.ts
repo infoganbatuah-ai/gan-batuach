@@ -138,8 +138,6 @@ async function recordEvent(input: {
 export async function handleProviderWebhook(request: Request, kind: IntegrationKind) {
   try {
     if (!isAdminClientConfigured()) return fail("Webhook readiness requires server-side Supabase service role configuration.", 503);
-    await assertRateLimit(ipFor(request), `/api/webhooks/${kind}`, 30, 60);
-
     // This generic HMAC endpoint has no provider-specific signature parser, checkout
     // intent, account binding or authoritative retrieval adapter. It may retain a
     // signed event for review, but cannot settle money or issue a tax document.
@@ -150,6 +148,7 @@ export async function handleProviderWebhook(request: Request, kind: IntegrationK
     if (!verifyLegacyHmacSignature(rawBody, signatureHeader(request), guard.secret)) {
       return fail("Invalid or missing webhook signature.", 401);
     }
+    await assertRateLimit(ipFor(request), `/api/webhooks/${kind}`, 30, 60);
     const parsedJson = JSON.parse(rawBody || "{}");
     const payload = eventSchema.parse(parsedJson);
     const configuredProvider = process.env[kind === "payment" ? "PAYMENT_PROVIDER" : "INVOICE_PROVIDER"];

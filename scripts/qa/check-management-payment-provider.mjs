@@ -41,6 +41,7 @@ test('forged or malformed webhook signatures are rejected before event parsing',
 
 test('generic webhook cannot settle subscriptions, tuition or invoices from payload IDs', () => {
   assert.match(webhook, /verifyLegacyHmacSignature\(rawBody, signatureHeader\(request\), guard.secret\)/);
+  assert.ok(webhook.indexOf('verifyLegacyHmacSignature(rawBody, signatureHeader(request), guard.secret)') < webhook.indexOf('await assertRateLimit(ipFor(request)'), 'signature verification precedes rate-limit database writes');
   assert.match(webhook, /payload.provider !== configuredProvider/);
   assert.match(webhook, /side_effects_applied: false/);
   assert.doesNotMatch(webhook, /\.from\("kindergarten_subscriptions"/);
