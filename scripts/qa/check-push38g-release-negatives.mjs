@@ -6,12 +6,13 @@ import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { assertAuthorizedUpdateDirection, evaluateEdgeUpdateEligibility, verifyEdgeArtifact, verifyEdgeUpdateManifest } from "../../services/video-gateway/edge-update-contract.mjs";
 
-const [baselineStore, releaseStore] = process.argv.slice(2);
+const [baselineStore, releaseStore, gatewayReleaseId = "qa-p38g-gateway-06a65267dffa",
+  connectorReleaseId = "qa-p38g-connector-06a65267dffa"] = process.argv.slice(2);
 if (!baselineStore || !releaseStore) throw new Error("QA_RELEASE_STORES_REQUIRED");
 const trust = JSON.parse(readFileSync(join(baselineStore, "qa-trust-registry.json"))).trustedPublicKeys;
 const cases = [
-  ["PHYSICAL_GATEWAY", "qa-p38g-gateway-06a65267dffa", "gateway-runtime.tar.gz"],
-  ["SOFTWARE_CONNECTOR", "qa-p38g-connector-06a65267dffa", "connector-remediation.tar.gz"]
+  ["PHYSICAL_GATEWAY", gatewayReleaseId, "gateway-runtime.tar.gz"],
+  ["SOFTWARE_CONNECTOR", connectorReleaseId, "connector-remediation.tar.gz"]
 ];
 const results = [];
 for (const [profile, id, name] of cases) {

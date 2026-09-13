@@ -2,7 +2,7 @@
 // an explicit approved artifact digest and are never invoked by discovery.
 import { execFileSync } from "node:child_process";
 import { createHash, randomUUID } from "node:crypto";
-import { existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, readlinkSync,
+import { existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, readlinkSync, realpathSync,
   renameSync, rmSync, writeFileSync } from "node:fs";
 import { homedir, tmpdir } from "node:os";
 import { dirname, join, relative, resolve } from "node:path";
@@ -35,7 +35,7 @@ function inspectArchive(path) {
   const modes = run("tar", ["-tvzf", path]).split("\n").filter(Boolean);
   if (!members.length || members.length > 20_000 || modes.length !== members.length ||
     members.some(name => name.startsWith("/") || name.split("/").includes("..")) ||
-    modes.some(line => /^[lh]/.test(line))) fail("EDGE_INSTALLED_ARCHIVE_UNSAFE");
+    modes.some(line => !/^[-d]/.test(line))) fail("EDGE_INSTALLED_ARCHIVE_UNSAFE");
 }
 
 export function createMacOSInstalledEdgeAdapter({ profile, installedBase, managedRoot, launchAgentPath, label,
@@ -46,7 +46,12 @@ export function createMacOSInstalledEdgeAdapter({ profile, installedBase, manage
   const qa = Boolean(qaIsolationRoot);
   if (qa) {
     const scope = resolve(qaIsolationRoot);
-    if (!scope.startsWith(`${tmpdir()}/`) || ![base, root, plistPath].every(path => path.startsWith(`${scope}/`)) ||
+    const actualScope = realpathSync(scope);
+    if (!scope.startsWith(`${tmpdir()}/`) || !actualScope.startsWith(`${realpathSync(tmpdir())}/`) ||
+      ![base, root, plistPath].every(path => {
+        const actual = realpathSync(existsSync(path) ? path : dirname(path));
+        return path.startsWith(`${scope}/`) && (actual === actualScope || actual.startsWith(`${actualScope}/`));
+      }) ||
       !/^com\.digitalobserver\.qa\.push38h\.[a-z0-9.-]+$/.test(label) || port < 20000) fail("EDGE_INSTALLED_QA_SCOPE_INVALID");
   } else {
     const gateway = profile === "PHYSICAL_GATEWAY";
@@ -134,7 +139,7 @@ export function createMacOSInstalledEdgeAdapter({ profile, installedBase, manage
     }
     return { ok: false, service: service() };
   }
-  async function restart({ slot, manifest }) {
+  async function restart({ slot, manifest, bootstrap = false }) {
     const release = manifest || JSON.parse(readFileSync(join(resolve(slot), "release.json"), "utf8"));
     requireMutation(release);
     if (!verifyEdgeArtifact(readFileSync(join(resolve(slot), "artifact.bin")), release).ok) fail("EDGE_INSTALLED_SLOT_TAMPERED");
@@ -142,6 +147,13 @@ export function createMacOSInstalledEdgeAdapter({ profile, installedBase, manage
     const target = join(resolve(slot), "runtime", runnerRelative);
     if (!existsSync(target)) fail("EDGE_INSTALLED_TARGET_MISSING");
     if (profile === "SOFTWARE_CONNECTOR") run("/usr/bin/codesign", ["--verify", "--deep", "--strict", join(resolve(slot), "runtime", "Digital Observer.app")]);
+    if (bootstrap) {
+      // Register the signed rollback slot without replacing the functional
+      // unmanaged runtime. Its existing LaunchAgent remains the sole owner.
+      if (existsSync(backupPath) || !service().running || !(await health({ timeoutMs: 2000 })).ok)
+        fail("EDGE_INSTALLED_BOOTSTRAP_RUNTIME_NOT_STABLE");
+      return service();
+    }
     if (!existsSync(backupPath)) atomic(backupPath, original);
     const source = JSON.parse(run("/usr/bin/plutil", ["-convert", "json", "-o", "-", backupPath]));
     if (source.Label !== label || source.ProgramArguments?.[1] !== originalRunner) fail("EDGE_INSTALLED_PLIST_REWRITE_FAILED");

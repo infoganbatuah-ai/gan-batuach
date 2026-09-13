@@ -49,25 +49,30 @@ for (const item of cases) {
     const health = await adapter.health({ timeoutMs: 25_000 });
     assert.equal(health.ok && health.service.running, true, `${item.name}:full-supervisor-start`);
     assert.equal(health.body.edgeRuntime?.device_type, item.profile);
-    const before = adapter.status();
-    assert.equal(before.running, true);
-    assert.ok(before.pid && before.pid > 1);
-    process.kill(before.pid, "SIGKILL");
-    let recovered = false;
-    for (let attempt = 0; attempt < 80; attempt += 1) {
-      const state = adapter.status();
-      if (state.running && state.pid && state.pid !== before.pid && (await adapter.health({ timeoutMs: 1000 })).ok) {
-        recovered = true; break;
+    const crashRecoveryMs = [];
+    for (let cycle = 0; cycle < 3; cycle += 1) {
+      const before = adapter.status();
+      assert.equal(before.running, true);
+      assert.ok(before.pid && before.pid > 1);
+      const started = Date.now();
+      process.kill(before.pid, "SIGKILL");
+      let recovered = false;
+      for (let attempt = 0; attempt < 120; attempt += 1) {
+        const state = adapter.status();
+        if (state.running && state.pid && state.pid !== before.pid && (await adapter.health({ timeoutMs: 1000 })).ok) {
+          recovered = true; break;
+        }
+        await new Promise(resolve => setTimeout(resolve, 250));
       }
-      await new Promise(resolve => setTimeout(resolve, 250));
+      assert.equal(recovered, true, `${item.name}:launchd-crash-recovery-${cycle}`);
+      crashRecoveryMs.push(Date.now() - started);
     }
-    assert.equal(recovered, true, `${item.name}:launchd-crash-recovery`);
     await adapter.restart({ slot: join(root, "installed"), manifest });
     const restarted = await adapter.health({ timeoutMs: 25_000 });
     assert.equal(restarted.ok && restarted.service.running, true, `${item.name}:full-supervisor-restart`);
     for (const [name, value] of Object.entries(fixture)) assert.equal(readFileSync(join(secrets, name), "utf8"), value);
     results.push({ profile: item.profile, full_supervisor_script: true, launchd_start: true,
-      launchd_restart: true, forced_supervisor_crash_recovered: true,
+      launchd_restart: true, forced_supervisor_crash_recovered: true, crash_recovery_ms: crashRecoveryMs,
       local_fixture_identity_unchanged: true, cloud_fixture_only: true, physical_cameras: 0 });
   } finally { adapter.stop(); await new Promise(resolve => server.close(resolve)); rmSync(root, { recursive: true, force: true }); }
 }

@@ -70,7 +70,8 @@ for (const item of profiles) {
   const root = mkdtempSync(join(tmpdir(), `observer-p38g-launchd-${item.suffix}-`));
   const installedSlot = join(root, "installed"), installedRuntime = join(installedSlot, "runtime");
   mkdirSync(installedRuntime, { recursive: true, mode: 0o700 });
-  const baseline = release(item.baselineId.startsWith("qa-legacy-connector-resigned") ? args["--release-store"] : args["--baseline-store"], item.baselineId, item.baselineName);
+  const baseline = release(item.baselineId.startsWith("qa-legacy-connector-resigned")
+    ? (args["--connector-baseline-store"] || args["--release-store"]) : args["--baseline-store"], item.baselineId, item.baselineName);
   const remediation = release(args["--release-store"], item.releaseId, item.releaseName);
   const baselinePath = join(root, "baseline.tar.gz"); writeFileSync(baselinePath, baseline.bytes, { mode: 0o600 });
   execFileSync("tar", ["-xzf", baselinePath, "-C", installedRuntime]);
@@ -112,10 +113,14 @@ for (const item of profiles) {
   const bootstrap = createInstalledEdgeBootstrap({ root: join(root, "ota"), manager, adapter,
     trust: { verify: async ({ manifest }) => {
       assert.equal(verifyEdgeUpdateManifest(manifest, trusted).ok, true); } },
-    inspect: async () => ({ legacy_running: (await adapter.health({ timeoutMs: 20_000 })).ok,
-      identity_fingerprint: fixtureFingerprint(), binding_fingerprint: fixtureFingerprint() }),
-    verifyContinuity: async ({ before }) => (await adapter.health({ timeoutMs: 20_000 })).ok &&
-      before.identity_fingerprint === fixtureFingerprint() });
+    inspect: async () => { const observed = await adapter.health({ timeoutMs: 20_000 });
+      return { legacy_running: observed.ok, runtime_pid: observed.service.pid,
+        runtime_version: observed.body?.edgeRuntime?.software_version || null,
+        identity_fingerprint: fixtureFingerprint(), binding_fingerprint: fixtureFingerprint() }; },
+    verifyContinuity: async ({ before }) => { const observed = await adapter.health({ timeoutMs: 20_000 });
+      return observed.ok && observed.service.pid === before.runtime_pid &&
+        (observed.body?.edgeRuntime?.software_version || null) === before.runtime_version &&
+        before.identity_fingerprint === fixtureFingerprint(); } });
   try {
     await legacyAdapter.restart({ slot: installedSlot, manifest: baseline.manifest });
     const original = await adapter.health({ timeoutMs: 20_000 });
