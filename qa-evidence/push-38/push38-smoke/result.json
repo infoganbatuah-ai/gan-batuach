@@ -1,0 +1,79 @@
+{
+  "contract": "observer-reliability-qualification-v1",
+  "evidence": [
+    "REAL_PHYSICAL_CAMERA",
+    "REAL_HOME"
+  ],
+  "started_at": "2026-09-11T20:31:56.248Z",
+  "ended_at": "2026-09-11T20:32:56.251Z",
+  "elapsed_ms": 60003,
+  "required_elapsed_ms": 86400000,
+  "required_elapsed_complete": false,
+  "checkpoints": 6,
+  "expected_physical_cameras": 11,
+  "configured_dvr_capacity": 16,
+  "empty_dvr_slots": 6,
+  "camera_sample_availability": 1,
+  "progressing_camera_samples": 66,
+  "expected_camera_samples": 66,
+  "gateway": {
+    "unavailable_checkpoints": 0,
+    "restarts": 0,
+    "stale_input_delta": 0,
+    "relay_start_delta": 0,
+    "socket_error_delta": 0,
+    "rss_mb": {
+      "samples": 6,
+      "median": 45.688,
+      "p95": 53.641,
+      "max": 53.641
+    },
+    "rss_growth_mb": 11.25
+  },
+  "connector": {
+    "unavailable_checkpoints": 0,
+    "restarts": 0,
+    "stale_input_delta": 0,
+    "relay_start_delta": 0,
+    "upstream_failure_delta": 0,
+    "rss_mb": {
+      "samples": 6,
+      "median": 39.594,
+      "p95": 40.047,
+      "max": 40.047
+    },
+    "rss_growth_mb": 1.718999999999994
+  },
+  "playback": {
+    "probes": 1,
+    "verified_camera_samples": 11,
+    "failures": 0
+  },
+  "ai": {
+    "probes": 1,
+    "successful": 1,
+    "latency_ms": {
+      "samples": 1,
+      "median": 692,
+      "p95": 692,
+      "max": 692
+    }
+  },
+  "learning": {
+    "expected": 11,
+    "sampled": 0,
+    "sampled_source_ids": []
+  },
+  "log_growth_bytes": {
+    "gateway": 0,
+    "connector": 0
+  },
+  "acknowledged_data_loss": 0,
+  "duplicate_product_effects": 0,
+  "cross_tenant_leakage": 0,
+  "manual_interventions": 0,
+  "gate_failures": [
+    "SOAK_EVIDENCE_INCOMPLETE"
+  ],
+  "status": "NOT_DONE"
+}
