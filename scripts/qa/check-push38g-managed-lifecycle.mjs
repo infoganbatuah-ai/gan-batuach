@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
 import { createHash, createPrivateKey, generateKeyPairSync, randomUUID, sign } from "node:crypto";
 import http from "node:http";
-import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { canonicalEdgeUpdateManifest, verifyEdgeArtifact, verifyEdgeUpdateManifest } from "../../services/video-gateway/edge-update-contract.mjs";
@@ -278,6 +278,12 @@ for (const item of profiles) {
       bad_update_health_failure: true, rollback_restart: true, known_good_integrity: true,
       remediation_upgrade: true, health_contract: final.body.contract, build_sha: final.body.edgeRuntime.build_sha,
       persistent_fixture_preserved: true, live_home_touched: false });
+  } catch (error) {
+    if (automaticAgent) { const log = name => { const path = join(root, "ota", name);
+      return existsSync(path) ? readFileSync(path, "utf8").slice(-3000) : "MISSING"; };
+      console.error(JSON.stringify({ profile: item.profile, failed_gate: error.message,
+        agent_stdout: log("agent.out.log"), agent_stderr: log("agent.err.log") })); }
+    throw error;
   } finally {
     if (agentLabel && agentPlist) try { execFileSync("/bin/launchctl", ["bootout", `gui/${process.getuid()}`, agentPlist]); } catch {}
     legacyAdapter.stop(); if (cloud) await new Promise(resolve => cloud.close(resolve)); rmSync(root, { recursive: true, force: true });

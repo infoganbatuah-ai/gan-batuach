@@ -1,6 +1,6 @@
 // Installed OTA process entry point. A separate LaunchAgent owns this process;
 // the existing Gateway/Connector LaunchAgent remains the sole camera supervisor.
-import { existsSync, lstatSync, mkdirSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, lstatSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
@@ -83,7 +83,7 @@ export async function runInstalledEdgeOtaService(configPath, { signal } = {}) {
   await agent.start({ signal });
 }
 
-if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+if (process.argv[1] && realpathSync(resolve(process.argv[1])) === realpathSync(fileURLToPath(import.meta.url))) {
   runInstalledEdgeOtaService(process.argv[2]).catch(error => {
     process.stderr.write(`${error.code || "EDGE_OTA_AGENT_START_FAILED"}\n`);
     process.exitCode = 1;
