@@ -23,15 +23,16 @@ export default async function GardenMessagesPage({ searchParams }: { searchParam
   const { childId, status, compose } = await searchParams;
   const supabase = await createClient();
   const gardenId = profile.garden_id ?? "";
-  const [parentsRes, staffRes, inspectorsRes, childrenRes, messagesRes, parentRequestsRes] = await Promise.all([
+  const [parentsRes, staffRes, childrenRes, messagesRes, parentRequestsRes] = await Promise.all([
     supabase.from("parents" as any).select("profiles:profile_id(id, full_name, email, role, profile_image_url)").eq("garden_id", gardenId),
     supabase.from("staff" as any).select("profiles:profile_id(id, full_name, email, role, profile_image_url)").eq("garden_id", gardenId),
-    supabase.from("profiles" as any).select("id, full_name, email, role, profile_image_url").in("role", ["admin", "inspector"]).limit(50),
     supabase.from("children" as any).select("id, full_name, primary_parent_id, parents:primary_parent_id(profile_id)").eq("garden_id", gardenId).order("full_name"),
     supabase.from("messages" as any).select("*, sender:sender_id(full_name, profile_image_url), recipient:recipient_id(full_name, profile_image_url)").eq("garden_id", gardenId).or(`sender_id.eq.${profile.id},recipient_id.eq.${profile.id}`).order("created_at", { ascending: false }).limit(80),
     supabase.from("parent_child_requests" as any).select("id, child_id, parent_profile_id, request_type, content, recipient_label, status, response_text, created_at, children(full_name), parents:parent_id(full_name, phone)").eq("garden_id", gardenId).order("created_at", { ascending: false }).limit(80)
   ]);
-  const recipients = [...(parentsRes.data ?? []).map((row: any) => row.profiles).filter(Boolean), ...(staffRes.data ?? []).map((row: any) => row.profiles).filter(Boolean), ...(inspectorsRes.data ?? [])];
+  // Inspector and Admin roles never appear in the operational messaging picker.
+  // Complaints and privileged support use their own audited workflows.
+  const recipients = [...(parentsRes.data ?? []).map((row: any) => row.profiles).filter(Boolean), ...(staffRes.data ?? []).map((row: any) => row.profiles).filter(Boolean)];
   const messages = ((messagesRes.data ?? []) as any[]).filter((message) => {
     if (status === "open") return !["closed", "handled", "archived", "read"].includes(message.status);
     return true;
@@ -45,7 +46,7 @@ export default async function GardenMessagesPage({ searchParams }: { searchParam
   return (
     <DashboardShell role="manager" title="הודעות" appHome>
       <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.replace(/\[DEMO\]/gi, "").trim().split(" ")[0] || "מנהלת הגן"}`} subtitle="הודעות ותקשורת גננת" avatarUrl={(profile as any).profile_image_url ?? null} active="messages">
-      <TeacherPageTitle icon={MessageSquareText} title="הודעות ותקשורת" subtitle="הורים, צוות, פיקוח ואדמין במקום אחד" />
+      <TeacherPageTitle icon={MessageSquareText} title="הודעות ותקשורת" subtitle="הורים וצוות בהקשר הגן בלבד" />
       <TeacherStatsGrid>
         <TeacherStatCard title="הודעות" value={messages.length} hint="אחרונות" icon={MessageCircle} tone="blue" />
         <TeacherStatCard title="פניות הורים" value={parentRequests.length} hint="לטיפול" icon={UserRound} tone={parentRequests.length ? "orange" : "green"} />
