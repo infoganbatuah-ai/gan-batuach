@@ -30,7 +30,7 @@ const profiles = [
     releaseId: args["--gateway-release-id"] || "qa-p38g-gateway-06a65267dffa", releaseName: "gateway-runtime.tar.gz", port: 38191, cloudPort: 38193, suffix: "gateway" },
   { profile: "SOFTWARE_CONNECTOR", baselineId: args["--connector-baseline-id"], baselineName: "connector-legacy-resigned.tar.gz",
     releaseId: args["--connector-release-id"] || "qa-p38g-connector-06a65267dffa", releaseName: "connector-remediation.tar.gz", port: 38192, cloudPort: 38194, suffix: "connector" }
-];
+].filter(item => !args["--profile"] || item.profile === args["--profile"]);
 const results = [];
 function assertSingleOwnedRuntime(port, supervisorPid) {
   const lines = execFileSync("lsof", ["-nP", `-iTCP:${port}`, "-sTCP:LISTEN"], { encoding: "utf8" }).trim().split("\n");
@@ -280,13 +280,17 @@ for (const item of profiles) {
       persistent_fixture_preserved: true, live_home_touched: false });
   } catch (error) {
     if (automaticAgent) { const log = name => { const path = join(root, "ota", name);
-      return existsSync(path) ? readFileSync(path, "utf8").slice(-3000) : "MISSING"; };
+      if (!existsSync(path)) return "MISSING";
+      const lines = readFileSync(path, "utf8").trim().split("\n");
+      return lines.filter(line => !line.includes('"state":"HEALTHY"') && !line.includes('"state":"ROLLED_BACK"')).slice(-30); };
       console.error(JSON.stringify({ profile: item.profile, failed_gate: error.message,
-        agent_stdout: log("agent.out.log"), agent_stderr: log("agent.err.log") })); }
+        agent_stdout: log("agent.out.log"), agent_stderr: log("agent.err.log"),
+        update_status: manager.status(), current_release: manager.current().release_id })); }
     throw error;
   } finally {
     if (agentLabel && agentPlist) try { execFileSync("/bin/launchctl", ["bootout", `gui/${process.getuid()}`, agentPlist]); } catch {}
-    legacyAdapter.stop(); if (cloud) await new Promise(resolve => cloud.close(resolve)); rmSync(root, { recursive: true, force: true });
+    legacyAdapter.stop(); if (cloud) { cloud.closeAllConnections(); await new Promise(resolve => cloud.close(resolve)); }
+    rmSync(root, { recursive: true, force: true });
   }
 }
 console.log(JSON.stringify({ status: "ISOLATED_MANAGED_LIFECYCLE_PASS", results }));

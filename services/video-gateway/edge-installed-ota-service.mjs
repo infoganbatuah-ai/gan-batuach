@@ -57,7 +57,9 @@ export async function runInstalledEdgeOtaService(configPath, { signal } = {}) {
     return payload.data;
   };
   const healthCheck = async () => {
-    const probe = await adapter.health({ timeoutMs: 5000 }), body = probe.body || {};
+    // Connector model/runtime startup can exceed a short liveness probe. This
+    // is the bounded post-update readiness gate, not the lightweight poll.
+    const probe = await adapter.health({ timeoutMs: 20_000 }), body = probe.body || {};
     const cloudReachable = qa || await softwareConnectorDeviceSession(store).then(() => true, () => false);
     const expected = config.expectedPhysicalCameras;
     const progressing = qa ? 0 : Number(body.lastDiscovery?.connectedCount || 0);
