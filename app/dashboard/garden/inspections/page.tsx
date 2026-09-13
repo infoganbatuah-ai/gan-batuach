@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { DashboardFilterChip } from "@/components/dashboard-filter-chip";
-import { requireRole } from "@/lib/auth";
+import { requireOperationalRole } from "@/lib/management/operational-role";
 import { createClient } from "@/lib/supabase/server";
 import { AlertTriangle, CalendarCheck, ClipboardCheck, FileText, ShieldCheck } from "lucide-react";
 import {
@@ -19,13 +19,13 @@ import {
 } from "@/components/teacher-app-ui";
 
 export default async function GardenInspectionsPage({ searchParams }: { searchParams: Promise<{ filter?: string }> }) {
-  const { profile } = await requireRole(["manager", "owner"]);
+  const { profile } = await requireOperationalRole(["manager", "owner"]);
   const params = await searchParams;
   const supabase = await createClient();
   const [gardenRes, inspectionsRes, violationsRes] = await Promise.all([
     supabase.from("gardens" as any).select("id, next_inspection_at, last_inspection_score, inspection_required_status, safe_status").eq("id", profile.garden_id ?? "").maybeSingle(),
     supabase.from("inspections" as any).select("id, completed_at, status, weighted_score, violation_count, inspectors:inspector_id(full_name)").eq("garden_id", profile.garden_id ?? "").eq("status", "done").order("created_at", { ascending: false }).limit(50),
-    supabase.from("violations" as any).select("id, title, status, severity, due_at").eq("garden_id", profile.garden_id ?? "").neq("status", "done").limit(50)
+    supabase.from("violations" as any).select("id, title, status, severity, correction_due_at").eq("garden_id", profile.garden_id ?? "").neq("status", "done").limit(50)
   ]);
   const garden = gardenRes.data as any;
   const dueSoon = Boolean(garden?.next_inspection_at && Math.ceil((new Date(garden.next_inspection_at).getTime() - Date.now()) / 86400000) <= 5);
@@ -75,7 +75,7 @@ export default async function GardenInspectionsPage({ searchParams }: { searchPa
                   <TeacherCompactItem
                     key={violation.id}
                     title={violation.title}
-                    subtitle={`${violation.severity ?? "חומרה"} · ${violation.due_at ? new Date(violation.due_at).toLocaleDateString("he-IL") : "ללא יעד"}`}
+                    subtitle={`${violation.severity ?? "חומרה"} · ${violation.correction_due_at ? new Date(violation.correction_due_at).toLocaleDateString("he-IL") : "ללא יעד"}`}
                     tone={violation.severity === "critical" || violation.severity === "high" ? "red" : "orange"}
                     meta={violation.status ?? "פתוח"}
                   />
@@ -94,6 +94,7 @@ export default async function GardenInspectionsPage({ searchParams }: { searchPa
         <TeacherQuickActions title="פעולות פיקוח">
           <TeacherActionTile title="סטטוס פיקוח" href="/dashboard/garden/inspection-status" icon={ClipboardCheck} tone="purple" />
           <TeacherActionTile title="דוחות" href="/dashboard/garden/inspections" icon={FileText} tone="blue" />
+          <TeacherActionTile title="פעולות תיקון" href="/dashboard/garden/corrective-actions" icon={AlertTriangle} tone="orange" />
           <TeacherActionTile title="מסמכים" href="/dashboard/garden/documents" icon={ShieldCheck} tone="green" />
         </TeacherQuickActions>
       </TeacherAppFrame>

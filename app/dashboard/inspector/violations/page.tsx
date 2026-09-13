@@ -40,14 +40,14 @@ export default async function InspectorViolationsPage() {
   const violationsRes = gardenIds.length
     ? await supabase
         .from("violations" as any)
-        .select("id, garden_id, title, description, category, severity, score, status, correction_due_at, gardens(name, city)")
+        .select("id, garden_id, title, description, category, severity, score, status, correction_due_at, correction_files, review_note, gardens(name, city)")
         .in("garden_id", gardenIds)
         .order("created_at", { ascending: false })
         .limit(80)
     : { data: [] };
   const rows = (violationsRes.data ?? []) as any[];
-  const urgent = rows.filter((row) => row.severity === "critical" || row.severity === "high").length;
-  const overdue = rows.filter((row) => row.correction_due_at && new Date(row.correction_due_at).getTime() < Date.now()).length;
+  const urgent = rows.filter((row) => row.status !== "done" && (row.severity === "critical" || row.severity === "high")).length;
+  const overdue = rows.filter((row) => row.status !== "done" && row.correction_due_at && new Date(row.correction_due_at).getTime() < Date.now()).length;
   const profileForUi = { ...profile, profile_image_url: (inspectorRes.data as any)?.profile_photo_url ?? profile.profile_image_url };
 
   return (
@@ -60,7 +60,7 @@ export default async function InspectorViolationsPage() {
         action={<Link className="inspector-action-button" href="/dashboard/inspector/tasks">פתיחת משימות</Link>}
       />
       <InspectorMetricGrid columns={4}>
-        <InspectorMetricCard label="ליקויים פתוחים" value={rows.length} hint="בגנים שלך" icon={AlertTriangle} tone={rows.length ? "warning" : "success"} />
+        <InspectorMetricCard label="ליקויים פתוחים" value={rows.filter((row) => row.status !== "done").length} hint="בגנים שלך" icon={AlertTriangle} tone={rows.some((row) => row.status !== "done") ? "warning" : "success"} />
         <InspectorMetricCard label="דחופים" value={urgent} hint="קריטי/גבוה" icon={AlertTriangle} tone={urgent ? "danger" : "success"} />
         <InspectorMetricCard label="באיחור" value={overdue} hint="עבר יעד תיקון" icon={Wrench} tone={overdue ? "danger" : "success"} />
         <InspectorMetricCard label="גנים משויכים" value={gardenIds.length} hint="טווח הרשאה" icon={ShieldCheck} />
@@ -74,7 +74,7 @@ export default async function InspectorViolationsPage() {
               subtitle={`${row.gardens?.name ?? "גן"} · ${row.category ?? "ליקוי"} · ציון ${row.score ?? "-"}`}
               meta={row.correction_due_at ? `יעד תיקון: ${new Date(row.correction_due_at).toLocaleDateString("he-IL")}` : "לא הוגדר יעד תיקון"}
               status={<InspectorStatus tone={severityTone(row.severity)}>{severityLabel(row.severity)}</InspectorStatus>}
-              actions={<ViolationStatusActions id={row.id} initialStatus={row.status ?? "open"} />}
+              actions={<div>{row.review_note ? <p>{row.review_note}</p> : null}{Array.isArray(row.correction_files) ? row.correction_files.map((path: string) => <a key={path} href={`/api/violations/${row.id}/evidence?path=${encodeURIComponent(path)}`}>ראיית תיקון</a>) : null}<ViolationStatusActions id={row.id} initialStatus={row.status ?? "open"} /></div>}
             />
           ))}
           {rows.length === 0 ? <InspectorEmpty title="אין ליקויים פתוחים בגנים שלך" text="שאלות פיקוח בציון נמוך או כשל קריטי ייצרו כאן ליקוי ומשימת תיקון לאישור הפקח." icon={ShieldCheck} /> : null}

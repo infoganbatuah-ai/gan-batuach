@@ -16,6 +16,7 @@ const worker = createPortableInferenceWorker({ workerId, environment: "ISOLATED_
     return { detections: [], model_provenance: { model: "scale-fixture", expected_sha256: "scale-v1", runtime: "isolated-node" }, observation_timestamp: job.observation_timestamp };
   } });
 let idle = 0, completed = 0;
+const completedJobIds = new Set();
 const cpuStart = process.cpuUsage();
 try {
   // Stay beyond the 300 ms test lease so a peer's interrupted ACK can be
@@ -23,8 +24,14 @@ try {
   while (idle < 50) {
     const result = await worker.processOne(queue);
     if (result.status === "IDLE") { idle++; await new Promise(resolve => setTimeout(resolve, 10)); }
-    else { idle = 0; if (result.status === "COMPLETED") completed++; }
+    else {
+      idle = 0;
+      if (result.status === "COMPLETED") {
+        completed++;
+        if (result.job_id) completedJobIds.add(result.job_id);
+      }
+    }
   }
   const cpu = process.cpuUsage(cpuStart);
-  process.stdout.write(JSON.stringify({ worker_id: workerId, completed, worker_cpu_ms: Number(((cpu.user + cpu.system) / 1000).toFixed(3)), snapshot: worker.snapshot() }));
+  process.stdout.write(JSON.stringify({ worker_id: workerId, completed, completed_job_ids: [...completedJobIds].sort(), worker_cpu_ms: Number(((cpu.user + cpu.system) / 1000).toFixed(3)), snapshot: worker.snapshot() }));
 } finally { queue.close(); }
