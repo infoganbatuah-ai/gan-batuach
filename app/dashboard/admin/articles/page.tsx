@@ -13,7 +13,7 @@ export default async function AdminArticlesPage({ searchParams }: { searchParams
   const { saved } = await searchParams;
   return <DashboardShell role="admin" title="כתבות ותוכן">
     <div className="editorial-admin"><h1>ניהול כתבות גן בטוח</h1>
-      <p>ערכו כתבת בסיס או הוסיפו כתבה. רק כתבות בסטטוס ״פורסם״ שמועדן הגיע מוצגות באתר. כתבות הבסיס כלולות באתר; שמירת עריכה מחייבת התקנת מיגרציית התוכן במסד הנתונים.</p>
+      <p>ערכו כתבת בסיס או הוסיפו כתבה. רק כתבות בסטטוס ״פורסם״ שמועדן הגיע מוצגות באתר. כתבות הבסיס כלולות באתר, ועריכות נשמרות במערכת התוכן.</p>
       {saved && <p role="status">הכתבה נשמרה. <Link href="/articles">לצפייה במגזין</Link></p>}
       <details className="editorial-admin-item"><summary>+ כתבה חדשה</summary><ArticleForm /></details>
       {articles.map((article) => <details key={article.slug} className="editorial-admin-item"><summary>{article.title} · {article.status === "published" ? "פורסם" : "טיוטה"}</summary><ArticleForm article={article} /></details>)}
