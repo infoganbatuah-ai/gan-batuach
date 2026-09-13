@@ -10,6 +10,7 @@ import { isExpectedCamera } from "@/lib/domain/digital-observer/camera-health-mo
 
 export const dynamic = "force-dynamic";
 type ManifestCamera = {
+  [key: string]: unknown;
   id: string;
   display_name?: string | null;
   location_label?: string | null;
@@ -26,6 +27,27 @@ type AutomationPolicyRow = {
 };
 type WatchRuleRow = { camera_source_id?: string | null; structured_rule?: Record<string, unknown> | null };
 type IncidentRow = { involved_camera_ids?: unknown };
+
+// The full JSON columns contain connection diagnostics and hardware evidence
+// that are not part of the Gateway's monitoring contract.
+const manifestMetadataKeys = [
+  "gateway_id", "gateway_stream_id", "zone_type", "camera_zone_type", "channel_assignment", "channel_state",
+  "preprocessing_policy", "vendor", "edge_inference_policy", "monitoring_enabled", "physical_camera_attached",
+  "critical_camera", "preprocessing_quality_gate_approved", "local_event_insights", "preprocessing_motion_threshold",
+  "preprocessing_coalesce_window_ms", "preprocessing_max_quiet_interval_ms", "sampling_never_blind_floor_ms",
+  "crossing_line", "verified_event_models"
+] as const;
+const manifestTextMetadataKeys = new Set<string>([
+  "gateway_id", "gateway_stream_id", "zone_type", "camera_zone_type", "channel_assignment", "channel_state",
+  "preprocessing_policy", "vendor", "edge_inference_policy"
+]);
+const manifestCapabilityKeys = [
+  "local_event_insights", "native_motion_events", "native_person_events", "native_vehicle_events", "scene_change_events"
+] as const;
+const manifestSourceSelect = ["id", "display_name", "location_label", "status", "source_mode",
+  ...manifestMetadataKeys.map((key) => `m_${key}:metadata->${manifestTextMetadataKeys.has(key) ? ">" : ""}${key}`),
+  ...manifestCapabilityKeys.map((key) => `c_${key}:capabilities->${key}`)
+].join(",");
 
 function boundedNumber(value: unknown, fallback: number, minimum: number, maximum: number) {
   return typeof value === "number" && Number.isFinite(value) ? Math.min(maximum, Math.max(minimum, value)) : fallback;
@@ -52,7 +74,7 @@ export async function GET(request: Request) {
     if (!environmentFingerprint) throw new Error("GATEWAY_ENV_FINGERPRINT_UNAVAILABLE");
     const [site, sources, schedule, automationPolicies, watchRules, activeIncidents, learningBaseline] = await Promise.all([
       db.from("observer_sites").select("id,garden_id,site_type,monitoring_enabled,vision_privacy_mode,business_handles_children,metadata").eq("id", device.observer_site_id).single(),
-      db.from("digital_observer_camera_sources").select("id,display_name,location_label,status,source_mode,capabilities,metadata").eq("observer_site_id", device.observer_site_id),
+      db.from("digital_observer_camera_sources").select(manifestSourceSelect).eq("observer_site_id", device.observer_site_id),
       db.from("observer_monitoring_schedules").select("schedule,timezone,status").eq("observer_site_id", device.observer_site_id).maybeSingle(),
       db.from("digital_observer_camera_automation_policies")
         .select("camera_source_id,enabled,allowed_actions,siren_event_types")
@@ -77,7 +99,11 @@ export async function GET(request: Request) {
     const enabled = site.data.monitoring_enabled === true && site.data.metadata?.observer_monitoring_consent === true;
     const offHoursActive = schedule.data?.status === "active" && scheduleIsOffHours(schedule.data);
     const automationRows = (automationPolicies.data ?? []) as unknown as AutomationPolicyRow[];
-    const cameraRows = (sources.data ?? []) as unknown as ManifestCamera[];
+    const cameraRows = ((sources.data ?? []) as unknown as ManifestCamera[]).map((camera) => ({
+      ...camera,
+      metadata: camera.metadata ?? Object.fromEntries(manifestMetadataKeys.map((key) => [key, camera[`m_${key}`]])),
+      capabilities: camera.capabilities ?? Object.fromEntries(manifestCapabilityKeys.map((key) => [key, camera[`c_${key}`]]))
+    }));
     const automationByCamera = new Map(automationRows.map((policy) => [String(policy.camera_source_id), policy]));
     const watchedCameras = watchRuleCameraIds((watchRules.data ?? []) as unknown as WatchRuleRow[]);
     const incidentCameras = new Set<string>();

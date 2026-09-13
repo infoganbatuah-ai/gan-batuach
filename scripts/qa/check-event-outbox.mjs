@@ -40,7 +40,7 @@ async function until(predicate) {
   try {
     await new Promise((resolve,reject)=>{
       const timeout=setTimeout(()=>reject(new Error("fixture_timeout")),15000);
-      stop=startJournalLoop({gatewayUrl:"http://fixture.invalid",gatewaySecret:"fixture-secret",databasePath,pollIntervalMs:5,report:state=>{
+      stop=startJournalLoop({gatewayUrl:"http://fixture.invalid",gatewaySecret:"fixture-secret",databasePath,pollIntervalMs:5,manifestRefreshIntervalMs:5,report:state=>{
         if(predicate(state)){clearTimeout(timeout);resolve();}
       }});
     });
@@ -50,6 +50,19 @@ try {
   assert.equal(safeEventValidationCategory({details:{fieldErrors:{confidence:["invalid"]}}}),"validation_confidence","Only an allowlisted validation field is retained");
   assert.equal(safeEventValidationCategory({details:{fieldErrors:{credential:["unexpected"]}}}),"validation_shape","Unexpected upstream fields are never persisted");
   assert.equal(safeEventValidationCategory({error:"invalid payload"}),"validation_shape","Missing upstream details remain a safe shape category");
+  // Repeated local cycles must not each become a multi-query cloud read.
+  let stopCadence;
+  try {
+    await new Promise((resolve,reject)=>{
+      const timeout=setTimeout(()=>reject(new Error("manifest_cadence_timeout")),5000);
+      let reports=0;
+      stopCadence=startJournalLoop({gatewayUrl:"http://fixture.invalid",gatewaySecret:"fixture-secret",
+        databasePath:join(directory,"cadence.sqlite"),pollIntervalMs:5,cameraFilter:"not-a-camera",
+        report:()=>{if(++reports===8){clearTimeout(timeout);resolve();}}});
+    });
+  } finally { await stopCadence?.(); }
+  assert.equal(frame,1,"Eight local cycles should make only one cloud manifest request");
+  frame=0;
   // Sampling now reports while delivery is still in flight. Wait for the
   // healthy events to drain before asserting the durable failed remainder.
   await until(state=>state.status==="delivery_retrying" && state.pending===1 && delivered.size===14);
