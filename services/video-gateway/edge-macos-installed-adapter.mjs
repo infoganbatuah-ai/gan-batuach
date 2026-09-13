@@ -13,7 +13,7 @@ function fail(code) { throw Object.assign(new Error(code), { code }); }
 const run = (binary, args, options = {}) => execFileSync(binary, args, { encoding: "utf8", timeout: 120_000,
   stdio: ["ignore", "pipe", "pipe"], ...options });
 function xml(value) { return String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;"); }
-function plistXml(value) {
+export function plistXml(value) {
   const entry = input => {
     if (typeof input === "string") return `<string>${xml(input)}</string>`;
     if (typeof input === "boolean") return input ? "<true/>" : "<false/>";
@@ -30,7 +30,7 @@ function atomic(path, bytes) {
   writeFileSync(temporary, bytes, { mode: 0o600, flag: "wx" }); renameSync(temporary, path);
 }
 function fileDigest(path) { return createHash("sha256").update(readFileSync(path)).digest("hex"); }
-function inspectArchive(path) {
+export function inspectArchive(path) {
   const members = run("tar", ["-tzf", path]).split("\n").filter(Boolean);
   const modes = run("tar", ["-tvzf", path]).split("\n").filter(Boolean);
   if (!members.length || members.length > 20_000 || modes.length !== members.length ||
@@ -80,6 +80,14 @@ export function createMacOSInstalledEdgeAdapter({ profile, installedBase, manage
     try { const text = run("/bin/launchctl", ["print", `${domain}/${label}`]);
       return { registered: true, running: text.includes("state = running"), pid: Number(/\bpid = (\d+)/.exec(text)?.[1] || 0) || null }; }
     catch { return { registered: false, running: false, pid: null }; }
+  }
+  function runtimePid() {
+    const owner = service();
+    if (!owner.running || !owner.pid) return null;
+    const rows = run("/bin/ps", ["-axo", "pid=,ppid="]).trim().split("\n");
+    const children = rows.map(row => row.trim().split(/\s+/).map(Number))
+      .filter(([pid, ppid]) => pid > 1 && ppid === owner.pid);
+    return children.length === 1 ? children[0][0] : null;
   }
   function plan() {
     const source = validateOriginal();
@@ -191,5 +199,5 @@ export function createMacOSInstalledEdgeAdapter({ profile, installedBase, manage
     run("/bin/launchctl", ["bootstrap", domain, plistPath]);
     return service();
   }
-  return { plan, status: service, verifyInstalled, stageBaseline: unpack, install: unpack, restart, restoreLegacy, health };
+  return { plan, status: service, runtimePid, verifyInstalled, stageBaseline: unpack, install: unpack, restart, restoreLegacy, health };
 }

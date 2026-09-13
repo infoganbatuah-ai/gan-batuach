@@ -2,9 +2,9 @@
 // no live LaunchAgent, device identity, camera configuration or Site is used.
 import assert from "node:assert/strict";
 import { execFileSync } from "node:child_process";
-import { createHash, createPrivateKey, randomUUID, sign } from "node:crypto";
+import { createHash, createPrivateKey, generateKeyPairSync, randomUUID, sign } from "node:crypto";
 import http from "node:http";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { canonicalEdgeUpdateManifest, verifyEdgeArtifact, verifyEdgeUpdateManifest } from "../../services/video-gateway/edge-update-contract.mjs";
@@ -13,6 +13,8 @@ import { createQaLaunchdEdgeAdapter } from "../../services/video-gateway/edge-up
 import { createMacOSInstalledEdgeAdapter } from "../../services/video-gateway/edge-macos-installed-adapter.mjs";
 import { generateManagedDeviceKeyPair } from "../../services/video-gateway/managed-device-auth.mjs";
 import { createInstalledEdgeBootstrap } from "../../services/video-gateway/edge-installed-bootstrap.mjs";
+import { canonicalEdgeTrustRegistry, installEdgeTrustRegistry } from "../../services/video-gateway/edge-release-trust.mjs";
+import { installInstalledOtaAgent } from "../../services/video-gateway/edge-installed-ota-installer.mjs";
 
 const args = Object.fromEntries(process.argv.slice(2).map(value => { const equal = value.indexOf("="); return [value.slice(0, equal), value.slice(equal + 1)]; }));
 for (const name of ["--baseline-store", "--release-store", "--qa-private-key", "--connector-baseline-id"])
@@ -21,6 +23,8 @@ const trusted = JSON.parse(readFileSync(join(args["--baseline-store"], "qa-trust
 const privateKey = createPrivateKey(readFileSync(args["--qa-private-key"]));
 const fullSupervisor = args["--full-supervisor"] === "1";
 const installedAdapter = args["--installed-adapter"] === "1";
+const automaticAgent = args["--automatic-agent"] === "1";
+if (automaticAgent && (!fullSupervisor || !installedAdapter)) throw new Error("QA_AUTOMATIC_AGENT_REQUIRES_FULL_INSTALLED_SUPERVISOR");
 const profiles = [
   { profile: "PHYSICAL_GATEWAY", baselineId: "qa-legacy-gateway-aa57572e8736", baselineName: "gateway-runtime.tar.gz",
     releaseId: args["--gateway-release-id"] || "qa-p38g-gateway-06a65267dffa", releaseName: "gateway-runtime.tar.gz", port: 38191, cloudPort: 38193, suffix: "gateway" },
@@ -64,6 +68,38 @@ function makeBad({ good, profile, temporary }) {
   manifest.signature = sign(null, Buffer.from(canonicalEdgeUpdateManifest(manifest)), privateKey).toString("base64url");
   assert.equal(verifyEdgeUpdateManifest(manifest, trusted).ok, true);
   return { manifest, bytes };
+}
+function makeCrash({ good, profile, temporary }) {
+  const directory = join(temporary, "crash-src"); mkdirSync(directory, { mode: 0o700 });
+  const sourcePath = join(temporary, "crash-source.tar.gz"); writeFileSync(sourcePath, good.bytes, { mode: 0o600 });
+  execFileSync("tar", ["-xzf", sourcePath, "-C", directory]);
+  const prefix = profile === "SOFTWARE_CONNECTOR" ? "Digital Observer.app/Contents/Resources/runtime/" : "";
+  const version = "0.3.1-p38i-crash";
+  const metadataPath = join(directory, prefix, "edge-release-metadata.json");
+  const metadata = JSON.parse(readFileSync(metadataPath)); metadata.version = version;
+  writeFileSync(metadataPath, `${JSON.stringify(metadata)}\n`);
+  writeFileSync(join(directory, prefix, "services/video-gateway/server.mjs"),
+    "import http from 'node:http'; http.createServer((_q,r)=>{r.setHeader('content-type','application/json');r.end('{}');}).listen(Number(process.env.PORT),'127.0.0.1');setTimeout(()=>process.exit(67),12000);\n");
+  if (profile === "SOFTWARE_CONNECTOR") { const app = join(directory, "Digital Observer.app");
+    execFileSync("/usr/bin/codesign", ["--force", "--sign", "-", app]);
+    execFileSync("/usr/bin/codesign", ["--verify", "--deep", "--strict", app]); }
+  const archive = join(temporary, "crash.tar.gz");
+  execFileSync("tar", ["-czf", archive, "-C", directory, profile === "SOFTWARE_CONNECTOR" ? "Digital Observer.app" : "."]);
+  const bytes = readFileSync(archive);
+  const manifest = { ...good.manifest, release_id: `qa-p38i-crash-${profile.toLowerCase()}`, version,
+    artifact_url: `https://qa.invalid/${profile.toLowerCase()}/crash.tar.gz`,
+    artifact_sha256: createHash("sha256").update(bytes).digest("hex"),
+    artifact_size: bytes.length, released_at: new Date().toISOString(), signature: "" };
+  manifest.signature = sign(null, Buffer.from(canonicalEdgeUpdateManifest(manifest)), privateKey).toString("base64url");
+  return { manifest, bytes };
+}
+async function until(predicate, timeoutMs, label) {
+  const deadline = Date.now() + timeoutMs;
+  while (Date.now() < deadline) {
+    if (await predicate()) return;
+    await new Promise(resolve => setTimeout(resolve, 500));
+  }
+  throw new Error(`QA_TIMEOUT_${label}`);
 }
 
 for (const item of profiles) {
@@ -110,6 +146,7 @@ for (const item of profiles) {
   if (!installedAdapter) adapter.rememberLegacy({ slot: installedSlot, manifest: baseline.manifest });
   const fixtureFingerprint = () => createHash("sha256").update(["identity", "config", "durable-queue", "source-map"]
     .map(name => readFileSync(join(persistent, name), "utf8")).join("\n")).digest("hex");
+  let agentLabel = null, agentPlist = null;
   const bootstrap = createInstalledEdgeBootstrap({ root: join(root, "ota"), manager, adapter,
     trust: { verify: async ({ manifest }) => {
       assert.equal(verifyEdgeUpdateManifest(manifest, trusted).ok, true); } },
@@ -158,6 +195,61 @@ for (const item of profiles) {
         full_supervisor: fullSupervisor, identity_config_queue_source_fixtures: "PRESERVED" });
       continue;
     }
+    if (automaticAgent) {
+      const trustRoot = generateKeyPairSync("ed25519");
+      const rootPublic = trustRoot.publicKey.export({ format: "der", type: "spki" }).toString("base64url");
+      const trustDir = join(root, "trust"); mkdirSync(trustDir, { mode: 0o700 });
+      const qaRootPinPath = join(trustDir, "root-pin.json"), qaTrustRegistryPath = join(trustDir, "registry.json");
+      const registry = { protocol: "observer-edge-trust-registry-v1", epoch: 1, issued_at: new Date().toISOString(),
+        root_key_id: "qa-p38i-root", keys: Object.entries(trusted).map(([key_id, public_key]) =>
+          ({ key_id, public_key, state: "TRUSTED" })), signature: "" };
+      registry.signature = sign(null, Buffer.from(canonicalEdgeTrustRegistry(registry)), trustRoot.privateKey).toString("base64url");
+      installEdgeTrustRegistry({ path: qaTrustRegistryPath, registry,
+        pinnedRootKeyId: "qa-p38i-root", pinnedRootPublicKey: rootPublic });
+      writeFileSync(qaRootPinPath, JSON.stringify({ protocol: "observer-edge-trust-root-v1",
+        root_key_id: "qa-p38i-root", root_public_key: rootPublic }), { mode: 0o600 });
+      const feed = join(root, "release-feed"); mkdirSync(feed, { mode: 0o700 });
+      const qaReleasePath = join(feed, "available.json");
+      const publish = (value) => { writeFileSync(join(feed, "artifact.tar.gz"), value.bytes, { mode: 0o600 });
+        writeFileSync(qaReleasePath, JSON.stringify({ manifest: value.manifest, artifact_name: "artifact.tar.gz" }), { mode: 0o600 }); };
+      agentLabel = `com.digitalobserver.qa.push38i.agent.${item.suffix}.${createHash("sha256").update(root).digest("hex").slice(0, 8)}`;
+      agentPlist = join(root, "agent.plist");
+      installInstalledOtaAgent({ profile: item.profile, managedRoot: join(root, "ota"),
+        agentPlistPath: agentPlist, agentLabel, nodePath: process.execPath, manifest: remediation.manifest,
+        artifactPath: join(args["--release-store"], item.releaseId, item.releaseName),
+        baselineReleaseId: baseline.manifest.release_id, qaIsolationRoot: root,
+        runtimeConfig: { profile: item.profile, managedRoot: join(root, "ota"), installedBase: installedRuntime,
+          launchAgentPath: join(root, `${label}.plist`), label, port: item.port,
+          deviceId: device.deviceId, channel: device.channel, configVersion: 1,
+          expectedPhysicalCameras: 0,
+          baselineArtifactSha256: baseline.manifest.artifact_sha256, qaIsolationRoot: root,
+          qaRootPinPath, qaTrustRegistryPath, qaReleasePath, intervalMs: 1000 } });
+      await until(() => execFileSync("/bin/launchctl", ["print", `gui/${process.getuid()}/${agentLabel}`],
+        { encoding: "utf8" }).includes("state = running"), 15_000, "AGENT_START");
+      publish(remediation);
+      await until(() => manager.current().release_id === remediation.manifest.release_id && manager.status().state === "HEALTHY",
+        90_000, "AUTOMATIC_REMEDIATION");
+      assertSingleOwnedRuntime(item.port, adapter.status().pid);
+      const crash = makeCrash({ good: remediation, profile: item.profile, temporary: root });
+      publish(crash);
+      await until(() => manager.current().release_id === crash.manifest.release_id && manager.status().state === "HEALTHY",
+        90_000, "AUTOMATIC_CRASH_RELEASE");
+      await until(() => manager.status().state === "ROLLED_BACK" || manager.status().state === "ACTION_REQUIRED",
+        180_000, "AUTOMATIC_CRASH_ROLLBACK");
+      assert.equal(manager.status().state, "ROLLED_BACK", `${item.suffix}:crash-loop-rollback`);
+      assert.equal(manager.current().release_id, remediation.manifest.release_id);
+      manager.verifySlot(manager.current());
+      assert.equal(manager.quarantine().some(entry => entry.release_id === crash.manifest.release_id), true);
+      const restored = await adapter.health({ timeoutMs: 20_000 });
+      assert.equal(restored.ok && restored.service.running, true);
+      assertSingleOwnedRuntime(item.port, restored.service.pid);
+      for (const name of ["identity", "config", "durable-queue", "source-map"])
+        assert.equal(readFileSync(join(persistent, name), "utf8"), `QA_${item.profile}_${name}`);
+      results.push({ profile: item.profile, installed_agent: "launchd", automatic_update: "PASS",
+        persistent_crash_rollback: "PASS", known_good_artifact_sha256: remediation.manifest.artifact_sha256,
+        failed_release_quarantined: true, persistent_fixture_preserved: true, live_home_touched: false });
+      continue;
+    }
     const bad = makeBad({ good: remediation, profile: item.profile, temporary: root });
     const rolledBack = await manager.apply({ manifest: bad.manifest, artifactBytes: bad.bytes });
     assert.equal(rolledBack.state, "ROLLED_BACK", `${item.suffix}:rollback-state`);
@@ -186,6 +278,9 @@ for (const item of profiles) {
       bad_update_health_failure: true, rollback_restart: true, known_good_integrity: true,
       remediation_upgrade: true, health_contract: final.body.contract, build_sha: final.body.edgeRuntime.build_sha,
       persistent_fixture_preserved: true, live_home_touched: false });
-  } finally { legacyAdapter.stop(); if (cloud) await new Promise(resolve => cloud.close(resolve)); rmSync(root, { recursive: true, force: true }); }
+  } finally {
+    if (agentLabel && agentPlist) try { execFileSync("/bin/launchctl", ["bootout", `gui/${process.getuid()}`, agentPlist]); } catch {}
+    legacyAdapter.stop(); if (cloud) await new Promise(resolve => cloud.close(resolve)); rmSync(root, { recursive: true, force: true });
+  }
 }
 console.log(JSON.stringify({ status: "ISOLATED_MANAGED_LIFECYCLE_PASS", results }));

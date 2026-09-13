@@ -1,12 +1,13 @@
 import assert from "node:assert/strict";
 import { createHash, generateKeyPairSync, sign } from "node:crypto";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import {
   canonicalEdgeUpdateManifest, evaluateEdgeUpdateEligibility, shouldPauseRollout, verifyEdgeUpdateManifest
 } from "../../services/video-gateway/edge-update-contract.mjs";
 import { EdgeUpdateManager, edgeHealthGate } from "../../services/video-gateway/edge-update-manager.mjs";
+import { createEdgeCrashLoopGuard } from "../../services/video-gateway/edge-crash-loop-guard.mjs";
 
 const pair = generateKeyPairSync("ed25519");
 const keyId = "release-key-2026-01";
@@ -85,6 +86,33 @@ gateway.value.healthCheck = async ({ version, rollback }) => version === "1.2.0"
   ? { ...healthy(10, 6), progressing_physical_cameras: 0 } : healthy(10, 6);
 assert.equal((await gateway.value.apply({ manifest: manifest({ version: "1.2.0", profile: "PHYSICAL_GATEWAY", release: "qa-gateway-bad-1.2.0" }), artifactBytes: artifact })).state, "ROLLED_BACK");
 assert.equal(gateway.value.current().version, "1.1.0");
+// A post-promotion persistent crash must restore the exact prior signed slot.
+for (const profile of ["PHYSICAL_GATEWAY", "SOFTWARE_CONNECTOR"]) {
+  const test = await manager(profile, async () => healthy(profile === "PHYSICAL_GATEWAY" ? 10 : 1, profile === "PHYSICAL_GATEWAY" ? 6 : 0));
+  const update = manifest({ version: "1.1.0", profile, release: `qa-late-crash-${profile}` });
+  assert.equal((await test.value.apply({ manifest: update, artifactBytes: artifact })).state, "HEALTHY");
+  let clock = 1_000;
+  const guard = createEdgeCrashLoopGuard({ statePath: join(test.root, "crash-guard.json"), manager: test.value,
+    now: () => clock, threshold: 3, windowMs: 120_000, stableResetMs: 60_000 });
+  await guard.observe({ runtimePid: 101, healthy: true });
+  for (const pid of [102, 103]) { clock += 1_000; assert.equal((await guard.observe({ runtimePid: pid, healthy: true })).action, "OBSERVING"); }
+  // No reset after a few seconds; a truly stable minute does reset history.
+  clock += 60_000; assert.equal(guard.status().crashes.length, 2);
+  await guard.observe({ runtimePid: 103, healthy: true });
+  assert.equal(guard.status().crashes.length, 0);
+  for (const pid of [104, 105]) { clock += 1_000; assert.equal((await guard.observe({ runtimePid: pid, healthy: true })).action, "OBSERVING"); }
+  clock += 1_000;
+  assert.equal((await guard.observe({ runtimePid: 106, healthy: true })).action, "ROLLED_BACK");
+  assert.equal(test.value.current().version, "1.0.0");
+  assert.equal(test.value.knownGood().at(-1).version, "1.0.0");
+  assert.equal(test.value.quarantine().some(item => item.release_id === update.release_id), true);
+  assert.equal(createHash("sha256").update(readFileSync(join(test.value.current().slot, "artifact.bin"))).digest("hex"), digest);
+  assert.equal(readFileSync(test.identityPath, "utf8"), test.identity);
+  // A failing restored baseline must terminate rather than alternate slots.
+  clock += 1_000; await guard.observe({ runtimePid: 201, healthy: true });
+  for (const pid of [202, 203, 204]) { clock += 1_000; await guard.observe({ runtimePid: pid, healthy: false }); }
+  assert.equal(test.value.status().state, "ACTION_REQUIRED");
+}
 for (const profile of ["SOFTWARE_CONNECTOR", "PHYSICAL_GATEWAY"]) {
   const root = mkdtempSync(join(tmpdir(), "observer-edge-bootstrap-negative-"));
   const device = { deviceId: `qa-${profile.toLowerCase()}-device`, profile, platform: "darwin", architecture: "arm64",

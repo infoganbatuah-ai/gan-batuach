@@ -8,12 +8,12 @@ import {
 
 function fail(code) { throw Object.assign(new Error(code), { code }); }
 const allowedTransitions = Object.freeze({
-  IDLE: ["IDLE", "UPDATE_AVAILABLE"], HEALTHY: ["UPDATE_AVAILABLE"], ROLLED_BACK: ["UPDATE_AVAILABLE"], UPDATE_FAILED: ["UPDATE_AVAILABLE"],
+  IDLE: ["IDLE", "UPDATE_AVAILABLE"], HEALTHY: ["UPDATE_AVAILABLE", "ROLLBACK_REQUIRED", "ACTION_REQUIRED"], ROLLED_BACK: ["UPDATE_AVAILABLE", "ACTION_REQUIRED"], UPDATE_FAILED: ["UPDATE_AVAILABLE", "ACTION_REQUIRED"], ACTION_REQUIRED: [],
   UPDATE_AVAILABLE: ["DOWNLOADING", "UPDATE_FAILED"], DOWNLOADING: ["VERIFYING", "UPDATE_FAILED"],
   VERIFYING: ["STAGED", "UPDATE_FAILED"], STAGED: ["INSTALLING", "UPDATE_FAILED"],
   INSTALLING: ["RESTARTING", "ROLLBACK_REQUIRED", "UPDATE_FAILED"], RESTARTING: ["VERIFYING_HEALTH", "ROLLBACK_REQUIRED"],
   VERIFYING_HEALTH: ["HEALTHY", "ROLLBACK_REQUIRED"], ROLLBACK_REQUIRED: ["ROLLING_BACK"],
-  ROLLING_BACK: ["ROLLED_BACK", "UPDATE_FAILED"]
+  ROLLING_BACK: ["ROLLED_BACK", "ACTION_REQUIRED"]
 });
 function atomicJson(path, value) {
   mkdirSync(dirname(path), { recursive: true, mode: 0o700 });
@@ -125,6 +125,46 @@ export class EdgeUpdateManager {
     const current = this.quarantine();
     if (!current.some((item) => item.release_id === manifest.release_id)) current.push({ release_id: manifest.release_id, version: manifest.version, reason, at: new Date(this.now()).toISOString() });
     atomicJson(this.quarantinePath, current.slice(-100));
+  }
+  requireAction(reason) {
+    if (this.status().state === "ACTION_REQUIRED") return this.status();
+    if (!["HEALTHY", "ROLLED_BACK", "UPDATE_FAILED"].includes(this.status().state)) fail("EDGE_UPDATE_ACTION_STATE_INVALID");
+    return this.transition("ACTION_REQUIRED", { failure_category: reason });
+  }
+  // A release can pass its immediate health gate and fail later. Only a
+  // previously signed, verified known-good slot is eligible for late rollback.
+  async rollbackAfterCrashLoop({ reason = "EDGE_UPDATE_CRASH_LOOP" } = {}) {
+    const state = this.status().state;
+    if (state === "ACTION_REQUIRED") return this.status();
+    if (state !== "HEALTHY") fail("EDGE_UPDATE_LATE_ROLLBACK_STATE_INVALID");
+    const failed = this.current();
+    const known = this.knownGood();
+    const prior = [...known].reverse().find(item => item.release_id !== failed.release_id);
+    if (!prior) {
+      this.transition("ACTION_REQUIRED", { failure_category: "EDGE_UPDATE_NO_PRIOR_KNOWN_GOOD" });
+      return this.status();
+    }
+    const failedManifest = this.verifySlot(failed);
+    const priorManifest = this.verifySlot(prior);
+    assertAuthorizedUpdateDirection({ currentVersion: failed.version, targetVersion: prior.version,
+      knownGoodVersions: known.map(item => item.version),
+      securityFloorVersion: failedManifest.compatibility.security_floor_version, rollback: true });
+    this.transition("ROLLBACK_REQUIRED", { failure_category: reason, failed_version: failed.version });
+    this.transition("ROLLING_BACK", { failure_category: reason });
+    // Quarantine before restart, so an agent restart cannot reinstall it.
+    this.quarantineRelease(failedManifest, reason);
+    try {
+      atomicJson(this.currentPath, prior);
+      await this.adapter.restart({ slot: prior.slot, manifest: priorManifest, rollback: true });
+      const recovered = edgeHealthGate(await this.healthCheck({ version: prior.version, rollback: true }));
+      if (!recovered.healthy) fail("EDGE_UPDATE_KNOWN_GOOD_UNHEALTHY");
+      atomicJson(this.knownGoodPath, known.filter(item => item.release_id !== failed.release_id));
+      return this.transition("ROLLED_BACK", { failure_category: reason, failed_version: failed.version,
+        recovered_version: prior.version, recovery_health: recovered });
+    } catch (error) {
+      this.transition("ACTION_REQUIRED", { failure_category: error.code || "EDGE_UPDATE_ROLLBACK_FAILED" });
+      return this.status();
+    }
   }
   async apply({ manifest: input, artifactBytes, interruptAt = null }) {
     if (!this.current().slot || !this.knownGood().length) fail("EDGE_UPDATE_SIGNED_BOOTSTRAP_REQUIRED");
