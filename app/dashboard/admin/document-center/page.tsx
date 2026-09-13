@@ -23,7 +23,7 @@ import { ActionCard, CleanSection, EmptyState, PremiumDashboardHero, RoleMetricC
 import { requireRole } from "@/lib/auth";
 import { logSupabaseError, safeAdminData } from "@/lib/admin-safe";
 import { evidenceTypeLabel } from "@/lib/domain/incident-cases";
-import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 type Tone = "good" | "warn" | "bad" | "default";
 
@@ -97,7 +97,7 @@ function categoryLabel(category: string) {
 export default async function AdminDocumentCenterPage() {
   await requireRole(["admin"]);
   const result = await safeAdminData("document center", async () => {
-    const supabase = await createClient();
+    const supabase = createAdminClient();
     const [documentsRes, evidenceRes, inspectionAnswersRes, signaturesRes, complaintsRes, casesRes] = await Promise.all([
       supabase.from("documents" as any).select("id,garden_id,staff_id,child_id,parent_id,inspector_id,uploaded_by,name,document_type,file_url,expires_at,status,owner_type,notes,reviewed_by,reviewed_at,created_at,gardens(name,city),children(full_name),staff(full_name)").order("created_at", { ascending: false }).limit(160),
       supabase.from("incident_case_evidence" as any).select("id,case_id,garden_id,evidence_type,title,description,source_type,storage_bucket,storage_path,external_reference,captured_at,visibility,created_at,incident_cases(case_number,status,severity),gardens(name,city)").order("created_at", { ascending: false }).limit(100),

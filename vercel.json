@@ -90,6 +90,10 @@
   ],
   "crons": [
     {
+      "path": "/api/cron/complaint-sla-escalation",
+      "schedule": "0 * * * *"
+    },
+    {
       "path": "/api/cron/permit-expiry-scan",
       "schedule": "0 5 * * *"
     },
