@@ -9,6 +9,7 @@ const garden = read('app/api/garden/subscription/route.ts');
 const oldApproval = read('app/api/admin/kindergarten-approval/route.ts');
 const onboarding = read('app/api/kindergarten-onboarding/route.ts');
 const billing = read('lib/domain/billing.ts');
+const authFix = read('supabase/migrations/20260913193000_management_platform_subscription_auth_fix.sql');
 
 test('product base price is one Admin-configurable plan, not legacy UI authority', () => {
   assert.match(sql, /name='Gan Batuach Fixed Kindergarten Plan' and price_amount=700/);
@@ -45,8 +46,10 @@ test('manual activation and renewal are locked transitions without fake electron
 
 test('cancellation is Garden-authorized; plan and transition changes are Admin-only', () => {
   assert.match(sql, /request_platform_subscription_cancellation/);
-  assert.match(sql, /if not public\.can_manage_garden\(target_garden_id\)/);
-  assert.match(sql, /if not public\.is_admin\(\) then raise exception 'admin_required'/);
+  assert.match(sql, /public\.can_manage_garden\(target_garden_id\) is distinct from true/);
+  assert.match(sql, /public\.is_admin\(\) is distinct from true then raise exception 'admin_required'/);
+  assert.match(authFix, /public\.is_admin\(\) is distinct from true/);
+  assert.doesNotMatch(authFix, /if not public\.is_admin\(\)/);
   assert.match(sql, /revoke insert, update, delete on public\.kindergarten_subscriptions/);
   assert.match(sql, /commercial_access/);
   assert.match(garden, /request_platform_subscription_cancellation/);

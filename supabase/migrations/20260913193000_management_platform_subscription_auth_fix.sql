@@ -1,155 +1,4 @@
--- GB-M26: Garden -> Gan Batuach commercial subscription. Parent tuition is separate.
-
-alter table public.subscription_plans
-  add column if not exists code text,
-  add column if not exists version integer not null default 1,
-  add column if not exists effective_from date,
-  add column if not exists effective_until date,
-  add column if not exists is_default boolean not null default false,
-  add column if not exists billing_interval text not null default 'annual',
-  add column if not exists commitment_months integer not null default 12,
-  add column if not exists grace_days integer,
-  add constraint subscription_plan_commitment_positive check (commitment_months > 0),
-  add constraint subscription_plan_interval_valid check (billing_interval in ('monthly','annual')),
-  add constraint subscription_plan_grace_valid check (grace_days is null or grace_days >= 0);
-
-create unique index if not exists subscription_plans_code_version_unique
-  on public.subscription_plans(code, version) where code is not null;
-create unique index if not exists subscription_plans_one_active_default
-  on public.subscription_plans(is_default) where is_default and active;
-
--- Plan edits and subscription state changes must pass the version/transition RPCs.
-revoke update, delete on public.subscription_plans from public, anon, authenticated;
-revoke insert, update, delete on public.kindergarten_subscriptions from public, anon, authenticated;
-drop policy if exists "kindergarten subscriptions by role" on public.kindergarten_subscriptions;
-create policy "kindergarten subscriptions by role" on public.kindergarten_subscriptions
-  for select to authenticated using (public.is_admin() or public.can_manage_garden(garden_id));
-drop policy if exists "subscription payments by role" on public.subscription_payments;
-create policy "subscription payments by role" on public.subscription_payments
-  for select to authenticated using (public.is_admin() or public.can_manage_garden(garden_id));
-drop policy if exists "billing invoices by role" on public.billing_invoices;
-create policy "billing invoices by role" on public.billing_invoices
-  for select to authenticated using (public.is_admin() or public.can_manage_garden(garden_id));
-drop policy if exists "billing receipts by role" on public.billing_receipts;
-create policy "billing receipts by role" on public.billing_receipts
-  for select to authenticated using (public.is_admin() or public.can_manage_garden(garden_id));
-drop policy if exists "subscription reminders by role" on public.subscription_reminders;
-create policy "subscription reminders by role" on public.subscription_reminders
-  for select to authenticated using (public.is_admin() or public.can_manage_garden(garden_id));
-
--- Prefer the existing exact 700/month, 8400/year Garden plan when present.
--- The 630/month annual-discount and other legacy plans remain historical.
-update public.subscription_plans set code='garden_base',version=1,
-  billing_interval='monthly',commitment_months=12,is_default=true,
-  effective_from=coalesce(effective_from,current_date),updated_at=now()
-where name='Gan Batuach Fixed Kindergarten Plan' and price_amount=700
-  and monthly_price=700 and annual_price=8400 and active
-  and not exists(select 1 from public.subscription_plans where is_default and active);
-
-insert into public.subscription_plans
-  (name, description, plan_type, price_amount, monthly_price, annual_price, currency,
-   duration_days, trial_days, enabled_features, features, limits, active, active_status,
-   plan_category, billing_cycle_options, public_purchase_enabled, sort_order,
-   code, version, effective_from, is_default, billing_interval, commitment_months)
-select 'Gan Batuach Base', '700 ILS monthly billing with a 12-month commitment',
-  'annual', 700, 700, 8400, 'ILS', 365, 0,
-  '{}'::jsonb, '{}'::jsonb, '{}'::jsonb, true, 'active', 'standard',
-  array['monthly']::text[], true, 1,
-  'garden_base', 1, current_date, true, 'monthly', 12
-where not exists (select 1 from public.subscription_plans where code = 'garden_base')
-  and not exists (select 1 from public.subscription_plans where is_default and active);
-
-alter table public.kindergarten_subscriptions
-  add column if not exists plan_code_snapshot text,
-  add column if not exists plan_version_snapshot integer,
-  add column if not exists unit_price_snapshot numeric(12,2),
-  add column if not exists currency_snapshot text,
-  add column if not exists billing_interval text,
-  add column if not exists commitment_months integer,
-  add column if not exists commitment_start date,
-  add column if not exists commitment_end date,
-  add column if not exists cancellation_requested_at timestamptz,
-  add column if not exists cancellation_effective_at timestamptz,
-  add column if not exists grace_until timestamptz,
-  add column if not exists activation_source text,
-  add constraint subscription_snapshot_price_valid check (unit_price_snapshot is null or unit_price_snapshot >= 0),
-  add constraint subscription_billing_interval_valid check (billing_interval is null or billing_interval in ('monthly','annual')),
-  add constraint subscription_commitment_valid check (commitment_months is null or commitment_months > 0);
-
-alter table public.kindergarten_subscriptions drop constraint if exists kindergarten_subscriptions_billing_cycle_check;
-alter table public.kindergarten_subscriptions add constraint kindergarten_subscriptions_billing_cycle_check
-  check (billing_cycle in ('monthly','annual','custom'));
-alter table public.kindergarten_subscriptions drop constraint if exists kindergarten_subscriptions_billing_status_check;
-alter table public.kindergarten_subscriptions add constraint kindergarten_subscriptions_billing_status_check
-  check (billing_status in ('not_configured','trial','active','pending_payment','past_due','grace_period','failed','cancelled','suspended','manual_review'));
-
--- Existing subscriptions keep their original status and price metadata. Old
--- billing_cycle was forcibly annual in a legacy migration, so terms cannot be
--- safely backfilled from the current plan row. New writes get a real snapshot.
-
-create or replace function public.snapshot_platform_subscription_terms()
-returns trigger language plpgsql security definer set search_path=public as $$
-declare p public.subscription_plans%rowtype;
-begin
-  if new.plan_id is null then
-    select * into p from public.subscription_plans where is_default and active
-      and (effective_from is null or effective_from<=current_date)
-      and (effective_until is null or effective_until>current_date) limit 1;
-    if p.id is null then return new; end if;
-    new.plan_id:=p.id;
-  else
-    select * into p from public.subscription_plans where id=new.plan_id;
-  end if;
-  if p.id is null then raise exception 'plan_not_found'; end if;
-  new.plan_code_snapshot:=coalesce(new.plan_code_snapshot,p.code);
-  new.plan_version_snapshot:=coalesce(new.plan_version_snapshot,p.version);
-  new.unit_price_snapshot:=coalesce(new.unit_price_snapshot,
-    case when p.billing_interval='monthly' then coalesce(p.monthly_price,p.price_amount)
-      else coalesce(p.annual_price,p.price_amount) end);
-  new.currency_snapshot:=coalesce(new.currency_snapshot,p.currency);
-  new.billing_interval:=coalesce(new.billing_interval,p.billing_interval);
-  new.billing_cycle:=new.billing_interval;
-  new.commitment_months:=coalesce(new.commitment_months,p.commitment_months);
-  if new.commitment_start is not null then
-    new.commitment_end:=coalesce(new.commitment_end,(new.commitment_start+(new.commitment_months||' months')::interval)::date);
-  end if;
-  new.current_period_start:=coalesce(new.current_period_start,new.start_date);
-  new.current_period_end:=coalesce(new.current_period_end,(new.current_period_start+
-    case when new.billing_interval='monthly' then interval '1 month' else interval '1 year' end)::date);
-  new.renewal_date:=coalesce(new.renewal_date,new.current_period_end);
-  return new;
-end $$;
-drop trigger if exists snapshot_platform_subscription_terms_trigger on public.kindergarten_subscriptions;
-create trigger snapshot_platform_subscription_terms_trigger before insert on public.kindergarten_subscriptions
-  for each row execute function public.snapshot_platform_subscription_terms();
-
-create table if not exists public.platform_subscription_events (
-  id uuid primary key default gen_random_uuid(),
-  subscription_id uuid not null references public.kindergarten_subscriptions(id),
-  garden_id uuid not null references public.gardens(id),
-  action text not null,
-  previous_status text,
-  next_status text,
-  actor_id uuid references public.profiles(id),
-  source text not null,
-  reason text,
-  period_start date,
-  period_end date,
-  created_at timestamptz not null default now()
-);
-create index if not exists platform_subscription_events_garden_idx on public.platform_subscription_events(garden_id,created_at desc);
-alter table public.platform_subscription_events enable row level security;
-create policy platform_subscription_events_read on public.platform_subscription_events
-  for select to authenticated using (public.is_admin() or public.can_manage_garden(garden_id));
-revoke all on public.platform_subscription_events from anon, authenticated;
-grant select on public.platform_subscription_events to authenticated;
-
--- Canonical current set includes all non-terminal commercial states. Do not
--- rewrite ambiguous historical rows; migration will fail if they conflict.
-drop index if exists public.kindergarten_subscriptions_one_current_per_garden_idx;
-create unique index kindergarten_subscriptions_one_current_per_garden_idx
-  on public.kindergarten_subscriptions(garden_id)
-  where status in ('active','trial','pending_payment','payment_failed','past_due','grace_period','suspended','frozen','demo_active');
+-- GB-M26 hotfix: NULL approval checks must fail closed.
 
 create or replace function public.platform_subscription_entitlements(target_garden_id uuid)
 returns jsonb language plpgsql stable security definer set search_path = public as $$
@@ -174,8 +23,6 @@ begin
     'billing_interval',s.billing_interval,'commitment_end',s.commitment_end,
     'current_period_end',s.current_period_end);
 end $$;
-revoke all on function public.platform_subscription_entitlements(uuid) from public;
-grant execute on function public.platform_subscription_entitlements(uuid) to authenticated;
 
 create or replace function public.request_platform_subscription_cancellation(target_garden_id uuid, requested_reason text default null)
 returns jsonb language plpgsql security definer set search_path = public as $$
@@ -196,8 +43,6 @@ begin
     values(s.id,target_garden_id,'cancellation_requested',s.status::text,s.status::text,auth.uid(),'garden',left(requested_reason,500));
   return jsonb_build_object('id',s.id,'status',s.status,'cancellation_effective_at',effective_at);
 end $$;
-revoke all on function public.request_platform_subscription_cancellation(uuid,text) from public;
-grant execute on function public.request_platform_subscription_cancellation(uuid,text) to authenticated;
 
 create or replace function public.admin_version_platform_plan(target_plan_id uuid, proposed_name text,
   proposed_price numeric, proposed_currency text default 'ILS', proposed_billing_interval text default 'monthly', proposed_grace_days integer default null,
@@ -234,8 +79,6 @@ begin
   return jsonb_build_object('id',new_plan.id,'code',new_plan.code,'version',new_plan.version,
     'unit_price',new_plan.price_amount,'currency',new_plan.currency,'is_default',new_plan.is_default);
 end $$;
-revoke all on function public.admin_version_platform_plan(uuid,text,numeric,text,text,integer,boolean) from public;
-grant execute on function public.admin_version_platform_plan(uuid,text,numeric,text,text,integer,boolean) to authenticated;
 
 create or replace function public.ensure_platform_subscription(target_garden_id uuid, requested_plan_id uuid default null)
 returns jsonb language plpgsql security definer set search_path = public as $$
@@ -266,8 +109,6 @@ begin
     values(s.id,target_garden_id,'created','pending_payment',auth.uid(),'garden',s.current_period_start,s.current_period_end);
   return jsonb_build_object('id',s.id,'status',s.status,'existing',false);
 end $$;
-revoke all on function public.ensure_platform_subscription(uuid,uuid) from public;
-grant execute on function public.ensure_platform_subscription(uuid,uuid) to authenticated;
 
 create or replace function public.admin_adopt_platform_plan(target_subscription_id uuid, target_plan_id uuid, action_reason text)
 returns jsonb language plpgsql security definer set search_path=public as $$
@@ -296,8 +137,6 @@ begin
     values(s.id,s.garden_id,'plan_adopted',s.status::text,s.status::text,auth.uid(),'manual_admin',left(action_reason,500));
   return jsonb_build_object('id',s.id,'plan_id',p.id,'idempotent',false,'unit_price',agreed_price);
 end $$;
-revoke all on function public.admin_adopt_platform_plan(uuid,uuid,text) from public;
-grant execute on function public.admin_adopt_platform_plan(uuid,uuid,text) to authenticated;
 
 create or replace function public.admin_transition_platform_subscription(target_subscription_id uuid,
   requested_action text, action_reason text default null)
@@ -360,5 +199,3 @@ begin
     values(s.id,s.garden_id,requested_action,s.status::text,next_status::text,auth.uid(),source_kind,left(action_reason,500),next_start,next_end);
   return jsonb_build_object('id',s.id,'status',next_status,'idempotent',false,'source',source_kind);
 end $$;
-revoke all on function public.admin_transition_platform_subscription(uuid,text,text) from public;
-grant execute on function public.admin_transition_platform_subscription(uuid,text,text) to authenticated;

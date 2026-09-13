@@ -57,6 +57,8 @@ The existing Admin subscription surface is retained. Its generic status patch be
 ## RLS / Security
 The migration limits subscription SELECT to authorized Garden management or Admin and revokes direct authenticated subscription mutation. Plan mutation is Admin-only, with update/delete through the version RPC. Garden cancellation requires `can_manage_garden`; Admin actions require `is_admin`. The UI's selected Garden is never authorization proof.
 
+A production rollback-only probe exposed that `is_admin()` returns SQL `NULL` with no authenticated subject. The initial `IF NOT is_admin()` guard did not reject `NULL`. Follow-up migration `20260913193000` changes every subscription RPC to `IS DISTINCT FROM TRUE`; the same probe then passed for unauthorized transition, creation and entitlement reads. Fresh installs get the corrected guards in `20260913190000` as well. The probe wrote no persistent records.
+
 ## Idempotency / Concurrency
 Creation uses a Garden advisory transaction lock plus one-current partial unique index. Manual transitions lock the subscription row. Repeated terminal-state actions return existing state. No provider webhook is activated by this change.
 
