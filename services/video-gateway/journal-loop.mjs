@@ -43,7 +43,7 @@ export function safeEventValidationCategory(value) {
   return field ? `validation_${field}` : "validation_shape";
 }
 
-export function startJournalLoop({ gatewayUrl, gatewaySecret, databasePath, observerSiteId = "local-fixture-site", deviceId = "local-fixture-device", tenantId = observerSiteId, report = () => {}, pollIntervalMs = 1_000, personConfirmations = 3, cameraFilter = null, spatialTrace = false, resourcePressure = () => "NORMAL" }) {
+export function startJournalLoop({ gatewayUrl, gatewaySecret, databasePath, observerSiteId = "local-fixture-site", deviceId = "local-fixture-device", tenantId = observerSiteId, report = () => {}, pollIntervalMs = 1_000, manifestRefreshIntervalMs = 10_000, personConfirmations = 3, cameraFilter = null, spatialTrace = false, resourcePressure = () => "NORMAL" }) {
   const db = new DatabaseSync(databasePath);
   db.exec("PRAGMA journal_mode=WAL; CREATE TABLE IF NOT EXISTS camera_health(camera_id TEXT PRIMARY KEY, misses INTEGER NOT NULL DEFAULT 0, offline INTEGER NOT NULL DEFAULT 0, updated_at INTEGER NOT NULL)");
   const queue = createDurableOfflineQueue({ databasePath, encryptionKey: gatewaySecret, tenantId, siteId: observerSiteId, deviceId,
@@ -274,16 +274,18 @@ export function startJournalLoop({ gatewayUrl, gatewaySecret, databasePath, obse
   }
   async function cycle() {
     try {
-      // Refresh consent, source list and rules every cycle, but never let a
+      // Refresh consent, source list and rules at a bounded cadence, but never let a
       // slow cloud refresh block local real-camera sampling. Once a manifest
       // has been accepted, keep using that last-known-good contract while the
       // bounded refresh retries in the background on later cycles.
-      try {
-        const manifest = await request("/cloud/event-manifest", undefined, { timeoutMs: 2_500 });
-        deliveryManifest = manifest;
-        deliveryManifestAt = Date.now();
-      } catch (error) {
-        if (!deliveryManifest) throw error;
+      if (!deliveryManifest || Date.now() - deliveryManifestAt >= Math.min(Math.max(manifestRefreshIntervalMs, pollIntervalMs), 20_000)) {
+        try {
+          const manifest = await request("/cloud/event-manifest", undefined, { timeoutMs: 2_500 });
+          deliveryManifest = manifest;
+          deliveryManifestAt = Date.now();
+        } catch (error) {
+          if (!deliveryManifest) throw error;
+        }
       }
       const manifest = deliveryManifest;
       kickDelivery();
