@@ -114,6 +114,10 @@ Indexes support Garden/Classroom list ordering, participant unread queries and m
 
 `scripts/qa/check-management-messaging-threads.mjs` protects Parent/Child authorization, active-employment scope, IDOR boundaries, per-participant reads, idempotency, Inspector/Admin exclusion and Complaint/Task separation. Existing Management regression suites remain applicable.
 
+# Digital Observer Core Diff
+
+`DIGITAL OBSERVER CORE DIFF: 0`
+
 # Live QA
 
 LIVE MESSAGING QA: BLOCKED BY ENVIRONMENT. No controlled Parent, Garden Manager, multi-Garden Staff and revoked-Staff browser identities were available in this run.
