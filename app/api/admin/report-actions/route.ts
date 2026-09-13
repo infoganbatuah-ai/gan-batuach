@@ -18,27 +18,49 @@ export async function POST(request: Request) {
   try {
     const { profile } = await requireRole(["admin"]);
     const payload = schema.parse(await request.json());
+    if (payload.source === "complaint") {
+      const userClient = await createClient();
+      if (payload.action === "create_task") {
+        const task = await userClient.rpc("create_task_from_source" as never, {
+          p_source_type: "complaint", p_source_id: payload.id, p_assigned_to: payload.assigned_to ?? null,
+          p_note: payload.message ?? null
+        } as never);
+        if (task.error) return fail("יצירת משימת התלונה נכשלה.", task.error.code === "42501" ? 403 : 400);
+        return ok(task.data);
+      }
+      const { data: current } = await userClient.from("complaints" as never).select("status").eq("id", payload.id).maybeSingle();
+      const complaintStatus = (current as { status?: string } | null)?.status;
+      const action = payload.action === "reply" ? "note"
+        : payload.action === "mark_urgent" ? "mark_urgent"
+          : payload.action === "change_status" ? "review"
+            : payload.action === "close" ? complaintStatus === "resolved" ? "close" : "resolve"
+              : "assign";
+      const transition = await userClient.rpc("transition_management_complaint" as never, {
+        p_id: payload.id, p_action: action,
+        p_public_note: action === "resolve" ? payload.resolution ?? payload.message ?? null : null,
+        p_internal_note: action === "note" ? payload.message ?? null : null
+      } as never);
+      if (transition.error) return fail("מעבר מצב התלונה נדחה.", transition.error.code === "42501" ? 403 : 400);
+      return ok(transition.data);
+    }
     const supabase = createAdminClient();
-    const table = payload.source === "complaint" ? "complaints" : "incident_reports";
+    const table = "incident_reports";
     const { data: current, error: currentError } = await supabase.from(table).select("*").eq("id", payload.id).single();
     if (currentError || !current) return fail("הדיווח לא נמצא.", 404);
 
     const timelineEntry = { at: new Date().toISOString(), by: profile.id, action: payload.action, message: payload.message ?? payload.resolution ?? null };
     const patch: Record<string, unknown> = { updated_at: new Date().toISOString() };
     if (payload.action === "reply") {
-      if (payload.source === "complaint") patch.last_response_at = new Date().toISOString();
       patch.internal_notes = [current.internal_notes, payload.message].filter(Boolean).join("\n");
     }
     if (payload.action === "assign") patch.assigned_to = payload.assigned_to ?? profile.id;
     if (payload.action === "mark_urgent") {
-      if (payload.source === "complaint") patch.urgent = true;
       patch.severity = "critical";
     }
     if (payload.action === "change_status") patch.status = payload.status ?? "in_progress";
     if (payload.action === "close") {
       patch.status = "closed";
       patch.resolution = payload.resolution ?? payload.message ?? "נסגר על ידי אדמין";
-      if (payload.source === "complaint") patch.closed_at = new Date().toISOString();
     }
     patch.status_history = [...(Array.isArray(current.status_history) ? current.status_history : []), timelineEntry];
 

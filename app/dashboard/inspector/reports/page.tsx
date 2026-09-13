@@ -1,4 +1,5 @@
 import { AlertTriangle, FileText, MessageSquareWarning } from "lucide-react";
+import { ComplaintCaseActions } from "@/components/complaint-case-actions";
 import { requireOperationalRole } from "@/lib/management/operational-role";
 import { createClient } from "@/lib/supabase/server";
 import {
@@ -41,10 +42,11 @@ export default async function InspectorReportsPage() {
   ]);
   const ids = (gardensRes.data ?? []).map((g: any) => g.id);
   const [complaints, incidents] = ids.length ? await Promise.all([
-    supabase.from("complaints" as any).select("id, subject, severity, status, created_at, gardens(name)").in("garden_id", ids).order("created_at", { ascending: false }),
+    supabase.from("complaints" as any).select("id, subject, severity, status, created_at, acknowledgement_due_at, response_due_at, resolution_due_at, sla_policy_id, gardens(name)").in("garden_id", ids).order("created_at", { ascending: false }),
     supabase.from("incident_reports" as any).select("id, title, severity, status, created_at, gardens(name)").in("garden_id", ids).order("created_at", { ascending: false })
   ]) : [{ data: [] }, { data: [] }];
-  const rows = [...(complaints.data ?? []), ...(incidents.data ?? [])] as any[];
+  const rows = [...(complaints.data ?? []).map((row) => ({ ...row, source: "complaint" })),
+    ...(incidents.data ?? []).map((row) => ({ ...row, source: "incident" }))] as any[];
   const urgent = rows.filter((row) => ["critical", "high", "urgent"].includes(String(row.severity))).length;
   const profileForUi = { ...profile, profile_image_url: (inspectorRes.data as any)?.profile_photo_url ?? profile.profile_image_url };
 
@@ -63,8 +65,9 @@ export default async function InspectorReportsPage() {
               key={`${row.id}-${row.subject ?? row.title}`}
               title={row.subject ?? row.title ?? "דיווח"}
               subtitle={row.gardens?.name ?? "גן"}
-              meta={row.created_at ? new Date(row.created_at).toLocaleString("he-IL") : ""}
+              meta={`${row.created_at ? new Date(row.created_at).toLocaleString("he-IL") : ""}${row.source === "complaint" && row.sla_policy_id && [row.acknowledgement_due_at, row.response_due_at, row.resolution_due_at].some((due) => due && new Date(due).getTime() < Date.now()) && !["resolved", "closed"].includes(row.status) ? " · יעד SLA חלף" : ""}`}
               status={<InspectorStatus tone={["critical", "high", "urgent"].includes(String(row.severity)) ? "danger" : "warning"}>{reportStatusLabel(row.status, row.severity)}</InspectorStatus>}
+              actions={row.source === "complaint" ? <ComplaintCaseActions id={row.id} status={row.status} role="inspector" /> : undefined}
             />
           ))}
           {rows.length === 0 ? <InspectorEmpty title="אין דיווחים פתוחים" text="כאשר הורה, גן או תצפיתן ייצרו אירוע בגנים שלך, הוא יופיע כאן." icon={FileText} /> : null}
