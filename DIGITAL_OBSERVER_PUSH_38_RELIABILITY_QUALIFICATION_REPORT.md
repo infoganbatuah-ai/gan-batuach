@@ -6,6 +6,8 @@ Date started: 2026-09-11
 
 `NOT DONE — V7 24H SOAK FAILED; V8 NOT READY`
 
+PUSH 38I now passes isolated installed OTA-agent discovery/update and persistent crash-loop auto-rollback for both Gateway and Connector, including exact signed known-good restoration. The read-only live dry-run, however, detected one Gateway runtime file changed relative to the authorized legacy baseline. That candidate cannot be treated as an exact live known-good rollback target until reconciled. See `DIGITAL_OBSERVER_PUSH_38I_INSTALLED_OTA_REPORT.md`. No live bootstrap/remediation, real 60-minute pre-soak, or v8 has started; PR #28 remains draft/unmerged.
+
 PUSH 38C remediation is documented in `DIGITAL_OBSERVER_PUSH_38C_PRE_SOAK_CLOSURE.md`. The code fixes and diagnostics do not supersede v7 evidence or satisfy the required real 60-minute pre-soak. V8 has not started.
 
 PUSH 38D's trusted-deployment preflight failed before any live modification: the installed Gateway and Connector lack verified OTA known-good state and still report `development`/`unknown` with the old health contract. The required real pre-soak remains at zero minutes; see `DIGITAL_OBSERVER_PUSH_38D_DEPLOYMENT_GATE_REPORT.md`.

@@ -1,5 +1,7 @@
 # PUSH 38 v8 readiness — NOT READY
 
+PUSH 38I isolated installed OTA-agent and crash-loop rollback QA passes on final exact-commit signed QA artifacts for both profiles. A fresh **read-only** live comparison found the Gateway installation now differs by one runtime file from its signed legacy baseline (Connector still matches). Therefore live known-good registration/bootstrap is blocked pending exact-current-runtime reconciliation and reauthorization. The protected live trust root was not installed, and there have been no live writes, pre-soak minutes, or v8 minutes. See `DIGITAL_OBSERVER_PUSH_38I_INSTALLED_OTA_REPORT.md`.
+
 V7 failed. Do **not** start v8, merge draft PR #28, or start PUSH 39. The 24-hour v8 clock has not started.
 
 ## Completed
