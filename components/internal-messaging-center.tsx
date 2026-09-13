@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useTransition } from "react";
+import { useRouter } from "next/navigation";
 import { MessageCircleReply } from "lucide-react";
 import { Avatar } from "@/components/avatar";
 import { CollapsibleActionPanel } from "@/components/collapsible-action-panel";
@@ -22,6 +23,7 @@ export function InternalMessagingCenter({
   preselectedRecipientId?: string;
   defaultOpen?: boolean;
 }) {
+  const router = useRouter();
   const [message, setMessage] = useState("");
   const [isPending, startTransition] = useTransition();
 
@@ -32,14 +34,16 @@ export function InternalMessagingCenter({
       recipient_id: String(formData.get("recipient_id") ?? "") || undefined,
       subject: String(formData.get("subject") ?? ""),
       body: String(formData.get("body") ?? ""),
-      content: String(formData.get("body") ?? ""),
-      linked_child_id: String(formData.get("linked_child_id") ?? "") || undefined,
-      status: "unread",
-      treatment_status: "open"
+      child_id: String(formData.get("linked_child_id") ?? "") || undefined
     };
     startTransition(async () => {
-      const response = await fetch("/api/messages", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) });
+      const response = await fetch("/api/communication/threads", {
+        method: "POST",
+        headers: { "Content-Type": "application/json", "Idempotency-Key": crypto.randomUUID() },
+        body: JSON.stringify(payload)
+      });
       setMessage(response.ok ? "ההודעה נשלחה ונשמרה במערכת." : "לא ניתן לשלוח הודעה כרגע.");
+      if (response.ok) router.refresh();
     });
   }
 
@@ -47,7 +51,7 @@ export function InternalMessagingCenter({
     <section className="grid cols-2 dashboard-panels">
       <CollapsibleActionPanel title="הודעה חדשה" description="פתחו את הטופס רק כשצריך לשלוח הודעה. השיחות האחרונות נשארות זמינות בצד." buttonLabel="יצירת הודעה חדשה" defaultOpen={defaultOpen || messages.length === 0 || Boolean(preselectedChildId || preselectedRecipientId)}>
         {({ close }) => <form action={async (formData) => { await submit(formData); close(); }} className="card form wizard-form">
-        <div className="section-heading"><h2><MessageCircleReply size={20} /> הודעה חדשה</h2><p>בחרו נמען, נושא ותוכן. ההודעה נשמרת עם סטטוס קריאה וטיפול.</p></div>
+        <div className="section-heading"><h2><MessageCircleReply size={20} /> הודעה חדשה</h2><p>בחרו נמען, נושא ותוכן. השיחה נשמרת בהקשר הגן והילד המורשה בלבד.</p></div>
         {message ? <div className={message.includes("נשלחה") ? "success-banner" : "error-banner"}>{message}</div> : null}
         <div className="form-grid">
           {preselectedRecipientId ? <input type="hidden" name="recipient_id" value={preselectedRecipientId} /> : <label>נמען<select name="recipient_id" required><option value="">בחרו נמען</option>{recipients.map((recipient) => <option key={recipient.id} value={recipient.id}>{recipient.full_name ?? recipient.email ?? recipient.id} · {recipient.role ?? ""}</option>)}</select></label>}
@@ -61,7 +65,7 @@ export function InternalMessagingCenter({
       </CollapsibleActionPanel>
       <article className="card action-panel">
         <div className="section-heading"><h2>שיחות אחרונות</h2><p>כולל סטטוס קריאה, נושא ותאריך.</p></div>
-        {messages.length === 0 ? <div className="empty-state"><strong>אין הודעות עדיין</strong><span>לאחר שליחה או קבלה של הודעה, היא תופיע כאן.</span></div> : <div className="message-thread-list">{messages.map((item) => <div className="message-thread" key={item.id}><Avatar name={item.sender?.full_name ?? item.recipient?.full_name ?? "משתמש"} src={item.sender?.profile_image_url ?? item.recipient?.profile_image_url} /><div><strong>{item.subject}</strong><p>{item.content ?? item.body}</p><small>{item.created_at ? new Date(item.created_at).toLocaleString("he-IL") : ""} · {item.status ?? "unread"}</small></div></div>)}</div>}
+        {messages.length === 0 ? <div className="empty-state"><strong>אין הודעות עדיין</strong><span>לאחר שליחה או קבלה של הודעה, היא תופיע כאן.</span></div> : <div className="message-thread-list">{messages.map((item) => <div className="message-thread" key={item.id}><Avatar name={item.sender?.full_name ?? item.recipient?.full_name ?? "משתמש"} src={item.sender?.profile_image_url ?? item.recipient?.profile_image_url} /><div><strong>{item.subject}</strong><p>{item.content ?? item.body}</p><small>{item.created_at ? new Date(item.created_at).toLocaleString("he-IL") : ""} · {item.status ?? "open"}</small></div></div>)}</div>}
       </article>
     </section>
   );
