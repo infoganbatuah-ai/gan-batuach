@@ -14,6 +14,7 @@ import { getGatewayProvider, isGatewayConfigured } from "@/lib/domain/video-gate
 import { getVisionProductionReadiness } from "@/lib/domain/vision-provider";
 import { getIntegrationSafetyModes, getProviderMissingConfiguration, getSafeIntegrationStatus } from "@/lib/domain/provider-integration-safety";
 import { getProviderActivationInventory } from "@/lib/domain/provider-configuration-validator";
+import { getFinancialProviderCapabilities } from "@/lib/domain/financial-provider-capability";
 
 type IntegrationType = "email" | "whatsapp" | "sms" | "push" | "payment" | "invoice" | "supabase" | "vercel" | "camera_gateway" | "ai_provider";
 
@@ -53,6 +54,7 @@ type WebhookReadiness = {
   provider: string;
   endpoint_path: string;
   status?: string | null;
+  last_test_status?: string | null;
   signing_secret_env?: string | null;
   notes?: string | null;
 };
@@ -169,6 +171,7 @@ export default async function AdminIntegrationsPage() {
   ]);
 
   const safetyModes = getIntegrationSafetyModes();
+  const financialCapabilities = getFinancialProviderCapabilities();
   const emailReadiness = getEmailProductionReadiness();
   const whatsappReadiness = getWhatsAppProductionReadiness();
   const smsReadiness = getSmsProductionReadiness();
@@ -202,12 +205,13 @@ export default async function AdminIntegrationsPage() {
   const readyCount = cards.filter((card) => ["configured", "production_ready", "active", "test_mode"].includes(card.status)).length;
   const activeCount = cards.filter((card) => card.status === "active").length;
   const failedCount = cards.filter((card) => card.status === "failed").length;
-  const webhooksReady = webhookRows.filter((row) => ["configured", "production_ready", "active"].includes(String(row.status))).length;
+  const webhooksReady = webhookRows.filter((row) => ["configured", "production_ready", "active"].includes(String(row.status)) &&
+    (!(["payment", "invoice"].includes(row.integration_type)) || row.last_test_status === "passed")).length;
   const totalIntegrations = Object.keys(integrationMeta).length;
   const safetyWarnings = [
     safetyModes.communications !== "production" ? "תקשורת במצב בטוח" : null,
-    safetyModes.payment !== "live" ? "תשלומים לא במצב live" : null,
-    safetyModes.invoice !== "production" ? "חשבוניות לא במצב ייצור" : null
+    !financialCapabilities.payment.liveChargesEnabled ? "סליקה חיה לא אומתה" : null,
+    !financialCapabilities.invoice.taxDocumentsAvailable ? "הפקת מסמכי מס לא אומתה" : null
   ].filter(Boolean);
 
   return (

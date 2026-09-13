@@ -4,7 +4,7 @@ import { GardenSubscriptionActions } from "@/components/subscription-admin-manag
 import { requireRole } from "@/lib/auth";
 import { evaluateSubscriptionAccess, loadGardenSubscriptionData } from "@/lib/domain/billing";
 import { ganBatuachTrialDays } from "@/lib/domain/kindergarten-onboarding";
-import { getIntegrationSafetyModes, getSafeIntegrationStatus } from "@/lib/domain/provider-integration-safety";
+import { getSafeIntegrationStatus } from "@/lib/domain/provider-integration-safety";
 import { createClient } from "@/lib/supabase/server";
 import { CheckCircle2, CreditCard, ShieldCheck, WalletCards } from "lucide-react";
 import {
@@ -70,7 +70,6 @@ export default async function GardenSubscriptionPage() {
   const subscription = data.subscription as any;
   const plan = subscription?.subscription_plans;
   const policy = evaluateSubscriptionAccess(subscription?.status, Boolean(subscription?.admin_override));
-  const providerModes = getIntegrationSafetyModes();
   const paymentProviderStatus = getSafeIntegrationStatus("payment", process.env.PAYMENT_PROVIDER);
   const agreedPrice = subscription?.unit_price_snapshot;
   const priceLabel = agreedPrice == null ? "מחיר היסטורי לא אומת" : money(agreedPrice, subscription?.currency_snapshot ?? plan?.currency ?? "ILS");
@@ -116,7 +115,7 @@ export default async function GardenSubscriptionPage() {
                 <TeacherCompactItem title="תנאי חיוב מוסכמים" subtitle={`מחזור ${subscription?.billing_interval === "annual" ? "שנתי" : "חודשי"}; התחייבות ${subscription?.commitment_months ?? "לא הוגדרה"} חודשים`} tone="purple" meta={priceLabel} />
                 <TeacherCompactItem title="סיום התחייבות" subtitle="לפי רשומת המנוי, ללא חיוב אוטומטי" tone="blue" meta={date(subscription?.commitment_end)} />
                 <TeacherCompactItem title="התצפיתן הדיגיטלי" subtitle="כלול בתוך דשבורד גן בטוח; אין צורך בחשבון חיצוני למנהלת" tone="green" meta="כלול" />
-                <TeacherCompactItem title="מצב ספק תשלום" subtitle={paymentProviderStatus === "production_ready" ? "ספק מוכן לפי env" : "אין להניח חיוב חי ללא הגדרה חיצונית"} tone={providerModes.payment === "live" ? "green" : "orange"} meta={providerModes.payment === "live" ? "Live" : providerModes.payment === "sandbox" ? "Sandbox" : "כבוי"} />
+                <TeacherCompactItem title="מצב ספק תשלום" subtitle="סליקה מקוונת אינה זמינה עד לאימות ספק, webhook וכוונת חיוב" tone="orange" meta={paymentProviderStatus === "disabled" ? "כבוי" : "ממתין לאימות"} />
               </TeacherCompactList>
             </TeacherSection>
 

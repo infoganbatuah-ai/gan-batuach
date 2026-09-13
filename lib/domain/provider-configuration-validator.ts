@@ -8,6 +8,7 @@ export type ProviderReadinessStatus =
   | "configured"
   | "missing_env"
   | "sandbox_ready"
+  | "readiness_only"
   | "production_blocked"
   | "disabled"
   | "invalid_mode";
@@ -49,15 +50,6 @@ function flattenMissing(groups: string[]) {
   return groups.flatMap((group) => group.split(" or ").map((name) => name.trim()));
 }
 
-function statusFrom(mode: string, missingEnv: string[], liveBlocked: boolean): ProviderReadinessStatus {
-  if (mode === "disabled") return "disabled";
-  if (!supportedModes.includes(mode as ProviderMode) && !["production", "live"].includes(mode)) return "invalid_mode";
-  if (liveBlocked) return "production_blocked";
-  if (missingEnv.length) return "missing_env";
-  if (mode === "sandbox" || mode === "test" || mode === "mock") return "sandbox_ready";
-  return "configured";
-}
-
 function paymentStatus(): ProviderConfigurationStatus {
   const mode = normalizeProviderMode(process.env.PAYMENT_MODE, "disabled");
   const provider = process.env.PAYMENT_PROVIDER || "not_selected";
@@ -65,7 +57,7 @@ function paymentStatus(): ProviderConfigurationStatus {
   const required = ["PAYMENT_PROVIDER", "PAYMENT_WEBHOOK_SECRET", "PAYMENT_SUCCESS_URL", "PAYMENT_CANCEL_URL"];
   const missingEnv = Array.from(new Set([...missing, ...required.filter((name) => !process.env[name])]));
   const modeRequiresSecret = mode === "production" || mode === "live";
-  const liveBlocked = modeRequiresSecret && (!process.env.PAYMENT_WEBHOOK_SECRET || missingEnv.length > 0);
+  const liveBlocked = modeRequiresSecret;
   return {
     type: "payment",
     provider,
@@ -75,13 +67,13 @@ function paymentStatus(): ProviderConfigurationStatus {
     missingEnv,
     webhookUrl: url("/api/webhooks/payment"),
     callbackUrl: url("/dashboard/garden/subscription"),
-    sandboxSupported: true,
-    productionSupported: true,
+    sandboxSupported: false,
+    productionSupported: false,
     testActionAvailable: true,
     healthCheckAvailable: true,
     logsAvailable: true,
-    status: statusFrom(mode, missingEnv, liveBlocked),
-    blockers: liveBlocked ? ["Live payment mode requires provider credentials and PAYMENT_WEBHOOK_SECRET."] : missingEnv.length ? ["Payment provider is not fully configured."] : []
+    status: mode === "disabled" ? "disabled" : liveBlocked ? "production_blocked" : missingEnv.length ? "missing_env" : "readiness_only",
+    blockers: ["No provider-specific checkout, signature verification or bound settlement adapter is active.", ...(missingEnv.length ? ["Payment provider is not fully configured."] : [])]
   };
 }
 
@@ -91,7 +83,7 @@ function invoiceStatus(): ProviderConfigurationStatus {
   const missing = flattenMissing(getProviderMissingConfiguration("invoice", provider));
   const required = ["INVOICE_PROVIDER", "INVOICE_API_KEY", "INVOICE_WEBHOOK_SECRET"];
   const missingEnv = Array.from(new Set([...missing, ...required.filter((name) => !process.env[name])]));
-  const liveBlocked = (mode === "production" || mode === "live") && (!process.env.INVOICE_WEBHOOK_SECRET || missingEnv.length > 0);
+  const liveBlocked = mode === "production" || mode === "live";
   return {
     type: "invoice",
     provider,
@@ -101,13 +93,13 @@ function invoiceStatus(): ProviderConfigurationStatus {
     missingEnv,
     webhookUrl: url("/api/webhooks/invoice"),
     callbackUrl: null,
-    sandboxSupported: true,
-    productionSupported: true,
+    sandboxSupported: false,
+    productionSupported: false,
     testActionAvailable: true,
     healthCheckAvailable: true,
     logsAvailable: true,
-    status: statusFrom(mode, missingEnv, liveBlocked),
-    blockers: liveBlocked ? ["Production invoice mode requires provider credentials and INVOICE_WEBHOOK_SECRET."] : missingEnv.length ? ["Invoice provider is not fully configured."] : []
+    status: mode === "disabled" ? "disabled" : liveBlocked ? "production_blocked" : missingEnv.length ? "missing_env" : "readiness_only",
+    blockers: ["No authorized invoice/receipt issuance adapter is active.", ...(missingEnv.length ? ["Invoice provider is not fully configured."] : [])]
   };
 }
 

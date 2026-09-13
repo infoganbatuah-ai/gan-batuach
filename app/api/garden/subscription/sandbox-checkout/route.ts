@@ -25,10 +25,8 @@ export async function POST() {
       .maybeSingle();
     if (error) return fail("לא ניתן לטעון את סטטוס המנוי כרגע.", 400);
 
-    const checkoutStatus = payment.status === "sandbox_ready" ? "sandbox_ready" : "readiness_only";
-    const message = checkoutStatus === "sandbox_ready"
-      ? "ספק התשלומים מוכן לבדיקת sandbox. לא בוצע חיוב אמיתי."
-      : "ספק התשלומים עדיין לא מוגדר ל-sandbox. מוצגת כשירות בלבד ללא חיוב.";
+    const checkoutStatus = "readiness_only";
+    const message = "אין מתאם סליקה מאומת. מוצגת כשירות בלבד ללא יצירת checkout או חיוב.";
 
     await supabase.from("audit_logs" as any).insert({
       actor_id: profile.id,
@@ -53,7 +51,7 @@ export async function POST() {
       body: "מנהלת/בעלים ביקשו בדיקת תשלום sandbox. לא בוצע חיוב אמיתי.",
       entity_type: "kindergarten_subscriptions",
       entity_id: subscription?.id ?? null,
-      severity: checkoutStatus === "sandbox_ready" ? "low" : "medium",
+      severity: "medium",
       action_url: "/dashboard/admin/integrations",
       created_by: profile.id,
       metadata: {

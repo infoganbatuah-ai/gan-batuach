@@ -102,11 +102,11 @@ export function getSafeIntegrationStatus(type: IntegrationType, provider?: strin
 
   if (type === "payment") {
     if (modes.payment === "disabled") return "disabled";
-    return missing.length ? "not_configured" : modes.livePaymentsAllowed ? "production_ready" : "test_mode";
+    return missing.length ? "not_configured" : "provider_not_verified";
   }
   if (type === "invoice") {
     if (modes.invoice === "disabled") return "disabled";
-    return missing.length ? "not_configured" : modes.productionInvoicesAllowed ? "production_ready" : "test_mode";
+    return missing.length ? "not_configured" : "provider_not_verified";
   }
   if (["email", "whatsapp", "sms", "push"].includes(type)) {
     if (type === "push") {

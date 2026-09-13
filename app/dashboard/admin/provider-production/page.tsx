@@ -7,6 +7,7 @@ import { ActionCard, CleanSection, EmptyState, PremiumDashboardHero, RoleMetricC
 import { requireRole } from "@/lib/auth";
 import { logSupabaseError, safeAdminData } from "@/lib/admin-safe";
 import { getIntegrationSafetyModes, getProviderMissingConfiguration, getSafeIntegrationStatus, type IntegrationType } from "@/lib/domain/provider-integration-safety";
+import { getFinancialProviderCapabilities } from "@/lib/domain/financial-provider-capability";
 import { createClient } from "@/lib/supabase/server";
 
 type Row = Record<string, any>;
@@ -50,6 +51,7 @@ function label(value?: string | null) {
     reconciled: "מותאם",
     production_pending: "ממתין לייצור",
     not_configured: "לא מוגדר",
+    provider_not_verified: "ספק לא אומת",
     estimated: "אומדן",
     reported: "דווח",
     open: "פתוח",
@@ -109,6 +111,7 @@ function modeFor(type: IntegrationType, modes: ReturnType<typeof getIntegrationS
 export default async function ProviderProductionPage() {
   const { profile } = await requireRole(["admin"]);
   const modes = getIntegrationSafetyModes();
+  const financialCapabilities = getFinancialProviderCapabilities();
   const result = await safeAdminData("provider production activation", async () => {
     const supabase = await createClient();
     const [scores, integrations, checklists, health, costs, alerts, fallbacks, rollbacks, runbooks, tests, webhooks, deliveryLogs] = await Promise.all([
@@ -147,7 +150,8 @@ export default async function ProviderProductionPage() {
   const productionActive = data.checklists.filter((item) => item.activation_status === "production_active").length;
   const productionPending = data.checklists.filter((item) => item.activation_status === "production_pending").length;
   const failedOrDegraded = data.health.filter((item) => ["failed", "degraded"].includes(String(item.provider_status))).length + data.alerts.filter((item) => ["high", "critical"].includes(String(item.severity)) && !["resolved", "suppressed"].includes(String(item.status))).length;
-  const webhookReady = data.webhooks.filter((item) => ["configured", "production_ready", "production_active", "active"].includes(String(item.status))).length;
+  const webhookReady = data.webhooks.filter((item) => ["configured", "production_ready", "production_active", "active"].includes(String(item.status)) &&
+    (!(["payment", "invoice"].includes(String(item.integration_type))) || item.last_test_status === "passed")).length;
   const rollbackReady = data.rollbacks.filter((item) => ["ready", "tested"].includes(String(item.rollback_status))).length;
   const totalEstimatedCost = data.costs.reduce((sum, item) => sum + Number(item.estimated_cost_nis ?? 0), 0);
 
@@ -155,7 +159,9 @@ export default async function ProviderProductionPage() {
     const rows = data.integrations.filter((item) => item.integration_type === meta.type);
     const checklist = data.checklists.find((item) => item.integration_type === meta.type);
     const health = data.health.find((item) => item.integration_type === meta.type);
-    const status = health?.provider_status ?? checklist?.activation_status ?? getSafeIntegrationStatus(meta.type, checklist?.provider ?? rows[0]?.provider);
+    const status = meta.type === "payment" ? (financialCapabilities.payment.checkoutAvailable ? financialCapabilities.payment.state : "provider_not_verified")
+      : meta.type === "invoice" ? (financialCapabilities.invoice.taxDocumentsAvailable ? financialCapabilities.invoice.state : "provider_not_verified")
+      : health?.provider_status ?? checklist?.activation_status ?? getSafeIntegrationStatus(meta.type, checklist?.provider ?? rows[0]?.provider);
     const missing = checklist?.required_env_configured === false ? checklist.required_env_vars ?? getProviderMissingConfiguration(meta.type, checklist.provider) : getProviderMissingConfiguration(meta.type, checklist?.provider ?? rows[0]?.provider);
     return { ...meta, status, rows, checklist, health, missing };
   });
