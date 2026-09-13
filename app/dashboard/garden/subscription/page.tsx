@@ -3,7 +3,7 @@ import { DashboardShell } from "@/components/dashboard-shell";
 import { GardenSubscriptionActions } from "@/components/subscription-admin-manager";
 import { requireRole } from "@/lib/auth";
 import { evaluateSubscriptionAccess, loadGardenSubscriptionData } from "@/lib/domain/billing";
-import { calculateGanBatuachMonthlyPrice, ganBatuachTrialDays } from "@/lib/domain/kindergarten-onboarding";
+import { ganBatuachTrialDays } from "@/lib/domain/kindergarten-onboarding";
 import { getIntegrationSafetyModes, getSafeIntegrationStatus } from "@/lib/domain/provider-integration-safety";
 import { createClient } from "@/lib/supabase/server";
 import { CheckCircle2, CreditCard, ShieldCheck, WalletCards } from "lucide-react";
@@ -28,6 +28,8 @@ const statusLabels: Record<string, string> = {
   active: "פעיל",
   trial: "ניסיון",
   pending_payment: "המנוי עדיין לא הופעל",
+  past_due: "תשלום מנוי באיחור",
+  grace_period: "תקופת חסד מוגדרת",
   payment_failed: "תשלום נכשל",
   frozen: "מוקפא",
   suspended: "מושעה",
@@ -70,8 +72,8 @@ export default async function GardenSubscriptionPage() {
   const policy = evaluateSubscriptionAccess(subscription?.status, Boolean(subscription?.admin_override));
   const providerModes = getIntegrationSafetyModes();
   const paymentProviderStatus = getSafeIntegrationStatus("payment", process.env.PAYMENT_PROVIDER);
-  const classCount = Number(subscription?.metadata?.class_count ?? subscription?.metadata?.age_group_count ?? 1);
-  const expectedMonthly = calculateGanBatuachMonthlyPrice(classCount);
+  const agreedPrice = subscription?.unit_price_snapshot;
+  const priceLabel = agreedPrice == null ? "מחיר היסטורי לא אומת" : money(agreedPrice, subscription?.currency_snapshot ?? plan?.currency ?? "ILS");
   const daysLeft = demoDaysLeft(subscription);
 
   return (
@@ -103,7 +105,7 @@ export default async function GardenSubscriptionPage() {
         <>
           <TeacherStatsGrid>
             <TeacherStatCard title="תוכנית" value={plan?.name ?? "Gan Batuach"} hint="מנוי גן" icon={ShieldCheck} tone="purple" />
-            <TeacherStatCard title="מחיר חודשי" value={money(subscription?.metadata?.monthly_amount_nis ?? expectedMonthly)} hint="משוער" icon={WalletCards} tone="blue" />
+            <TeacherStatCard title="מחיר לתקופת חיוב" value={priceLabel} hint={subscription?.billing_interval === "annual" ? "שנתי" : "חודשי"} icon={WalletCards} tone="blue" />
             <TeacherStatCard title="חידוש" value={date(subscription.renewal_date)} hint="תאריך הבא" icon={CreditCard} tone="green" />
             <TeacherStatCard title="סטטוס" value={statusLabels[subscription?.status] ?? "לא הוגדר"} hint="מנוי" icon={CheckCircle2} tone={["active", "trial", "demo_active"].includes(String(subscription?.status)) ? "green" : "orange"} />
           </TeacherStatsGrid>
@@ -111,8 +113,8 @@ export default async function GardenSubscriptionPage() {
           <section className="teacher-dashboard-grid">
             <TeacherSection title="פרטי המנוי" subtitle="התוכנית שנבחרה">
               <TeacherCompactList>
-                <TeacherCompactItem title="מנוי שנתי בתשלום חודשי" subtitle="החיוב מתחיל רק לאחר תקופת הניסיון וחיבור ספק מאושר" tone="purple" meta={money(subscription?.metadata?.monthly_amount_nis ?? expectedMonthly)} />
-                <TeacherCompactItem title="סה״כ לשנה" subtitle="חישוב לפי קבוצות / כיתות" tone="blue" meta={money((Number(subscription?.metadata?.monthly_amount_nis ?? expectedMonthly)) * 12)} />
+                <TeacherCompactItem title="תנאי חיוב מוסכמים" subtitle={`מחזור ${subscription?.billing_interval === "annual" ? "שנתי" : "חודשי"}; התחייבות ${subscription?.commitment_months ?? "לא הוגדרה"} חודשים`} tone="purple" meta={priceLabel} />
+                <TeacherCompactItem title="סיום התחייבות" subtitle="לפי רשומת המנוי, ללא חיוב אוטומטי" tone="blue" meta={date(subscription?.commitment_end)} />
                 <TeacherCompactItem title="התצפיתן הדיגיטלי" subtitle="כלול בתוך דשבורד גן בטוח; אין צורך בחשבון חיצוני למנהלת" tone="green" meta="כלול" />
                 <TeacherCompactItem title="מצב ספק תשלום" subtitle={paymentProviderStatus === "production_ready" ? "ספק מוכן לפי env" : "אין להניח חיוב חי ללא הגדרה חיצונית"} tone={providerModes.payment === "live" ? "green" : "orange"} meta={providerModes.payment === "live" ? "Live" : providerModes.payment === "sandbox" ? "Sandbox" : "כבוי"} />
               </TeacherCompactList>
@@ -120,8 +122,7 @@ export default async function GardenSubscriptionPage() {
 
             <TeacherSection title="פירוט חיוב" subtitle="מנוי גן בטוח נפרד מתשלומי הורים">
               <TeacherCompactList>
-                <TeacherCompactItem title="בסיס" subtitle="כיתה / קבוצת גיל ראשונה" tone="green" meta="₪700" />
-                <TeacherCompactItem title="תוספת" subtitle="כל כיתה / קבוצת גיל נוספת" tone="blue" meta="+₪200" />
+                <TeacherCompactItem title="מחיר מוסכם" subtitle="נשמר בעת יצירת המנוי ואינו משתנה עם מחיר התוכנית" tone="green" meta={priceLabel} />
                 <TeacherCompactItem title="תקופת ניסיון" subtitle="יש להסדיר תשלום לפני סיום התקופה; לא נגבה דבר ביום ההפעלה" tone="orange" meta={`${ganBatuachTrialDays} ימים`} />
               </TeacherCompactList>
             </TeacherSection>

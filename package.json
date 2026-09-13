@@ -41,6 +41,7 @@
     "qa:management-multi-garden-staff": "node --test scripts/qa/check-management-multi-garden-staff.mjs",
     "qa:management-inspector-approval": "node --test scripts/qa/check-management-inspector-approval.mjs",
     "qa:management-task-workflows": "node --test scripts/qa/check-management-task-workflows.mjs",
+    "qa:management-platform-subscriptions": "node --test scripts/qa/check-management-platform-subscriptions.mjs",
     "qa:digital-observer-product": "node scripts/qa/check-digital-observer-product.mjs",
     "qa:digital-observer-event-media": "node scripts/qa/check-digital-observer-event-media.mjs",
     "qa:event-journal": "node scripts/qa/check-event-journal.mjs && node scripts/qa/check-event-ingest.mjs && node scripts/qa/check-event-outbox.mjs && node scripts/qa/check-object-inference.mjs && node scripts/qa/check-digital-observer-event-media.mjs",
