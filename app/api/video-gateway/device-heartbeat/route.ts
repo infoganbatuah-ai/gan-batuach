@@ -44,7 +44,7 @@ function cloudSecret() {
   return process.env.VIDEO_GATEWAY_CLOUD_DISCOVERY_SECRET || "";
 }
 
-export function isFleetCommandContractUnavailable(error: unknown) {
+function isFleetCommandContractUnavailable(error: unknown) {
   if (!error || typeof error !== "object") return false;
   const code = String((error as { code?: unknown }).code || "");
   return code === "PGRST202" || code === "42883";

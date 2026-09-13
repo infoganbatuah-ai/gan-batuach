@@ -39,6 +39,7 @@ const navByRole: Record<UserRole, Array<{ href: string; label: string; hint: str
     { href: "/dashboard/admin/leads", label: "לידים", hint: "המרות גנים ומפקחים" },
     { href: "/dashboard/admin/kindergarten-activation", label: "הפעלת גנים", hint: "אישור, אשף ותשלום" },
     { href: "/dashboard/admin/service-charter", label: "אמנת שירות", hint: "תוכן רישום" },
+    { href: "/dashboard/admin/articles", label: "כתבות ותוכן", hint: "מגזין ו-SEO" },
     { href: "/dashboard/admin/users", label: "הוספת משתמשים", hint: "גנים ופקחים" },
     { href: "/dashboard/admin/requests", label: "בקשות משתמשים", hint: "הרשמה ושיוכים" },
     { href: "/dashboard/admin/inspector-applications", label: "בקשות מפקחים", hint: "אישור ושיוך" },

@@ -1,10 +1,15 @@
 import type { MetadataRoute } from "next";
+import { getPublishedArticles } from "@/lib/editorial/store";
+import { SITE_URL } from "@/lib/editorial/articles";
 
-export default function sitemap(): MetadataRoute.Sitemap {
-  const base = "https://gan-batuach.vercel.app";
+export const dynamic = "force-dynamic";
+
+export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
+  const base = SITE_URL;
   const routes = [
     "",
     "/why-gan-batuach",
+    "/articles",
     "/safety-standard",
     "/parents-demand",
     "/parents-demand-safety",
@@ -32,10 +37,11 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "/digital-observer/start",
     "/digital-observer/trust"
   ];
-  return routes.map((route) => ({
+  const pages: MetadataRoute.Sitemap = routes.map((route) => ({
     url: `${base}${route}`,
-    lastModified: new Date(),
     changeFrequency: route === "" ? "weekly" : "monthly",
     priority: route === "" ? 1 : route === "/book-demo" ? 0.95 : 0.8
   }));
+  const articles = await getPublishedArticles();
+  return [...pages, ...articles.map((article) => ({ url: `${base}/articles/${article.slug}`, lastModified: new Date(article.published_at), changeFrequency: "monthly" as const, priority: 0.7 }))];
 }

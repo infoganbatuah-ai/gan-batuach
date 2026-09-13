@@ -4,6 +4,9 @@ import { withSentryConfig } from "@sentry/nextjs";
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   devIndicators: false,
+  experimental: {
+    serverActions: { bodySizeLimit: "6mb" }
+  },
   turbopack: {
     root: process.cwd()
   }

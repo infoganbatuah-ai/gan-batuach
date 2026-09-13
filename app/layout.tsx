@@ -11,20 +11,20 @@ import "./styles/manager-onboarding-live.css";
 import "./styles/digital-observer-product.css";
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://gan-batuach.vercel.app"),
+  metadataBase: new URL("https://ganbatuach.com"),
   title: {
     default: "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
     template: "%s | גן בטוח"
   },
-  description: "גן בטוח היא פלטפורמת בטיחות, פיקוח, שקיפות וניהול לגני ילדים: הורים, צוות, פקחים ומנהלים במקום אחד.",
+  description: "גן בטוח היא מערכת לניהול גני ילדים וסטנדרט פרטי לבקרה ופיקוח: הורים, צוות, מפקחים ומנהלים במקום אחד.",
   applicationName: "גן בטוח",
-  keywords: ["גן בטוח", "בטיחות בגני ילדים", "פיקוח גני ילדים", "שקיפות הורים", "ניהול גן ילדים", "תצפיתן דיגיטלי"],
+  keywords: ["גן בטוח", "תו תקן לגני ילדים פרטיים", "בקרה ופיקוח לגני ילדים", "מערכת לניהול גני ילדים", "ניהול גן ילדים", "בחירת גן ילדים"],
   openGraph: {
     type: "website",
     locale: "he_IL",
-    url: "https://gan-batuach.vercel.app",
+    url: "https://ganbatuach.com",
     siteName: "גן בטוח",
-    title: "גן בטוח – תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",
+    title: "גן בטוח – תו תקן פרטי ומערכת לניהול גני ילדים",
     description: "פלטפורמה לאמון הורים, פיקוח, תפעול גנים ושקיפות בטיחותית."
   },
   manifest: "/manifest.webmanifest",
