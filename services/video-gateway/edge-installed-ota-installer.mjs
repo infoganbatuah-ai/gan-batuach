@@ -2,7 +2,7 @@
 // functional Gateway/Connector runtime. Never called during read-only plan.
 import { execFileSync } from "node:child_process";
 import { createHash, randomUUID } from "node:crypto";
-import { cpSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
+import { cpSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { homedir, tmpdir } from "node:os";
 import { dirname, join, resolve } from "node:path";
 import { verifyEdgeArtifact, verifyEdgeUpdateManifest } from "./edge-update-contract.mjs";
@@ -51,6 +51,18 @@ export function installInstalledOtaAgent({ profile, managedRoot, agentPlistPath,
   const bootstrap = JSON.parse(readFileSync(join(managedRoot, "installed-bootstrap.json"), "utf8"));
   if (bootstrap.pointer.release_id !== baselineReleaseId || !baselineReleaseId ||
     bootstrap.pointer.artifact_sha256 !== runtimeConfig.baselineArtifactSha256) fail("EDGE_OTA_INSTALL_BASELINE_UNVERIFIED");
+  const slotRoot = realpathSync(join(managedRoot, "slots"));
+  const baselineSlot = realpathSync(resolve(bootstrap.pointer.slot));
+  if (!baselineSlot.startsWith(`${slotRoot}/`) ||
+    lstatSync(join(baselineSlot, "release.json")).isSymbolicLink() ||
+    lstatSync(join(baselineSlot, "artifact.bin")).isSymbolicLink()) fail("EDGE_OTA_INSTALL_BASELINE_UNVERIFIED");
+  const baselineManifest = JSON.parse(readFileSync(join(baselineSlot, "release.json"), "utf8"));
+  if (!verifyEdgeUpdateManifest(baselineManifest, trusted).ok ||
+    baselineManifest.release_id !== baselineReleaseId || baselineManifest.profile !== profile ||
+    baselineManifest.platform !== "darwin" || baselineManifest.architecture !== process.arch ||
+    baselineManifest.artifact_sha256 !== bootstrap.pointer.artifact_sha256 ||
+    !verifyEdgeArtifact(readFileSync(join(baselineSlot, "artifact.bin")), baselineManifest).ok)
+    fail("EDGE_OTA_INSTALL_BASELINE_UNVERIFIED");
   if (!existsSync(nodePath) || lstatSync(nodePath).isSymbolicLink()) fail("EDGE_OTA_INSTALL_NODE_UNTRUSTED");
   const managementDir = join(managedRoot, "agent");
   const temp = mkdtempSync(join(tmpdir(), "observer-ota-management-"));

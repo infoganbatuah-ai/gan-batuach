@@ -228,6 +228,12 @@ for (const item of profiles) {
           expectedPhysicalCameras: 0,
           baselineArtifactSha256: baseline.manifest.artifact_sha256, qaIsolationRoot: root,
           qaRootPinPath, qaTrustRegistryPath, qaReleasePath, intervalMs: 1000 } };
+      const baselineManifestPath = join(manager.current().slot, "release.json");
+      const originalManifest = readFileSync(baselineManifestPath);
+      try {
+        writeFileSync(baselineManifestPath, JSON.stringify({ ...baseline.manifest, version: "9.9.9" }));
+        assert.throws(() => installInstalledOtaAgent(agentInstall), /EDGE_OTA_INSTALL_BASELINE_UNVERIFIED/);
+      } finally { writeFileSync(baselineManifestPath, originalManifest); }
       installInstalledOtaAgent(agentInstall);
       installInstalledOtaAgent(agentInstall);
       await until(() => execFileSync("/bin/launchctl", ["print", `gui/${process.getuid()}/${agentLabel}`],
@@ -265,6 +271,7 @@ for (const item of profiles) {
       results.push({ profile: item.profile, installed_agent: "launchd", automatic_update: "PASS",
         persistent_crash_rollback: "PASS", known_good_artifact_sha256: remediation.manifest.artifact_sha256,
         failed_release_quarantined: true, agent_restart_preserved_runtime: true, agent_install_idempotent: true,
+        tampered_baseline_install_rejected: true,
         persistent_fixture_preserved: true, live_home_touched: false });
       continue;
     }
