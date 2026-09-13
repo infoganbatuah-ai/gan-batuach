@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
-import { requireRole } from "@/lib/auth";
+import { getSessionProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { planTypes } from "@/lib/domain/billing";
 
@@ -26,9 +26,17 @@ const schema = z.object({
   is_default: z.coerce.boolean().default(false)
 });
 
+async function adminAccess() {
+  const { user, profile } = await getSessionProfile();
+  if (!user) return { error: fail("נדרשת התחברות מחדש.", 401), profile: null };
+  if (profile?.role !== "admin" || profile.active !== true) return { error: fail("נדרשת הרשאת מנהל מערכת.", 403), profile: null };
+  return { error: null, profile };
+}
+
 export async function GET() {
   try {
-    await requireRole(["admin"]);
+    const access = await adminAccess();
+    if (access.error) return access.error;
     const supabase = await createClient();
     const { data, error } = await supabase.from("subscription_plans" as any).select("*").order("sort_order");
     if (error) return fail("לא ניתן לטעון תוכניות מנוי כרגע.", 500);
@@ -40,7 +48,10 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
-    const { profile } = await requireRole(["admin"]);
+    const access = await adminAccess();
+    if (access.error) return access.error;
+    if (!access.profile) return fail("נדרשת הרשאת מנהל מערכת.", 403);
+    const { profile } = access;
     const payload = schema.parse(await request.json());
     const supabase = await createClient();
     if (payload.id) {

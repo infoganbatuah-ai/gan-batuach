@@ -55,3 +55,12 @@ test('cancellation is Garden-authorized; plan and transition changes are Admin-o
   assert.match(garden, /request_platform_subscription_cancellation/);
   assert.match(billing, /"grace_period"/);
 });
+
+test('Admin subscription APIs return HTTP authorization errors without redirecting', () => {
+  for (const route of [admin, plans]) {
+    assert.match(route, /getSessionProfile/);
+    assert.match(route, /if \(!user\).*401/);
+    assert.match(route, /profile\?\.role !== "admin".*403/);
+    assert.doesNotMatch(route, /requireRole/);
+  }
+});
