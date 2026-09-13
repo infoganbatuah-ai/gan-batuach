@@ -11,8 +11,10 @@ const args = Object.fromEntries(process.argv.slice(2).map(arg => { const i = arg
 for (const name of ["out", "node", "ffmpeg", "ffprobe", "ort", "model"]) if (!args[`--${name}`]) throw new Error(`BUILD_INPUT_REQUIRED_${name}`);
 if (process.platform !== "darwin") throw new Error("MACOS_BUILD_HOST_REQUIRED");
 const releaseClass = args["--release-class"] || "QA";
+const otaOnly = args["--ota-only"] === "1";
 const signingIdentity = args["--signing-identity"] || "-";
 if (!["QA", "PRODUCTION"].includes(releaseClass)) throw new Error("SIGNING_RELEASE_CLASS_INVALID");
+if (otaOnly && releaseClass !== "QA") throw new Error("OTA_ARCHIVE_QA_ONLY");
 if (releaseClass === "PRODUCTION" && signingIdentity === "-") throw new Error("APPLE_DISTRIBUTION_IDENTITY_REQUIRED");
 const version = args["--version"] || "0.1.0";
 const buildNumber = args["--build-number"] || "1";
@@ -95,6 +97,21 @@ run("/usr/bin/codesign", ["--force", "--sign", signingIdentity, app]);
 // Signing must be the final mutation of sealed bundle content. A successful
 // codesign invocation alone does not prove the package still verifies.
 run("/usr/bin/codesign", ["--verify", "--deep", "--strict", app]);
+if (otaOnly) {
+  const archive = join(out, "connector-remediation.tar.gz");
+  run("tar", ["-czf", archive, "-C", out, "Digital Observer.app"]);
+  const unpack = mkdtempSync(join(tmpdir(), "digital-observer-ota-seal-"));
+  try {
+    run("tar", ["-xzf", archive, "-C", unpack]);
+    run("/usr/bin/codesign", ["--verify", "--deep", "--strict", join(unpack, "Digital Observer.app")]);
+  } finally { rmSync(unpack, { recursive: true, force: true }); }
+  const archiveSha256 = createHash("sha256").update(readFileSync(archive)).digest("hex");
+  writeFileSync(join(out, "package-status.json"), JSON.stringify({ status: "QA_OTA_ARCHIVE_ONLY", releaseClass,
+    version, build: sha, buildNumber, signatureVerified: true, postArchiveSignatureVerified: true,
+    notarization: "NOT_VERIFIED", publicDownloadAllowed: false, archive: { filename: basename(archive), sha256: archiveSha256 } }, null, 2));
+  console.log(JSON.stringify({ status: "QA_OTA_ARCHIVE_ONLY", output: out, archive, archiveSha256,
+    source_commit: sha, publicDownloadAllowed: false }));
+} else {
 const staging = mkdtempSync(join(tmpdir(), "digital-observer-connector-dmg-"));
 const dmg = join(out, "Digital Observer Connector.dmg");
 try {
@@ -112,3 +129,4 @@ writeFileSync(join(out, "package-status.json"), JSON.stringify({ status: "LOCAL_
   ota: { contract: "observer-edge-update-v1", agentBundled: true, signedManifestRequired: true, atomicSlots: true, automaticRollback: true },
   dmg: { filename: basename(dmg), sha256: dmgSha256 }, serviceInstallTest: "NOT_RUN", enrollmentE2E: "NOT_RUN" }, null, 2));
 console.log(JSON.stringify({ status: "LOCAL_PACKAGE_QA_ONLY", output: out, dmg, dmgSha256, nativeLibraries: copied.size, publicDownloadAllowed: false }));
+}
