@@ -2,11 +2,9 @@ import Link from "next/link";
 import { Calculator, Clock, FileCheck2, HeartHandshake, TrendingUp } from "lucide-react";
 import { BrandHeader } from "@/components/brand-header";
 import { MarketingCard, MarketingHero, MarketingSection } from "@/components/public-marketing";
+import { publicMetadata } from "@/lib/seo/public-metadata";
 
-export const metadata = {
-  title: "מחשבון ROI לגנים | גן בטוח",
-  description: "הערכת חיסכון תפעולי, מוכנות פיקוח ואמון הורים באמצעות גן בטוח."
-};
+export const metadata = publicMetadata("/roi-calculator", "מחשבון ROI לגנים", "הערכת חיסכון תפעולי, מוכנות פיקוח ואמון הורים באמצעות גן בטוח.");
 
 export default function RoiCalculatorPage() {
   return (

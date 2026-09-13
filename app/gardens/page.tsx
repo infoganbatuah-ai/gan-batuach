@@ -25,8 +25,10 @@ import {
 import { trustBadgeLabel } from "@/lib/domain/parent-trust";
 import { formatAgeGroups, formatPublicPriceRange, getKindergartenAgeGroups, type KindergartenAgeGroup } from "@/lib/kindergarten-age-groups";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { publicMetadata } from "@/lib/seo/public-metadata";
 
 export const dynamic = "force-dynamic";
+export const metadata = publicMetadata("/gardens", "רשימת גני ילדים", "חיפוש גני ילדים לפי אזור, קבוצות גיל ומידע ציבורי על פיקוח ושקיפות בגן בטוח.");
 
 type PublicGarden = {
   id: string;

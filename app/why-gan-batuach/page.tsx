@@ -1,8 +1,9 @@
 import { Bot, Camera, ClipboardCheck, FileCheck2, HeartHandshake, UsersRound } from "lucide-react";
 import { BrandHeader } from "@/components/brand-header";
 import { ConversionBand, MarketingCard, MarketingHero, MarketingSection } from "@/components/public-marketing";
+import { publicMetadata } from "@/lib/seo/public-metadata";
 
-export const metadata = { title: "למה גן בטוח?", description: "למה גנים והורים בוחרים בגן בטוח כמערכת אמון, פיקוח ותפעול." };
+export const metadata = publicMetadata("/why-gan-batuach", "למה גן בטוח?", "למה גנים והורים בוחרים בגן בטוח כמערכת אמון, פיקוח ותפעול.");
 
 export default function WhyGanBatuachPage() {
   return (

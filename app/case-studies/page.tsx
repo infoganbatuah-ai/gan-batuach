@@ -2,8 +2,9 @@ import Link from "next/link";
 import { BookOpen, Building2, Sparkles } from "lucide-react";
 import { BrandHeader } from "@/components/brand-header";
 import { MarketingHero, MarketingSection } from "@/components/public-marketing";
+import { publicMetadata } from "@/lib/seo/public-metadata";
 
-export const metadata = { title: "סיפורי פיילוט | גן בטוח", description: "תשתית לסיפורי הצלחה, פיילוטים ועדויות עתידיות של גן בטוח." };
+export const metadata = publicMetadata("/case-studies", "סיפורי פיילוט", "תשתית לסיפורי הצלחה, פיילוטים ועדויות עתידיות של גן בטוח.");
 
 export default function CaseStudiesPage() {
   return (

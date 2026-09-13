@@ -1,8 +1,9 @@
 import { FileText, LockKeyhole, Scale, ShieldCheck } from "lucide-react";
 import { BrandHeader } from "@/components/brand-header";
 import { ConversionBand, MarketingCard, MarketingHero, MarketingSection } from "@/components/public-marketing";
+import { publicMetadata } from "@/lib/seo/public-metadata";
 
-export const metadata = { title: "אמון, פרטיות וציות | גן בטוח", description: "אבטחה, פרטיות, ציות ומוכנות ISO עתידית בגני ילדים." };
+export const metadata = publicMetadata("/compliance-trust", "אמון, פרטיות וציות", "אבטחה, פרטיות, ציות ומוכנות ISO עתידית בגני ילדים.");
 
 export default function ComplianceTrustPage() {
   return (

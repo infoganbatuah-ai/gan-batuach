@@ -1,8 +1,9 @@
 import { CalendarCheck, ClipboardCheck, FileCheck2, MapPin } from "lucide-react";
 import { BrandHeader } from "@/components/brand-header";
 import { ConversionBand, MarketingCard, MarketingHero, MarketingSection } from "@/components/public-marketing";
+import { publicMetadata } from "@/lib/seo/public-metadata";
 
-export const metadata = { title: "פלטפורמת פיקוח לגני ילדים | גן בטוח", description: "מערכת פיקוח חודשית, ממצאים, תיקונים ודוחות לגני ילדים." };
+export const metadata = publicMetadata("/inspection-platform", "פלטפורמת פיקוח לגני ילדים", "מערכת פיקוח חודשית, ממצאים, תיקונים ודוחות לגני ילדים.");
 
 export default function InspectionPlatformPage() {
   return (

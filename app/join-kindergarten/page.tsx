@@ -4,6 +4,9 @@ import { BrandHeader } from "@/components/brand-header";
 import { ContactAvailabilityGuard } from "@/components/contact-availability-guard";
 import { createGardenLead } from "@/app/actions";
 import { israeliCityStreetMap, kindergartenAgeGroups, regulatoryAcceptanceItems } from "@/lib/domain/kindergarten-onboarding";
+import { publicMetadata } from "@/lib/seo/public-metadata";
+
+export const metadata = publicMetadata("/join-kindergarten", "הצטרפות גן ילדים", "הצטרפו לגן בטוח: מערכת לניהול גן ילדים, תהליכי בקרה, פיקוח ושקיפות להורים.");
 
 const benefits = [
   { icon: ShieldCheck, title: "בטיחות ושקיפות", text: "תיעוד, פיקוח, מסמכים והתראות במקום אחד." },

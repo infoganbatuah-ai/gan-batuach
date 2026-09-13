@@ -1,6 +1,9 @@
 import Link from "next/link";
 import { Accessibility, Bot, Camera, FileText, LockKeyhole, ShieldCheck, ScrollText, ServerCog } from "lucide-react";
 import { BrandHeader } from "@/components/brand-header";
+import { publicMetadata } from "@/lib/seo/public-metadata";
+
+export const metadata = publicMetadata("/trust", "אמון ואבטחת מידע", "כיצד גן בטוח מנהלת הרשאות, פרטיות, מצלמות ונתוני גנים וילדים באופן מבוקר.");
 
 const items = [
   { icon: ShieldCheck, title: "אבטחה ופרטיות", text: "הפרדת גנים, הרשאות לפי תפקיד, RLS, Audit Logs וניהול סשנים כדי לצמצם חשיפה למידע רגיש של קטינים." },
