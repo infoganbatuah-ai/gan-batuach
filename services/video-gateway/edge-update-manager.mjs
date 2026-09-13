@@ -1,5 +1,5 @@
 import { createHash, randomUUID } from "node:crypto";
-import { closeSync, existsSync, mkdirSync, openSync, readFileSync, renameSync, rmSync, writeFileSync } from "node:fs";
+import { closeSync, existsSync, lstatSync, mkdirSync, openSync, readFileSync, realpathSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import {
   EDGE_UPDATE_STATES, assertAuthorizedUpdateDirection, evaluateEdgeUpdateEligibility,
@@ -56,6 +56,13 @@ export class EdgeUpdateManager {
       trust_key_id: current.signing_key_id || null }; }
   verifySlot(pointer) {
     if (!pointer?.slot || !pointer.release_id) fail("EDGE_UPDATE_ROLLBACK_TARGET_UNTRUSTED");
+    const slotsRoot = resolve(this.root, "slots");
+    if (!resolve(pointer.slot).startsWith(`${slotsRoot}/`)) fail("EDGE_UPDATE_ROLLBACK_TARGET_UNTRUSTED");
+    try {
+      if (lstatSync(pointer.slot).isSymbolicLink() ||
+        !realpathSync(pointer.slot).startsWith(`${realpathSync(slotsRoot)}/`))
+        fail("EDGE_UPDATE_ROLLBACK_TARGET_UNTRUSTED");
+    } catch { fail("EDGE_UPDATE_ROLLBACK_TARGET_UNTRUSTED"); }
     const manifest = this.readJson(join(pointer.slot, "release.json"), null);
     const verified = verifyEdgeUpdateManifest(manifest, this.trustedPublicKeys);
     if (!verified.ok || manifest.release_id !== pointer.release_id || manifest.profile !== this.device.profile ||
@@ -206,6 +213,10 @@ export class EdgeUpdateManager {
     const verified = verifyEdgeUpdateManifest(input, this.trustedPublicKeys);
     if (!verified.ok) fail(verified.reason);
     const manifest = verified.manifest;
+    const legacyTransition = this.readJson(join(this.root, "legacy-transition.json"), null);
+    if (legacyTransition && (manifest.release_id === legacyTransition.legacy_release_id ||
+      manifest.artifact_sha256 === legacyTransition.legacy_artifact_sha256))
+      fail("EDGE_LEGACY_RECOVERY_NOT_OTA");
     if (this.quarantine().some((item) => item.release_id === manifest.release_id)) fail("EDGE_UPDATE_RELEASE_QUARANTINED");
     const eligibility = evaluateEdgeUpdateEligibility(manifest, { ...this.device, currentVersion: this.current().version });
     if (!eligibility.eligible) fail(eligibility.reason);

@@ -15,6 +15,7 @@ import { generateManagedDeviceKeyPair } from "../../services/video-gateway/manag
 import { createInstalledEdgeBootstrap } from "../../services/video-gateway/edge-installed-bootstrap.mjs";
 import { canonicalEdgeTrustRegistry, installEdgeTrustRegistry } from "../../services/video-gateway/edge-release-trust.mjs";
 import { installInstalledOtaAgent } from "../../services/video-gateway/edge-installed-ota-installer.mjs";
+import { createConnectorLegacyTransition } from "../../services/video-gateway/edge-connector-legacy-transition.mjs";
 
 const args = Object.fromEntries(process.argv.slice(2).map(value => { const equal = value.indexOf("="); return [value.slice(0, equal), value.slice(equal + 1)]; }));
 for (const name of ["--baseline-store", "--release-store", "--qa-private-key", "--connector-baseline-id"])
@@ -24,11 +25,15 @@ const privateKey = createPrivateKey(readFileSync(args["--qa-private-key"]));
 const fullSupervisor = args["--full-supervisor"] === "1";
 const installedAdapter = args["--installed-adapter"] === "1";
 const automaticAgent = args["--automatic-agent"] === "1";
+const legacyTransition = Boolean(args["--legacy-transition-store"]);
 if (automaticAgent && (!fullSupervisor || !installedAdapter)) throw new Error("QA_AUTOMATIC_AGENT_REQUIRES_FULL_INSTALLED_SUPERVISOR");
+if (legacyTransition && (!automaticAgent || args["--profile"] !== "SOFTWARE_CONNECTOR"))
+  throw new Error("QA_LEGACY_TRANSITION_REQUIRES_CONNECTOR_AGENT");
 const profiles = [
   { profile: "PHYSICAL_GATEWAY", baselineId: args["--gateway-baseline-id"] || "qa-legacy-gateway-aa57572e8736", baselineName: "gateway-runtime.tar.gz",
     releaseId: args["--gateway-release-id"] || "qa-p38g-gateway-06a65267dffa", releaseName: "gateway-runtime.tar.gz", port: 38191, cloudPort: 38193, suffix: "gateway" },
-  { profile: "SOFTWARE_CONNECTOR", baselineId: args["--connector-baseline-id"], baselineName: "connector-legacy-resigned.tar.gz",
+  { profile: "SOFTWARE_CONNECTOR", baselineId: args["--connector-baseline-id"],
+    baselineName: legacyTransition ? "connector-app.tar.gz" : "connector-legacy-resigned.tar.gz",
     releaseId: args["--connector-release-id"] || "qa-p38g-connector-06a65267dffa", releaseName: "connector-remediation.tar.gz", port: 38192, cloudPort: 38194, suffix: "connector" }
 ].filter(item => !args["--profile"] || item.profile === args["--profile"]);
 const results = [];
@@ -116,6 +121,12 @@ for (const item of profiles) {
       ? (args["--connector-baseline-store"] || args["--release-store"])
       : args["--baseline-store"], item.baselineId, item.baselineName);
   const remediation = release(args["--release-store"], item.releaseId, item.releaseName);
+  const transition = legacyTransition ? {
+    ...release(args["--legacy-transition-store"], args["--legacy-transition-id"] ||
+      "qa-connector-legacy-transition-v2-6e7988808b05", "connector-legacy-resigned.tar.gz"),
+    record: JSON.parse(readFileSync(join(args["--legacy-transition-store"],
+      args["--legacy-transition-id"] || "qa-connector-legacy-transition-v2-6e7988808b05", "derivation.json"), "utf8"))
+  } : null;
   const baselinePath = join(root, "baseline.tar.gz"); writeFileSync(baselinePath, baseline.bytes, { mode: 0o600 });
   execFileSync("tar", ["-xzf", baselinePath, "-C", installedRuntime]);
   const persistent = join(root, "persistent"); mkdirSync(persistent, { mode: 0o700 });
@@ -138,15 +149,17 @@ for (const item of profiles) {
   const label = `com.digitalobserver.qa.${installedAdapter ? "push38h" : "push38g"}.${item.suffix}.${createHash("sha256").update(root).digest("hex").slice(0, 8)}`;
   const legacyAdapter = createQaLaunchdEdgeAdapter({ root, persistentRoot: persistent, installedRoot: installedRuntime,
     label, profile: item.profile, port: item.port, installationId: `qa-${item.suffix}-installation`,
-    fullSupervisor, qaCloudUrl: fullSupervisor ? `http://127.0.0.1:${item.cloudPort}` : "" });
+    fullSupervisor, qaCloudUrl: fullSupervisor ? `http://127.0.0.1:${item.cloudPort}` : "",
+    allowInvalidLegacySeal: legacyTransition });
   const adapter = installedAdapter ? createMacOSInstalledEdgeAdapter({ profile: item.profile,
     installedBase: installedRuntime, managedRoot: join(root, "ota"), launchAgentPath: join(root, `${label}.plist`),
     label, port: item.port, allowMutations: true, approvedArtifactSha256: baseline.manifest.artifact_sha256,
     trustedPublicKeys: trusted, qaIsolationRoot: root }) : legacyAdapter;
   const device = { deviceId: `qa-${item.suffix}-device`, profile: item.profile, platform: "darwin", architecture: "arm64",
     channel: "INTERNAL", currentVersion: baseline.manifest.version, configVersion: 1, revoked: false };
-  const healthCheck = async () => { const probe = await adapter.health({ timeoutMs: 15_000 });
-    return { process_running: probe.ok && probe.service.running, device_authenticated: true,
+  const healthCheck = async ({ transition: firstTransition } = {}) => { const probe = await adapter.health({ timeoutMs: 15_000 });
+    return { process_running: probe.ok && probe.service.running &&
+        !(firstTransition && args["--transition-failure"] === "1"), device_authenticated: true,
       heartbeat: probe.ok, config_retrieved: true, cloud_reachable: true, no_crash_loop: probe.ok,
       expected_physical_cameras: 0, progressing_physical_cameras: 0, empty_slots: 0, stalled_streams: 0 }; };
   const manager = new EdgeUpdateManager({ root: join(root, "ota"), trustedPublicKeys: trusted, device, adapter, healthCheck });
@@ -170,6 +183,39 @@ for (const item of profiles) {
     const original = await adapter.health({ timeoutMs: 20_000 });
     assert.equal(original.ok && original.service.running, true, `${item.suffix}:legacy-service-start`);
     if (fullSupervisor) assertSingleOwnedRuntime(item.port, original.service.pid);
+    if (legacyTransition) {
+      const coordinator = createConnectorLegacyTransition({ manager, adapter,
+        inspect: async () => { const observed = await adapter.health({ timeoutMs: 20_000 });
+          return { legacy_running: observed.ok, identity_fingerprint: fixtureFingerprint(),
+            binding_fingerprint: fixtureFingerprint() }; },
+        verifyContinuity: async () => { const observed = await adapter.health({ timeoutMs: 20_000 });
+          return observed.ok && fixtureFingerprint() !== ""; } });
+      const migrationInput = { legacyManifest: baseline.manifest, legacyBytes: baseline.bytes,
+        transitionManifest: transition.manifest, transitionBytes: transition.bytes,
+        derivationRecord: transition.record };
+      if (args["--transition-failure"] === "1") {
+        await assert.rejects(coordinator.run(migrationInput), /EDGE_UPDATE_HEALTH_PROCESS_RUNNING_FAILED/);
+        assert.equal(coordinator.status().state, "ACTION_REQUIRED");
+        assert.equal(coordinator.status().recovery_used, true);
+        assert.equal(manager.current().slot, null);
+        const recovered = await adapter.health({ timeoutMs: 20_000 });
+        assert.equal(recovered.ok && recovered.service.running, true);
+        assertSingleOwnedRuntime(item.port, recovered.service.pid);
+        assert.equal(createHash("sha256").update(readFileSync(join(root, "ota",
+          "legacy-recovery-only", "artifact.bin"))).digest("hex"), baseline.manifest.artifact_sha256);
+        for (const name of ["identity", "config", "durable-queue", "source-map"])
+          assert.equal(readFileSync(join(persistent, name), "utf8"), `QA_${item.profile}_${name}`);
+        results.push({ profile: item.profile, first_migration_failure: "PASS",
+          exact_legacy_recovery_sha256: baseline.manifest.artifact_sha256,
+          service_manager_restarted_legacy: true, action_required_no_loop: true,
+          persistent_fixture_preserved: true, live_home_touched: false });
+        continue;
+      }
+      const migrated = await coordinator.run(migrationInput);
+      assert.equal(migrated.known_good_release, transition.manifest.release_id);
+      assert.equal(coordinator.status().state, "RETIRED");
+      assertSingleOwnedRuntime(item.port, adapter.status().pid);
+    } else {
     await assert.rejects(bootstrap.run({ manifest: baseline.manifest, artifactBytes: baseline.bytes,
       approvedSha256: "0".repeat(64) }), /EDGE_BOOTSTRAP_BASELINE_MISMATCH/);
     assert.equal((await adapter.health({ timeoutMs: 2000 })).ok, true, `${item.suffix}:wrong-baseline-preserved-runtime`);
@@ -185,6 +231,7 @@ for (const item of profiles) {
     const managedHealth = await adapter.health({ timeoutMs: 20_000 });
     assert.equal(managedHealth.ok, true, `${item.suffix}:baseline-slot-service-start`);
     if (fullSupervisor) assertSingleOwnedRuntime(item.port, managedHealth.service.pid);
+    }
     if (args["--abort-after-bootstrap"] === "1") {
       assert.equal((await bootstrap.abort()).state, "UNMANAGED");
       assert.equal(manager.current().slot, null);
@@ -221,20 +268,21 @@ for (const item of profiles) {
         writeFileSync(qaReleasePath, JSON.stringify({ manifest: value.manifest, artifact_name: "artifact.tar.gz" }), { mode: 0o600 }); };
       agentLabel = `com.digitalobserver.qa.push38i.agent.${item.suffix}.${createHash("sha256").update(root).digest("hex").slice(0, 8)}`;
       agentPlist = join(root, "agent.plist");
+      const activeBaseline = transition || baseline;
       const agentInstall = { profile: item.profile, managedRoot: join(root, "ota"),
         agentPlistPath: agentPlist, agentLabel, nodePath: process.execPath, manifest: remediation.manifest,
         artifactPath: join(args["--release-store"], item.releaseId, item.releaseName),
-        baselineReleaseId: baseline.manifest.release_id, qaIsolationRoot: root,
+        baselineReleaseId: activeBaseline.manifest.release_id, qaIsolationRoot: root,
         runtimeConfig: { profile: item.profile, managedRoot: join(root, "ota"), installedBase: installedRuntime,
           launchAgentPath: join(root, `${label}.plist`), label, port: item.port,
           deviceId: device.deviceId, channel: device.channel, configVersion: 1,
           expectedPhysicalCameras: 0,
-          baselineArtifactSha256: baseline.manifest.artifact_sha256, qaIsolationRoot: root,
+          baselineArtifactSha256: activeBaseline.manifest.artifact_sha256, qaIsolationRoot: root,
           qaRootPinPath, qaTrustRegistryPath, qaReleasePath, intervalMs: 1000 } };
       const baselineManifestPath = join(manager.current().slot, "release.json");
       const originalManifest = readFileSync(baselineManifestPath);
       try {
-        writeFileSync(baselineManifestPath, JSON.stringify({ ...baseline.manifest, version: "9.9.9" }));
+        writeFileSync(baselineManifestPath, JSON.stringify({ ...activeBaseline.manifest, version: "9.9.9" }));
         assert.throws(() => installInstalledOtaAgent(agentInstall), /EDGE_OTA_INSTALL_BASELINE_UNVERIFIED/);
       } finally { writeFileSync(baselineManifestPath, originalManifest); }
       installInstalledOtaAgent(agentInstall);
@@ -249,10 +297,10 @@ for (const item of profiles) {
         await until(() => manager.status().state === "ROLLED_BACK" || manager.status().state === "ACTION_REQUIRED",
           180_000, "AUTOMATIC_BASELINE_CRASH_ROLLBACK");
         assert.equal(manager.status().state, "ROLLED_BACK", `${item.suffix}:baseline-crash-loop-rollback`);
-        assert.equal(manager.current().release_id, baseline.manifest.release_id);
+        assert.equal(manager.current().release_id, activeBaseline.manifest.release_id);
         manager.verifySlot(manager.current());
         assert.equal(createHash("sha256").update(readFileSync(join(manager.current().slot, "artifact.bin"))).digest("hex"),
-          baseline.manifest.artifact_sha256, `${item.suffix}:exact-baseline-restore`);
+          activeBaseline.manifest.artifact_sha256, `${item.suffix}:exact-baseline-restore`);
         assert.equal(manager.quarantine().some(entry => entry.release_id === initialCrash.manifest.release_id), true);
         assert.equal((await adapter.health({ timeoutMs: 20_000 })).ok, true);
       }
@@ -288,7 +336,8 @@ for (const item of profiles) {
         assert.equal(readFileSync(join(persistent, name), "utf8"), `QA_${item.profile}_${name}`);
       results.push({ profile: item.profile, installed_agent: "launchd", automatic_update: "PASS",
         persistent_crash_rollback: "PASS", known_good_artifact_sha256: remediation.manifest.artifact_sha256,
-        ...(args["--baseline-rollback"] === "1" ? { baseline_crash_loop_restore_sha256: baseline.manifest.artifact_sha256 } : {}),
+        ...(args["--baseline-rollback"] === "1" ? { baseline_crash_loop_restore_sha256: activeBaseline.manifest.artifact_sha256 } : {}),
+        ...(legacyTransition ? { legacy_recovery_state: "RETIRED", transition_release: transition.manifest.release_id } : {}),
         failed_release_quarantined: true, agent_restart_preserved_runtime: true, agent_install_idempotent: true,
         tampered_baseline_install_rejected: true,
         persistent_fixture_preserved: true, live_home_touched: false });

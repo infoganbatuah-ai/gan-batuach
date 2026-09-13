@@ -103,7 +103,7 @@ export function createMacOSInstalledEdgeAdapter({ profile, installedBase, manage
     if (!allowMutations || manifest.profile !== profile || !verifyEdgeUpdateManifest(manifest, keys).ok)
       fail("EDGE_INSTALLED_APPROVAL_MISMATCH");
   }
-  async function verifyInstalled({ artifactPath, manifest }) {
+  async function compareInstalled({ artifactPath, manifest, legacyRecoveryOnly = false }) {
     requireMutation(manifest);
     if (manifest.artifact_sha256 !== approvedArtifactSha256 || !verifyEdgeArtifact(readFileSync(artifactPath), manifest).ok)
       fail("EDGE_INSTALLED_BASELINE_NOT_APPROVED");
@@ -115,10 +115,10 @@ export function createMacOSInstalledEdgeAdapter({ profile, installedBase, manage
       function visit(directory) { for (const name of readdirSync(directory)) {
         const source = join(directory, name), rel = relative(temp, source), target = join(base, rel);
         const info = lstatSync(source);
-        if (info.isDirectory()) { visit(source); continue; }
+        if (info.isDirectory()) { if (!visit(source)) return false; continue; }
         // A derived QA Connector baseline re-seals the unchanged legacy app.
         // The original bundle seal/executable are not byte-identical.
-        if (profile === "SOFTWARE_CONNECTOR" && manifest.release_id.startsWith("qa-legacy-connector-resigned-") &&
+        if (!legacyRecoveryOnly && profile === "SOFTWARE_CONNECTOR" && manifest.release_id.startsWith("qa-legacy-connector-resigned-") &&
           (rel.includes("/_CodeSignature/") || rel.endsWith("/MacOS/DigitalObserver"))) continue;
         if (!existsSync(target)) return false;
         const other = lstatSync(target);
@@ -128,6 +128,11 @@ export function createMacOSInstalledEdgeAdapter({ profile, installedBase, manage
       } return true; }
       return visit(temp) && compared > 100;
     } finally { rmSync(temp, { recursive: true, force: true }); }
+  }
+  async function verifyInstalled(input) { return compareInstalled(input); }
+  async function verifyLegacyInstalled(input) {
+    if (profile !== "SOFTWARE_CONNECTOR" || !input?.legacyRecoveryOnly) fail("EDGE_LEGACY_RECOVERY_SCOPE_INVALID");
+    return compareInstalled({ ...input, legacyRecoveryOnly: true });
   }
   async function unpack({ artifactPath, staging, manifest }) {
     requireMutation(manifest);
@@ -199,5 +204,5 @@ export function createMacOSInstalledEdgeAdapter({ profile, installedBase, manage
     run("/bin/launchctl", ["bootstrap", domain, plistPath]);
     return service();
   }
-  return { plan, status: service, runtimePid, verifyInstalled, stageBaseline: unpack, install: unpack, restart, restoreLegacy, health };
+  return { plan, status: service, runtimePid, verifyInstalled, verifyLegacyInstalled, stageBaseline: unpack, install: unpack, restart, restoreLegacy, health };
 }

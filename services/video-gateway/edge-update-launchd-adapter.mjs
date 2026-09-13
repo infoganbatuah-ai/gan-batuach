@@ -10,7 +10,7 @@ function xml(value) { return String(value).replaceAll("&", "&amp;").replaceAll("
 const run = (cmd, args, options = {}) => execFileSync(cmd, args, { stdio: ["ignore", "pipe", "pipe"], timeout: 20_000, ...options });
 
 export function createQaLaunchdEdgeAdapter({ root, label, profile, port, persistentRoot, installedRoot, installationId,
-  fullSupervisor = false, qaCloudUrl = "" }) {
+  fullSupervisor = false, qaCloudUrl = "", allowInvalidLegacySeal = false }) {
   if (process.platform !== "darwin" || !/^com\.digitalobserver\.qa\.push38[gh]\.[a-z0-9.-]+$/.test(label)) fail("EDGE_QA_LAUNCHD_SCOPE_INVALID");
   if (!["PHYSICAL_GATEWAY", "SOFTWARE_CONNECTOR"].includes(profile) || !Number.isInteger(port) || port < 20000 || port > 65000) fail("EDGE_QA_PROFILE_OR_PORT_INVALID");
   if (fullSupervisor && !/^http:\/\/127\.0\.0\.1:[2-9]\d{3,4}$/.test(qaCloudUrl)) fail("EDGE_QA_CLOUD_SCOPE_INVALID");
@@ -45,7 +45,11 @@ export function createQaLaunchdEdgeAdapter({ root, label, profile, port, persist
   async function restart({ slot, manifest, rollback = false }) {
     const runtime = join(slot, "runtime"), entry = join(runtime, fullSupervisor ? supervisorMember : member);
     if (!existsSync(entry)) fail("EDGE_QA_RUNTIME_ENTRY_MISSING");
-    if (profile === "SOFTWARE_CONNECTOR") run("/usr/bin/codesign", ["--verify", "--deep", "--strict", join(runtime, "Digital Observer.app")]);
+    const isolatedLegacy = allowInvalidLegacySeal && profile === "SOFTWARE_CONNECTOR" &&
+      resolve(slot) === resolve(join(qaRoot, "installed")) &&
+      manifest?.release_id === "qa-legacy-connector-ee82c20a77ac";
+    if (profile === "SOFTWARE_CONNECTOR" && !isolatedLegacy)
+      run("/usr/bin/codesign", ["--verify", "--deep", "--strict", join(runtime, "Digital Observer.app")]);
     const release = manifest || JSON.parse(readFileSync(join(slot, "release.json")));
     const node = profile === "SOFTWARE_CONNECTOR" ? join(runtime, "Digital Observer.app/Contents/Resources/bin/node") : process.execPath;
     const workdir = profile === "SOFTWARE_CONNECTOR" ? join(runtime, "Digital Observer.app/Contents/Resources/runtime") : runtime;
