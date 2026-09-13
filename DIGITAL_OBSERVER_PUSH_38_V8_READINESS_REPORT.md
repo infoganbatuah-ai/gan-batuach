@@ -1,5 +1,7 @@
 # PUSH 38 v8 readiness — NOT READY
 
+PUSH 38N: 10-minute read-only current-state gate PASS (600.013 seconds, 11/11 checks, DVR 10/10, Tapo 1/1); Gateway and Connector exact live baselines MATCH. The prior 0/10 event remains a known unresolved legacy reliability failure. The protected QA trust root is absent and needs authenticated local administration, and the QA artifact URLs are not deployable through the live canonical OTA path. **No live transition, remediation, 15-minute canary, 60-minute pre-soak or v8 started.** See `DIGITAL_OBSERVER_PUSH_38N_DEPLOYMENT_GATE_REPORT.md`; PR #28 remains draft/unmerged.
+
 PUSH 38M pre-write gate **failed before any live change**: both exact baselines matched, but the Gateway reported 0/10 DVR relays progressing and 10 stalled on the first health read; Tapo remained 1/1. A later 10/10 recovery does not qualify the unhealthy baseline. No live transition, bootstrap, remediation, 60-minute gate or V8 started. See `DIGITAL_OBSERVER_PUSH_38M_PREWRITE_GATE_REPORT.md`.
 
 PUSH 38L has an isolated QA-only one-time Connector legacy transition with a strict-valid signed managed KNOWN_GOOD and a separate exact legacy recovery-only path. Both isolated service-manager paths and the zero-write live compatibility planner passed. This is **READY FOR A LATER CONTROLLED LIVE TRANSITION**, not V8 readiness: no live bootstrap/remediation, 60-minute pre-soak or V8 has run. See `DIGITAL_OBSERVER_PUSH_38L_TRANSITION_REPORT.md`; PR #28 remains draft/unmerged.
