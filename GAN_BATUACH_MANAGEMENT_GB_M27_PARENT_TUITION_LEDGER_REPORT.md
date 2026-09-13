@@ -13,7 +13,7 @@ New GB-M16 enrollments use `kindergarten_enrollment_requests.published_price_sna
 The first valid period stores the chosen amount and source on `child_kindergarten_enrollments`. Subsequent periods reuse the enrollment snapshot. Price changes require an explicit new agreement/change process; a Garden fee edit cannot rewrite historical periods.
 
 ## Billing Period Model
-One period per enrollment/calendar month has a base, signed adjustments, settled amount, due date, currency and reconciliation status. The UI/API calculate `amount_due` and outstanding server-side. No period is generated for an inactive enrollment, a future month, or a month after the enrollment end. Partial start/end months require a Manager-entered agreed amount and reason, recorded in audit; no proration formula was invented.
+One period per enrollment/calendar month has a base, signed adjustments, settled amount, due date, currency and reconciliation status. The UI/API calculate `amount_due` and outstanding server-side. No period is generated for an inactive enrollment, a month before its start, or a month after its end. Authorized Managers may generate future eligible months. Partial start/end months require a Manager-entered agreed amount and reason, recorded in audit; no proration formula was invented.
 
 ## Period Generation
 `ensure_tuition_billing_period` locks by enrollment and enforces a unique `(enrollment_id,period_start)` key. Repeated requests return the same period. A Manager-configurable `gardens.tuition_due_day` controls due dates for newly generated periods; changing it does not rewrite prior periods. Absent configuration means no invented overdue deadline.
@@ -49,7 +49,7 @@ Existing periods/history remain. The generator refuses new periods beyond the en
 The existing payments page now shows canonical monthly periods and an unconfigured state when none exist. It no longer treats legacy Child debt/status as the authoritative balance. Parent API requires active guardian authorization for the selected Child and is read-only.
 
 ## Garden Finance UX
-The existing Finance page embeds the canonical ledger panel for period generation, manual settlement and adjustment. Its older aggregate cards remain compatibility projections until the broader Finance redesign; canonical period detail is explicitly separated.
+The existing Finance page links to a canonical ledger page for period generation, manual settlement and adjustment. Its older aggregate cards remain compatibility projections until the broader Finance redesign; canonical period detail is explicitly separated.
 
 ## Reports
 Period rows can support Garden expected/settled/outstanding reports and Parent own-child history. No final report redesign occurs here.
