@@ -71,7 +71,11 @@ export function installInstalledOtaAgent({ profile, managedRoot, agentPlistPath,
     run("tar", ["-xzf", artifactPath, "-C", temp]);
     const source = join(temp, profile === "SOFTWARE_CONNECTOR" ?
       "Digital Observer.app/Contents/Resources/runtime/services/video-gateway" : "services/video-gateway");
+    const runtimeRoot = join(temp, profile === "SOFTWARE_CONNECTOR" ?
+      "Digital Observer.app/Contents/Resources/runtime" : "");
     if (!existsSync(join(source, "edge-installed-ota-service.mjs"))) fail("EDGE_OTA_INSTALL_AGENT_MISSING");
+    const undici = join(runtimeRoot, "node_modules/undici");
+    if (!existsSync(join(undici, "package.json"))) fail("EDGE_OTA_INSTALL_HTTP_RUNTIME_MISSING");
     const artifactDigest = createHash("sha256").update(readFileSync(artifactPath)).digest("hex");
     if (existsSync(managementDir)) {
       const prior = JSON.parse(readFileSync(join(managementDir, "agent-release.json"), "utf8"));
@@ -79,6 +83,7 @@ export function installInstalledOtaAgent({ profile, managedRoot, agentPlistPath,
     } else {
       const staging = `${managementDir}.${randomUUID()}.staging`;
       cpSync(source, staging, { recursive: true });
+      cpSync(undici, join(staging, "node_modules/undici"), { recursive: true });
       writeFileSync(join(staging, "agent-release.json"), JSON.stringify({ release_id: manifest.release_id,
         artifact_sha256: artifactDigest, signing_key_id: manifest.signing_key_id }), { mode: 0o600 });
       renameSync(staging, managementDir);

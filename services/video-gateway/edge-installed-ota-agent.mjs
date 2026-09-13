@@ -45,6 +45,12 @@ export function createInstalledEdgeOtaAgent({ root, device, adapter, cloudReques
     try {
       const manager = new EdgeUpdateManager({ root, trustedPublicKeys: load(), device, adapter, healthCheck });
       if (!manager.current().slot || !manager.knownGood().length) fail("EDGE_UPDATE_SIGNED_BOOTSTRAP_REQUIRED");
+      if (["ROLLBACK_REQUIRED", "ROLLING_BACK"].includes(manager.status().state)) {
+        const recovered = await manager.recoverInterruptedRollback();
+        onEvent({ state: recovered.state, reason: recovered.failure_category || null });
+        await reportLateFailure(manager);
+        return recovered;
+      }
       const guard = createEdgeCrashLoopGuard({ statePath: guardPath, manager });
       const service = adapter.status();
       const observed = await adapter.health({ timeoutMs: 1500 });

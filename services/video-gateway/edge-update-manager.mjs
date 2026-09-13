@@ -131,6 +131,40 @@ export class EdgeUpdateManager {
     if (!["HEALTHY", "ROLLED_BACK", "UPDATE_FAILED"].includes(this.status().state)) fail("EDGE_UPDATE_ACTION_STATE_INVALID");
     return this.transition("ACTION_REQUIRED", { failure_category: reason });
   }
+  // The OTA agent is independently supervised and may die after committing a
+  // rollback transition. Reconcile from signed slots, never from a caller's
+  // claimed version. Repeating the service handoff is safe and idempotent.
+  async recoverInterruptedRollback() {
+    const state = this.status();
+    if (!["ROLLBACK_REQUIRED", "ROLLING_BACK"].includes(state.state)) return state;
+    if (state.state === "ROLLBACK_REQUIRED") this.transition("ROLLING_BACK", { failure_category: state.failure_category });
+    const known = this.knownGood();
+    const failedReleaseId = state.release_id;
+    const prior = [...known].reverse().find(item => item.release_id !== failedReleaseId);
+    if (!failedReleaseId || !prior) {
+      this.transition("ACTION_REQUIRED", { failure_category: "EDGE_UPDATE_ROLLBACK_TARGET_MISSING" });
+      return this.status();
+    }
+    try {
+      const priorManifest = this.verifySlot(prior);
+      const failed = known.find(item => item.release_id === failedReleaseId) || this.current();
+      if (failed.release_id === failedReleaseId) {
+        const failedManifest = this.verifySlot(failed);
+        this.quarantineRelease(failedManifest, state.failure_category || "EDGE_UPDATE_ROLLBACK_INTERRUPTED");
+      }
+      atomicJson(this.currentPath, prior);
+      await this.adapter.restart({ slot: prior.slot, manifest: priorManifest, rollback: true });
+      const recovered = edgeHealthGate(await this.healthCheck({ version: prior.version, rollback: true }));
+      if (!recovered.healthy) fail("EDGE_UPDATE_KNOWN_GOOD_UNHEALTHY");
+      atomicJson(this.knownGoodPath, known.filter(item => item.release_id !== failedReleaseId));
+      return this.transition("ROLLED_BACK", { failure_category: state.failure_category || "EDGE_UPDATE_ROLLBACK_INTERRUPTED",
+        failed_version: state.failed_version || state.target_version || null, recovered_version: prior.version,
+        recovery_health: recovered });
+    } catch (error) {
+      this.transition("ACTION_REQUIRED", { failure_category: error.code || "EDGE_UPDATE_ROLLBACK_RECOVERY_FAILED" });
+      return this.status();
+    }
+  }
   // A release can pass its immediate health gate and fail later. Only a
   // previously signed, verified known-good slot is eligible for late rollback.
   async rollbackAfterCrashLoop({ reason = "EDGE_UPDATE_CRASH_LOOP" } = {}) {

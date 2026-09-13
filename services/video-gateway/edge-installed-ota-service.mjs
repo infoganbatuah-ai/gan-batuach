@@ -1,5 +1,6 @@
 // Installed OTA process entry point. A separate LaunchAgent owns this process;
 // the existing Gateway/Connector LaunchAgent remains the sole camera supervisor.
+import "./http-runtime.mjs";
 import { existsSync, lstatSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { dirname, resolve } from "node:path";
