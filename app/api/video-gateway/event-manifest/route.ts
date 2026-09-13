@@ -65,11 +65,29 @@ function watchRuleCameraIds(rows: WatchRuleRow[]) {
   return ids;
 }
 
-export async function GET(request: Request) {
+async function auditRejectedManifest(request: Request, db: ReturnType<typeof createAdminClient> | null, status: number) {
+  if (!db) return;
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || null;
   try {
-    const db = createAdminClient();
+    await db.from("audit_logs").insert({
+      entity_type: "http_request", action: "request_observed", http_method: "GET",
+      api_endpoint: "/api/video-gateway/event-manifest", http_status_code: status,
+      request_id: crypto.randomUUID(), client_source_ip: ip, ip,
+      user_agent: request.headers.get("user-agent"),
+      compliance_context: { source: "event_manifest_rejection", iso_27001: true, iso_27017: true, iso_27701: true }
+    });
+  } catch { /* Authentication failure must still return its original status. */ }
+}
+
+export async function GET(request: Request) {
+  let db: ReturnType<typeof createAdminClient> | null = null;
+  try {
+    db = createAdminClient();
     const device = await authenticateEventGateway(request, db, "CONFIG_READ");
-    if (!device) return fail("Gateway identity is invalid or revoked.", 401);
+    if (!device) {
+      await auditRejectedManifest(request, db, 401);
+      return fail("Gateway identity is invalid or revoked.", 401);
+    }
     const environmentFingerprint = eventEnvironmentFingerprint();
     if (!environmentFingerprint) throw new Error("GATEWAY_ENV_FINGERPRINT_UNAVAILABLE");
     const [site, sources, schedule, automationPolicies, watchRules, activeIncidents, learningBaseline] = await Promise.all([
@@ -95,7 +113,10 @@ export async function GET(request: Request) {
         .maybeSingle()
     ]);
     if (site.error || sources.error || schedule.error || automationPolicies.error || watchRules.error || activeIncidents.error || learningBaseline.error) throw new Error("EVENT_MANIFEST_UNAVAILABLE");
-    if (site.data.garden_id || site.data.site_type === "kindergarten") return fail("Separate kindergarten engine required.", 403);
+    if (site.data.garden_id || site.data.site_type === "kindergarten") {
+      await auditRejectedManifest(request, db, 403);
+      return fail("Separate kindergarten engine required.", 403);
+    }
     const enabled = site.data.monitoring_enabled === true && site.data.metadata?.observer_monitoring_consent === true;
     const offHoursActive = schedule.data?.status === "active" && scheduleIsOffHours(schedule.data);
     const automationRows = (automationPolicies.data ?? []) as unknown as AutomationPolicyRow[];
@@ -181,5 +202,9 @@ export async function GET(request: Request) {
             explanation_required: true },
           unavailable_event_types: allowed.filter(type => !policy.supported_event_types.includes(type)) };
       }) });
-  } catch (error) { return handleRouteError(error); }
+  } catch (error) {
+    const response = handleRouteError(error);
+    await auditRejectedManifest(request, db, response.status);
+    return response;
+  }
 }

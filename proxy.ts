@@ -48,13 +48,11 @@ function rewriteForDigitalObserverHost(request: NextRequest, response: NextRespo
   return rewrite;
 }
 
-// Routine signed Gateway probes are already checked by their route handlers.
-// Keep request-level audit for missing, expired or out-of-scope credentials.
+// Routine signed manifest reads are checked by the route handler.
+// Keep request-level audit for other Gateway traffic and invalid credentials.
 function isRoutineGatewayProbe(request: NextRequest) {
   const path = request.nextUrl.pathname;
-  const operation = request.method === "GET" && path === "/api/video-gateway/event-manifest" ? "CONFIG_READ"
-    : request.method === "POST" && path === "/api/video-gateway/camera-actions" ? "COMMAND_POLL"
-    : request.method === "POST" && path === "/api/video-gateway/device-heartbeat" ? "HEARTBEAT" : null;
+  const operation = request.method === "GET" && path === "/api/video-gateway/event-manifest" ? "CONFIG_READ" : null;
   if (!operation) return false;
   const secret = process.env.VIDEO_GATEWAY_CLOUD_DISCOVERY_SECRET;
   const token = request.headers.get("x-video-gateway-device-token") ?? "";
