@@ -9,6 +9,8 @@ export const subscriptionStatuses = [
   "trial",
   "pending_payment",
   "payment_failed",
+  "past_due",
+  "grace_period",
   "frozen",
   "suspended",
   "expired",
@@ -39,7 +41,7 @@ export type BillingAccessPolicy = {
 };
 
 export function evaluateSubscriptionAccess(status?: string | null, adminOverride = false): BillingAccessPolicy {
-  if (["pending_payment", "approved_pending_subscription", "payment_failed"].includes(String(status)) && !adminOverride) {
+  if (["pending_payment", "approved_pending_subscription", "payment_failed", "past_due"].includes(String(status)) && !adminOverride) {
     return {
       ownerAccess: "full",
       parentHistoricalAccess: "allowed",
@@ -49,7 +51,7 @@ export function evaluateSubscriptionAccess(status?: string | null, adminOverride
     };
   }
 
-  if (adminOverride || status === "active" || status === "trial" || status === "demo_active") {
+  if (adminOverride || status === "active" || status === "trial" || status === "demo_active" || status === "grace_period") {
     return {
       ownerAccess: "full",
       parentHistoricalAccess: "allowed",
@@ -137,19 +139,21 @@ export function getPaymentProviderAdapter(provider: BillingProvider): PaymentPro
 }
 
 export async function loadGardenSubscriptionData(supabase: SupabaseClient<any, any, any>, gardenId: string) {
-  const [subscription, plans, payments, invoices, receipts, reminders] = await Promise.all([
+  const [subscription, plans, payments, invoices, receipts, reminders, entitlements] = await Promise.all([
     supabase
       .from("kindergarten_subscriptions" as any)
       .select("*, subscription_plans(*)")
       .eq("garden_id", gardenId)
+      .not("status", "in", "(cancelled,expired)")
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle(),
-    supabase.from("subscription_plans" as any).select("*").eq("active", true).order("sort_order"),
+    supabase.from("subscription_plans" as any).select("*").eq("active", true).order("is_default", { ascending: false }).order("sort_order"),
     supabase.from("subscription_payments" as any).select("*").eq("garden_id", gardenId).order("created_at", { ascending: false }).limit(50),
     supabase.from("billing_invoices" as any).select("*").eq("garden_id", gardenId).order("issued_at", { ascending: false }).limit(50),
     supabase.from("billing_receipts" as any).select("*").eq("garden_id", gardenId).order("issued_at", { ascending: false }).limit(50),
-    supabase.from("subscription_reminders" as any).select("*").eq("garden_id", gardenId).order("scheduled_for", { ascending: true }).limit(20)
+    supabase.from("subscription_reminders" as any).select("*").eq("garden_id", gardenId).order("scheduled_for", { ascending: true }).limit(20),
+    supabase.rpc("platform_subscription_entitlements" as never, { target_garden_id: gardenId } as never)
   ]);
 
   return {
@@ -159,6 +163,7 @@ export async function loadGardenSubscriptionData(supabase: SupabaseClient<any, a
     invoices: invoices.data ?? [],
     receipts: receipts.data ?? [],
     reminders: reminders.data ?? [],
-    errors: [subscription.error, plans.error, payments.error, invoices.error, receipts.error, reminders.error].filter(Boolean).map((error: any) => error.message ?? String(error))
+    entitlements: entitlements.data ?? null,
+    errors: [subscription.error, plans.error, payments.error, invoices.error, receipts.error, reminders.error, entitlements.error].filter(Boolean).map((error: any) => error.message ?? String(error))
   };
 }

@@ -103,8 +103,3 @@ export const requiredKindergartenDocumentCategories = [
   "no_audio_declaration",
   "camera_coverage_declaration"
 ] as const;
-
-export function calculateGanBatuachMonthlyPrice(classCount: number) {
-  if (classCount <= 0) return 0;
-  return 700 + Math.max(0, classCount - 1) * 200;
-}

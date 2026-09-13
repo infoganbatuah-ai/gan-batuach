@@ -19,7 +19,11 @@ const schema = z.object({
   storage_limit_mb: z.coerce.number().int().min(0).optional().nullable(),
   enabled_features: z.record(z.string(), z.boolean()).default({}),
   active: z.coerce.boolean().default(true),
-  sort_order: z.coerce.number().int().default(100)
+  sort_order: z.coerce.number().int().default(100),
+  billing_interval: z.enum(["monthly", "annual"]).default("monthly"),
+  commitment_months: z.coerce.number().int().min(1).default(12),
+  grace_days: z.coerce.number().int().min(0).optional().nullable(),
+  is_default: z.coerce.boolean().default(false)
 });
 
 export async function GET() {
@@ -39,22 +43,34 @@ export async function POST(request: Request) {
     const { profile } = await requireRole(["admin"]);
     const payload = schema.parse(await request.json());
     const supabase = await createClient();
-    const normalizedPlanType = payload.plan_type === "monthly" ? "annual" : payload.plan_type;
+    if (payload.id) {
+      const versioned = await supabase.rpc("admin_version_platform_plan" as never, {
+        target_plan_id: payload.id, proposed_name: payload.name,
+        proposed_price: payload.price_amount, proposed_currency: payload.currency,
+        proposed_billing_interval: payload.billing_interval,
+        proposed_grace_days: payload.grace_days ?? null, make_default: payload.is_default
+      } as never);
+      if (versioned.error || !versioned.data) return fail("לא ניתן ליצור גרסת תוכנית חדשה.", versioned.error?.code === "42501" ? 403 : 409);
+      return ok({ plan: versioned.data });
+    }
+    const normalizedPlanType = payload.plan_type;
     const row = {
       ...payload,
+      id: undefined,
+      code: `plan-${crypto.randomUUID()}`,
+      version: 1,
       plan_type: normalizedPlanType,
-      duration_days: normalizedPlanType === "annual" ? 365 : payload.duration_days,
-      annual_price: payload.price_amount,
-      monthly_price: null,
-      billing_cycle_options: ["annual"],
+      duration_days: payload.duration_days,
+      annual_price: payload.billing_interval === "monthly" ? payload.price_amount * 12 : payload.price_amount,
+      monthly_price: payload.billing_interval === "monthly" ? payload.price_amount : null,
+      billing_cycle_options: [payload.billing_interval],
       public_purchase_enabled: normalizedPlanType === "annual" ? payload.active : false,
+      is_default: false,
       updated_by: profile.id,
       updated_at: new Date().toISOString(),
-      created_by: payload.id ? undefined : profile.id
+      created_by: profile.id
     };
-    const mutation = payload.id
-      ? await supabase.from("subscription_plans" as any).update(row).eq("id", payload.id).select("*").single()
-      : await supabase.from("subscription_plans" as any).insert(row).select("*").single();
+    const mutation = await supabase.from("subscription_plans" as any).insert(row).select("*").single();
     if (mutation.error || !mutation.data) {
       console.error("[subscription-plan-save]", mutation.error);
       return fail("לא ניתן לשמור תוכנית מנוי כרגע.", 500);
@@ -64,7 +80,7 @@ export async function POST(request: Request) {
       actor_role: "admin",
       entity_type: "subscription_plans",
       entity_id: mutation.data.id,
-      action: payload.id ? "update_subscription_plan" : "create_subscription_plan",
+      action: "create_subscription_plan",
       after_data: mutation.data
     });
     return ok({ plan: mutation.data });

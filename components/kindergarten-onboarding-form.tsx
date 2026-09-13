@@ -22,7 +22,6 @@ import {
 import { ManagerParentInvitationPanel } from "@/components/manager-parent-invitation-panel";
 import { UploadImageField } from "@/components/upload-image-field";
 import {
-  calculateGanBatuachMonthlyPrice,
   ganBatuachTrialDays,
   kindergartenAgeGroups,
   knownKindergartenCities,
@@ -46,6 +45,7 @@ type Garden = {
 type Onboarding = {
   lifecycle_status?: string | null;
   progress_percent?: number | null;
+  subscription_monthly_amount?: number | null;
   missing_fields?: string[] | null;
   profile_data?: Record<string, any> | null;
   correction_note?: string | null;
@@ -209,8 +209,7 @@ export function KindergartenOnboardingForm({ garden, onboarding, managerName }: 
   const [staffCount, setStaffCount] = useState(Number(profileData.staff_count ?? 0));
   const galleryUrls = Array.isArray(profileData.gallery_urls) ? profileData.gallery_urls : [];
   const uploadedCategories = Array.isArray(profileData.uploaded_document_categories) ? profileData.uploaded_document_categories : [];
-  const classCount = selectedAgeGroups.reduce((sum, key) => sum + Math.max(1, Number(classroomCounts[key] ?? 1)), 0) || 1;
-  const monthlyPrice = calculateGanBatuachMonthlyPrice(classCount);
+  const monthlyPrice = Number(onboarding?.subscription_monthly_amount ?? 0);
   const trialEnd = useMemo(() => new Date(Date.now() + ganBatuachTrialDays * 86400000).toLocaleDateString("he-IL"), []);
   const cityFromAddress = String(profileData.city ?? "").trim();
 
@@ -404,7 +403,7 @@ export function KindergartenOnboardingForm({ garden, onboarding, managerName }: 
             <span className="pill good">התוכנית שנבחרה</span>
             <ShieldCheck />
             <h3>מנוי גן בטוח שנתי</h3>
-            <strong>{monthlyPrice.toLocaleString("he-IL")} ₪ <small>לחודש לאחר הניסיון</small></strong>
+            <strong>{monthlyPrice > 0 ? `${monthlyPrice.toLocaleString("he-IL")} ₪` : "מחיר לפי המסלול הפעיל"} <small>לחודש לאחר הניסיון; יאומת בשמירה</small></strong>
             <p>כולל את יכולות התצפיתן הדיגיטלי בתוך דשבורד הגן. אין צורך בחשבון נפרד למנהלת.</p>
           </article>
           <article className="manager-registration-card manager-trial-summary">
