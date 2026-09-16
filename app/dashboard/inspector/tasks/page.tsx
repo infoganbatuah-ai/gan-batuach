@@ -13,7 +13,7 @@ export default async function InspectorTasksPage() {
     supabase.from("tasks" as any).select("*").or(`assigned_to.eq.${profile.id},assigned_role.eq.inspector`).order("created_at", { ascending: false }).limit(120)
   ]);
   const gardenIds = (gardensRes.data ?? []).map((garden: any) => garden.id);
-  const scopedTasks = ((tasksRes.data ?? []) as any[]).filter((task) => task.assigned_to === profile.id || !task.garden_id || gardenIds.includes(task.garden_id));
+  const scopedTasks = ((tasksRes.data ?? []) as any[]).filter((task) => task.garden_id && gardenIds.includes(task.garden_id));
   const urgent = scopedTasks.filter((task) => ["high", "urgent", "critical"].includes(String(task.priority))).length;
   const profileForUi = { ...profile, profile_image_url: (inspectorRes.data as any)?.profile_photo_url ?? profile.profile_image_url };
 

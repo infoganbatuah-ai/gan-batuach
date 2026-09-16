@@ -54,59 +54,36 @@ function dateText(value?: string | null) {
   return value ? new Date(value).toLocaleString("he-IL", { dateStyle: "short", timeStyle: "short" }) : "ללא יעד";
 }
 
-function normalizeLegacyTask(task: Row): Row {
-  return {
-    ...task,
-    legacy: true,
-    task_type: task.task_type ?? "general",
-    workflow_id: task.workflow_id ?? null,
-    workflow_task_id: task.workflow_task_id ?? null
-  };
-}
-
 function roleTitle(role: string) {
   const labels: Record<string, string> = {
     admin: "משימות הנהלה",
     manager: "משימות ניהול",
     owner: "משימות ניהול",
     staff: "משימות צוות",
-    parent: "משימות משפחה",
     inspector: "משימות פיקוח"
   };
   return labels[role] ?? "המשימות שלי";
 }
 
 export default async function UnifiedTasksPage() {
-  const { profile } = await requireOperationalRole(["admin", "network_manager", "manager", "owner", "staff", "parent", "inspector"]);
+  const { profile } = await requireOperationalRole(["admin", "network_manager", "manager", "owner", "staff", "inspector"]);
   const supabase = await createClient();
   const role = String(profile.role) as UserRole;
   const gardenId = profile.garden_id ?? "";
 
-  const workflowRes = await supabase
-    .from("workflow_tasks" as any)
-    .select("*, workflows(title,workflow_type,status), gardens(name,city), profiles:assigned_to(full_name,role)")
-    .order("due_at", { ascending: true, nullsFirst: false })
-    .order("created_at", { ascending: false })
-    .limit(180);
-
-  let rows = (workflowRes.data ?? []) as Row[];
-  let queryError = workflowRes.error ? "תיבת העבודה החדשה עדיין לא זמינה, מוצגות משימות קיימות." : null;
-
-  if (workflowRes.error) {
-    const legacyQuery = supabase.from("tasks" as any).select("*").order("created_at", { ascending: false }).limit(160);
-    const legacyRes = await legacyQuery;
-    rows = ((legacyRes.data ?? []) as Row[]).map(normalizeLegacyTask);
-    if (legacyRes.error) queryError = "לא ניתן לטעון משימות כרגע.";
-  }
+  let taskQuery = supabase.from("tasks" as any)
+    .select("id,garden_id,title,description,assigned_to,assigned_role,due_at,status,priority,task_type,source_entity_type,source_entity_id,completed_at,created_at,gardens(name,city),profiles:assigned_to(full_name,role)")
+    .order("created_at", { ascending: false }).limit(160);
+  if (role === "staff") taskQuery = taskQuery.eq("garden_id", gardenId).eq("assigned_to", profile.id);
+  if (["manager", "owner"].includes(role)) taskQuery = taskQuery.eq("garden_id", gardenId);
+  const taskRes = await taskQuery;
+  let rows = (taskRes.data ?? []) as Row[];
+  const queryError = taskRes.error ? "לא ניתן לטעון משימות כרגע." : null;
 
   if (role !== "admin") {
     rows = rows.filter((task) => {
-      const assignedToMe = task.assigned_to === profile.id;
-      const roleMatch = task.assigned_role === role;
-      const gardenMatch = !task.garden_id || task.garden_id === gardenId;
-      if (role === "inspector") return assignedToMe || roleMatch;
-      if (role === "parent") return assignedToMe || (roleMatch && gardenMatch);
-      return assignedToMe || (roleMatch && gardenMatch) || (gardenMatch && ["manager", "owner"].includes(role));
+      if (role === "inspector") return task.garden_id && (task.assigned_to === profile.id || task.assigned_role === "inspector");
+      return true;
     });
   }
 
@@ -174,7 +151,7 @@ export default async function UnifiedTasksPage() {
                     <div className="unified-task-main">
                       <span><Workflow size={16} /> {typeLabels[task.task_type] ?? task.task_type ?? "כללי"}</span>
                       <strong>{task.title}</strong>
-                      <p>{task.description ?? task.workflows?.title ?? "אין פירוט נוסף"}</p>
+                      <p>{task.description ?? "אין פירוט נוסף"}</p>
                       <small>{task.gardens?.name ?? "כללי"} · אחראי: {task.profiles?.full_name ?? task.assigned_role ?? "לא שויך"}</small>
                     </div>
                     <div className="unified-task-meta">
@@ -193,7 +170,7 @@ export default async function UnifiedTasksPage() {
           {role === "admin" ? <Link className="premium-action-card" href="/dashboard/admin/workflows"><ListChecks /><strong>מרכז עבודה</strong><span>תהליכים ואוטומציה</span></Link> : null}
           {["manager", "owner", "admin"].includes(role) ? <Link className="premium-action-card" href="/dashboard/garden/command-center"><UserRoundCheck /><strong>ניהול היום</strong><span>מצב הגן</span></Link> : null}
           {["inspector", "admin"].includes(role) ? <Link className="premium-action-card" href="/dashboard/inspector/command-center"><ShieldCheck /><strong>פיקוח</strong><span>בדיקות וליקויים</span></Link> : null}
-          <Link className="premium-action-card" href={role === "staff" ? "/dashboard/staff/operations" : role === "parent" ? "/dashboard/parent/family-home" : "/dashboard"}><CheckCircle2 /><strong>חזרה לעבודה</strong><span>המסך הראשי שלך</span></Link>
+          <Link className="premium-action-card" href={role === "staff" ? "/dashboard/staff/operations" : "/dashboard"}><CheckCircle2 /><strong>חזרה לעבודה</strong><span>המסך הראשי שלך</span></Link>
         </section>
       </div>
     </DashboardShell>

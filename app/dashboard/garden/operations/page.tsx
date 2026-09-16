@@ -2,6 +2,7 @@ import { israelTodayDateKey } from "@/lib/domain/israel-date";
 import { redirect } from "next/navigation";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { ManagerOverviewDashboard } from "@/components/manager-overview-dashboard";
+import { ComplaintCaseActions } from "@/components/complaint-case-actions";
 import { TeacherAppFrame } from "@/components/teacher-app-ui";
 import { requireRole } from "@/lib/auth";
 import { cleanSyntheticLabel, isSyntheticLabel } from "@/lib/domain/display-label";
@@ -220,6 +221,13 @@ export default async function GardenOperationsPage() {
           tasks={unifiedTasks.map((task) => ({ id: `${task.source}-${task.id}`, title: cleanSyntheticLabel(task.title, "משימה"), subtitle: task.due ? `לביצוע עד ${timeText(task.due)}` : "ממתינה לטיפול", href: task.href }))}
           unreadMessages={messagesRes.count ?? 0}
         />
+        {complaints.length ? <section className="dashboard-section" aria-label="תלונות גן לטיפול">
+          <h2>תלונות לטיפול</h2>
+          <div className="procedure-list">{complaints.map((complaint) => <article className="card procedure-card" key={complaint.id}>
+            <div><strong>{complaint.subject}</strong><p>{complaint.status} · {complaint.created_at ? new Date(complaint.created_at).toLocaleDateString("he-IL") : ""}</p></div>
+            <ComplaintCaseActions id={complaint.id} status={complaint.status} role="garden" />
+          </article>)}</div>
+        </section> : null}
       </TeacherAppFrame>
     </DashboardShell>
   );

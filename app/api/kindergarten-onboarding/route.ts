@@ -4,7 +4,7 @@ import { fail, handleRouteError, ok } from "@/lib/api";
 import { getSessionProfile } from "@/lib/auth";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
-import { activationWizardSteps, calculateGanBatuachMonthlyPrice, kindergartenAgeGroups, operationalDistrictForCity, requiredKindergartenDocumentCategories } from "@/lib/domain/kindergarten-onboarding";
+import { activationWizardSteps, kindergartenAgeGroups, operationalDistrictForCity, requiredKindergartenDocumentCategories } from "@/lib/domain/kindergarten-onboarding";
 import { managementContactVerification } from "@/lib/management/contact-verification";
 
 const onboardingSchema = z.object({
@@ -179,8 +179,11 @@ export async function PATCH(request: Request) {
     const currentStaff = Number(profileData.staff_count ?? 0);
     const missingStaff = null;
     const lifecycleStatus = "onboarding_in_progress";
-    const classCount = selectedAgeGroups.filter((groupKey) => Number(classCapacity[String(groupKey)] ?? 0) > 0).length || selectedAgeGroups.length;
-    const subscriptionAmount = calculateGanBatuachMonthlyPrice(classCount);
+    const selectedClassCount = selectedAgeGroups.filter((groupKey) => Number(classCapacity[String(groupKey)] ?? 0) > 0).length || selectedAgeGroups.length;
+    const { data: activePlan, error: planError } = await supabase.from("subscription_plans" as any)
+      .select("id,monthly_price,billing_interval").eq("is_default", true).eq("active", true).maybeSingle();
+    if (planError || !activePlan || activePlan.billing_interval !== "monthly") return fail("מסלול המנוי עדיין לא הוגדר; ניתן לשמור טיוטה לאחר הגדרת תוכנית.", 503);
+    const subscriptionAmount = Number(activePlan.monthly_price);
     const gardenPatch = Object.fromEntries(Object.entries({
       name: payload.garden.name || existingGarden?.name,
       city: payload.garden.city || undefined,
@@ -228,6 +231,8 @@ export async function PATCH(request: Request) {
           current_staff: currentStaff,
           missing_staff: missingStaff,
           subscription_monthly_amount: subscriptionAmount,
+          subscription_plan_id: activePlan.id,
+          selected_class_count: selectedClassCount,
           required_document_categories: requiredKindergartenDocumentCategories
         },
         activation_steps: progress.completedSteps,

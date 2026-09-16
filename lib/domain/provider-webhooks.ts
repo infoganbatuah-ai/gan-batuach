@@ -1,7 +1,8 @@
-import { createHmac, timingSafeEqual } from "crypto";
 import { z } from "zod";
 import { fail, ok } from "@/lib/api";
-import { getIntegrationSafetyModes, getProviderMissingConfiguration } from "@/lib/domain/provider-integration-safety";
+import { getIntegrationSafetyModes } from "@/lib/domain/provider-integration-safety";
+import { normalizeFinancialEventType } from "@/lib/domain/financial-provider-policy";
+import { verifyLegacyHmacSignature } from "@/lib/domain/provider-webhook-signature";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
 import { assertRateLimit } from "@/lib/security/rate-limit";
 
@@ -52,16 +53,6 @@ function signatureHeader(request: Request) {
     || request.headers.get("x-signature");
 }
 
-function verifySignature(body: string, signature: string | null, secret?: string) {
-  if (!secret) return false;
-  if (!signature) return false;
-  const expected = createHmac("sha256", secret).update(body).digest("hex");
-  const received = signature.startsWith("sha256=") ? signature.slice("sha256=".length) : signature;
-  const expectedBuffer = Buffer.from(expected, "hex");
-  const receivedBuffer = Buffer.from(received, "hex");
-  return expectedBuffer.length === receivedBuffer.length && timingSafeEqual(expectedBuffer, receivedBuffer);
-}
-
 function modeFor(kind: IntegrationKind) {
   const modes = getIntegrationSafetyModes();
   return kind === "payment"
@@ -86,12 +77,13 @@ function safeMetadata(payload: z.infer<typeof eventSchema>, mode: string, secret
     invoice_id: payload.invoice_id ?? null,
     invoice_number: payload.invoice_number ?? null,
     amount: payload.amount ?? null,
-    currency: payload.currency ?? "ILS",
+    currency: payload.currency ?? null,
     failure_reason: payload.failure_reason ?? null,
     occurred_at: payload.occurred_at ?? null,
     mode,
     signing_secret_env: secretEnv,
-    note: "Raw webhook body is not stored by the app endpoint."
+    note: "Raw webhook body is not stored by the app endpoint.",
+    normalized_event_type: normalizeFinancialEventType(payload.event_type)
   };
 }
 
@@ -117,12 +109,7 @@ async function recordEvent(input: {
     .maybeSingle();
 
   if (existing.data?.id) {
-    await admin.from("provider_webhook_events" as any).update({
-      replay_detected: true,
-      status: "replayed",
-      error_message: "Duplicate provider webhook event ignored.",
-      processed_at: new Date().toISOString()
-    }).eq("id", existing.data.id);
+    // A retry must never replace the original processed/failed event state.
     return { replay: true, eventId: existing.data.id, admin };
   }
 
@@ -148,142 +135,43 @@ async function recordEvent(input: {
   return { replay: false, eventId: insert.data?.id, admin };
 }
 
-async function applyPaymentSideEffect(admin: ReturnType<typeof createAdminClient>, payload: z.infer<typeof eventSchema>, provider: string) {
-  const subscriptionId = payload.subscription_id ?? (payload.related_entity_type === "kindergarten_subscriptions" ? payload.related_entity_id : undefined);
-  if (!subscriptionId || payload.stream && payload.stream !== "gan_batuach_subscription") {
-    return { applied: false, reason: "Only Gan Batuach subscription webhook side effects are enabled in PROD 1." };
-  }
-
-  const patch: Record<string, unknown> = {
-    provider,
-    updated_at: new Date().toISOString(),
-    metadata: {
-      last_provider_event_id: payload.event_id,
-      last_provider_event_type: payload.event_type,
-      payment_stream: "gan_batuach_subscription"
-    }
-  };
-
-  if (["payment_success", "subscription_created", "subscription_updated"].includes(payload.event_type)) {
-    patch.status = "active";
-    patch.billing_status = "active";
-    patch.trial_status = "converted";
-  }
-  if (payload.event_type === "payment_failed") {
-    patch.status = "payment_failed";
-    patch.billing_status = "failed";
-    patch.suspension_reason = payload.failure_reason ?? "Provider payment failed.";
-  }
-  if (payload.event_type === "subscription_cancelled") {
-    patch.status = "cancelled";
-    patch.billing_status = "cancelled";
-    patch.cancelled_at = new Date().toISOString();
-  }
-
-  const update = await admin.from("kindergarten_subscriptions" as any).update(patch).eq("id", subscriptionId).select("id,garden_id,status").maybeSingle();
-  if (update.error || !update.data) return { applied: false, reason: update.error?.message ?? "subscription_not_found" };
-
-  if (payload.amount !== undefined || payload.event_type === "payment_failed") {
-    await admin.from("subscription_payments" as any).insert({
-      subscription_id: subscriptionId,
-      garden_id: (update.data as any).garden_id,
-      provider,
-      provider_payment_id: payload.payment_id ?? null,
-      payment_reference: payload.event_id,
-      amount: payload.amount ?? 0,
-      currency: payload.currency ?? "ILS",
-      billing_status: payload.event_type === "payment_failed" ? "failed" : "paid",
-      gateway_status: payload.event_type === "payment_failed" ? "failed" : "captured",
-      paid_at: payload.event_type === "payment_failed" ? null : payload.occurred_at ?? new Date().toISOString(),
-      failed_at: payload.event_type === "payment_failed" ? payload.occurred_at ?? new Date().toISOString() : null,
-      failure_reason: payload.failure_reason ?? null,
-      metadata: { source: "provider_webhook", event_id: payload.event_id, revenue_stream: "gan_batuach_subscription" }
-    });
-  }
-
-  return { applied: true, gardenId: (update.data as any).garden_id, status: (update.data as any).status };
-}
-
-async function applyInvoiceSideEffect(admin: ReturnType<typeof createAdminClient>, payload: z.infer<typeof eventSchema>) {
-  const invoiceId = payload.invoice_id ?? (payload.related_entity_type === "billing_invoices" ? payload.related_entity_id : undefined);
-  if (!invoiceId) return { applied: false, reason: "invoice_id_required_for_safe_update" };
-  const patch: Record<string, unknown> = { metadata: { last_provider_event_id: payload.event_id, stream: payload.stream ?? null } };
-  if (payload.event_type === "invoice_sent") patch.email_status = "sent";
-  if (payload.event_type === "invoice_failed") patch.email_status = "failed";
-  if (payload.event_type === "invoice_paid" || payload.event_type === "receipt_created") patch.billing_status = "paid";
-  const update = await admin.from("billing_invoices" as any).update(patch).eq("id", invoiceId).select("id").maybeSingle();
-  if (update.error || !update.data) return { applied: false, reason: update.error?.message ?? "invoice_not_found" };
-  return { applied: true };
-}
-
 export async function handleProviderWebhook(request: Request, kind: IntegrationKind) {
   try {
     if (!isAdminClientConfigured()) return fail("Webhook readiness requires server-side Supabase service role configuration.", 503);
-    await assertRateLimit(ipFor(request), `/api/webhooks/${kind}`, 30, 60);
+    // This generic HMAC endpoint has no provider-specific signature parser, checkout
+    // intent, account binding or authoritative retrieval adapter. It may retain a
+    // signed event for review, but cannot settle money or issue a tax document.
+    const guard = modeFor(kind);
+    if (!guard.secret) return fail("Provider webhook verification is not configured.", 503);
 
     const rawBody = await request.text();
-    const parsedJson = JSON.parse(rawBody || "{}");
-    const payload = eventSchema.parse(parsedJson);
-    const provider = payload.provider ?? process.env[kind === "payment" ? "PAYMENT_PROVIDER" : "INVOICE_PROVIDER"] ?? "provider";
-    const guard = modeFor(kind);
-    const signatureValid = verifySignature(rawBody, signatureHeader(request), guard.secret);
-    const signatureRequired = guard.live || Boolean(guard.secret);
-    const missing = getProviderMissingConfiguration(kind, provider);
-    const supportedEvent = isSupportedEventType(payload.event_type);
-
-    if (signatureRequired && !signatureValid) {
-      await recordEvent({
-        kind,
-        provider,
-        payload,
-        signatureValid,
-        status: "failed",
-        errorMessage: `${guard.secretEnv} signature validation failed or missing.`,
-        mode: guard.mode,
-        secretEnv: guard.secretEnv
-      }).catch((error) => console.error("[provider-webhook-signature-log]", error));
+    if (!verifyLegacyHmacSignature(rawBody, signatureHeader(request), guard.secret)) {
       return fail("Invalid or missing webhook signature.", 401);
     }
-
-    const shouldApplySideEffects = supportedEvent && guard.live && missing.length === 0 && signatureValid;
+    await assertRateLimit(ipFor(request), `/api/webhooks/${kind}`, 30, 60);
+    const parsedJson = JSON.parse(rawBody || "{}");
+    const payload = eventSchema.parse(parsedJson);
+    const configuredProvider = process.env[kind === "payment" ? "PAYMENT_PROVIDER" : "INVOICE_PROVIDER"];
+    if (!configuredProvider || (payload.provider && payload.provider !== configuredProvider)) {
+      return fail("Webhook provider account mismatch or not configured.", 403);
+    }
+    const provider = configuredProvider;
+    const supportedEvent = isSupportedEventType(payload.event_type);
     const eventRecord = await recordEvent({
       kind,
       provider,
       payload,
-      signatureValid,
-      status: shouldApplySideEffects ? "verified" : "ignored",
-      errorMessage: shouldApplySideEffects
-        ? undefined
-        : supportedEvent
-          ? "Provider mode is not live/production with verified configuration; side effects skipped."
-          : "Unsupported webhook event type ignored safely.",
+      signatureValid: true,
+      status: "ignored",
+      errorMessage: supportedEvent
+        ? "Provider-specific verification and bound checkout intent are unavailable; no financial side effect."
+        : "Unsupported webhook event type ignored safely.",
       mode: guard.mode,
       secretEnv: guard.secretEnv
     });
 
     if (eventRecord.replay) return ok({ status: "duplicate_ignored", replay_detected: true });
-    if (!shouldApplySideEffects) {
-      return ok({
-        status: "readiness_logged",
-        side_effects_applied: false,
-        mode: guard.mode,
-        supported_event: supportedEvent,
-        missing_configuration: missing,
-        signature_valid: signatureValid
-      }, 202);
-    }
-
-    const result = kind === "payment"
-      ? await applyPaymentSideEffect(eventRecord.admin, payload, provider)
-      : await applyInvoiceSideEffect(eventRecord.admin, payload);
-    await eventRecord.admin.from("provider_webhook_events" as any).update({
-      status: result.applied ? "processed" : "failed",
-      processed_at: new Date().toISOString(),
-      error_message: result.applied ? null : result.reason ?? "side_effect_not_applied",
-      metadata: { ...safeMetadata(payload, guard.mode, guard.secretEnv), side_effect_result: result }
-    }).eq("id", eventRecord.eventId);
-
-    return ok({ status: result.applied ? "processed" : "logged_with_blocker", side_effects_applied: result.applied, result });
+    return ok({ status: "verification_pending", side_effects_applied: false, mode: guard.mode, supported_event: supportedEvent }, 202);
   } catch (error) {
     console.error("[provider-webhook]", error);
     return fail("Webhook processing failed safely.", 400);

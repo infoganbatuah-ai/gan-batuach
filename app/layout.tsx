@@ -11,6 +11,9 @@ import "./styles/manager-onboarding-live.css";
 import "./styles/digital-observer-product.css";
 
 export const metadata: Metadata = {
+  verification: {
+    google: "Js5gNdpsN2kAM17lnIyMTfn9Naz2749HkBCzelo21_g",
+  },
   metadataBase: new URL("https://ganbatuach.com"),
   title: {
     default: "גן בטוח | תקן הבטיחות, הפיקוח והשקיפות החדש לגני ילדים",

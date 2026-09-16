@@ -1,7 +1,7 @@
 import { Bell, CheckCircle2, ClipboardCheck, Clock, ListChecks, Plus, ShieldAlert } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { TaskWorkbench } from "@/components/task-workbench";
-import { requireRole } from "@/lib/auth";
+import { requireOperationalRole } from "@/lib/management/operational-role";
 import { createClient } from "@/lib/supabase/server";
 import {
   TeacherActionTile,
@@ -18,9 +18,15 @@ import {
 } from "@/components/teacher-app-ui";
 
 export default async function GardenTasksPage() {
-  const { profile } = await requireRole(["manager", "owner"]);
+  const { profile } = await requireOperationalRole(["manager", "owner"]);
   const supabase = await createClient();
-  const { data } = await supabase.from("tasks" as any).select("*").eq("garden_id", profile.garden_id ?? "").order("created_at", { ascending: false }).limit(120);
+  const [tasksResult, staffResult] = await Promise.all([
+    supabase.from("tasks" as any).select("*").eq("garden_id", profile.garden_id ?? "").order("created_at", { ascending: false }).limit(120),
+    supabase.from("staff" as never).select("profile_id,full_name,approved_to_work,onboarding_status").eq("garden_id", profile.garden_id ?? "").eq("approved_to_work", true).eq("onboarding_status", "active")
+  ]);
+  const data = tasksResult.data;
+  const assignees = [{ id: profile.id, name: profile.full_name ?? "מנהל/ת הגן" }, ...((staffResult.data ?? []) as { profile_id: string | null; full_name: string }[])
+    .filter((person) => person.profile_id).map((person) => ({ id: person.profile_id!, name: person.full_name }))];
   const tasks = (data ?? []) as any[];
   const open = tasks.filter((task) => !["done", "completed", "closed"].includes(String(task.status)));
   const urgent = tasks.filter((task) => ["high", "urgent", "critical"].includes(String(task.priority)));
@@ -73,7 +79,7 @@ export default async function GardenTasksPage() {
         <details className="teacher-management-details" id="full-task-workbench">
           <summary>ניהול מלא של משימות</summary>
           <div className="teacher-embedded-module">
-            <TaskWorkbench tasks={tasks} />
+            <TaskWorkbench tasks={tasks} gardenId={profile.garden_id ?? undefined} assignees={assignees} canManage />
           </div>
         </details>
       </TeacherAppFrame>

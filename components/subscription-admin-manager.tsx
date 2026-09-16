@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, type FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import { CreditCard, RefreshCw, Save } from "lucide-react";
 import { CollapsibleActionPanel } from "@/components/collapsible-action-panel";
@@ -13,6 +13,8 @@ const statusLabels: Record<string, string> = {
   active: "פעיל",
   trial: "ניסיון",
   pending_payment: "ממתין לתשלום",
+  past_due: "תשלום באיחור",
+  grace_period: "תקופת חסד",
   payment_failed: "תשלום נכשל",
   frozen: "מוקפא",
   suspended: "מושעה",
@@ -43,8 +45,6 @@ export function SubscriptionAdminManager({ plans, subscriptions, gardens, paymen
   const trialCount = subscriptions.filter((item) => ["trial", "demo_active"].includes(item.status)).length;
   const failedCount = payments.filter((item) => item.billing_status === "failed").length;
   const expiredCount = subscriptions.filter((item) => ["expired", "suspended", "frozen", "payment_failed"].includes(item.status)).length;
-  const defaultPlan = plans[0];
-  const planById = useMemo(() => new Map(plans.map((plan) => [plan.id, plan])), [plans]);
 
   async function savePlan(event: FormEvent<HTMLFormElement>, close: () => void) {
     event.preventDefault();
@@ -53,10 +53,15 @@ export function SubscriptionAdminManager({ plans, subscriptions, gardens, paymen
     const form = new FormData(event.currentTarget);
     try {
       await postJson("/api/admin/subscription-plans", {
+        id: form.get("existing_plan_id") || undefined,
         name: form.get("name"),
         description: form.get("description"),
         plan_type: form.get("plan_type"),
         price_amount: form.get("price_amount"),
+        billing_interval: form.get("billing_interval") || "monthly",
+        commitment_months: form.get("commitment_months") || 12,
+        grace_days: form.get("grace_days") || null,
+        is_default: form.get("is_default") === "on",
         duration_days: form.get("duration_days") || null,
         trial_days: form.get("trial_days") || 0,
         active_users_limit: form.get("active_users_limit") || null,
@@ -84,23 +89,12 @@ export function SubscriptionAdminManager({ plans, subscriptions, gardens, paymen
     setError(null);
     setMessage(null);
     const form = new FormData(event.currentTarget);
-    const selectedPlan = planById.get(String(form.get("plan_id"))) ?? defaultPlan;
     try {
       await postJson("/api/admin/subscriptions", {
         garden_id: form.get("garden_id"),
         plan_id: form.get("plan_id") || null,
-        status: form.get("status"),
-        plan_type: selectedPlan?.plan_type === "monthly" ? "annual" : selectedPlan?.plan_type ?? form.get("plan_type") ?? "annual",
-        start_date: form.get("start_date") || undefined,
-        expires_at: form.get("expires_at") || null,
-        renewal_date: form.get("renewal_date") || null,
-        trial_ends_at: form.get("trial_ends_at") || null,
-        admin_override: form.get("admin_override") === "on",
-        override_reason: form.get("override_reason") || null,
-        suspension_reason: form.get("suspension_reason") || null,
-        billing_contact_name: form.get("billing_contact_name") || null,
-        billing_contact_email: form.get("billing_contact_email") || null,
-        billing_contact_phone: form.get("billing_contact_phone") || null
+        action: form.get("action"),
+        reason: form.get("reason") || null
       });
       setMessage("מנוי הגן נשמר");
       close();
@@ -125,9 +119,14 @@ export function SubscriptionAdminManager({ plans, subscriptions, gardens, paymen
         {({ close }) => (
           <form className="card form wizard-form" onSubmit={(event) => savePlan(event, close)}>
             <div className="form-grid">
+              <label>גרסה חדשה של תוכנית קיימת<select name="existing_plan_id"><option value="">תוכנית חדשה</option>{plans.filter((plan) => plan.active).map((plan) => <option key={plan.id} value={plan.id}>{plan.name} · v{plan.version ?? 1}</option>)}</select></label>
               <label>שם תוכנית<input name="name" required /></label>
               <label>סוג<select name="plan_type" required>{creatablePlanTypes.map((key) => <option key={key} value={key}>{planTypeLabels[key]}</option>)}</select></label>
-              <label>מחיר שנתי<input name="price_amount" type="number" min="0" step="1" required /></label>
+              <label>מחיר לתקופת חיוב<input name="price_amount" type="number" min="0" step="1" required /></label>
+              <label>מחזור חיוב<select name="billing_interval"><option value="monthly">חודשי</option><option value="annual">שנתי</option></select></label>
+              <label>חודשי התחייבות<input name="commitment_months" type="number" min="1" defaultValue="12" /></label>
+              <label>ימי חסד (אם אושרו)<input name="grace_days" type="number" min="0" /></label>
+              <label><input name="is_default" type="checkbox" /> להפוך לברירת מחדל (בגרסה חדשה)</label>
               <label>משך ימים<input name="duration_days" type="number" min="1" /></label>
               <label>ימי ניסיון<input name="trial_days" type="number" min="0" defaultValue="0" /></label>
               <label>מגבלת משתמשים<input name="active_users_limit" type="number" min="0" /></label>
@@ -152,17 +151,8 @@ export function SubscriptionAdminManager({ plans, subscriptions, gardens, paymen
             <div className="form-grid">
               <label>גן<select name="garden_id" required><option value="">בחר גן</option>{gardens.map((garden) => <option key={garden.id} value={garden.id}>{garden.name} · {garden.city}</option>)}</select></label>
               <label>תוכנית<select name="plan_id">{plans.map((plan) => <option key={plan.id} value={plan.id}>{plan.name} · {planTypeLabels[plan.plan_type] ?? plan.plan_type}</option>)}</select></label>
-              <label>סטטוס<select name="status" required>{Object.entries(statusLabels).map(([key, label]) => <option key={key} value={key}>{label}</option>)}</select></label>
-              <label>תאריך התחלה<input name="start_date" type="date" /></label>
-              <label>תוקף עד<input name="expires_at" type="datetime-local" /></label>
-              <label>חידוש<input name="renewal_date" type="date" /></label>
-              <label>סיום Trial<input name="trial_ends_at" type="datetime-local" /></label>
-              <label>איש קשר לחיוב<input name="billing_contact_name" /></label>
-              <label>מייל לחיוב<input name="billing_contact_email" type="email" /></label>
-              <label>טלפון לחיוב<input name="billing_contact_phone" /></label>
-              <label>סיבת השעיה<input name="suspension_reason" /></label>
-              <label><input name="admin_override" type="checkbox" /> Override אדמין</label>
-              <label>סיבת override<input name="override_reason" /></label>
+              <label>פעולה<select name="action" required><option value="create_pending">יצירת מנוי ממתין</option><option value="adopt_plan">הצמדת תוכנית למנוי קיים לאחר בדיקה</option><option value="manual_activate">הפעלה ידנית</option><option value="mark_past_due">סימון איחור</option><option value="enter_grace">כניסה לתקופת חסד מוגדרת</option><option value="suspend">השעיה</option><option value="reactivate">הפעלה מחדש</option><option value="renew">חידוש תקופה ממתינה</option><option value="cancel">ביטול חריג על ידי אדמין</option></select></label>
+              <label>סיבה לתיעוד<input name="reason" /></label>
             </div>
             <div className="profile-actions"><button className="button primary"><Save size={16} /> שמירת מנוי</button><button className="button secondary" type="button" onClick={close}>ביטול</button></div>
           </form>
@@ -195,7 +185,7 @@ export function SubscriptionAdminManager({ plans, subscriptions, gardens, paymen
 export function GardenSubscriptionActions({ plans }: { plans: any[] }) {
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-  async function request(action: "request_upgrade" | "request_renewal", planId?: string) {
+  async function request(action: "request_upgrade" | "request_renewal" | "request_cancellation", planId?: string) {
     setMessage(null);
     setError(null);
     try {
@@ -212,6 +202,7 @@ export function GardenSubscriptionActions({ plans }: { plans: any[] }) {
       {error ? <div className="error-banner">{error}</div> : null}
       <div className="profile-actions">
         <button className="button primary" type="button" onClick={() => request("request_renewal")}><RefreshCw size={16} /> חידוש מנוי</button>
+        <button className="button secondary" type="button" onClick={() => request("request_cancellation")}>בקשת ביטול בתום התקופה</button>
         {plans.filter((plan) => plan.plan_type === "enterprise").map((plan) => <button className="button secondary" type="button" key={plan.id} onClick={() => request("request_upgrade", plan.id)}>פנייה לגבי רשת גנים / {plan.name}</button>)}
       </div>
     </section>

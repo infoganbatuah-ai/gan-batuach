@@ -6,7 +6,7 @@ import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin
 import { createClient } from "@/lib/supabase/server";
 
 const schema = z.object({
-  action: z.enum(["request_upgrade", "request_renewal"]),
+  action: z.enum(["request_upgrade", "request_renewal", "request_cancellation"]),
   plan_id: z.string().uuid().optional(),
   notes: z.string().optional()
 });
@@ -18,11 +18,19 @@ export async function POST(request: Request) {
     const { profile } = access.session;
     const payload = schema.parse(await request.json());
     if (!profile.garden_id) return fail("לא נמצא גן משויך למשתמש.", 403);
+    if (payload.action === "request_cancellation") {
+      const client = await createClient();
+      const result = await client.rpc("request_platform_subscription_cancellation" as never, {
+        target_garden_id: access.gardenId, requested_reason: payload.notes ?? null
+      } as never);
+      if (result.error) return fail("לא ניתן לבקש ביטול מנוי כרגע.", result.error.code === "42501" ? 403 : 409);
+      return ok({ subscription: result.data, message: "בקשת הביטול נשמרה. נתוני הגן נשמרים." });
+    }
     const supabase = !profile.active && isAdminClientConfigured() ? createAdminClient() : await createClient();
     const subscription = await supabase
       .from("kindergarten_subscriptions" as any)
       .select("*")
-      .eq("garden_id", profile.garden_id)
+      .eq("garden_id", access.gardenId)
       .order("created_at", { ascending: false })
       .limit(1)
       .maybeSingle();
@@ -36,7 +44,7 @@ export async function POST(request: Request) {
     });
 
     const notification = await supabase.from("notifications" as any).insert({
-      garden_id: profile.garden_id,
+      garden_id: access.gardenId,
       recipient_role: "admin",
       title: payload.action === "request_upgrade" ? "בקשת שדרוג מנוי" : "בקשת חידוש מנוי",
       body: "מנהלת/בעלים ביקשו טיפול במנוי. החיוב עדיין ידני עד חיבור ספק תשלומים.",
@@ -52,7 +60,7 @@ export async function POST(request: Request) {
     await supabase.from("audit_logs" as any).insert({
       actor_id: profile.id,
       actor_role: profile.role,
-      garden_id: profile.garden_id,
+      garden_id: access.gardenId,
       entity_type: "kindergarten_subscriptions",
       entity_id: subscription.data?.id ?? null,
       action: payload.action,

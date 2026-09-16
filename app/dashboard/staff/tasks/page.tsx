@@ -8,9 +8,9 @@ import { createClient } from "@/lib/supabase/server";
 export default async function StaffTasksPage() {
   const { profile } = await requireOperationalRole(["staff"]);
   const supabase = await createClient();
-  const { data } = await supabase.from("tasks" as any).select("*").eq("garden_id", profile.garden_id ?? "").or(`assigned_to.eq.${profile.id},assigned_role.eq.staff`).order("created_at", { ascending: false }).limit(120);
+  const { data } = await supabase.from("tasks" as any).select("*").eq("garden_id", profile.garden_id ?? "").eq("assigned_to", profile.id).order("created_at", { ascending: false }).limit(120);
   const rows = (data ?? []) as any[];
-  const overdue = rows.filter((task) => task.due_at && new Date(task.due_at).getTime() < Date.now()).length;
+  const overdue = rows.filter((task) => !["done", "cancelled"].includes(task.status) && task.due_at && new Date(task.due_at).getTime() < Date.now()).length;
   const done = rows.filter((task) => task.status === "done" || task.status === "completed").length;
   return (
     <StaffAppFrame active="more">
