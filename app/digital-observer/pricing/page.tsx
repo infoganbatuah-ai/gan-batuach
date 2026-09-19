@@ -2,6 +2,9 @@ import Link from "next/link";
 import { Check, ShieldCheck } from "lucide-react";
 import { ObserverMark } from "@/components/digital-observer/observer-app-shell";
 import { createClient } from "@/lib/supabase/server";
+import { digitalObserverMetadata } from "@/lib/seo/digital-observer-metadata";
+
+export const metadata = digitalObserverMetadata("/digital-observer/pricing", "מסלולים לתצפיתן דיגיטלי לבית ולעסק", "מידע על מסלולי תצפיתן דיגיטלי לפי מספר מצלמות, אתרים והרשאות. מחיר זמין רק כשחבילה פעילה אושרה להצגה.");
 
 async function loadPackages() { try { const supabase = await createClient(); const result = await supabase.from("observer_monitoring_packages" as any).select("id,name,package_key,package_type,camera_limit,site_limit,user_limit,recording_retention_hours,monthly_price,annual_price,annual_discount_percent,alert_channels,human_review_required,support_tier,active,sort_order").eq("active",true).order("sort_order"); return result.error ? [] : result.data ?? []; } catch { return []; } }
 
