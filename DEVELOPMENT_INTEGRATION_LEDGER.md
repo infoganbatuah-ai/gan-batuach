@@ -6,6 +6,11 @@ Effective 2026-09-19. Machine-readable source: `DEVELOPMENT_INTEGRATION_LEDGER.j
 
 ## Current transition
 
+**Current Full Stack result:** `DEVELOPMENT_FULL_STACK_CLOSURE_2026-09-19.md`.
+Local Product 18/18 HTTP checks PASS at `0620ab40`, health 200, baseline 227 + 1
+post-baseline migration verified. This supersedes all earlier UI-only/backend
+blockers below, but does not close historical reconciliation or authorize release.
+
 Latest development DB checkpoint: `DEVELOPMENT_DATABASE_BASELINE_REPORT_2026-09-19.md`.
 PR #59 integrated the isolated baseline/guards at `00402d7a`. Baseline 227 + one
 post-baseline migration are verified in DEVELOPMENT; drift PASS. Auth/REST/RLS

@@ -1,6 +1,6 @@
 {
   "environment": "DEVELOPMENT",
-  "status": "SCHEMA_VERIFIED_FULL_STACK_VALIDATION_PENDING",
+  "status": "READY_LOCAL_FULL_STACK",
   "baselineId": "development-c0cf2de7-20260919-v1",
   "projectId": "gan-batuach-integration",
   "dockerContext": "colima-gbi",

@@ -1,12 +1,12 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-09-19T17:01:08.981Z",
+  "updatedAt": "2026-09-19T17:12:08.503Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
   "baselineMain": "8113d0607e4282dc8778540aa58c1502367f4221",
   "ownerReleaseAuthorization": null,
-  "transitionStatus": "CANONICAL_DATABASE_READY_LOCAL_APP_AND_RECONCILIATION_PENDING",
+  "transitionStatus": "LOCAL_FULL_STACK_VERIFIED_RECONCILIATION_NOT_DONE",
   "openPRs": [
     {
       "number": 57,
@@ -141,8 +141,8 @@
       "nextAction": "Historical preservation/legacy: keep source history; no automatic integration or deletion.",
       "reconciliation": {
         "disposition": "ALREADY_IN_MAIN",
-        "reason": "Exact source HEAD is an ancestor of origin/main",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "reason": "Exact whole-tree equals main-history commit 6c8873fcc994082b3b32e23668d5155030190ebb; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -193,7 +193,7 @@
       "reconciliation": {
         "disposition": "PRESERVED_PENDING_INTEGRATION",
         "reason": "Historical divergent source is preserved; compatibility with current architecture and cumulative isolated backend is not validated. No direct merge authorized.",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -328,8 +328,8 @@
       "nextAction": "Historical preservation/legacy: keep source history; no automatic integration or deletion.",
       "reconciliation": {
         "disposition": "ALREADY_IN_MAIN",
-        "reason": "Exact source HEAD is an ancestor of origin/main",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "reason": "Exact whole-tree equals main-history commit a20b8c75fd3732d2368db9a12bc73a912f782cd4; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -382,7 +382,7 @@
       "reconciliation": {
         "disposition": "PRESERVED_PENDING_INTEGRATION",
         "reason": "Historical divergent source is preserved; compatibility with current architecture and cumulative isolated backend is not validated. No direct merge authorized.",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -433,7 +433,7 @@
       "reconciliation": {
         "disposition": "PRESERVED_PENDING_INTEGRATION",
         "reason": "Historical divergent source is preserved; compatibility with current architecture and cumulative isolated backend is not validated. No direct merge authorized.",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -484,7 +484,7 @@
       "reconciliation": {
         "disposition": "PRESERVED_PENDING_INTEGRATION",
         "reason": "Historical divergent source is preserved; compatibility with current architecture and cumulative isolated backend is not validated. No direct merge authorized.",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -550,8 +550,8 @@
       "nextAction": "Accounted for in released main by recorded ancestry/tree/patch evidence; no new merge needed.",
       "reconciliation": {
         "disposition": "ALREADY_IN_MAIN",
-        "reason": "Exact source HEAD is an ancestor of origin/main",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "reason": "Exact whole-tree equals main-history commit 20070e6672ac49f68ed0e63c2075b30492d9b982; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -665,8 +665,8 @@
       "nextAction": "Accounted for in released main by recorded ancestry/tree/patch evidence; no new merge needed.",
       "reconciliation": {
         "disposition": "ALREADY_IN_MAIN",
-        "reason": "Exact source HEAD is an ancestor of origin/main",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "reason": "Exact whole-tree equals main-history commit 22f3a53a8f4b782b750f3951f7b70fb1a15fa22b; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -724,7 +724,7 @@
       "reconciliation": {
         "disposition": "ALREADY_INTEGRATED",
         "reason": "Exact source HEAD is an ancestor of integration/development",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -777,7 +777,7 @@
       "reconciliation": {
         "disposition": "PRESERVED_PENDING_INTEGRATION",
         "reason": "Historical divergent source is preserved; compatibility with current architecture and cumulative isolated backend is not validated. No direct merge authorized.",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -828,7 +828,7 @@
       "reconciliation": {
         "disposition": "PRESERVED_PENDING_INTEGRATION",
         "reason": "Historical divergent source is preserved; compatibility with current architecture and cumulative isolated backend is not validated. No direct merge authorized.",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -879,7 +879,7 @@
       "reconciliation": {
         "disposition": "PRESERVED_PENDING_INTEGRATION",
         "reason": "Historical divergent source is preserved; compatibility with current architecture and cumulative isolated backend is not validated. No direct merge authorized.",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -932,7 +932,7 @@
       "reconciliation": {
         "disposition": "PRESERVED_PENDING_INTEGRATION",
         "reason": "Historical divergent source is preserved; compatibility with current architecture and cumulative isolated backend is not validated. No direct merge authorized.",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -983,7 +983,7 @@
       "reconciliation": {
         "disposition": "PRESERVED_PENDING_INTEGRATION",
         "reason": "Historical divergent source is preserved; compatibility with current architecture and cumulative isolated backend is not validated. No direct merge authorized.",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -1034,7 +1034,7 @@
       "reconciliation": {
         "disposition": "PRESERVED_PENDING_INTEGRATION",
         "reason": "Historical divergent source is preserved; compatibility with current architecture and cumulative isolated backend is not validated. No direct merge authorized.",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -1085,7 +1085,7 @@
       "reconciliation": {
         "disposition": "PRESERVED_PENDING_INTEGRATION",
         "reason": "Historical divergent source is preserved; compatibility with current architecture and cumulative isolated backend is not validated. No direct merge authorized.",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -1136,7 +1136,7 @@
       "reconciliation": {
         "disposition": "PRESERVED_PENDING_INTEGRATION",
         "reason": "Historical divergent source is preserved; compatibility with current architecture and cumulative isolated backend is not validated. No direct merge authorized.",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -1273,8 +1273,8 @@
       "nextAction": "Accounted for in released main by recorded ancestry/tree/patch evidence; no new merge needed.",
       "reconciliation": {
         "disposition": "ALREADY_IN_MAIN",
-        "reason": "Exact source HEAD is an ancestor of origin/main",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "reason": "Exact whole-tree equals main-history commit 890963397208839d8c606c6d73f5f7038bc4c6db; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -1375,8 +1375,8 @@
       "nextAction": "Accounted for in released main by recorded ancestry/tree/patch evidence; no new merge needed.",
       "reconciliation": {
         "disposition": "ALREADY_IN_MAIN",
-        "reason": "Exact source HEAD is an ancestor of origin/main",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "reason": "Exact whole-tree equals main-history commit 5fd9e8a424efff484eab23dabbc370935472e4b1; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -1476,8 +1476,8 @@
       "nextAction": "Accounted for in released main by recorded ancestry/tree/patch evidence; no new merge needed.",
       "reconciliation": {
         "disposition": "ALREADY_IN_MAIN",
-        "reason": "Exact source HEAD is an ancestor of origin/main",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "reason": "Exact whole-tree equals main-history commit b5e2fb51b118a46719ce87f3b730fc2b28ef71e0; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -1576,8 +1576,8 @@
       "nextAction": "Accounted for in released main by recorded ancestry/tree/patch evidence; no new merge needed.",
       "reconciliation": {
         "disposition": "ALREADY_IN_MAIN",
-        "reason": "Exact source HEAD is an ancestor of origin/main",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "reason": "Exact whole-tree equals main-history commit 26cfc9eaa2dbe3e6ca0cb5ff0541516978781c32; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -1673,8 +1673,8 @@
       "nextAction": "Accounted for in released main by recorded ancestry/tree/patch evidence; no new merge needed.",
       "reconciliation": {
         "disposition": "ALREADY_IN_MAIN",
-        "reason": "Exact source HEAD is an ancestor of origin/main",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "reason": "Exact whole-tree equals main-history commit 61a4cac7627b39c1c22a55d64e4f12f187c35597; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -1766,8 +1766,8 @@
       "nextAction": "Accounted for in released main by recorded ancestry/tree/patch evidence; no new merge needed.",
       "reconciliation": {
         "disposition": "ALREADY_IN_MAIN",
-        "reason": "Exact source HEAD is an ancestor of origin/main",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "reason": "Exact whole-tree equals main-history commit f5e031c56852198a873c357fc290eb5872aea52d; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -1800,7 +1800,8 @@
       "integration": {
         "status": "BASELINE_ACCOUNTED",
         "commit": null,
-        "equivalence": "ALL_PATCH_IDS_PRESENT_IN_MAIN"
+        "equivalence": "EXACT_TREE_EQUALS_MAIN_HISTORY",
+        "equivalentMainCommit": "16737870c39dd48742ece77d31cf65d711d934dc"
       },
       "dependencies": {
         "status": "BASELINE",
@@ -1818,8 +1819,8 @@
       "nextAction": "Accounted for in released main by recorded ancestry/tree/patch evidence; no new merge needed.",
       "reconciliation": {
         "disposition": "SUPERSEDED",
-        "reason": "Prior verified ALL_PATCH_IDS_PRESENT_IN_MAIN at unchanged source SHA",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "reason": "Exact whole-tree equals main-history commit 16737870c39dd48742ece77d31cf65d711d934dc; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -1851,7 +1852,8 @@
       "integration": {
         "status": "BASELINE_ACCOUNTED",
         "commit": null,
-        "equivalence": "ALL_PATCH_IDS_PRESENT_IN_MAIN"
+        "equivalence": "EXACT_TREE_EQUALS_MAIN_HISTORY",
+        "equivalentMainCommit": "b1e42e3896e43e8518cf09791dffc6d20adaee94"
       },
       "dependencies": {
         "status": "BASELINE",
@@ -1869,8 +1871,8 @@
       "nextAction": "Accounted for in released main by recorded ancestry/tree/patch evidence; no new merge needed.",
       "reconciliation": {
         "disposition": "SUPERSEDED",
-        "reason": "Prior verified ALL_PATCH_IDS_PRESENT_IN_MAIN at unchanged source SHA",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "reason": "Exact whole-tree equals main-history commit b1e42e3896e43e8518cf09791dffc6d20adaee94; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -1955,8 +1957,8 @@
       "nextAction": "Accounted for in released main by recorded ancestry/tree/patch evidence; no new merge needed.",
       "reconciliation": {
         "disposition": "ALREADY_IN_MAIN",
-        "reason": "Exact source HEAD is an ancestor of origin/main",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "reason": "Exact whole-tree equals main-history commit 62769a4287d8a90fcf0553a4153a2cb256b7a5c7; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -2039,8 +2041,8 @@
       "nextAction": "Accounted for in released main by recorded ancestry/tree/patch evidence; no new merge needed.",
       "reconciliation": {
         "disposition": "ALREADY_IN_MAIN",
-        "reason": "Exact source HEAD is an ancestor of origin/main",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "reason": "Exact whole-tree equals main-history commit 844624814721eb7cfb0220f015aac1eb6099d3ff; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -2124,8 +2126,8 @@
       "nextAction": "Accounted for in released main by recorded ancestry/tree/patch evidence; no new merge needed.",
       "reconciliation": {
         "disposition": "ALREADY_IN_MAIN",
-        "reason": "Exact source HEAD is an ancestor of origin/main",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "reason": "Exact whole-tree equals main-history commit 55dc99db2e4391d993311b6eacad28041f33e959; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -2207,8 +2209,8 @@
       "nextAction": "Accounted for in released main by recorded ancestry/tree/patch evidence; no new merge needed.",
       "reconciliation": {
         "disposition": "ALREADY_IN_MAIN",
-        "reason": "Exact source HEAD is an ancestor of origin/main",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "reason": "Exact whole-tree equals main-history commit d793ea3d4907cc7b52f5757125a72d1fac60507a; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -2289,8 +2291,8 @@
       "nextAction": "Accounted for in released main by recorded ancestry/tree/patch evidence; no new merge needed.",
       "reconciliation": {
         "disposition": "ALREADY_IN_MAIN",
-        "reason": "Exact source HEAD is an ancestor of origin/main",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "reason": "Exact whole-tree equals main-history commit 279ed22c973992ac5ebbfc2ee8dec248a9b5f9d2; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -2370,8 +2372,8 @@
       "nextAction": "Accounted for in released main by recorded ancestry/tree/patch evidence; no new merge needed.",
       "reconciliation": {
         "disposition": "ALREADY_IN_MAIN",
-        "reason": "Exact source HEAD is an ancestor of origin/main",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "reason": "Exact whole-tree equals main-history commit 640b2407e4f122e581b1cc98b36246c5d4d537e2; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -2449,8 +2451,8 @@
       "nextAction": "Accounted for in released main by recorded ancestry/tree/patch evidence; no new merge needed.",
       "reconciliation": {
         "disposition": "ALREADY_IN_MAIN",
-        "reason": "Exact source HEAD is an ancestor of origin/main",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "reason": "Exact whole-tree equals main-history commit 62491a368a4ce9e872832b632e6ecc0fc3ebd97d; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -2529,8 +2531,8 @@
       "nextAction": "Accounted for in released main by recorded ancestry/tree/patch evidence; no new merge needed.",
       "reconciliation": {
         "disposition": "ALREADY_IN_MAIN",
-        "reason": "Exact source HEAD is an ancestor of origin/main",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "reason": "Exact whole-tree equals main-history commit 76ffa6fb62cc50ecbfceb1b8dea2f3988c4b71cf; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -2562,7 +2564,8 @@
       "integration": {
         "status": "BASELINE_ACCOUNTED",
         "commit": null,
-        "equivalence": "ALL_PATCH_IDS_PRESENT_IN_MAIN"
+        "equivalence": "EXACT_TREE_EQUALS_MAIN_HISTORY",
+        "equivalentMainCommit": "9c29806a88a6dfa2ceed95092542e26849aa663f"
       },
       "dependencies": {
         "status": "BASELINE",
@@ -2580,8 +2583,8 @@
       "nextAction": "Accounted for in released main by recorded ancestry/tree/patch evidence; no new merge needed.",
       "reconciliation": {
         "disposition": "SUPERSEDED",
-        "reason": "Prior verified ALL_PATCH_IDS_PRESENT_IN_MAIN at unchanged source SHA",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "reason": "Exact whole-tree equals main-history commit 9c29806a88a6dfa2ceed95092542e26849aa663f; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -2613,7 +2616,8 @@
       "integration": {
         "status": "BASELINE_ACCOUNTED",
         "commit": null,
-        "equivalence": "ALL_PATCH_IDS_PRESENT_IN_MAIN"
+        "equivalence": "EXACT_TREE_EQUALS_MAIN_HISTORY",
+        "equivalentMainCommit": "02597c859916ff2cb71f350f69314ad97e8c81d5"
       },
       "dependencies": {
         "status": "BASELINE",
@@ -2631,8 +2635,8 @@
       "nextAction": "Accounted for in released main by recorded ancestry/tree/patch evidence; no new merge needed.",
       "reconciliation": {
         "disposition": "SUPERSEDED",
-        "reason": "Prior verified ALL_PATCH_IDS_PRESENT_IN_MAIN at unchanged source SHA",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "reason": "Exact whole-tree equals main-history commit 02597c859916ff2cb71f350f69314ad97e8c81d5; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -2664,9 +2668,10 @@
         "evidence": []
       },
       "integration": {
-        "status": "PENDING_REVIEW",
+        "status": "BASELINE_ACCOUNTED",
         "commit": null,
-        "equivalence": null
+        "equivalence": "EXACT_TREE_EQUALS_MAIN_HISTORY",
+        "equivalentMainCommit": "a222a9a0b4f7855381d6b82f44b24d5f23013050"
       },
       "dependencies": {
         "status": "REVIEW_REQUIRED",
@@ -2683,9 +2688,9 @@
       },
       "nextAction": "Preserved historical or parallel branch; semantic owner review before any integration. Not automatically release eligible.",
       "reconciliation": {
-        "disposition": "PRESERVED_PENDING_INTEGRATION",
-        "reason": "Historical divergent source is preserved; compatibility with current architecture and cumulative isolated backend is not validated. No direct merge authorized.",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "disposition": "SUPERSEDED",
+        "reason": "Exact whole-tree equals main-history commit a222a9a0b4f7855381d6b82f44b24d5f23013050; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -2717,7 +2722,8 @@
       "integration": {
         "status": "BASELINE_ACCOUNTED",
         "commit": null,
-        "equivalence": "ALL_PATCH_IDS_PRESENT_IN_MAIN"
+        "equivalence": "EXACT_TREE_EQUALS_MAIN_HISTORY",
+        "equivalentMainCommit": "fa30ec504e4d72bd3e7fde966b88774969b5efe9"
       },
       "dependencies": {
         "status": "BASELINE",
@@ -2735,8 +2741,8 @@
       "nextAction": "Accounted for in released main by recorded ancestry/tree/patch evidence; no new merge needed.",
       "reconciliation": {
         "disposition": "SUPERSEDED",
-        "reason": "Prior verified ALL_PATCH_IDS_PRESENT_IN_MAIN at unchanged source SHA",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "reason": "Exact whole-tree equals main-history commit fa30ec504e4d72bd3e7fde966b88774969b5efe9; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -2767,9 +2773,10 @@
         "evidence": []
       },
       "integration": {
-        "status": "PENDING_REVIEW",
+        "status": "BASELINE_ACCOUNTED",
         "commit": null,
-        "equivalence": null
+        "equivalence": "EXACT_TREE_EQUALS_MAIN_HISTORY",
+        "equivalentMainCommit": "931399ff3e834161cfc223511b164613edc03b0e"
       },
       "dependencies": {
         "status": "REVIEW_REQUIRED",
@@ -2786,9 +2793,9 @@
       },
       "nextAction": "Preserved historical or parallel branch; semantic owner review before any integration. Not automatically release eligible.",
       "reconciliation": {
-        "disposition": "PRESERVED_PENDING_INTEGRATION",
-        "reason": "Historical divergent source is preserved; compatibility with current architecture and cumulative isolated backend is not validated. No direct merge authorized.",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "disposition": "SUPERSEDED",
+        "reason": "Exact whole-tree equals main-history commit 931399ff3e834161cfc223511b164613edc03b0e; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -2860,8 +2867,8 @@
       "nextAction": "Accounted for in released main by recorded ancestry/tree/patch evidence; no new merge needed.",
       "reconciliation": {
         "disposition": "ALREADY_IN_MAIN",
-        "reason": "Exact source HEAD is an ancestor of origin/main",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "reason": "Exact whole-tree equals main-history commit 71ed56be8f6d0846e13bc490066449d18b16976a; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -2932,8 +2939,8 @@
       "nextAction": "Accounted for in released main by recorded ancestry/tree/patch evidence; no new merge needed.",
       "reconciliation": {
         "disposition": "ALREADY_IN_MAIN",
-        "reason": "Exact source HEAD is an ancestor of origin/main",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "reason": "Exact whole-tree equals main-history commit 7c6b927821c38f0db6033f408f11ecbf5360ba17; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -3003,8 +3010,8 @@
       "nextAction": "Accounted for in released main by recorded ancestry/tree/patch evidence; no new merge needed.",
       "reconciliation": {
         "disposition": "ALREADY_IN_MAIN",
-        "reason": "Exact source HEAD is an ancestor of origin/main",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "reason": "Exact whole-tree equals main-history commit 9c439dfe391b4fa7716a635e3e96df8865dd54e5; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -3070,8 +3077,8 @@
       "nextAction": "Accounted for in released main by recorded ancestry/tree/patch evidence; no new merge needed.",
       "reconciliation": {
         "disposition": "ALREADY_IN_MAIN",
-        "reason": "Exact source HEAD is an ancestor of origin/main",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "reason": "Exact whole-tree equals main-history commit 39c7bfe4688dbe96ff1a6e630abd33e50bc5a670; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -3136,8 +3143,8 @@
       "nextAction": "Accounted for in released main by recorded ancestry/tree/patch evidence; no new merge needed.",
       "reconciliation": {
         "disposition": "ALREADY_IN_MAIN",
-        "reason": "Exact source HEAD is an ancestor of origin/main",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "reason": "Exact whole-tree equals main-history commit 88814465c4be30cae220af606bfaec43caccef36; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -3200,8 +3207,8 @@
       "nextAction": "Accounted for in released main by recorded ancestry/tree/patch evidence; no new merge needed.",
       "reconciliation": {
         "disposition": "ALREADY_IN_MAIN",
-        "reason": "Exact source HEAD is an ancestor of origin/main",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "reason": "Exact whole-tree equals main-history commit ee5e00ea5e722c4e1e8ed21dde2a06b8b7a59165; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -3262,8 +3269,8 @@
       "nextAction": "Accounted for in released main by recorded ancestry/tree/patch evidence; no new merge needed.",
       "reconciliation": {
         "disposition": "ALREADY_IN_MAIN",
-        "reason": "Exact source HEAD is an ancestor of origin/main",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "reason": "Exact whole-tree equals main-history commit e9bd2f18e49ee137e4dfb9d798d2f69d208d6321; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -3325,8 +3332,8 @@
       "nextAction": "Accounted for in released main by recorded ancestry/tree/patch evidence; no new merge needed.",
       "reconciliation": {
         "disposition": "ALREADY_IN_MAIN",
-        "reason": "Exact source HEAD is an ancestor of origin/main",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "reason": "Exact whole-tree equals main-history commit d46bd9da0b267840b66ead084a09062fb573fb32; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -3358,7 +3365,8 @@
       "integration": {
         "status": "BASELINE_ACCOUNTED",
         "commit": null,
-        "equivalence": "ALL_PATCH_IDS_PRESENT_IN_MAIN"
+        "equivalence": "EXACT_TREE_EQUALS_MAIN_HISTORY",
+        "equivalentMainCommit": "c4bfca243cfc1eb8b40f753aeb0ca8f149bd0b9d"
       },
       "dependencies": {
         "status": "BASELINE",
@@ -3376,8 +3384,8 @@
       "nextAction": "Accounted for in released main by recorded ancestry/tree/patch evidence; no new merge needed.",
       "reconciliation": {
         "disposition": "SUPERSEDED",
-        "reason": "Prior verified ALL_PATCH_IDS_PRESENT_IN_MAIN at unchanged source SHA",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "reason": "Exact whole-tree equals main-history commit c4bfca243cfc1eb8b40f753aeb0ca8f149bd0b9d; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -3409,7 +3417,8 @@
       "integration": {
         "status": "BASELINE_ACCOUNTED",
         "commit": null,
-        "equivalence": "ALL_PATCH_IDS_PRESENT_IN_MAIN"
+        "equivalence": "EXACT_TREE_EQUALS_MAIN_HISTORY",
+        "equivalentMainCommit": "ad0e85560bed40d7064a8940d45318554ac66f46"
       },
       "dependencies": {
         "status": "BASELINE",
@@ -3427,8 +3436,8 @@
       "nextAction": "Accounted for in released main by recorded ancestry/tree/patch evidence; no new merge needed.",
       "reconciliation": {
         "disposition": "SUPERSEDED",
-        "reason": "Prior verified ALL_PATCH_IDS_PRESENT_IN_MAIN at unchanged source SHA",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "reason": "Exact whole-tree equals main-history commit ad0e85560bed40d7064a8940d45318554ac66f46; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -3460,7 +3469,8 @@
       "integration": {
         "status": "BASELINE_ACCOUNTED",
         "commit": null,
-        "equivalence": "ALL_PATCH_IDS_PRESENT_IN_MAIN"
+        "equivalence": "EXACT_TREE_EQUALS_MAIN_HISTORY",
+        "equivalentMainCommit": "c53f4e31233e802e509c944c8180b5f5f0589cfa"
       },
       "dependencies": {
         "status": "BASELINE",
@@ -3478,8 +3488,8 @@
       "nextAction": "Accounted for in released main by recorded ancestry/tree/patch evidence; no new merge needed.",
       "reconciliation": {
         "disposition": "SUPERSEDED",
-        "reason": "Prior verified ALL_PATCH_IDS_PRESENT_IN_MAIN at unchanged source SHA",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "reason": "Exact whole-tree equals main-history commit c53f4e31233e802e509c944c8180b5f5f0589cfa; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -3511,7 +3521,8 @@
       "integration": {
         "status": "BASELINE_ACCOUNTED",
         "commit": null,
-        "equivalence": "EXACT_TREE_EQUALS_MAIN"
+        "equivalence": "EXACT_TREE_EQUALS_MAIN_HISTORY",
+        "equivalentMainCommit": "8113d0607e4282dc8778540aa58c1502367f4221"
       },
       "dependencies": {
         "status": "BASELINE",
@@ -3529,8 +3540,8 @@
       "nextAction": "Accounted for in released main by recorded ancestry/tree/patch evidence; no new merge needed.",
       "reconciliation": {
         "disposition": "SUPERSEDED",
-        "reason": "Prior verified EXACT_TREE_EQUALS_MAIN at unchanged source SHA",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "reason": "Exact whole-tree equals main-history commit 8113d0607e4282dc8778540aa58c1502367f4221; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -3608,7 +3619,7 @@
       "reconciliation": {
         "disposition": "PRESERVED_PENDING_INTEGRATION",
         "reason": "Canonical rollback-only three-migration/role/attachment-metadata RLS QA PASS. Task owner explicitly requested PR57 remain open/unmerged; integration may auto-close it. Coordinate this hold; authenticated attachment HTTP E2E remains pending.",
-        "observedAt": "2026-09-19T17:01:08.981Z"
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -3661,7 +3672,7 @@
       "reconciliation": {
         "disposition": "PRESERVED_PENDING_INTEGRATION",
         "reason": "Historical divergent source is preserved; compatibility with current architecture and cumulative isolated backend is not validated. No direct merge authorized.",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -3792,8 +3803,8 @@
       "nextAction": "Accounted for in released main by recorded ancestry/tree/patch evidence; no new merge needed.",
       "reconciliation": {
         "disposition": "ALREADY_IN_MAIN",
-        "reason": "Exact source HEAD is an ancestor of origin/main",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "reason": "Exact whole-tree equals main-history commit 38e450813ab62c9c92ccdad2a9c999272d6ed612; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -3982,8 +3993,8 @@
       "nextAction": "Preserved historical or parallel branch; semantic owner review before any integration. Not automatically release eligible.",
       "reconciliation": {
         "disposition": "ALREADY_IN_MAIN",
-        "reason": "Exact source HEAD is an ancestor of origin/main",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "reason": "Exact whole-tree equals main-history commit 38e450813ab62c9c92ccdad2a9c999272d6ed612; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -4087,7 +4098,7 @@
       "reconciliation": {
         "disposition": "PRESERVED_PENDING_INTEGRATION",
         "reason": "Historical divergent source is preserved; compatibility with current architecture and cumulative isolated backend is not validated. No direct merge authorized.",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -4189,7 +4200,7 @@
       "reconciliation": {
         "disposition": "PRESERVED_PENDING_INTEGRATION",
         "reason": "Historical divergent source is preserved; compatibility with current architecture and cumulative isolated backend is not validated. No direct merge authorized.",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -4325,8 +4336,8 @@
       "nextAction": "Accounted for in released main by recorded ancestry/tree/patch evidence; no new merge needed.",
       "reconciliation": {
         "disposition": "ALREADY_IN_MAIN",
-        "reason": "Exact source HEAD is an ancestor of origin/main",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "reason": "Exact whole-tree equals main-history commit 41d4ad505975a0ce0033a9eeba3afdbe21aca8d3; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -4377,7 +4388,7 @@
       "reconciliation": {
         "disposition": "PRESERVED_PENDING_INTEGRATION",
         "reason": "Historical divergent source is preserved; compatibility with current architecture and cumulative isolated backend is not validated. No direct merge authorized.",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -4478,8 +4489,8 @@
       "nextAction": "Accounted for in released main by recorded ancestry/tree/patch evidence; no new merge needed.",
       "reconciliation": {
         "disposition": "ALREADY_IN_MAIN",
-        "reason": "Exact source HEAD is an ancestor of origin/main",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "reason": "Exact whole-tree equals main-history commit fdf3c87f0e5ccdba67e6fa0996dc436afb44d311; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -4579,8 +4590,8 @@
       "nextAction": "Accounted for in released main by recorded ancestry/tree/patch evidence; no new merge needed.",
       "reconciliation": {
         "disposition": "ALREADY_IN_MAIN",
-        "reason": "Exact source HEAD is an ancestor of origin/main",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "reason": "Exact whole-tree equals main-history commit 486fe22008434e91727d88ea809ab91ab2abb376; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -4677,8 +4688,8 @@
       "nextAction": "Accounted for in released main by recorded ancestry/tree/patch evidence; no new merge needed.",
       "reconciliation": {
         "disposition": "ALREADY_IN_MAIN",
-        "reason": "Exact source HEAD is an ancestor of origin/main",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "reason": "Exact whole-tree equals main-history commit d3e68ed174d95361066d22be5ee471b8971c57c2; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -4776,8 +4787,8 @@
       "nextAction": "Accounted for in released main by recorded ancestry/tree/patch evidence; no new merge needed.",
       "reconciliation": {
         "disposition": "ALREADY_IN_MAIN",
-        "reason": "Exact source HEAD is an ancestor of origin/main",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "reason": "Exact whole-tree equals main-history commit a95f9f2ed8dcd8d973cc8f1efb6b0fe3ecc1f356; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -4871,8 +4882,8 @@
       "nextAction": "Accounted for in released main by recorded ancestry/tree/patch evidence; no new merge needed.",
       "reconciliation": {
         "disposition": "ALREADY_IN_MAIN",
-        "reason": "Exact source HEAD is an ancestor of origin/main",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "reason": "Exact whole-tree equals main-history commit 9d8367322816881a956142ef3d17174987a56c77; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -4967,8 +4978,8 @@
       "nextAction": "Accounted for in released main by recorded ancestry/tree/patch evidence; no new merge needed.",
       "reconciliation": {
         "disposition": "ALREADY_IN_MAIN",
-        "reason": "Exact source HEAD is an ancestor of origin/main",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "reason": "Exact whole-tree equals main-history commit d924ea9d600a7b3ceabfef14a8ce8f26f876b8fc; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -5060,8 +5071,8 @@
       "nextAction": "Accounted for in released main by recorded ancestry/tree/patch evidence; no new merge needed.",
       "reconciliation": {
         "disposition": "ALREADY_IN_MAIN",
-        "reason": "Exact source HEAD is an ancestor of origin/main",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "reason": "Exact whole-tree equals main-history commit 314ffa1efb8a8a0180f622b339fe51d936611cfa; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -5151,8 +5162,8 @@
       "nextAction": "Accounted for in released main by recorded ancestry/tree/patch evidence; no new merge needed.",
       "reconciliation": {
         "disposition": "ALREADY_IN_MAIN",
-        "reason": "Exact source HEAD is an ancestor of origin/main",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "reason": "Exact whole-tree equals main-history commit 9b71fee7684bf64cf7eaf4569996951db898403d; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -5214,7 +5225,7 @@
       "reconciliation": {
         "disposition": "BLOCKED",
         "reason": "PUSH 38 explicitly incomplete; qualification, commercial signing custody and delivery prerequisites remain owned by its task. Preserve remotely; no automatic integration/activation.",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -5297,7 +5308,7 @@
       "reconciliation": {
         "disposition": "BLOCKED",
         "reason": "PUSH 38 explicitly incomplete; qualification, commercial signing custody and delivery prerequisites remain owned by its task. Preserve remotely; no automatic integration/activation.",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -5409,8 +5420,8 @@
       "nextAction": "Accounted for in released main by recorded ancestry/tree/patch evidence; no new merge needed.",
       "reconciliation": {
         "disposition": "ALREADY_IN_MAIN",
-        "reason": "Exact source HEAD is an ancestor of origin/main",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "reason": "Exact whole-tree equals main-history commit 7a06fd4e8f95b4ee32d68e389b8725e5823b9199; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -5521,8 +5532,8 @@
       "nextAction": "Accounted for in released main by recorded ancestry/tree/patch evidence; no new merge needed.",
       "reconciliation": {
         "disposition": "ALREADY_IN_MAIN",
-        "reason": "Exact source HEAD is an ancestor of origin/main",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "reason": "Exact whole-tree equals main-history commit 2f1e3408030ffbe3e7cd987b312207b62d8af1c6; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -5632,8 +5643,8 @@
       "nextAction": "Accounted for in released main by recorded ancestry/tree/patch evidence; no new merge needed.",
       "reconciliation": {
         "disposition": "ALREADY_IN_MAIN",
-        "reason": "Exact source HEAD is an ancestor of origin/main",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "reason": "Exact whole-tree equals main-history commit 639ee524e4b9323887c4e8cfeee39e0778bc2ee9; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -5742,8 +5753,8 @@
       "nextAction": "Accounted for in released main by recorded ancestry/tree/patch evidence; no new merge needed.",
       "reconciliation": {
         "disposition": "ALREADY_IN_MAIN",
-        "reason": "Exact source HEAD is an ancestor of origin/main",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "reason": "Exact whole-tree equals main-history commit 24195d8a98e8152a1e6aeb625c17c341b663ae47; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -5850,7 +5861,7 @@
       "reconciliation": {
         "disposition": "PRESERVED_PENDING_INTEGRATION",
         "reason": "Historical divergent source is preserved; compatibility with current architecture and cumulative isolated backend is not validated. No direct merge authorized.",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -5901,7 +5912,7 @@
       "reconciliation": {
         "disposition": "PRESERVED_PENDING_INTEGRATION",
         "reason": "Historical divergent source is preserved; compatibility with current architecture and cumulative isolated backend is not validated. No direct merge authorized.",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -5952,7 +5963,7 @@
       "reconciliation": {
         "disposition": "EVIDENCE_ONLY",
         "reason": "Historical report/handoff source; archive/reference only, earlier automatic-release instructions superseded by current AGENTS.md.",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -6003,7 +6014,7 @@
       "reconciliation": {
         "disposition": "PRESERVED_PENDING_INTEGRATION",
         "reason": "Historical divergent source is preserved; compatibility with current architecture and cumulative isolated backend is not validated. No direct merge authorized.",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -6055,7 +6066,7 @@
       "reconciliation": {
         "disposition": "EVIDENCE_ONLY",
         "reason": "Historical report/handoff source; archive/reference only, earlier automatic-release instructions superseded by current AGENTS.md.",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -6106,7 +6117,7 @@
       "reconciliation": {
         "disposition": "PRESERVED_PENDING_INTEGRATION",
         "reason": "Historical divergent source is preserved; compatibility with current architecture and cumulative isolated backend is not validated. No direct merge authorized.",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -6158,7 +6169,7 @@
       "reconciliation": {
         "disposition": "PRESERVED_PENDING_INTEGRATION",
         "reason": "Historical divergent source is preserved; compatibility with current architecture and cumulative isolated backend is not validated. No direct merge authorized.",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -6209,7 +6220,7 @@
       "reconciliation": {
         "disposition": "EVIDENCE_ONLY",
         "reason": "Historical report/handoff source; archive/reference only, earlier automatic-release instructions superseded by current AGENTS.md.",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -6260,7 +6271,7 @@
       "reconciliation": {
         "disposition": "PRESERVED_PENDING_INTEGRATION",
         "reason": "Historical divergent source is preserved; compatibility with current architecture and cumulative isolated backend is not validated. No direct merge authorized.",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -6311,7 +6322,7 @@
       "reconciliation": {
         "disposition": "PRESERVED_PENDING_INTEGRATION",
         "reason": "Historical divergent source is preserved; compatibility with current architecture and cumulative isolated backend is not validated. No direct merge authorized.",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -6446,8 +6457,8 @@
       "nextAction": "Accounted for in released main by recorded ancestry/tree/patch evidence; no new merge needed.",
       "reconciliation": {
         "disposition": "ALREADY_IN_MAIN",
-        "reason": "Exact source HEAD is an ancestor of origin/main",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "reason": "Exact whole-tree equals main-history commit a20b8c75fd3732d2368db9a12bc73a912f782cd4; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -6502,7 +6513,7 @@
       "reconciliation": {
         "disposition": "ALREADY_INTEGRATED",
         "reason": "Exact source HEAD is an ancestor of integration/development",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -6538,7 +6549,8 @@
       "integration": {
         "status": "BASELINE_ACCOUNTED",
         "commit": null,
-        "equivalence": "EXACT_TREE_EQUALS_MAIN"
+        "equivalence": "EXACT_TREE_EQUALS_MAIN_HISTORY",
+        "equivalentMainCommit": "8113d0607e4282dc8778540aa58c1502367f4221"
       },
       "dependencies": {
         "status": "BASELINE",
@@ -6555,9 +6567,9 @@
       },
       "nextAction": "Accounted for in released main by recorded ancestry/tree/patch evidence; no new merge needed.",
       "reconciliation": {
-        "disposition": "PRESERVED_PENDING_INTEGRATION",
-        "reason": "Historical divergent source is preserved; compatibility with current architecture and cumulative isolated backend is not validated. No direct merge authorized.",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "disposition": "SUPERSEDED",
+        "reason": "Exact whole-tree equals main-history commit 8113d0607e4282dc8778540aa58c1502367f4221; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -6622,8 +6634,8 @@
       "nextAction": "Accounted for in released main by recorded ancestry/tree/patch evidence; no new merge needed.",
       "reconciliation": {
         "disposition": "ALREADY_IN_MAIN",
-        "reason": "Exact source HEAD is an ancestor of origin/main",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "reason": "Exact whole-tree equals main-history commit 8c45697a7b5a12160ea4728e53faea9c3e35c3fb; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -6690,8 +6702,8 @@
       "nextAction": "Accounted for in released main by recorded ancestry/tree/patch evidence; no new merge needed.",
       "reconciliation": {
         "disposition": "ALREADY_IN_MAIN",
-        "reason": "Exact source HEAD is an ancestor of origin/main",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "reason": "Exact whole-tree equals main-history commit fd1a1fd4a48d9d88452a9bd54fcaaebeb83fa211; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -6743,7 +6755,7 @@
       "reconciliation": {
         "disposition": "EVIDENCE_ONLY",
         "reason": "Historical report/handoff source; archive/reference only, earlier automatic-release instructions superseded by current AGENTS.md.",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -6793,7 +6805,7 @@
       "reconciliation": {
         "disposition": "ALREADY_INTEGRATED",
         "reason": "Exact source HEAD is an ancestor of integration/development",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -6897,8 +6909,8 @@
       "nextAction": "Accounted for in released main by recorded ancestry/tree/patch evidence; no new merge needed.",
       "reconciliation": {
         "disposition": "ALREADY_IN_MAIN",
-        "reason": "Exact source HEAD is an ancestor of origin/main",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "reason": "Exact whole-tree equals main-history commit 21d5e2854363552c0210f02a187930b48c384fcd; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -7000,8 +7012,8 @@
       "nextAction": "Accounted for in released main by recorded ancestry/tree/patch evidence; no new merge needed.",
       "reconciliation": {
         "disposition": "ALREADY_IN_MAIN",
-        "reason": "Exact source HEAD is an ancestor of origin/main",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "reason": "Exact whole-tree equals main-history commit 22e88211a76b48355ec6f4fcb87cf33b756009a7; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -7052,7 +7064,7 @@
       "reconciliation": {
         "disposition": "PRESERVED_PENDING_INTEGRATION",
         "reason": "Historical divergent source is preserved; compatibility with current architecture and cumulative isolated backend is not validated. No direct merge authorized.",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -7156,8 +7168,8 @@
       "nextAction": "Accounted for in released main by recorded ancestry/tree/patch evidence; no new merge needed.",
       "reconciliation": {
         "disposition": "ALREADY_IN_MAIN",
-        "reason": "Exact source HEAD is an ancestor of origin/main",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "reason": "Exact whole-tree equals main-history commit 6abe106c42e7b8c3fd0d26b92e54a0f9a7acc900; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -7260,8 +7272,8 @@
       "nextAction": "Accounted for in released main by recorded ancestry/tree/patch evidence; no new merge needed.",
       "reconciliation": {
         "disposition": "ALREADY_IN_MAIN",
-        "reason": "Exact source HEAD is an ancestor of origin/main",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "reason": "Exact whole-tree equals main-history commit 026e83f6948801612154afcaeb706b4c450ce880; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -7363,8 +7375,8 @@
       "nextAction": "Accounted for in released main by recorded ancestry/tree/patch evidence; no new merge needed.",
       "reconciliation": {
         "disposition": "ALREADY_IN_MAIN",
-        "reason": "Exact source HEAD is an ancestor of origin/main",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "reason": "Exact whole-tree equals main-history commit f46c862f887de9c609bb9c108959096fac1ccacc; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -7495,8 +7507,8 @@
       "nextAction": "Accounted for in released main by recorded ancestry/tree/patch evidence; no new merge needed.",
       "reconciliation": {
         "disposition": "ALREADY_IN_MAIN",
-        "reason": "Exact source HEAD is an ancestor of origin/main",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "reason": "Exact whole-tree equals main-history commit 38e450813ab62c9c92ccdad2a9c999272d6ed612; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -7627,8 +7639,8 @@
       "nextAction": "Accounted for in released main by recorded ancestry/tree/patch evidence; no new merge needed.",
       "reconciliation": {
         "disposition": "ALREADY_IN_MAIN",
-        "reason": "Exact source HEAD is an ancestor of origin/main",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "reason": "Exact whole-tree equals main-history commit 38e450813ab62c9c92ccdad2a9c999272d6ed612; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -7712,7 +7724,7 @@
       "reconciliation": {
         "disposition": "PRESERVED_PENDING_INTEGRATION",
         "reason": "Historical divergent source is preserved; compatibility with current architecture and cumulative isolated backend is not validated. No direct merge authorized.",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -7813,7 +7825,7 @@
       "reconciliation": {
         "disposition": "PRESERVED_PENDING_INTEGRATION",
         "reason": "Historical divergent source is preserved; compatibility with current architecture and cumulative isolated backend is not validated. No direct merge authorized.",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -7902,7 +7914,7 @@
       "reconciliation": {
         "disposition": "PRESERVED_PENDING_INTEGRATION",
         "reason": "Historical divergent source is preserved; compatibility with current architecture and cumulative isolated backend is not validated. No direct merge authorized.",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -8006,7 +8018,7 @@
       "reconciliation": {
         "disposition": "PRESERVED_PENDING_INTEGRATION",
         "reason": "Historical divergent source is preserved; compatibility with current architecture and cumulative isolated backend is not validated. No direct merge authorized.",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -8037,9 +8049,10 @@
         "evidence": []
       },
       "integration": {
-        "status": "PENDING_REVIEW",
+        "status": "BASELINE_ACCOUNTED",
         "commit": null,
-        "equivalence": "NOT_PROVEN_PARTIAL_CLONE_OBJECTS_UNAVAILABLE"
+        "equivalence": "EXACT_TREE_EQUALS_MAIN_HISTORY",
+        "equivalentMainCommit": "dabbfba3bd9047e529bf01fab8e0b72848724c3b"
       },
       "dependencies": {
         "status": "REVIEW_REQUIRED",
@@ -8056,9 +8069,9 @@
       },
       "nextAction": "Preserved historical or parallel branch; semantic owner review before any integration. Not automatically release eligible.",
       "reconciliation": {
-        "disposition": "PRESERVED_PENDING_INTEGRATION",
-        "reason": "Historical divergent source is preserved; compatibility with current architecture and cumulative isolated backend is not validated. No direct merge authorized.",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "disposition": "SUPERSEDED",
+        "reason": "Exact whole-tree equals main-history commit dabbfba3bd9047e529bf01fab8e0b72848724c3b; preserve original source history, do not overlay it on newer development",
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -8198,7 +8211,7 @@
       "reconciliation": {
         "disposition": "PRESERVED_PENDING_INTEGRATION",
         "reason": "Historical divergent source is preserved; compatibility with current architecture and cumulative isolated backend is not validated. No direct merge authorized.",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -8241,9 +8254,9 @@
       },
       "nextAction": "Review original source and dependencies before integration",
       "reconciliation": {
-        "disposition": "PRESERVED_PENDING_INTEGRATION",
+        "disposition": "ALREADY_INTEGRATED",
         "reason": "Historical divergent source is preserved; compatibility with current architecture and cumulative isolated backend is not validated. No direct merge authorized.",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -8288,7 +8301,7 @@
       "reconciliation": {
         "disposition": "PRESERVED_PENDING_INTEGRATION",
         "reason": "Exact 5 local source versions preserved in 3 scoped commits. Manifest projection/audit, polling cadence/tests and editorial navigation superseded in main; connector recovery installer not approved for activation (fixed local target, overwrites staged/service state). Keep pending review, never overlay old whole files.",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -8348,7 +8361,7 @@
       "reconciliation": {
         "disposition": "PRESERVED_PENDING_INTEGRATION",
         "reason": "PUSH 38 NOT DONE; keychain/signing infrastructure preserved separately. Qualification, custody and delivery are not approved for cumulative integration or activation.",
-        "observedAt": "2026-09-19T17:01:08.981Z"
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -8393,7 +8406,7 @@
       "reconciliation": {
         "disposition": "BLOCKED",
         "reason": "11 byte-identical R2 draft source/config/SQL files copied from damaged temporary worktree, syntax/diff/secret heuristic checked and remotely preserved. NOT feature-validated or approved for integration. Private report copies verified separately on Kingston; source worktree untouched.",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "observedAt": "2026-09-19T17:12:08.503Z"
       }
     },
     {
@@ -8404,9 +8417,11 @@
       "sourceBranch": "codex/development-database-baseline-20260919",
       "sourceCommits": [
         "52e9534115042aa36e9d949b30b417f4f7e710fe",
-        "8506689ff1a95d08314e01db7eb60f92ff7d3547"
+        "8506689ff1a95d08314e01db7eb60f92ff7d3547",
+        "b146cbb77bc3c652623b57b871aa20a2cfcd422f",
+        "761750df67a06bf82604383278237b309d9881b3"
       ],
-      "state": "DEVELOPMENT_MIGRATIONS_APPLIED",
+      "state": "LOCAL_FULL_STACK_VERIFIED",
       "preservation": {
         "remoteVerified": true,
         "remoteRefs": [
@@ -8414,17 +8429,29 @@
         ]
       },
       "validation": {
-        "status": "PASS_BASELINE_AUTH_REST_STORAGE_SQL_RLS_AND_CI",
+        "status": "PASS_LOCAL_FULL_STACK_SCOPED_SYNTHETIC_QA",
         "ci": [
           "https://github.com/infoganbatuah-ai/gan-batuach/actions/runs/35455732639",
-          "https://github.com/infoganbatuah-ai/gan-batuach/actions/runs/35455732605"
+          "https://github.com/infoganbatuah-ai/gan-batuach/actions/runs/35455732605",
+          "https://github.com/infoganbatuah-ai/gan-batuach/actions/runs/35456854933",
+          "https://github.com/infoganbatuah-ai/gan-batuach/actions/runs/35456854909"
         ],
-        "remaining": "Cumulative local app and role journeys"
+        "remaining": "Cumulative local app and role journeys",
+        "receipt": "development/database/local-product-receipt.json",
+        "limitations": [
+          "Synthetic local fixtures only",
+          "No real camera/Gateway/AI/payment/email provider activation",
+          "GB-M29 pending separate integration/HTTP QA",
+          "HTTP HTML success is not a full interactive browser journey"
+        ]
       },
       "integration": {
         "status": "INTEGRATED_DEVELOPMENT",
-        "commit": "00402d7a3134fe3e654b5c9579f15e7a1b3df1f6",
-        "pullRequest": 59,
+        "commit": "0620ab40c497b0e98ee27df5fb118c1c5e41816b",
+        "pullRequests": [
+          59,
+          60
+        ],
         "conflicts": "NONE"
       },
       "dependencies": {
@@ -8437,10 +8464,15 @@
       "migrationOrder": [
         "20260919170000"
       ],
-      "localVerification": "SCHEMA_AND_SQL_ROLE_QA_PASS_FULL_STACK_PENDING",
-      "releaseEligibility": "NOT_READY",
+      "localVerification": "PASS_FULL_PRODUCT",
+      "releaseEligibility": "NOT_READY_WORKFLOW_RECONCILIATION_AND_PRODUCTION_GATES",
       "productionDeployment": "NOT_DEPLOYED_NO_AUTHORIZATION",
-      "nextAction": "Verify cumulative local app health and role journeys; keep main/Production unchanged"
+      "nextAction": "Continue canonical full-stack development; resolve GB-M29 hold and historical pending units before declaring overall transition DONE; no Production release authorized",
+      "reconciliation": {
+        "disposition": "ALREADY_INTEGRATED",
+        "reason": "Exact ancestry inclusion",
+        "observedAt": "2026-09-19T17:12:08.503Z"
+      }
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
@@ -8450,20 +8482,13 @@
     "Current remote proof is recorded per unit. Historical inventory is preserved rather than overwritten."
   ],
   "integrationVerification": {
-    "lastObservedRemoteHead": "156ffc7a2e6f909356816212ec2c7e61fe5f9ebb",
-    "localProductTestedAt": "156ffc7a2e6f909356816212ec2c7e61fe5f9ebb",
-    "mode": "UI_ONLY",
-    "fullBackend": "BLOCKED_NO_ISOLATED_SUPABASE",
-    "healthStatus": 503,
-    "report": "DEVELOPMENT_WORKFLOW_TRANSITION_2026-09-19.md",
-    "remoteCI": {
-      "commit": "156ffc7a2e6f909356816212ec2c7e61fe5f9ebb",
-      "run": "https://github.com/infoganbatuah-ai/gan-batuach/actions/runs/35447522105",
-      "status": "PASS_ALL_SIX_AND_AGGREGATE"
-    }
+    "commit": "0620ab40c497b0e98ee27df5fb118c1c5e41816b",
+    "status": "PASS_LOCAL_FULL_STACK_SCOPED_SYNTHETIC_QA",
+    "receipt": "development/database/local-product-receipt.json",
+    "observedAt": "2026-09-19T17:12:08.503Z"
   },
   "observedAt": "2026-09-19T15:27:03.103Z",
-  "reconciliationReport": "DEVELOPMENT_BRANCH_RECONCILIATION_2026-09-19.json",
+  "reconciliationReport": "DEVELOPMENT_DATABASE_RECONCILIATION_2026-09-19.json",
   "openPullRequests": [
     {
       "number": 58,
