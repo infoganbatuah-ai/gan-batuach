@@ -14,7 +14,7 @@ const tree = ref => new Map(git('ls-tree','-rz',ref).split('\0').filter(Boolean)
 const main=tree('origin/main'), integration=tree('integration/development');
 const blobHash = bytes => createHash('sha1').update(`blob ${bytes.length}\0`).update(bytes).digest('hex');
 const privatePath = p => /(^|\/)\.env(?:\.|$)|(^|\/)(credentials?|secrets?)(\/|\.|$)|\.(pem|p12|key)$|integration\.local\.env/.test(p);
-const external = p => /(^|\/)(qa-evidence|archives?|exports|recordings|logs|tmp)(\/|$)|:memory:\.ses|\.(log|mp4|mov|ses|zip|xlsx|pdf)$/.test(p);
+const external = p => /^(qa-evidence|archives?|exports|recordings|logs|tmp)(\/|$)|:memory:\.ses|\.(log|mp4|mov|ses|zip|xlsx|pdf)$/.test(p);
 const generated = p => /(^|\/)(node_modules|\.next[^/]*|\.git|\.vercel|\.temp|worktrees|build|dist|\.gradle|Pods|\.DS_Store)(\/|$)|^(android\/app\/src\/main\/assets|android\/capacitor-cordova-android-plugins|ios\/capacitor-cordova-ios-plugins)\/|^ios\/App\/App\/capacitor\.config\.json$/.test(p);
 const classify=(p,blob)=> privatePath(p)?'SECRET/ENV':external(p)?'EVIDENCE_ONLY':main.get(p)===blob?'ALREADY_IN_MAIN':integration.get(p)===blob?'ALREADY_INTEGRATED':remoteObjects.has(blob)?'PRESERVED_PENDING_INTEGRATION':'LOCAL_UNIQUE_REQUIRES_REVIEW';
 const worktrees=git('worktree','list','--porcelain').trim().split('\n\n').map(block=>Object.fromEntries(block.split('\n').map(s=>{const i=s.indexOf(' ');return i<0?[s,true]:[s.slice(0,i),s.slice(i+1)];})));

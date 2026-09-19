@@ -1,12 +1,12 @@
 # Canonical Development Integration Ledger
 
-Effective 2026-09-19. Machine-readable source: `DEVELOPMENT_INTEGRATION_LEDGER.json`. Migration variants and ordering: `DEVELOPMENT_MIGRATION_LEDGER.json`. Full observed branch/worktree/stash/file inventory: `DEVELOPMENT_STATE_AUDIT_2026-09-19.json`.
+Effective 2026-09-19. Machine-readable source: `DEVELOPMENT_INTEGRATION_LEDGER.json`. Migration variants and independent development/Production states: `DEVELOPMENT_MIGRATION_LEDGER.json`. Latest branch/file/stash inventory: `DEVELOPMENT_FINAL_STATE_AUDIT_2026-09-19.json`, `DEVELOPMENT_LOCAL_RECONCILIATION_2026-09-19.json`, `DEVELOPMENT_BRANCH_RECONCILIATION_2026-09-19.json`. Initial audit is retained as historical evidence.
 
 **Main is release-only. No owner release authorization has been issued for this workflow migration. No Production deployment or database write is authorized.** Earlier dated release ledgers and PR descriptions mentioning midnight are historical records, superseded by AGENTS.md.
 
 ## Current transition
 
-Latest verification, exact source/integration SHAs, local smoke and remaining blockers: `DEVELOPMENT_WORKFLOW_TRANSITION_2026-09-19.md`. Workflow and canonical SEO are now integrated; GB-M29 stays pending isolated role/schema QA. This is not a completed full-Product migration.
+Latest closure evidence and owner decision: `DEVELOPMENT_FINAL_CLOSURE_2026-09-19.md`; the earlier transition report is historical. Workflow and canonical SEO are integrated; GB-M29 remains blocked on canonical isolated schema/role QA. This is not a completed full-Product transition.
 
 - Remote main baseline: `8113d0607e4282dc8778540aa58c1502367f4221`. Existing Production was observed Ready on the same commit, deployment `7N3RZmP34J4MTGsXq8JHQiq7bgiu`; this is not a new deployment.
 - Canonical development branch: `integration/development`; durable worktree `worktrees/development-integration`. Original dirty root main is preserved and must not be pulled/switched to overwrite local work.
@@ -14,14 +14,14 @@ Latest verification, exact source/integration SHAs, local smoke and remaining bl
 - GB-M29: PR #57 / `450ac46d38d366b43a25c14f2c0a1075fd52c0e8`, eligible for development integration after scoped recheck; migration `20260913210000_management_canonical_messaging_threads.sql`. Full isolated role/schema QA is still required; no Production application.
 - SEO: `86a8cbb7fd88ecc61b00b94fee4640e88eeaee89`, scoped public metadata/copy changes. Preserved remotely during this transition; no schema. Older SEO completion tip `03ca7e7a4376bafa78fbdf9c0eb78cc3a7ffc2a5` has an exact tree equal to remote main and was pushed to preserve its original history, not reapplied over main.
 - Security/observability `13d1317d7ee5b31a67958eab835fb34a06b358ed`: preserved to remote `codex/preserve-security-observability-20260919`, not integrated. Old base and root overlap require semantic reconciliation; preserve newer main behavior.
-- PUSH 38 / draft PR #28 remains NOT DONE. Camera task is actively working on its source; no concurrent staging, reset, push or merge by this task. Its local `ae0fc714...` delivery draft and sensitive external qualification artifacts require its owner's current handoff. The blocked 256 MiB delivery migration must not be applied against the 50 MB capped store. Do not infer that a missing/partial temp checkout means its Git objects or external artifacts are lost or verified.
+- PUSH 38 / draft PR #28 remains NOT DONE. After explicit task-owner handoff and fresh no-preview verification, `codex/push-38-aws-signing` was pushed at `c4b72859` (including `4a063874` and `ae0fc714`). Eleven remaining temporary R2 source/config/SQL files were copied byte-identically to a separate preservation worktree and pushed as `codex/preserve-push38-r2-draft-20260919` / `05cd2a93`. Two private reports were copied to its ignored Kingston exports folder and checksum-verified. No original temp worktree edits, feature integration or live activation. The blocked delivery migrations must not be applied just to clear the ledger.
 
 ## Explicit outstanding gates (do not hide these)
 
-1. No Docker/local Supabase configuration was available: local backend/schema application/authenticated Product QA is NOT TESTED. UI-only preview is not full Product readiness.
-2. Mixed-owner root work, stash, historical/parallel branches and detached work are individually represented by inventory and ledger states. Not all are approved for integration. Do not call the transition completely reconciled while these owner/equivalence decisions remain.
+1. Tools are installed, but canonical empty-database replay fails on five identified historical prerequisites. Full-stack and authenticated Product QA remain BLOCKED; adapted feature QA is not canonical proof.
+2. Root source versions are preserved remotely, including five exact copied source files in three commits at `codex/preserve-root-source-20260919` / `0994c2b4`. Exact stash `b8739d0d` and all its parents are already remotely reachable from `backup/local-wip-preserved-20260830`; stash retained. Historical incompatible/unvalidated work has explicit pending/blocked dispositions, never blind merges.
 3. Some registered temporary worktrees have missing `.git` links/unreadable status even where their directory exists. Preserve metadata and contents; no prune/cleanup. Audit presence and status-readability separately.
-4. All 449 observed migration file/blob variants are inventoried, including historical branches. This does **not** mean all should be applied. Only the cumulative selected set is a release candidate. Production application history remains UNVERIFIED until a read-only remote comparison; file presence is not proof.
+4. The initial 449 rows included 208 local absence/untracked observations, not distinct Git migration content. Those observations are retained separately. Actual Git variants, selected cumulative files and source provenance are separately tracked; no undefined blob can count as integration proof. Production application history remains UNVERIFIED, never guessed from Git. Only 227 files are currently selected in cumulative integration; GB-M29 is separate.
 5. Vercel included credit is exhausted ($20/$20), with $4.60 on-demand shown during this transition. No spend cap/plan change was made. No-paying-user/all-provider economics and recovery prerequisites remain separate release gates, not a blocker to verified no-build Git preservation.
 
 ## Controls changed and verified
