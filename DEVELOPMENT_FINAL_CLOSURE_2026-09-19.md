@@ -53,6 +53,14 @@ Historical branches explicitly pending compatibility review are not silently mar
 
 ## Validation
 
+### Final concurrent handoff cutoff: 2026-09-19 15:44 UTC
+
+GB-M29 local drafts are now resolved: remote `23673011936f53fb52dd51a12aa95505df7cd740`, clean worktree, both messaging migrations in the ledger. The report documents 11 synthetic SQL role fixtures and real scoped RLS/concurrency probes on the adapted diagnostic database. Canonical Auth/browser/storage/full-stack readiness remains **NOT READY**. Additional historical limitations: `20260902043000` was skipped/possibly partially executed in diagnostics and classroom assignment triggers needed fixture-only adaptation. Never use that diagnostic history as canonical PASS. The reported missing benchmark Markdown exists in Git and was omitted by sparse checkout; its owner was informed to materialize it before repeating domain QA.
+
+PUSH38 run `35452386031` now has both provider custody jobs **SUCCESS**, independently verified via GitHub at this cutoff. Source is remote `921a9c6f`; delivery, installed trust and complete qualification remain BLOCKED. Later owner-led activity remains on its source branch and must maintain its own handoff; no main/runtime release follows from these results.
+
+Latest read-only worktree status: 36 total, 17 clean, 3 dirty (shared root, residual PUSH38 temp, generated Next type path in integration), 14 existing unreadable Git directories, 2 missing directories. No local-only branch commits. This supersedes earlier point-in-time status counts without implying every private artifact is remotely backed up.
+
 - Later concurrent handoff: PUSH38 AWS signing branch advanced to remote-verified `921a9c6f` (also `164df7dd`), with provider QA run `35452386031` awaiting owner environment review. Ledger records PUSHED_REMOTE, provider QA pending, NOT release-ready. Dated bulk inventories are point-in-time snapshots; this newer handoff does not authorize integration.
 - GB-M29 owner is actively editing its QA script and new draft migration `20260913211000_management_messaging_qa_hardening.sql`; these are explicitly IMPLEMENTING, not yet remotely preserved at this observation, and must be committed/pushed by the owning task after scoped validation. No takeover/staging of its work.
 - Final audit helper portability failure on `1c683233` was corrected in `dfd5856f` by deriving evidence paths from the audited root. The original portability gate was retained and passes locally. Required CI must pass on the later exact PR head before integration.

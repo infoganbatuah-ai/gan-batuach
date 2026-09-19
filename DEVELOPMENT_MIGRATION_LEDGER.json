@@ -6,6 +6,28 @@
   "localDatabaseStatus": "BLOCKED_CANONICAL_BASELINE_REPLAY",
   "migrations": [
     {
+      "file": "supabase/migrations/20260913211000_management_messaging_qa_hardening.sql",
+      "blob": "ced8c0b815efa2a63e92cd48e6f53ed7f3546ebc",
+      "version": "20260913211000",
+      "sourceTask": "GB-M29",
+      "sourceCommit": "23673011936f53fb52dd51a12aa95505df7cd740",
+      "sourceHead": "23673011936f53fb52dd51a12aa95505df7cd740",
+      "remoteBranch": "origin/codex/gb-m29-messaging-threads",
+      "integrationCommit": null,
+      "inclusion": "CANDIDATE_GB_M29_BLOCKED",
+      "releaseOrder": "20260913211000",
+      "requiredPredecessor": "20260913210000_management_canonical_messaging_threads.sql",
+      "dependencyStatus": "BLOCKED_CANONICAL_BASELINE_REPLAY",
+      "developmentApplied": "NO",
+      "developmentAppliedAt": null,
+      "developmentEvidence": null,
+      "developmentHistoryDigest": null,
+      "productionApplied": "UNVERIFIED",
+      "productionEvidence": null,
+      "diagnosticQaEvidence": "23673011936f53fb52dd51a12aa95505df7cd740:GAN_BATUACH_MANAGEMENT_GB_M29_ISOLATED_QA_REPORT.md; adapted isolated DB only, not canonical application proof",
+      "recovery": "New ordered hardening only; requires verified isolated baseline and role/concurrency QA before integration; no Production application authorized"
+    },
+    {
       "file": "supabase/migrations/20260523000000_initial_schema.sql",
       "blob": "5b86065f011880840230544af4fa007385c3c6be",
       "productionApplied": "UNVERIFIED",

@@ -3536,7 +3536,8 @@
       "owner": "Management owner",
       "sourceBranch": "codex/gb-m29-messaging-threads",
       "sourceCommits": [
-        "450ac46d38d366b43a25c14f2c0a1075fd52c0e8"
+        "450ac46d38d366b43a25c14f2c0a1075fd52c0e8",
+        "23673011936f53fb52dd51a12aa95505df7cd740"
       ],
       "commitsNotInMain": [
         "e3822c20dfb611cf7e1ade2f22860a4b1e5c1d05",
@@ -3548,12 +3549,14 @@
         "remoteRefs": [
           "origin/codex/gb-m29-messaging-threads"
         ],
-        "localHead": "450ac46d38d366b43a25c14f2c0a1075fd52c0e8",
-        "remoteHead": "450ac46d38d366b43a25c14f2c0a1075fd52c0e8",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "localHead": "23673011936f53fb52dd51a12aa95505df7cd740",
+        "remoteHead": "23673011936f53fb52dd51a12aa95505df7cd740",
+        "observedAt": "2026-09-19T15:44:00Z"
       },
       "validation": {
-        "status": "EXACT_HEAD_CI_PASS",
+        "status": "SCOPED_ADAPTED_DATABASE_QA_PASS_CANONICAL_QA_BLOCKED",
+        "latestReport": "23673011936f53fb52dd51a12aa95505df7cd740:GAN_BATUACH_MANAGEMENT_GB_M29_ISOLATED_QA_REPORT.md",
+        "priorCiEvidenceScope": "The following CI links refer to earlier 450ac46d, not the new hardening commit. Canonical DB and browser/attachment QA remain unverified.",
         "evidence": [
           "https://github.com/infoganbatuah-ai/gan-batuach/actions/runs/34782778223",
           "https://github.com/infoganbatuah-ai/gan-batuach/actions/runs/34782778294"
@@ -3569,10 +3572,12 @@
         "units": []
       },
       "migrations": [
-        "20260913210000_management_canonical_messaging_threads.sql"
+        "20260913210000_management_canonical_messaging_threads.sql",
+        "20260913211000_management_messaging_qa_hardening.sql"
       ],
       "migrationOrder": [
-        "20260913210000"
+        "20260913210000",
+        "20260913211000"
       ],
       "conflictsResolution": "No automatic conflict resolution attempted",
       "localVerification": "NOT_TESTED",
@@ -3583,12 +3588,13 @@
       },
       "nextAction": "PR #57 source preserved; historical canonical DB replay fails before GB-M29. Adapted disposable QA cannot establish canonical development migration/RLS PASS.",
       "activeUncommittedWork": {
-        "state": "IMPLEMENTING",
+        "state": "PUSHED_REMOTE",
         "owner": "Management owner; active task 01a07933-ed3d-7ad0-9a45-2f9b0b21460a",
         "files": ["scripts/qa/check-management-messaging-threads.mjs", "supabase/migrations/20260913211000_management_messaging_qa_hardening.sql"],
-        "observedAt": "2026-09-19T15:39:11Z",
-        "remotePreserved": false,
-        "nextAction": "Owner to finish scoped QA, commit/push and report SHA; do not stage another task's unfinished source or label diagnostic DB canonical. Integration remains blocked."
+        "observedAt": "2026-09-19T15:44:00Z",
+        "remotePreserved": true,
+        "resolvedByCommit": "23673011936f53fb52dd51a12aa95505df7cd740",
+        "nextAction": "Prior local-only drafts resolved by exact remote commit; worktree clean. Owner retains canonical DB, authenticated browser and attachment QA debt. Integration remains blocked."
       },
       "reconciliation": {
         "disposition": "BLOCKED",
@@ -8298,10 +8304,10 @@
         "observedAt": "2026-09-19T15:39:11Z"
       },
       "validation": {
-        "status": "PROVIDER_QA_PENDING_OWNER_ENVIRONMENT_REVIEW",
+        "status": "PROVIDER_CUSTODY_QA_PASS_QUALIFICATION_INCOMPLETE",
         "ownerReportedChecks": "Node syntax, YAML parse, 14 signer cases, trust rotation/revocation/root-pin regressions PASS; limited changed-file secret heuristic clean",
         "evidence": ["https://github.com/infoganbatuah-ai/gan-batuach/actions/runs/35452386031"],
-        "scope": "Source branch preserved; live provider QA and PUSH38 qualification NOT complete; no main/runtime/migration/release activation"
+        "scope": "Both HOME_QA_SIGNING and ROOT_TRUST_SIGNING jobs verified success at 2026-09-19T15:44:00Z on source 921a9c6f. PUSH38 delivery, installed trust and full qualification remain incomplete; no main/runtime/migration/release activation"
       },
       "integration": {
         "status": "PENDING_REVIEW",
