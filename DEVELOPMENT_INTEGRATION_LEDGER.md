@@ -135,3 +135,16 @@ Every task updates its JSON unit with exact source commit(s), remote proof, task
 No automatic PR/merge to main. When owner explicitly requests release, enumerate INCLUDED / EXCLUDED+reason / BLOCKED+reason, freeze SHA, run the complete gates, provide the exact local RC, then use one consolidated release PR and the controlled main release sequence. Preserve feature branches and all original commit ancestry.
 
 Local command and truthful backend limitations: `DEVELOPMENT_LOCAL_RUNBOOK.md`.
+
+GB-M32 integration handoff (2026-09-20): original feature commit
+`40b938fd317917fa702e82bae1702a26133b4792` is remotely preserved and
+reachable through PR #69's ancestry merge
+`94d7376a191930481ff714b0bf9f4f004f78d04b` on
+`integration/development`. All nine required feature checks passed. The
+forward migration `20260920130000_management_private_documents.sql` passed a
+rollback-only synthetic direct-RLS matrix after GB-M31, and is approved only
+for guarded isolated Development application after a verified local backup.
+Authenticated private Storage HTTP E2E, cumulative Product QA and retention
+policy remain open; Production migration/deployment is not authorized. The
+canonical local integration checkout contains a foreign generated file, so
+GB-M32 integration QA uses a separate clean checkout without changing it.
