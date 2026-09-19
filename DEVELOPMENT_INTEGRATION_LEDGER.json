@@ -1,18 +1,22 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-09-19T16:39:25.081Z",
+  "updatedAt": "2026-09-19T17:01:08.981Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
   "baselineMain": "8113d0607e4282dc8778540aa58c1502367f4221",
   "ownerReleaseAuthorization": null,
-  "transitionStatus": "DEVELOPMENT_BASELINE_VERIFIED_FULL_STACK_CLOSURE_PENDING",
+  "transitionStatus": "CANONICAL_DATABASE_READY_LOCAL_APP_AND_RECONCILIATION_PENDING",
   "openPRs": [
     {
       "number": 57,
       "classification": "DEVELOPMENT_INTEGRATION_CANDIDATE",
-      "head": "450ac46d38d366b43a25c14f2c0a1075fd52c0e8",
-      "action": "Keep open; no main merge"
+      "head": "a07b3ca9e64f73111eb1216fe92280c1a97949be",
+      "action": "Keep open; no main merge",
+      "base": "integration/development",
+      "disposition": "PRESERVED_PENDING_INTEGRATION",
+      "reason": "Canonical SQL QA PASS; explicit task-owner open/unmerged hold; HTTP E2E pending",
+      "automaticMerge": false
     },
     {
       "number": 28,
@@ -3537,35 +3541,35 @@
       "sourceBranch": "codex/gb-m29-messaging-threads",
       "sourceCommits": [
         "450ac46d38d366b43a25c14f2c0a1075fd52c0e8",
-        "23673011936f53fb52dd51a12aa95505df7cd740"
+        "23673011936f53fb52dd51a12aa95505df7cd740",
+        "a07b3ca9e64f73111eb1216fe92280c1a97949be"
       ],
       "commitsNotInMain": [
         "e3822c20dfb611cf7e1ade2f22860a4b1e5c1d05",
         "450ac46d38d366b43a25c14f2c0a1075fd52c0e8"
       ],
-      "state": "BLOCKED",
+      "state": "PRESERVED_PENDING_INTEGRATION",
       "preservation": {
         "remoteVerified": true,
         "remoteRefs": [
           "origin/codex/gb-m29-messaging-threads"
         ],
-        "localHead": "23673011936f53fb52dd51a12aa95505df7cd740",
-        "remoteHead": "23673011936f53fb52dd51a12aa95505df7cd740",
-        "observedAt": "2026-09-19T15:44:00Z"
+        "remoteHead": "a07b3ca9e64f73111eb1216fe92280c1a97949be",
+        "observedAt": "2026-09-19T17:01:08.981Z"
       },
       "validation": {
-        "status": "SCOPED_ADAPTED_DATABASE_QA_PASS_CANONICAL_QA_BLOCKED",
-        "latestReport": "23673011936f53fb52dd51a12aa95505df7cd740:GAN_BATUACH_MANAGEMENT_GB_M29_ISOLATED_QA_REPORT.md",
-        "priorCiEvidenceScope": "The following CI links refer to earlier 450ac46d, not the new hardening commit. Canonical DB and browser/attachment QA remain unverified.",
+        "status": "CANONICAL_ROLLBACK_SQL_RLS_PASS_HTTP_E2E_PENDING",
+        "sourceCommit": "a07b3ca9e64f73111eb1216fe92280c1a97949be",
         "evidence": [
-          "https://github.com/infoganbatuah-ai/gan-batuach/actions/runs/34782778223",
-          "https://github.com/infoganbatuah-ai/gan-batuach/actions/runs/34782778294"
-        ]
+          "https://github.com/infoganbatuah-ai/gan-batuach/actions/runs/35455806892",
+          "https://github.com/infoganbatuah-ai/gan-batuach/actions/runs/35455806930"
+        ],
+        "ownerReceipt": "GB-M29 task 01a07933-ed3d-7ad0-9a45-2f9b0b21460a, 2026-09-19: one BEGIN/ROLLBACK, original three migrations, all role/scope checks and private attachment metadata visibility PASS; no persistent apply"
       },
       "integration": {
-        "status": "PENDING_ISOLATED_ROLE_SCHEMA_QA",
+        "status": "PRESERVED_PENDING_INTEGRATION",
         "commit": null,
-        "equivalence": null
+        "reason": "Canonical rollback-only three-migration/role/attachment-metadata RLS QA PASS. Task owner explicitly requested PR57 remain open/unmerged; integration may auto-close it. Coordinate this hold; authenticated attachment HTTP E2E remains pending."
       },
       "dependencies": {
         "status": "REVIEW_REQUIRED",
@@ -3573,11 +3577,13 @@
       },
       "migrations": [
         "20260913210000_management_canonical_messaging_threads.sql",
-        "20260913211000_management_messaging_qa_hardening.sql"
+        "20260913211000_management_messaging_qa_hardening.sql",
+        "20260913212000_management_private_message_attachments.sql"
       ],
       "migrationOrder": [
         "20260913210000",
-        "20260913211000"
+        "20260913211000",
+        "20260913212000"
       ],
       "conflictsResolution": "No automatic conflict resolution attempted",
       "localVerification": "NOT_TESTED",
@@ -3586,7 +3592,7 @@
         "status": "NOT_REVERIFIED_PER_UNIT",
         "deploymentId": null
       },
-      "nextAction": "PR #57 source preserved; historical canonical DB replay fails before GB-M29. Adapted disposable QA cannot establish canonical development migration/RLS PASS.",
+      "nextAction": "Canonical rollback-only three-migration/role/attachment-metadata RLS QA PASS. Task owner explicitly requested PR57 remain open/unmerged; integration may auto-close it. Coordinate this hold; authenticated attachment HTTP E2E remains pending.",
       "activeUncommittedWork": {
         "state": "PUSHED_REMOTE",
         "owner": "Management owner; active task 01a07933-ed3d-7ad0-9a45-2f9b0b21460a",
@@ -3600,9 +3606,9 @@
         "nextAction": "Prior local-only drafts resolved by exact remote commit; worktree clean. Owner retains canonical DB, authenticated browser and attachment QA debt. Integration remains blocked."
       },
       "reconciliation": {
-        "disposition": "BLOCKED",
-        "reason": "PR #57 source preserved; historical canonical DB replay fails before GB-M29. Adapted disposable QA cannot establish canonical development migration/RLS PASS.",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "disposition": "PRESERVED_PENDING_INTEGRATION",
+        "reason": "Canonical rollback-only three-migration/role/attachment-metadata RLS QA PASS. Task owner explicitly requested PR57 remain open/unmerged; integration may auto-close it. Coordinate this hold; authenticated attachment HTTP E2E remains pending.",
+        "observedAt": "2026-09-19T17:01:08.981Z"
       }
     },
     {
@@ -8294,29 +8300,37 @@
       "sourceCommits": [
         "c4b7285916e68ad987b078ad8953d5e9fc2a4bb9",
         "164df7dd003c3a5d1f043ce2be3aeb92666f537a",
-        "921a9c6f370a1dd7f3540c6dd9fed54cc6340e74"
+        "921a9c6f370a1dd7f3540c6dd9fed54cc6340e74",
+        "b5d2bf821933cae923e2cb25066de0c81379db2c",
+        "db26a31425bc46e3a24edeb99fc52ae196ce10be"
       ],
-      "state": "PUSHED_REMOTE",
+      "state": "PRESERVED_PENDING_INTEGRATION",
       "preservation": {
         "remoteVerified": true,
         "remoteRefs": [
           "origin/codex/push-38-aws-signing"
         ],
-        "localHead": "921a9c6f370a1dd7f3540c6dd9fed54cc6340e74",
-        "remoteHead": "921a9c6f370a1dd7f3540c6dd9fed54cc6340e74",
-        "observedAt": "2026-09-19T15:39:11Z"
+        "remoteHead": "b5d2bf821933cae923e2cb25066de0c81379db2c",
+        "observedAt": "2026-09-19T17:01:08.981Z"
       },
       "validation": {
-        "status": "PROVIDER_CUSTODY_QA_PASS_QUALIFICATION_INCOMPLETE",
-        "ownerReportedChecks": "Node syntax, YAML parse, 14 signer cases, trust rotation/revocation/root-pin regressions PASS; limited changed-file secret heuristic clean",
-        "evidence": [
-          "https://github.com/infoganbatuah-ai/gan-batuach/actions/runs/35452386031"
+        "status": "SCOPED_OWNER_REPORTED_PASS_QUALIFICATION_INCOMPLETE",
+        "sourceCommit": "b5d2bf821933cae923e2cb25066de0c81379db2c",
+        "checks": [
+          "Keychain 13",
+          "signer 14",
+          "HOME QA 9",
+          "trust regression",
+          "R2 scope",
+          "diff check",
+          "limited secret heuristic"
         ],
-        "scope": "Both HOME_QA_SIGNING and ROOT_TRUST_SIGNING jobs verified success at 2026-09-19T15:44:00Z on source 921a9c6f. PUSH38 delivery, installed trust and full qualification remain incomplete; no main/runtime/migration/release activation"
+        "fullCi": "NOT_CLAIMED"
       },
       "integration": {
-        "status": "PENDING_REVIEW",
-        "commit": null
+        "status": "PRESERVED_PENDING_INTEGRATION",
+        "commit": null,
+        "reason": "PUSH 38 NOT DONE; keychain/signing infrastructure preserved separately. Qualification, custody and delivery are not approved for cumulative integration or activation."
       },
       "dependencies": {
         "status": "REVIEW_REQUIRED",
@@ -8330,11 +8344,11 @@
       "productionDeployment": {
         "status": "NOT_DEPLOYED"
       },
-      "nextAction": "PUSH 38 explicitly incomplete; qualification, commercial signing custody and delivery prerequisites remain owned by its task. Preserve remotely; no automatic integration/activation.",
+      "nextAction": "PUSH 38 NOT DONE; keychain/signing infrastructure preserved separately. Qualification, custody and delivery are not approved for cumulative integration or activation.",
       "reconciliation": {
-        "disposition": "BLOCKED",
-        "reason": "PUSH 38 explicitly incomplete; qualification, commercial signing custody and delivery prerequisites remain owned by its task. Preserve remotely; no automatic integration/activation.",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "disposition": "PRESERVED_PENDING_INTEGRATION",
+        "reason": "PUSH 38 NOT DONE; keychain/signing infrastructure preserved separately. Qualification, custody and delivery are not approved for cumulative integration or activation.",
+        "observedAt": "2026-09-19T17:01:08.981Z"
       }
     },
     {
@@ -8389,20 +8403,29 @@
       "owner": "Current database-baseline task",
       "sourceBranch": "codex/development-database-baseline-20260919",
       "sourceCommits": [
-        "52e9534115042aa36e9d949b30b417f4f7e710fe"
+        "52e9534115042aa36e9d949b30b417f4f7e710fe",
+        "8506689ff1a95d08314e01db7eb60f92ff7d3547"
       ],
-      "state": "PRESERVED_PENDING_INTEGRATION",
+      "state": "DEVELOPMENT_MIGRATIONS_APPLIED",
       "preservation": {
         "remoteVerified": true,
         "remoteRefs": [
           "origin/codex/development-database-baseline-20260919"
         ]
       },
-      "validation": "Baseline schema/ACL verification PASS; rollback-only fixture/RLS suite PASS; Auth/REST/Storage end-to-end and full cumulative CI pending",
+      "validation": {
+        "status": "PASS_BASELINE_AUTH_REST_STORAGE_SQL_RLS_AND_CI",
+        "ci": [
+          "https://github.com/infoganbatuah-ai/gan-batuach/actions/runs/35455732639",
+          "https://github.com/infoganbatuah-ai/gan-batuach/actions/runs/35455732605"
+        ],
+        "remaining": "Cumulative local app and role journeys"
+      },
       "integration": {
-        "status": "PENDING",
-        "reason": "Full-stack services startup and final branch QA pending",
-        "mergeCommit": null
+        "status": "INTEGRATED_DEVELOPMENT",
+        "commit": "00402d7a3134fe3e654b5c9579f15e7a1b3df1f6",
+        "pullRequest": 59,
+        "conflicts": "NONE"
       },
       "dependencies": {
         "units": [],
@@ -8417,7 +8440,7 @@
       "localVerification": "SCHEMA_AND_SQL_ROLE_QA_PASS_FULL_STACK_PENDING",
       "releaseEligibility": "NOT_READY",
       "productionDeployment": "NOT_DEPLOYED_NO_AUTHORIZATION",
-      "nextAction": "Complete isolated Auth/REST/Storage health, preserve baseline branch, CI, integration-only merge, apply reviewed new migration and verify cumulative local Product"
+      "nextAction": "Verify cumulative local app health and role journeys; keep main/Production unchanged"
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
@@ -8446,16 +8469,18 @@
       "number": 58,
       "head": "c699c994fc401edf2e6dde7d99c66fafe794c8f1",
       "base": "integration/development",
-      "disposition": "READY_TO_INTEGRATE",
+      "disposition": "ALREADY_INTEGRATED",
       "reason": "Development workflow guards only; required exact-commit CI before integration; never a main release",
-      "automaticMerge": false
+      "automaticMerge": false,
+      "state": "MERGED_DEVELOPMENT"
     },
     {
       "number": 57,
-      "head": "450ac46d38d366b43a25c14f2c0a1075fd52c0e8",
-      "disposition": "BLOCKED",
-      "reason": "GB-M29 canonical isolated database prerequisite",
-      "automaticMerge": false
+      "head": "a07b3ca9e64f73111eb1216fe92280c1a97949be",
+      "disposition": "PRESERVED_PENDING_INTEGRATION",
+      "reason": "Canonical SQL QA PASS; explicit task-owner open/unmerged hold; HTTP E2E pending",
+      "automaticMerge": false,
+      "base": "integration/development"
     },
     {
       "number": 28,

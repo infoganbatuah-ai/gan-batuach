@@ -1,0 +1,16 @@
+{
+  "environment": "DEVELOPMENT / INTEGRATION",
+  "observedAt": "2026-09-19T16:53:22.656Z",
+  "integrationCommit": "00402d7a3134fe3e654b5c9579f15e7a1b3df1f6",
+  "migrations": [
+    {
+      "version": "20260919170000",
+      "filename": "supabase/migrations/20260919170000_classroom_scope_trigger_record_fields.sql",
+      "source_digest": "3b25e47269022a960e1ba6ccca82b07be51c97f9eab8131d7212290da196be02",
+      "source_commit": "00402d7a3134fe3e654b5c9579f15e7a1b3df1f6",
+      "applied_at": "2026-09-19T16:51:06.476648+00:00",
+      "schema_fingerprint": "b4146be33847a903f6f6f7d0d46024506481dfe8390c6badd96514e5952b6af8"
+    }
+  ],
+  "productionAccess": false
+}

@@ -6,6 +6,15 @@ Effective 2026-09-19. Machine-readable source: `DEVELOPMENT_INTEGRATION_LEDGER.j
 
 ## Current transition
 
+Latest development DB checkpoint: `DEVELOPMENT_DATABASE_BASELINE_REPORT_2026-09-19.md`.
+PR #59 integrated the isolated baseline/guards at `00402d7a`. Baseline 227 + one
+post-baseline migration are verified in DEVELOPMENT; drift PASS. Auth/REST/RLS
+synthetic QA passed, app restart/HTTP verification pending. JSON is authoritative
+for current states; older blocked-baseline observations below are historical.
+GB-M29 `a07b3ca9` has canonical rollback-only SQL QA PASS, but remains separately
+preserved while its owner requests PR #57 open/unmerged and HTTP E2E is pending.
+PUSH 38 `b5d2bf82` / `db26a314` remain preserved pending qualification/integration.
+
 Latest closure evidence and owner decision: `DEVELOPMENT_FINAL_CLOSURE_2026-09-19.md`; the earlier transition report is historical. Workflow and canonical SEO are integrated; GB-M29 remains blocked on canonical isolated schema/role QA. This is not a completed full-Product transition.
 
 - Remote main baseline: `8113d0607e4282dc8778540aa58c1502367f4221`. Existing Production was observed Ready on the same commit, deployment `7N3RZmP34J4MTGsXq8JHQiq7bgiu`; this is not a new deployment.
