@@ -8380,6 +8380,44 @@
       }
     },
     {
+      "id": "codex/push-38q-r2-auth",
+      "project": "Digital Observer / shared",
+      "title": "PUSH 38Q private R2 HOME_QA download authorization repair",
+      "owner": "PUSH 38 release/control-plane workstream",
+      "sourceBranch": "codex/push-38q-r2-auth",
+      "sourceCommits": ["994ab8b07299e1e37cbd91c3c7cb5488a53a0001"],
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": ["origin/codex/push-38q-r2-auth"],
+        "localHead": "994ab8b07299e1e37cbd91c3c7cb5488a53a0001",
+        "remoteHead": "994ab8b07299e1e37cbd91c3c7cb5488a53a0001",
+        "observedAt": "2026-09-19T19:31:07Z"
+      },
+      "validation": {
+        "status": "SCOPED_LOCAL_PASS_LIVE_DELIVERY_BLOCKED",
+        "sourceCommit": "994ab8b07299e1e37cbd91c3c7cb5488a53a0001",
+        "checks": ["Next build", "typecheck", "targeted ESLint", "security gate", "migration health", "HOME_QA R2 unit QA", "OTA regression", "npm audit high/critical PASS with 6 moderate findings"],
+        "fullCi": "FAIL_DOMAIN_RELIABILITY_HORIZONTAL_THROUGHPUT_ASSERTION"
+      },
+      "integration": {
+        "status": "PRESERVED_PENDING_INTEGRATION",
+        "commit": null,
+        "reason": "38Q depends on unintegrated PUSH 38 signing, trust and OTA modules; full branch differs from integration by 123 files. No blind merge or live endpoint activation."
+      },
+      "dependencies": {
+        "status": "REVIEW_REQUIRED",
+        "units": ["codex/push-38-aws-signing", "codex/preserve-push38-r2-draft-20260919"]
+      },
+      "migrations": ["20260919190000_edge_home_qa_channel.sql"],
+      "migrationOrder": ["20260919190000"],
+      "conflictsResolution": "Reviewed source prerequisites; no merge attempted",
+      "localVerification": "NOT_TESTED_ON_CANONICAL_INTEGRATION",
+      "releaseEligibility": "NOT_READY",
+      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "nextAction": "Review and integrate prerequisite PUSH 38 modules on an isolated development candidate; investigate the repeatable domain reliability throughput failure and run exact-commit CI; then integrate and apply HOME_QA migration to canonical DEVELOPMENT only. Do not expose live Home or deploy Production."
+    },
+    {
       "id": "codex/preserve-push38-r2-draft-20260919",
       "project": "Digital Observer / shared",
       "title": "chore(preserve): retain unintegrated PUSH 38 R2 delivery draft",
