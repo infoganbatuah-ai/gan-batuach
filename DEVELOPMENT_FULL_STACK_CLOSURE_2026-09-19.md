@@ -31,6 +31,13 @@ No main merge/push, Production SQL, Vercel deployment, history rewrite or cleanu
 
 ## Cumulative local application
 
+Local log follow-up identified a legacy readiness query requesting nonexistent
+`camera_streams.metadata` (PostgREST 42703). The scoped runtime fix removes only
+that absent selected column; gateway IDs still come from canonical columns, no
+schema/grant change or secret field added. A regression test and synthetic
+authenticated REST query verify the contract. This is a real compatibility fix,
+not a suppressed warning; exact-head CI and post-integration smoke are required.
+
 - FULL STACK from `integration/development`, verified commit
   `0620ab40c497b0e98ee27df5fb118c1c5e41816b` (PR #60; baseline PR #59).
 - URL: http://127.0.0.1:3000/digital-observer
