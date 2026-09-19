@@ -1,12 +1,12 @@
 {
-  "observedAt": "2026-09-19T17:11:11.174Z",
+  "observedAt": "2026-09-19T18:30:56.581Z",
   "status": "PASS",
   "environment": "DEVELOPMENT / INTEGRATION",
-  "integrationCommit": "0620ab40c497b0e98ee27df5fb118c1c5e41816b",
+  "integrationCommit": "18d11d5b3ccd628434a869133ec6cf3f2260dba9",
   "version": {
     "environment": "DEVELOPMENT / INTEGRATION",
-    "commit": "0620ab40c497b0e98ee27df5fb118c1c5e41816b",
-    "startedAt": "2026-09-19T17:07:16.747Z",
+    "commit": "18d11d5b3ccd628434a869133ec6cf3f2260dba9",
+    "startedAt": "2026-09-19T18:25:45.113Z",
     "backend": "LOCAL_SUPABASE",
     "production": false
   },
@@ -160,7 +160,7 @@
   "limitations": [
     "Synthetic local fixtures only",
     "No real camera/Gateway/AI/payment/email provider activation",
-    "GB-M29 pending separate integration/HTTP QA",
+    "GB-M29 attachment HTTP E2E is separately verified, not part of these 18 route probes",
     "HTTP HTML success is not a full interactive browser journey"
   ]
 }
