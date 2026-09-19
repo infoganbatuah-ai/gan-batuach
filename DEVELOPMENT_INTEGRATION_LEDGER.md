@@ -54,6 +54,21 @@ Post-migration synthetic RLS/receipt and separate-connection claim QA passed.
 Cumulative Product QA remains pending. No paid
 provider was activated, and Production/main remain unchanged.
 
+GB-M31 closure update (2026-09-20): the isolated Development database applied
+both ordered migrations and passed 234/234 drift, recipient/RLS, receipt and
+two-connection lease checks. Cumulative Management, domain, security,
+Parent/Manager, build, typecheck, lint and release preflight passed on the
+integrated snapshot. A full-stack smoke found an unauthenticated preferences
+GET 500; scoped fix `f5378f6821673a74c88f2c89b74babbc2046ec2b` passed
+PR #68 required checks and merged at
+`1714e05fe2a650b44f8177862a1469a00727b168`. The exact merged commit
+passed UI-only home 200, preferences GET/PATCH 401 and disabled worker 503.
+The preserved local Development Colima `gbi` VM then became broken (Lima
+host-agent socket refused connection); final-head full-backend health/auth
+smoke is pending non-destructive VM recovery. GB-M31 remains
+`INTEGRATED_DEVELOPMENT`, not `LOCAL_VERIFIED`; no Production release or paid
+external delivery was activated. Do not touch other workstreams' checkouts.
+
 PUSH 38Q/R handoff (2026-09-19): `codex/push-38q-r2-auth` at
 `994ab8b07299e1e37cbd91c3c7cb5488a53a0001` is remotely preserved and
 recorded in the JSON ledger. The private R2 authorization repair and its
