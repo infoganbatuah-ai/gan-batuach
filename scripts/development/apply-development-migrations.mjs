@@ -5,8 +5,11 @@ import {sha256,splitSql,leadingCode} from './baseline-source.mjs';
 import {schemaFingerprint} from './verify-baseline-schema.mjs';
 const git=(...args)=>execFileSync('git',args,{encoding:'utf8',stdio:'pipe',maxBuffer:8*1024*1024}).trim();
 const quote=value=>`'${String(value).replaceAll("'","''")}'`;
-if(git('branch','--show-current')!=='integration/development')throw Error('Apply only from canonical integration/development');
 const head=git('rev-parse','HEAD');
+// A clean isolated checkout may use a different local branch while the canonical
+// integration worktree has unrelated, in-progress changes. The remote commit is
+// the authority; never apply from an uncommitted or stale snapshot.
+if(git('status','--porcelain'))throw Error('Development migration checkout must be clean');
 if(git('ls-remote','origin','refs/heads/integration/development').split(/\s/)[0]!==head)throw Error('Integration HEAD must already be remotely preserved');
 const baseline=JSON.parse(sql('select row_to_json(b) from development_metadata.baselines b;'));
 if(baseline.id!==config.baselineId)throw Error('Wrong development baseline');
