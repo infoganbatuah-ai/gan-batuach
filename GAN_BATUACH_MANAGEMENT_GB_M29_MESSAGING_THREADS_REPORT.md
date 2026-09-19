@@ -133,3 +133,13 @@ Legacy `messages` and older announcement screens remain read-only compatibility 
 # Inputs For GB-M30
 
 GB-M30 can consume canonical thread IDs, participant read state and bounded notification events without treating a Notification as a Message or granting authority through delivery membership.
+
+# Integration And Release Status (2026-09-19)
+
+The owner-controlled consolidated development contract supersedes the earlier per-push main-merge workflow. PR #57 merged into `integration/development` at `be861ec92ea65e8bc1186ea3df18de060e5835b9`, preserving original GB-M29 head `f3bb525a7308a9f01df1241b2b3168383a6fed2e` by ancestry. Its nine required checks passed on that feature head. The merge changed only the scoped GB-M29 messaging code, migrations, tests and reports; Digital Observer core diff remains 0.
+
+The three GB-M29 migrations were applied to the isolated development database in order: `20260913210000` at 18:12:19 UTC, `20260913211000` at 18:12:26 UTC, then `20260913212000` at 18:12:32 UTC. Receipt commit `9e8c874a2f196051b3cc8de9336f1937cfb07ed1` merged through PR #63 at `18d11d5b3ccd628434a869133ec6cf3f2260dba9`. It records development migration count 231/231, ledger digests and schema fingerprints in `development/database/development-application-receipts.json`.
+
+Development receipt commit `f5f295437db5cb6f7c3178da7a8f3710d420ceae` passed all nine exact-head checks and merged through PR #64 at `d03f45e16c96392f8addecf27baf623103455ad0`. It records 13 synthetic Auth identities and authenticated REST/RLS role checks in `development/database/services-qa-receipt.json`; 18/18 cumulative local HTTP checks, including `/api/health` 200, in `development/database/local-product-receipt.json`; and private attachment upload/retrieval, denied-role/ID cases, direct Storage denial and 60-second signed-URL expiry in `development/database/gb-m29-canonical-e2e-receipt.json`. The verified Product snapshot was integration commit `18d11d5b3ccd628434a869133ec6cf3f2260dba9`; the post-receipt integration head is `d03f45e16c96392f8addecf27baf623103455ad0`. The canonical development ledger marks GB-M29 `READY_FOR_OWNER_RELEASE` with `PASS_FULL_PRODUCT` local verification. These are DEVELOPMENT / INTEGRATION results, not Production role smokes.
+
+Production migration history is not yet reconciled, and no owner-authorized Production release window is active. No GB-M29 migration, deployment, customer message or live-provider action has been performed in Production. Production authentication, storage and role smokes therefore remain deferred. Controlled live Parent/Manager/Staff messaging QA remains blocked by the environment and must not be conflated with the completed isolated RLS/attachment evidence.
