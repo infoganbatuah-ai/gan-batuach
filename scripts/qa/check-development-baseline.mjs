@@ -1,0 +1,18 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import {splitSql,deriveSchemaStatements} from '../development/baseline-source.mjs';
+import {compareBaselineState} from '../development/baseline-drift.mjs';
+import {readFileSync} from 'node:fs';
+test('DDL bodies, quoted semicolons and nested comments stay intact',()=>assert.equal(splitSql(`/* a /* b */ c */ DO $x$ BEGIN PERFORM ';'; END $x$; CREATE TABLE "a;b" (v text default 'a;''b');`).length,2));
+test('malformed SQL fails closed',()=>assert.throws(()=>splitSql('DO $$ BEGIN;')));
+test('historical data never enters schema',()=>assert.equal(deriveSchemaStatements('test.sql',"INSERT INTO secrets VALUES ('private');")[0].sql,null));
+test('activation-only DO omitted, security function unchanged',()=>{const s=deriveSchemaStatements('20260902043000_activate.sql','DO $$BEGIN RAISE EXCEPTION \'needs real site\'; END$$;');assert.equal(s[0].action,'OMIT_PRODUCTION_ACTIVATION');const f='CREATE FUNCTION deny() RETURNS bool LANGUAGE sql AS $$ SELECT false; $$;';assert.equal(deriveSchemaStatements('other.sql',f)[0].sql,f);});
+test('historical typo normalized only in named source',()=>{assert.match(deriveSchemaStatements('20260523012000_qa_action_persistence.sql',"alter typeש public.camera_status add value 'x';")[0].sql,/alter type public/);});
+const historical={file:'supabase/migrations/20260101000000_first.sql',blob:'blob',sha256:'hash'};
+const mapping={...historical,sourceSha256:'hash'};
+const baselineCase=()=>({files:[historical],baseline:{source_mapping:[mapping]},postMigrations:[],ledger:[{...historical,developmentApplied:'YES',developmentAppliedAt:'verified-date',developmentEvidence:'receipt'}],schemaFingerprint:{expected:'schema',actual:'schema'}});
+test('baseline mapping is explicit, never fabricated historical execution',()=>{const r=compareBaselineState(baselineCase());assert.equal(r.status,'PASS');assert.equal(r.historicalReplayClaim,false);});
+test('historical source edits, missing evidence and schema drift fail closed',()=>{for(const delta of [{files:[{...historical,blob:'changed'}]},{ledger:[]},{schemaFingerprint:{expected:'a',actual:'b'}},{baseline:null}])assert.equal(compareBaselineState({...baselineCase(),...delta}).status,'BLOCKED');});
+test('unknown, missing and altered post-baseline migrations block',()=>{const newer={file:'supabase/migrations/20260201000000_next.sql',blob:'new',sha256:'newhash'};const args={...baselineCase(),files:[historical,newer]};assert.equal(compareBaselineState(args).status,'BLOCKED');assert.equal(compareBaselineState({...baselineCase(),postMigrations:[{filename:'unexpected.sql'}]}).status,'BLOCKED');});
+test('bootstrap is local guarded, checksum checked and fresh-only',()=>{const code=readFileSync('scripts/development/bootstrap-baseline.mjs','utf8');assert.match(code,/schemaSha256!==sha256/);assert.match(code,/Auth\/customer users/);const target=readFileSync('scripts/development/local-database.mjs','utf8');assert.match(target,/Dedicated|dedicated local development socket/);assert.match(target,/platformBootstrap&&database!==config.builderDatabase/);});
+test('new shared-trigger fix keeps table-specific fields inside branches',()=>{const fix=readFileSync('supabase/migrations/20260919170000_classroom_scope_trigger_record_fields.sql','utf8');assert.match(fix,/elsif tg_table_name='staff_classroom_assignments'/);assert.match(fix,/has_relation and relation_garden is distinct from new.garden_id/);assert.doesNotMatch(fix,/disable trigger|case when tg_table_name/);});

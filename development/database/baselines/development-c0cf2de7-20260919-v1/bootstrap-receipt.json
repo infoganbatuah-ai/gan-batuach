@@ -1,0 +1,23 @@
+{
+  "baselineId": "development-c0cf2de7-20260919-v1",
+  "sourceIntegrationSha": "c0cf2de7e11e6e9b368fdd1fc3a068ce544ca55d",
+  "schemaSha256": "998fe1f6d4f933fa59f35c844a781cfc8f782f8986216545df8567600df7a9d3",
+  "aclSha256": "f46f41ce836d5be981ffed74ee17af5cf35fbd71ec7015a64b0375d457afece9",
+  "schemaFingerprint": "edecb4d24db7f14aa09d7ce0bd3f16c2d49e2f8151f8bd748b16d5174e4ad718",
+  "schemaComparison": {
+    "status": "PASS",
+    "exactMatchingStatements": 11729,
+    "restoredCheckTables": 50,
+    "checksVerified": 150,
+    "canonicalFingerprint": "edecb4d24db7f14aa09d7ce0bd3f16c2d49e2f8151f8bd748b16d5174e4ad718",
+    "builderFingerprint": "86547e2936fbbc11fe118703620be2d478fc4cc1c97abb6140bc95a1e7bd0ae5"
+  },
+  "platformImage": "sha256:6942962433a569e87f228b4d4ab7e11db5deca64e43babb3a038443ad6c4f1bb",
+  "appliedAt": "2026-09-19T16:23:17.882Z",
+  "historicalSourceCount": 227,
+  "historicalReplayClaim": false,
+  "baselineSchemaEquality": "PASS",
+  "securityQa": "PENDING",
+  "productQa": "PENDING",
+  "productionAccess": false
+}

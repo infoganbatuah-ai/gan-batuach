@@ -1,8 +1,9 @@
 {
   "environment": "DEVELOPMENT",
-  "status": "BLOCKED_CANONICAL_BASELINE_REPLAY",
+  "status": "SCHEMA_VERIFIED_FULL_STACK_VALIDATION_PENDING",
+  "baselineId": "development-c0cf2de7-20260919-v1",
   "projectId": "gan-batuach-integration",
-  "dockerContext": null,
+  "dockerContext": "colima-gbi",
   "container": "supabase_db_gan-batuach-integration",
   "workspace": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
   "productionAccessAllowed": false,

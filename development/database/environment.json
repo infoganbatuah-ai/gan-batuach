@@ -1,0 +1,13 @@
+{
+  "environment": "DEVELOPMENT / INTEGRATION",
+  "projectId": "gan-batuach-integration",
+  "runtimeRoot": "/Volumes/DIGITAL_OBSERVER/Development/gan-batuach",
+  "colimaProfile": "gbi",
+  "dockerContext": "colima-gbi",
+  "container": "supabase_db_gan-batuach-integration",
+  "builderDatabase": "gan_batuach_baseline_builder_v2",
+  "apiUrl": "http://127.0.0.1:55421",
+  "productionAllowed": false,
+  "baselineId": "development-c0cf2de7-20260919-v1",
+  "sourceIntegrationSha": "c0cf2de7e11e6e9b368fdd1fc3a068ce544ca55d"
+}
