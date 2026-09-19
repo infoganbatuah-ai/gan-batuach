@@ -103,7 +103,11 @@ const providers: Record<PushProviderName, PushProvider> = {
   mock_push: createProvider("mock_push", []),
   fcm: {
     name: "fcm",
-    getReadiness: () => ({ provider: "fcm", configured: Boolean(process.env.FCM_PROJECT_ID && process.env.FCM_SERVICE_ACCOUNT_JSON), canSendRealMessages: process.env.PUSH_MODE === "production" && process.env.PUSH_REAL_SEND_ENABLED === "true", mode: process.env.PUSH_MODE === "production" && process.env.PUSH_REAL_SEND_ENABLED === "true" ? "real" : "dry_run", missing: ["FCM_PROJECT_ID", "FCM_SERVICE_ACCOUNT_JSON"].filter((key) => !process.env[key]), supportedPlatforms: providerPlatforms.fcm, summary: "FCM is configured; real send requires the production safety flags." }),
+    getReadiness: () => {
+      const configured = Boolean(process.env.FCM_PROJECT_ID && process.env.FCM_SERVICE_ACCOUNT_JSON);
+      const canSendRealMessages = configured && process.env.PUSH_MODE === "production" && process.env.PUSH_REAL_SEND_ENABLED === "true" && process.env.PRODUCTION_ACTIVATION_APPROVED === "true";
+      return { provider: "fcm", configured, canSendRealMessages, mode: canSendRealMessages ? "real" : "dry_run", missing: ["FCM_PROJECT_ID", "FCM_SERVICE_ACCOUNT_JSON"].filter((key) => !process.env[key]), supportedPlatforms: providerPlatforms.fcm, summary: canSendRealMessages ? "FCM submission enabled; delivery receipt not verified." : "FCM real submission is disabled or missing configuration." };
+    },
     async send(payload) {
       const readiness = this.getReadiness();
       if (!readiness.configured || !readiness.canSendRealMessages) return dryRunResult("fcm", payload, readiness.configured);
