@@ -12,14 +12,18 @@ export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
 const querySchema = z.object({ platform: z.string().regex(/^[a-z0-9-]{3,40}$/), architecture: z.enum(["arm64","x64"]),
   profile: z.enum(["SOFTWARE_CONNECTOR","PHYSICAL_GATEWAY","ENTERPRISE_EDGE"]), current_version: z.string().max(80),
-  config_version: z.coerce.number().int().positive(), channel: z.enum(["INTERNAL","CANARY","STABLE"]) }).strict();
+  config_version: z.coerce.number().int().positive(), channel: z.enum(["INTERNAL","CANARY","STABLE","HOME_QA"]) }).strict();
 const statusSchema = z.object({ release_id: z.string().regex(/^[A-Za-z0-9._:-]{3,160}$/),
   state: z.enum(["UPDATE_AVAILABLE","DOWNLOADING","VERIFYING","STAGED","INSTALLING","RESTARTING","VERIFYING_HEALTH","HEALTHY","ROLLBACK_REQUIRED","ROLLING_BACK","ROLLED_BACK","UPDATE_FAILED"]),
   current_version: z.string().min(1).max(80), known_good_version: z.string().min(1).max(80),
   failure_category: z.string().regex(/^[A-Z0-9_:-]{3,100}$/).nullable() }).strict();
 
 function secret() { return process.env.VIDEO_GATEWAY_CLOUD_DISCOVERY_SECRET || ""; }
-function trustedKeys() { try { const value = JSON.parse(process.env.OBSERVER_EDGE_RELEASE_PUBLIC_KEYS_JSON || "{}"); return value && typeof value === "object" && !Array.isArray(value) ? value : {}; } catch { return {}; } }
+function trustedKeys() { try { const value = JSON.parse(process.env.OBSERVER_EDGE_RELEASE_PUBLIC_KEYS_JSON || "{}");
+  const revoked = JSON.parse(process.env.OBSERVER_EDGE_RELEASE_REVOKED_KEY_IDS_JSON || "[]");
+  if (!value || typeof value !== "object" || Array.isArray(value) || !Array.isArray(revoked)) return {};
+  for (const keyId of revoked) if (typeof keyId === "string") delete value[keyId];
+  return value; } catch { return {}; } }
 function response(data: unknown) { return NextResponse.json({ data }, { headers: { "Cache-Control": "private, no-store" } }); }
 
 async function authorize(request: Request, operation: "UPDATE_READ" | "UPDATE_STATUS") {
@@ -27,10 +31,11 @@ async function authorize(request: Request, operation: "UPDATE_READ" | "UPDATE_ST
   if (!claims || !gatewayDeviceSessionAllows(claims, operation) || claims.version !== 2) return null;
   const admin = createAdminClient() as any;
   const enrollment = await admin.from("video_gateway_device_enrollments")
-    .select("id,status,lifecycle_state,observer_site_id,gateway_id,deployment_profile,credential_version,config_version")
+    .select("id,status,lifecycle_state,observer_site_id,gateway_id,deployment_profile,credential_version,config_version,revoked_at")
     .eq("id", claims.device_id).eq("observer_site_id", claims.observer_site_id).eq("gateway_id", claims.gateway_id).maybeSingle();
   if (enrollment.error || !enrollment.data || enrollment.data.status !== "delivered" || enrollment.data.lifecycle_state !== "ACTIVE"
-    || enrollment.data.deployment_profile !== claims.deployment_profile || enrollment.data.credential_version !== claims.credential_version) return null;
+    || enrollment.data.revoked_at || enrollment.data.deployment_profile !== claims.deployment_profile ||
+    enrollment.data.credential_version !== claims.credential_version) return null;
   return { claims, enrollment: enrollment.data, admin };
 }
 
@@ -39,20 +44,29 @@ export async function GET(request: Request) {
     const auth = await authorize(request, "UPDATE_READ"); if (!auth) return fail("Managed device update authentication failed.", 401);
     const query = querySchema.parse(Object.fromEntries(new URL(request.url).searchParams));
     if (query.profile !== auth.claims.deployment_profile) return fail("Managed device update scope mismatch.", 403);
+    if (query.config_version !== auth.enrollment.config_version) return fail("Managed device config mismatch.", 403);
     const rollout = await auth.admin.from("observer_edge_rollouts").select("id,stage,status,cohort_percent,release_id")
       .eq("status", "ACTIVE").order("created_at", { ascending: false }).limit(20);
     if (rollout.error) throw new Error("EDGE_UPDATE_ROLLOUT_READ_FAILED");
     if (!rollout.data?.length) return response({ manifest: null, reason: "NO_ACTIVE_ROLLOUT" });
     for (const candidate of rollout.data) {
-      const release = await auth.admin.from("observer_edge_releases").select("id,signed_manifest,release_state")
+      const release = await auth.admin.from("observer_edge_releases").select("id,signed_manifest,release_state,release_id,artifact_sha256,version,channel,platform,architecture,deployment_profile,signing_key_id")
         .eq("id", candidate.release_id).eq("release_state", "PUBLISHED").maybeSingle();
       if (release.error) throw new Error("EDGE_UPDATE_RELEASE_READ_FAILED");
       if (!release.data) continue;
       const verified = verifyEdgeUpdateManifest(release.data.signed_manifest, trustedKeys());
       if (!verified.ok) continue;
-      if (verified.manifest.rollout.stage !== candidate.stage ||
+      if (verified.manifest.release_id !== release.data.release_id ||
+        verified.manifest.artifact_sha256 !== release.data.artifact_sha256 ||
+        verified.manifest.version !== release.data.version ||
+        verified.manifest.channel !== release.data.channel || verified.manifest.platform !== release.data.platform ||
+        verified.manifest.architecture !== release.data.architecture ||
+        verified.manifest.profile !== release.data.deployment_profile ||
+        verified.manifest.signing_key_id !== release.data.signing_key_id ||
+        verified.manifest.rollout.stage !== candidate.stage ||
         verified.manifest.rollout.cohort_percent !== candidate.cohort_percent) continue;
-      if (candidate.stage === "INTERNAL_QA" && !edgeReleaseScopeAllows(verified.manifest, {
+      if (query.channel === "HOME_QA" && (candidate.stage !== "INTERNAL_QA" || candidate.cohort_percent !== 0)) continue;
+      if ((candidate.stage === "INTERNAL_QA" || query.channel === "HOME_QA") && !edgeReleaseScopeAllows(verified.manifest, {
         deviceId: auth.enrollment.id, profile: query.profile, platform: query.platform,
         architecture: query.architecture, channel: query.channel })) continue;
       const eligible = evaluateEdgeUpdateEligibility(verified.manifest, { deviceId: auth.enrollment.id, profile: query.profile,
