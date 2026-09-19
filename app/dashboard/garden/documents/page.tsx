@@ -2,7 +2,8 @@ import { DashboardShell } from "@/components/dashboard-shell";
 import { DashboardFilterChip } from "@/components/dashboard-filter-chip";
 import { ModuleListPage } from "@/components/module-list-page";
 import { GardenDocumentUploadPanel } from "@/components/garden-document-upload-panel";
-import { requireRole } from "@/lib/auth";
+import { requireOperationalRole } from "@/lib/management/operational-role";
+import { effectiveDocumentStatus } from "@/lib/management/document-policy";
 import { createClient } from "@/lib/supabase/server";
 import { CheckCircle2, FileText, ShieldAlert, Upload } from "lucide-react";
 import {
@@ -19,11 +20,14 @@ import {
 } from "@/components/teacher-app-ui";
 
 export default async function GardenDocumentsPage({ searchParams }: { searchParams: Promise<{ filter?: string; upload?: string }> }) {
-  const { profile } = await requireRole(["manager", "owner"]);
+  const { profile } = await requireOperationalRole(["manager", "owner"]);
   const params = await searchParams;
   const supabase = await createClient();
   const { data } = await supabase.from("documents" as any).select("id, name, document_type, status, expires_at, created_at, file_url").eq("garden_id", profile.garden_id ?? "").order("created_at", { ascending: false });
-  const rows = (data ?? [])
+  const rows = (data ?? []).map((doc: { id: string; status: string; expires_at: string | null; file_url: string | null }) => ({ ...doc,
+    status: effectiveDocumentStatus(doc),
+    file_url: doc.file_url === `/api/documents/${doc.id}/file` ? doc.file_url : null
+  }))
     .filter((doc: any) => {
       if (params.filter === "missing") return ["missing", "required", "expired", "rejected"].includes(doc.status);
       if (params.filter === "review") return doc.status === "pending_review";
