@@ -2,9 +2,13 @@ import { MessageCircleHeart } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
 import { ParentAppFrame, ParentEmptyState, ParentHero, ParentSection } from "@/components/parent-app-ui";
 import { ParentChildRequestForm } from "@/components/parent-child-request-form";
+import { InternalMessagingCenter } from "@/components/internal-messaging-center";
 import { requireRole } from "@/lib/auth";
 import { getParentFamilyContext } from "@/lib/domain/parent-family";
 import { createClient } from "@/lib/supabase/server";
+
+type MessageRecipient = { id: string; full_name?: string | null; email?: string | null; role?: string | null; profile_image_url?: string | null };
+type GardenMessageRecipients = { manager: MessageRecipient | null; owner: MessageRecipient | null };
 
 function statusText(status?: string | null) {
   if (status === "handled") return "טופל";
@@ -37,19 +41,28 @@ export default async function ParentMessagesPage() {
     garden_name: (family.gardens as any[]).find((garden) => garden.id === (child.garden_id ?? child.kindergarten_id))?.name
   }));
   const childIds = childOptions.map((child) => child.id).filter(Boolean);
+  const gardenIds = Array.from(new Set(childOptions.map((child) => child.garden_id ?? child.kindergarten_id).filter(Boolean)));
   const requestFilters = [
     `parent_profile_id.eq.${profile.id}`,
     childIds.length ? `child_id.in.(${childIds.join(",")})` : ""
   ].filter(Boolean);
-  const requestsRes = requestFilters.length
+  const [requestsRes, gardensRes, messagesRes] = await Promise.all([
+    requestFilters.length
     ? await supabase
       .from("parent_child_requests" as any)
       .select("id, child_id, request_type, content, recipient_label, recipient_role, status, response_text, created_at, handled_at")
       .or(requestFilters.join(","))
       .order("created_at", { ascending: false })
       .limit(80)
-    : { data: [], error: null };
+    : { data: [], error: null },
+    gardenIds.length ? supabase.from("gardens" as never).select("id,manager:manager_id(id,full_name,email,role,profile_image_url),owner:owner_profile_id(id,full_name,email,role,profile_image_url)").in("id", gardenIds) : Promise.resolve({ data: [], error: null }),
+    supabase.from("messages" as never).select("id,subject,body,content,created_at,treatment_status,sender:sender_id(full_name,profile_image_url),recipient:recipient_id(full_name,profile_image_url)").or(`sender_id.eq.${profile.id},recipient_id.eq.${profile.id}`).order("created_at", { ascending: false }).limit(80)
+  ]);
   if (requestsRes.error) console.error("[parent-messages] requests query failed", { profile_id: profile.id, error: requestsRes.error.message });
+  const recipients = ((gardensRes.data ?? []) as GardenMessageRecipients[])
+    .flatMap((garden) => [garden.manager, garden.owner])
+    .filter((value): value is MessageRecipient => Boolean(value))
+    .filter((value, index, values) => values.findIndex((item) => item.id === value.id) === index);
 
   return (
     <DashboardShell role="parent" title="פנייה לגן" appHome>
@@ -59,6 +72,9 @@ export default async function ParentMessagesPage() {
       <section className="parent-message-layout">
         <ParentSection title="פנייה חדשה" subtitle="כותבים קצר, בוחרים נושא, ורואים מתי הפנייה נקראה וטופלה." action={<span className="pill good"><MessageCircleHeart size={15} /> ערוץ מאובטח</span>}>
           <ParentChildRequestForm children={childOptions} />
+        </ParentSection>
+        <ParentSection title="שיחה עם הגן" subtitle="שיחות רגילות נפרדות מפניות רשמיות ותלונות, ותמיד קשורות לילד מורשה.">
+          <InternalMessagingCenter recipients={recipients} linkedChildren={childOptions} messages={messagesRes.data ?? []} />
         </ParentSection>
         <ParentSection title="השיחות שלי" subtitle="תשובות מהגן וסטטוס טיפול במקום אחד." className="parent-chat-card">
           {(requestsRes.data ?? []).length === 0 ? (
