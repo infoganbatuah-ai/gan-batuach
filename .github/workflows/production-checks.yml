@@ -44,6 +44,7 @@ jobs:
           npm run qa:integration-workflow
           npm run qa:integration-ledger
           npm run qa:development-drift-contract
+          npm run qa:development-baseline
 
   build:
     name: Gate 2 — Production build

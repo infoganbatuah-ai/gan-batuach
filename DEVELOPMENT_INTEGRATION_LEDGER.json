@@ -1,12 +1,12 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-09-19T14:05:52.593Z",
+  "updatedAt": "2026-09-19T16:39:25.081Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
   "baselineMain": "8113d0607e4282dc8778540aa58c1502367f4221",
   "ownerReleaseAuthorization": null,
-  "transitionStatus": "BLOCKED_CANONICAL_DEVELOPMENT_DATABASE",
+  "transitionStatus": "DEVELOPMENT_BASELINE_VERIFIED_FULL_STACK_CLOSURE_PENDING",
   "openPRs": [
     {
       "number": 57,
@@ -3590,7 +3590,10 @@
       "activeUncommittedWork": {
         "state": "PUSHED_REMOTE",
         "owner": "Management owner; active task 01a07933-ed3d-7ad0-9a45-2f9b0b21460a",
-        "files": ["scripts/qa/check-management-messaging-threads.mjs", "supabase/migrations/20260913211000_management_messaging_qa_hardening.sql"],
+        "files": [
+          "scripts/qa/check-management-messaging-threads.mjs",
+          "supabase/migrations/20260913211000_management_messaging_qa_hardening.sql"
+        ],
         "observedAt": "2026-09-19T15:44:00Z",
         "remotePreserved": true,
         "resolvedByCommit": "23673011936f53fb52dd51a12aa95505df7cd740",
@@ -8306,7 +8309,9 @@
       "validation": {
         "status": "PROVIDER_CUSTODY_QA_PASS_QUALIFICATION_INCOMPLETE",
         "ownerReportedChecks": "Node syntax, YAML parse, 14 signer cases, trust rotation/revocation/root-pin regressions PASS; limited changed-file secret heuristic clean",
-        "evidence": ["https://github.com/infoganbatuah-ai/gan-batuach/actions/runs/35452386031"],
+        "evidence": [
+          "https://github.com/infoganbatuah-ai/gan-batuach/actions/runs/35452386031"
+        ],
         "scope": "Both HOME_QA_SIGNING and ROOT_TRUST_SIGNING jobs verified success at 2026-09-19T15:44:00Z on source 921a9c6f. PUSH38 delivery, installed trust and full qualification remain incomplete; no main/runtime/migration/release activation"
       },
       "integration": {
@@ -8376,6 +8381,43 @@
         "reason": "11 byte-identical R2 draft source/config/SQL files copied from damaged temporary worktree, syntax/diff/secret heuristic checked and remotely preserved. NOT feature-validated or approved for integration. Private report copies verified separately on Kingston; source worktree untouched.",
         "observedAt": "2026-09-19T15:27:03.103Z"
       }
+    },
+    {
+      "id": "codex/development-database-baseline-20260919",
+      "project": "Shared development infrastructure",
+      "title": "Canonical isolated development baseline and full-stack closure",
+      "owner": "Current database-baseline task",
+      "sourceBranch": "codex/development-database-baseline-20260919",
+      "sourceCommits": [
+        "52e9534115042aa36e9d949b30b417f4f7e710fe"
+      ],
+      "state": "PRESERVED_PENDING_INTEGRATION",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/development-database-baseline-20260919"
+        ]
+      },
+      "validation": "Baseline schema/ACL verification PASS; rollback-only fixture/RLS suite PASS; Auth/REST/Storage end-to-end and full cumulative CI pending",
+      "integration": {
+        "status": "PENDING",
+        "reason": "Full-stack services startup and final branch QA pending",
+        "mergeCommit": null
+      },
+      "dependencies": {
+        "units": [],
+        "status": "Requires integration c0cf2de7 baseline"
+      },
+      "migrations": [
+        "supabase/migrations/20260919170000_classroom_scope_trigger_record_fields.sql"
+      ],
+      "migrationOrder": [
+        "20260919170000"
+      ],
+      "localVerification": "SCHEMA_AND_SQL_ROLE_QA_PASS_FULL_STACK_PENDING",
+      "releaseEligibility": "NOT_READY",
+      "productionDeployment": "NOT_DEPLOYED_NO_AUTHORIZATION",
+      "nextAction": "Complete isolated Auth/REST/Storage health, preserve baseline branch, CI, integration-only merge, apply reviewed new migration and verify cumulative local Product"
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",

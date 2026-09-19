@@ -7,6 +7,10 @@ import {compareMigrationState} from './migration-drift.mjs';
 const exec=(command,args)=>execFileSync(command,args,{encoding:'utf8',stdio:'pipe',timeout:15000,maxBuffer:16*1024*1024});
 const git=(...args)=>exec('git',args).trim();
 const config=JSON.parse(readFileSync('config/development-database.json','utf8'));
+if(config.baselineId){
+  try{execFileSync(process.execPath,['scripts/development/check-baseline-drift.mjs'],{stdio:'inherit'});process.exit(0);}
+  catch{process.exit(1);}
+}
 const ledger=JSON.parse(readFileSync('DEVELOPMENT_MIGRATION_LEDGER.json','utf8'));
 const files=git('ls-tree','-r','HEAD','--','supabase/migrations/').split('\n').filter(Boolean).map(line=>{
   const [meta,file]=line.split('\t'),match=file.match(/\/(\d{14})_(.+)\.sql$/);

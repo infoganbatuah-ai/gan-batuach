@@ -11,6 +11,9 @@
   "scripts": {
     "dev": "next dev",
     "dev:integration": "node scripts/development/start-integration.mjs",
+    "dev:database:start": "node scripts/development/start-local-stack.mjs",
+    "qa:development-baseline": "node --test scripts/qa/check-development-baseline.mjs",
+    "qa:development-baseline-drift": "node scripts/development/check-baseline-drift.mjs",
     "qa:integration-workflow": "node --test scripts/qa/check-integration-workflow.mjs",
     "qa:integration-ledger": "node scripts/development/check-ledger.mjs",
     "qa:development-drift-contract": "node --test scripts/qa/check-development-migration-drift.mjs",
