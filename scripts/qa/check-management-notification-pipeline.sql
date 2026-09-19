@@ -1,3 +1,20 @@
+-- Resolve the canonical synthetic thread instead of relying on a disposable QA UUID.
+select t.id as qa_thread_id from public.communication_threads t
+where t.garden_id='00000000-0000-4000-8000-000000000601'
+  and t.child_id='00000000-0000-4000-8000-000000000901'
+  and exists (select 1 from public.communication_thread_participants p
+              where p.thread_id=t.id and p.profile_id='00000000-0000-4000-8000-000000000101')
+order by t.created_at limit 1 \gset
+
+-- Legacy notification compatibility now requires a GB-M29-authorized source
+-- message. This fixture is rolled back with the surrounding QA transaction.
+insert into public.messages(id,garden_id,sender_id,recipient_id,thread_id,subject,body)
+values ('7997ac32-c18b-4bef-9bf6-7142cd49f3a2',
+        '00000000-0000-4000-8000-000000000601',
+        '00000000-0000-4000-8000-000000000201',
+        '00000000-0000-4000-8000-000000000101',
+        :'qa_thread_id','QA subject','QA body');
+
 insert into public.communication_preferences(profile_id,receive_sms,notification_category_channels)
 values ('00000000-0000-4000-8000-000000000101',true,'{"message":["sms","push"]}'::jsonb)
 on conflict(profile_id) do update set receive_sms=true,notification_category_channels='{"message":["sms","push"]}'::jsonb;
@@ -7,19 +24,19 @@ on conflict(profile_id,category) do update set enabled=false;
 
 insert into public.notifications(garden_id,recipient_id,title,body,entity_type,entity_id,metadata)
 values ('00000000-0000-4000-8000-000000000601','00000000-0000-4000-8000-000000000101',
-        'SECRET SUBJECT','SECRET MESSAGE BODY','communication_thread','c799367d-f860-44ff-89a2-fcdf2cbf0656',
+        'SECRET SUBJECT','SECRET MESSAGE BODY','communication_thread',:'qa_thread_id',
         '{"message_id":"a1111111-1111-4111-8111-111111111111"}');
 insert into public.notifications(garden_id,recipient_id,title,body,entity_type,entity_id,metadata)
 values ('00000000-0000-4000-8000-000000000601','00000000-0000-4000-8000-000000000101',
-        'SECRET SUBJECT','SECRET MESSAGE BODY','communication_thread','c799367d-f860-44ff-89a2-fcdf2cbf0656',
+        'SECRET SUBJECT','SECRET MESSAGE BODY','communication_thread',:'qa_thread_id',
         '{"message_id":"a1111111-1111-4111-8111-111111111111"}');
 insert into public.notifications(garden_id,recipient_id,title,body,entity_type,entity_id,metadata)
 values ('00000000-0000-4000-8000-000000000601','00000000-0000-4000-8000-000000000102',
-        'SECRET SUBJECT','SECRET MESSAGE BODY','communication_thread','c799367d-f860-44ff-89a2-fcdf2cbf0656',
+        'SECRET SUBJECT','SECRET MESSAGE BODY','communication_thread',:'qa_thread_id',
         '{"message_id":"a1111111-1111-4111-8111-111111111111"}');
 insert into public.notifications(garden_id,recipient_id,title,body,entity_type,entity_id,metadata)
 select '00000000-0000-4000-8000-000000000601', id, 'SECRET SUBJECT','SECRET MESSAGE BODY',
-  'communication_thread','c799367d-f860-44ff-89a2-fcdf2cbf0656',
+  'communication_thread',:'qa_thread_id',
   '{"message_id":"a1111111-1111-4111-8111-111111111111"}'::jsonb
 from public.profiles where id in ('00000000-0000-4000-8000-000000000305',
   '00000000-0000-4000-8000-000000000401','00000000-0000-4000-8000-000000000501');
@@ -43,7 +60,7 @@ set quiet_hours_start=((now() at time zone 'Asia/Jerusalem')::time - interval '1
 where profile_id='00000000-0000-4000-8000-000000000101';
 insert into public.notifications(garden_id,recipient_id,title,body,entity_type,entity_id,metadata)
 values ('00000000-0000-4000-8000-000000000601','00000000-0000-4000-8000-000000000101',
-  'SECRET SUBJECT','SECRET MESSAGE BODY','communication_thread','c799367d-f860-44ff-89a2-fcdf2cbf0656',
+  'SECRET SUBJECT','SECRET MESSAGE BODY','communication_thread',:'qa_thread_id',
   '{"message_id":"a2222222-2222-4222-8222-222222222222"}');
 do $$ begin
   if not exists (select 1 from public.communication_logs l
@@ -80,7 +97,7 @@ do $$ begin
 end $$;
 select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000201',true);
 insert into public.notifications(garden_id,recipient_id,title,body,entity_type,entity_id)
-values ('00000000-0000-4000-8000-000000000601','00000000-0000-4000-8000-000000000303',
+values ('00000000-0000-4000-8000-000000000601','00000000-0000-4000-8000-000000000101',
   'private legacy subject','private legacy body','message','7997ac32-c18b-4bef-9bf6-7142cd49f3a2');
 do $$ begin
   if (select count(*) from public.notifications where entity_id='7997ac32-c18b-4bef-9bf6-7142cd49f3a2') <> 0 then

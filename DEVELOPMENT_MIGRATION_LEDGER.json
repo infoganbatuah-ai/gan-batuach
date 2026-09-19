@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "observedAt": "2026-09-19T19:48:05Z",
+  "observedAt": "2026-09-19T20:27:31.718Z",
   "productionWriteAuthorized": false,
   "remoteHistoryStatus": "UNVERIFIED_READ_ONLY_RECONCILIATION_REQUIRED",
   "localDatabaseStatus": "BASELINE_AND_INTEGRATED_MIGRATIONS_APPLIED",
@@ -19,7 +19,10 @@
       "requiredPredecessor": "20260913020000_edge_private_release_delivery.sql",
       "dependencyStatus": "BLOCKED_ON_UNINTEGRATED_PUSH38_PRIVATE_DELIVERY_AUDIT_SCHEMA_AND_AUTHORIZATION",
       "developmentApproval": "NOT_APPROVED_PENDING_INTEGRATION_AND_BACKUP_REVIEW",
-      "developmentDependsOn": ["20260909010000", "20260913020000"],
+      "developmentDependsOn": [
+        "20260909010000",
+        "20260913020000"
+      ],
       "developmentApplied": "NO",
       "developmentAppliedAt": null,
       "developmentEvidence": null,
@@ -7084,7 +7087,7 @@
       "sourceCommit": "5c0f344cd59bd75294824eb9f62685bca7b19e11",
       "sourceHead": "5c0f344cd59bd75294824eb9f62685bca7b19e11",
       "remoteBranch": "origin/codex/gb-m30-notification-pipeline",
-      "integrationCommit": "4217b3c3208cfa18094718f59fe56579e86647f0",
+      "integrationCommit": "04323b209a8c2694843d78e52e8906ad3540403c",
       "inGit": true,
       "inIntegration": true,
       "inclusion": "INTEGRATED_DEVELOPMENT",
@@ -7092,19 +7095,23 @@
       "requiredPredecessor": "20260919170000_classroom_scope_trigger_record_fields.sql",
       "dependencyStatus": "GB_M29_DEVELOPMENT_APPLIED",
       "developmentApproval": "VALIDATED_FOR_ISOLATED_DEVELOPMENT",
-      "developmentDependsOn": ["20260913212000"],
-      "developmentApplied": "NO",
-      "developmentAppliedAt": null,
-      "developmentEvidence": null,
+      "developmentDependsOn": [
+        "20260913212000"
+      ],
+      "developmentApplied": "YES",
+      "developmentAppliedAt": "2026-09-19T20:15:38.666705+00:00",
+      "developmentEvidence": "development/database/development-application-receipts.json",
       "productionApplied": "UNVERIFIED",
       "productionEvidence": null,
       "recovery": "Additive columns/indexes/triggers with narrow RLS and read RPC; snapshot current policies/grants and verify isolated backup/recovery before DEVELOPMENT application. No Production application authorized.",
       "developmentApprovalEvidence": "PR #66 exact head e96b62a passed 9/9; integration merge 4217b3c; canonical migration audit PASS. Guarded local DEVELOPMENT baseline development-c0cf2de7-20260919-v1 and GB-M29 predecessor verified. Synthetic pre-migration pg_dump archive at /private/tmp/gb-m30-dev-pre-migration.dump, SHA-256 4fd65a7aade384544bd4220c7dc17dd74facfc9dfbcca8c0f3578d34205030ec; pg_restore archive listing verified. No Production access.",
-      "developmentStatusReason": "Reviewed additive migration approved only for the guarded, isolated DEVELOPMENT database. Production state unchanged."
+      "developmentStatusReason": "Original post-baseline SQL applied after remote integration; Production status unchanged",
+      "developmentHistoryDigest": "0950704c85102f8842337feee5d509586957c4c17907ef444c5c0b3ee5f6351a",
+      "developmentSchemaFingerprint": "48df6f0c972f23aa66c47af3783bbede87c3ceb5692501f0e8927e9dae1aaa60"
     }
   ],
-  "developmentExpected": 231,
-  "developmentAppliedVerified": 231,
+  "developmentExpected": 232,
+  "developmentAppliedVerified": 232,
   "blockers": [],
   "localObservations": [
     {

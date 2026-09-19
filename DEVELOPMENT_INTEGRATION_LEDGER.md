@@ -22,18 +22,19 @@ the approved R2 data plane. No development migration has been applied for
 PUSH 38S. All 124 source files remain on the remote feature branch; 32 are
 evidence-only and 92 remain pending file-level integration disposition.
 
-GB-M30 handoff (2026-09-19): scoped notification/privacy implementation
-`5c0f344cd59bd75294824eb9f62685bca7b19e11` is preserved on
-`codex/gb-m30-notification-pipeline` with PR #66 targeting development.
-Synthetic rollback-only schema/RLS QA and branch gates passed; the ledger
-registration changes PR head, so exact final-head checks and cumulative
-integration review remain required. Migration
-`20260919180000_management_notification_pipeline.sql` was not applied to the
-canonical DEVELOPMENT database or Production. The integration owner should
-merge only after final checks, review recovery/cost, apply the ordered migration
-to isolated DEVELOPMENT, run cumulative Product QA and record its merge SHA.
-Do not overwrite separately owned changes in the canonical integration worktree.
-External SMS/email/push/WhatsApp activation remains GB-M31.
+GB-M30 integration closure (2026-09-19): source
+`5c0f344cd59bd75294824eb9f62685bca7b19e11` and validated PR #66 head
+`e96b62a6542662840df74a38523ad6d03bb85c2c` are preserved by the
+ancestry merge `4217b3c3208cfa18094718f59fe56579e86647f0` into
+`integration/development`. Exact-head checks passed 9/9. The ordered
+`20260919180000_management_notification_pipeline.sql` migration was applied
+only to canonical isolated DEVELOPMENT, with 232/232 migration drift PASS.
+Cumulative domain/security/Management/typecheck/lint/build/preflight and
+synthetic RLS, 51-recipient broadcast and separate-connection concurrency QA
+passed. The occupied PUSH 38S checkout was not modified by this task.
+Production/main remain unchanged; live role/provider QA and an explicit owner
+release are still pending. External SMS/email/push/WhatsApp activation remains
+GB-M31.
 
 PUSH 38Q/R handoff (2026-09-19): `codex/push-38q-r2-auth` at
 `994ab8b07299e1e37cbd91c3c7cb5488a53a0001` is remotely preserved and

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-09-19T19:50:59Z",
+  "updatedAt": "2026-09-19T20:34:21Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -10,14 +10,14 @@
   "openPRs": [
     {
       "number": 66,
-      "classification": "DEVELOPMENT_INTEGRATION_CANDIDATE",
-      "head": null,
+      "classification": "MERGED_DEVELOPMENT",
+      "head": "e96b62a6542662840df74a38523ad6d03bb85c2c",
       "validatedSourceCommit": "5c0f344cd59bd75294824eb9f62685bca7b19e11",
       "base": "integration/development",
-      "disposition": "PENDING_EXACT_FINAL_HEAD_CI_AND_INTEGRATION_OWNER",
-      "reason": "The exact final PR head is verified from GitHub after ledger commits; GB-M30 scoped synthetic RLS and branch checks pass, cumulative review remains required",
+      "disposition": "ALREADY_INTEGRATED",
+      "reason": "Exact-head 9/9 checks passed; ancestry-preserving merge 4217b3c3208cfa18094718f59fe56579e86647f0; ordered isolated DEVELOPMENT migration and cumulative QA passed",
       "automaticMerge": false,
-      "state": "OPEN"
+      "state": "MERGED"
     },
     {
       "number": 57,
@@ -8618,8 +8618,8 @@
       "title": "GB-M30 canonical notifications, fan-out and preferences",
       "owner": "GB-M30 feature owner; development integration coordinator for merge",
       "sourceBranch": "codex/gb-m30-notification-pipeline",
-      "sourceCommits": ["5c0f344cd59bd75294824eb9f62685bca7b19e11"],
-      "state": "PUSHED_REMOTE",
+      "sourceCommits": ["5c0f344cd59bd75294824eb9f62685bca7b19e11", "e96b62a6542662840df74a38523ad6d03bb85c2c"],
+      "state": "LOCAL_VERIFIED",
       "preservation": {
         "remoteVerified": true,
         "remoteRefs": ["origin/codex/gb-m30-notification-pipeline"],
@@ -8627,16 +8627,16 @@
         "observedAt": "2026-09-19T19:48:05Z"
       },
       "validation": {
-        "status": "PASS_SCOPED_BRANCH_FINAL_PR_HEAD_PENDING",
+        "status": "PASS_INTEGRATED_DEVELOPMENT",
         "sourceCommit": "5c0f344cd59bd75294824eb9f62685bca7b19e11",
-        "evidence": ["GAN_BATUACH_MANAGEMENT_GB_M30_NOTIFICATIONS_FANOUT_PREFERENCES_REPORT.md", "scripts/qa/check-management-notification-pipeline.sql", "https://github.com/infoganbatuah-ai/gan-batuach/pull/66"],
-        "limits": "Synthetic rollback-only upgrade QA; cumulative integration, separate-connection fan-out and live role browser QA not claimed"
+        "evidence": ["GAN_BATUACH_MANAGEMENT_GB_M30_NOTIFICATIONS_FANOUT_PREFERENCES_REPORT.md", "development/database/development-application-receipts.json", "scripts/qa/check-management-notification-pipeline.sql", "scripts/qa/check-management-notification-broadcast.sql", "scripts/qa/check-management-notification-role-matrix.sql", "scripts/qa/run-management-notification-concurrency.mjs", "https://github.com/infoganbatuah-ai/gan-batuach/pull/66"],
+        "limits": "Synthetic isolated DEVELOPMENT proof; live role browser/provider journeys, Production migration and deployment remain unverified"
       },
       "integration": {
-        "status": "PENDING_INTEGRATION_OWNER_REVIEW",
-        "commit": null,
+        "status": "INTEGRATED_DEVELOPMENT",
+        "commit": "4217b3c3208cfa18094718f59fe56579e86647f0",
         "pullRequest": 66,
-        "reason": "Do not overwrite unrelated owned changes in canonical integration worktree; exact-head CI and cumulative QA pending"
+        "reason": "Merged from separate clean worktree; canonical PUSH 38S checkout untouched"
       },
       "dependencies": {
         "status": "GB_M29_INTEGRATED_DEVELOPMENT",
@@ -8644,11 +8644,11 @@
       },
       "migrations": ["20260919180000_management_notification_pipeline.sql"],
       "migrationOrder": ["20260919180000"],
-      "conflictsResolution": "Source branch merged origin/integration/development at 3acfd366 preserving ancestry; no code conflicts",
-      "localVerification": "PASS_SCOPED_SYNTHETIC_NO_CUMULATIVE_PRODUCT_QA",
-      "releaseEligibility": "NOT_READY_PENDING_INTEGRATION_CUMULATIVE_GATES_AND_OWNER_RELEASE",
+      "conflictsResolution": "GB-M30 merge preserved both feature and existing PUSH 38S shared-ledger records; no Digital Observer core file changed",
+      "localVerification": "PASS_CUMULATIVE_PRODUCT_AND_ISOLATED_DEVELOPMENT_RLS_FANOUT_CONCURRENCY",
+      "releaseEligibility": "NOT_READY_PENDING_EXPLICIT_OWNER_RELEASE_AND_CUMULATIVE_RELEASE_GATES",
       "productionDeployment": {"status": "NOT_DEPLOYED"},
-      "nextAction": "Wait for final PR #66 checks; integration owner reviews and merges into development, applies reviewed migration only to isolated DEVELOPMENT, runs cumulative Product QA and records integration commit. No Production release or live provider activation."
+      "nextAction": "Retain live Parent/Staff/Manager browser and external-provider QA debt. Production release requires separate explicit owner authorization and cumulative release gates; do not infer it from GB-M30 Development PASS."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",

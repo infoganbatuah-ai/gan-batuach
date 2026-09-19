@@ -98,7 +98,7 @@ The disposable GB-M29 Supabase QA database contains synthetic Parent A/B, Manage
 
 ## Validation
 
-Focused GB-M24/25/26/27/29 tests (29/29), operational-role/Parent contract and multi-Garden Staff tests (31/31), domain gate (29/29), security gate (7/7), migration audit and release-contract preflight passed. Typecheck, lint baseline and optimized Next.js production build passed on the isolated feature branch. Exact-head PR checks must be recorded after they complete. The integration worktree has unrelated, owned, uncommitted development ledger and generated-file changes; it must not be overwritten or staged by this feature task.
+Focused GB-M24/25/26/27/29 tests (29/29), operational-role/Parent contract and multi-Garden Staff tests (31/31), domain gate (29/29), security gate (7/7), migration audit and release-contract preflight passed on the isolated feature branch. Typecheck, lint baseline and optimized Next.js production build passed there. The later exact-head and cumulative results are recorded under Integration Closure below. The occupied integration worktree's unrelated owned changes were not staged or overwritten.
 
 ## Live QA
 
@@ -110,7 +110,7 @@ GB-M21–M28 controlled browser/provider and separate-connection gates remain in
 
 ## Remaining Debt
 
-Canonical server-only recipient resolution for all legacy domain producers; source-event IDs for all repeatable transitions; full per-role notification projection and archival API; preference-aware broadcast load test; true separate-connection fan-out race; historical provider logs and push/admin mock route retirement; quiet-hour delivery scheduling; verified provider capability; cumulative integration tests and cost/recovery review. These gate final integration/release readiness as applicable.
+Canonical server-only recipient resolution for all legacy domain producers; source-event IDs for all repeatable transitions; full per-role notification projection and archival API; provider-scale preference-aware broadcast load test; historical provider logs and push/admin mock route retirement; quiet-hour delivery scheduling; verified provider capability; live-role QA and owner-controlled Production cost/recovery review. The isolated separate-connection race, 51-recipient synthetic fan-out and cumulative integration tests were completed as recorded below.
 
 ## Inputs For GB-M31
 
@@ -118,4 +118,52 @@ Consume the existing intent state and notification ID; verify destination, opt-i
 
 ## Development Status
 
-This report describes the isolated feature branch only. No migration applied to Production, no Production deployment, no live provider configured, and no customer notification sent. `DIGITAL OBSERVER CORE DIFF: 0`.
+At the feature stage, this report described the isolated branch. Integration Closure below supersedes that stage. No migration applied to Production, no Production deployment, no live provider configured, and no customer notification sent. `DIGITAL OBSERVER CORE DIFF: 0`.
+
+## Integration Closure
+
+Superseding the feature-only status above: PR #66's exact `e96b62a6542662840df74a38523ad6d03bb85c2c` head had 9/9 completed successful checks. It merged into `integration/development` at `4217b3c3208cfa18094718f59fe56579e86647f0` on 2026-09-19. The original feature commit remains reachable. The merge changed only GB-M30 Management paths and shared ledgers; `DIGITAL OBSERVER CORE DIFF: 0`. Production and `main` were not changed.
+
+## Clean Integration Worktree
+
+Integration occurred in `/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/gb-m30-integration-clean`, created clean from remote integration head `2fe7bf3d452b56cc6ae007f26183bd50553fabb5`. Only shared ledger text conflicted; both GB-M30 and pre-existing PUSH 38S records were retained. The guarded migration runner was minimally tightened to permit any **clean checkout at the exact remotely preserved integration head**, avoiding the occupied canonical checkout. It still refuses an uncommitted or stale snapshot.
+
+## PR Merge
+
+GitHub reports PR #66 `merged=true`, `merged_at=2026-09-19T20:07:06Z`, merge commit `4217b3c3208cfa18094718f59fe56579e86647f0`, base `integration/development`, and original head `e96b62a6542662840df74a38523ad6d03bb85c2c`. The remote integration branch includes that head by ancestry. PR review list was empty and no unresolved review comments were reported before merge.
+
+## Development Migration
+
+The guarded local environment is `DEVELOPMENT / INTEGRATION`, project `gan-batuach-integration`, local API `127.0.0.1:55421`, and local PostgreSQL `55422`. Its verified baseline is `development-c0cf2de7-20260919-v1`. Four earlier post-baseline migrations, including all GB-M29 messaging/attachment migrations, were present before GB-M30. A synthetic-only pre-migration `pg_dump` archive was made outside Git at `/private/tmp/gb-m30-dev-pre-migration.dump` (SHA-256 `4fd65a7aade384544bd4220c7dc17dd74facfc9dfbcca8c0f3578d34205030ec`); `pg_restore --list` read it successfully. Full restore of that archive was not separately exercised in this task; the canonical baseline rebuild path remains the recovery route.
+
+The original `20260919180000_management_notification_pipeline.sql` was applied once through the guarded runner at integration commit `04323b209a8c2694843d78e52e8906ad3540403c`. The receipt records schema fingerprint `48df6f0c972f23aa66c47af3783bbede87c3ceb5692501f0e8927e9dae1aaa60`. Canonical drift verification passed: 227 baseline-included plus 5 ordered post-baseline migrations = 232/232 expected; no missing migration. This says nothing about Production application.
+
+The applied schema has RLS enabled on notifications, preferences and communication logs; two Management notification indexes, all four new preference columns, all three delivery-intent columns and recipient-only policy are present. `anon` cannot execute the read-state RPC or update/delete notifications. The private GB-M29 messaging-attachment bucket remains `public=false`.
+
+## Cumulative Product QA
+
+On the integrated clean snapshot: full Management source/contract suite 227/227 PASS, focused Management messaging/operational-role/multi-Garden Staff/task/complaint tests 51/51 PASS, Parent/Manager contract 20/20 PASS, domain gate 29/29 PASS, security gate 7/7 PASS, integration-workflow 5/5 PASS, typecheck PASS, lint baseline with zero regressions PASS, migration audit PASS, release-contract preflight PASS, integration-ledger validation PASS, and optimized production build PASS. The first local build attempt was blocked by sandbox-only Turbopack port binding; the rerun with local process access completed successfully. Canonical Development migration drift passed 232/232.
+
+## GB-M29 Regression
+
+The canonical message thread was resolved from synthetic Development participants. The post-migration transactional QA passed one message/recipient dedupe, private-body sanitization, shadow-event suppression, revoked Staff and Inspector/Admin exclusion, recipient read-state and preference RLS. The updated QA fixture uses a GB-M29-authorized source Message rather than a stale disposable UUID. A rollback-only classroom broadcast created 50 synthetic Parents plus the existing Parent A: 51 audience recipients, 51 distinct notifications, no Garden B Parent, no private broadcast body, and replay returned the same result without duplicate rows. The prior canonical Development private-attachment HTTP retrieval receipt remains `development/database/gb-m29-canonical-e2e-receipt.json`; GB-M30 did not change attachment code or storage policy. This task rechecked the bucket's private flag but did not repeat live HTTP attachment retrieval.
+
+## RLS / Preferences / Quiet Hours
+
+Direct authenticated synthetic database probes passed own-only Parent/Staff/Manager notification visibility, Staff A+B's two correctly labelled Garden contexts, Inspector/Admin lack of blanket Garden notification visibility, Candidate/revoked Staff task suppression, own-only read mutation and preference access. A configured but unverified SMS contact remained ineligible; a disabled push category suppressed its intent. A non-urgent push during configured quiet hours produced `suppressed_quiet_hours` with a future retry time. No client urgency override was accepted by the tested path.
+
+## Fan-Out / Concurrency
+
+The 51-recipient classroom broadcast above was one server-side audience snapshot and one bulk notification insert, with no external provider call. A separate-connection test against the isolated Development database raced duplicate message notifications and then two distinct messages. It produced exactly three canonical notifications and three push delivery intentions, one per unique source event, with private content sanitized. The test removed its synthetic committed rows afterward. The broadcast and other role probes ran inside rollback-only transactions.
+
+## PUSH 38S Isolation
+
+The occupied `worktrees/development-integration` checkout was never edited, staged, stashed, reset or cleaned by GB-M30. Its observed dirty file `next-env.d.ts` remained dirty at the end. Its local HEAD advanced independently while this task ran; that work belongs to the separate owner. No PUSH 38S source file appears in the GB-M30 merge diff relative to the integration parent. Previously committed PUSH 38S inventory text in the shared ledgers was preserved verbatim in substance.
+
+## Production Status
+
+`main` and Production remain unchanged. No Production migration, deployment, external provider activation or customer notification occurred. SMS, email, push and WhatsApp remain `not_configured`/unavailable in this pipeline. GB-M31 has not started.
+
+## Inputs For GB-M31
+
+The integrated Development intent/readiness contract is available for provider work after a separate task starts. Preserve truthful provider states, verified destinations, quiet-hour scheduling, recipient idempotency and private-content minimization. Continue the owner-controlled cumulative release process; integration success is not Production authorization.
