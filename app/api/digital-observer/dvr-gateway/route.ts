@@ -4,6 +4,8 @@ import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/d
 import { buildDvrGatewayStatus, createDvrPlaybackSession, type DvrGatewayEventRow } from "@/lib/domain/digital-observer/dvr-gateway";
 import { digitalObserverCameraIsConnected } from "@/lib/domain/digital-observer/camera-live-status";
 import { issueGatewayPlaybackGrant } from "@/lib/domain/gateway-device-enrollment";
+import { edgePlaybackOrigin, localPlaybackAllowed } from "@/lib/domain/digital-observer/edge-playback-origin";
+import { createAdminClient } from "@/lib/supabase/admin";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -71,6 +73,19 @@ export async function POST(request: Request) {
       const gatewayId = String(source.metadata?.gateway_id || "").trim();
       const secret = process.env.VIDEO_GATEWAY_CLOUD_DISCOVERY_SECRET || "";
       if (!gatewayId || !secret) return fail("זהות ה-Gateway המקומי אינה זמינה.", 503);
+      const enrollment = await createAdminClient().from("video_gateway_device_enrollments")
+        .select("id,observer_site_id,gateway_id,status,lifecycle_state,deployment_profile")
+        .eq("gateway_id", gatewayId).eq("observer_site_id", payload.observer_site_id)
+        .eq("status", "delivered").maybeSingle();
+      if (enrollment.error || !enrollment.data || enrollment.data.lifecycle_state !== "ACTIVE")
+        return fail("שיוך ה־Gateway לאתר אינו פעיל.", 409);
+      const expectedProfile = source.metadata?.connector_device_type === "SOFTWARE_CONNECTOR"
+        ? "SOFTWARE_CONNECTOR" : "PHYSICAL_GATEWAY";
+      if (enrollment.data.deployment_profile !== expectedProfile)
+        return fail("סוג רכיב ה־Edge אינו תואם למקור.", 409);
+      const remoteOrigin = edgePlaybackOrigin(gatewayId, process.env.OBSERVER_PLAYBACK_EDGE_ORIGINS_JSON);
+      const localAllowed = localPlaybackAllowed(request.url, process.env.NODE_ENV);
+      if (!remoteOrigin && !localAllowed) return fail("גישה מרחוק ל־Edge טרם הוגדרה.", 503);
       const grant = issueGatewayPlaybackGrant({
         gateway_id: gatewayId,
         observer_site_id: payload.observer_site_id,
@@ -87,7 +102,8 @@ export async function POST(request: Request) {
         provider: "custom",
         status: "authorized",
         playback: {
-          claim_url: `http://127.0.0.1:${localPlaybackPort}/playback/claim`,
+          claim_url: remoteOrigin ? `${remoteOrigin}/playback/claim` : `http://127.0.0.1:${localPlaybackPort}/playback/claim`,
+          allowed_origin: remoteOrigin || `http://127.0.0.1:${localPlaybackPort}`,
           grant
         },
         expires_in_seconds: 45,
