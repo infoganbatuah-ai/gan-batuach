@@ -5,19 +5,22 @@ import { ParentAppFrame, ParentEmptyState, ParentHero, ParentMetricCard, ParentS
 import { requireRole } from "@/lib/auth";
 import { getParentFamilyContext } from "@/lib/domain/parent-family";
 import { createClient } from "@/lib/supabase/server";
+import { effectiveDocumentStatus } from "@/lib/management/document-policy";
 
 function docStatusLabel(status?: string | null) {
-  if (status === "approved" || status === "signed") return "מאושר";
-  if (status === "pending" || status === "review") return "ממתין לבדיקה";
+  if (status === "approved" || status === "signed" || status === "valid") return "מאושר";
+  if (status === "pending" || status === "review" || status === "pending_review") return "ממתין לבדיקה";
   if (status === "missing") return "חסר";
   if (status === "expired") return "פג תוקף";
+  if (status === "expiring_soon") return "עומד לפוג";
+  if (status === "replaced") return "הוחלף";
   if (status === "rejected") return "צריך תיקון";
   return "חדש";
 }
 
 function docTone(status?: string | null) {
-  if (status === "approved" || status === "signed") return "green" as const;
-  if (status === "missing" || status === "expired" || status === "rejected") return "orange" as const;
+  if (status === "approved" || status === "signed" || status === "valid") return "green" as const;
+  if (status === "missing" || status === "expired" || status === "expiring_soon" || status === "rejected") return "orange" as const;
   return "purple" as const;
 }
 
@@ -38,13 +41,16 @@ export default async function ParentDocumentsPage() {
     `uploaded_by.eq.${profile.id}`
   ].filter(Boolean);
   const docsRes = filters.length
-    ? await supabase.from("documents" as any).select("id, name, document_type, status, expires_at, created_at, child_id, garden_id, file_url").or(filters.join(",")).order("created_at", { ascending: false })
+    ? await supabase.from("documents" as any).select("id, name, document_type, status, expires_at, created_at, child_id, garden_id, file_url, replaced_by, deleted_at, reminder_days_before").or(filters.join(",")).order("created_at", { ascending: false })
     : { data: [], error: null };
   if (docsRes.error) console.error("[parent-documents] query failed", { profile_id: profile.id, error: docsRes.error.message });
-  const rows = (docsRes.data ?? []) as any[];
+  const rows = ((docsRes.data ?? []) as any[]).map((row) => ({ ...row,
+    status: effectiveDocumentStatus(row),
+    file_url: row.file_url === `/api/documents/${row.id}/file` ? row.file_url : null
+  }));
   const needsAction = rows.filter((row) => ["missing", "rejected", "expired"].includes(String(row.status)));
-  const signed = rows.filter((row) => ["approved", "signed"].includes(String(row.status)));
-  const newDocs = rows.filter((row) => !["missing", "rejected", "expired", "approved", "signed"].includes(String(row.status)));
+  const signed = rows.filter((row) => ["approved", "signed", "valid"].includes(String(row.status)));
+  const newDocs = rows.filter((row) => !["missing", "rejected", "expired", "expiring_soon", "approved", "signed", "valid"].includes(String(row.status)));
 
   return (
     <DashboardShell role="parent" title="מסמכים" appHome>
