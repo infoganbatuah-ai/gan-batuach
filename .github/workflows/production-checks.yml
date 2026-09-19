@@ -43,6 +43,7 @@ jobs:
         run: |
           npm run qa:integration-workflow
           npm run qa:integration-ledger
+          npm run qa:development-drift-contract
 
   build:
     name: Gate 2 — Production build

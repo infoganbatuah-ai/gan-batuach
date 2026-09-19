@@ -1,13 +1,19 @@
 import {readFileSync} from 'node:fs';
 import {execFileSync} from 'node:child_process';
+import {developmentReadinessErrors} from './migration-drift.mjs';
 const ledger=JSON.parse(readFileSync('DEVELOPMENT_INTEGRATION_LEDGER.json','utf8'));
 const errors=[],ids=new Set();
-const states=new Set(['IMPLEMENTING','VALIDATED_ON_BRANCH','PUSHED_REMOTE','INTEGRATED_DEVELOPMENT','LOCAL_VERIFIED','BLOCKED','READY_FOR_OWNER_RELEASE','RELEASED_MAIN','DEPLOYED_PRODUCTION']);
+const states=new Set(['IMPLEMENTING','IMPLEMENTATION_DONE','VALIDATED','VALIDATED_ON_BRANCH','PUSHED_REMOTE','PRESERVED_PENDING_INTEGRATION','INTEGRATED_DEVELOPMENT','DEVELOPMENT_MIGRATIONS_APPLIED','LOCAL_FULL_STACK_VERIFIED','LOCAL_VERIFIED','BLOCKED','READY_FOR_OWNER_RELEASE','RELEASED_MAIN','PRODUCTION_MIGRATIONS_APPLIED','DEPLOYED_PRODUCTION']);
+const migrationLedger=JSON.parse(readFileSync('DEVELOPMENT_MIGRATION_LEDGER.json','utf8'));
 const release=process.argv.includes('--release');
 const git=(...args)=>execFileSync('git',args,{encoding:'utf8',stdio:'pipe',env:{...process.env,GIT_OPTIONAL_LOCKS:'0'}}).trim();
 for(const unit of ledger.units){
   if(ids.has(unit.id)) errors.push(`Duplicate unit ${unit.id}`);ids.add(unit.id);
   if(!states.has(unit.state)) errors.push(`Invalid state ${unit.id}`);
+  if(unit.state==='READY_FOR_OWNER_RELEASE') {
+    if(unit.localVerification!=='PASS_FULL_PRODUCT')errors.push(`${unit.id}: full-stack local QA required`);
+    errors.push(...developmentReadinessErrors(unit.migrations,migrationLedger.migrations).map(error=>`${unit.id}: ${error}`));
+  }
   for(const field of ['project','title','owner','sourceCommits','validation','integration','dependencies','migrations','migrationOrder','localVerification','releaseEligibility','productionDeployment','nextAction']) if(!(field in unit)) errors.push(`${unit.id} missing ${field}`);
 }
 for(const unit of ledger.units) for(const dep of unit.dependencies.units) if(!ids.has(dep)) errors.push(`${unit.id}: missing dependency ${dep}`);
