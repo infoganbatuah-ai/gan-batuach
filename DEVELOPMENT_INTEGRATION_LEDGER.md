@@ -6,6 +6,8 @@ Effective 2026-09-19. Machine-readable source: `DEVELOPMENT_INTEGRATION_LEDGER.j
 
 ## Current transition
 
+Latest verification, exact source/integration SHAs, local smoke and remaining blockers: `DEVELOPMENT_WORKFLOW_TRANSITION_2026-09-19.md`. Workflow and canonical SEO are now integrated; GB-M29 stays pending isolated role/schema QA. This is not a completed full-Product migration.
+
 - Remote main baseline: `8113d0607e4282dc8778540aa58c1502367f4221`. Existing Production was observed Ready on the same commit, deployment `7N3RZmP34J4MTGsXq8JHQiq7bgiu`; this is not a new deployment.
 - Canonical development branch: `integration/development`; durable worktree `worktrees/development-integration`. Original dirty root main is preserved and must not be pulled/switched to overwrite local work.
 - Feature unit for this migration: `codex/development-workflow-20260919`. Owns workflow docs, ledgers, inventory/guard scripts, local launcher and development identity only.

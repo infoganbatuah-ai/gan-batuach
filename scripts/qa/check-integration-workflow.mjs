@@ -1,7 +1,15 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {integrationEnvironment} from '../development/integration-environment.mjs';
+import {integrationEnvironment,isGeneratedNextEnv} from '../development/integration-environment.mjs';
+
+test('only exact Next-generated development type imports are exempt from clean snapshot guard',()=>{
+  const baseline='import "./.next/types/routes.d.ts";\nimport "./.next/types/root-params.d.ts";';
+  assert.equal(isGeneratedNextEnv(baseline,baseline),true);
+  assert.equal(isGeneratedNextEnv(baseline.replaceAll('./.next/types/','./.next/dev/types/'),baseline),true);
+  assert.equal(isGeneratedNextEnv(baseline+'\nimport "./other";',baseline),false);
+  assert.equal(isGeneratedNextEnv('',baseline),false);
+});
 
 test('integration drops inherited provider secrets and live flags',()=>{
   const env=integrationEnvironment({}, {uiOnly:true,sha:'test',timestamp:'test',system:{PATH:'/usr/bin',SUPABASE_SERVICE_ROLE_KEY:'sensitive-test',PRODUCTION_ACTIVATION_APPROVED:'true',OPENAI_API_KEY:'sensitive-test'}});

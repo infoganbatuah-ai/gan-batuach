@@ -1,12 +1,12 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-09-19T13:52:42.299Z",
+  "updatedAt": "2026-09-19T14:01:10.888Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
   "baselineMain": "8113d0607e4282dc8778540aa58c1502367f4221",
   "ownerReleaseAuthorization": null,
-  "transitionStatus": "IN_PROGRESS_WITH_EXPLICIT_BLOCKERS",
+  "transitionStatus": "POLICY_ACTIVE_REMOTE_INTEGRATION_AVAILABLE_FULL_PRODUCT_BLOCKED",
   "openPRs": [
     {
       "number": 57,
@@ -594,20 +594,31 @@
       "title": "Owner-controlled development integration workflow",
       "owner": "Integration owner for disposition; original author for semantic review",
       "sourceBranch": "codex/development-workflow-20260919",
-      "sourceCommits": [],
+      "sourceCommits": [
+        "29f253b636f7edba0d853d1a9e439e13635c0293"
+      ],
       "commitsNotInMain": [],
-      "state": "IMPLEMENTING",
+      "state": "INTEGRATED_DEVELOPMENT",
       "preservation": {
-        "remoteVerified": false,
-        "remoteRefs": [],
-        "note": "Source commit SHA will be recorded by the subsequent integration ledger update."
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/development-workflow-20260919"
+        ],
+        "remoteHead": "29f253b636f7edba0d853d1a9e439e13635c0293",
+        "verification": "git ls-remote exact source SHA; integration at 8be94254 also remote verified before final ledger update"
       },
       "validation": {
-        "status": "SCOPED_TESTS_PASS_BUILD_RUNNING"
+        "status": "PASS_LOCAL_DETERMINISTIC_GATES",
+        "evidence": [
+          "DEVELOPMENT_WORKFLOW_TRANSITION_2026-09-19.md"
+        ]
       },
       "integration": {
-        "status": "PENDING_OWN_COMMIT",
-        "commit": null
+        "status": "INTEGRATED_DEVELOPMENT",
+        "commit": "5d71fdc8c3ab04a7bebf3d872c67e2ca94ccb5e7",
+        "followupCommits": [
+          "4f38fe2ba3d92f81a1f5e94f705ee56ece08492f"
+        ]
       },
       "dependencies": {
         "status": "BASELINE",
@@ -616,12 +627,12 @@
       "migrations": [],
       "migrationOrder": [],
       "conflictsResolution": "No automatic conflict resolution attempted",
-      "localVerification": "NOT_TESTED",
+      "localVerification": "PASS_UI_ONLY_BACKEND_BLOCKED",
       "releaseEligibility": "NOT_READY",
       "productionDeployment": {
         "status": "NOT_DEPLOYED"
       },
-      "nextAction": "Finish build, commit scoped workflow files, push feature, then integration; no main change."
+      "nextAction": "Use canonical integration launcher; provision an isolated database before full Product/role QA. Final ledger commit must be pushed and remote verified; no main release authorized."
     },
     {
       "id": "codex/digital-guard-engine-eeb919c",
@@ -3089,7 +3100,7 @@
         "e3822c20dfb611cf7e1ade2f22860a4b1e5c1d05",
         "450ac46d38d366b43a25c14f2c0a1075fd52c0e8"
       ],
-      "state": "PUSHED_REMOTE",
+      "state": "BLOCKED",
       "preservation": {
         "remoteVerified": true,
         "remoteRefs": [
@@ -5673,7 +5684,7 @@
       "commitsNotInMain": [
         "86a8cbb7fd88ecc61b00b94fee4640e88eeaee89"
       ],
-      "state": "PUSHED_REMOTE",
+      "state": "INTEGRATED_DEVELOPMENT",
       "preservation": {
         "remoteVerified": true,
         "remoteRefs": [
@@ -5684,28 +5695,29 @@
         "verification": "git ls-remote exact SHA after push 2026-09-19"
       },
       "validation": {
-        "status": "NOT_REVALIDATED",
-        "evidence": []
+        "status": "PASS_CUMULATIVE_LOCAL_GATES",
+        "evidence": [
+          "DEVELOPMENT_WORKFLOW_TRANSITION_2026-09-19.md"
+        ]
       },
       "integration": {
-        "status": "PENDING_REVIEW",
-        "commit": null,
-        "equivalence": null
+        "status": "INTEGRATED_DEVELOPMENT",
+        "commit": "8be94254a311920988415496b2e496d020855ab3"
       },
       "dependencies": {
-        "status": "REVIEW_REQUIRED",
+        "status": "BASELINE",
         "units": []
       },
       "migrations": [],
       "migrationOrder": [],
-      "conflictsResolution": "No automatic conflict resolution attempted",
-      "localVerification": "NOT_TESTED",
+      "conflictsResolution": "No conflicts; original source commit retained by no-fast-forward merge",
+      "localVerification": "PASS_PUBLIC_UI_ONLY",
       "releaseEligibility": "NOT_READY",
       "productionDeployment": {
         "status": "NOT_REVERIFIED_PER_UNIT",
         "deploymentId": null
       },
-      "nextAction": "Scoped metadata/public-copy hardening reviewed; no schema. Revalidate cumulative state before READY."
+      "nextAction": "Retain for future explicitly owner-approved release; no Production deployment."
     },
     {
       "id": "codex/seo-content-completion",
@@ -5918,14 +5930,14 @@
     {
       "id": "integration/development",
       "project": "Digital Observer / shared",
-      "title": "fix: verify payment webhooks before rate limiting (#56)",
+      "title": "Canonical cumulative development branch",
       "owner": "Integration owner for disposition; original author for semantic review",
       "sourceBranch": "integration/development",
       "sourceCommits": [
         "8113d0607e4282dc8778540aa58c1502367f4221"
       ],
       "commitsNotInMain": [],
-      "state": "RELEASED_MAIN",
+      "state": "INTEGRATED_DEVELOPMENT",
       "preservation": {
         "remoteVerified": true,
         "remoteRefs": [
@@ -5942,9 +5954,8 @@
         "evidence": []
       },
       "integration": {
-        "status": "BASELINE_ACCOUNTED",
-        "commit": null,
-        "equivalence": "ANCESTOR_OF_REMOTE_MAIN"
+        "status": "INTEGRATED_DEVELOPMENT",
+        "commit": "8be94254a311920988415496b2e496d020855ab3"
       },
       "dependencies": {
         "status": "BASELINE",
@@ -5954,12 +5965,12 @@
       "migrationOrder": [],
       "conflictsResolution": "No automatic conflict resolution attempted",
       "localVerification": "NOT_TESTED",
-      "releaseEligibility": "NO_NEW_RELEASE_REQUIRED",
+      "releaseEligibility": "NOT_READY",
       "productionDeployment": {
         "status": "NOT_REVERIFIED_PER_UNIT",
         "deploymentId": null
       },
-      "nextAction": "Accounted for in released main by recorded ancestry/tree/patch evidence; no new merge needed."
+      "nextAction": "Follow source-unit ledger; no independent release approval implied."
     },
     {
       "id": "main",
@@ -7218,5 +7229,13 @@
   "observationNotes": [
     "Original full inventory is a timestamped snapshot, before preservation pushes and during another task's PUSH38 worktree restoration; do not interpret temporary deleted/untracked entries as approved deletion.",
     "Current remote proof is recorded per unit. Historical inventory is preserved rather than overwritten."
-  ]
+  ],
+  "integrationVerification": {
+    "lastObservedRemoteHead": "8be94254a311920988415496b2e496d020855ab3",
+    "localProductTestedAt": "4f38fe2ba3d92f81a1f5e94f705ee56ece08492f",
+    "mode": "UI_ONLY",
+    "fullBackend": "BLOCKED_NO_ISOLATED_SUPABASE",
+    "healthStatus": 503,
+    "report": "DEVELOPMENT_WORKFLOW_TRANSITION_2026-09-19.md"
+  }
 }

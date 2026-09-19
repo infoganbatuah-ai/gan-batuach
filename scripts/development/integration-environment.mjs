@@ -1,5 +1,10 @@
 export const localKeys = new Set(['NEXT_PUBLIC_SUPABASE_URL', 'NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY', 'SUPABASE_SERVICE_ROLE_KEY']);
 
+// Next dev changes only its generated type imports; never exempt arbitrary edits.
+export function isGeneratedNextEnv(current, baseline) {
+  return current === baseline || current === baseline.replaceAll('import "./.next/types/', 'import "./.next/dev/types/');
+}
+
 export function integrationEnvironment(local, { uiOnly = false, sha, timestamp, system = {} } = {}) {
   for (const key of Object.keys(local)) if (!localKeys.has(key)) throw new Error(`Unapproved integration variable: ${key}`);
   const env = Object.fromEntries(['PATH', 'HOME', 'TMPDIR', 'LANG', 'LC_ALL'].filter(k => system[k]).map(k => [k, system[k]]));

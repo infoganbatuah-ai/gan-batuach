@@ -3,13 +3,15 @@ import { existsSync, readFileSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { parseEnv } from 'node:util';
-import { integrationEnvironment } from './integration-environment.mjs';
+import { integrationEnvironment, isGeneratedNextEnv } from './integration-environment.mjs';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const git = (...args) => execFileSync('git', args, {cwd:root,encoding:'utf8',env:{...process.env,GIT_OPTIONAL_LOCKS:'0'}}).trim();
 try {
   if (git('branch','--show-current') !== 'integration/development') throw new Error('Start the canonical integration/development worktree, not main or an isolated feature branch.');
-  if (git('status','--porcelain=v1','-uall')) throw new Error('Integration snapshot is dirty. Preserve/commit scoped work and reconcile the ledger before preview.');
+  const generatedTypes = readFileSync(resolve(root,'next-env.d.ts'),'utf8').trim();
+  if (!isGeneratedNextEnv(generatedTypes,git('show','HEAD:next-env.d.ts')) || git('diff','--cached','--','next-env.d.ts')) throw new Error('Unexpected next-env.d.ts edit; only unstaged Next-generated development type paths are allowed.');
+  if (git('status','--porcelain=v1','-uall','--','.',':(exclude)next-env.d.ts')) throw new Error('Integration snapshot is dirty. Preserve/commit scoped work and reconcile the ledger before preview.');
   for (const name of ['.env','.env.local','.env.development','.env.development.local','.env.production','.env.production.local']) {
     if (existsSync(resolve(root,name))) throw new Error(`Unexpected ${name}: never load the Production environment into integration. Use config/integration.local.env only.`);
   }
