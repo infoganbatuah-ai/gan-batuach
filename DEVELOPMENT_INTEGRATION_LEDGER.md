@@ -15,12 +15,19 @@ The domain throughput fixture correction is remotely preserved on the feature
 branch at `2175a5e9273f0f348838b6686cad514d3764aa68`; repeated horizontal
 qualification and the feature-branch domain gate (30/30) passed. This does not
 substitute for cumulative exact-commit CI after integration.
-The candidate is **not integrated**: the real-device Development enrollment
-bridge and narrowly scoped HTTPS ingress remain unqualified, while the pending
-private-delivery migration creates an unused Supabase bucket in addition to
-the approved R2 data plane. No development migration has been applied for
-PUSH 38S. All 124 source files remain on the remote feature branch; 32 are
-evidence-only and 92 remain pending file-level integration disposition.
+The initial candidate is **not integrated**: the real-device Development
+enrollment bridge and narrowly scoped HTTPS ingress remain unqualified. A
+separate scoped candidate branch at `de20a223d5e9babd5c9f2491cfcdff065a119d26`
+is remotely preserved. It fixes the duplicate migration timestamp and excludes
+the unused Supabase bucket; targeted security/OTA/migration tests pass, but
+typecheck exhausted 4 GiB and 6 GiB heaps and cumulative CI is not green.
+No development migration has been applied for PUSH 38S. All 124 original
+source files remain on the remote feature branch; 32 are evidence-only and 92
+remain pending file-level integration disposition.
+While this handoff was being prepared, remote `integration/development`
+advanced to `04323b20` with GB-M30 changes to these same ledgers. Preserve this
+PUSH 38S ledger update on a separate branch; do not push it over the newer
+integration history without semantic reconciliation.
 
 PUSH 38Q/R handoff (2026-09-19): `codex/push-38q-r2-auth` at
 `994ab8b07299e1e37cbd91c3c7cb5488a53a0001` is remotely preserved and

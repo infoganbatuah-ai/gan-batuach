@@ -24,6 +24,13 @@
     "supabase/migrations/20260909010000_edge_ota_rollout.sql",
     "app/api/video-gateway/edge-updates/route.ts"
   ],
+  "candidateBranch": "codex/push-38s-control-plane",
+  "candidateHead": "de20a223d5e9babd5c9f2491cfcdff065a119d26",
+  "additionalSigningPrerequisites": [
+    "services/video-gateway/edge-release-trust.mjs",
+    "scripts/release/remote-ed25519-signer.mjs",
+    "scripts/release/sign-edge-document-kms.mjs"
+  ],
   "edges": [
     ["HOME_QA discovery route", "PUSH18 cryptographic device session"],
     ["HOME_QA discovery route", "release/rollout tables and exact-device signed scope"],
@@ -38,15 +45,15 @@
   ],
   "migrationOrder": [
     "20260909010000_edge_ota_rollout.sql (already in integration)",
-    "20260913020000_edge_private_release_delivery.sql (pending; includes an unused Supabase bucket that needs review)",
+    "20260913020001_edge_private_release_delivery_audit.sql (candidate only; unique version, audit-only, pending Development apply)",
     "20260919190000_edge_home_qa_channel.sql (pending)"
   ],
   "securityBoundary": {
-    "developmentDatabase": "synthetic identities only; real Home private identity must not be copied",
+    "developmentDatabase": "synthetic identities only; real Home private key and Production HMAC secret must not be copied. A public-key-only QA enrollment bridge with exact owner-approved binding is required",
     "ingress": "not implemented; local application remains loopback-only",
     "liveDeviceEnrollment": "not designed/qualified; fail closed",
     "runtimeActivation": "prohibited in PUSH 38S"
   },
-  "status": "REVIEWED_NOT_YET_SAFE_TO_INTEGRATE",
-  "reason": "Control-plane slice depends on a real-device QA enrollment boundary and a scoped HTTPS ingress; the unreleased migration also creates an unnecessary Supabase storage bucket despite R2 being the approved data plane. These must be resolved before Development application or external exposure."
+  "status": "SCOPED_CANDIDATE_REMOTELY_PRESERVED_NOT_INTEGRATED",
+  "reason": "The original duplicate-version migration and unused bucket were corrected in the scoped candidate. Typecheck still fails with Node heap exhaustion at 4 GiB and 6 GiB; exact-commit cumulative CI, public-key-only real-device enrollment and path-scoped HTTPS ingress remain unqualified. No Development application or external exposure is authorized."
 }

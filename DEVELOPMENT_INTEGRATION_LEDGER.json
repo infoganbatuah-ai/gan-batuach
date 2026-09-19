@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-09-19T19:50:59Z",
+  "updatedAt": "2026-09-19T20:18:51Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -8416,6 +8416,43 @@
       "releaseEligibility": "NOT_READY",
       "productionDeployment": {"status": "NOT_DEPLOYED"},
       "nextAction": "Review the 15-file minimum control-plane slice and three migration prerequisites in the PUSH 38S inventory/graph; resolve the unused Supabase bucket in the private-delivery migration, qualify synthetic-to-real-device QA enrollment and scoped HTTPS ingress, then integrate exact source code and apply Development-only migrations. Horizontal qualification is being rerun with a documented queue-bound versus inference-bound fixture; preserve the original 2 ms failure as evidence. No live Home or Production activation."
+    },
+    {
+      "id": "codex/push-38s-control-plane",
+      "project": "Digital Observer / shared",
+      "title": "PUSH 38S scoped HOME_QA/R2 control-plane integration candidate",
+      "owner": "PUSH 38 development integration workstream",
+      "sourceBranch": "codex/push-38s-control-plane",
+      "sourceCommits": ["913fa7df49e17a7140721815f05136b5bc8f12a3", "a8c0f1cd0f2b95b0eeceefb4aa607bc524c9f515", "be8f47b70bb2c5b9dfeb602d712f903305dcdfc7", "0e8c089b671a2cf5bbe3706a8118a912c2fa9938", "96a5c15a4afbcbc24cc8c2490ecb31bfb6fc6b6d", "cf3b3e9f4d5c9e5ed940b0004df5c1f1449a385e", "de20a223d5e9babd5c9f2491cfcdff065a119d26"],
+      "state": "BLOCKED",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": ["origin/codex/push-38s-control-plane"],
+        "localHead": "de20a223d5e9babd5c9f2491cfcdff065a119d26",
+        "remoteHead": "de20a223d5e9babd5c9f2491cfcdff065a119d26",
+        "observedAt": "2026-09-19T20:16:01Z"
+      },
+      "validation": {
+        "status": "SCOPED_TESTS_PASS_TYPECHECK_OOM",
+        "checks": ["HOME_QA publication 9 cases PASS", "R2 authorization core PASS", "remote signer contract 14 cases PASS", "trust rotation PASS", "edge OTA QA PASS", "security gate 7/7 PASS", "migration health PASS after unique-version correction"],
+        "fullCi": "NOT_PASS: typecheck exhausted 4 GiB and 6 GiB heaps; build and cumulative CI not run"
+      },
+      "integration": {
+        "status": "PRESERVED_PENDING_INTEGRATION",
+        "commit": null,
+        "reason": "Not eligible for cumulative integration until exact-head typecheck/build/full CI pass and QA public-key enrollment and scoped ingress are reviewed."
+      },
+      "dependencies": {
+        "status": "MAPPED_UNQUALIFIED_LIVE_DEVICE_BRIDGE",
+        "units": ["codex/push-38q-r2-auth"]
+      },
+      "migrations": ["20260913020001_edge_private_release_delivery_audit.sql", "20260919190000_edge_home_qa_channel.sql"],
+      "migrationOrder": ["20260913020001", "20260919190000"],
+      "conflictsResolution": "Connector builder conflict resolved on isolated candidate; duplicate 20260913020000 private-delivery version superseded by audit-only 20260913020001. Original source commits preserved through cherry-pick provenance.",
+      "localVerification": "SCOPED_TESTS_ONLY_NO_CANONICAL_FULL_STACK",
+      "releaseEligibility": "NOT_READY",
+      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "nextAction": "First reconcile this ledger against concurrent integration/development head 04323b20 (Management GB-M30 touched the same ledgers). Then qualify a public-key-only Development enrollment bridge for the exact two owned Home devices and a path-scoped HTTPS ingress; resolve candidate typecheck memory/CI, merge only after exact-head validation, apply reviewed Development migrations, verify drift and restart canonical local Full Stack. Never copy Production HMAC secret or device private key."
     },
     {
       "id": "codex/preserve-push38-r2-draft-20260919",

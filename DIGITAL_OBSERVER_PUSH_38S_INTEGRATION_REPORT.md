@@ -17,10 +17,21 @@ branch. Nothing was discarded or merged wholesale.
 The dependency graph identifies the minimum 15-file *control-plane candidate*.
 It is not yet a complete live-device integration: installed OTA/trust/client
 modules remain separate, and secure real-device QA enrollment plus narrowly
-scoped HTTPS ingress have not been qualified. The private-delivery prerequisite
-migration creates a Supabase Storage bucket despite private R2 being the
-approved data plane. Review/supersede this side effect without editing any
-already-applied migration before applying the audit schema to Development.
+scoped HTTPS ingress have not been qualified. The original private-delivery
+prerequisite migration created an unnecessary Supabase Storage bucket and
+collided with a Management migration at timestamp `20260913020000`.
+
+A scoped candidate branch, `codex/push-38s-control-plane` at
+`de20a223d5e9babd5c9f2491cfcdff065a119d26`, is remotely preserved. It
+cherry-picks the relevant original source commits, retaining their provenance,
+and adds an audit-only, unique-version `20260913020001` migration. The original
+unapplied migration remains historical source, not selected for Development.
+Candidate-only tests: HOME_QA publication 9 cases PASS, R2 authorization core
+PASS, remote signer contract 14 cases PASS, trust rotation/revocation PASS,
+synthetic OTA PASS, security 7/7 PASS, migration health PASS. Two TypeScript
+attempts failed with Node heap exhaustion at 4 GiB and 6 GiB; full build and
+cumulative exact-commit CI are **not PASS**. The candidate is not merged into
+integration/development. See its own candidate report for exact boundaries.
 
 ## Domain regression
 
@@ -68,8 +79,18 @@ its initial full checkout stopped before completion. That scratch worktree was
 removed without a commit or merge; the source branch and canonical integration
 checkout remained intact. No candidate code was represented as validated.
 
-Next: finish risk review of the minimal code/schema slice, implement an
-auditable Development-only real-device enrollment bridge and path-scoped HTTPS
-ingress, integrate and apply Development migrations in order, run full
-cumulative CI and local Full Stack, then sign exact-device metadata. Do not
+During the later candidate review, remote `integration/development` advanced
+seven Management commits to `04323b20` and changed both canonical ledgers and
+the migration ledger. This creates an overlapping integration handoff. The
+PUSH 38S ledger update is preserved on its own branch, not pushed over the
+newer remote integration head. A semantic reconciliation with the Management
+changes is required before any cumulative merge or database application.
+
+Next: resolve candidate TypeScript/CI memory or obtain exact-head CI proof,
+implement an auditable public-key-only Development enrollment bridge and
+path-scoped HTTPS ingress, then integrate and apply Development migrations in
+order, verify drift and local Full Stack, and only then sign exact-device
+metadata. The current Product issues HMAC sessions after Ed25519 proof; the
+Development launcher strips the Production HMAC secret, so copying that secret
+or accepting a caller-supplied device ID is not an acceptable shortcut. Do not
 activate Home runtimes, Production or main.
