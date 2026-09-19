@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-09-19T18:31:00Z",
+  "updatedAt": "2026-09-19T19:48:05Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -8,6 +8,16 @@
   "ownerReleaseAuthorization": null,
   "transitionStatus": "OPERATIONAL_TRANSITION_VERIFIED_HISTORICAL_UNTRACKED_CONTENT_UNPROVABLE",
   "openPRs": [
+    {
+      "number": 66,
+      "classification": "DEVELOPMENT_INTEGRATION_CANDIDATE",
+      "head": "5c0f344cd59bd75294824eb9f62685bca7b19e11",
+      "base": "integration/development",
+      "disposition": "PENDING_EXACT_FINAL_HEAD_CI_AND_INTEGRATION_OWNER",
+      "reason": "GB-M30 scoped synthetic RLS and branch checks pass; ledger registration changes PR head, exact final checks and cumulative review required",
+      "automaticMerge": false,
+      "state": "OPEN"
+    },
     {
       "number": 57,
       "classification": "DEVELOPMENT_INTEGRATION_CANDIDATE",
@@ -8600,6 +8610,44 @@
         "reason": "Exact ancestry inclusion",
         "observedAt": "2026-09-19T17:12:08.503Z"
       }
+    },
+    {
+      "id": "codex/gb-m30-notification-pipeline",
+      "project": "Gan Batuach Management",
+      "title": "GB-M30 canonical notifications, fan-out and preferences",
+      "owner": "GB-M30 feature owner; development integration coordinator for merge",
+      "sourceBranch": "codex/gb-m30-notification-pipeline",
+      "sourceCommits": ["5c0f344cd59bd75294824eb9f62685bca7b19e11"],
+      "state": "PUSHED_REMOTE",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": ["origin/codex/gb-m30-notification-pipeline"],
+        "validatedSourceCommit": "5c0f344cd59bd75294824eb9f62685bca7b19e11",
+        "observedAt": "2026-09-19T19:48:05Z"
+      },
+      "validation": {
+        "status": "PASS_SCOPED_BRANCH_FINAL_PR_HEAD_PENDING",
+        "sourceCommit": "5c0f344cd59bd75294824eb9f62685bca7b19e11",
+        "evidence": ["GAN_BATUACH_MANAGEMENT_GB_M30_NOTIFICATIONS_FANOUT_PREFERENCES_REPORT.md", "scripts/qa/check-management-notification-pipeline.sql", "https://github.com/infoganbatuah-ai/gan-batuach/pull/66"],
+        "limits": "Synthetic rollback-only upgrade QA; cumulative integration, separate-connection fan-out and live role browser QA not claimed"
+      },
+      "integration": {
+        "status": "PENDING_INTEGRATION_OWNER_REVIEW",
+        "commit": null,
+        "pullRequest": 66,
+        "reason": "Do not overwrite unrelated owned changes in canonical integration worktree; exact-head CI and cumulative QA pending"
+      },
+      "dependencies": {
+        "status": "GB_M29_INTEGRATED_DEVELOPMENT",
+        "units": ["codex/gb-m29-messaging-threads"]
+      },
+      "migrations": ["20260919180000_management_notification_pipeline.sql"],
+      "migrationOrder": ["20260919180000"],
+      "conflictsResolution": "Source branch merged origin/integration/development at 3acfd366 preserving ancestry; no code conflicts",
+      "localVerification": "PASS_SCOPED_SYNTHETIC_NO_CUMULATIVE_PRODUCT_QA",
+      "releaseEligibility": "NOT_READY_PENDING_INTEGRATION_CUMULATIVE_GATES_AND_OWNER_RELEASE",
+      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "nextAction": "Wait for final PR #66 checks; integration owner reviews and merges into development, applies reviewed migration only to isolated DEVELOPMENT, runs cumulative Product QA and records integration commit. No Production release or live provider activation."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
