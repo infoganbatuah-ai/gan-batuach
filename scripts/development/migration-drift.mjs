@@ -1,4 +1,14 @@
 // Pure comparison of selected Git files, provenance ledger and observed DB history.
+export function developmentReadinessErrors(filenames, ledger) {
+  const errors=[];
+  for(const filename of filenames){
+    const canonical=filename.startsWith('supabase/migrations/')?filename:`supabase/migrations/${filename}`;
+    const entries=ledger.filter(m=>m.file===canonical&&m.integrationCommit);
+    if(entries.length!==1||entries[0].developmentApplied!=='YES'||!entries[0].developmentAppliedAt||!entries[0].developmentEvidence)errors.push(`development migration not verified: ${filename}`);
+  }
+  return errors;
+}
+
 export function compareMigrationState({files, ledger, history, environment}) {
   const errors=[], missing=[], unexpected=[];
   if(!['DEVELOPMENT','PRODUCTION_READ_ONLY'].includes(environment)) errors.push('Unknown database environment');

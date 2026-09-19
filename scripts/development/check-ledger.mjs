@@ -1,5 +1,6 @@
 import {readFileSync} from 'node:fs';
 import {execFileSync} from 'node:child_process';
+import {developmentReadinessErrors} from './migration-drift.mjs';
 const ledger=JSON.parse(readFileSync('DEVELOPMENT_INTEGRATION_LEDGER.json','utf8'));
 const errors=[],ids=new Set();
 const states=new Set(['IMPLEMENTING','IMPLEMENTATION_DONE','VALIDATED','VALIDATED_ON_BRANCH','PUSHED_REMOTE','PRESERVED_PENDING_INTEGRATION','INTEGRATED_DEVELOPMENT','DEVELOPMENT_MIGRATIONS_APPLIED','LOCAL_FULL_STACK_VERIFIED','LOCAL_VERIFIED','BLOCKED','READY_FOR_OWNER_RELEASE','RELEASED_MAIN','PRODUCTION_MIGRATIONS_APPLIED','DEPLOYED_PRODUCTION']);
@@ -11,10 +12,7 @@ for(const unit of ledger.units){
   if(!states.has(unit.state)) errors.push(`Invalid state ${unit.id}`);
   if(unit.state==='READY_FOR_OWNER_RELEASE') {
     if(unit.localVerification!=='PASS_FULL_PRODUCT')errors.push(`${unit.id}: full-stack local QA required`);
-    for(const filename of unit.migrations){
-      const entries=migrationLedger.migrations.filter(m=>m.file===filename&&m.integrationCommit);
-      if(entries.length!==1||entries[0].developmentApplied!=='YES'||!entries[0].developmentAppliedAt||!entries[0].developmentEvidence)errors.push(`${unit.id}: development migration not verified: ${filename}`);
-    }
+    errors.push(...developmentReadinessErrors(unit.migrations,migrationLedger.migrations).map(error=>`${unit.id}: ${error}`));
   }
   for(const field of ['project','title','owner','sourceCommits','validation','integration','dependencies','migrations','migrationOrder','localVerification','releaseEligibility','productionDeployment','nextAction']) if(!(field in unit)) errors.push(`${unit.id} missing ${field}`);
 }

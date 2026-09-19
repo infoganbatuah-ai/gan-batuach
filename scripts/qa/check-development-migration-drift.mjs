@@ -1,9 +1,11 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {compareMigrationState} from '../development/migration-drift.mjs';
+import {compareMigrationState,developmentReadinessErrors} from '../development/migration-drift.mjs';
 const file={version:'20260919000000',name:'example',file:'supabase/migrations/20260919000000_example.sql',blob:'exact-blob'};
 const entry={...file,sourceCommit:'source',sourceTask:'task',remoteBranch:'origin/codex/task',developmentApplied:'YES',developmentAppliedAt:'2026-09-19T00:00:00Z',developmentEvidence:'qa-report',developmentHistoryDigest:'history-digest'};
 const base=()=>({files:[file],ledger:[entry],history:[{version:file.version,name:file.name,statementsDigest:'history-digest'}],environment:'DEVELOPMENT'});
+test('readiness accepts canonical filename or repo-relative migration path',()=>{for(const filename of [file.file,file.file.split('/').at(-1)])assert.deepEqual(developmentReadinessErrors([filename],[{...entry,integrationCommit:'integration'}]),[]);});
+test('readiness rejects absent, ambiguous, unintegrated and unverified migrations',()=>{const applied={...entry,integrationCommit:'integration'};for(const ledger of [[],[applied,applied],[{...applied,integrationCommit:null}],[{...applied,developmentApplied:'NO'}],[{...applied,developmentAppliedAt:null}],[{...applied,developmentEvidence:null}]])assert.equal(developmentReadinessErrors([file.file],ledger).length,1);});
 test('exact files, ledger and observed development history agree',()=>assert.equal(compareMigrationState(base()).status,'PASS'));
 test('unavailable DB is never PASS',()=>assert.equal(compareMigrationState({...base(),history:null}).status,'BLOCKED'));
 test('missing and unexpected migrations block',()=>{const r=compareMigrationState({...base(),history:[{version:'other',name:'other'}]});assert.deepEqual(r.missing,[file.version]);assert.deepEqual(r.unexpected,['other']);assert.equal(r.status,'BLOCKED');});

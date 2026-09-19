@@ -58,7 +58,7 @@ Historical branches explicitly pending compatibility review are not silently mar
 - Final audit helper portability failure on `1c683233` was corrected in `dfd5856f` by deriving evidence paths from the audited root. The original portability gate was retained and passes locally. Required CI must pass on the later exact PR head before integration.
 - Canonical root `AGENTS.md` was synchronized with the development-database rules already remotely preserved; its blob exactly matches the workflow branch. Other shared-root source/index state was not overwritten or cleaned.
 
-- Ten focused workflow/drift contract tests PASS; unavailable-DB negative check correctly BLOCKED.
+- Twelve focused workflow/drift contract tests PASS, including both canonical filename and repository-relative path matching for release readiness; unavailable-DB negative check correctly BLOCKED.
 - Workflow source `c699c994`: full Digital Observer CI run `35451001137` and Management tenant context `35451001119` PASS on GitHub. Later material changes require fresh exact-commit checks before integration.
 - Scoped preservation copies/checks and remote SHA comparisons PASS. Heuristic secret checks are limited scans, not a comprehensive independent security audit.
 - Root source, stash, legacy archives, original temp worktrees, main and Production are unchanged by preservation; new branches/worktrees/reports are intentional additions. No cleanup.
