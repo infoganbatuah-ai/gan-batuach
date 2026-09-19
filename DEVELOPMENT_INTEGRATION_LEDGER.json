@@ -11,10 +11,11 @@
     {
       "number": 66,
       "classification": "DEVELOPMENT_INTEGRATION_CANDIDATE",
-      "head": "5c0f344cd59bd75294824eb9f62685bca7b19e11",
+      "head": null,
+      "validatedSourceCommit": "5c0f344cd59bd75294824eb9f62685bca7b19e11",
       "base": "integration/development",
       "disposition": "PENDING_EXACT_FINAL_HEAD_CI_AND_INTEGRATION_OWNER",
-      "reason": "GB-M30 scoped synthetic RLS and branch checks pass; ledger registration changes PR head, exact final checks and cumulative review required",
+      "reason": "The exact final PR head is verified from GitHub after ledger commits; GB-M30 scoped synthetic RLS and branch checks pass, cumulative review remains required",
       "automaticMerge": false,
       "state": "OPEN"
     },
