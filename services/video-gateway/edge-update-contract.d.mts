@@ -1,10 +1,15 @@
 export type EdgeUpdateProfile = "SOFTWARE_CONNECTOR" | "PHYSICAL_GATEWAY" | "ENTERPRISE_EDGE";
-export type EdgeUpdateChannel = "INTERNAL" | "CANARY" | "STABLE";
+export type EdgeUpdateChannel = "INTERNAL" | "CANARY" | "STABLE" | "HOME_QA";
 export type EdgeUpdateManifest = Record<string, unknown> & { release_id: string; version: string; build_sha: string; profile: EdgeUpdateProfile; platform: string; architecture: "arm64" | "x64"; channel: EdgeUpdateChannel; signature: string;
   artifact_url: string; artifact_sha256: string; artifact_size: number;
+  compatibility: { minimum_current_version: string; maximum_current_version: string | null;
+    minimum_config_version: number; maximum_config_version: number; security_floor_version: string };
   rollout: { stage: "INTERNAL_QA" | "CANARY" | "SMALL_COHORT" | "BROADER_COHORT" | "GENERAL";
     cohort_seed: string; cohort_percent: number; explicit_device_ids: string[] } };
 export function validateEdgeUpdateManifest(input: unknown): EdgeUpdateManifest;
 export function verifyEdgeUpdateManifest(input: unknown, trustedPublicKeys: Record<string, string>): { ok: true; manifest: EdgeUpdateManifest } | { ok: false; reason: string };
 export function evaluateEdgeUpdateEligibility(manifest: EdgeUpdateManifest, device: Record<string, unknown>): { eligible: boolean; reason: string };
+export function compareSemanticVersions(left: string, right: string): number;
+export function assertAuthorizedUpdateDirection(input: { currentVersion: string; targetVersion: string;
+  knownGoodVersions: string[]; securityFloorVersion: string; rollback: boolean }): true;
 export function shouldPauseRollout(input: { failedCanaries: number; unhealthyCanaries: number; failureThreshold?: number }): boolean;

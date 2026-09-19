@@ -2,7 +2,7 @@ import { createHash, createPublicKey, timingSafeEqual, verify } from "node:crypt
 
 export const EDGE_UPDATE_PROTOCOL = "observer-edge-update-v1";
 export const EDGE_UPDATE_PROFILES = Object.freeze(["SOFTWARE_CONNECTOR", "PHYSICAL_GATEWAY", "ENTERPRISE_EDGE"]);
-export const EDGE_UPDATE_CHANNELS = Object.freeze(["INTERNAL", "CANARY", "STABLE"]);
+export const EDGE_UPDATE_CHANNELS = Object.freeze(["INTERNAL", "CANARY", "STABLE", "HOME_QA"]);
 export const EDGE_UPDATE_STATES = Object.freeze([
   "IDLE", "UPDATE_AVAILABLE", "DOWNLOADING", "VERIFYING", "STAGED", "INSTALLING", "RESTARTING",
   "VERIFYING_HEALTH", "HEALTHY", "ROLLBACK_REQUIRED", "ROLLING_BACK", "ROLLED_BACK", "UPDATE_FAILED", "ACTION_REQUIRED"
@@ -114,10 +114,16 @@ export function deviceRolloutBucket(deviceId, seed) {
 }
 
 export function evaluateEdgeUpdateEligibility(manifest, device) {
+  if (manifest.channel === "HOME_QA" && /^(?:qa-)?legacy-(?:gateway|connector)-/.test(manifest.release_id))
+    return { eligible: false, reason: "EDGE_UPDATE_LEGACY_RECOVERY_ONLY" };
   if (manifest.profile !== device.profile) return { eligible: false, reason: "EDGE_UPDATE_PROFILE_MISMATCH" };
   if (manifest.platform !== device.platform || manifest.architecture !== device.architecture) return { eligible: false, reason: "EDGE_UPDATE_PLATFORM_MISMATCH" };
   if (manifest.channel !== device.channel) return { eligible: false, reason: "EDGE_UPDATE_CHANNEL_MISMATCH" };
   if (device.revoked === true) return { eligible: false, reason: "EDGE_UPDATE_DEVICE_REVOKED" };
+  if (manifest.channel === "HOME_QA" && (manifest.rollout.stage !== "INTERNAL_QA" ||
+    manifest.rollout.cohort_percent !== 0 || manifest.rollout.explicit_device_ids.length !== 1 ||
+    manifest.rollout.explicit_device_ids[0] !== device.deviceId))
+    return { eligible: false, reason: "EDGE_UPDATE_HOME_QA_SCOPE_INVALID" };
   if (compareSemanticVersions(device.currentVersion, manifest.compatibility.minimum_current_version) < 0
     || (manifest.compatibility.maximum_current_version && compareSemanticVersions(device.currentVersion, manifest.compatibility.maximum_current_version) > 0)) return { eligible: false, reason: "EDGE_UPDATE_RUNTIME_INCOMPATIBLE" };
   if (device.configVersion < manifest.compatibility.minimum_config_version || device.configVersion > manifest.compatibility.maximum_config_version) return { eligible: false, reason: "EDGE_UPDATE_CONFIG_INCOMPATIBLE" };

@@ -24,7 +24,7 @@ export async function signRemoteEdgeDocument({ document, config, call }) {
   if (config.role === "RELEASE_MANIFEST") {
     validateEdgeUpdateManifest(payload);
     if (payload.signing_key_id !== config.keyId) fail("REMOTE_SIGNER_KEY_ID_MISMATCH");
-    if (payload.channel === "INTERNAL" && (payload.rollout.stage !== "INTERNAL_QA" ||
+    if (["INTERNAL", "HOME_QA"].includes(payload.channel) && (payload.rollout.stage !== "INTERNAL_QA" ||
       payload.rollout.cohort_percent !== 0 || payload.rollout.explicit_device_ids.length !== 1))
       fail("REMOTE_SIGNER_HOME_QA_TARGET_NOT_EXACT");
   } else if (payload.root_key_id !== config.keyId) fail("REMOTE_SIGNER_ROOT_ID_MISMATCH");
