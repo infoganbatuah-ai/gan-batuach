@@ -1,4 +1,4 @@
-import {readFileSync} from 'node:fs';
+import {readFileSync,writeFileSync} from 'node:fs';
 import {execFileSync} from 'node:child_process';
 import {config,sql} from './local-database.mjs';
 import {sha256} from './baseline-source.mjs';
@@ -14,6 +14,8 @@ try{
   const post=JSON.parse(sql("select coalesce(json_agg(m order by applied_at),'[]') from development_metadata.migrations m;"));
   const expected=post.at(-1)?.schema_fingerprint||baseline.fingerprint;
   const result=compareBaselineState({files,baseline,postMigrations:post,ledger:ledger.migrations,schemaFingerprint:{expected,actual:schemaFingerprint('postgres')}});
-  console.log(JSON.stringify({...result,environment:config.environment,observedAt:new Date().toISOString(),productionAccess:false},null,2));
+  const report={...result,environment:config.environment,observedAt:new Date().toISOString(),integrationCommit:git('rev-parse','HEAD'),productionAccess:false};
+  if(process.argv.includes('--record'))writeFileSync('development/database/drift-receipt.json',JSON.stringify(report,null,2)+'\n');
+  console.log(JSON.stringify(report,null,2));
   if(result.status!=='PASS')process.exitCode=1;
 }catch(error){console.log(JSON.stringify({status:'BLOCKED',reason:error.status!==undefined?'Local schema/history query failed':error.message,productionAccess:false}));process.exitCode=1;}

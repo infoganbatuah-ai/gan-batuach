@@ -1,4 +1,36 @@
-# Canonical development database — verification in progress
+# Canonical development database — services verified, application verification pending
+
+## Latest verified checkpoint (supersedes earlier pending observations below)
+
+- Development-only PR #59 merged as `00402d7a3134fe3e654b5c9579f15e7a1b3df1f6`.
+  Both exact-source CI workflows passed on `8506689ff1a95d08314e01db7eb60f92ff7d3547`:
+  Digital Observer `35455732639`, Management `35455732605`.
+- 227 historical files remain unchanged. Baseline plus original ordered trigger
+  fix `20260919170000` is persistently applied ONLY to canonical DEVELOPMENT.
+  `development-application-receipts.json` records its source/hash/fingerprint.
+- Drift PASS: expected 228, baseline included 227, post-baseline applied 1,
+  missing 0, errors 0. This is explicit baseline mapping, not historical replay.
+- PostgreSQL, Auth, REST, Storage, Realtime and local captured mail are healthy;
+  all published ports are loopback-only. Auth/own-profile REST passed for all
+  13 synthetic identities. Normal triggers stay enabled for durable fixtures.
+- Storage: tiny synthetic private object uploaded; signed read HTTP 200;
+  anonymous and public-URL reads denied. No real media/customer data used.
+- Schema inventory records extensions/enums/relations/functions/triggers/indexes,
+  RLS/policies and storage buckets. Exact ACLs remain baseline-controlled.
+- Full-stack configuration is an ignored 0600 local file containing only local
+  API credentials. Cumulative app restart and HTTP role journeys are next.
+- GB-M29 source `a07b3ca9` is remotely preserved. All three original messaging
+  migrations, canonical role/RLS and attachment metadata tests passed inside
+  one rollback-only canonical transaction. Exact-source CI passed. PR #57 was
+  retargeted to development (no main merge), but its task owner then requested
+  it remain open/unmerged. Preserve pending integration; no persistent messaging
+  schema or HTTP attachment PASS is claimed. Resolve ownership before merge.
+- PUSH 38 latest `b5d2bf82` and `db26a314` preserved remotely and ledger-recorded;
+  remains NOT DONE, separate, not integrated or activated.
+
+Detailed non-sensitive receipts are in `development/database/`. Private passwords,
+local service keys and raw evidence remain outside Git. Earlier checkpoint below
+is retained as dated process history, not current service status.
 
 Owner authorization: create a NEW CLEAN DEVELOPMENT-only baseline, never rewrite
 historical migrations, touch Production, merge main, or deploy Vercel.
