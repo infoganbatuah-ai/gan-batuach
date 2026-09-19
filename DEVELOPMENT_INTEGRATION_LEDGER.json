@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-09-19T17:49:36Z",
+  "updatedAt": "2026-09-19T18:14:00Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -12,11 +12,12 @@
       "number": 57,
       "classification": "DEVELOPMENT_INTEGRATION_CANDIDATE",
       "head": "f3bb525a7308a9f01df1241b2b3168383a6fed2e",
-      "action": "Eligible for development-only integration after the reviewed migration approval ledger is integrated; no main merge",
+      "action": "Merged to development integration at be861ec92ea65e8bc1186ea3df18de060e5835b9; original migrations applied only to canonical DEVELOPMENT database",
       "base": "integration/development",
-      "disposition": "READY_TO_INTEGRATE",
-      "reason": "Exact-head six-gate CI and isolated full-stack role/RLS/attachment HTTP E2E PASS; canonical development application follows integration",
-      "automaticMerge": false
+      "disposition": "ALREADY_INTEGRATED",
+      "reason": "Exact-head six-gate CI and isolated full-stack role/RLS/attachment HTTP E2E PASS; three canonical DEVELOPMENT migrations applied and drift PASS; cumulative local HTTP QA remains pending",
+      "automaticMerge": false,
+      "state": "MERGED_DEVELOPMENT"
     },
     {
       "number": 28,
@@ -3560,7 +3561,7 @@
         "e3822c20dfb611cf7e1ade2f22860a4b1e5c1d05",
         "450ac46d38d366b43a25c14f2c0a1075fd52c0e8"
       ],
-      "state": "VALIDATED_ON_BRANCH",
+      "state": "DEVELOPMENT_MIGRATIONS_APPLIED",
       "preservation": {
         "remoteVerified": true,
         "remoteRefs": [
@@ -3578,12 +3579,13 @@
           "https://github.com/infoganbatuah-ai/gan-batuach/actions/runs/35458935002",
           "https://github.com/infoganbatuah-ai/gan-batuach/actions/runs/35458934974"
         ],
-        "ownerReceipt": "GB-M29 task 01a07933-ed3d-7ad0-9a45-2f9b0b21460a, final frozen f3bb525a: canonical rollback-only compatibility, separate clean isolated development clone + three original migrations, 25 direct role cases and authenticated attachment upload/signed retrieval/expiry and denied actor cases PASS. No persistent apply to canonical integration database yet."
+        "ownerReceipt": "GB-M29 task 01a07933-ed3d-7ad0-9a45-2f9b0b21460a, final frozen f3bb525a: canonical rollback-only compatibility, separate clean isolated development clone + three original migrations, 25 direct role cases and authenticated attachment upload/signed retrieval/expiry and denied actor cases PASS. Canonical development database application and 231/231 drift PASS; canonical cumulative HTTP QA pending."
       },
       "integration": {
-        "status": "PRESERVED_PENDING_INTEGRATION",
-        "commit": null,
-        "reason": "Development-only integration authorized by owner after exact-head CI and isolated full-stack QA. Canonical development application/verification still pending."
+        "status": "INTEGRATED_DEVELOPMENT",
+        "commit": "be861ec92ea65e8bc1186ea3df18de060e5835b9",
+        "pullRequest": 57,
+        "reason": "Development-only integration following exact-head CI and separate isolated full-stack QA. Three original migrations applied to canonical DEVELOPMENT; Production unchanged."
       },
       "dependencies": {
         "status": "PASS_ISOLATED_DEVELOPMENT",
@@ -3600,13 +3602,13 @@
         "20260913212000"
       ],
       "conflictsResolution": "No automatic conflict resolution attempted",
-      "localVerification": "PASS_SEPARATE_ISOLATED_CLONE; CANONICAL_INTEGRATION_PENDING",
+      "localVerification": "PASS_SEPARATE_ISOLATED_CLONE; CANONICAL_DEVELOPMENT_MIGRATION_DRIFT_PASS_231_OF_231; CUMULATIVE_HTTP_E2E_PENDING",
       "releaseEligibility": "NOT_READY",
       "productionDeployment": {
         "status": "NOT_REVERIFIED_PER_UNIT",
         "deploymentId": null
       },
-      "nextAction": "Merge exact f3bb525a to integration/development only after reviewed approval ledger; apply the three original migrations to canonical DEVELOPMENT in order, verify drift/RLS/authenticated HTTP E2E, then record receipts. No main or Production release.",
+      "nextAction": "After receipt PR merges, refresh canonical integration server; verify health, role/RLS and authenticated attachment HTTP E2E in cumulative Full Stack. Only then consider READY_FOR_OWNER_RELEASE. No main or Production release.",
       "activeUncommittedWork": {
         "state": "PUSHED_REMOTE",
         "owner": "Management owner; active task 01a07933-ed3d-7ad0-9a45-2f9b0b21460a",
@@ -3620,8 +3622,8 @@
         "nextAction": "Prior local-only drafts resolved by exact remote commit; final source f3bb525a remotely pushed and task-owner handoff received."
       },
       "reconciliation": {
-        "disposition": "READY_TO_INTEGRATE",
-        "reason": "Exact-head CI PASS and separate clean development clone with role/RLS/attachment HTTP E2E PASS; owner authorized development-only integration. Canonical application pending.",
+        "disposition": "ALREADY_INTEGRATED",
+        "reason": "Exact-head CI PASS, separate clean development clone role/RLS/attachment HTTP E2E PASS, PR57 merged into integration only, three original migrations applied on canonical isolated development DB; 231/231 drift PASS.",
         "observedAt": "2026-09-19T17:45:00Z"
       }
     },
@@ -8413,6 +8415,45 @@
       }
     },
     {
+      "id": "codex/gb-m29-development-approval-20260919",
+      "project": "Shared development infrastructure",
+      "title": "GB-M29 reviewed development migration approval and deterministic queue/HA verification",
+      "owner": "Development integration coordinator",
+      "sourceBranch": "codex/gb-m29-development-approval-20260919",
+      "sourceCommits": [
+        "ca9720e627b5390e416b2febc82f513cf37d4f66",
+        "bc23eb491ede3d7220cba8e0514f9faa6843b9e6"
+      ],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": ["origin/codex/gb-m29-development-approval-20260919"],
+        "remoteHead": "bc23eb491ede3d7220cba8e0514f9faa6843b9e6"
+      },
+      "validation": {
+        "status": "PASS_EXACT_HEAD_SIX_CI_GATES_AND_MANAGEMENT",
+        "evidence": [
+          "https://github.com/infoganbatuah-ai/gan-batuach/actions/runs/35460093852",
+          "https://github.com/infoganbatuah-ai/gan-batuach/actions/runs/35460093849"
+        ],
+        "focused": "Queue ACK deduplication, horizontal scaling and high-availability suites PASS without relaxing assertions"
+      },
+      "integration": {
+        "status": "INTEGRATED_DEVELOPMENT",
+        "commit": "d03fe75ef9ae6ce37cec751f215279729484f520",
+        "pullRequest": 62,
+        "conflicts": "NONE"
+      },
+      "dependencies": {"status": "PASS", "units": ["codex/development-database-baseline-20260919"]},
+      "migrations": [],
+      "migrationOrder": [],
+      "conflictsResolution": "No conflicts",
+      "localVerification": "PASS_FOCUSED_QUEUE_HA; CUMULATIVE_APP_REFRESH_PENDING",
+      "releaseEligibility": "NOT_READY_CUMULATIVE_VERIFICATION_PENDING",
+      "productionDeployment": "NOT_DEPLOYED_NO_AUTHORIZATION",
+      "nextAction": "Include in cumulative local product verification after receipt ledger merge; Production release is not authorized."
+    },
+    {
       "id": "codex/development-database-baseline-20260919",
       "project": "Shared development infrastructure",
       "title": "Canonical isolated development baseline and full-stack closure",
@@ -8509,10 +8550,11 @@
     {
       "number": 57,
       "head": "f3bb525a7308a9f01df1241b2b3168383a6fed2e",
-      "disposition": "READY_TO_INTEGRATE",
-      "reason": "Exact-head CI and isolated role/RLS/attachment HTTP E2E PASS; reviewed development-only migration approval then canonical integration",
+      "disposition": "ALREADY_INTEGRATED",
+      "reason": "Merged to development integration only at be861ec9, three canonical DEVELOPMENT migrations applied, drift 231/231 PASS; cumulative HTTP QA pending",
       "automaticMerge": false,
-      "base": "integration/development"
+      "base": "integration/development",
+      "state": "MERGED_DEVELOPMENT"
     },
     {
       "number": 28,
