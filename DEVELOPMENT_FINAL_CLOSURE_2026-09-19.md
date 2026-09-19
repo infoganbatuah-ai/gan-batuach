@@ -53,6 +53,11 @@ Historical branches explicitly pending compatibility review are not silently mar
 
 ## Validation
 
+- Later concurrent handoff: PUSH38 AWS signing branch advanced to remote-verified `921a9c6f` (also `164df7dd`), with provider QA run `35452386031` awaiting owner environment review. Ledger records PUSHED_REMOTE, provider QA pending, NOT release-ready. Dated bulk inventories are point-in-time snapshots; this newer handoff does not authorize integration.
+- GB-M29 owner is actively editing its QA script and new draft migration `20260913211000_management_messaging_qa_hardening.sql`; these are explicitly IMPLEMENTING, not yet remotely preserved at this observation, and must be committed/pushed by the owning task after scoped validation. No takeover/staging of its work.
+- Final audit helper portability failure on `1c683233` was corrected in `dfd5856f` by deriving evidence paths from the audited root. The original portability gate was retained and passes locally. Required CI must pass on the later exact PR head before integration.
+- Canonical root `AGENTS.md` was synchronized with the development-database rules already remotely preserved; its blob exactly matches the workflow branch. Other shared-root source/index state was not overwritten or cleaned.
+
 - Ten focused workflow/drift contract tests PASS; unavailable-DB negative check correctly BLOCKED.
 - Workflow source `c699c994`: full Digital Observer CI run `35451001137` and Management tenant context `35451001119` PASS on GitHub. Later material changes require fresh exact-commit checks before integration.
 - Scoped preservation copies/checks and remote SHA comparisons PASS. Heuristic secret checks are limited scans, not a comprehensive independent security audit.

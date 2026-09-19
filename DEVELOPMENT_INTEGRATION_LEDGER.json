@@ -3582,6 +3582,14 @@
         "deploymentId": null
       },
       "nextAction": "PR #57 source preserved; historical canonical DB replay fails before GB-M29. Adapted disposable QA cannot establish canonical development migration/RLS PASS.",
+      "activeUncommittedWork": {
+        "state": "IMPLEMENTING",
+        "owner": "Management owner; active task 01a07933-ed3d-7ad0-9a45-2f9b0b21460a",
+        "files": ["scripts/qa/check-management-messaging-threads.mjs", "supabase/migrations/20260913211000_management_messaging_qa_hardening.sql"],
+        "observedAt": "2026-09-19T15:39:11Z",
+        "remotePreserved": false,
+        "nextAction": "Owner to finish scoped QA, commit/push and report SHA; do not stage another task's unfinished source or label diagnostic DB canonical. Integration remains blocked."
+      },
       "reconciliation": {
         "disposition": "BLOCKED",
         "reason": "PR #57 source preserved; historical canonical DB replay fails before GB-M29. Adapted disposable QA cannot establish canonical development migration/RLS PASS.",
@@ -8275,21 +8283,25 @@
       "owner": "PUSH 38 owner",
       "sourceBranch": "codex/push-38-aws-signing",
       "sourceCommits": [
-        "c4b7285916e68ad987b078ad8953d5e9fc2a4bb9"
+        "c4b7285916e68ad987b078ad8953d5e9fc2a4bb9",
+        "164df7dd003c3a5d1f043ce2be3aeb92666f537a",
+        "921a9c6f370a1dd7f3540c6dd9fed54cc6340e74"
       ],
-      "state": "BLOCKED",
+      "state": "PUSHED_REMOTE",
       "preservation": {
         "remoteVerified": true,
         "remoteRefs": [
-          "origin/codex/preserve-push38-r2-draft-20260919",
           "origin/codex/push-38-aws-signing"
         ],
-        "localHead": "c4b7285916e68ad987b078ad8953d5e9fc2a4bb9",
-        "remoteHead": "c4b7285916e68ad987b078ad8953d5e9fc2a4bb9",
-        "observedAt": "2026-09-19T15:27:03.103Z"
+        "localHead": "921a9c6f370a1dd7f3540c6dd9fed54cc6340e74",
+        "remoteHead": "921a9c6f370a1dd7f3540c6dd9fed54cc6340e74",
+        "observedAt": "2026-09-19T15:39:11Z"
       },
       "validation": {
-        "status": "NOT_REVALIDATED"
+        "status": "PROVIDER_QA_PENDING_OWNER_ENVIRONMENT_REVIEW",
+        "ownerReportedChecks": "Node syntax, YAML parse, 14 signer cases, trust rotation/revocation/root-pin regressions PASS; limited changed-file secret heuristic clean",
+        "evidence": ["https://github.com/infoganbatuah-ai/gan-batuach/actions/runs/35452386031"],
+        "scope": "Source branch preserved; live provider QA and PUSH38 qualification NOT complete; no main/runtime/migration/release activation"
       },
       "integration": {
         "status": "PENDING_REVIEW",
