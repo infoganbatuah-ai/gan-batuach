@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-09-19T18:31:00Z",
+  "updatedAt": "2026-09-19T19:50:59Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -8385,28 +8385,28 @@
       "title": "PUSH 38Q private R2 HOME_QA download authorization repair",
       "owner": "PUSH 38 release/control-plane workstream",
       "sourceBranch": "codex/push-38q-r2-auth",
-      "sourceCommits": ["994ab8b07299e1e37cbd91c3c7cb5488a53a0001"],
+      "sourceCommits": ["994ab8b07299e1e37cbd91c3c7cb5488a53a0001", "2175a5e9273f0f348838b6686cad514d3764aa68"],
       "state": "PRESERVED_PENDING_INTEGRATION",
       "preservation": {
         "remoteVerified": true,
         "remoteRefs": ["origin/codex/push-38q-r2-auth"],
-        "localHead": "994ab8b07299e1e37cbd91c3c7cb5488a53a0001",
-        "remoteHead": "994ab8b07299e1e37cbd91c3c7cb5488a53a0001",
-        "observedAt": "2026-09-19T19:31:07Z"
+        "localHead": "2175a5e9273f0f348838b6686cad514d3764aa68",
+        "remoteHead": "2175a5e9273f0f348838b6686cad514d3764aa68",
+        "observedAt": "2026-09-19T19:55:00Z"
       },
       "validation": {
-        "status": "SCOPED_LOCAL_PASS_LIVE_DELIVERY_BLOCKED",
-        "sourceCommit": "994ab8b07299e1e37cbd91c3c7cb5488a53a0001",
+        "status": "SCOPED_LOCAL_PASS_DOMAIN_30_OF_30_LIVE_DELIVERY_BLOCKED",
+        "sourceCommit": "2175a5e9273f0f348838b6686cad514d3764aa68",
         "checks": ["Next build", "typecheck", "targeted ESLint", "security gate", "migration health", "HOME_QA R2 unit QA", "OTA regression", "npm audit high/critical PASS with 6 moderate findings"],
-        "fullCi": "FAIL_DOMAIN_RELIABILITY_HORIZONTAL_THROUGHPUT_ASSERTION"
+        "fullCi": "NOT_RUN_EXACT_HEAD; DOMAIN_GATE_PASS_30_OF_30; cumulative integration CI pending"
       },
       "integration": {
         "status": "PRESERVED_PENDING_INTEGRATION",
         "commit": null,
-        "reason": "38Q depends on unintegrated PUSH 38 signing, trust and OTA modules; full branch differs from integration by 123 files. No blind merge or live endpoint activation."
+        "reason": "PUSH 38S inventory accounts for 124 files (32 evidence-only, 92 pending) at e5dab5cf; the earlier 123 count was stale. Minimum control-plane slice and migration dependencies are recorded in DIGITAL_OBSERVER_PUSH_38S_DEPENDENCY_GRAPH.json. No blind merge or live endpoint activation."
       },
       "dependencies": {
-        "status": "REVIEW_REQUIRED",
+        "status": "MAPPED_BLOCKED_ON_QA_ENROLLMENT_AND_SCOPED_INGRESS",
         "units": ["codex/push-38-aws-signing", "codex/preserve-push38-r2-draft-20260919"]
       },
       "migrations": ["20260919190000_edge_home_qa_channel.sql"],
@@ -8415,7 +8415,7 @@
       "localVerification": "NOT_TESTED_ON_CANONICAL_INTEGRATION",
       "releaseEligibility": "NOT_READY",
       "productionDeployment": {"status": "NOT_DEPLOYED"},
-      "nextAction": "Review and integrate prerequisite PUSH 38 modules on an isolated development candidate; investigate the repeatable domain reliability throughput failure and run exact-commit CI; then integrate and apply HOME_QA migration to canonical DEVELOPMENT only. Do not expose live Home or deploy Production."
+      "nextAction": "Review the 15-file minimum control-plane slice and three migration prerequisites in the PUSH 38S inventory/graph; resolve the unused Supabase bucket in the private-delivery migration, qualify synthetic-to-real-device QA enrollment and scoped HTTPS ingress, then integrate exact source code and apply Development-only migrations. Horizontal qualification is being rerun with a documented queue-bound versus inference-bound fixture; preserve the original 2 ms failure as evidence. No live Home or Production activation."
     },
     {
       "id": "codex/preserve-push38-r2-draft-20260919",

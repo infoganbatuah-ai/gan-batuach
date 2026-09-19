@@ -6,13 +6,29 @@ Effective 2026-09-19. Machine-readable source: `DEVELOPMENT_INTEGRATION_LEDGER.j
 
 ## Current transition
 
+PUSH 38S scoped inventory (2026-09-19):
+`DIGITAL_OBSERVER_PUSH_38S_INTEGRATION_INVENTORY.json` accounts for **124/124**
+changed files against the current integration branch (the earlier 123 estimate
+was stale). `DIGITAL_OBSERVER_PUSH_38S_DEPENDENCY_GRAPH.json` records the
+15-file minimum control-plane candidate and schema/identity/ingress edges.
+The domain throughput fixture correction is remotely preserved on the feature
+branch at `2175a5e9273f0f348838b6686cad514d3764aa68`; repeated horizontal
+qualification and the feature-branch domain gate (30/30) passed. This does not
+substitute for cumulative exact-commit CI after integration.
+The candidate is **not integrated**: the real-device Development enrollment
+bridge and narrowly scoped HTTPS ingress remain unqualified, while the pending
+private-delivery migration creates an unused Supabase bucket in addition to
+the approved R2 data plane. No development migration has been applied for
+PUSH 38S. All 124 source files remain on the remote feature branch; 32 are
+evidence-only and 92 remain pending file-level integration disposition.
+
 PUSH 38Q/R handoff (2026-09-19): `codex/push-38q-r2-auth` at
 `994ab8b07299e1e37cbd91c3c7cb5488a53a0001` is remotely preserved and
 recorded in the JSON ledger. The private R2 authorization repair and its
 `20260919190000_edge_home_qa_channel.sql` migration are **pending integration**.
 The required signing/trust/OTA source modules are not yet on
 `integration/development`; merging the whole feature branch would introduce
-123 files without a cumulative review. No development or Production migration
+124 files without a cumulative review. No development or Production migration
 was applied, no QA ingress was published, and no live Home runtime was changed.
 The next owner action is a scoped dependency review and exact-commit cumulative
 validation, then canonical DEVELOPMENT migration/endpoint qualification only.
