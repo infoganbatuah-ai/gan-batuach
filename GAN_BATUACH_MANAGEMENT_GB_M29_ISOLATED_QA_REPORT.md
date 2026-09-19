@@ -126,15 +126,15 @@
 
 ## Validation
 
-- PASS: 9/9 GB-M29 focused tests; 226/226 Management regression tests (including 49 operational-role/Classroom/multi-Garden/messaging checks); Parent contract 20/20; static migration audit; typecheck; local Production build retry; security CI gate (7/7); release-contract check; changed-file ESLint; lint baseline (zero new regressions). Scoped DB/RLS/role/concurrency probes above passed on the adapted schema.
-- BLOCKED: full domain CI gate stops in unrelated `quality-benchmark` suite because `DIGITAL_OBSERVER_BENCHMARK_DATASET_CONTRACT.md` is absent from this branch. This is not counted as PASS.
+- PASS: 9/9 GB-M29 focused tests; 226/226 Management regression tests (including 49 operational-role/Classroom/multi-Garden/messaging checks); Parent contract 20/20; static migration audit; typecheck; local Production build retry; domain CI gate (29/29); security CI gate (7/7); release-contract check; changed-file ESLint; lint baseline (zero new regressions). Scoped DB/RLS/role/concurrency probes above passed on the adapted schema.
+- The initial domain run could not read root Markdown contracts hidden by this worktree's sparse-checkout configuration. Those files were already tracked in the same commit; making them visible locally and rerunning produced the 29/29 PASS above. No product file was added or changed for this worktree-only repair.
 - Local Production build was first blocked by sandbox port binding; an elevated **local-only** retry passed after Turbopack compiled, checked TypeScript and generated the application routes. No deployment was triggered.
 - A clean canonical migration replay, browser authentication flow, live private attachment retrieval and Production role probes are **not** verified.
 
 ## Remaining QA Debt
 
 1. Establish a repository-approved clean isolated baseline (or a verified current-schema QA snapshot) and replay all unchanged canonical migrations, including resolution of the historical enum/SQL/fixture/hardware-specific blockers. Re-run GB-M29 RLS tests there. Do not alter applied migration history or seed fictitious camera authorization.
-2. Resolve the unrelated missing benchmark contract and obtain a full green domain gate and exact-commit protected CI checks.
+2. Obtain exact-commit protected CI results and controlled authenticated API/browser role evidence. The local domain gate is green after restoring the tracked sparse-checkout files; it is not a substitute for CI on PR #57's final head.
 3. Exercise authenticated browser/API role flows, private attachment retrieval, and legacy read-compatible surfaces with controlled accounts. Preserve the GB-M21–M28 carried live-QA debt for GB-M35/40.
 
 ## Release Recommendation
