@@ -39,6 +39,6 @@ for(const [name,pages] of [
 }
 await probe('/api/digital-observer/settings?observer_site_id=00000000-0000-4000-8000-000000000e01',null,401,'unauthenticated');
 const status=checks.every(c=>c.pass&&!c.serverError)?'PASS':'FAIL';
-writeFileSync('development/database/local-product-receipt.json',JSON.stringify({observedAt:new Date().toISOString(),status,environment:config.environment,integrationCommit:expected,version,checks,productionAccess:false,limitations:['Synthetic local fixtures only','No real camera/Gateway/AI/payment/email provider activation','GB-M29 pending separate integration/HTTP QA','HTTP HTML success is not a full interactive browser journey']},null,2)+'\n');
+writeFileSync('development/database/local-product-receipt.json',JSON.stringify({observedAt:new Date().toISOString(),status,environment:config.environment,integrationCommit:expected,version,checks,productionAccess:false,limitations:['Synthetic local fixtures only','No real camera/Gateway/AI/payment/email provider activation','GB-M29 attachment HTTP E2E is separately verified, not part of these 18 route probes','HTTP HTML success is not a full interactive browser journey']},null,2)+'\n');
 console.log(JSON.stringify({status,checks:checks.length,integrationCommit:expected}));
 if(status!=='PASS')process.exitCode=1;
