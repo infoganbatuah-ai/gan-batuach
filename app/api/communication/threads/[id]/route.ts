@@ -27,7 +27,11 @@ export async function GET(_: Request, context: { params: Promise<{ id: string }>
         .eq("thread_id", id).in("message_id", messageIds).limit(250)
       : { data: [], error: null };
     if (attachmentsError) return fail("טעינת הקבצים נכשלה.", 400);
-    return ok({ thread, messages: messages ?? [], attachments: attachments ?? [] });
+    const attachmentLinks = (attachments ?? []).map((item: { id: string; message_id: string }) => ({
+      ...item,
+      download_path: `/api/communication/threads/${id}/messages/${item.message_id}/attachments/${item.id}`
+    }));
+    return ok({ thread, messages: messages ?? [], attachments: attachmentLinks });
   } catch (error) { return handleSafeRouteError(error); }
 }
 

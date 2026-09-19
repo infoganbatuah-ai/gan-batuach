@@ -165,7 +165,7 @@ The first clean Supabase CLI failure is deterministic in `20260523003000_owner_r
 
 ## Private Attachment E2E
 
-**PENDING / NOT PASS.** A scoped follow-up now provides one attachment per existing sender-owned message, maximum 5 MiB, MIME allowlist, bounded request length, server-generated Garden/thread/message path, and an authorized retrieval API that issues a 60-second private signed URL. Upload failure leaves no metadata; metadata failure attempts object cleanup. The message-detail API returns only safe metadata and an API path. This is a new minimal capability because GB-M29 previously rejected raw attachment URLs and had no private retrieval route. An actual Auth → upload → Storage object → signed retrieval HTTP journey and the full negative actor matrix still require a running isolated Auth/Storage/API stack. Static route assertions and direct database RLS are **not** substituted for that evidence.
+**PENDING / NOT PASS.** A scoped follow-up now provides one attachment per existing sender-owned message, maximum 5 MiB, MIME allowlist, bounded request length, server-generated Garden/thread/message path, and an authorized retrieval API that issues a 60-second private download URL. Upload failure leaves no metadata; metadata failure attempts object cleanup. The message-detail API returns only safe metadata and an API path. This is a new minimal capability because GB-M29 previously rejected raw attachment URLs and had no private retrieval route. A loopback-only executable E2E harness is at `scripts/qa/run-management-message-attachment-e2e.mjs`; it reads synthetic identities from a restricted local file and prints no credentials. An actual Auth → upload → Storage object → signed retrieval HTTP journey and the full negative actor matrix still require a running isolated Auth/Storage/API stack. Static route assertions and direct database RLS are **not** substituted for that evidence.
 
 ## Storage Privacy
 
@@ -173,9 +173,11 @@ The first clean Supabase CLI failure is deterministic in `20260523003000_owner_r
 
 ## Final PR Checks
 
-At `742e5e1f9def60c7eac5f608639ecd55352a2550`, GitHub showed **10/10 completed successful checks**, including the six protected Digital Observer CI gates. New attachment code/report changes are not yet a pushed final head, so those earlier results do not transfer. The exact final PR head must receive all required green checks after push.
+At `742e5e1f9def60c7eac5f608639ecd55352a2550`, GitHub showed **10/10 completed successful checks**, including the six protected Digital Observer CI gates. Attachment commit `38787f3cccf5bcb7a12c4d6d0675b1d21d0faa75` was pushed to PR #57, where 7/9 checks had succeeded at the last observation; two were still running. A further scoped follow-up must receive its own exact-head checks after push. Earlier results do not transfer to a newer head.
 
 Follow-up local validation after attachment changes: GB-M29 focused 10/10; Management 227/227; Parent contract 20/20; typecheck; Production build (local elevated retry after sandbox port denial); domain 29/29; security 7/7; static migration audit (230 files); release preflight; changed-file ESLint and lint baseline with zero regressions. The attachment SQL was applied only to the adapted disposable database. This still does not replace canonical fresh-install, upgrade, or HTTP E2E proof.
+
+A later metadata-link and E2E-harness follow-up passed focused tests, source syntax and changed-file ESLint. Its local typecheck rerun was interrupted after prolonged shared-host contention; exact-head protected CI must supply the final typecheck/build proof. The E2E harness has not yet been run because the canonical isolated Auth/Storage stack is still being prepared.
 
 ## Final Release Recommendation
 

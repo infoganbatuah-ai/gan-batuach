@@ -101,7 +101,7 @@ test("message attachments use private Storage and current thread authority", () 
   assert.match(attachmentUpload, /message\.sender_id !== session\.profile\.id/);
   assert.match(attachmentUpload, /\.eq\("thread_id", threadId\)/);
   assert.match(attachmentDownload, /\.eq\("thread_id", threadId\)\.eq\("message_id", messageId\)/);
-  assert.match(attachmentDownload, /\.createSignedUrl\(attachment\.storage_path, 60\)/);
+  assert.match(attachmentDownload, /\.createSignedUrl\(attachment\.storage_path, 60, \{ download: true \}\)/);
   assert.match(attachmentDownload, /"Cache-Control": "private, no-store"/);
   assert.doesNotMatch(attachmentUpload + attachmentDownload, /getPublicUrl/);
 });

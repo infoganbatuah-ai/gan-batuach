@@ -20,7 +20,7 @@ export async function GET(_: Request, context: { params: Promise<{ id: string; m
     if (!isAdminClientConfigured()) return fail("אחסון קבצים אינו זמין כעת.", 503);
     // RLS above proves current thread authority before the service role signs.
     const { data, error } = await createAdminClient().storage.from("management-message-attachments")
-      .createSignedUrl(attachment.storage_path, 60);
+      .createSignedUrl(attachment.storage_path, 60, { download: true });
     if (error || !data?.signedUrl) return fail("הקובץ אינו זמין.", 404);
     return new Response(null, { status: 302, headers: {
       Location: data.signedUrl, "Cache-Control": "private, no-store", "Referrer-Policy": "no-referrer"
