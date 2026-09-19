@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
-import { requireUser } from "@/lib/auth";
+import { getSessionProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { managementDeliveryCapability } from "@/lib/management/external-delivery";
 
@@ -40,7 +40,8 @@ function defaultParentCategoryChannels() {
 
 export async function GET() {
   try {
-    const { profile } = await requireUser();
+    const { user, profile } = await getSessionProfile();
+    if (!user || !profile) return fail("Authentication required.", 401);
     const supabase = await createClient();
     const { data, error } = await supabase.from("communication_preferences" as any).select("*").eq("profile_id", profile.id).maybeSingle();
     if (error) {
@@ -78,7 +79,8 @@ export async function GET() {
 
 export async function PATCH(request: Request) {
   try {
-    const { profile } = await requireUser();
+    const { user, profile } = await getSessionProfile();
+    if (!user || !profile) return fail("Authentication required.", 401);
     const payload = schema.parse(await request.json());
     const supabase = await createClient();
     const existing = await supabase.from("communication_preferences" as any).select("*").eq("profile_id", profile.id).maybeSingle();
