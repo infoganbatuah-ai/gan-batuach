@@ -133,3 +133,9 @@ Legacy `messages` and older announcement screens remain read-only compatibility 
 # Inputs For GB-M30
 
 GB-M30 can consume canonical thread IDs, participant read state and bounded notification events without treating a Notification as a Message or granting authority through delivery membership.
+
+# Integration And Release Status (2026-09-19)
+
+The owner-controlled consolidated development contract supersedes the earlier per-push main-merge workflow. PR #57 merged into `integration/development` at `be861ec92ea65e8bc1186ea3df18de060e5835b9`, preserving original GB-M29 head `f3bb525a7308a9f01df1241b2b3168383a6fed2e` by ancestry. Its nine required checks passed on that feature head. The merge changed only the scoped GB-M29 messaging code, migrations, tests and reports; Digital Observer core diff remains 0.
+
+The three GB-M29 migrations are ordered `20260913210000` → `20260913211000` → `20260913212000`. Development application and cumulative Product verification are pending an integration-owner receipt. Production migration history is not yet reconciled, and no owner-authorized Production release window is active. No GB-M29 migration, deployment, customer message or live-provider action has been performed in Production. Production authentication, storage and role smokes therefore remain deferred. Controlled live Parent/Manager/Staff messaging QA remains blocked by the environment and must not be conflated with the completed isolated RLS/attachment evidence.
