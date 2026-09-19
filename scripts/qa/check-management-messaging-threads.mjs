@@ -4,6 +4,7 @@ import { readFileSync } from "node:fs";
 
 const read = (path) => readFileSync(path, "utf8");
 const sql = read("supabase/migrations/20260913210000_management_canonical_messaging_threads.sql");
+const hardening = read("supabase/migrations/20260913211000_management_messaging_qa_hardening.sql");
 const threads = read("app/api/communication/threads/route.ts");
 const message = read("app/api/communication/threads/[id]/route.ts");
 const broadcast = read("app/api/communication/broadcasts/route.ts");
@@ -67,4 +68,23 @@ test("attachment URLs are not accepted by the canonical messaging route", () => 
   assert.doesNotMatch(threads, /attachment_urls/);
   assert.doesNotMatch(message, /attachment_urls/);
   assert.match(sql, /canonical management message participant read/);
+});
+
+test("QA hardening enforces Classroom scope and removes direct destructive grants", () => {
+  assert.match(hardening, /ca\.child_id=child_row\.id and ca\.is_current/);
+  assert.match(hardening, /sa\.classroom_id/);
+  assert.match(hardening, /membership\.status='active' and membership\.ended_at is null/);
+  assert.match(hardening, /revoke truncate, references, trigger on public\.communication_threads/);
+  assert.match(hardening, /public\.messages from anon, authenticated/);
+  assert.match(hardening, /revoke execute on function public\.create_management_communication_thread/);
+  assert.match(hardening, /from public, anon/);
+});
+
+test("same-key checks run after serialization in all messaging mutations", () => {
+  const create = hardening.split("create or replace function public.create_management_communication_thread(")[1].split("create or replace function public.send_management_communication_message(")[0];
+  const send = hardening.split("create or replace function public.send_management_communication_message(")[1].split("create or replace function public.create_management_communication_broadcast(")[0];
+  const broadcastSql = hardening.split("create or replace function public.create_management_communication_broadcast(")[1];
+  assert.ok(create.indexOf("pg_advisory_xact_lock") < create.indexOf("if p_idempotency_key is not null"));
+  assert.ok(send.indexOf("for update") < send.indexOf("if p_idempotency_key is not null"));
+  assert.ok(broadcastSql.indexOf("pg_advisory_xact_lock") < broadcastSql.indexOf("if p_idempotency_key is not null"));
 });
