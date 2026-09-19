@@ -36,6 +36,16 @@ Production/main remain unchanged; live role/provider QA and an explicit owner
 release are still pending. External SMS/email/push/WhatsApp activation remains
 GB-M31.
 
+GB-M31 feature preservation (2026-09-20):
+`codex/gb-m31-external-delivery` at
+`bf93be20dd859cae735dc35892429fc3788816a5` is remotely preserved.
+Management 228/228, domain 29/29, security 7/7, Parent/Manager contract 20/20,
+typecheck, lint, build, migration audit and release preflight passed on the
+isolated feature worktree. Both new migrations and synthetic RLS/receipt QA
+passed inside a rolled-back Development transaction. PR checks, ordered
+Development application and cumulative Product QA remain pending. No paid
+provider was activated, and Production/main remain unchanged.
+
 PUSH 38Q/R handoff (2026-09-19): `codex/push-38q-r2-auth` at
 `994ab8b07299e1e37cbd91c3c7cb5488a53a0001` is remotely preserved and
 recorded in the JSON ledger. The private R2 authorization repair and its

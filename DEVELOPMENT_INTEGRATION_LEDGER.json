@@ -8649,6 +8649,25 @@
       "releaseEligibility": "NOT_READY_PENDING_EXPLICIT_OWNER_RELEASE_AND_CUMULATIVE_RELEASE_GATES",
       "productionDeployment": {"status": "NOT_DEPLOYED"},
       "nextAction": "Retain live Parent/Staff/Manager browser and external-provider QA debt. Production release requires separate explicit owner authorization and cumulative release gates; do not infer it from GB-M30 Development PASS."
+    },
+    {
+      "id": "codex/gb-m31-external-delivery",
+      "project": "Gan Batuach Management",
+      "title": "GB-M31 email-first account verification and bounded external notification delivery",
+      "owner": "GB-M31 feature owner",
+      "sourceBranch": "codex/gb-m31-external-delivery",
+      "sourceCommits": ["bf93be20dd859cae735dc35892429fc3788816a5"],
+      "state": "PUSHED_REMOTE",
+      "preservation": {"remoteVerified": true, "remoteRefs": ["origin/codex/gb-m31-external-delivery"], "validatedSourceCommit": "bf93be20dd859cae735dc35892429fc3788816a5"},
+      "validation": {"status": "PASS_FEATURE_LOCAL", "evidence": ["GAN_BATUACH_MANAGEMENT_GB_M31_EXTERNAL_NOTIFICATION_DELIVERY_REPORT.md", "scripts/qa/check-management-external-delivery.sql"], "limits": "Rollback-only synthetic database QA; ordered Development application, separate-connection worker race, live provider receipts and cumulative Product QA pending"},
+      "integration": {"status": "PENDING_PR", "commit": null, "pullRequest": null},
+      "dependencies": {"status": "GB_M30_INTEGRATED_DEVELOPMENT", "units": ["codex/gb-m30-notification-pipeline"]},
+      "migrations": ["20260920110000_management_email_first_verification.sql", "20260920120000_management_external_delivery.sql"],
+      "migrationOrder": ["20260920110000", "20260920120000"],
+      "localVerification": "PASS_FEATURE_TESTS_BUILD_ROLLBACK_ONLY_SQL",
+      "releaseEligibility": "NOT_READY_PENDING_INTEGRATION_DEVELOPMENT_QA_AND_OWNER_RELEASE",
+      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "nextAction": "Open PR against integration/development, verify exact-head checks, merge without touching PUSH 38S, apply both ordered migrations to isolated Development, and run cumulative Product QA. No Production release or paid provider activation authorized."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
