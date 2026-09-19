@@ -20,7 +20,14 @@ export async function GET(_: Request, context: { params: Promise<{ id: string }>
       .select("id,sender_id,subject,body,content,created_at,edited_at,message_kind")
       .eq("thread_id", id).is("deleted_at", null).order("created_at").limit(250);
     if (messagesError) return fail("טעינת ההודעות נכשלה.", 400);
-    return ok({ thread, messages: messages ?? [] });
+    const messageIds = (messages ?? []).map((item: { id: string }) => item.id);
+    const { data: attachments, error: attachmentsError } = messageIds.length
+      ? await supabase.from("management_message_attachments" as never)
+        .select("id,message_id,file_name,content_type,size_bytes,created_at")
+        .eq("thread_id", id).in("message_id", messageIds).limit(250)
+      : { data: [], error: null };
+    if (attachmentsError) return fail("טעינת הקבצים נכשלה.", 400);
+    return ok({ thread, messages: messages ?? [], attachments: attachments ?? [] });
   } catch (error) { return handleSafeRouteError(error); }
 }
 

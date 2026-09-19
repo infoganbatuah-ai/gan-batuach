@@ -5,6 +5,9 @@ import { readFileSync } from "node:fs";
 const read = (path) => readFileSync(path, "utf8");
 const sql = read("supabase/migrations/20260913210000_management_canonical_messaging_threads.sql");
 const hardening = read("supabase/migrations/20260913211000_management_messaging_qa_hardening.sql");
+const attachmentsSql = read("supabase/migrations/20260913212000_management_private_message_attachments.sql");
+const attachmentUpload = read("app/api/communication/threads/[id]/messages/[messageId]/attachments/route.ts");
+const attachmentDownload = read("app/api/communication/threads/[id]/messages/[messageId]/attachments/[attachmentId]/route.ts");
 const threads = read("app/api/communication/threads/route.ts");
 const message = read("app/api/communication/threads/[id]/route.ts");
 const broadcast = read("app/api/communication/broadcasts/route.ts");
@@ -87,4 +90,18 @@ test("same-key checks run after serialization in all messaging mutations", () =>
   assert.ok(create.indexOf("pg_advisory_xact_lock") < create.indexOf("if p_idempotency_key is not null"));
   assert.ok(send.indexOf("for update") < send.indexOf("if p_idempotency_key is not null"));
   assert.ok(broadcastSql.indexOf("pg_advisory_xact_lock") < broadcastSql.indexOf("if p_idempotency_key is not null"));
+});
+
+test("message attachments use private Storage and current thread authority", () => {
+  assert.match(attachmentsSql, /'management-message-attachments', false, 5242880/);
+  assert.match(attachmentsSql, /as restrictive\s+for all to public using \(bucket_id <> 'management-message-attachments'\)/);
+  assert.match(attachmentsSql, /can_access_management_communication_thread\(thread_id\)/);
+  assert.match(attachmentsSql, /m\.thread_id=new\.thread_id/);
+  assert.match(attachmentsSql, /m\.sender_id=new\.uploaded_by/);
+  assert.match(attachmentUpload, /message\.sender_id !== session\.profile\.id/);
+  assert.match(attachmentUpload, /\.eq\("thread_id", threadId\)/);
+  assert.match(attachmentDownload, /\.eq\("thread_id", threadId\)\.eq\("message_id", messageId\)/);
+  assert.match(attachmentDownload, /\.createSignedUrl\(attachment\.storage_path, 60\)/);
+  assert.match(attachmentDownload, /"Cache-Control": "private, no-store"/);
+  assert.doesNotMatch(attachmentUpload + attachmentDownload, /getPublicUrl/);
 });

@@ -142,3 +142,41 @@
 **GB-M29 RELEASE RECOMMENDATION: BLOCKED**
 
 The adapted isolated database provided valuable direct RLS and concurrency evidence and exposed/fixed scoped GB-M29 defects. It cannot satisfy the required clean canonical schema-migration gate or the full validation gate. Keep PR #57 open on the feature branch; do not merge, apply the migration to Production, or begin GB-M30 from this QA result.
+
+## Canonical Clean Migration Chain — follow-up 2026-09-19
+
+The fresh, unmodified repository migration chain remains **BLOCKED**. The repository has no committed baseline/squash mechanism in this feature branch. The separate integration owner is preparing an owner-authorized, versioned **development-only schema baseline**; this must not be described as an unmodified historical replay. No GB-M29 migration has been applied to Production. The diagnostic database above remains an adapted probe, not a fresh-install result.
+
+## Migration Failure Root Cause
+
+The first clean Supabase CLI failure is deterministic in `20260523003000_owner_role_and_onboarding.sql`: it adds `app_role.owner` and uses that new enum label in the same migration transaction. PostgreSQL rejects use of an uncommitted enum value. Classification: **A — historical migration invalid from a clean transactional state**, with later independent historical SQL, fixture and site-specific hardware/data prerequisites listed in “Migrations Applied.” No applied historical file was edited in Git. A new migration ordered after the historical one cannot fix this first clean-install failure; an explicitly supported baseline or runner change is necessary. The Production-style upgrade must be verified separately against its actual pre-GB-M29 migration state.
+
+## Fresh Install Verification
+
+**PENDING / NOT PASS.** The existing clean attempt stopped at the migration above. An owner-approved development baseline is under construction in a separate task; until its provenance, omissions, schema equivalence and clean deployment are verified, it cannot close this gate.
+
+## Existing Schema Upgrade Verification
+
+**PENDING / NOT PASS.** The original GB-M29 migration, QA hardening and new private-attachment migration applied to the adapted local database, but that database is not a verified pre-GB-M29 Production-style snapshot. No customer data or Production migration state was changed.
+
+## Canonical RLS Reverification
+
+**PENDING / NOT PASS.** Existing direct RLS evidence above is from the adapted local database. The new attachment metadata policy and restrictive Storage policy also passed direct synthetic SQL probes there: Parent A and Manager A saw their Garden A attachment; Parent B, Manager B, Staff B, revoked Staff, Inspector and Admin saw none; a forged cross-Garden metadata row failed the scope trigger; `storage.buckets.public=false`; and direct `authenticated`/`anon` reads of a synthetic `storage.objects` row returned zero. Re-run all probes on the canonical isolated baseline before READY.
+
+## Private Attachment E2E
+
+**PENDING / NOT PASS.** A scoped follow-up now provides one attachment per existing sender-owned message, maximum 5 MiB, MIME allowlist, bounded request length, server-generated Garden/thread/message path, and an authorized retrieval API that issues a 60-second private signed URL. Upload failure leaves no metadata; metadata failure attempts object cleanup. The message-detail API returns only safe metadata and an API path. This is a new minimal capability because GB-M29 previously rejected raw attachment URLs and had no private retrieval route. An actual Auth → upload → Storage object → signed retrieval HTTP journey and the full negative actor matrix still require a running isolated Auth/Storage/API stack. Static route assertions and direct database RLS are **not** substituted for that evidence.
+
+## Storage Privacy
+
+**PASS at adapted database policy layer; HTTP E2E pending.** The new `management-message-attachments` bucket is private. A restrictive `storage.objects` policy denies direct client access even if another permissive policy exists; the service role is used only after actor, thread, message and ownership checks. No raw public URL is returned. Storage is limited to one file of at most 5 MiB per message. Attachments follow the existing `communications-retention` policy: 1,095 days and manual/legal review; no automatic deletion is enabled by this push. Expected volume is one optional file per message, queried by thread/message index; storage/egress cost must be assessed before Production activation.
+
+## Final PR Checks
+
+At `742e5e1f9def60c7eac5f608639ecd55352a2550`, GitHub showed **10/10 completed successful checks**, including the six protected Digital Observer CI gates. New attachment code/report changes are not yet a pushed final head, so those earlier results do not transfer. The exact final PR head must receive all required green checks after push.
+
+Follow-up local validation after attachment changes: GB-M29 focused 10/10; Management 227/227; Parent contract 20/20; typecheck; Production build (local elevated retry after sandbox port denial); domain 29/29; security 7/7; static migration audit (230 files); release preflight; changed-file ESLint and lint baseline with zero regressions. The attachment SQL was applied only to the adapted disposable database. This still does not replace canonical fresh-install, upgrade, or HTTP E2E proof.
+
+## Final Release Recommendation
+
+**GB-M29 RELEASE RECOMMENDATION: BLOCKED** pending a verified canonical fresh-install path, a verified pre-GB-M29 upgrade, direct RLS retest on that canonical environment, full authorized/unauthorized attachment HTTP and signed-URL QA, and green checks on the final PR head. No merge, Production migration, deployment or GB-M30 work is authorized by this report.
