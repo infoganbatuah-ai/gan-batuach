@@ -5,6 +5,7 @@ import { notFound } from "next/navigation";
 import { BrandHeader } from "@/components/brand-header";
 import { getPublishedArticles } from "@/lib/editorial/store";
 import { SITE_URL } from "@/lib/editorial/articles";
+import { ganBatuachShareImage } from "@/lib/seo/brand-assets";
 import "../articles.css";
 
 export const dynamic = "force-dynamic";
@@ -16,8 +17,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!article) return { title: "כתבה לא נמצאה", robots: { index: false } };
   const url = `${SITE_URL}/articles/${slug}`;
   return { title: { absolute: `${article.meta_title} | גן בטוח` }, description: article.meta_description,
-    alternates: { canonical: url }, openGraph: { type: "article", title: article.meta_title, description: article.meta_description, url, locale: "he_IL", publishedTime: article.published_at, images: [{ url: article.image_url, alt: article.image_alt }] },
-    twitter: { card: "summary_large_image", title: article.meta_title, description: article.meta_description, images: [article.image_url] } };
+    alternates: { canonical: url }, openGraph: { type: "article", siteName: "גן בטוח", title: article.meta_title, description: article.meta_description, url, locale: "he_IL", publishedTime: article.published_at, images: [ganBatuachShareImage] },
+    twitter: { card: "summary_large_image", title: article.meta_title, description: article.meta_description, images: [ganBatuachShareImage.url] } };
 }
 
 export default async function ArticlePage({ params }: Props) {
@@ -38,7 +39,7 @@ export default async function ArticlePage({ params }: Props) {
       <div className="editorial-reading"><aside className="editorial-facts"><b>למי רלוונטי?</b><p>גילאים: {article.ages}</p><p>קבוצות גן: {article.garden_groups.join(" · ")}</p></aside>
         {article.body.split(/\n\s*\n/).filter(Boolean).map((paragraph, i) => <p key={i}>{paragraph}</p>)}
         {article.slug === "what-is-gan-batuach" && <p>חשוב להבחין: מיזם ״הגן הבטוח״ של <a href="https://www.sii.org.il/he/lobby/information/children/safekindergarten" target="_blank" rel="noopener noreferrer">מכון התקנים הישראלי</a> הוא מיזם נפרד. גן בטוח אינו מציג את הסטנדרט הפרטי שלו כתעודה מטעם המכון.</p>}
-        <h2>איך גן בטוח נכנס לתמונה?</h2><p>גן בטוח מחבר בין <Link href="/join-kindergarten">מערכת לניהול גן ילדים</Link>, <Link href="/safety-standard">תו תקן פרטי ותהליכי בקרה</Link> לבין מידע שימושי להורים. כל יכולת או נתון על גן מסוים יש לאמת לפי המצב בפועל; הסטנדרט אינו אישור ממשלתי.</p>
+        <h2>איך גן בטוח נכנס לתמונה?</h2><p>גן בטוח מחבר בין <Link href="/kindergarten-management">מערכת לניהול גן ילדים</Link>, <Link href="/safety-standard">תו תקן פרטי ותהליכי בקרה</Link> לבין מידע שימושי להורים. כל יכולת או נתון על גן מסוים יש לאמת לפי המצב בפועל; הסטנדרט אינו אישור ממשלתי.</p>
         {article.sources.length > 0 && <section><h2>מקורות לקריאה נוספת</h2><ul>{article.sources.map((source) => <li key={source.url}><a href={source.url} target="_blank" rel="noopener noreferrer">{source.label}</a></li>)}</ul></section>}
         <section><h2>שאלות ותשובות</h2>{article.faqs.map((faq) => <details key={faq.question}><summary>{faq.question}</summary><p>{faq.answer}</p></details>)}</section>
         <p className="editorial-disclaimer">המידע כללי ואינו ייעוץ משפטי, רפואי או תחליף לבדיקת סטטוס הרישוי והדין החל על המסגרת.</p>

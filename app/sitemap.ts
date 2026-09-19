@@ -9,6 +9,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const routes = [
     "",
     "/why-gan-batuach",
+    "/kindergarten-management",
     "/articles",
     "/safety-standard",
     "/parents-demand",
@@ -27,6 +28,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     "/digital-observer",
     "/digital-observer/home",
     "/digital-observer/business",
+    "/digital-observer/video-investigation",
     "/digital-observer/office",
     "/digital-observer/warehouse",
     "/digital-observer/store",
