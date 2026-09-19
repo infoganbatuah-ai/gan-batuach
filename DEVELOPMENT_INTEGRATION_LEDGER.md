@@ -6,6 +6,17 @@ Effective 2026-09-19. Machine-readable source: `DEVELOPMENT_INTEGRATION_LEDGER.j
 
 ## Current transition
 
+PUSH 38Q/R handoff (2026-09-19): `codex/push-38q-r2-auth` at
+`994ab8b07299e1e37cbd91c3c7cb5488a53a0001` is remotely preserved and
+recorded in the JSON ledger. The private R2 authorization repair and its
+`20260919190000_edge_home_qa_channel.sql` migration are **pending integration**.
+The required signing/trust/OTA source modules are not yet on
+`integration/development`; merging the whole feature branch would introduce
+123 files without a cumulative review. No development or Production migration
+was applied, no QA ingress was published, and no live Home runtime was changed.
+The next owner action is a scoped dependency review and exact-commit cumulative
+validation, then canonical DEVELOPMENT migration/endpoint qualification only.
+
 **Current Full Stack result:** `DEVELOPMENT_FULL_STACK_CLOSURE_2026-09-19.md`.
 Local Product 18/18 HTTP checks PASS at `0620ab40`, health 200, baseline 227 + 1
 post-baseline migration verified. This supersedes all earlier UI-only/backend
