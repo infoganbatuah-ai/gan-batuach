@@ -39,6 +39,7 @@ const schema = z.discriminatedUnion("action", [
 
 function cloudSecret() { return process.env.VIDEO_GATEWAY_CLOUD_DISCOVERY_SECRET || ""; }
 function enrollmentUrl(id: string) { return `/digital-observer/cameras/add?gateway_enrollment=${encodeURIComponent(id)}`; }
+function qualificationMode() { return process.env.OBSERVER_PUSH38_QUALIFICATION === "enabled"; }
 
 // Development must create, inspect and approve on the same backend. Never mix
 // a cloud-created request with a local admin client holding unrelated keys.
@@ -74,6 +75,7 @@ async function audit(admin: AdminClient, eventType: string, input: Record<string
 }
 export async function GET(request: Request) {
   try {
+    if (qualificationMode()) return fail("Qualification enrollment inspection is not exposed.", 404);
     if (process.env.NODE_ENV === "development") return await developmentProxy(request);
     const query = z.object({ enrollment_request_id: z.string().uuid(), observer_site_id: z.string().uuid() }).parse(Object.fromEntries(new URL(request.url).searchParams));
     const session = await getDigitalObserverApiUser(request);
@@ -92,10 +94,17 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    if (process.env.NODE_ENV === "development") return await developmentProxy(request);
+    if (qualificationMode() && process.env.NODE_ENV !== "development") return fail("Qualification mode requires an isolated development runtime.", 503);
+    if (process.env.NODE_ENV === "development" && !qualificationMode()) return await developmentProxy(request);
     const requestBody = await request.clone().text();
     if (Buffer.byteLength(requestBody, "utf8") > 8192) return fail("בקשת זהות המכשיר גדולה מדי.", 413);
-    const payload = schema.parse(await parseBoundedJson(request, 8192));
+    const body = await parseBoundedJson(request, 8192);
+    if (qualificationMode() && (typeof body !== "object" || body === null || !("action" in body) || body.action !== "authenticate"))
+      return fail("Qualification enrollment action unavailable.", 404);
+    const payload = schema.parse(body);
+    // The dedicated qualification ingress may exchange an already enrolled,
+    // owner-verified device Ed25519 proof for a short-lived QA session only.
+    // It must never create, approve, refresh, revoke or inspect enrollments.
     if (payload.action === "approve" || payload.action === "revoke") assertTrustedMutationOrigin(request);
 
 

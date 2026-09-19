@@ -1,0 +1,59 @@
+import { createServer } from "node:http";
+
+const routes = new Set([
+  "POST /api/digital-observer/gateway-enrollment",
+  "GET /api/video-gateway/edge-updates",
+  "POST /api/video-gateway/edge-updates/download"
+]);
+const forwardHeaders = new Set([
+  "accept", "content-type", "x-video-gateway-device-token",
+  "x-observer-device-protocol", "x-observer-device-id",
+  "x-observer-device-credential-version", "x-observer-device-timestamp",
+  "x-observer-device-nonce", "x-observer-device-runtime-instance",
+  "x-observer-device-sequence", "x-observer-device-signature"
+]);
+
+export function push38tIngressAllows(method, pathname) {
+  return routes.has(`${method} ${pathname}`);
+}
+
+export function createPush38tIngress({ origin = "http://127.0.0.1:3100" } = {}) {
+  const target = new URL(origin);
+  if (target.protocol !== "http:" || target.hostname !== "127.0.0.1" || target.username || target.password || target.pathname !== "/")
+    throw new Error("QA_INGRESS_ORIGIN_NOT_LOOPBACK");
+  return createServer(async (request, response) => {
+    const url = new URL(request.url || "/", "http://127.0.0.1");
+    if (!push38tIngressAllows(request.method, url.pathname) ||
+      (url.pathname !== "/api/video-gateway/edge-updates" && url.search)) {
+      response.writeHead(404, { "cache-control": "no-store" }).end();
+      return;
+    }
+    try {
+      const chunks = []; let length = 0;
+      for await (const chunk of request) {
+        length += chunk.length;
+        if (length > 8192) {
+          response.writeHead(413, { "cache-control": "no-store" }).end();
+          return;
+        }
+        chunks.push(chunk);
+      }
+      const headers = new Headers();
+      for (const [name, value] of Object.entries(request.headers))
+        if (forwardHeaders.has(name) && typeof value === "string") headers.set(name, value);
+      const upstream = await fetch(new URL(url.pathname + url.search, target), {
+        method: request.method, headers, body: request.method === "GET" ? undefined : Buffer.concat(chunks),
+        redirect: "manual", cache: "no-store", signal: AbortSignal.timeout(10_000)
+      });
+      if (upstream.status >= 300 && upstream.status < 400) throw new Error("QA_INGRESS_REDIRECT_REJECTED");
+      const data = Buffer.from(await upstream.arrayBuffer());
+      if (data.length > 32_768) throw new Error("QA_INGRESS_OVERSIZE_RESPONSE");
+      response.writeHead(upstream.status, {
+        "cache-control": "private, no-store", "referrer-policy": "no-referrer",
+        "content-type": upstream.headers.get("content-type") || "application/json"
+      }).end(data);
+    } catch {
+      if (!response.headersSent) response.writeHead(502, { "cache-control": "no-store" }).end();
+    }
+  });
+}

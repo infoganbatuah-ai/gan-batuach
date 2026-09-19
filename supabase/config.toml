@@ -1,0 +1,74 @@
+# PUSH 38 qualification only. Never link this project to Supabase Cloud.
+project_id = "gan-batuach-push38t"
+
+[api]
+enabled = true
+port = 56421
+schemas = ["public", "graphql_public"]
+extra_search_path = ["public", "extensions"]
+max_rows = 1000
+
+[db]
+port = 56422
+shadow_port = 56420
+major_version = 17
+health_timeout = "3m"
+
+[db.migrations]
+enabled = false
+schema_paths = []
+
+[db.seed]
+enabled = false
+sql_paths = []
+
+[db.pooler]
+enabled = false
+port = 56429
+
+[realtime]
+enabled = false
+
+[studio]
+enabled = false
+port = 56423
+
+[local_smtp]
+enabled = false
+port = 56424
+
+[storage]
+enabled = true
+file_size_limit = "10MiB"
+
+[storage.s3_protocol]
+enabled = false
+
+[storage.analytics]
+enabled = false
+
+[storage.vector]
+enabled = false
+
+[auth]
+enabled = true
+site_url = "http://127.0.0.1:3100"
+additional_redirect_urls = []
+jwt_expiry = 3600
+enable_signup = false
+enable_anonymous_sign_ins = false
+minimum_password_length = 12
+
+[auth.email]
+enable_signup = false
+enable_confirmations = true
+
+[auth.sms]
+enable_signup = false
+enable_confirmations = false
+
+[analytics]
+enabled = false
+
+[edge_runtime]
+enabled = false
