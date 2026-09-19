@@ -3,7 +3,7 @@ type SupabaseLike = {
 };
 
 export type CommunicationChannel = "in_app" | "sms" | "whatsapp" | "email";
-export type CommunicationStatus = "queued" | "sent_mock" | "sent" | "failed" | "delivered" | "read" | "skipped_preferences" | "deduped";
+export type CommunicationStatus = "queued" | "sent_mock" | "sent" | "failed" | "delivered" | "read" | "skipped_preferences" | "deduped" | "unavailable";
 
 export type CommunicationTemplateKey =
   | "parent_lead_submitted"
@@ -94,12 +94,12 @@ const templates: Record<CommunicationTemplateKey, TemplateDefinition> = {
   system_alert: { title: "התראת מערכת", body: "אירוע מערכת דורש בדיקה." }
 };
 
-const mockProvider: CommunicationProvider = {
-  async send(input) {
+const unavailableProvider: CommunicationProvider = {
+  async send() {
     return {
-      status: "sent_mock",
-      provider: `mock_${input.channel}`,
-      providerMessageId: `mock_${input.channel}_${Date.now()}`
+      status: "unavailable",
+      provider: "not_configured",
+      failureReason: "External delivery is not configured (GB-M31)."
     };
   }
 };
@@ -138,11 +138,11 @@ export function maskPhone(phone?: string | null) {
 
 function getProvider(channel: CommunicationChannel): CommunicationProvider {
   const mode = process.env.COMMUNICATION_PROVIDER || "mock";
-  if (mode !== "real") return mockProvider;
+  if (mode !== "real") return unavailableProvider;
   if (channel === "sms" && process.env.SMS_PROVIDER && process.env.SMS_API_KEY) return unimplementedRealProvider;
   if (channel === "whatsapp" && process.env.WHATSAPP_PROVIDER && process.env.WHATSAPP_ACCESS_TOKEN && process.env.WHATSAPP_PHONE_NUMBER_ID) return unimplementedRealProvider;
   if (channel === "email" && process.env.EMAIL_PROVIDER && process.env.EMAIL_API_KEY) return unimplementedRealProvider;
-  return mockProvider;
+  return unavailableProvider;
 }
 
 function renderTemplate(templateKey: CommunicationTemplateKey, variables?: SendCommunicationInput["variables"]) {
@@ -188,12 +188,12 @@ async function insertLog(
     template_key: input.templateKey,
     recipient_phone: recipientPhone ?? null,
     recipient_email: recipientEmail ?? null,
-    message_preview: message.slice(0, 500),
+    message_preview: channel === "in_app" ? message.slice(0, 500) : null,
     status,
     provider,
     provider_message_id: providerMessageId ?? null,
     failure_reason: failureReason ?? null,
-    sent_at: status === "sent" || status === "sent_mock" ? new Date().toISOString() : null,
+    sent_at: status === "sent" ? new Date().toISOString() : null,
     metadata: input.metadata ?? {},
     dedupe_key: dedupeKey
   });
