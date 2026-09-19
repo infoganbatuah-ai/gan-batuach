@@ -38,7 +38,8 @@ export async function GET(request: Request) {
   try {
     const auth = await authorize(request, "UPDATE_READ"); if (!auth) return fail("Managed device update authentication failed.", 401);
     const query = querySchema.parse(Object.fromEntries(new URL(request.url).searchParams));
-    if (query.profile !== auth.claims.deployment_profile) return fail("Managed device update scope mismatch.", 403);
+    if (query.profile !== auth.claims.deployment_profile || query.config_version !== auth.enrollment.config_version)
+      return fail("Managed device update scope mismatch.", 403);
     const rollout = await auth.admin.from("observer_edge_rollouts").select("id,stage,status,cohort_percent,release_id")
       .eq("status", "ACTIVE").order("created_at", { ascending: false }).limit(20);
     if (rollout.error) throw new Error("EDGE_UPDATE_ROLLOUT_READ_FAILED");

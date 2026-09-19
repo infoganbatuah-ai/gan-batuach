@@ -1,19 +1,20 @@
 const RELEASE_ID = /^[A-Za-z0-9._:-]{3,160}$/;
 const DIGEST = /^[a-f0-9]{64}$/;
-export const EDGE_RELEASE_BUCKET = "observer-edge-releases";
+export const EDGE_RELEASE_BUCKET = "digital-observer-releases";
 
 // A signed manifest identifies immutable bytes, never a pre-authorized URL.
 export function edgeReleaseObjectPath(manifest) {
   if (!RELEASE_ID.test(manifest?.release_id || "") || !DIGEST.test(manifest?.artifact_sha256 || ""))
     throw new Error("EDGE_RELEASE_OBJECT_ID_INVALID");
-  return `${manifest.release_id}/${manifest.artifact_sha256}.tar.gz`;
+  return `home-qa/${manifest.release_id}/${manifest.artifact_sha256}.tar.gz`;
 }
 
-export function assertEdgeReleaseObjectUrl(manifest, storageOrigin) {
-  const origin = new URL(storageOrigin);
+export function assertEdgeReleaseObjectUrl(manifest, accountId) {
+  if (!/^[a-f0-9]{32}$/.test(accountId || "")) throw new Error("EDGE_RELEASE_R2_ACCOUNT_INVALID");
   const artifact = new URL(manifest.artifact_url);
-  if (origin.protocol !== "https:" || artifact.origin !== origin.origin || artifact.search || artifact.hash ||
-    artifact.pathname !== `/storage/v1/object/authenticated/${EDGE_RELEASE_BUCKET}/${edgeReleaseObjectPath(manifest)}`)
+  if (artifact.protocol !== "https:" || artifact.origin !== `https://${accountId}.r2.cloudflarestorage.com` ||
+    artifact.search || artifact.hash || artifact.username || artifact.password ||
+    artifact.pathname !== `/${EDGE_RELEASE_BUCKET}/${edgeReleaseObjectPath(manifest)}`)
     throw new Error("EDGE_RELEASE_OBJECT_URL_INVALID");
   return edgeReleaseObjectPath(manifest);
 }

@@ -1,5 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any -- PUSH 38P release-delivery tables await generated types. */
 import { createHash } from "node:crypto";
+import { GetObjectCommand, HeadObjectCommand, S3Client } from "@aws-sdk/client-s3";
+import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { fail, handleSafeRouteError } from "@/lib/api";
@@ -38,12 +40,14 @@ export async function POST(request: Request) {
     if (input.profile !== claims.deployment_profile) return fail("Release scope mismatch.", 403);
     const admin = createAdminClient() as any;
     const enrollment = await admin.from("video_gateway_device_enrollments")
-      .select("id,status,lifecycle_state,observer_site_id,gateway_id,deployment_profile,credential_version")
+      .select("id,status,lifecycle_state,observer_site_id,gateway_id,device_platform,deployment_profile,credential_version,config_version")
       .eq("id", claims.device_id).eq("observer_site_id", claims.observer_site_id)
       .eq("gateway_id", claims.gateway_id).maybeSingle();
     if (enrollment.error || !enrollment.data || enrollment.data.status !== "delivered" ||
       enrollment.data.lifecycle_state !== "ACTIVE" || enrollment.data.deployment_profile !== claims.deployment_profile ||
-      enrollment.data.credential_version !== claims.credential_version)
+      enrollment.data.credential_version !== claims.credential_version ||
+      enrollment.data.device_platform !== `${input.platform}-${input.architecture}` ||
+      enrollment.data.config_version !== input.config_version)
       return fail("Managed device release authentication failed.", 401);
     const release = await admin.from("observer_edge_releases")
       .select("id,release_id,release_state,signed_manifest,artifact_sha256")
@@ -63,14 +67,27 @@ export async function POST(request: Request) {
       configVersion: input.config_version, revoked: false };
     if (!edgeReleaseScopeAllows(manifest, device) || !evaluateEdgeUpdateEligibility(manifest, device).eligible)
       return fail("Release unavailable.", 404);
-    const objectPath = assertEdgeReleaseObjectUrl(manifest, process.env.NEXT_PUBLIC_SUPABASE_URL || "");
+    const accountId = process.env.OBSERVER_R2_ACCOUNT_ID || "";
+    const objectPath = assertEdgeReleaseObjectUrl(manifest, accountId);
     const identifier = createHash("sha256").update(`edge-release:${enrollment.data.id}`).digest("hex");
     await assertRateLimit(identifier, "observer_edge_release_download", 4, 300);
-    const signed = await admin.storage.from(EDGE_RELEASE_BUCKET).createSignedUrl(objectPath, 120);
-    if (signed.error || !signed.data?.signedUrl) return fail("Release artifact unavailable.", 503);
-    const url = new URL(signed.data.signedUrl);
+    const accessKeyId = process.env.OBSERVER_R2_ACCESS_KEY_ID || "";
+    const secretAccessKey = process.env.OBSERVER_R2_SECRET_ACCESS_KEY || "";
+    if (!accessKeyId || !secretAccessKey) return fail("Release delivery unavailable.", 503);
+    const r2 = new S3Client({ region: "auto", endpoint: `https://${accountId}.r2.cloudflarestorage.com`,
+      forcePathStyle: true, credentials: { accessKeyId, secretAccessKey } });
+    let signedUrl: string;
+    try {
+      const object = await r2.send(new HeadObjectCommand({ Bucket: EDGE_RELEASE_BUCKET, Key: objectPath }));
+      if (object.ContentLength !== manifest.artifact_size || object.Metadata?.sha256 !== manifest.artifact_sha256 ||
+        object.Metadata?.release_id !== manifest.release_id) return fail("Release artifact unavailable.", 503);
+      signedUrl = await getSignedUrl(r2, new GetObjectCommand({ Bucket: EDGE_RELEASE_BUCKET, Key: objectPath }),
+        { expiresIn: 120 });
+    } finally { r2.destroy(); }
+    const url = new URL(signedUrl);
     if (url.protocol !== "https:" || url.origin !== new URL(manifest.artifact_url).origin ||
-      !url.pathname.startsWith(`/storage/v1/object/sign/${EDGE_RELEASE_BUCKET}/`))
+      url.pathname !== new URL(manifest.artifact_url).pathname || url.searchParams.get("X-Amz-Expires") !== "120" ||
+      !url.searchParams.get("X-Amz-Signature"))
       return fail("Release artifact authorization invalid.", 503);
     const audit = await admin.from("observer_edge_release_download_authorizations").insert({
       enrollment_id: enrollment.data.id, release_id: release.data.id,

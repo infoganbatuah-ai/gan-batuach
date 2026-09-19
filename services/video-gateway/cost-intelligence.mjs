@@ -199,3 +199,32 @@ export function assertCostOptimizationSafety({ targetEligible, privacyAllowed, q
   if (qualityGatePassed !== true) throw new Error("cost_optimization_quality_gate_denied");
   return true;
 }
+
+/** Infrastructure target is distinct from the project's stricter all-in paying-user ceiling. */
+export function reportInfrastructureUnitEconomics({ monthlyInfrastructureIls, registeredUsers,
+  activePayingUsers, monthlyAllInIls, completeInfrastructureCoverage = false,
+  completeAllInCoverage = false, fixedInfrastructureIls = null,
+  marginalInfrastructureIlsPerUser = null }) {
+  const count = value => Number.isSafeInteger(value) && value >= 0 ? value : null;
+  const money = value => Number.isFinite(value) && value >= 0 ? value : null;
+  const registered = count(registeredUsers), paying = count(activePayingUsers);
+  const infra = money(monthlyInfrastructureIls), allIn = money(monthlyAllInIls);
+  const measuredInfra = completeInfrastructureCoverage && registered > 0 && infra !== null;
+  const measuredAllIn = completeAllInCoverage && paying > 0 && allIn !== null;
+  const perRegistered = measuredInfra ? infra / registered : null;
+  const perPaying = measuredAllIn ? allIn / paying : null;
+  const fixed = money(fixedInfrastructureIls), marginal = money(marginalInfrastructureIlsPerUser);
+  const projected = fixed !== null && marginal !== null && completeInfrastructureCoverage
+    ? [100, 1_000, 10_000, 100_000].map(users => ({ classification: "PROJECTION",
+      registered_users: users, monthly_infrastructure_ils: fixed + marginal * users,
+      ils_per_registered_user: (fixed + marginal * users) / users })) : [];
+  return Object.freeze({ contract: "observer-infrastructure-unit-cost-v1", target_ils_per_registered_user: 15,
+    registered_users: registered, infrastructure_cost_ils: infra,
+    ils_per_registered_user: perRegistered,
+    infrastructure_status: perRegistered === null ? "NOT_YET_MEASURABLE" :
+      perRegistered > 15 ? "OVER_TARGET_COST" : "HEALTHY_COST",
+    all_in_ils_per_active_paying_user: perPaying,
+    all_in_status: perPaying === null ? "NOT_YET_MEASURABLE" :
+      perPaying > 15 ? "OVER_TARGET_COST" : "HEALTHY_COST",
+    cost_projections: projected });
+}

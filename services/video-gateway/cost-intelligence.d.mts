@@ -13,3 +13,15 @@ export declare function reconcileProviderCost(events: CostUsage[], actual: Recor
 export declare function projectUsage(baseline: Record<string, unknown>, cameraCounts?: number[]): Record<string, unknown>[];
 export declare function detectCostAnomalies(current: Record<string, number>, baseline: Record<string, number>, options?: Record<string, number>): Record<string, unknown>[];
 export declare function assertCostOptimizationSafety(input: Record<string, boolean>): true;
+export declare function reportInfrastructureUnitEconomics(input: {
+  monthlyInfrastructureIls?: number | null; registeredUsers?: number | null;
+  activePayingUsers?: number | null; monthlyAllInIls?: number | null;
+  completeInfrastructureCoverage?: boolean; completeAllInCoverage?: boolean;
+  fixedInfrastructureIls?: number | null; marginalInfrastructureIlsPerUser?: number | null;
+}): {
+  contract: string; target_ils_per_registered_user: 15; registered_users: number | null;
+  infrastructure_cost_ils: number | null; ils_per_registered_user: number | null;
+  infrastructure_status: string; all_in_ils_per_active_paying_user: number | null;
+  all_in_status: string; cost_projections: Array<{ classification: "PROJECTION";
+    registered_users: number; monthly_infrastructure_ils: number; ils_per_registered_user: number }>;
+};

@@ -54,7 +54,12 @@ export async function runEdgeUpdateCycle({
     if (grant?.release_id !== manifest.release_id || grant?.artifact_sha256 !== manifest.artifact_sha256 ||
       grant?.artifact_size !== manifest.artifact_size || !Number.isFinite(expiry) ||
       expiry <= Date.now() + 5_000 || expiry > Date.now() + 5 * 60_000 ||
-      new URL(grant.url).origin !== new URL(manifest.artifact_url).origin) fail("EDGE_UPDATE_DOWNLOAD_AUTH_INVALID");
+      typeof grant.url !== "string") fail("EDGE_UPDATE_DOWNLOAD_AUTH_INVALID");
+    const downloadUrl = new URL(grant.url), artifactUrl = new URL(manifest.artifact_url);
+    if (downloadUrl.protocol !== "https:" || downloadUrl.origin !== artifactUrl.origin ||
+      downloadUrl.pathname !== artifactUrl.pathname || downloadUrl.username || downloadUrl.password ||
+      downloadUrl.searchParams.get("X-Amz-Expires") !== "120" ||
+      !downloadUrl.searchParams.get("X-Amz-Signature")) fail("EDGE_UPDATE_DOWNLOAD_AUTH_INVALID");
     url = grant.url;
   }
   await download({ url, destination, expectedSize: manifest.artifact_size, expectedSha256: manifest.artifact_sha256 });
