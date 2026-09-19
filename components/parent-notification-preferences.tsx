@@ -13,6 +13,9 @@ type Preferences = {
   parent_daily_digest_enabled?: boolean;
   parent_ai_summary_enabled?: boolean;
   parent_category_channels?: Record<string, string[]>;
+  quiet_hours_start?: string | null;
+  quiet_hours_end?: string | null;
+  quiet_hours_timezone?: string;
 };
 
 type Props = {
@@ -79,6 +82,9 @@ export function ParentNotificationPreferences({ preferences, pushCategoryPrefere
       parent_daily_digest_enabled: data.get("parent_daily_digest_enabled") === "on",
       parent_ai_summary_enabled: data.get("parent_ai_summary_enabled") === "on",
       parent_category_channels: categoryChannels,
+      quiet_hours_start: String(data.get("quiet_hours_start") || "") || null,
+      quiet_hours_end: String(data.get("quiet_hours_end") || "") || null,
+      quiet_hours_timezone: "Asia/Jerusalem",
       push_category_preferences: categoryEnabled
     };
     setMessage("");
@@ -105,6 +111,13 @@ export function ParentNotificationPreferences({ preferences, pushCategoryPrefere
         <label><input name="receive_email" type="checkbox" defaultChecked={preferences?.receive_email ?? true} /> מייל</label>
         <label><input name="receive_sms" type="checkbox" defaultChecked={preferences?.receive_sms ?? false} /> SMS</label>
         <label><input name="receive_whatsapp" type="checkbox" defaultChecked={preferences?.receive_whatsapp ?? false} /> וואטסאפ</label>
+      </div>
+
+      <p>התראות בתוך המערכת זמינות. ערוצי חוץ נשמרים כהעדפה, אך שליחה ב־SMS, מייל, וואטסאפ או Push עדיין אינה פעילה.</p>
+      <div className="parent-channel-switches">
+        <label>שעות שקט — התחלה <input name="quiet_hours_start" type="time" defaultValue={preferences?.quiet_hours_start?.slice(0, 5) ?? ""} /></label>
+        <label>שעות שקט — סיום <input name="quiet_hours_end" type="time" defaultValue={preferences?.quiet_hours_end?.slice(0, 5) ?? ""} /></label>
+        <span>שעון ישראל; השאירו ריק כדי לבטל.</span>
       </div>
 
       <div className="parent-channel-switches">
