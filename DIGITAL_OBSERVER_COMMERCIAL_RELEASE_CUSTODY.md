@@ -1,14 +1,16 @@
 # Commercial release custody — implementation and activation gate
 
-Updated: 2026-09-19. Owner: Digital Observer release owner. Status: **ACCOUNT OWNER APPROVED TWO KMS KEYS; KEYS/COMMERCIAL PROOF NOT YET ACTIVATED**.
+Updated: 2026-09-19. Owner: Digital Observer release owner. Status: **TWO LIVE KMS KEYS VERIFIED; PROTECTED OIDC ROLE PROOF PENDING**.
 
 ## Decision and current evidence
 
-The owner requires a commercial release-security path. R2 remains the artifact data plane; no alternate artifact host is introduced. The proposed signing provider is AWS KMS because its remotely generated Ed25519 keys fit the existing PUSH 19 verification protocol. On 2026-09-19 the owner confirmed control of an existing AWS account, authorized its exclusive future Digital Observer use, and approved the two-key signing cost. The old project had two running EC2 instances; both were subsequently verified `Stopped`. Its EBS/IP resources and historical costs have not been fully retired. **No KMS key or signing identity has yet been provisioned.** Account inventory, least-privilege policy review and real KMS proof remain open. Detailed provider billing and identifiers are kept in the restricted supplier ledger, not this report.
+The owner requires a commercial release-security path. R2 remains the artifact data plane; no alternate artifact host is introduced. AWS KMS remotely generated Ed25519 keys fit the existing PUSH 19 verification protocol. On 2026-09-19 the owner approved use of the existing AWS account and two-key signing cost. Two AWS-generated keys are now enabled, with separate root/release aliases. Actual AWS signatures were independently verified using both CloudShell and local public-key verification. Private keys were not exported. Exact key identifiers, public fingerprints, provider request references and signatures are retained in restricted evidence, not a PR description. This is a real key-custody proof, not complete commercial distribution readiness.
+
+The old project's two EC2 instances are stopped and both Elastic IPs were released; a subsequent address query returned no allocations in their region. Their 70 GiB of EBS remains billable. Destructive cleanup was blocked by the execution safety review because no recoverable backup exists, including after explicit owner approval of data loss. No bypass was attempted. A full account-wide zero-legacy-cost claim is not established.
 
 The new release-side tooling uses KMS `ECC_NIST_EDWARDS25519`, `ED25519_SHA_512`, and `MessageType: RAW`. It checks immutable key ARN, expected public-key fingerprint, enabled AWS-generated customer key, returned algorithm, and signature against the canonical on-device verifier. It has no private-key input, generation, export, or local signing fallback. Root and release keys must differ. Documents over 4,096 canonical bytes are rejected; switching to Ed25519ph or signing an application-created digest would change the existing protocol and is forbidden here. See [KMS signing API](https://docs.aws.amazon.com/kms/latest/APIReference/API_Sign.html) and [KMS key specifications](https://docs.aws.amazon.com/kms/latest/developerguide/symm-asymm-choose-key-spec.html).
 
-`node scripts/qa/check-remote-edge-signer.mjs` passed 14 deterministic protocol/negative cases. Existing root-pin/rotation/revocation regression passed. These tests use ephemeral fixtures and prove code behavior only. Actual KMS authentication, IAM denial, audit, key custody, signing, and offline verification are **NOT TESTED**. Local macOS identity enumeration returned `0 valid identities found`; that proves no usable local signing identity was found, not that the owner has no Apple Developer account.
+`node scripts/qa/check-remote-edge-signer.mjs` passed 14 deterministic protocol/negative cases. Existing root-pin/rotation/revocation regression passed. These tests use ephemeral fixtures and prove code behavior only. Actual KMS key custody/signing/offline verification now PASS through the authenticated account-owner session; this does not substitute for least-privilege OIDC role tests. Those provider role tests remain pending. Local macOS identity enumeration returned `0 valid identities found`; that proves no usable local signing identity was found, not that the owner has no Apple Developer account.
 
 ## Concrete account setup
 
@@ -22,7 +24,11 @@ The new release-side tooling uses KMS `ECC_NIST_EDWARDS25519`, `ED25519_SHA_512`
 
 `scripts/release/sign-edge-document-kms.mjs` takes three positional file paths: unsigned canonical document, reviewed signer configuration, and new output path in a restricted directory. It invokes an installed official AWS CLI with existing short-lived credentials and bounded retries/timeouts. It does not provision credentials or keys. Existing outputs are rejected.
 
-Signer configuration contains only `keyArn`, `keyId`, `publicKeySha256`, and `role` (`ROOT_REGISTRY` or `RELEASE_MANIFEST`). An administrator obtains the public-key fingerprint through the approved key-creation ceremony. No PEM private key is accepted. The command writes the signed document and a digest-based evidence record with owner-only permissions. Execution is pending approved account setup. No executable workflow was added that could run automatically on a push.
+Signer configuration contains only `keyArn`, `keyId`, `publicKeySha256`, and `role` (`ROOT_REGISTRY` or `RELEASE_MANIFEST`). An administrator obtains the public-key fingerprint through the approved key-creation ceremony. No PEM private key is accepted. The command writes the signed document and a digest-based evidence record with owner-only permissions.
+
+The bounded `kms-custody-proof.yml` workflow now tests actual OIDC authentication, signature verification, canonical protocol compatibility and denial of the opposite key, prehash algorithm and digest mode. It has no artifact publication or installation step. It runs only on the exact signing branch, on explicit dispatch or changes to its two files, behind the existing owner-review environments. Each session is 15 minutes and each job is bounded to five minutes. Actions are commit-pinned; checkout credentials are not persisted. Synthetic signed documents remain in memory and are not uploaded.
+
+The two IAM roles trust only the exact repository plus their distinct GitHub environment subjects and STS audience. Each role can Describe/GetPublicKey/Sign only its own immutable key ARN; Sign is restricted to `ED25519_SHA_512` and `RAW`. No static AWS access key was created. Both environments require owner review and custom branch restrictions. Single-owner self-review is allowed by the configured GitHub policy; this is not a two-person separation claim. Successful job evidence, audit retention, disabled-key/provider-negative proof and final real release publication remain separate outstanding gates.
 
 ## Apple distribution gate
 
@@ -32,7 +38,7 @@ The Connector needs the organization's valid Developer ID signing route, hardene
 
 The three qualified Home-QA archives remain unchanged. A new KMS manifest signature cannot turn an ad-hoc signed macOS bundle into a Developer ID distribution package. A commercial Apple-signed build necessarily receives a new artifact hash and release identity and must repeat package/lifecycle verification. Preserve existing QA archives as historical evidence; do not overwrite or relabel them.
 
-## Cost decision — approved scope, no KMS activation yet
+## Cost decision — two keys activated within approved scope
 
 AWS lists $1 per KMS key per month: two keys imply **$2/month key storage**, plus metered asymmetric operations and audit/retention costs. Asymmetric signing/GetPublicKey calls are excluded from KMS's free request tier. The public pricing example quotes $0.15/10,000 ECC signing requests; confirm the chosen region/Ed25519 SKU before using that rate as a binding estimate. A dedicated CloudHSM cluster is not proposed. [AWS pricing](https://aws.amazon.com/kms/pricing/).
 
