@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "updatedAt": "2026-09-19T14:01:10.888Z",
+  "updatedAt": "2026-09-19T14:05:52.593Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -595,22 +595,26 @@
       "owner": "Integration owner for disposition; original author for semantic review",
       "sourceBranch": "codex/development-workflow-20260919",
       "sourceCommits": [
-        "29f253b636f7edba0d853d1a9e439e13635c0293"
+        "29f253b636f7edba0d853d1a9e439e13635c0293",
+        "4f38fe2ba3d92f81a1f5e94f705ee56ece08492f",
+        "156ffc7a2e6f909356816212ec2c7e61fe5f9ebb"
       ],
       "commitsNotInMain": [],
       "state": "INTEGRATED_DEVELOPMENT",
       "preservation": {
         "remoteVerified": true,
         "remoteRefs": [
-          "origin/codex/development-workflow-20260919"
+          "origin/codex/development-workflow-20260919",
+          "origin/integration/development"
         ],
         "remoteHead": "29f253b636f7edba0d853d1a9e439e13635c0293",
-        "verification": "git ls-remote exact source SHA; integration at 8be94254 also remote verified before final ledger update"
+        "verification": "git ls-remote exact source branch and integration156ffc7a on2026-09-19; all listed source commits contained remotely"
       },
       "validation": {
-        "status": "PASS_LOCAL_DETERMINISTIC_GATES",
+        "status": "PASS_LOCAL_AND_REMOTE_DETERMINISTIC_GATES",
         "evidence": [
-          "DEVELOPMENT_WORKFLOW_TRANSITION_2026-09-19.md"
+          "DEVELOPMENT_WORKFLOW_TRANSITION_2026-09-19.md",
+          "https://github.com/infoganbatuah-ai/gan-batuach/actions/runs/35447522105"
         ]
       },
       "integration": {
@@ -632,7 +636,7 @@
       "productionDeployment": {
         "status": "NOT_DEPLOYED"
       },
-      "nextAction": "Use canonical integration launcher; provision an isolated database before full Product/role QA. Final ledger commit must be pushed and remote verified; no main release authorized."
+      "nextAction": "Isolated backend and historical owner reconciliation remain blocked; no main release authorized."
     },
     {
       "id": "codex/digital-guard-engine-eeb919c",
@@ -7231,11 +7235,16 @@
     "Current remote proof is recorded per unit. Historical inventory is preserved rather than overwritten."
   ],
   "integrationVerification": {
-    "lastObservedRemoteHead": "8be94254a311920988415496b2e496d020855ab3",
-    "localProductTestedAt": "4f38fe2ba3d92f81a1f5e94f705ee56ece08492f",
+    "lastObservedRemoteHead": "156ffc7a2e6f909356816212ec2c7e61fe5f9ebb",
+    "localProductTestedAt": "156ffc7a2e6f909356816212ec2c7e61fe5f9ebb",
     "mode": "UI_ONLY",
     "fullBackend": "BLOCKED_NO_ISOLATED_SUPABASE",
     "healthStatus": 503,
-    "report": "DEVELOPMENT_WORKFLOW_TRANSITION_2026-09-19.md"
+    "report": "DEVELOPMENT_WORKFLOW_TRANSITION_2026-09-19.md",
+    "remoteCI": {
+      "commit": "156ffc7a2e6f909356816212ec2c7e61fe5f9ebb",
+      "run": "https://github.com/infoganbatuah-ai/gan-batuach/actions/runs/35447522105",
+      "status": "PASS_ALL_SIX_AND_AGGREGATE"
+    }
   }
 }

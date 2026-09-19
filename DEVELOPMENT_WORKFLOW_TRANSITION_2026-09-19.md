@@ -48,7 +48,15 @@ At Product commit `4f38fe2b`, UI-only launcher bound `127.0.0.1:3000`. `/api/dev
 - Live Vercel Preview Branch Tracking disabled and persisted after reload; Production remains main. One Git-connected project observed; the two older deployment projects showed no repository connection; no deploy hooks.
 - Repository Vercel Git policy: `**: false`, `main: true`. No spend limit, plan, production env or domain changes.
 - After preservation pushes, unfiltered deployment listing still showed newest Ready main deployment from September 13, `7N3RZmP34J4MTGsXq8JHQiq7bgiu` at `8113d060`; the separate Error filter showed newest error September10. No new development deployment was visible. This is dashboard observation, not a billing guarantee or proof for future pushes.
-- Included usage displayed $20/$20 and $4.60 on-demand. No billable add-on activated. Ignored Build Step section was located but its saved value did not finish loading; not independently verified or changed. Preview prevention relies on the persisted environment setting and repository branch policy, not an assumed free canceled build.
+- Included usage displayed $20/$20 and $4.60 on-demand. No billable add-on activated. Final live settings read verified Ignored Build Step = **Only build production**, Basic build machine, on-demand concurrency disabled and Node24. None of those existing settings was changed. Preview prevention also relies on the persisted environment setting and repository branch policy, not an assumed free canceled build.
+
+## Final remote and local evidence
+
+- Remote integration `156ffc7a2e6f909356816212ec2c7e61fe5f9ebb` matched local; original feature history retained. [GitHub run 35447522105](https://github.com/infoganbatuah-ai/gan-batuach/actions/runs/35447522105) passed all six gates and the aggregate quality gate on that exact commit (Node22).
+- Earlier run `35447201645` at `8be94254` failed in event-outbox with expected2/actual3; this is distinct from the local initializer path failure. The subsequent full run passed without modifying event-outbox. Treat the earlier test intermittency as QA follow-up (owner: event-outbox/CI maintainer; review before release), not proof that an underlying timing cause was fixed.
+- Restart on `156ffc7a` succeeded despite only the exact Next-generated type-import diff. Version endpoint returned that exact SHA; alerts page returned200 with matching SHA and UI-only label. No uncommitted Product files remained in the integration worktree. The generated `next-env.d.ts` diff was deliberately not committed/reset.
+- Vercel was re-read after integration push: newest visible deployment remained September13 main `8113d060`; no new deployment appeared. Final inventory still found only the active camera owner's `ae0fc714` as a local-only branch commit; its blocked handoff remains explicit.
+- This final evidence update changes documentation/ledger only; the displayed server SHA must be refreshed after the final commit if it advances. Future release still requires fresh checks on its exact candidate.
 
 ## Exact next actions
 
