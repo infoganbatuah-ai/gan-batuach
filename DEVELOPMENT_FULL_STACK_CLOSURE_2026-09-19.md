@@ -37,6 +37,11 @@ that absent selected column; gateway IDs still come from canonical columns, no
 schema/grant change or secret field added. A regression test and synthetic
 authenticated REST query verify the contract. This is a real compatibility fix,
 not a suppressed warning; exact-head CI and post-integration smoke are required.
+Source fix: `2ec14dee31452a779dcd3b8f51a20cfc631937d3`, source branch preserved
+through PR #61 to development only. CI `35457530509` on earlier documentation
+head passed build/static/domain/migration/preflight but npm's audit endpoint
+returned HTTP 400; that run is FAILED, not a clean audit. Recheck the final head;
+never bypass or downgrade the dependency-security gate.
 
 - FULL STACK from `integration/development`, verified commit
   `0620ab40c497b0e98ee27df5fb118c1c5e41816b` (PR #60; baseline PR #59).
