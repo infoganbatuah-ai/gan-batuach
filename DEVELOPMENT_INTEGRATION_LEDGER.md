@@ -45,8 +45,13 @@ passed all 9 required checks and merged by ancestry at
 Management 228/228, domain 29/29, security 7/7, Parent/Manager contract 20/20,
 typecheck, lint, build, migration audit and release preflight passed on the
 isolated feature worktree. Both new migrations and synthetic RLS/receipt QA
-passed inside a rolled-back Development transaction. Ordered Development
-application and cumulative Product QA remain pending. No paid
+passed inside a rolled-back Development transaction. The ordered
+`20260920110000` and `20260920120000` migrations were applied only to
+the guarded synthetic Development database at approval commit `e27ca721`;
+the pre-migration archive is held privately with digest
+`fa1a880c03279502438950adbb1ffa2f30106d1069cf9103d72e6f40c9ac382d`.
+Post-migration synthetic RLS/receipt and separate-connection claim QA passed.
+Cumulative Product QA remains pending. No paid
 provider was activated, and Production/main remain unchanged.
 
 PUSH 38Q/R handoff (2026-09-19): `codex/push-38q-r2-auth` at

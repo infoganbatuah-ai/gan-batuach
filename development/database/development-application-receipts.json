@@ -1,7 +1,7 @@
 {
   "environment": "DEVELOPMENT / INTEGRATION",
-  "observedAt": "2026-09-19T20:27:42.812Z",
-  "integrationCommit": "04323b209a8c2694843d78e52e8906ad3540403c",
+  "observedAt": "2026-09-19T21:51:03.171544Z",
+  "integrationCommit": "e27ca721215d4de414b36f140e74d8e8b3b9722f",
   "migrations": [
     {
       "version": "20260919170000",
@@ -42,6 +42,22 @@
       "source_commit": "04323b209a8c2694843d78e52e8906ad3540403c",
       "applied_at": "2026-09-19T20:15:38.666705+00:00",
       "schema_fingerprint": "48df6f0c972f23aa66c47af3783bbede87c3ceb5692501f0e8927e9dae1aaa60"
+    },
+    {
+      "version": "20260920110000",
+      "filename": "supabase/migrations/20260920110000_management_email_first_verification.sql",
+      "source_digest": "9071ef0384719b6c8e39e74235c411603127d870bd480e214dbab664c6f0a2ba",
+      "source_commit": "e27ca721215d4de414b36f140e74d8e8b3b9722f",
+      "applied_at": "2026-09-19T21:50:49.840368+00:00",
+      "schema_fingerprint": "4947e75053f908796e31cbee7fc3abdb7868c7b5e19b5d522baef469e81a1778"
+    },
+    {
+      "version": "20260920120000",
+      "filename": "supabase/migrations/20260920120000_management_external_delivery.sql",
+      "source_digest": "a36b0cdd98e5df9287566e2f26d1979e056e12ad0a51be18b13463539e0fdc3a",
+      "source_commit": "e27ca721215d4de414b36f140e74d8e8b3b9722f",
+      "applied_at": "2026-09-19T21:51:03.171544+00:00",
+      "schema_fingerprint": "784d9838e667f69dbd424dcf9e7217821e1eab438cdcf94851df6045b715fa8e"
     }
   ],
   "productionAccess": false

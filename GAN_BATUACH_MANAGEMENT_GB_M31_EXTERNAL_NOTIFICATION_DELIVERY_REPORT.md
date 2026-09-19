@@ -42,7 +42,7 @@ Resend's signed webhook binds provider message ID to a pre-existing notification
 
 ## Retry / Concurrency
 
-The claim RPC uses `FOR UPDATE SKIP LOCKED`, a bounded 50-row batch, unique lease token and at most three attempts. A second worker cannot claim the same queued row. Explicit Resend 429/5xx responses may retry with bounded delay and the same idempotency key. In-flight rows with expired leases are **not** automatically retried because an unknown provider outcome could double-send; manual reconciliation is required. Separate-connection concurrency proof is still required after the ordered Development migration.
+The claim RPC uses `FOR UPDATE SKIP LOCKED`, a bounded 50-row batch, unique lease token and at most three attempts. A second worker cannot claim the same queued row. Explicit Resend 429/5xx responses may retry with bounded delay and the same idempotency key. In-flight rows with expired leases are **not** automatically retried because an unknown provider outcome could double-send; manual reconciliation is required. After the ordered Development migration, two separate synthetic database connections competed for one queued intent: exactly one claimed it, and the row remained `sending` with one attempt. The disposable fixture was deleted.
 
 ## Fallback Policy
 
@@ -98,4 +98,4 @@ Keep private content out of external payloads and secure documents/attachments i
 
 ## Development / Production Status
 
-Feature work is isolated on `codex/gb-m31-external-delivery`. Integration, PR checks and ordered Development migration remain to be recorded. `main` and Production are untouched. **DIGITAL OBSERVER CORE DIFF: 0**.
+Feature source is preserved on `codex/gb-m31-external-delivery` at `bf93be20dd859cae735dc35892429fc3788816a5`; PR #67 exact head `593d829de9f3a82168f3ec20f744a43002522002` passed 9/9 required checks and merged by ancestry into `integration/development` at `3556cb9a4282fdb9a28be889d4e60dc585eb8a8d`. A separate clean closure worktree preserved the Development-only migration approval at `e27ca721215d4de414b36f140e74d8e8b3b9722f`. Both reviewed migrations were applied in order to the guarded synthetic Development database, with receipt fingerprints `4947e75053f908796e31cbee7fc3abdb7868c7b5e19b5d522baef469e81a1778` and `784d9838e667f69dbd424dcf9e7217821e1eab438cdcf94851df6045b715fa8e`. RLS, service-only grants, indexes, synthetic receipt/replay and two-connection worker claim passed. The private pre-migration `pg_dump` archive is `/private/tmp/gb-m31-dev-pre-migration.dump`, SHA-256 `fa1a880c03279502438950adbb1ffa2f30106d1069cf9103d72e6f40c9ac382d`; archive listing was verified. Cumulative Product QA remains pending at this record point. `main` and Production are untouched. **DIGITAL OBSERVER CORE DIFF: 0**.
