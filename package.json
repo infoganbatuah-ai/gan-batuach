@@ -10,6 +10,9 @@
   },
   "scripts": {
     "dev": "next dev",
+    "dev:integration": "node scripts/development/start-integration.mjs",
+    "qa:integration-workflow": "node --test scripts/qa/check-integration-workflow.mjs",
+    "qa:integration-ledger": "node scripts/development/check-ledger.mjs",
     "build": "node scripts/validate-environment-safety.mjs && node scripts/prepare-next-build.mjs && next build && node scripts/cleanup-next-build-artifacts.mjs",
     "start": "next start",
     "lint": "eslint app components lib services",
