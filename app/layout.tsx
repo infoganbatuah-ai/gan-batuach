@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { DevelopmentIdentity } from "@/components/development-identity";
 import { AppMotionShell, MobilePublicTabs } from "@/components/app-motion-shell";
 import { DashboardLiveExperience } from "@/components/dashboard-live-experience";
 import "./globals.css";
@@ -47,6 +48,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="he" dir="rtl" data-scroll-behavior="smooth">
       <body>
+        <DevelopmentIdentity />
         <AppMotionShell>{children}</AppMotionShell>
         <DashboardLiveExperience />
         <MobilePublicTabs />

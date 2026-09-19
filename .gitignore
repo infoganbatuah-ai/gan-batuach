@@ -1,4 +1,6 @@
 node_modules/
+config/integration.local.env
+/worktrees/
 .next/
 .next*/
 .next-build-stale-*/
