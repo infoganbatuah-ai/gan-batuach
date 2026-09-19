@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
-  "observedAt": "2026-09-19T16:53:22.592Z",
+  "observedAt": "2026-09-19T17:12:08.503Z",
   "productionWriteAuthorized": false,
   "remoteHistoryStatus": "UNVERIFIED_READ_ONLY_RECONCILIATION_REQUIRED",
-  "localDatabaseStatus": "BASELINE_AND_INTEGRATED_MIGRATIONS_APPLIED",
+  "localDatabaseStatus": "READY_BASELINE_AND_INTEGRATED_MIGRATIONS_VERIFIED",
   "migrations": [
     {
       "file": "supabase/migrations/20260913211000_management_messaging_qa_hardening.sql",
@@ -7031,30 +7031,9 @@
       "recovery": "No Production application authorized; future Production history/upgrade check is separate; retained source and baseline support isolated rebuild"
     }
   ],
-  "developmentExpected": 227,
-  "developmentAppliedVerified": 0,
-  "blockers": [
-    {
-      "version": "20260523003000",
-      "reason": "CLI single transaction adds then uses enum owner; unsafe use of new enum value"
-    },
-    {
-      "version": "20260523012000",
-      "reason": "Invalid SQL token alter typeש"
-    },
-    {
-      "version": "20260612016600",
-      "reason": "Historical Vercel DPA fixture violates constrained status"
-    },
-    {
-      "version": "20260827000100",
-      "reason": "Invalid correlated LATERAL UPDATE reference"
-    },
-    {
-      "version": "20260902033000",
-      "reason": "Production-specific authorized camera scope guard fails on empty isolated database; do not fabricate live authorization"
-    }
-  ],
+  "developmentExpected": 228,
+  "developmentAppliedVerified": 228,
+  "blockers": [],
   "localObservations": [
     {
       "file": "supabase/migrations/20260523000000_initial_schema.sql",
@@ -12275,5 +12254,27 @@
     "provenance": "development/database/baselines/development-c0cf2de7-20260919-v1/provenance.json",
     "receipt": "development/database/baselines/development-c0cf2de7-20260919-v1/bootstrap-receipt.json",
     "historicalReplayClaim": false
-  }
+  },
+  "historicalReplayBlockers": [
+    {
+      "version": "20260523003000",
+      "reason": "CLI single transaction adds then uses enum owner; unsafe use of new enum value"
+    },
+    {
+      "version": "20260523012000",
+      "reason": "Invalid SQL token alter typeש"
+    },
+    {
+      "version": "20260612016600",
+      "reason": "Historical Vercel DPA fixture violates constrained status"
+    },
+    {
+      "version": "20260827000100",
+      "reason": "Invalid correlated LATERAL UPDATE reference"
+    },
+    {
+      "version": "20260902033000",
+      "reason": "Production-specific authorized camera scope guard fails on empty isolated database; do not fabricate live authorization"
+    }
+  ]
 }

@@ -14,6 +14,12 @@ for(const user of saved.users){
  if(login.error||login.data.user?.id!==user.id)throw Error('Local QA Auth login failed');
  const profile=await client.from('profiles').select('id,role').eq('id',user.id).single();
  if(profile.error||profile.data.id!==user.id||profile.data.role!==user.role)throw Error('Local QA own-profile REST read failed');
+ if(user.email==='observer-a@integration.qa.invalid'){
+  const columns=readFileSync('lib/domain/digital-observer/runtime.ts','utf8').match(/"legacy camera readiness"[^\n]+?\.select\("([^"]+)"\)/)?.[1];
+  if(!columns)throw Error('Legacy readiness query not found');
+  const readiness=await client.from('camera_streams').select(columns).eq('observer_site_id','00000000-0000-4000-8000-000000000e01').limit(1);
+  if(readiness.error)throw Error('Canonical legacy readiness query failed');
+ }
  results.push({role:user.role,syntheticIdentity:user.email.split('@')[0],auth:'PASS',rest:'PASS'});
  await client.auth.signOut();
 }
