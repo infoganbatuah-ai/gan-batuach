@@ -16,12 +16,15 @@ function load(file) {
 
 const contact = load("lib/management/contact-verification.ts");
 
-test("legacy accounts remain compatible while enrolled accounts require both contacts", () => {
+test("email verification activates enrolled accounts while phone-specific actions still require confirmed phone", () => {
   assert.equal(contact.managementContactVerification({ app_metadata: {} }, {}).complete, true);
   const base = { app_metadata: { contact_verification_required: true } };
   assert.equal(contact.managementContactVerification(base, {}).complete, false);
-  assert.equal(contact.managementContactVerification({ ...base, email_confirmed_at: "now" }, {}).complete, false);
+  assert.equal(contact.managementContactVerification({ ...base, email_confirmed_at: "now" }, {}).complete, true);
   assert.equal(contact.managementContactVerification({ ...base, email_confirmed_at: "now", phone_confirmed_at: "now" }, {}).complete, true);
+  assert.deepEqual(Array.from(contact.evaluateAccountVerification({ ...base, email_confirmed_at: "now" }, "verified_phone_action", {}).blockers), ["phone_verification_required"]);
+  assert.equal(contact.evaluateAccountVerification({ ...base, email_confirmed_at: "now", phone_confirmed_at: "now" }, "verified_phone_action", {}).allowed, true);
+  assert.deepEqual(Array.from(contact.evaluateAccountVerification({ ...base, email_confirmed_at: "now", phone_confirmed_at: "now" }, "high_assurance_action", {}).blockers), ["mfa_or_reauthentication_required"]);
 });
 
 test("Israeli mobile normalization accepts supported formats and rejects ambiguous values", () => {

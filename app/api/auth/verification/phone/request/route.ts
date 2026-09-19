@@ -16,7 +16,7 @@ export async function POST(request: Request) {
     const supabase = await createClient();
     const result = await supabase.auth.updateUser({ phone });
     if (result.error) return fail("לא ניתן לשלוח כרגע קוד אימות לטלפון.", 503);
-    return ok({ sent: true });
+    return ok({ accepted_by_auth: true, delivered: false });
   } catch (error) {
     return handleRouteError(error);
   }

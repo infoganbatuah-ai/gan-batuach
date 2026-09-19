@@ -81,7 +81,7 @@ export async function GET(request: NextRequest) {
   }
 
   const needsContactVerification = data.user.app_metadata?.contact_verification_required === true
-    && !data.user.phone_confirmed_at;
+    && !data.user.email_confirmed_at;
   const response = NextResponse.redirect(new URL(needsContactVerification ? "/app/verify-contact" : "/dashboard", request.url));
   response.cookies.delete("auth_callback_product");
   response.cookies.delete("auth_callback_flow");

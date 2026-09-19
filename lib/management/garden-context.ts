@@ -17,7 +17,7 @@ export async function getManagementGardenContext() {
     }
     const { profile } = session;
     if (!managementContactVerification(session.user, profile).complete) {
-      return { allowed: false as const, response: fail("יש להשלים אימות דוא״ל וטלפון לפני פעולה תפעולית.", 403) };
+      return { allowed: false as const, response: fail("יש להשלים אימות דוא״ל לפני פעולה תפעולית.", 403) };
     }
     if (!["manager", "owner"].includes(profile.role) || profile.active !== true) {
       return { allowed: false as const, response: fail("אין הרשאה לפעול בניהול הגן.", 403) };

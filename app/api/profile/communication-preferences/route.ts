@@ -2,6 +2,7 @@ import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { requireUser } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { managementDeliveryCapability } from "@/lib/management/external-delivery";
 
 const schema = z.object({
   receive_sms: z.boolean().optional(),
@@ -68,7 +69,7 @@ export async function GET() {
         parent_category_channels: defaultParentCategoryChannels()
       },
       push_category_preferences: pushCategoryPreferences,
-      delivery_capability: { in_app: "available", push: "not_configured", email: "not_configured", sms: "not_configured", whatsapp: "not_configured" }
+      delivery_capability: managementDeliveryCapability()
     });
   } catch (error) {
     return handleRouteError(error);

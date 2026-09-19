@@ -144,14 +144,23 @@ test("inactive profile is denied before lifecycle tables are queried", async () 
   assert.equal(f.calls.length, 0);
 });
 
-test("new accounts missing either verified contact are denied before lifecycle queries", async () => {
+test("new accounts missing verified email are denied before lifecycle queries", async () => {
   const f = await expectDenied({
     session: {
-      user: { id: actorId, app_metadata: { contact_verification_required: true }, email_confirmed_at: "2026-09-08T00:00:00Z", phone_confirmed_at: null },
+      user: { id: actorId, app_metadata: { contact_verification_required: true }, email_confirmed_at: null, phone_confirmed_at: "2026-09-08T00:00:00Z" },
       profile: { id: actorId, role: "staff", active: true, garden_id: gardenId, contact_verification_required: true }
     }
   }, ["staff"], 403, "contact_verification");
   assert.equal(f.calls.length, 0);
+});
+
+test("confirmed email without phone passes account verification but still needs active employment", async () => {
+  await expectDenied({
+    session: {
+      user: { id: actorId, app_metadata: { contact_verification_required: true }, email_confirmed_at: "2026-09-08T00:00:00Z", phone_confirmed_at: null },
+      profile: { id: actorId, role: "staff", active: true, garden_id: gardenId, contact_verification_required: true }
+    }
+  }, ["staff"], 403, "staff_employment");
 });
 
 test("unknown activation value is denied", async () => {
