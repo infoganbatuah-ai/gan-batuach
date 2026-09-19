@@ -1,6 +1,7 @@
 import assert from "node:assert/strict";
 import { createServer } from "node:http";
 import { once } from "node:events";
+import { readFileSync } from "node:fs";
 import { edgePlaybackOrigin, localPlaybackAllowed } from "../../lib/domain/digital-observer/edge-playback-origin.ts";
 import { createPlaybackIngress, playbackIngressAllows } from "../../services/video-gateway/playback-ingress.mjs";
 
@@ -14,6 +15,9 @@ assert.equal(edgePlaybackOrigin("22222222-2222-4222-8222-222222222222", map), nu
 assert.equal(localPlaybackAllowed("https://ganbatuach.com/view", "development"), false);
 assert.equal(localPlaybackAllowed("http://127.0.0.1:3100/view", "production"), false);
 assert.equal(localPlaybackAllowed("http://127.0.0.1:3100/view", "development"), true);
+const route = readFileSync("app/api/digital-observer/dvr-gateway/route.ts", "utf8");
+assert.match(route, /if \(!localPlaybackAllowed\(request\.url, process\.env\.NODE_ENV\)\)[\s\S]*?return fail\([\s\S]*?createDvrPlaybackSession/,
+  "legacy channel-only playback may escape to a remote viewer");
 
 const token = "a".repeat(32);
 assert.equal(playbackIngressAllows("POST", "/playback/claim"), true);
