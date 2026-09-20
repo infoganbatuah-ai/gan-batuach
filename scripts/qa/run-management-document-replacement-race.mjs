@@ -4,15 +4,14 @@ import assert from 'node:assert/strict';
 import { randomUUID } from 'node:crypto';
 import { spawn } from 'node:child_process';
 import { resolve } from 'node:path';
-import { readFileSync } from 'node:fs';
-import { parseEnv } from 'node:util';
 import { createClient } from '@supabase/supabase-js';
 import { assertLocalDatabase, config, sql } from '../development/local-database.mjs';
+import { localCredentials } from '../development/local-client.mjs';
 
 assertLocalDatabase();
-const local = parseEnv(readFileSync(new URL('../../config/integration.local.env', import.meta.url), 'utf8'));
-assert.ok(['127.0.0.1', 'localhost'].includes(new URL(local.NEXT_PUBLIC_SUPABASE_URL).hostname));
-const storage = createClient(local.NEXT_PUBLIC_SUPABASE_URL, local.SUPABASE_SERVICE_ROLE_KEY,
+const local = localCredentials();
+assert.ok(['127.0.0.1', 'localhost'].includes(new URL(local.url).hostname));
+const storage = createClient(local.url, local.service,
   { auth: { persistSession: false, autoRefreshToken: false } }).storage.from('documents');
 const garden = '00000000-0000-4000-8000-000000000601';
 const manager = '00000000-0000-4000-8000-000000000201';

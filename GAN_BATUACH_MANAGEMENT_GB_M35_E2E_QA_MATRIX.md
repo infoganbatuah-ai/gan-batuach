@@ -4,6 +4,8 @@ Observed 2026-09-20 in loopback-only `DEVELOPMENT / INTEGRATION`, source baselin
 
 **2026-09-20 continuation:** Integration advanced through PR #93 (nested-form hydration fix) and PR #94 (draft-Garden invitation authorization) to `6b920da5a423264aec7afea66595c94ddcd67f2f`. The Owner-only entry/save-resume/invitation browser probe is now **9/9 PASS** on exact fix head `7062da20fb01c9103f54a21648dc5cfab16978bf`; another-Garden and mismatched invitation IDs returned 403. PR #94 exact-head required checks were 9/9 green. This supersedes the older six-check count below. Full Owner activation and many other required journeys remain PARTIAL or NOT RUN; these are internal QA gaps, not `BLOCKED_EXTERNAL`. PR #86 must remain draft and unmerged until required journeys and final cumulative checks complete.
 
+Additional concurrency evidence on the isolated database: the GB-M30 duplicate/distinct notification fan-out race passed across separate connections with one delivery intent per dedupe key and sanitized message content; the GB-M32 replacement race passed across separate connections with one current version. Both are targeted domain proofs, not completion of the broader GB-M35 race matrix. The document harness used the guarded local credential source after its retired env-file path prevented the first run before mutation.
+
 | Journey | Role | Environment | Result | Defect | Severity | Fix PR | Retest | Remaining debt |
 |---|---|---|---|---|---|---|---|---|
 | Baseline local Auth, REST profile, RLS | 20 synthetic accounts | Local Development | PASS (20/20; baseline RLS script) | — | — | — | PASS | Extended domain RLS matrix |
