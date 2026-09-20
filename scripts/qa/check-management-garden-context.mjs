@@ -56,6 +56,23 @@ for (const role of ["manager", "owner"]) {
   });
 }
 
+test("owner: explicit onboarding Garden is authorized independently of the active Garden", async () => {
+  const f = fixture({ profile: { role: "owner" } });
+  const draftGardenId = "00000000-0000-4000-8000-000000000003";
+  const result = await f.guard.getManagementGardenContext(draftGardenId);
+  assert.equal(result.allowed, true);
+  assert.equal(result.gardenId, draftGardenId);
+  assert.deepEqual(f.calls, [{ name: "can_edit_garden_onboarding", garden: draftGardenId }]);
+});
+
+test("owner: unrelated explicit onboarding Garden is denied by the database", async () => {
+  const f = fixture({ profile: { role: "owner" }, decision: { data: false, error: null } });
+  const result = await f.guard.getManagementGardenContext("00000000-0000-4000-8000-000000000004");
+  assert.equal(result.allowed, false);
+  assert.equal(result.response.status, 403);
+  assert.deepEqual(f.calls, [{ name: "can_edit_garden_onboarding", garden: "00000000-0000-4000-8000-000000000004" }]);
+});
+
 const denials = [
   ["unauthenticated", { session: { user: null, profile: null } }, 401, 0],
   ["missing profile", { session: { user: { id: actorId }, profile: null } }, 401, 0],
