@@ -4,11 +4,6 @@ import { StaffAppFrame, StaffEmpty, StaffMetricCard, StaffPageHero, StaffSection
 import { requireOperationalRole } from "@/lib/management/operational-role";
 import { createClient } from "@/lib/supabase/server";
 
-function hours(start?: string | null, end?: string | null) {
-  if (!start || !end) return 0;
-  return Math.max(0, (new Date(end).getTime() - new Date(start).getTime()) / 36e5);
-}
-
 export default async function Page() {
   const { employment } = await requireOperationalRole(["staff"]);
   const supabase = await createClient();
@@ -24,9 +19,10 @@ export default async function Page() {
       </StaffAppFrame>
     );
   }
-  const shiftsRes = staff?.id ? await supabase.from("staff_shifts" as any).select("id, shift_date, planned_start, planned_end, actual_start, actual_end, status").eq("staff_id", staff.id).eq("garden_id", employment!.garden_id).order("shift_date", { ascending: false }).limit(60) : { data: [] };
+  const shiftsRes = staff?.id ? await supabase.from("staff_shifts" as any).select("id, shift_date, planned_start, planned_end, actual_start, actual_end, total_minutes, approved_at, status").eq("staff_id", staff.id).eq("garden_id", employment!.garden_id).order("shift_date", { ascending: false }).limit(60) : { data: [] };
   const rows = (shiftsRes.data ?? []) as any[];
-  const monthHours = rows.reduce((sum, row) => sum + hours(row.actual_start, row.actual_end), 0);
+  const monthKey = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Jerusalem", year: "numeric", month: "2-digit" }).format(new Date());
+  const monthHours = rows.filter((row) => row.shift_date.startsWith(monthKey)).reduce((sum, row) => sum + (row.actual_end ? Number(row.total_minutes ?? 0) / 60 : 0), 0);
   const lateCount = rows.filter((row) => row.status === "late").length;
   return (
     <StaffAppFrame active="shifts">
@@ -47,7 +43,7 @@ export default async function Page() {
                 title={new Date(row.shift_date).toLocaleDateString("he-IL")}
                 subtitle={`מתוכנן ${row.planned_start ?? "-"}-${row.planned_end ?? "-"}`}
                 meta={`בפועל ${row.actual_start ? new Date(row.actual_start).toLocaleTimeString("he-IL") : "-"}-${row.actual_end ? new Date(row.actual_end).toLocaleTimeString("he-IL") : "-"}`}
-                status={<StatusChip tone={row.status === "late" ? "warning" : "success"}>{hours(row.actual_start, row.actual_end).toFixed(1)} שעות</StatusChip>}
+                status={<StatusChip tone={row.actual_start && !row.actual_end ? "warning" : "success"}>{row.actual_start && !row.actual_end ? "חסרה החתמת יציאה" : `${(Number(row.total_minutes ?? 0) / 60).toFixed(1)} שעות`}</StatusChip>}
               />
             ))}
           </div>
