@@ -2,6 +2,10 @@
 
 Date: 2026-09-20. Branch: `codex/gb-m32-documents`. Development base: `3105b440383ea235abde76aa62f2727823fa31ee`. Production remains unchanged.
 
+## Development Integration
+
+PR #69 passed all nine required checks for exact feature commit `40b938fd317917fa702e82bae1702a26133b4792` and merged by ancestry into `integration/development` at `94d7376a191930481ff714b0bf9f4f004f78d04b`. The ordered migration is registered for **isolated Development only**. Persistent application, private HTTP/Storage E2E and cumulative Product QA remain pending at this handoff; this paragraph will be superseded by a verified receipt. No Production migration or deployment occurred.
+
 ## Before State
 
 The existing `public.documents` table represented Garden, Child and Staff documents, with a single `file_url` field. Some client panels persisted temporary signed URLs. A generic service-role upload route accepted the `documents` bucket and a client prefix. Existing RLS allowed uploader updates, creating a self-verification/tenant-mutation risk. Other domains already have dedicated evidence/attachment storage.
