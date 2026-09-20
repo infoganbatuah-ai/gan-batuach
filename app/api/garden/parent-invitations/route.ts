@@ -10,7 +10,7 @@ const schema = z.object({ full_name: z.string().trim().min(2), email: z.string()
 export async function POST(request: Request) {
   try {
     const requestedGardenId = typeof request.url === "string" ? new URL(request.url).searchParams.get("gardenId") : null;
-    const access = await getManagementGardenContext(requestedGardenId ?? undefined);
+    const access = await getManagementGardenContext(requestedGardenId ?? undefined, { allowPendingOnboarding: true });
     if (!access.allowed) return access.response;
     const { profile } = access.session;
     if (!profile.garden_id) return fail("לא נמצא גן משויך.", 422);

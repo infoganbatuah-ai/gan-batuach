@@ -73,6 +73,28 @@ test("owner: unrelated explicit onboarding Garden is denied by the database", as
   assert.deepEqual(f.calls, [{ name: "can_edit_garden_onboarding", garden: "00000000-0000-4000-8000-000000000004" }]);
 });
 
+test("pending manager: explicit onboarding invitation uses draft Garden authority only", async () => {
+  const f = fixture({ profile: { active: false, garden_id: null } });
+  const result = await f.guard.getManagementGardenContext(gardenId, { allowPendingOnboarding: true });
+  assert.equal(result.allowed, true);
+  assert.equal(result.gardenId, gardenId);
+  assert.deepEqual(f.calls, [{ name: "can_edit_garden_onboarding", garden: gardenId }]);
+});
+
+test("pending manager: unrelated draft Garden is denied", async () => {
+  const f = fixture({ profile: { active: false, garden_id: null }, decision: { data: false, error: null } });
+  const result = await f.guard.getManagementGardenContext(gardenId, { allowPendingOnboarding: true });
+  assert.equal(result.allowed, false);
+  assert.equal(result.response.status, 403);
+});
+
+test("pending manager: ordinary operations remain denied", async () => {
+  const f = fixture({ profile: { active: false, garden_id: null } });
+  const result = await f.guard.getManagementGardenContext(gardenId);
+  assert.equal(result.allowed, false);
+  assert.equal(f.calls.length, 0);
+});
+
 const denials = [
   ["unauthenticated", { session: { user: null, profile: null } }, 401, 0],
   ["missing profile", { session: { user: { id: actorId }, profile: null } }, 401, 0],
