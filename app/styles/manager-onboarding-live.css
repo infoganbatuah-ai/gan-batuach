@@ -130,7 +130,7 @@
 .manager-invite-summary > span { display: grid; place-items: center; width: 46px; height: 46px; color: #6554f2; background: #efedff; border-radius: 8px; }
 .manager-invite-summary h3, .manager-invite-summary p { margin: 0; }
 .manager-invite-summary p { color: #6d7898; }
-.manager-parent-invitation-panel form { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)) auto; align-items: end; gap: 12px; }
+.manager-parent-invitation-fields { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)) auto; align-items: end; gap: 12px; }
 .manager-invite-channel-state { display: flex; align-items: center; gap: 8px; margin-top: 15px; color: #697699; font-size: .88rem; }
 .manager-parent-invitation-panel .success-banner, .manager-parent-invitation-panel .error-banner { display: flex; align-items: flex-start; gap: 8px; }
 .manager-optional-setup { display: grid; gap: 12px; padding: 22px; background: #fff; border: 1px solid #e0e5f1; border-radius: 8px; }
@@ -167,8 +167,8 @@
   .manager-stage-grid, .manager-payment-layout { grid-template-columns: 1fr; }
   .manager-stage-grid .manager-docs-card, .manager-payment-methods { grid-column: auto; }
   .manager-staff-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .manager-parent-invitation-panel form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .manager-parent-invitation-panel form button { width: 100%; }
+  .manager-parent-invitation-fields { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .manager-parent-invitation-fields button { width: 100%; }
 }
 
 @media (max-width: 720px) {
@@ -185,7 +185,7 @@
   .manager-progress-value { width: 100%; }
   .manager-registration-card { padding: 18px; }
   .manager-document-checks { grid-template-columns: 1fr; }
-  .manager-staff-summary, .manager-parent-invitation-panel form { grid-template-columns: 1fr; }
+  .manager-staff-summary, .manager-parent-invitation-fields { grid-template-columns: 1fr; }
   .manager-wizard-actions { inset-block-end: calc(72px + env(safe-area-inset-bottom)); }
   .manager-wizard-actions .button { flex: 1 1 calc(50% - 8px); min-width: 0; }
   .manager-wizard-actions .primary { flex-basis: 100%; order: -1; }
