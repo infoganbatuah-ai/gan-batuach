@@ -24,10 +24,11 @@ export function ManagerParentInvitationPanel({ gardenId }: { gardenId: string })
     setMessage("");
     setSuccess(false);
     try {
-      const response = await fetch("/api/garden/parent-invitations", {
+      const response = await fetch(`/api/garden/parent-invitations?gardenId=${encodeURIComponent(gardenId)}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          garden_id: gardenId,
           full_name: fullName,
           email,
           phone: input("invite_phone")?.value.trim() ?? "",
