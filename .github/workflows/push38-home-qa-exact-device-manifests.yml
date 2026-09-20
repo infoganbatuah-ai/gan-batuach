@@ -8,7 +8,7 @@ on:
 
 permissions: {}
 concurrency:
-  group: push38-home-qa-exact-device-manifests
+  group: push38-home-qa-health-corrected-exact-device-manifests
   cancel-in-progress: false
 
 jobs:
@@ -23,11 +23,11 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          ref: 0e12c24a365ad8ed5fc4ddcefdef7ea1791f3794
+          ref: b47c09c21fd3ea9a9d7e24b13e423e628a1413c4
           persist-credentials: false
       - name: Require the reviewed qualification candidate
         env:
-          PUSH38_CANDIDATE_SHA: 0e12c24a365ad8ed5fc4ddcefdef7ea1791f3794
+          PUSH38_CANDIDATE_SHA: b47c09c21fd3ea9a9d7e24b13e423e628a1413c4
         run: test "$(git rev-parse HEAD)" = "$PUSH38_CANDIDATE_SHA"
       - name: Verify exact-device issuance contract
         run: |
@@ -49,7 +49,7 @@ jobs:
           SIGNER_KEY_ARN: ${{ vars.AWS_KEY_ARN }}
           SIGNER_KEY_ID: ${{ vars.SIGNER_KEY_ID }}
           SIGNER_PUBLIC_KEY_SHA256: ${{ vars.SIGNER_PUBLIC_KEY_SHA256 }}
-          PUSH38_CANDIDATE_SHA: 0e12c24a365ad8ed5fc4ddcefdef7ea1791f3794
+          PUSH38_CANDIDATE_SHA: b47c09c21fd3ea9a9d7e24b13e423e628a1413c4
           HOME_QA_R2_ORIGIN: https://693f824a750afcc264fe6ee58c8a86ab.r2.cloudflarestorage.com
           HOME_QA_OUTPUT_DIR: ${{ runner.temp }}/push38-homeqa-exact-device-manifests
         run: node scripts/release/issue-push38-home-qa-manifests.mjs
