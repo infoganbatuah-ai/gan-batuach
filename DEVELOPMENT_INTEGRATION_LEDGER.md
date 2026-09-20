@@ -181,3 +181,15 @@ Garden attendance/release anonymous mutations were 401, and Parent pickup
 contact management redirected anonymously to `/login` without mutation.
 Controlled live-role QA remains open. Production migration, `main`, and
 deployment are unchanged.
+
+GB-M34 feature integration (2026-09-20): PR #81 merged by ancestry at
+`9fe30d6a82c8111542bf16002910aa77a14bb914` after nine exact-head checks
+passed on `0acb70a8428d82c38dd7b61805d33cb9a298dfa7`. Both source commits
+remain on remote `codex/gb-m34-staff-time`. The forward migration
+`20260920150000_management_staff_time_ledger.sql` passed rollback-only
+synthetic Staff/Manager/Inspector/Admin RLS and ledger QA, an applied-schema
+check in a disposable clone, and separate-connection clock/correction races.
+It is approved for **isolated Development only** after a pre-apply backup and
+read-only duplicate-open-session check. The migration and cumulative Product
+QA are pending this approval record. Production, `main`, and customer time
+records are unchanged; live Staff/Manager browser QA remains open for GB-M35/40.

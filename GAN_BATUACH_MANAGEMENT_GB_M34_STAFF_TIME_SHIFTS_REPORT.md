@@ -121,3 +121,7 @@ GB-M21–M33 role/provider/hardware/Production-like browser and retention/recove
 ## Inputs For GB-M35
 
 Use employment-scoped planned and actual time, approval state, missing-exit blockers, rate-version snapshot and immutable correction events. Do not treat operational cost as salary or Digital Observer observations as Staff clock truth. `DIGITAL OBSERVER CORE DIFF: 0`.
+
+## Development Integration Handoff
+
+PR #81 passed all nine exact-head required checks on `0acb70a8428d82c38dd7b61805d33cb9a298dfa7` and merged by ancestry into `integration/development` at `9fe30d6a82c8111542bf16002910aa77a14bb914`. The source branch and both feature commits remain remote. The ordered GB-M34 migration is approved in the Development ledger for isolated application after backup and preflight; it is not yet applied at this report revision. Cumulative Product QA and local health follow application. Production and `main` remain unchanged.

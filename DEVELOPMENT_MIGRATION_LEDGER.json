@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
-  "observedAt": "2026-09-20T02:05:42.757Z",
+  "observedAt": "2026-09-20T03:23:41Z",
   "productionWriteAuthorized": false,
   "remoteHistoryStatus": "UNVERIFIED_READ_ONLY_RECONCILIATION_REQUIRED",
-  "localDatabaseStatus": "BASELINE_AND_INTEGRATED_MIGRATIONS_APPLIED",
+  "localDatabaseStatus": "GB_M34_REVIEWED_MIGRATION_PENDING_ISOLATED_DEVELOPMENT_APPLY",
   "migrations": [
     {
       "file": "supabase/migrations/20260919190000_edge_home_qa_channel.sql",
@@ -7228,9 +7228,37 @@
       "developmentHistoryDigest": "f2b2faa58529493724bfc2054423cb006bef175862b77c9eca4d47d998a2dc4b",
       "developmentSchemaFingerprint": "8122836e01001d39663c7298b3ccf2e58c69b4dbad9f592787a4b40534e7eaff",
       "developmentStatusReason": "Original post-baseline SQL applied after remote integration; Production status unchanged"
+    },
+    {
+      "file": "supabase/migrations/20260920150000_management_staff_time_ledger.sql",
+      "blob": "83c720af52cc9cc48447d41d49b85660633ec57b",
+      "version": "20260920150000",
+      "sourceTask": "GB-M34",
+      "sourceCommit": "0acb70a8428d82c38dd7b61805d33cb9a298dfa7",
+      "sourceHead": "0acb70a8428d82c38dd7b61805d33cb9a298dfa7",
+      "remoteBranch": "origin/codex/gb-m34-staff-time",
+      "integrationCommit": "9fe30d6a82c8111542bf16002910aa77a14bb914",
+      "inGit": true,
+      "inIntegration": true,
+      "inclusion": "INTEGRATED_DEVELOPMENT",
+      "releaseOrder": "20260920150000",
+      "requiredPredecessor": "20260920140000_management_child_attendance_pickup.sql",
+      "dependencyStatus": "GB_M33_DEVELOPMENT_APPLIED",
+      "developmentApproval": "VALIDATED_FOR_ISOLATED_DEVELOPMENT",
+      "developmentDependsOn": ["20260920140000"],
+      "developmentApplied": "NO",
+      "developmentAppliedAt": null,
+      "developmentEvidence": null,
+      "productionApplied": "UNVERIFIED",
+      "productionEvidence": null,
+      "recovery": "Forward-only Staff shift extension, rate/correction tables and RLS/RPC narrowing preserve historical rows. Confirm no duplicate open profile sessions, take and test isolated Development backup, and use guarded lock/statement timeout before apply. Production history, cost headroom and backup/restore require separate owner release review; no Production apply authorized.",
+      "developmentApprovalEvidence": "PR #81 exact head 0acb70a8428d82c38dd7b61805d33cb9a298dfa7 required checks 9/9 PASS; ancestry merge 9fe30d6a82c8111542bf16002910aa77a14bb914; rollback-only synthetic RLS/ledger matrix PASS on isolated Development and applied disposable clone; separate-connection clock/correction races PASS.",
+      "developmentHistoryDigest": null,
+      "developmentSchemaFingerprint": null,
+      "developmentStatusReason": "Awaiting reviewed guarded apply to isolated Development only; Production unchanged"
     }
   ],
-  "developmentExpected": 236,
+  "developmentExpected": 237,
   "developmentAppliedVerified": 236,
   "blockers": [],
   "localObservations": [
