@@ -9,7 +9,10 @@ import { managementContactVerification } from "@/lib/management/contact-verifica
  * Delegate to the same database authority used by RLS, using the actor's
  * session (never a service-role client). Keep target-record checks in callers.
  */
-export async function getManagementGardenContext(targetGardenId?: string) {
+export async function getManagementGardenContext(
+  targetGardenId?: string,
+  options?: { allowPendingOnboarding?: boolean }
+) {
   try {
     const session = await getSessionProfile();
     if (!session.user || !session.profile || session.user.id !== session.profile.id) {
@@ -19,7 +22,8 @@ export async function getManagementGardenContext(targetGardenId?: string) {
     if (!managementContactVerification(session.user, profile).complete) {
       return { allowed: false as const, response: fail("יש להשלים אימות דוא״ל לפני פעולה תפעולית.", 403) };
     }
-    if (!["manager", "owner"].includes(profile.role) || profile.active !== true) {
+    if (!["manager", "owner"].includes(profile.role) ||
+      (profile.active !== true && !(options?.allowPendingOnboarding === true && targetGardenId))) {
       return { allowed: false as const, response: fail("אין הרשאה לפעול בניהול הגן.", 403) };
     }
     if (typeof targetGardenId === "string" && targetGardenId) {
