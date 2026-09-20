@@ -63,6 +63,22 @@ export default async function KindergartenOnboardingPage({ searchParams }: { sea
   const sessionClient = await createClient();
   const targetGardenId = query.gardenId ?? (query.new === "1" ? null : profile.garden_id);
   const supabase = isAdminClientConfigured() ? createAdminClient() : sessionClient;
+  if (!targetGardenId && query.new !== "1" && isAdminClientConfigured()) {
+    const draft = await supabase.from("kindergarten_onboarding_records" as never)
+      .select("garden_id")
+      .eq("manager_id", profile.id)
+      .in("lifecycle_status", ["registration_pending", "credentials_sent", "activation_in_progress", "onboarding_in_progress", "correction_required"])
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (draft.error) throw new Error("Unable to resolve Garden onboarding draft");
+    if (draft.data?.garden_id) {
+      const authority = await sessionClient.rpc("can_edit_garden_onboarding" as never, { target_garden_id: draft.data.garden_id } as never);
+      if (authority.data === true && !authority.error) {
+        redirect(`/onboarding/kindergarten?gardenId=${draft.data.garden_id}`);
+      }
+    }
+  }
   if (!targetGardenId) {
     return (
       <KindergartenOnboardingShell
