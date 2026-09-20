@@ -121,4 +121,3 @@ begin
   values(auth.uid(),public.current_role(),target_garden_id,'gardens',target_garden_id,'tuition_due_day_changed',jsonb_build_object('day',requested_day));
   return requested_day;
 end $$;
-
