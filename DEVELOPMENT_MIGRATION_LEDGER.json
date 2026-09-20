@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "observedAt": "2026-09-19T20:27:31.718Z",
+  "observedAt": "2026-09-20T00:03:41.407Z",
   "productionWriteAuthorized": false,
   "remoteHistoryStatus": "UNVERIFIED_READ_ONLY_RECONCILIATION_REQUIRED",
   "localDatabaseStatus": "BASELINE_AND_INTEGRATED_MIGRATIONS_APPLIED",
@@ -7117,7 +7117,7 @@
       "sourceCommit": "bf93be20dd859cae735dc35892429fc3788816a5",
       "sourceHead": "bf93be20dd859cae735dc35892429fc3788816a5",
       "remoteBranch": "origin/codex/gb-m31-external-delivery",
-      "integrationCommit": "3556cb9a4282fdb9a28be889d4e60dc585eb8a8d",
+      "integrationCommit": "e27ca721215d4de414b36f140e74d8e8b3b9722f",
       "inGit": true,
       "inIntegration": true,
       "inclusion": "INTEGRATED_DEVELOPMENT",
@@ -7125,7 +7125,9 @@
       "requiredPredecessor": "20260919180000_management_notification_pipeline.sql",
       "dependencyStatus": "GB_M30_DEVELOPMENT_APPLIED",
       "developmentApproval": "VALIDATED_FOR_ISOLATED_DEVELOPMENT",
-      "developmentDependsOn": ["20260919180000"],
+      "developmentDependsOn": [
+        "20260919180000"
+      ],
       "developmentApplied": "YES",
       "developmentAppliedAt": "2026-09-19T21:50:49.840368+00:00",
       "developmentEvidence": "development/database/development-application-receipts.json",
@@ -7135,7 +7137,7 @@
       "developmentApprovalEvidence": "PR #67 exact head 593d829de9f3a82168f3ec20f744a43002522002 required checks 9/9 PASS; ancestry merge 3556cb9a; rollback-only synthetic SQL/RLS PASS; guarded DEVELOPMENT target gan-batuach-integration verified. Synthetic pre-migration pg_dump archive /private/tmp/gb-m31-dev-pre-migration.dump, SHA-256 fa1a880c03279502438950adbb1ffa2f30106d1069cf9103d72e6f40c9ac382d; pg_restore listing verified. No Production access.",
       "developmentHistoryDigest": "9071ef0384719b6c8e39e74235c411603127d870bd480e214dbab664c6f0a2ba",
       "developmentSchemaFingerprint": "4947e75053f908796e31cbee7fc3abdb7868c7b5e19b5d522baef469e81a1778",
-      "developmentStatusReason": "Original reviewed migration applied only to guarded isolated Development; Production unchanged"
+      "developmentStatusReason": "Original post-baseline SQL applied after remote integration; Production status unchanged"
     },
     {
       "file": "supabase/migrations/20260920120000_management_external_delivery.sql",
@@ -7145,7 +7147,7 @@
       "sourceCommit": "bf93be20dd859cae735dc35892429fc3788816a5",
       "sourceHead": "bf93be20dd859cae735dc35892429fc3788816a5",
       "remoteBranch": "origin/codex/gb-m31-external-delivery",
-      "integrationCommit": "3556cb9a4282fdb9a28be889d4e60dc585eb8a8d",
+      "integrationCommit": "e27ca721215d4de414b36f140e74d8e8b3b9722f",
       "inGit": true,
       "inIntegration": true,
       "inclusion": "INTEGRATED_DEVELOPMENT",
@@ -7153,7 +7155,9 @@
       "requiredPredecessor": "20260920110000_management_email_first_verification.sql",
       "dependencyStatus": "GB_M31_EMAIL_POLICY_ORDERED",
       "developmentApproval": "VALIDATED_FOR_ISOLATED_DEVELOPMENT",
-      "developmentDependsOn": ["20260920110000"],
+      "developmentDependsOn": [
+        "20260920110000"
+      ],
       "developmentApplied": "YES",
       "developmentAppliedAt": "2026-09-19T21:51:03.171544+00:00",
       "developmentEvidence": "development/database/development-application-receipts.json",
@@ -7163,7 +7167,7 @@
       "developmentApprovalEvidence": "PR #67 exact head 593d829de9f3a82168f3ec20f744a43002522002 required checks 9/9 PASS; ancestry merge 3556cb9a; rollback-only synthetic SQL/RLS PASS; guarded DEVELOPMENT target gan-batuach-integration verified. Synthetic pre-migration pg_dump archive /private/tmp/gb-m31-dev-pre-migration.dump, SHA-256 fa1a880c03279502438950adbb1ffa2f30106d1069cf9103d72e6f40c9ac382d; pg_restore listing verified. No Production access.",
       "developmentHistoryDigest": "a36b0cdd98e5df9287566e2f26d1979e056e12ad0a51be18b13463539e0fdc3a",
       "developmentSchemaFingerprint": "784d9838e667f69dbd424dcf9e7217821e1eab438cdcf94851df6045b715fa8e",
-      "developmentStatusReason": "Original reviewed migration applied only to guarded isolated Development; Production unchanged"
+      "developmentStatusReason": "Original post-baseline SQL applied after remote integration; Production status unchanged"
     },
     {
       "file": "supabase/migrations/20260920130000_management_private_documents.sql",
@@ -7173,7 +7177,7 @@
       "sourceCommit": "40b938fd317917fa702e82bae1702a26133b4792",
       "sourceHead": "40b938fd317917fa702e82bae1702a26133b4792",
       "remoteBranch": "origin/codex/gb-m32-documents",
-      "integrationCommit": "94d7376a191930481ff714b0bf9f4f004f78d04b",
+      "integrationCommit": "950f64483f2bc475da0329a7955532cfb2cf4429",
       "inGit": true,
       "inIntegration": true,
       "inclusion": "INTEGRATED_DEVELOPMENT",
@@ -7181,21 +7185,23 @@
       "requiredPredecessor": "20260920120000_management_external_delivery.sql",
       "dependencyStatus": "GB_M31_DEVELOPMENT_APPLIED",
       "developmentApproval": "VALIDATED_FOR_ISOLATED_DEVELOPMENT",
-      "developmentDependsOn": ["20260920120000"],
-      "developmentApplied": "NO",
-      "developmentAppliedAt": null,
-      "developmentEvidence": null,
+      "developmentDependsOn": [
+        "20260920120000"
+      ],
+      "developmentApplied": "YES",
+      "developmentAppliedAt": "2026-09-20T00:02:48.007701+00:00",
+      "developmentEvidence": "development/database/development-application-receipts.json",
       "productionApplied": "UNVERIFIED",
       "productionEvidence": null,
       "recovery": "Forward-only table extension, strict storage policy and guarded RPCs; legacy rows retained. Constraint validation and retention FK locks require isolated backup, lock-timeout review and a tested restore before any Production release. No Production application is authorized.",
       "developmentApprovalEvidence": "PR #69 exact head 40b938fd317917fa702e82bae1702a26133b4792 required checks 9/9 PASS; ancestry merge 94d7376a191930481ff714b0bf9f4f004f78d04b; rollback-only synthetic SQL/RLS PASS on guarded isolated Development Postgres. Local pre-apply backup required.",
-      "developmentHistoryDigest": null,
-      "developmentSchemaFingerprint": null,
-      "developmentStatusReason": "Awaiting ordered application to isolated Development; Production unchanged"
+      "developmentHistoryDigest": "e733a39d92bdfd9d95bf10a9bd2dc9b98500e38bcfdb20640579d25d0d705725",
+      "developmentSchemaFingerprint": "80831b96f07af3e5f5e34e8b5497f776d05ce2af83ac26a11e0b9a8f5344359f",
+      "developmentStatusReason": "Original post-baseline SQL applied after remote integration; Production status unchanged"
     }
   ],
   "developmentExpected": 235,
-  "developmentAppliedVerified": 234,
+  "developmentAppliedVerified": 235,
   "blockers": [],
   "localObservations": [
     {
