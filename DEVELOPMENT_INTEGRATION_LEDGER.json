@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-09-20T03:23:41Z",
+  "updatedAt": "2026-09-20T06:26:38Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -8725,6 +8725,25 @@
       "releaseEligibility": "NOT_READY_PENDING_LIVE_QA_RECOVERY_COST_AND_EXPLICIT_OWNER_RELEASE",
       "productionDeployment": {"status": "NOT_DEPLOYED"},
       "nextAction": "Preserve Development migration receipt and cumulative QA in a scoped PR/remote integration commit. Carry controlled live Staff/Manager browser QA to GB-M35/40; require separate owner authorization, recovery and all-in cost review before any Production release."
+    },
+    {
+      "id": "codex/gb-m35-role-e2e-qa",
+      "project": "Gan Batuach Management",
+      "title": "GB-M35 controlled role E2E QA closure",
+      "owner": "GB-M35 QA owner",
+      "sourceBranch": "codex/gb-m35-role-e2e-qa",
+      "sourceCommits": ["f9b7466b4d6c3d5b7c974b337919287d17315e92", "40071188778f651e97c6cc7cd06e3bc9a29515d3", "2fad28a68c71c134e23eabf6af4962c299475d2f"],
+      "state": "BLOCKED",
+      "preservation": {"remoteVerified": true, "remoteRefs": ["origin/codex/gb-m35-role-e2e-qa"], "validatedSourceCommit": "2fad28a68c71c134e23eabf6af4962c299475d2f"},
+      "validation": {"status": "PARTIAL_SYNTHETIC_ROLE_API_BROWSER_AND_PRIVATE_STORAGE", "evidence": ["GAN_BATUACH_MANAGEMENT_GB_M35_E2E_QA_MATRIX.md", "GAN_BATUACH_MANAGEMENT_GB_M35_FULL_ROLE_E2E_REPORT.md", "development/database/gb-m35-role-qa-summary.json", "https://github.com/infoganbatuah-ai/gan-batuach/pull/86"], "limits": "Full GB-M21–M34 browser-role journeys and separate-connection races remain open. PR #86 is draft and must not be merged as GB-M35 PASS. No new migration or Production operation."},
+      "integration": {"status": "PENDING_DEVELOPMENT", "pullRequest": 86, "commit": null},
+      "dependencies": {"status": "GB_M34_LOCAL_VERIFIED", "units": ["codex/gb-m34-staff-time"]},
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "PARTIAL_20_SYNTHETIC_IDENTITIES_237_OF_237_MIGRATIONS_ROLE_API_BROWSER_AND_PRIVATE_STORAGE",
+      "releaseEligibility": "NOT_READY_GB_M35_E2E_QA_INCOMPLETE",
+      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "nextAction": "Complete the open journeys and concurrency/IDOR matrix with synthetic identities, fix any P0/P1 through scoped PRs, rerun exact-head checks, then update this ledger and integrate the validated QA unit. Do not begin GB-M36 or release Production."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
