@@ -50,6 +50,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
     actionContext = { ...actionContext, previous_status: lead.status };
 
     const normalizedEmail = normalizeOptionalEmail(payload.email || lead.email);
+    if (!normalizedEmail) return fail("נדרש דוא״ל הורה כדי לשלוח הזמנה מאובטחת.", 422);
     const parentIdentityNumber = String(payload.identity_number || lead.parent_identity_number || "").replace(/\D/g, "");
     const childIdentityNumber = String(payload.child_identity_number || lead.child_identity_number || "").replace(/\D/g, "");
     if (childIdentityNumber) {
@@ -60,7 +61,7 @@ export async function POST(request: Request, context: { params: Promise<{ id: st
       if ((existingChild.count ?? 0) + (existingFile.count ?? 0) > 0) return fail("ילד עם תעודת זהות זו כבר קיים במערכת. יש להתחבר לחשבון ההורה הקיים ולהגיש בקשת שיוך/מעבר לגן.", 409, { field: "child_identity_number" });
     }
     let parentUserId: string | null = null;
-    let credentials = null as null | { username: string; email: string; temporary_password: string };
+    let credentials = null as null | { username: string; email: string };
 
     if (normalizedEmail) {
       const { data: existingProfile } = await admin.from("profiles" as any).select("id, role, garden_id, email, username").or(`email.eq.${normalizedEmail},username.eq.${normalizedEmail}`).maybeSingle();
