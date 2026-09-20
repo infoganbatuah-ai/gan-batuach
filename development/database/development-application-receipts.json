@@ -1,7 +1,7 @@
 {
   "environment": "DEVELOPMENT / INTEGRATION",
-  "observedAt": "2026-09-20T07:20:31.211Z",
-  "integrationCommit": "0a857f4d007297447f82f8ac7ab9b91b1679b5e4",
+  "observedAt": "2026-09-20T15:44:35.654Z",
+  "integrationCommit": "e7ba4b227c0eaeac61da08a68f417488c66b7fdc",
   "migrations": [
     {
       "version": "20260919170000",
@@ -90,6 +90,14 @@
       "source_commit": "0a857f4d007297447f82f8ac7ab9b91b1679b5e4",
       "applied_at": "2026-09-20T07:17:48.247747+00:00",
       "schema_fingerprint": "c13f9902ec6ddfce8523262754c722c8a5a265716e68edd830632898387dea42"
+    },
+    {
+      "version": "20260920170000",
+      "filename": "supabase/migrations/20260920170000_retire_generated_plaintext_credentials.sql",
+      "source_digest": "3ec638213ee2eaca52a2f93016f9ad2a225e33d851a73c1fa345086e3ef3c38b",
+      "source_commit": "e7ba4b227c0eaeac61da08a68f417488c66b7fdc",
+      "applied_at": "2026-09-20T15:46:37.131742+00:00",
+      "schema_fingerprint": "820ceaa3c1d0ab198a8b58a6a4b633518f36d1a597083b407b9e4770a53ed075"
     }
   ],
   "productionAccess": false

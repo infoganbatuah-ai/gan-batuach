@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
-  "observedAt": "2026-09-20T15:18:46.381Z",
+  "observedAt": "2026-09-20T15:44:15.715Z",
   "productionWriteAuthorized": false,
   "remoteHistoryStatus": "UNVERIFIED_READ_ONLY_RECONCILIATION_REQUIRED",
-  "localDatabaseStatus": "PENDING_REVIEWED_MIGRATION_20260920170000",
+  "localDatabaseStatus": "BASELINE_AND_INTEGRATED_MIGRATIONS_APPLIED",
   "migrations": [
     {
       "file": "supabase/migrations/20260919190000_edge_home_qa_channel.sql",
@@ -7297,7 +7297,7 @@
       "sourceCommit": "f97819e520dbffd4e4b75e7238da314f3b8cb7f3",
       "sourceHead": "f97819e520dbffd4e4b75e7238da314f3b8cb7f3",
       "remoteBranch": "origin/codex/gb-m35-retire-plaintext-credentials",
-      "integrationCommit": "f83eb1bb781c050019ff6c7e877f946276aecf23",
+      "integrationCommit": "e7ba4b227c0eaeac61da08a68f417488c66b7fdc",
       "inGit": true,
       "inIntegration": true,
       "inclusion": "INTEGRATED_DEVELOPMENT",
@@ -7308,18 +7308,20 @@
       "developmentDependsOn": [
         "20260920160000"
       ],
-      "developmentApplied": "NO",
-      "developmentAppliedAt": null,
-      "developmentEvidence": null,
+      "developmentApplied": "YES",
+      "developmentAppliedAt": "2026-09-20T15:46:37.131742+00:00",
+      "developmentEvidence": "development/database/development-application-receipts.json",
       "productionApplied": "UNVERIFIED",
       "productionEvidence": null,
       "recovery": "Forward-only drop of recoverable plaintext credential column; preserve Auth accounts/hashes and non-secret metadata. Apply only after verified backup/recovery; old backups require retention/security review before Production release.",
       "developmentApprovalEvidence": "PR #98 exact source head: 9/9 required CI PASS; isolated disposable Auth clone migration plus synthetic invitation/email confirmation and security negatives PASS; migration audit 239/239; no Production write.",
-      "developmentStatusReason": "Reviewed and integrated; canonical isolated Development application pending."
+      "developmentStatusReason": "Original post-baseline SQL applied after remote integration; Production status unchanged",
+      "developmentHistoryDigest": "3ec638213ee2eaca52a2f93016f9ad2a225e33d851a73c1fa345086e3ef3c38b",
+      "developmentSchemaFingerprint": "820ceaa3c1d0ab198a8b58a6a4b633518f36d1a597083b407b9e4770a53ed075"
     }
   ],
   "developmentExpected": 239,
-  "developmentAppliedVerified": 238,
+  "developmentAppliedVerified": 239,
   "blockers": [],
   "localObservations": [
     {
