@@ -113,6 +113,11 @@ for (const route of routes) {
       deps["next/server"] = { NextResponse: Response };
       deps["@/lib/api"] = { ...api, handleRouteError: forbidden, ok: forbidden };
       deps["@/lib/management/garden-context"] = f.guard;
+      // GB-M33 pickup uses the activated Staff/Manager operational guard.
+      // Exercise the same fail-closed denial matrix for either guard.
+      deps["@/lib/management/operational-role"] = {
+        getOperationalRoleContext: f.guard.getManagementGardenContext
+      };
       deps["@/lib/onboarding/user-provisioning"] = new Proxy({ provisionedUserSchema: require("zod").z.object({}) }, {
         get: (target, key) => target[key] ?? forbidden
       });
