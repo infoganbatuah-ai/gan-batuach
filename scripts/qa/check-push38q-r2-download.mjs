@@ -11,6 +11,10 @@ const postHandler = authorizationRoute.slice(authorizationRoute.indexOf("export 
 assert.ok(postHandler.indexOf("verifyGatewayDeviceAccessToken(") >= 0 &&
   postHandler.indexOf("verifyGatewayDeviceAccessToken(") < postHandler.indexOf("OBSERVER_EDGE_PRIVATE_RELEASE_DELIVERY"),
 "anonymous requests must be denied before release-delivery readiness is disclosed");
+assert.ok(postHandler.includes("homeQaManagedPhaseAllows({ enrollment: enrollment.data, manifest })"),
+  "HOME_QA downloads must require the proven managed phase");
+assert.ok(postHandler.includes("deviceId: enrollment.data.gateway_id"),
+  "signed HOME_QA target is the installed component ID, not its enrollment-row ID");
 
 const key = generateKeyPairSync("ed25519");
 const keyId = "home-qa-test";

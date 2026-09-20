@@ -86,6 +86,8 @@
     { "name": "investigation", "args": ["--test", "scripts/qa/check-digital-observer-investigation.mjs"] }
   ],
   "security": [
+    { "name": "home-qa-identity-phases", "args": ["scripts/qa/check-push38-home-qa-phases.mjs"] },
+    { "name": "home-qa-r2-authorization", "args": ["scripts/qa/check-push38q-r2-download.mjs"] },
     { "name": "environment-safety", "args": ["scripts/validate-environment-safety.mjs"] },
     { "name": "encryption-separation", "args": ["scripts/qa/check-encryption-key-separation.mjs"] },
     { "name": "storage-policy", "args": ["scripts/qa/check-storage-policy-safety.mjs"] },

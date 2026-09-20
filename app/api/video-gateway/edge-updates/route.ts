@@ -7,6 +7,7 @@ import { createAdminClient } from "@/lib/supabase/admin";
 import { parseBoundedJson } from "@/lib/security/request-guards";
 import { evaluateEdgeUpdateEligibility, verifyEdgeUpdateManifest, shouldPauseRollout } from "../../../../services/video-gateway/edge-update-contract.mjs";
 import { edgeReleaseScopeAllows } from "../../../../services/video-gateway/edge-release-object.mjs";
+import { homeQaManagedPhaseAllows } from "../../../../services/video-gateway/home-qa-transition-phase.mjs";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -31,7 +32,7 @@ async function authorize(request: Request, operation: "UPDATE_READ" | "UPDATE_ST
   if (!claims || !gatewayDeviceSessionAllows(claims, operation) || claims.version !== 2) return null;
   const admin = createAdminClient() as any;
   const enrollment = await admin.from("video_gateway_device_enrollments")
-    .select("id,status,lifecycle_state,observer_site_id,gateway_id,deployment_profile,credential_version,config_version,revoked_at")
+    .select("id,status,lifecycle_state,observer_site_id,gateway_id,deployment_profile,credential_version,config_version,revoked_at,identity_scheme,metadata")
     .eq("id", claims.device_id).eq("observer_site_id", claims.observer_site_id).eq("gateway_id", claims.gateway_id).maybeSingle();
   if (enrollment.error || !enrollment.data || enrollment.data.status !== "delivered" || enrollment.data.lifecycle_state !== "ACTIVE"
     || enrollment.data.revoked_at || enrollment.data.deployment_profile !== claims.deployment_profile ||
@@ -66,10 +67,15 @@ export async function GET(request: Request) {
         verified.manifest.rollout.stage !== candidate.stage ||
         verified.manifest.rollout.cohort_percent !== candidate.cohort_percent) continue;
       if (query.channel === "HOME_QA" && (candidate.stage !== "INTERNAL_QA" || candidate.cohort_percent !== 0)) continue;
+      if (query.channel === "HOME_QA" && !homeQaManagedPhaseAllows({ enrollment: auth.enrollment,
+        manifest: verified.manifest })) continue;
+      // Existing INTERNAL releases target the enrollment ID. The signed HOME_QA
+      // manifests bind the installed component (gateway_id) instead.
+      const targetDeviceId = query.channel === "HOME_QA" ? auth.enrollment.gateway_id : auth.enrollment.id;
       if ((candidate.stage === "INTERNAL_QA" || query.channel === "HOME_QA") && !edgeReleaseScopeAllows(verified.manifest, {
-        deviceId: auth.enrollment.id, profile: query.profile, platform: query.platform,
+        deviceId: targetDeviceId, profile: query.profile, platform: query.platform,
         architecture: query.architecture, channel: query.channel })) continue;
-      const eligible = evaluateEdgeUpdateEligibility(verified.manifest, { deviceId: auth.enrollment.id, profile: query.profile,
+      const eligible = evaluateEdgeUpdateEligibility(verified.manifest, { deviceId: targetDeviceId, profile: query.profile,
         platform: query.platform, architecture: query.architecture, currentVersion: query.current_version,
         configVersion: query.config_version, channel: query.channel, revoked: false });
       if (eligible.eligible) return response({ manifest: verified.manifest, rollout_id: candidate.id });

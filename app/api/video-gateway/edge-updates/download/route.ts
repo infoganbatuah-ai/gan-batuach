@@ -10,6 +10,7 @@ import { assertRateLimit } from "@/lib/security/rate-limit";
 import { assertAuthorizedUpdateDirection, compareSemanticVersions, evaluateEdgeUpdateEligibility, verifyEdgeUpdateManifest } from "../../../../../services/video-gateway/edge-update-contract.mjs";
 import { assertEdgeReleaseObjectUrl, edgeReleaseScopeAllows } from "../../../../../services/video-gateway/edge-release-object.mjs";
 import { authorizeHomeQaR2Download } from "../../../../../services/video-gateway/edge-r2-download.mjs";
+import { homeQaManagedPhaseAllows } from "../../../../../services/video-gateway/home-qa-transition-phase.mjs";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -43,7 +44,7 @@ export async function POST(request: Request) {
     if (input.profile !== claims.deployment_profile) return fail("Release scope mismatch.", 403);
     const admin = createAdminClient() as any;
     const enrollment = await admin.from("video_gateway_device_enrollments")
-      .select("id,status,lifecycle_state,observer_site_id,gateway_id,deployment_profile,credential_version,config_version,revoked_at")
+      .select("id,status,lifecycle_state,observer_site_id,gateway_id,deployment_profile,credential_version,config_version,revoked_at,identity_scheme,metadata")
       .eq("id", claims.device_id).eq("observer_site_id", claims.observer_site_id)
       .eq("gateway_id", claims.gateway_id).maybeSingle();
     if (enrollment.error || !enrollment.data || enrollment.data.status !== "delivered" ||
@@ -62,6 +63,8 @@ export async function POST(request: Request) {
     const verified = verifyEdgeUpdateManifest(release.data.signed_manifest, trustedKeys());
     if (!verified.ok) return fail("Release unavailable.", 404);
     const manifest = verified.manifest;
+    if (!homeQaManagedPhaseAllows({ enrollment: enrollment.data, manifest }))
+      return fail("Release unavailable.", 404);
     if (manifest.release_id !== release.data.release_id || manifest.artifact_sha256 !== release.data.artifact_sha256 ||
       manifest.version !== release.data.version || manifest.channel !== release.data.channel ||
       manifest.platform !== release.data.platform || manifest.architecture !== release.data.architecture ||
@@ -79,7 +82,7 @@ export async function POST(request: Request) {
     try { assertAuthorizedUpdateDirection({ currentVersion: input.current_version, targetVersion: manifest.version,
       knownGoodVersions: [], securityFloorVersion: manifest.compatibility.security_floor_version, rollback: false }); }
     catch { return fail("Release unavailable.", 404); }
-    const device = { deviceId: enrollment.data.id, profile: input.profile, platform: input.platform,
+    const device = { deviceId: enrollment.data.gateway_id, profile: input.profile, platform: input.platform,
       architecture: input.architecture, channel: input.channel, currentVersion: input.current_version,
       configVersion: input.config_version, revoked: false };
     if (!edgeReleaseScopeAllows(manifest, device) || !evaluateEdgeUpdateEligibility(manifest, device).eligible)
