@@ -28,6 +28,7 @@ export function ManagerParentInvitationPanel({ gardenId }: { gardenId: string })
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          garden_id: gardenId,
           full_name: fullName,
           email,
           phone: input("invite_phone")?.value.trim() ?? "",
