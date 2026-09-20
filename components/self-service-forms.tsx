@@ -76,11 +76,11 @@ export function SelfServiceRegisterForm({ fixedAccountType, appMode = false, inv
         preferred_regions: formValue(form, "preferred_regions") || undefined
       });
       const invitationMessage = accountType === "kindergarten_owner" || accountType === "kindergarten_manager"
-        ? "החשבון נוצר וההזמנה נשמרה. לאחר אימות פרטי הקשר תוכלו לקבל אותה ולהמשיך בהקמת הגן."
+        ? "החשבון נוצר וההזמנה נשמרה. לאחר אימות הדוא״ל תוכלו לקבל אותה ולהמשיך בהקמת הגן."
         : accountType === "staff_candidate"
-        ? "החשבון נוצר והזמנת העבודה נשמרה. לאחר אימות הדוא״ל והטלפון והשלמת הפרופיל תוכלו לחזור להזמנה ולאשר אותה."
-        : "החשבון נוצר וההזמנה נשמרה. לאחר אימות הדוא״ל והטלפון תוכלו לבחור ילד ולאשר הצטרפות.";
-      setState({ ok: true, message: invitationToken ? invitationMessage : "החשבון נוצר. שלחנו קישור אימות לדוא״ל; לאחר האימות תתבקשו לאמת גם את מספר הטלפון.", href: data.next_path });
+        ? "החשבון נוצר והזמנת העבודה נשמרה. לאחר אימות הדוא״ל והשלמת הפרופיל תוכלו לחזור להזמנה ולאשר אותה."
+        : "החשבון נוצר וההזמנה נשמרה. לאחר אימות הדוא״ל תוכלו לבחור ילד ולאשר הצטרפות.";
+      setState({ ok: true, message: invitationToken ? invitationMessage : "החשבון נוצר. שלחנו קישור אימות לדוא״ל; אימות הדוא״ל מספיק להפעלת חשבון רגיל. אימות טלפון יידרש רק לפעולה שמבקשת זאת במפורש.", href: data.next_path });
       form.reset();
     } catch (error) {
       setState({ ok: false, message: error instanceof Error ? error.message : "ההרשמה נכשלה" });
