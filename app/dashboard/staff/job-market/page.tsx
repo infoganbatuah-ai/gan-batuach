@@ -1,5 +1,6 @@
 import { BriefcaseBusiness, Building2 } from "lucide-react";
 import { StaffCandidateProfileForm } from "@/components/staff-candidate-profile-form";
+import { StaffCandidateDocumentUpload } from "@/components/staff-candidate-document-upload";
 import { StaffApplicationActions } from "@/components/staff-application-actions";
 import { FormField, ListRowCard, SearchFilterBar, StatusChip } from "@/components/gan-batuach-design-system";
 import { StaffAppFrame, StaffEmpty, StaffPageHero, StaffSection } from "@/components/staff-app-ui";
@@ -41,6 +42,7 @@ export default async function StaffJobMarketPage({ searchParams }: { searchParam
       </form>
       <StaffSection title="הפרופיל שמניע את ההתאמות">
         <StaffCandidateProfileForm candidate={candidate} completeness={completeness} />
+        <StaffCandidateDocumentUpload />
       </StaffSection>
       <StaffSection title="משרות פתוחות">
         {filtered.length === 0 ? (
