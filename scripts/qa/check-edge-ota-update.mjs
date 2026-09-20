@@ -147,7 +147,7 @@ await assert.rejects(connector.value.apply({ manifest: manifest({ version: "1.0.
 const deviceRoute = readFileSync("app/api/video-gateway/edge-updates/route.ts", "utf8");
 const adminRoute = readFileSync("app/api/digital-observer/admin/edge-releases/route.ts", "utf8");
 const migration = readFileSync("supabase/migrations/20260909010000_edge_ota_rollout.sql", "utf8");
-const terminalMigration = readFileSync("supabase/migrations/20260913010000_edge_ota_terminal_recovery.sql", "utf8");
+const terminalMigration = readFileSync("supabase/migrations/20260919171000_edge_ota_terminal_recovery.sql", "utf8");
 const mac = readFileSync("scripts/build-connector-macos.mjs", "utf8"), windows = readFileSync("scripts/build-connector-windows.mjs", "utf8");
 for (const token of ["UPDATE_READ", "UPDATE_STATUS", "deployment_profile", "credential_version", "lifecycle_state"]) assert.match(deviceRoute, new RegExp(token));
 assert.match(deviceRoute, /ACTION_REQUIRED/);

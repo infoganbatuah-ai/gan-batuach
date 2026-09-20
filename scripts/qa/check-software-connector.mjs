@@ -206,7 +206,7 @@ test("local software runtime reports its type and rejects arbitrary command", as
   const port = 19116;
   const child = spawn(process.execPath, ["services/video-gateway/server.mjs"], {
     cwd: new URL("../../", import.meta.url),
-    env: { ...process.env, HOST: "127.0.0.1", PORT: String(port), VIDEO_GATEWAY_SIGNING_SECRET: "qa-signing-secret-1234567890", GAN_BATUACH_GATEWAY_SECRET_DIR: directory, OBSERVER_EDGE_DEVICE_TYPE: "SOFTWARE_CONNECTOR", OBSERVER_EDGE_INSTALLATION_ID: id, OBSERVER_EDGE_VERSION: "qa", OBSERVER_EDGE_BUILD_SHA: "qa-sha" },
+    env: { ...process.env, HOST: "127.0.0.1", PORT: String(port), VIDEO_GATEWAY_SIGNING_SECRET: "qa-signing-secret-1234567890", GAN_BATUACH_GATEWAY_SECRET_DIR: directory, OBSERVER_EDGE_DEVICE_TYPE: "SOFTWARE_CONNECTOR", OBSERVER_EDGE_INSTALLATION_ID: id, OBSERVER_EDGE_VERSION: "qa", OBSERVER_EDGE_BUILD_SHA: "qa-sha", DVR_EXPECTED_CHANNEL_COUNT: "1" },
     stdio: "ignore"
   });
   context.after(() => child.kill("SIGTERM"));
@@ -220,6 +220,9 @@ test("local software runtime reports its type and rejects arbitrary command", as
   }
   assert.equal(health?.edgeRuntime?.device_type, "SOFTWARE_CONNECTOR");
   assert.equal(health?.contract, "observer-edge-health-v1");
+  assert.equal(health?.ok, false, "an expected but missing physical stream cannot be healthy");
+  assert.equal(health?.status, "degraded");
+  assert.deepEqual(health?.health_reason_codes, ["EXPECTED_RELAY_NOT_PROGRESSING"]);
   assert.ok(Number.isFinite(Date.parse(health?.observed_at)));
   const liveness = await fetch(`http://127.0.0.1:${port}/health/live`).then(response => response.json());
   assert.equal(liveness.contract, "observer-edge-liveness-v1");

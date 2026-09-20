@@ -29,6 +29,7 @@ import { createHardwareTranscoder, hardwareDecodeArgs, hardwareEncodeArgs } from
 import { connectorRuntimeIdentity, parseConnectorCommand, redactConnectorLog } from "./edge-runtime-contract.mjs";
 import { edgeHttpRuntimeStatus } from "./http-runtime.mjs";
 import { createEdgeSupervisor, EDGE_RECOVERY_ACTION } from "./edge-supervision.mjs";
+import { connectorHeartbeatHealth } from "./connector-health-recovery.mjs";
 
 const PORT = Number(process.env.PORT || process.env.VIDEO_GATEWAY_PORT || 8080);
 const eventLoopDelay = monitorEventLoopDelay({ resolution: 20 });
@@ -1557,11 +1558,21 @@ async function handle(request, response) {
     const healthObservedAt = new Date().toISOString();
     const edge = localEdgeReadiness();
     const supervision = edgeSupervisor.snapshot();
+    const progressingRelays = [...relays.values()].filter(relayIsProgressing).length;
+    const stalledRelays = [...relays.values()].filter((relay) => !relayIsProgressing(relay)).length;
+    const observedAssigned = [...streamSources.values()].filter((source) => source.status !== "unassigned").length;
+    const expectedAssigned = Math.max(observedAssigned, Number(lastDiscoverySummary.assignedCount || 0),
+      edgeRuntimeIdentity.device_type === "SOFTWARE_CONNECTOR" ? Number(process.env.DVR_EXPECTED_CHANNEL_COUNT || 0) : 0);
+    const mediaHealth = connectorHeartbeatHealth({ ok: true,
+      failedStreamCount: lastDiscoverySummary.failedAssignedCount,
+      mediaHeartbeat: { progressingRelays, stalledRelays } }, expectedAssigned);
     json(response, 200, {
       contract: "observer-edge-health-v1",
       observed_at: healthObservedAt,
-      ok: true,
-      status: supervision.state === "HEALTHY" ? "healthy" : supervision.state === "RECOVERING" ? "recovering" : "degraded",
+      ok: mediaHealth.status === "HEALTHY",
+      status: mediaHealth.status === "DEGRADED" ? "degraded"
+        : supervision.state === "HEALTHY" ? "healthy" : supervision.state === "RECOVERING" ? "recovering" : "degraded",
+      health_reason_codes: mediaHealth.errorCodes,
       provider: "custom",
       edgeRuntime: edgeRuntimeIdentity,
       httpRuntime: edgeHttpRuntimeStatus(),
@@ -1580,8 +1591,8 @@ async function handle(request, response) {
       commandRuntime: privateNvrCommandRuntime ? privateNvrCommandRuntime.status() : privateNvrCommandRuntimeState,
       mediaHeartbeat: {
         activeRelays: relays.size,
-        progressingRelays: [...relays.values()].filter(relayIsProgressing).length,
-        stalledRelays: [...relays.values()].filter((relay) => !relayIsProgressing(relay)).length,
+        progressingRelays,
+        stalledRelays,
         inputs: [...relays.entries()].map(([streamId, relay]) => ({ channel: streamSources.get(streamId)?.channel, progressing: relayIsProgressing(relay), input_codec: ["h264", "hevc", "mjpeg", "mpeg4"].includes(streamSources.get(streamId)?.codec) ? streamSources.get(streamId).codec : "unknown", encoder: relay.encoder, ...relay.inputMetrics.snapshot(), stdin_backpressure: relay.process.stdin?.writableNeedDrain === true, stdin_queued_bytes: relay.process.stdin?.writableLength ?? 0 })),
         lifecycle: relayLifecycle,
         recovery: [...relayRecovery.entries()].map(([streamId, state]) => ({ channel: streamSources.get(streamId)?.channel, ...state })),
