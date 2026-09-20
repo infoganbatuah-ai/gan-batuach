@@ -182,6 +182,25 @@
     "integration_after_qualification": "PENDING",
     "next_action": "Implement and test exact-scope live orchestrator and isolated managed OTA identity route/store against the reviewed signed INTERNAL transition and rollback paths; then rerun fresh read-only identity, baselines, trust, release authorization, and full dry-run before any Connector handoff."
   },
+  "home_qa_final_prewrite_continuation_2026_09_20": {
+    "status": "IMPLEMENTED_AND_STILL_PREWRITE_NO_RUNTIME_MUTATION",
+    "owner": "PUSH_38_QUALIFICATION",
+    "branch": "codex/push-38t-qualification",
+    "scope": "Home QA Connector transition and Gateway bootstrap orchestration; loopback HTTPS authorization; isolated OTA-only managed identity; no Product legacy secret replacement",
+    "identity": "READ_ONLY_PRODUCT_AND_INSTALLED_BINDING_PASS_TWO_DEVICES_TEN_DVR_SOURCES_SIX_EMPTY_ONE_TAPO_SOURCE",
+    "identity_restricted_evidence_sha256": "3460c595751e40ad3915f57c686bcb3bd548b7c03b69b02b3ca2096e56abe057",
+    "home_qa": "TWO_LEGACY_QUALIFICATION_DEVICES_THREE_SIGNED_RELEASES_TWO_EXACT_ACTIVE_ROLLOUTS_REMEDIATION_DRAFT_ZERO_PERCENT_BROAD_COHORT",
+    "staging": "CONNECTOR_TRANSITION_AND_GATEWAY_REMEDIATION_PRIVATE_R2_DIRECT_DOWNLOAD_SHA_SIZE_AWS_SIGNATURE_PASS_ZERO_RUNTIME_WRITES",
+    "staging_restricted_evidence": "exports/restricted/push38-homeqa-https-staging-final-prewrite-20260920.json",
+    "local_validation": "TYPECHECK_PASS_LINT_PASS_DOMAIN_30_OF_30_SECURITY_10_OF_10_MIGRATIONS_PASS_RELEASE_CONTRACT_PASS_PRODUCTION_COMPATIBLE_LOCAL_BUILD_PASS; FINAL_TWO_QA_ONLY_SCRIPT_EDITS_TARGETED_ESLINT_PASS",
+    "transition_orchestrator": "EXACT_SCOPE_DRY_RUN_AND_APPLY_SCRIPTS_PRESENT_WITH_EXISTING_SIGNED_TRANSITION_AND_RECOVERY_MANAGER; APPLY_NOT_EXECUTED",
+    "dry_run": "EARLIER_COMPLETE_ZERO_WRITE_DRY_RUN_PASS; FINAL_FRESH_AUTHORIZATION_DRY_RUN_DID_NOT_PASS_BECAUSE_LEGACY_CONNECTOR_HEALTH_ENDPOINT_TIMED_OUT; REPEAT_REQUIRED",
+    "legacy_connector_health": "PRE_REMEDIATION_TAPO_FLAPS_ZERO_OR_ONE; CONNECTOR_HEALTH_ENDPOINT_TIMED_OUT_AT_LEAST_TWICE_FOR_15_SECONDS_WHILE_UNMATCHED_HTTP_ROUTE_RESPONDED_IN_0.27_SECONDS; LATER_HEALTH_RETURNED_200_IN_0.20_SECONDS; CAUSE_NOT_YET_QUALIFIED",
+    "main": "UNCHANGED",
+    "production": "UNCHANGED",
+    "live_runtime_writes": 0,
+    "next_action": "Preserve scoped code remotely, then refresh exact read-only identity/staging as needed, run fresh signed-authorization prewrite dry run, and proceed to Connector only if all mandatory gates pass; otherwise retain the legacy runtime and diagnose the exact safety failure."
+  },
   "not_started": [
     "CONNECTOR_TRANSITION",
     "CONNECTOR_REMEDIATION",

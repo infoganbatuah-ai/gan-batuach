@@ -89,10 +89,12 @@ requireValue(tapo[0].metadata?.gateway_id === CONNECTOR_ID && tapo[0].observer_s
 const response = await fetch("http://127.0.0.1:18082/health", { signal: AbortSignal.timeout(5000) });
 requireValue(response.ok, "GATEWAY_HEALTH_UNAVAILABLE");
 const health = await response.json();
-const progressing = (health.mediaHeartbeat?.inputs || []).map(input => input.channel).sort((a, b) => a - b);
+// Input membership is identity/config evidence. A stalled input remains in
+// this list, so progression belongs to the separate pre-write health gate.
+const inputChannels = (health.mediaHeartbeat?.inputs || []).map(input => input.channel).sort((a, b) => a - b);
 const assignedChannels = assigned.map(row => row.metadata.dvr_channel).sort((a, b) => a - b);
-requireValue(JSON.stringify(progressing) === JSON.stringify(assignedChannels) &&
-  health.mediaHeartbeat?.progressingRelays === 10 && health.lastDiscovery?.unassignedCount === 6,
+requireValue(JSON.stringify(inputChannels) === JSON.stringify(assignedChannels) &&
+  health.lastDiscovery?.unassignedCount === 6,
   "LIVE_DVR_PRODUCT_MAPPING_CONFLICT");
 const evidence = { protocol: "observer-push38-home-identity-reconciliation-v1", observed_at: new Date().toISOString(),
   environment: "HOME_QA_QUALIFICATION", product_database_access: "AUTHORIZED_READ_ONLY",
@@ -101,7 +103,9 @@ const evidence = { protocol: "observer-push38-home-identity-reconciliation-v1", 
   devices: enrollment, dvr: { expected: 16, assigned: assigned.map(row => ({ source_id: row.id,
     channel: row.metadata.dvr_channel, stream_id: row.metadata.gateway_stream_id })).sort((a, b) => a.channel - b.channel),
     empty: empty.map(row => ({ source_id: row.id, channel: row.metadata.dvr_channel })).sort((a, b) => a.channel - b.channel),
-    live_progressing: progressing },
+    live_input_channels: inputChannels,
+    progressing_count_at_observation: health.mediaHeartbeat?.progressingRelays ?? null,
+    stalled_count_at_observation: health.mediaHeartbeat?.stalledRelays ?? null },
   tapo: { source_id: tapo[0].id, connector_id: CONNECTOR_ID, installed_source_match: true },
   production_writes: 0, installed_runtime_writes: 0, private_credentials_exported: false };
 writeFileSync(output, `${JSON.stringify(evidence, null, 2)}\n`, { encoding: "utf8", mode: 0o600, flag: "wx" });

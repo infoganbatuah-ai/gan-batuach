@@ -1,10 +1,10 @@
 // Installs management code from a verified release without switching the
 // functional Gateway/Connector runtime. Never called during read-only plan.
 import { execFileSync } from "node:child_process";
-import { createHash, randomUUID } from "node:crypto";
+import { createHash, randomUUID, X509Certificate } from "node:crypto";
 import { cpSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, renameSync, rmSync, writeFileSync } from "node:fs";
 import { homedir, tmpdir } from "node:os";
-import { dirname, join, resolve } from "node:path";
+import { dirname, isAbsolute, join, resolve } from "node:path";
 import { verifyEdgeArtifact, verifyEdgeUpdateManifest } from "./edge-update-contract.mjs";
 import { inspectArchive, plistXml } from "./edge-macos-installed-adapter.mjs";
 import { loadPinnedEdgeReleaseKeys, PROTECTED_EDGE_TRUST_REGISTRY_PATH } from "./edge-release-trust.mjs";
@@ -39,9 +39,32 @@ export function planInstalledOtaAgent({ profile, managedRoot, agentPlistPath, ag
     writes: 0, qa: Boolean(qaIsolationRoot) };
 }
 
+// HOME_QA credentials belong to the OTA agent alone. The legacy functional
+// Connector/Gateway must continue using its existing Product credential store.
+export function validateHomeQaOtaIdentityScope({ managedRoot, runtimeConfig, qaIsolationRoot = "" }) {
+  if (qaIsolationRoot || runtimeConfig?.channel !== "HOME_QA") return null;
+  const root = resolve(managedRoot);
+  const secrets = join(root, "home-qa-device-secrets");
+  const certificate = runtimeConfig.qaTlsCaPath;
+  if (runtimeConfig.secretDir !== secrets || runtimeConfig.keychainService ||
+    !certificate || !isAbsolute(certificate) || realpathSync(certificate) !== certificate ||
+    lstatSync(certificate).isSymbolicLink() || !lstatSync(certificate).isFile() ||
+    lstatSync(certificate).uid !== process.getuid() || (lstatSync(certificate).mode & 0o022) !== 0 ||
+    (lstatSync(dirname(certificate)).mode & 0o022) !== 0 ||
+    !/^[a-f0-9]{64}$/.test(runtimeConfig.qaTlsCaSha256 || "") ||
+    createHash("sha256").update(readFileSync(certificate)).digest("hex") !== runtimeConfig.qaTlsCaSha256)
+    fail("EDGE_OTA_HOME_QA_IDENTITY_SCOPE_INVALID");
+  const tls = new X509Certificate(readFileSync(certificate));
+  if (!tls.subjectAltName?.includes("IP Address:127.0.0.1") ||
+    Date.parse(tls.validTo) < Date.now() + 26 * 60 * 60_000)
+    fail("EDGE_OTA_HOME_QA_TLS_CERTIFICATE_INVALID");
+  return { secretDir: secrets, certificate };
+}
+
 export function installInstalledOtaAgent({ profile, managedRoot, agentPlistPath, agentLabel, nodePath,
   manifest, artifactPath, baselineReleaseId, runtimeConfig, qaIsolationRoot = "" }) {
   const plan = planInstalledOtaAgent({ profile, managedRoot, agentPlistPath, agentLabel, qaIsolationRoot });
+  const homeQaIdentity = validateHomeQaOtaIdentityScope({ managedRoot, runtimeConfig, qaIsolationRoot });
   const trusted = loadPinnedEdgeReleaseKeys({ registryPath: qaIsolationRoot
     ? runtimeConfig.qaTrustRegistryPath : PROTECTED_EDGE_TRUST_REGISTRY_PATH,
     ...(qaIsolationRoot ? { rootPinPath: runtimeConfig.qaRootPinPath, qaOwnerAllowed: true } : {}) }).trustedPublicKeys;
@@ -91,6 +114,7 @@ export function installInstalledOtaAgent({ profile, managedRoot, agentPlistPath,
     atomic(plan.config, `${JSON.stringify(runtimeConfig)}\n`);
     const plist = plistXml({ Label: agentLabel, ProgramArguments: [nodePath, plan.management_code, plan.config],
       RunAtLoad: true, KeepAlive: true, ThrottleInterval: 10,
+      ...(homeQaIdentity ? { EnvironmentVariables: { NODE_EXTRA_CA_CERTS: homeQaIdentity.certificate } } : {}),
       StandardOutPath: join(managedRoot, "agent.out.log"), StandardErrorPath: join(managedRoot, "agent.err.log") });
     if (existsSync(agentPlistPath) && readFileSync(agentPlistPath, "utf8") !== plist) fail("EDGE_OTA_INSTALL_PLIST_CONFLICT");
     if (!existsSync(agentPlistPath)) atomic(agentPlistPath, plist);

@@ -80,7 +80,13 @@ for (const spec of specs) {
     current_version: "0.1.0-legacy", config_version: component.config_version,
     release_id: spec.release, timestamp: new Date().toISOString(),
     nonce: randomBytes(32).toString("base64url") };
-  const response = await fetch("http://127.0.0.1:3101/api/video-gateway/home-qa-legacy-download", {
+  // Node must be launched with NODE_EXTRA_CA_CERTS set to the pinned local QA
+  // certificate. Never downgrade this device-to-control-plane proof to HTTP.
+  if (!process.env.NODE_EXTRA_CA_CERTS ||
+    realpathSync(process.env.NODE_EXTRA_CA_CERTS) !==
+      realpathSync("/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38t-ota-loopback-20260920.crt"))
+    throw new Error("P38_HOME_QA_TLS_PIN_REQUIRED");
+  const response = await fetch("https://127.0.0.1:3101/api/video-gateway/home-qa-legacy-download", {
     method: "POST", headers: { "content-type": "application/json",
       "x-observer-home-qa-legacy-signature": signHomeQaLegacyProof(claim, proof.privateKey) },
     body: JSON.stringify(claim), redirect: "error", signal: AbortSignal.timeout(30_000)

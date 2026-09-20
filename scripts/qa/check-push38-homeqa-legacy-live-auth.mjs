@@ -2,7 +2,7 @@
 // no Product mutation, no credential or capability logging.
 import assert from "node:assert/strict";
 import { randomBytes } from "node:crypto";
-import { readFileSync } from "node:fs";
+import { readFileSync, realpathSync } from "node:fs";
 import { deriveHomeQaLegacyProofKey, signHomeQaLegacyProof } from "../../services/video-gateway/home-qa-legacy-proof.mjs";
 
 const token = readFileSync("/Users/danielderi/Library/Application Support/Digital Observer/Tapo Connector/secrets/gateway_signing_secret", "utf8").trim();
@@ -11,7 +11,11 @@ const binding = { device_id: "db267b52-6282-4944-bcee-5d4857698fb0",
   site_id: "cc1673b8-3eb0-4785-a12c-1fb88f425a41",
   tenant_id: "cc1673b8-3eb0-4785-a12c-1fb88f425a41", profile: "SOFTWARE_CONNECTOR" };
 const proof = deriveHomeQaLegacyProofKey({ ...binding, localSigningSecret: token });
-const endpoint = "http://127.0.0.1:3101/api/video-gateway/home-qa-legacy-download";
+if (!process.env.NODE_EXTRA_CA_CERTS ||
+  realpathSync(process.env.NODE_EXTRA_CA_CERTS) !==
+    realpathSync("/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38t-ota-loopback-20260920.crt"))
+  throw new Error("P38_HOME_QA_TLS_PIN_REQUIRED");
+const endpoint = "https://127.0.0.1:3101/api/video-gateway/home-qa-legacy-download";
 const claim = () => ({ ...binding, platform: "darwin", architecture: "arm64", channel: "HOME_QA",
   current_version: "0.1.0-legacy", config_version: 4,
   release_id: "qa-connector-legacy-transition-v2-6e7988808b05",
@@ -22,6 +26,15 @@ async function request(body, privateKey = proof.privateKey, signed = true, signi
     body: JSON.stringify(body), redirect: "error", signal: AbortSignal.timeout(30_000) });
   await response.body?.cancel();
   return response.status;
+}
+if (process.argv.includes("--positive-only")) {
+  assert.equal(await request(claim(), proof.privateKey, false), 401, "anonymous request accepted");
+  const early = await request({ ...claim(), release_id: "qa-p38-health-connector-1b076f596574" });
+  assert.ok(early >= 400 && early < 500, "Connector remediation available before transition");
+  assert.equal(await request(claim()), 200, "exact device authorization failed");
+  console.log(JSON.stringify({ status: "PASS", correct_device: "ACCEPT", anonymous: "DENY",
+    remediation_early: "DENY", scope: "FRESH_SINGLE_GRANT", runtime_writes: 0, production_writes: 0 }));
+  process.exit(0);
 }
 const cases = [
   ["wrong_device", { device_id: "62df97e2-3c0b-427f-9108-bde029bc10e7" }],

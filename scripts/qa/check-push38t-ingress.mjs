@@ -1,5 +1,10 @@
 import assert from "node:assert/strict";
+import { execFileSync } from "node:child_process";
+import { chmodSync, mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { createServer } from "node:http";
+import { request as secureRequest } from "node:https";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 import { createPush38tIngress, push38tIngressAllows } from "../../services/video-gateway/push38t-ota-ingress.mjs";
 
 const allowed = [
@@ -35,3 +40,36 @@ try {
   await new Promise(resolve => proxy.close(resolve));
   await new Promise(resolve => origin.close(resolve));
 }
+
+const tlsRoot = mkdtempSync(join(tmpdir(), "observer-p38t-https-"));
+try {
+  const keyPath = join(tlsRoot, "qa.key"), certPath = join(tlsRoot, "qa.crt");
+  execFileSync("openssl", ["req", "-x509", "-nodes", "-newkey", "rsa:2048", "-days", "1",
+    "-keyout", keyPath, "-out", certPath, "-subj", "/CN=localhost",
+    "-addext", "subjectAltName=IP:127.0.0.1"], { stdio: "ignore", timeout: 15_000 });
+  chmodSync(keyPath, 0o644);
+  assert.throws(() => createPush38tIngress({ tls: { keyPath, certPath } }), /QA_INGRESS_TLS_MATERIAL_UNSAFE/);
+  chmodSync(keyPath, 0o600);
+  const upstream = createServer((_request, response) => response.writeHead(401).end());
+  await new Promise(resolve => upstream.listen(0, "127.0.0.1", resolve));
+  const secure = createPush38tIngress({ origin: `http://127.0.0.1:${upstream.address().port}`,
+    tls: { keyPath, certPath } });
+  await new Promise(resolve => secure.listen(0, "127.0.0.1", resolve));
+  const probe = path => new Promise((resolve, reject) => {
+    const request = secureRequest({ hostname: "127.0.0.1", port: secure.address().port,
+      path, method: "GET", ca: readFileSync(certPath), rejectUnauthorized: true }, response => {
+      response.resume(); response.on("end", () => resolve(response.statusCode));
+    });
+    request.on("error", reject); request.end();
+  });
+  try {
+    assert.equal(await probe("/api/video-gateway/edge-updates?channel=HOME_QA"), 401);
+    for (const path of ["/dashboard", "/api/admin/tasks", "/supabase", "/_next/webpack-hmr"])
+      assert.equal(await probe(path), 404);
+    console.log(JSON.stringify({ status: "PASS", transport: "HTTPS_TLS_VERIFIED",
+      bind: "LOOPBACK", publicSurface: "NONE", unauthorizedPaths: 4 }));
+  } finally {
+    await new Promise(resolve => secure.close(resolve));
+    await new Promise(resolve => upstream.close(resolve));
+  }
+} finally { rmSync(tlsRoot, { recursive: true, force: true }); }

@@ -1,4 +1,7 @@
 import { createServer } from "node:http";
+import { createServer as createSecureServer } from "node:https";
+import { lstatSync, readFileSync } from "node:fs";
+import { resolve } from "node:path";
 
 const routes = new Set([
   "POST /api/digital-observer/gateway-enrollment",
@@ -19,11 +22,20 @@ export function push38tIngressAllows(method, pathname) {
   return routes.has(`${method} ${pathname}`);
 }
 
-export function createPush38tIngress({ origin = "http://127.0.0.1:3100" } = {}) {
+function tlsMaterial(path, privateKey) {
+  const target = resolve(path);
+  const info = lstatSync(target);
+  if (!info.isFile() || info.isSymbolicLink() ||
+    (privateKey && (info.mode & 0o077) !== 0)) throw new Error("QA_INGRESS_TLS_MATERIAL_UNSAFE");
+  return readFileSync(target);
+}
+
+export function createPush38tIngress({ origin = "http://127.0.0.1:3100", tls = null } = {}) {
   const target = new URL(origin);
   if (target.protocol !== "http:" || target.hostname !== "127.0.0.1" || target.username || target.password || target.pathname !== "/")
     throw new Error("QA_INGRESS_ORIGIN_NOT_LOOPBACK");
-  return createServer(async (request, response) => {
+  if (tls && (!tls.keyPath || !tls.certPath)) throw new Error("QA_INGRESS_TLS_MATERIAL_REQUIRED");
+  const handler = async (request, response) => {
     const url = new URL(request.url || "/", "http://127.0.0.1");
     if (!push38tIngressAllows(request.method, url.pathname) ||
       (url.pathname !== "/api/video-gateway/edge-updates" && url.search)) {
@@ -57,5 +69,7 @@ export function createPush38tIngress({ origin = "http://127.0.0.1:3100" } = {}) 
     } catch {
       if (!response.headersSent) response.writeHead(502, { "cache-control": "no-store" }).end();
     }
-  });
+  };
+  return tls ? createSecureServer({ key: tlsMaterial(tls.keyPath, true),
+    cert: tlsMaterial(tls.certPath, false), minVersion: "TLSv1.2" }, handler) : createServer(handler);
 }
