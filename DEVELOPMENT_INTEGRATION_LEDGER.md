@@ -148,3 +148,14 @@ Authenticated private Storage HTTP E2E, cumulative Product QA and retention
 policy remain open; Production migration/deployment is not authorized. The
 canonical local integration checkout contains a foreign generated file, so
 GB-M32 integration QA uses a separate clean checkout without changing it.
+
+GB-M32 verified Development closure (2026-09-20): scoped fix PR #71 passed
+nine exact-head checks and merged by ancestry at
+`b4e5b0195473a985ecbf14025537515cc983809c`. The isolated Development
+migration and 235/235 ordered drift passed. Synthetic private Storage upload,
+authorized signed retrieval, tenant/role denial, signed URL expiry, direct RLS,
+retention/hold denial, idempotent purge, and independent-connection replacement
+race passed. The exact integrated head launched as DEVELOPMENT / INTEGRATION
+at `http://127.0.0.1:3000`; health was HTTP 200 and anonymous protected
+document APIs returned 401. Production remains untouched. Retention policy,
+Production recovery proof, and controlled live-role QA remain release debt.
