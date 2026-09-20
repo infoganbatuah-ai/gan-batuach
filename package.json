@@ -125,7 +125,7 @@
     "@simplewebauthn/browser": "^13.3.0",
     "@simplewebauthn/server": "13.3.3",
     "@supabase/ssr": "0.10.3",
-    "@supabase/supabase-js": "2.106.1",
+    "@supabase/supabase-js": "2.107.0",
     "firebase": "^12.18.0",
     "firebase-admin": "^14.3.0",
     "framer-motion": "^12.40.0",
