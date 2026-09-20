@@ -3,7 +3,8 @@
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
 import { createReadStream, lstatSync, statSync, writeFileSync } from "node:fs";
-import { resolve } from "node:path";
+import { homedir } from "node:os";
+import { isAbsolute, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
 import { S3Client, HeadObjectCommand, PutObjectCommand, GetObjectCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
@@ -22,7 +23,7 @@ async function hashStream(stream, limit) {
 }
 function credentials() {
   const service = "digital-observer-r2-home-qa-publisher-20260919";
-  const keychain = "/Users/danielderi/Library/Keychains/login.keychain-db";
+  const keychain = join(homedir(), "Library/Keychains/login.keychain-db");
   const opts = { encoding: "utf8", timeout: 45_000, maxBuffer: 16_384,
     stdio: ["ignore", "pipe", "ignore"] };
   const account = execFileSync("/usr/bin/security", ["find-generic-password", "-s", service, keychain], opts)
@@ -102,8 +103,11 @@ async function publish({ connector, gateway, evidencePath }) {
 if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1])) {
   try {
     const [connector, gateway, evidencePath] = process.argv.slice(2);
-    if (!connector || !gateway || !evidencePath || !resolve(evidencePath).startsWith(
-      "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/"))
+    const evidenceRoot = fileURLToPath(new URL("../../exports/restricted/", import.meta.url));
+    const evidenceRelative = evidencePath ? relative(evidenceRoot, resolve(evidencePath)) : "";
+    if (!connector || !gateway || !evidencePath || !evidenceRelative ||
+      evidenceRelative === ".." || evidenceRelative.startsWith(`..${sep}`) ||
+      isAbsolute(evidenceRelative))
       fail("P38_R2_INPUT_SCOPE_INVALID");
     const results = await publish({ connector, gateway, evidencePath: resolve(evidencePath) });
     console.log(JSON.stringify({ result: "PASS", artifacts: results.length, runtime_activation: false }));
