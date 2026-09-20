@@ -214,3 +214,19 @@ its required checks passed. GB-M34 migration approval is restored for isolated
 Development only, conditional on final PR #82 exact-head checks and merge.
 Canonical Development application and cumulative Product QA remain pending;
 Production is untouched.
+
+GB-M34 isolated Development closure (2026-09-20): final PR #82 head
+`5497be7f28ab8578fe7854ba97c81b525286783a` passed all exact-head
+required checks and merged by ancestry at
+`89dc2d98f4d6f88d57b4ab49487edaab15481cc9`. The guarded Development
+runner applied `20260920150000_management_staff_time_ledger.sql` to the
+local `gan-batuach-integration` database only. The canonical schema and
+migration drift checks passed 237/237; the receipt is in
+`development/database/development-application-receipts.json`. Applied-schema
+rollback-only role/RLS checks, cumulative domain 30/30, security 7/7,
+Staff/Manager 92/92, Parent/Manager 20/20, typecheck, local build, lint
+regression and release preflight passed. A loopback Development smoke at
+`http://127.0.0.1:3000` on the exact integration commit returned health 200
+with Supabase OK and anonymous Staff-time GET/POST 401. Controlled live
+Staff/Manager browser QA remains open for GB-M35/40. Production and `main`
+remain untouched; this receipt is not an owner-authorized release.
