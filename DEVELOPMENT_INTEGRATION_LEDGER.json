@@ -8698,14 +8698,14 @@
       "state": "INTEGRATED_DEVELOPMENT",
       "preservation": {"remoteVerified": true, "remoteRefs": ["origin/codex/gb-m33-attendance-pickup"], "validatedSourceCommit": "40b671c95b7a2402fb2c414118fad5789c34ef4f"},
       "validation": {"status": "PASS_CI_9_OF_9_ISOLATED_DEVELOPMENT_RLS_RACES_AND_CUMULATIVE_TESTS", "evidence": ["GAN_BATUACH_MANAGEMENT_GB_M33_CHILD_ATTENDANCE_PICKUP_REPORT.md", "scripts/qa/check-management-child-attendance-pickup.sql", "https://github.com/infoganbatuah-ai/gan-batuach/pull/77", "https://github.com/infoganbatuah-ai/gan-batuach/pull/78", "development/database/development-application-receipts.json"], "limits": "Controlled Production-like browser-role QA remains unavailable. Production is untouched."},
-      "integration": {"status": "INTEGRATED_DEVELOPMENT", "commit": "ef9af8443fd09952b1eb645f35f06ac0ebc93a06", "pullRequest": 77},
+      "integration": {"status": "INTEGRATED_DEVELOPMENT", "commit": "ef9af8443fd09952b1eb645f35f06ac0ebc93a06", "pullRequest": 77, "migrationApprovalPullRequest": 78, "verificationClosurePullRequest": 79, "verificationClosureCommit": "e048c81acae4307e80f9584917772614d984328d"},
       "dependencies": {"status": "GB_M32_INTEGRATED_DEVELOPMENT", "units": ["codex/gb-m32-documents"]},
       "migrations": ["20260920140000_management_child_attendance_pickup.sql"],
       "migrationOrder": ["20260920140000"],
-      "localVerification": "PASS_ISOLATED_SCHEMA_RLS_SEPARATE_CONNECTION_RACES_AND_CUMULATIVE_TESTS; FULL_STACK_SMOKE_PENDING",
-      "releaseEligibility": "NOT_READY_PENDING_FULL_STACK_SMOKE_AND_EXPLICIT_OWNER_RELEASE",
+      "localVerification": "PASS_CUMULATIVE_TESTS_ISOLATED_SCHEMA_RLS_RACES_AND_FULL_STACK_HEALTH_AUTH_E048C81",
+      "releaseEligibility": "NOT_READY_PENDING_OWNER_POLICY_RECOVERY_COST_AND_EXPLICIT_RELEASE_AUTHORIZATION",
       "productionDeployment": {"status": "NOT_DEPLOYED"},
-      "nextAction": "Preserve the isolated Development receipt, finish a clean full-stack Product smoke on the final integration head, and carry controlled live-role QA to GB-M35/40. Production migration/deployment requires a separate explicit owner release."
+      "nextAction": "Preserve isolated Development receipt and exact-head CI evidence; carry controlled live-role QA to GB-M35/40. Resolve retention/recovery and all-in cost gates before an explicit owner-authorized Production release."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
