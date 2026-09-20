@@ -173,7 +173,6 @@ export async function POST(request: Request) {
         gardenId: profile.garden_id,
         role: "staff",
         username: oneTimeCredentials.username,
-        temporaryPassword: oneTimeCredentials.temporary_password,
         recipientName: payload.full_name,
         phone: payload.phone
       })

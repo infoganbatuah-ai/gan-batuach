@@ -3,18 +3,39 @@ import { readFileSync } from "node:fs";
 import vm from "node:vm";
 import test from "node:test";
 import ts from "typescript";
+import { createClient } from "@supabase/supabase-js";
 
 function source(file) { return readFileSync(file, "utf8"); }
 function load(file) {
   const output = ts.transpileModule(source(file), {
     compilerOptions: { module: ts.ModuleKind.CommonJS, target: ts.ScriptTarget.ES2022 }
   }).outputText;
-  const module = { exports: {} };
-  vm.runInNewContext(output, { exports: module.exports, module, require: id => { throw new Error(`Unmocked dependency: ${id}`); } }, { filename: file });
-  return module.exports;
+  const loadedModule = { exports: {} };
+  vm.runInNewContext(output, { exports: loadedModule.exports, module: loadedModule, require: id => { throw new Error(`Unmocked dependency: ${id}`); } }, { filename: file });
+  return loadedModule.exports;
 }
 
 const contact = load("lib/management/contact-verification.ts");
+
+test("Supabase signup preserves an unconfirmed user returned at the top level", async () => {
+  const id = "11111111-1111-4111-8111-111111111111";
+  const client = createClient("http://127.0.0.1:54321", "synthetic-qa-key", {
+    auth: { persistSession: false, autoRefreshToken: false },
+    global: {
+      fetch: async (url) => {
+        assert.equal(new URL(url).pathname, "/auth/v1/signup");
+        return new Response(JSON.stringify({ id, email: "qa@integration.invalid", identities: [{ id }], confirmation_sent_at: "2026-09-20T00:00:00Z" }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" }
+        });
+      }
+    }
+  });
+  const { data, error } = await client.auth.signUp({ email: "qa@integration.invalid", password: "synthetic-password" });
+  assert.equal(error, null);
+  assert.equal(data.user?.id, id);
+  assert.equal(data.session, null);
+});
 
 test("email verification activates enrolled accounts while phone-specific actions still require confirmed phone", () => {
   assert.equal(contact.managementContactVerification({ app_metadata: {} }, {}).complete, true);
