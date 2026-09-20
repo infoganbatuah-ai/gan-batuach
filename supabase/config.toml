@@ -38,7 +38,9 @@ enabled = false
 port = 56424
 
 [storage]
-enabled = true
+# HOME_QA release bytes live in private R2. The isolated qualification DB
+# needs identity/release metadata only, not a second local object service.
+enabled = false
 file_size_limit = "10MiB"
 
 [storage.s3_protocol]
