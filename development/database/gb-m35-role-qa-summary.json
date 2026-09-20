@@ -1,0 +1,37 @@
+{
+  "task": "GB-M35",
+  "observed_on": "2026-09-20",
+  "environment": "isolated loopback Development Auth/Postgres/Storage with local production-mode app build",
+  "source_integration_merge": "1a0162f261c6141ffb06b3ebe2abf41181a81b70",
+  "qa_source_head_before_report_commit": "40071188778f651e97c6cc7cd06e3bc9a29515d3",
+  "synthetic_only": true,
+  "production_access": false,
+  "private_credentials_in_git": false,
+  "results": {
+    "identity_auth_rest": { "passed": 20, "total": 20 },
+    "dashboard_browser_first_render": { "passed": 16, "total": 16 },
+    "authenticated_role_api": { "passed": 18, "total": 18 },
+    "task_and_message_api": { "passed": 16, "total": 16 },
+    "complaint_role_api": { "passed": 26, "total": 26 },
+    "attendance_pickup_role_api": { "passed": 16, "total": 16 },
+    "staff_time_role_api": { "passed": 15, "total": 15 },
+    "deep_route_browser_sweep": { "passed": 15, "total": 15 },
+    "private_child_document_e2e": "pass",
+    "private_message_attachment_e2e_production_mode": "pass",
+    "management_source_tests": { "passed": 234, "total": 234 },
+    "manager_parent_contract": { "passed": 20, "total": 20 },
+    "domain_ci_suites": { "passed": 30, "total": 30 },
+    "security_ci_suites": { "passed": 7, "total": 7 },
+    "migration_audit": { "accounted_for": 237, "total": 237, "drift_errors": 0 },
+    "production_mode_build_and_typescript": "pass",
+    "lint_regressions": 0,
+    "release_contract_test": "pass"
+  },
+  "known_limitations": [
+    "The private message attachment download route was not registered by local next dev; it was registered and passed E2E under the optimized local production-mode build.",
+    "This evidence is a set of role/API and route probes, not a complete end-to-end walkthrough of every GB-M21–M34 journey.",
+    "External providers, Production identities, Production migration and deployment were not exercised.",
+    "Separate-connection races and several interactive browser workflows remain open in the detailed matrix."
+  ],
+  "release_recommendation": "GB-M35 PARTIAL; not ready to mark full-role E2E closed"
+}
