@@ -23,6 +23,11 @@ export default async function GardenDocumentsPage({ searchParams }: { searchPara
   const { profile } = await requireOperationalRole(["manager", "owner"]);
   const params = await searchParams;
   const supabase = await createClient();
+  const { data: teacherAssignment } = profile.role === "owner"
+    ? await supabase.from("garden_teaching_assignments" as never).select("id")
+      .eq("garden_id", profile.garden_id ?? "").eq("profile_id", profile.id)
+      .eq("status", "active").maybeSingle()
+    : { data: null };
   const { data } = await supabase.from("documents" as any).select("id, name, document_type, status, expires_at, created_at, file_url").eq("garden_id", profile.garden_id ?? "").order("created_at", { ascending: false });
   const rows = (data ?? []).map((doc: { id: string; status: string; expires_at: string | null; file_url: string | null }) => ({ ...doc,
     status: effectiveDocumentStatus(doc),
@@ -72,7 +77,7 @@ export default async function GardenDocumentsPage({ searchParams }: { searchPara
           <TeacherActionTile title="דורשים טיפול" href="/dashboard/garden/documents?filter=missing" icon={ShieldAlert} tone="orange" />
         </TeacherQuickActions>
 
-        <GardenDocumentUploadPanel gardenId={profile.garden_id ?? ""} documents={rows as any[]} defaultOpen={params.upload === "1"} />
+        <GardenDocumentUploadPanel gardenId={profile.garden_id ?? ""} teacherProfileId={teacherAssignment ? profile.id : null} documents={rows as any[]} defaultOpen={params.upload === "1"} />
 
         <details className="teacher-management-details" open={params.upload === "1"}>
           <summary>ניהול מלא</summary>
