@@ -16,10 +16,12 @@ type DocumentRow = {
 
 export function GardenDocumentUploadPanel({
   gardenId,
+  teacherProfileId,
   documents,
   defaultOpen = false
 }: {
   gardenId: string;
+  teacherProfileId?: string | null;
   documents: DocumentRow[];
   defaultOpen?: boolean;
 }) {
@@ -41,10 +43,12 @@ export function GardenDocumentUploadPanel({
 
     let created: DocumentRow;
     try {
+      const documentType = String(formData.get("document_type") || "garden_document");
       created = await uploadManagementDocument(file, {
         garden_id: gardenId,
+        ...(documentType === "teacher_certificate" && teacherProfileId ? { owner_id: teacherProfileId } : {}),
         name: String(formData.get("name") || file.name || "מסמך גן"),
-        document_type: String(formData.get("document_type") || "garden_document"),
+        document_type: documentType,
         expires_at: String(formData.get("expires_at") || "")
       });
     } catch (error) {
@@ -74,7 +78,7 @@ export function GardenDocumentUploadPanel({
       {open ? (
         <form className="ganenet-form-grid" onSubmit={submit}>
           <label>שם המסמך<input name="name" required placeholder="לדוגמה: אישור בטיחות שנתי" /></label>
-          <label>סוג מסמך<select name="document_type" defaultValue="garden_document"><option value="garden_document">מסמך גן כללי</option><option value="safety_certificate">אישור בטיחות</option><option value="health_certificate">אישור תברואה</option><option value="insurance">ביטוח</option><option value="camera_approval">אישור מצלמות</option><option value="regulatory">מסמך רגולטורי</option></select></label>
+          <label>סוג מסמך<select name="document_type" defaultValue="garden_document"><option value="garden_document">מסמך גן כללי</option><option value="safety_certificate">אישור בטיחות</option><option value="health_certificate">אישור תברואה</option><option value="insurance">ביטוח</option><option value="camera_approval">אישור מצלמות</option><option value="regulatory">מסמך רגולטורי</option>{teacherProfileId ? <option value="teacher_certificate">תעודת הוראה שלי</option> : null}</select></label>
           <label>תוקף עד<input name="expires_at" type="date" /></label>
           <label className="wide">קובץ<input name="file" type="file" accept="image/jpeg,image/png,image/webp,application/pdf" required /></label>
           <button className="button primary wide" disabled={isPending} type="submit"><Save size={18} /> {isPending ? "מעלה..." : "שמירת מסמך"}</button>
