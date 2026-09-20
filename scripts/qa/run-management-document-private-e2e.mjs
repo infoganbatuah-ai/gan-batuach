@@ -109,7 +109,32 @@ try {
   assert.equal(expiring.status, 302);
   await new Promise((resolve) => setTimeout(resolve, 65_000));
   assert.notEqual((await fetch(expiring.headers.get('location'))).status, 200, '60-second signed URL did not expire');
-  console.log('GB-M32 private document E2E PASS: scoped upload, authorized retrieval, negative roles, private Storage, expiry');
+  const deletion = `/api/documents/${documentId}/delete-request`;
+  assert.equal((await api(deletion, cookies.parentB, { method: 'POST' })).status, 403);
+  assert.equal((await api(deletion, cookies.parentA, { method: 'POST' })).status, 200);
+  const purge = `/api/documents/${documentId}/purge`;
+  assert.equal((await api(purge, cookies.admin, { method: 'POST' })).status, 409,
+    'unknown retention policy must block physical deletion');
+  assert.ifError((await admin.from('documents').update({ retention_until: '2000-01-01', legal_hold: true })
+    .eq('id', documentId)).error);
+  assert.equal((await api(purge, cookies.admin, { method: 'POST' })).status, 409,
+    'legal hold must block physical deletion');
+  assert.ifError((await admin.from('documents').update({ legal_hold: false }).eq('id', documentId)).error);
+  assert.equal((await api(purge, cookies.admin, { method: 'POST' })).status, 200);
+  assert.equal((await api(purge, cookies.admin, { method: 'POST' })).status, 200,
+    'purge retry must be idempotent');
+  const { data: purged, error: purgedError } = await admin.from('documents')
+    .select('deleted_at').eq('id', documentId).single();
+  assert.ifError(purgedError);
+  assert.ok(purged.deleted_at);
+  assert.ok((await admin.storage.from('documents').download(objectPath)).error,
+    'purged private object remained readable');
+  const { count: purgeAuditCount, error: purgeAuditError } = await admin.from('audit_logs')
+    .select('id', { count: 'exact', head: true }).eq('entity_type', 'documents')
+    .eq('entity_id', documentId).eq('action', 'document_storage_purged');
+  assert.ifError(purgeAuditError);
+  assert.equal(purgeAuditCount, 1, 'purge retry duplicated audit');
+  console.log('GB-M32 private document E2E PASS: scoped upload/read, denied roles, private Storage, signed expiry, retention/hold and idempotent purge');
 } finally {
   // Disposable synthetic QA only. Preserve historical audit rows but remove
   // the fixture document and object so subsequent Development QA is clean.

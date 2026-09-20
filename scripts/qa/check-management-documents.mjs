@@ -1,9 +1,18 @@
 import assert from 'node:assert/strict';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
-import { documentOwnerFor, effectiveDocumentStatus, supportedDocumentSignature } from '../../lib/management/document-policy.ts';
+import { documentOwnerFor, effectiveDocumentStatus, managementDocumentId, supportedDocumentSignature } from '../../lib/management/document-policy.ts';
 
 const read = (path) => readFileSync(new URL('../../' + path, import.meta.url), 'utf8');
+
+test('document routes accept full canonical UUIDs and reject truncated identifiers', () => {
+  assert.equal(managementDocumentId.test('00000000-0000-4000-8000-000000000601'), true);
+  assert.equal(managementDocumentId.test('00000000-0000-4000-000000000601'), false);
+  for (const route of ['app/api/documents/route.ts', 'app/api/documents/[id]/file/route.ts',
+    'app/api/documents/[id]/delete-request/route.ts', 'app/api/documents/[id]/purge/route.ts']) {
+    assert.match(read(route), /const uuid = managementDocumentId/);
+  }
+});
 
 test('document categories bind to one explicit owner type', () => {
   assert.equal(documentOwnerFor('medical_approval'), 'child');
