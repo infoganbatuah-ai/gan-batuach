@@ -17,7 +17,7 @@ try {
     HOME_QA_OUTPUT_DIR: join(root, "issued"), SIGNER_KEY_ARN: arn, SIGNER_KEY_ID: keyId,
     SIGNER_PUBLIC_KEY_SHA256: createHash("sha256").update(publicBytes).digest("hex"),
     HOME_QA_R2_ORIGIN: "https://693f824a750afcc264fe6ee58c8a86ab.r2.cloudflarestorage.com",
-    GITHUB_SHA: "a".repeat(40) };
+    GITHUB_SHA: "a".repeat(40), PUSH38_CANDIDATE_SHA: "b".repeat(40) };
   const call = async (operation, input) => {
     assert.equal(input.KeyId, arn);
     if (operation === "get-public-key") return { KeyId: arn, KeySpec: "ECC_NIST_EDWARDS25519",

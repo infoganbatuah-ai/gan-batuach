@@ -14,7 +14,8 @@ const digest = bytes => createHash("sha256").update(bytes).digest("hex");
 
 export async function issuePush38HomeQaManifests({ env = process.env, call }) {
   if (env.GITHUB_REPOSITORY !== "infoganbatuah-ai/gan-batuach" ||
-    env.GITHUB_REF !== "refs/heads/codex/push-38-aws-signing" || !env.RUNNER_TEMP || !env.HOME_QA_OUTPUT_DIR)
+    env.GITHUB_REF !== "refs/heads/codex/push-38-aws-signing" ||
+    !/^[a-f0-9]{40}$/.test(env.PUSH38_CANDIDATE_SHA || "") || !env.RUNNER_TEMP || !env.HOME_QA_OUTPUT_DIR)
     fail("P38_HOME_QA_SIGNING_CONTEXT_INVALID");
   const runner = resolve(env.RUNNER_TEMP), output = resolve(env.HOME_QA_OUTPUT_DIR);
   if (!output.startsWith(`${runner}/`) || existsSync(output) || lstatSync(runner).isSymbolicLink())
@@ -44,7 +45,8 @@ export async function issuePush38HomeQaManifests({ env = process.env, call }) {
     writeFileSync(join(output, `${item.role.toLowerCase()}.evidence.json`),
       `${JSON.stringify({ ...item.result.evidence, role: item.role, device_id: item.deviceId,
         artifact_sha256: item.result.document.artifact_sha256,
-        manifest_file_sha256: digest(bytes), source_commit: env.GITHUB_SHA }, null, 2)}\n`,
+        manifest_file_sha256: digest(bytes), source_commit: env.PUSH38_CANDIDATE_SHA,
+        signing_workflow_commit: env.GITHUB_SHA }, null, 2)}\n`,
       { flag: "wx", mode: 0o600 });
   }
   return signed.map(item => ({ role: item.role, release_id: item.result.document.release_id,
