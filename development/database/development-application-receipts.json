@@ -1,7 +1,7 @@
 {
   "environment": "DEVELOPMENT / INTEGRATION",
-  "observedAt": "2026-09-20T00:03:53.195Z",
-  "integrationCommit": "950f64483f2bc475da0329a7955532cfb2cf4429",
+  "observedAt": "2026-09-20T00:42:12.128Z",
+  "integrationCommit": "b4e5b0195473a985ecbf14025537515cc983809c",
   "migrations": [
     {
       "version": "20260919170000",
