@@ -33,7 +33,7 @@
     "cross_account_verification_denied": true,
     "active_session_revocation": { "staff": "200->403, restored", "manager": "200->403, restored", "inspector": "200->403, restored", "environment": "disposable synthetic clone" },
     "gb_m35_pr_86_exact_head_checks": "9/9 completed green on ecc695c7898f007ef8308c6f219aab27dccf6f50",
-    "open_p1_legacy_plaintext_credentials": { "log_mitigation_pr": 97, "generated_credentials_store_unresolved": true, "production_mutation": false }
+    "open_p1_legacy_plaintext_credentials": { "log_mitigation_pr": 97, "log_mitigation_integration_merge": "a885f9a5f4d0e7d88a1ef0e6f62062b0532ac957", "generated_credentials_store_unresolved": true, "production_mutation": false }
   },
   "results": {
     "identity_auth_rest": { "passed": 20, "total": 20 },
