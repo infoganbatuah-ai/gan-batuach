@@ -245,3 +245,19 @@ Development; PR #86 remains a draft. Full GB-M21–M34 transactional browser
 journeys, signup/Email confirmation and the other concurrency/IDOR gates
 remain open. This ledger entry records the unit as **BLOCKED / pending
 integration**; it does not merge #86, authorize GB-M36, or release Production.
+
+GB-M35 temporary-credential P1 (2026-09-20): scoped PR #98 merged by ancestry
+into `integration/development` at
+`f83eb1bb781c050019ff6c7e877f946276aecf23`, preserving source commit
+`f97819e520dbffd4e4b75e7238da314f3b8cb7f3`. Its nine exact-head
+required checks passed. The repair replaces reusable plaintext temporary
+passwords in legacy Admin/Garden provisioning with signed Supabase Auth Email
+invitations and recovery, removes password projections/mock payloads, and
+restricts demo seeders to explicit loopback QA. The forward migration
+`20260920170000_retire_generated_plaintext_credentials.sql` removes the secret
+column while retaining non-secret history. A disposable synthetic Auth clone
+passed invitation/Email-confirmation and migration checks. The canonical
+isolated Development application is pending in the migration ledger; PR #86
+remains draft and GB-M35 role/browser QA remains open. Production, `main`, and
+customer accounts are unchanged. Historical Production backups require
+retention/security review in the later owner-authorized release.
