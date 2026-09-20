@@ -44,7 +44,7 @@ Active Child enrollment/Classroom fixtures are present. The Parent request→Gar
 
 ## Payments
 
-Parent Child tuition IDOR passed. No real payment or provider charge was attempted. Manual settlement, partial payment, reconciliation, platform subscription control and disabled electronic checkout truthfulness remain open.
+Parent Child tuition IDOR passed. A new synthetic role/API run generated September billing periods separately for Child A/Garden A and Child B/Garden B and verified Parent/Manager cross-Garden denials. Manager A's first manual settlement returned HTTP 409 without changing either balance. PostgreSQL reported `42804`: the GB-M27 RPC cast `current_role()` to text before writing the enum-typed `audit_logs.actor_role`. Scoped fix [#88](https://github.com/infoganbatuah-ai/gan-batuach/pull/88) replaces three RPC bodies in a new forward-only migration; rollback-only synthetic Manager tests verified the audit writes and no persistent balance mutation. PR #88 passed its exact-head required checks and merged as `740e32d631576733ac8bdf5d43fb8127e845a66b`. Ordered isolated Development approval [#89](https://github.com/infoganbatuah-ai/gan-batuach/pull/89) and the HTTP partial/full settlement retest remain pending. No real payment or provider charge was attempted. Platform subscription control and disabled electronic checkout truthfulness remain open.
 
 ## Messaging
 
@@ -68,7 +68,7 @@ In 15 synthetic role/API checks on the local production-mode build, Manager A sc
 
 ## Inspections / Corrective Actions
 
-The prior GB-M22/23 isolated schema and concurrency evidence remains. No new synthetic inspection/finding/action row existed in the GB-M35 fixture at inventory, so the full Inspector→Garden→Parent-safe journey and evidence retrieval remain open.
+The prior GB-M22/23 isolated schema and concurrency evidence remains. This continuation created only synthetic Garden A inspection fixtures and passed 25/25 authenticated API checks: assigned Inspector draft/save/resume, private PDF evidence, simultaneous HTTP submissions returning one report with two answers, server score/finding, one linked corrective action, Garden acknowledgement/progress/remediation, assigned Inspector acceptance, wrong-Garden/unassigned-Inspector denial, immutable original report score and Parent-safe projections without GPS or private evidence path. A second 21/21 check retrieved inspection/remediation evidence for explicitly permitted actors through short-lived private signed URLs, denied unrelated roles/altered IDs/anonymous/raw storage, confirmed private bucket policy and link expiry after 60 seconds. These are authenticated API/Storage journeys, not interactive browser evidence or independent DB-connection concurrency proof. Corrective rejection/resubmission and conflicting decisions remain open.
 
 ## Complaints / Tasks
 
@@ -100,11 +100,11 @@ No payment, receipt, document verification, provider delivery, camera identifica
 
 ## Defects Found
 
-One confirmed **P1**: approved assigned Inspector was blocked from operational dashboard by a direct RLS-hidden table read. No P0 was found in the limited tested matrix. Untested journeys cannot be counted as absence of defects.
+Two confirmed **P1** defects: approved assigned Inspector was blocked from operational dashboard by a direct RLS-hidden table read; and a Manager's manual tuition settlement rolled back because GB-M27 audit code wrote text into the `app_role` enum column. No P0 was found in the limited tested matrix. Untested journeys cannot be counted as absence of defects.
 
 ## Defects Fixed
 
-The Inspector guard fix is isolated in PR #85, two scoped commits `f4cbbb1fdf7fe47f496a586b7ee3feb722158dd3` and `6b22afa28a3911ddeb703e24f3b95fd5b61d0397`; merge `1a0162f261c6141ffb06b3ebe2abf41181a81b70`. It changed only the guard and its focused tests. Its nine exact-head checks passed. The final GB-M35 Chrome retest passed 16/16 role first-render probes. Cumulative GB-M35 validation after this merge remains to be run.
+The Inspector guard fix is isolated in PR #85, two scoped commits `f4cbbb1fdf7fe47f496a586b7ee3feb722158dd3` and `6b22afa28a3911ddeb703e24f3b95fd5b61d0397`; merge `1a0162f261c6141ffb06b3ebe2abf41181a81b70`. It changed only the guard and its focused tests. Its nine exact-head checks passed. The final GB-M35 Chrome retest passed 16/16 role first-render probes. The tuition fix is isolated in PR #88, final head `208f544b618762800b15d54c9361f8ba8c5185f5`, merge `740e32d631576733ac8bdf5d43fb8127e845a66b`; exact-head CI and rollback-only synthetic role tests passed. Its Development application and full HTTP retest are still required before calling the P1 closed. Cumulative GB-M35 validation after all fixes remains to be run.
 
 ## Remaining P2/P3
 
