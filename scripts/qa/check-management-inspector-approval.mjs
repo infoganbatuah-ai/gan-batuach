@@ -19,6 +19,8 @@ test("approval and Garden assignment remain independent", () => {
   assert.match(auth, /application\?\.status !== "approved"/);
   assert.match(shell, /requireApprovedInspector/);
   assert.match(guard, /current_inspector_approved/);
+  assert.match(guard, /supabase\.rpc\("current_inspector_approved"/);
+  assert.doesNotMatch(guard, /\.from\("inspectors"/);
   assert.match(guard, /if \(!assignment\.data\) return denied\("inspector_assignment"\)/);
 });
 
