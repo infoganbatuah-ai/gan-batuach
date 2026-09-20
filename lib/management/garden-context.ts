@@ -22,7 +22,7 @@ export async function getManagementGardenContext(targetGardenId?: string) {
     if (!["manager", "owner"].includes(profile.role) || profile.active !== true) {
       return { allowed: false as const, response: fail("אין הרשאה לפעול בניהול הגן.", 403) };
     }
-    if (targetGardenId) {
+    if (typeof targetGardenId === "string" && targetGardenId) {
       const supabase = await createClient();
       const decision = await supabase.rpc("can_edit_garden_onboarding" as never, { target_garden_id: targetGardenId } as never);
       if (decision.error) return { allowed: false as const, response: fail("בדיקת הרשאות הגן אינה זמינה כרגע.", 503) };

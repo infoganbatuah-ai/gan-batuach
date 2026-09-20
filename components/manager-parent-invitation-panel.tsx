@@ -24,7 +24,7 @@ export function ManagerParentInvitationPanel({ gardenId }: { gardenId: string })
     setMessage("");
     setSuccess(false);
     try {
-      const response = await fetch("/api/garden/parent-invitations", {
+      const response = await fetch(`/api/garden/parent-invitations?gardenId=${encodeURIComponent(gardenId)}`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

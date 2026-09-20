@@ -9,12 +9,14 @@ const schema = z.object({ full_name: z.string().trim().min(2), email: z.string()
 
 export async function POST(request: Request) {
   try {
-    const payload = schema.parse(await request.json());
-    const access = await getManagementGardenContext(payload.garden_id);
+    const requestedGardenId = typeof request.url === "string" ? new URL(request.url).searchParams.get("gardenId") : null;
+    const access = await getManagementGardenContext(requestedGardenId ?? undefined);
     if (!access.allowed) return access.response;
     const { profile } = access.session;
     if (!profile.garden_id) return fail("לא נמצא גן משויך.", 422);
     if (!isAdminClientConfigured()) return fail("שליחת הזמנה דורשת שירות שרת מאובטח.", 503);
+    const payload = schema.parse(await request.json());
+    if (payload.garden_id && payload.garden_id !== access.gardenId) return fail("מזהה הגן אינו תואם להקשר המורשה.", 403);
     const admin = createAdminClient();
     const email = normalizeInvitationEmail(payload.email)!;
     const [{ data: existing, error: existingError }, { data: garden, error: gardenError }] = await Promise.all([
