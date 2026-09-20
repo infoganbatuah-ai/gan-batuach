@@ -34,9 +34,15 @@ export async function POST(_: Request, context: { params: Promise<{ id: string }
     }
     const removed = await admin.storage.from("documents").remove([row.storage_path]);
     if (removed.error) return fail("הגישה למסמך נחסמה; מחיקת הקובץ דורשת ניסיון חוזר.", 503);
-    const audit = await admin.from("audit_logs").insert({ actor_id: session.profile.id, actor_role: session.profile.role,
-      garden_id: row.garden_id, entity_type: "documents", entity_id: id, action: "document_storage_purged" });
-    if (audit.error) return fail("הקובץ נמחק אך תיעוד המחיקה דורש תיקון.", 503);
+    const existingAudit = await admin.from("audit_logs").select("id")
+      .eq("entity_type", "documents").eq("entity_id", id).eq("action", "document_storage_purged")
+      .limit(1).maybeSingle();
+    if (existingAudit.error) return fail("הקובץ נמחק אך בדיקת תיעוד המחיקה דורשת תיקון.", 503);
+    if (!existingAudit.data) {
+      const audit = await admin.from("audit_logs").insert({ actor_id: session.profile.id, actor_role: session.profile.role,
+        garden_id: row.garden_id, entity_type: "documents", entity_id: id, action: "document_storage_purged" });
+      if (audit.error) return fail("הקובץ נמחק אך תיעוד המחיקה דורש תיקון.", 503);
+    }
     return ok({ id, status: "deleted" });
   } catch (error) { return handleSafeRouteError(error); }
 }
