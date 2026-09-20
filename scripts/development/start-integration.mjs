@@ -21,8 +21,8 @@ try {
   const sha = git('rev-parse','HEAD');
   const env = integrationEnvironment(local,{uiOnly,sha,timestamp:new Date().toISOString(),system:process.env});
   if (!uiOnly) {
-    try { execFileSync(process.execPath,[resolve(root,'scripts/development/check-migration-drift.mjs')],{cwd:root,stdio:'pipe'}); }
-    catch { throw new Error('Development migration drift/readiness gate failed. Run npm run qa:development-drift; never fall back to Production or label an adapted feature DB as canonical.'); }
+    try { execFileSync(process.execPath,[resolve(root,'scripts/development/check-baseline-drift.mjs')],{cwd:root,stdio:'pipe'}); }
+    catch { throw new Error('Development migration drift/readiness gate failed. Run npm run qa:development-baseline-drift; never fall back to Production or label an adapted feature DB as canonical.'); }
     const response = await fetch(`${env.NEXT_PUBLIC_SUPABASE_URL}/auth/v1/health`,{
       headers:{apikey:env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY},signal:AbortSignal.timeout(5000),redirect:'error',
     });

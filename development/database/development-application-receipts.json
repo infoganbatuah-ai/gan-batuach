@@ -1,7 +1,7 @@
 {
   "environment": "DEVELOPMENT / INTEGRATION",
-  "observedAt": "2026-09-20T00:42:12.128Z",
-  "integrationCommit": "b4e5b0195473a985ecbf14025537515cc983809c",
+  "observedAt": "2026-09-20T02:06:12.276Z",
+  "integrationCommit": "73f2a6a9316fa64bdba8a2a8570c4cdc2e87c5d2",
   "migrations": [
     {
       "version": "20260919170000",
@@ -66,6 +66,14 @@
       "source_commit": "950f64483f2bc475da0329a7955532cfb2cf4429",
       "applied_at": "2026-09-20T00:02:48.007701+00:00",
       "schema_fingerprint": "80831b96f07af3e5f5e34e8b5497f776d05ce2af83ac26a11e0b9a8f5344359f"
+    },
+    {
+      "version": "20260920140000",
+      "filename": "supabase/migrations/20260920140000_management_child_attendance_pickup.sql",
+      "source_digest": "f2b2faa58529493724bfc2054423cb006bef175862b77c9eca4d47d998a2dc4b",
+      "source_commit": "73f2a6a9316fa64bdba8a2a8570c4cdc2e87c5d2",
+      "applied_at": "2026-09-20T01:59:26.144251+00:00",
+      "schema_fingerprint": "8122836e01001d39663c7298b3ccf2e58c69b4dbad9f592787a4b40534e7eaff"
     }
   ],
   "productionAccess": false
