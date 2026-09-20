@@ -2,7 +2,7 @@ name: PUSH 38 Home QA public trust issuance
 
 on:
   push:
-    branches: [codex/push-38t-qualification]
+    branches: [codex/push-38-aws-signing]
     paths:
       - .github/workflows/push38-home-qa-public-trust.yml
       - scripts/release/issue-home-qa-trust-registry.mjs
@@ -14,7 +14,7 @@ concurrency:
 
 jobs:
   release-public-key:
-    if: github.repository == 'infoganbatuah-ai/gan-batuach' && github.ref == 'refs/heads/codex/push-38t-qualification'
+    if: github.repository == 'infoganbatuah-ai/gan-batuach' && github.ref == 'refs/heads/codex/push-38-aws-signing'
     environment: HOME_QA_SIGNING
     runs-on: ubuntu-latest
     timeout-minutes: 5
@@ -49,7 +49,7 @@ jobs:
 
   root-authorized-registry:
     needs: release-public-key
-    if: github.repository == 'infoganbatuah-ai/gan-batuach' && github.ref == 'refs/heads/codex/push-38t-qualification'
+    if: github.repository == 'infoganbatuah-ai/gan-batuach' && github.ref == 'refs/heads/codex/push-38-aws-signing'
     environment: ROOT_TRUST_SIGNING
     runs-on: ubuntu-latest
     timeout-minutes: 5
