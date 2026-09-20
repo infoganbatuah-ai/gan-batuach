@@ -159,3 +159,14 @@ race passed. The exact integrated head launched as DEVELOPMENT / INTEGRATION
 at `http://127.0.0.1:3000`; health was HTTP 200 and anonymous protected
 document APIs returned 401. Production remains untouched. Retention policy,
 Production recovery proof, and controlled live-role QA remain release debt.
+
+GB-M33 feature integration (2026-09-20): PR #77 merged by ancestry at
+`ef9af8443fd09952b1eb645f35f06ac0ebc93a06` after nine exact-head checks
+passed on `40b671c95b7a2402fb2c414118fad5789c34ef4f`. The feature branch
+`codex/gb-m33-attendance-pickup` and all three source commits remain remote.
+The forward migration `20260920140000_management_child_attendance_pickup.sql`
+passed rollback-only synthetic Parent/Guardian/Staff/Manager/Inspector/Admin
+authorization QA. It is approved for **isolated Development only** after the
+pre-application backup and duplicate-day check. Separate-connection races,
+cumulative Product QA, and controlled live-role QA remain open. Production
+migration, `main`, and deployment are unchanged.
