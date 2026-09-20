@@ -31,13 +31,14 @@ function trustedKeys() {
 
 export async function POST(request: Request) {
   try {
-    // Cloud publication and the storage migration require a separately reviewed release.
-    if (process.env.OBSERVER_EDGE_PRIVATE_RELEASE_DELIVERY !== "enabled")
-      return fail("Private edge release delivery is not active.", 503);
     const claims = verifyGatewayDeviceAccessToken(request.headers.get("x-video-gateway-device-token") || "",
       process.env.VIDEO_GATEWAY_CLOUD_DISCOVERY_SECRET || "");
     if (!claims || claims.version !== 2 || !gatewayDeviceSessionAllows(claims, "UPDATE_READ"))
       return fail("Managed device release authentication failed.", 401);
+    // Do not reveal delivery readiness to an unauthenticated caller. Even an
+    // authenticated device is denied until the isolated rollout is enabled.
+    if (process.env.OBSERVER_EDGE_PRIVATE_RELEASE_DELIVERY !== "enabled")
+      return fail("Private edge release delivery is not active.", 503);
     const input = requestSchema.parse(await parseBoundedJson(request, 2048));
     if (input.profile !== claims.deployment_profile) return fail("Release scope mismatch.", 403);
     const admin = createAdminClient() as any;

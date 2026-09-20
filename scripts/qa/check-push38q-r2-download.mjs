@@ -1,9 +1,16 @@
 import assert from "node:assert/strict";
 import { generateKeyPairSync, sign } from "node:crypto";
+import { readFileSync } from "node:fs";
 import { authorizeHomeQaR2Download } from "../../services/video-gateway/edge-r2-download.mjs";
 import { edgeReleaseScopeAllows, assertEdgeReleaseObjectUrl } from "../../services/video-gateway/edge-release-object.mjs";
 import { assertAuthorizedUpdateDirection, canonicalEdgeUpdateManifest,
   evaluateEdgeUpdateEligibility, verifyEdgeUpdateManifest } from "../../services/video-gateway/edge-update-contract.mjs";
+
+const authorizationRoute = readFileSync(new URL("../../app/api/video-gateway/edge-updates/download/route.ts", import.meta.url), "utf8");
+const postHandler = authorizationRoute.slice(authorizationRoute.indexOf("export async function POST"));
+assert.ok(postHandler.indexOf("verifyGatewayDeviceAccessToken(") >= 0 &&
+  postHandler.indexOf("verifyGatewayDeviceAccessToken(") < postHandler.indexOf("OBSERVER_EDGE_PRIVATE_RELEASE_DELIVERY"),
+"anonymous requests must be denied before release-delivery readiness is disclosed");
 
 const key = generateKeyPairSync("ed25519");
 const keyId = "home-qa-test";
