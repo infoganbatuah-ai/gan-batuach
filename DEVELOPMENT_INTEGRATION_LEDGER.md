@@ -167,6 +167,12 @@ passed on `40b671c95b7a2402fb2c414118fad5789c34ef4f`. The feature branch
 The forward migration `20260920140000_management_child_attendance_pickup.sql`
 passed rollback-only synthetic Parent/Guardian/Staff/Manager/Inspector/Admin
 authorization QA. It is approved for **isolated Development only** after the
-pre-application backup and duplicate-day check. Separate-connection races,
-cumulative Product QA, and controlled live-role QA remain open. Production
-migration, `main`, and deployment are unchanged.
+pre-application backup and duplicate-day check. Approval PR #78 merged at
+`73f2a6a9316fa64bdba8a2a8570c4cdc2e87c5d2`; the guarded runner then
+applied the migration only to isolated Development. The receipt records
+236/236 baseline-aware drift, and the applied schema passed synthetic direct
+RLS plus separate-connection arrival, release, and revoke/release races.
+Cumulative domain, security, Parent/Manager, Classroom, multi-Garden Staff,
+ledger and release-contract tests passed. A final full-stack smoke and
+controlled live-role QA remain open. Production migration, `main`, and
+deployment are unchanged.

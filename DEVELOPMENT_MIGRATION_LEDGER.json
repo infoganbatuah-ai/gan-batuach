@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "observedAt": "2026-09-20T00:41:51.807Z",
+  "observedAt": "2026-09-20T02:05:42.757Z",
   "productionWriteAuthorized": false,
   "remoteHistoryStatus": "UNVERIFIED_READ_ONLY_RECONCILIATION_REQUIRED",
   "localDatabaseStatus": "BASELINE_AND_INTEGRATED_MIGRATIONS_APPLIED",
@@ -7207,7 +7207,7 @@
       "sourceCommit": "40b671c95b7a2402fb2c414118fad5789c34ef4f",
       "sourceHead": "40b671c95b7a2402fb2c414118fad5789c34ef4f",
       "remoteBranch": "origin/codex/gb-m33-attendance-pickup",
-      "integrationCommit": "ef9af8443fd09952b1eb645f35f06ac0ebc93a06",
+      "integrationCommit": "73f2a6a9316fa64bdba8a2a8570c4cdc2e87c5d2",
       "inGit": true,
       "inIntegration": true,
       "inclusion": "INTEGRATED_DEVELOPMENT",
@@ -7215,18 +7215,23 @@
       "requiredPredecessor": "20260920130000_management_private_documents.sql",
       "dependencyStatus": "GB_M32_DEVELOPMENT_APPLIED",
       "developmentApproval": "VALIDATED_FOR_ISOLATED_DEVELOPMENT",
-      "developmentDependsOn": ["20260920130000"],
-      "developmentApplied": "NO",
-      "developmentAppliedAt": null,
-      "developmentEvidence": null,
+      "developmentDependsOn": [
+        "20260920130000"
+      ],
+      "developmentApplied": "YES",
+      "developmentAppliedAt": "2026-09-20T01:59:26.144251+00:00",
+      "developmentEvidence": "development/database/development-application-receipts.json",
       "productionApplied": "UNVERIFIED",
       "productionEvidence": null,
       "recovery": "Forward-only attendance/pickup constraints and security-definer RPCs preserve historical rows. Read-only duplicate-day preflight, isolated backup and lock-timeout review precede application. No Production application or customer-data remediation is authorized.",
-      "developmentApprovalEvidence": "PR #77 exact head 40b671c95b7a2402fb2c414118fad5789c34ef4f required checks 9/9 PASS; ancestry merge ef9af8443fd09952b1eb645f35f06ac0ebc93a06; rollback-only synthetic Parent/Guardian/Staff/Manager/Inspector/Admin RLS matrix PASS on guarded isolated Development database."
+      "developmentApprovalEvidence": "PR #77 exact head 40b671c95b7a2402fb2c414118fad5789c34ef4f required checks 9/9 PASS; ancestry merge ef9af8443fd09952b1eb645f35f06ac0ebc93a06; rollback-only synthetic Parent/Guardian/Staff/Manager/Inspector/Admin RLS matrix PASS on guarded isolated Development database.",
+      "developmentHistoryDigest": "f2b2faa58529493724bfc2054423cb006bef175862b77c9eca4d47d998a2dc4b",
+      "developmentSchemaFingerprint": "8122836e01001d39663c7298b3ccf2e58c69b4dbad9f592787a4b40534e7eaff",
+      "developmentStatusReason": "Original post-baseline SQL applied after remote integration; Production status unchanged"
     }
   ],
   "developmentExpected": 236,
-  "developmentAppliedVerified": 235,
+  "developmentAppliedVerified": 236,
   "blockers": [],
   "localObservations": [
     {
