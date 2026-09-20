@@ -9,14 +9,14 @@ const releases = Object.freeze([
     digest: "6e7988808b05956d58416a6ce60638f52b19aa732918ac0e1cdafcc5fc9f130a", size: 146778302,
     profile: "SOFTWARE_CONNECTOR" },
   { role: "CONNECTOR_REMEDIATION", deviceId: "db267b52-6282-4944-bcee-5d4857698fb0",
-    releaseId: "qa-p38i-connector-069c91593f8b", version: "0.2.8-p38i",
-    buildSha: "069c91593f8b1f74519f8ac2f85b80d4002f9166",
-    digest: "244ccc5661bcde5e85fcfe6b6712fc7096ee099e63153783ed2bafac6a8aa882", size: 147360407,
+    releaseId: "qa-p38-health-connector-1b076f596574", version: "0.2.9-p38-health",
+    buildSha: "04874417c764582968f6c94312594e9770178fea",
+    digest: "1b076f5965744a903c3c601d8c424c7b127bdcb0d06f49c72eff8b9345bdfc27", size: 147375602,
     profile: "SOFTWARE_CONNECTOR" },
   { role: "GATEWAY_REMEDIATION", deviceId: "62df97e2-3c0b-427f-9108-bde029bc10e7",
-    releaseId: "qa-p38i-gateway-069c91593f8b", version: "0.2.8-p38i",
-    buildSha: "069c91593f8b1f74519f8ac2f85b80d4002f9166",
-    digest: "c202aafe65ac7f3cf14e8bc51b9bdfcb84702fa1b1de2629fc03685af316e028", size: 135759651,
+    releaseId: "qa-p38-health-gateway-6c9d08327ec6", version: "0.2.9-p38-health",
+    buildSha: "04874417c764582968f6c94312594e9770178fea",
+    digest: "6c9d08327ec6f38db3fc55c4c344f4db6fc0d0adab5c68e3ec3f1c1164f11c95", size: 135764626,
     profile: "PHYSICAL_GATEWAY" }
 ]);
 
