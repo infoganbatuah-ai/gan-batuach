@@ -80,7 +80,8 @@ try {
   const record = sql(`select registrant_type from public.kindergarten_onboarding_records where garden_id='${gardenId}'`).trim();
   assert.equal(record, 'owner_only');
   results.push('Owner-only mode persisted without an automatic Teacher identity');
-  assert.match(await page.locator('main').innerText(), /שלב 1 מתוך 5/);
+  await page.locator('nav[aria-label="שלבי רישום"] button').first().click();
+  await page.getByRole('heading', { name: 'שלב 1 מתוך 5' }).waitFor();
 
   const marker = 'GB-M35 synthetic Owner save/resume marker';
   await page.locator('textarea[name=public_description]').fill(marker);
@@ -91,6 +92,40 @@ try {
   assert.equal(await page.locator('textarea[name=public_description]').inputValue(), marker);
   assert.equal(automaticLogout, 0);
   results.push('Draft survives leave/reload and authentication remains active');
+
+  for (const nextStep of [2, 3, 4, 5]) {
+    const advancedResponse = page.waitForResponse(response => new URL(response.url()).pathname === '/api/kindergarten-onboarding' && response.request().method() === 'PATCH');
+    await page.getByRole('button', { name: /שמירה והמשך/ }).click();
+    assert.equal((await advancedResponse).status(), 200);
+    await page.getByRole('heading', { name: `שלב ${nextStep} מתוך 5` }).waitFor();
+  }
+  await page.reload({ waitUntil: 'domcontentloaded', timeout: 90_000 });
+  await page.getByRole('heading', { name: 'שלב 5 מתוך 5' }).waitFor();
+  assert.equal(automaticLogout, 0);
+  results.push('All five wizard stages save and resume at the final stage');
+
+  await page.locator('nav[aria-label="שלבי רישום"] button').nth(3).click();
+  await page.locator('input[name=invite_full_name]').fill('QA Parent Multi');
+  await page.locator('input[name=invite_email]').fill('parent-multi@integration.qa.invalid');
+  const invitationResponse = page.waitForResponse(response => new URL(response.url()).pathname === '/api/garden/parent-invitations' && response.request().method() === 'POST');
+  await page.getByRole('button', { name: /שליחת הזמנה/ }).click();
+  const invitation = await invitationResponse;
+  assert.equal(invitation.status(), 201, 'Owner onboarding invitation must target its displayed draft Garden');
+  const invitationBody = await invitation.json();
+  const invitationId = invitationBody.data?.invitation?.canonical_invitation_id;
+  assert.match(invitationId, /^[0-9a-f-]{36}$/i);
+  assert.equal(sql(`select garden_id from public.management_invitations where id='${invitationId}'`).trim(), gardenId);
+  results.push('Parent invitation from draft wizard is bound to that Garden');
+
+  const denied = await page.evaluate(async ({ wrongGardenId, intendedGardenId }) => {
+    const payload = { full_name: 'QA Parent Multi', email: 'parent-multi@integration.qa.invalid', garden_id: wrongGardenId };
+    const crossGarden = await fetch(`/api/garden/parent-invitations?gardenId=${wrongGardenId}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+    const mismatchedBody = await fetch(`/api/garden/parent-invitations?gardenId=${intendedGardenId}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+    return { crossGarden: crossGarden.status, mismatchedBody: mismatchedBody.status };
+  }, { wrongGardenId: '00000000-0000-4000-8000-000000000602', intendedGardenId: gardenId });
+  assert.equal(denied.crossGarden, 403);
+  assert.equal(denied.mismatchedBody, 403);
+  results.push('Other-Garden and mismatched invitation IDs are denied');
 
   assert.deepEqual(errors, []);
   assert.deepEqual(serverErrors, []);
