@@ -1,5 +1,25 @@
 # GB-M35 — Full role E2E QA, controlled identities and journey closure
 
+## QA Consent Authorization
+
+The owner explicitly authorized ordinary Privacy Policy and Terms acceptance **only** for synthetic accounts in the isolated Development/QA environment. Synthetic Parent and Manager registrations used that scope. No customer, real user or Production consent was accepted.
+
+## Temporary Credential P1
+
+**CLOSED for Development code and the isolated synthetic QA database.** Scoped [PR #98](https://github.com/infoganbatuah-ai/gan-batuach/pull/98) retired active plaintext temporary-password creation, retrieval and logging, and preserved signed invitation and account-recovery paths. Its exact head passed all 9 required checks and merged into `integration/development` at `f83eb1`. Earlier paragraphs in this report describing this P1 as open are historical evidence and are superseded here. Production still needs the reviewed forward migration during an explicitly authorized release; none was applied in GB-M35.
+
+## Credential Remediation
+
+The forward-only `20260920170000_retire_generated_plaintext_credentials.sql` was applied to the isolated Development database in canonical order and verified as 239/239 migrations. The QA clone's historical synthetic plaintext was redacted without printing or committing values. A tested backup and isolated restore preceded the Development migration. No Production data or customer credential was read or changed.
+
+## Browser Signup Verification
+
+Actual browser sessions completed synthetic Parent and Manager signup with QA consent, Mailpit Email capture, confirmation and verified login. Phone remained unverified. The Manager then created a draft Garden with two same-age Classrooms, capacity and tuition, saved/resumed all wizard stages, sent a pending-Garden invitation to an existing synthetic Parent, selected a no-charge 14-day trial and reached the Garden dashboard after activation. [PR #101](https://github.com/infoganbatuah-ai/gan-batuach/pull/101) fixed the pending-Garden invitation 403 and merged at `45cecd29`; [PR #102](https://github.com/infoganbatuah-ai/gan-batuach/pull/102) fixed draft resume after login and merged at `3ce2b634`, with 9/9 exact-head checks green. The post-activation Garden-context request returned 422 because of a client field mismatch; scoped [PR #103](https://github.com/infoganbatuah-ai/gan-batuach/pull/103) is open to correct it. This is a Manager activation journey and does not prove the separate Owner, Staff, Inspector or full Parent flows.
+
+## Final Matrix Closure
+
+GB-M35 remains open. The [matrix](GAN_BATUACH_MANAGEMENT_GB_M35_E2E_QA_MATRIX.md) preserves incomplete internal journeys as PARTIAL/NOT RUN until actually exercised. PR #86 remains draft and unmerged. External provider unavailability is recorded separately from internal QA gaps.
+
 **Status (2026-09-20): PARTIAL.** This report records completed isolated Development evidence and explicit remaining journeys. It does not claim Production, live-provider or complete full-role E2E closure. The detailed [matrix](GAN_BATUACH_MANAGEMENT_GB_M35_E2E_QA_MATRIX.md) is authoritative for journey-level status; the redacted machine-readable [summary](development/database/gb-m35-role-qa-summary.json) records counts without credentials or signed URLs.
 
 ## Auth-capable QA continuation (supersedes the earlier Auth-environment blocker)
