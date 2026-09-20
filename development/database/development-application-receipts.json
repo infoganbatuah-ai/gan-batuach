@@ -1,7 +1,7 @@
 {
   "environment": "DEVELOPMENT / INTEGRATION",
-  "observedAt": "2026-09-20T02:06:12.276Z",
-  "integrationCommit": "73f2a6a9316fa64bdba8a2a8570c4cdc2e87c5d2",
+  "observedAt": "2026-09-20T04:09:02.881Z",
+  "integrationCommit": "89dc2d98f4d6f88d57b4ab49487edaab15481cc9",
   "migrations": [
     {
       "version": "20260919170000",
@@ -74,6 +74,14 @@
       "source_commit": "73f2a6a9316fa64bdba8a2a8570c4cdc2e87c5d2",
       "applied_at": "2026-09-20T01:59:26.144251+00:00",
       "schema_fingerprint": "8122836e01001d39663c7298b3ccf2e58c69b4dbad9f592787a4b40534e7eaff"
+    },
+    {
+      "version": "20260920150000",
+      "filename": "supabase/migrations/20260920150000_management_staff_time_ledger.sql",
+      "source_digest": "a83ec1cba11be3c5aedb3a74ae5f02f9f8c0f5ffb0e65945d40075bcba797731",
+      "source_commit": "89dc2d98f4d6f88d57b4ab49487edaab15481cc9",
+      "applied_at": "2026-09-20T04:08:09.323901+00:00",
+      "schema_fingerprint": "8f019d4c92264c205eda39e9ff2fe60e2e83655be43cb943114aeb6961b018ed"
     }
   ],
   "productionAccess": false
