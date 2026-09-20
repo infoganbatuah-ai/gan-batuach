@@ -3,7 +3,7 @@
   "observedAt": "2026-09-20T03:23:41Z",
   "productionWriteAuthorized": false,
   "remoteHistoryStatus": "UNVERIFIED_READ_ONLY_RECONCILIATION_REQUIRED",
-  "localDatabaseStatus": "GB_M34_PENDING_REQUIRED_CI_BEFORE_ISOLATED_DEVELOPMENT_APPLY",
+  "localDatabaseStatus": "GB_M34_REVIEWED_MIGRATION_PENDING_ISOLATED_DEVELOPMENT_APPLY",
   "migrations": [
     {
       "file": "supabase/migrations/20260919190000_edge_home_qa_channel.sql",
@@ -7244,7 +7244,7 @@
       "releaseOrder": "20260920150000",
       "requiredPredecessor": "20260920140000_management_child_attendance_pickup.sql",
       "dependencyStatus": "GB_M33_DEVELOPMENT_APPLIED",
-      "developmentApproval": "BLOCKED_REQUIRED_CI",
+      "developmentApproval": "VALIDATED_FOR_ISOLATED_DEVELOPMENT",
       "developmentDependsOn": ["20260920140000"],
       "developmentApplied": "NO",
       "developmentAppliedAt": null,
@@ -7252,10 +7252,10 @@
       "productionApplied": "UNVERIFIED",
       "productionEvidence": null,
       "recovery": "Forward-only Staff shift extension, rate/correction tables and RLS/RPC narrowing preserve historical rows. Confirm no duplicate open profile sessions, take and test isolated Development backup, and use guarded lock/statement timeout before apply. Production history, cost headroom and backup/restore require separate owner release review; no Production apply authorized.",
-      "developmentApprovalEvidence": "PR #81 exact head 0acb70a8428d82c38dd7b61805d33cb9a298dfa7 required checks 9/9 PASS; ancestry merge 9fe30d6a82c8111542bf16002910aa77a14bb914; rollback-only synthetic RLS/ledger matrix and separate-connection races PASS. Approval PR #82 is BLOCKED: required Digital Observer domain gate failed twice in horizontal-ai-scale, 122 worker completions for 120 canonical jobs. Do not apply before an independently validated fix and all exact-head checks pass.",
+      "developmentApprovalEvidence": "PR #81 exact head 0acb70a8428d82c38dd7b61805d33cb9a298dfa7 required checks 9/9 PASS; ancestry merge 9fe30d6a82c8111542bf16002910aa77a14bb914; rollback-only synthetic RLS/ledger matrix and separate-connection races PASS. Digital Observer repair PR #83 head 251274482432fcc7fe6eebf21b056ac69517b097 required checks PASS and merge 63b45d0b7edcf5bf1a5cee3cd9ad23fdfcc944bf. PR #82 repaired baseline head 502c1346f24dedd044a2c9d54723077deb07d860 required checks PASS. This permission is for isolated Development only after final PR #82 exact-head checks and remote merge; no Production authorization.",
       "developmentHistoryDigest": null,
       "developmentSchemaFingerprint": null,
-      "developmentStatusReason": "Approval PR #82 required domain CI failed twice; no canonical Development application until fixed and green. Production unchanged."
+      "developmentStatusReason": "Queue race repaired in independent PR #83; guarded isolated Development apply pending final PR #82 exact-head validation and remote integration. Production unchanged."
     }
   ],
   "developmentExpected": 237,

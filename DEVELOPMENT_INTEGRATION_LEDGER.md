@@ -201,3 +201,16 @@ and tested through a disposable restore. Read-only preflight found zero
 duplicate open sessions. No canonical Development migration was applied;
 cumulative Product QA remains blocked. Production, `main`, and customer time
 records are unchanged; live Staff/Manager browser QA remains open for GB-M35/40.
+
+The preceding GB-M34 blocker snapshot is superseded by the separate Digital
+Observer repair PR #83 (`251274482432fcc7fe6eebf21b056ac69517b097`),
+merged into `integration/development` at
+`63b45d0b7edcf5bf1a5cee3cd9ad23fdfcc944bf`. It fences acknowledgement,
+failure, and failover under a write transaction. The unchanged horizontal-scale
+case passed 10/10 local runs, a dedicated 120/500/1,000-job race test passed,
+and PR #83 required checks passed. PR #82 was updated with this repaired
+integration baseline at `502c1346f24dedd044a2c9d54723077deb07d860`;
+its required checks passed. GB-M34 migration approval is restored for isolated
+Development only, conditional on final PR #82 exact-head checks and merge.
+Canonical Development application and cumulative Product QA remain pending;
+Production is untouched.
