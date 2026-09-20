@@ -1,12 +1,9 @@
-import type { Metadata } from "next";
 import Link from "next/link";
 import { BellRing, Eye, FileText, Headphones, LockKeyhole, ShieldCheck, Trash2, UserCheck } from "lucide-react";
 import { ObserverMark } from "@/components/digital-observer/observer-app-shell";
+import { digitalObserverMetadata } from "@/lib/seo/digital-observer-metadata";
 
-export const metadata: Metadata = {
-  title: { absolute: "פרטיות, אמון ותמיכה | תצפיתן דיגיטלי" },
-  description: "כללי הגישה למצלמות, שמירת אירועים, AI, מחיקת מידע ותמיכת התצפיתן הדיגיטלי."
-};
+export const metadata = digitalObserverMetadata("/digital-observer/trust", "פרטיות, אמון ותמיכה | תצפיתן דיגיטלי", "כללי הגישה למצלמות, שמירת אירועים, AI, מחיקת מידע ותמיכת התצפיתן הדיגיטלי.");
 
 export default function DigitalObserverTrustPage() {
   return (

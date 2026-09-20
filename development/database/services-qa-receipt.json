@@ -1,0 +1,145 @@
+{
+  "observedAt": "2026-09-19T18:30:11.935Z",
+  "environment": "DEVELOPMENT / INTEGRATION",
+  "productionAccess": false,
+  "identities": [
+    {
+      "role": "parent",
+      "syntheticIdentity": "parent-a",
+      "auth": "PASS",
+      "rest": "PASS"
+    },
+    {
+      "role": "parent",
+      "syntheticIdentity": "parent-b",
+      "auth": "PASS",
+      "rest": "PASS"
+    },
+    {
+      "role": "manager",
+      "syntheticIdentity": "manager-a",
+      "auth": "PASS",
+      "rest": "PASS"
+    },
+    {
+      "role": "manager",
+      "syntheticIdentity": "manager-b",
+      "auth": "PASS",
+      "rest": "PASS"
+    },
+    {
+      "role": "staff",
+      "syntheticIdentity": "staff-a",
+      "auth": "PASS",
+      "rest": "PASS"
+    },
+    {
+      "role": "staff",
+      "syntheticIdentity": "staff-b",
+      "auth": "PASS",
+      "rest": "PASS"
+    },
+    {
+      "role": "staff",
+      "syntheticIdentity": "staff-ab",
+      "auth": "PASS",
+      "rest": "PASS"
+    },
+    {
+      "role": "staff",
+      "syntheticIdentity": "staff-candidate",
+      "auth": "PASS",
+      "rest": "PASS"
+    },
+    {
+      "role": "staff",
+      "syntheticIdentity": "staff-revoked",
+      "auth": "PASS",
+      "rest": "PASS"
+    },
+    {
+      "role": "inspector",
+      "syntheticIdentity": "inspector-a",
+      "auth": "PASS",
+      "rest": "PASS"
+    },
+    {
+      "role": "admin",
+      "syntheticIdentity": "admin",
+      "auth": "PASS",
+      "rest": "PASS"
+    },
+    {
+      "role": "parent",
+      "syntheticIdentity": "observer-a",
+      "auth": "PASS",
+      "rest": "PASS"
+    },
+    {
+      "role": "parent",
+      "syntheticIdentity": "observer-b",
+      "auth": "PASS",
+      "rest": "PASS"
+    }
+  ],
+  "sqlRls": "PASS_ROLLBACK_ONLY",
+  "services": [
+    {
+      "name": "supabase_storage_gan-batuach-integration",
+      "running": true,
+      "health": "healthy",
+      "ports": []
+    },
+    {
+      "name": "supabase_rest_gan-batuach-integration",
+      "running": true,
+      "health": "NO_HEALTHCHECK",
+      "ports": []
+    },
+    {
+      "name": "supabase_realtime_gan-batuach-integration",
+      "running": true,
+      "health": "healthy",
+      "ports": []
+    },
+    {
+      "name": "supabase_inbucket_gan-batuach-integration",
+      "running": true,
+      "health": "healthy",
+      "ports": [
+        {
+          "host": "127.0.0.1",
+          "port": "55424"
+        }
+      ]
+    },
+    {
+      "name": "supabase_auth_gan-batuach-integration",
+      "running": true,
+      "health": "healthy",
+      "ports": []
+    },
+    {
+      "name": "supabase_kong_gan-batuach-integration",
+      "running": true,
+      "health": "healthy",
+      "ports": [
+        {
+          "host": "127.0.0.1",
+          "port": "55421"
+        }
+      ]
+    },
+    {
+      "name": "supabase_db_gan-batuach-integration",
+      "running": true,
+      "health": "healthy",
+      "ports": [
+        {
+          "host": "127.0.0.1",
+          "port": "55422"
+        }
+      ]
+    }
+  ]
+}

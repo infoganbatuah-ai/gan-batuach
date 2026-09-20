@@ -134,8 +134,13 @@ try {
   for (let index = 0; index < 8; index++) await workers[0].processOne(queue);
   const degradedDepth = queue.snapshot().queue_depth; assert.ok(degradedDepth >= 32);
   await sleep(110);
-  let idle = 0;
-  while (idle < 2) { const results = await Promise.all(workers.map(worker => worker.processOne(queue))); idle = results.every(item => item.status === "IDLE") ? idle + 1 : 0; }
+  // Two idle polls can occur while a dead worker's lease or retry backoff is
+  // still pending. Require the exact completed count within a bounded window.
+  const recoveryDeadline = performance.now() + 10_000;
+  while ((queue.snapshot().states.COMPLETED ?? 0) < 40 && performance.now() < recoveryDeadline) {
+    const results = await Promise.all(workers.map(worker => worker.processOne(queue)));
+    if (results.every(item => item.status === "IDLE")) await sleep(10);
+  }
   const capacityRecoveryMs = Number((performance.now() - capacityLossStarted).toFixed(3));
   const queueSnapshot = queue.snapshot(); assert.equal(queueSnapshot.states.COMPLETED, 40); assert.equal(queueSnapshot.queue_depth, 0); assert.equal(queueSnapshot.dead_letter_count, 0);
   let consumed = 0; for (let id = 1; id <= sequence; id++) if (queue.result(`ha-job-${id}`, { consume: true })) consumed++;

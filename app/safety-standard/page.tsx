@@ -2,8 +2,9 @@ import { CheckCircle2, ClipboardCheck, FileText, ShieldCheck } from "lucide-reac
 import Link from "next/link";
 import { BrandHeader } from "@/components/brand-header";
 import { ConversionBand, MarketingCard, MarketingHero, MarketingSection } from "@/components/public-marketing";
+import { publicMetadata } from "@/lib/seo/public-metadata";
 
-export const metadata = { title: "תו התקן הפרטי של גן בטוח לגני ילדים", description: "איך פועלים בקרה ופיקוח לגני ילדים במסגרת תו התקן הפרטי של גן בטוח, ומה ההבדל בינו לבין רישוי ממשלתי.", alternates: { canonical: "https://ganbatuach.com/safety-standard" }, openGraph: { title: "תו התקן הפרטי של גן בטוח", description: "פיקוח, תיעוד ושיפור מתמשך לגני ילדים פרטיים.", url: "https://ganbatuach.com/safety-standard" }, twitter: { card: "summary_large_image" as const } };
+export const metadata = publicMetadata("/safety-standard", "תו התקן הפרטי של גן בטוח לגני ילדים", "איך פועלים בקרה ופיקוח לגני ילדים במסגרת תו התקן הפרטי של גן בטוח, ומה ההבדל בינו לבין רישוי ממשלתי.");
 
 export default function SafetyStandardPage() {
   return (
@@ -26,6 +27,8 @@ export default function SafetyStandardPage() {
             <MarketingCard icon={ShieldCheck} title="תיקון ובקרה" text="ממצא משויך לאחראי ונבדק שוב לפני סגירה." />
             <MarketingCard icon={CheckCircle2} title="שקיפות להורים" text="מידע ציבורי שאושר לפרסום, תוך הבחנה בין ביקורת פרטית לרישוי מדינתי." />
           </div>
+          <p>מערכת הניהול מרכזת את המידע התפעולי הדרוש לבקרה — רישום, כרטיסי ילדים, נוכחות, משימות ומסמכי צוות — בהתאם להרשאות ולצורך. המפקח בוחן ממצאים מתועדים, משוחח עם הגן ועוקב אחר תיקון. כלי המצלמות והתצפיתן הדיגיטלי נמצאים בשלבי פיתוח ובדיקה מבוקרים להתאמה לגנים; הם נועדו לספק אינדיקציות לבדיקה אנושית, לא לקבוע בעצמם אם אירעה פגיעה או אם גן עומד בתקן.</p>
+          <p>שיבוץ מפקח, ביקורת חודשית וציון איכות הם חלק ממודל השירות, אך אינם מוצגים כהישג של גן מסוים ללא שיבוץ, ביקורת ונתונים מאומתים בפועל. <Link href="/why-gan-batuach">איך חלקי המערכת מתחברים</Link>.</p>
           <p>למידע נוסף: <Link href="/articles/private-kindergarten-inspections">מדריך לבקרה ופיקוח</Link> · <Link href="/articles/how-to-choose-safe-kindergarten">איך לבחור גן בטוח</Link> · <a href="https://parents.education.gov.il/gov-education/daycare-home">פורטל המעונות בפיקוח משרד החינוך</a>.</p>
         </MarketingSection>
         <ConversionBand title="הגן שלכם יכול להתחיל במדידה כבר עכשיו" text="נזהה יחד מה חסר כדי להתקרב לסטנדרט גן בטוח." />

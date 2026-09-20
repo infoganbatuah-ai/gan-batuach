@@ -1,0 +1,48 @@
+{
+  "environment": "DEVELOPMENT / INTEGRATION",
+  "observedAt": "2026-09-19T20:27:42.812Z",
+  "integrationCommit": "04323b209a8c2694843d78e52e8906ad3540403c",
+  "migrations": [
+    {
+      "version": "20260919170000",
+      "filename": "supabase/migrations/20260919170000_classroom_scope_trigger_record_fields.sql",
+      "source_digest": "3b25e47269022a960e1ba6ccca82b07be51c97f9eab8131d7212290da196be02",
+      "source_commit": "00402d7a3134fe3e654b5c9579f15e7a1b3df1f6",
+      "applied_at": "2026-09-19T16:51:06.476648+00:00",
+      "schema_fingerprint": "b4146be33847a903f6f6f7d0d46024506481dfe8390c6badd96514e5952b6af8"
+    },
+    {
+      "version": "20260913210000",
+      "filename": "supabase/migrations/20260913210000_management_canonical_messaging_threads.sql",
+      "source_digest": "ddf9298ebdeda47aee58bfbb13a3312f60e78662b0be8d04f6c8a4ec2dfde5ab",
+      "source_commit": "be861ec92ea65e8bc1186ea3df18de060e5835b9",
+      "applied_at": "2026-09-19T18:12:19.34552+00:00",
+      "schema_fingerprint": "99d8cbd724de61426e8e956f34c633de1320a9d25eda0044f1b68cfd28969ab6"
+    },
+    {
+      "version": "20260913211000",
+      "filename": "supabase/migrations/20260913211000_management_messaging_qa_hardening.sql",
+      "source_digest": "0999ea1f2c2643d77db104398e9ad66483ebb2604f470e6beb7406dfadd470bc",
+      "source_commit": "be861ec92ea65e8bc1186ea3df18de060e5835b9",
+      "applied_at": "2026-09-19T18:12:26.213808+00:00",
+      "schema_fingerprint": "2532c5d4860069ff35f025ebcee930efa645fd6c4352d990ed038f6d0bee99bc"
+    },
+    {
+      "version": "20260913212000",
+      "filename": "supabase/migrations/20260913212000_management_private_message_attachments.sql",
+      "source_digest": "11c3ab542a9287e3ded1c37cbf7944aaf85d25b25ed40ac8fe10a292dadf098d",
+      "source_commit": "be861ec92ea65e8bc1186ea3df18de060e5835b9",
+      "applied_at": "2026-09-19T18:12:32.192001+00:00",
+      "schema_fingerprint": "6fa15c1f0c45405e49fa313b0b7ce3f49962ac6b0e4f0f8cc2be98ba268284d9"
+    },
+    {
+      "version": "20260919180000",
+      "filename": "supabase/migrations/20260919180000_management_notification_pipeline.sql",
+      "source_digest": "0950704c85102f8842337feee5d509586957c4c17907ef444c5c0b3ee5f6351a",
+      "source_commit": "04323b209a8c2694843d78e52e8906ad3540403c",
+      "applied_at": "2026-09-19T20:15:38.666705+00:00",
+      "schema_fingerprint": "48df6f0c972f23aa66c47af3783bbede87c3ceb5692501f0e8927e9dae1aaa60"
+    }
+  ],
+  "productionAccess": false
+}

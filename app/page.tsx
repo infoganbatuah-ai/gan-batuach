@@ -30,6 +30,7 @@ import { BrandHeader } from "@/components/brand-header";
 import { ArticleCarousel } from "@/components/editorial/article-carousel";
 import { getPublishedArticles } from "@/lib/editorial/store";
 import { SITE_URL } from "@/lib/editorial/articles";
+import { ganBatuachShareImage } from "@/lib/seo/brand-assets";
 import type { KindergartenAgeGroup } from "@/lib/kindergarten-age-groups";
 import "./articles/articles.css";
 
@@ -43,8 +44,8 @@ export const metadata = {
   title: { absolute: "גן בטוח | תו תקן פרטי ומערכת לניהול גני ילדים" },
   description: "גן בטוח מחבר תו תקן פרטי לגני ילדים, בקרה ופיקוח, מערכת לניהול גן ילדים מקצה לקצה ופורטל הורים. מידע ברור על בטיחות ושקיפות.",
   alternates: { canonical: SITE_URL },
-  openGraph: { title: "גן בטוח | תו תקן פרטי ומערכת לניהול גני ילדים", description: "ניהול גן ילדים מקצה לקצה, בקרה ופיקוח ופורטל הורים במקום אחד.", url: SITE_URL, images: ["/assets/hero-control-center.png"] },
-  twitter: { card: "summary_large_image" as const }
+  openGraph: { type: "website" as const, locale: "he_IL", siteName: "גן בטוח", title: "גן בטוח | תו תקן פרטי ומערכת לניהול גני ילדים", description: "ניהול גן ילדים מקצה לקצה, בקרה ופיקוח ופורטל הורים במקום אחד.", url: SITE_URL, images: [ganBatuachShareImage] },
+  twitter: { card: "summary_large_image" as const, title: "גן בטוח | תו תקן פרטי ומערכת לניהול גני ילדים", description: "ניהול גן ילדים מקצה לקצה, בקרה ופיקוח ופורטל הורים במקום אחד.", images: [ganBatuachShareImage.url] }
 };
 
 const heroPills = [
@@ -61,7 +62,7 @@ const moduleCards = [
   { icon: HeartHandshake, title: "דשבורד הורים", text: "כרטיס ילד, עדכונים, תשלומים, הודעות ובקשות הצטרפות.", href: "/parents", tone: "success" as const },
   { icon: UsersRound, title: "דשבורד צוות", text: "משמרות, נוכחות, משימות, מסמכים ותקשורת עם הגן.", href: "/staff", tone: "info" as const },
   { icon: ClipboardCheck, title: "דשבורד מפקח", text: "ביקורת חודשית, ליקויים, תיקונים ודוחות מסודרים.", href: "/join-inspector", tone: "info" as const },
-  { icon: Bot, title: "תצפיתן דיגיטלי", text: "AI זהיר במצב shadow עם בדיקה אנושית לפני פעולה.", href: "/digital-observer", tone: "warning" as const }
+  { icon: Bot, title: "תצפית דיגיטלית בגן", text: "כלי מצלמות בבדיקות מבוקרות, עם בדיקה אנושית לפני פעולה.", href: "/ai-observer", tone: "warning" as const }
 ];
 
 const trustReasons = [
@@ -161,11 +162,21 @@ export default async function HomePage() {
         </section>
 
         <section className="gb-public-section">
-          <SectionHeader eyebrow="כלים שמשרתים את היום־יום" title="מה מקבלים במערכת לניהול גן ילדים?" subtitle="הכלים מוצגים לפי הצורך של כל גן והרשאות המשתמשים; זמינות מצלמות ונתונים ציבוריים תלויה בהגדרות ובהתאמה לדין." action={<Link className="gb-public-button soft" href="/join-kindergarten">ניהול גן</Link>} />
+          <SectionHeader eyebrow="כך נוצרת בקרה" title="איך גן בטוח מביאה בקרה ופיקוח לגן?" subtitle="השילוב בין מערכת הניהול, ביקורת אנושית וכלי תצפית נועד לעזור לזהות פערים, לתעד טיפול ולבדוק תיקון — בלי להחליף את האחריות של צוות הגן או את הפיקוח הממשלתי." action={<Link className="gb-public-button soft" href="/safety-standard">לתהליך הפיקוח</Link>} />
+          <DashboardGrid min="240px">
+            <PremiumCard><h3>מידע שוטף ממערכת הניהול</h3><p>רישום ילדים, כרטיס ילד, נוכחות, משימות, מסמכי צוות ותקשורת עם הורים מרוכזים לפי הרשאות. המידע עוזר לצוות ולמנהלת להבחין בחוסרים ולפעול בזמן; עצם התיעוד אינו אישור שהגן עומד בתקן.</p></PremiumCard>
+            <PremiumCard><h3>מפקח ייעודי וביקורת מתועדת</h3><p>מודל השירות כולל שיבוץ מפקח לכל גן המשתתף בתהליך, קשר שוטף ותכנון ביקורות חודשיות. ביקור, ממצא או ציון מוצגים רק לאחר שבוצעו ונרשמו בפועל.</p></PremiumCard>
+            <PremiumCard><h3>תצפיתן דיגיטלי כאות לבדיקה</h3><p>כלי התצפיתן וממשק המצלמות נמצאים בפיתוח ובבדיקות מבוקרות לקראת התאמה לגנים. אות שמתקבל מהם מיועד לבדיקה אנושית מורשית; הוא אינו קביעה אוטומטית לגבי ילד או איש צוות.</p></PremiumCard>
+            <PremiumCard><h3>מעקב אחר תיקון ושקיפות</h3><p>ממצא בביקורת יכול להפוך למשימה עם אחראי ומועד טיפול, ולהיסגר רק לאחר בדיקה חוזרת. להורים יוצג רק מידע מאומת שאושר לפרסום, כדי שיוכלו לשאול שאלות ולהבין את מצב הגן.</p></PremiumCard>
+          </DashboardGrid>
+        </section>
+
+        <section className="gb-public-section">
+          <SectionHeader eyebrow="כלים שמשרתים את היום־יום" title="מה מקבלים במערכת לניהול גן ילדים?" subtitle="הכלים מוצגים לפי הצורך של כל גן והרשאות המשתמשים; זמינות מצלמות ונתונים ציבוריים תלויה בהגדרות ובהתאמה לדין." action={<Link className="gb-public-button soft" href="/kindergarten-management">מערכת ניהול הגן</Link>} />
           <DashboardGrid min="240px">
             <PremiumCard><h3>רישום וכרטיס ילד</h3><p>רישום ילדים, פרטי קשר וכרטיס דיגיטלי למידע חיוני כמו אלרגיות, רגישויות, רקע מהגן הקודם והערות צוות רלוונטיות — לפי הרשאות.</p></PremiumCard>
             <PremiumCard><h3>הורים וצוות מחוברים</h3><p>כניסה נפרדת לצוות ולהורים, הודעות, נוכחות, משמרות, מסמכים ותשלומים כדי שהמידע החשוב לא ילך לאיבוד.</p></PremiumCard>
-            <PremiumCard><h3>מצלמות ותצפיתן דיגיטלי</h3><p>התממשקות למצלמות הגן בכפוף לדין ולהרשאות. התצפיתן הדיגיטלי נמצא בבדיקות מבוקרות ומספק אינדיקציות לבדיקה אנושית, לא קביעה אוטומטית.</p></PremiumCard>
+            <PremiumCard><h3>מצלמות ותצפית בגן</h3><p>התממשקות למצלמות הגן כפופה לדין ולהרשאות. כלי התצפית נמצאים בבדיקות לקראת התאמה לגנים, כדי לספק אינדיקציות לבדיקה אנושית — לא קביעה אוטומטית.</p></PremiumCard>
             <PremiumCard><h3>צוות, למידה ואיכות</h3><p>מעקב אחר מסמכים, הכשרות, השתלמויות ויעדי למידה, לצד ממצאי ביקורת וציון איכות כשיש נתונים מאומתים. אישורי העסקה נבדקים במסלול המוסמך בלבד.</p></PremiumCard>
           </DashboardGrid>
         </section>

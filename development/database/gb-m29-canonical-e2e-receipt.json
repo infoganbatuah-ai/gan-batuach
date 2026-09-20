@@ -1,0 +1,20 @@
+{
+  "observedAt": "2026-09-19T18:29:00Z",
+  "environment": "DEVELOPMENT / INTEGRATION",
+  "integrationCommit": "18d11d5b3ccd628434a869133ec6cf3f2260dba9",
+  "database": "isolated local Supabase on Kingston",
+  "sourceScript": "scripts/qa/run-management-message-attachment-e2e.mjs",
+  "result": "PASS",
+  "scope": [
+    "synthetic Parent A uploaded a small synthetic PDF to its own message",
+    "Parent A and Manager A authenticated retrieval returned short-lived private Storage links and identical bytes",
+    "Parent B, Manager B, Staff B, revoked Staff, Inspector and Admin were denied",
+    "unauthenticated access and altered attachment/thread identifiers were denied",
+    "anonymous or direct authenticated Storage download and anonymous signing were denied",
+    "signed URL expired after the configured 60-second window"
+  ],
+  "syntheticOnly": true,
+  "secretsOrSignedUrlsIncluded": false,
+  "productionAccess": false,
+  "limitations": "No real customer data, live provider, hardware, or Production verification"
+}

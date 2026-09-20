@@ -334,8 +334,11 @@
 .gb-public-button.soft {
   background: #f3f0ff;
   border-color: #e6deff;
-  color: #7650f2;
+  color: #6840dc;
 }
+
+.gb-public-page .gb-status-chip.gb-tone-success { color: #0a7a55; }
+.gb-public-page .gb-status-chip.gb-tone-warning { color: #9a6612; }
 
 .gb-public-button.large {
   border-radius: 22px;
