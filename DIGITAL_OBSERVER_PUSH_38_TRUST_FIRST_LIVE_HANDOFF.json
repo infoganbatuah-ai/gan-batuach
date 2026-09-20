@@ -97,6 +97,16 @@
       "required_action": "Bind and sign the Connector-only manifest after Connector identity proof and before Connector remediation; repeat for Gateway after Gateway identity proof. Do not bypass OTA."
     }
   ],
+  "current_closure_work": {
+    "work_date": "2026-09-20",
+    "status": "IN_PROGRESS_NOT_AUTHORIZED_FOR_RUNTIME_HANDOFF",
+    "exact_device_home_qa_manifest_templates": "THREE_BUILT_AND_NEGATIVE_SCOPE_TESTED",
+    "protected_aws_issuance_code": "FIXTURE_TESTED_LIVE_KMS_NOT_YET_RUN",
+    "live_baseline_dry_run": "PASS_ZERO_RUNTIME_WRITES",
+    "connector_tapo_observation": "ONE_RELAY_STALLED_LEGACY_HEALTH_STILL_REPORTS_HEALTHY",
+    "remaining": ["PROTECTED_AWS_RELEASE_SIGNATURE", "LIVE_QA_AUTHORIZATION_SERVICE",
+      "DEVICE_AUTHENTICATED_R2_DRY_RUN", "REVIEWED_LIVE_TRANSITION_ORCHESTRATOR"]
+  },
   "not_started": [
     "CONNECTOR_TRANSITION",
     "CONNECTOR_REMEDIATION",
