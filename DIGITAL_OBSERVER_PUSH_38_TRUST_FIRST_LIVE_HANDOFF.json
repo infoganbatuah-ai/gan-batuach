@@ -56,6 +56,22 @@
     "connector_connected_sources": 1,
     "note": "Legacy generic health is not proof of continuous frame progression or Product playback; previous Tapo 0/1 event remains open."
   },
+  "isolated_lifecycle_reverification": {
+    "legacy_transition_policy": "PASS",
+    "migration_failure_recovery": "PASS_IN_ISOLATED_FIXTURE_ONLY",
+    "signed_transition_promotion": "PASS_IN_ISOLATED_FIXTURE_ONLY",
+    "remediation_rollback_to_signed_transition": "PASS_IN_ISOLATED_FIXTURE_ONLY",
+    "trust_rotation_revocation_and_replay": "PASS_IN_ISOLATED_FIXTURE_ONLY",
+    "live_runtime_transition": "NOT_ATTEMPTED"
+  },
+  "incremental_cost": {
+    "new_fixed_monthly_resource": "NONE",
+    "kms_signing_operations": "PROVIDER_BILLING_NOT_YET_RECONCILED",
+    "github_actions_minutes": "PROVIDER_BILLING_NOT_YET_RECONCILED",
+    "r2_new_download_bytes": 0,
+    "new_paid_media_service": "NONE",
+    "fifteen_ils_per_user_target": "NOT_YET_MEASURABLE"
+  },
   "unresolved_pre_runtime_gates": [
     {
       "id": "LIVE_BOOTSTRAP_ORCHESTRATOR_NOT_PROVEN",
