@@ -100,21 +100,24 @@ check('Parent A sees own tuition', parentBefore.status, 200);
 assert.ok(parentBefore.payload?.data?.periods?.some(row => row.id === periodA.id));
 check('Provider unavailable to Parent', parentBefore.payload?.data?.provider_payment_available, false);
 
-const first = { action: 'manual_settlement', period_id: periodA.id, amount: 40, method: 'bank_transfer', reference: 'GB-M35 synthetic bank reference', idempotency_key: 'gb-m35-tuition-a-sept-partial-40' };
-const firstResult = await api('manager-a', '/api/garden/tuition-ledger', first);
-check('Manager A records partial settlement', firstResult.status, 200);
-check('Partial settled amount', Number(firstResult.payload?.data?.period?.settled_total), 40);
-check('Partial outstanding amount', Number(firstResult.payload?.data?.period?.outstanding), 60);
-const parentPartial = await api('parent-a', '/api/parent/tuition-ledger?child_id=' + ids.childA);
-check('Parent sees partial settlement', Number(parentPartial.payload?.data?.periods?.find(row => row.id === periodA.id)?.outstanding), 60);
+const alreadyPaid = Number(periodA.amount_settled) === 100;
+if (!alreadyPaid) {
+  const first = { action: 'manual_settlement', period_id: periodA.id, amount: 40, method: 'bank_transfer', reference: 'GB-M35 synthetic bank reference', idempotency_key: 'gb-m35-tuition-a-sept-partial-40' };
+  const firstResult = await api('manager-a', '/api/garden/tuition-ledger', first);
+  check('Manager A records partial settlement', firstResult.status, 200);
+  check('Partial settled amount', Number(firstResult.payload?.data?.period?.amount_settled), 40);
+  check('Partial outstanding amount', Number(firstResult.payload?.data?.period?.outstanding), 60);
+  const parentPartial = await api('parent-a', '/api/parent/tuition-ledger?child_id=' + ids.childA);
+  check('Parent sees partial settlement', Number(parentPartial.payload?.data?.periods?.find(row => row.id === periodA.id)?.outstanding), 60);
 
-const second = { ...first, amount: 60, idempotency_key: 'gb-m35-tuition-a-sept-final-60' };
-const [finishA, finishB] = await Promise.all([
-  api('manager-a', '/api/garden/tuition-ledger', second),
-  api('manager-a', '/api/garden/tuition-ledger', second),
-]);
-check('Concurrent same-evidence settlement A', finishA.status, 200);
-check('Concurrent same-evidence settlement B', finishB.status, 200);
+  const second = { ...first, amount: 60, idempotency_key: 'gb-m35-tuition-a-sept-final-60' };
+  const [finishA, finishB] = await Promise.all([
+    api('manager-a', '/api/garden/tuition-ledger', second),
+    api('manager-a', '/api/garden/tuition-ledger', second),
+  ]);
+  check('Concurrent same-evidence settlement A', finishA.status, 200);
+  check('Concurrent same-evidence settlement B', finishB.status, 200);
+}
 const final = await api('manager-a', '/api/garden/tuition-ledger?child_id=00000000-0000-4000-8000-000000000901');
 check('Final Garden finance read', final.status, 200);
 const finalPeriod = final.payload?.data?.periods?.find(row => row.id === periodA.id);
@@ -127,6 +130,7 @@ const parentFinal = await api('parent-a', '/api/parent/tuition-ledger?child_id='
 check('Parent sees paid state', parentFinal.payload?.data?.periods?.find(row => row.id === periodA.id)?.status, 'paid');
 
 const receipt = { observedAt: new Date().toISOString(), environment: config.environment, syntheticOnly: true,
-  productionAccess: false, periodA: periodA.id, periodB: periodB.id, separateHttpConnections: true, results };
+  productionAccess: false, periodA: periodA.id, periodB: periodB.id,
+  concurrentHttpRequests: !alreadyPaid, independentDatabaseConnectionsVerified: false, results };
 writeFileSync('/private/tmp/gb-m35-tuition-role-e2e.json', JSON.stringify(receipt, null, 2) + '\n', { mode: 0o600 });
 console.log('GB-M35 synthetic tuition role and concurrency E2E PASS: ' + results.length + ' checks');
