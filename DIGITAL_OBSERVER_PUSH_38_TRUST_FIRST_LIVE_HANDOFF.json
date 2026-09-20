@@ -156,6 +156,9 @@
   "home_identity_reconciliation_2026_09_20": {
     "supersedes_prior_home_qa_activation_attempt": true,
     "branch": "codex/push-38t-qualification",
+    "validated_code_commit": "901e947f064f716ebc18829f1645284331476f91",
+    "local_qualification_ci": "SIX_OF_SIX_GATES_PASS_TYPECHECK_LINT_BUILD_DOMAIN_SECURITY_MIGRATIONS_RELEASE_CONTRACT; NPM_HIGH_CRITICAL_ZERO_SIX_MODERATE",
+    "remote_ci_for_this_commit": "NOT_TRIGGERED_BRANCH_HAS_NO_PR_AND_WORKFLOW_PUSH_FILTER_IS_MAIN_ONLY",
     "source": "authorized read-only Product database records, installed Keychain and Connector secret-store identifiers, service configuration, exact legacy baseline inventory, and local health",
     "restricted_identity_evidence_sha256": "2cc847fd177742c8d44328b78d326bed5839430ba2e4dfc85c65eff8456ba916",
     "site_tenant_binding": "PASS_EXACT_HOME_SITE_WITH_SITE_FALLBACK_TENANT",
@@ -171,6 +174,8 @@
     "dry_run": "BASELINE_TRUST_ARTIFACT_ROLLBACK_SERVICE_DISK_IDENTITY_QA_RELEASE_AUTH_STAGING_AND_FRESH_HOME_PASS; LIVE_ORCHESTRATOR_NOT_PROVEN; PREWRITE_PASS_FALSE",
     "fresh_home_at_utc": "2026-09-20T04:36:50Z",
     "fresh_home": "DVR_TEN_OF_TEN_TAPO_ONE_OF_ONE_AT_CHECKPOINT_HISTORIC_FLAPPING_UNRESOLVED_SIX_EMPTY",
+    "later_read_only_home_at_utc": "2026-09-20T04:58:55Z",
+    "later_read_only_home": "DVR_TEN_OF_TEN_ZERO_STALLED_SIX_EMPTY; CONNECTOR_HTTP_200_GENERIC_HEALTHY_BUT_TAPO_ZERO_OF_ONE_ONE_STALLED; HISTORIC_FLAPPING_CONTINUES",
     "first_live_runtime_write": "NOT_PERFORMED",
     "internal_high_safety_blocker": "No reviewed live orchestrator binds signed INTERNAL one-time transition and existing recovery manager to real launchd, identity/source continuity, and isolated HOME_QA managed identity without changing the Production legacy credential store; HOME_QA download grants explicitly say install_authorized=false. Do not interpret staging as installation approval or write final managed keys into the Product legacy store.",
     "control_plane_scope": "LOCAL_LOOPBACK_ONLY_NO_PUBLIC_HTTPS_INGRESS_NO_PRODUCTION_DEPLOYMENT",
