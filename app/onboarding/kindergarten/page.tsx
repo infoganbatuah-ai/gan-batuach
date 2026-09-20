@@ -72,10 +72,11 @@ export default async function KindergartenOnboardingPage({ searchParams }: { sea
       .limit(1)
       .maybeSingle();
     if (draft.error) throw new Error("Unable to resolve Garden onboarding draft");
-    if (draft.data?.garden_id) {
-      const authority = await sessionClient.rpc("can_edit_garden_onboarding" as never, { target_garden_id: draft.data.garden_id } as never);
+    const draftData = draft.data as { garden_id: string } | null;
+    if (draftData?.garden_id) {
+      const authority = await sessionClient.rpc("can_edit_garden_onboarding" as never, { target_garden_id: draftData.garden_id } as never);
       if (authority.data === true && !authority.error) {
-        redirect(`/onboarding/kindergarten?gardenId=${draft.data.garden_id}`);
+        redirect(`/onboarding/kindergarten?gardenId=${draftData.garden_id}`);
       }
     }
   }
