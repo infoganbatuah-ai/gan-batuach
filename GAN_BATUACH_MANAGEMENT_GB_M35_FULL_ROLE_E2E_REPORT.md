@@ -24,7 +24,9 @@ Owner A, Owner A+B and Owner-as-Teacher can authenticate and reach the Garden sh
 
 ## Parent Journey
 
-Parent A/B/Multi reached mobile dashboard first render without page exceptions in the final 16/16 browser run. Authenticated Parent A could read Child A tuition projection and was denied Child B; Parent B was denied Child A. Parent Multi could read its authorized Child C in A and Child B in B. This is authorization proof, not a paid/settlement or child-switch UI journey. Registration, discovery, enrollment request and activation remain open.
+Parent A/B/Multi reached mobile dashboard first render without page exceptions in the final 16/16 browser run. Authenticated Parent A could read Child A tuition projection and was denied Child B; Parent B was denied Child A. Parent Multi could read its authorized Child C in A and Child B in B. Those initial API checks are authorization proof, not the full registration/enrollment journey. Registration, enrollment request and activation remain open.
+
+On the 390×844 local browser, Parent Multi then completed seven actual interaction checks in discovery: only Child B/C appeared in the selector, switching C→B submitted the form and changed the matching context, the payment page opened through dashboard links, and tested RTL/overflow/runtime/500 checks passed. This closes only the discovery Child selector path; full registration, enrollment and other Child-context pages remain open.
 
 ## Staff Journey
 
@@ -78,7 +80,9 @@ After the initial inventory, Manager A created one synthetic Garden A Task assig
 
 ## Mobile
 
-Parent A/B/Multi and Staff A/A+B first-rendered at 390×844 with no page-level JavaScript exception. An additional local production-mode sweep loaded Parent payments/messages/documents/pickup/complaints and Staff shifts/tasks/messages at the same viewport with no page exception, same-origin 500, horizontal overflow or unnamed button. Form entry, dialogs, touch targets and child-context switching are not yet signed off.
+Parent A/B/Multi and Staff A/A+B first-rendered at 390×844 with no page-level JavaScript exception. An additional local production-mode sweep loaded Parent payments/messages/documents/pickup/complaints and Staff shifts/tasks/messages at the same viewport with no page exception, same-origin 500, horizontal overflow or unnamed button. Other forms, dialogs, touch targets and Child-context pages are not yet signed off.
+
+The Parent Multi discovery form now has an interactive 7-check mobile pass for authorized Child switching and payment navigation. Staff/Manager interactive mobile journeys, broader touch behavior and dialogs remain open.
 
 ## Desktop
 
