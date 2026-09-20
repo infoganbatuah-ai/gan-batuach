@@ -181,3 +181,36 @@ Garden attendance/release anonymous mutations were 401, and Parent pickup
 contact management redirected anonymously to `/login` without mutation.
 Controlled live-role QA remains open. Production migration, `main`, and
 deployment are unchanged.
+
+GB-M34 feature integration (2026-09-20): PR #81 merged by ancestry at
+`9fe30d6a82c8111542bf16002910aa77a14bb914` after nine exact-head checks
+passed on `0acb70a8428d82c38dd7b61805d33cb9a298dfa7`. Both source commits
+remain on remote `codex/gb-m34-staff-time`. The forward migration
+`20260920150000_management_staff_time_ledger.sql` passed rollback-only
+synthetic Staff/Manager/Inspector/Admin RLS and ledger QA, an applied-schema
+check in a disposable clone, and separate-connection clock/correction races.
+Approval PR #82 is **blocked**, so its migration-ledger permission is explicitly
+`BLOCKED_REQUIRED_CI`. The required Digital Observer domain gate failed twice
+in `horizontal-ai-scale`: workers reported 122 completions for 120 canonical
+jobs. The separate queue/ACK race needs its own reviewed fix; the GB-M34
+Management diff keeps Digital Observer core unchanged. A restricted 5.5 MB
+synthetic Development backup was copied to
+`/private/tmp/gb-m34-development-pre-migration.dump` with SHA-256
+`1987abbd62191d3b2f1dabf3478034cd14a13f6032fbdcade44927e90673fa3a`
+and tested through a disposable restore. Read-only preflight found zero
+duplicate open sessions. No canonical Development migration was applied;
+cumulative Product QA remains blocked. Production, `main`, and customer time
+records are unchanged; live Staff/Manager browser QA remains open for GB-M35/40.
+
+The preceding GB-M34 blocker snapshot is superseded by the separate Digital
+Observer repair PR #83 (`251274482432fcc7fe6eebf21b056ac69517b097`),
+merged into `integration/development` at
+`63b45d0b7edcf5bf1a5cee3cd9ad23fdfcc944bf`. It fences acknowledgement,
+failure, and failover under a write transaction. The unchanged horizontal-scale
+case passed 10/10 local runs, a dedicated 120/500/1,000-job race test passed,
+and PR #83 required checks passed. PR #82 was updated with this repaired
+integration baseline at `502c1346f24dedd044a2c9d54723077deb07d860`;
+its required checks passed. GB-M34 migration approval is restored for isolated
+Development only, conditional on final PR #82 exact-head checks and merge.
+Canonical Development application and cumulative Product QA remain pending;
+Production is untouched.
