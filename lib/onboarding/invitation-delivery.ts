@@ -6,15 +6,10 @@ function loginUrl() {
   return process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || "http://localhost:3000";
 }
 
-function canStoreTemporaryPasswordInMockLog() {
-  return process.env.NODE_ENV !== "production" || process.env.NEXT_PUBLIC_SANDBOX_MODE === "true";
-}
-
-function credentialVariables(temporaryPassword: string) {
-  const mockLogAllowed = canStoreTemporaryPasswordInMockLog();
+function credentialVariables() {
   return {
-    temporary_password: mockLogAllowed ? temporaryPassword : "[redacted]",
-    temporary_password_redacted: !mockLogAllowed
+    temporary_password: "[redacted]",
+    temporary_password_redacted: true
   };
 }
 
@@ -23,7 +18,6 @@ export async function insertInvitationDeliveryLogs(admin: AdminClient, input: {
   gardenId: string;
   role: "parent" | "staff";
   username: string;
-  temporaryPassword: string;
   recipientName: string;
   phone?: string | null;
 }) {
@@ -32,7 +26,7 @@ export async function insertInvitationDeliveryLogs(admin: AdminClient, input: {
   const title = `פרטי כניסה לגן בטוח - ${roleLabel}`;
   const preview = `שלום ${input.recipientName}, נוצרו לך פרטי כניסה לגן בטוח. יש להתחבר ולהשלים תהליך קצר.`;
   const href = input.role === "parent" ? "/dashboard/parent" : "/onboarding/staff";
-  const passwordVariables = credentialVariables(input.temporaryPassword);
+  const passwordVariables = credentialVariables();
 
   await Promise.all([
     admin.from("email_delivery_logs" as any).insert({
@@ -47,8 +41,8 @@ export async function insertInvitationDeliveryLogs(admin: AdminClient, input: {
       metadata: {
         login_url: `${loginUrl()}/login`,
         onboarding_url: `${loginUrl()}${href}`,
-        includes_temporary_password: canStoreTemporaryPasswordInMockLog(),
-        temporary_password_redacted: !canStoreTemporaryPasswordInMockLog(),
+        includes_temporary_password: false,
+        temporary_password_redacted: true,
         role: input.role
       }
     }),

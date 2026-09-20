@@ -19,15 +19,10 @@ function loginUrl() {
   return process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || "http://localhost:3000";
 }
 
-function canStoreTemporaryPasswordInMockLog() {
-  return process.env.NODE_ENV !== "production" || process.env.NEXT_PUBLIC_SANDBOX_MODE === "true";
-}
-
-function credentialVariables(temporaryPassword: string) {
-  const mockLogAllowed = canStoreTemporaryPasswordInMockLog();
+function credentialVariables() {
   return {
-    temporary_password: mockLogAllowed ? temporaryPassword : "[redacted]",
-    temporary_password_redacted: !mockLogAllowed
+    temporary_password: "[redacted]",
+    temporary_password_redacted: true
   };
 }
 
@@ -35,13 +30,12 @@ async function insertCredentialCommunicationLogs(admin: ReturnType<typeof create
   gardenId: string;
   managerId: string;
   username: string;
-  temporaryPassword: string;
   gardenName: string;
   phone?: string | null;
 }) {
   const now = new Date().toISOString();
   const messagePreview = `כניסה לגן בטוח עבור ${input.gardenName}. שם משתמש: ${input.username}. יש להשלים פרופיל גן לאחר התחברות.`;
-  const passwordVariables = credentialVariables(input.temporaryPassword);
+  const passwordVariables = credentialVariables();
   await Promise.all([
     admin.from("email_delivery_logs" as any).insert({
       recipient_profile_id: input.managerId,
@@ -55,8 +49,8 @@ async function insertCredentialCommunicationLogs(admin: ReturnType<typeof create
       sent_at: null,
       metadata: {
         login_url: `${loginUrl()}/login`,
-        includes_temporary_password: canStoreTemporaryPasswordInMockLog(),
-        temporary_password_redacted: !canStoreTemporaryPasswordInMockLog(),
+        includes_temporary_password: false,
+        temporary_password_redacted: true,
         password_delivery: "provider_payload_only"
       }
     }),
@@ -258,7 +252,6 @@ export async function POST(request: Request) {
         gardenId: garden.id,
         managerId: manager.user.id,
         username: manager.oneTimeCredentials.username,
-        temporaryPassword,
         gardenName: garden.name,
         phone: managerPhone || lead.phone
       });
@@ -304,7 +297,6 @@ export async function POST(request: Request) {
         gardenId: garden.id,
         managerId: garden.manager_id,
         username: credentials.username,
-        temporaryPassword: credentials.temporary_password,
         gardenName: garden.name
       });
       await Promise.all([
