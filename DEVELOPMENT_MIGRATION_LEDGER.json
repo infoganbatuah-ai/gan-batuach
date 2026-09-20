@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
-  "observedAt": "2026-09-20T07:20:14.554Z",
+  "observedAt": "2026-09-20T15:18:46.381Z",
   "productionWriteAuthorized": false,
   "remoteHistoryStatus": "UNVERIFIED_READ_ONLY_RECONCILIATION_REQUIRED",
-  "localDatabaseStatus": "BASELINE_AND_INTEGRATED_MIGRATIONS_APPLIED",
+  "localDatabaseStatus": "PENDING_REVIEWED_MIGRATION_20260920170000",
   "migrations": [
     {
       "file": "supabase/migrations/20260919190000_edge_home_qa_channel.sql",
@@ -7288,9 +7288,37 @@
       "developmentHistoryDigest": "a073194e6d2b440c1b0182b1595aa669b988897c79fefb0dbfb360cbbc2d7bb8",
       "developmentSchemaFingerprint": "c13f9902ec6ddfce8523262754c722c8a5a265716e68edd830632898387dea42",
       "developmentStatusReason": "Original post-baseline SQL applied after remote integration; Production status unchanged"
+    },
+    {
+      "file": "supabase/migrations/20260920170000_retire_generated_plaintext_credentials.sql",
+      "blob": "20c48fe3229570fb3e78505a04f2e399bf8cd35b",
+      "version": "20260920170000",
+      "sourceTask": "GB-M35_P1_CREDENTIAL_RETIREMENT",
+      "sourceCommit": "f97819e520dbffd4e4b75e7238da314f3b8cb7f3",
+      "sourceHead": "f97819e520dbffd4e4b75e7238da314f3b8cb7f3",
+      "remoteBranch": "origin/codex/gb-m35-retire-plaintext-credentials",
+      "integrationCommit": "f83eb1bb781c050019ff6c7e877f946276aecf23",
+      "inGit": true,
+      "inIntegration": true,
+      "inclusion": "INTEGRATED_DEVELOPMENT",
+      "releaseOrder": "20260920170000",
+      "requiredPredecessor": "20260920160000_management_tuition_audit_role_fix.sql",
+      "dependencyStatus": "GB_M35_TUITION_FIX_DEVELOPMENT_APPLIED",
+      "developmentApproval": "VALIDATED_FOR_ISOLATED_DEVELOPMENT",
+      "developmentDependsOn": [
+        "20260920160000"
+      ],
+      "developmentApplied": "NO",
+      "developmentAppliedAt": null,
+      "developmentEvidence": null,
+      "productionApplied": "UNVERIFIED",
+      "productionEvidence": null,
+      "recovery": "Forward-only drop of recoverable plaintext credential column; preserve Auth accounts/hashes and non-secret metadata. Apply only after verified backup/recovery; old backups require retention/security review before Production release.",
+      "developmentApprovalEvidence": "PR #98 exact source head: 9/9 required CI PASS; isolated disposable Auth clone migration plus synthetic invitation/email confirmation and security negatives PASS; migration audit 239/239; no Production write.",
+      "developmentStatusReason": "Reviewed and integrated; canonical isolated Development application pending."
     }
   ],
-  "developmentExpected": 238,
+  "developmentExpected": 239,
   "developmentAppliedVerified": 238,
   "blockers": [],
   "localObservations": [
