@@ -101,7 +101,11 @@
     "work_date": "2026-09-20",
     "status": "IN_PROGRESS_NO_RUNTIME_HANDOFF",
     "exact_device_home_qa_manifest_templates": "THREE_BUILT_AND_NEGATIVE_SCOPE_TESTED; REMEDIATION_TEMPLATES_NOW_REFERENCE_NEW_HEALTH_CORRECTED_ARTIFACTS",
-    "protected_aws_issuance_code": "FIXTURE_TESTED; OLD_ARTIFACT_WORKFLOW_35481169676_MUST_NOT_BE_USED_FOR_ROLLOUT",
+    "protected_aws_issuance_code": "LIVE_AWS_KMS_SIGNED_THREE_EXACT_DEVICE_MANIFESTS; WORKFLOW_35482295860_SUCCESS; OLD_WORKFLOW_35481169676_CANCELLED",
+    "protected_aws_manifest_workflow": "https://github.com/infoganbatuah-ai/gan-batuach/actions/runs/35482295860",
+    "protected_aws_manifest_artifact_id": 10596570721,
+    "protected_aws_manifest_artifact_sha256": "83caa4b35276f2668eb6a19113a63ee683f8df239a723fffaa0f39c825c5b0b6",
+    "live_aws_signed_manifest_acceptance": "PASS_THREE_SIGNED_MANIFESTS_VERIFIED_AGAINST_PROTECTED_LIVE_TRUST_AND_EXACT_ARTIFACT_TEMPLATES",
     "health_gate_defect": "SIGNED_38I_AGENT_USED_CONNECTED_COUNT_AS_FRAME_PROGRESSION_AND_WRONG_CONNECTOR_ASSIGNED_COUNT_FIELD",
     "health_gate_fix_commit": "04874417c764582968f6c94312594e9770178fea",
     "corrected_qa_artifact_round_trip": "CONNECTOR_AND_GATEWAY_PASS_PRIVATE_R2_NO_RUNTIME_ACTIVATION",
@@ -109,7 +113,7 @@
     "corrected_gateway_artifact_sha256": "6c9d08327ec6f38db3fc55c4c344f4db6fc0d0adab5c68e3ec3f1c1164f11c95",
     "live_baseline_dry_run": "PASS_ZERO_RUNTIME_WRITES",
     "connector_tapo_observation": "ONE_RELAY_STALLED_LEGACY_HEALTH_STILL_REPORTS_HEALTHY",
-    "remaining": ["PROTECTED_AWS_RELEASE_SIGNATURE", "LIVE_QA_AUTHORIZATION_SERVICE",
+    "remaining": ["LIVE_QA_AUTHORIZATION_SERVICE",
       "DEVICE_AUTHENTICATED_R2_DRY_RUN", "REVIEWED_LIVE_TRANSITION_ORCHESTRATOR"]
   },
   "not_started": [
