@@ -283,7 +283,7 @@ export function KindergartenOnboardingForm({ garden, onboarding, managerName }: 
       setMissing(body.data?.missing ?? []);
       setProgressPercent(Number(body.data?.onboarding?.progress_percent ?? (finish ? 100 : progressPercent)));
       if (finish) {
-        await fetch("/api/management/gardens", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ gardenId: garden.id }) });
+        await fetch("/api/management/gardens", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ garden_id: garden.id }) });
         router.replace("/dashboard/garden");
         router.refresh();
       } else {
