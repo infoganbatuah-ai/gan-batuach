@@ -1,4 +1,5 @@
 import { DashboardShell } from "@/components/dashboard-shell";
+import Link from "next/link";
 import { israelTodayDateKey } from "@/lib/domain/israel-date";
 import { StaffProfileCards } from "@/components/people-profile-cards";
 import { TeachingAssignmentsPanel } from "@/components/teaching-assignments-panel";
@@ -70,6 +71,7 @@ export default async function GardenStaffPage() {
     <DashboardShell role="manager" title="צוות" appHome>
       <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.replace(/\[DEMO\]/gi, "").trim().split(" ")[0] || "מנהלת הגן"}`} subtitle="ניהול צוות ושכר" avatarUrl={(profile as any).profile_image_url ?? null} active="more">
         <TeacherPageTitle icon={UsersRound} title="ניהול צוות" subtitle="מי נמצא בגן, מי חסר ומה דורש בדיקה" />
+        <p><Link href="/dashboard/garden/staff-time">שעות עבודה, אישורים וייצוא למערכת שכר חיצונית</Link></p>
         <TeacherStatsGrid>
           <TeacherStatCard title="אנשי צוות" value={rows.length} hint="משויכים לגן" icon={UsersRound} tone="purple" />
           <TeacherStatCard title="זוהו היום" value={activeToday} hint="נוכחים" icon={UserCheck} tone="green" />
