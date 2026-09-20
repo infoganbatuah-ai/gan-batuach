@@ -237,6 +237,11 @@ GB-M35 pending handoff (2026-09-20): the synthetic-role QA branch
 `integration/development`. Its matrix, report, redacted receipt and guarded
 QA harnesses record partial isolated Development evidence. Inspector guard
 repair PR #85 merged separately at `1a0162f261c6141ffb06b3ebe2abf41181a81b70`.
-Full GB-M21–M34 transactional browser journeys and separate-connection race
-tests remain open. This ledger entry records the unit as **BLOCKED / pending
+The branch has since advanced to `24c9d766d3500e7867b407e82a98ef4597eeff05`
+with 238/238 isolated migrations, a 9/9 Owner-only onboarding and
+Garden-scoped invitation browser retest, and separate-connection notification
+and document-replacement races. Scoped P1 fixes #91–#94 are merged to
+Development; PR #86 remains a draft. Full GB-M21–M34 transactional browser
+journeys, signup/Email confirmation and the other concurrency/IDOR gates
+remain open. This ledger entry records the unit as **BLOCKED / pending
 integration**; it does not merge #86, authorize GB-M36, or release Production.
