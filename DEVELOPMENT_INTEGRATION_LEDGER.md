@@ -173,6 +173,11 @@ applied the migration only to isolated Development. The receipt records
 236/236 baseline-aware drift, and the applied schema passed synthetic direct
 RLS plus separate-connection arrival, release, and revoke/release races.
 Cumulative domain, security, Parent/Manager, Classroom, multi-Garden Staff,
-ledger and release-contract tests passed. A final full-stack smoke and
-controlled live-role QA remain open. Production migration, `main`, and
+ledger and release-contract tests passed. Closure PR #79 passed nine exact-head
+checks and merged at `e048c81acae4307e80f9584917772614d984328d`, including
+the baseline-aware local launcher fix. That exact head started as
+DEVELOPMENT / INTEGRATION at `http://127.0.0.1:3000`; health was HTTP 200,
+Garden attendance/release anonymous mutations were 401, and Parent pickup
+contact management redirected anonymously to `/login` without mutation.
+Controlled live-role QA remains open. Production migration, `main`, and
 deployment are unchanged.
