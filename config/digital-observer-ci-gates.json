@@ -73,6 +73,7 @@
     { "name": "native-preprocessing", "args": ["scripts/qa/check-digital-observer-native-preprocessing.mjs"] },
     { "name": "adaptive-sampling", "args": ["scripts/qa/check-digital-observer-adaptive-sampling.mjs"] },
     { "name": "durable-ai-job-queue", "args": ["scripts/qa/check-digital-observer-ai-job-queue.mjs"] },
+    { "name": "queue-terminal-race", "args": ["scripts/qa/check-digital-observer-queue-terminal-race.mjs"] },
     { "name": "hybrid-ai-routing", "args": ["scripts/qa/check-digital-observer-ai-routing.mjs"] },
     { "name": "cost-intelligence", "args": ["scripts/qa/check-digital-observer-cost-engine.mjs"] },
     { "name": "storage-portability", "args": ["scripts/qa/check-digital-observer-storage-portability.mjs"] },
