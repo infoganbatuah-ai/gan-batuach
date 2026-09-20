@@ -1,4 +1,3 @@
-import { israelTodayDateKey } from "@/lib/domain/israel-date";
 import Link from "next/link";
 import {
   BarChart3,
@@ -25,8 +24,9 @@ import {
   TeacherStatCard,
   TeacherStatsGrid
 } from "@/components/teacher-app-ui";
-import { requireRole } from "@/lib/auth";
+import { getManagementGardenContext } from "@/lib/management/garden-context";
 import { createClient } from "@/lib/supabase/server";
+import { notFound } from "next/navigation";
 
 type AttendanceRow = {
   id: string;
@@ -67,34 +67,31 @@ function normalizeAttendanceStatus(value?: string | null): AttendanceRow["status
 }
 
 export default async function GardenAttendancePage({ searchParams }: { searchParams: Promise<{ filter?: string }> }) {
-  const { profile } = await requireRole(["manager", "owner"]);
+  const access = await getManagementGardenContext();
+  if (!access.allowed) notFound();
+  const { profile } = access.session;
   const params = await searchParams;
   const supabase = await createClient();
-  const today = israelTodayDateKey();
-  const gardenId = profile.garden_id ?? "";
+  const gardenId = access.gardenId;
+  const gardenRes = await supabase.from("gardens" as any).select("name,operational_timezone").eq("id", gardenId).maybeSingle();
+  const today = new Intl.DateTimeFormat("en-CA", { timeZone: gardenRes.data?.operational_timezone || "Asia/Jerusalem", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
 
-  const [attendanceRes, childrenRes, gardenRes] = await Promise.all([
+  const [attendanceRes, enrollmentsRes] = await Promise.all([
     supabase
       .from("attendance" as any)
       .select("id, child_id, status, attendance_date, check_in_at, check_out_at, pickup_name, children(full_name), staff(full_name)")
       .eq("garden_id", gardenId)
       .eq("attendance_date", today)
       .order("created_at", { ascending: false }),
-    supabase
-      .from("children" as any)
-      .select("id, full_name, status")
-      .eq("garden_id", gardenId)
-      .in("status", ["active", "approved"])
-      .order("full_name"),
-    supabase
-      .from("gardens" as any)
-      .select("name")
-      .eq("id", gardenId)
-      .maybeSingle()
+    supabase.from("child_kindergarten_enrollments" as any)
+      .select("child_id,start_date,end_date,children(id,full_name,status)")
+      .eq("garden_id", gardenId).eq("status", "active").limit(500)
   ]);
 
   const attendance = (attendanceRes.data ?? []) as any[];
-  const children = (childrenRes.data ?? []) as any[];
+  const children = ((enrollmentsRes.data ?? []) as any[])
+    .filter((row) => (!row.start_date || row.start_date <= today) && (!row.end_date || row.end_date >= today))
+    .map((row) => Array.isArray(row.children) ? row.children[0] : row.children).filter(Boolean);
   const attendanceByChildId = new Map(attendance.filter((row) => row.child_id).map((row) => [row.child_id, row]));
   const childRows: AttendanceRow[] = children.map((child, index) => {
     const attendanceRow = attendanceByChildId.get(child.id);
