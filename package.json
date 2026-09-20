@@ -26,6 +26,7 @@
     "qa:ci:domain": "node scripts/ci/run-gate.mjs domain",
     "qa:ci:security": "node scripts/ci/run-gate.mjs security",
     "qa:migrations": "node scripts/qa/check-migration-health.mjs",
+    "qa:editorial": "node scripts/qa/check-editorial-content.mjs",
     "qa:release-contract": "node scripts/qa/check-production-release-contract.mjs",
     "ci:quality": "npm run typecheck && npm run lint:ci && npm run qa:ci:domain && npm run qa:ci:security && npm run qa:migrations && npm run qa:release-contract && npm run build",
     "mobile:sync": "npx cap sync",
