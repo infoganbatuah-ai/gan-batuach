@@ -64,7 +64,7 @@ The product does not certify statutory overtime, pension, tax withholding, Natio
 
 ## Export
 
-`management_staff_time_export` returns a bounded single Garden/month projection with planned and actual times, approval, hours and applicable operational rate/cost. The authenticated Garden API offers JSON and CSV with private no-store headers and spreadsheet-formula escaping. No Inspector or ordinary Admin export grant exists.
+`management_staff_time_export` returns a bounded single Garden/month projection with planned and actual times, approval, hours and applicable operational rate/cost. If a Garden/month exceeds 5,000 rows, export fails explicitly for batched review rather than silently truncating payroll input. The authenticated Garden API offers JSON and CSV with private no-store headers and spreadsheet-formula escaping. No Inspector or ordinary Admin export grant exists.
 
 ## Staff UX
 

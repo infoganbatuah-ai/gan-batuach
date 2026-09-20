@@ -411,6 +411,11 @@ begin
     raise exception 'staff_time_export_denied' using errcode='42501'; end if;
   if p_period_start is null or extract(day from p_period_start)<>1 then
     raise exception 'staff_time_period_invalid' using errcode='23514'; end if;
+  if (select count(*) from public.staff_shifts sh
+      where sh.garden_id=p_garden_id and sh.shift_date>=p_period_start
+        and sh.shift_date<(p_period_start+interval '1 month')::date)>5000 then
+    raise exception 'staff_time_export_requires_batched_review' using errcode='54000';
+  end if;
   return query select sh.id,sh.staff_id,sh.employment_id,s.full_name::text,sh.shift_date,
     sh.planned_start,sh.planned_end,sh.actual_start,sh.actual_end,
     case when sh.actual_end is not null then sh.total_minutes else null end,
