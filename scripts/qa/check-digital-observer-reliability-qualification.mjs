@@ -21,9 +21,9 @@ const runSuite = path => new Promise((resolve, reject) => {
   child.stdout.on("data", value => stdout.push(value)); child.stderr.on("data", value => stderr.push(value));
   child.on("error", reject); child.on("exit", code => code === 0 ? resolve(Buffer.concat(stdout).toString()) : reject(new Error(`${path} failed (${code}): ${Buffer.concat(stderr).toString().slice(-2_000)}`)));
 });
-// Match the existing PUSH 36 worker fixture (8 ms). At 2 ms this benchmark is
-// dominated by synchronous SQLite claim/ack bookkeeping, not inference scaling;
-// retain that queue-bound observation separately rather than weakening the 1.5x gate.
+// These in-process, timer-backed profiles measure queue coordination and
+// admission. Real CPU worker scaling is measured by the separate multi-process
+// PUSH 36 fixture below; a timer on one event loop is not a compute benchmark.
 async function profile(cameras, workers, jobs, delay=8) { const path=join(root,`${cameras}-${workers}-${jobs}-${delay}.sqlite`), queue=createDurableAiJobQueue({databasePath:path,workerAuthorizer:value=>value.identity?.authenticated===true,policy:{maxJobs:Math.max(5000,jobs+10),leaseMs:5_000}}); const before=process.memoryUsage().rss; queue.enqueueMany(Array.from({length:jobs},(_,index)=>job({cameras,index,priority:index%97===0?"CRITICAL":index%31===0?"LEARNING":"NORMAL"}))); const admitted=process.memoryUsage().rss; const pool=createHorizontalInferencePool({queue}); for(let i=0;i<workers;i++)pool.add(worker(`w-${cameras}-${workers}-${i}`,delay)); const started=performance.now(); const result=await pool.drain(); const elapsed=performance.now()-started, snapshot=queue.snapshot(), after=process.memoryUsage().rss; queue.close(); return {cameras,tenants:10,sites:50,jobs,workers,fixture_delay_ms:delay,elapsed_ms:Number(elapsed.toFixed(3)),throughput_jobs_s:Number((jobs/(elapsed/1000)).toFixed(2)),queue_age_ms:snapshot.queue_age_ms,completed:result.completed,failures:result.failures,duplicates:0,dead_letters:snapshot.dead_letter_count,backlog:snapshot.queue_depth,memory_mb:{before:Number((before/1048576).toFixed(3)),after_admission:Number((admitted/1048576).toFixed(3)),after:Number((after/1048576).toFixed(3)),growth:Number(((after-before)/1048576).toFixed(3))},assumption:`synthetic metadata-only AI jobs; ${delay} ms bounded worker fixture; 5 s throughput lease (worker-loss leases are tested separately)`}; }
 try {
   const queueOverhead=[await profile(100,1,400,2),await profile(100,4,400,2)];
@@ -32,14 +32,22 @@ try {
   const capacityLevels=[]; for(const [level,jobs] of [["25_PERCENT",100],["50_PERCENT",200],["75_PERCENT",300],["100_PERCENT",400],["OVERLOAD",800]]) capacityLevels.push({level,...await profile(100,4,jobs)});
   const milestones=[await profile(10,2,200),await profile(100,4,1000),await profile(1000,8,4000)];
   for(const row of [...capacity,...milestones]) { assert.equal(row.completed,row.jobs); assert.equal(row.failures,0); assert.equal(row.duplicates,0); assert.equal(row.backlog,0); }
-  assert.ok(capacity[2].throughput_jobs_s > capacity[0].throughput_jobs_s*1.5,`horizontal throughput did not improve materially: ${JSON.stringify({one:capacity[0],four:capacity[2]})}`);
+  const horizontalOutput = await runSuite("scripts/qa/check-digital-observer-horizontal-scale.mjs");
+  const horizontal = JSON.parse(horizontalOutput);
+  assert.equal(horizontal.status, "PASS");
+  assert.equal(horizontal.baseline.jobs, 120);
+  assert.equal(horizontal.scale.jobs, 120);
+  assert.equal(horizontal.multi_process.duplicates, 0);
+  assert.ok(horizontal.scale.throughput_jobs_s > horizontal.baseline.throughput_jobs_s * 1.5,
+    `multi-process worker throughput did not improve materially: ${JSON.stringify({ one: horizontal.baseline, four: horizontal.scale })}`);
   const suiteEvidence = await Promise.all([
-    ["PUSH36_HORIZONTAL_LOAD", "scripts/qa/check-digital-observer-horizontal-scale.mjs"],
     ["PUSH37_HA_FAULTS", "scripts/qa/check-digital-observer-high-availability.mjs"],
     ["PUSH20_SELF_HEALING", "scripts/qa/check-edge-self-healing.mjs"],
     ["PUSH21_OFFLINE_RESYNC", "scripts/qa/check-offline-buffer-resync.mjs"],
     ["PUSH34_STORAGE", "scripts/qa/check-digital-observer-storage-portability.mjs"]
   ].map(async ([name, path]) => ({ name, path, status: "PASS", output_digest: createHash("sha256").update(await runSuite(path)).digest("hex") })));
+  suiteEvidence.unshift({ name: "PUSH36_HORIZONTAL_LOAD", path: "scripts/qa/check-digital-observer-horizontal-scale.mjs",
+    status: "PASS", output_digest: createHash("sha256").update(horizontalOutput).digest("hex") });
   const caseSuite = {
     WORKER_PROCESS_CRASH:"PUSH37_HA_FAULTS", WORKER_CAPACITY_LOSS:"PUSH37_HA_FAULTS", WORKER_RECOVERY:"PUSH37_HA_FAULTS", QUEUE_CONSUMER_CRASH:"PUSH36_HORIZONTAL_LOAD",
     API_INSTANCE_FAILURE:"PUSH37_HA_FAULTS", DATABASE_UNAVAILABLE:"PUSH37_HA_FAULTS", STORAGE_UNAVAILABLE:"PUSH34_STORAGE", CLOUD_CONNECTIVITY_INTERRUPTION:"PUSH21_OFFLINE_RESYNC",
@@ -50,7 +58,7 @@ try {
   const incomplete=summarizeRealHomeSoak([{sampled_at:new Date(now-60_000).toISOString(),interval_ms:60_000,dvr:{health_ok:true,progressing:10,lifecycle:{}},tapo:{health_ok:true,progressing:1,lifecycle:{}},empty_dvr_slots:6,resources:{gateway:{pid:1,supervisor_pid:1,runtime_pid:11,rss_mb:100},connector:{pid:2,supervisor_pid:2,runtime_pid:22,rss_mb:50}},logs:{gateway_bytes:10,connector_bytes:10},playback:{verified:11,failed:0},ai:{ok:true,latency_ms:5},learning:{sampled_source_ids:Array.from({length:11},(_,i)=>`camera-${i}`)}}],{startedAt:now-60_000,endedAt:now});
   assert.equal(incomplete.status,"NOT_DONE"); assert.ok(incomplete.gate_failures.includes("SOAK_EVIDENCE_INCOMPLETE")); assert.throws(()=>assertQualificationResult({...incomplete,status:"PASS",gate_failures:[]}),/cannot_pass_before_24_hours/);
   const complete={...incomplete,elapsed_ms:REAL_SOAK_MINIMUM_MS,required_elapsed_complete:true,status:"PASS",gate_failures:[]}; assert.equal(assertQualificationResult(complete),true);
-  const result={status:"PASS",contract:"observer-reliability-qualification-v1",generated_at:new Date().toISOString(),runtime:{node:process.version,platform:process.platform,architecture:process.arch},evidence:["SYNTHETIC_LOAD","LOCAL_MULTI_PROCESS","LOCAL_MULTI_NODE"],benchmarks:{QUEUE_OVERHEAD_BENCHMARK:{fixture_delay_ms:2,one:queueOverhead[0],four:queueOverhead[1],scaling_ratio:Number((queueOverhead[1].throughput_jobs_s/queueOverhead[0].throughput_jobs_s).toFixed(3)),gate:"CORRECTNESS_AND_MEASURED_THROUGHPUT_ONLY"},HORIZONTAL_WORKER_SCALING_BENCHMARK:{fixture_delay_ms:8,one:capacity[0],four:capacity[2],scaling_ratio:Number((capacity[2].throughput_jobs_s/capacity[0].throughput_jobs_s).toFixed(3)),minimum_ratio:1.5,gate:"PASS"}},capacity_curve:capacity,capacity_levels:capacityLevels,milestones,chaos:{passed:chaos.length,total:chaos.length,cases:chaos,suites:suiteEvidence,under_load:true},acknowledged_data_loss:0,duplicate_product_effects:0,cross_tenant_leakage:0,empty_dvr_jobs:0,soak_pass_guard:"VERIFIED_24_HOURS_REQUIRED"};
+  const result={status:"PASS",contract:"observer-reliability-qualification-v1",generated_at:new Date().toISOString(),runtime:{node:process.version,platform:process.platform,architecture:process.arch},evidence:["SYNTHETIC_LOAD","LOCAL_MULTI_PROCESS","LOCAL_MULTI_NODE"],benchmarks:{QUEUE_OVERHEAD_BENCHMARK:{fixture_delay_ms:2,one:queueOverhead[0],four:queueOverhead[1],scaling_ratio:Number((queueOverhead[1].throughput_jobs_s/queueOverhead[0].throughput_jobs_s).toFixed(3)),gate:"CORRECTNESS_AND_MEASURED_THROUGHPUT_ONLY"},ASYNC_QUEUE_COORDINATION_BENCHMARK:{fixture_delay_ms:8,one:capacity[0],four:capacity[2],scaling_ratio:Number((capacity[2].throughput_jobs_s/capacity[0].throughput_jobs_s).toFixed(3)),gate:"CORRECTNESS_AND_MEASURED_THROUGHPUT_ONLY"},HORIZONTAL_WORKER_SCALING_BENCHMARK:{workload:"MULTI_PROCESS_CPU",one:horizontal.baseline,four:horizontal.scale,scaling_ratio:Number((horizontal.scale.throughput_jobs_s/horizontal.baseline.throughput_jobs_s).toFixed(3)),minimum_ratio:1.5,gate:"PASS"}},capacity_curve:capacity,capacity_levels:capacityLevels,milestones,chaos:{passed:chaos.length,total:chaos.length,cases:chaos,suites:suiteEvidence,under_load:true},acknowledged_data_loss:0,duplicate_product_effects:0,cross_tenant_leakage:0,empty_dvr_jobs:0,soak_pass_guard:"VERIFIED_24_HOURS_REQUIRED"};
   const outputArg=process.argv.find(value=>value.startsWith("--output="))?.slice(9); if(outputArg){mkdirSync(join(process.cwd(),"qa-evidence","push-38"),{recursive:true});const temporary=`${outputArg}.tmp`;writeFileSync(temporary,`${JSON.stringify(result,null,2)}\n`,{mode:0o600});renameSync(temporary,outputArg);}
   console.log(JSON.stringify(result,null,2));
 } finally { rmSync(root,{recursive:true,force:true}); }
