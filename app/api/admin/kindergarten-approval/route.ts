@@ -1,9 +1,11 @@
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
-import { requireRole } from "@/lib/auth";
+import { getSessionProfile } from "@/lib/auth";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { generateTemporaryPassword, provisionAuthUser, writeUserCreationAudit } from "@/lib/onboarding/user-provisioning";
+import { provisionAuthUser, writeUserCreationAudit } from "@/lib/onboarding/user-provisioning";
+import { createClient } from "@/lib/supabase/server";
+import { authCallbackUrl } from "@/lib/domain/auth-flow";
 
 const schema = z.object({
   action: z.enum(["approve_lead", "request_contact", "reject_lead", "mark_contacted", "mark_not_relevant", "resend_credentials", "approve_final_profile", "request_corrections", "suspend", "archive"]),
@@ -19,13 +21,6 @@ function loginUrl() {
   return process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || "http://localhost:3000";
 }
 
-function credentialVariables() {
-  return {
-    temporary_password: "[redacted]",
-    temporary_password_redacted: true
-  };
-}
-
 async function insertCredentialCommunicationLogs(admin: ReturnType<typeof createAdminClient>, input: {
   gardenId: string;
   managerId: string;
@@ -34,8 +29,7 @@ async function insertCredentialCommunicationLogs(admin: ReturnType<typeof create
   phone?: string | null;
 }) {
   const now = new Date().toISOString();
-  const messagePreview = `כניסה לגן בטוח עבור ${input.gardenName}. שם משתמש: ${input.username}. יש להשלים פרופיל גן לאחר התחברות.`;
-  const passwordVariables = credentialVariables();
+  const messagePreview = `הזמנה לגן בטוח עבור ${input.gardenName}. חשבון ההנהלה מאומת בדוא״ל, ללא סיסמה זמנית.`;
   await Promise.all([
     admin.from("email_delivery_logs" as any).insert({
       recipient_profile_id: input.managerId,
@@ -49,9 +43,7 @@ async function insertCredentialCommunicationLogs(admin: ReturnType<typeof create
       sent_at: null,
       metadata: {
         login_url: `${loginUrl()}/login`,
-        includes_temporary_password: false,
-        temporary_password_redacted: true,
-        password_delivery: "provider_payload_only"
+        delivery_truth: "mock_queue_only"
       }
     }),
     admin.from("whatsapp_message_logs" as any).insert({
@@ -65,7 +57,6 @@ async function insertCredentialCommunicationLogs(admin: ReturnType<typeof create
       variables: {
         login_url: `${loginUrl()}/login`,
         username: input.username,
-        ...passwordVariables,
         garden_name: input.gardenName
       },
       queued_at: now,
@@ -83,7 +74,6 @@ async function insertCredentialCommunicationLogs(admin: ReturnType<typeof create
       variables: {
         login_url: `${loginUrl()}/login`,
         username: input.username,
-        ...passwordVariables,
         garden_name: input.gardenName
       },
       queued_at: now,
@@ -92,21 +82,11 @@ async function insertCredentialCommunicationLogs(admin: ReturnType<typeof create
   ]);
 }
 
-async function latestCredentials(admin: ReturnType<typeof createAdminClient>, userId: string) {
-  const { data } = await admin
-    .from("generated_credentials" as any)
-    .select("username, temporary_password")
-    .eq("user_id", userId)
-    .is("password_changed_at", null)
-    .order("created_at", { ascending: false })
-    .limit(1)
-    .maybeSingle();
-  return data as any;
-}
-
 export async function POST(request: Request) {
   try {
-    const { profile } = await requireRole(["admin"]);
+    const { user, profile } = await getSessionProfile();
+    if (!user || !profile) return fail("נדרשת התחברות.", 401);
+    if (profile.role !== "admin") return fail("אין הרשאת מנהל מערכת.", 403);
     // Payment-linked subscription activation is owned by the canonical GB-M26 lifecycle.
 
     const payload = schema.parse(await request.json());
@@ -164,13 +144,12 @@ export async function POST(request: Request) {
       if (isParentOriginLead && !managerEmail && !managerPhone) {
         return fail("צריך לצרף טלפון או מייל של מנהלת הגן לפני המרה לרישום", 422);
       }
-      const temporaryPassword = generateTemporaryPassword();
+      if (!managerEmail) return fail("נדרש דוא״ל מנהלת כדי לשלוח הזמנה מאובטחת.", 422);
       const manager = await provisionAuthUser({
         role: "manager",
         fullName: managerName,
         email: managerEmail,
         phone: managerPhone,
-        temporaryPassword,
         createdBy: profile.id,
         conflictField: "manager_email"
       });
@@ -280,23 +259,18 @@ export async function POST(request: Request) {
 
     if (payload.action === "resend_credentials") {
       if (!garden.manager_id) return fail("לגן אין מנהלת משויכת", 422);
-      let credentials = await latestCredentials(admin, garden.manager_id);
-      if (!credentials) {
-        const temporaryPassword = generateTemporaryPassword();
-        const { data: user } = await admin.from("profiles" as any).select("email, username").eq("id", garden.manager_id).maybeSingle();
-        credentials = { username: user?.email || user?.username, temporary_password: temporaryPassword };
-        await admin.auth.admin.updateUserById(garden.manager_id, { password: temporaryPassword });
-        await admin.from("generated_credentials" as any).insert({
-          user_id: garden.manager_id,
-          username: credentials.username,
-          temporary_password: temporaryPassword,
-          created_by: profile.id
-        });
-      }
+      const { data: user } = await admin.from("profiles" as any).select("email, username").eq("id", garden.manager_id).maybeSingle();
+      const username = String(user?.email || user?.username || "").trim();
+      if (!username.includes("@")) return fail("למנהלת אין כתובת דוא״ל לשחזור מאובטח.", 422);
+      const auth = await createClient();
+      const recovery = await auth.auth.resetPasswordForEmail(username, {
+        redirectTo: authCallbackUrl("gan_batuach", "/reset-password", "recovery")
+      });
+      if (recovery.error) return fail("לא ניתן לשלוח קישור שחזור.", 503);
       await insertCredentialCommunicationLogs(admin, {
         gardenId: garden.id,
         managerId: garden.manager_id,
-        username: credentials.username,
+        username,
         gardenName: garden.name
       });
       await Promise.all([
@@ -309,7 +283,7 @@ export async function POST(request: Request) {
         }, { onConflict: "garden_id" })
       ]);
       revalidatePath("/dashboard/admin/leads");
-      return ok({ credentials });
+      return ok({ status: "recovery_requested", username });
     }
 
     const statusPatch: Record<string, unknown> = { updated_at: now };

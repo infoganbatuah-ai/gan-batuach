@@ -2,10 +2,10 @@
 
 import { useEffect, useMemo, useState, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
-import { CheckCircle2, Copy, Eye, UserRoundPlus } from "lucide-react";
+import { CheckCircle2, Eye, UserRoundPlus } from "lucide-react";
 
 type Lead = Record<string, any>;
-type Credentials = { username: string; email: string; temporary_password: string };
+type Credentials = { username: string; email: string };
 
 const statusLabels: Record<string, string> = {
   new: "חדש",
@@ -155,9 +155,7 @@ export function GardenParentLeadsCenter({ leads }: { leads: Lead[] }) {
           {message ? <div className={message.includes("נוצר") || message.includes("קושר") ? "success-banner" : "error-banner"}>{message}</div> : null}
           {credentials ? <div className="credential-box" dir="ltr">
             <span>Username: {credentials.username}</span>
-            <span>Password: {credentials.temporary_password}</span>
-            <button className="button secondary" type="button" onClick={() => navigator.clipboard?.writeText(`Username: ${credentials.username}\nPassword: ${credentials.temporary_password}`)}><Copy size={14} /> העתקת פרטי כניסה</button>
-            <small>הפרטים יישארו זמינים למנהלת עד שההורה יחליף סיסמה.</small>
+            <small>ההורה יקבל קישור הזמנה אישי בדוא״ל. אין סיסמה זמנית למנהלת.</small>
           </div> : null}
         </section>
       ) : null}
