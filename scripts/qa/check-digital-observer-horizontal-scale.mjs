@@ -31,7 +31,9 @@ const child = (path, id) => new Promise((resolve, reject) => { const childProces
   childProcess.stdout.on("data", value => out.push(value)); childProcess.stderr.on("data", value => error.push(value)); childProcess.on("exit", code => code === 0 ? resolve(JSON.parse(Buffer.concat(out).toString())) : reject(new Error(Buffer.concat(error).toString() || `child_${code}`))); });
 
 async function processBenchmark(name, workerCount, count = 120) {
-  const path = join(root, `${name}.sqlite`); let queue = createDurableAiJobQueue({ databasePath: path, workerAuthorizer: auth, policy: { maxJobs: 2_000, leaseMs: 300 } });
+  // Scale measures healthy-worker throughput. Lease-expiry recovery is exercised
+  // separately below with a deliberately short 100 ms lease.
+  const path = join(root, `${name}.sqlite`); let queue = createDurableAiJobQueue({ databasePath: path, workerAuthorizer: auth, policy: { maxJobs: 2_000, leaseMs: 30_000 } });
   queue.enqueueMany(Array.from({ length: count }, (_, index) => job({ tenant_id: `tenant-${index % 2}`, site_id: `site-${index % 5}`, source_id: `camera-${index % 20}`, ordering_key: `${name}-${index}` }))); queue.close();
   const started = performance.now(), children = await Promise.all(Array.from({ length: workerCount }, (_, index) => child(path, `qa-worker-${name}-${index}`))), elapsed = performance.now() - started;
   queue = createDurableAiJobQueue({ databasePath: path, workerAuthorizer: auth }); const snapshot = queue.snapshot(); assert.equal(snapshot.states.COMPLETED, count); assert.equal(children.reduce((sum, item) => sum + item.completed, 0), count); queue.close();
@@ -46,7 +48,7 @@ try {
   // an invented linear-scaling target. Exact efficiency remains reported.
   assert.ok(four.throughput_jobs_s > one.throughput_jobs_s * 1.5, `workers did not materially scale: ${JSON.stringify({ one, four })}`);
 
-  const multiPath = join(root, "multi-process.sqlite"); let queue = createDurableAiJobQueue({ databasePath: multiPath, workerAuthorizer: auth, policy: { leaseMs: 300 } });
+  const multiPath = join(root, "multi-process.sqlite"); let queue = createDurableAiJobQueue({ databasePath: multiPath, workerAuthorizer: auth, policy: { leaseMs: 30_000 } });
   queue.enqueueMany(Array.from({ length: 120 }, (_, index) => job({ tenant_id: index % 5 === 0 ? "tenant-hot" : index % 2 ? "tenant-a" : "tenant-b", site_id: index % 5 === 0 ? "site-hot" : index % 2 ? "site-a" : "site-b", source_id: index % 7 === 0 ? "hot-camera" : `camera-${index % 18}`, ordering_key: `mp-${index}`, priority: index % 31 === 0 ? "CRITICAL" : index % 17 === 0 ? "LEARNING" : "NORMAL" })));
   const backend = adaptAiQueueBackend(queue); assertAiQueueBackend(backend); assert.equal(backend.multi_host_ready, false); assert.equal(POSTGRES_CLAIM_SEMANTICS.locking, "FOR UPDATE SKIP LOCKED"); queue.close();
   const children = await Promise.all([0, 1, 2, 3].map(index => child(multiPath, `qa-worker-child-${index}`)));
