@@ -3,14 +3,16 @@ import { createServer } from "node:http";
 const routes = new Set([
   "POST /api/digital-observer/gateway-enrollment",
   "GET /api/video-gateway/edge-updates",
-  "POST /api/video-gateway/edge-updates/download"
+  "POST /api/video-gateway/edge-updates/download",
+  "POST /api/video-gateway/home-qa-legacy-download"
 ]);
 const forwardHeaders = new Set([
   "accept", "content-type", "x-video-gateway-device-token",
   "x-observer-device-protocol", "x-observer-device-id",
   "x-observer-device-credential-version", "x-observer-device-timestamp",
   "x-observer-device-nonce", "x-observer-device-runtime-instance",
-  "x-observer-device-sequence", "x-observer-device-signature"
+  "x-observer-device-sequence", "x-observer-device-signature",
+  "x-observer-home-qa-legacy-signature"
 ]);
 
 export function push38tIngressAllows(method, pathname) {

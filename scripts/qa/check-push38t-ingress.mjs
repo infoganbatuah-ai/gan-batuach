@@ -5,7 +5,8 @@ import { createPush38tIngress, push38tIngressAllows } from "../../services/video
 const allowed = [
   ["POST", "/api/digital-observer/gateway-enrollment"],
   ["GET", "/api/video-gateway/edge-updates"],
-  ["POST", "/api/video-gateway/edge-updates/download"]
+  ["POST", "/api/video-gateway/edge-updates/download"],
+  ["POST", "/api/video-gateway/home-qa-legacy-download"]
 ];
 for (const [method, path] of allowed) assert.equal(push38tIngressAllows(method, path), true);
 for (const path of ["/", "/dashboard", "/api/admin/tasks", "/api/digital-observer/gateway-enrollment/other",

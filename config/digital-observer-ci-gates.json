@@ -87,6 +87,7 @@
   ],
   "security": [
     { "name": "home-qa-identity-phases", "args": ["scripts/qa/check-push38-home-qa-phases.mjs"] },
+    { "name": "home-qa-legacy-transition-proof", "args": ["scripts/qa/check-push38-home-qa-legacy-proof.mjs"] },
     { "name": "home-qa-r2-authorization", "args": ["scripts/qa/check-push38q-r2-download.mjs"] },
     { "name": "environment-safety", "args": ["scripts/validate-environment-safety.mjs"] },
     { "name": "encryption-separation", "args": ["scripts/qa/check-encryption-key-separation.mjs"] },
