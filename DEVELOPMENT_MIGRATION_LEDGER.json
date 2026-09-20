@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "observedAt": "2026-09-20T04:08:49.051Z",
+  "observedAt": "2026-09-20T07:20:14.554Z",
   "productionWriteAuthorized": false,
   "remoteHistoryStatus": "UNVERIFIED_READ_ONLY_RECONCILIATION_REQUIRED",
   "localDatabaseStatus": "BASELINE_AND_INTEGRATED_MIGRATIONS_APPLIED",
@@ -7267,7 +7267,7 @@
       "sourceCommit": "208f544b618762800b15d54c9361f8ba8c5185f5",
       "sourceHead": "208f544b618762800b15d54c9361f8ba8c5185f5",
       "remoteBranch": "origin/codex/gb-m35-tuition-audit-role-fix",
-      "integrationCommit": "740e32d631576733ac8bdf5d43fb8127e845a66b",
+      "integrationCommit": "0a857f4d007297447f82f8ac7ab9b91b1679b5e4",
       "inGit": true,
       "inIntegration": true,
       "inclusion": "INTEGRATED_DEVELOPMENT",
@@ -7278,17 +7278,20 @@
       "developmentDependsOn": [
         "20260920150000"
       ],
-      "developmentApplied": "NO",
-      "developmentAppliedAt": null,
-      "developmentEvidence": null,
+      "developmentApplied": "YES",
+      "developmentAppliedAt": "2026-09-20T07:17:48.247747+00:00",
+      "developmentEvidence": "development/database/development-application-receipts.json",
       "productionApplied": "UNVERIFIED",
       "productionEvidence": null,
       "recovery": "Forward-only replacement of three tuition RPC bodies to retain the typed app_role audit actor; no balance rewrite or backfill. Isolated rollback-only role tests passed. Apply after prior Development migrations with schema drift guard; Production requires separate owner release and recovery review.",
-      "developmentApprovalEvidence": "PR #88 exact head 208f544b618762800b15d54c9361f8ba8c5185f5: Digital Observer CI seven gates and Management context PASS; ancestry merge 740e32d631576733ac8bdf5d43fb8127e845a66b; isolated rollback-only synthetic Manager RPC/audit checks PASS; qa:migrations 238/238 PASS. Isolated Development only."
+      "developmentApprovalEvidence": "PR #88 exact head 208f544b618762800b15d54c9361f8ba8c5185f5: Digital Observer CI seven gates and Management context PASS; ancestry merge 740e32d631576733ac8bdf5d43fb8127e845a66b; isolated rollback-only synthetic Manager RPC/audit checks PASS; qa:migrations 238/238 PASS. Isolated Development only.",
+      "developmentHistoryDigest": "a073194e6d2b440c1b0182b1595aa669b988897c79fefb0dbfb360cbbc2d7bb8",
+      "developmentSchemaFingerprint": "c13f9902ec6ddfce8523262754c722c8a5a265716e68edd830632898387dea42",
+      "developmentStatusReason": "Original post-baseline SQL applied after remote integration; Production status unchanged"
     }
   ],
-  "developmentExpected": 237,
-  "developmentAppliedVerified": 237,
+  "developmentExpected": 238,
+  "developmentAppliedVerified": 238,
   "blockers": [],
   "localObservations": [
     {
