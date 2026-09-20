@@ -8687,6 +8687,25 @@
       "releaseEligibility": "NOT_READY_PENDING_RETENTION_RECOVERY_POLICY_AND_EXPLICIT_OWNER_RELEASE",
       "productionDeployment": {"status": "NOT_DEPLOYED"},
       "nextAction": "Approve category retention and expiry policy, verify Production backup/restore and all-in cost headroom before an explicit owner release. Retain controlled live-role QA debt; no Production release."
+    },
+    {
+      "id": "codex/gb-m33-attendance-pickup",
+      "project": "Gan Batuach Management",
+      "title": "GB-M33 canonical Child attendance and safe pickup",
+      "owner": "GB-M33 feature and Development integration owner",
+      "sourceBranch": "codex/gb-m33-attendance-pickup",
+      "sourceCommits": ["f766314a73c15129b96602d2331b8ebb19684ff9", "d6d8c3e600ef2515df0e2b8d7f1bbf08b031f5cc", "40b671c95b7a2402fb2c414118fad5789c34ef4f"],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {"remoteVerified": true, "remoteRefs": ["origin/codex/gb-m33-attendance-pickup"], "validatedSourceCommit": "40b671c95b7a2402fb2c414118fad5789c34ef4f"},
+      "validation": {"status": "PASS_EXACT_HEAD_CI_9_OF_9_AND_ROLLBACK_ONLY_RLS", "evidence": ["GAN_BATUACH_MANAGEMENT_GB_M33_CHILD_ATTENDANCE_PICKUP_REPORT.md", "scripts/qa/check-management-child-attendance-pickup.sql", "https://github.com/infoganbatuah-ai/gan-batuach/pull/77"], "limits": "Ordered isolated Development migration, separate-connection races, cumulative Product QA and controlled live-role QA remain open. Production is untouched."},
+      "integration": {"status": "INTEGRATED_DEVELOPMENT", "commit": "ef9af8443fd09952b1eb645f35f06ac0ebc93a06", "pullRequest": 77},
+      "dependencies": {"status": "GB_M32_INTEGRATED_DEVELOPMENT", "units": ["codex/gb-m32-documents"]},
+      "migrations": ["20260920140000_management_child_attendance_pickup.sql"],
+      "migrationOrder": ["20260920140000"],
+      "localVerification": "PENDING_ORDERED_DEVELOPMENT_MIGRATION_AND_CUMULATIVE_QA",
+      "releaseEligibility": "NOT_READY_PENDING_DEVELOPMENT_QA_AND_EXPLICIT_OWNER_RELEASE",
+      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "nextAction": "Apply the reviewed GB-M33 migration only to verified isolated Development after backup and ledger approval, then run separate-connection races, cumulative Product QA and exact-head drift. Production migration/deployment requires a separate explicit owner release."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",

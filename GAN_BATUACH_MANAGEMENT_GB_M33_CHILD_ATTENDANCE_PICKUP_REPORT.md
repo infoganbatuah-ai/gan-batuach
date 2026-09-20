@@ -101,3 +101,7 @@ Production retention period and exceptional correction policy need owner/legal p
 ## Inputs For GB-M34
 
 Use Garden-local attendance date, attendance ID, enrollment/Classroom snapshot, server timestamps, and confirmed pickup event. Treat Parent requests and camera context as non-authoritative. Do not infer legal lateness or retention period.
+
+## Development Integration Handoff
+
+PR #77 merged by ancestry into `integration/development` at `ef9af8443fd09952b1eb645f35f06ac0ebc93a06`, preserving source commits `f766314`, `d6d8c3e`, and `40b671c`. Nine exact-head CI checks passed, including the production-build check; the earlier local build was interrupted under exceptional workstation load. The only GB-M33 paths in the integration diff are the report, attendance/pickup routes and UI, focused test, Garden-context test, and one forward migration. Digital Observer core diff remains zero. The migration remains unapplied to Development until its separate ledger approval and guarded backup; Production is unchanged.
