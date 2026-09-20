@@ -206,6 +206,44 @@
     "live_runtime_writes": 0,
     "next_action": "Root-cause recurring Gateway relay/input collapse and high host load without changing camera identities or bypassing the ten-of-ten prewrite gate; require stable ten-of-ten and a passing final dry run under controlled load, then refresh read-only identity/staging and proceed only if mandatory gates pass."
   },
+  "home_host_dvr_stabilization_2026_09_20": {
+    "owner": "PUSH_38_QUALIFICATION",
+    "status": "PREWRITE_FAIL_NO_LIVE_RUNTIME_WRITE",
+    "phase_a_normal": {
+      "start_utc": "2026-09-20T12:02:21.395Z",
+      "duration_sec": 189,
+      "dvr_failed_checkpoints": "7/7",
+      "load1_range": "439-472",
+      "restricted_evidence_sha256": "dcb24228c654412d805c718c8bb76e0e452e9684e4df7531a0dfc7553e065b6f"
+    },
+    "phase_b_only_push38_qa_vm_paused": {
+      "start_utc": "2026-09-20T12:07:04Z",
+      "duration_sec": 188,
+      "dvr_failed_checkpoints": "6/7",
+      "load1_range": "499-646",
+      "restricted_evidence_sha256": "8fe6bcf47514c60e7c0dc807d62704927e40d147d130cca24ad1dc76b2198fe8"
+    },
+    "phase_c_qa_vm_restored": {
+      "start_utc": "2026-09-20T12:15:25Z",
+      "duration_sec": 188,
+      "dvr_failed_checkpoints": "4/7",
+      "load1_range": "532-573",
+      "restricted_evidence_sha256": "d228d015a277afc3ccaea34731d10d157c753dd2bb7da86eb65a5c47d89a0e72"
+    },
+    "qa_database_restored": "PUSH38T_COLIMA_RUNNING_FOUR_CONTAINERS_UP_DB_AND_AUTH_HEALTHY; OTHER_DEVELOPMENT_DB_UNTOUCHED",
+    "direct_dvr_probe": "PRIVATE_DVR_TCP_REACHABLE_TWICE_WHILE_GATEWAY_BELOW_TEN_OF_TEN; 30MS_AND_13MS; NO_AUTH_OR_VIDEO_PROBED",
+    "common_cause": "UNRESOLVED_CAUSALITY; GATEWAY_SHARED_RECORDER_SESSION_OR_RELAY_CHURN_OR_HOST_SCHEDULING_NARROWED; LEGACY_RUNTIME_CAN_REFRESH_SHARED_SESSION_ON_NON_AUTH_TRANSPORT_FAILURE_IF_NO_HEALTHY_RELAY; CANDIDATE_DISALLOWS_THIS; NO_LIVE_ROTATION_COUNTER_AVAILABLE",
+    "relay_correlation": "PHASE_A_RELAY_STARTS_17549_TO_17585_AND_STALE_PLAYLIST_612_TO_640_WHILE_DVR_FAILED; FFMPEG_1_TO_12_ACROSS_PHASES_NO_ZOMBIE_OR_PERSISTENT_LEAK_PROVEN",
+    "resource_classification": "ELEVATED_HOST_PRESSURE_LOAD_ABOVE_400_ON_EIGHT_LOGICAL_CPUS_155_TO_92_MIB_FREE_MEMORY_ABOUT_7_GIB_COMPRESSED; TOP_REPORTED_ABOUT_50_PERCENT_CPU_IDLE_SO_CPU_SATURATION_NOT_PROVEN; DOMINANT_OBSERVED_WEATHER_WIDGET_WINDOWSERVER_CODEX_NODE_AND_VIRTUALIZATION; QA_VM_NOT_SOLE_CAUSE",
+    "network": "EN0_RX_TX_ERROR_COUNTERS_ZERO_AT_TWO_CHECKS; NO_OBVIOUS_SOCKET_OR_HANDLE_EXHAUSTION; PACKET_LOSS_NOT_MEASURED",
+    "candidate_policy": "ISOLATED_SESSION_REFRESH_AND_BOUNDED_BACKOFF_ASSERTIONS_PASS; LIVE_LEGACY_NOT_MODIFIED",
+    "latest_live_health_utc": "2026-09-20T12:22:44Z",
+    "latest_live_health": "GATEWAY_HTTP_200_THREE_OF_TEN_PROGRESSING_THREE_STALLED_SIX_EMPTY; CONNECTOR_HEALTH_TIMEOUT_TAPO_NOT_VERIFIED",
+    "thirty_minute_stability": "NOT_STARTED_PRECONDITIONS_FAIL_RECENT_FOUR_OF_SEVEN_DVR_FAILURES_AND_HOST_PRESSURE",
+    "final_dry_run": "NOT_RERUN_PRECONDITIONS_FAIL; EARLIER_FAIL_CLOSED",
+    "prewrite": "FAIL; NO_CONNECTOR_OR_GATEWAY_TRANSITION; NO_CANARY_PRE_SOAK_OR_V8",
+    "next_action": "Isolate_remaining_nonessential_cohosted_load without touching other task-owned services; capture recorder session login/rotation and HLS/input cause in bounded diagnostics, measure host memory and schedule delay; prove uninterrupted read-only >=30min ten-of-ten with limited safe development load; renew expired identity authorization, rerun full dry-run and baseline/trust/rollback immediately before any live write."
+  },
   "not_started": [
     "CONNECTOR_TRANSITION",
     "CONNECTOR_REMEDIATION",
