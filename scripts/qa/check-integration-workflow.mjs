@@ -35,3 +35,8 @@ test('repository policy enables only main, including branches containing slashes
   assert.match(agents,/There is no scheduled Production release/);
   assert.match(agents,/PUSH 38 remains NOT DONE/);
 });
+test('integration launcher uses the canonical baseline-aware migration gate',()=>{
+  const launcher=readFileSync('scripts/development/start-integration.mjs','utf8');
+  assert.match(launcher,/check-baseline-drift\.mjs/);
+  assert.doesNotMatch(launcher,/check-migration-drift\.mjs/);
+});
