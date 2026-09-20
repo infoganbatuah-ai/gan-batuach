@@ -40,6 +40,7 @@ returns boolean language sql stable security definer set search_path=public as $
           where m.profile_id=p.id and m.garden_id=p_garden_id and m.status='active'
             and m.relationship_role in ('owner','manager')))
         or (p.role::text='staff' and public.can_staff_access_garden(p_garden_id)
+          and public.can_teach_in_garden(p_garden_id,'attendance')
           and exists(
             select 1 from public.child_classroom_assignments ca
             join public.staff_classroom_assignments sa

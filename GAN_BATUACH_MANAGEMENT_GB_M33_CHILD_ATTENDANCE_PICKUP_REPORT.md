@@ -16,7 +16,7 @@ Staff/Manager arrival is server-timestamped in `management_child_arrival`. It lo
 
 ## Classroom / Enrollment
 
-Active enrollment is checked at the Garden-local date before each operational action. Staff authorization requires current active employment, appropriate active Classroom responsibility, and the Child's current Classroom assignment in that same Garden. Manager/Owner authority uses active Garden membership. The selected UI Garden is not an authorization grant.
+Active enrollment is checked at the Garden-local date before each operational action. Staff authorization requires current active employment, the canonical attendance teaching scope, appropriate active Classroom responsibility, and the Child's current Classroom assignment in that same Garden. Both the route and direct database RPC enforce teaching scope. Manager/Owner authority uses active Garden membership. The selected UI Garden is not an authorization grant.
 
 ## Parent
 
@@ -84,7 +84,7 @@ Indexes cover Child/Garden/day, confirmed release per attendance, and Garden/day
 
 ## Tests
 
-Rollback-only SQL application of `20260920140000_management_child_attendance_pickup.sql` passed against isolated Development, followed by synthetic Parent A/B, non-primary Guardian, Manager A/B, Staff A/multi-Garden Staff, Inspector and Admin role matrix. Covered valid/denied contact creation, revocation, arrival retry, wrong Classroom/Garden, release without arrival, revoked/unknown pickup denial, one confirmed release, absence correction audit, Guardian pickup, RLS reads and direct-write grants. Migration audit: 236 ordered files, no new migration-order failure. Domain QA 29/29, security QA 7/7, Manager Garden-context denial contract 45/45, Parent/Manager contract 20/20, Classroom/capacity 16/16, GB-M16 enrollment activation 8/8, GB-M19 Staff 8/8, GB-M32 documents 6/6, GB-M30 synthetic notification regression, release-contract preflight, typecheck and lint regression passed. The Garden-context test was updated to exercise the operational Staff/Manager guard used by the pickup route; denial still occurs before payload or side effects. Build and final PR checks are pending as this report is written.
+Rollback-only SQL application of `20260920140000_management_child_attendance_pickup.sql` passed against isolated Development, followed by synthetic Parent A/B, non-primary Guardian, Manager A/B, Staff A/multi-Garden Staff, Inspector and Admin role matrix. The Staff fixtures explicitly received canonical delegated teaching scope; active employment alone was insufficient. Covered valid/denied contact creation, revocation, arrival retry, wrong Classroom/Garden, release without arrival, revoked/unknown pickup denial, one confirmed release, absence correction audit, Guardian pickup, RLS reads and direct-write grants. Migration audit: 236 ordered files, no new migration-order failure. Domain QA 29/29, security QA 7/7, Manager Garden-context and Owner/Teacher denial contracts 51/51, Parent/Manager contract 20/20, Classroom/capacity 16/16, GB-M16 enrollment activation 8/8, GB-M19 Staff 8/8, GB-M32 documents 6/6, GB-M30 synthetic notification regression, release-contract preflight, typecheck and lint regression passed. The Garden-context test was updated to exercise the operational Staff/Manager guard used by the pickup route; denial still occurs before payload or side effects. Build and final PR checks are pending as this report is written.
 
 ## Live QA
 

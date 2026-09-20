@@ -1,5 +1,16 @@
 -- GB-M33 synthetic rollback-only matrix. Apply the proposed migration in the
 -- same transaction first; never run this test against Production.
+-- Synthetic delegated scope is explicit; active employment alone grants no
+-- operational Child attendance authority.
+insert into public.garden_teaching_assignments(garden_id,profile_id,staff_id,
+  assignment_kind,title,access_scope,status,granted_by)
+select s.garden_id,s.profile_id,s.id,'delegated_teacher','Synthetic attendance QA',
+  '{"attendance":true}'::jsonb,'active','00000000-0000-4000-8000-000000000201'
+from public.staff s where s.profile_id in
+  ('00000000-0000-4000-8000-000000000301','00000000-0000-4000-8000-000000000303')
+  and s.garden_id='00000000-0000-4000-8000-000000000601'
+on conflict (garden_id,profile_id) do update set
+  access_scope=excluded.access_scope,status='active';
 set local role authenticated;
 select set_config('request.jwt.claim.sub','00000000-0000-4000-8000-000000000101',true);
 do $$ declare a jsonb; b jsonb; begin
