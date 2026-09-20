@@ -1,8 +1,8 @@
-import Link from "next/link";
 import Image from "next/image";
 import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
 import { Bell, ClipboardCheck, ShieldCheck } from "lucide-react";
+import { LogoutButton } from "@/components/logout-button";
 import { KindergartenOnboardingForm, ManagerKindergartenApplicationForm } from "@/components/kindergarten-onboarding-form";
 import { requireRole } from "@/lib/auth";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
@@ -73,7 +73,7 @@ export default async function KindergartenOnboardingPage({ searchParams }: { sea
         managerName={profile.full_name}
       >
         <ManagerKindergartenApplicationForm managerName={profile.full_name} managerPhone={profile.phone} managerEmail={(profile as any).email} profileRole={profile.role} />
-        <Link className="kindergarten-app-logout" href="/api/auth/logout">יציאה</Link>
+        <LogoutButton className="kindergarten-app-logout" />
       </KindergartenOnboardingShell>
     );
   }
@@ -111,7 +111,7 @@ export default async function KindergartenOnboardingPage({ searchParams }: { sea
       managerName={profile.full_name}
     >
         <KindergartenOnboardingForm garden={(garden ?? {}) as any} onboarding={onboarding} managerName={profile.full_name} />
-        <Link className="kindergarten-app-logout" href="/api/auth/logout">יציאה</Link>
+        <LogoutButton className="kindergarten-app-logout" />
     </KindergartenOnboardingShell>
   );
 }
