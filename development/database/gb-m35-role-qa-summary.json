@@ -28,7 +28,12 @@
     "signup_sdk_fix_pr": 96,
     "signup_sdk_fix_integration_merge": "89625e65456524fb0b58466c4f086ef2bb7593f8",
     "signup_sdk_fix_required_checks": "9/9 completed green",
-    "gb_m35_pr_86": "draft and unmerged"
+    "gb_m35_pr_86": "draft and unmerged",
+    "invalid_and_expired_link_denied": true,
+    "cross_account_verification_denied": true,
+    "active_session_revocation": { "staff": "200->403, restored", "manager": "200->403, restored", "inspector": "200->403, restored", "environment": "disposable synthetic clone" },
+    "gb_m35_pr_86_exact_head_checks": "9/9 completed green on ecc695c7898f007ef8308c6f219aab27dccf6f50",
+    "open_p1_legacy_plaintext_credentials": { "log_mitigation_pr": 97, "generated_credentials_store_unresolved": true, "production_mutation": false }
   },
   "results": {
     "identity_auth_rest": { "passed": 20, "total": 20 },
