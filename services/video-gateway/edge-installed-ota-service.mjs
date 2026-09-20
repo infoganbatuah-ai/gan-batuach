@@ -12,6 +12,19 @@ import { createEdgeSecretStoreSync } from "./edge-secret-store-sync.mjs";
 import { softwareConnectorDeviceSession } from "./software-connector-cloud.mjs";
 
 function fail(code) { throw Object.assign(new Error(code), { code }); }
+export function deriveInstalledEdgeHealth({ profile, expected, probe, cloudReachable, qa = false }) {
+  const body = probe.body || {};
+  const assigned = profile === "SOFTWARE_CONNECTOR"
+    ? body.lastDiscovery?.channelCount : body.lastDiscovery?.assignedCount;
+  const progressing = Number(body.mediaHeartbeat?.progressingRelays ?? 0);
+  return { process_running: probe.ok && probe.service.running,
+    device_authenticated: qa || body.deviceAuthorization?.status === "ready",
+    heartbeat: probe.ok, config_retrieved: probe.ok && (qa || assigned === expected),
+    cloud_reachable: cloudReachable, no_crash_loop: probe.ok,
+    expected_physical_cameras: expected, progressing_physical_cameras: qa ? 0 : progressing,
+    empty_slots: Number(body.lastDiscovery?.unassignedCount || 0),
+    stalled_streams: Number(body.mediaHeartbeat?.stalledRelays || 0) };
+}
 function configFrom(path) {
   const target = resolve(path), info = lstatSync(target);
   if (info.isSymbolicLink() || (info.mode & 0o077)) fail("EDGE_OTA_AGENT_CONFIG_UNSAFE");
@@ -60,15 +73,10 @@ export async function runInstalledEdgeOtaService(configPath, { signal } = {}) {
   const healthCheck = async () => {
     // Connector model/runtime startup can exceed a short liveness probe. This
     // is the bounded post-update readiness gate, not the lightweight poll.
-    const probe = await adapter.health({ timeoutMs: 20_000 }), body = probe.body || {};
+    const probe = await adapter.health({ timeoutMs: 20_000 });
     const cloudReachable = qa || await softwareConnectorDeviceSession(store).then(() => true, () => false);
-    const expected = config.expectedPhysicalCameras;
-    const progressing = qa ? 0 : Number(body.lastDiscovery?.connectedCount || 0);
-    return { process_running: probe.ok && probe.service.running, device_authenticated: qa || body.deviceAuthorization?.status === "ready",
-      heartbeat: probe.ok, config_retrieved: probe.ok && (qa || body.lastDiscovery?.assignedCount === expected),
-      cloud_reachable: cloudReachable, no_crash_loop: probe.ok,
-      expected_physical_cameras: expected, progressing_physical_cameras: progressing,
-      empty_slots: Number(body.lastDiscovery?.unassignedCount || 0), stalled_streams: Number(body.mediaHeartbeat?.stalledRelays || 0) };
+    return deriveInstalledEdgeHealth({ profile: config.profile, expected: config.expectedPhysicalCameras,
+      probe, cloudReachable, qa });
   };
   const download = qa ? async ({ destination }) => {
     const value = JSON.parse(readFileSync(config.qaReleasePath, "utf8"));
