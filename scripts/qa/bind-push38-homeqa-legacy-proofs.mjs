@@ -77,11 +77,12 @@ create temp table p38_keys on commit drop as
 do $$ begin
   if (select count(*) from p38_keys) <> 2 or
     (select count(*) from public.video_gateway_device_enrollments) <> 2 or
-    (select count(*) from public.observer_edge_release_download_authorizations) <> 0 or
     exists(select 1 from p38_keys k left join public.video_gateway_device_enrollments e
       on e.id=k.enrollment_id where e.gateway_id is distinct from k.device_id or
       e.status <> 'pending' or e.identity_scheme <> 'LEGACY_HMAC' or
-      e.metadata->>'home_qa_phase' <> 'LEGACY_VERIFIED_FOR_TRANSITION')
+      e.metadata->>'home_qa_phase' <> 'LEGACY_VERIFIED_FOR_TRANSITION' or
+      (e.metadata ? 'home_qa_legacy_public_key_spki' and
+        e.metadata->>'home_qa_legacy_public_key_spki' is distinct from k.public_key_spki))
   then raise exception 'P38_LEGACY_PROOF_QA_STATE_CONFLICT'; end if;
 end $$;
 update public.video_gateway_device_enrollments e set

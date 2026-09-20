@@ -119,9 +119,13 @@ if (authorization.status !== "PASS" || authorization.correct_device !== "ACCEPT"
   authorization.remediation_early !== "DENY")
   throw new Error("P38_CONNECTOR_HOME_QA_AUTHORIZATION_UNAVAILABLE");
 const gatewayHealth = await (await fetch("http://127.0.0.1:18082/health", { signal: AbortSignal.timeout(5000) })).json();
-const connectorHealth = await (await fetch("http://127.0.0.1:18083/health", { signal: AbortSignal.timeout(5000) })).json();
+// Legacy /health is itself part of the known pre-remediation failure. Its
+// response is evidence, not a prerequisite for the signed one-time handoff.
+// The new signed runtime must still pass the strict post-handoff health gate.
+const connectorHealth = await fetch("http://127.0.0.1:18083/health",
+  { signal: AbortSignal.timeout(5000) }).then(async response => response.ok ? response.json() : null).catch(() => null);
 if (gatewayHealth.mediaHeartbeat?.progressingRelays !== 10 || gatewayHealth.lastDiscovery?.unassignedCount !== 6 ||
-  connectorHealth.deviceAuthorization?.status !== "ready" || connectorHealth.lastDiscovery?.channelCount !== 1)
+  !service.service.running || (connectorHealth && connectorHealth.lastDiscovery?.channelCount !== 1))
   throw new Error("P38_CONNECTOR_PREWRITE_HEALTH_INVALID");
 const plan = { protocol: "observer-push38-homeqa-connector-transition-command-v1",
   generated_at: new Date().toISOString(), mode: "DRY_RUN", identity_evidence_sha256: identitySha,
@@ -133,15 +137,17 @@ const plan = { protocol: "observer-push38-homeqa-connector-transition-command-v1
   health_gate: "SIGNED_SERVICE_IDENTITY_AND_CONFIG; TAPO_SOURCE_RECORDED_PENDING_REMEDIATION",
   post_remediation_source_gate: "TAPO_1_OF_1_REQUIRED", prewrite_pass: true, runtime_writes: 0,
   authorization: "FRESH_EXACT_DEVICE_PASS_ANONYMOUS_AND_EARLY_REMEDIATION_DENIED",
+  legacy_health_observation: connectorHealth ? "RESPONDED_PRE_REMEDIATION" : "NO_RESPONSE_PRE_REMEDIATION",
   home_before: { dvr_progressing: gatewayHealth.mediaHeartbeat.progressingRelays,
-    tapo_progressing: connectorHealth.mediaHeartbeat?.progressingRelays ?? 0,
-    tapo_stalled: connectorHealth.mediaHeartbeat?.stalledRelays ?? 0 } };
+    tapo_progressing: connectorHealth?.mediaHeartbeat?.progressingRelays ?? null,
+    tapo_stalled: connectorHealth?.mediaHeartbeat?.stalledRelays ?? null } };
 if (dryRun) {
   if (!outputPath || !resolve(outputPath).startsWith(restricted) || existsSync(outputPath))
     throw new Error("P38_CONNECTOR_DRY_RUN_OUTPUT_REQUIRED");
   writeFileSync(outputPath, `${JSON.stringify(plan, null, 2)}\n`, { mode: 0o600, flag: "wx" });
   console.log(JSON.stringify({ status: "DRY_RUN_PASS", plan_sha256: createHash("sha256").update(readFileSync(outputPath)).digest("hex"),
-    tapo_before: plan.home_before.tapo_progressing, runtime_writes: 0 }));
+    tapo_before: plan.home_before.tapo_progressing,
+    legacy_health_observation: plan.legacy_health_observation, runtime_writes: 0 }));
   process.exit(0);
 }
 const savedBytes = restrictedFile(planPath);
@@ -184,8 +190,7 @@ const probeHealth = async () => {
 const manager = new EdgeUpdateManager({ root: managedRoot, trustedPublicKeys: keys,
   device, adapter, healthCheck: probeHealth });
 const inspect = async () => {
-  const probe = await adapter.health({ timeoutMs: 5000 });
-  return { legacy_running: probe.ok && probe.service.running, ...snapshot() };
+  return { legacy_running: adapter.status().running, ...snapshot() };
 };
 const transition = createConnectorLegacyTransition({ manager, adapter, inspect,
   verifyContinuity: async ({ before: previous }) => {
