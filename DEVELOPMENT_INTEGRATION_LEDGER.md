@@ -189,7 +189,15 @@ remain on remote `codex/gb-m34-staff-time`. The forward migration
 `20260920150000_management_staff_time_ledger.sql` passed rollback-only
 synthetic Staff/Manager/Inspector/Admin RLS and ledger QA, an applied-schema
 check in a disposable clone, and separate-connection clock/correction races.
-It is approved for **isolated Development only** after a pre-apply backup and
-read-only duplicate-open-session check. The migration and cumulative Product
-QA are pending this approval record. Production, `main`, and customer time
+Approval PR #82 is **blocked**, so its migration-ledger permission is explicitly
+`BLOCKED_REQUIRED_CI`. The required Digital Observer domain gate failed twice
+in `horizontal-ai-scale`: workers reported 122 completions for 120 canonical
+jobs. The separate queue/ACK race needs its own reviewed fix; the GB-M34
+Management diff keeps Digital Observer core unchanged. A restricted 5.5 MB
+synthetic Development backup was copied to
+`/private/tmp/gb-m34-development-pre-migration.dump` with SHA-256
+`1987abbd62191d3b2f1dabf3478034cd14a13f6032fbdcade44927e90673fa3a`
+and tested through a disposable restore. Read-only preflight found zero
+duplicate open sessions. No canonical Development migration was applied;
+cumulative Product QA remains blocked. Production, `main`, and customer time
 records are unchanged; live Staff/Manager browser QA remains open for GB-M35/40.
