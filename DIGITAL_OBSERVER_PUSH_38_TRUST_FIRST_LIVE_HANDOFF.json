@@ -47,14 +47,19 @@
     "live_runtime_writes": 0
   },
   "read_only_home": {
+    "latest_progression_probe_utc": "2026-09-20T01:01:01Z",
     "gateway_http_status": 200,
     "gateway_reported_status": "healthy",
     "gateway_connected_channels": 10,
+    "gateway_progressing_relays": 10,
+    "gateway_stalled_relays": 0,
     "gateway_unassigned_channels": 6,
     "connector_http_status": 200,
     "connector_reported_status": "healthy",
     "connector_connected_sources": 1,
-    "note": "Legacy generic health is not proof of continuous frame progression or Product playback; previous Tapo 0/1 event remains open."
+    "connector_progressing_relays": 0,
+    "connector_stalled_relays": 1,
+    "note": "Legacy Connector still reports generic healthy while the expected Tapo relay is 0/1 and stalled. This is an open pre-remediation health-truthfulness defect, not a successful transition health gate. Product playback and AI were not inferred."
   },
   "isolated_lifecycle_reverification": {
     "legacy_transition_policy": "PASS",
