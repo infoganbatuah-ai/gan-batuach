@@ -24,7 +24,7 @@
 .kindergarten-app-badge { display: inline-flex; padding: 6px 10px; border-radius: 6px; font-size: .82rem; font-weight: 800; }
 .kindergarten-app-badge.green { color: #167247; background: #e9f8ef; }
 .kindergarten-app-badge.orange { color: #9a5a05; background: #fff3df; }
-.kindergarten-app-logout { display: block; width: max-content; margin: 20px auto 0; color: #596889; }
+.kindergarten-app-logout { display: flex; width: max-content; margin: 20px auto 0; padding: 0; align-items: center; gap: 6px; border: 0; background: transparent; color: #596889; cursor: pointer; font: inherit; }
 
 .manager-registration-entry, .manager-live-onboarding { display: grid; gap: 20px; }
 .manager-registration-intro, .manager-registration-card, .manager-onboarding-overview, .manager-parent-invitation-panel, .parent-invitations-live-panel {
