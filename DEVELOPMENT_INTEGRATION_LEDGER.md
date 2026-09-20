@@ -230,3 +230,13 @@ regression and release preflight passed. A loopback Development smoke at
 with Supabase OK and anonymous Staff-time GET/POST 401. Controlled live
 Staff/Manager browser QA remains open for GB-M35/40. Production and `main`
 remain untouched; this receipt is not an owner-authorized release.
+
+GB-M35 pending handoff (2026-09-20): the synthetic-role QA branch
+`codex/gb-m35-role-e2e-qa` is preserved remotely at
+`2fad28a68c71c134e23eabf6af4962c299475d2f` in draft PR #86 targeting
+`integration/development`. Its matrix, report, redacted receipt and guarded
+QA harnesses record partial isolated Development evidence. Inspector guard
+repair PR #85 merged separately at `1a0162f261c6141ffb06b3ebe2abf41181a81b70`.
+Full GB-M21–M34 transactional browser journeys and separate-connection race
+tests remain open. This ledger entry records the unit as **BLOCKED / pending
+integration**; it does not merge #86, authorize GB-M36, or release Production.
