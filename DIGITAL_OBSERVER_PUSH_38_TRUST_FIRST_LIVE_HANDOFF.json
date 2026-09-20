@@ -1,0 +1,93 @@
+{
+  "task": "PUSH_38_TRUST_FIRST_LIVE_BOOTSTRAP",
+  "observed_at_utc": "2026-09-20T00:56:56Z",
+  "branch": "codex/push-38t-qualification",
+  "decision": "STOP_BEFORE_CONNECTOR_RUNTIME_TRANSITION",
+  "protected_issuance": {
+    "workflow_run": "https://github.com/infoganbatuah-ai/gan-batuach/actions/runs/35479496963",
+    "workflow_head_sha": "649e921961932ee95510c703db3c0830c63dbb0c",
+    "release_public_key_job": "SUCCESS",
+    "root_authorized_registry_job": "SUCCESS",
+    "artifact_zip_sha256": "38fb9b317a670575266644decf9fb33d72c051ae8921b1e68f0d920e7ff4703b",
+    "root_key_id": "observer-kms-root-v1",
+    "root_public_key_fingerprint_sha256": "9a8fa28221c680fb1215abe8ca652e1839cc7d260e74940f9f15b252aaf389e3",
+    "trusted_public_key_ids": [
+      "qa-p38f-ed25519-20260913",
+      "observer-kms-release-v1"
+    ],
+    "private_key_exported": false
+  },
+  "live_trust": {
+    "owner_approved_native_macos_admin_prompt": true,
+    "root_pin_sha256": "30037b512311529282acf9cd872a68e4bf195618bc7fb5f5c653686b06d78042",
+    "registry_sha256": "27a1cc4c735c3a72060795bfc73419213d94f1fcc0035dac59cc5debbb51ec42",
+    "root_pin_path": "/Library/Application Support/Digital Observer/release-trust/root-pin.json",
+    "registry_path": "/Library/Application Support/Digital Observer/release-trust/release-keys.json",
+    "owner": "root",
+    "file_mode": "0644",
+    "directory_mode": "0755",
+    "verified_with_live_ota_trust_loader": true,
+    "authorized_existing_qa_release_accepted": true,
+    "untrusted_signer_rejected": true,
+    "revoked_signer_rejected": true,
+    "tampered_manifest_rejected": true,
+    "tampered_registry_rejected": true,
+    "aws_release_key_live_release_acceptance": "NOT_YET_TESTED_WITH_AWS_SIGNED_RELEASE_MANIFEST",
+    "installer_source_copy_sha256_matched": true,
+    "note": "First native admin attempt could not read the project external volume due macOS privacy EPERM; byte-identical installer and dependency copies in local temporary storage succeeded after native owner authorization."
+  },
+  "post_trust_live_baselines": {
+    "gateway_artifact_sha256": "91bf6814075f74e703cbc0b85d30673237531247ec46633c54576d5a4627144d",
+    "gateway_matched_files": 491,
+    "gateway_changed_files": 0,
+    "connector_legacy_artifact_sha256": "ee82c20a77acb7fd8caf692682569ad53581e9c057b11724845c6d947c5a982a",
+    "connector_matched_files": 250,
+    "connector_changed_files": 0,
+    "service_layout_conflicts": 0,
+    "live_runtime_writes": 0
+  },
+  "read_only_home": {
+    "gateway_http_status": 200,
+    "gateway_reported_status": "healthy",
+    "gateway_connected_channels": 10,
+    "gateway_unassigned_channels": 6,
+    "connector_http_status": 200,
+    "connector_reported_status": "healthy",
+    "connector_connected_sources": 1,
+    "note": "Legacy generic health is not proof of continuous frame progression or Product playback; previous Tapo 0/1 event remains open."
+  },
+  "unresolved_pre_runtime_gates": [
+    {
+      "id": "LIVE_BOOTSTRAP_ORCHESTRATOR_NOT_PROVEN",
+      "severity": "HIGH",
+      "evidence": "createConnectorLegacyTransition and createInstalledEdgeBootstrap are wired only by isolated QA scripts; no reviewed live execution command binds the exact installed device, health, continuity, recovery, supervisor, and OTA agent lifecycle.",
+      "required_action": "Implement and exercise an exact-scope live orchestration path with a read-only preflight and isolated failure/recovery test before any runtime handoff."
+    },
+    {
+      "id": "HOME_QA_AUTHORIZATION_NOT_LIVE",
+      "severity": "HIGH",
+      "evidence": "The previously checked live authorization service returned 404; no fresh successful real-device HOME_QA authorization or staging proof exists.",
+      "required_action": "Verify a reachable approved QA control plane and exact-device signed manifests, then prove private R2 authorization and staging without changing the runtime."
+    },
+    {
+      "id": "EXACT_DEVICE_RELEASE_SEQUENCE_UNRESOLVED",
+      "severity": "HIGH",
+      "evidence": "The requested Connector remediation precedes exact-device HOME_QA metadata in the proposed order, while managed OTA requires an eligible signed manifest and authenticated private-artifact authorization.",
+      "required_action": "Bind and sign the Connector-only manifest after Connector identity proof and before Connector remediation; repeat for Gateway after Gateway identity proof. Do not bypass OTA."
+    }
+  ],
+  "not_started": [
+    "CONNECTOR_TRANSITION",
+    "CONNECTOR_REMEDIATION",
+    "GATEWAY_BOOTSTRAP",
+    "GATEWAY_REMEDIATION",
+    "CANARY_15_MINUTES",
+    "PRE_SOAK_60_MINUTES",
+    "REMOTE_PHONE_PROOF",
+    "V8",
+    "PUSH_39"
+  ],
+  "main": "UNCHANGED",
+  "production": "UNCHANGED",
+  "push38": "NOT_DONE"
+}
