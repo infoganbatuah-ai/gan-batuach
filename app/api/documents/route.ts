@@ -3,10 +3,10 @@ import { fail, handleSafeRouteError, ok } from "@/lib/api";
 import { getSessionProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
-import { documentMimeExtensions, documentOwnerFor, effectiveDocumentStatus, supportedDocumentSignature } from "@/lib/management/document-policy";
+import { documentMimeExtensions, documentOwnerFor, effectiveDocumentStatus, managementDocumentId, supportedDocumentSignature } from "@/lib/management/document-policy";
 
 const maxBytes = 12 * 1024 * 1024;
-const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const uuid = managementDocumentId;
 const date = /^\d{4}-\d{2}-\d{2}$/;
 
 async function uploadAllowed(db: Awaited<ReturnType<typeof createClient>>, profileId: string, profileRole: string, gardenId: string, ownerType: string, ownerId: string | null) {

@@ -11,6 +11,10 @@ export const managementDocumentCategories = {
 export type ManagementDocumentCategory = keyof typeof managementDocumentCategories;
 export type ManagementDocumentOwner = typeof managementDocumentCategories[ManagementDocumentCategory];
 
+// Use one full UUID check for Garden/entity/document identifiers at every
+// Management document boundary. A shortened pattern rejected valid IDs.
+export const managementDocumentId = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
 export function documentOwnerFor(category: string): ManagementDocumentOwner | null {
   return Object.prototype.hasOwnProperty.call(managementDocumentCategories, category)
     ? managementDocumentCategories[category as ManagementDocumentCategory] : null;

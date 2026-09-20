@@ -1,8 +1,9 @@
 import { fail, handleSafeRouteError, ok } from "@/lib/api";
 import { getSessionProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { managementDocumentId } from "@/lib/management/document-policy";
 
-const uuid = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const uuid = managementDocumentId;
 
 export async function POST(_: Request, context: { params: Promise<{ id: string }> }) {
   try {
