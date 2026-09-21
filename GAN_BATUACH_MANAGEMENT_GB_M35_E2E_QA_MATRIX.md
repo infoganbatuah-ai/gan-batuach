@@ -1,5 +1,11 @@
 # GB-M35 controlled role E2E QA matrix
 
+## Exact-head continuation and current blocker — 2026-09-21
+
+On exact integrated source `81199cc856c01687db154a4ff117ef0034026edf`, a fresh synthetic Parent completed the real browser registration form and QA-only consent. Mailpit captured the Email; an invalid token left Email and phone unverified; the valid local link verified Email only; replay was idempotent. The subsequent real login reached `/dashboard/parent` once, but the loading shell returned to `/login`, and a warmed retry surfaced an empty Auth error. This run cannot close the Parent journey because the disposable database simultaneously reported `unhealthy`, loopback health timed out intermittently, and first-route work took 1–4 minutes. The symptom is recorded as an **internal QA environment blocker**, not relabeled as external and not declared a Product defect without stable reproduction.
+
+All prior PASS evidence below is preserved. Mandatory PARTIAL/NOT RUN rows remain open, PR #86 remains draft, and Production remains untouched. Resume on an adequately resourced protected Auth-capable QA runtime; do not restart already closed evidence.
+
 ## QA Consent Authorization
 
 The owner authorized ordinary Privacy Policy/Terms acceptance only for synthetic users in this isolated Development browser QA. Synthetic Owner, Parent, Staff, Inspector and Manager browser registrations used that scope; no customer or Production consent was accepted.

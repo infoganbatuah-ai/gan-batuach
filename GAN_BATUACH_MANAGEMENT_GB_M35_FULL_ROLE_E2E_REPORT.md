@@ -1,5 +1,13 @@
 # GB-M35 — Full role E2E QA, controlled identities and journey closure
 
+## Final continuation status — 2026-09-21
+
+The exact integrated Development source `81199cc856c01687db154a4ff117ef0034026edf` was replayed in a task-owned clean snapshot against the disposable loopback Supabase/Auth clone. The Product Parent registration UI accepted only synthetic details and the owner-authorized QA consent, returned the truthful Email-first success state, and Mailpit captured one confirmation message. Before confirmation the account had neither verified Email nor verified phone. A malformed token returned without changing either state; the valid captured local link set Email verified while phone remained unverified; replay did not change that result. No token, password or real contact was printed, committed or sent externally.
+
+The verified synthetic Parent then submitted the real login form. The first attempt reached `/dashboard/parent`, proving accepted credentials and redirect selection, but the dashboard remained on its loading shell and the session subsequently returned to `/login`. A warmed retry returned the existing UI error rendering for an empty Auth error (`{}`). This is **not closed as a Product PASS or classified as a new Product P1**: during the same run the isolated database container reported `unhealthy`, a read-only sample showed approximately 505% container CPU, loopback health requests intermittently took 20 seconds or timed out, and first-route compilation took 1–4 minutes. Targeted restarts had earlier recovered the same disposable services. Auth itself later returned HTTP 200, while the database health check remained unhealthy. The evidence therefore establishes browser signup and Email verification on the exact integration head, but does not establish a stable authenticated Parent Dashboard journey.
+
+GB-M35 remains **BLOCKED**. The mandatory internal browser journeys, full IDOR matrix, interactive mobile/desktop/RTL/accessibility closure and several independent-connection races remain PARTIAL or NOT RUN. PR #86 stays draft and unmerged. The next action is to provide a protected Auth-capable isolated QA runtime with enough CPU/memory for the complete application and database, restore the existing synthetic snapshot there, and resume from this evidence. Production and `main` were untouched; no real provider or customer data was used.
+
 ## QA Consent Authorization
 
 The owner explicitly authorized ordinary Privacy Policy and Terms acceptance **only** for synthetic accounts in the isolated Development/QA environment. Synthetic Owner, Parent, Staff, Inspector and Manager browser registrations used that scope. No customer, real user or Production consent was accepted.
