@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "observedAt": "2026-09-20T23:50:42.443Z",
+  "observedAt": "2026-09-20T23:59:55.842Z",
   "productionWriteAuthorized": false,
   "remoteHistoryStatus": "UNVERIFIED_READ_ONLY_RECONCILIATION_REQUIRED",
   "localDatabaseStatus": "BASELINE_AND_INTEGRATED_MIGRATIONS_APPLIED",
@@ -7327,7 +7327,7 @@
       "sourceCommit": "a0090b2ce2b66428e3f2bfaca51d22a3f0ee7dd8",
       "sourceHead": "a0090b2ce2b66428e3f2bfaca51d22a3f0ee7dd8",
       "remoteBranch": "origin/codex/gb-m35-p1-candidate-documents",
-      "integrationCommit": "ccfb9467c2e0d157f09e198d03cd7bb6a1915b3e",
+      "integrationCommit": "513dc53e2277aa810a12614870a331fb6d16bb00",
       "inGit": true,
       "inIntegration": true,
       "inclusion": "INTEGRATED_DEVELOPMENT",
@@ -7338,18 +7338,20 @@
       "developmentDependsOn": [
         "20260920170000"
       ],
-      "developmentApplied": "NO",
-      "developmentAppliedAt": null,
-      "developmentEvidence": null,
+      "developmentApplied": "YES",
+      "developmentAppliedAt": "2026-09-20T23:58:56.917211+00:00",
+      "developmentEvidence": "development/database/development-application-receipts.json",
       "productionApplied": "UNVERIFIED",
       "productionEvidence": null,
       "recovery": "Additive candidate document table, private owner RLS and narrow authenticated RPC; no customer backfill. Confirm isolated database backup, private Storage policy and recovery before Production release.",
       "developmentApprovalEvidence": "PR #106 exact head a0090b2 completed all 9 required checks; disposable synthetic Auth/Storage QA clone migration, private upload/read, direct owner RLS and anonymous/Owner denial PASS. No Production access.",
-      "developmentStatusReason": "PR #106 integrated; canonical Development migration pending ordered application."
+      "developmentStatusReason": "Original post-baseline SQL applied after remote integration; Production status unchanged",
+      "developmentHistoryDigest": "e9e6defbe6319ea0b36d61266d0a9bfdad820f7ce2280ccb8402b423fd556adb",
+      "developmentSchemaFingerprint": "7da96a8a43032a64f552c99286f3f9722bb68d5dfeebd701bc915df31d40fe1b"
     }
   ],
   "developmentExpected": 240,
-  "developmentAppliedVerified": 239,
+  "developmentAppliedVerified": 240,
   "blockers": [],
   "localObservations": [
     {

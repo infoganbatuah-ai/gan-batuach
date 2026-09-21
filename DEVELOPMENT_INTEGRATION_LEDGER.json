@@ -8844,7 +8844,7 @@
           "https://github.com/infoganbatuah-ai/gan-batuach/pull/106",
           "GAN_BATUACH_MANAGEMENT_GB_M35_FULL_ROLE_E2E_REPORT.md"
         ],
-        "limits": "Synthetic candidate upload/acceptance, own signed retrieval, anonymous/Owner denial and direct owner RLS PASS. Canonical Development migration and broader GB-M35 browser QA pending."
+        "limits": "Synthetic candidate upload/acceptance, own signed retrieval, anonymous/Owner denial and direct owner RLS PASS. Canonical Development migration and 240/240 drift verification PASS; broader GB-M35 browser QA pending."
       },
       "integration": {
         "status": "INTEGRATED_DEVELOPMENT",
@@ -8863,12 +8863,12 @@
       "migrationOrder": [
         "20260921150000"
       ],
-      "localVerification": "PASS_DISPOSABLE_AUTH_STORAGE_QA; CANONICAL_DEVELOPMENT_PENDING",
-      "releaseEligibility": "NOT_READY_PENDING_DEVELOPMENT_MIGRATION_GB_M35_FULL_QA_AND_EXPLICIT_OWNER_RELEASE",
+      "localVerification": "PASS_CANONICAL_DEVELOPMENT_240_OF_240_SCHEMA_RLS_PRIVATE_STORAGE_AND_DISPOSABLE_AUTH_STORAGE_QA",
+      "releaseEligibility": "NOT_READY_PENDING_GB_M35_FULL_QA_AND_EXPLICIT_OWNER_RELEASE",
       "productionDeployment": {
         "status": "NOT_DEPLOYED"
       },
-      "nextAction": "Apply the approved migration to canonical isolated Development, verify RLS/private Storage, then resume PR #86 role-browser QA. No Production release."
+      "nextAction": "Resume PR #86 role-browser QA and cumulative Product validation. No Production release."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
