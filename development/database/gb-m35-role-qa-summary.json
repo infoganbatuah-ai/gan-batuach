@@ -55,6 +55,26 @@
     "lint_regressions": 0,
     "release_contract_test": "pass"
   },
+  "candidate_document_p1_continuation": {
+    "observed_on": "2026-09-21",
+    "environment": "synthetic-only Auth/Storage QA clone and guarded canonical isolated Development",
+    "source_commit": "a0090b2ce2b66428e3f2bfaca51d22a3f0ee7dd8",
+    "fix_pr": 106,
+    "fix_integration_merge": "ccfb9467c2e0d157f09e198d03cd7bb6a1915b3e",
+    "required_ci": "9/9 completed green",
+    "candidate_upload_http": 201,
+    "upload_state": "uploaded_not_verified",
+    "signed_invitation_accept_http": 200,
+    "private_read_http": 302,
+    "anonymous_read_http": 401,
+    "unrelated_owner_read_http": 403,
+    "direct_rls_own_rows": 1,
+    "direct_rls_unrelated_rows": 0,
+    "canonical_development_migration": "20260921150000_management_staff_candidate_private_documents.sql",
+    "migration_drift": "240/240 PASS",
+    "production_access": false,
+    "remaining": "Full candidate application, employment and dashboard browser journey; broader GB-M35 matrix and PR #86 merge"
+  },
   "known_limitations": [
     "The private message attachment download route was not registered by local next dev; it was registered and passed E2E under the optimized local production-mode build.",
     "This evidence is a set of role/API and route probes, not a complete end-to-end walkthrough of every GB-M21–M34 journey.",
