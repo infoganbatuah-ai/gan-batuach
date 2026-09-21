@@ -23,9 +23,14 @@ const liveExperience = read("components/dashboard-live-experience.tsx");
 const parentFamily = read("lib/domain/parent-family.ts");
 const loginAction = read("app/login/actions.ts");
 const authRouting = read("lib/auth.ts");
+const onboardingPage = read("app/onboarding/kindergarten/page.tsx");
+const onboardingForm = read("components/kindergarten-onboarding-form.tsx");
+const gardenSelectionRoute = read("app/api/management/gardens/route.ts");
 
 check("Manager registration has no admin approval gate", atomicOnboarding.includes("'admin_approval_required',false") && !atomicOnboarding.includes("pending_final_approval.*raise"), "atomic onboarding contract");
 check("Manager receives continuous onboarding access", managerApplication.includes("start_garden_onboarding") && atomicOnboarding.includes("can_edit_garden_onboarding") && atomicOnboarding.includes("membership.status='pending'"), "canonical draft authority");
+check("Pending Garden draft resumes only for its manager after DB authorization", onboardingPage.includes('query.new !== "1"') && onboardingPage.includes('.eq("manager_id", profile.id)') && onboardingPage.includes('rpc("can_edit_garden_onboarding"') && onboardingPage.includes('redirect(`/onboarding/kindergarten?gardenId=${draftData.garden_id}`)'), "draft resume contract");
+check("Activated Garden selection uses the server-validated context field", onboardingForm.includes('body: JSON.stringify({ garden_id: garden.id })') && gardenSelectionRoute.includes('selectionSchema = z.object({ garden_id: z.string().uuid() })'), "Garden context API contract");
 check("Trial lasts 14 days", read("lib/domain/kindergarten-onboarding.ts").includes("ganBatuachTrialDays = 14"), "central trial constant");
 check("Trial charges zero today", atomicOnboarding.includes("'charge_today_nis',0"), "transactional subscription metadata");
 check("Live payment remains manual/sandbox readiness", atomicOnboarding.includes("'payment_mode','manual_or_sandbox_until_provider_approval'") && atomicOnboarding.includes("'live_collection',false"), "canonical readiness metadata");

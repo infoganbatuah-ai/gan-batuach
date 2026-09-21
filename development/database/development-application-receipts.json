@@ -1,7 +1,7 @@
 {
   "environment": "DEVELOPMENT / INTEGRATION",
-  "observedAt": "2026-09-20T07:20:31.211Z",
-  "integrationCommit": "0a857f4d007297447f82f8ac7ab9b91b1679b5e4",
+  "observedAt": "2026-09-21T00:00:45.790Z",
+  "integrationCommit": "513dc53e2277aa810a12614870a331fb6d16bb00",
   "migrations": [
     {
       "version": "20260919170000",
@@ -90,6 +90,22 @@
       "source_commit": "0a857f4d007297447f82f8ac7ab9b91b1679b5e4",
       "applied_at": "2026-09-20T07:17:48.247747+00:00",
       "schema_fingerprint": "c13f9902ec6ddfce8523262754c722c8a5a265716e68edd830632898387dea42"
+    },
+    {
+      "version": "20260920170000",
+      "filename": "supabase/migrations/20260920170000_retire_generated_plaintext_credentials.sql",
+      "source_digest": "3ec638213ee2eaca52a2f93016f9ad2a225e33d851a73c1fa345086e3ef3c38b",
+      "source_commit": "e7ba4b227c0eaeac61da08a68f417488c66b7fdc",
+      "applied_at": "2026-09-20T15:46:37.131742+00:00",
+      "schema_fingerprint": "820ceaa3c1d0ab198a8b58a6a4b633518f36d1a597083b407b9e4770a53ed075"
+    },
+    {
+      "version": "20260921150000",
+      "filename": "supabase/migrations/20260921150000_management_staff_candidate_private_documents.sql",
+      "source_digest": "e9e6defbe6319ea0b36d61266d0a9bfdad820f7ce2280ccb8402b423fd556adb",
+      "source_commit": "513dc53e2277aa810a12614870a331fb6d16bb00",
+      "applied_at": "2026-09-20T23:58:56.917211+00:00",
+      "schema_fingerprint": "7da96a8a43032a64f552c99286f3f9722bb68d5dfeebd701bc915df31d40fe1b"
     }
   ],
   "productionAccess": false

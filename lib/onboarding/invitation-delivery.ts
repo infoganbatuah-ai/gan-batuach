@@ -6,13 +6,6 @@ function loginUrl() {
   return process.env.NEXT_PUBLIC_APP_URL || process.env.APP_URL || "http://localhost:3000";
 }
 
-function credentialVariables() {
-  return {
-    temporary_password: "[redacted]",
-    temporary_password_redacted: true
-  };
-}
-
 export async function insertInvitationDeliveryLogs(admin: AdminClient, input: {
   profileId: string;
   gardenId: string;
@@ -23,10 +16,9 @@ export async function insertInvitationDeliveryLogs(admin: AdminClient, input: {
 }) {
   const now = new Date().toISOString();
   const roleLabel = input.role === "parent" ? "הורה" : "צוות";
-  const title = `פרטי כניסה לגן בטוח - ${roleLabel}`;
-  const preview = `שלום ${input.recipientName}, נוצרו לך פרטי כניסה לגן בטוח. יש להתחבר ולהשלים תהליך קצר.`;
+  const title = `הזמנה לגן בטוח - ${roleLabel}`;
+  const preview = `שלום ${input.recipientName}, נשלחה הזמנה לחשבון בדוא״ל. יש לאמת את החשבון ולהשלים את התהליך.`;
   const href = input.role === "parent" ? "/dashboard/parent" : "/onboarding/staff";
-  const passwordVariables = credentialVariables();
 
   await Promise.all([
     admin.from("email_delivery_logs" as any).insert({
@@ -41,8 +33,7 @@ export async function insertInvitationDeliveryLogs(admin: AdminClient, input: {
       metadata: {
         login_url: `${loginUrl()}/login`,
         onboarding_url: `${loginUrl()}${href}`,
-        includes_temporary_password: false,
-        temporary_password_redacted: true,
+        delivery_truth: "mock_queue_only",
         role: input.role
       }
     }),
@@ -60,7 +51,6 @@ export async function insertInvitationDeliveryLogs(admin: AdminClient, input: {
         login_url: `${loginUrl()}/login`,
         onboarding_url: `${loginUrl()}${href}`,
         username: input.username,
-        ...passwordVariables,
         recipient_name: input.recipientName
       },
       queued_at: now,
@@ -78,7 +68,6 @@ export async function insertInvitationDeliveryLogs(admin: AdminClient, input: {
       variables: {
         login_url: `${loginUrl()}/login`,
         username: input.username,
-        ...passwordVariables,
         role: input.role
       },
       queued_at: now,
