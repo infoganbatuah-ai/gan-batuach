@@ -25,4 +25,3 @@ alter table public.push_category_preferences
     'payment',
     'pickup'
   ));
-
