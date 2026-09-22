@@ -24,6 +24,21 @@ export function hasCachedSoftwareConnectorConfiguration(store = softwareConnecto
   return Boolean(store.read("dvr_profile_json") && store.read("dvr_password"));
 }
 
+export async function resolveSoftwareConnectorStartupConfiguration({
+  store = softwareConnectorSecretStore(),
+  sync = syncSoftwareConnectorConfiguration
+} = {}) {
+  if (hasCachedSoftwareConnectorConfiguration(store)) {
+    return { configured: true, source: "secure_local_cache" };
+  }
+  try {
+    const result = await sync(store);
+    return { configured: Boolean(result?.configured), source: "cloud_sync" };
+  } catch {
+    return { configured: false, source: "unavailable" };
+  }
+}
+
 export async function softwareConnectorDeviceSession(store = softwareConnectorSecretStore()) {
   const gatewayId = store.read("device_gateway_id");
   const observerSiteId = store.read("device_observer_site_id");

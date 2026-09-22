@@ -6,7 +6,10 @@ import { join } from "node:path";
 import { test } from "node:test";
 import { createEdgeSecretStoreSync } from "../../services/video-gateway/edge-secret-store-sync.mjs";
 import { createEventEvidenceStore, evidencePlaylist } from "../../services/video-gateway/event-evidence-store.mjs";
-import { hasCachedSoftwareConnectorConfiguration } from "../../services/video-gateway/software-connector-cloud.mjs";
+import {
+  hasCachedSoftwareConnectorConfiguration,
+  resolveSoftwareConnectorStartupConfiguration
+} from "../../services/video-gateway/software-connector-cloud.mjs";
 import {
   connectorRuntimeIdentity,
   createInstallationId,
@@ -138,7 +141,7 @@ test("software connector uses an isolated port, owner lock and stream namespace"
   assert.match(wrapper, /VIDEO_GATEWAY_PORT \|\|= "18083"/);
   assert.match(wrapper, /GAN_BATUACH_JOURNAL_OWNER_LOCK_PATH/);
   assert.match(wrapper, /connector_stream_namespace/);
-  assert.match(wrapper, /hasCachedSoftwareConnectorConfiguration/);
+  assert.match(wrapper, /resolveSoftwareConnectorStartupConfiguration\(\{ store \}\)/);
   assert.match(runner, /gatewayPort/);
   assert.match(runner, /connectionType/);
 });
@@ -151,6 +154,35 @@ test("temporary cloud-sync failure preserves an existing secure local camera con
   assert.equal(hasCachedSoftwareConnectorConfiguration(store), false);
   values.set("connector_profiles_json", "profiles");
   assert.equal(hasCachedSoftwareConnectorConfiguration(store), true);
+});
+
+test("connector startup uses verified local configuration without awaiting cloud", async () => {
+  const values = new Map([["connector_profiles_json", "profiles"]]);
+  const store = { read: key => values.get(key) ?? "" };
+  let syncCalls = 0;
+  const result = await resolveSoftwareConnectorStartupConfiguration({
+    store,
+    sync: async () => {
+      syncCalls += 1;
+      throw new Error("cloud must not be consulted when the local profile is complete");
+    }
+  });
+  assert.deepEqual(result, { configured: true, source: "secure_local_cache" });
+  assert.equal(syncCalls, 0);
+});
+
+test("connector startup falls back to bounded cloud configuration only when cache is absent", async () => {
+  const store = { read: () => "" };
+  let syncCalls = 0;
+  const result = await resolveSoftwareConnectorStartupConfiguration({
+    store,
+    sync: async () => {
+      syncCalls += 1;
+      return { configured: true };
+    }
+  });
+  assert.deepEqual(result, { configured: true, source: "cloud_sync" });
+  assert.equal(syncCalls, 1);
 });
 
 test("generic RTSP discovery registers a relay source instead of probe-only readiness", () => {
