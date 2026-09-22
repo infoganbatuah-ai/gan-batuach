@@ -19,11 +19,16 @@ const profile = process.argv.find(arg => arg.startsWith("--profile="))?.slice(10
 const apply = process.argv.includes("--apply"), dryRun = process.argv.includes("--dry-run");
 const recoveryUpgrade = process.argv.includes("--health-recovery-upgrade");
 const startupRecoveryUpgrade = process.argv.includes("--startup-recovery-upgrade");
-if (recoveryUpgrade && startupRecoveryUpgrade) throw new Error("P38_HOME_QA_AGENT_UPGRADE_MODE_INVALID");
-const managementUpgrade = process.argv.includes("--management-upgrade") || recoveryUpgrade || startupRecoveryUpgrade;
+const gatewayAuthRecoveryUpgrade = process.argv.includes("--gateway-auth-recovery-upgrade");
+if ([recoveryUpgrade, startupRecoveryUpgrade, gatewayAuthRecoveryUpgrade].filter(Boolean).length > 1)
+  throw new Error("P38_HOME_QA_AGENT_UPGRADE_MODE_INVALID");
+const managementUpgrade = process.argv.includes("--management-upgrade") || recoveryUpgrade ||
+  startupRecoveryUpgrade || gatewayAuthRecoveryUpgrade;
 if (apply === dryRun || !["SOFTWARE_CONNECTOR", "PHYSICAL_GATEWAY"].includes(profile))
   throw new Error("P38_HOME_QA_AGENT_MODE_OR_PROFILE_INVALID");
-if (managementUpgrade && profile !== "SOFTWARE_CONNECTOR")
+if (managementUpgrade && profile !== "SOFTWARE_CONNECTOR" && !gatewayAuthRecoveryUpgrade)
+  throw new Error("P38_HOME_QA_AGENT_UPGRADE_PROFILE_INVALID");
+if (gatewayAuthRecoveryUpgrade && profile !== "PHYSICAL_GATEWAY")
   throw new Error("P38_HOME_QA_AGENT_UPGRADE_PROFILE_INVALID");
 const connector = profile === "SOFTWARE_CONNECTOR";
 const spec = connector ? {
@@ -49,7 +54,11 @@ const spec = connector ? {
   deviceId: "62df97e2-3c0b-427f-9108-bde029bc10e7",
   baselineRelease: "qa-legacy-gateway-91bf6814075f",
   baselineSha: "91bf6814075f74e703cbc0b85d30673237531247ec46633c54576d5a4627144d",
-  remediationRelease: "qa-p38-health-gateway-6c9d08327ec6", bundleName: "gateway_remediation.json",
+  remediationRelease: gatewayAuthRecoveryUpgrade ? "qa-p38-health-gateway-auth-4197f1a246f1" :
+    "qa-p38-health-gateway-6c9d08327ec6",
+  bundleName: gatewayAuthRecoveryUpgrade ? "gateway_remediation_auth.json" : "gateway_remediation.json",
+  priorManagement: gatewayAuthRecoveryUpgrade ? { release_id: "qa-p38-health-gateway-6c9d08327ec6",
+    artifact_sha256: "6c9d08327ec6f38db3fc55c4c344f4db6fc0d0adab5c68e3ec3f1c1164f11c95" } : null,
   rootName: "observer-gateway", label: "com.ganbatuach.video-gateway", port: 18082,
   installedBase: join(homedir(), ".local/share/gan-batuach/video-gateway"), expected: 8, configured: 10
 };
@@ -82,6 +91,8 @@ const bundle = resolve(bundleOverride || (startupRecoveryUpgrade
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-connector-startup.zip"
   : recoveryUpgrade
     ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-connector-recovery.zip"
+  : gatewayAuthRecoveryUpgrade
+    ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-gateway-auth.zip"
   : managementUpgrade
     ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-connector-pidfix-35704990843.zip"
     : "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-signed-manifests-35482295860.zip"));

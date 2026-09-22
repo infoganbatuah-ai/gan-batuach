@@ -10,6 +10,8 @@ import { issuePush38ConnectorRecovery } from "../release/issue-push38-home-qa-co
 import { PUSH38_CONNECTOR_RECOVERY } from "../../services/video-gateway/push38-home-qa-connector-recovery.mjs";
 import { issuePush38ConnectorStartupRecovery } from "../release/issue-push38-home-qa-connector-startup.mjs";
 import { PUSH38_CONNECTOR_STARTUP_RECOVERY } from "../../services/video-gateway/push38-home-qa-connector-startup.mjs";
+import { issuePush38GatewayAuthRecovery } from "../release/issue-push38-home-qa-gateway-auth-recovery.mjs";
+import { PUSH38_GATEWAY_AUTH_RECOVERY } from "../../services/video-gateway/push38-home-qa-gateway-auth-recovery.mjs";
 import { verifyEdgeUpdateManifest } from "../../services/video-gateway/edge-update-contract.mjs";
 
 const root = mkdtempSync(join(tmpdir(), "observer-p38-issuance-test-"));
@@ -79,8 +81,19 @@ try {
   assert.equal(verifyEdgeUpdateManifest(startupManifest, { [keyId]: publicBytes.toString("base64url") }).ok, true);
   assert.equal(startupManifest.artifact_sha256, PUSH38_CONNECTOR_STARTUP_RECOVERY.digest);
   assert.deepEqual(startupManifest.rollout.explicit_device_ids, [PUSH38_CONNECTOR_STARTUP_RECOVERY.deviceId]);
+  const gatewayAuthOutput = join(root, "gateway-auth-issued");
+  await assert.rejects(issuePush38GatewayAuthRecovery({ env: { ...env,
+    HOME_QA_OUTPUT_DIR: gatewayAuthOutput, PUSH38_CANDIDATE_SHA: "f".repeat(40) }, call }),
+  /P38_GATEWAY_AUTH_SIGNING_CONTEXT_INVALID/);
+  const gatewayAuth = await issuePush38GatewayAuthRecovery({ env: { ...env,
+    HOME_QA_OUTPUT_DIR: gatewayAuthOutput, PUSH38_CANDIDATE_SHA: PUSH38_GATEWAY_AUTH_RECOVERY.buildSha }, call });
+  const gatewayAuthManifest = JSON.parse(readFileSync(join(gatewayAuthOutput, "gateway_remediation_auth.json")));
+  assert.equal(gatewayAuth.release_id, PUSH38_GATEWAY_AUTH_RECOVERY.releaseId);
+  assert.equal(verifyEdgeUpdateManifest(gatewayAuthManifest, { [keyId]: publicBytes.toString("base64url") }).ok, true);
+  assert.equal(gatewayAuthManifest.artifact_sha256, PUSH38_GATEWAY_AUTH_RECOVERY.digest);
+  assert.deepEqual(gatewayAuthManifest.rollout.explicit_device_ids, [PUSH38_GATEWAY_AUTH_RECOVERY.deviceId]);
   console.log(JSON.stringify({ result: "PASS", signed_fixture_manifests: result.length,
     signed_pidfix_fixture_manifests: 1, signed_recovery_fixture_manifests: 1,
-    signed_startup_recovery_fixture_manifests: 1,
+    signed_startup_recovery_fixture_manifests: 1, signed_gateway_auth_recovery_fixture_manifests: 1,
     unauthorized_branch_rejected: true, live_aws: "NOT_TESTED" }));
 } finally { rmSync(root, { recursive: true, force: true }); }
