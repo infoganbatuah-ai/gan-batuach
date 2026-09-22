@@ -7,7 +7,7 @@ import { createWriteStream, existsSync, lstatSync, mkdtempSync, readFileSync, rm
   writeFileSync } from "node:fs";
 import { once } from "node:events";
 import { homedir, tmpdir } from "node:os";
-import { join } from "node:path";
+import { isAbsolute, join, relative, resolve, sep } from "node:path";
 import { authorizeHomeQaR2Download } from "../../services/video-gateway/edge-r2-download.mjs";
 import { verifyEdgeUpdateManifest } from "../../services/video-gateway/edge-update-contract.mjs";
 import { loadPinnedEdgeReleaseKeys, PROTECTED_EDGE_TRUST_REGISTRY_PATH } from "../../services/video-gateway/edge-release-trust.mjs";
@@ -17,7 +17,8 @@ import { readR2KeychainCredentials } from "../release/macos-r2-keychain.mjs";
 
 const profile = process.argv.find(arg => arg.startsWith("--profile="))?.slice(10);
 const apply = process.argv.includes("--apply"), dryRun = process.argv.includes("--dry-run");
-const managementUpgrade = process.argv.includes("--management-upgrade");
+const recoveryUpgrade = process.argv.includes("--health-recovery-upgrade");
+const managementUpgrade = process.argv.includes("--management-upgrade") || recoveryUpgrade;
 if (apply === dryRun || !["SOFTWARE_CONNECTOR", "PHYSICAL_GATEWAY"].includes(profile))
   throw new Error("P38_HOME_QA_AGENT_MODE_OR_PROFILE_INVALID");
 if (managementUpgrade && profile !== "SOFTWARE_CONNECTOR")
@@ -27,11 +28,15 @@ const spec = connector ? {
   deviceId: "db267b52-6282-4944-bcee-5d4857698fb0",
   baselineRelease: "qa-connector-legacy-transition-v2-6e7988808b05",
   baselineSha: "6e7988808b05956d58416a6ce60638f52b19aa732918ac0e1cdafcc5fc9f130a",
-  remediationRelease: managementUpgrade ? "qa-p38-health-connector-pidfix-1b9e9499ffa7" :
+  remediationRelease: recoveryUpgrade ? "qa-p38-health-connector-recovery-9bb5db251379" :
+    managementUpgrade ? "qa-p38-health-connector-pidfix-1b9e9499ffa7" :
     "qa-p38-health-connector-1b076f596574",
-  bundleName: managementUpgrade ? "connector_remediation_pidfix.json" : "connector_remediation.json",
-  priorManagement: managementUpgrade ? { release_id: "qa-p38-health-connector-1b076f596574",
-    artifact_sha256: "1b076f5965744a903c3c601d8c424c7b127bdcb0d06f49c72eff8b9345bdfc27" } : null,
+  bundleName: recoveryUpgrade ? "connector_remediation_recovery.json" :
+    managementUpgrade ? "connector_remediation_pidfix.json" : "connector_remediation.json",
+  priorManagement: recoveryUpgrade ? { release_id: "qa-p38-health-connector-pidfix-1b9e9499ffa7",
+    artifact_sha256: "1b9e9499ffa7d1c2a177a1fa3c657124c4ab803879ccbe220f28a3a6c835d22b" } :
+    managementUpgrade ? { release_id: "qa-p38-health-connector-1b076f596574",
+      artifact_sha256: "1b076f5965744a903c3c601d8c424c7b127bdcb0d06f49c72eff8b9345bdfc27" } : null,
   rootName: "observer-connector", label: "com.ganbatuach.software-connector.tapo", port: 18083,
   installedBase: join(homedir(), "Applications"), expected: 1
 } : {
@@ -66,9 +71,17 @@ const runtimeConfig = { profile, managedRoot: root, installedBase: spec.installe
   qaTlsCaPath: apply ? installedCertPath : certPath, qaTlsCaSha256: certSha, intervalMs: 60_000 };
 const plan = planInstalledOtaAgent({ profile, managedRoot: root, agentPlistPath, agentLabel });
 if (apply) validateHomeQaOtaIdentityScope({ managedRoot: root, runtimeConfig });
-const bundle = managementUpgrade
+const bundleOverride = process.argv.find(arg => arg.startsWith("--bundle="))?.slice(9);
+const bundle = resolve(bundleOverride || (recoveryUpgrade
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-connector-recovery.zip"
+  : managementUpgrade
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-connector-pidfix-35704990843.zip"
-  : "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-signed-manifests-35482295860.zip";
+  : "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-signed-manifests-35482295860.zip"));
+const restrictedRoot = "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted";
+const bundleRelative = relative(restrictedRoot, bundle);
+if (!bundleRelative || bundleRelative === ".." || bundleRelative.startsWith(`..${sep}`) ||
+  isAbsolute(bundleRelative) || !existsSync(bundle) || lstatSync(bundle).isSymbolicLink() || !lstatSync(bundle).isFile())
+  throw new Error("P38_HOME_QA_AGENT_BUNDLE_SCOPE_INVALID");
 const manifest = JSON.parse(execFileSync("unzip", ["-p", bundle, spec.bundleName],
   { encoding: "utf8", timeout: 15_000, maxBuffer: 8192 }));
 const keys = loadPinnedEdgeReleaseKeys({ registryPath: PROTECTED_EDGE_TRUST_REGISTRY_PATH }).trustedPublicKeys;

@@ -6,6 +6,8 @@ import { join } from "node:path";
 import { issuePush38HomeQaManifests } from "../release/issue-push38-home-qa-manifests.mjs";
 import { issuePush38ConnectorPidfix } from "../release/issue-push38-home-qa-connector-pidfix.mjs";
 import { PUSH38_CONNECTOR_PIDFIX } from "../../services/video-gateway/push38-home-qa-connector-pidfix.mjs";
+import { issuePush38ConnectorRecovery } from "../release/issue-push38-home-qa-connector-recovery.mjs";
+import { PUSH38_CONNECTOR_RECOVERY } from "../../services/video-gateway/push38-home-qa-connector-recovery.mjs";
 import { verifyEdgeUpdateManifest } from "../../services/video-gateway/edge-update-contract.mjs";
 
 const root = mkdtempSync(join(tmpdir(), "observer-p38-issuance-test-"));
@@ -53,6 +55,18 @@ try {
   assert.equal(verifyEdgeUpdateManifest(pidfixManifest, { [keyId]: publicBytes.toString("base64url") }).ok, true);
   assert.equal(pidfixManifest.artifact_sha256, PUSH38_CONNECTOR_PIDFIX.digest);
   assert.deepEqual(pidfixManifest.rollout.explicit_device_ids, [PUSH38_CONNECTOR_PIDFIX.deviceId]);
+  const recoveryOutput = join(root, "recovery-issued");
+  await assert.rejects(issuePush38ConnectorRecovery({ env: { ...env,
+    HOME_QA_OUTPUT_DIR: recoveryOutput, PUSH38_CANDIDATE_SHA: "f".repeat(40) }, call }),
+  /P38_RECOVERY_SIGNING_CONTEXT_INVALID/);
+  const recovery = await issuePush38ConnectorRecovery({ env: { ...env,
+    HOME_QA_OUTPUT_DIR: recoveryOutput, PUSH38_CANDIDATE_SHA: PUSH38_CONNECTOR_RECOVERY.buildSha }, call });
+  const recoveryManifest = JSON.parse(readFileSync(join(recoveryOutput, "connector_remediation_recovery.json")));
+  assert.equal(recovery.release_id, PUSH38_CONNECTOR_RECOVERY.releaseId);
+  assert.equal(verifyEdgeUpdateManifest(recoveryManifest, { [keyId]: publicBytes.toString("base64url") }).ok, true);
+  assert.equal(recoveryManifest.artifact_sha256, PUSH38_CONNECTOR_RECOVERY.digest);
+  assert.deepEqual(recoveryManifest.rollout.explicit_device_ids, [PUSH38_CONNECTOR_RECOVERY.deviceId]);
   console.log(JSON.stringify({ result: "PASS", signed_fixture_manifests: result.length,
-    signed_pidfix_fixture_manifests: 1, unauthorized_branch_rejected: true, live_aws: "NOT_TESTED" }));
+    signed_pidfix_fixture_manifests: 1, signed_recovery_fixture_manifests: 1,
+    unauthorized_branch_rejected: true, live_aws: "NOT_TESTED" }));
 } finally { rmSync(root, { recursive: true, force: true }); }

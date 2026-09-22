@@ -20,9 +20,12 @@ const specs = Object.freeze({
     baseline: "qa-legacy-gateway-91bf6814075f", rootName: "observer-gateway" }
 });
 const profile = process.argv.find(arg => arg.startsWith("--profile="))?.slice(10);
+const recoveryRelease = process.argv.includes("--health-recovery-release");
 const mode = process.argv.includes("--prepare") ? "PREPARE" : process.argv.includes("--verify") ? "VERIFY" : "PLAN";
 if (!Object.hasOwn(specs, profile) || (process.argv.includes("--prepare") && process.argv.includes("--verify")))
   throw new Error("P38_HOME_QA_MANAGED_SCOPE_INVALID");
+if (recoveryRelease && (profile !== "SOFTWARE_CONNECTOR" || mode !== "VERIFY"))
+  throw new Error("P38_HOME_QA_RECOVERY_RELEASE_SCOPE_INVALID");
 const spec = specs[profile];
 const root = join(homedir(), "Library/Application Support/Digital Observer", spec.rootName, "ota");
 const secretDir = join(root, "home-qa-device-secrets");
@@ -152,15 +155,26 @@ if (mode === "PREPARE") {
        where c.enrollment_id=e.id and c.credential_state='ACTIVE'
        order by n.observed_at desc limit 1)) where e.id='${spec.enrollment}';
     ${profile === "SOFTWARE_CONNECTOR" ? `update public.observer_edge_rollouts set status='PAUSED'
-      where status='ACTIVE' and release_id=(select id from public.observer_edge_releases
-        where release_id='qa-connector-legacy-transition-v2-6e7988808b05');
+      where status='ACTIVE' and release_id in (select id from public.observer_edge_releases
+        where release_id in ('qa-connector-legacy-transition-v2-6e7988808b05',
+          'qa-p38-health-connector-pidfix-1b9e9499ffa7'));
       update public.observer_edge_rollouts set status='ACTIVE'
       where status='DRAFT' and release_id=(select id from public.observer_edge_releases
-        where release_id='qa-p38-health-connector-pidfix-1b9e9499ffa7');` : ""}
+        where release_id='${recoveryRelease ? "qa-p38-health-connector-recovery-9bb5db251379" :
+          "qa-p38-health-connector-pidfix-1b9e9499ffa7"}');
+      do $$ begin
+        if not exists(select 1 from public.observer_edge_rollouts o
+          join public.observer_edge_releases r on r.id=o.release_id
+          where r.release_id='${recoveryRelease ? "qa-p38-health-connector-recovery-9bb5db251379" :
+            "qa-p38-health-connector-pidfix-1b9e9499ffa7"}' and o.status='ACTIVE' and o.cohort_percent=0)
+          or exists(select 1 from public.observer_edge_rollouts where cohort_percent<>0)
+        then raise exception 'P38_HOME_QA_MANAGED_ROLLOUT_VERIFY_FAILED'; end if;
+      end $$;` : ""}
     commit;`;
   try { run(["exec", "-i", container, "psql", "-X", "-q", "-v", "ON_ERROR_STOP=1", "-U", "postgres", "-d", "postgres"], sql); }
   catch { throw new Error("P38_HOME_QA_MANAGED_PROOF_DATABASE_FAILED"); }
   console.log(JSON.stringify({ status: "MANAGED_IDENTITY_VERIFIED", profile,
-    exact_rollout: profile === "SOFTWARE_CONNECTOR" ? "REMEDIATION_ACTIVE" : "GATEWAY_PREBOOTSTRAP_ACTIVE",
+    exact_rollout: profile === "SOFTWARE_CONNECTOR" ?
+      (recoveryRelease ? "RECOVERY_REMEDIATION_ACTIVE" : "REMEDIATION_ACTIVE") : "GATEWAY_PREBOOTSTRAP_ACTIVE",
     production_writes: 0 }));
 }

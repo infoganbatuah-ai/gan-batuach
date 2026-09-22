@@ -3,27 +3,42 @@
 // retained as history but cannot become active.
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { createReadStream, statSync } from "node:fs";
-import { resolve } from "node:path";
+import { createReadStream, existsSync, lstatSync, statSync } from "node:fs";
+import { isAbsolute, relative, resolve, sep } from "node:path";
 import { verifyEdgeUpdateManifest } from "../../services/video-gateway/edge-update-contract.mjs";
 import { assertEdgeReleaseObjectUrl } from "../../services/video-gateway/edge-release-object.mjs";
 import { loadPinnedEdgeReleaseKeys, PROTECTED_EDGE_TRUST_REGISTRY_PATH } from "../../services/video-gateway/edge-release-trust.mjs";
 
 const apply = process.argv.includes("--apply");
-const bundle = resolve(process.argv.find(value => value.startsWith("--bundle="))?.slice(9) ||
-  "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-connector-pidfix-35704990843.zip");
-const artifact = "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-connector-remediation-c3408497/connector-remediation.tar.gz";
-const releaseId = "qa-p38-health-connector-pidfix-1b9e9499ffa7";
-const supersededReleaseId = "qa-p38-health-connector-1b076f596574";
+const recovery = process.argv.includes("--health-recovery");
+const bundle = resolve(process.argv.find(value => value.startsWith("--bundle="))?.slice(9) || (recovery
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-connector-recovery.zip"
+  : "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-connector-pidfix-35704990843.zip"));
+const artifact = recovery
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-connector-remediation-24a100a8/connector-remediation.tar.gz"
+  : "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-connector-remediation-c3408497/connector-remediation.tar.gz";
+const releaseId = recovery ? "qa-p38-health-connector-recovery-9bb5db251379" :
+  "qa-p38-health-connector-pidfix-1b9e9499ffa7";
+const supersededReleaseId = recovery ? "qa-p38-health-connector-pidfix-1b9e9499ffa7" :
+  "qa-p38-health-connector-1b076f596574";
+const bundleName = recovery ? "connector_remediation_recovery.json" : "connector_remediation_pidfix.json";
+const expectedReleaseCount = recovery ? 5 : 4;
 const deviceId = "db267b52-6282-4944-bcee-5d4857698fb0";
 const accountId = "693f824a750afcc264fe6ee58c8a86ab";
 const origin = `https://${accountId}.r2.cloudflarestorage.com`;
+const restrictedRoot = "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted";
+for (const path of [bundle, artifact]) {
+  const scoped = relative(restrictedRoot, path);
+  if (!scoped || scoped === ".." || scoped.startsWith(`..${sep}`) || isAbsolute(scoped) ||
+    !existsSync(path) || lstatSync(path).isSymbolicLink() || !lstatSync(path).isFile())
+    throw new Error("P38_HOME_QA_PIDFIX_INPUT_SCOPE_INVALID");
+}
 const hash = path => new Promise((accept, reject) => {
   const stream = createReadStream(path), digest = createHash("sha256");
   stream.on("data", chunk => digest.update(chunk)); stream.on("error", reject);
   stream.on("end", () => accept(digest.digest("hex")));
 });
-const document = JSON.parse(execFileSync("unzip", ["-p", bundle, "connector_remediation_pidfix.json"],
+const document = JSON.parse(execFileSync("unzip", ["-p", bundle, bundleName],
   { encoding: "utf8", timeout: 15_000, maxBuffer: 8192 }));
 const keys = loadPinnedEdgeReleaseKeys({ registryPath: PROTECTED_EDGE_TRUST_REGISTRY_PATH }).trustedPublicKeys;
 if (!verifyEdgeUpdateManifest(document, keys).ok || document.release_id !== releaseId ||
@@ -80,7 +95,7 @@ update public.observer_edge_rollouts set status='PAUSED'
 where release_id=(select id from public.observer_edge_releases where release_id='${supersededReleaseId}')
   and status in ('DRAFT','ACTIVE');
 do $$ begin
-  if (select count(*) from public.observer_edge_releases where channel='HOME_QA') <> 4 or
+  if (select count(*) from public.observer_edge_releases where channel='HOME_QA') <> ${expectedReleaseCount} or
      not exists(select 1 from public.observer_edge_rollouts o join public.observer_edge_releases r on r.id=o.release_id
        where r.release_id='${releaseId}' and o.status='DRAFT' and o.cohort_percent=0
        and o.target_filters->'explicit_device_ids'=jsonb_build_array('${deviceId}')) or
@@ -93,5 +108,5 @@ commit;`;
 execFileSync("docker", ["--context", context, "exec", "-i", container, "psql", "-X", "-q",
   "-v", "ON_ERROR_STOP=1", "-U", "postgres", "-d", "postgres"],
 { input: sql, encoding: "utf8", timeout: 45_000, stdio: ["pipe", "pipe", "pipe"] });
-console.log(JSON.stringify({ status: "PIDFIX_RELEASE_REGISTERED_DRAFT", release_id: releaseId,
+console.log(JSON.stringify({ status: recovery ? "RECOVERY_RELEASE_REGISTERED_DRAFT" : "PIDFIX_RELEASE_REGISTERED_DRAFT", release_id: releaseId,
   superseded_release: "PAUSED", exact_device: true, broad_cohort: "DISABLED", production_writes: 0 }));
