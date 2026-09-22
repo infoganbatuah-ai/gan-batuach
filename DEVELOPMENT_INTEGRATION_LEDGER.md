@@ -305,3 +305,16 @@ paid provider was added; Development remains at 243/243 migrations. The unit
 is `LOCAL_VERIFIED` and ready for the later owner-controlled consolidated
 release. Production, `main`, customer data and Digital Observer core are
 unchanged.
+
+GB-M37 branch validation (2026-09-22):
+`codex/gb-m37-role-command-center` preserves the canonical role-dashboard and
+navigation consolidation at source commit
+`ff21556b61970cf0b4644a27384abc2d3a292ba4` in PR #119 targeting
+`integration/development`. Branch validation passed Management 264/264,
+Parent/Manager 22/22, domain 30/30, security 7/7, GB-M36 reporting 7/7,
+migration health and canonical Development drift 243/243, 16/16 synthetic
+role dashboard smoke, 8/8 interactive role/context E2E, typecheck, Production
+build, lint baseline, release contract and built-server health/auth smoke. No
+migration or paid provider was added. Exact final-head PR checks and cumulative
+post-merge Development verification remain pending. Production, `main`,
+customer data and Digital Observer core are unchanged.
