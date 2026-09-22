@@ -115,10 +115,19 @@ if (prior.protocol !== plan.protocol || prior.prewrite_pass !== true ||
   throw new Error("P38_GATEWAY_PLAN_STALE_OR_CONFLICTING");
 const connectorRoot = join(homedir(), "Library/Application Support/Digital Observer/observer-connector/ota");
 const connectorCurrent = JSON.parse(readFileSync(join(connectorRoot, "current.json"), "utf8"));
+const connectorKnownGood = JSON.parse(readFileSync(join(connectorRoot, "known-good.json"), "utf8"));
 const connectorState = JSON.parse(readFileSync(join(connectorRoot, "update-state.json"), "utf8"));
 const connectorHealth = await (await fetch("http://127.0.0.1:18083/health",
   { signal: AbortSignal.timeout(5000) })).json();
-if (connectorCurrent.release_id !== "qa-p38-health-connector-pidfix-1b9e9499ffa7" ||
+const requiredConnector = { release_id: "qa-p38-health-connector-startup-d44b7e4262f9",
+  artifact_sha256: "d44b7e4262f9a7c9051a8c3e15258c612791546b1bfeaddf6f95c04ee706d388" };
+const connectorKnownGoodPointer = connectorKnownGood.find(item =>
+  item.release_id === requiredConnector.release_id &&
+  item.artifact_sha256 === requiredConnector.artifact_sha256 && item.trusted === true);
+if (connectorCurrent.release_id !== requiredConnector.release_id ||
+  connectorCurrent.artifact_sha256 !== requiredConnector.artifact_sha256 ||
+  !connectorKnownGoodPointer ||
+  connectorState.release_id !== requiredConnector.release_id ||
   connectorState.state !== "HEALTHY" || connectorHealth.mediaHeartbeat?.progressingRelays !== 1 ||
   connectorHealth.mediaHeartbeat?.stalledRelays !== 0)
   throw new Error("P38_GATEWAY_CONNECTOR_REMEDIATION_PREREQUISITE_FAILED");
