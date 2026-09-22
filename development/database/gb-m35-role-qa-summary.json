@@ -75,11 +75,63 @@
     "production_access": false,
     "remaining": "Full candidate application, employment and dashboard browser journey; broader GB-M35 matrix and PR #86 merge"
   },
+  "gb_m35e_final_closure": {
+    "observed_on": "2026-09-22",
+    "environment": "stable isolated Auth/Postgres/Storage QA plus optimized local Product build",
+    "synthetic_only": true,
+    "production_access": false,
+    "stability": {
+      "auth": "30/30",
+      "rest": "30/30",
+      "storage": "30/30",
+      "role_requests": "40/40",
+      "health_requests": "20/20",
+      "errors": 0
+    },
+    "browser_routes": { "passed": 43, "total": 43 },
+    "interactive_role_actions": { "passed": 10, "total": 10 },
+    "separate_connection_races": {
+      "inspection_submission": "pass",
+      "corrective_decision": "pass",
+      "tuition_same_evidence": "pass",
+      "pickup_revoke_before_release": "pass",
+      "staff_time": "pass_existing_exact_rpc_evidence"
+    },
+    "same_session_revocation": { "passed": 3, "total": 3 },
+    "matrix": {
+      "pass": 40,
+      "pass_with_p2_p3": 3,
+      "blocked_external": 2,
+      "partial": 0,
+      "not_run": 0
+    },
+    "new_p1": {
+      "issue": "Parent notification preference categories rejected by an older Development check constraint",
+      "fix_pr": 113,
+      "fix_merge": "62fbff45477425696ae8e85c647b6a6fc67e9bd9",
+      "development_approval_pr": 114,
+      "development_approval_merge": "c42428b349b2d56ada44e5c527f1807308bb33c4",
+      "migration": "20260922120000_management_parent_notification_category_fix.sql",
+      "migration_drift": "243/243 PASS",
+      "browser_retest": "HTTP 200; quiet hours and categories persisted"
+    },
+    "accessibility_p2": {
+      "unlabeled_input_occurrences": 81,
+      "unnamed_buttons": 0,
+      "wcag_certification_claimed": false
+    },
+    "external_blocks": [
+      "Controlled live Resend/FCM destination unavailable",
+      "Production release prohibited by owner-controlled release policy"
+    ],
+    "fixed_monthly_cost_delta_ils": 0,
+    "digital_observer_core_diff": 0
+  },
   "known_limitations": [
     "The private message attachment download route was not registered by local next dev; it was registered and passed E2E under the optimized local production-mode build.",
-    "This evidence is a set of role/API and route probes, not a complete end-to-end walkthrough of every GB-M21–M34 journey.",
+    "The final closure combines browser interactions, authenticated role APIs, direct RLS/Storage probes and separate-connection database races; it does not claim real provider or Production proof.",
     "External providers, Production identities, Production migration and deployment were not exercised.",
-    "Separate-connection races and several interactive browser workflows remain open in the detailed matrix."
+    "Accessibility label findings remain P2 and no WCAG certification is claimed."
   ],
-  "release_recommendation": "GB-M35 PARTIAL; not ready to mark full-role E2E closed"
+  "release_recommendation": "GB-M35 PASS after PR #86 exact-head required checks and integration merge; Production remains deferred"
 }

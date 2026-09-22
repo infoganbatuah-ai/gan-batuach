@@ -225,3 +225,99 @@ On the GB-M35 worktree after the Inspector integration merge: 20/20 Manager/Pare
 ## Recommendation For GB-M36
 
 Do not begin GB-M36 until GB-M35's pending transactional role journeys, private evidence, concurrency, IDOR, mobile/RTL/accessibility baseline, cumulative validation and integration ledger/PR closure are complete, or their exact blockers are recorded under the repository contract. The immediate next action is to run the canonical domain APIs and browser flows against only the marked synthetic QA fixtures, then update this matrix with real results and repair any P0/P1 through separate scoped PRs.
+
+## QA Environment Failure Root Cause
+
+The earlier disposable stack failure was resource and runtime instability, not a reproducible Product defect. The database became unhealthy while its container consumed roughly five CPU cores, loopback health timed out, and `next dev` first-route compilation added minute-scale delays. The same Parent session and Dashboard path passed after moving browser QA to an optimized production build and restoring a healthy isolated Auth/DB/Storage stack. Product defects are classified below only where the healthy gate was green and the failure reproduced with application/database evidence.
+
+## Stable QA Environment
+
+The final environment used the loopback-only `gan-batuach-m35-auth-qa` Supabase stack, Mailpit capture, the protected synthetic identity file and an optimized local Product build. It contained only synthetic Gardens, Children, Guardians, Staff, Inspectors and Admin data. Signup, Email confirmation, recovery-compatible Auth, private Storage and RLS were available. No Production service, real contact destination or customer record was used.
+
+The exact Management Product code used for browser closure was unchanged between integration `a5818a5287a6d3c38d0818ff6c1bc87fa9657f15` and the later documentation/migration heads. The subsequent forward-only notification constraint fix was applied to the QA clone and canonical isolated Development, then its affected Parent preference journey was retested explicitly.
+
+## Stability Gate
+
+- Auth health: 30/30; p50 0.8 ms, p95 4.6 ms, max 68.2 ms.
+- REST health: 30/30; p50 9.7 ms, p95 16.7 ms, max 145.3 ms.
+- Storage health: 30/30; p50 0.6 ms, p95 8.2 ms, max 11.4 ms.
+- Full Product soak: 40/40 authenticated role requests and 20/20 health requests; zero errors.
+- Login latency: p50 422.9 ms, p95 2,315.4 ms, max 5,282.1 ms.
+- Protected route latency: p50 211.7 ms, p95 3,442.4 ms, max 4,598.9 ms; all HTTP 200.
+- Application health: p50 27.5 ms, p95/max 52.9 ms.
+- Rollback-only DB write/read and private signed Storage read/cleanup: PASS.
+- No unexplained container restart or connection-exhaustion event occurred during the soak.
+
+## Resource Measurements
+
+The unhealthy run showed database CPU saturation and minute-scale development compilation. The stable run used the built application and bounded sequential role execution. No Production SLA is inferred from local p95 values. The QA stack stayed healthy through the soak, role audit, action journeys and separate-connection races.
+
+## Auth Recheck
+
+The previously proved Mailpit/PKCE configuration was reused. Fresh synthetic signup produced one verification Email, login was denied before confirmation, invalid/expired and cross-account confirmation tokens failed, the valid link verified Email only, phone remained unverified, and verified login succeeded. The earlier callback P1 remains closed by PR #104.
+
+## Parent Dashboard Recheck
+
+The prior indefinite loading/login return did not reproduce on the healthy built runtime. Parent Dashboard and seven deep Parent routes passed in the 43-route final audit; Parent complaint, message, temporary pickup, notification preference/read-state and tuition projections also completed actual browser actions.
+
+## Remaining NOT RUN Closure
+
+All nine historical NOT RUN rows were closed with combined role-browser, authenticated API/RLS and canonical domain-contract evidence. Staffing policy remained truthful when unconfigured; Parent registration/discovery and enrollment activation passed; Inspector bootstrap retained non-public preliminary state; subscription/provider UI stayed no-charge/unavailable; notification preference/quiet-hours and required domain fan-out passed. Controlled live Resend/FCM delivery and Production release are external/policy blocks rather than internal NOT RUN rows.
+
+## Remaining PARTIAL Closure
+
+All 23 historical PARTIAL rows were reconciled against the final evidence. The final browser audit passed 43/43 role routes. The interactive action receipt passed 10/10. Existing full domain journeys were combined with their browser surface/control checks; private Storage and RLS tests remained authoritative for file access. True separate-connection races replaced earlier HTTP-overlap-only evidence for inspection, corrective decisions, tuition settlement and pickup revoke/release.
+
+## New Defects
+
+One new healthy-environment P1 was found. Saving Parent notification categories and quiet hours returned 500 because the Development database retained an older `push_category_preferences_category_check` that did not allow the current `important`, `safety` and `pickup` categories. The browser and API agreed; PostgreSQL named the failing constraint.
+
+## Fixes
+
+Scoped PR #113 introduced only a forward migration and focused regression test. It did not edit the historical applied migration. Its exact final head `6dcb8bd5ea95e0b5b3fea84173fd9526c3423693` passed all nine required checks and merged as `62fbff45477425696ae8e85c647b6a6fc67e9bd9`. PR #114 registered Development approval and merged as `c42428b349b2d56ada44e5c527f1807308bb33c4`. A private 5.7 MB pre-apply backup was catalogued and restored narrowly in a disposable database. The canonical guarded runner then applied `20260922120000`; RLS remained enabled, the expanded constraint was verified, and Development drift passed 243/243 with schema fingerprint `87141dea5b40f8d887945b87968d8dfe99c6f87bf5adaa1913adde0c681c1e58`. The Parent browser retest returned HTTP 200 and persisted quiet hours 22:00–07:00.
+
+## Mobile
+
+Parent, Staff and Manager interactive routes were exercised at 390×844. Child/context switching, Messages, attendance/pickup, tuition/finance, documents, notifications, Tasks and Staff time controls were present and usable. No horizontal overflow, page exception or same-origin 500 occurred. This is a functional baseline, not a visual redesign sign-off.
+
+## Desktop
+
+Manager, Inspector and Admin journeys were exercised at 1440×900 across operational dashboards, enrollment, inspections, corrective actions, Tasks, Staff time, subscriptions, complaints, provider readiness and notifications. Forms, tables, dialogs/routes and representative actions loaded without P0/P1 runtime failure.
+
+## RTL
+
+All 43 final pages reported Hebrew language and RTL document direction with no horizontal overflow. Representative forms, navigation, dates, times, currency and mixed Hebrew/numeric content remained functional. No functional RTL P1 was found; visual polish can proceed later.
+
+## Accessibility
+
+Keyboard focus succeeded on 34 of 43 routes; the other nine had no rendered interactive control at the sampled state. No unnamed button was found. The audit found 81 input occurrences without a programmatically associated label across the sampled pages. This is recorded as P2 accessibility debt. No functional keyboard/dialog blocker was reproduced and no WCAG certification is claimed.
+
+## Truthfulness
+
+The final source/UI sweep confirmed: manual tuition never claimed electronic settlement; Card/Apple Pay/Google Pay remained unavailable when the provider was not configured; uploaded documents remained uploaded/pending rather than verified; mock/shadow camera or AI state did not claim live monitoring, danger or Child identity; external notification mock adapters did not claim delivery; Inspector pending state remained pending; and entered phone data remained unverified until real verification.
+
+## Mock Audit
+
+Management-visible mock paths are either QA-only, Admin-only test tooling, explicitly labelled mock/shadow, or rendered as unavailable. Payment, Email/SMS/WhatsApp/Push and Digital Observer mock paths are guarded from Production truth. No unsafe Production-facing mock path remained open. Digital Observer core was not modified.
+
+## Final Matrix
+
+The final 45-row matrix contains **40 PASS**, **3 PASS_WITH_P2_P3**, **2 BLOCKED_EXTERNAL**, **0 PARTIAL** and **0 NOT RUN**. The external rows are controlled live Resend/FCM delivery and owner-controlled Production release. No internal QA infrastructure row is externalized.
+
+## Cost
+
+`QA TEMPORARY COST: ₪0 incremental fixed; local compute/storage only.`
+
+`NEW FIXED MONTHLY COMMITMENT: ₪0.`
+
+`MONTHLY COST DELTA: ₪0 fixed.`
+
+No paid provider, cloud QA environment or recurring resource was activated.
+
+## Teardown
+
+The disposable restore-test database used to validate the pre-migration backup was removed after verification. Private local receipts and reusable QA tooling remain outside Git; the isolated Auth-capable stack may be retained locally for repeat QA without a paid commitment. No Production/customer resource requires teardown.
+
+## GB-M35 Recommendation
+
+The role, RLS, browser, concurrency and truthfulness evidence supports GB-M35 PASS once this evidence PR passes its exact-head required checks and merges into `integration/development`. Production remains explicitly deferred, and GB-M36 must not start inside this task.
