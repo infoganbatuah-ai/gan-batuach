@@ -20,6 +20,7 @@ export function StaffGardenSelector({ employments, activeGardenId }: { employmen
       } catch (cause) { setError(cause instanceof Error ? cause.message : "בחירת הגן נכשלה."); }
       finally { setPending(false); }
     }}>
+      {!activeGardenId ? <option value="" disabled>בחרו גן עבודה</option> : null}
       {employments.map(item => <option key={item.employment_id} value={item.garden_id}>{item.garden_name} · {item.role_title ?? "צוות"}</option>)}
     </select>
     {error && <small role="alert">{error}</small>}

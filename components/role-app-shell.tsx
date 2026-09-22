@@ -9,12 +9,9 @@ import {
   Camera,
   ChevronLeft,
   ClipboardCheck,
-  FileText,
   Home,
-  LayoutDashboard,
   Menu,
   MessageCircle,
-  Search,
   ShieldCheck,
   UserRound,
   UsersRound,
@@ -70,9 +67,9 @@ export const roleAppShellConfig: Record<RoleAppShellRole, {
     subtitle: "תפעול, אבטחה, מנויים ומוכנות השקה",
     nav: [
       { href: "/dashboard/admin", label: "בית", icon: Home },
-      { href: "/dashboard/admin/kindergarten-applications", label: "יומן", icon: CalendarDays },
-      { href: "/dashboard/admin/users", label: "אדמין", icon: ShieldCheck },
-      { href: "/dashboard/admin/notifications", label: "התראות", icon: Bell },
+      { href: "/dashboard/admin/kindergartens", label: "גנים", icon: UsersRound },
+      { href: "/dashboard/admin/inspectors", label: "פיקוח", icon: ShieldCheck },
+      { href: "/dashboard/admin/reports", label: "דוחות", icon: BarChart3 },
       { href: "/dashboard/admin/settings", label: "עוד", icon: Menu }
     ]
   },
@@ -83,11 +80,11 @@ export const roleAppShellConfig: Record<RoleAppShellRole, {
     notificationsHref: "/dashboard/garden/notifications",
     subtitle: "ניהול גן, ילדים, צוות, תשלומים ומסמכים",
     nav: [
-      { href: "/dashboard/garden", label: "בית", icon: Home },
-      { href: "/dashboard/garden/daily-journal", label: "יומן", icon: CalendarDays },
-      { href: "/dashboard/garden/operations", label: "דשבורד", icon: LayoutDashboard },
-      { href: "/dashboard/garden/notifications", label: "התראות", icon: Bell },
-      { href: "/dashboard/garden/settings", label: "עוד", icon: Menu }
+      { href: "/dashboard/garden/operations", label: "בית", icon: Home },
+      { href: "/dashboard/garden/children", label: "ילדים", icon: UsersRound },
+      { href: "/dashboard/garden/staff", label: "צוות", icon: UserRound },
+      { href: "/dashboard/garden/messages", label: "תקשורת", icon: MessageCircle },
+      { href: "/dashboard/garden/command-center", label: "עוד", icon: Menu }
     ]
   },
   owner: {
@@ -97,11 +94,11 @@ export const roleAppShellConfig: Record<RoleAppShellRole, {
     notificationsHref: "/dashboard/garden/notifications",
     subtitle: "ניהול גן, ילדים, צוות, תשלומים ומסמכים",
     nav: [
-      { href: "/dashboard/garden", label: "בית", icon: Home },
-      { href: "/dashboard/garden/daily-journal", label: "יומן", icon: CalendarDays },
-      { href: "/dashboard/garden/operations", label: "דשבורד", icon: LayoutDashboard },
-      { href: "/dashboard/garden/notifications", label: "התראות", icon: Bell },
-      { href: "/dashboard/garden/settings", label: "עוד", icon: Menu }
+      { href: "/dashboard/garden/operations", label: "בית", icon: Home },
+      { href: "/dashboard/garden/children", label: "ילדים", icon: UsersRound },
+      { href: "/dashboard/garden/staff", label: "צוות", icon: UserRound },
+      { href: "/dashboard/garden/messages", label: "תקשורת", icon: MessageCircle },
+      { href: "/dashboard/garden/command-center", label: "עוד", icon: Menu }
     ]
   },
   parent: {
@@ -111,9 +108,9 @@ export const roleAppShellConfig: Record<RoleAppShellRole, {
     notificationsHref: "/dashboard/parent/notifications",
     subtitle: "ילדים, גנים, הודעות, תשלומים ומעקב",
     nav: [
-      { href: "/dashboard/parent/family-home", label: "בית", icon: Home },
+      { href: "/dashboard/parent", label: "בית", icon: Home },
       { href: "/dashboard/parent/schedule", label: "יומן", icon: CalendarDays },
-      { href: "/dashboard/parent", label: "דשבורד", icon: LayoutDashboard },
+      { href: "/dashboard/parent/messages", label: "הודעות", icon: MessageCircle },
       { href: "/dashboard/parent/notifications", label: "התראות", icon: Bell },
       { href: "/dashboard/parent/settings", label: "עוד", icon: Menu }
     ]
@@ -125,11 +122,11 @@ export const roleAppShellConfig: Record<RoleAppShellRole, {
     notificationsHref: "/dashboard/staff/notifications",
     subtitle: "משמרות, משימות, מסמכים ותקשורת",
     nav: [
-      { href: "/dashboard/staff/settings", label: "פרופיל", icon: UserRound },
-      { href: "/dashboard/staff/shifts", label: "משמרות", icon: CalendarDays },
       { href: "/dashboard/staff", label: "ראשי", icon: Home },
+      { href: "/dashboard/staff/shifts", label: "משמרות", icon: CalendarDays },
+      { href: "/dashboard/staff/tasks", label: "משימות", icon: ClipboardCheck },
       { href: "/dashboard/staff/messages", label: "הודעות", icon: MessageCircle },
-      { href: "/dashboard/staff/tasks", label: "עוד", icon: Menu }
+      { href: "/dashboard/staff/settings", label: "עוד", icon: Menu }
     ]
   },
   inspector: {
@@ -141,9 +138,9 @@ export const roleAppShellConfig: Record<RoleAppShellRole, {
     nav: [
       { href: "/dashboard/inspector", label: "ראשי", icon: Home },
       { href: "/dashboard/inspector/inspections", label: "ביקורות", icon: ClipboardCheck },
-      { href: "/dashboard/inspector/control-center", label: "גנים", icon: Home },
+      { href: "/dashboard/inspector/control-center", label: "גנים", icon: UsersRound },
       { href: "/dashboard/inspector/reports", label: "דוחות", icon: BarChart3 },
-      { href: "/dashboard/inspector/settings", label: "פרופיל", icon: UserRound }
+      { href: "/dashboard/inspector/notifications", label: "התראות", icon: Bell }
     ]
   },
   "digital-observer": {

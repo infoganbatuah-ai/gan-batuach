@@ -2,6 +2,8 @@
   "environment": "DEVELOPMENT / INTEGRATION",
   "observedAt": "2026-09-22T02:33:40.091Z",
   "integrationCommit": "c42428b349b2d56ada44e5c527f1807308bb33c4",
+  "fingerprintNormalizedAt": "2026-09-22T18:01:40.966Z",
+  "fingerprintNormalization": "Supabase Realtime daily partitions excluded as volatile provider-owned operational schema; 243-migration disposable rebuild matched with 150 CHECK semantics verified and no unmatched Product schema statements.",
   "migrations": [
     {
       "version": "20260919170000",
@@ -129,7 +131,7 @@
       "source_digest": "e60d3ca2e1d0e781e07b9b553dcf9570be492a56d505ef2b7b152145e88feb74",
       "source_commit": "c42428b349b2d56ada44e5c527f1807308bb33c4",
       "applied_at": "2026-09-22T02:32:54.951193+00:00",
-      "schema_fingerprint": "87141dea5b40f8d887945b87968d8dfe99c6f87bf5adaa1913adde0c681c1e58"
+      "schema_fingerprint": "bb28c9f7966332e54e491a72507cde2d17160864301466088f797dbd87bea9c0"
     }
   ],
   "productionAccess": false

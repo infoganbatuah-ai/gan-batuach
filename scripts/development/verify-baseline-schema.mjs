@@ -1,7 +1,10 @@
 import {sql,docker,config} from './local-database.mjs';
 import {sha256,splitSql,leadingCode} from './baseline-source.mjs';
 export function schemaStatements(database) {
-  const dump=docker(['exec',config.container,'pg_dump','-U','supabase_admin','-d',database,'--schema-only','--no-owner','--exclude-schema=development_metadata']).replace(/^\\(?:un)?restrict .+\n/gm,'');
+  // Realtime creates and retires date partitions as an operational service
+  // concern. They are not repository migration state and would otherwise make
+  // the Product schema fingerprint change merely because the calendar moved.
+  const dump=docker(['exec',config.container,'pg_dump','-U','supabase_admin','-d',database,'--schema-only','--no-owner','--exclude-schema=development_metadata','--exclude-schema=realtime']).replace(/^\\(?:un)?restrict .+\n/gm,'');
   return splitSql(dump).map(leadingCode).filter(Boolean);
 }
 export function schemaFingerprint(database) { return sha256(schemaStatements(database).sort().join('\n')); }

@@ -11,7 +11,7 @@ import {
   Navigation,
   ShieldCheck
 } from "lucide-react";
-import { requireOperationalRole } from "@/lib/management/operational-role";
+import { requireApprovedInspector } from "@/lib/management/operational-role";
 import { createClient } from "@/lib/supabase/server";
 import {
   InspectorActionCard,
@@ -64,7 +64,7 @@ function taskStatusLabel(value?: string | null) {
 }
 
 export default async function InspectorDashboard() {
-  const { profile } = await requireOperationalRole(["inspector"]);
+  const { profile } = await requireApprovedInspector();
   const supabase = await createClient();
   const [inspectorRes, gardensRes] = await Promise.all([
     supabase.from("inspectors" as any).select("id, service_cities, profile_photo_url").eq("id", profile.id).maybeSingle(),
@@ -76,19 +76,19 @@ export default async function InspectorDashboard() {
 
   const assignedGardens = (gardensRes.data ?? []) as any[];
 
-  if ((!inspector && assignedGardens.length === 0) || profile.active === false) {
+  if (assignedGardens.length === 0) {
     return (
-      <InspectorAppFrame profile={profileForUi} activeHref="/dashboard/inspector" title="בקשת מפקח" subtitle="הגישה תיפתח לאחר אישור אדמין ושיוך גנים" badge="ממתין לאישור">
+      <InspectorAppFrame profile={profileForUi} activeHref="/dashboard/inspector" title="מרכז פיקוח" subtitle="החשבון מאושר וממתין לשיוך גנים" badge="מאושר ללא שיוך">
         <InspectorHero
-          eyebrow="סטטוס מועמדות"
-          title="הבקשה שלך ממתינה לאישור אדמין"
-          subtitle="עד אישור ושיוך גנים לא מוצגים גנים, ביקורות, מצלמות, דוחות או נתונים רגישים."
+          eyebrow="סטטוס שיוך"
+          title="טרם הוקצו לך גנים"
+          subtitle="החשבון מאושר. עד שיוך מפורש לא מוצגים גנים, ביקורות, מצלמות, דוחות או נתונים רגישים."
           artwork={<ClipboardCheck />}
-          action={<Link className="inspector-action-button" href="/dashboard/inspector/apply">השלמת בקשה</Link>}
+          action={<Link className="inspector-action-button" href="/dashboard/inspector/preliminary-gardens">הקמת גן מקדים</Link>}
         />
         <InspectorMetricGrid columns={3}>
           <InspectorMetricCard label="גישה לגנים" value="חסומה" hint="עד שיוך מפורש" icon={Home} tone="warning" />
-          <InspectorMetricCard label="בקשה" value="בהמתנה" hint="פרטים ומסמכים" icon={ClipboardCheck} tone="warning" href="/dashboard/inspector/apply" />
+          <InspectorMetricCard label="חשבון" value="מאושר" hint="ממתין לשיוך" icon={ClipboardCheck} tone="success" />
           <InspectorMetricCard label="משימות" value="0" hint="יופיעו לאחר אישור" icon={CalendarCheck} tone="muted" />
         </InspectorMetricGrid>
       </InspectorAppFrame>

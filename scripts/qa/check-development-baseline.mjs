@@ -15,6 +15,12 @@ test('baseline mapping is explicit, never fabricated historical execution',()=>{
 test('historical source edits, missing evidence and schema drift fail closed',()=>{for(const delta of [{files:[{...historical,blob:'changed'}]},{ledger:[]},{schemaFingerprint:{expected:'a',actual:'b'}},{baseline:null}])assert.equal(compareBaselineState({...baselineCase(),...delta}).status,'BLOCKED');});
 test('unknown, missing and altered post-baseline migrations block',()=>{const newer={file:'supabase/migrations/20260201000000_next.sql',blob:'new',sha256:'newhash'};const args={...baselineCase(),files:[historical,newer]};assert.equal(compareBaselineState(args).status,'BLOCKED');assert.equal(compareBaselineState({...baselineCase(),postMigrations:[{filename:'unexpected.sql'}]}).status,'BLOCKED');});
 test('bootstrap is local guarded, checksum checked and fresh-only',()=>{const code=readFileSync('scripts/development/bootstrap-baseline.mjs','utf8');assert.match(code,/schemaSha256!==sha256/);assert.match(code,/Auth\/customer users/);const target=readFileSync('scripts/development/local-database.mjs','utf8');assert.match(target,/Dedicated|dedicated local development socket/);assert.match(target,/platformBootstrap&&database!==config.builderDatabase/);});
+
+test('schema fingerprint excludes volatile Supabase Realtime partitions',()=>{
+  const verifier=readFileSync('scripts/development/verify-baseline-schema.mjs','utf8');
+  assert.match(verifier,/--exclude-schema=realtime/);
+  assert.match(verifier,/operational service/);
+});
 test('new shared-trigger fix keeps table-specific fields inside branches',()=>{const fix=readFileSync('supabase/migrations/20260919170000_classroom_scope_trigger_record_fields.sql','utf8');assert.match(fix,/elsif tg_table_name='staff_classroom_assignments'/);assert.match(fix,/has_relation and relation_garden is distinct from new.garden_id/);assert.doesNotMatch(fix,/disable trigger|case when tg_table_name/);});
 test('legacy camera readiness uses canonical safe columns, not an absent metadata column',()=>{
  const source=readFileSync('lib/domain/digital-observer/runtime.ts','utf8');
