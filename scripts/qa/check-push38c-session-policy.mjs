@@ -11,4 +11,12 @@ for (const reason of ["source_timeout", "host_network_unreachable", "upstream_so
   assert.equal(shouldRefreshPrivateNvrSession(reason), false, reason);
 }
 assert.equal(shouldRefreshPrivateNvrSession("authentication_rejected"), true);
+assert.equal(shouldRefreshPrivateNvrSession("source_not_media"), false,
+  "an unknown recorder login policy must fail closed");
+assert.equal(shouldRefreshPrivateNvrSession("source_not_media", { loginExclusivity: true, sessionAgeMs: 600_000 }), false,
+  "an exclusive recorder login must never be replaced on a non-media response");
+assert.equal(shouldRefreshPrivateNvrSession("source_not_media", { loginExclusivity: false, sessionAgeMs: 239_999 }), false,
+  "a fresh non-exclusive session must not rotate for a camera-specific source failure");
+assert.equal(shouldRefreshPrivateNvrSession("source_not_media", { loginExclusivity: false, sessionAgeMs: 240_000 }), true,
+  "an explicitly non-exclusive finite session may be renewed after its observed expiry window");
 console.log("push38c shared DVR session policy: PASS");

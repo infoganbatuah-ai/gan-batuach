@@ -35,10 +35,17 @@ const PORT = Number(process.env.PORT || process.env.VIDEO_GATEWAY_PORT || 8080);
 const eventLoopDelay = monitorEventLoopDelay({ resolution: 20 });
 eventLoopDelay.enable();
 const HOST = process.env.HOST || process.env.VIDEO_GATEWAY_HOST || "0.0.0.0";
+const SHADOW_MODE = process.env.VIDEO_GATEWAY_SHADOW_MODE === "1";
 const PROBE_TIMEOUT_MS = Number(process.env.DVR_PROBE_TIMEOUT_MS || 3500);
 const DEFAULT_CHANNEL_COUNT = Number(process.env.DVR_EXPECTED_CHANNEL_COUNT || 16);
 const MAX_CHANNEL_COUNT = 64;
-const HLS_ROOT = join(tmpdir(), "gan-batuach-video-gateway-hls");
+const defaultHlsRoot = join(tmpdir(), "gan-batuach-video-gateway-hls");
+const shadowHlsRoot = normalize(String(process.env.VIDEO_GATEWAY_SHADOW_HLS_ROOT || ""));
+const HLS_ROOT = SHADOW_MODE ? shadowHlsRoot : defaultHlsRoot;
+if (SHADOW_MODE && !["127.0.0.1", "localhost", "::1"].includes(HOST)) throw new Error("Shadow qualification must bind to loopback");
+if (SHADOW_MODE && (!shadowHlsRoot || !shadowHlsRoot.startsWith(`${normalize(tmpdir())}/`))) {
+  throw new Error("Shadow qualification HLS state must use an isolated temporary directory");
+}
 const PLAYBACK_TOKEN_TTL_MS = 5 * 60 * 1000;
 // Some recorders deliver an HLS source in short bursts. Eight seconds caused
 // healthy streams to be torn down between segments, producing a retry loop in
@@ -92,6 +99,9 @@ const FRAME_WIDTH = 32;
 const FRAME_HEIGHT = 18;
 const GATEWAY_KEYCHAIN_SERVICE = process.env.GAN_BATUACH_GATEWAY_KEYCHAIN_SERVICE || "";
 const GATEWAY_SECRET_DIR = process.env.GAN_BATUACH_GATEWAY_SECRET_DIR || "";
+if (SHADOW_MODE && (GATEWAY_KEYCHAIN_SERVICE || GATEWAY_SECRET_DIR)) {
+  throw new Error("Shadow qualification cannot load managed-device or cloud credentials");
+}
 const keychain = createKeychainStore({ service: GATEWAY_KEYCHAIN_SERVICE, secretDir: GATEWAY_SECRET_DIR });
 const edgeRuntimeIdentity = connectorRuntimeIdentity();
 let deviceAccessToken = "";
@@ -187,7 +197,7 @@ async function commandSource(binding) {
 }
 
 async function initializePrivateNvrCommandRuntime() {
-  if (!GATEWAY_KEYCHAIN_SERVICE) return;
+  if (SHADOW_MODE || !GATEWAY_KEYCHAIN_SERVICE) return;
   const [gatewayId, siteId, auditSigningKey] = await Promise.all([
     keychainSecret("device_gateway_id"),
     keychainSecret("device_observer_site_id"),
@@ -343,7 +353,7 @@ async function pollCloudCameraActions() {
   }
 }
 
-if (GATEWAY_KEYCHAIN_SERVICE || GATEWAY_SECRET_DIR) {
+if (!SHADOW_MODE && (GATEWAY_KEYCHAIN_SERVICE || GATEWAY_SECRET_DIR)) {
   setInterval(() => {
     if (cameraActionPollPromise) return;
     cameraActionPollPromise = pollCloudCameraActions().catch(() => undefined).finally(() => { cameraActionPollPromise = null; });
@@ -418,6 +428,7 @@ async function readBuffer(request, maxBytes = 10 * 1024 * 1024) {
 }
 
 async function forwardDeviceCloudRequest(path, body, contentType, method = "POST") {
+  if (SHADOW_MODE) throw new Error("Shadow qualification cloud access is disabled");
   const cloudBaseUrl = (await keychainSecret("device_cloud_base_url")).replace(/\/$/, "");
   const gatewayId = await keychainSecret("device_gateway_id");
   if (!cloudBaseUrl || !gatewayId) throw new Error("Gateway cloud identity is unavailable");
@@ -537,6 +548,16 @@ async function privateNvrLogin(input) {
   const baseUrl = privateNvrBaseUrl(input);
   if (!baseUrl || !input.username || !input.password) return null;
   privateNvrSessionLifecycle.login_attempts++;
+  const rangeResponse = await fetch(`${baseUrl}/API/Login/Range`, {
+    method: "POST",
+    headers: { "content-type": "application/json", "x-requested-with": "XMLHttpRequest" },
+    body: JSON.stringify({ version: "1.0", data: {} }),
+    signal: AbortSignal.timeout(Math.max(2000, PROBE_TIMEOUT_MS))
+  }).catch(() => null);
+  const rangePayload = rangeResponse?.ok ? await rangeResponse.json().catch(() => null) : null;
+  const loginExclusivity = typeof rangePayload?.data?.login_exclusivity === "boolean"
+    ? rangePayload.data.login_exclusivity
+    : null;
   const uri = "/API/Web/Login";
   const body = JSON.stringify({ data: { remote_terminal_info: "GATEWAY" } });
   const common = {
@@ -579,7 +600,7 @@ async function privateNvrLogin(input) {
   const cookie = String(response.headers.get("set-cookie") || "").split(";")[0].trim();
   if (!token) return null;
   privateNvrSessionLifecycle.login_succeeded++;
-  return { baseUrl, token, cookie };
+  return { baseUrl, token, cookie, loginExclusivity };
 }
 
 function rememberPrivateNvrSession(input, session, reason = "initial_discovery") {
@@ -1053,7 +1074,10 @@ async function privateNvrRelayResponse(source, reportFailure = () => {}) {
   controller.abort();
   // Even if every native stream ended together, transport failure does not
   // authorize a new login that may invalidate all recorder channels.
-  if (!shouldRefreshPrivateNvrSession(failure)) return null;
+  if (!shouldRefreshPrivateNvrSession(failure, {
+    loginExclusivity: session.loginExclusivity,
+    sessionAgeMs: Date.now() - Number(session.updatedAt || Date.now())
+  })) return null;
   const refreshed = await refreshPrivateNvrSession(source.sessionKey, session.token, `source_${failure}`);
   if (!refreshed) return null;
   const retryController = new AbortController();
@@ -1246,12 +1270,7 @@ async function startRelay(streamId) {
     // cloud-authorized viewing lease exists, without waiting for player failure.
     const { retry_ms: retryMs, ...recovery } = nextRelayRecovery(relayRecovery.get(streamId));
     relayRecovery.set(streamId, recovery);
-    const resume = setTimeout(() => {
-      if ([...playbackTokens.values()].some((lease) => lease.streamId === streamId && lease.expiresAt > Date.now())) {
-        void ensureRelay(streamId).catch(() => undefined);
-      }
-    }, retryMs);
-    resume.unref();
+    scheduleRelayResume(streamId, retryMs);
   });
   return relay;
 }
@@ -1469,6 +1488,22 @@ function validatePlaybackToken(token, streamId) {
   return true;
 }
 
+function hasActivePlaybackLease(streamId) {
+  return [...playbackTokens.values()].some((lease) => lease.streamId === streamId && lease.expiresAt > Date.now());
+}
+
+function scheduleRelayResume(streamId, delayMs) {
+  const resume = setTimeout(() => {
+    if (!hasActivePlaybackLease(streamId)) return;
+    const remainingMs = relayRetryDelayMs(relayRecovery.get(streamId));
+    // Timer scheduling may wake just before the recorded retry boundary. Do
+    // not lose the only automatic recovery attempt because of clock jitter.
+    if (remainingMs > 0) return scheduleRelayResume(streamId, remainingMs);
+    void ensureRelay(streamId).catch(() => undefined);
+  }, Math.max(1, Number(delayMs || 0) + 10));
+  resume.unref();
+}
+
 async function serveHls(request, response) {
   requestMetrics.hlsRequests += 1;
   const url = new URL(request.url, "http://gateway.local");
@@ -1536,6 +1571,18 @@ async function cameraTest(payload) {
 }
 
 async function handle(request, response) {
+  if (SHADOW_MODE) {
+    const method = String(request.method || "GET").toUpperCase();
+    const path = new URL(request.url || "/", "http://shadow.local").pathname;
+    const allowed = (method === "GET" && ["/health/live", "/health"].includes(path))
+      || (method === "POST" && path === "/dvr/connect")
+      || (method === "GET" && /^\/camera\/[^/]+\/playback$/.test(path))
+      || (["GET", "OPTIONS"].includes(method) && path.startsWith("/hls/"));
+    if (!allowed) {
+      json(response, 404, { error: "shadow_route_not_available" });
+      return;
+    }
+  }
   if (request.method === "OPTIONS" && request.url?.startsWith("/hls/")) {
     response.writeHead(204, browserHeaders(request, "text/plain"));
     response.end();
@@ -1725,7 +1772,15 @@ async function handle(request, response) {
       return;
     }
     if (request.url === "/dvr/connect" && request.method === "POST") {
-      json(response, 200, await dvrConnect(await readJson(request)));
+      const payload = await readJson(request);
+      if (SHADOW_MODE) {
+        const filter = payload?.metadata?.channel_filter;
+        if (payload?.metadata?.shadow_qualification !== true || payload?.metadata?.read_only_requested !== true
+          || !Array.isArray(filter) || filter.length !== 1 || !Number.isInteger(filter[0])) {
+          throw new Error("Shadow qualification requires one explicit read-only channel");
+        }
+      }
+      json(response, 200, await dvrConnect(payload));
       return;
     }
     if (request.url === "/camera/test" && request.method === "POST") {
