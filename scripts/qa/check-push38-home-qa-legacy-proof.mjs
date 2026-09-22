@@ -29,6 +29,7 @@ for (const change of [
 ]) assert.equal(verifyHomeQaLegacyProof({ ...claim, ...change }, signature, derived.publicKeySpki, current), false);
 assert.equal(verifyHomeQaLegacyProof(claim, signature, derived.publicKeySpki, current + 121_000), false);
 assert.equal(verifyHomeQaLegacyProof(claim, signature, foreign.publicKeySpki, current), false);
-assert.equal(verifyHomeQaLegacyProof(claim, signature.slice(0, -2) + "AA", derived.publicKeySpki, current), false);
+const tamperedSignature = `${signature[0] === "A" ? "B" : "A"}${signature.slice(1)}`;
+assert.equal(verifyHomeQaLegacyProof(claim, tamperedSignature, derived.publicKeySpki, current), false);
 console.log(JSON.stringify({ status: "PASS", verified: true, wrong_scope_rejected: true,
   wrong_key_rejected: true, expired_rejected: true, production_secret_exported: false }));
