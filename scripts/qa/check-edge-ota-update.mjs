@@ -113,6 +113,10 @@ writeFileSync(delayedRecovery.value.knownGoodPath,
 assert.equal(delayedRecovery.value.knownGood().at(-1).release_id, delayedManifest.release_id);
 delayedRecovery.value.reconcileDelayedRollbackKnownGood();
 assert.equal(delayedRecovery.value.knownGood().some(item => item.release_id === delayedManifest.release_id), false);
+assert.equal(delayedRecovery.value.status().known_good_version, "1.0.0");
+writeFileSync(delayedRecovery.value.statePath, `${JSON.stringify({ ...delayedRecovery.value.status(),
+  known_good_version: delayedManifest.version }, null, 2)}\n`);
+assert.equal(delayedRecovery.value.reconcileDelayedRollbackKnownGood().known_good_version, "1.0.0");
 const delayedRetry = delayedRecovery.value.authorizeQuarantinedReleaseRetry({ manifest: delayedManifest,
   expectedFailureCategory: "EDGE_UPDATE_ROLLBACK_HEALTH_FAILED", remediationEvidenceSha256: "b".repeat(64) });
 assert.equal(delayedRetry.previous_failure_category, "EDGE_UPDATE_ROLLBACK_HEALTH_FAILED");

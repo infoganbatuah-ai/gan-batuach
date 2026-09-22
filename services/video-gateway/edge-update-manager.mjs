@@ -306,9 +306,16 @@ export class EdgeUpdateManager {
       fail("EDGE_UPDATE_DELAYED_ROLLBACK_RECONCILIATION_NOT_APPLICABLE");
     this.verifySlot(current);
     const failed = known.find(item => item.release_id === state.release_id);
-    if (!failed) return state;
-    this.verifySlot(failed);
-    atomicJson(this.knownGoodPath, known.filter(item => item.release_id !== state.release_id));
+    const reconciledKnown = failed ? known.filter(item => item.release_id !== state.release_id) : known;
+    if (failed) {
+      this.verifySlot(failed);
+      atomicJson(this.knownGoodPath, reconciledKnown);
+    }
+    const knownGoodVersion = reconciledKnown.at(-1)?.version || current.version;
+    if (!failed && state.current_version === current.version && state.known_good_version === knownGoodVersion)
+      return state;
+    atomicJson(this.statePath, { ...state, current_version: current.version,
+      known_good_version: knownGoodVersion, updated_at: new Date(this.now()).toISOString() });
     return this.status();
   }
   // A successful retry may start from ROLLED_BACK and inherit diagnostic
