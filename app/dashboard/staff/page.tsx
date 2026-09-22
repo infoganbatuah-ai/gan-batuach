@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { israelTodayDateKey } from "@/lib/domain/israel-date";
 import { redirect } from "next/navigation";
-import { AlertTriangle, Baby, Bell, BriefcaseBusiness, Building2, CalendarDays, ClipboardList, Fingerprint, HeartPulse, LogIn, LogOut, MapPin, MessageSquare, ShieldAlert, Siren, UserRound, UsersRound } from "lucide-react";
+import { AlertTriangle, Bell, BriefcaseBusiness, Building2, CalendarDays, ClipboardList, Fingerprint, LogIn, LogOut, MapPin, MessageSquare, ShieldAlert, UserRound, UsersRound } from "lucide-react";
 import { Avatar } from "@/components/avatar";
 import { EmptyState, ListRowCard, StatusChip } from "@/components/gan-batuach-design-system";
 import { StaffOneHandMode } from "@/components/staff-one-hand-mode";
@@ -18,6 +18,10 @@ import {
 } from "@/components/staff-app-ui";
 import { requireOperationalRole } from "@/lib/management/operational-role";
 import { cleanSyntheticLabel } from "@/lib/domain/display-label";
+import { safeDashboardMessagePreview } from "@/lib/management/dashboard-read-model";
+import { getSessionProfile } from "@/lib/auth";
+import { managementContactVerification } from "@/lib/management/contact-verification";
+import { resolveStaffEmploymentContext } from "@/lib/management/staff-employment-context";
 import { createClient } from "@/lib/supabase/server";
 
 function percent(done: number, total: number) {
@@ -46,6 +50,22 @@ function formatStatus(status?: string | null) {
 }
 
 export default async function StaffDashboard() {
+  const initialSession = await getSessionProfile();
+  if (initialSession.user && initialSession.profile?.role === "staff" && initialSession.profile.active === true &&
+    managementContactVerification(initialSession.user, initialSession.profile).complete) {
+    const initialContext = await resolveStaffEmploymentContext(initialSession.profile);
+    if (initialContext.available && initialContext.employments.length > 1 && !initialContext.activeEmployment) {
+      return (
+        <StaffAppFrame profileName={initialSession.profile.full_name} avatarUrl={initialSession.profile.profile_image_url}>
+          <EmptyState
+            title="בחרו גן עבודה"
+            text="יש לך העסקה פעילה ביותר מגן אחד. בחירת הגן קובעת את ההקשר התפעולי בלבד; כל פעולה עדיין נבדקת מול ההרשאות בשרת."
+            icon={Building2}
+          />
+        </StaffAppFrame>
+      );
+    }
+  }
   const { profile, employment } = await requireOperationalRole(["staff"]);
   const supabase = await createClient();
   const today = israelTodayDateKey();
@@ -109,6 +129,12 @@ export default async function StaffDashboard() {
 
   const staffId = staff?.id ?? "";
   const gardenId = profile.garden_id ?? staff?.garden_id ?? "";
+  const classroomAssignmentsRes = await supabase.from("staff_classroom_assignments" as any)
+    .select("classroom_id").eq("staff_id", staffId).eq("garden_id", gardenId).eq("status", "active").limit(100);
+  const classroomIds = (classroomAssignmentsRes.data ?? []).map(row => (row as { classroom_id: string }).classroom_id);
+  const childAssignmentsRes = classroomIds.length ? await supabase.from("child_classroom_assignments" as any)
+    .select("child_id").eq("garden_id", gardenId).eq("is_current", true).in("classroom_id", classroomIds).limit(500) : { data: [], error: null };
+  const assignedChildIds = Array.from(new Set((childAssignmentsRes.data ?? []).map(row => (row as { child_id: string }).child_id)));
   const [
     tasksRes,
     childrenRes,
@@ -117,18 +143,16 @@ export default async function StaffDashboard() {
     incidentsRes,
     docsRes,
     messagesRes,
-    notificationsRes,
-    medicineRes
+    notificationsRes
   ] = await Promise.all([
     supabase.from("tasks" as any).select("id,title,priority,status,due_at", { count: "exact" }).or(`assigned_to.eq.${profile.id},assigned_role.eq.staff`).eq("garden_id", gardenId).neq("status", "done").order("created_at", { ascending: false }).limit(6),
-    supabase.from("children" as any).select("id, garden_id, full_name, photo_url, face_image_url, allergies, medical_notes, regular_medications").eq("garden_id", gardenId).in("status", ["active", "approved"]).order("full_name").limit(80),
+    assignedChildIds.length ? supabase.from("children" as any).select("id,garden_id,full_name,photo_url,status").eq("garden_id", gardenId).in("id", assignedChildIds).in("status", ["active", "approved"]).order("full_name").limit(80) : Promise.resolve({ data: [], error: null }),
     supabase.from("child_daily_journals" as any).select("child_id, meals, sleep_summary, mood, bathroom, incidents, notes_to_parents").eq("garden_id", gardenId).eq("journal_date", today),
     staffId ? supabase.from("staff_shifts" as any).select("id, shift_date, planned_start, planned_end, actual_start, actual_end, start_gps_verified, end_gps_verified, status").eq("staff_id", staffId).eq("garden_id", gardenId).eq("shift_date", today).order("created_at", { ascending: false }).limit(1) : Promise.resolve({ data: [] }),
     supabase.from("incident_reports" as any).select("id,title,severity,status,child_id", { count: "exact" }).eq("garden_id", gardenId).neq("status", "closed").order("created_at", { ascending: false }).limit(5),
     supabase.from("documents" as any).select("id", { count: "exact", head: true }).eq("staff_id", staffId).in("status", ["missing", "expired", "rejected"]),
-    supabase.from("messages" as any).select("id, subject, body, content, created_at, sender:sender_id(full_name)").eq("garden_id", gardenId).or(`sender_id.eq.${profile.id},recipient_id.eq.${profile.id}`).order("created_at", { ascending: false }).limit(4),
-    supabase.from("notifications" as any).select("id", { count: "exact", head: true }).or(`recipient_id.eq.${profile.id},recipient_profile_id.eq.${profile.id}`).is("read_at", null),
-    supabase.from("medicine_given_logs" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId).gte("given_at", `${today}T00:00:00`)
+    supabase.from("messages" as any).select("id,subject,created_at,sender:sender_id(full_name)").eq("garden_id", gardenId).or(`sender_id.eq.${profile.id},recipient_id.eq.${profile.id}`).order("created_at", { ascending: false }).limit(4),
+    supabase.from("notifications" as any).select("id", { count: "exact", head: true }).or(`recipient_id.eq.${profile.id},recipient_profile_id.eq.${profile.id}`).is("read_at", null)
   ]);
 
   const garden = gardenRes.data as any;
@@ -144,11 +168,10 @@ export default async function StaffDashboard() {
   const updatedChildren = children.filter((child) => journalByChild.has(child.id)).length;
   const mealUpdates = journals.filter((journal: any) => Array.isArray(journal.meals) && journal.meals.length > 0).length;
   const sleepUpdates = journals.filter((journal: any) => journal.sleep_summary).length;
-  const healthUpdates = journals.filter((journal: any) => journal.notes_to_parents || journal.incidents).length;
   const shiftProgress = percent(updatedChildren + mealUpdates + sleepUpdates, Math.max(children.length * 3, 1));
   const childrenNeedingAttention = children.filter((child) => {
     const journal = journalByChild.get(child.id) as any;
-    return !journal || child.allergies || child.medical_notes || child.regular_medications || journal?.incidents;
+    return !journal || journal?.incidents;
   }).slice(0, 8);
   const urgentAlerts = (incidentsRes.count ?? 0) + (notificationsRes.count ?? 0);
   const messages = (messagesRes.data ?? []) as any[];
@@ -194,9 +217,10 @@ export default async function StaffDashboard() {
             <StaffSection title="הודעות" action={<Link href="/dashboard/staff/messages">צפייה בכל</Link>}>
               {messages.length === 0 ? (
                 <EmptyState title="אין הודעות חדשות" text="שיחות עם מנהלת וצוות יופיעו כאן." icon={MessageSquare} />
-              ) : messages.slice(0, 2).map((message) => (
-                <StaffMessageRow key={message.id} title={message.sender?.full_name ?? message.subject ?? "הודעה"} body={message.content ?? message.body ?? "הודעה חדשה"} time={timeText(message.created_at)} />
-              ))}
+              ) : messages.slice(0, 2).map((message) => {
+                const preview = safeDashboardMessagePreview(message);
+                return <StaffMessageRow key={message.id} title={preview.title} body={preview.summary} time={timeText(message.created_at)} />;
+              })}
             </StaffSection>
             <StaffSection title="עדכוני צוות" action={<Link href="/dashboard/staff/notifications">צפייה בכל</Link>}>
               <ListRowCard title="מרכז התראות" subtitle="משימות, מסמכים, משמרות ועדכוני מנהלת" meta={`${notificationsRes.count ?? 0} שלא נקראו`} status={<StatusChip tone={(notificationsRes.count ?? 0) ? "warning" : "success"}>{(notificationsRes.count ?? 0) ? "לטיפול" : "תקין"}</StatusChip>} href="/dashboard/staff/notifications" />
@@ -218,7 +242,7 @@ export default async function StaffDashboard() {
               <div className="section-heading"><h2>ילדים שדורשים תשומת לב</h2><p>בלי חיפוש. קודם הילדים שצריך לעדכן או לבדוק.</p></div>
               {childrenNeedingAttention.length === 0 ? <div className="empty-state"><strong>אין ילדים שממתינים לעדכון</strong><span>כל הילדים עודכנו או שאין דגשי בריאות פתוחים.</span></div> : <div className="staff-attention-list">{childrenNeedingAttention.map((child) => {
                 const journal = journalByChild.get(child.id) as any;
-                return <Link href={`/dashboard/staff/child-journal?childId=${child.id}`} key={child.id}><Avatar name={child.full_name} src={child.photo_url ?? child.face_image_url} /><div><strong>{child.full_name}</strong><span>{!journal ? "אין עדכון היום" : child.allergies ? `אלרגיה: ${child.allergies}` : child.medical_notes ? "הערת בריאות" : "דורש בדיקה"}</span></div><small>{journal?.mood ?? "עדכון"}</small></Link>;
+                return <Link href={`/dashboard/staff/child-journal?childId=${child.id}`} key={child.id}><Avatar name={child.full_name} src={child.photo_url} /><div><strong>{child.full_name}</strong><span>{!journal ? "אין עדכון היום" : "נדרש לעבור על עדכון תפעולי"}</span></div><small>{journal?.mood ?? "עדכון"}</small></Link>;
               })}</div>}
             </article>
             <article className="staff-assistant-card">

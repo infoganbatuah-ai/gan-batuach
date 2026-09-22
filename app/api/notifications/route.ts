@@ -1,10 +1,11 @@
 import { fail, handleRouteError, ok } from "@/lib/api";
-import { requireUser } from "@/lib/auth";
+import { getSessionProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 
 export async function GET() {
   try {
-    const { profile } = await requireUser();
+    const { user, profile } = await getSessionProfile();
+    if (!user || !profile) return fail("נדרשת התחברות מחדש.", 401);
     const supabase = await createClient();
     const query = supabase
       .from("notifications" as any)

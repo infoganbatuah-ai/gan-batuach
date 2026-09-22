@@ -52,11 +52,15 @@ export function ManagerOverviewDashboard({
   schedule,
   updates,
   tasks,
-  unreadMessages
+  unreadMessages,
+  finance,
+  operations
 }: {
-  attendance: { present: number; total: number; completion: number };
+  attendance: { present: number; absent: number; departed: number; total: number; completion: number };
   staff: { ready: number; total: number; present: number; names: string[] };
-  safety: { score: number; label: string; detail: string };
+  safety: { score: number | null; label: string; detail: string };
+  finance: { outstanding: string; overdue: number; reconciliation: number; subscription: string };
+  operations: { tasks: number; complaints: number; documents: number; inspections: number; correctiveActions: number };
   schedule: ScheduleItem[];
   updates: FeedItem[];
   tasks: TaskItem[];
@@ -75,7 +79,7 @@ export function ManagerOverviewDashboard({
     { title: "צוות", href: "/dashboard/garden/staff", icon: UsersRound },
     { title: "תשלומים", href: "/dashboard/garden/finance", icon: WalletCards },
     { title: "מצלמות", href: "/dashboard/garden/cameras", icon: Camera },
-    { title: "תצפיתן כלול", href: "/dashboard/garden/observer-pilot", icon: ScanEye },
+    { title: "מוכנות תצפיתן", href: "/dashboard/garden/observer-pilot", icon: ScanEye },
     { title: "בקשות הצטרפות", href: "/dashboard/garden/enrollment-requests", icon: UserRoundPlus },
     { title: "דוחות", href: "/dashboard/garden/reports", icon: BarChart3 }
   ];
@@ -88,7 +92,7 @@ export function ManagerOverviewDashboard({
           <span className="manager-safety-shield"><CheckCircle2 size={42} /></span>
           <strong>{safety.label}</strong>
           <small>{safety.detail}</small>
-          <span className="manager-safety-score">{safety.score}/100</span>
+          <span className="manager-safety-score">{safety.score === null ? "מוכנות" : `${safety.score}/100`}</span>
         </Link>
 
         <Link className="manager-reference-card manager-staff-card" href="/dashboard/garden/staff">
@@ -111,10 +115,32 @@ export function ManagerOverviewDashboard({
             </span>
             <span className="manager-attendance-legend">
               <span><i className="present" /> נוכחים <b>{attendance.present}</b></span>
-              <span><i className="missing" /> חסרים <b>{Math.max(0, attendance.total - attendance.present)}</b></span>
+              <span><i className="missing" /> נעדרים <b>{attendance.absent}</b></span>
+              <span><i className="missing" /> יצאו <b>{attendance.departed}</b></span>
             </span>
           </div>
           <em>{attendance.completion}% מהילדים עודכנו היום</em>
+        </Link>
+      </section>
+
+      <section className="manager-reference-kpis" aria-label="כספים ותפעול">
+        <Link className="manager-reference-card" href="/dashboard/garden/finance">
+          <span className="manager-card-heading"><WalletCards size={23} /> שכר לימוד</span>
+          <b>{finance.outstanding}</b>
+          <small>{finance.overdue} תקופות באיחור · {finance.reconciliation} בהתאמה</small>
+          <em>גביית הורים בלבד</em>
+        </Link>
+        <Link className="manager-reference-card" href="/dashboard/garden/subscription">
+          <span className="manager-card-heading"><WalletCards size={23} /> מנוי הפלטפורמה</span>
+          <b>{finance.subscription}</b>
+          <small>מנוי הגן לגן בטוח</small>
+          <em>נפרד משכר לימוד</em>
+        </Link>
+        <Link className="manager-reference-card" href="/dashboard/garden/command-center">
+          <span className="manager-card-heading"><ClipboardCheck size={23} /> פריטים לטיפול</span>
+          <b>{operations.tasks + operations.complaints + operations.documents + operations.correctiveActions}</b>
+          <small>{operations.tasks} משימות · {operations.complaints} תלונות · {operations.documents} מסמכים</small>
+          <em>{operations.inspections} ביקורות · {operations.correctiveActions} פעולות מתקנות</em>
         </Link>
       </section>
 

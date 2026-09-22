@@ -287,10 +287,14 @@ const operationalInspectorPages = [
 ].map(name => `app/dashboard/inspector/${name}/page.tsx`);
 
 test("operational staff and inspector pages require activated role context", () => {
-  for (const file of [...operationalStaffPages, ...operationalInspectorPages, "app/dashboard/inspector/page.tsx", "app/dashboard/tasks/page.tsx"]) {
+  for (const file of [...operationalStaffPages, ...operationalInspectorPages, "app/dashboard/tasks/page.tsx"]) {
     const source = readFileSync(file, "utf8");
     assert.match(source, file.includes("command-center") ? /await requireApprovedInspector\(/ : /await requireOperationalRole\(/, `${file}: missing Inspector page guard`);
   }
+  const inspectorHome = readFileSync("app/dashboard/inspector/page.tsx", "utf8");
+  assert.match(inspectorHome, /await requireApprovedInspector\(/, "approved unassigned Inspector needs a private command-center empty state");
+  assert.match(inspectorHome, /\.eq\("inspector_id", profile\.id\)/, "Inspector home assignment query must remain actor-scoped");
+  assert.match(inspectorHome, /assignedGardens\.length === 0/, "unassigned Inspector must stop before operational portfolio queries");
   assert.match(readFileSync("app/dashboard/inspector/control-center/page.tsx", "utf8"), /export \{ default \} from "\.\.\/command-center\/page"/);
 });
 

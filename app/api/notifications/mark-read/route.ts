@@ -1,4 +1,4 @@
-import { requireUser } from "@/lib/auth";
+import { getSessionProfile } from "@/lib/auth";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { createClient } from "@/lib/supabase/server";
 import { z } from "zod";
@@ -7,7 +7,8 @@ const schema = z.object({ ids: z.array(z.string().uuid()).max(100).optional() })
 
 export async function POST(request: Request) {
   try {
-    await requireUser();
+    const { user, profile } = await getSessionProfile();
+    if (!user || !profile) return fail("נדרשת התחברות מחדש.", 401);
     const parsed = schema.safeParse(await request.json().catch(() => ({})));
     if (!parsed.success) return fail("בקשת סימון התראות אינה תקינה", 400);
     const supabase = await createClient();
