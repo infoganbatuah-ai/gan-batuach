@@ -7,6 +7,7 @@ import { canonicalEdgeTrustRegistry, installEdgeTrustRegistry } from "../../serv
 import { canonicalEdgeUpdateManifest } from "../../services/video-gateway/edge-update-contract.mjs";
 import { EdgeUpdateManager } from "../../services/video-gateway/edge-update-manager.mjs";
 import { createInstalledEdgeOtaAgent } from "../../services/video-gateway/edge-installed-ota-agent.mjs";
+import { waitForStableLaunchdService } from "../../services/video-gateway/edge-installed-ota-installer.mjs";
 
 const rootKey = generateKeyPairSync("ed25519"), releaseKey = generateKeyPairSync("ed25519");
 const publicKey = pair => pair.publicKey.export({ format: "der", type: "spki" }).toString("base64url");
@@ -28,6 +29,13 @@ function health(profile) { const cameras = profile === "PHYSICAL_GATEWAY" ? 10 :
     progressing_physical_cameras: cameras, empty_slots: profile === "PHYSICAL_GATEWAY" ? 6 : 0, stalled_streams: 0 }; }
 
 const results = [];
+const delayedLaunchd = ["state = waiting", "state = running\n\tpid = 701", "state = running\n\tpid = 701"];
+assert.equal(waitForStableLaunchdService("gui/501/qa-agent", { attempts: delayedLaunchd.length,
+  readStatus: () => delayedLaunchd.shift(), pause: () => {} }), true);
+const restartingLaunchd = ["state = running\n\tpid = 801", "state = running\n\tpid = 802",
+  "state = running\n\tpid = 803"];
+assert.equal(waitForStableLaunchdService("gui/501/qa-agent", { attempts: restartingLaunchd.length,
+  readStatus: () => restartingLaunchd.shift(), pause: () => {} }), false);
 for (const profile of ["PHYSICAL_GATEWAY", "SOFTWARE_CONNECTOR"]) {
   const scope = mkdtempSync(join(tmpdir(), "observer-p38i-agent-core-"));
   try {

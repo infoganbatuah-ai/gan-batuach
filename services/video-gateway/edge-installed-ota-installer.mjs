@@ -16,6 +16,23 @@ function atomic(path, data) {
   writeFileSync(temp, data, { mode: 0o600, flag: "wx" }); renameSync(temp, path);
 }
 const run = (binary, args) => execFileSync(binary, args, { encoding: "utf8", timeout: 120_000, stdio: ["ignore", "pipe", "pipe"] });
+export function waitForStableLaunchdService(domainLabel, { attempts = 15,
+  readStatus = label => run("/bin/launchctl", ["print", label]),
+  pause = () => run("/bin/sleep", ["1"]) } = {}) {
+  let stablePid = null, stableChecks = 0;
+  for (let attempt = 0; attempt < attempts; attempt++) {
+    let status = "";
+    try { status = readStatus(domainLabel); } catch {}
+    const pid = Number(status.match(/\bpid = (\d+)/)?.[1] || 0);
+    if (status.includes("state = running") && pid > 1) {
+      if (pid === stablePid) stableChecks++;
+      else { stablePid = pid; stableChecks = 1; }
+      if (stableChecks >= 2) return true;
+    } else { stablePid = null; stableChecks = 0; }
+    if (attempt + 1 < attempts) pause();
+  }
+  return false;
+}
 
 export function planInstalledOtaAgent({ profile, managedRoot, agentPlistPath, agentLabel,
   qaIsolationRoot = "" }) {
@@ -159,7 +176,7 @@ export function installInstalledOtaAgent({ profile, managedRoot, agentPlistPath,
         atomic(plan.config, `${JSON.stringify(runtimeConfig)}\n`);
         atomic(agentPlistPath, plist);
         run("/bin/launchctl", ["bootstrap", domain, agentPlistPath]);
-        if (!run("/bin/launchctl", ["print", `${domain}/${agentLabel}`]).includes("state = running"))
+        if (!waitForStableLaunchdService(`${domain}/${agentLabel}`))
           fail("EDGE_OTA_INSTALL_SERVICE_FAILED");
         if (managementBackup) rmSync(managementBackup, { recursive: true, force: true });
       } catch {
@@ -176,7 +193,7 @@ export function installInstalledOtaAgent({ profile, managedRoot, agentPlistPath,
         let recovered = false;
         try {
           run("/bin/launchctl", ["bootstrap", domain, agentPlistPath]);
-          recovered = run("/bin/launchctl", ["print", `${domain}/${agentLabel}`]).includes("state = running");
+          recovered = waitForStableLaunchdService(`${domain}/${agentLabel}`);
         } catch {}
         if (rejectedManagement && recovered) rmSync(rejectedManagement, { recursive: true, force: true });
         fail(managementUpgrade ? (recovered ? "EDGE_OTA_INSTALL_MANAGEMENT_UPGRADE_FAILED" :
@@ -185,8 +202,8 @@ export function installInstalledOtaAgent({ profile, managedRoot, agentPlistPath,
     } else {
       atomic(plan.config, `${JSON.stringify(runtimeConfig)}\n`);
       if (existingPlist === null) atomic(agentPlistPath, plist);
-      try { run("/bin/launchctl", ["bootstrap", domain, agentPlistPath]); }
-      catch { if (!run("/bin/launchctl", ["print", `${domain}/${agentLabel}`]).includes("state = running")) fail("EDGE_OTA_INSTALL_SERVICE_FAILED"); }
+      try { run("/bin/launchctl", ["bootstrap", domain, agentPlistPath]); } catch {}
+      if (!waitForStableLaunchdService(`${domain}/${agentLabel}`)) fail("EDGE_OTA_INSTALL_SERVICE_FAILED");
     }
     return { ...plan, installed: true, release_id: manifest.release_id, artifact_sha256: artifactDigest,
       management_upgraded: managementUpgrade };
