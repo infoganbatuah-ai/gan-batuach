@@ -298,6 +298,6 @@ synthetic scale test proved the 200-row page bound and cleanup; Management
 passed 255/255, Parent/Manager 22/22, domain 30/30, security 7/7 and migration
 health 243/243. Typecheck, Production build, lint baseline and release-contract
 preflight passed. No migration or paid provider was added. The unit remains
-`VALIDATED_ON_BRANCH` until its remote branch, PR checks, Development merge and
-cumulative integration QA are verified. Production, `main`, customer data and
+`PUSHED_REMOTE`; PR checks, Development merge and cumulative integration QA
+remain pending. Production, `main`, customer data and
 Digital Observer core are unchanged.

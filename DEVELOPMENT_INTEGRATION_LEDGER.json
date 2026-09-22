@@ -8936,9 +8936,9 @@
       "sourceCommits": [
         "a9145914ee39f950bda1591fcad6c421e3c02917"
       ],
-      "state": "VALIDATED_ON_BRANCH",
+      "state": "PUSHED_REMOTE",
       "preservation": {
-        "remoteVerified": false,
+        "remoteVerified": true,
         "remoteRefs": [
           "origin/codex/gb-m36-reporting-analytics"
         ],
