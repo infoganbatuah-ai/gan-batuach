@@ -60,6 +60,7 @@ export class EdgeUpdateManager {
     this.adapter = adapter; this.healthCheck = healthCheck; this.now = now;
     this.statePath = join(this.root, "update-state.json"); this.currentPath = join(this.root, "current.json");
     this.knownGoodPath = join(this.root, "known-good.json"); this.quarantinePath = join(this.root, "quarantined-releases.json");
+    this.quarantineRetryPath = join(this.root, "quarantine-retry-authorizations.json");
     this.bootstrapPath = join(this.root, "installed-bootstrap.json");
     mkdirSync(join(this.root, "slots"), { recursive: true, mode: 0o700 });
   }
@@ -151,6 +152,40 @@ export class EdgeUpdateManager {
     const current = this.quarantine();
     if (!current.some((item) => item.release_id === manifest.release_id)) current.push({ release_id: manifest.release_id, version: manifest.version, reason, at: new Date(this.now()).toISOString() });
     atomicJson(this.quarantinePath, current.slice(-100));
+  }
+  authorizeQuarantinedReleaseRetry({ manifest: input, expectedFailureCategory, remediationEvidenceSha256 }) {
+    if (!/^[a-f0-9]{64}$/.test(remediationEvidenceSha256 || ""))
+      fail("EDGE_UPDATE_RETRY_EVIDENCE_REQUIRED");
+    const verified = verifyEdgeUpdateManifest(input, this.trustedPublicKeys);
+    if (!verified.ok) fail(verified.reason);
+    const manifest = verified.manifest;
+    const state = this.status(), current = this.current(), knownGood = this.knownGood();
+    if (state.state !== "ROLLED_BACK" || state.release_id !== manifest.release_id ||
+      state.failure_category !== expectedFailureCategory ||
+      !knownGood.some((item) => item.release_id === current.release_id &&
+        item.artifact_sha256 === current.artifact_sha256) || current.release_id === manifest.release_id)
+      fail("EDGE_UPDATE_RETRY_STATE_MISMATCH");
+    this.verifySlot(current);
+    const quarantined = this.quarantine();
+    const record = quarantined.find((item) => item.release_id === manifest.release_id);
+    if (!record || record.version !== manifest.version || record.reason !== expectedFailureCategory)
+      fail("EDGE_UPDATE_RETRY_QUARANTINE_MISMATCH");
+    const failedSlot = join(this.root, "slots", safeVersion(manifest.version));
+    const failedPointer = { version: manifest.version, slot: failedSlot, release_id: manifest.release_id,
+      artifact_sha256: manifest.artifact_sha256 };
+    const failedManifest = this.verifySlot(failedPointer);
+    if (failedManifest.release_id !== manifest.release_id ||
+      failedManifest.artifact_sha256 !== manifest.artifact_sha256)
+      fail("EDGE_UPDATE_RETRY_SLOT_MISMATCH");
+    rmSync(failedSlot, { recursive: true });
+    atomicJson(this.quarantinePath, quarantined.filter((item) => item.release_id !== manifest.release_id));
+    const audit = this.readJson(this.quarantineRetryPath, []);
+    const authorization = { release_id: manifest.release_id, version: manifest.version,
+      previous_failure_category: expectedFailureCategory, remediation_evidence_sha256: remediationEvidenceSha256,
+      authorized_at: new Date(this.now()).toISOString(), current_release_id: current.release_id,
+      current_artifact_sha256: current.artifact_sha256 };
+    atomicJson(this.quarantineRetryPath, [...audit.slice(-99), authorization]);
+    return authorization;
   }
   requireAction(reason) {
     if (this.status().state === "ACTION_REQUIRED") return this.status();

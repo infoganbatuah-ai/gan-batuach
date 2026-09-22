@@ -68,6 +68,18 @@ const rolledBack = await connector.value.apply({ manifest: badManifest, artifact
 assert.equal(rolledBack.state, "ROLLED_BACK"); assert.equal(connector.value.current().version, "1.1.0");
 assert.equal(connector.value.quarantine().some(item => item.release_id === badManifest.release_id), true);
 assert.equal(readFileSync(connector.identityPath, "utf8"), connector.identity);
+await assert.rejects(async () => connector.value.authorizeQuarantinedReleaseRetry({ manifest: badManifest,
+  expectedFailureCategory: "EDGE_UPDATE_CAMERA_PROGRESSION_FAILED", remediationEvidenceSha256: "bad" }),
+/EDGE_UPDATE_RETRY_EVIDENCE_REQUIRED/);
+const retryAuthorization = connector.value.authorizeQuarantinedReleaseRetry({ manifest: badManifest,
+  expectedFailureCategory: "EDGE_UPDATE_CAMERA_PROGRESSION_FAILED", remediationEvidenceSha256: "a".repeat(64) });
+assert.equal(retryAuthorization.release_id, badManifest.release_id);
+assert.equal(connector.value.quarantine().some(item => item.release_id === badManifest.release_id), false);
+assert.equal(existsSync(join(connector.root, "slots", badManifest.version)), false,
+  "only the verified failed slot is removed before retry");
+connector.value.healthCheck = async () => healthy(1, 0);
+assert.equal((await connector.value.apply({ manifest: badManifest, artifactBytes: artifact })).state, "HEALTHY");
+assert.equal(connector.value.current().release_id, badManifest.release_id);
 
 // If the signed known-good service is restored but its first managed-auth
 // probe is unavailable, preserve ACTION_REQUIRED. A later stable proof may
