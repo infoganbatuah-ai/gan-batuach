@@ -121,3 +121,32 @@ Measure report query plans and real usage after an authorized release before add
 ## Inputs For GB-M37
 
 Use `/api/reports` as the canonical role-aware read contract; preserve its source-domain, no-store, tenant-scope, pagination, CSV-safety, and audit boundaries. Do not replace it with client-side full-table aggregation or a global Admin cache.
+
+## Integration Closure
+
+PR #117 targeted `integration/development`, preserved source commit `a9145914ee39f950bda1591fcad6c421e3c02917`, and completed all 9 required checks successfully at exact head `aafff972df64c1617cc75aab4907b7ba7b4d46d3`. It merged through the canonical ancestry-preserving workflow at `48d2bbc489d53eb096b03bfe3f6b91ad904ae050`.
+
+The merge commit tree is `bd9a3bf20807073574d4dc687e8795f17321a7e0`, byte-identical to the validated PR-head tree. The source and preservation commits are ancestors of the remote integration head. No conflicting integration change entered the merged tree.
+
+## Cumulative Development Validation
+
+The exact merged Product tree passed:
+
+- Management `255/255`.
+- Parent/Manager contract `22/22`.
+- Domain regression `30/30`.
+- Security/isolation `7/7`.
+- Migration health `243/243` with no GB-M36 schema migration.
+- Focused reporting `7/7`.
+- Authenticated role/report E2E `27/27`.
+- Direct rollback-only RLS matrix.
+- 500-row bounded pagination and cleanup scale test.
+- Typecheck, changed-file lint, full lint regression, Production build, tracked-source secret checks, dependency/security checks, and release-contract preflight.
+
+No Production database, deployment, customer record, provider, or `main` branch was changed. Production verification remains deferred to a separate explicit owner-authorized consolidated release.
+
+## Final Development Status
+
+`GB-M36 DEVELOPMENT INTEGRATION: PASS`
+
+`PRODUCTION STATUS: DEFERRED / UNCHANGED`

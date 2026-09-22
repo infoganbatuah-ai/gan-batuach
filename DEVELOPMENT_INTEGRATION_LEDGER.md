@@ -287,7 +287,7 @@ isolated Development database in order; this does not authorize Production,
 `main`, GB-M36, or any Digital Observer change. PR #86 remains draft pending
 full GB-M35E matrix closure.
 
-GB-M36 branch validation (2026-09-22):
+GB-M36 Development integration closure (2026-09-22):
 `codex/gb-m36-reporting-analytics` preserves canonical Management reporting at
 source commit `a9145914ee39f950bda1591fcad6c421e3c02917`. The read-only reporting
 contract derives role-scoped totals and bounded CSV exports from the canonical
@@ -297,7 +297,11 @@ Authenticated role E2E passed 27/27; rollback-only RLS passed; the 500-row
 synthetic scale test proved the 200-row page bound and cleanup; Management
 passed 255/255, Parent/Manager 22/22, domain 30/30, security 7/7 and migration
 health 243/243. Typecheck, Production build, lint baseline and release-contract
-preflight passed. No migration or paid provider was added. The unit remains
-`PUSHED_REMOTE`; PR checks, Development merge and cumulative integration QA
-remain pending. Production, `main`, customer data and
-Digital Observer core are unchanged.
+preflight passed. PR #117 completed 9/9 required checks at exact head
+`aafff972df64c1617cc75aab4907b7ba7b4d46d3` and merged by ancestry into
+`integration/development` at `48d2bbc489d53eb096b03bfe3f6b91ad904ae050`.
+The merge tree is byte-identical to the validated PR tree. No migration or
+paid provider was added; Development remains at 243/243 migrations. The unit
+is `LOCAL_VERIFIED` and ready for the later owner-controlled consolidated
+release. Production, `main`, customer data and Digital Observer core are
+unchanged.
