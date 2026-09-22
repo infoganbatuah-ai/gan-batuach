@@ -4,6 +4,8 @@ import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { issuePush38HomeQaManifests } from "../release/issue-push38-home-qa-manifests.mjs";
+import { issuePush38ConnectorPidfix } from "../release/issue-push38-home-qa-connector-pidfix.mjs";
+import { PUSH38_CONNECTOR_PIDFIX } from "../../services/video-gateway/push38-home-qa-connector-pidfix.mjs";
 import { verifyEdgeUpdateManifest } from "../../services/video-gateway/edge-update-contract.mjs";
 
 const root = mkdtempSync(join(tmpdir(), "observer-p38-issuance-test-"));
@@ -40,6 +42,17 @@ try {
     assert.equal(manifest.rollout.cohort_percent, 0);
     assert.deepEqual(manifest.rollout.explicit_device_ids, [row.device_id]);
   }
+  const pidfixOutput = join(root, "pidfix-issued");
+  await assert.rejects(issuePush38ConnectorPidfix({ env: { ...env,
+    HOME_QA_OUTPUT_DIR: pidfixOutput, PUSH38_CANDIDATE_SHA: "f".repeat(40) }, call }),
+  /P38_PIDFIX_SIGNING_CONTEXT_INVALID/);
+  const pidfix = await issuePush38ConnectorPidfix({ env: { ...env,
+    HOME_QA_OUTPUT_DIR: pidfixOutput, PUSH38_CANDIDATE_SHA: PUSH38_CONNECTOR_PIDFIX.buildSha }, call });
+  const pidfixManifest = JSON.parse(readFileSync(join(pidfixOutput, "connector_remediation_pidfix.json")));
+  assert.equal(pidfix.release_id, PUSH38_CONNECTOR_PIDFIX.releaseId);
+  assert.equal(verifyEdgeUpdateManifest(pidfixManifest, { [keyId]: publicBytes.toString("base64url") }).ok, true);
+  assert.equal(pidfixManifest.artifact_sha256, PUSH38_CONNECTOR_PIDFIX.digest);
+  assert.deepEqual(pidfixManifest.rollout.explicit_device_ids, [PUSH38_CONNECTOR_PIDFIX.deviceId]);
   console.log(JSON.stringify({ result: "PASS", signed_fixture_manifests: result.length,
-    unauthorized_branch_rejected: true, live_aws: "NOT_TESTED" }));
+    signed_pidfix_fixture_manifests: 1, unauthorized_branch_rejected: true, live_aws: "NOT_TESTED" }));
 } finally { rmSync(root, { recursive: true, force: true }); }
