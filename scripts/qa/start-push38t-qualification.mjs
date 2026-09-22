@@ -49,7 +49,7 @@ if (enableLegacyDelivery) {
     "-U", "postgres", "-d", "postgres", "-c",
     "select (select count(*) from public.video_gateway_device_enrollments where metadata->>'home_qa_phase'='LEGACY_VERIFIED_FOR_TRANSITION')," +
     "(select count(*) from public.observer_edge_releases where channel='HOME_QA');"]).trim();
-  if (state !== "2|3") throw new Error("P38_QA_RELEASE_METADATA_NOT_READY");
+  if (state !== "2|4") throw new Error("P38_QA_RELEASE_METADATA_NOT_READY");
   const keys = loadPinnedEdgeReleaseKeys({ registryPath: PROTECTED_EDGE_TRUST_REGISTRY_PATH }).trustedPublicKeys;
   if (!keys["observer-kms-release-v1"] || !keys["qa-p38f-ed25519-20260913"])
     throw new Error("P38_QA_PROTECTED_TRUST_UNAVAILABLE");
