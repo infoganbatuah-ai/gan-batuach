@@ -8,6 +8,8 @@ import { issuePush38ConnectorPidfix } from "../release/issue-push38-home-qa-conn
 import { PUSH38_CONNECTOR_PIDFIX } from "../../services/video-gateway/push38-home-qa-connector-pidfix.mjs";
 import { issuePush38ConnectorRecovery } from "../release/issue-push38-home-qa-connector-recovery.mjs";
 import { PUSH38_CONNECTOR_RECOVERY } from "../../services/video-gateway/push38-home-qa-connector-recovery.mjs";
+import { issuePush38ConnectorStartupRecovery } from "../release/issue-push38-home-qa-connector-startup.mjs";
+import { PUSH38_CONNECTOR_STARTUP_RECOVERY } from "../../services/video-gateway/push38-home-qa-connector-startup.mjs";
 import { verifyEdgeUpdateManifest } from "../../services/video-gateway/edge-update-contract.mjs";
 
 const root = mkdtempSync(join(tmpdir(), "observer-p38-issuance-test-"));
@@ -66,7 +68,19 @@ try {
   assert.equal(verifyEdgeUpdateManifest(recoveryManifest, { [keyId]: publicBytes.toString("base64url") }).ok, true);
   assert.equal(recoveryManifest.artifact_sha256, PUSH38_CONNECTOR_RECOVERY.digest);
   assert.deepEqual(recoveryManifest.rollout.explicit_device_ids, [PUSH38_CONNECTOR_RECOVERY.deviceId]);
+  const startupOutput = join(root, "startup-issued");
+  await assert.rejects(issuePush38ConnectorStartupRecovery({ env: { ...env,
+    HOME_QA_OUTPUT_DIR: startupOutput, PUSH38_CANDIDATE_SHA: "f".repeat(40) }, call }),
+  /P38_STARTUP_SIGNING_CONTEXT_INVALID/);
+  const startup = await issuePush38ConnectorStartupRecovery({ env: { ...env,
+    HOME_QA_OUTPUT_DIR: startupOutput, PUSH38_CANDIDATE_SHA: PUSH38_CONNECTOR_STARTUP_RECOVERY.buildSha }, call });
+  const startupManifest = JSON.parse(readFileSync(join(startupOutput, "connector_remediation_startup.json")));
+  assert.equal(startup.release_id, PUSH38_CONNECTOR_STARTUP_RECOVERY.releaseId);
+  assert.equal(verifyEdgeUpdateManifest(startupManifest, { [keyId]: publicBytes.toString("base64url") }).ok, true);
+  assert.equal(startupManifest.artifact_sha256, PUSH38_CONNECTOR_STARTUP_RECOVERY.digest);
+  assert.deepEqual(startupManifest.rollout.explicit_device_ids, [PUSH38_CONNECTOR_STARTUP_RECOVERY.deviceId]);
   console.log(JSON.stringify({ result: "PASS", signed_fixture_manifests: result.length,
     signed_pidfix_fixture_manifests: 1, signed_recovery_fixture_manifests: 1,
+    signed_startup_recovery_fixture_manifests: 1,
     unauthorized_branch_rejected: true, live_aws: "NOT_TESTED" }));
 } finally { rmSync(root, { recursive: true, force: true }); }

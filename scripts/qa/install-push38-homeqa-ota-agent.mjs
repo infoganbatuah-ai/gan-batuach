@@ -18,7 +18,9 @@ import { readR2KeychainCredentials } from "../release/macos-r2-keychain.mjs";
 const profile = process.argv.find(arg => arg.startsWith("--profile="))?.slice(10);
 const apply = process.argv.includes("--apply"), dryRun = process.argv.includes("--dry-run");
 const recoveryUpgrade = process.argv.includes("--health-recovery-upgrade");
-const managementUpgrade = process.argv.includes("--management-upgrade") || recoveryUpgrade;
+const startupRecoveryUpgrade = process.argv.includes("--startup-recovery-upgrade");
+if (recoveryUpgrade && startupRecoveryUpgrade) throw new Error("P38_HOME_QA_AGENT_UPGRADE_MODE_INVALID");
+const managementUpgrade = process.argv.includes("--management-upgrade") || recoveryUpgrade || startupRecoveryUpgrade;
 if (apply === dryRun || !["SOFTWARE_CONNECTOR", "PHYSICAL_GATEWAY"].includes(profile))
   throw new Error("P38_HOME_QA_AGENT_MODE_OR_PROFILE_INVALID");
 if (managementUpgrade && profile !== "SOFTWARE_CONNECTOR")
@@ -28,12 +30,16 @@ const spec = connector ? {
   deviceId: "db267b52-6282-4944-bcee-5d4857698fb0",
   baselineRelease: "qa-connector-legacy-transition-v2-6e7988808b05",
   baselineSha: "6e7988808b05956d58416a6ce60638f52b19aa732918ac0e1cdafcc5fc9f130a",
-  remediationRelease: recoveryUpgrade ? "qa-p38-health-connector-recovery-9bb5db251379" :
+  remediationRelease: startupRecoveryUpgrade ? "qa-p38-health-connector-startup-d44b7e4262f9" :
+    recoveryUpgrade ? "qa-p38-health-connector-recovery-9bb5db251379" :
     managementUpgrade ? "qa-p38-health-connector-pidfix-1b9e9499ffa7" :
     "qa-p38-health-connector-1b076f596574",
-  bundleName: recoveryUpgrade ? "connector_remediation_recovery.json" :
+  bundleName: startupRecoveryUpgrade ? "connector_remediation_startup.json" :
+    recoveryUpgrade ? "connector_remediation_recovery.json" :
     managementUpgrade ? "connector_remediation_pidfix.json" : "connector_remediation.json",
-  priorManagement: recoveryUpgrade ? { release_id: "qa-p38-health-connector-pidfix-1b9e9499ffa7",
+  priorManagement: startupRecoveryUpgrade ? { release_id: "qa-p38-health-connector-recovery-9bb5db251379",
+    artifact_sha256: "9bb5db251379a3fcc961a8b1ce950eb2acb4554f00ae6a9717b83b4af803077c" } :
+    recoveryUpgrade ? { release_id: "qa-p38-health-connector-pidfix-1b9e9499ffa7",
     artifact_sha256: "1b9e9499ffa7d1c2a177a1fa3c657124c4ab803879ccbe220f28a3a6c835d22b" } :
     managementUpgrade ? { release_id: "qa-p38-health-connector-1b076f596574",
       artifact_sha256: "1b076f5965744a903c3c601d8c424c7b127bdcb0d06f49c72eff8b9345bdfc27" } : null,
@@ -72,11 +78,13 @@ const runtimeConfig = { profile, managedRoot: root, installedBase: spec.installe
 const plan = planInstalledOtaAgent({ profile, managedRoot: root, agentPlistPath, agentLabel });
 if (apply) validateHomeQaOtaIdentityScope({ managedRoot: root, runtimeConfig });
 const bundleOverride = process.argv.find(arg => arg.startsWith("--bundle="))?.slice(9);
-const bundle = resolve(bundleOverride || (recoveryUpgrade
-  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-connector-recovery.zip"
+const bundle = resolve(bundleOverride || (startupRecoveryUpgrade
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-connector-startup.zip"
+  : recoveryUpgrade
+    ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-connector-recovery.zip"
   : managementUpgrade
-  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-connector-pidfix-35704990843.zip"
-  : "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-signed-manifests-35482295860.zip"));
+    ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-connector-pidfix-35704990843.zip"
+    : "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-signed-manifests-35482295860.zip"));
 const restrictedRoot = "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted";
 const bundleRelative = relative(restrictedRoot, bundle);
 if (!bundleRelative || bundleRelative === ".." || bundleRelative.startsWith(`..${sep}`) ||

@@ -11,18 +11,25 @@ import { loadPinnedEdgeReleaseKeys, PROTECTED_EDGE_TRUST_REGISTRY_PATH } from ".
 
 const apply = process.argv.includes("--apply");
 const recovery = process.argv.includes("--health-recovery");
-const bundle = resolve(process.argv.find(value => value.startsWith("--bundle="))?.slice(9) || (recovery
-  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-connector-recovery.zip"
-  : "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-connector-pidfix-35704990843.zip"));
-const artifact = recovery
-  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-connector-remediation-24a100a8/connector-remediation.tar.gz"
-  : "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-connector-remediation-c3408497/connector-remediation.tar.gz";
-const releaseId = recovery ? "qa-p38-health-connector-recovery-9bb5db251379" :
-  "qa-p38-health-connector-pidfix-1b9e9499ffa7";
-const supersededReleaseId = recovery ? "qa-p38-health-connector-pidfix-1b9e9499ffa7" :
-  "qa-p38-health-connector-1b076f596574";
-const bundleName = recovery ? "connector_remediation_recovery.json" : "connector_remediation_pidfix.json";
-const expectedReleaseCount = recovery ? 5 : 4;
+const startupRecovery = process.argv.includes("--startup-recovery");
+if (recovery && startupRecovery) throw new Error("P38_HOME_QA_PIDFIX_MODE_INVALID");
+const bundle = resolve(process.argv.find(value => value.startsWith("--bundle="))?.slice(9) || (startupRecovery
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-connector-startup.zip"
+  : recovery
+    ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-connector-recovery.zip"
+    : "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-connector-pidfix-35704990843.zip"));
+const artifact = startupRecovery
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-connector-remediation-884cf702/connector-remediation.tar.gz"
+  : recovery
+    ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-connector-remediation-24a100a8/connector-remediation.tar.gz"
+    : "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-connector-remediation-c3408497/connector-remediation.tar.gz";
+const releaseId = startupRecovery ? "qa-p38-health-connector-startup-d44b7e4262f9" :
+  recovery ? "qa-p38-health-connector-recovery-9bb5db251379" : "qa-p38-health-connector-pidfix-1b9e9499ffa7";
+const supersededReleaseId = startupRecovery ? "qa-p38-health-connector-recovery-9bb5db251379" :
+  recovery ? "qa-p38-health-connector-pidfix-1b9e9499ffa7" : "qa-p38-health-connector-1b076f596574";
+const bundleName = startupRecovery ? "connector_remediation_startup.json" :
+  recovery ? "connector_remediation_recovery.json" : "connector_remediation_pidfix.json";
+const expectedReleaseCount = startupRecovery ? 6 : recovery ? 5 : 4;
 const deviceId = "db267b52-6282-4944-bcee-5d4857698fb0";
 const accountId = "693f824a750afcc264fe6ee58c8a86ab";
 const origin = `https://${accountId}.r2.cloudflarestorage.com`;
@@ -108,5 +115,6 @@ commit;`;
 execFileSync("docker", ["--context", context, "exec", "-i", container, "psql", "-X", "-q",
   "-v", "ON_ERROR_STOP=1", "-U", "postgres", "-d", "postgres"],
 { input: sql, encoding: "utf8", timeout: 45_000, stdio: ["pipe", "pipe", "pipe"] });
-console.log(JSON.stringify({ status: recovery ? "RECOVERY_RELEASE_REGISTERED_DRAFT" : "PIDFIX_RELEASE_REGISTERED_DRAFT", release_id: releaseId,
+console.log(JSON.stringify({ status: startupRecovery ? "STARTUP_RECOVERY_REGISTERED_DRAFT" :
+  recovery ? "RECOVERY_RELEASE_REGISTERED_DRAFT" : "PIDFIX_RELEASE_REGISTERED_DRAFT", release_id: releaseId,
   superseded_release: "PAUSED", exact_device: true, broad_cohort: "DISABLED", production_writes: 0 }));
