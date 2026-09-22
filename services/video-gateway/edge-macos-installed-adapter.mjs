@@ -84,6 +84,14 @@ export function createMacOSInstalledEdgeAdapter({ profile, installedBase, manage
   function runtimePid() {
     const owner = service();
     if (!owner.running || !owner.pid) return null;
+    // After the managed handoff launchd owns the signed Node runtime directly.
+    // Camera/FFmpeg children are workload processes and must never be treated as
+    // the supervised runtime: their expected lifecycle would look like a crash.
+    try {
+      const source = JSON.parse(run("/usr/bin/plutil", ["-convert", "json", "-o", "-", plistPath]));
+      const runner = source.ProgramArguments?.[1];
+      if (typeof runner === "string" && resolve(runner).startsWith(`${join(root, "slots")}/`)) return owner.pid;
+    } catch { return null; }
     const rows = run("/bin/ps", ["-axo", "pid=,ppid="]).trim().split("\n");
     const children = rows.map(row => row.trim().split(/\s+/).map(Number))
       .filter(([pid, ppid]) => pid > 1 && ppid === owner.pid);

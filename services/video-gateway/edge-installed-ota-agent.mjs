@@ -45,6 +45,12 @@ export function createInstalledEdgeOtaAgent({ root, device, adapter, cloudReques
     try {
       const manager = new EdgeUpdateManager({ root, trustedPublicKeys: load(), device, adapter, healthCheck });
       if (!manager.current().slot || !manager.knownGood().length) fail("EDGE_UPDATE_SIGNED_BOOTSTRAP_REQUIRED");
+      if (manager.status().state === "ACTION_REQUIRED" &&
+        manager.status().failure_category === "EDGE_UPDATE_NO_PRIOR_KNOWN_GOOD") {
+        const recovered = await manager.recoverSoleSignedBaselineAfterFalseCrash();
+        onEvent({ state: recovered.state, reason: recovered.recovery_category });
+        return recovered;
+      }
       if (["ROLLBACK_REQUIRED", "ROLLING_BACK"].includes(manager.status().state)) {
         const recovered = await manager.recoverInterruptedRollback();
         onEvent({ state: recovered.state, reason: recovered.failure_category || null });

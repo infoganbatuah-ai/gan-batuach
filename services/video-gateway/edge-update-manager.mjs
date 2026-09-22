@@ -8,7 +8,7 @@ import {
 
 function fail(code) { throw Object.assign(new Error(code), { code }); }
 const allowedTransitions = Object.freeze({
-  IDLE: ["IDLE", "UPDATE_AVAILABLE"], HEALTHY: ["UPDATE_AVAILABLE", "ROLLBACK_REQUIRED", "ACTION_REQUIRED"], ROLLED_BACK: ["UPDATE_AVAILABLE", "ACTION_REQUIRED"], UPDATE_FAILED: ["UPDATE_AVAILABLE", "ACTION_REQUIRED"], ACTION_REQUIRED: [],
+  IDLE: ["IDLE", "UPDATE_AVAILABLE"], HEALTHY: ["UPDATE_AVAILABLE", "ROLLBACK_REQUIRED", "ACTION_REQUIRED"], ROLLED_BACK: ["UPDATE_AVAILABLE", "ACTION_REQUIRED"], UPDATE_FAILED: ["UPDATE_AVAILABLE", "ACTION_REQUIRED"], ACTION_REQUIRED: ["HEALTHY"],
   UPDATE_AVAILABLE: ["DOWNLOADING", "UPDATE_FAILED"], DOWNLOADING: ["VERIFYING", "UPDATE_FAILED"],
   VERIFYING: ["STAGED", "UPDATE_FAILED"], STAGED: ["INSTALLING", "UPDATE_FAILED"],
   INSTALLING: ["RESTARTING", "ROLLBACK_REQUIRED", "UPDATE_FAILED"], RESTARTING: ["VERIFYING_HEALTH", "ROLLBACK_REQUIRED"],
@@ -137,6 +137,29 @@ export class EdgeUpdateManager {
     if (this.status().state === "ACTION_REQUIRED") return this.status();
     if (!["HEALTHY", "ROLLED_BACK", "UPDATE_FAILED"].includes(this.status().state)) fail("EDGE_UPDATE_ACTION_STATE_INVALID");
     return this.transition("ACTION_REQUIRED", { failure_category: reason });
+  }
+  // Recover only the false terminal produced when the sole signed baseline was
+  // healthy but the supervisor PID was misidentified as a workload child. This
+  // cannot recover a failed update or choose a different slot.
+  async recoverSoleSignedBaselineAfterFalseCrash() {
+    const state = this.status(), current = this.current(), known = this.knownGood();
+    if (state.state !== "ACTION_REQUIRED" || state.failure_category !== "EDGE_UPDATE_NO_PRIOR_KNOWN_GOOD" ||
+      known.length !== 1 || known[0].release_id !== current.release_id ||
+      known[0].artifact_sha256 !== current.artifact_sha256)
+      fail("EDGE_UPDATE_FALSE_CRASH_RECOVERY_NOT_APPLICABLE");
+    this.verifySlot(current);
+    const service = this.adapter.status?.();
+    const first = await this.adapter.health?.({ timeoutMs: 5_000 });
+    const firstPid = this.adapter.runtimePid?.();
+    if (!service?.running || !first?.ok || !Number.isInteger(firstPid) || firstPid < 1)
+      fail("EDGE_UPDATE_FALSE_CRASH_RECOVERY_UNHEALTHY");
+    await new Promise(resolve => setTimeout(resolve, 1_000));
+    const second = await this.adapter.health?.({ timeoutMs: 5_000 });
+    const secondPid = this.adapter.runtimePid?.();
+    if (!second?.ok || secondPid !== firstPid)
+      fail("EDGE_UPDATE_FALSE_CRASH_RECOVERY_UNSTABLE");
+    return this.transition("HEALTHY", { failure_category: null,
+      recovery_category: "EDGE_UPDATE_FALSE_CRASH_PID_CORRECTED", recovered_runtime_pid: secondPid });
   }
   // The OTA agent is independently supervised and may die after committing a
   // rollback transition. Reconcile from signed slots, never from a caller's

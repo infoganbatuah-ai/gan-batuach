@@ -126,6 +126,22 @@ assert.equal((await downGuard.observe({ runtimePid: null, healthy: false })).act
 downClock += 60_000;
 assert.equal((await downGuard.observe({ runtimePid: null, healthy: false })).action, "ROLLED_BACK");
 assert.equal(down.value.current().version, "1.0.0");
+// A false crash terminal on the only signed baseline can be recovered only
+// when the same verified slot and one stable supervisor PID remain healthy.
+const sole = await manager("SOFTWARE_CONNECTOR", async () => healthy(1));
+sole.value.adapter.status = () => ({ running: true, pid: 410 });
+sole.value.adapter.runtimePid = () => 410;
+sole.value.adapter.health = async () => ({ ok: true });
+sole.value.requireAction("EDGE_UPDATE_NO_PRIOR_KNOWN_GOOD");
+assert.equal((await sole.value.recoverSoleSignedBaselineAfterFalseCrash()).state, "HEALTHY");
+assert.equal(sole.value.status().recovery_category, "EDGE_UPDATE_FALSE_CRASH_PID_CORRECTED");
+const unsafeSole = await manager("SOFTWARE_CONNECTOR", async () => healthy(1));
+unsafeSole.value.adapter.status = () => ({ running: true, pid: 411 });
+unsafeSole.value.adapter.runtimePid = () => null;
+unsafeSole.value.adapter.health = async () => ({ ok: true });
+unsafeSole.value.requireAction("EDGE_UPDATE_NO_PRIOR_KNOWN_GOOD");
+await assert.rejects(unsafeSole.value.recoverSoleSignedBaselineAfterFalseCrash(),
+  /EDGE_UPDATE_FALSE_CRASH_RECOVERY_UNHEALTHY/);
 for (const profile of ["SOFTWARE_CONNECTOR", "PHYSICAL_GATEWAY"]) {
   const root = mkdtempSync(join(tmpdir(), "observer-edge-bootstrap-negative-"));
   const device = { deviceId: `qa-${profile.toLowerCase()}-device`, profile, platform: "darwin", architecture: "arm64",
