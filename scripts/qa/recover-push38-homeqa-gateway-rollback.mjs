@@ -4,9 +4,12 @@
 // idempotent service handoff to the already-pinned signed slot, then invokes
 // the canonical rollback reconciliation path after stable health proof.
 import "../../services/video-gateway/http-runtime.mjs";
+import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
 import { existsSync, lstatSync, readFileSync, realpathSync } from "node:fs";
 import { homedir } from "node:os";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { createMacOSInstalledEdgeAdapter } from "../../services/video-gateway/edge-macos-installed-adapter.mjs";
 import {
   deriveInstalledEdgeHealth,
@@ -46,6 +49,21 @@ for (const [key, value] of Object.entries(exact)) {
 }
 if (realpathSync(root) !== root || realpathSync(config.secretDir) !== config.secretDir)
   throw new Error("P38_GATEWAY_ROLLBACK_RECOVERY_SCOPE_UNSAFE");
+const tlsChild = process.argv.includes("--tls-child");
+if (apply && !tlsChild) {
+  const certificate = config.qaTlsCaPath;
+  if (!certificate || !existsSync(certificate) || lstatSync(certificate).isSymbolicLink() ||
+    !lstatSync(certificate).isFile() || realpathSync(certificate) !== certificate ||
+    (lstatSync(certificate).mode & 0o022) !== 0 ||
+    createHash("sha256").update(readFileSync(certificate)).digest("hex") !== config.qaTlsCaSha256)
+    throw new Error("P38_GATEWAY_ROLLBACK_RECOVERY_TLS_CERTIFICATE_INVALID");
+  execFileSync(process.execPath, [fileURLToPath(import.meta.url), ...process.argv.slice(2), "--tls-child"],
+    { env: { ...process.env, NODE_EXTRA_CA_CERTS: certificate }, stdio: "inherit", timeout: 180_000 });
+  process.exit(0);
+}
+if (apply && (!process.env.NODE_EXTRA_CA_CERTS ||
+  realpathSync(process.env.NODE_EXTRA_CA_CERTS) !== realpathSync(config.qaTlsCaPath)))
+  throw new Error("P38_GATEWAY_ROLLBACK_RECOVERY_TLS_PROCESS_INVALID");
 
 const trustedPublicKeys = loadPinnedEdgeReleaseKeys({
   registryPath: PROTECTED_EDGE_TRUST_REGISTRY_PATH

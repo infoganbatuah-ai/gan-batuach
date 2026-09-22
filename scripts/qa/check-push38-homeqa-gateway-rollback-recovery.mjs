@@ -10,6 +10,8 @@ assert.match(source, /manager\.verifySlot\(current\)/);
 assert.match(source, /adapter\.restart\(\{ slot: current\.slot, manifest, rollback: true \}\)/);
 assert.match(source, /waitForInstalledEdgeHealth/);
 assert.match(source, /manager\.recoverActionRequiredRollback\(\)/);
+assert.match(source, /NODE_EXTRA_CA_CERTS: certificate/);
+assert.match(source, /P38_GATEWAY_ROLLBACK_RECOVERY_TLS_PROCESS_INVALID/);
 assert.match(source, /release_selected: false/);
 assert.match(source, /release_promoted: false/);
 assert.doesNotMatch(source, /restoreLegacy\(/);
