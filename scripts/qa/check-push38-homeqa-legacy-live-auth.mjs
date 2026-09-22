@@ -29,7 +29,7 @@ async function request(body, privateKey = proof.privateKey, signed = true, signi
 }
 if (process.argv.includes("--positive-only")) {
   assert.equal(await request(claim(), proof.privateKey, false), 401, "anonymous request accepted");
-  const early = await request({ ...claim(), release_id: "qa-p38-health-connector-1b076f596574" });
+  const early = await request({ ...claim(), release_id: "qa-p38-health-connector-pidfix-1b9e9499ffa7" });
   assert.ok(early >= 400 && early < 500, "Connector remediation available before transition");
   assert.equal(await request(claim()), 200, "exact device authorization failed");
   console.log(JSON.stringify({ status: "PASS", correct_device: "ACCEPT", anonymous: "DENY",
@@ -45,7 +45,8 @@ const cases = [
   ["wrong_channel", { channel: "PRODUCTION" }],
   ["wrong_config", { config_version: 5 }],
   ["wrong_release", { release_id: "qa-non-target-release" }],
-  ["remediation_before_transition", { release_id: "qa-p38-health-connector-1b076f596574" }],
+  ["remediation_before_transition", { release_id: "qa-p38-health-connector-pidfix-1b9e9499ffa7" }],
+  ["superseded_remediation", { release_id: "qa-p38-health-connector-1b076f596574" }],
   ["expired_proof", { timestamp: new Date(Date.now() - 180_000).toISOString() }]
 ];
 const denied = [];

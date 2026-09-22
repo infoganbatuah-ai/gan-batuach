@@ -4,7 +4,8 @@ import { HOME_QA_PHASE, homeQaManagedPhaseAllows } from "../../services/video-ga
 const connectorId = "db267b52-6282-4944-bcee-5d4857698fb0";
 const gatewayId = "62df97e2-3c0b-427f-9108-bde029bc10e7";
 const transition = "qa-connector-legacy-transition-v2-6e7988808b05";
-const connectorFix = "qa-p38-health-connector-1b076f596574";
+const connectorFix = "qa-p38-health-connector-pidfix-1b9e9499ffa7";
+const supersededConnectorFix = "qa-p38-health-connector-1b076f596574";
 const gatewayFix = "qa-p38-health-gateway-6c9d08327ec6";
 const manifest = (releaseId, deviceId, profile) => ({ release_id: releaseId,
   channel: "HOME_QA", platform: "darwin", architecture: "arm64", profile,
@@ -32,6 +33,8 @@ for (const bad of [
   { ...connector, metadata: { ...connector.metadata, home_qa_proof_sha256: "" } }
 ]) assert.equal(homeQaManagedPhaseAllows({ enrollment: bad, manifest: connectorRemediation }), false);
 assert.equal(homeQaManagedPhaseAllows({ enrollment: connector, manifest: connectorTransition }), false);
+assert.equal(homeQaManagedPhaseAllows({ enrollment: connector,
+  manifest: manifest(supersededConnectorFix, connectorId, "SOFTWARE_CONNECTOR") }), false);
 assert.equal(homeQaManagedPhaseAllows({ enrollment: connector, manifest: gatewayRemediation }), false);
 assert.equal(homeQaManagedPhaseAllows({ enrollment: gateway, manifest: connectorRemediation }), false);
 assert.equal(homeQaManagedPhaseAllows({ enrollment: connector, manifest: { ...connectorRemediation,

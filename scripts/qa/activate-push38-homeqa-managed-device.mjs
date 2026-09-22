@@ -156,7 +156,7 @@ if (mode === "PREPARE") {
         where release_id='qa-connector-legacy-transition-v2-6e7988808b05');
       update public.observer_edge_rollouts set status='ACTIVE'
       where status='DRAFT' and release_id=(select id from public.observer_edge_releases
-        where release_id='qa-p38-health-connector-1b076f596574');` : ""}
+        where release_id='qa-p38-health-connector-pidfix-1b9e9499ffa7');` : ""}
     commit;`;
   try { run(["exec", "-i", container, "psql", "-X", "-q", "-v", "ON_ERROR_STOP=1", "-U", "postgres", "-d", "postgres"], sql); }
   catch { throw new Error("P38_HOME_QA_MANAGED_PROOF_DATABASE_FAILED"); }

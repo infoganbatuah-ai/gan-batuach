@@ -118,7 +118,7 @@ const connectorCurrent = JSON.parse(readFileSync(join(connectorRoot, "current.js
 const connectorState = JSON.parse(readFileSync(join(connectorRoot, "update-state.json"), "utf8"));
 const connectorHealth = await (await fetch("http://127.0.0.1:18083/health",
   { signal: AbortSignal.timeout(5000) })).json();
-if (connectorCurrent.release_id !== "qa-p38-health-connector-1b076f596574" ||
+if (connectorCurrent.release_id !== "qa-p38-health-connector-pidfix-1b9e9499ffa7" ||
   connectorState.state !== "HEALTHY" || connectorHealth.mediaHeartbeat?.progressingRelays !== 1 ||
   connectorHealth.mediaHeartbeat?.stalledRelays !== 0)
   throw new Error("P38_GATEWAY_CONNECTOR_REMEDIATION_PREREQUISITE_FAILED");
