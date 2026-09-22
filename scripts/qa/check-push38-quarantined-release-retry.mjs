@@ -9,6 +9,9 @@ test("manager retry requires signed release, exact rollback state, reason, and p
   assert.match(manager, /authorizeQuarantinedReleaseRetry/);
   assert.match(manager, /EDGE_UPDATE_RETRY_EVIDENCE_REQUIRED/);
   assert.match(manager, /state\.state !== "ROLLED_BACK"/);
+  assert.match(manager, /originalFailurePreserved/);
+  assert.match(manager, /delayedRecoveryCategories/);
+  assert.match(manager, /item\.category === expectedFailureCategory/);
   assert.match(manager, /record\.reason !== expectedFailureCategory/);
   assert.match(manager, /this\.verifySlot\(current\)/);
   assert.match(manager, /this\.verifySlot\(failedPointer\)/);

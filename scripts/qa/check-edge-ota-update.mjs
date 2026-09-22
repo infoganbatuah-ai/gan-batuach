@@ -113,6 +113,10 @@ writeFileSync(delayedRecovery.value.knownGoodPath,
 assert.equal(delayedRecovery.value.knownGood().at(-1).release_id, delayedManifest.release_id);
 delayedRecovery.value.reconcileDelayedRollbackKnownGood();
 assert.equal(delayedRecovery.value.knownGood().some(item => item.release_id === delayedManifest.release_id), false);
+const delayedRetry = delayedRecovery.value.authorizeQuarantinedReleaseRetry({ manifest: delayedManifest,
+  expectedFailureCategory: "EDGE_UPDATE_ROLLBACK_HEALTH_FAILED", remediationEvidenceSha256: "b".repeat(64) });
+assert.equal(delayedRetry.previous_failure_category, "EDGE_UPDATE_ROLLBACK_HEALTH_FAILED");
+assert.equal(delayedRetry.recovery_failure_category, "EDGE_UPDATE_ROLLBACK_HEALTH_FAILED");
 
 // Artifact tamper and interrupted phases never promote an incomplete slot.
 const tamper = await manager("SOFTWARE_CONNECTOR", async () => healthy(1));
@@ -164,7 +168,24 @@ for (const profile of ["PHYSICAL_GATEWAY", "SOFTWARE_CONNECTOR"]) {
   assert.equal((await test.value.recoverKnownGoodCrashLoopAfterStability()).state, "ROLLED_BACK");
   assert.equal(test.value.status().recovery_category, "EDGE_UPDATE_SIGNED_KNOWN_GOOD_STABILITY_REVERIFIED");
   assert.equal(test.value.current().version, "1.0.0");
+  if (profile === "SOFTWARE_CONNECTOR") {
+    const delayedCrashRetry = test.value.authorizeQuarantinedReleaseRetry({ manifest: update,
+      expectedFailureCategory: "EDGE_UPDATE_CRASH_LOOP", remediationEvidenceSha256: "c".repeat(64) });
+    assert.equal(delayedCrashRetry.previous_failure_category, "EDGE_UPDATE_CRASH_LOOP");
+    assert.equal(delayedCrashRetry.recovery_failure_category, "EDGE_UPDATE_KNOWN_GOOD_CRASH_LOOP");
+  }
 }
+// A successful retry clears inherited rollback diagnostics. The guarded
+// metadata-only reconciler also repairs the exact historical state shape.
+const cleanRetry = await manager("SOFTWARE_CONNECTOR", async () => healthy(1));
+const cleanManifest = manifest({ version: "1.1.0", release: "qa-clean-retry-1.1.0" });
+cleanRetry.value.transition("ACTION_REQUIRED", { failure_category: "EDGE_UPDATE_NO_PRIOR_KNOWN_GOOD" });
+cleanRetry.value.transition("HEALTHY", { failure_category: null });
+assert.equal((await cleanRetry.value.apply({ manifest: cleanManifest, artifactBytes: artifact })).failure_category, null);
+const dirtyHealthy = cleanRetry.value.status();
+writeFileSync(cleanRetry.value.statePath, `${JSON.stringify({ ...dirtyHealthy,
+  failure_category: "EDGE_UPDATE_CRASH_LOOP", failed_version: "1.0.9" }, null, 2)}\n`);
+assert.equal(cleanRetry.value.reconcileHealthyStatusMetadata().failure_category, null);
 // A newly promoted process that remains down is not allowed to wait forever
 // for a third PID transition. One transient probe cannot trigger rollback.
 const down = await manager("PHYSICAL_GATEWAY", async () => healthy(10, 6));

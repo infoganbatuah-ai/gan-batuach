@@ -160,8 +160,14 @@ export class EdgeUpdateManager {
     if (!verified.ok) fail(verified.reason);
     const manifest = verified.manifest;
     const state = this.status(), current = this.current(), knownGood = this.knownGood();
+    const delayedRecoveryCategories = new Set(["EDGE_UPDATE_KNOWN_GOOD_UNHEALTHY",
+      "EDGE_UPDATE_ROLLBACK_HEALTH_FAILED", "EDGE_UPDATE_KNOWN_GOOD_CRASH_LOOP"]);
+    const originalFailurePreserved = state.failure_category === expectedFailureCategory ||
+      (delayedRecoveryCategories.has(state.failure_category) &&
+        (state.history || []).some(item => ["ROLLBACK_REQUIRED", "ROLLING_BACK"].includes(item.state) &&
+          item.category === expectedFailureCategory));
     if (state.state !== "ROLLED_BACK" || state.release_id !== manifest.release_id ||
-      state.failure_category !== expectedFailureCategory ||
+      !originalFailurePreserved ||
       !knownGood.some((item) => item.release_id === current.release_id &&
         item.artifact_sha256 === current.artifact_sha256) || current.release_id === manifest.release_id)
       fail("EDGE_UPDATE_RETRY_STATE_MISMATCH");
@@ -182,6 +188,7 @@ export class EdgeUpdateManager {
     const audit = this.readJson(this.quarantineRetryPath, []);
     const authorization = { release_id: manifest.release_id, version: manifest.version,
       previous_failure_category: expectedFailureCategory, remediation_evidence_sha256: remediationEvidenceSha256,
+      recovery_failure_category: state.failure_category,
       authorized_at: new Date(this.now()).toISOString(), current_release_id: current.release_id,
       current_artifact_sha256: current.artifact_sha256 };
     atomicJson(this.quarantineRetryPath, [...audit.slice(-99), authorization]);
@@ -304,6 +311,26 @@ export class EdgeUpdateManager {
     atomicJson(this.knownGoodPath, known.filter(item => item.release_id !== state.release_id));
     return this.status();
   }
+  // A successful retry may start from ROLLED_BACK and inherit diagnostic
+  // fields from the prior failure through the state-machine merge. Clear only
+  // stale terminal metadata after proving the exact signed CURRENT is the
+  // promoted KNOWN_GOOD and is not quarantined. No runtime action occurs.
+  reconcileHealthyStatusMetadata() {
+    const state = this.status(), current = this.current(), known = this.knownGood();
+    if (state.state !== "HEALTHY" || state.release_id !== current.release_id ||
+      !known.some(item => item.release_id === current.release_id &&
+        item.artifact_sha256 === current.artifact_sha256) ||
+      this.quarantine().some(item => item.release_id === current.release_id))
+      fail("EDGE_UPDATE_HEALTHY_METADATA_RECONCILIATION_NOT_APPLICABLE");
+    this.verifySlot(current);
+    if (!state.failure_category && !state.recovery_category && !state.failed_version && !state.recovered_version)
+      return state;
+    const next = { ...state, failure_category: null, recovery_category: null,
+      failed_version: null, recovered_version: null, recovery_health: null,
+      updated_at: new Date(this.now()).toISOString() };
+    atomicJson(this.statePath, next);
+    return next;
+  }
   // A restored signed known-good slot can later be marked ACTION_REQUIRED if
   // its supervisor was unavailable for the crash-guard window. Reconcile only
   // that exact verified CURRENT/KNOWN_GOOD slot after two stable observations
@@ -404,7 +431,9 @@ export class EdgeUpdateManager {
       if (!health.healthy) fail(health.reason);
       const knownGood = this.knownGood(); knownGood.push({ ...this.current(), promoted_at: new Date(this.now()).toISOString(), health });
       atomicJson(this.knownGoodPath, knownGood.slice(-3));
-      return this.transition("HEALTHY", { target_version: manifest.version, release_id: manifest.release_id, health });
+      return this.transition("HEALTHY", { target_version: manifest.version, release_id: manifest.release_id, health,
+        failure_category: null, recovery_category: null, failed_version: null,
+        recovered_version: null, recovery_health: null });
     } catch (error) {
       const reason = error.code || "EDGE_UPDATE_FAILED";
       if (switched) {
