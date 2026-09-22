@@ -23,6 +23,20 @@ export function push38tIngressAllows(method, pathname) {
   return routes.has(`${method} ${pathname}`);
 }
 
+export function classifyPush38tIngressResponse(method, pathname, status, data) {
+  if (method !== "GET" || pathname !== "/api/video-gateway/edge-updates" || status !== 200)
+    return null;
+  try {
+    const payload = JSON.parse(data.toString("utf8"));
+    const releaseId = payload?.data?.manifest?.release_id;
+    if (typeof releaseId === "string" && /^[A-Za-z0-9._:-]{3,160}$/.test(releaseId))
+      return `MANIFEST:${releaseId}`;
+    const reason = payload?.data?.reason;
+    return typeof reason === "string" && /^[A-Z0-9_:-]{3,100}$/.test(reason)
+      ? `NO_MANIFEST:${reason}` : "NO_MANIFEST:UNSPECIFIED";
+  } catch { return "INVALID_JSON"; }
+}
+
 function tlsMaterial(path, privateKey) {
   const target = resolve(path);
   const info = lstatSync(target);
@@ -68,7 +82,8 @@ export function createPush38tIngress({ origin = "http://127.0.0.1:3100", tls = n
       if (upstream.status >= 300 && upstream.status < 400) throw new Error("QA_INGRESS_REDIRECT_REJECTED");
       const data = Buffer.from(await upstream.arrayBuffer());
       if (data.length > 32_768) throw new Error("QA_INGRESS_OVERSIZE_RESPONSE");
-      onAudit({ method: request.method, pathname: url.pathname, outcome: "FORWARDED", status: upstream.status });
+      onAudit({ method: request.method, pathname: url.pathname, outcome: "FORWARDED", status: upstream.status,
+        responseClass: classifyPush38tIngressResponse(request.method, url.pathname, upstream.status, data) });
       response.writeHead(upstream.status, {
         "cache-control": "private, no-store", "referrer-policy": "no-referrer",
         "content-type": upstream.headers.get("content-type") || "application/json"

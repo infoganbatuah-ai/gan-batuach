@@ -5,7 +5,8 @@ import { createServer } from "node:http";
 import { request as secureRequest } from "node:https";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { createPush38tIngress, push38tIngressAllows } from "../../services/video-gateway/push38t-ota-ingress.mjs";
+import { classifyPush38tIngressResponse, createPush38tIngress,
+  push38tIngressAllows } from "../../services/video-gateway/push38t-ota-ingress.mjs";
 
 const allowed = [
   ["POST", "/api/digital-observer/gateway-enrollment"],
@@ -18,6 +19,12 @@ for (const [method, path] of allowed) assert.equal(push38tIngressAllows(method, 
 for (const path of ["/", "/dashboard", "/api/admin/tasks", "/api/digital-observer/gateway-enrollment/other",
   "/api/video-gateway/device-heartbeat", "/supabase", "/_next/webpack-hmr"])
   assert.equal(push38tIngressAllows("GET", path), false);
+assert.equal(classifyPush38tIngressResponse("GET", "/api/video-gateway/edge-updates", 200,
+  Buffer.from('{"data":{"manifest":{"release_id":"qa-release-safe"}}}')), "MANIFEST:qa-release-safe");
+assert.equal(classifyPush38tIngressResponse("GET", "/api/video-gateway/edge-updates", 200,
+  Buffer.from('{"data":{"manifest":null,"reason":"NO_ELIGIBLE_RELEASE"}}')), "NO_MANIFEST:NO_ELIGIBLE_RELEASE");
+assert.equal(classifyPush38tIngressResponse("POST", "/api/video-gateway/edge-updates", 200,
+  Buffer.from('{"data":{"accepted":true}}')), null);
 const origin = createServer((request, response) => response.writeHead(401, { "content-type": "application/json",
   "set-cookie": "should-not-forward=1" }).end(JSON.stringify({ denied: true, path: request.url })));
 await new Promise(resolve => origin.listen(0, "127.0.0.1", resolve));
