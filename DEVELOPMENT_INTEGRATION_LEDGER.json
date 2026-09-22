@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-09-22T02:25:00Z",
+  "updatedAt": "2026-09-22T09:57:23Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -8936,7 +8936,7 @@
       "sourceCommits": [
         "a9145914ee39f950bda1591fcad6c421e3c02917"
       ],
-      "state": "PUSHED_REMOTE",
+      "state": "LOCAL_VERIFIED",
       "preservation": {
         "remoteVerified": true,
         "remoteRefs": [
@@ -8945,19 +8945,23 @@
         "validatedSourceCommit": "a9145914ee39f950bda1591fcad6c421e3c02917"
       },
       "validation": {
-        "status": "PASS_BRANCH_VALIDATION",
+        "status": "PASS_EXACT_TREE_PR_CI_AND_CUMULATIVE_DEVELOPMENT_VALIDATION",
         "evidence": [
           "GAN_BATUACH_MANAGEMENT_GB_M36_REPORTING_ANALYTICS_REPORT.md",
           "GAN_BATUACH_MANAGEMENT_REPORTING_INVENTORY.md",
           "/private/tmp/gb-m36-reporting-role-e2e.json",
-          "/private/tmp/gb-m36-reporting-scale-e2e.json"
+          "/private/tmp/gb-m36-reporting-scale-e2e.json",
+          "https://github.com/infoganbatuah-ai/gan-batuach/pull/117"
         ],
-        "limits": "Production and main unchanged. Production role/report smoke is deferred to explicit owner release."
+        "limits": "Production and main unchanged. Production role/report smoke remains deferred to an explicit owner-controlled consolidated release."
       },
       "integration": {
-        "status": "PENDING",
-        "commit": null,
-        "pullRequest": null
+        "status": "INTEGRATED_DEVELOPMENT",
+        "commit": "48d2bbc489d53eb096b03bfe3f6b91ad904ae050",
+        "pullRequest": 117,
+        "head": "aafff972df64c1617cc75aab4907b7ba7b4d46d3",
+        "tree": "bd9a3bf20807073574d4dc687e8795f17321a7e0",
+        "verification": "MERGE_TREE_IDENTICAL_TO_VALIDATED_PR_HEAD"
       },
       "dependencies": {
         "status": "GB_M35_INTEGRATED",
@@ -8967,12 +8971,12 @@
       },
       "migrations": [],
       "migrationOrder": [],
-      "localVerification": "PASS_255_MANAGEMENT_22_PARENT_MANAGER_30_DOMAIN_7_SECURITY_243_MIGRATIONS_REPORTING_RLS_27_ROLE_E2E_500_ROW_SCALE_TYPECHECK_BUILD_LINT_PREFLIGHT",
-      "releaseEligibility": "PENDING_PR_AND_CUMULATIVE_INTEGRATION_QA",
+      "localVerification": "PASS_255_MANAGEMENT_22_PARENT_MANAGER_30_DOMAIN_7_SECURITY_243_MIGRATIONS_7_REPORTING_27_ROLE_E2E_RLS_500_ROW_SCALE_TYPECHECK_BUILD_LINT_PREFLIGHT",
+      "releaseEligibility": "READY_FOR_OWNER_RELEASE",
       "productionDeployment": {
         "status": "NOT_DEPLOYED"
       },
-      "nextAction": "Push the feature branch, pass exact-head PR checks, merge to integration/development, and run cumulative integration validation."
+      "nextAction": "Include GB-M36 only in a later explicit owner-authorized consolidated release candidate; reconcile Production migrations and run Production smoke at that time."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
