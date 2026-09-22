@@ -10,7 +10,7 @@ permissions:
   contents: read
 
 concurrency:
-  group: push38-exact-candidate-a59c1ed9
+  group: push38-exact-candidate-5c1e84b0
   cancel-in-progress: false
 
 env:
@@ -27,13 +27,13 @@ jobs:
     steps: &setup
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
-          ref: a59c1ed99dfc5eab88ce6436aa4ee91bf31fc0ac
+          ref: 5c1e84b01c5c3eb80d7f911923a6c7e37fa5118f
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
           cache: npm
-      - run: test "$(git rev-parse HEAD)" = "a59c1ed99dfc5eab88ce6436aa4ee91bf31fc0ac"
+      - run: test "$(git rev-parse HEAD)" = "5c1e84b01c5c3eb80d7f911923a6c7e37fa5118f"
       - run: npm ci
       - run: npm run typecheck
       - run: npm run lint:ci
@@ -45,13 +45,13 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
-          ref: a59c1ed99dfc5eab88ce6436aa4ee91bf31fc0ac
+          ref: 5c1e84b01c5c3eb80d7f911923a6c7e37fa5118f
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
           cache: npm
-      - run: test "$(git rev-parse HEAD)" = "a59c1ed99dfc5eab88ce6436aa4ee91bf31fc0ac"
+      - run: test "$(git rev-parse HEAD)" = "5c1e84b01c5c3eb80d7f911923a6c7e37fa5118f"
       - run: npm ci
       - run: npm run build
 
@@ -62,13 +62,13 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
-          ref: a59c1ed99dfc5eab88ce6436aa4ee91bf31fc0ac
+          ref: 5c1e84b01c5c3eb80d7f911923a6c7e37fa5118f
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
           cache: npm
-      - run: test "$(git rev-parse HEAD)" = "a59c1ed99dfc5eab88ce6436aa4ee91bf31fc0ac"
+      - run: test "$(git rev-parse HEAD)" = "5c1e84b01c5c3eb80d7f911923a6c7e37fa5118f"
       - run: npm ci
       - run: npm run qa:ci:domain
 
@@ -79,14 +79,14 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
-          ref: a59c1ed99dfc5eab88ce6436aa4ee91bf31fc0ac
+          ref: 5c1e84b01c5c3eb80d7f911923a6c7e37fa5118f
           persist-credentials: false
           fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
           cache: npm
-      - run: test "$(git rev-parse HEAD)" = "a59c1ed99dfc5eab88ce6436aa4ee91bf31fc0ac"
+      - run: test "$(git rev-parse HEAD)" = "5c1e84b01c5c3eb80d7f911923a6c7e37fa5118f"
       - run: npm ci
       - run: npm run qa:ci:security
       - run: npm audit --audit-level=high
@@ -108,13 +108,13 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
-          ref: a59c1ed99dfc5eab88ce6436aa4ee91bf31fc0ac
+          ref: 5c1e84b01c5c3eb80d7f911923a6c7e37fa5118f
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
           cache: npm
-      - run: test "$(git rev-parse HEAD)" = "a59c1ed99dfc5eab88ce6436aa4ee91bf31fc0ac"
+      - run: test "$(git rev-parse HEAD)" = "5c1e84b01c5c3eb80d7f911923a6c7e37fa5118f"
       - run: npm ci
       - run: npm run qa:migrations
 
@@ -125,14 +125,14 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
         with:
-          ref: a59c1ed99dfc5eab88ce6436aa4ee91bf31fc0ac
+          ref: 5c1e84b01c5c3eb80d7f911923a6c7e37fa5118f
           persist-credentials: false
           fetch-depth: 2
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
           cache: npm
-      - run: test "$(git rev-parse HEAD)" = "a59c1ed99dfc5eab88ce6436aa4ee91bf31fc0ac"
+      - run: test "$(git rev-parse HEAD)" = "5c1e84b01c5c3eb80d7f911923a6c7e37fa5118f"
       - run: npm ci
       - run: npm run qa:release-contract
       - run: git diff --check HEAD^ HEAD
