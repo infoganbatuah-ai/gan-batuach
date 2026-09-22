@@ -2,6 +2,8 @@ import { NextResponse, type NextFetchEvent, type NextRequest } from "next/server
 import { updateSession } from "@/lib/supabase/middleware";
 import { gatewayDeviceSessionAllows, verifyGatewayDeviceAccessToken } from "@/lib/domain/gateway-device-enrollment";
 
+const CANONICAL_PUBLIC_ORIGIN = "https://ganbatuach.com";
+
 function firstForwardedIp(value: string | null) {
   return value?.split(",")[0]?.trim() || null;
 }
@@ -15,6 +17,17 @@ function envHosts(...values: Array<string | undefined>) {
 
 function hostWithoutPort(value: string | null) {
   return value?.split(":")[0]?.toLowerCase() ?? "";
+}
+
+function canonicalPublicRedirect(request: NextRequest) {
+  const host = hostWithoutPort(request.headers.get("x-forwarded-host") ?? request.headers.get("host"));
+  if (host !== "www.ganbatuach.com" && !host.endsWith(".vercel.app")) return null;
+  const destination = request.nextUrl.clone();
+  const canonical = new URL(CANONICAL_PUBLIC_ORIGIN);
+  destination.protocol = canonical.protocol;
+  destination.hostname = canonical.hostname;
+  destination.port = "";
+  return NextResponse.redirect(destination, 308);
 }
 
 function isDigitalObserverHost(request: NextRequest) {
@@ -97,6 +110,9 @@ function writeAuditLog(request: NextRequest, responseStatus: number, requestId: 
 }
 
 export async function proxy(request: NextRequest, event: NextFetchEvent) {
+  const canonicalRedirect = canonicalPublicRedirect(request);
+  if (canonicalRedirect) return canonicalRedirect;
+
   const requestId = crypto.randomUUID();
   const response = await updateSession(request);
   const routedResponse = rewriteForDigitalObserverHost(request, response);

@@ -119,7 +119,7 @@ function json(response, status, body) {
 
 function allowedBrowserOrigins() {
   const configured = String(process.env.VIDEO_GATEWAY_BROWSER_ORIGIN || "").split(",").map((value) => value.trim()).filter(Boolean);
-  return new Set(["https://ganbatuach.com", "https://www.ganbatuach.com", "https://gan-batuach.vercel.app", ...configured]);
+  return new Set(["https://ganbatuach.com", "https://www.ganbatuach.com", ...configured]);
 }
 
 function browserHeaders(request, contentType) {

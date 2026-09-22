@@ -14,7 +14,7 @@ for (const envFile of [".env.local", ".env.qa-demo.local"]) {
 const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const key = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 const email = process.env.QA_DEMO_DIGITAL_OBSERVER_ADMIN_EMAIL;
-const appUrl = String(process.env.NEXT_PUBLIC_APP_URL || "https://gan-batuach.vercel.app").replace(/\/$/, "");
+const appUrl = String(process.env.NEXT_PUBLIC_APP_URL || "https://ganbatuach.com").replace(/\/$/, "");
 if (!url || !key || !email) throw new Error("Supabase public configuration and observer admin email are required.");
 
 const supabase = createClient(url, key, { auth: { persistSession: false, autoRefreshToken: false } });

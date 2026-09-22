@@ -43,8 +43,8 @@ function enrollmentUrl(id: string) { return `/digital-observer/cameras/add?gatew
 // Development must create, inspect and approve on the same backend. Never mix
 // a cloud-created request with a local admin client holding unrelated keys.
 async function developmentProxy(request: Request) {
-  const origin = process.env.VIDEO_GATEWAY_CLOUD_BASE_URL || "https://gan-batuach.vercel.app";
-  if (!["https://gan-batuach.vercel.app", "https://ganbatuach.com", "https://www.ganbatuach.com"].includes(origin)) throw new Error("Gateway cloud origin is not trusted");
+  const origin = process.env.VIDEO_GATEWAY_CLOUD_BASE_URL || "https://ganbatuach.com";
+  if (!["https://ganbatuach.com", "https://www.ganbatuach.com"].includes(origin)) throw new Error("Gateway cloud origin is not trusted");
   const target = new URL("/api/digital-observer/gateway-enrollment", origin);
   target.search = new URL(request.url).search;
   const headers = new Headers({ "content-type": "application/json" });

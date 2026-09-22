@@ -2,20 +2,23 @@ import "server-only";
 
 import { createHash } from "node:crypto";
 import { SafeHttpError } from "@/lib/api";
+import { CANONICAL_APP_ORIGIN } from "@/lib/domain/auth-flow";
 import { firstForwardedIp } from "@/lib/security/audit-log-service";
 
 const DEFAULT_JSON_LIMIT = 16 * 1024;
 
 function configuredOrigins(request: Request) {
-  const origins = new Set<string>([new URL(request.url).origin]);
+  const requestUrl = new URL(request.url);
+  const origins = new Set<string>([CANONICAL_APP_ORIGIN]);
+  if (!requestUrl.hostname.endsWith(".vercel.app")) origins.add(requestUrl.origin);
   for (const value of [
     process.env.NEXT_PUBLIC_APP_URL,
-    process.env.VERCEL_PROJECT_PRODUCTION_URL,
-    process.env.VERCEL_URL
+    process.env.APP_URL
   ]) {
     if (!value) continue;
     try {
-      origins.add(new URL(value.includes("://") ? value : `https://${value}`).origin);
+      const configured = new URL(value.includes("://") ? value : `https://${value}`);
+      if (!configured.hostname.endsWith(".vercel.app")) origins.add(configured.origin);
     } catch {
       // Invalid deployment metadata is ignored; the request origin remains fail-closed.
     }

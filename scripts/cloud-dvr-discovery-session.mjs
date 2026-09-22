@@ -142,7 +142,7 @@ function signBody(timestamp, nonce, body, secret) {
 async function main() {
   console.log("Cloud DVR discovery session. DVR credentials stay local; only sanitized channel status is sent to the cloud endpoint.");
   const cloudConfig = loadLocalCloudConfig();
-  const productionBaseUrl = process.env.VIDEO_GATEWAY_CLOUD_BASE_URL || cloudConfig.VIDEO_GATEWAY_CLOUD_BASE_URL || "https://gan-batuach.vercel.app";
+  const productionBaseUrl = process.env.VIDEO_GATEWAY_CLOUD_BASE_URL || cloudConfig.VIDEO_GATEWAY_CLOUD_BASE_URL || "https://ganbatuach.com";
   const gatewayId = process.env.VIDEO_GATEWAY_CLOUD_GATEWAY_ID || cloudConfig.VIDEO_GATEWAY_CLOUD_GATEWAY_ID;
   const cloudSecret = process.env.VIDEO_GATEWAY_CLOUD_DISCOVERY_SECRET || cloudConfig.VIDEO_GATEWAY_CLOUD_DISCOVERY_SECRET;
   const gardenId = process.env.VIDEO_GATEWAY_CLOUD_GARDEN_ID || cloudConfig.VIDEO_GATEWAY_CLOUD_GARDEN_ID || "";

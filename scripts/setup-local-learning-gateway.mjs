@@ -28,7 +28,7 @@ vercel(["env", "add", "VIDEO_GATEWAY_CLOUD_ALLOWED_GATEWAYS", "production", "--s
 vercel(["env", "add", "VIDEO_GATEWAY_SIGNING_SECRET", "production", "--sensitive"], `${gatewaySecret}\n`);
 
 writeFileSync(".env.video-gateway.local", [
-  "VIDEO_GATEWAY_CLOUD_BASE_URL=https://gan-batuach.vercel.app",
+  "VIDEO_GATEWAY_CLOUD_BASE_URL=https://ganbatuach.com",
   `VIDEO_GATEWAY_CLOUD_GATEWAY_ID=${gatewayId}`,
   `VIDEO_GATEWAY_CLOUD_OBSERVER_SITE_ID=${observerSiteId}`,
   `VIDEO_GATEWAY_CLOUD_DISCOVERY_SECRET=${secret}`,
