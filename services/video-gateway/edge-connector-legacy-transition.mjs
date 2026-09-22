@@ -105,8 +105,17 @@ export function createConnectorLegacyTransition({ manager, adapter, inspect, ver
       updated_at: new Date().toISOString() });
     return { state: "ACTION_REQUIRED", legacy_recovered: true };
   }
-  async function run({ legacyManifest, legacyBytes, transitionManifest, transitionBytes, derivationRecord }) {
-    if (read() || manager.current().slot || manager.knownGood().length ||
+  async function run({ legacyManifest, legacyBytes, transitionManifest, transitionBytes, derivationRecord },
+    { retryRecoveredFailure = false } = {}) {
+    const prior = read();
+    const recoveredRetry = retryRecoveredFailure && prior?.state === "ACTION_REQUIRED" &&
+      prior.recovery_used === true && prior.attempts === 1 &&
+      prior.failure_category === "EDGE_UPDATE_HEALTH_DEVICE_AUTHENTICATED_FAILED" &&
+      prior.device_id === manager.device.deviceId && prior.legacy_release_id === legacyManifest.release_id &&
+      prior.legacy_artifact_sha256 === legacyManifest.artifact_sha256 &&
+      prior.transition_release_id === transitionManifest.release_id &&
+      prior.transition_artifact_sha256 === transitionManifest.artifact_sha256;
+    if ((prior && !recoveredRetry) || manager.current().slot || manager.knownGood().length ||
       manager.status().state !== "IDLE") fail("EDGE_LEGACY_TRANSITION_ONE_TIME_ONLY");
     if (manager.device.revoked || manager.device.channel !== "INTERNAL") fail("EDGE_LEGACY_TRANSITION_DEVICE_INELIGIBLE");
     for (const [manifest, bytes] of [[legacyManifest, legacyBytes], [transitionManifest, transitionBytes]]) {
@@ -136,15 +145,24 @@ export function createConnectorLegacyTransition({ manager, adapter, inspect, ver
         fail("EDGE_LEGACY_RECOVERY_ARTIFACT_CONFLICT");
     } else writeFileSync(recoveryArtifact, legacyBytes, { mode: 0o600, flag: "wx" });
     atomicJson(join(recoveryDir, "release.json"), legacyManifest);
+    if (recoveredRetry && (before.identity_fingerprint !== prior.identity_fingerprint ||
+      before.binding_fingerprint !== prior.binding_fingerprint)) fail("EDGE_LEGACY_TRANSITION_RETRY_BINDING_CHANGED");
     atomicJson(journalPath, { protocol: "observer-connector-legacy-migration-v1", state: "LEGACY_RECOVERY_ONLY",
       device_id: manager.device.deviceId, legacy_release_id: legacyManifest.release_id,
       legacy_artifact_sha256: legacyManifest.artifact_sha256, transition_release_id: transitionManifest.release_id,
       transition_artifact_sha256: transitionManifest.artifact_sha256,
       derivation_sha256: sha(Buffer.from(canonicalLegacyTransitionRecord(derivationRecord))),
       identity_fingerprint: before.identity_fingerprint, binding_fingerprint: before.binding_fingerprint,
-      attempts: 1, recovery_used: false, updated_at: new Date().toISOString() });
+      attempts: recoveredRetry ? 2 : 1, recovery_used: recoveredRetry,
+      retry_of_failure: recoveredRetry ? prior.failure_category : null, updated_at: new Date().toISOString() });
     const slot = join(root, "slots", transitionManifest.version);
-    if (existsSync(slot)) fail("EDGE_LEGACY_TRANSITION_SLOT_CONFLICT");
+    if (existsSync(slot)) {
+      if (!recoveredRetry || !existsSync(join(slot, "artifact.bin")) || !existsSync(join(slot, "release.json")) ||
+        sha(readFileSync(join(slot, "artifact.bin"))) !== transitionManifest.artifact_sha256 ||
+        JSON.parse(readFileSync(join(slot, "release.json"), "utf8")).release_id !== transitionManifest.release_id)
+        fail("EDGE_LEGACY_TRANSITION_SLOT_CONFLICT");
+      rmSync(slot, { recursive: true });
+    }
     const staging = join(root, "slots", `.transition-${randomUUID()}.staging`);
     mkdirSync(staging, { recursive: true, mode: 0o700 });
     try {

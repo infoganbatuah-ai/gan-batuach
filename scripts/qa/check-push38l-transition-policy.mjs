@@ -109,9 +109,29 @@ try {
   await assert.rejects(bad.manager.apply({ manifest: remediation, artifactBytes: remediationBytes }),
     /EDGE_UPDATE_SIGNED_BOOTSTRAP_REQUIRED/);
 } finally { rmSync(bad.root, { recursive: true, force: true }); }
+const retry = await fixture(false);
+try {
+  let firstTransitionHealth = true;
+  retry.manager.healthCheck = async ({ transition: initialTransition }) => ({
+    process_running: true, device_authenticated: !(initialTransition && firstTransitionHealth),
+    heartbeat: true, config_retrieved: true, cloud_reachable: true, no_crash_loop: true,
+    expected_physical_cameras: 0, progressing_physical_cameras: 0, empty_slots: 0, stalled_streams: 0 });
+  await assert.rejects(retry.coordinator.run(retry.input), /EDGE_UPDATE_HEALTH_DEVICE_AUTHENTICATED_FAILED/);
+  firstTransitionHealth = false;
+  assert.equal(retry.coordinator.status().state, "ACTION_REQUIRED");
+  assert.equal(retry.coordinator.status().recovery_used, true);
+  await assert.rejects(retry.coordinator.run(retry.input), /EDGE_LEGACY_TRANSITION_ONE_TIME_ONLY/);
+  const promoted = await retry.coordinator.run(retry.input, { retryRecoveredFailure: true });
+  assert.equal(promoted.state, "HEALTHY");
+  assert.equal(retry.coordinator.status().state, "RETIRED");
+  assert.equal(retry.coordinator.status().attempts, 2);
+  assert.equal(retry.coordinator.status().retry_of_failure, "EDGE_UPDATE_HEALTH_DEVICE_AUTHENTICATED_FAILED");
+  await assert.rejects(retry.coordinator.run(retry.input, { retryRecoveredFailure: true }),
+    /EDGE_LEGACY_TRANSITION_ONE_TIME_ONLY/);
+} finally { rmSync(retry.root, { recursive: true, force: true }); }
 console.log(JSON.stringify({ status: "PASS", evidence_level: "isolated policy/adapter fixture",
   payload_equivalence_record: record.payload_equivalence_sha256, transition_release: transition.release_id,
-  migration_failure_legacy_recovery: "PASS", no_retry_loop: "PASS",
+  migration_failure_legacy_recovery: "PASS", bounded_recovered_retry: "PASS", no_retry_loop: "PASS",
   transition_promoted_signed_known_good: "PASS", normal_ota_remediation: "PASS",
   crash_rollback_target: transition.release_id, legacy_retired_from_normal_ota: "PASS",
   device_binding_negative: "PASS", tampered_record_negative: "PASS", state_fixtures_preserved: "PASS" }));

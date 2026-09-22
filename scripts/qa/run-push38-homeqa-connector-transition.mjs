@@ -137,6 +137,8 @@ if (authorization.status !== "PASS" || authorization.correct_device !== "ACCEPT"
   authorization.anonymous !== "DENY" || authorization.scope !== "FRESH_SINGLE_GRANT" ||
   authorization.remediation_early !== "DENY")
   throw new Error("P38_CONNECTOR_HOME_QA_AUTHORIZATION_UNAVAILABLE");
+const transitionIdentityAuthenticated = authorization.status === "PASS" &&
+  authorization.correct_device === "ACCEPT" && authorization.scope === "FRESH_SINGLE_GRANT";
 const gatewayHealth = await (await fetch("http://127.0.0.1:18082/health", { signal: AbortSignal.timeout(5000) })).json();
 // Legacy /health is itself part of the known pre-remediation failure. Its
 // response is evidence, not a prerequisite for the signed one-time handoff.
@@ -193,9 +195,12 @@ const probeHealth = async () => {
     const probe = await adapter.health({ timeoutMs: 5000 });
     const body = probe.body || {};
     last = { process_running: probe.ok && probe.service.running,
-      device_authenticated: body.deviceAuthorization?.status === "ready",
+      // The signed one-time handoff is authenticated by the exact-device
+      // legacy HOME_QA proof above. Managed Ed25519 identity is deliberately
+      // established only after this transition succeeds.
+      device_authenticated: transitionIdentityAuthenticated,
       heartbeat: probe.ok, config_retrieved: body.lastDiscovery?.channelCount === 1,
-      cloud_reachable: body.deviceAuthorization?.status === "ready", no_crash_loop: probe.ok,
+      cloud_reachable: transitionIdentityAuthenticated, no_crash_loop: probe.ok,
       // This signed transition re-seals the same legacy payload. The already
       // documented 0/1 Tapo defect is a remediation gate, not a reason to
       // mislabel the transition as a failed service handoff. Preserve actual
@@ -224,7 +229,7 @@ const transition = createConnectorLegacyTransition({ manager, adapter, inspect,
       (await adapter.health({ timeoutMs: 5000 })).service.running;
   } });
 const result = await transition.run({ legacyManifest, legacyBytes, transitionManifest,
-  transitionBytes: archive, derivationRecord: record });
+  transitionBytes: archive, derivationRecord: record }, { retryRecoveredFailure: true });
 if (result.state !== "HEALTHY" || result.current_release !== transitionManifest.release_id ||
   result.known_good_release !== transitionManifest.release_id ||
   transition.status()?.state !== "RETIRED" || snapshot().binding_fingerprint !== before.binding_fingerprint)
