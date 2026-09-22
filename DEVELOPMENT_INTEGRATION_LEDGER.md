@@ -261,3 +261,16 @@ isolated Development application is pending in the migration ledger; PR #86
 remains draft and GB-M35 role/browser QA remains open. Production, `main`, and
 customer accounts are unchanged. Historical Production backups require
 retention/security review in the later owner-authorized release.
+
+GB-M35E Parent Enrollment P1 closure (2026-09-22): scoped PR #109
+preserved source commit `a5b6dfd715bd43e77546b26f72d6ea32e51678e7` and merged it
+into `integration/development` as `166a65c2d4abe5095783fc3d28b157a2ed0aaa7b`.
+The follow-up activation repair PR #110 preserved source commit
+`f15dccb46f1c0fcca33ee43263652e127a0c0130`, passed 10/10 checks,
+and merged as `d001f37c2a030a371adb7267f1a428c670f758c8`. Healthy isolated
+Auth QA completed the Parent Enrollment journey 19/19 with canonical
+`activated` status, manual arrangement state, and exactly one typed audit row
+per event. The two forward-only migrations are approved here for the guarded
+isolated Development database in order; this does not authorize Production,
+`main`, GB-M36, or any Digital Observer change. PR #86 remains draft pending
+full GB-M35E matrix closure.

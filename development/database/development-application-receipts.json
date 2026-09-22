@@ -1,7 +1,7 @@
 {
   "environment": "DEVELOPMENT / INTEGRATION",
-  "observedAt": "2026-09-21T00:00:45.790Z",
-  "integrationCommit": "513dc53e2277aa810a12614870a331fb6d16bb00",
+  "observedAt": "2026-09-22T02:33:40.091Z",
+  "integrationCommit": "c42428b349b2d56ada44e5c527f1807308bb33c4",
   "migrations": [
     {
       "version": "20260919170000",
@@ -106,6 +106,30 @@
       "source_commit": "513dc53e2277aa810a12614870a331fb6d16bb00",
       "applied_at": "2026-09-20T23:58:56.917211+00:00",
       "schema_fingerprint": "7da96a8a43032a64f552c99286f3f9722bb68d5dfeebd701bc915df31d40fe1b"
+    },
+    {
+      "version": "20260922100000",
+      "filename": "supabase/migrations/20260922100000_management_enrollment_audit_role_fix.sql",
+      "source_digest": "9e499a15934de38aacce653ef434cecd99647892c696caff90b76ec1d5257338",
+      "source_commit": "9dea99d1a05befd97d89ac52bf853636b23cdc0b",
+      "applied_at": "2026-09-22T01:18:38.563865+00:00",
+      "schema_fingerprint": "2d7f47853c26b8e6c22471cfc7b8929faf546d2746e7fd65031ce253ce92d5f8"
+    },
+    {
+      "version": "20260922110000",
+      "filename": "supabase/migrations/20260922110000_management_enrollment_activation_audit_role_fix.sql",
+      "source_digest": "65f86104dc20d00953ae2b0ac390e9ed88037ef541f4234aba03e2c24a79ac18",
+      "source_commit": "9dea99d1a05befd97d89ac52bf853636b23cdc0b",
+      "applied_at": "2026-09-22T01:18:42.592919+00:00",
+      "schema_fingerprint": "673fc0d82df2c0a160390e99654b48bf0e3abc28b19201d6734765aca26956b2"
+    },
+    {
+      "version": "20260922120000",
+      "filename": "supabase/migrations/20260922120000_management_parent_notification_category_fix.sql",
+      "source_digest": "e60d3ca2e1d0e781e07b9b553dcf9570be492a56d505ef2b7b152145e88feb74",
+      "source_commit": "c42428b349b2d56ada44e5c527f1807308bb33c4",
+      "applied_at": "2026-09-22T02:32:54.951193+00:00",
+      "schema_fingerprint": "87141dea5b40f8d887945b87968d8dfe99c6f87bf5adaa1913adde0c681c1e58"
     }
   ],
   "productionAccess": false
