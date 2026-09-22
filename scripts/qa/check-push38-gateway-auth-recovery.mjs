@@ -7,6 +7,7 @@ import { buildPush38GatewayAuthRecoveryManifest, PUSH38_GATEWAY_AUTH_RECOVERY } 
 const installer = readFileSync("scripts/qa/install-push38-homeqa-ota-agent.mjs", "utf8");
 const registration = readFileSync("scripts/qa/register-push38-homeqa-gateway-auth-recovery.mjs", "utf8");
 const rollbackRecovery = readFileSync("scripts/qa/recover-push38-homeqa-gateway-rollback.mjs", "utf8");
+const signedRecovery = readFileSync("scripts/qa/authorize-push38-homeqa-gateway-signed-recovery.mjs", "utf8");
 
 test("Gateway auth recovery is an immutable exact-device release", () => {
   const manifest = buildPush38GatewayAuthRecoveryManifest({ signingKeyId: "fixture-release-key",
@@ -26,6 +27,8 @@ test("management upgrade is Gateway-scoped and pinned to the failed signed prede
   assert.match(installer, /6c9d08327ec6f38db3fc55c4c344f4db6fc0d0adab5c68e3ec3f1c1164f11c95/);
   assert.match(rollbackRecovery, /manager\.recoverActionRequiredRollback\(\)/);
   assert.match(rollbackRecovery, /adapter\.restart\(\{ slot: current\.slot, manifest, rollback: true \}\)/);
+  assert.match(signedRecovery, /manager\.transition\("ROLLED_BACK"/);
+  assert.match(signedRecovery, /release_installed: false/);
 });
 
 test("registration requires verified managed identity and disables every broad cohort", () => {
