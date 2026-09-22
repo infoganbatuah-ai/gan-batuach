@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
-  "observedAt": "2026-09-20T23:59:55.842Z",
+  "observedAt": "2026-09-22T01:08:10.509Z",
   "productionWriteAuthorized": false,
   "remoteHistoryStatus": "UNVERIFIED_READ_ONLY_RECONCILIATION_REQUIRED",
-  "localDatabaseStatus": "BASELINE_AND_INTEGRATED_MIGRATIONS_APPLIED",
+  "localDatabaseStatus": "PENDING_REVIEWED_MIGRATIONS_20260922100000_20260922110000",
   "migrations": [
     {
       "file": "supabase/migrations/20260919190000_edge_home_qa_channel.sql",
@@ -7348,9 +7348,65 @@
       "developmentStatusReason": "Original post-baseline SQL applied after remote integration; Production status unchanged",
       "developmentHistoryDigest": "e9e6defbe6319ea0b36d61266d0a9bfdad820f7ce2280ccb8402b423fd556adb",
       "developmentSchemaFingerprint": "7da96a8a43032a64f552c99286f3f9722bb68d5dfeebd701bc915df31d40fe1b"
+    },
+    {
+      "file": "supabase/migrations/20260922100000_management_enrollment_audit_role_fix.sql",
+      "blob": "4837838527d44e6fd698075576e3e7f99e176f6a",
+      "version": "20260922100000",
+      "sourceTask": "GB-M35E_P1_ENROLLMENT_AUDIT_ROLE_FIX",
+      "sourceCommit": "a5b6dfd715bd43e77546b26f72d6ea32e51678e7",
+      "sourceHead": "a5b6dfd715bd43e77546b26f72d6ea32e51678e7",
+      "remoteBranch": "origin/codex/gb-m35e-enrollment-audit-role-fix",
+      "integrationCommit": "166a65c2d4abe5095783fc3d28b157a2ed0aaa7b",
+      "inGit": true,
+      "inIntegration": true,
+      "inclusion": "INTEGRATED_DEVELOPMENT",
+      "releaseOrder": "20260922100000",
+      "requiredPredecessor": "20260921150000_management_staff_candidate_private_documents.sql",
+      "dependencyStatus": "GB_M35_CANDIDATE_DOCUMENTS_DEVELOPMENT_APPLIED",
+      "developmentApproval": "VALIDATED_FOR_ISOLATED_DEVELOPMENT",
+      "developmentDependsOn": [
+        "20260921150000"
+      ],
+      "developmentApplied": "NO",
+      "developmentAppliedAt": null,
+      "developmentEvidence": null,
+      "productionApplied": "UNVERIFIED",
+      "productionEvidence": null,
+      "recovery": "Forward-only replacement of decide_enrollment_request to preserve the typed app_role audit actor. No enrollment data rewrite or backfill. Apply only to guarded isolated Development after verified backup; Production requires a separate owner-authorized release.",
+      "developmentApprovalEvidence": "PR #109 merged only after required checks passed; healthy isolated Auth QA reproduced the Parent Enrollment decision path and focused audit-role regression passed. No Production access.",
+      "developmentStatusReason": "Approved for guarded isolated Development application after integration; not yet applied"
+    },
+    {
+      "file": "supabase/migrations/20260922110000_management_enrollment_activation_audit_role_fix.sql",
+      "blob": "2165b969d4447b935a09f7ecf8dc3ee0f81424b1",
+      "version": "20260922110000",
+      "sourceTask": "GB-M35E_P1_ENROLLMENT_ACTIVATION_AUDIT_ROLE_FIX",
+      "sourceCommit": "f15dccb46f1c0fcca33ee43263652e127a0c0130",
+      "sourceHead": "f15dccb46f1c0fcca33ee43263652e127a0c0130",
+      "remoteBranch": "origin/codex/gb-m35e-enrollment-activation-audit-role-fix",
+      "integrationCommit": "d001f37c2a030a371adb7267f1a428c670f758c8",
+      "inGit": true,
+      "inIntegration": true,
+      "inclusion": "INTEGRATED_DEVELOPMENT",
+      "releaseOrder": "20260922110000",
+      "requiredPredecessor": "20260922100000_management_enrollment_audit_role_fix.sql",
+      "dependencyStatus": "GB_M35E_ENROLLMENT_DECISION_FIX_ORDERED",
+      "developmentApproval": "VALIDATED_FOR_ISOLATED_DEVELOPMENT",
+      "developmentDependsOn": [
+        "20260922100000"
+      ],
+      "developmentApplied": "NO",
+      "developmentAppliedAt": null,
+      "developmentEvidence": null,
+      "productionApplied": "UNVERIFIED",
+      "productionEvidence": null,
+      "recovery": "Forward-only replacement of two enrollment activation RPC bodies. The manual actor remains a typed app_role and the provider/system audit actor is nullable; no customer rows are rewritten. Apply only to guarded isolated Development after verified backup; Production requires a separate owner-authorized release.",
+      "developmentApprovalEvidence": "PR #110 exact head f15dccb46f1c0fcca33ee43263652e127a0c0130 passed 10/10 checks and merged as d001f37c2a030a371adb7267f1a428c670f758c8. Healthy isolated Auth QA Parent Enrollment journey 19/19 PASS; focused activation 8/8, migration audit 242, domain 30/30, security 7/7, typecheck, lint, release contract and production build PASS. No Production access.",
+      "developmentStatusReason": "Approved for guarded isolated Development application after integration; not yet applied"
     }
   ],
-  "developmentExpected": 240,
+  "developmentExpected": 242,
   "developmentAppliedVerified": 240,
   "blockers": [],
   "localObservations": [

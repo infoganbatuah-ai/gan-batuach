@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-09-20T15:18:46Z",
+  "updatedAt": "2026-09-22T01:10:00Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -8869,6 +8869,44 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "Resume PR #86 role-browser QA and cumulative Product validation. No Production release."
+    },
+    {
+      "id": "codex/gb-m35e-enrollment-audit-role-fix",
+      "project": "Gan Batuach Management",
+      "title": "GB-M35E P1 enrollment decision typed audit role",
+      "owner": "GB-M35E QA owner",
+      "sourceBranch": "codex/gb-m35e-enrollment-audit-role-fix",
+      "sourceCommits": ["a5b6dfd715bd43e77546b26f72d6ea32e51678e7"],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {"remoteVerified": true, "remoteRefs": ["origin/codex/gb-m35e-enrollment-audit-role-fix"], "validatedSourceCommit": "a5b6dfd715bd43e77546b26f72d6ea32e51678e7"},
+      "validation": {"status": "PASS_REQUIRED_CI_AND_HEALTHY_ISOLATED_PARENT_ENROLLMENT_QA", "evidence": ["https://github.com/infoganbatuah-ai/gan-batuach/pull/109", "GAN_BATUACH_MANAGEMENT_GB_M35_FULL_ROLE_E2E_REPORT.md"], "limits": "Canonical Development migration and final GB-M35E matrix closure pending; Production unchanged."},
+      "integration": {"status": "INTEGRATED_DEVELOPMENT", "commit": "166a65c2d4abe5095783fc3d28b157a2ed0aaa7b", "pullRequest": 109},
+      "dependencies": {"status": "GB_M35_CANDIDATE_DOCUMENTS_DEVELOPMENT_APPLIED", "units": ["codex/gb-m35-p1-candidate-documents"]},
+      "migrations": ["supabase/migrations/20260922100000_management_enrollment_audit_role_fix.sql"],
+      "migrationOrder": ["20260922100000"],
+      "localVerification": "PASS_HEALTHY_ISOLATED_AUTH_QA; CANONICAL_DEVELOPMENT_PENDING",
+      "releaseEligibility": "NOT_READY_PENDING_DEVELOPMENT_MIGRATION_AND_GB_M35E_MATRIX",
+      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "nextAction": "Apply the reviewed migration to canonical isolated Development, retest Parent Enrollment, and continue PR #86 evidence closure."
+    },
+    {
+      "id": "codex/gb-m35e-enrollment-activation-audit-role-fix",
+      "project": "Gan Batuach Management",
+      "title": "GB-M35E P1 enrollment activation typed audit roles",
+      "owner": "GB-M35E QA owner",
+      "sourceBranch": "codex/gb-m35e-enrollment-activation-audit-role-fix",
+      "sourceCommits": ["f15dccb46f1c0fcca33ee43263652e127a0c0130"],
+      "state": "INTEGRATED_DEVELOPMENT",
+      "preservation": {"remoteVerified": true, "remoteRefs": ["origin/codex/gb-m35e-enrollment-activation-audit-role-fix"], "validatedSourceCommit": "f15dccb46f1c0fcca33ee43263652e127a0c0130"},
+      "validation": {"status": "PASS_10_CHECKS_AND_PARENT_ENROLLMENT_19_OF_19", "evidence": ["https://github.com/infoganbatuah-ai/gan-batuach/pull/110", "GAN_BATUACH_MANAGEMENT_GB_M35_FULL_ROLE_E2E_REPORT.md"], "limits": "Canonical Development migration and final GB-M35E matrix closure pending; Production unchanged."},
+      "integration": {"status": "INTEGRATED_DEVELOPMENT", "commit": "d001f37c2a030a371adb7267f1a428c670f758c8", "pullRequest": 110},
+      "dependencies": {"status": "GB_M35E_ENROLLMENT_DECISION_FIX_INTEGRATED", "units": ["codex/gb-m35e-enrollment-audit-role-fix"]},
+      "migrations": ["supabase/migrations/20260922110000_management_enrollment_activation_audit_role_fix.sql"],
+      "migrationOrder": ["20260922110000"],
+      "localVerification": "PASS_HEALTHY_ISOLATED_AUTH_QA; CANONICAL_DEVELOPMENT_PENDING",
+      "releaseEligibility": "NOT_READY_PENDING_DEVELOPMENT_MIGRATION_AND_GB_M35E_MATRIX",
+      "productionDeployment": {"status": "NOT_DEPLOYED"},
+      "nextAction": "Apply both ordered migrations to canonical isolated Development, retest Parent Enrollment, and continue PR #86 evidence closure."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
