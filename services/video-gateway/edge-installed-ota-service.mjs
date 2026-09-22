@@ -9,6 +9,7 @@ import { createInstalledEdgeOtaAgent } from "./edge-installed-ota-agent.mjs";
 import { createMacOSInstalledEdgeAdapter } from "./edge-macos-installed-adapter.mjs";
 import { loadPinnedEdgeReleaseKeys, PROTECTED_EDGE_TRUST_REGISTRY_PATH } from "./edge-release-trust.mjs";
 import { createEdgeSecretStoreSync } from "./edge-secret-store-sync.mjs";
+import { edgeHealthGate, edgeRollbackRecoveryGate } from "./edge-update-manager.mjs";
 import { softwareConnectorDeviceSession } from "./software-connector-cloud.mjs";
 
 function fail(code) { throw Object.assign(new Error(code), { code }); }
@@ -29,6 +30,39 @@ export function deriveInstalledEdgeHealth({ profile, expected, configured = expe
     expected_physical_cameras: expected, progressing_physical_cameras: qa ? 0 : progressing,
     empty_slots: Number(body.lastDiscovery?.unassignedCount || 0),
     stalled_streams: Number(body.mediaHeartbeat?.stalledRelays || 0) };
+}
+
+// A newly handed-off Connector can expose /health before its single RTSP
+// source has completed the bounded open/retry cycle. Wait for two healthy
+// observations from the same supervised PID so a transient response cannot
+// promote a release. The caller supplies the clock/pause for deterministic QA.
+export async function waitForInstalledEdgeHealth({ readHealth, runtimePid, rollback = false,
+  timeoutMs, intervalMs = 5_000, probeTimeoutMs = 5_000, stableSamples = 2,
+  now = () => Date.now(), pause = ms => new Promise(resolve => setTimeout(resolve, ms)) }) {
+  if (typeof readHealth !== "function" || typeof runtimePid !== "function" ||
+    !Number.isInteger(timeoutMs) || timeoutMs < 1_000 ||
+    !Number.isInteger(intervalMs) || intervalMs < 1 ||
+    !Number.isInteger(probeTimeoutMs) || probeTimeoutMs < 250 ||
+    !Number.isInteger(stableSamples) || stableSamples < 1) fail("EDGE_OTA_HEALTH_WAIT_INVALID");
+  const deadline = now() + timeoutMs;
+  const gate = rollback ? edgeRollbackRecoveryGate : edgeHealthGate;
+  let last = null, stablePid = null, consecutive = 0;
+  do {
+    const remaining = Math.max(250, deadline - now());
+    last = await readHealth({ timeoutMs: Math.min(probeTimeoutMs, remaining) });
+    const pid = runtimePid();
+    if (gate(last).healthy && Number.isInteger(pid) && pid > 0) {
+      consecutive = pid === stablePid ? consecutive + 1 : 1;
+      stablePid = pid;
+      if (consecutive >= stableSamples) return last;
+    } else {
+      stablePid = null;
+      consecutive = 0;
+    }
+    const delay = Math.min(intervalMs, deadline - now());
+    if (delay > 0) await pause(delay);
+  } while (now() < deadline);
+  return last;
 }
 function configFrom(path) {
   const target = resolve(path), info = lstatSync(target);
@@ -78,15 +112,21 @@ export async function runInstalledEdgeOtaService(configPath, { signal } = {}) {
     const payload = await response.json();
     return payload.data;
   };
-  const healthCheck = async () => {
-    // Connector model/runtime startup can exceed a short liveness probe. This
-    // is the bounded post-update readiness gate, not the lightweight poll.
-    const probe = await adapter.health({ timeoutMs: 20_000 });
-    const managedDeviceAuthenticated = qa || await softwareConnectorDeviceSession(store).then(session =>
-      session.authMode === "ED25519_V1" && session.gatewayId === config.deviceId, () => false);
-    return deriveInstalledEdgeHealth({ profile: config.profile, expected: config.expectedPhysicalCameras,
-      configured: config.configuredPhysicalCameras ?? config.expectedPhysicalCameras,
-      probe, cloudReachable: managedDeviceAuthenticated, managedDeviceAuthenticated, qa });
+  const healthCheck = async ({ rollback = false } = {}) => {
+    let managedSessionVerified = qa;
+    const readHealth = async ({ timeoutMs }) => {
+      const probe = await adapter.health({ timeoutMs });
+      if (!managedSessionVerified) managedSessionVerified = await softwareConnectorDeviceSession(store).then(session =>
+        session.authMode === "ED25519_V1" && session.gatewayId === config.deviceId, () => false);
+      return deriveInstalledEdgeHealth({ profile: config.profile, expected: config.expectedPhysicalCameras,
+        configured: config.configuredPhysicalCameras ?? config.expectedPhysicalCameras,
+        probe, cloudReachable: managedSessionVerified, managedDeviceAuthenticated: managedSessionVerified, qa });
+    };
+    // Connector RTSP startup is bounded at three minutes. Rollback does not
+    // wait for a pre-existing camera outage to clear; it proves two stable
+    // signed-known-good process samples and preserves the degraded evidence.
+    return waitForInstalledEdgeHealth({ readHealth, runtimePid: adapter.runtimePid, rollback,
+      timeoutMs: rollback ? 15_000 : config.profile === "SOFTWARE_CONNECTOR" ? 210_000 : 90_000 });
   };
   const download = qa ? async ({ destination }) => {
     const value = JSON.parse(readFileSync(config.qaReleasePath, "utf8"));

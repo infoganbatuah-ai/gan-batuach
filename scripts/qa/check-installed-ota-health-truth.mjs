@@ -1,5 +1,5 @@
 import assert from "node:assert/strict";
-import { deriveInstalledEdgeHealth } from "../../services/video-gateway/edge-installed-ota-service.mjs";
+import { deriveInstalledEdgeHealth, waitForInstalledEdgeHealth } from "../../services/video-gateway/edge-installed-ota-service.mjs";
 import { edgeHealthGate } from "../../services/video-gateway/edge-update-manager.mjs";
 
 const base = { ok: true, service: { running: true }, body: { deviceAuthorization: { status: "ready" } } };
@@ -47,8 +47,32 @@ const hiddenConfiguredSources = deriveInstalledEdgeHealth({ profile: "PHYSICAL_G
     mediaHeartbeat: { progressingRelays: 8, stalledRelays: 0 } } }, cloudReachable: true });
 assert.equal(hiddenConfiguredSources.config_retrieved, false);
 assert.equal(edgeHealthGate(hiddenConfiguredSources).healthy, false);
+
+let clock = 0, pid = 41, index = 0;
+const readiness = [managedAgentAuth, recovered, recovered];
+const waited = await waitForInstalledEdgeHealth({ readHealth: async () => readiness[index++] || recovered,
+  runtimePid: () => pid, timeoutMs: 20_000, intervalMs: 1_000, probeTimeoutMs: 500,
+  now: () => clock, pause: async ms => { clock += ms; } });
+assert.equal(edgeHealthGate(waited).healthy, true);
+assert.equal(index, 3, "promotion requires two healthy samples from the same PID");
+
+clock = 0; index = 0;
+const pidChanges = [71, 72, 72];
+await waitForInstalledEdgeHealth({ readHealth: async () => recovered,
+  runtimePid: () => pidChanges[index++] || 72, timeoutMs: 20_000, intervalMs: 1_000, probeTimeoutMs: 500,
+  now: () => clock, pause: async ms => { clock += ms; } });
+assert.equal(index, 3, "a PID handoff resets the stable sample count");
+
+clock = 0; index = 0; pid = 90;
+const rolledBackDegraded = await waitForInstalledEdgeHealth({ readHealth: async () => { index += 1; return managedAgentAuth; },
+  runtimePid: () => pid, rollback: true, timeoutMs: 5_000, intervalMs: 1_000, probeTimeoutMs: 500,
+  now: () => clock, pause: async ms => { clock += ms; } });
+assert.equal(rolledBackDegraded.progressing_physical_cameras, 0);
+assert.equal(index, 2, "rollback accepts degraded cameras only after stable process evidence");
+
 console.log(JSON.stringify({ result: "PASS", connector_stall_detected: true,
   managed_agent_authentication_accepted: true, unauthenticated_runtime_rejected: true,
   connector_recovery_detected: true, gateway_progression_detected: true,
   connected_without_frames_rejected: true, known_upstream_failure_bounded: true,
-  configured_sources_cannot_be_hidden: true }));
+  configured_sources_cannot_be_hidden: true, bounded_readiness_wait: true,
+  stable_pid_required: true, degraded_signed_rollback_accepted: true }));
