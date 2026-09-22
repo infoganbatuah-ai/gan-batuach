@@ -12,13 +12,18 @@ import { createEdgeSecretStoreSync } from "./edge-secret-store-sync.mjs";
 import { softwareConnectorDeviceSession } from "./software-connector-cloud.mjs";
 
 function fail(code) { throw Object.assign(new Error(code), { code }); }
-export function deriveInstalledEdgeHealth({ profile, expected, configured = expected, probe, cloudReachable, qa = false }) {
+export function deriveInstalledEdgeHealth({ profile, expected, configured = expected, probe, cloudReachable,
+  managedDeviceAuthenticated = false, qa = false }) {
   const body = probe.body || {};
   const assigned = profile === "SOFTWARE_CONNECTOR"
     ? body.lastDiscovery?.channelCount : body.lastDiscovery?.assignedCount;
   const progressing = Number(body.mediaHeartbeat?.progressingRelays ?? 0);
   return { process_running: probe.ok && probe.service.running,
-    device_authenticated: qa || body.deviceAuthorization?.status === "ready",
+    // The installed OTA agent owns the managed Ed25519 identity. The camera
+    // runtime may still expose its legacy Product-enrollment state, so require
+    // either a freshly authenticated managed-agent session or the runtime's
+    // own ready state. cloud_reachable remains an independent mandatory gate.
+    device_authenticated: qa || managedDeviceAuthenticated || body.deviceAuthorization?.status === "ready",
     heartbeat: probe.ok, config_retrieved: probe.ok && (qa || assigned === configured),
     cloud_reachable: cloudReachable, no_crash_loop: probe.ok,
     expected_physical_cameras: expected, progressing_physical_cameras: qa ? 0 : progressing,
@@ -77,10 +82,11 @@ export async function runInstalledEdgeOtaService(configPath, { signal } = {}) {
     // Connector model/runtime startup can exceed a short liveness probe. This
     // is the bounded post-update readiness gate, not the lightweight poll.
     const probe = await adapter.health({ timeoutMs: 20_000 });
-    const cloudReachable = qa || await softwareConnectorDeviceSession(store).then(() => true, () => false);
+    const managedDeviceAuthenticated = qa || await softwareConnectorDeviceSession(store).then(session =>
+      session.authMode === "ED25519_V1" && session.gatewayId === config.deviceId, () => false);
     return deriveInstalledEdgeHealth({ profile: config.profile, expected: config.expectedPhysicalCameras,
       configured: config.configuredPhysicalCameras ?? config.expectedPhysicalCameras,
-      probe, cloudReachable, qa });
+      probe, cloudReachable: managedDeviceAuthenticated, managedDeviceAuthenticated, qa });
   };
   const download = qa ? async ({ destination }) => {
     const value = JSON.parse(readFileSync(config.qaReleasePath, "utf8"));

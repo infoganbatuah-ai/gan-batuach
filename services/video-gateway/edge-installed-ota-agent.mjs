@@ -51,6 +51,13 @@ export function createInstalledEdgeOtaAgent({ root, device, adapter, cloudReques
         onEvent({ state: recovered.state, reason: recovered.recovery_category });
         return recovered;
       }
+      if (manager.status().state === "ACTION_REQUIRED" &&
+        ["EDGE_UPDATE_KNOWN_GOOD_UNHEALTHY", "EDGE_UPDATE_ROLLBACK_HEALTH_FAILED"].includes(
+          manager.status().failure_category)) {
+        const recovered = await manager.recoverActionRequiredRollback();
+        onEvent({ state: recovered.state, reason: recovered.recovery_category });
+        return recovered;
+      }
       if (["ROLLBACK_REQUIRED", "ROLLING_BACK"].includes(manager.status().state)) {
         const recovered = await manager.recoverInterruptedRollback();
         onEvent({ state: recovered.state, reason: recovered.failure_category || null });

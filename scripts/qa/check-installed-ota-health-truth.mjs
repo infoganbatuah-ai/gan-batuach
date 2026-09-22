@@ -11,6 +11,15 @@ const current = deriveInstalledEdgeHealth({ profile: "SOFTWARE_CONNECTOR", expec
 assert.equal(current.config_retrieved, true);
 assert.equal(current.progressing_physical_cameras, 0);
 assert.equal(edgeHealthGate(current).healthy, false);
+const managedAgentAuth = deriveInstalledEdgeHealth({ profile: "SOFTWARE_CONNECTOR", expected: 1,
+  probe: { ...connector, body: { ...connector.body, deviceAuthorization: { status: "approval_required" } } },
+  cloudReachable: true, managedDeviceAuthenticated: true });
+assert.equal(managedAgentAuth.device_authenticated, true);
+assert.equal(edgeHealthGate(managedAgentAuth).reason, "EDGE_UPDATE_CAMERA_PROGRESSION_FAILED");
+const unauthenticated = deriveInstalledEdgeHealth({ profile: "SOFTWARE_CONNECTOR", expected: 1,
+  probe: { ...connector, body: { ...connector.body, deviceAuthorization: { status: "approval_required" } } },
+  cloudReachable: false, managedDeviceAuthenticated: false });
+assert.equal(edgeHealthGate(unauthenticated).reason, "EDGE_UPDATE_HEALTH_DEVICE_AUTHENTICATED_FAILED");
 const recovered = deriveInstalledEdgeHealth({ profile: "SOFTWARE_CONNECTOR", expected: 1,
   probe: { ...connector, body: { ...connector.body,
     mediaHeartbeat: { progressingRelays: 1, stalledRelays: 0 } } }, cloudReachable: true });
@@ -39,6 +48,7 @@ const hiddenConfiguredSources = deriveInstalledEdgeHealth({ profile: "PHYSICAL_G
 assert.equal(hiddenConfiguredSources.config_retrieved, false);
 assert.equal(edgeHealthGate(hiddenConfiguredSources).healthy, false);
 console.log(JSON.stringify({ result: "PASS", connector_stall_detected: true,
+  managed_agent_authentication_accepted: true, unauthenticated_runtime_rejected: true,
   connector_recovery_detected: true, gateway_progression_detected: true,
   connected_without_frames_rejected: true, known_upstream_failure_bounded: true,
   configured_sources_cannot_be_hidden: true }));

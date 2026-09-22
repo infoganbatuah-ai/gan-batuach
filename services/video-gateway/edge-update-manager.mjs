@@ -8,7 +8,7 @@ import {
 
 function fail(code) { throw Object.assign(new Error(code), { code }); }
 const allowedTransitions = Object.freeze({
-  IDLE: ["IDLE", "UPDATE_AVAILABLE"], HEALTHY: ["UPDATE_AVAILABLE", "ROLLBACK_REQUIRED", "ACTION_REQUIRED"], ROLLED_BACK: ["UPDATE_AVAILABLE", "ACTION_REQUIRED"], UPDATE_FAILED: ["UPDATE_AVAILABLE", "ACTION_REQUIRED"], ACTION_REQUIRED: ["HEALTHY"],
+  IDLE: ["IDLE", "UPDATE_AVAILABLE"], HEALTHY: ["UPDATE_AVAILABLE", "ROLLBACK_REQUIRED", "ACTION_REQUIRED"], ROLLED_BACK: ["UPDATE_AVAILABLE", "ACTION_REQUIRED"], UPDATE_FAILED: ["UPDATE_AVAILABLE", "ACTION_REQUIRED"], ACTION_REQUIRED: ["HEALTHY", "ROLLED_BACK"],
   UPDATE_AVAILABLE: ["DOWNLOADING", "UPDATE_FAILED"], DOWNLOADING: ["VERIFYING", "UPDATE_FAILED"],
   VERIFYING: ["STAGED", "UPDATE_FAILED"], STAGED: ["INSTALLING", "UPDATE_FAILED"],
   INSTALLING: ["RESTARTING", "ROLLBACK_REQUIRED", "UPDATE_FAILED"], RESTARTING: ["VERIFYING_HEALTH", "ROLLBACK_REQUIRED"],
@@ -33,6 +33,25 @@ export function edgeHealthGate(input) {
   if (![expected, progressing, emptySlots, stalled].every((value) => Number.isInteger(value) && value >= 0)) return { healthy: false, reason: "EDGE_UPDATE_HEALTH_COUNTS_INVALID" };
   if (progressing < expected || stalled > 0) return { healthy: false, reason: "EDGE_UPDATE_CAMERA_PROGRESSION_FAILED" };
   return { healthy: true, reason: "EDGE_UPDATE_HEALTHY", expected_physical_cameras: expected, progressing_physical_cameras: progressing, empty_slots_ignored: emptySlots };
+}
+
+// A rollback proves that the signed known-good service recovered; it does not
+// rewrite a pre-existing upstream camera outage as an update failure. Camera
+// counts remain in the returned evidence and the normal health gate still
+// blocks promotion of a new release when progression is incomplete.
+export function edgeRollbackRecoveryGate(input) {
+  if (!input || typeof input !== "object") return { healthy: false, reason: "EDGE_UPDATE_HEALTH_UNKNOWN" };
+  const required = ["process_running", "device_authenticated", "heartbeat", "config_retrieved", "cloud_reachable", "no_crash_loop"];
+  const missing = required.filter((key) => input[key] !== true);
+  if (missing.length) return { healthy: false, reason: `EDGE_UPDATE_HEALTH_${missing[0].toUpperCase()}_FAILED` };
+  const expected = Number(input.expected_physical_cameras || 0), progressing = Number(input.progressing_physical_cameras || 0);
+  const emptySlots = Number(input.empty_slots || 0), stalled = Number(input.stalled_streams || 0);
+  if (![expected, progressing, emptySlots, stalled].every((value) => Number.isInteger(value) && value >= 0))
+    return { healthy: false, reason: "EDGE_UPDATE_HEALTH_COUNTS_INVALID" };
+  return { healthy: true, reason: progressing < expected || stalled > 0
+    ? "EDGE_UPDATE_ROLLBACK_RECOVERED_DEGRADED" : "EDGE_UPDATE_HEALTHY",
+  expected_physical_cameras: expected, progressing_physical_cameras: progressing,
+  empty_slots_ignored: emptySlots, stalled_streams: stalled };
 }
 
 export class EdgeUpdateManager {
@@ -184,7 +203,7 @@ export class EdgeUpdateManager {
       }
       atomicJson(this.currentPath, prior);
       await this.adapter.restart({ slot: prior.slot, manifest: priorManifest, rollback: true });
-      const recovered = edgeHealthGate(await this.healthCheck({ version: prior.version, rollback: true }));
+      const recovered = edgeRollbackRecoveryGate(await this.healthCheck({ version: prior.version, rollback: true }));
       if (!recovered.healthy) fail("EDGE_UPDATE_KNOWN_GOOD_UNHEALTHY");
       atomicJson(this.knownGoodPath, known.filter(item => item.release_id !== failedReleaseId));
       return this.transition("ROLLED_BACK", { failure_category: state.failure_category || "EDGE_UPDATE_ROLLBACK_INTERRUPTED",
@@ -194,6 +213,38 @@ export class EdgeUpdateManager {
       this.transition("ACTION_REQUIRED", { failure_category: error.code || "EDGE_UPDATE_ROLLBACK_RECOVERY_FAILED" });
       return this.status();
     }
+  }
+  // Reconcile only the false terminal created after CURRENT had already been
+  // restored to the exact signed known-good slot but the old camera runtime was
+  // degraded. This never selects a different slot and never promotes the failed
+  // release.
+  async recoverActionRequiredRollback() {
+    const state = this.status(), current = this.current(), known = this.knownGood();
+    if (state.state !== "ACTION_REQUIRED" ||
+      !["EDGE_UPDATE_KNOWN_GOOD_UNHEALTHY", "EDGE_UPDATE_ROLLBACK_HEALTH_FAILED"].includes(state.failure_category) ||
+      !state.release_id || !known.some(item => item.release_id === current.release_id &&
+        item.artifact_sha256 === current.artifact_sha256) || state.release_id === current.release_id)
+      fail("EDGE_UPDATE_ACTION_ROLLBACK_RECOVERY_NOT_APPLICABLE");
+    this.verifySlot(current);
+    const failedSlot = join(this.root, "slots", safeVersion(state.target_version || state.failed_version || ""));
+    const failedPointer = { version: state.target_version || state.failed_version, slot: failedSlot,
+      release_id: state.release_id, artifact_sha256: this.readJson(join(failedSlot, "release.json"), null)?.artifact_sha256 };
+    const failedManifest = this.verifySlot(failedPointer);
+    if (failedManifest.release_id !== state.release_id) fail("EDGE_UPDATE_ACTION_ROLLBACK_RELEASE_MISMATCH");
+    const service = this.adapter.status?.();
+    const first = edgeRollbackRecoveryGate(await this.healthCheck({ version: current.version, rollback: true }));
+    const firstPid = this.adapter.runtimePid?.();
+    if (!service?.running || !first.healthy || !Number.isInteger(firstPid) || firstPid < 1)
+      fail("EDGE_UPDATE_ACTION_ROLLBACK_RECOVERY_UNHEALTHY");
+    await new Promise(resolve => setTimeout(resolve, 1_000));
+    const second = edgeRollbackRecoveryGate(await this.healthCheck({ version: current.version, rollback: true }));
+    const secondPid = this.adapter.runtimePid?.();
+    if (!second.healthy || secondPid !== firstPid) fail("EDGE_UPDATE_ACTION_ROLLBACK_RECOVERY_UNSTABLE");
+    this.quarantineRelease(failedManifest, state.failure_category);
+    return this.transition("ROLLED_BACK", { failure_category: state.failure_category,
+      failed_version: state.target_version || state.failed_version || failedManifest.version,
+      recovered_version: current.version, recovery_category: "EDGE_UPDATE_SIGNED_KNOWN_GOOD_RECOVERED",
+      recovered_runtime_pid: secondPid, recovery_health: second });
   }
   // A release can pass its immediate health gate and fail later. Only a
   // previously signed, verified known-good slot is eligible for late rollback.
@@ -220,7 +271,7 @@ export class EdgeUpdateManager {
     try {
       atomicJson(this.currentPath, prior);
       await this.adapter.restart({ slot: prior.slot, manifest: priorManifest, rollback: true });
-      const recovered = edgeHealthGate(await this.healthCheck({ version: prior.version, rollback: true }));
+      const recovered = edgeRollbackRecoveryGate(await this.healthCheck({ version: prior.version, rollback: true }));
       if (!recovered.healthy) fail("EDGE_UPDATE_KNOWN_GOOD_UNHEALTHY");
       atomicJson(this.knownGoodPath, known.filter(item => item.release_id !== failed.release_id));
       return this.transition("ROLLED_BACK", { failure_category: reason, failed_version: failed.version,
@@ -280,8 +331,11 @@ export class EdgeUpdateManager {
           fail("EDGE_UPDATE_ROLLBACK_TARGET_UNTRUSTED");
         this.verifySlot(previous);
         atomicJson(this.currentPath, previous); await this.adapter.restart({ slot: previous.slot, manifest: null, rollback: true });
-        const recovered = edgeHealthGate(await this.healthCheck({ version: previous.version, rollback: true }));
-        if (!recovered.healthy) { this.transition("UPDATE_FAILED", { failure_category: "EDGE_UPDATE_ROLLBACK_HEALTH_FAILED" }); throw Object.assign(error, { rollback: "FAILED" }); }
+        const recovered = edgeRollbackRecoveryGate(await this.healthCheck({ version: previous.version, rollback: true }));
+        if (!recovered.healthy) {
+          return this.transition("ACTION_REQUIRED", { failure_category: "EDGE_UPDATE_ROLLBACK_HEALTH_FAILED",
+            failed_version: manifest.version, recovered_version: previous.version, recovery_health: recovered });
+        }
         this.quarantineRelease(manifest, reason);
         this.transition("ROLLED_BACK", { failure_category: reason, failed_version: manifest.version, recovered_version: previous.version, recovery_health: recovered });
         return this.status();

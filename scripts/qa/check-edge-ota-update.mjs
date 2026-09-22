@@ -69,6 +69,27 @@ assert.equal(rolledBack.state, "ROLLED_BACK"); assert.equal(connector.value.curr
 assert.equal(connector.value.quarantine().some(item => item.release_id === badManifest.release_id), true);
 assert.equal(readFileSync(connector.identityPath, "utf8"), connector.identity);
 
+// If the signed known-good service is restored but its first managed-auth
+// probe is unavailable, preserve ACTION_REQUIRED. A later stable proof may
+// reconcile only that exact restored slot; an upstream camera outage remains
+// visible without making the rollback itself false.
+const delayedRecovery = await manager("SOFTWARE_CONNECTOR", async () => healthy(1));
+delayedRecovery.value.adapter.status = () => ({ running: true, pid: 212 });
+delayedRecovery.value.adapter.runtimePid = () => 212;
+const delayedManifest = manifest({ version: "1.2.0", release: "qa-delayed-rollback-1.2.0" });
+delayedRecovery.value.healthCheck = async ({ version, rollback }) => rollback
+  ? { ...healthy(1), device_authenticated: false }
+  : version === "1.2.0" ? { ...healthy(1), progressing_physical_cameras: 0 } : healthy(1);
+assert.equal((await delayedRecovery.value.apply({ manifest: delayedManifest, artifactBytes: artifact })).state,
+  "ACTION_REQUIRED");
+assert.equal(delayedRecovery.value.current().version, "1.0.0");
+delayedRecovery.value.healthCheck = async () => ({ ...healthy(1), progressing_physical_cameras: 0,
+  stalled_streams: 1 });
+assert.equal((await delayedRecovery.value.recoverActionRequiredRollback()).state, "ROLLED_BACK");
+assert.equal(delayedRecovery.value.current().version, "1.0.0");
+assert.equal(delayedRecovery.value.status().recovery_health.reason, "EDGE_UPDATE_ROLLBACK_RECOVERED_DEGRADED");
+assert.equal(delayedRecovery.value.quarantine().some(item => item.release_id === delayedManifest.release_id), true);
+
 // Artifact tamper and interrupted phases never promote an incomplete slot.
 const tamper = await manager("SOFTWARE_CONNECTOR", async () => healthy(1));
 await assert.rejects(tamper.value.apply({ manifest: goodManifest, artifactBytes: Buffer.from("tampered") }), /EDGE_UPDATE_ARTIFACT/);
