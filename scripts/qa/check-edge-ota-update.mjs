@@ -133,6 +133,13 @@ for (const profile of ["PHYSICAL_GATEWAY", "SOFTWARE_CONNECTOR"]) {
   clock += 1_000; await guard.observe({ runtimePid: 201, healthy: true });
   for (const pid of [202, 203, 204]) { clock += 1_000; await guard.observe({ runtimePid: pid, healthy: false }); }
   assert.equal(test.value.status().state, "ACTION_REQUIRED");
+  test.value.adapter.status = () => ({ running: true, pid: 204 });
+  test.value.adapter.runtimePid = () => 204;
+  test.value.healthCheck = async () => healthy(profile === "PHYSICAL_GATEWAY" ? 10 : 1,
+    profile === "PHYSICAL_GATEWAY" ? 6 : 0);
+  assert.equal((await test.value.recoverKnownGoodCrashLoopAfterStability()).state, "ROLLED_BACK");
+  assert.equal(test.value.status().recovery_category, "EDGE_UPDATE_SIGNED_KNOWN_GOOD_STABILITY_REVERIFIED");
+  assert.equal(test.value.current().version, "1.0.0");
 }
 // A newly promoted process that remains down is not allowed to wait forever
 // for a third PID transition. One transient probe cannot trigger rollback.

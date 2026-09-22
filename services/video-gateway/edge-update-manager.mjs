@@ -246,6 +246,33 @@ export class EdgeUpdateManager {
       recovered_version: current.version, recovery_category: "EDGE_UPDATE_SIGNED_KNOWN_GOOD_RECOVERED",
       recovered_runtime_pid: secondPid, recovery_health: second });
   }
+  // A restored signed known-good slot can later be marked ACTION_REQUIRED if
+  // its supervisor was unavailable for the crash-guard window. Reconcile only
+  // that exact verified CURRENT/KNOWN_GOOD slot after two stable observations
+  // from the same supervisor PID. This never selects or promotes a release.
+  async recoverKnownGoodCrashLoopAfterStability() {
+    const state = this.status(), current = this.current(), known = this.knownGood();
+    if (state.state !== "ACTION_REQUIRED" || state.failure_category !== "EDGE_UPDATE_KNOWN_GOOD_CRASH_LOOP" ||
+      !current.slot || !known.some(item => item.release_id === current.release_id &&
+        item.artifact_sha256 === current.artifact_sha256))
+      fail("EDGE_UPDATE_KNOWN_GOOD_STABILITY_RECOVERY_NOT_APPLICABLE");
+    this.verifySlot(current);
+    const service = this.adapter.status?.();
+    const first = edgeRollbackRecoveryGate(await this.healthCheck({ version: current.version, rollback: true }));
+    const firstPid = this.adapter.runtimePid?.();
+    if (!service?.running || !first.healthy || !Number.isInteger(firstPid) || firstPid < 1)
+      fail("EDGE_UPDATE_KNOWN_GOOD_STABILITY_RECOVERY_UNHEALTHY");
+    await new Promise(resolve => setTimeout(resolve, 1_000));
+    const second = edgeRollbackRecoveryGate(await this.healthCheck({ version: current.version, rollback: true }));
+    const secondPid = this.adapter.runtimePid?.();
+    if (!second.healthy || secondPid !== firstPid)
+      fail("EDGE_UPDATE_KNOWN_GOOD_STABILITY_RECOVERY_UNSTABLE");
+    return this.transition("ROLLED_BACK", { failure_category: state.failure_category,
+      failed_version: state.failed_version || state.target_version || null,
+      recovered_version: current.version,
+      recovery_category: "EDGE_UPDATE_SIGNED_KNOWN_GOOD_STABILITY_REVERIFIED",
+      recovered_runtime_pid: secondPid, recovery_health: second });
+  }
   // A release can pass its immediate health gate and fail later. Only a
   // previously signed, verified known-good slot is eligible for late rollback.
   async rollbackAfterCrashLoop({ reason = "EDGE_UPDATE_CRASH_LOOP" } = {}) {
