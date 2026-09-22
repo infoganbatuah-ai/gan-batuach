@@ -1,13 +1,18 @@
 import { NextResponse } from "next/server";
-import { fail, handleRouteError } from "@/lib/api";
+import { z } from "zod";
+import { fail, handleSafeRouteError } from "@/lib/api";
 import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
+import { writeAuditEvent } from "@/lib/security/audit-log-service";
+import { assertRateLimit } from "@/lib/security/rate-limit";
+import { privateRateLimitIdentifier } from "@/lib/security/request-guards";
 
 export async function GET(request: Request, context: { params: Promise<{ id: string }> }) {
   try {
     const session = await getDigitalObserverApiUser(request);
     if (!session) return fail("נדרשת התחברות מחדש לתצפיתן הדיגיטלי.", 401);
     const { id } = await context.params;
+    if (!z.string().uuid().safeParse(id).success) return fail("מזהה התצוגה אינו תקין.", 422);
     const { profile, supabase: sessionSupabase } = session;
     const supabase = sessionSupabase as any;
 
@@ -19,6 +24,7 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
     if (!candidate?.preview_available) return fail("אין תמונת תצוגה זמינה.", 404);
     const site = await getObserverSiteAccess(supabase, profile, candidate.observer_site_id, { manage: true });
     if (!site) return fail("אין הרשאה לצפות בתמונה.", 403);
+    await assertRateLimit(privateRateLimitIdentifier({ userId: profile.id, tenantId: site.id, headers: request.headers }), "digital-observer:identity-preview", 30, 60);
     if ((site as any).vision_privacy_mode === "skeleton_only" || (site as any).business_handles_children) {
       return fail("תמונות פנים חסומות באתר המטפל בילדים.", 403);
     }
@@ -39,8 +45,21 @@ export async function GET(request: Request, context: { params: Promise<{ id: str
       .from(privateCandidate.sample_storage_bucket)
       .createSignedUrl(privateCandidate.sample_storage_path, 60);
     if (error || !signed?.signedUrl) return fail("לא ניתן לפתוח תצוגה פרטית.", 503);
-    return NextResponse.redirect(signed.signedUrl, { status: 307 });
+    await writeAuditEvent({
+      eventType: "observer_identity_preview_access_issued",
+      eventCategory: "camera",
+      actorProfileId: profile.id,
+      actorRole: profile.role,
+      targetType: "digital_observer_identity_candidate",
+      targetId: candidate.id,
+      metadata: { observer_site_id: site.id, signed_ttl_seconds: 60 },
+      riskLevel: "high"
+    });
+    const response = NextResponse.redirect(signed.signedUrl, { status: 307 });
+    response.headers.set("Cache-Control", "private, no-store, max-age=0");
+    response.headers.set("Referrer-Policy", "no-referrer");
+    return response;
   } catch (error) {
-    return handleRouteError(error);
+    return handleSafeRouteError(error);
   }
 }

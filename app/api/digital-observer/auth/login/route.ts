@@ -2,6 +2,9 @@ import { createServerClient, type CookieOptions } from "@supabase/ssr";
 import { NextResponse, type NextRequest } from "next/server";
 import { safeObserverReturnPath } from "@/lib/domain/digital-observer/access";
 import type { Database } from "@/lib/supabase/types";
+import { SafeHttpError } from "@/lib/api";
+import { assertRateLimit } from "@/lib/security/rate-limit";
+import { assertRequestBodySize, assertTrustedMutationOrigin, privateRateLimitIdentifier } from "@/lib/security/request-guards";
 
 type PendingCookie = { name: string; value: string; options: CookieOptions };
 
@@ -19,6 +22,14 @@ function authErrorCode(error: { code?: string; message?: string } | null) {
 }
 
 export async function POST(request: NextRequest) {
+  try {
+    assertTrustedMutationOrigin(request);
+    assertRequestBodySize(request, 8 * 1024);
+    await assertRateLimit(privateRateLimitIdentifier({ headers: request.headers }), "digital-observer:login", 10, 15 * 60);
+  } catch (error) {
+    const code = error instanceof SafeHttpError && error.code === "RATE_LIMIT_EXCEEDED" ? "rate_limited" : "request_rejected";
+    return NextResponse.redirect(new URL(loginErrorPath(code, ""), request.url), 303);
+  }
   const formData = await request.formData();
   const email = String(formData.get("email") ?? "").trim().toLowerCase();
   const password = String(formData.get("password") ?? "");

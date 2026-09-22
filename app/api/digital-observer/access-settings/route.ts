@@ -1,10 +1,13 @@
 import crypto from "node:crypto";
 import { z } from "zod";
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { fail, handleRouteError, ok } from "@/lib/api";
+import { fail, handleSafeRouteError, ok } from "@/lib/api";
 import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
 import { encryptField } from "@/lib/security/encryption";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
+import { writeAuditEvent } from "@/lib/security/audit-log-service";
+import { assertRateLimit } from "@/lib/security/rate-limit";
+import { assertTrustedMutationOrigin, parseBoundedJson, privateRateLimitIdentifier } from "@/lib/security/request-guards";
 
 const createRecipientSchema = z.object({
   action: z.literal("create_recipient"),
@@ -44,11 +47,13 @@ function deviceHash(value: string) {
 
 export async function POST(request: Request) {
   try {
+    assertTrustedMutationOrigin(request);
     const session = await getDigitalObserverApiUser(request);
     if (!session) return fail("נדרשת התחברות מחדש לתצפיתן הדיגיטלי.", 401);
     const { profile, supabase: sessionSupabase } = session;
     const supabase: SupabaseClient = sessionSupabase;
-    const payload = schema.parse(await request.json());
+    const payload = schema.parse(await parseBoundedJson(request, 8 * 1024));
+    await assertRateLimit(privateRateLimitIdentifier({ userId: profile.id, headers: request.headers }), "digital-observer:access-settings", 20, 60);
 
     if (payload.action === "create_recipient" || payload.action === "register_device") {
       const site = await getObserverSiteAccess(supabase, profile, payload.observer_site_id, { manage: true });
@@ -70,6 +75,7 @@ export async function POST(request: Request) {
         metadata: { provider_delivery_enabled: false, explicit_activation_required: true }
       }).select("id,display_name,relationship_label,channels,destination_hint,receives_critical_alerts,active").single();
       if (result.error) return fail("לא ניתן לשמור את מורשה העדכונים.", 400);
+      await writeAuditEvent({ eventType: "observer_authorized_recipient_created", eventCategory: "security", actorProfileId: profile.id, actorRole: profile.role, targetType: "observer_authorized_recipient", targetId: result.data?.id ?? null, metadata: { observer_site_id: payload.observer_site_id, channels: payload.channels }, riskLevel: "high" });
       return ok({ recipient: result.data, message: "המורשה נשמר באופן מוצפן. שליחה חיצונית תישאר כבויה עד חיבור ספק ואישור." }, 201);
     }
 
@@ -96,6 +102,7 @@ export async function POST(request: Request) {
         console.error("Digital Observer device registration failed", { code: result.error.code });
         return fail("לא ניתן לרשום את המכשיר.", 400);
       }
+      await writeAuditEvent({ eventType: "observer_device_registered", eventCategory: "security", actorProfileId: profile.id, actorRole: profile.role, targetType: "observer_device_slot", targetId: result.data?.id ?? null, metadata: { observer_site_id: payload.observer_site_id, platform: payload.platform, push_token_registered: pushTokenRegistered }, riskLevel: "high" });
       return ok({ device: result.data, message: pushTokenRegistered ? "המכשיר נרשם עם טוקן Push פעיל." : "המכשיר נשמר, אך לא נמצא עבורו טוקן Push פעיל." });
     }
 
@@ -108,9 +115,10 @@ export async function POST(request: Request) {
       ? await supabase.from(table).delete().eq("id", payload.id)
       : await supabase.from(table).update({ active: false, updated_at: new Date().toISOString() }).eq("id", payload.id);
     if (result.error) return fail("לא ניתן להסיר את הרשומה.", 400);
+    await writeAuditEvent({ eventType: payload.action === "delete_recipient" ? "observer_authorized_recipient_removed" : "observer_device_revoked", eventCategory: "security", actorProfileId: profile.id, actorRole: profile.role, targetType: table, targetId: payload.id, metadata: { observer_site_id: site.id }, riskLevel: "high" });
     return ok({ removed: true, message: payload.action === "delete_recipient" ? "מורשה העדכונים הוסר." : "המכשיר נותק." });
   } catch (error) {
     if (error instanceof Error && error.message === "DEVICE_HASH_CONFIGURATION_REQUIRED") return fail("חסרה הגדרת הצפנה בצד השרת לרישום מכשיר.", 503);
-    return handleRouteError(error);
+    return handleSafeRouteError(error);
   }
 }

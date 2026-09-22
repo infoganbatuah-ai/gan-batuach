@@ -5,8 +5,8 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/dashboard", "/api"]
+      disallow: ["/dashboard", "/api", "/app", "/login", "/register", "/onboarding"]
     },
-    sitemap: "https://gan-batuach.vercel.app/sitemap.xml"
+    sitemap: "https://ganbatuach.com/sitemap.xml"
   };
 }

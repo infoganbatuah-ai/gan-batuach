@@ -1,5 +1,6 @@
 import { NextResponse, type NextFetchEvent, type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
+import { gatewayDeviceSessionAllows, verifyGatewayDeviceAccessToken } from "@/lib/domain/gateway-device-enrollment";
 
 function firstForwardedIp(value: string | null) {
   return value?.split(",")[0]?.trim() || null;
@@ -47,7 +48,20 @@ function rewriteForDigitalObserverHost(request: NextRequest, response: NextRespo
   return rewrite;
 }
 
+// Routine signed manifest reads are checked by the route handler.
+// Keep request-level audit for other Gateway traffic and invalid credentials.
+function isRoutineGatewayProbe(request: NextRequest) {
+  const path = request.nextUrl.pathname;
+  const operation = request.method === "GET" && path === "/api/video-gateway/event-manifest" ? "CONFIG_READ" : null;
+  if (!operation) return false;
+  const secret = process.env.VIDEO_GATEWAY_CLOUD_DISCOVERY_SECRET;
+  const token = request.headers.get("x-video-gateway-device-token") ?? "";
+  const claims = secret && token ? verifyGatewayDeviceAccessToken(token, secret) : null;
+  return claims !== null && gatewayDeviceSessionAllows(claims, operation);
+}
+
 function writeAuditLog(request: NextRequest, responseStatus: number, requestId: string) {
+  if (isRoutineGatewayProbe(request)) return Promise.resolve();
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!supabaseUrl || !serviceRoleKey) return Promise.resolve();

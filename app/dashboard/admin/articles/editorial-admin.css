@@ -1,0 +1,9 @@
+.editorial-admin { direction: rtl; max-width: 1000px; padding: 20px; }
+.editorial-admin > p { line-height: 1.75; }
+.editorial-admin-item { background: white; border: 1px solid #dce5f2; border-radius: 14px; padding: 16px; margin: 14px 0; }
+.editorial-admin-item summary { cursor: pointer; font-weight: 800; }
+.editorial-admin-form { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 16px; padding: 20px 0; }
+.editorial-admin-form label { display: grid; gap: 6px; font-weight: 700; }
+.editorial-admin-form label:has(textarea) { grid-column: 1 / -1; }
+.editorial-admin-form input, .editorial-admin-form textarea, .editorial-admin-form select { width: 100%; border: 1px solid #becbe1; border-radius: 9px; padding: 10px; font: inherit; }
+@media(max-width: 700px) { .editorial-admin-form { grid-template-columns: 1fr; } }

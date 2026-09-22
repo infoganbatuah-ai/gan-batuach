@@ -54,6 +54,8 @@
     "qa:observer-engine-separation": "node scripts/qa/check-observer-engine-separation.mjs",
     "qa:dvr-shared-session": "node scripts/qa/check-dvr-shared-session-and-offline.mjs",
     "qa:encryption-key-separation": "node scripts/qa/check-encryption-key-separation.mjs",
+    "qa:digital-observer-security": "node scripts/qa/check-digital-observer-security-privacy.mjs",
+    "qa:digital-observer-observability": "node scripts/qa/check-digital-observer-observability.mjs",
     "qa:digital-observer-push17d": "node --test scripts/qa/check-push17d-closure.mjs",
     "qa:observer-site-selection": "node scripts/qa/check-observer-site-selection.mjs",
     "qa:delete-digital-observer-test-user": "node scripts/qa/delete-digital-observer-test-user.mjs",

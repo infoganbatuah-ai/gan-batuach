@@ -160,6 +160,36 @@ async function runAccount(account) {
   if (account.key === "digital_observer") {
     base.probes.observerSitesOwned = await probeRows(client, "observer_sites", "id", (query) => query.eq("owner_profile_id", login.data.user.id));
     base.probes.observerMemberships = await probeRows(client, "observer_site_memberships", "id,observer_site_id", (query) => query.eq("profile_id", login.data.user.id));
+    const [owned, memberships] = await Promise.all([
+      client.from("observer_sites").select("id").eq("owner_profile_id", login.data.user.id).limit(100),
+      client.from("observer_site_memberships").select("observer_site_id").eq("profile_id", login.data.user.id).eq("active", true).limit(100)
+    ]);
+    const allowedSites = new Set([
+      ...(owned.data ?? []).map((row) => row.id),
+      ...(memberships.data ?? []).map((row) => row.observer_site_id)
+    ]);
+    base.probes.canonicalTenantScope = {};
+    for (const table of [
+      "observer_intelligence_signals",
+      "observer_correlated_events",
+      "digital_observer_event_clips",
+      "digital_observer_risk_evaluations",
+      "digital_observer_decision_intents",
+      "digital_observer_incident_verifications",
+      "digital_observer_feedback_revisions",
+      "digital_observer_watch_rule_versions",
+      "digital_observer_watch_rule_evaluations"
+    ]) {
+      const result = await client.from(table).select("observer_site_id").limit(100);
+      const rows = result.data ?? [];
+      base.probes.canonicalTenantScope[table] = {
+        rows: rows.length,
+        outOfScopeRows: rows.filter((row) => !allowedSites.has(row.observer_site_id)).length,
+        error: safeError(result.error)
+      };
+    }
+    const adminQuality = await client.from("digital_observer_calibration_samples").select("id", { count: "exact", head: true });
+    base.probes.adminQualityData = { rows: adminQuality.count ?? 0, error: safeError(adminQuality.error) };
   }
 
   await client.auth.signOut();
@@ -216,10 +246,13 @@ addAssertion("normal_roles_provider_health_denied", results.filter((item) => ite
 addAssertion("assigned_role_fixtures_visible", ["parent_assigned", "manager", "staff_assigned", "inspector_assigned"].every((key) => (byAccount[key]?.probes.children?.rows ?? 0) > 0), "assigned fixtures must have scoped synthetic child rows");
 addAssertion("inspector_assignment_states", (byAccount.inspector_assigned?.probes.inspectorGardenAssignments?.rows ?? 0) > 0 && byAccount.inspector_unassigned?.probes.inspectorGardenAssignments?.rows === 0, "assigned inspector has garden; unassigned inspector has none");
 addAssertion("digital_observer_rls_non_recursive", !byAccount.digital_observer?.probes.observerSitesOwned?.error && !byAccount.digital_observer?.probes.observerMemberships?.error && (byAccount.digital_observer?.probes.observerMemberships?.rows ?? 0) > 0, "observer site/membership reads complete without policy recursion");
+const canonicalScopes = Object.values(byAccount.digital_observer?.probes.canonicalTenantScope ?? {});
+addAssertion("digital_observer_canonical_tenant_scope", canonicalScopes.length === 9 && canonicalScopes.every((probe) => !probe.error && probe.outOfScopeRows === 0), "all returned canonical rows must belong to an owned or active-member site");
+addAssertion("digital_observer_admin_quality_denied", byAccount.digital_observer?.probes.adminQualityData?.rows === 0, "non-admin Digital Observer account cannot read cross-tenant calibration samples");
 
 const outputPath = resolve(process.cwd(), REPORT_PATH);
 mkdirSync(dirname(outputPath), { recursive: true });
-writeFileSync(outputPath, `${JSON.stringify(payload, null, 2)}\n`, "utf8");
+if (process.env.QA_EVIDENCE_WRITE === "1") writeFileSync(outputPath, `${JSON.stringify(payload, null, 2)}\n`, "utf8");
 
 const logins = results.filter((item) => item.login === "PASS").length;
 const failed = results.filter((item) => item.login === "FAIL").length;
@@ -229,5 +262,5 @@ console.log(`Role boundary probes complete: ${logins} login PASS, ${failed} logi
 console.log(`Camera credential values visible to these QA roles: ${sensitive.length ? sensitive.join(", ") : "none"}.`);
 console.log(`Boundary assertions: ${payload.assertions.length - assertionFailures.length} PASS, ${assertionFailures.length} FAIL.`);
 console.log(`Synthetic camera snapshot sentinel cleanup: ${payload.storageSentinel.cleanup}.`);
-console.log(`Sanitized report: ${REPORT_PATH}`);
+console.log(process.env.QA_EVIDENCE_WRITE === "1" ? `Sanitized report: ${REPORT_PATH}` : "Sanitized report persistence disabled for this read-only run.");
 if (assertionFailures.length || payload.storageSentinel.cleanup !== "PASS") process.exitCode = 1;

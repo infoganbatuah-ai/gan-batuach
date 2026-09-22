@@ -2,7 +2,13 @@
   "version": "digital-observer-ci-v1",
   "nodeVersion": "22",
   "canonicalLintPaths": [
+    "lib/domain/digital-observer/connection-assessment-service.ts",
+    "lib/domain/digital-observer/connector-installation.ts",
+    "app/api/digital-observer/connector-installation/route.ts",
+    "components/digital-observer/connector-install-handoff.tsx",
     "lib/api.ts",
+    "lib/security/rate-limit.ts",
+    "lib/security/request-guards.ts",
     "lib/domain/digital-observer/incident-correlation.ts",
     "lib/domain/digital-observer/incident-verification-engine.ts",
     "lib/domain/digital-observer/incident-verification-service.ts",
@@ -16,6 +22,20 @@
     "lib/domain/digital-observer/investigation-search-service.ts",
     "lib/domain/digital-observer/learning-engine.ts",
     "lib/domain/digital-observer/observation-provenance.ts",
+    "lib/domain/digital-observer/operational-telemetry.ts",
+    "lib/domain/digital-observer/connectivity-registry.ts",
+    "lib/domain/digital-observer/connection-orchestrator.ts",
+    "lib/domain/digital-observer/connection-intelligence.ts",
+    "lib/domain/digital-observer/connection-outcome-service.ts",
+    "lib/domain/digital-observer/connection-lifecycle.ts",
+    "lib/domain/digital-observer/mobile-camera-setup.ts",
+    "components/digital-observer/universal-camera-onboarding.tsx",
+    "components/digital-observer/software-connector-onboarding.tsx",
+    "app/digital-observer/cameras/add/page.tsx",
+    "app/api/digital-observer/connection-assessment/route.ts",
+    "app/api/digital-observer/software-connector/route.ts",
+    "app/digital-observer/admin/observability/page.tsx",
+    "app/api/digital-observer/admin/observability/route.ts",
     "app/api/digital-observer/incidents/route.ts",
     "app/api/digital-observer/incidents/feedback/route.ts",
     "app/api/digital-observer/investigation/route.ts",
@@ -24,6 +44,9 @@
     "app/api/digital-observer/event-clips/[id]/media/route.ts"
   ],
   "domain": [
+    { "name": "zero-install-product-policy", "args": ["--test", "scripts/qa/check-zero-install-product-policy.mjs"] },
+    { "name": "connector-commercial", "args": ["--test", "scripts/qa/check-connector-commercial.mjs"] },
+    { "name": "universal-connectivity", "args": ["--test", "scripts/qa/check-universal-connectivity.mjs"] },
     { "name": "event-journal", "args": ["scripts/qa/check-event-journal.mjs"] },
     { "name": "event-ingest", "args": ["scripts/qa/check-event-ingest.mjs"] },
     { "name": "event-outbox", "args": ["scripts/qa/check-event-outbox.mjs"] },
@@ -44,12 +67,15 @@
     { "name": "investigation", "args": ["--test", "scripts/qa/check-digital-observer-investigation.mjs"] }
   ],
   "security": [
+    { "name": "connector-install-intents-db", "args": ["--test", "scripts/qa/check-connector-install-intents-db.mjs"] },
     { "name": "environment-safety", "args": ["scripts/validate-environment-safety.mjs"] },
     { "name": "encryption-separation", "args": ["scripts/qa/check-encryption-key-separation.mjs"] },
     { "name": "storage-policy", "args": ["scripts/qa/check-storage-policy-safety.mjs"] },
     { "name": "observer-engine-separation", "args": ["scripts/qa/check-observer-engine-separation.mjs"] },
     { "name": "canonical-api-error-boundary", "args": ["scripts/qa/check-canonical-api-error-boundary.mjs"] },
+    { "name": "security-privacy-contract", "args": ["scripts/qa/check-digital-observer-security-privacy.mjs"] },
     { "name": "tenant-privacy-boundary", "args": ["--test", "scripts/qa/digital-guard-tenant-boundary.test.mjs"] },
-    { "name": "mock-shadow-isolation", "args": ["scripts/qa/check-product-observer-real-source.mjs"] }
+    { "name": "mock-shadow-isolation", "args": ["scripts/qa/check-product-observer-real-source.mjs"] },
+    { "name": "observability-contract", "args": ["scripts/qa/check-digital-observer-observability.mjs"] }
   ]
 }

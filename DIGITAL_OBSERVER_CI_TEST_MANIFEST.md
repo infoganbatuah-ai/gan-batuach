@@ -1,5 +1,13 @@
 # DIGITAL OBSERVER CI TEST MANIFEST
 
+## PUSH 17C gate amendment
+
+Canonical domain gate adds `node --test scripts/qa/check-zero-install-product-policy.mjs`: eight deterministic tests covering phone-only persistent preference, separate capability/coverage/success, integration gaps, no-computer fallback, temporary mobile access, server reassessment, legacy mutation guards and bounded client-reported effort. Totals: **21 domain / 10 security suites**. Source-boundary assertions are not browser or native installer E2E. Server assessment is part of canonical lint. Current real runtime health is separate read-only evidence; no hardware claim follows from these tests.
+
+## PUSH 17B gate amendment
+
+Canonical domain gate includes `node --test scripts/qa/check-connector-commercial.mjs` (13 deterministic tests). Security gate includes `node --test scripts/qa/check-connector-install-intents-db.mjs` (six PostgreSQL subtests plus parent). PGlite 0.5.8 is a pinned dev-only dependency; no service/Production credentials or real camera needed. Gates now contain 20 domain and 10 security suites. The native macOS package build/model smoke is local platform QA, not consumer installer E2E. Native installation/reboot, Windows/mobile and full Product handoff remain separate unverified gates. No hardware claim follows from CI.
+
 Generated from tracked repository state by `scripts/qa/build-ci-test-manifest.mjs`. CI contract: `digital-observer-ci-v1`.
 
 ## CI TEST TIERS
@@ -36,9 +44,12 @@ Generated from tracked repository state by `scripts/qa/build-ci-test-manifest.mj
 | Feedback / calibration | lib/domain/digital-observer/feedback-calibration.ts | /api/digital-observer/incidents/feedback | digital_observer_feedback_revisions; digital_observer_calibration_samples | qa:digital-observer-feedback | PUSH 11 | GATE 3 |
 | Watch rules | lib/domain/digital-observer/watch-rule-compiler.ts | /api/digital-observer/watch-rules | observer_watch_requests; digital_observer_watch_rule_versions | qa:digital-observer-watch-rules | PUSH 12 | GATE 3 |
 | Investigation | lib/domain/digital-observer/investigation-search-service.ts | /api/digital-observer/investigation | canonical Event/Incident/Evidence projections | qa:digital-observer-investigation | PUSH 13 | GATE 3 |
+| Operational telemetry | lib/domain/digital-observer/operational-telemetry.ts | /api/digital-observer/admin/observability | read-only canonical projections | qa:digital-observer-observability | PUSH 27 — DONE EARLY | GATE 4 |
+| Universal connectivity foundation | lib/domain/digital-observer/connection-orchestrator.ts; connection-intelligence.ts; connectivity-registry.ts | /api/digital-observer/connection-assessment (plan) | immutable_audit_events; existing camera/enrollment tables | node --test scripts/qa/check-universal-connectivity.mjs | PUSH 17 — NOT PASS; installer E2E pending | GATE 3 |
 
 ## TIER 1 CANONICAL SUITES
 
+- `universal-connectivity`: `node --test scripts/qa/check-universal-connectivity.mjs`
 - `event-journal`: `node scripts/qa/check-event-journal.mjs`
 - `event-ingest`: `node scripts/qa/check-event-ingest.mjs`
 - `event-outbox`: `node scripts/qa/check-event-outbox.mjs`
@@ -62,12 +73,14 @@ Generated from tracked repository state by `scripts/qa/build-ci-test-manifest.mj
 - `storage-policy`: `node scripts/qa/check-storage-policy-safety.mjs`
 - `observer-engine-separation`: `node scripts/qa/check-observer-engine-separation.mjs`
 - `canonical-api-error-boundary`: `node scripts/qa/check-canonical-api-error-boundary.mjs`
+- `security-privacy-contract`: `node scripts/qa/check-digital-observer-security-privacy.mjs`
 - `tenant-privacy-boundary`: `node --test scripts/qa/digital-guard-tenant-boundary.test.mjs`
 - `mock-shadow-isolation`: `node scripts/qa/check-product-observer-real-source.mjs`
+- `observability-contract`: `node scripts/qa/check-digital-observer-observability.mjs`
 
 ## COMPLETE QA SCRIPT INVENTORY
 
-Inventory count: **120** files. Classifications are conservative; environment-dependent scripts stay outside Tier 1.
+Inventory count: **123** files. Classifications are conservative; environment-dependent scripts stay outside Tier 1.
 
 | File | Command | Tier | Deterministic | Network | Hardware | Production credentials | Destructive | Domain | Classification | Missing dependency |
 |---|---|---|---|---|---|---|---|---|---|---|
@@ -95,8 +108,10 @@ Inventory count: **120** files. Classifications are conservative; environment-de
 | `scripts/qa/check-digital-observer-incident-verification.mjs` | npm run qa:digital-observer-verification | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | VERIFICATION | CANONICAL CI | none known |
 | `scripts/qa/check-digital-observer-incidents.mjs` | npm run qa:digital-observer-incidents | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | INCIDENT | CANONICAL CI | none known |
 | `scripts/qa/check-digital-observer-investigation.mjs` | npm run qa:digital-observer-investigation | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | INVESTIGATION | CANONICAL CI | none known |
+| `scripts/qa/check-digital-observer-observability.mjs` | npm run qa:digital-observer-observability | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OBSERVABILITY / OPERATIONS | CANONICAL CI | none known |
 | `scripts/qa/check-digital-observer-product.mjs` | npm run qa:digital-observer-product | TIER 2 — INTEGRATION | NO | YES / ENV-DEPENDENT | NO | NO | NO | OTHER / SUPPORT | INTEGRATION / SUPPORT | none known |
 | `scripts/qa/check-digital-observer-risk-decision.mjs` | npm run qa:digital-observer-risk | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | RISK / DECISION | CANONICAL CI | none known |
+| `scripts/qa/check-digital-observer-security-privacy.mjs` | npm run qa:digital-observer-security | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | SECURITY / TENANT ISOLATION | CANONICAL CI | none known |
 | `scripts/qa/check-digital-observer-watch-rule-compiler.mjs` | npm run qa:digital-observer-watch-rules | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | WATCH RULES | CANONICAL CI | none known |
 | `scripts/qa/check-discovery-capability-freshness.mjs` | node scripts/qa/check-discovery-capability-freshness.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-dvr-shared-session-and-offline.mjs` | npm run qa:dvr-shared-session | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
@@ -134,6 +149,7 @@ Inventory count: **120** files. Classifications are conservative; environment-de
 | `scripts/qa/check-software-connector.mjs` | npm run qa:software-connector | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/check-spatial-entry-geometry.mjs` | node scripts/qa/check-spatial-entry-geometry.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | TRACKING / ZONES | CANONICAL CI | none known |
 | `scripts/qa/check-storage-policy-safety.mjs` | npm run qa:storage-policy-safety | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | SECURITY / TENANT ISOLATION | CANONICAL CI | none known |
+| `scripts/qa/check-universal-connectivity.mjs` | node scripts/qa/check-universal-connectivity.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | CANONICAL CI | none known |
 | `scripts/qa/check-video-gateway-activity-insights.mjs` | node scripts/qa/check-video-gateway-activity-insights.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/cloud-discovery-capability-contract.test.mjs` | node scripts/qa/cloud-discovery-capability-contract.test.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/compare-object-model.mjs` | node scripts/qa/compare-object-model.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | AI / INFERENCE | SUPPORTING | none known |

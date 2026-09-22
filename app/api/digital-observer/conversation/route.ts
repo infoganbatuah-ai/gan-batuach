@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { fail, handleRouteError, ok } from "@/lib/api";
+import { fail, handleSafeRouteError, ok } from "@/lib/api";
 import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
 import { formatObserverDate, observerEventLabel } from "@/lib/domain/digital-observer/runtime";
 import { eventJournalService } from "@/lib/domain/event-engine/event-journal-service";
@@ -10,6 +10,8 @@ import { compileAuthorizedWatchRule } from "@/lib/domain/digital-observer/watch-
 import type { WatchRuleCompileResult } from "@/lib/domain/digital-observer/watch-rule-compiler";
 import { compileInvestigationQuery, isInvestigationQuestion } from "@/lib/domain/digital-observer/investigation-query";
 import { searchDigitalObserverInvestigation } from "@/lib/domain/digital-observer/investigation-search-service";
+import { assertRateLimit } from "@/lib/security/rate-limit";
+import { assertTrustedMutationOrigin, parseBoundedJson, privateRateLimitIdentifier } from "@/lib/security/request-guards";
 
 const schema = z.object({
   observer_site_id: z.string().uuid(),
@@ -107,11 +109,13 @@ function buildAnswer(message: string, signals: SignalRow[], cameras: CameraRow[]
 
 export async function POST(request: Request) {
   try {
+    assertTrustedMutationOrigin(request);
     const session = await getDigitalObserverApiUser(request);
     if (!session) return fail("נדרשת התחברות מחדש לתצפיתן הדיגיטלי.", 401);
     const { profile, supabase: sessionSupabase } = session;
     const supabase = sessionSupabase;
-    const payload = schema.parse(await request.json());
+    const payload = schema.parse(await parseBoundedJson(request, 8 * 1024));
+    await assertRateLimit(privateRateLimitIdentifier({ userId: profile.id, tenantId: payload.observer_site_id, headers: request.headers }), "digital-observer:conversation", 30, 60);
     const site = await getObserverSiteAccess(supabase, profile, payload.observer_site_id, { manage: true });
     if (!site) return fail("אין הרשאה לשוחח על האתר הזה.", 403);
     // Gate every path, including free-form summaries that the history parser
@@ -259,6 +263,6 @@ export async function POST(request: Request) {
       emergency_action_triggered: false
     });
   } catch (error) {
-    return handleRouteError(error);
+    return handleSafeRouteError(error);
   }
 }

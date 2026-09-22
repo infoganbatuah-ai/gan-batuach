@@ -1,7 +1,10 @@
 import { z } from "zod";
-import { fail, handleRouteError, ok } from "@/lib/api";
+import { fail, handleSafeRouteError, ok } from "@/lib/api";
 import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/digital-observer/access";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
+import { writeAuditEvent } from "@/lib/security/audit-log-service";
+import { assertRateLimit } from "@/lib/security/rate-limit";
+import { assertTrustedMutationOrigin, parseBoundedJson, privateRateLimitIdentifier } from "@/lib/security/request-guards";
 
 const schema = z.object({
   observer_site_id: z.string().uuid(),
@@ -11,11 +14,13 @@ const schema = z.object({
 
 export async function POST(request: Request) {
   try {
+    assertTrustedMutationOrigin(request);
     const session = await getDigitalObserverApiUser(request);
     if (!session) return fail("נדרשת התחברות מחדש לתצפיתן הדיגיטלי.", 401);
     const { profile, supabase: sessionSupabase } = session;
     const supabase = sessionSupabase as any;
-    const payload = schema.parse(await request.json());
+    const payload = schema.parse(await parseBoundedJson(request, 4 * 1024));
+    await assertRateLimit(privateRateLimitIdentifier({ userId: profile.id, tenantId: payload.observer_site_id, headers: request.headers }), "digital-observer:billing-change", 10, 60 * 60);
     const site = await getObserverSiteAccess(supabase, profile, payload.observer_site_id, { billing: true });
     if (!site) return fail("אין הרשאת חיוב לאתר הזה.", 403);
     const { data: requestedPackage } = await supabase.from("observer_monitoring_packages" as any)
@@ -80,8 +85,18 @@ export async function POST(request: Request) {
       console.error("Digital Observer subscription request failed", { code: error.code ?? "unknown" });
       return fail("לא ניתן לשמור את בקשת שינוי החבילה.", 400);
     }
+    await writeAuditEvent({
+      eventType: "observer_subscription_change_requested",
+      eventCategory: "payment",
+      actorProfileId: profile.id,
+      actorRole: profile.role,
+      targetType: "observer_site",
+      targetId: payload.observer_site_id,
+      metadata: { package_id: requestedPackage.id, billing_cycle: payload.billing_cycle, charged: false },
+      riskLevel: "medium"
+    });
     return ok({ request: data, package: requestedPackage, charged: false, message: "הבקשה נשמרה בלבד. לא בוצע חיוב אמיתי." }, 201);
   } catch (error) {
-    return handleRouteError(error);
+    return handleSafeRouteError(error);
   }
 }

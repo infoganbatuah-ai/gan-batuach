@@ -24,7 +24,7 @@ const deterministicOverrides = new Set([
 
 function domain(file) {
   const rules = [
-    [/(camera|gateway|connector|dvr|onvif|rtsp)/, "CAMERA / GATEWAY / CONNECTOR"],
+    [/(camera|gateway|connector|connectivity|dvr|onvif|rtsp)/, "CAMERA / GATEWAY / CONNECTOR"],
     [/(inference|detector|vision|object)/, "AI / INFERENCE"],
     [/(journal|event-ingest|event-outbox|event-backend)/, "EVENT / JOURNAL"],
     [/(track|zone|spatial)/, "TRACKING / ZONES"],
@@ -36,6 +36,7 @@ function domain(file) {
     [/(feedback|calibration)/, "FEEDBACK / CALIBRATION"],
     [/(watch|rule)/, "WATCH RULES"],
     [/(investigation|search)/, "INVESTIGATION"],
+    [/(observability|telemetry|operational)/, "OBSERVABILITY / OPERATIONS"],
     [/(tenant|role-boundary|credential|encryption|security|storage-policy|auth)/, "SECURITY / TENANT ISOLATION"],
     [/(privacy|forget)/, "PRIVACY"],
     [/(mock|shadow|demo|fixture|seed)/, "MOCK / SHADOW ISOLATION"],
@@ -102,7 +103,9 @@ const capabilityRows = [
   ["Verification", "lib/domain/digital-observer/incident-verification-engine.ts", "/api/digital-observer/incidents", "digital_observer_incident_verifications", "qa:digital-observer-verification", "PUSH 10", "GATE 3"],
   ["Feedback / calibration", "lib/domain/digital-observer/feedback-calibration.ts", "/api/digital-observer/incidents/feedback", "digital_observer_feedback_revisions; digital_observer_calibration_samples", "qa:digital-observer-feedback", "PUSH 11", "GATE 3"],
   ["Watch rules", "lib/domain/digital-observer/watch-rule-compiler.ts", "/api/digital-observer/watch-rules", "observer_watch_requests; digital_observer_watch_rule_versions", "qa:digital-observer-watch-rules", "PUSH 12", "GATE 3"],
-  ["Investigation", "lib/domain/digital-observer/investigation-search-service.ts", "/api/digital-observer/investigation", "canonical Event/Incident/Evidence projections", "qa:digital-observer-investigation", "PUSH 13", "GATE 3"]
+  ["Investigation", "lib/domain/digital-observer/investigation-search-service.ts", "/api/digital-observer/investigation", "canonical Event/Incident/Evidence projections", "qa:digital-observer-investigation", "PUSH 13", "GATE 3"],
+  ["Operational telemetry", "lib/domain/digital-observer/operational-telemetry.ts", "/api/digital-observer/admin/observability", "read-only canonical projections", "qa:digital-observer-observability", "PUSH 27 — DONE EARLY", "GATE 4"],
+  ["Universal connectivity foundation", "lib/domain/digital-observer/connection-orchestrator.ts; connection-intelligence.ts; connectivity-registry.ts", "/api/digital-observer/connection-assessment (plan)", "immutable_audit_events; existing camera/enrollment tables", "node --test scripts/qa/check-universal-connectivity.mjs", "PUSH 17 — NOT PASS; installer E2E pending", "GATE 3"]
 ];
 
 const lines = [
