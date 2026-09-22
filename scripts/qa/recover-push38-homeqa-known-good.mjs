@@ -66,11 +66,15 @@ const manager = new EdgeUpdateManager({ root,
 
 const before = manager.status();
 if (manager.current().release_id !== "qa-connector-legacy-transition-v2-6e7988808b05" ||
-  !((before.state === "ACTION_REQUIRED" && before.failure_category === "EDGE_UPDATE_KNOWN_GOOD_CRASH_LOOP") ||
+  !((before.state === "ACTION_REQUIRED" && ["EDGE_UPDATE_KNOWN_GOOD_CRASH_LOOP",
+    "EDGE_UPDATE_KNOWN_GOOD_UNHEALTHY", "EDGE_UPDATE_ROLLBACK_HEALTH_FAILED"].includes(before.failure_category)) ||
     (before.state === "ROLLED_BACK" && before.release_id === "qa-p38-health-connector-startup-d44b7e4262f9")))
   throw new Error("P38_HOME_QA_KNOWN_GOOD_RECOVERY_STATE_MISMATCH");
 const recovered = before.state === "ACTION_REQUIRED"
-  ? await manager.recoverKnownGoodCrashLoopAfterStability() : before;
+  ? before.failure_category === "EDGE_UPDATE_KNOWN_GOOD_CRASH_LOOP"
+    ? await manager.recoverKnownGoodCrashLoopAfterStability()
+    : await manager.recoverActionRequiredRollback()
+  : before;
 const reconciled = manager.reconcileDelayedRollbackKnownGood();
 console.log(JSON.stringify({ status: reconciled.state,
   recovery_category: recovered.recovery_category || reconciled.recovery_category,
