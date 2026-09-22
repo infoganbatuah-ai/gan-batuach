@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
-  "observedAt": "2026-09-22T01:08:10.509Z",
+  "observedAt": "2026-09-22T01:20:07.500Z",
   "productionWriteAuthorized": false,
   "remoteHistoryStatus": "UNVERIFIED_READ_ONLY_RECONCILIATION_REQUIRED",
-  "localDatabaseStatus": "PENDING_REVIEWED_MIGRATIONS_20260922100000_20260922110000",
+  "localDatabaseStatus": "BASELINE_AND_INTEGRATED_MIGRATIONS_APPLIED",
   "migrations": [
     {
       "file": "supabase/migrations/20260919190000_edge_home_qa_channel.sql",
@@ -7357,7 +7357,7 @@
       "sourceCommit": "a5b6dfd715bd43e77546b26f72d6ea32e51678e7",
       "sourceHead": "a5b6dfd715bd43e77546b26f72d6ea32e51678e7",
       "remoteBranch": "origin/codex/gb-m35e-enrollment-audit-role-fix",
-      "integrationCommit": "166a65c2d4abe5095783fc3d28b157a2ed0aaa7b",
+      "integrationCommit": "9dea99d1a05befd97d89ac52bf853636b23cdc0b",
       "inGit": true,
       "inIntegration": true,
       "inclusion": "INTEGRATED_DEVELOPMENT",
@@ -7368,14 +7368,16 @@
       "developmentDependsOn": [
         "20260921150000"
       ],
-      "developmentApplied": "NO",
-      "developmentAppliedAt": null,
-      "developmentEvidence": null,
+      "developmentApplied": "YES",
+      "developmentAppliedAt": "2026-09-22T01:18:38.563865+00:00",
+      "developmentEvidence": "development/database/development-application-receipts.json",
       "productionApplied": "UNVERIFIED",
       "productionEvidence": null,
       "recovery": "Forward-only replacement of decide_enrollment_request to preserve the typed app_role audit actor. No enrollment data rewrite or backfill. Apply only to guarded isolated Development after verified backup; Production requires a separate owner-authorized release.",
       "developmentApprovalEvidence": "PR #109 merged only after required checks passed; healthy isolated Auth QA reproduced the Parent Enrollment decision path and focused audit-role regression passed. No Production access.",
-      "developmentStatusReason": "Approved for guarded isolated Development application after integration; not yet applied"
+      "developmentStatusReason": "Original post-baseline SQL applied after remote integration; Production status unchanged",
+      "developmentHistoryDigest": "9e499a15934de38aacce653ef434cecd99647892c696caff90b76ec1d5257338",
+      "developmentSchemaFingerprint": "2d7f47853c26b8e6c22471cfc7b8929faf546d2746e7fd65031ce253ce92d5f8"
     },
     {
       "file": "supabase/migrations/20260922110000_management_enrollment_activation_audit_role_fix.sql",
@@ -7385,7 +7387,7 @@
       "sourceCommit": "f15dccb46f1c0fcca33ee43263652e127a0c0130",
       "sourceHead": "f15dccb46f1c0fcca33ee43263652e127a0c0130",
       "remoteBranch": "origin/codex/gb-m35e-enrollment-activation-audit-role-fix",
-      "integrationCommit": "d001f37c2a030a371adb7267f1a428c670f758c8",
+      "integrationCommit": "9dea99d1a05befd97d89ac52bf853636b23cdc0b",
       "inGit": true,
       "inIntegration": true,
       "inclusion": "INTEGRATED_DEVELOPMENT",
@@ -7396,18 +7398,20 @@
       "developmentDependsOn": [
         "20260922100000"
       ],
-      "developmentApplied": "NO",
-      "developmentAppliedAt": null,
-      "developmentEvidence": null,
+      "developmentApplied": "YES",
+      "developmentAppliedAt": "2026-09-22T01:18:42.592919+00:00",
+      "developmentEvidence": "development/database/development-application-receipts.json",
       "productionApplied": "UNVERIFIED",
       "productionEvidence": null,
       "recovery": "Forward-only replacement of two enrollment activation RPC bodies. The manual actor remains a typed app_role and the provider/system audit actor is nullable; no customer rows are rewritten. Apply only to guarded isolated Development after verified backup; Production requires a separate owner-authorized release.",
       "developmentApprovalEvidence": "PR #110 exact head f15dccb46f1c0fcca33ee43263652e127a0c0130 passed 10/10 checks and merged as d001f37c2a030a371adb7267f1a428c670f758c8. Healthy isolated Auth QA Parent Enrollment journey 19/19 PASS; focused activation 8/8, migration audit 242, domain 30/30, security 7/7, typecheck, lint, release contract and production build PASS. No Production access.",
-      "developmentStatusReason": "Approved for guarded isolated Development application after integration; not yet applied"
+      "developmentStatusReason": "Original post-baseline SQL applied after remote integration; Production status unchanged",
+      "developmentHistoryDigest": "65f86104dc20d00953ae2b0ac390e9ed88037ef541f4234aba03e2c24a79ac18",
+      "developmentSchemaFingerprint": "673fc0d82df2c0a160390e99654b48bf0e3abc28b19201d6734765aca26956b2"
     }
   ],
   "developmentExpected": 242,
-  "developmentAppliedVerified": 240,
+  "developmentAppliedVerified": 242,
   "blockers": [],
   "localObservations": [
     {
