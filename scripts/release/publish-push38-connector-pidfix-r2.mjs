@@ -27,23 +27,28 @@ async function publish({ artifactPath, evidencePath }) {
   if (local.sha256 !== document.artifact_sha256 || local.size !== document.artifact_size)
     fail("P38_PIDFIX_R2_LOCAL_ARTIFACT_HASH_MISMATCH");
   const key = edgeReleaseObjectPath(document), keychain = join(homedir(), "Library/Keychains/login.keychain-db");
-  const client = new S3Client({ region: "auto", endpoint: origin, forcePathStyle: true,
-    credentials: readR2KeychainCredentials({ service: "digital-observer-r2-home-qa-publisher-20260919", keychain }),
-    maxAttempts: 1, requestChecksumCalculation: "WHEN_REQUIRED", responseChecksumValidation: "WHEN_REQUIRED" });
+  const clientOptions = { region: "auto", endpoint: origin, forcePathStyle: true,
+    maxAttempts: 1, requestChecksumCalculation: "WHEN_REQUIRED", responseChecksumValidation: "WHEN_REQUIRED" };
+  const publisher = new S3Client({ ...clientOptions,
+    credentials: readR2KeychainCredentials({ service: "digital-observer-r2-home-qa-publisher-20260922-v2", keychain }) });
+  const reader = new S3Client({ ...clientOptions,
+    credentials: readR2KeychainCredentials({ service: "digital-observer-r2-home-qa-reader-20260922", keychain }) });
   try {
     let existed = false;
     try {
-      const head = await client.send(new HeadObjectCommand({ Bucket: EDGE_RELEASE_R2_BUCKET, Key: key }),
-        { abortSignal: AbortSignal.timeout(30_000) });
-      if (head.ContentLength !== local.size || head.Metadata?.sha256 !== local.sha256 ||
-        head.Metadata?.release_id !== document.release_id) fail("P38_PIDFIX_R2_EXISTING_OBJECT_CONFLICT");
+      await publisher.send(new PutObjectCommand({ Bucket: EDGE_RELEASE_R2_BUCKET, Key: key,
+        Body: createReadStream(path), ContentLength: local.size, ContentType: "application/gzip",
+        StorageClass: "STANDARD", IfNoneMatch: "*", Metadata: { sha256: local.sha256,
+          release_id: document.release_id } }), { abortSignal: AbortSignal.timeout(600_000) });
+    } catch (error) {
+      if (error.$metadata?.httpStatusCode !== 412 && error.name !== "PreconditionFailed") throw error;
       existed = true;
-    } catch (error) { if (error.$metadata?.httpStatusCode !== 404) throw error; }
-    if (!existed) await client.send(new PutObjectCommand({ Bucket: EDGE_RELEASE_R2_BUCKET, Key: key,
-      Body: createReadStream(path), ContentLength: local.size, ContentType: "application/gzip",
-      StorageClass: "STANDARD", IfNoneMatch: "*", Metadata: { sha256: local.sha256,
-        release_id: document.release_id } }), { abortSignal: AbortSignal.timeout(600_000) });
-    const capability = await getSignedUrl(client,
+    }
+    const head = await reader.send(new HeadObjectCommand({ Bucket: EDGE_RELEASE_R2_BUCKET, Key: key }),
+      { abortSignal: AbortSignal.timeout(30_000) });
+    if (head.ContentLength !== local.size || head.Metadata?.sha256 !== local.sha256 ||
+      head.Metadata?.release_id !== document.release_id) fail("P38_PIDFIX_R2_EXISTING_OBJECT_CONFLICT");
+    const capability = await getSignedUrl(reader,
       new GetObjectCommand({ Bucket: EDGE_RELEASE_R2_BUCKET, Key: key }), { expiresIn: 120 });
     const url = new URL(capability);
     if (url.origin !== origin || url.pathname !== `/${EDGE_RELEASE_R2_BUCKET}/${key}` ||
@@ -64,7 +69,7 @@ async function publish({ artifactPath, evidencePath }) {
       round_trip: "PASS", anonymous_access_denied: true, runtime_activation: false };
     writeFileSync(evidencePath, `${JSON.stringify(result, null, 2)}\n`, { mode: 0o600, flag: "wx" });
     return result;
-  } finally { client.destroy(); }
+  } finally { publisher.destroy(); reader.destroy(); }
 }
 
 if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1])) {
