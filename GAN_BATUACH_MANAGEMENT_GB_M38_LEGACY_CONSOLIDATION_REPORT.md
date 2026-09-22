@@ -154,4 +154,18 @@ The canonical route map and canonical UX surface map define the surviving screen
 
 # Validation
 
-Focused static contract: 8/8 PASS. Full branch CI and cumulative Development verification will be recorded after the exact branch head and integration merge are validated.
+Branch validation at product commit `5a01a973`:
+
+- GB-M38 focused: 8/8 PASS.
+- Management: 272/272 PASS.
+- GB-M37 dashboard regression: 9/9 PASS.
+- GB-M36 reporting regression: 7/7 PASS.
+- Digital Observer domain gate: 30/30 PASS; the gate prevented deletion of a required compatibility endpoint.
+- Security/isolation: 7/7 PASS.
+- Migration audit: 243/243 PASS; no migration added.
+- Typecheck: PASS.
+- Production build: PASS (529 static-generation entries, including the three compatibility routes).
+- Lint regression: PASS, zero canonical regressions.
+- Release contract: PASS; no Production mutation.
+
+Exact-head protected PR checks and cumulative post-merge Development smoke remain to be recorded in the integration closure update.
