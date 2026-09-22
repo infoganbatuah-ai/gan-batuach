@@ -246,6 +246,18 @@ journeys, signup/Email confirmation and the other concurrency/IDOR gates
 remain open. This ledger entry records the unit as **BLOCKED / pending
 integration**; it does not merge #86, authorize GB-M36, or release Production.
 
+GB-M35E final closure (2026-09-22) supersedes the pending handoff above. The
+stable isolated Auth/DB/Storage environment completed the mandatory internal
+matrix with `PASS 40`, `PASS_WITH_P2_P3 3`, `BLOCKED_EXTERNAL 2`, `PARTIAL 0`
+and `NOT RUN 0`; no P0/P1 remains. Exact source
+`124323ec965656fbe127dd5679b0e62caf0c1027` passed all nine required checks in
+PR #86 and was merged by ancestry into `integration/development` at
+`693a225a2f17399575e4e2588309bb9051ea53b7`. The external blocks are limited
+to controlled live Resend/FCM proof and the owner-controlled Production
+release. Accessibility label findings remain P2, no WCAG certification is
+claimed, and Production, `main`, customer data and Digital Observer core are
+unchanged.
+
 GB-M35 temporary-credential P1 (2026-09-20): scoped PR #98 merged by ancestry
 into `integration/development` at
 `f83eb1bb781c050019ff6c7e877f946276aecf23`, preserving source commit
