@@ -8926,6 +8926,53 @@
       "releaseEligibility": "NOT_READY_PENDING_DEVELOPMENT_MIGRATION_AND_GB_M35E_MATRIX",
       "productionDeployment": {"status": "NOT_DEPLOYED"},
       "nextAction": "Canonical isolated Development application, 243/243 drift and Parent browser preference retest passed. Continue PR #86 matrix closure; no Production release."
+    },
+    {
+      "id": "codex/gb-m36-reporting-analytics",
+      "project": "Gan Batuach Management",
+      "title": "GB-M36 canonical reporting, operational analytics and role-aware exports",
+      "owner": "GB-M36 owner",
+      "sourceBranch": "codex/gb-m36-reporting-analytics",
+      "sourceCommits": [
+        "a9145914ee39f950bda1591fcad6c421e3c02917"
+      ],
+      "state": "VALIDATED_ON_BRANCH",
+      "preservation": {
+        "remoteVerified": false,
+        "remoteRefs": [
+          "origin/codex/gb-m36-reporting-analytics"
+        ],
+        "validatedSourceCommit": "a9145914ee39f950bda1591fcad6c421e3c02917"
+      },
+      "validation": {
+        "status": "PASS_BRANCH_VALIDATION",
+        "evidence": [
+          "GAN_BATUACH_MANAGEMENT_GB_M36_REPORTING_ANALYTICS_REPORT.md",
+          "GAN_BATUACH_MANAGEMENT_REPORTING_INVENTORY.md",
+          "/private/tmp/gb-m36-reporting-role-e2e.json",
+          "/private/tmp/gb-m36-reporting-scale-e2e.json"
+        ],
+        "limits": "Production and main unchanged. Production role/report smoke is deferred to explicit owner release."
+      },
+      "integration": {
+        "status": "PENDING",
+        "commit": null,
+        "pullRequest": null
+      },
+      "dependencies": {
+        "status": "GB_M35_INTEGRATED",
+        "units": [
+          "codex/gb-m35-role-e2e-qa"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "PASS_255_MANAGEMENT_22_PARENT_MANAGER_30_DOMAIN_7_SECURITY_243_MIGRATIONS_REPORTING_RLS_27_ROLE_E2E_500_ROW_SCALE_TYPECHECK_BUILD_LINT_PREFLIGHT",
+      "releaseEligibility": "PENDING_PR_AND_CUMULATIVE_INTEGRATION_QA",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Push the feature branch, pass exact-head PR checks, merge to integration/development, and run cumulative integration validation."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
