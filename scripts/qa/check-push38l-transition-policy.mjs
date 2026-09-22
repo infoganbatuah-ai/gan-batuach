@@ -106,6 +106,8 @@ try {
   assert.equal(bad.manager.current().slot, null);
   assert.equal(bad.manager.knownGood().length, 0);
   await assert.rejects(bad.coordinator.run(bad.input), /EDGE_LEGACY_TRANSITION_ONE_TIME_ONLY/);
+  await assert.rejects(bad.coordinator.run(bad.input, { retryRecoveredFailure: true }),
+    /EDGE_LEGACY_TRANSITION_ONE_TIME_ONLY/);
   await assert.rejects(bad.manager.apply({ manifest: remediation, artifactBytes: remediationBytes }),
     /EDGE_UPDATE_SIGNED_BOOTSTRAP_REQUIRED/);
 } finally { rmSync(bad.root, { recursive: true, force: true }); }
@@ -129,9 +131,39 @@ try {
   await assert.rejects(retry.coordinator.run(retry.input, { retryRecoveredFailure: true }),
     /EDGE_LEGACY_TRANSITION_ONE_TIME_ONLY/);
 } finally { rmSync(retry.root, { recursive: true, force: true }); }
+const chainedRetry = await fixture(false);
+try {
+  let healthPhase = "auth";
+  chainedRetry.manager.healthCheck = async ({ transition: initialTransition }) => ({
+    process_running: true,
+    device_authenticated: !(initialTransition && healthPhase === "auth"),
+    heartbeat: true,
+    config_retrieved: !(initialTransition && healthPhase === "config"),
+    cloud_reachable: true, no_crash_loop: true,
+    expected_physical_cameras: 0, progressing_physical_cameras: 0, empty_slots: 0, stalled_streams: 0 });
+  await assert.rejects(chainedRetry.coordinator.run(chainedRetry.input),
+    /EDGE_UPDATE_HEALTH_DEVICE_AUTHENTICATED_FAILED/);
+  healthPhase = "config";
+  await assert.rejects(chainedRetry.coordinator.run(chainedRetry.input, { retryRecoveredFailure: true }),
+    /EDGE_UPDATE_HEALTH_CONFIG_RETRIEVED_FAILED/);
+  assert.equal(chainedRetry.coordinator.status().attempts, 2);
+  assert.deepEqual(chainedRetry.coordinator.status().retry_failures,
+    ["EDGE_UPDATE_HEALTH_DEVICE_AUTHENTICATED_FAILED"]);
+  healthPhase = "healthy";
+  const promoted = await chainedRetry.coordinator.run(chainedRetry.input, { retryRecoveredFailure: true });
+  assert.equal(promoted.state, "HEALTHY");
+  assert.equal(chainedRetry.coordinator.status().attempts, 3);
+  assert.deepEqual(chainedRetry.coordinator.status().retry_failures, [
+    "EDGE_UPDATE_HEALTH_DEVICE_AUTHENTICATED_FAILED",
+    "EDGE_UPDATE_HEALTH_CONFIG_RETRIEVED_FAILED"
+  ]);
+  await assert.rejects(chainedRetry.coordinator.run(chainedRetry.input, { retryRecoveredFailure: true }),
+    /EDGE_LEGACY_TRANSITION_ONE_TIME_ONLY/);
+} finally { rmSync(chainedRetry.root, { recursive: true, force: true }); }
 console.log(JSON.stringify({ status: "PASS", evidence_level: "isolated policy/adapter fixture",
   payload_equivalence_record: record.payload_equivalence_sha256, transition_release: transition.release_id,
-  migration_failure_legacy_recovery: "PASS", bounded_recovered_retry: "PASS", no_retry_loop: "PASS",
+  migration_failure_legacy_recovery: "PASS", bounded_recovered_retry: "PASS",
+  bounded_two_failure_chain_retry: "PASS", no_retry_loop: "PASS",
   transition_promoted_signed_known_good: "PASS", normal_ota_remediation: "PASS",
   crash_rollback_target: transition.release_id, legacy_retired_from_normal_ota: "PASS",
   device_binding_negative: "PASS", tampered_record_negative: "PASS", state_fixtures_preserved: "PASS" }));

@@ -97,10 +97,16 @@ const readId = name => readFileSync(join(secretDir, name), "utf8").trim();
 const snapshot = () => {
   const id = readId("device_gateway_id"), site = readId("device_observer_site_id");
   const source = readId("connector_camera_source_id");
+  const profilesRaw = readId("connector_profiles_json");
+  const profiles = JSON.parse(profilesRaw);
   if (id !== connector.device_id || site !== connector.site_id ||
-    source !== identity.tapo?.source_id) throw new Error("P38_CONNECTOR_SOURCE_OR_IDENTITY_CHANGED");
+    source !== identity.tapo?.source_id || profiles.length !== 1 ||
+    profiles[0]?.connection_type !== "rtsp" || Number(profiles[0]?.channel_count) !== 1 ||
+    !profiles[0]?.endpoint || !profiles[0]?.username || !profiles[0]?.password ||
+    !profiles[0]?.stream_namespace) throw new Error("P38_CONNECTOR_SOURCE_OR_IDENTITY_CHANGED");
   return { identity_fingerprint: createHash("sha256").update(`${id}|${site}`).digest("hex"),
-    binding_fingerprint: createHash("sha256").update(`${id}|${site}|${source}`).digest("hex") };
+    binding_fingerprint: createHash("sha256").update(`${id}|${site}|${source}`).digest("hex"),
+    configuration_fingerprint: createHash("sha256").update(profilesRaw).digest("hex") };
 };
 const before = snapshot();
 const managedRoot = join(homedir(), "Library/Application Support/Digital Observer/observer-connector/ota");
@@ -155,7 +161,8 @@ const plan = { protocol: "observer-push38-homeqa-connector-transition-command-v1
   dvr_truth_evidence_sha256: dvrTruthSha,
   staged_artifact_sha256: transitionManifest.artifact_sha256, legacy_recovery_sha256: legacyManifest.artifact_sha256,
   device_id: connector.device_id, site_id: connector.site_id, service_pid: service.service.pid,
-  source_binding_sha256: before.binding_fingerprint, current_state: "LEGACY_UNMANAGED",
+  source_binding_sha256: before.binding_fingerprint,
+  configuration_binding_sha256: before.configuration_fingerprint, current_state: "LEGACY_UNMANAGED",
   intended_release: transitionManifest.release_id, service_action: label,
   rollback_target: "EXACT_LEGACY_RECOVERY_ONLY", promotion_target: "SIGNED_TRANSITION_CURRENT_KNOWN_GOOD",
   health_gate: "SIGNED_SERVICE_IDENTITY_AND_CONFIG; TAPO_SOURCE_RECORDED_PENDING_REMEDIATION",
@@ -186,7 +193,8 @@ if (saved.protocol !== plan.protocol || saved.prewrite_pass !== true ||
   saved.dvr_truth_evidence_sha256 !== dvrTruthSha ||
   saved.staged_artifact_sha256 !== transitionManifest.artifact_sha256 ||
   saved.legacy_recovery_sha256 !== legacyManifest.artifact_sha256 ||
-  saved.service_pid !== service.service.pid || saved.source_binding_sha256 !== before.binding_fingerprint)
+  saved.service_pid !== service.service.pid || saved.source_binding_sha256 !== before.binding_fingerprint ||
+  saved.configuration_binding_sha256 !== before.configuration_fingerprint)
   throw new Error("P38_CONNECTOR_DRY_RUN_STALE_OR_CONFLICTING");
 const probeHealth = async () => {
   let last;
@@ -194,12 +202,20 @@ const probeHealth = async () => {
   do {
     const probe = await adapter.health({ timeoutMs: 5000 });
     const body = probe.body || {};
+    const currentBinding = snapshot();
+    const transitionConfigurationBound = currentBinding.binding_fingerprint === before.binding_fingerprint &&
+      currentBinding.configuration_fingerprint === before.configuration_fingerprint;
     last = { process_running: probe.ok && probe.service.running,
       // The signed one-time handoff is authenticated by the exact-device
       // legacy HOME_QA proof above. Managed Ed25519 identity is deliberately
       // established only after this transition succeeds.
       device_authenticated: transitionIdentityAuthenticated,
-      heartbeat: probe.ok, config_retrieved: body.lastDiscovery?.channelCount === 1,
+      // The one-time signed transition re-seals the exact legacy payload and
+      // keeps configuration outside the bundle. A stalled RTSP open may take
+      // the legacy runtime's full three-minute timeout, so media discovery is
+      // diagnostic here. Configuration safety is the exact, non-secret
+      // device/Site/Source/profile fingerprint captured before handoff.
+      heartbeat: probe.ok, config_retrieved: transitionConfigurationBound,
       cloud_reachable: transitionIdentityAuthenticated, no_crash_loop: probe.ok,
       // This signed transition re-seals the same legacy payload. The already
       // documented 0/1 Tapo defect is a remediation gate, not a reason to
@@ -210,6 +226,8 @@ const probeHealth = async () => {
       observed_expected_physical_cameras: 1,
       observed_progressing_physical_cameras: body.mediaHeartbeat?.progressingRelays ?? 0,
       observed_stalled_streams: body.mediaHeartbeat?.stalledRelays ?? 0,
+      observed_discovery_channel_count: body.lastDiscovery?.channelCount ?? 0,
+      configuration_binding_verified: transitionConfigurationBound,
       source_degraded_pending_remediation: (body.mediaHeartbeat?.progressingRelays ?? 0) < 1 };
     if (edgeHealthGate(last).healthy) return last;
     await new Promise(resolve => setTimeout(resolve, 2000));
@@ -226,6 +244,7 @@ const transition = createConnectorLegacyTransition({ manager, adapter, inspect,
     const after = snapshot();
     return after.identity_fingerprint === previous.identity_fingerprint &&
       after.binding_fingerprint === previous.binding_fingerprint &&
+      after.configuration_fingerprint === previous.configuration_fingerprint &&
       (await adapter.health({ timeoutMs: 5000 })).service.running;
   } });
 const result = await transition.run({ legacyManifest, legacyBytes, transitionManifest,

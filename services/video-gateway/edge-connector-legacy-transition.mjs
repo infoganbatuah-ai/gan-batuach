@@ -108,9 +108,19 @@ export function createConnectorLegacyTransition({ manager, adapter, inspect, ver
   async function run({ legacyManifest, legacyBytes, transitionManifest, transitionBytes, derivationRecord },
     { retryRecoveredFailure = false } = {}) {
     const prior = read();
+    // A recovered live attempt may be retried only for the two exact,
+    // pre-remediation ordering defects observed during PUSH 38. This is a
+    // finite allow-list, not a generic retry switch: attempt four and every
+    // other failure category remain permanently fail closed.
+    const retryFailureChain = Array.isArray(prior?.retry_failures)
+      ? prior.retry_failures
+      : [prior?.retry_of_failure].filter(Boolean);
+    const approvedRecoveredFailure = (prior?.attempts === 1 &&
+      prior.failure_category === "EDGE_UPDATE_HEALTH_DEVICE_AUTHENTICATED_FAILED") ||
+      (prior?.attempts === 2 && prior.retry_of_failure === "EDGE_UPDATE_HEALTH_DEVICE_AUTHENTICATED_FAILED" &&
+      prior.failure_category === "EDGE_UPDATE_HEALTH_CONFIG_RETRIEVED_FAILED");
     const recoveredRetry = retryRecoveredFailure && prior?.state === "ACTION_REQUIRED" &&
-      prior.recovery_used === true && prior.attempts === 1 &&
-      prior.failure_category === "EDGE_UPDATE_HEALTH_DEVICE_AUTHENTICATED_FAILED" &&
+      prior.recovery_used === true && approvedRecoveredFailure &&
       prior.device_id === manager.device.deviceId && prior.legacy_release_id === legacyManifest.release_id &&
       prior.legacy_artifact_sha256 === legacyManifest.artifact_sha256 &&
       prior.transition_release_id === transitionManifest.release_id &&
@@ -153,8 +163,10 @@ export function createConnectorLegacyTransition({ manager, adapter, inspect, ver
       transition_artifact_sha256: transitionManifest.artifact_sha256,
       derivation_sha256: sha(Buffer.from(canonicalLegacyTransitionRecord(derivationRecord))),
       identity_fingerprint: before.identity_fingerprint, binding_fingerprint: before.binding_fingerprint,
-      attempts: recoveredRetry ? 2 : 1, recovery_used: recoveredRetry,
+      attempts: recoveredRetry ? prior.attempts + 1 : 1, recovery_used: recoveredRetry,
       retry_of_failure: recoveredRetry ? prior.failure_category : null, updated_at: new Date().toISOString() });
+    if (recoveredRetry) atomicJson(journalPath, { ...read(),
+      retry_failures: [...retryFailureChain, prior.failure_category], updated_at: new Date().toISOString() });
     const slot = join(root, "slots", transitionManifest.version);
     if (existsSync(slot)) {
       if (!recoveredRetry || !existsSync(join(slot, "artifact.bin")) || !existsSync(join(slot, "release.json")) ||
