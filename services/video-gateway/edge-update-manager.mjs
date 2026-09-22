@@ -276,10 +276,33 @@ export class EdgeUpdateManager {
     const secondPid = this.adapter.runtimePid?.();
     if (!second.healthy || secondPid !== firstPid) fail("EDGE_UPDATE_ACTION_ROLLBACK_RECOVERY_UNSTABLE");
     this.quarantineRelease(failedManifest, state.failure_category);
+    // The failed release may already have been promoted before the late
+    // failure. A delayed rollback recovery must remove it from KNOWN_GOOD just
+    // like the uninterrupted rollback path, otherwise a later failure could
+    // select the quarantined slot as a rollback target.
+    atomicJson(this.knownGoodPath, known.filter(item => item.release_id !== state.release_id));
     return this.transition("ROLLED_BACK", { failure_category: state.failure_category,
       failed_version: state.target_version || state.failed_version || failedManifest.version,
       recovered_version: current.version, recovery_category: "EDGE_UPDATE_SIGNED_KNOWN_GOOD_RECOVERED",
       recovered_runtime_pid: secondPid, recovery_health: second });
+  }
+  // Reconcile state written by an older delayed-recovery implementation that
+  // restored CURRENT and quarantined the failed release but left that failed
+  // pointer in KNOWN_GOOD. This is metadata-only and can remove only the exact
+  // signed release already identified by the rollback state and quarantine.
+  reconcileDelayedRollbackKnownGood() {
+    const state = this.status(), current = this.current(), known = this.knownGood();
+    if (state.state !== "ROLLED_BACK" || !state.release_id || state.release_id === current.release_id ||
+      !known.some(item => item.release_id === current.release_id &&
+        item.artifact_sha256 === current.artifact_sha256) ||
+      !this.quarantine().some(item => item.release_id === state.release_id))
+      fail("EDGE_UPDATE_DELAYED_ROLLBACK_RECONCILIATION_NOT_APPLICABLE");
+    this.verifySlot(current);
+    const failed = known.find(item => item.release_id === state.release_id);
+    if (!failed) return state;
+    this.verifySlot(failed);
+    atomicJson(this.knownGoodPath, known.filter(item => item.release_id !== state.release_id));
+    return this.status();
   }
   // A restored signed known-good slot can later be marked ACTION_REQUIRED if
   // its supervisor was unavailable for the crash-guard window. Reconcile only

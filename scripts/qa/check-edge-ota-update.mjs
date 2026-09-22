@@ -101,6 +101,18 @@ assert.equal((await delayedRecovery.value.recoverActionRequiredRollback()).state
 assert.equal(delayedRecovery.value.current().version, "1.0.0");
 assert.equal(delayedRecovery.value.status().recovery_health.reason, "EDGE_UPDATE_ROLLBACK_RECOVERED_DEGRADED");
 assert.equal(delayedRecovery.value.quarantine().some(item => item.release_id === delayedManifest.release_id), true);
+assert.equal(delayedRecovery.value.knownGood().some(item => item.release_id === delayedManifest.release_id), false,
+  "delayed recovery cannot retain the quarantined failed release as known-good");
+// Reconcile the exact old live-state shape produced before the delayed
+// recovery path removed failed releases from KNOWN_GOOD.
+const delayedFailedPointer = { version: delayedManifest.version,
+  slot: join(delayedRecovery.root, "slots", delayedManifest.version),
+  release_id: delayedManifest.release_id, artifact_sha256: delayedManifest.artifact_sha256 };
+writeFileSync(delayedRecovery.value.knownGoodPath,
+  `${JSON.stringify([...delayedRecovery.value.knownGood(), delayedFailedPointer], null, 2)}\n`);
+assert.equal(delayedRecovery.value.knownGood().at(-1).release_id, delayedManifest.release_id);
+delayedRecovery.value.reconcileDelayedRollbackKnownGood();
+assert.equal(delayedRecovery.value.knownGood().some(item => item.release_id === delayedManifest.release_id), false);
 
 // Artifact tamper and interrupted phases never promote an incomplete slot.
 const tamper = await manager("SOFTWARE_CONNECTOR", async () => healthy(1));
