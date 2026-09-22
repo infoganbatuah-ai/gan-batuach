@@ -47,7 +47,8 @@ export function validateHomeQaOtaIdentityScope({ managedRoot, runtimeConfig, qaI
   const secrets = join(root, "home-qa-device-secrets");
   const certificate = runtimeConfig.qaTlsCaPath;
   if (runtimeConfig.secretDir !== secrets || runtimeConfig.keychainService ||
-    !certificate || !isAbsolute(certificate) || realpathSync(certificate) !== certificate ||
+    !certificate || !isAbsolute(certificate) || !resolve(certificate).startsWith(`${root}/`) ||
+    realpathSync(certificate) !== certificate ||
     lstatSync(certificate).isSymbolicLink() || !lstatSync(certificate).isFile() ||
     lstatSync(certificate).uid !== process.getuid() || (lstatSync(certificate).mode & 0o022) !== 0 ||
     (lstatSync(dirname(certificate)).mode & 0o022) !== 0 ||
@@ -64,6 +65,8 @@ export function validateHomeQaOtaIdentityScope({ managedRoot, runtimeConfig, qaI
 export function installInstalledOtaAgent({ profile, managedRoot, agentPlistPath, agentLabel, nodePath,
   manifest, artifactPath, baselineReleaseId, runtimeConfig, qaIsolationRoot = "" }) {
   const plan = planInstalledOtaAgent({ profile, managedRoot, agentPlistPath, agentLabel, qaIsolationRoot });
+  const priorConfigBytes = existsSync(plan.config) ? readFileSync(plan.config) : null;
+  const priorConfig = priorConfigBytes ? JSON.parse(priorConfigBytes.toString("utf8")) : null;
   const homeQaIdentity = validateHomeQaOtaIdentityScope({ managedRoot, runtimeConfig, qaIsolationRoot });
   const trusted = loadPinnedEdgeReleaseKeys({ registryPath: qaIsolationRoot
     ? runtimeConfig.qaTrustRegistryPath : PROTECTED_EDGE_TRUST_REGISTRY_PATH,
@@ -111,16 +114,48 @@ export function installInstalledOtaAgent({ profile, managedRoot, agentPlistPath,
         artifact_sha256: artifactDigest, signing_key_id: manifest.signing_key_id }), { mode: 0o600 });
       renameSync(staging, managementDir);
     }
-    atomic(plan.config, `${JSON.stringify(runtimeConfig)}\n`);
     const plist = plistXml({ Label: agentLabel, ProgramArguments: [nodePath, plan.management_code, plan.config],
       RunAtLoad: true, KeepAlive: true, ThrottleInterval: 10,
       ...(homeQaIdentity ? { EnvironmentVariables: { NODE_EXTRA_CA_CERTS: homeQaIdentity.certificate } } : {}),
       StandardOutPath: join(managedRoot, "agent.out.log"), StandardErrorPath: join(managedRoot, "agent.err.log") });
-    if (existsSync(agentPlistPath) && readFileSync(agentPlistPath, "utf8") !== plist) fail("EDGE_OTA_INSTALL_PLIST_CONFLICT");
-    if (!existsSync(agentPlistPath)) atomic(agentPlistPath, plist);
+    const priorPlist = priorConfig && homeQaIdentity ? plistXml({ Label: agentLabel,
+      ProgramArguments: [nodePath, plan.management_code, plan.config], RunAtLoad: true, KeepAlive: true,
+      ThrottleInterval: 10, EnvironmentVariables: { NODE_EXTRA_CA_CERTS: priorConfig.qaTlsCaPath },
+      StandardOutPath: join(managedRoot, "agent.out.log"), StandardErrorPath: join(managedRoot, "agent.err.log") }) : null;
+    const existingPlist = existsSync(agentPlistPath) ? readFileSync(agentPlistPath, "utf8") : null;
+    let restartForCertificateRelocation = false;
+    if (existingPlist !== null && existingPlist !== plist) {
+      const priorCertificate = priorConfig?.qaTlsCaPath;
+      const equivalentConfig = JSON.stringify({ ...priorConfig, qaTlsCaPath: runtimeConfig.qaTlsCaPath }) ===
+        JSON.stringify(runtimeConfig);
+      const priorCertificateSafe = typeof priorCertificate === "string" && isAbsolute(priorCertificate) &&
+        existsSync(priorCertificate) && !lstatSync(priorCertificate).isSymbolicLink() &&
+        lstatSync(priorCertificate).isFile() && lstatSync(priorCertificate).uid === process.getuid() &&
+        (lstatSync(priorCertificate).mode & 0o022) === 0 &&
+        createHash("sha256").update(readFileSync(priorCertificate)).digest("hex") === runtimeConfig.qaTlsCaSha256;
+      if (!homeQaIdentity || existingPlist !== priorPlist || !equivalentConfig || !priorCertificateSafe ||
+        priorCertificate === runtimeConfig.qaTlsCaPath) fail("EDGE_OTA_INSTALL_PLIST_CONFLICT");
+      restartForCertificateRelocation = true;
+    }
     const domain = `gui/${process.getuid()}`;
-    try { run("/bin/launchctl", ["bootstrap", domain, agentPlistPath]); }
-    catch { if (!run("/bin/launchctl", ["print", `${domain}/${agentLabel}`]).includes("state = running")) fail("EDGE_OTA_INSTALL_SERVICE_FAILED"); }
+    if (restartForCertificateRelocation) {
+      try { run("/bin/launchctl", ["bootout", domain, agentPlistPath]); } catch {}
+      try {
+        atomic(plan.config, `${JSON.stringify(runtimeConfig)}\n`);
+        atomic(agentPlistPath, plist);
+        run("/bin/launchctl", ["bootstrap", domain, agentPlistPath]);
+      } catch {
+        if (priorConfigBytes) atomic(plan.config, priorConfigBytes);
+        if (existingPlist) atomic(agentPlistPath, existingPlist);
+        try { run("/bin/launchctl", ["bootstrap", domain, agentPlistPath]); } catch {}
+        fail("EDGE_OTA_INSTALL_CERTIFICATE_RELOCATION_FAILED");
+      }
+    } else {
+      atomic(plan.config, `${JSON.stringify(runtimeConfig)}\n`);
+      if (existingPlist === null) atomic(agentPlistPath, plist);
+      try { run("/bin/launchctl", ["bootstrap", domain, agentPlistPath]); }
+      catch { if (!run("/bin/launchctl", ["print", `${domain}/${agentLabel}`]).includes("state = running")) fail("EDGE_OTA_INSTALL_SERVICE_FAILED"); }
+    }
     return { ...plan, installed: true, release_id: manifest.release_id, artifact_sha256: artifactDigest };
   } finally { rmSync(temp, { recursive: true, force: true }); }
 }

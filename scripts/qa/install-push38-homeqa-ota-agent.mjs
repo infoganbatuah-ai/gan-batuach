@@ -3,7 +3,8 @@
 // isolated Ed25519 key and the QA rollout is explicitly promoted.
 import { execFileSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { createWriteStream, mkdtempSync, readFileSync, rmSync, statSync } from "node:fs";
+import { createWriteStream, existsSync, lstatSync, mkdtempSync, readFileSync, rmSync, statSync,
+  writeFileSync } from "node:fs";
 import { once } from "node:events";
 import { homedir, tmpdir } from "node:os";
 import { join } from "node:path";
@@ -40,15 +41,24 @@ const agentLabel = `${spec.label}.ota-agent`;
 const agentPlistPath = join(homedir(), "Library/LaunchAgents", `${agentLabel}.plist`);
 const certPath = "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38t-ota-loopback-20260920.crt";
 const certSha = createHash("sha256").update(readFileSync(certPath)).digest("hex");
+const installedCertPath = join(root, "qa-control-plane-ca.crt");
+if (apply) {
+  if (!existsSync(installedCertPath))
+    writeFileSync(installedCertPath, readFileSync(certPath), { mode: 0o600, flag: "wx" });
+  if (lstatSync(installedCertPath).isSymbolicLink() || !lstatSync(installedCertPath).isFile() ||
+    (lstatSync(installedCertPath).mode & 0o077) !== 0 ||
+    createHash("sha256").update(readFileSync(installedCertPath)).digest("hex") !== certSha)
+    throw new Error("P38_HOME_QA_AGENT_LOCAL_TLS_CERT_INVALID");
+}
 const runtimeConfig = { profile, managedRoot: root, installedBase: spec.installedBase,
   launchAgentPath: join(homedir(), "Library/LaunchAgents", `${spec.label}.plist`),
   label: spec.label, port: spec.port, deviceId: spec.deviceId, channel: "HOME_QA",
   configVersion: connector ? 4 : 1, expectedPhysicalCameras: spec.expected,
   configuredPhysicalCameras: spec.configured ?? spec.expected,
   baselineArtifactSha256: spec.baselineSha, secretDir: secrets,
-  qaTlsCaPath: certPath, qaTlsCaSha256: certSha, intervalMs: 60_000 };
+  qaTlsCaPath: apply ? installedCertPath : certPath, qaTlsCaSha256: certSha, intervalMs: 60_000 };
 const plan = planInstalledOtaAgent({ profile, managedRoot: root, agentPlistPath, agentLabel });
-validateHomeQaOtaIdentityScope({ managedRoot: root, runtimeConfig });
+if (apply) validateHomeQaOtaIdentityScope({ managedRoot: root, runtimeConfig });
 const bundle = "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-signed-manifests-35482295860.zip";
 const manifest = JSON.parse(execFileSync("unzip", ["-p", bundle, spec.bundleName],
   { encoding: "utf8", timeout: 15_000, maxBuffer: 8192 }));
@@ -60,7 +70,8 @@ if (!verifyEdgeUpdateManifest(manifest, keys).ok || manifest.release_id !== spec
 if (dryRun) {
   console.log(JSON.stringify({ status: "AGENT_INSTALL_PLAN_PASS", profile, release_id: manifest.release_id,
     signed_manifest: true, isolated_identity_store: true, tls_certificate_sha256: certSha,
-    management_code: plan.management_code, runtime_writes: 0 }));
+    management_code: plan.management_code, tls_certificate_install_path: installedCertPath,
+    runtime_writes: 0 }));
   process.exit(0);
 }
 const store = createEdgeSecretStoreSync({ secretDir: secrets });
