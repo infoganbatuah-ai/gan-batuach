@@ -1,10 +1,12 @@
 // Read-only reconciliation of the installed legacy Home components with the
 // authoritative Product records. The restricted output contains identifiers,
 // never refresh tokens, credential hashes, camera URLs or camera passwords.
+import { execFileSync } from "node:child_process";
 import { createHash, timingSafeEqual } from "node:crypto";
-import { readFileSync, realpathSync, writeFileSync } from "node:fs";
+import { readFileSync, realpathSync, statSync, writeFileSync } from "node:fs";
 import { join, resolve, sep } from "node:path";
 import { createClient } from "@supabase/supabase-js";
+import { deriveHomeQaLegacyProofKey } from "../../services/video-gateway/home-qa-legacy-proof.mjs";
 import { createKeychainStore } from "../../services/video-gateway/keychain-store.mjs";
 
 const SITE_ID = "cc1673b8-3eb0-4785-a12c-1fb88f425a41";
@@ -13,6 +15,7 @@ const CONNECTOR_ID = "db267b52-6282-4944-bcee-5d4857698fb0";
 const CONNECTOR_SECRETS = "/Users/danielderi/Library/Application Support/Digital Observer/Tapo Connector/secrets";
 const GATEWAY_KEYCHAIN = "com.ganbatuach.video-gateway.runtime";
 const outputOption = process.argv.find(arg => arg.startsWith("--output="));
+const option = name => process.argv.find(arg => arg.startsWith(`--${name}=`))?.slice(name.length + 3) || "";
 if (!outputOption) throw new Error("PUSH38_RESTRICTED_OUTPUT_REQUIRED");
 const output = resolve(outputOption.slice("--output=".length));
 const restricted = realpathSync("/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted") + sep;
@@ -41,20 +44,50 @@ const connectorInstalledId = readConnector("device_gateway_id");
 const connectorInstalledSite = readConnector("device_observer_site_id");
 const connectorInstalledSource = readConnector("connector_camera_source_id");
 const connectorToken = readConnector("device_refresh_token");
+const connectorSigningSecret = readConnector("gateway_signing_secret");
 requireValue(gatewayInstalledId === GATEWAY_ID && connectorInstalledId === CONNECTOR_ID, "INSTALLED_DEVICE_CONFLICT");
 requireValue(gatewayInstalledSite === SITE_ID && connectorInstalledSite === SITE_ID, "INSTALLED_SITE_CONFLICT");
 
 const [sites, devices, sources] = await Promise.all([
   select("observer_sites", "id,site_type,active,digital_observer_organization_id", "id", SITE_ID),
   select("video_gateway_device_enrollments",
-    "id,gateway_id,observer_site_id,tenant_id,deployment_profile,status,lifecycle_state,identity_scheme,config_version,refresh_token_hash",
+    "id,gateway_id,observer_site_id,tenant_id,deployment_profile,status,lifecycle_state,identity_scheme,config_version,refresh_token_hash,updated_at",
     "observer_site_id", SITE_ID),
-  select("digital_observer_camera_sources", "id,observer_site_id,connector_type,status,source_mode,metadata",
+  select("digital_observer_camera_sources", "id,observer_site_id,connector_type,status,source_mode,health_status,last_error_code,metadata",
     "observer_site_id", SITE_ID)
 ]);
 requireValue(sites.length === 1 && sites[0].id === SITE_ID && sites[0].site_type === "home" &&
   sites[0].active === true && !sites[0].digital_observer_organization_id, "PRODUCT_SITE_CONFLICT");
 const tenantId = SITE_ID; // PUSH 18 fallback when Home has no organization.
+const priorPathOption = option("prior-evidence");
+const priorSha = option("prior-sha256");
+let priorEvidence = null;
+if (priorPathOption || priorSha) {
+  const priorPath = realpathSync(resolve(priorPathOption));
+  const priorBytes = readFileSync(priorPath);
+  requireValue(priorPath.startsWith(restricted) && (statSync(priorPath).mode & 0o077) === 0,
+    "PRIOR_EVIDENCE_NOT_RESTRICTED");
+  requireValue(/^[a-f0-9]{64}$/.test(priorSha) &&
+    createHash("sha256").update(priorBytes).digest("hex") === priorSha, "PRIOR_EVIDENCE_DIGEST_MISMATCH");
+  priorEvidence = JSON.parse(priorBytes.toString("utf8"));
+  requireValue(priorEvidence.protocol === "observer-push38-home-identity-reconciliation-v1",
+    "PRIOR_EVIDENCE_PROTOCOL_INVALID");
+}
+function homeQaLegacyProofMatches(row) {
+  if (row.profile !== "SOFTWARE_CONNECTOR") return false;
+  const proof = deriveHomeQaLegacyProofKey({ localSigningSecret: connectorSigningSecret,
+    device_id: row.device_id, enrollment_id: row.enrollment_id, site_id: row.site_id,
+    tenant_id: row.tenant_id, profile: row.profile });
+  const fingerprint = createHash("sha256").update(Buffer.from(proof.publicKeySpki, "base64url")).digest("hex");
+  const query = `select coalesce(metadata->>'home_qa_legacy_public_key_sha256','') from public.video_gateway_device_enrollments
+    where id='${row.enrollment_id}' and gateway_id='${row.device_id}' and observer_site_id='${row.site_id}'
+    and tenant_id='${row.tenant_id}' and deployment_profile='${row.profile}'
+    and metadata->>'home_qa_phase'='LEGACY_VERIFIED_FOR_TRANSITION'`;
+  const actual = execFileSync("docker", ["--context", "colima-push38t", "exec",
+    "supabase_db_gan-batuach-push38t", "psql", "-X", "-A", "-t", "-U", "postgres", "-d", "postgres", "-c", query],
+  { encoding: "utf8", timeout: 45_000, stdio: ["ignore", "pipe", "pipe"] }).trim();
+  return actual === fingerprint;
+}
 const expected = [
   { id: GATEWAY_ID, profile: "PHYSICAL_GATEWAY", token: gatewayToken },
   { id: CONNECTOR_ID, profile: "SOFTWARE_CONNECTOR", token: connectorToken }
@@ -66,11 +99,27 @@ const enrollment = expected.map(component => {
   requireValue(row.observer_site_id === SITE_ID && row.tenant_id === tenantId &&
     row.deployment_profile === component.profile && row.identity_scheme === "LEGACY_HMAC" &&
     Number.isInteger(row.config_version) && row.config_version > 0, `${component.profile}_SCOPE_CONFLICT`);
-  requireValue(equalDigest(component.token, row.refresh_token_hash), `${component.profile}_INSTALLED_PROOF_MISMATCH`);
-  return { enrollment_id: row.id, device_id: row.gateway_id, tenant_id: row.tenant_id,
+  const currentVerifier = equalDigest(component.token, row.refresh_token_hash);
+  const result = { enrollment_id: row.id, device_id: row.gateway_id, tenant_id: row.tenant_id,
     site_id: row.observer_site_id, profile: row.deployment_profile,
     config_version: row.config_version, identity_phase: "LEGACY_VERIFIED_FOR_TRANSITION",
-    installed_credential_matches_product_verifier: true };
+    installed_credential_matches_product_verifier: currentVerifier,
+    legacy_refresh_state: currentVerifier ? "CURRENT" : "ORPHANED_ROTATION_REQUIRES_MANAGED_BOOTSTRAP" };
+  if (!currentVerifier) {
+    requireValue(component.profile === "SOFTWARE_CONNECTOR" && priorEvidence,
+      `${component.profile}_INSTALLED_PROOF_MISMATCH`);
+    const prior = priorEvidence.devices?.find(item => item.device_id === component.id &&
+      item.enrollment_id === row.id && item.profile === component.profile && item.site_id === SITE_ID &&
+      item.tenant_id === tenantId && item.config_version === row.config_version &&
+      item.installed_credential_matches_product_verifier === true);
+    requireValue(Boolean(prior) && Date.parse(priorEvidence.observed_at) < Date.parse(row.updated_at),
+      `${component.profile}_PRIOR_PRODUCT_PROOF_INVALID`);
+    result.legacy_transition_proof_matches_home_qa = homeQaLegacyProofMatches(result);
+    result.prior_product_proof_sha256 = priorSha;
+    requireValue(result.legacy_transition_proof_matches_home_qa,
+      `${component.profile}_HOME_QA_TRANSITION_PROOF_MISMATCH`);
+  }
+  return result;
 });
 const dvr = sources.filter(row => row.connector_type === "dvr");
 const tapo = sources.filter(row => row.id === connectorInstalledSource && row.connector_type === "rtsp");
@@ -79,10 +128,16 @@ requireValue(new Set(dvr.map(row => row.metadata?.dvr_channel)).size === 16 &&
   dvr.every(row => Number.isInteger(row.metadata?.dvr_channel) && row.metadata.dvr_channel >= 1 &&
     row.metadata.dvr_channel <= 16 && row.metadata?.gateway_id === GATEWAY_ID), "DVR_MAPPING_CONFLICT");
 const assigned = dvr.filter(row => row.metadata?.channel_assignment === "ASSIGNED" &&
-  row.metadata?.physical_camera_attached === true && row.status === "connected");
+  row.metadata?.physical_camera_attached === true);
+const available = assigned.filter(row => row.status === "connected");
+const unavailable = assigned.filter(row => row.status === "offline");
 const empty = dvr.filter(row => row.metadata?.channel_assignment === "CHANNEL_EMPTY" &&
   row.metadata?.physical_camera_attached === false && row.status === "disabled");
-requireValue(assigned.length === 10 && empty.length === 6, "DVR_ASSIGNMENT_CONFLICT");
+requireValue(assigned.length === 10 && available.length === 8 && unavailable.length === 2 &&
+  empty.length === 6, "DVR_ASSIGNMENT_OR_AVAILABILITY_CONFLICT");
+requireValue(JSON.stringify(unavailable.map(row => row.metadata.dvr_channel).sort((a, b) => a - b)) === "[2,8]" &&
+  unavailable.every(row => row.last_error_code === "DVR_CHANNEL_OFFLINE" ||
+    row.metadata?.latest_failure_reason === "FailConnectNetwork"), "DVR_UPSTREAM_FAILURE_ATTRIBUTION_CONFLICT");
 requireValue(tapo[0].metadata?.gateway_id === CONNECTOR_ID && tapo[0].observer_site_id === SITE_ID,
   "TAPO_MAPPING_CONFLICT");
 
@@ -92,9 +147,10 @@ const health = await response.json();
 // Input membership is identity/config evidence. A stalled input remains in
 // this list, so progression belongs to the separate pre-write health gate.
 const inputChannels = (health.mediaHeartbeat?.inputs || []).map(input => input.channel).sort((a, b) => a - b);
-const assignedChannels = assigned.map(row => row.metadata.dvr_channel).sort((a, b) => a - b);
-requireValue(JSON.stringify(inputChannels) === JSON.stringify(assignedChannels) &&
-  health.lastDiscovery?.unassignedCount === 6,
+const availableChannels = available.map(row => row.metadata.dvr_channel).sort((a, b) => a - b);
+requireValue(JSON.stringify(inputChannels) === JSON.stringify(availableChannels) &&
+  health.lastDiscovery?.assignedCount === 10 && health.lastDiscovery?.connectedCount === 8 &&
+  health.lastDiscovery?.failedAssignedCount === 2 && health.lastDiscovery?.unassignedCount === 6,
   "LIVE_DVR_PRODUCT_MAPPING_CONFLICT");
 const evidence = { protocol: "observer-push38-home-identity-reconciliation-v1", observed_at: new Date().toISOString(),
   environment: "HOME_QA_QUALIFICATION", product_database_access: "AUTHORIZED_READ_ONLY",
@@ -102,6 +158,10 @@ const evidence = { protocol: "observer-push38-home-identity-reconciliation-v1", 
     "Product PUSH18 enrollments", "installed Gateway Keychain", "installed Connector secret store"] },
   devices: enrollment, dvr: { expected: 16, assigned: assigned.map(row => ({ source_id: row.id,
     channel: row.metadata.dvr_channel, stream_id: row.metadata.gateway_stream_id })).sort((a, b) => a.channel - b.channel),
+    source_available: available.map(row => ({ source_id: row.id,
+      channel: row.metadata.dvr_channel, stream_id: row.metadata.gateway_stream_id })).sort((a, b) => a.channel - b.channel),
+    upstream_unavailable: unavailable.map(row => ({ source_id: row.id,
+      channel: row.metadata.dvr_channel, reason: row.last_error_code || row.metadata?.latest_failure_reason || "SOURCE_UNAVAILABLE" })).sort((a, b) => a.channel - b.channel),
     empty: empty.map(row => ({ source_id: row.id, channel: row.metadata.dvr_channel })).sort((a, b) => a.channel - b.channel),
     live_input_channels: inputChannels,
     progressing_count_at_observation: health.mediaHeartbeat?.progressingRelays ?? null,
@@ -111,5 +171,7 @@ const evidence = { protocol: "observer-push38-home-identity-reconciliation-v1", 
 writeFileSync(output, `${JSON.stringify(evidence, null, 2)}\n`, { encoding: "utf8", mode: 0o600, flag: "wx" });
 const digest = createHash("sha256").update(readFileSync(output)).digest("hex");
 console.log(JSON.stringify({ status: "PASS", evidence_sha256: digest, devices: enrollment.length,
-  dvr_assigned: assigned.length, dvr_empty: empty.length, tapo: tapo.length,
+  dvr_assigned: assigned.length, dvr_source_available: available.length,
+  dvr_upstream_unavailable: unavailable.length, dvr_empty: empty.length, tapo: tapo.length,
+  connector_legacy_refresh_state: enrollment.find(row => row.profile === "SOFTWARE_CONNECTOR")?.legacy_refresh_state,
   site_id: SITE_ID, production_writes: 0, installed_runtime_writes: 0 }));

@@ -14,7 +14,7 @@ const run = (command, args) => execFileSync(command, args, { cwd: root, env: bas
   encoding: "utf8", timeout: 30_000, stdio: ["ignore", "pipe", "pipe"] });
 const enableLegacyDelivery = process.argv.includes("--enable-legacy-delivery");
 function r2Credentials() {
-  const service = "digital-observer-r2-home-qa-publisher-20260919";
+  const service = "digital-observer-r2-home-qa-reader-20260922";
   const keychain = join(homedir(), "Library/Keychains/login.keychain-db");
   const opts = { encoding: "utf8", timeout: 45_000, maxBuffer: 16_384,
     stdio: ["ignore", "pipe", "ignore"] };
@@ -26,7 +26,6 @@ function r2Credentials() {
   if (!/^[a-f0-9]{32}$/.test(account || "") || !secret) throw new Error("P38_QA_R2_KEYCHAIN_UNAVAILABLE");
   return { accessKeyId: account, secretAccessKey: secret };
 }
-
 // A separate Docker context and project label are mandatory. No linked-cloud
 // Supabase URL or inherited provider credential may reach the QA process.
 const labels = JSON.parse(run("docker", ["--context", dockerContext, "inspect", "--format",
@@ -42,6 +41,7 @@ if (variables.API_URL !== "http://127.0.0.1:56421" ||
   !variables.DB_URL?.includes("127.0.0.1:56422") ||
   !variables.SERVICE_ROLE_KEY || !variables.PUBLISHABLE_KEY)
   throw new Error("QA stack URL or credentials are incomplete or non-local");
+run(process.execPath, ["scripts/qa/start-push38t-rest-loopback.mjs"]);
 
 const releaseEnv = {};
 if (enableLegacyDelivery) {
@@ -71,6 +71,9 @@ const child = spawn(process.execPath, ["node_modules/next/dist/bin/next", "dev",
     ...releaseEnv,
     NEXT_PUBLIC_SUPABASE_URL: variables.API_URL,
     NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: variables.PUBLISHABLE_KEY,
+    // Server-only loopback adapter bypasses a local Kong 2.8 header-template
+    // defect. It is not published and preserves the real service-role JWT.
+    SUPABASE_ADMIN_URL: "http://127.0.0.1:56431",
     SUPABASE_SERVICE_ROLE_KEY: variables.SERVICE_ROLE_KEY,
     VIDEO_GATEWAY_CLOUD_DISCOVERY_SECRET: randomBytes(48).toString("base64url") },
   stdio: "inherit"

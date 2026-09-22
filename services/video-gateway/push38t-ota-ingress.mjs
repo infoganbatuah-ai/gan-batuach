@@ -57,7 +57,11 @@ export function createPush38tIngress({ origin = "http://127.0.0.1:3100", tls = n
         if (forwardHeaders.has(name) && typeof value === "string") headers.set(name, value);
       const upstream = await fetch(new URL(url.pathname + url.search, target), {
         method: request.method, headers, body: request.method === "GET" ? undefined : Buffer.concat(chunks),
-        redirect: "manual", cache: "no-store", signal: AbortSignal.timeout(10_000)
+        // The cumulative QA route performs bounded eligibility, revocation and
+        // audit checks before it mints the capability. Keep the route bounded,
+        // but do not let the ingress expire before the device's 20s control
+        // contract (especially on the first local Next compilation).
+        redirect: "manual", cache: "no-store", signal: AbortSignal.timeout(20_000)
       });
       if (upstream.status >= 300 && upstream.status < 400) throw new Error("QA_INGRESS_REDIRECT_REJECTED");
       const data = Buffer.from(await upstream.arrayBuffer());

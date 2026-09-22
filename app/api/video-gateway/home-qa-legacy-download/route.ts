@@ -27,6 +27,11 @@ const requestSchema = z.object({
   timestamp: z.string().datetime(), nonce: z.string().regex(/^[A-Za-z0-9_-]{43}$/)
 }).strict();
 const responseHeaders = { "Cache-Control": "private, no-store", "Referrer-Policy": "no-referrer" };
+function legacyAuthDeny(reason: string) {
+  console.warn(JSON.stringify({ level: "warn", domain: "push38_home_qa_legacy_auth",
+    outcome: "DENY", reason }));
+  return fail("Legacy qualification authentication failed.", 401);
+}
 
 export async function POST(request: Request) {
   try {
@@ -35,7 +40,7 @@ export async function POST(request: Request) {
       process.env.OBSERVER_EDGE_PRIVATE_RELEASE_DELIVERY !== "enabled")
       return fail("Qualification transition delivery is unavailable.", 404);
     const signature = request.headers.get("x-observer-home-qa-legacy-signature") || "";
-    if (!signature) return fail("Legacy qualification authentication failed.", 401);
+    if (!signature) return legacyAuthDeny("SIGNATURE_HEADER_MISSING");
     const input = requestSchema.parse(await parseBoundedJson(request, 2048));
     const expectedRelease = input.profile === "SOFTWARE_CONNECTOR" ? connectorTransition : gatewayRelease;
     if (input.release_id !== expectedRelease) return fail("Release unavailable.", 404);
@@ -44,7 +49,7 @@ export async function POST(request: Request) {
       .select("id,gateway_id,observer_site_id,tenant_id,deployment_profile,status,lifecycle_state,identity_scheme,credential_version,config_version,expires_at,metadata,revoked_at")
       .eq("id", input.enrollment_id).eq("gateway_id", input.device_id)
       .eq("observer_site_id", input.site_id).eq("tenant_id", input.tenant_id).maybeSingle();
-    if (enrollment.error || !enrollment.data) return fail("Legacy qualification authentication failed.", 401);
+    if (enrollment.error || !enrollment.data) return legacyAuthDeny("EXACT_ENROLLMENT_NOT_FOUND");
     const row = enrollment.data;
     const enrollmentExpiresAt = Date.parse(row.expires_at || "");
     const proofExpiresAt = Date.parse(row.metadata?.home_qa_legacy_proof_expires_at || "");
@@ -58,9 +63,9 @@ export async function POST(request: Request) {
       !/^[a-f0-9]{64}$/.test(row.metadata?.authorized_baseline_sha256 || "") ||
       !/^[a-f0-9]{64}$/.test(row.metadata?.identity_evidence_sha256 || "") ||
       !Number.isFinite(proofExpiresAt) || proofExpiresAt <= Date.now())
-      return fail("Legacy qualification authentication failed.", 401);
+      return legacyAuthDeny("ENROLLMENT_OR_PROOF_WINDOW_INVALID");
     if (!verifyHomeQaLegacyProof(input, signature, row.metadata.home_qa_legacy_public_key_spki))
-      return fail("Legacy qualification authentication failed.", 401);
+      return legacyAuthDeny("SIGNATURE_VERIFICATION_FAILED");
     const release = await admin.from("observer_edge_releases")
       .select("id,release_id,release_state,signed_manifest,artifact_sha256,version,channel,platform,architecture,deployment_profile,signing_key_id")
       .eq("release_id", input.release_id).eq("release_state", "PUBLISHED").maybeSingle();
@@ -96,7 +101,7 @@ export async function POST(request: Request) {
       enrollment_id: row.id, credential_version: 0, nonce_hash: nonceHash,
       observed_at: new Date().toISOString(), expires_at: new Date(Date.now() + 5 * 60_000).toISOString()
     });
-    if (nonce.error) return fail("Legacy qualification proof replayed or unavailable.", 401);
+    if (nonce.error) return legacyAuthDeny("NONCE_REPLAY_OR_AUDIT_UNAVAILABLE");
     const grant = await authorizeHomeQaR2Download(manifest, { accountId,
       accessKeyId: process.env.OBSERVER_EDGE_R2_READ_ACCESS_KEY_ID || "",
       secretAccessKey: process.env.OBSERVER_EDGE_R2_READ_SECRET_ACCESS_KEY || "" });

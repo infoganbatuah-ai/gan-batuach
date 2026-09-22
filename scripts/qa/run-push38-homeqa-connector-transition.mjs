@@ -17,6 +17,7 @@ const dryRun = process.argv.includes("--dry-run"), apply = process.argv.includes
 if (dryRun === apply) throw new Error("P38_CONNECTOR_TRANSITION_MODE_REQUIRED");
 const identityPath = option("identity"), identitySha = option("sha256"), stagingPath = option("staging");
 const outputPath = option("output"), planPath = option("plan"), planSha = option("plan-sha256");
+const dvrTruthPath = option("dvr-truth"), dvrTruthSha = option("dvr-truth-sha256");
 const restricted = realpathSync("/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted") + sep;
 function restrictedFile(path) {
   if (!path || !realpathSync(resolve(path)).startsWith(restricted) ||
@@ -39,6 +40,24 @@ if (!connector || connector.device_id !== "db267b52-6282-4944-bcee-5d4857698fb0"
   connector.site_id !== "cc1673b8-3eb0-4785-a12c-1fb88f425a41" ||
   connector.tenant_id !== connector.site_id || connector.identity_phase !== "LEGACY_VERIFIED_FOR_TRANSITION")
   throw new Error("P38_CONNECTOR_IDENTITY_BINDING_CHANGED");
+if (!/^[a-f0-9]{64}$/.test(dvrTruthSha || "")) throw new Error("P38_CONNECTOR_DVR_TRUTH_PIN_REQUIRED");
+const dvrTruthBytes = restrictedFile(dvrTruthPath);
+if (createHash("sha256").update(dvrTruthBytes).digest("hex") !== dvrTruthSha)
+  throw new Error("P38_CONNECTOR_DVR_TRUTH_CHANGED");
+const dvrTruth = JSON.parse(dvrTruthBytes.toString("utf8"));
+const availableDvrChannels = [1, 3, 4, 5, 6, 7, 10, 11];
+if (dvrTruth.protocol !== "observer-push38-live-gateway-dvr-truth-v1" ||
+  dvrTruth.result !== "MEDIA_AND_SOURCE_TRUTH_PASS" ||
+  Date.now() - Date.parse(dvrTruth.ended_at) > 60 * 60_000 ||
+  JSON.stringify(dvrTruth.source_available) !== JSON.stringify(availableDvrChannels) ||
+  JSON.stringify(dvrTruth.upstream_unavailable) !== "[2,8]" ||
+  JSON.stringify(dvrTruth.empty) !== "[9,12,13,14,15,16]" ||
+  !Array.isArray(dvrTruth.checkpoints) || dvrTruth.checkpoints.length < 3 ||
+  dvrTruth.checkpoints.some(point => point.health?.discovery?.assigned !== 10 ||
+    point.health?.discovery?.connected !== 8 || point.health?.discovery?.failed !== 2 ||
+    point.health?.discovery?.empty !== 6 ||
+    availableDvrChannels.some(channel => !point.media?.some(item => item.channel === channel && item.decoded))))
+  throw new Error("P38_CONNECTOR_DVR_SOURCE_TRUTH_INVALID");
 const staging = JSON.parse(restrictedFile(stagingPath).toString("utf8"));
 const staged = staging.results?.find(item => item.release_id === "qa-connector-legacy-transition-v2-6e7988808b05");
 const artifactPath = staged?.verified_staging_path;
@@ -124,11 +143,14 @@ const gatewayHealth = await (await fetch("http://127.0.0.1:18082/health", { sign
 // The new signed runtime must still pass the strict post-handoff health gate.
 const connectorHealth = await fetch("http://127.0.0.1:18083/health",
   { signal: AbortSignal.timeout(5000) }).then(async response => response.ok ? response.json() : null).catch(() => null);
-if (gatewayHealth.mediaHeartbeat?.progressingRelays !== 10 || gatewayHealth.lastDiscovery?.unassignedCount !== 6 ||
+if (gatewayHealth.mediaHeartbeat?.progressingRelays !== 8 ||
+  gatewayHealth.lastDiscovery?.assignedCount !== 10 || gatewayHealth.lastDiscovery?.connectedCount !== 8 ||
+  gatewayHealth.lastDiscovery?.failedAssignedCount !== 2 || gatewayHealth.lastDiscovery?.unassignedCount !== 6 ||
   !service.service.running || (connectorHealth && connectorHealth.lastDiscovery?.channelCount !== 1))
   throw new Error("P38_CONNECTOR_PREWRITE_HEALTH_INVALID");
 const plan = { protocol: "observer-push38-homeqa-connector-transition-command-v1",
   generated_at: new Date().toISOString(), mode: "DRY_RUN", identity_evidence_sha256: identitySha,
+  dvr_truth_evidence_sha256: dvrTruthSha,
   staged_artifact_sha256: transitionManifest.artifact_sha256, legacy_recovery_sha256: legacyManifest.artifact_sha256,
   device_id: connector.device_id, site_id: connector.site_id, service_pid: service.service.pid,
   source_binding_sha256: before.binding_fingerprint, current_state: "LEGACY_UNMANAGED",
@@ -138,7 +160,8 @@ const plan = { protocol: "observer-push38-homeqa-connector-transition-command-v1
   post_remediation_source_gate: "TAPO_1_OF_1_REQUIRED", prewrite_pass: true, runtime_writes: 0,
   authorization: "FRESH_EXACT_DEVICE_PASS_ANONYMOUS_AND_EARLY_REMEDIATION_DENIED",
   legacy_health_observation: connectorHealth ? "RESPONDED_PRE_REMEDIATION" : "NO_RESPONSE_PRE_REMEDIATION",
-  home_before: { dvr_progressing: gatewayHealth.mediaHeartbeat.progressingRelays,
+  home_before: { dvr_expected: 10, dvr_source_available: 8, dvr_upstream_unavailable: 2,
+    dvr_empty: 6, dvr_progressing: gatewayHealth.mediaHeartbeat.progressingRelays,
     tapo_progressing: connectorHealth?.mediaHeartbeat?.progressingRelays ?? null,
     tapo_stalled: connectorHealth?.mediaHeartbeat?.stalledRelays ?? null } };
 if (dryRun) {
@@ -158,6 +181,7 @@ const saved = JSON.parse(savedBytes.toString("utf8"));
 if (saved.protocol !== plan.protocol || saved.prewrite_pass !== true ||
   Date.now() - Date.parse(saved.generated_at) > 10 * 60_000 ||
   saved.identity_evidence_sha256 !== identitySha ||
+  saved.dvr_truth_evidence_sha256 !== dvrTruthSha ||
   saved.staged_artifact_sha256 !== transitionManifest.artifact_sha256 ||
   saved.legacy_recovery_sha256 !== legacyManifest.artifact_sha256 ||
   saved.service_pid !== service.service.pid || saved.source_binding_sha256 !== before.binding_fingerprint)

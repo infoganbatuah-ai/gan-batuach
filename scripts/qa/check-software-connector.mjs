@@ -86,6 +86,9 @@ test("discovery maps through canonical source contract", () => {
   assert.match(gatewayDomain, /physicalGatewayAvailable: !softwareConnector && values\.gatewayConfigured/);
   assert.match(gatewayDomain, /connector_transport: softwareConnector \? "software_connector" : "gateway"/);
   assert.match(gatewayDomain, /connector_device_type: values\.edgeDeviceType \?\? "PHYSICAL_GATEWAY"/);
+  assert.match(gatewayDomain, /softwareConnector\s*\? "SOFTWARE_CONNECTOR_SOURCE_OFFLINE"/);
+  assert.match(gatewayDomain, /values\.connectorType === "dvr" \|\| values\.connectorType === "nvr"/);
+  assert.match(gatewayDomain, /מקור מצלמת ה-IP לא החזיר וידאו דרך ה-Software Connector/);
   assert.match(gatewayDomain, /edgeDeviceType,/);
 });
 

@@ -56,7 +56,12 @@ for (const spec of specs) {
   const row = product.data[0];
   const actual = createHash("sha256").update(token, "utf8").digest();
   const stored = Buffer.from(row.refresh_token_hash || "", "hex");
-  if (stored.length !== actual.length || !timingSafeEqual(stored, actual) ||
+  const productVerifierMatches = stored.length === actual.length && timingSafeEqual(stored, actual);
+  const connectorTransitionProof = spec.profile === "SOFTWARE_CONNECTOR" &&
+    component.installed_credential_matches_product_verifier === false &&
+    component.legacy_transition_proof_matches_home_qa === true &&
+    component.legacy_refresh_state === "ORPHANED_ROTATION_REQUIRES_MANAGED_BOOTSTRAP";
+  if ((!productVerifierMatches && !connectorTransitionProof) ||
     row.status !== "delivered" || row.lifecycle_state !== "ACTIVE" || row.identity_scheme !== "LEGACY_HMAC" ||
     row.observer_site_id !== component.site_id || row.tenant_id !== component.tenant_id ||
     row.deployment_profile !== spec.profile || row.config_version !== component.config_version)
@@ -106,8 +111,10 @@ for (const spec of specs) {
     capability.searchParams.get("X-Amz-Expires") !== "120")
     throw new Error("P38_HOME_QA_R2_CAPABILITY_SCOPE_INVALID");
   const downloaded = await fetch(grant.url, { redirect: "error", signal: AbortSignal.timeout(600_000) });
-  if (!downloaded.ok || Number(downloaded.headers.get("content-length")) !== manifest.artifact_size ||
-    !downloaded.body) throw new Error("P38_HOME_QA_R2_DOWNLOAD_INVALID");
+  const declaredLength = downloaded.headers.get("content-length");
+  if (!downloaded.ok || !downloaded.body ||
+    (declaredLength !== null && Number(declaredLength) !== manifest.artifact_size))
+    throw new Error(`P38_HOME_QA_R2_DOWNLOAD_INVALID_STATUS_${downloaded.status}_DECLARED_${declaredLength ?? "NONE"}_EXPECTED_${manifest.artifact_size}_BODY_${Boolean(downloaded.body)}`);
   const partial = join(staging, `${spec.name}.partial`);
   const verifiedPath = join(staging, `${spec.name}.verified.tar.gz`);
   const writer = createWriteStream(partial, { flags: "wx", mode: 0o600 });
@@ -126,7 +133,8 @@ for (const spec of specs) {
   renameSync(partial, verifiedPath);
   results.push({ component: spec.profile, release_id: spec.release, device_id: component.device_id,
     artifact_sha256: sha256, bytes, manifest_signature: "PASS", private_r2: "PASS",
-    verified_staging_path: verifiedPath, install_authorized: false });
+    verified_staging_path: verifiedPath, install_authorized: false,
+    legacy_proof_basis: productVerifierMatches ? "CURRENT_PRODUCT_VERIFIER" : "PINNED_HOME_QA_TRANSITION_PROOF" });
   console.log(JSON.stringify({ component: spec.profile, release_id: spec.release,
     sha256, bytes, verified_staging: true, runtime_writes: 0 }));
 }

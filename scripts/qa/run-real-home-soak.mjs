@@ -27,6 +27,8 @@ const dataRoots = {
 const logPaths = { gateway: join(homedir(), "Library", "Logs", "com.ganbatuach.video-gateway.err.log"), connector: join(homedir(), "Library", "Logs", "com.ganbatuach.software-connector.tapo.err.log") };
 const ffmpegCommand = [process.env.FFMPEG_PATH, "/opt/homebrew/bin/ffmpeg", "/usr/local/bin/ffmpeg", "/usr/bin/ffmpeg"].find(value => value && existsSync(value));
 if (!ffmpegCommand) throw new Error("ffmpeg_runtime_unavailable");
+const DVR_AVAILABLE_CHANNELS = Object.freeze([1, 3, 4, 5, 6, 7, 10, 11]);
+const DVR_UPSTREAM_UNAVAILABLE = Object.freeze([2, 8]);
 
 function atomicJson(path, value) { const temporary = `${path}.tmp`; writeFileSync(temporary, `${JSON.stringify(value, null, 2)}\n`, { mode: 0o600 }); renameSync(temporary, path); }
 function safeStat(path) { try { return statSync(path).size; } catch { return null; } }
@@ -66,6 +68,15 @@ function classifyCheckpoint(probe, resource, expected) {
   if (!probe.ok && probe.reason === "CONNECTION_REFUSED") return "PRODUCT_FAILURE";
   if (!probe.ok && resource?.inspection_ok === true && resource?.runtime_pid === null) return "PRODUCT_FAILURE";
   return "INSUFFICIENT_EVIDENCE";
+}
+function classifyGatewayCheckpoint(probe, resource) {
+  const discovery = probe.body?.lastDiscovery || {}, progressing = Number(probe.body?.mediaHeartbeat?.progressingRelays ?? 0);
+  if (resource?.inspection_ok === false && probe.ok) return "MONITOR_FAILURE";
+  if (!probe.ok || !resource?.runtime_pid) return "PRODUCT_FAILURE";
+  if (discovery.assignedCount !== 10 || discovery.connectedCount !== 8 ||
+    discovery.failedAssignedCount !== 2 || discovery.unassignedCount !== 6 ||
+    progressing !== 8 || probe.body?.status !== "degraded") return "PRODUCT_FAILURE";
+  return "PASS";
 }
 async function processRow(pid) {
   try {
@@ -107,7 +118,9 @@ async function sources() {
   const profile = JSON.parse(await keychain("dvr_profile_json")); const host = new URL(profile.endpoint.includes("://") ? profile.endpoint : `http://${profile.endpoint}`).hostname;
   const namespace = String(profile.metadata?.stream_namespace || "").trim().replace(/[^a-zA-Z0-9._:-]/g, "").slice(0, 80);
   const gatewaySecret = await keychain("gateway_signing_secret");
-  const dvr = [1,2,3,4,5,6,7,8,10,11].map(channel => ({ id: `dvr_${createHash("sha256").update([profile.connection_type || "dvr", host, channel, namespace].join(":")).digest("hex").slice(0,18)}_${channel}`, channel, port: 18082, secret: gatewaySecret }));
+  const dvr = [1,2,3,4,5,6,7,8,10,11].map(channel => ({ id: `dvr_${createHash("sha256").update([profile.connection_type || "dvr", host, channel, namespace].join(":")).digest("hex").slice(0,18)}_${channel}`,
+    channel, port: 18082, secret: gatewaySecret, source_available: DVR_AVAILABLE_CHANNELS.includes(channel),
+    upstream_unavailable: DVR_UPSTREAM_UNAVAILABLE.includes(channel) }));
   return [...dvr, { id: connectorSecret("connector_gateway_stream_id"), channel: 1, port: 18083, secret: connectorSecret("gateway_signing_secret"), tapo: true }];
 }
 async function decodeFrame(url) { try { await exec(ffmpegCommand, ["-hide_banner", "-loglevel", "error", "-i", url, "-frames:v", "1", "-f", "null", "-"], { timeout: 20_000, maxBuffer: 1024 * 1024 }); return true; } catch { return false; } }
@@ -129,6 +142,7 @@ async function aiPolicy(sourceList) {
   return { eligible, excluded, failures };
 }
 async function deepProbe(sourceList) {
+  sourceList = sourceList.filter(source => source.tapo || source.source_available !== false);
   let verified = 0; const failures = [], successes = [];
   for (const source of sourceList) { const name = source.tapo ? "tapo" : `dvr-${source.channel}`; try { const response = await fetch(`http://127.0.0.1:${source.port}/camera/${encodeURIComponent(source.id)}/playback`, { headers: { "x-video-gateway-secret": source.secret }, signal: AbortSignal.timeout(10_000) }); const body = await response.json(); const url = body.playback?.hls_url; if (!response.ok || !url || !["127.0.0.1", "localhost"].includes(new URL(url).hostname) || !await decodeFrame(url)) throw new Error("PLAYBACK_FRAME_UNAVAILABLE"); verified++; successes.push(name); } catch { failures.push(name); } }
   const policy = await aiPolicy(sourceList);
@@ -149,7 +163,8 @@ async function deepProbe(sourceList) {
     manifest_failures: policy.failures, latency_ms: Date.now() - aiStarted, per_source_latency_ms: aiLatencies, models: [...models].sort() };
   const sampled = [];
   for (const source of sourceList) { try { let response = await fetch(`http://127.0.0.1:${source.port}/camera/${encodeURIComponent(source.id)}/activity`, { headers: { "x-video-gateway-secret": source.secret }, signal: AbortSignal.timeout(30_000) }); if (response.status === 404) response = await fetch(`http://127.0.0.1:${source.port}/camera/${encodeURIComponent(source.id)}/insights`, { headers: { "x-video-gateway-secret": source.secret }, signal: AbortSignal.timeout(45_000) }); const body = await response.json(); if (response.ok && body.local_processing === true && body.insight?.sampled_at) sampled.push(source.id); } catch {} }
-  return { playback: { verified, failed: failures.length, successes, failures }, ai, learning: { expected: 11, sampled: sampled.length, sampled_source_ids: sampled } };
+  return { playback: { verified, failed: failures.length, successes, failures }, ai,
+    learning: { expected: 9, sampled: sampled.length, sampled_source_ids: sampled } };
 }
 
 const prior = existsSync(statePath) && args.get("resume") ? JSON.parse(readFileSync(statePath, "utf8")) : null;
@@ -168,8 +183,8 @@ while (!stopping && Date.now() - startedAt < durationMs) {
   const probeCompletedAt = Date.now();
   const point = { contract: "observer-reliability-checkpoint-v1", run_id: runId, sequence: ++sequence, sampled_at: new Date(sampledAt).toISOString(), elapsed_ms: sampledAt - startedAt,
     scheduled_at: new Date(scheduledAt).toISOString(), drift_ms: sampledAt - scheduledAt, probe_duration_ms: probeCompletedAt - sampledAt, interval_ms: intervalMs,
-    expected_physical_cameras: 11, empty_dvr_slots: 6,
-    dvr: { health_ok: gateway.ok, health_error: gateway.reason, health_http_status: gateway.http_status, liveness: gateway.liveness ?? null, event_loop: gateway.body?.eventLoop ?? null, component_status: gateway.body?.status ?? null, classification: classifyCheckpoint(gateway, gatewayResource, 10), health_latency_ms: gateway.latency_ms, expected: 10, progressing: gateway.body?.mediaHeartbeat?.progressingRelays ?? 0, stalled: gateway.body?.mediaHeartbeat?.stalledRelays ?? null, failed: gateway.body?.failedStreamCount ?? null, auth: gateway.body?.deviceAuthorization?.status ?? null, lifecycle: gateway.body?.mediaHeartbeat?.lifecycle ?? null, recorder_session: gateway.body?.recorderSessionHeartbeat ?? null,
+    expected_physical_cameras: 11, source_available_physical_cameras: 9, empty_dvr_slots: 6,
+    dvr: { health_ok: gateway.ok, health_error: gateway.reason, health_http_status: gateway.http_status, liveness: gateway.liveness ?? null, event_loop: gateway.body?.eventLoop ?? null, component_status: gateway.body?.status ?? null, classification: classifyGatewayCheckpoint(gateway, gatewayResource), health_latency_ms: gateway.latency_ms, expected: 10, source_available: 8, known_upstream_unavailable: DVR_UPSTREAM_UNAVAILABLE, progressing: gateway.body?.mediaHeartbeat?.progressingRelays ?? 0, stalled: gateway.body?.mediaHeartbeat?.stalledRelays ?? null, failed: gateway.body?.failedStreamCount ?? null, auth: gateway.body?.deviceAuthorization?.status ?? null, lifecycle: gateway.body?.mediaHeartbeat?.lifecycle ?? null, recorder_session: gateway.body?.recorderSessionHeartbeat ?? null,
       session_lifecycle: gateway.body?.recorderSessionLifecycle ?? null, relay_diagnostics: gateway.body?.mediaHeartbeat?.source_diagnostics ?? null,
       inputs: (gateway.body?.mediaHeartbeat?.inputs ?? []).map(value => Object.fromEntries(["channel", "progressing", "input_codec", "encoder", "format", "bytes", "chunks", "age_ms", "input_idle_ms", "stdin_backpressure", "stdin_queued_bytes"].map(key => [key, value[key] ?? null]))) },
     tapo: { health_ok: connector.ok, health_error: connector.reason, health_http_status: connector.http_status, liveness: connector.liveness ?? null, event_loop: connector.body?.eventLoop ?? null, component_status: connector.body?.status ?? null, classification: classifyCheckpoint(connector, connectorResource, 1), health_latency_ms: connector.latency_ms, expected: 1, progressing: connector.body?.mediaHeartbeat?.progressingRelays ?? 0, stalled: connector.body?.mediaHeartbeat?.stalledRelays ?? null, failed: connector.body?.failedStreamCount ?? null, auth: connector.body?.deviceAuthorization?.status ?? null, lifecycle: connector.body?.mediaHeartbeat?.lifecycle ?? null,
@@ -194,6 +209,8 @@ while (!stopping && Date.now() - startedAt < durationMs) {
   atomicJson(statePath, { contract: "observer-reliability-soak-state-v1", run_id: runId, status: "RUNNING", started_at: new Date(startedAt).toISOString(), started_at_ms: startedAt, target_ended_at: new Date(startedAt + durationMs).toISOString(), duration_ms: durationMs, interval_ms: intervalMs, deep_probe_ms: deepProbeMs, checkpoint_count: sequence, last_checkpoint_at: point.sampled_at, next_deep_probe_at: nextDeepProbeAt, output_root: outputRoot });
 }
 const checkpoints = readFileSync(checkpointsPath, "utf8").trim().split("\n").filter(Boolean).map(line => JSON.parse(line));
-const result = summarizeRealHomeSoak(checkpoints, { startedAt, endedAt: Date.now(), requiredDurationMs: REAL_SOAK_MINIMUM_MS }); assertQualificationResult(result);
+const result = summarizeRealHomeSoak(checkpoints, { startedAt, endedAt: Date.now(),
+  requiredDurationMs: REAL_SOAK_MINIMUM_MS, dvrSourceAvailable: 8,
+  dvrKnownUpstreamUnavailable: DVR_UPSTREAM_UNAVAILABLE }); assertQualificationResult(result);
 atomicJson(resultPath, result); atomicJson(statePath, { ...JSON.parse(readFileSync(statePath, "utf8")), status: result.status, ended_at: result.ended_at, result_path: resultPath, gate_failures: result.gate_failures });
 console.log(JSON.stringify(result));

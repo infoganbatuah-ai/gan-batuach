@@ -69,15 +69,21 @@ const adapter = createMacOSInstalledEdgeAdapter({ profile: "PHYSICAL_GATEWAY",
 const service = adapter.plan();
 if (!service.service.running || service.service.pid < 2) throw new Error("P38_GATEWAY_SERVICE_NOT_RUNNING");
 const probe = await adapter.health({ timeoutMs: 5000 });
-const assignedChannels = identity.dvr.assigned.map(row => row.channel).sort((a, b) => a - b);
+const availableChannels = identity.dvr.source_available?.map(row => row.channel).sort((a, b) => a - b);
+const unavailableChannels = identity.dvr.upstream_unavailable?.map(row => row.channel).sort((a, b) => a - b);
 const observedChannels = (probe.body?.mediaHeartbeat?.inputs || []).map(row => row.channel).sort((a, b) => a - b);
 if (!probe.ok || !probe.service.running ||
-  JSON.stringify(observedChannels) !== JSON.stringify(assignedChannels) ||
-  probe.body?.mediaHeartbeat?.progressingRelays !== 10 ||
+  JSON.stringify(availableChannels) !== "[1,3,4,5,6,7,10,11]" ||
+  JSON.stringify(unavailableChannels) !== "[2,8]" ||
+  JSON.stringify(observedChannels) !== JSON.stringify(availableChannels) ||
+  probe.body?.mediaHeartbeat?.progressingRelays !== 8 ||
   probe.body?.mediaHeartbeat?.stalledRelays !== 0 ||
+  probe.body?.lastDiscovery?.assignedCount !== 10 ||
+  probe.body?.lastDiscovery?.connectedCount !== 8 ||
+  probe.body?.lastDiscovery?.failedAssignedCount !== 2 ||
   probe.body?.lastDiscovery?.unassignedCount !== 6 ||
   probe.body?.deviceAuthorization?.status !== "ready")
-  throw new Error("P38_GATEWAY_PREWRITE_HEALTH_NOT_TEN_OF_TEN");
+  throw new Error("P38_GATEWAY_PREWRITE_SOURCE_AVAILABILITY_CHANGED");
 const plan = { protocol: "observer-push38-homeqa-gateway-bootstrap-command-v1",
   generated_at: new Date().toISOString(), mode: "DRY_RUN", prewrite_pass: true, runtime_writes: 0,
   identity_evidence_sha256: identitySha, device_id: gateway.device_id, site_id: gateway.site_id,
@@ -85,13 +91,16 @@ const plan = { protocol: "observer-push38-homeqa-gateway-bootstrap-command-v1",
   intended_release: manifest.release_id, artifact_sha256: manifest.artifact_sha256,
   service_action: "REGISTER_SIGNED_BASELINE_WITHOUT_RESTART",
   rollback_target: "EXACT_LEGACY_LAUNCHAGENT_AND_SIGNED_BASELINE_ABORT",
-  promotion_target: "SIGNED_BASELINE_CURRENT_KNOWN_GOOD", health_gate: "DVR_10_OF_10" };
+  promotion_target: "SIGNED_BASELINE_CURRENT_KNOWN_GOOD",
+  health_gate: "DVR_8_OF_8_SOURCE_AVAILABLE; 2_OF_10_UPSTREAM_UNAVAILABLE; 6_EMPTY",
+  dvr: { expected_physical: 10, source_available: 8, upstream_unavailable: 2, empty: 6 } };
 if (dryRun) {
   if (!outputPath || !resolve(outputPath).startsWith(restricted) || existsSync(outputPath))
     throw new Error("P38_GATEWAY_PLAN_OUTPUT_REQUIRED");
   writeFileSync(outputPath, `${JSON.stringify(plan, null, 2)}\n`, { mode: 0o600, flag: "wx" });
   console.log(JSON.stringify({ status: "DRY_RUN_PASS", plan_sha256: createHash("sha256").update(readFileSync(outputPath)).digest("hex"),
-    dvr_progressing: 10, runtime_writes: 0 }));
+    dvr_expected: 10, dvr_source_available: 8, dvr_progressing: 8,
+    dvr_upstream_unavailable: 2, runtime_writes: 0 }));
   process.exit(0);
 }
 const priorBytes = evidenceFile(planPath);
@@ -120,9 +129,12 @@ const healthCheck = async () => {
   const next = await adapter.health({ timeoutMs: 5000 });
   return { process_running: next.ok && next.service.running,
     device_authenticated: next.body?.deviceAuthorization?.status === "ready",
-    heartbeat: next.ok, config_retrieved: next.body?.lastDiscovery?.assignedCount === 10,
+    heartbeat: next.ok, config_retrieved: next.body?.lastDiscovery?.assignedCount === 10 &&
+      next.body?.lastDiscovery?.connectedCount === 8 && next.body?.lastDiscovery?.failedAssignedCount === 2,
     cloud_reachable: next.body?.deviceAuthorization?.status === "ready", no_crash_loop: next.ok,
-    expected_physical_cameras: 10, progressing_physical_cameras: next.body?.mediaHeartbeat?.progressingRelays ?? 0,
+    expected_physical_cameras: 8, configured_physical_cameras: 10,
+    known_upstream_unavailable: 2,
+    progressing_physical_cameras: next.body?.mediaHeartbeat?.progressingRelays ?? 0,
     empty_slots: next.body?.lastDiscovery?.unassignedCount ?? 0,
     stalled_streams: next.body?.mediaHeartbeat?.stalledRelays ?? 0 };
 };
@@ -149,4 +161,5 @@ if (result.state !== "COMPLETE" || result.current_release !== manifest.release_i
   throw new Error("P38_GATEWAY_BOOTSTRAP_POSTCHECK_FAILED");
 console.log(JSON.stringify({ status: "SIGNED_BASELINE_REGISTERED", current_release: result.current_release,
   known_good_release: result.known_good_release, functional_runtime_replaced: false,
-  dvr_progressing: 10, source_continuity: "PASS" }));
+  dvr_expected: 10, dvr_source_available: 8, dvr_progressing: 8,
+  dvr_upstream_unavailable: 2, source_continuity: "PASS" }));

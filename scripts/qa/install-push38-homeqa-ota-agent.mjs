@@ -32,7 +32,7 @@ const spec = connector ? {
   baselineSha: "91bf6814075f74e703cbc0b85d30673237531247ec46633c54576d5a4627144d",
   remediationRelease: "qa-p38-health-gateway-6c9d08327ec6", bundleName: "gateway_remediation.json",
   rootName: "observer-gateway", label: "com.ganbatuach.video-gateway", port: 18082,
-  installedBase: join(homedir(), ".local/share/gan-batuach/video-gateway"), expected: 10
+  installedBase: join(homedir(), ".local/share/gan-batuach/video-gateway"), expected: 8, configured: 10
 };
 const root = join(homedir(), "Library/Application Support/Digital Observer", spec.rootName, "ota");
 const secrets = join(root, "home-qa-device-secrets");
@@ -44,6 +44,7 @@ const runtimeConfig = { profile, managedRoot: root, installedBase: spec.installe
   launchAgentPath: join(homedir(), "Library/LaunchAgents", `${spec.label}.plist`),
   label: spec.label, port: spec.port, deviceId: spec.deviceId, channel: "HOME_QA",
   configVersion: connector ? 4 : 1, expectedPhysicalCameras: spec.expected,
+  configuredPhysicalCameras: spec.configured ?? spec.expected,
   baselineArtifactSha256: spec.baselineSha, secretDir: secrets,
   qaTlsCaPath: certPath, qaTlsCaSha256: certSha, intervalMs: 60_000 };
 const plan = planInstalledOtaAgent({ profile, managedRoot: root, agentPlistPath, agentLabel });
@@ -69,7 +70,7 @@ if (store.read("device_gateway_id") !== spec.deviceId ||
   store.read("device_cloud_base_url") !== "https://127.0.0.1:3101" ||
   !store.read("device_private_key_pkcs8"))
   throw new Error("P38_HOME_QA_AGENT_MANAGED_IDENTITY_NOT_PREPARED");
-const credentials = readR2KeychainCredentials({ service: "digital-observer-r2-home-qa-publisher-20260919",
+const credentials = readR2KeychainCredentials({ service: "digital-observer-r2-home-qa-reader-20260922",
   keychain: join(homedir(), "Library/Keychains/login.keychain-db") });
 const capability = await authorizeHomeQaR2Download(manifest, { accountId: "693f824a750afcc264fe6ee58c8a86ab",
   ...credentials });

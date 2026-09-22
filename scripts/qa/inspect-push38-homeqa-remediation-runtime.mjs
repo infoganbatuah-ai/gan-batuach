@@ -19,7 +19,7 @@ if (!verifyEdgeUpdateManifest(manifest, trusted).ok || manifest.release_id !== "
   manifest.channel !== "HOME_QA" || manifest.artifact_sha256 !==
     "1b076f5965744a903c3c601d8c424c7b127bdcb0d06f49c72eff8b9345bdfc27")
   throw new Error("P38_HOME_QA_REMEDIATION_MANIFEST_INVALID");
-const credentials = readR2KeychainCredentials({ service: "digital-observer-r2-home-qa-publisher-20260919",
+const credentials = readR2KeychainCredentials({ service: "digital-observer-r2-home-qa-reader-20260922",
   keychain: join(homedir(), "Library/Keychains/login.keychain-db") });
 const capability = await authorizeHomeQaR2Download(manifest, { accountId: "693f824a750afcc264fe6ee58c8a86ab",
   ...credentials });

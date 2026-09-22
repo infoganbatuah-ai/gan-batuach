@@ -42,4 +42,24 @@ assert.equal(unproven.per_camera["dvr-1"].availability, null);
 assert.equal(unproven.per_camera["dvr-1"].unknown_samples, 1);
 assert.ok(unproven.gate_failures.includes("PER_CAMERA_PROGRESSION_EVIDENCE_MISSING"));
 
+const available = [1, 3, 4, 5, 6, 7, 10, 11];
+const upstreamPoint = minute => ({ ...point(minute),
+  source_available_physical_cameras: 9,
+  dvr: { health_ok: true, component_status: "degraded", expected: 10, source_available: 8,
+    known_upstream_unavailable: [2, 8], progressing: 8,
+    inputs: available.map(channel => ({ channel, progressing: true })) },
+  playback: { verified: 9, failed: 0 } });
+const knownUpstream = summarizeRealHomeSoak([upstreamPoint(0), upstreamPoint(1)], {
+  startedAt: start, endedAt: start + 120_000, requiredDurationMs: 120_000,
+  dvrSourceAvailable: 8, dvrKnownUpstreamUnavailable: [2, 8] });
+assert.equal(knownUpstream.status, "PASS");
+assert.equal(knownUpstream.camera_sample_availability, 1);
+assert.equal(knownUpstream.per_camera["dvr-2"].upstream_unavailable, true);
+assert.equal(knownUpstream.per_camera["dvr-2"].qualification_denominator, false);
+const hiddenUpstream = summarizeRealHomeSoak([{ ...upstreamPoint(0), dvr: {
+  ...upstreamPoint(0).dvr, component_status: "healthy" } }, upstreamPoint(1)], {
+  startedAt: start, endedAt: start + 120_000, requiredDurationMs: 120_000,
+  dvrSourceAvailable: 8, dvrKnownUpstreamUnavailable: [2, 8] });
+assert.ok(hiddenUpstream.gate_failures.includes("DVR_SOURCE_AVAILABILITY_EXCEPTION_MISREPORTED"));
+
 console.log("PUSH38B_MONITOR_ACCURACY_PASS");

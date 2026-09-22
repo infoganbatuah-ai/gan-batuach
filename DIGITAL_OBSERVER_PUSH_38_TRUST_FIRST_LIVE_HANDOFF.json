@@ -1,8 +1,8 @@
 {
   "task": "PUSH_38_TRUST_FIRST_LIVE_BOOTSTRAP",
-  "observed_at_utc": "2026-09-20T00:56:56Z",
+  "observed_at_utc": "2026-09-22T06:52:45Z",
   "branch": "codex/push-38t-qualification",
-  "decision": "STOP_BEFORE_CONNECTOR_RUNTIME_TRANSITION",
+  "decision": "PREWRITE_CODE_AND_EVIDENCE_COMPLETE_EXACT_COMMIT_CI_PENDING",
   "protected_issuance": {
     "workflow_run": "https://github.com/infoganbatuah-ai/gan-batuach/actions/runs/35479496963",
     "workflow_head_sha": "649e921961932ee95510c703db3c0830c63dbb0c",
@@ -32,7 +32,7 @@
     "revoked_signer_rejected": true,
     "tampered_manifest_rejected": true,
     "tampered_registry_rejected": true,
-    "aws_release_key_live_release_acceptance": "NOT_YET_TESTED_WITH_AWS_SIGNED_RELEASE_MANIFEST",
+    "aws_release_key_live_release_acceptance": "PASS_THREE_EXACT_DEVICE_AWS_SIGNED_RELEASE_MANIFESTS",
     "installer_source_copy_sha256_matched": true,
     "note": "First native admin attempt could not read the project external volume due macOS privacy EPERM; byte-identical installer and dependency copies in local temporary storage succeeded after native owner authorization."
   },
@@ -77,26 +77,7 @@
     "new_paid_media_service": "NONE",
     "fifteen_ils_per_user_target": "NOT_YET_MEASURABLE"
   },
-  "unresolved_pre_runtime_gates": [
-    {
-      "id": "LIVE_BOOTSTRAP_ORCHESTRATOR_NOT_PROVEN",
-      "severity": "HIGH",
-      "evidence": "createConnectorLegacyTransition and createInstalledEdgeBootstrap are wired only by isolated QA scripts; no reviewed live execution command binds the exact installed device, health, continuity, recovery, supervisor, and OTA agent lifecycle.",
-      "required_action": "Implement and exercise an exact-scope live orchestration path with a read-only preflight and isolated failure/recovery test before any runtime handoff."
-    },
-    {
-      "id": "HOME_QA_AUTHORIZATION_NOT_LIVE",
-      "severity": "HIGH",
-      "evidence": "The previously checked live authorization service returned 404; no fresh successful real-device HOME_QA authorization or staging proof exists.",
-      "required_action": "Verify a reachable approved QA control plane and exact-device signed manifests, then prove private R2 authorization and staging without changing the runtime."
-    },
-    {
-      "id": "EXACT_DEVICE_RELEASE_SEQUENCE_UNRESOLVED",
-      "severity": "HIGH",
-      "evidence": "The requested Connector remediation precedes exact-device HOME_QA metadata in the proposed order, while managed OTA requires an eligible signed manifest and authenticated private-artifact authorization.",
-      "required_action": "Bind and sign the Connector-only manifest after Connector identity proof and before Connector remediation; repeat for Gateway after Gateway identity proof. Do not bypass OTA."
-    }
-  ],
+  "unresolved_pre_runtime_gates": [],
   "current_closure_work": {
     "work_date": "2026-09-20",
     "status": "PREWRITE_STOP_NO_RUNTIME_HANDOFF",
@@ -317,6 +298,74 @@
     "live_runtime_writes": 0,
     "main": "UNCHANGED",
     "production": "UNCHANGED"
+  },
+  "dvr_endpoint_reconciliation_and_prewrite_2026_09_22": {
+    "owner": "PUSH_38_QUALIFICATION",
+    "status": "PREWRITE_CODE_AND_EVIDENCE_COMPLETE_EXACT_COMMIT_CI_PENDING",
+    "mode": "AUTHORIZED_SCOPED_DVR_ENDPOINT_RECONCILIATION_THEN_READ_ONLY_QUALIFICATION",
+    "dvr_endpoint": "VERIFIED_STALE_PRIVATE_ENDPOINT_REPLACED_BY_VERIFIED_CURRENT_PRIVATE_ENDPOINT_WITHOUT_RECORDING_EITHER_ADDRESS",
+    "configuration_scope": "ONLY_CANONICAL_STORED_DVR_ENDPOINT_CHANGED; CREDENTIALS_SITE_TENANT_SOURCE_IDS_CHANNEL_MAPPING_AND_EMPTY_SLOTS_UNCHANGED",
+    "configuration_persistence": "PASS_KEYCHAIN_BACKED_CANONICAL_PROFILE_SURVIVED_CANONICAL_LAUNCHD_RESTART",
+    "restricted_configuration_evidence": {
+      "backup_path": "exports/restricted/push38-live-dvr-endpoint-backup-20260922.json",
+      "backup_sha256": "19e2d603eecc07c2c54876ca411b1ca4b9e7c04a3149b0c4f942d7b909be156a",
+      "apply_path": "exports/restricted/push38-live-dvr-endpoint-apply-20260922.json",
+      "apply_sha256": "3ab2400d339a8b699816d42a1829604adfec50421bb053cacb78b9196833fce3",
+      "postwrite_path": "exports/restricted/push38-home-dvr-endpoint-postwrite-20260922.json",
+      "postwrite_sha256": "5bef635ebcbde7ac0884fb88ff7e3ef3998f9ec8a92b701f7244e8f2b5dfeec3"
+    },
+    "dvr_identity": "PASS_ERO_N7516HR_RAYSHARP_FAMILY_HARDWARE_DM_448_SOFTWARE_8_2_4_1_FULL_PRIOR_FIRMWARE_V8_2_4_1_20240515_SIXTEEN_CHANNELS",
+    "dvr_network_mode_evidence": {
+      "path": "exports/restricted/push38-dvr-network-mode-20260922.json",
+      "sha256": "0d04ca6a630ddce119b50d699fd4f9f1314f671873db625eac1e7f02391a872d",
+      "dhcp": true,
+      "settings_changed": false
+    },
+    "stale_endpoint_root_cause": "NARROWED_TO_DVR_DHCP_ADDRESS_CHANGE_PLUS_MISSING_GATEWAY_ENDPOINT_DISCOVERY_RECONCILIATION_OR_CONFIGURATION_PROPAGATION",
+    "camera_truth": "TEN_EXPECTED_PHYSICAL; EIGHT_SOURCE_AVAILABLE_CHANNELS_1_3_4_5_6_7_10_11; TWO_DVR_UPSTREAM_UNAVAILABLE_CHANNELS_2_8; SIX_EMPTY_CHANNELS_9_12_13_14_15_16",
+    "source_identity_continuity": "PASS_ALL_TEN_ASSIGNED_SOURCE_IDS_AND_SIX_EMPTY_SOURCE_ROWS_PRESERVED_ZERO_RECREATION_ZERO_DUPLICATES",
+    "fresh_identity_evidence": {
+      "path": "exports/restricted/push38-home-identity-reconciliation-20260922-prewrite.json",
+      "sha256": "7184f3427186877f197825a974589ac2559923b1d313a029fdaa854d72545096",
+      "home_qa_devices": 2,
+      "home_qa_releases": 3
+    },
+    "fresh_real_media_evidence": {
+      "path": "exports/restricted/push38-live-gateway-dvr-truth-20260922-prewrite.json",
+      "sha256": "e9307be5d75cfd8e6edbdb0ef9e6f8221687252e88b76c0324fa068ac0e5970c",
+      "duration_ms": 308064,
+      "checkpoints": 10,
+      "available_media": "EIGHT_OF_EIGHT_DECODED_AT_ALL_TEN_CHECKPOINTS",
+      "upstream_unavailable": "TWO_OF_TWO_DENIED_OR_UNAVAILABLE_AT_ALL_CHECKPOINTS",
+      "discovery_truth": "TEN_ASSIGNED_EIGHT_CONNECTED_TWO_FAILED_SIX_EMPTY_AT_ALL_CHECKPOINTS",
+      "legacy_aggregate_health_truth": "FAIL_LEGACY_REPORTS_HEALTHY_WHILE_TWO_EXPECTED_PHYSICAL_SOURCES_ARE_UPSTREAM_UNAVAILABLE",
+      "candidate_health_truth": "IMPLEMENTED_AND_TARGETED_TESTS_PASS; LIVE_VALIDATION_REQUIRED_AFTER_REMEDIATION"
+    },
+    "home_qa_control_plane": "PASS_LOCAL_DEDICATED_QUALIFICATION_NEXT_SERVICE_PLUS_LOOPBACK_ONLY_REST_ADAPTER_AND_ROUTE_LIMITED_HTTPS_INGRESS; NO_PUBLIC_OR_PRODUCTION_DEPLOYMENT",
+    "home_qa_authorization": "PASS_EXACT_CONNECTOR_AND_GATEWAY_LEGACY_TRANSITION_PROOFS; WRONG_DEVICE_SITE_TENANT_PROFILE_ARCHITECTURE_CHANNEL_CONFIG_RELEASE_ANONYMOUS_REPLAY_AND_EARLY_REMEDIATION_DENIED",
+    "private_r2_reader": "PASS_NEW_ONE_WEEK_OBJECT_READ_ONLY_CREDENTIAL_SCOPED_TO_EXACT_DIGITAL_OBSERVER_RELEASES_BUCKET; NO_WRITE_OR_ADMIN_PERMISSION; NO_FIXED_COST; SECRET_REMAINS_IN_KEYCHAIN",
+    "private_r2_staging": {
+      "path": "exports/restricted/push38-homeqa-staging-20260922-prewrite.json",
+      "sha256": "edbe61f12c3da5beeb80c6e4e0c60b454bb5aef7b18aa079fb541b70a50ee664",
+      "connector_transition": "PASS_SHA_SIZE_AWS_SIGNATURE_PRIVATE_SHORT_LIVED_R2",
+      "gateway_remediation": "PASS_SHA_SIZE_AWS_SIGNATURE_PRIVATE_SHORT_LIVED_R2",
+      "downloaded_bytes": 282542928,
+      "runtime_writes": 0
+    },
+    "transition_orchestrator_dry_runs": {
+      "connector_path": "exports/restricted/push38-connector-transition-plan-20260922-prewrite.json",
+      "connector_sha256": "860f0e2842c292d470e64f12d0ff2332275ccb4a329be1adcb70e2c70bc193b4",
+      "gateway_path": "exports/restricted/push38-gateway-bootstrap-plan-20260922-prewrite.json",
+      "gateway_sha256": "20fe3a55ac0a1a84727a06e60b7b532f38d3bc7c3054bd92935469e089a3f64c",
+      "result": "PASS_ZERO_RUNTIME_WRITES"
+    },
+    "prewrite": "ALL_RUNTIME_SAFETY_GATES_PASS; EXACT_NEW_COMMIT_REMOTE_SIX_GATE_CI_REQUIRED_BEFORE_FIRST_RUNTIME_WRITE",
+    "tapo": "ZERO_OF_ONE_ON_LEGACY_CONNECTOR_PRE_REMEDIATION; SEPARATE_FROM_DVR_AND_NOT_A_BLOCKER_TO_THE_AUTHORIZED_CONNECTOR_REMEDIATION_WHEN_ROLLBACK_TRUST_AND_INTEGRITY_PASS",
+    "cost": "NO_NEW_FIXED_MONTHLY_RESOURCE; BOUNDED_R2_DOWNLOAD_EXPECTED_WITHIN_EXISTING_FREE_ALLOWANCE; PROVIDER_ACTUAL_NOT_FABRICATED",
+    "live_runtime_transition": "NOT_YET_STARTED",
+    "main": "UNCHANGED",
+    "production": "UNCHANGED",
+    "next_action": "COMMIT_PUSH_AND_REQUIRE_ALL_SIX_CI_GATES_ON_THE_EXACT_PREWRITE_COMMIT; IF_PASS_REFRESH_TIME_BOUNDED_PLANS_AND_CONTINUE_WITH_THE_ALREADY_AUTHORIZED_CONNECTOR_TRANSITION"
   },
   "not_started": [
     "CONNECTOR_TRANSITION",

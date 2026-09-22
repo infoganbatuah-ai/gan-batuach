@@ -12,14 +12,14 @@ import { createEdgeSecretStoreSync } from "./edge-secret-store-sync.mjs";
 import { softwareConnectorDeviceSession } from "./software-connector-cloud.mjs";
 
 function fail(code) { throw Object.assign(new Error(code), { code }); }
-export function deriveInstalledEdgeHealth({ profile, expected, probe, cloudReachable, qa = false }) {
+export function deriveInstalledEdgeHealth({ profile, expected, configured = expected, probe, cloudReachable, qa = false }) {
   const body = probe.body || {};
   const assigned = profile === "SOFTWARE_CONNECTOR"
     ? body.lastDiscovery?.channelCount : body.lastDiscovery?.assignedCount;
   const progressing = Number(body.mediaHeartbeat?.progressingRelays ?? 0);
   return { process_running: probe.ok && probe.service.running,
     device_authenticated: qa || body.deviceAuthorization?.status === "ready",
-    heartbeat: probe.ok, config_retrieved: probe.ok && (qa || assigned === expected),
+    heartbeat: probe.ok, config_retrieved: probe.ok && (qa || assigned === configured),
     cloud_reachable: cloudReachable, no_crash_loop: probe.ok,
     expected_physical_cameras: expected, progressing_physical_cameras: qa ? 0 : progressing,
     empty_slots: Number(body.lastDiscovery?.unassignedCount || 0),
@@ -33,7 +33,10 @@ function configFrom(path) {
     !config.managedRoot || !config.installedBase || !config.launchAgentPath || !config.label ||
     !Number.isInteger(config.port) || !config.deviceId || !config.channel ||
     !config.baselineArtifactSha256 || !Number.isInteger(config.expectedPhysicalCameras) ||
-    config.expectedPhysicalCameras < (config.qaIsolationRoot ? 0 : 1)) fail("EDGE_OTA_AGENT_CONFIG_INVALID");
+    config.expectedPhysicalCameras < (config.qaIsolationRoot ? 0 : 1) ||
+    (config.configuredPhysicalCameras !== undefined &&
+      (!Number.isInteger(config.configuredPhysicalCameras) ||
+        config.configuredPhysicalCameras < config.expectedPhysicalCameras))) fail("EDGE_OTA_AGENT_CONFIG_INVALID");
   if (config.qaIsolationRoot) {
     const scope = resolve(config.qaIsolationRoot);
     if (!scope.startsWith(`${tmpdir()}/`) || ![target, config.managedRoot, config.installedBase,
@@ -76,6 +79,7 @@ export async function runInstalledEdgeOtaService(configPath, { signal } = {}) {
     const probe = await adapter.health({ timeoutMs: 20_000 });
     const cloudReachable = qa || await softwareConnectorDeviceSession(store).then(() => true, () => false);
     return deriveInstalledEdgeHealth({ profile: config.profile, expected: config.expectedPhysicalCameras,
+      configured: config.configuredPhysicalCameras ?? config.expectedPhysicalCameras,
       probe, cloudReachable, qa });
   };
   const download = qa ? async ({ destination }) => {
