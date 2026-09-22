@@ -111,7 +111,7 @@ Pickup face review was removed from the user product route and replaced by canon
 
 # Performance
 
-The change removes one client fetch layer and one summary endpoint. It introduces no new query, polling, cache or read model. Dashboard performance must be compared after integration against the GB-M37 warm Development reference (p50 about 1,247 ms, p95 about 2,002 ms); environment differences will be recorded. No Production SLA claim is made.
+The change removes one unused client fetch layer and introduces no new query, polling, cache or read model. No canonical dashboard query path changed, so the GB-M37 warm Development reference (p50 about 1,247 ms, p95 about 2,002 ms) remains the applicable measured baseline. The exact merged tree passed the dashboard regression and built-server smoke without an unexplained regression. No Production SLA claim is made.
 
 # Counts Before / After
 
@@ -168,4 +168,27 @@ Branch validation at product commit `5a01a973`:
 - Lint regression: PASS, zero canonical regressions.
 - Release contract: PASS; no Production mutation.
 
-Exact-head protected PR checks and cumulative post-merge Development smoke remain to be recorded in the integration closure update.
+PR #121 passed all nine required checks at exact head
+`9e16f276da9c159d244702a76b0a83cd5d058fe0` and merged by ancestry into
+`integration/development` at
+`b143d6f163a5a24bb2ef2020c5c9f2f00d090901`.
+
+Post-merge verification used a clean isolated checkout at that exact merge:
+
+- Canonical Development migration drift: PASS, expected/applied 243/243, no missing or unexpected migration; no GB-M38 migration required.
+- GB-M38 focused: 8/8 PASS.
+- Management: 272/272 PASS.
+- GB-M37 dashboards: 9/9 PASS.
+- GB-M36 reporting: 7/7 PASS.
+- Security/isolation: 7/7 PASS.
+- Typecheck, lint baseline, release contract and Production build: PASS.
+- Built application: READY in 308 ms on isolated loopback.
+- `/api/health`: HTTP 200 with application and Supabase `ok`.
+- Canonical login and Owner, Parent, Staff, Inspector and Admin dashboard routes: no 500.
+- Three compatibility routes resolved to their fixed canonical destinations and did not forward forged Garden/Child identifiers.
+- The retained internal interaction-summary API denied an unauthenticated request with HTTP 401.
+
+The canonical local database, Auth, REST, Storage and related Supabase services
+were healthy for the verification. Production, `main`, customer data and
+Digital Observer core remained unchanged. The unit is `LOCAL_VERIFIED` and is
+eligible only for a later explicit owner-authorized consolidated release.

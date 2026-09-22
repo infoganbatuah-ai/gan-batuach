@@ -344,3 +344,17 @@ migration health 243/243, typecheck, Production build, lint baseline and release
 contract. No migration, paid provider or Digital Observer core change was
 introduced. Exact-head PR checks and cumulative post-merge Development smoke
 remain pending. Production, `main` and customer data are unchanged.
+
+GB-M38 Development integration closure (2026-09-23): PR #121 passed all nine
+required checks at exact head
+`9e16f276da9c159d244702a76b0a83cd5d058fe0` and merged by ancestry into
+`integration/development` at `b143d6f163a5a24bb2ef2020c5c9f2f00d090901`.
+On that exact merge, focused GB-M38 passed 8/8, Management 272/272, dashboards
+9/9, reporting 7/7, security 7/7, migration health and Development drift
+243/243, typecheck, lint, build and release contract. Built-server health
+returned HTTP 200 with Supabase OK; canonical login and all five role dashboard
+routes avoided 500; compatibility redirects discarded forged context IDs; and
+the retained internal API returned 401 without authentication. No migration or
+paid provider was added. The unit is `LOCAL_VERIFIED` and ready only for a
+later owner-authorized consolidated release. Production, `main`, customer data
+and Digital Observer core remain unchanged.

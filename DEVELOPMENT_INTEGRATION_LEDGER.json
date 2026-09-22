@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-09-22T18:50:00Z",
+  "updatedAt": "2026-09-22T21:38:00Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -9026,27 +9026,34 @@
       "title": "GB-M38 legacy consolidation, route retirement and product cleanup",
       "owner": "GB-M38 owner",
       "sourceBranch": "codex/gb-m38-legacy-consolidation",
-      "sourceCommits": ["5a01a973"],
-      "state": "VALIDATED_ON_BRANCH",
-      "preservation": {"remoteVerified": false, "remoteRefs": [], "validatedSourceCommit": "5a01a973"},
+      "sourceCommits": ["5a01a973", "9e16f276da9c159d244702a76b0a83cd5d058fe0"],
+      "state": "LOCAL_VERIFIED",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/gb-m38-legacy-consolidation@9e16f276da9c159d244702a76b0a83cd5d058fe0",
+          "origin/integration/development@b143d6f163a5a24bb2ef2020c5c9f2f00d090901"
+        ],
+        "validatedSourceCommit": "9e16f276da9c159d244702a76b0a83cd5d058fe0"
+      },
       "validation": {
-        "status": "PASS_BRANCH_VALIDATION",
+        "status": "PASS_LOCAL_VERIFIED",
         "evidence": [
           "GAN_BATUACH_MANAGEMENT_LEGACY_RETIREMENT_MATRIX.md",
           "GAN_BATUACH_MANAGEMENT_CANONICAL_ROUTE_MAP.md",
           "GAN_BATUACH_MANAGEMENT_CANONICAL_UX_SURFACE_MAP.md",
           "GAN_BATUACH_MANAGEMENT_GB_M38_LEGACY_CONSOLIDATION_REPORT.md"
         ],
-        "limits": "Exact-head protected PR checks and cumulative post-merge Development smoke pending. Production and main unchanged."
+        "limits": "PR #121 exact-head checks 9/9 PASS; cumulative post-merge Development verification and built-server smoke PASS. Production and main unchanged."
       },
-      "integration": {"status": "PENDING", "base": "integration/development", "commit": null, "pullRequest": null},
+      "integration": {"status": "INTEGRATED_DEVELOPMENT", "base": "integration/development", "commit": "b143d6f163a5a24bb2ef2020c5c9f2f00d090901", "pullRequest": 121},
       "dependencies": {"status": "GB_M37_INTEGRATED", "units": ["codex/gb-m37-role-command-center"]},
       "migrations": [],
       "migrationOrder": [],
-      "localVerification": "PASS_272_MANAGEMENT_8_GB_M38_9_DASHBOARD_7_REPORTING_30_DOMAIN_7_SECURITY_243_MIGRATIONS_TYPECHECK_BUILD_LINT_PREFLIGHT",
-      "releaseEligibility": "PENDING_INTEGRATION",
+      "localVerification": "PASS_PR_9_OF_9_272_MANAGEMENT_8_GB_M38_9_DASHBOARD_7_REPORTING_30_DOMAIN_7_SECURITY_243_MIGRATIONS_TYPECHECK_BUILD_LINT_PREFLIGHT_HEALTH_200_SUPABASE_OK_ROLE_DASHBOARDS_NO_500_REDIRECT_SECURITY_INTERNAL_API_401",
+      "releaseEligibility": "READY_FOR_OWNER_RELEASE",
       "productionDeployment": {"status": "NOT_DEPLOYED"},
-      "nextAction": "Push the feature branch, pass exact-head required PR checks, merge to integration/development, and run cumulative Development smoke."
+      "nextAction": "Include only in a later explicitly owner-authorized consolidated release; Production remains unchanged."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
