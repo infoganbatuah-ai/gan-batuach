@@ -176,6 +176,9 @@ export class EdgeUpdateManager {
     const record = quarantined.find((item) => item.release_id === manifest.release_id);
     if (!record || record.version !== manifest.version || record.reason !== expectedFailureCategory)
       fail("EDGE_UPDATE_RETRY_QUARANTINE_MISMATCH");
+    const audit = this.readJson(this.quarantineRetryPath, []);
+    if (audit.some((item) => item.release_id === manifest.release_id))
+      fail("EDGE_UPDATE_RETRY_ALREADY_AUTHORIZED");
     const failedSlot = join(this.root, "slots", safeVersion(manifest.version));
     const failedPointer = { version: manifest.version, slot: failedSlot, release_id: manifest.release_id,
       artifact_sha256: manifest.artifact_sha256 };
@@ -185,7 +188,6 @@ export class EdgeUpdateManager {
       fail("EDGE_UPDATE_RETRY_SLOT_MISMATCH");
     rmSync(failedSlot, { recursive: true });
     atomicJson(this.quarantinePath, quarantined.filter((item) => item.release_id !== manifest.release_id));
-    const audit = this.readJson(this.quarantineRetryPath, []);
     const authorization = { release_id: manifest.release_id, version: manifest.version,
       previous_failure_category: expectedFailureCategory, remediation_evidence_sha256: remediationEvidenceSha256,
       recovery_failure_category: state.failure_category,

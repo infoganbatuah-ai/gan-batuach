@@ -81,6 +81,23 @@ connector.value.healthCheck = async () => healthy(1, 0);
 assert.equal((await connector.value.apply({ manifest: badManifest, artifactBytes: artifact })).state, "HEALTHY");
 assert.equal(connector.value.current().release_id, badManifest.release_id);
 
+// A retry authorization is a one-time exception for an immutable signed
+// release. If that same release fails again, a new corrected release is
+// required rather than allowing an unbounded install/rollback loop.
+const repeatRetry = await manager("SOFTWARE_CONNECTOR", async ({ version, rollback }) =>
+  version === "1.2.0" && !rollback
+    ? { ...healthy(1, 0), progressing_physical_cameras: 0 }
+    : healthy(1, 0));
+assert.equal((await repeatRetry.value.apply({ manifest: badManifest, artifactBytes: artifact })).state,
+  "ROLLED_BACK");
+repeatRetry.value.authorizeQuarantinedReleaseRetry({ manifest: badManifest,
+  expectedFailureCategory: "EDGE_UPDATE_CAMERA_PROGRESSION_FAILED", remediationEvidenceSha256: "d".repeat(64) });
+assert.equal((await repeatRetry.value.apply({ manifest: badManifest, artifactBytes: artifact })).state,
+  "ROLLED_BACK");
+await assert.rejects(async () => repeatRetry.value.authorizeQuarantinedReleaseRetry({ manifest: badManifest,
+  expectedFailureCategory: "EDGE_UPDATE_CAMERA_PROGRESSION_FAILED", remediationEvidenceSha256: "e".repeat(64) }),
+/EDGE_UPDATE_RETRY_ALREADY_AUTHORIZED/);
+
 // If the signed known-good service is restored but its first managed-auth
 // probe is unavailable, preserve ACTION_REQUIRED. A later stable proof may
 // reconcile only that exact restored slot; an upstream camera outage remains

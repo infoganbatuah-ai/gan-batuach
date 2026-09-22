@@ -21,6 +21,7 @@ test("retry removes only the verified failed slot and records an audit authoriza
   assert.match(manager, /rmSync\(failedSlot, \{ recursive: true \}\)/);
   assert.match(manager, /quarantined\.filter\(\(item\) => item\.release_id !== manifest\.release_id\)/);
   assert.match(manager, /quarantine-retry-authorizations\.json/);
+  assert.match(manager, /EDGE_UPDATE_RETRY_ALREADY_AUTHORIZED/);
   assert.match(manager, /remediation_evidence_sha256/);
 });
 
