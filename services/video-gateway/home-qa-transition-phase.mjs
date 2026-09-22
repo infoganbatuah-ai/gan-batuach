@@ -8,6 +8,7 @@ export const HOME_QA_PHASE = Object.freeze({
 
 const transitionRelease = "qa-connector-legacy-transition-v2-6e7988808b05";
 const connectorRemediation = "qa-p38-health-connector-pidfix-1b9e9499ffa7";
+const connectorRecoveryRemediation = "qa-p38-health-connector-recovery-9bb5db251379";
 const gatewayRemediation = "qa-p38-health-gateway-6c9d08327ec6";
 const gatewayBaseline = "qa-legacy-gateway-91bf6814075f";
 
@@ -27,7 +28,7 @@ export function homeQaManagedPhaseAllows({ enrollment, manifest }) {
     return false;
   if (manifest.release_id === transitionRelease) return false;
   if (enrollment.deployment_profile === "SOFTWARE_CONNECTOR")
-    return manifest.release_id === connectorRemediation &&
+    return [connectorRemediation, connectorRecoveryRemediation].includes(manifest.release_id) &&
       metadata.home_qa_known_good_release_id === transitionRelease;
   if (enrollment.deployment_profile === "PHYSICAL_GATEWAY")
     return manifest.release_id === gatewayRemediation &&
