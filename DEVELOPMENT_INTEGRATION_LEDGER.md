@@ -358,3 +358,20 @@ the retained internal API returned 401 without authentication. No migration or
 paid provider was added. The unit is `LOCAL_VERIFIED` and ready only for a
 later owner-authorized consolidated release. Production, `main`, customer data
 and Digital Observer core remain unchanged.
+
+GB-M39 branch validation (2026-09-23):
+`codex/gb-m39-production-readiness` records the full Development→Production
+delta, the exact 16-migration release sequence, configuration inventory,
+backup/restore evidence, rollback runbook and release blockers at source commit
+`434cebb88c72a27dd3fe68928be841073d8d16a1`. It hardens public Auth-facing
+mutations, passkeys and five Management QA/internal APIs without adding a
+migration or touching Digital Observer core. Branch validation passed domain
+30/30, security 8/8, migration health 243/243, typecheck, lint, Production
+build, release contract and the focused Management/Parent/Inspector/Staff,
+reporting, dashboard and legacy regressions. The candidate is intentionally
+`BLOCKED` for Production: 23 populated recoverable temporary-password rows
+require credential recovery/rotation, Production Auth and required
+configuration are unverified/incomplete, provider backup and Storage recovery
+are unproved, and the ≤₪15 cost gate lacks invoice/user evidence. GB-M39 is
+eligible for Development integration as a security hardening unit; it is not
+owner authorization to release, migrate Production or merge `main`.
