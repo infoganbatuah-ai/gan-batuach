@@ -1,7 +1,10 @@
 import { generateAuthenticationOptions } from "@simplewebauthn/server";
 import { NextResponse } from "next/server";
+import { handleSafeRouteError } from "@/lib/api";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { getPasskeyContext, toAuthenticatorTransports, normalizeEmail } from "@/lib/passkeys";
+import { assertRateLimit } from "@/lib/security/rate-limit";
+import { assertTrustedMutationOrigin, parseBoundedJson, privateRateLimitIdentifier } from "@/lib/security/request-guards";
 
 export const runtime = "nodejs";
 
@@ -10,7 +13,10 @@ type AuthenticationOptionsBody = {
 };
 
 export async function POST(request: Request) {
-  const body = (await request.json()) as AuthenticationOptionsBody;
+  try {
+  assertTrustedMutationOrigin(request);
+  await assertRateLimit(privateRateLimitIdentifier({ headers: request.headers }), "management:passkey-auth-options", 20, 60);
+  const body = (await parseBoundedJson(request, 8 * 1024)) as AuthenticationOptionsBody;
   const email = normalizeEmail(body.email);
 
   if (!email) {
@@ -25,7 +31,8 @@ export async function POST(request: Request) {
     .eq("email", email);
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("Passkey credential lookup failed", { errorCode: error.code });
+    return NextResponse.json({ error: "לא ניתן לטעון Passkeys כרגע." }, { status: 500 });
   }
 
   if (!credentials?.length) {
@@ -48,4 +55,7 @@ export async function POST(request: Request) {
   });
 
   return NextResponse.json({ options });
+  } catch (error) {
+    return handleSafeRouteError(error);
+  }
 }

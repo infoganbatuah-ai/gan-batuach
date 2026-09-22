@@ -1,10 +1,13 @@
 import { verifyAuthenticationResponse, type AuthenticationResponseJSON } from "@simplewebauthn/server";
 import { NextResponse } from "next/server";
+import { handleSafeRouteError } from "@/lib/api";
 import { dashboardPathForRole } from "@/lib/auth";
 import { credentialFromRow, getPasskeyContext, normalizeEmail } from "@/lib/passkeys";
 import { isRole } from "@/lib/roles";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { assertRateLimit } from "@/lib/security/rate-limit";
+import { assertTrustedMutationOrigin, parseBoundedJson, privateRateLimitIdentifier } from "@/lib/security/request-guards";
 
 export const runtime = "nodejs";
 
@@ -14,7 +17,10 @@ type AuthenticationVerifyBody = {
 };
 
 export async function POST(request: Request) {
-  const body = (await request.json()) as AuthenticationVerifyBody;
+  try {
+  assertTrustedMutationOrigin(request);
+  await assertRateLimit(privateRateLimitIdentifier({ headers: request.headers }), "management:passkey-auth-verify", 20, 60);
+  const body = (await parseBoundedJson(request, 64 * 1024)) as AuthenticationVerifyBody;
   const email = normalizeEmail(body.email);
 
   if (!body.response?.id) {
@@ -83,13 +89,15 @@ export async function POST(request: Request) {
   const link = await admin.auth.admin.generateLink({ type: "magiclink", email: credentialEmail });
   const tokenHash = link.data?.properties?.hashed_token;
   if (link.error || !tokenHash) {
-    return NextResponse.json({ error: link.error?.message || "לא ניתן לפתוח session מאובטח." }, { status: 500 });
+    console.error("Passkey session link generation failed", { errorCode: link.error?.code ?? "MISSING_TOKEN" });
+    return NextResponse.json({ error: "לא ניתן לפתוח session מאובטח." }, { status: 500 });
   }
 
   const supabase = await createClient();
   const { error: otpError } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type: "magiclink" });
   if (otpError) {
-    return NextResponse.json({ error: otpError.message }, { status: 500 });
+    console.error("Passkey session verification failed", { errorCode: otpError.code ?? "OTP_ERROR" });
+    return NextResponse.json({ error: "לא ניתן לפתוח session מאובטח." }, { status: 500 });
   }
 
   const { data: profile } = await admin.from("profiles").select("role").eq("id", String(credential.user_id)).single();
@@ -104,4 +112,7 @@ export async function POST(request: Request) {
   });
 
   return NextResponse.json({ ok: true, redirectTo });
+  } catch (error) {
+    return handleSafeRouteError(error);
+  }
 }

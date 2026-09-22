@@ -4,14 +4,18 @@ import { requireRole } from "@/lib/auth";
 import { managementContactVerification } from "@/lib/management/contact-verification";
 import { normalizeInvitationEmail, resolveSignedInvitation } from "@/lib/management/signed-invitation";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
+import { assertRateLimit } from "@/lib/security/rate-limit";
+import { assertTrustedMutationOrigin, parseBoundedJson, privateRateLimitIdentifier } from "@/lib/security/request-guards";
 
 const schema = z.object({ token: z.string().min(40).max(2048) });
 
 export async function POST(request: Request) {
   try {
     const { user, profile } = await requireRole(["parent"], "/app/login");
+    assertTrustedMutationOrigin(request);
+    await assertRateLimit(privateRateLimitIdentifier({ headers: request.headers, userId: profile.id }), "management:invitation-claim", 10, 60);
     if (!isAdminClientConfigured()) return fail("שירות ההזמנות אינו זמין כרגע.", 503);
-    const { token } = schema.parse(await request.json());
+    const { token } = schema.parse(await parseBoundedJson(request, 4 * 1024));
     const admin = createAdminClient();
     const resolved = await resolveSignedInvitation(admin, token);
     if (!resolved.ok) return fail("ההזמנה אינה זמינה.", 410);

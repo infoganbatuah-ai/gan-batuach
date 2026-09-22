@@ -86,6 +86,7 @@
   ],
   "security": [
     { "name": "environment-safety", "args": ["scripts/validate-environment-safety.mjs"] },
+    { "name": "management-production-hardening", "args": ["scripts/qa/check-management-production-hardening.mjs"] },
     { "name": "encryption-separation", "args": ["scripts/qa/check-encryption-key-separation.mjs"] },
     { "name": "storage-policy", "args": ["scripts/qa/check-storage-policy-safety.mjs"] },
     { "name": "observer-engine-separation", "args": ["scripts/qa/check-observer-engine-separation.mjs"] },

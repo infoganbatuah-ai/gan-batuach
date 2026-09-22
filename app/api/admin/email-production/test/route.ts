@@ -2,9 +2,11 @@ import { fail, handleRouteError, ok } from "@/lib/api";
 import { requireRole } from "@/lib/auth";
 import { getEmailProvider } from "@/lib/domain/email-provider";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { assertManagementInternalToolAccess } from "@/lib/security/management-production-guards";
 
 export async function POST() {
   try {
+    assertManagementInternalToolAccess();
     const { profile } = await requireRole(["admin"]);
     if (!profile.email) return fail("לחשבון האדמין המחובר אין כתובת אימייל.", 422);
 
