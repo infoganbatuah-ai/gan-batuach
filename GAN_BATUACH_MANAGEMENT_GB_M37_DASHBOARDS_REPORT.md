@@ -122,3 +122,9 @@ The inventory lists redirect, internal-only, Production-block and retirement can
 ## Inputs For GB-M38
 
 Use the inventory to retire or redirect duplicates only after reference/link analytics and route-contract review. Preserve canonical role entry points, keep server authorization independent of navigation and remove the unused legacy command-center read model only after confirming no external client depends on it.
+
+## Development Integration Closure
+
+PR #119 passed all 9 required checks at exact head `5de0869fc598b1e0848fa4f4fb10cc43af5ecdce` and merged by ancestry to `integration/development` as `e96b1e722a2a39ee18aeedc48d46f94f101f7294`. Cumulative validation on that exact merge passed Management 264/264, Parent/Manager 22/22, domain 30/30, security 7/7, reporting 7/7, migration health and Development drift 243/243, role/context E2E 8/8, typecheck, lint, build and release preflight. The final warm E2E run measured p50 1,247 ms and p95 2,002 ms in isolated Development. Built-server health returned HTTP 200 with Supabase `ok`, and protected dashboard APIs rejected unauthenticated requests with HTTP 401.
+
+GB-M37 adds no migration, so Development application is `NOT REQUIRED`; the canonical Development ledger remains 243/243 with no drift. Production and `main` remain unchanged.

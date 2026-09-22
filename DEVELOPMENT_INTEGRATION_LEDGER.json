@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-09-22T18:20:00Z",
+  "updatedAt": "2026-09-22T18:50:00Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -3901,7 +3901,7 @@
         "32455c87e1034473a034615447e4d47955107c81",
         "848479fdb273a517d4c102aaaf4caab2d25e6c79"
       ],
-      "state": "PUSHED_REMOTE",
+      "state": "LOCAL_VERIFIED",
       "preservation": {
         "remoteVerified": true,
         "remoteRefs": [
@@ -8992,19 +8992,22 @@
         "validatedSourceCommit": "ff21556b61970cf0b4644a27384abc2d3a292ba4"
       },
       "validation": {
-        "status": "PASS_BRANCH_VALIDATION_PENDING_EXACT_HEAD_PR_CI",
+        "status": "PASS_EXACT_HEAD_PR_CI_AND_CUMULATIVE_DEVELOPMENT_VALIDATION",
         "evidence": [
           "GAN_BATUACH_MANAGEMENT_GB_M37_DASHBOARDS_REPORT.md",
           "GAN_BATUACH_MANAGEMENT_DASHBOARD_NAVIGATION_INVENTORY.md",
           "/private/tmp/gb-m37-dashboard-role-e2e.json",
           "https://github.com/infoganbatuah-ai/gan-batuach/pull/119"
         ],
-        "limits": "Exact final-head PR checks and cumulative post-merge Development verification remain pending. Production and main unchanged."
+        "limits": "Production and main unchanged. Production role/dashboard smoke remains deferred to an explicit owner-controlled consolidated release."
       },
       "integration": {
-        "status": "PENDING_PR_CHECKS",
+        "status": "INTEGRATED_DEVELOPMENT",
         "pullRequest": 119,
-        "base": "integration/development"
+        "base": "integration/development",
+        "commit": "e96b1e722a2a39ee18aeedc48d46f94f101f7294",
+        "head": "5de0869fc598b1e0848fa4f4fb10cc43af5ecdce",
+        "requiredChecks": "PASS_9_OF_9"
       },
       "dependencies": {
         "status": "GB_M36_INTEGRATED",
@@ -9013,9 +9016,9 @@
       "migrations": [],
       "migrationOrder": [],
       "localVerification": "PASS_264_MANAGEMENT_22_PARENT_MANAGER_30_DOMAIN_7_SECURITY_243_MIGRATIONS_7_REPORTING_16_ROLE_SMOKE_8_ROLE_CONTEXT_E2E_TYPECHECK_BUILD_LINT_PREFLIGHT_HEALTH",
-      "releaseEligibility": "NOT_READY_PENDING_INTEGRATION",
+      "releaseEligibility": "READY_FOR_OWNER_RELEASE",
       "productionDeployment": {"status": "NOT_DEPLOYED"},
-      "nextAction": "Wait for all required checks on the exact final PR #119 head, merge by ancestry into integration/development, then run cumulative Development verification."
+      "nextAction": "Include GB-M37 only in a later explicit owner-authorized consolidated release candidate; run Production role/dashboard smoke at that time."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
