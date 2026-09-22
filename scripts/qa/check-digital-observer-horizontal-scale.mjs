@@ -70,9 +70,16 @@ try {
   assert.throws(() => dynamicPool.add({ ...worker("qa-worker-unhealthy", 1), health: "UNHEALTHY" }), /identity_or_health_denied/);
   const dynamic = await dynamicPool.drain(); assert.equal(dynamic.active_workers, 2); assert.equal(dynamic.completed, 12); assert.equal(queue.snapshot().queue_depth, 0); queue.close();
 
-  const lossPath = join(root, "worker-loss.sqlite"); queue = createDurableAiJobQueue({ databasePath: lossPath, workerAuthorizer: auth, policy: { leaseMs: 100 } }); const lostJob = job({ ordering_key: "loss" }); queue.enqueue(lostJob);
+  const lossPath = join(root, "worker-loss.sqlite"); let lossNow = Date.now();
+  queue = createDurableAiJobQueue({ databasePath: lossPath, now: () => lossNow,
+    workerAuthorizer: auth, policy: { leaseMs: 100 } });
+  const lostJob = job({ ordering_key: "loss" }); queue.enqueue(lostJob);
   const lostWorker = { worker_id: "qa-worker-lost", environment: "ISOLATED_PROCESS", capabilities: ["OBJECT_DETECTION"], model_classes: ["GENERAL_OBJECT_DETECTION"], identity: identity("qa-worker-lost") };
-  assert.equal(queue.claim(lostWorker, { leaseMs: 100 }).job.job_id, lostJob.job_id); await new Promise(resolve => setTimeout(resolve, 120));
+  assert.equal(queue.claim(lostWorker, { leaseMs: 100 }).job.job_id, lostJob.job_id);
+  // Advance the queue clock past the abandoned lease, then hold it stable while
+  // the recovery worker runs. This tests exact lease recovery without making a
+  // 100 ms safety boundary depend on shared-runner timer scheduling.
+  lossNow += 101;
   const recovered = await worker("qa-worker-recovery", 1).processOne(queue); assert.equal(recovered.status, "COMPLETED"); assert.equal(queue.result(lostJob.job_id, { consume: true }).job_id, lostJob.job_id); assert.equal(queue.result(lostJob.job_id, { consume: true }), null); queue.close();
 
   const profiles = [];
