@@ -92,7 +92,7 @@ export default async function GardenInspectionsPage({ searchParams }: { searchPa
         </TeacherAiInsight>
 
         <TeacherQuickActions title="פעולות פיקוח">
-          <TeacherActionTile title="סטטוס פיקוח" href="/dashboard/garden/inspection-status" icon={ClipboardCheck} tone="purple" />
+          <TeacherActionTile title="סטטוס פיקוח" href="/dashboard/garden/inspections" icon={ClipboardCheck} tone="purple" />
           <TeacherActionTile title="דוחות" href="/dashboard/garden/inspections" icon={FileText} tone="blue" />
           <TeacherActionTile title="פעולות תיקון" href="/dashboard/garden/corrective-actions" icon={AlertTriangle} tone="orange" />
           <TeacherActionTile title="מסמכים" href="/dashboard/garden/documents" icon={ShieldCheck} tone="green" />

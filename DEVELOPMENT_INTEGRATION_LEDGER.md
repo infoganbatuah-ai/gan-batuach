@@ -331,3 +331,16 @@ returned 401 without authentication. No migration was required. The unit is
 `LOCAL_VERIFIED` and ready only for a later owner-authorized consolidated
 release. Production, `main`, customer data and Digital Observer core remain
 unchanged.
+
+GB-M38 branch validation (2026-09-23):
+`codex/gb-m38-legacy-consolidation` preserves the evidence-based Management
+legacy consolidation at product commit `5a01a973`. It converts three proven
+bookmark routes to fixed canonical redirects, removes one zero-caller legacy
+Dashboard component, retains a guarded internal API after required CI proved a
+cross-project dependency, and records final classifications for all identified
+candidates. Branch validation passed Management 272/272, focused GB-M38 8/8,
+GB-M37 dashboards 9/9, GB-M36 reporting 7/7, domain 30/30, security 7/7,
+migration health 243/243, typecheck, Production build, lint baseline and release
+contract. No migration, paid provider or Digital Observer core change was
+introduced. Exact-head PR checks and cumulative post-merge Development smoke
+remain pending. Production, `main` and customer data are unchanged.
