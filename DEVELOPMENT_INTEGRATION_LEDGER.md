@@ -286,3 +286,18 @@ per event. The two forward-only migrations are approved here for the guarded
 isolated Development database in order; this does not authorize Production,
 `main`, GB-M36, or any Digital Observer change. PR #86 remains draft pending
 full GB-M35E matrix closure.
+
+GB-M36 branch validation (2026-09-22):
+`codex/gb-m36-reporting-analytics` preserves canonical Management reporting at
+source commit `a9145914ee39f950bda1591fcad6c421e3c02917`. The read-only reporting
+contract derives role-scoped totals and bounded CSV exports from the canonical
+attendance, pickup, Staff-time, tuition, subscription, inspection, corrective
+action, complaint, Task, document, enrollment and Classroom-capacity sources.
+Authenticated role E2E passed 27/27; rollback-only RLS passed; the 500-row
+synthetic scale test proved the 200-row page bound and cleanup; Management
+passed 255/255, Parent/Manager 22/22, domain 30/30, security 7/7 and migration
+health 243/243. Typecheck, Production build, lint baseline and release-contract
+preflight passed. No migration or paid provider was added. The unit remains
+`PUSHED_REMOTE`; PR checks, Development merge and cumulative integration QA
+remain pending. Production, `main`, customer data and
+Digital Observer core are unchanged.

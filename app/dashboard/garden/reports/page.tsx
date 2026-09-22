@@ -10,7 +10,7 @@ import {
 import { DashboardShell } from "@/components/dashboard-shell";
 import { ReportsCenter } from "@/components/reports-center";
 import { requireRole } from "@/lib/auth";
-import { israelTodayDateKey } from "@/lib/domain/israel-date";
+import { resolveReportRange } from "@/lib/management/reporting";
 import { createClient } from "@/lib/supabase/server";
 import {
   TeacherActionTile,
@@ -30,21 +30,28 @@ export default async function GardenReportsPage({ searchParams }: { searchParams
   const params = await searchParams;
   const supabase = await createClient();
   const gardenId = profile.garden_id ?? "";
-  const today = israelTodayDateKey();
+  const gardenRes = await supabase.from("gardens" as never).select("operational_timezone" as never).eq("id", gardenId).maybeSingle();
+  const garden = gardenRes.data as unknown as { operational_timezone?: string | null } | null;
+  const timezone = String(garden?.operational_timezone ?? "Asia/Jerusalem");
+  const today = resolveReportRange(new URLSearchParams("range=today"), timezone).from;
 
   const [childrenRes, attendanceRes, incidentsRes, messagesRes, inspectionsRes] = await Promise.all([
-    supabase.from("children" as any).select("id", { count: "exact", head: true }).eq("garden_id", gardenId).in("status", ["active", "approved"]),
-    supabase.from("attendance" as any).select("id,status", { count: "exact" }).eq("garden_id", gardenId).eq("attendance_date", today),
-    supabase.from("incident_reports" as any).select("id,status,created_at", { count: "exact" }).eq("garden_id", gardenId).order("created_at", { ascending: false }).limit(5),
-    supabase.from("messages" as any).select("id,created_at", { count: "exact" }).eq("garden_id", gardenId).order("created_at", { ascending: false }).limit(5),
-    supabase.from("required_inspections" as any).select("id,title,status,due_at", { count: "exact" }).eq("garden_id", gardenId).order("due_at", { ascending: true }).limit(5)
+    supabase.from("children" as never).select("id" as never, { count: "exact", head: true }).eq("garden_id", gardenId).in("status", ["active", "approved"]),
+    supabase.from("attendance" as never).select("id,status" as never, { count: "exact" }).eq("garden_id", gardenId).eq("attendance_date", today),
+    supabase.from("incident_reports" as never).select("id,status,created_at" as never, { count: "exact" }).eq("garden_id", gardenId).order("created_at", { ascending: false }).limit(5),
+    supabase.from("messages" as never).select("id,created_at" as never, { count: "exact" }).eq("garden_id", gardenId).order("created_at", { ascending: false }).limit(5),
+    supabase.from("required_inspections" as never).select("id,title,status,due_at" as never, { count: "exact" }).eq("garden_id", gardenId).order("due_at", { ascending: true }).limit(5)
   ]);
 
-  const attendance = (attendanceRes.data ?? []) as any[];
+  type AttendanceRow = { status?: string | null };
+  type IncidentRow = { id: string; status?: string | null; created_at?: string | null };
+  type MessageRow = { id: string; created_at?: string | null };
+  type InspectionRow = { id: string; title?: string | null; status?: string | null; due_at?: string | null };
+  const attendance = (attendanceRes.data ?? []) as unknown as AttendanceRow[];
   const present = attendance.filter((row) => ["present", "checked_in", "checked_out"].includes(String(row.status))).length;
-  const incidents = (incidentsRes.data ?? []) as any[];
-  const messages = (messagesRes.data ?? []) as any[];
-  const inspections = (inspectionsRes.data ?? []) as any[];
+  const incidents = (incidentsRes.data ?? []) as unknown as IncidentRow[];
+  const messages = (messagesRes.data ?? []) as unknown as MessageRow[];
+  const inspections = (inspectionsRes.data ?? []) as unknown as InspectionRow[];
   const attendanceRate = Math.round((present / Math.max(childrenRes.count ?? 0, 1)) * 100);
 
   return (
@@ -52,7 +59,7 @@ export default async function GardenReportsPage({ searchParams }: { searchParams
       <TeacherAppFrame
         title={`בוקר טוב, ${profile.full_name?.replace(/\[DEMO\]/gi, "").trim().split(" ")[0] || "מנהלת הגן"}`}
         subtitle="דיווחים ודוחות גננת"
-        avatarUrl={(profile as any).profile_image_url ?? null}
+        avatarUrl={(profile as { profile_image_url?: string | null }).profile_image_url ?? null}
         active="more"
       >
         <TeacherPageTitle icon={BarChart3} title="דיווחים ודוחות" subtitle="תמונת מצב יומית מהנתונים הקיימים בגן" />
@@ -101,7 +108,7 @@ export default async function GardenReportsPage({ searchParams }: { searchParams
 
         <details className="teacher-management-details" id="reports-workbench" open={params.manage === "1"}>
           <summary>מרכז דוחות מלא</summary>
-          <ReportsCenter exports={[]} />
+          <ReportsCenter role={profile.role === "owner" ? "owner" : "manager"} gardenId={gardenId} />
         </details>
       </TeacherAppFrame>
     </DashboardShell>
