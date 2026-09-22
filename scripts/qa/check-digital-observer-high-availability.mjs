@@ -125,15 +125,22 @@ try {
 
   // Queue/service interruption and worker capacity loss/return under load.
   const queuePath = join(root, "worker-ha.sqlite"); const authorizer = worker => worker.identity?.authenticated === true && worker.identity.revoked !== true;
-  let queue = createDurableAiJobQueue({ databasePath: queuePath, workerAuthorizer: authorizer, policy: { leaseMs: 100, maxJobs: 500 } });
+  // Lease failover is a logical-time contract. A real 110 ms sleep made this
+  // deterministic suite depend on host wall-clock scheduling at the expiry
+  // boundary; advance the injected clock so the exact +101 ms contract is what
+  // the test proves, independent of host pressure.
+  let queueClock = Date.now(); const queueNow = () => queueClock;
+  let queue = createDurableAiJobQueue({ databasePath: queuePath, now: queueNow,
+    workerAuthorizer: authorizer, policy: { leaseMs: 100, maxJobs: 500 } });
   queue.enqueueMany(Array.from({ length: 40 }, () => job())); const dead = { worker_id: "worker-dead", environment: "ISOLATED_PROCESS", capabilities: ["OBJECT_DETECTION"], model_classes: ["GENERAL_OBJECT_DETECTION"], identity: auth("worker-dead") };
   const claimed = queue.claim(dead, { leaseMs: 100 }); assert.ok(claimed?.job); queue.close();
-  queue = createDurableAiJobQueue({ databasePath: queuePath, workerAuthorizer: authorizer, policy: { leaseMs: 100, maxJobs: 500 } }); assert.equal(queue.snapshot().queue_depth, 40, "queue restart preserves pending and claimed work");
+  queue = createDurableAiJobQueue({ databasePath: queuePath, now: queueNow,
+    workerAuthorizer: authorizer, policy: { leaseMs: 100, maxJobs: 500 } }); assert.equal(queue.snapshot().queue_depth, 40, "queue restart preserves pending and claimed work");
   const workers = [inferWorker("worker-a"), inferWorker("worker-b")];
   const capacityLossStarted = performance.now();
   for (let index = 0; index < 8; index++) await workers[0].processOne(queue);
   const degradedDepth = queue.snapshot().queue_depth; assert.ok(degradedDepth >= 32);
-  await sleep(110);
+  queueClock += 101; queue.recover();
   let idle = 0;
   while (idle < 2) { const results = await Promise.all(workers.map(worker => worker.processOne(queue))); idle = results.every(item => item.status === "IDLE") ? idle + 1 : 0; }
   const capacityRecoveryMs = Number((performance.now() - capacityLossStarted).toFixed(3));

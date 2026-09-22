@@ -289,6 +289,24 @@ for (const item of profiles) {
       installInstalledOtaAgent(agentInstall);
       await until(() => execFileSync("/bin/launchctl", ["print", `gui/${process.getuid()}/${agentLabel}`],
         { encoding: "utf8" }).includes("state = running"), 15_000, "AGENT_START");
+      const managementUpgradeManifest = { ...remediation.manifest,
+        release_id: `${remediation.manifest.release_id}-management-upgrade`, released_at: new Date().toISOString(),
+        signature: "" };
+      managementUpgradeManifest.signature = sign(null,
+        Buffer.from(canonicalEdgeUpdateManifest(managementUpgradeManifest)), privateKey).toString("base64url");
+      const agentBeforeManagementUpgrade = launchdPid(agentLabel);
+      const managementUpgrade = installInstalledOtaAgent({ ...agentInstall, manifest: managementUpgradeManifest,
+        managementUpgradeFrom: { release_id: remediation.manifest.release_id,
+          artifact_sha256: remediation.manifest.artifact_sha256 } });
+      assert.equal(managementUpgrade.management_upgraded, true);
+      await until(() => launchdPid(agentLabel) > 1 && launchdPid(agentLabel) !== agentBeforeManagementUpgrade,
+        15_000, "AGENT_MANAGEMENT_UPGRADE");
+      assert.equal(JSON.parse(readFileSync(join(root, "ota", "agent", "agent-release.json"))).release_id,
+        managementUpgradeManifest.release_id);
+      assert.equal(installInstalledOtaAgent({ ...agentInstall, manifest: managementUpgradeManifest,
+        managementUpgradeFrom: { release_id: remediation.manifest.release_id,
+          artifact_sha256: remediation.manifest.artifact_sha256 } }).management_upgraded, false,
+      `${item.suffix}:management-agent-upgrade-idempotent`);
       if (args["--baseline-rollback"] === "1") {
         const initialCrash = makeCrash({ good: remediation, profile: item.profile, temporary: root, variant: "baseline" });
         publish(initialCrash);

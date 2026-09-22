@@ -17,14 +17,21 @@ import { readR2KeychainCredentials } from "../release/macos-r2-keychain.mjs";
 
 const profile = process.argv.find(arg => arg.startsWith("--profile="))?.slice(10);
 const apply = process.argv.includes("--apply"), dryRun = process.argv.includes("--dry-run");
+const managementUpgrade = process.argv.includes("--management-upgrade");
 if (apply === dryRun || !["SOFTWARE_CONNECTOR", "PHYSICAL_GATEWAY"].includes(profile))
   throw new Error("P38_HOME_QA_AGENT_MODE_OR_PROFILE_INVALID");
+if (managementUpgrade && profile !== "SOFTWARE_CONNECTOR")
+  throw new Error("P38_HOME_QA_AGENT_UPGRADE_PROFILE_INVALID");
 const connector = profile === "SOFTWARE_CONNECTOR";
 const spec = connector ? {
   deviceId: "db267b52-6282-4944-bcee-5d4857698fb0",
   baselineRelease: "qa-connector-legacy-transition-v2-6e7988808b05",
   baselineSha: "6e7988808b05956d58416a6ce60638f52b19aa732918ac0e1cdafcc5fc9f130a",
-  remediationRelease: "qa-p38-health-connector-1b076f596574", bundleName: "connector_remediation.json",
+  remediationRelease: managementUpgrade ? "qa-p38-health-connector-pidfix-1b9e9499ffa7" :
+    "qa-p38-health-connector-1b076f596574",
+  bundleName: managementUpgrade ? "connector_remediation_pidfix.json" : "connector_remediation.json",
+  priorManagement: managementUpgrade ? { release_id: "qa-p38-health-connector-1b076f596574",
+    artifact_sha256: "1b076f5965744a903c3c601d8c424c7b127bdcb0d06f49c72eff8b9345bdfc27" } : null,
   rootName: "observer-connector", label: "com.ganbatuach.software-connector.tapo", port: 18083,
   installedBase: join(homedir(), "Applications"), expected: 1
 } : {
@@ -59,7 +66,9 @@ const runtimeConfig = { profile, managedRoot: root, installedBase: spec.installe
   qaTlsCaPath: apply ? installedCertPath : certPath, qaTlsCaSha256: certSha, intervalMs: 60_000 };
 const plan = planInstalledOtaAgent({ profile, managedRoot: root, agentPlistPath, agentLabel });
 if (apply) validateHomeQaOtaIdentityScope({ managedRoot: root, runtimeConfig });
-const bundle = "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-signed-manifests-35482295860.zip";
+const bundle = managementUpgrade
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-connector-pidfix-35704990843.zip"
+  : "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-signed-manifests-35482295860.zip";
 const manifest = JSON.parse(execFileSync("unzip", ["-p", bundle, spec.bundleName],
   { encoding: "utf8", timeout: 15_000, maxBuffer: 8192 }));
 const keys = loadPinnedEdgeReleaseKeys({ registryPath: PROTECTED_EDGE_TRUST_REGISTRY_PATH }).trustedPublicKeys;
@@ -68,10 +77,22 @@ if (!verifyEdgeUpdateManifest(manifest, keys).ok || manifest.release_id !== spec
   JSON.stringify(manifest.rollout?.explicit_device_ids) !== JSON.stringify([spec.deviceId]))
   throw new Error("P38_HOME_QA_AGENT_SIGNED_RELEASE_INVALID");
 if (dryRun) {
+  if (managementUpgrade) {
+    const priorPath = join(root, "agent", "agent-release.json");
+    if (!existsSync(priorPath) || lstatSync(priorPath).isSymbolicLink())
+      throw new Error("P38_HOME_QA_AGENT_UPGRADE_PRIOR_MISSING");
+    const prior = JSON.parse(readFileSync(priorPath, "utf8"));
+    if (prior.release_id !== spec.priorManagement.release_id ||
+      prior.artifact_sha256 !== spec.priorManagement.artifact_sha256)
+      throw new Error("P38_HOME_QA_AGENT_UPGRADE_PRIOR_MISMATCH");
+    const domain = `gui/${process.getuid()}/${agentLabel}`;
+    if (!execFileSync("/bin/launchctl", ["print", domain], { encoding: "utf8" }).includes("state = running"))
+      throw new Error("P38_HOME_QA_AGENT_UPGRADE_SERVICE_NOT_RUNNING");
+  }
   console.log(JSON.stringify({ status: "AGENT_INSTALL_PLAN_PASS", profile, release_id: manifest.release_id,
     signed_manifest: true, isolated_identity_store: true, tls_certificate_sha256: certSha,
     management_code: plan.management_code, tls_certificate_install_path: installedCertPath,
-    runtime_writes: 0 }));
+    management_upgrade: managementUpgrade, functional_runtime_writes: 0 }));
   process.exit(0);
 }
 const store = createEdgeSecretStoreSync({ secretDir: secrets });
@@ -104,8 +125,10 @@ try {
     throw new Error("P38_HOME_QA_AGENT_ARTIFACT_HASH_MISMATCH");
   const nodePath = connector ? join(spec.installedBase, "Digital Observer.app/Contents/Resources/bin/node") : process.execPath;
   const installed = installInstalledOtaAgent({ profile, managedRoot: root, agentPlistPath, agentLabel,
-    nodePath, manifest, artifactPath, baselineReleaseId: spec.baselineRelease, runtimeConfig });
+    nodePath, manifest, artifactPath, baselineReleaseId: spec.baselineRelease, runtimeConfig,
+    managementUpgradeFrom: spec.priorManagement });
   console.log(JSON.stringify({ status: "SIGNED_MANAGEMENT_AGENT_INSTALLED", profile,
     management_release_id: installed.release_id, artifact_sha256: installed.artifact_sha256,
-    functional_runtime_changed: false, qa_identity_store: "SEPARATE_FROM_PRODUCT_LEGACY" }));
+    management_upgraded: installed.management_upgraded, functional_runtime_changed: false,
+    qa_identity_store: "SEPARATE_FROM_PRODUCT_LEGACY" }));
 } finally { rmSync(temp, { recursive: true, force: true }); }

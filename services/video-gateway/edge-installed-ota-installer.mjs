@@ -63,7 +63,7 @@ export function validateHomeQaOtaIdentityScope({ managedRoot, runtimeConfig, qaI
 }
 
 export function installInstalledOtaAgent({ profile, managedRoot, agentPlistPath, agentLabel, nodePath,
-  manifest, artifactPath, baselineReleaseId, runtimeConfig, qaIsolationRoot = "" }) {
+  manifest, artifactPath, baselineReleaseId, runtimeConfig, qaIsolationRoot = "", managementUpgradeFrom = null }) {
   const plan = planInstalledOtaAgent({ profile, managedRoot, agentPlistPath, agentLabel, qaIsolationRoot });
   const priorConfigBytes = existsSync(plan.config) ? readFileSync(plan.config) : null;
   const priorConfig = priorConfigBytes ? JSON.parse(priorConfigBytes.toString("utf8")) : null;
@@ -92,6 +92,7 @@ export function installInstalledOtaAgent({ profile, managedRoot, agentPlistPath,
   if (!existsSync(nodePath) || lstatSync(nodePath).isSymbolicLink()) fail("EDGE_OTA_INSTALL_NODE_UNTRUSTED");
   const managementDir = join(managedRoot, "agent");
   const temp = mkdtempSync(join(tmpdir(), "observer-ota-management-"));
+  let managementStaging = null;
   try {
     inspectArchive(artifactPath);
     run("tar", ["-xzf", artifactPath, "-C", temp]);
@@ -103,16 +104,23 @@ export function installInstalledOtaAgent({ profile, managedRoot, agentPlistPath,
     const undici = join(runtimeRoot, "node_modules/undici");
     if (!existsSync(join(undici, "package.json"))) fail("EDGE_OTA_INSTALL_HTTP_RUNTIME_MISSING");
     const artifactDigest = createHash("sha256").update(readFileSync(artifactPath)).digest("hex");
+    let managementUpgrade = false;
+    const stageManagement = () => {
+      managementStaging = `${managementDir}.${randomUUID()}.staging`;
+      cpSync(source, managementStaging, { recursive: true });
+      cpSync(undici, join(managementStaging, "node_modules/undici"), { recursive: true });
+      writeFileSync(join(managementStaging, "agent-release.json"), JSON.stringify({ release_id: manifest.release_id,
+        artifact_sha256: artifactDigest, signing_key_id: manifest.signing_key_id }), { mode: 0o600 });
+    };
     if (existsSync(managementDir)) {
       const prior = JSON.parse(readFileSync(join(managementDir, "agent-release.json"), "utf8"));
-      if (prior.release_id !== manifest.release_id || prior.artifact_sha256 !== artifactDigest) fail("EDGE_OTA_INSTALL_AGENT_CONFLICT");
+      if (prior.release_id !== manifest.release_id || prior.artifact_sha256 !== artifactDigest) {
+        if (!managementUpgradeFrom || prior.release_id !== managementUpgradeFrom.release_id ||
+          prior.artifact_sha256 !== managementUpgradeFrom.artifact_sha256) fail("EDGE_OTA_INSTALL_AGENT_CONFLICT");
+        stageManagement(); managementUpgrade = true;
+      }
     } else {
-      const staging = `${managementDir}.${randomUUID()}.staging`;
-      cpSync(source, staging, { recursive: true });
-      cpSync(undici, join(staging, "node_modules/undici"), { recursive: true });
-      writeFileSync(join(staging, "agent-release.json"), JSON.stringify({ release_id: manifest.release_id,
-        artifact_sha256: artifactDigest, signing_key_id: manifest.signing_key_id }), { mode: 0o600 });
-      renameSync(staging, managementDir);
+      stageManagement(); renameSync(managementStaging, managementDir); managementStaging = null;
     }
     const plist = plistXml({ Label: agentLabel, ProgramArguments: [nodePath, plan.management_code, plan.config],
       RunAtLoad: true, KeepAlive: true, ThrottleInterval: 10,
@@ -138,17 +146,41 @@ export function installInstalledOtaAgent({ profile, managedRoot, agentPlistPath,
       restartForCertificateRelocation = true;
     }
     const domain = `gui/${process.getuid()}`;
-    if (restartForCertificateRelocation) {
-      try { run("/bin/launchctl", ["bootout", domain, agentPlistPath]); } catch {}
+    if (restartForCertificateRelocation || managementUpgrade) {
+      let managementBackup = null, rejectedManagement = null;
       try {
+        if (managementUpgrade) run("/bin/launchctl", ["bootout", domain, agentPlistPath]);
+        else try { run("/bin/launchctl", ["bootout", domain, agentPlistPath]); } catch {}
+        if (managementUpgrade) {
+          managementBackup = `${managementDir}.${randomUUID()}.backup`;
+          renameSync(managementDir, managementBackup);
+          renameSync(managementStaging, managementDir); managementStaging = null;
+        }
         atomic(plan.config, `${JSON.stringify(runtimeConfig)}\n`);
         atomic(agentPlistPath, plist);
         run("/bin/launchctl", ["bootstrap", domain, agentPlistPath]);
+        if (!run("/bin/launchctl", ["print", `${domain}/${agentLabel}`]).includes("state = running"))
+          fail("EDGE_OTA_INSTALL_SERVICE_FAILED");
+        if (managementBackup) rmSync(managementBackup, { recursive: true, force: true });
       } catch {
+        try { run("/bin/launchctl", ["bootout", domain, agentPlistPath]); } catch {}
+        if (managementBackup && existsSync(managementBackup)) {
+          if (existsSync(managementDir)) {
+            rejectedManagement = `${managementDir}.${randomUUID()}.rejected`;
+            renameSync(managementDir, rejectedManagement);
+          }
+          renameSync(managementBackup, managementDir);
+        }
         if (priorConfigBytes) atomic(plan.config, priorConfigBytes);
         if (existingPlist) atomic(agentPlistPath, existingPlist);
-        try { run("/bin/launchctl", ["bootstrap", domain, agentPlistPath]); } catch {}
-        fail("EDGE_OTA_INSTALL_CERTIFICATE_RELOCATION_FAILED");
+        let recovered = false;
+        try {
+          run("/bin/launchctl", ["bootstrap", domain, agentPlistPath]);
+          recovered = run("/bin/launchctl", ["print", `${domain}/${agentLabel}`]).includes("state = running");
+        } catch {}
+        if (rejectedManagement && recovered) rmSync(rejectedManagement, { recursive: true, force: true });
+        fail(managementUpgrade ? (recovered ? "EDGE_OTA_INSTALL_MANAGEMENT_UPGRADE_FAILED" :
+          "EDGE_OTA_INSTALL_MANAGEMENT_UPGRADE_RECOVERY_FAILED") : "EDGE_OTA_INSTALL_CERTIFICATE_RELOCATION_FAILED");
       }
     } else {
       atomic(plan.config, `${JSON.stringify(runtimeConfig)}\n`);
@@ -156,6 +188,10 @@ export function installInstalledOtaAgent({ profile, managedRoot, agentPlistPath,
       try { run("/bin/launchctl", ["bootstrap", domain, agentPlistPath]); }
       catch { if (!run("/bin/launchctl", ["print", `${domain}/${agentLabel}`]).includes("state = running")) fail("EDGE_OTA_INSTALL_SERVICE_FAILED"); }
     }
-    return { ...plan, installed: true, release_id: manifest.release_id, artifact_sha256: artifactDigest };
-  } finally { rmSync(temp, { recursive: true, force: true }); }
+    return { ...plan, installed: true, release_id: manifest.release_id, artifact_sha256: artifactDigest,
+      management_upgraded: managementUpgrade };
+  } finally {
+    if (managementStaging && existsSync(managementStaging)) rmSync(managementStaging, { recursive: true, force: true });
+    rmSync(temp, { recursive: true, force: true });
+  }
 }

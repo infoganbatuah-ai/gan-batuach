@@ -24,14 +24,39 @@ const runSuite = path => new Promise((resolve, reject) => {
 // These in-process, timer-backed profiles measure queue coordination and
 // admission. Real CPU worker scaling is measured by the separate multi-process
 // PUSH 36 fixture below; a timer on one event loop is not a compute benchmark.
-async function profile(cameras, workers, jobs, delay=8) { const path=join(root,`${cameras}-${workers}-${jobs}-${delay}.sqlite`), queue=createDurableAiJobQueue({databasePath:path,workerAuthorizer:value=>value.identity?.authenticated===true,policy:{maxJobs:Math.max(5000,jobs+10),leaseMs:5_000}}); const before=process.memoryUsage().rss; queue.enqueueMany(Array.from({length:jobs},(_,index)=>job({cameras,index,priority:index%97===0?"CRITICAL":index%31===0?"LEARNING":"NORMAL"}))); const admitted=process.memoryUsage().rss; const pool=createHorizontalInferencePool({queue}); for(let i=0;i<workers;i++)pool.add(worker(`w-${cameras}-${workers}-${i}`,delay)); const started=performance.now(); const result=await pool.drain(); const elapsed=performance.now()-started, snapshot=queue.snapshot(), after=process.memoryUsage().rss; queue.close(); return {cameras,tenants:10,sites:50,jobs,workers,fixture_delay_ms:delay,elapsed_ms:Number(elapsed.toFixed(3)),throughput_jobs_s:Number((jobs/(elapsed/1000)).toFixed(2)),queue_age_ms:snapshot.queue_age_ms,completed:result.completed,failures:result.failures,duplicates:0,dead_letters:snapshot.dead_letter_count,backlog:snapshot.queue_depth,memory_mb:{before:Number((before/1048576).toFixed(3)),after_admission:Number((admitted/1048576).toFixed(3)),after:Number((after/1048576).toFixed(3)),growth:Number(((after-before)/1048576).toFixed(3))},assumption:`synthetic metadata-only AI jobs; ${delay} ms bounded worker fixture; 5 s throughput lease (worker-loss leases are tested separately)`}; }
+async function profile(cameras, workers, jobs, delay=8) {
+  const path=join(root,`${cameras}-${workers}-${jobs}-${delay}.sqlite`);
+  // This profile measures queue coordination and throughput, not lease expiry.
+  // Keep its queue clock stable so unrelated host stalls cannot expire a 5 s
+  // claim while synchronous SQLite work shares one test event loop. Exact lease
+  // expiry/failover is covered by the dedicated HA suite with controlled time.
+  const queueNowValue=Date.now(), queue=createDurableAiJobQueue({databasePath:path,now:()=>queueNowValue,
+    workerAuthorizer:value=>value.identity?.authenticated===true,
+    policy:{maxJobs:Math.max(5000,jobs+10),leaseMs:5_000}});
+  const before=process.memoryUsage().rss;
+  queue.enqueueMany(Array.from({length:jobs},(_,index)=>job({cameras,index,
+    priority:index%97===0?"CRITICAL":index%31===0?"LEARNING":"NORMAL"})));
+  const admitted=process.memoryUsage().rss,pool=createHorizontalInferencePool({queue});
+  for(let i=0;i<workers;i++)pool.add(worker(`w-${cameras}-${workers}-${i}`,delay));
+  const started=performance.now(),result=await pool.drain(),elapsed=performance.now()-started;
+  const snapshot=queue.snapshot(),after=process.memoryUsage().rss;queue.close();
+  return {cameras,tenants:10,sites:50,jobs,workers,fixture_delay_ms:delay,
+    elapsed_ms:Number(elapsed.toFixed(3)),throughput_jobs_s:Number((jobs/(elapsed/1000)).toFixed(2)),
+    queue_age_ms:snapshot.queue_age_ms,completed:result.completed,failures:result.failures,duplicates:0,
+    dead_letters:snapshot.dead_letter_count,backlog:snapshot.queue_depth,
+    memory_mb:{before:Number((before/1048576).toFixed(3)),after_admission:Number((admitted/1048576).toFixed(3)),
+      after:Number((after/1048576).toFixed(3)),growth:Number(((after-before)/1048576).toFixed(3))},
+    assumption:`synthetic metadata-only AI jobs; ${delay} ms bounded worker fixture; stable logical queue clock; lease expiry/failover tested separately`};
+}
 try {
   const queueOverhead=[await profile(100,1,400,2),await profile(100,4,400,2)];
   for(const row of queueOverhead){ assert.equal(row.completed,row.jobs); assert.equal(row.failures,0); assert.equal(row.duplicates,0); assert.equal(row.backlog,0); }
   const capacity=[]; for(const workers of [1,2,4,8]) capacity.push(await profile(100,workers,400));
   const capacityLevels=[]; for(const [level,jobs] of [["25_PERCENT",100],["50_PERCENT",200],["75_PERCENT",300],["100_PERCENT",400],["OVERLOAD",800]]) capacityLevels.push({level,...await profile(100,4,jobs)});
   const milestones=[await profile(10,2,200),await profile(100,4,1000),await profile(1000,8,4000)];
-  for(const row of [...capacity,...milestones]) { assert.equal(row.completed,row.jobs); assert.equal(row.failures,0); assert.equal(row.duplicates,0); assert.equal(row.backlog,0); }
+  for(const row of [...capacity,...milestones]) { const detail=JSON.stringify(row);
+    assert.equal(row.completed,row.jobs,detail); assert.equal(row.failures,0,detail);
+    assert.equal(row.duplicates,0,detail); assert.equal(row.backlog,0,detail); }
   const horizontalOutput = await runSuite("scripts/qa/check-digital-observer-horizontal-scale.mjs");
   const horizontal = JSON.parse(horizontalOutput);
   assert.equal(horizontal.status, "PASS");
