@@ -8922,10 +8922,10 @@
       "dependencies": {"status": "GB_M35E_ENROLLMENT_MIGRATIONS_DEVELOPMENT_APPLIED", "units": ["codex/gb-m35e-enrollment-activation-audit-role-fix"]},
       "migrations": ["supabase/migrations/20260922120000_management_parent_notification_category_fix.sql"],
       "migrationOrder": ["20260922120000"],
-      "localVerification": "PASS_DISPOSABLE_AUTH_QA_AND_PARENT_BROWSER_PREFERENCES; CANONICAL_DEVELOPMENT_PENDING",
+      "localVerification": "PASS_CANONICAL_DEVELOPMENT_243_OF_243_AND_PARENT_BROWSER_PREFERENCES",
       "releaseEligibility": "NOT_READY_PENDING_DEVELOPMENT_MIGRATION_AND_GB_M35E_MATRIX",
       "productionDeployment": {"status": "NOT_DEPLOYED"},
-      "nextAction": "Apply the reviewed forward migration to guarded canonical isolated Development, verify schema/drift, then continue PR #86 matrix closure. No Production release."
+      "nextAction": "Canonical isolated Development application, 243/243 drift and Parent browser preference retest passed. Continue PR #86 matrix closure; no Production release."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "observedAt": "2026-09-22T02:25:00.000Z",
+  "observedAt": "2026-09-22T02:33:29.448Z",
   "productionWriteAuthorized": false,
   "remoteHistoryStatus": "UNVERIFIED_READ_ONLY_RECONCILIATION_REQUIRED",
   "localDatabaseStatus": "BASELINE_AND_INTEGRATED_MIGRATIONS_APPLIED",
@@ -7417,7 +7417,7 @@
       "sourceCommit": "6dcb8bd5ea95e0b5b3fea84173fd9526c3423693",
       "sourceHead": "6dcb8bd5ea95e0b5b3fea84173fd9526c3423693",
       "remoteBranch": "origin/codex/gb-m35e-notification-preference-category-fix",
-      "integrationCommit": "62fbff45477425696ae8e85c647b6a6fc67e9bd9",
+      "integrationCommit": "c42428b349b2d56ada44e5c527f1807308bb33c4",
       "inGit": true,
       "inIntegration": true,
       "inclusion": "INTEGRATED_DEVELOPMENT",
@@ -7425,21 +7425,23 @@
       "requiredPredecessor": "20260922110000_management_enrollment_activation_audit_role_fix.sql",
       "dependencyStatus": "GB_M35E_ENROLLMENT_ACTIVATION_FIX_DEVELOPMENT_APPLIED",
       "developmentApproval": "VALIDATED_FOR_ISOLATED_DEVELOPMENT",
-      "developmentDependsOn": ["20260922110000"],
-      "developmentApplied": "NO",
-      "developmentAppliedAt": null,
-      "developmentEvidence": null,
+      "developmentDependsOn": [
+        "20260922110000"
+      ],
+      "developmentApplied": "YES",
+      "developmentAppliedAt": "2026-09-22T02:32:54.951193+00:00",
+      "developmentEvidence": "development/database/development-application-receipts.json",
       "productionApplied": "UNVERIFIED",
       "productionEvidence": null,
       "recovery": "Forward-only replacement of the Parent notification category check constraint; no row rewrite or backfill. Apply only to guarded isolated Development after verified backup. Production requires a separate owner-authorized release.",
       "developmentApprovalEvidence": "PR #113 exact head 6dcb8bd5ea95e0b5b3fea84173fd9526c3423693 passed all 9 required checks; isolated Auth QA reproduced the 500, applied the forward migration, and Parent browser quiet-hours/category save returned HTTP 200. No Production access.",
-      "developmentStatusReason": "Approved for ordered isolated Development application; not yet applied",
-      "developmentHistoryDigest": null,
-      "developmentSchemaFingerprint": null
+      "developmentStatusReason": "Original post-baseline SQL applied after remote integration; Production status unchanged",
+      "developmentHistoryDigest": "e60d3ca2e1d0e781e07b9b553dcf9570be492a56d505ef2b7b152145e88feb74",
+      "developmentSchemaFingerprint": "87141dea5b40f8d887945b87968d8dfe99c6f87bf5adaa1913adde0c681c1e58"
     }
   ],
   "developmentExpected": 243,
-  "developmentAppliedVerified": 242,
+  "developmentAppliedVerified": 243,
   "blockers": [],
   "localObservations": [
     {
