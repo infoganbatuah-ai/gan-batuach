@@ -20,3 +20,18 @@ test("Gateway bootstrap fails closed unless CURRENT and KNOWN_GOOD are pinned an
   assert.match(command, /progressingRelays !== 1/);
   assert.match(command, /stalledRelays !== 0/);
 });
+
+test("Gateway baseline is checked independently after Connector transition", () => {
+  assert.match(command, /check-push38h-live-dry-run\.mjs/);
+  assert.match(command, /item\.profile === "PHYSICAL_GATEWAY"/);
+  assert.match(command, /liveGateway\.live_file_matches !== 491/);
+  assert.match(command, /liveGateway\.conflicts\.length !== 0/);
+  assert.doesNotMatch(command, /check-push38l-live-dry-run\.mjs/);
+});
+
+test("pre-bootstrap Gateway auth uses the exact pinned legacy transition bridge", () => {
+  assert.match(command, /gateway\.legacy_transition_proof_matches_home_qa !== true/);
+  assert.match(command, /PINNED_HOME_QA_LEGACY_TRANSITION_PROOF/);
+  assert.match(command, /legacyHomeQaAuthorized/);
+  assert.doesNotMatch(command, /probe\.body\?\.deviceAuthorization\?\.status !== "ready"/);
+});

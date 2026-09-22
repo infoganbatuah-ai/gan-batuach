@@ -2,10 +2,12 @@
 // authoritative Product records. The restricted output contains identifiers,
 // never refresh tokens, credential hashes, camera URLs or camera passwords.
 import { execFileSync } from "node:child_process";
-import { createHash, timingSafeEqual } from "node:crypto";
+import { createHash, createPrivateKey, createPublicKey, timingSafeEqual } from "node:crypto";
 import { readFileSync, realpathSync, statSync, writeFileSync } from "node:fs";
+import { homedir } from "node:os";
 import { join, resolve, sep } from "node:path";
 import { createClient } from "@supabase/supabase-js";
+import { createEdgeSecretStoreSync } from "../../services/video-gateway/edge-secret-store-sync.mjs";
 import { deriveHomeQaLegacyProofKey } from "../../services/video-gateway/home-qa-legacy-proof.mjs";
 import { createKeychainStore } from "../../services/video-gateway/keychain-store.mjs";
 
@@ -37,8 +39,9 @@ async function select(table, columns, field, value) {
   return result.data;
 }
 
-const [gatewayInstalledId, gatewayInstalledSite, gatewayToken] = await Promise.all([
-  keychain.read("device_gateway_id"), keychain.read("device_observer_site_id"), keychain.read("device_refresh_token")
+const [gatewayInstalledId, gatewayInstalledSite, gatewayToken, gatewaySigningSecret] = await Promise.all([
+  keychain.read("device_gateway_id"), keychain.read("device_observer_site_id"), keychain.read("device_refresh_token"),
+  keychain.read("gateway_signing_secret")
 ]);
 const connectorInstalledId = readConnector("device_gateway_id");
 const connectorInstalledSite = readConnector("device_observer_site_id");
@@ -74,8 +77,10 @@ if (priorPathOption || priorSha) {
     "PRIOR_EVIDENCE_PROTOCOL_INVALID");
 }
 function homeQaLegacyProofMatches(row) {
-  if (row.profile !== "SOFTWARE_CONNECTOR") return false;
-  const proof = deriveHomeQaLegacyProofKey({ localSigningSecret: connectorSigningSecret,
+  const localSigningSecret = row.profile === "PHYSICAL_GATEWAY" ? gatewaySigningSecret
+    : row.profile === "SOFTWARE_CONNECTOR" ? connectorSigningSecret : "";
+  if (!localSigningSecret) return false;
+  const proof = deriveHomeQaLegacyProofKey({ localSigningSecret,
     device_id: row.device_id, enrollment_id: row.enrollment_id, site_id: row.site_id,
     tenant_id: row.tenant_id, profile: row.profile });
   const fingerprint = createHash("sha256").update(Buffer.from(proof.publicKeySpki, "base64url")).digest("hex");
@@ -87,6 +92,34 @@ function homeQaLegacyProofMatches(row) {
     "supabase_db_gan-batuach-push38t", "psql", "-X", "-A", "-t", "-U", "postgres", "-d", "postgres", "-c", query],
   { encoding: "utf8", timeout: 45_000, stdio: ["ignore", "pipe", "pipe"] }).trim();
   return actual === fingerprint;
+}
+function homeQaManagedProofMatches(row) {
+  const rootName = row.profile === "PHYSICAL_GATEWAY" ? "observer-gateway"
+    : row.profile === "SOFTWARE_CONNECTOR" ? "observer-connector" : "";
+  if (!rootName) return false;
+  const store = createEdgeSecretStoreSync({ secretDir: join(homedir(), "Library/Application Support/Digital Observer",
+    rootName, "ota/home-qa-device-secrets") });
+  const privateKey = store.read("device_private_key_pkcs8");
+  if (!privateKey) return false;
+  const publicKey = createPublicKey(createPrivateKey({ key: Buffer.from(privateKey, "base64url"),
+    format: "der", type: "pkcs8" })).export({ format: "der", type: "spki" }).toString("base64url");
+  const fingerprint = createHash("sha256").update(Buffer.from(publicKey, "base64url")).digest("hex");
+  const query = `select c.public_key_spki||'|'||coalesce(e.metadata->>'home_qa_public_key_sha256','')||'|'||
+      coalesce(e.metadata->>'home_qa_phase','')||'|'||case when exists(
+        select 1 from public.observer_managed_device_auth_nonces n where n.enrollment_id=e.id
+          and n.credential_version=c.credential_version
+          and n.observed_at >= (e.metadata->>'home_qa_key_prepared_at')::timestamptz) then '1' else '0' end
+    from public.video_gateway_device_enrollments e
+    join public.observer_managed_device_credentials c on c.enrollment_id=e.id
+    where e.id='${row.enrollment_id}' and e.gateway_id='${row.device_id}' and e.observer_site_id='${row.site_id}'
+      and e.tenant_id='${row.tenant_id}' and e.deployment_profile='${row.profile}'
+      and e.identity_scheme='ED25519_V1' and e.credential_version=c.credential_version
+      and e.active_runtime_instance_id is not null and c.credential_state='ACTIVE'`;
+  const actual = execFileSync("docker", ["--context", "colima-push38t", "exec",
+    "supabase_db_gan-batuach-push38t", "psql", "-X", "-A", "-t", "-U", "postgres", "-d", "postgres", "-c", query],
+  { encoding: "utf8", timeout: 45_000, stdio: ["ignore", "pipe", "pipe"] }).trim().split("|");
+  return actual.length === 4 && actual[0] === publicKey && actual[1] === fingerprint &&
+    actual[2] === "MANAGED_IDENTITY_VERIFIED" && actual[3] === "1";
 }
 const expected = [
   { id: GATEWAY_ID, profile: "PHYSICAL_GATEWAY", token: gatewayToken },
@@ -106,8 +139,19 @@ const enrollment = expected.map(component => {
     installed_credential_matches_product_verifier: currentVerifier,
     legacy_refresh_state: currentVerifier ? "CURRENT" : "ORPHANED_ROTATION_REQUIRES_MANAGED_BOOTSTRAP" };
   if (!currentVerifier) {
-    requireValue(component.profile === "SOFTWARE_CONNECTOR" && priorEvidence,
-      `${component.profile}_INSTALLED_PROOF_MISMATCH`);
+    const managedProof = homeQaManagedProofMatches(result);
+    if (managedProof) {
+      result.identity_phase = "MANAGED_IDENTITY_VERIFIED";
+      result.managed_identity_proof_matches_home_qa = true;
+      result.legacy_refresh_state = "SUPERSEDED_BY_MANAGED_IDENTITY";
+      return result;
+    }
+    // A legacy runtime can rotate its Product refresh credential after an
+    // earlier read-only reconciliation. The exact public transition-proof key
+    // was bound in HOME_QA while that Product verifier still matched. Accept
+    // that pinned bridge for either exact component; never accept prior
+    // evidence alone or a different device/Site/profile/config version.
+    requireValue(Boolean(priorEvidence), `${component.profile}_INSTALLED_PROOF_MISMATCH`);
     const prior = priorEvidence.devices?.find(item => item.device_id === component.id &&
       item.enrollment_id === row.id && item.profile === component.profile && item.site_id === SITE_ID &&
       item.tenant_id === tenantId && item.config_version === row.config_version &&

@@ -15,8 +15,10 @@ import { deriveHomeQaLegacyProofKey, signHomeQaLegacyProof } from "../../service
 const evidenceOption = process.argv.find(arg => arg.startsWith("--identity="))?.slice(11);
 const evidenceDigest = process.argv.find(arg => arg.startsWith("--sha256="))?.slice(9);
 const resultOption = process.argv.find(arg => arg.startsWith("--result="))?.slice(9);
+const profileOption = process.argv.find(arg => arg.startsWith("--profile="))?.slice(10) || "";
 const allowed = process.argv.includes("--stage-only");
-if (!evidenceOption || !resultOption || !/^[a-f0-9]{64}$/.test(evidenceDigest || "") || !allowed)
+if (!evidenceOption || !resultOption || !/^[a-f0-9]{64}$/.test(evidenceDigest || "") || !allowed ||
+  (profileOption && !["SOFTWARE_CONNECTOR", "PHYSICAL_GATEWAY"].includes(profileOption)))
   throw new Error("P38_HOME_QA_STAGING_INPUT_INVALID");
 const restricted = realpathSync("/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted") + sep;
 const identityPath = realpathSync(resolve(evidenceOption));
@@ -41,7 +43,7 @@ const origin = "https://693f824a750afcc264fe6ee58c8a86ab.r2.cloudflarestorage.co
 const specs = [
   { profile: "SOFTWARE_CONNECTOR", name: "connector_transition", release: "qa-connector-legacy-transition-v2-6e7988808b05" },
   { profile: "PHYSICAL_GATEWAY", name: "gateway_remediation", release: "qa-p38-health-gateway-6c9d08327ec6" }
-];
+].filter(spec => !profileOption || spec.profile === profileOption);
 const staging = mkdtempSync("/private/tmp/push38-homeqa-staging-");
 const results = [];
 for (const spec of specs) {
@@ -57,11 +59,10 @@ for (const spec of specs) {
   const actual = createHash("sha256").update(token, "utf8").digest();
   const stored = Buffer.from(row.refresh_token_hash || "", "hex");
   const productVerifierMatches = stored.length === actual.length && timingSafeEqual(stored, actual);
-  const connectorTransitionProof = spec.profile === "SOFTWARE_CONNECTOR" &&
-    component.installed_credential_matches_product_verifier === false &&
+  const pinnedTransitionProof = component.installed_credential_matches_product_verifier === false &&
     component.legacy_transition_proof_matches_home_qa === true &&
     component.legacy_refresh_state === "ORPHANED_ROTATION_REQUIRES_MANAGED_BOOTSTRAP";
-  if ((!productVerifierMatches && !connectorTransitionProof) ||
+  if ((!productVerifierMatches && !pinnedTransitionProof) ||
     row.status !== "delivered" || row.lifecycle_state !== "ACTIVE" || row.identity_scheme !== "LEGACY_HMAC" ||
     row.observer_site_id !== component.site_id || row.tenant_id !== component.tenant_id ||
     row.deployment_profile !== spec.profile || row.config_version !== component.config_version)

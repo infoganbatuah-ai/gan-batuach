@@ -31,8 +31,13 @@ const readSecret = async (profile, name) => profile === "PHYSICAL_GATEWAY"
   ? gatewayStore.read(name) : readFileSync(join(connectorRoot, name), "utf8").trim();
 const bindings = [];
 for (const row of evidence.devices) {
+  if (row.identity_phase === "MANAGED_IDENTITY_VERIFIED") {
+    if (row.managed_identity_proof_matches_home_qa !== true)
+      throw new Error("P38_LEGACY_PROOF_RENEWAL_MANAGED_DEVICE_INVALID");
+    continue;
+  }
   const acceptableProof = row.installed_credential_matches_product_verifier === true ||
-    (row.profile === "SOFTWARE_CONNECTOR" && row.legacy_transition_proof_matches_home_qa === true &&
+    (row.legacy_transition_proof_matches_home_qa === true &&
       row.legacy_refresh_state === "ORPHANED_ROTATION_REQUIRES_MANAGED_BOOTSTRAP");
   if (!acceptableProof || row.identity_phase !== "LEGACY_VERIFIED_FOR_TRANSITION")
     throw new Error("P38_LEGACY_PROOF_RENEWAL_DEVICE_EVIDENCE_INVALID");
@@ -62,10 +67,15 @@ create temp table p38_bindings on commit drop as
   select * from jsonb_to_recordset(convert_from(decode('${payload}','hex'),'UTF8')::jsonb)
   as x(enrollment_id uuid,device_id uuid,profile text,public_key_sha256 text);
 do $$ begin
-  if (select count(*) from p38_bindings)<>2 or
+  if (select count(*) from p38_bindings)<>${bindings.length} or
+    (select count(*) from p38_bindings)<>1 or
     (select count(*) from public.video_gateway_device_enrollments)<>2 or
-    (select count(*) from public.observer_edge_releases where channel='HOME_QA')<>3 or
     (select count(*) from public.observer_edge_rollouts where status='ACTIVE')<>2 or
+    exists(select 1 from public.observer_edge_rollouts where status='ACTIVE' and cohort_percent<>0) or
+    exists(select 1 from public.observer_edge_rollouts o join public.observer_edge_releases r on r.id=o.release_id
+      where o.status='ACTIVE' and (r.release_id,o.target_filters->'explicit_device_ids') not in (
+        ('qa-p38-health-connector-startup-d44b7e4262f9','["db267b52-6282-4944-bcee-5d4857698fb0"]'::jsonb),
+        ('qa-p38-health-gateway-6c9d08327ec6','["62df97e2-3c0b-427f-9108-bde029bc10e7"]'::jsonb))) or
     exists(select 1 from p38_bindings b left join public.video_gateway_device_enrollments e on e.id=b.enrollment_id
       where e.gateway_id is distinct from b.device_id or e.deployment_profile is distinct from b.profile or
       e.status<>'pending' or e.lifecycle_state<>'ACTIVE' or e.identity_scheme<>'LEGACY_HMAC' or
@@ -84,6 +94,7 @@ ${mode === "APPLY" ? "commit;" : "rollback;"}`;
 run(["exec", "-i", container, "psql", "-X", "-q", "-v", "ON_ERROR_STOP=1",
   "-U", "postgres", "-d", "postgres"], sql);
 console.log(JSON.stringify({ status: mode === "APPLY" ? "PROOF_WINDOW_RENEWED" : "DRY_RUN_PASS",
-  devices: 2, releases: 3, active_exact_rollouts: 2, public_keys_replaced: false,
+  legacy_devices_renewed: bindings.length, managed_devices_skipped: evidence.devices.length - bindings.length,
+  active_exact_rollouts: 2, broad_cohort: 0, public_keys_replaced: false,
   private_keys_exported: false, production_writes: 0, runtime_writes: 0,
   proof_window_minutes: mode === "APPLY" ? 120 : 0 }));

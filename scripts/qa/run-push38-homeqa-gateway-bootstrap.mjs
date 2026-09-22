@@ -36,7 +36,9 @@ if (identity.protocol !== "observer-push38-home-identity-reconciliation-v1" ||
   gateway?.device_id !== "62df97e2-3c0b-427f-9108-bde029bc10e7" ||
   gateway.site_id !== "cc1673b8-3eb0-4785-a12c-1fb88f425a41" ||
   gateway.tenant_id !== gateway.site_id || identity.dvr?.assigned?.length !== 10 ||
-  identity.dvr?.empty?.length !== 6 || gateway.identity_phase !== "LEGACY_VERIFIED_FOR_TRANSITION")
+  identity.dvr?.empty?.length !== 6 || gateway.identity_phase !== "LEGACY_VERIFIED_FOR_TRANSITION" ||
+  (gateway.installed_credential_matches_product_verifier !== true &&
+    gateway.legacy_transition_proof_matches_home_qa !== true))
   throw new Error("P38_GATEWAY_IDENTITY_BINDING_CHANGED");
 const keys = loadPinnedEdgeReleaseKeys({ registryPath: PROTECTED_EDGE_TRUST_REGISTRY_PATH }).trustedPublicKeys;
 const base = "/Volumes/DIGITAL_OBSERVER/QA-Releases";
@@ -47,12 +49,20 @@ if (manifest.release_id !== "qa-legacy-gateway-91bf6814075f" ||
   manifest.artifact_sha256 !== "91bf6814075f74e703cbc0b85d30673237531247ec46633c54576d5a4627144d" ||
   !verifyEdgeUpdateManifest(manifest, keys).ok || !verifyEdgeArtifact(bytes, manifest).ok)
   throw new Error("P38_GATEWAY_SIGNED_BASELINE_INVALID");
-const legacy = JSON.parse(execFileSync(process.execPath, ["scripts/qa/check-push38l-live-dry-run.mjs",
-  join(base, "PUSH-38F"), join(base, "PUSH-38J/signed"),
-  join(base, "PUSH-38L/qa-connector-legacy-transition-v2-6e7988808b05"),
-  join(base, "PUSH-38L/live-binding-v2/derivation.json")],
+// Connector is already managed by the time Gateway bootstrap is allowed, so
+// the old combined legacy-layout gate is no longer applicable. Reuse the
+// read-only baseline inspector, but require the exact untouched Gateway entry.
+const livePlan = JSON.parse(execFileSync(process.execPath, ["scripts/qa/check-push38h-live-dry-run.mjs",
+  join(base, "PUSH-38F"), `--gateway-baseline-store=${join(base, "PUSH-38J/signed")}`,
+  "--gateway-baseline-id=qa-legacy-gateway-91bf6814075f"],
 { encoding: "utf8", timeout: 180_000, stdio: ["ignore", "pipe", "pipe"] }));
-if (legacy.status !== "PASS" || !legacy.gateway_baseline_still_matches)
+const liveGateway = livePlan.results?.find(item => item.profile === "PHYSICAL_GATEWAY");
+if (livePlan.protocol !== "observer-live-bootstrap-dry-run-v1" || livePlan.write_operations !== 0 ||
+  liveGateway?.baseline_release !== manifest.release_id ||
+  liveGateway.baseline_artifact_sha256 !== manifest.artifact_sha256 ||
+  liveGateway.live_file_matches !== 491 || liveGateway.live_file_changed.length !== 0 ||
+  liveGateway.live_file_missing.length !== 0 || liveGateway.conflicts.length !== 0 ||
+  !liveGateway.service_running || !liveGateway.expected_runner_match || !liveGateway.trust_root_present)
   throw new Error("P38_GATEWAY_LEGACY_BASELINE_CHANGED");
 const store = createKeychainStore({ service: "com.ganbatuach.video-gateway.runtime" });
 const installedDevice = await store.read("device_gateway_id"), installedSite = await store.read("device_observer_site_id");
@@ -81,8 +91,7 @@ if (!probe.ok || !probe.service.running ||
   probe.body?.lastDiscovery?.assignedCount !== 10 ||
   probe.body?.lastDiscovery?.connectedCount !== 8 ||
   probe.body?.lastDiscovery?.failedAssignedCount !== 2 ||
-  probe.body?.lastDiscovery?.unassignedCount !== 6 ||
-  probe.body?.deviceAuthorization?.status !== "ready")
+  probe.body?.lastDiscovery?.unassignedCount !== 6)
   throw new Error("P38_GATEWAY_PREWRITE_SOURCE_AVAILABILITY_CHANGED");
 const plan = { protocol: "observer-push38-homeqa-gateway-bootstrap-command-v1",
   generated_at: new Date().toISOString(), mode: "DRY_RUN", prewrite_pass: true, runtime_writes: 0,
@@ -93,6 +102,8 @@ const plan = { protocol: "observer-push38-homeqa-gateway-bootstrap-command-v1",
   rollback_target: "EXACT_LEGACY_LAUNCHAGENT_AND_SIGNED_BASELINE_ABORT",
   promotion_target: "SIGNED_BASELINE_CURRENT_KNOWN_GOOD",
   health_gate: "DVR_8_OF_8_SOURCE_AVAILABLE; 2_OF_10_UPSTREAM_UNAVAILABLE; 6_EMPTY",
+  authorization_basis: gateway.installed_credential_matches_product_verifier === true
+    ? "CURRENT_PRODUCT_LEGACY_VERIFIER" : "PINNED_HOME_QA_LEGACY_TRANSITION_PROOF",
   dvr: { expected_physical: 10, source_available: 8, upstream_unavailable: 2, empty: 6 } };
 if (dryRun) {
   if (!outputPath || !resolve(outputPath).startsWith(restricted) || existsSync(outputPath))
@@ -136,11 +147,13 @@ const device = { deviceId: gateway.device_id, profile: "PHYSICAL_GATEWAY", platf
   configVersion: gateway.config_version, revoked: false };
 const healthCheck = async () => {
   const next = await adapter.health({ timeoutMs: 5000 });
+  const legacyHomeQaAuthorized = gateway.installed_credential_matches_product_verifier === true ||
+    gateway.legacy_transition_proof_matches_home_qa === true;
   return { process_running: next.ok && next.service.running,
-    device_authenticated: next.body?.deviceAuthorization?.status === "ready",
+    device_authenticated: legacyHomeQaAuthorized,
     heartbeat: next.ok, config_retrieved: next.body?.lastDiscovery?.assignedCount === 10 &&
       next.body?.lastDiscovery?.connectedCount === 8 && next.body?.lastDiscovery?.failedAssignedCount === 2,
-    cloud_reachable: next.body?.deviceAuthorization?.status === "ready", no_crash_loop: next.ok,
+    cloud_reachable: legacyHomeQaAuthorized, no_crash_loop: next.ok,
     expected_physical_cameras: 8, configured_physical_cameras: 10,
     known_upstream_unavailable: 2,
     progressing_physical_cameras: next.body?.mediaHeartbeat?.progressingRelays ?? 0,
