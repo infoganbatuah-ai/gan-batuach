@@ -45,11 +45,31 @@ run(process.execPath, ["scripts/qa/start-push38t-rest-loopback.mjs"]);
 
 const releaseEnv = {};
 if (enableLegacyDelivery) {
-  const state = run("docker", ["--context", dockerContext, "exec", container, "psql", "-X", "-A", "-t",
-    "-U", "postgres", "-d", "postgres", "-c",
-    "select (select count(*) from public.video_gateway_device_enrollments where metadata->>'home_qa_phase'='LEGACY_VERIFIED_FOR_TRANSITION')," +
-    "(select count(*) from public.observer_edge_releases where channel='HOME_QA');"]).trim();
-  if (state !== "2|4") throw new Error("P38_QA_RELEASE_METADATA_NOT_READY");
+  const inventory = JSON.parse(run("docker", ["--context", dockerContext, "exec", container, "psql",
+    "-X", "-A", "-t", "-U", "postgres", "-d", "postgres", "-c",
+    `select json_build_object(
+      'devices',coalesce((select json_agg(json_build_object(
+        'id',gateway_id,'profile',deployment_profile,'status',status,
+        'identity_scheme',identity_scheme,'credential_version',credential_version,
+        'lifecycle_state',lifecycle_state,'tenant_id',tenant_id,'site_id',observer_site_id,
+        'phase',metadata->>'home_qa_phase') order by deployment_profile)
+        from public.video_gateway_device_enrollments),'[]'::json),
+      'releases',(select count(*) from public.observer_edge_releases where channel='HOME_QA'),
+      'broad_rollouts',(select count(*) from public.observer_edge_rollouts where cohort_percent<>0));`]).trim());
+  const expected = new Map([
+    ["db267b52-6282-4944-bcee-5d4857698fb0", "SOFTWARE_CONNECTOR"],
+    ["62df97e2-3c0b-427f-9108-bde029bc10e7", "PHYSICAL_GATEWAY"]
+  ]);
+  const siteId = "cc1673b8-3eb0-4785-a12c-1fb88f425a41";
+  const phaseMatchesIdentity = device => device.phase === "LEGACY_VERIFIED_FOR_TRANSITION"
+    ? device.status === "pending" && device.identity_scheme === "LEGACY_HMAC" && device.credential_version === 0
+    : ["MANAGED_IDENTITY_PENDING_PROOF", "MANAGED_IDENTITY_VERIFIED"].includes(device.phase) &&
+      device.status === "delivered" && device.identity_scheme === "ED25519_V1" && device.credential_version === 1;
+  const inventoryReady = Array.isArray(inventory.devices) && inventory.devices.length === expected.size &&
+    inventory.devices.every(device => expected.get(device.id) === device.profile &&
+      device.lifecycle_state === "ACTIVE" && device.tenant_id === siteId && device.site_id === siteId &&
+      phaseMatchesIdentity(device)) && inventory.releases === 4 && inventory.broad_rollouts === 0;
+  if (!inventoryReady) throw new Error("P38_QA_RELEASE_METADATA_NOT_READY");
   const keys = loadPinnedEdgeReleaseKeys({ registryPath: PROTECTED_EDGE_TRUST_REGISTRY_PATH }).trustedPublicKeys;
   if (!keys["observer-kms-release-v1"] || !keys["qa-p38f-ed25519-20260913"])
     throw new Error("P38_QA_PROTECTED_TRUST_UNAVAILABLE");
