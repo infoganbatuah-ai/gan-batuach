@@ -6,6 +6,7 @@ import { resolve } from "node:path";
 const routes = new Set([
   "POST /api/digital-observer/gateway-enrollment",
   "GET /api/video-gateway/edge-updates",
+  "POST /api/video-gateway/edge-updates",
   "POST /api/video-gateway/edge-updates/download",
   "POST /api/video-gateway/home-qa-legacy-download"
 ]);
@@ -30,7 +31,7 @@ function tlsMaterial(path, privateKey) {
   return readFileSync(target);
 }
 
-export function createPush38tIngress({ origin = "http://127.0.0.1:3100", tls = null } = {}) {
+export function createPush38tIngress({ origin = "http://127.0.0.1:3100", tls = null, onAudit = () => {} } = {}) {
   const target = new URL(origin);
   if (target.protocol !== "http:" || target.hostname !== "127.0.0.1" || target.username || target.password || target.pathname !== "/")
     throw new Error("QA_INGRESS_ORIGIN_NOT_LOOPBACK");
@@ -39,6 +40,7 @@ export function createPush38tIngress({ origin = "http://127.0.0.1:3100", tls = n
     const url = new URL(request.url || "/", "http://127.0.0.1");
     if (!push38tIngressAllows(request.method, url.pathname) ||
       (url.pathname !== "/api/video-gateway/edge-updates" && url.search)) {
+      onAudit({ method: request.method, pathname: url.pathname, outcome: "DENIED", status: 404 });
       response.writeHead(404, { "cache-control": "no-store" }).end();
       return;
     }
@@ -66,11 +68,14 @@ export function createPush38tIngress({ origin = "http://127.0.0.1:3100", tls = n
       if (upstream.status >= 300 && upstream.status < 400) throw new Error("QA_INGRESS_REDIRECT_REJECTED");
       const data = Buffer.from(await upstream.arrayBuffer());
       if (data.length > 32_768) throw new Error("QA_INGRESS_OVERSIZE_RESPONSE");
+      onAudit({ method: request.method, pathname: url.pathname, outcome: "FORWARDED", status: upstream.status });
       response.writeHead(upstream.status, {
         "cache-control": "private, no-store", "referrer-policy": "no-referrer",
         "content-type": upstream.headers.get("content-type") || "application/json"
       }).end(data);
-    } catch {
+    } catch (error) {
+      onAudit({ method: request.method, pathname: url.pathname, outcome: "UPSTREAM_ERROR", status: 502,
+        reason: error instanceof Error ? error.message : "QA_INGRESS_UNKNOWN_ERROR" });
       if (!response.headersSent) response.writeHead(502, { "cache-control": "no-store" }).end();
     }
   };

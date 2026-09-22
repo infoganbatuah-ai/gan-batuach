@@ -10,6 +10,7 @@ import { createPush38tIngress, push38tIngressAllows } from "../../services/video
 const allowed = [
   ["POST", "/api/digital-observer/gateway-enrollment"],
   ["GET", "/api/video-gateway/edge-updates"],
+  ["POST", "/api/video-gateway/edge-updates"],
   ["POST", "/api/video-gateway/edge-updates/download"],
   ["POST", "/api/video-gateway/home-qa-legacy-download"]
 ];
@@ -20,7 +21,9 @@ for (const path of ["/", "/dashboard", "/api/admin/tasks", "/api/digital-observe
 const origin = createServer((request, response) => response.writeHead(401, { "content-type": "application/json",
   "set-cookie": "should-not-forward=1" }).end(JSON.stringify({ denied: true, path: request.url })));
 await new Promise(resolve => origin.listen(0, "127.0.0.1", resolve));
-const proxy = createPush38tIngress({ origin: `http://127.0.0.1:${origin.address().port}` });
+const audit = [];
+const proxy = createPush38tIngress({ origin: `http://127.0.0.1:${origin.address().port}`,
+  onAudit: event => audit.push(event) });
 await new Promise(resolve => proxy.listen(0, "127.0.0.1", resolve));
 try {
   const base = `http://127.0.0.1:${proxy.address().port}`;
@@ -34,6 +37,10 @@ try {
   assert.equal(denied.status, 401);
   assert.equal((await fetch(base + "/api/video-gateway/edge-updates/download?object=other", {
     method: "POST", body: "{}" })).status, 404);
+  assert.equal(audit.some(event => event.pathname === "/api/video-gateway/edge-updates" &&
+    event.outcome === "FORWARDED" && event.status === 401), true);
+  assert.equal(audit.some(event => event.pathname === "/api/video-gateway/edge-updates/download" &&
+    event.outcome === "DENIED" && event.status === 404), true);
   console.log(JSON.stringify({ status: "PASS", allowedRoutes: allowed.length,
     dashboard: "DENY", admin: "DENY", unrelatedApi: "DENY", supabase: "DENY", anonymousPrivileged: "DENY" }));
 } finally {

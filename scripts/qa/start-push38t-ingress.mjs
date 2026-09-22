@@ -5,7 +5,8 @@ import { createPush38tIngress } from "../../services/video-gateway/push38t-ota-i
 const keyPath = process.env.PUSH38T_TLS_KEY_PATH;
 const certPath = process.env.PUSH38T_TLS_CERT_PATH;
 if (!keyPath || !certPath) throw new Error("QA_INGRESS_TLS_MATERIAL_REQUIRED");
-const server = createPush38tIngress({ tls: { keyPath, certPath } });
+const server = createPush38tIngress({ tls: { keyPath, certPath },
+  onAudit: event => process.stdout.write(`${JSON.stringify({ at: new Date().toISOString(), ...event })}\n`) });
 server.listen(3101, "127.0.0.1", () => console.log(JSON.stringify({
   environment: "PUSH38T_QUALIFICATION", bind: "127.0.0.1:3101",
   transport: "HTTPS", surface: "OTA_AUTHORIZATION_ONLY", publicExposure: false
