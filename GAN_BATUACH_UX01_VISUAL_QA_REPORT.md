@@ -1,8 +1,11 @@
 # Gan Batuach UX-IMPLEMENT-01 Visual QA
 
-Date: 2026-09-24  
-Branch: `codex/ux-implement-01`  
-Baseline: `origin/integration/development@4a677205bd60551dc8b690adedcca7c509e787da`  
+Date: 2026-09-24
+
+Branch: `codex/ux-implement-01`
+
+Baseline: `origin/integration/development@4a677205bd60551dc8b690adedcca7c509e787da`
+
 Environment: isolated local Next.js runtime at `http://localhost:3012` with a non-Production loopback Auth responder and synthetic `example.test` identities only.
 
 ## Approved visual sources
