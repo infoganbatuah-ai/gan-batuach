@@ -3,7 +3,7 @@ import { generateKeyPairSync, sign } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { authorizeHomeQaR2Download } from "../../services/video-gateway/edge-r2-download.mjs";
 import { edgeReleaseScopeAllows, assertEdgeReleaseObjectUrl } from "../../services/video-gateway/edge-release-object.mjs";
-import { assertAuthorizedUpdateDirection, canonicalEdgeUpdateManifest,
+import { assertAuthorizedUpdateDirection, assertHistoricHealthyFloor, canonicalEdgeUpdateManifest,
   evaluateEdgeUpdateEligibility, verifyEdgeUpdateManifest } from "../../services/video-gateway/edge-update-contract.mjs";
 
 const authorizationRoute = readFileSync(new URL("../../app/api/video-gateway/edge-updates/download/route.ts", import.meta.url), "utf8");
@@ -71,4 +71,10 @@ await assert.rejects(authorizeHomeQaR2Download(wrongObject, { accountId, accessK
   secretAccessKey: "S".repeat(64) }), /EDGE_RELEASE_OBJECT_URL_INVALID/);
 assert.throws(() => assertAuthorizedUpdateDirection({ currentVersion: "1.0.2", targetVersion: "1.0.1",
   knownGoodVersions: [], securityFloorVersion: "1.0.0", rollback: false }), /EDGE_UPDATE_DOWNGRADE_REJECTED/);
+assert.equal(assertHistoricHealthyFloor({ targetVersion: "1.0.3", historicHealthyVersion: "1.0.2" }), true,
+  "a recovered older current release may advance beyond the historic healthy floor");
+assert.throws(() => assertHistoricHealthyFloor({ targetVersion: "1.0.1", historicHealthyVersion: "1.0.2" }),
+  /EDGE_UPDATE_HISTORIC_DOWNGRADE_REJECTED/);
+assert.match(authorizationRoute, /assertHistoricHealthyFloor\(\{ targetVersion: manifest\.version,/,
+  "the live route must compare the requested target with historic healthy state");
 console.log(JSON.stringify({ result: "PASS", scope: "HOME_QA_R2_AUTHORIZATION_CORE", live: false }));

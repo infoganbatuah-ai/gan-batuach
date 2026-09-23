@@ -7,7 +7,7 @@ import { gatewayDeviceSessionAllows, verifyGatewayDeviceAccessToken } from "@/li
 import { createAdminClient } from "@/lib/supabase/admin";
 import { parseBoundedJson } from "@/lib/security/request-guards";
 import { assertRateLimit } from "@/lib/security/rate-limit";
-import { assertAuthorizedUpdateDirection, compareSemanticVersions, evaluateEdgeUpdateEligibility, verifyEdgeUpdateManifest } from "../../../../../services/video-gateway/edge-update-contract.mjs";
+import { assertAuthorizedUpdateDirection, assertHistoricHealthyFloor, evaluateEdgeUpdateEligibility, verifyEdgeUpdateManifest } from "../../../../../services/video-gateway/edge-update-contract.mjs";
 import { assertEdgeReleaseObjectUrl, edgeReleaseScopeAllows } from "../../../../../services/video-gateway/edge-release-object.mjs";
 import { authorizeHomeQaR2Download } from "../../../../../services/video-gateway/edge-r2-download.mjs";
 import { homeQaManagedPhaseAllows } from "../../../../../services/video-gateway/home-qa-transition-phase.mjs";
@@ -77,10 +77,10 @@ export async function POST(request: Request) {
       .eq("enrollment_id", enrollment.data.id).eq("state", "HEALTHY")
       .order("last_seen_at", { ascending: false }).limit(1).maybeSingle();
     if (lastHealthy.error) return fail("Release state unavailable.", 503);
-    if (lastHealthy.data && compareSemanticVersions(input.current_version, lastHealthy.data.current_version) < 0)
-      return fail("Release unavailable.", 404);
     try { assertAuthorizedUpdateDirection({ currentVersion: input.current_version, targetVersion: manifest.version,
-      knownGoodVersions: [], securityFloorVersion: manifest.compatibility.security_floor_version, rollback: false }); }
+      knownGoodVersions: [], securityFloorVersion: manifest.compatibility.security_floor_version, rollback: false });
+      assertHistoricHealthyFloor({ targetVersion: manifest.version,
+        historicHealthyVersion: lastHealthy.data?.current_version ?? null }); }
     catch { return fail("Release unavailable.", 404); }
     const device = { deviceId: enrollment.data.gateway_id, profile: input.profile, platform: input.platform,
       architecture: input.architecture, channel: input.channel, currentVersion: input.current_version,

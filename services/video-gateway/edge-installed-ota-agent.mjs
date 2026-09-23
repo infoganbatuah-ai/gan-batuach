@@ -9,6 +9,10 @@ import { loadPinnedEdgeReleaseKeys, PROTECTED_EDGE_TRUST_REGISTRY_PATH } from ".
 
 function fail(code) { throw Object.assign(new Error(code), { code }); }
 
+export function shouldReportEdgeTerminalState(state) {
+  return Boolean(state?.release_id && ["ROLLED_BACK", "ACTION_REQUIRED"].includes(state.state));
+}
+
 // Separate process from the camera supervisor. The agent owns release
 // decisions; the installed adapter alone owns launchd runtime handoffs.
 export function createInstalledEdgeOtaAgent({ root, device, adapter, cloudRequest, healthCheck,
@@ -30,7 +34,7 @@ export function createInstalledEdgeOtaAgent({ root, device, adapter, cloudReques
   const reportPath = join(root, "agent-status-report.json");
   async function reportLateFailure(manager) {
     const state = manager.status();
-    if (!state.release_id || !["EDGE_UPDATE_CRASH_LOOP", "EDGE_UPDATE_KNOWN_GOOD_CRASH_LOOP"].includes(state.failure_category)) return;
+    if (!shouldReportEdgeTerminalState(state)) return;
     const fingerprint = `${state.release_id}:${state.updated_at}:${state.state}`;
     if (existsSync(reportPath) && JSON.parse(readFileSync(reportPath, "utf8")).fingerprint === fingerprint) return;
     await reportEdgeUpdateStatus(cloudRequest, state.release_id, state);

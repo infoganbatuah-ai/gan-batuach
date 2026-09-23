@@ -143,6 +143,17 @@ export function assertAuthorizedUpdateDirection({ currentVersion, targetVersion,
   return true;
 }
 
+// A device may legitimately be running an older signed known-good after a
+// newer release failed and was quarantined. Preserve the historic anti-
+// downgrade floor against the requested target, not against the device's
+// recovered current version, so a still-newer remediation remains eligible.
+export function assertHistoricHealthyFloor({ targetVersion, historicHealthyVersion }) {
+  if (!historicHealthyVersion) return true;
+  if (compareSemanticVersions(targetVersion, historicHealthyVersion) < 0)
+    fail("EDGE_UPDATE_HISTORIC_DOWNGRADE_REJECTED");
+  return true;
+}
+
 export function shouldPauseRollout({ failedCanaries, unhealthyCanaries, failureThreshold = 1 }) {
   if (![failedCanaries, unhealthyCanaries, failureThreshold].every(Number.isInteger) || failureThreshold < 1) fail("EDGE_UPDATE_ROLLOUT_COUNTER_INVALID");
   return failedCanaries + unhealthyCanaries >= failureThreshold;

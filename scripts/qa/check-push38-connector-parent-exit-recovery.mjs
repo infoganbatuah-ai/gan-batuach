@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { shouldReportEdgeTerminalState } from "../../services/video-gateway/edge-installed-ota-agent.mjs";
 import { readFileSync } from "node:fs";
 import {
   buildPush38ConnectorParentExitRecoveryManifest,
@@ -27,6 +28,11 @@ assert.match(registration, /PUSH38_CONNECTOR_PARENT_EXIT_RECOVERY/);
 assert.match(activation, /qa-p38-health-connector-liveness-bb89862c6352/);
 assert.match(activation, /EDGE_UPDATE_CRASH_LOOP/);
 assert.match(installer, /qa-p38-health-connector-parent-exit-f7dba974e80f/);
+assert.equal(shouldReportEdgeTerminalState({ state: "ROLLED_BACK", release_id: "failed-release",
+  failure_category: "EDGE_UPDATE_KNOWN_GOOD_UNHEALTHY" }), true);
+assert.equal(shouldReportEdgeTerminalState({ state: "ACTION_REQUIRED", release_id: "failed-release",
+  failure_category: "EDGE_UPDATE_ROLLBACK_HEALTH_FAILED" }), true);
+assert.equal(shouldReportEdgeTerminalState({ state: "HEALTHY", release_id: "healthy-release" }), false);
 assert.match(gateway, /PUSH38_CONNECTOR_PARENT_EXIT_RECOVERY/);
 console.log(JSON.stringify({ result: "PASS", immutable_release: true, exact_device: true,
   broad_cohort: false, prior_failed_release_quarantined: true,

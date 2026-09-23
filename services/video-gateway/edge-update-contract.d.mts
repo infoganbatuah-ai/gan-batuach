@@ -12,4 +12,6 @@ export function evaluateEdgeUpdateEligibility(manifest: EdgeUpdateManifest, devi
 export function compareSemanticVersions(left: string, right: string): number;
 export function assertAuthorizedUpdateDirection(input: { currentVersion: string; targetVersion: string;
   knownGoodVersions: string[]; securityFloorVersion: string; rollback: boolean }): true;
+export function assertHistoricHealthyFloor(input: { targetVersion: string;
+  historicHealthyVersion: string | null | undefined }): true;
 export function shouldPauseRollout(input: { failedCanaries: number; unhealthyCanaries: number; failureThreshold?: number }): boolean;
