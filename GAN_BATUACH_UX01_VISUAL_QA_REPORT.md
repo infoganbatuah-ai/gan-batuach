@@ -3,58 +3,82 @@
 Date: 2026-09-24  
 Branch: `codex/ux-implement-01`  
 Baseline: `origin/integration/development@4a677205bd60551dc8b690adedcca7c509e787da`  
-Environment: isolated local Next.js runtime with a non-production loopback Auth responder; synthetic/public state only.
+Environment: isolated local Next.js runtime at `http://localhost:3012` with a non-Production loopback Auth responder and synthetic `example.test` identities only.
 
-## Reference
+## Approved visual sources
 
-The comparison used the approved UX-00 brief and the owner-supplied mandatory visual direction: official Gan Batuach logo, deep brand blue, white/light-blue surfaces, restrained gradients and elevation, RTL-first composition, split branded/form desktop layouts, and true single-column mobile layouts. No separate bitmap reference package was present in the task attachments, so the evidence establishes conformance to that approved direction rather than pixel-diff parity with an external image file.
+- `/Users/danielderi/Downloads/GB_UX_REF_AUTH_MASTER.png` — primary Auth and registration composition.
+- `/Users/danielderi/Downloads/GAN_BATUACH_BRAND_MARK.png` — official brand mark and color family.
+- `/Users/danielderi/Downloads/GB_UX_REF_OWNER_CORE.png` — authenticated product visual language.
+- `/Users/danielderi/Downloads/GB_UX_REF_OWNER_ONBOARDING.png` — stepper, form, upload and completion patterns.
 
-## P0 visual matrix
+The references define visual language and do not reduce the canonical product scope. UX-IMPLEMENT-01 applies the approved language only to the Global Design System and Auth/registration surfaces; the other canonical domains remain intact for their later visual batches.
 
-| Screen | Route | Viewport | Evidence captured | Status | Material deviation |
-|---|---|---:|---|---|---|
-| Login | `/app/login` | 1280×720 | Interactive implementation screenshot in task evidence | VISUAL_PASS | None |
-| Login | `/app/login` | 390×844 | Interactive implementation screenshot in task evidence | VISUAL_PASS | None; no horizontal overflow |
-| Role selection | `/app/register` | 1280×1000/1400 | Interactive implementation screenshot in task evidence | VISUAL_PASS | Long content continues below the first viewport |
-| Role selection | `/app/register` | 390×844 | Interactive implementation screenshot in task evidence | VISUAL_PASS | Remaining roles continue by normal vertical scroll |
-| Owner registration | `/app/register/kindergarten` | 1280×1000 | Interactive implementation screenshot in task evidence | VISUAL_PASS | Form continues below the first viewport |
-| Owner registration | `/app/register/kindergarten` | 390×844 | Interactive implementation screenshot in task evidence | VISUAL_PASS | Form continues by vertical scroll |
-| Parent registration | `/app/register/parent` | 1280×1000 | Interactive implementation screenshot in task evidence | VISUAL_PASS | Form continues below the first viewport |
-| Parent registration | `/app/register/parent` | 390×844 | Header and scrolled form screenshots in task evidence | VISUAL_PASS | None |
-| Staff registration | `/app/register/staff` | 1280×1000 | Interactive implementation screenshot in task evidence | VISUAL_PASS | Form continues below the first viewport |
-| Staff registration | `/app/register/staff` | 390×844 | Interactive implementation screenshot in task evidence | VISUAL_PASS | None |
-| Inspector registration | `/app/register/inspector` | 1280×1000 | Interactive implementation screenshot in task evidence | VISUAL_PASS | Form continues below the first viewport |
-| Inspector registration | `/app/register/inspector` | 390×844 | Interactive implementation screenshot in task evidence | VISUAL_PASS | None |
-| Email verification | `/app/verify-contact` | 1280×900 | Interactive implementation screenshot in task evidence | VISUAL_PASS | None |
-| Email verification | `/app/verify-contact` | 390×844 | Interactive implementation screenshot in task evidence | VISUAL_PASS | Supporting trust card continues by scroll |
-| Forgot password | `/forgot-password` | 1280×900 | Interactive implementation screenshot in task evidence | VISUAL_PASS | None |
-| Forgot password | `/forgot-password` | 390×844 | Interactive implementation screenshot in task evidence | VISUAL_PASS | None |
-| Reset password | `/reset-password` | 1280×900 | Recovery-check state screenshot in task evidence | VISUAL_PARTIAL | A valid recovery session was unavailable in the isolated responder, so the editable password form was not rendered |
-| Reset password | `/reset-password` | 390×844 | Recovery-check state screenshot in task evidence | VISUAL_PARTIAL | Same environment limitation |
-| Invitation entry | `/invite/accept?token=…` | 1280×900 | Secure loading state screenshot in task evidence | VISUAL_PARTIAL | Signed valid, expired, and recipient-mismatch states require a canonical invitation fixture |
-| Invitation entry | `/invite/accept?token=…` | 390×844 | Secure loading state screenshot in task evidence | VISUAL_PARTIAL | Same environment limitation |
-| Registration success | role registration routes | desktop/mobile | Component implementation inspected | VISUAL_PARTIAL | Successful signup was not submitted against a healthy isolated Supabase Auth instance in this visual pass |
+## Capture protocol
 
-## Findings resolved during visual QA
+- Desktop viewport: `1440×1024`.
+- Mobile viewport: `390×844`.
+- Locale/direction: `he-IL`, RTL.
+- Motion: disabled during capture so screenshots are deterministic; reduced-motion support was also verified in CSS.
+- Data: synthetic visual fixtures only. No customer or Production data appears in evidence.
+- Evidence: 28 WebP captures plus `SHA256SUMS` under `qa-evidence/ux-implement-01/`.
 
-- Replaced the decorative password-eye glyph with an operable, labelled show/hide control.
-- Corrected the hidden login field label to describe Email accurately.
-- Removed inherited fixed-height/scale behavior that could squeeze the Auth page or trap a mobile keyboard.
-- Added a CSS fallback that clears the Management Auth splash even when client hydration is delayed.
-- Removed the public marketing navigation from focused verification, recovery, and invitation screens.
-- Added the official logo to focused Auth-flow pages and normalized primary CTA color to the brand-blue gradient.
-- Reduced oversized Auth-flow headings and preserved a single-column mobile layout.
+## Core visual matrix
+
+| Screen | Route | Viewports | Reference | Screenshot evidence | Status | Deviations |
+|---|---|---|---|---|---|---|
+| Welcome | `/app` | 1440×1024; 390×844 | Auth master welcome | `welcome-desktop.webp`, `welcome-mobile.webp` | VISUAL_PASS | Desktop keeps a separate sign-in CTA required by the canonical route; mobile places actions before secondary copy. |
+| Login | `/app/login` | 1440×1024; 390×844 | Auth master account entry | `login-desktop.webp`, `login-mobile.webp` | VISUAL_PASS | Canonical Email/password login replaces the concept registration fields. |
+| Role selection | `/app/register` | 1440×1024; 390×844 | Auth master role selector | `roles-desktop.webp`, `roles-mobile.webp` | VISUAL_PASS | Only four public paths appear: Owner/Garden, Parent, Staff and Inspector. Platform Admin is intentionally absent. |
+| Owner registration | `/app/register/kindergarten` | 1440×1024; 390×844 | Auth master registration | `owner-desktop.webp`, `owner-mobile.webp` | VISUAL_PASS | Canonical account fields and Owner onboarding handoff are preserved. |
+| Parent registration | `/app/register/parent` | 1440×1024; 390×844 | Auth master registration | `parent-desktop.webp`, `parent-mobile.webp` | VISUAL_PASS | Canonical family-profile handoff is preserved. |
+| Staff registration | `/app/register/staff` | 1440×1024; 390×844 | Auth master registration | `staff-desktop.webp`, `staff-mobile.webp` | VISUAL_PASS | Candidate state is explicit; no Garden access is implied. |
+| Inspector registration | `/app/register/inspector` | 1440×1024; 390×844 | Auth master registration | `inspector-desktop.webp`, `inspector-mobile.webp` | VISUAL_PASS | Application handoff is explicit; no approval or assignment is implied. |
+| Email verification | `/app/verify-contact` | 1440×1024; 390×844 | Auth master envelope state | `verify-desktop.webp`, `verify-mobile.webp` | VISUAL_PASS | Backend truth controls completion; phone verification is not shown as required. |
+| Registration success | role registration routes | 1440×1024; 390×844 | Auth master success state | `success-desktop.webp`, `success-mobile.webp` | VISUAL_PASS | Captured through an intercepted synthetic registration response; no Production or customer account was created. |
+| Forgot password | `/forgot-password` | 1440×1024; 390×844 | Auth master state language | `forgot-desktop.webp`, `forgot-mobile.webp` | VISUAL_PASS | Privacy-safe acknowledgement does not disclose whether an account exists. |
+| Reset password — valid | `/reset-password` | 1440×1024; 390×844 | Auth master form/state language | `reset-valid-desktop.webp`, `reset-valid-mobile.webp` | VISUAL_PASS | Captured with an isolated synthetic recovery session. |
+| Reset password — success | `/reset-password` | 1440×1024; 390×844 | Auth master success state | `reset-success-desktop.webp`, `reset-success-mobile.webp` | VISUAL_PASS | Synthetic Auth endpoints verified update/sign-out state transitions; no plaintext password path was introduced. |
+| Invitation — valid | `/invite/accept?token=…` | 1440×1024; 390×844 | Auth master entry/state language | `invitation-valid-desktop.webp`, `invitation-valid-mobile.webp` | VISUAL_PASS | Garden and recipient are safely summarized; the new-account link was asserted to retain the invitation token. |
+| Invitation — expired | `/invite/accept?token=…` | 1440×1024; 390×844 | Auth master error state | `invitation-expired-desktop.webp`, `invitation-expired-mobile.webp` | VISUAL_PASS | Dedicated safe recovery state replaces generic 404/500 output. |
+
+## Visual acceptance findings
+
+- The official mark is used through one shared brand component. The exact owner-supplied source is retained in `public/assets/gan-batuach-brand-mark-official.png`; the normalized runtime asset preserves its shape while avoiding transparent source padding.
+- The hero uses one optimized 126 KB WebP, a warm kindergarten image created specifically for this Auth shell without text, logo, cameras or identifying adults.
+- Desktop uses a genuine split brand/form composition. Mobile removes the decorative split panel and uses a focused single-column flow rather than shrinking desktop.
+- Brand-blue CTA styling is scoped over legacy rescue CSS, preventing teal or generic Bootstrap-like primary actions.
+- Cards, fields, role tiles, step progress, status orbs, success/error notices, focus and press states use one token system.
+- Registration success scrolls to the start of the state instead of preserving the form's previous scroll position.
+- No horizontal overflow was found at 390 px on the P0 routes.
+
+## Functional assertions coupled to visual QA
+
+- Public role selector exposes Owner/Garden, Parent, Staff and Inspector only.
+- Every role registration screen keeps its canonical fixed account type and role-specific next destination.
+- Email verification remains the normal activation requirement; SMS and WhatsApp actions are absent while unavailable.
+- Valid invitation registration keeps the signed token in the next URL.
+- Expired invitation gives an explicit recovery path.
+- Password reset valid, validation, update-success and local sign-out states render without raw Auth errors.
+- Button busy/disabled states prevent visible double submission.
+- Evidence contains no customer information or secrets.
+
+## Accessibility and RTL
+
+- Visible labels, programmatic button names, logical RTL spacing, correct back-arrow direction, LTR Email values, 44 px touch targets and focus-visible styling were verified on the captured routes.
+- The password visibility control has an accessible name and does not disable password managers.
+- Errors use `role="alert"` where the canonical form exposes them; success/error treatments pair text and icon with color.
+- Decorative image treatment does not duplicate content to assistive technology.
+- This is a touched-surface accessibility baseline, not a WCAG certification.
 
 ## Runtime observations
 
-- Login mobile geometry: 390px viewport, 390px document width, 390px Auth content width.
-- No horizontal overflow was observed on the captured mobile P0 routes.
-- The isolated browser did not hydrate client-only Auth state reliably against the minimal loopback responder. Static/server-rendered visual states were reviewable; success, valid reset, and signed invitation terminal states remain unqualified.
-- The exact external approved reference image files were not present in the supplied attachment, so screenshot-to-bitmap pixel comparison was not possible.
+- Browser console contained no runtime exception, hydration error or React warning on the captured screens.
+- Chrome emitted one advisory that reset-password forms may include a username field. The existing shared reset component is also used by Digital Observer and was intentionally not changed in this Management-only batch; the actual new-password fields remain labelled and use `autocomplete="new-password"`.
+- No unexpected 500 response was observed. Expected mocked Auth and invitation state calls were bounded to the isolated loopback environment.
 
 ## Decision
 
-`APPROVED GAN BATUACH VISUAL LANGUAGE PRESERVED: NO`
+`APPROVED GAN BATUACH VISUAL LANGUAGE PRESERVED: YES`
 
-The implemented, captured screens preserve the approved language, but the mandatory batch-level answer remains `NO` until registration success, valid reset, and signed invitation terminal states are captured and marked `VISUAL_PASS` in a healthy isolated Auth environment. PR merge remains blocked by this visual gate.
-
+Every required UX-IMPLEMENT-01 desktop and mobile target is `VISUAL_PASS`. The implementation is suitable for PR qualification; this decision does not authorize Production or UX-IMPLEMENT-02.

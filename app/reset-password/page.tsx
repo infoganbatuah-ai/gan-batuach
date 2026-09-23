@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { KeyRound } from "lucide-react";
-import { BrandHeader } from "@/components/brand-header";
+import { AppAuthShell } from "@/components/app-auth-shell";
 import { PasswordUpdateForm } from "@/components/auth/password-update-form";
 
 export const metadata = {
@@ -9,5 +9,14 @@ export const metadata = {
 };
 
 export default function ResetPasswordPage() {
-  return <><BrandHeader /><main className="gb-auth-flow-page" dir="rtl"><section className="login-hero compact-auth-hero"><div><p className="eyebrow">שחזור גישה</p><h1>קביעת סיסמה חדשה</h1><p>בחרו סיסמה חדשה. לאחר השמירה הפעלת השחזור תיסגר ותידרשו להתחבר מחדש.</p><PasswordUpdateForm product="gan_batuach" loginHref="/login" requestHref="/forgot-password" /><p><Link href="/login">חזרה להתחברות</Link></p></div><div className="card action-panel auth-readiness-card"><KeyRound /><h2>קישור חד-פעמי</h2><p>הסיסמה נשמרת ב-Supabase ואינה מוצגת בדוחות או למנהל המערכת.</p></div></section></main></>;
+  return (
+    <AppAuthShell eyebrow="שחזור גישה" title="קביעת סיסמה חדשה" subtitle="בחרו סיסמה חדשה. לאחר השמירה קישור השחזור ייסגר ותידרשו להתחבר מחדש.">
+      <section className="gb-recovery-card">
+        <div className="gb-state-orb" aria-hidden="true"><KeyRound /></div>
+        <PasswordUpdateForm product="gan_batuach" loginHref="/app/login" requestHref="/forgot-password" />
+        <p className="gb-safe-copy">הסיסמה נשמרת בשירות Auth המאובטח ואינה מוצגת בדוחות או למנהלי המערכת.</p>
+        <p><Link href="/app/login">חזרה להתחברות</Link></p>
+      </section>
+    </AppAuthShell>
+  );
 }

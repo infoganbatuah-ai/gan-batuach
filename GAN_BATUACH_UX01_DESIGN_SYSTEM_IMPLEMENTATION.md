@@ -2,30 +2,65 @@
 
 ## Scope
 
-This batch applies the approved Management visual direction to the shared tokens and to the authenticated-entry journeys only: login, role selection, role-specific account registration, Email verification, password recovery and signed-invitation entry. It does not alter authorization, Auth callbacks, role routing, onboarding domain forms, data models or Production.
+UX-IMPLEMENT-01 applies the owner-approved Management visual language to shared tokens and the canonical Auth/registration surfaces: welcome, login, public role selection, Owner/Parent/Staff/Inspector account registration, Email verification, recovery and signed invitations. Authorization, Auth callbacks, onboarding domain forms, data models, canonical role routing and Production are unchanged.
 
-## Tokens
+## Authoritative assets
 
-The existing `gb-*` token system remains the sole theme system. UX-IMPLEMENT-01 normalizes it around the approved logo-derived deep blue: `--gb-primary` `#1254b8`, `--gb-primary-dark` `#082d6d`, light blue surfaces, restrained semantic state colors, 12/16/22/28/36px radii and soft blue elevation.
+- The official owner-supplied source is preserved at `public/assets/gan-batuach-brand-mark-official.png`.
+- `GanBatuachBrand` is the shared logo/name/tagline component for full and compact use.
+- The optimized Auth hero is `public/assets/gan-batuach-auth-hero.webp` (126 KB). It contains no embedded copy, logo, camera or customer data.
+
+Hero generation mode: ImageGen, new image. Final prompt: “Use case: photorealistic-natural; responsive Gan Batuach authentication hero for a premium Hebrew childcare-management product; one smiling preschool-age child in a bright modern kindergarten holding a teddy bear, child on the right with calm negative space on the left, soft morning daylight, pale blue/white/royal-blue and warm wood palette; realistic, safe, calm; no text, logos, UI, watermark, cameras or other identifiable people.”
+
+## Canonical tokens
+
+The existing `gb-*` theme remains the only product theme. The UX-01 stylesheet adds normalized semantic aliases used by the Auth implementation:
+
+- `--brand-primary`, `--brand-primary-hover`, `--brand-navy`
+- `--brand-blue-soft`, `--brand-surface-blue`, `--violet-accent`
+- `--background`, `--surface`, `--surface-elevated`
+- `--text-primary`, `--text-secondary`, `--border`
+- `--success`, `--warning`, `--danger`, `--info`
+
+Spacing, radius, elevation and motion reuse the established `--gb-*` token families. Status colors always appear with text or icons.
 
 ## Shared components
 
-Existing `PremiumCard`, `ActionCard`, `DashboardGrid`, `FormField`, `ProgressStepper`, `StatusChip` and button classes are retained. The batch gives their Auth use a consistent focus ring, touch target, primary gradient, motion and reduced-motion behavior. It does not introduce another component library.
+- `GanBatuachBrand`: official full/compact brand lockup.
+- `AppAuthShell`: shared desktop split composition and mobile task-first shell.
+- Existing buttons, inputs, role cards, `ProgressStepper`, notices and state patterns are restyled through the canonical CSS layer.
+- Existing authenticated `AppShell`, `SidebarNav`, `BottomNav`, `PremiumCard`, `MetricCard`, `StatusChip`, `ActionCard`, `DashboardGrid` and domain components remain the shared foundation; no competing library was added.
 
-## Auth shells
+## Desktop Auth shell
 
-Desktop uses a right-to-left form surface paired with a logo-derived blue Garden story panel using the existing approved project image. Mobile suppresses the decorative panel and keeps logo, headline and task form above the fold. The application shell and authenticated bottom navigation remain absent from Auth screens.
+The desktop layout pairs a bright, bounded form surface with a navy photographic story panel. It retains the official logo, concise trust copy and value indicators without crowding the operational task. The form surface has a stable readable width and routes may scroll vertically without a fixed-height trap.
+
+## Mobile Auth shell
+
+Mobile is a purpose-built single column. Brand and task come first, the decorative story panel is removed, inputs remain full width, touch targets are at least 44 px and CTA placement survives vertical scrolling and the software keyboard. Auth routes do not render authenticated bottom navigation.
+
+## Auth and registration behavior
+
+- Login remains Email/password with password reveal, recovery and registration links.
+- Public registration contains four role paths: Owner/Garden, Parent, Staff candidate and Inspector applicant. Platform Admin is not offered.
+- The visual progress model is role → account → Email → role profile; it does not invent a phone verification step.
+- Successful registration uses role-specific next-copy while the canonical backend controls verification and handoff.
+- Verified Email remains sufficient for ordinary activation. Phone may truthfully remain unverified. SMS and WhatsApp are not shown as active verification capabilities.
+- Signed invitations retain valid, expired, existing-account and new-account actions and preserve their token across Auth entry.
+- Password recovery remains a one-time Supabase Auth flow; no temporary or recoverable plaintext password was added.
+
+## State system
+
+Auth surfaces share the same visual grammar for loading, success, pending, invalid/expired, unavailable and error states. Technical Supabase/SQL output is never rendered directly. Buttons visibly enter busy/disabled state for submissions.
 
 ## RTL and accessibility
 
-Layouts use logical CSS properties, visible focus, 44px minimum interactive targets and LTR Email input content inside RTL forms. The login password field now has an operable, labelled show/hide control. Existing labels, `autocomplete` values, password-manager support and server error boundaries are retained. Animations are cosmetic and disabled for reduced-motion users. Management Auth pages also have a CSS splash-exit fallback so delayed hydration cannot leave a blocking splash over the form.
+The implementation uses logical CSS properties, correct RTL arrow placement, LTR Email values within RTL layouts, visible focus, labelled inputs, accessible icon-button names and reduced-motion behavior. Images are decorative at the shell level and do not replace textual instructions. This is an accessibility baseline for touched screens, not a certification.
 
-## Functional boundaries
+## Responsive and performance boundaries
 
-Email remains sufficient for standard account activation. Phone, SMS and WhatsApp are not made mandatory and no provider CTA is introduced. Invitations retain recipient binding and their existing registration/verification resume path. Recovery remains a one-time Supabase Auth flow and no temporary password is introduced.
+Canonical breakpoints are reused. The single Auth hero is delivered as optimized WebP and no animation, font, UI or analytics dependency was added. No fixed monthly service or vendor was introduced.
 
 ## Visual acceptance
 
-Review desktop and mobile welcome/login, role selection, a role-specific registration form, Email verification, invalid invitation and recovery/reset states against the approved direction: deep blue brand areas, light surfaces, rounded cards, restrained shadows, Hebrew hierarchy, clear CTA and no legacy dashboard chrome.
-
-The route-by-route visual evidence and remaining terminal-state gaps are recorded in `GAN_BATUACH_UX01_VISUAL_QA_REPORT.md`.
+The route-by-route matrix, viewports, screenshots, deviations and checksums are recorded in `GAN_BATUACH_UX01_VISUAL_QA_REPORT.md` and `qa-evidence/ux-implement-01/`. Every required desktop and mobile target is `VISUAL_PASS` against the four supplied references.
