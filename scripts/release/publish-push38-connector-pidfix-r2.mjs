@@ -9,6 +9,7 @@ import { edgeReleaseObjectPath, EDGE_RELEASE_R2_BUCKET } from "../../services/vi
 import { buildPush38ConnectorPidfixManifest } from "../../services/video-gateway/push38-home-qa-connector-pidfix.mjs";
 import { buildPush38ConnectorRecoveryManifest } from "../../services/video-gateway/push38-home-qa-connector-recovery.mjs";
 import { buildPush38ConnectorStartupRecoveryManifest } from "../../services/video-gateway/push38-home-qa-connector-startup.mjs";
+import { buildPush38ConnectorLivenessRecoveryManifest } from "../../services/video-gateway/push38-home-qa-connector-liveness.mjs";
 import { readR2KeychainCredentials } from "./macos-r2-keychain.mjs";
 
 const origin = "https://693f824a750afcc264fe6ee58c8a86ab.r2.cloudflarestorage.com";
@@ -20,8 +21,10 @@ async function hashStream(stream, limit) {
   return { sha256: hash.digest("hex"), size };
 }
 
-async function publish({ artifactPath, evidencePath, recovery = false, startupRecovery = false }) {
-  const builder = startupRecovery ? buildPush38ConnectorStartupRecoveryManifest :
+async function publish({ artifactPath, evidencePath, recovery = false, startupRecovery = false,
+  livenessRecovery = false }) {
+  const builder = livenessRecovery ? buildPush38ConnectorLivenessRecoveryManifest :
+    startupRecovery ? buildPush38ConnectorStartupRecoveryManifest :
     recovery ? buildPush38ConnectorRecoveryManifest : buildPush38ConnectorPidfixManifest;
   const { document } = builder({ signingKeyId: "observer-kms-release-v1",
     artifactOrigin: origin, releasedAt: new Date().toISOString() });
@@ -71,7 +74,8 @@ async function publish({ artifactPath, evidencePath, recovery = false, startupRe
       signal: AbortSignal.timeout(30_000) });
     await anonymous.body?.cancel();
     if (anonymous.ok) fail("P38_PIDFIX_R2_PUBLIC_ACCESS_ENABLED");
-    const result = { protocol: startupRecovery ? "observer-push38-startup-recovery-r2-publication-v1" :
+    const result = { protocol: livenessRecovery ? "observer-push38-liveness-recovery-r2-publication-v1" :
+      startupRecovery ? "observer-push38-startup-recovery-r2-publication-v1" :
       recovery ? "observer-push38-recovery-r2-publication-v1" :
       "observer-push38-pidfix-r2-publication-v1", at: new Date().toISOString(),
       bucket: EDGE_RELEASE_R2_BUCKET, storage_class: "STANDARD", release_id: document.release_id,
@@ -86,14 +90,16 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
   try {
     const recovery = process.argv.includes("--health-recovery");
     const startupRecovery = process.argv.includes("--startup-recovery");
-    if (recovery && startupRecovery) fail("P38_PIDFIX_R2_MODE_INVALID");
+    const livenessRecovery = process.argv.includes("--liveness-recovery");
+    if ([recovery, startupRecovery, livenessRecovery].filter(Boolean).length > 1)
+      fail("P38_PIDFIX_R2_MODE_INVALID");
     const [artifact, evidence] = process.argv.slice(2)
-      .filter(value => !["--health-recovery", "--startup-recovery"].includes(value));
+      .filter(value => !["--health-recovery", "--startup-recovery", "--liveness-recovery"].includes(value));
     const evidenceRelative = evidence ? relative(restrictedRoot, resolve(evidence)) : "";
     if (!artifact || !evidence || !evidenceRelative || evidenceRelative === ".." ||
       evidenceRelative.startsWith(`..${sep}`) || isAbsolute(evidenceRelative)) fail("P38_PIDFIX_R2_INPUT_SCOPE_INVALID");
     console.log(JSON.stringify({ result: "PASS", publication: await publish({ artifactPath: artifact,
-      evidencePath: resolve(evidence), recovery, startupRecovery }) }));
+      evidencePath: resolve(evidence), recovery, startupRecovery, livenessRecovery }) }));
   } catch (error) {
     console.error(/^P38_PIDFIX_R2_[A-Z0-9_]+$/.test(error.message) ? error.message : "P38_PIDFIX_R2_PUBLICATION_FAILED");
     process.exitCode = 1;
