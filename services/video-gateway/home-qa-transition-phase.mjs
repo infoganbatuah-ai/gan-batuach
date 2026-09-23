@@ -12,6 +12,7 @@ const connectorRecoveryRemediation = "qa-p38-health-connector-recovery-9bb5db251
 const connectorStartupRecovery = "qa-p38-health-connector-startup-d44b7e4262f9";
 const connectorLivenessRecovery = "qa-p38-health-connector-liveness-bb89862c6352";
 const gatewayRemediation = "qa-p38-health-gateway-6c9d08327ec6";
+const gatewayAuthRecovery = "qa-p38-health-gateway-auth-4197f1a246f1";
 const gatewayBaseline = "qa-legacy-gateway-91bf6814075f";
 
 // This is an additional HOME_QA gate, never a replacement for signed-manifest,
@@ -34,7 +35,7 @@ export function homeQaManagedPhaseAllows({ enrollment, manifest }) {
       connectorLivenessRecovery].includes(manifest.release_id) &&
       metadata.home_qa_known_good_release_id === transitionRelease;
   if (enrollment.deployment_profile === "PHYSICAL_GATEWAY")
-    return manifest.release_id === gatewayRemediation &&
+    return [gatewayRemediation, gatewayAuthRecovery].includes(manifest.release_id) &&
       metadata.home_qa_known_good_release_id === gatewayBaseline;
   return false;
 }
