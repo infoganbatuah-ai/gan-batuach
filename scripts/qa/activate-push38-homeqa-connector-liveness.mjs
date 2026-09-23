@@ -14,17 +14,26 @@ import { assertEdgeReleaseObjectUrl } from "../../services/video-gateway/edge-re
 import { loadPinnedEdgeReleaseKeys, PROTECTED_EDGE_TRUST_REGISTRY_PATH } from "../../services/video-gateway/edge-release-trust.mjs";
 import { EdgeUpdateManager } from "../../services/video-gateway/edge-update-manager.mjs";
 import { PUSH38_CONNECTOR_LIVENESS_RECOVERY } from "../../services/video-gateway/push38-home-qa-connector-liveness.mjs";
+import { PUSH38_CONNECTOR_PARENT_EXIT_RECOVERY } from "../../services/video-gateway/push38-home-qa-connector-parent-exit.mjs";
 
-const item = PUSH38_CONNECTOR_LIVENESS_RECOVERY;
+const parentExitRecovery = process.argv.includes("--parent-exit-recovery");
+const item = parentExitRecovery ? PUSH38_CONNECTOR_PARENT_EXIT_RECOVERY : PUSH38_CONNECTOR_LIVENESS_RECOVERY;
 const transitionRelease = "qa-connector-legacy-transition-v2-6e7988808b05";
-const failedRelease = "qa-p38-health-connector-startup-d44b7e4262f9";
+const failedRelease = parentExitRecovery ? "qa-p38-health-connector-liveness-bb89862c6352" :
+  "qa-p38-health-connector-startup-d44b7e4262f9";
 const failedReason = "EDGE_UPDATE_CRASH_LOOP";
 const root = join(homedir(), "Library/Application Support/Digital Observer/observer-connector/ota");
 const configPath = join(root, "agent-config.json");
 const restrictedRoot = `${realpathSync("/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted")}${sep}`;
-const bundle = "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-connector-liveness-35806083284.zip";
-const artifact = "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-connector-remediation-d40c9467/connector-remediation.tar.gz";
-const publication = "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-connector-remediation-d40c9467/r2-publication.json";
+const bundle = parentExitRecovery
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-connector-parent-exit-35811312200.zip"
+  : "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-connector-liveness-35806083284.zip";
+const artifact = parentExitRecovery
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-connector-remediation-91569afa/connector-remediation.tar.gz"
+  : "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-connector-remediation-d40c9467/connector-remediation.tar.gz";
+const publication = parentExitRecovery
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-connector-remediation-91569afa/r2-publication.json"
+  : "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-connector-remediation-d40c9467/r2-publication.json";
 const mode = process.argv.includes("--preflight") ? "PREFLIGHT" : process.argv.includes("--apply") ? "APPLY" : "";
 const option = name => process.argv.find(value => value.startsWith(`--${name}=`))?.slice(name.length + 3) || "";
 const outputPath = resolve(option("output") || ".");
@@ -97,7 +106,8 @@ if (config.profile !== "SOFTWARE_CONNECTOR" || config.deviceId !== item.deviceId
 if (sha(protectedLocalFile(config.qaTlsCaPath)) !== config.qaTlsCaSha256)
   throw new Error("P38_CONNECTOR_LIVENESS_TLS_PIN_MISMATCH");
 
-const manifest = JSON.parse(execFileSync("unzip", ["-p", bundle, "connector_remediation_liveness.json"],
+const manifest = JSON.parse(execFileSync("unzip", ["-p", bundle, parentExitRecovery ?
+  "connector_remediation_parent_exit.json" : "connector_remediation_liveness.json"],
   { encoding: "utf8", timeout: 15_000, maxBuffer: 16_384 }));
 const trusted = loadPinnedEdgeReleaseKeys({ registryPath: PROTECTED_EDGE_TRUST_REGISTRY_PATH }).trustedPublicKeys;
 const publicationProof = JSON.parse(readFileSync(publication, "utf8"));
@@ -145,7 +155,7 @@ const rollout = JSON.parse(psql(`select jsonb_build_object(
   'managed_phase',(select metadata->>'home_qa_phase' from public.video_gateway_device_enrollments where gateway_id='${item.deviceId}'),
   'managed_identity',(select identity_scheme from public.video_gateway_device_enrollments where gateway_id='${item.deviceId}'),
   'fresh_proof',(select count(*) from public.video_gateway_device_enrollments e join public.observer_managed_device_credentials c on c.enrollment_id=e.id and c.credential_version=e.credential_version where e.gateway_id='${item.deviceId}' and e.lifecycle_state='ACTIVE' and e.status='delivered' and e.active_runtime_instance_id is not null and e.last_seen_at>=now()-interval '2 minutes' and exists(select 1 from public.observer_managed_device_auth_nonces n where n.enrollment_id=e.id and n.credential_version=e.credential_version and n.observed_at>=now()-interval '2 minutes')));`));
-if (rollout.devices !== 2 || rollout.releases !== 8 || rollout.new_status !== "DRAFT" ||
+if (rollout.devices !== 2 || rollout.releases !== (parentExitRecovery ? 9 : 8) || rollout.new_status !== "DRAFT" ||
   rollout.new_cohort !== 0 || JSON.stringify(rollout.new_targets) !== JSON.stringify({ explicit_device_ids: [item.deviceId] }) ||
   rollout.failed_status !== "PAUSED" || rollout.broad_active !== 0 ||
   rollout.managed_phase !== "MANAGED_IDENTITY_VERIFIED" || rollout.managed_identity !== "ED25519_V1" ||
@@ -173,7 +183,8 @@ const [anonymous, wrongRoute] = await Promise.all([
 ]);
 if (anonymous !== 401 || wrongRoute !== 404) throw new Error("P38_CONNECTOR_LIVENESS_INGRESS_INVALID");
 
-const plan = { protocol: "observer-push38-connector-liveness-activation-v1",
+const plan = { protocol: parentExitRecovery ? "observer-push38-connector-parent-exit-activation-v1" :
+  "observer-push38-connector-liveness-activation-v1",
   generated_at: new Date().toISOString(), mode: "PREFLIGHT", release_id: item.releaseId,
   version: item.version, build_sha: item.buildSha, artifact_sha256: item.digest,
   artifact_size: item.size, r2_object_key: expectedObject, exact_device_id: item.deviceId,
@@ -187,7 +198,8 @@ const plan = { protocol: "observer-push38-connector-liveness-activation-v1",
     "PROMOTE_OR_EXISTING_MANAGER_ROLLBACK"], runtime_writes: 0 };
 if (mode === "PREFLIGHT") {
   const evidenceSha = persist(plan);
-  console.log(JSON.stringify({ status: "LIVENESS_PREFLIGHT_PASS", evidence_sha256: evidenceSha,
+  console.log(JSON.stringify({ status: parentExitRecovery ? "PARENT_EXIT_PREFLIGHT_PASS" :
+    "LIVENESS_PREFLIGHT_PASS", evidence_sha256: evidenceSha,
     release_id: item.releaseId, exact_device: true, broad_cohort: false,
     tapo_progressing: samples.at(-1).progressing, runtime_writes: 0 }));
   process.exit(0);
@@ -225,6 +237,7 @@ const result = { ...plan, mode: "APPLY", applied_at: new Date().toISOString(),
   exact_rollout_active: true, broad_cohort: false, ota_agent_owns_install: true,
   functional_runtime_changed_by_command: false, runtime_writes: 0 };
 const evidenceSha = persist(result);
-console.log(JSON.stringify({ status: "EXACT_LIVENESS_ROLLOUT_ACTIVE", evidence_sha256: evidenceSha,
+console.log(JSON.stringify({ status: parentExitRecovery ? "EXACT_PARENT_EXIT_ROLLOUT_ACTIVE" :
+  "EXACT_LIVENESS_ROLLOUT_ACTIVE", evidence_sha256: evidenceSha,
   release_id: item.releaseId, exact_device: true, broad_cohort: false,
   ota_agent_owns_install: true, runtime_writes: 0 }));

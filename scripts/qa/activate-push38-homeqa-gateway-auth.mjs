@@ -14,10 +14,10 @@ import { assertEdgeReleaseObjectUrl } from "../../services/video-gateway/edge-re
 import { loadPinnedEdgeReleaseKeys, PROTECTED_EDGE_TRUST_REGISTRY_PATH } from "../../services/video-gateway/edge-release-trust.mjs";
 import { EdgeUpdateManager } from "../../services/video-gateway/edge-update-manager.mjs";
 import { PUSH38_GATEWAY_AUTH_RECOVERY } from "../../services/video-gateway/push38-home-qa-gateway-auth-recovery.mjs";
-import { PUSH38_CONNECTOR_LIVENESS_RECOVERY } from "../../services/video-gateway/push38-home-qa-connector-liveness.mjs";
+import { PUSH38_CONNECTOR_PARENT_EXIT_RECOVERY } from "../../services/video-gateway/push38-home-qa-connector-parent-exit.mjs";
 
 const item = PUSH38_GATEWAY_AUTH_RECOVERY;
-const connectorItem = PUSH38_CONNECTOR_LIVENESS_RECOVERY;
+const connectorItem = PUSH38_CONNECTOR_PARENT_EXIT_RECOVERY;
 const gatewayBaseline = "qa-legacy-gateway-91bf6814075f";
 const failedGatewayRelease = "qa-p38-health-gateway-6c9d08327ec6";
 const root = join(homedir(), "Library/Application Support/Digital Observer/observer-gateway/ota");
@@ -168,7 +168,7 @@ const rollout = JSON.parse(psql(`select jsonb_build_object(
   'known_good',(select metadata->>'home_qa_known_good_release_id' from public.video_gateway_device_enrollments where gateway_id='${item.deviceId}'),
   'managed_identity',(select identity_scheme from public.video_gateway_device_enrollments where gateway_id='${item.deviceId}'),
   'fresh_proof',(select count(*) from public.video_gateway_device_enrollments e join public.observer_managed_device_credentials c on c.enrollment_id=e.id and c.credential_version=e.credential_version where e.gateway_id='${item.deviceId}' and e.lifecycle_state='ACTIVE' and e.status='delivered' and e.active_runtime_instance_id is not null and e.last_seen_at>=now()-interval '2 minutes' and exists(select 1 from public.observer_managed_device_auth_nonces n where n.enrollment_id=e.id and n.credential_version=e.credential_version and n.observed_at>=now()-interval '2 minutes')));`));
-if (rollout.devices !== 2 || rollout.releases !== 8 || rollout.new_status !== "DRAFT" ||
+if (rollout.devices !== 2 || rollout.releases !== 9 || rollout.new_status !== "DRAFT" ||
   rollout.new_cohort !== 0 || JSON.stringify(rollout.new_targets) !== JSON.stringify({ explicit_device_ids: [item.deviceId] }) ||
   rollout.failed_status !== "PAUSED" || rollout.broad_active !== 0 ||
   rollout.managed_phase !== "MANAGED_IDENTITY_VERIFIED" || rollout.known_good !== gatewayBaseline ||

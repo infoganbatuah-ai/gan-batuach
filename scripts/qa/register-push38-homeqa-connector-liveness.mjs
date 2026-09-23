@@ -9,16 +9,25 @@ import { verifyEdgeUpdateManifest } from "../../services/video-gateway/edge-upda
 import { assertEdgeReleaseObjectUrl } from "../../services/video-gateway/edge-release-object.mjs";
 import { loadPinnedEdgeReleaseKeys, PROTECTED_EDGE_TRUST_REGISTRY_PATH } from "../../services/video-gateway/edge-release-trust.mjs";
 import { PUSH38_CONNECTOR_LIVENESS_RECOVERY } from "../../services/video-gateway/push38-home-qa-connector-liveness.mjs";
+import { PUSH38_CONNECTOR_PARENT_EXIT_RECOVERY } from "../../services/video-gateway/push38-home-qa-connector-parent-exit.mjs";
 
 const apply = process.argv.includes("--apply");
+const parentExitRecovery = process.argv.includes("--parent-exit-recovery");
 const restrictedRoot = "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted";
 const bundle = resolve(process.argv.find(value => value.startsWith("--bundle="))?.slice(9) ||
-  `${restrictedRoot}/push38-homeqa-connector-liveness-35806083284.zip`);
-const artifact = `${restrictedRoot}/push38-connector-remediation-d40c9467/connector-remediation.tar.gz`;
-const publication = `${restrictedRoot}/push38-connector-remediation-d40c9467/r2-publication.json`;
-const item = PUSH38_CONNECTOR_LIVENESS_RECOVERY;
-const supersededReleaseId = "qa-p38-health-connector-startup-d44b7e4262f9";
-const bundleName = "connector_remediation_liveness.json";
+  `${restrictedRoot}/${parentExitRecovery ? "push38-homeqa-connector-parent-exit-35811312200.zip" :
+    "push38-homeqa-connector-liveness-35806083284.zip"}`);
+const artifact = `${restrictedRoot}/${parentExitRecovery ? "push38-connector-remediation-91569afa" :
+  "push38-connector-remediation-d40c9467"}/connector-remediation.tar.gz`;
+const publication = `${restrictedRoot}/${parentExitRecovery ? "push38-connector-remediation-91569afa" :
+  "push38-connector-remediation-d40c9467"}/r2-publication.json`;
+const item = parentExitRecovery ? PUSH38_CONNECTOR_PARENT_EXIT_RECOVERY : PUSH38_CONNECTOR_LIVENESS_RECOVERY;
+const supersededReleaseId = parentExitRecovery ? "qa-p38-health-connector-liveness-bb89862c6352" :
+  "qa-p38-health-connector-startup-d44b7e4262f9";
+const bundleName = parentExitRecovery ? "connector_remediation_parent_exit.json" :
+  "connector_remediation_liveness.json";
+const expectedBefore = parentExitRecovery ? 8 : 7;
+const expectedAfter = expectedBefore + 1;
 const accountId = "693f824a750afcc264fe6ee58c8a86ab";
 const origin = `https://${accountId}.r2.cloudflarestorage.com`;
 for (const path of [bundle, artifact, publication]) {
@@ -72,7 +81,7 @@ do $$ begin
        and deployment_profile='SOFTWARE_CONNECTOR' and lifecycle_state='ACTIVE') or
      not exists(select 1 from public.observer_edge_releases where release_id='${supersededReleaseId}'
        and channel='HOME_QA') or
-     (select count(*) from public.observer_edge_releases where channel='HOME_QA') <> 7
+     (select count(*) from public.observer_edge_releases where channel='HOME_QA') <> ${expectedBefore}
   then raise exception 'P38_HOME_QA_LIVENESS_PREREQUISITE_MISSING'; end if;
 end $$;
 insert into public.observer_edge_releases
@@ -98,7 +107,7 @@ update public.observer_edge_rollouts set status='PAUSED'
 where release_id=(select id from public.observer_edge_releases where release_id='${supersededReleaseId}')
   and status in ('DRAFT','ACTIVE');
 do $$ begin
-  if (select count(*) from public.observer_edge_releases where channel='HOME_QA') <> 8 or
+  if (select count(*) from public.observer_edge_releases where channel='HOME_QA') <> ${expectedAfter} or
      not exists(select 1 from public.observer_edge_rollouts o join public.observer_edge_releases r on r.id=o.release_id
        where r.release_id='${item.releaseId}' and o.status='DRAFT' and o.cohort_percent=0
        and o.target_filters->'explicit_device_ids'=jsonb_build_array('${item.deviceId}')) or
@@ -111,6 +120,7 @@ commit;`;
 execFileSync("docker", ["--context", context, "exec", "-i", container, "psql", "-X", "-q",
   "-v", "ON_ERROR_STOP=1", "-U", "postgres", "-d", "postgres"],
 { input: sql, encoding: "utf8", timeout: 45_000, stdio: ["pipe", "pipe", "pipe"] });
-console.log(JSON.stringify({ status: "LIVENESS_RECOVERY_REGISTERED_DRAFT", release_id: item.releaseId,
+console.log(JSON.stringify({ status: parentExitRecovery ? "PARENT_EXIT_RECOVERY_REGISTERED_DRAFT" :
+  "LIVENESS_RECOVERY_REGISTERED_DRAFT", release_id: item.releaseId,
   superseded_release: "PAUSED", exact_device: true, broad_cohort: "DISABLED",
   r2_round_trip: "PASS", live_trust: "PASS", production_writes: 0, runtime_writes: 0 }));
