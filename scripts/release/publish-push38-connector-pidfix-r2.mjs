@@ -14,7 +14,9 @@ import { buildPush38ConnectorParentExitRecoveryManifest } from "../../services/v
 import { readR2KeychainCredentials } from "./macos-r2-keychain.mjs";
 
 const origin = "https://693f824a750afcc264fe6ee58c8a86ab.r2.cloudflarestorage.com";
-const restrictedRoot = fileURLToPath(new URL("../../exports/restricted/", import.meta.url));
+// Qualification artifacts live in the one restricted project export store,
+// not in a feature worktree-relative directory.
+const restrictedRoot = "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted";
 const fail = code => { throw new Error(code); };
 async function hashStream(stream, limit) {
   const hash = createHash("sha256"); let size = 0;
