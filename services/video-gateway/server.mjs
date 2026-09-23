@@ -1119,13 +1119,23 @@ async function privateNvrRelayResponse(source, reportFailure = () => {}) {
   let response = await privateNvrStreamResponse(url, session.token, session.cookie, controller.signal, (reason) => { failure = reason; reportFailure(reason); });
   if (response) return { response, controller, sessionToken: session.token };
   controller.abort();
-  // Even if every native stream ended together, transport failure does not
-  // authorize a new login that may invalidate all recorder channels.
+  const heartbeat = privateNvrHeartbeat.status();
+  const commonCauseSourceFailures = [...streamSources.entries()].filter(([streamId, candidate]) =>
+    candidate?.sessionKey === source.sessionKey
+      && relayDiagnostics.get(streamId)?.last_failure_reason === "source_not_media"
+      && !relayIsProgressing(relays.get(streamId))).length;
+  // A per-channel transport failure never authorizes a new login. If the
+  // recorder heartbeat is also repeatedly failing and multiple channels have
+  // independently returned non-media, the shared session itself is proven
+  // unusable and one serialized replacement is the bounded recovery action.
   if (!shouldRefreshPrivateNvrSession(failure, {
     loginExclusivity: session.loginExclusivity,
-    sessionAgeMs: Date.now() - Number(session.updatedAt || Date.now())
+    sessionAgeMs: Date.now() - Number(session.updatedAt || Date.now()),
+    heartbeatConsecutiveFailures: heartbeat.consecutive_failures,
+    commonCauseSourceFailures
   })) return null;
-  const refreshed = await refreshPrivateNvrSession(source.sessionKey, session.token, `source_${failure}`);
+  const refreshed = await refreshPrivateNvrSession(source.sessionKey, session.token,
+    failure === "source_not_media" ? "corroborated_common_cause_non_media" : `source_${failure}`);
   if (!refreshed) return null;
   const retryController = new AbortController();
   const retryUrl = privateNvrLiveUrl(refreshed, source.channel, refreshed.input.stream_quality);

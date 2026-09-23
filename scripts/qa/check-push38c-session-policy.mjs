@@ -19,4 +19,13 @@ assert.equal(shouldRefreshPrivateNvrSession("source_not_media", { loginExclusivi
   "a fresh non-exclusive session must not rotate for a camera-specific source failure");
 assert.equal(shouldRefreshPrivateNvrSession("source_not_media", { loginExclusivity: false, sessionAgeMs: 240_000 }), false,
   "a mature non-exclusive session must still fail closed on a non-authentication response");
+assert.equal(shouldRefreshPrivateNvrSession("source_not_media", {
+  heartbeatConsecutiveFailures: 2, commonCauseSourceFailures: 8
+}), false, "two heartbeat failures are not enough to replace a shared login");
+assert.equal(shouldRefreshPrivateNvrSession("source_not_media", {
+  heartbeatConsecutiveFailures: 3, commonCauseSourceFailures: 1
+}), false, "one camera failure is not common-cause evidence");
+assert.equal(shouldRefreshPrivateNvrSession("source_not_media", {
+  heartbeatConsecutiveFailures: 3, commonCauseSourceFailures: 8
+}), true, "corroborated recorder-session loss permits one serialized replacement");
 console.log("push38c shared DVR session policy: PASS");

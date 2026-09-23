@@ -26,10 +26,14 @@ test("Gateway session stability is an immutable exact-device release", () => {
     [PUSH38_GATEWAY_SESSION_STABILITY.deviceId]);
 });
 
-test("only explicit authentication rejection may rotate the shared DVR session", () => {
+test("only authentication rejection or corroborated common-cause loss may rotate the shared DVR session", () => {
   assert.equal(shouldRefreshPrivateNvrSession("authentication_rejected"), true);
   assert.equal(shouldRefreshPrivateNvrSession("source_not_media",
     { loginExclusivity: false, sessionAgeMs: Number.MAX_SAFE_INTEGER }), false);
+  assert.equal(shouldRefreshPrivateNvrSession("source_not_media", {
+    loginExclusivity: false, sessionAgeMs: Number.MAX_SAFE_INTEGER,
+    heartbeatConsecutiveFailures: 3, commonCauseSourceFailures: 8
+  }), true);
   assert.equal(shouldRefreshPrivateNvrSession("source_transport_error"), false);
 });
 
