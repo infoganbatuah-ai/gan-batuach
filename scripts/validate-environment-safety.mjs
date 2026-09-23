@@ -39,6 +39,9 @@ if (publicSecretNames.length) {
 if (appEnvironment === "production" && !process.env.FIELD_ENCRYPTION_KEY_CURRENT && !process.env.FIELD_ENCRYPTION_KEY) {
   errors.push("Production requires a dedicated FIELD_ENCRYPTION_KEY_CURRENT or FIELD_ENCRYPTION_KEY; SUPABASE_SERVICE_ROLE_KEY is not an encryption key.");
 }
+if (appEnvironment === "production" && !process.env.FIELD_HASH_PEPPER) {
+  errors.push("Production requires a dedicated FIELD_HASH_PEPPER; the field-encryption key must not double as the lookup-hash pepper.");
+}
 
 const liveRequested = liveModeChecks.length > 0 || realSendFlags.length > 0;
 if (liveRequested) {
