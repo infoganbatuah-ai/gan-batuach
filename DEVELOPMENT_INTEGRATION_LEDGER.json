@@ -9158,6 +9158,54 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "Complete owner-approved credential recovery, configure required Production URL/health/cron/hash secrets, accept/prove provider database and private Storage recovery, reconcile actual all-in costs, then freeze an exact RC and obtain explicit Production release authorization."
+    },
+    {
+      "id": "codex/ux-implement-01",
+      "project": "Gan Batuach Management",
+      "title": "UX-IMPLEMENT-01 global design system and authentication visual implementation",
+      "owner": "UX-IMPLEMENT-01 owner",
+      "sourceBranch": "codex/ux-implement-01",
+      "sourceCommits": [
+        "82b587667947b06b6865c0a4c707c17aeede1426",
+        "509941650c9b360d3d9b4aa182e3f5a31c1afb45"
+      ],
+      "state": "PUSHED_REMOTE",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/ux-implement-01@509941650c9b360d3d9b4aa182e3f5a31c1afb45"
+        ],
+        "validatedSourceCommit": "509941650c9b360d3d9b4aa182e3f5a31c1afb45"
+      },
+      "validation": {
+        "status": "PARTIAL_VISUAL_TERMINAL_STATES_AND_EXACT_PR_CHECKS_PENDING",
+        "evidence": [
+          "GAN_BATUACH_UX01_DESIGN_SYSTEM_IMPLEMENTATION.md",
+          "GAN_BATUACH_UX01_VISUAL_QA_REPORT.md"
+        ],
+        "limits": "Captured desktop and mobile login, role selection, role registration, Email verification and recovery entry states pass the approved direction. Valid reset, signed invitation terminal states and registration success remain visually unqualified without a healthy isolated Auth fixture. Full repository lint reports pre-existing baseline no-explicit-any debt; changed-file lint passes."
+      },
+      "integration": {
+        "status": "PENDING_VISUAL_GATE",
+        "base": "integration/development",
+        "commit": null,
+        "pullRequest": 128,
+        "requiredChecks": "PENDING_EXACT_HEAD"
+      },
+      "dependencies": {
+        "status": "GB_M40_INTEGRATED",
+        "units": [
+          "codex/gb-m40-release-qualification"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "PASS_TYPECHECK_CHANGED_FILE_LINT_PRODUCTION_BUILD_9_DASHBOARD_10_SECURITY_243_MIGRATIONS_RELEASE_CONTRACT_VISUAL_PARTIAL",
+      "releaseEligibility": "BLOCKED_VISUAL_ACCEPTANCE",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Run terminal Auth-state visual QA with healthy isolated verification, recovery and signed-invitation fixtures; update PR #128 exact-head checks; merge only after every P0 state is VISUAL_PASS."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
