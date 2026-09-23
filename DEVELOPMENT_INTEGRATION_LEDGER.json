@@ -9167,26 +9167,29 @@
       "sourceBranch": "codex/ux-implement-01",
       "sourceCommits": [
         "82b587667947b06b6865c0a4c707c17aeede1426",
-        "509941650c9b360d3d9b4aa182e3f5a31c1afb45"
+        "509941650c9b360d3d9b4aa182e3f5a31c1afb45",
+        "cc24c2f6c61cd5bf6add55dd6bc01e7052c748fe"
       ],
       "state": "PUSHED_REMOTE",
       "preservation": {
         "remoteVerified": true,
         "remoteRefs": [
-          "origin/codex/ux-implement-01@509941650c9b360d3d9b4aa182e3f5a31c1afb45"
+          "origin/codex/ux-implement-01@509941650c9b360d3d9b4aa182e3f5a31c1afb45",
+          "origin/codex/ux-implement-01@cc24c2f6c61cd5bf6add55dd6bc01e7052c748fe"
         ],
-        "validatedSourceCommit": "509941650c9b360d3d9b4aa182e3f5a31c1afb45"
+        "validatedSourceCommit": "cc24c2f6c61cd5bf6add55dd6bc01e7052c748fe"
       },
       "validation": {
-        "status": "PARTIAL_VISUAL_TERMINAL_STATES_AND_EXACT_PR_CHECKS_PENDING",
+        "status": "PASS_VISUAL_AND_FUNCTIONAL_BRANCH_GATES",
         "evidence": [
           "GAN_BATUACH_UX01_DESIGN_SYSTEM_IMPLEMENTATION.md",
-          "GAN_BATUACH_UX01_VISUAL_QA_REPORT.md"
+          "GAN_BATUACH_UX01_VISUAL_QA_REPORT.md",
+          "qa-evidence/ux-implement-01/SHA256SUMS"
         ],
-        "limits": "Captured desktop and mobile login, role selection, role registration, Email verification and recovery entry states pass the approved direction. Valid reset, signed invitation terminal states and registration success remain visually unqualified without a healthy isolated Auth fixture. Full repository lint reports pre-existing baseline no-explicit-any debt; changed-file lint passes."
+        "limits": "Exact-head PR checks must be green before Development merge. Full repository lint retains the accepted baseline debt; lint:ci reports zero regressions. Visual fixtures are synthetic and isolated."
       },
       "integration": {
-        "status": "PENDING_VISUAL_GATE",
+        "status": "PENDING_EXACT_HEAD_CHECKS",
         "base": "integration/development",
         "commit": null,
         "pullRequest": 128,
@@ -9200,12 +9203,12 @@
       },
       "migrations": [],
       "migrationOrder": [],
-      "localVerification": "PASS_TYPECHECK_CHANGED_FILE_LINT_PRODUCTION_BUILD_9_DASHBOARD_10_SECURITY_243_MIGRATIONS_RELEASE_CONTRACT_VISUAL_PARTIAL",
-      "releaseEligibility": "BLOCKED_VISUAL_ACCEPTANCE",
+      "localVerification": "PASS_UX01_FOCUSED_68_OF_68_TYPECHECK_TARGETED_LINT_LINT_BASELINE_30_DOMAIN_10_SECURITY_243_MIGRATIONS_RELEASE_CONTRACT_22_PARENT_MANAGER_9_DASHBOARDS_PRODUCTION_BUILD_VISUAL_28_CAPTURES",
+      "releaseEligibility": "READY_FOR_DEVELOPMENT_INTEGRATION_AFTER_REQUIRED_CHECKS",
       "productionDeployment": {
         "status": "NOT_DEPLOYED"
       },
-      "nextAction": "Run terminal Auth-state visual QA with healthy isolated verification, recovery and signed-invitation fixtures; update PR #128 exact-head checks; merge only after every P0 state is VISUAL_PASS."
+      "nextAction": "Commit and push this ledger closure, wait for all required checks on the exact PR #128 head, merge only if green, then run cumulative Development verification. Production and UX-IMPLEMENT-02 remain out of scope."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
