@@ -18,7 +18,7 @@ Desktop uses a right-to-left form surface paired with a logo-derived blue Garden
 
 ## RTL and accessibility
 
-Layouts use logical CSS properties, visible focus, 44px minimum interactive targets and LTR Email input content inside RTL forms. Existing labels, `autocomplete` values, password-manager support and server error boundaries are retained. Animations are cosmetic and disabled for reduced-motion users.
+Layouts use logical CSS properties, visible focus, 44px minimum interactive targets and LTR Email input content inside RTL forms. The login password field now has an operable, labelled show/hide control. Existing labels, `autocomplete` values, password-manager support and server error boundaries are retained. Animations are cosmetic and disabled for reduced-motion users. Management Auth pages also have a CSS splash-exit fallback so delayed hydration cannot leave a blocking splash over the form.
 
 ## Functional boundaries
 
@@ -27,3 +27,5 @@ Email remains sufficient for standard account activation. Phone, SMS and WhatsAp
 ## Visual acceptance
 
 Review desktop and mobile welcome/login, role selection, a role-specific registration form, Email verification, invalid invitation and recovery/reset states against the approved direction: deep blue brand areas, light surfaces, rounded cards, restrained shadows, Hebrew hierarchy, clear CTA and no legacy dashboard chrome.
+
+The route-by-route visual evidence and remaining terminal-state gaps are recorded in `GAN_BATUACH_UX01_VISUAL_QA_REPORT.md`.

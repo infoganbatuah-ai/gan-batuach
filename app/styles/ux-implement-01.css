@@ -55,7 +55,14 @@
 .gb-auth-v2 .gb-role-register-form .button.primary.large, .gb-auth-v2 .app-auth-form .button.primary.large { min-height: 54px; border-radius: 16px; background: var(--gb-action-gradient); box-shadow: var(--gb-shadow-float); }
 
 .gb-reference-login { background: var(--gb-page-gradient); }
+body:has(.gb-reference-login) > .branded-splash,
+body:has(.gb-auth-flow-page) > .branded-splash,
+body:has(.gb-auth-v2) > .branded-splash { animation: gb-auth-splash-exit 420ms ease 720ms forwards; }
+@keyframes gb-auth-splash-exit { to { opacity: 0; visibility: hidden; pointer-events: none; } }
+html:has(.gb-reference-login), body:has(.gb-reference-login) { height: auto !important; max-height: none !important; overflow-x: hidden !important; overflow-y: auto !important; overscroll-behavior: auto !important; }
+body:has(.gb-reference-login) .gb-reference-login { position: static !important; width: 100% !important; height: auto !important; min-height: 100dvh !important; max-height: none !important; overflow: visible !important; }
 .gb-reference-login-inner { width: min(100%, 1180px); min-height: 100dvh; display: grid; grid-template-columns: minmax(0, .9fr) minmax(400px, .68fr); gap: clamp(28px, 6vw, 86px); padding: clamp(24px, 5vw, 72px); }
+body:has(.gb-reference-login) .gb-reference-login-inner { width: min(100%, 1180px) !important; min-height: 100dvh !important; max-height: none !important; overflow: visible !important; transform: none !important; }
 .gb-reference-brand-stage { min-height: 620px; border-radius: var(--gb-radius-xl); align-content: center; background: linear-gradient(180deg, rgb(5 36 89 / 10%), rgb(5 36 89 / 77%)), url('/assets/hero-control-center.png') center / cover; color: #fff; box-shadow: var(--gb-shadow-card); }
 .gb-reference-brand-stage::before { content: ''; position: absolute; inset: 0; border-radius: inherit; background: radial-gradient(circle at 50% 19%, rgb(88 181 255 / 39%), transparent 34%); z-index: -1; }
 .gb-reference-brand-stage p { color: #fff; font-size: 1.05rem; }
@@ -70,17 +77,21 @@
 .gb-reference-field input { min-height: 58px; border-color: var(--gb-line); border-radius: var(--gb-radius-sm); padding-inline: 18px 58px; background: #fff; color: var(--gb-ink); font-size: 1rem; }
 .gb-reference-field input:focus { border-color: var(--gb-primary); box-shadow: 0 0 0 4px rgb(18 84 184 / 12%); }
 .gb-reference-field-icon { inset-inline-end: 12px; inset-inline-start: auto; width: 36px; height: 36px; color: var(--gb-primary); background: #edf5ff; box-shadow: none; }
-.gb-reference-field-eye { inset-inline-start: 17px; inset-inline-end: auto; }
-.gb-reference-login-form .button.primary.large { min-height: 58px; border-radius: var(--gb-radius-sm); background: var(--gb-action-gradient); font-size: 1.1rem; box-shadow: var(--gb-shadow-float); }
+.gb-reference-field-eye { left: 12px; right: auto; width: 42px; height: 42px; border: 0; border-radius: 12px; background: transparent; color: var(--gb-muted); cursor: pointer; }
+.gb-reference-field-eye:hover { background: #edf5ff; color: var(--gb-primary); }
+body:has(.gb-reference-login) .gb-reference-login-form .button.primary.large { min-height: 58px !important; border-radius: var(--gb-radius-sm) !important; background: var(--gb-action-gradient) !important; background-color: var(--gb-primary) !important; color: #fff !important; font-size: 1.1rem !important; box-shadow: var(--gb-shadow-float) !important; }
 .gb-reference-security-card { direction: rtl; grid-template-columns: auto 1fr; border-color: #d6e5f7; border-radius: var(--gb-radius-md); background: #f4f9ff; box-shadow: none; }
 .gb-reference-security-shield { background: var(--gb-action-gradient); }
 
-.gb-auth-flow-page { min-height: 100dvh; display: grid; place-items: center; padding: clamp(20px, 4vw, 56px); background: var(--gb-page-gradient); }
+body:has(.gb-auth-flow-page) .gb-public-header { display: none; }
+.gb-auth-flow-page { min-height: 100dvh; display: grid; grid-template-rows: auto auto; place-content: center; place-items: center; gap: 24px; padding: clamp(20px, 4vw, 56px); background: var(--gb-page-gradient); }
+.gb-auth-flow-page::before { content: ''; width: 240px; height: 76px; background: url('/assets/company-symbol.png') right center / 60px auto no-repeat, url('/assets/company-name.png') left center / 162px auto no-repeat; }
 .gb-auth-flow-page .login-hero { width: min(100%, 980px); margin: 0; display: grid; grid-template-columns: minmax(0, 1fr) minmax(240px, .55fr); gap: 30px; border: 1px solid var(--gb-line); border-radius: var(--gb-radius-xl); padding: clamp(24px, 5vw, 56px); background: rgb(255 255 255 / 94%); box-shadow: var(--gb-shadow-card); }
+.gb-auth-flow-page h1 { font-size: clamp(2.25rem, 4vw, 3.5rem); line-height: 1.08; }
 .gb-auth-flow-page .auth-readiness-card { align-self: stretch; border-radius: var(--gb-radius-md); background: #edf6ff; }
 .gb-auth-flow-page .do-page-stack, .gb-auth-flow-page .form-grid { gap: 14px; }
 .gb-auth-flow-page .do-button, .gb-auth-flow-page .button { min-height: 52px; border-radius: var(--gb-radius-sm); }
-.gb-auth-flow-page .do-button.primary, .gb-auth-flow-page .button.primary { background: var(--gb-action-gradient); }
+.gb-auth-flow-page .do-button.primary, .gb-auth-flow-page .button.primary { background: var(--gb-action-gradient) !important; background-color: var(--gb-primary) !important; color: #fff !important; box-shadow: var(--gb-shadow-float); }
 .gb-auth-flow-page .do-field input, .gb-auth-flow-page .form-grid input { min-height: 52px; border-color: var(--gb-line); border-radius: var(--gb-radius-sm); }
-@media (max-width: 900px) { .gb-auth-v2-stage, .gb-reference-login-inner { grid-template-columns: 1fr; } .gb-auth-v2-story { display: none; } .gb-auth-v2 .gb-auth-page { padding: 20px 16px calc(24px + env(safe-area-inset-bottom)); } .gb-reference-login-inner { width: min(100%, 520px); padding: 18px 20px 32px; } .gb-reference-brand-stage { min-height: 230px; border-radius: 26px; } .gb-reference-logo-mark { width: 88px; height: 88px; } .gb-reference-logo-name { width: 174px; } .gb-auth-flow-page .login-hero { grid-template-columns: 1fr; padding: 24px 20px; } }
+@media (max-width: 900px) { .gb-auth-v2-stage, .gb-reference-login-inner { grid-template-columns: 1fr; } .gb-auth-v2-story { display: none; } .gb-auth-v2 .gb-auth-page { padding: 20px 16px calc(24px + env(safe-area-inset-bottom)); } .gb-reference-login-inner { width: min(100%, 520px); padding: 18px 20px 32px; } .gb-reference-brand-stage { min-height: 230px; border-radius: 26px; } .gb-reference-logo-mark { width: 88px; height: 88px; } .gb-reference-logo-name { width: 174px; } .gb-auth-flow-page { align-content: start; gap: 16px; padding: 24px 16px calc(30px + env(safe-area-inset-bottom)); } .gb-auth-flow-page::before { width: 196px; height: 62px; background-size: 48px auto, 132px auto; } .gb-auth-flow-page .login-hero { grid-template-columns: 1fr; padding: 24px 20px; } }
 @media (max-width: 520px) { .gb-auth-v2 .gb-auth-card { border-radius: 24px; padding: 22px 18px; } .gb-auth-v2 .gb-auth-page { padding-inline: 12px; } .gb-auth-v2 .gb-auth-role-grid { grid-template-columns: 1fr; } .gb-reference-login-inner { padding-inline: 16px; } .gb-reference-brand-stage { min-height: 200px; } .gb-reference-security-card { grid-template-columns: 62px minmax(0, 1fr); padding: 13px; } .gb-reference-security-shield { width: 58px; height: 58px; border-radius: 18px; } .gb-reference-security-shield svg { width: 40px; } }

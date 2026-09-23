@@ -4,7 +4,6 @@ import Image from "next/image";
 import {
   BarChart3,
   Building2,
-  EyeOff,
   Heart,
   Lock,
   Mail,
@@ -12,6 +11,7 @@ import {
   User,
   Users
 } from "lucide-react";
+import { AuthPasswordInput } from "@/components/auth-password-input";
 import { signIn } from "@/app/login/actions";
 import { LoginSubmitButton } from "@/components/auth-submit-button";
 import { dashboardPathForProfile, getSessionProfile } from "@/lib/auth";
@@ -64,17 +64,12 @@ export async function AppLoginScreen({ searchParams }: { searchParams?: Promise<
             <input type="hidden" name="next" value={params?.next ?? ""} />
 
             <label className="gb-reference-field">
-              <span className="sr-only">אימייל או טלפון</span>
+              <span className="sr-only">כתובת אימייל</span>
               <input name="email" type="email" required placeholder="כתובת אימייל" autoComplete="username" dir="ltr" />
               <span className="gb-reference-field-icon"><Mail size={28} /></span>
             </label>
 
-            <label className="gb-reference-field">
-              <span className="sr-only">סיסמה</span>
-              <input name="password" type="password" required placeholder="סיסמה" autoComplete="current-password" />
-              <span className="gb-reference-field-icon"><Lock size={27} /></span>
-              <span className="gb-reference-field-eye" aria-hidden="true"><EyeOff size={27} /></span>
-            </label>
+            <AuthPasswordInput />
 
             <div className="gb-reference-login-options">
               <label>
