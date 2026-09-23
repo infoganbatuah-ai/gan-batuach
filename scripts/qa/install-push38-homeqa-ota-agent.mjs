@@ -23,17 +23,19 @@ const livenessRecoveryUpgrade = process.argv.includes("--liveness-recovery-upgra
 const parentExitRecoveryUpgrade = process.argv.includes("--parent-exit-recovery-upgrade");
 const rtspSessionRecoveryUpgrade = process.argv.includes("--rtsp-session-recovery-upgrade");
 const gatewayAuthRecoveryUpgrade = process.argv.includes("--gateway-auth-recovery-upgrade");
+const gatewaySessionStabilityUpgrade = process.argv.includes("--gateway-session-stability-upgrade");
 if ([recoveryUpgrade, startupRecoveryUpgrade, livenessRecoveryUpgrade, parentExitRecoveryUpgrade,
-  rtspSessionRecoveryUpgrade, gatewayAuthRecoveryUpgrade].filter(Boolean).length > 1)
+  rtspSessionRecoveryUpgrade, gatewayAuthRecoveryUpgrade, gatewaySessionStabilityUpgrade].filter(Boolean).length > 1)
   throw new Error("P38_HOME_QA_AGENT_UPGRADE_MODE_INVALID");
 const managementUpgrade = process.argv.includes("--management-upgrade") || recoveryUpgrade ||
   startupRecoveryUpgrade || livenessRecoveryUpgrade || parentExitRecoveryUpgrade ||
-  rtspSessionRecoveryUpgrade || gatewayAuthRecoveryUpgrade;
+  rtspSessionRecoveryUpgrade || gatewayAuthRecoveryUpgrade || gatewaySessionStabilityUpgrade;
 if (apply === dryRun || !["SOFTWARE_CONNECTOR", "PHYSICAL_GATEWAY"].includes(profile))
   throw new Error("P38_HOME_QA_AGENT_MODE_OR_PROFILE_INVALID");
-if (managementUpgrade && profile !== "SOFTWARE_CONNECTOR" && !gatewayAuthRecoveryUpgrade)
+if (managementUpgrade && profile !== "SOFTWARE_CONNECTOR" &&
+  !gatewayAuthRecoveryUpgrade && !gatewaySessionStabilityUpgrade)
   throw new Error("P38_HOME_QA_AGENT_UPGRADE_PROFILE_INVALID");
-if (gatewayAuthRecoveryUpgrade && profile !== "PHYSICAL_GATEWAY")
+if ((gatewayAuthRecoveryUpgrade || gatewaySessionStabilityUpgrade) && profile !== "PHYSICAL_GATEWAY")
   throw new Error("P38_HOME_QA_AGENT_UPGRADE_PROFILE_INVALID");
 const connector = profile === "SOFTWARE_CONNECTOR";
 const spec = connector ? {
@@ -72,11 +74,16 @@ const spec = connector ? {
   deviceId: "62df97e2-3c0b-427f-9108-bde029bc10e7",
   baselineRelease: "qa-legacy-gateway-91bf6814075f",
   baselineSha: "91bf6814075f74e703cbc0b85d30673237531247ec46633c54576d5a4627144d",
-  remediationRelease: gatewayAuthRecoveryUpgrade ? "qa-p38-health-gateway-auth-4197f1a246f1" :
+  remediationRelease: gatewaySessionStabilityUpgrade ? "qa-p38-health-gateway-session-e354546bdbf8" :
+    gatewayAuthRecoveryUpgrade ? "qa-p38-health-gateway-auth-4197f1a246f1" :
     "qa-p38-health-gateway-6c9d08327ec6",
-  bundleName: gatewayAuthRecoveryUpgrade ? "gateway_remediation_auth.json" : "gateway_remediation.json",
-  priorManagement: gatewayAuthRecoveryUpgrade ? { release_id: "qa-p38-health-gateway-6c9d08327ec6",
-    artifact_sha256: "6c9d08327ec6f38db3fc55c4c344f4db6fc0d0adab5c68e3ec3f1c1164f11c95" } : null,
+  bundleName: gatewaySessionStabilityUpgrade ? "gateway_remediation_session_stability.json" :
+    gatewayAuthRecoveryUpgrade ? "gateway_remediation_auth.json" : "gateway_remediation.json",
+  priorManagement: gatewaySessionStabilityUpgrade ? {
+    release_id: "qa-p38-health-gateway-auth-4197f1a246f1",
+    artifact_sha256: "4197f1a246f1cf4dcb909d8b6e03651a05753c1b6fffdc727484e5410686bdef" } :
+    gatewayAuthRecoveryUpgrade ? { release_id: "qa-p38-health-gateway-6c9d08327ec6",
+      artifact_sha256: "6c9d08327ec6f38db3fc55c4c344f4db6fc0d0adab5c68e3ec3f1c1164f11c95" } : null,
   rootName: "observer-gateway", label: "com.ganbatuach.video-gateway", port: 18082,
   installedBase: join(homedir(), ".local/share/gan-batuach/video-gateway"), expected: 8, configured: 10
 };
@@ -115,6 +122,8 @@ const bundle = resolve(bundleOverride || (rtspSessionRecoveryUpgrade
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-connector-startup.zip"
   : recoveryUpgrade
     ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-connector-recovery.zip"
+  : gatewaySessionStabilityUpgrade
+    ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-gateway-session-stability.zip"
   : gatewayAuthRecoveryUpgrade
     ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-gateway-auth.zip"
   : managementUpgrade

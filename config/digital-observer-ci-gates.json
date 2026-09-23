@@ -53,6 +53,7 @@
     "app/digital-observer/rules/page.tsx",
     "app/api/video-gateway/event-manifest/route.ts",
     "services/video-gateway/edge-parent-shutdown.mjs",
+    "services/video-gateway/private-nvr-session-policy.mjs",
     "scripts/run-persistent-home-gateway.mjs"
   ],
   "domain": [
@@ -88,6 +89,7 @@
     { "name": "investigation", "args": ["--test", "scripts/qa/check-digital-observer-investigation.mjs"] }
   ],
   "security": [
+    { "name": "gateway-session-stability", "args": ["scripts/qa/check-push38-gateway-session-stability.mjs"] },
     { "name": "connector-rtsp-session-recovery", "args": ["scripts/qa/check-push38-connector-rtsp-session-recovery.mjs"] },
     { "name": "connector-parent-exit-recovery", "args": ["scripts/qa/check-push38-connector-parent-exit-recovery.mjs"] },
     { "name": "edge-parent-shutdown", "args": ["scripts/qa/check-edge-parent-shutdown.mjs"] },
