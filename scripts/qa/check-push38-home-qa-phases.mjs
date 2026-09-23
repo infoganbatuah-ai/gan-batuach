@@ -8,6 +8,7 @@ const connectorFix = "qa-p38-health-connector-pidfix-1b9e9499ffa7";
 const connectorRecovery = "qa-p38-health-connector-recovery-9bb5db251379";
 const connectorStartup = "qa-p38-health-connector-startup-d44b7e4262f9";
 const connectorLiveness = "qa-p38-health-connector-liveness-bb89862c6352";
+const connectorParentExit = "qa-p38-health-connector-parent-exit-f7dba974e80f";
 const supersededConnectorFix = "qa-p38-health-connector-1b076f596574";
 const gatewayFix = "qa-p38-health-gateway-6c9d08327ec6";
 const gatewayAuthRecovery = "qa-p38-health-gateway-auth-4197f1a246f1";
@@ -19,6 +20,7 @@ const connectorRemediation = manifest(connectorFix, connectorId, "SOFTWARE_CONNE
 const connectorRecoveryRemediation = manifest(connectorRecovery, connectorId, "SOFTWARE_CONNECTOR");
 const connectorStartupRemediation = manifest(connectorStartup, connectorId, "SOFTWARE_CONNECTOR");
 const connectorLivenessRemediation = manifest(connectorLiveness, connectorId, "SOFTWARE_CONNECTOR");
+const connectorParentExitRemediation = manifest(connectorParentExit, connectorId, "SOFTWARE_CONNECTOR");
 const gatewayRemediation = manifest(gatewayFix, gatewayId, "PHYSICAL_GATEWAY");
 const gatewayAuthRemediation = manifest(gatewayAuthRecovery, gatewayId, "PHYSICAL_GATEWAY");
 assert.equal(HOME_QA_PHASE.LEGACY, "LEGACY_VERIFIED_FOR_TRANSITION");
@@ -33,6 +35,7 @@ assert.equal(homeQaManagedPhaseAllows({ enrollment: connector, manifest: connect
 assert.equal(homeQaManagedPhaseAllows({ enrollment: connector, manifest: connectorRecoveryRemediation }), true);
 assert.equal(homeQaManagedPhaseAllows({ enrollment: connector, manifest: connectorStartupRemediation }), true);
 assert.equal(homeQaManagedPhaseAllows({ enrollment: connector, manifest: connectorLivenessRemediation }), true);
+assert.equal(homeQaManagedPhaseAllows({ enrollment: connector, manifest: connectorParentExitRemediation }), true);
 assert.equal(homeQaManagedPhaseAllows({ enrollment: gateway, manifest: gatewayRemediation }), true);
 assert.equal(homeQaManagedPhaseAllows({ enrollment: gateway, manifest: gatewayAuthRemediation }), true);
 for (const bad of [

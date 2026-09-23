@@ -12,6 +12,8 @@ import { issuePush38ConnectorStartupRecovery } from "../release/issue-push38-hom
 import { PUSH38_CONNECTOR_STARTUP_RECOVERY } from "../../services/video-gateway/push38-home-qa-connector-startup.mjs";
 import { issuePush38ConnectorLivenessRecovery } from "../release/issue-push38-home-qa-connector-liveness.mjs";
 import { PUSH38_CONNECTOR_LIVENESS_RECOVERY } from "../../services/video-gateway/push38-home-qa-connector-liveness.mjs";
+import { issuePush38ConnectorParentExitRecovery } from "../release/issue-push38-home-qa-connector-parent-exit.mjs";
+import { PUSH38_CONNECTOR_PARENT_EXIT_RECOVERY } from "../../services/video-gateway/push38-home-qa-connector-parent-exit.mjs";
 import { issuePush38GatewayAuthRecovery } from "../release/issue-push38-home-qa-gateway-auth-recovery.mjs";
 import { PUSH38_GATEWAY_AUTH_RECOVERY } from "../../services/video-gateway/push38-home-qa-gateway-auth-recovery.mjs";
 import { verifyEdgeUpdateManifest } from "../../services/video-gateway/edge-update-contract.mjs";
@@ -94,6 +96,21 @@ try {
   assert.equal(verifyEdgeUpdateManifest(livenessManifest, { [keyId]: publicBytes.toString("base64url") }).ok, true);
   assert.equal(livenessManifest.artifact_sha256, PUSH38_CONNECTOR_LIVENESS_RECOVERY.digest);
   assert.deepEqual(livenessManifest.rollout.explicit_device_ids, [PUSH38_CONNECTOR_LIVENESS_RECOVERY.deviceId]);
+  const parentExitOutput = join(root, "parent-exit-issued");
+  await assert.rejects(issuePush38ConnectorParentExitRecovery({ env: { ...env,
+    HOME_QA_OUTPUT_DIR: parentExitOutput, PUSH38_CANDIDATE_SHA: "f".repeat(40) }, call }),
+  /P38_PARENT_EXIT_SIGNING_CONTEXT_INVALID/);
+  const parentExit = await issuePush38ConnectorParentExitRecovery({ env: { ...env,
+    HOME_QA_OUTPUT_DIR: parentExitOutput,
+    PUSH38_CANDIDATE_SHA: PUSH38_CONNECTOR_PARENT_EXIT_RECOVERY.buildSha }, call });
+  const parentExitManifest = JSON.parse(readFileSync(join(parentExitOutput,
+    "connector_remediation_parent_exit.json")));
+  assert.equal(parentExit.release_id, PUSH38_CONNECTOR_PARENT_EXIT_RECOVERY.releaseId);
+  assert.equal(verifyEdgeUpdateManifest(parentExitManifest,
+    { [keyId]: publicBytes.toString("base64url") }).ok, true);
+  assert.equal(parentExitManifest.artifact_sha256, PUSH38_CONNECTOR_PARENT_EXIT_RECOVERY.digest);
+  assert.deepEqual(parentExitManifest.rollout.explicit_device_ids,
+    [PUSH38_CONNECTOR_PARENT_EXIT_RECOVERY.deviceId]);
   const gatewayAuthOutput = join(root, "gateway-auth-issued");
   await assert.rejects(issuePush38GatewayAuthRecovery({ env: { ...env,
     HOME_QA_OUTPUT_DIR: gatewayAuthOutput, PUSH38_CANDIDATE_SHA: "f".repeat(40) }, call }),
@@ -108,6 +125,7 @@ try {
   console.log(JSON.stringify({ result: "PASS", signed_fixture_manifests: result.length,
     signed_pidfix_fixture_manifests: 1, signed_recovery_fixture_manifests: 1,
     signed_startup_recovery_fixture_manifests: 1, signed_liveness_recovery_fixture_manifests: 1,
+    signed_parent_exit_recovery_fixture_manifests: 1,
     signed_gateway_auth_recovery_fixture_manifests: 1,
     unauthorized_branch_rejected: true, live_aws: "NOT_TESTED" }));
 } finally { rmSync(root, { recursive: true, force: true }); }
