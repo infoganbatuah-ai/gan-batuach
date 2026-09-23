@@ -10,7 +10,7 @@ import { buildPush38GatewayAuthRecoveryManifest } from "../../services/video-gat
 import { readR2KeychainCredentials } from "./macos-r2-keychain.mjs";
 
 const origin = "https://693f824a750afcc264fe6ee58c8a86ab.r2.cloudflarestorage.com";
-const restrictedRoot = "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted";
+const restrictedRoot = fileURLToPath(new URL("../../exports/restricted/", import.meta.url));
 const fail = code => { throw new Error(code); };
 async function hashStream(stream, limit) {
   const hash = createHash("sha256"); let size = 0;
