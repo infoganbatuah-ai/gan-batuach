@@ -1,8 +1,8 @@
 # Gan Batuach Management Production Migration Plan
 
-Date: 2026-09-23  
-Production baseline: `8113d0607e4282dc8778540aa58c1502367f4221`  
-Development candidate baseline: `285f3400eb1402a83fea606a5bb2e49525e6eed4`  
+Date: 2026-09-23
+Production baseline: `8113d0607e4282dc8778540aa58c1502367f4221`
+Development candidate baseline: `285f3400eb1402a83fea606a5bb2e49525e6eed4`
 Production migration head observed read-only: `20260913194000`
 
 ## Reconciliation
