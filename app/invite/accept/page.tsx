@@ -4,5 +4,5 @@ import { getSessionProfile } from "@/lib/auth";
 
 export default async function InvitationAcceptPage({ searchParams }: { searchParams: Promise<{ token?: string }> }) {
   const [{ token = "" }, session] = await Promise.all([searchParams, getSessionProfile()]);
-  return <><BrandHeader /><InvitationAcceptScreen token={token} signedInRole={session.user ? session.profile?.role ?? null : null} /></>;
+  return <><BrandHeader /><main className="gb-auth-flow-page" dir="rtl"><InvitationAcceptScreen token={token} signedInRole={session.user ? session.profile?.role ?? null : null} /></main></>;
 }

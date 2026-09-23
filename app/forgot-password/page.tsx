@@ -15,7 +15,7 @@ export default async function ForgotPasswordPage({ searchParams }: PageProps) {
   return (
     <>
       <BrandHeader />
-      <main className="section login-journey-page">
+      <main className="gb-auth-flow-page" dir="rtl">
         <section className="login-hero compact-auth-hero">
           <div>
             <p className="eyebrow">שחזור גישה</p>

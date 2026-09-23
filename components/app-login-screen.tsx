@@ -4,7 +4,7 @@ import Image from "next/image";
 import {
   BarChart3,
   Building2,
-  Eye,
+  EyeOff,
   Heart,
   Lock,
   Mail,
@@ -47,7 +47,7 @@ export async function AppLoginScreen({ searchParams }: { searchParams?: Promise<
             <Image src="/assets/company-symbol.png" alt="" width={236} height={236} priority />
           </div>
           <Image className="gb-reference-logo-name" src="/assets/company-name.png" alt="גן בטוח" width={420} height={112} priority />
-          <p>סביבה בטוחה. חיבורים שמחזיקים. עתיד טוב יותר.</p>
+          <p>ניהול גן שמתחיל באמון.</p>
           <Heart className="gb-reference-heart" size={31} fill="currentColor" />
         </section>
 
@@ -65,7 +65,7 @@ export async function AppLoginScreen({ searchParams }: { searchParams?: Promise<
 
             <label className="gb-reference-field">
               <span className="sr-only">אימייל או טלפון</span>
-              <input name="email" type="email" required placeholder="אימייל או טלפון" autoComplete="username" />
+              <input name="email" type="email" required placeholder="כתובת אימייל" autoComplete="username" dir="ltr" />
               <span className="gb-reference-field-icon"><Mail size={28} /></span>
             </label>
 
@@ -73,7 +73,7 @@ export async function AppLoginScreen({ searchParams }: { searchParams?: Promise<
               <span className="sr-only">סיסמה</span>
               <input name="password" type="password" required placeholder="סיסמה" autoComplete="current-password" />
               <span className="gb-reference-field-icon"><Lock size={27} /></span>
-              <span className="gb-reference-field-eye" aria-hidden="true"><Eye size={27} /></span>
+              <span className="gb-reference-field-eye" aria-hidden="true"><EyeOff size={27} /></span>
             </label>
 
             <div className="gb-reference-login-options">
@@ -87,7 +87,7 @@ export async function AppLoginScreen({ searchParams }: { searchParams?: Promise<
             <LoginSubmitButton />
           </form>
 
-          <p className="gb-reference-register-line">אין לכם חשבון? <Link href="/app/register">הרשמה</Link></p>
+          <p className="gb-reference-register-line">אין לכם חשבון? <Link href="/app/register">יצירת חשבון</Link></p>
 
           <aside className="gb-reference-security-card" aria-label="כניסה אחת לכל סוגי המשתמשים">
             <div className="gb-reference-security-shield"><ShieldCheck size={82} /></div>
