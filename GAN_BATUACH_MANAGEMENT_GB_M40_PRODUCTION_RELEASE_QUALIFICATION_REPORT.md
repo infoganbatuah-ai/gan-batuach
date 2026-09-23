@@ -138,3 +138,7 @@ No GB-M40 blocker introduces a new core user-facing screen. The surviving GB-M38
 ## Owner actions and recommendation
 
 The exact decisions and work split are in the owner-action matrix. The next technical step is not Production release: approve and execute credential recovery, required secret/URL configuration, provider restore acceptance and cost reconciliation, then freeze a new exact RC and run this package. Production and `main` remain unchanged.
+
+## Development integration closure
+
+PR #125 passed all nine required checks on exact head `97c5fff353b0a5fc9cf2bb5ef2dac605bab6aeba` and merged to `integration/development` at `494b8e9c768c261dda62158b532deef3e9375c78`. A clean post-merge worktree passed Security 10/10, Domain 30/30, migration audit 243/243 and Parent/Manager 22/22. The sparse-checkout-only missing Markdown test contracts were materialized from the same commit before the Domain rerun; no source change was required. Production/main remain `8113d0607e4282dc8778540aa58c1502367f4221`, no Production migration or provider configuration changed, and the release decision remains `NO — BLOCKERS REMAIN`.

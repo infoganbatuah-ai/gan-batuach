@@ -402,3 +402,15 @@ focused Management suites, Parent/Manager 22/22, Production build, lint,
 release preflight, 16-migration rehearsal, private Storage recovery and built
 health/protection smoke. Production and `main` are unchanged; GB-M40 is
 `PUSHED_REMOTE` and pending protected PR integration only.
+
+GB-M40 Development integration closure (2026-09-23): PR #125 passed all nine
+required checks on exact head `97c5fff353b0a5fc9cf2bb5ef2dac605bab6aeba`
+and merged to `integration/development` at
+`494b8e9c768c261dda62158b532deef3e9375c78`. A new clean detached integration
+worktree passed Security 10/10, Domain 30/30, migration audit 243/243 and the
+Parent/Manager contract 22/22; the exact feature head had also passed all
+focused Management suites, typecheck, Production build, lint regression,
+release preflight, 16-migration rehearsal, private Storage recovery proof and
+built-server health/protection smoke. No migration was added or applied, main
+and Production remain unchanged, and the documented Production readiness
+blockers remain binding.
