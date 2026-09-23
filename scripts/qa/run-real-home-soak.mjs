@@ -77,8 +77,10 @@ function classifyCheckpoint(probe, resource, expected) {
 }
 function classifyGatewayCheckpoint(probe, resource) {
   const discovery = probe.body?.lastDiscovery || {}, progressing = Number(probe.body?.mediaHeartbeat?.progressingRelays ?? 0);
-  if (resource?.inspection_ok === false && probe.ok) return "MONITOR_FAILURE";
-  if (!probe.ok || !resource?.runtime_pid) return "PRODUCT_FAILURE";
+  const expectedDegradedPayload = probe.http_status === 200 &&
+    probe.body?.contract === "observer-edge-health-v1" && probe.body?.status === "degraded";
+  if (resource?.inspection_ok === false && (probe.ok || expectedDegradedPayload)) return "MONITOR_FAILURE";
+  if ((!probe.ok && !expectedDegradedPayload) || !resource?.runtime_pid) return "PRODUCT_FAILURE";
   if (discovery.assignedCount !== 10 || discovery.connectedCount !== 8 ||
     discovery.failedAssignedCount !== 2 || discovery.unassignedCount !== 6 ||
     progressing !== 8 || probe.body?.status !== "degraded") return "PRODUCT_FAILURE";
@@ -166,21 +168,50 @@ async function deepProbe(sourceList) {
   let verified = 0; const failures = [], successes = [];
   for (const source of sourceList) { const name = source.tapo ? "tapo" : `dvr-${source.channel}`; try { const response = await fetch(`http://127.0.0.1:${source.port}/camera/${encodeURIComponent(source.id)}/playback`, { headers: { "x-video-gateway-secret": source.secret }, signal: AbortSignal.timeout(10_000) }); const body = await response.json(); const url = body.playback?.hls_url; if (!response.ok || !url || !["127.0.0.1", "localhost"].includes(new URL(url).hostname) || !await decodeFrame(url)) throw new Error("PLAYBACK_FRAME_UNAVAILABLE"); verified++; successes.push(name); } catch { failures.push(name); } }
   const policy = await aiPolicy(sourceList);
-  const aiSources = sourceList.filter(source => policy.eligible.has(source.id));
-  const aiStarted = Date.now(), aiLatencies = [], aiFailures = [], models = new Set();
-  for (const source of aiSources) {
-    const started = Date.now();
+  const aiStarted = Date.now();
+  let ai;
+  if (policy.failures.length) {
+    // The bounded HOME_QA ingress intentionally exposes OTA authorization
+    // only. Prove the real camera -> scheduler -> durable queue -> worker ->
+    // inference path with the dedicated read-only local qualification instead
+    // of weakening ingress to expose the Product event-manifest route.
     try {
-      const response = await fetch(`http://127.0.0.1:${source.port}/camera/${encodeURIComponent(source.id)}/detections`, { headers: { "x-video-gateway-secret": source.secret }, signal: AbortSignal.timeout(75_000) });
-      const body = await response.json();
-      if (!response.ok || body.insight?.object_detection?.status !== "sampled") throw new Error("AI_SAMPLE_UNAVAILABLE");
-      aiLatencies.push(Date.now() - started);
-      if (body.insight?.object_detection?.model_provenance?.model) models.add(body.insight.object_detection.model_provenance.model);
-    } catch { aiFailures.push(source.tapo ? "tapo" : `dvr-${source.channel}`); }
+      const { stdout } = await exec(process.execPath, ["scripts/qa/measure-real-home-ai-routing.mjs"],
+        { cwd: process.cwd(), timeout: 120_000, maxBuffer: 4 * 1024 * 1024 });
+      const proof = JSON.parse(stdout);
+      const passed = proof.status === "PASS" && proof.mode === "READ_ONLY_REAL_CAMERA_ROUTING" &&
+        proof.result?.job_id && proof.result?.model && proof.result?.runtime;
+      ai = { ok: Boolean(passed), expected: 1, verified: passed ? 1 : 0, failed: passed ? 0 : 1,
+        failures: passed ? [] : ["real-camera-routing"], policy_excluded: [], manifest_failures: policy.failures,
+        qualification_path: proof.path ?? null, event_fabricated: proof.event_fabricated === true,
+        latency_ms: Date.now() - aiStarted, per_source_latency_ms: [proof.result?.total_ms].filter(Number.isFinite),
+        models: proof.result?.model ? [proof.result.model] : [] };
+    } catch {
+      ai = { ok: false, expected: 1, verified: 0, failed: 1, failures: ["real-camera-routing"],
+        policy_excluded: [], manifest_failures: policy.failures, latency_ms: Date.now() - aiStarted,
+        per_source_latency_ms: [], models: [] };
+    }
+  } else {
+    const aiSources = sourceList.filter(source => policy.eligible.has(source.id));
+    const aiLatencies = [], aiFailures = [], models = new Set();
+    for (const source of aiSources) {
+      const started = Date.now();
+      try {
+        const response = await fetch(`http://127.0.0.1:${source.port}/camera/${encodeURIComponent(source.id)}/detections`, { headers: { "x-video-gateway-secret": source.secret }, signal: AbortSignal.timeout(75_000) });
+        const body = await response.json();
+        if (!response.ok || body.insight?.object_detection?.status !== "sampled") throw new Error("AI_SAMPLE_UNAVAILABLE");
+        aiLatencies.push(Date.now() - started);
+        if (body.insight?.object_detection?.model_provenance?.model) models.add(body.insight.object_detection.model_provenance.model);
+      } catch { aiFailures.push(source.tapo ? "tapo" : `dvr-${source.channel}`); }
+    }
+    ai = { ok: aiSources.length > 0 && aiFailures.length === 0, expected: aiSources.length,
+      verified: aiSources.length - aiFailures.length, failed: aiFailures.length, failures: aiFailures,
+      policy_excluded: policy.excluded.map(value => sourceList.find(source => source.id === value.stream_id)?.tapo
+        ? { source: "tapo", reason: value.reason }
+        : { source: `dvr-${sourceList.find(source => source.id === value.stream_id)?.channel ?? "unknown"}`, reason: value.reason }),
+      manifest_failures: [], latency_ms: Date.now() - aiStarted, per_source_latency_ms: aiLatencies,
+      models: [...models].sort() };
   }
-  const ai = { ok: policy.failures.length === 0 && aiSources.length > 0 && aiFailures.length === 0, expected: aiSources.length, verified: aiSources.length - aiFailures.length,
-    failed: aiFailures.length, failures: aiFailures, policy_excluded: policy.excluded.map(value => sourceList.find(source => source.id === value.stream_id)?.tapo ? { source: "tapo", reason: value.reason } : { source: `dvr-${sourceList.find(source => source.id === value.stream_id)?.channel ?? "unknown"}`, reason: value.reason }),
-    manifest_failures: policy.failures, latency_ms: Date.now() - aiStarted, per_source_latency_ms: aiLatencies, models: [...models].sort() };
   const sampled = [];
   for (const source of sourceList) { try { let response = await fetch(`http://127.0.0.1:${source.port}/camera/${encodeURIComponent(source.id)}/activity`, { headers: { "x-video-gateway-secret": source.secret }, signal: AbortSignal.timeout(30_000) }); if (response.status === 404) response = await fetch(`http://127.0.0.1:${source.port}/camera/${encodeURIComponent(source.id)}/insights`, { headers: { "x-video-gateway-secret": source.secret }, signal: AbortSignal.timeout(45_000) }); const body = await response.json(); if (response.ok && body.local_processing === true && body.insight?.sampled_at) sampled.push(source.id); } catch {} }
   return { playback: { verified, failed: failures.length, successes, failures }, ai,
