@@ -121,7 +121,21 @@ async function sources() {
   const dvr = [1,2,3,4,5,6,7,8,10,11].map(channel => ({ id: `dvr_${createHash("sha256").update([profile.connection_type || "dvr", host, channel, namespace].join(":")).digest("hex").slice(0,18)}_${channel}`,
     channel, port: 18082, secret: gatewaySecret, source_available: DVR_AVAILABLE_CHANNELS.includes(channel),
     upstream_unavailable: DVR_UPSTREAM_UNAVAILABLE.includes(channel) }));
-  return [...dvr, { id: connectorSecret("connector_gateway_stream_id"), channel: 1, port: 18083, secret: connectorSecret("gateway_signing_secret"), tapo: true }];
+  // The cloud-mapped camera Source ID and the local relay stream ID are
+  // intentionally different identities. During bounded HOME_QA ingress the
+  // Product mapping route is not exposed, so playback must address the local
+  // relay by the same deterministic namespace contract used by the runtime.
+  // Keep the canonical Source ID only as continuity metadata.
+  const connectorProfile = JSON.parse(connectorSecret("dvr_profile_json"));
+  const connectorHost = new URL(connectorProfile.endpoint.includes("://")
+    ? connectorProfile.endpoint : `rtsp://${connectorProfile.endpoint}`).hostname;
+  const connectorNamespace = connectorSecret("connector_stream_namespace")
+    .trim().replace(/[^a-zA-Z0-9._:-]/g, "").slice(0, 80);
+  const connectorLocalStreamId = `dvr_${createHash("sha256").update([
+    connectorProfile.connection_type || "dvr", connectorHost, 1, connectorNamespace
+  ].join(":")).digest("hex").slice(0,18)}_1`;
+  return [...dvr, { id: connectorLocalStreamId, camera_source_id: connectorSecret("connector_camera_source_id"),
+    channel: 1, port: 18083, secret: connectorSecret("gateway_signing_secret"), tapo: true }];
 }
 async function decodeFrame(url) { try { await exec(ffmpegCommand, ["-hide_banner", "-loglevel", "error", "-i", url, "-frames:v", "1", "-f", "null", "-"], { timeout: 20_000, maxBuffer: 1024 * 1024 }); return true; } catch { return false; } }
 async function aiPolicy(sourceList) {
