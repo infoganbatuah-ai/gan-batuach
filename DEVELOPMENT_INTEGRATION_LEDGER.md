@@ -414,3 +414,12 @@ release preflight, 16-migration rehearsal, private Storage recovery proof and
 built-server health/protection smoke. No migration was added or applied, main
 and Production remain unchanged, and the documented Production readiness
 blockers remain binding.
+
+UX-00 visual-design brief (2026-09-23): `codex/ux-00-visual-design-brief` at
+`d3b2fa49` contains only the canonical visual-design brief and reference index.
+It derives 52 canonical screen families (22 P0, 24 P1 and 6 P2) into 83
+reference requests, with explicit RTL, accessibility, responsive and truthful
+state requirements. It excludes redirected, legacy, QA/internal and Digital
+Observer standalone surfaces. No product code, CSS, schema, migration or
+Production change is included. It is remotely preserved and open for review as
+PR #127; UX-01 must wait for approved visual references.

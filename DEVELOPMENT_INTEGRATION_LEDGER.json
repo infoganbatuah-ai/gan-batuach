@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-09-23T23:55:00+03:00",
+  "updatedAt": "2026-09-23T06:00:00+03:00",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -9158,6 +9158,52 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "Complete owner-approved credential recovery, configure required Production URL/health/cron/hash secrets, accept/prove provider database and private Storage recovery, reconcile actual all-in costs, then freeze an exact RC and obtain explicit Production release authorization."
+    },
+    {
+      "id": "codex/ux-00-visual-design-brief",
+      "project": "Gan Batuach Management",
+      "title": "UX-00 final visual design brief and design reference index",
+      "owner": "UX-00 owner",
+      "sourceBranch": "codex/ux-00-visual-design-brief",
+      "sourceCommits": [
+        "d3b2fa49"
+      ],
+      "state": "VALIDATED_ON_BRANCH",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/ux-00-visual-design-brief@9c85359b"
+        ],
+        "validatedSourceCommit": "d3b2fa49"
+      },
+      "validation": {
+        "status": "PASS_DOCUMENTATION_SCOPE",
+        "evidence": [
+          "GAN_BATUACH_MANAGEMENT_UX00_VISUAL_DESIGN_BRIEF.md",
+          "GAN_BATUACH_MANAGEMENT_UX00_DESIGN_REFERENCE_INDEX.md"
+        ],
+        "limits": "Documentation only; no product code, CSS, schema, migration, Digital Observer core or Production change. Visual approval is required before UX-01 implementation."
+      },
+      "integration": {
+        "status": "PENDING_REVIEW",
+        "base": "integration/development",
+        "commit": null,
+        "pullRequest": 127
+      },
+      "dependencies": {
+        "status": "GB_M40_INTEGRATED",
+        "units": [
+          "codex/gb-m40-release-qualification"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "PASS_DOCUMENT_INVENTORY_ROUTE_MAPPING_DIFF_CHECK",
+      "releaseEligibility": "NOT_APPLICABLE_VISUAL_SPEC_ONLY",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Review and approve the visual reference brief. Do not begin UX-01 until an approved reference supplies route, role, state, viewport, copy, component mapping and acceptance criteria."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
