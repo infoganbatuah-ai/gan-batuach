@@ -194,7 +194,13 @@ test("generic RTSP discovery registers a relay source instead of probe-only read
   const readiness = source("services/video-gateway/edge-readiness.mjs");
   assert.match(gateway, /kind: "rtsp"/);
   assert.match(gateway, /directRtsp/);
-  assert.match(gateway, /-rtsp_transport/);
+  assert.match(gateway, /function protectedRtspInput/);
+  assert.match(gateway, /option rtsp_transport tcp/);
+  assert.match(gateway, /"-protocol_whitelist",\s*"pipe,rtsp,tcp,udp,rtp,http,https,tls,crypto"/);
+  assert.match(gateway, /child\.stdin\.end\(content\)/);
+  assert.match(gateway, /activeCandidate && relayIsProgressing\(currentRelay\)/);
+  assert.match(gateway, /reason: "active_relay_verified"/);
+  assert.doesNotMatch(gateway, /"-i", source\.url/);
   assert.match(gateway, /controller\?\.abort\(\)/);
   assert.match(gateway, /relay\.process\.stdin\?\.writableNeedDrain/);
   assert.match(inference, /VIDEO_GATEWAY_OBJECT_WORKER_PATH/);

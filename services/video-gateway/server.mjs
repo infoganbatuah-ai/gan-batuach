@@ -509,6 +509,27 @@ function candidateUrls(input, channel) {
   return all;
 }
 
+function protectedRtspInput(url) {
+  const parsed = new URL(url);
+  if (parsed.protocol !== "rtsp:" || parsed.hash || /[\r\n']/.test(url)) {
+    throw new Error("RTSP_SOURCE_URL_INVALID");
+  }
+  const content = [
+    "ffconcat version 1.0",
+    `file '${url}'`,
+    "option rtsp_transport tcp",
+    `option timeout ${Math.max(1_000, PROBE_TIMEOUT_MS) * 1000}`,
+    ""
+  ].join("\n");
+  return {
+    args: ["-f", "concat", "-safe", "0",
+      "-protocol_whitelist", "pipe,rtsp,tcp,udp,rtp,http,https,tls,crypto", "-i", "pipe:0"],
+    attach(child) {
+      child.stdin.end(content);
+    }
+  };
+}
+
 function streamIdFor(input, channel) {
   const namespace = String(input.metadata?.stream_namespace || "").trim().replace(/[^a-zA-Z0-9._:-]/g, "").slice(0, 80);
   const fingerprint = createHash("sha256")
@@ -906,15 +927,15 @@ async function discoverPrivateNvr(payload, channelCount) {
 function probeRtsp(url) {
   return new Promise((resolve) => {
     const timeoutMs = Number.isFinite(PROBE_TIMEOUT_MS) ? Math.max(1000, PROBE_TIMEOUT_MS) : 3500;
+    const input = protectedRtspInput(url);
     const args = [
       "-v", "error",
-      "-rtsp_transport", "tcp",
-      "-timeout", String(timeoutMs * 1000),
+      ...input.args,
       "-show_entries", "stream=codec_name,codec_type,width,height",
-      "-of", "json",
-      url
+      "-of", "json"
     ];
-    const child = spawn("ffprobe", args, { stdio: ["ignore", "pipe", "ignore"] });
+    const child = spawn("ffprobe", args, { stdio: ["pipe", "pipe", "ignore"] });
+    input.attach(child);
     let output = "";
     let bytes = 0, settled = false;
     let timeout;
@@ -949,10 +970,35 @@ async function probeChannel(input, channel) {
   if (!candidates.length) {
     return { channel, status: "pending", reason: "missing_endpoint", candidates_tried: 0, capabilities: mediaCapabilities({ ok: false, audio: false }, "generic_rtsp") };
   }
+  const streamId = streamIdFor(input, channel);
+  const currentSource = streamSources.get(streamId);
+  const currentRelay = relays.get(streamId);
+  const activeCandidate = currentSource?.kind === "rtsp" && currentSource.channel === channel
+    ? candidates.find((candidate) => candidate.url === currentSource.url) : null;
+  // A progressing relay is stronger evidence than opening another RTSP
+  // session. Reuse it during periodic discovery so small cameras do not hit
+  // their concurrent-stream limit merely because Product health is polling.
+  if (activeCandidate && relayIsProgressing(currentRelay)) {
+    return {
+      channel,
+      name: `DVR ערוץ ${channel}`,
+      area: `ערוץ ${channel}`,
+      stream_id: streamId,
+      status: "connected",
+      health_status: "healthy",
+      reason: "active_relay_verified",
+      template: currentSource.template,
+      candidates_tried: 0,
+      codec: currentSource.codec ?? null,
+      width: currentSource.width ?? null,
+      height: currentSource.height ?? null,
+      capabilities: mediaCapabilities({ ok: true, codec: currentSource.codec,
+        audio: currentSource.audio, width: currentSource.width, height: currentSource.height }, activeCandidate.vendor)
+    };
+  }
   for (const candidate of candidates) {
     const result = await probeRtsp(candidate.url);
     if (result.ok) {
-      const streamId = streamIdFor(input, channel);
       streamSources.set(streamId, {
         kind: "rtsp",
         url: candidate.url,
@@ -1162,15 +1208,14 @@ async function startRelay(streamId) {
   if (!copyVideo && source.codec === "hevc") await hardwareTranscoder.test();
   const hardwareVideo = !copyVideo && hardwareTranscoder.canUse(streamId, source.codec);
   const directRtsp = source.kind === "rtsp";
+  const rtspInput = directRtsp ? protectedRtspInput(source.url) : null;
   const args = [
     "-hide_banner", "-loglevel", "error",
     // Bound each channel's decoder/filter pools; ten automatic CPU-sized
     // pools otherwise compete with the browser and local inference runtime.
     "-threads", "1", "-filter_threads", "1",
     ...(hardwareVideo ? hardwareDecodeArgs : []),
-    ...(directRtsp
-      ? ["-rtsp_transport", "tcp", "-timeout", String(Math.max(1_000, PROBE_TIMEOUT_MS) * 1000), "-i", source.url]
-      : ["-i", "pipe:0"]),
+    ...(directRtsp ? rtspInput.args : ["-i", "pipe:0"]),
     "-map", "0:v:0",
     "-an",
     ...(copyVideo
@@ -1205,7 +1250,8 @@ async function startRelay(streamId) {
   const response = relaySource?.response;
   const controller = relaySource?.controller;
   const sessionToken = relaySource?.sessionToken;
-  const child = spawn("ffmpeg", args, { stdio: [directRtsp ? "ignore" : "pipe", "ignore", "pipe"] });
+  const child = spawn("ffmpeg", args, { stdio: ["pipe", "ignore", "pipe"] });
+  if (rtspInput) rtspInput.attach(child);
   const relay = { process: child, playlist, generation: randomUUID(), firstEvidenceSequence, startedAt: Date.now(), lastInputAt: Date.now(), lastPlaylistMtime: 0, inputBytes: 0, inputMetrics: createRelayInputMetrics(), encoder: copyVideo ? "copy" : hardwareVideo ? "videotoolbox" : "libx264", controller, errorSummary: "", sessionToken, sessionEpoch: source.sessionKey ? privateNvrSessions.get(source.sessionKey)?.epoch ?? null : null, monitor: null };
   relayLifecycle.starts += 1;
   relayDiagnostics.set(streamId, { ...(relayDiagnostics.get(streamId) || {}), starts: (relayDiagnostics.get(streamId)?.starts || 0) + 1, last_start_at: new Date(relay.startedAt).toISOString() });
