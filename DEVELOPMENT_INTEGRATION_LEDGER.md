@@ -388,3 +388,17 @@ is `LOCAL_VERIFIED`; the cumulative Production release candidate remains
 `BLOCKED_PRODUCTION_READINESS` by the recorded credential, Auth/config,
 recovery and cost gates. No Production migration, deployment or `main` change
 occurred, and Digital Observer core remains unchanged.
+
+GB-M40 branch qualification (2026-09-23): `codex/gb-m40-release-qualification`
+at `a5c56da9312fb6b968badd4eb8c257a923629864` is remotely preserved. The
+Production blocker audit remained read-only and found 22 legitimate accounts
+requiring canonical recovery proof plus one synthetic record; no credential
+value was selected or printed. Production Auth configuration was verified,
+while required URL/deep-health/cron/hash configuration, provider-managed
+restore and durable private Storage recovery acceptance, actual all-in cost
+certification, and explicit owner release authorization remain open. Local
+qualification passed domain 30/30, security 10/10, 243-migration audit, all
+focused Management suites, Parent/Manager 22/22, Production build, lint,
+release preflight, 16-migration rehearsal, private Storage recovery and built
+health/protection smoke. Production and `main` are unchanged; GB-M40 is
+`PUSHED_REMOTE` and pending protected PR integration only.

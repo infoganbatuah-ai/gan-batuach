@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-09-23T00:00:00+03:00",
+  "updatedAt": "2026-09-23T23:30:00+03:00",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -9106,6 +9106,56 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "Close the documented Production blockers, freeze a later exact release candidate, and obtain new explicit owner release authorization before any main merge, Production migration or deployment."
+    },
+    {
+      "id": "codex/gb-m40-release-qualification",
+      "project": "Gan Batuach Management",
+      "title": "GB-M40 Production blocker closure, final release qualification and release package",
+      "owner": "GB-M40 owner",
+      "sourceBranch": "codex/gb-m40-release-qualification",
+      "sourceCommits": [
+        "a5c56da9312fb6b968badd4eb8c257a923629864"
+      ],
+      "state": "PUSHED_REMOTE",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/gb-m40-release-qualification@a5c56da9312fb6b968badd4eb8c257a923629864"
+        ],
+        "validatedSourceCommit": "a5c56da9312fb6b968badd4eb8c257a923629864"
+      },
+      "validation": {
+        "status": "PASS_LOCAL_RELEASE_QUALIFICATION_PRODUCTION_RELEASE_BLOCKED",
+        "evidence": [
+          "GAN_BATUACH_MANAGEMENT_GB_M40_PRODUCTION_RELEASE_QUALIFICATION_REPORT.md",
+          "GAN_BATUACH_MANAGEMENT_PRODUCTION_RELEASE_MANIFEST.json",
+          "GAN_BATUACH_MANAGEMENT_FINAL_PRODUCTION_RELEASE_RUNBOOK.md",
+          "GAN_BATUACH_PRODUCTION_LEGACY_CREDENTIAL_REMEDIATION_PLAN.md",
+          "GAN_BATUACH_MANAGEMENT_OWNER_ACTIONS_BEFORE_PRODUCTION.md",
+          "GAN_BATUACH_MANAGEMENT_FINAL_UX_UI_HANDOFF.md"
+        ],
+        "limits": "Development engineering and isolated rehearsals pass. Production release remains blocked by 22 legitimate-account recovery proofs, required Production configuration, provider restore/Storage recovery acceptance, current all-in cost certification and a later explicit owner release authorization."
+      },
+      "integration": {
+        "status": "PENDING_PR",
+        "base": "integration/development",
+        "commit": null,
+        "pullRequest": null
+      },
+      "dependencies": {
+        "status": "GB_M39_INTEGRATED",
+        "units": [
+          "codex/gb-m39-production-readiness"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "PASS_30_DOMAIN_10_SECURITY_243_MIGRATIONS_17_MANAGEMENT_SUITES_22_PARENT_MANAGER_TYPECHECK_BUILD_LINT_PREFLIGHT_SCHEMA_REHEARSAL_STORAGE_RECOVERY_HEALTH_DEEP_HEALTH_UNAUTH_GUARDS",
+      "releaseEligibility": "BLOCKED_PRODUCTION_READINESS",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Complete owner-approved credential recovery, configure required Production URL/health/cron/hash secrets, accept/prove provider database and private Storage recovery, reconcile actual all-in costs, then freeze an exact RC and obtain explicit Production release authorization."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
