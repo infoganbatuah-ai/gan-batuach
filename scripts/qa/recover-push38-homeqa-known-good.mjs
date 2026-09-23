@@ -19,6 +19,9 @@ if (!process.argv.includes("--recover-known-good"))
   throw new Error("P38_HOME_QA_KNOWN_GOOD_RECOVERY_EXPLICIT_MODE_REQUIRED");
 
 const deviceId = "db267b52-6282-4944-bcee-5d4857698fb0";
+const currentReleaseId = "qa-p38-health-connector-parent-exit-f7dba974e80f";
+const currentArtifactSha256 = "f7dba974e80fc7e70bef0584744379b09ef4c0e8161eb13c32cea6118a4a55fd";
+const failedReleaseId = "qa-p38-health-connector-rtsp-session-fb790d87cf53";
 const root = join(homedir(), "Library/Application Support/Digital Observer/observer-connector/ota");
 const label = "com.ganbatuach.software-connector.tapo";
 const configPath = join(root, "agent-config.json");
@@ -49,7 +52,7 @@ const adapter = createMacOSInstalledEdgeAdapter({ profile: "SOFTWARE_CONNECTOR",
   installedBase: join(homedir(), "Applications"), managedRoot: root,
   launchAgentPath: join(homedir(), "Library/LaunchAgents", `${label}.plist`),
   label, port: 18083, allowMutations: true,
-  approvedArtifactSha256: "6e7988808b05956d58416a6ce60638f52b19aa732918ac0e1cdafcc5fc9f130a" });
+  approvedArtifactSha256: currentArtifactSha256 });
 const store = createEdgeSecretStoreSync({ secretDir: config.secretDir });
 const manager = new EdgeUpdateManager({ root,
   trustedPublicKeys: loadPinnedEdgeReleaseKeys({ registryPath: PROTECTED_EDGE_TRUST_REGISTRY_PATH }).trustedPublicKeys,
@@ -65,10 +68,13 @@ const manager = new EdgeUpdateManager({ root,
   } });
 
 const before = manager.status();
-if (manager.current().release_id !== "qa-connector-legacy-transition-v2-6e7988808b05" ||
+const current = manager.current();
+if (current.release_id !== currentReleaseId || current.artifact_sha256 !== currentArtifactSha256 ||
+  !manager.knownGood().some(item => item.release_id === currentReleaseId &&
+    item.artifact_sha256 === currentArtifactSha256) ||
   !((before.state === "ACTION_REQUIRED" && ["EDGE_UPDATE_KNOWN_GOOD_CRASH_LOOP",
     "EDGE_UPDATE_KNOWN_GOOD_UNHEALTHY", "EDGE_UPDATE_ROLLBACK_HEALTH_FAILED"].includes(before.failure_category)) ||
-    (before.state === "ROLLED_BACK" && before.release_id === "qa-p38-health-connector-startup-d44b7e4262f9")))
+    (before.state === "ROLLED_BACK" && before.release_id === failedReleaseId)))
   throw new Error("P38_HOME_QA_KNOWN_GOOD_RECOVERY_STATE_MISMATCH");
 const recovered = before.state === "ACTION_REQUIRED"
   ? before.failure_category === "EDGE_UPDATE_KNOWN_GOOD_CRASH_LOOP"
@@ -80,5 +86,5 @@ console.log(JSON.stringify({ status: reconciled.state,
   recovery_category: recovered.recovery_category || reconciled.recovery_category,
   current_release: manager.current().release_id,
   failed_known_good_removed: !manager.knownGood().some(item =>
-    item.release_id === "qa-p38-health-connector-startup-d44b7e4262f9"),
+    item.release_id === failedReleaseId),
   runtime_restarted: false, release_promoted: false }));

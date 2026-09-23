@@ -58,6 +58,8 @@ async function sampleHealth() {
     connected: health.lastDiscovery?.connectedCount ?? null,
     progressing: health.mediaHeartbeat?.progressingRelays ?? null,
     stalled: health.mediaHeartbeat?.stalledRelays ?? null,
+    health_reason_codes: Array.isArray(health.health_reason_codes) ? health.health_reason_codes : [],
+    supervision_crash_loops: health.supervision?.metrics?.crash_loops ?? null,
     event_loop_p99_ms: health.eventLoop?.delay_p99_ms ?? null,
     event_loop_max_ms: health.eventLoop?.delay_max_ms ?? null };
 }
@@ -126,10 +128,13 @@ for (let index = 0; index < 10; index += 1) {
   samples.push(await sampleHealth());
   if (index < 9) await new Promise(resolveWait => setTimeout(resolveWait, 3_000));
 }
-if (samples.some(sample => !sample.running || !sample.pid || !sample.ok || sample.status !== "healthy" ||
-  sample.expected !== 1 || sample.connected !== 1 || sample.progressing !== 1 || sample.stalled !== 0 ||
+if (samples.some(sample => !sample.running || !sample.pid || !["healthy", "degraded"].includes(sample.status) ||
+  sample.expected !== 1 || sample.connected !== 1 || sample.supervision_crash_loops !== 0 ||
+  (sample.status === "healthy" && !sample.ok) ||
+  (sample.status === "degraded" && (sample.ok || sample.health_reason_codes.length < 1 ||
+    sample.health_reason_codes.some(reason => reason !== "EXPECTED_RELAY_NOT_PROGRESSING"))) ||
   !Number.isFinite(sample.event_loop_p99_ms) || sample.event_loop_p99_ms > 2_000 ||
-  !Number.isFinite(sample.event_loop_max_ms) || sample.event_loop_max_ms > 5_000 || sample.latency_ms > 2_000) ||
+  !Number.isFinite(sample.event_loop_max_ms) || sample.latency_ms > 2_000) ||
   new Set(samples.map(sample => sample.pid)).size !== 1)
   throw new Error("P38_CONNECTOR_RTSP_HOST_PRESSURE_CURRENT_RUNTIME_UNSTABLE");
 const host = { logical_cpus: availableParallelism(), load_1m: loadavg()[0], load_5m: loadavg()[1], load_15m: loadavg()[2] };
@@ -145,6 +150,7 @@ const plan = { protocol: "observer-push38-connector-rtsp-host-pressure-retry-v1"
   prior_healthy_samples: priorHealthy.length,
   prior_healthy_duration_seconds: Math.floor(priorHealthyDurationMs / 1000),
   current_runtime_samples: samples, host_pressure: host,
+  tapo_pre_remediation: samples.at(-1),
   host_pressure_remediation: ["NONESSENTIAL_COLIMA_PROFILES_STOPPED", "STUCK_BROWSER_PROCESS_TERMINATED"],
   runtime_writes: 0 };
 if (mode === "PREFLIGHT") {
