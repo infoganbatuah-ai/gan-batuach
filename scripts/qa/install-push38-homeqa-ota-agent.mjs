@@ -19,11 +19,13 @@ const profile = process.argv.find(arg => arg.startsWith("--profile="))?.slice(10
 const apply = process.argv.includes("--apply"), dryRun = process.argv.includes("--dry-run");
 const recoveryUpgrade = process.argv.includes("--health-recovery-upgrade");
 const startupRecoveryUpgrade = process.argv.includes("--startup-recovery-upgrade");
+const livenessRecoveryUpgrade = process.argv.includes("--liveness-recovery-upgrade");
 const gatewayAuthRecoveryUpgrade = process.argv.includes("--gateway-auth-recovery-upgrade");
-if ([recoveryUpgrade, startupRecoveryUpgrade, gatewayAuthRecoveryUpgrade].filter(Boolean).length > 1)
+if ([recoveryUpgrade, startupRecoveryUpgrade, livenessRecoveryUpgrade,
+  gatewayAuthRecoveryUpgrade].filter(Boolean).length > 1)
   throw new Error("P38_HOME_QA_AGENT_UPGRADE_MODE_INVALID");
 const managementUpgrade = process.argv.includes("--management-upgrade") || recoveryUpgrade ||
-  startupRecoveryUpgrade || gatewayAuthRecoveryUpgrade;
+  startupRecoveryUpgrade || livenessRecoveryUpgrade || gatewayAuthRecoveryUpgrade;
 if (apply === dryRun || !["SOFTWARE_CONNECTOR", "PHYSICAL_GATEWAY"].includes(profile))
   throw new Error("P38_HOME_QA_AGENT_MODE_OR_PROFILE_INVALID");
 if (managementUpgrade && profile !== "SOFTWARE_CONNECTOR" && !gatewayAuthRecoveryUpgrade)
@@ -35,14 +37,18 @@ const spec = connector ? {
   deviceId: "db267b52-6282-4944-bcee-5d4857698fb0",
   baselineRelease: "qa-connector-legacy-transition-v2-6e7988808b05",
   baselineSha: "6e7988808b05956d58416a6ce60638f52b19aa732918ac0e1cdafcc5fc9f130a",
-  remediationRelease: startupRecoveryUpgrade ? "qa-p38-health-connector-startup-d44b7e4262f9" :
+  remediationRelease: livenessRecoveryUpgrade ? "qa-p38-health-connector-liveness-bb89862c6352" :
+    startupRecoveryUpgrade ? "qa-p38-health-connector-startup-d44b7e4262f9" :
     recoveryUpgrade ? "qa-p38-health-connector-recovery-9bb5db251379" :
     managementUpgrade ? "qa-p38-health-connector-pidfix-1b9e9499ffa7" :
     "qa-p38-health-connector-1b076f596574",
-  bundleName: startupRecoveryUpgrade ? "connector_remediation_startup.json" :
+  bundleName: livenessRecoveryUpgrade ? "connector_remediation_liveness.json" :
+    startupRecoveryUpgrade ? "connector_remediation_startup.json" :
     recoveryUpgrade ? "connector_remediation_recovery.json" :
     managementUpgrade ? "connector_remediation_pidfix.json" : "connector_remediation.json",
-  priorManagement: startupRecoveryUpgrade ? { release_id: "qa-p38-health-connector-recovery-9bb5db251379",
+  priorManagement: livenessRecoveryUpgrade ? { release_id: "qa-p38-health-connector-startup-d44b7e4262f9",
+    artifact_sha256: "d44b7e4262f9a7c9051a8c3e15258c612791546b1bfeaddf6f95c04ee706d388" } :
+    startupRecoveryUpgrade ? { release_id: "qa-p38-health-connector-recovery-9bb5db251379",
     artifact_sha256: "9bb5db251379a3fcc961a8b1ce950eb2acb4554f00ae6a9717b83b4af803077c" } :
     recoveryUpgrade ? { release_id: "qa-p38-health-connector-pidfix-1b9e9499ffa7",
     artifact_sha256: "1b9e9499ffa7d1c2a177a1fa3c657124c4ab803879ccbe220f28a3a6c835d22b" } :
@@ -87,7 +93,9 @@ const runtimeConfig = { profile, managedRoot: root, installedBase: spec.installe
 const plan = planInstalledOtaAgent({ profile, managedRoot: root, agentPlistPath, agentLabel });
 if (apply) validateHomeQaOtaIdentityScope({ managedRoot: root, runtimeConfig });
 const bundleOverride = process.argv.find(arg => arg.startsWith("--bundle="))?.slice(9);
-const bundle = resolve(bundleOverride || (startupRecoveryUpgrade
+const bundle = resolve(bundleOverride || (livenessRecoveryUpgrade
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-connector-liveness-35806083284.zip"
+  : startupRecoveryUpgrade
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-connector-startup.zip"
   : recoveryUpgrade
     ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-connector-recovery.zip"

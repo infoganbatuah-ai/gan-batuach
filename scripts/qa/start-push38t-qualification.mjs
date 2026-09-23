@@ -68,7 +68,7 @@ if (enableLegacyDelivery) {
   const inventoryReady = Array.isArray(inventory.devices) && inventory.devices.length === expected.size &&
     inventory.devices.every(device => expected.get(device.id) === device.profile &&
       device.lifecycle_state === "ACTIVE" && device.tenant_id === siteId && device.site_id === siteId &&
-      phaseMatchesIdentity(device)) && [4, 5, 6].includes(inventory.releases) && inventory.broad_rollouts === 0;
+      phaseMatchesIdentity(device)) && inventory.releases === 8 && inventory.broad_rollouts === 0;
   if (!inventoryReady) throw new Error("P38_QA_RELEASE_METADATA_NOT_READY");
   const keys = loadPinnedEdgeReleaseKeys({ registryPath: PROTECTED_EDGE_TRUST_REGISTRY_PATH }).trustedPublicKeys;
   if (!keys["observer-kms-release-v1"] || !keys["qa-p38f-ed25519-20260913"])
