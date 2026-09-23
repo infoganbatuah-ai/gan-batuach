@@ -9170,7 +9170,10 @@
       ],
       "state": "VALIDATED_ON_BRANCH",
       "preservation": {
-        "remoteVerified": false,
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/ux-00-visual-design-brief@9c85359b"
+        ],
         "validatedSourceCommit": "d3b2fa49"
       },
       "validation": {
@@ -9182,10 +9185,10 @@
         "limits": "Documentation only; no product code, CSS, schema, migration, Digital Observer core or Production change. Visual approval is required before UX-01 implementation."
       },
       "integration": {
-        "status": "PENDING_PR",
+        "status": "PENDING_REVIEW",
         "base": "integration/development",
         "commit": null,
-        "pullRequest": null
+        "pullRequest": 127
       },
       "dependencies": {
         "status": "GB_M40_INTEGRATED",
