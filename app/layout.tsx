@@ -10,6 +10,7 @@ import "./styles/dashboard-runtime.css";
 import "./styles/live-experience.css";
 import "./styles/manager-onboarding-live.css";
 import "./styles/digital-observer-product.css";
+import "./styles/ux-implement-01.css";
 
 export const metadata: Metadata = {
   verification: {

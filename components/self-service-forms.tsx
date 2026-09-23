@@ -1,8 +1,8 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { useEffect, useState, type FormEvent } from "react";
 import Link from "next/link";
-import { Baby, BriefcaseBusiness, Building2, CheckCircle2, ClipboardCheck, Send, ShieldCheck } from "lucide-react";
+import { Baby, BadgeCheck, BriefcaseBusiness, Building2, CheckCircle2, ClipboardCheck, KeyRound, Mail, MapPin, Send, ShieldCheck, Sparkles, UserRound } from "lucide-react";
 import { FormField, PremiumCard, ProgressStepper, StatusChip } from "@/components/gan-batuach-design-system";
 import { knownKindergartenCities } from "@/lib/domain/kindergarten-onboarding";
 
@@ -46,6 +46,29 @@ export function SelfServiceRegisterForm({ fixedAccountType, appMode = false, inv
   const isFixedRole = Boolean(fixedAccountType);
   const cities = knownKindergartenCities();
   const activeRole = registrationRoles.find((role) => role.type === accountType) ?? { type: "kindergarten_owner" as const, icon: Building2, title: "בעל/ת גן", text: "", cta: "הרשמה כבעל/ת גן" };
+
+  useEffect(() => {
+    if (!state?.ok) return;
+    const frame = window.requestAnimationFrame(() => {
+      document.querySelector(".gb-auth-card")?.scrollIntoView({ block: "start", behavior: "auto" });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [state]);
+
+  if (state?.ok) {
+    return (
+      <section className="gb-registration-success" role="status" aria-live="polite">
+        <span className="gb-registration-success-icon"><CheckCircle2 /></span>
+        <div className="gb-registration-confetti" aria-hidden="true"><i /><i /><i /><i /><i /></div>
+        <p className="eyebrow">השלב הראשון הושלם</p>
+        <h2>החשבון נוצר בהצלחה!</h2>
+        <p>{state.message}</p>
+        <div className="gb-registration-success-role"><activeRole.icon /><span>{activeRole.title}</span></div>
+        {state.href ? <Link className="button primary large" href={state.href}><Mail /> המשך לאימות הדוא״ל</Link> : null}
+        <Link className="button secondary" href="/app/login">כבר אימתתי — מעבר להתחברות</Link>
+      </section>
+    );
+  }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -117,27 +140,27 @@ export function SelfServiceRegisterForm({ fixedAccountType, appMode = false, inv
         <div className="register-form-heading">
           <activeRole.icon />
           <div>
-            <StatusChip tone="success">שלב 2 מתוך 2</StatusChip>
+            <StatusChip tone="primary">שלב 2 מתוך 4</StatusChip>
             <h3>{activeRole.cta}</h3>
-            <p>{roleNotice[accountType]}</p>
+            <p>בואו נתחיל עם פרטי החשבון הבסיסיים. {roleNotice[accountType]}</p>
           </div>
         </div>
-        <ProgressStepper current={1} steps={[{ label: "בחירת מסלול" }, { label: "פרטים אישיים" }]} />
+        <ProgressStepper current={1} steps={[{ label: "בחירת תפקיד" }, { label: "פרטי חשבון" }, { label: "אימות דוא״ל" }, { label: "המשך לפרופיל" }]} />
         <div className="form-grid gb-form-grid">
-          <FormField label="שם מלא *" name="full_name" required minLength={2} autoComplete="name" />
-          <FormField label="טלפון *" name="phone" required autoComplete="tel" />
-          <FormField label="אימייל *" name="email" type="email" required autoComplete="username" />
-          <FormField label={accountType === "parent" ? "תעודת זהות" : "תעודת זהות *"} name="identity_number" required={accountType !== "parent"} inputMode="numeric" />
+          <FormField icon={UserRound} label="שם מלא *" name="full_name" required minLength={2} autoComplete="name" />
+          <FormField icon={Mail} label="כתובת דוא״ל *" name="email" type="email" required autoComplete="username" dir="ltr" />
+          <FormField icon={UserRound} label="מספר טלפון *" name="phone" required autoComplete="tel" dir="ltr" />
+          <FormField icon={BadgeCheck} label={accountType === "parent" ? "תעודת זהות" : "תעודת זהות *"} name="identity_number" required={accountType !== "parent"} inputMode="numeric" dir="ltr" />
           {accountType === "kindergarten_manager" || accountType === "inspector_candidate" ? (
-            <FormField as="select" label="עיר *" name="city" required defaultValue=""><option value="">בחרו עיר</option>{cities.map((city) => <option value={city} key={city}>{city}</option>)}<option value="אחר">אחר</option></FormField>
+            <FormField icon={MapPin} as="select" label="עיר *" name="city" required defaultValue=""><option value="">בחרו עיר</option>{cities.map((city) => <option value={city} key={city}>{city}</option>)}<option value="אחר">אחר</option></FormField>
           ) : (
-            <FormField label="עיר" name="city" list="known-cities" />
+            <FormField icon={MapPin} label="עיר" name="city" list="known-cities" />
           )}
           {accountType === "staff_candidate" ? <FormField as="textarea" className="wide" label="ניסיון קודם קצר" name="previous_experience" rows={3} placeholder="ספרו בקצרה על ניסיון בגן או עבודה עם ילדים" /> : null}
           {accountType === "inspector_candidate" ? <FormField as="textarea" className="wide" label="אזורים מועדפים" name="preferred_regions" rows={3} placeholder="מרכז, שרון, ירושלים" /> : null}
           {accountType === "inspector_candidate" ? <FormField as="textarea" className="wide" label="ניסיון מקצועי" name="previous_experience" rows={3} placeholder="פיקוח, חינוך, בטיחות, תפעול או ניסיון רלוונטי" /> : null}
-          <FormField label="סיסמה *" name="password" type="password" required minLength={8} autoComplete="new-password" />
-          <FormField label="אימות סיסמה *" name="confirm_password" type="password" required minLength={8} autoComplete="new-password" />
+          <FormField icon={KeyRound} label="סיסמה *" name="password" type="password" required minLength={8} autoComplete="new-password" hint="לפחות 8 תווים" />
+          <FormField icon={KeyRound} label="אימות סיסמה *" name="confirm_password" type="password" required minLength={8} autoComplete="new-password" />
         </div>
         <datalist id="known-cities">{cities.map((city) => <option value={city} key={city} />)}</datalist>
         <label className="terms-check"><input name="terms_approved" type="checkbox" required /> אני מאשר/ת שימוש בפרטים לצורך הפעלת השירות, שיוך לגן או בדיקת מועמדות, בהתאם למדיניות הפרטיות ותנאי השימוש.</label>
@@ -145,8 +168,9 @@ export function SelfServiceRegisterForm({ fixedAccountType, appMode = false, inv
           <Link href="/trust">מדיניות פרטיות ואמון</Link>
           <Link href="/service-charter">תנאי שירות</Link>
         </div>
-        <button className="button primary large" disabled={busy} type="submit"><Send size={16} /> {busy ? "יוצר חשבון..." : accountType === "kindergarten_manager" ? "יצירת חשבון והמשך להקמת הגן" : "יצירת חשבון מוגבל"}</button>
+        <button className="button primary large" disabled={busy} type="submit"><Send size={16} /> {busy ? "יוצר חשבון..." : "המשך לאימות הדוא״ל"}</button>
         {state ? <div className={state.ok ? "success-screen" : "error-banner"}><strong>{state.message}</strong>{state.href ? <Link className="button secondary tiny" href={state.href}>המשך לאימות</Link> : null}</div> : null}
+        <p className="gb-registration-security"><ShieldCheck /> מאובטח בתקן גבוה <Sparkles /> המידע שלך נשמר באופן פרטי</p>
         <p className="auth-switch-line">כבר יש לך חשבון? <Link href="/app/login">התחברות</Link></p>
       </form>
       </PremiumCard>

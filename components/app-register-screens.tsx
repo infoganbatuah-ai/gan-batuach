@@ -5,18 +5,18 @@ import { ActionCard, DashboardGrid } from "@/components/gan-batuach-design-syste
 import { SelfServiceRegisterForm, type SelfServiceAccountType } from "@/components/self-service-forms";
 
 const roleCards: Array<{ type: SelfServiceAccountType; href: string; icon: typeof Baby; title: string; text: string; cta: string }> = [
-  { type: "parent", href: "/app/register/parent", icon: Baby, title: "הורה", text: "צרו כרטיס ילד, מצאו גנים בטוחים והגישו בקשת רישום.", cta: "הרשמה כהורה" },
-  { type: "kindergarten_manager", href: "/app/register/kindergarten", icon: Building2, title: "מנהלת גן / גננת", text: "רשמו את הגן, הגדירו קבוצות גיל, מחירים וניהול מלא.", cta: "רישום גן" },
-  { type: "staff_candidate", href: "/app/register/staff", icon: BriefcaseBusiness, title: "צוות גן", text: "השלימו פרטים והתחברו לגן שבו אתם עובדים או מגישים מועמדות.", cta: "הרשמה כאיש צוות" },
-  { type: "inspector_candidate", href: "/app/register/inspector", icon: ClipboardCheck, title: "מפקח", text: "הגישו בקשה להצטרפות למערך הפיקוח ושיוך לגנים.", cta: "הרשמה כמפקח" }
+  { type: "kindergarten_manager", href: "/app/register/kindergarten", icon: Building2, title: "גננת / בעלת גן", text: "ניהול מלא של הגן, הצוות והקשר עם ההורים.", cta: "פתיחת חשבון גן" },
+  { type: "parent", href: "/app/register/parent", icon: Baby, title: "הורה", text: "מעקב, עדכונים, תשלומים וקשר עם הגן.", cta: "הרשמה כהורה" },
+  { type: "staff_candidate", href: "/app/register/staff", icon: BriefcaseBusiness, title: "צוות", text: "פרופיל מקצועי, מועמדות וחיבור לגן פעיל.", cta: "הרשמה כאיש צוות" },
+  { type: "inspector_candidate", href: "/app/register/inspector", icon: ClipboardCheck, title: "מפקח/ת", text: "בקשת הצטרפות למערך הביקורת והפיקוח.", cta: "הרשמה כמפקח/ת" }
 ];
 
 export function AppRegisterEntryScreen() {
   return (
     <AppAuthShell
       eyebrow="משתמש חדש"
-      title="מה סוג המשתמש שלך?"
-      subtitle="בחרו מסלול אחד. הורים, צוות ומפקחים מקבלים גישה לפי שיוך; מנהלת ממשיכה ישירות להקמת הגן ולתקופת ניסיון."
+      title="איזה סוג משתמש את/ה?"
+      subtitle="בחרו את התפקיד שמתאים לכם כדי שנוכל להתאים את החוויה וההרשאות הנכונות."
       footer={<span>כבר יש לך חשבון? <Link href="/app/login">התחברות</Link></span>}
     >
       <DashboardGrid columns={2} className="app-role-choice-grid gb-auth-role-grid">

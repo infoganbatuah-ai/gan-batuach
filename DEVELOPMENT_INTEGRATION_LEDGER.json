@@ -9158,6 +9158,57 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "Complete owner-approved credential recovery, configure required Production URL/health/cron/hash secrets, accept/prove provider database and private Storage recovery, reconcile actual all-in costs, then freeze an exact RC and obtain explicit Production release authorization."
+    },
+    {
+      "id": "codex/ux-implement-01",
+      "project": "Gan Batuach Management",
+      "title": "UX-IMPLEMENT-01 global design system and authentication visual implementation",
+      "owner": "UX-IMPLEMENT-01 owner",
+      "sourceBranch": "codex/ux-implement-01",
+      "sourceCommits": [
+        "82b587667947b06b6865c0a4c707c17aeede1426",
+        "509941650c9b360d3d9b4aa182e3f5a31c1afb45",
+        "cc24c2f6df9ac343ef0576768c2fd908e815c330"
+      ],
+      "state": "PUSHED_REMOTE",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/ux-implement-01@509941650c9b360d3d9b4aa182e3f5a31c1afb45",
+          "origin/codex/ux-implement-01@cc24c2f6df9ac343ef0576768c2fd908e815c330"
+        ],
+        "validatedSourceCommit": "cc24c2f6df9ac343ef0576768c2fd908e815c330"
+      },
+      "validation": {
+        "status": "PASS_VISUAL_AND_FUNCTIONAL_BRANCH_GATES",
+        "evidence": [
+          "GAN_BATUACH_UX01_DESIGN_SYSTEM_IMPLEMENTATION.md",
+          "GAN_BATUACH_UX01_VISUAL_QA_REPORT.md",
+          "qa-evidence/ux-implement-01/SHA256SUMS"
+        ],
+        "limits": "Exact-head PR checks must be green before Development merge. Full repository lint retains the accepted baseline debt; lint:ci reports zero regressions. Visual fixtures are synthetic and isolated."
+      },
+      "integration": {
+        "status": "PENDING_EXACT_HEAD_CHECKS",
+        "base": "integration/development",
+        "commit": null,
+        "pullRequest": 128,
+        "requiredChecks": "PENDING_EXACT_HEAD"
+      },
+      "dependencies": {
+        "status": "GB_M40_INTEGRATED",
+        "units": [
+          "codex/gb-m40-release-qualification"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "PASS_UX01_FOCUSED_68_OF_68_TYPECHECK_TARGETED_LINT_LINT_BASELINE_30_DOMAIN_10_SECURITY_243_MIGRATIONS_RELEASE_CONTRACT_22_PARENT_MANAGER_9_DASHBOARDS_PRODUCTION_BUILD_VISUAL_28_CAPTURES",
+      "releaseEligibility": "READY_FOR_DEVELOPMENT_INTEGRATION_AFTER_REQUIRED_CHECKS",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Commit and push this ledger closure, wait for all required checks on the exact PR #128 head, merge only if green, then run cumulative Development verification. Production and UX-IMPLEMENT-02 remain out of scope."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
