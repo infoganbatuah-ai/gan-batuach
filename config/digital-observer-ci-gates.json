@@ -90,6 +90,7 @@
   ],
   "security": [
     { "name": "private-dvr-heartbeat-recovery-evidence", "args": ["scripts/qa/check-private-nvr-heartbeat-recovery-evidence.mjs"] },
+    { "name": "gateway-common-cause-recovery", "args": ["scripts/qa/check-push38-gateway-common-cause-recovery.mjs"] },
     { "name": "gateway-session-stability", "args": ["scripts/qa/check-push38-gateway-session-stability.mjs"] },
     { "name": "connector-rtsp-session-recovery", "args": ["scripts/qa/check-push38-connector-rtsp-session-recovery.mjs"] },
     { "name": "connector-parent-exit-recovery", "args": ["scripts/qa/check-push38-connector-parent-exit-recovery.mjs"] },

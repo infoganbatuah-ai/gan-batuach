@@ -70,6 +70,7 @@ Generated from tracked repository state by `scripts/qa/build-ci-test-manifest.mj
 - `watch-rules`: `node scripts/qa/check-digital-observer-watch-rule-compiler.mjs`
 - `investigation`: `node --test scripts/qa/check-digital-observer-investigation.mjs`
 - `private-dvr-heartbeat-recovery-evidence`: `node scripts/qa/check-private-nvr-heartbeat-recovery-evidence.mjs`
+- `gateway-common-cause-recovery`: `node scripts/qa/check-push38-gateway-common-cause-recovery.mjs`
 - `gateway-session-stability`: `node scripts/qa/check-push38-gateway-session-stability.mjs`
 - `connector-rtsp-session-recovery`: `node scripts/qa/check-push38-connector-rtsp-session-recovery.mjs`
 - `connector-parent-exit-recovery`: `node scripts/qa/check-push38-connector-parent-exit-recovery.mjs`
@@ -87,13 +88,14 @@ Generated from tracked repository state by `scripts/qa/build-ci-test-manifest.mj
 
 ## COMPLETE QA SCRIPT INVENTORY
 
-Inventory count: **270** files. Classifications are conservative; environment-dependent scripts stay outside Tier 1.
+Inventory count: **273** files. Classifications are conservative; environment-dependent scripts stay outside Tier 1.
 
 | File | Command | Tier | Deterministic | Network | Hardware | Production credentials | Destructive | Domain | Classification | Missing dependency |
 |---|---|---|---|---|---|---|---|---|---|---|
 | `scripts/qa/activate-push38-homeqa-connector-liveness.mjs` | node scripts/qa/activate-push38-homeqa-connector-liveness.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/activate-push38-homeqa-connector-rtsp-session.mjs` | node scripts/qa/activate-push38-homeqa-connector-rtsp-session.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/activate-push38-homeqa-gateway-auth.mjs` | node scripts/qa/activate-push38-homeqa-gateway-auth.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
+| `scripts/qa/activate-push38-homeqa-gateway-common-cause-recovery.mjs` | node scripts/qa/activate-push38-homeqa-gateway-common-cause-recovery.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/activate-push38-homeqa-gateway-session-stability.mjs` | node scripts/qa/activate-push38-homeqa-gateway-session-stability.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/activate-push38-homeqa-legacy-rollouts.mjs` | node scripts/qa/activate-push38-homeqa-legacy-rollouts.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | LEGACY / FIXTURE | none known |
 | `scripts/qa/activate-push38-homeqa-managed-device.mjs` | node scripts/qa/activate-push38-homeqa-managed-device.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
@@ -215,6 +217,7 @@ Inventory count: **270** files. Classifications are conservative; environment-de
 | `scripts/qa/check-push38-connector-rtsp-session-recovery.mjs` | node scripts/qa/check-push38-connector-rtsp-session-recovery.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | CANONICAL CI | none known |
 | `scripts/qa/check-push38-dvr-shadow-mode.mjs` | node scripts/qa/check-push38-dvr-shadow-mode.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/check-push38-gateway-auth-recovery.mjs` | node scripts/qa/check-push38-gateway-auth-recovery.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
+| `scripts/qa/check-push38-gateway-common-cause-recovery.mjs` | node scripts/qa/check-push38-gateway-common-cause-recovery.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | CANONICAL CI | none known |
 | `scripts/qa/check-push38-gateway-session-stability.mjs` | node scripts/qa/check-push38-gateway-session-stability.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | CANONICAL CI | none known |
 | `scripts/qa/check-push38-home-identity-rotation-bridge.mjs` | node scripts/qa/check-push38-home-identity-rotation-bridge.mjs | TIER 3 — HARDWARE E2E | NO | NO | YES | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-push38-home-qa-issuance.mjs` | node scripts/qa/check-push38-home-qa-issuance.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
@@ -325,6 +328,7 @@ Inventory count: **270** files. Classifications are conservative; environment-de
 | `scripts/qa/register-push38-homeqa-connector-pidfix.mjs` | node scripts/qa/register-push38-homeqa-connector-pidfix.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/register-push38-homeqa-connector-rtsp-session.mjs` | node scripts/qa/register-push38-homeqa-connector-rtsp-session.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/register-push38-homeqa-gateway-auth-recovery.mjs` | node scripts/qa/register-push38-homeqa-gateway-auth-recovery.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
+| `scripts/qa/register-push38-homeqa-gateway-common-cause-recovery.mjs` | node scripts/qa/register-push38-homeqa-gateway-common-cause-recovery.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/register-push38-homeqa-gateway-session-stability.mjs` | node scripts/qa/register-push38-homeqa-gateway-session-stability.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/register-push38-homeqa-legacy-devices.mjs` | node scripts/qa/register-push38-homeqa-legacy-devices.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | LEGACY / FIXTURE | none known |
 | `scripts/qa/register-push38-homeqa-releases.mjs` | node scripts/qa/register-push38-homeqa-releases.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |

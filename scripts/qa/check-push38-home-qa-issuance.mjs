@@ -20,6 +20,10 @@ import { issuePush38GatewayAuthRecovery } from "../release/issue-push38-home-qa-
 import { PUSH38_GATEWAY_AUTH_RECOVERY } from "../../services/video-gateway/push38-home-qa-gateway-auth-recovery.mjs";
 import { issuePush38GatewaySessionStability } from "../release/issue-push38-home-qa-gateway-session-stability.mjs";
 import { PUSH38_GATEWAY_SESSION_STABILITY } from "../../services/video-gateway/push38-home-qa-gateway-session-stability.mjs";
+import { issuePush38GatewayCommonCauseRecovery } from
+  "../release/issue-push38-home-qa-gateway-common-cause-recovery.mjs";
+import { PUSH38_GATEWAY_COMMON_CAUSE_RECOVERY } from
+  "../../services/video-gateway/push38-home-qa-gateway-common-cause-recovery.mjs";
 import { verifyEdgeUpdateManifest } from "../../services/video-gateway/edge-update-contract.mjs";
 
 const root = mkdtempSync(join(tmpdir(), "observer-p38-issuance-test-"));
@@ -156,6 +160,21 @@ try {
   assert.equal(gatewaySessionManifest.artifact_sha256, PUSH38_GATEWAY_SESSION_STABILITY.digest);
   assert.deepEqual(gatewaySessionManifest.rollout.explicit_device_ids,
     [PUSH38_GATEWAY_SESSION_STABILITY.deviceId]);
+  const gatewayCommonCauseOutput = join(root, "gateway-common-cause-issued");
+  await assert.rejects(issuePush38GatewayCommonCauseRecovery({ env: { ...env,
+    HOME_QA_OUTPUT_DIR: gatewayCommonCauseOutput, PUSH38_CANDIDATE_SHA: "f".repeat(40) }, call }),
+  /P38_GATEWAY_COMMON_CAUSE_SIGNING_CONTEXT_INVALID/);
+  const gatewayCommonCause = await issuePush38GatewayCommonCauseRecovery({ env: { ...env,
+    HOME_QA_OUTPUT_DIR: gatewayCommonCauseOutput,
+    PUSH38_CANDIDATE_SHA: PUSH38_GATEWAY_COMMON_CAUSE_RECOVERY.buildSha }, call });
+  const gatewayCommonCauseManifest = JSON.parse(readFileSync(join(gatewayCommonCauseOutput,
+    "gateway_remediation_common_cause_recovery.json")));
+  assert.equal(gatewayCommonCause.release_id, PUSH38_GATEWAY_COMMON_CAUSE_RECOVERY.releaseId);
+  assert.equal(verifyEdgeUpdateManifest(gatewayCommonCauseManifest,
+    { [keyId]: publicBytes.toString("base64url") }).ok, true);
+  assert.equal(gatewayCommonCauseManifest.artifact_sha256, PUSH38_GATEWAY_COMMON_CAUSE_RECOVERY.digest);
+  assert.deepEqual(gatewayCommonCauseManifest.rollout.explicit_device_ids,
+    [PUSH38_GATEWAY_COMMON_CAUSE_RECOVERY.deviceId]);
   console.log(JSON.stringify({ result: "PASS", signed_fixture_manifests: result.length,
     signed_pidfix_fixture_manifests: 1, signed_recovery_fixture_manifests: 1,
     signed_startup_recovery_fixture_manifests: 1, signed_liveness_recovery_fixture_manifests: 1,
@@ -163,5 +182,6 @@ try {
     signed_rtsp_session_recovery_fixture_manifests: 1,
     signed_gateway_auth_recovery_fixture_manifests: 1,
     signed_gateway_session_stability_fixture_manifests: 1,
+    signed_gateway_common_cause_recovery_fixture_manifests: 1,
     unauthorized_branch_rejected: true, live_aws: "NOT_TESTED" }));
 } finally { rmSync(root, { recursive: true, force: true }); }
