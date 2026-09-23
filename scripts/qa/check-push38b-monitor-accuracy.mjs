@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
-import { summarizeRealHomeSoak } from "../../lib/domain/digital-observer/reliability-qualification.mjs";
+import { QUALIFICATION_STAGE_MINIMUM_MS, assertQualificationStageResult,
+  summarizeRealHomeSoak } from "../../lib/domain/digital-observer/reliability-qualification.mjs";
 
 const start = Date.parse("2026-09-12T00:00:00.000Z");
 const channels = [1, 2, 3, 4, 5, 6, 7, 8, 10, 11];
@@ -61,5 +62,15 @@ const hiddenUpstream = summarizeRealHomeSoak([{ ...upstreamPoint(0), dvr: {
   startedAt: start, endedAt: start + 120_000, requiredDurationMs: 120_000,
   dvrSourceAvailable: 8, dvrKnownUpstreamUnavailable: [2, 8] });
 assert.ok(hiddenUpstream.gate_failures.includes("DVR_SOURCE_AVAILABILITY_EXCEPTION_MISREPORTED"));
+
+const canaryPoints = Array.from({ length: 15 }, (_, minute) => upstreamPoint(minute));
+const canary = summarizeRealHomeSoak(canaryPoints, {
+  startedAt: start, endedAt: start + QUALIFICATION_STAGE_MINIMUM_MS.CANARY,
+  requiredDurationMs: QUALIFICATION_STAGE_MINIMUM_MS.CANARY,
+  dvrSourceAvailable: 8, dvrKnownUpstreamUnavailable: [2, 8] });
+assert.equal(canary.status, "PASS");
+assert.equal(assertQualificationStageResult({ ...canary, qualification_stage: "CANARY" }, "CANARY"), true);
+assert.throws(() => assertQualificationStageResult({ ...canary, elapsed_ms: canary.elapsed_ms - 1 }, "CANARY"), /canary_gate_failed/);
+assert.throws(() => assertQualificationStageResult(canary, "UNKNOWN"), /stage_invalid/);
 
 console.log("PUSH38B_MONITOR_ACCURACY_PASS");

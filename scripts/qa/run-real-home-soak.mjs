@@ -4,15 +4,21 @@ import { appendFileSync, existsSync, mkdirSync, readFileSync, renameSync, statfs
 import { homedir } from "node:os";
 import { join, resolve } from "node:path";
 import { promisify } from "node:util";
-import { REAL_SOAK_MINIMUM_MS, assertQualificationResult, summarizeRealHomeSoak } from "../../lib/domain/digital-observer/reliability-qualification.mjs";
+import { QUALIFICATION_STAGE_MINIMUM_MS, assertQualificationStageResult,
+  summarizeRealHomeSoak } from "../../lib/domain/digital-observer/reliability-qualification.mjs";
 import { probeLocalHealth } from "./soak-health-probe.mjs";
 
 const exec = promisify(execFile);
 const args = new Map(process.argv.slice(2).map(value => { const [key, ...rest] = value.replace(/^--/, "").split("="); return [key, rest.join("=") || true]; }));
-const durationMs = Number(args.get("duration-ms") || REAL_SOAK_MINIMUM_MS);
+const stage = String(args.get("stage") || "V8").toUpperCase();
+const requiredDurationMs = QUALIFICATION_STAGE_MINIMUM_MS[stage];
+if (!requiredDurationMs) throw new Error("qualification_stage_invalid");
+const durationMs = Number(args.get("duration-ms") || requiredDurationMs);
 const intervalMs = Number(args.get("interval-ms") || 60_000);
-const deepProbeMs = Number(args.get("deep-probe-ms") || 60 * 60_000);
-if (!Number.isFinite(durationMs) || durationMs < 60_000 || !Number.isFinite(intervalMs) || intervalMs < 10_000) throw new Error("soak_duration_or_interval_invalid");
+const defaultDeepProbeMs = stage === "CANARY" ? 5 * 60_000 : stage === "PRE_SOAK" ? 29 * 60_000 : 60 * 60_000;
+const deepProbeMs = Number(args.get("deep-probe-ms") || defaultDeepProbeMs);
+if (!Number.isFinite(durationMs) || durationMs < requiredDurationMs || !Number.isFinite(intervalMs) || intervalMs < 10_000 ||
+  !Number.isFinite(deepProbeMs) || deepProbeMs < intervalMs) throw new Error("soak_duration_or_interval_invalid");
 const runId = String(args.get("run-id") || `push38-${new Date().toISOString().replace(/[:.]/g, "-")}`).replace(/[^a-zA-Z0-9._-]/g, "");
 const outputRoot = resolve(String(args.get("output-dir") || join(process.cwd(), "qa-evidence", "push-38", runId)));
 mkdirSync(outputRoot, { recursive: true, mode: 0o700 });
@@ -195,7 +201,8 @@ while (!stopping && Date.now() - startedAt < durationMs) {
   const sampledAt = Date.now();
   const [gateway, connector, gatewayResource, connectorResource] = await Promise.all([probeLocalHealth(18082), probeLocalHealth(18083), processInfo("run-persistent-home-gateway.mjs"), processInfo("run-software-connector.mjs")]);
   const probeCompletedAt = Date.now();
-  const point = { contract: "observer-reliability-checkpoint-v1", run_id: runId, sequence: ++sequence, sampled_at: new Date(sampledAt).toISOString(), elapsed_ms: sampledAt - startedAt,
+  const point = { contract: "observer-reliability-checkpoint-v1", qualification_stage: stage,
+    run_id: runId, sequence: ++sequence, sampled_at: new Date(sampledAt).toISOString(), elapsed_ms: sampledAt - startedAt,
     scheduled_at: new Date(scheduledAt).toISOString(), drift_ms: sampledAt - scheduledAt, probe_duration_ms: probeCompletedAt - sampledAt, interval_ms: intervalMs,
     expected_physical_cameras: 11, source_available_physical_cameras: 9, empty_dvr_slots: 6,
     dvr: { health_ok: gateway.ok, health_error: gateway.reason, health_http_status: gateway.http_status, liveness: gateway.liveness ?? null, event_loop: gateway.body?.eventLoop ?? null, component_status: gateway.body?.status ?? null, classification: classifyGatewayCheckpoint(gateway, gatewayResource), health_latency_ms: gateway.latency_ms, expected: 10, source_available: 8, known_upstream_unavailable: DVR_UPSTREAM_UNAVAILABLE, progressing: gateway.body?.mediaHeartbeat?.progressingRelays ?? 0, stalled: gateway.body?.mediaHeartbeat?.stalledRelays ?? null, failed: gateway.body?.failedStreamCount ?? null, auth: gateway.body?.deviceAuthorization?.status ?? null, lifecycle: gateway.body?.mediaHeartbeat?.lifecycle ?? null, recorder_session: gateway.body?.recorderSessionHeartbeat ?? null,
@@ -224,7 +231,9 @@ while (!stopping && Date.now() - startedAt < durationMs) {
 }
 const checkpoints = readFileSync(checkpointsPath, "utf8").trim().split("\n").filter(Boolean).map(line => JSON.parse(line));
 const result = summarizeRealHomeSoak(checkpoints, { startedAt, endedAt: Date.now(),
-  requiredDurationMs: REAL_SOAK_MINIMUM_MS, dvrSourceAvailable: 8,
-  dvrKnownUpstreamUnavailable: DVR_UPSTREAM_UNAVAILABLE }); assertQualificationResult(result);
-atomicJson(resultPath, result); atomicJson(statePath, { ...JSON.parse(readFileSync(statePath, "utf8")), status: result.status, ended_at: result.ended_at, result_path: resultPath, gate_failures: result.gate_failures });
-console.log(JSON.stringify(result));
+  requiredDurationMs, dvrSourceAvailable: 8,
+  dvrKnownUpstreamUnavailable: DVR_UPSTREAM_UNAVAILABLE });
+const stagedResult = { ...result, qualification_stage: stage };
+assertQualificationStageResult(stagedResult, stage);
+atomicJson(resultPath, stagedResult); atomicJson(statePath, { ...JSON.parse(readFileSync(statePath, "utf8")), status: stagedResult.status, ended_at: stagedResult.ended_at, result_path: resultPath, gate_failures: stagedResult.gate_failures });
+console.log(JSON.stringify(stagedResult));
