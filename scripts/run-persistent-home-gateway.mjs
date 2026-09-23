@@ -13,6 +13,7 @@ import { createEdgeSecretStoreSync } from "../services/video-gateway/edge-secret
 import { createAdaptiveSamplingScheduler } from "../services/video-gateway/adaptive-sampling-scheduler.mjs";
 import { connectorHeartbeatHealth, retainVerifiedChannels } from "../services/video-gateway/connector-health-recovery.mjs";
 import { resolveEdgeRuntimePaths } from "../services/video-gateway/runtime-paths.mjs";
+import { createEdgeChildLivenessWatchdog } from "../services/video-gateway/edge-child-liveness-watchdog.mjs";
 
 // Resolve the packaged runtime from this script, never from an interactive
 // shell's working directory or a developer-specific checkout.
@@ -147,6 +148,23 @@ async function signedPost(path, payload, options = {}) {
 }
 
 const child = spawn(process.execPath, ["services/video-gateway/server.mjs"], { cwd: workdir, env: { ...process.env, HOST: "127.0.0.1", PORT: String(gatewayPort), VIDEO_GATEWAY_SIGNING_SECRET: gatewaySecret, DVR_EXPECTED_CHANNEL_COUNT: String(expectedChannelCount), OBSERVER_EDGE_DEVICE_TYPE: edgeDeviceType, OBSERVER_EDGE_INSTALLATION_ID: installationId, GAN_BATUACH_GATEWAY_SECRET_DIR: gatewaySecretDir }, stdio: "inherit" });
+const childWatchdog = createEdgeChildLivenessWatchdog({
+  probe: async () => {
+    const response = await fetch(`${gatewayUrl}/health/live`, { signal: AbortSignal.timeout(2_000) });
+    if (!response.ok) return false;
+    const body = await response.json().catch(() => ({}));
+    return body.contract === "observer-edge-liveness-v1" && body.ok === true;
+  },
+  terminateChild: () => {
+    // Killing the unresponsive child makes the existing runner exit through
+    // child.on("exit"). launchd then restarts the same signed release; the OTA
+    // crash-loop guard remains the sole authority for eventual rollback.
+    if (child.exitCode === null && !child.killed) child.kill("SIGKILL");
+  },
+  onState: ({ state, failures }) => {
+    if (state !== "HEALTHY") console.error(JSON.stringify({ level: "warning", domain: "edge_liveness", state, failures }));
+  }
+});
 
 async function waitForGateway() {
   for (let attempt = 0; attempt < 60; attempt += 1) {
@@ -359,11 +377,13 @@ if (discoveryEnabled) {
 }
 await heartbeat().catch((error) => console.error(`initial connector heartbeat unavailable; retry scheduled: ${error instanceof Error ? error.message : "heartbeat_failed"}`));
 setInterval(() => void heartbeat().catch((error) => console.error(`connector heartbeat unavailable: ${error instanceof Error ? error.message : "heartbeat_failed"}`)), 30_000).unref();
+childWatchdog.start();
 
 let shuttingDown = false;
 async function shutdown(exitCode = 0, terminateChild = true) {
   if (shuttingDown) return;
   shuttingDown = true;
+  childWatchdog.stop();
   await continuousMonitor.stop();
   await stopJournal();
   releaseJournalOwner();

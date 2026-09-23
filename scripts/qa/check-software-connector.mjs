@@ -144,6 +144,9 @@ test("software connector uses an isolated port, owner lock and stream namespace"
   assert.match(wrapper, /resolveSoftwareConnectorStartupConfiguration\(\{ store \}\)/);
   assert.match(runner, /gatewayPort/);
   assert.match(runner, /connectionType/);
+  assert.match(runner, /createEdgeChildLivenessWatchdog/);
+  assert.match(runner, /\/health\/live/);
+  assert.match(runner, /child\.kill\("SIGKILL"\)/);
 });
 
 test("temporary cloud-sync failure preserves an existing secure local camera configuration", () => {

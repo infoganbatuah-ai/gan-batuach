@@ -30,6 +30,7 @@ import { connectorRuntimeIdentity, parseConnectorCommand, redactConnectorLog } f
 import { edgeHttpRuntimeStatus } from "./http-runtime.mjs";
 import { createEdgeSupervisor, EDGE_RECOVERY_ACTION } from "./edge-supervision.mjs";
 import { connectorHeartbeatHealth } from "./connector-health-recovery.mjs";
+import { createDownstreamAbortScope } from "./edge-cloud-proxy-lifecycle.mjs";
 
 const PORT = Number(process.env.PORT || process.env.VIDEO_GATEWAY_PORT || 8080);
 const eventLoopDelay = monitorEventLoopDelay({ resolution: 20 });
@@ -427,7 +428,7 @@ async function readBuffer(request, maxBytes = 10 * 1024 * 1024) {
   return Buffer.concat(chunks);
 }
 
-async function forwardDeviceCloudRequest(path, body, contentType, method = "POST") {
+async function forwardDeviceCloudRequest(path, body, contentType, method = "POST", signal) {
   if (SHADOW_MODE) throw new Error("Shadow qualification cloud access is disabled");
   const cloudBaseUrl = (await keychainSecret("device_cloud_base_url")).replace(/\/$/, "");
   const gatewayId = await keychainSecret("device_gateway_id");
@@ -443,7 +444,7 @@ async function forwardDeviceCloudRequest(path, body, contentType, method = "POST
       "x-video-gateway-device-token": accessToken
     },
     body: method === "GET" ? undefined : body,
-    signal: AbortSignal.timeout(30_000)
+    signal: signal ?? AbortSignal.timeout(30_000)
   });
   return { status: response.status, contentType: response.headers.get("content-type") || "application/json; charset=utf-8", body: Buffer.from(await response.arrayBuffer()) };
 }
@@ -1720,8 +1721,9 @@ async function handle(request, response) {
     if (request.url === "/cloud/event-manifest" && request.method === "GET") {
       const revision = ++eventManifestRequestRevision;
       let upstream;
+      const scope = createDownstreamAbortScope({ request, response });
       try {
-        upstream = await forwardDeviceCloudRequest("/api/video-gateway/event-manifest", undefined, "application/json", "GET");
+        upstream = await forwardDeviceCloudRequest("/api/video-gateway/event-manifest", undefined, "application/json", "GET", scope.signal);
         if (revision === eventManifestRequestRevision) {
           let manifest = null;
           try { const parsed = JSON.parse(upstream.body); manifest = parsed.data ?? parsed; } catch {}
@@ -1730,7 +1732,7 @@ async function handle(request, response) {
       } catch (error) {
         if (revision === eventManifestRequestRevision) eventEvidence.updateManifest(null);
         throw error;
-      }
+      } finally { scope.dispose(); }
       response.writeHead(upstream.status, { "content-type": upstream.contentType, "cache-control": "private, no-store" });
       response.end(upstream.body);
       return;
@@ -1747,7 +1749,9 @@ async function handle(request, response) {
     if (cloudJsonPath && request.method === "POST" && authorized(request)) {
       const payload = await readJson(request);
       const binding = cloudJsonPath === "/api/video-gateway/cloud-events" ? eventEvidence.binding(payload.stream_id) : null;
-      const upstream = await forwardDeviceCloudRequest(cloudJsonPath, Buffer.from(JSON.stringify(payload)), "application/json");
+      const scope = createDownstreamAbortScope({ request, response });
+      const upstream = await forwardDeviceCloudRequest(cloudJsonPath, Buffer.from(JSON.stringify(payload)), "application/json", "POST", scope.signal)
+        .finally(() => scope.dispose());
       if (cloudJsonPath === "/api/video-gateway/cloud-discovery") provisionMappedCommandBindings(payload, upstream);
       if (binding && upstream.status >= 200 && upstream.status < 300) {
         let parsed;
@@ -1766,7 +1770,9 @@ async function handle(request, response) {
     if (request.url === "/cloud/event-media" && request.method === "POST" && authorized(request)) {
       const contentType = String(request.headers["content-type"] || "");
       if (!contentType.startsWith("multipart/form-data;")) throw new Error("invalid_media_content_type");
-      const upstream = await forwardDeviceCloudRequest("/api/video-gateway/cloud-event-media", await readBuffer(request), contentType);
+      const scope = createDownstreamAbortScope({ request, response });
+      const upstream = await forwardDeviceCloudRequest("/api/video-gateway/cloud-event-media", await readBuffer(request), contentType, "POST", scope.signal)
+        .finally(() => scope.dispose());
       response.writeHead(upstream.status, { "content-type": upstream.contentType, "cache-control": "private, no-store" });
       response.end(upstream.body);
       return;

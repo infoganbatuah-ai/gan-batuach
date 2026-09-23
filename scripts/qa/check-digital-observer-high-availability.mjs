@@ -9,6 +9,7 @@ import { createPostgresAiQueueBackend, POSTGRES_AI_QUEUE_BACKEND } from "../../s
 import { createDurableAiJobQueue } from "../../services/video-gateway/durable-ai-job-queue.mjs";
 import { createAiJob } from "../../services/video-gateway/ai-job-contract.mjs";
 import { createPortableInferenceWorker } from "../../services/video-gateway/portable-inference-worker.mjs";
+import { checkEdgeRuntimeLiveness } from "./check-edge-runtime-liveness.mjs";
 
 const { PGlite } = await import(process.env.HA_PGLITE_MODULE || "@electric-sql/pglite");
 
@@ -29,6 +30,7 @@ const inferWorker = id => createPortableInferenceWorker({ workerId: id, environm
   infer: async value => { await sleep(2); return { detections: [], observation_timestamp: value.observation_timestamp, model_provenance: { model: "ha-fixture", expected_sha256: "ha-v1", runtime: "node" } }; } });
 
 try {
+  await checkEdgeRuntimeLiveness();
   // Stateless API/service load balancing, failure removal and health-gated return.
   const pool = createHealthAwareServicePool({ now, unhealthyAfterMs: 1_000, recoveryPasses: 2, flapLimit: 4, cooldownMs: 500 });
   for (const id of ["api-a", "api-b", "api-c"]) pool.register({ instance_id: id, service: "PRODUCT_API", capabilities: ["READ", "WRITE"], scopes: ["tenant-a", "tenant-b"], health: "HEALTHY", identity: auth(id), metadata: { runtime: "stateless-node" } });
