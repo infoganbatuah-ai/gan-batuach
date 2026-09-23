@@ -1,8 +1,8 @@
 # Gan Batuach Management — GB-M40 Production release qualification
 
-Date: 2026-09-23  
-Starting integration SHA: `3c2398647e5bfabbc3f4f5e03c9ad3a5f14c2dad`  
-Production/main SHA: `8113d0607e4282dc8778540aa58c1502367f4221`  
+Date: 2026-09-23
+Starting integration SHA: `3c2398647e5bfabbc3f4f5e03c9ad3a5f14c2dad`
+Production/main SHA: `8113d0607e4282dc8778540aa58c1502367f4221`
 Production mutations: **none**
 
 ## Decision

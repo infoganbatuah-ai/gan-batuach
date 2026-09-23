@@ -1,7 +1,7 @@
 # Gan Batuach Production legacy credential remediation plan
 
-Date: 2026-09-23  
-Production inspection mode: read-only  
+Date: 2026-09-23
+Production inspection mode: read-only
 Secret values selected or printed: **no**
 
 ## Release gate
