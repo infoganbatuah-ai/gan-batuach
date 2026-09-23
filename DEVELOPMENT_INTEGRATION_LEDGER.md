@@ -375,3 +375,16 @@ configuration are unverified/incomplete, provider backup and Storage recovery
 are unproved, and the ≤₪15 cost gate lacks invoice/user evidence. GB-M39 is
 eligible for Development integration as a security hardening unit; it is not
 owner authorization to release, migrate Production or merge `main`.
+
+GB-M39 Development integration closure (2026-09-23): PR #123 passed all nine
+required checks at exact head
+`5ff091281f8b1d6cf63aeab1d3fe1e517c27164c` and merged by ancestry into
+`integration/development` at `8f7620c20397ab52e38103dff5b9dca9267f7ac0`.
+The merge tree is identical to the validated PR tree. Post-merge verification
+passed the GB-M39 hardening suite, domain 30/30, security 8/8, migration health
+243/243, reporting 7/7, dashboards 9/9, legacy consolidation 8/8, typecheck,
+lint regression and release-contract preflight. The Development hardening unit
+is `LOCAL_VERIFIED`; the cumulative Production release candidate remains
+`BLOCKED_PRODUCTION_READINESS` by the recorded credential, Auth/config,
+recovery and cost gates. No Production migration, deployment or `main` change
+occurred, and Digital Observer core remains unchanged.
