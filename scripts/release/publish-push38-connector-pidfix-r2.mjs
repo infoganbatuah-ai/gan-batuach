@@ -55,13 +55,22 @@ async function publish({ artifactPath, evidencePath, recovery = false, startupRe
   try {
     let existed = false;
     try {
+      const prior = await reader.send(new HeadObjectCommand({ Bucket: EDGE_RELEASE_R2_BUCKET, Key: key }),
+        { abortSignal: AbortSignal.timeout(30_000) });
+      if (prior.ContentLength !== local.size || prior.Metadata?.sha256 !== local.sha256 ||
+        prior.Metadata?.release_id !== document.release_id)
+        fail("P38_PIDFIX_R2_EXISTING_OBJECT_CONFLICT");
+      existed = true;
+    } catch (error) {
+      if (error.message === "P38_PIDFIX_R2_EXISTING_OBJECT_CONFLICT") throw error;
+      if (error.$metadata?.httpStatusCode !== 404 && error.name !== "NotFound" &&
+        error.name !== "NoSuchKey") throw error;
+    }
+    if (!existed) {
       await publisher.send(new PutObjectCommand({ Bucket: EDGE_RELEASE_R2_BUCKET, Key: key,
         Body: createReadStream(path), ContentLength: local.size, ContentType: "application/gzip",
         StorageClass: "STANDARD", IfNoneMatch: "*", Metadata: { sha256: local.sha256,
           release_id: document.release_id } }), { abortSignal: AbortSignal.timeout(600_000) });
-    } catch (error) {
-      if (error.$metadata?.httpStatusCode !== 412 && error.name !== "PreconditionFailed") throw error;
-      existed = true;
     }
     const head = await reader.send(new HeadObjectCommand({ Bucket: EDGE_RELEASE_R2_BUCKET, Key: key }),
       { abortSignal: AbortSignal.timeout(30_000) });
