@@ -17,6 +17,6 @@ assert.equal(shouldRefreshPrivateNvrSession("source_not_media", { loginExclusivi
   "an exclusive recorder login must never be replaced on a non-media response");
 assert.equal(shouldRefreshPrivateNvrSession("source_not_media", { loginExclusivity: false, sessionAgeMs: 239_999 }), false,
   "a fresh non-exclusive session must not rotate for a camera-specific source failure");
-assert.equal(shouldRefreshPrivateNvrSession("source_not_media", { loginExclusivity: false, sessionAgeMs: 240_000 }), true,
-  "an explicitly non-exclusive finite session may be renewed after its observed expiry window");
+assert.equal(shouldRefreshPrivateNvrSession("source_not_media", { loginExclusivity: false, sessionAgeMs: 240_000 }), false,
+  "a mature non-exclusive session must still fail closed on a non-authentication response");
 console.log("push38c shared DVR session policy: PASS");
