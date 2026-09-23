@@ -14,6 +14,8 @@ import { issuePush38ConnectorLivenessRecovery } from "../release/issue-push38-ho
 import { PUSH38_CONNECTOR_LIVENESS_RECOVERY } from "../../services/video-gateway/push38-home-qa-connector-liveness.mjs";
 import { issuePush38ConnectorParentExitRecovery } from "../release/issue-push38-home-qa-connector-parent-exit.mjs";
 import { PUSH38_CONNECTOR_PARENT_EXIT_RECOVERY } from "../../services/video-gateway/push38-home-qa-connector-parent-exit.mjs";
+import { issuePush38ConnectorRtspSessionRecovery } from "../release/issue-push38-home-qa-connector-rtsp-session.mjs";
+import { PUSH38_CONNECTOR_RTSP_SESSION_RECOVERY } from "../../services/video-gateway/push38-home-qa-connector-rtsp-session.mjs";
 import { issuePush38GatewayAuthRecovery } from "../release/issue-push38-home-qa-gateway-auth-recovery.mjs";
 import { PUSH38_GATEWAY_AUTH_RECOVERY } from "../../services/video-gateway/push38-home-qa-gateway-auth-recovery.mjs";
 import { verifyEdgeUpdateManifest } from "../../services/video-gateway/edge-update-contract.mjs";
@@ -111,6 +113,21 @@ try {
   assert.equal(parentExitManifest.artifact_sha256, PUSH38_CONNECTOR_PARENT_EXIT_RECOVERY.digest);
   assert.deepEqual(parentExitManifest.rollout.explicit_device_ids,
     [PUSH38_CONNECTOR_PARENT_EXIT_RECOVERY.deviceId]);
+  const rtspSessionOutput = join(root, "rtsp-session-issued");
+  await assert.rejects(issuePush38ConnectorRtspSessionRecovery({ env: { ...env,
+    HOME_QA_OUTPUT_DIR: rtspSessionOutput, PUSH38_CANDIDATE_SHA: "f".repeat(40) }, call }),
+  /P38_RTSP_SESSION_SIGNING_CONTEXT_INVALID/);
+  const rtspSession = await issuePush38ConnectorRtspSessionRecovery({ env: { ...env,
+    HOME_QA_OUTPUT_DIR: rtspSessionOutput,
+    PUSH38_CANDIDATE_SHA: PUSH38_CONNECTOR_RTSP_SESSION_RECOVERY.buildSha }, call });
+  const rtspSessionManifest = JSON.parse(readFileSync(join(rtspSessionOutput,
+    "connector_remediation_rtsp_session.json")));
+  assert.equal(rtspSession.release_id, PUSH38_CONNECTOR_RTSP_SESSION_RECOVERY.releaseId);
+  assert.equal(verifyEdgeUpdateManifest(rtspSessionManifest,
+    { [keyId]: publicBytes.toString("base64url") }).ok, true);
+  assert.equal(rtspSessionManifest.artifact_sha256, PUSH38_CONNECTOR_RTSP_SESSION_RECOVERY.digest);
+  assert.deepEqual(rtspSessionManifest.rollout.explicit_device_ids,
+    [PUSH38_CONNECTOR_RTSP_SESSION_RECOVERY.deviceId]);
   const gatewayAuthOutput = join(root, "gateway-auth-issued");
   await assert.rejects(issuePush38GatewayAuthRecovery({ env: { ...env,
     HOME_QA_OUTPUT_DIR: gatewayAuthOutput, PUSH38_CANDIDATE_SHA: "f".repeat(40) }, call }),
@@ -126,6 +143,7 @@ try {
     signed_pidfix_fixture_manifests: 1, signed_recovery_fixture_manifests: 1,
     signed_startup_recovery_fixture_manifests: 1, signed_liveness_recovery_fixture_manifests: 1,
     signed_parent_exit_recovery_fixture_manifests: 1,
+    signed_rtsp_session_recovery_fixture_manifests: 1,
     signed_gateway_auth_recovery_fixture_manifests: 1,
     unauthorized_branch_rejected: true, live_aws: "NOT_TESTED" }));
 } finally { rmSync(root, { recursive: true, force: true }); }

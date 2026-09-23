@@ -11,6 +11,7 @@ import { buildPush38ConnectorRecoveryManifest } from "../../services/video-gatew
 import { buildPush38ConnectorStartupRecoveryManifest } from "../../services/video-gateway/push38-home-qa-connector-startup.mjs";
 import { buildPush38ConnectorLivenessRecoveryManifest } from "../../services/video-gateway/push38-home-qa-connector-liveness.mjs";
 import { buildPush38ConnectorParentExitRecoveryManifest } from "../../services/video-gateway/push38-home-qa-connector-parent-exit.mjs";
+import { buildPush38ConnectorRtspSessionRecoveryManifest } from "../../services/video-gateway/push38-home-qa-connector-rtsp-session.mjs";
 import { readR2KeychainCredentials } from "./macos-r2-keychain.mjs";
 
 const origin = "https://693f824a750afcc264fe6ee58c8a86ab.r2.cloudflarestorage.com";
@@ -27,8 +28,9 @@ async function hashStream(stream, limit) {
 }
 
 async function publish({ artifactPath, evidencePath, recovery = false, startupRecovery = false,
-  livenessRecovery = false, parentExitRecovery = false }) {
-  const builder = parentExitRecovery ? buildPush38ConnectorParentExitRecoveryManifest :
+  livenessRecovery = false, parentExitRecovery = false, rtspSessionRecovery = false }) {
+  const builder = rtspSessionRecovery ? buildPush38ConnectorRtspSessionRecoveryManifest :
+    parentExitRecovery ? buildPush38ConnectorParentExitRecoveryManifest :
     livenessRecovery ? buildPush38ConnectorLivenessRecoveryManifest :
     startupRecovery ? buildPush38ConnectorStartupRecoveryManifest :
     recovery ? buildPush38ConnectorRecoveryManifest : buildPush38ConnectorPidfixManifest;
@@ -80,7 +82,8 @@ async function publish({ artifactPath, evidencePath, recovery = false, startupRe
       signal: AbortSignal.timeout(30_000) });
     await anonymous.body?.cancel();
     if (anonymous.ok) fail("P38_PIDFIX_R2_PUBLIC_ACCESS_ENABLED");
-    const result = { protocol: parentExitRecovery ? "observer-push38-parent-exit-recovery-r2-publication-v1" :
+    const result = { protocol: rtspSessionRecovery ? "observer-push38-rtsp-session-recovery-r2-publication-v1" :
+      parentExitRecovery ? "observer-push38-parent-exit-recovery-r2-publication-v1" :
       livenessRecovery ? "observer-push38-liveness-recovery-r2-publication-v1" :
       startupRecovery ? "observer-push38-startup-recovery-r2-publication-v1" :
       recovery ? "observer-push38-recovery-r2-publication-v1" :
@@ -99,16 +102,19 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
     const startupRecovery = process.argv.includes("--startup-recovery");
     const livenessRecovery = process.argv.includes("--liveness-recovery");
     const parentExitRecovery = process.argv.includes("--parent-exit-recovery");
-    if ([recovery, startupRecovery, livenessRecovery, parentExitRecovery].filter(Boolean).length > 1)
+    const rtspSessionRecovery = process.argv.includes("--rtsp-session-recovery");
+    if ([recovery, startupRecovery, livenessRecovery, parentExitRecovery, rtspSessionRecovery]
+      .filter(Boolean).length > 1)
       fail("P38_PIDFIX_R2_MODE_INVALID");
     const [artifact, evidence] = process.argv.slice(2)
       .filter(value => !["--health-recovery", "--startup-recovery", "--liveness-recovery",
-        "--parent-exit-recovery"].includes(value));
+        "--parent-exit-recovery", "--rtsp-session-recovery"].includes(value));
     const evidenceRelative = evidence ? relative(restrictedRoot, resolve(evidence)) : "";
     if (!artifact || !evidence || !evidenceRelative || evidenceRelative === ".." ||
       evidenceRelative.startsWith(`..${sep}`) || isAbsolute(evidenceRelative)) fail("P38_PIDFIX_R2_INPUT_SCOPE_INVALID");
     console.log(JSON.stringify({ result: "PASS", publication: await publish({ artifactPath: artifact,
-      evidencePath: resolve(evidence), recovery, startupRecovery, livenessRecovery, parentExitRecovery }) }));
+      evidencePath: resolve(evidence), recovery, startupRecovery, livenessRecovery, parentExitRecovery,
+      rtspSessionRecovery }) }));
   } catch (error) {
     console.error(/^P38_PIDFIX_R2_[A-Z0-9_]+$/.test(error.message) ? error.message : "P38_PIDFIX_R2_PUBLICATION_FAILED");
     process.exitCode = 1;

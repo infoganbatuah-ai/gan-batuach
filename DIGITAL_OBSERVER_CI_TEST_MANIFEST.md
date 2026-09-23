@@ -174,6 +174,7 @@ Inventory count: **167** files. Classifications are conservative; environment-de
 | `scripts/qa/check-production-release-snapshot.mjs` | npm run release:production:preflight | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | PRODUCTION RELEASE | SUPPORTING | none known |
 | `scripts/qa/check-push17d-closure.mjs` | npm run qa:digital-observer-push17d | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | SUPPORTING | none known |
 | `scripts/qa/check-push18b-gateway-runtime.mjs` | node scripts/qa/check-push18b-gateway-runtime.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
+| `scripts/qa/check-push38-connector-rtsp-session-recovery.mjs` | node scripts/qa/check-push38-connector-rtsp-session-recovery.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | SECURITY / CAMERA / CONNECTOR | CANONICAL CI | Real R2, AWS KMS, and Home hardware remain separate live gates |
 | `scripts/qa/check-real-detection-event-bridge.mjs` | npm run qa:real-detection-event-bridge | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | OTHER / SUPPORT | CANONICAL CI | none known |
 | `scripts/qa/check-real-event-context-baseline.mjs` | node scripts/qa/check-real-event-context-baseline.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CONTEXT / BASELINE | CANONICAL CI | none known |
 | `scripts/qa/check-software-connector.mjs` | npm run qa:software-connector | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |

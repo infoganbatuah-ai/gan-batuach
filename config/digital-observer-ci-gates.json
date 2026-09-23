@@ -88,6 +88,7 @@
     { "name": "investigation", "args": ["--test", "scripts/qa/check-digital-observer-investigation.mjs"] }
   ],
   "security": [
+    { "name": "connector-rtsp-session-recovery", "args": ["scripts/qa/check-push38-connector-rtsp-session-recovery.mjs"] },
     { "name": "connector-parent-exit-recovery", "args": ["scripts/qa/check-push38-connector-parent-exit-recovery.mjs"] },
     { "name": "edge-parent-shutdown", "args": ["scripts/qa/check-edge-parent-shutdown.mjs"] },
     { "name": "home-qa-identity-phases", "args": ["scripts/qa/check-push38-home-qa-phases.mjs"] },
