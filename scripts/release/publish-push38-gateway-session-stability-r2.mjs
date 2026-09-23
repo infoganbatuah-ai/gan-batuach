@@ -10,7 +10,11 @@ import { buildPush38GatewaySessionStabilityManifest } from "../../services/video
 import { readR2KeychainCredentials } from "./macos-r2-keychain.mjs";
 
 const origin = "https://693f824a750afcc264fe6ee58c8a86ab.r2.cloudflarestorage.com";
-const restrictedRoot = fileURLToPath(new URL("../../exports/restricted/", import.meta.url));
+// A worktree may intentionally use the canonical restricted export store from
+// the project root. Keep that location explicit at invocation time rather than
+// encoding one developer machine path in the release tool.
+const restrictedRoot = resolve(process.env.OBSERVER_RESTRICTED_EXPORT_ROOT ||
+  fileURLToPath(new URL("../../exports/restricted/", import.meta.url)));
 const fail = code => { throw new Error(code); };
 async function hashStream(stream, limit) {
   const hash = createHash("sha256"); let size = 0;
