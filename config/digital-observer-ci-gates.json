@@ -51,7 +51,9 @@
     "app/digital-observer/admin/quality/page.tsx",
     "app/digital-observer/admin/costs/page.tsx",
     "app/digital-observer/rules/page.tsx",
-    "app/api/video-gateway/event-manifest/route.ts"
+    "app/api/video-gateway/event-manifest/route.ts",
+    "services/video-gateway/edge-parent-shutdown.mjs",
+    "scripts/run-persistent-home-gateway.mjs"
   ],
   "domain": [
     { "name": "event-journal", "args": ["scripts/qa/check-event-journal.mjs"] },
@@ -86,6 +88,7 @@
     { "name": "investigation", "args": ["--test", "scripts/qa/check-digital-observer-investigation.mjs"] }
   ],
   "security": [
+    { "name": "edge-parent-shutdown", "args": ["scripts/qa/check-edge-parent-shutdown.mjs"] },
     { "name": "home-qa-identity-phases", "args": ["scripts/qa/check-push38-home-qa-phases.mjs"] },
     { "name": "home-qa-legacy-transition-proof", "args": ["scripts/qa/check-push38-home-qa-legacy-proof.mjs"] },
     { "name": "home-qa-r2-authorization", "args": ["scripts/qa/check-push38q-r2-download.mjs"] },

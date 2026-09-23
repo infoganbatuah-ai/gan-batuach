@@ -14,6 +14,7 @@ import { createAdaptiveSamplingScheduler } from "../services/video-gateway/adapt
 import { connectorHeartbeatHealth, retainVerifiedChannels } from "../services/video-gateway/connector-health-recovery.mjs";
 import { resolveEdgeRuntimePaths } from "../services/video-gateway/runtime-paths.mjs";
 import { createEdgeChildLivenessWatchdog } from "../services/video-gateway/edge-child-liveness-watchdog.mjs";
+import { runBoundedEdgeParentShutdown } from "../services/video-gateway/edge-parent-shutdown.mjs";
 
 // Resolve the packaged runtime from this script, never from an interactive
 // shell's working directory or a developer-specific checkout.
@@ -383,12 +384,15 @@ let shuttingDown = false;
 async function shutdown(exitCode = 0, terminateChild = true) {
   if (shuttingDown) return;
   shuttingDown = true;
-  childWatchdog.stop();
-  await continuousMonitor.stop();
-  await stopJournal();
-  releaseJournalOwner();
-  if (terminateChild && child.exitCode === null && !child.killed) child.kill("SIGTERM");
-  process.exit(exitCode);
+  await runBoundedEdgeParentShutdown({
+    stopWatchdog: () => childWatchdog.stop(),
+    releaseJournalOwner,
+    stopMonitoring: () => continuousMonitor.stop(),
+    stopJournal,
+    child,
+    terminateChild,
+    exitCode
+  });
 }
 process.on("SIGINT", () => void shutdown(0, true));
 process.on("SIGTERM", () => void shutdown(0, true));
