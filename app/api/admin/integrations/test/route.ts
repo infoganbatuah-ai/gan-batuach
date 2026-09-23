@@ -2,6 +2,7 @@ import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { requireRole } from "@/lib/auth";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { assertManagementInternalToolAccess } from "@/lib/security/management-production-guards";
 
 const communicationTypes = new Set(["email", "whatsapp", "sms", "push"]);
 
@@ -48,6 +49,7 @@ async function isApprovedRecipient(admin: ReturnType<typeof createAdminClient>, 
 
 export async function POST(request: Request) {
   try {
+    assertManagementInternalToolAccess();
     const { profile } = await requireRole(["admin"]);
     const payload = schema.parse(await request.json());
     const admin = createAdminClient();

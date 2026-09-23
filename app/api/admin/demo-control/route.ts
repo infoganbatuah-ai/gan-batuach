@@ -2,6 +2,7 @@ import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { requireRole } from "@/lib/auth";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
+import { assertManagementInternalToolAccess } from "@/lib/security/management-production-guards";
 
 const schema = z.object({
   action: z.enum(["load_demo_data", "reset_demo_data", "delete_demo_data", "create_sample_inspection", "create_sample_complaint", "create_sample_ai_event", "create_sample_late_inspection", "create_sample_camera_issue"])
@@ -71,6 +72,7 @@ async function resetDemoData(supabase: ReturnType<typeof createAdminClient>, bat
 
 export async function GET() {
   try {
+    assertManagementInternalToolAccess();
     await requireRole(["admin"]);
     if (!isAdminClientConfigured()) return ok({ configured: false, demo_batch_id: demoBatchId, demo_records: 0, by_table: {} });
     const supabase = createAdminClient();
@@ -83,6 +85,7 @@ export async function GET() {
 
 export async function POST(request: Request) {
   try {
+    assertManagementInternalToolAccess();
     const { profile } = await requireRole(["admin"]);
     if (!isAdminClientConfigured()) return fail("SUPABASE_SERVICE_ROLE_KEY חסר. פעולות דמו דורשות Service Role בצד שרת.", 503);
     const payload = schema.parse(await request.json());

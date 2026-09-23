@@ -2,6 +2,8 @@ import { z } from "zod";
 import { fail, handleSafeRouteError, ok } from "@/lib/api";
 import { resolveSignedInvitation } from "@/lib/management/signed-invitation";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
+import { assertRateLimit } from "@/lib/security/rate-limit";
+import { privateRateLimitIdentifier } from "@/lib/security/request-guards";
 
 const schema = z.string().min(40).max(2048);
 
@@ -13,6 +15,7 @@ function maskEmail(value?: string | null) {
 
 export async function GET(request: Request) {
   try {
+    await assertRateLimit(privateRateLimitIdentifier({ headers: request.headers }), "management:invitation-resolve", 30, 60);
     if (!isAdminClientConfigured()) return fail("שירות ההזמנות אינו זמין כרגע.", 503);
     const token = schema.parse(new URL(request.url).searchParams.get("token"));
     const resolved = await resolveSignedInvitation(createAdminClient(), token);
