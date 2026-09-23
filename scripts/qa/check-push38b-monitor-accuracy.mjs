@@ -46,7 +46,7 @@ assert.ok(unproven.gate_failures.includes("PER_CAMERA_PROGRESSION_EVIDENCE_MISSI
 const available = [1, 3, 4, 5, 6, 7, 10, 11];
 const upstreamPoint = minute => ({ ...point(minute),
   source_available_physical_cameras: 9,
-  dvr: { health_ok: true, component_status: "degraded", expected: 10, source_available: 8,
+  dvr: { health_ok: false, classification: "PASS", component_status: "degraded", expected: 10, source_available: 8,
     known_upstream_unavailable: [2, 8], progressing: 8,
     inputs: available.map(channel => ({ channel, progressing: true })) },
   playback: { verified: 9, failed: 0 } });
@@ -55,6 +55,8 @@ const knownUpstream = summarizeRealHomeSoak([upstreamPoint(0), upstreamPoint(1)]
   dvrSourceAvailable: 8, dvrKnownUpstreamUnavailable: [2, 8] });
 assert.equal(knownUpstream.status, "PASS");
 assert.equal(knownUpstream.camera_sample_availability, 1);
+assert.equal(knownUpstream.gateway.unavailable_checkpoints, 0);
+assert.ok(!knownUpstream.gate_failures.includes("COMPONENT_HEALTH_CHECK_FAILED"));
 assert.equal(knownUpstream.per_camera["dvr-2"].upstream_unavailable, true);
 assert.equal(knownUpstream.per_camera["dvr-2"].qualification_denominator, false);
 const hiddenUpstream = summarizeRealHomeSoak([{ ...upstreamPoint(0), dvr: {

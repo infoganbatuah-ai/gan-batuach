@@ -265,6 +265,6 @@ const result = summarizeRealHomeSoak(checkpoints, { startedAt, endedAt: Date.now
   requiredDurationMs, dvrSourceAvailable: 8,
   dvrKnownUpstreamUnavailable: DVR_UPSTREAM_UNAVAILABLE });
 const stagedResult = { ...result, qualification_stage: stage };
-assertQualificationStageResult(stagedResult, stage);
 atomicJson(resultPath, stagedResult); atomicJson(statePath, { ...JSON.parse(readFileSync(statePath, "utf8")), status: stagedResult.status, ended_at: stagedResult.ended_at, result_path: resultPath, gate_failures: stagedResult.gate_failures });
+assertQualificationStageResult(stagedResult, stage);
 console.log(JSON.stringify(stagedResult));
