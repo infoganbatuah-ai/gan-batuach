@@ -83,7 +83,8 @@ if (enableLegacyDelivery) {
   });
 }
 
-const child = spawn(process.execPath, ["node_modules/next/dist/bin/next", "dev", "--hostname", "127.0.0.1", "--port", "3100"], {
+const child = spawn(process.execPath, ["node_modules/next/dist/bin/next", "dev", "--webpack",
+  "--hostname", "127.0.0.1", "--port", "3100"], {
   cwd: root,
   env: { PATH: process.env.PATH, HOME: process.env.HOME, TMPDIR: process.env.TMPDIR,
     NODE_ENV: "development", APP_ENV: "local", NEXT_PUBLIC_APP_ENV: "local",
