@@ -7,9 +7,11 @@ import { chmodSync, existsSync, readFileSync, realpathSync, writeFileSync } from
 import { homedir } from "node:os";
 import { join, resolve, sep } from "node:path";
 import { createEdgeSecretStoreSync } from "../../services/video-gateway/edge-secret-store-sync.mjs";
+import { PUSH38_GATEWAY_SUPERVISOR_RECOVERY
+} from "../../services/video-gateway/push38-home-qa-gateway-supervisor-recovery.mjs";
 
 const CHANNELS = Object.freeze([1, 3, 4, 5, 6, 7, 10, 11]);
-const RELEASE_ID = "qa-p38-health-gateway-finite-handoff-76781a8e0832";
+const RELEASE_ID = PUSH38_GATEWAY_SUPERVISOR_RECOVERY.releaseId;
 const ROOT = join(homedir(), "Library/Application Support/Digital Observer/observer-gateway/ota");
 const option = name => process.argv.find(value => value.startsWith(`--${name}=`))?.slice(name.length + 3) || "";
 const output = resolve(option("output") || ".");
