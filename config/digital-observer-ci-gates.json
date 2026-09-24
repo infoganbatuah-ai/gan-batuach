@@ -93,6 +93,7 @@
     { "name": "gateway-common-cause-recovery", "args": ["scripts/qa/check-push38-gateway-common-cause-recovery.mjs"] },
     { "name": "gateway-supervisor-recovery", "args": ["scripts/qa/check-push38-gateway-supervisor-recovery.mjs"] },
     { "name": "gateway-session-stability", "args": ["scripts/qa/check-push38-gateway-session-stability.mjs"] },
+    { "name": "relay-backoff-ordering", "args": ["scripts/qa/check-push38b-relay-recovery.mjs"] },
     { "name": "connector-rtsp-session-recovery", "args": ["scripts/qa/check-push38-connector-rtsp-session-recovery.mjs"] },
     { "name": "connector-parent-exit-recovery", "args": ["scripts/qa/check-push38-connector-parent-exit-recovery.mjs"] },
     { "name": "edge-parent-shutdown", "args": ["scripts/qa/check-edge-parent-shutdown.mjs"] },

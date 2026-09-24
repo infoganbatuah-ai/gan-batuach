@@ -1194,7 +1194,9 @@ async function ensureRelay(streamId) {
   if (relayRetryDelayMs(relayRecovery.get(streamId)) > 0) return null;
   if (existing) {
     relayLifecycle.staleOnRequest += 1;
+    armRelayRecovery(streamId, existing);
     stopRelay(streamId, existing);
+    return null;
   }
   if (relayStarts.has(streamId)) return relayStarts.get(streamId);
   const start = startRelay(streamId).finally(() => relayStarts.delete(streamId));
@@ -1204,6 +1206,14 @@ async function ensureRelay(streamId) {
 
 function relayIsRunning(relay) {
   return Boolean(relay?.process && relay.process.exitCode === null && !relay.process.killed);
+}
+
+function armRelayRecovery(streamId, relay) {
+  if (!relay || relay.recoveryScheduled) return;
+  const { retry_ms: retryMs, ...recovery } = nextRelayRecovery(relayRecovery.get(streamId));
+  relayRecovery.set(streamId, recovery);
+  relay.recoveryScheduled = true;
+  scheduleRelayResume(streamId, retryMs);
 }
 
 function relayIsProgressing(relay) {
@@ -1406,6 +1416,7 @@ async function startRelay(streamId, { warming = false, previousRelay = null } = 
     if (!relayIsProgressing(relay) || Date.now() - relay.lastInputAt >= RELAY_STALE_MS) {
       if (hardwareVideo && (!relayIsProgressing(relay) && Date.now() - relay.lastInputAt < RELAY_STALE_MS || child.stdin.writableNeedDrain)) hardwareTranscoder.failed(streamId);
       relayLifecycle[Date.now() - relay.lastInputAt >= RELAY_STALE_MS ? "staleInput" : "stalePlaylist"] += 1;
+      if (!relay.warming && relays.get(streamId) === relay) armRelayRecovery(streamId, relay);
       stopRelay(streamId, relay, Date.now() - relay.lastInputAt >= RELAY_STALE_MS ? "STALE_INPUT" : "STALE_PLAYLIST");
     }
   }, 2000);
@@ -1434,11 +1445,7 @@ async function startRelay(streamId, { warming = false, previousRelay = null } = 
     if (wasCurrent) relays.delete(streamId);
     // A recorder may end an otherwise valid native stream. Reopen it while a
     // cloud-authorized viewing lease exists, without waiting for player failure.
-    if (wasCurrent && relay.stopReason !== "WARM_HANDOFF") {
-      const { retry_ms: retryMs, ...recovery } = nextRelayRecovery(relayRecovery.get(streamId));
-      relayRecovery.set(streamId, recovery);
-      scheduleRelayResume(streamId, retryMs);
-    }
+    if (wasCurrent && relay.stopReason !== "WARM_HANDOFF") armRelayRecovery(streamId, relay);
   });
   return relay;
 }
