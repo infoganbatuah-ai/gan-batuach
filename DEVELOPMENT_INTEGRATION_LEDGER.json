@@ -9463,6 +9463,55 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "Run cumulative post-merge Development verification, then begin UX-IMPLEMENT-06 from the verified integration head. Production and main remain unchanged."
+    },
+    {
+      "id": "codex/ux-implement-06-attendance-pickup",
+      "project": "Gan Batuach Management",
+      "title": "UX-IMPLEMENT-06 Attendance and pickup operations",
+      "owner": "UX-IMPLEMENT-06 owner",
+      "sourceBranch": "codex/ux-implement-06-attendance-pickup",
+      "sourceCommits": [
+        "055c160ee0035ba6f0b6ca7e097e22e127967d4c"
+      ],
+      "state": "LOCAL_VERIFIED",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/ux-implement-06-attendance-pickup@055c160ee0035ba6f0b6ca7e097e22e127967d4c",
+          "origin/integration/development@e04b6515d16e67b2ace4c753b646975279070daa"
+        ],
+        "validatedSourceCommit": "055c160ee0035ba6f0b6ca7e097e22e127967d4c"
+      },
+      "validation": {
+        "status": "PASS_VISUAL_FUNCTIONAL_EXACT_HEAD_REQUIRED_CHECKS",
+        "evidence": [
+          "GAN_BATUACH_UX06_ATTENDANCE_PICKUP_OPERATIONS_IMPLEMENTATION.md",
+          "GAN_BATUACH_UX06_VISUAL_QA_REPORT.md",
+          "qa-evidence/ux-implement-06/SHA256SUMS"
+        ],
+        "limits": "Both required GitHub workflows passed on exact PR head 055c160ee0035ba6f0b6ca7e097e22e127967d4c. Thirteen required Desktop and Mobile attendance and pickup captures passed visual QA against the approved reference. The live isolated-backend role, authorization, concurrency and idempotence suite passed 14 checks. This Development integration is not Production release authorization."
+      },
+      "integration": {
+        "status": "INTEGRATED_DEVELOPMENT",
+        "base": "integration/development",
+        "commit": "e04b6515d16e67b2ace4c753b646975279070daa",
+        "pullRequest": 140,
+        "requiredChecks": "PASS_ALL_REQUIRED_EXACT_HEAD"
+      },
+      "dependencies": {
+        "status": "UX_IMPLEMENT_05_INTEGRATED",
+        "units": [
+          "codex/ux-implement-05-parent-platform"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "PASS_BRANCH_UX06_FOCUSED_8_OF_8_ATTENDANCE_PICKUP_E2E_14_CHECKS_DASHBOARDS_9_OF_9_MANAGER_PARENT_23_OF_23_TYPECHECK_LINT_ZERO_REGRESSIONS_PRODUCTION_BUILD_532_PAGES_DOMAIN_30_OF_30_SECURITY_10_OF_10_MIGRATIONS_243_RELEASE_CONTRACT_VISUAL_13_CAPTURES",
+      "releaseEligibility": "DEVELOPMENT_COMPLETE_PRODUCTION_NOT_AUTHORIZED",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Run cumulative post-merge Development verification, then begin UX-IMPLEMENT-07 from the verified integration head. Production and main remain unchanged."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
