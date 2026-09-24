@@ -13,24 +13,35 @@ import { PUSH38_GATEWAY_COMMON_CAUSE_RECOVERY,
 } from "../../services/video-gateway/push38-home-qa-gateway-common-cause-recovery.mjs";
 import { PUSH38_GATEWAY_FINITE_STREAM_HANDOFF
 } from "../../services/video-gateway/push38-home-qa-gateway-finite-stream-handoff.mjs";
+import { PUSH38_GATEWAY_SUPERVISOR_RECOVERY
+} from "../../services/video-gateway/push38-home-qa-gateway-supervisor-recovery.mjs";
 
 const apply = process.argv.includes("--apply");
 const finiteHandoff = process.argv.includes("--finite-stream-handoff");
-const item = finiteHandoff ? PUSH38_GATEWAY_FINITE_STREAM_HANDOFF : PUSH38_GATEWAY_COMMON_CAUSE_RECOVERY;
+const supervisorRecovery = process.argv.includes("--supervisor-recovery");
+if (finiteHandoff && supervisorRecovery) throw new Error("P38_GATEWAY_COMMON_CAUSE_HOME_QA_MODE_INVALID");
+const item = supervisorRecovery ? PUSH38_GATEWAY_SUPERVISOR_RECOVERY :
+  finiteHandoff ? PUSH38_GATEWAY_FINITE_STREAM_HANDOFF : PUSH38_GATEWAY_COMMON_CAUSE_RECOVERY;
 const restrictedRoot = "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted";
 const bundleValue = process.argv.find(value => value.startsWith("--bundle="))?.slice(9);
 if (!bundleValue) throw new Error("P38_GATEWAY_COMMON_CAUSE_HOME_QA_BUNDLE_REQUIRED");
 const bundle = resolve(bundleValue);
-const artifact = finiteHandoff
+const artifact = supervisorRecovery
+  ? `${restrictedRoot}/push38-gateway-supervisor-recovery-4324fa11/gateway-runtime.tar.gz`
+  : finiteHandoff
   ? `${restrictedRoot}/push38-gateway-finite-handoff-e085c30f/gateway-runtime.tar.gz`
   : `${restrictedRoot}/push38-gateway-common-cause-f7d237bf/gateway-runtime.tar.gz`;
-const publication = finiteHandoff
+const publication = supervisorRecovery
+  ? `${restrictedRoot}/push38-gateway-supervisor-recovery-4324fa11/r2-publication.json`
+  : finiteHandoff
   ? `${restrictedRoot}/push38-gateway-finite-handoff-e085c30f/r2-publication.json`
   : `${restrictedRoot}/push38-gateway-common-cause-f7d237bf/r2-publication.json`;
-const bundleName = finiteHandoff ? "gateway_remediation_finite_stream_handoff.json"
+const bundleName = supervisorRecovery ? "gateway_remediation_supervisor_recovery.json"
+  : finiteHandoff ? "gateway_remediation_finite_stream_handoff.json"
   : "gateway_remediation_common_cause_recovery.json";
-const expectedBefore = finiteHandoff ? 12 : 11, expectedAfter = finiteHandoff ? 13 : 12;
-const predecessorReleaseId = finiteHandoff ? item.supersedesReleaseId : item.rollbackReleaseId;
+const expectedBefore = supervisorRecovery ? 16 : finiteHandoff ? 12 : 11;
+const expectedAfter = expectedBefore + 1;
+const predecessorReleaseId = (finiteHandoff || supervisorRecovery) ? item.supersedesReleaseId : item.rollbackReleaseId;
 const accountId = "693f824a750afcc264fe6ee58c8a86ab";
 const origin = `https://${accountId}.r2.cloudflarestorage.com`;
 for (const path of [bundle, artifact, publication]) {
