@@ -10,11 +10,14 @@ const connectorStartup = "qa-p38-health-connector-startup-d44b7e4262f9";
 const connectorLiveness = "qa-p38-health-connector-liveness-bb89862c6352";
 const connectorParentExit = "qa-p38-health-connector-parent-exit-f7dba974e80f";
 const connectorRtspSession = "qa-p38-health-connector-rtsp-session-fb790d87cf53";
+const connectorHostContinuity = "qa-p38-health-connector-host-continuity-8b8ec21e41c2";
+const connectorDeviceSession = "qa-p38-health-connector-device-session-23a104eb2a64";
 const supersededConnectorFix = "qa-p38-health-connector-1b076f596574";
 const gatewayFix = "qa-p38-health-gateway-6c9d08327ec6";
 const gatewayAuthRecovery = "qa-p38-health-gateway-auth-4197f1a246f1";
 const gatewaySessionStability = "qa-p38-health-gateway-session-e354546bdbf8";
 const gatewayCommonCauseRecovery = "qa-p38-health-gateway-common-cause-189e548bc104";
+const gatewayFiniteStreamHandoff = "qa-p38-health-gateway-finite-handoff-76781a8e0832";
 const manifest = (releaseId, deviceId, profile) => ({ release_id: releaseId,
   channel: "HOME_QA", platform: "darwin", architecture: "arm64", profile,
   rollout: { stage: "INTERNAL_QA", cohort_percent: 0, explicit_device_ids: [deviceId] } });
@@ -25,10 +28,13 @@ const connectorStartupRemediation = manifest(connectorStartup, connectorId, "SOF
 const connectorLivenessRemediation = manifest(connectorLiveness, connectorId, "SOFTWARE_CONNECTOR");
 const connectorParentExitRemediation = manifest(connectorParentExit, connectorId, "SOFTWARE_CONNECTOR");
 const connectorRtspSessionRemediation = manifest(connectorRtspSession, connectorId, "SOFTWARE_CONNECTOR");
+const connectorHostContinuityRemediation = manifest(connectorHostContinuity, connectorId, "SOFTWARE_CONNECTOR");
+const connectorDeviceSessionRemediation = manifest(connectorDeviceSession, connectorId, "SOFTWARE_CONNECTOR");
 const gatewayRemediation = manifest(gatewayFix, gatewayId, "PHYSICAL_GATEWAY");
 const gatewayAuthRemediation = manifest(gatewayAuthRecovery, gatewayId, "PHYSICAL_GATEWAY");
 const gatewaySessionRemediation = manifest(gatewaySessionStability, gatewayId, "PHYSICAL_GATEWAY");
 const gatewayCommonCauseRemediation = manifest(gatewayCommonCauseRecovery, gatewayId, "PHYSICAL_GATEWAY");
+const gatewayFiniteStreamHandoffRemediation = manifest(gatewayFiniteStreamHandoff, gatewayId, "PHYSICAL_GATEWAY");
 assert.equal(HOME_QA_PHASE.LEGACY, "LEGACY_VERIFIED_FOR_TRANSITION");
 assert.equal(HOME_QA_PHASE.PENDING, "MANAGED_IDENTITY_PENDING_PROOF");
 const connector = { gateway_id: connectorId, deployment_profile: "SOFTWARE_CONNECTOR",
@@ -43,10 +49,13 @@ assert.equal(homeQaManagedPhaseAllows({ enrollment: connector, manifest: connect
 assert.equal(homeQaManagedPhaseAllows({ enrollment: connector, manifest: connectorLivenessRemediation }), true);
 assert.equal(homeQaManagedPhaseAllows({ enrollment: connector, manifest: connectorParentExitRemediation }), true);
 assert.equal(homeQaManagedPhaseAllows({ enrollment: connector, manifest: connectorRtspSessionRemediation }), true);
+assert.equal(homeQaManagedPhaseAllows({ enrollment: connector, manifest: connectorHostContinuityRemediation }), true);
+assert.equal(homeQaManagedPhaseAllows({ enrollment: connector, manifest: connectorDeviceSessionRemediation }), true);
 assert.equal(homeQaManagedPhaseAllows({ enrollment: gateway, manifest: gatewayRemediation }), true);
 assert.equal(homeQaManagedPhaseAllows({ enrollment: gateway, manifest: gatewayAuthRemediation }), true);
 assert.equal(homeQaManagedPhaseAllows({ enrollment: gateway, manifest: gatewaySessionRemediation }), true);
 assert.equal(homeQaManagedPhaseAllows({ enrollment: gateway, manifest: gatewayCommonCauseRemediation }), true);
+assert.equal(homeQaManagedPhaseAllows({ enrollment: gateway, manifest: gatewayFiniteStreamHandoffRemediation }), true);
 for (const bad of [
   { ...connector, identity_scheme: "LEGACY_HMAC" },
   { ...connector, credential_version: 0 },

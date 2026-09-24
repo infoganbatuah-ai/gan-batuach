@@ -13,10 +13,13 @@ const connectorStartupRecovery = "qa-p38-health-connector-startup-d44b7e4262f9";
 const connectorLivenessRecovery = "qa-p38-health-connector-liveness-bb89862c6352";
 const connectorParentExitRecovery = "qa-p38-health-connector-parent-exit-f7dba974e80f";
 const connectorRtspSessionRecovery = "qa-p38-health-connector-rtsp-session-fb790d87cf53";
+const connectorHostContinuityRecovery = "qa-p38-health-connector-host-continuity-8b8ec21e41c2";
+const connectorDeviceSessionRecovery = "qa-p38-health-connector-device-session-23a104eb2a64";
 const gatewayRemediation = "qa-p38-health-gateway-6c9d08327ec6";
 const gatewayAuthRecovery = "qa-p38-health-gateway-auth-4197f1a246f1";
 const gatewaySessionStability = "qa-p38-health-gateway-session-e354546bdbf8";
 const gatewayCommonCauseRecovery = "qa-p38-health-gateway-common-cause-189e548bc104";
+const gatewayFiniteStreamHandoff = "qa-p38-health-gateway-finite-handoff-76781a8e0832";
 const gatewayBaseline = "qa-legacy-gateway-91bf6814075f";
 
 // This is an additional HOME_QA gate, never a replacement for signed-manifest,
@@ -36,12 +39,13 @@ export function homeQaManagedPhaseAllows({ enrollment, manifest }) {
   if (manifest.release_id === transitionRelease) return false;
   if (enrollment.deployment_profile === "SOFTWARE_CONNECTOR")
     return [connectorRemediation, connectorRecoveryRemediation, connectorStartupRecovery,
-      connectorLivenessRecovery, connectorParentExitRecovery, connectorRtspSessionRecovery]
+      connectorLivenessRecovery, connectorParentExitRecovery, connectorRtspSessionRecovery,
+      connectorHostContinuityRecovery, connectorDeviceSessionRecovery]
       .includes(manifest.release_id) &&
       metadata.home_qa_known_good_release_id === transitionRelease;
   if (enrollment.deployment_profile === "PHYSICAL_GATEWAY")
     return [gatewayRemediation, gatewayAuthRecovery, gatewaySessionStability,
-      gatewayCommonCauseRecovery].includes(manifest.release_id) &&
+      gatewayCommonCauseRecovery, gatewayFiniteStreamHandoff].includes(manifest.release_id) &&
       metadata.home_qa_known_good_release_id === gatewayBaseline;
   return false;
 }
