@@ -9,6 +9,7 @@ import { homedir } from "node:os";
 import { join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createMacOSInstalledEdgeAdapter } from "../../services/video-gateway/edge-macos-installed-adapter.mjs";
+import { createEdgeCrashLoopGuard } from "../../services/video-gateway/edge-crash-loop-guard.mjs";
 import { createEdgeSecretStoreSync } from "../../services/video-gateway/edge-secret-store-sync.mjs";
 import { deriveInstalledEdgeHealth } from "../../services/video-gateway/edge-installed-ota-service.mjs";
 import { loadPinnedEdgeReleaseKeys, PROTECTED_EDGE_TRUST_REGISTRY_PATH } from "../../services/video-gateway/edge-release-trust.mjs";
@@ -82,9 +83,12 @@ const recovered = before.state === "ACTION_REQUIRED"
     : await manager.recoverActionRequiredRollback()
   : before;
 const reconciled = manager.reconcileDelayedRollbackKnownGood();
+const guard = createEdgeCrashLoopGuard({ statePath: join(root, "crash-guard.json"), manager });
+const guardState = guard.reconcileVerifiedRecovery({ runtimePid: adapter.runtimePid() });
 console.log(JSON.stringify({ status: reconciled.state,
   recovery_category: recovered.recovery_category || reconciled.recovery_category,
   current_release: manager.current().release_id,
   failed_known_good_removed: !manager.knownGood().some(item =>
     item.release_id === failedReleaseId),
+  crash_guard: guardState.action,
   runtime_restarted: false, release_promoted: false }));

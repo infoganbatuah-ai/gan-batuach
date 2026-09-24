@@ -49,6 +49,7 @@ export function createInstalledEdgeOtaAgent({ root, device, adapter, cloudReques
     try {
       const manager = new EdgeUpdateManager({ root, trustedPublicKeys: load(), device, adapter, healthCheck });
       if (!manager.current().slot || !manager.knownGood().length) fail("EDGE_UPDATE_SIGNED_BOOTSTRAP_REQUIRED");
+      const guard = createEdgeCrashLoopGuard({ statePath: guardPath, manager });
       if (manager.status().state === "ACTION_REQUIRED" &&
         manager.status().failure_category === "EDGE_UPDATE_NO_PRIOR_KNOWN_GOOD") {
         const recovered = await manager.recoverSoleSignedBaselineAfterFalseCrash();
@@ -59,12 +60,14 @@ export function createInstalledEdgeOtaAgent({ root, device, adapter, cloudReques
         ["EDGE_UPDATE_KNOWN_GOOD_UNHEALTHY", "EDGE_UPDATE_ROLLBACK_HEALTH_FAILED"].includes(
           manager.status().failure_category)) {
         const recovered = await manager.recoverActionRequiredRollback();
+        guard.reconcileVerifiedRecovery({ runtimePid: adapter.runtimePid() });
         onEvent({ state: recovered.state, reason: recovered.recovery_category });
         return recovered;
       }
       if (manager.status().state === "ACTION_REQUIRED" &&
         manager.status().failure_category === "EDGE_UPDATE_KNOWN_GOOD_CRASH_LOOP") {
         const recovered = await manager.recoverKnownGoodCrashLoopAfterStability();
+        guard.reconcileVerifiedRecovery({ runtimePid: adapter.runtimePid() });
         onEvent({ state: recovered.state, reason: recovered.recovery_category });
         return recovered;
       }
@@ -74,7 +77,6 @@ export function createInstalledEdgeOtaAgent({ root, device, adapter, cloudReques
         await reportLateFailure(manager);
         return recovered;
       }
-      const guard = createEdgeCrashLoopGuard({ statePath: guardPath, manager });
       const service = adapter.status();
       const observed = await adapter.health({ timeoutMs: 1500 });
       const crash = await guard.observe({ runtimePid: adapter.runtimePid(), healthy: observed.ok && service.running });

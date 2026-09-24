@@ -17,6 +17,7 @@ assert.match(source, /EDGE_UPDATE_KNOWN_GOOD_UNHEALTHY/);
 assert.match(source, /EDGE_UPDATE_ROLLBACK_HEALTH_FAILED/);
 assert.match(source, /manager\.recoverActionRequiredRollback\(\)/);
 assert.match(source, /manager\.reconcileDelayedRollbackKnownGood\(\)/);
+assert.match(source, /guard\.reconcileVerifiedRecovery\(\{ runtimePid: adapter\.runtimePid\(\) \}\)/);
 assert.match(source, /failed_known_good_removed/);
 assert.match(source, /runtime_restarted: false/);
 assert.match(source, /release_promoted: false/);

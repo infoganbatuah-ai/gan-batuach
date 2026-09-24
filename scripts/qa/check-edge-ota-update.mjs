@@ -189,6 +189,14 @@ for (const profile of ["PHYSICAL_GATEWAY", "SOFTWARE_CONNECTOR"]) {
   assert.equal((await test.value.recoverKnownGoodCrashLoopAfterStability()).state, "ROLLED_BACK");
   assert.equal(test.value.status().recovery_category, "EDGE_UPDATE_SIGNED_KNOWN_GOOD_STABILITY_REVERIFIED");
   assert.equal(test.value.current().version, "1.0.0");
+  const reconciledGuard = guard.reconcileVerifiedRecovery({ runtimePid: 204 });
+  assert.equal(reconciledGuard.action, "OBSERVING");
+  assert.equal(reconciledGuard.release_id, test.value.current().release_id);
+  assert.equal(reconciledGuard.runtime_pid, 204);
+  assert.deepEqual(reconciledGuard.crashes, []);
+  assert.equal(reconciledGuard.unhealthy_since, null);
+  await assert.rejects(async () => guard.reconcileVerifiedRecovery({ runtimePid: 205 }),
+    /EDGE_CRASH_GUARD_RECOVERY_RECONCILIATION_NOT_APPLICABLE/);
   if (profile === "SOFTWARE_CONNECTOR") {
     const delayedCrashRetry = test.value.authorizeQuarantinedReleaseRetry({ manifest: update,
       expectedFailureCategory: "EDGE_UPDATE_CRASH_LOOP", remediationEvidenceSha256: "c".repeat(64) });

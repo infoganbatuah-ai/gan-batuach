@@ -20,6 +20,30 @@ export function createEdgeCrashLoopGuard({ statePath, manager, now = () => Date.
   const load = () => existsSync(path) ? JSON.parse(readFileSync(path, "utf8")) : null;
   return {
     status: load,
+    // A terminal guard record belongs to the observation that produced it.
+    // Once the manager has independently re-verified the exact signed
+    // CURRENT/KNOWN_GOOD slot with one stable supervisor PID, retain the
+    // rollback evidence in update-state.json but begin a fresh observation
+    // window. This cannot select, install or promote a release.
+    reconcileVerifiedRecovery({ runtimePid }) {
+      const state = manager.status(), current = manager.current(), known = manager.knownGood();
+      if (state.state !== "ROLLED_BACK" ||
+        !["EDGE_UPDATE_SIGNED_KNOWN_GOOD_RECOVERED",
+          "EDGE_UPDATE_SIGNED_KNOWN_GOOD_STABILITY_REVERIFIED"].includes(state.recovery_category) ||
+        state.recovered_version !== current.version || state.recovered_runtime_pid !== runtimePid ||
+        !Number.isInteger(runtimePid) || runtimePid < 1 || !current.slot ||
+        !known.some(item => item.release_id === current.release_id &&
+          item.artifact_sha256 === current.artifact_sha256))
+        fail("EDGE_CRASH_GUARD_RECOVERY_RECONCILIATION_NOT_APPLICABLE");
+      manager.verifySlot(current);
+      const at = Math.max(now(), load()?.last_observed_at || 0);
+      const record = { protocol: "observer-edge-crash-guard-v1", release_id: current.release_id,
+        runtime_pid: runtimePid, first_healthy_at: at, unhealthy_since: null,
+        crashes: [], last_observed_at: at, state: "OBSERVING",
+        recovery_category: state.recovery_category, recovery_state_updated_at: state.updated_at };
+      save(path, record);
+      return { ...record, action: "OBSERVING" };
+    },
     async observe({ runtimePid, healthy }) {
       const observedAt = now(), current = manager.current(), state = manager.status().state;
       const prior = load();
