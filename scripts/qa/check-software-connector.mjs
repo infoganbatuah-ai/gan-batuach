@@ -205,7 +205,10 @@ test("generic RTSP discovery registers a relay source instead of probe-only read
   assert.match(gateway, /relay\.process\.stdin\?\.writableNeedDrain/);
   assert.match(inference, /VIDEO_GATEWAY_OBJECT_WORKER_PATH/);
   assert.match(readiness, /const warmup = setTimeout\(\(\) => \{[\s\S]*?void objectInference\.start\(\)/);
-  assert.doesNotMatch(readiness.slice(readiness.indexOf("function objectWorkerSelfTest()"), readiness.indexOf("function baseReadiness()")), /objectInference\.start\(/);
+  assert.doesNotMatch(readiness, /spawnSync/);
+  const localReadiness = readiness.slice(readiness.indexOf("export function localEdgeReadiness()"), readiness.indexOf("export function warmLocalEdgeReadiness()"));
+  assert.doesNotMatch(localReadiness, /spawn\(/);
+  assert.doesNotMatch(readiness.slice(readiness.indexOf("function objectWorkerSelfTest()"), readiness.indexOf("function pendingBaseReadiness()")), /objectInference\.start\(/);
 });
 
 test("high-bitrate RTSP playback history keeps only the bounded event prebuffer", () => {

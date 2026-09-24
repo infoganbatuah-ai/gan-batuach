@@ -38,31 +38,42 @@ export async function checkEdgeRuntimeLiveness() {
 }
 
 {
-  const observations = [false, false, false];
+  const observations = [false, false, false, false, false, false];
+  let clock = 0;
   let terminations = 0;
   const states = [];
   const watchdog = createEdgeChildLivenessWatchdog({
-    probe: async () => observations.shift(),
+    probe: async () => { const result = observations.shift(); clock += 10_000; return result; },
     terminateChild: () => { terminations += 1; },
-    onState: event => states.push(event.state)
+    onState: event => states.push(event.state),
+    now: () => clock,
+    intervalMs: 5_000,
+    minimumDownMs: 45_000
   });
   assert.equal((await watchdog.tick()).state, "PROBE_FAILED");
   assert.equal((await watchdog.tick()).state, "PROBE_FAILED");
+  assert.equal((await watchdog.tick()).state, "LIVENESS_DEGRADED");
+  assert.equal((await watchdog.tick()).state, "LIVENESS_DEGRADED");
+  assert.equal((await watchdog.tick()).state, "LIVENESS_DEGRADED");
   assert.equal((await watchdog.tick()).state, "SUSTAINED_DOWN");
   assert.equal((await watchdog.tick()).state, "TERMINATED");
-  assert.deepEqual(states, ["PROBE_FAILED", "PROBE_FAILED", "SUSTAINED_DOWN"]);
+  assert.deepEqual(states, ["PROBE_FAILED", "PROBE_FAILED", "LIVENESS_DEGRADED", "LIVENESS_DEGRADED", "LIVENESS_DEGRADED", "SUSTAINED_DOWN"]);
   assert.equal(terminations, 1, "sustained liveness loss must terminate the child exactly once");
 }
 
 {
-  const observations = [false, true, false, false, false];
+  const observations = [false, false, false, true, false, false, false];
+  let clock = 0;
   let terminations = 0;
   const watchdog = createEdgeChildLivenessWatchdog({
-    probe: async () => observations.shift(),
-    terminateChild: () => { terminations += 1; }
+    probe: async () => { const result = observations.shift(); clock += 5_000; return result; },
+    terminateChild: () => { terminations += 1; },
+    now: () => clock,
+    intervalMs: 5_000,
+    minimumDownMs: 45_000
   });
-  for (let index = 0; index < 5; index += 1) await watchdog.tick();
-  assert.equal(terminations, 1, "a healthy sample resets the bounded failure counter");
+  for (let index = 0; index < 7; index += 1) await watchdog.tick();
+  assert.equal(terminations, 0, "a healthy sample resets the sustained-down timer as well as the failure counter");
 }
 
 return { status: "PASS", orphan_cloud_requests_cancelled: true,

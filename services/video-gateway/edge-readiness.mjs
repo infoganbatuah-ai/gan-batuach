@@ -1,26 +1,50 @@
 import { existsSync } from "node:fs";
-import { spawnSync } from "node:child_process";
+import { spawn } from "node:child_process";
 import { join } from "node:path";
 import { objectInference } from "./object-inference-client.mjs";
 import { resolveEdgeRuntimePaths } from "./runtime-paths.mjs";
 
 let baseReadinessCache = null;
+let baseReadinessPromise = null;
 
-function executableAvailable(command) {
+function runBounded(command, args, timeoutMs) {
+  return new Promise((resolve) => {
+    let stdout = "", settled = false, timedOut = false;
+    const child = spawn(command, args, { stdio: ["ignore", "pipe", "ignore"] });
+    const finish = (result) => {
+      if (settled) return;
+      settled = true;
+      clearTimeout(timer);
+      resolve(result);
+    };
+    const timer = setTimeout(() => {
+      timedOut = true;
+      child.kill("SIGKILL");
+    }, timeoutMs);
+    timer.unref?.();
+    child.stdout?.on("data", (chunk) => {
+      if (stdout.length < 64 * 1024) stdout += String(chunk).slice(0, 64 * 1024 - stdout.length);
+    });
+    child.once("error", (error) => finish({ ok: false, stdout, timedOut, error }));
+    child.once("close", (code) => finish({ ok: !timedOut && code === 0, stdout, timedOut, code }));
+  });
+}
+
+async function executableAvailable(command) {
   const candidates = command === "ffprobe"
     ? ["/opt/homebrew/bin/ffprobe", "/usr/local/bin/ffprobe", command]
     : [command];
   const executable = candidates.find((candidate) => candidate === command || existsSync(candidate));
-  const result = spawnSync(executable, [command === "ffprobe" ? "-version" : "--version"], { encoding: "utf8", timeout: 3000 });
-  return result.status === 0;
+  const result = await runBounded(executable, [command === "ffprobe" ? "-version" : "--version"], 3_000);
+  return result.ok;
 }
 
-function visionWorkerSelfTest() {
+async function visionWorkerSelfTest() {
   const workerPath = resolveEdgeRuntimePaths().visionWorkerPath;
   if (!existsSync(workerPath)) return { available: false, reason: "vision_worker_not_built", capabilities: {} };
-  const result = spawnSync(workerPath, ["--self-test"], { encoding: "utf8", timeout: 5_000 });
-  if (result.error?.code === "ETIMEDOUT") return { available: false, reason: "vision_worker_self_test_timeout", capabilities: {} };
-  if (result.status !== 0) return { available: false, reason: "vision_worker_self_test_failed", capabilities: {} };
+  const result = await runBounded(workerPath, ["--self-test"], 5_000);
+  if (result.timedOut) return { available: false, reason: "vision_worker_self_test_timeout", capabilities: {} };
+  if (!result.ok) return { available: false, reason: "vision_worker_self_test_failed", capabilities: {} };
   try {
     const parsed = JSON.parse(result.stdout || "{}");
     if (parsed.ok !== true || parsed.runtime !== "apple_vision") return { available: false, reason: "vision_worker_invalid_self_test", capabilities: {} };
@@ -36,29 +60,46 @@ function objectWorkerSelfTest() {
   return objectInference.status();
 }
 
-function baseReadiness() {
-  if (baseReadinessCache) return baseReadinessCache;
+function pendingBaseReadiness() {
   const modelDir = resolveEdgeRuntimePaths().modelDir;
   const audioModel = join(modelDir, "audio-event-detector.mlmodelc");
-  // The compiled worker is the runtime artifact. Requiring `swift` here would
-  // incorrectly disable Vision when the compiler is not on the LaunchAgent PATH.
   const appleVisionPlatform = process.platform === "darwin";
-  const visionWorker = appleVisionPlatform ? visionWorkerSelfTest() : { available: false, reason: "apple_vision_runtime_unavailable", capabilities: {} };
-  const ffprobe = executableAvailable("ffprobe");
-  const hardwareAcceleration = process.platform === "darwin" && process.arch === "arm64";
-  const audioModelPresent = Boolean(audioModel && existsSync(audioModel));
-  baseReadinessCache = {
-    visionWorker,
-    ffprobe,
-    hardwareAcceleration,
-    audioModelPresent,
+  return {
+    visionWorker: { available: false, reason: "vision_worker_self_test_pending", capabilities: {} },
+    ffprobe: false,
+    hardwareAcceleration: process.platform === "darwin" && process.arch === "arm64",
+    audioModelPresent: Boolean(audioModel && existsSync(audioModel)),
     appleVisionPlatform
   };
-  return baseReadinessCache;
+}
+
+async function warmBaseReadiness() {
+  if (baseReadinessCache) return baseReadinessCache;
+  if (baseReadinessPromise) return baseReadinessPromise;
+  baseReadinessPromise = (async () => {
+    const pending = pendingBaseReadiness();
+    // The compiled worker is the runtime artifact. Requiring `swift` here would
+    // incorrectly disable Vision when the compiler is not on the LaunchAgent PATH.
+    const visionWorkerPromise = pending.appleVisionPlatform
+      ? visionWorkerSelfTest()
+      : Promise.resolve({ available: false, reason: "apple_vision_runtime_unavailable", capabilities: {} });
+    const [visionWorker, ffprobe] = await Promise.all([visionWorkerPromise, executableAvailable("ffprobe")]);
+    baseReadinessCache = {
+      visionWorker,
+      ffprobe,
+      hardwareAcceleration: pending.hardwareAcceleration,
+      audioModelPresent: pending.audioModelPresent,
+      appleVisionPlatform: pending.appleVisionPlatform
+    };
+    return baseReadinessCache;
+  })().finally(() => { baseReadinessPromise = null; });
+  return baseReadinessPromise;
 }
 
 export function localEdgeReadiness() {
-  const base = baseReadiness();
+  // Health is latency-sensitive. It may observe a pending capability contract,
+  // but it must never synchronously spawn a process or block the event loop.
+  const base = baseReadinessCache || pendingBaseReadiness();
   const objectWorker = objectWorkerSelfTest();
   const objectDetection = objectWorker.available;
   const audioDetection = false;
@@ -107,7 +148,7 @@ export function warmLocalEdgeReadiness() {
   // Let the read-only recorder discovery finish its initial network burst.
   // The readiness contract remains disabled until this real self-test passes.
   const warmup = setTimeout(() => {
-    baseReadiness();
+    void warmBaseReadiness();
     void objectInference.start();
   }, 30_000);
   warmup.unref();

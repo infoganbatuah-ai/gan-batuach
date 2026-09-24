@@ -150,6 +150,11 @@ async function signedPost(path, payload, options = {}) {
 
 const child = spawn(process.execPath, ["services/video-gateway/server.mjs"], { cwd: workdir, env: { ...process.env, HOST: "127.0.0.1", PORT: String(gatewayPort), VIDEO_GATEWAY_SIGNING_SECRET: gatewaySecret, DVR_EXPECTED_CHANNEL_COUNT: String(expectedChannelCount), OBSERVER_EDGE_DEVICE_TYPE: edgeDeviceType, OBSERVER_EDGE_INSTALLATION_ID: installationId, GAN_BATUACH_GATEWAY_SECRET_DIR: gatewaySecretDir }, stdio: "inherit" });
 const childWatchdog = createEdgeChildLivenessWatchdog({
+  // A 2s loopback timeout still detects an unresponsive child quickly, while
+  // requiring 45s of continuous loss avoids restart storms during measured
+  // short host scheduler/I/O stalls. Rich OTA health remains independently
+  // strict and continues to own release promotion or rollback.
+  minimumDownMs: 45_000,
   probe: async () => {
     const response = await fetch(`${gatewayUrl}/health/live`, { signal: AbortSignal.timeout(2_000) });
     if (!response.ok) return false;
@@ -162,8 +167,8 @@ const childWatchdog = createEdgeChildLivenessWatchdog({
     // crash-loop guard remains the sole authority for eventual rollback.
     if (child.exitCode === null && !child.killed) child.kill("SIGKILL");
   },
-  onState: ({ state, failures }) => {
-    if (state !== "HEALTHY") console.error(JSON.stringify({ level: "warning", domain: "edge_liveness", state, failures }));
+  onState: ({ state, failures, downDurationMs, minimumDownMs }) => {
+    if (state !== "HEALTHY") console.error(JSON.stringify({ level: "warning", domain: "edge_liveness", state, failures, down_duration_ms: downDurationMs, minimum_down_ms: minimumDownMs }));
   }
 });
 
