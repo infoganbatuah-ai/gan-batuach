@@ -9512,6 +9512,55 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "Run cumulative post-merge Development verification, then begin UX-IMPLEMENT-07 from the verified integration head. Production and main remain unchanged."
+    },
+    {
+      "id": "codex/ux-implement-07-staff-platform",
+      "project": "Gan Batuach Management",
+      "title": "UX-IMPLEMENT-07 Staff full platform — active employee experience",
+      "owner": "UX-IMPLEMENT-07 owner",
+      "sourceBranch": "codex/ux-implement-07-staff-platform",
+      "sourceCommits": [
+        "20c31250625a4617fa19d462b02252fe7c30b8de"
+      ],
+      "state": "LOCAL_VERIFIED",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/ux-implement-07-staff-platform@20c31250625a4617fa19d462b02252fe7c30b8de",
+          "origin/integration/development@3c169fe7eb1806db96cff759accf43da1c725abc"
+        ],
+        "validatedSourceCommit": "20c31250625a4617fa19d462b02252fe7c30b8de"
+      },
+      "validation": {
+        "status": "PASS_VISUAL_FUNCTIONAL_EXACT_HEAD_REQUIRED_CHECKS_AND_POST_MERGE_CUMULATIVE_VALIDATION",
+        "evidence": [
+          "GAN_BATUACH_UX07_STAFF_FULL_PLATFORM_IMPLEMENTATION.md",
+          "GAN_BATUACH_UX07_VISUAL_QA_REPORT.md",
+          "qa-evidence/ux-implement-07/SHA256SUMS"
+        ],
+        "limits": "All required GitHub checks passed on exact PR head 20c31250625a4617fa19d462b02252fe7c30b8de. Sixteen Desktop and Mobile Staff captures passed visual QA. Canonical clock actions, employment authorization, multi-Garden/Classroom scope, payroll-ready separation, Tasks, messaging, documents and camera policy were verified against the isolated Development backend. This is not Production release authorization."
+      },
+      "integration": {
+        "status": "INTEGRATED_DEVELOPMENT",
+        "base": "integration/development",
+        "commit": "3c169fe7eb1806db96cff759accf43da1c725abc",
+        "pullRequest": 142,
+        "requiredChecks": "PASS_ALL_REQUIRED_EXACT_HEAD"
+      },
+      "dependencies": {
+        "status": "UX_IMPLEMENT_06_INTEGRATED",
+        "units": [
+          "codex/ux-implement-06-attendance-pickup"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "PASS_BRANCH_UX07_FOCUSED_7_OF_7_STAFF_TIME_ROLE_E2E_16_CHECKS_MULTI_GARDEN_8_OF_8_DASHBOARDS_9_OF_9_TASKS_6_OF_6_DOCUMENTS_6_OF_6_MANAGER_PARENT_23_OF_23_UX06_8_OF_8_ROLE_DASHBOARD_E2E_8_OF_8_TYPECHECK_LINT_ZERO_REGRESSIONS_PRODUCTION_BUILD_532_PAGES_DOMAIN_30_OF_30_SECURITY_10_OF_10_MIGRATIONS_243_RELEASE_CONTRACT_VISUAL_16_CAPTURES_POST_MERGE_HEALTH_200_SUPABASE_OK_EXACT_SHA",
+      "releaseEligibility": "DEVELOPMENT_COMPLETE_PRODUCTION_NOT_AUTHORIZED",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "UX-IMPLEMENT-07 is complete in Development. Stop before UX-IMPLEMENT-08; Production and main remain unchanged."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
