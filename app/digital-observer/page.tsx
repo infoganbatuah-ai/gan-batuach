@@ -3,10 +3,17 @@ import Link from "next/link";
 import { ArrowLeft, Bell, BrainCircuit, Building2, Camera, Check, Home, LockKeyhole, Radar, ShieldCheck } from "lucide-react";
 import { ObserverMark } from "@/components/digital-observer/observer-app-shell";
 
+const title = "תצפיתן דיגיטלי | להבין מה קורה בלי לצפות כל הזמן";
+const description = "מערכת עצמאית לניהול מצלמות, אירועים והתראות לבית ולעסק, עם ביקורת אנושית והפרדת נתונים.";
+const url = "https://ganbatuach.com/digital-observer";
+const image = "https://ganbatuach.com/assets/digital-observer/home-camera-grid.jpg";
+
 export const metadata: Metadata = {
-  title: { absolute: "תצפיתן דיגיטלי | להבין מה קורה בלי לצפות כל הזמן" },
-  description: "מערכת עצמאית לניהול מצלמות, אירועים והתראות לבית ולעסק, עם ביקורת אנושית והפרדת נתונים.",
-  alternates: { canonical: "/digital-observer" }
+  title: { absolute: title },
+  description,
+  alternates: { canonical: url },
+  openGraph: { type: "website", locale: "he_IL", siteName: "תצפיתן דיגיטלי", url, title, description, images: [{ url: image, alt: "תצפיתן דיגיטלי לניהול מצלמות והתראות" }] },
+  twitter: { card: "summary_large_image", title, description, images: [image] }
 };
 
 export default function DigitalObserverPublicPage() {

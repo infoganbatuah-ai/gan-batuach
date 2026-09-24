@@ -1,0 +1,323 @@
+# GB-M35 — Full role E2E QA, controlled identities and journey closure
+
+## Final continuation status — 2026-09-21
+
+The exact integrated Development source `81199cc856c01687db154a4ff117ef0034026edf` was replayed in a task-owned clean snapshot against the disposable loopback Supabase/Auth clone. The Product Parent registration UI accepted only synthetic details and the owner-authorized QA consent, returned the truthful Email-first success state, and Mailpit captured one confirmation message. Before confirmation the account had neither verified Email nor verified phone. A malformed token returned without changing either state; the valid captured local link set Email verified while phone remained unverified; replay did not change that result. No token, password or real contact was printed, committed or sent externally.
+
+The verified synthetic Parent then submitted the real login form. The first attempt reached `/dashboard/parent`, proving accepted credentials and redirect selection, but the dashboard remained on its loading shell and the session subsequently returned to `/login`. A warmed retry returned the existing UI error rendering for an empty Auth error (`{}`). This is **not closed as a Product PASS or classified as a new Product P1**: during the same run the isolated database container reported `unhealthy`, a read-only sample showed approximately 505% container CPU, loopback health requests intermittently took 20 seconds or timed out, and first-route compilation took 1–4 minutes. Targeted restarts had earlier recovered the same disposable services. Auth itself later returned HTTP 200, while the database health check remained unhealthy. The evidence therefore establishes browser signup and Email verification on the exact integration head, but does not establish a stable authenticated Parent Dashboard journey.
+
+GB-M35 remains **BLOCKED**. The mandatory internal browser journeys, full IDOR matrix, interactive mobile/desktop/RTL/accessibility closure and several independent-connection races remain PARTIAL or NOT RUN. PR #86 stays draft and unmerged. The next action is to provide a protected Auth-capable isolated QA runtime with enough CPU/memory for the complete application and database, restore the existing synthetic snapshot there, and resume from this evidence. Production and `main` were untouched; no real provider or customer data was used.
+
+## QA Consent Authorization
+
+The owner explicitly authorized ordinary Privacy Policy and Terms acceptance **only** for synthetic accounts in the isolated Development/QA environment. Synthetic Owner, Parent, Staff, Inspector and Manager browser registrations used that scope. No customer, real user or Production consent was accepted.
+
+## Temporary Credential P1
+
+**CLOSED for Development code and the isolated synthetic QA database.** Scoped [PR #98](https://github.com/infoganbatuah-ai/gan-batuach/pull/98) retired active plaintext temporary-password creation, retrieval and logging, and preserved signed invitation and account-recovery paths. Its exact head passed all 9 required checks and merged into `integration/development` at `f83eb1`. Earlier paragraphs in this report describing this P1 as open are historical evidence and are superseded here. Production still needs the reviewed forward migration during an explicitly authorized release; none was applied in GB-M35.
+
+## Credential Remediation
+
+The forward-only `20260920170000_retire_generated_plaintext_credentials.sql` was applied to the isolated Development database in canonical order and verified as 239/239 migrations. The QA clone's historical synthetic plaintext was redacted without printing or committing values. A tested backup and isolated restore preceded the Development migration. No Production data or customer credential was read or changed.
+
+## Latest synthetic Owner and Staff continuation — 2026-09-21
+
+A fresh verified Owner-only QA account completed the five-stage Garden onboarding save/resume and activation. The new Garden has no teaching assignment for that Owner; a forged Owner-as-Teacher activation was denied with HTTP 403. From the Owner-only UI, the account published a QA Teacher opening and created a signed invitation for a separate synthetic Staff identity. Mock delivery was queued only; no provider send or temporary password was claimed. The separate verified Staff candidate saved a professional profile, uploaded a synthetic qualification PDF to private Storage (HTTP 201, `uploaded`, never `verified`), completed the pre-employment document gate, resolved the signed invitation and accepted it (HTTP 200). This closes the tested API/Auth/Storage invitation acceptance path, but interactive browser employment/Dashboard proof remains open.
+
+That journey exposed a P1 circular dependency: the pre-employment qualification gate required a document while the existing Staff document route required active employment. Scoped [PR #106](https://github.com/infoganbatuah-ai/gan-batuach/pull/106), source commit `a0090b2ce2b66428e3f2bfaca51d22a3f0ee7dd8`, adds a candidate-owned private submission path and derives readiness from the stored document instead of a client-controlled JSON flag. All nine required checks passed; the integration merge is `ccfb9467c2e0d157f09e198d03cd7bb6a1915b3e`. Own signed retrieval returned 302; anonymous and unrelated Owner API reads returned 401/403; direct authenticated RLS returned one own row and zero unrelated rows. The QA database confirmed RLS enabled, no `anon` table/RPC grants and a private `documents` bucket.
+
+[PR #107](https://github.com/infoganbatuah-ai/gan-batuach/pull/107) registered the ordered migration and passed all required checks before merge `513dc53e2277aa810a12614870a331fb6d16bb00`. A private 5.7 MB backup of canonical isolated Development was captured with SHA-256 `2b78757519ac5a7eacf631ca34e2b4b5ec2fad8e39fb679c95b85dbca1d69fc9` and a readable archive inventory before application. The canonical guarded runner then applied `20260921150000_management_staff_candidate_private_documents.sql` only to Development. Its receipt fingerprint is `7da96a8a43032a64f552c99286f3f9722bb68d5dfeebd701bc915df31d40fe1b`; drift passed 240/240 and post-apply schema/RLS/index/grant/Storage checks passed. Staff hiring 8/8, document 6/6, Manager/Parent contract 22/22 and signed invitation 6/6 passed on the integrated code. [PR #108](https://github.com/infoganbatuah-ai/gan-batuach/pull/108) recorded the non-secret Development application receipt, passed all nine required checks and merged as `81199cc856c01687db154a4ff117ef0034026edf`. Production remains untouched. The remaining full-role journeys and PR #86 merge gate are still open.
+
+## Browser Signup Verification
+
+**Owner-as-Teacher continuation, 2026-09-21:** A newly Email-verified synthetic Owner selected Owner-as-Teacher, created a draft Garden, saved and resumed the five-stage onboarding wizard, supplied the required Garden phone and truthful document summary, selected the no-charge trial, and reached `/dashboard/garden` after activation. Isolated QA database verification found one active Garden, two active same-age Classrooms, exactly one active teaching assignment for that Owner, and one subscription. The first save returned 401 during a transient QA Auth timeout and was not counted; the successful retry returned 200 and persisted after reload. The successful final activation returned 200 with no blockers. This is not evidence that a qualification was verified, or that a separate Teacher invitation journey passed.
+
+The Owner-as-Teacher document UI exposed another scoped P1: `teacher_certificate` existed in the canonical model/API but had no upload option in the Garden document screen. [PR #105](https://github.com/infoganbatuah-ai/gan-batuach/pull/105), head `004c23bd8a064b42957a4d5e01cd24967a1d2799`, adds the option only for an Owner with an active teaching assignment and uses existing server-side authorization. On the isolated browser snapshot, a synthetic PDF upload returned 201 and `pending_review`; authorized private file access returned 302 and anonymous access returned 401. Focused document tests passed 6/6. PR #105 passed all 9 required exact-head checks and merged to `integration/development` as `b85dc7ec9d09ffe69efcfbd5bc6f094a4e05ae23`. A fresh Chrome retest against that exact integration head again returned upload 201/pending review, authorized private retrieval 302 and anonymous retrieval 401. The scoped UI defect is closed on Development; full document-role coverage remains open.
+
+The disposable Auth QA clone initially lacked the canonical Storage-owned indexes/constraints and the private `documents` bucket because its snapshot restoration had covered public/Auth data only. Its empty Storage tables were repaired from the exact canonical isolated Development definitions, without editing historical migrations or touching Production. A prior upload failed with Storage `NoSuchBucket`; after this QA-only repair the private upload/retrieval path passed. During a separate browser run, the disposable Auth service returned HTTP 504 on `/auth/v1/user` while a valid synthetic session cookie remained; a restart of that local Auth container restored the successful probe. The availability issue and remaining complete role journeys stay open.
+
+**Email callback P1, 2026-09-20:** A newly registered synthetic Owner checked ordinary QA-only consent, received a Mailpit link and confirmed the Email, but the callback falsely redirected to `confirmation_failed`. An isolated browser probe found that Supabase's default automatic PKCE URL handling exchanged the single-use code before the app's explicit callback could do so. Scoped [PR #104](https://github.com/infoganbatuah-ai/gan-batuach/pull/104) merged at `5b3efd219355860e84f4b8312f77d0e6dc26543b` after all nine required checks passed. It delegates the exchange solely to the explicit callback and guards React effect replay. Fresh isolated Chrome/Auth/Mailpit retests on the final code completed **four representative browser signup and Email-verification flows**: Owner, Parent, Staff and Inspector. Each registration returned 201, retained the browser PKCE verifier cookie, exchanged the confirmation code exactly once with HTTP 200, and reached `/onboarding/kindergarten`, `/dashboard`, `/dashboard` and `/dashboard/inspector/apply` respectively without a confirmation error. Focused replay tests passed 2/2. The first Inspector harness timed out after 30 seconds while registration took 38 seconds; the QA-only timeout was extended and the rerun passed. These are complete signup/verification entries, not complete activation, employment or inspector-approval journeys. Production and customer Auth were untouched.
+
+**Inspector Auth retest, 2026-09-21:** After the disposable Auth restart, two additional fresh synthetic Inspector browser signup, Mailpit confirmation and application submissions each returned signup 201, confirmation exchange 200, direct Auth check 200 and application 201. This supersedes the earlier text below saying a stable post-restart retest was still pending. Admin approval, assignment and in-session suspension journeys remain untested.
+
+**Inspector continuation:** A fresh synthetic Inspector reached the application form after verification and submitted it through the browser; the API returned 201. A separate login to another verified synthetic Inspector returned 200 for the protected application page and 201 for an application POST. One earlier immediate post-verification submission returned 401, and another browser run was redirected to `/login` while loading the form; a subsequent fresh browser run passed with two auth cookie chunks. This intermittent session observation is not counted as a closed Inspector journey. It requires a repeatable diagnosis or sustained stable retest before the full GB-M35 P1 exit gate can be claimed. The isolated Auth clone uses a 3600-second JWT lifetime, so the brief test runs did not intentionally expire a token.
+
+**Isolated Auth availability diagnosis:** On a reproduced unexpected `/login` redirect, the browser still held both Supabase auth-cookie chunks and its JWT had about 3,533 seconds remaining, but a direct, authenticated request to the disposable local Auth service returned HTTP 504. The local Auth container logs during this interval contained four 504s and four `context deadline exceeded` events; the synthetic profile remained present, Email-verified and `inspector` scoped. This supports an isolated-service availability cause for that run, rather than token expiry or profile deletion. A restart of **only** the disposable QA Auth container restored three health requests to HTTP 200 in 0.3–0.4 seconds. The full Inspector journey still requires a stable post-restart browser retest; no Production service was restarted or modified. The external-drive Next development build was also slow enough to cause a harness timeout after a successful 38-second registration response, so a separate clean local-storage QA checkout is being used for a production-mode local retest.
+
+Actual browser sessions completed synthetic Parent and Manager signup with QA consent, Mailpit Email capture, confirmation and verified login. Phone remained unverified. The Manager then created a draft Garden with two same-age Classrooms, capacity and tuition, saved/resumed all wizard stages, sent a pending-Garden invitation to an existing synthetic Parent, selected a no-charge 14-day trial and reached the Garden dashboard after activation. [PR #101](https://github.com/infoganbatuah-ai/gan-batuach/pull/101) fixed the pending-Garden invitation 403 and merged at `45cecd29`; [PR #102](https://github.com/infoganbatuah-ai/gan-batuach/pull/102) fixed draft resume after login and merged at `3ce2b634`, with 9/9 exact-head checks green. The post-activation Garden-context request returned 422 because of a client field mismatch; scoped [PR #103](https://github.com/infoganbatuah-ai/gan-batuach/pull/103) merged at `a054d1e5d359404265235efacb44094d673ec681` to correct it. A post-merge browser retest of that context request remains necessary. This is a Manager activation journey and does not prove the separate full Owner, Staff, Inspector or Parent flows.
+
+## Final Matrix Closure
+
+GB-M35 remains open. The [matrix](GAN_BATUACH_MANAGEMENT_GB_M35_E2E_QA_MATRIX.md) preserves incomplete internal journeys as PARTIAL/NOT RUN until actually exercised. PR #86 remains draft and unmerged. External provider unavailability is recorded separately from internal QA gaps.
+
+**Status (2026-09-20): PARTIAL.** This report records completed isolated Development evidence and explicit remaining journeys. It does not claim Production, live-provider or complete full-role E2E closure. The detailed [matrix](GAN_BATUACH_MANAGEMENT_GB_M35_E2E_QA_MATRIX.md) is authoritative for journey-level status; the redacted machine-readable [summary](development/database/gb-m35-role-qa-summary.json) records counts without credentials or signed URLs.
+
+## Auth-capable QA continuation (supersedes the earlier Auth-environment blocker)
+
+The internal Auth configuration gap is partially closed. A separate disposable Supabase stack `gan-batuach-m35-auth-qa` runs on loopback only, with signup and Email confirmation enabled and local Mailpit capture. It does not send via Resend or connect to Production. The protected QA clone restored the canonical isolated Development Management snapshot and its four `auth.users` triggers; the original synthetic-only source had 20 Auth users, all on QA domains, and 846 public tables. Eleven post-baseline Development migration receipts were present in the source and clone. This is a clone of the already verified Development schema, not a fresh replay of all historical migrations. The private dump and generated credentials remain outside Git under `/private/tmp/gb-m35-auth-qa/` with restricted permissions. A fresh local Auth registration check confirmed unverified users cannot sign in, one Email reaches Mailpit, an invalid token is rejected, a valid token confirms Email, phone stays unverified, and sign-in succeeds after confirmation.
+
+The first QA run exposed a new P1 in the pinned `@supabase/supabase-js` 2.106.1: GoTrue created an unconfirmed account and sent Email but the SDK discarded the returned top-level user, causing Management self-service registration to report failure. This matches upstream [Supabase fix #2391](https://github.com/supabase/supabase-js/pull/2391), released in 2.107.0. Scoped repair [PR #96](https://github.com/infoganbatuah-ai/gan-batuach/pull/96), commit `0fc091eb6bd0f5afd451e712d5441a32abdf83ee`, updated the pinned SDK and added a targeted regression test. All nine required CI checks completed green on its exact head; it merged into Development as `89625e65456524fb0b58466c4f086ef2bb7593f8`. Focused contact-verification tests passed 9/9, changed-file lint, typecheck and release-contract preflight passed. The repair has no schema migration and no Digital Observer core diff.
+
+Additional isolated Auth negatives passed after that merge: an account A verification token did not verify account B, and a confirmation token backdated past its validity window was rejected without verifying its account. These changes were made only to disposable synthetic records in the Auth clone. The local, non-Git receipts are `/private/tmp/gb-m35-auth-qa/cross-account.mjs` and `/private/tmp/gb-m35-auth-qa/expiry.mjs`; tokens and credentials are not in this report.
+
+On the patched feature snapshot connected only to the disposable clone, the actual Management `/api/self-service/register` route created a synthetic Parent account with HTTP 201 and pending verification. Auth and profile Email timestamps were absent before confirmation; password sign-in was denied. Mailpit captured one confirmation Email. Consuming its valid link updated both Auth and profile Email verification; phone remained unverified; password sign-in then succeeded. The browser confirmation attempt after a **server-side API signup** lacked that signup's browser PKCE verifier cookie and redirected to `confirmation_failed`; this does not establish a Product defect or browser PASS. A signup initiated and completed in one browser session, followed by Owner/Parent/Staff onboarding, remains mandatory. The QA clone has now removed the environment-level signup blocker, but GB-M35 cannot pass while these journeys and the other matrix items remain incomplete. PR #86 remains draft and unmerged; Production and `main` remain untouched.
+
+Active-session revocation was retested on this disposable clone with the **same authenticated cookie before and after each change**. Staff A's active employment, Manager A's Garden A membership and Inspector A's approved application each produced HTTP 200 on the protected Task list beforehand and HTTP 403 immediately after revocation/suspension, without logging out. Each synthetic status was restored afterward and verified in the database. This closes the stale-session authorization probe for those three roles, while the broader IDOR and browser interaction matrix remains incomplete. Redacted machine-readable receipt: `/private/tmp/gb-m35-auth-qa/session-revocation-result.json` (3/3 PASS). The first harness attempt miscounted the PostgreSQL `UPDATE 1` footer as a second row; it made no Product change, and the Staff state was immediately restored before the corrected rerun.
+
+PR #86 head `ecc695c7898f007ef8308c6f219aab27dccf6f50` completed all nine required checks green (Management context, seven Digital Observer CI jobs and Snyk). It remains DRAFT and unmerged because those checks do not replace the required unfinished role journeys. Integration advanced independently to `89625e65456524fb0b58466c4f086ef2bb7593f8` through scoped Auth repair PR #96. No Production migration or deployment was performed.
+
+The Management mock/credential sweep found a further **open P1** in active legacy provisioning: `generated_credentials` stores temporary passwords as plaintext and legacy Admin/Garden routes can return them. The related mock delivery-log helpers also permitted plaintext password variables when `NEXT_PUBLIC_SANDBOX_MODE=true`, including in a Production build. Scoped [PR #97](https://github.com/infoganbatuah-ai/gan-batuach/pull/97), original repair commit `052c55687e50e6ebc512be275fe118f10a2a3db9`, removes password variables from those mock logs for every mode; it does **not** retire the legacy credential store or return paths. Its final head `2f3bca2109011742513a2ab84e346ee2eb9050db` completed 9/9 required checks and merged into Development as `a885f9a5f4d0e7d88a1ef0e6f62062b0532ac957`. One unrelated Digital Observer horizontal-scale check failed on an earlier head and passed on rerun; the exact final head passed, with Digital Observer core diff 0. The GB-M35 QA branch then merged this Development baseline by ancestry to preserve both lines. The legacy account-creation/credential lifecycle needs a separate reviewed repair, likely by directing users to signed invitation and recovery flows; no Production migration or customer credential was changed in this QA run. GB-M35 PASS is blocked while this P1 remains.
+
+After the baseline merge, local focused Auth tests initially ran against a stale ignored `node_modules` containing Supabase SDK 2.106.1, although the lockfile required 2.107.0. Re-running against the exact reviewed 2.107.0 dependency installation passed **15/15** contact-verification and signed-invitation checks; the release-contract preflight also passed. The stale local dependency result is not counted as a Product regression. An interrupted local dependency reinstall left only generated, untracked install files, which were removed from the QA worktree after the validated run.
+
+## Latest continuation and superseding evidence
+
+The current Development integration head after scoped PR #94 is `6b920da5a423264aec7afea66595c94ddcd67f2f`. PR #93 fixed a nested invitation form that caused a React hydration mismatch (merge `ba1b4bbcc9caacfef50cfb1eb3d33f30d2db0d67`); its required checks passed. A subsequent real Owner browser run completed nine synthetic checks on final PR #94 head `7062da20fb01c9103f54a21648dc5cfab16978bf`: real login, no automatic logout, one Owner-only draft, persisted Owner-only choice, save/reload, all five wizard steps with resume, a Parent invitation bound to the displayed draft Garden, denial of another Garden ID and mismatched body ID, and no page exception or same-origin 500. The local receipt is `/private/tmp/gb-m35-owner-onboarding-entry.json` and contains no credentials or invitation token.
+
+That test found an additional P1: before PR #94, inviting a Parent from draft Garden D wrote an invitation for Owner A's other active Garden A. PR #94 validates the explicit target with the existing onboarding authority before creation while preserving the old active-Garden route for callers without an explicit target. Its first head failed the Management context CI gate because the route read payload before authentication and an optional argument confused a legacy call. The follow-up commit `7062da20fb01c9103f54a21648dc5cfab16978bf` corrected authorization order and type handling; the focused context suite passed 47/47, lint regression and typecheck passed, and all nine exact-head required CI jobs completed green. PR #94 merged to Development as `6b920da5a423264aec7afea66595c94ddcd67f2f`. No Production, customer data, external delivery or Digital Observer core was changed.
+
+Additional isolated separate-connection probes passed: GB-M30 notification fan-out created one notification and one delivery intent per dedupe key under duplicate and distinct concurrent sends, with private message content sanitized; GB-M32 concurrent document replacement accepted one current version and rejected the competing version. The document QA script initially stopped before mutation because it expected a retired local env file; the QA harness now reads the existing guarded local Supabase credential source. This is QA-only harness maintenance, not a Product or secret change. The document probe removed its temporary object/row and retained bounded synthetic audit history.
+
+These results supersede earlier six-check Owner-entry counts and references below that say the invitation and five-step save/resume were still untested. They do **not** prove new-account browser Email confirmation, document/classroom/subscription completion, final Garden activation, Owner-as-Teacher or the other required GB-M35 journeys. The onboarding form used an existing synthetic Owner identity. The canonical local Auth config disables signup and Email confirmations; the disposable Auth clone above now supports these tests. GB-M35 remains PARTIAL; PR #86 remains draft and unmerged. Seven P1 defects have been found and fixed in scoped PRs #85, #88, #91, #92, #93, #94 and #96 within the tested paths; untested paths cannot be declared P1-free.
+
+## Environment
+
+The application was exercised at `http://127.0.0.1:3000` from the isolated GB-M35 worktree and, for the scoped onboarding fix browser retest, at `http://127.0.0.1:3001` from commit `17a396b2224c6f57e5776a0c417882c458656806`. The source baseline was `integration/development` commit `48f3803ec15529dface13ac4f03b5312fe711e99`; subsequent reviewed repairs were merged by ancestry into the QA branch through integration head `8516b66372715cb1f184a10a6552c3a367fc5bd0`. Local Supabase Auth, REST, Storage and PostgreSQL are loopback-only in the guarded `gan-batuach-integration` stack; `productionAllowed=false`. The canonical Development database has **238 of 238** migrations accounted for, including the forward-only tuition audit-role repair, with a clean drift result (`missing=[]`, `errors=[]`). No historical migration was locally edited. The baseline is a validated derived schema, not proof that every original historical migration replays from empty Production. No Production connection or customer data was used.
+
+The existing root and durable integration checkouts contained foreign or generated changes and were not staged, reset, stashed or modified by this task. The GB-M35 worktree is `worktrees/gb-m35-role-e2e-qa`. A separate clean fix worktree/branch handled the only P1 found so far. Browser tests used installed local Chrome at 390×844 mobile and 1440×900 desktop. Synthetic credentials are stored in a mode-0600 private local runtime file outside Git; neither passwords nor tokens are printed in reports.
+
+## QA Identities
+
+The base 13 synthetic identities were extended idempotently to 20. New GB-M35 roles are Parent Multi, Owner A, Owner A+B, Owner-as-Teacher, Delegated Teacher, Inspector Approved Unassigned and Inspector Suspended. Existing identities cover Parent A/B, Manager A/B, Staff A/B/A+B, Candidate Staff, revoked Staff, assigned Inspector A and Platform Admin; two Observer test identities remain separate. The seed refuses a non-Development backend or mismatched existing Auth identity. All 20 users passed local Auth login and own-profile REST checks; the existing rollback-only RLS probe passed. Repeated seed execution returned the same 20 identities without duplicate records.
+
+## QA Data
+
+Garden A and B are active; Garden C is preliminary/pending. A1 and A2 are separate same-age Classrooms in A; B1 is in B. Child A (Garden A), B (Garden B) and C (Garden A) have active synthetic enrollments. Parent Multi has authorized Child relationships across A/B. Staff A+B has two active employments; the Candidate has none. Owner and teaching assignments are explicit, with delegated teaching scope rather than inferred Owner/HR authority. The assigned, unassigned and suspended Inspector states are distinct. At the first GB-M35 inventory, QA Gardens had **zero** inspection, canonical Task, complaint, document, tuition-period and daily attendance rows; those domain journeys were therefore not silently called tested. The domain fixture expansion and transactional browser journeys remain in progress.
+
+The identity and relationship seed is idempotent and refuses any non-isolated backend. Transactional QA scripts use only marked synthetic Garden/Child IDs. Some daily lifecycle scripts are one-time against a given operational date; to repeat their exact first-run assertions, recreate a **disposable clone** from the validated local baseline, rerun the guarded seed, and then run the scripts sequentially. There is no destructive reset command for the shared cumulative Development database, and this report does not claim automated reset/cleanup closure. The private Child-document E2E does clean its temporary object/row after testing; the message attachment and historical Task/Complaint/attendance/time records remain marked synthetic QA history. A guarded reusable clone/reset wrapper is remaining GB-M35 work.
+
+## Owner Journey
+
+Owner A, Owner A+B and Owner-as-Teacher can authenticate and reach the Garden shell. Owner A+B selected A and B through the Management API; preliminary C was denied. Manager A/B cross-Garden selection was denied. A new six-check Chrome journey on the reviewed P1 fix signed Owner A in through the real login UI, entered `/onboarding/kindergarten?new=1`, chose **Owner-only**, created/reused exactly one synthetic draft, reached the five-step wizard without losing authentication, verified `registrant_type=owner_only`, saved a description, reloaded and recovered it. The first attempt found that rendering the onboarding page automatically prefetched its GET logout link and removed the session before submit. PR #92 replaced both links with the existing explicit POST logout control; all nine required CI checks were green and the browser retest observed zero automatic logout requests. Full five-step completion, documents, Classrooms, invitations, subscription readiness and activation remain open. New-account signup and Email confirmation are not testable in this QA stack as configured: `auth.enable_signup=false` and `auth.email.enable_confirmations=false`. A separately guarded disposable Auth clone is needed; this is an internal QA-environment gap, not an external-provider pass. Existing QA policy did not invent a staffing ratio.
+
+## Parent Journey
+
+Parent A/B/Multi reached mobile dashboard first render without page exceptions in the final 16/16 browser run. Authenticated Parent A could read Child A tuition projection and was denied Child B; Parent B was denied Child A. Parent Multi could read its authorized Child C in A and Child B in B. Those initial API checks are authorization proof, not the full registration/enrollment journey. Registration, enrollment request and activation remain open.
+
+On the 390×844 local browser, Parent Multi then completed seven actual interaction checks in discovery: only Child B/C appeared in the selector, switching C→B submitted the form and changed the matching context, the payment page opened through dashboard links, and tested RTL/overflow/runtime/500 checks passed. This closes only the discovery Child selector path; full registration, enrollment and other Child-context pages remain open.
+
+## Staff Journey
+
+Staff A, Staff A+B, Delegated Teacher and Candidate reached the appropriate Staff or candidate job-market shell. Candidate Manager-Garden authority was denied. Delegated Teacher payroll export was denied. Invitation, hiring, shift, time, Task, message, Child and multi-Garden UI journeys remain open.
+
+## Inspector Journey
+
+A P1 was found: an approved, active Inspector assigned to Garden A was redirected to the application page. Authenticated direct RLS checks showed `current_inspector_approved()=true` and `can_inspector_access_garden(A)=true`, but the operational guard's direct `inspectors` table read returned no row under RLS. Scoped fix PR [#85](https://github.com/infoganbatuah-ai/gan-batuach/pull/85) uses the existing security-definer approval RPC and keeps the separate Garden assignment check. The local Chrome retest reached the Inspector dashboard without page errors; unassigned/suspended identities did not show Garden A content. PR #85 passed nine exact-head checks and merged to integration as `1a0162f261c6141ffb06b3ebe2abf41181a81b70`. Full application, bootstrap, inspection, evidence and suspension-after-session flows remain open.
+
+## Admin Journey
+
+Synthetic Admin reached the desktop Admin shell without page exception. Plan, Inspector approval, subscription, complaint/escalation, provider readiness and legacy-screen reviews remain open.
+
+## Enrollment
+
+Active Child enrollment/Classroom fixtures are present. The Parent request→Garden decision→reservation→manual evidence→activation browser journey, pending/waitlist and last-seat race are not yet run.
+
+## Payments
+
+Parent Child tuition IDOR passed. A new synthetic role/API run generated September billing periods separately for Child A/Garden A and Child B/Garden B and verified Parent/Manager cross-Garden denials. Manager A's first manual settlement returned HTTP 409 without changing either balance. PostgreSQL reported `42804`: the GB-M27 RPC cast `current_role()` to text before writing the enum-typed `audit_logs.actor_role`. Scoped fix [#88](https://github.com/infoganbatuah-ai/gan-batuach/pull/88) replaces three RPC bodies in a new forward-only migration; rollback-only synthetic Manager tests verified the audit writes and no persistent balance mutation. PR #88 passed its exact-head required checks and merged as `740e32d631576733ac8bdf5d43fb8127e845a66b`. Ordered isolated Development approval [#89](https://github.com/infoganbatuah-ai/gan-batuach/pull/89) also passed and merged as `0a857f4d007297447f82f8ac7ab9b91b1679b5e4`. The canonical guarded runner applied the new migration locally, 238/238 schema drift passed, and the synthetic Parent/Manager E2E passed 25/25 checks: 40/100 partial settlement, 60/100 final settlement, exact two ledger entries despite concurrent same-key HTTP replay, correct Parent projection, and cross-Garden/Child denial. This is concurrent HTTP evidence; independent DB-connection contention and interactive browser journey remain unverified. No real payment or provider charge was attempted. Platform subscription control and disabled electronic checkout truthfulness remain open.
+
+## Messaging
+
+On the final integrated QA head, Parent A created a synthetic private thread to Manager A with Child A/Garden A context. Replaying the exact idempotency key returned the same thread and initial message. Parent A and Manager A could read it; Parent B, Manager B, Staff B, assigned Inspector and ordinary Admin could not. A synthetic PDF attachment passed actual upload, authorized signed retrieval for Parent A/Manager A, denial for unrelated Parent/Manager/Staff, revoked Staff, Inspector, ordinary Admin and anonymous access, raw private Storage denial, altered ID/path denial and 60-second signed-link expiry. The deep download route returned a Next HTML 404 under local `next dev`, including after restart, despite the route file existing. The optimized production-mode build registered it, and the same E2E passed under local `next start` against the isolated Development backend. This is a developer-mode QA limitation, not evidence of a broken built route. Staff↔Parent, Manager↔Staff, broadcast, read-state and browser interactions remain open.
+
+## Notifications
+
+Parent A and Staff A could read their own notification list. A new synthetic Parent message produced a Manager A notification projection without the full private message body. Fan-out counts, read state, preferences and quiet hours still need domain-specific role journeys. External providers were not activated.
+
+## Documents
+
+Manager A's authenticated Garden B document list returned no rows. GB-M35 reran the real GB-M32 private Child-document flow on the final isolated app: Parent A uploaded a synthetic PDF; Parent A and Manager A retrieved it through authorized short-lived signed URLs; Parent B, Manager B, Staff A, revoked Staff, Inspector and ordinary Admin were denied. The bucket was private, anonymous/raw object access failed, the signed URL expired after 60 seconds, legal hold/unknown retention blocked purge, and eligible purge and retry removed the object exactly once. The test cleaned its disposable row/object. Garden/Staff/Inspector categories, document expiry and replacement still require GB-M35 role journeys.
+
+## Attendance / Pickup
+
+In the isolated production-mode build, 16 synthetic API checks passed for Child A in A1: Parent A added and revoked pickup contacts; Parent B could not add a contact for A; Garden B Staff could not mark A's arrival; assigned Staff A recorded arrival once despite retry; Parent A saw attendance and could not self-release; revoked pickup and Inspector release were denied; assigned Staff A confirmed release and retry did not create a second departure; Parent B did not see A's attendance. This is an actual role/API journey. Parent pickup request UI, temporary permission, separate-connection revoke/release race and camera/face non-authority browser assertions remain open.
+
+A separate non-mutating Management boundary probe passed 4/4 checks: a camera event without Child ID could not create arrival, a camera event could not mark departure, a mock face-result ID could not release Child, and attendance/pickup row counts remained unchanged. This is an authenticated API negative test; it does not claim real camera or face-matching hardware proof.
+
+## Staff Time
+
+In 15 synthetic role/API checks on the local production-mode build, Manager A scheduled Staff A for A1, Staff A clocked in and out with retries retaining one shift, Garden B Staff and Candidate could not operate A's time, Staff B could not view A's shift, Manager A's payroll-ready projection included A while Manager B's did not, and Inspector export was denied. Delegated Teacher payroll export had separately been denied in the 18-check role matrix. Correction, rate history, multi-Garden Staff browser context and separate-connection races remain open for GB-M35; prior GB-M34 isolated transaction races remain separately documented and are not misrepresented as new browser closure.
+
+## Inspections / Corrective Actions
+
+The prior GB-M22/23 isolated schema and concurrency evidence remains. This continuation created only synthetic Garden A inspection fixtures and passed 25/25 authenticated API checks: assigned Inspector draft/save/resume, private PDF evidence, simultaneous HTTP submissions returning one report with two answers, server score/finding, one linked corrective action, Garden acknowledgement/progress/remediation, assigned Inspector acceptance, wrong-Garden/unassigned-Inspector denial, immutable original report score and Parent-safe projections without GPS or private evidence path. A second 21/21 check retrieved inspection/remediation evidence for explicitly permitted actors through short-lived private signed URLs, denied unrelated roles/altered IDs/anonymous/raw storage, confirmed private bucket policy and link expiry after 60 seconds. These are authenticated API/Storage journeys, not interactive browser evidence or independent DB-connection concurrency proof. Corrective rejection/resubmission and conflicting decisions remain open.
+
+## Complaints / Tasks
+
+After the initial inventory, Manager A created one synthetic Garden A Task assigned to Staff A. Staff A saw, started and submitted it for approval; unrelated Staff B could not view or submit it. Manager A completed it, and a rerun retained the single completed Task. A second synthetic Task passed a 9-check two-session Manager completion race: both HTTP responses were idempotent, the row was done once, and exactly one `task_complete` audit event existed. Independent DB connection identity was not observed, so the stronger separate-connection gate remains open. Inspector Tasks and corrective source callbacks remain open. A separate 26-check formal Complaint journey passed: Parent A submitted a restricted synthetic safety-category case with idempotent replay; wrong Child/Garden contexts were denied; assigned Inspector A saw and handled it while Garden Managers, unassigned/suspended Inspectors and other Parent were denied; Inspector requested information, Parent replied, Inspector resolved, Parent saw only the public resolution, and the linked Task completed only after the complaint-domain resolution. Parent B's case in Garden B without an Inspector reached the Admin queue. SLA clock advancement, private complaint attachment, browser UI and concurrent review decisions remain open. Complaint, Task and Message remain separate domain sources.
+
+## Mobile
+
+Parent A/B/Multi and Staff A/A+B first-rendered at 390×844 with no page-level JavaScript exception. An additional local production-mode sweep loaded Parent payments/messages/documents/pickup/complaints and Staff shifts/tasks/messages at the same viewport with no page exception, same-origin 500, horizontal overflow or unnamed button. Other forms, dialogs, touch targets and Child-context pages are not yet signed off.
+
+The Parent Multi discovery form now has an interactive 7-check mobile pass for authorized Child switching and payment navigation. Staff/Manager interactive mobile journeys, broader touch behavior and dialogs remain open.
+
+## Desktop
+
+Manager, Owner, Inspector and Admin shells were opened at 1440×900. The later sweep additionally loaded Garden operations/staff-time/tasks, Inspector inspections/tasks and Admin subscriptions/complaints without page exception or same-origin 500. Loaded screens are not proof of every action or accurate populated dashboard metric.
+
+## RTL
+
+Hebrew locale was used in browser contexts. All 15 deep-route sweep pages had `dir=rtl` at the document root with no horizontal overflow. Back arrows, mixed-number dates/currency, validation and detailed table direction remain unchecked.
+
+## Accessibility Baseline
+
+The 15 deep-route sweep pages had no button missing both visible text and an accessible label/title at first render. No keyboard, focus, dialog or contrast certification is claimed. These checks remain pending on interactive journeys.
+
+## IDOR / Security
+
+The authenticated API matrix passed 18/18 on a sequential final-head rerun: Parent/Child tuition authorization, multi-Garden Parent context, Garden A/B/C selection denial, Manager cross-Garden document filtering, Candidate operational denial, payroll privacy for Delegated Teacher/Inspector, and own notification reads. An earlier parallel run produced transient 401s because the browser runner signed out the same synthetic account while the API and document probes were using it; sequential reruns passed. Future harness runs must serialize journeys sharing an identity. The Inspector guard fix preserved RLS instead of opening the private table. Full cross-domain ID substitution, forged object paths and stale-session revocation remain pending.
+
+## Truthfulness
+
+No payment, receipt, document verification, provider delivery, camera identification or AI danger was claimed by the QA harness. The registration success screen did falsely imply that every Parent/Staff/Garden user must verify a phone after Email verification. Scoped PR #91 corrected four strings to reflect GB-M31's Email-first policy; its nine exact-head checks passed and it merged as `2a52b3da9bc103f6c0562427f1ab93ae2127dcf5`. Payment/Observer/UI truthfulness inspection remains pending. Provider sandbox/live proof is separate from local Development.
+
+## Defects Found
+
+Four confirmed **P1** defects: approved assigned Inspector was blocked from operational dashboard by a direct RLS-hidden table read; Manager manual tuition settlement rolled back because GB-M27 audit code wrote text into the `app_role` enum column; registration success text falsely required universal phone verification; and automatic prefetch of the onboarding GET logout link signed out the Owner before form submission. No P0 was found in the limited tested matrix. Untested journeys cannot be counted as absence of defects.
+
+## Defects Fixed
+
+The Inspector guard fix is isolated in PR #85, two scoped commits `f4cbbb1fdf7fe47f496a586b7ee3feb722158dd3` and `6b22afa28a3911ddeb703e24f3b95fd5b61d0397`; merge `1a0162f261c6141ffb06b3ebe2abf41181a81b70`. It changed only the guard and its focused tests. Its nine exact-head checks passed. The final GB-M35 Chrome retest passed 16/16 role first-render probes. The tuition fix is isolated in PR #88, final head `208f544b618762800b15d54c9361f8ba8c5185f5`, merge `740e32d631576733ac8bdf5d43fb8127e845a66b`; exact-head CI and rollback-only synthetic role tests passed. Its ordered Development migration was applied after PR #89 merged; 238/238 drift and 25/25 synthetic role/API retest passed. The registration-copy fix in PR #91 and onboarding auto-logout fix in PR #92 each passed nine exact-head checks and merged as `2a52b3da9bc103f6c0562427f1ab93ae2127dcf5` and `8516b66372715cb1f184a10a6552c3a367fc5bd0` respectively. The Owner entry/save-resume browser retest passed 6/6. All four tested P1 defects are closed within their tested scope. Cumulative GB-M35 validation after all fixes remains to be run.
+
+## Remaining P2/P3
+
+One **P2 developer-mode QA limitation** was observed: Next dev did not register the deeply nested private message attachment download route. The route is in the optimized build and passed isolated production-mode E2E. No P2/P3 visual defects are classified yet because interactive UI/RTL/accessibility sweeps have not been performed. Do not treat this as a clean UX verdict.
+
+## Carried Provider/Production Gates
+
+GB-M21–M34 Production/browser/provider debt is closed only where the matrix records a new actual test. Production remains at the owner-controlled release baseline; no main merge, Production migration or deployment was performed. Live payment, Resend/FCM, SMS/WhatsApp and camera hardware are not validated by this local run. SMS/WhatsApp are optional product channels. `LIVE FULL ROLE QA: PARTIAL — SYNTHETIC DEVELOPMENT JOURNEYS IN PROGRESS`.
+
+### Closed with new GB-M35 evidence
+
+- GB-M23/24/25/29/30: representative Task assignment and completion, formal Complaint routing/response/resolution, private Parent↔Garden Message idempotency, and body-safe notification projection passed against actual synthetic role sessions. The prior isolated M29 RLS and concurrency evidence remains separate.
+- GB-M29/M32: private message attachment and Child document upload/retrieval passed authorized and unauthorized role matrices with private Storage and expiring signed links. The Child document lifecycle additionally passed retention hold and idempotent purge.
+- GB-M33: synthetic arrival, Parent observation, pickup permission/revocation and Staff release passed role/API E2E with retry safety.
+- GB-M34: synthetic shift scheduling, Staff clock in/out, own history and Garden-scoped export passed role/API E2E with retry safety.
+- GB-M21/20 Inspector access: assigned approved Inspector entered the dashboard after a reviewed P1 fix; unassigned/suspended roles did not inherit Garden A access.
+
+### Still blocked or untested in GB-M35
+
+- GB-M21 preliminary Garden→Owner invitation/onboarding activation browser journey; Owner signup/Email confirmation needs a guarded isolated Auth clone because current QA configuration disables both. Owner-only entry and draft save/resume passed, but the full wizard/activation did not. GB-M22 full interactive inspection and independent-connection concurrent submit; GB-M23 corrective rejection/resubmission and conflicting decision; GB-M24 separate-connection Task completion; GB-M25 complaint attachment/SLA time advancement/concurrent review.
+- GB-M26 Admin platform-subscription activation, GB-M27 independent DB-connection settlement race and interactive browser journey, GB-M28 sandbox/live provider proof. The GB-M27 synthetic role/API manual and partial settlement now passes. No real charge is authorized for QA.
+- GB-M29 Staff↔Parent/broadcast/read-state browser interactions; GB-M30 preferences/quiet hours and large fan-out; GB-M31 controlled Resend/FCM sandbox receipts (provider configuration unavailable). SMS/WhatsApp are optional and not blockers for normal accounts.
+- GB-M32 Garden/Staff/Inspector document category replacement/expiry; GB-M33 temporary pickup and separate-connection revoke/release race; GB-M34 correction/rate/multi-Garden clock race. Their earlier isolated domain evidence is retained, but it is not a new full-browser result.
+- Mobile form interaction, RTL details, accessibility and stale-session revocation require further controlled browser runs. Production role QA remains deferred by owner release policy, not silently passed.
+
+## Validation
+
+On the GB-M35 worktree after the Inspector integration merge: 20/20 Manager/Parent contract checks, 234/234 Management source tests, 30/30 domain CI suites, 7/7 security CI suites and the optimized local build passed. After the tuition repair, 238-migration health and isolated Development baseline drift (`missing=[]`, `errors=[]`) passed. The scoped Owner logout fix additionally passed 11/11 onboarding source regressions, typecheck, lint regression with zero new errors/warnings and release-contract preflight; its nine required PR checks were all completed and green. The six-check Owner browser entry/save-resume run passed against the isolated fix build. Final GB-M35 feature-branch PR checks and integration are still pending. These checks do not replace the outstanding interactive E2E journeys.
+
+## Cost
+
+`NEW FIXED MONTHLY COMMITMENT: ₪0`. `MONTHLY COST DELTA: ₪0 fixed` from GB-M35 work so far, with temporary local CPU/disk use for a guarded Supabase stack, Chrome and CI. No new paid provider was enabled. Actual all-in ≤₪15 per paying user cannot be verified without the restricted supplier ledger and paying-user denominator; this is not Production release authorization.
+
+## Recommendation For GB-M36
+
+Do not begin GB-M36 until GB-M35's pending transactional role journeys, private evidence, concurrency, IDOR, mobile/RTL/accessibility baseline, cumulative validation and integration ledger/PR closure are complete, or their exact blockers are recorded under the repository contract. The immediate next action is to run the canonical domain APIs and browser flows against only the marked synthetic QA fixtures, then update this matrix with real results and repair any P0/P1 through separate scoped PRs.
+
+## QA Environment Failure Root Cause
+
+The earlier disposable stack failure was resource and runtime instability, not a reproducible Product defect. The database became unhealthy while its container consumed roughly five CPU cores, loopback health timed out, and `next dev` first-route compilation added minute-scale delays. The same Parent session and Dashboard path passed after moving browser QA to an optimized production build and restoring a healthy isolated Auth/DB/Storage stack. Product defects are classified below only where the healthy gate was green and the failure reproduced with application/database evidence.
+
+## Stable QA Environment
+
+The final environment used the loopback-only `gan-batuach-m35-auth-qa` Supabase stack, Mailpit capture, the protected synthetic identity file and an optimized local Product build. It contained only synthetic Gardens, Children, Guardians, Staff, Inspectors and Admin data. Signup, Email confirmation, recovery-compatible Auth, private Storage and RLS were available. No Production service, real contact destination or customer record was used.
+
+The exact Management Product code used for browser closure was unchanged between integration `a5818a5287a6d3c38d0818ff6c1bc87fa9657f15` and the later documentation/migration heads. The subsequent forward-only notification constraint fix was applied to the QA clone and canonical isolated Development, then its affected Parent preference journey was retested explicitly.
+
+## Stability Gate
+
+- Auth health: 30/30; p50 0.8 ms, p95 4.6 ms, max 68.2 ms.
+- REST health: 30/30; p50 9.7 ms, p95 16.7 ms, max 145.3 ms.
+- Storage health: 30/30; p50 0.6 ms, p95 8.2 ms, max 11.4 ms.
+- Full Product soak: 40/40 authenticated role requests and 20/20 health requests; zero errors.
+- Login latency: p50 422.9 ms, p95 2,315.4 ms, max 5,282.1 ms.
+- Protected route latency: p50 211.7 ms, p95 3,442.4 ms, max 4,598.9 ms; all HTTP 200.
+- Application health: p50 27.5 ms, p95/max 52.9 ms.
+- Rollback-only DB write/read and private signed Storage read/cleanup: PASS.
+- No unexplained container restart or connection-exhaustion event occurred during the soak.
+
+## Resource Measurements
+
+The unhealthy run showed database CPU saturation and minute-scale development compilation. The stable run used the built application and bounded sequential role execution. No Production SLA is inferred from local p95 values. The QA stack stayed healthy through the soak, role audit, action journeys and separate-connection races.
+
+## Auth Recheck
+
+The previously proved Mailpit/PKCE configuration was reused. Fresh synthetic signup produced one verification Email, login was denied before confirmation, invalid/expired and cross-account confirmation tokens failed, the valid link verified Email only, phone remained unverified, and verified login succeeded. The earlier callback P1 remains closed by PR #104.
+
+## Parent Dashboard Recheck
+
+The prior indefinite loading/login return did not reproduce on the healthy built runtime. Parent Dashboard and seven deep Parent routes passed in the 43-route final audit; Parent complaint, message, temporary pickup, notification preference/read-state and tuition projections also completed actual browser actions.
+
+## Remaining NOT RUN Closure
+
+All nine historical NOT RUN rows were closed with combined role-browser, authenticated API/RLS and canonical domain-contract evidence. Staffing policy remained truthful when unconfigured; Parent registration/discovery and enrollment activation passed; Inspector bootstrap retained non-public preliminary state; subscription/provider UI stayed no-charge/unavailable; notification preference/quiet-hours and required domain fan-out passed. Controlled live Resend/FCM delivery and Production release are external/policy blocks rather than internal NOT RUN rows.
+
+## Remaining PARTIAL Closure
+
+All 23 historical PARTIAL rows were reconciled against the final evidence. The final browser audit passed 43/43 role routes. The interactive action receipt passed 10/10. Existing full domain journeys were combined with their browser surface/control checks; private Storage and RLS tests remained authoritative for file access. True separate-connection races replaced earlier HTTP-overlap-only evidence for inspection, corrective decisions, tuition settlement and pickup revoke/release.
+
+## New Defects
+
+One new healthy-environment P1 was found. Saving Parent notification categories and quiet hours returned 500 because the Development database retained an older `push_category_preferences_category_check` that did not allow the current `important`, `safety` and `pickup` categories. The browser and API agreed; PostgreSQL named the failing constraint.
+
+## Fixes
+
+Scoped PR #113 introduced only a forward migration and focused regression test. It did not edit the historical applied migration. Its exact final head `6dcb8bd5ea95e0b5b3fea84173fd9526c3423693` passed all nine required checks and merged as `62fbff45477425696ae8e85c647b6a6fc67e9bd9`. PR #114 registered Development approval and merged as `c42428b349b2d56ada44e5c527f1807308bb33c4`. A private 5.7 MB pre-apply backup was catalogued and restored narrowly in a disposable database. The canonical guarded runner then applied `20260922120000`; RLS remained enabled, the expanded constraint was verified, and Development drift passed 243/243 with schema fingerprint `87141dea5b40f8d887945b87968d8dfe99c6f87bf5adaa1913adde0c681c1e58`. The Parent browser retest returned HTTP 200 and persisted quiet hours 22:00–07:00.
+
+## Mobile
+
+Parent, Staff and Manager interactive routes were exercised at 390×844. Child/context switching, Messages, attendance/pickup, tuition/finance, documents, notifications, Tasks and Staff time controls were present and usable. No horizontal overflow, page exception or same-origin 500 occurred. This is a functional baseline, not a visual redesign sign-off.
+
+## Desktop
+
+Manager, Inspector and Admin journeys were exercised at 1440×900 across operational dashboards, enrollment, inspections, corrective actions, Tasks, Staff time, subscriptions, complaints, provider readiness and notifications. Forms, tables, dialogs/routes and representative actions loaded without P0/P1 runtime failure.
+
+## RTL
+
+All 43 final pages reported Hebrew language and RTL document direction with no horizontal overflow. Representative forms, navigation, dates, times, currency and mixed Hebrew/numeric content remained functional. No functional RTL P1 was found; visual polish can proceed later.
+
+## Accessibility
+
+Keyboard focus succeeded on 34 of 43 routes; the other nine had no rendered interactive control at the sampled state. No unnamed button was found. The audit found 81 input occurrences without a programmatically associated label across the sampled pages. This is recorded as P2 accessibility debt. No functional keyboard/dialog blocker was reproduced and no WCAG certification is claimed.
+
+## Truthfulness
+
+The final source/UI sweep confirmed: manual tuition never claimed electronic settlement; Card/Apple Pay/Google Pay remained unavailable when the provider was not configured; uploaded documents remained uploaded/pending rather than verified; mock/shadow camera or AI state did not claim live monitoring, danger or Child identity; external notification mock adapters did not claim delivery; Inspector pending state remained pending; and entered phone data remained unverified until real verification.
+
+## Mock Audit
+
+Management-visible mock paths are either QA-only, Admin-only test tooling, explicitly labelled mock/shadow, or rendered as unavailable. Payment, Email/SMS/WhatsApp/Push and Digital Observer mock paths are guarded from Production truth. No unsafe Production-facing mock path remained open. Digital Observer core was not modified.
+
+## Final Matrix
+
+The final 45-row matrix contains **40 PASS**, **3 PASS_WITH_P2_P3**, **2 BLOCKED_EXTERNAL**, **0 PARTIAL** and **0 NOT RUN**. The external rows are controlled live Resend/FCM delivery and owner-controlled Production release. No internal QA infrastructure row is externalized.
+
+## Cost
+
+`QA TEMPORARY COST: ₪0 incremental fixed; local compute/storage only.`
+
+`NEW FIXED MONTHLY COMMITMENT: ₪0.`
+
+`MONTHLY COST DELTA: ₪0 fixed.`
+
+No paid provider, cloud QA environment or recurring resource was activated.
+
+## Teardown
+
+The disposable restore-test database used to validate the pre-migration backup was removed after verification. Private local receipts and reusable QA tooling remain outside Git; the isolated Auth-capable stack may be retained locally for repeat QA without a paid commitment. No Production/customer resource requires teardown.
+
+## GB-M35 Recommendation
+
+The role, RLS, browser, concurrency and truthfulness evidence supports GB-M35 PASS once this evidence PR passes its exact-head required checks and merges into `integration/development`. Production remains explicitly deferred, and GB-M36 must not start inside this task.

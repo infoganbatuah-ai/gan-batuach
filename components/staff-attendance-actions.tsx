@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, useTransition } from "react";
-import { MapPin, Radio, ShieldCheck } from "lucide-react";
+import { LogIn, LogOut, MapPin, Radio, ShieldCheck } from "lucide-react";
 import { queueStaffOfflineAction } from "@/lib/client/staff-offline-queue";
 
 type Props = {
@@ -103,6 +103,53 @@ export function StaffAttendanceActions({ staffId, gardenId, hasOpenShift = false
     setMessage("בדיקת המיקום נעצרה במכשיר הזה. הנוכחות תתעדכן שוב כשהבדיקה תחודש.");
   }
 
+  function manualAttendance(action: "check_in" | "check_out") {
+    if (!staffId || !gardenId) {
+      setMessage("לא נמצא שיוך צוות וגן להחתמה.");
+      return;
+    }
+    if (!navigator.geolocation) {
+      setMessage("לא ניתן לבצע החתמה בלי מיקום זמין במכשיר.");
+      return;
+    }
+    setMessage(action === "check_in" ? "מאמת מיקום ושומר כניסה…" : "מאמת מיקום ושומר יציאה…");
+    navigator.geolocation.getCurrentPosition((position) => {
+      const payload = {
+        action,
+        staff_id: staffId,
+        garden_id: gardenId,
+        gps_lat: position.coords.latitude,
+        gps_lng: position.coords.longitude,
+        gps_accuracy_meters: position.coords.accuracy,
+        network_reliable: navigator.onLine
+      };
+      startTransition(async () => {
+        const response = await fetch("/api/staff/gps-attendance", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+        const body = await response.json().catch(() => null);
+        if (!response.ok) {
+          setMessage(body?.error || "ההחתמה לא נשמרה. רעננו את המסך ונסו שוב.");
+          return;
+        }
+        setOpenShift(action === "check_in");
+        setLastSample({
+          inside: body?.data?.inside_geofence,
+          distance: body?.data?.distance_meters,
+          confidence: body?.data?.confidence?.status,
+          event: action === "check_in" ? "started" : "closed"
+        });
+        setMessage(action === "check_in" ? "הכניסה נשמרה לפי זמן השרת." : "היציאה נשמרה לפי זמן השרת.");
+      });
+    }, () => setMessage("לא ניתן לקבל מיקום. אפשרו הרשאת מיקום כדי לבצע החתמה."), {
+      enableHighAccuracy: true,
+      timeout: 15000,
+      maximumAge: 30000
+    });
+  }
+
   return (
     <article className="card action-panel staff-attendance-actions automatic">
       <div className="section-heading">
@@ -120,13 +167,20 @@ export function StaffAttendanceActions({ staffId, gardenId, hasOpenShift = false
         <span>{lastSample?.distance != null ? `${Math.round(lastSample.distance)} מטר מהגן` : "מרחק יופיע אחרי דגימה"}</span>
       </div>
       <div className="profile-actions">
+        <button className="button primary large" type="button" disabled={isPending || openShift || !staffId || !gardenId} onClick={() => manualAttendance("check_in")}>
+          <LogIn size={18} /> כניסה למשמרת
+        </button>
+        <button className="button danger large" type="button" disabled={isPending || !openShift || !staffId || !gardenId} onClick={() => manualAttendance("check_out")}>
+          <LogOut size={18} /> יציאה מהמשמרת
+        </button>
         <button className="button primary large" type="button" disabled={isPending || monitoring || !staffId || !gardenId} onClick={startMonitoring}>
-          הפעלת נוכחות אוטומטית
+          <Radio size={18} /> הפעלת זיהוי אוטומטי
         </button>
         <button className="button secondary large" type="button" disabled={!monitoring} onClick={stopMonitoring}>
           עצירת בדיקה במכשיר
         </button>
       </div>
+      <p className="staff-server-time-note"><ShieldCheck size={16} /> זמן השרת הוא הקובע. פעולות כפולות וחוסר התאמה לגן נחסמים בצד השרת.</p>
       {message ? <small className={message.includes("אוטומטית") || message.includes("פעילה") ? "payment-action-message" : "helper-text"}>{message}</small> : null}
     </article>
   );

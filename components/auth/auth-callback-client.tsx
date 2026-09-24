@@ -1,11 +1,13 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { CheckCircle2, LoaderCircle, ShieldAlert } from "lucide-react";
 import type { EmailOtpType } from "@supabase/supabase-js";
 import { createClient } from "@/lib/supabase/browser";
+import { singleUseAuthCodeExchange } from "@/lib/domain/single-use-auth-code";
 
 const otpTypes = new Set<EmailOtpType>(["email", "signup", "invite", "magiclink", "recovery", "email_change"]);
+const exchangeCodeOnce = singleUseAuthCodeExchange((code: string) => createClient().auth.exchangeCodeForSession(code));
 
 function safeNext(value: string | null, observer: boolean, recovery: boolean) {
   const fallback = recovery
@@ -33,9 +35,15 @@ export function AuthCallbackClient({
   flowHint?: "recovery";
 }) {
   const [failed, setFailed] = useState(false);
+  const started = useRef(false);
+  const active = useRef(false);
 
   useEffect(() => {
-    let cancelled = false;
+    active.current = true;
+    // A confirmation code is single-use. Strict Mode replays effects in development,
+    // so both effect setups must share one exchange attempt.
+    if (started.current) return () => { active.current = false; };
+    started.current = true;
 
     async function complete() {
       const current = new URL(window.location.href);
@@ -62,13 +70,17 @@ export function AuthCallbackClient({
 
       if (current.searchParams.get("error") || current.searchParams.get("error_code") || hash.get("error") || hash.get("error_code")) {
         authEvents.data.subscription.unsubscribe();
-        setFailed(true);
-        window.setTimeout(() => window.location.replace(failurePath(observer, recovery)), 900);
+        if (active.current) {
+          setFailed(true);
+          window.setTimeout(() => {
+            if (active.current) window.location.replace(failurePath(observer, recovery));
+          }, 900);
+        }
         return;
       }
 
       if (code) {
-        const result = await supabase.auth.exchangeCodeForSession(code);
+        const result = await exchangeCodeOnce(code);
         authenticationError = result.error;
         user = result.data.user;
       } else if (tokenHash && typeValue && otpTypes.has(typeValue)) {
@@ -93,9 +105,11 @@ export function AuthCallbackClient({
 
       if (authenticationError || !user) {
         authEvents.data.subscription.unsubscribe();
-        if (!cancelled) {
+        if (active.current) {
           setFailed(true);
-          window.setTimeout(() => window.location.replace(failurePath(observer, recovery)), 900);
+          window.setTimeout(() => {
+            if (active.current) window.location.replace(failurePath(observer, recovery));
+          }, 900);
         }
         return;
       }
@@ -132,12 +146,12 @@ export function AuthCallbackClient({
 
       const managementContactPending = product === "gan_batuach"
         && user.app_metadata?.contact_verification_required === true
-        && !user.phone_confirmed_at;
-      if (!cancelled) window.location.replace(managementContactPending ? "/app/verify-contact" : next);
+        && !user.email_confirmed_at;
+      if (active.current) window.location.replace(managementContactPending ? "/app/verify-contact" : next);
     }
 
     void complete();
-    return () => { cancelled = true; };
+    return () => { active.current = false; };
   }, []);
 
   return (

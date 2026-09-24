@@ -2,7 +2,6 @@
 
 import { useMemo, useState } from "react";
 import { ShieldCheck, ShieldAlert } from "lucide-react";
-import { UploadImageField } from "@/components/upload-image-field";
 
 type Row = Record<string, any>;
 
@@ -32,7 +31,6 @@ async function postJson(url: string, payload: unknown, method = "POST") {
 export function ParentPickupCenter({ children, contacts, events }: { children: Row[]; contacts: Row[]; events: Row[] }) {
   const [contactRows, setContactRows] = useState(contacts);
   const [eventRows] = useState(events);
-  const [photoUrl, setPhotoUrl] = useState("");
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -42,22 +40,20 @@ export function ParentPickupCenter({ children, contacts, events }: { children: R
     setBusy(true); setError(null); setMessage(null);
     try {
       const temporary = Boolean(formData.get("temporary"));
+      const validFrom = String(formData.get("valid_from") || "");
+      const validUntil = String(formData.get("valid_until") || "");
       const data = await postJson("/api/parent/pickup-contacts", {
         child_id: String(formData.get("child_id") || ""),
         full_name: String(formData.get("full_name") || ""),
         relation: String(formData.get("relation") || "other"),
         phone: String(formData.get("phone") || "") || null,
-        identity_number: String(formData.get("identity_number") || "") || null,
-        face_reference_image: photoUrl || null,
-        photo_required: Boolean(formData.get("photo_required")),
         temporary,
-        valid_from: String(formData.get("valid_from") || "") || null,
-        valid_until: String(formData.get("valid_until") || "") || null,
+        valid_from: validFrom ? new Date(validFrom).toISOString() : null,
+        valid_until: validUntil ? new Date(validUntil).toISOString() : null,
         notes: String(formData.get("notes") || "") || null
       });
       setContactRows((current) => [data, ...current]);
-      setPhotoUrl("");
-      setMessage(temporary ? "הרשאה זמנית נוצרה ונשלחה לגן" : "מורשה האיסוף נשמר");
+      setMessage(temporary ? "הרשאה זמנית נוצרה" : "מורשה האיסוף נשמר");
     } catch (err) {
       setError(err instanceof Error ? err.message : "שמירת מורשה האיסוף נכשלה");
     } finally {
@@ -69,7 +65,7 @@ export function ParentPickupCenter({ children, contacts, events }: { children: R
     setBusy(true); setError(null); setMessage(null);
     try {
       const data = await postJson("/api/parent/pickup-contacts", { id: contact.id, active: false }, "PATCH");
-      setContactRows((current) => current.map((row) => row.id === data.id ? data : row));
+      setContactRows((current) => current.map((row) => row.id === data.id ? { ...row, ...data } : row));
       setMessage("ההרשאה בוטלה");
     } catch (err) {
       setError(err instanceof Error ? err.message : "ביטול ההרשאה נכשל");
@@ -90,17 +86,10 @@ export function ParentPickupCenter({ children, contacts, events }: { children: R
             <label>קרבה<select name="relation" defaultValue="grandparent">{Object.entries(relationLabels).filter(([key]) => key !== "temporary").map(([key, label]) => <option value={key} key={key}>{label}</option>)}</select></label>
             <label>שם מלא<input name="full_name" required /></label>
             <label>טלפון<input name="phone" inputMode="tel" /></label>
-            <label>תעודת זהות<input name="identity_number" inputMode="numeric" /></label>
-            <label><input type="checkbox" name="photo_required" /> דרושה תמונה לזיהוי מהיר</label>
             <label><input type="checkbox" name="temporary" /> הרשאה זמנית בלבד</label>
             <label>תקף מ<input name="valid_from" type="datetime-local" /></label>
             <label>תקף עד<input name="valid_until" type="datetime-local" /></label>
             <label className="wide">הערות<textarea name="notes" rows={3} /></label>
-          </div>
-          <div className="upload-card-field">
-            <strong>תמונה אופציונלית</strong>
-            {photoUrl ? <img className="profile-preview-image" src={photoUrl} alt="תמונת מורשה איסוף" /> : <small className="warning-text">מומלץ לצרף תמונה, אך אין אישור פנים אוטומטי.</small>}
-            <UploadImageField label={photoUrl ? "החלפת תמונה" : "העלאת תמונה"} bucket="pickup-person-photos" prefix="pickup-authorizations" onUploaded={setPhotoUrl} />
           </div>
           <button className="button primary" disabled={busy || children.length === 0}>שמירת הרשאה</button>
         </form>
@@ -119,31 +108,42 @@ export function ParentPickupCenter({ children, contacts, events }: { children: R
   );
 }
 
-export function GardenPickupVerificationPanel({ children, contacts, events }: { children: Row[]; contacts: Row[]; events: Row[] }) {
+export function GardenPickupVerificationPanel({ childRows, contacts, events, currentTime }: { childRows: Row[]; contacts: Row[]; events: Row[]; currentTime: string }) {
   const [eventRows, setEventRows] = useState(events);
-  const [selectedChildId, setSelectedChildId] = useState(children[0]?.id ?? "");
+  const [selectedChildId, setSelectedChildId] = useState(childRows[0]?.id ?? "");
+  const [selectedContactId, setSelectedContactId] = useState("");
+  const [confirming, setConfirming] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
-  const contactsForChild = useMemo(() => contacts.filter((contact) => contact.child_id === selectedChildId && contact.active), [contacts, selectedChildId]);
+  const contactsForChild = useMemo(() => contacts.filter((contact) => {
+    const now = new Date(currentTime).getTime();
+    return contact.child_id === selectedChildId && contact.active && contact.authorization_status === "approved"
+      && (!contact.valid_from || new Date(contact.valid_from).getTime() <= now)
+      && (!contact.valid_until || new Date(contact.valid_until).getTime() > now);
+  }), [contacts, selectedChildId, currentTime]);
+  const blockedContactsForChild = useMemo(() => contacts.filter((contact) => {
+    const now = new Date(currentTime).getTime();
+    return contact.child_id === selectedChildId && (
+      !contact.active ||
+      contact.authorization_status !== "approved" ||
+      (contact.valid_until && new Date(contact.valid_until).getTime() <= now)
+    );
+  }), [contacts, selectedChildId, currentTime]);
+  const selectedContact = contactsForChild.find((contact) => contact.id === selectedContactId);
 
-  async function recordPickup(formData: FormData) {
+  async function recordPickup() {
     setBusy(true); setError(null); setMessage(null);
     try {
-      const contactId = String(formData.get("pickup_contact_id") || "");
-      const selectedContact = contacts.find((contact) => contact.id === contactId);
+      if (!selectedContactId) throw new Error("בחרו מורשה איסוף פעיל. חריגים דורשים טיפול נפרד.");
       const data = await postJson("/api/garden/pickup-events", {
         child_id: selectedChildId,
-        pickup_contact_id: contactId || null,
-        pickup_person: selectedContact?.full_name || String(formData.get("pickup_person") || ""),
-        authorization_type: selectedContact?.authorization_type || String(formData.get("authorization_type") || "manual_review"),
-        status: Boolean(formData.get("unusual")) ? "unusual" : "verified_by_staff",
-        notes: String(formData.get("notes") || "") || null,
-        unusual_reason: String(formData.get("unusual_reason") || "") || null,
-        request_parent_confirmation: Boolean(formData.get("request_parent_confirmation"))
+        pickup_contact_id: selectedContactId
       });
       setEventRows((current) => [data, ...current]);
-      setMessage("אירוע האיסוף נרשם. אין שחרור אוטומטי - נדרש שיקול דעת צוות.");
+      setMessage("השחרור אושר ונרשם על ידי הצוות.");
+      setSelectedContactId("");
+      setConfirming(false);
     } catch (err) {
       setError(err instanceof Error ? err.message : "רישום האיסוף נכשל");
     } finally {
@@ -156,26 +156,32 @@ export function GardenPickupVerificationPanel({ children, contacts, events }: { 
       {message ? <div className="success-banner">{message}</div> : null}
       {error ? <div className="error-banner">{error}</div> : null}
       <section className="grid cols-2 dashboard-panels">
-        <form className="card form compact-form" action={recordPickup}>
+        <form className="card form compact-form ux06-release-form" onSubmit={(event) => { event.preventDefault(); if (selectedContact) setConfirming(true); }}>
           <div className="section-heading"><h2>רישום איסוף</h2><p>המערכת מציגה הרשאות, אבל הצוות מאשר בפועל. אין שחרור אוטומטי.</p></div>
           <div className="form-grid">
-            <label>ילד/ה<select value={selectedChildId} onChange={(event) => setSelectedChildId(event.target.value)} required>{children.map((child) => <option value={child.id} key={child.id}>{child.full_name}</option>)}</select></label>
-            <label>מורשה איסוף<select name="pickup_contact_id"><option value="">בחירה ידנית</option>{contactsForChild.map((contact) => <option value={contact.id} key={contact.id}>{contact.full_name} · {relationLabels[contact.relation] ?? contact.relation}</option>)}</select></label>
-            <label>שם אוסף ידני<input name="pickup_person" placeholder="למקרה שלא נבחר מורשה" /></label>
-            <label>סוג אישור<select name="authorization_type" defaultValue="manual_review"><option value="manual_review">בדיקה ידנית</option><option value="permanent">הרשאה קבועה</option><option value="temporary">הרשאה זמנית</option><option value="emergency">חירום</option><option value="unauthorized">לא מורשה</option></select></label>
-            <label><input type="checkbox" name="unusual" /> סימון איסוף חריג</label>
-            <label><input type="checkbox" name="request_parent_confirmation" /> בקשת אישור הורה</label>
-            <label className="wide">סיבת חריגות<input name="unusual_reason" /></label>
-            <label className="wide">הערות<textarea name="notes" rows={3} /></label>
+            <label>ילד/ה<select value={selectedChildId} onChange={(event) => { setSelectedChildId(event.target.value); setSelectedContactId(""); setConfirming(false); }} required>{childRows.map((child) => <option value={child.id} key={child.id}>{child.full_name}</option>)}</select></label>
+            <label>מורשה איסוף<select name="pickup_contact_id" value={selectedContactId} onChange={(event) => { setSelectedContactId(event.target.value); setConfirming(false); }} required><option value="">בחרו מורשה פעיל</option>{contactsForChild.map((contact) => <option value={contact.id} key={contact.id}>{contact.full_name} · {relationLabels[contact.relation] ?? contact.relation}</option>)}</select></label>
           </div>
-          <button className="button primary" disabled={busy || !selectedChildId}>רישום איסוף</button>
+          <button className="button primary" disabled={busy || !selectedChildId || !selectedContactId}>בדיקה לפני שחרור</button>
         </form>
 
         <article className="card action-panel">
           <div className="section-heading"><h2>מורשים לילד הנבחר</h2><p>תמונת reference היא לעזרה אנושית בלבד. אין face approval אוטומטי.</p></div>
-          {contactsForChild.length === 0 ? <div className="empty-state"><strong>אין מורשי איסוף פעילים</strong><span>ניתן לבחור בדיקה ידנית ולבקש אישור הורה.</span></div> : contactsForChild.map((contact) => <div className="list-item" key={contact.id}><div><strong>{contact.full_name}</strong><span>{relationLabels[contact.relation] ?? contact.relation} · {contact.phone ?? "אין טלפון"}</span>{contact.valid_until ? <span>תקף עד {new Date(contact.valid_until).toLocaleString("he-IL")}</span> : null}</div><span className={contact.authorization_type === "temporary" ? "pill warn" : "pill good"}>{contact.authorization_type === "temporary" ? "זמני" : "קבוע"}</span></div>)}
+          {contactsForChild.length === 0 ? <div className="empty-state"><strong>אין מורשי איסוף פעילים</strong><span>אין לשחרר ילד ללא הרשאה תקפה; יש לפנות למנהל/ת לטיפול בחריג.</span></div> : contactsForChild.map((contact) => <div className="list-item" key={contact.id}><div><strong>{contact.full_name}</strong><span>{relationLabels[contact.relation] ?? contact.relation} · {contact.phone ?? "אין טלפון"}</span>{contact.valid_until ? <span>תקף עד {new Date(contact.valid_until).toLocaleString("he-IL")}</span> : null}</div><span className={contact.authorization_type === "temporary" ? "pill warn" : "pill good"}>{contact.authorization_type === "temporary" ? "זמני" : "מאושר"}</span></div>)}
+          {blockedContactsForChild.length ? <div className="ux06-blocked-pickups" aria-label="הרשאות חסומות">{blockedContactsForChild.map((contact) => <div className="list-item" key={contact.id}><div><strong>{contact.full_name}</strong><span>{relationLabels[contact.relation] ?? contact.relation} · אין לאשר שחרור</span></div><span className="pill bad">{!contact.active ? "בוטל" : contact.authorization_status === "approved" ? "פג תוקף" : "לא מאושר"}</span></div>)}</div> : null}
         </article>
       </section>
+      {confirming && selectedContact ? <section className="ux06-release-confirmation" role="dialog" aria-modal="true" aria-labelledby="release-confirmation-title">
+        <div>
+          <ShieldCheck size={34} />
+          <span>אישור צוות נדרש</span>
+          <h2 id="release-confirmation-title">לאשר שחרור?</h2>
+          <p><b>{childRows.find((child) => child.id === selectedChildId)?.full_name ?? "ילד/ה"}</b> יימסר/תימסר ל־<b>{selectedContact.full_name}</b>.</p>
+          <dl><div><dt>קרבה</dt><dd>{relationLabels[selectedContact.relation] ?? selectedContact.relation}</dd></div><div><dt>מצב הרשאה</dt><dd>מאושר ותקף</dd></div></dl>
+          <div><button className="button secondary" type="button" disabled={busy} onClick={() => setConfirming(false)}>חזרה</button><button className="button primary" type="button" disabled={busy} onClick={recordPickup}>{busy ? "מאמת בשרת..." : "אישור שחרור ורישום"}</button></div>
+          <small>השרת בודק שוב נוכחות, הקשר גן והרשאה ברגע האישור.</small>
+        </div>
+      </section> : null}
       <section className="card action-panel">
         <div className="section-heading"><h2>אירועי איסוף אחרונים</h2><p>אירועים חריגים ובקשות אישור הורה מקבלים התראה.</p></div>
         {eventRows.length === 0 ? <div className="empty-state"><strong>אין איסופים חדשים</strong><span>רישום איסוף יופיע כאן.</span></div> : <div className="timeline-list">{eventRows.map((event) => <div className="timeline-item" key={event.id}><span className={event.status === "unusual" || event.authorization_type === "unauthorized" ? "severity-dot critical" : "severity-dot low"} /><div><strong>{event.children?.full_name ?? "ילד/ה"} · {event.pickup_person}</strong><small>{event.pickup_time ? new Date(event.pickup_time).toLocaleString("he-IL") : ""} · {event.status}</small>{event.parent_confirmation_requested ? <p className="warning-text"><ShieldAlert size={14} /> נשלחה בקשת אישור הורה</p> : null}{event.face_match_status === "not_run" ? <p><ShieldCheck size={14} /> זיהוי פנים לא הופעל. בדיקה אנושית בלבד.</p> : null}</div></div>)}</div>}

@@ -1,4 +1,5 @@
 import type { AuthenticatorTransportFuture, WebAuthnCredential } from "@simplewebauthn/server";
+import { isManagementProductionEnvironment } from "@/lib/security/management-production-guards";
 
 export type PasskeyContext = {
   rpName: string;
@@ -7,16 +8,23 @@ export type PasskeyContext = {
 };
 
 export function getPasskeyContext(request: Request): PasskeyContext {
+  if (isManagementProductionEnvironment() && (!process.env.PASSKEY_RP_ID || !process.env.PASSKEY_ORIGIN)) {
+    throw new Error("PASSKEY_PRODUCTION_CONTEXT_NOT_CONFIGURED");
+  }
   const requestUrl = new URL(request.url);
   const host = request.headers.get("x-forwarded-host") ?? request.headers.get("host") ?? requestUrl.host;
   const protocol = request.headers.get("x-forwarded-proto") ?? requestUrl.protocol.replace(":", "");
   const hostname = host.split(":")[0];
 
-  return {
+  const context = {
     rpName: process.env.PASSKEY_RP_NAME || "גן בטוח",
     rpID: process.env.PASSKEY_RP_ID || hostname,
     origin: process.env.PASSKEY_ORIGIN || protocol + "://" + host
   };
+  if (isManagementProductionEnvironment() && new URL(context.origin).protocol !== "https:") {
+    throw new Error("PASSKEY_PRODUCTION_ORIGIN_MUST_USE_HTTPS");
+  }
+  return context;
 }
 
 export function toBase64Url(value: Uint8Array | ArrayBuffer): string {

@@ -1,0 +1,141 @@
+{
+  "environment": "DEVELOPMENT / INTEGRATION",
+  "base": "http://127.0.0.1:3006",
+  "capturedAt": "2026-09-24T18:14:23.244Z",
+  "reference": "GB_UX_REF_ATTENDANCE_PICKUP_OPERATIONS.png",
+  "viewports": {
+    "desktop": {
+      "width": 1440,
+      "height": 1024
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844
+    }
+  },
+  "personas": [
+    "owner-a",
+    "parent-a",
+    "staff-a"
+  ],
+  "captures": [
+    {
+      "name": "garden-attendance-desktop",
+      "route": "/dashboard/garden/attendance",
+      "viewport": "1440x1024",
+      "referenceArea": "נוכחות — מנהל Desktop",
+      "screenshot": "qa-evidence/ux-implement-06/screenshots/garden-attendance-desktop.webp",
+      "visualStatus": "VISUAL_PASS",
+      "deviations": []
+    },
+    {
+      "name": "classroom-attendance-desktop",
+      "route": "/dashboard/garden/attendance?status=departed",
+      "viewport": "1440x1024",
+      "referenceArea": "נוכחות כיתתית/מסוננת — Desktop",
+      "screenshot": "qa-evidence/ux-implement-06/screenshots/classroom-attendance-desktop.webp",
+      "visualStatus": "VISUAL_PASS",
+      "deviations": []
+    },
+    {
+      "name": "child-attendance-history-desktop",
+      "route": "/dashboard/garden/children/00000000-0000-4000-8000-000000000901",
+      "viewport": "1440x1024",
+      "referenceArea": "היסטוריית נוכחות ילד — Desktop",
+      "screenshot": "qa-evidence/ux-implement-06/screenshots/child-attendance-history-desktop.webp",
+      "visualStatus": "VISUAL_PASS",
+      "deviations": []
+    },
+    {
+      "name": "arrival-flow-mobile",
+      "route": "/dashboard/garden/attendance?status=expected",
+      "viewport": "390x844",
+      "referenceArea": "רישום כניסה — Mobile",
+      "screenshot": "qa-evidence/ux-implement-06/screenshots/arrival-flow-mobile.webp",
+      "visualStatus": "VISUAL_PASS",
+      "deviations": []
+    },
+    {
+      "name": "garden-attendance-mobile",
+      "route": "/dashboard/garden/attendance",
+      "viewport": "390x844",
+      "referenceArea": "נוכחות — מנהל Mobile",
+      "screenshot": "qa-evidence/ux-implement-06/screenshots/garden-attendance-mobile.webp",
+      "visualStatus": "VISUAL_PASS",
+      "deviations": []
+    },
+    {
+      "name": "release-workspace-desktop",
+      "route": "/dashboard/garden/pickup",
+      "viewport": "1440x1024",
+      "referenceArea": "אישור שחרור ומורשי איסוף — Desktop",
+      "screenshot": "qa-evidence/ux-implement-06/screenshots/release-workspace-desktop.webp",
+      "visualStatus": "VISUAL_PASS",
+      "deviations": []
+    },
+    {
+      "name": "release-workspace-mobile",
+      "route": "/dashboard/garden/pickup",
+      "viewport": "390x844",
+      "referenceArea": "אישור שחרור — Mobile",
+      "screenshot": "qa-evidence/ux-implement-06/screenshots/release-workspace-mobile.webp",
+      "visualStatus": "VISUAL_PASS",
+      "deviations": []
+    },
+    {
+      "name": "parent-attendance-desktop",
+      "route": "/dashboard/parent/attendance",
+      "viewport": "1440x1024",
+      "referenceArea": "תצוגת הורה — Desktop",
+      "screenshot": "qa-evidence/ux-implement-06/screenshots/parent-attendance-desktop.webp",
+      "visualStatus": "VISUAL_PASS",
+      "deviations": []
+    },
+    {
+      "name": "parent-attendance-mobile",
+      "route": "/dashboard/parent/attendance",
+      "viewport": "390x844",
+      "referenceArea": "התראת הורה / היסטוריה — Mobile",
+      "screenshot": "qa-evidence/ux-implement-06/screenshots/parent-attendance-mobile.webp",
+      "visualStatus": "VISUAL_PASS",
+      "deviations": []
+    },
+    {
+      "name": "authorized-pickup-mobile",
+      "route": "/dashboard/parent/pickup",
+      "viewport": "390x844",
+      "referenceArea": "מורשי איסוף — Mobile",
+      "screenshot": "qa-evidence/ux-implement-06/screenshots/authorized-pickup-mobile.webp",
+      "visualStatus": "VISUAL_PASS",
+      "deviations": []
+    },
+    {
+      "name": "staff-classroom-attendance-desktop",
+      "route": "/dashboard/staff/children-attendance",
+      "viewport": "1440x1024",
+      "referenceArea": "נוכחות כיתתית לצוות — Desktop",
+      "screenshot": "qa-evidence/ux-implement-06/screenshots/staff-classroom-attendance-desktop.webp",
+      "visualStatus": "VISUAL_PASS",
+      "deviations": []
+    },
+    {
+      "name": "staff-classroom-attendance-mobile",
+      "route": "/dashboard/staff/children-attendance",
+      "viewport": "390x844",
+      "referenceArea": "נוכחות כיתתית לצוות — Mobile",
+      "screenshot": "qa-evidence/ux-implement-06/screenshots/staff-classroom-attendance-mobile.webp",
+      "visualStatus": "VISUAL_PASS",
+      "deviations": []
+    },
+    {
+      "name": "staff-pickup-confirmation-mobile",
+      "route": "/dashboard/staff/pickup",
+      "viewport": "390x844",
+      "referenceArea": "אישור איסוף לצוות — Mobile",
+      "screenshot": "qa-evidence/ux-implement-06/screenshots/staff-pickup-confirmation-mobile.webp",
+      "visualStatus": "VISUAL_PASS",
+      "deviations": []
+    }
+  ],
+  "status": "PASS"
+}

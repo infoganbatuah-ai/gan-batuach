@@ -1,0 +1,166 @@
+{
+  "observedAt": "2026-09-19T18:30:56.581Z",
+  "status": "PASS",
+  "environment": "DEVELOPMENT / INTEGRATION",
+  "integrationCommit": "18d11d5b3ccd628434a869133ec6cf3f2260dba9",
+  "version": {
+    "environment": "DEVELOPMENT / INTEGRATION",
+    "commit": "18d11d5b3ccd628434a869133ec6cf3f2260dba9",
+    "startedAt": "2026-09-19T18:25:45.113Z",
+    "backend": "LOCAL_SUPABASE",
+    "production": false
+  },
+  "checks": [
+    {
+      "path": "/api/health",
+      "actor": "public",
+      "status": 200,
+      "expected": 200,
+      "pass": true,
+      "serverError": false
+    },
+    {
+      "path": "/digital-observer",
+      "actor": "public",
+      "status": 200,
+      "expected": 200,
+      "pass": true,
+      "serverError": false
+    },
+    {
+      "path": "/digital-observer/dashboard",
+      "actor": "observer-a",
+      "status": 200,
+      "expected": 200,
+      "pass": true,
+      "serverError": false
+    },
+    {
+      "path": "/digital-observer/alerts",
+      "actor": "observer-a",
+      "status": 200,
+      "expected": 200,
+      "pass": true,
+      "serverError": false
+    },
+    {
+      "path": "/digital-observer/cameras",
+      "actor": "observer-a",
+      "status": 200,
+      "expected": 200,
+      "pass": true,
+      "serverError": false
+    },
+    {
+      "path": "/digital-observer/recordings",
+      "actor": "observer-a",
+      "status": 200,
+      "expected": 200,
+      "pass": true,
+      "serverError": false
+    },
+    {
+      "path": "/api/digital-observer/settings?observer_site_id=00000000-0000-4000-8000-000000000e01",
+      "actor": "observer-a",
+      "status": 200,
+      "expected": 200,
+      "pass": true,
+      "serverError": false
+    },
+    {
+      "path": "/api/digital-observer/settings?observer_site_id=00000000-0000-4000-8000-000000000e02",
+      "actor": "observer-a forbidden other Site",
+      "status": 403,
+      "expected": 403,
+      "pass": true,
+      "serverError": false
+    },
+    {
+      "path": "/api/digital-observer/event-journal?observer_site_id=00000000-0000-4000-8000-000000000e01",
+      "actor": "observer-a",
+      "status": 200,
+      "expected": 200,
+      "pass": true,
+      "serverError": false
+    },
+    {
+      "path": "/api/digital-observer/event-journal?observer_site_id=00000000-0000-4000-8000-000000000e02",
+      "actor": "observer-a forbidden other Site",
+      "status": 403,
+      "expected": 403,
+      "pass": true,
+      "serverError": false
+    },
+    {
+      "path": "/api/digital-observer/incidents?observer_site_id=00000000-0000-4000-8000-000000000e01",
+      "actor": "observer-a",
+      "status": 200,
+      "expected": 200,
+      "pass": true,
+      "serverError": false
+    },
+    {
+      "path": "/api/digital-observer/incidents?observer_site_id=00000000-0000-4000-8000-000000000e02",
+      "actor": "observer-a forbidden other Site",
+      "status": 403,
+      "expected": 403,
+      "pass": true,
+      "serverError": false
+    },
+    {
+      "path": "/api/digital-observer/watch-rules?observer_site_id=00000000-0000-4000-8000-000000000e01",
+      "actor": "observer-a",
+      "status": 200,
+      "expected": 200,
+      "pass": true,
+      "serverError": false
+    },
+    {
+      "path": "/api/digital-observer/watch-rules?observer_site_id=00000000-0000-4000-8000-000000000e02",
+      "actor": "observer-a forbidden other Site",
+      "status": 403,
+      "expected": 403,
+      "pass": true,
+      "serverError": false
+    },
+    {
+      "path": "/dashboard/garden",
+      "actor": "manager-a",
+      "status": 200,
+      "expected": 200,
+      "pass": true,
+      "serverError": false
+    },
+    {
+      "path": "/dashboard/parent",
+      "actor": "parent-a",
+      "status": 200,
+      "expected": 200,
+      "pass": true,
+      "serverError": false
+    },
+    {
+      "path": "/dashboard/staff",
+      "actor": "staff-a",
+      "status": 200,
+      "expected": 200,
+      "pass": true,
+      "serverError": false
+    },
+    {
+      "path": "/api/digital-observer/settings?observer_site_id=00000000-0000-4000-8000-000000000e01",
+      "actor": "unauthenticated",
+      "status": 401,
+      "expected": 401,
+      "pass": true,
+      "serverError": false
+    }
+  ],
+  "productionAccess": false,
+  "limitations": [
+    "Synthetic local fixtures only",
+    "No real camera/Gateway/AI/payment/email provider activation",
+    "GB-M29 attachment HTTP E2E is separately verified, not part of these 18 route probes",
+    "HTTP HTML success is not a full interactive browser journey"
+  ]
+}

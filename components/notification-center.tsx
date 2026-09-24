@@ -9,7 +9,7 @@ export function NotificationCenter({ notifications }: { notifications: any[] }) 
   const [isPending, startTransition] = useTransition();
   function markAllRead() {
     startTransition(async () => {
-      const response = await fetch("/api/notifications/mark-read", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ids: rows.map((row) => row.id) }) });
+      const response = await fetch("/api/notifications/mark-read", { method: "POST", headers: { "Content-Type": "application/json" }, body: "{}" });
       if (response.ok) setRows((current) => current.map((row) => ({ ...row, status: "read", read_at: new Date().toISOString() })));
     });
   }
@@ -18,7 +18,9 @@ export function NotificationCenter({ notifications }: { notifications: any[] }) 
     if (response.ok) setRows((current) => current.map((row) => row.id === id ? { ...row, status: "read", read_at: new Date().toISOString() } : row));
   }
   function hrefFor(item: any) {
-    return item.action_url || item.metadata?.href || (item.entity_type === "inspection" ? "/dashboard/garden/inspections" : item.entity_type === "task" ? "/dashboard/staff/tasks" : "/dashboard");
+    const target = item.action_url || item.metadata?.href;
+    if (typeof target === "string" && target.startsWith("/dashboard/") && !target.startsWith("//")) return target;
+    return item.entity_type === "inspection" ? "/dashboard/garden/inspections" : item.entity_type === "task" ? "/dashboard/staff/tasks" : "/dashboard";
   }
   const unread = rows.filter((row) => !row.read_at && row.status !== "read").length;
   return (

@@ -36,6 +36,11 @@ if (serviceRoleKey.includes("your-service") || serviceRoleKey.includes("replace-
   throw new Error("Set SUPABASE_SERVICE_ROLE_KEY to your real Supabase service role key before seeding users");
 }
 
+const seedTarget = new URL(supabaseUrl);
+if (process.env.NODE_ENV === "production" || process.env.ALLOW_SYNTHETIC_QA_SEED !== "yes" || !["127.0.0.1", "localhost", "::1"].includes(seedTarget.hostname)) {
+  throw new Error("Synthetic test-user seed is restricted to an explicitly enabled loopback QA environment");
+}
+
 const supabase = createClient(supabaseUrl, serviceRoleKey, {
   auth: {
     autoRefreshToken: false,

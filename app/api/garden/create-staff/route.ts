@@ -35,6 +35,7 @@ export async function POST(request: Request) {
     const { profile } = access.session;
     if (!profile.garden_id) return fail("Manager is not assigned to a garden", 422);
     const payload = schema.parse(await request.json());
+    if (!payload.email) return fail("נדרש דוא״ל כדי לשלוח הזמנת צוות מאובטחת.", 422);
     const identityNumber = payload.identity_number.replace(/\D/g, "");
     if (identityNumber.length < 5) return fail("יש להזין תעודת זהות איש צוות תקינה.", 422, { field: "identity_number" });
     const admin = createAdminClient();
@@ -65,7 +66,6 @@ export async function POST(request: Request) {
       fullName: payload.full_name,
       email: payload.email,
       phone: payload.phone,
-      temporaryPassword: payload.temporary_password
     });
     createdUserId = user.id;
     const now = new Date().toISOString();
@@ -173,7 +173,6 @@ export async function POST(request: Request) {
         gardenId: profile.garden_id,
         role: "staff",
         username: oneTimeCredentials.username,
-        temporaryPassword: oneTimeCredentials.temporary_password,
         recipientName: payload.full_name,
         phone: payload.phone
       })

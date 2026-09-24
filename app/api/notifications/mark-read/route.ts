@@ -1,21 +1,25 @@
-import { requireUser } from "@/lib/auth";
+import { getSessionProfile } from "@/lib/auth";
 import { fail, handleRouteError, ok } from "@/lib/api";
 import { createClient } from "@/lib/supabase/server";
+import { z } from "zod";
+
+const schema = z.object({ ids: z.array(z.string().uuid()).max(100).optional() }).strict();
 
 export async function POST(request: Request) {
   try {
-    const { profile } = await requireUser();
-    const { ids } = await request.json().catch(() => ({ ids: [] }));
+    const { user, profile } = await getSessionProfile();
+    if (!user || !profile) return fail("נדרשת התחברות מחדש.", 401);
+    const parsed = schema.safeParse(await request.json().catch(() => ({})));
+    if (!parsed.success) return fail("בקשת סימון התראות אינה תקינה", 400);
     const supabase = await createClient();
-    let query = supabase.from("notifications" as any).update({ read_at: new Date().toISOString(), status: "read" });
-    if (profile.role !== "admin") query = query.or(`recipient_id.eq.${profile.id},recipient_profile_id.eq.${profile.id}`);
-    if (Array.isArray(ids) && ids.length) query = query.in("id", ids);
-    const { data, error } = await query.select("*");
+    const { data, error } = await supabase.rpc("mark_management_notifications_read", {
+      p_ids: parsed.data.ids ?? null
+    });
     if (error) {
-      console.error("[notifications-mark-read]", error);
+      console.error("[notifications-mark-read]", { code: error.code });
       return fail("לא ניתן לסמן התראות כנקראו כרגע", 400);
     }
-    return ok(data ?? []);
+    return ok({ updated: data ?? 0 });
   } catch (error) {
     return handleRouteError(error);
   }

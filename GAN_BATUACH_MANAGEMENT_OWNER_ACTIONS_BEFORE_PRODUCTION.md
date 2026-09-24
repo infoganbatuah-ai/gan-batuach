@@ -1,0 +1,25 @@
+# Gan Batuach Management — owner actions before Production
+
+Date: 2026-09-23. No item below authorizes a Production mutation. Secrets must be configured in provider secret stores and must not be pasted into chat or Git.
+
+| Classification | Action | Why | Codex after explicit authorization? | Owner input/decision | Cost |
+|---|---|---|---|---|---|
+| REQUIRED_BEFORE_RELEASE | Approve recovery communication and reset completion for 22 legitimate legacy-credential accounts; approve removal of the one synthetic QA row | Migration 12 irreversibly drops the recoverable plaintext field; no account has independent password-change proof | Yes: issue bounded canonical recovery, re-audit and record non-secret results | Approve message/timing and account treatment; customer communication is owner-controlled | Existing Auth/Email usage; no new fixed plan assumed |
+| REQUIRED_BEFORE_RELEASE | Configure `CRON_SECRET` in Production and authorize only the classified Management jobs | Three configured routes otherwise fail closed; destructive Digital Observer retention must remain disabled | Yes | Approve the core cron schedule; no secret value supplied in chat | ₪0 fixed on existing platform, usage metered |
+| REQUIRED_BEFORE_RELEASE | Configure `NEXT_PUBLIC_APP_URL=https://ganbatuach.com`, `HEALTHCHECK_SECRET`, and dedicated `FIELD_HASH_PEPPER`; confirm existing encryption key/version | Canonical links, deep operational health and cryptographic key separation are release requirements | Yes | Approve the future Production configuration change | ₪0 |
+| REQUIRED_BEFORE_RELEASE | Accept or fund a provider-managed database restore drill into an isolated target | Daily physical backups exist, but provider restore has not been proven non-destructively | Yes, after cost approval | Choose: approve capped temporary target or accept release block | **OWNER COST APPROVAL REQUIRED**. Planning cap: up to USD 25 plus tax for one month; expected temporary use USD 10–25, teardown immediately after proof. Provider/support may quote differently. |
+| REQUIRED_BEFORE_RELEASE | Approve private Storage recovery design before customer uploads are enabled | Production Management buckets were empty at audit; local export/restore proof passed, but provider recovery is not configured | Yes | Approve existing R2 account use or another private backup target and retention | R2 Standard is projected ₪0 within 10 GB free monthly allowance; above that $0.015/GB-month plus operations. No activation performed. |
+| BUSINESS_DECISION | Provide verified active-paying-user denominator and approve supplier allocation ledger | The ≤₪15/current-user result cannot be certified without invoices and denominator | Partly; Codex can calculate/reconcile supplied evidence | Identify active paying users/Gardens and invoice allocation | No new service required |
+| LEGAL_POLICY_DECISION | Approve Production document/evidence retention rules | Destructive retention automation remains disabled without approved policy | No legal conclusion; Codex can implement an approved policy later | Retention/hold/deletion policy | Unknown until policy is chosen |
+| OPTIONAL_BEFORE_RELEASE | Verify Resend domain/webhook and controlled sender proof, or keep external Email delivery limited to Supabase Auth SMTP | Supabase Auth currently uses verified configuration with custom Gmail SMTP; Resend app delivery remains unproved | Yes, after provider authorization | Decide whether to activate Resend transactional delivery | Free tier may cover 3,000/month; paid Pro is $20/month if approved |
+| OPTIONAL_BEFORE_RELEASE | Keep payment, SMS, WhatsApp, passkeys and Digital Observer live capability disabled | They are optional and already have truthful unavailable/readiness states | Yes when separately authorized | Provider/business choices only | No release increment while disabled |
+| REQUIRED_BEFORE_RELEASE | Authorize the exact frozen candidate and maintenance/release window | Main merge, migrations and deployment require a separate explicit Production instruction | Yes | Explicitly authorize main merge, Production migration and deploy for named SHA/window | Existing usage plus any approved temporary restore cost |
+| POST_RELEASE | Approve closure of the monitoring window after smoke and integrity sample | Detects Auth, RLS, migration, Storage and financial regressions | Yes | Release owner accepts result or invokes incident decision tree | Existing observability usage |
+
+## Work Codex can perform later
+
+After the corresponding explicit authorization, Codex can configure the named variables, perform the recovery workflow, create and tear down a capped isolated restore target, run the release procedure, execute non-customer smoke and reconcile evidence. The owner does not need to manually edit code, migrations or ledgers.
+
+## Actions that remain prohibited in GB-M40
+
+No Production credential reset, customer contact, configuration change, migration, `main` merge, deployment, data deletion or paid-resource activation was performed.

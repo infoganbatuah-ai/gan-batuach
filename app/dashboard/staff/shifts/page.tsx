@@ -1,13 +1,9 @@
-import { CalendarDays, Clock, TimerReset } from "lucide-react";
+import Link from "next/link";
+import { AlertTriangle, CalendarDays, Clock, Fingerprint, TimerReset } from "lucide-react";
 import { ListRowCard, StatusChip } from "@/components/gan-batuach-design-system";
 import { StaffAppFrame, StaffEmpty, StaffMetricCard, StaffPageHero, StaffSection, StaffStats } from "@/components/staff-app-ui";
 import { requireOperationalRole } from "@/lib/management/operational-role";
 import { createClient } from "@/lib/supabase/server";
-
-function hours(start?: string | null, end?: string | null) {
-  if (!start || !end) return 0;
-  return Math.max(0, (new Date(end).getTime() - new Date(start).getTime()) / 36e5);
-}
 
 export default async function Page() {
   const { employment } = await requireOperationalRole(["staff"]);
@@ -24,10 +20,13 @@ export default async function Page() {
       </StaffAppFrame>
     );
   }
-  const shiftsRes = staff?.id ? await supabase.from("staff_shifts" as any).select("id, shift_date, planned_start, planned_end, actual_start, actual_end, status").eq("staff_id", staff.id).eq("garden_id", employment!.garden_id).order("shift_date", { ascending: false }).limit(60) : { data: [] };
+  const shiftsRes = staff?.id ? await supabase.from("staff_shifts" as any).select("id, shift_date, planned_start, planned_end, actual_start, actual_end, total_minutes, approved_at, status").eq("staff_id", staff.id).eq("garden_id", employment!.garden_id).order("shift_date", { ascending: false }).limit(60) : { data: [] };
   const rows = (shiftsRes.data ?? []) as any[];
-  const monthHours = rows.reduce((sum, row) => sum + hours(row.actual_start, row.actual_end), 0);
+  const monthKey = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Jerusalem", year: "numeric", month: "2-digit" }).format(new Date());
+  const monthHours = rows.filter((row) => row.shift_date.startsWith(monthKey)).reduce((sum, row) => sum + (row.actual_end ? Number(row.total_minutes ?? 0) / 60 : 0), 0);
   const lateCount = rows.filter((row) => row.status === "late").length;
+  const openShift = rows.find((row) => row.actual_start && !row.actual_end);
+  const incomplete = rows.filter((row) => row.actual_start && !row.actual_end).length;
   return (
     <StaffAppFrame active="shifts">
       <StaffPageHero eyebrow="דוחות שעות" title="שעות עבודה, איחורים וחוסרים" text="הדוח מציג משמרות בפועל מול תכנון." icon={CalendarDays} badge={<StatusChip tone="success">{monthHours.toFixed(1)} שעות</StatusChip>} />
@@ -35,7 +34,12 @@ export default async function Page() {
         <StaffMetricCard title="שעות מחושבות" value={monthHours.toFixed(1)} icon={Clock} tone="purple" />
         <StaffMetricCard title="משמרות" value={rows.length} icon={CalendarDays} tone="blue" />
         <StaffMetricCard title="איחורים" value={lateCount} icon={TimerReset} tone={lateCount ? "orange" : "green"} />
+        <StaffMetricCard title="חסרה יציאה" value={incomplete} hint={incomplete ? "נדרש טיפול" : "הכול תקין"} icon={AlertTriangle} tone={incomplete ? "red" : "green"} />
       </StaffStats>
+      <section className={`ux07-current-shift ${openShift ? "active" : ""}`}>
+        <div><Fingerprint size={28} /><span><small>מצב נוכחי</small><strong>{openShift ? "משמרת פעילה" : "אין משמרת פתוחה"}</strong><b>{openShift?.actual_start ? `כניסה ${new Date(openShift.actual_start).toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" })}` : "זמן השרת יקבע בעת ההחתמה"}</b></span></div>
+        <Link className="gb-primary-button" href="/dashboard/staff/attendance">{openShift ? "יציאה / פרטי נוכחות" : "כניסה למשמרת"}</Link>
+      </section>
       <StaffSection title="היסטוריית משמרות">
         {rows.length === 0 ? (
           <StaffEmpty title="אין משמרות להצגה" text="לאחר שהמנהלת תגדיר משמרות או שתבוצע החתמה, שעות העבודה יופיעו כאן." icon={CalendarDays} />
@@ -47,7 +51,7 @@ export default async function Page() {
                 title={new Date(row.shift_date).toLocaleDateString("he-IL")}
                 subtitle={`מתוכנן ${row.planned_start ?? "-"}-${row.planned_end ?? "-"}`}
                 meta={`בפועל ${row.actual_start ? new Date(row.actual_start).toLocaleTimeString("he-IL") : "-"}-${row.actual_end ? new Date(row.actual_end).toLocaleTimeString("he-IL") : "-"}`}
-                status={<StatusChip tone={row.status === "late" ? "warning" : "success"}>{hours(row.actual_start, row.actual_end).toFixed(1)} שעות</StatusChip>}
+                status={<StatusChip tone={row.actual_start && !row.actual_end ? "warning" : "success"}>{row.actual_start && !row.actual_end ? "חסרה החתמת יציאה" : `${(Number(row.total_minutes ?? 0) / 60).toFixed(1)} שעות`}</StatusChip>}
               />
             ))}
           </div>

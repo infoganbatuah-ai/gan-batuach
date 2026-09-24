@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { DevelopmentIdentity } from "@/components/development-identity";
 import { AppMotionShell, MobilePublicTabs } from "@/components/app-motion-shell";
 import { DashboardLiveExperience } from "@/components/dashboard-live-experience";
 import "./globals.css";
@@ -9,6 +10,7 @@ import "./styles/dashboard-runtime.css";
 import "./styles/live-experience.css";
 import "./styles/manager-onboarding-live.css";
 import "./styles/digital-observer-product.css";
+import "./styles/ux-implement-01.css";
 
 export const metadata: Metadata = {
   verification: {
@@ -47,6 +49,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="he" dir="rtl" data-scroll-behavior="smooth">
       <body>
+        <DevelopmentIdentity />
         <AppMotionShell>{children}</AppMotionShell>
         <DashboardLiveExperience />
         <MobilePublicTabs />

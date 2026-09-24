@@ -1,7 +1,8 @@
 import { z } from "zod";
 import { fail, handleRouteError, ok } from "@/lib/api";
-import { requireUser } from "@/lib/auth";
+import { getSessionProfile } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
+import { managementDeliveryCapability } from "@/lib/management/external-delivery";
 
 const schema = z.object({
   receive_sms: z.boolean().optional(),
@@ -14,7 +15,13 @@ const schema = z.object({
   parent_daily_digest_enabled: z.boolean().optional(),
   parent_ai_summary_enabled: z.boolean().optional(),
   parent_category_channels: z.record(z.string(), z.array(z.enum(["push", "email", "sms", "whatsapp"]))).optional(),
+  notification_category_channels: z.record(z.string(), z.array(z.enum(["push", "email", "sms", "whatsapp"]))).optional(),
+  quiet_hours_start: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).nullable().optional(),
+  quiet_hours_end: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).nullable().optional(),
+  quiet_hours_timezone: z.enum(["Asia/Jerusalem", "UTC"]).optional(),
   push_category_preferences: z.record(z.string(), z.boolean()).optional()
+}).refine((value) => (value.quiet_hours_start == null) === (value.quiet_hours_end == null), {
+  message: "Quiet hours require both start and end"
 });
 
 const parentCategories = ["important", "safety", "attendance", "message", "document", "payment", "pickup"] as const;
@@ -33,7 +40,8 @@ function defaultParentCategoryChannels() {
 
 export async function GET() {
   try {
-    const { profile } = await requireUser();
+    const { user, profile } = await getSessionProfile();
+    if (!user || !profile) return fail("Authentication required.", 401);
     const supabase = await createClient();
     const { data, error } = await supabase.from("communication_preferences" as any).select("*").eq("profile_id", profile.id).maybeSingle();
     if (error) {
@@ -61,7 +69,8 @@ export async function GET() {
         parent_ai_summary_enabled: true,
         parent_category_channels: defaultParentCategoryChannels()
       },
-      push_category_preferences: pushCategoryPreferences
+      push_category_preferences: pushCategoryPreferences,
+      delivery_capability: managementDeliveryCapability()
     });
   } catch (error) {
     return handleRouteError(error);
@@ -70,7 +79,8 @@ export async function GET() {
 
 export async function PATCH(request: Request) {
   try {
-    const { profile } = await requireUser();
+    const { user, profile } = await getSessionProfile();
+    if (!user || !profile) return fail("Authentication required.", 401);
     const payload = schema.parse(await request.json());
     const supabase = await createClient();
     const existing = await supabase.from("communication_preferences" as any).select("*").eq("profile_id", profile.id).maybeSingle();
@@ -91,6 +101,10 @@ export async function PATCH(request: Request) {
       parent_daily_digest_enabled: payload.parent_daily_digest_enabled ?? current?.parent_daily_digest_enabled ?? true,
       parent_ai_summary_enabled: payload.parent_ai_summary_enabled ?? current?.parent_ai_summary_enabled ?? true,
       parent_category_channels: payload.parent_category_channels ?? current?.parent_category_channels ?? defaultParentCategoryChannels(),
+      notification_category_channels: payload.notification_category_channels ?? current?.notification_category_channels ?? {},
+      quiet_hours_start: payload.quiet_hours_start === undefined ? current?.quiet_hours_start ?? null : payload.quiet_hours_start,
+      quiet_hours_end: payload.quiet_hours_end === undefined ? current?.quiet_hours_end ?? null : payload.quiet_hours_end,
+      quiet_hours_timezone: payload.quiet_hours_timezone ?? current?.quiet_hours_timezone ?? "Asia/Jerusalem",
       updated_at: new Date().toISOString()
     };
     const { data, error } = await supabase.from("communication_preferences" as any).upsert(patch, { onConflict: "profile_id" }).select("*").single();

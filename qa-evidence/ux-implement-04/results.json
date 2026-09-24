@@ -1,0 +1,209 @@
+{
+  "environment": "DEVELOPMENT / INTEGRATION",
+  "base": "http://127.0.0.1:3004",
+  "capturedAt": "2026-09-24T03:56:19.317Z",
+  "viewports": {
+    "desktop": {
+      "width": 1440,
+      "height": 1024
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844
+    }
+  },
+  "persona": "synthetic multi-Garden Owner",
+  "performance": {
+    "samples": [
+      4265,
+      2158,
+      2205,
+      2573,
+      8506,
+      2961,
+      2713,
+      2253,
+      2817,
+      2057,
+      2365,
+      2845,
+      2882,
+      2109,
+      1981,
+      2410,
+      2518,
+      3011,
+      3450,
+      3016,
+      2738,
+      2579,
+      2694,
+      3214
+    ],
+    "p50": 2694,
+    "p95": 4265,
+    "environment": "local Development; not a Production SLA"
+  },
+  "reference": "GB_UX_REF_CHILDREN_CLASSROOMS_PROFILE_ENROLLMENT.png",
+  "captures": [
+    {
+      "name": "children-list-desktop",
+      "viewport": "1440x1024",
+      "path": "qa-evidence/ux-implement-04/screenshots/children-list-desktop.webp",
+      "visualStatus": "VISUAL_PASS"
+    },
+    {
+      "name": "children-filtered-desktop",
+      "viewport": "1440x1024",
+      "path": "qa-evidence/ux-implement-04/screenshots/children-filtered-desktop.webp",
+      "visualStatus": "VISUAL_PASS"
+    },
+    {
+      "name": "classrooms-list-desktop",
+      "viewport": "1440x1024",
+      "path": "qa-evidence/ux-implement-04/screenshots/classrooms-list-desktop.webp",
+      "visualStatus": "VISUAL_PASS"
+    },
+    {
+      "name": "classroom-detail-desktop",
+      "viewport": "1440x1024",
+      "path": "qa-evidence/ux-implement-04/screenshots/classroom-detail-desktop.webp",
+      "visualStatus": "VISUAL_PASS"
+    },
+    {
+      "name": "child-profile-overview-desktop",
+      "viewport": "1440x1024",
+      "path": "qa-evidence/ux-implement-04/screenshots/child-profile-overview-desktop.webp",
+      "visualStatus": "VISUAL_PASS"
+    },
+    {
+      "name": "child-profile-attendance-desktop",
+      "viewport": "1440x1024",
+      "path": "qa-evidence/ux-implement-04/screenshots/child-profile-attendance-desktop.webp",
+      "visualStatus": "VISUAL_PASS"
+    },
+    {
+      "name": "child-profile-guardians-desktop",
+      "viewport": "1440x1024",
+      "path": "qa-evidence/ux-implement-04/screenshots/child-profile-guardians-desktop.webp",
+      "visualStatus": "VISUAL_PASS"
+    },
+    {
+      "name": "child-profile-pickup-desktop",
+      "viewport": "1440x1024",
+      "path": "qa-evidence/ux-implement-04/screenshots/child-profile-pickup-desktop.webp",
+      "visualStatus": "VISUAL_PASS"
+    },
+    {
+      "name": "child-profile-documents-desktop",
+      "viewport": "1440x1024",
+      "path": "qa-evidence/ux-implement-04/screenshots/child-profile-documents-desktop.webp",
+      "visualStatus": "VISUAL_PASS"
+    },
+    {
+      "name": "child-profile-tuition-desktop",
+      "viewport": "1440x1024",
+      "path": "qa-evidence/ux-implement-04/screenshots/child-profile-tuition-desktop.webp",
+      "visualStatus": "VISUAL_PASS"
+    },
+    {
+      "name": "child-profile-history-desktop",
+      "viewport": "1440x1024",
+      "path": "qa-evidence/ux-implement-04/screenshots/child-profile-history-desktop.webp",
+      "visualStatus": "VISUAL_PASS"
+    },
+    {
+      "name": "enrollment-requests-desktop",
+      "viewport": "1440x1024",
+      "path": "qa-evidence/ux-implement-04/screenshots/enrollment-requests-desktop.webp",
+      "visualStatus": "VISUAL_PASS"
+    },
+    {
+      "name": "enrollment-detail-desktop",
+      "viewport": "1440x1024",
+      "path": "qa-evidence/ux-implement-04/screenshots/enrollment-detail-desktop.webp",
+      "visualStatus": "VISUAL_PASS"
+    },
+    {
+      "name": "children-list-mobile",
+      "viewport": "390x844",
+      "path": "qa-evidence/ux-implement-04/screenshots/children-list-mobile.webp",
+      "visualStatus": "VISUAL_PASS"
+    },
+    {
+      "name": "children-filtered-mobile",
+      "viewport": "390x844",
+      "path": "qa-evidence/ux-implement-04/screenshots/children-filtered-mobile.webp",
+      "visualStatus": "VISUAL_PASS"
+    },
+    {
+      "name": "classrooms-list-mobile",
+      "viewport": "390x844",
+      "path": "qa-evidence/ux-implement-04/screenshots/classrooms-list-mobile.webp",
+      "visualStatus": "VISUAL_PASS"
+    },
+    {
+      "name": "classroom-detail-mobile",
+      "viewport": "390x844",
+      "path": "qa-evidence/ux-implement-04/screenshots/classroom-detail-mobile.webp",
+      "visualStatus": "VISUAL_PASS"
+    },
+    {
+      "name": "child-profile-overview-mobile",
+      "viewport": "390x844",
+      "path": "qa-evidence/ux-implement-04/screenshots/child-profile-overview-mobile.webp",
+      "visualStatus": "VISUAL_PASS"
+    },
+    {
+      "name": "child-profile-attendance-mobile",
+      "viewport": "390x844",
+      "path": "qa-evidence/ux-implement-04/screenshots/child-profile-attendance-mobile.webp",
+      "visualStatus": "VISUAL_PASS"
+    },
+    {
+      "name": "child-profile-guardians-mobile",
+      "viewport": "390x844",
+      "path": "qa-evidence/ux-implement-04/screenshots/child-profile-guardians-mobile.webp",
+      "visualStatus": "VISUAL_PASS"
+    },
+    {
+      "name": "child-profile-pickup-mobile",
+      "viewport": "390x844",
+      "path": "qa-evidence/ux-implement-04/screenshots/child-profile-pickup-mobile.webp",
+      "visualStatus": "VISUAL_PASS"
+    },
+    {
+      "name": "child-profile-documents-mobile",
+      "viewport": "390x844",
+      "path": "qa-evidence/ux-implement-04/screenshots/child-profile-documents-mobile.webp",
+      "visualStatus": "VISUAL_PASS"
+    },
+    {
+      "name": "child-profile-tuition-mobile",
+      "viewport": "390x844",
+      "path": "qa-evidence/ux-implement-04/screenshots/child-profile-tuition-mobile.webp",
+      "visualStatus": "VISUAL_PASS"
+    },
+    {
+      "name": "child-profile-history-mobile",
+      "viewport": "390x844",
+      "path": "qa-evidence/ux-implement-04/screenshots/child-profile-history-mobile.webp",
+      "visualStatus": "VISUAL_PASS"
+    },
+    {
+      "name": "enrollment-requests-mobile",
+      "viewport": "390x844",
+      "path": "qa-evidence/ux-implement-04/screenshots/enrollment-requests-mobile.webp",
+      "visualStatus": "VISUAL_PASS"
+    },
+    {
+      "name": "enrollment-detail-mobile",
+      "viewport": "390x844",
+      "path": "qa-evidence/ux-implement-04/screenshots/enrollment-detail-mobile.webp",
+      "visualStatus": "VISUAL_PASS"
+    }
+  ],
+  "serverErrors": [],
+  "consoleErrors": [],
+  "status": "PASS"
+}

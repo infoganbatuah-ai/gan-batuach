@@ -1,0 +1,168 @@
+{
+  "environment": "DEVELOPMENT / INTEGRATION",
+  "base": "http://127.0.0.1:3007",
+  "capturedAt": "2026-09-24T19:38:28.725Z",
+  "reference": "GB_UX_REF_STAFF_FULL_PLATFORM.png",
+  "viewports": {
+    "desktop": {
+      "width": 1440,
+      "height": 1024
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844
+    }
+  },
+  "personas": [
+    "owner-a",
+    "staff-a",
+    "staff-ab"
+  ],
+  "captures": [
+    {
+      "name": "staff-list-desktop",
+      "route": "/dashboard/garden/staff",
+      "viewport": "1440x1024",
+      "referenceArea": "Staff list — Desktop",
+      "screenshot": "qa-evidence/ux-implement-07/screenshots/staff-list-desktop.webp",
+      "visualStatus": "VISUAL_PASS",
+      "deviations": []
+    },
+    {
+      "name": "staff-list-mobile",
+      "route": "/dashboard/garden/staff",
+      "viewport": "390x844",
+      "referenceArea": "Staff list — Mobile",
+      "screenshot": "qa-evidence/ux-implement-07/screenshots/staff-list-mobile.webp",
+      "visualStatus": "VISUAL_PASS",
+      "deviations": []
+    },
+    {
+      "name": "staff-profile-desktop",
+      "route": "/dashboard/garden/staff?staff=active",
+      "viewport": "1440x1024",
+      "referenceArea": "Staff profile — Desktop",
+      "screenshot": "qa-evidence/ux-implement-07/screenshots/staff-profile-desktop.webp",
+      "visualStatus": "VISUAL_PASS",
+      "deviations": []
+    },
+    {
+      "name": "staff-time-desktop",
+      "route": "/dashboard/garden/staff-time",
+      "viewport": "1440x1024",
+      "referenceArea": "Time records and payroll-ready ledger — Desktop",
+      "screenshot": "qa-evidence/ux-implement-07/screenshots/staff-time-desktop.webp",
+      "visualStatus": "VISUAL_PASS",
+      "deviations": []
+    },
+    {
+      "name": "staff-time-mobile",
+      "route": "/dashboard/garden/staff-time",
+      "viewport": "390x844",
+      "referenceArea": "Hours and missing clock-out — Mobile",
+      "screenshot": "qa-evidence/ux-implement-07/screenshots/staff-time-mobile.webp",
+      "visualStatus": "VISUAL_PASS",
+      "deviations": []
+    },
+    {
+      "name": "staff-dashboard-desktop",
+      "route": "/dashboard/staff",
+      "viewport": "1440x1024",
+      "referenceArea": "Staff dashboard — Desktop",
+      "screenshot": "qa-evidence/ux-implement-07/screenshots/staff-dashboard-desktop.webp",
+      "visualStatus": "VISUAL_PASS",
+      "deviations": []
+    },
+    {
+      "name": "staff-dashboard-mobile",
+      "route": "/dashboard/staff",
+      "viewport": "390x844",
+      "referenceArea": "Staff dashboard — Mobile",
+      "screenshot": "qa-evidence/ux-implement-07/screenshots/staff-dashboard-mobile.webp",
+      "visualStatus": "VISUAL_PASS",
+      "deviations": []
+    },
+    {
+      "name": "clock-in-out-mobile",
+      "route": "/dashboard/staff/attendance",
+      "viewport": "390x844",
+      "referenceArea": "Clock in/out — Mobile",
+      "screenshot": "qa-evidence/ux-implement-07/screenshots/clock-in-out-mobile.webp",
+      "visualStatus": "VISUAL_PASS",
+      "deviations": []
+    },
+    {
+      "name": "schedule-desktop",
+      "route": "/dashboard/staff/shifts",
+      "viewport": "1440x1024",
+      "referenceArea": "Schedule and time records — Desktop",
+      "screenshot": "qa-evidence/ux-implement-07/screenshots/schedule-desktop.webp",
+      "visualStatus": "VISUAL_PASS",
+      "deviations": []
+    },
+    {
+      "name": "schedule-mobile",
+      "route": "/dashboard/staff/shifts",
+      "viewport": "390x844",
+      "referenceArea": "Upcoming shifts — Mobile",
+      "screenshot": "qa-evidence/ux-implement-07/screenshots/schedule-mobile.webp",
+      "visualStatus": "VISUAL_PASS",
+      "deviations": []
+    },
+    {
+      "name": "staff-profile-mobile",
+      "route": "/dashboard/staff/settings",
+      "viewport": "390x844",
+      "referenceArea": "Active Staff profile — Mobile",
+      "screenshot": "qa-evidence/ux-implement-07/screenshots/staff-profile-mobile.webp",
+      "visualStatus": "VISUAL_PASS",
+      "deviations": []
+    },
+    {
+      "name": "staff-documents-mobile",
+      "route": "/dashboard/staff/documents",
+      "viewport": "390x844",
+      "referenceArea": "Staff documents — Mobile",
+      "screenshot": "qa-evidence/ux-implement-07/screenshots/staff-documents-mobile.webp",
+      "visualStatus": "VISUAL_PASS",
+      "deviations": []
+    },
+    {
+      "name": "staff-tasks-mobile",
+      "route": "/dashboard/staff/tasks",
+      "viewport": "390x844",
+      "referenceArea": "Staff Tasks — Mobile",
+      "screenshot": "qa-evidence/ux-implement-07/screenshots/staff-tasks-mobile.webp",
+      "visualStatus": "VISUAL_PASS",
+      "deviations": []
+    },
+    {
+      "name": "staff-messages-mobile",
+      "route": "/dashboard/staff/messages",
+      "viewport": "390x844",
+      "referenceArea": "Staff messages — Mobile",
+      "screenshot": "qa-evidence/ux-implement-07/screenshots/staff-messages-mobile.webp",
+      "visualStatus": "VISUAL_PASS",
+      "deviations": []
+    },
+    {
+      "name": "staff-camera-policy-mobile",
+      "route": "/dashboard/staff/cameras",
+      "viewport": "390x844",
+      "referenceArea": "Staff camera policy — Mobile",
+      "screenshot": "qa-evidence/ux-implement-07/screenshots/staff-camera-policy-mobile.webp",
+      "visualStatus": "VISUAL_PASS",
+      "deviations": []
+    },
+    {
+      "name": "multi-garden-staff-desktop",
+      "route": "/dashboard/staff",
+      "viewport": "1440x1024",
+      "referenceArea": "Multi-Garden Staff — Desktop",
+      "screenshot": "qa-evidence/ux-implement-07/screenshots/multi-garden-staff-desktop.webp",
+      "visualStatus": "VISUAL_PASS",
+      "deviations": []
+    }
+  ],
+  "status": "PASS"
+}

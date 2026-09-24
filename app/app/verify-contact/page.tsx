@@ -1,12 +1,12 @@
-import { ShieldCheck } from "lucide-react";
-import { BrandHeader } from "@/components/brand-header";
+import { Heart, Mail } from "lucide-react";
+import { AppAuthShell } from "@/components/app-auth-shell";
 import { ContactVerificationForm } from "@/components/auth/contact-verification-form";
 import { getSessionProfile } from "@/lib/auth";
 import { managementContactVerification, maskContact } from "@/lib/management/contact-verification";
 
 export const metadata = {
   title: "אימות פרטי קשר | גן בטוח",
-  description: "אימות דוא״ל וטלפון לחשבון גן בטוח."
+  description: "אימות דוא״ל לחשבון גן בטוח."
 };
 
 export default async function VerifyContactPage({ searchParams }: { searchParams: Promise<{ next?: string }> }) {
@@ -15,5 +15,13 @@ export default async function VerifyContactPage({ searchParams }: { searchParams
   const { user, profile } = await getSessionProfile();
   const state = user && profile ? managementContactVerification(user, profile) : null;
   const initialStatus = state ? { ...state, email: maskContact(user?.email), phone: maskContact(user?.phone) } : null;
-  return <><BrandHeader /><main className="section login-journey-page"><section className="login-hero compact-auth-hero"><div><p className="eyebrow">אבטחת החשבון</p><h1>אימות דוא״ל וטלפון</h1><p>אימות שני פרטי הקשר נדרש לפני פתיחת גישה תפעולית לחשבונות חדשים.</p><ContactVerificationForm initialStatus={initialStatus} nextPath={safeNext} /></div><div className="card action-panel auth-readiness-card"><ShieldCheck /><h2>גישה לפי זהות מאומתת</h2><p>הקודים נבדקים בשרת באמצעות Supabase Auth. המערכת אינה שומרת קוד חד־פעמי ואינה חושפת אם כתובת לא מוכרת רשומה.</p></div></section></main></>;
+  return (
+    <AppAuthShell eyebrow="שלב 3 מתוך 4" title="אימות כתובת דוא״ל" subtitle="שלחנו קישור אימות לכתובת שלך. לחיצה על הקישור תאמת את החשבון ותאפשר להמשיך.">
+      <section className="gb-email-verification-card">
+        <div className="gb-mail-illustration" aria-hidden="true"><Mail /><span><Heart fill="currentColor" /></span></div>
+        <ContactVerificationForm initialStatus={initialStatus} nextPath={safeNext} />
+        <p className="gb-verification-policy">אימות דוא״ל מספיק להפעלת חשבון רגיל. הטלפון יכול להישאר במצב לא מאומת עד לפעולה שדורשת אימות נוסף.</p>
+      </section>
+    </AppAuthShell>
+  );
 }

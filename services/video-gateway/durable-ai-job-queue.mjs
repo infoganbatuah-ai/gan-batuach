@@ -92,30 +92,74 @@ export function createDurableAiJobQueue({ databasePath, now = Date.now, policy =
   }
   function acknowledge(worker, jobId, result) {
     if (result?.contract!==AI_RESULT_CONTRACT || result.job_id!==jobId) throw new Error("ai_queue_result_invalid");
-    const row=db.prepare("SELECT * FROM ai_jobs WHERE job_id=?").get(jobId); if(!row) throw new Error("ai_queue_job_missing");
-    authorize(worker,JSON.parse(row.payload));
-    if(row.state==="COMPLETED") return { acknowledged:true,duplicate:true };
-    if(row.state!=="CLAIMED"||row.lease_owner!==worker.worker_id||Number(row.lease_expires_at)<=now()) throw new Error("ai_queue_lease_invalid");
-    if(Number(row.expires_at)<=now()){db.prepare("UPDATE ai_jobs SET state='EXPIRED',lease_owner=NULL,lease_expires_at=NULL,last_error='JOB_EXPIRED_DURING_INFERENCE' WHERE job_id=?").run(jobId);audit("JOB_EXPIRED",jobId,"during_inference");return {acknowledged:false,state:"EXPIRED"};}
     db.exec("BEGIN IMMEDIATE");
-    try { db.prepare("INSERT OR IGNORE INTO ai_results(result_id,job_id,payload,created_at) VALUES(?,?,?,?)").run(result.result_id,jobId,JSON.stringify(result),now()); db.prepare("UPDATE ai_jobs SET state='COMPLETED',completed_at=?,lease_owner=NULL,lease_expires_at=NULL WHERE job_id=?").run(now(),jobId); db.exec("COMMIT"); }
+    let outcome;
+    try {
+      const row=db.prepare("SELECT * FROM ai_jobs WHERE job_id=?").get(jobId); if(!row) throw new Error("ai_queue_job_missing");
+      authorize(worker,JSON.parse(row.payload));
+      const at=now();
+      if(row.state==="COMPLETED") outcome={acknowledged:true,duplicate:true};
+      else {
+        if(row.state!=="CLAIMED"||row.lease_owner!==worker.worker_id||Number(row.lease_expires_at)<=at) throw new Error("ai_queue_lease_invalid");
+        if(Number(row.expires_at)<=at){
+          db.prepare("UPDATE ai_jobs SET state='EXPIRED',lease_owner=NULL,lease_expires_at=NULL,last_error='JOB_EXPIRED_DURING_INFERENCE' WHERE job_id=? AND state='CLAIMED' AND lease_owner=?").run(jobId,worker.worker_id);
+          outcome={acknowledged:false,state:"EXPIRED"};
+        } else {
+          const changed=db.prepare("UPDATE ai_jobs SET state='COMPLETED',completed_at=?,lease_owner=NULL,lease_expires_at=NULL WHERE job_id=? AND state='CLAIMED' AND lease_owner=? AND lease_expires_at>?").run(at,jobId,worker.worker_id,at);
+          if(changed.changes!==1) throw new Error("ai_queue_lease_invalid");
+          db.prepare("INSERT INTO ai_results(result_id,job_id,payload,created_at) VALUES(?,?,?,?)").run(result.result_id,jobId,JSON.stringify(result),at);
+          outcome={acknowledged:true,duplicate:false};
+        }
+      }
+      db.exec("COMMIT");
+    }
     catch(error){db.exec("ROLLBACK");throw error;}
-    audit("JOB_ACKNOWLEDGED",jobId); return { acknowledged:true,duplicate:false };
+    if(outcome.state==="EXPIRED") audit("JOB_EXPIRED",jobId,"during_inference");
+    else if(!outcome.duplicate) audit("JOB_ACKNOWLEDGED",jobId);
+    return outcome;
   }
   function fail(worker, jobId, classification="RETRYABLE", reason="AI_JOB_FAILED") {
-    const row=db.prepare("SELECT payload,attempts,lease_owner FROM ai_jobs WHERE job_id=?").get(jobId); if(!row||row.lease_owner!==worker.worker_id) throw new Error("ai_queue_lease_invalid"); authorize(worker,JSON.parse(row.payload));
-    const job=JSON.parse(row.payload), retryable=classification==="RETRYABLE", exhausted=Number(row.attempts)>=job.retry_policy.max_attempts;
-    if(!retryable||exhausted){db.prepare("UPDATE ai_jobs SET state='DEAD_LETTER',lease_owner=NULL,lease_expires_at=NULL,last_error=? WHERE job_id=?").run(safeReason(reason),jobId);audit("JOB_DEAD_LETTER",jobId,safeReason(reason));return {state:"DEAD_LETTER"};}
-    const wait=job.retry_policy.base_backoff_ms*2**Math.min(8,Math.max(0,Number(row.attempts)-1)); db.prepare("UPDATE ai_jobs SET state='RETRY_WAIT',next_attempt_at=?,lease_owner=NULL,lease_expires_at=NULL,last_error=? WHERE job_id=?").run(now()+wait,safeReason(reason),jobId);audit("JOB_RETRY_SCHEDULED",jobId,safeReason(reason));return {state:"RETRY_WAIT",retry_at:new Date(now()+wait).toISOString()};
+    db.exec("BEGIN IMMEDIATE");
+    let outcome;
+    try {
+      const row=db.prepare("SELECT payload,attempts,state,lease_owner,lease_expires_at FROM ai_jobs WHERE job_id=?").get(jobId);
+      const at=now();
+      if(!row||row.state!=="CLAIMED"||row.lease_owner!==worker.worker_id||Number(row.lease_expires_at)<=at) throw new Error("ai_queue_lease_invalid");
+      authorize(worker,JSON.parse(row.payload));
+      const job=JSON.parse(row.payload), retryable=classification==="RETRYABLE", exhausted=Number(row.attempts)>=job.retry_policy.max_attempts;
+      if(!retryable||exhausted){
+        db.prepare("UPDATE ai_jobs SET state='DEAD_LETTER',lease_owner=NULL,lease_expires_at=NULL,last_error=? WHERE job_id=? AND state='CLAIMED' AND lease_owner=?").run(safeReason(reason),jobId,worker.worker_id);
+        outcome={state:"DEAD_LETTER"};
+      } else {
+        const wait=job.retry_policy.base_backoff_ms*2**Math.min(8,Math.max(0,Number(row.attempts)-1));
+        db.prepare("UPDATE ai_jobs SET state='RETRY_WAIT',next_attempt_at=?,lease_owner=NULL,lease_expires_at=NULL,last_error=? WHERE job_id=? AND state='CLAIMED' AND lease_owner=?").run(at+wait,safeReason(reason),jobId,worker.worker_id);
+        outcome={state:"RETRY_WAIT",retry_at:new Date(at+wait).toISOString()};
+      }
+      db.exec("COMMIT");
+    } catch(error){db.exec("ROLLBACK");throw error;}
+    audit(outcome.state==="DEAD_LETTER"?"JOB_DEAD_LETTER":"JOB_RETRY_SCHEDULED",jobId,safeReason(reason));
+    return outcome;
   }
   function releaseForFailover(worker, jobId, reason="RETRYABLE_TARGET_FAILURE") {
-    const row=db.prepare("SELECT payload,attempts,lease_owner FROM ai_jobs WHERE job_id=?").get(jobId);
-    if(!row||row.lease_owner!==worker.worker_id)throw new Error("ai_queue_lease_invalid");
-    authorize(worker,JSON.parse(row.payload));
-    const job=JSON.parse(row.payload);
-    if(Number(row.attempts)>=job.retry_policy.max_attempts){db.prepare("UPDATE ai_jobs SET state='DEAD_LETTER',lease_owner=NULL,lease_expires_at=NULL,last_error=? WHERE job_id=?").run(safeReason(reason),jobId);audit("JOB_DEAD_LETTER",jobId,safeReason(reason));return{state:"DEAD_LETTER"};}
-    db.prepare("UPDATE ai_jobs SET state='PENDING',next_attempt_at=?,lease_owner=NULL,lease_expires_at=NULL,last_error=? WHERE job_id=?").run(now(),safeReason(reason),jobId);
-    audit("JOB_FAILOVER_RELEASED",jobId,safeReason(reason));return{state:"PENDING"};
+    db.exec("BEGIN IMMEDIATE");
+    let outcome;
+    try {
+      const row=db.prepare("SELECT payload,attempts,state,lease_owner,lease_expires_at FROM ai_jobs WHERE job_id=?").get(jobId);
+      const at=now();
+      if(!row||row.state!=="CLAIMED"||row.lease_owner!==worker.worker_id||Number(row.lease_expires_at)<=at)throw new Error("ai_queue_lease_invalid");
+      authorize(worker,JSON.parse(row.payload));
+      const job=JSON.parse(row.payload);
+      if(Number(row.attempts)>=job.retry_policy.max_attempts){
+        db.prepare("UPDATE ai_jobs SET state='DEAD_LETTER',lease_owner=NULL,lease_expires_at=NULL,last_error=? WHERE job_id=? AND state='CLAIMED' AND lease_owner=?").run(safeReason(reason),jobId,worker.worker_id);
+        outcome={state:"DEAD_LETTER"};
+      } else {
+        db.prepare("UPDATE ai_jobs SET state='PENDING',next_attempt_at=?,lease_owner=NULL,lease_expires_at=NULL,last_error=? WHERE job_id=? AND state='CLAIMED' AND lease_owner=?").run(at,safeReason(reason),jobId,worker.worker_id);
+        outcome={state:"PENDING"};
+      }
+      db.exec("COMMIT");
+    } catch(error){db.exec("ROLLBACK");throw error;}
+    audit(outcome.state==="DEAD_LETTER"?"JOB_DEAD_LETTER":"JOB_FAILOVER_RELEASED",jobId,safeReason(reason));
+    return outcome;
   }
   function result(jobId,{consume=false}={}){if(!consume){const row=db.prepare("SELECT payload FROM ai_results WHERE job_id=?").get(jobId);return row?JSON.parse(row.payload):null;}db.exec("BEGIN IMMEDIATE");try{const row=db.prepare("SELECT payload,consumed_at FROM ai_results WHERE job_id=?").get(jobId);if(!row||row.consumed_at!=null){db.exec("COMMIT");return null;}const changed=db.prepare("UPDATE ai_results SET consumed_at=? WHERE job_id=? AND consumed_at IS NULL").run(now(),jobId);db.exec("COMMIT");return changed.changes?JSON.parse(row.payload):null;}catch(error){db.exec("ROLLBACK");throw error;}}
   const percentile=(values,p)=>values.length?values[Math.min(values.length-1,Math.ceil(values.length*p)-1)]:null;

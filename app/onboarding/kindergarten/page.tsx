@@ -1,8 +1,8 @@
-import Link from "next/link";
-import Image from "next/image";
 import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
-import { Bell, ClipboardCheck, ShieldCheck } from "lucide-react";
+import { Bell, CircleHelp, ClipboardCheck, ShieldCheck } from "lucide-react";
+import { GanBatuachBrand } from "@/components/gan-batuach-brand";
+import { LogoutButton } from "@/components/logout-button";
 import { KindergartenOnboardingForm, ManagerKindergartenApplicationForm } from "@/components/kindergarten-onboarding-form";
 import { requireRole } from "@/lib/auth";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
@@ -26,20 +26,17 @@ function KindergartenOnboardingShell({
   return (
     <main className="kindergarten-app-onboarding" dir="rtl">
       <section className="kindergarten-app-onboarding-shell">
-        <div className="kindergarten-app-logo" aria-label="גן בטוח">
-          <Image src="/assets/company-name.png" alt="גן בטוח" width={236} height={74} />
-          <Image src="/assets/company-symbol.png" alt="" width={74} height={74} />
-        </div>
         <header className="kindergarten-app-onboarding-header">
-          <span className="teacher-icon-button" aria-label="התראות הקמת הגן" role="img">
-            <Bell size={24} />
-            <span />
-          </span>
-          <div className="teacher-app-greeting">
-            <div className="teacher-avatar"><span>{managerName?.slice(0, 1) ?? "מ"}</span><i /></div>
-            <div>
-              <h1>בוקר טוב, {managerName?.split(" ")[0] ?? "מאיה"}</h1>
-              <p>הקמת גן בטוח</p>
+          <GanBatuachBrand compact />
+          <div className="kindergarten-app-onboarding-utilities">
+            <span className="teacher-icon-button" aria-label="עזרה בתהליך הקמת הגן" role="img"><CircleHelp size={21} /></span>
+            <span className="teacher-icon-button" aria-label="התראות הקמת הגן" role="img"><Bell size={21} /><span /></span>
+            <div className="teacher-app-greeting">
+              <div className="teacher-avatar"><span>{managerName?.slice(0, 1) ?? "מ"}</span><i /></div>
+              <div>
+                <h1>{managerName ?? "מנהלת הגן"}</h1>
+                <p>הקמת גן בטוח</p>
+              </div>
             </div>
           </div>
         </header>
@@ -49,7 +46,9 @@ function KindergartenOnboardingShell({
             <h2>{title}</h2>
             <p>{subtitle}</p>
           </div>
-          <div className="kindergarten-app-hero-icon"><ClipboardCheck /><ShieldCheck /></div>
+          <div className="kindergarten-app-hero-visual" aria-hidden="true">
+            <span className="kindergarten-app-hero-icon"><ClipboardCheck /><ShieldCheck /></span>
+          </div>
         </section>
         {children}
       </section>
@@ -63,6 +62,23 @@ export default async function KindergartenOnboardingPage({ searchParams }: { sea
   const sessionClient = await createClient();
   const targetGardenId = query.gardenId ?? (query.new === "1" ? null : profile.garden_id);
   const supabase = isAdminClientConfigured() ? createAdminClient() : sessionClient;
+  if (!targetGardenId && query.new !== "1" && isAdminClientConfigured()) {
+    const draft = await supabase.from("kindergarten_onboarding_records" as never)
+      .select("garden_id")
+      .eq("manager_id", profile.id)
+      .in("lifecycle_status", ["registration_pending", "credentials_sent", "activation_in_progress", "onboarding_in_progress", "correction_required"])
+      .order("updated_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (draft.error) throw new Error("Unable to resolve Garden onboarding draft");
+    const draftData = draft.data as { garden_id: string } | null;
+    if (draftData?.garden_id) {
+      const authority = await sessionClient.rpc("can_edit_garden_onboarding" as never, { target_garden_id: draftData.garden_id } as never);
+      if (authority.data === true && !authority.error) {
+        redirect(`/onboarding/kindergarten?gardenId=${draftData.garden_id}`);
+      }
+    }
+  }
   if (!targetGardenId) {
     return (
       <KindergartenOnboardingShell
@@ -73,7 +89,7 @@ export default async function KindergartenOnboardingPage({ searchParams }: { sea
         managerName={profile.full_name}
       >
         <ManagerKindergartenApplicationForm managerName={profile.full_name} managerPhone={profile.phone} managerEmail={(profile as any).email} profileRole={profile.role} />
-        <Link className="kindergarten-app-logout" href="/api/auth/logout">יציאה</Link>
+        <LogoutButton className="kindergarten-app-logout" />
       </KindergartenOnboardingShell>
     );
   }
@@ -111,7 +127,7 @@ export default async function KindergartenOnboardingPage({ searchParams }: { sea
       managerName={profile.full_name}
     >
         <KindergartenOnboardingForm garden={(garden ?? {}) as any} onboarding={onboarding} managerName={profile.full_name} />
-        <Link className="kindergarten-app-logout" href="/api/auth/logout">יציאה</Link>
+        <LogoutButton className="kindergarten-app-logout" />
     </KindergartenOnboardingShell>
   );
 }

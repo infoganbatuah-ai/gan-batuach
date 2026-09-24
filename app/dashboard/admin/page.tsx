@@ -141,7 +141,7 @@ export default async function AdminDashboard() {
       countFiltered(supabase, "complaints", (query) => query.in("severity", ["critical", "high"]).in("status", ["new", "assigned", "in_progress", "waiting_garden"])),
       countRows(supabase, "incident_reports"),
       countFiltered(supabase, "incident_reports", (query) => query.in("status", ["new", "open", "in_progress"])),
-      countFiltered(supabase, "ai_events", (query) => query.in("status", ["open", "in_progress"]).in("severity", ["high", "critical"])),
+      Promise.resolve(0),
       countRows(supabase, "camera_streams"),
       countFiltered(supabase, "camera_streams", (query) => query.in("status", ["offline", "failed", "error", "disabled", "pending_gateway"])),
       countFiltered(supabase, "camera_streams", (query) => query.in("health_status", ["warning", "unhealthy", "offline", "failed"])),
@@ -154,7 +154,7 @@ export default async function AdminDashboard() {
       supabase.from("gardens" as any).select("id,name,city,safe_status,status,last_inspection_score,next_inspection_at,inspection_required_status,created_at").order("created_at", { ascending: false }).limit(10),
       supabase.from("inspectors" as any).select("id,service_cities,certification_notes,created_at,profiles!inspectors_id_fkey(full_name,active)").limit(10),
       supabase.from("complaints" as any).select("id,subject,severity,status,created_at,gardens(name,city)").order("created_at", { ascending: false }).limit(6),
-      supabase.from("ai_events" as any).select("id,event_type,severity,status,detected_at,gardens(name,city)").order("detected_at", { ascending: false }).limit(6),
+      Promise.resolve({ data: [], error: null }),
       supabase.from("launch_readiness_scores" as any).select("category,score,status").limit(20)
     ]);
 

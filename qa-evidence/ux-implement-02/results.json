@@ -1,0 +1,153 @@
+{
+  "environment": "DEVELOPMENT / INTEGRATION",
+  "base": "http://127.0.0.1:3001",
+  "capturedAt": "2026-09-24T01:20:45.885Z",
+  "viewports": {
+    "desktop": {
+      "width": 1440,
+      "height": 1024
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844
+    }
+  },
+  "persona": "synthetic multi-Garden Owner + Teacher",
+  "captures": [
+    {
+      "name": "entry-desktop",
+      "viewport": "1440x1024",
+      "selector": "page-top",
+      "path": "qa-evidence/ux-implement-02/screenshots/entry-desktop.webp"
+    },
+    {
+      "name": "entry-mobile",
+      "viewport": "390x844",
+      "selector": "page-top",
+      "path": "qa-evidence/ux-implement-02/screenshots/entry-mobile.webp"
+    },
+    {
+      "name": "role-mode-desktop",
+      "viewport": "1440x1024",
+      "selector": ".manager-role-mode-grid",
+      "path": "qa-evidence/ux-implement-02/screenshots/role-mode-desktop.webp"
+    },
+    {
+      "name": "role-mode-mobile",
+      "viewport": "390x844",
+      "selector": ".manager-role-mode-grid",
+      "path": "qa-evidence/ux-implement-02/screenshots/role-mode-mobile.webp"
+    },
+    {
+      "name": "garden-details-desktop",
+      "viewport": "1440x1024",
+      "selector": ".manager-stage-heading",
+      "path": "qa-evidence/ux-implement-02/screenshots/garden-details-desktop.webp"
+    },
+    {
+      "name": "garden-details-mobile",
+      "viewport": "390x844",
+      "selector": ".manager-stage-heading",
+      "path": "qa-evidence/ux-implement-02/screenshots/garden-details-mobile.webp"
+    },
+    {
+      "name": "documents-desktop",
+      "viewport": "1440x1024",
+      "selector": ".manager-docs-card",
+      "path": "qa-evidence/ux-implement-02/screenshots/documents-desktop.webp"
+    },
+    {
+      "name": "documents-mobile",
+      "viewport": "390x844",
+      "selector": ".manager-docs-card",
+      "path": "qa-evidence/ux-implement-02/screenshots/documents-mobile.webp"
+    },
+    {
+      "name": "classrooms-desktop",
+      "viewport": "1440x1024",
+      "selector": ".manager-age-groups",
+      "path": "qa-evidence/ux-implement-02/screenshots/classrooms-desktop.webp"
+    },
+    {
+      "name": "classrooms-mobile",
+      "viewport": "390x844",
+      "selector": ".manager-age-groups",
+      "path": "qa-evidence/ux-implement-02/screenshots/classrooms-mobile.webp"
+    },
+    {
+      "name": "staff-desktop",
+      "viewport": "1440x1024",
+      "selector": ".manager-staff-summary",
+      "path": "qa-evidence/ux-implement-02/screenshots/staff-desktop.webp"
+    },
+    {
+      "name": "staff-mobile",
+      "viewport": "390x844",
+      "selector": ".manager-staff-summary",
+      "path": "qa-evidence/ux-implement-02/screenshots/staff-mobile.webp"
+    },
+    {
+      "name": "safety-desktop",
+      "viewport": "1440x1024",
+      "selector": ".manager-safety-readiness",
+      "path": "qa-evidence/ux-implement-02/screenshots/safety-desktop.webp"
+    },
+    {
+      "name": "safety-mobile",
+      "viewport": "390x844",
+      "selector": ".manager-safety-readiness",
+      "path": "qa-evidence/ux-implement-02/screenshots/safety-mobile.webp"
+    },
+    {
+      "name": "subscription-desktop",
+      "viewport": "1440x1024",
+      "selector": ".manager-payment-layout",
+      "path": "qa-evidence/ux-implement-02/screenshots/subscription-desktop.webp"
+    },
+    {
+      "name": "subscription-mobile",
+      "viewport": "390x844",
+      "selector": ".manager-payment-layout",
+      "path": "qa-evidence/ux-implement-02/screenshots/subscription-mobile.webp"
+    },
+    {
+      "name": "children-parent-invitations-desktop",
+      "viewport": "1440x1024",
+      "selector": ".manager-parent-invitation-panel",
+      "path": "qa-evidence/ux-implement-02/screenshots/children-parent-invitations-desktop.webp"
+    },
+    {
+      "name": "children-parent-invitations-mobile",
+      "viewport": "390x844",
+      "selector": ".manager-parent-invitation-panel",
+      "path": "qa-evidence/ux-implement-02/screenshots/children-parent-invitations-mobile.webp"
+    },
+    {
+      "name": "review-desktop",
+      "viewport": "1440x1024",
+      "selector": ".manager-review-summary",
+      "path": "qa-evidence/ux-implement-02/screenshots/review-desktop.webp"
+    },
+    {
+      "name": "review-mobile",
+      "viewport": "390x844",
+      "selector": ".manager-review-summary",
+      "path": "qa-evidence/ux-implement-02/screenshots/review-mobile.webp"
+    },
+    {
+      "name": "success-desktop",
+      "viewport": "1440x1024",
+      "selector": ".manager-activation-success",
+      "path": "qa-evidence/ux-implement-02/screenshots/success-desktop.webp"
+    },
+    {
+      "name": "success-mobile",
+      "viewport": "390x844",
+      "selector": ".manager-activation-success",
+      "path": "qa-evidence/ux-implement-02/screenshots/success-mobile.webp"
+    }
+  ],
+  "serverErrors": [],
+  "consoleErrors": [],
+  "status": "PASS"
+}

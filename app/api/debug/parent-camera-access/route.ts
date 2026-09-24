@@ -3,6 +3,7 @@ import { requireRole } from "@/lib/auth";
 import { canParentViewCamera } from "@/lib/domain/parent-camera-access";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { assertManagementInternalToolAccess } from "@/lib/security/management-production-guards";
 
 function debugLogsEnabled() {
   return process.env.NODE_ENV !== "production";
@@ -10,6 +11,7 @@ function debugLogsEnabled() {
 
 export async function GET(request: Request) {
   try {
+    assertManagementInternalToolAccess();
     await requireRole(["admin"]);
 
     const url = new URL(request.url);

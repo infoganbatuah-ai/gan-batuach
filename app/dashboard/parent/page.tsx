@@ -17,7 +17,24 @@ import {
 import { requireRole } from "@/lib/auth";
 import { cleanSyntheticLabel, isSyntheticLabel } from "@/lib/domain/display-label";
 import { getParentFamilyContext } from "@/lib/domain/parent-family";
+import { deriveAttendanceSummary, deriveTuitionSummary, selectAuthorizedChild } from "@/lib/management/dashboard-read-model";
 import { createClient } from "@/lib/supabase/server";
+
+type DashboardRow = Record<string, unknown> & {
+  id?: unknown;
+  child_id?: unknown;
+  permanent_child_file_id?: unknown;
+  full_name?: unknown;
+  photo_url?: unknown;
+  status?: unknown;
+  base_amount?: unknown;
+  adjustment_total?: unknown;
+  settled_total?: unknown;
+  due_at?: unknown;
+  currency?: unknown;
+  child?: Record<string, unknown>;
+  gardens?: Record<string, unknown>;
+};
 
 function formatStatus(status?: string | null) {
   const map: Record<string, string> = {
@@ -36,37 +53,51 @@ function formatStatus(status?: string | null) {
   return map[status ?? ""] ?? status ?? "-";
 }
 
-export default async function ParentDashboard() {
+export default async function ParentDashboard({ searchParams }: { searchParams: Promise<{ child?: string }> }) {
   const { profile } = await requireRole(["parent"]);
+  const requestedChildId = (await searchParams).child ?? null;
   const supabase = await createClient();
-  const [parentRes, requestsRes, selfServiceRes] = await Promise.all([
-    supabase.from("parents" as any).select("id,status,onboarding_status,completed_profile,garden_id").or(`profile_id.eq.${profile.id},user_id.eq.${profile.id}`).eq("status", "active").limit(1).maybeSingle(),
-    supabase.from("kindergarten_enrollment_requests" as any).select("id,status,payment_status,requested_at,decided_at,published_price_snapshot,gardens(name,city)").eq("parent_id", profile.id).order("created_at", { ascending: false }).limit(20),
-    supabase.from("self_service_user_profiles" as any).select("*").eq("profile_id", profile.id).maybeSingle()
-  ]);
+  const requestsRes = await supabase.from("kindergarten_enrollment_requests" as any)
+    .select("id,child_profile_id,status,payment_status,requested_at,decided_at,published_price_snapshot,gardens(name,city)")
+    .eq("parent_id", profile.id).order("created_at", { ascending: false }).limit(20);
   const family = await getParentFamilyContext(supabase as any, profile);
-  const parent = parentRes.data as any;
   const childProfiles = (family.childFiles ?? []) as any[];
   const requests = (requestsRes.data ?? []) as any[];
-  const pending = requests.filter((request) => !["approved", "rejected", "cancelled", "expired"].includes(String(request.status)));
-  const approvedPendingPayment = requests.filter((request) => request.status === "approved_pending_payment");
-  const activeEnrollment = (family.enrollments as any[]).find((enrollment) => ["active", "approved"].includes(String(enrollment.status))) ?? (family.enrollments as any[])[0];
-  const selectedChild = activeEnrollment ?? childProfiles[0];
-  const selectedGarden = (family.gardens as any[]).find((garden) => garden.id === (activeEnrollment?.garden_id ?? activeEnrollment?.kindergarten_id)) ?? requests[0]?.gardens;
-  const hasActiveKindergarten = Boolean((family.gardenIds ?? []).length || parent?.garden_id);
-  const scheduleRes = hasActiveKindergarten && (family.gardenIds ?? []).length
-    ? await supabase
-      .from("schedule_items" as any)
+  const enrollmentRows = (family.enrollments ?? []) as unknown as DashboardRow[];
+  const childContexts = [...enrollmentRows, ...(childProfiles as unknown as DashboardRow[])]
+    .filter((child, index, all) => {
+      const id = String(child.child_id ?? child.permanent_child_file_id ?? child.id ?? "");
+      return id && all.findIndex(item => String(item.child_id ?? item.permanent_child_file_id ?? item.id ?? "") === id) === index;
+    });
+  const selectedChild = selectAuthorizedChild(childContexts, requestedChildId);
+  const selectedChildId = String(selectedChild?.child_id ?? selectedChild?.permanent_child_file_id ?? selectedChild?.id ?? "");
+  const activeEnrollment = enrollmentRows.find((enrollment) => String(enrollment.child_id ?? enrollment.permanent_child_file_id) === selectedChildId && ["active", "approved"].includes(String(enrollment.status)))
+    ?? enrollmentRows.find((enrollment) => String(enrollment.child_id ?? enrollment.permanent_child_file_id) === selectedChildId);
+  const selectedRequests = requests.filter(request => !request.child_profile_id || String(request.child_profile_id) === selectedChildId);
+  const pending = selectedRequests.filter((request) => !["approved", "rejected", "cancelled", "expired"].includes(String(request.status)));
+  const selectedGarden = ((family.gardens ?? []) as unknown as DashboardRow[]).find((garden) => garden.id === (activeEnrollment?.garden_id ?? activeEnrollment?.kindergarten_id)) ?? selectedRequests[0]?.gardens;
+  const selectedGardenId = String(activeEnrollment?.garden_id ?? activeEnrollment?.kindergarten_id ?? "");
+  const hasActiveKindergarten = Boolean(selectedGardenId && ["active", "approved"].includes(String(activeEnrollment?.status)));
+  const [scheduleRes, attendanceRes, tuitionRes, documentRes, notificationRes] = await Promise.all([
+    hasActiveKindergarten
+    ? supabase.from("schedule_items" as any)
       .select("id,title,description,starts_at,visible_to_parents")
-      .in("garden_id", family.gardenIds)
+      .eq("garden_id", selectedGardenId)
       .eq("visible_to_parents", true)
       .order("starts_at", { ascending: true })
       .limit(4)
-    : { data: [] };
+    : Promise.resolve({ data: [], error: null }),
+    selectedChildId ? supabase.from("attendance" as any).select("status,attendance_date,check_in_at,check_out_at").eq("child_id", selectedChildId).order("attendance_date", { ascending: false }).limit(1) : Promise.resolve({ data: [], error: null }),
+    selectedChildId ? supabase.from("tuition_billing_periods" as any).select("base_amount,adjustment_total,settled_total,status,due_at,currency").eq("child_id", selectedChildId).not("status", "in", "(paid,waived,cancelled)").limit(100) : Promise.resolve({ data: [], error: null }),
+    selectedChildId ? supabase.from("documents" as any).select("id,status,expires_at", { count: "exact", head: true }).eq("child_id", selectedChildId).is("deleted_at", null).in("status", ["pending_review", "expired", "rejected"]) : Promise.resolve({ data: [], count: 0, error: null }),
+    supabase.from("notifications" as any).select("id", { count: "exact", head: true }).eq("recipient_id", profile.id).is("read_at", null).is("archived_at", null)
+  ]);
   const scheduleItems = (scheduleRes.data ?? []) as any[];
+  const todayAttendance = deriveAttendanceSummary((attendanceRes.data ?? []) as unknown as DashboardRow[], hasActiveKindergarten ? 1 : 0);
+  const tuition = deriveTuitionSummary((tuitionRes.data ?? []) as unknown as DashboardRow[], new Date().toISOString().slice(0, 10));
   const safetyScore = selectedGarden?.last_inspection_score ?? null;
-  const unreadOrPendingCount = pending.length;
-  const syntheticSession = [profile.full_name, selectedChild?.full_name, selectedGarden?.name].some(isSyntheticLabel);
+  const unreadOrPendingCount = (notificationRes.count ?? 0) + pending.length;
+  const syntheticSession = [profile.full_name, String(selectedChild?.full_name ?? ""), String(selectedGarden?.name ?? "")].some(isSyntheticLabel);
 
   return (
     <DashboardShell role="parent" title="אזור הורה" appHome>
@@ -77,10 +108,21 @@ export default async function ParentDashboard() {
 
         <ParentKindergartenInvitationsPanel />
 
+        {childContexts.length > 1 ? <form className="parent-child-selector" method="get" aria-label="בחירת ילד להצגת הדשבורד">
+          <label htmlFor="dashboard-child">הצגת מידע עבור</label>
+          <select id="dashboard-child" name="child" defaultValue={selectedChildId}>
+            {childContexts.map(child => {
+              const id = String(child.child_id ?? child.permanent_child_file_id ?? child.id);
+              return <option value={id} key={id}>{cleanSyntheticLabel(String(child.full_name ?? child.child?.full_name ?? ""), "ילד/ה")}</option>;
+            })}
+          </select>
+          <button className="parent-outline-button" type="submit">החלפת ילד</button>
+        </form> : null}
+
         {selectedChild ? (
           <ParentChildCard
-            name={cleanSyntheticLabel(selectedChild.full_name, "הילד שלי")}
-            meta={`${cleanSyntheticLabel(selectedGarden?.name, "עדיין לא משויך לגן")} · ${cleanSyntheticLabel(selectedGarden?.city, "בקשת הצטרפות")}`}
+            name={cleanSyntheticLabel(String(selectedChild.full_name ?? ""), "הילד שלי")}
+            meta={`${cleanSyntheticLabel(String(selectedGarden?.name ?? ""), "עדיין לא משויך לגן")} · ${cleanSyntheticLabel(String(selectedGarden?.city ?? ""), "בקשת הצטרפות")}`}
             image={(selectedChild as any).photo_url ?? null}
             status={hasActiveKindergarten ? "משויך לגן" : "ממתין לשיוך"}
             secondary={hasActiveKindergarten ? "מידע לפי הרשאה" : "בקשה פתוחה"}
@@ -101,9 +143,9 @@ export default async function ParentDashboard() {
 
         <section className="parent-metrics-grid">
           <ParentMetricCard title="עדכונים פתוחים" value={unreadOrPendingCount} hint="בקשות/התראות לטיפול" icon={MessageCircle} tone={unreadOrPendingCount ? "orange" : "green"} href="/dashboard/parent/messages" />
-          <ParentMetricCard title="סטטוס תשלום" value={approvedPendingPayment.length ? "לטיפול" : hasActiveKindergarten ? "אין דרישה" : "טרם הוגדר"} hint={approvedPendingPayment.length ? "ממתין לתשלום" : hasActiveKindergarten ? "אין דרישת תשלום פתוחה" : "יופיע לאחר אישור הצטרפות"} icon={WalletCards} tone={approvedPendingPayment.length ? "orange" : hasActiveKindergarten ? "green" : "neutral"} href="/dashboard/parent/payments" />
+          <ParentMetricCard title="שכר לימוד" value={tuition.outstanding > 0 ? new Intl.NumberFormat("he-IL", { style: "currency", currency: tuition.currency }).format(tuition.outstanding) : hasActiveKindergarten ? "אין יתרה" : "טרם הוגדר"} hint={tuition.reconciliation ? "נדרשת התאמה" : tuition.overdue ? `${tuition.overdue} תקופות באיחור` : "לפי ספר שכר הלימוד"} icon={WalletCards} tone={tuition.outstanding > 0 ? "orange" : hasActiveKindergarten ? "green" : "neutral"} href={`/dashboard/parent/payments${selectedChildId ? `?child=${selectedChildId}` : ""}`} />
           <ParentMetricCard title="ציון בטיחות" value={safetyScore ?? "לא פורסם"} hint={safetyScore !== null ? "סיכום שאושר להצגה" : "יופיע אחרי פרסום הגן"} icon={ShieldCheck} tone={safetyScore !== null ? "purple" : "neutral"} href="/dashboard/parent/trust-center" />
-          <ParentMetricCard title="בקשות פתוחות" value={pending.length} hint="ממתינות לגן" icon={FileText} tone={pending.length ? "orange" : "green"} href="#requests" />
+          <ParentMetricCard title="נוכחות היום" value={!hasActiveKindergarten ? "לא רלוונטי" : todayAttendance.present ? "בגן" : todayAttendance.departed ? "יצא/ה" : todayAttendance.absent ? "נעדר/ת" : "טרם עודכן"} hint={`${documentRes.count ?? 0} מסמכים דורשים פעולה`} icon={FileText} tone={todayAttendance.present ? "green" : "neutral"} href={`/dashboard/parent/attendance${selectedChildId ? `?child=${selectedChildId}` : ""}`} />
         </section>
 
         <ParentSection title="מצב מצלמות" subtitle={hasActiveKindergarten ? cleanSyntheticLabel(selectedGarden?.name, "גן הילד") : "ייפתח לאחר אישור הגן"} action={<Link href="/dashboard/parent/cameras">בדיקת זמינות</Link>}>
@@ -143,7 +185,7 @@ export default async function ParentDashboard() {
           </ParentSection>
 
           <ParentSection title="התראות אחרונות">
-            {requests.length ? requests.slice(0, 3).map((request) => (
+            {selectedRequests.length ? selectedRequests.slice(0, 3).map((request) => (
               <ParentListRow
                 key={request.id}
                 title={`${cleanSyntheticLabel(request.gardens?.name, "גן")} · ${formatStatus(request.status)}`}
@@ -164,11 +206,11 @@ export default async function ParentDashboard() {
             </div>
             <Link href="/dashboard/parent/discover-kindergartens">הגשת בקשה חדשה</Link>
           </div>
-          {requests.length === 0 ? (
+          {selectedRequests.length === 0 ? (
             <ParentEmptyState title="עוד לא הוגשה בקשה" text="צרו כרטיס ילד ואז בחרו גן מרשימת הגנים הציבורית." action={<Link className="parent-outline-button" href="/dashboard/parent/discover-kindergartens">מצא גן בטוח</Link>} />
           ) : (
             <div className="parent-request-list">
-              {requests.map((request) => (
+              {selectedRequests.map((request) => (
                 <Link href={request.status === "approved_pending_payment" ? "/dashboard/parent/payments" : "#requests"} key={request.id}>
                   <strong>{cleanSyntheticLabel(request.gardens?.name, "גן")} · {formatStatus(request.status)}</strong>
                   <span>{cleanSyntheticLabel(request.gardens?.city)} · תשלום: {formatStatus(request.payment_status)}</span>

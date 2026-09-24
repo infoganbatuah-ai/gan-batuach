@@ -12,3 +12,13 @@ export async function uploadFiles(files: File[], bucket: string, prefix: string)
   }
   return uploaded;
 }
+
+export async function uploadManagementDocument(file: File, fields: Record<string, string>) {
+  const form = new FormData();
+  form.set("file", file);
+  for (const [key, value] of Object.entries(fields)) if (value) form.set(key, value);
+  const response = await fetch("/api/documents", { method: "POST", body: form });
+  const body = await response.json().catch(() => null);
+  if (!response.ok || !body?.data?.id) throw new Error(body?.error || "העלאת המסמך נכשלה.");
+  return body.data as { id: string; file_url: string; name: string; document_type: string; status: string };
+}

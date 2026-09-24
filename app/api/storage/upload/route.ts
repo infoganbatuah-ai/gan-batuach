@@ -4,13 +4,11 @@ import { requireUser } from "@/lib/auth";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
 
 const allowedBuckets = new Set([
-  "documents",
   "child-photos",
   "profile-photos",
   "pickup-person-photos",
   "kindergarten-logos",
   "incident-photos",
-  "inspection-reports",
   "gallery"
 ]);
 
@@ -29,11 +27,11 @@ const sensitiveSignedUrlTtlSeconds = 10 * 60;
 const publicPreviewSignedUrlTtlSeconds = 15 * 60;
 const roleBucketAccess: Record<string, Set<string>> = {
   admin: allowedBuckets,
-  manager: new Set(["documents", "child-photos", "profile-photos", "pickup-person-photos", "kindergarten-logos", "incident-photos", "gallery"]),
-  owner: new Set(["documents", "child-photos", "profile-photos", "pickup-person-photos", "kindergarten-logos", "incident-photos", "gallery"]),
-  staff: new Set(["documents", "child-photos", "profile-photos", "incident-photos", "gallery"]),
-  inspector: new Set(["documents", "profile-photos", "inspection-reports", "incident-photos"]),
-  parent: new Set(["documents", "child-photos", "profile-photos", "pickup-person-photos"])
+  manager: new Set(["child-photos", "profile-photos", "pickup-person-photos", "kindergarten-logos", "incident-photos", "gallery"]),
+  owner: new Set(["child-photos", "profile-photos", "pickup-person-photos", "kindergarten-logos", "incident-photos", "gallery"]),
+  staff: new Set(["child-photos", "profile-photos", "incident-photos", "gallery"]),
+  inspector: new Set(["profile-photos", "incident-photos"]),
+  parent: new Set(["child-photos", "profile-photos", "pickup-person-photos"])
 };
 
 function safeName(name: string) {

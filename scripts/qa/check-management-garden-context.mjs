@@ -56,6 +56,45 @@ for (const role of ["manager", "owner"]) {
   });
 }
 
+test("owner: explicit onboarding Garden is authorized independently of the active Garden", async () => {
+  const f = fixture({ profile: { role: "owner" } });
+  const draftGardenId = "00000000-0000-4000-8000-000000000003";
+  const result = await f.guard.getManagementGardenContext(draftGardenId);
+  assert.equal(result.allowed, true);
+  assert.equal(result.gardenId, draftGardenId);
+  assert.deepEqual(f.calls, [{ name: "can_edit_garden_onboarding", garden: draftGardenId }]);
+});
+
+test("owner: unrelated explicit onboarding Garden is denied by the database", async () => {
+  const f = fixture({ profile: { role: "owner" }, decision: { data: false, error: null } });
+  const result = await f.guard.getManagementGardenContext("00000000-0000-4000-8000-000000000004");
+  assert.equal(result.allowed, false);
+  assert.equal(result.response.status, 403);
+  assert.deepEqual(f.calls, [{ name: "can_edit_garden_onboarding", garden: "00000000-0000-4000-8000-000000000004" }]);
+});
+
+test("pending manager: explicit onboarding invitation uses draft Garden authority only", async () => {
+  const f = fixture({ profile: { active: false, garden_id: null } });
+  const result = await f.guard.getManagementGardenContext(gardenId, { allowPendingOnboarding: true });
+  assert.equal(result.allowed, true);
+  assert.equal(result.gardenId, gardenId);
+  assert.deepEqual(f.calls, [{ name: "can_edit_garden_onboarding", garden: gardenId }]);
+});
+
+test("pending manager: unrelated draft Garden is denied", async () => {
+  const f = fixture({ profile: { active: false, garden_id: null }, decision: { data: false, error: null } });
+  const result = await f.guard.getManagementGardenContext(gardenId, { allowPendingOnboarding: true });
+  assert.equal(result.allowed, false);
+  assert.equal(result.response.status, 403);
+});
+
+test("pending manager: ordinary operations remain denied", async () => {
+  const f = fixture({ profile: { active: false, garden_id: null } });
+  const result = await f.guard.getManagementGardenContext(gardenId);
+  assert.equal(result.allowed, false);
+  assert.equal(f.calls.length, 0);
+});
+
 const denials = [
   ["unauthenticated", { session: { user: null, profile: null } }, 401, 0],
   ["missing profile", { session: { user: { id: actorId }, profile: null } }, 401, 0],
@@ -113,6 +152,11 @@ for (const route of routes) {
       deps["next/server"] = { NextResponse: Response };
       deps["@/lib/api"] = { ...api, handleRouteError: forbidden, ok: forbidden };
       deps["@/lib/management/garden-context"] = f.guard;
+      // GB-M33 pickup uses the activated Staff/Manager operational guard.
+      // Exercise the same fail-closed denial matrix for either guard.
+      deps["@/lib/management/operational-role"] = {
+        getOperationalRoleContext: f.guard.getManagementGardenContext
+      };
       deps["@/lib/onboarding/user-provisioning"] = new Proxy({ provisionedUserSchema: require("zod").z.object({}) }, {
         get: (target, key) => target[key] ?? forbidden
       });

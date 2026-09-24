@@ -26,6 +26,7 @@ test("parent invitation no longer provisions an account or temporary password", 
   const route = source("app/api/garden/parent-invitations/route.ts");
   assert.match(route, /createSignedInvitation/);
   assert.match(route, /signed_invitation_required: true/);
+  assert.match(route, /getManagementGardenContext\(requestedGardenId \?\? undefined, \{ allowPendingOnboarding: true \}\)/);
   assert.doesNotMatch(route, /provisionAuthUser|temporary_password|generated_credentials/);
 });
 

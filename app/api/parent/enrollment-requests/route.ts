@@ -42,7 +42,7 @@ export async function POST(request: Request) {
   try {
     const access = await requireParent(); if ("response" in access) return access.response;
     const { user, profile } = access.session;
-    if (!managementContactVerification(user, profile).complete) return fail("יש להשלים אימות דוא״ל וטלפון לפני שליחת בקשה.", 403);
+    if (!managementContactVerification(user, profile).complete) return fail("יש להשלים אימות דוא״ל לפני שליחת בקשה.", 403);
     const payload = submitSchema.parse(await request.json());
     const result = await (await createClient()).rpc("submit_enrollment_request" as never, {
       target_child_file_id: payload.child_profile_id,target_garden_id: payload.garden_id,

@@ -5,6 +5,8 @@ import { normalizeInvitationEmail, resolveSignedInvitation } from "@/lib/managem
 import { checkEmailConflict, normalizeOptionalEmail } from "@/lib/onboarding/user-provisioning";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
+import { assertRateLimit } from "@/lib/security/rate-limit";
+import { assertTrustedMutationOrigin, parseBoundedJson, privateRateLimitIdentifier } from "@/lib/security/request-guards";
 
 const schema = z.object({
   account_type: z.enum(["parent", "staff_candidate", "inspector_candidate", "kindergarten_manager", "kindergarten_owner"]),
@@ -26,8 +28,10 @@ function appRoleFor(accountType: z.infer<typeof schema>["account_type"]) {
 
 export async function POST(request: Request) {
   try {
+    assertTrustedMutationOrigin(request);
+    await assertRateLimit(privateRateLimitIdentifier({ headers: request.headers }), "management:self-service-register", 10, 10 * 60);
     if (!isAdminClientConfigured()) return fail("הרשמה עצמאית דורשת הגדרת Service Role בצד השרת.", 503);
-    const payload = schema.parse(await request.json());
+    const payload = schema.parse(await parseBoundedJson(request, 16 * 1024));
     const admin = createAdminClient();
     const resolvedInvitation = payload.invitation_token ? await resolveSignedInvitation(admin, payload.invitation_token) : null;
     if (resolvedInvitation && !resolvedInvitation.ok) return fail("ההזמנה אינה זמינה.", 410);
