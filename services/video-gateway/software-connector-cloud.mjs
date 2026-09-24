@@ -1,10 +1,8 @@
-import { randomBytes, randomUUID } from "node:crypto";
+import { randomBytes } from "node:crypto";
 import { resolve } from "node:path";
 import { createEdgeSecretStoreSync } from "./edge-secret-store-sync.mjs";
 import { createManagedDeviceProofHeaders } from "./managed-device-auth.mjs";
-
-const runtimeInstanceId = `connector:${randomUUID()}`;
-let deviceSequence = 0;
+import { nextManagedDeviceProofStateSync } from "./managed-device-runtime-session.mjs";
 
 function cloudUrl(store) {
   const value = String(process.env.OBSERVER_CONNECTOR_CLOUD_URL || store.read("device_cloud_base_url") || "https://ganbatuach.com").replace(/\/$/, "");
@@ -47,10 +45,12 @@ export async function softwareConnectorDeviceSession(store = softwareConnectorSe
   if (privateKeyPkcs8 && credentialVersion > 0) {
     const body = JSON.stringify({ action: "authenticate", gateway_id: gatewayId });
     const path = "/api/digital-observer/gateway-enrollment";
+    const proofState = nextManagedDeviceProofStateSync({ readSecret: account => store.read(account),
+      writeSecret: (account, value) => store.write(account, value), prefix: "connector" });
     const response = await fetch(`${cloudUrl(store)}${path}`, {
       method: "POST",
       headers: { "content-type": "application/json", ...createManagedDeviceProofHeaders({ method: "POST", pathname: path,
-        body, deviceId: gatewayId, credentialVersion, privateKeyPkcs8, runtimeInstanceId, sequence: ++deviceSequence }) },
+        body, deviceId: gatewayId, credentialVersion, privateKeyPkcs8, ...proofState }) },
       body,
       redirect: "error",
       signal: AbortSignal.timeout(15_000)

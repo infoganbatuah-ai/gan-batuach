@@ -1,9 +1,8 @@
-import { randomBytes, randomUUID } from "node:crypto";
+import { randomBytes } from "node:crypto";
 import { createManagedDeviceProofHeaders } from "./managed-device-auth.mjs";
+import { nextManagedDeviceProofState } from "./managed-device-runtime-session.mjs";
 
 export const pendingDeviceRefreshAccount = "device_refresh_pending";
-const runtimeInstanceId = `gateway:${randomUUID()}`;
-let deviceSequence = 0;
 
 // The only rotating-identity owner is the Gateway process. Its caller provides
 // single-flight; all durable material below goes through Keychain callbacks.
@@ -13,10 +12,11 @@ export async function refreshDeviceCredentials({ gatewayId, cloudBaseUrl, readSe
   if (privateKeyPkcs8 && credentialVersion > 0) {
     const body = JSON.stringify({ action: "authenticate", gateway_id: gatewayId });
     const pathname = "/api/digital-observer/gateway-enrollment";
+    const proofState = await nextManagedDeviceProofState({ readSecret, writeSecret, prefix: "gateway" });
     const response = await fetcher(`${cloudBaseUrl}${pathname}`, {
       method: "POST",
       headers: { "content-type": "application/json", ...createManagedDeviceProofHeaders({ method: "POST", pathname,
-        body, deviceId: gatewayId, credentialVersion, privateKeyPkcs8, runtimeInstanceId, sequence: ++deviceSequence }) },
+        body, deviceId: gatewayId, credentialVersion, privateKeyPkcs8, ...proofState }) },
       body,
       signal: AbortSignal.timeout(timeoutMs)
     });
