@@ -1,10 +1,12 @@
 import { spawn } from "node:child_process";
 import { randomBytes } from "node:crypto";
-import { chmodSync, mkdirSync, mkdtempSync, renameSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
-import { dirname, join } from "node:path";
+import { chmodSync, existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, renameSync, rmSync, writeFileSync } from "node:fs";
+import { homedir, tmpdir } from "node:os";
+import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createEdgeSecretStoreSync } from "../../services/video-gateway/edge-secret-store-sync.mjs";
+import { verifyEdgeArtifact, verifyEdgeUpdateManifest } from "../../services/video-gateway/edge-update-contract.mjs";
+import { loadPinnedEdgeReleaseKeys, PROTECTED_EDGE_TRUST_REGISTRY_PATH } from "../../services/video-gateway/edge-release-trust.mjs";
 
 const repoRoot = fileURLToPath(new URL("../../", import.meta.url));
 const requestedEndpoint = String(process.env.DVR_SHADOW_ENDPOINT || "").trim();
@@ -14,11 +16,38 @@ const intervalMs = Number(process.env.DVR_SHADOW_INTERVAL_MS || 30_000);
 const port = Number(process.env.DVR_SHADOW_PORT || 18084);
 const outputPath = String(process.env.DVR_SHADOW_OUTPUT || "").trim();
 const service = String(process.env.DVR_SHADOW_KEYCHAIN_SERVICE || "com.ganbatuach.video-gateway.runtime");
+const requestedSignedSlot = String(process.env.DVR_SHADOW_SIGNED_SLOT || "").trim();
 if (!Number.isInteger(channel) || channel < 1 || channel > 64) throw new Error("DVR_SHADOW_CHANNEL is invalid");
 if (!Number.isFinite(durationMs) || durationMs < 60_000 || durationMs > 35 * 60_000) throw new Error("DVR_SHADOW_DURATION_MS is outside the bounded qualification window");
 if (!Number.isFinite(intervalMs) || intervalMs < 10_000 || intervalMs > 60_000) throw new Error("DVR_SHADOW_INTERVAL_MS is invalid");
 if (!Number.isInteger(port) || port < 1024 || port > 65535) throw new Error("DVR_SHADOW_PORT is invalid");
 if (!outputPath) throw new Error("DVR_SHADOW_OUTPUT is required");
+
+function resolveRuntimeSource() {
+  if (!requestedSignedSlot) return { root: repoRoot, signedRelease: null };
+  const slotsRoot = realpathSync(join(homedir(), "Library/Application Support/Digital Observer/observer-gateway/ota/slots"));
+  const slot = realpathSync(resolve(requestedSignedSlot));
+  if (!slot.startsWith(`${slotsRoot}/`) || lstatSync(slot).isSymbolicLink())
+    throw new Error("DVR_SHADOW_SIGNED_SLOT_SCOPE_INVALID");
+  const manifestPath = join(slot, "release.json"), artifactPath = join(slot, "artifact.bin");
+  const runtime = realpathSync(join(slot, "runtime"));
+  if (![manifestPath, artifactPath].every(path => existsSync(path) && !lstatSync(path).isSymbolicLink()) ||
+    !runtime.startsWith(`${slot}/`) || !existsSync(join(runtime, "services/video-gateway/server.mjs")))
+    throw new Error("DVR_SHADOW_SIGNED_SLOT_INCOMPLETE");
+  const manifest = JSON.parse(readFileSync(manifestPath, "utf8"));
+  const artifact = readFileSync(artifactPath);
+  const trusted = loadPinnedEdgeReleaseKeys({ registryPath: PROTECTED_EDGE_TRUST_REGISTRY_PATH }).trustedPublicKeys;
+  if (!verifyEdgeUpdateManifest(manifest, trusted).ok || !verifyEdgeArtifact(artifact, manifest).ok ||
+    manifest.profile !== "PHYSICAL_GATEWAY" || manifest.platform !== "darwin" ||
+    manifest.architecture !== process.arch)
+    throw new Error("DVR_SHADOW_SIGNED_SLOT_UNTRUSTED");
+  return { root: runtime, signedRelease: { release_id: manifest.release_id, version: manifest.version,
+    build_sha: manifest.build_sha, artifact_sha256: manifest.artifact_sha256,
+    artifact_size: manifest.artifact_size, signing_key_id: manifest.signing_key_id,
+    signature_verified: true, artifact_verified: true } };
+}
+
+const runtimeSource = resolveRuntimeSource();
 
 const store = createEdgeSecretStoreSync({ keychainService: service });
 const profile = JSON.parse(store.read("dvr_profile_json"));
@@ -57,6 +86,8 @@ const evidence = {
   credentials_recorded: false,
   cloud_access_enabled: false,
   runtime_mutation: false,
+  runtime_source: runtimeSource.signedRelease ? "INSTALLED_SIGNED_SLOT" : "QUALIFICATION_WORKTREE",
+  signed_release: runtimeSource.signedRelease,
   checkpoints: []
 };
 let child;
@@ -134,8 +165,8 @@ function stopChild() {
 }
 
 try {
-  child = spawn(process.execPath, [join(repoRoot, "services/video-gateway/server.mjs")], {
-    cwd: repoRoot,
+  child = spawn(process.execPath, [join(runtimeSource.root, "services/video-gateway/server.mjs")], {
+    cwd: runtimeSource.root,
     env: {
       PATH: process.env.PATH,
       HOME: process.env.HOME,
