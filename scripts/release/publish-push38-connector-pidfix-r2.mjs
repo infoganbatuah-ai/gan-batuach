@@ -17,6 +17,7 @@ import { buildPush38ConnectorDeviceSessionRecoveryManifest } from "../../service
 import { buildPush38ConnectorRuntimePidRecoveryManifest } from "../../services/video-gateway/push38-home-qa-connector-runtime-pid.mjs";
 import { buildPush38ConnectorGuardRetryRecoveryManifest } from "../../services/video-gateway/push38-home-qa-connector-guard-retry.mjs";
 import { buildPush38ConnectorLivenessContinuityManifest } from "../../services/video-gateway/push38-home-qa-connector-liveness-continuity.mjs";
+import { buildPush38ConnectorRelayBackoffManifest } from "../../services/video-gateway/push38-home-qa-connector-relay-backoff.mjs";
 import { readR2KeychainCredentials } from "./macos-r2-keychain.mjs";
 
 const origin = "https://693f824a750afcc264fe6ee58c8a86ab.r2.cloudflarestorage.com";
@@ -35,8 +36,9 @@ async function hashStream(stream, limit) {
 async function publish({ artifactPath, evidencePath, recovery = false, startupRecovery = false,
   livenessRecovery = false, parentExitRecovery = false, rtspSessionRecovery = false,
   hostContinuityRecovery = false, deviceSessionRecovery = false, runtimePidRecovery = false,
-  guardRetryRecovery = false, livenessContinuityRecovery = false }) {
-  const builder = livenessContinuityRecovery ? buildPush38ConnectorLivenessContinuityManifest :
+  guardRetryRecovery = false, livenessContinuityRecovery = false, relayBackoffRecovery = false }) {
+  const builder = relayBackoffRecovery ? buildPush38ConnectorRelayBackoffManifest :
+    livenessContinuityRecovery ? buildPush38ConnectorLivenessContinuityManifest :
     guardRetryRecovery ? buildPush38ConnectorGuardRetryRecoveryManifest :
     runtimePidRecovery ? buildPush38ConnectorRuntimePidRecoveryManifest :
     deviceSessionRecovery ? buildPush38ConnectorDeviceSessionRecoveryManifest :
@@ -103,7 +105,8 @@ async function publish({ artifactPath, evidencePath, recovery = false, startupRe
       signal: AbortSignal.timeout(30_000) });
     await anonymous.body?.cancel();
     if (anonymous.ok) fail("P38_PIDFIX_R2_PUBLIC_ACCESS_ENABLED");
-    const result = { protocol: livenessContinuityRecovery ? "observer-push38-liveness-continuity-r2-publication-v1" :
+    const result = { protocol: relayBackoffRecovery ? "observer-push38-relay-backoff-r2-publication-v1" :
+      livenessContinuityRecovery ? "observer-push38-liveness-continuity-r2-publication-v1" :
       guardRetryRecovery ? "observer-push38-guard-retry-recovery-r2-publication-v1" :
       runtimePidRecovery ? "observer-push38-runtime-pid-recovery-r2-publication-v1" :
       deviceSessionRecovery ? "observer-push38-device-session-recovery-r2-publication-v1" :
@@ -134,23 +137,24 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
     const runtimePidRecovery = process.argv.includes("--runtime-pid-recovery");
     const guardRetryRecovery = process.argv.includes("--guard-retry-recovery");
     const livenessContinuityRecovery = process.argv.includes("--liveness-continuity-recovery");
+    const relayBackoffRecovery = process.argv.includes("--relay-backoff-recovery");
     if ([recovery, startupRecovery, livenessRecovery, parentExitRecovery, rtspSessionRecovery,
       hostContinuityRecovery, deviceSessionRecovery, runtimePidRecovery, guardRetryRecovery,
-      livenessContinuityRecovery]
+      livenessContinuityRecovery, relayBackoffRecovery]
       .filter(Boolean).length > 1)
       fail("P38_PIDFIX_R2_MODE_INVALID");
     const [artifact, evidence] = process.argv.slice(2)
       .filter(value => !["--health-recovery", "--startup-recovery", "--liveness-recovery",
         "--parent-exit-recovery", "--rtsp-session-recovery", "--host-continuity-recovery",
         "--device-session-recovery", "--runtime-pid-recovery", "--guard-retry-recovery",
-        "--liveness-continuity-recovery"].includes(value));
+        "--liveness-continuity-recovery", "--relay-backoff-recovery"].includes(value));
     const evidenceRelative = evidence ? relative(restrictedRoot, resolve(evidence)) : "";
     if (!artifact || !evidence || !evidenceRelative || evidenceRelative === ".." ||
       evidenceRelative.startsWith(`..${sep}`) || isAbsolute(evidenceRelative)) fail("P38_PIDFIX_R2_INPUT_SCOPE_INVALID");
     console.log(JSON.stringify({ result: "PASS", publication: await publish({ artifactPath: artifact,
       evidencePath: resolve(evidence), recovery, startupRecovery, livenessRecovery, parentExitRecovery,
       rtspSessionRecovery, hostContinuityRecovery, deviceSessionRecovery, runtimePidRecovery,
-      guardRetryRecovery, livenessContinuityRecovery }) }));
+      guardRetryRecovery, livenessContinuityRecovery, relayBackoffRecovery }) }));
   } catch (error) {
     console.error(/^P38_PIDFIX_R2_[A-Z0-9_]+$/.test(error.message) ? error.message : "P38_PIDFIX_R2_PUBLICATION_FAILED");
     process.exitCode = 1;

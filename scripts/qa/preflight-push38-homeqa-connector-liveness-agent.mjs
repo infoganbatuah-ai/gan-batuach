@@ -17,19 +17,30 @@ import { loadPinnedEdgeReleaseKeys,
 import { EdgeUpdateManager } from "../../services/video-gateway/edge-update-manager.mjs";
 import { PUSH38_CONNECTOR_LIVENESS_CONTINUITY as item
 } from "../../services/video-gateway/push38-home-qa-connector-liveness-continuity.mjs";
+import { PUSH38_CONNECTOR_RELAY_BACKOFF_RECOVERY
+} from "../../services/video-gateway/push38-home-qa-connector-relay-backoff.mjs";
 
 const restrictedRoot = `${realpathSync("/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted")}${sep}`;
 const option = name => process.argv.find(value => value.startsWith(`--${name}=`))?.slice(name.length + 3) || "";
 const outputPath = resolve(option("output") || ".");
 const bundle = resolve(option("bundle") || ".");
-const artifact = "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-connector-liveness-continuity-2840a593/connector-remediation.tar.gz";
-const publication = "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-connector-liveness-continuity-2840a593/r2-publication.json";
+const relayBackoff = process.argv.includes("--relay-backoff");
+const release = relayBackoff ? PUSH38_CONNECTOR_RELAY_BACKOFF_RECOVERY : item;
+const artifact = relayBackoff
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-connector-relay-backoff-4cc211b8/connector-remediation.tar.gz"
+  : "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-connector-liveness-continuity-2840a593/connector-remediation.tar.gz";
+const publication = relayBackoff
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-connector-relay-backoff-4cc211b8/r2-publication.json"
+  : "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-connector-liveness-continuity-2840a593/r2-publication.json";
 const root = join(homedir(), "Library/Application Support/Digital Observer/observer-connector/ota");
 const configPath = join(root, "agent-config.json");
 const agentReleasePath = join(root, "agent", "agent-release.json");
 const priorManagement = Object.freeze({
-  releaseId: "qa-p38-management-guard-retry-bc310bf7605c",
-  artifactSha256: "bc310bf7605cb7a05386c10130bb58c8c3459a65469850cbfc65efc1d48b0f60"
+  releaseId: relayBackoff ? "qa-p38-health-connector-liveness-continuity-6efc70f798aa" :
+    "qa-p38-management-guard-retry-bc310bf7605c",
+  artifactSha256: relayBackoff ?
+    "6efc70f798aad884f235ba5637bccf36bc4f1b2d71ada25e5b84e1c6f7b1d9ea" :
+    "bc310bf7605cb7a05386c10130bb58c8c3459a65469850cbfc65efc1d48b0f60"
 });
 
 if (!process.argv.includes("--dry-run") || outputPath === resolve(".") ||
@@ -90,7 +101,7 @@ async function runtimeSample() {
 
 for (const path of [bundle, artifact, publication]) protectedFile(path);
 const config = JSON.parse(localProtectedFile(configPath));
-if (config.profile !== item.profile || config.deviceId !== item.deviceId || config.channel !== "HOME_QA" ||
+if (config.profile !== release.profile || config.deviceId !== release.deviceId || config.channel !== "HOME_QA" ||
   config.managedRoot !== root || config.port !== 18083 || !config.qaTlsCaPath ||
   sha(localProtectedFile(config.qaTlsCaPath)) !== config.qaTlsCaSha256)
   throw new Error("P38_CONNECTOR_LIVENESS_AGENT_CONFIG_INVALID");
@@ -100,36 +111,37 @@ if (installedAgent.release_id !== priorManagement.releaseId ||
   throw new Error("P38_CONNECTOR_LIVENESS_AGENT_PRIOR_MISMATCH");
 
 const manifest = JSON.parse(execFileSync("unzip", ["-p", bundle,
-  "connector_remediation_liveness_continuity.json"], {
+  relayBackoff ? "connector_remediation_relay_backoff.json" :
+    "connector_remediation_liveness_continuity.json"], {
   encoding: "utf8", timeout: 15_000, maxBuffer: 16_384
 }));
 const trusted = loadPinnedEdgeReleaseKeys({
   registryPath: PROTECTED_EDGE_TRUST_REGISTRY_PATH }).trustedPublicKeys;
 const publicationProof = JSON.parse(protectedFile(publication));
-const expectedObject = `home-qa/${item.releaseId}/${item.digest}.tar.gz`;
-if (!verifyEdgeUpdateManifest(manifest, trusted).ok || manifest.release_id !== item.releaseId ||
-  manifest.version !== item.version || manifest.build_sha !== item.buildSha ||
-  manifest.artifact_sha256 !== item.digest || manifest.artifact_size !== item.size ||
-  manifest.profile !== item.profile || manifest.channel !== "HOME_QA" ||
+const expectedObject = `home-qa/${release.releaseId}/${release.digest}.tar.gz`;
+if (!verifyEdgeUpdateManifest(manifest, trusted).ok || manifest.release_id !== release.releaseId ||
+  manifest.version !== release.version || manifest.build_sha !== release.buildSha ||
+  manifest.artifact_sha256 !== release.digest || manifest.artifact_size !== release.size ||
+  manifest.profile !== release.profile || manifest.channel !== "HOME_QA" ||
   manifest.signing_key_id !== "observer-kms-release-v1" || manifest.rollout?.cohort_percent !== 0 ||
-  JSON.stringify(manifest.rollout?.explicit_device_ids) !== JSON.stringify([item.deviceId]) ||
+  JSON.stringify(manifest.rollout?.explicit_device_ids) !== JSON.stringify([release.deviceId]) ||
   assertEdgeReleaseObjectUrl(manifest,
     "https://693f824a750afcc264fe6ee58c8a86ab.r2.cloudflarestorage.com") !== expectedObject ||
-  statSync(artifact).size !== item.size || sha(readFileSync(artifact)) !== item.digest ||
-  publicationProof.release_id !== item.releaseId || publicationProof.object_key !== expectedObject ||
-  publicationProof.artifact_sha256 !== item.digest || publicationProof.bytes !== item.size ||
+  statSync(artifact).size !== release.size || sha(readFileSync(artifact)) !== release.digest ||
+  publicationProof.release_id !== release.releaseId || publicationProof.object_key !== expectedObject ||
+  publicationProof.artifact_sha256 !== release.digest || publicationProof.bytes !== release.size ||
   publicationProof.round_trip !== "PASS" || publicationProof.anonymous_access_denied !== true)
   throw new Error("P38_CONNECTOR_LIVENESS_AGENT_RELEASE_INVALID");
 
 const manager = new EdgeUpdateManager({ root, trustedPublicKeys: trusted,
-  device: { deviceId: item.deviceId, profile: item.profile, platform: "darwin", architecture: "arm64",
-    channel: "HOME_QA", currentVersion: item.rollbackVersion, configVersion: 4, revoked: false },
+  device: { deviceId: release.deviceId, profile: release.profile, platform: "darwin", architecture: "arm64",
+    channel: "HOME_QA", currentVersion: release.rollbackVersion, configVersion: 4, revoked: false },
   adapter: {}, healthCheck: async () => ({}) });
 const current = manager.current(), knownGood = manager.knownGood();
-if (current.release_id !== item.rollbackReleaseId ||
-  !knownGood.some(entry => entry.release_id === item.rollbackReleaseId &&
+if (current.release_id !== release.rollbackReleaseId ||
+  !knownGood.some(entry => entry.release_id === release.rollbackReleaseId &&
     entry.artifact_sha256 === current.artifact_sha256) ||
-  manager.quarantine().some(entry => entry.release_id === item.releaseId))
+  manager.quarantine().some(entry => entry.release_id === release.releaseId))
   throw new Error("P38_CONNECTOR_LIVENESS_AGENT_ROLLBACK_INVALID");
 manager.verifySlot(current);
 
@@ -142,17 +154,17 @@ if (labels["com.supabase.cli.project"] !== "gan-batuach-push38t" || network !== 
 const rollout = JSON.parse(psql(`select jsonb_build_object(
   'devices',(select count(*) from public.video_gateway_device_enrollments),
   'releases',(select count(*) from public.observer_edge_releases where channel='HOME_QA'),
-  'new_status',(select o.status from public.observer_edge_rollouts o join public.observer_edge_releases r on r.id=o.release_id where r.release_id='${item.releaseId}'),
-  'new_cohort',(select o.cohort_percent from public.observer_edge_rollouts o join public.observer_edge_releases r on r.id=o.release_id where r.release_id='${item.releaseId}'),
-  'new_targets',(select o.target_filters from public.observer_edge_rollouts o join public.observer_edge_releases r on r.id=o.release_id where r.release_id='${item.releaseId}'),
-  'prior_status',(select o.status from public.observer_edge_rollouts o join public.observer_edge_releases r on r.id=o.release_id where r.release_id='${item.supersedesReleaseId}'),
+  'new_status',(select o.status from public.observer_edge_rollouts o join public.observer_edge_releases r on r.id=o.release_id where r.release_id='${release.releaseId}'),
+  'new_cohort',(select o.cohort_percent from public.observer_edge_rollouts o join public.observer_edge_releases r on r.id=o.release_id where r.release_id='${release.releaseId}'),
+  'new_targets',(select o.target_filters from public.observer_edge_rollouts o join public.observer_edge_releases r on r.id=o.release_id where r.release_id='${release.releaseId}'),
+  'prior_status',(select o.status from public.observer_edge_rollouts o join public.observer_edge_releases r on r.id=o.release_id where r.release_id='${release.supersedesReleaseId}'),
   'broad_active',(select count(*) from public.observer_edge_rollouts where status='ACTIVE' and cohort_percent<>0),
-  'managed_phase',(select metadata->>'home_qa_phase' from public.video_gateway_device_enrollments where gateway_id='${item.deviceId}'),
-  'managed_identity',(select identity_scheme from public.video_gateway_device_enrollments where gateway_id='${item.deviceId}'),
-  'fresh_proof',(select count(*) from public.video_gateway_device_enrollments e join public.observer_managed_device_credentials c on c.enrollment_id=e.id and c.credential_version=e.credential_version where e.gateway_id='${item.deviceId}' and e.lifecycle_state='ACTIVE' and e.status='delivered' and e.active_runtime_instance_id is not null and e.last_seen_at>=now()-interval '2 minutes' and exists(select 1 from public.observer_managed_device_auth_nonces n where n.enrollment_id=e.id and n.credential_version=e.credential_version and n.observed_at>=now()-interval '2 minutes')));`));
-if (rollout.devices !== 2 || rollout.releases !== 16 || rollout.new_status !== "DRAFT" ||
+  'managed_phase',(select metadata->>'home_qa_phase' from public.video_gateway_device_enrollments where gateway_id='${release.deviceId}'),
+  'managed_identity',(select identity_scheme from public.video_gateway_device_enrollments where gateway_id='${release.deviceId}'),
+  'fresh_proof',(select count(*) from public.video_gateway_device_enrollments e join public.observer_managed_device_credentials c on c.enrollment_id=e.id and c.credential_version=e.credential_version where e.gateway_id='${release.deviceId}' and e.lifecycle_state='ACTIVE' and e.status='delivered' and e.active_runtime_instance_id is not null and e.last_seen_at>=now()-interval '2 minutes' and exists(select 1 from public.observer_managed_device_auth_nonces n where n.enrollment_id=e.id and n.credential_version=e.credential_version and n.observed_at>=now()-interval '2 minutes')));`));
+if (rollout.devices !== 2 || rollout.releases !== (relayBackoff ? 18 : 16) || rollout.new_status !== "DRAFT" ||
   rollout.new_cohort !== 0 ||
-  JSON.stringify(rollout.new_targets) !== JSON.stringify({ explicit_device_ids: [item.deviceId] }) ||
+  JSON.stringify(rollout.new_targets) !== JSON.stringify({ explicit_device_ids: [release.deviceId] }) ||
   rollout.prior_status !== "PAUSED" || rollout.broad_active !== 0 ||
   rollout.managed_phase !== "MANAGED_IDENTITY_VERIFIED" || rollout.managed_identity !== "ED25519_V1" ||
   rollout.fresh_proof !== 1)
@@ -171,25 +183,26 @@ if (samples.some(sample => !sample.running || !sample.pid || sample.expected !==
   new Set(samples.map(sample => sample.pid)).size !== 1)
   throw new Error("P38_CONNECTOR_LIVENESS_AGENT_RUNTIME_UNSTABLE");
 const disk = statfsSync(root);
-if (Number(disk.bavail) * Number(disk.bsize) < item.size * 3)
+if (Number(disk.bavail) * Number(disk.bsize) < release.size * 3)
   throw new Error("P38_CONNECTOR_LIVENESS_AGENT_DISK_INSUFFICIENT");
 const [anonymous, wrongRoute] = await Promise.all([
-  tlsProbe(`/api/video-gateway/edge-updates?platform=darwin&architecture=arm64&profile=SOFTWARE_CONNECTOR&current_version=${encodeURIComponent(item.rollbackVersion)}&config_version=4&channel=HOME_QA`),
+  tlsProbe(`/api/video-gateway/edge-updates?platform=darwin&architecture=arm64&profile=SOFTWARE_CONNECTOR&current_version=${encodeURIComponent(release.rollbackVersion)}&config_version=4&channel=HOME_QA`),
   tlsProbe("/api/video-gateway/not-exposed")
 ]);
 if (anonymous !== 401 || wrongRoute !== 404)
   throw new Error("P38_CONNECTOR_LIVENESS_AGENT_INGRESS_INVALID");
 
-const evidence = { protocol: "observer-push38-connector-liveness-agent-preflight-v1",
+const evidence = { protocol: relayBackoff ? "observer-push38-connector-relay-backoff-agent-preflight-v1" :
+    "observer-push38-connector-liveness-agent-preflight-v1",
   generated_at: new Date().toISOString(), result: "PASS", runtime_writes: 0,
-  release_id: item.releaseId, exact_device_id: item.deviceId, broad_cohort: false,
+  release_id: release.releaseId, exact_device_id: release.deviceId, broad_cohort: false,
   signed_manifest: "PASS", live_trust: "PASS", private_r2_round_trip: "PASS",
   prior_management_release: priorManagement.releaseId,
-  current_release: current.release_id, rollback_target: item.rollbackReleaseId,
+  current_release: current.release_id, rollback_target: release.rollbackReleaseId,
   rollback_slot: "VERIFIED", managed_device_fresh_proof: "PASS", https_control: "PASS",
   service_manager: "PASS", runtime_pid: runtime.pid, ota_agent_pid: agent.pid,
   runtime_samples: samples, disk: "PASS", functional_runtime_writes: 0 };
 writeFileSync(outputPath, `${JSON.stringify(evidence, null, 2)}\n`, { mode: 0o600, flag: "wx" });
-console.log(JSON.stringify({ status: "LIVENESS_AGENT_PREFLIGHT_PASS", release_id: item.releaseId,
+console.log(JSON.stringify({ status: "LIVENESS_AGENT_PREFLIGHT_PASS", release_id: release.releaseId,
   evidence_sha256: sha(readFileSync(outputPath)), rollback: "PASS", trust: "PASS",
   home_qa: "PASS", authorization: "PASS", runtime_writes: 0 }));

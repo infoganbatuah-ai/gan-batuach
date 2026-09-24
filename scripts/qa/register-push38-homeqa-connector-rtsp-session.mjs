@@ -17,14 +17,18 @@ import { PUSH38_CONNECTOR_DEVICE_SESSION_RECOVERY
 } from "../../services/video-gateway/push38-home-qa-connector-device-session.mjs";
 import { PUSH38_CONNECTOR_LIVENESS_CONTINUITY
 } from "../../services/video-gateway/push38-home-qa-connector-liveness-continuity.mjs";
+import { PUSH38_CONNECTOR_RELAY_BACKOFF_RECOVERY
+} from "../../services/video-gateway/push38-home-qa-connector-relay-backoff.mjs";
 
 const apply = process.argv.includes("--apply");
 const hostContinuity = process.argv.includes("--host-continuity");
 const deviceSession = process.argv.includes("--device-session");
 const livenessContinuity = process.argv.includes("--liveness-continuity");
-if ([hostContinuity, deviceSession, livenessContinuity].filter(Boolean).length > 1)
+const relayBackoff = process.argv.includes("--relay-backoff");
+if ([hostContinuity, deviceSession, livenessContinuity, relayBackoff].filter(Boolean).length > 1)
   throw new Error("P38_HOME_QA_RTSP_SESSION_MODE_INVALID");
-const item = livenessContinuity ? PUSH38_CONNECTOR_LIVENESS_CONTINUITY :
+const item = relayBackoff ? PUSH38_CONNECTOR_RELAY_BACKOFF_RECOVERY :
+  livenessContinuity ? PUSH38_CONNECTOR_LIVENESS_CONTINUITY :
   deviceSession ? PUSH38_CONNECTOR_DEVICE_SESSION_RECOVERY :
   hostContinuity ? PUSH38_CONNECTOR_HOST_CONTINUITY_RECOVERY :
   PUSH38_CONNECTOR_RTSP_SESSION_RECOVERY;
@@ -32,27 +36,32 @@ const restrictedRoot = "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/r
 const bundleValue = process.argv.find(value => value.startsWith("--bundle="))?.slice(9);
 if (!bundleValue) throw new Error("P38_HOME_QA_RTSP_SESSION_BUNDLE_REQUIRED");
 const bundle = resolve(bundleValue);
-const artifact = livenessContinuity
+const artifact = relayBackoff
+  ? `${restrictedRoot}/push38-connector-relay-backoff-4cc211b8/connector-remediation.tar.gz`
+  : livenessContinuity
   ? `${restrictedRoot}/push38-connector-liveness-continuity-2840a593/connector-remediation.tar.gz`
   : deviceSession
   ? `${restrictedRoot}/push38-connector-device-session-005319bf/connector-remediation.tar.gz`
   : hostContinuity
   ? `${restrictedRoot}/push38-connector-host-continuity-e0f07860/connector-remediation.tar.gz`
   : `${restrictedRoot}/push38-connector-remediation-38671545/connector-remediation.tar.gz`;
-const publication = livenessContinuity
+const publication = relayBackoff
+  ? `${restrictedRoot}/push38-connector-relay-backoff-4cc211b8/r2-publication.json`
+  : livenessContinuity
   ? `${restrictedRoot}/push38-connector-liveness-continuity-2840a593/r2-publication.json`
   : deviceSession
   ? `${restrictedRoot}/push38-connector-device-session-005319bf/r2-publication.json`
   : hostContinuity
   ? `${restrictedRoot}/push38-connector-host-continuity-e0f07860/r2-publication.json`
   : `${restrictedRoot}/push38-connector-remediation-38671545/r2-publication.json`;
-const predecessorReleaseId = (hostContinuity || deviceSession || livenessContinuity) ? item.supersedesReleaseId : item.rollbackReleaseId;
-const bundleName = livenessContinuity ? "connector_remediation_liveness_continuity.json" :
+const predecessorReleaseId = (hostContinuity || deviceSession || livenessContinuity || relayBackoff) ? item.supersedesReleaseId : item.rollbackReleaseId;
+const bundleName = relayBackoff ? "connector_remediation_relay_backoff.json" :
+  livenessContinuity ? "connector_remediation_liveness_continuity.json" :
   deviceSession ? "connector_remediation_device_session.json" :
   hostContinuity ? "connector_remediation_host_continuity.json" :
   "connector_remediation_rtsp_session.json";
-const expectedBefore = livenessContinuity ? 15 : deviceSession ? 14 : hostContinuity ? 13 : 9;
-const expectedAfter = livenessContinuity ? 16 : deviceSession ? 15 : hostContinuity ? 14 : 10;
+const expectedBefore = relayBackoff ? 17 : livenessContinuity ? 15 : deviceSession ? 14 : hostContinuity ? 13 : 9;
+const expectedAfter = relayBackoff ? 18 : livenessContinuity ? 16 : deviceSession ? 15 : hostContinuity ? 14 : 10;
 const accountId = "693f824a750afcc264fe6ee58c8a86ab";
 const origin = `https://${accountId}.r2.cloudflarestorage.com`;
 for (const path of [bundle, artifact, publication]) {

@@ -22,6 +22,8 @@ import { PUSH38_CONNECTOR_DEVICE_SESSION_RECOVERY
 } from "../../services/video-gateway/push38-home-qa-connector-device-session.mjs";
 import { PUSH38_CONNECTOR_LIVENESS_CONTINUITY
 } from "../../services/video-gateway/push38-home-qa-connector-liveness-continuity.mjs";
+import { PUSH38_CONNECTOR_RELAY_BACKOFF_RECOVERY
+} from "../../services/video-gateway/push38-home-qa-connector-relay-backoff.mjs";
 
 const root = join(homedir(), "Library/Application Support/Digital Observer/observer-connector/ota");
 const configPath = join(root, "agent-config.json");
@@ -31,23 +33,29 @@ const option = name => process.argv.find(value => value.startsWith(`--${name}=`)
 const hostContinuity = process.argv.includes("--host-continuity");
 const deviceSession = process.argv.includes("--device-session");
 const livenessContinuity = process.argv.includes("--liveness-continuity");
-if ([hostContinuity, deviceSession, livenessContinuity].filter(Boolean).length > 1)
+const relayBackoff = process.argv.includes("--relay-backoff");
+if ([hostContinuity, deviceSession, livenessContinuity, relayBackoff].filter(Boolean).length > 1)
   throw new Error("P38_CONNECTOR_RTSP_SESSION_MODE_INVALID");
-const item = livenessContinuity ? PUSH38_CONNECTOR_LIVENESS_CONTINUITY :
+const item = relayBackoff ? PUSH38_CONNECTOR_RELAY_BACKOFF_RECOVERY :
+  livenessContinuity ? PUSH38_CONNECTOR_LIVENESS_CONTINUITY :
   deviceSession ? PUSH38_CONNECTOR_DEVICE_SESSION_RECOVERY :
   hostContinuity ? PUSH38_CONNECTOR_HOST_CONTINUITY_RECOVERY :
   PUSH38_CONNECTOR_RTSP_SESSION_RECOVERY;
 const bundleValue = option("bundle");
 if (!bundleValue) throw new Error("P38_CONNECTOR_RTSP_SESSION_BUNDLE_REQUIRED");
 const bundle = resolve(bundleValue);
-const artifact = livenessContinuity
+const artifact = relayBackoff
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-connector-relay-backoff-4cc211b8/connector-remediation.tar.gz"
+  : livenessContinuity
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-connector-liveness-continuity-2840a593/connector-remediation.tar.gz"
   : deviceSession
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-connector-device-session-005319bf/connector-remediation.tar.gz"
   : hostContinuity
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-connector-host-continuity-e0f07860/connector-remediation.tar.gz"
   : "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-connector-remediation-38671545/connector-remediation.tar.gz";
-const publication = livenessContinuity
+const publication = relayBackoff
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-connector-relay-backoff-4cc211b8/r2-publication.json"
+  : livenessContinuity
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-connector-liveness-continuity-2840a593/r2-publication.json"
   : deviceSession
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-connector-device-session-005319bf/r2-publication.json"
@@ -131,7 +139,8 @@ if (agentRelease.release_id !== item.releaseId || agentRelease.artifact_sha256 !
   throw new Error("P38_CONNECTOR_RTSP_SESSION_AGENT_RELEASE_MISMATCH");
 
 const manifest = JSON.parse(execFileSync("unzip", ["-p", bundle,
-  livenessContinuity ? "connector_remediation_liveness_continuity.json" :
+  relayBackoff ? "connector_remediation_relay_backoff.json" :
+    livenessContinuity ? "connector_remediation_liveness_continuity.json" :
     deviceSession ? "connector_remediation_device_session.json" :
     hostContinuity ? "connector_remediation_host_continuity.json" :
     "connector_remediation_rtsp_session.json"],
@@ -186,7 +195,7 @@ const rollout = JSON.parse(psql(`select jsonb_build_object(
   'managed_phase',(select metadata->>'home_qa_phase' from public.video_gateway_device_enrollments where gateway_id='${item.deviceId}'),
   'managed_identity',(select identity_scheme from public.video_gateway_device_enrollments where gateway_id='${item.deviceId}'),
   'fresh_proof',(select count(*) from public.video_gateway_device_enrollments e join public.observer_managed_device_credentials c on c.enrollment_id=e.id and c.credential_version=e.credential_version where e.gateway_id='${item.deviceId}' and e.lifecycle_state='ACTIVE' and e.status='delivered' and e.active_runtime_instance_id is not null and e.last_seen_at>=now()-interval '2 minutes' and exists(select 1 from public.observer_managed_device_auth_nonces n where n.enrollment_id=e.id and n.credential_version=e.credential_version and n.observed_at>=now()-interval '2 minutes')));`));
-if (rollout.devices !== 2 || rollout.releases !== (livenessContinuity ? 16 : deviceSession ? 15 : hostContinuity ? 14 : 10) ||
+if (rollout.devices !== 2 || rollout.releases !== (relayBackoff ? 18 : livenessContinuity ? 16 : deviceSession ? 15 : hostContinuity ? 14 : 10) ||
   rollout.new_status !== "DRAFT" ||
   rollout.new_cohort !== 0 ||
   JSON.stringify(rollout.new_targets) !== JSON.stringify({ explicit_device_ids: [item.deviceId] }) ||
@@ -220,7 +229,8 @@ const [anonymous, wrongRoute] = await Promise.all([
 if (anonymous !== 401 || wrongRoute !== 404)
   throw new Error("P38_CONNECTOR_RTSP_SESSION_INGRESS_INVALID");
 
-const plan = { protocol: livenessContinuity ? "observer-push38-connector-liveness-continuity-activation-v1" :
+const plan = { protocol: relayBackoff ? "observer-push38-connector-relay-backoff-activation-v1" :
+    livenessContinuity ? "observer-push38-connector-liveness-continuity-activation-v1" :
     deviceSession ? "observer-push38-connector-device-session-activation-v1" :
     hostContinuity ? "observer-push38-connector-host-continuity-activation-v1" :
     "observer-push38-connector-rtsp-session-activation-v1",
