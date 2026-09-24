@@ -20,6 +20,7 @@ const watchdog = readFileSync("services/video-gateway/edge-child-liveness-watchd
 const installer = readFileSync("scripts/qa/install-push38-homeqa-ota-agent.mjs", "utf8");
 const registration = readFileSync("scripts/qa/register-push38-homeqa-connector-rtsp-session.mjs", "utf8");
 const activation = readFileSync("scripts/qa/activate-push38-homeqa-connector-rtsp-session.mjs", "utf8");
+const qualification = readFileSync("scripts/qa/start-push38t-qualification.mjs", "utf8");
 assert.doesNotMatch(readiness, /spawnSync/);
 assert.match(readiness, /void warmBaseReadiness\(\)/);
 assert.match(watchdog, /minimumDownMs = 45_000/);
@@ -28,6 +29,7 @@ for (const source of [installer, registration, activation])
   assert.match(source, /PUSH38_CONNECTOR_LIVENESS_CONTINUITY|connector-liveness-continuity/);
 assert.match(installer, /bc310bf7605cb7a05386c10130bb58c8c3459a65469850cbfc65efc1d48b0f60/);
 assert.doesNotMatch(installer, /bc310bf7605c32377f0e886891e3152eab969a6e74ba6fce58d798a094ca421b/);
+assert.match(qualification, /inventory\.releases === 16/);
 console.log(JSON.stringify({ status: "PASS", release_id: item.releaseId,
   exact_device: true, broad_cohort: false, readiness_nonblocking: true,
   sustained_down_required: true }));
