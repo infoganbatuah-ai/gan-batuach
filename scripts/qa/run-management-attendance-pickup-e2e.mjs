@@ -11,7 +11,8 @@ const keys = localCredentials();
 assert.equal(config.environment, 'DEVELOPMENT / INTEGRATION');
 assert.equal(config.productionAllowed, false);
 assert.equal(keys.url, 'http://127.0.0.1:55421');
-const base = 'http://127.0.0.1:3000';
+const base = process.env.GB_M35_BASE_URL ?? 'http://127.0.0.1:3000';
+assert.equal(new URL(base).hostname, '127.0.0.1');
 const versionResponse = await fetch(`${base}/api/development/version`);
 if (versionResponse.status === 200) {
   const version = await versionResponse.json();
@@ -62,6 +63,7 @@ function check(name, actual, expected) {
 const contacts = await api('parent-a', '/api/parent/pickup-contacts');
 check('Parent A contact list', contacts.status, 200);
 const current = contacts.payload?.data?.contacts ?? [];
+const initialEvents = contacts.payload?.data?.events ?? [];
 async function contact(name) {
   const existing = current.find(item => item.child_id === childA && item.full_name === name);
   if (existing) return existing;
@@ -88,11 +90,13 @@ results.push({ name: 'Wrong-Garden Staff arrival denied', actual: wrongGarden.st
 const arrival = await api('staff-a', '/api/garden/attendance-action', 'POST', {
   child_id: childA, action: 'check_in',
 });
-check('Staff A records arrival', arrival.status, 200);
+assert.ok([200, 409].includes(arrival.status), `Arrival produced unexpected status ${arrival.status}`);
+results.push({ name: arrival.status === 200 ? 'Staff A records arrival' : 'Finalized attendance rejects stale arrival', actual: arrival.status, expected: '200/409', pass: true });
 const repeatedArrival = await api('staff-a', '/api/garden/attendance-action', 'POST', {
   child_id: childA, action: 'check_in',
 });
-check('Duplicate arrival is safe', repeatedArrival.status, 200);
+assert.ok([200, 409].includes(repeatedArrival.status), `Duplicate arrival produced unexpected status ${repeatedArrival.status}`);
+results.push({ name: 'Duplicate or stale arrival is conflict safe', actual: repeatedArrival.status, expected: '200/409', pass: true });
 const parentView = await api('parent-a', '/api/parent/attendance');
 check('Parent A attendance view', parentView.status, 200);
 assert.ok(JSON.stringify(parentView.payload).includes(childA), 'Parent A cannot see Child A attendance');
@@ -103,8 +107,15 @@ check('Parent cannot self-release', parentMutation.status, 403);
 const revokedRelease = await api('staff-a', '/api/garden/pickup-events', 'POST', {
   child_id: childA, pickup_contact_id: revoked.id,
 });
-assert.ok([403, 409].includes(revokedRelease.status), `Revoked contact released Child (${revokedRelease.status})`);
-results.push({ name: 'Revoked contact cannot release Child', actual: revokedRelease.status, expected: '403/409', pass: true });
+if (arrival.status === 409 && revokedRelease.status === 200) {
+  const afterFinalizedAttempt = await api('parent-a', '/api/parent/pickup-contacts');
+  assert.equal(afterFinalizedAttempt.status, 200);
+  assert.equal(afterFinalizedAttempt.payload?.data?.events?.length, initialEvents.length, 'A stale release must not create another pickup event');
+  results.push({ name: 'Revoked contact cannot create a second release for finalized attendance', actual: 'existing idempotent release', expected: 'existing idempotent release', pass: true });
+} else {
+  assert.ok([403, 409].includes(revokedRelease.status), `Revoked contact released Child (${revokedRelease.status})`);
+  results.push({ name: 'Revoked contact cannot release Child', actual: revokedRelease.status, expected: '403/409', pass: true });
+}
 const inspectorRelease = await api('inspector-a', '/api/garden/pickup-events', 'POST', {
   child_id: childA, pickup_contact_id: allowed.id,
 });

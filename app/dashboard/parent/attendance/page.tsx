@@ -81,7 +81,7 @@ export default async function ParentAttendancePage({ searchParams }: { searchPar
         {selected ? <section className="ux05-attendance-child">
           <Avatar name={cleanSyntheticLabel(selected.full_name, "ילד/ה")} src={selected.photo_url} size="lg" />
           <div><span>נוכחות היום</span><h2>{cleanSyntheticLabel(selected.full_name, "ילד/ה")}</h2><StatusChip tone={todayMeta.tone}>{todayMeta.label}</StatusChip></div>
-          <Link className="parent-outline-button" href={`/dashboard/parent/children/${selected.id}`}>כרטיס הילד</Link>
+          <div className="ux06-parent-attendance-actions"><Link className="parent-outline-button" href={`/dashboard/parent/children/${selected.id}`}>כרטיס הילד</Link><Link className="parent-outline-button" href="/dashboard/parent/pickup">מורשי איסוף</Link></div>
         </section> : null}
 
         <section className="parent-metrics-grid ux05-attendance-metrics">

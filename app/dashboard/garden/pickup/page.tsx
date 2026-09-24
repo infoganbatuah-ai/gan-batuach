@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { Bell, MapPinned, ShieldCheck, UserCheck, UsersRound } from "lucide-react";
 import { DashboardFilterChip } from "@/components/dashboard-filter-chip";
 import { GardenPickupVerificationPanel } from "@/components/pickup-verification-panels";
@@ -39,12 +40,13 @@ export default async function GardenPickupPage({ searchParams }: { searchParams:
   const events = params.filter === "pending" ? [] : ((eventsRes.data ?? []) as any[]);
   const pendingPickup = allChildren.filter((child) => awaitingPickupIds.has(child.id)).length;
   return (
-    <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.replace(/\[DEMO\]/gi, "").trim().split(" ")[0] || "מנהלת הגן"}`} subtitle="איסוף והחזרה בטוחים" avatarUrl={(profile as any).profile_image_url ?? null} active="children">
-      <TeacherPageTitle icon={MapPinned} title="איסוף והחזרה" subtitle="מי רשאי לאסוף ומי נאסף בפועל, בלי שחרור אוטומטי" />
+    <TeacherAppFrame role={profile.role === "owner" ? "owner" : "manager"} title={`בוקר טוב, ${profile.full_name?.replace(/\[DEMO\]/gi, "").trim().split(" ")[0] || "מנהלת הגן"}`} subtitle="איסוף והחזרה בטוחים" avatarUrl={(profile as any).profile_image_url ?? null} active="children">
+      <div className="ux06-operations">
+      <TeacherPageTitle icon={MapPinned} title="איסוף והחזרה" subtitle="מורשי איסוף נבדקים בשרת; השחרור מתבצע רק אחרי אישור צוות" action={<Link className="button secondary" href="/dashboard/garden/attendance">חזרה לנוכחות</Link>} />
       <TeacherStatsGrid>
         <TeacherStatCard title="ילדים להצגה" value={children.length} hint="לפי הסינון" icon={UsersRound} tone="blue" />
         <TeacherStatCard title="טרם נאספו" value={pendingPickup} hint="זקוקים לעדכון" icon={UserCheck} tone={pendingPickup ? "orange" : "green"} />
-        <TeacherStatCard title="מורשי איסוף" value={contacts.length} hint="פעילים במערכת" icon={ShieldCheck} tone="purple" />
+        <TeacherStatCard title="מורשי איסוף" value={contacts.filter((contact) => contact.active && contact.authorization_status === "approved").length} hint="מאושרים ופעילים" icon={ShieldCheck} tone="purple" />
       </TeacherStatsGrid>
       <TeacherQuickActions title="פעולות איסוף">
         <TeacherActionTile title="לא נאספו" href="/dashboard/garden/pickup?filter=pending" icon={UserCheck} tone="orange" />
@@ -54,9 +56,11 @@ export default async function GardenPickupPage({ searchParams }: { searchParams:
       <DashboardFilterChip label={params.filter === "pending" ? "איסופים שלא הושלמו" : null} clearHref="/dashboard/garden/pickup" isEmpty={children.length === 0} emptyTitle="אין כרגע איסופים שלא הושלמו" emptyText="כל הילדים במסנן הזה נאספו או שאין ילדים פעילים להצגה." />
       <TeacherSection title="ניהול איסוף" subtitle="הרשאות, אירועים ואישור אנושי">
         <div className="teacher-embedded-module">
-          <GardenPickupVerificationPanel children={children} contacts={contacts} events={events} currentTime={new Date().toISOString()} />
+          <GardenPickupVerificationPanel childRows={children} contacts={contacts} events={events} currentTime={new Date().toISOString()} />
         </div>
       </TeacherSection>
+      <p className="ux06-authority-note"><ShieldCheck size={18} /> מצלמה יכולה להציג הקשר מורשה בלבד. היא אינה מאשרת איסוף ואינה משחררת ילד.</p>
+      </div>
     </TeacherAppFrame>
   );
 }
