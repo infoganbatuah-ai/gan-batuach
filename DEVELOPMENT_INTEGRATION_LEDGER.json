@@ -9311,6 +9311,54 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "UX-IMPLEMENT-02 is complete in Development. Stop before UX-IMPLEMENT-03; Production and main remain unchanged."
+    },
+    {
+      "id": "codex/ux-implement-03-owner-command-center",
+      "project": "Gan Batuach Management",
+      "title": "UX-IMPLEMENT-03 Owner dashboard, global navigation and command center",
+      "owner": "UX-IMPLEMENT-03 owner",
+      "sourceBranch": "codex/ux-implement-03-owner-command-center",
+      "sourceCommits": [
+        "af2c1ba0"
+      ],
+      "state": "PUSHED_REMOTE",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/ux-implement-03-owner-command-center@af2c1ba0"
+        ],
+        "validatedSourceCommit": "af2c1ba0"
+      },
+      "validation": {
+        "status": "PASS_VISUAL_AND_FUNCTIONAL_BRANCH_GATES",
+        "evidence": [
+          "GAN_BATUACH_UX03_OWNER_COMMAND_CENTER_IMPLEMENTATION.md",
+          "GAN_BATUACH_UX03_VISUAL_QA_REPORT.md",
+          "qa-evidence/ux-implement-03/SHA256SUMS"
+        ],
+        "limits": "Visual and full-stack evidence uses isolated synthetic identities only. The local production build used the supported Webpack path because Turbopack rejects an out-of-root node_modules symlink in this isolated worktree. Exact-head repository CI remains required. This Development unit is not Production release authorization."
+      },
+      "integration": {
+        "status": "PENDING_CHECKS",
+        "base": "integration/development",
+        "commit": null,
+        "pullRequest": 134,
+        "requiredChecks": "PENDING"
+      },
+      "dependencies": {
+        "status": "UX_IMPLEMENT_02_INTEGRATED",
+        "units": [
+          "codex/ux-implement-02-owner-onboarding"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "PASS_UX03_FOCUSED_6_OF_6_DASHBOARDS_9_OF_9_OWNER_MULTI_GARDEN_9_OF_9_OWNER_TEACHER_6_OF_6_MANAGEMENT_DOMAINS_SECURITY_10_OF_10_DOMAIN_30_OF_30_MIGRATIONS_243_RELEASE_CONTRACT_TYPECHECK_LINT_ZERO_REGRESSIONS_PRODUCTION_BUILD_529_PAGES_VISUAL_9_CAPTURES",
+      "releaseEligibility": "VALIDATED_DEVELOPMENT_CANDIDATE_PRODUCTION_NOT_AUTHORIZED",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Wait for all exact-head checks on PR #134, merge only after PASS, then run cumulative Development verification. Do not merge to main or deploy Production."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
