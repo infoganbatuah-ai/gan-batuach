@@ -17,10 +17,15 @@ assert.equal(manifest.compatibility.minimum_current_version, item.rollbackVersio
 assert.equal(manifest.compatibility.maximum_current_version, item.rollbackVersion);
 const readiness = readFileSync("services/video-gateway/edge-readiness.mjs", "utf8");
 const watchdog = readFileSync("services/video-gateway/edge-child-liveness-watchdog.mjs", "utf8");
+const installer = readFileSync("scripts/qa/install-push38-homeqa-ota-agent.mjs", "utf8");
+const registration = readFileSync("scripts/qa/register-push38-homeqa-connector-rtsp-session.mjs", "utf8");
+const activation = readFileSync("scripts/qa/activate-push38-homeqa-connector-rtsp-session.mjs", "utf8");
 assert.doesNotMatch(readiness, /spawnSync/);
 assert.match(readiness, /void warmBaseReadiness\(\)/);
 assert.match(watchdog, /minimumDownMs = 45_000/);
 assert.match(watchdog, /LIVENESS_DEGRADED/);
+for (const source of [installer, registration, activation])
+  assert.match(source, /PUSH38_CONNECTOR_LIVENESS_CONTINUITY|connector-liveness-continuity/);
 console.log(JSON.stringify({ status: "PASS", release_id: item.releaseId,
   exact_device: true, broad_cohort: false, readiness_nonblocking: true,
   sustained_down_required: true }));
