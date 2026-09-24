@@ -33,7 +33,7 @@ Spacing, radius, elevation and motion reuse the established `--gb-*` token famil
 
 ## Desktop Auth shell
 
-The desktop layout pairs a bright, bounded form surface with a navy photographic story panel. It retains the official logo, concise trust copy and value indicators without crowding the operational task. The form surface has a stable readable width and routes may scroll vertically without a fixed-height trap.
+The desktop layout pairs a bright, bounded form surface with a navy photographic story panel. It retains the official logo, concise trust copy and value indicators without crowding the operational task. The form surface has a stable readable width and routes may scroll vertically without a fixed-height trap. The story panel stays at viewport height on long registration pages and uses the approved Child focal point, preventing canonical extra fields from stretching the image until the Child disappears from view.
 
 ## Mobile Auth shell
 
@@ -63,4 +63,4 @@ Canonical breakpoints are reused. The single Auth hero is delivered as optimized
 
 ## Visual acceptance
 
-The route-by-route matrix, viewports, screenshots, deviations and checksums are recorded in `GAN_BATUACH_UX01_VISUAL_QA_REPORT.md` and `qa-evidence/ux-implement-01/`. Every required desktop and mobile target is `VISUAL_PASS` against the four supplied references.
+The route-by-route matrix, viewports, screenshots, deviations and checksums are recorded in `GAN_BATUACH_UX01_VISUAL_QA_REPORT.md` and `qa-evidence/ux-implement-01/`. The refreshed evidence includes 38 screenshots covering the original core screens plus login error, provider-unavailable Email verification, invalid recovery, invitation loading and wrong-recipient states. Every required desktop and mobile target is `VISUAL_PASS` against the four supplied references.
