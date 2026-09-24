@@ -9260,6 +9260,54 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "UX-IMPLEMENT-01 visual reference closure is complete in Development. Stop before UX-IMPLEMENT-02. Production remains out of scope and unauthorized."
+    },
+    {
+      "id": "codex/ux-implement-02-owner-onboarding",
+      "project": "Gan Batuach Management",
+      "title": "UX-IMPLEMENT-02 Owner and Garden onboarding visual implementation",
+      "owner": "UX-IMPLEMENT-02 owner",
+      "sourceBranch": "codex/ux-implement-02-owner-onboarding",
+      "sourceCommits": [
+        "572c9ac711091df793c10453368568346509e1c2"
+      ],
+      "state": "PUSHED_REMOTE",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/ux-implement-02-owner-onboarding@572c9ac711091df793c10453368568346509e1c2"
+        ],
+        "validatedSourceCommit": "572c9ac711091df793c10453368568346509e1c2"
+      },
+      "validation": {
+        "status": "PASS_BRANCH_GATES_VISUAL_AND_FUNCTIONAL_PR_CHECKS_PENDING",
+        "evidence": [
+          "GAN_BATUACH_UX02_OWNER_ONBOARDING_IMPLEMENTATION.md",
+          "GAN_BATUACH_UX02_VISUAL_QA_REPORT.md",
+          "qa-evidence/ux-implement-02/SHA256SUMS"
+        ],
+        "limits": "Required GitHub checks must pass on the exact final PR head before integration. Evidence uses isolated synthetic identities only. This Development PR is not Production release authorization."
+      },
+      "integration": {
+        "status": "PENDING_REQUIRED_CHECKS",
+        "base": "integration/development",
+        "commit": null,
+        "pullRequest": 132
+      },
+      "dependencies": {
+        "status": "UX_IMPLEMENT_01_INTEGRATED",
+        "units": [
+          "codex/ux-implement-01",
+          "codex/ux-implement-01-reference-closure"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "PASS_BROWSER_E2E_9_OF_9_VISUAL_22_OF_22_TYPECHECK_LINT_ZERO_REGRESSIONS_DOMAIN_30_OF_30_SECURITY_10_OF_10_MIGRATIONS_243_RELEASE_CONTRACT_PRODUCTION_BUILD_529_PAGES_PREFLIGHT",
+      "releaseEligibility": "PENDING_DEVELOPMENT_INTEGRATION_PRODUCTION_NOT_AUTHORIZED",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Wait for all required checks on PR #132, merge only if all pass, then record the exact integration merge and run cumulative Development verification. Do not start UX-IMPLEMENT-03."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",

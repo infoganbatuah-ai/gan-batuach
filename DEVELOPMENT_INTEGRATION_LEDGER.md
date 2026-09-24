@@ -414,3 +414,17 @@ release preflight, 16-migration rehearsal, private Storage recovery proof and
 built-server health/protection smoke. No migration was added or applied, main
 and Production remain unchanged, and the documented Production readiness
 blockers remain binding.
+
+UX-IMPLEMENT-02 branch qualification (2026-09-24):
+`codex/ux-implement-02-owner-onboarding` is remotely preserved at product
+commit `572c9ac711091df793c10453368568346509e1c2` with PR #132 targeting
+`integration/development`. The approved Gan Batuach visual system now covers
+the complete canonical five-stage Owner/Garden onboarding flow on Desktop and
+Mobile. Browser E2E passed 9/9, visual QA passed 22/22 captures with no partial
+or failed surface, and branch gates passed typecheck, zero-regression lint,
+domain 30/30, security 10/10, migration health 243/243, release contract,
+Production build and exact-head preflight. The Parent invitation endpoint now
+uses the server-authorized current Garden instead of legacy
+`profiles.garden_id`. Required PR checks and post-merge cumulative Development
+verification remain pending. No migration, paid provider, Production, `main`
+or Digital Observer core change is included. UX-IMPLEMENT-03 has not started.
