@@ -25,20 +25,23 @@ const rtspSessionRecoveryUpgrade = process.argv.includes("--rtsp-session-recover
 const gatewayAuthRecoveryUpgrade = process.argv.includes("--gateway-auth-recovery-upgrade");
 const gatewaySessionStabilityUpgrade = process.argv.includes("--gateway-session-stability-upgrade");
 const gatewayCommonCauseRecoveryUpgrade = process.argv.includes("--gateway-common-cause-recovery-upgrade");
+const gatewayFiniteStreamHandoffUpgrade = process.argv.includes("--gateway-finite-stream-handoff-upgrade");
 if ([recoveryUpgrade, startupRecoveryUpgrade, livenessRecoveryUpgrade, parentExitRecoveryUpgrade,
   rtspSessionRecoveryUpgrade, gatewayAuthRecoveryUpgrade, gatewaySessionStabilityUpgrade,
-  gatewayCommonCauseRecoveryUpgrade].filter(Boolean).length > 1)
+  gatewayCommonCauseRecoveryUpgrade, gatewayFiniteStreamHandoffUpgrade].filter(Boolean).length > 1)
   throw new Error("P38_HOME_QA_AGENT_UPGRADE_MODE_INVALID");
 const managementUpgrade = process.argv.includes("--management-upgrade") || recoveryUpgrade ||
   startupRecoveryUpgrade || livenessRecoveryUpgrade || parentExitRecoveryUpgrade ||
   rtspSessionRecoveryUpgrade || gatewayAuthRecoveryUpgrade || gatewaySessionStabilityUpgrade ||
-  gatewayCommonCauseRecoveryUpgrade;
+  gatewayCommonCauseRecoveryUpgrade || gatewayFiniteStreamHandoffUpgrade;
 if (apply === dryRun || !["SOFTWARE_CONNECTOR", "PHYSICAL_GATEWAY"].includes(profile))
   throw new Error("P38_HOME_QA_AGENT_MODE_OR_PROFILE_INVALID");
 if (managementUpgrade && profile !== "SOFTWARE_CONNECTOR" &&
-  !gatewayAuthRecoveryUpgrade && !gatewaySessionStabilityUpgrade && !gatewayCommonCauseRecoveryUpgrade)
+  !gatewayAuthRecoveryUpgrade && !gatewaySessionStabilityUpgrade && !gatewayCommonCauseRecoveryUpgrade &&
+  !gatewayFiniteStreamHandoffUpgrade)
   throw new Error("P38_HOME_QA_AGENT_UPGRADE_PROFILE_INVALID");
-if ((gatewayAuthRecoveryUpgrade || gatewaySessionStabilityUpgrade || gatewayCommonCauseRecoveryUpgrade) &&
+if ((gatewayAuthRecoveryUpgrade || gatewaySessionStabilityUpgrade || gatewayCommonCauseRecoveryUpgrade ||
+  gatewayFiniteStreamHandoffUpgrade) &&
   profile !== "PHYSICAL_GATEWAY")
   throw new Error("P38_HOME_QA_AGENT_UPGRADE_PROFILE_INVALID");
 const connector = profile === "SOFTWARE_CONNECTOR";
@@ -78,14 +81,19 @@ const spec = connector ? {
   deviceId: "62df97e2-3c0b-427f-9108-bde029bc10e7",
   baselineRelease: "qa-legacy-gateway-91bf6814075f",
   baselineSha: "91bf6814075f74e703cbc0b85d30673237531247ec46633c54576d5a4627144d",
-  remediationRelease: gatewayCommonCauseRecoveryUpgrade ? "qa-p38-health-gateway-common-cause-189e548bc104" :
+  remediationRelease: gatewayFiniteStreamHandoffUpgrade ? "qa-p38-health-gateway-finite-handoff-76781a8e0832" :
+    gatewayCommonCauseRecoveryUpgrade ? "qa-p38-health-gateway-common-cause-189e548bc104" :
     gatewaySessionStabilityUpgrade ? "qa-p38-health-gateway-session-e354546bdbf8" :
     gatewayAuthRecoveryUpgrade ? "qa-p38-health-gateway-auth-4197f1a246f1" :
     "qa-p38-health-gateway-6c9d08327ec6",
-  bundleName: gatewayCommonCauseRecoveryUpgrade ? "gateway_remediation_common_cause_recovery.json" :
+  bundleName: gatewayFiniteStreamHandoffUpgrade ? "gateway_remediation_finite_stream_handoff.json" :
+    gatewayCommonCauseRecoveryUpgrade ? "gateway_remediation_common_cause_recovery.json" :
     gatewaySessionStabilityUpgrade ? "gateway_remediation_session_stability.json" :
     gatewayAuthRecoveryUpgrade ? "gateway_remediation_auth.json" : "gateway_remediation.json",
-  priorManagement: gatewayCommonCauseRecoveryUpgrade ? {
+  priorManagement: gatewayFiniteStreamHandoffUpgrade ? {
+    release_id: "qa-p38-health-gateway-common-cause-189e548bc104",
+    artifact_sha256: "189e548bc10428ac49615fd2e9f6da60553df24e9da960db9afe40678c15b6eb" } :
+    gatewayCommonCauseRecoveryUpgrade ? {
     release_id: "qa-p38-health-gateway-session-e354546bdbf8",
     artifact_sha256: "e354546bdbf8a222f98b9af5166de1b91ee353ff7d5e54111b4c5c931901cd0a" } :
     gatewaySessionStabilityUpgrade ? {
@@ -131,6 +139,8 @@ const bundle = resolve(bundleOverride || (rtspSessionRecoveryUpgrade
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-connector-startup.zip"
   : recoveryUpgrade
     ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-connector-recovery.zip"
+  : gatewayFiniteStreamHandoffUpgrade
+    ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-gateway-finite-stream-handoff.zip"
   : gatewayCommonCauseRecoveryUpgrade
     ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-gateway-common-cause-recovery.zip"
   : gatewaySessionStabilityUpgrade

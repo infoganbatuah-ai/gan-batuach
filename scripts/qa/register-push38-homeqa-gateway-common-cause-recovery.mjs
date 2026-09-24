@@ -9,18 +9,28 @@ import { verifyEdgeUpdateManifest } from "../../services/video-gateway/edge-upda
 import { assertEdgeReleaseObjectUrl } from "../../services/video-gateway/edge-release-object.mjs";
 import { loadPinnedEdgeReleaseKeys,
   PROTECTED_EDGE_TRUST_REGISTRY_PATH } from "../../services/video-gateway/edge-release-trust.mjs";
-import { PUSH38_GATEWAY_COMMON_CAUSE_RECOVERY as item
+import { PUSH38_GATEWAY_COMMON_CAUSE_RECOVERY,
 } from "../../services/video-gateway/push38-home-qa-gateway-common-cause-recovery.mjs";
+import { PUSH38_GATEWAY_FINITE_STREAM_HANDOFF
+} from "../../services/video-gateway/push38-home-qa-gateway-finite-stream-handoff.mjs";
 
 const apply = process.argv.includes("--apply");
+const finiteHandoff = process.argv.includes("--finite-stream-handoff");
+const item = finiteHandoff ? PUSH38_GATEWAY_FINITE_STREAM_HANDOFF : PUSH38_GATEWAY_COMMON_CAUSE_RECOVERY;
 const restrictedRoot = "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted";
 const bundleValue = process.argv.find(value => value.startsWith("--bundle="))?.slice(9);
 if (!bundleValue) throw new Error("P38_GATEWAY_COMMON_CAUSE_HOME_QA_BUNDLE_REQUIRED");
 const bundle = resolve(bundleValue);
-const artifact = `${restrictedRoot}/push38-gateway-common-cause-f7d237bf/gateway-runtime.tar.gz`;
-const publication = `${restrictedRoot}/push38-gateway-common-cause-f7d237bf/r2-publication.json`;
-const bundleName = "gateway_remediation_common_cause_recovery.json";
-const expectedBefore = 11, expectedAfter = 12;
+const artifact = finiteHandoff
+  ? `${restrictedRoot}/push38-gateway-finite-handoff-e085c30f/gateway-runtime.tar.gz`
+  : `${restrictedRoot}/push38-gateway-common-cause-f7d237bf/gateway-runtime.tar.gz`;
+const publication = finiteHandoff
+  ? `${restrictedRoot}/push38-gateway-finite-handoff-e085c30f/r2-publication.json`
+  : `${restrictedRoot}/push38-gateway-common-cause-f7d237bf/r2-publication.json`;
+const bundleName = finiteHandoff ? "gateway_remediation_finite_stream_handoff.json"
+  : "gateway_remediation_common_cause_recovery.json";
+const expectedBefore = finiteHandoff ? 12 : 11, expectedAfter = finiteHandoff ? 13 : 12;
+const predecessorReleaseId = finiteHandoff ? item.supersedesReleaseId : item.rollbackReleaseId;
 const accountId = "693f824a750afcc264fe6ee58c8a86ab";
 const origin = `https://${accountId}.r2.cloudflarestorage.com`;
 for (const path of [bundle, artifact, publication]) {
@@ -102,7 +112,7 @@ select id,'INTERNAL_QA','DRAFT',0,jsonb_build_object('explicit_device_ids',jsonb
 from public.observer_edge_releases r where r.release_id='${item.releaseId}'
 and not exists(select 1 from public.observer_edge_rollouts existing where existing.release_id=r.id);
 update public.observer_edge_rollouts set status='PAUSED',updated_at=now()
-where release_id=(select id from public.observer_edge_releases where release_id='${item.rollbackReleaseId}')
+where release_id=(select id from public.observer_edge_releases where release_id='${predecessorReleaseId}')
   and status in ('DRAFT','ACTIVE');
 do $$ begin
   if (select count(*) from public.observer_edge_releases where channel='HOME_QA') <> ${expectedAfter} or
@@ -117,6 +127,7 @@ execFileSync("docker", ["--context", context, "exec", "-i", container, "psql", "
   "-v", "ON_ERROR_STOP=1", "-U", "postgres", "-d", "postgres"],
 { input: sql, encoding: "utf8", timeout: 45_000, stdio: ["pipe", "pipe", "pipe"] });
 console.log(JSON.stringify({ status: "GATEWAY_COMMON_CAUSE_RECOVERY_REGISTERED_DRAFT",
-  release_id: item.releaseId, predecessor_release: "PAUSED", exact_device: true,
+  release_id: item.releaseId, predecessor_release_id: predecessorReleaseId,
+  predecessor_release: "PAUSED", exact_device: true,
   broad_cohort: "DISABLED", r2_round_trip: "PASS", live_trust: "PASS",
   production_writes: 0, runtime_writes: 0 }));

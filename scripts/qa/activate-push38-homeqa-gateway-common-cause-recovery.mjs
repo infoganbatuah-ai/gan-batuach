@@ -14,8 +14,10 @@ import { assertEdgeReleaseObjectUrl } from "../../services/video-gateway/edge-re
 import { loadPinnedEdgeReleaseKeys,
   PROTECTED_EDGE_TRUST_REGISTRY_PATH } from "../../services/video-gateway/edge-release-trust.mjs";
 import { EdgeUpdateManager } from "../../services/video-gateway/edge-update-manager.mjs";
-import { PUSH38_GATEWAY_COMMON_CAUSE_RECOVERY as item
+import { PUSH38_GATEWAY_COMMON_CAUSE_RECOVERY
 } from "../../services/video-gateway/push38-home-qa-gateway-common-cause-recovery.mjs";
+import { PUSH38_GATEWAY_FINITE_STREAM_HANDOFF
+} from "../../services/video-gateway/push38-home-qa-gateway-finite-stream-handoff.mjs";
 import { PUSH38_CONNECTOR_RTSP_SESSION_RECOVERY as connectorItem
 } from "../../services/video-gateway/push38-home-qa-connector-rtsp-session.mjs";
 
@@ -25,11 +27,18 @@ const configPath = join(root, "agent-config.json");
 const agentReleasePath = join(root, "agent/agent-release.json");
 const restrictedRoot = `${realpathSync("/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted")}${sep}`;
 const option = name => process.argv.find(value => value.startsWith(`--${name}=`))?.slice(name.length + 3) || "";
+const finiteHandoff = process.argv.includes("--finite-stream-handoff");
+const item = finiteHandoff ? PUSH38_GATEWAY_FINITE_STREAM_HANDOFF : PUSH38_GATEWAY_COMMON_CAUSE_RECOVERY;
+const predecessorReleaseId = finiteHandoff ? item.supersedesReleaseId : item.rollbackReleaseId;
 const bundleValue = option("bundle");
 if (!bundleValue) throw new Error("P38_GATEWAY_COMMON_CAUSE_BUNDLE_REQUIRED");
 const bundle = resolve(bundleValue);
-const artifact = "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-common-cause-f7d237bf/gateway-runtime.tar.gz";
-const publication = "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-common-cause-f7d237bf/r2-publication.json";
+const artifact = finiteHandoff
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-finite-handoff-e085c30f/gateway-runtime.tar.gz"
+  : "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-common-cause-f7d237bf/gateway-runtime.tar.gz";
+const publication = finiteHandoff
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-finite-handoff-e085c30f/r2-publication.json"
+  : "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-common-cause-f7d237bf/r2-publication.json";
 const mode = process.argv.includes("--preflight") ? "PREFLIGHT" : process.argv.includes("--apply") ? "APPLY" : "";
 const outputPath = resolve(option("output") || ".");
 const planPath = option("plan") ? resolve(option("plan")) : "";
@@ -110,7 +119,8 @@ if (agentRelease.release_id !== item.releaseId || agentRelease.artifact_sha256 !
   throw new Error("P38_GATEWAY_COMMON_CAUSE_AGENT_RELEASE_MISMATCH");
 
 const manifest = JSON.parse(execFileSync("unzip", ["-p", bundle,
-  "gateway_remediation_common_cause_recovery.json"],
+  finiteHandoff ? "gateway_remediation_finite_stream_handoff.json" :
+    "gateway_remediation_common_cause_recovery.json"],
 { encoding: "utf8", timeout: 15_000, maxBuffer: 16_384 }));
 const trusted = loadPinnedEdgeReleaseKeys({ registryPath: PROTECTED_EDGE_TRUST_REGISTRY_PATH }).trustedPublicKeys;
 const publicationProof = JSON.parse(readFileSync(publication, "utf8"));
@@ -167,12 +177,12 @@ const rollout = JSON.parse(psql(`select jsonb_build_object(
   'new_status',(select o.status from public.observer_edge_rollouts o join public.observer_edge_releases r on r.id=o.release_id where r.release_id='${item.releaseId}'),
   'new_cohort',(select o.cohort_percent from public.observer_edge_rollouts o join public.observer_edge_releases r on r.id=o.release_id where r.release_id='${item.releaseId}'),
   'new_targets',(select o.target_filters from public.observer_edge_rollouts o join public.observer_edge_releases r on r.id=o.release_id where r.release_id='${item.releaseId}'),
-  'prior_status',(select o.status from public.observer_edge_rollouts o join public.observer_edge_releases r on r.id=o.release_id where r.release_id='${item.rollbackReleaseId}'),
+  'prior_status',(select o.status from public.observer_edge_rollouts o join public.observer_edge_releases r on r.id=o.release_id where r.release_id='${predecessorReleaseId}'),
   'broad_active',(select count(*) from public.observer_edge_rollouts where status='ACTIVE' and cohort_percent<>0),
   'managed_phase',(select metadata->>'home_qa_phase' from public.video_gateway_device_enrollments where gateway_id='${item.deviceId}'),
   'managed_identity',(select identity_scheme from public.video_gateway_device_enrollments where gateway_id='${item.deviceId}'),
   'fresh_proof',(select count(*) from public.video_gateway_device_enrollments e join public.observer_managed_device_credentials c on c.enrollment_id=e.id and c.credential_version=e.credential_version where e.gateway_id='${item.deviceId}' and e.lifecycle_state='ACTIVE' and e.status='delivered' and e.active_runtime_instance_id is not null and e.last_seen_at>=now()-interval '2 minutes' and exists(select 1 from public.observer_managed_device_auth_nonces n where n.enrollment_id=e.id and n.credential_version=e.credential_version and n.observed_at>=now()-interval '2 minutes')));`));
-if (rollout.devices !== 2 || rollout.releases !== 12 || rollout.new_status !== "DRAFT" ||
+if (rollout.devices !== 2 || rollout.releases !== (finiteHandoff ? 13 : 12) || rollout.new_status !== "DRAFT" ||
   rollout.new_cohort !== 0 ||
   JSON.stringify(rollout.new_targets) !== JSON.stringify({ explicit_device_ids: [item.deviceId] }) ||
   rollout.prior_status !== "PAUSED" || rollout.broad_active !== 0 ||
@@ -222,12 +232,12 @@ const plan = { protocol: "observer-push38-gateway-common-cause-recovery-activati
   connector_release_id: connectorCurrent.release_id,
   gateway_runtime_samples: gatewaySamples, connector_runtime_samples: connectorSamples,
   dvr_truth: { expected: 10, source_available: 8, upstream_unavailable: 2, empty: 6 },
-  actions: ["PAUSE_OTHER_GATEWAY_ROLLOUTS", "ACTIVATE_EXACT_GATEWAY_SESSION_ROLLOUT",
+  actions: ["PAUSE_OTHER_GATEWAY_ROLLOUTS", "ACTIVATE_EXACT_GATEWAY_REMEDIATION_ROLLOUT",
     "OTA_AGENT_DISCOVERS", "SHORT_LIVED_R2_DOWNLOAD", "SIGNED_INSTALL", "HEALTH_GATE",
     "PROMOTE_OR_EXISTING_MANAGER_ROLLBACK"], runtime_writes: 0 };
 if (mode === "PREFLIGHT") {
   const evidenceSha = persist(plan);
-  console.log(JSON.stringify({ status: "GATEWAY_SESSION_PREFLIGHT_PASS",
+  console.log(JSON.stringify({ status: finiteHandoff ? "GATEWAY_FINITE_HANDOFF_PREFLIGHT_PASS" : "GATEWAY_SESSION_PREFLIGHT_PASS",
     evidence_sha256: evidenceSha, release_id: item.releaseId, exact_device: true,
     broad_cohort: false, dvr_progressing: gatewaySamples.at(-1).progressing, runtime_writes: 0 }));
   process.exit(0);
@@ -265,6 +275,7 @@ const result = { ...plan, mode: "APPLY", applied_at: new Date().toISOString(),
   exact_rollout_active: true, broad_cohort: false, ota_agent_owns_install: true,
   functional_runtime_changed_by_command: false, runtime_writes: 0 };
 const evidenceSha = persist(result);
-console.log(JSON.stringify({ status: "EXACT_GATEWAY_COMMON_CAUSE_ROLLOUT_ACTIVE",
+console.log(JSON.stringify({ status: finiteHandoff ? "EXACT_GATEWAY_FINITE_HANDOFF_ROLLOUT_ACTIVE" :
+  "EXACT_GATEWAY_COMMON_CAUSE_ROLLOUT_ACTIVE",
   evidence_sha256: evidenceSha, release_id: item.releaseId, exact_device: true,
   broad_cohort: false, ota_agent_owns_install: true, runtime_writes: 0 }));
