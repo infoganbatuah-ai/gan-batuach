@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-09-24T12:15:00+03:00",
+  "updatedAt": "2026-09-24T12:45:00+03:00",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -9372,31 +9372,33 @@
       "sourceCommits": [
         "8c5eb45090552a793d0fb08ea1ee6ca2d6e6731c",
         "b253d7486d622b0f0c7df5d0074524da36077ba1",
-        "2553a385b5532aa19d656399de195ef75785d6d2"
+        "2553a385b5532aa19d656399de195ef75785d6d2",
+        "1753ea3cea948fdcad3bc39b523277d0a442e669"
       ],
-      "state": "PUSHED_REMOTE",
+      "state": "LOCAL_VERIFIED",
       "preservation": {
         "remoteVerified": true,
         "remoteRefs": [
-          "origin/codex/ux-implement-04-children-classrooms@2553a385b5532aa19d656399de195ef75785d6d2"
+          "origin/codex/ux-implement-04-children-classrooms@1753ea3cea948fdcad3bc39b523277d0a442e669",
+          "origin/integration/development@fad78a6b42d14753c5b277cbdc5de2ed364969fc"
         ],
-        "validatedSourceCommit": "2553a385b5532aa19d656399de195ef75785d6d2"
+        "validatedSourceCommit": "1753ea3cea948fdcad3bc39b523277d0a442e669"
       },
       "validation": {
-        "status": "PASS_VISUAL_AND_FUNCTIONAL_BRANCH_GATES",
+        "status": "PASS_VISUAL_FUNCTIONAL_EXACT_HEAD_REQUIRED_CHECKS_AND_POST_MERGE_CUMULATIVE_VALIDATION",
         "evidence": [
           "GAN_BATUACH_UX04_CHILDREN_CLASSROOMS_CHILD_PROFILE_IMPLEMENTATION.md",
           "GAN_BATUACH_UX04_VISUAL_QA_REPORT.md",
           "qa-evidence/ux-implement-04/SHA256SUMS"
         ],
-        "limits": "Visual and full-stack evidence uses isolated synthetic identities only. Required exact-head GitHub checks and cumulative post-merge Development verification remain pending. This Development unit is not Production release authorization."
+        "limits": "All nine required GitHub checks passed on exact PR head 1753ea3cea948fdcad3bc39b523277d0a442e669. Post-merge Development health, local Supabase, every synthetic role dashboard and UX-04 focused regressions passed on fad78a6b42d14753c5b277cbdc5de2ed364969fc. The optional extended route sweep was stopped after three passing Parent routes to yield machine resources to concurrent Home Edge qualification; it is not used as PASS evidence. This Development integration is not Production release authorization."
       },
       "integration": {
-        "status": "PENDING_CHECKS",
+        "status": "INTEGRATED_DEVELOPMENT",
         "base": "integration/development",
-        "commit": null,
+        "commit": "fad78a6b42d14753c5b277cbdc5de2ed364969fc",
         "pullRequest": 136,
-        "requiredChecks": "PENDING"
+        "requiredChecks": "PASS_ALL_REQUIRED_EXACT_HEAD"
       },
       "dependencies": {
         "status": "UX_IMPLEMENT_03_INTEGRATED",
@@ -9406,12 +9408,12 @@
       },
       "migrations": [],
       "migrationOrder": [],
-      "localVerification": "PASS_UX04_FOCUSED_6_OF_6_CLASSROOM_CAPACITY_6_OF_6_ENROLLMENT_LIFECYCLE_7_OF_7_ENROLLMENT_ACTIVATION_8_OF_8_TUITION_3_OF_3_DOCUMENTS_6_OF_6_CHILD_DISCOVERY_5_OF_5_MANAGER_PARENT_23_OF_23_ATTENDANCE_PICKUP_14_CHECKS_ROLE_API_MATRIX_18_OF_18_ROLE_BROWSER_ALL_PERSONAS_TYPECHECK_LINT_ZERO_REGRESSIONS_PRODUCTION_BUILD_529_PAGES_DOMAIN_30_OF_30_SECURITY_10_OF_10_MIGRATIONS_243_RELEASE_CONTRACT_DEVELOPMENT_DRIFT_VISUAL_26_CAPTURES",
-      "releaseEligibility": "VALIDATED_DEVELOPMENT_CANDIDATE_PRODUCTION_NOT_AUTHORIZED",
+      "localVerification": "PASS_POST_MERGE_UX04_FOCUSED_6_OF_6_CLASSROOM_CAPACITY_6_OF_6_ENROLLMENT_LIFECYCLE_7_OF_7_ENROLLMENT_ACTIVATION_8_OF_8_TUITION_3_OF_3_DOCUMENTS_6_OF_6_CHILD_DISCOVERY_5_OF_5_MANAGER_PARENT_23_OF_23_ATTENDANCE_PICKUP_14_CHECKS_ROLE_API_MATRIX_18_OF_18_ROLE_BROWSER_ALL_16_PERSONAS_TYPECHECK_LINT_ZERO_REGRESSIONS_PRODUCTION_BUILD_529_PAGES_DOMAIN_30_OF_30_SECURITY_10_OF_10_MIGRATIONS_243_RELEASE_CONTRACT_DEVELOPMENT_DRIFT_VISUAL_26_CAPTURES_HEALTH_200_SUPABASE_OK",
+      "releaseEligibility": "DEVELOPMENT_COMPLETE_PRODUCTION_NOT_AUTHORIZED",
       "productionDeployment": {
         "status": "NOT_DEPLOYED"
       },
-      "nextAction": "Wait for all exact-head checks on PR #136, merge only after PASS, then run cumulative Development verification. Do not merge to main or deploy Production."
+      "nextAction": "UX-IMPLEMENT-04 is complete in Development. Stop before UX-IMPLEMENT-05; Production and main remain unchanged."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
