@@ -1,209 +1,149 @@
-import { DashboardShell } from "@/components/dashboard-shell";
-import { israelTodayDateKey } from "@/lib/domain/israel-date";
-import { DashboardFilterChip } from "@/components/dashboard-filter-chip";
-import { ChildrenProfileCards } from "@/components/people-profile-cards";
+import Link from "next/link";
+import { AlertTriangle, Baby, CheckCircle2, ChevronLeft, CircleDot, Filter, GraduationCap, MoreHorizontal, Plus, Search, UsersRound } from "lucide-react";
 import { Avatar } from "@/components/avatar";
-import { ChildStatusActions } from "@/components/child-status-actions";
+import { ClassroomManagementForm } from "@/components/classroom-management-actions";
+import { DashboardShell } from "@/components/dashboard-shell";
 import { GardenChildCreatePanel } from "@/components/garden-child-create-panel";
-import { requireRole } from "@/lib/auth";
+import { TeacherAppFrame, TeacherEmptyState } from "@/components/teacher-app-ui";
+import { StatusChip } from "@/components/gan-batuach-design-system";
+import { getManagementGardenContext } from "@/lib/management/garden-context";
 import { createClient } from "@/lib/supabase/server";
-import { Baby, CheckCircle2, Heart, Moon, Plus, Smile, Utensils, UsersRound } from "lucide-react";
-import {
-  TeacherActionTile,
-  TeacherAiInsight,
-  TeacherAppFrame,
-  TeacherCompactItem,
-  TeacherCompactList,
-  TeacherEmptyState,
-  TeacherFilterPills,
-  TeacherPageTitle,
-  TeacherSection,
-  TeacherStatCard,
-  TeacherStatsGrid
-} from "@/components/teacher-app-ui";
+import { notFound } from "next/navigation";
 
-const filterLabels: Record<string, string> = {
-  "change-clothes": "ילדים שחסר להם בגדים להחלפה",
-  "parent-requests": "ילדים עם פניות הורים פתוחות",
-  "health": "ילדים עם דגש בריאותי",
-  "payments": "ילדים עם תשלום לטיפול"
+type Params = { section?: string; q?: string; status?: string; classroom?: string; new?: string };
+type Classroom = {
+  id: string; name: string; age_group_key: string; age_group_label?: string | null;
+  min_age_months?: number | null; max_age_months?: number | null; capacity_limit?: number | null; status: string;
+  child_classroom_assignments?: Array<{ child_id: string; is_current: boolean }>;
+  staff_classroom_assignments?: Array<{ id: string; staff_id: string; status: string; responsibility: string }>;
+};
+type ChildView = Record<string, unknown> & {
+  id: string;
+  full_name: string;
+  birth_date: string | null;
+  photo_url?: string | null;
+  face_image_url?: string | null;
+  currentClassroomId: string;
+  classroomName: string;
+  attendanceStatus: string;
+  checkInAt: string | null;
+  checkOutAt: string | null;
+  pickupName: string | null;
+  enrollmentStatus: string;
 };
 
-export default async function GardenChildrenPage({ searchParams }: { searchParams: Promise<{ view?: string; filter?: string; missing?: string; new?: string }> }) {
-  const { profile } = await requireRole(["manager", "owner"]);
-  const params = await searchParams;
-  const supabase = await createClient();
-  const gardenId = profile.garden_id ?? "";
-  const today = israelTodayDateKey();
-  const [childrenRes, attendanceRes, journalsRes, incidentsRes, feeGroupsRes, requestsRes, gardenRes] = await Promise.all([
-    supabase.from("children" as any).select("*, child_classroom_assignments(classroom_id,is_current,classrooms(name,age_group_label))").eq("garden_id", gardenId).order("full_name"),
-    supabase.from("attendance" as any).select("child_id, status, pickup_authorized, pickup_name, note").eq("garden_id", gardenId).eq("attendance_date", today),
-    supabase.from("child_daily_journals" as any).select("child_id, meals, sleep_summary, mood, bathroom, incidents, notes_to_parents, photo_urls").eq("garden_id", gardenId).eq("journal_date", today),
-    supabase.from("incident_reports" as any).select("child_id, id").eq("garden_id", gardenId).neq("status", "closed"),
-    supabase.from("kindergarten_fee_groups" as any).select("id, group_name, monthly_fee").eq("garden_id", gardenId),
-    supabase.from("parent_child_requests" as any).select("id, child_id, status").eq("garden_id", gardenId).in("status", ["new", "viewed"]),
-    supabase.from("gardens" as any).select("name").eq("id", gardenId).maybeSingle()
-  ]);
-  if (childrenRes.error) console.error("[garden-children] children query failed", { garden_id: gardenId, error: childrenRes.error.message });
-  if (attendanceRes.error) console.error("[garden-children] attendance query failed", { garden_id: gardenId, error: attendanceRes.error.message });
-  if (journalsRes.error) console.error("[garden-children] journals query failed", { garden_id: gardenId, error: journalsRes.error.message });
-  if (incidentsRes.error) console.error("[garden-children] incidents query failed", { garden_id: gardenId, error: incidentsRes.error.message });
-  if (feeGroupsRes.error) console.error("[garden-children] fee groups query failed", { garden_id: gardenId, error: feeGroupsRes.error.message });
-  if (requestsRes.error) console.error("[garden-children] requests query failed", { garden_id: gardenId, error: requestsRes.error.message });
-  if (gardenRes.error) console.error("[garden-children] garden query failed", { garden_id: gardenId, error: gardenRes.error.message });
-  const attendanceByChild = new Map((attendanceRes.data ?? []).map((row: any) => [row.child_id, row]));
-  const journalByChild = new Map((journalsRes.data ?? []).map((row: any) => [row.child_id, row]));
-  const feeGroups = (feeGroupsRes.data ?? []) as any[];
-  const feeById = new Map(feeGroups.map((group) => [group.id, group]));
-  const incidentCount = new Map<string, number>();
-  for (const incident of (incidentsRes.data ?? []) as any[]) incidentCount.set(incident.child_id, (incidentCount.get(incident.child_id) ?? 0) + 1);
-  const requestCount = new Map<string, number>();
-  for (const request of (requestsRes.data ?? []) as any[]) requestCount.set(request.child_id, (requestCount.get(request.child_id) ?? 0) + 1);
-  const allRows = ((childrenRes.data ?? []) as any[]).map((child) => {
-    const currentClassroom = (child.child_classroom_assignments ?? []).find((assignment: { is_current?: boolean; classrooms?: { name?: string; age_group_label?: string } }) => assignment.is_current)?.classrooms;
-    const attendance = attendanceByChild.get(child.id) as any;
-    const journal = journalByChild.get(child.id) as any;
-    const group = feeById.get(child.payment_group_id) ?? feeGroups.find((item) => item.group_name === child.age_group || item.group_name === child.classroom);
-    const hasSpecialArrangement = child.custom_monthly_fee !== null && child.custom_monthly_fee !== undefined && (!child.arrangement_valid_until || new Date(child.arrangement_valid_until).getTime() >= Date.now());
-    const meals = Array.isArray(journal?.meals) ? journal.meals.map((meal: any) => meal.text ?? meal).join(", ") : "";
-    return {
-      ...child,
-      classroom: currentClassroom?.name ?? child.classroom,
-      classroom_age_group: currentClassroom?.age_group_label ?? child.age_group,
-      fee_group_name: group?.group_name ?? child.classroom ?? child.age_group ?? "ללא קבוצת תשלום",
-      group_monthly_fee: group?.monthly_fee ?? child.monthly_fee,
-      actual_monthly_fee: hasSpecialArrangement ? Number(child.custom_monthly_fee ?? 0) : Number(group?.monthly_fee ?? child.monthly_fee ?? 0),
-      has_special_arrangement: hasSpecialArrangement,
-      open_parent_requests: requestCount.get(child.id) ?? 0,
-      attendance_status: attendance?.status ?? "not_updated",
-      pickup_status: attendance?.pickup_name ? `נאסף על ידי ${attendance.pickup_name}` : "ממתין לאיסוף",
-      child_file_label: child.permanent_child_file_id ? "תיק ילד קבוע" : "תיק מעבר",
-      pickup_authorized: attendance?.pickup_authorized,
-      meals_text: meals,
-      sleep_summary: journal?.sleep_summary,
-      mood: journal?.mood,
-      notes_to_parents: journal?.notes_to_parents,
-      photo_urls: journal?.photo_urls ?? [],
-      incident_count: incidentCount.get(child.id) ?? 0
-    };
-  });
-  const rows = allRows.filter((row) => {
-    if (params.missing === "meal") return !row.meals_text;
-    if (params.missing === "sleep") return !row.sleep_summary;
-    if (params.filter === "change-clothes") return row.has_change_clothes === false;
-    if (params.filter === "parent-requests") return Number(row.open_parent_requests ?? 0) > 0;
-    if (params.filter === "health") return Boolean(row.allergies || row.medical_notes || row.regular_medications);
-    if (params.filter === "payments") return ["overdue", "unpaid", "partial", "failed", "not_transferred"].includes(row.payment_status);
-    if (params.view === "attention") return Boolean(row.allergies || row.medical_notes || row.has_change_clothes === false || row.open_parent_requests || ["overdue", "unpaid", "partial", "failed", "not_transferred"].includes(row.payment_status) || row.attendance_status === "not_updated" || row.incident_count);
-    return true;
-  });
-  const label = params.missing === "meal" ? "ילדים ללא עדכון ארוחה" : params.missing === "sleep" ? "ילדים ללא עדכון שינה" : filterLabels[params.filter ?? ""] ?? (params.view === "attention" ? "ילדים שדורשים תשומת לב" : null);
-  const emptyTitle = params.missing === "meal" ? "אין כרגע ילדים ללא עדכון ארוחה" : params.missing === "sleep" ? "אין כרגע ילדים ללא עדכון שינה" : label ? `אין כרגע ${label}` : undefined;
+const attendanceLabels: Record<string, { label: string; tone: "success" | "warning" | "danger" | "muted" }> = {
+  present: { label: "נוכח/ת", tone: "success" }, checked_in: { label: "נוכח/ת", tone: "success" },
+  absent: { label: "נעדר/ת", tone: "danger" }, departed: { label: "נאסף/ה", tone: "muted" },
+  checked_out: { label: "נאסף/ה", tone: "muted" }, late: { label: "הגעה מאוחרת", tone: "warning" },
+  not_updated: { label: "טרם סומן", tone: "warning" }
+};
 
-  const present = rows.filter((row) => row.attendance_status === "present").length;
-  const missing = rows.filter((row) => row.attendance_status === "not_updated").length;
-  const allergyCount = rows.filter((row) => row.allergies).length;
-  const openIncidents = rows.reduce((sum, row) => sum + Number(row.incident_count ?? 0), 0);
-  const selected = rows[0];
-  const pendingRows = rows.filter((row) => row.status === "pending_manager_approval" || row.status === "missing_info" || row.status === "request_missing_details" || row.status === "rejected");
+function ageText(value?: string | null) {
+  if (!value) return "גיל לא צוין";
+  const months = Math.max(0, Math.floor((Date.now() - new Date(value).getTime()) / 2_629_800_000));
+  return months >= 12 ? `${Math.floor(months / 12)}.${months % 12} שנים` : `${months} חודשים`;
+}
+
+function timeText(value?: string | null) {
+  if (!value) return "—";
+  return new Date(value).toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" });
+}
+
+export default async function GardenChildrenPage({ searchParams }: { searchParams: Promise<Params> }) {
+  const access = await getManagementGardenContext();
+  if (!access.allowed) notFound();
+  const { profile } = access.session;
+  const params = await searchParams;
+  const section = params.section === "classrooms" ? "classrooms" : "children";
+  const supabase = await createClient();
+  const gardenId = access.gardenId;
+  const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Jerusalem", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+  const [childrenRes, attendanceRes, classroomsRes, reservationsRes, enrollmentsRes, gardenRes] = await Promise.all([
+    supabase.from("children" as never).select("*, child_classroom_assignments(id,classroom_id,is_current,assigned_at,ended_at,classrooms(id,name,age_group_label))" as any).eq("garden_id", gardenId).order("full_name"),
+    supabase.from("attendance" as never).select("child_id,status,check_in_at,check_out_at,pickup_name" as never).eq("garden_id", gardenId).eq("attendance_date", today),
+    supabase.from("classrooms" as never).select("id,name,age_group_key,age_group_label,min_age_months,max_age_months,capacity_limit,status,sort_order,child_classroom_assignments(child_id,is_current),staff_classroom_assignments(id,staff_id,status,responsibility)" as never).eq("garden_id", gardenId).order("sort_order").order("name"),
+    supabase.from("classroom_seat_reservations" as never).select("id,classroom_id,status,expires_at" as never).eq("garden_id", gardenId).eq("status", "active"),
+    supabase.from("child_kindergarten_enrollments" as never).select("child_id,status,start_date,end_date" as never).eq("garden_id", gardenId).order("created_at", { ascending: false }),
+    supabase.from("gardens" as never).select("name,operational_timezone" as never).eq("id", gardenId).maybeSingle()
+  ]);
+  const sourceErrors = [childrenRes.error, attendanceRes.error, classroomsRes.error, reservationsRes.error, enrollmentsRes.error, gardenRes.error].filter(Boolean);
+  const attendanceByChild = new Map(((attendanceRes.data ?? []) as unknown as Array<Record<string, unknown>>).map((row) => [String(row.child_id), row]));
+  const enrollmentByChild = new Map<string, Record<string, unknown>>();
+  for (const row of (enrollmentsRes.data ?? []) as unknown as Array<Record<string, unknown>>) if (!enrollmentByChild.has(String(row.child_id))) enrollmentByChild.set(String(row.child_id), row);
+  const classrooms = (classroomsRes.data ?? []) as unknown as Classroom[];
+  const classroomById = new Map(classrooms.map((room) => [room.id, room]));
+  const rawChildren = (childrenRes.data ?? []) as unknown as Array<Record<string, unknown>>;
+  const children: ChildView[] = rawChildren.map((child) => {
+    const assignments = (child.child_classroom_assignments ?? []) as Array<Record<string, unknown>>;
+    const currentAssignment = assignments.find((assignment) => assignment.is_current === true);
+    const classroom = currentAssignment?.classrooms as Record<string, unknown> | undefined;
+    const attendance = attendanceByChild.get(String(child.id));
+    const enrollment = enrollmentByChild.get(String(child.id));
+    return { ...child, id: String(child.id), full_name: String(child.full_name ?? "ילד/ה"), birth_date: typeof child.birth_date === "string" ? child.birth_date : null, currentClassroomId: String(currentAssignment?.classroom_id ?? ""), classroomName: String(classroom?.name ?? child.classroom ?? child.age_group ?? "ללא כיתה"), attendanceStatus: String(attendance?.status ?? "not_updated"), checkInAt: typeof attendance?.check_in_at === "string" ? attendance.check_in_at : null, checkOutAt: typeof attendance?.check_out_at === "string" ? attendance.check_out_at : null, pickupName: typeof attendance?.pickup_name === "string" ? attendance.pickup_name : null, enrollmentStatus: String(enrollment?.status ?? child.status ?? "לא הוגדר") };
+  });
+  const query = (params.q ?? "").trim().toLocaleLowerCase("he");
+  const filteredChildren = children.filter((child) => (!query || `${child.full_name ?? ""} ${child.classroomName}`.toLocaleLowerCase("he").includes(query)) && (!params.classroom || child.currentClassroomId === params.classroom) && (!params.status || params.status === "all" || child.attendanceStatus === params.status || child.enrollmentStatus === params.status));
+  const activeReservations = (reservationsRes.data ?? []) as unknown as Array<Record<string, unknown>>;
+  const selectedClassroom = params.classroom ? classroomById.get(params.classroom) : undefined;
+  const classroomCards = classrooms.map((room) => {
+    const occupied = (room.child_classroom_assignments ?? []).filter((assignment) => assignment.is_current).length;
+    const reserved = activeReservations.filter((reservation) => String(reservation.classroom_id) === room.id && (!reservation.expires_at || new Date(String(reservation.expires_at)).getTime() > Date.now())).length;
+    const limit = room.capacity_limit ?? null;
+    return { ...room, occupied, reserved, available: limit == null ? null : Math.max(limit - occupied - reserved, 0), overCapacity: limit != null && occupied + reserved > limit };
+  });
+  const classDetail = selectedClassroom ? classroomCards.find((room) => room.id === selectedClassroom.id) : undefined;
+  const classChildren = classDetail ? children.filter((child) => child.currentClassroomId === classDetail.id) : [];
+  const present = children.filter((child) => ["present", "checked_in"].includes(child.attendanceStatus)).length;
+  const departed = children.filter((child) => ["departed", "checked_out"].includes(child.attendanceStatus) || child.checkOutAt).length;
+  const pending = children.filter((child) => !["active", "approved"].includes(String(child.enrollmentStatus))).length;
+  const gardenName = String((gardenRes.data as Record<string, unknown> | null)?.name ?? "הגן הפעיל").replace(/\[DEMO\]/g, "").trim();
 
   return (
-    <DashboardShell role="manager" title="ילדים" appHome>
-      <TeacherAppFrame
-        title={`בוקר טוב, ${profile.full_name?.replace(/\[DEMO\]/gi, "").trim().split(" ")[0] || "מנהלת"}`}
-        subtitle={(gardenRes.data as any)?.name ?? "ניהול ילדי הגן"}
-        avatarUrl={(profile as any).profile_image_url ?? null}
-        active="children"
-      >
-        <TeacherPageTitle
-          icon={UsersRound}
-          title="ילדי הגן"
-          subtitle="ניהול כיתה · צפייה · מעקב · תקשורת"
-          action={<a className="button primary" href="/dashboard/garden/children?new=1"><Plus size={18} /> הוסף ילד/ה</a>}
-        />
-
-        <TeacherStatsGrid>
-          <TeacherStatCard title="סך הילדים" value={rows.length} hint="פעילים וממתינים" icon={Smile} tone="blue" />
-          <TeacherStatCard title="נוכחים היום" value={present} hint={`${Math.max(rows.length, 1)} סך הכל`} icon={CheckCircle2} tone="green" href="/dashboard/garden/attendance" />
-          <TeacherStatCard title="נחים עכשיו" value={rows.filter((row) => row.sleep_summary).length} hint="מעקב יומי" icon={Moon} tone="orange" />
-          <TeacherStatCard title="זקוקים לתשומת לב" value={allergyCount + openIncidents} hint="בריאות / אירוע" icon={Heart} tone={allergyCount + openIncidents ? "red" : "green"} />
-        </TeacherStatsGrid>
-
-        <TeacherFilterPills
-          items={[
-            { label: "סינון", href: "/dashboard/garden/children", active: !label },
-            { label: "סטטוס: הכל", href: "/dashboard/garden/children" },
-            { label: "קבוצת גיל: הכל", href: "/dashboard/garden/children" },
-            { label: "קבוצה: כל הגן", href: "/dashboard/garden/children" },
-            { label: "דורש תשומת לב", href: "/dashboard/garden/children?view=attention", active: params.view === "attention" }
-          ]}
-        />
-
-        <DashboardFilterChip label={label} clearHref="/dashboard/garden/children" isEmpty={rows.length === 0} emptyTitle={emptyTitle} emptyText="כל הילדים הרלוונטיים כבר טופלו במסנן הזה. אפשר לנקות סינון כדי לראות את כל הילדים." />
-
-        {params.new === "1" ? <GardenChildCreatePanel gardenId={gardenId} defaultOpen /> : null}
-
-        <section className="teacher-children-layout">
-          <TeacherSection title="רשימת ילדים" action={<a href="/dashboard/garden/children">צפייה בכל הילדים</a>}>
-            {rows.length ? (
-              <TeacherCompactList>
-                {rows.slice(0, 7).map((child, index) => (
-                  <TeacherCompactItem
-                    key={child.id}
-                    title={child.full_name ?? "ילד/ה"}
-                    subtitle={`${child.child_age ? `${child.child_age} שנים` : child.birth_date ?? "גיל לא צוין"} · ${child.classroom ?? child.age_group ?? "קבוצה לא הוגדרה"}`}
-                    tone={child.attendance_status === "present" ? "green" : child.allergies ? "red" : index === 0 ? "purple" : "blue"}
-                    avatar={child.photo_url ?? child.face_image_url}
-                    href={`/dashboard/garden/children/${child.id}`}
-                    meta={child.attendance_status === "present" ? "נוכח" : child.attendance_status === "not_updated" ? "לא עודכן" : "מעקב"}
-                  />
-                ))}
-              </TeacherCompactList>
-            ) : (
-              <TeacherEmptyState title="עדיין אין ילדים ברשימה" text="הוסיפי ילד או אשרי בקשת הצטרפות כדי להתחיל." />
-            )}
-          </TeacherSection>
-
-          <TeacherSection title={selected?.full_name ?? "כרטיס ילד"} subtitle={selected ? `${selected.child_age ?? ""} · ${selected.classroom ?? selected.age_group ?? "גן"}` : "בחרי ילד מהרשימה"}>
-            {selected ? (
-              <div className="teacher-child-mini-card">
-                <Avatar name={selected.full_name} src={selected.photo_url ?? selected.face_image_url} size="lg" />
-                <div className="teacher-child-mini-actions">
-                  <span><Utensils size={18} /> אוכל</span>
-                  <span><Moon size={18} /> שינה</span>
-                  <span><Heart size={18} /> בריאות</span>
-                  <span><Baby size={18} /> התנהגות</span>
-                </div>
-                <div className="teacher-child-info-grid">
-                  <span>תאריך לידה <b>{selected.birth_date ? new Date(selected.birth_date).toLocaleDateString("he-IL") : "-"}</b></span>
-                  <span>קבוצה <b>{selected.classroom ?? selected.age_group ?? "-"}</b></span>
-                  <span>מחנכת <b>{profile.full_name ?? "מנהלת הגן"}</b></span>
-                </div>
-                <p className="teacher-child-note">{selected.notes_to_parents || selected.important_notes || "הכל נראה מצוין. מצב רוח טוב ושיתוף פעולה."}</p>
-                <a className="button primary" href={`/dashboard/garden/children/${selected.id}`}>צפייה בפרופיל המלא</a>
-              </div>
-            ) : (
-              <TeacherEmptyState title="אין ילד להצגה" text="ברגע שיתווסף ילד, כרטיס מקוצר יופיע כאן." />
-            )}
-          </TeacherSection>
-        </section>
-
-        <TeacherAiInsight metric={rows.length ? `+${Math.max(1, 100 - missing)}%` : "+0%"}>
-          {allergyCount ? "יש ילדים עם דגש רפואי. מומלץ לבדוק את הכרטיסים לפני פעילות חצר." : "הקבוצה נראית מאוזנת להיום. אפשר לעדכן ארוחות ושינה מהירה."}
-        </TeacherAiInsight>
-
-        <details className="teacher-management-details">
-          <summary>ניהול מלא ופרטים מתקדמים</summary>
-          <div>
-            <section className="manager-report-row"><span>חסרי ארוחה <b>{rows.filter((row) => !row.meals_text).length}</b></span><span>חסרי שינה <b>{rows.filter((row) => !row.sleep_summary).length}</b></span><span>פניות הורים <b>{rows.reduce((sum, row) => sum + Number(row.open_parent_requests ?? 0), 0)}</b></span><span>תשלומים לטיפול <b>{rows.filter((row) => ["overdue", "unpaid", "partial", "failed", "not_transferred"].includes(row.payment_status)).length}</b></span></section>
-
-      <section className="dashboard-section">
-        <div className="section-heading"><h2>ממתינים לאישור</h2><p>בקשות שהורים השלימו ומחכות להחלטה.</p></div>
-        {pendingRows.length === 0 ? <div className="empty-state"><strong>אין ילדים ממתינים לאישור</strong><span>כאשר הורה יוסיף ילד נוסף או ישלים כרטיס, הבקשה תופיע כאן לאישור מנהלת.</span></div> : <div className="people-card-grid">{pendingRows.map((child) => <article className="person-card child-profile-card" key={`pending-${child.id}`}><div className="person-card-top"><Avatar name={child.full_name} src={child.photo_url ?? child.face_image_url} size="lg" /><div><span className="pill warn">{child.status}</span><h3>{child.full_name}</h3><p>{child.child_age ? `גיל ${child.child_age}` : child.birth_date ?? "תאריך לידה חסר"} · {child.requested_age_group ?? child.age_group ?? child.classroom ?? "קבוצה לא הוגדרה"}</p><p>תחילת גן: {child.requested_start_date ? new Date(child.requested_start_date).toLocaleDateString("he-IL") : "לא צוינה"}</p></div></div><div className="profile-badge-row"><span className={child.allergies ? "pill bad" : "pill good"}>אלרגיות: {child.allergies || "אין"}</span><span className="pill">קופה: {child.hmo ?? "-"}</span><span className="pill">מורשי איסוף: {Array.isArray(child.pickup_authorized) ? child.pickup_authorized.length : 0}</span><span className={child.parent_photo_url || child.mother_photo_url || child.father_photo_url ? "pill good" : "pill warn"}>תמונת הורה</span></div><div className="gallery-preview approval-photo-preview">{[child.photo_url ?? child.face_image_url, child.parent_photo_url, child.mother_photo_url, child.father_photo_url].filter(Boolean).map((url: string) => <img src={url} alt="תמונת רישום" key={url} />)}</div><details className="profile-expand"><summary>פרטי בקשה</summary><div className="profile-details-grid"><section><h4>הורה</h4><p>{child.mother_name ?? child.father_name ?? child.lead_parent_name ?? "לא צוין"}</p><p>{child.mother_phone ?? child.father_phone ?? child.lead_parent_phone ?? child.emergency_phone ?? "אין טלפון"}</p><p>ת״ז אם: {child.mother_identity_number ?? "-"}</p><p>ת״ז אב: {child.father_identity_number ?? "-"}</p><p>כתובת: {child.address ?? "-"}</p></section><section><h4>בריאות והיכרות</h4><p>{child.important_notes || child.medical_notes || "אין הערה מיוחדת"}</p><p>אוהב/ת: {child.likes_notes || "-"}</p><p>פחות מתחבר/ת: {child.dislikes_notes || "-"}</p><p>תרופות: {child.regular_medications || "אין"}</p></section><section><h4>איסוף ותמונות</h4><p>מורשי איסוף: {Array.isArray(child.pickup_authorized) ? child.pickup_authorized.map((item: any) => item.name).join(", ") : "-"}</p><div className="gallery-preview">{Array.isArray(child.pickup_authorized) ? child.pickup_authorized.map((item: any) => item.photo_url).filter(Boolean).map((url: string) => <img src={url} alt="מורשה איסוף" key={url} />) : null}</div><p>תמונת ילד: {child.photo_url || child.face_image_url ? "הועלתה" : "חסרה"}</p><p>תמונת הורה: {child.parent_photo_url || child.mother_photo_url || child.father_photo_url ? "הועלתה" : "חסרה"}</p></section></div></details><ChildStatusActions childId={child.id} /></article>)}</div>}
-      </section>
-      <ChildrenProfileCards children={rows.filter((row) => row.status === "active" || row.status === "approved")} />
-          </div>
-        </details>
+    <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="ילדים וכיתות" appHome>
+      <TeacherAppFrame role={profile.role === "owner" ? "owner" : "manager"} title="ילדים וכיתות" subtitle={gardenName} avatarUrl={(profile as { profile_image_url?: string | null }).profile_image_url ?? null} active="children">
+        <div className="ux04-domain-workspace">
+          <header className="ux04-workspace-header">
+            <div><span className="ux04-eyebrow"><UsersRound size={17} /> מרחב ילדים</span><h2>{section === "classrooms" ? "כיתות" : "ילדים"}</h2><p>{section === "classrooms" ? `${classrooms.length} כיתות פעילות והקיבולת שלהן` : `${children.length} ילדים ב${gardenName}`}</p></div>
+            <Link className="button primary" href={section === "classrooms" ? "/dashboard/garden/children?section=classrooms&new=classroom" : "/dashboard/garden/children?new=1"}><Plus size={18} />{section === "classrooms" ? "הוספת כיתה" : "הוספת ילד/ה"}</Link>
+          </header>
+          <nav className="ux04-domain-tabs" aria-label="ילדים, כיתות ורישום">
+            <Link className={section === "children" ? "active" : ""} href="/dashboard/garden/children"><Baby size={18} /> ילדים</Link>
+            <Link className={section === "classrooms" ? "active" : ""} href="/dashboard/garden/children?section=classrooms"><GraduationCap size={18} /> כיתות</Link>
+            <Link href="/dashboard/garden/enrollment-requests"><CircleDot size={18} /> בקשות רישום</Link>
+          </nav>
+          {sourceErrors.length ? <div className="ux04-source-error"><AlertTriangle size={20} /><span><b>חלק מהמידע אינו זמין כרגע</b><small>לא הוצגו ערכי אפס במקום נתונים שנכשלו. אפשר לרענן ולנסות שוב.</small></span></div> : null}
+          {section === "children" ? (
+            <>
+              <section className="ux04-summary-strip" aria-label="סיכום ילדים"><span className="blue"><b>{children.length}</b><small>סה״כ ילדים</small></span><span className="green"><b>{present}</b><small>נוכחים היום</small></span><span className="purple"><b>{departed}</b><small>נאספו היום</small></span><span className={pending ? "orange" : "green"}><b>{pending}</b><small>רישום דורש טיפול</small></span></section>
+              <form className="ux04-filter-bar" action="/dashboard/garden/children">
+                <label className="ux04-search"><Search size={20} /><input name="q" defaultValue={params.q ?? ""} placeholder="חיפוש לפי שם ילד/ה או כיתה" /></label>
+                <label><Filter size={18} /><select name="classroom" defaultValue={params.classroom ?? ""}><option value="">כל הכיתות</option>{classrooms.map((room) => <option value={room.id} key={room.id}>{room.name}</option>)}</select></label>
+                <label><CheckCircle2 size={18} /><select name="status" defaultValue={params.status ?? "all"}><option value="all">כל הסטטוסים</option><option value="present">נוכחים</option><option value="absent">נעדרים</option><option value="not_updated">טרם סומנו</option><option value="active">רישום פעיל</option></select></label>
+                <button className="button secondary" type="submit">החלת סינון</button>
+              </form>
+              {params.new === "1" ? <GardenChildCreatePanel gardenId={gardenId} defaultOpen /> : null}
+              {filteredChildren.length ? (
+                <section className="ux04-list-surface">
+                  <div className="ux04-children-table" role="table" aria-label="רשימת ילדים">
+                    <div className="ux04-table-head" role="row"><span>שם</span><span>גיל</span><span>כיתה</span><span>סטטוס היום</span><span>שעת הגעה</span><span>איסוף</span><span>פעולות</span></div>
+                    {filteredChildren.map((child) => {
+                      const attendance = attendanceLabels[child.attendanceStatus] ?? attendanceLabels.not_updated;
+                      return <article className="ux04-child-row" role="row" key={String(child.id)}><Link className="ux04-child-identity" href={`/dashboard/garden/children/${child.id}`}><Avatar name={String(child.full_name ?? "ילד/ה")} src={typeof child.photo_url === "string" ? child.photo_url : typeof child.face_image_url === "string" ? child.face_image_url : undefined} size="sm" /><span><b>{String(child.full_name ?? "ילד/ה")}</b><small>{child.enrollmentStatus === "active" ? "רישום פעיל" : child.enrollmentStatus}</small></span></Link><span>{ageText(typeof child.birth_date === "string" ? child.birth_date : null)}</span><Link href={child.currentClassroomId ? `/dashboard/garden/children?section=classrooms&classroom=${child.currentClassroomId}` : "/dashboard/garden/children?section=classrooms"}>{child.classroomName}</Link><StatusChip tone={attendance.tone}>{attendance.label}</StatusChip><span dir="ltr">{timeText(child.checkInAt)}</span><span>{child.pickupName ?? (child.checkOutAt ? timeText(child.checkOutAt) : "טרם נאסף/ה")}</span><Link className="ux04-more-button" href={`/dashboard/garden/children/${child.id}`} aria-label={`פתיחת כרטיס ${child.full_name}`}><MoreHorizontal size={20} /></Link></article>;
+                    })}
+                  </div>
+                  <div className="ux04-mobile-child-list">{filteredChildren.map((child) => { const attendance = attendanceLabels[child.attendanceStatus] ?? attendanceLabels.not_updated; return <Link className="ux04-mobile-child-card" href={`/dashboard/garden/children/${child.id}`} key={`mobile-${child.id}`}><Avatar name={String(child.full_name ?? "ילד/ה")} src={typeof child.photo_url === "string" ? child.photo_url : undefined} size="sm" /><span><b>{String(child.full_name ?? "ילד/ה")}</b><small>{ageText(typeof child.birth_date === "string" ? child.birth_date : null)} · {child.classroomName}</small></span><StatusChip tone={attendance.tone}>{attendance.label}</StatusChip><b className="ux04-mobile-time" dir="ltr">{timeText(child.checkInAt)}</b><ChevronLeft size={20} /></Link>; })}</div>
+                </section>
+              ) : <TeacherEmptyState title={query || params.classroom || params.status ? "לא נמצאו ילדים בסינון הזה" : "עדיין אין ילדים בגן"} text="אפשר לנקות את הסינון, להוסיף ילד/ה או לאשר בקשת רישום." action={<Link className="button primary" href="/dashboard/garden/children?new=1">הוספת ילד/ה</Link>} />}
+            </>
+          ) : (
+            <>
+              {params.new === "classroom" ? <ClassroomManagementForm /> : null}
+              <section className="ux04-classroom-grid">{classroomCards.map((room, index) => { const ratio = room.capacity_limit ? Math.min(100, Math.round(((room.occupied + room.reserved) / room.capacity_limit) * 100)) : 0; return <Link className={`ux04-classroom-card tone-${(index % 4) + 1}`} href={`/dashboard/garden/children?section=classrooms&classroom=${room.id}`} key={room.id}><div className="ux04-classroom-art"><GraduationCap size={34} /><span>{room.age_group_label ?? "כיתת גן"}</span></div><header><div><h3>{room.name}</h3><p>{room.age_group_label ?? room.age_group_key}</p></div><MoreHorizontal size={20} /></header><div className="ux04-capacity-line"><span style={{ width: `${ratio}%` }} /></div><p><b>{room.occupied}{room.reserved ? ` + ${room.reserved}` : ""}</b><span>{room.capacity_limit ? `מתוך ${room.capacity_limit}` : "קיבולת טרם הוגדרה"}</span></p><footer><StatusChip tone={room.overCapacity ? "danger" : room.available === 0 ? "warning" : "success"}>{room.overCapacity ? "חריגה" : room.available == null ? "נדרשת הגדרה" : room.available === 0 ? "מלא" : `${room.available} מקומות`}</StatusChip><span>{(room.staff_classroom_assignments ?? []).filter((assignment) => assignment.status === "active").length} אנשי צוות</span></footer></Link>; })}</section>
+              {classDetail ? <section className="ux04-classroom-detail"><header><div><span className="ux04-eyebrow">כיתה נבחרת</span><h3>{classDetail.name}</h3><p>{classDetail.age_group_label ?? classDetail.age_group_key} · {classDetail.occupied} ילדים · {classDetail.reserved} מקומות שמורים</p></div><StatusChip tone={classDetail.overCapacity ? "danger" : classDetail.available === 0 ? "warning" : "success"}>{classDetail.overCapacity ? "חריגה מקיבולת" : classDetail.available == null ? "קיבולת לא הוגדרה" : `${classDetail.available} מקומות פנויים`}</StatusChip></header><div className="ux04-classroom-detail-grid"><div><h4>ילדי הכיתה</h4>{classChildren.length ? classChildren.map((child) => <Link className="ux04-class-child" href={`/dashboard/garden/children/${child.id}`} key={String(child.id)}><Avatar name={String(child.full_name ?? "ילד/ה")} src={typeof child.photo_url === "string" ? child.photo_url : undefined} size="sm" /><span><b>{String(child.full_name ?? "ילד/ה")}</b><small>{ageText(typeof child.birth_date === "string" ? child.birth_date : null)}</small></span><StatusChip tone={(attendanceLabels[child.attendanceStatus] ?? attendanceLabels.not_updated).tone}>{(attendanceLabels[child.attendanceStatus] ?? attendanceLabels.not_updated).label}</StatusChip></Link>) : <p className="ux04-empty-copy">אין ילדים משויכים לכיתה.</p>}</div><ClassroomManagementForm classroom={classDetail} /></div></section> : classrooms.length ? <p className="ux04-selection-hint">בחרו כיתה כדי לראות ילדים, צוות, קיבולת ועריכה.</p> : <TeacherEmptyState title="עדיין אין כיתות" text="צרו כיתה ראשונה. קבוצת גיל מסווגת את הכיתה אך אינה מחליפה אותה." action={<Link className="button primary" href="/dashboard/garden/children?section=classrooms&new=classroom">הוספת כיתה</Link>} />}
+            </>
+          )}
+        </div>
       </TeacherAppFrame>
     </DashboardShell>
   );
