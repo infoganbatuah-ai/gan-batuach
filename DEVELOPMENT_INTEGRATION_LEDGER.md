@@ -428,3 +428,15 @@ uses the server-authorized current Garden instead of legacy
 `profiles.garden_id`. Required PR checks and post-merge cumulative Development
 verification remain pending. No migration, paid provider, Production, `main`
 or Digital Observer core change is included. UX-IMPLEMENT-03 has not started.
+
+UX-IMPLEMENT-02 Development integration closure (2026-09-24): PR #132 passed
+all required checks on exact head `6a8aaedc6df02a003d1c365d90869fbfd4c58cae`
+and merged to `integration/development` at
+`fd3fd866dc13f2f81f12a14b1be21afd0ce7d00e`. A clean integration-closure
+branch at that merge passed the focused onboarding 11/11, Parent/Manager 23/23,
+Owner/Teacher 6/6, multi-Garden 9/9, Classrooms 10/10, capacity 6/6, documents
+6/6, signed invitations 6/6, Parent acceptance 5/5, subscriptions 5/5,
+typecheck, Domain 30/30, Security 10/10, migration health 243/243 and the release
+contract. Visual QA remains 22/22 Desktop/Mobile captures with zero partial or
+failed surfaces. No migration, paid provider, Production, `main` or Digital
+Observer core change occurred. UX-IMPLEMENT-03 has not started.
