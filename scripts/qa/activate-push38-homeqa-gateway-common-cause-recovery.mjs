@@ -1,0 +1,337 @@
+// Activate the exact AWS-signed Gateway common-cause recovery remediation only
+// after a protected, pinned preflight. The installed OTA agent remains the
+// sole downloader/installer and signed 0.2.11 remains the rollback target.
+import "../../services/video-gateway/http-runtime.mjs";
+import { execFileSync } from "node:child_process";
+import { createHash } from "node:crypto";
+import { request as httpsRequest } from "node:https";
+import { chmodSync, existsSync, lstatSync, readFileSync, realpathSync, statfsSync,
+  statSync, writeFileSync } from "node:fs";
+import { homedir } from "node:os";
+import { join, resolve, sep } from "node:path";
+import { verifyEdgeUpdateManifest } from "../../services/video-gateway/edge-update-contract.mjs";
+import { assertEdgeReleaseObjectUrl } from "../../services/video-gateway/edge-release-object.mjs";
+import { loadPinnedEdgeReleaseKeys,
+  PROTECTED_EDGE_TRUST_REGISTRY_PATH } from "../../services/video-gateway/edge-release-trust.mjs";
+import { EdgeUpdateManager } from "../../services/video-gateway/edge-update-manager.mjs";
+import { PUSH38_GATEWAY_COMMON_CAUSE_RECOVERY
+} from "../../services/video-gateway/push38-home-qa-gateway-common-cause-recovery.mjs";
+import { PUSH38_GATEWAY_FINITE_STREAM_HANDOFF
+} from "../../services/video-gateway/push38-home-qa-gateway-finite-stream-handoff.mjs";
+import { PUSH38_GATEWAY_SUPERVISOR_RECOVERY
+} from "../../services/video-gateway/push38-home-qa-gateway-supervisor-recovery.mjs";
+import { PUSH38_CONNECTOR_LIVENESS_CONTINUITY as connectorItem
+} from "../../services/video-gateway/push38-home-qa-connector-liveness-continuity.mjs";
+
+const root = join(homedir(), "Library/Application Support/Digital Observer/observer-gateway/ota");
+const connectorRoot = join(homedir(), "Library/Application Support/Digital Observer/observer-connector/ota");
+const configPath = join(root, "agent-config.json");
+const agentReleasePath = join(root, "agent/agent-release.json");
+const restrictedRoot = `${realpathSync("/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted")}${sep}`;
+const option = name => process.argv.find(value => value.startsWith(`--${name}=`))?.slice(name.length + 3) || "";
+const finiteHandoff = process.argv.includes("--finite-stream-handoff");
+const supervisorRecovery = process.argv.includes("--supervisor-recovery");
+if (finiteHandoff && supervisorRecovery) throw new Error("P38_GATEWAY_COMMON_CAUSE_MODE_INVALID");
+const item = supervisorRecovery ? PUSH38_GATEWAY_SUPERVISOR_RECOVERY :
+  finiteHandoff ? PUSH38_GATEWAY_FINITE_STREAM_HANDOFF : PUSH38_GATEWAY_COMMON_CAUSE_RECOVERY;
+const predecessorReleaseId = (finiteHandoff || supervisorRecovery) ? item.supersedesReleaseId : item.rollbackReleaseId;
+const bundleValue = option("bundle");
+if (!bundleValue) throw new Error("P38_GATEWAY_COMMON_CAUSE_BUNDLE_REQUIRED");
+const bundle = resolve(bundleValue);
+const artifact = supervisorRecovery
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-supervisor-recovery-4324fa11/gateway-runtime.tar.gz"
+  : finiteHandoff
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-finite-handoff-e085c30f/gateway-runtime.tar.gz"
+  : "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-common-cause-f7d237bf/gateway-runtime.tar.gz";
+const publication = supervisorRecovery
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-supervisor-recovery-4324fa11/r2-publication.json"
+  : finiteHandoff
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-finite-handoff-e085c30f/r2-publication.json"
+  : "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-common-cause-f7d237bf/r2-publication.json";
+const mode = process.argv.includes("--preflight") ? "PREFLIGHT" : process.argv.includes("--apply") ? "APPLY" : "";
+const outputPath = resolve(option("output") || ".");
+const planPath = option("plan") ? resolve(option("plan")) : "";
+const planSha = option("plan-sha256");
+const shadowEvidencePath = option("shadow-evidence") ? resolve(option("shadow-evidence")) : "";
+const warmHandoffEvidencePath =
+  "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-dvr-warm-handoff-shadow-20260924T003032Z.json";
+if (!mode || outputPath === resolve(".") || !outputPath.startsWith(restrictedRoot) || existsSync(outputPath))
+  throw new Error("P38_GATEWAY_COMMON_CAUSE_MODE_OR_OUTPUT_INVALID");
+
+function sha(value) { return createHash("sha256").update(value).digest("hex"); }
+function protectedFile(path) {
+  if (!path || !existsSync(path) || !realpathSync(path).startsWith(restrictedRoot) ||
+    lstatSync(path).isSymbolicLink() || !lstatSync(path).isFile() || (statSync(path).mode & 0o077) !== 0)
+    throw new Error("P38_GATEWAY_COMMON_CAUSE_PROTECTED_EVIDENCE_REQUIRED");
+  return readFileSync(path);
+}
+function protectedLocalFile(path) {
+  if (!path || !existsSync(path) || lstatSync(path).isSymbolicLink() || !lstatSync(path).isFile() ||
+    realpathSync(path) !== resolve(path) || (statSync(path).mode & 0o077) !== 0)
+    throw new Error("P38_GATEWAY_COMMON_CAUSE_LOCAL_FILE_UNSAFE");
+  return readFileSync(path);
+}
+function persist(value) {
+  writeFileSync(outputPath, `${JSON.stringify(value, null, 2)}\n`, { mode: 0o600, flag: "wx" });
+  chmodSync(outputPath, 0o600);
+  return sha(readFileSync(outputPath));
+}
+function docker(args, input) {
+  return execFileSync("docker", ["--context", "colima-push38t", ...args], {
+    encoding: "utf8", timeout: 45_000, input,
+    stdio: [input ? "pipe" : "ignore", "pipe", "pipe"]
+  }).trim();
+}
+function psql(sql) {
+  return docker(["exec", "supabase_db_gan-batuach-push38t", "psql", "-X", "-A", "-t",
+    "-U", "postgres", "-d", "postgres", "-c", sql]);
+}
+function service(label) {
+  const text = execFileSync("/bin/launchctl", ["print", `gui/${process.getuid()}/${label}`],
+    { encoding: "utf8", timeout: 10_000, stdio: ["ignore", "pipe", "pipe"] });
+  return { running: text.includes("state = running"),
+    pid: Number(/\bpid = (\d+)/.exec(text)?.[1] || 0) || null };
+}
+function tlsProbe(path) {
+  return new Promise((accept, reject) => {
+    const req = httpsRequest({ hostname: "127.0.0.1", port: 3101, path, method: "GET",
+      ca: readFileSync(config.qaTlsCaPath), rejectUnauthorized: true, timeout: 8_000 }, response => {
+      response.resume(); response.on("end", () => accept(response.statusCode));
+    });
+    req.on("timeout", () => req.destroy(new Error("P38_GATEWAY_COMMON_CAUSE_TLS_TIMEOUT")));
+    req.on("error", reject); req.end();
+  });
+}
+async function healthSample(port, label) {
+  const live = service(label);
+  const response = await fetch(`http://127.0.0.1:${port}/health`, { signal: AbortSignal.timeout(12_000) });
+  if (!response.ok) throw new Error("P38_GATEWAY_COMMON_CAUSE_RUNTIME_UNAVAILABLE");
+  const health = await response.json();
+  return { pid: live.pid, running: live.running, ok: health.ok === true,
+    status: health.status || null, assigned: health.lastDiscovery?.assignedCount ??
+      health.lastDiscovery?.channelCount ?? null, connected: health.lastDiscovery?.connectedCount ?? null,
+    failed: health.lastDiscovery?.failedAssignedCount ?? null,
+    empty: health.lastDiscovery?.unassignedCount ?? null,
+    progressing: health.mediaHeartbeat?.progressingRelays ?? null,
+    stalled: health.mediaHeartbeat?.stalledRelays ?? null,
+    rotations: health.recorderSessionLifecycle?.rotations ?? null,
+    last_rotation_reason: health.recorderSessionLifecycle?.last_rotation_reason ?? null };
+}
+
+function verifiedShadowEvidence(path, { recent = false, warmHandoff = false, expectedRelease = null } = {}) {
+  const value = JSON.parse(protectedFile(path));
+  const checkpoints = Array.isArray(value.checkpoints) ? value.checkpoints : [];
+  const endedAt = Date.parse(value.ended_at || "");
+  const streamProof = checkpoints.length >= (warmHandoff ? 20 : 4) && checkpoints.every(point =>
+    point.shadow?.http === 200 && point.shadow?.discovery?.assigned === 1 &&
+    point.shadow?.discovery?.connected === 1 && point.shadow?.discovery?.failed === 0 &&
+    point.shadow?.media?.progressing === 1 && point.shadow?.media?.stalled === 0);
+  if (value.contract !== "observer-push38-bounded-dvr-shadow-v1" || value.result !== "PASS" ||
+    value.mode !== "READ_ONLY_ONE_CHANNEL_SHADOW" || value.channel !== 1 ||
+    value.endpoint_redacted !== true || value.credentials_recorded !== false ||
+    value.cloud_access_enabled !== false || value.runtime_mutation !== false ||
+    (expectedRelease && (value.signed_release?.release_id !== expectedRelease.releaseId ||
+      value.signed_release?.artifact_sha256 !== expectedRelease.digest ||
+      value.signed_release?.signature_verified !== true || value.signed_release?.artifact_verified !== true)) ||
+    !Number.isFinite(value.duration_ms) || value.duration_ms < (warmHandoff ? 6 * 60_000 : 60_000) ||
+    !Number.isFinite(endedAt) || (recent && (endedAt > Date.now() || Date.now() - endedAt > 10 * 60_000)) ||
+    !streamProof || (warmHandoff &&
+      (checkpoints.at(-1)?.shadow?.media?.lifecycle?.warmHandoffs < 1 ||
+        checkpoints.at(-1)?.shadow?.media?.lifecycle?.warmHandoffFailures !== 0)))
+    throw new Error("P38_GATEWAY_FINITE_HANDOFF_SHADOW_EVIDENCE_INVALID");
+  return { sha256: sha(protectedFile(path)), ended_at: value.ended_at,
+    duration_ms: value.duration_ms, checkpoints: checkpoints.length };
+}
+
+for (const path of [bundle, artifact, publication]) protectedFile(path);
+const config = JSON.parse(protectedLocalFile(configPath).toString("utf8"));
+if (config.profile !== item.profile || config.deviceId !== item.deviceId || config.channel !== "HOME_QA" ||
+  config.managedRoot !== root || config.port !== 18082 || config.configVersion !== 1 ||
+  !config.secretDir || !config.qaTlsCaPath || !/^[a-f0-9]{64}$/.test(config.qaTlsCaSha256 || ""))
+  throw new Error("P38_GATEWAY_COMMON_CAUSE_CONFIG_MISMATCH");
+if (sha(protectedLocalFile(config.qaTlsCaPath)) !== config.qaTlsCaSha256)
+  throw new Error("P38_GATEWAY_COMMON_CAUSE_TLS_PIN_MISMATCH");
+const agentRelease = JSON.parse(protectedLocalFile(agentReleasePath));
+if (agentRelease.release_id !== item.releaseId || agentRelease.artifact_sha256 !== item.digest)
+  throw new Error("P38_GATEWAY_COMMON_CAUSE_AGENT_RELEASE_MISMATCH");
+
+const manifest = JSON.parse(execFileSync("unzip", ["-p", bundle,
+  supervisorRecovery ? "gateway_remediation_supervisor_recovery.json" :
+    finiteHandoff ? "gateway_remediation_finite_stream_handoff.json" :
+    "gateway_remediation_common_cause_recovery.json"],
+{ encoding: "utf8", timeout: 15_000, maxBuffer: 16_384 }));
+const trusted = loadPinnedEdgeReleaseKeys({ registryPath: PROTECTED_EDGE_TRUST_REGISTRY_PATH }).trustedPublicKeys;
+const publicationProof = JSON.parse(readFileSync(publication, "utf8"));
+const expectedObject = `home-qa/${item.releaseId}/${item.digest}.tar.gz`;
+if (!verifyEdgeUpdateManifest(manifest, trusted).ok || manifest.release_id !== item.releaseId ||
+  manifest.version !== item.version || manifest.build_sha !== item.buildSha ||
+  manifest.artifact_sha256 !== item.digest || manifest.artifact_size !== item.size ||
+  manifest.profile !== item.profile || manifest.channel !== "HOME_QA" ||
+  JSON.stringify(manifest.rollout?.explicit_device_ids) !== JSON.stringify([item.deviceId]) ||
+  manifest.rollout?.cohort_percent !== 0 || manifest.signing_key_id !== "observer-kms-release-v1" ||
+  manifest.compatibility?.minimum_current_version !== item.rollbackVersion ||
+  manifest.compatibility?.maximum_current_version !== item.rollbackVersion ||
+  assertEdgeReleaseObjectUrl(manifest,
+    "https://693f824a750afcc264fe6ee58c8a86ab.r2.cloudflarestorage.com") !== expectedObject ||
+  statSync(artifact).size !== item.size || sha(readFileSync(artifact)) !== item.digest ||
+  publicationProof.release_id !== item.releaseId || publicationProof.object_key !== expectedObject ||
+  publicationProof.artifact_sha256 !== item.digest || publicationProof.bytes !== item.size ||
+  publicationProof.round_trip !== "PASS" || publicationProof.anonymous_access_denied !== true)
+  throw new Error("P38_GATEWAY_COMMON_CAUSE_RELEASE_INVALID");
+
+const labels = JSON.parse(docker(["inspect", "--format", "{{json .Config.Labels}}",
+  "supabase_db_gan-batuach-push38t"]));
+const network = docker(["network", "inspect", "push38t-loopback", "--format",
+  "{{index .Options \"com.docker.network.bridge.host_binding_ipv4\"}}"]).trim();
+if (labels["com.supabase.cli.project"] !== "gan-batuach-push38t" || network !== "127.0.0.1")
+  throw new Error("P38_GATEWAY_COMMON_CAUSE_DATABASE_NOT_ISOLATED");
+
+const manager = new EdgeUpdateManager({ root, trustedPublicKeys: trusted,
+  device: { deviceId: item.deviceId, profile: item.profile, platform: "darwin",
+    architecture: "arm64", channel: "HOME_QA", currentVersion: item.rollbackVersion,
+    configVersion: 1, revoked: false }, adapter: {}, healthCheck: async () => ({}) });
+const current = manager.current(), knownGood = manager.knownGood();
+if (current.release_id !== item.rollbackReleaseId ||
+  !knownGood.some(entry => entry.release_id === item.rollbackReleaseId &&
+    entry.artifact_sha256 === current.artifact_sha256) ||
+  manager.quarantine().some(entry => entry.release_id === item.releaseId))
+  throw new Error("P38_GATEWAY_COMMON_CAUSE_ROLLBACK_STATE_INVALID");
+manager.verifySlot(current);
+
+const connectorManager = new EdgeUpdateManager({ root: connectorRoot, trustedPublicKeys: trusted,
+  device: { deviceId: connectorItem.deviceId, profile: connectorItem.profile, platform: "darwin",
+    architecture: "arm64", channel: "HOME_QA", currentVersion: connectorItem.version,
+    configVersion: 4, revoked: false }, adapter: {}, healthCheck: async () => ({}) });
+const connectorCurrent = connectorManager.current();
+if (connectorCurrent.release_id !== connectorItem.releaseId ||
+  connectorCurrent.artifact_sha256 !== connectorItem.digest ||
+  !connectorManager.knownGood().some(entry => entry.release_id === connectorItem.releaseId))
+  throw new Error("P38_GATEWAY_COMMON_CAUSE_CONNECTOR_PREREQUISITE_INVALID");
+connectorManager.verifySlot(connectorCurrent);
+
+const rollout = JSON.parse(psql(`select jsonb_build_object(
+  'devices',(select count(*) from public.video_gateway_device_enrollments),
+  'releases',(select count(*) from public.observer_edge_releases where channel='HOME_QA'),
+  'new_status',(select o.status from public.observer_edge_rollouts o join public.observer_edge_releases r on r.id=o.release_id where r.release_id='${item.releaseId}'),
+  'new_cohort',(select o.cohort_percent from public.observer_edge_rollouts o join public.observer_edge_releases r on r.id=o.release_id where r.release_id='${item.releaseId}'),
+  'new_targets',(select o.target_filters from public.observer_edge_rollouts o join public.observer_edge_releases r on r.id=o.release_id where r.release_id='${item.releaseId}'),
+  'prior_status',(select o.status from public.observer_edge_rollouts o join public.observer_edge_releases r on r.id=o.release_id where r.release_id='${predecessorReleaseId}'),
+  'broad_active',(select count(*) from public.observer_edge_rollouts where status='ACTIVE' and cohort_percent<>0),
+  'managed_phase',(select metadata->>'home_qa_phase' from public.video_gateway_device_enrollments where gateway_id='${item.deviceId}'),
+  'managed_identity',(select identity_scheme from public.video_gateway_device_enrollments where gateway_id='${item.deviceId}'),
+  'fresh_proof',(select count(*) from public.video_gateway_device_enrollments e join public.observer_managed_device_credentials c on c.enrollment_id=e.id and c.credential_version=e.credential_version where e.gateway_id='${item.deviceId}' and e.lifecycle_state='ACTIVE' and e.status='delivered' and e.active_runtime_instance_id is not null and e.last_seen_at>=now()-interval '2 minutes' and exists(select 1 from public.observer_managed_device_auth_nonces n where n.enrollment_id=e.id and n.credential_version=e.credential_version and n.observed_at>=now()-interval '2 minutes')));`));
+if (rollout.devices !== 2 || rollout.releases !== (supervisorRecovery ? 17 : finiteHandoff ? 15 : 12) || rollout.new_status !== "DRAFT" ||
+  rollout.new_cohort !== 0 ||
+  JSON.stringify(rollout.new_targets) !== JSON.stringify({ explicit_device_ids: [item.deviceId] }) ||
+  rollout.prior_status !== "PAUSED" || rollout.broad_active !== 0 ||
+  rollout.managed_phase !== "MANAGED_IDENTITY_VERIFIED" || rollout.managed_identity !== "ED25519_V1" ||
+  rollout.fresh_proof !== 1)
+  throw new Error("P38_GATEWAY_COMMON_CAUSE_HOME_QA_STATE_INVALID");
+
+const gatewayService = service("com.ganbatuach.video-gateway");
+const gatewayAgent = service("com.ganbatuach.video-gateway.ota-agent");
+const connectorService = service("com.ganbatuach.software-connector.tapo");
+if (!gatewayService.running || !gatewayService.pid || !gatewayAgent.running || !gatewayAgent.pid ||
+  !connectorService.running || !connectorService.pid)
+  throw new Error("P38_GATEWAY_COMMON_CAUSE_SERVICE_MANAGER_INVALID");
+const gatewaySamples = [], connectorSamples = [];
+for (let index = 0; index < 3; index += 1) {
+  gatewaySamples.push(await healthSample(18082, "com.ganbatuach.video-gateway"));
+  connectorSamples.push(await healthSample(18083, "com.ganbatuach.software-connector.tapo"));
+  if (index < 2) await new Promise(resolveWait => setTimeout(resolveWait, 2_000));
+}
+const gatewayPidStable = gatewaySamples.every(sample => sample.running && sample.pid) &&
+  new Set(gatewaySamples.map(sample => sample.pid)).size === 1;
+const normalRuntimeTruth = gatewaySamples.every(sample => sample.status === "degraded" || sample.status === "healthy") &&
+  gatewaySamples.every(sample =>
+    sample.assigned === 10 && sample.connected === 8 && sample.failed === 2 && sample.empty === 6 &&
+    sample.progressing === 8 && sample.stalled === 0);
+const finiteCommonCauseTruth = (finiteHandoff || supervisorRecovery) && gatewaySamples.every(sample => sample.status === "degraded" &&
+  sample.assigned === 10 && sample.connected === 0 && sample.failed === 10 && sample.empty === 6 &&
+  sample.progressing === 0 && sample.stalled === 0);
+let shadowEvidence = null, warmHandoffEvidence = null;
+if (finiteCommonCauseTruth) {
+  if (!shadowEvidencePath) throw new Error("P38_GATEWAY_FINITE_HANDOFF_SHADOW_EVIDENCE_REQUIRED");
+  shadowEvidence = verifiedShadowEvidence(shadowEvidencePath, { recent: true,
+    expectedRelease: supervisorRecovery ? item : null });
+  warmHandoffEvidence = verifiedShadowEvidence(warmHandoffEvidencePath, { warmHandoff: true });
+}
+if (!gatewayPidStable || (!normalRuntimeTruth && !finiteCommonCauseTruth))
+  throw new Error("P38_GATEWAY_COMMON_CAUSE_RUNTIME_TRUTH_INVALID");
+if (connectorSamples.some(sample => !sample.running || !sample.pid || !sample.ok ||
+  sample.assigned !== 1 || sample.progressing !== 1 || sample.stalled !== 0) ||
+  new Set(connectorSamples.map(sample => sample.pid)).size !== 1)
+  throw new Error("P38_GATEWAY_COMMON_CAUSE_CONNECTOR_HEALTH_INVALID");
+const disk = statfsSync(root);
+if (Number(disk.bavail) * Number(disk.bsize) < item.size * 3)
+  throw new Error("P38_GATEWAY_COMMON_CAUSE_DISK_INSUFFICIENT");
+const [anonymous, wrongRoute] = await Promise.all([
+  tlsProbe(`/api/video-gateway/edge-updates?platform=darwin&architecture=arm64&profile=PHYSICAL_GATEWAY&current_version=${encodeURIComponent(item.rollbackVersion)}&config_version=1&channel=HOME_QA`),
+  tlsProbe("/api/video-gateway/not-exposed")
+]);
+if (anonymous !== 401 || wrongRoute !== 404)
+  throw new Error("P38_GATEWAY_COMMON_CAUSE_INGRESS_INVALID");
+
+const plan = { protocol: "observer-push38-gateway-common-cause-recovery-activation-v1",
+  generated_at: new Date().toISOString(), mode: "PREFLIGHT", release_id: item.releaseId,
+  version: item.version, build_sha: item.buildSha, artifact_sha256: item.digest,
+  artifact_size: item.size, r2_object_key: expectedObject, exact_device_id: item.deviceId,
+  cohort_percent: 0, signed_manifest: "PASS", live_trust: "PASS", r2_round_trip: "PASS",
+  private_r2: "PASS", managed_device_auth: "PASS", https_control: "PASS",
+  current_release_id: current.release_id, rollback_target: item.rollbackReleaseId,
+  runtime_pid: gatewayService.pid, ota_agent_pid: gatewayAgent.pid,
+  connector_release_id: connectorCurrent.release_id,
+  gateway_runtime_samples: gatewaySamples, connector_runtime_samples: connectorSamples,
+  gateway_runtime_truth: normalRuntimeTruth ? "8_OF_8_PROGRESSING" : "FINITE_STREAM_COMMON_CAUSE_SHADOW_QUALIFIED",
+  ...(shadowEvidence ? { current_shadow_evidence: shadowEvidence,
+    warm_handoff_evidence: warmHandoffEvidence } : {}),
+  dvr_truth: { expected: 10, source_available: 8, upstream_unavailable: 2, empty: 6 },
+  actions: ["PAUSE_OTHER_GATEWAY_ROLLOUTS", "ACTIVATE_EXACT_GATEWAY_REMEDIATION_ROLLOUT",
+    "OTA_AGENT_DISCOVERS", "SHORT_LIVED_R2_DOWNLOAD", "SIGNED_INSTALL", "HEALTH_GATE",
+    "PROMOTE_OR_EXISTING_MANAGER_ROLLBACK"], runtime_writes: 0 };
+if (mode === "PREFLIGHT") {
+  const evidenceSha = persist(plan);
+  console.log(JSON.stringify({ status: supervisorRecovery ? "GATEWAY_SUPERVISOR_RECOVERY_PREFLIGHT_PASS" :
+    finiteHandoff ? "GATEWAY_FINITE_HANDOFF_PREFLIGHT_PASS" : "GATEWAY_SESSION_PREFLIGHT_PASS",
+    evidence_sha256: evidenceSha, release_id: item.releaseId, exact_device: true,
+    broad_cohort: false, dvr_progressing: gatewaySamples.at(-1).progressing, runtime_writes: 0 }));
+  process.exit(0);
+}
+
+const savedBytes = protectedFile(planPath);
+if (!/^[a-f0-9]{64}$/.test(planSha) || sha(savedBytes) !== planSha)
+  throw new Error("P38_GATEWAY_COMMON_CAUSE_PLAN_PIN_MISMATCH");
+const saved = JSON.parse(savedBytes);
+if (saved.protocol !== plan.protocol || saved.release_id !== item.releaseId ||
+  saved.artifact_sha256 !== item.digest || saved.current_release_id !== item.rollbackReleaseId ||
+  saved.rollback_target !== item.rollbackReleaseId || saved.runtime_pid !== gatewayService.pid ||
+  saved.ota_agent_pid !== gatewayAgent.pid || Date.now() - Date.parse(saved.generated_at) > 10 * 60_000)
+  throw new Error("P38_GATEWAY_COMMON_CAUSE_PLAN_STALE");
+const sql = `begin;
+  update public.observer_edge_rollouts set status='PAUSED',updated_at=now()
+  where release_id in (select id from public.observer_edge_releases where channel='HOME_QA' and deployment_profile='PHYSICAL_GATEWAY')
+    and status in ('DRAFT','ACTIVE');
+  update public.observer_edge_rollouts set status='ACTIVE',paused_reason=null,updated_at=now()
+  where release_id=(select id from public.observer_edge_releases where release_id='${item.releaseId}')
+    and cohort_percent=0 and target_filters->'explicit_device_ids'=jsonb_build_array('${item.deviceId}');
+  do $$ begin
+    if not exists(select 1 from public.observer_edge_rollouts o join public.observer_edge_releases r on r.id=o.release_id
+      where r.release_id='${item.releaseId}' and o.status='ACTIVE' and o.cohort_percent=0
+      and o.target_filters->'explicit_device_ids'=jsonb_build_array('${item.deviceId}')) or
+      exists(select 1 from public.observer_edge_rollouts where status='ACTIVE' and cohort_percent<>0) or
+      exists(select 1 from public.observer_edge_rollouts o join public.observer_edge_releases r on r.id=o.release_id
+        where r.deployment_profile='PHYSICAL_GATEWAY' and r.release_id<>'${item.releaseId}' and o.status='ACTIVE')
+    then raise exception 'P38_GATEWAY_COMMON_CAUSE_ACTIVATION_VERIFY_FAILED'; end if;
+  end $$;
+commit;`;
+docker(["exec", "-i", "supabase_db_gan-batuach-push38t", "psql", "-X", "-q",
+  "-v", "ON_ERROR_STOP=1", "-U", "postgres", "-d", "postgres"], sql);
+const result = { ...plan, mode: "APPLY", applied_at: new Date().toISOString(),
+  exact_rollout_active: true, broad_cohort: false, ota_agent_owns_install: true,
+  functional_runtime_changed_by_command: false, runtime_writes: 0 };
+const evidenceSha = persist(result);
+console.log(JSON.stringify({ status: supervisorRecovery ? "EXACT_GATEWAY_SUPERVISOR_RECOVERY_ROLLOUT_ACTIVE" :
+  finiteHandoff ? "EXACT_GATEWAY_FINITE_HANDOFF_ROLLOUT_ACTIVE" :
+  "EXACT_GATEWAY_COMMON_CAUSE_ROLLOUT_ACTIVE",
+  evidence_sha256: evidenceSha, release_id: item.releaseId, exact_device: true,
+  broad_cohort: false, ota_agent_owns_install: true, runtime_writes: 0 }));

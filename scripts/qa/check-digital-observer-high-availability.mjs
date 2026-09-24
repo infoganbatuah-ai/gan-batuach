@@ -9,6 +9,7 @@ import { createPostgresAiQueueBackend, POSTGRES_AI_QUEUE_BACKEND } from "../../s
 import { createDurableAiJobQueue } from "../../services/video-gateway/durable-ai-job-queue.mjs";
 import { createAiJob } from "../../services/video-gateway/ai-job-contract.mjs";
 import { createPortableInferenceWorker } from "../../services/video-gateway/portable-inference-worker.mjs";
+import { checkEdgeRuntimeLiveness } from "./check-edge-runtime-liveness.mjs";
 
 const { PGlite } = await import(process.env.HA_PGLITE_MODULE || "@electric-sql/pglite");
 
@@ -29,6 +30,7 @@ const inferWorker = id => createPortableInferenceWorker({ workerId: id, environm
   infer: async value => { await sleep(2); return { detections: [], observation_timestamp: value.observation_timestamp, model_provenance: { model: "ha-fixture", expected_sha256: "ha-v1", runtime: "node" } }; } });
 
 try {
+  await checkEdgeRuntimeLiveness();
   // Stateless API/service load balancing, failure removal and health-gated return.
   const pool = createHealthAwareServicePool({ now, unhealthyAfterMs: 1_000, recoveryPasses: 2, flapLimit: 4, cooldownMs: 500 });
   for (const id of ["api-a", "api-b", "api-c"]) pool.register({ instance_id: id, service: "PRODUCT_API", capabilities: ["READ", "WRITE"], scopes: ["tenant-a", "tenant-b"], health: "HEALTHY", identity: auth(id), metadata: { runtime: "stateless-node" } });
@@ -125,15 +127,22 @@ try {
 
   // Queue/service interruption and worker capacity loss/return under load.
   const queuePath = join(root, "worker-ha.sqlite"); const authorizer = worker => worker.identity?.authenticated === true && worker.identity.revoked !== true;
-  let queue = createDurableAiJobQueue({ databasePath: queuePath, workerAuthorizer: authorizer, policy: { leaseMs: 100, maxJobs: 500 } });
+  // Lease failover is a logical-time contract. A real 110 ms sleep made this
+  // deterministic suite depend on host wall-clock scheduling at the expiry
+  // boundary; advance the injected clock so the exact +101 ms contract is what
+  // the test proves, independent of host pressure.
+  let queueClock = Date.now(); const queueNow = () => queueClock;
+  let queue = createDurableAiJobQueue({ databasePath: queuePath, now: queueNow,
+    workerAuthorizer: authorizer, policy: { leaseMs: 100, maxJobs: 500 } });
   queue.enqueueMany(Array.from({ length: 40 }, () => job())); const dead = { worker_id: "worker-dead", environment: "ISOLATED_PROCESS", capabilities: ["OBJECT_DETECTION"], model_classes: ["GENERAL_OBJECT_DETECTION"], identity: auth("worker-dead") };
   const claimed = queue.claim(dead, { leaseMs: 100 }); assert.ok(claimed?.job); queue.close();
-  queue = createDurableAiJobQueue({ databasePath: queuePath, workerAuthorizer: authorizer, policy: { leaseMs: 100, maxJobs: 500 } }); assert.equal(queue.snapshot().queue_depth, 40, "queue restart preserves pending and claimed work");
+  queue = createDurableAiJobQueue({ databasePath: queuePath, now: queueNow,
+    workerAuthorizer: authorizer, policy: { leaseMs: 100, maxJobs: 500 } }); assert.equal(queue.snapshot().queue_depth, 40, "queue restart preserves pending and claimed work");
   const workers = [inferWorker("worker-a"), inferWorker("worker-b")];
   const capacityLossStarted = performance.now();
   for (let index = 0; index < 8; index++) await workers[0].processOne(queue);
   const degradedDepth = queue.snapshot().queue_depth; assert.ok(degradedDepth >= 32);
-  await sleep(110);
+  queueClock += 101; queue.recover();
   let idle = 0;
   while (idle < 2) { const results = await Promise.all(workers.map(worker => worker.processOne(queue))); idle = results.every(item => item.status === "IDLE") ? idle + 1 : 0; }
   const capacityRecoveryMs = Number((performance.now() - capacityLossStarted).toFixed(3));

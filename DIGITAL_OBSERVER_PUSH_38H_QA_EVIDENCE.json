@@ -1,0 +1,78 @@
+{
+  "protocol": "observer-push38h-qa-evidence-v1",
+  "classification": "ISOLATED_MACOS_QA_AND_READ_ONLY_LIVE_INSPECTION",
+  "canonical_push_38": "NOT_DONE",
+  "live_bootstrap_readiness": false,
+  "source_commit": "269b00e589465e93a52670fd94a2ded946ed5959",
+  "release_store_class": "RESTRICTED_NON_GIT_QA_RELEASE_STORAGE",
+  "signer_key_id": "qa-p38f-ed25519-20260913",
+  "releases": {
+    "gateway": {
+      "id": "qa-p38h-final-gateway-269b00e58946",
+      "version": "0.2.2-p38h",
+      "sha256": "867191be3f4a139981524ccd65b490129c4f9008cb18b00696910c22d24472d9",
+      "health_contract": "observer-edge-health-v1"
+    },
+    "connector": {
+      "id": "qa-p38h-final-connector-269b00e58946",
+      "version": "0.2.2-p38h",
+      "sha256": "f112065d7a691eab4540445056fb2184cccccfda1aab0a460d5bff85a272ffb4",
+      "health_contract": "observer-edge-health-v1",
+      "dmg_sha256": "a7b2cf58a160f3dc6533ce7c2341a9743297e0693194c4a248036d516292f196",
+      "macos_signature": "STRICT_AD_HOC_QA_PASS",
+      "dmg_checksum": "PASS"
+    }
+  },
+  "isolated_tests": {
+    "gateway_full_supervisor_start_restart": "PASS",
+    "connector_full_supervisor_start_restart": "PASS",
+    "gateway_three_forced_crash_recoveries_ms": [5542, 5539, 5273],
+    "connector_three_forced_crash_recoveries_ms": [1458, 6091, 4227],
+    "bootstrap_phase_interrupt_resume": "PASS_BOTH",
+    "bootstrap_preserved_same_runtime_pid_and_version": "PASS_BOTH",
+    "bootstrap_idempotency": "PASS_BOTH",
+    "bootstrap_abort_restores_unmanaged_metadata_and_original_runtime": "PASS_BOTH",
+    "identity_config_queue_source_fixtures": "PRESERVED_BOTH",
+    "signed_bad_update_rollback_exact_known_good": "PASS_BOTH",
+    "final_signed_remediation_upgrade": "PASS_BOTH",
+    "single_supervisor_owned_runtime_listener": "PASS_BOTH",
+    "unsigned_untrusted_tampered_profile_arch_downgrade_rejection": "PASS_BOTH",
+    "connector_post_sign_mutation_rejection": "PASS",
+    "root_pin_rotation_revocation_qa": "PASS",
+    "typecheck": "PASS",
+    "canonical_lint_ci": "PASS_ZERO_REGRESSIONS",
+    "release_contract": "PASS",
+    "canonical_security_suites": "PASS_7_OF_7",
+    "unrestricted_repository_lint": "FAIL_EXISTING_5335_ERRORS_213_WARNINGS"
+  },
+  "live_read_only": {
+    "write_operations": 0,
+    "gateway_baseline_artifact_sha256": "aa57572e873662d65faf241fb503eaec070c444bdcbff751dafe0fa4be89d2ae",
+    "connector_original_baseline_artifact_sha256": "ee82c20a77acb7fd8caf692682569ad53581e9c057b11724845c6d947c5a982a",
+    "gateway_files_matched": 491,
+    "connector_files_matched": 250,
+    "missing_or_changed_files": 0,
+    "service_layout_conflicts": 0,
+    "protected_trust_root_present": false,
+    "final_snapshot_gateway_progressing": 10,
+    "final_snapshot_gateway_expected": 10,
+    "final_snapshot_gateway_empty_slots": 6,
+    "final_snapshot_connector_progressing": 1,
+    "final_snapshot_connector_expected": 1,
+    "intermediate_degraded_snapshots_observed": true,
+    "playback_verified": false,
+    "ai_verified": false
+  },
+  "internal_high_open": [
+    "NO_INSTALLED_UNATTENDED_OTA_AGENT_ENROLLMENT_OR_POLLING_ENTRYPOINT",
+    "PERSISTENT_CRASH_LOOP_ESCALATION_AND_POST_UPDATE_ROLLBACK_NOT_QUALIFIED"
+  ],
+  "external_gaps": [
+    "PRODUCTION_ED25519_RELEASE_KEY_CUSTODY",
+    "APPLE_DEVELOPER_ID_DISTRIBUTION_SIGNING",
+    "APPLE_NOTARIZATION"
+  ],
+  "pre_soak_started": false,
+  "v8_started": false,
+  "pr_28_expected_state": "OPEN_DRAFT_UNMERGED"
+}

@@ -1,0 +1,152 @@
+// Installed OTA process entry point. A separate LaunchAgent owns this process;
+// the existing Gateway/Connector LaunchAgent remains the sole camera supervisor.
+import "./http-runtime.mjs";
+import { existsSync, lstatSync, mkdirSync, readFileSync, realpathSync, writeFileSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { dirname, resolve } from "node:path";
+import { fileURLToPath } from "node:url";
+import { createInstalledEdgeOtaAgent } from "./edge-installed-ota-agent.mjs";
+import { createMacOSInstalledEdgeAdapter } from "./edge-macos-installed-adapter.mjs";
+import { loadPinnedEdgeReleaseKeys, PROTECTED_EDGE_TRUST_REGISTRY_PATH } from "./edge-release-trust.mjs";
+import { createEdgeSecretStoreSync } from "./edge-secret-store-sync.mjs";
+import { edgeHealthGate, edgeRollbackRecoveryGate } from "./edge-update-manager.mjs";
+import { softwareConnectorDeviceSession } from "./software-connector-cloud.mjs";
+
+function fail(code) { throw Object.assign(new Error(code), { code }); }
+export function deriveInstalledEdgeHealth({ profile, expected, configured = expected, probe, cloudReachable,
+  managedDeviceAuthenticated = false, qa = false }) {
+  const body = probe.body || {};
+  const assigned = profile === "SOFTWARE_CONNECTOR"
+    ? body.lastDiscovery?.channelCount : body.lastDiscovery?.assignedCount;
+  const progressing = Number(body.mediaHeartbeat?.progressingRelays ?? 0);
+  return { process_running: probe.ok && probe.service.running,
+    // The installed OTA agent owns the managed Ed25519 identity. The camera
+    // runtime may still expose its legacy Product-enrollment state, so require
+    // either a freshly authenticated managed-agent session or the runtime's
+    // own ready state. cloud_reachable remains an independent mandatory gate.
+    device_authenticated: qa || managedDeviceAuthenticated || body.deviceAuthorization?.status === "ready",
+    heartbeat: probe.ok, config_retrieved: probe.ok && (qa || assigned === configured),
+    cloud_reachable: cloudReachable, no_crash_loop: probe.ok,
+    expected_physical_cameras: expected, progressing_physical_cameras: qa ? 0 : progressing,
+    empty_slots: Number(body.lastDiscovery?.unassignedCount || 0),
+    stalled_streams: Number(body.mediaHeartbeat?.stalledRelays || 0) };
+}
+
+// A newly handed-off Connector can expose /health before its single RTSP
+// source has completed the bounded open/retry cycle. Wait for two healthy
+// observations from the same supervised PID so a transient response cannot
+// promote a release. The caller supplies the clock/pause for deterministic QA.
+export async function waitForInstalledEdgeHealth({ readHealth, runtimePid, rollback = false,
+  timeoutMs, intervalMs = 5_000, probeTimeoutMs = 5_000, stableSamples = 2,
+  now = () => Date.now(), pause = ms => new Promise(resolve => setTimeout(resolve, ms)) }) {
+  if (typeof readHealth !== "function" || typeof runtimePid !== "function" ||
+    !Number.isInteger(timeoutMs) || timeoutMs < 1_000 ||
+    !Number.isInteger(intervalMs) || intervalMs < 1 ||
+    !Number.isInteger(probeTimeoutMs) || probeTimeoutMs < 250 ||
+    !Number.isInteger(stableSamples) || stableSamples < 1) fail("EDGE_OTA_HEALTH_WAIT_INVALID");
+  const deadline = now() + timeoutMs;
+  const gate = rollback ? edgeRollbackRecoveryGate : edgeHealthGate;
+  let last = null, stablePid = null, consecutive = 0;
+  do {
+    const remaining = Math.max(250, deadline - now());
+    last = await readHealth({ timeoutMs: Math.min(probeTimeoutMs, remaining) });
+    const pid = runtimePid();
+    if (gate(last).healthy && Number.isInteger(pid) && pid > 0) {
+      consecutive = pid === stablePid ? consecutive + 1 : 1;
+      stablePid = pid;
+      if (consecutive >= stableSamples) return last;
+    } else {
+      stablePid = null;
+      consecutive = 0;
+    }
+    const delay = Math.min(intervalMs, deadline - now());
+    if (delay > 0) await pause(delay);
+  } while (now() < deadline);
+  return last;
+}
+function configFrom(path) {
+  const target = resolve(path), info = lstatSync(target);
+  if (info.isSymbolicLink() || (info.mode & 0o077)) fail("EDGE_OTA_AGENT_CONFIG_UNSAFE");
+  const config = JSON.parse(readFileSync(target, "utf8"));
+  if (!["PHYSICAL_GATEWAY", "SOFTWARE_CONNECTOR"].includes(config.profile) ||
+    !config.managedRoot || !config.installedBase || !config.launchAgentPath || !config.label ||
+    !Number.isInteger(config.port) || !config.deviceId || !config.channel ||
+    !config.baselineArtifactSha256 || !Number.isInteger(config.expectedPhysicalCameras) ||
+    config.expectedPhysicalCameras < (config.qaIsolationRoot ? 0 : 1) ||
+    (config.configuredPhysicalCameras !== undefined &&
+      (!Number.isInteger(config.configuredPhysicalCameras) ||
+        config.configuredPhysicalCameras < config.expectedPhysicalCameras))) fail("EDGE_OTA_AGENT_CONFIG_INVALID");
+  if (config.qaIsolationRoot) {
+    const scope = resolve(config.qaIsolationRoot);
+    if (!scope.startsWith(`${tmpdir()}/`) || ![target, config.managedRoot, config.installedBase,
+      config.launchAgentPath, config.qaRootPinPath, config.qaTrustRegistryPath, config.qaReleasePath].every(value =>
+      typeof value === "string" && resolve(value).startsWith(`${scope}/`))) fail("EDGE_OTA_AGENT_QA_SCOPE_INVALID");
+  } else if (config.qaRootPinPath || config.qaReleasePath || config.qaIsolationRoot) fail("EDGE_OTA_AGENT_QA_FORBIDDEN");
+  return config;
+}
+
+export async function runInstalledEdgeOtaService(configPath, { signal } = {}) {
+  const config = configFrom(configPath), qa = Boolean(config.qaIsolationRoot);
+  const trustRegistryPath = qa ? config.qaTrustRegistryPath : PROTECTED_EDGE_TRUST_REGISTRY_PATH;
+  const trusted = loadPinnedEdgeReleaseKeys({ registryPath: trustRegistryPath,
+    ...(qa ? { rootPinPath: config.qaRootPinPath, qaOwnerAllowed: true } : {}) }).trustedPublicKeys;
+  const adapter = createMacOSInstalledEdgeAdapter({ profile: config.profile, installedBase: config.installedBase,
+    managedRoot: config.managedRoot, launchAgentPath: config.launchAgentPath, label: config.label,
+    port: config.port, allowMutations: true, approvedArtifactSha256: config.baselineArtifactSha256,
+    ...(qa ? { trustedPublicKeys: trusted, qaIsolationRoot: config.qaIsolationRoot } : {}) });
+  const store = qa ? null : createEdgeSecretStoreSync({ keychainService: config.keychainService,
+    secretDir: config.secretDir || "" });
+  const cloudRequest = qa ? async ({ method }) => {
+    if (method !== "GET") return { accepted: true };
+    if (!existsSync(config.qaReleasePath)) return { manifest: null };
+    const value = JSON.parse(readFileSync(config.qaReleasePath, "utf8"));
+    return { manifest: value.manifest };
+  } : async ({ method, path, query, body }) => {
+    const session = await softwareConnectorDeviceSession(store);
+    const url = new URL(path, session.baseUrl);
+    for (const [key, value] of Object.entries(query || {})) url.searchParams.set(key, String(value));
+    const response = await fetch(url, { method, headers: { "x-video-gateway-device-token": session.accessToken,
+      "x-video-gateway-id": session.gatewayId, ...(body ? { "content-type": "application/json" } : {}) },
+      ...(body ? { body: JSON.stringify(body) } : {}), redirect: "error", signal: AbortSignal.timeout(20_000) });
+    if (!response.ok) fail("EDGE_OTA_AGENT_CLOUD_REQUEST_FAILED");
+    const payload = await response.json();
+    return payload.data;
+  };
+  const healthCheck = async ({ rollback = false } = {}) => {
+    let managedSessionVerified = qa;
+    const readHealth = async ({ timeoutMs }) => {
+      const probe = await adapter.health({ timeoutMs });
+      if (!managedSessionVerified) managedSessionVerified = await softwareConnectorDeviceSession(store).then(session =>
+        session.authMode === "ED25519_V1" && session.gatewayId === config.deviceId, () => false);
+      return deriveInstalledEdgeHealth({ profile: config.profile, expected: config.expectedPhysicalCameras,
+        configured: config.configuredPhysicalCameras ?? config.expectedPhysicalCameras,
+        probe, cloudReachable: managedSessionVerified, managedDeviceAuthenticated: managedSessionVerified, qa });
+    };
+    // Connector RTSP startup is bounded at three minutes. Rollback does not
+    // wait for a pre-existing camera outage to clear; it proves two stable
+    // signed-known-good process samples and preserves the degraded evidence.
+    return waitForInstalledEdgeHealth({ readHealth, runtimePid: adapter.runtimePid, rollback,
+      timeoutMs: rollback ? 15_000 : config.profile === "SOFTWARE_CONNECTOR" ? 210_000 : 90_000 });
+  };
+  const download = qa ? async ({ destination }) => {
+    const value = JSON.parse(readFileSync(config.qaReleasePath, "utf8"));
+    const source = resolve(dirname(config.qaReleasePath), value.artifact_name);
+    if (!source.startsWith(`${dirname(resolve(config.qaReleasePath))}/`)) fail("EDGE_OTA_AGENT_QA_ARTIFACT_SCOPE_INVALID");
+    mkdirSync(dirname(destination), { recursive: true, mode: 0o700 });
+    writeFileSync(destination, readFileSync(source), { mode: 0o600 });
+  } : undefined;
+  const device = { deviceId: config.deviceId, profile: config.profile, platform: "darwin", architecture: process.arch,
+    channel: config.channel, configVersion: config.configVersion || 1, revoked: false };
+  const agent = createInstalledEdgeOtaAgent({ root: config.managedRoot, device, adapter, cloudRequest, healthCheck,
+    trustRegistryPath, ...(qa ? { qaRootPinPath: config.qaRootPinPath, qaIsolationRoot: config.qaIsolationRoot } : {}),
+    download, intervalMs: config.intervalMs || 5000,
+    onEvent: event => process.stdout.write(`${JSON.stringify({ at: new Date().toISOString(), ...event })}\n`) });
+  await agent.start({ signal });
+}
+
+if (process.argv[1] && realpathSync(resolve(process.argv[1])) === realpathSync(fileURLToPath(import.meta.url))) {
+  runInstalledEdgeOtaService(process.argv[2]).catch(error => {
+    process.stderr.write(`${error.code || "EDGE_OTA_AGENT_START_FAILED"}\n`);
+    process.exitCode = 1;
+  });
+}

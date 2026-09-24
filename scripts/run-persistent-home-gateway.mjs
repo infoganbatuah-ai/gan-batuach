@@ -4,14 +4,21 @@ import { spawn } from "node:child_process";
 import { mkdirSync, readFileSync, renameSync, statfsSync, writeFileSync } from "node:fs";
 import { cpus, freemem, loadavg, totalmem, uptime } from "node:os";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { startJournalLoop } from "../services/video-gateway/journal-loop.mjs";
 import { createContinuousMonitoringLifecycle } from "../services/video-gateway/continuous-monitor.mjs";
 import { acquireJournalOwnerLock } from "../services/video-gateway/journal-owner-lock.mjs";
 import { connectorRuntimeIdentity, createInstallationId, validateConnectorConfigSnapshot } from "../services/video-gateway/edge-runtime-contract.mjs";
 import { createEdgeSecretStoreSync } from "../services/video-gateway/edge-secret-store-sync.mjs";
 import { createAdaptiveSamplingScheduler } from "../services/video-gateway/adaptive-sampling-scheduler.mjs";
+import { connectorHeartbeatHealth, retainVerifiedChannels } from "../services/video-gateway/connector-health-recovery.mjs";
 import { resolveEdgeRuntimePaths } from "../services/video-gateway/runtime-paths.mjs";
+import { createEdgeChildLivenessWatchdog } from "../services/video-gateway/edge-child-liveness-watchdog.mjs";
+import { runBoundedEdgeParentShutdown } from "../services/video-gateway/edge-parent-shutdown.mjs";
 
+// Resolve the packaged runtime from this script, never from an interactive
+// shell's working directory or a developer-specific checkout.
+const workdir = fileURLToPath(new URL("../", import.meta.url));
 const dataRoot = resolveEdgeRuntimePaths().dataDir;
 mkdirSync(dataRoot, { recursive: true, mode: 0o700 });
 const gatewayPort = Number(process.env.VIDEO_GATEWAY_PORT || (process.env.OBSERVER_EDGE_DEVICE_TYPE === "SOFTWARE_CONNECTOR" ? 18083 : 18082));
@@ -142,6 +149,28 @@ async function signedPost(path, payload, options = {}) {
 }
 
 const child = spawn(process.execPath, ["services/video-gateway/server.mjs"], { cwd: workdir, env: { ...process.env, HOST: "127.0.0.1", PORT: String(gatewayPort), VIDEO_GATEWAY_SIGNING_SECRET: gatewaySecret, DVR_EXPECTED_CHANNEL_COUNT: String(expectedChannelCount), OBSERVER_EDGE_DEVICE_TYPE: edgeDeviceType, OBSERVER_EDGE_INSTALLATION_ID: installationId, GAN_BATUACH_GATEWAY_SECRET_DIR: gatewaySecretDir }, stdio: "inherit" });
+const childWatchdog = createEdgeChildLivenessWatchdog({
+  // A 2s loopback timeout still detects an unresponsive child quickly, while
+  // requiring 45s of continuous loss avoids restart storms during measured
+  // short host scheduler/I/O stalls. Rich OTA health remains independently
+  // strict and continues to own release promotion or rollback.
+  minimumDownMs: 45_000,
+  probe: async () => {
+    const response = await fetch(`${gatewayUrl}/health/live`, { signal: AbortSignal.timeout(2_000) });
+    if (!response.ok) return false;
+    const body = await response.json().catch(() => ({}));
+    return body.contract === "observer-edge-liveness-v1" && body.ok === true;
+  },
+  terminateChild: () => {
+    // Killing the unresponsive child makes the existing runner exit through
+    // child.on("exit"). launchd then restarts the same signed release; the OTA
+    // crash-loop guard remains the sole authority for eventual rollback.
+    if (child.exitCode === null && !child.killed) child.kill("SIGKILL");
+  },
+  onState: ({ state, failures, downDurationMs, minimumDownMs }) => {
+    if (state !== "HEALTHY") console.error(JSON.stringify({ level: "warning", domain: "edge_liveness", state, failures, down_duration_ms: downDurationMs, minimum_down_ms: minimumDownMs }));
+  }
+});
 
 async function waitForGateway() {
   for (let attempt = 0; attempt < 60; attempt += 1) {
@@ -171,10 +200,9 @@ async function discover() {
       reason: channel.reason, capabilities: channel.capabilities && typeof channel.capabilities === "object" ? channel.capabilities : {}
     }).filter(([, value]) => value !== undefined && value !== null))));
   }
-  channels = discovered;
-  const connectedChannels = channels.filter((channel) => channel.status === "connected");
+  const connectedChannels = discovered.filter((channel) => channel.status === "connected");
   const previouslyVerified = Number(keychainSecret(VERIFIED_CONNECTED_COUNT_KEY) || 0);
-  const hasUnconfirmedRegression = channels.length
+  const hasUnconfirmedRegression = discovered.length
     && (connectedChannels.length === 0 || (previouslyVerified > 0 && connectedChannels.length < previouslyVerified));
   if (hasUnconfirmedRegression) {
     consecutiveEmptyDiscoveries += 1;
@@ -186,6 +214,9 @@ async function discover() {
   } else {
     consecutiveEmptyDiscoveries = 0;
   }
+  // Local relays must not wait for the cloud mapping request. A failed probe
+  // remains reportable, but it cannot erase a previously verified source.
+  channels = retainVerifiedChannels(channels, discovered);
   // Discovery starts relays and the object model. Publish the capability
   // contract observed afterwards so the cloud never keeps a stale startup
   // snapshot that disables analysis for otherwise healthy cameras.
@@ -194,13 +225,15 @@ async function discover() {
     .catch(() => ({}));
   const connectionType = configurations.length === 1 && ["rtsp", "onvif"].includes(configurations[0]?.connection_type) ? configurations[0].connection_type : "dvr";
   const vendor = configurations.length === 1 ? configurations[0]?.vendor : "mixed";
-  const mapped = await signedPost("/api/video-gateway/cloud-discovery", { gateway_id: gatewayId, observer_site_id: observerSiteId, connection_type: connectionType, vendor, discovery_id: crypto.randomUUID(), discovered_at: new Date().toISOString(), channel_count: channels.length, connected_channel_count: channels.filter((channel) => channel.status === "connected").length, failed_channel_count: channels.filter((channel) => !["connected", "unassigned"].includes(channel.status)).length, unassigned_channel_count: channels.filter((channel) => channel.status === "unassigned").length, latency_ms: latencyMs, read_only: true, controls_supported: false, no_secrets_returned: true, channels, metadata: { source: edgeDeviceType === "SOFTWARE_CONNECTOR" ? "software_connector" : "persistent_home_gateway", device_type: edgeDeviceType, installation_id: installationId, runtime_contract: edgeRuntime.contract, ai_shadow_only: true, read_only: true, multi_profile: configurations.length > 1, edge_capability_contract: health.edge_capability_contract ?? null } }, { deviceAccess: true });
+  const mapped = await signedPost("/api/video-gateway/cloud-discovery", { gateway_id: gatewayId, observer_site_id: observerSiteId, connection_type: connectionType, vendor, discovery_id: crypto.randomUUID(), discovered_at: new Date().toISOString(), channel_count: discovered.length, connected_channel_count: connectedChannels.length, failed_channel_count: discovered.filter((channel) => !["connected", "unassigned"].includes(channel.status)).length, unassigned_channel_count: discovered.filter((channel) => channel.status === "unassigned").length, latency_ms: latencyMs, read_only: true, controls_supported: false, no_secrets_returned: true, channels: discovered, metadata: { source: edgeDeviceType === "SOFTWARE_CONNECTOR" ? "software_connector" : "persistent_home_gateway", device_type: edgeDeviceType, installation_id: installationId, runtime_contract: edgeRuntime.contract, ai_shadow_only: true, read_only: true, multi_profile: configurations.length > 1, edge_capability_contract: health.edge_capability_contract ?? null } }, { deviceAccess: true });
   const mappedPayload = mapped?.data && typeof mapped.data === "object" ? mapped.data : mapped;
   const mappedChannels = Array.isArray(mappedPayload?.channels) ? mappedPayload.channels : [];
-  channels = channels.map((channel) => {
+  const mappedDiscovery = discovered.map((channel) => {
     const mappedChannel = mappedChannels.find((item) => item?.gateway_stream_id === channel.gateway_stream_id);
     return { ...channel, camera_source_id: mappedChannel?.camera_source_id ?? channel.camera_source_id ?? null };
   });
+  // Attach cloud source IDs only after the local monitor has a usable source.
+  channels = retainVerifiedChannels(channels, mappedDiscovery);
   if (connectedChannels.length > 0) storeKeychainSecret(VERIFIED_CONNECTED_COUNT_KEY, String(connectedChannels.length));
 }
 
@@ -211,6 +244,9 @@ try { currentConfigVersion = Number(JSON.parse(readFileSync(configCachePath, "ut
 
 async function heartbeat() {
   const health = await fetch(`${gatewayUrl}/health`, { signal: AbortSignal.timeout(5_000) }).then((response) => response.json());
+  const expectedAssigned = channels.filter((channel) => channel.status !== "unassigned").length ||
+    (edgeDeviceType === "SOFTWARE_CONNECTOR" ? expectedChannelCount : connectorChannelFilter.length);
+  const mediaHealth = connectorHeartbeatHealth(health, expectedAssigned);
   let offlineBuffer = { contract: "observer-offline-buffer-v1", state: "UNKNOWN", queue_depth: null, queue_bytes: null, oldest_item_age_ms: null, retry_count: null, failed_items: null, disk_pressure: "UNKNOWN" };
   try {
     const local = JSON.parse(readFileSync(`${dataRoot}/journal-status.json`, "utf8")).offline_buffer;
@@ -222,12 +258,12 @@ async function heartbeat() {
   const payload = {
     heartbeat_id: crypto.randomUUID(), gateway_id: gatewayId, observer_site_id: observerSiteId, observed_at: new Date().toISOString(), runtime: { ...edgeRuntime, offline_buffer: offlineBuffer },
     health: {
-      status: health.ok === true && (health.mediaHeartbeat?.stalledRelays || 0) === 0 ? "HEALTHY" : "DEGRADED",
+      status: mediaHealth.status,
       uptime_seconds: Math.floor(uptime()), cpu_percent: Math.max(0, Math.min(100, Math.round((loadavg()[0] || 0) * 100))),
       memory_mb: Math.round((totalmem() - freemem()) / (1024 * 1024)), disk_free_mb: diskFreeMb,
-      camera_count: channels.filter((channel) => channel.status !== "unassigned").length, streaming_count: channels.filter((channel) => channel.status === "connected").length,
+      camera_count: expectedAssigned, streaming_count: mediaHealth.streamingCount,
       last_frame_at: Number.isFinite(lastFrameAt) ? new Date(lastFrameAt).toISOString() : null,
-      error_codes: []
+      error_codes: mediaHealth.errorCodes
     }, command_results: pendingCommandResults.splice(0, 20)
   };
   const response = await signedPost("/api/video-gateway/device-heartbeat", payload, { deviceAccess: true });
@@ -347,16 +383,21 @@ if (discoveryEnabled) {
 }
 await heartbeat().catch((error) => console.error(`initial connector heartbeat unavailable; retry scheduled: ${error instanceof Error ? error.message : "heartbeat_failed"}`));
 setInterval(() => void heartbeat().catch((error) => console.error(`connector heartbeat unavailable: ${error instanceof Error ? error.message : "heartbeat_failed"}`)), 30_000).unref();
+childWatchdog.start();
 
 let shuttingDown = false;
 async function shutdown(exitCode = 0, terminateChild = true) {
   if (shuttingDown) return;
   shuttingDown = true;
-  await continuousMonitor.stop();
-  await stopJournal();
-  releaseJournalOwner();
-  if (terminateChild && child.exitCode === null && !child.killed) child.kill("SIGTERM");
-  process.exit(exitCode);
+  await runBoundedEdgeParentShutdown({
+    stopWatchdog: () => childWatchdog.stop(),
+    releaseJournalOwner,
+    stopMonitoring: () => continuousMonitor.stop(),
+    stopJournal,
+    child,
+    terminateChild,
+    exitCode
+  });
 }
 process.on("SIGINT", () => void shutdown(0, true));
 process.on("SIGTERM", () => void shutdown(0, true));
