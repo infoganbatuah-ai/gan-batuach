@@ -440,3 +440,18 @@ typecheck, Domain 30/30, Security 10/10, migration health 243/243 and the releas
 contract. Visual QA remains 22/22 Desktop/Mobile captures with zero partial or
 failed surfaces. No migration, paid provider, Production, `main` or Digital
 Observer core change occurred. UX-IMPLEMENT-03 has not started.
+
+UX-IMPLEMENT-04 branch qualification (2026-09-24):
+`codex/ux-implement-04-children-classrooms` contains the canonical Children,
+Classrooms, Child profile and Enrollment visual implementation at product
+commit `8c5eb45090552a793d0fb08ea1ee6ca2d6e6731c`, with implementation and
+synthetic visual evidence at
+`b253d7486d622b0f0c7df5d0074524da36077ba1`. Desktop and Mobile visual QA
+passed 26/26 captures with no console errors, server errors or horizontal
+overflow. Branch validation passed the focused Children/Classroom/Enrollment,
+capacity, attendance/pickup, tuition, documents, multi-Garden and role-boundary
+suites; every synthetic browser persona passed; and typecheck, zero-regression
+lint, Production build, Domain 30/30, Security 10/10, migration health 243/243,
+Development drift and release-contract preflight passed. Exact-head PR checks
+and cumulative post-merge Development verification remain pending. No migration,
+paid provider, Production, `main` or Digital Observer core change is included.

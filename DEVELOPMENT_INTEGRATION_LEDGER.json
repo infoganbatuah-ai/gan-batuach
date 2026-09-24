@@ -9362,6 +9362,53 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "UX-IMPLEMENT-03 is complete in Development. Stop before UX-IMPLEMENT-04; Production and main remain unchanged."
+    },
+    {
+      "id": "codex/ux-implement-04-children-classrooms",
+      "project": "Gan Batuach Management",
+      "title": "UX-IMPLEMENT-04 Children, Classrooms, Child profile and Enrollment",
+      "owner": "UX-IMPLEMENT-04 owner",
+      "sourceBranch": "codex/ux-implement-04-children-classrooms",
+      "sourceCommits": [
+        "8c5eb45090552a793d0fb08ea1ee6ca2d6e6731c",
+        "b253d7486d622b0f0c7df5d0074524da36077ba1"
+      ],
+      "state": "VALIDATED_ON_BRANCH",
+      "preservation": {
+        "remoteVerified": false,
+        "remoteRefs": [],
+        "validatedSourceCommit": "b253d7486d622b0f0c7df5d0074524da36077ba1"
+      },
+      "validation": {
+        "status": "PASS_VISUAL_AND_FUNCTIONAL_BRANCH_GATES",
+        "evidence": [
+          "GAN_BATUACH_UX04_CHILDREN_CLASSROOMS_CHILD_PROFILE_IMPLEMENTATION.md",
+          "GAN_BATUACH_UX04_VISUAL_QA_REPORT.md",
+          "qa-evidence/ux-implement-04/SHA256SUMS"
+        ],
+        "limits": "Visual and full-stack evidence uses isolated synthetic identities only. Required exact-head GitHub checks and cumulative post-merge Development verification remain pending. This Development unit is not Production release authorization."
+      },
+      "integration": {
+        "status": "PENDING_PR",
+        "base": "integration/development",
+        "commit": null,
+        "pullRequest": null,
+        "requiredChecks": "PENDING"
+      },
+      "dependencies": {
+        "status": "UX_IMPLEMENT_03_INTEGRATED",
+        "units": [
+          "codex/ux-implement-03-owner-command-center"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "PASS_UX04_FOCUSED_6_OF_6_CLASSROOM_CAPACITY_6_OF_6_ENROLLMENT_LIFECYCLE_7_OF_7_ENROLLMENT_ACTIVATION_8_OF_8_TUITION_3_OF_3_DOCUMENTS_6_OF_6_CHILD_DISCOVERY_5_OF_5_MANAGER_PARENT_23_OF_23_ATTENDANCE_PICKUP_14_CHECKS_ROLE_API_MATRIX_18_OF_18_ROLE_BROWSER_ALL_PERSONAS_TYPECHECK_LINT_ZERO_REGRESSIONS_PRODUCTION_BUILD_529_PAGES_DOMAIN_30_OF_30_SECURITY_10_OF_10_MIGRATIONS_243_RELEASE_CONTRACT_DEVELOPMENT_DRIFT_VISUAL_26_CAPTURES",
+      "releaseEligibility": "VALIDATED_DEVELOPMENT_CANDIDATE_PRODUCTION_NOT_AUTHORIZED",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Push the UX-IMPLEMENT-04 branch, open its PR to integration/development, require exact-head checks, merge only after PASS, then run cumulative Development verification. Do not merge to main or deploy Production."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
