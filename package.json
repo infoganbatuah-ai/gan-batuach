@@ -58,6 +58,8 @@
     "qa:management-documents": "node --experimental-strip-types --test scripts/qa/check-management-documents.mjs",
     "qa:management-reporting": "node --experimental-strip-types --test scripts/qa/check-management-reporting.mjs",
     "qa:management-dashboards": "node --experimental-strip-types --test scripts/qa/check-management-role-dashboards.mjs",
+    "qa:ux03-owner-command-center": "node --test scripts/qa/check-ux03-owner-command-center.mjs",
+    "qa:ux03-visual": "node scripts/qa/capture-ux03-owner-command-center.mjs",
     "qa:management-legacy-consolidation": "node --test scripts/qa/check-management-legacy-consolidation.mjs",
     "qa:management-dashboard-e2e": "node scripts/qa/run-management-dashboard-role-e2e.mjs",
     "qa:digital-observer-product": "node scripts/qa/check-digital-observer-product.mjs",

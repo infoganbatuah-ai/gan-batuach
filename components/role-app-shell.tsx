@@ -5,13 +5,16 @@ import type { LucideProps } from "lucide-react";
 import {
   BarChart3,
   Bell,
+  BookOpenCheck,
   CalendarDays,
   Camera,
   ChevronLeft,
   ClipboardCheck,
+  FileText,
   Home,
   Menu,
   MessageCircle,
+  Settings,
   ShieldCheck,
   UserRound,
   UsersRound,
@@ -24,6 +27,7 @@ import {
   SidebarNav
 } from "@/components/gan-batuach-design-system";
 import { LogoutButton } from "@/components/logout-button";
+import { ManagementGardenContextSlot } from "@/components/management-garden-context-slot";
 import { cleanSyntheticLabel } from "@/lib/domain/display-label";
 import { israelTodayDateLine } from "@/lib/domain/israel-date";
 
@@ -58,6 +62,7 @@ export const roleAppShellConfig: Record<RoleAppShellRole, {
   notificationsHref: string;
   subtitle: string;
   nav: RoleAppNavItem[];
+  desktopNav?: RoleAppNavItem[];
 }> = {
   admin: {
     label: "אדמין",
@@ -85,7 +90,8 @@ export const roleAppShellConfig: Record<RoleAppShellRole, {
       { href: "/dashboard/garden/staff", label: "צוות", icon: UserRound },
       { href: "/dashboard/garden/messages", label: "תקשורת", icon: MessageCircle },
       { href: "/dashboard/garden/command-center", label: "עוד", icon: Menu }
-    ]
+    ],
+    desktopNav: ownerDesktopNavigation()
   },
   owner: {
     label: "בעלים",
@@ -99,7 +105,8 @@ export const roleAppShellConfig: Record<RoleAppShellRole, {
       { href: "/dashboard/garden/staff", label: "צוות", icon: UserRound },
       { href: "/dashboard/garden/messages", label: "תקשורת", icon: MessageCircle },
       { href: "/dashboard/garden/command-center", label: "עוד", icon: Menu }
-    ]
+    ],
+    desktopNav: ownerDesktopNavigation()
   },
   parent: {
     label: "הורה",
@@ -185,6 +192,7 @@ export function RoleAppShell({
   const displayName = cleanSyntheticLabel(profile?.full_name, config.label);
   const firstLetter = String(displayName).trim().slice(0, 1) || "ג";
   const todayLine = israelTodayDateLine();
+  const isManagement = role === "manager" || role === "owner";
   const header = (
     <header className="role-app-header">
       <div className="role-app-brand">
@@ -198,6 +206,7 @@ export function RoleAppShell({
           <h1>{title ?? config.label}</h1>
           <p>{subtitle ?? config.subtitle}</p>
         </div>
+        {isManagement ? <ManagementGardenContextSlot /> : null}
         <div className="role-app-live-date" aria-label="התאריך היום">
           <CalendarDays size={27} />
           <span><b>{todayLine.top}</b><small>{todayLine.bottom}</small></span>
@@ -222,9 +231,16 @@ export function RoleAppShell({
   );
   const sidebar = (
     <SidebarNav
-      title={<span className="role-app-sidebar-title"><b>{config.label}</b><span>{config.subtitle}</span></span>}
+      className={isManagement ? "owner-command-sidebar" : undefined}
+      title={<div className="role-app-sidebar-heading">
+        <Link className="role-app-sidebar-brand" href={config.homeHref} aria-label="גן בטוח — ראשי">
+          <Image src="/assets/company-symbol.png" alt="" width={72} height={72} />
+          <span><b>גן בטוח</b><small>ילדים בטוחים · עתיד טוב יותר</small></span>
+        </Link>
+        <span className="role-app-sidebar-title"><b>{config.label}</b><span>{config.subtitle}</span></span>
+      </div>}
       activeHref={resolvedActive}
-      items={config.nav}
+      items={config.desktopNav ?? config.nav}
     />
   );
 
@@ -272,3 +288,19 @@ export const StaffRoleAppShell = createRoleAppShellAdapter("staff");
 export const InspectorRoleAppShell = createRoleAppShellAdapter("inspector");
 export const AdminRoleAppShell = createRoleAppShellAdapter("admin");
 export const DigitalObserverRoleAppShell = createRoleAppShellAdapter("digital-observer");
+
+function ownerDesktopNavigation(): RoleAppNavItem[] {
+  return [
+    { href: "/dashboard/garden/operations", label: "ראשי", hint: "תמונת מצב יומית", icon: Home },
+    { href: "/dashboard/garden/children", label: "ילדים וכיתות", hint: "ילדים, כיתות וקיבולת", icon: UsersRound },
+    { href: "/dashboard/garden/attendance", label: "נוכחות ואיסוף", hint: "הגעה, יציאה ומורשי איסוף", icon: BookOpenCheck },
+    { href: "/dashboard/garden/staff", label: "צוות", hint: "עובדים, משמרות ושעות", icon: UserRound },
+    { href: "/dashboard/garden/messages", label: "תקשורת", hint: "הודעות, שידורים והתראות", icon: MessageCircle },
+    { href: "/dashboard/garden/finance", label: "כספים", hint: "שכר לימוד ומנוי הגן", icon: WalletCards },
+    { href: "/dashboard/garden/command-center", label: "תפעול", hint: "משימות, תלונות וביקורות", icon: ClipboardCheck },
+    { href: "/dashboard/garden/cameras", label: "בטיחות ומצלמות", hint: "מוכנות, מצלמות ואירועים", icon: Camera },
+    { href: "/dashboard/garden/documents", label: "מסמכים", hint: "חסר, לבדיקה ותוקף", icon: FileText },
+    { href: "/dashboard/garden/reports", label: "דוחות", hint: "תפעול, כספים ופיקוח", icon: BarChart3 },
+    { href: "/dashboard/garden/settings", label: "הגדרות", hint: "גן, הרשאות וחשבון", icon: Settings }
+  ];
+}
