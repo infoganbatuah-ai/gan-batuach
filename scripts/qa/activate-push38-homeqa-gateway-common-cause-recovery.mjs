@@ -18,8 +18,8 @@ import { PUSH38_GATEWAY_COMMON_CAUSE_RECOVERY
 } from "../../services/video-gateway/push38-home-qa-gateway-common-cause-recovery.mjs";
 import { PUSH38_GATEWAY_FINITE_STREAM_HANDOFF
 } from "../../services/video-gateway/push38-home-qa-gateway-finite-stream-handoff.mjs";
-import { PUSH38_CONNECTOR_HOST_CONTINUITY_RECOVERY as connectorItem
-} from "../../services/video-gateway/push38-home-qa-connector-host-continuity.mjs";
+import { PUSH38_CONNECTOR_DEVICE_SESSION_RECOVERY as connectorItem
+} from "../../services/video-gateway/push38-home-qa-connector-device-session.mjs";
 
 const root = join(homedir(), "Library/Application Support/Digital Observer/observer-gateway/ota");
 const connectorRoot = join(homedir(), "Library/Application Support/Digital Observer/observer-connector/ota");

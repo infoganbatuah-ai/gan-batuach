@@ -2,7 +2,7 @@
 // HOME_QA remediation stays ineligible until the running agent proves its own
 // isolated Ed25519 key and the QA rollout is explicitly promoted.
 import { execFileSync } from "node:child_process";
-import { createHash } from "node:crypto";
+import { createHash, createPrivateKey, createPublicKey } from "node:crypto";
 import { createWriteStream, existsSync, lstatSync, mkdtempSync, readFileSync, rmSync, statSync,
   writeFileSync } from "node:fs";
 import { once } from "node:events";
@@ -23,6 +23,7 @@ const livenessRecoveryUpgrade = process.argv.includes("--liveness-recovery-upgra
 const parentExitRecoveryUpgrade = process.argv.includes("--parent-exit-recovery-upgrade");
 const rtspSessionRecoveryUpgrade = process.argv.includes("--rtsp-session-recovery-upgrade");
 const connectorHostContinuityUpgrade = process.argv.includes("--connector-host-continuity-upgrade");
+const connectorDeviceSessionUpgrade = process.argv.includes("--connector-device-session-upgrade");
 const gatewayAuthRecoveryUpgrade = process.argv.includes("--gateway-auth-recovery-upgrade");
 const gatewaySessionStabilityUpgrade = process.argv.includes("--gateway-session-stability-upgrade");
 const gatewayCommonCauseRecoveryUpgrade = process.argv.includes("--gateway-common-cause-recovery-upgrade");
@@ -30,12 +31,13 @@ const gatewayFiniteStreamHandoffUpgrade = process.argv.includes("--gateway-finit
 if ([recoveryUpgrade, startupRecoveryUpgrade, livenessRecoveryUpgrade, parentExitRecoveryUpgrade,
   rtspSessionRecoveryUpgrade, gatewayAuthRecoveryUpgrade, gatewaySessionStabilityUpgrade,
   gatewayCommonCauseRecoveryUpgrade, gatewayFiniteStreamHandoffUpgrade,
-  connectorHostContinuityUpgrade].filter(Boolean).length > 1)
+  connectorHostContinuityUpgrade, connectorDeviceSessionUpgrade].filter(Boolean).length > 1)
   throw new Error("P38_HOME_QA_AGENT_UPGRADE_MODE_INVALID");
 const managementUpgrade = process.argv.includes("--management-upgrade") || recoveryUpgrade ||
   startupRecoveryUpgrade || livenessRecoveryUpgrade || parentExitRecoveryUpgrade ||
   rtspSessionRecoveryUpgrade || gatewayAuthRecoveryUpgrade || gatewaySessionStabilityUpgrade ||
-  gatewayCommonCauseRecoveryUpgrade || gatewayFiniteStreamHandoffUpgrade || connectorHostContinuityUpgrade;
+  gatewayCommonCauseRecoveryUpgrade || gatewayFiniteStreamHandoffUpgrade || connectorHostContinuityUpgrade ||
+  connectorDeviceSessionUpgrade;
 if (apply === dryRun || !["SOFTWARE_CONNECTOR", "PHYSICAL_GATEWAY"].includes(profile))
   throw new Error("P38_HOME_QA_AGENT_MODE_OR_PROFILE_INVALID");
 if (managementUpgrade && profile !== "SOFTWARE_CONNECTOR" &&
@@ -51,7 +53,8 @@ const spec = connector ? {
   deviceId: "db267b52-6282-4944-bcee-5d4857698fb0",
   baselineRelease: "qa-connector-legacy-transition-v2-6e7988808b05",
   baselineSha: "6e7988808b05956d58416a6ce60638f52b19aa732918ac0e1cdafcc5fc9f130a",
-  remediationRelease: connectorHostContinuityUpgrade ? "qa-p38-health-connector-host-continuity-8b8ec21e41c2" :
+  remediationRelease: connectorDeviceSessionUpgrade ? "qa-p38-health-connector-device-session-23a104eb2a64" :
+    connectorHostContinuityUpgrade ? "qa-p38-health-connector-host-continuity-8b8ec21e41c2" :
     rtspSessionRecoveryUpgrade ? "qa-p38-health-connector-rtsp-session-fb790d87cf53" :
     parentExitRecoveryUpgrade ? "qa-p38-health-connector-parent-exit-f7dba974e80f" :
     livenessRecoveryUpgrade ? "qa-p38-health-connector-liveness-bb89862c6352" :
@@ -59,14 +62,18 @@ const spec = connector ? {
     recoveryUpgrade ? "qa-p38-health-connector-recovery-9bb5db251379" :
     managementUpgrade ? "qa-p38-health-connector-pidfix-1b9e9499ffa7" :
     "qa-p38-health-connector-1b076f596574",
-  bundleName: connectorHostContinuityUpgrade ? "connector_remediation_host_continuity.json" :
+  bundleName: connectorDeviceSessionUpgrade ? "connector_remediation_device_session.json" :
+    connectorHostContinuityUpgrade ? "connector_remediation_host_continuity.json" :
     rtspSessionRecoveryUpgrade ? "connector_remediation_rtsp_session.json" :
     parentExitRecoveryUpgrade ? "connector_remediation_parent_exit.json" :
     livenessRecoveryUpgrade ? "connector_remediation_liveness.json" :
     startupRecoveryUpgrade ? "connector_remediation_startup.json" :
     recoveryUpgrade ? "connector_remediation_recovery.json" :
     managementUpgrade ? "connector_remediation_pidfix.json" : "connector_remediation.json",
-  priorManagement: connectorHostContinuityUpgrade ? {
+  priorManagement: connectorDeviceSessionUpgrade ? {
+    release_id: "qa-p38-health-connector-host-continuity-8b8ec21e41c2",
+    artifact_sha256: "8b8ec21e41c2044ee0201960ed662fe795527f6e1eed3abeeded5560e2921da9" } :
+    connectorHostContinuityUpgrade ? {
     release_id: "qa-p38-health-connector-rtsp-session-fb790d87cf53",
     artifact_sha256: "fb790d87cf5378fac92eb4ed2650ad2227a4851d959df84f400f67931e485e7f" } :
     rtspSessionRecoveryUpgrade ? {
@@ -136,7 +143,9 @@ const runtimeConfig = { profile, managedRoot: root, installedBase: spec.installe
 const plan = planInstalledOtaAgent({ profile, managedRoot: root, agentPlistPath, agentLabel });
 if (apply) validateHomeQaOtaIdentityScope({ managedRoot: root, runtimeConfig });
 const bundleOverride = process.argv.find(arg => arg.startsWith("--bundle="))?.slice(9);
-const bundle = resolve(bundleOverride || (connectorHostContinuityUpgrade
+const bundle = resolve(bundleOverride || (connectorDeviceSessionUpgrade
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-connector-device-session.zip"
+  : connectorHostContinuityUpgrade
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-connector-host-continuity.zip"
   : rtspSessionRecoveryUpgrade
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-connector-rtsp-session.zip"
@@ -171,6 +180,41 @@ if (!verifyEdgeUpdateManifest(manifest, keys).ok || manifest.release_id !== spec
   manifest.profile !== profile || manifest.channel !== "HOME_QA" ||
   JSON.stringify(manifest.rollout?.explicit_device_ids) !== JSON.stringify([spec.deviceId]))
   throw new Error("P38_HOME_QA_AGENT_SIGNED_RELEASE_INVALID");
+function managedRuntimeSeed(store) {
+  if (!connectorDeviceSessionUpgrade) return null;
+  const sql = `select json_build_object(
+    'gateway_id',e.gateway_id,
+    'runtime_instance_id',e.active_runtime_instance_id,
+    'runtime_sequence',e.active_runtime_sequence,
+    'last_seen_at',e.last_seen_at,
+    'public_key_spki',c.public_key_spki)
+  from public.video_gateway_device_enrollments e
+  join public.observer_managed_device_credentials c
+    on c.enrollment_id=e.id and c.credential_version=e.credential_version
+  where e.gateway_id='${spec.deviceId}' and e.deployment_profile='SOFTWARE_CONNECTOR'
+    and e.status='delivered' and e.lifecycle_state='ACTIVE' and e.identity_scheme='ED25519_V1'
+    and c.credential_state='ACTIVE' and c.revoked_at is null;`;
+  const raw = execFileSync("docker", ["--context", "colima-push38t", "exec",
+    "supabase_db_gan-batuach-push38t", "psql", "-X", "-tA", "-U", "postgres", "-d", "postgres",
+    "-c", sql], { encoding: "utf8", timeout: 15_000, maxBuffer: 16_384 }).trim();
+  const state = JSON.parse(raw || "null");
+  if (!state || state.gateway_id !== spec.deviceId ||
+    !/^[A-Za-z0-9._-]+:[0-9a-f-]{36}$/i.test(state.runtime_instance_id || "") ||
+    !Number.isSafeInteger(Number(state.runtime_sequence)) || Number(state.runtime_sequence) < 0 ||
+    !Number.isFinite(Date.parse(state.last_seen_at)) || Date.now() - Date.parse(state.last_seen_at) > 120_000)
+    throw new Error("P38_HOME_QA_AGENT_MANAGED_RUNTIME_STATE_INVALID");
+  const privateKey = createPrivateKey({ key: Buffer.from(store.read("device_private_key_pkcs8"), "base64url"),
+    format: "der", type: "pkcs8" });
+  const localPublic = createPublicKey(privateKey).export({ format: "der", type: "spki" });
+  if (!localPublic.equals(Buffer.from(state.public_key_spki, "base64url")))
+    throw new Error("P38_HOME_QA_AGENT_MANAGED_RUNTIME_KEY_MISMATCH");
+  const installedRuntime = store.read("device_runtime_instance_id");
+  if (installedRuntime && installedRuntime !== state.runtime_instance_id)
+    throw new Error("P38_HOME_QA_AGENT_MANAGED_RUNTIME_SEED_CONFLICT");
+  return { runtimeInstanceId: state.runtime_instance_id, sequence: Number(state.runtime_sequence) };
+}
+const sessionStore = connectorDeviceSessionUpgrade ? createEdgeSecretStoreSync({ secretDir: secrets }) : null;
+const sessionSeed = sessionStore ? managedRuntimeSeed(sessionStore) : null;
 if (dryRun) {
   if (managementUpgrade) {
     const priorPath = join(root, "agent", "agent-release.json");
@@ -187,7 +231,8 @@ if (dryRun) {
   console.log(JSON.stringify({ status: "AGENT_INSTALL_PLAN_PASS", profile, release_id: manifest.release_id,
     signed_manifest: true, isolated_identity_store: true, tls_certificate_sha256: certSha,
     management_code: plan.management_code, tls_certificate_install_path: installedCertPath,
-    management_upgrade: managementUpgrade, functional_runtime_writes: 0 }));
+    management_upgrade: managementUpgrade,
+    managed_runtime_session_seed: sessionSeed ? "PASS" : "NOT_REQUIRED", functional_runtime_writes: 0 }));
   process.exit(0);
 }
 const store = createEdgeSecretStoreSync({ secretDir: secrets });
@@ -197,6 +242,11 @@ if (store.read("device_gateway_id") !== spec.deviceId ||
   store.read("device_cloud_base_url") !== "https://127.0.0.1:3101" ||
   !store.read("device_private_key_pkcs8"))
   throw new Error("P38_HOME_QA_AGENT_MANAGED_IDENTITY_NOT_PREPARED");
+if (sessionSeed) {
+  store.write("device_runtime_instance_id", sessionSeed.runtimeInstanceId);
+  const storedSequence = Number(store.read("device_runtime_sequence") || 0);
+  store.write("device_runtime_sequence", String(Math.max(storedSequence, sessionSeed.sequence)));
+}
 const credentials = readR2KeychainCredentials({ service: "digital-observer-r2-home-qa-reader-20260922",
   keychain: join(homedir(), "Library/Keychains/login.keychain-db") });
 const capability = await authorizeHomeQaR2Download(manifest, { accountId: "693f824a750afcc264fe6ee58c8a86ab",
