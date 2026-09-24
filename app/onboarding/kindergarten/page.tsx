@@ -1,7 +1,7 @@
-import Image from "next/image";
 import type { ReactNode } from "react";
 import { redirect } from "next/navigation";
-import { Bell, ClipboardCheck, ShieldCheck } from "lucide-react";
+import { Bell, CircleHelp, ClipboardCheck, ShieldCheck } from "lucide-react";
+import { GanBatuachBrand } from "@/components/gan-batuach-brand";
 import { LogoutButton } from "@/components/logout-button";
 import { KindergartenOnboardingForm, ManagerKindergartenApplicationForm } from "@/components/kindergarten-onboarding-form";
 import { requireRole } from "@/lib/auth";
@@ -26,20 +26,17 @@ function KindergartenOnboardingShell({
   return (
     <main className="kindergarten-app-onboarding" dir="rtl">
       <section className="kindergarten-app-onboarding-shell">
-        <div className="kindergarten-app-logo" aria-label="גן בטוח">
-          <Image src="/assets/company-name.png" alt="גן בטוח" width={236} height={74} />
-          <Image src="/assets/company-symbol.png" alt="" width={74} height={74} />
-        </div>
         <header className="kindergarten-app-onboarding-header">
-          <span className="teacher-icon-button" aria-label="התראות הקמת הגן" role="img">
-            <Bell size={24} />
-            <span />
-          </span>
-          <div className="teacher-app-greeting">
-            <div className="teacher-avatar"><span>{managerName?.slice(0, 1) ?? "מ"}</span><i /></div>
-            <div>
-              <h1>בוקר טוב, {managerName?.split(" ")[0] ?? "מאיה"}</h1>
-              <p>הקמת גן בטוח</p>
+          <GanBatuachBrand compact />
+          <div className="kindergarten-app-onboarding-utilities">
+            <span className="teacher-icon-button" aria-label="עזרה בתהליך הקמת הגן" role="img"><CircleHelp size={21} /></span>
+            <span className="teacher-icon-button" aria-label="התראות הקמת הגן" role="img"><Bell size={21} /><span /></span>
+            <div className="teacher-app-greeting">
+              <div className="teacher-avatar"><span>{managerName?.slice(0, 1) ?? "מ"}</span><i /></div>
+              <div>
+                <h1>{managerName ?? "מנהלת הגן"}</h1>
+                <p>הקמת גן בטוח</p>
+              </div>
             </div>
           </div>
         </header>
@@ -49,7 +46,9 @@ function KindergartenOnboardingShell({
             <h2>{title}</h2>
             <p>{subtitle}</p>
           </div>
-          <div className="kindergarten-app-hero-icon"><ClipboardCheck /><ShieldCheck /></div>
+          <div className="kindergarten-app-hero-visual" aria-hidden="true">
+            <span className="kindergarten-app-hero-icon"><ClipboardCheck /><ShieldCheck /></span>
+          </div>
         </section>
         {children}
       </section>
