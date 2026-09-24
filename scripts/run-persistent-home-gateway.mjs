@@ -4,6 +4,7 @@ import { spawn } from "node:child_process";
 import { mkdirSync, readFileSync, renameSync, statfsSync, writeFileSync } from "node:fs";
 import { cpus, freemem, loadavg, totalmem, uptime } from "node:os";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 import { startJournalLoop } from "../services/video-gateway/journal-loop.mjs";
 import { createContinuousMonitoringLifecycle } from "../services/video-gateway/continuous-monitor.mjs";
 import { acquireJournalOwnerLock } from "../services/video-gateway/journal-owner-lock.mjs";
@@ -12,6 +13,9 @@ import { createEdgeSecretStoreSync } from "../services/video-gateway/edge-secret
 import { createAdaptiveSamplingScheduler } from "../services/video-gateway/adaptive-sampling-scheduler.mjs";
 import { resolveEdgeRuntimePaths } from "../services/video-gateway/runtime-paths.mjs";
 
+// Resolve the packaged runtime from this script, never from an interactive
+// shell's working directory or a developer-specific checkout.
+const workdir = fileURLToPath(new URL("../", import.meta.url));
 const dataRoot = resolveEdgeRuntimePaths().dataDir;
 mkdirSync(dataRoot, { recursive: true, mode: 0o700 });
 const gatewayPort = Number(process.env.VIDEO_GATEWAY_PORT || (process.env.OBSERVER_EDGE_DEVICE_TYPE === "SOFTWARE_CONNECTOR" ? 18083 : 18082));

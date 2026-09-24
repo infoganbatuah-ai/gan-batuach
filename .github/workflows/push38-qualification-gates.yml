@@ -1,0 +1,158 @@
+name: PUSH 38 exact-candidate qualification gates
+
+on:
+  push:
+    branches: [codex/push-38-aws-signing]
+    paths:
+      - .github/workflows/push38-qualification-gates.yml
+
+permissions:
+  contents: read
+
+concurrency:
+  group: push38-exact-candidate-78fab3ed
+  cancel-in-progress: false
+
+env:
+  APP_ENV: demo
+  NEXT_PUBLIC_APP_ENV: demo
+  PRODUCTION_ACTIVATION_APPROVED: "false"
+  LIVE_ACTIVATION_CONFIRM: ""
+
+jobs:
+  static-quality:
+    name: Gate 1 — Static quality
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps: &setup
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: 78fab3edf5ec41f58aed0197d63fb4efd9ac7942
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: test "$(git rev-parse HEAD)" = "78fab3edf5ec41f58aed0197d63fb4efd9ac7942"
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint:ci
+
+  build:
+    name: Gate 2 — Production-compatible build
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: 78fab3edf5ec41f58aed0197d63fb4efd9ac7942
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: test "$(git rev-parse HEAD)" = "78fab3edf5ec41f58aed0197d63fb4efd9ac7942"
+      - run: npm ci
+      - run: npm run build
+
+  domain-regression:
+    name: Gate 3 — Canonical domain regression
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: 78fab3edf5ec41f58aed0197d63fb4efd9ac7942
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: test "$(git rev-parse HEAD)" = "78fab3edf5ec41f58aed0197d63fb4efd9ac7942"
+      - run: npm ci
+      - run: npm run qa:ci:domain
+
+  security:
+    name: Gate 4 — Security and isolation
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: 78fab3edf5ec41f58aed0197d63fb4efd9ac7942
+          persist-credentials: false
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: test "$(git rev-parse HEAD)" = "78fab3edf5ec41f58aed0197d63fb4efd9ac7942"
+      - run: npm ci
+      - run: npm run qa:ci:security
+      - run: npm audit --audit-level=high
+      - name: Scan tracked source for secret-shaped values
+        shell: bash
+        run: |
+          set -euo pipefail
+          if git grep -n -I -E "(sk-[A-Za-z0-9_-]{20,}|sb_secret_[A-Za-z0-9_-]+|xox[baprs]-[A-Za-z0-9-]+|AIza[0-9A-Za-z_-]{35}|-----BEGIN ((RSA|OPENSSH|EC) )?PRIVATE KEY-----|eyJ[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,}\.[A-Za-z0-9_-]{20,})" -- . ':!*.md' ':!.env.example' ':!supabase/migrations/*' ':!package-lock.json' ':!node_modules/*' ':!android/*' ':!ios/*'; then
+            exit 1
+          fi
+          if git grep -n -I -E "NEXT_PUBLIC_[A-Z0-9_]*(SECRET|TOKEN|PRIVATE|SERVICE_ROLE|ENCRYPTION|PASSWORD)[A-Z0-9_]*[[:space:]]*=" -- . ':!*.md' ':!.env.example' ':!node_modules/*'; then
+            exit 1
+          fi
+
+  database:
+    name: Gate 5 — Migration safety
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: 78fab3edf5ec41f58aed0197d63fb4efd9ac7942
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: test "$(git rev-parse HEAD)" = "78fab3edf5ec41f58aed0197d63fb4efd9ac7942"
+      - run: npm ci
+      - run: npm run qa:migrations
+
+  release-preflight:
+    name: Gate 6 — Release preflight contract
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+        with:
+          ref: 78fab3edf5ec41f58aed0197d63fb4efd9ac7942
+          persist-credentials: false
+          fetch-depth: 2
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+      - run: test "$(git rev-parse HEAD)" = "78fab3edf5ec41f58aed0197d63fb4efd9ac7942"
+      - run: npm ci
+      - run: npm run qa:release-contract
+      - run: git diff --check HEAD^ HEAD
+
+  quality-gate:
+    name: Canonical quality gate
+    if: always()
+    needs: [static-quality, build, domain-regression, security, database, release-preflight]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Require every deterministic gate
+        env:
+          STATIC_QUALITY: ${{ needs.static-quality.result }}
+          BUILD: ${{ needs.build.result }}
+          DOMAIN_REGRESSION: ${{ needs.domain-regression.result }}
+          SECURITY: ${{ needs.security.result }}
+          DATABASE: ${{ needs.database.result }}
+          RELEASE_PREFLIGHT: ${{ needs.release-preflight.result }}
+        run: |
+          set -euo pipefail
+          for result in "$STATIC_QUALITY" "$BUILD" "$DOMAIN_REGRESSION" "$SECURITY" "$DATABASE" "$RELEASE_PREFLIGHT"; do
+            test "$result" = "success"
+          done
