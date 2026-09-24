@@ -43,6 +43,9 @@ const mode = process.argv.includes("--preflight") ? "PREFLIGHT" : process.argv.i
 const outputPath = resolve(option("output") || ".");
 const planPath = option("plan") ? resolve(option("plan")) : "";
 const planSha = option("plan-sha256");
+const shadowEvidencePath = option("shadow-evidence") ? resolve(option("shadow-evidence")) : "";
+const warmHandoffEvidencePath =
+  "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-dvr-warm-handoff-shadow-20260924T003032Z.json";
 if (!mode || outputPath === resolve(".") || !outputPath.startsWith(restrictedRoot) || existsSync(outputPath))
   throw new Error("P38_GATEWAY_COMMON_CAUSE_MODE_OR_OUTPUT_INVALID");
 
@@ -104,6 +107,28 @@ async function healthSample(port, label) {
     stalled: health.mediaHeartbeat?.stalledRelays ?? null,
     rotations: health.recorderSessionLifecycle?.rotations ?? null,
     last_rotation_reason: health.recorderSessionLifecycle?.last_rotation_reason ?? null };
+}
+
+function verifiedShadowEvidence(path, { recent = false, warmHandoff = false } = {}) {
+  const value = JSON.parse(protectedFile(path));
+  const checkpoints = Array.isArray(value.checkpoints) ? value.checkpoints : [];
+  const endedAt = Date.parse(value.ended_at || "");
+  const streamProof = checkpoints.length >= (warmHandoff ? 20 : 4) && checkpoints.every(point =>
+    point.shadow?.http === 200 && point.shadow?.discovery?.assigned === 1 &&
+    point.shadow?.discovery?.connected === 1 && point.shadow?.discovery?.failed === 0 &&
+    point.shadow?.media?.progressing === 1 && point.shadow?.media?.stalled === 0);
+  if (value.contract !== "observer-push38-bounded-dvr-shadow-v1" || value.result !== "PASS" ||
+    value.mode !== "READ_ONLY_ONE_CHANNEL_SHADOW" || value.channel !== 1 ||
+    value.endpoint_redacted !== true || value.credentials_recorded !== false ||
+    value.cloud_access_enabled !== false || value.runtime_mutation !== false ||
+    !Number.isFinite(value.duration_ms) || value.duration_ms < (warmHandoff ? 6 * 60_000 : 60_000) ||
+    !Number.isFinite(endedAt) || (recent && (endedAt > Date.now() || Date.now() - endedAt > 10 * 60_000)) ||
+    !streamProof || (warmHandoff &&
+      (checkpoints.at(-1)?.shadow?.media?.lifecycle?.warmHandoffs < 1 ||
+        checkpoints.at(-1)?.shadow?.media?.lifecycle?.warmHandoffFailures !== 0)))
+    throw new Error("P38_GATEWAY_FINITE_HANDOFF_SHADOW_EVIDENCE_INVALID");
+  return { sha256: sha(protectedFile(path)), ended_at: value.ended_at,
+    duration_ms: value.duration_ms, checkpoints: checkpoints.length };
 }
 
 for (const path of [bundle, artifact, publication]) protectedFile(path);
@@ -202,10 +227,22 @@ for (let index = 0; index < 3; index += 1) {
   connectorSamples.push(await healthSample(18083, "com.ganbatuach.software-connector.tapo"));
   if (index < 2) await new Promise(resolveWait => setTimeout(resolveWait, 2_000));
 }
-if (gatewaySamples.some(sample => !sample.running || !sample.pid || sample.status !== "degraded" ||
-  sample.assigned !== 10 || sample.connected !== 8 || sample.failed !== 2 || sample.empty !== 6 ||
-  sample.progressing !== 8 || sample.stalled !== 0) ||
-  new Set(gatewaySamples.map(sample => sample.pid)).size !== 1)
+const gatewayPidStable = gatewaySamples.every(sample => sample.running && sample.pid) &&
+  new Set(gatewaySamples.map(sample => sample.pid)).size === 1;
+const normalRuntimeTruth = gatewaySamples.every(sample => sample.status === "degraded" || sample.status === "healthy") &&
+  gatewaySamples.every(sample =>
+    sample.assigned === 10 && sample.connected === 8 && sample.failed === 2 && sample.empty === 6 &&
+    sample.progressing === 8 && sample.stalled === 0);
+const finiteCommonCauseTruth = finiteHandoff && gatewaySamples.every(sample => sample.status === "degraded" &&
+  sample.assigned === 10 && sample.connected === 0 && sample.failed === 10 && sample.empty === 6 &&
+  sample.progressing === 0 && sample.stalled === 0);
+let shadowEvidence = null, warmHandoffEvidence = null;
+if (finiteCommonCauseTruth) {
+  if (!shadowEvidencePath) throw new Error("P38_GATEWAY_FINITE_HANDOFF_SHADOW_EVIDENCE_REQUIRED");
+  shadowEvidence = verifiedShadowEvidence(shadowEvidencePath, { recent: true });
+  warmHandoffEvidence = verifiedShadowEvidence(warmHandoffEvidencePath, { warmHandoff: true });
+}
+if (!gatewayPidStable || (!normalRuntimeTruth && !finiteCommonCauseTruth))
   throw new Error("P38_GATEWAY_COMMON_CAUSE_RUNTIME_TRUTH_INVALID");
 if (connectorSamples.some(sample => !sample.running || !sample.pid || !sample.ok ||
   sample.assigned !== 1 || sample.progressing !== 1 || sample.stalled !== 0) ||
@@ -231,6 +268,9 @@ const plan = { protocol: "observer-push38-gateway-common-cause-recovery-activati
   runtime_pid: gatewayService.pid, ota_agent_pid: gatewayAgent.pid,
   connector_release_id: connectorCurrent.release_id,
   gateway_runtime_samples: gatewaySamples, connector_runtime_samples: connectorSamples,
+  gateway_runtime_truth: normalRuntimeTruth ? "8_OF_8_PROGRESSING" : "FINITE_STREAM_COMMON_CAUSE_SHADOW_QUALIFIED",
+  ...(shadowEvidence ? { current_shadow_evidence: shadowEvidence,
+    warm_handoff_evidence: warmHandoffEvidence } : {}),
   dvr_truth: { expected: 10, source_available: 8, upstream_unavailable: 2, empty: 6 },
   actions: ["PAUSE_OTHER_GATEWAY_ROLLOUTS", "ACTIVATE_EXACT_GATEWAY_REMEDIATION_ROLLOUT",
     "OTA_AGENT_DISCOVERS", "SHORT_LIVED_R2_DOWNLOAD", "SIGNED_INSTALL", "HEALTH_GATE",

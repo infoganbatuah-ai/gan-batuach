@@ -16,6 +16,7 @@ const registration = readFileSync("scripts/qa/register-push38-homeqa-gateway-com
 const gateway = readFileSync("services/video-gateway/server.mjs", "utf8");
 const installedAdapter = readFileSync("services/video-gateway/edge-macos-installed-adapter.mjs", "utf8");
 const persistentInstaller = readFileSync("scripts/install-persistent-home-gateway.mjs", "utf8");
+const activation = readFileSync("scripts/qa/activate-push38-homeqa-gateway-common-cause-recovery.mjs", "utf8");
 
 test("Gateway common-cause recovery is an immutable exact-device release", () => {
   const manifest = buildPush38GatewayCommonCauseRecoveryManifest({ signingKeyId: "fixture-release-key",
@@ -125,6 +126,9 @@ test("finite-stream handoff upgrades management and remains pinned to signed 0.2
   assert.match(installer, /qa-p38-health-gateway-session-e354546bdbf8/);
   assert.match(installer, /qa-p38-health-gateway-common-cause-189e548bc104/);
   assert.match(installer, /189e548bc10428ac49615fd2e9f6da60553df24e9da960db9afe40678c15b6eb/);
+  assert.match(activation, /FINITE_STREAM_COMMON_CAUSE_SHADOW_QUALIFIED/);
+  assert.match(activation, /P38_GATEWAY_FINITE_HANDOFF_SHADOW_EVIDENCE_REQUIRED/);
+  assert.match(activation, /warmHandoffFailures/);
 });
 
 test("registration requires verified managed identity and disables broad cohorts", () => {
