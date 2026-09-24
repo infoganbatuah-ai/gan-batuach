@@ -3,22 +3,38 @@
 import assert from "node:assert/strict";
 import { execFileSync, spawnSync } from "node:child_process";
 import { createHash } from "node:crypto";
-import { existsSync, mkdirSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
-import { tmpdir } from "node:os";
+import { existsSync, lstatSync, mkdirSync, mkdtempSync, readFileSync, realpathSync, rmSync, writeFileSync } from "node:fs";
+import { homedir, tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { verifyEdgeArtifact, verifyEdgeUpdateManifest } from "../../services/video-gateway/edge-update-contract.mjs";
+import { loadPinnedEdgeReleaseKeys, PROTECTED_EDGE_TRUST_REGISTRY_PATH } from "../../services/video-gateway/edge-release-trust.mjs";
 
 const args = Object.fromEntries(process.argv.slice(2).map(value => { const equal = value.indexOf("="); return [value.slice(0, equal), value.slice(equal + 1)]; }));
-for (const name of ["--commit", "--baseline-store", "--out", "--version"]) if (!args[name]) throw new Error(`REQUIRED_${name}`);
+for (const name of ["--commit", "--out", "--version"]) if (!args[name]) throw new Error(`REQUIRED_${name}`);
+if (Boolean(args["--baseline-store"]) === Boolean(args["--baseline-slot"]))
+  throw new Error("GATEWAY_EXACTLY_ONE_BASELINE_REQUIRED");
 if (!/^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/.test(args["--version"])) throw new Error("GATEWAY_VERSION_INVALID");
 const commit = execFileSync("git", ["rev-parse", `${args["--commit"]}^{commit}`], { encoding: "utf8" }).trim();
 if (!/^[a-f0-9]{40}$/.test(commit)) throw new Error("GATEWAY_SOURCE_COMMIT_INVALID");
-const source = join(resolve(args["--baseline-store"]), "qa-legacy-gateway-aa57572e8736");
-const trust = JSON.parse(readFileSync(join(resolve(args["--baseline-store"]), "qa-trust-registry.json"))).trustedPublicKeys;
-const manifest = JSON.parse(readFileSync(join(source, "release.json")));
-const archive = join(source, "gateway-runtime.tar.gz"), bytes = readFileSync(archive);
+let source, trust, manifest, archive;
+if (args["--baseline-slot"]) {
+  const slotsRoot = realpathSync(join(homedir(), "Library/Application Support/Digital Observer/observer-gateway/ota/slots"));
+  source = realpathSync(resolve(args["--baseline-slot"]));
+  if (!source.startsWith(`${slotsRoot}/`) || lstatSync(source).isSymbolicLink())
+    throw new Error("GATEWAY_SIGNED_BASELINE_SLOT_SCOPE_INVALID");
+  archive = join(source, "artifact.bin");
+  manifest = JSON.parse(readFileSync(join(source, "release.json")));
+  trust = loadPinnedEdgeReleaseKeys({ registryPath: PROTECTED_EDGE_TRUST_REGISTRY_PATH }).trustedPublicKeys;
+} else {
+  source = join(resolve(args["--baseline-store"]), "qa-legacy-gateway-aa57572e8736");
+  archive = join(source, "gateway-runtime.tar.gz");
+  manifest = JSON.parse(readFileSync(join(source, "release.json")));
+  trust = JSON.parse(readFileSync(join(resolve(args["--baseline-store"]), "qa-trust-registry.json"))).trustedPublicKeys;
+}
+const bytes = readFileSync(archive);
 assert.equal(verifyEdgeUpdateManifest(manifest, trust).ok, true);
 assert.equal(verifyEdgeArtifact(bytes, manifest).ok, true);
+assert.equal(manifest.profile, "PHYSICAL_GATEWAY");
 const out = resolve(args["--out"]); if (existsSync(out)) throw new Error("GATEWAY_OUTPUT_MUST_BE_NEW");
 mkdirSync(out, { recursive: true, mode: 0o700 });
 const temporary = mkdtempSync(join(tmpdir(), "observer-p38g-gateway-build-"));
