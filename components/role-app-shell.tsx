@@ -135,6 +135,17 @@ export const roleAppShellConfig: Record<RoleAppShellRole, {
       { href: "/dashboard/staff/tasks", label: "משימות", icon: ClipboardCheck },
       { href: "/dashboard/staff/messages", label: "הודעות", icon: MessageCircle },
       { href: "/dashboard/staff/settings", label: "עוד", icon: Menu }
+    ],
+    desktopNav: [
+      { href: "/dashboard/staff", label: "ראשי", hint: "המשמרת והיום שלי", icon: Home },
+      { href: "/dashboard/staff/shifts", label: "משמרות ושעות", hint: "לוח, החתמות והיסטוריה", icon: CalendarDays },
+      { href: "/dashboard/staff/children-attendance", label: "נוכחות ילדים", hint: "לפי שיוך הכיתה שלי", icon: BookOpenCheck },
+      { href: "/dashboard/staff/pickup", label: "איסוף ושחרור", hint: "אימות מורשי איסוף", icon: ShieldCheck },
+      { href: "/dashboard/staff/tasks", label: "משימות", hint: "פתוחות, באיחור והושלמו", icon: ClipboardCheck },
+      { href: "/dashboard/staff/messages", label: "הודעות", hint: "שיחות מורשות בגן", icon: MessageCircle },
+      { href: "/dashboard/staff/documents", label: "מסמכים", hint: "אישורים ותוקף", icon: FileText },
+      { href: "/dashboard/staff/cameras", label: "בטיחות ומצלמות", hint: "לפי הרשאת הגן", icon: Camera },
+      { href: "/dashboard/staff/settings", label: "הגדרות", hint: "פרופיל, אבטחה והעדפות", icon: Settings }
     ]
   },
   inspector: {
