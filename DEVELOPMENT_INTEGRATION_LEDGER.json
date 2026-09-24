@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-09-24T12:45:00+03:00",
+  "updatedAt": "2026-09-24T21:00:00+03:00",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -9414,6 +9414,55 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "UX-IMPLEMENT-04 is complete in Development. Stop before UX-IMPLEMENT-05; Production and main remain unchanged."
+    },
+    {
+      "id": "codex/ux-implement-05-parent-platform",
+      "project": "Gan Batuach Management",
+      "title": "UX-IMPLEMENT-05 Parent full platform",
+      "owner": "UX-IMPLEMENT-05 owner",
+      "sourceBranch": "codex/ux-implement-05-parent-platform",
+      "sourceCommits": [
+        "ca089b5f48eb6c284a47a326a0e47b4a01400318"
+      ],
+      "state": "LOCAL_VERIFIED",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/ux-implement-05-parent-platform@ca089b5f48eb6c284a47a326a0e47b4a01400318",
+          "origin/integration/development@580fccbdd76ac42ccbdf6773adc67367e3b9c882"
+        ],
+        "validatedSourceCommit": "ca089b5f48eb6c284a47a326a0e47b4a01400318"
+      },
+      "validation": {
+        "status": "PASS_VISUAL_FUNCTIONAL_EXACT_HEAD_REQUIRED_CHECKS",
+        "evidence": [
+          "GAN_BATUACH_UX05_PARENT_FULL_PLATFORM_IMPLEMENTATION.md",
+          "GAN_BATUACH_UX05_VISUAL_QA_REPORT.md",
+          "qa-evidence/ux-implement-05/SHA256SUMS"
+        ],
+        "limits": "All required GitHub checks passed on exact PR head ca089b5f48eb6c284a47a326a0e47b4a01400318. Twenty-one required Desktop and Mobile Parent captures passed visual QA against the approved reference. This Development integration is not Production release authorization."
+      },
+      "integration": {
+        "status": "INTEGRATED_DEVELOPMENT",
+        "base": "integration/development",
+        "commit": "580fccbdd76ac42ccbdf6773adc67367e3b9c882",
+        "pullRequest": 138,
+        "requiredChecks": "PASS_ALL_REQUIRED_EXACT_HEAD"
+      },
+      "dependencies": {
+        "status": "UX_IMPLEMENT_04_INTEGRATED",
+        "units": [
+          "codex/ux-implement-04-children-classrooms"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "PASS_BRANCH_UX05_FOCUSED_7_OF_7_MANAGER_PARENT_23_OF_23_ROLE_DASHBOARD_E2E_8_OF_8_ENROLLMENT_LIFECYCLE_7_OF_7_ENROLLMENT_ACTIVATION_8_OF_8_TUITION_3_OF_3_DOCUMENTS_6_OF_6_CHILD_DISCOVERY_5_OF_5_DASHBOARDS_9_OF_9_TYPECHECK_LINT_ZERO_REGRESSIONS_PRODUCTION_BUILD_530_PAGES_DOMAIN_30_OF_30_SECURITY_10_OF_10_MIGRATIONS_243_RELEASE_CONTRACT_VISUAL_21_CAPTURES",
+      "releaseEligibility": "DEVELOPMENT_COMPLETE_PRODUCTION_NOT_AUTHORIZED",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Run cumulative post-merge Development verification, then begin UX-IMPLEMENT-06 from the verified integration head. Production and main remain unchanged."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
