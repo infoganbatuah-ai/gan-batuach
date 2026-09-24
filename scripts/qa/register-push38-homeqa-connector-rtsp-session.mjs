@@ -9,19 +9,29 @@ import { verifyEdgeUpdateManifest } from "../../services/video-gateway/edge-upda
 import { assertEdgeReleaseObjectUrl } from "../../services/video-gateway/edge-release-object.mjs";
 import { loadPinnedEdgeReleaseKeys,
   PROTECTED_EDGE_TRUST_REGISTRY_PATH } from "../../services/video-gateway/edge-release-trust.mjs";
-import { PUSH38_CONNECTOR_RTSP_SESSION_RECOVERY as item
+import { PUSH38_CONNECTOR_RTSP_SESSION_RECOVERY
 } from "../../services/video-gateway/push38-home-qa-connector-rtsp-session.mjs";
+import { PUSH38_CONNECTOR_HOST_CONTINUITY_RECOVERY
+} from "../../services/video-gateway/push38-home-qa-connector-host-continuity.mjs";
 
 const apply = process.argv.includes("--apply");
+const hostContinuity = process.argv.includes("--host-continuity");
+const item = hostContinuity ? PUSH38_CONNECTOR_HOST_CONTINUITY_RECOVERY :
+  PUSH38_CONNECTOR_RTSP_SESSION_RECOVERY;
 const restrictedRoot = "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted";
 const bundleValue = process.argv.find(value => value.startsWith("--bundle="))?.slice(9);
 if (!bundleValue) throw new Error("P38_HOME_QA_RTSP_SESSION_BUNDLE_REQUIRED");
 const bundle = resolve(bundleValue);
-const artifact = `${restrictedRoot}/push38-connector-remediation-38671545/connector-remediation.tar.gz`;
-const publication = `${restrictedRoot}/push38-connector-remediation-38671545/r2-publication.json`;
-const predecessorReleaseId = item.rollbackReleaseId;
-const bundleName = "connector_remediation_rtsp_session.json";
-const expectedBefore = 9, expectedAfter = 10;
+const artifact = hostContinuity
+  ? `${restrictedRoot}/push38-connector-host-continuity-e0f07860/connector-remediation.tar.gz`
+  : `${restrictedRoot}/push38-connector-remediation-38671545/connector-remediation.tar.gz`;
+const publication = hostContinuity
+  ? `${restrictedRoot}/push38-connector-host-continuity-e0f07860/r2-publication.json`
+  : `${restrictedRoot}/push38-connector-remediation-38671545/r2-publication.json`;
+const predecessorReleaseId = hostContinuity ? item.supersedesReleaseId : item.rollbackReleaseId;
+const bundleName = hostContinuity ? "connector_remediation_host_continuity.json" :
+  "connector_remediation_rtsp_session.json";
+const expectedBefore = hostContinuity ? 13 : 9, expectedAfter = hostContinuity ? 14 : 10;
 const accountId = "693f824a750afcc264fe6ee58c8a86ab";
 const origin = `https://${accountId}.r2.cloudflarestorage.com`;
 for (const path of [bundle, artifact, publication]) {

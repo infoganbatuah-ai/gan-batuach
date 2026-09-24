@@ -22,18 +22,20 @@ const startupRecoveryUpgrade = process.argv.includes("--startup-recovery-upgrade
 const livenessRecoveryUpgrade = process.argv.includes("--liveness-recovery-upgrade");
 const parentExitRecoveryUpgrade = process.argv.includes("--parent-exit-recovery-upgrade");
 const rtspSessionRecoveryUpgrade = process.argv.includes("--rtsp-session-recovery-upgrade");
+const connectorHostContinuityUpgrade = process.argv.includes("--connector-host-continuity-upgrade");
 const gatewayAuthRecoveryUpgrade = process.argv.includes("--gateway-auth-recovery-upgrade");
 const gatewaySessionStabilityUpgrade = process.argv.includes("--gateway-session-stability-upgrade");
 const gatewayCommonCauseRecoveryUpgrade = process.argv.includes("--gateway-common-cause-recovery-upgrade");
 const gatewayFiniteStreamHandoffUpgrade = process.argv.includes("--gateway-finite-stream-handoff-upgrade");
 if ([recoveryUpgrade, startupRecoveryUpgrade, livenessRecoveryUpgrade, parentExitRecoveryUpgrade,
   rtspSessionRecoveryUpgrade, gatewayAuthRecoveryUpgrade, gatewaySessionStabilityUpgrade,
-  gatewayCommonCauseRecoveryUpgrade, gatewayFiniteStreamHandoffUpgrade].filter(Boolean).length > 1)
+  gatewayCommonCauseRecoveryUpgrade, gatewayFiniteStreamHandoffUpgrade,
+  connectorHostContinuityUpgrade].filter(Boolean).length > 1)
   throw new Error("P38_HOME_QA_AGENT_UPGRADE_MODE_INVALID");
 const managementUpgrade = process.argv.includes("--management-upgrade") || recoveryUpgrade ||
   startupRecoveryUpgrade || livenessRecoveryUpgrade || parentExitRecoveryUpgrade ||
   rtspSessionRecoveryUpgrade || gatewayAuthRecoveryUpgrade || gatewaySessionStabilityUpgrade ||
-  gatewayCommonCauseRecoveryUpgrade || gatewayFiniteStreamHandoffUpgrade;
+  gatewayCommonCauseRecoveryUpgrade || gatewayFiniteStreamHandoffUpgrade || connectorHostContinuityUpgrade;
 if (apply === dryRun || !["SOFTWARE_CONNECTOR", "PHYSICAL_GATEWAY"].includes(profile))
   throw new Error("P38_HOME_QA_AGENT_MODE_OR_PROFILE_INVALID");
 if (managementUpgrade && profile !== "SOFTWARE_CONNECTOR" &&
@@ -49,20 +51,25 @@ const spec = connector ? {
   deviceId: "db267b52-6282-4944-bcee-5d4857698fb0",
   baselineRelease: "qa-connector-legacy-transition-v2-6e7988808b05",
   baselineSha: "6e7988808b05956d58416a6ce60638f52b19aa732918ac0e1cdafcc5fc9f130a",
-  remediationRelease: rtspSessionRecoveryUpgrade ? "qa-p38-health-connector-rtsp-session-fb790d87cf53" :
+  remediationRelease: connectorHostContinuityUpgrade ? "qa-p38-health-connector-host-continuity-8b8ec21e41c2" :
+    rtspSessionRecoveryUpgrade ? "qa-p38-health-connector-rtsp-session-fb790d87cf53" :
     parentExitRecoveryUpgrade ? "qa-p38-health-connector-parent-exit-f7dba974e80f" :
     livenessRecoveryUpgrade ? "qa-p38-health-connector-liveness-bb89862c6352" :
     startupRecoveryUpgrade ? "qa-p38-health-connector-startup-d44b7e4262f9" :
     recoveryUpgrade ? "qa-p38-health-connector-recovery-9bb5db251379" :
     managementUpgrade ? "qa-p38-health-connector-pidfix-1b9e9499ffa7" :
     "qa-p38-health-connector-1b076f596574",
-  bundleName: rtspSessionRecoveryUpgrade ? "connector_remediation_rtsp_session.json" :
+  bundleName: connectorHostContinuityUpgrade ? "connector_remediation_host_continuity.json" :
+    rtspSessionRecoveryUpgrade ? "connector_remediation_rtsp_session.json" :
     parentExitRecoveryUpgrade ? "connector_remediation_parent_exit.json" :
     livenessRecoveryUpgrade ? "connector_remediation_liveness.json" :
     startupRecoveryUpgrade ? "connector_remediation_startup.json" :
     recoveryUpgrade ? "connector_remediation_recovery.json" :
     managementUpgrade ? "connector_remediation_pidfix.json" : "connector_remediation.json",
-  priorManagement: rtspSessionRecoveryUpgrade ? {
+  priorManagement: connectorHostContinuityUpgrade ? {
+    release_id: "qa-p38-health-connector-rtsp-session-fb790d87cf53",
+    artifact_sha256: "fb790d87cf5378fac92eb4ed2650ad2227a4851d959df84f400f67931e485e7f" } :
+    rtspSessionRecoveryUpgrade ? {
     release_id: "qa-p38-health-connector-parent-exit-f7dba974e80f",
     artifact_sha256: "f7dba974e80fc7e70bef0584744379b09ef4c0e8161eb13c32cea6118a4a55fd" } :
     parentExitRecoveryUpgrade ? { release_id: "qa-p38-health-connector-liveness-bb89862c6352",
@@ -129,7 +136,9 @@ const runtimeConfig = { profile, managedRoot: root, installedBase: spec.installe
 const plan = planInstalledOtaAgent({ profile, managedRoot: root, agentPlistPath, agentLabel });
 if (apply) validateHomeQaOtaIdentityScope({ managedRoot: root, runtimeConfig });
 const bundleOverride = process.argv.find(arg => arg.startsWith("--bundle="))?.slice(9);
-const bundle = resolve(bundleOverride || (rtspSessionRecoveryUpgrade
+const bundle = resolve(bundleOverride || (connectorHostContinuityUpgrade
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-connector-host-continuity.zip"
+  : rtspSessionRecoveryUpgrade
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-connector-rtsp-session.zip"
   : parentExitRecoveryUpgrade
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-connector-parent-exit-35811312200.zip"
