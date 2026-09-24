@@ -64,6 +64,8 @@
     "qa:ux04-visual": "node scripts/qa/capture-ux04-children-classrooms-profile.mjs",
     "qa:ux05-focused": "node --test scripts/qa/check-ux05-parent-platform.mjs",
     "qa:ux05-visual": "node scripts/qa/capture-ux05-parent-platform.mjs",
+    "qa:ux06-focused": "node --test scripts/qa/check-ux06-attendance-pickup.mjs",
+    "qa:ux06-visual": "node scripts/qa/capture-ux06-attendance-pickup.mjs",
     "qa:management-legacy-consolidation": "node --test scripts/qa/check-management-legacy-consolidation.mjs",
     "qa:management-dashboard-e2e": "node scripts/qa/run-management-dashboard-role-e2e.mjs",
     "qa:digital-observer-product": "node scripts/qa/check-digital-observer-product.mjs",
