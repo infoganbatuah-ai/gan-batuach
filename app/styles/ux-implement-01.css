@@ -151,8 +151,8 @@ body:has(.gb-auth-flow-page) .gb-public-header { display: none; }
 .gb-welcome-footer button { opacity: .68; }
 
 /* Shared Auth shell: desktop split, mobile task-first. */
-.gb-auth-v2-stage { grid-template-columns: minmax(460px, .78fr) minmax(0, 1fr); background: linear-gradient(135deg, #d4e3fb 0%, #f8fbff 44%, #c7dcff 100%); }
-.gb-auth-v2-story { order: 1; align-content: end; min-height: 100dvh; background: linear-gradient(180deg, rgb(7 38 103 / 5%), rgb(4 31 88 / 92%)), url('/assets/gan-batuach-auth-hero.webp') 70% center / cover; }
+.gb-auth-v2-stage { grid-template-columns: minmax(460px, .78fr) minmax(0, 1fr); align-items: start; background: linear-gradient(135deg, #d4e3fb 0%, #f8fbff 44%, #c7dcff 100%); }
+.gb-auth-v2-story { position: sticky; inset-block-start: 0; order: 1; align-content: end; min-height: 100dvh; height: 100dvh; background: linear-gradient(180deg, rgb(7 38 103 / 5%), rgb(4 31 88 / 92%)), url('/assets/gan-batuach-auth-hero.webp') 84% center / cover; }
 .gb-auth-v2 .gb-auth-page { order: 2; padding: clamp(24px, 4vw, 54px); }
 .gb-auth-v2 .gb-auth-card { max-width: 680px; border: 1px solid rgb(255 255 255 / 78%); border-radius: 28px; padding: clamp(24px, 3vw, 42px); background: rgb(255 255 255 / 96%); box-shadow: 0 26px 70px rgb(8 45 109 / 15%); }
 .gb-auth-v2-story-copy { max-width: 520px; gap: 14px; }
