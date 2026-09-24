@@ -471,3 +471,16 @@ additional route sweep was stopped after three passing Parent routes to yield
 machine resources to concurrent Home Edge qualification and is not counted as
 PASS evidence. No migration, paid provider, Production, `main`, customer data
 or Digital Observer core change occurred. UX-IMPLEMENT-05 has not started.
+
+UX-IMPLEMENT-06 Development integration closure (2026-09-24): PR #140 passed
+both required workflows on exact head
+`055c160ee0035ba6f0b6ca7e097e22e127967d4c` and merged by ancestry into
+`integration/development` at `e04b6515d16e67b2ace4c753b646975279070daa`.
+Branch validation passed UX-06 focused 8/8, live isolated-backend
+attendance/pickup role and concurrency QA 14 checks, dashboards 9/9,
+Parent/Manager 23/23, typecheck, zero-regression lint, Production build,
+Domain 30/30, Security 10/10, migration health 243/243, release contract and
+exact-head preflight. Desktop and Mobile visual QA passed 13/13 captures with
+no partial or failed screen. No migration, paid provider, Production, `main`,
+customer data or Digital Observer core change occurred. UX-IMPLEMENT-07 starts
+only after cumulative post-merge Development verification.
