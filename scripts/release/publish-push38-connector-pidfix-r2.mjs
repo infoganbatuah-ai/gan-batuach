@@ -14,6 +14,7 @@ import { buildPush38ConnectorParentExitRecoveryManifest } from "../../services/v
 import { buildPush38ConnectorRtspSessionRecoveryManifest } from "../../services/video-gateway/push38-home-qa-connector-rtsp-session.mjs";
 import { buildPush38ConnectorHostContinuityRecoveryManifest } from "../../services/video-gateway/push38-home-qa-connector-host-continuity.mjs";
 import { buildPush38ConnectorDeviceSessionRecoveryManifest } from "../../services/video-gateway/push38-home-qa-connector-device-session.mjs";
+import { buildPush38ConnectorRuntimePidRecoveryManifest } from "../../services/video-gateway/push38-home-qa-connector-runtime-pid.mjs";
 import { readR2KeychainCredentials } from "./macos-r2-keychain.mjs";
 
 const origin = "https://693f824a750afcc264fe6ee58c8a86ab.r2.cloudflarestorage.com";
@@ -31,8 +32,9 @@ async function hashStream(stream, limit) {
 
 async function publish({ artifactPath, evidencePath, recovery = false, startupRecovery = false,
   livenessRecovery = false, parentExitRecovery = false, rtspSessionRecovery = false,
-  hostContinuityRecovery = false, deviceSessionRecovery = false }) {
-  const builder = deviceSessionRecovery ? buildPush38ConnectorDeviceSessionRecoveryManifest :
+  hostContinuityRecovery = false, deviceSessionRecovery = false, runtimePidRecovery = false }) {
+  const builder = runtimePidRecovery ? buildPush38ConnectorRuntimePidRecoveryManifest :
+    deviceSessionRecovery ? buildPush38ConnectorDeviceSessionRecoveryManifest :
     hostContinuityRecovery ? buildPush38ConnectorHostContinuityRecoveryManifest :
     rtspSessionRecovery ? buildPush38ConnectorRtspSessionRecoveryManifest :
     parentExitRecovery ? buildPush38ConnectorParentExitRecoveryManifest :
@@ -96,7 +98,8 @@ async function publish({ artifactPath, evidencePath, recovery = false, startupRe
       signal: AbortSignal.timeout(30_000) });
     await anonymous.body?.cancel();
     if (anonymous.ok) fail("P38_PIDFIX_R2_PUBLIC_ACCESS_ENABLED");
-    const result = { protocol: deviceSessionRecovery ? "observer-push38-device-session-recovery-r2-publication-v1" :
+    const result = { protocol: runtimePidRecovery ? "observer-push38-runtime-pid-recovery-r2-publication-v1" :
+      deviceSessionRecovery ? "observer-push38-device-session-recovery-r2-publication-v1" :
       hostContinuityRecovery ? "observer-push38-host-continuity-recovery-r2-publication-v1" :
       rtspSessionRecovery ? "observer-push38-rtsp-session-recovery-r2-publication-v1" :
       parentExitRecovery ? "observer-push38-parent-exit-recovery-r2-publication-v1" :
@@ -121,20 +124,21 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
     const rtspSessionRecovery = process.argv.includes("--rtsp-session-recovery");
     const hostContinuityRecovery = process.argv.includes("--host-continuity-recovery");
     const deviceSessionRecovery = process.argv.includes("--device-session-recovery");
+    const runtimePidRecovery = process.argv.includes("--runtime-pid-recovery");
     if ([recovery, startupRecovery, livenessRecovery, parentExitRecovery, rtspSessionRecovery,
-      hostContinuityRecovery, deviceSessionRecovery]
+      hostContinuityRecovery, deviceSessionRecovery, runtimePidRecovery]
       .filter(Boolean).length > 1)
       fail("P38_PIDFIX_R2_MODE_INVALID");
     const [artifact, evidence] = process.argv.slice(2)
       .filter(value => !["--health-recovery", "--startup-recovery", "--liveness-recovery",
         "--parent-exit-recovery", "--rtsp-session-recovery", "--host-continuity-recovery",
-        "--device-session-recovery"].includes(value));
+        "--device-session-recovery", "--runtime-pid-recovery"].includes(value));
     const evidenceRelative = evidence ? relative(restrictedRoot, resolve(evidence)) : "";
     if (!artifact || !evidence || !evidenceRelative || evidenceRelative === ".." ||
       evidenceRelative.startsWith(`..${sep}`) || isAbsolute(evidenceRelative)) fail("P38_PIDFIX_R2_INPUT_SCOPE_INVALID");
     console.log(JSON.stringify({ result: "PASS", publication: await publish({ artifactPath: artifact,
       evidencePath: resolve(evidence), recovery, startupRecovery, livenessRecovery, parentExitRecovery,
-      rtspSessionRecovery, hostContinuityRecovery, deviceSessionRecovery }) }));
+      rtspSessionRecovery, hostContinuityRecovery, deviceSessionRecovery, runtimePidRecovery }) }));
   } catch (error) {
     console.error(/^P38_PIDFIX_R2_[A-Z0-9_]+$/.test(error.message) ? error.message : "P38_PIDFIX_R2_PUBLICATION_FAILED");
     process.exitCode = 1;
