@@ -99,3 +99,13 @@ These deviations preserve implemented product truth and authorization while matc
 - Production change: none.
 - New paid provider or fixed commitment: none.
 - Digital Observer core diff: `0`.
+
+## Development integration closure
+
+PR #132 passed all required repository checks on exact head
+`6a8aaedc6df02a003d1c365d90869fbfd4c58cae` and merged to
+`integration/development` at `fd3fd866dc13f2f81f12a14b1be21afd0ce7d00e`.
+Post-merge verification from a clean integration-closure branch passed the
+focused Owner onboarding, Parent/Manager, role, multi-Garden, Classroom,
+capacity, document, invitation, subscription, typecheck, domain, security,
+migration and release-contract suites. Production and `main` remain unchanged.
