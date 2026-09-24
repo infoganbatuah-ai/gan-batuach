@@ -94,18 +94,16 @@ export function createMacOSInstalledEdgeAdapter({ profile, installedBase, manage
   function runtimePid() {
     const owner = service();
     if (!owner.running || !owner.pid) return null;
-    // After the managed handoff launchd owns the signed Node runtime directly.
-    // Camera/FFmpeg children are workload processes and must never be treated as
-    // the supervised runtime: their expected lifecycle would look like a crash.
+    // After the managed handoff launchd owns the service process. On macOS,
+    // `caffeinate ... <node> <runner>` execs the Node runner in the launchd-owned
+    // PID and keeps its assertion helper as a child. The runner then owns the
+    // media-server/FFmpeg workload children. Following any child here therefore
+    // turns normal helper/media lifecycle into a false runtime crash.
     try {
       const source = JSON.parse(run("/usr/bin/plutil", ["-convert", "json", "-o", "-", plistPath]));
       const runner = programRunner(source.ProgramArguments);
       if (typeof runner === "string" && resolve(runner).startsWith(`${join(root, "slots")}/`)) {
-        if (source.ProgramArguments?.[0] !== CAFFEINATE_PATH) return owner.pid;
-        const rows = run("/bin/ps", ["-axo", "pid=,ppid="]).trim().split("\n");
-        const child = rows.map(row => row.trim().split(/\s+/).map(Number))
-          .find(([pid, ppid]) => pid > 1 && ppid === owner.pid);
-        return child?.[0] || null;
+        return owner.pid;
       }
     } catch { return null; }
     const rows = run("/bin/ps", ["-axo", "pid=,ppid="]).trim().split("\n");

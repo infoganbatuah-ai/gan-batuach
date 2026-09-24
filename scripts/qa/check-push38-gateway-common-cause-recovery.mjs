@@ -113,6 +113,13 @@ test("the supervised Site Edge prevents idle sleep for its exact lifetime", () =
   assert.doesNotMatch(installedAdapter, /CAFFEINATE_OPTIONS = \[[^\]]*"-d"/);
 });
 
+test("managed crash-loop supervision tracks the launchd service PID, not workload children", () => {
+  assert.match(installedAdapter,
+    /resolve\(runner\)\.startsWith\(`\$\{join\(root, "slots"\)\}\/`\)[\s\S]*return owner\.pid/);
+  assert.doesNotMatch(installedAdapter,
+    /source\.ProgramArguments\?\.\[0\] !== CAFFEINATE_PATH[\s\S]*ppid === owner\.pid/);
+});
+
 test("common-cause recovery is pinned to the signed 0.2.11 known-good release", () => {
   assert.match(installer, /--gateway-common-cause-recovery-upgrade/);
   assert.match(installer, /qa-p38-health-gateway-common-cause-189e548bc104/);
