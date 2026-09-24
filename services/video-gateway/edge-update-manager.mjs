@@ -69,6 +69,21 @@ export class EdgeUpdateManager {
   current() { return this.readJson(this.currentPath, this.readJson(this.bootstrapPath, null)?.pointer || { version: this.device.currentVersion, slot: null, build_sha: this.device.buildSha || "unknown" }); }
   knownGood() { return this.readJson(this.knownGoodPath, this.readJson(this.bootstrapPath, null)?.pointer ? [this.readJson(this.bootstrapPath, null).pointer] : []); }
   quarantine() { return this.readJson(this.quarantinePath, []); }
+  pendingQuarantineRetry({ maxAgeMs = 15 * 60_000 } = {}) {
+    const state = this.status(), current = this.current(), known = this.knownGood();
+    if (state.state !== "ROLLED_BACK" || !state.release_id || state.release_id === current.release_id ||
+      !known.some(item => item.release_id === current.release_id &&
+        item.artifact_sha256 === current.artifact_sha256) ||
+      this.quarantine().some(item => item.release_id === state.release_id)) return null;
+    const authorization = [...this.readJson(this.quarantineRetryPath, [])].reverse()
+      .find(item => item.release_id === state.release_id);
+    const age = this.now() - Date.parse(authorization?.authorized_at || "");
+    if (!authorization || authorization.current_release_id !== current.release_id ||
+      authorization.current_artifact_sha256 !== current.artifact_sha256 ||
+      !Number.isFinite(age) || age < -300_000 || age > maxAgeMs) return null;
+    this.verifySlot(current);
+    return authorization;
+  }
   status() { return this.readJson(this.statePath, { state: this.current().slot ? "HEALTHY" : "IDLE", current_version: this.current().version, known_good_version: this.knownGood().at(-1)?.version || null, history: [] }); }
   releaseStatus() { const current = this.current(), knownGood = this.knownGood().at(-1) || null;
     return { current_release: current.release_id || null, known_good_release: knownGood?.release_id || null,

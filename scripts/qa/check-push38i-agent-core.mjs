@@ -89,12 +89,25 @@ for (const profile of ["PHYSICAL_GATEWAY", "SOFTWARE_CONNECTOR"]) {
     assert.equal((await restartedAgent.tick()).state, "ROLLED_BACK");
     assert.equal(reported.filter(item => item.state === "ROLLED_BACK").length, 1, "late failure report idempotent");
     assert.equal(restarts, 2);
+    // An evidence-bound one-time retry must reach the normal signed OTA
+    // install/health/rollback machinery even when the old known-good HTTP
+    // probe is liveness-starved. The launchd owner PID must remain stable.
+    manager.authorizeQuarantinedReleaseRetry({ manifest: target,
+      expectedFailureCategory: "EDGE_UPDATE_CRASH_LOOP", remediationEvidenceSha256: "f".repeat(64) });
+    const retryEvents = [];
+    const authorizedRetry = createInstalledEdgeOtaAgent({ ...options,
+      adapter: { ...adapter, health: async () => ({ ok: false }) },
+      onEvent: event => retryEvents.push(event) });
+    assert.equal((await authorizedRetry.tick()).state, "HEALTHY");
+    assert.equal(manager.current().release_id, target.release_id);
+    assert.equal(retryEvents.some(event => event.state === "AUTHORIZED_RETRY_ACTIVE" &&
+      event.release_id === target.release_id), true);
     // Simulate an agent crash after a late rollback switched CURRENT but
     // before the service-manager restart and terminal-state write.
     target = release(profile, "1.2.0");
     assert.equal((await restartedAgent.tick()).state, "HEALTHY");
     const interrupted = manager.current();
-    const prior = manager.knownGood().find(item => item.version === "1.0.0");
+    const prior = manager.knownGood().find(item => item.version === "1.1.0");
     manager.transition("ROLLBACK_REQUIRED", { failure_category: "EDGE_UPDATE_CRASH_LOOP", failed_version: interrupted.version });
     manager.transition("ROLLING_BACK", { failure_category: "EDGE_UPDATE_CRASH_LOOP" });
     writeFileSync(manager.currentPath, JSON.stringify(prior));
@@ -103,8 +116,10 @@ for (const profile of ["PHYSICAL_GATEWAY", "SOFTWARE_CONNECTOR"]) {
     assert.equal(manager.current().release_id, prior.release_id);
     assert.equal(manager.quarantine().some(item => item.release_id === interrupted.release_id), true);
     assert.equal((await afterCrash.tick()).state, "ROLLED_BACK", "quarantined update cannot reinstall after recovery");
-    assert.equal(restarts, 4);
-    results.push({ profile, automatic_cycle: "PASS", persistent_crash_rollback: "PASS", interrupted_rollback_recovery: "PASS", quarantine: "PASS", agent_restart: "PASS", predownload_manifest_gate: "PASS" });
+    assert.equal(restarts, 5);
+    results.push({ profile, automatic_cycle: "PASS", persistent_crash_rollback: "PASS",
+      authorized_retry_bypasses_only_legacy_http_probe: "PASS", interrupted_rollback_recovery: "PASS",
+      quarantine: "PASS", agent_restart: "PASS", predownload_manifest_gate: "PASS" });
   } finally { rmSync(scope, { recursive: true, force: true }); }
 }
 console.log(JSON.stringify({ status: "PASS", evidence_level: "isolated agent core; no installed service-manager proof", results }));

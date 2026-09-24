@@ -77,6 +77,25 @@ export function createInstalledEdgeOtaAgent({ root, device, adapter, cloudReques
         await reportLateFailure(manager);
         return recovered;
       }
+      const pendingRetry = manager.pendingQuarantineRetry();
+      if (pendingRetry) {
+        // A one-time, evidence-bound retry exists precisely because the old
+        // signed known-good runtime can be liveness-starved. Do not let that
+        // legacy HTTP symptom prevent the authorized remediation from reaching
+        // its own mandatory install/health/rollback gates. The supervised
+        // service and exact launchd owner PID must still be stable.
+        const first = adapter.status(), firstPid = adapter.runtimePid();
+        await new Promise(resolveWait => setTimeout(resolveWait, 1_000));
+        const second = adapter.status(), secondPid = adapter.runtimePid();
+        if (!first.running || !second.running || !Number.isInteger(firstPid) || firstPid < 1 ||
+          secondPid !== firstPid) return { state: "RUNTIME_UNHEALTHY", reason: "SUPERVISOR_PID_UNSTABLE" };
+        onEvent({ state: "AUTHORIZED_RETRY_ACTIVE", release_id: pendingRetry.release_id });
+        const result = await runEdgeUpdateCycle({ root, device, adapter, cloudRequest, healthCheck,
+          trustRegistryPath, qaRootPinPath, qaIsolationRoot, download,
+          onTransition: event => onEvent(event) });
+        onEvent({ state: result.state, release_id: manager.current().release_id });
+        return result;
+      }
       const service = adapter.status();
       const observed = await adapter.health({ timeoutMs: 1500 });
       const crash = await guard.observe({ runtimePid: adapter.runtimePid(), healthy: observed.ok && service.running });

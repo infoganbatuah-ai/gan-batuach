@@ -138,6 +138,8 @@ const delayedRetry = delayedRecovery.value.authorizeQuarantinedReleaseRetry({ ma
   expectedFailureCategory: "EDGE_UPDATE_ROLLBACK_HEALTH_FAILED", remediationEvidenceSha256: "b".repeat(64) });
 assert.equal(delayedRetry.previous_failure_category, "EDGE_UPDATE_ROLLBACK_HEALTH_FAILED");
 assert.equal(delayedRetry.recovery_failure_category, "EDGE_UPDATE_ROLLBACK_HEALTH_FAILED");
+assert.equal(delayedRecovery.value.pendingQuarantineRetry().release_id, delayedManifest.release_id);
+assert.equal(delayedRecovery.value.pendingQuarantineRetry({ maxAgeMs: -1 }), null);
 
 // Artifact tamper and interrupted phases never promote an incomplete slot.
 const tamper = await manager("SOFTWARE_CONNECTOR", async () => healthy(1));
