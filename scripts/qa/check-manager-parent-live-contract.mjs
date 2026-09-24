@@ -37,6 +37,7 @@ check("Live payment remains manual/sandbox readiness", atomicOnboarding.includes
 check("At least one age group is required", onboarding.includes("יש לבחור לפחות קבוצת גיל אחת"), "server-side activation validation");
 check("Legacy direct parent creation is blocked", legacyParent.includes("parent_acceptance_required: true") && legacyParent.includes("replacement_endpoint"), "compatibility endpoint");
 check("Manager invitation requires parent acceptance", managerInvite.includes("parent_acceptance_required: true"), "invitation metadata");
+check("Manager invitation writes only to the server-authorized current Garden", managerInvite.includes("access.gardenId") && !managerInvite.includes("profile.garden_id"), "multi-Garden invitation scope");
 check("Parent can accept or reject only own invitation", parentInvite.includes('action: z.enum(["accept", "reject"])') && parentInvite.includes("invited_parent_profile_id: profile.id"), "parent invitation route");
 check("Accepted child creates formal garden enrollment", enrollment.includes('from("child_kindergarten_enrollments"') && enrollment.includes('status: "active"'), "activation helper");
 check("Accepted child creates an audit timeline event", enrollment.includes('event_type: "kindergarten_enrollment_activated"'), "activation helper");

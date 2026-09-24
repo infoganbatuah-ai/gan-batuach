@@ -57,7 +57,7 @@ try {
   assert.equal(automaticLogout, 0);
   results.push('Onboarding render does not prefetch logout');
 
-  await page.locator('select[name=registrant_type]').selectOption('owner_only');
+  await page.locator('input[name=registrant_type][value=owner_only]').check();
   await page.locator('input[name=kindergarten_name]').fill('GB-M35 QA Owner Journey D');
   await page.locator('select[name=city]').selectOption({ index: 1 });
   await page.locator('input[name=street]').fill('QA Synthetic Street');
@@ -105,24 +105,25 @@ try {
   results.push('All five wizard stages save and resume at the final stage');
 
   await page.locator('nav[aria-label="שלבי רישום"] button').nth(3).click();
+  const invitationEmail = `ux02-parent-${Date.now()}@integration.qa.invalid`;
   await page.locator('input[name=invite_full_name]').fill('QA Parent Multi');
-  await page.locator('input[name=invite_email]').fill('parent-multi@integration.qa.invalid');
+  await page.locator('input[name=invite_email]').fill(invitationEmail);
   const invitationResponse = page.waitForResponse(response => new URL(response.url()).pathname === '/api/garden/parent-invitations' && response.request().method() === 'POST');
   await page.getByRole('button', { name: /שליחת הזמנה/ }).click();
   const invitation = await invitationResponse;
-  assert.equal(invitation.status(), 201, 'Owner onboarding invitation must target its displayed draft Garden');
   const invitationBody = await invitation.json();
+  assert.equal(invitation.status(), 201, `Owner onboarding invitation must target its displayed draft Garden: ${invitationBody.error ?? 'unknown error'}`);
   const invitationId = invitationBody.data?.invitation?.canonical_invitation_id;
   assert.match(invitationId, /^[0-9a-f-]{36}$/i);
   assert.equal(sql(`select garden_id from public.management_invitations where id='${invitationId}'`).trim(), gardenId);
   results.push('Parent invitation from draft wizard is bound to that Garden');
 
-  const denied = await page.evaluate(async ({ wrongGardenId, intendedGardenId }) => {
-    const payload = { full_name: 'QA Parent Multi', email: 'parent-multi@integration.qa.invalid', garden_id: wrongGardenId };
+  const denied = await page.evaluate(async ({ wrongGardenId, intendedGardenId, email }) => {
+    const payload = { full_name: 'QA Parent Multi', email, garden_id: wrongGardenId };
     const crossGarden = await fetch(`/api/garden/parent-invitations?gardenId=${wrongGardenId}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
     const mismatchedBody = await fetch(`/api/garden/parent-invitations?gardenId=${intendedGardenId}`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
     return { crossGarden: crossGarden.status, mismatchedBody: mismatchedBody.status };
-  }, { wrongGardenId: '00000000-0000-4000-8000-000000000602', intendedGardenId: gardenId });
+  }, { wrongGardenId: '00000000-0000-4000-8000-000000000602', intendedGardenId: gardenId, email: invitationEmail });
   assert.equal(denied.crossGarden, 403);
   assert.equal(denied.mismatchedBody, 403);
   results.push('Other-Garden and mismatched invitation IDs are denied');

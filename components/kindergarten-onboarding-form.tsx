@@ -5,6 +5,7 @@ import { useMemo, useRef, useState, type FormEvent } from "react";
 import {
   Baby,
   Building2,
+  Camera,
   CalendarDays,
   Check,
   CheckCircle2,
@@ -12,10 +13,14 @@ import {
   ChevronRight,
   CreditCard,
   FileCheck2,
+  GraduationCap,
   LoaderCircle,
+  Mail,
+  Plus,
   Save,
   ShieldCheck,
   Sparkles,
+  UserCheck,
   UsersRound,
   WalletCards
 } from "lucide-react";
@@ -100,6 +105,7 @@ export function ManagerKindergartenApplicationForm({ managerName, managerPhone, 
   const router = useRouter();
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
+  const [registrantType, setRegistrantType] = useState(profileRole === "owner" ? "owner_teacher" : "teacher_operator");
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -141,30 +147,53 @@ export function ManagerKindergartenApplicationForm({ managerName, managerPhone, 
   }
 
   return (
-    <form className="manager-registration-entry" onSubmit={submit}>
+    <form className="manager-registration-entry" onSubmit={submit} aria-describedby="manager-registration-guidance">
       <section className="manager-registration-intro">
         <div>
           <span className="manager-registration-icon"><ShieldCheck /></span>
-          <p className="eyebrow">רישום מנהלת</p>
-          <h2>ברוכה הבאה לגן בטוח</h2>
-          <p>ממלאים את פרטי המנהלת והגן, ממשיכים ברצף לחמשת שלבי ההקמה ומתחילים תקופת ניסיון ללא המתנה לאישור אדמין.</p>
+          <p className="eyebrow">פתיחת גן חדש</p>
+          <h2>ברוכה הבאה למסע הקמת הגן</h2>
+          <p id="manager-registration-guidance">הפרטים הבסיסיים פותחים טיוטה מאובטחת. אחר כך אפשר להתקדם בקצב שלך, לשמור ולחזור בכל עת.</p>
+          <div className="manager-entry-benefits" aria-label="יתרונות התהליך">
+            <span><CheckCircle2 /> שמירה אוטומטית</span>
+            <span><ShieldCheck /> הרשאות מאובטחות</span>
+            <span><Sparkles /> הפעלה מודרכת</span>
+          </div>
         </div>
-        <div className="manager-registration-visual" aria-hidden="true"><Building2 /><Sparkles /></div>
+        <div className="manager-registration-visual" aria-hidden="true"><Building2 /><Sparkles /><span>הגן שלך מתחיל כאן</span></div>
       </section>
 
       <section className="manager-registration-card">
-        <div className="section-heading"><h3>פרטים אישיים</h3><p>הפרטים ישמשו לזיהוי החשבון ולניהול הגן.</p></div>
+        <div className="section-heading"><span className="manager-section-number">1</span><div><h3>איך תפעלי בגן?</h3><p>הבחירה קובעת את סביבת העבודה וההרשאות לאחר ההפעלה.</p></div></div>
+        <div className="manager-role-mode-grid" role="radiogroup" aria-label="בחירת תפקיד בגן">
+          {profileRole === "owner" ? <>
+            <label className={registrantType === "owner_only" ? "selected" : ""}>
+              <input type="radio" name="registrant_type" value="owner_only" checked={registrantType === "owner_only"} onChange={() => setRegistrantType("owner_only")} />
+              <span><Building2 /><b>בעלים / מנהל בלבד</b><small>ניהול עסקי ותפעולי, ללא הרשאות הוראה אוטומטיות.</small></span>
+            </label>
+            <label className={registrantType === "owner_teacher" ? "selected" : ""}>
+              <input type="radio" name="registrant_type" value="owner_teacher" checked={registrantType === "owner_teacher"} onChange={() => setRegistrantType("owner_teacher")} />
+              <span><GraduationCap /><b>בעלים וגם גננת</b><small>ניהול הגן יחד עם סביבת העבודה החינוכית המורשית.</small></span>
+            </label>
+          </> : <label className="selected">
+            <input type="radio" name="registrant_type" value="teacher_operator" checked readOnly />
+            <span><GraduationCap /><b>גננת שמפעילה את הגן</b><small>ניהול שוטף ועבודה חינוכית לפי ההרשאות הקנוניות.</small></span>
+          </label>}
+        </div>
+      </section>
+
+      <section className="manager-registration-card">
+        <div className="section-heading"><span className="manager-section-number">2</span><div><h3>פרטים אישיים</h3><p>החשבון המאומת נשאר מקור הזהות. אפשר להשלים רק פרטי קשר חסרים.</p></div></div>
         <div className="form-grid">
           <label>שם מלא *<input name="manager_full_name" required minLength={2} defaultValue={managerName ?? ""} /></label>
           <label>תעודת זהות<input name="manager_id_number" inputMode="numeric" /></label>
           <label>טלפון נייד<input name="manager_phone" inputMode="tel" defaultValue={managerPhone ?? ""} /></label>
-          <label>אימייל<input name="manager_email" type="email" defaultValue={managerEmail ?? ""} /></label>
-          <label>התפקיד שלי בגן<select name="registrant_type" defaultValue={profileRole === "owner" ? "owner_teacher" : "teacher_operator"}><option value="teacher_operator">גננת שמפעילה את הגן</option>{profileRole === "owner" ? <><option value="owner_teacher">בעלים וגם גננת</option><option value="owner_only">בעלים, עם גננת נפרדת</option></> : null}</select></label>
+          <label>אימייל החשבון<input name="manager_email" type="email" defaultValue={managerEmail ?? ""} readOnly={Boolean(managerEmail)} dir="ltr" /><small>{managerEmail ? "כתובת החשבון המאומת; ניתן לשנות בהגדרות החשבון." : "יש להזין את כתובת החשבון."}</small></label>
         </div>
       </section>
 
       <section className="manager-registration-card">
-        <div className="section-heading"><h3>פרטי הגן</h3><p>אפשר לעדכן ולהרחיב את כל הפרטים בהמשך האשף.</p></div>
+        <div className="section-heading"><span className="manager-section-number">3</span><div><h3>פרטי הגן</h3><p>פרטי ליבה בלבד. כיתות, מסמכים, צוות והזמנות יושלמו בטיוטת ההקמה.</p></div></div>
         <div className="form-grid">
           <label>שם הגן *<input name="kindergarten_name" required minLength={2} /></label>
           <label>עיר *<select name="city" required defaultValue=""><option value="">בחרי עיר</option>{knownKindergartenCities().map((city) => <option value={city} key={city}>{city}</option>)}<option value="אחר">אחר</option></select></label>
@@ -202,6 +231,7 @@ export function KindergartenOnboardingForm({ garden, onboarding, managerName }: 
   const [missing, setMissing] = useState<string[]>((onboarding.missing_fields ?? []).filter((field) => fieldLabels[field]).map((field) => fieldLabels[field]));
   const [busy, setBusy] = useState<"draft" | "finish" | "">("");
   const [confirmed, setConfirmed] = useState(false);
+  const [activated, setActivated] = useState(false);
   const [selectedAgeGroups, setSelectedAgeGroups] = useState<string[]>(Array.isArray(profileData.selected_age_groups) ? profileData.selected_age_groups : []);
   const [classCapacity, setClassCapacity] = useState<Record<string, number>>((profileData.class_capacity ?? {}) as Record<string, number>);
   const [classroomCounts, setClassroomCounts] = useState<Record<string, number>>((profileData.classroom_counts ?? {}) as Record<string, number>);
@@ -209,6 +239,13 @@ export function KindergartenOnboardingForm({ garden, onboarding, managerName }: 
   const [staffCount, setStaffCount] = useState(Number(profileData.staff_count ?? 0));
   const galleryUrls = Array.isArray(profileData.gallery_urls) ? profileData.gallery_urls : [];
   const uploadedCategories = Array.isArray(profileData.uploaded_document_categories) ? profileData.uploaded_document_categories : [];
+  const [selectedDocuments, setSelectedDocuments] = useState<string[]>(uploadedCategories);
+  const [reviewSnapshot, setReviewSnapshot] = useState({
+    name: String(garden.name ?? ""),
+    address: String(garden.address ?? profileData.city ?? ""),
+    phone: String(garden.phone ?? ""),
+    cameraReadiness: String(profileData.camera_readiness ?? "not_now")
+  });
   const monthlyPrice = Number(onboarding?.subscription_monthly_amount ?? 0);
   const trialEnd = useMemo(() => new Date(Date.now() + ganBatuachTrialDays * 86400000).toLocaleDateString("he-IL"), []);
   const cityFromAddress = String(profileData.city ?? "").trim();
@@ -273,19 +310,27 @@ export function KindergartenOnboardingForm({ garden, onboarding, managerName }: 
     setBusy(finish ? "finish" : "draft");
     setMessage("");
     try {
+      const payload = buildPayload(formRef.current, finish, nextStep);
       const response = await fetch("/api/kindergarten-onboarding", {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(buildPayload(formRef.current, finish, nextStep))
+        body: JSON.stringify(payload)
       });
       const body = await response.json();
       if (!response.ok) throw new Error(body.error || "לא ניתן לשמור כרגע");
+      setReviewSnapshot({
+        name: payload.garden.name,
+        address: payload.garden.address || payload.garden.city,
+        phone: payload.garden.phone,
+        cameraReadiness: payload.garden.camera_readiness
+      });
       setMissing(body.data?.missing ?? []);
       setProgressPercent(Number(body.data?.onboarding?.progress_percent ?? (finish ? 100 : progressPercent)));
       if (finish) {
-        await fetch("/api/management/gardens", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ garden_id: garden.id }) });
-        router.replace("/dashboard/garden");
-        router.refresh();
+        const selection = await fetch("/api/management/gardens", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ garden_id: garden.id }) });
+        if (!selection.ok) throw new Error("הגן הופעל, אך בחירת סביבת העבודה לא הושלמה. רעננו את העמוד ונסו שוב.");
+        setActivated(true);
+        setProgressPercent(100);
       } else {
         setMessage("הפרטים נשמרו ברקע");
       }
@@ -306,17 +351,39 @@ export function KindergartenOnboardingForm({ garden, onboarding, managerName }: 
     if (await save(false, next)) setStep(next);
   }
 
+  if (activated) {
+    return (
+      <section className="manager-activation-success" role="status" aria-live="polite">
+        <div className="manager-success-confetti" aria-hidden="true"><i /><i /><i /><i /><i /></div>
+        <span className="manager-success-mark"><CheckCircle2 /></span>
+        <p className="eyebrow">ההקמה הושלמה</p>
+        <h2>{reviewSnapshot.name || garden.name || "הגן שלך"} מוכן להפעלה</h2>
+        <p>סביבת הניהול נוצרה, ההרשאות הקנוניות הופעלו ותקופת הניסיון התחילה ללא חיוב היום.</p>
+        <div className="manager-success-summary">
+          <span><Building2 /><b>פרופיל הגן</b><small>פעיל</small></span>
+          <span><UsersRound /><b>כיתות וצוות</b><small>מוכנים להשלמה</small></span>
+          <span><ShieldCheck /><b>בטיחות</b><small>לפי מצב המוכנות</small></span>
+        </div>
+        <button className="button primary large" type="button" onClick={() => { router.replace("/dashboard/garden"); router.refresh(); }}>מעבר לניהול הגן <ChevronLeft /></button>
+        <div className="manager-success-secondary">
+          <span><Plus /> אפשר להוסיף ילדים וצוות מהדשבורד</span>
+          <span><Mail /> אפשר להמשיך להזמין הורים בכל עת</span>
+        </div>
+      </section>
+    );
+  }
+
   return (
     <form ref={formRef} className="manager-live-onboarding" onSubmit={(event) => { event.preventDefault(); void save(false); }}>
       <nav className="manager-onboarding-steps" aria-label="שלבי רישום">
         {managerRegistrationSteps.map((item, index) => {
           const number = index + 1;
-          return <button type="button" onClick={() => void move(number)} className={number === step ? "active" : number < step ? "done" : ""} key={item.key}><span>{number < step ? <Check size={18} /> : number}</span><b>{item.label}</b></button>;
+          return <button type="button" onClick={() => void move(number)} className={number === step ? "active" : number < step ? "done" : ""} aria-current={number === step ? "step" : undefined} key={item.key}><span>{number < step ? <Check size={18} /> : number}</span><b>{item.label}</b><small>{number < step ? "נשמר" : number === step ? "שלב נוכחי" : "בהמשך"}</small></button>;
         })}
       </nav>
 
       <section className="manager-onboarding-overview">
-        <div><p className="eyebrow">התקדמות הקמה</p><h2>שלב {step} מתוך 5</h2><p>המידע נשמר בין השלבים. הזמנת הורים, ילדים וצוות היא אופציונלית ואפשר להשלים גם מהדשבורד.</p></div>
+        <div><p className="eyebrow">התקדמות הקמה</p><h2>שלב {step} מתוך 5</h2><p>המידע נשמר בין השלבים. הזמנת הורים, ילדים וצוות היא אופציונלית ואפשר להשלים גם מהדשבורד.</p><span className="manager-autosave-state"><CheckCircle2 /> טיוטה מאובטחת · אפשר לצאת ולחזור</span></div>
         <div className="manager-progress-value"><strong>{progressPercent}%</strong><span><i style={{ width: `${progressPercent}%` }} /></span></div>
       </section>
 
@@ -354,10 +421,11 @@ export function KindergartenOnboardingForm({ garden, onboarding, managerName }: 
           </article>
 
           <article className="manager-registration-card manager-docs-card">
-            <h3><FileCheck2 /> מסמכים והצהרות</h3>
-            <p>סמני רק מסמכים שקיימים בפועל. קבצים עצמם מועלים במרכז המסמכים המוגן לאחר הכניסה לדשבורד.</p>
-            <div className="manager-document-checks">{requiredKindergartenDocumentCategories.map((category) => <label key={category}><input type="checkbox" name="uploaded_document_categories" value={category} defaultChecked={uploadedCategories.includes(category)} /> {documentLabels[category] ?? category}</label>)}</div>
+            <div className="manager-card-title"><span><FileCheck2 /></span><div><h3>מסמכים והצהרות</h3><p>הצהרה בשלב ההקמה אינה אימות. קבצים פרטיים מועלים למרכז המסמכים המוגן לאחר הפעלת הגן.</p></div><em>נדרש סיכום</em></div>
+            <div className="manager-document-legend"><span className="pending">הוצהר · ממתין להעלאה</span><span className="verified">מאומת רק לאחר בדיקה</span></div>
+            <div className="manager-document-checks">{requiredKindergartenDocumentCategories.map((category) => <label key={category} className={selectedDocuments.includes(category) ? "selected" : ""}><input type="checkbox" name="uploaded_document_categories" value={category} checked={selectedDocuments.includes(category)} onChange={(event) => setSelectedDocuments((current) => event.target.checked ? [...current, category] : current.filter((item) => item !== category))} /><span><b>{documentLabels[category] ?? category}</b><small>סימון זמינות בלבד · טרם אומת</small></span></label>)}</div>
             <label>סיכום מצב מסמכים<textarea name="documents_summary" rows={3} defaultValue={profileData.documents_summary ?? ""} placeholder="אילו מסמכים קיימים ומה יושלם בהמשך" /></label>
+            <div className="manager-document-handoff"><ShieldCheck /><span><b>שמירה פרטית והרשאות תפקיד</b><small>העלאה, החלפה והיסטוריית אימות ייפתחו במרכז המסמכים הקנוני.</small></span></div>
           </article>
         </div>
       </section>
@@ -387,12 +455,18 @@ export function KindergartenOnboardingForm({ garden, onboarding, managerName }: 
           })}
         </div>
         <article className="manager-registration-card manager-staff-summary">
-          <div><strong>ממתין לאישור</strong><span>דרישת כוח האדם תיקבע לפי מדיניות מאומתת ופעילה</span></div>
+          <div className="manager-staff-policy"><span className="manager-feature-icon violet"><UsersRound /></span><strong>מצב צוות</strong><small>דרישת כוח האדם תיקבע רק לפי מדיניות מאומתת ופעילה.</small><em>policy_not_configured</em></div>
           <label>אנשי צוות שכבר הוגדרו<input type="number" min="0" value={staffCount} onChange={(event) => setStaffCount(Number(event.target.value))} /></label>
-          <label><input name="staff_initialized" type="checkbox" defaultChecked={Boolean(profileData.staff_initialized)} /> הוזמן לפחות איש צוות אחד</label>
-          <label>מצב מצלמות<select name="camera_readiness" defaultValue={profileData.camera_readiness ?? "not_now"}><option value="ready">יש מצלמות, נדרש חיבור Gateway</option><option value="needs_setup">נדרש תכנון וחיבור</option><option value="not_now">לא בשלב זה</option></select></label>
+          <label className="manager-check-card"><input name="staff_initialized" type="checkbox" defaultChecked={Boolean(profileData.staff_initialized)} /><span><b>נשלחה הזמנת צוות</b><small>העסקה תופעל רק לאחר קבלה ואישור קנוניים.</small></span></label>
           <input name="vacation_calendar_ready" type="hidden" value={profileData.vacation_calendar_ready ? "on" : ""} />
           <input name="weekly_schedule_ready" type="hidden" value={profileData.weekly_schedule_ready ? "on" : ""} />
+        </article>
+        <article className="manager-registration-card manager-safety-readiness">
+          <div className="manager-card-title"><span><Camera /></span><div><h3>בטיחות ומצלמות</h3><p>הבחירה מתארת מוכנות בלבד. היא אינה מפעילה צפייה חיה או AI.</p></div><em>אופציונלי</em></div>
+          <div className="manager-readiness-options">
+            {[{ value: "ready", title: "יש מערכת מצלמות", copy: "נדרש חיבור Gateway ובדיקת הרשאות" }, { value: "needs_setup", title: "נדרשת הקמה", copy: "תכנון, חיבור ובדיקת אזורים בהמשך" }, { value: "not_now", title: "לא בשלב זה", copy: "ניהול הגן נשאר זמין ללא מצלמות" }].map((option) => <label key={option.value}><input type="radio" name="camera_readiness" value={option.value} defaultChecked={(profileData.camera_readiness ?? "not_now") === option.value} /><span><b>{option.title}</b><small>{option.copy}</small></span></label>)}
+          </div>
+          <p className="manager-truth-note"><ShieldCheck /> אין כאן סטטוס “מנוטר”. יכולת חיה תוצג רק לאחר אימות Production והרשאה עצמאית.</p>
         </article>
       </section>
 
@@ -412,11 +486,12 @@ export function KindergartenOnboardingForm({ garden, onboarding, managerName }: 
           </article>
           <article className="manager-registration-card manager-payment-methods">
             <h3><CreditCard /> אמצעי תשלום מועדף</h3>
-            <p>הבחירה נשמרת כהעדפה בלבד. לא נאספים כאן פרטי כרטיס ולא מתבצע חיוב.</p>
-            <label><input type="radio" name="payment_method_preference" value="card" defaultChecked={profileData.payment_method_preference === "card"} /> כרטיס אשראי דרך ספק מאובטח</label>
-            <label><input type="radio" name="payment_method_preference" value="apple_pay" defaultChecked={profileData.payment_method_preference === "apple_pay"} /> Apple Pay — לאחר חיבור ספק תומך</label>
-            <label><input type="radio" name="payment_method_preference" value="google_pay" defaultChecked={profileData.payment_method_preference === "google_pay"} /> Google Pay — לאחר חיבור ספק תומך</label>
-            <label><input type="radio" name="payment_method_preference" value="not_selected" defaultChecked={!profileData.payment_method_preference || profileData.payment_method_preference === "not_selected"} /> אבחר לקראת סוף תקופת הניסיון</label>
+            <p>אין כרגע גבייה אלקטרונית פעילה בתהליך ההקמה. לא נאספים פרטי כרטיס ולא מתבצע חיוב.</p>
+            <div className="manager-provider-options" aria-label="אמצעי תשלום שאינם זמינים כרגע">
+              <span aria-disabled="true"><CreditCard /><b>כרטיס אשראי</b><small>לא זמין עד חיבור ספק</small></span>
+              <span aria-disabled="true"><WalletCards /><b>Apple Pay / Google Pay</b><small>לא זמין עד אימות ספק</small></span>
+            </div>
+            <label className="manager-check-card selected"><input type="radio" name="payment_method_preference" value="not_selected" defaultChecked /><span><b>הסדרה ידנית / בחירה בהמשך</b><small>העדפה בלבד; סטטוס הספק נשאר “לא זמין”.</small></span></label>
           </article>
         </div>
       </section>
@@ -425,8 +500,9 @@ export function KindergartenOnboardingForm({ garden, onboarding, managerName }: 
         <div className="manager-stage-heading"><Baby /><div><h2>ילדי הגן והזמנת הורים</h2><p>אפשר להזמין הורה רשום או חדש עכשיו, או לדלג ולהמשיך מהדשבורד.</p></div></div>
         {garden.id ? <ManagerParentInvitationPanel gardenId={garden.id} /> : <div className="notice">פרטי הגן נשמרים. לאחר השמירה ניתן יהיה לשלוח הזמנות.</div>}
         <div className="manager-optional-setup">
-          <label><input name="children_initialized" type="checkbox" defaultChecked={Boolean(profileData.children_initialized)} /> הוגדרו ילדים או כרטיסי ילד ראשוניים</label>
-          <label><input name="parents_invited" type="checkbox" defaultChecked={Boolean(profileData.parents_invited)} /> נשלחה לפחות הזמנת הורה אחת</label>
+          <div className="manager-card-title"><span><Baby /></span><div><h3>הכנה להפעלה</h3><p>השלבים האלה אופציונליים ואפשר להשלים אותם בבטחה לאחר ההפעלה.</p></div><em>אפשר לדלג</em></div>
+          <label className="manager-check-card"><input name="children_initialized" type="checkbox" defaultChecked={Boolean(profileData.children_initialized)} /><span><b>הוכנו כרטיסי ילד ראשוניים</b><small>הילדים עצמם נוצרים רק במודל הילד הקנוני.</small></span></label>
+          <label className="manager-check-card"><input name="parents_invited" type="checkbox" defaultChecked={Boolean(profileData.parents_invited)} /><span><b>נשלחה הזמנת הורה</b><small>השיוך יושלם רק לאחר אישור ההורה ובחירת הילד.</small></span></label>
           <div className="manager-onboarding-readiness-actions" aria-label="פעולות שייפתחו לאחר ההפעלה">
             <span className="pill">ניהול ילדים מלא זמין מיד לאחר תחילת הניסיון</span>
             <span className="pill">הזמנת צוות זמינה מיד לאחר תחילת הניסיון</span>
@@ -435,10 +511,21 @@ export function KindergartenOnboardingForm({ garden, onboarding, managerName }: 
       </section>
 
       <section className={`manager-wizard-stage ${step === 5 ? "is-active" : ""}`} aria-hidden={step !== 5}>
-        <div className="manager-stage-heading"><CheckCircle2 /><div><h2>השלמת הקמה</h2><p>כניסה לדשבורד ותחילת תקופת ניסיון מבוקרת.</p></div></div>
+        <div className="manager-stage-heading"><CheckCircle2 /><div><h2>בדיקה אחרונה והפעלה</h2><p>סיכום קריא לפני הפעלה אטומית של סביבת הגן.</p></div></div>
+        <section className="manager-review-summary" aria-label="סיכום הגן לפני הפעלה">
+          <header><div><p className="eyebrow">הגן שמופעל</p><h3>{reviewSnapshot.name || "שם הגן יישמר מהטופס"}</h3><span>{reviewSnapshot.address || "כתובת תופיע לאחר שמירה"}</span></div><span className="manager-review-progress"><b>{progressPercent}%</b><small>השלמה נוכחית</small></span></header>
+          <div className="manager-review-grid">
+            <article><Building2 /><span><b>פרופיל הגן</b><small>{reviewSnapshot.phone || "פרטי קשר בשמירה"}</small></span><CheckCircle2 /></article>
+            <article><UsersRound /><span><b>{selectedAgeGroups.length} קבוצות גיל</b><small>{selectedAgeGroups.reduce((sum, key) => sum + Number(classroomCounts[key] || 1), 0)} כיתות מתוכננות</small></span><CheckCircle2 /></article>
+            <article><FileCheck2 /><span><b>{selectedDocuments.length} הצהרות מסמך</b><small>אימות הקבצים ייעשה במרכז המסמכים</small></span><ShieldCheck /></article>
+            <article><Camera /><span><b>מצב בטיחות</b><small>{reviewSnapshot.cameraReadiness === "ready" ? "מערכת קיימת · נדרש חיבור ואימות" : reviewSnapshot.cameraReadiness === "needs_setup" ? "נדרשת הקמה" : "לא הוגדר בשלב זה"}</small></span><ShieldCheck /></article>
+            <article><WalletCards /><span><b>מנוי גן בטוח</b><small>{ganBatuachTrialDays} ימי ניסיון · 0 ₪ היום</small></span><CheckCircle2 /></article>
+            <article><UserCheck /><span><b>הרשאת בעלים</b><small>{onboarding.registrant_type === "owner_only" ? "ניהול בלבד" : onboarding.registrant_type === "owner_teacher" ? "בעלים וגם גננת" : "גננת מפעילה"}</small></span><CheckCircle2 /></article>
+          </div>
+        </section>
         <div className="manager-finish-grid">
-          <article className="manager-registration-card"><h3>מה יופעל עכשיו</h3>{["דשבורד ניהול הגן", "ילדים, הורים, צוות ומסמכים", "14 ימי ניסיון ללא חיוב היום", "תצפיתן דיגיטלי במצב מוכנות בתוך גן בטוח"].map((item) => <p key={item}><CheckCircle2 /> {item}</p>)}</article>
-          <article className="manager-registration-card"><h3>מה נשאר חסום בכוונה</h3>{["תשלום חי עד חיבור ספק ואישור", "צפיית הורים במצלמות עד Gateway, הרשאות ואישור", "AI חי והודעות חיצוניות עד אישור מפורש"].map((item) => <p key={item}><ShieldCheck /> {item}</p>)}</article>
+          <article className="manager-registration-card"><span className="manager-feature-icon green"><CheckCircle2 /></span><h3>מה יופעל עכשיו</h3>{["דשבורד ניהול הגן", "ילדים, הורים, צוות ומסמכים", "14 ימי ניסיון ללא חיוב היום", "בטיחות במצב המוכנות האמיתי"].map((item) => <p key={item}><CheckCircle2 /> {item}</p>)}</article>
+          <article className="manager-registration-card"><span className="manager-feature-icon amber"><ShieldCheck /></span><h3>מה נשאר חסום בכוונה</h3>{["תשלום חי עד חיבור ספק ואישור", "צפיית הורים במצלמות עד Gateway, הרשאות ואישור", "AI חי והודעות חיצוניות עד אישור מפורש"].map((item) => <p key={item}><ShieldCheck /> {item}</p>)}</article>
         </div>
         <label className="manager-registration-consent"><input type="checkbox" checked={confirmed} onChange={(event) => setConfirmed(event.target.checked)} /> אני מאשרת שהפרטים נכונים ומבקשת להתחיל 14 ימי ניסיון ללא חיוב היום.</label>
       </section>
@@ -448,7 +535,7 @@ export function KindergartenOnboardingForm({ garden, onboarding, managerName }: 
         <button type="submit" className="button secondary" disabled={Boolean(busy)}><Save /> {busy === "draft" ? "שומר..." : "שמירת טיוטה"}</button>
         {step < 5 ? <button type="button" className="button primary" disabled={Boolean(busy)} onClick={() => void move(step + 1)}>{busy === "draft" ? <LoaderCircle className="spin" /> : null} שמירה והמשך <ChevronLeft /></button> : <button type="button" className="button primary" disabled={!confirmed || Boolean(busy)} onClick={() => void save(true, 5)}>{busy === "finish" ? <LoaderCircle className="spin" /> : <CheckCircle2 />} התחלת ניסיון וכניסה לדשבורד</button>}
         {step === 4 ? <button type="button" className="button text-button" disabled={Boolean(busy)} onClick={() => void move(5)}>דלגי לעת עתה</button> : null}
-        {message ? <span className={message.includes("לא ניתן") || message.includes("חסרים") || message.includes("נכשלה") ? "error-text" : "payment-action-message"}>{message}</span> : null}
+        {message ? <span role="status" aria-live="polite" className={message.includes("לא ניתן") || message.includes("חסרים") || message.includes("נכשלה") ? "error-text" : "payment-action-message"}>{message}</span> : null}
       </footer>
     </form>
   );
