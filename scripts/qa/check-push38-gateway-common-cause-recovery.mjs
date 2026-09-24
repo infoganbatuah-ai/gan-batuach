@@ -4,11 +4,15 @@ import test from "node:test";
 import { buildPush38GatewayCommonCauseRecoveryManifest,
   PUSH38_GATEWAY_COMMON_CAUSE_RECOVERY } from
   "../../services/video-gateway/push38-home-qa-gateway-common-cause-recovery.mjs";
-import { shouldRefreshPrivateNvrSession } from
+import { PRIVATE_NVR_PROACTIVE_RENEWAL_MS, relayMaySurvivePrivateNvrRenewal,
+  shouldProactivelyRefreshPrivateNvrSession, shouldRefreshPrivateNvrSession } from
   "../../services/video-gateway/private-nvr-session-policy.mjs";
 
 const installer = readFileSync("scripts/qa/install-push38-homeqa-ota-agent.mjs", "utf8");
 const registration = readFileSync("scripts/qa/register-push38-homeqa-gateway-common-cause-recovery.mjs", "utf8");
+const gateway = readFileSync("services/video-gateway/server.mjs", "utf8");
+const installedAdapter = readFileSync("services/video-gateway/edge-macos-installed-adapter.mjs", "utf8");
+const persistentInstaller = readFileSync("scripts/install-persistent-home-gateway.mjs", "utf8");
 
 test("Gateway common-cause recovery is an immutable exact-device release", () => {
   const manifest = buildPush38GatewayCommonCauseRecoveryManifest({ signingKeyId: "fixture-release-key",
@@ -35,6 +39,55 @@ test("only authentication rejection or corroborated common-cause loss may rotate
     heartbeatConsecutiveFailures: 3, commonCauseSourceFailures: 8
   }), true);
   assert.equal(shouldRefreshPrivateNvrSession("source_transport_error"), false);
+});
+
+test("only a non-exclusive recorder session renews before the observed idle expiry", () => {
+  const now = Date.now();
+  const eligible = { loginExclusivity: false,
+    updatedAt: now - PRIVATE_NVR_PROACTIVE_RENEWAL_MS };
+  assert.equal(shouldProactivelyRefreshPrivateNvrSession(eligible, now), true);
+  assert.equal(shouldProactivelyRefreshPrivateNvrSession({ ...eligible,
+    loginExclusivity: true }, now), false);
+  assert.equal(shouldProactivelyRefreshPrivateNvrSession({ ...eligible,
+    loginExclusivity: null }, now), false);
+  assert.equal(shouldProactivelyRefreshPrivateNvrSession({ ...eligible,
+    updatedAt: now - PRIVATE_NVR_PROACTIVE_RENEWAL_MS + 1 }, now), false);
+  assert.equal(shouldProactivelyRefreshPrivateNvrSession({ ...eligible,
+    refreshPromise: Promise.resolve() }, now), false);
+});
+
+test("proactive renewal preserves only progressing relays from the same recorder", () => {
+  const priorRelay = { sameToken: false, sameSessionKey: true,
+    relayProgressing: true, relayEpoch: 3, currentEpoch: 4,
+    preserveRelayEpochsThrough: 3 };
+  assert.equal(relayMaySurvivePrivateNvrRenewal(priorRelay), true);
+  assert.equal(relayMaySurvivePrivateNvrRenewal({ ...priorRelay,
+    relayProgressing: false }), false);
+  assert.equal(relayMaySurvivePrivateNvrRenewal({ ...priorRelay,
+    sameSessionKey: false }), false);
+  assert.equal(relayMaySurvivePrivateNvrRenewal({ ...priorRelay,
+    preserveRelayEpochsThrough: null }), false);
+  assert.equal(relayMaySurvivePrivateNvrRenewal({ ...priorRelay,
+    sameToken: true, sameSessionKey: false }), true);
+});
+
+test("a fresh DVR session hands each stream to a warm HLS relay before expiry", () => {
+  assert.match(gateway, /warmReplacePrivateNvrRelays\(sessionKey\)/);
+  assert.match(gateway, /startRelay\(streamId, \{ warming: true, previousRelay: previous \}\)/);
+  assert.match(gateway, /relayLifecycle\.warmHandoffs/);
+  assert.match(gateway, /previousDirectories/);
+  assert.match(gateway, /"-start_number", String\(firstEvidenceSequence\)/);
+  assert.match(gateway, /function readEvidenceSegment[\s\S]*relay\.previousDirectories/);
+});
+
+test("the supervised Site Edge prevents idle sleep for its exact lifetime", () => {
+  for (const source of [installedAdapter, persistentInstaller]) {
+    assert.match(source, /\/usr\/bin\/caffeinate/);
+    for (const option of ["-i", "-m", "-s"]) {
+      assert.equal(source.includes(`"${option}"`) || source.includes(`<string>${option}</string>`), true);
+    }
+  }
+  assert.doesNotMatch(installedAdapter, /CAFFEINATE_OPTIONS = \[[^\]]*"-d"/);
 });
 
 test("common-cause recovery is pinned to the signed 0.2.11 known-good release", () => {

@@ -35,7 +35,8 @@ for (const item of entries) {
   const expectedRunner = item.profile === "PHYSICAL_GATEWAY" ? join(item.live, "scripts/run-persistent-home-gateway.mjs")
     : join(item.live, "Digital Observer.app/Contents/Resources/runtime/scripts/run-software-connector.mjs");
   const conflicts = [];
-  if (program[1] !== expectedRunner || !service.includes("state = running")) conflicts.push("INSTALLED_SERVICE_LAYOUT_MISMATCH");
+  const installedRunner = program[0] === "/usr/bin/caffeinate" ? program.at(-1) : program[1];
+  if (installedRunner !== expectedRunner || !service.includes("state = running")) conflicts.push("INSTALLED_SERVICE_LAYOUT_MISMATCH");
   const manifest = JSON.parse(readFileSync(item.release));
   const archive = readFileSync(item.archive);
   if (!verifyEdgeUpdateManifest(manifest, trust).ok || !verifyEdgeArtifact(archive, manifest).ok) conflicts.push("BASELINE_RELEASE_INVALID");
@@ -74,7 +75,7 @@ for (const item of entries) {
     if (existsSync(agentPlistPath) || existsSync(join(slotRoot, "agent"))) conflicts.push("EXISTING_OTA_AGENT_INSTALLATION");
   } catch (error) { conflicts.push(error.code || "LIVE_AGENT_PLAN_FAILED"); }
   result.push({ profile: item.profile, service_label: item.label, service_running: service.includes("state = running"),
-    expected_runner_match: program[1] === expectedRunner, baseline_release: manifest.release_id,
+    expected_runner_match: installedRunner === expectedRunner, baseline_release: manifest.release_id,
     baseline_artifact_sha256: manifest.artifact_sha256, live_file_matches: matched,
     live_file_changed: changed, live_file_missing: missing,
     planned_changes: [...(adapterPlan?.planned_files || [slotRoot, plist, trustPath]),

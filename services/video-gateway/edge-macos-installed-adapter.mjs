@@ -12,6 +12,16 @@ import { loadPinnedEdgeReleaseKeys, PROTECTED_EDGE_TRUST_REGISTRY_PATH } from ".
 function fail(code) { throw Object.assign(new Error(code), { code }); }
 const run = (binary, args, options = {}) => execFileSync(binary, args, { encoding: "utf8", timeout: 120_000,
   stdio: ["ignore", "pipe", "pipe"], ...options });
+const CAFFEINATE_PATH = "/usr/bin/caffeinate";
+const CAFFEINATE_OPTIONS = ["-i", "-m", "-s"];
+function programRunner(programArguments = []) {
+  return programArguments[0] === CAFFEINATE_PATH
+    ? programArguments.at(-1) : programArguments[1];
+}
+function programNode(programArguments = []) {
+  return programArguments[0] === CAFFEINATE_PATH
+    ? programArguments.at(-2) : programArguments[0];
+}
 function xml(value) { return String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;"); }
 export function plistXml(value) {
   const entry = input => {
@@ -89,8 +99,14 @@ export function createMacOSInstalledEdgeAdapter({ profile, installedBase, manage
     // the supervised runtime: their expected lifecycle would look like a crash.
     try {
       const source = JSON.parse(run("/usr/bin/plutil", ["-convert", "json", "-o", "-", plistPath]));
-      const runner = source.ProgramArguments?.[1];
-      if (typeof runner === "string" && resolve(runner).startsWith(`${join(root, "slots")}/`)) return owner.pid;
+      const runner = programRunner(source.ProgramArguments);
+      if (typeof runner === "string" && resolve(runner).startsWith(`${join(root, "slots")}/`)) {
+        if (source.ProgramArguments?.[0] !== CAFFEINATE_PATH) return owner.pid;
+        const rows = run("/bin/ps", ["-axo", "pid=,ppid="]).trim().split("\n");
+        const child = rows.map(row => row.trim().split(/\s+/).map(Number))
+          .find(([pid, ppid]) => pid > 1 && ppid === owner.pid);
+        return child?.[0] || null;
+      }
     } catch { return null; }
     const rows = run("/bin/ps", ["-axo", "pid=,ppid="]).trim().split("\n");
     const children = rows.map(row => row.trim().split(/\s+/).map(Number))
@@ -177,11 +193,16 @@ export function createMacOSInstalledEdgeAdapter({ profile, installedBase, manage
     }
     if (!existsSync(backupPath)) atomic(backupPath, original);
     const source = JSON.parse(run("/usr/bin/plutil", ["-convert", "json", "-o", "-", backupPath]));
-    if (source.Label !== label || source.ProgramArguments?.[1] !== originalRunner) fail("EDGE_INSTALLED_PLIST_REWRITE_FAILED");
-    source.ProgramArguments[1] = target;
+    if (source.Label !== label || programRunner(source.ProgramArguments) !== originalRunner)
+      fail("EDGE_INSTALLED_PLIST_REWRITE_FAILED");
+    let node = programNode(source.ProgramArguments);
     const appRuntime = join(resolve(slot), "runtime", "Digital Observer.app/Contents/Resources/runtime");
     source.WorkingDirectory = profile === "SOFTWARE_CONNECTOR" ? appRuntime : join(resolve(slot), "runtime");
-    if (profile === "SOFTWARE_CONNECTOR") source.ProgramArguments[0] = join(resolve(slot), "runtime", "Digital Observer.app/Contents/Resources/bin/node");
+    if (profile === "SOFTWARE_CONNECTOR") node = join(resolve(slot), "runtime", "Digital Observer.app/Contents/Resources/bin/node");
+    // A Site Edge is an always-on appliance workload. Prevent idle system
+    // sleep for exactly the supervised runtime lifetime, including on battery,
+    // without keeping the display awake or mutating global power settings.
+    source.ProgramArguments = [CAFFEINATE_PATH, ...CAFFEINATE_OPTIONS, node, target];
     source.EnvironmentVariables ||= {};
     source.EnvironmentVariables.OBSERVER_EDGE_VERSION = release.version;
     source.EnvironmentVariables.OBSERVER_EDGE_BUILD_SHA = release.build_sha;

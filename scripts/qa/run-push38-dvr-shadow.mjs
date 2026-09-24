@@ -7,14 +7,13 @@ import { fileURLToPath } from "node:url";
 import { createEdgeSecretStoreSync } from "../../services/video-gateway/edge-secret-store-sync.mjs";
 
 const repoRoot = fileURLToPath(new URL("../../", import.meta.url));
-const endpoint = String(process.env.DVR_SHADOW_ENDPOINT || "").trim();
+const requestedEndpoint = String(process.env.DVR_SHADOW_ENDPOINT || "").trim();
 const channel = Number(process.env.DVR_SHADOW_CHANNEL || 1);
 const durationMs = Number(process.env.DVR_SHADOW_DURATION_MS || 30 * 60_000);
 const intervalMs = Number(process.env.DVR_SHADOW_INTERVAL_MS || 30_000);
 const port = Number(process.env.DVR_SHADOW_PORT || 18084);
 const outputPath = String(process.env.DVR_SHADOW_OUTPUT || "").trim();
 const service = String(process.env.DVR_SHADOW_KEYCHAIN_SERVICE || "com.ganbatuach.video-gateway.runtime");
-if (!/^https?:\/\/(?:10\.|192\.168\.|172\.(?:1[6-9]|2\d|3[01])\.)/.test(endpoint)) throw new Error("A private-LAN DVR_SHADOW_ENDPOINT is required");
 if (!Number.isInteger(channel) || channel < 1 || channel > 64) throw new Error("DVR_SHADOW_CHANNEL is invalid");
 if (!Number.isFinite(durationMs) || durationMs < 60_000 || durationMs > 35 * 60_000) throw new Error("DVR_SHADOW_DURATION_MS is outside the bounded qualification window");
 if (!Number.isFinite(intervalMs) || intervalMs < 10_000 || intervalMs > 60_000) throw new Error("DVR_SHADOW_INTERVAL_MS is invalid");
@@ -25,6 +24,12 @@ const store = createEdgeSecretStoreSync({ keychainService: service });
 const profile = JSON.parse(store.read("dvr_profile_json"));
 const password = store.read("dvr_password");
 if (!profile || !password) throw new Error("The installed DVR profile is incomplete");
+const installedEndpoint = String(profile.endpoint || profile.host || "").trim();
+const endpointValue = requestedEndpoint || installedEndpoint;
+const endpoint = endpointValue.includes("://") ? endpointValue : `http://${endpointValue}`;
+if (!/^https?:\/\/(?:10\.|192\.168\.|172\.(?:1[6-9]|2\d|3[01])\.)/.test(endpoint)) {
+  throw new Error("An installed or explicit private-LAN DVR_SHADOW_ENDPOINT is required");
+}
 const qualificationProfile = {
   ...profile,
   endpoint,
