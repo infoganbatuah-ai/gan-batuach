@@ -83,7 +83,7 @@ const spec = connector ? {
     managementUpgrade ? "connector_remediation_pidfix.json" : "connector_remediation.json",
   priorManagement: connectorLivenessContinuityUpgrade ? {
     release_id: "qa-p38-management-guard-retry-bc310bf7605c",
-    artifact_sha256: "bc310bf7605c32377f0e886891e3152eab969a6e74ba6fce58d798a094ca421b" } :
+    artifact_sha256: "bc310bf7605cb7a05386c10130bb58c8c3459a65469850cbfc65efc1d48b0f60" } :
     connectorGuardRetryUpgrade ? {
     release_id: "qa-p38-management-runtime-pid-95c3b60ed951",
     artifact_sha256: "95c3b60ed951427d527d884af3b8d51ec2a24058a0f8b2672cdc28826d892dc3" } :
