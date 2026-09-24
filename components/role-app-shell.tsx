@@ -116,11 +116,12 @@ export const roleAppShellConfig: Record<RoleAppShellRole, {
     subtitle: "ילדים, גנים, הודעות, תשלומים ומעקב",
     nav: [
       { href: "/dashboard/parent", label: "בית", icon: Home },
-      { href: "/dashboard/parent/schedule", label: "יומן", icon: CalendarDays },
+      { href: "/dashboard/parent/attendance", label: "נוכחות", icon: BookOpenCheck },
+      { href: "/dashboard/parent/cameras", label: "מצלמות", icon: Camera },
       { href: "/dashboard/parent/messages", label: "הודעות", icon: MessageCircle },
-      { href: "/dashboard/parent/notifications", label: "התראות", icon: Bell },
       { href: "/dashboard/parent/settings", label: "עוד", icon: Menu }
-    ]
+    ],
+    desktopNav: parentDesktopNavigation()
   },
   staff: {
     label: "צוות",
@@ -302,5 +303,21 @@ function ownerDesktopNavigation(): RoleAppNavItem[] {
     { href: "/dashboard/garden/documents", label: "מסמכים", hint: "חסר, לבדיקה ותוקף", icon: FileText },
     { href: "/dashboard/garden/reports", label: "דוחות", hint: "תפעול, כספים ופיקוח", icon: BarChart3 },
     { href: "/dashboard/garden/settings", label: "הגדרות", hint: "גן, הרשאות וחשבון", icon: Settings }
+  ];
+}
+
+function parentDesktopNavigation(): RoleAppNavItem[] {
+  return [
+    { href: "/dashboard/parent", label: "ראשי", hint: "היום של הילדים", icon: Home },
+    { href: "/dashboard/parent/family-home", label: "הילדים שלי", hint: "כרטיסים ועדכונים", icon: UsersRound },
+    { href: "/dashboard/parent/discover-kindergartens", label: "הרשמה לגן", hint: "גילוי ובקשות הצטרפות", icon: BookOpenCheck },
+    { href: "/dashboard/parent/attendance", label: "נוכחות", hint: "הגעה, יציאה והיסטוריה", icon: CalendarDays },
+    { href: "/dashboard/parent/payments", label: "תשלומים", hint: "שכר לימוד בלבד", icon: WalletCards },
+    { href: "/dashboard/parent/cameras", label: "מצלמות", hint: "צפייה מורשית ובטיחות", icon: Camera },
+    { href: "/dashboard/parent/messages", label: "הודעות", hint: "שיחה מאובטחת עם הגן", icon: MessageCircle },
+    { href: "/dashboard/parent/notifications", label: "התראות", hint: "עדכונים ופעולות", icon: Bell },
+    { href: "/dashboard/parent/documents", label: "מסמכים", hint: "אישורים וקבצים", icon: FileText },
+    { href: "/dashboard/parent/schedule", label: "יומן", hint: "אירועים ופעילות", icon: CalendarDays },
+    { href: "/dashboard/parent/settings", label: "הגדרות", hint: "פרופיל, אבטחה והעדפות", icon: Settings }
   ];
 }
