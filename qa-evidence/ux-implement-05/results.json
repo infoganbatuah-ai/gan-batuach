@@ -1,0 +1,210 @@
+{
+  "environment": "DEVELOPMENT / INTEGRATION",
+  "base": "http://127.0.0.1:3005",
+  "capturedAt": "2026-09-24T17:23:52.076Z",
+  "reference": "GB_UX_REF_PARENT_FULL_PLATFORM.png",
+  "viewports": {
+    "desktop": {
+      "width": 1440,
+      "height": 1024
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844
+    }
+  },
+  "persona": "synthetic multi-Child Parent plus synthetic unassigned Parent",
+  "captures": [
+    {
+      "name": "login-desktop",
+      "route": "/app/login",
+      "viewport": "1440x1024",
+      "referenceArea": "01 התחברות — Desktop",
+      "screenshot": "qa-evidence/ux-implement-05/screenshots/login-desktop.webp",
+      "visualStatus": "VISUAL_PASS",
+      "deviations": []
+    },
+    {
+      "name": "login-mobile",
+      "route": "/app/login",
+      "viewport": "390x844",
+      "referenceArea": "07 התחברות — Mobile",
+      "screenshot": "qa-evidence/ux-implement-05/screenshots/login-mobile.webp",
+      "visualStatus": "VISUAL_PASS",
+      "deviations": []
+    },
+    {
+      "name": "parent-registration-desktop",
+      "route": "/app/register/parent",
+      "viewport": "1440x1024",
+      "referenceArea": "02 הרשמה — Desktop",
+      "screenshot": "qa-evidence/ux-implement-05/screenshots/parent-registration-desktop.webp",
+      "visualStatus": "VISUAL_PASS",
+      "deviations": []
+    },
+    {
+      "name": "parent-registration-mobile",
+      "route": "/app/register/parent",
+      "viewport": "390x844",
+      "referenceArea": "08 הרשמה — Mobile",
+      "screenshot": "qa-evidence/ux-implement-05/screenshots/parent-registration-mobile.webp",
+      "visualStatus": "VISUAL_PASS",
+      "deviations": []
+    },
+    {
+      "name": "parent-unassigned-desktop",
+      "route": "/dashboard/parent",
+      "viewport": "1440x1024",
+      "referenceArea": "03 הורה לא משויך — Desktop",
+      "screenshot": "qa-evidence/ux-implement-05/screenshots/parent-unassigned-desktop.webp",
+      "visualStatus": "VISUAL_PASS",
+      "deviations": []
+    },
+    {
+      "name": "parent-unassigned-mobile",
+      "route": "/dashboard/parent",
+      "viewport": "390x844",
+      "referenceArea": "09 הורה לא משויך — Mobile",
+      "screenshot": "qa-evidence/ux-implement-05/screenshots/parent-unassigned-mobile.webp",
+      "visualStatus": "VISUAL_PASS",
+      "deviations": []
+    },
+    {
+      "name": "parent-dashboard-desktop",
+      "route": "/dashboard/parent",
+      "viewport": "1440x1024",
+      "referenceArea": "04 דשבורד — Desktop",
+      "screenshot": "qa-evidence/ux-implement-05/screenshots/parent-dashboard-desktop.webp",
+      "visualStatus": "VISUAL_PASS",
+      "deviations": []
+    },
+    {
+      "name": "parent-dashboard-mobile",
+      "route": "/dashboard/parent",
+      "viewport": "390x844",
+      "referenceArea": "09 דשבורד — Mobile",
+      "screenshot": "qa-evidence/ux-implement-05/screenshots/parent-dashboard-mobile.webp",
+      "visualStatus": "VISUAL_PASS",
+      "deviations": []
+    },
+    {
+      "name": "child-profile-desktop",
+      "route": "/dashboard/parent/children/00000000-0000-4000-8000-000000000902",
+      "viewport": "1440x1024",
+      "referenceArea": "05 פרופיל ילד — Desktop",
+      "screenshot": "qa-evidence/ux-implement-05/screenshots/child-profile-desktop.webp",
+      "visualStatus": "VISUAL_PASS",
+      "deviations": []
+    },
+    {
+      "name": "child-profile-mobile",
+      "route": "/dashboard/parent/children/00000000-0000-4000-8000-000000000902",
+      "viewport": "390x844",
+      "referenceArea": "10 פרופיל ילד — Mobile",
+      "screenshot": "qa-evidence/ux-implement-05/screenshots/child-profile-mobile.webp",
+      "visualStatus": "VISUAL_PASS",
+      "deviations": []
+    },
+    {
+      "name": "attendance-mobile",
+      "route": "/dashboard/parent/attendance",
+      "viewport": "390x844",
+      "referenceArea": "11 נוכחות — Mobile",
+      "screenshot": "qa-evidence/ux-implement-05/screenshots/attendance-mobile.webp",
+      "visualStatus": "VISUAL_PASS",
+      "deviations": []
+    },
+    {
+      "name": "cameras-desktop",
+      "route": "/dashboard/parent/cameras",
+      "viewport": "1440x1024",
+      "referenceArea": "06 מצלמות — Desktop",
+      "screenshot": "qa-evidence/ux-implement-05/screenshots/cameras-desktop.webp",
+      "visualStatus": "VISUAL_PASS",
+      "deviations": []
+    },
+    {
+      "name": "cameras-mobile",
+      "route": "/dashboard/parent/cameras",
+      "viewport": "390x844",
+      "referenceArea": "12 מצלמות — Mobile",
+      "screenshot": "qa-evidence/ux-implement-05/screenshots/cameras-mobile.webp",
+      "visualStatus": "VISUAL_PASS",
+      "deviations": []
+    },
+    {
+      "name": "messages-desktop",
+      "route": "/dashboard/parent/messages",
+      "viewport": "1440x1024",
+      "referenceArea": "הודעות — Desktop",
+      "screenshot": "qa-evidence/ux-implement-05/screenshots/messages-desktop.webp",
+      "visualStatus": "VISUAL_PASS",
+      "deviations": []
+    },
+    {
+      "name": "messages-mobile",
+      "route": "/dashboard/parent/messages",
+      "viewport": "390x844",
+      "referenceArea": "13 הודעות — Mobile",
+      "screenshot": "qa-evidence/ux-implement-05/screenshots/messages-mobile.webp",
+      "visualStatus": "VISUAL_PASS",
+      "deviations": []
+    },
+    {
+      "name": "payments-desktop",
+      "route": "/dashboard/parent/payments",
+      "viewport": "1440x1024",
+      "referenceArea": "תשלומים — Desktop",
+      "screenshot": "qa-evidence/ux-implement-05/screenshots/payments-desktop.webp",
+      "visualStatus": "VISUAL_PASS",
+      "deviations": []
+    },
+    {
+      "name": "payments-mobile",
+      "route": "/dashboard/parent/payments",
+      "viewport": "390x844",
+      "referenceArea": "14 תשלומים — Mobile",
+      "screenshot": "qa-evidence/ux-implement-05/screenshots/payments-mobile.webp",
+      "visualStatus": "VISUAL_PASS",
+      "deviations": []
+    },
+    {
+      "name": "documents-mobile",
+      "route": "/dashboard/parent/documents",
+      "viewport": "390x844",
+      "referenceArea": "15 מסמכים — Mobile",
+      "screenshot": "qa-evidence/ux-implement-05/screenshots/documents-mobile.webp",
+      "visualStatus": "VISUAL_PASS",
+      "deviations": []
+    },
+    {
+      "name": "enrollment-desktop",
+      "route": "/dashboard/parent/discover-kindergartens",
+      "viewport": "1440x1024",
+      "referenceArea": "Enrollment / Registration — Desktop",
+      "screenshot": "qa-evidence/ux-implement-05/screenshots/enrollment-desktop.webp",
+      "visualStatus": "VISUAL_PASS",
+      "deviations": []
+    },
+    {
+      "name": "enrollment-mobile",
+      "route": "/dashboard/parent/discover-kindergartens",
+      "viewport": "390x844",
+      "referenceArea": "Enrollment / Registration — Mobile",
+      "screenshot": "qa-evidence/ux-implement-05/screenshots/enrollment-mobile.webp",
+      "visualStatus": "VISUAL_PASS",
+      "deviations": []
+    },
+    {
+      "name": "settings-mobile",
+      "route": "/dashboard/parent/settings",
+      "viewport": "390x844",
+      "referenceArea": "16 הגדרות — Mobile",
+      "screenshot": "qa-evidence/ux-implement-05/screenshots/settings-mobile.webp",
+      "visualStatus": "VISUAL_PASS",
+      "deviations": []
+    }
+  ],
+  "status": "PASS",
+  "approvedVisualLanguagePreserved": true
+}
