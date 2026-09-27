@@ -9571,10 +9571,12 @@
       "sourceCommits": [
         "a3f90a1c9f906870f41581f5b6aacd5a2c1f9686"
       ],
-      "state": "VALIDATED_ON_BRANCH",
+      "state": "PUSHED_REMOTE",
       "preservation": {
-        "remoteVerified": false,
-        "remoteRefs": [],
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/ux-visual-closure-07@e2970b34f49bd43a16527cf9065210f6be3a091a"
+        ],
         "validatedSourceCommit": "a3f90a1c9f906870f41581f5b6aacd5a2c1f9686"
       },
       "validation": {
@@ -9595,7 +9597,7 @@
         "status": "PENDING_INTEGRATION",
         "base": "integration/development",
         "commit": null,
-        "pullRequest": null,
+        "pullRequest": 144,
         "requiredChecks": "PENDING_EXACT_HEAD"
       },
       "dependencies": {
@@ -9617,7 +9619,7 @@
       "productionDeployment": {
         "status": "NOT_DEPLOYED"
       },
-      "nextAction": "Push the preserved feature branch, open a PR to integration/development, require all exact-head checks to pass, merge, record the integration receipt, run canonical post-merge Development QA, and stop before UX-IMPLEMENT-08."
+      "nextAction": "Require all exact-head checks on PR 144 to pass, merge to integration/development, record the integration receipt, run canonical post-merge Development QA, and stop before UX-IMPLEMENT-08."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
