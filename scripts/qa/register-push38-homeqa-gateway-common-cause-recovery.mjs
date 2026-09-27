@@ -15,33 +15,44 @@ import { PUSH38_GATEWAY_FINITE_STREAM_HANDOFF
 } from "../../services/video-gateway/push38-home-qa-gateway-finite-stream-handoff.mjs";
 import { PUSH38_GATEWAY_SUPERVISOR_RECOVERY
 } from "../../services/video-gateway/push38-home-qa-gateway-supervisor-recovery.mjs";
+import { PUSH38_GATEWAY_STABLE_HANDOFF
+} from "../../services/video-gateway/push38-home-qa-gateway-stable-handoff.mjs";
 
 const apply = process.argv.includes("--apply");
 const finiteHandoff = process.argv.includes("--finite-stream-handoff");
 const supervisorRecovery = process.argv.includes("--supervisor-recovery");
-if (finiteHandoff && supervisorRecovery) throw new Error("P38_GATEWAY_COMMON_CAUSE_HOME_QA_MODE_INVALID");
-const item = supervisorRecovery ? PUSH38_GATEWAY_SUPERVISOR_RECOVERY :
+const stableHandoff = process.argv.includes("--stable-handoff");
+if ([finiteHandoff, supervisorRecovery, stableHandoff].filter(Boolean).length > 1)
+  throw new Error("P38_GATEWAY_COMMON_CAUSE_HOME_QA_MODE_INVALID");
+const item = stableHandoff ? PUSH38_GATEWAY_STABLE_HANDOFF :
+  supervisorRecovery ? PUSH38_GATEWAY_SUPERVISOR_RECOVERY :
   finiteHandoff ? PUSH38_GATEWAY_FINITE_STREAM_HANDOFF : PUSH38_GATEWAY_COMMON_CAUSE_RECOVERY;
 const restrictedRoot = "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted";
 const bundleValue = process.argv.find(value => value.startsWith("--bundle="))?.slice(9);
 if (!bundleValue) throw new Error("P38_GATEWAY_COMMON_CAUSE_HOME_QA_BUNDLE_REQUIRED");
 const bundle = resolve(bundleValue);
-const artifact = supervisorRecovery
+const artifact = stableHandoff
+  ? `${restrictedRoot}/push38-gateway-stable-handoff-a7bd4c75/gateway-runtime.tar.gz`
+  : supervisorRecovery
   ? `${restrictedRoot}/push38-gateway-supervisor-recovery-4324fa11/gateway-runtime.tar.gz`
   : finiteHandoff
   ? `${restrictedRoot}/push38-gateway-finite-handoff-e085c30f/gateway-runtime.tar.gz`
   : `${restrictedRoot}/push38-gateway-common-cause-f7d237bf/gateway-runtime.tar.gz`;
-const publication = supervisorRecovery
+const publication = stableHandoff
+  ? `${restrictedRoot}/push38-gateway-stable-handoff-a7bd4c75/r2-publication.json`
+  : supervisorRecovery
   ? `${restrictedRoot}/push38-gateway-supervisor-recovery-4324fa11/r2-publication.json`
   : finiteHandoff
   ? `${restrictedRoot}/push38-gateway-finite-handoff-e085c30f/r2-publication.json`
   : `${restrictedRoot}/push38-gateway-common-cause-f7d237bf/r2-publication.json`;
-const bundleName = supervisorRecovery ? "gateway_remediation_supervisor_recovery.json"
+const bundleName = stableHandoff ? "gateway_remediation_stable_handoff.json"
+  : supervisorRecovery ? "gateway_remediation_supervisor_recovery.json"
   : finiteHandoff ? "gateway_remediation_finite_stream_handoff.json"
   : "gateway_remediation_common_cause_recovery.json";
-const expectedBefore = supervisorRecovery ? 16 : finiteHandoff ? 12 : 11;
+const expectedBefore = stableHandoff ? 18 : supervisorRecovery ? 16 : finiteHandoff ? 12 : 11;
 const expectedAfter = expectedBefore + 1;
-const predecessorReleaseId = (finiteHandoff || supervisorRecovery) ? item.supersedesReleaseId : item.rollbackReleaseId;
+const predecessorReleaseId = (finiteHandoff || supervisorRecovery || stableHandoff)
+  ? item.supersedesReleaseId : item.rollbackReleaseId;
 const accountId = "693f824a750afcc264fe6ee58c8a86ab";
 const origin = `https://${accountId}.r2.cloudflarestorage.com`;
 for (const path of [bundle, artifact, publication]) {
@@ -137,7 +148,8 @@ commit;`;
 execFileSync("docker", ["--context", context, "exec", "-i", container, "psql", "-X", "-q",
   "-v", "ON_ERROR_STOP=1", "-U", "postgres", "-d", "postgres"],
 { input: sql, encoding: "utf8", timeout: 45_000, stdio: ["pipe", "pipe", "pipe"] });
-console.log(JSON.stringify({ status: "GATEWAY_COMMON_CAUSE_RECOVERY_REGISTERED_DRAFT",
+console.log(JSON.stringify({ status: stableHandoff ? "GATEWAY_STABLE_HANDOFF_REGISTERED_DRAFT" :
+  "GATEWAY_COMMON_CAUSE_RECOVERY_REGISTERED_DRAFT",
   release_id: item.releaseId, predecessor_release_id: predecessorReleaseId,
   predecessor_release: "PAUSED", exact_device: true,
   broad_cohort: "DISABLED", r2_round_trip: "PASS", live_trust: "PASS",

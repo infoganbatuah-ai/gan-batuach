@@ -20,8 +20,10 @@ import { PUSH38_GATEWAY_FINITE_STREAM_HANDOFF
 } from "../../services/video-gateway/push38-home-qa-gateway-finite-stream-handoff.mjs";
 import { PUSH38_GATEWAY_SUPERVISOR_RECOVERY
 } from "../../services/video-gateway/push38-home-qa-gateway-supervisor-recovery.mjs";
-import { PUSH38_CONNECTOR_LIVENESS_CONTINUITY as connectorItem
-} from "../../services/video-gateway/push38-home-qa-connector-liveness-continuity.mjs";
+import { PUSH38_GATEWAY_STABLE_HANDOFF
+} from "../../services/video-gateway/push38-home-qa-gateway-stable-handoff.mjs";
+import { PUSH38_CONNECTOR_RELAY_BACKOFF_RECOVERY as connectorItem
+} from "../../services/video-gateway/push38-home-qa-connector-relay-backoff.mjs";
 
 const root = join(homedir(), "Library/Application Support/Digital Observer/observer-gateway/ota");
 const connectorRoot = join(homedir(), "Library/Application Support/Digital Observer/observer-connector/ota");
@@ -31,19 +33,27 @@ const restrictedRoot = `${realpathSync("/Volumes/DIGITAL_OBSERVER/Projects/Gan-B
 const option = name => process.argv.find(value => value.startsWith(`--${name}=`))?.slice(name.length + 3) || "";
 const finiteHandoff = process.argv.includes("--finite-stream-handoff");
 const supervisorRecovery = process.argv.includes("--supervisor-recovery");
-if (finiteHandoff && supervisorRecovery) throw new Error("P38_GATEWAY_COMMON_CAUSE_MODE_INVALID");
-const item = supervisorRecovery ? PUSH38_GATEWAY_SUPERVISOR_RECOVERY :
+const stableHandoff = process.argv.includes("--stable-handoff");
+if ([finiteHandoff, supervisorRecovery, stableHandoff].filter(Boolean).length > 1)
+  throw new Error("P38_GATEWAY_COMMON_CAUSE_MODE_INVALID");
+const item = stableHandoff ? PUSH38_GATEWAY_STABLE_HANDOFF :
+  supervisorRecovery ? PUSH38_GATEWAY_SUPERVISOR_RECOVERY :
   finiteHandoff ? PUSH38_GATEWAY_FINITE_STREAM_HANDOFF : PUSH38_GATEWAY_COMMON_CAUSE_RECOVERY;
-const predecessorReleaseId = (finiteHandoff || supervisorRecovery) ? item.supersedesReleaseId : item.rollbackReleaseId;
+const predecessorReleaseId = (finiteHandoff || supervisorRecovery || stableHandoff)
+  ? item.supersedesReleaseId : item.rollbackReleaseId;
 const bundleValue = option("bundle");
 if (!bundleValue) throw new Error("P38_GATEWAY_COMMON_CAUSE_BUNDLE_REQUIRED");
 const bundle = resolve(bundleValue);
-const artifact = supervisorRecovery
+const artifact = stableHandoff
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-stable-handoff-a7bd4c75/gateway-runtime.tar.gz"
+  : supervisorRecovery
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-supervisor-recovery-4324fa11/gateway-runtime.tar.gz"
   : finiteHandoff
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-finite-handoff-e085c30f/gateway-runtime.tar.gz"
   : "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-common-cause-f7d237bf/gateway-runtime.tar.gz";
-const publication = supervisorRecovery
+const publication = stableHandoff
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-stable-handoff-a7bd4c75/r2-publication.json"
+  : supervisorRecovery
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-supervisor-recovery-4324fa11/r2-publication.json"
   : finiteHandoff
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-finite-handoff-e085c30f/r2-publication.json"
@@ -118,7 +128,8 @@ async function healthSample(port, label) {
     last_rotation_reason: health.recorderSessionLifecycle?.last_rotation_reason ?? null };
 }
 
-function verifiedShadowEvidence(path, { recent = false, warmHandoff = false, expectedRelease = null } = {}) {
+function verifiedShadowEvidence(path, { recent = false, warmHandoff = false,
+  expectedRelease = null, expectedChannel = 1 } = {}) {
   const value = JSON.parse(protectedFile(path));
   const checkpoints = Array.isArray(value.checkpoints) ? value.checkpoints : [];
   const endedAt = Date.parse(value.ended_at || "");
@@ -127,7 +138,7 @@ function verifiedShadowEvidence(path, { recent = false, warmHandoff = false, exp
     point.shadow?.discovery?.connected === 1 && point.shadow?.discovery?.failed === 0 &&
     point.shadow?.media?.progressing === 1 && point.shadow?.media?.stalled === 0);
   if (value.contract !== "observer-push38-bounded-dvr-shadow-v1" || value.result !== "PASS" ||
-    value.mode !== "READ_ONLY_ONE_CHANNEL_SHADOW" || value.channel !== 1 ||
+    value.mode !== "READ_ONLY_ONE_CHANNEL_SHADOW" || value.channel !== expectedChannel ||
     value.endpoint_redacted !== true || value.credentials_recorded !== false ||
     value.cloud_access_enabled !== false || value.runtime_mutation !== false ||
     (expectedRelease && (value.signed_release?.release_id !== expectedRelease.releaseId ||
@@ -156,7 +167,8 @@ if (agentRelease.release_id !== item.releaseId || agentRelease.artifact_sha256 !
   throw new Error("P38_GATEWAY_COMMON_CAUSE_AGENT_RELEASE_MISMATCH");
 
 const manifest = JSON.parse(execFileSync("unzip", ["-p", bundle,
-  supervisorRecovery ? "gateway_remediation_supervisor_recovery.json" :
+  stableHandoff ? "gateway_remediation_stable_handoff.json" :
+    supervisorRecovery ? "gateway_remediation_supervisor_recovery.json" :
     finiteHandoff ? "gateway_remediation_finite_stream_handoff.json" :
     "gateway_remediation_common_cause_recovery.json"],
 { encoding: "utf8", timeout: 15_000, maxBuffer: 16_384 }));
@@ -220,7 +232,7 @@ const rollout = JSON.parse(psql(`select jsonb_build_object(
   'managed_phase',(select metadata->>'home_qa_phase' from public.video_gateway_device_enrollments where gateway_id='${item.deviceId}'),
   'managed_identity',(select identity_scheme from public.video_gateway_device_enrollments where gateway_id='${item.deviceId}'),
   'fresh_proof',(select count(*) from public.video_gateway_device_enrollments e join public.observer_managed_device_credentials c on c.enrollment_id=e.id and c.credential_version=e.credential_version where e.gateway_id='${item.deviceId}' and e.lifecycle_state='ACTIVE' and e.status='delivered' and e.active_runtime_instance_id is not null and e.last_seen_at>=now()-interval '2 minutes' and exists(select 1 from public.observer_managed_device_auth_nonces n where n.enrollment_id=e.id and n.credential_version=e.credential_version and n.observed_at>=now()-interval '2 minutes')));`));
-if (rollout.devices !== 2 || rollout.releases !== (supervisorRecovery ? 17 : finiteHandoff ? 15 : 12) || rollout.new_status !== "DRAFT" ||
+if (rollout.devices !== 2 || rollout.releases !== (stableHandoff ? 19 : supervisorRecovery ? 17 : finiteHandoff ? 15 : 12) || rollout.new_status !== "DRAFT" ||
   rollout.new_cohort !== 0 ||
   JSON.stringify(rollout.new_targets) !== JSON.stringify({ explicit_device_ids: [item.deviceId] }) ||
   rollout.prior_status !== "PAUSED" || rollout.broad_active !== 0 ||
@@ -244,12 +256,18 @@ const gatewayPidStable = gatewaySamples.every(sample => sample.running && sample
   new Set(gatewaySamples.map(sample => sample.pid)).size === 1;
 const normalRuntimeTruth = gatewaySamples.every(sample => sample.status === "degraded" || sample.status === "healthy") &&
   gatewaySamples.every(sample =>
-    sample.assigned === 10 && sample.connected === 8 && sample.failed === 2 && sample.empty === 6 &&
-    sample.progressing === 8 && sample.stalled === 0);
+    sample.assigned === 10 && sample.connected === (stableHandoff ? 9 : 8) &&
+    sample.failed === (stableHandoff ? 1 : 2) && sample.empty === 6 &&
+    sample.progressing === (stableHandoff ? 9 : 8) && sample.stalled === 0);
 const finiteCommonCauseTruth = (finiteHandoff || supervisorRecovery) && gatewaySamples.every(sample => sample.status === "degraded" &&
   sample.assigned === 10 && sample.connected === 0 && sample.failed === 10 && sample.empty === 6 &&
   sample.progressing === 0 && sample.stalled === 0);
 let shadowEvidence = null, warmHandoffEvidence = null;
+if (stableHandoff) {
+  if (!shadowEvidencePath) throw new Error("P38_GATEWAY_STABLE_HANDOFF_SHADOW_EVIDENCE_REQUIRED");
+  shadowEvidence = verifiedShadowEvidence(shadowEvidencePath, { recent: true, warmHandoff: true,
+    expectedRelease: item, expectedChannel: 3 });
+}
 if (finiteCommonCauseTruth) {
   if (!shadowEvidencePath) throw new Error("P38_GATEWAY_FINITE_HANDOFF_SHADOW_EVIDENCE_REQUIRED");
   shadowEvidence = verifiedShadowEvidence(shadowEvidencePath, { recent: true,
@@ -282,16 +300,19 @@ const plan = { protocol: "observer-push38-gateway-common-cause-recovery-activati
   runtime_pid: gatewayService.pid, ota_agent_pid: gatewayAgent.pid,
   connector_release_id: connectorCurrent.release_id,
   gateway_runtime_samples: gatewaySamples, connector_runtime_samples: connectorSamples,
-  gateway_runtime_truth: normalRuntimeTruth ? "8_OF_8_PROGRESSING" : "FINITE_STREAM_COMMON_CAUSE_SHADOW_QUALIFIED",
+  gateway_runtime_truth: normalRuntimeTruth ? (stableHandoff ? "9_OF_9_PROGRESSING" : "8_OF_8_PROGRESSING") :
+    "FINITE_STREAM_COMMON_CAUSE_SHADOW_QUALIFIED",
   ...(shadowEvidence ? { current_shadow_evidence: shadowEvidence,
     warm_handoff_evidence: warmHandoffEvidence } : {}),
-  dvr_truth: { expected: 10, source_available: 8, upstream_unavailable: 2, empty: 6 },
+  dvr_truth: { expected: 10, source_available: stableHandoff ? 9 : 8,
+    upstream_unavailable: stableHandoff ? 1 : 2, empty: 6 },
   actions: ["PAUSE_OTHER_GATEWAY_ROLLOUTS", "ACTIVATE_EXACT_GATEWAY_REMEDIATION_ROLLOUT",
     "OTA_AGENT_DISCOVERS", "SHORT_LIVED_R2_DOWNLOAD", "SIGNED_INSTALL", "HEALTH_GATE",
     "PROMOTE_OR_EXISTING_MANAGER_ROLLBACK"], runtime_writes: 0 };
 if (mode === "PREFLIGHT") {
   const evidenceSha = persist(plan);
-  console.log(JSON.stringify({ status: supervisorRecovery ? "GATEWAY_SUPERVISOR_RECOVERY_PREFLIGHT_PASS" :
+  console.log(JSON.stringify({ status: stableHandoff ? "GATEWAY_STABLE_HANDOFF_PREFLIGHT_PASS" :
+    supervisorRecovery ? "GATEWAY_SUPERVISOR_RECOVERY_PREFLIGHT_PASS" :
     finiteHandoff ? "GATEWAY_FINITE_HANDOFF_PREFLIGHT_PASS" : "GATEWAY_SESSION_PREFLIGHT_PASS",
     evidence_sha256: evidenceSha, release_id: item.releaseId, exact_device: true,
     broad_cohort: false, dvr_progressing: gatewaySamples.at(-1).progressing, runtime_writes: 0 }));
@@ -330,7 +351,8 @@ const result = { ...plan, mode: "APPLY", applied_at: new Date().toISOString(),
   exact_rollout_active: true, broad_cohort: false, ota_agent_owns_install: true,
   functional_runtime_changed_by_command: false, runtime_writes: 0 };
 const evidenceSha = persist(result);
-console.log(JSON.stringify({ status: supervisorRecovery ? "EXACT_GATEWAY_SUPERVISOR_RECOVERY_ROLLOUT_ACTIVE" :
+console.log(JSON.stringify({ status: stableHandoff ? "EXACT_GATEWAY_STABLE_HANDOFF_ROLLOUT_ACTIVE" :
+  supervisorRecovery ? "EXACT_GATEWAY_SUPERVISOR_RECOVERY_ROLLOUT_ACTIVE" :
   finiteHandoff ? "EXACT_GATEWAY_FINITE_HANDOFF_ROLLOUT_ACTIVE" :
   "EXACT_GATEWAY_COMMON_CAUSE_ROLLOUT_ACTIVE",
   evidence_sha256: evidenceSha, release_id: item.releaseId, exact_device: true,

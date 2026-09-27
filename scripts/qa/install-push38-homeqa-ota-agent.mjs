@@ -33,9 +33,11 @@ const gatewaySessionStabilityUpgrade = process.argv.includes("--gateway-session-
 const gatewayCommonCauseRecoveryUpgrade = process.argv.includes("--gateway-common-cause-recovery-upgrade");
 const gatewayFiniteStreamHandoffUpgrade = process.argv.includes("--gateway-finite-stream-handoff-upgrade");
 const gatewaySupervisorRecoveryUpgrade = process.argv.includes("--gateway-supervisor-recovery-upgrade");
+const gatewayStableHandoffUpgrade = process.argv.includes("--gateway-stable-handoff-upgrade");
 if ([recoveryUpgrade, startupRecoveryUpgrade, livenessRecoveryUpgrade, parentExitRecoveryUpgrade,
   rtspSessionRecoveryUpgrade, gatewayAuthRecoveryUpgrade, gatewaySessionStabilityUpgrade,
   gatewayCommonCauseRecoveryUpgrade, gatewayFiniteStreamHandoffUpgrade, gatewaySupervisorRecoveryUpgrade,
+  gatewayStableHandoffUpgrade,
   connectorHostContinuityUpgrade, connectorDeviceSessionUpgrade, connectorRuntimePidUpgrade,
   connectorGuardRetryUpgrade, connectorLivenessContinuityUpgrade,
   connectorRelayBackoffUpgrade].filter(Boolean).length > 1)
@@ -43,17 +45,18 @@ if ([recoveryUpgrade, startupRecoveryUpgrade, livenessRecoveryUpgrade, parentExi
 const managementUpgrade = process.argv.includes("--management-upgrade") || recoveryUpgrade ||
   startupRecoveryUpgrade || livenessRecoveryUpgrade || parentExitRecoveryUpgrade ||
   rtspSessionRecoveryUpgrade || gatewayAuthRecoveryUpgrade || gatewaySessionStabilityUpgrade ||
-  gatewayCommonCauseRecoveryUpgrade || gatewayFiniteStreamHandoffUpgrade || gatewaySupervisorRecoveryUpgrade || connectorHostContinuityUpgrade ||
+  gatewayCommonCauseRecoveryUpgrade || gatewayFiniteStreamHandoffUpgrade || gatewaySupervisorRecoveryUpgrade ||
+  gatewayStableHandoffUpgrade || connectorHostContinuityUpgrade ||
   connectorDeviceSessionUpgrade || connectorRuntimePidUpgrade || connectorGuardRetryUpgrade ||
   connectorLivenessContinuityUpgrade || connectorRelayBackoffUpgrade;
 if (apply === dryRun || !["SOFTWARE_CONNECTOR", "PHYSICAL_GATEWAY"].includes(profile))
   throw new Error("P38_HOME_QA_AGENT_MODE_OR_PROFILE_INVALID");
 if (managementUpgrade && profile !== "SOFTWARE_CONNECTOR" &&
   !gatewayAuthRecoveryUpgrade && !gatewaySessionStabilityUpgrade && !gatewayCommonCauseRecoveryUpgrade &&
-  !gatewayFiniteStreamHandoffUpgrade && !gatewaySupervisorRecoveryUpgrade)
+  !gatewayFiniteStreamHandoffUpgrade && !gatewaySupervisorRecoveryUpgrade && !gatewayStableHandoffUpgrade)
   throw new Error("P38_HOME_QA_AGENT_UPGRADE_PROFILE_INVALID");
 if ((gatewayAuthRecoveryUpgrade || gatewaySessionStabilityUpgrade || gatewayCommonCauseRecoveryUpgrade ||
-  gatewayFiniteStreamHandoffUpgrade || gatewaySupervisorRecoveryUpgrade) &&
+  gatewayFiniteStreamHandoffUpgrade || gatewaySupervisorRecoveryUpgrade || gatewayStableHandoffUpgrade) &&
   profile !== "PHYSICAL_GATEWAY")
   throw new Error("P38_HOME_QA_AGENT_UPGRADE_PROFILE_INVALID");
 const connector = profile === "SOFTWARE_CONNECTOR";
@@ -123,18 +126,23 @@ const spec = connector ? {
   deviceId: "62df97e2-3c0b-427f-9108-bde029bc10e7",
   baselineRelease: "qa-legacy-gateway-91bf6814075f",
   baselineSha: "91bf6814075f74e703cbc0b85d30673237531247ec46633c54576d5a4627144d",
-  remediationRelease: gatewaySupervisorRecoveryUpgrade ? "qa-p38-health-gateway-supervisor-recovery-fb68c5180b58" :
+  remediationRelease: gatewayStableHandoffUpgrade ? "qa-p38-health-gateway-stable-handoff-afc7339384bb" :
+    gatewaySupervisorRecoveryUpgrade ? "qa-p38-health-gateway-supervisor-recovery-fb68c5180b58" :
     gatewayFiniteStreamHandoffUpgrade ? "qa-p38-health-gateway-finite-handoff-76781a8e0832" :
     gatewayCommonCauseRecoveryUpgrade ? "qa-p38-health-gateway-common-cause-189e548bc104" :
     gatewaySessionStabilityUpgrade ? "qa-p38-health-gateway-session-e354546bdbf8" :
     gatewayAuthRecoveryUpgrade ? "qa-p38-health-gateway-auth-4197f1a246f1" :
     "qa-p38-health-gateway-6c9d08327ec6",
-  bundleName: gatewaySupervisorRecoveryUpgrade ? "gateway_remediation_supervisor_recovery.json" :
+  bundleName: gatewayStableHandoffUpgrade ? "gateway_remediation_stable_handoff.json" :
+    gatewaySupervisorRecoveryUpgrade ? "gateway_remediation_supervisor_recovery.json" :
     gatewayFiniteStreamHandoffUpgrade ? "gateway_remediation_finite_stream_handoff.json" :
     gatewayCommonCauseRecoveryUpgrade ? "gateway_remediation_common_cause_recovery.json" :
     gatewaySessionStabilityUpgrade ? "gateway_remediation_session_stability.json" :
     gatewayAuthRecoveryUpgrade ? "gateway_remediation_auth.json" : "gateway_remediation.json",
-  priorManagement: gatewaySupervisorRecoveryUpgrade ? {
+  priorManagement: gatewayStableHandoffUpgrade ? {
+    release_id: "qa-p38-health-gateway-supervisor-recovery-fb68c5180b58",
+    artifact_sha256: "fb68c5180b585bd6460ae3a3720d437d23a9c042ed406ab92995cb724fc88032" } :
+    gatewaySupervisorRecoveryUpgrade ? {
     release_id: "qa-p38-health-gateway-finite-handoff-76781a8e0832",
     artifact_sha256: "76781a8e08328feb154525451c5c4a26aaca43739279f9a052280758d1a02ffb" } :
     gatewayFiniteStreamHandoffUpgrade ? {
@@ -149,7 +157,8 @@ const spec = connector ? {
     gatewayAuthRecoveryUpgrade ? { release_id: "qa-p38-health-gateway-6c9d08327ec6",
       artifact_sha256: "6c9d08327ec6f38db3fc55c4c344f4db6fc0d0adab5c68e3ec3f1c1164f11c95" } : null,
   rootName: "observer-gateway", label: "com.ganbatuach.video-gateway", port: 18082,
-  installedBase: join(homedir(), ".local/share/gan-batuach/video-gateway"), expected: 8, configured: 10
+  installedBase: join(homedir(), ".local/share/gan-batuach/video-gateway"),
+  expected: gatewayStableHandoffUpgrade ? 9 : 8, configured: 10
 };
 const root = join(homedir(), "Library/Application Support/Digital Observer", spec.rootName, "ota");
 const secrets = join(root, "home-qa-device-secrets");
@@ -202,6 +211,8 @@ const bundle = resolve(bundleOverride || (connectorRelayBackoffUpgrade
     ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-gateway-finite-stream-handoff.zip"
   : gatewaySupervisorRecoveryUpgrade
     ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-gateway-supervisor-recovery.zip"
+  : gatewayStableHandoffUpgrade
+    ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-gateway-stable-handoff.zip"
   : gatewayCommonCauseRecoveryUpgrade
     ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-gateway-common-cause-recovery.zip"
   : gatewaySessionStabilityUpgrade

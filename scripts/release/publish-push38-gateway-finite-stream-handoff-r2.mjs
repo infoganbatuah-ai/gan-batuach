@@ -8,6 +8,7 @@ import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { edgeReleaseObjectPath, EDGE_RELEASE_R2_BUCKET } from "../../services/video-gateway/edge-release-object.mjs";
 import { buildPush38GatewayFiniteStreamHandoffManifest } from "../../services/video-gateway/push38-home-qa-gateway-finite-stream-handoff.mjs";
 import { buildPush38GatewaySupervisorRecoveryManifest } from "../../services/video-gateway/push38-home-qa-gateway-supervisor-recovery.mjs";
+import { buildPush38GatewayStableHandoffManifest } from "../../services/video-gateway/push38-home-qa-gateway-stable-handoff.mjs";
 import { readR2KeychainCredentials } from "./macos-r2-keychain.mjs";
 
 const origin = "https://693f824a750afcc264fe6ee58c8a86ab.r2.cloudflarestorage.com";
@@ -25,8 +26,11 @@ async function hashStream(stream, limit) {
 }
 
 export async function publishPush38GatewayFiniteStreamHandoff({ artifactPath, evidencePath,
-  supervisorRecovery = false }) {
-  const builder = supervisorRecovery ? buildPush38GatewaySupervisorRecoveryManifest :
+  supervisorRecovery = false, stableHandoff = false }) {
+  if (supervisorRecovery && stableHandoff)
+    fail("P38_GATEWAY_FINITE_HANDOFF_R2_MODE_INVALID");
+  const builder = stableHandoff ? buildPush38GatewayStableHandoffManifest :
+    supervisorRecovery ? buildPush38GatewaySupervisorRecoveryManifest :
     buildPush38GatewayFiniteStreamHandoffManifest;
   const { document } = builder({ signingKeyId: "observer-kms-release-v1",
     artifactOrigin: origin, releasedAt: new Date().toISOString() });
@@ -76,7 +80,8 @@ export async function publishPush38GatewayFiniteStreamHandoff({ artifactPath, ev
       signal: AbortSignal.timeout(30_000) });
     await anonymous.body?.cancel();
     if (anonymous.ok) fail("P38_GATEWAY_FINITE_HANDOFF_R2_PUBLIC_ACCESS_ENABLED");
-    const result = { protocol: supervisorRecovery ?
+    const result = { protocol: stableHandoff ?
+      "observer-push38-gateway-stable-handoff-r2-publication-v1" : supervisorRecovery ?
       "observer-push38-gateway-supervisor-recovery-r2-publication-v1" :
       "observer-push38-gateway-finite-stream-handoff-r2-publication-v1",
       at: new Date().toISOString(), bucket: EDGE_RELEASE_R2_BUCKET, storage_class: "STANDARD",
@@ -91,12 +96,14 @@ export async function publishPush38GatewayFiniteStreamHandoff({ artifactPath, ev
 if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1])) {
   try {
     const supervisorRecovery = process.argv.includes("--supervisor-recovery");
-    const [artifact, evidence] = process.argv.slice(2).filter(value => value !== "--supervisor-recovery");
+    const stableHandoff = process.argv.includes("--stable-handoff");
+    const [artifact, evidence] = process.argv.slice(2)
+      .filter(value => !["--supervisor-recovery", "--stable-handoff"].includes(value));
     const scoped = evidence ? relative(restrictedRoot, resolve(evidence)) : "";
     if (!artifact || !evidence || !scoped || scoped === ".." || scoped.startsWith(`..${sep}`) || isAbsolute(scoped))
       fail("P38_GATEWAY_FINITE_HANDOFF_R2_INPUT_SCOPE_INVALID");
     console.log(JSON.stringify({ result: "PASS", publication: await publishPush38GatewayFiniteStreamHandoff({
-      artifactPath: artifact, evidencePath: resolve(evidence), supervisorRecovery }) }));
+      artifactPath: artifact, evidencePath: resolve(evidence), supervisorRecovery, stableHandoff }) }));
   } catch (error) {
     console.error(/^P38_GATEWAY_FINITE_HANDOFF_R2_[A-Z0-9_]+$/.test(error.message) ? error.message :
       "P38_GATEWAY_FINITE_HANDOFF_R2_PUBLICATION_FAILED");
