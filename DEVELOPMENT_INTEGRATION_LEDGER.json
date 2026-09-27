@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-09-27T22:37:43.863Z",
+  "updatedAt": "2026-09-27T23:08:22.416Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -9632,30 +9632,34 @@
         "02d738305f3541b9ead2944c76f11cea4caaad25",
         "1889d8ddfcfc2d4f9ee88379438ce31160615cce"
       ],
-      "state": "INTEGRATED_DEVELOPMENT",
+      "state": "LOCAL_VERIFIED",
       "preservation": {
         "remoteVerified": true,
         "remoteRefs": [
           "origin/codex/ux-implement-08-staff-recruitment@76383aa27e0122adffd42265ddcb2f598a47209b",
-          "origin/integration/development@590f74ad661b8bc8524eb36ac413f33f16e756f1"
+          "origin/integration/development@1d426d7b78724fb8105e5bf7ab17a9ddc0f1f78c"
         ],
         "validatedSourceCommit": "1889d8ddfcfc2d4f9ee88379438ce31160615cce"
       },
       "validation": {
-        "status": "PASS_VISUAL_FUNCTIONAL_EXACT_HEAD_REQUIRED_CHECKS_PENDING_DEVELOPMENT_MIGRATION",
+        "status": "PASS_VISUAL_FUNCTIONAL_EXACT_HEAD_REQUIRED_CHECKS_DEVELOPMENT_MIGRATION_AND_POST_MERGE_CUMULATIVE_VALIDATION",
         "evidence": [
           "GAN_BATUACH_UX08_STAFF_RECRUITMENT_CANDIDATE_IMPLEMENTATION.md",
           "qa-evidence/ux-implement-08/results.json",
           "qa-evidence/ux-implement-08/SHA256SUMS"
         ],
-        "limits": "Thirty-four fresh Desktop and Mobile screenshots are OWNER_REVIEW_READY with zero NEEDS_POLISH, VISUAL_DRIFT or BROKEN results. All eight GitHub checks passed on exact PR head 76383aa27e0122adffd42265ddcb2f598a47209b and PR #146 merged by ancestry as 590f74ad661b8bc8524eb36ac413f33f16e756f1. The bounded RLS policy is approved for canonical isolated-Development application; post-application and cumulative post-merge verification remain pending. This is not Production release authorization."
+        "limits": "UX-08 product PR #146 passed all eight checks on exact head 76383aa27e0122adffd42265ddcb2f598a47209b and merged as 590f74ad661b8bc8524eb36ac413f33f16e756f1. Thirty-four fresh 1440x1024 and 390x844 captures from that exact product tree are OWNER_REVIEW_READY with zero NEEDS_POLISH, VISUAL_DRIFT or BROKEN results. Approval PR #147 and receipt PR #148 also passed all eight checks. The reviewed policy is applied only to isolated Development with 244/244 drift PASS and schema fingerprint 2e5ac2bf9731f7dde7f5148ff2ae6f2169bc398bf7ea78ebca18e6cd3c8149e6. Exact merged Development startup, local health/Supabase and role dashboards 8/8 passed. The canonical launcher intentionally omits invitation signing secrets; signed-invitation visual proof uses the local-only QA signing key and the exact product tree. This is not Production release authorization."
       },
       "integration": {
         "status": "INTEGRATED_DEVELOPMENT",
         "base": "integration/development",
         "commit": "590f74ad661b8bc8524eb36ac413f33f16e756f1",
         "pullRequest": 146,
-        "requiredChecks": "PASS_ALL_8_EXACT_HEAD"
+        "requiredChecks": "PASS_ALL_8_EXACT_HEAD",
+        "developmentMigrationApprovalPullRequest": 147,
+        "developmentMigrationApprovalCommit": "8ce4a818ab3c29d9b85db3bbce4db23c6321f8f9",
+        "developmentMigrationReceiptPullRequest": 148,
+        "developmentMigrationReceiptCommit": "1d426d7b78724fb8105e5bf7ab17a9ddc0f1f78c"
       },
       "dependencies": {
         "status": "UX_VISUAL_CLOSURE_07_INTEGRATED",
@@ -9669,12 +9673,12 @@
       "migrationOrder": [
         "20260928010000"
       ],
-      "localVerification": "PASS_UX08_FOCUSED_8_OF_8_DISCOVERY_7_OF_7_HIRING_8_OF_8_SIGNED_INVITATIONS_6_OF_6_MULTI_GARDEN_8_OF_8_DOCUMENTS_6_OF_6_MANAGER_PARENT_23_OF_23_UX03_TO_UX07_34_OF_34_TYPECHECK_LINT_ZERO_REGRESSIONS_BUILD_534_PAGES_DOMAIN_30_OF_30_SECURITY_10_OF_10_MIGRATIONS_244_RELEASE_CONTRACT_VISUAL_34_OWNER_REVIEW_READY",
-      "releaseEligibility": "PENDING_DEVELOPMENT_MIGRATION_APPLICATION_AND_POST_MERGE_QA",
+      "localVerification": "PASS_UX08_FOCUSED_8_OF_8_DISCOVERY_7_OF_7_HIRING_8_OF_8_SIGNED_INVITATIONS_6_OF_6_MULTI_GARDEN_8_OF_8_DOCUMENTS_6_OF_6_MANAGER_PARENT_23_OF_23_UX03_TO_UX08_42_OF_42_TYPECHECK_LINT_ZERO_REGRESSIONS_BUILD_534_PAGES_DOMAIN_30_OF_30_SECURITY_10_OF_10_MIGRATIONS_244_OF_244_RELEASE_CONTRACT_VISUAL_34_OWNER_REVIEW_READY_POST_MERGE_HEALTH_200_SUPABASE_OK_ROLE_DASHBOARDS_8_OF_8",
+      "releaseEligibility": "DEVELOPMENT_COMPLETE_PRODUCTION_NOT_AUTHORIZED",
       "productionDeployment": {
         "status": "NOT_DEPLOYED"
       },
-      "nextAction": "Apply the reviewed UX-08 policy migration to the guarded isolated Development database, record the receipt, then run cumulative post-merge QA. Production and main remain unchanged."
+      "nextAction": "UX-IMPLEMENT-08 is complete in Development. Stop before UX-IMPLEMENT-09; Production and main remain unchanged pending a separate explicit owner release instruction."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
