@@ -1,0 +1,341 @@
+{
+  "environment": "DEVELOPMENT / INTEGRATION",
+  "base": "http://127.0.0.1:3008",
+  "capturedAt": "2026-09-27T22:02:29.224Z",
+  "references": [
+    "GB_UX_REF_STAFF_CANDIDATE_RECRUITMENT.png",
+    "GB_UX_REF_STAFF_FULL_PLATFORM.png",
+    "GB_UX_REF_OWNER_CORE.png",
+    "GAN_BATUACH_BRAND_MARK.png"
+  ],
+  "viewports": {
+    "desktop": {
+      "width": 1440,
+      "height": 1024
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844
+    }
+  },
+  "personas": [
+    "staff-candidate",
+    "owner-a",
+    "ux08 synthetic candidate density"
+  ],
+  "captures": [
+    {
+      "name": "candidate-dashboard-desktop",
+      "route": "/dashboard/staff/job-market",
+      "viewport": "1440x1024",
+      "referenceArea": "Candidate dashboard / recruitment hub — Desktop",
+      "screenshot": "qa-evidence/ux-implement-08/screenshots/candidate-dashboard-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "deviations": []
+    },
+    {
+      "name": "candidate-dashboard-mobile",
+      "route": "/dashboard/staff/job-market",
+      "viewport": "390x844",
+      "referenceArea": "Candidate dashboard / recruitment hub — Mobile",
+      "screenshot": "qa-evidence/ux-implement-08/screenshots/candidate-dashboard-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "deviations": []
+    },
+    {
+      "name": "candidate-profile-desktop",
+      "route": "/dashboard/staff/settings",
+      "viewport": "1440x1024",
+      "referenceArea": "Candidate professional profile — Desktop",
+      "screenshot": "qa-evidence/ux-implement-08/screenshots/candidate-profile-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "deviations": []
+    },
+    {
+      "name": "candidate-profile-mobile",
+      "route": "/dashboard/staff/settings",
+      "viewport": "390x844",
+      "referenceArea": "Candidate professional profile — Mobile",
+      "screenshot": "qa-evidence/ux-implement-08/screenshots/candidate-profile-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "deviations": []
+    },
+    {
+      "name": "profile-completeness-desktop",
+      "route": "/dashboard/staff/settings",
+      "viewport": "1440x1024",
+      "referenceArea": "Profile completeness and next actions — Desktop",
+      "screenshot": "qa-evidence/ux-implement-08/screenshots/profile-completeness-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "deviations": []
+    },
+    {
+      "name": "profile-completeness-mobile",
+      "route": "/dashboard/staff/settings",
+      "viewport": "390x844",
+      "referenceArea": "Profile completeness and next actions — Mobile",
+      "screenshot": "qa-evidence/ux-implement-08/screenshots/profile-completeness-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "deviations": []
+    },
+    {
+      "name": "documents-certificates-desktop",
+      "route": "/dashboard/staff/documents",
+      "viewport": "1440x1024",
+      "referenceArea": "Documents and certificates — Desktop",
+      "screenshot": "qa-evidence/ux-implement-08/screenshots/documents-certificates-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "deviations": []
+    },
+    {
+      "name": "documents-certificates-mobile",
+      "route": "/dashboard/staff/documents",
+      "viewport": "390x844",
+      "referenceArea": "Documents and certificates — Mobile",
+      "screenshot": "qa-evidence/ux-implement-08/screenshots/documents-certificates-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "deviations": []
+    },
+    {
+      "name": "opportunity-discovery-desktop",
+      "route": "/dashboard/staff/job-market",
+      "viewport": "1440x1024",
+      "referenceArea": "Opportunity discovery and matching — Desktop",
+      "screenshot": "qa-evidence/ux-implement-08/screenshots/opportunity-discovery-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "deviations": []
+    },
+    {
+      "name": "opportunity-discovery-mobile",
+      "route": "/dashboard/staff/job-market",
+      "viewport": "390x844",
+      "referenceArea": "Opportunity discovery and matching — Mobile",
+      "screenshot": "qa-evidence/ux-implement-08/screenshots/opportunity-discovery-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "deviations": []
+    },
+    {
+      "name": "job-detail-desktop",
+      "route": "/dashboard/staff/job-market/81000000-0000-4000-8000-000000000005",
+      "viewport": "1440x1024",
+      "referenceArea": "Job detail — Desktop",
+      "screenshot": "qa-evidence/ux-implement-08/screenshots/job-detail-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "deviations": []
+    },
+    {
+      "name": "job-detail-mobile",
+      "route": "/dashboard/staff/job-market/81000000-0000-4000-8000-000000000005",
+      "viewport": "390x844",
+      "referenceArea": "Job detail — Mobile",
+      "screenshot": "qa-evidence/ux-implement-08/screenshots/job-detail-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "deviations": []
+    },
+    {
+      "name": "application-submit-desktop",
+      "route": "/dashboard/staff/job-market/81000000-0000-4000-8000-000000000005",
+      "viewport": "1440x1024",
+      "referenceArea": "Application submit — Desktop",
+      "screenshot": "qa-evidence/ux-implement-08/screenshots/application-submit-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "deviations": []
+    },
+    {
+      "name": "application-submit-mobile",
+      "route": "/dashboard/staff/job-market/81000000-0000-4000-8000-000000000005",
+      "viewport": "390x844",
+      "referenceArea": "Application submit — Mobile",
+      "screenshot": "qa-evidence/ux-implement-08/screenshots/application-submit-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "deviations": []
+    },
+    {
+      "name": "application-detail-desktop",
+      "route": "/dashboard/staff/job-market/applications/82000000-0000-4000-8000-000000000001",
+      "viewport": "1440x1024",
+      "referenceArea": "Application detail — Desktop",
+      "screenshot": "qa-evidence/ux-implement-08/screenshots/application-detail-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "deviations": []
+    },
+    {
+      "name": "application-detail-mobile",
+      "route": "/dashboard/staff/job-market/applications/82000000-0000-4000-8000-000000000001",
+      "viewport": "390x844",
+      "referenceArea": "Application detail — Mobile",
+      "screenshot": "qa-evidence/ux-implement-08/screenshots/application-detail-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "deviations": []
+    },
+    {
+      "name": "information-required-desktop",
+      "route": "/dashboard/staff/job-market/applications/82000000-0000-4000-8000-000000000002",
+      "viewport": "1440x1024",
+      "referenceArea": "Information required — Desktop",
+      "screenshot": "qa-evidence/ux-implement-08/screenshots/information-required-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "deviations": []
+    },
+    {
+      "name": "information-required-mobile",
+      "route": "/dashboard/staff/job-market/applications/82000000-0000-4000-8000-000000000002",
+      "viewport": "390x844",
+      "referenceArea": "Information required — Mobile",
+      "screenshot": "qa-evidence/ux-implement-08/screenshots/information-required-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "deviations": []
+    },
+    {
+      "name": "activation-ready-desktop",
+      "route": "/dashboard/staff/job-market/applications/82000000-0000-4000-8000-000000000003",
+      "viewport": "1440x1024",
+      "referenceArea": "Offer and activation ready — Desktop",
+      "screenshot": "qa-evidence/ux-implement-08/screenshots/activation-ready-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "deviations": []
+    },
+    {
+      "name": "activation-ready-mobile",
+      "route": "/dashboard/staff/job-market/applications/82000000-0000-4000-8000-000000000003",
+      "viewport": "390x844",
+      "referenceArea": "Offer and activation ready — Mobile",
+      "screenshot": "qa-evidence/ux-implement-08/screenshots/activation-ready-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "deviations": []
+    },
+    {
+      "name": "rejected-state-desktop",
+      "route": "/dashboard/staff/job-market/applications/82000000-0000-4000-8000-000000000004",
+      "viewport": "1440x1024",
+      "referenceArea": "Respectful rejection state — Desktop",
+      "screenshot": "qa-evidence/ux-implement-08/screenshots/rejected-state-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "deviations": []
+    },
+    {
+      "name": "rejected-state-mobile",
+      "route": "/dashboard/staff/job-market/applications/82000000-0000-4000-8000-000000000004",
+      "viewport": "390x844",
+      "referenceArea": "Respectful rejection state — Mobile",
+      "screenshot": "qa-evidence/ux-implement-08/screenshots/rejected-state-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "deviations": []
+    },
+    {
+      "name": "invitation-desktop",
+      "route": "/invite/accept?token=[redacted-synthetic-token]",
+      "viewport": "1440x1024",
+      "referenceArea": "Signed Garden invitation — Desktop",
+      "screenshot": "qa-evidence/ux-implement-08/screenshots/invitation-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "deviations": []
+    },
+    {
+      "name": "invitation-mobile",
+      "route": "/invite/accept?token=[redacted-synthetic-token]",
+      "viewport": "390x844",
+      "referenceArea": "Signed Garden invitation — Mobile",
+      "screenshot": "qa-evidence/ux-implement-08/screenshots/invitation-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "deviations": []
+    },
+    {
+      "name": "recruitment-notifications-desktop",
+      "route": "/dashboard/staff/recruitment-notifications",
+      "viewport": "1440x1024",
+      "referenceArea": "Recruitment notifications — Desktop",
+      "screenshot": "qa-evidence/ux-implement-08/screenshots/recruitment-notifications-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "deviations": []
+    },
+    {
+      "name": "recruitment-notifications-mobile",
+      "route": "/dashboard/staff/recruitment-notifications",
+      "viewport": "390x844",
+      "referenceArea": "Recruitment notifications — Mobile",
+      "screenshot": "qa-evidence/ux-implement-08/screenshots/recruitment-notifications-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "deviations": []
+    },
+    {
+      "name": "manager-recruitment-hub-desktop",
+      "route": "/dashboard/garden/staff-applications",
+      "viewport": "1440x1024",
+      "referenceArea": "Manager recruitment hub and candidate list — Desktop",
+      "screenshot": "qa-evidence/ux-implement-08/screenshots/manager-recruitment-hub-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "deviations": []
+    },
+    {
+      "name": "manager-recruitment-hub-mobile",
+      "route": "/dashboard/garden/staff-applications",
+      "viewport": "390x844",
+      "referenceArea": "Manager recruitment hub and candidate list — Mobile",
+      "screenshot": "qa-evidence/ux-implement-08/screenshots/manager-recruitment-hub-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "deviations": []
+    },
+    {
+      "name": "manager-candidate-list-desktop",
+      "route": "/dashboard/garden/staff-applications",
+      "viewport": "1440x1024",
+      "referenceArea": "Candidates list — Desktop",
+      "screenshot": "qa-evidence/ux-implement-08/screenshots/manager-candidate-list-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "deviations": []
+    },
+    {
+      "name": "manager-candidate-list-mobile",
+      "route": "/dashboard/garden/staff-applications",
+      "viewport": "390x844",
+      "referenceArea": "Candidates list — Mobile",
+      "screenshot": "qa-evidence/ux-implement-08/screenshots/manager-candidate-list-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "deviations": []
+    },
+    {
+      "name": "manager-candidate-detail-desktop",
+      "route": "/dashboard/garden/staff-applications/82000000-0000-4000-8000-000000000001",
+      "viewport": "1440x1024",
+      "referenceArea": "Manager candidate detail — Desktop",
+      "screenshot": "qa-evidence/ux-implement-08/screenshots/manager-candidate-detail-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "deviations": []
+    },
+    {
+      "name": "manager-candidate-detail-mobile",
+      "route": "/dashboard/garden/staff-applications/82000000-0000-4000-8000-000000000001",
+      "viewport": "390x844",
+      "referenceArea": "Manager candidate detail — Mobile",
+      "screenshot": "qa-evidence/ux-implement-08/screenshots/manager-candidate-detail-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "deviations": []
+    },
+    {
+      "name": "job-post-creation-desktop",
+      "route": "/dashboard/garden/staff-applications/new",
+      "viewport": "1440x1024",
+      "referenceArea": "Job post creation — Desktop",
+      "screenshot": "qa-evidence/ux-implement-08/screenshots/job-post-creation-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "deviations": []
+    },
+    {
+      "name": "job-post-creation-mobile",
+      "route": "/dashboard/garden/staff-applications/new",
+      "viewport": "390x844",
+      "referenceArea": "Job post creation — Mobile",
+      "screenshot": "qa-evidence/ux-implement-08/screenshots/job-post-creation-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "deviations": []
+    }
+  ],
+  "counts": {
+    "OWNER_REVIEW_READY": 34,
+    "NEEDS_POLISH": 0,
+    "VISUAL_DRIFT": 0,
+    "BROKEN": 0
+  },
+  "status": "PASS"
+}

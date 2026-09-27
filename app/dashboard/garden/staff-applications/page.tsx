@@ -1,139 +1,81 @@
-import { BriefcaseBusiness, CheckCircle2, FileCheck2, Plus, ShieldCheck, UsersRound } from "lucide-react";
+import Link from "next/link";
+import { BriefcaseBusiness, FileCheck2, Filter, Plus, Search, Send, Sparkles, UsersRound } from "lucide-react";
 import { DashboardShell } from "@/components/dashboard-shell";
-import { StaffApplicationActionButtons } from "@/components/garden-request-action-buttons";
-import { ApplicationDecisionForm, StaffOpeningForm } from "@/components/self-service-forms";
-import { requireRole } from "@/lib/auth";
-import { createClient } from "@/lib/supabase/server";
-import { resolveManagementGardenContext } from "@/lib/management/active-garden-context";
+import { StatusChip } from "@/components/gan-batuach-design-system";
+import { CandidateRow, RecruitmentHero, RecruitmentMetric } from "@/components/recruitment-ui";
 import { StaffInvitationForm } from "@/components/staff-invitation-form";
-import {
-  TeacherActionTile,
-  TeacherAiInsight,
-  TeacherAppFrame,
-  TeacherCompactItem,
-  TeacherCompactList,
-  TeacherEmptyState,
-  TeacherPageTitle,
-  TeacherQuickActions,
-  TeacherSection,
-  TeacherStatCard,
-  TeacherStatsGrid
-} from "@/components/teacher-app-ui";
+import { TeacherAppFrame, TeacherEmptyState, TeacherSection } from "@/components/teacher-app-ui";
+import { requireRole } from "@/lib/auth";
+import { cleanSyntheticLabel } from "@/lib/domain/display-label";
+import { resolveManagementGardenContext } from "@/lib/management/active-garden-context";
+import { createClient } from "@/lib/supabase/server";
 
-const actions = [
-  { value: "review", label: "סימון בבדיקה" },
-  { value: "request_information", label: "בקשת מידע נוסף" },
-  { value: "approve", label: "אישור ושליחה לקבלת המועמד/ת" },
-  { value: "reject", label: "דחייה" }
-];
+type CandidateProfile = { full_name?: string | null; profile_photo_url?: string | null; city?: string | null; professional_role?: string | null; qualification_keys?: string[] | null; profile_completeness?: { percentage?: number } | null; document_status?: { required_documents_ready?: boolean } | null };
+type ApplicationRow = { id: string; staff_candidate_id: string; opening_id?: string | null; status: string; requested_role?: string | null; created_at?: string | null; staff_candidate_profiles?: CandidateProfile | null; kindergarten_staff_openings?: { role_needed?: string | null; age_group?: string | null; employment_type?: string | null } | null };
+type Opening = { id: string; role_needed: string; age_group?: string | null; employment_type?: string | null; active_status: string; created_at?: string | null };
 
-type StaffApplicationRow = {
-  id: string;
-  status: string;
-  requested_role?: string | null;
-  duplicate_flags?: unknown[] | null;
-  kindergarten_staff_openings?: { role_needed?: string | null; age_group?: string | null; employment_type?: string | null } | null;
-  staff_candidate_profiles?: { full_name?: string | null; phone?: string | null; professional_role?: string | null; qualification_keys?: string[] | null; work_experience?: string | null; document_status?: Record<string, unknown> | null; duplicate_flags?: unknown[] | null } | null;
-};
-
-export default async function GardenStaffApplicationsPage() {
+export default async function GardenStaffApplicationsPage({ searchParams }: { searchParams?: Promise<{ q?: string; status?: string; role?: string }> }) {
   const { profile } = await requireRole(["manager", "owner"]);
+  const params = await searchParams;
   const supabase = await createClient();
   const gardenContext = await resolveManagementGardenContext(profile);
   const gardenId = gardenContext.activeGarden?.id ?? "";
-  const openingsRes = await supabase.from("kindergarten_staff_openings" as never).select("id,role_needed" as never).eq("garden_id", gardenId).eq("active_status", "published").order("created_at", { ascending: false });
-  const openings = (openingsRes.data ?? []) as unknown as Array<{ id: string; role_needed: string }>;
-  const rows = ((await supabase.from("staff_job_applications" as never)
-    .select("*, kindergarten_staff_openings(role_needed,age_group,employment_type), staff_candidate_profiles:staff_candidate_id(full_name,phone,email,professional_role,qualification_keys,profile_completeness,city,work_experience,document_status,duplicate_flags)")
-    .eq("garden_id", gardenId)
-    .order("created_at", { ascending: false })
-    .limit(100)).data ?? []) as unknown as StaffApplicationRow[];
-  const pendingRows = rows.filter((row) => ["submitted", "under_review", "information_required", "resubmitted"].includes(String(row.status)));
-  const approvedRows = rows.filter((row) => ["approved", "awaiting_candidate_acceptance", "employed"].includes(row.status));
-  const duplicateRows = rows.filter((row) => Array.isArray(row.duplicate_flags) && row.duplicate_flags.length);
-  const selected = rows[0];
+  const [openingsResult, applicationsResult] = await Promise.all([
+    supabase.from("kindergarten_staff_openings" as never).select("id,role_needed,age_group,employment_type,active_status,created_at" as never).eq("garden_id", gardenId).order("created_at", { ascending: false }),
+    supabase.from("staff_job_applications" as never).select("id,staff_candidate_id,opening_id,status,requested_role,created_at" as never).eq("garden_id", gardenId).order("created_at", { ascending: false }).limit(100)
+  ]);
+  const openings = (openingsResult.data ?? []) as unknown as Opening[];
+  const applications = (applicationsResult.data ?? []) as unknown as ApplicationRow[];
+  const candidateIds = Array.from(new Set(applications.map((row) => row.staff_candidate_id)));
+  const candidatesResult = candidateIds.length
+    ? await supabase.from("staff_candidate_profiles" as never).select("profile_id,full_name,profile_photo_url,city,professional_role,qualification_keys,profile_completeness,document_status" as never).in("profile_id", candidateIds)
+    : { data: [], error: null };
+  const candidateMap = new Map(((candidatesResult.data ?? []) as unknown as Array<CandidateProfile & { profile_id: string }>).map((candidate) => [candidate.profile_id, candidate]));
+  const openingMap = new Map(openings.map((opening) => [opening.id, opening]));
+  const allRows = applications.map((application) => ({
+    ...application,
+    staff_candidate_profiles: candidateMap.get(application.staff_candidate_id) ?? null,
+    kindergarten_staff_openings: application.opening_id ? openingMap.get(application.opening_id) ?? null : null
+  }));
+  const query = String(params?.q ?? "").trim().toLocaleLowerCase("he");
+  const rows = allRows.filter((row) => {
+    const candidate = row.staff_candidate_profiles;
+    const role = row.requested_role ?? row.kindergarten_staff_openings?.role_needed ?? candidate?.professional_role ?? "";
+    return (!params?.status || row.status === params.status) && (!params?.role || role === params.role) && (!query || `${candidate?.full_name ?? ""} ${candidate?.city ?? ""} ${role}`.toLocaleLowerCase("he").includes(query));
+  });
+  const actionRequired = allRows.filter((row) => ["submitted", "resubmitted", "information_required"].includes(row.status)).length;
+  const offerCount = allRows.filter((row) => row.status === "awaiting_candidate_acceptance").length;
+  const published = openings.filter((opening) => opening.active_status === "published");
+  const roles = Array.from(new Set(allRows.map((row) => row.requested_role ?? row.kindergarten_staff_openings?.role_needed).filter(Boolean))) as string[];
 
-  return (
-    <DashboardShell role="manager" title="מועמדויות צוות" appHome>
-      <TeacherAppFrame title={`בוקר טוב, ${profile.full_name?.replace(/\[DEMO\]/gi, "").trim().split(" ")[0] || "מנהלת הגן"}`} subtitle="ניהול מועמדויות וצוות" avatarUrl={(profile as unknown as { profile_image_url?: string | null }).profile_image_url ?? null} active="more">
-        <TeacherPageTitle icon={UsersRound} title="מועמדויות צוות" subtitle="אישור צוות חדש בלי לפתוח גישה לפני החלטה" action={<a className="button primary" href="#staff-opening"><Plus size={18} /> פתיחת משרה</a>} />
+  return <DashboardShell role="manager" title="גיוס צוות" appHome>
+    <TeacherAppFrame title={`בוקר טוב, ${cleanSyntheticLabel(profile.full_name, "מנהלת הגן").split(" ")[0]}`} subtitle="גיוס מועמדות והפעלת העסקה" avatarUrl={profile.profile_image_url} active="more">
+      <RecruitmentHero eyebrow={cleanSyntheticLabel(gardenContext.activeGarden?.name, "הגן הפעיל")} title="בונים צוות חינוכי מצוין" text="משרות, מועמדויות והצעות במסלול אחד. הגישה התפעולית נפתחת רק אחרי קבלת ההצעה והפעלת העסקה הקנונית." action={<Link className="button primary large" href="/dashboard/garden/staff-applications/new"><Plus /> פרסום משרה חדשה</Link>} />
+      <section className="ux08-metrics-grid manager">
+        <RecruitmentMetric icon={BriefcaseBusiness} value={published.length} label="משרות פתוחות" tone="green" />
+        <RecruitmentMetric icon={UsersRound} value={allRows.length} label="מועמדויות" tone="blue" />
+        <RecruitmentMetric icon={Sparkles} value={actionRequired} label="דורשות טיפול" tone="orange" />
+        <RecruitmentMetric icon={Send} value={offerCount} label="הצעות ממתינות" tone="purple" />
+      </section>
 
-        <TeacherStatsGrid>
-          <TeacherStatCard title="כל המועמדויות" value={rows.length} hint="הוגשו לגן" icon={UsersRound} tone="purple" />
-          <TeacherStatCard title="בבדיקה" value={pendingRows.length} hint="לטיפול" icon={FileCheck2} tone={pendingRows.length ? "orange" : "green"} />
-          <TeacherStatCard title="אושרו" value={approvedRows.length} hint="ממתינים לקבלה או הועסקו" icon={CheckCircle2} tone="green" />
-          <TeacherStatCard title="כפילות אפשרית" value={duplicateRows.length} hint="דורש בדיקה" icon={ShieldCheck} tone={duplicateRows.length ? "red" : "blue"} />
-        </TeacherStatsGrid>
+      <section className="ux08-manager-toolbar">
+        <div><span className="ux08-eyebrow">ניהול מועמדים</span><h1>מועמדות לגן שלך</h1><p>מידע מקצועי נחוץ בלבד, עם סטטוס ברור ופעולה הבאה.</p></div>
+        <form action="/dashboard/garden/staff-applications"><label><Search /><input name="q" defaultValue={params?.q ?? ""} placeholder="חיפוש מועמדת, תפקיד או עיר" /></label><select name="status" defaultValue={params?.status ?? ""} aria-label="סינון לפי סטטוס"><option value="">כל הסטטוסים</option><option value="submitted">חדשות</option><option value="under_review">בבדיקה</option><option value="information_required">נדרש מידע</option><option value="awaiting_candidate_acceptance">הצעה נשלחה</option><option value="rejected">לא המשיכה</option><option value="employed">העסקה הופעלה</option></select><select name="role" defaultValue={params?.role ?? ""} aria-label="סינון לפי תפקיד"><option value="">כל התפקידים</option>{roles.map((role) => <option key={role}>{role}</option>)}</select><button className="button secondary" type="submit"><Filter /> סינון</button></form>
+      </section>
 
-        <section className="teacher-children-layout">
-          <TeacherSection title="מועמדים אחרונים" subtitle="רק לאחר אישור נפתחת גישה לגן">
-            {rows.length ? (
-              <TeacherCompactList>
-                {rows.slice(0, 7).map((row) => (
-                  <TeacherCompactItem
-                    key={row.id}
-                    title={row.staff_candidate_profiles?.full_name ?? "מועמד/ת"}
-                    subtitle={`${row.staff_candidate_profiles?.phone ?? "טלפון חסר"} · ${row.requested_role ?? row.kindergarten_staff_openings?.role_needed ?? "צוות"}`}
-                    tone={row.status === "approved" ? "green" : row.status === "rejected" ? "red" : "orange"}
-                    meta={row.status === "approved" ? "אושר" : row.status === "rejected" ? "נדחה" : "בדיקה"}
-                  />
-                ))}
-              </TeacherCompactList>
-            ) : (
-              <TeacherEmptyState title="אין מועמדויות צוות" text="פתחי משרה ציבורית כדי שמועמדים יוכלו להגיש בקשה." />
-            )}
-          </TeacherSection>
-
-          <TeacherSection title={selected?.staff_candidate_profiles?.full_name ?? "פרטי מועמד/ת"} subtitle={selected ? selected.staff_candidate_profiles?.work_experience ?? "ניסיון לא צוין" : "בחרי מועמד מהרשימה"}>
-            {selected ? (
-              <div className="teacher-request-detail">
-                <TeacherCompactItem title="תפקיד מבוקש" subtitle={selected.requested_role ?? selected.kindergarten_staff_openings?.role_needed ?? "צוות גן"} tone="purple" meta={<BriefcaseBusiness size={16} />} />
-                <TeacherCompactItem title="כשירות מקצועית" subtitle={`${selected.staff_candidate_profiles?.professional_role ?? "תפקיד לא הוגדר"} · ${(selected.staff_candidate_profiles?.qualification_keys ?? []).join(", ") || "ללא הסמכה מובנית"}`} tone="purple" meta={<ShieldCheck size={16} />} />
-                <TeacherCompactItem title="מסמכים" subtitle={`${Object.keys(selected.staff_candidate_profiles?.document_status ?? {}).length} פריטים הועלו`} tone="blue" meta={<FileCheck2 size={16} />} />
-                <TeacherCompactItem title="סטטוס גישה" subtitle="אין גישה לילדים או למסמכים לפני אישור מנהלת" tone="green" meta={<ShieldCheck size={16} />} />
-                <StaffApplicationActionButtons applicationId={selected.id} />
-              </div>
-            ) : (
-              <TeacherEmptyState title="אין מועמד להצגה" text="מועמדויות חדשות יוצגו כאן עם סטטוס ופעולות." />
-            )}
-          </TeacherSection>
-        </section>
-
-        <TeacherAiInsight>
-          מועמד עצמאי נשאר במצב מוגבל עד אישור מנהלת. אין חשיפה לילדים, הורים או מסמכי גן לפני ההפעלה.
-        </TeacherAiInsight>
-
-        <TeacherQuickActions title="פעולות צוות">
-          <TeacherActionTile title="פתיחת משרה" href="#staff-opening" icon={Plus} tone="purple" />
-          <TeacherActionTile title="ניהול צוות" href="/dashboard/garden/staff" icon={UsersRound} tone="blue" />
-          <TeacherActionTile title="מסמכים" href="/dashboard/garden/documents" icon={FileCheck2} tone="green" />
-        </TeacherQuickActions>
-
-        <details className="teacher-management-details" id="staff-opening">
-          <summary>ניהול מלא של משרות ומועמדויות</summary>
-          <StaffOpeningForm />
-          <StaffInvitationForm openings={openings} />
-          <section className="procedure-list">
-            {rows.map((row) => (
-              <article className="card procedure-card" key={row.id}>
-                <div>
-                  <span className={row.status === "approved" ? "pill good" : row.status === "rejected" ? "pill bad" : "pill warn"}>{row.status}</span>
-                  <h3>{row.staff_candidate_profiles?.full_name ?? "מועמד/ת"}</h3>
-                  <p>{row.staff_candidate_profiles?.phone ?? ""} · {row.requested_role ?? row.kindergarten_staff_openings?.role_needed ?? "צוות"}</p>
-                  <small>{row.staff_candidate_profiles?.work_experience ?? "לא נוסף ניסיון"} · הסמכות: {(row.staff_candidate_profiles?.qualification_keys ?? []).join(", ") || "לא הוגדרו"} · מסמכים: {Object.keys(row.staff_candidate_profiles?.document_status ?? {}).length}</small>
-                  {Array.isArray(row.duplicate_flags) && row.duplicate_flags.length ? <span className="pill warn">כפילות אפשרית לבדיקה</span> : null}
-                </div>
-                <div className="procedure-meta">
-                  <FileCheck2 />
-                  <ApplicationDecisionForm endpoint={`/api/garden/staff-applications/${row.id}`} actions={actions} />
-                </div>
-              </article>
-            ))}
-            {rows.length === 0 ? <div className="empty-state"><UsersRound /><strong>אין מועמדויות צוות</strong><span>פתחו משרה ציבורית כדי שמועמדים יוכלו להגיש בקשה.</span></div> : null}
-          </section>
-          <section className="manager-report-row"><span><BriefcaseBusiness /> מועמדות עצמאית אינה פותחת גישה עד אישור מנהלת.</span></section>
-        </details>
-      </TeacherAppFrame>
-    </DashboardShell>
-  );
+      <section className="ux08-manager-recruitment-grid">
+        <TeacherSection title="מועמדות אחרונות" subtitle={`${rows.length} תוצאות בהקשר הגן הפעיל`}>
+          <div className="ux08-candidate-list">{rows.map((row) => {
+            const candidate = row.staff_candidate_profiles;
+            const completeness = Number(candidate?.profile_completeness?.percentage ?? 0);
+            return <CandidateRow key={row.id} id={row.id} name={candidate?.full_name ?? "מועמד/ת"} photo={candidate?.profile_photo_url} role={row.requested_role ?? row.kindergarten_staff_openings?.role_needed ?? candidate?.professional_role ?? "צוות גן"} city={candidate?.city} status={row.status} completeness={completeness} documentStatus={candidate?.document_status?.required_documents_ready ? "verified" : "pending"} />;
+          })}{rows.length === 0 ? <TeacherEmptyState title="אין מועמדויות לפי הסינון" text="אפשר לנקות את הסינון או לפרסם משרה חדשה." /> : null}</div>
+        </TeacherSection>
+        <aside className="ux08-manager-side">
+          <section className="ux08-openings-card"><header><div><span className="ux08-eyebrow">המשרות שלך</span><h2>פתוחות כעת</h2></div><Link href="/dashboard/garden/staff-applications/new"><Plus /> חדשה</Link></header>{published.slice(0, 4).map((opening) => <article key={opening.id}><span><BriefcaseBusiness /></span><div><strong>{opening.role_needed}</strong><small>{opening.age_group || "כל קבוצות הגיל"} · {opening.employment_type || "היקף יתואם"}</small></div><StatusChip tone="success">פעילה</StatusChip></article>)}{published.length === 0 ? <p>אין משרה פתוחה כרגע.</p> : null}</section>
+          <section className="ux08-invitation-card"><FileCheck2 /><div><h2>הזמנה חתומה</h2><p>למועמדת שכבר בחרת, תוך שמירת נמען, תוקף והיסטוריה.</p></div><details><summary>פתיחת טופס הזמנה</summary><StaffInvitationForm openings={published} /></details></section>
+        </aside>
+      </section>
+    </TeacherAppFrame>
+  </DashboardShell>;
 }

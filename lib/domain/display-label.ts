@@ -20,6 +20,7 @@ export function cleanSyntheticLabel(value?: string | null, fallback = "") {
     [/^QA Parent A$/i, "דנה כהן"],
     [/^QA Parent(?:[- ]Multi| AB)?$/i, "נועה כהן"],
     [/^QA Owner(?:[- ]AB| A| B)?$/i, "דנה כהן"],
+    [/^QA Owner[- ]?[AB]$/i, "דנה כהן"],
     [/^QA Manager(?:[- ]?[AB])?$/i, "דנה כהן"],
     [/^GB-M35 QA pickup allowed$/i, "דנה כהן"],
     [/^GB-M35 QA pickup revoked$/i, "רוני לוי"],

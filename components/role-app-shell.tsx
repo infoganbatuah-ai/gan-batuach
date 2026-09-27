@@ -187,7 +187,8 @@ export function RoleAppShell({
   backHref,
   children,
   actions,
-  className
+  className,
+  navigation
 }: {
   role: RoleAppShellRole;
   activeHref?: string;
@@ -198,8 +199,17 @@ export function RoleAppShell({
   children: ReactNode;
   actions?: ReactNode;
   className?: string;
+  navigation?: {
+    label: string;
+    subtitle: string;
+    homeHref: string;
+    settingsHref: string;
+    notificationsHref: string;
+    nav: RoleAppNavItem[];
+    desktopNav?: RoleAppNavItem[];
+  };
 }) {
-  const config = roleAppShellConfig[role];
+  const config = navigation ?? roleAppShellConfig[role];
   const resolvedActive = activeHref ?? config.homeHref;
   const displayName = cleanSyntheticLabel(profile?.full_name, config.label);
   const firstLetter = String(displayName).trim().slice(0, 1) || "ג";

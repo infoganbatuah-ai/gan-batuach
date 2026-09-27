@@ -1,5 +1,7 @@
 import { FileCheck2 } from "lucide-react";
 import { StaffDocumentUpload } from "@/components/staff-document-upload";
+import { StaffCandidateDocumentUpload } from "@/components/staff-candidate-document-upload";
+import { RecruitmentHero, RecruitmentTabs } from "@/components/recruitment-ui";
 import { StatusChip } from "@/components/gan-batuach-design-system";
 import { StaffAppFrame, StaffPageHero, StaffSection } from "@/components/staff-app-ui";
 import { requireRole } from "@/lib/auth";
@@ -15,9 +17,10 @@ export default async function StaffDocumentsPage() {
   const staffId = authority?.data === true ? employment!.staff_id : null;
   const gardenId = authority?.data === true ? employment!.garden_id : null;
   if (!staffId || !gardenId) return (
-    <StaffAppFrame mode="candidate" active="profile">
-      <StaffPageHero eyebrow="מסמכי מועמדות" title="מסמכים ותעודות" text="מסמכי מועמדות מוגשים כחלק מתהליך הקליטה. מסמכי עבודה לפי גן נפתחים רק לאחר הפעלת העסקה." icon={FileCheck2} />
-      <StaffSection title="תהליך הקליטה"><a className="button secondary" href="/onboarding/staff">המשך קליטה</a></StaffSection>
+    <StaffAppFrame mode="candidate" active="documents" profileName={profile.full_name} avatarUrl={profile.profile_image_url}>
+      <RecruitmentTabs active="documents" />
+      <RecruitmentHero compact eyebrow="מסמכי מועמדות" title="מסמכים ותעודות" text="מסמכי מועמדות מוגשים כחלק מתהליך הקליטה. מסמכי עבודה לפי גן נפתחים רק לאחר הפעלת העסקה." />
+      <StaffCandidateDocumentUpload />
     </StaffAppFrame>
   );
   const { data } = await supabase.from("documents" as any).select("id, name, document_type, status, expires_at, created_at, file_url")

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-09-27T12:45:00+03:00",
+  "updatedAt": "2026-09-27T22:23:48.918Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -9621,6 +9621,60 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "UX-VISUAL-CLOSURE-07 is complete in Development. Stop before UX-IMPLEMENT-08; Production and main remain unchanged pending a separate explicit owner release instruction."
+    },
+    {
+      "id": "codex/ux-implement-08-staff-recruitment",
+      "project": "Gan Batuach Management",
+      "title": "UX-IMPLEMENT-08 Staff recruitment and candidate experience",
+      "owner": "UX-IMPLEMENT-08 owner",
+      "sourceBranch": "codex/ux-implement-08-staff-recruitment",
+      "sourceCommits": [
+        "02d738305f3541b9ead2944c76f11cea4caaad25",
+        "1889d8ddfcfc2d4f9ee88379438ce31160615cce"
+      ],
+      "state": "PUSHED_REMOTE",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/ux-implement-08-staff-recruitment@1889d8ddfcfc2d4f9ee88379438ce31160615cce",
+          "origin/integration/development@a59f254fe375cf0fab2490cc2d3ec29df81c8c98"
+        ],
+        "validatedSourceCommit": "1889d8ddfcfc2d4f9ee88379438ce31160615cce"
+      },
+      "validation": {
+        "status": "PASS_LOCAL_VISUAL_FUNCTIONAL_REQUIRED_REMOTE_CHECKS_PENDING",
+        "evidence": [
+          "GAN_BATUACH_UX08_STAFF_RECRUITMENT_CANDIDATE_IMPLEMENTATION.md",
+          "qa-evidence/ux-implement-08/results.json",
+          "qa-evidence/ux-implement-08/SHA256SUMS"
+        ],
+        "limits": "Thirty-four fresh Desktop and Mobile screenshots are OWNER_REVIEW_READY with zero NEEDS_POLISH, VISUAL_DRIFT or BROKEN results. Focused candidate, application, signed invitation, activation, document, multi-Garden, Parent/Manager and cumulative UX-03 through UX-07 regressions passed. Typecheck, lint regression, Production build, Domain 30/30, Security 10/10, migration health 244 and release contract passed. The new bounded RLS policy remains pending canonical isolated-Development application after integration. Required PR checks and post-merge verification are pending. This is not Production release authorization."
+      },
+      "integration": {
+        "status": "PENDING_PR",
+        "base": "integration/development",
+        "commit": null,
+        "pullRequest": null,
+        "requiredChecks": "PENDING"
+      },
+      "dependencies": {
+        "status": "UX_VISUAL_CLOSURE_07_INTEGRATED",
+        "units": [
+          "codex/ux-visual-closure-07"
+        ]
+      },
+      "migrations": [
+        "supabase/migrations/20260928010000_management_staff_candidate_manager_review.sql"
+      ],
+      "migrationOrder": [
+        "20260928010000"
+      ],
+      "localVerification": "PASS_UX08_FOCUSED_8_OF_8_DISCOVERY_7_OF_7_HIRING_8_OF_8_SIGNED_INVITATIONS_6_OF_6_MULTI_GARDEN_8_OF_8_DOCUMENTS_6_OF_6_MANAGER_PARENT_23_OF_23_UX03_TO_UX07_34_OF_34_TYPECHECK_LINT_ZERO_REGRESSIONS_BUILD_534_PAGES_DOMAIN_30_OF_30_SECURITY_10_OF_10_MIGRATIONS_244_RELEASE_CONTRACT_VISUAL_34_OWNER_REVIEW_READY",
+      "releaseEligibility": "PENDING_DEVELOPMENT_MIGRATION_AND_REMOTE_CHECKS",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Open the UX-08 PR to integration/development, require exact-head checks, merge, apply the reviewed migration only to isolated Development, then run cumulative post-merge QA. Production and main remain unchanged."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",

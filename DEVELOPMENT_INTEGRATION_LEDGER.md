@@ -498,3 +498,18 @@ canonical merged Development launcher returned health HTTP 200 with local
 Supabase OK, exact build identity, and cumulative role dashboard E2E 8/8. No
 migration, paid provider, Production, `main`, customer data or Digital
 Observer core change occurred. UX-IMPLEMENT-08 has not started.
+
+UX-IMPLEMENT-08 branch qualification (2026-09-28):
+`codex/ux-implement-08-staff-recruitment` is remotely preserved at exact head
+`1889d8ddfcfc2d4f9ee88379438ce31160615cce`, with product commit
+`02d738305f3541b9ead2944c76f11cea4caaad25`. The canonical Candidate/Recruitment
+experience now covers profile completeness, qualifications, documents,
+discovery/matching, application lifecycle, signed invitations, activation
+handoff and Garden-scoped manager recruitment on Desktop and Mobile. Visual QA
+passed 34/34 fresh captures as OWNER_REVIEW_READY with zero drift, polish or
+broken results. Focused and cumulative regressions, typecheck, lint, Production
+build, Domain 30/30, Security 10/10, migration health 244 and release contract
+passed. The bounded manager candidate-review policy migration is preserved but
+pending integration and guarded isolated-Development application. Required PR
+checks and post-merge verification remain pending. No Production, `main`, paid
+provider, customer data or Digital Observer core change occurred.
