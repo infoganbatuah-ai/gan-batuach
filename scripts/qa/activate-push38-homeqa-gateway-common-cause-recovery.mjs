@@ -26,8 +26,8 @@ import { PUSH38_GATEWAY_MEDIA_CADENCE
 } from "../../services/video-gateway/push38-home-qa-gateway-media-cadence.mjs";
 import { PUSH38_GATEWAY_MAINTENANCE_ISOLATION
 } from "../../services/video-gateway/push38-home-qa-gateway-maintenance-isolation.mjs";
-import { PUSH38_CONNECTOR_RELAY_BACKOFF_RECOVERY as connectorItem
-} from "../../services/video-gateway/push38-home-qa-connector-relay-backoff.mjs";
+import { PUSH38_CONNECTOR_RESTART_GRACE_RECOVERY as connectorItem
+} from "../../services/video-gateway/push38-home-qa-connector-restart-grace.mjs";
 
 const root = join(homedir(), "Library/Application Support/Digital Observer/observer-gateway/ota");
 const connectorRoot = join(homedir(), "Library/Application Support/Digital Observer/observer-connector/ota");
