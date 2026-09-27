@@ -164,7 +164,7 @@ const root = join(homedir(), "Library/Application Support/Digital Observer", spe
 const secrets = join(root, "home-qa-device-secrets");
 const agentLabel = `${spec.label}.ota-agent`;
 const agentPlistPath = join(homedir(), "Library/LaunchAgents", `${agentLabel}.plist`);
-const certPath = "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38t-ota-loopback-20260920.crt";
+const certPath = "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38t-ota-loopback-20260927.crt";
 const certSha = createHash("sha256").update(readFileSync(certPath)).digest("hex");
 const installedCertPath = join(root, "qa-control-plane-ca.crt");
 if (apply) {
