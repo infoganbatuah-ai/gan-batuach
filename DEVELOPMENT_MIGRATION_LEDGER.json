@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
-  "observedAt": "2026-09-27T22:37:43.863Z",
+  "observedAt": "2026-09-27T22:46:27.641Z",
   "productionWriteAuthorized": false,
   "remoteHistoryStatus": "UNVERIFIED_READ_ONLY_RECONCILIATION_REQUIRED",
-  "localDatabaseStatus": "UX08_REVIEWED_MIGRATION_APPROVED_PENDING_APPLICATION",
+  "localDatabaseStatus": "BASELINE_AND_INTEGRATED_MIGRATIONS_APPLIED",
   "migrations": [
     {
       "file": "supabase/migrations/20260919190000_edge_home_qa_channel.sql",
@@ -7437,7 +7437,7 @@
       "developmentApprovalEvidence": "PR #113 exact head 6dcb8bd5ea95e0b5b3fea84173fd9526c3423693 passed all 9 required checks; isolated Auth QA reproduced the 500, applied the forward migration, and Parent browser quiet-hours/category save returned HTTP 200. No Production access.",
       "developmentStatusReason": "Original post-baseline SQL applied after remote integration; Production status unchanged",
       "developmentHistoryDigest": "e60d3ca2e1d0e781e07b9b553dcf9570be492a56d505ef2b7b152145e88feb74",
-      "developmentSchemaFingerprint": "87141dea5b40f8d887945b87968d8dfe99c6f87bf5adaa1913adde0c681c1e58"
+      "developmentSchemaFingerprint": "bb28c9f7966332e54e491a72507cde2d17160864301466088f797dbd87bea9c0"
     },
     {
       "file": "supabase/migrations/20260928010000_management_staff_candidate_manager_review.sql",
@@ -7447,7 +7447,7 @@
       "sourceCommit": "02d738305f3541b9ead2944c76f11cea4caaad25",
       "sourceHead": "1889d8ddfcfc2d4f9ee88379438ce31160615cce",
       "remoteBranch": "origin/codex/ux-implement-08-staff-recruitment",
-      "integrationCommit": "590f74ad661b8bc8524eb36ac413f33f16e756f1",
+      "integrationCommit": "8ce4a818ab3c29d9b85db3bbce4db23c6321f8f9",
       "inGit": true,
       "inIntegration": true,
       "inclusion": "INTEGRATED_DEVELOPMENT",
@@ -7458,20 +7458,20 @@
       "developmentDependsOn": [
         "20260922120000"
       ],
-      "developmentApplied": "NO",
-      "developmentAppliedAt": null,
-      "developmentEvidence": null,
+      "developmentApplied": "YES",
+      "developmentAppliedAt": "2026-09-27T22:44:25.024757+00:00",
+      "developmentEvidence": "development/database/development-application-receipts.json",
       "productionApplied": "UNVERIFIED",
       "productionEvidence": null,
       "recovery": "Forward-only addition of a bounded SELECT policy on staff_candidate_profiles. No data rewrite or backfill. The policy permits only the candidate, Admin, or a manager connected by a canonical application in a Garden they can manage. Apply only to guarded isolated Development after integration; Production requires a separate owner-authorized release.",
       "developmentApprovalEvidence": "PR #146 exact head 76383aa27e0122adffd42265ddcb2f598a47209b passed all eight GitHub checks and merged by ancestry as 590f74ad661b8bc8524eb36ac413f33f16e756f1. Branch QA passed UX-08 focused 8/8, candidate discovery 7/7, hiring 8/8, signed invitations 6/6, multi-Garden 8/8, documents 6/6, Parent/Manager 23/23, typecheck, lint regression, Production build, Domain 30/30, Security 10/10, migration health 244 and visual QA 34/34. No Production access.",
-      "developmentStatusReason": "Integrated and approved for canonical guarded isolated-Development application; not yet applied",
-      "developmentHistoryDigest": null,
-      "developmentSchemaFingerprint": null
+      "developmentStatusReason": "Original post-baseline SQL applied after remote integration; Production status unchanged",
+      "developmentHistoryDigest": "58c13ddbe5d3675c1343e13513d8e90bc33fc80d06de7180999c90f579e8a712",
+      "developmentSchemaFingerprint": "2e5ac2bf9731f7dde7f5148ff2ae6f2169bc398bf7ea78ebca18e6cd3c8149e6"
     }
   ],
   "developmentExpected": 244,
-  "developmentAppliedVerified": 243,
+  "developmentAppliedVerified": 244,
   "blockers": [],
   "localObservations": [
     {
