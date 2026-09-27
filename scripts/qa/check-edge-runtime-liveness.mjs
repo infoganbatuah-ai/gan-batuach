@@ -1,10 +1,12 @@
 import assert from "node:assert/strict";
 import { EventEmitter } from "node:events";
-import { realpathSync } from "node:fs";
-import { resolve } from "node:path";
+import { mkdtempSync, realpathSync, rmSync } from "node:fs";
+import { tmpdir } from "node:os";
+import { join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createDownstreamAbortScope } from "../../services/video-gateway/edge-cloud-proxy-lifecycle.mjs";
 import { createEdgeChildLivenessWatchdog } from "../../services/video-gateway/edge-child-liveness-watchdog.mjs";
+import { createEdgeCrashLoopGuard } from "../../services/video-gateway/edge-crash-loop-guard.mjs";
 
 export async function checkEdgeRuntimeLiveness() {
 {
@@ -76,8 +78,39 @@ export async function checkEdgeRuntimeLiveness() {
   assert.equal(terminations, 0, "a healthy sample resets the sustained-down timer as well as the failure counter");
 }
 
+{
+  const root = mkdtempSync(join(tmpdir(), "observer-edge-restart-grace-"));
+  let clock = 1_000;
+  let rollbacks = 0;
+  const manager = {
+    status: () => ({ state: "HEALTHY" }),
+    current: () => ({ release_id: "signed-release" }),
+    knownGood: () => [],
+    rollbackAfterCrashLoop: async () => { rollbacks += 1; }
+  };
+  try {
+    const guard = createEdgeCrashLoopGuard({ statePath: join(root, "guard.json"), manager,
+      now: () => clock, sustainedDownMs: 60_000 });
+    await guard.observe({ runtimePid: 100, healthy: true });
+    clock += 60_001;
+    await guard.observe({ runtimePid: 100, healthy: false });
+    clock += 60_001;
+    const recovering = await guard.observe({ runtimePid: 101, healthy: false });
+    assert.equal(recovering.action, "OBSERVING",
+      "a first supervised restart must receive a fresh health window");
+    assert.equal(recovering.unhealthy_since, clock);
+    assert.equal(recovering.crashes.length, 1,
+      "the restart remains visible to the bounded crash-loop policy");
+    clock += 1_000;
+    const recovered = await guard.observe({ runtimePid: 101, healthy: true });
+    assert.equal(recovered.action, "OBSERVING");
+    assert.equal(rollbacks, 0, "successful same-release recovery must not race into rollback");
+  } finally { rmSync(root, { recursive: true, force: true }); }
+}
+
 return { status: "PASS", orphan_cloud_requests_cancelled: true,
-  liveness_restart_bounded: true, rollback_authority: "existing_signed_ota_crash_guard" };
+  liveness_restart_bounded: true, supervised_restart_health_grace: true,
+  rollback_authority: "existing_signed_ota_crash_guard" };
 }
 
 if (process.argv[1] && realpathSync(resolve(process.argv[1])) === realpathSync(fileURLToPath(import.meta.url))) {

@@ -57,10 +57,18 @@ export function createEdgeCrashLoopGuard({ statePath, manager, now = () => Date.
         record.runtime_pid = runtimePid; record.first_healthy_at = null;
         record.last_observed_at = at; save(path, record); return { ...record, action: "UPDATE_IN_PROGRESS" };
       }
+      const supervisorRestarted = Boolean(runtimePid && record.runtime_pid !== runtimePid);
       if (record.runtime_pid && record.runtime_pid !== runtimePid) {
         record.crashes.push(at);
         record.first_healthy_at = null;
       }
+      // The local child-liveness watchdog deliberately restarts the same
+      // signed release after a sustained loopback outage. Give that new
+      // launchd-owned supervisor one fresh health window instead of carrying
+      // the old process' downtime across the handoff and racing it into an
+      // immediate rollback. Repeated supervisor loss remains fail-closed via
+      // the crash counter below.
+      if (supervisorRestarted) record.unhealthy_since = null;
       record.crashes = record.crashes.filter(time => at - time <= windowMs);
       record.runtime_pid = runtimePid;
       if (healthy && runtimePid) {
