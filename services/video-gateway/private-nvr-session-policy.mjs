@@ -9,6 +9,18 @@ export function reuseMatchingPrivateNvrSession(existing, input) {
 export const PRIVATE_NVR_COMMON_CAUSE_HEARTBEAT_FAILURES = 3;
 export const PRIVATE_NVR_COMMON_CAUSE_SOURCE_FAILURES = 2;
 export const PRIVATE_NVR_PROACTIVE_RENEWAL_MS = 4 * 60 * 1000;
+// The Home recorder's native live.mp4 response has a separately observed
+// finite boundary of roughly three minutes. Refreshing only the login at four
+// minutes leaves a media gap even though authentication remains valid. Warmly
+// hand each progressing relay to a replacement with a full one-minute margin,
+// without creating another recorder login.
+export const PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS = 2 * 60 * 1000;
+
+export function shouldProactivelyHandoffPrivateNvrRelay(relay, now = Date.now()) {
+  return Boolean(relay?.progressing && relay?.recoveryStable && !relay?.warming
+    && Number.isFinite(relay.startedAt)
+    && now - relay.startedAt >= PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS);
+}
 
 // The Home recorder's own Login/Range contract explicitly reports that
 // simultaneous logins are permitted. A bounded renewal before the observed

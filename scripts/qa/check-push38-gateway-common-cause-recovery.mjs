@@ -7,7 +7,8 @@ import { buildPush38GatewayCommonCauseRecoveryManifest,
 import { buildPush38GatewayFiniteStreamHandoffManifest,
   PUSH38_GATEWAY_FINITE_STREAM_HANDOFF } from
   "../../services/video-gateway/push38-home-qa-gateway-finite-stream-handoff.mjs";
-import { PRIVATE_NVR_PROACTIVE_RENEWAL_MS, relayMaySurvivePrivateNvrRenewal,
+import { PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS, PRIVATE_NVR_PROACTIVE_RENEWAL_MS,
+  relayMaySurvivePrivateNvrRenewal, shouldProactivelyHandoffPrivateNvrRelay,
   shouldProactivelyRefreshPrivateNvrSession, shouldRefreshPrivateNvrSession } from
   "../../services/video-gateway/private-nvr-session-policy.mjs";
 
@@ -92,6 +93,23 @@ test("proactive renewal preserves only progressing relays from the same recorder
     preserveRelayEpochsThrough: null }), false);
   assert.equal(relayMaySurvivePrivateNvrRenewal({ ...priorRelay,
     sameToken: true, sameSessionKey: false }), true);
+});
+
+test("finite recorder responses receive an early media-only warm handoff", () => {
+  const now = Date.now();
+  const eligible = { progressing: true, recoveryStable: true, warming: false,
+    startedAt: now - PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS };
+  assert.equal(PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS, 2 * 60 * 1000);
+  assert.equal(shouldProactivelyHandoffPrivateNvrRelay(eligible, now), true);
+  assert.equal(shouldProactivelyHandoffPrivateNvrRelay({ ...eligible,
+    startedAt: now - PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS + 1 }, now), false);
+  assert.equal(shouldProactivelyHandoffPrivateNvrRelay({ ...eligible,
+    progressing: false }, now), false);
+  assert.equal(shouldProactivelyHandoffPrivateNvrRelay({ ...eligible,
+    recoveryStable: false }, now), false);
+  assert.equal(shouldProactivelyHandoffPrivateNvrRelay({ ...eligible,
+    warming: true }, now), false);
+  assert.match(gateway, /finite media response in[\s\S]*warmReplacePrivateNvrRelay/);
 });
 
 test("a fresh DVR session hands each stream to a warm HLS relay before expiry", () => {

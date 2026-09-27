@@ -12,7 +12,8 @@ import { createEventCaptureWorkspace } from "./event-capture-workspace.mjs";
 import { parseProbeResult, MAX_PROBE_OUTPUT_BYTES } from "./probe-result.mjs";
 import { nextRelayRecovery, relayRecoveryIsStable, relayRetryDelayMs } from "./relay-recovery-policy.mjs";
 import { relayMaySurvivePrivateNvrRenewal, reuseMatchingPrivateNvrSession,
-  shouldProactivelyRefreshPrivateNvrSession, shouldRefreshPrivateNvrSession } from
+  shouldProactivelyHandoffPrivateNvrRelay, shouldProactivelyRefreshPrivateNvrSession,
+  shouldRefreshPrivateNvrSession } from
   "./private-nvr-session-policy.mjs";
 import { classifyRelayExit, safeInputCode } from "./relay-failure-reason.mjs";
 import { parseEventClipPlaylist } from "./event-clip-window.mjs";
@@ -69,13 +70,29 @@ const hardwareTranscoder = createHardwareTranscoder();
 async function maintainPrivateNvrSessions() {
   await privateNvrHeartbeat.tick();
   const observedAt = Date.now();
+  const refreshedSessionKeys = new Set();
   for (const [sessionKey, session] of privateNvrSessions) {
     if (!shouldProactivelyRefreshPrivateNvrSession(session, observedAt)) continue;
     const refreshed = await refreshPrivateNvrSession(sessionKey, session.token,
       "proactive_nonexclusive_renewal");
     if (refreshed?.epoch > session.epoch) {
       await warmReplacePrivateNvrRelays(sessionKey);
+      refreshedSessionKeys.add(sessionKey);
     }
+  }
+  // The recorder's media response ends before its authenticated session. Keep
+  // the login policy independent and renew only the finite media response in
+  // between session rotations. Handoffs are sequential and per-channel, so the
+  // recorder sees at most one bounded overlap.
+  for (const [streamId, relay] of [...relays]) {
+    const source = streamSources.get(streamId);
+    if (!source?.sessionKey || refreshedSessionKeys.has(source.sessionKey)) continue;
+    if (shouldProactivelyHandoffPrivateNvrRelay({
+      startedAt: relay.startedAt,
+      progressing: relayIsProgressing(relay),
+      recoveryStable: relayRecoveryIsStable(relay),
+      warming: relay.warming
+    }, observedAt)) await warmReplacePrivateNvrRelay(streamId, relay);
   }
 }
 let privateNvrMaintenanceRun = null;
