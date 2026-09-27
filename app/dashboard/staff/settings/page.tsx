@@ -4,6 +4,9 @@ import { Avatar } from "@/components/avatar";
 import { ProfileSettingsForm } from "@/components/profile-settings-form";
 import { StatusChip } from "@/components/gan-batuach-design-system";
 import { StaffAppFrame, StaffPageHero, StaffSection } from "@/components/staff-app-ui";
+import { CandidateIdentity, CompletenessRing, RecruitmentTabs } from "@/components/recruitment-ui";
+import { StaffCandidateProfileForm } from "@/components/staff-candidate-profile-form";
+import { StaffCandidateDocumentUpload } from "@/components/staff-candidate-document-upload";
 import { requireRole } from "@/lib/auth";
 import { cleanSyntheticLabel } from "@/lib/domain/display-label";
 import { resolveStaffEmploymentContext } from "@/lib/management/staff-employment-context";
@@ -12,26 +15,33 @@ import { createClient } from "@/lib/supabase/server";
 type GardenRow = { id: string; name: string | null; logo_url?: string | null; image_url?: string | null; address?: string | null; phone?: string | null; public_description?: string | null; ages?: string | null; public_profile_enabled?: boolean | null };
 type StaffRow = { id: string; full_name?: string | null; role_title?: string | null; phone?: string | null; email?: string | null; class_group?: string | null; profile_photo_url?: string | null; approved_to_work?: boolean | null; onboarding_status?: string | null; created_at?: string | null };
 type EmploymentRow = { id: string; status: string; role_title?: string | null; start_date?: string | null; approved_at?: string | null; created_at?: string | null };
+type CandidateRow = { full_name?: string | null; profile_photo_url?: string | null; city?: string | null; professional_role?: string | null; qualification_keys?: string[] | null; availability?: { days?: string[]; notes?: string } | null; preferred_age_groups?: string[] | null; employment_preference?: string | null; professional_summary?: string | null; matching_paused?: boolean; status?: string | null };
+type Completeness = { percentage?: number; blockers?: string[]; status?: string; required_fields_complete?: boolean; documents_ready?: boolean };
 
 export default async function SettingsPage() {
   const { profile } = await requireRole(["staff"]);
   const supabase = await createClient();
   const context = await resolveStaffEmploymentContext(profile);
   const active = context.activeEmployment;
-  const [gardenRes, staffRes, employmentRes] = await Promise.all([
+  const [gardenRes, staffRes, employmentRes, candidateRes, completenessRes] = await Promise.all([
     active ? supabase.from("gardens" as never).select("id, name, logo_url, image_url, address, phone, public_description, ages, public_profile_enabled" as never).eq("id", active.garden_id).maybeSingle() : Promise.resolve({ data: null }),
     active ? supabase.from("staff" as never).select("id,full_name,role_title,phone,email,class_group,profile_photo_url,approved_to_work,onboarding_status,created_at" as never).eq("id", active.staff_id).eq("garden_id", active.garden_id).maybeSingle() : Promise.resolve({ data: null }),
-    active ? supabase.from("staff_kindergarten_employments" as never).select("id,status,role_title,start_date,approved_at,created_at" as never).eq("id", active.employment_id).maybeSingle() : Promise.resolve({ data: null })
+    active ? supabase.from("staff_kindergarten_employments" as never).select("id,status,role_title,start_date,approved_at,created_at" as never).eq("id", active.employment_id).maybeSingle() : Promise.resolve({ data: null }),
+    !active ? supabase.from("staff_candidate_profiles" as never).select("full_name,profile_photo_url,city,professional_role,qualification_keys,availability,preferred_age_groups,employment_preference,professional_summary,matching_paused,status" as never).eq("profile_id", profile.id).maybeSingle() : Promise.resolve({ data: null }),
+    !active ? supabase.rpc("evaluate_staff_candidate_profile", { target_profile_id: profile.id }) : Promise.resolve({ data: null })
   ]);
   const garden = gardenRes.data as unknown as GardenRow | null;
   const staff = staffRes.data as unknown as StaffRow | null;
   const employment = employmentRes.data as unknown as EmploymentRow | null;
+  const candidate = candidateRes.data as unknown as CandidateRow | null;
+  const completeness = completenessRes.data as unknown as Completeness | null;
   const name = cleanSyntheticLabel(staff?.full_name ?? profile.full_name, "איש/ת צוות");
   const gardenName = cleanSyntheticLabel(active?.garden_name, "גן");
   const roleName = cleanSyntheticLabel(employment?.role_title ?? active?.role_title ?? staff?.role_title, "צוות גן");
 
-  return <StaffAppFrame active="profile" profileName={name} avatarUrl={staff?.profile_photo_url ?? profile.profile_image_url} mode={active ? "assigned" : "candidate"}>
-    <StaffPageHero eyebrow={active ? "הפרופיל שלי" : "פרופיל מועמדות"} title={name} text={active ? `${roleName} · ${gardenName}` : "השלימו פרטים אישיים ומסמכים לקראת שיוך לגן."} icon={BadgeCheck} badge={<StatusChip tone={active ? "success" : "warning"}>{active ? "העסקה פעילה" : "ממתין לשיוך"}</StatusChip>} />
+  return <StaffAppFrame active="profile" profileName={candidate?.full_name ?? name} avatarUrl={candidate?.profile_photo_url ?? staff?.profile_photo_url ?? profile.profile_image_url} mode={active ? "assigned" : "candidate"}>
+    {!active ? <RecruitmentTabs active="profile" /> : null}
+    {!active ? <section className="ux08-candidate-profile-hero"><CandidateIdentity name={candidate?.full_name ?? name} role={candidate?.professional_role} city={candidate?.city} photo={candidate?.profile_photo_url ?? profile.profile_image_url} status={candidate?.status} /><CompletenessRing percentage={Number(completeness?.percentage ?? 0)} /></section> : <StaffPageHero eyebrow="הפרופיל שלי" title={name} text={`${roleName} · ${gardenName}`} icon={BadgeCheck} badge={<StatusChip tone="success">העסקה פעילה</StatusChip>} />}
 
     {active ? <section className="ux07-staff-profile-card">
       <div className="ux07-profile-identity"><Avatar name={name} src={staff?.profile_photo_url ?? profile.profile_image_url} size="lg" /><div><h2>{name}</h2><p>{roleName}</p><StatusChip tone="success">פעיל/ה</StatusChip></div></div>
@@ -48,6 +58,7 @@ export default async function SettingsPage() {
 
     {context.available && context.employments.length > 1 ? <StaffSection title="העסקות פעילות לפי גן"><div className="ux07-employment-grid">{context.employments.map((item) => <article key={item.employment_id} className={item.garden_id === active?.garden_id ? "active" : ""}><Building2 /><div><strong>{cleanSyntheticLabel(item.garden_name, "גן")}</strong><span>{cleanSyntheticLabel(item.role_title, "צוות")}</span><small>{item.classroom_names?.map((name) => cleanSyntheticLabel(name, "כיתה")).join(", ") || "ללא כיתה"}</small></div>{item.garden_id === active?.garden_id ? <StatusChip tone="success">הגן הפעיל</StatusChip> : <StatusChip tone="info">זמין לבחירה</StatusChip>}</article>)}</div></StaffSection> : null}
 
-    <StaffSection title="פרטים אישיים ואבטחה"><ProfileSettingsForm profile={profile} garden={garden} roleLabel="צוות גן" includeGarden={false} requireProfilePhoto /></StaffSection>
+    {!active ? <section className="ux08-profile-editor-grid"><StaffCandidateProfileForm candidate={candidate} completeness={completeness} /><StaffCandidateDocumentUpload /></section> : null}
+    <StaffSection title={active ? "פרטים אישיים ואבטחה" : "חשבון ואבטחה"}><ProfileSettingsForm profile={profile} garden={garden} roleLabel={active ? "צוות גן" : "מועמד/ת לצוות"} includeGarden={false} requireProfilePhoto /></StaffSection>
   </StaffAppFrame>;
 }

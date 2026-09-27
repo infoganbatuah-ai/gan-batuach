@@ -93,7 +93,7 @@ export default async function GardenStaffPage() {
         </TeacherStatsGrid>
 
         <section className="teacher-dashboard-grid">
-          <TeacherSection title="צוות בתפקיד" action={<a href="/dashboard/garden/staff-applications">מועמדויות</a>}>
+          <TeacherSection title="צוות בתפקיד" action={<Link href="/dashboard/garden/staff-applications">מועמדויות</Link>}>
             {rows.length ? (
               <TeacherCompactList>
                 {rows.slice(0, 8).map((member) => (
