@@ -96,6 +96,9 @@ test("proactive renewal preserves only progressing relays from the same recorder
 
 test("a fresh DVR session hands each stream to a warm HLS relay before expiry", () => {
   assert.match(gateway, /warmReplacePrivateNvrRelays\(sessionKey\)/);
+  assert.match(gateway,
+    /!relayIsProgressing\(previous\)[\s\S]*!relayRecoveryIsStable\(previous\)/,
+    "a newly recovered relay must become stable before another warm handoff");
   assert.match(gateway, /startRelay\(streamId, \{ warming: true, previousRelay: previous \}\)/);
   assert.match(gateway, /relayLifecycle\.warmHandoffs/);
   assert.match(gateway, /previousDirectories/);

@@ -1270,7 +1270,15 @@ function cleanupRelayDirectories(streamId, replacement, directories) {
 }
 
 async function warmReplacePrivateNvrRelay(streamId, previous) {
-  if (!previous || !relayIsProgressing(previous) || relayWarmups.has(streamId)) return false;
+  // A relay that has only just recovered has not yet proved that it can
+  // sustain the recorder's finite native response. Opening a second stream
+  // for that channel immediately can collide with the recorder's per-channel
+  // boundary and turn a successful recovery into another outage. The current
+  // session policy already permits a progressing relay to survive a proactive
+  // non-exclusive renewal, so defer its warm handoff until it has completed
+  // the same stability window that clears recovery history.
+  if (!previous || !relayIsProgressing(previous) ||
+    !relayRecoveryIsStable(previous) || relayWarmups.has(streamId)) return false;
   const promise = (async () => {
     const replacement = await startRelay(streamId, { warming: true, previousRelay: previous });
     if (!replacement) return false;
