@@ -520,3 +520,17 @@ ancestry into `integration/development` at `590f74ad661b8bc8524eb36ac413f33f16e7
 candidate-review policy migration is approved for guarded isolated-Development
 application; application receipt and cumulative post-merge QA remain pending.
 Production and `main` remain unchanged.
+
+UX-IMPLEMENT-08 Development closure (2026-09-27): product PR #146 passed
+all eight required checks on exact head `76383aa27e0122adffd42265ddcb2f598a47209b` and merged by ancestry
+as `590f74ad661b8bc8524eb36ac413f33f16e756f1`. Approval PR #147 and migration-receipt PR #148 also passed
+all eight checks and advanced Development through `1d426d7b78724fb8105e5bf7ab17a9ddc0f1f78c`. The reviewed
+manager candidate-profile policy is applied only to isolated Development; drift
+is 244/244 with schema fingerprint
+`2e5ac2bf9731f7dde7f5148ff2ae6f2169bc398bf7ea78ebca18e6cd3c8149e6`.
+Exact merged Development startup, local health/Supabase, cumulative UX-03 through
+UX-08 focused QA, Parent/Manager 23/23 and role dashboard browser QA 8/8 passed.
+The 34-screen owner-review pack remains the exact checked product tree; invitation
+visual proof uses a local-only QA signing key because the canonical launcher
+correctly excludes signing secrets. No Production, `main`, paid provider, customer
+data or Digital Observer core change occurred. UX-IMPLEMENT-09 has not started.

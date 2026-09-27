@@ -180,3 +180,15 @@ Final command results, PR, merge SHA, exact integration head, and post-merge evi
 - New paid dependencies: none
 - New fixed monthly commitment: `₪0`
 - Production: untouched
+
+## Integration closure
+
++- Product PR: [#146](https://github.com/infoganbatuah-ai/gan-batuach/pull/146)
++- Exact checked product head: `76383aa27e0122adffd42265ddcb2f598a47209b`
++- Product merge: `590f74ad661b8bc8524eb36ac413f33f16e756f1`
++- Development migration approval: [#147](https://github.com/infoganbatuah-ai/gan-batuach/pull/147), merge `8ce4a818ab3c29d9b85db3bbce4db23c6321f8f9`
++- Development migration receipt: [#148](https://github.com/infoganbatuah-ai/gan-batuach/pull/148), merge `1d426d7b78724fb8105e5bf7ab17a9ddc0f1f78c`
++- Development schema: 244/244 migrations, fingerprint `2e5ac2bf9731f7dde7f5148ff2ae6f2169bc398bf7ea78ebca18e6cd3c8149e6`
++- Post-merge: canonical Development startup PASS; health HTTP 200 with local Supabase OK; role dashboards 8/8; UX-03 through UX-08 focused 42/42; Parent/Manager 23/23.
++- Visual evidence: 34/34 OWNER_REVIEW_READY from the exact checked product tree. The canonical launcher excludes signing secrets by design, so signed-invitation screenshots use a local-only QA signing key.
++- Production and `main`: untouched.
