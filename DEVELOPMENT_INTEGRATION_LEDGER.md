@@ -513,3 +513,10 @@ passed. The bounded manager candidate-review policy migration is preserved but
 pending integration and guarded isolated-Development application. Required PR
 checks and post-merge verification remain pending. No Production, `main`, paid
 provider, customer data or Digital Observer core change occurred.
+
+UX-IMPLEMENT-08 Development integration approval (2026-09-27): PR #146
+passed all eight required checks on exact head `76383aa27e0122adffd42265ddcb2f598a47209b` and merged by
+ancestry into `integration/development` at `590f74ad661b8bc8524eb36ac413f33f16e756f1`. The bounded manager
+candidate-review policy migration is approved for guarded isolated-Development
+application; application receipt and cumulative post-merge QA remain pending.
+Production and `main` remain unchanged.
