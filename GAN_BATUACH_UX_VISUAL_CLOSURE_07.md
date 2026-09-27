@@ -172,7 +172,7 @@ Branch validation completed:
 - TypeScript: **PASS**
 - Lint regression: **PASS; 0 canonical errors, 0 regressions**
 
-The six repository CI gates and cumulative post-merge Development verification are recorded against their exact commits in the PR and final owner report.
+The six repository CI gates passed on exact PR head `cafe51e4e52baf335cc0d3dcf4378527469c1986`. The canonical post-merge Development app then started at `http://127.0.0.1:3000` on exact merged head `0e461e60e47fa48a7e74ee993941b4ca5dc93cba` with the isolated local Supabase backend. Migration drift was `243/243 PASS`; five representative routes returned `200`; UX-03 through UX-07 focused regressions passed `34/34`; and the Manager/Parent contract passed `23/23`.
 
 ## QA personas
 
@@ -204,14 +204,17 @@ Contents:
 - `boards/*-inventory.webp` — seven full domain inventory boards
 - `references/` — approved comparison sources
 
+The final pack was regenerated from merged Development head `0e461e60e47fa48a7e74ee993941b4ca5dc93cba`; its manifest records that exact SHA.
+
 ## Git / integration record
 
 - Source integration head: `088a12f118e862a9b75d7299646b56bf35ed29b9`
 - Feature branch: `codex/ux-visual-closure-07`
-- Feature commit: recorded after validation in the Development integration ledger
-- Pull request: recorded after remote creation in the final owner report
-- Integration merge: recorded after all exact-head required checks pass
-- Exact final integration head: reported after remote verification and post-merge QA
+- Feature commit: `a3f90a1c9f906870f41581f5b6aacd5a2c1f9686`
+- Exact checked PR head: `cafe51e4e52baf335cc0d3dcf4378527469c1986`
+- Pull request: `#144` targeting `integration/development`
+- Product integration merge: `0e461e60e47fa48a7e74ee993941b4ca5dc93cba`
+- Exact final integration head, including this integration receipt: reported in the final owner response after remote verification
 - Production: **untouched**
 
 ## Final acceptance
