@@ -109,11 +109,22 @@ test("finite recorder responses receive an early media-only warm handoff", () =>
     recoveryStable: false }, now), false);
   assert.equal(shouldProactivelyHandoffPrivateNvrRelay({ ...eligible,
     warming: true }, now), false);
-  assert.match(gateway, /finite media response in[\s\S]*warmReplacePrivateNvrRelay/);
+  assert.match(gateway,
+    /recorder's media response ends before[\s\S]*warmReplacePrivateNvrRelay/);
 });
 
-test("a fresh DVR session hands each stream to a warm HLS relay before expiry", () => {
-  assert.match(gateway, /warmReplacePrivateNvrRelays\(sessionKey\)/);
+test("heartbeat, login renewal, and media handoffs use independent bounded schedulers", () => {
+  assert.match(gateway, /privateNvrHeartbeatRun = privateNvrHeartbeat\.tick\(\)/);
+  assert.match(gateway,
+    /privateNvrSessionRenewalRun = maintainPrivateNvrSessionRenewals\(\)/);
+  assert.match(gateway,
+    /privateNvrRelayHandoffRun = maintainPrivateNvrRelayHandoffs\(\)/);
+  assert.match(gateway,
+    /async function maintainPrivateNvrRelayHandoffs[\s\S]*warmReplacePrivateNvrRelay\(streamId, relay\);[\s\S]*return;/,
+    "one maintenance pass may overlap only one candidate relay");
+  assert.doesNotMatch(gateway,
+    /maintainPrivateNvrSessionRenewals[\s\S]{0,1000}warmReplacePrivateNvrRelays/,
+    "a slow media sweep must not block heartbeat or login renewal");
   assert.match(gateway,
     /!relayIsProgressing\(previous\)[\s\S]*!relayRecoveryIsStable\(previous\)/,
     "a newly recovered relay must become stable before another warm handoff");

@@ -24,9 +24,10 @@ export function shouldProactivelyHandoffPrivateNvrRelay(relay, now = Date.now())
 
 // The Home recorder's own Login/Range contract explicitly reports that
 // simultaneous logins are permitted. A bounded renewal before the observed
-// idle-session expiry gives future stream opens a fresh login without tearing
-// down streams that are already receiving media. Unknown/exclusive recorders
-// keep the reactive recovery path only.
+// idle-session expiry gives future stream opens a fresh login. Heartbeat and
+// renewal scheduling must remain independent from per-channel media handoffs;
+// a slow handoff sweep previously delayed both beyond their safety cadence.
+// Unknown/exclusive recorders keep the reactive recovery path only.
 export function shouldProactivelyRefreshPrivateNvrSession(session, now = Date.now()) {
   return Boolean(session?.loginExclusivity === false
     && !session.refreshPromise

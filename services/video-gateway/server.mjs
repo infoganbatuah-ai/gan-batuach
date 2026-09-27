@@ -67,39 +67,58 @@ const privateNvrSessionLifecycle = { login_attempts: 0, login_succeeded: 0,
   last_rotation_at: null, last_rotation_reason: null };
 const privateNvrHeartbeat = createPrivateNvrHeartbeat({ sessions: () => privateNvrSessions.values() });
 const hardwareTranscoder = createHardwareTranscoder();
-async function maintainPrivateNvrSessions() {
-  await privateNvrHeartbeat.tick();
+async function maintainPrivateNvrSessionRenewals() {
   const observedAt = Date.now();
-  const refreshedSessionKeys = new Set();
   for (const [sessionKey, session] of privateNvrSessions) {
     if (!shouldProactivelyRefreshPrivateNvrSession(session, observedAt)) continue;
-    const refreshed = await refreshPrivateNvrSession(sessionKey, session.token,
+    await refreshPrivateNvrSession(sessionKey, session.token,
       "proactive_nonexclusive_renewal");
-    if (refreshed?.epoch > session.epoch) {
-      await warmReplacePrivateNvrRelays(sessionKey);
-      refreshedSessionKeys.add(sessionKey);
-    }
   }
+}
+
+async function maintainPrivateNvrRelayHandoffs() {
+  const observedAt = Date.now();
   // The recorder's media response ends before its authenticated session. Keep
-  // the login policy independent and renew only the finite media response in
-  // between session rotations. Handoffs are sequential and per-channel, so the
-  // recorder sees at most one bounded overlap.
+  // heartbeat and login renewal independent from the potentially slow media
+  // handoff. Replace at most one channel per pass, so a full handoff sweep can
+  // never starve the ten-second heartbeat or the proactive login deadline.
   for (const [streamId, relay] of [...relays]) {
     const source = streamSources.get(streamId);
-    if (!source?.sessionKey || refreshedSessionKeys.has(source.sessionKey)) continue;
+    if (!source?.sessionKey) continue;
     if (shouldProactivelyHandoffPrivateNvrRelay({
       startedAt: relay.startedAt,
       progressing: relayIsProgressing(relay),
       recoveryStable: relayRecoveryIsStable(relay),
       warming: relay.warming
-    }, observedAt)) await warmReplacePrivateNvrRelay(streamId, relay);
+    }, observedAt)) {
+      await warmReplacePrivateNvrRelay(streamId, relay);
+      return;
+    }
   }
 }
-let privateNvrMaintenanceRun = null;
+
+let privateNvrHeartbeatRun = null;
+let privateNvrSessionRenewalRun = null;
+let privateNvrRelayHandoffRun = null;
+function reportPrivateNvrMaintenanceFailure(scope, error) {
+  console.error(JSON.stringify({ level: "warning", domain: "private_nvr_maintenance",
+    scope, reason: String(error?.code || error?.name || "MAINTENANCE_FAILED") }));
+}
 setInterval(() => {
-  if (!privateNvrMaintenanceRun) {
-    privateNvrMaintenanceRun = maintainPrivateNvrSessions()
-      .finally(() => { privateNvrMaintenanceRun = null; });
+  if (!privateNvrHeartbeatRun) {
+    privateNvrHeartbeatRun = privateNvrHeartbeat.tick()
+      .catch(error => { reportPrivateNvrMaintenanceFailure("heartbeat", error); })
+      .finally(() => { privateNvrHeartbeatRun = null; });
+  }
+  if (!privateNvrSessionRenewalRun) {
+    privateNvrSessionRenewalRun = maintainPrivateNvrSessionRenewals()
+      .catch(error => { reportPrivateNvrMaintenanceFailure("session_renewal", error); })
+      .finally(() => { privateNvrSessionRenewalRun = null; });
+  }
+  if (!privateNvrRelayHandoffRun) {
+    privateNvrRelayHandoffRun = maintainPrivateNvrRelayHandoffs()
+      .catch(error => { reportPrivateNvrMaintenanceFailure("relay_handoff", error); })
+      .finally(() => { privateNvrRelayHandoffRun = null; });
   }
 }, 10_000).unref();
 const relays = new Map();
@@ -1321,18 +1340,6 @@ async function warmReplacePrivateNvrRelay(streamId, previous) {
   })().finally(() => relayWarmups.delete(streamId));
   relayWarmups.set(streamId, promise);
   return promise;
-}
-
-async function warmReplacePrivateNvrRelays(sessionKey) {
-  // Stagger handoffs so the recorder sees at most one additional stream while
-  // the eight established channels continue. This stays below the verified
-  // non-exclusive login boundary and avoids a 16-stream burst.
-  for (const [streamId, relay] of [...relays]) {
-    const source = streamSources.get(streamId);
-    if (source?.sessionKey === sessionKey && relayIsProgressing(relay)) {
-      await warmReplacePrivateNvrRelay(streamId, relay);
-    }
-  }
 }
 
 async function startRelay(streamId, { warming = false, previousRelay = null } = {}) {
