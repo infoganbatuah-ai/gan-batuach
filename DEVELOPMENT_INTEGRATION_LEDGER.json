@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-09-27T22:23:48.918Z",
+  "updatedAt": "2026-09-27T22:37:43.863Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -9632,30 +9632,30 @@
         "02d738305f3541b9ead2944c76f11cea4caaad25",
         "1889d8ddfcfc2d4f9ee88379438ce31160615cce"
       ],
-      "state": "PUSHED_REMOTE",
+      "state": "INTEGRATED_DEVELOPMENT",
       "preservation": {
         "remoteVerified": true,
         "remoteRefs": [
-          "origin/codex/ux-implement-08-staff-recruitment@1889d8ddfcfc2d4f9ee88379438ce31160615cce",
-          "origin/integration/development@a59f254fe375cf0fab2490cc2d3ec29df81c8c98"
+          "origin/codex/ux-implement-08-staff-recruitment@76383aa27e0122adffd42265ddcb2f598a47209b",
+          "origin/integration/development@590f74ad661b8bc8524eb36ac413f33f16e756f1"
         ],
         "validatedSourceCommit": "1889d8ddfcfc2d4f9ee88379438ce31160615cce"
       },
       "validation": {
-        "status": "PASS_LOCAL_VISUAL_FUNCTIONAL_REQUIRED_REMOTE_CHECKS_PENDING",
+        "status": "PASS_VISUAL_FUNCTIONAL_EXACT_HEAD_REQUIRED_CHECKS_PENDING_DEVELOPMENT_MIGRATION",
         "evidence": [
           "GAN_BATUACH_UX08_STAFF_RECRUITMENT_CANDIDATE_IMPLEMENTATION.md",
           "qa-evidence/ux-implement-08/results.json",
           "qa-evidence/ux-implement-08/SHA256SUMS"
         ],
-        "limits": "Thirty-four fresh Desktop and Mobile screenshots are OWNER_REVIEW_READY with zero NEEDS_POLISH, VISUAL_DRIFT or BROKEN results. Focused candidate, application, signed invitation, activation, document, multi-Garden, Parent/Manager and cumulative UX-03 through UX-07 regressions passed. Typecheck, lint regression, Production build, Domain 30/30, Security 10/10, migration health 244 and release contract passed. The new bounded RLS policy remains pending canonical isolated-Development application after integration. Required PR checks and post-merge verification are pending. This is not Production release authorization."
+        "limits": "Thirty-four fresh Desktop and Mobile screenshots are OWNER_REVIEW_READY with zero NEEDS_POLISH, VISUAL_DRIFT or BROKEN results. All eight GitHub checks passed on exact PR head 76383aa27e0122adffd42265ddcb2f598a47209b and PR #146 merged by ancestry as 590f74ad661b8bc8524eb36ac413f33f16e756f1. The bounded RLS policy is approved for canonical isolated-Development application; post-application and cumulative post-merge verification remain pending. This is not Production release authorization."
       },
       "integration": {
-        "status": "PENDING_PR",
+        "status": "INTEGRATED_DEVELOPMENT",
         "base": "integration/development",
-        "commit": null,
-        "pullRequest": null,
-        "requiredChecks": "PENDING"
+        "commit": "590f74ad661b8bc8524eb36ac413f33f16e756f1",
+        "pullRequest": 146,
+        "requiredChecks": "PASS_ALL_8_EXACT_HEAD"
       },
       "dependencies": {
         "status": "UX_VISUAL_CLOSURE_07_INTEGRATED",
@@ -9670,11 +9670,11 @@
         "20260928010000"
       ],
       "localVerification": "PASS_UX08_FOCUSED_8_OF_8_DISCOVERY_7_OF_7_HIRING_8_OF_8_SIGNED_INVITATIONS_6_OF_6_MULTI_GARDEN_8_OF_8_DOCUMENTS_6_OF_6_MANAGER_PARENT_23_OF_23_UX03_TO_UX07_34_OF_34_TYPECHECK_LINT_ZERO_REGRESSIONS_BUILD_534_PAGES_DOMAIN_30_OF_30_SECURITY_10_OF_10_MIGRATIONS_244_RELEASE_CONTRACT_VISUAL_34_OWNER_REVIEW_READY",
-      "releaseEligibility": "PENDING_DEVELOPMENT_MIGRATION_AND_REMOTE_CHECKS",
+      "releaseEligibility": "PENDING_DEVELOPMENT_MIGRATION_APPLICATION_AND_POST_MERGE_QA",
       "productionDeployment": {
         "status": "NOT_DEPLOYED"
       },
-      "nextAction": "Open the UX-08 PR to integration/development, require exact-head checks, merge, apply the reviewed migration only to isolated Development, then run cumulative post-merge QA. Production and main remain unchanged."
+      "nextAction": "Apply the reviewed UX-08 policy migration to the guarded isolated Development database, record the receipt, then run cumulative post-merge QA. Production and main remain unchanged."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",

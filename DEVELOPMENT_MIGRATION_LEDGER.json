@@ -1,9 +1,9 @@
 {
   "schemaVersion": 2,
-  "observedAt": "2026-09-27T22:23:48.918Z",
+  "observedAt": "2026-09-27T22:37:43.863Z",
   "productionWriteAuthorized": false,
   "remoteHistoryStatus": "UNVERIFIED_READ_ONLY_RECONCILIATION_REQUIRED",
-  "localDatabaseStatus": "BASELINE_CURRENT_THROUGH_20260922120000_UX08_PENDING_INTEGRATION",
+  "localDatabaseStatus": "UX08_REVIEWED_MIGRATION_APPROVED_PENDING_APPLICATION",
   "migrations": [
     {
       "file": "supabase/migrations/20260919190000_edge_home_qa_channel.sql",
@@ -7447,14 +7447,14 @@
       "sourceCommit": "02d738305f3541b9ead2944c76f11cea4caaad25",
       "sourceHead": "1889d8ddfcfc2d4f9ee88379438ce31160615cce",
       "remoteBranch": "origin/codex/ux-implement-08-staff-recruitment",
-      "integrationCommit": null,
+      "integrationCommit": "590f74ad661b8bc8524eb36ac413f33f16e756f1",
       "inGit": true,
-      "inIntegration": false,
-      "inclusion": "PUSHED_REMOTE_PENDING_INTEGRATION",
+      "inIntegration": true,
+      "inclusion": "INTEGRATED_DEVELOPMENT",
       "releaseOrder": "20260928010000",
       "requiredPredecessor": "20260922120000_management_parent_notification_category_fix.sql",
       "dependencyStatus": "PREDECESSOR_DEVELOPMENT_APPLIED",
-      "developmentApproval": "VALIDATED_FOR_ISOLATED_DEVELOPMENT_AFTER_INTEGRATION",
+      "developmentApproval": "VALIDATED_FOR_ISOLATED_DEVELOPMENT",
       "developmentDependsOn": [
         "20260922120000"
       ],
@@ -7464,8 +7464,8 @@
       "productionApplied": "UNVERIFIED",
       "productionEvidence": null,
       "recovery": "Forward-only addition of a bounded SELECT policy on staff_candidate_profiles. No data rewrite or backfill. The policy permits only the candidate, Admin, or a manager connected by a canonical application in a Garden they can manage. Apply only to guarded isolated Development after integration; Production requires a separate owner-authorized release.",
-      "developmentApprovalEvidence": "Branch validation passed UX-08 focused 8/8, candidate discovery 7/7, hiring lifecycle 8/8, signed invitations 6/6, multi-Garden 8/8, documents 6/6, Parent/Manager 23/23, typecheck, lint regression, Production build, Domain 30/30, Security 10/10, migration health 244 and visual QA 34/34. Required PR checks remain pending.",
-      "developmentStatusReason": "Reviewed migration is remotely preserved but must not be applied before integration and exact-head required checks",
+      "developmentApprovalEvidence": "PR #146 exact head 76383aa27e0122adffd42265ddcb2f598a47209b passed all eight GitHub checks and merged by ancestry as 590f74ad661b8bc8524eb36ac413f33f16e756f1. Branch QA passed UX-08 focused 8/8, candidate discovery 7/7, hiring 8/8, signed invitations 6/6, multi-Garden 8/8, documents 6/6, Parent/Manager 23/23, typecheck, lint regression, Production build, Domain 30/30, Security 10/10, migration health 244 and visual QA 34/34. No Production access.",
+      "developmentStatusReason": "Integrated and approved for canonical guarded isolated-Development application; not yet applied",
       "developmentHistoryDigest": null,
       "developmentSchemaFingerprint": null
     }
