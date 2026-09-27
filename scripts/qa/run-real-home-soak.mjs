@@ -10,6 +10,20 @@ import { probeLocalHealth } from "./soak-health-probe.mjs";
 
 const exec = promisify(execFile);
 const args = new Map(process.argv.slice(2).map(value => { const [key, ...rest] = value.replace(/^--/, "").split("="); return [key, rest.join("=") || true]; }));
+const DVR_ASSIGNED_CHANNELS = Object.freeze([1, 2, 3, 4, 5, 6, 7, 8, 10, 11]);
+const unavailableArgument = String(args.get("dvr-upstream-unavailable") ?? "2,8").trim();
+const parsedUnavailable = unavailableArgument === "" ? [] : unavailableArgument.split(",").map(Number);
+if (parsedUnavailable.some(value => !Number.isInteger(value)) ||
+  new Set(parsedUnavailable).size !== parsedUnavailable.length ||
+  parsedUnavailable.some(value => !DVR_ASSIGNED_CHANNELS.includes(value)))
+  throw new Error("soak_dvr_upstream_unavailable_invalid");
+const DVR_UPSTREAM_UNAVAILABLE = Object.freeze([...parsedUnavailable].sort((a, b) => a - b));
+const DVR_AVAILABLE_CHANNELS = Object.freeze(DVR_ASSIGNED_CHANNELS.filter(channel =>
+  !DVR_UPSTREAM_UNAVAILABLE.includes(channel)));
+const DVR_SOURCE_AVAILABLE = DVR_AVAILABLE_CHANNELS.length;
+const assertedAvailable = Number(args.get("dvr-source-available") ?? DVR_SOURCE_AVAILABLE);
+if (!Number.isInteger(assertedAvailable) || assertedAvailable !== DVR_SOURCE_AVAILABLE)
+  throw new Error("soak_dvr_source_availability_mismatch");
 const stage = String(args.get("stage") || "V8").toUpperCase();
 const requiredDurationMs = QUALIFICATION_STAGE_MINIMUM_MS[stage];
 if (!requiredDurationMs) throw new Error("qualification_stage_invalid");
@@ -33,8 +47,6 @@ const dataRoots = {
 const logPaths = { gateway: join(homedir(), "Library", "Logs", "com.ganbatuach.video-gateway.err.log"), connector: join(homedir(), "Library", "Logs", "com.ganbatuach.software-connector.tapo.err.log") };
 const ffmpegCommand = [process.env.FFMPEG_PATH, "/opt/homebrew/bin/ffmpeg", "/usr/local/bin/ffmpeg", "/usr/bin/ffmpeg"].find(value => value && existsSync(value));
 if (!ffmpegCommand) throw new Error("ffmpeg_runtime_unavailable");
-const DVR_AVAILABLE_CHANNELS = Object.freeze([1, 3, 4, 5, 6, 7, 10, 11]);
-const DVR_UPSTREAM_UNAVAILABLE = Object.freeze([2, 8]);
 
 function atomicJson(path, value) { const temporary = `${path}.tmp`; writeFileSync(temporary, `${JSON.stringify(value, null, 2)}\n`, { mode: 0o600 }); renameSync(temporary, path); }
 function safeStat(path) { try { return statSync(path).size; } catch { return null; } }
@@ -77,33 +89,36 @@ function classifyCheckpoint(probe, resource, expected) {
 }
 function classifyGatewayCheckpoint(probe, resource) {
   const discovery = probe.body?.lastDiscovery || {}, progressing = Number(probe.body?.mediaHeartbeat?.progressingRelays ?? 0);
-  const expectedDegradedPayload = probe.http_status === 200 &&
-    probe.body?.contract === "observer-edge-health-v1" && probe.body?.status === "degraded";
-  if (resource?.inspection_ok === false && (probe.ok || expectedDegradedPayload)) return "MONITOR_FAILURE";
-  if ((!probe.ok && !expectedDegradedPayload) || !resource?.runtime_pid) return "PRODUCT_FAILURE";
-  if (discovery.assignedCount !== 10 || discovery.connectedCount !== 8 ||
-    discovery.failedAssignedCount !== 2 || discovery.unassignedCount !== 6 ||
-    progressing !== 8 || probe.body?.status !== "degraded") return "PRODUCT_FAILURE";
+  const expectedStatus = DVR_UPSTREAM_UNAVAILABLE.length ? "degraded" : "healthy";
+  const expectedHealthPayload = probe.http_status === 200 &&
+    probe.body?.contract === "observer-edge-health-v1" && probe.body?.status === expectedStatus;
+  if (resource?.inspection_ok === false && (probe.ok || expectedHealthPayload)) return "MONITOR_FAILURE";
+  if ((!probe.ok && !expectedHealthPayload) || !resource?.runtime_pid) return "PRODUCT_FAILURE";
+  if (discovery.assignedCount !== 10 || discovery.connectedCount !== DVR_SOURCE_AVAILABLE ||
+    discovery.failedAssignedCount !== DVR_UPSTREAM_UNAVAILABLE.length || discovery.unassignedCount !== 6 ||
+    progressing !== DVR_SOURCE_AVAILABLE || probe.body?.status !== expectedStatus) return "PRODUCT_FAILURE";
   return "PASS";
 }
 async function processRow(pid) {
   try {
-    const result = await exec("/bin/ps", ["-o", "pid=,etime=,%cpu=,rss=", "-p", String(pid)], { timeout: 2_000 });
-    const [pidText, elapsed, cpu, rss] = result.stdout.trim().split(/\s+/);
-    return { pid: Number(pidText), elapsed, cpu_percent: Number(cpu), rss_mb: Number((Number(rss) / 1024).toFixed(3)) };
-  } catch { return { pid: null, elapsed: null, cpu_percent: null, rss_mb: null }; }
+    const result = await exec("/bin/ps", ["-o", "pid=,ppid=,etime=,%cpu=,rss=", "-p", String(pid)], { timeout: 2_000 });
+    const [pidText, parentPid, elapsed, cpu, rss] = result.stdout.trim().split(/\s+/);
+    return { pid: Number(pidText), parent_pid: Number(parentPid), elapsed,
+      cpu_percent: Number(cpu), rss_mb: Number((Number(rss) / 1024).toFixed(3)) };
+  } catch { return { pid: null, parent_pid: null, elapsed: null, cpu_percent: null, rss_mb: null }; }
 }
 async function processInfo(pattern) {
   try {
     const { stdout } = await exec("/usr/bin/pgrep", ["-f", pattern], { timeout: 2_000 });
-    const supervisorPid = Number(stdout.trim().split("\n").at(-1));
-    const supervisor = await processRow(supervisorPid);
-    let runtime = supervisor;
-    try {
-      const children = await exec("/usr/bin/pgrep", ["-P", String(supervisorPid)], { timeout: 2_000 });
-      const runtimePid = Number(children.stdout.trim().split("\n").at(-1));
-      if (runtimePid) runtime = await processRow(runtimePid);
-    } catch {}
+    const candidates = (await Promise.all(stdout.trim().split("\n").filter(Boolean)
+      .map(value => processRow(Number(value))))).filter(value => value.pid);
+    // The managed runtime deliberately starts a tiny `caffeinate` child whose
+    // arguments also contain the script name. Select the launchd-owned process
+    // (or, defensively, the largest matching process) so resource telemetry is
+    // recorded for Node rather than for the 0.3 MiB sleep-prevention helper.
+    const supervisor = candidates.find(value => value.parent_pid === 1) ??
+      candidates.sort((left, right) => (right.rss_mb ?? 0) - (left.rss_mb ?? 0))[0];
+    const runtime = supervisor;
     let openHandles = null;
     try { const handles = await exec("/usr/sbin/lsof", ["-nP", "-p", String(runtime.pid)], { timeout: 3_000, maxBuffer: 4 * 1024 * 1024 }); openHandles = Math.max(0, handles.stdout.trim().split("\n").length - 1); } catch {}
     return {
@@ -115,8 +130,8 @@ async function processInfo(pattern) {
       runtime_cpu_percent: runtime.cpu_percent,
       runtime_rss_mb: runtime.rss_mb,
       open_handles: openHandles,
-      total_cpu_percent: Number(((supervisor.cpu_percent ?? 0) + (runtime.pid === supervisor.pid ? 0 : runtime.cpu_percent ?? 0)).toFixed(3)),
-      total_rss_mb: Number(((supervisor.rss_mb ?? 0) + (runtime.pid === supervisor.pid ? 0 : runtime.rss_mb ?? 0)).toFixed(3))
+      total_cpu_percent: Number((runtime.cpu_percent ?? 0).toFixed(3)),
+      total_rss_mb: Number((runtime.rss_mb ?? 0).toFixed(3))
     };
   } catch { return { inspection_ok: false, pid: null, supervisor_pid: null, runtime_pid: null, elapsed: null, cpu_percent: null, rss_mb: null, runtime_rss_mb: null, total_rss_mb: null }; }
 }
@@ -126,7 +141,7 @@ async function sources() {
   const profile = JSON.parse(await keychain("dvr_profile_json")); const host = new URL(profile.endpoint.includes("://") ? profile.endpoint : `http://${profile.endpoint}`).hostname;
   const namespace = String(profile.metadata?.stream_namespace || "").trim().replace(/[^a-zA-Z0-9._:-]/g, "").slice(0, 80);
   const gatewaySecret = await keychain("gateway_signing_secret");
-  const dvr = [1,2,3,4,5,6,7,8,10,11].map(channel => ({ id: `dvr_${createHash("sha256").update([profile.connection_type || "dvr", host, channel, namespace].join(":")).digest("hex").slice(0,18)}_${channel}`,
+  const dvr = DVR_ASSIGNED_CHANNELS.map(channel => ({ id: `dvr_${createHash("sha256").update([profile.connection_type || "dvr", host, channel, namespace].join(":")).digest("hex").slice(0,18)}_${channel}`,
     channel, port: 18082, secret: gatewaySecret, source_available: DVR_AVAILABLE_CHANNELS.includes(channel),
     upstream_unavailable: DVR_UPSTREAM_UNAVAILABLE.includes(channel) }));
   // The cloud-mapped camera Source ID and the local relay stream ID are
@@ -235,8 +250,8 @@ while (!stopping && Date.now() - startedAt < durationMs) {
   const point = { contract: "observer-reliability-checkpoint-v1", qualification_stage: stage,
     run_id: runId, sequence: ++sequence, sampled_at: new Date(sampledAt).toISOString(), elapsed_ms: sampledAt - startedAt,
     scheduled_at: new Date(scheduledAt).toISOString(), drift_ms: sampledAt - scheduledAt, probe_duration_ms: probeCompletedAt - sampledAt, interval_ms: intervalMs,
-    expected_physical_cameras: 11, source_available_physical_cameras: 9, empty_dvr_slots: 6,
-    dvr: { health_ok: gateway.ok, health_error: gateway.reason, health_http_status: gateway.http_status, liveness: gateway.liveness ?? null, event_loop: gateway.body?.eventLoop ?? null, component_status: gateway.body?.status ?? null, classification: classifyGatewayCheckpoint(gateway, gatewayResource), health_latency_ms: gateway.latency_ms, expected: 10, source_available: 8, known_upstream_unavailable: DVR_UPSTREAM_UNAVAILABLE, progressing: gateway.body?.mediaHeartbeat?.progressingRelays ?? 0, stalled: gateway.body?.mediaHeartbeat?.stalledRelays ?? null, failed: gateway.body?.failedStreamCount ?? null, auth: gateway.body?.deviceAuthorization?.status ?? null, lifecycle: gateway.body?.mediaHeartbeat?.lifecycle ?? null, recorder_session: gateway.body?.recorderSessionHeartbeat ?? null,
+    expected_physical_cameras: 11, source_available_physical_cameras: DVR_SOURCE_AVAILABLE + 1, empty_dvr_slots: 6,
+    dvr: { health_ok: gateway.ok, health_error: gateway.reason, health_http_status: gateway.http_status, liveness: gateway.liveness ?? null, event_loop: gateway.body?.eventLoop ?? null, component_status: gateway.body?.status ?? null, classification: classifyGatewayCheckpoint(gateway, gatewayResource), health_latency_ms: gateway.latency_ms, expected: 10, source_available: DVR_SOURCE_AVAILABLE, known_upstream_unavailable: DVR_UPSTREAM_UNAVAILABLE, progressing: gateway.body?.mediaHeartbeat?.progressingRelays ?? 0, stalled: gateway.body?.mediaHeartbeat?.stalledRelays ?? null, failed: gateway.body?.failedStreamCount ?? null, auth: gateway.body?.deviceAuthorization?.status ?? null, lifecycle: gateway.body?.mediaHeartbeat?.lifecycle ?? null, recorder_session: gateway.body?.recorderSessionHeartbeat ?? null,
       session_lifecycle: gateway.body?.recorderSessionLifecycle ?? null, relay_diagnostics: gateway.body?.mediaHeartbeat?.source_diagnostics ?? null,
       inputs: (gateway.body?.mediaHeartbeat?.inputs ?? []).map(value => Object.fromEntries(["channel", "progressing", "input_codec", "encoder", "format", "bytes", "chunks", "age_ms", "input_idle_ms", "stdin_backpressure", "stdin_queued_bytes"].map(key => [key, value[key] ?? null]))) },
     tapo: { health_ok: connector.ok, health_error: connector.reason, health_http_status: connector.http_status, liveness: connector.liveness ?? null, event_loop: connector.body?.eventLoop ?? null, component_status: connector.body?.status ?? null, classification: classifyCheckpoint(connector, connectorResource, 1), health_latency_ms: connector.latency_ms, expected: 1, progressing: connector.body?.mediaHeartbeat?.progressingRelays ?? 0, stalled: connector.body?.mediaHeartbeat?.stalledRelays ?? null, failed: connector.body?.failedStreamCount ?? null, auth: connector.body?.deviceAuthorization?.status ?? null, lifecycle: connector.body?.mediaHeartbeat?.lifecycle ?? null,
@@ -262,7 +277,7 @@ while (!stopping && Date.now() - startedAt < durationMs) {
 }
 const checkpoints = readFileSync(checkpointsPath, "utf8").trim().split("\n").filter(Boolean).map(line => JSON.parse(line));
 const result = summarizeRealHomeSoak(checkpoints, { startedAt, endedAt: Date.now(),
-  requiredDurationMs, dvrSourceAvailable: 8,
+  requiredDurationMs, dvrSourceAvailable: DVR_SOURCE_AVAILABLE,
   dvrKnownUpstreamUnavailable: DVR_UPSTREAM_UNAVAILABLE });
 const stagedResult = { ...result, qualification_stage: stage };
 atomicJson(resultPath, stagedResult); atomicJson(statePath, { ...JSON.parse(readFileSync(statePath, "utf8")), status: stagedResult.status, ended_at: stagedResult.ended_at, result_path: resultPath, gate_failures: stagedResult.gate_failures });
