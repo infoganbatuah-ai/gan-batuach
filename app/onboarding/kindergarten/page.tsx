@@ -5,6 +5,7 @@ import { GanBatuachBrand } from "@/components/gan-batuach-brand";
 import { LogoutButton } from "@/components/logout-button";
 import { KindergartenOnboardingForm, ManagerKindergartenApplicationForm } from "@/components/kindergarten-onboarding-form";
 import { requireRole } from "@/lib/auth";
+import { cleanSyntheticLabel } from "@/lib/domain/display-label";
 import { createAdminClient, isAdminClientConfigured } from "@/lib/supabase/admin";
 import { createClient } from "@/lib/supabase/server";
 
@@ -58,6 +59,7 @@ function KindergartenOnboardingShell({
 
 export default async function KindergartenOnboardingPage({ searchParams }: { searchParams: Promise<{ gardenId?: string; new?: string }> }) {
   const { profile } = await requireRole(["manager", "owner"]);
+  const managerDisplayName = cleanSyntheticLabel(profile.full_name, "מנהלת הגן");
   const query = await searchParams;
   const sessionClient = await createClient();
   const targetGardenId = query.gardenId ?? (query.new === "1" ? null : profile.garden_id);
@@ -86,9 +88,9 @@ export default async function KindergartenOnboardingPage({ searchParams }: { sea
         subtitle="משלימים את פרטי הגן ברצף, מתחילים 14 ימי ניסיון ונכנסים לדשבורד — ללא המתנה לאישור אדמין."
         badge="רישום רציף"
         badgeTone="green"
-        managerName={profile.full_name}
+        managerName={managerDisplayName}
       >
-        <ManagerKindergartenApplicationForm managerName={profile.full_name} managerPhone={profile.phone} managerEmail={(profile as any).email} profileRole={profile.role} />
+        <ManagerKindergartenApplicationForm managerName={managerDisplayName} managerPhone={profile.phone} managerEmail={(profile as any).email} profileRole={profile.role} />
         <LogoutButton className="kindergarten-app-logout" />
       </KindergartenOnboardingShell>
     );
@@ -124,9 +126,9 @@ export default async function KindergartenOnboardingPage({ searchParams }: { sea
       subtitle="חמישה שלבים רציפים. אפשר לדלג על הזמנת הורים וילדים ולחזור אליה מהדשבורד."
       badge={onboarding.lifecycle_status === "correction_required" ? "נדרש תיקון" : "בתהליך"}
       badgeTone={onboarding.lifecycle_status === "correction_required" ? "orange" : "green"}
-      managerName={profile.full_name}
+      managerName={managerDisplayName}
     >
-        <KindergartenOnboardingForm garden={(garden ?? {}) as any} onboarding={onboarding} managerName={profile.full_name} />
+        <KindergartenOnboardingForm garden={(garden ?? {}) as any} onboarding={onboarding} managerName={managerDisplayName} />
         <LogoutButton className="kindergarten-app-logout" />
     </KindergartenOnboardingShell>
   );

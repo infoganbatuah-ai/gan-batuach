@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { Building2, ChevronDown, LoaderCircle } from "lucide-react";
+import { cleanSyntheticLabel } from "@/lib/domain/display-label";
 
 type Garden = { id: string; name: string; relationshipRole: string; isDefault: boolean };
 
@@ -12,18 +13,19 @@ export function GardenContextSwitcher({ gardens, initialActiveId, compact = fals
   const [pending, setPending] = useState(false);
   const [error, setError] = useState("");
   const activeGarden = gardens.find((garden) => garden.id === activeId) ?? gardens[0];
+  const activeGardenName = cleanSyntheticLabel(activeGarden?.name, "הגן הפעיל");
 
   if (!gardens.length) return null;
   if (gardens.length === 1) {
-    return <div className={`garden-context-switcher garden-context-single${compact ? " compact" : ""}`} aria-label={`גן פעיל: ${activeGarden.name}`}>
+    return <div className={`garden-context-switcher garden-context-single${compact ? " compact" : ""}`} aria-label={`גן פעיל: ${activeGardenName}`}>
       <Building2 size={20} aria-hidden="true" />
-      <span><small>גן פעיל</small><b>{activeGarden.name}</b></span>
+      <span><small>גן פעיל</small><b>{activeGardenName}</b></span>
     </div>;
   }
 
   return <label className={`garden-context-switcher${compact ? " compact" : ""}`}>
     <Building2 size={20} aria-hidden="true" />
-    <span><small>גן פעיל</small><b>{activeGarden?.name ?? "בחירת גן"}</b></span>
+    <span><small>גן פעיל</small><b>{activeGardenName}</b></span>
     <select aria-label="החלפת גן פעיל" value={activeId} disabled={pending} onChange={async event => {
       const gardenId = event.target.value;
       setPending(true);
@@ -38,7 +40,7 @@ export function GardenContextSwitcher({ gardens, initialActiveId, compact = fals
       setPending(false);
     }}>
       {!activeId && <option value="">בחירת גן</option>}
-      {gardens.map(garden => <option value={garden.id} key={garden.id}>{garden.name}</option>)}
+      {gardens.map(garden => <option value={garden.id} key={garden.id}>{cleanSyntheticLabel(garden.name, "גן")}</option>)}
     </select>
     {pending ? <LoaderCircle className="garden-context-spinner" size={18} aria-label="מחליף גן" /> : <ChevronDown size={18} aria-hidden="true" />}
     {error ? <em role="alert">{error}</em> : null}

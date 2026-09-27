@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-09-24T21:00:00+03:00",
+  "updatedAt": "2026-09-27T12:00:00+03:00",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -9561,6 +9561,65 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "UX-IMPLEMENT-07 is complete in Development. Stop before UX-IMPLEMENT-08; Production and main remain unchanged."
+    },
+    {
+      "id": "codex/ux-visual-closure-07",
+      "project": "Gan Batuach Management",
+      "title": "UX-VISUAL-CLOSURE-07 mandatory reference-fidelity closure for UX-01 through UX-07",
+      "owner": "UX-VISUAL-CLOSURE-07 owner",
+      "sourceBranch": "codex/ux-visual-closure-07",
+      "sourceCommits": [
+        "a3f90a1c9f906870f41581f5b6aacd5a2c1f9686"
+      ],
+      "state": "PUSHED_REMOTE",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/ux-visual-closure-07@e2970b34f49bd43a16527cf9065210f6be3a091a"
+        ],
+        "validatedSourceCommit": "a3f90a1c9f906870f41581f5b6aacd5a2c1f9686"
+      },
+      "validation": {
+        "status": "PASS_VISUAL_FUNCTIONAL_LOCAL_EXACT_HEAD_PENDING_REMOTE_REQUIRED_CHECKS",
+        "evidence": [
+          "GAN_BATUACH_UX_VISUAL_CLOSURE_07.md",
+          "qa-evidence/ux-implement-02/results.json",
+          "qa-evidence/ux-implement-03/results.json",
+          "qa-evidence/ux-implement-04/SHA256SUMS",
+          "qa-evidence/ux-implement-05/SHA256SUMS",
+          "qa-evidence/ux-implement-06/SHA256SUMS",
+          "qa-evidence/ux-implement-07/SHA256SUMS",
+          "/Users/danielderi/.codex/visualizations/2026/09/07/01a07933-ed3d-7ad0-9a45-2f9b0b21460a/ux-visual-closure-07-final/SHA256SUMS"
+        ],
+        "limits": "All 92 required screen concepts have fresh 1440x1024 Desktop and 390x844 Mobile captures from the isolated Development backend (184 implementation screenshots), plus seven comparison and seven inventory boards. Local focused, domain, security/isolation, migration, release-contract, typecheck, lint, build, accessibility and RTL checks passed. Remote exact-head required checks and post-merge Development verification remain required. This is not Production release authorization."
+      },
+      "integration": {
+        "status": "PENDING_INTEGRATION",
+        "base": "integration/development",
+        "commit": null,
+        "pullRequest": 144,
+        "requiredChecks": "PENDING_EXACT_HEAD"
+      },
+      "dependencies": {
+        "status": "UX_IMPLEMENT_01_THROUGH_07_INTEGRATED_AT_SOURCE_HEAD",
+        "units": [
+          "codex/ux-implement-01-reference-closure",
+          "codex/ux-implement-02-owner-onboarding",
+          "codex/ux-implement-03-owner-command-center",
+          "codex/ux-implement-04-children-classrooms",
+          "codex/ux-implement-05-parent-platform",
+          "codex/ux-implement-06-attendance-pickup",
+          "codex/ux-implement-07-staff-platform"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "PASS_92_CONCEPTS_184_SCREENSHOTS_14_BOARDS_OWNER_REVIEW_READY_92_NEEDS_POLISH_0_VISUAL_DRIFT_0_BROKEN_0_UX03_6_OF_6_UX04_6_OF_6_UX05_7_OF_7_UX06_8_OF_8_UX07_7_OF_7_ONBOARDING_11_OF_11_MANAGER_PARENT_23_OF_23_CAPACITY_6_OF_6_DISCOVERY_5_OF_5_ENROLLMENT_7_OF_7_MULTI_GARDEN_STAFF_8_OF_8_TASKS_6_OF_6_SUBSCRIPTION_5_OF_5_TUITION_3_OF_3_DOCUMENTS_6_OF_6_DASHBOARDS_9_OF_9_REPORTING_7_OF_7_TYPECHECK_LINT_ZERO_REGRESSIONS_BUILD_532_PAGES_DOMAIN_30_OF_30_SECURITY_10_OF_10_MIGRATIONS_243_RELEASE_CONTRACT_NPM_AUDIT_NO_HIGH_OR_CRITICAL",
+      "releaseEligibility": "DEVELOPMENT_VALIDATED_PENDING_REMOTE_CHECKS_AND_INTEGRATION_PRODUCTION_NOT_AUTHORIZED",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "Require all exact-head checks on PR 144 to pass, merge to integration/development, record the integration receipt, run canonical post-merge Development QA, and stop before UX-IMPLEMENT-08."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",

@@ -7,6 +7,7 @@ import { StatusChip } from "@/components/gan-batuach-design-system";
 import { TeacherAppFrame, TeacherEmptyState } from "@/components/teacher-app-ui";
 import { getManagementGardenContext } from "@/lib/management/garden-context";
 import { createClient } from "@/lib/supabase/server";
+import { cleanSyntheticLabel } from "@/lib/domain/display-label";
 import { notFound } from "next/navigation";
 
 type Params = { date?: string; q?: string; status?: string; classroom?: string };
@@ -69,14 +70,14 @@ export default async function GardenAttendancePage({ searchParams }: { searchPar
     const attendance = attendanceByChild.get(String(child.id));
     return {
       id: String(child.id),
-      name: String(child.full_name ?? "ילד/ה"),
+      name: cleanSyntheticLabel(String(child.full_name ?? ""), "ילד/ה"),
       photoUrl: typeof child.photo_url === "string" ? child.photo_url : null,
       classroomId: String(assignment?.classroom_id ?? ""),
-      classroomName: String(classroom?.name ?? "ללא כיתה"),
+      classroomName: cleanSyntheticLabel(String(classroom?.name ?? ""), "ללא כיתה"),
       status: rowState(attendance),
       arrival: typeof attendance?.check_in_at === "string" ? attendance.check_in_at : null,
       departure: typeof attendance?.check_out_at === "string" ? attendance.check_out_at : null,
-      pickupName: typeof attendance?.pickup_name === "string" ? attendance.pickup_name : null
+      pickupName: typeof attendance?.pickup_name === "string" ? cleanSyntheticLabel(attendance.pickup_name) : null
     };
   });
   const query = (params.q ?? "").trim().toLocaleLowerCase("he");
@@ -94,7 +95,7 @@ export default async function GardenAttendancePage({ searchParams }: { searchPar
     { state: "expected", label: "טרם הגיעו", value: count("expected"), icon: Clock3 }
   ] as const;
   const profile = access.session.profile;
-  const gardenName = String((gardenRes.data as Record<string, unknown> | null)?.name ?? "הגן הפעיל").replace(/\[DEMO\]/g, "").trim();
+  const gardenName = cleanSyntheticLabel(String((gardenRes.data as Record<string, unknown> | null)?.name ?? ""), "הגן הפעיל");
 
   return (
     <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="נוכחות" appHome>

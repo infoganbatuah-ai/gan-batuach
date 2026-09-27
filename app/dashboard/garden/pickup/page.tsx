@@ -12,6 +12,7 @@ import {
   TeacherStatsGrid
 } from "@/components/teacher-app-ui";
 import { getManagementGardenContext } from "@/lib/management/garden-context";
+import { cleanSyntheticLabel } from "@/lib/domain/display-label";
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 
@@ -40,7 +41,7 @@ export default async function GardenPickupPage({ searchParams }: { searchParams:
   const events = params.filter === "pending" ? [] : ((eventsRes.data ?? []) as any[]);
   const pendingPickup = allChildren.filter((child) => awaitingPickupIds.has(child.id)).length;
   return (
-    <TeacherAppFrame role={profile.role === "owner" ? "owner" : "manager"} title={`בוקר טוב, ${profile.full_name?.replace(/\[DEMO\]/gi, "").trim().split(" ")[0] || "מנהלת הגן"}`} subtitle="איסוף והחזרה בטוחים" avatarUrl={(profile as any).profile_image_url ?? null} active="children">
+    <TeacherAppFrame role={profile.role === "owner" ? "owner" : "manager"} title={`בוקר טוב, ${cleanSyntheticLabel(profile.full_name, "מנהלת הגן").split(" ")[0]}`} subtitle="איסוף והחזרה בטוחים" avatarUrl={(profile as any).profile_image_url ?? null} active="children">
       <div className="ux06-operations">
       <TeacherPageTitle icon={MapPinned} title="איסוף והחזרה" subtitle="מורשי איסוף נבדקים בשרת; השחרור מתבצע רק אחרי אישור צוות" action={<Link className="button secondary" href="/dashboard/garden/attendance">חזרה לנוכחות</Link>} />
       <TeacherStatsGrid>

@@ -5,6 +5,10 @@ import { StaffAppFrame, StaffEmpty, StaffMetricCard, StaffPageHero, StaffSection
 import { requireOperationalRole } from "@/lib/management/operational-role";
 import { createClient } from "@/lib/supabase/server";
 
+function shortTime(value?: string | null) {
+  return value ? value.slice(0, 5) : "—";
+}
+
 export default async function Page() {
   const { employment } = await requireOperationalRole(["staff"]);
   const supabase = await createClient();
@@ -27,9 +31,40 @@ export default async function Page() {
   const lateCount = rows.filter((row) => row.status === "late").length;
   const openShift = rows.find((row) => row.actual_start && !row.actual_end);
   const incomplete = rows.filter((row) => row.actual_start && !row.actual_end).length;
+  const today = new Date();
+  const startOfWeek = new Date(today);
+  startOfWeek.setHours(12, 0, 0, 0);
+  startOfWeek.setDate(today.getDate() - today.getDay());
+  const weekDays = Array.from({ length: 7 }, (_, index) => {
+    const date = new Date(startOfWeek);
+    date.setDate(startOfWeek.getDate() + index);
+    const key = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Jerusalem", year: "numeric", month: "2-digit", day: "2-digit" }).format(date);
+    return {
+      key,
+      day: new Intl.DateTimeFormat("he-IL", { timeZone: "Asia/Jerusalem", weekday: "short" }).format(date),
+      date: new Intl.DateTimeFormat("he-IL", { timeZone: "Asia/Jerusalem", day: "numeric", month: "numeric" }).format(date),
+      shift: rows.find((row) => row.shift_date === key),
+      current: new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Jerusalem", year: "numeric", month: "2-digit", day: "2-digit" }).format(today) === key
+    };
+  });
   return (
     <StaffAppFrame active="shifts">
       <StaffPageHero eyebrow="דוחות שעות" title="שעות עבודה, איחורים וחוסרים" text="הדוח מציג משמרות בפועל מול תכנון." icon={CalendarDays} badge={<StatusChip tone="success">{monthHours.toFixed(1)} שעות</StatusChip>} />
+      <section className="staff-week-board" aria-labelledby="staff-week-title">
+        <header>
+          <div><h2 id="staff-week-title">השבוע שלי</h2><p>המשמרות הקנוניות של הגן הפעיל, יום אחר יום</p></div>
+          <StatusChip tone={incomplete ? "warning" : "success"}>{incomplete ? "נדרשת השלמת יציאה" : "לוח מעודכן"}</StatusChip>
+        </header>
+        <div className="staff-week-grid">
+          {weekDays.map((item) => {
+            const state = item.shift?.actual_start && !item.shift?.actual_end ? "incomplete" : item.shift?.actual_start ? "" : "planned";
+            return <article className={`staff-week-day ${item.current ? "current" : ""}`} key={item.key}>
+              <span><b>{item.day}</b>{item.date}</span>
+              {item.shift ? <div className={`staff-week-shift ${state}`}><strong><bdi dir="ltr">{shortTime(item.shift.planned_start)}–{shortTime(item.shift.planned_end)}</bdi></strong><small>{state === "incomplete" ? "חסרה יציאה" : item.shift.actual_start ? "נרשמה נוכחות" : "מתוכנן"}</small></div> : <div className="staff-week-shift planned"><strong>ללא משמרת</strong><small>אין שיבוץ</small></div>}
+            </article>;
+          })}
+        </div>
+      </section>
       <StaffStats>
         <StaffMetricCard title="שעות מחושבות" value={monthHours.toFixed(1)} icon={Clock} tone="purple" />
         <StaffMetricCard title="משמרות" value={rows.length} icon={CalendarDays} tone="blue" />

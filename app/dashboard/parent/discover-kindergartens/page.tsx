@@ -7,6 +7,22 @@ import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { guardianChildIds } from "@/lib/management/family-link";
 import { findEligibleGardensForChild } from "@/lib/domain/child-garden-discovery";
+import { cleanSyntheticLabel } from "@/lib/domain/display-label";
+
+const enrollmentLabels: Record<string, string> = {
+  accepting: "פתוחה להרשמה",
+  waitlist_only: "רשימת המתנה",
+  paused: "מושהית",
+  closed: "סגורה"
+};
+
+const matchLabels: Record<string, string> = {
+  eligible: "מתאים לילד/ה",
+  full: "התפוסה מלאה",
+  already_enrolled: "רישום פעיל",
+  pending_request: "בקשה ממתינה",
+  waitlist_only: "רשימת המתנה"
+};
 
 export default async function DiscoverKindergartensPage({ searchParams }: { searchParams?: Promise<{ city?: string; age?: string; q?: string; child?: string }> }) {
   const { profile } = await requireRole(["parent"]);
@@ -40,7 +56,7 @@ export default async function DiscoverKindergartensPage({ searchParams }: { sear
           <input name="city" placeholder="עיר" defaultValue={params?.city ?? ""} />
           <input name="age" placeholder="קבוצת גיל" defaultValue={params?.age ?? ""} />
           <select name="child" defaultValue={selectedChild?.id ?? ""} aria-label="בחירת ילד">
-            {children.map((child) => <option key={child.id} value={child.id}>{child.full_name}</option>)}
+            {children.map((child) => <option key={child.id} value={child.id}>{cleanSyntheticLabel(child.full_name, "ילד/ה")}</option>)}
           </select>
           <button className="parent-search-submit" type="submit">חיפוש</button>
         </form>
@@ -52,39 +68,39 @@ export default async function DiscoverKindergartensPage({ searchParams }: { sear
           <span><ShieldCheck size={18} /> מומלץ</span>
         </nav>
 
-        <ParentSection title="גני ילדים בטוחים באזור שלך" subtitle={selectedChild ? `התאמות עבור ${selectedChild.full_name}. הזמינות אינה שומרת מקום.` : "יש ליצור או לקשר כרטיס ילד לפני חיפוש גן."}>
+        <ParentSection title="גני ילדים בטוחים באזור שלך" subtitle={selectedChild ? `התאמות עבור ${cleanSyntheticLabel(selectedChild.full_name, "הילד/ה")}. הזמינות אינה שומרת מקום.` : "יש ליצור או לקשר כרטיס ילד לפני חיפוש גן."}>
           <div className="parent-garden-list">
             {gardens.map((garden, index) => {
               const classrooms = (garden.matching_classrooms ?? []) as any[];
               const publicPrice = garden.monthly_price;
               const eligible = garden.match_status === "eligible";
               return (
-                <article className={`parent-garden-card ${index === 0 ? "featured" : ""}`} key={garden.id}>
+                <article className={`parent-garden-card ${index === 0 ? "featured" : ""}`} key={garden.garden_id}>
                   <div className="parent-garden-image">
                     {garden.image_url ? (
-                      <img src={garden.image_url} alt={`תמונת ${garden.name}`} />
+                        <img src={garden.image_url} alt={`תמונת ${cleanSyntheticLabel(garden.garden_name, "הגן")}`} />
                     ) : (
                       <div className="parent-garden-image-empty">
                         <Building2 size={38} />
                         <small>הגן טרם העלה תמונה ציבורית</small>
                       </div>
                     )}
-                    <span>{eligible ? "מתאים לילד" : garden.reason_code ?? "פרופיל ציבורי"}</span>
+                    <span>{matchLabels[garden.match_status] ?? "פרופיל ציבורי"}</span>
                   </div>
                   <div className="parent-garden-content">
                     <div>
                       <span className="parent-safe-badge"><ShieldCheck size={18} /> {garden.match_status === "pending_request" ? "בקשה ממתינה" : eligible ? "מקום זמין" : "פרופיל ציבורי"}</span>
-                      <h3>{garden.garden_name}</h3>
-                      <p><MapPin size={16} /> {garden.city} · {garden.public_address ?? "כתובת כללית לא פורסמה"}</p>
+                      <h3>{cleanSyntheticLabel(garden.garden_name, "גן ילדים")}</h3>
+                      <p><MapPin size={16} /> {cleanSyntheticLabel(garden.city, "")} · {garden.public_address ?? "כתובת כללית לא פורסמה"}</p>
                     </div>
                     <div className="parent-garden-metrics">
                       <span><b>{garden.price_status === "configured" ? `₪${Number(publicPrice).toLocaleString("he-IL")}` : "לא הוגדר"}</b><small>תשלום חודשי</small></span>
                       <span><b>{garden.available_seats ?? "לא הוגדר"}</b><small>מקומות זמינים</small></span>
-                      <span><b>{garden.enrollment_availability}</b><small>הרשמה</small></span>
+                      <span><b>{enrollmentLabels[garden.enrollment_availability] ?? "נדרש בירור"}</b><small>הרשמה</small></span>
                       <span><b>{garden.distance_status === "distance_unavailable" ? "לא זמין" : garden.distance_km}</b><small>מרחק</small></span>
                     </div>
                     <div className="parent-garden-groups">
-                      {classrooms.slice(0, 3).map((room) => <span key={room.id}>{room.name}: {room.available_seats ?? "זמינות טרם הוגדרה"} מקומות</span>)}
+                      {classrooms.slice(0, 3).map((room) => <span key={room.id}>{cleanSyntheticLabel(room.name, "כיתה")}: {room.available_seats ?? "זמינות טרם הוגדרה"} מקומות</span>)}
                     </div>
                     <div className="parent-garden-actions">
                       <Link className="button secondary" href={`/gardens/${garden.garden_id}`}>צפייה בפרטי הגן</Link>

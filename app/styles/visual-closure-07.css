@@ -1,0 +1,629 @@
+/* UX-VISUAL-CLOSURE-07
+   Final reference-fidelity layer for the cumulative UX-01 → UX-07 product.
+   This file intentionally contains visual overrides only; canonical data,
+   authorization and route behavior remain owned by their domain modules. */
+
+:root {
+  --closure-navy: #06265f;
+  --closure-navy-deep: #041b4b;
+  --closure-blue: #086ee5;
+  --closure-blue-bright: #1688f5;
+  --closure-sky: #eef7ff;
+  --closure-line: #d9e8f8;
+  --closure-shadow: 0 18px 46px rgb(8 52 118 / 10%);
+  --closure-shadow-strong: 0 24px 58px rgb(5 42 105 / 15%);
+}
+
+/* Next's own devtools/issue portal is browser chrome, not product UI. The
+   application keeps its explicit DEVELOPMENT marker and accessible sandbox
+   status below. */
+nextjs-portal { display: none !important; }
+
+/* Keep environment truth visible without changing product composition. */
+.development-identity {
+  position: fixed;
+  inset-block-start: auto;
+  inset-block-end: max(10px, env(safe-area-inset-bottom));
+  inset-inline-start: auto;
+  inset-inline-end: 10px;
+  z-index: 10000;
+  display: inline-flex;
+  min-height: 30px;
+  align-items: center;
+  gap: 7px;
+  max-width: 52px;
+  padding: 4px 6px;
+  border: 1px solid rgb(255 255 255 / 36%);
+  border-radius: 999px;
+  background: rgb(4 28 72 / 78%);
+  color: #fff;
+  font-size: .68rem;
+  line-height: 1.2;
+  box-shadow: 0 8px 22px rgb(4 27 70 / 18%);
+  backdrop-filter: blur(14px);
+  pointer-events: none;
+}
+
+.development-identity strong {
+  display: grid;
+  min-width: 36px;
+  min-height: 20px;
+  place-items: center;
+  border-radius: 999px;
+  background: #ffcf4a;
+  color: #3d2a00;
+  font-size: .61rem;
+  letter-spacing: .06em;
+}
+
+.development-identity span { display: none; }
+
+.sandbox-mode-banner {
+  position: fixed !important;
+  inset-block-start: max(43px, calc(env(safe-area-inset-top) + 43px));
+  inset-inline-start: auto;
+  inset-inline-end: 10px;
+  z-index: 9999;
+  width: 34px;
+  max-width: 34px;
+  min-height: 30px;
+  margin: 0 !important;
+  padding: 6px !important;
+  border-radius: 999px !important;
+  background: rgb(244 251 255 / 90%) !important;
+  box-shadow: 0 8px 22px rgb(4 27 70 / 12%) !important;
+  backdrop-filter: blur(14px);
+  pointer-events: none;
+}
+.sandbox-mode-banner svg { width: 15px; height: 15px; }
+.sandbox-mode-banner div { display: none; }
+.sandbox-mode-banner strong { flex: 0 0 auto; font-size: .68rem; }
+.sandbox-mode-banner span { overflow: hidden; margin: 0 !important; font-size: .64rem; text-overflow: ellipsis; white-space: nowrap; }
+
+.dashboard-environment-notice {
+  width: fit-content !important;
+  max-width: min(100%, 520px);
+  min-height: 0 !important;
+  align-self: flex-start;
+  padding: 6px 11px !important;
+  border-radius: 999px !important;
+  font-size: .7rem !important;
+  line-height: 1.25 !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Shared typography, cards and action hierarchy. */
+.role-app-shell,
+.kindergarten-app-onboarding {
+  background:
+    radial-gradient(circle at 8% 0%, rgb(89 168 255 / 10%), transparent 28rem),
+    radial-gradient(circle at 94% 88%, rgb(116 91 237 / 6%), transparent 30rem),
+    linear-gradient(180deg, #fbfdff 0%, #eff7ff 100%);
+}
+
+.role-app-shell :where(h1, h2, h3),
+.kindergarten-app-onboarding :where(h1, h2, h3) {
+  color: var(--closure-navy);
+  font-weight: 950;
+  letter-spacing: -.025em;
+}
+
+.role-app-shell :where(.role-app-title h1, .parent-hero h1, .staff-reference-hero h1, .staff-page-hero-ref h1, .ux04-workspace-header h2, .ux06-page-header h2, .ux07-page-hero h1) {
+  line-height: 1.05;
+  text-wrap: balance;
+}
+
+.role-app-shell :where(.button.primary, .gb-primary-button),
+.kindergarten-app-onboarding .button.primary {
+  min-height: 50px;
+  justify-content: center;
+  padding-inline: 20px;
+  border: 0 !important;
+  border-radius: 14px !important;
+  background: linear-gradient(135deg, var(--closure-blue-bright), #0753c8) !important;
+  color: #fff !important;
+  font-weight: 900;
+  box-shadow: 0 13px 28px rgb(5 93 211 / 24%) !important;
+}
+
+.role-app-shell :where(.button.secondary, .parent-outline-button),
+.kindergarten-app-onboarding .button.secondary {
+  min-height: 46px;
+  border-color: #bfd7f5 !important;
+  border-radius: 13px !important;
+  background: #f4f9ff !important;
+  color: #0b5fc9 !important;
+  font-weight: 900;
+}
+
+.role-app-shell :where(.gb-premium-card, .gb-metric-card, .gb-action-card, .gb-list-row-card, .card, .action-panel, .dashboard-section, .parent-section-card, .parent-child-card, .parent-metric-card, .staff-section-ref) {
+  border-color: var(--closure-line) !important;
+  box-shadow: var(--closure-shadow) !important;
+}
+
+.role-app-shell :where(.gb-section-header h2, .parent-section-head h3, .section-heading h2, .section-heading h3, .staff-section-ref h2) {
+  font-size: clamp(1.05rem, 1.65vw, 1.32rem);
+}
+
+.role-app-shell :where(.gb-status-chip, .pill, .status-chip) {
+  min-height: 28px;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 10px;
+  border: 1px solid currentColor;
+  border-radius: 999px;
+  font-weight: 900;
+}
+
+/* Auth and registration: preserve the established system, only strengthen CTA hierarchy. */
+.gb-auth-shell :where(.button.primary, .gb-primary-button),
+.gb-auth-card :where(.button.primary, .gb-primary-button) {
+  min-height: 54px;
+  border-radius: 15px;
+  font-size: .98rem;
+  font-weight: 950;
+}
+
+/* UX-02: focused, progressive owner onboarding. */
+.kindergarten-app-onboarding { padding-block-start: 18px; }
+
+.manager-registration-entry-focused {
+  width: min(1080px, 100%);
+  margin-inline: auto;
+}
+
+.manager-registration-entry-focused .manager-registration-intro {
+  min-height: 285px;
+  border-radius: 30px;
+  box-shadow: var(--closure-shadow-strong);
+}
+
+.manager-registration-entry-focused .manager-registration-intro h2 { font-size: clamp(2.2rem, 4vw, 3.7rem); }
+
+.manager-entry-progress {
+  position: sticky;
+  inset-block-start: 10px;
+  z-index: 18;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0;
+  padding: 10px 18px;
+  border: 1px solid rgb(211 229 249 / 92%);
+  border-radius: 22px;
+  background: rgb(255 255 255 / 90%);
+  box-shadow: 0 14px 36px rgb(9 49 108 / 10%);
+  backdrop-filter: blur(18px);
+}
+
+.manager-entry-progress button {
+  position: relative;
+  display: grid;
+  justify-items: center;
+  gap: 5px;
+  border: 0;
+  padding: 8px;
+  background: transparent;
+  color: #8695ad;
+  font: inherit;
+}
+
+.manager-entry-progress button::after {
+  position: absolute;
+  inset-block-start: 27px;
+  inset-inline-start: calc(50% + 28px);
+  width: calc(100% - 56px);
+  height: 2px;
+  background: #dce8f6;
+  content: "";
+}
+
+.manager-entry-progress button:last-child::after { display: none; }
+.manager-entry-progress button > span { position: relative; z-index: 1; display: grid; width: 38px; height: 38px; place-items: center; border: 2px solid #dbe7f5; border-radius: 50%; background: #fff; font-weight: 950; }
+.manager-entry-progress button b { font-size: .82rem; }
+.manager-entry-progress button.active,
+.manager-entry-progress button.complete { color: var(--closure-navy); }
+.manager-entry-progress button.active > span,
+.manager-entry-progress button.complete > span { border-color: transparent; background: linear-gradient(135deg, #1788f4, #0950c5); color: #fff; box-shadow: 0 8px 20px rgb(6 91 207 / 24%); }
+.manager-entry-progress button.complete::after { background: #1681ed; }
+.manager-entry-progress svg { width: 17px; }
+
+.manager-entry-stage[hidden] { display: none !important; }
+.manager-entry-stage.is-active {
+  display: grid;
+  min-height: 300px;
+  align-content: start;
+  border-radius: 28px;
+  box-shadow: var(--closure-shadow);
+  animation: closure-stage-in 220ms ease both;
+}
+
+.manager-entry-stage .section-heading { margin-bottom: 26px; }
+.manager-entry-stage .section-heading h3 { margin: 0; font-size: 1.55rem; }
+.manager-entry-stage .section-heading p { font-size: .9rem; }
+.manager-entry-stage .form-grid { gap: 17px; }
+.manager-entry-actions {
+  position: sticky;
+  inset-block-end: max(8px, env(safe-area-inset-bottom));
+  z-index: 17;
+  display: grid;
+  grid-template-columns: auto auto minmax(0, 1fr);
+  align-items: center;
+  padding: 13px;
+  border: 1px solid rgb(211 228 247 / 94%);
+  border-radius: 20px;
+  background: rgb(255 255 255 / 91%);
+  box-shadow: 0 18px 45px rgb(8 48 108 / 13%);
+  backdrop-filter: blur(18px);
+}
+.manager-entry-actions > span { justify-self: end; }
+.manager-entry-safe-note { display: inline-flex; align-items: center; gap: 7px; color: #0b8b62 !important; font-weight: 850; }
+.manager-entry-safe-note svg { width: 18px; }
+
+.manager-live-onboarding .manager-wizard-stage.is-active {
+  min-height: 480px;
+  padding: 24px;
+  border: 1px solid #d9e7f7;
+  border-radius: 28px;
+  background: rgb(255 255 255 / 77%);
+  box-shadow: var(--closure-shadow);
+}
+.manager-live-onboarding .manager-stage-heading h2 { font-size: clamp(1.7rem, 2.8vw, 2.35rem); }
+.manager-live-onboarding .manager-registration-card { border-radius: 22px; }
+
+/* UX-03: reference-led owner command centre. */
+.role-app-manager .role-app-page,
+.role-app-owner .role-app-page { max-width: 1520px; }
+
+.manager-command-hero {
+  min-height: 284px;
+  grid-template-columns: minmax(0, 1.1fr) minmax(390px, .9fr);
+  border-radius: 30px;
+  border-color: #cfdef3;
+  box-shadow: var(--closure-shadow-strong);
+}
+.manager-command-hero-copy { gap: 13px; padding: 38px clamp(28px, 4vw, 62px); }
+.manager-command-hero h2 { font-size: clamp(2.55rem, 4.6vw, 4.35rem); }
+.manager-command-hero p { font-size: 1.1rem; }
+.manager-command-hero-art { min-height: 284px; }
+.manager-command-hero-art > span { right: 30px; bottom: 24px; padding: 12px 16px; font-size: .86rem; }
+
+.manager-today-strip { gap: 13px; }
+.manager-today-metric { min-height: 112px; padding: 16px; border-radius: 20px; }
+.manager-today-metric > span { width: 48px; height: 48px; border-radius: 15px; }
+.manager-today-metric strong { font-size: 1.82rem; }
+.manager-today-metric.green { background: linear-gradient(145deg, #fff, #edfbf6); border-color: #cceee0; }
+.manager-today-metric.red { background: linear-gradient(145deg, #fff, #fff1f4); border-color: #f7d4dd; }
+.manager-today-metric.purple { background: linear-gradient(145deg, #fff, #f3efff); border-color: #dfd8fa; }
+.manager-today-metric.cyan { background: linear-gradient(145deg, #fff, #eafaff); border-color: #ccecf4; }
+.manager-today-metric.orange { background: linear-gradient(145deg, #fff, #fff6e7); border-color: #f3dfb9; }
+.manager-command-grid { gap: 18px; }
+.manager-operational-card { min-height: 320px; padding: 22px; border-radius: 22px !important; }
+.manager-card-heading > span { font-size: 1.14rem; }
+.manager-staff-status-grid > span { min-height: 108px; }
+.manager-reference-quick > div > a { min-height: 118px; border-radius: 18px; }
+
+/* UX-04: visual identity, avatar density and classroom character. */
+.ux04-workspace-header {
+  min-height: 148px;
+  border-radius: 28px;
+  background:
+    linear-gradient(90deg, rgb(244 249 255 / 96%), rgb(234 245 255 / 80%)),
+    url('/assets/gan-batuach-auth-hero.webp') 12% 42% / 410px auto no-repeat;
+  box-shadow: var(--closure-shadow-strong);
+}
+.ux04-workspace-header h2 { font-size: clamp(2rem, 3.3vw, 2.85rem); }
+.ux04-summary-strip > span { min-height: 92px; border-radius: 19px; box-shadow: 0 10px 28px rgb(12 57 119 / 7%); }
+.ux04-summary-strip b { font-size: 1.7rem; }
+.ux04-child-row { min-height: 78px; font-size: .8rem; }
+.ux04-child-identity .avatar,
+.ux04-enrollment-row .avatar { width: 46px !important; height: 46px !important; box-shadow: 0 0 0 4px #edf5ff; }
+.ux04-classroom-card { padding: 14px; border-radius: 22px; box-shadow: var(--closure-shadow); }
+.ux04-classroom-art {
+  position: relative;
+  min-height: 150px;
+  overflow: hidden;
+  isolation: isolate;
+  background:
+    linear-gradient(180deg, rgb(7 55 120 / 6%), rgb(7 55 120 / 58%)),
+    url('/assets/gan-batuach-auth-hero.webp') 64% 60% / cover;
+  color: #fff;
+}
+.ux04-classroom-card.tone-2 .ux04-classroom-art { background: linear-gradient(180deg, rgb(110 65 7 / 4%), rgb(116 75 16 / 55%)), url('/assets/gan-batuach-auth-hero.webp') 28% 55% / cover; color: #fff; }
+.ux04-classroom-card.tone-3 .ux04-classroom-art { background: linear-gradient(180deg, rgb(6 91 55 / 4%), rgb(4 92 63 / 56%)), url('/assets/gan-batuach-auth-hero.webp') 76% 45% / cover; color: #fff; }
+.ux04-classroom-card.tone-4 .ux04-classroom-art { background: linear-gradient(180deg, rgb(65 28 112 / 3%), rgb(69 42 117 / 58%)), url('/assets/gan-batuach-auth-hero.webp') 42% 58% / cover; color: #fff; }
+.ux04-classroom-art::after { position: absolute; inset: 0; z-index: -1; border: 1px solid rgb(255 255 255 / 32%); border-radius: inherit; content: ""; }
+.ux04-profile-hero {
+  min-height: 164px;
+  padding: 25px 30px;
+  border-radius: 28px;
+  background:
+    radial-gradient(circle at 4% 10%, rgb(54 143 255 / 18%), transparent 30%),
+    linear-gradient(115deg, #fff, #edf6ff);
+  box-shadow: var(--closure-shadow-strong);
+}
+.ux04-profile-avatar .avatar { width: 112px !important; height: 112px !important; border: 6px solid #fff; box-shadow: 0 14px 32px rgb(8 55 119 / 18%); }
+.ux04-profile-title h2 { font-size: clamp(2rem, 3.2vw, 2.7rem); }
+.ux04-profile-tabs { position: sticky; inset-block-start: 8px; z-index: 12; padding: 7px; box-shadow: 0 10px 28px rgb(9 50 112 / 9%); }
+.ux04-profile-panel { padding: 22px; border-radius: 21px; }
+
+/* UX-05: parent screens use warm imagery and a richer child-first hierarchy. */
+.role-app-shell.parent-runtime-shell .parent-app-main { gap: 22px; }
+.role-app-shell.parent-runtime-shell .parent-hero {
+  position: relative;
+  display: grid;
+  min-height: 145px;
+  align-content: center;
+  overflow: hidden;
+  padding: 24px 32px;
+  border: 1px solid #d7e7f8;
+  border-radius: 26px;
+  background:
+    linear-gradient(90deg, rgb(232 245 255 / 10%) 0 37%, rgb(244 250 255 / 88%) 57%, rgb(244 250 255 / 99%) 100%),
+    url('/assets/gan-batuach-auth-hero.webp') left 44% center / 390px auto no-repeat;
+  box-shadow: var(--closure-shadow);
+  text-align: right;
+}
+.role-app-shell.parent-runtime-shell .parent-hero h1 { position: relative; z-index: 1; font-size: clamp(2.2rem, 3.6vw, 3.35rem); }
+.role-app-shell.parent-runtime-shell .parent-hero p { position: relative; z-index: 1; max-width: 58ch; font-size: 1rem; }
+.role-app-shell.parent-runtime-shell .parent-child-card {
+  min-height: 188px;
+  padding: 24px;
+  background: radial-gradient(circle at 100% 0%, rgb(84 160 255 / 16%), transparent 38%), #fff;
+}
+.role-app-shell.parent-runtime-shell .parent-child-photo { width: 126px; height: 126px; border: 7px solid #fff; box-shadow: 0 12px 30px rgb(10 56 120 / 16%); }
+.role-app-shell.parent-runtime-shell .parent-child-card h2 { font-size: 2rem; }
+.role-app-shell.parent-runtime-shell .parent-metric-card { min-height: 150px; border-radius: 21px !important; }
+.role-app-shell.parent-runtime-shell .parent-section-card { padding: 22px; border-radius: 23px !important; }
+.role-app-shell.parent-runtime-shell .parent-action-tile { min-height: 118px; border-radius: 20px !important; }
+
+.parent-garden-list { gap: 18px !important; }
+.parent-garden-card {
+  overflow: hidden;
+  border: 1px solid #d7e6f7 !important;
+  border-radius: 24px !important;
+  background: #fff;
+  box-shadow: var(--closure-shadow) !important;
+}
+.parent-garden-card.featured { border-color: #78aef0 !important; box-shadow: 0 20px 52px rgb(4 81 184 / 15%) !important; }
+.parent-garden-image { min-height: 225px !important; }
+.parent-garden-image-empty {
+  position: relative;
+  width: 100%;
+  min-height: 225px !important;
+  overflow: hidden;
+  isolation: isolate;
+  background:
+    linear-gradient(180deg, rgb(6 42 93 / 8%), rgb(5 48 106 / 58%)),
+    url('/assets/gan-batuach-auth-hero.webp') 62% 48% / cover;
+  color: #fff;
+}
+.parent-garden-image-empty::before { position: absolute; inset: 0; z-index: -1; background: linear-gradient(125deg, transparent, rgb(255 255 255 / 10%)); content: ""; }
+.parent-garden-image-empty small { padding: 7px 10px; border-radius: 999px; background: rgb(4 31 73 / 52%); color: #fff; backdrop-filter: blur(8px); }
+.parent-garden-content { padding: 22px !important; }
+.parent-garden-content h3 { font-size: 1.55rem !important; }
+.parent-garden-metrics > span { min-height: 82px; border-radius: 14px; background: #f4f9ff; }
+.parent-garden-actions .button { min-height: 48px; }
+
+/* UX-06: operational states are visually distinct and exact values stay prominent. */
+.ux06-page-header { min-height: 128px; border-radius: 27px; box-shadow: var(--closure-shadow-strong); }
+.ux06-page-header h2 { font-size: clamp(2rem, 3.4vw, 2.85rem); }
+.ux06-metrics a { min-height: 106px; border-radius: 20px; }
+.ux06-metrics a b { font-size: 1.72rem; }
+.ux06-attendance-row { min-height: 82px; }
+.ux06-attendance-row .avatar,
+.ux06-mobile-list .avatar,
+.ux06-staff-child-list .avatar { width: 46px !important; height: 46px !important; box-shadow: 0 0 0 4px #edf5ff; }
+.ux06-release-form { position: relative; overflow: hidden; border-radius: 24px !important; }
+.ux06-release-form::before { position: absolute; inset-block: 0; inset-inline-start: 0; width: 7px; background: linear-gradient(#1688f4, #0750c5); content: ""; }
+.ux06-release-state-summary { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.ux06-release-state-summary > span { display: grid; grid-template-columns: auto auto; align-items: center; justify-content: start; gap: 1px 9px; min-height: 88px; padding: 14px 17px; border: 1px solid #dce8f6; border-radius: 18px; background: #fff; box-shadow: 0 10px 28px rgb(8 54 116 / 7%); }
+.ux06-release-state-summary svg { grid-row: 1 / 3; width: 42px; height: 42px; padding: 9px; border-radius: 13px; background: #e4f8ef; color: #0b9567; }
+.ux06-release-state-summary b { color: #0d3b79; font-size: 1.5rem; }
+.ux06-release-state-summary small { color: #71849e; font-size: .7rem; font-weight: 850; }
+.ux06-release-state-summary .blocked { border-color: #f0cad2; background: #fff5f7; }
+.ux06-release-state-summary .blocked svg { background: #ffe8ed; color: #c93350; }
+.ux06-release-state-summary .server { grid-template-columns: minmax(0, 1fr); justify-items: center; text-align: center; background: #f2f7ff; }
+.ux06-release-state-summary .server b { font-size: 1.7rem; }
+.ux06-blocked-pickups {
+  display: grid;
+  gap: 9px;
+  margin-top: 16px;
+  padding: 14px;
+  border: 1px solid #f2c9d1;
+  border-radius: 16px;
+  background: linear-gradient(145deg, #fff8f9, #fff0f3);
+  opacity: 1;
+}
+.ux06-blocked-pickups::before { color: #b62e4a; font-size: .78rem; font-weight: 950; content: "אין לאשר שחרור"; }
+.ux06-release-confirmation { background: rgb(2 21 54 / 62%); backdrop-filter: blur(10px); }
+.ux06-release-confirmation > div { max-width: 560px; padding: 30px; border-radius: 28px; box-shadow: 0 32px 90px rgb(0 20 60 / 30%); }
+.ux06-release-confirmation > div > svg { width: 70px; height: 70px; }
+.ux06-release-confirmation h2 { font-size: 2rem; }
+.timeline-list .timeline-item { min-height: 74px; padding: 13px; border: 1px solid #e0eaf6; border-radius: 15px; background: #f9fcff; }
+
+/* UX-07: modern staff identity, schedule and multi-garden context. */
+.role-app-shell.staff-runtime-shell {
+  background:
+    radial-gradient(circle at 10% 0%, rgb(47 144 255 / 13%), transparent 27rem),
+    linear-gradient(180deg, #fbfdff, #eef6ff);
+}
+.role-app-shell.staff-runtime-shell .gb-app-shell-sidebar,
+.role-app-shell.staff-runtime-shell .gb-sidebar-nav { background: linear-gradient(180deg, #073a86, #052862 62%, #041b48); }
+.role-app-shell.staff-runtime-shell .staff-reference-hero,
+.role-app-shell.staff-runtime-shell .staff-page-hero-ref {
+  position: relative;
+  min-height: 178px;
+  overflow: hidden;
+  padding: 28px 32px;
+  border: 1px solid #d4e6f8;
+  border-radius: 27px;
+  background:
+    linear-gradient(90deg, rgb(231 244 255 / 8%) 0 36%, rgb(248 252 255 / 88%) 58%, rgb(248 252 255 / 99%) 100%),
+    url('/assets/gan-batuach-auth-hero.webp') left 36% center / 390px auto no-repeat;
+  box-shadow: var(--closure-shadow-strong);
+}
+.role-app-shell.staff-runtime-shell .staff-reference-hero h1,
+.role-app-shell.staff-runtime-shell .staff-page-hero-ref h1 { font-size: clamp(2.15rem, 3.4vw, 3.25rem); }
+.role-app-shell.staff-runtime-shell .staff-info-pill { min-height: 100px; border-radius: 18px; box-shadow: 0 10px 26px rgb(8 55 117 / 8%); }
+.role-app-shell.staff-runtime-shell .staff-shift-card-ref { min-height: 190px; border-radius: 25px !important; background: linear-gradient(135deg, #fff, #edf6ff); }
+.role-app-shell.staff-runtime-shell .staff-calendar-art { border-radius: 20px; box-shadow: 0 14px 30px rgb(7 65 145 / 20%); }
+.role-app-shell.staff-runtime-shell .staff-section-ref { padding: 22px; border-radius: 23px !important; }
+.staff-garden-context-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(230px, 360px);
+  align-items: center;
+  gap: 18px;
+  margin-block-end: 18px;
+  padding: 18px 22px;
+  border: 1px solid #cfe1f5 !important;
+  border-radius: 21px !important;
+  background: linear-gradient(115deg, #f8fcff, #e9f4ff) !important;
+  box-shadow: 0 12px 30px rgb(7 59 129 / 8%);
+}
+.staff-garden-context-copy { display: grid; gap: 3px; }
+.staff-garden-context-copy b { color: #0a3777; font-size: 1.05rem; }
+.staff-garden-context-copy small { color: #6b809d; font-size: .74rem; font-weight: 700; }
+.staff-garden-context-card select { min-height: 48px; border: 1px solid #bcd4ef; border-radius: 14px; background: #fff; color: #0a3777; font-weight: 850; }
+.staff-garden-context-card > small[role="alert"] { grid-column: 1 / -1; color: #b62e4a; }
+.ux07-page-hero { min-height: 150px; border-radius: 27px; box-shadow: var(--closure-shadow-strong); }
+.ux07-page-hero h1 { font-size: clamp(2.05rem, 3.25vw, 2.95rem); }
+.ux07-staff-profile-card { padding: 26px; border-radius: 26px; background: radial-gradient(circle at 4% 0%, rgb(71 153 255 / 16%), transparent 32%), #fff; box-shadow: var(--closure-shadow-strong); }
+.ux07-profile-identity .avatar { width: 104px !important; height: 104px !important; border: 6px solid #fff; box-shadow: 0 14px 34px rgb(6 54 117 / 17%); }
+.ux07-profile-identity h2 { font-size: 2rem; }
+.ux07-profile-facts > span { min-height: 88px; border-radius: 17px; }
+.ux07-current-shift { min-height: 118px; padding: 22px; border-radius: 23px; box-shadow: var(--closure-shadow); }
+.ux07-current-shift strong { font-size: 1.42rem; }
+.staff-week-board {
+  display: grid;
+  gap: 12px;
+  padding: 20px;
+  border: 1px solid #d8e7f7;
+  border-radius: 24px;
+  background: #fff;
+  box-shadow: var(--closure-shadow);
+}
+.staff-week-board > header { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.staff-week-board h2,
+.staff-week-board p { margin: 0; }
+.staff-week-board h2 { font-size: 1.3rem; }
+.staff-week-board p { margin-top: 4px; color: #71849e; font-size: .78rem; }
+.staff-week-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 8px; }
+.staff-week-day { display: grid; min-height: 132px; align-content: start; gap: 7px; padding: 11px; border: 1px solid #e0e9f5; border-radius: 15px; background: #f8fbff; }
+.staff-week-day.current { border-color: #76adef; background: #eef6ff; box-shadow: inset 0 0 0 2px rgb(24 116 226 / 8%); }
+.staff-week-day > span { display: flex; align-items: baseline; justify-content: space-between; gap: 5px; color: #607895; font-size: .66rem; font-weight: 850; }
+.staff-week-day > span b { color: #123d7a; font-size: 1rem; }
+.staff-week-shift { display: grid; gap: 2px; padding: 8px; border-radius: 10px; background: #e4f8ef; color: #0a7654; font-size: .66rem; font-weight: 900; }
+.staff-week-shift.incomplete { background: #fff0f3; color: #b8324c; }
+.staff-week-shift.planned { background: #eaf3ff; color: #1459b2; }
+
+@keyframes closure-stage-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: none; } }
+
+@media (max-width: 820px) {
+  .development-identity { inset-block-end: max(76px, calc(env(safe-area-inset-bottom) + 76px)); inset-inline-end: 7px; max-width: 44px; min-height: 26px; padding: 3px 5px; opacity: .72; }
+  .development-identity span { display: none; }
+  .development-identity strong { min-width: 34px; }
+  .sandbox-mode-banner { inset-block-start: max(42px, calc(env(safe-area-inset-top) + 42px)); inset-inline-end: 7px; width: 30px; max-width: 30px; min-height: 27px; padding: 4px 7px !important; opacity: .72; }
+  .sandbox-mode-banner span { display: none; }
+
+  .role-app-page { padding-inline: 13px; }
+  .role-app-shell :where(.button.primary, .gb-primary-button) { min-height: 50px; }
+
+  .kindergarten-app-onboarding { padding: 12px 12px 96px; }
+  .kindergarten-app-onboarding-hero { grid-template-columns: minmax(0, 1fr) 92px; min-height: 152px; padding: 20px; border-radius: 24px; }
+  .kindergarten-app-onboarding-hero h2 { font-size: 1.8rem; }
+  .kindergarten-app-onboarding-hero p { font-size: .78rem; line-height: 1.5; }
+  .kindergarten-app-hero-icon { width: 82px; height: 82px; border-radius: 24px; }
+  .manager-registration-entry-focused .manager-registration-intro { grid-template-columns: minmax(0, 1fr); min-height: 0; border-radius: 24px; }
+  .manager-registration-entry-focused .manager-registration-intro > div:first-child { padding: 24px 20px; }
+  .manager-registration-entry-focused .manager-registration-intro h2 { font-size: 2rem; }
+  .manager-registration-entry-focused .manager-registration-visual { min-height: 155px; }
+  .manager-entry-progress { inset-block-start: 6px; padding: 7px 4px; border-radius: 17px; }
+  .manager-entry-progress button { padding: 6px 2px; }
+  .manager-entry-progress button > span { width: 32px; height: 32px; }
+  .manager-entry-progress button::after { inset-block-start: 22px; inset-inline-start: calc(50% + 22px); width: calc(100% - 44px); }
+  .manager-entry-progress button b { font-size: .64rem; }
+  .manager-entry-stage.is-active { min-height: 0; padding: 20px 16px; border-radius: 22px; }
+  .manager-entry-stage .section-heading h3 { font-size: 1.32rem; }
+  .manager-entry-stage .form-grid { grid-template-columns: minmax(0, 1fr); }
+  .manager-entry-stage .wide { grid-column: auto; }
+  .manager-entry-actions { grid-template-columns: 1fr 1fr; gap: 8px; padding: 9px; border-radius: 17px; }
+  .manager-entry-actions .button { width: 100%; }
+  .manager-entry-actions > span { grid-column: 1 / -1; justify-self: center; font-size: .68rem; text-align: center; }
+  .manager-live-onboarding .manager-wizard-stage.is-active { min-height: 0; padding: 16px 13px; border-radius: 21px; }
+
+  .manager-command-hero { grid-template-columns: minmax(0, 1fr) 118px; min-height: 232px; border-radius: 22px; }
+  .manager-command-hero-copy { padding: 20px 16px; }
+  .manager-command-hero h2 { font-size: 2.05rem; }
+  .manager-command-hero p { font-size: .76rem; }
+  .manager-command-hero-art { min-height: 232px; }
+  .manager-today-metric { min-height: 86px; padding: 10px; }
+  .manager-today-metric > span { width: 37px; height: 37px; }
+  .manager-today-metric strong { font-size: 1.35rem; }
+  .manager-operational-card { min-height: 0; padding: 17px 15px; }
+
+  .ux04-workspace-header { min-height: 118px; padding: 20px 16px; background: linear-gradient(105deg, rgb(255 255 255 / 95%), rgb(233 245 255 / 86%)), url('/assets/gan-batuach-auth-hero.webp') left center / 210px auto no-repeat; }
+  .ux04-workspace-header h2 { font-size: 1.75rem; }
+  .ux04-child-identity .avatar,
+  .ux04-enrollment-row .avatar { width: 44px !important; height: 44px !important; }
+  .ux04-classroom-card { grid-template-columns: 118px minmax(0, 1fr); }
+  .ux04-classroom-art { min-height: 142px; }
+  .ux04-profile-hero { min-height: 0; padding: 18px 14px; border-radius: 22px; }
+  .ux04-profile-avatar .avatar { width: 82px !important; height: 82px !important; }
+  .ux04-profile-title h2 { font-size: 1.65rem; }
+  .ux04-profile-tabs { inset-block-start: 5px; }
+
+  .role-app-shell.parent-runtime-shell .parent-hero { min-height: 128px; padding: 20px 17px; border-radius: 21px; background: linear-gradient(90deg, rgb(230 244 255 / 8%) 0 36%, rgb(245 251 255 / 88%) 58%, rgb(245 251 255 / 99%) 100%), url('/assets/gan-batuach-auth-hero.webp') left 44% center / 220px auto no-repeat; text-align: right; }
+  .role-app-shell.parent-runtime-shell .parent-hero h1 { max-width: 75%; font-size: 1.8rem; }
+  .role-app-shell.parent-runtime-shell .parent-hero p { max-width: 70%; font-size: .75rem; }
+  .role-app-shell.parent-runtime-shell .parent-child-card { min-height: 150px; padding: 16px; }
+  .role-app-shell.parent-runtime-shell .parent-child-photo { width: 92px; height: 92px; }
+  .role-app-shell.parent-runtime-shell .parent-child-card h2 { font-size: 1.55rem; }
+  .role-app-shell.parent-runtime-shell .parent-metric-card { min-height: 126px; }
+  .role-app-shell.parent-runtime-shell .parent-section-card { padding: 16px; }
+  .parent-garden-card { grid-template-columns: minmax(0, 1fr) !important; }
+  .parent-garden-image,
+  .parent-garden-image-empty { min-height: 185px !important; }
+  .parent-garden-content { padding: 16px !important; }
+  .parent-garden-metrics { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+
+  .ux06-page-header { min-height: 0; padding: 18px 16px; }
+  .ux06-page-header h2 { font-size: 1.8rem; }
+  .ux06-metrics a { min-height: 78px; }
+  .ux06-release-confirmation > div { padding: 24px 17px; }
+  .ux06-release-confirmation h2 { font-size: 1.65rem; }
+  .ux06-release-state-summary { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 7px; }
+  .ux06-release-state-summary > span { min-height: 72px; padding: 10px; }
+  .ux06-release-state-summary .server { grid-column: 1 / -1; min-height: 58px; }
+
+  .role-app-shell.staff-runtime-shell .staff-reference-hero,
+  .role-app-shell.staff-runtime-shell .staff-page-hero-ref { min-height: 142px; padding: 20px 16px; border-radius: 22px; background: linear-gradient(90deg, rgb(232 245 255 / 8%) 0 35%, rgb(247 252 255 / 88%) 58%, rgb(247 252 255 / 99%) 100%), url('/assets/gan-batuach-auth-hero.webp') left 40% center / 225px auto no-repeat; }
+  .role-app-shell.staff-runtime-shell .staff-reference-hero h1,
+  .role-app-shell.staff-runtime-shell .staff-page-hero-ref h1 { font-size: 1.72rem; }
+  .role-app-shell.staff-runtime-shell .staff-section-ref { padding: 16px; }
+  .staff-garden-context-card { grid-template-columns: minmax(0, 1fr); gap: 10px; padding: 14px; border-radius: 18px !important; }
+  .staff-garden-context-copy small { font-size: .68rem; }
+  .ux07-page-hero { min-height: 0; }
+  .ux07-page-hero h1 { font-size: 1.8rem; }
+  .ux07-staff-profile-card { padding: 17px; border-radius: 21px; }
+  .ux07-profile-identity .avatar { width: 82px !important; height: 82px !important; }
+  .ux07-profile-identity h2 { font-size: 1.6rem; }
+  .staff-week-board { padding: 15px; overflow: hidden; }
+  .staff-week-grid { grid-template-columns: minmax(0, 1fr); gap: 7px; }
+  .staff-week-day { grid-template-columns: 82px minmax(0, 1fr); min-height: 0; align-items: center; padding: 9px 11px; }
+  .staff-week-day > span { justify-content: start; gap: 10px; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .role-app-shell :where(.button, .gb-action-card, .parent-action-tile, .parent-garden-card, .ux04-classroom-card, .manager-today-metric),
+  .kindergarten-app-onboarding :where(.button, .manager-role-mode-grid label > span) {
+    transition: transform 160ms ease, box-shadow 160ms ease, border-color 160ms ease;
+  }
+  .role-app-shell :where(.button, .gb-action-card, .parent-action-tile, .parent-garden-card, .ux04-classroom-card, .manager-today-metric):hover,
+  .kindergarten-app-onboarding :where(.button, .manager-role-mode-grid label > span):hover { transform: translateY(-2px); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .manager-entry-stage.is-active { animation: none; }
+}

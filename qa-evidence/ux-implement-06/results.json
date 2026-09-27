@@ -1,7 +1,7 @@
 {
   "environment": "DEVELOPMENT / INTEGRATION",
-  "base": "http://127.0.0.1:3006",
-  "capturedAt": "2026-09-24T18:14:23.244Z",
+  "base": "http://127.0.0.1:3001",
+  "capturedAt": "2026-09-26T23:25:26.318Z",
   "reference": "GB_UX_REF_ATTENDANCE_PICKUP_OPERATIONS.png",
   "viewports": {
     "desktop": {

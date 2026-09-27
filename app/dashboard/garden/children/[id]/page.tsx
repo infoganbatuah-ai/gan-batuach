@@ -8,6 +8,7 @@ import { ClassroomAssignmentForm } from "@/components/classroom-management-actio
 import { DashboardShell } from "@/components/dashboard-shell";
 import { StatusChip } from "@/components/gan-batuach-design-system";
 import { TeacherAppFrame, TeacherEmptyState } from "@/components/teacher-app-ui";
+import { cleanSyntheticLabel } from "@/lib/domain/display-label";
 import { getManagementGardenContext } from "@/lib/management/garden-context";
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
@@ -32,7 +33,7 @@ function ageText(value?: string | null) {
 }
 
 function statusLabel(value?: string | null) {
-  const labels: Record<string, string> = { active: "פעיל", approved: "מאושר", pending: "ממתין", verified: "מאומת", rejected: "נדחה", expired: "פג תוקף", uploaded: "הועלה", partially_paid: "שולם חלקית", paid: "שולם", overdue: "באיחור", reconciliation_required: "נדרשת התאמה", present: "נוכח/ת", absent: "נעדר/ת", departed: "נאסף/ה", checked_out: "נאסף/ה" };
+  const labels: Record<string, string> = { active: "פעיל", approved: "מאושר", pending: "ממתין", verified: "מאומת", rejected: "נדחה", expired: "פג תוקף", uploaded: "הועלה", partially_paid: "שולם חלקית", paid: "שולם", overdue: "באיחור", reconciliation_required: "נדרשת התאמה", present: "נוכח/ת", absent: "נעדר/ת", departed: "נאסף/ה", checked_out: "נאסף/ה", left_early: "יציאה מוקדמת", expected: "צפוי/ה" };
   return labels[String(value)] ?? String(value || "לא הוגדר");
 }
 
@@ -86,7 +87,7 @@ export default async function GardenChildProfilePage({ params, searchParams }: {
   const journals = (journalsRes.data ?? []) as unknown as Array<Record<string, unknown>>;
   const incidents = (incidentsRes.data ?? []) as unknown as Array<Record<string, unknown>>;
   const assignments = (assignmentsRes.data ?? []) as unknown as Array<Record<string, unknown>>;
-  const classrooms = (classroomsRes.data ?? []) as unknown as Array<{ id: string; name: string }>;
+  const classrooms = ((classroomsRes.data ?? []) as unknown as Array<{ id: string; name: string }>).map((room) => ({ ...room, name: cleanSyntheticLabel(room.name, "כיתה") }));
   const enrollments = (enrollmentsRes.data ?? []) as unknown as Array<Record<string, unknown>>;
   const timeline = (timelineRes.data ?? []) as unknown as Array<Record<string, unknown>>;
   const currentAssignment = assignments.find((item) => item.is_current === true);
@@ -94,17 +95,19 @@ export default async function GardenChildProfilePage({ params, searchParams }: {
   const latestAttendance = attendance[0];
   const outstanding = tuition.reduce((sum, period) => sum + Math.max(0, Number(period.base_amount ?? 0) + Number(period.adjustment_total ?? 0) - Number(period.settled_total ?? 0)), 0);
   const activeEnrollment = enrollments.find((item) => item.status === "active") ?? enrollments[0];
-  const gardenName = String((gardenRes.data as Record<string, unknown> | null)?.name ?? "הגן הפעיל").replace(/\[DEMO\]/g, "").trim();
-  const enrichedChild = { ...child, classroom: classroom?.name ?? child.classroom ?? child.age_group, actual_monthly_fee: child.custom_monthly_fee ?? child.monthly_fee, fee_group_name: child.classroom ?? child.age_group };
+  const gardenName = cleanSyntheticLabel(String((gardenRes.data as Record<string, unknown> | null)?.name ?? ""), "הגן הפעיל");
+  const childName = cleanSyntheticLabel(String(child.full_name ?? ""), "ילד/ה");
+  const classroomName = cleanSyntheticLabel(String(classroom?.name ?? child.classroom ?? child.age_group ?? ""), "ללא כיתה");
+  const enrichedChild = { ...child, full_name: childName, classroom: classroomName, actual_monthly_fee: child.custom_monthly_fee ?? child.monthly_fee, fee_group_name: cleanSyntheticLabel(String(child.classroom ?? child.age_group ?? ""), "ללא כיתה") };
 
   return (
     <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="כרטיס ילד" appHome>
       <TeacherAppFrame role={profile.role === "owner" ? "owner" : "manager"} title="כרטיס ילד" subtitle={gardenName} avatarUrl={(profile as { profile_image_url?: string | null }).profile_image_url ?? null} active="children">
         <div className="ux04-domain-workspace ux04-child-profile">
-          <div className="ux04-profile-breadcrumb"><Link href="/dashboard/garden/children">ילדים</Link><span>›</span><b>{String(child.full_name ?? "כרטיס ילד")}</b></div>
+          <div className="ux04-profile-breadcrumb"><Link href="/dashboard/garden/children">ילדים</Link><span>›</span><b>{childName}</b></div>
           <section className="ux04-profile-hero">
-            <div className="ux04-profile-avatar"><Avatar name={String(child.full_name ?? "ילד/ה")} src={typeof child.photo_url === "string" ? child.photo_url : typeof child.face_image_url === "string" ? child.face_image_url : undefined} size="lg" /><Link href={`/dashboard/garden/children/${id}?edit=photo`} aria-label="עדכון תמונה"><Camera size={18} /></Link></div>
-            <div className="ux04-profile-title"><h2>{String(child.full_name ?? "ילד/ה")}</h2><p>{ageText(typeof child.birth_date === "string" ? child.birth_date : null)} · {String(classroom?.name ?? child.classroom ?? child.age_group ?? "ללא כיתה")}</p><div><StatusChip tone={statusTone(String(activeEnrollment?.status ?? child.status))}>{statusLabel(String(activeEnrollment?.status ?? child.status))}</StatusChip><StatusChip tone={latestAttendance?.status === "present" ? "success" : "muted"}>{latestAttendance ? statusLabel(String(latestAttendance.status)) : "אין נוכחות היום"}</StatusChip></div></div>
+            <div className="ux04-profile-avatar"><Avatar name={childName} src={typeof child.photo_url === "string" ? child.photo_url : typeof child.face_image_url === "string" ? child.face_image_url : undefined} size="lg" /><Link href={`/dashboard/garden/children/${id}?edit=photo`} aria-label="עדכון תמונה"><Camera size={18} /></Link></div>
+            <div className="ux04-profile-title"><h2>{childName}</h2><p>{ageText(typeof child.birth_date === "string" ? child.birth_date : null)} · {classroomName}</p><div><StatusChip tone={statusTone(String(activeEnrollment?.status ?? child.status))}>{statusLabel(String(activeEnrollment?.status ?? child.status))}</StatusChip><StatusChip tone={latestAttendance?.status === "present" ? "success" : "muted"}>{latestAttendance ? statusLabel(String(latestAttendance.status)) : "אין נוכחות היום"}</StatusChip></div></div>
             <div className="ux04-profile-actions"><Link className="button primary" href={`/dashboard/garden/children/${id}?tab=overview&edit=1`}>עריכת פרופיל</Link><Link className="ux04-more-button" href={`/dashboard/garden/children/${id}?tab=history`} aria-label="היסטוריית הילד"><MoreHorizontal size={20} /></Link></div>
           </section>
           <nav className="ux04-profile-tabs" aria-label="חלקי כרטיס הילד">{tabs.map((item) => { const Icon = item.icon; return <Link className={tab === item.key ? "active" : ""} href={`/dashboard/garden/children/${id}?tab=${item.key}`} key={item.key}><Icon size={17} />{item.label}</Link>; })}</nav>
@@ -112,7 +115,7 @@ export default async function GardenChildProfilePage({ params, searchParams }: {
 
           {tab === "overview" ? <section className="ux04-profile-grid">
             {query.edit === "1" ? <article className="ux04-profile-panel wide"><header><h3>עריכת פרטים בסיסיים</h3><Link href={`/dashboard/garden/children/${id}`}>סגירה</Link></header><ChildProfileEditForm child={{ id, full_name: String(child.full_name ?? ""), birth_date: typeof child.birth_date === "string" ? child.birth_date : null, hmo: typeof child.hmo === "string" ? child.hmo : null }} /></article> : null}
-            <article className="ux04-profile-panel"><header><h3>נתונים כלליים</h3><Baby size={20} /></header><dl><div><dt>תאריך לידה</dt><dd>{dateText(typeof child.birth_date === "string" ? child.birth_date : null)}</dd></div><div><dt>גיל</dt><dd>{ageText(typeof child.birth_date === "string" ? child.birth_date : null)}</dd></div><div><dt>כיתה</dt><dd>{String(classroom?.name ?? "ללא שיוך")}</dd></div><div><dt>קופת חולים</dt><dd>{String(child.hmo ?? "לא צוין")}</dd></div><div><dt>גן</dt><dd>{gardenName}</dd></div></dl><ClassroomAssignmentForm childId={id} classrooms={classrooms} currentClassroomId={typeof currentAssignment?.classroom_id === "string" ? currentAssignment.classroom_id : null} /></article>
+            <article className="ux04-profile-panel"><header><h3>נתונים כלליים</h3><Baby size={20} /></header><dl><div><dt>תאריך לידה</dt><dd>{dateText(typeof child.birth_date === "string" ? child.birth_date : null)}</dd></div><div><dt>גיל</dt><dd>{ageText(typeof child.birth_date === "string" ? child.birth_date : null)}</dd></div><div><dt>כיתה</dt><dd>{classroomName}</dd></div><div><dt>קופת חולים</dt><dd>{String(child.hmo ?? "לא צוין")}</dd></div><div><dt>גן</dt><dd>{gardenName}</dd></div></dl><ClassroomAssignmentForm childId={id} classrooms={classrooms} currentClassroomId={typeof currentAssignment?.classroom_id === "string" ? currentAssignment.classroom_id : null} /></article>
             <article className="ux04-profile-panel"><header><h3>פרטי קשר</h3><UsersRound size={20} /></header>{guardians.length ? guardians.slice(0, 3).map((link) => { const guardian = link.profiles as Record<string, unknown> | undefined; return <div className="ux04-contact-row" key={String(link.id)}><Avatar name={String(guardian?.full_name ?? "אפוטרופוס")} src={typeof guardian?.profile_image_url === "string" ? guardian.profile_image_url : undefined} size="sm" /><span><b>{String(guardian?.full_name ?? "אפוטרופוס")}</b><small>{statusLabel(String(link.relationship_type))} · {link.is_primary ? "איש קשר ראשי" : "איש קשר נוסף"}</small></span>{guardian?.phone ? <a href={`tel:${guardian.phone}`} aria-label="חיוג"><Phone size={18} /></a> : null}</div>; }) : <p className="ux04-empty-copy">אין קישור אפוטרופוס פעיל להצגה.</p>}<Link className="ux04-panel-link" href={`/dashboard/garden/children/${id}?tab=guardians`}>לכל ההורים והאפוטרופוסים</Link></article>
             <article className="ux04-profile-panel"><header><h3>רגישויות ומידע רפואי</h3><HeartPulse size={20} /></header><dl><div><dt>אלרגיות</dt><dd>{String(child.allergies ?? "לא דווחו")}</dd></div><div><dt>רגישויות</dt><dd>{String(child.sensitivities ?? "לא דווחו")}</dd></div><div><dt>תרופות קבועות</dt><dd>{String(child.regular_medications ?? "לא דווחו")}</dd></div><div><dt>הערות רפואיות</dt><dd>{String(child.medical_notes ?? "אין הערות")}</dd></div></dl></article>
             <article className="ux04-profile-panel"><header><h3>נוכחות החודש</h3><CalendarDays size={20} /></header><div className="ux04-week-dots">{attendance.slice(0, 7).reverse().map((row) => <span className={row.status === "present" ? "present" : row.status === "absent" ? "absent" : "muted"} title={dateText(String(row.attendance_date))} key={String(row.id)} />)}</div><strong className="ux04-attendance-score">{attendance.filter((row) => row.status === "present").length}/{attendance.length || 0}</strong><small>רשומות נוכחות זמינות</small><Link className="ux04-panel-link" href={`/dashboard/garden/children/${id}?tab=attendance`}>מעבר לנוכחות מלאה</Link></article>

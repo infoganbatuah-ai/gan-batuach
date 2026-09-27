@@ -86,13 +86,15 @@ try {
 
   await page.locator('input[name=registrant_type][value=owner_teacher]').check();
   await capturePair(page, 'role-mode', '.manager-role-mode-grid');
+  await page.getByRole('button', { name: /^המשך/ }).click();
+  await page.locator('input[name=manager_id_number]').fill('000000204');
+  await page.locator('input[name=manager_phone]').fill('0500000204');
+  await page.getByRole('button', { name: /^המשך/ }).click();
   const suffix = Date.now().toString().slice(-6);
-  await page.locator('input[name=kindergarten_name]').fill(`גן חזותי UX02 ${suffix}`);
+  await page.locator('input[name=kindergarten_name]').fill(`גן הרקפות ${suffix}`);
   await page.locator('select[name=city]').selectOption('תל אביב-יפו');
   await page.locator('input[name=street]').fill('רחוב הבדיקה 12');
   await page.locator('input[name=address_details]').fill('קומה 1');
-  await page.locator('input[name=manager_id_number]').fill('000000204');
-  await page.locator('input[name=manager_phone]').fill('0500000204');
   await page.locator('input[name=contact_phone]').fill('0500000204');
   await page.locator('textarea[name=opening_hours]').fill('א׳–ה׳ 07:30–16:30');
   await page.locator('textarea[name=public_description]').fill('גן סינתטי עשיר לבדיקת חוויית ההקמה בלבד.');

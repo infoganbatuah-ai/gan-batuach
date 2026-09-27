@@ -1,7 +1,7 @@
 {
   "environment": "DEVELOPMENT / INTEGRATION",
   "base": "http://127.0.0.1:3001",
-  "capturedAt": "2026-09-24T01:20:45.885Z",
+  "capturedAt": "2026-09-26T23:22:31.600Z",
   "viewports": {
     "desktop": {
       "width": 1440,

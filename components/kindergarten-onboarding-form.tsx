@@ -103,9 +103,27 @@ function checked(form: FormData, name: string) {
 
 export function ManagerKindergartenApplicationForm({ managerName, managerPhone, managerEmail, profileRole }: { managerName?: string | null; managerPhone?: string | null; managerEmail?: string | null; profileRole?: string | null }) {
   const router = useRouter();
+  const formRef = useRef<HTMLFormElement>(null);
   const [message, setMessage] = useState("");
   const [busy, setBusy] = useState(false);
   const [registrantType, setRegistrantType] = useState(profileRole === "owner" ? "owner_teacher" : "teacher_operator");
+  const [entryStep, setEntryStep] = useState(1);
+
+  function moveEntry(next: number) {
+    if (next < entryStep) {
+      setEntryStep(next);
+      return;
+    }
+    const current = formRef.current?.querySelector<HTMLElement>(`[data-entry-step="${entryStep}"]`);
+    const controls = Array.from(current?.querySelectorAll<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>("input, select, textarea") ?? []);
+    const invalid = controls.find((control) => !control.checkValidity());
+    if (invalid) {
+      invalid.reportValidity();
+      invalid.focus();
+      return;
+    }
+    setEntryStep(Math.min(3, next));
+  }
 
   async function submit(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
@@ -147,7 +165,7 @@ export function ManagerKindergartenApplicationForm({ managerName, managerPhone, 
   }
 
   return (
-    <form className="manager-registration-entry" onSubmit={submit} aria-describedby="manager-registration-guidance">
+    <form ref={formRef} className="manager-registration-entry manager-registration-entry-focused" onSubmit={submit} aria-describedby="manager-registration-guidance">
       <section className="manager-registration-intro">
         <div>
           <span className="manager-registration-icon"><ShieldCheck /></span>
@@ -163,7 +181,14 @@ export function ManagerKindergartenApplicationForm({ managerName, managerPhone, 
         <div className="manager-registration-visual" aria-hidden="true"><Building2 /><Sparkles /><span>הגן שלך מתחיל כאן</span></div>
       </section>
 
-      <section className="manager-registration-card">
+      <nav className="manager-entry-progress" aria-label="שלבי פתיחת גן">
+        {["בחירת תפקיד", "פרטים אישיים", "פרטי הגן"].map((label, index) => {
+          const value = index + 1;
+          return <button className={value === entryStep ? "active" : value < entryStep ? "complete" : ""} type="button" onClick={() => value <= entryStep && setEntryStep(value)} aria-current={value === entryStep ? "step" : undefined} key={label}><span>{value < entryStep ? <Check /> : value}</span><b>{label}</b></button>;
+        })}
+      </nav>
+
+      <section className={`manager-registration-card manager-entry-stage ${entryStep === 1 ? "is-active" : ""}`} data-entry-step="1" hidden={entryStep !== 1}>
         <div className="section-heading"><span className="manager-section-number">1</span><div><h3>איך תפעלי בגן?</h3><p>הבחירה קובעת את סביבת העבודה וההרשאות לאחר ההפעלה.</p></div></div>
         <div className="manager-role-mode-grid" role="radiogroup" aria-label="בחירת תפקיד בגן">
           {profileRole === "owner" ? <>
@@ -182,7 +207,7 @@ export function ManagerKindergartenApplicationForm({ managerName, managerPhone, 
         </div>
       </section>
 
-      <section className="manager-registration-card">
+      <section className={`manager-registration-card manager-entry-stage ${entryStep === 2 ? "is-active" : ""}`} data-entry-step="2" hidden={entryStep !== 2}>
         <div className="section-heading"><span className="manager-section-number">2</span><div><h3>פרטים אישיים</h3><p>החשבון המאומת נשאר מקור הזהות. אפשר להשלים רק פרטי קשר חסרים.</p></div></div>
         <div className="form-grid">
           <label>שם מלא *<input name="manager_full_name" required minLength={2} defaultValue={managerName ?? ""} /></label>
@@ -192,7 +217,7 @@ export function ManagerKindergartenApplicationForm({ managerName, managerPhone, 
         </div>
       </section>
 
-      <section className="manager-registration-card">
+      <section className={`manager-registration-card manager-entry-stage ${entryStep === 3 ? "is-active" : ""}`} data-entry-step="3" hidden={entryStep !== 3}>
         <div className="section-heading"><span className="manager-section-number">3</span><div><h3>פרטי הגן</h3><p>פרטי ליבה בלבד. כיתות, מסמכים, צוות והזמנות יושלמו בטיוטת ההקמה.</p></div></div>
         <div className="form-grid">
           <label>שם הגן *<input name="kindergarten_name" required minLength={2} /></label>
@@ -208,10 +233,13 @@ export function ManagerKindergartenApplicationForm({ managerName, managerPhone, 
         </div>
       </section>
 
-      <label className="manager-registration-consent"><input type="checkbox" required /> קראתי את תנאי השימוש ומדיניות הפרטיות הזמניים ואני מאשרת להמשיך בהקמת סביבת ניסיון.</label>
-      <div className="manager-registration-actions">
-        <button className="button primary large" disabled={busy} type="submit">{busy ? <><LoaderCircle className="spin" /> שומרים...</> : <>התחלת הקמת הגן <ChevronLeft /></>}</button>
-        <span>אין חיוב ואין הפעלת תשלום חי בשלב זה.</span>
+      {entryStep === 3 ? <label className="manager-registration-consent"><input type="checkbox" required /> קראתי את תנאי השימוש ומדיניות הפרטיות הזמניים ואני מאשרת להמשיך בהקמת סביבת ניסיון.</label> : null}
+      <div className="manager-registration-actions manager-entry-actions">
+        {entryStep > 1 ? <button className="button secondary" type="button" onClick={() => moveEntry(entryStep - 1)}><ChevronRight /> חזרה</button> : <span className="manager-entry-safe-note"><ShieldCheck /> הטיוטה נשמרת בסביבה מאובטחת</span>}
+        {entryStep < 3
+          ? <button className="button primary large" type="button" onClick={() => moveEntry(entryStep + 1)}>המשך <ChevronLeft /></button>
+          : <button className="button primary large" disabled={busy} type="submit">{busy ? <><LoaderCircle className="spin" /> שומרים...</> : <>התחלת הקמת הגן <ChevronLeft /></>}</button>}
+        <span>שלב {entryStep} מתוך 3 · אין חיוב ואין הפעלת תשלום חי בשלב זה.</span>
       </div>
       {message ? <p className={message.includes("לא ניתן") ? "error-text" : "payment-action-message"}>{message}</p> : null}
     </form>
