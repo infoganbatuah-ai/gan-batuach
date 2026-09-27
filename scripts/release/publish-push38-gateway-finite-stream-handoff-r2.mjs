@@ -10,6 +10,7 @@ import { buildPush38GatewayFiniteStreamHandoffManifest } from "../../services/vi
 import { buildPush38GatewaySupervisorRecoveryManifest } from "../../services/video-gateway/push38-home-qa-gateway-supervisor-recovery.mjs";
 import { buildPush38GatewayStableHandoffManifest } from "../../services/video-gateway/push38-home-qa-gateway-stable-handoff.mjs";
 import { buildPush38GatewayMediaCadenceManifest } from "../../services/video-gateway/push38-home-qa-gateway-media-cadence.mjs";
+import { buildPush38GatewayMaintenanceIsolationManifest } from "../../services/video-gateway/push38-home-qa-gateway-maintenance-isolation.mjs";
 import { readR2KeychainCredentials } from "./macos-r2-keychain.mjs";
 
 const origin = "https://693f824a750afcc264fe6ee58c8a86ab.r2.cloudflarestorage.com";
@@ -27,10 +28,12 @@ async function hashStream(stream, limit) {
 }
 
 export async function publishPush38GatewayFiniteStreamHandoff({ artifactPath, evidencePath,
-  supervisorRecovery = false, stableHandoff = false, mediaCadence = false }) {
-  if ([supervisorRecovery, stableHandoff, mediaCadence].filter(Boolean).length > 1)
+  supervisorRecovery = false, stableHandoff = false, mediaCadence = false,
+  maintenanceIsolation = false }) {
+  if ([supervisorRecovery, stableHandoff, mediaCadence, maintenanceIsolation].filter(Boolean).length > 1)
     fail("P38_GATEWAY_FINITE_HANDOFF_R2_MODE_INVALID");
-  const builder = mediaCadence ? buildPush38GatewayMediaCadenceManifest :
+  const builder = maintenanceIsolation ? buildPush38GatewayMaintenanceIsolationManifest :
+    mediaCadence ? buildPush38GatewayMediaCadenceManifest :
     stableHandoff ? buildPush38GatewayStableHandoffManifest :
     supervisorRecovery ? buildPush38GatewaySupervisorRecoveryManifest :
     buildPush38GatewayFiniteStreamHandoffManifest;
@@ -82,7 +85,8 @@ export async function publishPush38GatewayFiniteStreamHandoff({ artifactPath, ev
       signal: AbortSignal.timeout(30_000) });
     await anonymous.body?.cancel();
     if (anonymous.ok) fail("P38_GATEWAY_FINITE_HANDOFF_R2_PUBLIC_ACCESS_ENABLED");
-    const result = { protocol: mediaCadence ?
+    const result = { protocol: maintenanceIsolation ?
+      "observer-push38-gateway-maintenance-isolation-r2-publication-v1" : mediaCadence ?
       "observer-push38-gateway-media-cadence-r2-publication-v1" : stableHandoff ?
       "observer-push38-gateway-stable-handoff-r2-publication-v1" : supervisorRecovery ?
       "observer-push38-gateway-supervisor-recovery-r2-publication-v1" :
@@ -101,14 +105,16 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
     const supervisorRecovery = process.argv.includes("--supervisor-recovery");
     const stableHandoff = process.argv.includes("--stable-handoff");
     const mediaCadence = process.argv.includes("--media-cadence");
+    const maintenanceIsolation = process.argv.includes("--maintenance-isolation");
     const [artifact, evidence] = process.argv.slice(2)
-      .filter(value => !["--supervisor-recovery", "--stable-handoff", "--media-cadence"].includes(value));
+      .filter(value => !["--supervisor-recovery", "--stable-handoff", "--media-cadence",
+        "--maintenance-isolation"].includes(value));
     const scoped = evidence ? relative(restrictedRoot, resolve(evidence)) : "";
     if (!artifact || !evidence || !scoped || scoped === ".." || scoped.startsWith(`..${sep}`) || isAbsolute(scoped))
       fail("P38_GATEWAY_FINITE_HANDOFF_R2_INPUT_SCOPE_INVALID");
     console.log(JSON.stringify({ result: "PASS", publication: await publishPush38GatewayFiniteStreamHandoff({
       artifactPath: artifact, evidencePath: resolve(evidence), supervisorRecovery, stableHandoff,
-      mediaCadence }) }));
+      mediaCadence, maintenanceIsolation }) }));
   } catch (error) {
     console.error(/^P38_GATEWAY_FINITE_HANDOFF_R2_[A-Z0-9_]+$/.test(error.message) ? error.message :
       "P38_GATEWAY_FINITE_HANDOFF_R2_PUBLICATION_FAILED");

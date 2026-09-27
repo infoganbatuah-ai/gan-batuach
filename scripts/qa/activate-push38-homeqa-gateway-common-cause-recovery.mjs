@@ -24,6 +24,8 @@ import { PUSH38_GATEWAY_STABLE_HANDOFF
 } from "../../services/video-gateway/push38-home-qa-gateway-stable-handoff.mjs";
 import { PUSH38_GATEWAY_MEDIA_CADENCE
 } from "../../services/video-gateway/push38-home-qa-gateway-media-cadence.mjs";
+import { PUSH38_GATEWAY_MAINTENANCE_ISOLATION
+} from "../../services/video-gateway/push38-home-qa-gateway-maintenance-isolation.mjs";
 import { PUSH38_CONNECTOR_RELAY_BACKOFF_RECOVERY as connectorItem
 } from "../../services/video-gateway/push38-home-qa-connector-relay-backoff.mjs";
 
@@ -37,18 +39,22 @@ const finiteHandoff = process.argv.includes("--finite-stream-handoff");
 const supervisorRecovery = process.argv.includes("--supervisor-recovery");
 const stableHandoff = process.argv.includes("--stable-handoff");
 const mediaCadence = process.argv.includes("--media-cadence");
-if ([finiteHandoff, supervisorRecovery, stableHandoff, mediaCadence].filter(Boolean).length > 1)
+const maintenanceIsolation = process.argv.includes("--maintenance-isolation");
+if ([finiteHandoff, supervisorRecovery, stableHandoff, mediaCadence, maintenanceIsolation].filter(Boolean).length > 1)
   throw new Error("P38_GATEWAY_COMMON_CAUSE_MODE_INVALID");
-const item = mediaCadence ? PUSH38_GATEWAY_MEDIA_CADENCE :
+const item = maintenanceIsolation ? PUSH38_GATEWAY_MAINTENANCE_ISOLATION :
+  mediaCadence ? PUSH38_GATEWAY_MEDIA_CADENCE :
   stableHandoff ? PUSH38_GATEWAY_STABLE_HANDOFF :
   supervisorRecovery ? PUSH38_GATEWAY_SUPERVISOR_RECOVERY :
   finiteHandoff ? PUSH38_GATEWAY_FINITE_STREAM_HANDOFF : PUSH38_GATEWAY_COMMON_CAUSE_RECOVERY;
-const predecessorReleaseId = (finiteHandoff || supervisorRecovery || stableHandoff || mediaCadence)
+const predecessorReleaseId = (finiteHandoff || supervisorRecovery || stableHandoff || mediaCadence || maintenanceIsolation)
   ? item.supersedesReleaseId : item.rollbackReleaseId;
 const bundleValue = option("bundle");
 if (!bundleValue) throw new Error("P38_GATEWAY_COMMON_CAUSE_BUNDLE_REQUIRED");
 const bundle = resolve(bundleValue);
-const artifact = mediaCadence
+const artifact = maintenanceIsolation
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-maintenance-isolation-04c58f24/gateway-runtime.tar.gz"
+  : mediaCadence
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-media-cadence-f41715f9/gateway-runtime.tar.gz"
   : stableHandoff
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-stable-handoff-a7bd4c75/gateway-runtime.tar.gz"
@@ -57,7 +63,9 @@ const artifact = mediaCadence
   : finiteHandoff
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-finite-handoff-e085c30f/gateway-runtime.tar.gz"
   : "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-common-cause-f7d237bf/gateway-runtime.tar.gz";
-const publication = mediaCadence
+const publication = maintenanceIsolation
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-maintenance-isolation-04c58f24/r2-publication.json"
+  : mediaCadence
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-media-cadence-f41715f9/r2-publication.json"
   : stableHandoff
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-stable-handoff-a7bd4c75/r2-publication.json"
@@ -175,6 +183,7 @@ if (agentRelease.release_id !== item.releaseId || agentRelease.artifact_sha256 !
   throw new Error("P38_GATEWAY_COMMON_CAUSE_AGENT_RELEASE_MISMATCH");
 
 const manifest = JSON.parse(execFileSync("unzip", ["-p", bundle,
+  maintenanceIsolation ? "gateway_remediation_maintenance_isolation.json" :
   mediaCadence ? "gateway_remediation_media_cadence.json" :
   stableHandoff ? "gateway_remediation_stable_handoff.json" :
     supervisorRecovery ? "gateway_remediation_supervisor_recovery.json" :
@@ -241,7 +250,7 @@ const rollout = JSON.parse(psql(`select jsonb_build_object(
   'managed_phase',(select metadata->>'home_qa_phase' from public.video_gateway_device_enrollments where gateway_id='${item.deviceId}'),
   'managed_identity',(select identity_scheme from public.video_gateway_device_enrollments where gateway_id='${item.deviceId}'),
   'fresh_proof',(select count(*) from public.video_gateway_device_enrollments e join public.observer_managed_device_credentials c on c.enrollment_id=e.id and c.credential_version=e.credential_version where e.gateway_id='${item.deviceId}' and e.lifecycle_state='ACTIVE' and e.status='delivered' and e.active_runtime_instance_id is not null and e.last_seen_at>=now()-interval '2 minutes' and exists(select 1 from public.observer_managed_device_auth_nonces n where n.enrollment_id=e.id and n.credential_version=e.credential_version and n.observed_at>=now()-interval '2 minutes')));`));
-if (rollout.devices !== 2 || rollout.releases !== (mediaCadence ? 20 : stableHandoff ? 19 : supervisorRecovery ? 17 : finiteHandoff ? 15 : 12) || rollout.new_status !== "DRAFT" ||
+if (rollout.devices !== 2 || rollout.releases !== (maintenanceIsolation ? 21 : mediaCadence ? 20 : stableHandoff ? 19 : supervisorRecovery ? 17 : finiteHandoff ? 15 : 12) || rollout.new_status !== "DRAFT" ||
   rollout.new_cohort !== 0 ||
   JSON.stringify(rollout.new_targets) !== JSON.stringify({ explicit_device_ids: [item.deviceId] }) ||
   rollout.prior_status !== "PAUSED" || rollout.broad_active !== 0 ||
@@ -265,17 +274,17 @@ const gatewayPidStable = gatewaySamples.every(sample => sample.running && sample
   new Set(gatewaySamples.map(sample => sample.pid)).size === 1;
 const normalRuntimeTruth = gatewaySamples.every(sample => sample.status === "degraded" || sample.status === "healthy") &&
   gatewaySamples.every(sample =>
-    sample.assigned === 10 && sample.connected === (stableHandoff || mediaCadence ? 9 : 8) &&
-    sample.failed === (stableHandoff || mediaCadence ? 1 : 2) && sample.empty === 6 &&
-    sample.progressing === (stableHandoff || mediaCadence ? 9 : 8) && sample.stalled === 0);
+    sample.assigned === 10 && sample.connected === (stableHandoff || mediaCadence || maintenanceIsolation ? 9 : 8) &&
+    sample.failed === (stableHandoff || mediaCadence || maintenanceIsolation ? 1 : 2) && sample.empty === 6 &&
+    sample.progressing === (stableHandoff || mediaCadence || maintenanceIsolation ? 9 : 8) && sample.stalled === 0);
 const finiteCommonCauseTruth = (finiteHandoff || supervisorRecovery) && gatewaySamples.every(sample => sample.status === "degraded" &&
   sample.assigned === 10 && sample.connected === 0 && sample.failed === 10 && sample.empty === 6 &&
   sample.progressing === 0 && sample.stalled === 0);
 let shadowEvidence = null, warmHandoffEvidence = null;
-if (stableHandoff || mediaCadence) {
+if (stableHandoff || mediaCadence || maintenanceIsolation) {
   if (!shadowEvidencePath) throw new Error("P38_GATEWAY_STABLE_HANDOFF_SHADOW_EVIDENCE_REQUIRED");
   shadowEvidence = verifiedShadowEvidence(shadowEvidencePath, { recent: true, warmHandoff: true,
-    expectedRelease: item, expectedChannel: 3 });
+    expectedRelease: item, expectedChannel: maintenanceIsolation ? 1 : 3 });
 }
 if (finiteCommonCauseTruth) {
   if (!shadowEvidencePath) throw new Error("P38_GATEWAY_FINITE_HANDOFF_SHADOW_EVIDENCE_REQUIRED");
@@ -309,18 +318,19 @@ const plan = { protocol: "observer-push38-gateway-common-cause-recovery-activati
   runtime_pid: gatewayService.pid, ota_agent_pid: gatewayAgent.pid,
   connector_release_id: connectorCurrent.release_id,
   gateway_runtime_samples: gatewaySamples, connector_runtime_samples: connectorSamples,
-  gateway_runtime_truth: normalRuntimeTruth ? (stableHandoff || mediaCadence ? "9_OF_9_PROGRESSING" : "8_OF_8_PROGRESSING") :
+  gateway_runtime_truth: normalRuntimeTruth ? (stableHandoff || mediaCadence || maintenanceIsolation ? "9_OF_9_PROGRESSING" : "8_OF_8_PROGRESSING") :
     "FINITE_STREAM_COMMON_CAUSE_SHADOW_QUALIFIED",
   ...(shadowEvidence ? { current_shadow_evidence: shadowEvidence,
     warm_handoff_evidence: warmHandoffEvidence } : {}),
-  dvr_truth: { expected: 10, source_available: stableHandoff || mediaCadence ? 9 : 8,
-    upstream_unavailable: stableHandoff || mediaCadence ? 1 : 2, empty: 6 },
+  dvr_truth: { expected: 10, source_available: stableHandoff || mediaCadence || maintenanceIsolation ? 9 : 8,
+    upstream_unavailable: stableHandoff || mediaCadence || maintenanceIsolation ? 1 : 2, empty: 6 },
   actions: ["PAUSE_OTHER_GATEWAY_ROLLOUTS", "ACTIVATE_EXACT_GATEWAY_REMEDIATION_ROLLOUT",
     "OTA_AGENT_DISCOVERS", "SHORT_LIVED_R2_DOWNLOAD", "SIGNED_INSTALL", "HEALTH_GATE",
     "PROMOTE_OR_EXISTING_MANAGER_ROLLBACK"], runtime_writes: 0 };
 if (mode === "PREFLIGHT") {
   const evidenceSha = persist(plan);
-  console.log(JSON.stringify({ status: mediaCadence ? "GATEWAY_MEDIA_CADENCE_PREFLIGHT_PASS" :
+  console.log(JSON.stringify({ status: maintenanceIsolation ? "GATEWAY_MAINTENANCE_ISOLATION_PREFLIGHT_PASS" :
+    mediaCadence ? "GATEWAY_MEDIA_CADENCE_PREFLIGHT_PASS" :
     stableHandoff ? "GATEWAY_STABLE_HANDOFF_PREFLIGHT_PASS" :
     supervisorRecovery ? "GATEWAY_SUPERVISOR_RECOVERY_PREFLIGHT_PASS" :
     finiteHandoff ? "GATEWAY_FINITE_HANDOFF_PREFLIGHT_PASS" : "GATEWAY_SESSION_PREFLIGHT_PASS",
@@ -361,7 +371,8 @@ const result = { ...plan, mode: "APPLY", applied_at: new Date().toISOString(),
   exact_rollout_active: true, broad_cohort: false, ota_agent_owns_install: true,
   functional_runtime_changed_by_command: false, runtime_writes: 0 };
 const evidenceSha = persist(result);
-console.log(JSON.stringify({ status: mediaCadence ? "EXACT_GATEWAY_MEDIA_CADENCE_ROLLOUT_ACTIVE" :
+console.log(JSON.stringify({ status: maintenanceIsolation ? "EXACT_GATEWAY_MAINTENANCE_ISOLATION_ROLLOUT_ACTIVE" :
+  mediaCadence ? "EXACT_GATEWAY_MEDIA_CADENCE_ROLLOUT_ACTIVE" :
   stableHandoff ? "EXACT_GATEWAY_STABLE_HANDOFF_ROLLOUT_ACTIVE" :
   supervisorRecovery ? "EXACT_GATEWAY_SUPERVISOR_RECOVERY_ROLLOUT_ACTIVE" :
   finiteHandoff ? "EXACT_GATEWAY_FINITE_HANDOFF_ROLLOUT_ACTIVE" :

@@ -35,10 +35,11 @@ const gatewayFiniteStreamHandoffUpgrade = process.argv.includes("--gateway-finit
 const gatewaySupervisorRecoveryUpgrade = process.argv.includes("--gateway-supervisor-recovery-upgrade");
 const gatewayStableHandoffUpgrade = process.argv.includes("--gateway-stable-handoff-upgrade");
 const gatewayMediaCadenceUpgrade = process.argv.includes("--gateway-media-cadence-upgrade");
+const gatewayMaintenanceIsolationUpgrade = process.argv.includes("--gateway-maintenance-isolation-upgrade");
 if ([recoveryUpgrade, startupRecoveryUpgrade, livenessRecoveryUpgrade, parentExitRecoveryUpgrade,
   rtspSessionRecoveryUpgrade, gatewayAuthRecoveryUpgrade, gatewaySessionStabilityUpgrade,
   gatewayCommonCauseRecoveryUpgrade, gatewayFiniteStreamHandoffUpgrade, gatewaySupervisorRecoveryUpgrade,
-  gatewayStableHandoffUpgrade, gatewayMediaCadenceUpgrade,
+  gatewayStableHandoffUpgrade, gatewayMediaCadenceUpgrade, gatewayMaintenanceIsolationUpgrade,
   connectorHostContinuityUpgrade, connectorDeviceSessionUpgrade, connectorRuntimePidUpgrade,
   connectorGuardRetryUpgrade, connectorLivenessContinuityUpgrade,
   connectorRelayBackoffUpgrade].filter(Boolean).length > 1)
@@ -47,7 +48,7 @@ const managementUpgrade = process.argv.includes("--management-upgrade") || recov
   startupRecoveryUpgrade || livenessRecoveryUpgrade || parentExitRecoveryUpgrade ||
   rtspSessionRecoveryUpgrade || gatewayAuthRecoveryUpgrade || gatewaySessionStabilityUpgrade ||
   gatewayCommonCauseRecoveryUpgrade || gatewayFiniteStreamHandoffUpgrade || gatewaySupervisorRecoveryUpgrade ||
-  gatewayStableHandoffUpgrade || gatewayMediaCadenceUpgrade || connectorHostContinuityUpgrade ||
+  gatewayStableHandoffUpgrade || gatewayMediaCadenceUpgrade || gatewayMaintenanceIsolationUpgrade || connectorHostContinuityUpgrade ||
   connectorDeviceSessionUpgrade || connectorRuntimePidUpgrade || connectorGuardRetryUpgrade ||
   connectorLivenessContinuityUpgrade || connectorRelayBackoffUpgrade;
 if (apply === dryRun || !["SOFTWARE_CONNECTOR", "PHYSICAL_GATEWAY"].includes(profile))
@@ -55,11 +56,11 @@ if (apply === dryRun || !["SOFTWARE_CONNECTOR", "PHYSICAL_GATEWAY"].includes(pro
 if (managementUpgrade && profile !== "SOFTWARE_CONNECTOR" &&
   !gatewayAuthRecoveryUpgrade && !gatewaySessionStabilityUpgrade && !gatewayCommonCauseRecoveryUpgrade &&
   !gatewayFiniteStreamHandoffUpgrade && !gatewaySupervisorRecoveryUpgrade && !gatewayStableHandoffUpgrade &&
-  !gatewayMediaCadenceUpgrade)
+  !gatewayMediaCadenceUpgrade && !gatewayMaintenanceIsolationUpgrade)
   throw new Error("P38_HOME_QA_AGENT_UPGRADE_PROFILE_INVALID");
 if ((gatewayAuthRecoveryUpgrade || gatewaySessionStabilityUpgrade || gatewayCommonCauseRecoveryUpgrade ||
   gatewayFiniteStreamHandoffUpgrade || gatewaySupervisorRecoveryUpgrade || gatewayStableHandoffUpgrade ||
-  gatewayMediaCadenceUpgrade) &&
+  gatewayMediaCadenceUpgrade || gatewayMaintenanceIsolationUpgrade) &&
   profile !== "PHYSICAL_GATEWAY")
   throw new Error("P38_HOME_QA_AGENT_UPGRADE_PROFILE_INVALID");
 const connector = profile === "SOFTWARE_CONNECTOR";
@@ -129,7 +130,8 @@ const spec = connector ? {
   deviceId: "62df97e2-3c0b-427f-9108-bde029bc10e7",
   baselineRelease: "qa-legacy-gateway-91bf6814075f",
   baselineSha: "91bf6814075f74e703cbc0b85d30673237531247ec46633c54576d5a4627144d",
-  remediationRelease: gatewayMediaCadenceUpgrade ? "qa-p38-health-gateway-media-cadence-2abe984fa273" :
+  remediationRelease: gatewayMaintenanceIsolationUpgrade ? "qa-p38-health-gateway-maintenance-isolation-995d6f822468" :
+    gatewayMediaCadenceUpgrade ? "qa-p38-health-gateway-media-cadence-2abe984fa273" :
     gatewayStableHandoffUpgrade ? "qa-p38-health-gateway-stable-handoff-afc7339384bb" :
     gatewaySupervisorRecoveryUpgrade ? "qa-p38-health-gateway-supervisor-recovery-fb68c5180b58" :
     gatewayFiniteStreamHandoffUpgrade ? "qa-p38-health-gateway-finite-handoff-76781a8e0832" :
@@ -137,14 +139,18 @@ const spec = connector ? {
     gatewaySessionStabilityUpgrade ? "qa-p38-health-gateway-session-e354546bdbf8" :
     gatewayAuthRecoveryUpgrade ? "qa-p38-health-gateway-auth-4197f1a246f1" :
     "qa-p38-health-gateway-6c9d08327ec6",
-  bundleName: gatewayMediaCadenceUpgrade ? "gateway_remediation_media_cadence.json" :
+  bundleName: gatewayMaintenanceIsolationUpgrade ? "gateway_remediation_maintenance_isolation.json" :
+    gatewayMediaCadenceUpgrade ? "gateway_remediation_media_cadence.json" :
     gatewayStableHandoffUpgrade ? "gateway_remediation_stable_handoff.json" :
     gatewaySupervisorRecoveryUpgrade ? "gateway_remediation_supervisor_recovery.json" :
     gatewayFiniteStreamHandoffUpgrade ? "gateway_remediation_finite_stream_handoff.json" :
     gatewayCommonCauseRecoveryUpgrade ? "gateway_remediation_common_cause_recovery.json" :
     gatewaySessionStabilityUpgrade ? "gateway_remediation_session_stability.json" :
     gatewayAuthRecoveryUpgrade ? "gateway_remediation_auth.json" : "gateway_remediation.json",
-  priorManagement: gatewayMediaCadenceUpgrade ? {
+  priorManagement: gatewayMaintenanceIsolationUpgrade ? {
+    release_id: "qa-p38-health-gateway-media-cadence-2abe984fa273",
+    artifact_sha256: "2abe984fa2737a226a2a65869191617aaad39345288a935576c33239e1db80e9" } :
+    gatewayMediaCadenceUpgrade ? {
     release_id: "qa-p38-health-gateway-stable-handoff-afc7339384bb",
     artifact_sha256: "afc7339384bb93a413ac3e66368382c22ce4e3377ee40dd0b8852583e5cc515e" } :
     gatewayStableHandoffUpgrade ? {
@@ -166,7 +172,7 @@ const spec = connector ? {
       artifact_sha256: "6c9d08327ec6f38db3fc55c4c344f4db6fc0d0adab5c68e3ec3f1c1164f11c95" } : null,
   rootName: "observer-gateway", label: "com.ganbatuach.video-gateway", port: 18082,
   installedBase: join(homedir(), ".local/share/gan-batuach/video-gateway"),
-  expected: gatewayStableHandoffUpgrade || gatewayMediaCadenceUpgrade ? 9 : 8, configured: 10
+  expected: gatewayStableHandoffUpgrade || gatewayMediaCadenceUpgrade || gatewayMaintenanceIsolationUpgrade ? 9 : 8, configured: 10
 };
 const root = join(homedir(), "Library/Application Support/Digital Observer", spec.rootName, "ota");
 const secrets = join(root, "home-qa-device-secrets");
@@ -219,6 +225,8 @@ const bundle = resolve(bundleOverride || (connectorRelayBackoffUpgrade
     ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-gateway-finite-stream-handoff.zip"
   : gatewaySupervisorRecoveryUpgrade
     ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-gateway-supervisor-recovery.zip"
+  : gatewayMaintenanceIsolationUpgrade
+    ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-gateway-maintenance-isolation.zip"
   : gatewayMediaCadenceUpgrade
     ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-gateway-media-cadence.zip"
   : gatewayStableHandoffUpgrade
