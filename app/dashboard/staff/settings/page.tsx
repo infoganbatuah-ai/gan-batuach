@@ -27,15 +27,17 @@ export default async function SettingsPage() {
   const staff = staffRes.data as unknown as StaffRow | null;
   const employment = employmentRes.data as unknown as EmploymentRow | null;
   const name = cleanSyntheticLabel(staff?.full_name ?? profile.full_name, "איש/ת צוות");
+  const gardenName = cleanSyntheticLabel(active?.garden_name, "גן");
+  const roleName = cleanSyntheticLabel(employment?.role_title ?? active?.role_title ?? staff?.role_title, "צוות גן");
 
   return <StaffAppFrame active="profile" profileName={name} avatarUrl={staff?.profile_photo_url ?? profile.profile_image_url} mode={active ? "assigned" : "candidate"}>
-    <StaffPageHero eyebrow={active ? "הפרופיל שלי" : "פרופיל מועמדות"} title={name} text={active ? `${active.role_title ?? staff?.role_title ?? "צוות"} · ${active.garden_name}` : "השלימו פרטים אישיים ומסמכים לקראת שיוך לגן."} icon={BadgeCheck} badge={<StatusChip tone={active ? "success" : "warning"}>{active ? "העסקה פעילה" : "ממתין לשיוך"}</StatusChip>} />
+    <StaffPageHero eyebrow={active ? "הפרופיל שלי" : "פרופיל מועמדות"} title={name} text={active ? `${roleName} · ${gardenName}` : "השלימו פרטים אישיים ומסמכים לקראת שיוך לגן."} icon={BadgeCheck} badge={<StatusChip tone={active ? "success" : "warning"}>{active ? "העסקה פעילה" : "ממתין לשיוך"}</StatusChip>} />
 
     {active ? <section className="ux07-staff-profile-card">
-      <div className="ux07-profile-identity"><Avatar name={name} src={staff?.profile_photo_url ?? profile.profile_image_url} size="lg" /><div><h2>{name}</h2><p>{employment?.role_title ?? active.role_title ?? "צוות גן"}</p><StatusChip tone="success">פעיל/ה</StatusChip></div></div>
+      <div className="ux07-profile-identity"><Avatar name={name} src={staff?.profile_photo_url ?? profile.profile_image_url} size="lg" /><div><h2>{name}</h2><p>{roleName}</p><StatusChip tone="success">פעיל/ה</StatusChip></div></div>
       <div className="ux07-profile-facts">
-        <span><Building2 /><small>גן פעיל</small><b>{active.garden_name}</b></span>
-        <span><UsersRound /><small>כיתות</small><b>{active.classroom_names?.join(", ") || "ללא שיוך כיתה"}</b></span>
+        <span><Building2 /><small>גן פעיל</small><b>{gardenName}</b></span>
+        <span><UsersRound /><small>כיתות</small><b>{active.classroom_names?.map((name) => cleanSyntheticLabel(name, "כיתה")).join(", ") || "ללא שיוך כיתה"}</b></span>
         <span><CalendarDays /><small>תחילת העסקה</small><b>{employment?.start_date ? new Date(employment.start_date).toLocaleDateString("he-IL") : "לא תועד"}</b></span>
         <span><MapPin /><small>כתובת</small><b>{garden?.address ?? "לא הוגדרה"}</b></span>
         <span><Phone /><small>טלפון</small><b dir="ltr">{staff?.phone ?? profile.phone ?? "לא הוגדר"}</b></span>
@@ -44,7 +46,7 @@ export default async function SettingsPage() {
       <div className="profile-actions"><Link className="button secondary" href="/dashboard/staff/documents"><FileCheck2 size={17} /> מסמכים ותעודות</Link><Link className="button secondary" href="/dashboard/staff/shifts"><CalendarDays size={17} /> משמרות ושעות</Link><Link className="button secondary" href="/dashboard/staff/cameras"><ShieldCheck size={17} /> הרשאות בטיחות</Link></div>
     </section> : null}
 
-    {context.available && context.employments.length > 1 ? <StaffSection title="העסקות פעילות לפי גן"><div className="ux07-employment-grid">{context.employments.map((item) => <article key={item.employment_id} className={item.garden_id === active?.garden_id ? "active" : ""}><Building2 /><div><strong>{item.garden_name}</strong><span>{item.role_title ?? "צוות"}</span><small>{item.classroom_names?.join(", ") || "ללא כיתה"}</small></div>{item.garden_id === active?.garden_id ? <StatusChip tone="success">הגן הפעיל</StatusChip> : <StatusChip tone="info">זמין לבחירה</StatusChip>}</article>)}</div></StaffSection> : null}
+    {context.available && context.employments.length > 1 ? <StaffSection title="העסקות פעילות לפי גן"><div className="ux07-employment-grid">{context.employments.map((item) => <article key={item.employment_id} className={item.garden_id === active?.garden_id ? "active" : ""}><Building2 /><div><strong>{cleanSyntheticLabel(item.garden_name, "גן")}</strong><span>{cleanSyntheticLabel(item.role_title, "צוות")}</span><small>{item.classroom_names?.map((name) => cleanSyntheticLabel(name, "כיתה")).join(", ") || "ללא כיתה"}</small></div>{item.garden_id === active?.garden_id ? <StatusChip tone="success">הגן הפעיל</StatusChip> : <StatusChip tone="info">זמין לבחירה</StatusChip>}</article>)}</div></StaffSection> : null}
 
     <StaffSection title="פרטים אישיים ואבטחה"><ProfileSettingsForm profile={profile} garden={garden} roleLabel="צוות גן" includeGarden={false} requireProfilePhoto /></StaffSection>
   </StaffAppFrame>;

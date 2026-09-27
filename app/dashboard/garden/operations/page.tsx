@@ -33,14 +33,14 @@ export default async function GardenOperationsPage() {
     supabase.from("staff_kindergarten_employments" as never).select("id,staff_id" as never, { count: "exact" }).eq("garden_id", gardenId).eq("status", "active").limit(500),
     supabase.from("staff_shifts" as never).select("staff_id,actual_start,actual_end,status" as never).eq("garden_id", gardenId).eq("shift_date", today).limit(500),
     supabase.from("schedule_items" as never).select("id,title,starts_at,ends_at" as never).eq("garden_id", gardenId).gte("starts_at", start).lte("starts_at", end).order("starts_at").limit(8),
-    supabase.from("tasks" as never).select("id,title,status,due_at,source_entity_type" as never, { count: "exact" }).eq("garden_id", gardenId).not("status", "in", "(done,completed,closed,cancelled)").order("created_at", { ascending: false }).limit(8),
+    supabase.from("tasks" as never).select("id,title,status,due_at,source_entity_type" as never, { count: "exact" }).eq("garden_id", gardenId).neq("status", "done").order("created_at", { ascending: false }).limit(8),
     supabase.from("notifications" as never).select("id,title,source_domain,created_at" as never, { count: "exact" }).eq("garden_id", gardenId).eq("recipient_id", profile.id).is("read_at", null).is("archived_at", null).order("created_at", { ascending: false }).limit(6),
     supabase.from("tuition_billing_periods" as never).select("base_amount,adjustment_total,settled_total,status,due_at,currency" as never).eq("garden_id", gardenId).not("status", "in", "(paid,waived,cancelled)").limit(500),
     supabase.from("kindergarten_subscriptions" as never).select("status,billing_status,current_period_end,currency_snapshot" as never).eq("garden_id", gardenId).order("created_at", { ascending: false }).limit(1).maybeSingle(),
     supabase.from("documents" as never).select("id,status,expires_at" as never, { count: "exact" }).eq("garden_id", gardenId).is("deleted_at", null).in("status", ["pending_review", "rejected", "expired"]).limit(100),
-    supabase.from("complaints" as never).select("id,status,severity,created_at" as never, { count: "exact" }).eq("garden_id", gardenId).not("status", "in", "(resolved,closed,cancelled)").limit(100),
-    supabase.from("required_inspections" as never).select("id,title,status,due_at" as never, { count: "exact" }).eq("garden_id", gardenId).neq("status", "done").order("due_at").limit(8),
-    supabase.from("violations" as never).select("id,title,status,correction_due_at" as never, { count: "exact" }).eq("garden_id", gardenId).not("status", "in", "(closed,resolved,accepted)").limit(100),
+    supabase.from("complaints" as never).select("id,status,severity,created_at" as never, { count: "exact" }).eq("garden_id", gardenId).not("status", "in", "(resolved,closed)").limit(100),
+    supabase.from("required_inspections" as never).select("id,status,due_at" as never, { count: "exact" }).eq("garden_id", gardenId).neq("status", "done").order("due_at").limit(8),
+    supabase.from("violations" as never).select("id,title,status,correction_due_at" as never, { count: "exact" }).eq("garden_id", gardenId).neq("status", "done").limit(100),
     supabase.from("camera_streams" as never).select("id,status,active" as never).eq("garden_id", gardenId).limit(100),
     supabase.from("classrooms" as never).select("id,name,capacity_limit,status,child_classroom_assignments(id,is_current)" as never).eq("garden_id", gardenId).eq("status", "active").order("sort_order").limit(100),
     supabase.from("kindergarten_enrollment_requests" as never).select("id,status" as never).eq("garden_id", gardenId).in("status", ["submitted", "resubmitted", "under_review", "information_required", "awaiting_payment", "waitlisted"]).limit(200),
@@ -65,10 +65,11 @@ export default async function GardenOperationsPage() {
   const classroomRows = (classroomsRes.data ?? []) as unknown as Array<Record<string, unknown>>;
   const enrollmentRequests = (enrollmentRequestsRes.data ?? []) as unknown as Array<Record<string, unknown>>;
   const syntheticSession = [profile.full_name, String(garden?.name ?? "")].some(isSyntheticLabel);
+  const managerDisplayName = cleanSyntheticLabel(profile.full_name, "מנהלת הגן").split(" ")[0];
   const dateLabel = new Intl.DateTimeFormat("he-IL", { weekday: "long", day: "numeric", month: "long", timeZone: "Asia/Jerusalem" }).format(new Date());
 
   return <DashboardShell role={profile.role === "owner" ? "owner" : "manager"} title="מרכז תפעול" appHome>
-    <TeacherAppFrame role={profile.role === "owner" ? "owner" : "manager"} title={`בוקר טוב, ${profile.full_name?.replace(/\[DEMO\]/gi, "").trim().split(" ")[0] || "מנהלת הגן"}`} subtitle={`מרכז התפעול של ${cleanSyntheticLabel(String(garden?.name ?? ""), "הגן")}`} avatarUrl={(profile as { profile_image_url?: string | null }).profile_image_url ?? null} active="home">
+    <TeacherAppFrame role={profile.role === "owner" ? "owner" : "manager"} title={`בוקר טוב, ${managerDisplayName}`} subtitle={`מרכז התפעול של ${cleanSyntheticLabel(String(garden?.name ?? ""), "הגן")}`} avatarUrl={(profile as { profile_image_url?: string | null }).profile_image_url ?? null} active="home">
       {syntheticSession ? <div className="dashboard-environment-notice manager-demo-notice" role="status">סביבת בדיקה · נתונים סינתטיים בלבד</div> : null}
       {sourceErrors ? <div className="error-banner" role="alert">{sourceErrors} מקורות נתונים אינם זמינים כרגע. הכרטיסים האחרים ממשיכים להציג מידע מאומת.</div> : null}
       <ManagerOverviewDashboard

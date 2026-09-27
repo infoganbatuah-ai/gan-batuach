@@ -4,6 +4,7 @@ import { StaffProfileCards } from "@/components/people-profile-cards";
 import { TeachingAssignmentsPanel } from "@/components/teaching-assignments-panel";
 import { getManagementGardenContext } from "@/lib/management/garden-context";
 import { createClient } from "@/lib/supabase/server";
+import { cleanSyntheticLabel } from "@/lib/domain/display-label";
 import { ClipboardCheck, ShieldCheck, UserCheck, UsersRound } from "lucide-react";
 import { RoleAppShell } from "@/components/role-app-shell";
 import {
@@ -55,7 +56,8 @@ export default async function GardenStaffPage() {
     const employment = employments.get(member.id);
     return {
       ...member,
-      role_title: employment?.role_title ?? member.role_title,
+      full_name: cleanSyntheticLabel(member.full_name, "איש/ת צוות"),
+      role_title: cleanSyntheticLabel(employment?.role_title ?? member.role_title, "צוות"),
       approval_status: employment?.status ?? (member.approved_to_work ? "active" : "pending"),
       employment_status: employment?.status ?? "pending",
       employment_start_date: employment?.start_date ?? member.created_at,

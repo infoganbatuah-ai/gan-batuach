@@ -5,6 +5,7 @@ import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 
 import { createRequire } from "node:module";
 import { basename, resolve } from "node:path";
 import { createServerClient } from "@supabase/ssr";
+import { createClient as createSupabaseClient } from "@supabase/supabase-js";
 import { config } from "../development/local-database.mjs";
 import { localCredentials } from "../development/local-client.mjs";
 
@@ -22,6 +23,26 @@ assert.equal((await fetch(`${base}/api/health`)).status, 200);
 const keys = localCredentials();
 assert.equal(keys.url, "http://127.0.0.1:55421");
 const identities = JSON.parse(readFileSync(resolve(config.runtimeRoot, "qa-identities.private.json"), "utf8"));
+const admin = createSupabaseClient(keys.url, keys.service, { auth: { persistSession: false, autoRefreshToken: false } });
+const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Jerusalem", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+const currentShift = await admin.from("staff_shifts").upsert({
+  id: "00000000-0000-4000-8000-000000000f01",
+  staff_id: "00000000-0000-4000-8000-000000000b01",
+  staff_profile_id: "00000000-0000-4000-8000-000000000301",
+  employment_id: "2bbfa6dd-7fc9-495d-99d2-00cd3ca0ac47",
+  garden_id: "00000000-0000-4000-8000-000000000601",
+  classroom_id: "00000000-0000-4000-8000-000000000701",
+  shift_date: today,
+  planned_start: "07:00:00",
+  planned_end: "15:00:00",
+  actual_start: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
+  actual_end: null,
+  status: "started",
+  attendance_confidence: "verified",
+  confidence_score: 100,
+  review_reason: null
+});
+assert.equal(currentShift.error, null, currentShift.error?.message);
 const identity = (email) => {
   const user = identities.users.find((item) => item.email === email);
   assert.ok(user?.password, `Synthetic identity ${email} is required`);
@@ -61,6 +82,19 @@ async function contextFor(email) {
   await context.addCookies(await cookiesFor(identity(email)));
   return context;
 }
+async function ensureActiveGarden(page) {
+  await page.goto(`${base}/dashboard/staff`, { waitUntil: "networkidle", timeout: 180_000 });
+  const selector = page.locator("#staff-active-garden");
+  if (await selector.count() && !(await selector.inputValue())) {
+    const value = await selector.locator("option:not([value=''])").first().getAttribute("value");
+    assert.ok(value, "Multi-Garden Staff must expose a canonical employment option");
+    await Promise.all([
+      page.waitForResponse((response) => response.url().includes("/api/staff/employment-context") && response.request().method() === "POST"),
+      selector.selectOption(value)
+    ]);
+    await page.waitForLoadState("networkidle");
+  }
+}
 
 try {
   const ownerContext = await contextFor("owner-a@integration.qa.invalid");
@@ -69,7 +103,6 @@ try {
   owner.on("response", (response) => { if (response.url().startsWith(base) && response.status() >= 500) errors.push(`${response.status()} ${new URL(response.url()).pathname}`); });
   await capture(owner, "staff-list-desktop", desktop, "/dashboard/garden/staff", "Staff list — Desktop");
   await capture(owner, "staff-list-mobile", mobile, "/dashboard/garden/staff", "Staff list — Mobile");
-  await capture(owner, "staff-profile-desktop", desktop, "/dashboard/garden/staff?staff=active", "Staff profile — Desktop");
   await capture(owner, "staff-time-desktop", desktop, "/dashboard/garden/staff-time", "Time records and payroll-ready ledger — Desktop");
   await capture(owner, "staff-time-mobile", mobile, "/dashboard/garden/staff-time", "Hours and missing clock-out — Mobile");
   await ownerContext.close();
@@ -83,6 +116,7 @@ try {
   await capture(staff, "clock-in-out-mobile", mobile, "/dashboard/staff/attendance", "Clock in/out — Mobile");
   await capture(staff, "schedule-desktop", desktop, "/dashboard/staff/shifts", "Schedule and time records — Desktop");
   await capture(staff, "schedule-mobile", mobile, "/dashboard/staff/shifts", "Upcoming shifts — Mobile");
+  await capture(staff, "staff-profile-desktop", desktop, "/dashboard/staff/settings", "Active Staff profile — Desktop");
   await capture(staff, "staff-profile-mobile", mobile, "/dashboard/staff/settings", "Active Staff profile — Mobile");
   await capture(staff, "staff-documents-mobile", mobile, "/dashboard/staff/documents", "Staff documents — Mobile");
   await capture(staff, "staff-tasks-mobile", mobile, "/dashboard/staff/tasks", "Staff Tasks — Mobile");
@@ -93,6 +127,7 @@ try {
   const multiContext = await contextFor("staff-ab@integration.qa.invalid");
   const multi = await multiContext.newPage();
   multi.on("pageerror", (error) => errors.push(error.message));
+  await ensureActiveGarden(multi);
   await capture(multi, "multi-garden-staff-desktop", desktop, "/dashboard/staff", "Multi-Garden Staff — Desktop");
   await multiContext.close();
 

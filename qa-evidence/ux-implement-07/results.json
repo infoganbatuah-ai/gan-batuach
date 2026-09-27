@@ -1,7 +1,7 @@
 {
   "environment": "DEVELOPMENT / INTEGRATION",
-  "base": "http://127.0.0.1:3007",
-  "capturedAt": "2026-09-24T19:38:28.725Z",
+  "base": "http://127.0.0.1:3001",
+  "capturedAt": "2026-09-26T23:26:04.400Z",
   "reference": "GB_UX_REF_STAFF_FULL_PLATFORM.png",
   "viewports": {
     "desktop": {
@@ -34,15 +34,6 @@
       "viewport": "390x844",
       "referenceArea": "Staff list — Mobile",
       "screenshot": "qa-evidence/ux-implement-07/screenshots/staff-list-mobile.webp",
-      "visualStatus": "VISUAL_PASS",
-      "deviations": []
-    },
-    {
-      "name": "staff-profile-desktop",
-      "route": "/dashboard/garden/staff?staff=active",
-      "viewport": "1440x1024",
-      "referenceArea": "Staff profile — Desktop",
-      "screenshot": "qa-evidence/ux-implement-07/screenshots/staff-profile-desktop.webp",
       "visualStatus": "VISUAL_PASS",
       "deviations": []
     },
@@ -106,6 +97,15 @@
       "viewport": "390x844",
       "referenceArea": "Upcoming shifts — Mobile",
       "screenshot": "qa-evidence/ux-implement-07/screenshots/schedule-mobile.webp",
+      "visualStatus": "VISUAL_PASS",
+      "deviations": []
+    },
+    {
+      "name": "staff-profile-desktop",
+      "route": "/dashboard/staff/settings",
+      "viewport": "1440x1024",
+      "referenceArea": "Active Staff profile — Desktop",
+      "screenshot": "qa-evidence/ux-implement-07/screenshots/staff-profile-desktop.webp",
       "visualStatus": "VISUAL_PASS",
       "deviations": []
     },

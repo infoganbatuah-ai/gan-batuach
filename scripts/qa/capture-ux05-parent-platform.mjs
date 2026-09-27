@@ -27,6 +27,20 @@ const assigned = identities.users.find((item) => item.email === "parent-multi@in
 assert.ok(assigned?.password, "Synthetic multi-Child Parent identity is required");
 const admin = createSupabaseClient(keys.url, keys.service, { auth: { persistSession: false, autoRefreshToken: false } });
 
+// Keep the isolated visual persona truthful and dense enough to exercise the
+// canonical Child-specific discovery contract. These records never leave the
+// local DEVELOPMENT / INTEGRATION database.
+for (const [table, payload, ids] of [
+  ["permanent_child_files", { birth_date: "2023-05-12" }, ["00000000-0000-4000-8000-000000000802"]],
+  ["permanent_child_files", { birth_date: "2022-11-08" }, ["00000000-0000-4000-8000-000000000803"]],
+  ["gardens", { public_profile_enabled: true, enrollment_availability: "accepting", image_url: "/assets/gan-batuach-auth-hero.webp", public_description: "סביבה חמה, בטוחה ומקצועית לילדי הגן.", city: "תל אביב", address: "רחוב הרצל 12" }, ["00000000-0000-4000-8000-000000000601"]],
+  ["classrooms", { min_age_months: 24, max_age_months: 60, age_group_label: "פעוטות", capacity_limit: 20 }, ["00000000-0000-4000-8000-000000000701"]],
+  ["classrooms", { min_age_months: 24, max_age_months: 60, age_group_label: "פעוטות" }, ["00000000-0000-4000-8000-000000000702"]]
+]) {
+  const updated = await admin.from(table).update(payload).in("id", ids);
+  assert.equal(updated.error, null, updated.error?.message);
+}
+
 const unassignedId = "00000000-0000-4000-8000-000000000599";
 const unassignedEmail = "ux05-unassigned@integration.qa.invalid";
 const unassignedPassword = randomBytes(24).toString("base64url");
@@ -111,8 +125,9 @@ try {
   await capture(page, "payments-desktop", desktop, "/dashboard/parent/payments", "תשלומים — Desktop");
   await capture(page, "payments-mobile", mobile, "/dashboard/parent/payments", "14 תשלומים — Mobile");
   await capture(page, "documents-mobile", mobile, "/dashboard/parent/documents", "15 מסמכים — Mobile");
-  await capture(page, "enrollment-desktop", desktop, "/dashboard/parent/discover-kindergartens", "Enrollment / Registration — Desktop");
-  await capture(page, "enrollment-mobile", mobile, "/dashboard/parent/discover-kindergartens", "Enrollment / Registration — Mobile");
+  const discoveryRoute = "/dashboard/parent/discover-kindergartens?child=00000000-0000-4000-8000-000000000802";
+  await capture(page, "enrollment-desktop", desktop, discoveryRoute, "Enrollment / Registration — Desktop");
+  await capture(page, "enrollment-mobile", mobile, discoveryRoute, "Enrollment / Registration — Mobile");
   await capture(page, "settings-mobile", mobile, "/dashboard/parent/settings", "16 הגדרות — Mobile");
   assert.deepEqual(errors, []);
   await context.close();

@@ -157,7 +157,7 @@ export default async function StaffDashboard() {
 
   const garden = gardenRes.data as any;
   const staffName = cleanSyntheticLabel(staff?.full_name ?? profile.full_name, "איש/ת צוות");
-  const staffRole = employment?.role_title ?? staff?.role_title ?? staff?.role ?? "צוות גן";
+  const staffRole = cleanSyntheticLabel(employment?.role_title ?? staff?.role_title ?? staff?.role, "צוות גן");
   const children = (childrenRes.data ?? []) as any[];
   const journals = (journalsRes.data ?? []) as any[];
   const journalByChild = new Map(journals.map((journal: any) => [journal.child_id, journal]));
@@ -187,7 +187,7 @@ export default async function StaffDashboard() {
           </div>
         </StaffShiftHero>
 
-        <StaffShiftCard status={shiftStatus} hours={shift?.planned_start && shift?.planned_end ? `${shift.planned_start} - ${shift.planned_end}` : "לא נקבעה משמרת"}>
+        <StaffShiftCard status={shiftStatus} hours={shift?.planned_start && shift?.planned_end ? `\u200E${String(shift.planned_start).slice(0, 5)} - ${String(shift.planned_end).slice(0, 5)}\u200E` : "לא נקבעה משמרת"}>
           <div className="staff-shift-buttons">
             <Link href="/dashboard/staff/attendance"><LogIn size={22} /> כניסה</Link>
             <Link href="/dashboard/staff/attendance"><LogOut size={22} /> יציאה</Link>
