@@ -29,7 +29,7 @@ export default async function InspectorCamerasPage() {
   const profileForUi = { ...profile, profile_image_url: (inspectorRes.data as any)?.profile_photo_url ?? profile.profile_image_url };
 
   return (
-    <InspectorAppFrame profile={profileForUi} activeHref="/dashboard/inspector/control-center" title="מצלמות גנים" subtitle="צפייה לצורכי פיקוח בלבד" badge="מצלמות">
+    <InspectorAppFrame profile={profileForUi} activeHref="/dashboard/inspector/cameras" title="מצלמות גנים" subtitle="צפייה לצורכי פיקוח בלבד" badge="מצלמות">
       <InspectorHero eyebrow="גישה מבוקרת" title="גלריית מצלמות בגנים המשויכים" subtitle="רק מצלמות של גנים שהוקצו לך מוצגות כאן. כל פתיחת צפייה דורשת סיבה ונרשמת ביומן." artwork={<Camera />} />
       <InspectorMetricGrid columns={3}>
         <InspectorMetricCard label="גנים משויכים" value={gardenIds.length} hint="טווח הרשאה" icon={ShieldCheck} />

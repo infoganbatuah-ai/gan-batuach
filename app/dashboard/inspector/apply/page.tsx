@@ -2,7 +2,7 @@ import { ClipboardCheck, FileText, MapPin, ShieldCheck } from "lucide-react";
 import { InspectorApplicationForm } from "@/components/self-service-forms";
 import { requireRole } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
-import { InspectorAppFrame, InspectorHero, InspectorMetricCard, InspectorMetricGrid, InspectorSection } from "@/components/inspector-app-ui";
+import { InspectorAppFrame, InspectorHero, InspectorMetricCard, InspectorMetricGrid, InspectorSection, InspectorStatePanel } from "@/components/inspector-app-ui";
 
 function formatStatus(status?: string | null) {
   const map: Record<string, string> = {
@@ -26,6 +26,7 @@ export default async function InspectorApplyPage() {
     .select("*")
     .eq("profile_id", profile.id)
     .maybeSingle()).data as any;
+  const blocked = ["suspended", "inactive"].includes(String(application?.status ?? ""));
 
   return (
     <InspectorAppFrame profile={profile} activeHref="/dashboard/inspector/settings" title="בקשת מפקח" subtitle="הגשה, מסמכים ואישור אדמין" badge={formatStatus(application?.status)}>
@@ -40,8 +41,20 @@ export default async function InspectorApplyPage() {
         <InspectorMetricCard label="מסמכים" value={Object.keys(application?.documents ?? {}).length} hint="צורפו לבקשה" icon={FileText} />
         <InspectorMetricCard label="אזורים" value={(application?.preferred_regions ?? []).length} hint="העדפות אזור" icon={MapPin} />
       </InspectorMetricGrid>
-      <InspectorSection title="טופס בקשה" subtitle="הטופס הקיים נשמר כדי לא לשנות את תהליך ההגשה" icon={ClipboardCheck}>
-        <InspectorApplicationForm application={application} />
+      {blocked ? (
+        <InspectorStatePanel
+          tone="danger"
+          icon={<ShieldCheck />}
+          eyebrow="סטטוס חשבון"
+          title="הגישה לפעילות פיקוח הושהתה"
+          text="היסטוריית הבקשה נשמרת, אך אין גישה לגנים, לראיות או לביקורות עד לבדיקת מנהל המערכת."
+          actions={<a className="inspector-action-button" href="#application-status">צפייה בפרטי הבקשה</a>}
+        />
+      ) : null}
+      <InspectorSection title={blocked ? "פרטי בקשה" : "טופס בקשה"} subtitle={blocked ? "הפרטים מוצגים לשמירת רצף הבדיקה" : "הטופס הקיים נשמר כדי לא לשנות את תהליך ההגשה"} icon={ClipboardCheck}>
+        <div id="application-status">
+          {blocked ? <p className="inspector-inline-note">לא ניתן לערוך בקשה מושהית. ניתן לפנות לתמיכה דרך ערוץ החשבון.</p> : <InspectorApplicationForm application={application} />}
+        </div>
       </InspectorSection>
     </InspectorAppFrame>
   );
