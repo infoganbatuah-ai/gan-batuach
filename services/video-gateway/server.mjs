@@ -12,6 +12,7 @@ import { createEventCaptureWorkspace } from "./event-capture-workspace.mjs";
 import { parseProbeResult, MAX_PROBE_OUTPUT_BYTES } from "./probe-result.mjs";
 import { nextRelayRecovery, relayRecoveryIsStable, relayRetryDelayMs } from "./relay-recovery-policy.mjs";
 import { relayMaySurvivePrivateNvrRenewal, reuseMatchingPrivateNvrSession,
+  PRIVATE_NVR_RELAY_HANDOFF_TICK_MS,
   shouldProactivelyHandoffPrivateNvrRelay, shouldProactivelyRefreshPrivateNvrSession,
   shouldRefreshPrivateNvrSession } from
   "./private-nvr-session-policy.mjs";
@@ -138,17 +139,22 @@ setInterval(() => {
       .catch(error => { reportPrivateNvrMaintenanceFailure("session_renewal", error); })
       .finally(() => { privateNvrSessionRenewalRun = null; });
   }
-  if (!privateNvrRelayHandoffRun) {
-    privateNvrRelayHandoffRun = maintainPrivateNvrRelayHandoffs()
-      .catch(error => { reportPrivateNvrMaintenanceFailure("relay_handoff", error); })
-      .finally(() => { privateNvrRelayHandoffRun = null; });
-  }
   if (!directRtspRelayHandoffRun) {
     directRtspRelayHandoffRun = maintainDirectRtspRelayHandoffs()
       .catch(error => { reportPrivateNvrMaintenanceFailure("direct_rtsp_relay_handoff", error); })
       .finally(() => { directRtspRelayHandoffRun = null; });
   }
 }, 10_000).unref();
+// Keep recorder media replacement independent from login/heartbeat work and
+// fast enough to complete a bounded one-at-a-time sweep before the recorder
+// retires responses owned by the prior non-exclusive login.
+setInterval(() => {
+  if (!privateNvrRelayHandoffRun) {
+    privateNvrRelayHandoffRun = maintainPrivateNvrRelayHandoffs()
+      .catch(error => { reportPrivateNvrMaintenanceFailure("relay_handoff", error); })
+      .finally(() => { privateNvrRelayHandoffRun = null; });
+  }
+}, PRIVATE_NVR_RELAY_HANDOFF_TICK_MS).unref();
 const relays = new Map();
 const eventEvidence = createEventEvidenceStore();
 const eventCaptureWorkspace = createEventCaptureWorkspace();

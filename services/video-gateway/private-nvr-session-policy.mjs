@@ -15,6 +15,11 @@ export const PRIVATE_NVR_PROACTIVE_RENEWAL_MS = 4 * 60 * 1000;
 // hand each progressing relay to a replacement with a full one-minute margin,
 // without creating another recorder login.
 export const PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS = 2 * 60 * 1000;
+// A new login on the Home recorder was observed to retire media responses
+// from the prior login after roughly fifty seconds. Keep one-at-a-time relay
+// replacement, but drive the independent handoff scheduler quickly enough to
+// move all sixteen possible channels inside that measured overlap window.
+export const PRIVATE_NVR_RELAY_HANDOFF_TICK_MS = 2_000;
 
 export function shouldProactivelyHandoffPrivateNvrRelay(relay, now = Date.now()) {
   return Boolean(relay?.progressing && relay?.recoveryStable && !relay?.warming

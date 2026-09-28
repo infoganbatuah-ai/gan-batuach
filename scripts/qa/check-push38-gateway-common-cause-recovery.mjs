@@ -8,6 +8,7 @@ import { buildPush38GatewayFiniteStreamHandoffManifest,
   PUSH38_GATEWAY_FINITE_STREAM_HANDOFF } from
   "../../services/video-gateway/push38-home-qa-gateway-finite-stream-handoff.mjs";
 import { PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS, PRIVATE_NVR_PROACTIVE_RENEWAL_MS,
+  PRIVATE_NVR_RELAY_HANDOFF_TICK_MS,
   relayMaySurvivePrivateNvrRenewal, shouldProactivelyHandoffPrivateNvrRelay,
   shouldProactivelyRefreshPrivateNvrSession, shouldRefreshPrivateNvrSession } from
   "../../services/video-gateway/private-nvr-session-policy.mjs";
@@ -119,6 +120,11 @@ test("heartbeat, login renewal, and media handoffs use independent bounded sched
     /privateNvrSessionRenewalRun = maintainPrivateNvrSessionRenewals\(\)/);
   assert.match(gateway,
     /privateNvrRelayHandoffRun = maintainPrivateNvrRelayHandoffs\(\)/);
+  assert.equal(PRIVATE_NVR_RELAY_HANDOFF_TICK_MS, 2_000);
+  assert.ok(PRIVATE_NVR_RELAY_HANDOFF_TICK_MS * 16 < 50_000,
+    "a one-at-a-time full recorder sweep must fit inside the observed prior-login overlap");
+  assert.match(gateway,
+    /\}, PRIVATE_NVR_RELAY_HANDOFF_TICK_MS\)\.unref\(\)/);
   assert.match(gateway,
     /async function maintainPrivateNvrRelayHandoffs[\s\S]*warmReplacePrivateNvrRelay\(streamId, relay\);[\s\S]*return;/,
     "one maintenance pass may overlap only one candidate relay");
