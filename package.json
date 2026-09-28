@@ -68,6 +68,7 @@
     "qa:ux06-visual": "node scripts/qa/capture-ux06-attendance-pickup.mjs",
     "qa:ux07-focused": "node --test scripts/qa/check-ux07-staff-platform.mjs",
     "qa:ux07-visual": "node scripts/qa/capture-ux07-staff-platform.mjs",
+    "qa:ux07-reference-correction-visual": "node scripts/qa/capture-ux07-staff-reference-correction.mjs",
     "qa:ux08-focused": "node --test scripts/qa/check-ux08-staff-recruitment-candidate.mjs",
     "qa:ux08-visual": "node scripts/qa/capture-ux08-staff-recruitment-candidate.mjs",
     "qa:management-legacy-consolidation": "node --test scripts/qa/check-management-legacy-consolidation.mjs",

@@ -32,7 +32,7 @@ export default async function StaffTimePage() {
   const incomplete = rows.filter((row) => row.missing_clock_out).length;
   const approved = rows.filter((row) => row.approval_state === "approved").length;
 
-  return <RoleAppShell role={role} activeHref="/dashboard/garden/staff" title="שעות צוות" subtitle="משמרות, חריגות ונתונים מוכנים להעברה לשכר" profile={access.session.profile}>
+  return <RoleAppShell role={role} activeHref="/dashboard/garden/staff" title="שעות צוות" subtitle="משמרות, חריגות ונתונים מוכנים להעברה לשכר" profile={access.session.profile} className="staff-runtime-shell ux07-manager-staff-shell">
     <main className="ux07-manager-workspace">
       <section className="ux07-page-hero"><div><span>צוות · {period.slice(0, 7)}</span><h1>שעות עבודה ומשמרות</h1><p>מעקב מדויק לפי זמן השרת, אישור חריגות וייצוא לתהליך שכר חיצוני.</p></div><a className="gb-primary-button" href={`/api/garden/staff-time?period=${period}&format=csv`}><Download size={18} /> הורדת CSV</a></section>
       <section className="ux07-metrics" aria-label="סיכום שעות">

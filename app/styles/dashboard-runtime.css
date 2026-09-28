@@ -1724,6 +1724,36 @@
   justify-self: start;
 }
 
+@media (min-width: 1025px) {
+  .role-app-shell.staff-runtime-shell { --dashboard-sidebar: 244px; }
+  .role-app-shell.staff-runtime-shell .gb-app-shell-sidebar {
+    border-inline-end: 0;
+    background: linear-gradient(180deg, #073b77 0%, #052a5e 100%) !important;
+    box-shadow: 12px 0 38px rgb(6 47 104 / 18%);
+  }
+  .role-app-shell.staff-runtime-shell .gb-sidebar-nav { border: 0; background: transparent; box-shadow: none; }
+  .role-app-shell.staff-runtime-shell :where(.gb-sidebar-title, .role-app-sidebar-heading, .role-app-sidebar-title, .role-app-sidebar-title b) { color: #fff; }
+  .role-app-shell.staff-runtime-shell :where(.role-app-sidebar-title span, .role-app-sidebar-brand small, .gb-sidebar-nav-item small) { color: rgb(225 238 255 / 72%); }
+  .role-app-shell.staff-runtime-shell .role-app-sidebar-brand img { filter: brightness(0) invert(1); }
+  .role-app-shell.staff-runtime-shell .gb-sidebar-nav-item { color: #eef6ff; }
+  .role-app-shell.staff-runtime-shell .gb-sidebar-nav-item:hover { background: rgb(255 255 255 / 9%); }
+  .role-app-shell.staff-runtime-shell .gb-sidebar-nav-item.active { background: linear-gradient(100deg, #1687ff, #0867d6); color: #fff; }
+  .role-app-shell.staff-runtime-shell .gb-sidebar-nav-item.active small { color: rgb(255 255 255 / 76%); }
+}
+
+@media (max-width: 720px) {
+  .role-app-shell.staff-runtime-shell .role-app-header {
+    min-height: 82px;
+    padding: max(15px, env(safe-area-inset-top, 0px)) 14px 13px;
+    border-bottom: 0;
+    background: linear-gradient(135deg, #073b77, #052a5e);
+    box-shadow: 0 12px 30px rgb(6 47 104 / 20%);
+  }
+  .role-app-shell.staff-runtime-shell .role-app-logo img { filter: brightness(0) invert(1); }
+  .role-app-shell.staff-runtime-shell .role-app-actions :where(.role-app-icon-button, .role-app-avatar) { border-color: rgb(255 255 255 / 34%); background: rgb(255 255 255 / 10%); color: #fff; box-shadow: none; }
+  .role-app-shell.staff-runtime-shell .role-app-actions .role-app-avatar { border: 2px solid rgb(255 255 255 / 76%); background: #fff; }
+}
+
 @media (max-width: 820px) {
   .role-app-shell.parent-runtime-shell .role-app-header {
     gap: 10px 8px;
