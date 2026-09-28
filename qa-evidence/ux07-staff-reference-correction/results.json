@@ -1,0 +1,301 @@
+{
+  "environment": "DEVELOPMENT / INTEGRATION",
+  "base": "http://127.0.0.1:3000",
+  "capturedAt": "2026-09-28T01:18:12.514Z",
+  "sourceIntegrationHead": "a9eda0abd371364feb147c558c326ff99b1ce26c",
+  "reference": "/Users/danielderi/Desktop/גן בטוח/עיצוב עדכון גרסה/GB_UX_REF_STAFF_FULL_PLATFORM.png",
+  "referenceSha256": "4026a8eb545dc27cb95dacb8a7375a539ba82e6aaa74b2fdb57266114bf9662b",
+  "concepts": 15,
+  "viewports": {
+    "desktop": {
+      "width": 1440,
+      "height": 1024
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844
+    }
+  },
+  "personas": [
+    "owner-a",
+    "staff-a",
+    "staff-ab"
+  ],
+  "captures": [
+    {
+      "name": "staff-list-desktop",
+      "route": "/dashboard/garden/staff",
+      "viewport": "1440x1024",
+      "referenceArea": "Staff list — Desktop",
+      "screenshot": "qa-evidence/ux07-staff-reference-correction/screenshots/staff-list-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material"
+    },
+    {
+      "name": "staff-list-mobile",
+      "route": "/dashboard/garden/staff",
+      "viewport": "390x844",
+      "referenceArea": "Staff list — Mobile",
+      "screenshot": "qa-evidence/ux07-staff-reference-correction/screenshots/staff-list-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material"
+    },
+    {
+      "name": "hours-desktop",
+      "route": "/dashboard/garden/staff-time",
+      "viewport": "1440x1024",
+      "referenceArea": "Hours and payroll-ready ledger — Desktop",
+      "screenshot": "qa-evidence/ux07-staff-reference-correction/screenshots/hours-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material"
+    },
+    {
+      "name": "hours-mobile",
+      "route": "/dashboard/garden/staff-time",
+      "viewport": "390x844",
+      "referenceArea": "Hours and payroll-ready ledger — Mobile",
+      "screenshot": "qa-evidence/ux07-staff-reference-correction/screenshots/hours-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material"
+    },
+    {
+      "name": "missing-clock-out-desktop",
+      "route": "/dashboard/garden/staff-time",
+      "viewport": "1440x1024",
+      "referenceArea": "Missing clock-out — Desktop",
+      "screenshot": "qa-evidence/ux07-staff-reference-correction/screenshots/missing-clock-out-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material"
+    },
+    {
+      "name": "missing-clock-out-mobile",
+      "route": "/dashboard/garden/staff-time",
+      "viewport": "390x844",
+      "referenceArea": "Missing clock-out — Mobile",
+      "screenshot": "qa-evidence/ux07-staff-reference-correction/screenshots/missing-clock-out-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material"
+    },
+    {
+      "name": "staff-dashboard-desktop",
+      "route": "/dashboard/staff",
+      "viewport": "1440x1024",
+      "referenceArea": "Staff dashboard — Desktop",
+      "screenshot": "qa-evidence/ux07-staff-reference-correction/screenshots/staff-dashboard-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material"
+    },
+    {
+      "name": "staff-dashboard-mobile",
+      "route": "/dashboard/staff",
+      "viewport": "390x844",
+      "referenceArea": "Staff dashboard — Mobile",
+      "screenshot": "qa-evidence/ux07-staff-reference-correction/screenshots/staff-dashboard-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material"
+    },
+    {
+      "name": "staff-profile-desktop",
+      "route": "/dashboard/staff/settings",
+      "viewport": "1440x1024",
+      "referenceArea": "Active Staff profile — Desktop",
+      "screenshot": "qa-evidence/ux07-staff-reference-correction/screenshots/staff-profile-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material"
+    },
+    {
+      "name": "staff-profile-mobile",
+      "route": "/dashboard/staff/settings",
+      "viewport": "390x844",
+      "referenceArea": "Active Staff profile — Mobile",
+      "screenshot": "qa-evidence/ux07-staff-reference-correction/screenshots/staff-profile-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material"
+    },
+    {
+      "name": "schedule-desktop",
+      "route": "/dashboard/staff/shifts",
+      "viewport": "1440x1024",
+      "referenceArea": "Schedule — Desktop",
+      "screenshot": "qa-evidence/ux07-staff-reference-correction/screenshots/schedule-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material"
+    },
+    {
+      "name": "schedule-mobile",
+      "route": "/dashboard/staff/shifts",
+      "viewport": "390x844",
+      "referenceArea": "Schedule — Mobile",
+      "screenshot": "qa-evidence/ux07-staff-reference-correction/screenshots/schedule-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material"
+    },
+    {
+      "name": "current-shift-desktop",
+      "route": "/dashboard/staff",
+      "viewport": "1440x1024",
+      "referenceArea": "Current shift — Desktop",
+      "screenshot": "qa-evidence/ux07-staff-reference-correction/screenshots/current-shift-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material"
+    },
+    {
+      "name": "current-shift-mobile",
+      "route": "/dashboard/staff",
+      "viewport": "390x844",
+      "referenceArea": "Current shift — Mobile",
+      "screenshot": "qa-evidence/ux07-staff-reference-correction/screenshots/current-shift-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material"
+    },
+    {
+      "name": "clock-in-out-desktop",
+      "route": "/dashboard/staff/attendance",
+      "viewport": "1440x1024",
+      "referenceArea": "Clock in/out — Desktop",
+      "screenshot": "qa-evidence/ux07-staff-reference-correction/screenshots/clock-in-out-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material"
+    },
+    {
+      "name": "clock-in-out-mobile",
+      "route": "/dashboard/staff/attendance",
+      "viewport": "390x844",
+      "referenceArea": "Clock in/out — Mobile",
+      "screenshot": "qa-evidence/ux07-staff-reference-correction/screenshots/clock-in-out-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material"
+    },
+    {
+      "name": "time-records-desktop",
+      "route": "/dashboard/staff/shifts",
+      "viewport": "1440x1024",
+      "referenceArea": "Time records — Desktop",
+      "screenshot": "qa-evidence/ux07-staff-reference-correction/screenshots/time-records-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material"
+    },
+    {
+      "name": "time-records-mobile",
+      "route": "/dashboard/staff/shifts",
+      "viewport": "390x844",
+      "referenceArea": "Time records — Mobile",
+      "screenshot": "qa-evidence/ux07-staff-reference-correction/screenshots/time-records-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material"
+    },
+    {
+      "name": "staff-documents-desktop",
+      "route": "/dashboard/staff/documents",
+      "viewport": "1440x1024",
+      "referenceArea": "Staff documents — Desktop",
+      "screenshot": "qa-evidence/ux07-staff-reference-correction/screenshots/staff-documents-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material"
+    },
+    {
+      "name": "staff-documents-mobile",
+      "route": "/dashboard/staff/documents",
+      "viewport": "390x844",
+      "referenceArea": "Staff documents — Mobile",
+      "screenshot": "qa-evidence/ux07-staff-reference-correction/screenshots/staff-documents-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material"
+    },
+    {
+      "name": "staff-tasks-desktop",
+      "route": "/dashboard/staff/tasks",
+      "viewport": "1440x1024",
+      "referenceArea": "Staff Tasks — Desktop",
+      "screenshot": "qa-evidence/ux07-staff-reference-correction/screenshots/staff-tasks-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material"
+    },
+    {
+      "name": "staff-tasks-mobile",
+      "route": "/dashboard/staff/tasks",
+      "viewport": "390x844",
+      "referenceArea": "Staff Tasks — Mobile",
+      "screenshot": "qa-evidence/ux07-staff-reference-correction/screenshots/staff-tasks-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material"
+    },
+    {
+      "name": "staff-messages-desktop",
+      "route": "/dashboard/staff/messages",
+      "viewport": "1440x1024",
+      "referenceArea": "Staff messages — Desktop",
+      "screenshot": "qa-evidence/ux07-staff-reference-correction/screenshots/staff-messages-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material"
+    },
+    {
+      "name": "staff-messages-mobile",
+      "route": "/dashboard/staff/messages",
+      "viewport": "390x844",
+      "referenceArea": "Staff messages — Mobile",
+      "screenshot": "qa-evidence/ux07-staff-reference-correction/screenshots/staff-messages-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material"
+    },
+    {
+      "name": "staff-settings-desktop",
+      "route": "/dashboard/staff/settings",
+      "viewport": "1440x1024",
+      "referenceArea": "Staff settings — Desktop",
+      "screenshot": "qa-evidence/ux07-staff-reference-correction/screenshots/staff-settings-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material"
+    },
+    {
+      "name": "staff-settings-mobile",
+      "route": "/dashboard/staff/settings",
+      "viewport": "390x844",
+      "referenceArea": "Staff settings — Mobile",
+      "screenshot": "qa-evidence/ux07-staff-reference-correction/screenshots/staff-settings-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material"
+    },
+    {
+      "name": "staff-camera-policy-desktop",
+      "route": "/dashboard/staff/cameras",
+      "viewport": "1440x1024",
+      "referenceArea": "Staff camera policy — Desktop",
+      "screenshot": "qa-evidence/ux07-staff-reference-correction/screenshots/staff-camera-policy-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material"
+    },
+    {
+      "name": "staff-camera-policy-mobile",
+      "route": "/dashboard/staff/cameras",
+      "viewport": "390x844",
+      "referenceArea": "Staff camera policy — Mobile",
+      "screenshot": "qa-evidence/ux07-staff-reference-correction/screenshots/staff-camera-policy-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material"
+    },
+    {
+      "name": "multi-garden-staff-desktop",
+      "route": "/dashboard/staff",
+      "viewport": "1440x1024",
+      "referenceArea": "Multi-Garden Staff — Desktop",
+      "screenshot": "qa-evidence/ux07-staff-reference-correction/screenshots/multi-garden-staff-desktop.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material"
+    },
+    {
+      "name": "multi-garden-staff-mobile",
+      "route": "/dashboard/staff",
+      "viewport": "390x844",
+      "referenceArea": "Multi-Garden Staff — Mobile",
+      "screenshot": "qa-evidence/ux07-staff-reference-correction/screenshots/multi-garden-staff-mobile.webp",
+      "reviewStatus": "OWNER_REVIEW_READY",
+      "materialDeviations": "none material"
+    }
+  ],
+  "ownerReviewReady": 30,
+  "needsPolish": 0,
+  "visualDrift": 0,
+  "broken": 0,
+  "status": "PASS"
+}

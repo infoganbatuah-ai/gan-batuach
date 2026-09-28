@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { BadgeCheck, Building2, CalendarDays, FileCheck2, Mail, MapPin, Phone, ShieldCheck, UsersRound } from "lucide-react";
+import { BadgeCheck, Bell, Building2, CalendarDays, ChevronLeft, FileCheck2, KeyRound, Languages, Mail, MapPin, Phone, ShieldCheck, UserRound, UsersRound } from "lucide-react";
 import { Avatar } from "@/components/avatar";
+import { LogoutButton } from "@/components/logout-button";
 import { ProfileSettingsForm } from "@/components/profile-settings-form";
 import { StatusChip } from "@/components/gan-batuach-design-system";
-import { StaffAppFrame, StaffPageHero, StaffSection } from "@/components/staff-app-ui";
+import { StaffAppFrame, StaffSection } from "@/components/staff-app-ui";
 import { CandidateIdentity, CompletenessRing, RecruitmentTabs } from "@/components/recruitment-ui";
 import { StaffCandidateProfileForm } from "@/components/staff-candidate-profile-form";
 import { StaffCandidateDocumentUpload } from "@/components/staff-candidate-document-upload";
@@ -39,12 +40,18 @@ export default async function SettingsPage() {
   const gardenName = cleanSyntheticLabel(active?.garden_name, "גן");
   const roleName = cleanSyntheticLabel(employment?.role_title ?? active?.role_title ?? staff?.role_title, "צוות גן");
 
-  return <StaffAppFrame active="profile" profileName={candidate?.full_name ?? name} avatarUrl={candidate?.profile_photo_url ?? staff?.profile_photo_url ?? profile.profile_image_url} mode={active ? "assigned" : "candidate"}>
+  const portrait = candidate?.profile_photo_url ?? staff?.profile_photo_url ?? profile.profile_image_url;
+
+  return <StaffAppFrame active="profile" profileName={candidate?.full_name ?? name} avatarUrl={portrait} mode={active ? "assigned" : "candidate"}>
     {!active ? <RecruitmentTabs active="profile" /> : null}
-    {!active ? <section className="ux08-candidate-profile-hero"><CandidateIdentity name={candidate?.full_name ?? name} role={candidate?.professional_role} city={candidate?.city} photo={candidate?.profile_photo_url ?? profile.profile_image_url} status={candidate?.status} /><CompletenessRing percentage={Number(completeness?.percentage ?? 0)} /></section> : <StaffPageHero eyebrow="הפרופיל שלי" title={name} text={`${roleName} · ${gardenName}`} icon={BadgeCheck} badge={<StatusChip tone="success">העסקה פעילה</StatusChip>} />}
+    {!active ? <section className="ux08-candidate-profile-hero"><CandidateIdentity name={candidate?.full_name ?? name} role={candidate?.professional_role} city={candidate?.city} photo={candidate?.profile_photo_url ?? profile.profile_image_url} status={candidate?.status} /><CompletenessRing percentage={Number(completeness?.percentage ?? 0)} /></section> : <section className="ux07-staff-identity-hero">
+      <Avatar name={name} src={portrait} size="lg" />
+      <div className="ux07-staff-identity-copy"><span>הפרופיל שלי</span><h1>{name}</h1><p>{roleName} · {gardenName}</p><div><StatusChip tone="success"><BadgeCheck size={15} /> העסקה פעילה</StatusChip>{active.classroom_names?.length ? <StatusChip tone="info"><UsersRound size={15} /> {active.classroom_names.map((classroom) => cleanSyntheticLabel(classroom, "כיתה")).join(", ")}</StatusChip> : null}</div></div>
+      <nav aria-label="אזורי פרופיל צוות"><Link href="/dashboard/staff/settings">סקירה</Link><Link href="/dashboard/staff/shifts">משמרות</Link><Link href="/dashboard/staff/documents">מסמכים</Link><Link href="/dashboard/staff/notifications">הודעות</Link></nav>
+    </section>}
 
     {active ? <section className="ux07-staff-profile-card">
-      <div className="ux07-profile-identity"><Avatar name={name} src={staff?.profile_photo_url ?? profile.profile_image_url} size="lg" /><div><h2>{name}</h2><p>{roleName}</p><StatusChip tone="success">פעיל/ה</StatusChip></div></div>
+      <div className="ux07-profile-card-heading"><div><span>פרטי העסקה</span><h2>תפקיד, שיוך ופרטי קשר</h2></div><StatusChip tone="success">פעיל/ה</StatusChip></div>
       <div className="ux07-profile-facts">
         <span><Building2 /><small>גן פעיל</small><b>{gardenName}</b></span>
         <span><UsersRound /><small>כיתות</small><b>{active.classroom_names?.map((name) => cleanSyntheticLabel(name, "כיתה")).join(", ") || "ללא שיוך כיתה"}</b></span>
@@ -59,6 +66,19 @@ export default async function SettingsPage() {
     {context.available && context.employments.length > 1 ? <StaffSection title="העסקות פעילות לפי גן"><div className="ux07-employment-grid">{context.employments.map((item) => <article key={item.employment_id} className={item.garden_id === active?.garden_id ? "active" : ""}><Building2 /><div><strong>{cleanSyntheticLabel(item.garden_name, "גן")}</strong><span>{cleanSyntheticLabel(item.role_title, "צוות")}</span><small>{item.classroom_names?.map((name) => cleanSyntheticLabel(name, "כיתה")).join(", ") || "ללא כיתה"}</small></div>{item.garden_id === active?.garden_id ? <StatusChip tone="success">הגן הפעיל</StatusChip> : <StatusChip tone="info">זמין לבחירה</StatusChip>}</article>)}</div></StaffSection> : null}
 
     {!active ? <section className="ux08-profile-editor-grid"><StaffCandidateProfileForm candidate={candidate} completeness={completeness} /><StaffCandidateDocumentUpload /></section> : null}
-    <StaffSection title={active ? "פרטים אישיים ואבטחה" : "חשבון ואבטחה"}><ProfileSettingsForm profile={profile} garden={garden} roleLabel={active ? "צוות גן" : "מועמד/ת לצוות"} includeGarden={false} requireProfilePhoto /></StaffSection>
+    {active ? <section className="ux07-settings-menu-card" aria-labelledby="staff-settings-title">
+      <header><span>החשבון שלי</span><h2 id="staff-settings-title">הגדרות</h2><p>גישה מהירה לפרופיל, אבטחה והעדפות.</p></header>
+      <nav aria-label="הגדרות צוות">
+        <a href="#profile-settings"><UserRound /><span><b>הפרופיל שלי</b><small>פרטים אישיים ופרטי קשר</small></span><ChevronLeft /></a>
+        <Link href="/dashboard/staff/shifts"><CalendarDays /><span><b>משמרות</b><small>לוח עבודה והיסטוריית שעות</small></span><ChevronLeft /></Link>
+        <Link href="/dashboard/staff/attendance"><BadgeCheck /><span><b>נוכחות</b><small>מצב נוכחי ופעולות שעון</small></span><ChevronLeft /></Link>
+        <Link href="/dashboard/staff/documents"><FileCheck2 /><span><b>מסמכים</b><small>אישורים ותעודות</small></span><ChevronLeft /></Link>
+        <a href="#profile-settings"><KeyRound /><span><b>אבטחה וכניסה</b><small>פרטי חשבון ואימות</small></span><ChevronLeft /></a>
+        <span><Languages /><span><b>שפה</b><small>עברית</small></span><StatusChip tone="info">RTL</StatusChip></span>
+        <Link href="/dashboard/staff/notifications"><Bell /><span><b>התראות</b><small>עדכונים והעדפות צפייה</small></span><ChevronLeft /></Link>
+      </nav>
+      <LogoutButton className="ux07-settings-logout" />
+    </section> : null}
+    <div id="profile-settings"><StaffSection title={active ? "פרטים אישיים ואבטחה" : "חשבון ואבטחה"}><ProfileSettingsForm profile={profile} garden={garden} roleLabel={active ? "צוות גן" : "מועמד/ת לצוות"} includeGarden={false} requireProfilePhoto /></StaffSection></div>
   </StaffAppFrame>;
 }

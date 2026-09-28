@@ -11,7 +11,6 @@ import {
   TeacherCompactItem,
   TeacherCompactList,
   TeacherEmptyState,
-  TeacherPageTitle,
   TeacherSection,
   TeacherStatCard,
   TeacherStatsGrid
@@ -21,7 +20,8 @@ type TeachingAssignmentRow = { id: string; profile_id: string; staff_id: string 
 type GardenTeachingRow = { owner_profile_id: string | null; ownership_type: string };
 type EmploymentRow = { staff_id: string; status: string; role_title: string | null; start_date: string | null; approved_at: string | null };
 
-export default async function GardenStaffPage() {
+export default async function GardenStaffPage({ searchParams }: { searchParams: Promise<{ q?: string; status?: string }> }) {
+  const filters = await searchParams;
   const access = await getManagementGardenContext();
   if (!access.allowed) return <main className="card">אין הרשאה לצפות בצוות הגן.</main>;
   const profile = access.session.profile;
@@ -70,6 +70,13 @@ export default async function GardenStaffPage() {
       shift_today: shift?.actual_start ? `זוהה/תה ${new Date(shift.actual_start).toLocaleTimeString("he-IL", { hour: "2-digit", minute: "2-digit" })}` : null
     };
   });
+  const query = String(filters.q ?? "").trim().toLocaleLowerCase("he-IL");
+  const status = String(filters.status ?? "all");
+  const visibleRows = rows.filter((row) => {
+    const matchesQuery = !query || [row.full_name, row.role_title, row.class_group].some((value) => String(value ?? "").toLocaleLowerCase("he-IL").includes(query));
+    const matchesStatus = status === "all" || row.employment_status === status || (status === "active" && row.approved_to_work);
+    return matchesQuery && matchesStatus;
+  });
   const activeToday = rows.filter((row) => row.shift_today).length;
   const reviewNeeded = rows.reduce((sum, row) => sum + Number(row.anomaly_count ?? 0), 0) + rows.filter((row) => row.attendance_confidence === "requires_review" && row.shift_today).length;
   const assignments = (assignmentsRes.data ?? []) as unknown as TeachingAssignmentRow[];
@@ -79,24 +86,26 @@ export default async function GardenStaffPage() {
 
   const shellRole = profile.role === "owner" ? "owner" : "manager";
   return (
-    <RoleAppShell role={shellRole} activeHref="/dashboard/garden/staff" title="צוות הגן" subtitle="העסקה, משמרות, מסמכים ושעות" profile={profile}>
-      <main className="ux07-manager-workspace">
+    <RoleAppShell role={shellRole} activeHref="/dashboard/garden/staff" title="צוות הגן" subtitle="העסקה, משמרות, מסמכים ושעות" profile={profile} className="staff-runtime-shell ux07-manager-staff-shell">
+      <main className="ux07-manager-workspace ux07-staff-directory-shell">
         <section className="ux07-page-hero"><div><span>ניהול צוות פעיל</span><h1>צוות הגן</h1><p>כל אנשי הצוות, ההעסקות הפעילות והפעולות שדורשות תשומת לב במקום אחד.</p></div><div className="profile-actions"><Link className="gb-primary-button" href="/dashboard/garden/staff-applications">הוספת איש צוות</Link><Link className="button secondary" href="/dashboard/garden/staff-time">משמרות ושעות</Link></div></section>
       <div className="dashboard-runtime-content">
-        <TeacherPageTitle icon={UsersRound} title="ניהול צוות" subtitle="מי נמצא בגן, מי חסר ומה דורש בדיקה" />
-        <p><Link href="/dashboard/garden/staff-time">שעות עבודה, אישורים וייצוא למערכת שכר חיצונית</Link></p>
-        <TeacherStatsGrid>
+        <section className="ux07-staff-directory-toolbar" aria-label="חיפוש וסינון צוות">
+          <form><label><span className="sr-only">חיפוש איש צוות</span><input name="q" defaultValue={filters.q ?? ""} placeholder="חיפוש לפי שם, תפקיד או כיתה" /></label><input type="hidden" name="status" value={status} /><button type="submit">חיפוש</button></form>
+          <nav aria-label="סינון מצב העסקה"><Link className={status === "all" ? "active" : ""} href="/dashboard/garden/staff">הכול ({rows.length})</Link><Link className={status === "active" ? "active" : ""} href="/dashboard/garden/staff?status=active">פעילים ({rows.filter((row) => row.approved_to_work).length})</Link><Link className={status === "pending" ? "active" : ""} href="/dashboard/garden/staff?status=pending">ממתינים ({rows.filter((row) => !row.approved_to_work).length})</Link></nav>
+        </section>
+        <div className="ux07-staff-directory-metrics"><TeacherStatsGrid>
           <TeacherStatCard title="אנשי צוות" value={rows.length} hint="משויכים לגן" icon={UsersRound} tone="purple" />
           <TeacherStatCard title="זוהו היום" value={activeToday} hint="נוכחים" icon={UserCheck} tone="green" />
           <TeacherStatCard title="דורש בדיקה" value={reviewNeeded} hint="חריגות / GPS" icon={ShieldCheck} tone={reviewNeeded ? "red" : "green"} />
           <TeacherStatCard title="מוכנות ממוצעת" value={`${Math.round(rows.reduce((sum, row) => sum + Number(row.compliance_score), 0) / Math.max(rows.length, 1))}%`} hint="מסמכים ותעודות" icon={ClipboardCheck} tone="blue" />
-        </TeacherStatsGrid>
+        </TeacherStatsGrid></div>
 
         <section className="teacher-dashboard-grid">
           <TeacherSection title="צוות בתפקיד" action={<Link href="/dashboard/garden/staff-applications">מועמדויות</Link>}>
-            {rows.length ? (
+            {visibleRows.length ? (
               <TeacherCompactList>
-                {rows.slice(0, 8).map((member) => (
+                {visibleRows.slice(0, 8).map((member) => (
                   <TeacherCompactItem
                     key={member.id}
                     title={member.full_name ?? "איש צוות"}
@@ -123,7 +132,7 @@ export default async function GardenStaffPage() {
 
         <TeachingAssignmentsPanel ownerEligible={ownerEligible} ownerAssignment={ownerAssignment} assignments={assignments} staff={rows} />
 
-        <StaffProfileCards staff={rows} />
+        <StaffProfileCards staff={visibleRows} />
       </div>
       </main>
     </RoleAppShell>

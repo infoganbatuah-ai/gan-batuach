@@ -454,15 +454,19 @@ nextjs-portal { display: none !important; }
 .role-app-shell.staff-runtime-shell .staff-reference-hero,
 .role-app-shell.staff-runtime-shell .staff-page-hero-ref {
   position: relative;
-  min-height: 178px;
+  min-height: 136px;
   overflow: hidden;
-  padding: 28px 32px;
+  padding: 24px 28px;
   border: 1px solid #d4e6f8;
   border-radius: 27px;
-  background:
-    linear-gradient(90deg, rgb(231 244 255 / 8%) 0 36%, rgb(248 252 255 / 88%) 58%, rgb(248 252 255 / 99%) 100%),
-    url('/assets/gan-batuach-auth-hero.webp') left 36% center / 390px auto no-repeat;
+  background: radial-gradient(circle at 10% 20%, rgb(80 160 255 / 18%), transparent 34%), linear-gradient(135deg, #fff, #edf6ff);
   box-shadow: var(--closure-shadow-strong);
+}
+.role-app-shell.staff-runtime-shell .staff-reference-hero {
+  min-height: 178px;
+  background:
+    linear-gradient(90deg, rgb(231 244 255 / 8%) 0 27%, rgb(248 252 255 / 91%) 54%, rgb(248 252 255 / 99%) 100%),
+    url('/assets/ux08-candidate-portrait.webp') left 12% center / 235px auto no-repeat;
 }
 .role-app-shell.staff-runtime-shell .staff-reference-hero h1,
 .role-app-shell.staff-runtime-shell .staff-page-hero-ref h1 { font-size: clamp(2.15rem, 3.4vw, 3.25rem); }
@@ -489,10 +493,72 @@ nextjs-portal { display: none !important; }
 .staff-garden-context-card > small[role="alert"] { grid-column: 1 / -1; color: #b62e4a; }
 .ux07-page-hero { min-height: 150px; border-radius: 27px; box-shadow: var(--closure-shadow-strong); }
 .ux07-page-hero h1 { font-size: clamp(2.05rem, 3.25vw, 2.95rem); }
+.ux07-staff-directory-shell > .ux07-page-hero { min-height: 112px; padding-block: 18px; }
+.ux07-staff-directory-shell > .ux07-page-hero h1 { font-size: clamp(1.95rem, 2.7vw, 2.55rem); }
+.ux07-staff-directory-toolbar {
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) auto;
+  align-items: end;
+  gap: 14px;
+  padding: 14px 16px;
+  border: 1px solid #dbe8f7;
+  border-radius: 19px;
+  background: #fff;
+  box-shadow: var(--closure-shadow);
+}
+.ux07-staff-directory-toolbar form { display: flex; gap: 8px; }
+.ux07-staff-directory-toolbar label { flex: 1; }
+.ux07-staff-directory-toolbar input { width: 100%; min-height: 42px; border: 1px solid #cfdef0; border-radius: 12px; padding: 0 13px; color: #153e75; }
+.ux07-staff-directory-toolbar button { min-height: 42px; border: 0; border-radius: 12px; padding: 0 18px; background: #0875e9; color: #fff; font-weight: 900; }
+.ux07-staff-directory-toolbar nav { display: flex; gap: 7px; }
+.ux07-staff-directory-toolbar nav a { min-height: 40px; padding: 10px 15px; border: 1px solid #d7e4f4; border-radius: 11px; background: #f5f9fe; color: #466788; font-size: .75rem; font-weight: 850; }
+.ux07-staff-directory-toolbar nav a.active { border-color: #0875e9; background: #0875e9; color: #fff; box-shadow: 0 8px 20px rgb(8 117 233 / 18%); }
+.ux07-manager-staff-shell .dashboard-metrics-grid { grid-template-columns: repeat(4, minmax(0, 1fr)) !important; gap: 12px; }
+.ux07-manager-staff-shell .dashboard-metrics-grid .gb-metric-card { min-height: 116px; padding: 15px; border-radius: 19px !important; }
+.ux07-manager-staff-shell .dashboard-metrics-grid .gb-metric-card > b { font-size: 1.85rem; }
+.ux07-manager-staff-shell .dashboard-metrics-grid .gb-metric-card > span { width: 42px; height: 42px; }
 .ux07-staff-profile-card { padding: 26px; border-radius: 26px; background: radial-gradient(circle at 4% 0%, rgb(71 153 255 / 16%), transparent 32%), #fff; box-shadow: var(--closure-shadow-strong); }
 .ux07-profile-identity .avatar { width: 104px !important; height: 104px !important; border: 6px solid #fff; box-shadow: 0 14px 34px rgb(6 54 117 / 17%); }
 .ux07-profile-identity h2 { font-size: 2rem; }
 .ux07-profile-facts > span { min-height: 88px; border-radius: 17px; }
+.ux07-staff-identity-hero {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: center;
+  gap: 18px 22px;
+  padding: 22px 28px 0;
+  border: 1px solid #d5e5f7;
+  border-radius: 27px;
+  background: radial-gradient(circle at 8% 10%, rgb(65 150 255 / 16%), transparent 30%), #fff;
+  box-shadow: var(--closure-shadow-strong);
+}
+.ux07-staff-identity-hero > .avatar { width: 116px !important; height: 116px !important; border: 6px solid #fff; box-shadow: 0 14px 34px rgb(6 54 117 / 17%); }
+.ux07-staff-identity-copy { display: grid; gap: 4px; }
+.ux07-staff-identity-copy > span { color: #1470d9; font-size: .76rem; font-weight: 900; }
+.ux07-staff-identity-copy h1 { margin: 0; color: #082f70; font-size: clamp(2.15rem, 3.25vw, 3rem); }
+.ux07-staff-identity-copy p { margin: 0; color: #5d7696; font-weight: 760; }
+.ux07-staff-identity-copy > div { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 7px; }
+.ux07-staff-identity-hero nav { grid-column: 1 / -1; display: flex; gap: 26px; min-width: 0; margin-top: 3px; padding-inline: 4px; border-top: 1px solid #e6eef8; }
+.ux07-staff-identity-hero nav a { position: relative; padding: 13px 2px; color: #55708f; font-size: .78rem; font-weight: 850; }
+.ux07-staff-identity-hero nav a:first-child { color: #086de0; }
+.ux07-staff-identity-hero nav a:first-child::after { position: absolute; inset: auto 0 -1px; height: 3px; border-radius: 3px; background: #1175e7; content: ''; }
+.ux07-settings-menu-card { padding: 24px; border: 1px solid #d7e5f5; border-radius: 25px; background: linear-gradient(145deg, #fff, #f4f9ff); box-shadow: var(--closure-shadow-strong); }
+.ux07-settings-menu-card > header { margin-bottom: 14px; }
+.ux07-settings-menu-card > header span { color: #1470d9; font-size: .73rem; font-weight: 900; }
+.ux07-settings-menu-card > header h2 { margin: 2px 0 3px; color: #0a3475; font-size: 1.65rem; }
+.ux07-settings-menu-card > header p { margin: 0; color: #6a809c; font-size: .8rem; }
+.ux07-settings-menu-card nav { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 9px; }
+.ux07-settings-menu-card nav > :where(a, span) { display: grid; grid-template-columns: auto minmax(0, 1fr) auto; align-items: center; gap: 11px; min-height: 66px; padding: 11px 13px; border: 1px solid #dbe7f5; border-radius: 15px; background: #fff; color: #0b3978; }
+.ux07-settings-menu-card nav > :where(a, span) > svg:first-child { width: 22px; height: 22px; color: #0875e9; }
+.ux07-settings-menu-card nav > :where(a, span) > span { display: grid; gap: 2px; }
+.ux07-settings-menu-card nav b { font-size: .84rem; }
+.ux07-settings-menu-card nav small { color: #71839c; font-size: .68rem; font-weight: 700; }
+.ux07-settings-menu-card nav a:hover { border-color: #82b9f4; background: #f7fbff; }
+.ux07-settings-logout { width: 100%; min-height: 46px; margin-top: 12px; border: 1px solid #ffd0d8 !important; border-radius: 13px !important; background: #fff7f8 !important; color: #c33951 !important; font-weight: 900 !important; }
+.ux07-profile-card-heading { display: flex; align-items: center; justify-content: space-between; gap: 16px; }
+.ux07-profile-card-heading h2, .ux07-profile-card-heading span { margin: 0; }
+.ux07-profile-card-heading span { color: #6e83a0; font-size: .72rem; font-weight: 850; }
+.ux07-profile-card-heading h2 { margin-top: 3px; color: #0a3475; font-size: 1.35rem; }
 .ux07-current-shift { min-height: 118px; padding: 22px; border-radius: 23px; box-shadow: var(--closure-shadow); }
 .ux07-current-shift strong { font-size: 1.42rem; }
 .staff-week-board {
@@ -598,7 +664,8 @@ nextjs-portal { display: none !important; }
   .ux06-release-state-summary .server { grid-column: 1 / -1; min-height: 58px; }
 
   .role-app-shell.staff-runtime-shell .staff-reference-hero,
-  .role-app-shell.staff-runtime-shell .staff-page-hero-ref { min-height: 142px; padding: 20px 16px; border-radius: 22px; background: linear-gradient(90deg, rgb(232 245 255 / 8%) 0 35%, rgb(247 252 255 / 88%) 58%, rgb(247 252 255 / 99%) 100%), url('/assets/gan-batuach-auth-hero.webp') left 40% center / 225px auto no-repeat; }
+  .role-app-shell.staff-runtime-shell .staff-page-hero-ref { min-height: 118px; padding: 18px 16px; border-radius: 22px; background: radial-gradient(circle at 8% 5%, rgb(80 160 255 / 18%), transparent 34%), linear-gradient(135deg, #fff, #edf6ff); }
+  .role-app-shell.staff-runtime-shell .staff-reference-hero { min-height: 142px; background: linear-gradient(90deg, rgb(232 245 255 / 8%) 0 31%, rgb(247 252 255 / 90%) 57%, rgb(247 252 255 / 99%) 100%), url('/assets/ux08-candidate-portrait.webp') left 4% center / 142px auto no-repeat; }
   .role-app-shell.staff-runtime-shell .staff-reference-hero h1,
   .role-app-shell.staff-runtime-shell .staff-page-hero-ref h1 { font-size: 1.72rem; }
   .role-app-shell.staff-runtime-shell .staff-section-ref { padding: 16px; }
@@ -606,7 +673,31 @@ nextjs-portal { display: none !important; }
   .staff-garden-context-copy small { font-size: .68rem; }
   .ux07-page-hero { min-height: 0; }
   .ux07-page-hero h1 { font-size: 1.8rem; }
+  .ux07-staff-directory-shell > .ux07-page-hero { min-height: 0; }
+  .ux07-staff-directory-shell > .ux07-page-hero .profile-actions { grid-template-columns: 1fr 1fr; }
+  .ux07-staff-directory-toolbar { grid-template-columns: minmax(0, 1fr); padding: 11px; border-radius: 16px; }
+  .ux07-staff-directory-toolbar nav { overflow-x: auto; }
+  .ux07-staff-directory-toolbar nav a { flex: 1 0 auto; text-align: center; }
+  .ux07-manager-staff-shell .dashboard-metrics-grid { display: flex !important; gap: 8px; overflow-x: auto; scroll-snap-type: inline mandatory; padding-bottom: 4px; }
+  .ux07-manager-staff-shell .dashboard-metrics-grid .gb-metric-card { flex: 0 0 122px; min-height: 92px; padding: 10px 8px; scroll-snap-align: start; }
+  .ux07-manager-staff-shell .dashboard-metrics-grid .gb-metric-card > b { font-size: 1.55rem; }
+  .ux07-manager-staff-shell .dashboard-metrics-grid .gb-metric-card > span { width: 36px; height: 36px; }
+  .ux07-manager-staff-shell .dashboard-runtime-content { display: flex; flex-direction: column; }
+  .ux07-manager-staff-shell .dashboard-runtime-content > * { order: 4; }
+  .ux07-manager-staff-shell .ux07-staff-directory-toolbar { order: 1; }
+  .ux07-manager-staff-shell .teacher-dashboard-grid { order: 2; grid-template-columns: minmax(0, 1fr) !important; }
+  .ux07-manager-staff-shell .ux07-staff-directory-metrics { order: 3; }
   .ux07-staff-profile-card { padding: 17px; border-radius: 21px; }
+  .ux07-staff-identity-hero { grid-template-columns: auto minmax(0, 1fr); gap: 13px; padding: 15px 15px 0; border-radius: 21px; }
+  .ux07-staff-identity-hero > .avatar { width: 78px !important; height: 78px !important; border-width: 4px; }
+  .ux07-staff-identity-copy h1 { font-size: 1.65rem; }
+  .ux07-staff-identity-copy p { font-size: .78rem; }
+  .ux07-staff-identity-copy > div .gb-status-chip:nth-child(n+2) { display: none; }
+  .ux07-staff-identity-hero nav { justify-content: space-between; gap: 8px; overflow-x: auto; }
+  .ux07-staff-identity-hero nav a { white-space: nowrap; }
+  .ux07-settings-menu-card { padding: 16px; border-radius: 21px; }
+  .ux07-settings-menu-card nav { grid-template-columns: minmax(0, 1fr); gap: 7px; }
+  .ux07-settings-menu-card nav > :where(a, span) { min-height: 56px; padding: 9px 11px; }
   .ux07-profile-identity .avatar { width: 82px !important; height: 82px !important; }
   .ux07-profile-identity h2 { font-size: 1.6rem; }
   .staff-week-board { padding: 15px; overflow: hidden; }
