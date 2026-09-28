@@ -10,6 +10,7 @@ import { buildPush38GatewayFiniteStreamHandoffManifest,
 import { PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS, PRIVATE_NVR_PROACTIVE_RENEWAL_MS,
   PRIVATE_NVR_RELAY_HANDOFF_TICK_MS,
   relayMaySurvivePrivateNvrRenewal, shouldProactivelyHandoffPrivateNvrRelay,
+  shouldPrioritizePrivateNvrSessionHandoff,
   shouldProactivelyRefreshPrivateNvrSession, shouldRefreshPrivateNvrSession } from
   "../../services/video-gateway/private-nvr-session-policy.mjs";
 
@@ -125,9 +126,16 @@ test("heartbeat, login renewal, and media handoffs use independent bounded sched
     "a one-at-a-time full recorder sweep must fit inside the observed prior-login overlap");
   assert.match(gateway,
     /\}, PRIVATE_NVR_RELAY_HANDOFF_TICK_MS\)\.unref\(\)/);
+  assert.equal(shouldPrioritizePrivateNvrSessionHandoff({ relayEpoch: 3,
+    currentEpoch: 4 }), true);
+  assert.equal(shouldPrioritizePrivateNvrSessionHandoff({ relayEpoch: 4,
+    currentEpoch: 4 }), false);
   assert.match(gateway,
-    /async function maintainPrivateNvrRelayHandoffs[\s\S]*warmReplacePrivateNvrRelay\(streamId, relay\);[\s\S]*return;/,
-    "one maintenance pass may overlap only one candidate relay");
+    /if \(sessionSweep\.length\)[\s\S]*for \(const \[streamId, relay\] of sessionSweep\)[\s\S]*await warmReplacePrivateNvrRelay\(streamId, relay\)/,
+    "a renewed-session sweep drains stale epochs without scheduler gaps");
+  assert.match(gateway,
+    /const \[streamId, relay\] = routine\[0\][\s\S]*await warmReplacePrivateNvrRelay\(streamId, relay\)/,
+    "ordinary finite-response maintenance remains one-at-a-time");
   assert.doesNotMatch(gateway,
     /maintainPrivateNvrSessionRenewals[\s\S]{0,1000}warmReplacePrivateNvrRelays/,
     "a slow media sweep must not block heartbeat or login renewal");

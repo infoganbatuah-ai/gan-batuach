@@ -13,6 +13,7 @@ import { parseProbeResult, MAX_PROBE_OUTPUT_BYTES } from "./probe-result.mjs";
 import { nextRelayRecovery, relayRecoveryIsStable, relayRetryDelayMs } from "./relay-recovery-policy.mjs";
 import { relayMaySurvivePrivateNvrRenewal, reuseMatchingPrivateNvrSession,
   PRIVATE_NVR_RELAY_HANDOFF_TICK_MS,
+  shouldPrioritizePrivateNvrSessionHandoff,
   shouldProactivelyHandoffPrivateNvrRelay, shouldProactivelyRefreshPrivateNvrSession,
   shouldRefreshPrivateNvrSession } from
   "./private-nvr-session-policy.mjs";
@@ -84,18 +85,40 @@ async function maintainPrivateNvrRelayHandoffs() {
   // heartbeat and login renewal independent from the potentially slow media
   // handoff. Replace at most one channel per pass, so a full handoff sweep can
   // never starve the ten-second heartbeat or the proactive login deadline.
+  const sessionSweep = [];
+  const routine = [];
   for (const [streamId, relay] of [...relays]) {
     const source = streamSources.get(streamId);
     if (!source?.sessionKey) continue;
+    const session = privateNvrSessions.get(source.sessionKey);
+    if (shouldPrioritizePrivateNvrSessionHandoff({
+      relayEpoch: relay.sessionEpoch,
+      currentEpoch: session?.epoch
+    })) {
+      sessionSweep.push([streamId, relay]);
+      continue;
+    }
     if (shouldProactivelyHandoffPrivateNvrRelay({
       startedAt: relay.startedAt,
       progressing: relayIsProgressing(relay),
       recoveryStable: relayRecoveryIsStable(relay),
       warming: relay.warming
-    }, observedAt)) {
+    }, observedAt)) routine.push([streamId, relay]);
+  }
+  // Once a new non-exclusive login exists, do not spend another two-second
+  // scheduler interval between channels. Warm replacements remain strictly
+  // one-at-a-time, but the exact stale-epoch snapshot is drained immediately
+  // so it completes inside the recorder's measured prior-login overlap.
+  if (sessionSweep.length) {
+    for (const [streamId, relay] of sessionSweep) {
+      if (relays.get(streamId) !== relay) continue;
       await warmReplacePrivateNvrRelay(streamId, relay);
-      return;
     }
+    return;
+  }
+  const [streamId, relay] = routine[0] || [];
+  if (streamId && relays.get(streamId) === relay) {
+    await warmReplacePrivateNvrRelay(streamId, relay);
   }
 }
 

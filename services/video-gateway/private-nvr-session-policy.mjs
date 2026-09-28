@@ -21,6 +21,17 @@ export const PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS = 2 * 60 * 1000;
 // move all sixteen possible channels inside that measured overlap window.
 export const PRIVATE_NVR_RELAY_HANDOFF_TICK_MS = 2_000;
 
+// A proactive login renewal starts the recorder's observed prior-login media
+// retirement window. Relays still owned by the earlier epoch therefore take
+// precedence over the ordinary finite-response refresh cadence. The caller
+// drains this bounded set without inserting another scheduler-tick delay
+// between channels.
+export function shouldPrioritizePrivateNvrSessionHandoff({ relayEpoch,
+  currentEpoch }) {
+  return Boolean(Number.isInteger(relayEpoch) && Number.isInteger(currentEpoch)
+    && relayEpoch < currentEpoch);
+}
+
 export function shouldProactivelyHandoffPrivateNvrRelay(relay, now = Date.now()) {
   return Boolean(relay?.progressing && relay?.recoveryStable && !relay?.warming
     && Number.isFinite(relay.startedAt)
