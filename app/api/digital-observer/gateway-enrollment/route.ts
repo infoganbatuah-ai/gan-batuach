@@ -6,6 +6,7 @@ import { getDigitalObserverApiUser, getObserverSiteAccess } from "@/lib/domain/d
 import { gatewayEnrollmentTtlMs, hashGatewayEnrollmentToken, issueGatewayDeviceAccessToken, issueManagedDeviceSessionToken, newGatewayEnrollmentPollToken } from "@/lib/domain/gateway-device-enrollment";
 import { authenticateManagedDeviceRequest } from "@/lib/domain/digital-observer/managed-device-auth-service";
 import { managedDevicePermissions, publicKeySpkiSchema } from "@/lib/domain/digital-observer/managed-device-identity";
+import { isIsolatedPush38QualificationRuntime } from "@/lib/domain/digital-observer/qualification-runtime";
 import { createAdminClient } from "@/lib/supabase/admin";
 import { assertTrustedMutationOrigin, parseBoundedJson } from "@/lib/security/request-guards";
 
@@ -94,7 +95,8 @@ export async function GET(request: Request) {
 
 export async function POST(request: Request) {
   try {
-    if (qualificationMode() && process.env.NODE_ENV !== "development") return fail("Qualification mode requires an isolated development runtime.", 503);
+    if (qualificationMode() && !isIsolatedPush38QualificationRuntime())
+      return fail("Qualification mode requires the isolated local QA runtime.", 503);
     if (process.env.NODE_ENV === "development" && !qualificationMode()) return await developmentProxy(request);
     const requestBody = await request.clone().text();
     if (Buffer.byteLength(requestBody, "utf8") > 8192) return fail("בקשת זהות המכשיר גדולה מדי.", 413);

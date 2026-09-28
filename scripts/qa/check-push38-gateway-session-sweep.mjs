@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { createHash, generateKeyPairSync, sign } from "node:crypto";
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { buildPush38GatewaySessionSweepManifest,
@@ -8,6 +8,11 @@ import { buildPush38GatewaySessionSweepManifest,
   "../../services/video-gateway/push38-home-qa-gateway-session-sweep.mjs";
 import { issuePush38GatewaySessionSweep } from
   "../release/issue-push38-home-qa-gateway-session-sweep.mjs";
+
+const registration = readFileSync(new URL(
+  "./register-push38-homeqa-gateway-common-cause-recovery.mjs", import.meta.url), "utf8");
+const activation = readFileSync(new URL(
+  "./activate-push38-homeqa-gateway-common-cause-recovery.mjs", import.meta.url), "utf8");
 
 const origin = "https://693f824a750afcc264fe6ee58c8a86ab.r2.cloudflarestorage.com";
 const document = buildPush38GatewaySessionSweepManifest({ signingKeyId: "fixture-release-key",
@@ -21,6 +26,13 @@ assert.equal(document.compatibility.maximum_current_version, "0.2.17-p38-health"
 assert.equal(document.rollout.cohort_percent, 0);
 assert.deepEqual(document.rollout.explicit_device_ids, [item.deviceId]);
 assert.equal(item.supersedesVersion, "0.2.18-p38-health");
+assert.match(registration,
+  /maintenanceIsolation \|\| sessionSweep\)\s*\? item\.supersedesReleaseId/,
+  "session-drain registration must pause its failed 0.2.18 predecessor, not its 0.2.17 rollback target");
+assert.match(activation, /rollback_checkpoint_progressing/);
+assert.match(activation, /live_recovery_evidence/);
+assert.doesNotMatch(activation, /recovered\?\.dvr\?\.progressing !== 9/,
+  "historical rollback startup is not current recovery proof");
 
 const temporary = mkdtempSync(join(tmpdir(), "observer-p38-session-sweep-test-"));
 try {

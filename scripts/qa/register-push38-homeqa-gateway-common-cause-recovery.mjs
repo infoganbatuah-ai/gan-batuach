@@ -78,7 +78,7 @@ const bundleName = sessionSweep ? "gateway_remediation_session_sweep.json"
   : "gateway_remediation_common_cause_recovery.json";
 const expectedBefore = sessionSweep ? 26 : maintenanceIsolation ? 20 : mediaCadence ? 19 : stableHandoff ? 18 : supervisorRecovery ? 16 : finiteHandoff ? 12 : 11;
 const expectedAfter = expectedBefore + 1;
-const predecessorReleaseId = (finiteHandoff || supervisorRecovery || stableHandoff || mediaCadence || maintenanceIsolation)
+const predecessorReleaseId = (finiteHandoff || supervisorRecovery || stableHandoff || mediaCadence || maintenanceIsolation || sessionSweep)
   ? item.supersedesReleaseId : item.rollbackReleaseId;
 const accountId = "693f824a750afcc264fe6ee58c8a86ab";
 const origin = `https://${accountId}.r2.cloudflarestorage.com`;
@@ -138,7 +138,7 @@ do $$ begin
        and identity_scheme='ED25519_V1' and metadata->>'home_qa_phase'='MANAGED_IDENTITY_VERIFIED') or
      not exists(select 1 from public.observer_edge_releases where release_id='${item.rollbackReleaseId}'
        and channel='HOME_QA') or
-     (select count(*) from public.observer_edge_releases where channel='HOME_QA') <> ${expectedBefore}
+     (select count(*) from public.observer_edge_releases where channel='HOME_QA') not in (${expectedBefore},${expectedAfter})
   then raise exception 'P38_GATEWAY_COMMON_CAUSE_HOME_QA_PREREQUISITE_MISSING'; end if;
 end $$;
 insert into public.observer_edge_releases

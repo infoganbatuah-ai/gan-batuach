@@ -4,6 +4,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { fail, handleSafeRouteError } from "@/lib/api";
 import { createAdminClient } from "@/lib/supabase/admin";
+import { isIsolatedPush38QualificationRuntime } from "@/lib/domain/digital-observer/qualification-runtime";
 import { parseBoundedJson } from "@/lib/security/request-guards";
 import { assertRateLimit } from "@/lib/security/rate-limit";
 import { verifyEdgeUpdateManifest } from "../../../../services/video-gateway/edge-update-contract.mjs";
@@ -35,7 +36,7 @@ function legacyAuthDeny(reason: string) {
 
 export async function POST(request: Request) {
   try {
-    if (process.env.NODE_ENV !== "development" || process.env.OBSERVER_PUSH38_QUALIFICATION !== "enabled" ||
+    if (!isIsolatedPush38QualificationRuntime() ||
       process.env.OBSERVER_HOME_QA_LEGACY_TRANSITION !== "enabled" ||
       process.env.OBSERVER_EDGE_PRIVATE_RELEASE_DELIVERY !== "enabled")
       return fail("Qualification transition delivery is unavailable.", 404);

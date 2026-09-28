@@ -302,18 +302,21 @@ if (sessionSweep) {
   const rows = protectedFile(failedCanaryEvidencePath).toString("utf8").trim().split("\n").map(line => JSON.parse(line));
   const failed = rows.find(point => point.release?.gateway?.software_version === item.supersedesVersion &&
     point.dvr?.lifecycle?.inputSocketError > 0);
-  const recovered = rows.at(-1);
+  const rollbackCheckpoint = rows.at(-1);
   if (rows.length < 7 || rows.some(point => point.qualification_stage !== "CANARY") ||
     !rows.some(point => point.release?.gateway?.software_version === item.supersedesVersion) ||
     !failed || failed.release?.gateway?.software_version !== item.supersedesVersion ||
     failed.dvr?.session_lifecycle?.proactive_succeeded < 1 ||
-    failed.dvr?.lifecycle?.inputSocketError < 1 || recovered?.dvr?.progressing !== 9 ||
-    recovered?.release?.gateway?.software_version !== item.rollbackVersion ||
-    Date.now() - Date.parse(recovered?.sampled_at || "") > 60 * 60_000)
+    failed.dvr?.lifecycle?.inputSocketError < 1 ||
+    rollbackCheckpoint?.release?.gateway?.software_version !== item.rollbackVersion ||
+    !Number.isFinite(Date.parse(rollbackCheckpoint?.sampled_at || "")) ||
+    Date.parse(rollbackCheckpoint.sampled_at) > Date.now() ||
+    Date.now() - Date.parse(rollbackCheckpoint.sampled_at) > 7 * 24 * 60 * 60_000)
     throw new Error("P38_GATEWAY_SESSION_SWEEP_FAILED_CANARY_EVIDENCE_INVALID");
   failedCanaryEvidence = { sha256: sha(protectedFile(failedCanaryEvidencePath)),
     checkpoints: rows.length, minimum_progressing: Math.min(...rows.map(point => point.dvr.progressing)),
-    recovered_progressing: recovered.dvr.progressing,
+    rollback_checkpoint_progressing: rollbackCheckpoint.dvr.progressing,
+    live_recovery_required: true,
     proactive_session_renewal: true, input_socket_errors: failed.dvr.lifecycle.inputSocketError };
 }
 if (stableHandoff || mediaCadence || maintenanceIsolation) {
@@ -359,6 +362,14 @@ const plan = { protocol: sessionSweep ? "observer-push38-gateway-session-sweep-a
   ...(shadowEvidence ? { current_shadow_evidence: shadowEvidence,
     warm_handoff_evidence: warmHandoffEvidence } : {}),
   ...(failedCanaryEvidence ? { failed_canary_evidence: failedCanaryEvidence } : {}),
+  ...(failedCanaryEvidence ? { live_recovery_evidence: {
+    release_id: current.release_id,
+    progressing: gatewaySamples.at(-1).progressing,
+    connected: gatewaySamples.at(-1).connected,
+    failed: gatewaySamples.at(-1).failed,
+    empty: gatewaySamples.at(-1).empty,
+    service_pid_stable: gatewayPidStable
+  } } : {}),
   dvr_truth: { expected: 10, source_available: stableHandoff || mediaCadence || maintenanceIsolation || sessionSweep ? 9 : 8,
     upstream_unavailable: stableHandoff || mediaCadence || maintenanceIsolation || sessionSweep ? 1 : 2, empty: 6 },
   actions: ["PAUSE_OTHER_GATEWAY_ROLLOUTS", "ACTIVATE_EXACT_GATEWAY_REMEDIATION_ROLLOUT",

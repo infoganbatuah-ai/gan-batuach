@@ -13,6 +13,7 @@ const baseEnv = { PATH: process.env.PATH, HOME: process.env.HOME, TMPDIR: proces
 const run = (command, args) => execFileSync(command, args, { cwd: root, env: baseEnv,
   encoding: "utf8", timeout: 30_000, stdio: ["ignore", "pipe", "pipe"] });
 const enableLegacyDelivery = process.argv.includes("--enable-legacy-delivery");
+const serveBuild = process.argv.includes("--serve-build");
 function r2Credentials() {
   const service = "digital-observer-r2-home-qa-reader-20260922";
   const keychain = join(homedir(), "Library/Keychains/login.keychain-db");
@@ -68,7 +69,7 @@ if (enableLegacyDelivery) {
   const inventoryReady = Array.isArray(inventory.devices) && inventory.devices.length === expected.size &&
     inventory.devices.every(device => expected.get(device.id) === device.profile &&
       device.lifecycle_state === "ACTIVE" && device.tenant_id === siteId && device.site_id === siteId &&
-      phaseMatchesIdentity(device)) && inventory.releases === 24 && inventory.broad_rollouts === 0;
+      phaseMatchesIdentity(device)) && inventory.releases === 26 && inventory.broad_rollouts === 0;
   if (!inventoryReady) throw new Error("P38_QA_RELEASE_METADATA_NOT_READY");
   const keys = loadPinnedEdgeReleaseKeys({ registryPath: PROTECTED_EDGE_TRUST_REGISTRY_PATH }).trustedPublicKeys;
   if (!keys["observer-kms-release-v1"] || !keys["qa-p38f-ed25519-20260913"])
@@ -83,12 +84,13 @@ if (enableLegacyDelivery) {
   });
 }
 
-const child = spawn(process.execPath, ["node_modules/next/dist/bin/next", "dev", "--webpack",
-  "--hostname", "127.0.0.1", "--port", "3100"], {
+const child = spawn(process.execPath, ["node_modules/next/dist/bin/next", serveBuild ? "start" : "dev",
+  ...(serveBuild ? [] : ["--webpack"]), "--hostname", "127.0.0.1", "--port", "3100"], {
   cwd: root,
   env: { PATH: process.env.PATH, HOME: process.env.HOME, TMPDIR: process.env.TMPDIR,
-    NODE_ENV: "development", APP_ENV: "local", NEXT_PUBLIC_APP_ENV: "local",
+    NODE_ENV: serveBuild ? "production" : "development", APP_ENV: "local", NEXT_PUBLIC_APP_ENV: "local",
     OBSERVER_PUSH38_QUALIFICATION: "enabled", OBSERVER_EDGE_PRIVATE_RELEASE_DELIVERY: "disabled",
+    OBSERVER_PUSH38_QUALIFICATION_EXACT_BUILD: serveBuild ? "enabled" : "disabled",
     ...releaseEnv,
     NEXT_PUBLIC_SUPABASE_URL: variables.API_URL,
     NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY: variables.PUBLISHABLE_KEY,
@@ -103,4 +105,5 @@ for (const signal of ["SIGINT", "SIGTERM"]) process.on(signal, () => child.kill(
 child.on("exit", code => { process.exitCode = code ?? 1; });
 console.log(JSON.stringify({ environment: "PUSH38T_QUALIFICATION", projectId,
   url: "http://127.0.0.1:3100", productionAccess: false,
+  serverMode: serveBuild ? "EXACT_LOCAL_BUILD" : "DEVELOPMENT",
   releaseDelivery: enableLegacyDelivery ? "ENABLED_LOCAL_QA_ONLY" : "DISABLED_UNTIL_ENROLLMENT" }));
