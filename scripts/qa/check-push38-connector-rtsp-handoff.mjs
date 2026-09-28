@@ -21,7 +21,7 @@ assert.equal(manifest.compatibility.minimum_current_version, "0.2.20-p38-health"
 assert.equal(manifest.compatibility.maximum_current_version, "0.2.20-p38-health");
 assert.equal(item.rollbackReleaseId, "qa-p38-health-connector-liveness-continuity-6efc70f798aa");
 assert.equal(item.supersedesReleaseId, "qa-p38-health-connector-rtsp-handoff-448381dc3792");
-assert.equal(DIRECT_RTSP_PROACTIVE_RELAY_HANDOFF_MS, 25 * 60 * 1000);
+assert.equal(DIRECT_RTSP_PROACTIVE_RELAY_HANDOFF_MS, 8 * 60 * 1000);
 const now = Date.now();
 const eligible = { progressing: true, recoveryStable: true, warming: false,
   startedAt: now - DIRECT_RTSP_PROACTIVE_RELAY_HANDOFF_MS };
