@@ -1,6 +1,6 @@
 {
   "schemaVersion": 2,
-  "updatedAt": "2026-09-28",
+  "updatedAt": "2026-09-28T13:15:00Z",
   "workflow": "OWNER_CONTROLLED_CONSOLIDATED_RELEASE",
   "integrationBranch": "integration/development",
   "canonicalWorktree": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/development-integration",
@@ -9730,6 +9730,57 @@
         "status": "NOT_DEPLOYED"
       },
       "nextAction": "UX-07 Staff visual reference correction is complete in Development. Production and main remain unchanged pending a separate explicit owner release instruction."
+    },
+    {
+      "id": "codex/ux-implement-09-inspector",
+      "project": "Gan Batuach Management",
+      "title": "UX-IMPLEMENT-09 Inspector full platform",
+      "owner": "UX-IMPLEMENT-09 owner",
+      "sourceBranch": "codex/ux-implement-09-inspector",
+      "sourceCommits": [
+        "9de03757591ef0d0d53340b7e0fdd37dc3daee4f",
+        "e2bf14f5ff1b1b4eb39317acd93baa727672f9e4"
+      ],
+      "state": "LOCAL_VERIFIED",
+      "preservation": {
+        "remoteVerified": true,
+        "remoteRefs": [
+          "origin/codex/ux-implement-09-inspector@e2bf14f5ff1b1b4eb39317acd93baa727672f9e4",
+          "origin/integration/development@577db6de92abbf8a98f2bca4722d14d979518cbc"
+        ],
+        "validatedSourceCommit": "e2bf14f5ff1b1b4eb39317acd93baa727672f9e4"
+      },
+      "validation": {
+        "status": "PASS_VISUAL_FUNCTIONAL_EXACT_HEAD_REQUIRED_CHECKS_DEVELOPMENT_DRIFT_AND_POST_MERGE_CUMULATIVE_VALIDATION",
+        "evidence": [
+          "GAN_BATUACH_UX09_INSPECTOR_FULL_PLATFORM_IMPLEMENTATION.md",
+          "qa-evidence/ux-implement-09/visual-report.json",
+          "qa-evidence/ux-implement-09/SHA256SUMS.txt"
+        ],
+        "limits": "UX-09 product PR #152 passed all eight exact-head GitHub checks plus successful Snyk status at e2bf14f5ff1b1b4eb39317acd93baa727672f9e4 and merged by ancestry as 577db6de92abbf8a98f2bca4722d14d979518cbc. Nineteen concepts and thirty-eight fresh 1440x1024 and 390x844 captures are OWNER_REVIEW_READY with zero NEEDS_POLISH, VISUAL_DRIFT or BROKEN results. Exact merged Development startup, local health/Supabase, 244/244 drift, focused Inspector contracts and cumulative eight-role dashboard browser QA passed. Inspector Live View remains disabled because it is not currently both Production-verified and Inspector-policy permitted; the UI truthfully presents unavailable/evidence-only context. This is not Production release authorization."
+      },
+      "integration": {
+        "status": "INTEGRATED_DEVELOPMENT",
+        "base": "integration/development",
+        "commit": "577db6de92abbf8a98f2bca4722d14d979518cbc",
+        "pullRequest": 152,
+        "requiredChecks": "PASS_ALL_8_EXACT_HEAD_PLUS_SNYK"
+      },
+      "dependencies": {
+        "status": "UX_IMPLEMENT_08_AND_UX07_REFERENCE_CORRECTION_INTEGRATED",
+        "units": [
+          "codex/ux-implement-08-staff-recruitment",
+          "codex/ux07-staff-reference-correction"
+        ]
+      },
+      "migrations": [],
+      "migrationOrder": [],
+      "localVerification": "PASS_UX09_FOCUSED_8_OF_8_INSPECTOR_APPROVAL_4_OF_4_TASKS_6_OF_6_REPORTING_7_OF_7_DOCUMENTS_6_OF_6_DASHBOARDS_9_OF_9_PARENT_MANAGER_23_OF_23_TYPECHECK_LINT_ZERO_REGRESSIONS_BUILD_DOMAIN_30_OF_30_SECURITY_10_OF_10_MIGRATIONS_244_OF_244_DEVELOPMENT_DRIFT_244_OF_244_RELEASE_CONTRACT_VISUAL_38_OWNER_REVIEW_READY_POST_MERGE_HEALTH_200_SUPABASE_OK_ROLE_DASHBOARDS_8_OF_8",
+      "releaseEligibility": "DEVELOPMENT_COMPLETE_PRODUCTION_NOT_AUTHORIZED",
+      "productionDeployment": {
+        "status": "NOT_DEPLOYED"
+      },
+      "nextAction": "UX-IMPLEMENT-09 is complete in Development. Stop before UX-IMPLEMENT-10; Production and main remain unchanged pending a separate explicit owner release instruction."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
