@@ -30,7 +30,7 @@ for (const source of [installer, registration, activation])
   assert.match(source, /PUSH38_CONNECTOR_LIVENESS_CONTINUITY|connector-liveness-continuity/);
 assert.match(installer, /bc310bf7605cb7a05386c10130bb58c8c3459a65469850cbfc65efc1d48b0f60/);
 assert.doesNotMatch(installer, /bc310bf7605c32377f0e886891e3152eab969a6e74ba6fce58d798a094ca421b/);
-assert.match(qualification, /inventory\.releases === 16/);
+assert.match(qualification, /inventory\.releases === 24/);
 assert.match(qualification, /"dev", "--webpack"/);
 for (const expected of ["manager.verifySlot(current)", "fresh_proof", "anonymous !== 401",
   "runtime_writes: 0", "functional_runtime_writes: 0"])
