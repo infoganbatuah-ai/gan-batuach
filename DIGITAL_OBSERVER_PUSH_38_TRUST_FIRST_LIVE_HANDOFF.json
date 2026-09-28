@@ -700,6 +700,22 @@
     "production": "UNCHANGED",
     "push38": "NOT_DONE"
   },
+  "gateway_heartbeat_login_bridge_preflight_2026_09_28": {
+    "owner": "PUSH_38_QUALIFICATION",
+    "status": "VALIDATED_AND_PUSHED; LIVE_BRIDGE_RETRY_NOT_YET_AUTHORIZED",
+    "source_commit": "a9fd185b",
+    "bridge_release_id": "qa-p38-health-gateway-session-drain-5165c94df699",
+    "successor_release_id": "qa-p38-health-gateway-heartbeat-login-0a956d9891db",
+    "successor_r2": "PRIVATE_CREATE_ONLY_UPLOAD_AND_FULL_ROUND_TRIP_PASS; ANONYMOUS_ACCESS_DENIED; 135809999_BYTES",
+    "preflight": "PASS_EXACT_DEVICE_ZERO_PERCENT_COHORT_LIVE_TRUST_SIGNED_BRIDGE_AND_SUCCESSOR; GATEWAY_NINE_OF_NINE_SOURCE_AVAILABLE_PROGRESSING; CONNECTOR_SIGNED_0_2_20_KNOWN_GOOD_TAPO_ONE_OF_ONE",
+    "restricted_preflight_sha256": "64aacb3a254b37994a9bf4bb7fad21e824aa88e092a10997cbbe5c3d644329d4",
+    "prior_rollback": "AUTOMATIC_SIGNED_RECOVERY; GATEWAY_TO_0_2_17; CONNECTOR_TO_0_2_20; NO_MANUAL_RUNTIME_REPLACEMENT",
+    "runtime_mutation": false,
+    "new_fixed_monthly_cost": "NONE",
+    "main": "UNCHANGED",
+    "production": "UNCHANGED",
+    "push38": "NOT_DONE"
+  },
   "not_started": [
     "PRE_SOAK_60_MINUTES",
     "REMOTE_PHONE_PROOF",
