@@ -25,6 +25,8 @@ import { PUSH38_GATEWAY_SESSION_SWEEP
 } from "../../services/video-gateway/push38-home-qa-gateway-session-sweep.mjs";
 import { PUSH38_GATEWAY_HEARTBEAT_LOGIN
 } from "../../services/video-gateway/push38-home-qa-gateway-heartbeat-login.mjs";
+import { PUSH38_GATEWAY_IDLE_HANDOFF
+} from "../../services/video-gateway/push38-home-qa-gateway-idle-handoff.mjs";
 
 const apply = process.argv.includes("--apply");
 const finiteHandoff = process.argv.includes("--finite-stream-handoff");
@@ -34,10 +36,12 @@ const mediaCadence = process.argv.includes("--media-cadence");
 const maintenanceIsolation = process.argv.includes("--maintenance-isolation");
 const sessionSweep = process.argv.includes("--session-sweep");
 const heartbeatLogin = process.argv.includes("--heartbeat-login");
+const idleHandoff = process.argv.includes("--idle-handoff");
 if ([finiteHandoff, supervisorRecovery, stableHandoff, mediaCadence, maintenanceIsolation, sessionSweep,
-  heartbeatLogin].filter(Boolean).length > 1)
+  heartbeatLogin, idleHandoff].filter(Boolean).length > 1)
   throw new Error("P38_GATEWAY_COMMON_CAUSE_HOME_QA_MODE_INVALID");
-const item = heartbeatLogin ? PUSH38_GATEWAY_HEARTBEAT_LOGIN :
+const item = idleHandoff ? PUSH38_GATEWAY_IDLE_HANDOFF :
+  heartbeatLogin ? PUSH38_GATEWAY_HEARTBEAT_LOGIN :
   sessionSweep ? PUSH38_GATEWAY_SESSION_SWEEP :
   maintenanceIsolation ? PUSH38_GATEWAY_MAINTENANCE_ISOLATION :
   mediaCadence ? PUSH38_GATEWAY_MEDIA_CADENCE :
@@ -48,7 +52,9 @@ const restrictedRoot = "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/r
 const bundleValue = process.argv.find(value => value.startsWith("--bundle="))?.slice(9);
 if (!bundleValue) throw new Error("P38_GATEWAY_COMMON_CAUSE_HOME_QA_BUNDLE_REQUIRED");
 const bundle = resolve(bundleValue);
-const artifact = heartbeatLogin
+const artifact = idleHandoff
+  ? `${restrictedRoot}/push38-gateway-idle-handoff-d63a53bd/gateway-runtime.tar.gz`
+  : heartbeatLogin
   ? `${restrictedRoot}/push38-gateway-heartbeat-login-6d515326/gateway-runtime.tar.gz`
   : sessionSweep
   ? `${restrictedRoot}/push38-gateway-session-drain-6bf33d4b/gateway-runtime.tar.gz`
@@ -63,7 +69,9 @@ const artifact = heartbeatLogin
   : finiteHandoff
   ? `${restrictedRoot}/push38-gateway-finite-handoff-e085c30f/gateway-runtime.tar.gz`
   : `${restrictedRoot}/push38-gateway-common-cause-f7d237bf/gateway-runtime.tar.gz`;
-const publication = heartbeatLogin
+const publication = idleHandoff
+  ? `${restrictedRoot}/push38-gateway-idle-handoff-d63a53bd/r2-publication.json`
+  : heartbeatLogin
   ? `${restrictedRoot}/push38-gateway-heartbeat-login-6d515326/r2-publication.json`
   : sessionSweep
   ? `${restrictedRoot}/push38-gateway-session-drain-6bf33d4b/r2-publication.json`
@@ -78,7 +86,8 @@ const publication = heartbeatLogin
   : finiteHandoff
   ? `${restrictedRoot}/push38-gateway-finite-handoff-e085c30f/r2-publication.json`
   : `${restrictedRoot}/push38-gateway-common-cause-f7d237bf/r2-publication.json`;
-const bundleName = heartbeatLogin ? "gateway_remediation_heartbeat_login.json"
+const bundleName = idleHandoff ? "gateway_remediation_idle_handoff.json"
+  : heartbeatLogin ? "gateway_remediation_heartbeat_login.json"
   : sessionSweep ? "gateway_remediation_session_sweep.json"
   : maintenanceIsolation ? "gateway_remediation_maintenance_isolation.json"
   : mediaCadence ? "gateway_remediation_media_cadence.json"
@@ -86,9 +95,9 @@ const bundleName = heartbeatLogin ? "gateway_remediation_heartbeat_login.json"
   : supervisorRecovery ? "gateway_remediation_supervisor_recovery.json"
   : finiteHandoff ? "gateway_remediation_finite_stream_handoff.json"
   : "gateway_remediation_common_cause_recovery.json";
-const expectedBefore = heartbeatLogin ? 27 : sessionSweep ? 26 : maintenanceIsolation ? 20 : mediaCadence ? 19 : stableHandoff ? 18 : supervisorRecovery ? 16 : finiteHandoff ? 12 : 11;
+const expectedBefore = idleHandoff ? 30 : heartbeatLogin ? 27 : sessionSweep ? 26 : maintenanceIsolation ? 20 : mediaCadence ? 19 : stableHandoff ? 18 : supervisorRecovery ? 16 : finiteHandoff ? 12 : 11;
 const expectedAfter = expectedBefore + 1;
-const predecessorReleaseId = (finiteHandoff || supervisorRecovery || stableHandoff || mediaCadence || maintenanceIsolation || sessionSweep || heartbeatLogin)
+const predecessorReleaseId = (finiteHandoff || supervisorRecovery || stableHandoff || mediaCadence || maintenanceIsolation || sessionSweep || heartbeatLogin || idleHandoff)
   ? item.supersedesReleaseId : item.rollbackReleaseId;
 const accountId = "693f824a750afcc264fe6ee58c8a86ab";
 const origin = `https://${accountId}.r2.cloudflarestorage.com`;
@@ -185,7 +194,8 @@ commit;`;
 execFileSync("docker", ["--context", context, "exec", "-i", container, "psql", "-X", "-q",
   "-v", "ON_ERROR_STOP=1", "-U", "postgres", "-d", "postgres"],
 { input: sql, encoding: "utf8", timeout: 45_000, stdio: ["pipe", "pipe", "pipe"] });
-console.log(JSON.stringify({ status: heartbeatLogin ? "GATEWAY_HEARTBEAT_LOGIN_REGISTERED_DRAFT" :
+console.log(JSON.stringify({ status: idleHandoff ? "GATEWAY_IDLE_HANDOFF_REGISTERED_DRAFT" :
+  heartbeatLogin ? "GATEWAY_HEARTBEAT_LOGIN_REGISTERED_DRAFT" :
   sessionSweep ? "GATEWAY_SESSION_SWEEP_REGISTERED_DRAFT" :
   maintenanceIsolation ? "GATEWAY_MAINTENANCE_ISOLATION_REGISTERED_DRAFT" :
   mediaCadence ? "GATEWAY_MEDIA_CADENCE_REGISTERED_DRAFT" :

@@ -30,12 +30,16 @@ import { PUSH38_GATEWAY_SESSION_SWEEP
 } from "../../services/video-gateway/push38-home-qa-gateway-session-sweep.mjs";
 import { PUSH38_GATEWAY_HEARTBEAT_LOGIN
 } from "../../services/video-gateway/push38-home-qa-gateway-heartbeat-login.mjs";
+import { PUSH38_GATEWAY_IDLE_HANDOFF
+} from "../../services/video-gateway/push38-home-qa-gateway-idle-handoff.mjs";
 import { PUSH38_CONNECTOR_RESTART_GRACE_RECOVERY as connectorRestartGraceItem
 } from "../../services/video-gateway/push38-home-qa-connector-restart-grace.mjs";
 import { PUSH38_CONNECTOR_LIVENESS_CONTINUITY as connectorLivenessContinuityItem
 } from "../../services/video-gateway/push38-home-qa-connector-liveness-continuity.mjs";
 import { PUSH38_CONNECTOR_HEALTH_OBSERVATION_RECOVERY as connectorHealthObservationItem
 } from "../../services/video-gateway/push38-home-qa-connector-health-observation.mjs";
+import { PUSH38_CONNECTOR_RTSP_CADENCE as connectorRtspCadenceItem
+} from "../../services/video-gateway/push38-home-qa-connector-rtsp-cadence.mjs";
 
 const root = join(homedir(), "Library/Application Support/Digital Observer/observer-gateway/ota");
 const connectorRoot = join(homedir(), "Library/Application Support/Digital Observer/observer-connector/ota");
@@ -50,24 +54,29 @@ const mediaCadence = process.argv.includes("--media-cadence");
 const maintenanceIsolation = process.argv.includes("--maintenance-isolation");
 const sessionSweep = process.argv.includes("--session-sweep");
 const heartbeatLogin = process.argv.includes("--heartbeat-login");
+const idleHandoff = process.argv.includes("--idle-handoff");
 if ([finiteHandoff, supervisorRecovery, stableHandoff, mediaCadence, maintenanceIsolation, sessionSweep,
-  heartbeatLogin].filter(Boolean).length > 1)
+  heartbeatLogin, idleHandoff].filter(Boolean).length > 1)
   throw new Error("P38_GATEWAY_COMMON_CAUSE_MODE_INVALID");
-const item = heartbeatLogin ? PUSH38_GATEWAY_HEARTBEAT_LOGIN :
+const item = idleHandoff ? PUSH38_GATEWAY_IDLE_HANDOFF :
+  heartbeatLogin ? PUSH38_GATEWAY_HEARTBEAT_LOGIN :
   sessionSweep ? PUSH38_GATEWAY_SESSION_SWEEP :
   maintenanceIsolation ? PUSH38_GATEWAY_MAINTENANCE_ISOLATION :
   mediaCadence ? PUSH38_GATEWAY_MEDIA_CADENCE :
   stableHandoff ? PUSH38_GATEWAY_STABLE_HANDOFF :
   supervisorRecovery ? PUSH38_GATEWAY_SUPERVISOR_RECOVERY :
   finiteHandoff ? PUSH38_GATEWAY_FINITE_STREAM_HANDOFF : PUSH38_GATEWAY_COMMON_CAUSE_RECOVERY;
-const connectorItem = heartbeatLogin ? connectorLivenessContinuityItem :
+const connectorItem = idleHandoff ? connectorRtspCadenceItem :
+  heartbeatLogin ? connectorLivenessContinuityItem :
   sessionSweep ? connectorHealthObservationItem : connectorRestartGraceItem;
-const predecessorReleaseId = (finiteHandoff || supervisorRecovery || stableHandoff || mediaCadence || maintenanceIsolation || sessionSweep || heartbeatLogin)
+const predecessorReleaseId = (finiteHandoff || supervisorRecovery || stableHandoff || mediaCadence || maintenanceIsolation || sessionSweep || heartbeatLogin || idleHandoff)
   ? item.supersedesReleaseId : item.rollbackReleaseId;
 const bundleValue = option("bundle");
 if (!bundleValue) throw new Error("P38_GATEWAY_COMMON_CAUSE_BUNDLE_REQUIRED");
 const bundle = resolve(bundleValue);
-const artifact = heartbeatLogin
+const artifact = idleHandoff
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-idle-handoff-d63a53bd/gateway-runtime.tar.gz"
+  : heartbeatLogin
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-heartbeat-login-6d515326/gateway-runtime.tar.gz"
   : sessionSweep
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-session-drain-6bf33d4b/gateway-runtime.tar.gz"
@@ -82,7 +91,9 @@ const artifact = heartbeatLogin
   : finiteHandoff
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-finite-handoff-e085c30f/gateway-runtime.tar.gz"
   : "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-common-cause-f7d237bf/gateway-runtime.tar.gz";
-const publication = heartbeatLogin
+const publication = idleHandoff
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-idle-handoff-d63a53bd/r2-publication.json"
+  : heartbeatLogin
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-heartbeat-login-6d515326/r2-publication.json"
   : sessionSweep
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-session-drain-6bf33d4b/r2-publication.json"
@@ -205,10 +216,13 @@ if (config.profile !== item.profile || config.deviceId !== item.deviceId || conf
 if (sha(protectedLocalFile(config.qaTlsCaPath)) !== config.qaTlsCaSha256)
   throw new Error("P38_GATEWAY_COMMON_CAUSE_TLS_PIN_MISMATCH");
 const agentRelease = JSON.parse(protectedLocalFile(agentReleasePath));
-if (agentRelease.release_id !== item.releaseId || agentRelease.artifact_sha256 !== item.digest)
+const expectedAgentReleaseId = idleHandoff ? item.agentPredecessorReleaseId : item.releaseId;
+const expectedAgentDigest = idleHandoff ? item.priorManagementArtifactSha256 : item.digest;
+if (agentRelease.release_id !== expectedAgentReleaseId || agentRelease.artifact_sha256 !== expectedAgentDigest)
   throw new Error("P38_GATEWAY_COMMON_CAUSE_AGENT_RELEASE_MISMATCH");
 
 const manifest = JSON.parse(execFileSync("unzip", ["-p", bundle,
+  idleHandoff ? "gateway_remediation_idle_handoff.json" :
   heartbeatLogin ? "gateway_remediation_heartbeat_login.json" :
   sessionSweep ? "gateway_remediation_session_sweep.json" :
   maintenanceIsolation ? "gateway_remediation_maintenance_isolation.json" :
@@ -288,7 +302,7 @@ const normalHandoffState = rollout.new_status === "DRAFT" && rollout.prior_statu
 const activeBridgeHandoffState = heartbeatLogin && rollout.new_status === "PAUSED" &&
   rollout.prior_status === "ACTIVE" && rollout.prior_cohort === 0 &&
   JSON.stringify(rollout.prior_targets) === JSON.stringify(exactTargets);
-if (rollout.devices !== 2 || rollout.releases !== (heartbeatLogin ? 28 : sessionSweep ? 27 : maintenanceIsolation ? 22 : mediaCadence ? 20 : stableHandoff ? 19 : supervisorRecovery ? 17 : finiteHandoff ? 15 : 12) ||
+if (rollout.devices !== 2 || rollout.releases !== (idleHandoff ? 31 : heartbeatLogin ? 28 : sessionSweep ? 27 : maintenanceIsolation ? 22 : mediaCadence ? 20 : stableHandoff ? 19 : supervisorRecovery ? 17 : finiteHandoff ? 15 : 12) ||
   (!normalHandoffState && !activeBridgeHandoffState) ||
   rollout.new_cohort !== 0 ||
   JSON.stringify(rollout.new_targets) !== JSON.stringify(exactTargets) || rollout.broad_active !== 0 ||
@@ -310,11 +324,19 @@ for (let index = 0; index < 3; index += 1) {
 }
 const gatewayPidStable = gatewaySamples.every(sample => sample.running && sample.pid) &&
   new Set(gatewaySamples.map(sample => sample.pid)).size === 1;
+const expectsNineSources = stableHandoff || mediaCadence || maintenanceIsolation || sessionSweep ||
+  heartbeatLogin || idleHandoff;
 const normalRuntimeTruth = gatewaySamples.every(sample => sample.status === "degraded" || sample.status === "healthy") &&
   gatewaySamples.every(sample =>
-    sample.assigned === 10 && sample.connected === (stableHandoff || mediaCadence || maintenanceIsolation || sessionSweep || heartbeatLogin ? 9 : 8) &&
-    sample.failed === (stableHandoff || mediaCadence || maintenanceIsolation || sessionSweep || heartbeatLogin ? 1 : 2) && sample.empty === 6 &&
-    sample.progressing === (stableHandoff || mediaCadence || maintenanceIsolation || sessionSweep || heartbeatLogin ? 9 : 8) && sample.stalled === 0);
+    sample.assigned === 10 && sample.connected === (expectsNineSources ? 9 : 8) &&
+    sample.failed === (expectsNineSources ? 1 : 2) && sample.empty === 6 &&
+    sample.progressing === (expectsNineSources ? 9 : 8) && sample.stalled === 0);
+const idleHandoffTargetTruth = idleHandoff && gatewaySamples.every(sample =>
+  (sample.status === "degraded" || sample.status === "healthy") && sample.assigned === 10 &&
+  sample.connected === 9 && sample.failed === 1 && sample.empty === 6 &&
+  Number.isInteger(sample.progressing) && sample.progressing >= 7 && sample.progressing <= 9 &&
+  Number.isInteger(sample.stalled) && sample.stalled >= 0 && sample.stalled <= 2 &&
+  sample.rotations === 0);
 const finiteCommonCauseTruth = (finiteHandoff || supervisorRecovery) && gatewaySamples.every(sample => sample.status === "degraded" &&
   sample.assigned === 10 && sample.connected === 0 && sample.failed === 10 && sample.empty === 6 &&
   sample.progressing === 0 && sample.stalled === 0);
@@ -367,6 +389,29 @@ if (heartbeatLogin) {
     last_rotation_reason: outage.dvr.session_lifecycle.last_rotation_reason,
     live_recovery_required: true };
 }
+if (idleHandoff) {
+  const bytes = protectedFile(failedCanaryEvidencePath);
+  const result = JSON.parse(bytes);
+  const affected = Object.entries(result.per_camera || {}).filter(([name, camera]) =>
+    name.startsWith("dvr-") && camera.qualification_denominator === true && camera.availability < 1);
+  if (result.contract !== "observer-reliability-qualification-v1" ||
+    result.qualification_stage !== "CANARY" || result.status !== "NOT_DONE" ||
+    result.dvr_source_available !== 9 || result.dvr_known_upstream_unavailable?.length !== 1 ||
+    result.dvr_known_upstream_unavailable[0] !== 8 || result.gateway?.unavailable_checkpoints < 2 ||
+    result.gateway?.stale_input_delta < 1 || result.gateway?.socket_error_delta !== 0 ||
+    result.gateway?.recorder_session_failure_delta !== 0 ||
+    result.gateway?.recorder_auth_rejection_delta !== 0 || result.playback?.failures !== 0 ||
+    result.ai?.failures !== 0 || result.release?.gateway?.software_version !== item.supersedesVersion ||
+    result.release?.gateway?.build_sha !== "6d515326502dbd9d3d7ca0e0249bd7a696324fca" ||
+    affected.length < 1 || !affected.some(([, camera]) => camera.input_idle_ms?.p95 >= 12_000))
+    throw new Error("P38_GATEWAY_IDLE_HANDOFF_FAILED_CANARY_EVIDENCE_INVALID");
+  failedCanaryEvidence = { sha256: sha(bytes), checkpoints: result.checkpoints,
+    unavailable_checkpoints: result.gateway.unavailable_checkpoints,
+    affected_channels: affected.map(([name]) => name), stale_input_delta: result.gateway.stale_input_delta,
+    recorder_session_failure_delta: result.gateway.recorder_session_failure_delta,
+    recorder_auth_rejection_delta: result.gateway.recorder_auth_rejection_delta,
+    socket_error_delta: result.gateway.socket_error_delta, live_recovery_required: true };
+}
 if (stableHandoff || mediaCadence || maintenanceIsolation) {
   if (!shadowEvidencePath) throw new Error("P38_GATEWAY_STABLE_HANDOFF_SHADOW_EVIDENCE_REQUIRED");
   shadowEvidence = verifiedShadowEvidence(shadowEvidencePath, { recent: true, warmHandoff: true,
@@ -378,7 +423,7 @@ if (finiteCommonCauseTruth) {
     expectedRelease: supervisorRecovery ? item : null });
   warmHandoffEvidence = verifiedShadowEvidence(warmHandoffEvidencePath, { warmHandoff: true });
 }
-if (!gatewayPidStable || (!normalRuntimeTruth && !finiteCommonCauseTruth))
+if (!gatewayPidStable || (!normalRuntimeTruth && !finiteCommonCauseTruth && !idleHandoffTargetTruth))
   throw new Error("P38_GATEWAY_COMMON_CAUSE_RUNTIME_TRUTH_INVALID");
 if (connectorSamples.some(sample => !sample.running || !sample.pid || !sample.ok ||
   sample.assigned !== 1 || sample.progressing !== 1 || sample.stalled !== 0) ||
@@ -394,7 +439,8 @@ const [anonymous, wrongRoute] = await Promise.all([
 if (anonymous !== 401 || wrongRoute !== 404)
   throw new Error("P38_GATEWAY_COMMON_CAUSE_INGRESS_INVALID");
 
-const plan = { protocol: heartbeatLogin ? "observer-push38-gateway-heartbeat-login-activation-v1" :
+const plan = { protocol: idleHandoff ? "observer-push38-gateway-idle-handoff-activation-v1" :
+  heartbeatLogin ? "observer-push38-gateway-heartbeat-login-activation-v1" :
   sessionSweep ? "observer-push38-gateway-session-sweep-activation-v1" :
   "observer-push38-gateway-common-cause-recovery-activation-v1",
   generated_at: new Date().toISOString(), mode: "PREFLIGHT", release_id: item.releaseId,
@@ -406,8 +452,9 @@ const plan = { protocol: heartbeatLogin ? "observer-push38-gateway-heartbeat-log
   runtime_pid: gatewayService.pid, ota_agent_pid: gatewayAgent.pid,
   connector_release_id: connectorCurrent.release_id,
   gateway_runtime_samples: gatewaySamples, connector_runtime_samples: connectorSamples,
-  gateway_runtime_truth: normalRuntimeTruth ? (stableHandoff || mediaCadence || maintenanceIsolation || sessionSweep || heartbeatLogin ? "9_OF_9_PROGRESSING" : "8_OF_8_PROGRESSING") :
-    "FINITE_STREAM_COMMON_CAUSE_SHADOW_QUALIFIED",
+  gateway_runtime_truth: normalRuntimeTruth ? (expectsNineSources ? "9_OF_9_PROGRESSING" : "8_OF_8_PROGRESSING") :
+    idleHandoffTargetTruth ? "KNOWN_PER_CHANNEL_IDLE_GAP_QUALIFIED_FOR_SIGNED_REMEDIATION" :
+      "FINITE_STREAM_COMMON_CAUSE_SHADOW_QUALIFIED",
   ...(shadowEvidence ? { current_shadow_evidence: shadowEvidence,
     warm_handoff_evidence: warmHandoffEvidence } : {}),
   ...(failedCanaryEvidence ? { failed_canary_evidence: failedCanaryEvidence } : {}),
@@ -420,14 +467,15 @@ const plan = { protocol: heartbeatLogin ? "observer-push38-gateway-heartbeat-log
     empty: gatewaySamples.at(-1).empty,
     service_pid_stable: gatewayPidStable
   } } : {}),
-  dvr_truth: { expected: 10, source_available: stableHandoff || mediaCadence || maintenanceIsolation || sessionSweep || heartbeatLogin ? 9 : 8,
-    upstream_unavailable: stableHandoff || mediaCadence || maintenanceIsolation || sessionSweep || heartbeatLogin ? 1 : 2, empty: 6 },
+  dvr_truth: { expected: 10, source_available: expectsNineSources ? 9 : 8,
+    upstream_unavailable: expectsNineSources ? 1 : 2, empty: 6 },
   actions: ["PAUSE_OTHER_GATEWAY_ROLLOUTS", "ACTIVATE_EXACT_GATEWAY_REMEDIATION_ROLLOUT",
     "OTA_AGENT_DISCOVERS", "SHORT_LIVED_R2_DOWNLOAD", "SIGNED_INSTALL", "HEALTH_GATE",
     "PROMOTE_OR_EXISTING_MANAGER_ROLLBACK"], runtime_writes: 0 };
 if (mode === "PREFLIGHT") {
   const evidenceSha = persist(plan);
-  console.log(JSON.stringify({ status: heartbeatLogin ? "GATEWAY_HEARTBEAT_LOGIN_PREFLIGHT_PASS" :
+  console.log(JSON.stringify({ status: idleHandoff ? "GATEWAY_IDLE_HANDOFF_PREFLIGHT_PASS" :
+    heartbeatLogin ? "GATEWAY_HEARTBEAT_LOGIN_PREFLIGHT_PASS" :
     sessionSweep ? "GATEWAY_SESSION_SWEEP_PREFLIGHT_PASS" :
     maintenanceIsolation ? "GATEWAY_MAINTENANCE_ISOLATION_PREFLIGHT_PASS" :
     mediaCadence ? "GATEWAY_MEDIA_CADENCE_PREFLIGHT_PASS" :
@@ -471,7 +519,8 @@ const result = { ...plan, mode: "APPLY", applied_at: new Date().toISOString(),
   exact_rollout_active: true, broad_cohort: false, ota_agent_owns_install: true,
   functional_runtime_changed_by_command: false, runtime_writes: 0 };
 const evidenceSha = persist(result);
-console.log(JSON.stringify({ status: heartbeatLogin ? "EXACT_GATEWAY_HEARTBEAT_LOGIN_ROLLOUT_ACTIVE" :
+console.log(JSON.stringify({ status: idleHandoff ? "EXACT_GATEWAY_IDLE_HANDOFF_ROLLOUT_ACTIVE" :
+  heartbeatLogin ? "EXACT_GATEWAY_HEARTBEAT_LOGIN_ROLLOUT_ACTIVE" :
   sessionSweep ? "EXACT_GATEWAY_SESSION_SWEEP_ROLLOUT_ACTIVE" :
   maintenanceIsolation ? "EXACT_GATEWAY_MAINTENANCE_ISOLATION_ROLLOUT_ACTIVE" :
   mediaCadence ? "EXACT_GATEWAY_MEDIA_CADENCE_ROLLOUT_ACTIVE" :
