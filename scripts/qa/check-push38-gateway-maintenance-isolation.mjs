@@ -34,5 +34,8 @@ for (const token of ["PUSH38_GATEWAY_MAINTENANCE_ISOLATION.releaseId",
   "Object.freeze([1, 2, 3, 4, 5, 6, 7, 10, 11])",
   "observed.connected === 9", "observed.failed === 1", "observed.progressing === 9"])
   assert.ok(driver.includes(token), `health driver missing ${token}`);
+const activation = readFileSync(new URL("./activate-push38-homeqa-gateway-common-cause-recovery.mjs", import.meta.url), "utf8");
+assert.ok(activation.includes("maintenanceIsolation ? 22"),
+  "activation must reconcile the cumulative HOME_QA inventory including Connector 0.2.22");
 console.log(JSON.stringify({ status: "PASS", immutable_release: true, exact_device: true,
   cohort_percent: 0, signed_rollback_preserved: true, session_maintenance_isolated: true }));
