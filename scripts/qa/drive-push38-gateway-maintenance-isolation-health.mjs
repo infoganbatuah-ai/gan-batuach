@@ -7,9 +7,13 @@ import { join, resolve, sep } from "node:path";
 import { createEdgeSecretStoreSync } from "../../services/video-gateway/edge-secret-store-sync.mjs";
 import { PUSH38_GATEWAY_MAINTENANCE_ISOLATION
 } from "../../services/video-gateway/push38-home-qa-gateway-maintenance-isolation.mjs";
+import { PUSH38_GATEWAY_SESSION_SWEEP
+} from "../../services/video-gateway/push38-home-qa-gateway-session-sweep.mjs";
 
 const CHANNELS = Object.freeze([1, 2, 3, 4, 5, 6, 7, 10, 11]);
-const RELEASE_ID = PUSH38_GATEWAY_MAINTENANCE_ISOLATION.releaseId;
+const sessionSweep = process.argv.includes("--session-sweep");
+const RELEASE_ID = (sessionSweep ? PUSH38_GATEWAY_SESSION_SWEEP :
+  PUSH38_GATEWAY_MAINTENANCE_ISOLATION).releaseId;
 const ROOT = join(homedir(), "Library/Application Support/Digital Observer/observer-gateway/ota");
 const option = name => process.argv.find(value => value.startsWith(`--${name}=`))?.slice(name.length + 3) || "";
 const output = resolve(option("output") || ".");
@@ -30,7 +34,8 @@ const streamId = channel => `dvr_${createHash("sha256")
   .digest("hex").slice(0, 18)}_${channel}`;
 const sleep = ms => new Promise(resolveWait => setTimeout(resolveWait, ms));
 const startedAt = Date.now();
-const evidence = { protocol: "observer-push38-gateway-maintenance-isolation-health-driver-v1",
+const evidence = { protocol: sessionSweep ? "observer-push38-gateway-session-sweep-health-driver-v1" :
+  "observer-push38-gateway-maintenance-isolation-health-driver-v1",
   started_at: new Date(startedAt).toISOString(), release_id: RELEASE_ID,
   channels: CHANNELS, known_upstream_unavailable: [8], empty_channels: [9, 12, 13, 14, 15, 16],
   endpoint_recorded: false, credentials_recorded: false,

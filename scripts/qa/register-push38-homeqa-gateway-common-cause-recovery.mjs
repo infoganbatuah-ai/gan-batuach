@@ -21,6 +21,8 @@ import { PUSH38_GATEWAY_MEDIA_CADENCE
 } from "../../services/video-gateway/push38-home-qa-gateway-media-cadence.mjs";
 import { PUSH38_GATEWAY_MAINTENANCE_ISOLATION
 } from "../../services/video-gateway/push38-home-qa-gateway-maintenance-isolation.mjs";
+import { PUSH38_GATEWAY_SESSION_SWEEP
+} from "../../services/video-gateway/push38-home-qa-gateway-session-sweep.mjs";
 
 const apply = process.argv.includes("--apply");
 const finiteHandoff = process.argv.includes("--finite-stream-handoff");
@@ -28,9 +30,11 @@ const supervisorRecovery = process.argv.includes("--supervisor-recovery");
 const stableHandoff = process.argv.includes("--stable-handoff");
 const mediaCadence = process.argv.includes("--media-cadence");
 const maintenanceIsolation = process.argv.includes("--maintenance-isolation");
-if ([finiteHandoff, supervisorRecovery, stableHandoff, mediaCadence, maintenanceIsolation].filter(Boolean).length > 1)
+const sessionSweep = process.argv.includes("--session-sweep");
+if ([finiteHandoff, supervisorRecovery, stableHandoff, mediaCadence, maintenanceIsolation, sessionSweep].filter(Boolean).length > 1)
   throw new Error("P38_GATEWAY_COMMON_CAUSE_HOME_QA_MODE_INVALID");
-const item = maintenanceIsolation ? PUSH38_GATEWAY_MAINTENANCE_ISOLATION :
+const item = sessionSweep ? PUSH38_GATEWAY_SESSION_SWEEP :
+  maintenanceIsolation ? PUSH38_GATEWAY_MAINTENANCE_ISOLATION :
   mediaCadence ? PUSH38_GATEWAY_MEDIA_CADENCE :
   stableHandoff ? PUSH38_GATEWAY_STABLE_HANDOFF :
   supervisorRecovery ? PUSH38_GATEWAY_SUPERVISOR_RECOVERY :
@@ -39,7 +43,9 @@ const restrictedRoot = "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/r
 const bundleValue = process.argv.find(value => value.startsWith("--bundle="))?.slice(9);
 if (!bundleValue) throw new Error("P38_GATEWAY_COMMON_CAUSE_HOME_QA_BUNDLE_REQUIRED");
 const bundle = resolve(bundleValue);
-const artifact = maintenanceIsolation
+const artifact = sessionSweep
+  ? `${restrictedRoot}/push38-gateway-session-sweep-fc3a4154/gateway-runtime.tar.gz`
+  : maintenanceIsolation
   ? `${restrictedRoot}/push38-gateway-maintenance-isolation-04c58f24/gateway-runtime.tar.gz`
   : mediaCadence
   ? `${restrictedRoot}/push38-gateway-media-cadence-f41715f9/gateway-runtime.tar.gz`
@@ -50,7 +56,9 @@ const artifact = maintenanceIsolation
   : finiteHandoff
   ? `${restrictedRoot}/push38-gateway-finite-handoff-e085c30f/gateway-runtime.tar.gz`
   : `${restrictedRoot}/push38-gateway-common-cause-f7d237bf/gateway-runtime.tar.gz`;
-const publication = maintenanceIsolation
+const publication = sessionSweep
+  ? `${restrictedRoot}/push38-gateway-session-sweep-fc3a4154/r2-publication.json`
+  : maintenanceIsolation
   ? `${restrictedRoot}/push38-gateway-maintenance-isolation-04c58f24/r2-publication.json`
   : mediaCadence
   ? `${restrictedRoot}/push38-gateway-media-cadence-f41715f9/r2-publication.json`
@@ -61,13 +69,14 @@ const publication = maintenanceIsolation
   : finiteHandoff
   ? `${restrictedRoot}/push38-gateway-finite-handoff-e085c30f/r2-publication.json`
   : `${restrictedRoot}/push38-gateway-common-cause-f7d237bf/r2-publication.json`;
-const bundleName = maintenanceIsolation ? "gateway_remediation_maintenance_isolation.json"
+const bundleName = sessionSweep ? "gateway_remediation_session_sweep.json"
+  : maintenanceIsolation ? "gateway_remediation_maintenance_isolation.json"
   : mediaCadence ? "gateway_remediation_media_cadence.json"
   : stableHandoff ? "gateway_remediation_stable_handoff.json"
   : supervisorRecovery ? "gateway_remediation_supervisor_recovery.json"
   : finiteHandoff ? "gateway_remediation_finite_stream_handoff.json"
   : "gateway_remediation_common_cause_recovery.json";
-const expectedBefore = maintenanceIsolation ? 20 : mediaCadence ? 19 : stableHandoff ? 18 : supervisorRecovery ? 16 : finiteHandoff ? 12 : 11;
+const expectedBefore = sessionSweep ? 24 : maintenanceIsolation ? 20 : mediaCadence ? 19 : stableHandoff ? 18 : supervisorRecovery ? 16 : finiteHandoff ? 12 : 11;
 const expectedAfter = expectedBefore + 1;
 const predecessorReleaseId = (finiteHandoff || supervisorRecovery || stableHandoff || mediaCadence || maintenanceIsolation)
   ? item.supersedesReleaseId : item.rollbackReleaseId;
@@ -166,7 +175,8 @@ commit;`;
 execFileSync("docker", ["--context", context, "exec", "-i", container, "psql", "-X", "-q",
   "-v", "ON_ERROR_STOP=1", "-U", "postgres", "-d", "postgres"],
 { input: sql, encoding: "utf8", timeout: 45_000, stdio: ["pipe", "pipe", "pipe"] });
-console.log(JSON.stringify({ status: maintenanceIsolation ? "GATEWAY_MAINTENANCE_ISOLATION_REGISTERED_DRAFT" :
+console.log(JSON.stringify({ status: sessionSweep ? "GATEWAY_SESSION_SWEEP_REGISTERED_DRAFT" :
+  maintenanceIsolation ? "GATEWAY_MAINTENANCE_ISOLATION_REGISTERED_DRAFT" :
   mediaCadence ? "GATEWAY_MEDIA_CADENCE_REGISTERED_DRAFT" :
   stableHandoff ? "GATEWAY_STABLE_HANDOFF_REGISTERED_DRAFT" :
   "GATEWAY_COMMON_CAUSE_RECOVERY_REGISTERED_DRAFT",

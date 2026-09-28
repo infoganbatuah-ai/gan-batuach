@@ -22,6 +22,7 @@ const gatewayAuthRecovery = "qa-p38-health-gateway-auth-4197f1a246f1";
 const gatewaySessionStability = "qa-p38-health-gateway-session-e354546bdbf8";
 const gatewayCommonCauseRecovery = "qa-p38-health-gateway-common-cause-189e548bc104";
 const gatewayFiniteStreamHandoff = "qa-p38-health-gateway-finite-handoff-76781a8e0832";
+const gatewaySessionSweep = "qa-p38-health-gateway-session-sweep-0a64245f8a97";
 const manifest = (releaseId, deviceId, profile) => ({ release_id: releaseId,
   channel: "HOME_QA", platform: "darwin", architecture: "arm64", profile,
   rollout: { stage: "INTERNAL_QA", cohort_percent: 0, explicit_device_ids: [deviceId] } });
@@ -43,6 +44,7 @@ const gatewayAuthRemediation = manifest(gatewayAuthRecovery, gatewayId, "PHYSICA
 const gatewaySessionRemediation = manifest(gatewaySessionStability, gatewayId, "PHYSICAL_GATEWAY");
 const gatewayCommonCauseRemediation = manifest(gatewayCommonCauseRecovery, gatewayId, "PHYSICAL_GATEWAY");
 const gatewayFiniteStreamHandoffRemediation = manifest(gatewayFiniteStreamHandoff, gatewayId, "PHYSICAL_GATEWAY");
+const gatewaySessionSweepRemediation = manifest(gatewaySessionSweep, gatewayId, "PHYSICAL_GATEWAY");
 assert.equal(HOME_QA_PHASE.LEGACY, "LEGACY_VERIFIED_FOR_TRANSITION");
 assert.equal(HOME_QA_PHASE.PENDING, "MANAGED_IDENTITY_PENDING_PROOF");
 const connector = { gateway_id: connectorId, deployment_profile: "SOFTWARE_CONNECTOR",
@@ -68,6 +70,7 @@ assert.equal(homeQaManagedPhaseAllows({ enrollment: gateway, manifest: gatewayAu
 assert.equal(homeQaManagedPhaseAllows({ enrollment: gateway, manifest: gatewaySessionRemediation }), true);
 assert.equal(homeQaManagedPhaseAllows({ enrollment: gateway, manifest: gatewayCommonCauseRemediation }), true);
 assert.equal(homeQaManagedPhaseAllows({ enrollment: gateway, manifest: gatewayFiniteStreamHandoffRemediation }), true);
+assert.equal(homeQaManagedPhaseAllows({ enrollment: gateway, manifest: gatewaySessionSweepRemediation }), true);
 for (const bad of [
   { ...connector, identity_scheme: "LEGACY_HMAC" },
   { ...connector, credential_version: 0 },
