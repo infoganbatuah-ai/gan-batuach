@@ -25,6 +25,8 @@ import { PUSH38_CONNECTOR_RTSP_HANDOFF_RECOVERY
 } from "../../services/video-gateway/push38-home-qa-connector-rtsp-handoff.mjs";
 import { PUSH38_CONNECTOR_HEALTH_OBSERVATION_RECOVERY
 } from "../../services/video-gateway/push38-home-qa-connector-health-observation.mjs";
+import { PUSH38_CONNECTOR_FINAL_STABILITY
+} from "../../services/video-gateway/push38-home-qa-connector-final-stability.mjs";
 
 const apply = process.argv.includes("--apply");
 const hostContinuity = process.argv.includes("--host-continuity");
@@ -34,11 +36,13 @@ const relayBackoff = process.argv.includes("--relay-backoff");
 const restartGrace = process.argv.includes("--restart-grace");
 const rtspHandoff = process.argv.includes("--rtsp-handoff");
 const healthObservation = process.argv.includes("--health-observation");
+const finalStability = process.argv.includes("--final-stability");
 if ([hostContinuity, deviceSession, livenessContinuity, relayBackoff, restartGrace, rtspHandoff,
-  healthObservation]
+  healthObservation, finalStability]
   .filter(Boolean).length > 1)
   throw new Error("P38_HOME_QA_RTSP_SESSION_MODE_INVALID");
-const item = healthObservation ? PUSH38_CONNECTOR_HEALTH_OBSERVATION_RECOVERY :
+const item = finalStability ? PUSH38_CONNECTOR_FINAL_STABILITY :
+  healthObservation ? PUSH38_CONNECTOR_HEALTH_OBSERVATION_RECOVERY :
   rtspHandoff ? PUSH38_CONNECTOR_RTSP_HANDOFF_RECOVERY :
   restartGrace ? PUSH38_CONNECTOR_RESTART_GRACE_RECOVERY :
   relayBackoff ? PUSH38_CONNECTOR_RELAY_BACKOFF_RECOVERY :
@@ -50,7 +54,9 @@ const restrictedRoot = "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/r
 const bundleValue = process.argv.find(value => value.startsWith("--bundle="))?.slice(9);
 if (!bundleValue) throw new Error("P38_HOME_QA_RTSP_SESSION_BUNDLE_REQUIRED");
 const bundle = resolve(bundleValue);
-const artifact = healthObservation
+const artifact = finalStability
+  ? `${restrictedRoot}/push38-connector-health-observation-acbcfe8e/connector-remediation.tar.gz`
+  : healthObservation
   ? `${restrictedRoot}/push38-connector-health-observation-acbcfe8e/connector-remediation.tar.gz`
   : rtspHandoff
   ? `${restrictedRoot}/push38-connector-rtsp-handoff-a5c3dc51/connector-remediation.tar.gz`
@@ -65,7 +71,9 @@ const artifact = healthObservation
   : hostContinuity
   ? `${restrictedRoot}/push38-connector-host-continuity-e0f07860/connector-remediation.tar.gz`
   : `${restrictedRoot}/push38-connector-remediation-38671545/connector-remediation.tar.gz`;
-const publication = healthObservation
+const publication = finalStability
+  ? `${restrictedRoot}/push38-connector-final-stability-acbcfe8e/r2-publication.json`
+  : healthObservation
   ? `${restrictedRoot}/push38-connector-health-observation-acbcfe8e/r2-publication.json`
   : rtspHandoff
   ? `${restrictedRoot}/push38-connector-rtsp-handoff-a5c3dc51/r2-publication-known-good.json`
@@ -80,8 +88,9 @@ const publication = healthObservation
   : hostContinuity
   ? `${restrictedRoot}/push38-connector-host-continuity-e0f07860/r2-publication.json`
   : `${restrictedRoot}/push38-connector-remediation-38671545/r2-publication.json`;
-const predecessorReleaseId = (hostContinuity || deviceSession || livenessContinuity || relayBackoff || restartGrace || rtspHandoff || healthObservation) ? item.supersedesReleaseId : item.rollbackReleaseId;
-const bundleName = healthObservation ? "connector_remediation_health_observation.json" :
+const predecessorReleaseId = (hostContinuity || deviceSession || livenessContinuity || relayBackoff || restartGrace || rtspHandoff || healthObservation || finalStability) ? item.supersedesReleaseId : item.rollbackReleaseId;
+const bundleName = finalStability ? "connector_remediation_final_stability.json" :
+  healthObservation ? "connector_remediation_health_observation.json" :
   rtspHandoff ? "connector_remediation_rtsp_handoff_known_good.json" :
   restartGrace ? "connector_remediation_restart_grace.json" :
   relayBackoff ? "connector_remediation_relay_backoff.json" :
@@ -89,8 +98,8 @@ const bundleName = healthObservation ? "connector_remediation_health_observation
   deviceSession ? "connector_remediation_device_session.json" :
   hostContinuity ? "connector_remediation_host_continuity.json" :
   "connector_remediation_rtsp_session.json";
-const expectedBefore = healthObservation ? 25 : rtspHandoff ? 23 : restartGrace ? 21 : relayBackoff ? 17 : livenessContinuity ? 15 : deviceSession ? 14 : hostContinuity ? 13 : 9;
-const expectedAfter = healthObservation ? 26 : rtspHandoff ? 24 : restartGrace ? 22 : relayBackoff ? 18 : livenessContinuity ? 16 : deviceSession ? 15 : hostContinuity ? 14 : 10;
+const expectedBefore = finalStability ? 28 : healthObservation ? 25 : rtspHandoff ? 23 : restartGrace ? 21 : relayBackoff ? 17 : livenessContinuity ? 15 : deviceSession ? 14 : hostContinuity ? 13 : 9;
+const expectedAfter = finalStability ? 29 : healthObservation ? 26 : rtspHandoff ? 24 : restartGrace ? 22 : relayBackoff ? 18 : livenessContinuity ? 16 : deviceSession ? 15 : hostContinuity ? 14 : 10;
 const accountId = "693f824a750afcc264fe6ee58c8a86ab";
 const origin = `https://${accountId}.r2.cloudflarestorage.com`;
 for (const path of [bundle, artifact, publication]) {
