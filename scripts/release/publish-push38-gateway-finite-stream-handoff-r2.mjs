@@ -1,9 +1,12 @@
 import { createHash } from "node:crypto";
+import { setDefaultResultOrder } from "node:dns";
 import { createReadStream, lstatSync, statSync, writeFileSync } from "node:fs";
+import { open } from "node:fs/promises";
 import { homedir } from "node:os";
 import { isAbsolute, join, relative, resolve, sep } from "node:path";
 import { fileURLToPath } from "node:url";
-import { S3Client, GetObjectCommand, HeadObjectCommand, PutObjectCommand } from "@aws-sdk/client-s3";
+import { AbortMultipartUploadCommand, CompleteMultipartUploadCommand, CreateMultipartUploadCommand,
+  GetObjectCommand, HeadObjectCommand, S3Client, UploadPartCommand } from "@aws-sdk/client-s3";
 import { getSignedUrl } from "@aws-sdk/s3-request-presigner";
 import { edgeReleaseObjectPath, EDGE_RELEASE_R2_BUCKET } from "../../services/video-gateway/edge-release-object.mjs";
 import { buildPush38GatewayFiniteStreamHandoffManifest } from "../../services/video-gateway/push38-home-qa-gateway-finite-stream-handoff.mjs";
@@ -18,6 +21,10 @@ import { readR2KeychainCredentials } from "./macos-r2-keychain.mjs";
 const origin = "https://693f824a750afcc264fe6ee58c8a86ab.r2.cloudflarestorage.com";
 const restrictedRoot = resolve(process.env.OBSERVER_RESTRICTED_EXPORT_ROOT ||
   fileURLToPath(new URL("../../exports/restricted/", import.meta.url)));
+const multipartPartSize = 8 * 1024 * 1024;
+// The measured Home QA IPv6 path stalls large R2 uploads; keep this publisher on
+// the verified IPv4 path without changing any Product/runtime network behavior.
+setDefaultResultOrder("ipv4first");
 const fail = code => { throw new Error(code); };
 async function hashStream(stream, limit) {
   const hash = createHash("sha256"); let size = 0;
@@ -27,6 +34,60 @@ async function hashStream(stream, limit) {
     hash.update(chunk);
   }
   return { sha256: hash.digest("hex"), size };
+}
+
+async function headObjectOrNull(client, bucket, key) {
+  try {
+    return await client.send(new HeadObjectCommand({ Bucket: bucket, Key: key }),
+      { abortSignal: AbortSignal.timeout(30_000) });
+  } catch (error) {
+    if (error.$metadata?.httpStatusCode === 404 || error.name === "NotFound") return null;
+    throw error;
+  }
+}
+
+async function uploadMultipart({ client, bucket, key, path, size, sha256, releaseId }) {
+  let created;
+  try {
+    created = await client.send(new CreateMultipartUploadCommand({ Bucket: bucket, Key: key,
+      ContentType: "application/gzip", StorageClass: "STANDARD",
+      Metadata: { sha256, release_id: releaseId } }),
+    { abortSignal: AbortSignal.timeout(60_000) });
+  } catch { fail("P38_GATEWAY_FINITE_HANDOFF_R2_MULTIPART_CREATE_REQUEST_FAILED"); }
+  if (!created.UploadId) fail("P38_GATEWAY_FINITE_HANDOFF_R2_MULTIPART_CREATE_FAILED");
+  const uploadId = created.UploadId, parts = [];
+  let handle;
+  try {
+    handle = await open(path, "r");
+    for (let offset = 0, partNumber = 1; offset < size; offset += multipartPartSize, partNumber++) {
+      const length = Math.min(multipartPartSize, size - offset), body = Buffer.allocUnsafe(length);
+      const { bytesRead } = await handle.read(body, 0, length, offset);
+      if (bytesRead !== length) fail("P38_GATEWAY_FINITE_HANDOFF_R2_MULTIPART_READ_FAILED");
+      let part;
+      try {
+        part = await client.send(new UploadPartCommand({ Bucket: bucket, Key: key, UploadId: uploadId,
+          PartNumber: partNumber, Body: body, ContentLength: length }),
+        { abortSignal: AbortSignal.timeout(180_000) });
+      } catch (error) {
+        console.error(JSON.stringify({ stage: "multipart_upload_part", part_number: partNumber,
+          error_name: String(error?.name || "UNKNOWN").replace(/[^A-Za-z0-9_-]/g, "_").slice(0, 64),
+          http_status: Number(error?.$metadata?.httpStatusCode) || null }));
+        fail(`P38_GATEWAY_FINITE_HANDOFF_R2_MULTIPART_PART_${partNumber}_REQUEST_FAILED`);
+      }
+      if (!part.ETag) fail("P38_GATEWAY_FINITE_HANDOFF_R2_MULTIPART_PART_FAILED");
+      parts.push({ ETag: part.ETag, PartNumber: partNumber });
+    }
+    await handle.close(); handle = undefined;
+    try {
+      await client.send(new CompleteMultipartUploadCommand({ Bucket: bucket, Key: key, UploadId: uploadId,
+        MultipartUpload: { Parts: parts } }), { abortSignal: AbortSignal.timeout(180_000) });
+    } catch { fail("P38_GATEWAY_FINITE_HANDOFF_R2_MULTIPART_COMPLETE_REQUEST_FAILED"); }
+  } catch (error) {
+    await handle?.close().catch(() => {});
+    await client.send(new AbortMultipartUploadCommand({ Bucket: bucket, Key: key, UploadId: uploadId }),
+      { abortSignal: AbortSignal.timeout(30_000) }).catch(() => {});
+    throw error;
+  }
 }
 
 export async function publishPush38GatewayFiniteStreamHandoff({ artifactPath, evidencePath,
@@ -53,22 +114,16 @@ export async function publishPush38GatewayFiniteStreamHandoff({ artifactPath, ev
     fail("P38_GATEWAY_FINITE_HANDOFF_R2_LOCAL_ARTIFACT_HASH_MISMATCH");
   const key = edgeReleaseObjectPath(document), keychain = join(homedir(), "Library/Keychains/login.keychain-db");
   const clientOptions = { region: "auto", endpoint: origin, forcePathStyle: true,
-    maxAttempts: 1, requestChecksumCalculation: "WHEN_REQUIRED", responseChecksumValidation: "WHEN_REQUIRED" };
+    maxAttempts: 3, requestChecksumCalculation: "WHEN_REQUIRED", responseChecksumValidation: "WHEN_REQUIRED" };
   const publisher = new S3Client({ ...clientOptions,
     credentials: readR2KeychainCredentials({ service: "digital-observer-r2-home-qa-publisher-20260922-v2", keychain }) });
   const reader = new S3Client({ ...clientOptions,
     credentials: readR2KeychainCredentials({ service: "digital-observer-r2-home-qa-reader-20260922", keychain }) });
   try {
-    let uploaded = true;
-    try {
-      await publisher.send(new PutObjectCommand({ Bucket: EDGE_RELEASE_R2_BUCKET, Key: key,
-        Body: createReadStream(path), ContentLength: local.size, ContentType: "application/gzip",
-        StorageClass: "STANDARD", IfNoneMatch: "*", Metadata: { sha256: local.sha256,
-          release_id: document.release_id } }), { abortSignal: AbortSignal.timeout(600_000) });
-    } catch (error) {
-      if (error.$metadata?.httpStatusCode !== 412 && error.name !== "PreconditionFailed") throw error;
-      uploaded = false;
-    }
+    const existing = await headObjectOrNull(reader, EDGE_RELEASE_R2_BUCKET, key);
+    const uploaded = !existing;
+    if (!existing) await uploadMultipart({ client: publisher, bucket: EDGE_RELEASE_R2_BUCKET, key, path,
+      size: local.size, sha256: local.sha256, releaseId: document.release_id });
     const head = await reader.send(new HeadObjectCommand({ Bucket: EDGE_RELEASE_R2_BUCKET, Key: key }),
       { abortSignal: AbortSignal.timeout(30_000) });
     if (head.ContentLength !== local.size || head.Metadata?.sha256 !== local.sha256 ||
