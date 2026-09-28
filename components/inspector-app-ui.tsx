@@ -1,7 +1,9 @@
 import Link from "next/link";
-import type { ReactNode } from "react";
+import Image from "next/image";
+import type { ComponentType, ReactNode } from "react";
 import {
-  MapPin
+  MapPin,
+  type LucideProps
 } from "lucide-react";
 import {
   ActionCard,
@@ -16,6 +18,7 @@ import {
 import { RoleAppShell } from "@/components/role-app-shell";
 
 type Tone = "default" | "primary" | "success" | "warning" | "danger" | "info" | "muted";
+type IconType = ComponentType<LucideProps>;
 
 type InspectorProfile = {
   full_name?: string | null;
@@ -80,7 +83,7 @@ export function InspectorHero({
 }) {
   return (
     <PremiumCard className={`inspector-hero-card ${imageSrc ? "inspector-hero-card-image" : ""}`} size="lg">
-      {imageSrc ? <div className="inspector-hero-photo"><img src={imageSrc} alt={imageAlt} /></div> : artwork ? <div className="inspector-hero-art">{artwork}</div> : null}
+      {imageSrc ? <div className="inspector-hero-photo"><Image src={imageSrc} alt={imageAlt} fill sizes="(max-width: 760px) 100vw, 48vw" loading="eager" unoptimized /></div> : artwork ? <div className="inspector-hero-art">{artwork}</div> : null}
       <div className="inspector-hero-copy">
         {eyebrow ? <span>{eyebrow}</span> : null}
         <h2>{title}</h2>
@@ -155,7 +158,7 @@ export function InspectorGardenCard({
   return (
     <Link className="inspector-portfolio-card" href={href}>
       <span className="inspector-portfolio-image">
-        {image ? <img src={image} alt="" /> : <MapPin size={36} />}
+        {image ? <Image src={image} alt="" fill sizes="112px" unoptimized /> : <MapPin size={36} />}
         {status ? <span>{status}</span> : null}
       </span>
       <span className="inspector-portfolio-copy">
@@ -183,7 +186,7 @@ export function InspectorMetricCard({
   label: ReactNode;
   value: ReactNode;
   hint?: ReactNode;
-  icon?: any;
+  icon?: IconType;
   tone?: Tone;
   href?: string;
 }) {
@@ -200,7 +203,7 @@ export function InspectorSection({
 }: {
   title: ReactNode;
   subtitle?: ReactNode;
-  icon?: any;
+  icon?: IconType;
   action?: ReactNode;
   children: ReactNode;
   className?: string;
@@ -266,7 +269,7 @@ export function InspectorScoreRing({ value, label = "ציון" }: { value: numbe
 export function InspectorGardenThumb({ src, name }: { src?: string | null; name: string }) {
   return (
     <span className="inspector-garden-thumb">
-      {src ? <img src={src} alt={name} /> : <MapPin size={28} />}
+      {src ? <Image src={src} alt={name} width={96} height={72} unoptimized /> : <MapPin size={28} />}
     </span>
   );
 }

@@ -86,6 +86,8 @@ test("Camera access remains policy based and cannot become inspection truth", ()
   assert.match(cameras, /CameraPlaybackCard/);
   assert.match(cameras, /inspector_view_allowed/);
   assert.match(cameras, /inspector_access_policy/);
+  assert.match(cameras, /inspectorLiveViewProductionVerified = false/);
+  assert.match(cameras, /צפייה חיה אינה מאומתת כרגע/);
   assert.doesNotMatch(cameras, /face|track_id|weighted_score/is);
 });
 

@@ -3,17 +3,26 @@ import { requireOperationalRole } from "@/lib/management/operational-role";
 import { createClient } from "@/lib/supabase/server";
 import { InspectorAppFrame, InspectorEmpty, InspectorHero, InspectorMetricCard, InspectorMetricGrid, InspectorSection, InspectorTimeline } from "@/components/inspector-app-ui";
 
+type InspectorPhoto = { profile_photo_url?: string | null };
+type InspectionTrend = {
+  id: string;
+  completed_at?: string | null;
+  weighted_score?: number | null;
+  violation_count?: number | null;
+  gardens?: { name?: string | null; city?: string | null } | null;
+};
+
 export default async function InspectorTrendsPage() {
   const { profile } = await requireOperationalRole(["inspector"]);
   const supabase = await createClient();
   const [inspectorRes, inspectionsRes] = await Promise.all([
-    supabase.from("inspectors" as any).select("profile_photo_url").eq("id", profile.id).maybeSingle(),
-    supabase.from("inspections" as any).select("id,garden_id,completed_at,weighted_score,violation_count,status,gardens(name,city)").eq("inspector_id", profile.id).eq("status", "done").order("completed_at", { ascending: false }).limit(100)
+    supabase.from("inspectors").select("profile_photo_url").eq("id", profile.id).maybeSingle(),
+    supabase.from("inspections").select("id,garden_id,completed_at,weighted_score,violation_count,status,gardens(name,city)").eq("inspector_id", profile.id).eq("status", "done").order("completed_at", { ascending: false }).limit(100)
   ]);
-  const rows = (inspectionsRes.data ?? []) as any[];
+  const rows = (inspectionsRes.data ?? []) as unknown as InspectionTrend[];
   const scores = rows.map((r) => Number(r.weighted_score)).filter(Number.isFinite);
   const average = scores.length ? Math.round(scores.reduce((a, b) => a + b, 0) / scores.length) : null;
-  const profileForUi = { ...profile, profile_image_url: (inspectorRes.data as any)?.profile_photo_url ?? profile.profile_image_url };
+  const profileForUi = { ...profile, profile_image_url: (inspectorRes.data as unknown as InspectorPhoto | null)?.profile_photo_url ?? profile.profile_image_url };
   return (
     <InspectorAppFrame profile={profileForUi} activeHref="/dashboard/inspector/reports" title="מגמות והיסטוריה" subtitle="נתונים קנוניים מביקורות שהוגשו" badge="מגמות">
       <InspectorHero eyebrow="היסטוריית פיקוח" title="מגמה לאורך זמן, בלי להמציא מדדים" subtitle="המגמות נגזרות רק מציוני הביקורות והליקויים שנשמרו. אין תחזית או ציון AI." artwork={<TrendingUp />} />

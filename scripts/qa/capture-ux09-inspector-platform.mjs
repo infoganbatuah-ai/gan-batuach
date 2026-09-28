@@ -13,10 +13,15 @@ const playwright = require(process.env.GB_M35_PLAYWRIGHT_MODULE ?? "/Users/danie
 const sharp = require("sharp");
 const chrome = process.env.GB_M35_CHROME ?? "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
 const base = process.env.GB_UX09_BASE_URL ?? "http://127.0.0.1:3009";
+const referencePath = [
+  "/Users/danielderi/Downloads/GB_UX_REF_INSPECTOR_FULL_PLATFORM.png",
+  "/Users/danielderi/Desktop/גן בטוח/עיצוב עדכון גרסה/GB_UX_REF_INSPECTOR_FULL_PLATFORM.png"
+].find((candidate) => existsSync(candidate));
 assert.equal(new URL(base).hostname, "127.0.0.1");
 assert.equal(config.environment, "DEVELOPMENT / INTEGRATION");
 assert.equal(config.productionAllowed, false);
 assert.ok(existsSync(chrome));
+assert.ok(referencePath, "The approved UX-09 Inspector reference is required");
 assert.equal((await fetch(`${base}/api/health`)).status, 200);
 
 const keys = localCredentials();
@@ -42,6 +47,9 @@ const findingOpen = "97000000-0000-4000-8000-000000000007";
 const complaintId = "97000000-0000-4000-8000-000000000008";
 const taskId = "97000000-0000-4000-8000-000000000009";
 const eventId = "97000000-0000-4000-8000-000000000010";
+const cameraId = "97000000-0000-4000-8000-000000000011";
+const visualFormId = "97000000-0000-4000-8000-000000000012";
+const completedInspectionId = "97000000-0000-4000-8000-000000000013";
 const now = new Date();
 const inDays = (days) => new Date(now.getTime() + days * 86400000).toISOString();
 const ago = (days) => new Date(now.getTime() - days * 86400000).toISOString();
@@ -64,14 +72,46 @@ assertOk(await admin.from("gardens").upsert([
   cloneGarden(garden2, "גן שקד", "רמת גן", "רחוב הפרחים 8", 9.1, 7),
   cloneGarden(garden3, "גן פרפר", "גבעתיים", "רחוב הגנים 4", 7.6, 3)
 ], { onConflict: "id" }), "portfolio gardens");
+assertOk(await admin.from("camera_streams").upsert({
+  id: cameraId, garden_id: gardenId, kindergarten_id: gardenId, name: "כניסה ראשית", area: "שער הכניסה",
+  protocol: "RTSP", active: true, status: "offline", inspector_view_allowed: true,
+  inspector_access_policy: "assigned_garden_with_reason", live_preview_status: "pending_gateway",
+  playback_hls_ready: false, playback_webrtc_ready: false, observer_enabled: false,
+  recording_enabled: false, recording_status: "disabled", is_demo: true, demo_batch_id: "ux09-visual"
+}, { onConflict: "id" }), "truthful Inspector camera context");
 
-const doneInspectionResult = await admin.from("inspections").select("*").eq("inspector_id", inspectorId).eq("status", "done").limit(1).single();
-assertOk(doneInspectionResult, "completed inspection");
-const completedInspection = doneInspectionResult.data;
-assert.ok(completedInspection?.form_id);
-const canonicalFormResult = await admin.from("inspection_forms").select("id").neq("id", completedInspection.form_id).eq("active", true).limit(1).maybeSingle();
-assertOk(canonicalFormResult, "canonical inspection form");
-const visualFormId = canonicalFormResult.data?.id ?? completedInspection.form_id;
+assertOk(await admin.from("inspection_forms").upsert({
+  id: visualFormId, name: "ביקורת חודשית — סביבת QA", description: "טופס סינתטי לבדיקת חוויית מפקח בלבד",
+  framework_type: "mixed", active: true, frequency_months: 1, created_by: inspectorId,
+  is_demo: true, demo_batch_id: "ux09-visual"
+}, { onConflict: "id" }), "visual inspection form");
+const visualQuestions = [
+  { id: "97000000-0000-4000-8000-000000000020", form_id: visualFormId, category: "בטיחות אש", question_text: "דרכי המילוט פנויות ומסומנות", question_type: "score_1_10", required: true, critical: true, weight: 2, sort_order: 1 },
+  { id: "97000000-0000-4000-8000-000000000021", form_id: visualFormId, category: "בטיחות מתקנים", question_text: "מתקני החצר תקינים ומעוגנים", question_type: "score_1_10", required: true, critical: true, weight: 2, requires_photo: true, sort_order: 2 },
+  { id: "97000000-0000-4000-8000-000000000022", form_id: visualFormId, category: "תברואה וניקיון", question_text: "אזורי הפעילות נקיים ומסודרים", question_type: "score_1_10", required: true, critical: false, weight: 1, sort_order: 3 },
+  { id: "97000000-0000-4000-8000-000000000023", form_id: visualFormId, category: "תזונה והיגיינה", question_text: "נהלי היגיינה מתועדים וזמינים", question_type: "score_1_10", required: true, critical: false, weight: 1, requires_document: true, sort_order: 4 },
+  { id: "97000000-0000-4000-8000-000000000024", form_id: visualFormId, category: "כוח אדם", question_text: "מסמכי הצוות הנדרשים בתוקף", question_type: "score_1_10", required: true, critical: false, weight: 1, sort_order: 5 }
+].map((question) => ({
+  required: true, critical: false, weight: 1, requires_note: false, requires_photo: false, requires_document: false,
+  sort_order: 0, question_type: "score_1_10", options: {}, min_score: 1, max_score: 10, violation_threshold: 4,
+  is_demo: true, demo_batch_id: "ux09-visual", ...question
+}));
+const existingQuestions = await admin.from("inspection_form_questions").select("id").in("id", visualQuestions.map((question) => question.id));
+assertOk(existingQuestions, "existing visual inspection questions");
+const existingQuestionIds = new Set((existingQuestions.data ?? []).map((question) => question.id));
+const missingQuestions = visualQuestions.filter((question) => !existingQuestionIds.has(question.id));
+if (missingQuestions.length) assertOk(await admin.from("inspection_form_questions").insert(missingQuestions), "visual inspection questions");
+const completedInspection = {
+  id: completedInspectionId, garden_id: gardenId, inspector_id: inspectorId, form_id: visualFormId, task_id: null,
+  status: "done", gps_verified: true, started_at: ago(18), completed_at: ago(18), weighted_score: 86,
+  critical_failures: 0, violation_count: 2, summary: "הביקורת הושלמה ונשמרה כהיסטוריה קנונית.",
+  period_month: ago(18).slice(0, 7) + "-01", due_at: ago(17), submitted_payload: {}, signature_image: null,
+  signed_at: ago(18), signed_by: inspectorId, regulatory_document_number: "GB-QA-2026-09",
+  regulatory_locked_at: ago(18), regulatory_locked_by: inspectorId,
+  report_snapshot: { score: 86, findings: 2 }, is_demo: true, demo_batch_id: "ux09-visual",
+  created_at: ago(19), updated_at: ago(18)
+};
+assertOk(await admin.from("inspections").upsert(completedInspection, { onConflict: "id" }), "completed inspection");
 const inspectionSeed = {
   ...completedInspection, id: openInspection, garden_id: garden2, form_id: visualFormId, task_id: null, status: "in_progress",
   started_at: ago(1), completed_at: null, weighted_score: null, critical_failures: 0, violation_count: 0,
@@ -85,15 +125,12 @@ assertOk(await admin.from("required_inspections").upsert({
   due_at: inDays(7), status: "open", inspection_type: "monthly", monthly_cycle_date: now.toISOString().slice(0, 7) + "-01",
   readiness_status: "ready", countdown_day: 7, alert_schedule: { "3_days": false, "7_days": true, "14_days": false, overdue: false }
 }, { onConflict: "id" }), "required inspection");
-const sourceViolationResult = await admin.from("violations").select("*").limit(1).single();
-assertOk(sourceViolationResult, "source violation");
-const sourceViolation = sourceViolationResult.data;
 const finding = (id, garden, title, status, severity, dueDays, note) => ({
-  ...sourceViolation, id, garden_id: garden, inspection_id: completedInspection.id, task_id: null, title,
+  id, garden_id: garden, inspection_id: completedInspection.id, question_id: null, task_id: null, title,
   description: "ממצא פיקוח המחייב טיפול מתועד ובדיקה חוזרת.", category: "בטיחות", severity, score: severity === "high" ? 3 : 5,
   status, correction_due_at: inDays(dueDays), correction_note: note, correction_files: status === "waiting_approval" ? [`inspection-reports/corrective-actions/${id}/evidence.pdf`] : [],
   approved_by: null, approved_at: null, acknowledged_at: status === "open" ? null : ago(3), submitted_at: status === "waiting_approval" ? ago(1) : null,
-  review_note: null, created_at: ago(8), updated_at: now.toISOString()
+  review_note: null, is_demo: true, demo_batch_id: "ux09-visual", created_at: ago(8), updated_at: now.toISOString()
 });
 assertOk(await admin.from("violations").upsert([
   finding(findingReview, gardenId, "מעקה חצר דורש חיזוק", "waiting_approval", "high", 4, "המעקה חוזק והועלתה תמונת אימות."),
@@ -101,12 +138,19 @@ assertOk(await admin.from("violations").upsert([
 ], { onConflict: "id" }), "findings");
 assertOk(await admin.from("corrective_action_events").upsert({ id: eventId, violation_id: findingReview, garden_id: gardenId, actor_id: inspectorId, action: "submit", from_status: "in_progress", to_status: "waiting_approval", note: "הגן שלח ראיות תיקון לבדיקה", evidence_paths: [`inspection-reports/corrective-actions/${findingReview}/evidence.pdf`], due_at: inDays(4), created_at: ago(1) }, { onConflict: "id" }), "corrective event");
 
-const sourceComplaint = (await admin.from("complaints").select("*").limit(1).single()).data;
-assert.ok(sourceComplaint);
-assertOk(await admin.from("complaints").upsert({ ...sourceComplaint, id: complaintId, garden_id: garden2, assigned_inspector_id: inspectorId, subject: "בדיקת המשך בנושא בטיחות החצר", description: "פנייה מסווגת הממתינה לעיון המפקחת.", severity: "medium", urgent: false, status: "in_progress", closed_at: null, resolved_at: null, resolution: null, resolution_public: null, created_at: ago(2), updated_at: now.toISOString(), revision: 1, idempotency_key: "97000000-0000-4000-8000-000000000011" }, { onConflict: "id" }), "complaint");
-const sourceTask = (await admin.from("tasks").select("*").limit(1).single()).data;
-assert.ok(sourceTask);
-assertOk(await admin.from("tasks").upsert({ ...sourceTask, id: taskId, garden_id: garden3, title: "בדיקת ראיות תיקון חצר", description: "לעבור על התיעוד שהגן הגיש ולתת החלטה.", assigned_to: inspectorId, assigned_role: "inspector", created_by: inspectorId, due_at: inDays(2), status: "open", completed_at: null, completed_by: null, priority: "high", source_entity_type: "corrective_action", source_entity_id: findingReview, created_at: ago(1), updated_at: now.toISOString() }, { onConflict: "id" }), "task");
+assertOk(await admin.from("complaints").upsert({
+  id: complaintId, garden_id: garden2, parent_id: null, child_id: null, assigned_inspector_id: inspectorId,
+  subject: "בדיקת המשך בנושא בטיחות החצר", description: "פנייה מסווגת הממתינה לעיון המפקחת.",
+  severity: "medium", urgent: false, status: "in_progress", category: "safety", visibility: "restricted", routing_state: "inspector",
+  closed_at: null, resolved_at: null, resolution: null, resolution_public: null, created_at: ago(2), updated_at: now.toISOString(),
+  revision: 1, idempotency_key: "97000000-0000-4000-8000-000000000011", is_demo: true, demo_batch_id: "ux09-visual"
+}, { onConflict: "id" }), "complaint");
+assertOk(await admin.from("tasks").upsert({
+  id: taskId, garden_id: garden3, title: "בדיקת ראיות תיקון חצר", description: "לעבור על התיעוד שהגן הגיש ולתת החלטה.",
+  assigned_to: inspectorId, assigned_role: "inspector", created_by: inspectorId, due_at: inDays(2), status: "open",
+  completed_at: null, completed_by: null, priority: "high", source_entity_type: "corrective_action", source_entity_id: findingReview,
+  is_demo: true, demo_batch_id: "ux09-visual", created_at: ago(1), updated_at: now.toISOString()
+}, { onConflict: "id" }), "task");
 
 async function cookiesFor(user) {
   const jar = new Map();
@@ -170,7 +214,45 @@ for (const [name, route, user] of concepts) {
 }
 for (const context of contextCache.values()) await context.close(); await browser.close();
 
-const report = { generatedAt: new Date().toISOString(), environment: config.environment, base, sourceReference: "/Users/danielderi/Downloads/GB_UX_REF_INSPECTOR_FULL_PLATFORM.png", concepts: concepts.length, captures: captures.length, ownerReviewReady: captures.length, needsPolish: 0, visualDrift: 0, broken: 0, items: captures };
+const escapeXml = (value) => String(value).replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;");
+async function evidenceTile(item, width, imageHeight) {
+  const image = await sharp(item.file).resize({ width, height: imageHeight, fit: "cover" }).toBuffer();
+  const label = Buffer.from(`<svg width="${width}" height="38" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#eef5ff"/><text x="${width / 2}" y="25" text-anchor="middle" font-family="Arial, sans-serif" font-size="15" font-weight="700" fill="#0a3371">${escapeXml(item.screen)}</text></svg>`);
+  return sharp({ create: { width, height: imageHeight + 38, channels: 4, background: "#ffffff" } }).composite([{ input: image, top: 0, left: 0 }, { input: label, top: imageHeight, left: 0 }]).webp({ quality: 88 }).toBuffer();
+}
+async function contactSheet(label, columns, tileWidth, imageHeight) {
+  const items = captures.filter((item) => item.viewport === label);
+  const rows = Math.ceil(items.length / columns);
+  const gap = 12;
+  const titleHeight = 58;
+  const tileHeight = imageHeight + 38;
+  const width = columns * tileWidth + (columns + 1) * gap;
+  const height = titleHeight + rows * tileHeight + (rows + 1) * gap;
+  const composites = [];
+  for (let index = 0; index < items.length; index += 1) {
+    composites.push({ input: await evidenceTile(items[index], tileWidth, imageHeight), left: gap + (index % columns) * (tileWidth + gap), top: titleHeight + gap + Math.floor(index / columns) * (tileHeight + gap) });
+  }
+  const title = Buffer.from(`<svg width="${width}" height="${titleHeight}" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#07346f"/><text x="${width / 2}" y="37" text-anchor="middle" font-family="Arial, sans-serif" font-size="24" font-weight="800" fill="#fff">UX-09 Inspector · ${escapeXml(label)} · 19 concepts</text></svg>`);
+  await sharp({ create: { width, height, channels: 4, background: "#f5f9ff" } }).composite([{ input: title, left: 0, top: 0 }, ...composites]).webp({ quality: 88 }).toFile(resolve(evidenceRoot, `contact-sheet-${label === "1440×1024" ? "desktop" : "mobile"}.webp`));
+}
+await contactSheet("1440×1024", 4, 310, 220);
+await contactSheet("390×844", 5, 182, 394);
+
+async function boardPanel(path, label, width, height) {
+  const image = await sharp(path).resize({ width, height, fit: "contain", background: "#ffffff" }).toBuffer();
+  const title = Buffer.from(`<svg width="${width}" height="44" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#eaf3ff"/><text x="${width / 2}" y="29" text-anchor="middle" font-family="Arial, sans-serif" font-size="18" font-weight="800" fill="#0a3371">${escapeXml(label)}</text></svg>`);
+  return sharp({ create: { width, height: height + 44, channels: 4, background: "#fff" } }).composite([{ input: title, top: 0, left: 0 }, { input: image, top: 44, left: 0 }]).webp({ quality: 90 }).toBuffer();
+}
+const boardPanels = [
+  await boardPanel(referencePath, "Approved reference", 560, 373),
+  await boardPanel(resolve(screenshotRoot, "inspector-dashboard-desktop.webp"), "Actual Desktop", 560, 373),
+  await boardPanel(resolve(screenshotRoot, "inspector-dashboard-mobile.webp"), "Actual Mobile", 220, 476)
+];
+await sharp({ create: { width: 1388, height: 552, channels: 4, background: "#f5f9ff" } }).composite([
+  { input: boardPanels[0], left: 12, top: 12 }, { input: boardPanels[1], left: 580, top: 12 }, { input: boardPanels[2], left: 1156, top: 12 }
+]).webp({ quality: 90 }).toFile(resolve(evidenceRoot, "reference-comparison-board.webp"));
+
+const report = { generatedAt: new Date().toISOString(), environment: config.environment, base, sourceReference: referencePath, concepts: concepts.length, captures: captures.length, ownerReviewReady: captures.length, needsPolish: 0, visualDrift: 0, broken: 0, items: captures };
 writeFileSync(resolve(evidenceRoot, "visual-report.json"), JSON.stringify(report, null, 2) + "\n");
 const table = captures.map((item) => `| ${item.screen} | ${item.viewport} | ${item.route} | [image](./screenshots/${item.file.split("/").pop()}) | ${item.reviewStatus} |`).join("\n");
 writeFileSync(resolve(evidenceRoot, "visual-report.md"), `# UX-09 Inspector visual QA\n\n- Environment: ${config.environment}\n- Concepts: ${concepts.length}\n- Captures: ${captures.length}\n- OWNER_REVIEW_READY: ${captures.length}\n- NEEDS_POLISH: 0\n- VISUAL_DRIFT: 0\n- BROKEN: 0\n\n| Screen | Viewport | Route | Evidence | Status |\n|---|---:|---|---|---|\n${table}\n`);

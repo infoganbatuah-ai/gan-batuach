@@ -28,8 +28,8 @@
 | evidence | 390×844 | /dashboard/inspector/corrective-actions/97000000-0000-4000-8000-000000000006 | [image](./screenshots/evidence-mobile.webp) | OWNER_REVIEW_READY |
 | findings | 1440×1024 | /dashboard/inspector/violations | [image](./screenshots/findings-desktop.webp) | OWNER_REVIEW_READY |
 | findings | 390×844 | /dashboard/inspector/violations | [image](./screenshots/findings-mobile.webp) | OWNER_REVIEW_READY |
-| report | 1440×1024 | /dashboard/inspector/inspections/45d8b404-4ace-4c36-b90b-2d81ed5e844e/report | [image](./screenshots/report-desktop.webp) | OWNER_REVIEW_READY |
-| report | 390×844 | /dashboard/inspector/inspections/45d8b404-4ace-4c36-b90b-2d81ed5e844e/report | [image](./screenshots/report-mobile.webp) | OWNER_REVIEW_READY |
+| report | 1440×1024 | /dashboard/inspector/inspections/97000000-0000-4000-8000-000000000013/report | [image](./screenshots/report-desktop.webp) | OWNER_REVIEW_READY |
+| report | 390×844 | /dashboard/inspector/inspections/97000000-0000-4000-8000-000000000013/report | [image](./screenshots/report-mobile.webp) | OWNER_REVIEW_READY |
 | corrective-actions | 1440×1024 | /dashboard/inspector/corrective-actions | [image](./screenshots/corrective-actions-desktop.webp) | OWNER_REVIEW_READY |
 | corrective-actions | 390×844 | /dashboard/inspector/corrective-actions | [image](./screenshots/corrective-actions-mobile.webp) | OWNER_REVIEW_READY |
 | remediation-review | 1440×1024 | /dashboard/inspector/corrective-actions/97000000-0000-4000-8000-000000000006 | [image](./screenshots/remediation-review-desktop.webp) | OWNER_REVIEW_READY |

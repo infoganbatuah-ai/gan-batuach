@@ -5,6 +5,11 @@ import { sanitizeCameraForPlaybackCard } from "@/lib/domain/camera-diagnostics";
 import { createClient } from "@/lib/supabase/server";
 import { InspectorAppFrame, InspectorEmpty, InspectorHero, InspectorMetricCard, InspectorMetricGrid, InspectorSection } from "@/components/inspector-app-ui";
 
+// No canonical Management capability currently proves Inspector Live View as
+// production_verified. Keep assigned-camera context visible while playback is
+// explicitly unavailable; the token endpoint still enforces policy server-side.
+const inspectorLiveViewProductionVerified = false;
+
 export default async function InspectorCamerasPage() {
   const { profile } = await requireOperationalRole(["inspector"]);
   const supabase = await createClient();
@@ -34,14 +39,24 @@ export default async function InspectorCamerasPage() {
       <InspectorMetricGrid columns={3}>
         <InspectorMetricCard label="גנים משויכים" value={gardenIds.length} hint="טווח הרשאה" icon={ShieldCheck} />
         <InspectorMetricCard label="מצלמות" value={cameras.length} hint="נמצאו" icon={Camera} />
-        <InspectorMetricCard label="מותרות לצפייה" value={allowed.length} hint="לפי מדיניות" icon={Camera} tone="success" />
+        <InspectorMetricCard label="הקשר מותר" value={allowed.length} hint="ראיות ומדיניות בלבד" icon={Camera} tone={allowed.length ? "info" : "warning"} />
       </InspectorMetricGrid>
       <InspectorSection title="גלריית מצלמות" subtitle="אין חשיפת פרטי חיבור בדפדפן" icon={Camera}>
         {allowed.length === 0 ? (
           <InspectorEmpty title="אין מצלמות בגנים המשויכים" text="כאשר גן משויך יגדיר מצלמות מאושרות לפיקוח, הן יופיעו כאן לצפייה מאובטחת." icon={Camera} />
         ) : (
           <div className="camera-playback-grid">
-            {allowed.map((camera) => <CameraPlaybackCard camera={sanitizeCameraForPlaybackCard(camera)} accessReason="בדיקת פיקוח/ציות בגן משויך" safeDetails key={camera.id} />)}
+            {allowed.map((camera) => <CameraPlaybackCard
+              camera={{
+                ...sanitizeCameraForPlaybackCard(camera),
+                playback_source_available: inspectorLiveViewProductionVerified,
+                parent_blocked_reason: "צפייה חיה אינה מאומתת כרגע; הקשר ראיות זמין לפי הרשאה"
+              }}
+              canRequestPlayback={inspectorLiveViewProductionVerified}
+              accessReason="בדיקת פיקוח/ציות בגן משויך"
+              safeDetails
+              key={camera.id}
+            />)}
           </div>
         )}
       </InspectorSection>

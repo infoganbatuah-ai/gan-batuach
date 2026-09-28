@@ -1,26 +1,43 @@
 import { notFound } from "next/navigation";
-import { AlertTriangle, CalendarCheck, FileCheck2, FileImage, History, ShieldCheck, Wrench } from "lucide-react";
+import { AlertTriangle, FileCheck2, FileImage, History, ShieldCheck, Wrench } from "lucide-react";
 import { ViolationStatusActions } from "@/components/violation-status-actions";
 import { requireOperationalRole } from "@/lib/management/operational-role";
 import { createClient } from "@/lib/supabase/server";
 import { InspectorAppFrame, InspectorHero, InspectorSection, InspectorStatus, InspectorTimeline } from "@/components/inspector-app-ui";
 
 const actionLabel: Record<string, string> = { acknowledge: "הגן אישר קבלה", progress: "נשמרה התקדמות", submit: "נשלח לבדיקה", accept: "אושר ונסגר", reject: "הוחזר לתיקון", reopen: "נפתח מחדש", extend: "הוארך המועד" };
+type InspectorPhoto = { profile_photo_url?: string | null };
+type CorrectiveActionDetail = {
+  id: string;
+  title: string;
+  description?: string | null;
+  category?: string | null;
+  severity: string;
+  score?: number | null;
+  status: string;
+  correction_due_at?: string | null;
+  correction_note?: string | null;
+  correction_files?: string[] | null;
+  review_note?: string | null;
+  created_at: string;
+  gardens?: { name?: string | null; city?: string | null } | null;
+};
+type CorrectiveActionEvent = { action: string; from_status?: string | null; to_status: string; note?: string | null; created_at: string };
 
 export default async function InspectorCorrectiveActionDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const { profile } = await requireOperationalRole(["inspector"]);
   const supabase = await createClient();
   const [inspectorRes, violationRes] = await Promise.all([
-    supabase.from("inspectors" as any).select("profile_photo_url").eq("id", profile.id).maybeSingle(),
-    supabase.from("violations" as any).select("id,garden_id,inspection_id,title,description,category,severity,score,status,correction_due_at,correction_note,correction_files,review_note,created_at,submitted_at,approved_at,gardens!inner(name,city,inspector_id)").eq("id", id).eq("gardens.inspector_id", profile.id).maybeSingle()
+    supabase.from("inspectors").select("profile_photo_url").eq("id", profile.id).maybeSingle(),
+    supabase.from("violations").select("id,garden_id,inspection_id,title,description,category,severity,score,status,correction_due_at,correction_note,correction_files,review_note,created_at,submitted_at,approved_at,gardens!inner(name,city,inspector_id)").eq("id", id).eq("gardens.inspector_id", profile.id).maybeSingle()
   ]);
-  const violation = violationRes.data as any;
+  const violation = violationRes.data as unknown as CorrectiveActionDetail | null;
   if (!violation) notFound();
-  const eventsRes = await supabase.from("corrective_action_events" as any).select("id,action,from_status,to_status,note,evidence_paths,due_at,created_at").eq("violation_id", id).order("created_at");
-  const events = (eventsRes.data ?? []) as any[];
+  const eventsRes = await supabase.from("corrective_action_events" as never).select("id,action,from_status,to_status,note,evidence_paths,due_at,created_at").eq("violation_id", id).order("created_at");
+  const events = (eventsRes.data ?? []) as unknown as CorrectiveActionEvent[];
   const evidence = Array.isArray(violation.correction_files) ? violation.correction_files : [];
-  const profileForUi = { ...profile, profile_image_url: (inspectorRes.data as any)?.profile_photo_url ?? profile.profile_image_url };
+  const profileForUi = { ...profile, profile_image_url: (inspectorRes.data as unknown as InspectorPhoto | null)?.profile_photo_url ?? profile.profile_image_url };
   return (
     <InspectorAppFrame profile={profileForUi} activeHref="/dashboard/inspector/corrective-actions" title="בדיקת תיקון" subtitle={violation.gardens?.name ?? "גן משויך"} badge="החלטת מפקח" backHref="/dashboard/inspector/corrective-actions">
       <InspectorHero eyebrow={violation.category ?? "ממצא ביקורת"} title={violation.title} subtitle={violation.description ?? "לא צורף תיאור נוסף"} artwork={<Wrench />} meta={<><InspectorStatus tone={["critical", "high"].includes(violation.severity) ? "danger" : "warning"}>{violation.severity}</InspectorStatus><InspectorStatus tone={violation.status === "done" ? "success" : "primary"}>{violation.status}</InspectorStatus></>} />

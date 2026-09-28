@@ -1,8 +1,8 @@
 {
-  "generatedAt": "2026-09-28T00:21:32.096Z",
+  "generatedAt": "2026-09-28T12:28:19.767Z",
   "environment": "DEVELOPMENT / INTEGRATION",
   "base": "http://127.0.0.1:3009",
-  "sourceReference": "/Users/danielderi/Downloads/GB_UX_REF_INSPECTOR_FULL_PLATFORM.png",
+  "sourceReference": "/Users/danielderi/Desktop/גן בטוח/עיצוב עדכון גרסה/GB_UX_REF_INSPECTOR_FULL_PLATFORM.png",
   "concepts": 19,
   "captures": 38,
   "ownerReviewReady": 38,
@@ -176,7 +176,7 @@
       "domain": "Inspector",
       "screen": "report",
       "viewport": "1440×1024",
-      "route": "/dashboard/inspector/inspections/45d8b404-4ace-4c36-b90b-2d81ed5e844e/report",
+      "route": "/dashboard/inspector/inspections/97000000-0000-4000-8000-000000000013/report",
       "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-09/qa-evidence/ux-implement-09/screenshots/report-desktop.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material"
@@ -185,7 +185,7 @@
       "domain": "Inspector",
       "screen": "report",
       "viewport": "390×844",
-      "route": "/dashboard/inspector/inspections/45d8b404-4ace-4c36-b90b-2d81ed5e844e/report",
+      "route": "/dashboard/inspector/inspections/97000000-0000-4000-8000-000000000013/report",
       "file": "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/worktrees/ux-implement-09/qa-evidence/ux-implement-09/screenshots/report-mobile.webp",
       "reviewStatus": "OWNER_REVIEW_READY",
       "materialDeviations": "none material"

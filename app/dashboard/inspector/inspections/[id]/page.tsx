@@ -6,20 +6,41 @@ import { requireOperationalRole } from "@/lib/management/operational-role";
 import { createClient } from "@/lib/supabase/server";
 import { InspectorAppFrame, InspectorHero, InspectorMetricCard, InspectorMetricGrid, InspectorSection, InspectorStatus } from "@/components/inspector-app-ui";
 
+type InspectorPhoto = { profile_photo_url?: string | null };
+type InspectionDetail = {
+  id: string;
+  garden_id: string;
+  form_id: string;
+  status?: string | null;
+  gardens?: { name?: string | null; city?: string | null; address?: string | null } | null;
+};
+type InspectionQuestion = {
+  id: string;
+  form_id: string;
+  category: string;
+  question_text: string;
+  question_type?: string | null;
+  weight?: number | null;
+  critical?: boolean | null;
+  required?: boolean | null;
+  requires_photo?: boolean | null;
+  requires_document?: boolean | null;
+};
+
 export default async function InspectorInspectionDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const { profile } = await requireOperationalRole(["inspector"]);
   const supabase = await createClient();
   const [inspectorRes, inspectionRes] = await Promise.all([
-    supabase.from("inspectors" as any).select("profile_photo_url").eq("id", profile.id).maybeSingle(),
-    supabase.from("inspections" as any).select("id,garden_id,form_id,status,started_at,completed_at,weighted_score,violation_count,gps_verified,gardens(name,city,address)").eq("id", id).eq("inspector_id", profile.id).maybeSingle()
+    supabase.from("inspectors").select("profile_photo_url").eq("id", profile.id).maybeSingle(),
+    supabase.from("inspections").select("id,garden_id,form_id,status,started_at,completed_at,weighted_score,violation_count,gps_verified,gardens(name,city,address)").eq("id", id).eq("inspector_id", profile.id).maybeSingle()
   ]);
-  const inspection = inspectionRes.data as any;
+  const inspection = inspectionRes.data as unknown as InspectionDetail | null;
   if (!inspection) notFound();
   if (["done", "completed", "closed"].includes(String(inspection.status))) redirect(`/dashboard/inspector/inspections/${id}/report`);
-  const questionsRes = await supabase.from("inspection_form_questions" as any).select("id,form_id,category,question_text,question_type,weight,critical,required,requires_photo,requires_document,sort_order").eq("form_id", inspection.form_id).order("sort_order");
-  const questions = (questionsRes.data ?? []) as any[];
-  const profileForUi = { ...profile, profile_image_url: (inspectorRes.data as any)?.profile_photo_url ?? profile.profile_image_url };
+  const questionsRes = await supabase.from("inspection_form_questions").select("id,form_id,category,question_text,question_type,weight,critical,required,requires_photo,requires_document,sort_order").eq("form_id", inspection.form_id).order("sort_order");
+  const questions = (questionsRes.data ?? []) as unknown as InspectionQuestion[];
+  const profileForUi = { ...profile, profile_image_url: (inspectorRes.data as unknown as InspectorPhoto | null)?.profile_photo_url ?? profile.profile_image_url };
   return (
     <InspectorAppFrame profile={profileForUi} activeHref="/dashboard/inspector/inspections" title="פרטי ביקורת" subtitle={inspection.gardens?.name ?? "גן משויך"} badge="טיוטה פעילה" backHref="/dashboard/inspector/inspections/due">
       <InspectorHero eyebrow="ביקורת חודשית" title={inspection.gardens?.name ?? "ביקורת"} subtitle={`${inspection.gardens?.city ?? ""} · ${inspection.gardens?.address ?? ""}`} artwork={<ClipboardCheck />} meta={<><InspectorStatus tone="primary">ניתן לשמור ולהמשיך</InspectorStatus><InspectorStatus tone="info"><MapPin size={15} /> GPS נבדק בהגשה</InspectorStatus></>} action={<Link className="inspector-action-button" href="/dashboard/inspector/inspections/history">היסטוריה</Link>} />

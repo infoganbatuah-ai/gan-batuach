@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { AlertTriangle, CalendarCheck, Camera, ClipboardCheck, FileText, Home, MapPin, MessageSquareWarning, ShieldCheck } from "lucide-react";
+import { AlertTriangle, CalendarCheck, Camera, ClipboardCheck, FileText, MapPin, MessageSquareWarning, ShieldCheck } from "lucide-react";
 import { requireApprovedInspector } from "@/lib/management/operational-role";
 import { cleanSyntheticLabel } from "@/lib/domain/display-label";
 import { createClient } from "@/lib/supabase/server";
@@ -23,28 +23,47 @@ function date(value?: string | null) {
   return value ? new Date(value).toLocaleDateString("he-IL", { timeZone: "Asia/Jerusalem" }) : "טרם נקבע";
 }
 
+type InspectorPhoto = { profile_photo_url?: string | null };
+type InspectorGarden = {
+  id: string;
+  name: string;
+  city?: string | null;
+  address?: string | null;
+  logo_url?: string | null;
+  image_url?: string | null;
+  safe_status?: string | null;
+  last_inspection_score?: number | null;
+  last_inspection_at?: string | null;
+  next_inspection_at?: string | null;
+  inspection_required_status?: string | null;
+};
+type InspectionSummary = { id: string; status: string; completed_at?: string | null; weighted_score?: number | null; violation_count?: number | null };
+type ViolationSummary = { id: string; title: string; severity: string; status: string; correction_due_at?: string | null };
+type ComplaintSummary = { id: string; status: string };
+type TaskSummary = { id: string; title: string; status: string; due_at?: string | null };
+
 export default async function InspectorGardenDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
   const { profile } = await requireApprovedInspector();
   const supabase = await createClient();
   const [inspectorRes, gardenRes] = await Promise.all([
-    supabase.from("inspectors" as any).select("profile_photo_url").eq("id", profile.id).maybeSingle(),
-    supabase.from("gardens" as any).select("id,name,city,address,logo_url,image_url,safe_status,last_inspection_score,last_inspection_at,next_inspection_at,inspection_required_status").eq("id", id).eq("inspector_id", profile.id).maybeSingle()
+    supabase.from("inspectors").select("profile_photo_url").eq("id", profile.id).maybeSingle(),
+    supabase.from("gardens").select("id,name,city,address,logo_url,image_url,safe_status,last_inspection_score,last_inspection_at,next_inspection_at,inspection_required_status").eq("id", id).eq("inspector_id", profile.id).maybeSingle()
   ]);
-  const garden = gardenRes.data as any;
+  const garden = gardenRes.data as unknown as InspectorGarden | null;
   if (!garden) notFound();
   const [inspectionsRes, violationsRes, complaintsRes, tasksRes] = await Promise.all([
-    supabase.from("inspections" as any).select("id,status,completed_at,weighted_score,violation_count").eq("garden_id", id).eq("inspector_id", profile.id).order("created_at", { ascending: false }).limit(12),
-    supabase.from("violations" as any).select("id,title,severity,status,correction_due_at").eq("garden_id", id).order("created_at", { ascending: false }).limit(20),
-    supabase.from("complaints" as any).select("id,subject,severity,status,created_at").eq("garden_id", id).eq("assigned_inspector_id", profile.id).order("created_at", { ascending: false }).limit(12),
-    supabase.from("tasks" as any).select("id,title,status,priority,due_at").eq("garden_id", id).or(`assigned_to.eq.${profile.id},assigned_role.eq.inspector`).order("created_at", { ascending: false }).limit(12)
+    supabase.from("inspections").select("id,status,completed_at,weighted_score,violation_count").eq("garden_id", id).eq("inspector_id", profile.id).order("created_at", { ascending: false }).limit(12),
+    supabase.from("violations").select("id,title,severity,status,correction_due_at").eq("garden_id", id).order("created_at", { ascending: false }).limit(20),
+    supabase.from("complaints").select("id,subject,severity,status,created_at").eq("garden_id", id).eq("assigned_inspector_id", profile.id).order("created_at", { ascending: false }).limit(12),
+    supabase.from("tasks").select("id,title,status,priority,due_at").eq("garden_id", id).or(`assigned_to.eq.${profile.id},assigned_role.eq.inspector`).order("created_at", { ascending: false }).limit(12)
   ]);
-  const inspections = (inspectionsRes.data ?? []) as any[];
-  const violations = (violationsRes.data ?? []) as any[];
-  const complaints = (complaintsRes.data ?? []) as any[];
-  const tasks = (tasksRes.data ?? []) as any[];
+  const inspections = (inspectionsRes.data ?? []) as unknown as InspectionSummary[];
+  const violations = (violationsRes.data ?? []) as unknown as ViolationSummary[];
+  const complaints = (complaintsRes.data ?? []) as unknown as ComplaintSummary[];
+  const tasks = (tasksRes.data ?? []) as unknown as TaskSummary[];
   const openViolations = violations.filter((row) => row.status !== "done");
-  const profileForUi = { ...profile, profile_image_url: (inspectorRes.data as any)?.profile_photo_url ?? profile.profile_image_url };
+  const profileForUi = { ...profile, profile_image_url: (inspectorRes.data as unknown as InspectorPhoto | null)?.profile_photo_url ?? profile.profile_image_url };
   const gardenName = cleanSyntheticLabel(garden.name, "גן");
 
   return (
