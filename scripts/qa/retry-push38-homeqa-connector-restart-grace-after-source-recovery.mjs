@@ -89,9 +89,21 @@ const manager = new EdgeUpdateManager({ root, trustedPublicKeys: trusted,
     channel: "HOME_QA", currentVersion: item.rollbackVersion, configVersion: 4, revoked: false },
   adapter: {}, healthCheck: async () => ({}) });
 const state = manager.status(), current = manager.current(), knownGood = manager.knownGood();
+const delayedRecoveryCategories = new Set(["EDGE_UPDATE_KNOWN_GOOD_UNHEALTHY",
+  "EDGE_UPDATE_ROLLBACK_HEALTH_FAILED", "EDGE_UPDATE_KNOWN_GOOD_CRASH_LOOP"]);
+const originalFailurePreserved = state.failure_category === FAILURE ||
+  (delayedRecoveryCategories.has(state.failure_category) &&
+    state.history?.some(entry => ["ROLLBACK_REQUIRED", "ROLLING_BACK"].includes(entry.state) &&
+      entry.category === FAILURE));
+const delayedRecoveryVerified = state.failure_category === FAILURE ||
+  (delayedRecoveryCategories.has(state.failure_category) &&
+    state.recovery_category === "EDGE_UPDATE_SIGNED_KNOWN_GOOD_STABILITY_REVERIFIED" &&
+    state.recovered_version === item.rollbackVersion && state.recovery_health?.healthy === true &&
+    state.recovery_health?.expected_physical_cameras === 1 &&
+    state.recovery_health?.progressing_physical_cameras === 1 &&
+    state.recovery_health?.stalled_streams === 0);
 if (state.state !== "ROLLED_BACK" || state.release_id !== item.releaseId ||
-  state.failure_category !== FAILURE ||
-  !state.history?.some(entry => entry.state === "ROLLBACK_REQUIRED" && entry.category === FAILURE) ||
+  !originalFailurePreserved || !delayedRecoveryVerified ||
   current.release_id !== item.rollbackReleaseId || current.version !== item.rollbackVersion ||
   !knownGood.some(entry => entry.release_id === item.rollbackReleaseId &&
     entry.artifact_sha256 === current.artifact_sha256) ||
@@ -140,6 +152,7 @@ if (host.load_1m > host.logical_cpus * 3)
 const plan = { protocol: "observer-push38-connector-restart-grace-source-retry-v1",
   generated_at: new Date().toISOString(), release_id: item.releaseId, version: item.version,
   artifact_sha256: item.digest, previous_failure_category: FAILURE,
+  recovery_failure_category: state.failure_category, recovery_category: state.recovery_category || null,
   current_release_id: current.release_id, rollback_target: item.rollbackReleaseId,
   exact_device_id: item.deviceId, cohort_percent: 0, signed_manifest: "PASS", live_trust: "PASS",
   managed_device_auth: "PASS", source_recovered_on_signed_known_good: "PASS",
