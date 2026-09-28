@@ -147,7 +147,7 @@ const spec = connector ? {
   deviceId: "62df97e2-3c0b-427f-9108-bde029bc10e7",
   baselineRelease: "qa-legacy-gateway-91bf6814075f",
   baselineSha: "91bf6814075f74e703cbc0b85d30673237531247ec46633c54576d5a4627144d",
-  remediationRelease: gatewaySessionSweepUpgrade ? "qa-p38-health-gateway-session-sweep-0a64245f8a97" :
+  remediationRelease: gatewaySessionSweepUpgrade ? "qa-p38-health-gateway-session-drain-5165c94df699" :
     gatewayMaintenanceIsolationUpgrade ? "qa-p38-health-gateway-maintenance-isolation-995d6f822468" :
     gatewayMediaCadenceUpgrade ? "qa-p38-health-gateway-media-cadence-2abe984fa273" :
     gatewayStableHandoffUpgrade ? "qa-p38-health-gateway-stable-handoff-afc7339384bb" :
@@ -167,8 +167,8 @@ const spec = connector ? {
     gatewaySessionStabilityUpgrade ? "gateway_remediation_session_stability.json" :
     gatewayAuthRecoveryUpgrade ? "gateway_remediation_auth.json" : "gateway_remediation.json",
   priorManagement: gatewaySessionSweepUpgrade ? {
-    release_id: "qa-p38-health-gateway-maintenance-isolation-995d6f822468",
-    artifact_sha256: "995d6f822468f5a2f8b5be59d338c46ddc0d4647b28068d999a972fb13953efe" } :
+    release_id: "qa-p38-health-gateway-session-sweep-0a64245f8a97",
+    artifact_sha256: "0a64245f8a97ae9724ea5349ff36a32113ff4a8c826c7ce22b2ef2b191c83e4c" } :
     gatewayMaintenanceIsolationUpgrade ? {
     release_id: "qa-p38-health-gateway-media-cadence-2abe984fa273",
     artifact_sha256: "2abe984fa2737a226a2a65869191617aaad39345288a935576c33239e1db80e9" } :
@@ -249,7 +249,7 @@ const bundle = resolve(bundleOverride || (connectorRtspHandoffUpgrade
   : recoveryUpgrade
     ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-connector-recovery.zip"
   : gatewaySessionSweepUpgrade
-    ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-session-sweep-fc3a4154/push38-homeqa-gateway-session-sweep-36420431784.zip"
+    ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-session-drain-6bf33d4b/push38-homeqa-gateway-session-drain.zip"
   : gatewayFiniteStreamHandoffUpgrade
     ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-gateway-finite-stream-handoff.zip"
   : gatewaySupervisorRecoveryUpgrade

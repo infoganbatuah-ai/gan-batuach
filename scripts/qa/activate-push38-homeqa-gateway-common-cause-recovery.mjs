@@ -60,7 +60,7 @@ const bundleValue = option("bundle");
 if (!bundleValue) throw new Error("P38_GATEWAY_COMMON_CAUSE_BUNDLE_REQUIRED");
 const bundle = resolve(bundleValue);
 const artifact = sessionSweep
-  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-session-sweep-fc3a4154/gateway-runtime.tar.gz"
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-session-drain-6bf33d4b/gateway-runtime.tar.gz"
   : maintenanceIsolation
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-maintenance-isolation-04c58f24/gateway-runtime.tar.gz"
   : mediaCadence
@@ -73,7 +73,7 @@ const artifact = sessionSweep
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-finite-handoff-e085c30f/gateway-runtime.tar.gz"
   : "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-common-cause-f7d237bf/gateway-runtime.tar.gz";
 const publication = sessionSweep
-  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-session-sweep-fc3a4154/r2-publication.json"
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-session-drain-6bf33d4b/r2-publication.json"
   : maintenanceIsolation
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-gateway-maintenance-isolation-04c58f24/r2-publication.json"
   : mediaCadence
@@ -266,7 +266,7 @@ const rollout = JSON.parse(psql(`select jsonb_build_object(
 // The Connector restart-grace successor is a separately signed, exact-device
 // HOME_QA release registered after the Gateway maintenance-isolation release.
 // Count it in the cumulative inventory without changing Gateway eligibility.
-if (rollout.devices !== 2 || rollout.releases !== (sessionSweep ? 25 : maintenanceIsolation ? 22 : mediaCadence ? 20 : stableHandoff ? 19 : supervisorRecovery ? 17 : finiteHandoff ? 15 : 12) || rollout.new_status !== "DRAFT" ||
+if (rollout.devices !== 2 || rollout.releases !== (sessionSweep ? 26 : maintenanceIsolation ? 22 : mediaCadence ? 20 : stableHandoff ? 19 : supervisorRecovery ? 17 : finiteHandoff ? 15 : 12) || rollout.new_status !== "DRAFT" ||
   rollout.new_cohort !== 0 ||
   JSON.stringify(rollout.new_targets) !== JSON.stringify({ explicit_device_ids: [item.deviceId] }) ||
   rollout.prior_status !== "PAUSED" || rollout.broad_active !== 0 ||
@@ -300,12 +300,15 @@ let shadowEvidence = null, warmHandoffEvidence = null;
 let failedCanaryEvidence = null;
 if (sessionSweep) {
   const rows = protectedFile(failedCanaryEvidencePath).toString("utf8").trim().split("\n").map(line => JSON.parse(line));
-  const failed = rows.find(point => point.dvr?.progressing < 9);
+  const failed = rows.find(point => point.release?.gateway?.software_version === item.supersedesVersion &&
+    point.dvr?.lifecycle?.inputSocketError > 0);
   const recovered = rows.at(-1);
-  if (rows.length < 7 || rows.some(point => point.qualification_stage !== "CANARY" ||
-    point.release?.gateway?.software_version !== item.rollbackVersion || point.tapo?.progressing !== 1) ||
-    !failed || failed.dvr?.session_lifecycle?.proactive_succeeded < 1 ||
+  if (rows.length < 7 || rows.some(point => point.qualification_stage !== "CANARY") ||
+    !rows.some(point => point.release?.gateway?.software_version === item.supersedesVersion) ||
+    !failed || failed.release?.gateway?.software_version !== item.supersedesVersion ||
+    failed.dvr?.session_lifecycle?.proactive_succeeded < 1 ||
     failed.dvr?.lifecycle?.inputSocketError < 1 || recovered?.dvr?.progressing !== 9 ||
+    recovered?.release?.gateway?.software_version !== item.rollbackVersion ||
     Date.now() - Date.parse(recovered?.sampled_at || "") > 60 * 60_000)
     throw new Error("P38_GATEWAY_SESSION_SWEEP_FAILED_CANARY_EVIDENCE_INVALID");
   failedCanaryEvidence = { sha256: sha(protectedFile(failedCanaryEvidencePath)),

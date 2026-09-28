@@ -13,13 +13,14 @@ const origin = "https://693f824a750afcc264fe6ee58c8a86ab.r2.cloudflarestorage.co
 const document = buildPush38GatewaySessionSweepManifest({ signingKeyId: "fixture-release-key",
   artifactOrigin: origin, releasedAt: new Date().toISOString() }).document;
 assert.equal(document.release_id, item.releaseId);
-assert.equal(document.version, "0.2.18-p38-health");
+assert.equal(document.version, "0.2.19-p38-health");
 assert.equal(document.artifact_sha256, item.digest);
 assert.equal(document.artifact_size, item.size);
 assert.equal(document.compatibility.minimum_current_version, "0.2.17-p38-health");
 assert.equal(document.compatibility.maximum_current_version, "0.2.17-p38-health");
 assert.equal(document.rollout.cohort_percent, 0);
 assert.deepEqual(document.rollout.explicit_device_ids, [item.deviceId]);
+assert.equal(item.supersedesVersion, "0.2.18-p38-health");
 
 const temporary = mkdtempSync(join(tmpdir(), "observer-p38-session-sweep-test-"));
 try {

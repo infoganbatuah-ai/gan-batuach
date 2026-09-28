@@ -44,7 +44,7 @@ const bundleValue = process.argv.find(value => value.startsWith("--bundle="))?.s
 if (!bundleValue) throw new Error("P38_GATEWAY_COMMON_CAUSE_HOME_QA_BUNDLE_REQUIRED");
 const bundle = resolve(bundleValue);
 const artifact = sessionSweep
-  ? `${restrictedRoot}/push38-gateway-session-sweep-fc3a4154/gateway-runtime.tar.gz`
+  ? `${restrictedRoot}/push38-gateway-session-drain-6bf33d4b/gateway-runtime.tar.gz`
   : maintenanceIsolation
   ? `${restrictedRoot}/push38-gateway-maintenance-isolation-04c58f24/gateway-runtime.tar.gz`
   : mediaCadence
@@ -57,7 +57,7 @@ const artifact = sessionSweep
   ? `${restrictedRoot}/push38-gateway-finite-handoff-e085c30f/gateway-runtime.tar.gz`
   : `${restrictedRoot}/push38-gateway-common-cause-f7d237bf/gateway-runtime.tar.gz`;
 const publication = sessionSweep
-  ? `${restrictedRoot}/push38-gateway-session-sweep-fc3a4154/r2-publication.json`
+  ? `${restrictedRoot}/push38-gateway-session-drain-6bf33d4b/r2-publication.json`
   : maintenanceIsolation
   ? `${restrictedRoot}/push38-gateway-maintenance-isolation-04c58f24/r2-publication.json`
   : mediaCadence
@@ -76,7 +76,7 @@ const bundleName = sessionSweep ? "gateway_remediation_session_sweep.json"
   : supervisorRecovery ? "gateway_remediation_supervisor_recovery.json"
   : finiteHandoff ? "gateway_remediation_finite_stream_handoff.json"
   : "gateway_remediation_common_cause_recovery.json";
-const expectedBefore = sessionSweep ? 24 : maintenanceIsolation ? 20 : mediaCadence ? 19 : stableHandoff ? 18 : supervisorRecovery ? 16 : finiteHandoff ? 12 : 11;
+const expectedBefore = sessionSweep ? 25 : maintenanceIsolation ? 20 : mediaCadence ? 19 : stableHandoff ? 18 : supervisorRecovery ? 16 : finiteHandoff ? 12 : 11;
 const expectedAfter = expectedBefore + 1;
 const predecessorReleaseId = (finiteHandoff || supervisorRecovery || stableHandoff || mediaCadence || maintenanceIsolation)
   ? item.supersedesReleaseId : item.rollbackReleaseId;

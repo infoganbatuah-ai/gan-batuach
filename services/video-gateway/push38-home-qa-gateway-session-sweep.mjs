@@ -2,23 +2,25 @@ import { validateEdgeUpdateManifest } from "./edge-update-contract.mjs";
 import { assertEdgeReleaseObjectUrl, edgeReleaseObjectPath,
   EDGE_RELEASE_R2_BUCKET } from "./edge-release-object.mjs";
 
-// Immutable successor to 0.2.17. It keeps one-at-a-time media replacement but
-// completes a full recorder relay sweep before the observed prior-login
-// response-retirement boundary.
+// Immutable successor to the quarantined 0.2.18 attempt. A renewed recorder
+// session drains every stale relay epoch immediately, without overlapping
+// channel replacements, so one slow handoff cannot consume the prior-login
+// response-retirement window.
 export const PUSH38_GATEWAY_SESSION_SWEEP = Object.freeze({
-  role: "GATEWAY_SESSION_SWEEP",
+  role: "GATEWAY_SESSION_DRAIN",
   deviceId: "62df97e2-3c0b-427f-9108-bde029bc10e7",
-  releaseId: "qa-p38-health-gateway-session-sweep-0a64245f8a97",
-  version: "0.2.18-p38-health",
-  buildSha: "fc3a41548eb2a977fcbbf5f34141997c2a4248e5",
-  digest: "0a64245f8a97ae9724ea5349ff36a32113ff4a8c826c7ce22b2ef2b191c83e4c",
-  size: 135806806,
+  releaseId: "qa-p38-health-gateway-session-drain-5165c94df699",
+  version: "0.2.19-p38-health",
+  buildSha: "6bf33d4bd85f6c251c55bdd8b5b637aeb22ae32f",
+  digest: "5165c94df6992ff89074fe74ee0e08fefecff6e28b7c364bd488f9b2bf696801",
+  size: 135809270,
   profile: "PHYSICAL_GATEWAY",
   rollbackReleaseId: "qa-p38-health-gateway-maintenance-isolation-995d6f822468",
   rollbackVersion: "0.2.17-p38-health",
-  supersedesReleaseId: "qa-p38-health-gateway-maintenance-isolation-995d6f822468",
-  priorManagementReleaseId: "qa-p38-health-gateway-maintenance-isolation-995d6f822468",
-  priorManagementArtifactSha256: "995d6f822468f5a2f8b5be59d338c46ddc0d4647b28068d999a972fb13953efe"
+  supersedesReleaseId: "qa-p38-health-gateway-session-sweep-0a64245f8a97",
+  supersedesVersion: "0.2.18-p38-health",
+  priorManagementReleaseId: "qa-p38-health-gateway-session-sweep-0a64245f8a97",
+  priorManagementArtifactSha256: "0a64245f8a97ae9724ea5349ff36a32113ff4a8c826c7ce22b2ef2b191c83e4c"
 });
 
 export function buildPush38GatewaySessionSweepManifest({ signingKeyId,
