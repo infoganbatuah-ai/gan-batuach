@@ -15,6 +15,7 @@ import { relayMaySurvivePrivateNvrRenewal, reuseMatchingPrivateNvrSession,
   shouldProactivelyHandoffPrivateNvrRelay, shouldProactivelyRefreshPrivateNvrSession,
   shouldRefreshPrivateNvrSession } from
   "./private-nvr-session-policy.mjs";
+import { shouldProactivelyHandoffDirectRtspRelay } from "./rtsp-session-policy.mjs";
 import { classifyRelayExit, safeInputCode } from "./relay-failure-reason.mjs";
 import { parseEventClipPlaylist } from "./event-clip-window.mjs";
 import { decodeAnchoredFrame } from "./anchored-frame-decoder.mjs";
@@ -97,9 +98,31 @@ async function maintainPrivateNvrRelayHandoffs() {
   }
 }
 
+async function maintainDirectRtspRelayHandoffs() {
+  // A direct camera can silently stop producing packets while its RTSP socket
+  // remains open. Replace at most one relay per pass and promote only after
+  // the replacement produces current HLS media. A failed warm-up leaves the
+  // existing relay and its recovery history untouched.
+  const observedAt = Date.now();
+  for (const [streamId, relay] of [...relays]) {
+    const source = streamSources.get(streamId);
+    if (source?.kind !== "rtsp") continue;
+    if (shouldProactivelyHandoffDirectRtspRelay({
+      startedAt: relay.startedAt,
+      progressing: relayIsProgressing(relay),
+      recoveryStable: relayRecoveryIsStable(relay),
+      warming: relay.warming
+    }, observedAt)) {
+      await warmReplaceDirectRtspRelay(streamId, relay);
+      return;
+    }
+  }
+}
+
 let privateNvrHeartbeatRun = null;
 let privateNvrSessionRenewalRun = null;
 let privateNvrRelayHandoffRun = null;
+let directRtspRelayHandoffRun = null;
 function reportPrivateNvrMaintenanceFailure(scope, error) {
   console.error(JSON.stringify({ level: "warning", domain: "private_nvr_maintenance",
     scope, reason: String(error?.code || error?.name || "MAINTENANCE_FAILED") }));
@@ -119,6 +142,11 @@ setInterval(() => {
     privateNvrRelayHandoffRun = maintainPrivateNvrRelayHandoffs()
       .catch(error => { reportPrivateNvrMaintenanceFailure("relay_handoff", error); })
       .finally(() => { privateNvrRelayHandoffRun = null; });
+  }
+  if (!directRtspRelayHandoffRun) {
+    directRtspRelayHandoffRun = maintainDirectRtspRelayHandoffs()
+      .catch(error => { reportPrivateNvrMaintenanceFailure("direct_rtsp_relay_handoff", error); })
+      .finally(() => { directRtspRelayHandoffRun = null; });
   }
 }, 10_000).unref();
 const relays = new Map();
@@ -1305,7 +1333,7 @@ function cleanupRelayDirectories(streamId, replacement, directories) {
   timer.unref();
 }
 
-async function warmReplacePrivateNvrRelay(streamId, previous) {
+async function warmReplaceRelay(streamId, previous) {
   // A relay that has only just recovered has not yet proved that it can
   // sustain the recorder's finite native response. Opening a second stream
   // for that channel immediately can collide with the recorder's per-channel
@@ -1340,6 +1368,14 @@ async function warmReplacePrivateNvrRelay(streamId, previous) {
   })().finally(() => relayWarmups.delete(streamId));
   relayWarmups.set(streamId, promise);
   return promise;
+}
+
+async function warmReplacePrivateNvrRelay(streamId, previous) {
+  return warmReplaceRelay(streamId, previous);
+}
+
+async function warmReplaceDirectRtspRelay(streamId, previous) {
+  return warmReplaceRelay(streamId, previous);
 }
 
 async function startRelay(streamId, { warming = false, previousRelay = null } = {}) {

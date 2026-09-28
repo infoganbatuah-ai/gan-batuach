@@ -21,6 +21,7 @@ const PASSWORD_ACCOUNT = "dvr_password";
 const EXPECTED_SOURCE_ID = "7465c0f2-ba57-4299-b22e-f20cedb91c23";
 const RESTRICTED_ROOT = `${realpathSync("/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted")}${sep}`;
 const mode = process.argv.includes("--preflight") ? "preflight"
+  : process.argv.includes("--verify-current") ? "verify-current"
   : process.argv.includes("--apply") ? "apply"
     : process.argv.includes("--rollback") ? "rollback" : "";
 const option = (name) => process.argv.find((value) => value.startsWith(`--${name}=`))?.slice(name.length + 3) || "";
@@ -172,7 +173,36 @@ function persist(value) {
   return sha(readFileSync(outputPath));
 }
 
-if (mode === "preflight") {
+if (mode === "verify-current") {
+  const healthBefore = await health();
+  const host = await discoverC211();
+  const media = verifyMedia(host);
+  const currentHost = cleanHost(profiles[0].endpoint);
+  if (host !== currentHost) throw new Error("P38_TAPO_CURRENT_ENDPOINT_IDENTITY_MISMATCH");
+  const healthAfter = await health();
+  if (healthBefore.media?.progressing !== 1 || healthAfter.media?.progressing !== 1 ||
+    healthAfter.media?.stalled !== 0) throw new Error("P38_TAPO_CONCURRENT_PROBE_DISRUPTED_LIVE_RELAY");
+  const evidence = {
+    protocol: "observer-push38-live-tapo-current-endpoint-proof-v1",
+    mode: "READ_ONLY_CONCURRENT_MEDIA_PROOF",
+    observed_at: new Date().toISOString(),
+    source_id: EXPECTED_SOURCE_ID,
+    endpoint_hash: sha(currentHost),
+    public_identity: "UNIQUE_ONVIF_C211",
+    authenticated_media: media,
+    health_before: healthBefore,
+    health_after: healthAfter,
+    concurrent_with_live_relay: true,
+    configuration_writes: 0,
+    credentials_changed: false,
+    credential_included_in_output: false
+  };
+  const evidenceSha = persist(evidence);
+  console.log(JSON.stringify({ status: "CURRENT_ENDPOINT_MEDIA_PASS", evidence_sha256: evidenceSha,
+    public_identity: evidence.public_identity, authenticated_media: "PASS",
+    live_relay_preserved: true, configuration_writes: 0,
+    credential_included_in_output: false }));
+} else if (mode === "preflight") {
   const host = await discoverC211();
   const media = verifyMedia(host);
   const currentHost = cleanHost(profiles[0].endpoint);
