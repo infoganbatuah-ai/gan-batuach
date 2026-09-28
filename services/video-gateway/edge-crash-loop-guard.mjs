@@ -39,6 +39,7 @@ export function createEdgeCrashLoopGuard({ statePath, manager, now = () => Date.
       const at = Math.max(now(), load()?.last_observed_at || 0);
       const record = { protocol: "observer-edge-crash-guard-v1", release_id: current.release_id,
         runtime_pid: runtimePid, first_healthy_at: at, unhealthy_since: null,
+        unhealthy_observations: 0, last_unhealthy_at: null,
         crashes: [], last_observed_at: at, state: "OBSERVING",
         recovery_category: state.recovery_category, recovery_state_updated_at: state.updated_at };
       save(path, record);
@@ -51,6 +52,7 @@ export function createEdgeCrashLoopGuard({ statePath, manager, now = () => Date.
       const record = prior?.release_id === current.release_id ? prior : {
         protocol: "observer-edge-crash-guard-v1", release_id: current.release_id,
         runtime_pid: null, first_healthy_at: null, unhealthy_since: null,
+        unhealthy_observations: 0, last_unhealthy_at: null,
         crashes: [], last_observed_at: at, state: "OBSERVING" };
       if (!Number.isInteger(runtimePid) || runtimePid < 1) runtimePid = null;
       if (!["HEALTHY", "ROLLED_BACK"].includes(state)) {
@@ -68,20 +70,29 @@ export function createEdgeCrashLoopGuard({ statePath, manager, now = () => Date.
       // the old process' downtime across the handoff and racing it into an
       // immediate rollback. Repeated supervisor loss remains fail-closed via
       // the crash counter below.
-      if (supervisorRestarted) record.unhealthy_since = null;
+      if (supervisorRestarted) {
+        record.unhealthy_since = null;
+        record.unhealthy_observations = 0;
+        record.last_unhealthy_at = null;
+      }
       record.crashes = record.crashes.filter(time => at - time <= windowMs);
       record.runtime_pid = runtimePid;
       if (healthy && runtimePid) {
         record.unhealthy_since = null;
+        record.unhealthy_observations = 0;
+        record.last_unhealthy_at = null;
         record.first_healthy_at ??= at;
         if (at - record.first_healthy_at >= stableResetMs) record.crashes = [];
       } else {
         record.first_healthy_at = null;
         record.unhealthy_since ??= at;
+        record.unhealthy_observations = Math.max(0, Number(record.unhealthy_observations || 0)) + 1;
+        record.last_unhealthy_at = at;
       }
       record.last_observed_at = at;
       if (record.crashes.length >= threshold ||
-        (record.unhealthy_since !== null && at - record.unhealthy_since >= sustainedDownMs)) {
+        (record.unhealthy_since !== null && record.unhealthy_observations >= threshold &&
+          at - record.unhealthy_since >= sustainedDownMs)) {
         record.state = "ROLLBACK_REQUIRED"; save(path, record);
         if (state === "ROLLED_BACK") {
           // The restored known-good is itself failing: never oscillate slots.

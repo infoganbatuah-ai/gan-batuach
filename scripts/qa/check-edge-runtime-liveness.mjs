@@ -108,8 +108,50 @@ export async function checkEdgeRuntimeLiveness() {
   } finally { rmSync(root, { recursive: true, force: true }); }
 }
 
+{
+  const root = mkdtempSync(join(tmpdir(), "observer-edge-sparse-health-"));
+  let clock = 1_000;
+  let rollbacks = 0;
+  let state = "HEALTHY";
+  const manager = {
+    status: () => ({ state }),
+    current: () => ({ release_id: "signed-release" }),
+    knownGood: () => [],
+    rollbackAfterCrashLoop: async () => { rollbacks += 1; state = "ROLLED_BACK"; }
+  };
+  try {
+    const guard = createEdgeCrashLoopGuard({ statePath: join(root, "guard.json"), manager,
+      now: () => clock, threshold: 3, sustainedDownMs: 60_000 });
+    await guard.observe({ runtimePid: 100, healthy: true });
+    clock += 60_001;
+    assert.equal((await guard.observe({ runtimePid: 100, healthy: false })).action, "OBSERVING");
+    clock += 60_001;
+    const secondMiss = await guard.observe({ runtimePid: 100, healthy: false });
+    assert.equal(secondMiss.action, "OBSERVING",
+      "two sparse probe misses must not claim continuous runtime failure");
+    assert.equal(secondMiss.unhealthy_observations, 2);
+    assert.equal(rollbacks, 0);
+    clock += 1_000;
+    const recovered = await guard.observe({ runtimePid: 100, healthy: true });
+    assert.equal(recovered.unhealthy_observations, 0,
+      "an observed healthy response between agent samples must clear sparse misses");
+    assert.equal(recovered.unhealthy_since, null);
+    assert.equal(rollbacks, 0);
+    clock += 60_001;
+    await guard.observe({ runtimePid: 100, healthy: false });
+    clock += 60_001;
+    await guard.observe({ runtimePid: 100, healthy: false });
+    clock += 60_001;
+    const sustained = await guard.observe({ runtimePid: 100, healthy: false });
+    assert.equal(sustained.action, "ROLLED_BACK",
+      "three consecutive failed observations over the sustained window must remain fail-closed");
+    assert.equal(rollbacks, 1);
+  } finally { rmSync(root, { recursive: true, force: true }); }
+}
+
 return { status: "PASS", orphan_cloud_requests_cancelled: true,
   liveness_restart_bounded: true, supervised_restart_health_grace: true,
+  sparse_health_false_rollback_prevented: true,
   rollback_authority: "existing_signed_ota_crash_guard" };
 }
 
