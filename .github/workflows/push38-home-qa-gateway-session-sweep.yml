@@ -1,4 +1,4 @@
-name: PUSH 38 Gateway session sweep Home QA manifest
+name: PUSH 38 Gateway session drain Home QA manifest
 
 on:
   push:
@@ -23,14 +23,14 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          ref: b53ab112c000dec6da1c1123042c08e7dec44b28
+          ref: 2e7d309ca3f7df491aeabe525fd06f9a01cc2a11
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
           cache: npm
       - name: Require reviewed qualification tooling
-        run: test "$(git rev-parse HEAD)" = "b53ab112c000dec6da1c1123042c08e7dec44b28"
+        run: test "$(git rev-parse HEAD)" = "2e7d309ca3f7df491aeabe525fd06f9a01cc2a11"
       - name: Install locked verification dependencies
         run: npm ci --ignore-scripts --no-audit --fund=false
       - name: Verify immutable Gateway session-sweep contract
@@ -52,19 +52,19 @@ jobs:
           mask-aws-account-id: true
           retry-max-attempts: 2
           unset-current-credentials: true
-      - name: Sign exact-device Gateway session-sweep manifest
+      - name: Sign exact-device Gateway session-drain manifest
         env:
           SIGNER_KEY_ARN: ${{ vars.AWS_KEY_ARN }}
           SIGNER_KEY_ID: ${{ vars.SIGNER_KEY_ID }}
           SIGNER_PUBLIC_KEY_SHA256: ${{ vars.SIGNER_PUBLIC_KEY_SHA256 }}
-          PUSH38_CANDIDATE_SHA: fc3a41548eb2a977fcbbf5f34141997c2a4248e5
+          PUSH38_CANDIDATE_SHA: 6bf33d4bd85f6c251c55bdd8b5b637aeb22ae32f
           HOME_QA_R2_ORIGIN: https://693f824a750afcc264fe6ee58c8a86ab.r2.cloudflarestorage.com
-          HOME_QA_OUTPUT_DIR: ${{ runner.temp }}/push38-homeqa-gateway-session-sweep
+          HOME_QA_OUTPUT_DIR: ${{ runner.temp }}/push38-homeqa-gateway-session-drain
         run: node scripts/release/issue-push38-home-qa-gateway-session-sweep.mjs
       - name: Preserve signed public manifest and redacted evidence
         uses: actions/upload-artifact@v4
         with:
-          name: push38-homeqa-gateway-session-sweep-${{ github.run_id }}
-          path: ${{ runner.temp }}/push38-homeqa-gateway-session-sweep/
+          name: push38-homeqa-gateway-session-drain-${{ github.run_id }}
+          path: ${{ runner.temp }}/push38-homeqa-gateway-session-drain/
           if-no-files-found: error
           retention-days: 7
