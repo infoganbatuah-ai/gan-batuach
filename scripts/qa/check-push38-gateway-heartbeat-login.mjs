@@ -29,6 +29,9 @@ assert.deepEqual(document.rollout.explicit_device_ids, [item.deviceId]);
 assert.match(registration, /heartbeatLogin/);
 assert.match(activation, /heartbeatLogin/);
 assert.match(activation, /heartbeatLogin \? connectorLivenessContinuityItem/);
+assert.match(activation, /activeBridgeHandoffState/);
+assert.match(activation, /rollout\.prior_cohort === 0/);
+assert.match(activation, /JSON\.stringify\(rollout\.prior_targets\) === JSON\.stringify\(exactTargets\)/);
 assert.match(installer, /gateway-heartbeat-login-upgrade/);
 
 const bridge = readFileSync(new URL(

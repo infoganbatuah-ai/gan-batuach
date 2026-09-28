@@ -274,6 +274,8 @@ const rollout = JSON.parse(psql(`select jsonb_build_object(
   'new_cohort',(select o.cohort_percent from public.observer_edge_rollouts o join public.observer_edge_releases r on r.id=o.release_id where r.release_id='${item.releaseId}'),
   'new_targets',(select o.target_filters from public.observer_edge_rollouts o join public.observer_edge_releases r on r.id=o.release_id where r.release_id='${item.releaseId}'),
   'prior_status',(select o.status from public.observer_edge_rollouts o join public.observer_edge_releases r on r.id=o.release_id where r.release_id='${predecessorReleaseId}'),
+  'prior_cohort',(select o.cohort_percent from public.observer_edge_rollouts o join public.observer_edge_releases r on r.id=o.release_id where r.release_id='${predecessorReleaseId}'),
+  'prior_targets',(select o.target_filters from public.observer_edge_rollouts o join public.observer_edge_releases r on r.id=o.release_id where r.release_id='${predecessorReleaseId}'),
   'broad_active',(select count(*) from public.observer_edge_rollouts where status='ACTIVE' and cohort_percent<>0),
   'managed_phase',(select metadata->>'home_qa_phase' from public.video_gateway_device_enrollments where gateway_id='${item.deviceId}'),
   'managed_identity',(select identity_scheme from public.video_gateway_device_enrollments where gateway_id='${item.deviceId}'),
@@ -281,10 +283,15 @@ const rollout = JSON.parse(psql(`select jsonb_build_object(
 // The Connector restart-grace successor is a separately signed, exact-device
 // HOME_QA release registered after the Gateway maintenance-isolation release.
 // Count it in the cumulative inventory without changing Gateway eligibility.
-if (rollout.devices !== 2 || rollout.releases !== (heartbeatLogin ? 28 : sessionSweep ? 27 : maintenanceIsolation ? 22 : mediaCadence ? 20 : stableHandoff ? 19 : supervisorRecovery ? 17 : finiteHandoff ? 15 : 12) || rollout.new_status !== "DRAFT" ||
+const exactTargets = { explicit_device_ids: [item.deviceId] };
+const normalHandoffState = rollout.new_status === "DRAFT" && rollout.prior_status === "PAUSED";
+const activeBridgeHandoffState = heartbeatLogin && rollout.new_status === "PAUSED" &&
+  rollout.prior_status === "ACTIVE" && rollout.prior_cohort === 0 &&
+  JSON.stringify(rollout.prior_targets) === JSON.stringify(exactTargets);
+if (rollout.devices !== 2 || rollout.releases !== (heartbeatLogin ? 28 : sessionSweep ? 27 : maintenanceIsolation ? 22 : mediaCadence ? 20 : stableHandoff ? 19 : supervisorRecovery ? 17 : finiteHandoff ? 15 : 12) ||
+  (!normalHandoffState && !activeBridgeHandoffState) ||
   rollout.new_cohort !== 0 ||
-  JSON.stringify(rollout.new_targets) !== JSON.stringify({ explicit_device_ids: [item.deviceId] }) ||
-  rollout.prior_status !== "PAUSED" || rollout.broad_active !== 0 ||
+  JSON.stringify(rollout.new_targets) !== JSON.stringify(exactTargets) || rollout.broad_active !== 0 ||
   rollout.managed_phase !== "MANAGED_IDENTITY_VERIFIED" || rollout.managed_identity !== "ED25519_V1" ||
   rollout.fresh_proof !== 1)
   throw new Error("P38_GATEWAY_COMMON_CAUSE_HOME_QA_STATE_INVALID");
