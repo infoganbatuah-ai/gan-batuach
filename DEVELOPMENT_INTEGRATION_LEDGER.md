@@ -534,3 +534,16 @@ The 34-screen owner-review pack remains the exact checked product tree; invitati
 visual proof uses a local-only QA signing key because the canonical launcher
 correctly excludes signing secrets. No Production, `main`, paid provider, customer
 data or Digital Observer core change occurred. UX-IMPLEMENT-09 has not started.
+
+UX-IMPLEMENT-09 Development closure (2026-09-28): product PR #152 passed
+all eight required exact-head checks plus Snyk at
+`e2bf14f5ff1b1b4eb39317acd93baa727672f9e4` and merged by ancestry into
+`integration/development` as `577db6de92abbf8a98f2bca4722d14d979518cbc`.
+Nineteen Inspector concepts produced 38 fresh Desktop/Mobile captures, all
+OWNER_REVIEW_READY with zero NEEDS_POLISH, VISUAL_DRIFT or BROKEN results.
+Post-merge UX-09 and cumulative contracts, 244/244 Development drift, local
+health/Supabase and role dashboard browser QA 8/8 passed. Inspector Live remains
+disabled and is presented as unavailable/evidence-only because it is not both
+Production-verified and Inspector-policy permitted. No migration, paid provider,
+Production, `main`, customer data or Digital Observer core change occurred.
+UX-IMPLEMENT-10 has not started.

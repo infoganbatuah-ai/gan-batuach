@@ -148,3 +148,14 @@ Validated contracts cover approval versus assignment, assigned-Garden isolation,
 Material visual deviations: none. The reference’s Live-camera concept is rendered as the truthful unavailable/evidence-only state because Inspector Live View is not currently both Production-verified and policy-permitted. Accessibility semantics, focus visibility, readable contrast, reduced motion, touch targets, and RTL take precedence over purely decorative reference details.
 
 All QA personas remain present. The visual fixture only upserts bounded, clearly marked synthetic Development records and never touches Production.
+
+## Integration closure
+
+- Product commit: `e2bf14f5ff1b1b4eb39317acd93baa727672f9e4`
+- Pull request: [#152](https://github.com/infoganbatuah-ai/gan-batuach/pull/152)
+- Required checks: all eight exact-head checks PASS; Snyk status PASS
+- Product merge commit: `577db6de92abbf8a98f2bca4722d14d979518cbc`
+- Development drift: `244/244 PASS`
+- Post-merge health: HTTP 200, local Supabase OK
+- Post-merge role dashboard browser QA: `8/8 PASS`
+- Production and `main`: unchanged
