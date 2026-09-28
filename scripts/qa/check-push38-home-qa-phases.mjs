@@ -15,6 +15,7 @@ const connectorDeviceSession = "qa-p38-health-connector-device-session-23a104eb2
 const connectorLivenessContinuity = "qa-p38-health-connector-liveness-continuity-6efc70f798aa";
 const connectorRelayBackoff = "qa-p38-health-connector-relay-backoff-f551947fd1ee";
 const connectorRestartGrace = "qa-p38-health-connector-restart-grace-34b1985a311c";
+const connectorRtspHandoff = "qa-p38-health-connector-rtsp-handoff-448381dc3792";
 const supersededConnectorFix = "qa-p38-health-connector-1b076f596574";
 const gatewayFix = "qa-p38-health-gateway-6c9d08327ec6";
 const gatewayAuthRecovery = "qa-p38-health-gateway-auth-4197f1a246f1";
@@ -36,6 +37,7 @@ const connectorDeviceSessionRemediation = manifest(connectorDeviceSession, conne
 const connectorLivenessContinuityRemediation = manifest(connectorLivenessContinuity, connectorId, "SOFTWARE_CONNECTOR");
 const connectorRelayBackoffRemediation = manifest(connectorRelayBackoff, connectorId, "SOFTWARE_CONNECTOR");
 const connectorRestartGraceRemediation = manifest(connectorRestartGrace, connectorId, "SOFTWARE_CONNECTOR");
+const connectorRtspHandoffRemediation = manifest(connectorRtspHandoff, connectorId, "SOFTWARE_CONNECTOR");
 const gatewayRemediation = manifest(gatewayFix, gatewayId, "PHYSICAL_GATEWAY");
 const gatewayAuthRemediation = manifest(gatewayAuthRecovery, gatewayId, "PHYSICAL_GATEWAY");
 const gatewaySessionRemediation = manifest(gatewaySessionStability, gatewayId, "PHYSICAL_GATEWAY");
@@ -60,6 +62,7 @@ assert.equal(homeQaManagedPhaseAllows({ enrollment: connector, manifest: connect
 assert.equal(homeQaManagedPhaseAllows({ enrollment: connector, manifest: connectorLivenessContinuityRemediation }), true);
 assert.equal(homeQaManagedPhaseAllows({ enrollment: connector, manifest: connectorRelayBackoffRemediation }), true);
 assert.equal(homeQaManagedPhaseAllows({ enrollment: connector, manifest: connectorRestartGraceRemediation }), true);
+assert.equal(homeQaManagedPhaseAllows({ enrollment: connector, manifest: connectorRtspHandoffRemediation }), true);
 assert.equal(homeQaManagedPhaseAllows({ enrollment: gateway, manifest: gatewayRemediation }), true);
 assert.equal(homeQaManagedPhaseAllows({ enrollment: gateway, manifest: gatewayAuthRemediation }), true);
 assert.equal(homeQaManagedPhaseAllows({ enrollment: gateway, manifest: gatewaySessionRemediation }), true);
