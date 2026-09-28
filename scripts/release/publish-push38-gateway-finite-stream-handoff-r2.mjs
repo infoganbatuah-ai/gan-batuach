@@ -12,6 +12,7 @@ import { buildPush38GatewayStableHandoffManifest } from "../../services/video-ga
 import { buildPush38GatewayMediaCadenceManifest } from "../../services/video-gateway/push38-home-qa-gateway-media-cadence.mjs";
 import { buildPush38GatewayMaintenanceIsolationManifest } from "../../services/video-gateway/push38-home-qa-gateway-maintenance-isolation.mjs";
 import { buildPush38GatewaySessionSweepManifest } from "../../services/video-gateway/push38-home-qa-gateway-session-sweep.mjs";
+import { buildPush38GatewayHeartbeatLoginManifest } from "../../services/video-gateway/push38-home-qa-gateway-heartbeat-login.mjs";
 import { readR2KeychainCredentials } from "./macos-r2-keychain.mjs";
 
 const origin = "https://693f824a750afcc264fe6ee58c8a86ab.r2.cloudflarestorage.com";
@@ -30,10 +31,12 @@ async function hashStream(stream, limit) {
 
 export async function publishPush38GatewayFiniteStreamHandoff({ artifactPath, evidencePath,
   supervisorRecovery = false, stableHandoff = false, mediaCadence = false,
-  maintenanceIsolation = false, sessionSweep = false }) {
-  if ([supervisorRecovery, stableHandoff, mediaCadence, maintenanceIsolation, sessionSweep].filter(Boolean).length > 1)
+  maintenanceIsolation = false, sessionSweep = false, heartbeatLogin = false }) {
+  if ([supervisorRecovery, stableHandoff, mediaCadence, maintenanceIsolation, sessionSweep,
+    heartbeatLogin].filter(Boolean).length > 1)
     fail("P38_GATEWAY_FINITE_HANDOFF_R2_MODE_INVALID");
-  const builder = sessionSweep ? buildPush38GatewaySessionSweepManifest :
+  const builder = heartbeatLogin ? buildPush38GatewayHeartbeatLoginManifest :
+    sessionSweep ? buildPush38GatewaySessionSweepManifest :
     maintenanceIsolation ? buildPush38GatewayMaintenanceIsolationManifest :
     mediaCadence ? buildPush38GatewayMediaCadenceManifest :
     stableHandoff ? buildPush38GatewayStableHandoffManifest :
@@ -87,7 +90,8 @@ export async function publishPush38GatewayFiniteStreamHandoff({ artifactPath, ev
       signal: AbortSignal.timeout(30_000) });
     await anonymous.body?.cancel();
     if (anonymous.ok) fail("P38_GATEWAY_FINITE_HANDOFF_R2_PUBLIC_ACCESS_ENABLED");
-    const result = { protocol: sessionSweep ?
+    const result = { protocol: heartbeatLogin ?
+      "observer-push38-gateway-heartbeat-login-r2-publication-v1" : sessionSweep ?
       "observer-push38-gateway-session-sweep-r2-publication-v1" : maintenanceIsolation ?
       "observer-push38-gateway-maintenance-isolation-r2-publication-v1" : mediaCadence ?
       "observer-push38-gateway-media-cadence-r2-publication-v1" : stableHandoff ?
@@ -110,15 +114,16 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
     const mediaCadence = process.argv.includes("--media-cadence");
     const maintenanceIsolation = process.argv.includes("--maintenance-isolation");
     const sessionSweep = process.argv.includes("--session-sweep");
+    const heartbeatLogin = process.argv.includes("--heartbeat-login");
     const [artifact, evidence] = process.argv.slice(2)
       .filter(value => !["--supervisor-recovery", "--stable-handoff", "--media-cadence",
-        "--maintenance-isolation", "--session-sweep"].includes(value));
+        "--maintenance-isolation", "--session-sweep", "--heartbeat-login"].includes(value));
     const scoped = evidence ? relative(restrictedRoot, resolve(evidence)) : "";
     if (!artifact || !evidence || !scoped || scoped === ".." || scoped.startsWith(`..${sep}`) || isAbsolute(scoped))
       fail("P38_GATEWAY_FINITE_HANDOFF_R2_INPUT_SCOPE_INVALID");
     console.log(JSON.stringify({ result: "PASS", publication: await publishPush38GatewayFiniteStreamHandoff({
       artifactPath: artifact, evidencePath: resolve(evidence), supervisorRecovery, stableHandoff,
-      mediaCadence, maintenanceIsolation, sessionSweep }) }));
+      mediaCadence, maintenanceIsolation, sessionSweep, heartbeatLogin }) }));
   } catch (error) {
     console.error(/^P38_GATEWAY_FINITE_HANDOFF_R2_[A-Z0-9_]+$/.test(error.message) ? error.message :
       "P38_GATEWAY_FINITE_HANDOFF_R2_PUBLICATION_FAILED");

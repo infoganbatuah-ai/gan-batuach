@@ -23,6 +23,8 @@ import { PUSH38_GATEWAY_MAINTENANCE_ISOLATION
 } from "../../services/video-gateway/push38-home-qa-gateway-maintenance-isolation.mjs";
 import { PUSH38_GATEWAY_SESSION_SWEEP
 } from "../../services/video-gateway/push38-home-qa-gateway-session-sweep.mjs";
+import { PUSH38_GATEWAY_HEARTBEAT_LOGIN
+} from "../../services/video-gateway/push38-home-qa-gateway-heartbeat-login.mjs";
 
 const apply = process.argv.includes("--apply");
 const finiteHandoff = process.argv.includes("--finite-stream-handoff");
@@ -31,9 +33,12 @@ const stableHandoff = process.argv.includes("--stable-handoff");
 const mediaCadence = process.argv.includes("--media-cadence");
 const maintenanceIsolation = process.argv.includes("--maintenance-isolation");
 const sessionSweep = process.argv.includes("--session-sweep");
-if ([finiteHandoff, supervisorRecovery, stableHandoff, mediaCadence, maintenanceIsolation, sessionSweep].filter(Boolean).length > 1)
+const heartbeatLogin = process.argv.includes("--heartbeat-login");
+if ([finiteHandoff, supervisorRecovery, stableHandoff, mediaCadence, maintenanceIsolation, sessionSweep,
+  heartbeatLogin].filter(Boolean).length > 1)
   throw new Error("P38_GATEWAY_COMMON_CAUSE_HOME_QA_MODE_INVALID");
-const item = sessionSweep ? PUSH38_GATEWAY_SESSION_SWEEP :
+const item = heartbeatLogin ? PUSH38_GATEWAY_HEARTBEAT_LOGIN :
+  sessionSweep ? PUSH38_GATEWAY_SESSION_SWEEP :
   maintenanceIsolation ? PUSH38_GATEWAY_MAINTENANCE_ISOLATION :
   mediaCadence ? PUSH38_GATEWAY_MEDIA_CADENCE :
   stableHandoff ? PUSH38_GATEWAY_STABLE_HANDOFF :
@@ -43,7 +48,9 @@ const restrictedRoot = "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/r
 const bundleValue = process.argv.find(value => value.startsWith("--bundle="))?.slice(9);
 if (!bundleValue) throw new Error("P38_GATEWAY_COMMON_CAUSE_HOME_QA_BUNDLE_REQUIRED");
 const bundle = resolve(bundleValue);
-const artifact = sessionSweep
+const artifact = heartbeatLogin
+  ? `${restrictedRoot}/push38-gateway-heartbeat-login-6d515326/gateway-runtime.tar.gz`
+  : sessionSweep
   ? `${restrictedRoot}/push38-gateway-session-drain-6bf33d4b/gateway-runtime.tar.gz`
   : maintenanceIsolation
   ? `${restrictedRoot}/push38-gateway-maintenance-isolation-04c58f24/gateway-runtime.tar.gz`
@@ -56,7 +63,9 @@ const artifact = sessionSweep
   : finiteHandoff
   ? `${restrictedRoot}/push38-gateway-finite-handoff-e085c30f/gateway-runtime.tar.gz`
   : `${restrictedRoot}/push38-gateway-common-cause-f7d237bf/gateway-runtime.tar.gz`;
-const publication = sessionSweep
+const publication = heartbeatLogin
+  ? `${restrictedRoot}/push38-gateway-heartbeat-login-6d515326/r2-publication.json`
+  : sessionSweep
   ? `${restrictedRoot}/push38-gateway-session-drain-6bf33d4b/r2-publication.json`
   : maintenanceIsolation
   ? `${restrictedRoot}/push38-gateway-maintenance-isolation-04c58f24/r2-publication.json`
@@ -69,16 +78,17 @@ const publication = sessionSweep
   : finiteHandoff
   ? `${restrictedRoot}/push38-gateway-finite-handoff-e085c30f/r2-publication.json`
   : `${restrictedRoot}/push38-gateway-common-cause-f7d237bf/r2-publication.json`;
-const bundleName = sessionSweep ? "gateway_remediation_session_sweep.json"
+const bundleName = heartbeatLogin ? "gateway_remediation_heartbeat_login.json"
+  : sessionSweep ? "gateway_remediation_session_sweep.json"
   : maintenanceIsolation ? "gateway_remediation_maintenance_isolation.json"
   : mediaCadence ? "gateway_remediation_media_cadence.json"
   : stableHandoff ? "gateway_remediation_stable_handoff.json"
   : supervisorRecovery ? "gateway_remediation_supervisor_recovery.json"
   : finiteHandoff ? "gateway_remediation_finite_stream_handoff.json"
   : "gateway_remediation_common_cause_recovery.json";
-const expectedBefore = sessionSweep ? 26 : maintenanceIsolation ? 20 : mediaCadence ? 19 : stableHandoff ? 18 : supervisorRecovery ? 16 : finiteHandoff ? 12 : 11;
+const expectedBefore = heartbeatLogin ? 27 : sessionSweep ? 26 : maintenanceIsolation ? 20 : mediaCadence ? 19 : stableHandoff ? 18 : supervisorRecovery ? 16 : finiteHandoff ? 12 : 11;
 const expectedAfter = expectedBefore + 1;
-const predecessorReleaseId = (finiteHandoff || supervisorRecovery || stableHandoff || mediaCadence || maintenanceIsolation || sessionSweep)
+const predecessorReleaseId = (finiteHandoff || supervisorRecovery || stableHandoff || mediaCadence || maintenanceIsolation || sessionSweep || heartbeatLogin)
   ? item.supersedesReleaseId : item.rollbackReleaseId;
 const accountId = "693f824a750afcc264fe6ee58c8a86ab";
 const origin = `https://${accountId}.r2.cloudflarestorage.com`;
@@ -175,7 +185,8 @@ commit;`;
 execFileSync("docker", ["--context", context, "exec", "-i", container, "psql", "-X", "-q",
   "-v", "ON_ERROR_STOP=1", "-U", "postgres", "-d", "postgres"],
 { input: sql, encoding: "utf8", timeout: 45_000, stdio: ["pipe", "pipe", "pipe"] });
-console.log(JSON.stringify({ status: sessionSweep ? "GATEWAY_SESSION_SWEEP_REGISTERED_DRAFT" :
+console.log(JSON.stringify({ status: heartbeatLogin ? "GATEWAY_HEARTBEAT_LOGIN_REGISTERED_DRAFT" :
+  sessionSweep ? "GATEWAY_SESSION_SWEEP_REGISTERED_DRAFT" :
   maintenanceIsolation ? "GATEWAY_MAINTENANCE_ISOLATION_REGISTERED_DRAFT" :
   mediaCadence ? "GATEWAY_MEDIA_CADENCE_REGISTERED_DRAFT" :
   stableHandoff ? "GATEWAY_STABLE_HANDOFF_REGISTERED_DRAFT" :

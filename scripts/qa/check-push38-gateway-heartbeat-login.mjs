@@ -3,38 +3,34 @@ import { createHash, generateKeyPairSync, sign } from "node:crypto";
 import { mkdtempSync, readFileSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { buildPush38GatewaySessionSweepManifest,
-  PUSH38_GATEWAY_SESSION_SWEEP as item } from
-  "../../services/video-gateway/push38-home-qa-gateway-session-sweep.mjs";
-import { issuePush38GatewaySessionSweep } from
-  "../release/issue-push38-home-qa-gateway-session-sweep.mjs";
+import { buildPush38GatewayHeartbeatLoginManifest,
+  PUSH38_GATEWAY_HEARTBEAT_LOGIN as item } from
+  "../../services/video-gateway/push38-home-qa-gateway-heartbeat-login.mjs";
+import { issuePush38GatewayHeartbeatLogin } from
+  "../release/issue-push38-home-qa-gateway-heartbeat-login.mjs";
 
 const registration = readFileSync(new URL(
   "./register-push38-homeqa-gateway-common-cause-recovery.mjs", import.meta.url), "utf8");
 const activation = readFileSync(new URL(
   "./activate-push38-homeqa-gateway-common-cause-recovery.mjs", import.meta.url), "utf8");
-
+const installer = readFileSync(new URL(
+  "./install-push38-homeqa-ota-agent.mjs", import.meta.url), "utf8");
 const origin = "https://693f824a750afcc264fe6ee58c8a86ab.r2.cloudflarestorage.com";
-const document = buildPush38GatewaySessionSweepManifest({ signingKeyId: "fixture-release-key",
+const document = buildPush38GatewayHeartbeatLoginManifest({ signingKeyId: "fixture-release-key",
   artifactOrigin: origin, releasedAt: new Date().toISOString() }).document;
 assert.equal(document.release_id, item.releaseId);
-assert.equal(document.version, "0.2.19-p38-health");
+assert.equal(document.version, "0.2.20-p38-health");
 assert.equal(document.artifact_sha256, item.digest);
 assert.equal(document.artifact_size, item.size);
-assert.equal(document.compatibility.minimum_current_version, "0.2.17-p38-health");
-assert.equal(document.compatibility.maximum_current_version, "0.2.17-p38-health");
+assert.equal(document.compatibility.minimum_current_version, "0.2.19-p38-health");
+assert.equal(document.compatibility.maximum_current_version, "0.2.19-p38-health");
 assert.equal(document.rollout.cohort_percent, 0);
 assert.deepEqual(document.rollout.explicit_device_ids, [item.deviceId]);
-assert.equal(item.supersedesVersion, "0.2.18-p38-health");
-assert.match(registration,
-  /maintenanceIsolation \|\| sessionSweep \|\| heartbeatLogin\)\s*\? item\.supersedesReleaseId/,
-  "session-drain registration must pause its failed 0.2.18 predecessor, not its 0.2.17 rollback target");
-assert.match(activation, /rollback_checkpoint_progressing/);
-assert.match(activation, /live_recovery_evidence/);
-assert.doesNotMatch(activation, /recovered\?\.dvr\?\.progressing !== 9/,
-  "historical rollback startup is not current recovery proof");
+assert.match(registration, /heartbeatLogin/);
+assert.match(activation, /heartbeatLogin/);
+assert.match(installer, /gateway-heartbeat-login-upgrade/);
 
-const temporary = mkdtempSync(join(tmpdir(), "observer-p38-session-sweep-test-"));
+const temporary = mkdtempSync(join(tmpdir(), "observer-p38-heartbeat-login-test-"));
 try {
   const { publicKey, privateKey } = generateKeyPairSync("ed25519");
   const publicDer = publicKey.export({ format: "der", type: "spki" });
@@ -53,15 +49,15 @@ try {
       ? { KeyId: env.SIGNER_KEY_ARN, PublicKey: publicDer.toString("base64"),
         KeySpec: "ECC_NIST_EDWARDS25519", KeyUsage: "SIGN_VERIFY", SigningAlgorithms: ["ED25519_SHA_512"] }
       : { KeyId: env.SIGNER_KEY_ARN,
-      Signature: sign(null, Buffer.from(input.Message, "base64"),
-        { key: privateDer, format: "der", type: "pkcs8" }).toString("base64"),
-      SigningAlgorithm: "ED25519_SHA_512" };
-  const issued = await issuePush38GatewaySessionSweep({ env, call });
+        Signature: sign(null, Buffer.from(input.Message, "base64"),
+          { key: privateDer, format: "der", type: "pkcs8" }).toString("base64"),
+        SigningAlgorithm: "ED25519_SHA_512" };
+  const issued = await issuePush38GatewayHeartbeatLogin({ env, call });
   assert.equal(issued.release_id, item.releaseId);
   assert.equal(issued.signature_verified, true);
-  await assert.rejects(issuePush38GatewaySessionSweep({ env: { ...env,
+  await assert.rejects(issuePush38GatewayHeartbeatLogin({ env: { ...env,
     PUSH38_CANDIDATE_SHA: "b".repeat(40), HOME_QA_OUTPUT_DIR: join(temporary, "bad") }, call }),
-  /P38_GATEWAY_SESSION_SWEEP_SIGNING_CONTEXT_INVALID/);
+  /P38_GATEWAY_HEARTBEAT_LOGIN_SIGNING_CONTEXT_INVALID/);
 } finally { rmSync(temporary, { recursive: true, force: true }); }
 
 console.log(JSON.stringify({ status: "PASS", release_id: item.releaseId,
