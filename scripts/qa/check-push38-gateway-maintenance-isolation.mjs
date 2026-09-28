@@ -37,5 +37,11 @@ for (const token of ["PUSH38_GATEWAY_MAINTENANCE_ISOLATION.releaseId",
 const activation = readFileSync(new URL("./activate-push38-homeqa-gateway-common-cause-recovery.mjs", import.meta.url), "utf8");
 assert.ok(activation.includes("maintenanceIsolation ? 22"),
   "activation must reconcile the cumulative HOME_QA inventory including Connector 0.2.22");
+const retry = readFileSync(new URL("./retry-push38-homeqa-gateway-maintenance-isolation.mjs", import.meta.url), "utf8");
+for (const token of [item.releaseId, "authorizeQuarantinedReleaseRetry",
+  "prior_candidate_healthy_duration_ms", "LATE_LIVENESS_FAILURE_DURING_DEVELOPMENT_CONTENTION",
+  "activeHeavyDevelopmentProcesses", "9_OF_9_SOURCE_AVAILABLE_PROGRESSING",
+  "functional_runtime_changed_by_command: false"])
+  assert.ok(retry.includes(token), `retry missing ${token}`);
 console.log(JSON.stringify({ status: "PASS", immutable_release: true, exact_device: true,
   cohort_percent: 0, signed_rollback_preserved: true, session_maintenance_isolated: true }));
