@@ -1,4 +1,4 @@
-name: PUSH 38 Connector RTSP handoff Home QA manifest
+name: PUSH 38 Connector RTSP handoff from known-good Home QA manifest
 
 on:
   push:
@@ -8,7 +8,7 @@ on:
 
 permissions: {}
 concurrency:
-  group: push38-home-qa-connector-rtsp-handoff-manifest
+  group: push38-home-qa-connector-rtsp-handoff-known-good-manifest
   cancel-in-progress: false
 
 jobs:
@@ -23,14 +23,14 @@ jobs:
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4
         with:
-          ref: b402289d56c323e794803a8db7d651ab89354043
+          ref: 683c72d64794c5ae201f63c22e241a9435801277
           persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version-file: .nvmrc
           cache: npm
       - name: Require the reviewed qualification tooling
-        run: test "$(git rev-parse HEAD)" = "b402289d56c323e794803a8db7d651ab89354043"
+        run: test "$(git rev-parse HEAD)" = "683c72d64794c5ae201f63c22e241a9435801277"
       - name: Install locked verification dependencies
         run: npm ci --ignore-scripts --no-audit --fund=false
       - name: Verify immutable RTSP handoff contract
@@ -49,7 +49,7 @@ jobs:
           role-to-assume: ${{ vars.AWS_ROLE_ARN }}
           aws-region: us-east-1
           role-duration-seconds: 900
-          role-session-name: homeqa-connector-rtsp-handoff-${{ github.run_id }}
+          role-session-name: homeqa-connector-rtsp-handoff-kg-${{ github.run_id }}
           mask-aws-account-id: true
           retry-max-attempts: 2
           unset-current-credentials: true
@@ -60,12 +60,12 @@ jobs:
           SIGNER_PUBLIC_KEY_SHA256: ${{ vars.SIGNER_PUBLIC_KEY_SHA256 }}
           PUSH38_CANDIDATE_SHA: a5c3dc51a7f4e3d6bc4a8cbb2d585a85a6e31fa7
           HOME_QA_R2_ORIGIN: https://693f824a750afcc264fe6ee58c8a86ab.r2.cloudflarestorage.com
-          HOME_QA_OUTPUT_DIR: ${{ runner.temp }}/push38-homeqa-connector-rtsp-handoff
+          HOME_QA_OUTPUT_DIR: ${{ runner.temp }}/push38-homeqa-connector-rtsp-handoff-known-good
         run: node scripts/release/issue-push38-home-qa-connector-rtsp-handoff.mjs
       - name: Preserve signed public manifest and redacted evidence
         uses: actions/upload-artifact@v4
         with:
-          name: push38-homeqa-connector-rtsp-handoff-${{ github.run_id }}
-          path: ${{ runner.temp }}/push38-homeqa-connector-rtsp-handoff/
+          name: push38-homeqa-connector-rtsp-handoff-known-good-${{ github.run_id }}
+          path: ${{ runner.temp }}/push38-homeqa-connector-rtsp-handoff-known-good/
           if-no-files-found: error
           retention-days: 7
