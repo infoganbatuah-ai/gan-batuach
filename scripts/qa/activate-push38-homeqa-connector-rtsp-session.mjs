@@ -246,11 +246,13 @@ const rollout = JSON.parse(psql(`select jsonb_build_object(
   'managed_phase',(select metadata->>'home_qa_phase' from public.video_gateway_device_enrollments where gateway_id='${item.deviceId}'),
   'managed_identity',(select identity_scheme from public.video_gateway_device_enrollments where gateway_id='${item.deviceId}'),
   'fresh_proof',(select count(*) from public.video_gateway_device_enrollments e join public.observer_managed_device_credentials c on c.enrollment_id=e.id and c.credential_version=e.credential_version where e.gateway_id='${item.deviceId}' and e.lifecycle_state='ACTIVE' and e.status='delivered' and e.active_runtime_instance_id is not null and e.last_seen_at>=now()-interval '2 minutes' and exists(select 1 from public.observer_managed_device_auth_nonces n where n.enrollment_id=e.id and n.credential_version=e.credential_version and n.observed_at>=now()-interval '2 minutes')));`));
+const predecessorReady = rollout.prior_status === "PAUSED" ||
+  (rtspCadence && rollout.prior_status === "ACTIVE");
 if (rollout.devices !== 2 || rollout.releases !== (rtspCadence ? 30 : finalStability ? 29 : healthObservation ? 26 : rtspHandoff ? 24 : restartGrace ? 22 : relayBackoff ? 18 : livenessContinuity ? 16 : deviceSession ? 15 : hostContinuity ? 14 : 10) ||
   rollout.new_status !== "DRAFT" ||
   rollout.new_cohort !== 0 ||
   JSON.stringify(rollout.new_targets) !== JSON.stringify({ explicit_device_ids: [item.deviceId] }) ||
-  rollout.prior_status !== "PAUSED" || rollout.broad_active !== 0 ||
+  !predecessorReady || rollout.broad_active !== 0 ||
   rollout.managed_phase !== "MANAGED_IDENTITY_VERIFIED" || rollout.managed_identity !== "ED25519_V1" ||
   rollout.fresh_proof !== 1)
   throw new Error("P38_CONNECTOR_RTSP_SESSION_HOME_QA_STATE_INVALID");
@@ -296,6 +298,7 @@ const plan = { protocol: rtspCadence ? "observer-push38-connector-rtsp-cadence-a
   cohort_percent: 0, signed_manifest: "PASS", live_trust: "PASS", r2_round_trip: "PASS",
   private_r2: "PASS", managed_device_auth: "PASS", https_control: "PASS",
   current_release_id: current.release_id, rollback_target: item.rollbackReleaseId,
+  predecessor_rollout_status: rollout.prior_status,
   runtime_pid: runtime.pid, ota_agent_pid: agent.pid, current_runtime_samples: samples,
   tapo_pre_remediation: samples.at(-1),
   actions: ["PAUSE_OTHER_CONNECTOR_ROLLOUTS", "ACTIVATE_EXACT_RTSP_SESSION_ROLLOUT",
