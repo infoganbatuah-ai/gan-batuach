@@ -8,7 +8,8 @@ import { buildPush38GatewayFiniteStreamHandoffManifest,
   PUSH38_GATEWAY_FINITE_STREAM_HANDOFF } from
   "../../services/video-gateway/push38-home-qa-gateway-finite-stream-handoff.mjs";
 import { PRIVATE_NVR_COMMON_CAUSE_HEARTBEAT_FAILURES,
-  PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS, PRIVATE_NVR_PROACTIVE_RENEWAL_MS,
+  PRIVATE_NVR_PROACTIVE_IDLE_HANDOFF_MS, PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS,
+  PRIVATE_NVR_PROACTIVE_RENEWAL_MS,
   PRIVATE_NVR_RELAY_HANDOFF_TICK_MS,
   relayMaySurvivePrivateNvrRenewal, shouldProactivelyHandoffPrivateNvrRelay,
   shouldPrioritizePrivateNvrSessionHandoff,
@@ -119,6 +120,13 @@ test("finite recorder responses receive an early media-only warm handoff", () =>
   assert.equal(shouldProactivelyHandoffPrivateNvrRelay(eligible, now), true);
   assert.equal(shouldProactivelyHandoffPrivateNvrRelay({ ...eligible,
     startedAt: now - PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS + 1 }, now), false);
+  assert.equal(PRIVATE_NVR_PROACTIVE_IDLE_HANDOFF_MS, 12_000);
+  assert.equal(shouldProactivelyHandoffPrivateNvrRelay({ ...eligible,
+    startedAt: now - PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS + 1,
+    lastInputAt: now - PRIVATE_NVR_PROACTIVE_IDLE_HANDOFF_MS }, now), true);
+  assert.equal(shouldProactivelyHandoffPrivateNvrRelay({ ...eligible,
+    startedAt: now - PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS + 1,
+    lastInputAt: now - PRIVATE_NVR_PROACTIVE_IDLE_HANDOFF_MS + 1 }, now), false);
   assert.equal(shouldProactivelyHandoffPrivateNvrRelay({ ...eligible,
     progressing: false }, now), false);
   assert.equal(shouldProactivelyHandoffPrivateNvrRelay({ ...eligible,

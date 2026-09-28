@@ -15,6 +15,13 @@ export const PRIVATE_NVR_PROACTIVE_RENEWAL_MS = 4 * 60 * 1000;
 // hand each progressing relay to a replacement with a full one-minute margin,
 // without creating another recorder login.
 export const PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS = 2 * 60 * 1000;
+// Real Home canary evidence showed individual native responses becoming idle
+// before the ordinary two-minute cadence while the shared recorder session and
+// heartbeat remained healthy. Eight seconds is known normal recorder jitter
+// and twenty seconds is the hard stale boundary, so begin a warm replacement
+// after twelve idle seconds. Promotion still requires current HLS output and a
+// failed warm-up leaves the existing relay untouched.
+export const PRIVATE_NVR_PROACTIVE_IDLE_HANDOFF_MS = 12_000;
 // A new login on the Home recorder was observed to retire media responses
 // from the prior login after roughly fifty seconds. Keep one-at-a-time relay
 // replacement, but drive the independent handoff scheduler quickly enough to
@@ -35,7 +42,9 @@ export function shouldPrioritizePrivateNvrSessionHandoff({ relayEpoch,
 export function shouldProactivelyHandoffPrivateNvrRelay(relay, now = Date.now()) {
   return Boolean(relay?.progressing && relay?.recoveryStable && !relay?.warming
     && Number.isFinite(relay.startedAt)
-    && now - relay.startedAt >= PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS);
+    && (now - relay.startedAt >= PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS
+      || Number.isFinite(relay.lastInputAt)
+        && now - relay.lastInputAt >= PRIVATE_NVR_PROACTIVE_IDLE_HANDOFF_MS));
 }
 
 // Login/Heartbeat is the recorder's supported session-maintenance contract.

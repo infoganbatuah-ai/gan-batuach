@@ -107,6 +107,7 @@ async function maintainPrivateNvrRelayHandoffs() {
     }
     if (shouldProactivelyHandoffPrivateNvrRelay({
       startedAt: relay.startedAt,
+      lastInputAt: relay.lastInputAt,
       progressing: relayIsProgressing(relay),
       recoveryStable: relayRecoveryIsStable(relay),
       warming: relay.warming
