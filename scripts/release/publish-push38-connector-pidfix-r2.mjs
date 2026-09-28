@@ -22,6 +22,7 @@ import { buildPush38ConnectorRestartGraceManifest } from "../../services/video-g
 import { buildPush38ConnectorRtspHandoffManifest } from "../../services/video-gateway/push38-home-qa-connector-rtsp-handoff.mjs";
 import { buildPush38ConnectorHealthObservationManifest } from "../../services/video-gateway/push38-home-qa-connector-health-observation.mjs";
 import { buildPush38ConnectorFinalStabilityManifest } from "../../services/video-gateway/push38-home-qa-connector-final-stability.mjs";
+import { buildPush38ConnectorRtspCadenceManifest } from "../../services/video-gateway/push38-home-qa-connector-rtsp-cadence.mjs";
 import { readR2KeychainCredentials } from "./macos-r2-keychain.mjs";
 
 const origin = "https://693f824a750afcc264fe6ee58c8a86ab.r2.cloudflarestorage.com";
@@ -42,8 +43,9 @@ async function publish({ artifactPath, evidencePath, recovery = false, startupRe
   hostContinuityRecovery = false, deviceSessionRecovery = false, runtimePidRecovery = false,
   guardRetryRecovery = false, livenessContinuityRecovery = false, relayBackoffRecovery = false,
   restartGraceRecovery = false, rtspHandoffRecovery = false, healthObservationRecovery = false,
-  finalStabilityRecovery = false }) {
-  const builder = finalStabilityRecovery ? buildPush38ConnectorFinalStabilityManifest :
+  finalStabilityRecovery = false, rtspCadenceRecovery = false }) {
+  const builder = rtspCadenceRecovery ? buildPush38ConnectorRtspCadenceManifest :
+    finalStabilityRecovery ? buildPush38ConnectorFinalStabilityManifest :
     healthObservationRecovery ? buildPush38ConnectorHealthObservationManifest :
     rtspHandoffRecovery ? buildPush38ConnectorRtspHandoffManifest :
     restartGraceRecovery ? buildPush38ConnectorRestartGraceManifest :
@@ -115,7 +117,8 @@ async function publish({ artifactPath, evidencePath, recovery = false, startupRe
       signal: AbortSignal.timeout(30_000) });
     await anonymous.body?.cancel();
     if (anonymous.ok) fail("P38_PIDFIX_R2_PUBLIC_ACCESS_ENABLED");
-    const result = { protocol: finalStabilityRecovery ? "observer-push38-final-stability-r2-publication-v1" :
+    const result = { protocol: rtspCadenceRecovery ? "observer-push38-rtsp-cadence-r2-publication-v1" :
+      finalStabilityRecovery ? "observer-push38-final-stability-r2-publication-v1" :
       healthObservationRecovery ? "observer-push38-health-observation-r2-publication-v1" :
       rtspHandoffRecovery ? "observer-push38-rtsp-handoff-r2-publication-v1" :
       restartGraceRecovery ? "observer-push38-restart-grace-r2-publication-v1" :
@@ -156,10 +159,11 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
     const rtspHandoffRecovery = process.argv.includes("--rtsp-handoff-recovery");
     const healthObservationRecovery = process.argv.includes("--health-observation-recovery");
     const finalStabilityRecovery = process.argv.includes("--final-stability-recovery");
+    const rtspCadenceRecovery = process.argv.includes("--rtsp-cadence-recovery");
     if ([recovery, startupRecovery, livenessRecovery, parentExitRecovery, rtspSessionRecovery,
       hostContinuityRecovery, deviceSessionRecovery, runtimePidRecovery, guardRetryRecovery,
       livenessContinuityRecovery, relayBackoffRecovery, restartGraceRecovery, rtspHandoffRecovery,
-      healthObservationRecovery, finalStabilityRecovery]
+      healthObservationRecovery, finalStabilityRecovery, rtspCadenceRecovery]
       .filter(Boolean).length > 1)
       fail("P38_PIDFIX_R2_MODE_INVALID");
     const [artifact, evidence] = process.argv.slice(2)
@@ -168,7 +172,8 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
         "--device-session-recovery", "--runtime-pid-recovery", "--guard-retry-recovery",
         "--liveness-continuity-recovery", "--relay-backoff-recovery",
         "--restart-grace-recovery", "--rtsp-handoff-recovery",
-        "--health-observation-recovery", "--final-stability-recovery"].includes(value));
+        "--health-observation-recovery", "--final-stability-recovery",
+        "--rtsp-cadence-recovery"].includes(value));
     const evidenceRelative = evidence ? relative(restrictedRoot, resolve(evidence)) : "";
     if (!artifact || !evidence || !evidenceRelative || evidenceRelative === ".." ||
       evidenceRelative.startsWith(`..${sep}`) || isAbsolute(evidenceRelative)) fail("P38_PIDFIX_R2_INPUT_SCOPE_INVALID");
@@ -177,7 +182,7 @@ if (process.argv[1] && fileURLToPath(import.meta.url) === resolve(process.argv[1
       rtspSessionRecovery, hostContinuityRecovery, deviceSessionRecovery, runtimePidRecovery,
       guardRetryRecovery, livenessContinuityRecovery, relayBackoffRecovery,
       restartGraceRecovery, rtspHandoffRecovery, healthObservationRecovery,
-      finalStabilityRecovery }) }));
+      finalStabilityRecovery, rtspCadenceRecovery }) }));
   } catch (error) {
     console.error(/^P38_PIDFIX_R2_[A-Z0-9_]+$/.test(error.message) ? error.message : "P38_PIDFIX_R2_PUBLICATION_FAILED");
     process.exitCode = 1;

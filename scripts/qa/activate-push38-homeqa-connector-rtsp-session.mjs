@@ -32,6 +32,8 @@ import { PUSH38_CONNECTOR_HEALTH_OBSERVATION_RECOVERY
 } from "../../services/video-gateway/push38-home-qa-connector-health-observation.mjs";
 import { PUSH38_CONNECTOR_FINAL_STABILITY
 } from "../../services/video-gateway/push38-home-qa-connector-final-stability.mjs";
+import { PUSH38_CONNECTOR_RTSP_CADENCE
+} from "../../services/video-gateway/push38-home-qa-connector-rtsp-cadence.mjs";
 
 const root = join(homedir(), "Library/Application Support/Digital Observer/observer-connector/ota");
 const configPath = join(root, "agent-config.json");
@@ -46,11 +48,13 @@ const restartGrace = process.argv.includes("--restart-grace");
 const rtspHandoff = process.argv.includes("--rtsp-handoff");
 const healthObservation = process.argv.includes("--health-observation");
 const finalStability = process.argv.includes("--final-stability");
+const rtspCadence = process.argv.includes("--rtsp-cadence");
 if ([hostContinuity, deviceSession, livenessContinuity, relayBackoff, restartGrace, rtspHandoff,
-  healthObservation, finalStability]
+  healthObservation, finalStability, rtspCadence]
   .filter(Boolean).length > 1)
   throw new Error("P38_CONNECTOR_RTSP_SESSION_MODE_INVALID");
-const item = finalStability ? PUSH38_CONNECTOR_FINAL_STABILITY :
+const item = rtspCadence ? PUSH38_CONNECTOR_RTSP_CADENCE :
+  finalStability ? PUSH38_CONNECTOR_FINAL_STABILITY :
   healthObservation ? PUSH38_CONNECTOR_HEALTH_OBSERVATION_RECOVERY :
   rtspHandoff ? PUSH38_CONNECTOR_RTSP_HANDOFF_RECOVERY :
   restartGrace ? PUSH38_CONNECTOR_RESTART_GRACE_RECOVERY :
@@ -62,7 +66,9 @@ const item = finalStability ? PUSH38_CONNECTOR_FINAL_STABILITY :
 const bundleValue = option("bundle");
 if (!bundleValue) throw new Error("P38_CONNECTOR_RTSP_SESSION_BUNDLE_REQUIRED");
 const bundle = resolve(bundleValue);
-const artifact = finalStability
+const artifact = rtspCadence
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-connector-rtsp-cadence-13800362-retry1/connector-remediation.tar.gz"
+  : finalStability
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-connector-health-observation-acbcfe8e/connector-remediation.tar.gz"
   : healthObservation
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-connector-health-observation-acbcfe8e/connector-remediation.tar.gz"
@@ -79,7 +85,9 @@ const artifact = finalStability
   : hostContinuity
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-connector-host-continuity-e0f07860/connector-remediation.tar.gz"
   : "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-connector-remediation-38671545/connector-remediation.tar.gz";
-const publication = finalStability
+const publication = rtspCadence
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-connector-rtsp-cadence-13800362-retry1/r2-publication.json"
+  : finalStability
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-connector-final-stability-acbcfe8e/r2-publication.json"
   : healthObservation
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-connector-health-observation-acbcfe8e/r2-publication.json"
@@ -169,12 +177,14 @@ if (config.profile !== "SOFTWARE_CONNECTOR" || config.deviceId !== item.deviceId
 if (sha(protectedLocalFile(config.qaTlsCaPath)) !== config.qaTlsCaSha256)
   throw new Error("P38_CONNECTOR_RTSP_SESSION_TLS_PIN_MISMATCH");
 const agentRelease = JSON.parse(protectedLocalFile(agentReleasePath));
-if ((!finalStability && agentRelease.release_id !== item.releaseId) ||
+if ((!finalStability && !rtspCadence && agentRelease.release_id !== item.releaseId) ||
   (finalStability && agentRelease.release_id !== item.supersedesReleaseId) ||
-  agentRelease.artifact_sha256 !== item.digest)
+  (rtspCadence && agentRelease.release_id !== item.agentPredecessorReleaseId) ||
+  agentRelease.artifact_sha256 !== (rtspCadence ? item.predecessorDigest : item.digest))
   throw new Error("P38_CONNECTOR_RTSP_SESSION_AGENT_RELEASE_MISMATCH");
 
 const manifest = JSON.parse(execFileSync("unzip", ["-p", bundle,
+  rtspCadence ? "connector_remediation_rtsp_cadence.json" :
   finalStability ? "connector_remediation_final_stability.json" :
     healthObservation ? "connector_remediation_health_observation.json" :
     rtspHandoff ? "connector_remediation_rtsp_handoff_known_good.json" :
@@ -189,7 +199,7 @@ const trusted = loadPinnedEdgeReleaseKeys({
   registryPath: PROTECTED_EDGE_TRUST_REGISTRY_PATH }).trustedPublicKeys;
 const publicationProof = JSON.parse(readFileSync(publication, "utf8"));
 const expectedObject = `home-qa/${item.releaseId}/${item.digest}.tar.gz`;
-const predecessorReleaseId = (restartGrace || rtspHandoff || healthObservation || finalStability) ? item.supersedesReleaseId : item.rollbackReleaseId;
+const predecessorReleaseId = (restartGrace || rtspHandoff || healthObservation || finalStability || rtspCadence) ? item.supersedesReleaseId : item.rollbackReleaseId;
 if (!verifyEdgeUpdateManifest(manifest, trusted).ok || manifest.release_id !== item.releaseId ||
   manifest.version !== item.version || manifest.build_sha !== item.buildSha ||
   manifest.artifact_sha256 !== item.digest || manifest.artifact_size !== item.size ||
@@ -236,7 +246,7 @@ const rollout = JSON.parse(psql(`select jsonb_build_object(
   'managed_phase',(select metadata->>'home_qa_phase' from public.video_gateway_device_enrollments where gateway_id='${item.deviceId}'),
   'managed_identity',(select identity_scheme from public.video_gateway_device_enrollments where gateway_id='${item.deviceId}'),
   'fresh_proof',(select count(*) from public.video_gateway_device_enrollments e join public.observer_managed_device_credentials c on c.enrollment_id=e.id and c.credential_version=e.credential_version where e.gateway_id='${item.deviceId}' and e.lifecycle_state='ACTIVE' and e.status='delivered' and e.active_runtime_instance_id is not null and e.last_seen_at>=now()-interval '2 minutes' and exists(select 1 from public.observer_managed_device_auth_nonces n where n.enrollment_id=e.id and n.credential_version=e.credential_version and n.observed_at>=now()-interval '2 minutes')));`));
-if (rollout.devices !== 2 || rollout.releases !== (finalStability ? 29 : healthObservation ? 26 : rtspHandoff ? 24 : restartGrace ? 22 : relayBackoff ? 18 : livenessContinuity ? 16 : deviceSession ? 15 : hostContinuity ? 14 : 10) ||
+if (rollout.devices !== 2 || rollout.releases !== (rtspCadence ? 30 : finalStability ? 29 : healthObservation ? 26 : rtspHandoff ? 24 : restartGrace ? 22 : relayBackoff ? 18 : livenessContinuity ? 16 : deviceSession ? 15 : hostContinuity ? 14 : 10) ||
   rollout.new_status !== "DRAFT" ||
   rollout.new_cohort !== 0 ||
   JSON.stringify(rollout.new_targets) !== JSON.stringify({ explicit_device_ids: [item.deviceId] }) ||
@@ -270,7 +280,8 @@ const [anonymous, wrongRoute] = await Promise.all([
 if (anonymous !== 401 || wrongRoute !== 404)
   throw new Error("P38_CONNECTOR_RTSP_SESSION_INGRESS_INVALID");
 
-const plan = { protocol: finalStability ? "observer-push38-connector-final-stability-activation-v1" :
+const plan = { protocol: rtspCadence ? "observer-push38-connector-rtsp-cadence-activation-v1" :
+    finalStability ? "observer-push38-connector-final-stability-activation-v1" :
     healthObservation ? "observer-push38-connector-health-observation-activation-v1" :
     rtspHandoff ? "observer-push38-connector-rtsp-handoff-activation-v1" :
     restartGrace ? "observer-push38-connector-restart-grace-activation-v1" :
