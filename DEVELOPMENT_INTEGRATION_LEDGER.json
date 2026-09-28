@@ -9687,31 +9687,33 @@
       "owner": "UX-07 visual reference correction owner",
       "sourceBranch": "codex/ux07-staff-reference-correction",
       "sourceCommits": [
-        "429e049d"
+        "429e049d51e74904b88c968ee5ec606117171677"
       ],
-      "state": "PUSHED_REMOTE",
+      "state": "LOCAL_VERIFIED",
       "preservation": {
         "remoteVerified": true,
         "remoteRefs": [
-          "origin/codex/ux07-staff-reference-correction@429e049d"
+          "origin/codex/ux07-staff-reference-correction@b36034b6134c9fc7b42e7f566c9fbf676a2e6343",
+          "origin/integration/development@1e08b712a83312c2248ae5a867802b72d012c03e"
         ],
-        "validatedSourceCommit": "429e049d"
+        "validatedSourceCommit": "429e049d51e74904b88c968ee5ec606117171677"
       },
       "validation": {
-        "status": "PASS_VISUAL_FUNCTIONAL_BRANCH_VALIDATION",
+        "status": "PASS_VISUAL_FUNCTIONAL_EXACT_HEAD_REQUIRED_CHECKS_AND_POST_MERGE_VALIDATION",
         "evidence": [
           "GAN_BATUACH_UX07_STAFF_REFERENCE_CORRECTION.md",
           "qa-evidence/ux07-staff-reference-correction/results.json",
-          "qa-evidence/ux07-staff-reference-correction/SHA256SUMS"
+          "qa-evidence/ux07-staff-reference-correction/SHA256SUMS",
+          "/Users/danielderi/.codex/visualizations/2026/09/07/01a07933-ed3d-7ad0-9a45-2f9b0b21460a/ux07-staff-reference-correction-merged/qa-evidence/ux07-staff-reference-correction/SHA256SUMS"
         ],
-        "limits": "Correct Staff reference SHA-256 4026a8eb545dc27cb95dacb8a7375a539ba82e6aaa74b2fdb57266114bf9662b. Fifteen concepts and thirty fresh Desktop/Mobile captures are OWNER_REVIEW_READY with zero NEEDS_POLISH, VISUAL_DRIFT or BROKEN results. Canonical Staff functionality is unchanged. This is not Production release authorization."
+        "limits": "Correct Staff reference SHA-256 4026a8eb545dc27cb95dacb8a7375a539ba82e6aaa74b2fdb57266114bf9662b. PR #150 passed all eight exact-head checks at b36034b6134c9fc7b42e7f566c9fbf676a2e6343 and merged as 1e08b712a83312c2248ae5a867802b72d012c03e. Fifteen concepts and thirty fresh merged-head Desktop/Mobile captures are OWNER_REVIEW_READY with zero NEEDS_POLISH, VISUAL_DRIFT or BROKEN results. Canonical Staff functionality is unchanged. This is not Production release authorization."
       },
       "integration": {
-        "status": "PENDING_PR",
+        "status": "INTEGRATED_DEVELOPMENT",
         "base": "integration/development",
-        "commit": null,
-        "pullRequest": null,
-        "requiredChecks": "PENDING"
+        "commit": "1e08b712a83312c2248ae5a867802b72d012c03e",
+        "pullRequest": 150,
+        "requiredChecks": "PASS_ALL_8_EXACT_HEAD"
       },
       "dependencies": {
         "status": "UX_IMPLEMENT_07_AND_VISUAL_CLOSURE_INTEGRATED",
@@ -9722,12 +9724,12 @@
       },
       "migrations": [],
       "migrationOrder": [],
-      "localVerification": "PASS_UX07_FOCUSED_7_OF_7_MULTI_GARDEN_8_OF_8_STAFF_TIME_ROLE_E2E_15_CHECKS_UX06_8_OF_8_ATTENDANCE_PICKUP_16_CHECKS_VISUAL_30_OWNER_REVIEW_READY_TYPECHECK_LINT_ZERO_REGRESSIONS_BUILD_534_PAGES_DOMAIN_30_OF_30_SECURITY_10_OF_10_MIGRATIONS_244_OF_244_DEVELOPMENT_DRIFT_244_OF_244_RELEASE_CONTRACT_INTEGRATION_WORKFLOW_AND_LEDGER",
-      "releaseEligibility": "DEVELOPMENT_PR_PENDING_PRODUCTION_NOT_AUTHORIZED",
+      "localVerification": "PASS_UX07_FOCUSED_7_OF_7_MULTI_GARDEN_8_OF_8_STAFF_TIME_ROLE_E2E_15_CHECKS_UX06_8_OF_8_ATTENDANCE_PICKUP_16_CHECKS_VISUAL_30_OWNER_REVIEW_READY_TYPECHECK_LINT_ZERO_REGRESSIONS_BUILD_534_PAGES_DOMAIN_30_OF_30_SECURITY_10_OF_10_MIGRATIONS_244_OF_244_DEVELOPMENT_DRIFT_244_OF_244_RELEASE_CONTRACT_INTEGRATION_WORKFLOW_AND_LEDGER_POST_MERGE_HEALTH_200_SUPABASE_OK_ROLE_DASHBOARDS_9_OF_9_EXACT_MERGE_SHA_SCREENSHOT_PACK_30_OF_30",
+      "releaseEligibility": "DEVELOPMENT_COMPLETE_PRODUCTION_NOT_AUTHORIZED",
       "productionDeployment": {
         "status": "NOT_DEPLOYED"
       },
-      "nextAction": "Merge the scoped correction PR to integration/development after exact-head checks, verify the remote head, then record post-merge validation. Production and main remain unchanged."
+      "nextAction": "UX-07 Staff visual reference correction is complete in Development. Production and main remain unchanged pending a separate explicit owner release instruction."
     }
   ],
   "inventory": "DEVELOPMENT_STATE_AUDIT_2026-09-19.json",
