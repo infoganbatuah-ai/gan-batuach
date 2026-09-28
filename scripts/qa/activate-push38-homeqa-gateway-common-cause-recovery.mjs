@@ -266,7 +266,7 @@ const rollout = JSON.parse(psql(`select jsonb_build_object(
 // The Connector restart-grace successor is a separately signed, exact-device
 // HOME_QA release registered after the Gateway maintenance-isolation release.
 // Count it in the cumulative inventory without changing Gateway eligibility.
-if (rollout.devices !== 2 || rollout.releases !== (sessionSweep ? 26 : maintenanceIsolation ? 22 : mediaCadence ? 20 : stableHandoff ? 19 : supervisorRecovery ? 17 : finiteHandoff ? 15 : 12) || rollout.new_status !== "DRAFT" ||
+if (rollout.devices !== 2 || rollout.releases !== (sessionSweep ? 27 : maintenanceIsolation ? 22 : mediaCadence ? 20 : stableHandoff ? 19 : supervisorRecovery ? 17 : finiteHandoff ? 15 : 12) || rollout.new_status !== "DRAFT" ||
   rollout.new_cohort !== 0 ||
   JSON.stringify(rollout.new_targets) !== JSON.stringify({ explicit_device_ids: [item.deviceId] }) ||
   rollout.prior_status !== "PAUSED" || rollout.broad_active !== 0 ||

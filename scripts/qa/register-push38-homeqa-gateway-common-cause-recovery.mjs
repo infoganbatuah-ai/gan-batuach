@@ -76,7 +76,7 @@ const bundleName = sessionSweep ? "gateway_remediation_session_sweep.json"
   : supervisorRecovery ? "gateway_remediation_supervisor_recovery.json"
   : finiteHandoff ? "gateway_remediation_finite_stream_handoff.json"
   : "gateway_remediation_common_cause_recovery.json";
-const expectedBefore = sessionSweep ? 25 : maintenanceIsolation ? 20 : mediaCadence ? 19 : stableHandoff ? 18 : supervisorRecovery ? 16 : finiteHandoff ? 12 : 11;
+const expectedBefore = sessionSweep ? 26 : maintenanceIsolation ? 20 : mediaCadence ? 19 : stableHandoff ? 18 : supervisorRecovery ? 16 : finiteHandoff ? 12 : 11;
 const expectedAfter = expectedBefore + 1;
 const predecessorReleaseId = (finiteHandoff || supervisorRecovery || stableHandoff || mediaCadence || maintenanceIsolation)
   ? item.supersedesReleaseId : item.rollbackReleaseId;
