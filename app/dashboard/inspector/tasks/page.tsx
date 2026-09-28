@@ -18,7 +18,7 @@ export default async function InspectorTasksPage() {
   const profileForUi = { ...profile, profile_image_url: (inspectorRes.data as any)?.profile_photo_url ?? profile.profile_image_url };
 
   return (
-    <InspectorAppFrame profile={profileForUi} activeHref="/dashboard/inspector/settings" title="משימות פקח" subtitle="פיקוח, תלונות וליקויים" badge="משימות">
+    <InspectorAppFrame profile={profileForUi} activeHref="/dashboard/inspector/tasks" title="משימות פקח" subtitle="פיקוח, תלונות וליקויים" badge="משימות">
       <InspectorHero eyebrow="עבודת המשך" title="כל המשימות שהוקצו לך" subtitle="משימות שהוקצו לפקח או לכלל הפקחים בגנים המשויכים בלבד." artwork={<CheckSquare />} />
       <InspectorMetricGrid columns={3}>
         <InspectorMetricCard label="משימות" value={scopedTasks.length} hint="פתוחות" icon={CheckSquare} />

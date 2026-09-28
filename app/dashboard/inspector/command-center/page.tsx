@@ -6,13 +6,11 @@ import { createClient } from "@/lib/supabase/server";
 import {
   InspectorAppFrame,
   InspectorEmpty,
-  InspectorGardenThumb,
-  InspectorHero,
+  InspectorGardenCard,
   InspectorList,
   InspectorMetricCard,
   InspectorMetricGrid,
   InspectorRow,
-  InspectorScoreRing,
   InspectorSection,
   InspectorStatus
 } from "@/components/inspector-app-ui";
@@ -57,7 +55,7 @@ export default async function InspectorCommandCenterPage() {
   const supabase = await createClient();
   const [inspectorRes, gardensRes, requiredRes] = await Promise.all([
     supabase.from("inspectors" as any).select("profile_photo_url").eq("id", profile.id).maybeSingle(),
-    supabase.from("gardens" as any).select("id,name,city,address,logo_url,safe_status,last_inspection_score,next_inspection_at").eq("inspector_id", profile.id).order("name"),
+    supabase.from("gardens" as any).select("id,name,city,address,logo_url,image_url,safe_status,last_inspection_score,next_inspection_at").eq("inspector_id", profile.id).order("name"),
     supabase.from("required_inspections" as any).select("id,garden_id,due_at,status,inspection_type,gardens(id,name,city)").eq("inspector_id", profile.id).neq("status", "done").order("due_at").limit(40)
   ]);
   const inspector = inspectorRes.data as any;
@@ -74,7 +72,7 @@ export default async function InspectorCommandCenterPage() {
     <InspectorAppFrame profile={profileForUi} activeHref="/dashboard/inspector/control-center" title="גנים מוקצים" subtitle="יומן ביקורות · בוקר טוב, מפקח">
       <InspectorMetricGrid columns={4}>
         <InspectorMetricCard label="עיר" value={gardens[0]?.city ?? "לא הוגדר"} hint="אזור פעילות" icon={MapPin} />
-        <InspectorMetricCard label="ציון בטיחות" value={avgScore ?? "—"} hint={avgScore === null ? "טרם חושב" : "ממוצע גנים"} icon={ShieldCheck} tone={avgScore === null ? "muted" : avgScore >= 85 ? "success" : avgScore < 70 ? "warning" : "primary"} />
+        <InspectorMetricCard label="ציון בטיחות" value={avgScore ?? "—"} hint={avgScore === null ? "טרם חושב" : "ממוצע מתוך 10"} icon={ShieldCheck} tone={avgScore === null ? "muted" : avgScore >= 8.5 ? "success" : avgScore < 7 ? "warning" : "primary"} />
         <InspectorMetricCard label="גנים פעילים" value={active} hint="מתוך הגנים המוקצים" icon={Home} tone="success" />
         <InspectorMetricCard
           label="ביקורת הבאה"
@@ -85,29 +83,23 @@ export default async function InspectorCommandCenterPage() {
         />
       </InspectorMetricGrid>
 
-      <InspectorHero
-        eyebrow="הגנים המוקצים שלי"
-        title="כל גן, ציון וביקורת הבאה במקום אחד"
-        subtitle="המסך מציג רק גנים ששויכו אליך. פתיחת גן מובילה לביקורות, דוחות וליקויים של אותו גן."
-        artwork={<Home />}
-        action={<Link className="inspector-action-button" href="/dashboard/inspector/inspections/due">צפה ביומן השבוע</Link>}
-      />
-
       <InspectorSection title="רשימת גנים" subtitle="ציון בטיחות, מנהלת, עיר וביקורת הבאה" icon={Home} action={<Link href="/dashboard/inspector/preliminary-gardens">הקמת גן והזמנת בעלים</Link>}>
-        <InspectorList>
+        <div className="inspector-portfolio-grid">
           {gardens.map((garden) => (
-            <InspectorRow
+            <InspectorGardenCard
               key={garden.id}
-              href={`/dashboard/inspector/inspections?garden=${garden.id}`}
-              avatar={<InspectorGardenThumb src={garden.logo_url} name={cleanSyntheticLabel(garden.name, "גן")} />}
-              title={cleanSyntheticLabel(garden.name, "גן")}
-              subtitle={`${garden.city ?? ""} · ${garden.address ?? ""}`}
-              meta={inspectionDateLabel(garden.next_inspection_at)}
-              status={<><InspectorScoreRing value={garden.last_inspection_score ?? "—"} label="בטיחות" /><InspectorStatus tone={Number.isFinite(Number(garden.last_inspection_score)) && Number(garden.last_inspection_score) < 80 ? "warning" : "success"}>{safeStatusLabel(garden.safe_status)}</InspectorStatus></>}
+              href={`/dashboard/inspector/gardens/${garden.id}`}
+              name={cleanSyntheticLabel(garden.name, "גן")}
+              city={garden.city}
+              address={garden.address}
+              image={garden.image_url ?? garden.logo_url}
+              score={garden.last_inspection_score ?? "—"}
+              nextInspection={inspectionDateLabel(garden.next_inspection_at)}
+              status={<InspectorStatus tone={Number.isFinite(Number(garden.last_inspection_score)) && Number(garden.last_inspection_score) < 80 ? "warning" : "success"}>{safeStatusLabel(garden.safe_status)}</InspectorStatus>}
             />
           ))}
           {gardens.length === 0 ? <InspectorEmpty title="אין גנים מוקצים" text="אדמין צריך לשייך גנים כדי לפתוח יומן ביקורות." icon={Home} /> : null}
-        </InspectorList>
+        </div>
       </InspectorSection>
 
       <InspectorSection title="ביקורות השבוע" subtitle="הביקורות הקרובות לפי תאריך" icon={CalendarCheck} action={<Link href="/dashboard/inspector/inspections/due">צפה ביומן המלא</Link>}>

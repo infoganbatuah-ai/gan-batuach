@@ -679,6 +679,54 @@
   grid-template-columns: repeat(4, minmax(0, 1fr)) !important;
 }
 
+@media (min-width: 1025px) {
+  .role-app-shell.inspector-runtime-shell {
+    --dashboard-sidebar: 244px;
+  }
+
+  .role-app-shell.inspector-runtime-shell .gb-app-shell-sidebar {
+    background: linear-gradient(180deg, #073b77 0%, #052a5e 100%) !important;
+    border-inline-end: 0;
+    box-shadow: 12px 0 38px rgb(6 47 104 / 18%);
+  }
+
+  .role-app-shell.inspector-runtime-shell .gb-sidebar-nav {
+    background: transparent;
+    border: 0;
+    box-shadow: none;
+    padding: 0;
+  }
+
+  .role-app-shell.inspector-runtime-shell :where(.gb-sidebar-title, .role-app-sidebar-heading, .role-app-sidebar-title, .role-app-sidebar-title b) {
+    color: #fff;
+  }
+
+  .role-app-shell.inspector-runtime-shell :where(.role-app-sidebar-title span, .role-app-sidebar-brand small, .gb-sidebar-nav-item small) {
+    color: rgb(225 238 255 / 72%);
+  }
+
+  .role-app-shell.inspector-runtime-shell .role-app-sidebar-brand img {
+    filter: brightness(0) invert(1);
+  }
+
+  .role-app-shell.inspector-runtime-shell .gb-sidebar-nav-item {
+    color: #eef6ff;
+  }
+
+  .role-app-shell.inspector-runtime-shell .gb-sidebar-nav-item:hover {
+    background: rgb(255 255 255 / 9%);
+  }
+
+  .role-app-shell.inspector-runtime-shell .gb-sidebar-nav-item.active {
+    background: linear-gradient(100deg, #1687ff, #0867d6);
+    color: #fff;
+  }
+
+  .role-app-shell.inspector-runtime-shell .gb-sidebar-nav-item.active small {
+    color: rgb(255 255 255 / 76%);
+  }
+}
+
 @media (max-width: 720px) {
   .role-app-shell.inspector-runtime-shell .role-app-header-meta {
     align-items: flex-start;
@@ -690,6 +738,10 @@
 
   .role-app-shell.inspector-runtime-shell .role-app-title p {
     font-size: 0.83rem;
+  }
+
+  .role-app-shell.inspector-runtime-shell .dashboard-header-badge {
+    display: none;
   }
 
   .role-app-shell.inspector-runtime-shell .inspector-hero-card {

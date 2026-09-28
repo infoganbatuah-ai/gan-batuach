@@ -32,7 +32,7 @@ export default async function InspectorDueInspectionsPage() {
   const supabase = await createClient();
   const [inspectorRes, rowsRes] = await Promise.all([
     supabase.from("inspectors" as any).select("profile_photo_url").eq("id", profile.id).maybeSingle(),
-    supabase.from("required_inspections" as any).select("id, garden_id, due_at, status, countdown_day, inspection_type, gardens(name, city, address, last_inspection_score)").eq("inspector_id", profile.id).neq("status", "done").order("due_at").limit(80)
+    supabase.from("required_inspections" as any).select("id, garden_id, inspection_id, due_at, status, countdown_day, inspection_type, gardens(name, city, address, last_inspection_score)").eq("inspector_id", profile.id).neq("status", "done").order("due_at").limit(80)
   ]);
   const rows = (rowsRes.data ?? []) as any[];
   const overdue = rows.filter((row) => row.due_at && new Date(row.due_at).getTime() < Date.now()).length;
@@ -68,7 +68,7 @@ export default async function InspectorDueInspectionsPage() {
             return (
               <InspectorRow
                 key={row.id}
-                href={`/dashboard/inspector/inspections?required=${row.id}`}
+                href={row.inspection_id ? `/dashboard/inspector/inspections/${row.inspection_id}` : `/dashboard/inspector/inspections?required=${row.id}`}
                 title={row.gardens?.name ?? row.garden_id}
                 subtitle={`${row.gardens?.city ?? ""} · ${row.gardens?.address ?? ""}`}
                 meta={`${inspectionTypeLabel(row.inspection_type)} · ציון אחרון: ${row.gardens?.last_inspection_score ?? "-"} · יעד: ${row.due_at ? new Date(row.due_at).toLocaleDateString("he-IL") : "לא נקבע"}`}

@@ -160,6 +160,19 @@ export const roleAppShellConfig: Record<RoleAppShellRole, {
       { href: "/dashboard/inspector/control-center", label: "גנים", icon: UsersRound },
       { href: "/dashboard/inspector/reports", label: "דוחות", icon: BarChart3 },
       { href: "/dashboard/inspector/notifications", label: "התראות", icon: Bell }
+    ],
+    desktopNav: [
+      { href: "/dashboard/inspector", label: "ראשי", hint: "תמונת מצב ותעדוף", icon: Home },
+      { href: "/dashboard/inspector/control-center", label: "גנים", hint: "תיקי הגנים המוקצים", icon: UsersRound },
+      { href: "/dashboard/inspector/inspections/due", label: "ביקורות", hint: "יומן, טיוטה והגשה", icon: ClipboardCheck },
+      { href: "/dashboard/inspector/violations", label: "ממצאים", hint: "ליקויים וראיות", icon: ShieldCheck },
+      { href: "/dashboard/inspector/corrective-actions", label: "מעקב תיקונים", hint: "אישור ודחיית תיקון", icon: BookOpenCheck },
+      { href: "/dashboard/inspector/complaints", label: "תלונות", hint: "פניות בתחום השיוך", icon: MessageCircle },
+      { href: "/dashboard/inspector/reports", label: "דוחות", hint: "דיווח ותיעוד", icon: BarChart3 },
+      { href: "/dashboard/inspector/tasks", label: "משימות", hint: "המשך ומעקב", icon: CalendarDays },
+      { href: "/dashboard/inspector/preliminary-gardens", label: "גן מקדים", hint: "הקמה והזמנה חתומה", icon: UsersRound },
+      { href: "/dashboard/inspector/cameras", label: "בטיחות ומצלמות", hint: "גישה מוגבלת לפי מדיניות", icon: Camera },
+      { href: "/dashboard/inspector/settings", label: "הגדרות", hint: "פרופיל והעדפות", icon: Settings }
     ]
   },
   "digital-observer": {

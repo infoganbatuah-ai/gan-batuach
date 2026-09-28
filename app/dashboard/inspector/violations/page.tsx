@@ -51,7 +51,7 @@ export default async function InspectorViolationsPage() {
   const profileForUi = { ...profile, profile_image_url: (inspectorRes.data as any)?.profile_photo_url ?? profile.profile_image_url };
 
   return (
-    <InspectorAppFrame profile={profileForUi} activeHref="/dashboard/inspector/reports" title="ליקויים ותיקונים" subtitle="אישור, דחייה ומעקב בגנים המשויכים" badge="ליקויים">
+    <InspectorAppFrame profile={profileForUi} activeHref="/dashboard/inspector/violations" title="ליקויים ותיקונים" subtitle="אישור, דחייה ומעקב בגנים המשויכים" badge="ליקויים">
       <InspectorHero
         eyebrow="מעקב תיקונים"
         title="כל ליקוי מקבל סטטוס ברור ופעולת המשך"

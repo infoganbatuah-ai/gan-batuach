@@ -69,7 +69,7 @@ export default async function InspectorInspectionHistoryPage() {
               subtitle={row.gardens?.city ?? ""}
               meta={`ליקויים: ${row.violation_count ?? 0} · קריטיים: ${row.critical_failures ?? 0} · GPS ${row.gps_verified ? "אומת" : "לא אומת"}`}
               status={<><InspectorScoreRing value={row.weighted_score ?? "-"} label="ציון" /><InspectorStatus tone={Number(row.weighted_score ?? 0) >= 80 ? "success" : "danger"}>{row.completed_at ? new Date(row.completed_at).toLocaleDateString("he-IL") : inspectionStatusLabel(row.status)}</InspectorStatus></>}
-              actions={<><Link className="inspector-action-button secondary" href={`/api/inspections/${row.id}/report`}>צפייה</Link><Link className="inspector-action-button" href={`/api/inspections/${row.id}/report?download=1`}>הורדה</Link></>}
+              actions={<><Link className="inspector-action-button secondary" href={`/dashboard/inspector/inspections/${row.id}/report`}>צפייה</Link><Link className="inspector-action-button" href={`/api/inspections/${row.id}/report?download=1`}>הורדה</Link></>}
             />
           ))}
           {rows.length === 0 ? <InspectorEmpty title="אין היסטוריית ביקורות" text="לאחר שליחת טופס פיקוח חתום, הדוח יופיע כאן." icon={FileText} /> : null}

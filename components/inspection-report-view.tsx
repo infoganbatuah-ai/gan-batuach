@@ -5,7 +5,7 @@ import { getSessionProfile } from "@/lib/auth";
 import { getParentFamilyContext } from "@/lib/domain/parent-family";
 import { createAdminClient } from "@/lib/supabase/admin";
 
-type ReportRole = "admin" | "garden" | "parent";
+type ReportRole = "admin" | "garden" | "parent" | "inspector";
 type ParentInspectionSummary = { gardens?: { name?: string; city?: string } | null; completed_at?: string | null; weighted_score?: number | null; violation_count?: number | null };
 
 function dateText(value?: string | null) {
