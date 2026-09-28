@@ -1,4 +1,5 @@
 import assert from "node:assert/strict";
+import { readFileSync } from "node:fs";
 import { QUALIFICATION_STAGE_MINIMUM_MS, assertQualificationStageResult,
   summarizeRealHomeSoak } from "../../lib/domain/digital-observer/reliability-qualification.mjs";
 
@@ -74,5 +75,13 @@ assert.equal(canary.status, "PASS");
 assert.equal(assertQualificationStageResult({ ...canary, qualification_stage: "CANARY" }, "CANARY"), true);
 assert.throws(() => assertQualificationStageResult({ ...canary, elapsed_ms: canary.elapsed_ms - 1 }, "CANARY"), /canary_gate_failed/);
 assert.throws(() => assertQualificationStageResult(canary, "UNKNOWN"), /stage_invalid/);
+
+const liveMonitor = readFileSync("scripts/qa/run-real-home-soak.mjs", "utf8");
+assert.match(liveMonitor, /pgrep", \["-P", String\(supervisor\.pid\)\]/,
+  "the live monitor must inspect the supervisor's direct children");
+assert.match(liveMonitor, /services\/video-gateway\/server\.mjs/,
+  "the real media HTTP child must be reported as runtime_pid");
+assert.doesNotMatch(liveMonitor, /const runtime = supervisor;/,
+  "the supervisor PID must not hide a media-child restart");
 
 console.log("PUSH38B_MONITOR_ACCURACY_PASS");

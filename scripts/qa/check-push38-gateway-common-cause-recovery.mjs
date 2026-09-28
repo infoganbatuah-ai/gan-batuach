@@ -7,7 +7,8 @@ import { buildPush38GatewayCommonCauseRecoveryManifest,
 import { buildPush38GatewayFiniteStreamHandoffManifest,
   PUSH38_GATEWAY_FINITE_STREAM_HANDOFF } from
   "../../services/video-gateway/push38-home-qa-gateway-finite-stream-handoff.mjs";
-import { PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS, PRIVATE_NVR_PROACTIVE_RENEWAL_MS,
+import { PRIVATE_NVR_COMMON_CAUSE_HEARTBEAT_FAILURES,
+  PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS, PRIVATE_NVR_PROACTIVE_RENEWAL_MS,
   PRIVATE_NVR_RELAY_HANDOFF_TICK_MS,
   relayMaySurvivePrivateNvrRenewal, shouldProactivelyHandoffPrivateNvrRelay,
   shouldPrioritizePrivateNvrSessionHandoff,
@@ -67,19 +68,32 @@ test("only authentication rejection or corroborated common-cause loss may rotate
   assert.equal(shouldRefreshPrivateNvrSession("source_transport_error"), false);
 });
 
-test("only a non-exclusive recorder session renews before the observed idle expiry", () => {
+test("heartbeat-maintained recorder login never rotates under progressing media", () => {
   const now = Date.now();
   const eligible = { loginExclusivity: false,
     updatedAt: now - PRIVATE_NVR_PROACTIVE_RENEWAL_MS };
-  assert.equal(shouldProactivelyRefreshPrivateNvrSession(eligible, now), true);
+  const idleAfterHeartbeatLoss = { activeProgressingRelays: 0,
+    heartbeatConsecutiveFailures: PRIVATE_NVR_COMMON_CAUSE_HEARTBEAT_FAILURES };
+  assert.equal(shouldProactivelyRefreshPrivateNvrSession(eligible,
+    idleAfterHeartbeatLoss, now), true);
+  assert.equal(shouldProactivelyRefreshPrivateNvrSession(eligible, {
+    ...idleAfterHeartbeatLoss, activeProgressingRelays: 1
+  }, now), false);
+  assert.equal(shouldProactivelyRefreshPrivateNvrSession(eligible, {
+    activeProgressingRelays: 0, heartbeatConsecutiveFailures: 0
+  }, now), false);
   assert.equal(shouldProactivelyRefreshPrivateNvrSession({ ...eligible,
-    loginExclusivity: true }, now), false);
+    loginExclusivity: true }, idleAfterHeartbeatLoss, now), false);
   assert.equal(shouldProactivelyRefreshPrivateNvrSession({ ...eligible,
-    loginExclusivity: null }, now), false);
+    loginExclusivity: null }, idleAfterHeartbeatLoss, now), false);
   assert.equal(shouldProactivelyRefreshPrivateNvrSession({ ...eligible,
-    updatedAt: now - PRIVATE_NVR_PROACTIVE_RENEWAL_MS + 1 }, now), false);
+    updatedAt: now - PRIVATE_NVR_PROACTIVE_RENEWAL_MS + 1 },
+  idleAfterHeartbeatLoss, now), false);
   assert.equal(shouldProactivelyRefreshPrivateNvrSession({ ...eligible,
-    refreshPromise: Promise.resolve() }, now), false);
+    refreshPromise: Promise.resolve() }, idleAfterHeartbeatLoss, now), false);
+  assert.match(gateway,
+    /activeProgressingRelays[\s\S]*shouldProactivelyRefreshPrivateNvrSession\(session, \{[\s\S]*activeProgressingRelays,[\s\S]*heartbeatConsecutiveFailures/,
+  "live renewal must be gated by media and heartbeat evidence");
 });
 
 test("proactive renewal preserves only progressing relays from the same recorder", () => {

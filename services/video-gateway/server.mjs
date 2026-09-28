@@ -72,8 +72,15 @@ const privateNvrHeartbeat = createPrivateNvrHeartbeat({ sessions: () => privateN
 const hardwareTranscoder = createHardwareTranscoder();
 async function maintainPrivateNvrSessionRenewals() {
   const observedAt = Date.now();
+  const heartbeat = privateNvrHeartbeat.status();
   for (const [sessionKey, session] of privateNvrSessions) {
-    if (!shouldProactivelyRefreshPrivateNvrSession(session, observedAt)) continue;
+    const activeProgressingRelays = [...relays.entries()].filter(([streamId, relay]) =>
+      streamSources.get(streamId)?.sessionKey === sessionKey
+        && relayIsProgressing(relay)).length;
+    if (!shouldProactivelyRefreshPrivateNvrSession(session, {
+      activeProgressingRelays,
+      heartbeatConsecutiveFailures: heartbeat.consecutive_failures
+    }, observedAt)) continue;
     await refreshPrivateNvrSession(sessionKey, session.token,
       "proactive_nonexclusive_renewal");
   }
@@ -82,9 +89,9 @@ async function maintainPrivateNvrSessionRenewals() {
 async function maintainPrivateNvrRelayHandoffs() {
   const observedAt = Date.now();
   // The recorder's media response ends before its authenticated session. Keep
-  // heartbeat and login renewal independent from the potentially slow media
-  // handoff. Replace at most one channel per pass, so a full handoff sweep can
-  // never starve the ten-second heartbeat or the proactive login deadline.
+  // heartbeat and bounded idle-session recovery independent from the
+  // potentially slow media handoff. Replace at most one channel per pass, so
+  // a full handoff sweep can never starve the ten-second heartbeat.
   const sessionSweep = [];
   const routine = [];
   for (const [streamId, relay] of [...relays]) {

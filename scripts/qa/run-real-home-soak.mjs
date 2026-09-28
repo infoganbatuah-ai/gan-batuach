@@ -101,10 +101,12 @@ function classifyGatewayCheckpoint(probe, resource) {
 }
 async function processRow(pid) {
   try {
-    const result = await exec("/bin/ps", ["-o", "pid=,ppid=,etime=,%cpu=,rss=", "-p", String(pid)], { timeout: 2_000 });
-    const [pidText, parentPid, elapsed, cpu, rss] = result.stdout.trim().split(/\s+/);
+    const result = await exec("/bin/ps", ["-o", "pid=,ppid=,etime=,%cpu=,rss=,command=", "-p", String(pid)], { timeout: 2_000 });
+    const match = /^\s*(\d+)\s+(\d+)\s+(\S+)\s+([\d.]+)\s+(\d+)\s+(.+)$/s.exec(result.stdout);
+    if (!match) throw new Error("process_row_unavailable");
+    const [, pidText, parentPid, elapsed, cpu, rss, command] = match;
     return { pid: Number(pidText), parent_pid: Number(parentPid), elapsed,
-      cpu_percent: Number(cpu), rss_mb: Number((Number(rss) / 1024).toFixed(3)) };
+      cpu_percent: Number(cpu), rss_mb: Number((Number(rss) / 1024).toFixed(3)), command };
   } catch { return { pid: null, parent_pid: null, elapsed: null, cpu_percent: null, rss_mb: null }; }
 }
 async function processInfo(pattern) {
@@ -116,22 +118,32 @@ async function processInfo(pattern) {
     // arguments also contain the script name. Select the launchd-owned process
     // (or, defensively, the largest matching process) so resource telemetry is
     // recorded for Node rather than for the 0.3 MiB sleep-prevention helper.
-    const supervisor = candidates.find(value => value.parent_pid === 1) ??
+    const supervisor = candidates.find(value => value.parent_pid === 1 &&
+      !value.command?.startsWith("/usr/bin/caffeinate ")) ??
       candidates.sort((left, right) => (right.rss_mb ?? 0) - (left.rss_mb ?? 0))[0];
-    const runtime = supervisor;
+    let children = [];
+    try {
+      const { stdout: childIds } = await exec("/usr/bin/pgrep", ["-P", String(supervisor.pid)], { timeout: 2_000 });
+      children = (await Promise.all(childIds.trim().split("\n").filter(Boolean)
+        .map(value => processRow(Number(value))))).filter(value => value.pid);
+    } catch {}
+    // launchd owns the persistent supervisor; that supervisor owns both a tiny
+    // caffeinate helper and the actual media HTTP child. Treating the parent as
+    // the runtime hid a real child restart during the first PUSH 38 canary.
+    const runtime = children.find(value => value.command?.includes("services/video-gateway/server.mjs")) ?? null;
     let openHandles = null;
-    try { const handles = await exec("/usr/sbin/lsof", ["-nP", "-p", String(runtime.pid)], { timeout: 3_000, maxBuffer: 4 * 1024 * 1024 }); openHandles = Math.max(0, handles.stdout.trim().split("\n").length - 1); } catch {}
+    try { if (runtime?.pid) { const handles = await exec("/usr/sbin/lsof", ["-nP", "-p", String(runtime.pid)], { timeout: 3_000, maxBuffer: 4 * 1024 * 1024 }); openHandles = Math.max(0, handles.stdout.trim().split("\n").length - 1); } } catch {}
     return {
       ...supervisor,
       inspection_ok: true,
       supervisor_pid: supervisor.pid,
-      runtime_pid: runtime.pid,
-      runtime_elapsed: runtime.elapsed,
-      runtime_cpu_percent: runtime.cpu_percent,
-      runtime_rss_mb: runtime.rss_mb,
+      runtime_pid: runtime?.pid ?? null,
+      runtime_elapsed: runtime?.elapsed ?? null,
+      runtime_cpu_percent: runtime?.cpu_percent ?? null,
+      runtime_rss_mb: runtime?.rss_mb ?? null,
       open_handles: openHandles,
-      total_cpu_percent: Number((runtime.cpu_percent ?? 0).toFixed(3)),
-      total_rss_mb: Number((runtime.rss_mb ?? 0).toFixed(3))
+      total_cpu_percent: Number(((supervisor.cpu_percent ?? 0) + (runtime?.cpu_percent ?? 0)).toFixed(3)),
+      total_rss_mb: Number(((supervisor.rss_mb ?? 0) + (runtime?.rss_mb ?? 0)).toFixed(3))
     };
   } catch { return { inspection_ok: false, pid: null, supervisor_pid: null, runtime_pid: null, elapsed: null, cpu_percent: null, rss_mb: null, runtime_rss_mb: null, total_rss_mb: null }; }
 }

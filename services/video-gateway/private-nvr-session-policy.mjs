@@ -38,17 +38,22 @@ export function shouldProactivelyHandoffPrivateNvrRelay(relay, now = Date.now())
     && now - relay.startedAt >= PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS);
 }
 
-// The Home recorder's own Login/Range contract explicitly reports that
-// simultaneous logins are permitted. A bounded renewal before the observed
-// idle-session expiry gives future stream opens a fresh login. Heartbeat and
-// renewal scheduling must remain independent from per-channel media handoffs;
-// a slow handoff sweep previously delayed both beyond their safety cadence.
-// Unknown/exclusive recorders keep the reactive recovery path only.
-export function shouldProactivelyRefreshPrivateNvrSession(session, now = Date.now()) {
+// Login/Heartbeat is the recorder's supported session-maintenance contract.
+// A successful heartbeat means the current login remains authoritative; a
+// second login was observed to retire every media response from the prior
+// login and can therefore create a recorder-wide outage. Never rotate a login
+// while any relay from that recorder is progressing. Background replacement
+// is limited to an idle recorder session after corroborated heartbeat loss;
+// active media/auth failures retain the separately bounded reactive path.
+export function shouldProactivelyRefreshPrivateNvrSession(session, evidence = {},
+  now = Date.now()) {
   return Boolean(session?.loginExclusivity === false
     && !session.refreshPromise
     && Number.isFinite(session.updatedAt)
-    && now - session.updatedAt >= PRIVATE_NVR_PROACTIVE_RENEWAL_MS);
+    && now - session.updatedAt >= PRIVATE_NVR_PROACTIVE_RENEWAL_MS
+    && Number(evidence.activeProgressingRelays || 0) === 0
+    && Number(evidence.heartbeatConsecutiveFailures || 0)
+      >= PRIVATE_NVR_COMMON_CAUSE_HEARTBEAT_FAILURES);
 }
 
 // A proactive non-exclusive renewal is not evidence that an established HTTP
