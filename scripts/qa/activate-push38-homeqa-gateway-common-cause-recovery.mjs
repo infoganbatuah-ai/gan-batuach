@@ -32,6 +32,8 @@ import { PUSH38_GATEWAY_HEARTBEAT_LOGIN
 } from "../../services/video-gateway/push38-home-qa-gateway-heartbeat-login.mjs";
 import { PUSH38_CONNECTOR_RESTART_GRACE_RECOVERY as connectorRestartGraceItem
 } from "../../services/video-gateway/push38-home-qa-connector-restart-grace.mjs";
+import { PUSH38_CONNECTOR_LIVENESS_CONTINUITY as connectorLivenessContinuityItem
+} from "../../services/video-gateway/push38-home-qa-connector-liveness-continuity.mjs";
 import { PUSH38_CONNECTOR_HEALTH_OBSERVATION_RECOVERY as connectorHealthObservationItem
 } from "../../services/video-gateway/push38-home-qa-connector-health-observation.mjs";
 
@@ -58,7 +60,8 @@ const item = heartbeatLogin ? PUSH38_GATEWAY_HEARTBEAT_LOGIN :
   stableHandoff ? PUSH38_GATEWAY_STABLE_HANDOFF :
   supervisorRecovery ? PUSH38_GATEWAY_SUPERVISOR_RECOVERY :
   finiteHandoff ? PUSH38_GATEWAY_FINITE_STREAM_HANDOFF : PUSH38_GATEWAY_COMMON_CAUSE_RECOVERY;
-const connectorItem = (sessionSweep || heartbeatLogin) ? connectorHealthObservationItem : connectorRestartGraceItem;
+const connectorItem = heartbeatLogin ? connectorLivenessContinuityItem :
+  sessionSweep ? connectorHealthObservationItem : connectorRestartGraceItem;
 const predecessorReleaseId = (finiteHandoff || supervisorRecovery || stableHandoff || mediaCadence || maintenanceIsolation || sessionSweep || heartbeatLogin)
   ? item.supersedesReleaseId : item.rollbackReleaseId;
 const bundleValue = option("bundle");

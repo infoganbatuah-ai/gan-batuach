@@ -28,7 +28,16 @@ assert.equal(document.rollout.cohort_percent, 0);
 assert.deepEqual(document.rollout.explicit_device_ids, [item.deviceId]);
 assert.match(registration, /heartbeatLogin/);
 assert.match(activation, /heartbeatLogin/);
+assert.match(activation, /heartbeatLogin \? connectorLivenessContinuityItem/);
 assert.match(installer, /gateway-heartbeat-login-upgrade/);
+
+const bridge = readFileSync(new URL(
+  "./retry-push38-homeqa-gateway-session-drain-bridge.mjs", import.meta.url), "utf8");
+for (const token of ["authorizeQuarantinedReleaseRetry", "bridge_maximum_minutes: 10",
+  "PUSH38_CONNECTOR_LIVENESS_CONTINUITY", "ACTIVATE_SIGNED_0_2_20_SUCCESSOR_WITHIN_10_MINUTES",
+  "cohort_percent=0", "broad_cohort: false", "ota_agent_owns_install: true"])
+  assert.match(bridge, new RegExp(token));
+assert.doesNotMatch(bridge, /manager\.apply|adapter\.install/);
 
 const temporary = mkdtempSync(join(tmpdir(), "observer-p38-heartbeat-login-test-"));
 try {
