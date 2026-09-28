@@ -55,13 +55,22 @@ if (enableLegacyDelivery) {
         'lifecycle_state',lifecycle_state,'tenant_id',tenant_id,'site_id',observer_site_id,
         'phase',metadata->>'home_qa_phase') order by deployment_profile)
         from public.video_gateway_device_enrollments),'[]'::json),
-      'releases',(select count(*) from public.observer_edge_releases where channel='HOME_QA'),
+      'release_ids',coalesce((select json_agg(release_id order by release_id)
+        from public.observer_edge_releases where channel='HOME_QA'),'[]'::json),
       'broad_rollouts',(select count(*) from public.observer_edge_rollouts where cohort_percent<>0));`]).trim());
   const expected = new Map([
     ["db267b52-6282-4944-bcee-5d4857698fb0", "SOFTWARE_CONNECTOR"],
     ["62df97e2-3c0b-427f-9108-bde029bc10e7", "PHYSICAL_GATEWAY"]
   ]);
   const siteId = "cc1673b8-3eb0-4785-a12c-1fb88f425a41";
+  const requiredReleaseIds = new Set([
+    "qa-connector-legacy-transition-v2-6e7988808b05",
+    "qa-p38-health-connector-liveness-continuity-6efc70f798aa",
+    "qa-p38-health-connector-observed-health-3a211a8ef1c2",
+    "qa-p38-health-gateway-maintenance-isolation-995d6f822468",
+    "qa-p38-health-gateway-session-drain-5165c94df699",
+    "qa-p38-health-gateway-heartbeat-login-0a956d9891db"
+  ]);
   const phaseMatchesIdentity = device => device.phase === "LEGACY_VERIFIED_FOR_TRANSITION"
     ? device.status === "pending" && device.identity_scheme === "LEGACY_HMAC" && device.credential_version === 0
     : ["MANAGED_IDENTITY_PENDING_PROOF", "MANAGED_IDENTITY_VERIFIED"].includes(device.phase) &&
@@ -69,7 +78,9 @@ if (enableLegacyDelivery) {
   const inventoryReady = Array.isArray(inventory.devices) && inventory.devices.length === expected.size &&
     inventory.devices.every(device => expected.get(device.id) === device.profile &&
       device.lifecycle_state === "ACTIVE" && device.tenant_id === siteId && device.site_id === siteId &&
-      phaseMatchesIdentity(device)) && inventory.releases === 26 && inventory.broad_rollouts === 0;
+      phaseMatchesIdentity(device)) && Array.isArray(inventory.release_ids) &&
+    [...requiredReleaseIds].every(releaseId => inventory.release_ids.includes(releaseId)) &&
+    inventory.broad_rollouts === 0;
   if (!inventoryReady) throw new Error("P38_QA_RELEASE_METADATA_NOT_READY");
   const keys = loadPinnedEdgeReleaseKeys({ registryPath: PROTECTED_EDGE_TRUST_REGISTRY_PATH }).trustedPublicKeys;
   if (!keys["observer-kms-release-v1"] || !keys["qa-p38f-ed25519-20260913"])
