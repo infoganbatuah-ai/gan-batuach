@@ -30,6 +30,7 @@ const connectorLivenessContinuityUpgrade = process.argv.includes("--connector-li
 const connectorRelayBackoffUpgrade = process.argv.includes("--connector-relay-backoff-upgrade");
 const connectorRestartGraceUpgrade = process.argv.includes("--connector-restart-grace-upgrade");
 const connectorRtspHandoffUpgrade = process.argv.includes("--connector-rtsp-handoff-upgrade");
+const connectorHealthObservationUpgrade = process.argv.includes("--connector-health-observation-upgrade");
 const gatewayAuthRecoveryUpgrade = process.argv.includes("--gateway-auth-recovery-upgrade");
 const gatewaySessionStabilityUpgrade = process.argv.includes("--gateway-session-stability-upgrade");
 const gatewayCommonCauseRecoveryUpgrade = process.argv.includes("--gateway-common-cause-recovery-upgrade");
@@ -46,7 +47,8 @@ if ([recoveryUpgrade, startupRecoveryUpgrade, livenessRecoveryUpgrade, parentExi
   gatewaySessionSweepUpgrade,
   connectorHostContinuityUpgrade, connectorDeviceSessionUpgrade, connectorRuntimePidUpgrade,
   connectorGuardRetryUpgrade, connectorLivenessContinuityUpgrade,
-  connectorRelayBackoffUpgrade, connectorRestartGraceUpgrade, connectorRtspHandoffUpgrade]
+  connectorRelayBackoffUpgrade, connectorRestartGraceUpgrade, connectorRtspHandoffUpgrade,
+  connectorHealthObservationUpgrade]
   .filter(Boolean).length > 1)
   throw new Error("P38_HOME_QA_AGENT_UPGRADE_MODE_INVALID");
 const managementUpgrade = process.argv.includes("--management-upgrade") || recoveryUpgrade ||
@@ -57,7 +59,7 @@ const managementUpgrade = process.argv.includes("--management-upgrade") || recov
   gatewaySessionSweepUpgrade || connectorHostContinuityUpgrade ||
   connectorDeviceSessionUpgrade || connectorRuntimePidUpgrade || connectorGuardRetryUpgrade ||
   connectorLivenessContinuityUpgrade || connectorRelayBackoffUpgrade || connectorRestartGraceUpgrade ||
-  connectorRtspHandoffUpgrade;
+  connectorRtspHandoffUpgrade || connectorHealthObservationUpgrade;
 if (apply === dryRun || !["SOFTWARE_CONNECTOR", "PHYSICAL_GATEWAY"].includes(profile))
   throw new Error("P38_HOME_QA_AGENT_MODE_OR_PROFILE_INVALID");
 if (managementUpgrade && profile !== "SOFTWARE_CONNECTOR" &&
@@ -75,7 +77,8 @@ const spec = connector ? {
   deviceId: "db267b52-6282-4944-bcee-5d4857698fb0",
   baselineRelease: "qa-connector-legacy-transition-v2-6e7988808b05",
   baselineSha: "6e7988808b05956d58416a6ce60638f52b19aa732918ac0e1cdafcc5fc9f130a",
-  remediationRelease: connectorRtspHandoffUpgrade ? "qa-p38-health-connector-rtsp-handoff-kg20-448381dc3792" :
+  remediationRelease: connectorHealthObservationUpgrade ? "qa-p38-health-connector-observed-health-3a211a8ef1c2" :
+    connectorRtspHandoffUpgrade ? "qa-p38-health-connector-rtsp-handoff-kg20-448381dc3792" :
     connectorRestartGraceUpgrade ? "qa-p38-health-connector-restart-grace-34b1985a311c" :
     connectorRelayBackoffUpgrade ? "qa-p38-health-connector-relay-backoff-f551947fd1ee" :
     connectorLivenessContinuityUpgrade ? "qa-p38-health-connector-liveness-continuity-6efc70f798aa" :
@@ -90,7 +93,8 @@ const spec = connector ? {
     recoveryUpgrade ? "qa-p38-health-connector-recovery-9bb5db251379" :
     managementUpgrade ? "qa-p38-health-connector-pidfix-1b9e9499ffa7" :
     "qa-p38-health-connector-1b076f596574",
-  bundleName: connectorRtspHandoffUpgrade ? "connector_remediation_rtsp_handoff_known_good.json" :
+  bundleName: connectorHealthObservationUpgrade ? "connector_remediation_health_observation.json" :
+    connectorRtspHandoffUpgrade ? "connector_remediation_rtsp_handoff_known_good.json" :
     connectorRestartGraceUpgrade ? "connector_remediation_restart_grace.json" :
     connectorRelayBackoffUpgrade ? "connector_remediation_relay_backoff.json" :
     connectorLivenessContinuityUpgrade ? "connector_remediation_liveness_continuity.json" :
@@ -104,7 +108,10 @@ const spec = connector ? {
     startupRecoveryUpgrade ? "connector_remediation_startup.json" :
     recoveryUpgrade ? "connector_remediation_recovery.json" :
     managementUpgrade ? "connector_remediation_pidfix.json" : "connector_remediation.json",
-  priorManagement: connectorRtspHandoffUpgrade ? {
+  priorManagement: connectorHealthObservationUpgrade ? {
+    release_id: "qa-p38-health-connector-rtsp-handoff-kg20-448381dc3792",
+    artifact_sha256: "448381dc3792dfed37a3e98ddf73b71f5dea1ef8d4119818071e5ed03ede348b" } :
+    connectorRtspHandoffUpgrade ? {
     release_id: "qa-p38-health-connector-restart-grace-34b1985a311c",
     artifact_sha256: "34b1985a311ce709130331e64228477d766df227ff2da5da3789521972dfae61" } :
     connectorRestartGraceUpgrade ? {
@@ -222,7 +229,9 @@ const runtimeConfig = { profile, managedRoot: root, installedBase: spec.installe
 const plan = planInstalledOtaAgent({ profile, managedRoot: root, agentPlistPath, agentLabel });
 if (apply) validateHomeQaOtaIdentityScope({ managedRoot: root, runtimeConfig });
 const bundleOverride = process.argv.find(arg => arg.startsWith("--bundle="))?.slice(9);
-const bundle = resolve(bundleOverride || (connectorRtspHandoffUpgrade
+const bundle = resolve(bundleOverride || (connectorHealthObservationUpgrade
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-connector-health-observation.zip"
+  : connectorRtspHandoffUpgrade
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-connector-rtsp-handoff-known-good.zip"
   : connectorRestartGraceUpgrade
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-connector-restart-grace.zip"

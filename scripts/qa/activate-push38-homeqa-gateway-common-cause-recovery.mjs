@@ -30,8 +30,8 @@ import { PUSH38_GATEWAY_SESSION_SWEEP
 } from "../../services/video-gateway/push38-home-qa-gateway-session-sweep.mjs";
 import { PUSH38_CONNECTOR_RESTART_GRACE_RECOVERY as connectorRestartGraceItem
 } from "../../services/video-gateway/push38-home-qa-connector-restart-grace.mjs";
-import { PUSH38_CONNECTOR_RTSP_HANDOFF_RECOVERY as connectorRtspHandoffItem
-} from "../../services/video-gateway/push38-home-qa-connector-rtsp-handoff.mjs";
+import { PUSH38_CONNECTOR_HEALTH_OBSERVATION_RECOVERY as connectorHealthObservationItem
+} from "../../services/video-gateway/push38-home-qa-connector-health-observation.mjs";
 
 const root = join(homedir(), "Library/Application Support/Digital Observer/observer-gateway/ota");
 const connectorRoot = join(homedir(), "Library/Application Support/Digital Observer/observer-connector/ota");
@@ -53,7 +53,7 @@ const item = sessionSweep ? PUSH38_GATEWAY_SESSION_SWEEP :
   stableHandoff ? PUSH38_GATEWAY_STABLE_HANDOFF :
   supervisorRecovery ? PUSH38_GATEWAY_SUPERVISOR_RECOVERY :
   finiteHandoff ? PUSH38_GATEWAY_FINITE_STREAM_HANDOFF : PUSH38_GATEWAY_COMMON_CAUSE_RECOVERY;
-const connectorItem = sessionSweep ? connectorRtspHandoffItem : connectorRestartGraceItem;
+const connectorItem = sessionSweep ? connectorHealthObservationItem : connectorRestartGraceItem;
 const predecessorReleaseId = (finiteHandoff || supervisorRecovery || stableHandoff || mediaCadence || maintenanceIsolation || sessionSweep)
   ? item.supersedesReleaseId : item.rollbackReleaseId;
 const bundleValue = option("bundle");

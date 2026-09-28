@@ -23,6 +23,8 @@ import { PUSH38_CONNECTOR_RESTART_GRACE_RECOVERY
 } from "../../services/video-gateway/push38-home-qa-connector-restart-grace.mjs";
 import { PUSH38_CONNECTOR_RTSP_HANDOFF_RECOVERY
 } from "../../services/video-gateway/push38-home-qa-connector-rtsp-handoff.mjs";
+import { PUSH38_CONNECTOR_HEALTH_OBSERVATION_RECOVERY
+} from "../../services/video-gateway/push38-home-qa-connector-health-observation.mjs";
 
 const restrictedRoot = `${realpathSync("/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted")}${sep}`;
 const option = name => process.argv.find(value => value.startsWith(`--${name}=`))?.slice(name.length + 3) || "";
@@ -31,19 +33,25 @@ const bundle = resolve(option("bundle") || ".");
 const relayBackoff = process.argv.includes("--relay-backoff");
 const restartGrace = process.argv.includes("--restart-grace");
 const rtspHandoff = process.argv.includes("--rtsp-handoff");
-if ([relayBackoff, restartGrace, rtspHandoff].filter(Boolean).length > 1)
+const healthObservation = process.argv.includes("--health-observation");
+if ([relayBackoff, restartGrace, rtspHandoff, healthObservation].filter(Boolean).length > 1)
   throw new Error("P38_CONNECTOR_LIVENESS_AGENT_MODE_INVALID");
-const release = rtspHandoff ? PUSH38_CONNECTOR_RTSP_HANDOFF_RECOVERY :
+const release = healthObservation ? PUSH38_CONNECTOR_HEALTH_OBSERVATION_RECOVERY :
+  rtspHandoff ? PUSH38_CONNECTOR_RTSP_HANDOFF_RECOVERY :
   restartGrace ? PUSH38_CONNECTOR_RESTART_GRACE_RECOVERY :
   relayBackoff ? PUSH38_CONNECTOR_RELAY_BACKOFF_RECOVERY : item;
-const artifact = rtspHandoff
+const artifact = healthObservation
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-connector-health-observation-acbcfe8e/connector-remediation.tar.gz"
+  : rtspHandoff
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-connector-rtsp-handoff-a5c3dc51/connector-remediation.tar.gz"
   : restartGrace
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-connector-restart-grace-c177cce7/connector-remediation.tar.gz"
   : relayBackoff
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-connector-relay-backoff-4cc211b8/connector-remediation.tar.gz"
   : "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-connector-liveness-continuity-2840a593/connector-remediation.tar.gz";
-const publication = rtspHandoff
+const publication = healthObservation
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-connector-health-observation-acbcfe8e/r2-publication.json"
+  : rtspHandoff
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-connector-rtsp-handoff-a5c3dc51/r2-publication-known-good.json"
   : restartGrace
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-connector-restart-grace-c177cce7/r2-publication.json"
@@ -54,11 +62,14 @@ const root = join(homedir(), "Library/Application Support/Digital Observer/obser
 const configPath = join(root, "agent-config.json");
 const agentReleasePath = join(root, "agent", "agent-release.json");
 const priorManagement = Object.freeze({
-  releaseId: rtspHandoff ? "qa-p38-health-connector-restart-grace-34b1985a311c" :
+  releaseId: healthObservation ? "qa-p38-health-connector-rtsp-handoff-kg20-448381dc3792" :
+    rtspHandoff ? "qa-p38-health-connector-restart-grace-34b1985a311c" :
     restartGrace ? "qa-p38-health-connector-relay-backoff-f551947fd1ee" :
     relayBackoff ? "qa-p38-health-connector-liveness-continuity-6efc70f798aa" :
     "qa-p38-management-guard-retry-bc310bf7605c",
-  artifactSha256: rtspHandoff ?
+  artifactSha256: healthObservation ?
+    "448381dc3792dfed37a3e98ddf73b71f5dea1ef8d4119818071e5ed03ede348b" :
+    rtspHandoff ?
     "34b1985a311ce709130331e64228477d766df227ff2da5da3789521972dfae61" :
     restartGrace ?
     "f551947fd1eedcca97a93911ba61b600be06ffab3d0453e9a218b826980ce722" :
@@ -135,7 +146,8 @@ if (installedAgent.release_id !== priorManagement.releaseId ||
   throw new Error("P38_CONNECTOR_LIVENESS_AGENT_PRIOR_MISMATCH");
 
 const manifest = JSON.parse(execFileSync("unzip", ["-p", bundle,
-  rtspHandoff ? "connector_remediation_rtsp_handoff_known_good.json" :
+  healthObservation ? "connector_remediation_health_observation.json" :
+    rtspHandoff ? "connector_remediation_rtsp_handoff_known_good.json" :
     restartGrace ? "connector_remediation_restart_grace.json" :
     relayBackoff ? "connector_remediation_relay_backoff.json" :
     "connector_remediation_liveness_continuity.json"], {
@@ -188,7 +200,7 @@ const rollout = JSON.parse(psql(`select jsonb_build_object(
   'managed_phase',(select metadata->>'home_qa_phase' from public.video_gateway_device_enrollments where gateway_id='${release.deviceId}'),
   'managed_identity',(select identity_scheme from public.video_gateway_device_enrollments where gateway_id='${release.deviceId}'),
   'fresh_proof',(select count(*) from public.video_gateway_device_enrollments e join public.observer_managed_device_credentials c on c.enrollment_id=e.id and c.credential_version=e.credential_version where e.gateway_id='${release.deviceId}' and e.lifecycle_state='ACTIVE' and e.status='delivered' and e.active_runtime_instance_id is not null and e.last_seen_at>=now()-interval '2 minutes' and exists(select 1 from public.observer_managed_device_auth_nonces n where n.enrollment_id=e.id and n.credential_version=e.credential_version and n.observed_at>=now()-interval '2 minutes')));`));
-if (rollout.devices !== 2 || rollout.releases !== (rtspHandoff ? 24 : restartGrace ? 22 : relayBackoff ? 18 : 16) ||
+if (rollout.devices !== 2 || rollout.releases !== (healthObservation ? 25 : rtspHandoff ? 24 : restartGrace ? 22 : relayBackoff ? 18 : 16) ||
   rollout.new_status !== "DRAFT" ||
   rollout.new_cohort !== 0 ||
   JSON.stringify(rollout.new_targets) !== JSON.stringify({ explicit_device_ids: [release.deviceId] }) ||
@@ -219,7 +231,8 @@ const [anonymous, wrongRoute] = await Promise.all([
 if (anonymous !== 401 || wrongRoute !== 404)
   throw new Error("P38_CONNECTOR_LIVENESS_AGENT_INGRESS_INVALID");
 
-const evidence = { protocol: rtspHandoff ? "observer-push38-connector-rtsp-handoff-agent-preflight-v1" :
+const evidence = { protocol: healthObservation ? "observer-push38-connector-health-observation-agent-preflight-v1" :
+    rtspHandoff ? "observer-push38-connector-rtsp-handoff-agent-preflight-v1" :
     restartGrace ? "observer-push38-connector-restart-grace-agent-preflight-v1" :
     relayBackoff ? "observer-push38-connector-relay-backoff-agent-preflight-v1" :
     "observer-push38-connector-liveness-agent-preflight-v1",

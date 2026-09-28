@@ -23,6 +23,8 @@ import { PUSH38_CONNECTOR_RESTART_GRACE_RECOVERY
 } from "../../services/video-gateway/push38-home-qa-connector-restart-grace.mjs";
 import { PUSH38_CONNECTOR_RTSP_HANDOFF_RECOVERY
 } from "../../services/video-gateway/push38-home-qa-connector-rtsp-handoff.mjs";
+import { PUSH38_CONNECTOR_HEALTH_OBSERVATION_RECOVERY
+} from "../../services/video-gateway/push38-home-qa-connector-health-observation.mjs";
 
 const apply = process.argv.includes("--apply");
 const hostContinuity = process.argv.includes("--host-continuity");
@@ -31,10 +33,13 @@ const livenessContinuity = process.argv.includes("--liveness-continuity");
 const relayBackoff = process.argv.includes("--relay-backoff");
 const restartGrace = process.argv.includes("--restart-grace");
 const rtspHandoff = process.argv.includes("--rtsp-handoff");
-if ([hostContinuity, deviceSession, livenessContinuity, relayBackoff, restartGrace, rtspHandoff]
+const healthObservation = process.argv.includes("--health-observation");
+if ([hostContinuity, deviceSession, livenessContinuity, relayBackoff, restartGrace, rtspHandoff,
+  healthObservation]
   .filter(Boolean).length > 1)
   throw new Error("P38_HOME_QA_RTSP_SESSION_MODE_INVALID");
-const item = rtspHandoff ? PUSH38_CONNECTOR_RTSP_HANDOFF_RECOVERY :
+const item = healthObservation ? PUSH38_CONNECTOR_HEALTH_OBSERVATION_RECOVERY :
+  rtspHandoff ? PUSH38_CONNECTOR_RTSP_HANDOFF_RECOVERY :
   restartGrace ? PUSH38_CONNECTOR_RESTART_GRACE_RECOVERY :
   relayBackoff ? PUSH38_CONNECTOR_RELAY_BACKOFF_RECOVERY :
   livenessContinuity ? PUSH38_CONNECTOR_LIVENESS_CONTINUITY :
@@ -45,7 +50,9 @@ const restrictedRoot = "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/r
 const bundleValue = process.argv.find(value => value.startsWith("--bundle="))?.slice(9);
 if (!bundleValue) throw new Error("P38_HOME_QA_RTSP_SESSION_BUNDLE_REQUIRED");
 const bundle = resolve(bundleValue);
-const artifact = rtspHandoff
+const artifact = healthObservation
+  ? `${restrictedRoot}/push38-connector-health-observation-acbcfe8e/connector-remediation.tar.gz`
+  : rtspHandoff
   ? `${restrictedRoot}/push38-connector-rtsp-handoff-a5c3dc51/connector-remediation.tar.gz`
   : restartGrace
   ? `${restrictedRoot}/push38-connector-restart-grace-c177cce7/connector-remediation.tar.gz`
@@ -58,7 +65,9 @@ const artifact = rtspHandoff
   : hostContinuity
   ? `${restrictedRoot}/push38-connector-host-continuity-e0f07860/connector-remediation.tar.gz`
   : `${restrictedRoot}/push38-connector-remediation-38671545/connector-remediation.tar.gz`;
-const publication = rtspHandoff
+const publication = healthObservation
+  ? `${restrictedRoot}/push38-connector-health-observation-acbcfe8e/r2-publication.json`
+  : rtspHandoff
   ? `${restrictedRoot}/push38-connector-rtsp-handoff-a5c3dc51/r2-publication-known-good.json`
   : restartGrace
   ? `${restrictedRoot}/push38-connector-restart-grace-c177cce7/r2-publication.json`
@@ -71,16 +80,17 @@ const publication = rtspHandoff
   : hostContinuity
   ? `${restrictedRoot}/push38-connector-host-continuity-e0f07860/r2-publication.json`
   : `${restrictedRoot}/push38-connector-remediation-38671545/r2-publication.json`;
-const predecessorReleaseId = (hostContinuity || deviceSession || livenessContinuity || relayBackoff || restartGrace || rtspHandoff) ? item.supersedesReleaseId : item.rollbackReleaseId;
-const bundleName = rtspHandoff ? "connector_remediation_rtsp_handoff_known_good.json" :
+const predecessorReleaseId = (hostContinuity || deviceSession || livenessContinuity || relayBackoff || restartGrace || rtspHandoff || healthObservation) ? item.supersedesReleaseId : item.rollbackReleaseId;
+const bundleName = healthObservation ? "connector_remediation_health_observation.json" :
+  rtspHandoff ? "connector_remediation_rtsp_handoff_known_good.json" :
   restartGrace ? "connector_remediation_restart_grace.json" :
   relayBackoff ? "connector_remediation_relay_backoff.json" :
   livenessContinuity ? "connector_remediation_liveness_continuity.json" :
   deviceSession ? "connector_remediation_device_session.json" :
   hostContinuity ? "connector_remediation_host_continuity.json" :
   "connector_remediation_rtsp_session.json";
-const expectedBefore = rtspHandoff ? 23 : restartGrace ? 21 : relayBackoff ? 17 : livenessContinuity ? 15 : deviceSession ? 14 : hostContinuity ? 13 : 9;
-const expectedAfter = rtspHandoff ? 24 : restartGrace ? 22 : relayBackoff ? 18 : livenessContinuity ? 16 : deviceSession ? 15 : hostContinuity ? 14 : 10;
+const expectedBefore = healthObservation ? 24 : rtspHandoff ? 23 : restartGrace ? 21 : relayBackoff ? 17 : livenessContinuity ? 15 : deviceSession ? 14 : hostContinuity ? 13 : 9;
+const expectedAfter = healthObservation ? 25 : rtspHandoff ? 24 : restartGrace ? 22 : relayBackoff ? 18 : livenessContinuity ? 16 : deviceSession ? 15 : hostContinuity ? 14 : 10;
 const accountId = "693f824a750afcc264fe6ee58c8a86ab";
 const origin = `https://${accountId}.r2.cloudflarestorage.com`;
 for (const path of [bundle, artifact, publication]) {
