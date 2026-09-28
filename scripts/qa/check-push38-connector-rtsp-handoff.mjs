@@ -38,6 +38,11 @@ for (const path of ["scripts/release/publish-push38-connector-pidfix-r2.mjs",
   assert.match(readFileSync(path, "utf8"), /rtsp-handoff/);
 const phase = readFileSync("services/video-gateway/home-qa-transition-phase.mjs", "utf8");
 assert.match(phase, new RegExp(item.releaseId));
+const proxy = readFileSync("proxy.ts", "utf8");
+for (const route of ["POST /api/digital-observer/gateway-enrollment",
+  "GET /api/video-gateway/edge-updates", "POST /api/video-gateway/edge-updates/download"])
+  assert.match(proxy, new RegExp(route.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
+assert.match(proxy, /if \(isPush38QualificationDeviceRoute\(request\)\)[\s\S]*NextResponse\.next\(\{ request \}\)[\s\S]*return response;[\s\S]*await updateSession\(request\)/);
 console.log(JSON.stringify({ status: "PASS", release_id: item.releaseId,
   exact_device: true, broad_cohort: false, rollback: item.rollbackReleaseId,
   proactive_handoff_ms: DIRECT_RTSP_PROACTIVE_RELAY_HANDOFF_MS,

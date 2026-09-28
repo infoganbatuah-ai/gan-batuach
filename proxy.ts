@@ -1,6 +1,19 @@
 import { NextResponse, type NextFetchEvent, type NextRequest } from "next/server";
 import { updateSession } from "@/lib/supabase/middleware";
 
+const push38QualificationDeviceRoutes = new Set([
+  "POST /api/digital-observer/gateway-enrollment",
+  "GET /api/video-gateway/edge-updates",
+  "POST /api/video-gateway/edge-updates",
+  "POST /api/video-gateway/edge-updates/download",
+  "POST /api/video-gateway/home-qa-legacy-download"
+]);
+
+function isPush38QualificationDeviceRoute(request: NextRequest) {
+  return process.env.OBSERVER_PUSH38_QUALIFICATION === "enabled" &&
+    push38QualificationDeviceRoutes.has(`${request.method} ${request.nextUrl.pathname}`);
+}
+
 function firstForwardedIp(value: string | null) {
   return value?.split(",")[0]?.trim() || null;
 }
@@ -84,6 +97,14 @@ function writeAuditLog(request: NextRequest, responseStatus: number, requestId: 
 
 export async function proxy(request: NextRequest, event: NextFetchEvent) {
   const requestId = crypto.randomUUID();
+  // The route handlers below perform their own cryptographic device/session
+  // authorization. In isolated qualification, do not block them on an
+  // unrelated browser-session refresh or its unavailable public Kong port.
+  if (isPush38QualificationDeviceRoute(request)) {
+    const response = NextResponse.next({ request });
+    response.headers.set("x-request-id", requestId);
+    return response;
+  }
   const response = await updateSession(request);
   const routedResponse = rewriteForDigitalObserverHost(request, response);
   routedResponse.headers.set("x-request-id", requestId);
