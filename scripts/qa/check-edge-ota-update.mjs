@@ -218,7 +218,8 @@ writeFileSync(cleanRetry.value.statePath, `${JSON.stringify({ ...dirtyHealthy,
   failure_category: "EDGE_UPDATE_CRASH_LOOP", failed_version: "1.0.9" }, null, 2)}\n`);
 assert.equal(cleanRetry.value.reconcileHealthyStatusMetadata().failure_category, null);
 // A newly promoted process that remains down is not allowed to wait forever
-// for a third PID transition. One transient probe cannot trigger rollback.
+// for a third PID transition. Sparse transient probes cannot trigger rollback;
+// repeated sustained observations still do.
 const down = await manager("PHYSICAL_GATEWAY", async () => healthy(10, 6));
 assert.equal((await down.value.apply({ manifest: manifest({ version: "1.1.0", profile: "PHYSICAL_GATEWAY", release: "qa-sustained-down" }), artifactBytes: artifact })).state, "HEALTHY");
 let downClock = 1000;
@@ -226,6 +227,8 @@ const downGuard = createEdgeCrashLoopGuard({ statePath: join(down.root, "sustain
   now: () => downClock, sustainedDownMs: 60_000 });
 await downGuard.observe({ runtimePid: 301, healthy: true });
 downClock += 1000;
+assert.equal((await downGuard.observe({ runtimePid: null, healthy: false })).action, "OBSERVING");
+downClock += 60_000;
 assert.equal((await downGuard.observe({ runtimePid: null, healthy: false })).action, "OBSERVING");
 downClock += 60_000;
 assert.equal((await downGuard.observe({ runtimePid: null, healthy: false })).action, "ROLLED_BACK");
