@@ -16,9 +16,11 @@ assert.equal(manifest.artifact_size, item.size);
 assert.equal(manifest.build_sha, item.buildSha);
 assert.deepEqual(manifest.rollout.explicit_device_ids, [item.deviceId]);
 assert.equal(manifest.rollout.cohort_percent, 0);
-assert.equal(manifest.compatibility.minimum_current_version, "0.2.22-p38-health");
-assert.equal(manifest.compatibility.maximum_current_version, "0.2.22-p38-health");
-assert.equal(item.rollbackReleaseId, "qa-p38-health-connector-restart-grace-34b1985a311c");
+assert.equal(manifest.release_id, "qa-p38-health-connector-rtsp-handoff-kg20-448381dc3792");
+assert.equal(manifest.compatibility.minimum_current_version, "0.2.20-p38-health");
+assert.equal(manifest.compatibility.maximum_current_version, "0.2.20-p38-health");
+assert.equal(item.rollbackReleaseId, "qa-p38-health-connector-liveness-continuity-6efc70f798aa");
+assert.equal(item.supersedesReleaseId, "qa-p38-health-connector-rtsp-handoff-448381dc3792");
 assert.equal(DIRECT_RTSP_PROACTIVE_RELAY_HANDOFF_MS, 25 * 60 * 1000);
 const now = Date.now();
 const eligible = { progressing: true, recoveryStable: true, warming: false,

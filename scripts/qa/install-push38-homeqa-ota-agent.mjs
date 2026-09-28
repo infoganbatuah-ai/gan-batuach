@@ -72,7 +72,7 @@ const spec = connector ? {
   deviceId: "db267b52-6282-4944-bcee-5d4857698fb0",
   baselineRelease: "qa-connector-legacy-transition-v2-6e7988808b05",
   baselineSha: "6e7988808b05956d58416a6ce60638f52b19aa732918ac0e1cdafcc5fc9f130a",
-  remediationRelease: connectorRtspHandoffUpgrade ? "qa-p38-health-connector-rtsp-handoff-448381dc3792" :
+  remediationRelease: connectorRtspHandoffUpgrade ? "qa-p38-health-connector-rtsp-handoff-kg20-448381dc3792" :
     connectorRestartGraceUpgrade ? "qa-p38-health-connector-restart-grace-34b1985a311c" :
     connectorRelayBackoffUpgrade ? "qa-p38-health-connector-relay-backoff-f551947fd1ee" :
     connectorLivenessContinuityUpgrade ? "qa-p38-health-connector-liveness-continuity-6efc70f798aa" :
@@ -87,7 +87,7 @@ const spec = connector ? {
     recoveryUpgrade ? "qa-p38-health-connector-recovery-9bb5db251379" :
     managementUpgrade ? "qa-p38-health-connector-pidfix-1b9e9499ffa7" :
     "qa-p38-health-connector-1b076f596574",
-  bundleName: connectorRtspHandoffUpgrade ? "connector_remediation_rtsp_handoff.json" :
+  bundleName: connectorRtspHandoffUpgrade ? "connector_remediation_rtsp_handoff_known_good.json" :
     connectorRestartGraceUpgrade ? "connector_remediation_restart_grace.json" :
     connectorRelayBackoffUpgrade ? "connector_remediation_relay_backoff.json" :
     connectorLivenessContinuityUpgrade ? "connector_remediation_liveness_continuity.json" :
@@ -214,7 +214,7 @@ const plan = planInstalledOtaAgent({ profile, managedRoot: root, agentPlistPath,
 if (apply) validateHomeQaOtaIdentityScope({ managedRoot: root, runtimeConfig });
 const bundleOverride = process.argv.find(arg => arg.startsWith("--bundle="))?.slice(9);
 const bundle = resolve(bundleOverride || (connectorRtspHandoffUpgrade
-  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-connector-rtsp-handoff.zip"
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-connector-rtsp-handoff-known-good.zip"
   : connectorRestartGraceUpgrade
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-homeqa-connector-restart-grace.zip"
   : connectorRelayBackoffUpgrade

@@ -37,9 +37,9 @@ export async function issuePush38ConnectorRtspHandoff({ env = process.env, call 
     fail("P38_CONNECTOR_RTSP_HANDOFF_SIGNED_MANIFEST_INVALID");
   mkdirSync(output, { mode: 0o700 });
   const bytes = Buffer.from(`${JSON.stringify(result.document, null, 2)}\n`);
-  writeFileSync(join(output, "connector_remediation_rtsp_handoff.json"), bytes,
+  writeFileSync(join(output, "connector_remediation_rtsp_handoff_known_good.json"), bytes,
     { flag: "wx", mode: 0o600 });
-  writeFileSync(join(output, "connector_remediation_rtsp_handoff.evidence.json"),
+  writeFileSync(join(output, "connector_remediation_rtsp_handoff_known_good.evidence.json"),
     `${JSON.stringify({ ...result.evidence, role: item.role, device_id: item.deviceId,
       artifact_sha256: result.document.artifact_sha256, manifest_file_sha256: digest(bytes),
       source_commit: env.PUSH38_CANDIDATE_SHA, signing_workflow_commit: env.GITHUB_SHA }, null, 2)}\n`,

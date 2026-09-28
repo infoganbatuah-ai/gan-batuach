@@ -2,21 +2,23 @@ import { validateEdgeUpdateManifest } from "./edge-update-contract.mjs";
 import { assertEdgeReleaseObjectUrl, edgeReleaseObjectPath,
   EDGE_RELEASE_R2_BUCKET } from "./edge-release-object.mjs";
 
-// Immutable successor to the healthy 0.2.22 Connector. The release adds a
-// proactive warm handoff for long-lived direct RTSP sessions while retaining
-// 0.2.22 as the signed known-good rollback target.
+// Immutable replacement for the unactivated 0.2.23 manifest that assumed
+// 0.2.22 would remain current. The live agent later quarantined 0.2.22 after
+// an hour-long crash-loop observation and recovered the signed 0.2.20
+// known-good. This release keeps the exact qualified 0.2.23 artifact bytes but
+// binds installation and rollback to the actually verified 0.2.20 state.
 export const PUSH38_CONNECTOR_RTSP_HANDOFF_RECOVERY = Object.freeze({
-  role: "CONNECTOR_RTSP_HANDOFF_RECOVERY",
+  role: "CONNECTOR_RTSP_HANDOFF_RECOVERY_FROM_KNOWN_GOOD",
   deviceId: "db267b52-6282-4944-bcee-5d4857698fb0",
-  releaseId: "qa-p38-health-connector-rtsp-handoff-448381dc3792",
+  releaseId: "qa-p38-health-connector-rtsp-handoff-kg20-448381dc3792",
   version: "0.2.23-p38-health",
   buildSha: "a5c3dc51a7f4e3d6bc4a8cbb2d585a85a6e31fa7",
   digest: "448381dc3792dfed37a3e98ddf73b71f5dea1ef8d4119818071e5ed03ede348b",
   size: 147408131,
   profile: "SOFTWARE_CONNECTOR",
-  rollbackReleaseId: "qa-p38-health-connector-restart-grace-34b1985a311c",
-  rollbackVersion: "0.2.22-p38-health",
-  supersedesReleaseId: "qa-p38-health-connector-restart-grace-34b1985a311c"
+  rollbackReleaseId: "qa-p38-health-connector-liveness-continuity-6efc70f798aa",
+  rollbackVersion: "0.2.20-p38-health",
+  supersedesReleaseId: "qa-p38-health-connector-rtsp-handoff-448381dc3792"
 });
 
 export function buildPush38ConnectorRtspHandoffManifest({ signingKeyId,

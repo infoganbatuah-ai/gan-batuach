@@ -59,7 +59,7 @@ const artifact = rtspHandoff
   ? `${restrictedRoot}/push38-connector-host-continuity-e0f07860/connector-remediation.tar.gz`
   : `${restrictedRoot}/push38-connector-remediation-38671545/connector-remediation.tar.gz`;
 const publication = rtspHandoff
-  ? `${restrictedRoot}/push38-connector-rtsp-handoff-a5c3dc51/r2-publication.json`
+  ? `${restrictedRoot}/push38-connector-rtsp-handoff-a5c3dc51/r2-publication-known-good.json`
   : restartGrace
   ? `${restrictedRoot}/push38-connector-restart-grace-c177cce7/r2-publication.json`
   : relayBackoff
@@ -72,15 +72,15 @@ const publication = rtspHandoff
   ? `${restrictedRoot}/push38-connector-host-continuity-e0f07860/r2-publication.json`
   : `${restrictedRoot}/push38-connector-remediation-38671545/r2-publication.json`;
 const predecessorReleaseId = (hostContinuity || deviceSession || livenessContinuity || relayBackoff || restartGrace || rtspHandoff) ? item.supersedesReleaseId : item.rollbackReleaseId;
-const bundleName = rtspHandoff ? "connector_remediation_rtsp_handoff.json" :
+const bundleName = rtspHandoff ? "connector_remediation_rtsp_handoff_known_good.json" :
   restartGrace ? "connector_remediation_restart_grace.json" :
   relayBackoff ? "connector_remediation_relay_backoff.json" :
   livenessContinuity ? "connector_remediation_liveness_continuity.json" :
   deviceSession ? "connector_remediation_device_session.json" :
   hostContinuity ? "connector_remediation_host_continuity.json" :
   "connector_remediation_rtsp_session.json";
-const expectedBefore = rtspHandoff ? 22 : restartGrace ? 21 : relayBackoff ? 17 : livenessContinuity ? 15 : deviceSession ? 14 : hostContinuity ? 13 : 9;
-const expectedAfter = rtspHandoff ? 23 : restartGrace ? 22 : relayBackoff ? 18 : livenessContinuity ? 16 : deviceSession ? 15 : hostContinuity ? 14 : 10;
+const expectedBefore = rtspHandoff ? 23 : restartGrace ? 21 : relayBackoff ? 17 : livenessContinuity ? 15 : deviceSession ? 14 : hostContinuity ? 13 : 9;
+const expectedAfter = rtspHandoff ? 24 : restartGrace ? 22 : relayBackoff ? 18 : livenessContinuity ? 16 : deviceSession ? 15 : hostContinuity ? 14 : 10;
 const accountId = "693f824a750afcc264fe6ee58c8a86ab";
 const origin = `https://${accountId}.r2.cloudflarestorage.com`;
 for (const path of [bundle, artifact, publication]) {

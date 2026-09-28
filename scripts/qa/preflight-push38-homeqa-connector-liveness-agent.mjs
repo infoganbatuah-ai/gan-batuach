@@ -44,7 +44,7 @@ const artifact = rtspHandoff
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-connector-relay-backoff-4cc211b8/connector-remediation.tar.gz"
   : "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-connector-liveness-continuity-2840a593/connector-remediation.tar.gz";
 const publication = rtspHandoff
-  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-connector-rtsp-handoff-a5c3dc51/r2-publication.json"
+  ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-connector-rtsp-handoff-a5c3dc51/r2-publication-known-good.json"
   : restartGrace
   ? "/Volumes/DIGITAL_OBSERVER/Projects/Gan-Batuach/exports/restricted/push38-connector-restart-grace-c177cce7/r2-publication.json"
   : relayBackoff
@@ -135,7 +135,7 @@ if (installedAgent.release_id !== priorManagement.releaseId ||
   throw new Error("P38_CONNECTOR_LIVENESS_AGENT_PRIOR_MISMATCH");
 
 const manifest = JSON.parse(execFileSync("unzip", ["-p", bundle,
-  rtspHandoff ? "connector_remediation_rtsp_handoff.json" :
+  rtspHandoff ? "connector_remediation_rtsp_handoff_known_good.json" :
     restartGrace ? "connector_remediation_restart_grace.json" :
     relayBackoff ? "connector_remediation_relay_backoff.json" :
     "connector_remediation_liveness_continuity.json"], {
@@ -188,7 +188,7 @@ const rollout = JSON.parse(psql(`select jsonb_build_object(
   'managed_phase',(select metadata->>'home_qa_phase' from public.video_gateway_device_enrollments where gateway_id='${release.deviceId}'),
   'managed_identity',(select identity_scheme from public.video_gateway_device_enrollments where gateway_id='${release.deviceId}'),
   'fresh_proof',(select count(*) from public.video_gateway_device_enrollments e join public.observer_managed_device_credentials c on c.enrollment_id=e.id and c.credential_version=e.credential_version where e.gateway_id='${release.deviceId}' and e.lifecycle_state='ACTIVE' and e.status='delivered' and e.active_runtime_instance_id is not null and e.last_seen_at>=now()-interval '2 minutes' and exists(select 1 from public.observer_managed_device_auth_nonces n where n.enrollment_id=e.id and n.credential_version=e.credential_version and n.observed_at>=now()-interval '2 minutes')));`));
-if (rollout.devices !== 2 || rollout.releases !== (rtspHandoff ? 23 : restartGrace ? 22 : relayBackoff ? 18 : 16) ||
+if (rollout.devices !== 2 || rollout.releases !== (rtspHandoff ? 24 : restartGrace ? 22 : relayBackoff ? 18 : 16) ||
   rollout.new_status !== "DRAFT" ||
   rollout.new_cohort !== 0 ||
   JSON.stringify(rollout.new_targets) !== JSON.stringify({ explicit_device_ids: [release.deviceId] }) ||
