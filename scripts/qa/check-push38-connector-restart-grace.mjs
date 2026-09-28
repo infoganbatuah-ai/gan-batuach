@@ -22,7 +22,8 @@ assert.match(guard, /supervisorRestarted/);
 assert.match(guard, /unhealthy_since: null/);
 for (const path of ["scripts/qa/install-push38-homeqa-ota-agent.mjs",
   "scripts/qa/register-push38-homeqa-connector-rtsp-session.mjs",
-  "scripts/qa/activate-push38-homeqa-connector-rtsp-session.mjs"])
+  "scripts/qa/activate-push38-homeqa-connector-rtsp-session.mjs",
+  "scripts/qa/retry-push38-homeqa-connector-restart-grace-after-source-recovery.mjs"])
   assert.match(readFileSync(path, "utf8"), /PUSH38_CONNECTOR_RESTART_GRACE_RECOVERY|connector-restart-grace/);
 console.log(JSON.stringify({ status: "PASS", release_id: item.releaseId,
   exact_device: true, broad_cohort: false, rollback: item.rollbackReleaseId,
