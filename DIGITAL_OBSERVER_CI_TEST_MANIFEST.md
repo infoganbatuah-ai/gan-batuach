@@ -94,7 +94,7 @@ Generated from tracked repository state by `scripts/qa/build-ci-test-manifest.mj
 
 ## COMPLETE QA SCRIPT INVENTORY
 
-Inventory count: **328** files. Classifications are conservative; environment-dependent scripts stay outside Tier 1.
+Inventory count: **329** files. Classifications are conservative; environment-dependent scripts stay outside Tier 1.
 
 | File | Command | Tier | Deterministic | Network | Hardware | Production credentials | Destructive | Domain | Classification | Missing dependency |
 |---|---|---|---|---|---|---|---|---|---|---|
@@ -223,6 +223,7 @@ Inventory count: **328** files. Classifications are conservative; environment-de
 | `scripts/qa/check-push38-connector-device-session-pidfix-retry.mjs` | node scripts/qa/check-push38-connector-device-session-pidfix-retry.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/check-push38-connector-device-session.mjs` | node scripts/qa/check-push38-connector-device-session.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/check-push38-connector-final-stability.mjs` | node scripts/qa/check-push38-connector-final-stability.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
+| `scripts/qa/check-push38-connector-generic-rtsp.mjs` | node scripts/qa/check-push38-connector-generic-rtsp.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/check-push38-connector-guard-retry.mjs` | node scripts/qa/check-push38-connector-guard-retry.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/check-push38-connector-health-observation.mjs` | node scripts/qa/check-push38-connector-health-observation.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
 | `scripts/qa/check-push38-connector-host-continuity.mjs` | node scripts/qa/check-push38-connector-host-continuity.mjs | TIER 1 — CI DETERMINISTIC | YES | NO | NO | NO | NO | CAMERA / GATEWAY / CONNECTOR | SUPPORTING | none known |
