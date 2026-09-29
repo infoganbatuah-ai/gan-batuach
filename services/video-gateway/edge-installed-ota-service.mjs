@@ -13,6 +13,23 @@ import { edgeHealthGate, edgeRollbackRecoveryGate } from "./edge-update-manager.
 import { softwareConnectorDeviceSession } from "./software-connector-cloud.mjs";
 
 function fail(code) { throw Object.assign(new Error(code), { code }); }
+export const INSTALLED_EDGE_HEALTH_TIMEOUT_MS = Object.freeze({
+  CONNECTOR_READY: 210_000,
+  CONNECTOR_ROLLBACK: 15_000,
+  GATEWAY_READY: 300_000,
+  GATEWAY_ROLLBACK: 300_000
+});
+
+export function installedEdgeHealthTimeoutMs({ profile, rollback = false }) {
+  if (!["PHYSICAL_GATEWAY", "SOFTWARE_CONNECTOR"].includes(profile))
+    fail("EDGE_OTA_HEALTH_PROFILE_INVALID");
+  if (profile === "PHYSICAL_GATEWAY") return rollback
+    ? INSTALLED_EDGE_HEALTH_TIMEOUT_MS.GATEWAY_ROLLBACK
+    : INSTALLED_EDGE_HEALTH_TIMEOUT_MS.GATEWAY_READY;
+  return rollback
+    ? INSTALLED_EDGE_HEALTH_TIMEOUT_MS.CONNECTOR_ROLLBACK
+    : INSTALLED_EDGE_HEALTH_TIMEOUT_MS.CONNECTOR_READY;
+}
 export function deriveInstalledEdgeHealth({ profile, expected, configured = expected, probe, cloudReachable,
   managedDeviceAuthenticated = false, qa = false }) {
   const body = probe.body || {};
@@ -122,11 +139,13 @@ export async function runInstalledEdgeOtaService(configPath, { signal } = {}) {
         configured: config.configuredPhysicalCameras ?? config.expectedPhysicalCameras,
         probe, cloudReachable: managedSessionVerified, managedDeviceAuthenticated: managedSessionVerified, qa });
     };
-    // Connector RTSP startup is bounded at three minutes. Rollback does not
-    // wait for a pre-existing camera outage to clear; it proves two stable
-    // signed-known-good process samples and preserves the degraded evidence.
+    // The Home DVR needs up to roughly three minutes to recreate its shared
+    // login and relays after a supervised restart. Keep a bounded five-minute
+    // Gateway window while retaining the exact progression gate. Gateway
+    // rollback uses the same bound because a signed known-good restart has the
+    // same recorder startup path. Connector policy remains unchanged.
     return waitForInstalledEdgeHealth({ readHealth, runtimePid: adapter.runtimePid, rollback,
-      timeoutMs: rollback ? 15_000 : config.profile === "SOFTWARE_CONNECTOR" ? 210_000 : 90_000 });
+      timeoutMs: installedEdgeHealthTimeoutMs({ profile: config.profile, rollback }) });
   };
   const download = qa ? async ({ destination }) => {
     const value = JSON.parse(readFileSync(config.qaReleasePath, "utf8"));

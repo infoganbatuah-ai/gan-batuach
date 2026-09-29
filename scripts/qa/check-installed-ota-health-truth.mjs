@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
-import { deriveInstalledEdgeHealth, waitForInstalledEdgeHealth } from "../../services/video-gateway/edge-installed-ota-service.mjs";
+import { deriveInstalledEdgeHealth, installedEdgeHealthTimeoutMs,
+  waitForInstalledEdgeHealth } from "../../services/video-gateway/edge-installed-ota-service.mjs";
 import { edgeHealthGate } from "../../services/video-gateway/edge-update-manager.mjs";
 
 const base = { ok: true, service: { running: true }, body: { deviceAuthorization: { status: "ready" } } };
@@ -47,6 +48,10 @@ const hiddenConfiguredSources = deriveInstalledEdgeHealth({ profile: "PHYSICAL_G
     mediaHeartbeat: { progressingRelays: 8, stalledRelays: 0 } } }, cloudReachable: true });
 assert.equal(hiddenConfiguredSources.config_retrieved, false);
 assert.equal(edgeHealthGate(hiddenConfiguredSources).healthy, false);
+assert.equal(installedEdgeHealthTimeoutMs({ profile: "PHYSICAL_GATEWAY" }), 300_000);
+assert.equal(installedEdgeHealthTimeoutMs({ profile: "PHYSICAL_GATEWAY", rollback: true }), 300_000);
+assert.equal(installedEdgeHealthTimeoutMs({ profile: "SOFTWARE_CONNECTOR" }), 210_000);
+assert.equal(installedEdgeHealthTimeoutMs({ profile: "SOFTWARE_CONNECTOR", rollback: true }), 15_000);
 
 let clock = 0, pid = 41, index = 0;
 const readiness = [managedAgentAuth, recovered, recovered];
@@ -63,6 +68,34 @@ await waitForInstalledEdgeHealth({ readHealth: async () => recovered,
   now: () => clock, pause: async ms => { clock += ms; } });
 assert.equal(index, 3, "a PID handoff resets the stable sample count");
 
+clock = 0; index = 0; pid = 81;
+const gatewayStartup = Array.from({ length: 37 }, () => falseProgress).concat([gateway, gateway]);
+const delayedGateway = await waitForInstalledEdgeHealth({
+  readHealth: async () => gatewayStartup[index++] || gateway,
+  runtimePid: () => pid,
+  timeoutMs: installedEdgeHealthTimeoutMs({ profile: "PHYSICAL_GATEWAY" }),
+  intervalMs: 5_000,
+  probeTimeoutMs: 500,
+  now: () => clock,
+  pause: async ms => { clock += ms; }
+});
+assert.equal(edgeHealthGate(delayedGateway).healthy, true);
+assert.equal(clock, 190_000, "Gateway may recover after the former 90-second cutoff");
+
+clock = 0; index = 0; pid = 82;
+const stillUnhealthy = await waitForInstalledEdgeHealth({
+  readHealth: async () => { index += 1; return falseProgress; },
+  runtimePid: () => pid,
+  timeoutMs: installedEdgeHealthTimeoutMs({ profile: "PHYSICAL_GATEWAY" }),
+  intervalMs: 5_000,
+  probeTimeoutMs: 500,
+  now: () => clock,
+  pause: async ms => { clock += ms; }
+});
+assert.equal(edgeHealthGate(stillUnhealthy).healthy, false,
+  "the longer bounded window must not weaken the progression requirement");
+assert.equal(clock, 300_000);
+
 clock = 0; index = 0; pid = 90;
 const rolledBackDegraded = await waitForInstalledEdgeHealth({ readHealth: async () => { index += 1; return managedAgentAuth; },
   runtimePid: () => pid, rollback: true, timeoutMs: 5_000, intervalMs: 1_000, probeTimeoutMs: 500,
@@ -75,4 +108,5 @@ console.log(JSON.stringify({ result: "PASS", connector_stall_detected: true,
   connector_recovery_detected: true, gateway_progression_detected: true,
   connected_without_frames_rejected: true, known_upstream_failure_bounded: true,
   configured_sources_cannot_be_hidden: true, bounded_readiness_wait: true,
+  gateway_measured_startup_window: true, gateway_progression_gate_preserved: true,
   stable_pid_required: true, degraded_signed_rollback_accepted: true }));
