@@ -9,6 +9,7 @@ import { buildPush38GatewayFiniteStreamHandoffManifest,
   "../../services/video-gateway/push38-home-qa-gateway-finite-stream-handoff.mjs";
 import { PRIVATE_NVR_COMMON_CAUSE_HEARTBEAT_FAILURES,
   PRIVATE_NVR_PROACTIVE_IDLE_HANDOFF_MS, PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS,
+  PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS,
   PRIVATE_NVR_PROACTIVE_RENEWAL_MS,
   PRIVATE_NVR_RELAY_HANDOFF_TICK_MS,
   relayMaySurvivePrivateNvrRenewal, shouldProactivelyHandoffPrivateNvrRelay,
@@ -121,12 +122,20 @@ test("finite recorder responses receive an early media-only warm handoff", () =>
   assert.equal(shouldProactivelyHandoffPrivateNvrRelay({ ...eligible,
     startedAt: now - PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS + 1 }, now), false);
   assert.equal(PRIVATE_NVR_PROACTIVE_IDLE_HANDOFF_MS, 12_000);
+  assert.equal(PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS, 8_000);
   assert.equal(shouldProactivelyHandoffPrivateNvrRelay({ ...eligible,
     startedAt: now - PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS + 1,
-    lastInputAt: now - PRIVATE_NVR_PROACTIVE_IDLE_HANDOFF_MS }, now), true);
+    lastInputAt: now - PRIVATE_NVR_PROACTIVE_IDLE_HANDOFF_MS,
+    lastOutputAt: now - PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS }, now), true);
   assert.equal(shouldProactivelyHandoffPrivateNvrRelay({ ...eligible,
     startedAt: now - PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS + 1,
-    lastInputAt: now - PRIVATE_NVR_PROACTIVE_IDLE_HANDOFF_MS + 1 }, now), false);
+    lastInputAt: now - PRIVATE_NVR_PROACTIVE_IDLE_HANDOFF_MS,
+    lastOutputAt: now - PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS + 1 }, now), false);
+  assert.equal(shouldProactivelyHandoffPrivateNvrRelay({ ...eligible,
+    startedAt: now - PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS + 1,
+    lastInputAt: now - PRIVATE_NVR_PROACTIVE_IDLE_HANDOFF_MS,
+    lastOutputAt: now }, now), false,
+  "bursty recorder input must not replace a relay while HLS output is current");
   assert.equal(shouldProactivelyHandoffPrivateNvrRelay({ ...eligible,
     progressing: false }, now), false);
   assert.equal(shouldProactivelyHandoffPrivateNvrRelay({ ...eligible,
@@ -167,6 +176,13 @@ test("heartbeat, login renewal, and media handoffs use independent bounded sched
   assert.match(gateway, /startRelay\(streamId, \{ warming: true, previousRelay: previous \}\)/);
   assert.match(gateway, /relayLifecycle\.warmHandoffs/);
   assert.match(gateway, /previousDirectories/);
+  assert.match(gateway, /const liveRelays = new Set\(\)/);
+  assert.match(gateway, /\.\.\.\[\.\.\.liveRelays\]\.flatMap/);
+  assert.match(gateway,
+    /Private DVR HTTP responses are bursty:[\s\S]*if \(!progressing \|\| directRtsp && inputStale\)/);
+  assert.match(gateway,
+    /function relayEligibleForHandoff\(streamId, relay\)[\s\S]*!relayRecovery\.has\(streamId\) \|\| relayRecoveryIsStable\(relay\)/,
+  "only an actual recovery history may impose the sixty-second handoff stability window");
   assert.match(gateway, /"-start_number", String\(firstEvidenceSequence\)/);
   assert.match(gateway, /function readEvidenceSegment[\s\S]*relay\.previousDirectories/);
 });

@@ -108,8 +108,9 @@ async function maintainPrivateNvrRelayHandoffs() {
     if (shouldProactivelyHandoffPrivateNvrRelay({
       startedAt: relay.startedAt,
       lastInputAt: relay.lastInputAt,
+      lastOutputAt: relayPlaylistMtime(relay),
       progressing: relayIsProgressing(relay),
-      recoveryStable: relayRecoveryIsStable(relay),
+      recoveryStable: relayEligibleForHandoff(streamId, relay),
       warming: relay.warming
     }, observedAt)) routine.push([streamId, relay]);
   }
@@ -142,7 +143,7 @@ async function maintainDirectRtspRelayHandoffs() {
     if (shouldProactivelyHandoffDirectRtspRelay({
       startedAt: relay.startedAt,
       progressing: relayIsProgressing(relay),
-      recoveryStable: relayRecoveryIsStable(relay),
+      recoveryStable: relayEligibleForHandoff(streamId, relay),
       warming: relay.warming
     }, observedAt)) {
       await warmReplaceDirectRtspRelay(streamId, relay);
@@ -187,6 +188,9 @@ setInterval(() => {
   }
 }, PRIVATE_NVR_RELAY_HANDOFF_TICK_MS).unref();
 const relays = new Map();
+// Include warm replacements that are not yet promoted into `relays`. HLS
+// cleanup must never remove a directory while any FFmpeg process owns it.
+const liveRelays = new Set();
 const eventEvidence = createEventEvidenceStore();
 const eventCaptureWorkspace = createEventCaptureWorkspace();
 eventCaptureWorkspace.reap();
@@ -1327,6 +1331,18 @@ function relayIsProgressing(relay) {
   }
 }
 
+function relayPlaylistMtime(relay) {
+  if (!relay || !existsSync(relay.playlist)) return null;
+  try { return statSync(relay.playlist).mtimeMs; } catch { return null; }
+}
+
+function relayEligibleForHandoff(streamId, relay) {
+  // The stability window protects a relay that just recovered from a real
+  // failure. A first healthy relay has no failure history and must be allowed
+  // to hand off before a finite recorder response reaches its output boundary.
+  return !relayRecovery.has(streamId) || relayRecoveryIsStable(relay);
+}
+
 function observeLocalResources() {
   for (const [streamId, source] of streamSources) {
     const relay = relays.get(streamId);
@@ -1359,7 +1375,9 @@ function cleanupRelayDirectories(streamId, replacement, directories) {
         .filter(directory => !directories.includes(directory));
     }
     const activeDirectories = new Set([current?.directory,
-      ...(current?.previousDirectories || [])].filter(Boolean));
+      ...(current?.previousDirectories || []),
+      ...[...liveRelays].flatMap(relay => [relay.directory,
+        ...(relay.previousDirectories || [])])].filter(Boolean));
     for (const directory of directories) {
       const normalized = normalize(directory);
       if (!activeDirectories.has(directory) && normalized.startsWith(`${normalize(HLS_ROOT)}/`)) {
@@ -1488,6 +1506,7 @@ async function startRelay(streamId, { warming = false, previousRelay = null } = 
     encoder: copyVideo ? "copy" : hardwareVideo ? "videotoolbox" : "libx264",
     controller, errorSummary: "", sessionToken, sessionEpoch, sessionKey,
     warming, previousDirectories: [], monitor: null };
+  liveRelays.add(relay);
   relayLifecycle.starts += 1;
   relayDiagnostics.set(streamId, { ...(relayDiagnostics.get(streamId) || {}), starts: (relayDiagnostics.get(streamId)?.starts || 0) + 1, last_start_at: new Date(relay.startedAt).toISOString() });
   if (!warming) relays.set(streamId, relay);
@@ -1518,11 +1537,17 @@ async function startRelay(streamId, { warming = false, previousRelay = null } = 
       } catch {}
     }
     if (Date.now() - relay.startedAt < RELAY_STALE_MS) return;
-    if (!relayIsProgressing(relay) || Date.now() - relay.lastInputAt >= RELAY_STALE_MS) {
-      if (hardwareVideo && (!relayIsProgressing(relay) && Date.now() - relay.lastInputAt < RELAY_STALE_MS || child.stdin.writableNeedDrain)) hardwareTranscoder.failed(streamId);
-      relayLifecycle[Date.now() - relay.lastInputAt >= RELAY_STALE_MS ? "staleInput" : "stalePlaylist"] += 1;
+    const progressing = relayIsProgressing(relay);
+    const inputStale = Date.now() - relay.lastInputAt >= RELAY_STALE_MS;
+    // Private DVR HTTP responses are bursty: input can pause while FFmpeg is
+    // still rendering current buffered media. Only stale rendered output is a
+    // failure for that source kind. Direct RTSP retains the stricter signal
+    // because lastInputAt follows playlist progress there.
+    if (!progressing || directRtsp && inputStale) {
+      if (hardwareVideo && (!progressing && !inputStale || child.stdin.writableNeedDrain)) hardwareTranscoder.failed(streamId);
+      relayLifecycle[inputStale && !progressing ? "staleInput" : "stalePlaylist"] += 1;
       if (!relay.warming && relays.get(streamId) === relay) armRelayRecovery(streamId, relay);
-      stopRelay(streamId, relay, Date.now() - relay.lastInputAt >= RELAY_STALE_MS ? "STALE_INPUT" : "STALE_PLAYLIST");
+      stopRelay(streamId, relay, inputStale && !progressing ? "STALE_INPUT" : "STALE_PLAYLIST");
     }
   }, 2000);
   relay.monitor.unref();
@@ -1530,6 +1555,7 @@ async function startRelay(streamId, { warming = false, previousRelay = null } = 
     relay.errorSummary = `${relay.errorSummary}${chunk.toString("utf8")}`.slice(-2000);
   });
   child.on("close", (code) => {
+    liveRelays.delete(relay);
     relay.drainTimer && clearTimeout(relay.drainTimer);
     if (hardwareVideo && code !== null && code !== 0 && !relay.inputFailed) hardwareTranscoder.failed(streamId);
     if (code === 0) relayLifecycle.upstreamEnded += 1;
