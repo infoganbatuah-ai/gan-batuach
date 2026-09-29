@@ -26,6 +26,14 @@ export const PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS = 2 * 60 * 1000;
 // the hard-stale boundary for the bounded warm replacement to become current.
 export const PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS = 12_000;
 export const PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS = 10_000;
+// Output rescue is justified only while recorder bytes are still arriving but
+// rendered HLS has stopped. Treating a recorder-wide burst pause as an output
+// failure caused unnecessary relay churn in the first live canary.
+export const PRIVATE_NVR_OUTPUT_RESCUE_INPUT_FRESH_MS = 4_000;
+// A routine finite-response handoff keeps the old relay authoritative until
+// the replacement survives the same interval that defines a hard stale relay.
+// Two early playlist writes were not sufficient in live Home evidence.
+export const PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_MS = 20_000;
 // A new login on the Home recorder was observed to retire media responses
 // from the prior login after roughly fifty seconds. Keep one-at-a-time relay
 // replacement, but drive the independent handoff scheduler quickly enough to
@@ -43,14 +51,33 @@ export function shouldPrioritizePrivateNvrSessionHandoff({ relayEpoch,
     && relayEpoch < currentEpoch);
 }
 
-export function shouldProactivelyHandoffPrivateNvrRelay(relay, now = Date.now()) {
-  if (!relay?.progressing || relay?.warming || !Number.isFinite(relay.startedAt)) return false;
+export function privateNvrRelayHandoffMode(relay, now = Date.now()) {
+  if (!relay?.progressing || relay?.warming || !Number.isFinite(relay.startedAt)) return null;
   const ageMs = now - relay.startedAt;
+  if (relay.recoveryStable && ageMs >= PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS) {
+    return "ROUTINE_FINITE_RESPONSE";
+  }
   const outputRescue = ageMs >= PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS
+    && Number.isFinite(relay.lastInputAt)
+    && now - relay.lastInputAt <= PRIVATE_NVR_OUTPUT_RESCUE_INPUT_FRESH_MS
     && Number.isFinite(relay.lastOutputAt)
     && now - relay.lastOutputAt >= PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS;
-  return Boolean(outputRescue || relay.recoveryStable
-    && ageMs >= PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS);
+  return outputRescue ? "OUTPUT_RESCUE" : null;
+}
+
+export function shouldProactivelyHandoffPrivateNvrRelay(relay, now = Date.now()) {
+  return privateNvrRelayHandoffMode(relay, now) !== null;
+}
+
+export function privateNvrRoutineHandoffConfirmed({ confirmationStartedAt,
+  outputAdvanced, lastOutputAt, now = Date.now(),
+  minimumConfirmationMs = PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_MS,
+  maximumOutputIdleMs = PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS }) {
+  return Boolean(outputAdvanced
+    && Number.isFinite(confirmationStartedAt)
+    && now - confirmationStartedAt >= minimumConfirmationMs
+    && Number.isFinite(lastOutputAt)
+    && now - lastOutputAt <= maximumOutputIdleMs);
 }
 
 // Login/Heartbeat is the recorder's supported session-maintenance contract.

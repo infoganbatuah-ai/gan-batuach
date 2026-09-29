@@ -15,8 +15,10 @@ import { relayMaySurvivePrivateNvrRenewal, reuseMatchingPrivateNvrSession,
   PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS,
   PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS,
   PRIVATE_NVR_RELAY_HANDOFF_TICK_MS,
+  PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_MS,
+  privateNvrRelayHandoffMode, privateNvrRoutineHandoffConfirmed,
   shouldPrioritizePrivateNvrSessionHandoff,
-  shouldProactivelyHandoffPrivateNvrRelay, shouldProactivelyRefreshPrivateNvrSession,
+  shouldProactivelyRefreshPrivateNvrSession,
   shouldRefreshPrivateNvrSession } from
   "./private-nvr-session-policy.mjs";
 import { DIRECT_RTSP_MINIMUM_OUTPUT_RESCUE_AGE_MS,
@@ -109,14 +111,15 @@ async function maintainPrivateNvrRelayHandoffs() {
       sessionSweep.push([streamId, relay]);
       continue;
     }
-    if (shouldProactivelyHandoffPrivateNvrRelay({
+    const handoffMode = privateNvrRelayHandoffMode({
       startedAt: relay.startedAt,
       lastInputAt: relay.lastInputAt,
       lastOutputAt: relayPlaylistMtime(relay),
       progressing: relayIsProgressing(relay),
       recoveryStable: relayEligibleForHandoff(streamId, relay),
       warming: relay.warming
-    }, observedAt)) routine.push([streamId, relay]);
+    }, observedAt);
+    if (handoffMode) routine.push([streamId, relay, handoffMode]);
   }
   // Once a new non-exclusive login exists, do not spend another two-second
   // scheduler interval between channels. Warm replacements remain strictly
@@ -129,9 +132,9 @@ async function maintainPrivateNvrRelayHandoffs() {
     }
     return;
   }
-  const [streamId, relay] = routine[0] || [];
+  const [streamId, relay, handoffMode] = routine[0] || [];
   if (streamId && relays.get(streamId) === relay) {
-    await warmReplacePrivateNvrRelay(streamId, relay);
+    await warmReplacePrivateNvrRelay(streamId, relay, handoffMode);
   }
 }
 
@@ -1407,7 +1410,11 @@ function cleanupRelayDirectories(streamId, replacement, directories) {
   timer.unref();
 }
 
-async function warmReplaceRelay(streamId, previous) {
+async function warmReplaceRelay(streamId, previous, {
+  minimumConfirmationMs = 0,
+  maximumOutputIdleMs = null,
+  handoffMode = "STANDARD"
+} = {}) {
   // A relay that has only just recovered has not yet proved that it can
   // sustain the recorder's finite native response. Opening a second stream
   // for that channel immediately can collide with the recorder's per-channel
@@ -1418,19 +1425,31 @@ async function warmReplaceRelay(streamId, previous) {
   if (!previous || !relayIsProgressing(previous) ||
     !relayEligibleForHandoff(streamId, previous) || relayWarmups.has(streamId)) return false;
   const promise = (async () => {
-    const replacement = await startRelay(streamId, { warming: true, previousRelay: previous });
+    const replacement = await startRelay(streamId, { warming: true,
+      previousRelay: previous, handoffMode });
     if (!replacement) return false;
-    const deadline = Date.now() + 12_000;
+    const deadline = Date.now() + Math.max(12_000,
+      minimumConfirmationMs + (maximumOutputIdleMs ?? 0) + 5_000);
     let firstOutputAt = null;
+    let confirmationStartedAt = null;
     let outputConfirmed = false;
     while (Date.now() < deadline && relayIsRunning(replacement)) {
       if (relayIsProgressing(replacement)) {
         const outputAt = relayPlaylistMtime(replacement);
         if (Number.isFinite(outputAt)) {
-          if (firstOutputAt === null) firstOutputAt = outputAt;
-          else if (outputAt > firstOutputAt) {
-            outputConfirmed = true;
-            break;
+          if (firstOutputAt === null) {
+            firstOutputAt = outputAt;
+            confirmationStartedAt = Date.now();
+          } else if (outputAt > firstOutputAt) {
+            const confirmed = minimumConfirmationMs === 0
+              ? true
+              : privateNvrRoutineHandoffConfirmed({ confirmationStartedAt,
+                outputAdvanced: true, lastOutputAt: outputAt,
+                minimumConfirmationMs, maximumOutputIdleMs });
+            if (confirmed) {
+              outputConfirmed = true;
+              break;
+            }
           }
         }
       }
@@ -1460,15 +1479,22 @@ async function warmReplaceRelay(streamId, previous) {
   return promise;
 }
 
-async function warmReplacePrivateNvrRelay(streamId, previous) {
-  return warmReplaceRelay(streamId, previous);
+async function warmReplacePrivateNvrRelay(streamId, previous,
+  handoffMode = "SESSION_SWEEP") {
+  return warmReplaceRelay(streamId, previous,
+    handoffMode === "ROUTINE_FINITE_RESPONSE" ? {
+      handoffMode,
+      minimumConfirmationMs: PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_MS,
+      maximumOutputIdleMs: PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS
+    } : { handoffMode });
 }
 
 async function warmReplaceDirectRtspRelay(streamId, previous) {
   return warmReplaceRelay(streamId, previous);
 }
 
-async function startRelay(streamId, { warming = false, previousRelay = null } = {}) {
+async function startRelay(streamId, { warming = false, previousRelay = null,
+  handoffMode = null } = {}) {
   const source = streamSources.get(streamId);
   if (!source) return null;
   const generation = randomUUID();
@@ -1540,10 +1566,11 @@ async function startRelay(streamId, { warming = false, previousRelay = null } = 
     lastPlaylistMtime: 0, inputBytes: 0, inputMetrics: createRelayInputMetrics(),
     encoder: copyVideo ? "copy" : hardwareVideo ? "videotoolbox" : "libx264",
     controller, errorSummary: "", sessionToken, sessionEpoch, sessionKey,
-    warming, previousDirectories: [], monitor: null };
+    warming, handoffMode, previousDirectories: [], monitor: null };
   liveRelays.add(relay);
   relayLifecycle.starts += 1;
-  relayDiagnostics.set(streamId, { ...(relayDiagnostics.get(streamId) || {}), starts: (relayDiagnostics.get(streamId)?.starts || 0) + 1, last_start_at: new Date(relay.startedAt).toISOString() });
+  relayDiagnostics.set(streamId, { ...(relayDiagnostics.get(streamId) || {}), starts: (relayDiagnostics.get(streamId)?.starts || 0) + 1, last_start_at: new Date(relay.startedAt).toISOString(),
+    ...(handoffMode ? { last_handoff_mode: handoffMode } : {}) });
   if (!warming) relays.set(streamId, relay);
   if (response?.body && child.stdin) {
     void pipeWebStreamToWritable(response.body, child.stdin, (byteLength, value) => {

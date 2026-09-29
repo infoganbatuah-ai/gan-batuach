@@ -9,11 +9,15 @@ import { buildPush38GatewayFiniteStreamHandoffManifest,
   "../../services/video-gateway/push38-home-qa-gateway-finite-stream-handoff.mjs";
 import { PRIVATE_NVR_COMMON_CAUSE_HEARTBEAT_FAILURES,
   PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS,
+  PRIVATE_NVR_OUTPUT_RESCUE_INPUT_FRESH_MS,
   PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS,
   PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS,
   PRIVATE_NVR_PROACTIVE_RENEWAL_MS,
   PRIVATE_NVR_RELAY_HANDOFF_TICK_MS,
-  relayMaySurvivePrivateNvrRenewal, shouldProactivelyHandoffPrivateNvrRelay,
+  PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_MS,
+  privateNvrRelayHandoffMode, privateNvrRoutineHandoffConfirmed,
+  relayMaySurvivePrivateNvrRenewal,
+  shouldProactivelyHandoffPrivateNvrRelay,
   shouldPrioritizePrivateNvrSessionHandoff,
   shouldProactivelyRefreshPrivateNvrSession, shouldRefreshPrivateNvrSession } from
   "../../services/video-gateway/private-nvr-session-policy.mjs";
@@ -120,21 +124,40 @@ test("finite recorder responses receive an early media-only warm handoff", () =>
     startedAt: now - PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS };
   assert.equal(PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS, 2 * 60 * 1000);
   assert.equal(shouldProactivelyHandoffPrivateNvrRelay(eligible, now), true);
+  assert.equal(privateNvrRelayHandoffMode(eligible, now),
+    "ROUTINE_FINITE_RESPONSE");
   assert.equal(shouldProactivelyHandoffPrivateNvrRelay({ ...eligible,
     startedAt: now - PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS + 1 }, now), false);
   assert.equal(PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS, 12_000);
+  assert.equal(PRIVATE_NVR_OUTPUT_RESCUE_INPUT_FRESH_MS, 4_000);
+  assert.equal(PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_MS, 20_000);
   assert.equal(PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS, 10_000);
   assert.equal(shouldProactivelyHandoffPrivateNvrRelay({ ...eligible,
     recoveryStable: false,
     startedAt: now - PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS,
+    lastInputAt: now - PRIVATE_NVR_OUTPUT_RESCUE_INPUT_FRESH_MS,
     lastOutputAt: now - PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS }, now), true);
+  assert.equal(privateNvrRelayHandoffMode({ ...eligible,
+    recoveryStable: false,
+    startedAt: now - PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS,
+    lastInputAt: now - PRIVATE_NVR_OUTPUT_RESCUE_INPUT_FRESH_MS,
+    lastOutputAt: now - PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS }, now),
+  "OUTPUT_RESCUE");
   assert.equal(shouldProactivelyHandoffPrivateNvrRelay({ ...eligible,
     recoveryStable: false,
     startedAt: now - PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS,
+    lastInputAt: now - PRIVATE_NVR_OUTPUT_RESCUE_INPUT_FRESH_MS,
     lastOutputAt: now - PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS + 1 }, now), false);
   assert.equal(shouldProactivelyHandoffPrivateNvrRelay({ ...eligible,
     recoveryStable: false,
     startedAt: now - PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS,
+    lastInputAt: now - PRIVATE_NVR_OUTPUT_RESCUE_INPUT_FRESH_MS - 1,
+    lastOutputAt: now - PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS }, now), false,
+  "a recorder input pause must not be mistaken for a rendered-output defect");
+  assert.equal(shouldProactivelyHandoffPrivateNvrRelay({ ...eligible,
+    recoveryStable: false,
+    startedAt: now - PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS,
+    lastInputAt: now,
     lastOutputAt: now }, now), false,
   "bursty recorder input must not replace a relay while HLS output is current");
   assert.equal(shouldProactivelyHandoffPrivateNvrRelay({ ...eligible,
@@ -144,6 +167,21 @@ test("finite recorder responses receive an early media-only warm handoff", () =>
     lastOutputAt: now - PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS }, now), false);
   assert.equal(shouldProactivelyHandoffPrivateNvrRelay({ ...eligible,
     warming: true }, now), false);
+  assert.equal(privateNvrRoutineHandoffConfirmed({
+    confirmationStartedAt: now - 2_000, outputAdvanced: true,
+    lastOutputAt: now, now }), false,
+  "two early HLS writes must not promote a routine replacement");
+  assert.equal(privateNvrRoutineHandoffConfirmed({
+    confirmationStartedAt: now - PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_MS,
+    outputAdvanced: true,
+    lastOutputAt: now - PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS - 1,
+    now }), false,
+  "a replacement that survived the window without fresh output must not promote");
+  assert.equal(privateNvrRoutineHandoffConfirmed({
+    confirmationStartedAt: now - PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_MS,
+    outputAdvanced: true,
+    lastOutputAt: now - PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS,
+    now }), true);
   assert.match(gateway,
     /recorder's media response ends before[\s\S]*warmReplacePrivateNvrRelay/);
 });
@@ -167,7 +205,7 @@ test("heartbeat, login renewal, and media handoffs use independent bounded sched
     /if \(sessionSweep\.length\)[\s\S]*for \(const \[streamId, relay\] of sessionSweep\)[\s\S]*await warmReplacePrivateNvrRelay\(streamId, relay\)/,
     "a renewed-session sweep drains stale epochs without scheduler gaps");
   assert.match(gateway,
-    /const \[streamId, relay\] = routine\[0\][\s\S]*await warmReplacePrivateNvrRelay\(streamId, relay\)/,
+    /const \[streamId, relay, handoffMode\] = routine\[0\][\s\S]*await warmReplacePrivateNvrRelay\(streamId, relay, handoffMode\)/,
     "ordinary finite-response maintenance remains one-at-a-time");
   assert.doesNotMatch(gateway,
     /maintainPrivateNvrSessionRenewals[\s\S]{0,1000}warmReplacePrivateNvrRelays/,
@@ -175,10 +213,14 @@ test("heartbeat, login renewal, and media handoffs use independent bounded sched
   assert.match(gateway,
     /!relayIsProgressing\(previous\)[\s\S]*!relayEligibleForHandoff\(streamId, previous\)/,
     "a warm handoff must satisfy the shared stability or output-rescue gate");
-  assert.match(gateway, /startRelay\(streamId, \{ warming: true, previousRelay: previous \}\)/);
+  assert.match(gateway,
+    /startRelay\(streamId, \{ warming: true,[\s\S]*previousRelay: previous, handoffMode \}\)/);
   assert.match(gateway,
     /let firstOutputAt = null;[\s\S]*outputAt > firstOutputAt[\s\S]*outputConfirmed = true/,
   "a warm replacement must advance HLS after its first playlist write before promotion");
+  assert.match(gateway,
+    /minimumConfirmationMs: PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_MS[\s\S]*maximumOutputIdleMs: PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS/,
+  "a routine recorder handoff must survive the hard-stale window with fresh output");
   assert.match(gateway,
     /if \(!outputConfirmed \|\| !relayIsProgressing\(replacement\)[\s\S]*WARM_HANDOFF_ABORTED/,
   "an unconfirmed warm replacement must be rejected while the old relay remains authoritative");
