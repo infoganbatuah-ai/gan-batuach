@@ -8,6 +8,7 @@ import { buildPush38GatewayFiniteStreamHandoffManifest,
   PUSH38_GATEWAY_FINITE_STREAM_HANDOFF } from
   "../../services/video-gateway/push38-home-qa-gateway-finite-stream-handoff.mjs";
 import { PRIVATE_NVR_COMMON_CAUSE_HEARTBEAT_FAILURES,
+  PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS,
   PRIVATE_NVR_MINIMUM_OUTPUT_RESCUE_AGE_MS,
   PRIVATE_NVR_PROACTIVE_RELAY_HANDOFF_MS,
   PRIVATE_NVR_PROACTIVE_OUTPUT_IDLE_HANDOFF_MS,
@@ -15,7 +16,8 @@ import { PRIVATE_NVR_COMMON_CAUSE_HEARTBEAT_FAILURES,
   PRIVATE_NVR_RELAY_HANDOFF_TICK_MS,
   PRIVATE_NVR_ROUTINE_HANDOFF_CONFIRMATION_MS,
   PRIVATE_NVR_WARM_HANDOFF_REQUEST_GRACE_MS,
-  privateNvrRelayHandoffMode, privateNvrRoutineHandoffConfirmed,
+  privateNvrProvisionalHandoffAllowed, privateNvrRelayHandoffMode,
+  privateNvrRoutineHandoffConfirmed,
   relayMaySurvivePrivateNvrRenewal,
   shouldProactivelyHandoffPrivateNvrRelay,
   shouldPrioritizePrivateNvrSessionHandoff,
@@ -207,8 +209,8 @@ test("heartbeat, login renewal, and media handoffs use independent bounded sched
     /if \(sessionSweep\.length\)[\s\S]*for \(const \[streamId, relay\] of sessionSweep\)[\s\S]*await warmReplacePrivateNvrRelay\(streamId, relay\)/,
     "a renewed-session sweep drains stale epochs without scheduler gaps");
   assert.match(gateway,
-    /const \[streamId, relay, handoffMode\] = routine\[0\][\s\S]*await warmReplacePrivateNvrRelay\(streamId, relay, handoffMode\)/,
-    "ordinary finite-response maintenance remains one-at-a-time");
+    /routine\.find\([\s\S]*privateNvrProvisionalHandoffAllowed[\s\S]*await warmReplacePrivateNvrRelay\(streamId, relay, handoffMode\)/,
+    "ordinary finite-response maintenance is process-budgeted per recorder");
   assert.doesNotMatch(gateway,
     /maintainPrivateNvrSessionRenewals[\s\S]{0,1000}warmReplacePrivateNvrRelays/,
     "a slow media sweep must not block heartbeat or login renewal");
@@ -229,6 +231,15 @@ test("heartbeat, login renewal, and media handoffs use independent bounded sched
   assert.match(gateway,
     /scheduleOutputRescueProbation\(streamId, replacement, previous,[\s\S]*return true;/,
   "retained-fallback probation must not monopolize the warmup slot until the hard-stale boundary");
+  assert.equal(PRIVATE_NVR_MAX_CONCURRENT_PROBATIONS, 4);
+  assert.equal(privateNvrProvisionalHandoffAllowed({ activeProbations: 3 }), true);
+  assert.equal(privateNvrProvisionalHandoffAllowed({ activeProbations: 4 }), false);
+  assert.equal(privateNvrProvisionalHandoffAllowed({ activeProbations: 4,
+    replacingExistingProbation: true }), true,
+  "an in-probation relay may replace its own chain without increasing process count");
+  assert.match(gateway,
+    /liveRelayProcesses:[\s\S]*provisionalHandoffs:[\s\S]*maximumConcurrentProbations:/,
+  "live health must expose the process-budget evidence used by qualification");
   assert.match(gateway,
     /const handoff = relayWarmups\.get\(streamId\);[\s\S]*PRIVATE_NVR_WARM_HANDOFF_REQUEST_GRACE_MS[\s\S]*return promoted;/,
   "a playback request must await an in-flight bounded replacement before tearing down its relay");
